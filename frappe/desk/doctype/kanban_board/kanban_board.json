@@ -11,12 +11,25 @@
   "reference_doctype",
   "field_name",
   "column_break_4",
+    "is_standard",
   "private",
   "show_labels",
+  "use_kanban_v2",
   "section_break_3",
   "columns",
   "filters",
-  "fields"
+  "fields",
+  "section_break_new_kanban",
+  "title_field",
+  "show_assigned_to",
+  "show_tags_on_card",
+  "column_break_new_kanban",
+  "image_field",
+  "footer_date_field",
+  "section_break_new_kanban_fields",
+  "card_fields",
+  "preview_fields",
+  "group_by_fields"
  ],
  "fields": [
   {
@@ -51,6 +64,27 @@
    "options": "Kanban Board Column"
   },
   {
+   "description": "Fields shown on each card, in order. Set an Icon to show it on the card (label on hover); leave Icon empty to show the Label text. Leave the table empty to auto-pick.",
+   "fieldname": "card_fields",
+   "fieldtype": "Table",
+   "label": "Card Fields",
+   "options": "Kanban Board Field"
+  },
+  {
+   "description": "Fields shown in the card hover preview, in order. Icon and Label behave the same as Card Fields. Leave empty to use the doctype's preview fields, then card fields.",
+   "fieldname": "preview_fields",
+   "fieldtype": "Table",
+   "label": "Preview Fields",
+   "options": "Kanban Board Field"
+  },
+  {
+   "description": "Fields the board can group cards by (swimlanes). New boards are pre-filled with the doctype's Select fields (except the column field). Add Link fields to offer more groupings; leave empty to hide the Group button.",
+   "fieldname": "group_by_fields",
+   "fieldtype": "Table",
+   "label": "Swimlanes",
+   "options": "Kanban Board Group Field"
+  },
+  {
    "fieldname": "filters",
    "fieldtype": "Code",
    "label": "Filters",
@@ -58,11 +92,17 @@
    "read_only": 1
   },
   {
+   "default": "No",
+   "fieldname": "is_standard",
+   "fieldtype": "Select",
+   "label": "Is Standard",
+   "options": "No\nYes"
+  },
+  {
    "default": "0",
    "fieldname": "private",
    "fieldtype": "Check",
-   "label": "Private",
-   "read_only": 1
+   "label": "Private"
   },
   {
    "fieldname": "fields",
@@ -81,10 +121,68 @@
    "fieldtype": "Check",
    "label": "Show Labels",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "Open this board in the new Kanban experience. When off, the classic Kanban is used. Same List / Kanban route either way.",
+   "fieldname": "use_kanban_v2",
+   "fieldtype": "Check",
+   "label": "Use Kanban v2 (New Experience)"
+  },
+  {
+   "depends_on": "eval:doc.use_kanban_v2",
+   "description": "Layout and fields used by the new Kanban experience for this board.",
+   "fieldname": "section_break_new_kanban",
+   "fieldtype": "Section Break",
+   "label": "New Kanban"
+  },
+  {
+   "description": "Field shown as the card title. Only Name (ID) or Data fields.",
+   "fieldname": "title_field",
+   "fieldtype": "Autocomplete",
+   "label": "Title Field"
+  },
+  {
+   "default": "1",
+   "description": "Show the assignee stack and Assign control on cards and in the hover preview.",
+   "fieldname": "show_assigned_to",
+   "fieldtype": "Check",
+   "label": "Show Assigned To"
+  },
+  {
+   "default": "0",
+   "description": "Show document tags on cards (left of footer date), using the standard colored tag style.",
+   "fieldname": "show_tags_on_card",
+   "fieldtype": "Check",
+   "label": "Show Tags on Cards"
+  },
+  {
+   "fieldname": "column_break_new_kanban",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Attach Image field shown as a thumbnail before the card title.",
+   "fieldname": "image_field",
+   "fieldtype": "Autocomplete",
+   "label": "Image Field"
+  },
+  {
+   "default": "Modified",
+   "description": "Which timestamp to show in the card footer.",
+   "fieldname": "footer_date_field",
+   "fieldtype": "Select",
+   "label": "Footer Date",
+   "options": "Modified\nCreation"
+  },
+  {
+   "depends_on": "eval:doc.use_kanban_v2",
+   "fieldname": "section_break_new_kanban_fields",
+   "fieldtype": "Section Break",
+   "label": "Card and Preview Fields"
   }
  ],
  "links": [],
- "modified": "2024-03-23 16:03:28.240133",
+ "modified": "2026-08-04 14:19:45.191676",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Kanban Board",
@@ -117,6 +215,7 @@
   }
  ],
  "read_only": 1,
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
