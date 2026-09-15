@@ -187,6 +187,17 @@ frappe.ui.Tabs = class Tabs {
 		return this.active;
 	}
 
+	set_disabled(index, disabled = true) {
+		const entry = this.tabs[index];
+		if (!entry) return;
+		entry.tab.disabled = !!disabled;
+		entry.button.disabled = !!disabled;
+		if (disabled && index === this.active) {
+			const next = this.tabs.findIndex((other) => !other.tab.disabled);
+			if (next > -1) this.set_active(next);
+		}
+	}
+
 	// Slide the bar under the active tab: measure where the tab sits in
 	// the list and hand the numbers to CSS (which owns the animation).
 	position_indicator() {

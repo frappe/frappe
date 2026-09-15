@@ -3,8 +3,7 @@
 
 import GridRow from "./grid_row";
 import GridPagination from "./grid_pagination";
-
-const BULK_EDIT_CSV_HEADER_ROWS = 7; // title, labels, fieldnames, descriptions, 2 instructions, separator
+import GridImport from "./grid_import";
 
 // Static pixel column widths; legacy map migrates old 1-12 `columns`/`colsize`.
 export const GRID_MIN_COLUMN_WIDTH = 60;
@@ -154,11 +153,6 @@ export default class Grid {
 						<div class="grid-pagination">
 						</div>
 						<div class="grid-bulk-actions text-right">
-							${frappe.ui.button.html({
-								label: __("Download"),
-								size: "sm",
-								css_class: "grid-download hidden",
-							})}
 							${frappe.ui.button.html({
 								label: __("Upload"),
 								size: "sm",
@@ -1649,108 +1643,13 @@ export default class Grid {
 	}
 
 	setup_allow_bulk_edit() {
-		let me = this;
-		if (this.frm && this.frm.get_docfield(this.df.fieldname)?.allow_bulk_edit) {
-			// download
-			this.setup_download();
+		if (!this.frm || !this.frm.get_docfield(this.df.fieldname)?.allow_bulk_edit) return;
 
-			const value_formatter_map = {
-				Date: (val) => (val ? frappe.datetime.user_to_str(val) : val),
-				Int: (val) => cint(val),
-				Check: (val) => cint(val),
-				Float: (val) => flt(val),
-				Currency: (val) => flt(val),
-			};
-
-			// upload
-			frappe.flags.no_socketio = true;
-			$(this.wrapper)
-				.find(".grid-upload")
-				.removeClass("hidden")
-				.on("click", () => {
-					new frappe.ui.FileUploader({
-						as_dataurl: true,
-						allow_multiple: false,
-						restrictions: {
-							allowed_file_types: [".csv"],
-						},
-						on_success(file) {
-							const data = frappe.utils.csv_to_array(
-								frappe.utils.get_decoded_string(file.dataurl)
-							);
-							if (cint(data.length) - BULK_EDIT_CSV_HEADER_ROWS > 5000) {
-								frappe.throw(__("Cannot import table with more than 5000 rows."));
-							}
-							const fieldnames = data[2];
-							me.frm.clear_table(me.df.fieldname);
-							data.forEach((row, i) => {
-								if (i < BULK_EDIT_CSV_HEADER_ROWS) return;
-								if (!row.some((v) => v)) return;
-								const d = me.frm.add_child(me.df.fieldname);
-								row.forEach((value, ci) => {
-									const fieldname = fieldnames[ci];
-									const df = frappe.meta.get_docfield(me.df.options, fieldname);
-									if (df) {
-										d[fieldname] = value_formatter_map[df.fieldtype]
-											? value_formatter_map[df.fieldtype](value)
-											: value;
-									}
-								});
-							});
-
-							me.frm.refresh_field(me.df.fieldname);
-							frappe.msgprint({
-								message: __("Table updated"),
-								title: __("Success"),
-								indicator: "green",
-							});
-						},
-					});
-					return false;
-				});
-		}
-	}
-
-	setup_download() {
-		let title = this.df.label || frappe.model.unscrub(this.df.fieldname);
 		$(this.wrapper)
-			.find(".grid-download")
+			.find(".grid-upload")
 			.removeClass("hidden")
 			.on("click", () => {
-				const data = [
-					[__("Bulk Edit {0}", [title])],
-					[],
-					[],
-					[],
-					[__("The CSV format is case sensitive")],
-					[__("Do not edit headers which are preset in the template")],
-					["------"],
-				];
-				const docfields = [];
-				frappe.get_meta(this.df.options).fields.forEach((df) => {
-					if (frappe.model.is_value_type(df.fieldtype)) {
-						data[1].push(df.label);
-						data[2].push(df.fieldname);
-						let description = (df.description || "") + " ";
-						if (df.fieldtype === "Date")
-							description += frappe.boot.sysdefaults.date_format;
-						data[3].push(description);
-						docfields.push(df);
-					}
-				});
-
-				(this.frm.doc[this.df.fieldname] || []).forEach((d) => {
-					const row = data[2].map((fieldname, i) => {
-						let value = d[fieldname];
-						if (docfields[i].fieldtype === "Date" && value) {
-							value = frappe.datetime.str_to_user(value);
-						}
-						return value || "";
-					});
-					data.push(row);
-				});
-
-				frappe.tools.downloadify(data, null, title);
+				new GridImport(this).show();
 				return false;
 			});
 	}
