@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import datetime
+import sqlite3
 from math import ceil
 from random import choice
 from unittest.mock import patch
@@ -2281,10 +2282,7 @@ class TestConcurrency(IntegrationTestCase):
 			n1.save()
 
 		with self.secondary_connection():
-			expected_error = (
-				frappe.QueryDeadlockError if frappe.db.db_type == "sqlite" else frappe.QueryTimeoutError
-			)
-			self.assertRaises(expected_error, frappe.delete_doc, note.doctype, note.name)
+			self.assertRaises(frappe.QueryTimeoutError, frappe.delete_doc, note.doctype, note.name)
 
 	@run_only_if(db_type_is.SQLITE)
 	def test_stale_sqlite_snapshot_cannot_overwrite_a_newer_value(self):
@@ -2727,6 +2725,26 @@ class TestMariaDBExceptionUtil(IntegrationTestCase):
 		unrelated = _E()
 		unrelated.pgcode = "12345"
 		self.assertFalse(PostgresExceptionUtil.is_deadlocked(unrelated))
+
+
+class TestSQLiteExceptionUtil(UnitTestCase):
+	def test_busy_snapshot_is_a_deadlock(self):
+		from frappe.database.sqlite.database import SQLiteExceptionUtil
+
+		error = sqlite3.OperationalError("database is locked")
+		error.sqlite_errorcode = sqlite3.SQLITE_BUSY_SNAPSHOT
+
+		self.assertTrue(SQLiteExceptionUtil.is_deadlocked(error))
+		self.assertFalse(SQLiteExceptionUtil.is_timedout(error))
+
+	def test_plain_busy_is_a_timeout(self):
+		from frappe.database.sqlite.database import SQLiteExceptionUtil
+
+		error = sqlite3.OperationalError("database is locked")
+		error.sqlite_errorcode = sqlite3.SQLITE_BUSY
+
+		self.assertFalse(SQLiteExceptionUtil.is_deadlocked(error))
+		self.assertTrue(SQLiteExceptionUtil.is_timedout(error))
 
 
 class TestAdvisoryLockMariaDB(IntegrationTestCase):
