@@ -60,9 +60,43 @@ def get_report_link_titles(columns, rows) -> dict[str, str]:
 	return titles
 
 
+def set_link_titles_in_rows(columns, rows) -> list:
+	"""Copy of `rows` with Link values replaced by their configured titles.
+
+	For exported files, which are read rather than re-imported. A `name` column is left
+	alone, so the export keeps an identifier usable for lookups.
+	"""
+	link_columns = [
+		(index, fieldname, doctype)
+		for index, fieldname, doctype in get_link_columns(columns or [])
+		if fieldname != "name"
+	]
+
+	titles_by_doctype = {}
+	for doctype, names in get_names_by_doctype(link_columns, rows or []).items():
+		if title_field := get_link_title_field(doctype):
+			titles_by_doctype[doctype] = get_link_titles(doctype, title_field, names)
+
+	titled_rows = []
+	for row in rows or []:
+		row = dict(row) if isinstance(row, dict) else list(row)
+		for index, fieldname, doctype in link_columns:
+			titles = titles_by_doctype.get(doctype)
+			name = get_row_value(row, fieldname, index)
+			if titles and name:
+				row[fieldname if isinstance(row, dict) else index] = titles.get(name) or name
+		titled_rows.append(row)
+	return titled_rows
+
+
 def get_link_names_by_doctype(columns, rows) -> dict[str, set]:
 	"""Distinct non-empty values of every Link column, grouped by the doctype they link to."""
-	link_columns = [
+	return get_names_by_doctype(get_link_columns(columns or []), rows or [])
+
+
+def get_link_columns(columns) -> list[tuple[int, str, str]]:
+	"""Position, fieldname and linked doctype of every Link column."""
+	return [
 		(index, column["fieldname"], column["options"])
 		for index, column in enumerate(columns)
 		if isinstance(column, dict)
@@ -71,13 +105,18 @@ def get_link_names_by_doctype(columns, rows) -> dict[str, set]:
 		and column.get("options")
 	]
 
+
+def get_names_by_doctype(link_columns, rows) -> dict[str, set]:
 	names_by_doctype = {}
 	for row in rows:
 		for index, fieldname, doctype in link_columns:
-			if isinstance(row, dict):
-				name = row.get(fieldname)
-			else:
-				name = row[index] if index < len(row) else None
-			if name:
+			if name := get_row_value(row, fieldname, index):
 				names_by_doctype.setdefault(doctype, set()).add(name)
 	return names_by_doctype
+
+
+def get_row_value(row, fieldname, index):
+	"""Report rows are dicts, except in the prepared and export paths where they stay lists."""
+	if isinstance(row, dict):
+		return row.get(fieldname)
+	return row[index] if index < len(row) else None

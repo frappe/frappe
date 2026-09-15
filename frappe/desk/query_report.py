@@ -12,7 +12,7 @@ import frappe.desk.reportview
 from frappe import _
 from frappe.core.utils import ljust_list
 from frappe.desk.form.load import get_attachments
-from frappe.desk.link_title import get_report_link_titles, send_link_titles
+from frappe.desk.link_title import get_report_link_titles, send_link_titles, set_link_titles_in_rows
 from frappe.desk.reportview import clean_params, parse_json
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
@@ -508,6 +508,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 		data["result"] = filtered_result
 
 	format_fields(data, file_format_type)
+	data["result"] = set_link_titles_in_rows(data.columns, data.result)
 
 	xlsx_data, column_widths, styles = build_xlsx_data(
 		data,

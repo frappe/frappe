@@ -14,7 +14,7 @@ import frappe
 import frappe.permissions
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
-from frappe.desk.link_title import get_link_title_field, get_link_titles
+from frappe.desk.link_title import set_link_titles_in_rows
 from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
 from frappe.model.base_document import get_controller
 from frappe.model.qb_query import DatabaseQuery
@@ -527,7 +527,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 		ret = append_totals_row(ret)
 
 	fields_info = get_field_info(db_query.fields, doctype)
-	ret = get_export_rows_with_link_titles(ret, fields_info)
+	ret = set_link_titles_in_rows(fields_info, ret)
 
 	labels = [info["label"] for info in fields_info]
 	sr_label = _("Sr")
@@ -576,26 +576,6 @@ def _export_query(form_params, csv_params, populate_response=True):
 		return title, file_extension, content
 
 	provide_binary_file(_(title), file_extension, content)
-
-
-def get_export_rows_with_link_titles(rows, fields_info):
-	"""Show configured Link titles instead of document names, like Report Builder does on screen."""
-	rows = [list(row) for row in rows]
-	link_columns = {}
-	for index, field in enumerate(fields_info):
-		if field["fieldtype"] == "Link" and field.get("options"):
-			link_columns.setdefault(field["options"], []).append(index)
-
-	for doctype, indices in link_columns.items():
-		title_field = get_link_title_field(doctype)
-		if not title_field:
-			continue
-		names = {row[index] for row in rows for index in indices if row[index]}
-		titles = get_link_titles(doctype, title_field, names)
-		for row in rows:
-			for index in indices:
-				row[index] = titles.get(row[index]) or row[index]
-	return rows
 
 
 def _reorder_by_visible_names(ret, fields, doctype, visible_names):

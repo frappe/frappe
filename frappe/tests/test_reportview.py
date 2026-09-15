@@ -5,12 +5,12 @@ import json
 from unittest.mock import patch
 
 import frappe
+from frappe.desk.link_title import set_link_titles_in_rows
 from frappe.desk.reportview import (
 	_reorder_by_visible_names,
 	export_query,
 	extract_fieldnames,
 	get,
-	get_export_rows_with_link_titles,
 	get_field_info,
 	get_filter_dashboard_data,
 	get_stats,
@@ -275,7 +275,9 @@ class TestReportview(IntegrationTestCase):
 		with self.set_user("test2@example.com"):
 			readable = self.make_todo("Readable export title")
 			rows = [(private.name,), ("missing-export-link",), (None,), (readable.name,)]
-			exported = get_export_rows_with_link_titles(rows, [{"fieldtype": "Link", "options": "ToDo"}])
+			exported = set_link_titles_in_rows(
+				[{"fieldname": "todo", "fieldtype": "Link", "options": "ToDo"}], rows
+			)
 
 			self.assertEqual(
 				exported,
