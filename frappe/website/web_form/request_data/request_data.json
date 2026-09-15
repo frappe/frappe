@@ -5,6 +5,10 @@
  "allow_incomplete": 0,
  "allow_multiple": 0,
  "allow_print": 0,
+<<<<<<< HEAD
+=======
+ "anonymous": 0,
+>>>>>>> 8c44a06840 (fix(webform): Request data webform pointing to stale request to delete data link)
  "apply_document_permissions": 0,
  "breadcrumbs": "",
  "button_label": "Request Data",
@@ -14,13 +18,17 @@
  "docstatus": 0,
  "doctype": "Web Form",
  "idx": 0,
+<<<<<<< HEAD
  "introduction_text": "<div class=\"ql-editor read-mode\"><p>Request a file containing your personally identifiable information (PII) that is saved on our system. The file will be in JSON format and is sent to you by email. If you would like to have your PII deleted from our system, please make a <a href=\"/request-to-delete-data\" rel=\"noopener noreferrer\">request to delete data</a>.</p></div>",
  "is_multi_step_form": 0,
+=======
+ "introduction_text": "<div class=\"ql-editor read-mode\"><p>Request a file containing your personally identifiable information (PII) that is saved on our system. The file will be in JSON format and is sent to you by email. If you would like to have your PII deleted from our system, please make a <a href=\"/request-for-account-deletion\" rel=\"noopener noreferrer\">request to delete data</a>.</p></div>",
+>>>>>>> 8c44a06840 (fix(webform): Request data webform pointing to stale request to delete data link)
  "is_standard": 1,
  "list_columns": [],
  "login_required": 0,
  "max_attachment_size": 0,
- "modified": "2026-07-12 11:09:38.086147",
+ "modified": "2026-08-19 13:26:08.005491",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "request-data",
