@@ -148,11 +148,14 @@
 							</div>
 							<div class="flex shrink-0 items-center gap-2">
 								<Button v-if="!isEmpty" label="Discard" @click="reset" />
+								<!-- The spinner trails the label; Button's own `loading` would lead it. -->
 								<Button
 									variant="solid"
 									:label="submitLabel"
 									:disabled="isDisabled"
-									:loading="submitting"
+									:icon-right="submitting ? Spinner : undefined"
+									:class="{ 'pointer-events-none': submitting }"
+									:aria-busy="submitting || undefined"
 									@click="submit"
 								/>
 							</div>
@@ -167,7 +170,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
 import { useScroll } from "@vueuse/core";
-import { Button, toast } from "frappe-ui";
+import { Button, Spinner, toast } from "frappe-ui";
 import LucideFile from "~icons/lucide/file";
 import LucideFileArchive from "~icons/lucide/file-archive";
 import LucideFileAudio from "~icons/lucide/file-audio";
