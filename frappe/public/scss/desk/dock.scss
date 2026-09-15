@@ -210,6 +210,22 @@
 			color: var(--ink-gray-8);
 		}
 
+		// The row whose flyout panel is on screen. It sits over both of the states above, so it is
+		// written after them and matched with its own `:hover` as well: the hover rule above carries
+		// a `:not()` and would otherwise outweigh this on the pointer.
+		//
+		// A step past hover's surface-gray-2, and flat where active is a lit card with a shadow.
+		// The direction is the point: hover lifts a row towards you and active raises it off the
+		// rail, so a row being held down by the panel it opened has to go the other way, into the
+		// rail rather than out of it. Which is also why it is the only one of the three that reads
+		// at a glance as belonging to the panel beside it rather than to the row under the pointer.
+		&.selected,
+		&.selected:hover {
+			background: var(--surface-gray-3);
+			box-shadow: none;
+			color: var(--ink-gray-8);
+		}
+
 		// unread indicator — a small dot on the icon's top-right corner (mirrors <RailItemBadge>
 		// dot). It marks the bell, not the row, so it hangs off the cell rather than the row's far
 		// end, a label's width away from the thing it is about.

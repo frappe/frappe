@@ -76,6 +76,13 @@ frappe.ui.Dock = class Dock {
 		this.$user = this.$dock.find(".dock-user");
 		this.render_shortcuts();
 		this.render_user();
+
+		// The selected row is a fact about the panel, not about the route, so it is kept in step
+		// with the panel rather than with refresh(). Namespaced and dropped first, the way the
+		// sidebar's own document handlers are, so a rebuilt rail does not stack another.
+		$(document)
+			.off(".dock-selected")
+			.on("sidebar-expand.dock-selected", () => this.sync_selected());
 	}
 
 	// Icon shortcuts pinned directly under the app logo: search and notifications, replacing the
@@ -344,6 +351,40 @@ frappe.ui.Dock = class Dock {
 
 		// The rows are new nodes, so whatever `apply_collapsed` put on the old ones is gone.
 		this.sync_row_tooltips();
+		this.sync_selected();
+	}
+
+	// The rail's third row state, after hover and active.
+	//
+	// Hover is a pointer passing over a row, active is where you are, and this is which row the
+	// flyout panel beside the rail belongs to. They are three different questions, which is why a
+	// row can be active without being selected -- the panel closes on the next click elsewhere and
+	// the row you are still on stays active -- and selected without being active, since opening a
+	// shell's panel is not yet going anywhere in it.
+	//
+	// Which row that is: the one that opened the panel, remembered on click, because several of an
+	// app's entries can share a shell and only one of them was asked for. Failing that -- the panel
+	// was brought back by the rail's edge handle or the keyboard, with no row involved -- the row
+	// that names the shell on screen, so a panel that is out is never out on its own.
+	sync_selected() {
+		let showing = !!this.sidebar.sidebar_expanded;
+		// The panel is down, so nothing is selected and the click that opened it is spent. Leaving
+		// the key behind would re-light that row the next time the panel came back by any route.
+		if (!showing) this.selected_key = null;
+
+		let module = this.sidebar.current_module;
+		this.$items.find(".dock-item").each((_, el) => {
+			let $item = $(el);
+			let selected = this.selected_key
+				? $item.attr("data-dock-key") === this.selected_key
+				: !!module && $item.attr("data-dock-shell") === module;
+			// The class is only paint. Every row opens the panel, so every row is a disclosure
+			// button, and `aria-expanded` is what tells a screen reader which one the open panel
+			// belongs to. Set on all of them, false included, so each is announced as a trigger.
+			$item
+				.toggleClass("selected", showing && selected)
+				.attr("aria-expanded", String(showing && selected));
+		});
 	}
 
 	// One rail button, for either kind of entry. A pinned workspace needs no markup of its own,
@@ -355,16 +396,32 @@ frappe.ui.Dock = class Dock {
 		let icon = this.entry_icon(entry.icon, label);
 
 		let is_active = this.sidebar.is_active_entry(entry);
+		// Two identities, for the two ways sync_selected finds its row. The key is the whole
+		// destination, so it tells apart two rows that open different pages of one shell; the shell
+		// is only on the rows that name one, since a workspace row is a destination inside a shell
+		// rather than the shell itself, and several of them can sit under the same one.
+		let key = this.sidebar.dock_key(entry);
+		let shell = entry.link_type === "Sidebar" ? entry.module : null;
 		let $item = $(`<button
 			class="dock-item ${is_active ? "active" : ""}"
 			aria-label="${frappe.utils.escape_html(label)}"
+			data-dock-key="${frappe.utils.escape_html(key)}"
+			${shell ? `data-dock-shell="${frappe.utils.escape_html(shell)}"` : ""}
 			${is_active ? 'aria-current="page"' : ""}
 		>
 			<span class="dock-item-icon">${icon}</span>
 			<span class="dock-item-label">${frappe.utils.escape_html(label)}</span>
 		</button>`);
 
-		$item.on("click", () => this.sidebar.open_dock_entry(entry));
+		$item.on("click", () => {
+			// Recorded before the panel opens, so the `sidebar-expand` that opening fires already
+			// knows whose panel it is.
+			this.selected_key = key;
+			this.sidebar.open_dock_entry(entry);
+			// A row that only names a shell navigates nowhere, so nothing else will call the rail
+			// back; one that travels lands here first and re-syncs on the route change anyway.
+			this.sync_selected();
+		});
 		return $item;
 	}
 };
