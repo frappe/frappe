@@ -45,6 +45,7 @@ jobs:
       NODE_ENV: production
       ALL_TESTS: ${{ needs.discover.outputs.tests }}
       SHARD_INDEX: ${{ matrix.shard }}
+      FRAPPE_TEST_SMTP_SERVER: 0
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.discover.outputs.matrix) }}
