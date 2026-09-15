@@ -12,6 +12,7 @@ import frappe.desk.reportview
 from frappe import _
 from frappe.core.utils import ljust_list
 from frappe.desk.form.load import get_attachments
+from frappe.desk.link_title import get_report_link_titles, send_link_titles
 from frappe.desk.reportview import clean_params, parse_json
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
@@ -329,6 +330,8 @@ def _run(
 
 	if sbool(are_default_filters) and report.get("custom_filters"):
 		result["custom_filters"] = report.custom_filters
+
+	send_link_titles(get_report_link_titles(result.get("columns"), result.get("result")))
 
 	return result
 
