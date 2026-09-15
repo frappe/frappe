@@ -19,7 +19,12 @@ from ldap3.utils.hashed import hashed
 import frappe
 from frappe import _, safe_encode
 from frappe.model.document import Document
-from frappe.twofactor import authenticate_for_2factor, confirm_otp_token, should_run_2fa
+from frappe.twofactor import (
+	authenticate_for_2factor,
+	confirm_otp_token,
+	get_cached_user_pass,
+	should_run_2fa,
+)
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.user.user import User
@@ -407,13 +412,21 @@ class LDAPSettings(Document):
 def login():
 	# LDAP LOGIN LOGIC
 	args = frappe.form_dict
+
 	ldap: LDAPSettings = frappe.get_doc("LDAP Settings")
 
-	user = ldap.authenticate(frappe.as_unicode(args.usr), frappe.as_unicode(args.pwd))
+	if args.get("otp") and args.get("tmp_id"):
+		cached_user, cached_pwd = get_cached_user_pass()
+		if not cached_user or not cached_pwd:
+			frappe.throw(_("Invalid or expired login attempt."), frappe.AuthenticationError)
+		user = ldap.authenticate(frappe.as_unicode(cached_user), frappe.as_unicode(cached_pwd))
+	else:
+		user = ldap.authenticate(frappe.as_unicode(args.usr), frappe.as_unicode(args.pwd))
 
 	frappe.local.login_manager.user = user.name
-	if should_run_2fa(user.name):
-		authenticate_for_2factor(user.name)
+
+	if should_run_2fa(frappe.local.login_manager.user):
+		authenticate_for_2factor(frappe.local.login_manager.user)
 		if not confirm_otp_token(frappe.local.login_manager):
 			return False
 
