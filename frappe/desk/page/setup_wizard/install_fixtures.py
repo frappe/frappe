@@ -51,8 +51,9 @@ def update_salutations():
 
 
 def add_unsubscribe():
+	# Administrator is deliberately absent: it has to be able to receive transactional
+	# auth mail (2FA enrolment, OTP secret reset).
 	for unsubscribe in [
-		{"email": "admin@example.com", "global_unsubscribe": 1},
 		{"email": "guest@example.com", "global_unsubscribe": 1},
 	]:
 		if not frappe.get_all("Email Unsubscribe", filters=unsubscribe):

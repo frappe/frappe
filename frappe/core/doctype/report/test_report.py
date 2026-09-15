@@ -193,7 +193,7 @@ class TestReport(IntegrationTestCase):
 			{
 				"name": "Administrator",
 				"user_type": "System User",
-				"email": "admin@example.com",
+				"email": "admin@frappe.local",
 			},
 			admin_dict,
 		)
@@ -229,7 +229,7 @@ class TestReport(IntegrationTestCase):
 			{
 				"name": "Administrator",
 				"user_type": "System User",
-				"email": "admin@example.com",
+				"email": "admin@frappe.local",
 			},
 			admin_dict,
 		)

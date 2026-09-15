@@ -11,6 +11,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.twofactor import (
 	ExpiredLoginException,
 	authenticate_for_2factor,
+	clear_default,
 	confirm_otp_token,
 	get_cached_user_pass,
 	get_default,
@@ -74,6 +75,20 @@ class TestTwoFactor(IntegrationTestCase):
 		verification_obj = process_2fa_for_email(self.user, token, otp_secret, "Frappe")
 		self.assertFalse(verification_obj["setup"])
 		self.assertFalse(verification_obj["prompt"])
+
+	def test_2fa_mail_reaches_administrator(self):
+		"""Administrator must be mailable, or enabling 2FA locks the account out of /login."""
+		admin_email = frappe.db.get_value("User", "Administrator", "email")
+		self.assertFalse(
+			frappe.db.exists("Email Unsubscribe", {"email": admin_email, "global_unsubscribe": 1}),
+			f"{admin_email} is globally unsubscribed, 2FA enrolment mail would be silently dropped",
+		)
+
+		self.addCleanup(clear_default, "Administrator_otpsecret")
+		otp_secret = get_otpsecret_for_("Administrator")
+		token = int(pyotp.TOTP(otp_secret).now())
+		verification_obj = process_2fa_for_email("Administrator", token, otp_secret, "Frappe")
+		self.assertTrue(verification_obj["setup"])
 
 	def test_authenticate_for_2factor(self):
 		"""Verification obj and tmp_id should be set in frappe.local."""

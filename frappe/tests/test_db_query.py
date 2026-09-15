@@ -382,7 +382,7 @@ class TestDBQuery(IntegrationTestCase):
 			fields=["name", "allocated_to.email as allocated_user_email"],
 			limit=1,
 		)
-		self.assertEqual(result[0].allocated_user_email, "admin@example.com")
+		self.assertEqual(result[0].allocated_user_email, "admin@frappe.local")
 		todo.delete()
 
 	def test_autoincrement_link_field_join(self):

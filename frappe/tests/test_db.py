@@ -150,7 +150,7 @@ class TestDB(IntegrationTestCase):
 
 		# Test with list of fields and cache=True
 		result = frappe.db.get_value("User", "Administrator", ["name", "email"], cache=True)
-		self.assertEqual(result, ("Administrator", "admin@example.com"))
+		self.assertEqual(result, ("Administrator", "admin@frappe.local"))
 		# Verify cache hit - second call should not execute any queries
 		with self.assertQueryCount(0):
 			cached_result = frappe.db.get_value("User", "Administrator", ["name", "email"], cache=True)

@@ -140,7 +140,8 @@ def get_user_info(users, field="email"):
 	info_list = []
 	for user in users:
 		user_info, enabled = frappe.db.get_value("User", user.get("user_name"), [field, "enabled"])
-		if enabled and user_info not in ["admin@example.com", "guest@example.com"]:
+		# Guest never receives mail; Administrator does, so it is not skipped here.
+		if enabled and user_info != "guest@example.com":
 			info_list.append(user_info)
 	return info_list
 

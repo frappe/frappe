@@ -80,7 +80,11 @@ def install_basic_docs():
 			"doctype": "User",
 			"name": "Administrator",
 			"first_name": "Administrator",
-			"email": "admin@example.com",
+			# Not `admin@example.com`: that address was globally unsubscribed by
+			# `install_fixtures.add_unsubscribe()`, which silently dropped every mail to
+			# Administrator, 2FA enrolment and OTP secret reset included. `.local` keeps it a
+			# placeholder an operator can point a catch-all at, without blackholing it.
+			"email": "admin@frappe.local",
 			"enabled": 1,
 			"is_admin": 1,
 			"roles": [{"role": "Administrator"}],
