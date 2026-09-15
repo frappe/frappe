@@ -1777,7 +1777,9 @@ class Engine:
 		if condition := self.get_permission_conditions(self.permission_doctype, self.permission_table):
 			self.query = self.query.where(condition)
 
-	def get_permission_conditions(self, doctype: str, table: Table) -> Criterion | None:
+	def get_permission_conditions(
+		self, doctype: str, table: Table, *, scope_hook_conditions: bool = False
+	) -> Criterion | None:
 		role_permissions = frappe.permissions.get_role_permissions(doctype, user=self.user)
 		has_role_permission = role_permissions.get("read") or role_permissions.get("select")
 
@@ -1799,7 +1801,12 @@ class Engine:
 		elif user_perm_conditions := self.get_user_permission_conditions(doctype, table):
 			conditions.extend(user_perm_conditions)
 
-		conditions.extend(self.get_permission_query_conditions(doctype))
+		hook_conditions = self.get_permission_query_conditions(doctype)
+		if scope_hook_conditions:
+			hook_conditions = [
+				self._scope_hook_condition(condition, doctype, table) for condition in hook_conditions
+			]
+		conditions.extend(hook_conditions)
 
 		if not conditions:
 			# no conditions to apply, all documents are accessible
@@ -1814,6 +1821,15 @@ class Engine:
 			where_condition |= table.name.isin(shared_docs)
 
 		return where_condition
+
+	def _scope_hook_condition(self, condition: "Criterion", doctype: str, table: Table) -> "Criterion":
+		"""Re-point a permission condition from hooks at `table`.
+
+		Hooks and server scripts build their condition against the real table, as raw SQL
+		or as a query builder criterion. Either way that table is out of scope once it is
+		joined under an alias, so match names through a subquery, where it still resolves."""
+		source = frappe.qb.DocType(doctype)
+		return table.name.isin(frappe.qb.from_(source).select(source.name).where(condition))
 
 	def get_queried_tables(self) -> list[str]:
 		"""Extract all table names involved in the current query."""
@@ -2317,28 +2333,30 @@ class LinkTableField(DynamicTableField):
 	) -> None:
 		super().__init__(doctype, fieldname, parent_doctype, alias=alias)
 		self.link_fieldname = link_fieldname
-		self.table = frappe.qb.DocType(self.doctype)
+		# Each link field joins the target doctype separately: two Link columns pointing
+		# at the same doctype resolve to different rows.
+		self.table = frappe.qb.DocType(self.doctype).as_(link_fieldname)
 		self.field = self.table[self.fieldname]
 
 	def apply_select(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
-		table = frappe.qb.DocType(self.doctype)
 		query = self.apply_join(query, engine=engine)
-		return query.select(getattr(table, self.fieldname).as_(self.alias or None))
+		return query.select(getattr(self.table, self.fieldname).as_(self.alias or None))
 
 	def apply_join(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
-		table = frappe.qb.DocType(self.doctype)
 		main_table = frappe.qb.DocType(self.parent_doctype)
-		if not query.is_joined(table):
-			link_name = _cast_autoincrement_name(table.name, self.doctype)
+		if not query.is_joined(self.table):
+			link_name = _cast_autoincrement_name(self.table.name, self.doctype)
 			clause = link_name == getattr(main_table, self.link_fieldname)
 
 			if engine and engine.apply_permissions:
-				if condition := engine.get_permission_conditions(self.doctype, table):
+				if condition := engine.get_permission_conditions(
+					self.doctype, self.table, scope_hook_conditions=True
+				):
 					clause &= condition
 
-			query = query.left_join(table).on(clause)
+			query = query.left_join(self.table).on(clause)
 			if engine is not None:
-				engine._joined_link_tables.append(table)
+				engine._joined_link_tables.append(self.table)
 
 		return query
 
