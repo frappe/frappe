@@ -64,9 +64,10 @@ def _display_value(value: Any) -> str:
 	return str(value)[:DISPLAY_VALUE_CHARS]
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ToolContext:
-	"""Runtime state injected into a tool call by the loop; never seen by the model."""
+	"""Runtime state injected into a tool call by the loop; never seen by the model.
+	Keyword-only, so a field can be added beside the ones it belongs with."""
 
 	cwd: str = "."
 	# Empty preserves the local-development default: unrestricted filesystem access.

@@ -84,6 +84,7 @@ class SessionStore:
 	def __init__(
 		self,
 		data_dir: str,
+		*,
 		event_sink: Callable[[str, dict], None] | None = None,
 		allowed_roots: builtins.list[str] | None = None,
 		ignore_hidden_files: bool = False,
