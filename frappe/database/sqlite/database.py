@@ -37,6 +37,7 @@ from frappe.database.utils import FallBackDateTimeStr, convert_backtick_identifi
 from frappe.utils import get_datetime, get_table_name, now
 
 _TRANSPILABLE_STATEMENTS = (exp.Select, exp.Insert, exp.Update, exp.Delete, exp.Union)
+DEFAULT_BUSY_TIMEOUT_SECONDS = 5
 
 
 class SequenceGeneratorLimitExceeded(sqlite3.Error):
@@ -58,11 +59,13 @@ class SQLiteExceptionUtil:
 
 	@staticmethod
 	def is_deadlocked(e: sqlite3.Error) -> bool:
-		return "database is locked" in str(e)
+		return getattr(e, "sqlite_errorcode", None) == sqlite3.SQLITE_BUSY_SNAPSHOT
 
-	@staticmethod
-	def is_timedout(e: sqlite3.Error) -> bool:
-		return "database is locked" in str(e)
+	@classmethod
+	def is_timedout(cls, e: sqlite3.Error) -> bool:
+		return not cls.is_deadlocked(e) and (
+			getattr(e, "sqlite_errorcode", None) == sqlite3.SQLITE_BUSY or "database is locked" in str(e)
+		)
 
 	@staticmethod
 	def is_read_only_mode_error(e: sqlite3.Error) -> bool:
@@ -157,7 +160,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		pragmas = {
 			"journal_mode": "WAL",
 			"synchronous": "NORMAL",
-			"busy_timeout": 5000,  # in milliseconds
+			"busy_timeout": DEFAULT_BUSY_TIMEOUT_SECONDS * 1000,
 		}
 		cursor = conn.cursor()
 		for pragma, value in pragmas.items():
@@ -175,9 +178,13 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 				f"file:{db_path}?mode=ro",
 				uri=True,
 				detect_types=sqlite3.PARSE_DECLTYPES,
-				timeout=15,
+				timeout=DEFAULT_BUSY_TIMEOUT_SECONDS,
 			)
-		return sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES, timeout=15)
+		return sqlite3.connect(
+			db_path,
+			detect_types=sqlite3.PARSE_DECLTYPES,
+			timeout=DEFAULT_BUSY_TIMEOUT_SECONDS,
+		)
 
 	def get_db_path(self):
 		return Path(frappe.get_site_path()) / "db" / f"{self.cur_db_name}.db"
