@@ -1,4 +1,5 @@
 import asyncio
+import importlib
 import inspect
 import os
 
@@ -13,9 +14,10 @@ def _ctx(tmp_path, **kw) -> ToolContext:
 
 
 def test_registry_keys():
-	assert set(BUILTIN_TOOLS) == {"bash", "read", "write", "edit", "grep"}
+	assert set(BUILTIN_TOOLS) == {"bash", "read", "read_file", "write", "edit", "grep"}
 	assert BUILTIN_TOOLS["bash"].requires_confirmation is True
 	assert BUILTIN_TOOLS["read"].requires_confirmation is False
+	assert BUILTIN_TOOLS["read_file"].parameters == BUILTIN_TOOLS["read"].parameters
 
 
 async def test_write_then_read_roundtrip(tmp_path):
@@ -91,6 +93,48 @@ async def test_path_tools_allow_any_configured_root(tmp_path):
 	result = await read(path=str(shared / "context.txt"), ctx=ctx)
 
 	assert result.content == "shared context"
+
+
+async def test_hidden_paths_remain_available_by_default(tmp_path):
+	secret = tmp_path / ".secret"
+	secret.write_text("needle")
+	ctx = _ctx(tmp_path, allowed_roots=(str(tmp_path),))
+
+	assert (await read(path=".secret", ctx=ctx)).content == "needle"
+
+
+@pytest.mark.parametrize("use_ripgrep", [True, False], ids=["ripgrep", "grep"])
+async def test_hidden_paths_can_be_ignored(tmp_path, monkeypatch, use_ripgrep):
+	(tmp_path / "visible.txt").write_text("needle visible")
+	hidden_dir = tmp_path / ".private"
+	hidden_dir.mkdir()
+	(hidden_dir / "secret.txt").write_text("needle hidden")
+	(tmp_path / ".secret").write_text("needle hidden")
+	ctx = _ctx(tmp_path, allowed_roots=(str(tmp_path),), ignore_hidden_files=True)
+
+	with pytest.raises(PermissionError, match="outside the configured allowed roots"):
+		await read(path=".private/secret.txt", ctx=ctx)
+
+	module = importlib.import_module("flow_harness.tools.builtins.grep")
+	rg = module.shutil.which("rg")
+	if use_ripgrep and rg is None:
+		pytest.skip("ripgrep is not installed")
+	monkeypatch.setattr(module.shutil, "which", lambda _name: rg if use_ripgrep else None)
+	result = await grep(pattern="needle", ctx=ctx)
+	assert "visible.txt" in result.content
+	assert ".private" not in result.content
+	assert ".secret" not in result.content
+
+
+async def test_hidden_symlink_targets_are_ignored(tmp_path):
+	hidden_dir = tmp_path / ".private"
+	hidden_dir.mkdir()
+	(hidden_dir / "secret.txt").write_text("secret")
+	(tmp_path / "visible-link").symlink_to(hidden_dir, target_is_directory=True)
+	ctx = _ctx(tmp_path, allowed_roots=(str(tmp_path),), ignore_hidden_files=True)
+
+	with pytest.raises(PermissionError, match="outside the configured allowed roots"):
+		await read(path="visible-link/secret.txt", ctx=ctx)
 
 
 async def test_read_missing_file(tmp_path):

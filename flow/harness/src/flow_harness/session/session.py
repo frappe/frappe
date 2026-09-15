@@ -192,6 +192,7 @@ class Session:
 		event_sink: Callable[[str, dict], None] | None = None,
 		credential_store: CredentialStore | None = None,
 		allowed_roots: tuple[str, ...] = (),
+		ignore_hidden_files: bool = False,
 		attachment_store: AttachmentStore | None = None,
 		skill_catalog: SkillCatalog | None = None,
 		server_tools: dict[str, Tool] | None = None,
@@ -206,6 +207,7 @@ class Session:
 		self.event_sink = event_sink
 		self.credential_store = credential_store or CredentialStore(server_config.CREDENTIALS_PATH)
 		self.allowed_roots = allowed_roots
+		self.ignore_hidden_files = ignore_hidden_files
 		self.attachment_store = attachment_store
 		self.skill_catalog = skill_catalog or SkillCatalog()
 		self.server_tools = server_tools
@@ -528,6 +530,7 @@ class Session:
 			credential_id=self.credential_id,
 			reasoning_effort=self.reasoning_effort,
 			allowed_roots=self.allowed_roots,
+			ignore_hidden_files=self.ignore_hidden_files,
 			read_only_roots=tuple(dict.fromkeys(skill.base_dir for skill in self.skill_catalog.skills)),
 			session_id=self.id,
 			model=model,

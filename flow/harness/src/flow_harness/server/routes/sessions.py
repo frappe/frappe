@@ -79,6 +79,7 @@ class ConfigPatchRequest(BaseModel):
 	model_config = ConfigDict(extra="forbid")
 
 	auto_approve: bool | None = None
+	tools: list[str] | None = None
 	client_tools: list[dict] | None = None
 	confirm_tools: list[str] | None = None
 	title: str | None = Field(default=None, min_length=1, max_length=200)
@@ -309,7 +310,7 @@ def create_sessions_router(
 
 	@router.patch("/sessions/{sid}/config")
 	async def patch_config(request: Request, sid: str, req: ConfigPatchRequest):
-		# Confirmation changes apply at the next tool gate; schemas apply to later runs.
+		# Confirmation changes apply at the next tool gate; tools apply to later runs.
 		store = resolve_store(request)
 		session = _get(store, sid)
 		if (req.client_tools is None) != (req.confirm_tools is None):
@@ -317,6 +318,11 @@ def create_sessions_router(
 				status_code=400, detail="client_tools and confirm_tools must be patched together"
 			)
 		changes: dict[str, object] = {}
+		server_tools = None
+		if req.tools is not None:
+			candidate = session.config.model_copy(update={"tools": req.tools})
+			server_tools = store.resolve_tools(candidate)
+			changes["tools"] = req.tools
 		if req.client_tools is not None:
 			changes["client_tools"] = req.client_tools
 			changes["confirm_tools"] = req.confirm_tools or []
@@ -329,13 +335,17 @@ def create_sessions_router(
 		if not changes:
 			return {"config": session.config.redacted()}
 		previous = {field: getattr(session.config, field) for field in changes}
+		previous_server_tools = session.server_tools
 		for field, value in changes.items():
 			setattr(session.config, field, value)
+		if server_tools is not None:
+			session.server_tools = server_tools
 		try:
 			store.save_meta(session)
 		except OSError:
 			for field, value in previous.items():
 				setattr(session.config, field, value)
+			session.server_tools = previous_server_tools
 			raise HTTPException(status_code=500, detail="failed to persist config") from None
 		return {"config": session.config.redacted()}
 

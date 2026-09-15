@@ -107,6 +107,7 @@ class LoopInputs:
 	credential_id: str | None = None
 	reasoning_effort: ReasoningEffort | None = None
 	allowed_roots: tuple[str, ...] = ()
+	ignore_hidden_files: bool = False
 	read_only_roots: tuple[str, ...] = ()
 	session_id: str = ""
 	model: Model | None = None
@@ -604,6 +605,7 @@ def _tool_context(inputs: LoopInputs) -> ToolContext:
 	return ToolContext(
 		cwd=inputs.config.cwd,
 		allowed_roots=inputs.allowed_roots,
+		ignore_hidden_files=inputs.ignore_hidden_files,
 		read_only_roots=inputs.read_only_roots,
 		abort=inputs.abort,
 		store_image=inputs.store_image,

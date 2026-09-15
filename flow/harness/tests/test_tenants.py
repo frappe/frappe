@@ -12,6 +12,7 @@ from flow_harness.model.credentials import CredentialStore
 from flow_harness.server import create_app
 from flow_harness.server.policy import DEPLOYED
 from flow_harness.server.tenants import Tenant, load_tenants
+from flow_harness.session.config import SessionConfig
 from flow_harness.session.store import SessionStore
 
 TENANTS = [
@@ -37,6 +38,7 @@ def test_load_tenants_parses_sites_tokens_and_roots(tmp_path):
 				"site1.localhost": {
 					"token": "abc",
 					"allowed_roots": ["/srv/site1"],
+					"ignore_hidden_files": True,
 					"callback_hosts": ["site1.localhost:8000"],
 				},
 				"site2.localhost": {"token": "def", "allowed_roots": ["/srv/site2"]},
@@ -50,6 +52,7 @@ def test_load_tenants_parses_sites_tokens_and_roots(tmp_path):
 			token="abc",
 			allowed_roots=("/srv/site1",),
 			callback_hosts=("site1.localhost:8000",),
+			ignore_hidden_files=True,
 		),
 		Tenant(site="site2.localhost", token="def", allowed_roots=("/srv/site2",)),
 	]
@@ -66,6 +69,10 @@ def test_load_tenants_rejects_broken_files(tmp_path):
 		('{"site1": {"token": "a", "alowed_roots": ["/x"]}}', "unknown keys: alowed_roots"),
 		('{"site1": {"token": "a", "allowed_roots": []}}', "non-empty list of paths"),
 		('{"site1": {"token": "a", "allowed_roots": ["/x", 3]}}', "non-empty list of paths"),
+		(
+			'{"site1": {"token": "a", "allowed_roots": ["/x"], "ignore_hidden_files": 1}}',
+			"must be a boolean",
+		),
 		(
 			'{"site1": {"token": "a", "allowed_roots": ["/x"], "callback_hosts": "site1:8000"}}',
 			"callback_hosts must be a list",
@@ -89,12 +96,14 @@ def test_load_tenants_rejects_broken_files(tmp_path):
 
 def test_for_site_partitions_sessions_and_credentials(tmp_path):
 	store = _store(tmp_path)
-	site = store.for_site("site1.localhost")
+	site = store.for_site("site1.localhost", ignore_hidden_files=True)
 	assert site.sessions_dir == str(tmp_path / "data" / "tenants" / "site1.localhost" / "sessions")
 	# own credential store: a bench-wide key is never a site's to consume
 	assert site.credential_store.path == str(
 		tmp_path / "data" / "tenants" / "site1.localhost" / "credentials.json"
 	)
+	assert site.ignore_hidden_files is True
+	assert site.create(SessionConfig(cwd=str(tmp_path))).ignore_hidden_files is True
 	store.credential_store.set_api_key("anthropic", "sk-shared")
 	assert site.credential_store.get("anthropic") is None
 	other = store.for_site("site2.localhost")

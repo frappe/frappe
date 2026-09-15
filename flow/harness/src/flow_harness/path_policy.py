@@ -30,12 +30,15 @@ def normalize_roots(roots: Iterable[str]) -> tuple[str, ...]:
 	return tuple(dict.fromkeys(canonical_path(os.path.expanduser(root)) for root in roots))
 
 
-def is_path_allowed(path: str, roots: Iterable[str]) -> bool:
-	"""Whether an already-normalized path is contained by one of ``roots``."""
+def is_path_allowed(path: str, roots: Iterable[str], *, ignore_hidden_files: bool = False) -> bool:
+	"""Whether an already-normalized path is visible under one of ``roots``."""
 	for root in roots:
 		try:
 			if os.path.commonpath((path, root)) == root:
-				return True
+				relative = os.path.relpath(path, root)
+				parts = () if relative == os.curdir else relative.split(os.sep)
+				if not ignore_hidden_files or all(not part.startswith(".") for part in parts):
+					return True
 		except ValueError:
 			# Different drives on Windows cannot share a common path.
 			continue

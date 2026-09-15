@@ -146,7 +146,15 @@ def test_tools_route_lists_extension_tools_with_their_source(tmp_path):
 
 	tools = client.get("/tools").json()["tools"]
 
-	assert [t["name"] for t in tools] == ["bash", "read", "write", "edit", "grep", "hello"]
+	assert [t["name"] for t in tools] == [
+		"bash",
+		"read",
+		"read_file",
+		"write",
+		"edit",
+		"grep",
+		"hello",
+	]
 	assert tools[-1] == {"name": "hello", "description": "Greet someone by name.", "extension": "hello"}
 	assert all(t["extension"] is None for t in tools[:-1])
 
@@ -158,7 +166,7 @@ def test_tools_route_hides_extension_tools_when_the_policy_switch_is_off(tmp_pat
 
 	tools = client.get("/tools").json()["tools"]
 
-	assert [t["name"] for t in tools] == ["bash", "read", "write", "edit", "grep"]
+	assert [t["name"] for t in tools] == ["bash", "read", "read_file", "write", "edit", "grep"]
 
 
 def test_extension_diagnostics_endpoint(tmp_path):

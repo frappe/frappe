@@ -86,6 +86,7 @@ class SessionStore:
 		data_dir: str,
 		event_sink: Callable[[str, dict], None] | None = None,
 		allowed_roots: builtins.list[str] | None = None,
+		ignore_hidden_files: bool = False,
 		credential_store: CredentialStore | None = None,
 		extension_paths: builtins.list[str] | None = None,
 		extensions_enabled: bool = False,
@@ -99,6 +100,7 @@ class SessionStore:
 		self.event_sink = event_sink
 		configured_roots = allowed_roots if allowed_roots is not None else server_config.ALLOWED_ROOTS
 		self.allowed_roots = normalize_roots(configured_roots)
+		self.ignore_hidden_files = ignore_hidden_files
 		# (ServerPolicy.tool_allowlist). None = uncapped.
 		self.tool_allowlist = frozenset(tool_allowlist) if tool_allowlist is not None else None
 		# (ServerPolicy.callback_hosts). None = any host.
@@ -135,6 +137,7 @@ class SessionStore:
 		site: str,
 		allowed_roots: Collection[str] | None = None,
 		callback_hosts: Collection[str] | None = None,
+		ignore_hidden_files: bool | None = None,
 	) -> SessionStore:
 		"""A tenant partition of this store: sessions and credentials live under
 		`data_dir/tenants/<site>` with their own path fence — and their own callback
@@ -153,6 +156,9 @@ class SessionStore:
 			partition_dir,
 			event_sink=site_sink if sink is not None else None,
 			allowed_roots=list(allowed_roots if allowed_roots is not None else self.allowed_roots),
+			ignore_hidden_files=(
+				self.ignore_hidden_files if ignore_hidden_files is None else ignore_hidden_files
+			),
 			credential_store=CredentialStore(os.path.join(partition_dir, "credentials.json")),
 			extension_paths=list(self._extension_paths),
 			extensions_enabled=self._extensions_enabled,
@@ -244,6 +250,11 @@ class SessionStore:
 			return composed
 		# runs on every load, so old sessions and extension tools are capped too
 		return {name: tool for name, tool in composed.items() if name in self.tool_allowlist}
+
+	def resolve_tools(self, config: SessionConfig) -> dict[str, Tool]:
+		"""Validate and compose the server tools selected by a session config."""
+		self._validate_tools(config)
+		return self._compose_tools(config)
 
 	def _create_with_skills_catalog(self, config: SessionConfig, skill_catalog: SkillCatalog) -> Session:
 		if self.tool_allowlist is not None:
@@ -439,6 +450,7 @@ class SessionStore:
 			event_sink=self.event_sink,
 			credential_store=self.credential_store,
 			allowed_roots=self.allowed_roots,
+			ignore_hidden_files=self.ignore_hidden_files,
 			attachment_store=AttachmentStore(paths.attachments),
 			skill_catalog=skill_catalog,
 			server_tools=server_tools,
