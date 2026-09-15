@@ -1,0 +1,201 @@
+# Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
+# License: MIT. See LICENSE
+
+import frappe
+from frappe.automation_engine.conditions import evaluate_filter_tree
+from frappe.automation_engine.dispatch import run_automations
+from frappe.automation_engine.registry import clear_automation_cache, get_automations_for
+from frappe.tests import IntegrationTestCase
+
+
+def make_automation(trigger_type="Doc Created", **kwargs):
+	doc = frappe.new_doc("Automation Flow")
+	doc.title = kwargs.pop("title", "Dispatch Rule")
+	doc.trigger_type = trigger_type
+	doc.document_type = "ToDo"
+	for key, value in kwargs.items():
+		doc.set(key, value)
+	doc.append("actions", {"action_type": "SetFieldValue", "params": '{"field": "priority", "value": "Low"}'})
+	doc.enabled = 1
+	doc.insert()
+	return doc
+
+
+def make_todo(**kwargs):
+	return frappe.get_doc({"doctype": "ToDo", "description": "x", **kwargs}).insert()
+
+
+def pending(automation):
+	return frappe.get_all("Automation Trigger Queue", filters={"automation": automation, "status": "Pending"})
+
+
+class TestDispatch(IntegrationTestCase):
+	def setUp(self):
+		frappe.set_user("Administrator")
+		frappe.db.delete("Automation Trigger Queue")
+		frappe.db.delete("Automation Flow")
+		clear_automation_cache()
+
+	def tearDown(self):
+		frappe.db.rollback()
+		clear_automation_cache()
+
+	def test_doc_created_queues_a_row(self):
+		rule = make_automation("Doc Created")
+		todo = make_todo()
+		rows = pending(rule.name)
+		self.assertEqual(len(rows), 1)
+		row = frappe.get_doc("Automation Trigger Queue", rows[0].name)
+		self.assertEqual(row.ref_doctype, "ToDo")
+		self.assertEqual(row.ref_name, todo.name)
+
+	def test_doc_updated_ignores_insert_fires_on_save(self):
+		rule = make_automation("Doc Updated")
+		todo = make_todo()
+		self.assertEqual(len(pending(rule.name)), 0)
+		todo.description = "changed"
+		todo.save()
+		self.assertEqual(len(pending(rule.name)), 1)
+
+	def test_field_value_changed_from_to(self):
+		rule = make_automation(
+			"Field Value Changed", trigger_field="status", from_value="Open", to_value="Closed"
+		)
+		todo = make_todo()
+		self.assertEqual(len(pending(rule.name)), 0)
+		todo.status = "Closed"
+		todo.save()
+		self.assertEqual(len(pending(rule.name)), 1)
+
+	def test_field_value_changed_to_value_mismatch(self):
+		rule = make_automation(
+			"Field Value Changed", trigger_field="status", from_value="Open", to_value="Closed"
+		)
+		todo = make_todo()
+		todo.status = "Cancelled"
+		todo.save()
+		self.assertEqual(len(pending(rule.name)), 0)
+
+	def test_filters_gate_the_match(self):
+		rule = make_automation("Doc Created", filters='[["priority", "=", "High"]]')
+		make_todo(priority="Low")
+		self.assertEqual(len(pending(rule.name)), 0)
+		make_todo(priority="High")
+		self.assertEqual(len(pending(rule.name)), 1)
+
+	def test_condition_gates_the_match(self):
+		rule = make_automation("Doc Created", condition="doc.priority == 'High'")
+		make_todo(priority="Low")
+		self.assertEqual(len(pending(rule.name)), 0)
+		make_todo(priority="High")
+		self.assertEqual(len(pending(rule.name)), 1)
+
+	def test_condition_exception_logs_and_skips(self):
+		rule = make_automation("Doc Created", condition="1 / 0")
+		make_todo()
+		self.assertEqual(len(pending(rule.name)), 0)
+		self.assertTrue(
+			frappe.db.exists("Error Log", {"method": f"Automation Flow match failed: {rule.name}"})
+		)
+
+	def test_skip_automations_flag(self):
+		rule = make_automation("Doc Created")
+		frappe.flags.skip_automations = True
+		try:
+			make_todo()
+		finally:
+			frappe.flags.skip_automations = False
+		self.assertEqual(len(pending(rule.name)), 0)
+
+	def test_depth_limit_logs_refusal(self):
+		rule = make_automation("Doc Created")
+		original_depth = frappe.flags.get("automation_depth")
+		frappe.flags.automation_depth = 3
+		try:
+			make_todo()
+		finally:
+			frappe.flags.automation_depth = original_depth
+		self.assertEqual(len(pending(rule.name)), 0)
+		self.assertTrue(frappe.db.exists("Error Log", {"method": "Automation Flow depth limit reached"}))
+
+	def test_no_refusal_log_for_unautomated_doctype_at_max_depth(self):
+		# A deep automation context must not log a depth refusal for unrelated saves
+		# (doctypes that have no automations of their own).
+		frappe.db.delete("Error Log", {"method": "Automation Flow depth limit reached"})
+		self.assertEqual(get_automations_for("User"), [])
+		original_depth = frappe.flags.get("automation_depth")
+		frappe.flags.automation_depth = 3
+		try:
+			run_automations(frappe.get_doc("User", "Administrator"), "on_update")
+		finally:
+			frappe.flags.automation_depth = original_depth
+		self.assertFalse(frappe.db.exists("Error Log", {"method": "Automation Flow depth limit reached"}))
+
+	def test_zero_overhead_for_unautomated_doctype(self):
+		# Warm the (empty) cache so the no-op path is a local dict hit.
+		self.assertEqual(get_automations_for("User"), [])
+		user = frappe.get_doc("User", "Administrator")
+		with self.assertQueryCount(0):
+			run_automations(user, "on_update")
+
+
+class TestFilterTreeEvaluation(IntegrationTestCase):
+	"""The builder can save an `or`, so trigger matching has to honour it."""
+
+	def setUp(self):
+		self.doc = frappe._dict({"doctype": "ToDo", "status": "Open", "priority": "High", "description": "x"})
+
+	def test_plain_list_still_means_all_of_these(self):
+		self.assertTrue(evaluate_filter_tree(self.doc, [["status", "=", "Open"], ["priority", "=", "High"]]))
+		self.assertFalse(evaluate_filter_tree(self.doc, [["status", "=", "Open"], ["priority", "=", "Low"]]))
+
+	def test_builder_equality_operator_is_accepted(self):
+		# The condition builder saves "==", which frappe's filter grammar rejects outright.
+		self.assertTrue(evaluate_filter_tree(self.doc, [["status", "==", "Open"]]))
+		self.assertFalse(evaluate_filter_tree(self.doc, [["status", "==", "Closed"]]))
+
+	def test_builder_equality_operator_works_across_an_or(self):
+		rows = [["status", "==", "Closed"], "or", ["priority", "==", "High"]]
+		self.assertTrue(evaluate_filter_tree(self.doc, rows))
+
+	def test_empty_filters_match(self):
+		self.assertTrue(evaluate_filter_tree(self.doc, []))
+
+	def test_and_between_rows_requires_both(self):
+		rows = [["status", "=", "Open"], "and", ["priority", "=", "Low"]]
+		self.assertFalse(evaluate_filter_tree(self.doc, rows))
+
+	def test_or_between_rows_needs_only_one(self):
+		rows = [["status", "=", "Closed"], "or", ["priority", "=", "High"]]
+		self.assertTrue(evaluate_filter_tree(self.doc, rows))
+
+	def test_or_fails_when_neither_side_matches(self):
+		rows = [["status", "=", "Closed"], "or", ["priority", "=", "Low"]]
+		self.assertFalse(evaluate_filter_tree(self.doc, rows))
+
+	def test_or_binds_looser_than_and(self):
+		# (status=Closed and priority=High) or (description=x)
+		rows = [
+			["status", "=", "Closed"],
+			"and",
+			["priority", "=", "High"],
+			"or",
+			["description", "=", "x"],
+		]
+		self.assertTrue(evaluate_filter_tree(self.doc, rows))
+
+	def test_a_group_is_evaluated_on_its_own(self):
+		rows = [
+			["status", "=", "Open"],
+			"and",
+			[["priority", "=", "Low"], "or", ["description", "=", "x"]],
+		]
+		self.assertTrue(evaluate_filter_tree(self.doc, rows))
+
+	def test_a_failing_group_fails_the_whole_and(self):
+		rows = [
+			["status", "=", "Open"],
+			"and",
+			[["priority", "=", "Low"], "or", ["description", "=", "nope"]],
+		]
+		self.assertFalse(evaluate_filter_tree(self.doc, rows))
