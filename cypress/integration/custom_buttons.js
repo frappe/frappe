@@ -42,7 +42,7 @@ const click_frappe_call_button = (label, call_opts) => {
 	});
 	cy.get(button).click();
 	cy.wait("@call");
-	cy.get(button).should("not.have.attr", "aria-busy");
+	cy.get(button).should("not.be.disabled");
 };
 
 describe(
