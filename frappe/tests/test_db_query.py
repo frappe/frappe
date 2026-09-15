@@ -626,13 +626,19 @@ class TestDBQuery(IntegrationTestCase):
 		# single date should include entire day
 		start = "2021-01-01"
 		cond = get_between_date_filter([start, start], datetime_df)
-		self.assertQueryEqual(cond, f"'{start} 00:00:00.000000' AND '{start} 23:59:59.999999'")
+		self.assertQueryEqual(
+			cond,
+			f"'{frappe.db.format_datetime(start)}' AND "
+			f"'{frappe.db.format_datetime(f'{start} 23:59:59.999999')}'",
+		)
 
 		# datetime field on datetime type should remain same
 		start = "2021-01-01 01:01:00"
 		end = "2022-01-02 12:23:43"
 		cond = get_between_date_filter([start, end], datetime_df)
-		self.assertQueryEqual(cond, f"'{start}.000000' AND '{end}.000000'")
+		self.assertQueryEqual(
+			cond, f"'{frappe.db.format_datetime(start)}' AND '{frappe.db.format_datetime(end)}'"
+		)
 
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user("test2@example.com")
@@ -1389,6 +1395,10 @@ class TestDBQuery(IntegrationTestCase):
 			self.assertTrue('strpos( cast("tabautoinc_dt_test"."name" as varchar), \'1\')' in query)
 			self.assertTrue("strpos( cast(name as varchar), '1')" in query)
 			self.assertTrue('where cast("tabautoinc_dt_test"."name" as varchar) = \'1\'' in query)
+		elif frappe.db.db_type == "sqlite":
+			self.assertIn('INSTR("tabautoinc_dt_test"."name", \'1\')', query)
+			self.assertIn("INSTR(name, '1')", query)
+			self.assertIn('WHERE "tabautoinc_dt_test"."name" = 1', query)
 		else:
 			self.assertTrue("locate('1', `tabautoinc_dt_test`.`name`)" in query)
 			self.assertTrue("locate('1', name)" in query)
@@ -1965,6 +1975,9 @@ class TestReportView(IntegrationTestCase):
 
 
 def add_child_table_to_blog_post():
+	if not frappe.db.exists("DocType", "Test Blog Post"):
+		setup_for_tests()
+
 	child_table = frappe.get_doc(
 		{
 			"doctype": "DocType",
