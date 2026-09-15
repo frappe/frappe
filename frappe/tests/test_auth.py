@@ -100,6 +100,7 @@ class TestAuth(IntegrationTestCase):
 		with self.assertRaises(AuthError):
 			FrappeClient(self.HOST_NAME, self.test_user_name, self.test_user_password)
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_allow_login_using_only_email(self):
 		self.set_system_settings("allow_login_using_mobile_number", 0)
 		self.set_system_settings("allow_login_using_user_name", 0)
