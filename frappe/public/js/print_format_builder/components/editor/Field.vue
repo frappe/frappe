@@ -62,6 +62,7 @@
 				<div
 					v-if="df.label && df.show_label !== 'hide'"
 					class="label"
+					:class="{ 'label--no-colon': df.hide_colon }"
 					:style="label_text_style(df)"
 				>
 					{{ df.label }}
@@ -76,10 +77,21 @@
 			</template>
 			<FieldPreviewTable v-else-if="df.fieldtype == 'Table'" :df="df" />
 			<FieldPreviewRepeater v-else-if="df.fieldtype == 'Repeater'" :df="df" />
+			<div
+				v-else-if="df.fieldtype == 'Static Text'"
+				class="value"
+				:class="{ 'text-muted': !df.text }"
+				:style="static_text_style"
+			>
+				{{ df.text || __("Empty text") }}
+			</div>
+			<FieldPreviewLinked v-else-if="df.fieldtype == 'Linked Field'" :df="df" />
+			<FieldPreviewSummary v-else-if="df.fieldtype == 'Summary Table'" :df="df" />
 			<template v-else>
 				<div
 					v-if="df.label && df.show_label !== 'hide'"
 					class="label"
+					:class="{ 'label--no-colon': df.hide_colon }"
 					:style="label_text_style(df)"
 				>
 					{{ df.label }}
@@ -127,7 +139,7 @@
 						</svg>
 					</template>
 					<span v-else-if="preview_value_html" v-html="preview_value_html"></span>
-					<span v-else>{{ preview_value || "—" }}</span>
+					<span v-else>{{ preview_value || (df.show_empty ? "" : "—") }}</span>
 				</div>
 			</template>
 			<div class="field-preview-actions">
@@ -200,6 +212,12 @@
 						>
 						<div class="custom-html" v-else-if="df.fieldtype == 'Field Template'">
 							{{ df.label }}
+						</div>
+						<div
+							v-else-if="df.fieldtype == 'Static Text' && df.text"
+							:style="static_text_style"
+						>
+							{{ df.text }}
 						</div>
 						<img
 							v-else-if="df.fieldtype == 'Image' && df.custom && df.image_url"
@@ -298,6 +316,23 @@
 					</span>
 				</div>
 			</div>
+			<div v-if="df.fieldtype == 'Summary Table'" class="table-preview">
+				<div class="table-columns-list">
+					<span v-if="df.source" class="table-col-chip">{{ df.source }}</span>
+					<span v-if="df.group_by" class="table-col-chip">{{ df.group_by }}</span>
+					<span
+						v-for="(col, i) in df.columns || []"
+						:key="i"
+						class="table-col-chip"
+						:title="col.expr"
+					>
+						{{ col.label || col.expr }}
+					</span>
+					<span v-if="!df.source" class="text-muted no-columns-hint">
+						{{ __("No source table selected") }}
+					</span>
+				</div>
+			</div>
 		</template>
 	</div>
 </template>
@@ -305,7 +340,9 @@
 <script setup>
 import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
 import FieldPreviewBarcode from "./FieldPreviewBarcode.vue";
+import FieldPreviewLinked from "./FieldPreviewLinked.vue";
 import FieldPreviewRepeater from "./FieldPreviewRepeater.vue";
+import FieldPreviewSummary from "./FieldPreviewSummary.vue";
 import FieldPreviewTable from "./FieldPreviewTable.vue";
 import {
 	render_jinja_html,
@@ -339,6 +376,13 @@ let template_render_failed = ref(false);
 let rendered_template = ref(null);
 
 let custom_style = computed(() => parse_inline_style(props.df.custom_style));
+
+let static_text_style = computed(() => ({
+	whiteSpace: "pre-line",
+	...(props.df.bold ? { fontWeight: 700 } : {}),
+	...(props.df.font_size ? { fontSize: props.df.font_size + "px" } : {}),
+	...(props.df.align ? { textAlign: props.df.align } : {}),
+}));
 
 let is_selected = computed(
 	() => store.selected_field.value === props.df || store.selected_fields.value.includes(props.df)

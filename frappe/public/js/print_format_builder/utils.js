@@ -118,6 +118,8 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 		}
 		if (node.fieldtype === "HTML") add(__("Custom HTML block"));
 		if (node.fieldtype === "Field Template") add(__("Field Template (Jinja HTML)"));
+		if (node.fieldtype === "Linked Field") add(__("Linked Field"));
+		if (node.fieldtype === "Summary Table") add(__("Summary Table"));
 		if (node.fieldtype === "Barcode") {
 			if (node.custom) {
 				if (node.barcode_format !== "QR") add(__("Barcode (non-QR)"));
@@ -331,7 +333,7 @@ const TABLE_COLUMN_PLUCK_KEYS = [
 	"column_condition",
 ];
 
-const FIELD_PLUCK_KEYS = [
+export const FIELD_PLUCK_KEYS = [
 	"label",
 	"fieldname",
 	"fieldtype",
@@ -367,6 +369,16 @@ const FIELD_PLUCK_KEYS = [
 	"barcode_value",
 	"barcode_format",
 	"show_text",
+	"text",
+	"bold",
+	"font_size",
+	"link_path",
+	"show_empty",
+	"hide_colon",
+	"group_by",
+	"columns",
+	"show_totals",
+	"table_min_height",
 ];
 
 const ZONE_FIELD_PLUCK_KEYS = FIELD_PLUCK_KEYS.filter(
@@ -605,4 +617,17 @@ export function get_image_dimensions(src) {
 		img.onerror = () => reject(new Error(`could not load image: ${src}`));
 		img.src = src;
 	});
+}
+
+// Option lists shared by the inspectors
+export function value_field_opts(fields) {
+	return (fields || [])
+		.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype))
+		.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname }));
+}
+
+export function table_field_opts(fields) {
+	return (fields || [])
+		.filter((f) => f.fieldtype === "Table")
+		.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname }));
 }

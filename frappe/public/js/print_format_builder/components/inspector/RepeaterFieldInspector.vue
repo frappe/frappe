@@ -39,7 +39,7 @@
 			<div
 				v-for="(col, ci) in selected_field.repeater_columns"
 				:key="ci"
-				class="pfb-rep-col"
+				class="pfb-insp-card"
 			>
 				<div class="pfb-rep-col-head">
 					<span class="pfb-insp-label">{{ __("Column {0}", [ci + 1]) }}</span>
@@ -102,25 +102,19 @@ import StyleSection from "./StyleSection.vue";
 import { mountColorControl } from "./useColorControl";
 import { align_opts } from "./align_opts";
 import { useSelectedField } from "./useSelectedField";
+import { table_field_opts, value_field_opts } from "../../utils";
 
 let { meta } = useStore();
 const { selected_field } = useSelectedField();
 
-let repeater_source_opts = computed(() =>
-	(meta.value?.fields || [])
-		.filter((f) => f.fieldtype === "Table")
-		.map((f) => ({ value: f.fieldname, label: f.label || f.fieldname }))
-);
+let repeater_source_opts = computed(() => table_field_opts(meta.value?.fields));
 
 let repeater_field_opts = computed(() => {
 	const src = (meta.value?.fields || []).find(
 		(f) => f.fieldname === selected_field.value?.source
 	);
 	const child_meta = src?.options ? frappe.get_meta(src.options) : null;
-	if (!child_meta) return [];
-	return child_meta.fields
-		.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype) && f.fieldname !== "name")
-		.map((f) => ({ value: f.fieldname, label: f.label || f.fieldname }));
+	return value_field_opts(child_meta?.fields).filter((o) => o.value !== "name");
 });
 
 function add_repeater_column() {
@@ -169,12 +163,6 @@ watch(
 </script>
 
 <style scoped>
-.pfb-rep-col {
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	padding: 8px;
-	margin-bottom: 8px;
-}
 .pfb-rep-col-head {
 	display: flex;
 	align-items: center;
@@ -185,5 +173,8 @@ watch(
 	display: flex;
 	align-items: center;
 	gap: 4px;
+}
+.pfb-insp-card {
+	margin-bottom: 8px;
 }
 </style>
