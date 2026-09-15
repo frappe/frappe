@@ -1,6 +1,7 @@
 // How the header's one flat list becomes its two zones, and what happens when the
 // right zone asks for more top-level controls than fit.
 import { Surface, type ResolvedItem } from "./surface";
+import { HEADER_ITEM_KEYS } from "./types";
 import type { HeaderItem, HeaderZone, Position } from "./types";
 
 /** The displays that hold other items, as against `button` and the default. */
@@ -295,6 +296,10 @@ type AnchorClaim = { verb: string; name: string; anchor: string };
 export class HeaderSurface extends Surface<HeaderItem> {
   private claims: AnchorClaim[] = [];
   private said = new Set<string>();
+
+  constructor() {
+    super({ surface: "header", keys: HEADER_ITEM_KEYS });
+  }
 
   // One claim per block: a block splices as a unit, so only its head is anchored.
   add(item: HeaderItem | HeaderItem[], position?: Position) {

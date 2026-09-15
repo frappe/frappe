@@ -106,6 +106,37 @@ describe("fireEvent", () => {
   });
 });
 
+describe("a surface item key the engine does not read", () => {
+  beforeEach(() => resetRegistry());
+
+  it("is dropped and named by the surface a script wrote it on", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    let seen: unknown;
+    await withRegisteringSource("crm", async () => {
+      registerRecordPage("CRM Deal", {
+        onRefresh: (page) => {
+          page.quickActions.add({ name: "x", label: "X", variant: "subtle" });
+          page.tabs.add({ name: "t", label: "T", closable: true });
+          page.panelSections.add({ name: "s", label: "S", collapsible: true });
+          page.header.add({ name: "h", label: "H", theme: "red" });
+          seen = page.quickActions.has("x");
+        },
+      });
+    });
+    const controller = createRecordPage(makeHost());
+    await controller.refresh();
+    expect(seen).toBe(true);
+    expect(controller.quickActions.find("x")).toEqual({ name: "x", label: "X" });
+    expect(warn.mock.calls.map((call) => call[0])).toEqual([
+      "[record-page] quickActions.add('x'): key 'variant' is not one the engine reads — dropped.",
+      "[record-page] tabs.add('t'): key 'closable' is not one the engine reads — dropped.",
+      "[record-page] panelSections.add('s'): key 'collapsible' is not one the engine reads — dropped.",
+      "[record-page] header.add('h'): key 'theme' is not one the engine reads — dropped.",
+    ]);
+    warn.mockRestore();
+  });
+});
+
 // The four top-level keys are camelCase with no dual-accept: the old spellings
 // are legal fieldnames, which is the collision the rename removes.
 describe("the event vocabulary is camelCase (ticket 74)", () => {

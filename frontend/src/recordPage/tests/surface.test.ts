@@ -1,7 +1,14 @@
 // The merge & ordering rules as executable claims.
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { nextTick, watchEffect } from "vue";
 import { Surface } from "../surface";
+import { HeaderSurface } from "../headerRenderings";
+import {
+	HEADER_ITEM_KEYS,
+	PANEL_SECTION_KEYS,
+	QUICK_ACTION_KEYS,
+	TAB_ITEM_KEYS,
+} from "../types";
 import { registerRecordPage, registrationsFor, resetRegistry } from "../registry";
 import { withRegisteringSource } from "../context";
 
@@ -171,6 +178,98 @@ describe("staged replay", () => {
 		surface.add({ name: "convert" });
 		surface.commitReplay();
 		expect(names(surface)).toEqual(["email", "convert"]);
+	});
+});
+
+// The promise in COMPATIBILITY.md, per surface: a key the engine does not read is
+// dropped, and a development build says so once.
+describe("a key the engine does not read", () => {
+	afterEach(() => {
+		vi.restoreAllMocks();
+		vi.unstubAllEnvs();
+	});
+
+	const surfaces: [string, readonly string[], () => Surface][] = [
+		["quickActions", QUICK_ACTION_KEYS, () => new Surface({ surface: "quickActions", keys: QUICK_ACTION_KEYS })],
+		["header", HEADER_ITEM_KEYS, () => new HeaderSurface()],
+		["tabs", TAB_ITEM_KEYS, () => new Surface({ surface: "tabs", keys: TAB_ITEM_KEYS })],
+		["panelSections", PANEL_SECTION_KEYS, () => new Surface({ surface: "panelSections", keys: PANEL_SECTION_KEYS })],
+	];
+
+	for (const [name, keys, make] of surfaces) {
+		it(`${name}.add drops it, warns once, and keeps the rest`, () => {
+			const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+			const surface = make();
+			surface.add({ name: "x", label: "X", variant: "subtle" });
+			surface.add({ name: "x", label: "X", variant: "subtle" });
+			expect(surface.find("x")).toEqual({ name: "x", label: "X" });
+			expect(warn).toHaveBeenCalledTimes(1);
+			expect(warn.mock.calls[0][0]).toBe(
+				`[record-page] ${name}.add('x'): key 'variant' is not one the engine reads — dropped.`,
+			);
+		});
+
+		it(`${name}.update drops it from the patch and warns`, () => {
+			const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+			const surface = make();
+			surface.add({ name: "x", label: "X" });
+			surface.update("x", { label: "Y", variant: "subtle" });
+			expect(surface.find("x")).toEqual({ name: "x", label: "Y" });
+			expect(warn).toHaveBeenCalledTimes(1);
+			expect(warn.mock.calls[0][0]).toContain(`${name}.update('x'): key 'variant'`);
+		});
+
+		it(`${name} stays quiet on every key it reads`, () => {
+			const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+			const surface = make();
+			const item = Object.fromEntries(keys.map((key) => [key, key === "name" ? "x" : `v-${key}`]));
+			surface.add(item as any);
+			surface.update("x", { label: "Y" });
+			expect(warn).not.toHaveBeenCalled();
+			expect(Object.keys(surface.find("x")!).sort()).toEqual([...keys].sort());
+		});
+	}
+
+	it("warns once per item and key, so a second item with the same key is named too", () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		const surface = new Surface({ surface: "tabs", keys: TAB_ITEM_KEYS });
+		surface.add({ name: "x", label: "X", variant: "subtle" });
+		surface.add({ name: "y", label: "Y", variant: "subtle" });
+		surface.update("x", { variant: "ghost" });
+		expect(warn).toHaveBeenCalledTimes(2);
+	});
+
+	it("checks every item of a block, and a patch staged inside a replay", () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		const surface = new Surface({ surface: "tabs", keys: TAB_ITEM_KEYS });
+		surface.add([{ name: "x", label: "X" }, { name: "y", label: "Y", variant: "subtle" }]);
+		surface.beginReplay();
+		surface.add({ name: "x", label: "X" });
+		surface.update("x", { label: "Z", variant: "ghost" });
+		expect(surface.find("x")).toEqual({ name: "x", label: "Z" });
+		surface.commitReplay();
+		expect(surface.find("x")).toEqual({ name: "x", label: "Z" });
+		expect(warn.mock.calls.map((call) => call[0])).toEqual([
+			"[record-page] tabs.add('y'): key 'variant' is not one the engine reads — dropped.",
+			"[record-page] tabs.update('x'): key 'variant' is not one the engine reads — dropped.",
+		]);
+	});
+
+	it("keeps every key on a surface with no vocabulary", () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		const surface = new Surface();
+		surface.add({ name: "x", variant: "subtle" });
+		expect(surface.find("x")).toEqual({ name: "x", variant: "subtle" });
+		expect(warn).not.toHaveBeenCalled();
+	});
+
+	it("drops the key in production too, and says nothing", () => {
+		vi.stubEnv("DEV", false);
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		const surface = new Surface({ surface: "tabs", keys: TAB_ITEM_KEYS });
+		surface.add({ name: "x", label: "X", variant: "subtle" });
+		expect(surface.find("x")).toEqual({ name: "x", label: "X" });
+		expect(warn).not.toHaveBeenCalled();
 	});
 });
 

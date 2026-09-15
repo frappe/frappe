@@ -24,6 +24,7 @@ import { registrationsFor } from "./registry";
 import { reportCustomizationError } from "./reportError";
 import { createRows, warnRowIssue } from "./rows";
 import { Surface } from "./surface";
+import { PANEL_SECTION_KEYS, QUICK_ACTION_KEYS, TAB_ITEM_KEYS } from "./types";
 import type {
   PanelSectionItem,
   PanelSectionsApi,
@@ -147,10 +148,13 @@ export interface RecordPageController {
 }
 
 export function createRecordPage(host: RecordPageHost): RecordPageController {
-  const quickActions = new Surface<QuickAction>();
+  const quickActions = new Surface<QuickAction>({ surface: "quickActions", keys: QUICK_ACTION_KEYS });
   const header = new HeaderSurface();
-  const tabs = new Surface<TabItem>();
-  const panelSections = new Surface<PanelSectionItem>();
+  const tabs = new Surface<TabItem>({ surface: "tabs", keys: TAB_ITEM_KEYS });
+  const panelSections = new Surface<PanelSectionItem>({
+    surface: "panelSections",
+    keys: PANEL_SECTION_KEYS,
+  });
   const permissions = createPagePermissions(host);
   const fields = new FieldsSurface({
     fields: () => host.meta.value?.fields,
