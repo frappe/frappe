@@ -444,7 +444,9 @@ export default class BulkEdit {
 			.filter((index) => {
 				const row = this.state.row_numbers[index];
 				const skipped = this.state.skipped_rows.has(row);
-				return fixing ? issues.has(row) || skipped : !issues.has(row) && !skipped;
+				return fixing
+					? issues.has(row) || skipped || !issues.size
+					: !issues.has(row) && !skipped;
 			});
 		const page = fixing ? this.paged(picked) : picked;
 		return {
@@ -838,6 +840,10 @@ export default class BulkEdit {
 		);
 	}
 
+	has_unmapped_columns() {
+		return this.state.warnings.some((w) => w.row === undefined && w.col !== undefined);
+	}
+
 	has_mapping_issues() {
 		return this.state.warnings.some((w) => w.blocking && w.row === undefined);
 	}
@@ -863,7 +869,7 @@ export default class BulkEdit {
 	settle_fix_step() {
 		if (this.tab_defs.length <= TAB_PREVIEW) return;
 		if (this.tabs.get_active() !== TAB_FIX) {
-			this.tabs.set_disabled(TAB_FIX, !this.has_issues());
+			this.tabs.set_disabled(TAB_FIX, !this.has_issues() && !this.has_unmapped_columns());
 		}
 		const $table = this.preview_form?.get_field("table").$wrapper;
 		$table?.find(".bulk-edit-preview-hint").text(this.preview_hint());
@@ -928,7 +934,9 @@ export default class BulkEdit {
 		);
 		await this.build_preview();
 		this.tabs.set_disabled(TAB_PREVIEW, false);
-		this.tabs.set_active(this.has_issues() ? TAB_FIX : TAB_PREVIEW);
+		this.tabs.set_active(
+			this.has_issues() || this.has_unmapped_columns() ? TAB_FIX : TAB_PREVIEW
+		);
 	}
 
 	download() {
