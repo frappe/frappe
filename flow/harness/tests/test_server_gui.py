@@ -228,6 +228,7 @@ def test_patch_config_toggles_auto_approve_and_persists(tmp_path):
 	# an empty patch changes nothing; unknown fields and sessions are rejected
 	assert c.patch(f"/sessions/{sid}/config", json={}).json()["config"]["auto_approve"] is True
 	assert c.patch(f"/sessions/{sid}/config", json={"model": "x"}).status_code == 422
+	assert c.patch(f"/sessions/{sid}/config", json={"system_prompt": "replace"}).status_code == 422
 	assert c.patch("/sessions/nope/config", json={"auto_approve": True}).status_code == 404
 
 
@@ -258,6 +259,28 @@ def test_patch_config_replaces_client_tools_and_confirmation_together(tmp_path):
 	assert c.patch(f"/sessions/{sid}/config", json={"client_tools": tools}).status_code == 400
 
 
+def test_patch_config_replaces_server_tools(tmp_path):
+	c, store = _client(tmp_path)
+	sid = c.post(
+		"/sessions",
+		json={"model": "mock", "cwd": str(tmp_path), "tools": ["read_file"]},
+	).json()["session_id"]
+
+	data = c.patch(
+		f"/sessions/{sid}/config",
+		json={"tools": ["grep"]},
+	).json()["config"]
+	assert data["tools"] == ["grep"]
+	assert set(store.get(sid).server_tools) == {"grep"}
+
+	fresh = SessionStore(
+		str(tmp_path / "data"),
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+	)
+	assert fresh.get(sid).config.tools == ["grep"]
+	assert set(fresh.get(sid).server_tools) == {"grep"}
+
+
 def test_patch_config_persists_every_field_or_none(tmp_path, monkeypatch):
 	c, store = _client(tmp_path)
 	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path), "title": "Before"}).json()[
@@ -265,7 +288,13 @@ def test_patch_config_persists_every_field_or_none(tmp_path, monkeypatch):
 	]
 	before = store.get(sid).config.model_dump()
 	tools = [{"type": "function", "function": {"name": "new"}}]
-	patch = {"client_tools": tools, "confirm_tools": ["new"], "auto_approve": True, "title": "After"}
+	patch = {
+		"tools": ["grep"],
+		"client_tools": tools,
+		"confirm_tools": ["new"],
+		"auto_approve": True,
+		"title": "After",
+	}
 
 	def fail(session):
 		raise OSError("disk full")
@@ -277,7 +306,14 @@ def test_patch_config_persists_every_field_or_none(tmp_path, monkeypatch):
 
 	monkeypatch.undo()
 	data = c.patch(f"/sessions/{sid}/config", json=patch).json()["config"]
-	assert (data["client_tools"], data["confirm_tools"], data["auto_approve"], data["title"]) == (
+	assert (
+		data["tools"],
+		data["client_tools"],
+		data["confirm_tools"],
+		data["auto_approve"],
+		data["title"],
+	) == (
+		["grep"],
 		tools,
 		["new"],
 		True,
@@ -288,7 +324,14 @@ def test_patch_config_persists_every_field_or_none(tmp_path, monkeypatch):
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
 	)
 	config = fresh.get(sid).config
-	assert (config.client_tools, config.confirm_tools, config.auto_approve, config.title) == (
+	assert (
+		config.tools,
+		config.client_tools,
+		config.confirm_tools,
+		config.auto_approve,
+		config.title,
+	) == (
+		["grep"],
 		tools,
 		["new"],
 		True,

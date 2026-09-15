@@ -22,9 +22,15 @@ async def grep(pattern: str, path: str = ".", *, ctx: ToolContext) -> ToolResult
 	# `--` ends the option list: without it a pattern like "-L" is read as a flag, which
 	# shifts `target` out of its slot and searches the daemon's cwd instead of the root.
 	if rg:
-		cmd = [rg, "--line-number", "--no-heading", "--color=never", "--", pattern, target]
+		cmd = [rg, "--line-number", "--no-heading", "--color=never"]
+		if ctx.ignore_hidden_files:
+			cmd.extend(("--glob=!.*", "--glob=!**/.*"))
+		cmd.extend(("--", pattern, target))
 	else:
-		cmd = ["grep", "-rn", "--", pattern, target]
+		cmd = ["grep", "-rn"]
+		if ctx.ignore_hidden_files:
+			cmd.extend(("--exclude=.*", "--exclude-dir=.*"))
+		cmd.extend(("--", pattern, target))
 	proc = await asyncio.create_subprocess_exec(
 		*cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT
 	)

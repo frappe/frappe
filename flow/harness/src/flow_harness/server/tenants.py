@@ -20,6 +20,7 @@ class Tenant:
 		token: Bearer token that authenticates requests as this site.
 		allowed_roots: Path fence for this site's sessions. The tenants file
 			requires it; None (programmatic use) inherits the daemon-wide roots.
+		ignore_hidden_files: Whether dot-prefixed descendants of allowed roots are hidden.
 		callback_hosts: host[:port] values a session callback_url may target,
 			replacing FLOW_CALLBACK_HOSTS for this site. None inherits it; an
 			empty list refuses callbacks.
@@ -29,6 +30,7 @@ class Tenant:
 	token: str
 	allowed_roots: tuple[str, ...] | None = None
 	callback_hosts: tuple[str, ...] | None = None
+	ignore_hidden_files: bool = False
 
 
 def load_tenants(path: str) -> list[Tenant]:
@@ -53,7 +55,11 @@ def load_tenants(path: str) -> list[Tenant]:
 def _parse_entry(site: str, entry: object) -> Tenant:
 	if not isinstance(entry, dict):
 		raise ValueError(f"site {site!r}: entry must be a JSON object")
-	unknown = sorted(str(key) for key in entry if key not in ("token", "allowed_roots", "callback_hosts"))
+	unknown = sorted(
+		str(key)
+		for key in entry
+		if key not in ("token", "allowed_roots", "ignore_hidden_files", "callback_hosts")
+	)
 	if unknown:
 		raise ValueError(f"site {site!r}: unknown keys: {', '.join(unknown)}")
 	token = entry.get("token")
@@ -68,6 +74,9 @@ def _parse_entry(site: str, entry: object) -> Tenant:
 	values = tuple(root for root in roots if isinstance(root, str) and root)
 	if len(values) != len(roots):
 		raise ValueError(bad_roots)
+	ignore_hidden_files = entry.get("ignore_hidden_files", False)
+	if not isinstance(ignore_hidden_files, bool):
+		raise ValueError(f"site {site!r}: ignore_hidden_files must be a boolean")
 	hosts = entry.get("callback_hosts")
 	parsed = None
 	if hosts is not None:
@@ -77,4 +86,10 @@ def _parse_entry(site: str, entry: object) -> Tenant:
 		parsed = tuple(host for host in hosts if isinstance(host, str) and host)
 		if len(parsed) != len(hosts):
 			raise ValueError(bad_hosts)
-	return Tenant(site=site, token=token, allowed_roots=values, callback_hosts=parsed)
+	return Tenant(
+		site=site,
+		token=token,
+		allowed_roots=values,
+		ignore_hidden_files=ignore_hidden_files,
+		callback_hosts=parsed,
+	)
