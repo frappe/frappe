@@ -61,7 +61,7 @@ const BULK_EDIT_TIME_FORMATS = () => [
 	frappe.defaultTimeFormat,
 ];
 
-export default class BulkEdit {
+export default class GridImport {
 	constructor(grid) {
 		this.grid = grid;
 	}
@@ -96,10 +96,10 @@ export default class BulkEdit {
 		};
 
 		this.panels = {
-			setup: $('<div class="bulk-edit-panel"></div>'),
-			upload: $('<div class="bulk-edit-panel"></div>'),
-			fix: $('<div class="bulk-edit-panel"></div>'),
-			preview: $('<div class="bulk-edit-panel"></div>'),
+			setup: $('<div class="grid-import-panel"></div>'),
+			upload: $('<div class="grid-import-panel"></div>'),
+			fix: $('<div class="grid-import-panel"></div>'),
+			preview: $('<div class="grid-import-panel"></div>'),
 		};
 		this.file_uploader = null;
 		this.sheet_form = null;
@@ -125,7 +125,7 @@ export default class BulkEdit {
 			size: BULK_EDIT_DIALOG_SIZE,
 			centered: true,
 		});
-		$(this.dialog.wrapper).addClass("bulk-edit-dialog");
+		$(this.dialog.wrapper).addClass("grid-import-dialog");
 		this.dialog.modal_body.css({ height: BULK_EDIT_DIALOG_HEIGHT, "overflow-y": "hidden" });
 		this.dialog.$body.css({ height: "100%", display: "flex", "flex-direction": "column" });
 
@@ -166,7 +166,7 @@ export default class BulkEdit {
 				this.set_footer();
 			},
 		});
-		this.tabs.$el.addClass("bulk-edit-tabs");
+		this.tabs.$el.addClass("grid-import-tabs");
 		this.tabs.$el.find(".es-tabs__list").hide();
 
 		this.stepper = new frappe.ui.Stepper({
@@ -181,12 +181,12 @@ export default class BulkEdit {
 			this.stepper.refresh();
 		};
 
-		const $card = $('<div class="bulk-edit-card"></div>');
+		const $card = $('<div class="grid-import-card"></div>');
 		this.dialog.$body.append(this.stepper.$el, $card);
 		$card.append(this.tabs.$el, this.dialog.footer);
 
 		this.$message = $(
-			'<div class="bulk-edit-footer-message indicator red small hide"><span></span></div>'
+			'<div class="grid-import-footer-message indicator red small hide"><span></span></div>'
 		).appendTo(this.dialog.custom_actions);
 
 		this.$back = frappe.ui
@@ -321,11 +321,11 @@ export default class BulkEdit {
 	make_upload_panel() {
 		this.panels.upload.css({ height: "100%", display: "flex", "flex-direction": "column" });
 
-		const $file_pane = $('<div class="bulk-edit-upload-pane bulk-edit-file-pane"></div>');
-		const $sheet_pane = $('<div class="bulk-edit-upload-pane"></div>');
+		const $file_pane = $('<div class="grid-import-upload-pane grid-import-file-pane"></div>');
+		const $sheet_pane = $('<div class="grid-import-upload-pane"></div>');
 
 		const upload_tabs = new frappe.ui.Tabs({
-			css_class: "bulk-edit-upload-tabs",
+			css_class: "grid-import-upload-tabs",
 			tabs: [
 				{ label: __("File upload"), icon: "upload", content: $file_pane[0] },
 				{ label: __("Google Sheet"), icon: "link", content: $sheet_pane[0] },
@@ -471,7 +471,7 @@ export default class BulkEdit {
 					this.state.fix_page = this.pagination.page_index;
 					this.build_preview(true);
 				},
-				scroll_to_top: () => $table.find(".bulk-edit-preview-table").scrollTop(0),
+				scroll_to_top: () => $table.find(".grid-import-preview-table").scrollTop(0),
 			},
 		});
 		this.pagination.page_index = this.state.fix_page;
@@ -502,8 +502,8 @@ export default class BulkEdit {
 		const $table = this.preview_form.get_field("table").$wrapper;
 		const view = this.step_view();
 		$table.html(this.get_preview_html(view));
-		$table.find(".bulk-edit-refresh-sheet").on("click", () => this.refresh_google_sheet());
-		$table.find(".bulk-edit-skip-all").on("click", () => this.skip_issue_rows());
+		$table.find(".grid-import-refresh-sheet").on("click", () => this.refresh_google_sheet());
+		$table.find(".grid-import-skip-all").on("click", () => this.skip_issue_rows());
 		this.make_pagination($table, view);
 		$panel.css({ height: "100%", display: "flex", "flex-direction": "column" });
 		$table.parentsUntil($panel).addBack().css({
@@ -533,7 +533,7 @@ export default class BulkEdit {
 							this.refresh_preview();
 						},
 					},
-					parent: $table.find(`.bulk-edit-mapping-row td[data-col="${i}"]`).get(0),
+					parent: $table.find(`.grid-import-mapping-row td[data-col="${i}"]`).get(0),
 					render_input: true,
 					only_input: true,
 				});
@@ -588,7 +588,7 @@ export default class BulkEdit {
 		if (!list) return;
 
 		const host = document.createElement("div");
-		host.className = "awesomplete bulk-edit-dropdown-host";
+		host.className = "awesomplete grid-import-dropdown-host";
 
 		const reposition = () =>
 			place(list, control.$input[0].getBoundingClientRect(), "bottom", "start", 2);
@@ -627,7 +627,7 @@ export default class BulkEdit {
 			df.ignore_link_validation = true;
 		}
 
-		$(cell).addClass("bulk-edit-editable-cell");
+		$(cell).addClass("grid-import-editable-cell");
 		const control = frappe.ui.form.make_control({
 			df: {
 				...df,
@@ -693,8 +693,8 @@ export default class BulkEdit {
 		$table.find("tr[data-row]").each((_, tr) => {
 			const row = cint(tr.dataset.row);
 			const skipped = this.state.skipped_rows.has(row);
-			const $cell = $(tr).find(".bulk-edit-skip-cell").empty();
-			$(tr).toggleClass("bulk-edit-skipped-row", skipped);
+			const $cell = $(tr).find(".grid-import-skip-cell").empty();
+			$(tr).toggleClass("grid-import-skipped-row", skipped);
 			if (!skipped && !rows_with_warnings.has(row)) return;
 
 			frappe.ui
@@ -720,7 +720,7 @@ export default class BulkEdit {
 			const warning = by_column[i];
 			control._warning = warning;
 			$table
-				.find(`th[data-col="${i}"], .bulk-edit-mapping-row td[data-col="${i}"]`)
+				.find(`th[data-col="${i}"], .grid-import-mapping-row td[data-col="${i}"]`)
 				.toggleClass("has-error", Boolean(warning));
 		});
 	}
@@ -753,7 +753,7 @@ export default class BulkEdit {
 				discard_cell_control(existing);
 				delete this.cell_controls[key];
 				$(cell)
-					.removeClass("bulk-edit-editable-cell")
+					.removeClass("grid-import-editable-cell")
 					.empty()
 					.text(this.state.rows[this.state.row_numbers.indexOf(row)][col]);
 			}
@@ -762,12 +762,12 @@ export default class BulkEdit {
 			const mapped_df =
 				fieldname && frappe.meta.get_docfield(this.grid.df.options, fieldname);
 			const fieldtype = mapped_df?.fieldtype;
-			$(cell).removeClass("bulk-edit-pending-cell").off("click.bulk-edit-reveal");
+			$(cell).removeClass("grid-import-pending-cell").off("click.grid-import-reveal");
 
 			if (warning?.field && BULK_EDIT_DEFERRED_FIELDTYPES.includes(fieldtype)) {
 				$(cell)
-					.addClass("bulk-edit-pending-cell")
-					.one("click.bulk-edit-reveal", () => {
+					.addClass("grid-import-pending-cell")
+					.one("click.grid-import-reveal", () => {
 						const control = this.make_cell_control(cell, r, col, warning, fieldname);
 						this.cell_controls[key] = control;
 						control.$input?.trigger("focus");
@@ -872,9 +872,9 @@ export default class BulkEdit {
 			this.tabs.set_disabled(TAB_FIX, !this.has_issues() && !this.has_unmapped_columns());
 		}
 		const $table = this.preview_form?.get_field("table").$wrapper;
-		$table?.find(".bulk-edit-preview-hint").text(this.preview_hint());
+		$table?.find(".grid-import-preview-hint").text(this.preview_hint());
 		$table
-			?.find(".bulk-edit-skip-all")
+			?.find(".grid-import-skip-all")
 			.prop("disabled", this.has_mapping_issues() || !this.get_issue_rows().size);
 	}
 
@@ -1040,7 +1040,7 @@ export default class BulkEdit {
 			return;
 		}
 
-		open_url_post("/api/method/frappe.desk.form.bulk_edit.download_bulk_edit_template", {
+		open_url_post("/api/method/frappe.desk.form.grid_import.download_template", {
 			doctype: this.grid.frm.doctype,
 			title: title,
 			file_type: file_type,
@@ -1084,7 +1084,7 @@ export default class BulkEdit {
 		this.state.library_file_url = file.file_url || "";
 
 		frappe.call({
-			method: "frappe.desk.form.bulk_edit.parse_bulk_edit_file",
+			method: "frappe.desk.form.grid_import.parse_file",
 			args: {
 				doctype: this.grid.frm.doctype,
 				filename,
@@ -1106,7 +1106,7 @@ export default class BulkEdit {
 
 	read_google_sheet(url, is_refresh = false) {
 		frappe.call({
-			method: "frappe.desk.form.bulk_edit.parse_bulk_edit_google_sheet",
+			method: "frappe.desk.form.grid_import.parse_google_sheet",
 			args: { doctype: this.grid.frm.doctype, url },
 			freeze: true,
 			freeze_message: __("Reading Google Sheet"),
@@ -1125,25 +1125,25 @@ export default class BulkEdit {
 		);
 		const mapping_row = mapping
 			? `
-			<tr class="bulk-edit-mapping-row">
-				<td class="bulk-edit-preview-row"></td>
+			<tr class="grid-import-mapping-row">
+				<td class="grid-import-preview-row"></td>
 				${columns.map((i) => `<td data-col="${i}"></td>`).join("")}
-				<td class="bulk-edit-skip-cell"></td>
+				<td class="grid-import-skip-cell"></td>
 			</tr>
 		`
 			: "";
 		const body = shown.map(
 			(row, r) => `
 				<tr data-row="${cint(row_numbers[r])}">
-					<td class="bulk-edit-preview-row">${cint(row_numbers[r])}</td>
+					<td class="grid-import-preview-row">${cint(row_numbers[r])}</td>
 					${columns.map((i) => `<td data-col="${i}" data-mapped="0">${escape(cstr(row[i]))}</td>`).join("")}
-					<td class="bulk-edit-skip-cell"></td>
+					<td class="grid-import-skip-cell"></td>
 				</tr>
 			`
 		);
 
 		return `
-			<div class="bulk-edit-preview-head">
+			<div class="grid-import-preview-head">
 				<span class="text-muted small">${
 					mapping
 						? __(
@@ -1151,13 +1151,13 @@ export default class BulkEdit {
 						  )
 						: __("These rows will be added to the table when you apply.")
 				}</span>
-				<div class="bulk-edit-preview-head-actions">
+				<div class="grid-import-preview-head-actions">
 					${
 						this.state.google_sheets_url
 							? frappe.ui.button.html({
 									label: __("Refresh"),
 									icon: "refresh-cw",
-									css_class: "bulk-edit-refresh-sheet",
+									css_class: "grid-import-refresh-sheet",
 							  })
 							: ""
 					}
@@ -1166,22 +1166,22 @@ export default class BulkEdit {
 							? frappe.ui.button.html({
 									label: __("Skip All"),
 									disabled: true,
-									css_class: "bulk-edit-skip-all",
+									css_class: "grid-import-skip-all",
 							  })
 							: ""
 					}
 				</div>
 			</div>
-			<div class="bulk-edit-preview-hint text-muted small">${__(
+			<div class="grid-import-preview-hint text-muted small">${__(
 				"Fix the highlighted cells. Click one to see and resolve its error."
 			)}</div>
-			<div class="bulk-edit-preview-table">
+			<div class="grid-import-preview-table">
 				<table class="table table-bordered">
 					<thead>
 						<tr>
-							<th class="bulk-edit-preview-row">${__("Row")}</th>
+							<th class="grid-import-preview-row">${__("Row")}</th>
 							${head.join("")}
-							<th class="bulk-edit-skip-cell"></th>
+							<th class="grid-import-skip-cell"></th>
 						</tr>
 					</thead>
 					<tbody>${mapping_row}${body.join("")}</tbody>
@@ -1189,7 +1189,7 @@ export default class BulkEdit {
 			</div>
 			${
 				mapping && total_rows > BULK_EDIT_FIX_PAGE_LENGTH
-					? '<div class="bulk-edit-preview-foot"><div class="grid-pagination"></div></div>'
+					? '<div class="grid-import-preview-foot"><div class="grid-pagination"></div></div>'
 					: ""
 			}
 		`;
@@ -1410,17 +1410,20 @@ export default class BulkEdit {
 			});
 		});
 
-		const invalid = await frappe.xcall("frappe.desk.form.bulk_edit.get_invalid_link_values", {
-			doctype: this.grid.frm.doctype,
-			values_by_doctype: JSON.stringify(
-				Object.fromEntries(
-					Object.entries(values_by_doctype).map(([doctype, values]) => [
-						doctype,
-						[...values],
-					])
-				)
-			),
-		});
+		const invalid = await frappe.xcall(
+			"frappe.desk.form.grid_import.get_invalid_link_values",
+			{
+				doctype: this.grid.frm.doctype,
+				values_by_doctype: JSON.stringify(
+					Object.fromEntries(
+						Object.entries(values_by_doctype).map(([doctype, values]) => [
+							doctype,
+							[...values],
+						])
+					)
+				),
+			}
+		);
 
 		const warnings = [];
 		link_columns.forEach(({ i, df }) => {
@@ -1443,7 +1446,7 @@ export default class BulkEdit {
 	}
 
 	get_column_map(headers) {
-		return frappe.xcall("frappe.desk.form.bulk_edit.get_bulk_edit_column_map", {
+		return frappe.xcall("frappe.desk.form.grid_import.get_column_map", {
 			doctype: this.grid.frm.doctype,
 			fieldname: this.grid.df.fieldname,
 			headers: JSON.stringify(headers),

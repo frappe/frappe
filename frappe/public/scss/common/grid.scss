@@ -927,63 +927,63 @@ body.grid-col-resizing {
 	}
 }
 
-.bulk-edit-panel .file-preview-container + .justify-content-end {
+.grid-import-panel .file-preview-container + .justify-content-end {
 	display: none;
 }
 
-.bulk-edit-file-pane .file-size,
-.bulk-edit-file-pane .config-area {
+.grid-import-file-pane .file-size,
+.grid-import-file-pane .config-area {
 	display: none;
 }
 
-.bulk-edit-upload-pane {
+.grid-import-upload-pane {
 	display: flex;
 	flex-direction: column;
 }
 
-.bulk-edit-upload-tabs .es-tabs__indicator {
+.grid-import-upload-tabs .es-tabs__indicator {
 	display: none;
 }
 
-.bulk-edit-upload-tabs .es-tabs__tab[data-state="active"] {
+.grid-import-upload-tabs .es-tabs__tab[data-state="active"] {
 	box-shadow: inset 0 -2px 0 0 var(--ink-gray-9);
 }
 
-.bulk-edit-tabs > .es-tabs__panel[data-state="active"] {
+.grid-import-tabs > .es-tabs__panel[data-state="active"] {
 	display: flex;
 	flex-direction: column;
 }
 
-.bulk-edit-tabs > .es-tabs__panel {
+.grid-import-tabs > .es-tabs__panel {
 	overflow-y: auto;
 }
 
-.bulk-edit-tabs > .es-tabs__panel:has(.bulk-edit-preview-table) {
+.grid-import-tabs > .es-tabs__panel:has(.grid-import-preview-table) {
 	overflow-y: hidden;
 }
 
-.bulk-edit-tabs .es-tabs__panel {
+.grid-import-tabs .es-tabs__panel {
 	padding: var(--padding-md);
 	padding-right: var(--padding-sm);
 }
 
-.modal-dialog.bulk-edit-dialog {
+.modal-dialog.grid-import-dialog {
 	max-width: min(80vw, 1400px);
 }
 
-.bulk-edit-dialog .es-stepper {
+.grid-import-dialog .es-stepper {
 	padding-block: var(--padding-xs);
 }
 
-.bulk-edit-tabs > .es-tabs__list {
+.grid-import-tabs > .es-tabs__list {
 	display: none;
 }
 
-.bulk-edit-dialog .modal-footer {
+.grid-import-dialog .modal-footer {
 	padding-bottom: 0;
 }
 
-.bulk-edit-dropdown-host {
+.grid-import-dropdown-host {
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -997,13 +997,13 @@ body.grid-col-resizing {
 	}
 }
 
-.bulk-edit-dropdown-host > ul,
-.bulk-edit-preview-table .awesomplete > ul {
+.grid-import-dropdown-host > ul,
+.grid-import-preview-table .awesomplete > ul {
 	max-height: 30vh;
 	overflow-y: auto;
 }
 
-.bulk-edit-card {
+.grid-import-card {
 	flex: 1 1 auto;
 	min-height: 0;
 	display: flex;
@@ -1011,7 +1011,7 @@ body.grid-col-resizing {
 	margin-top: var(--padding-sm);
 }
 
-.bulk-edit-preview-foot {
+.grid-import-preview-foot {
 	flex: 0 0 auto;
 	display: flex;
 	justify-content: center;
@@ -1024,14 +1024,14 @@ body.grid-col-resizing {
 	}
 }
 
-.bulk-edit-preview-head-actions {
+.grid-import-preview-head-actions {
 	display: flex;
 	align-items: center;
 	gap: var(--padding-sm);
 	flex: 0 0 auto;
 }
 
-.bulk-edit-preview-head {
+.grid-import-preview-head {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
@@ -1039,7 +1039,7 @@ body.grid-col-resizing {
 	margin-bottom: var(--padding-sm);
 }
 
-.bulk-edit-footer-message {
+.grid-import-footer-message {
 	align-self: center;
 	max-width: 60ch;
 	color: var(--error-color);
@@ -1051,12 +1051,12 @@ body.grid-col-resizing {
 	}
 }
 
-.bulk-edit-preview-hint {
+.grid-import-preview-hint {
 	margin-bottom: var(--margin-xs);
 }
 
-.bulk-edit-preview-table {
-	--bulk-edit-row-height: 43px;
+.grid-import-preview-table {
+	--grid-import-row-height: 43px;
 	flex: 1 1 auto;
 	overflow: auto;
 	min-height: 0;
@@ -1066,14 +1066,14 @@ body.grid-col-resizing {
 	}
 }
 
-.bulk-edit-preview-row {
+.grid-import-preview-row {
 	width: 1%;
 	white-space: nowrap;
 	color: var(--text-muted);
 	text-align: right;
 }
 
-.bulk-edit-skip-cell {
+.grid-import-skip-cell {
 	width: 1%;
 	white-space: nowrap;
 	text-align: right;
@@ -1084,11 +1084,11 @@ body.grid-col-resizing {
 	}
 }
 
-.bulk-edit-skipped-row td:not(.bulk-edit-skip-cell) {
+.grid-import-skipped-row td:not(.grid-import-skip-cell) {
 	opacity: 0.5;
 }
 
-.bulk-edit-preview-table th[data-col] {
+.grid-import-preview-table th[data-col] {
 	position: relative;
 	min-width: 180px;
 	padding-left: calc(var(--padding-md) + var(--padding-xs));
@@ -1116,12 +1116,12 @@ body.grid-col-resizing {
 	}
 }
 
-.bulk-edit-preview-table td[data-mapped="0"],
-.bulk-edit-preview-table th[data-mapped="0"] {
+.grid-import-preview-table td[data-mapped="0"],
+.grid-import-preview-table th[data-mapped="0"] {
 	color: var(--text-muted);
 }
 
-.bulk-edit-mapping-row td[data-col] {
+.grid-import-mapping-row td[data-col] {
 	.frappe-control {
 		margin-bottom: 0;
 	}
@@ -1137,17 +1137,17 @@ body.grid-col-resizing {
 	}
 }
 
-.bulk-edit-preview-table td.has-error {
+.grid-import-preview-table td.has-error {
 	box-shadow: inset 0 0 0 1px var(--error-border);
 }
 
-.bulk-edit-preview-table td.bulk-edit-editable-cell {
+.grid-import-preview-table td.grid-import-editable-cell {
 	padding: 0;
 	cursor: pointer;
 	vertical-align: middle;
 }
 
-.bulk-edit-preview-table .bulk-edit-editable-cell .frappe-control {
+.grid-import-preview-table .grid-import-editable-cell .frappe-control {
 	position: relative;
 	margin-bottom: 0;
 
@@ -1156,7 +1156,7 @@ body.grid-col-resizing {
 	}
 }
 
-.bulk-edit-preview-table .bulk-edit-editable-cell .form-control {
+.grid-import-preview-table .grid-import-editable-cell .form-control {
 	width: 100%;
 	height: auto;
 	padding: var(--padding-xs) 28px var(--padding-xs) var(--padding-sm);
@@ -1166,8 +1166,8 @@ body.grid-col-resizing {
 	cursor: pointer;
 }
 
-.bulk-edit-preview-table .bulk-edit-mapping-row td[data-col] .frappe-control.has-error input,
-.bulk-edit-preview-table td.bulk-edit-editable-cell .frappe-control.has-error input {
+.grid-import-preview-table .grid-import-mapping-row td[data-col] .frappe-control.has-error input,
+.grid-import-preview-table td.grid-import-editable-cell .frappe-control.has-error input {
 	border: none;
 
 	&:focus {
@@ -1175,25 +1175,25 @@ body.grid-col-resizing {
 	}
 }
 
-.bulk-edit-preview-table tbody td {
-	height: var(--bulk-edit-row-height);
+.grid-import-preview-table tbody td {
+	height: var(--grid-import-row-height);
 }
 
-.bulk-edit-preview-table td.bulk-edit-pending-cell {
+.grid-import-preview-table td.grid-import-pending-cell {
 	color: var(--error-color);
 	cursor: pointer;
 	padding: 0 var(--padding-sm);
-	line-height: var(--bulk-edit-row-height);
+	line-height: var(--grid-import-row-height);
 }
 
-.bulk-edit-preview-table .bulk-edit-editable-cell .checkbox {
+.grid-import-preview-table .grid-import-editable-cell .checkbox {
 	margin-bottom: 0;
 
 	label {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		min-height: var(--bulk-edit-row-height);
+		min-height: var(--grid-import-row-height);
 		margin-bottom: 0;
 		padding-top: 0;
 	}
