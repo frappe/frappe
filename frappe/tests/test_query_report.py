@@ -5,6 +5,7 @@ import datetime
 import json
 
 import frappe
+from frappe.desk.link_title import get_report_link_titles
 from frappe.desk.query_report import build_xlsx_data, export_query, format_fields, run
 from frappe.tests import IntegrationTestCase
 from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, make_xlsx
@@ -567,6 +568,18 @@ data = columns, result
 		self.run_report(report)
 
 		self.assertNotIn("User::Administrator", frappe.local.response.get("_link_titles", {}))
+
+	def test_legacy_string_columns_resolve_link_titles(self):
+		"""Prepared reports can still carry `Label:Link/DocType:width` column strings."""
+		from frappe.desk.query_report import get_column_as_dict
+
+		self.enable_link_titles("User")
+		columns = [get_column_as_dict("Allocated To:Link/User:120")]
+
+		titles = get_report_link_titles(columns, [["Administrator"]])
+
+		full_name = frappe.db.get_value("User", "Administrator", "full_name")
+		self.assertEqual(titles["User::Administrator"], full_name)
 
 	def make_link_column_report(self):
 		"""Script report with an ID column and a User link column, returning one row."""
