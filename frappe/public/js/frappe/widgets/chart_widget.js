@@ -593,6 +593,7 @@ export default class ChartWidget extends Widget {
 			} else if (is_circular_chart) {
 				this.chart_wrapper.empty();
 				delete this.dashboard_chart;
+				chart_args.truncateLegends = 0;
 				this.dashboard_chart = frappe.utils.make_chart(this.chart_wrapper[0], chart_args);
 			} else {
 				this.dashboard_chart.update(this.data);
@@ -643,7 +644,7 @@ export default class ChartWidget extends Widget {
 			colors: colors,
 			height: this.height,
 			maxSlices: this.chart_doc.number_of_groups || max_slices,
-			truncateLegends: 0,
+			truncateLegends: 1,
 			axisOptions: {
 				xIsSeries: this.chart_doc.timeseries,
 				shortenYAxisNumbers: 1,
