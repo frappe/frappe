@@ -3,7 +3,7 @@
 
 import GridRow from "./grid_row";
 import GridPagination from "./grid_pagination";
-import BulkEdit from "./bulk_edit";
+import GridImport from "./grid_import";
 
 // Static pixel column widths; legacy map migrates old 1-12 `columns`/`colsize`.
 export const GRID_MIN_COLUMN_WIDTH = 60;
@@ -1649,7 +1649,7 @@ export default class Grid {
 			.find(".grid-upload")
 			.removeClass("hidden")
 			.on("click", () => {
-				new BulkEdit(this).show();
+				new GridImport(this).show();
 				return false;
 			});
 	}
