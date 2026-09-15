@@ -8,7 +8,6 @@ from types import SimpleNamespace
 import requests
 
 import frappe
-from frappe.core.doctype.user.user import generate_keys
 from frappe.frappeclient import FrappeClient, FrappeException
 from frappe.model import default_fields
 from frappe.tests import IntegrationTestCase, UnitTestCase
@@ -205,22 +204,17 @@ class TestFrappeClient(IntegrationTestCase):
 		self.assertFalse(frappe.db.get_value("Note", NAME_TO_DELETE))
 
 	def test_auth_via_api_key_secret(self):
-		# generate API key and API secret for administrator
-		keys = generate_keys("Administrator")
-		frappe.db.commit()
-		generated_secret = frappe.utils.password.get_decrypted_password(
-			"User", "Administrator", fieldname="api_secret"
-		)
-
-		api_key = frappe.db.get_value("User", "Administrator", "api_key")
-		# The credentials are committed and held in Python values now. Release the
-		# local read snapshot before the web process opens its SQLite connection.
-		frappe.db.rollback()
+		# Generate and read the credentials through the web process that will
+		# authenticate them. This avoids cross-process SQLite snapshot races.
+		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
+		keys = server.post_api("frappe.core.doctype.user.user.generate_keys", {"user": "Administrator"})
+		api_key = keys["api_key"]
+		generated_secret = keys["api_secret"]
 		header = {"Authorization": f"token {api_key}:{generated_secret}"}
 		with requests.post(
 			get_url() + "/api/method/frappe.auth.get_logged_user", headers=header, timeout=30
 		) as response:
-			self.assertEqual(response.status_code, 200)
+			self.assertEqual(response.status_code, 200, response.text)
 			self.assertEqual("Administrator", response.json()["message"])
 		self.assertEqual(keys["api_secret"], generated_secret)
 
@@ -232,7 +226,7 @@ class TestFrappeClient(IntegrationTestCase):
 		with requests.post(
 			get_url() + "/api/method/frappe.auth.get_logged_user", headers=header, timeout=30
 		) as response:
-			self.assertEqual(response.status_code, 200)
+			self.assertEqual(response.status_code, 200, response.text)
 			self.assertEqual("Administrator", response.json()["message"])
 
 		# Valid api key, invalid api secret
