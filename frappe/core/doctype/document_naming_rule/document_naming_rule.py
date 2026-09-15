@@ -57,12 +57,15 @@ class DocumentNamingRule(Document):
 	def apply(self, doc):
 		"""
 		Apply naming rules for the given document. Will set `name` if the rule is matched.
+
+		Conditions are evaluated one at a time: Filters.optimize collapses repeated equalities on a
+		field into an `in`, which would read the rows as alternatives rather than requirements.
 		"""
-		if self.conditions:
-			if not evaluate_filters(
-				doc, [(self.document_type, d.field, d.condition, d.value) for d in self.conditions]
-			):
-				return
+		if not all(
+			evaluate_filters(doc, [(self.document_type, d.field, d.condition, d.value)])
+			for d in self.conditions
+		):
+			return
 
 		prefix = parse_naming_series(self.prefix, doc=doc)
 		doc.name = prefix + getseries(prefix, self.prefix_digits)
