@@ -118,6 +118,43 @@ class TestFSRollbacks(IntegrationTestCase):
 		self.assertFalse(file.exists_on_disk())
 
 
+class TestWriteFileContainment(IntegrationTestCase):
+	def test_write_file_rejects_target_outside_files_dir(self):
+		from frappe.utils.file_manager import write_file
+
+		files_path = get_files_path(is_private=1)
+		bad_names = (
+			"../../../../ESCAPE_TEST.txt",  # parent traversal
+			"sub/../../ESCAPE_TEST.txt",  # traversal via a nested segment
+			"/tmp/ESCAPE_TEST.txt",  # absolute path outside the files dir
+			"subdir/ESCAPE_TEST.txt",  # nested name: not a direct child of the files dir
+		)
+		for fname in bad_names:
+			with self.subTest(fname=fname):
+				# where the bytes would land if the target were not confined
+				would_be = os.path.realpath(os.path.join(files_path, fname))
+				self.assertRaises(ValidationError, write_file, b"data\n", fname, is_private=1)
+				self.assertFalse(os.path.exists(would_be))
+
+	def test_write_file_allows_plain_basename(self):
+		from frappe.utils.file_manager import write_file
+
+		content = b"safe content\n"
+		for is_private in (0, 1):
+			with self.subTest(is_private=is_private):
+				fname = f"{frappe.generate_hash()}.txt"
+				write_file(content, fname, is_private=is_private)
+
+				on_disk = get_files_path(fname, is_private=is_private)
+				self.addCleanup(lambda p=on_disk: os.path.exists(p) and os.remove(p))
+				self.assertEqual(
+					os.path.realpath(os.path.dirname(on_disk)),
+					os.path.realpath(get_files_path(is_private=is_private)),
+				)
+				with open(on_disk, "rb") as f:
+					self.assertEqual(f.read(), content)
+
+
 class TestExtensionValidations(IntegrationTestCase):
 	@IntegrationTestCase.change_settings("System Settings", {"allowed_file_extensions": "JPG\nCSV"})
 	def test_allowed_extension(self):
