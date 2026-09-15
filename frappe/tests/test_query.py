@@ -2030,6 +2030,9 @@ class TestQuery(IntegrationTestCase):
 		if frappe.db.db_type == "postgres":
 			self.assertIn("CAST(date_part('year'", sql)
 			self.assertIn('"creation_year"', sql)
+		elif frappe.db.db_type == "sqlite":
+			self.assertIn("CAST(STRFTIME('%Y'", sql)
+			self.assertIn('"creation_year"', sql)
 		else:
 			self.assertIn(self.normalize_sql("YEAR(`creation`) `creation_year`"), sql)
 		self.assertIn(self.normalize_sql("GROUP BY `creation_year`"), self.normalize_sql(sql))
@@ -2065,7 +2068,8 @@ class TestQuery(IntegrationTestCase):
 		# Test TIMESTAMP function
 		query = frappe.qb.get_query("User", fields=[{"TIMESTAMP": "creation", "as": "ts"}])
 		sql = query.get_sql()
-		self.assertIn(self.normalize_sql("TIMESTAMP(`creation`) `ts`"), self.normalize_sql(sql))
+		expected_function = "DATETIME" if frappe.db.db_type == "sqlite" else "TIMESTAMP"
+		self.assertIn(self.normalize_sql(f"{expected_function}(`creation`) `ts`"), self.normalize_sql(sql))
 
 		# Test mixed regular fields and function fields
 		query = frappe.qb.get_query(

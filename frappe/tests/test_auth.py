@@ -2,13 +2,14 @@
 # License: MIT. See LICENSE
 import datetime
 import time
+from unittest.mock import Mock, patch
 
 import requests
 from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request
 
 import frappe
-from frappe.auth import LoginAttemptTracker, validate_auth
+from frappe.auth import CookieManager, LoginAttemptTracker, validate_auth, validate_ip_address
 from frappe.core.doctype.user.user import generate_keys
 from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
@@ -63,6 +64,29 @@ class TestAuth(IntegrationTestCase):
 		frappe.clear_cache()
 		frappe.db.commit()
 
+	def test_validate_ip_address_without_a_request(self):
+		with (
+			patch.object(frappe.local, "request", None, create=True),
+			patch(
+				"frappe.auth.frappe.get_cached_doc",
+				return_value=Mock(get_restricted_ip_list=lambda: []),
+			),
+		):
+			self.assertIsNone(validate_ip_address("Administrator"))
+
+	def test_session_without_a_request_uses_guest_sid(self):
+		original_session = frappe.local.session
+		self.addCleanup(setattr, frappe.local, "session", original_session)
+
+		with patch.object(frappe.local, "request", None, create=True):
+			self.assertEqual(Session(user="").sid, "Guest")
+
+	def test_cookie_manager_without_a_request_uses_non_secure_cookie(self):
+		with patch.object(frappe.local, "request", None, create=True):
+			cookies = CookieManager()
+			cookies.set_cookie("sid", "test")
+			self.assertFalse(cookies.cookies["sid"]["secure"])
+
 	@requires_test_service(TestService.WEB_SERVER)
 	def test_allow_login_using_mobile(self):
 		self.set_system_settings("allow_login_using_mobile_number", 1)
@@ -76,6 +100,7 @@ class TestAuth(IntegrationTestCase):
 		with self.assertRaises(AuthError):
 			FrappeClient(self.HOST_NAME, self.test_user_name, self.test_user_password)
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_allow_login_using_only_email(self):
 		self.set_system_settings("allow_login_using_mobile_number", 0)
 		self.set_system_settings("allow_login_using_user_name", 0)

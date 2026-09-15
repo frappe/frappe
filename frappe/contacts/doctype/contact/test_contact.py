@@ -1,5 +1,7 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
+from unittest import skipIf
+
 import frappe
 from frappe.contacts.doctype.contact.contact import contact_query, get_full_name
 from frappe.email import get_contact_list
@@ -147,6 +149,7 @@ class TestContact(IntegrationTestCase):
 		self.assertFalse(first_contact.reload().is_primary_contact)
 		self.assertTrue(second_contact.is_primary_contact)
 
+	@skipIf(frappe.conf.db_type == "sqlite", "SQLite does not support row-level locks.")
 	@timeout(5, "Primary Contact validation did not lock the linked party")
 	def test_primary_contact_locks_linked_party(self):
 		contact = create_contact("Locking Primary Contact", "Mr", save=False)

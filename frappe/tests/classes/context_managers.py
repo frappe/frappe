@@ -125,9 +125,16 @@ def enable_safe_exec() -> None:
 	from frappe.utils.safe_exec import SAFE_EXEC_CONFIG_KEY
 
 	conf = os.path.join(frappe.local.sites_path, "common_site_config.json")
+	missing = object()
+	previous_value = frappe.get_common_site_config().get(SAFE_EXEC_CONFIG_KEY, missing)
 	update_site_config(SAFE_EXEC_CONFIG_KEY, 1, validate=False, site_config_path=conf)
-	yield
-	update_site_config(SAFE_EXEC_CONFIG_KEY, 0, validate=False, site_config_path=conf)
+	try:
+		yield
+	finally:
+		value_to_restore = "None" if previous_value is missing else previous_value
+		update_site_config(SAFE_EXEC_CONFIG_KEY, value_to_restore, validate=False, site_config_path=conf)
+		if previous_value is missing and hasattr(frappe.local, "conf"):
+			frappe.local.conf.pop(SAFE_EXEC_CONFIG_KEY, None)
 
 
 @UnitTestCase.registerAs(staticmethod)

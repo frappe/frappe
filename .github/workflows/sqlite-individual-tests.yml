@@ -1,6 +1,7 @@
 name: SQLite Individual
 
 on:
+  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -23,7 +24,7 @@ jobs:
       - uses: actions/checkout@v7
       - id: set-tests
         run: |
-          tests=$(find . -path '*/doctype/*/test_*.py' | xargs grep -l 'def test_' | awk '{
+          tests=$(find frappe -type f -name 'test_*.py' -print0 | xargs -0 grep -l 'def test_' | awk '{
               gsub(/^\.\//, "", $0)
               gsub(/\.py$/, "", $0)
               gsub(/\//, ".", $0)
@@ -44,6 +45,7 @@ jobs:
       NODE_ENV: production
       ALL_TESTS: ${{ needs.discover.outputs.tests }}
       SHARD_INDEX: ${{ matrix.shard }}
+      FRAPPE_TEST_SMTP_SERVER: 0
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.discover.outputs.matrix) }}
@@ -61,6 +63,7 @@ jobs:
           disable-socketio: true
           # SQLite permits only one writer. Tests run serially in this job, hence disabling workers that can write queued setup jobs.
           disable-workers: true
+          enable-server-scripts: false
       - name: Run Tests
         shell: bash
         run: |
@@ -93,6 +96,7 @@ jobs:
           db-root-password: db_root
           disable-socketio: true
           disable-workers: true
+          enable-server-scripts: true
       - name: Wait for web server
         shell: bash
         run: |

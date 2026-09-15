@@ -5,12 +5,15 @@ import contextlib
 # imports - standard imports
 import gzip
 import os
+import sqlite3
 import sys
+import tempfile
 from calendar import timegm
 from collections.abc import Callable
 from datetime import datetime
 from glob import glob
-from shutil import which
+from pathlib import Path
+from shutil import copyfileobj, which
 
 # imports - third party imports
 import click
@@ -29,6 +32,25 @@ _verbose = verbose
 base_tables = ["__Auth", "__global_search", "__UserSettings"]
 
 BACKUP_ENCRYPTION_CONFIG_KEY = "backup_encryption_key"
+
+
+def backup_sqlite_database(database_path: str | os.PathLike, backup_path: str | os.PathLike) -> None:
+	"""Write a compressed, transactionally consistent snapshot of a live SQLite database."""
+	database_uri = f"{Path(database_path).resolve().as_uri()}?mode=ro"
+	with tempfile.TemporaryDirectory(prefix="frappe-sqlite-backup-") as temp_directory:
+		snapshot_path = Path(temp_directory) / "snapshot.db"
+		with (
+			sqlite3.connect(database_uri, uri=True, timeout=15) as source,
+			sqlite3.connect(snapshot_path) as snapshot,
+		):
+			source.backup(snapshot)
+
+		# This path is created inside our private temporary directory; it contains no user input.
+		with (
+			open(snapshot_path, "rb") as snapshot,  # nosemgrep: frappe-security-file-traversal
+			gzip.open(backup_path, "wb") as compressed_backup,
+		):
+			copyfileobj(snapshot, compressed_backup)
 
 
 class BackupGenerator:
@@ -388,20 +410,12 @@ class BackupGenerator:
 
 	def take_dump(self):
 		if self.db_type == "sqlite":
-			from pathlib import Path
-
-			import frappe
-
 			db_path = Path(frappe.get_site_path()) / "db" / f"{self.db_name}.db"
-			command = f"gzip -k {db_path} -c > {self.backup_path_db}"
-
-			frappe.utils.execute_in_shell(command, low_priority=True, check_exit_code=True)
-
+			backup_sqlite_database(db_path, self.backup_path_db)
 			return
 
 		import shlex
 
-		import frappe.utils
 		from frappe.utils.change_log import get_app_branch
 
 		gzip_exc: str = which("gzip")

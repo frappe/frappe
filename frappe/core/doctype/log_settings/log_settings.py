@@ -176,7 +176,9 @@ def clear_log_table(doctype, days=90):
 	)
 
 	try:
-		if frappe.db.db_type == "postgres":
+		if frappe.db.db_type == "sqlite":
+			frappe.db.delete(doctype, {"creation": ("<=", cutoff)})
+		elif frappe.db.db_type == "postgres":
 			frappe.db.sql_ddl(f'CREATE TABLE "{temporary}" (LIKE "{original}" INCLUDING ALL)')
 
 			copy_recent_rows.run()
@@ -192,5 +194,10 @@ def clear_log_table(doctype, days=90):
 		frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `{temporary}`")
 		raise
 	else:
+		if frappe.db.db_type == "sqlite":
+			# This scheduled cleanup intentionally persists each successfully cleared table independently.
+			frappe.db.commit()  # nosemgrep: frappe-manual-commit
+			return
 		frappe.db.sql_ddl(f"DROP TABLE `{backup}`")
-		frappe.db.commit()
+		# Finish this table's cleanup before the scheduled job moves to the next one.
+		frappe.db.commit()  # nosemgrep: frappe-manual-commit

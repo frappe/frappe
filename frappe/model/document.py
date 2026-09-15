@@ -225,7 +225,7 @@ def get_docs(
 		(df.fieldname, df.options) for df in meta.get_table_fields() if not is_virtual_doctype(df.options)
 	]
 	controller = get_controller(doctype)
-	for_update = for_update and frappe.db.db_type != "sqlite"
+	lock_rows = for_update and frappe.db.db_type != "sqlite"
 
 	iterator = _get_docs_generator(
 		doctype,
@@ -236,6 +236,7 @@ def get_docs(
 		limit_start=limit_start,
 		order_by=order_by,
 		for_update=for_update,
+		lock_rows=lock_rows,
 		distinct=distinct,
 	)
 
@@ -256,6 +257,7 @@ def _get_docs_generator(
 	limit_start,
 	order_by,
 	for_update,
+	lock_rows,
 	distinct,
 ) -> Generator["Document"]:
 	offset = limit_start
@@ -267,7 +269,7 @@ def _get_docs_generator(
 			order_by=order_by,
 			limit=chunk_size,
 			offset=offset,
-			for_update=for_update,
+			for_update=lock_rows,
 			child_tables=child_tables,
 			distinct=distinct,
 		)
