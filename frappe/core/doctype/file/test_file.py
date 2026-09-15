@@ -96,11 +96,7 @@ class TestFSRollbacks(FrappeTestCase):
 		self.assertFalse(file.exists_on_disk())
 
 
-<<<<<<< HEAD
-class TestExtensionValidations(FrappeTestCase):
-	@change_settings("System Settings", {"allowed_file_extensions": "JPG\nCSV"})
-=======
-class TestWriteFileContainment(IntegrationTestCase):
+class TestWriteFileContainment(FrappeTestCase):
 	def test_write_file_rejects_target_outside_files_dir(self):
 		from frappe.utils.file_manager import write_file
 
@@ -137,9 +133,8 @@ class TestWriteFileContainment(IntegrationTestCase):
 					self.assertEqual(f.read(), content)
 
 
-class TestExtensionValidations(IntegrationTestCase):
-	@IntegrationTestCase.change_settings("System Settings", {"allowed_file_extensions": "JPG\nCSV"})
->>>>>>> 582dc46 (fix: confine write_file target to the files directory (#42847))
+class TestExtensionValidations(FrappeTestCase):
+	@change_settings("System Settings", {"allowed_file_extensions": "JPG\nCSV"})
 	def test_allowed_extension(self):
 		set_request(method="POST", path="/")
 		file_name = content = frappe.generate_hash()
