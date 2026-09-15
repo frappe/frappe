@@ -31,7 +31,7 @@ frappe.get_indicator = function (doc, doctype, show_workflow_state) {
 	if (!doctype) doctype = doc.doctype;
 
 	let meta = frappe.get_meta(doctype);
-	var workflow = frappe.workflow.workflows[doctype];
+	var workflow = frappe.workflow.get_workflow(doc, doctype);
 	var without_workflow = workflow ? workflow["override_status"] : true;
 
 	var settings = frappe.listview_settings[doctype] || {};

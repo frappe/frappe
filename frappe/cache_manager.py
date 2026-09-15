@@ -78,7 +78,7 @@ user_cache_keys = (
 doctype_cache_keys = (
 	"last_modified",
 	"linked_doctypes",
-	"workflow",
+	"workflows",
 	"data_import_column_header_map",
 )
 

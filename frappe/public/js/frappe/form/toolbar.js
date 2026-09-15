@@ -724,9 +724,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		return this.get_docstatus() === 2 && this.frm.perm[0].amend && !this.read_only;
 	}
 	has_workflow() {
-		if (this._has_workflow === undefined)
-			this._has_workflow = frappe.model.has_workflow(this.frm.doctype);
-		return this._has_workflow;
+		return frappe.workflow.has_workflow(this.frm.doc);
 	}
 	get_docstatus() {
 		return cint(this.frm.doc.docstatus);
@@ -835,6 +833,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				frappe
 					.xcall("frappe.model.workflow.can_cancel_document", {
 						doctype: this.frm.doc.doctype,
+						docname: this.frm.doc.name,
 					})
 					.then((can_cancel) => {
 						if (can_cancel) {
