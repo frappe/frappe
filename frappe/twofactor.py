@@ -111,6 +111,14 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 
 def two_factor_is_enabled_for_(user):
 	"""Check if 2factor is enabled for user."""
+	# Administrator ships with the placeholder address `admin@example.com`, which is
+	# globally unsubscribed by `install_fixtures.add_unsubscribe`. Both the OTP App QR
+	# mail and the Email OTP are therefore dropped before an Email Queue row is even
+	# created, so enrolling Administrator in 2FA locks the account out with no way to
+	# recover from the UI. Keep the bypass until Administrator has a deliverable address.
+	if user == "Administrator":
+		return False
+
 	if isinstance(user, str):
 		user = frappe.get_doc("User", user)
 	roles = [d.role for d in user.roles or []] + [ALL_USER_ROLE]
