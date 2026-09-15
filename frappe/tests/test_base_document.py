@@ -28,6 +28,36 @@ class TestToDoExtension(BaseDocument):
 
 
 class TestBaseDocument(IntegrationTestCase):
+	def test_sanitize_content_skips_json_fieldtype(self):
+		"""JSON-fieldtype values must survive _sanitize_content untouched, even when
+		they contain HTML-like substrings, while ordinary text fields on the same
+		doctype are still sanitized."""
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		if not frappe.db.exists("DocType", "Test JSON Sanitize"):
+			new_doctype(
+				"Test JSON Sanitize",
+				fields=[
+					{"label": "Config", "fieldname": "config", "fieldtype": "JSON"},
+					{"label": "Description", "fieldname": "description", "fieldtype": "Text"},
+				],
+			).insert()
+
+		payload = '{"label": "<b onclick=\\"alert(1)\\">hi</b>"}'
+		doc = frappe.get_doc(
+			{
+				"doctype": "Test JSON Sanitize",
+				"config": payload,
+				"description": '<b onclick="alert(1)">hi</b>',
+			}
+		).insert()
+
+		# JSON field: unchanged, still contains the raw onclick attribute
+		self.assertEqual(doc.config, payload)
+
+		# Text field: sanitized, onclick attribute stripped
+		self.assertNotIn("onclick", doc.description)
+
 	def test_docstatus(self):
 		doc = BaseDocument({"docstatus": 0, "doctype": "ToDo"})
 		self.assertTrue(doc.docstatus.is_draft())
