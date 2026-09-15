@@ -74,17 +74,23 @@ class TestDocument(IntegrationTestCase):
 		return d
 
 	def test_submittable_insert(self):
-		dt = frappe.get_doc(
-			{
-				"doctype": "DocType",
-				"module": "Core",
-				"name": "Test Submittable Doctype",
-				"custom": 1,
-				"is_submittable": 1,
-				"fields": [{"label": "Field", "fieldname": "test_field", "fieldtype": "Data"}],
-				"permissions": [{"role": "System Manager", "read": 1, "write": 1, "submit": 1, "cancel": 1}],
-			}
-		).insert(ignore_if_duplicate=True)
+		doctype_name = "Test Document Submittable"
+		if frappe.db.exists("DocType", doctype_name):
+			dt = frappe.get_doc("DocType", doctype_name)
+		else:
+			dt = frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"module": "Core",
+					"name": doctype_name,
+					"custom": 1,
+					"is_submittable": 1,
+					"fields": [{"label": "Field", "fieldname": "test_field", "fieldtype": "Data"}],
+					"permissions": [
+						{"role": "System Manager", "read": 1, "write": 1, "submit": 1, "cancel": 1}
+					],
+				}
+			).insert()
 
 		d = frappe.get_doc({"doctype": dt.name, "test_field": "test"}).insert()
 		return d
