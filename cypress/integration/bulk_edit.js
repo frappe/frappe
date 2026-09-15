@@ -35,18 +35,26 @@ context("Child Table Data Import", () => {
 		cy.get(".bulk-edit-dialog:visible").should("exist");
 	};
 
-	const upload = (fixture) => {
+	const upload = (rows) => {
+		const csv = ["Number (phone),Is Primary Phone (is_primary_phone)", ...rows].join("\n");
 		cy.click_modal_primary_button("Next");
 		cy.get(".bulk-edit-dialog:visible")
 			.find(".file-upload-area")
-			.selectFile(`cypress/fixtures/${fixture}`, { action: "drag-drop" });
+			.selectFile(
+				{
+					contents: Cypress.Buffer.from(csv),
+					fileName: "phone_nos.csv",
+					mimeType: "text/csv",
+				},
+				{ action: "drag-drop" },
+			);
 		cy.click_modal_primary_button("Upload");
 		cy.wait("@parse_file");
 	};
 
 	it("adds imported rows alongside the existing ones", () => {
 		open_import();
-		upload("bulk_edit_phone_nos.csv");
+		upload(["9876500001,0", "9876500002,1"]);
 
 		cy.get(".bulk-edit-dialog:visible").find(".bulk-edit-preview-table").should("exist");
 		cy.click_modal_primary_button("Apply");
@@ -67,7 +75,7 @@ context("Child Table Data Import", () => {
 
 	it("stops on Fix Issues when a cell fails validation", () => {
 		open_import();
-		upload("bulk_edit_phone_nos_invalid.csv");
+		upload(["9876500003,maybe", "9876500004,0"]);
 
 		cy.get(".bulk-edit-dialog:visible").find(".bulk-edit-pending-cell").should("exist");
 		cy.get(".bulk-edit-dialog:visible").find(".btn-modal-primary").should("be.disabled");
@@ -75,7 +83,7 @@ context("Child Table Data Import", () => {
 
 	it("lets a bad row be skipped instead of fixed", () => {
 		open_import();
-		upload("bulk_edit_phone_nos_invalid.csv");
+		upload(["9876500003,maybe", "9876500004,0"]);
 
 		cy.get(".bulk-edit-dialog:visible").find(".bulk-edit-skip-all").click({ force: true });
 		cy.click_modal_primary_button("Next");
