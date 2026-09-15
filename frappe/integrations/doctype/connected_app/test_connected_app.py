@@ -124,7 +124,7 @@ class TestConnectedApp(IntegrationTestCase):
 			frappe.db.rollback()
 
 			with session.get(authorization_url, timeout=30) as auth_response:
-				self.assertEqual(auth_response.status_code, 200)
+				self.assertEqual(auth_response.status_code, 200, auth_response.text)
 				callback_url = auth_response.url
 
 			with session.get(callback_url, timeout=30) as callback_response:
