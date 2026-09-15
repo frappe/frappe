@@ -37,14 +37,14 @@ def get():
 	# If virtual doctype, get data from controller get_list method
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-		rows = frappe.call(controller.get_list, args=args, **args)
-		data = compress(rows)
+		data = compress(frappe.call(controller.get_list, args=args, **args))
 	else:
-		rows = execute(**args)
-		data = compress(rows, args=args)
+		data = compress(execute(**args), args=args)
 
-	if with_link_titles:
-		send_link_titles(get_report_link_titles(get_field_info(args.fields, args.doctype), rows))
+	# `compress` returns the rows untouched when there are none
+	if with_link_titles and isinstance(data, dict):
+		columns = get_field_info(data["keys"], args.doctype)
+		send_link_titles(get_report_link_titles(columns, data["values"]))
 
 	return data
 
