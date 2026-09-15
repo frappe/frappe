@@ -43,6 +43,8 @@ class TestSubmissionQueue(IntegrationTestCase):
 
 		frappe.db.commit()
 		queue_submission(d, "submit")
+		with self.assertRaises(frappe.LinkExistsError):
+			d.delete()
 		frappe.db.commit()
 
 		# Waiting for execution
@@ -53,6 +55,11 @@ class TestSubmissionQueue(IntegrationTestCase):
 		job = self.queue.fetch_job(submission_queue.job_id)
 		# Test completion
 		self.check_status(job, status="finished")
+
+		d.reload()
+		d.cancel()
+		d.delete()
+		self.assertFalse(frappe.db.exists("Submission Queue", submission_queue.name))
 
 	def test_cancel_operation(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
