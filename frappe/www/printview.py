@@ -59,8 +59,6 @@ def get_context(context) -> PrintContext:
 	else:
 		doc = frappe.get_lazy_doc(frappe.form_dict.doctype, frappe.form_dict.name)
 
-	set_link_titles(doc)
-
 	settings = frappe.parse_json(frappe.form_dict.settings)
 
 	letterhead = frappe.form_dict.letterhead or None
@@ -337,7 +335,6 @@ def get_html_and_style(
 	else:
 		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
 
-	set_link_titles(document)
 	print_format, is_beta = resolve_print_format(print_format, document.meta)
 
 	if is_beta:
@@ -452,12 +449,13 @@ def validate_print(doc: "Document", print_settings: dict | None = None) -> None:
 
 
 def run_before_print(doc: "Document", print_settings: dict) -> None:
-	"""Flag the document as printing and fire its ``before_print`` hook.
+	"""Prepare Link titles and fire the document's ``before_print`` hook.
 
 	Shared by the legacy template renderer and the builder generator so both
 	prepare the document the same way before rendering."""
 	doc.flags.in_print = True
 	doc.flags.print_settings = print_settings
+	set_link_titles(doc)
 	doc.run_method("before_print", print_settings)
 
 

@@ -37,11 +37,10 @@ def download_pdf(
 	letterhead: str | None = None,
 	settings: str | dict | None = None,
 ):
-	from frappe.www.printview import resolve_print_format, set_link_titles, validate_print
+	from frappe.www.printview import resolve_print_format, validate_print
 
 	doc = frappe.get_doc(doctype, name)
 	validate_print(doc)
-	set_link_titles(doc)
 	print_format, is_beta = resolve_print_format(print_format, doc.meta)
 	if not is_beta:
 		# jinja formats have no layout for the generator — hand off to the
