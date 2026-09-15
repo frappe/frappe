@@ -45,7 +45,11 @@ def backup_sqlite_database(database_path: str | os.PathLike, backup_path: str | 
 		):
 			source.backup(snapshot)
 
-		with open(snapshot_path, "rb") as snapshot, gzip.open(backup_path, "wb") as compressed_backup:
+		# This path is created inside our private temporary directory; it contains no user input.
+		with (
+			open(snapshot_path, "rb") as snapshot,  # nosemgrep: frappe-security-file-traversal
+			gzip.open(backup_path, "wb") as compressed_backup,
+		):
 			copyfileobj(snapshot, compressed_backup)
 
 
