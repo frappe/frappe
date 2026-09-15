@@ -2471,6 +2471,7 @@ class TestQuery(IntegrationTestCase):
 		result = frappe.qb.get_query(
 			"Logs To Clear",
 			fields=["name", "ref_doctype", "days"],
+			filters={"ref_doctype": "Error Log"},
 			parent_doctype="Log Settings",
 			ignore_permissions=False,
 		).run()

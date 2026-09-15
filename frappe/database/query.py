@@ -868,7 +868,7 @@ class Engine:
 			# It's a simple, valid fieldname like 'name' or 'creation'
 			target_doctype = doctype or self.doctype
 			target_fieldname = field
-			parent_doctype_for_perm = self.parent_doctype if doctype else None
+			parent_doctype_for_perm = self.parent_doctype if target_doctype == self.doctype else None
 
 			# If a specific doctype is provided and it's different from the main query doctype,
 			# if it's a child table, add the join using ChildTableField logic
