@@ -552,6 +552,53 @@ data = columns, result
 		frappe.delete_doc("Report", REPORT_NAME, delete_permanently=True)
 		frappe.db.commit()
 
+	def test_run_sends_link_titles(self):
+		report = self.make_link_column_report()
+		self.enable_link_titles("User")
+
+		self.run_report(report)
+
+		full_name = frappe.db.get_value("User", "Administrator", "full_name")
+		self.assertEqual(frappe.local.response["_link_titles"]["User::Administrator"], full_name)
+
+	def test_run_skips_link_titles_when_doctype_does_not_show_them(self):
+		report = self.make_link_column_report()
+
+		self.run_report(report)
+
+		self.assertNotIn("User::Administrator", frappe.local.response.get("_link_titles", {}))
+
+	def make_link_column_report(self):
+		"""Script report with a single User link column, returning one row for Administrator."""
+		frappe.set_user("Administrator")
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Link Title Report " + frappe.generate_hash(length=6),
+				"report_type": "Script Report",
+				"is_standard": "No",
+				"roles": [{"role": "System Manager"}],
+				"columns": [
+					dict(fieldname="allocated_to", label="Allocated To", fieldtype="Link", options="User")
+				],
+			}
+		).insert(ignore_permissions=True)
+		report.report_script = 'result = [{"allocated_to": "Administrator"}]'
+		report.save()
+		return report
+
+	def run_report(self, report):
+		previous_response = frappe.local.response
+		self.addCleanup(setattr, frappe.local, "response", previous_response)
+		frappe.local.response = frappe._dict()
+		run(report.name)
+
+	def enable_link_titles(self, doctype):
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+		make_property_setter(doctype, None, "show_title_field_in_link", "1", "Check", for_doctype=True)
+
 
 def create_mock_data():
 	data = frappe._dict()
