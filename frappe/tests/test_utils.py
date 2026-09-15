@@ -10,6 +10,7 @@ from decimal import ROUND_HALF_UP, Decimal, localcontext
 from enum import Enum
 from io import StringIO
 from mimetypes import guess_type
+import unittest
 from unittest.mock import patch
 
 from hypothesis import given
@@ -51,6 +52,7 @@ from frappe.utils import (
 from frappe.utils.change_log import (
 	get_source_url,
 	parse_github_url,
+	parse_latest_non_beta_release,
 )
 from frappe.utils.data import (
 	add_to_date,
@@ -1885,6 +1887,25 @@ class TestChangeLog(IntegrationTestCase):
 
 		self.assertRaises(ValueError, parse_github_url, remote_url=None)
 
+	def test_parse_latest_non_beta_release_skips_non_semver_tags(self):
+		"""Non-semver tags (e.g. v14-baseline) must be silently skipped.
+
+		Regression test for: https://github.com/frappe/frappe/issues/42738
+		"""
+		from semantic_version import Version
+
+		releases = [
+			{"tag_name": "v15.2.0", "prerelease": False},
+			{"tag_name": "v14-baseline", "prerelease": False},  # invalid semver — must be skipped
+			{"tag_name": "v15.1.0", "prerelease": False},
+			{"tag_name": "v15.3.0-beta", "prerelease": True},
+		]
+		current = Version("15.1.0")
+
+		# Must not raise; invalid tag must be silently ignored
+		result = parse_latest_non_beta_release(releases, current)
+		self.assertEqual(result, "15.2.0")
+
 
 class TestCrypto(IntegrationTestCase):
 	def test_hashing(self):
@@ -1999,3 +2020,24 @@ class TestMsgPrint(UnitTestCase):
 		frappe.msgprint("<ul><li>abc<li></ul>")
 		message = frappe.get_message_log()[-1]
 		self.assertIn("<ul><li>", message.message)
+
+
+class TestChangeLogUnit(unittest.TestCase):
+	def test_parse_latest_non_beta_release_skips_non_semver_tags(self):
+		"""Non-semver tags (e.g. v14-baseline) must be silently skipped.
+
+		Regression test for: https://github.com/frappe/frappe/issues/42738
+		"""
+		from semantic_version import Version
+
+		releases = [
+			{"tag_name": "v15.2.0", "prerelease": False},
+			{"tag_name": "v14-baseline", "prerelease": False},  # invalid semver — must be skipped
+			{"tag_name": "v15.1.0", "prerelease": False},
+			{"tag_name": "v15.3.0-beta", "prerelease": True},
+		]
+		current = Version("15.1.0")
+
+		# Must not raise; invalid tag must be silently ignored
+		result = parse_latest_non_beta_release(releases, current)
+		self.assertEqual(result, "15.2.0")
