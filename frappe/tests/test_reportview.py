@@ -284,6 +284,35 @@ class TestReportview(IntegrationTestCase):
 				[[private.name], ["missing-export-link"], [None], [readable.description]],
 			)
 
+	def test_get_sends_link_titles_when_requested(self):
+		self.enable_link_titles("User")
+		with self.set_user("test@example.com"):
+			todo = self.make_todo("Report view link title task")
+			response = self.get_rows(todo.name, with_link_titles=1)
+
+			full_name = frappe.db.get_value("User", "test@example.com", "full_name")
+			self.assertEqual(frappe.local.response["_link_titles"]["User::test@example.com"], full_name)
+			self.assertIn("test@example.com", response["values"][0])
+
+	def test_get_skips_link_titles_unless_requested(self):
+		self.enable_link_titles("User")
+		with self.set_user("test@example.com"):
+			todo = self.make_todo("Report view task without titles")
+			self.get_rows(todo.name)
+			self.assertNotIn("_link_titles", frappe.local.response)
+
+	def get_rows(self, name, **extra_params):
+		previous_response = frappe.local.response
+		self.addCleanup(setattr, frappe.local, "response", previous_response)
+		frappe.local.response = frappe._dict()
+		frappe.local.form_dict = frappe._dict(
+			doctype="ToDo",
+			fields=["name", "allocated_to"],
+			filters={"name": name},
+			**extra_params,
+		)
+		return get()
+
 	def enable_link_titles(self, doctype):
 		property_setter = frappe.get_doc(
 			doctype="Property Setter",
