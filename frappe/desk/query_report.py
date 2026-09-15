@@ -331,7 +331,9 @@ def _run(
 	if sbool(are_default_filters) and report.get("custom_filters"):
 		result["custom_filters"] = report.custom_filters
 
-	send_link_titles(get_report_link_titles(result.get("columns"), result.get("result")))
+	# prepared reports can still carry legacy string column definitions
+	columns = [get_column_as_dict(column) for column in result.get("columns") or []]
+	send_link_titles(get_report_link_titles(columns, result.get("result")))
 
 	return result
 
