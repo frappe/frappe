@@ -9,7 +9,7 @@
 					<div v-if="currentStep.message">{{ currentStep.message }}</div>
 					<video
 						v-if="currentStep.videoURL"
-						class="w-full rounded"
+						class="w-full rounded-4"
 						controls
 						autoplay
 						muted

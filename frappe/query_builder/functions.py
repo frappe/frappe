@@ -1,8 +1,9 @@
 from datetime import time
 from enum import Enum
 
+from pypika.enums import Arithmetic
 from pypika.functions import *
-from pypika.terms import Arithmetic, ArithmeticExpression, CustomFunction, Function, Term
+from pypika.terms import ArithmeticExpression, CustomFunction, Function, Term
 from pypika.utils import format_alias_sql
 
 import frappe

@@ -9,7 +9,7 @@
 			</div>
 			<Button variant="solid" @click="showModal = true">
 				<template #prefix>
-					<FeatherIcon name="plus" class="size-4 stroke-1.5" />
+					<LucidePlus class="size-4 stroke-1.5" />
 				</template>
 				Import
 			</Button>
@@ -56,7 +56,7 @@
 			<div class="my-5 flex justify-center">
 				<Button v-if="props.dataImports.hasNextPage" @click="props.dataImports.next?.()">
 					<template #prefix>
-						<FeatherIcon name="refresh-cw" class="size-4 stroke-1.5" />
+						<LucideRefreshCw class="size-4 stroke-1.5" />
 					</template>
 					Load More
 				</Button>
@@ -97,8 +97,10 @@
 import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import type { DataImports, DataImport } from "./types";
-import { Badge, Button, Dialog, FeatherIcon, FormControl, dayjs, toast } from "frappe-ui";
+import { Badge, Button, Dialog, FormControl, dayjs, toast } from "frappe-ui";
 import type { BadgeProps } from "frappe-ui";
+import LucidePlus from "~icons/lucide/plus";
+import LucideRefreshCw from "~icons/lucide/refresh-cw";
 import { Link } from "../Link";
 import { getBadgeColor } from "./dataImport";
 

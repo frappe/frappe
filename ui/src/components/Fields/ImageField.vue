@@ -16,7 +16,7 @@
 			role="group"
 			:aria-labelledby="labelledBy"
 			:aria-describedby="describedBy"
-			class="flex items-center justify-center overflow-hidden rounded-lg border border-outline-gray-1 bg-surface-gray-1"
+			class="flex items-center justify-center overflow-hidden rounded-6 border border-outline-gray-1 bg-surface-gray-1"
 			:class="url ? 'min-h-32' : 'min-h-24'"
 		>
 			<img

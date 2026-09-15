@@ -148,7 +148,7 @@ function resolveChildLayout(
   return buildLayoutFromMeta(childMeta, { childMetas, decorate });
 }
 
-function mapField(
+export function mapField(
   field: RawMetaField,
   childMetas: Record<string, RawMetaField[]>,
   decorate?: Decorator

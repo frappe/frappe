@@ -7,6 +7,7 @@ from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJ
 from frappe.core.doctype.server_script.server_script import ServerScript
 from frappe.frappeclient import FrappeClient, FrappeException
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_site_url
 
 scripts = [
@@ -148,6 +149,7 @@ class TestServerScript(IntegrationTestCase):
 		self.assertEqual(role.disabled, 1)
 		self.assertEqual(role.desk_access, 0)
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_api(self):
 		response = requests.post(get_site_url(frappe.local.site) + "/api/method/test_server_script")
 		self.assertEqual(response.status_code, 200)
@@ -258,6 +260,7 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		script.insert()
 		script.execute_method()
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_server_script_rate_limiting(self):
 		script1 = frappe.get_doc(
 			doctype="Server Script",

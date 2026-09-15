@@ -28,6 +28,7 @@ from frappe.utils import (
 	cint,
 	convert_utc_to_system_timezone,
 	cstr,
+	escape_html,
 	extract_email_id,
 	get_datetime,
 	get_string_between,
@@ -745,7 +746,10 @@ class InboundMail(Email):
 
 		# save attachments
 		communication._attachments = self.save_attachments_in_doc(communication)
-		communication.content = sanitize_html(self.replace_inline_images(communication._attachments))
+		content = self.replace_inline_images(communication._attachments)
+		communication.content = (
+			sanitize_html(content) if self.content_type == "text/html" else escape_html(content)
+		)
 		communication.save()
 		return communication
 

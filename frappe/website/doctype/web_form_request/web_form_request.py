@@ -129,6 +129,9 @@ def get_web_form_request(
 			frappe.throw(_("Web Form Request key is required"), frappe.PermissionError)
 		return
 
+	if not isinstance(key, str):
+		frappe.throw(_("Invalid Web Form Request"), frappe.PermissionError)
+
 	request_name = frappe.db.get_value(
 		"Web Form Request",
 		{

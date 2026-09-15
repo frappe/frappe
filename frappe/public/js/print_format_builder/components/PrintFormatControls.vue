@@ -426,7 +426,7 @@ function focus_search() {
 
 // store
 let store = inject("$store");
-let { meta, layout, print_format } = useStore();
+let { meta, layout, print_format, letterhead } = useStore();
 
 // ── blocks tab items ──────────────────────────────────────
 const page_break_block = [
@@ -636,8 +636,15 @@ function field_icon(f) {
 // the zones are sections too, so the tree lists them alongside the body ones —
 // only their order is fixed, since a header can't become a body section
 let tree_sections = computed({
-	get: () =>
-		[layout.value.header, ...layout.value.sections, layout.value.footer].filter(Boolean),
+	get: () => {
+		// an empty header merges into the letterhead region on the canvas, so it
+		// isn't listed as a section either — it reappears once it holds fields
+		const header_has_fields = (layout.value.header?.columns || []).some((c) =>
+			(c.fields || []).some((f) => !f.remove)
+		);
+		const header = letterhead.value && !header_has_fields ? null : layout.value.header;
+		return [header, ...layout.value.sections, layout.value.footer].filter(Boolean);
+	},
 	set: (v) => (layout.value.sections = v.filter((s) => !zone_of(s))),
 });
 

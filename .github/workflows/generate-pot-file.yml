@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branch: ["develop", "version-16-hotfix"]
+        branch: ["develop", "version-16-hotfix", "version-15-hotfix"]
     permissions:
       contents: write
 

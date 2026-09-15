@@ -3,11 +3,11 @@
 		<template #header>
 			<div class="ps-3" :class="$slots.actions ? 'pe-1.5' : 'pe-3'">
 				<slot name="header" :email="email">
-					<!-- 40px header; its center aligns with the gutter avatar -->
-					<div class="flex h-10 items-center justify-between gap-2">
+					<!-- 40px header row; its center aligns with the gutter avatar -->
+					<div class="flex items-center justify-between gap-2 pt-2 sm:min-h-10 sm:pt-0">
 						<!-- sender email is hidden; surfaced on hover via tooltip -->
 						<Tooltip :text="email.data.sender">
-							<span class="text-base font-medium text-ink-gray-6">{{
+							<span class="min-w-0 truncate text-base font-medium text-ink-gray-6">{{
 								email?.author?.fullname || "Guest"
 							}}</span>
 						</Tooltip>
@@ -18,11 +18,18 @@
 								variant="subtle"
 								:theme="status.color"
 							/>
-							<TimeAgo :timestamp="email.timestamp" class="text-sm" />
+							<!-- time sits inline from sm up; below it, on its own line under the name -->
+							<TimeAgo
+								:timestamp="email.timestamp"
+								class="hidden text-sm sm:block"
+							/>
 							<div v-if="$slots.actions" class="flex items-center gap-1">
 								<slot name="actions" />
 							</div>
 						</div>
+					</div>
+					<div class="pb-1 sm:hidden">
+						<TimeAgo :timestamp="email.timestamp" class="text-sm" />
 					</div>
 					<div
 						v-if="email.data.to || email.data.cc || email.data.bcc"
@@ -50,7 +57,7 @@
 		<EmailContent :content="email.data.content" />
 		<slot name="footer" :email="email">
 			<div v-if="email.data?.attachments?.length" class="mt-2 flex flex-wrap gap-2">
-				<Attachment
+				<AttachmentChip
 					v-for="a in email.data.attachments"
 					:key="a.file_url"
 					:label="a.file_name"
@@ -64,7 +71,7 @@
 <script setup lang="ts">
 import { Badge, Tooltip } from "frappe-ui";
 import { computed } from "vue";
-import Attachment from "./Attachment.vue";
+import AttachmentChip from "./AttachmentChip.vue";
 import EmailContent from "./EmailContent.vue";
 import TimeAgo from "./TimeAgo.vue";
 import TimelineCard from "./TimelineCard.vue";

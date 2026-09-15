@@ -20,6 +20,7 @@
   "misc_section",
   "app_name",
   "disable_signup",
+  "max_signups_per_minute",
   "show_footer_on_login",
   "column_break_9",
   "app_logo",
@@ -478,6 +479,13 @@
    "fieldname": "show_footer_on_login",
    "fieldtype": "Check",
    "label": "Show footer on login"
+  },
+  {
+   "default": "500",
+   "depends_on": "eval: !doc.disable_signup",
+   "fieldname": "max_signups_per_minute",
+   "fieldtype": "Int",
+   "label": "Max signups per minute"
   }
  ],
  "icon": "fa fa-cog",
@@ -485,7 +493,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-07-01 14:44:11.211127",
+ "modified": "2026-08-03 19:38:17.441996",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

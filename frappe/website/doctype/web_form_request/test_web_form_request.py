@@ -7,6 +7,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.website.doctype.web_form_request.web_form_request import (
 	InvalidFieldsInValuesError,
+	get_web_form_request,
 	get_web_form_request_query,
 )
 
@@ -37,6 +38,17 @@ class TestWebFormRequest(IntegrationTestCase):
 		)
 		frappe.local.form_dict = frappe._dict(web_form_request_key="from-form-dict")
 		self.assertEqual(get_web_form_request_query(), "?web_form_request_key=from-form-dict")
+
+	def test_get_web_form_request_rejects_non_string_key(self):
+		web_form_request = self.create_web_form_request()
+
+		with self.assertRaises(frappe.PermissionError):
+			get_web_form_request("manage-events", ["!=", ""])
+
+		self.assertEqual(
+			get_web_form_request("manage-events", web_form_request.key).name,
+			web_form_request.name,
+		)
 
 	def create_web_form_request(self, web_form_values=None, doc_values=None):
 		return frappe.get_doc(

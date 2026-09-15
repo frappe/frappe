@@ -14,4 +14,4 @@ export type {
   FieldComponentProps,
   FieldComponentEmits,
 } from "./types";
-export { DocKey, ParentDocKey, UpdateKey } from "./types";
+export { DocKey, LinkTitlesKey, ParentDocKey, UpdateKey } from "./types";

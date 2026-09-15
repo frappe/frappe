@@ -53,6 +53,7 @@
   "alignment",
   "no_copy",
   "set_only_once",
+  "ignore_versioning",
   "allow_on_submit",
   "in_list_view",
   "in_standard_filter",
@@ -326,6 +327,13 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:!doc.is_virtual",
+   "fieldname": "ignore_versioning",
+   "fieldtype": "Check",
+   "label": "Ignore Versioning"
+  },
+  {
+   "default": "0",
    "fieldname": "allow_on_submit",
    "fieldtype": "Check",
    "label": "Allow on Submit",
@@ -538,7 +546,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-05 12:00:00.000000",
+ "modified": "2026-09-09 12:06:52.425311",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

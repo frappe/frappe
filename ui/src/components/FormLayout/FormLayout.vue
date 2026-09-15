@@ -1,10 +1,10 @@
 <template>
 	<div
 		class="flex flex-col"
-		:class="{ 'border border-outline-gray-1 border-outline-elevation-2 rounded-lg': hasTabs }"
+		:class="{ 'border border-outline-gray-1 border-outline-elevation-2 rounded-6': hasTabs }"
 	>
 		<Tabs
-			:model-value="activeIndex"
+			:model-value="active?.identity"
 			@update:model-value="select"
 			as="div"
 			:tabs="visibleTabs"
@@ -85,6 +85,7 @@ const visibleTabs = computed(() => {
 	const multipleTabs = tabs.length > 1;
 	return tabs.map((tab) => ({
 		...tab,
+		value: tab.identity,
 		label: tabStripLabel(tab.label, multipleTabs),
 		sections: tab.sections.filter((section) => !section.hidden),
 	}));
@@ -108,17 +109,11 @@ watch(
 	{ immediate: true }
 );
 
-// frappe-ui's `Tabs` addresses its tabs by index. That index is a wire format
-// living inside these two — it is never state, and because it is always derived
-// from the list we just rendered, it can never point at a tab that isn't there.
-const activeIndex = computed(() => Math.max(0, visibleTabs.value.indexOf(active.value)));
-
-function select(index: string | number) {
-	// An index naming no tab leaves the intent alone rather than blanking it:
-	// `desired` is the reader's, and on the Record page it belongs to a host that
-	// outlives this component. Writing `""` here would snap them to the first tab
-	// and throw away the memory that makes a returning tab free.
-	const chosen = visibleTabs.value[Number(index)];
+// frappe-ui's `Tabs` addresses a tab by its `value`, which here is the identity.
+function select(value: string | number) {
+	// A value naming no tab leaves the intent alone: `desired` is the reader's, and
+	// blanking it would snap them to the first tab and forget a returning tab.
+	const chosen = visibleTabs.value.find((tab) => tab.identity === String(value));
 	if (chosen) desired.value = chosen.identity;
 }
 

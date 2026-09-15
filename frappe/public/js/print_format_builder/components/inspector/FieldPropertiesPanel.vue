@@ -176,6 +176,12 @@
 					allow-empty
 					@update:model-value="(v) => (selected_field.label_gap = v)"
 				/>
+				<ToggleRow
+					v-if="can_break"
+					:label="__('Split across pages')"
+					:model-value="!!selected_field.allow_page_break"
+					@update:model-value="(v) => (selected_field.allow_page_break = v)"
+				/>
 			</template>
 		</InspectorSection>
 
@@ -205,6 +211,7 @@
 import { computed, inject } from "vue";
 import LabelField from "./LabelField.vue";
 import SegmentedRow from "./SegmentedRow.vue";
+import ToggleRow from "./ToggleRow.vue";
 import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
 import StyleSection from "./StyleSection.vue";
@@ -229,6 +236,18 @@ const NON_TEXT_FIELDTYPES = new Set([
 	"Field Template",
 ]);
 let is_text_field = computed(() => !NON_TEXT_FIELDTYPES.has(selected_field.value?.fieldtype));
+
+// Long-content fields that render through Data.html and can safely flow across
+// a page boundary instead of jumping whole
+const BREAKABLE_FIELDTYPES = new Set([
+	"Text Editor",
+	"Text",
+	"Long Text",
+	"Small Text",
+	"Code",
+	"HTML Editor",
+]);
+let can_break = computed(() => BREAKABLE_FIELDTYPES.has(selected_field.value?.fieldtype));
 
 let is_html_field = computed(() => selected_field.value?.fieldtype === "HTML");
 let is_typst_field = computed(() => selected_field.value?.fieldtype === "Typst");

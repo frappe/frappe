@@ -1,12 +1,20 @@
-<a href="#" class="desktop-icon" style="text-decoration:none">
-    {% if (icon.logo_url) { %}
-        <div class="icon-container">
-            <img class="app-icon" src="{{ frappe.utils.escape_html(icon.logo_url) }}" alt="{{ frappe.utils.escape_html(icon.label) }}" />
-        </div>
-    {% } else { %}
-        {%= frappe.utils.desktop_icon(icon.label, "gray", "md", "Solid") %}
-    {% } %}
+<div class="desktop-icon">
+    <!-- The logo and the title are two anchors to the same place, because the subtitle below is a
+         link of its own and an anchor cannot nest inside another. The logo is hidden from the
+         accessibility tree so the tile offers one link to the app, not two. -->
+    <a class="icon-link" href="#" tabindex="-1" aria-hidden="true">
+        {% if (icon.logo_url) { %}
+            <div class="icon-container">
+                <img class="app-icon" src="{{ frappe.utils.escape_html(icon.logo_url) }}" alt="{{ frappe.utils.escape_html(icon.label) }}" />
+            </div>
+        {% } else { %}
+            {%= frappe.utils.desktop_icon(icon.label, "gray", "md", "Solid") %}
+        {% } %}
+    </a>
     <div class="icon-caption">
-        <div class="icon-title" data-toggle="tooltip" data-original-title="{{ frappe.utils.escape_html(__(icon.label)) }}">{{ frappe.utils.escape_html(__(icon.label)) }}</div>
+        <a class="icon-title" href="#" data-toggle="tooltip" data-original-title="{{ frappe.utils.escape_html(__(icon.label)) }}">{{ frappe.utils.escape_html(__(icon.label)) }}</a>
+        {% if (icon.desk_route) { %}
+        <a class="icon-subtitle" href="{{ frappe.utils.escape_html(icon.desk_route) }}">{{ frappe.utils.escape_html(__("Open in Desk")) }}</a>
+        {% } %}
     </div>
-</a>
+</div>

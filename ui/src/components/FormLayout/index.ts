@@ -10,7 +10,7 @@ export { buildLayoutFromMeta, compose } from "./buildLayoutFromMeta";
 export type { BuildLayoutOptions, Decorator } from "./buildLayoutFromMeta";
 export { fieldsToLayout } from "./fieldsToLayout";
 export { resolveLayout } from "./resolveLayout";
-export { CommitKey, NO_COMMIT } from "./types";
+export { CommitKey, LinkTitlesKey, NO_COMMIT } from "./types";
 export { newRowValues, layoutFields } from "./newRowValues";
 export { evaluateDependsOn } from "./dependsOn";
 export {

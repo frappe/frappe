@@ -143,6 +143,9 @@ class MariaDBTable(DBTable):
 				if index_record := frappe.db.get_column_index(self.table_name, col.fieldname, unique=False):
 					drop_index_query.append(f"DROP INDEX `{index_record.Key_name}`")
 
+		# drop each index only once
+		drop_index_query = list(dict.fromkeys(drop_index_query))
+
 		for col in self.change_nullability:
 			if col.not_nullable:
 				try:

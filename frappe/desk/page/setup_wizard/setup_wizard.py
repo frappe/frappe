@@ -487,28 +487,19 @@ def load_messages(language: str):
 @frappe.whitelist()
 def load_languages():
 	Language = frappe.qb.DocType("Language")
-	language_codes = (
+	language_code_name = (
 		frappe.qb.from_(Language)
 		.select(Language.language_code, Language.language_name)
 		.where(Language.enabled == 1)
 		.orderby(Language.language_code)
-		.run(as_dict=1)
+		.run(as_dict=0)
 	)
 
-	language_opts = (
-		frappe.qb.from_(Language)
-		.select(
-			Language.language_name.as_("value"),
-			Language.language_name.as_("label"),
-			Language.language_code.as_("description"),
-		)
-		.where(Language.enabled == 1)
-		.orderby(Language.language_code)
-		.run(as_dict=1)
-	)
-	codes_to_names = {}
-	for d in language_codes:
-		codes_to_names[d.language_code] = d.language_name
+	codes_to_names = dict()
+	language_opts = list()
+	for code, name in language_code_name:
+		codes_to_names[code] = name
+		language_opts.append({"value": name, "label": name, "description": code})
 
 	return {
 		"default_language": frappe.db.get_value("Language", frappe.local.lang, "language_name")

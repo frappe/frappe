@@ -13,16 +13,27 @@ here — they need a running realtime process, redis, and web server, and belong
 in an integration run.
 """
 
+import asyncio
+import json
+import os
 import sys
+import threading
 import types
 import unittest
-from collections.abc import Callable, Iterator
+from collections.abc import Awaitable, Callable, Iterator
 from contextlib import contextmanager
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
+
+
+def _socketio_is_installed() -> bool:
+	import importlib.util
+
+	return importlib.util.find_spec("socketio") is not None
+
 
 # Inject a minimal fake socketio so auth/dispatch import without the real dep.
-# Guarded so a real install (CI) is used instead.
-if "socketio" not in sys.modules:
+# Guarded so a real install is used instead: the server tests need it.
+if "socketio" not in sys.modules and not _socketio_is_installed():
 	_sio_mod = types.ModuleType("socketio")
 	_exc_mod = types.ModuleType("socketio.exceptions")
 
@@ -34,20 +45,34 @@ if "socketio" not in sys.modules:
 	sys.modules["socketio"] = _sio_mod
 	sys.modules["socketio.exceptions"] = _exc_mod
 
+import httpx
+
 from frappe.realtime import auth as auth_mod
 from frappe.realtime import bridge as bridge_mod
 from frappe.realtime import dispatch as dispatch_mod
 from frappe.realtime import handlers as handlers_mod
 from frappe.realtime.auth import Session
-from frappe.realtime.config import RealtimeConfig
+from frappe.realtime.config import DEFAULT_WORKER_THREADS, RealtimeConfig, get_config
+from frappe.realtime.context import frappe_context
 from frappe.realtime.registry import Registry
-from frappe.realtime.socket import Socket
+from frappe.realtime.socket import Socket, SyncSocket
 
 ConnectionRefusedError = auth_mod.ConnectionRefusedError
 
 
+def make_request(message: object = 1, record: list | None = None) -> Callable[..., Awaitable[dict]]:
+	"""Stand-in for the authenticated web-process client, which is a coroutine."""
+
+	async def request(path: str, method: str = "GET", params: dict | None = None, body: dict | None = None):
+		if record is not None:
+			record.append((path, method, params, threading.current_thread().name))
+		return {"message": message}
+
+	return request
+
+
 def make_session(
-	request: Callable[..., dict] | None = None,
+	request: Callable[..., Awaitable[dict]] | None = None,
 	data: dict | None = None,
 	**identity: object,
 ) -> Session:
@@ -58,13 +83,13 @@ def make_session(
 		user=base["user"],
 		user_type=base["user_type"],
 		installed_apps=base["installed_apps"],
-		request=request or (lambda path, method="GET", params=None, body=None: {"message": 1}),
+		request=request or make_request(),
 		data=data if data is not None else {},
 	)
 
 
 class FakeSio:
-	"""In-memory stand-in for the python-socketio Server (single namespace)."""
+	"""In-memory stand-in for the python-socketio AsyncServer (single namespace)."""
 
 	def __init__(self) -> None:
 		self.rooms: dict[str, set[str]] = {}
@@ -75,13 +100,13 @@ class FakeSio:
 	def is_connected(self, sid: str, namespace: str | None = None) -> bool:
 		return sid in self.sessions or sid in self.rooms
 
-	def enter_room(self, sid: str, room: str, namespace: str | None = None) -> None:
+	async def enter_room(self, sid: str, room: str, namespace: str | None = None) -> None:
 		self.rooms.setdefault(sid, set()).add(room)
 
-	def leave_room(self, sid: str, room: str, namespace: str | None = None) -> None:
+	async def leave_room(self, sid: str, room: str, namespace: str | None = None) -> None:
 		self.rooms.setdefault(sid, set()).discard(room)
 
-	def emit(
+	async def emit(
 		self,
 		event: str,
 		data: object | None = None,
@@ -91,10 +116,10 @@ class FakeSio:
 	) -> None:
 		self.emits.append({"event": event, "data": data, "to": to or room, "namespace": namespace})
 
-	def save_session(self, sid: str, session: Session, namespace: str | None = None) -> None:
+	async def save_session(self, sid: str, session: Session, namespace: str | None = None) -> None:
 		self.sessions[sid] = session
 
-	def get_session(self, sid: str, namespace: str | None = None) -> Session:
+	async def get_session(self, sid: str, namespace: str | None = None) -> Session:
 		return self.sessions[sid]
 
 	def get_participants(self, namespace: str, room: str) -> Iterator[tuple[str, str]]:
@@ -131,17 +156,6 @@ def make_environ(
 	if authorization:
 		env["HTTP_AUTHORIZATION"] = authorization
 	return env
-
-
-class FakeResponse:
-	def __init__(self, payload: dict):
-		self._payload = payload
-
-	def raise_for_status(self) -> None:
-		pass
-
-	def json(self) -> dict:
-		return self._payload
 
 
 class TestAuthHelpers(unittest.TestCase):
@@ -192,47 +206,277 @@ class TestAuthHelpers(unittest.TestCase):
 		self.assertEqual(auth_mod.get_url("http://x.local", "/p", cfg), "http://[::1]:8000/p")
 
 
-class TestAuthenticate(unittest.TestCase):
+class TestAuthenticate(unittest.IsolatedAsyncioTestCase):
 	def setUp(self):
-		patcher = patch.object(auth_mod, "get_socketio_secret", return_value="secret")
+		patcher = patch.object(auth_mod, "get_socketio_secret", new=AsyncMock(return_value="secret"))
 		patcher.start()
 		self.addCleanup(patcher.stop)
 
-	def _ok_response(self):
-		return FakeResponse(
-			{"message": {"user": "a@b.com", "user_type": "System User", "installed_apps": ["frappe"]}}
-		)
+	def _patch_web(self, message: object):
+		"""Replace the authenticated client so no HTTP is attempted."""
+		return patch.object(auth_mod, "_make_request", lambda *a: make_request(message))
 
-	def test_namespace_mismatch_rejected(self):
+	def _ok_payload(self):
+		return {"user": "a@b.com", "user_type": "System User", "installed_apps": ["frappe"]}
+
+	async def test_namespace_mismatch_rejected(self):
 		env = make_environ(site_header="s1")
 		with self.assertRaises(ConnectionRefusedError):
-			auth_mod.authenticate(env, "/other", make_config())
+			await auth_mod.authenticate(env, "/other", make_config())
 
-	def test_origin_mismatch_rejected(self):
+	async def test_origin_mismatch_rejected(self):
 		env = make_environ(host="s1", origin="http://evil", site_header="s1")
 		with self.assertRaises(ConnectionRefusedError):
-			auth_mod.authenticate(env, "/s1", make_config())
+			await auth_mod.authenticate(env, "/s1", make_config())
 
-	def test_missing_credentials_rejected(self):
+	async def test_absent_origin_allowed(self):
+		# Browsers omit Origin on same-origin polling, which is every embedded
+		# connect. A cross-site attempt always carries one.
+		env = make_environ(host="s1", origin=None, site_header="s1")
+		with self._patch_web(self._ok_payload()):
+			session = await auth_mod.authenticate(env, "/s1", make_config())
+
+		self.assertEqual(session.user, "a@b.com")
+
+	async def test_missing_host_rejected(self):
+		env = make_environ(host=None, origin=None, site_header="s1")
+		with self.assertRaises(ConnectionRefusedError):
+			await auth_mod.authenticate(env, "/s1", make_config())
+
+	async def test_missing_credentials_rejected(self):
 		env = make_environ(site_header="s1", cookie=None, authorization=None)
 		with self.assertRaises(ConnectionRefusedError):
-			auth_mod.authenticate(env, "/s1", make_config())
+			await auth_mod.authenticate(env, "/s1", make_config())
 
-	def test_empty_user_info_rejected(self):
+	async def test_empty_user_info_rejected(self):
 		env = make_environ(site_header="s1")
-		with patch.object(auth_mod.requests, "request", return_value=FakeResponse({"message": {}})):
-			with self.assertRaises(ConnectionRefusedError):
-				auth_mod.authenticate(env, "/s1", make_config())
+		with self._patch_web({}), self.assertRaises(ConnectionRefusedError):
+			await auth_mod.authenticate(env, "/s1", make_config())
 
-	def test_success_returns_session(self):
+	async def test_success_returns_session(self):
 		env = make_environ(site_header="s1")
-		with patch.object(auth_mod.requests, "request", return_value=self._ok_response()):
-			session = auth_mod.authenticate(env, "/s1", make_config())
+		with self._patch_web(self._ok_payload()):
+			session = await auth_mod.authenticate(env, "/s1", make_config())
 		self.assertEqual(session.site, "s1")
 		self.assertEqual(session.user, "a@b.com")
 		self.assertEqual(session.user_type, "System User")
 		self.assertEqual(session.installed_apps, ["frappe"])
 		self.assertTrue(callable(session.request))
+
+	async def test_session_reuses_the_connect_time_client(self):
+		# One request helper serves connect auth and every later call, so their
+		# timeout / redirect / cookie handling can never diverge.
+		env = make_environ(site_header="s1")
+		calls = []
+		with patch.object(auth_mod, "_make_request", lambda *a: make_request(self._ok_payload(), calls)):
+			session = await auth_mod.authenticate(env, "/s1", make_config())
+			self.assertTrue(await session.has_permission("DT", "n1"))
+
+		self.assertEqual(
+			[path for path, *_ in calls],
+			[
+				"/api/method/frappe.realtime.get_user_info",
+				"/api/method/frappe.realtime.has_permission",
+			],
+		)
+
+
+class FakeRedis:
+	"""The two commands that get_socketio_secret() uses."""
+
+	def __init__(self, value: bytes | None):
+		self.value = value
+		self.writes = []
+
+	async def get(self, key: str) -> bytes | None:
+		return self.value
+
+	async def set(self, key: str, value: str, nx: bool = False) -> None:
+		self.writes.append((value, nx))
+		self.value = value.encode()
+
+
+class TestSocketioSecret(unittest.IsolatedAsyncioTestCase):
+	def _redis(self, value: bytes | None) -> FakeRedis:
+		client = FakeRedis(value)
+		patcher = patch.object(auth_mod, "_secret_client", client)
+		patcher.start()
+		self.addCleanup(patcher.stop)
+		return client
+
+	async def test_an_existing_secret_is_read(self):
+		client = self._redis(b"from-the-web")
+		self.assertEqual(await auth_mod.get_socketio_secret("redis://x"), "from-the-web")
+		self.assertEqual(client.writes, [])
+
+	async def test_a_missing_secret_is_made(self):
+		# A boot with an empty redis: a side that could only read would send no secret.
+		# nx keeps one value if the web writes its own at the same moment.
+		client = self._redis(None)
+		secret = await auth_mod.get_socketio_secret("redis://x")
+		self.assertEqual(client.writes, [(secret, True)])
+
+
+class TestSharedHttpClient(unittest.IsolatedAsyncioTestCase):
+	"""The AsyncClient is shared by every connection, so it must stay stateless."""
+
+	def setUp(self):
+		patcher = patch.object(auth_mod, "_http_client", None)
+		patcher.start()
+		self.addCleanup(patcher.stop)
+
+	async def asyncTearDown(self):
+		await auth_mod.close_clients()
+
+	def _client(self, handle: Callable[[httpx.Request], httpx.Response]) -> httpx.AsyncClient:
+		client = auth_mod.get_http_client()
+		# Swap only the transport; the rest is the production configuration.
+		client._transport = httpx.MockTransport(handle)
+		return client
+
+	async def test_response_cookies_are_never_replayed(self):
+		sent = []
+
+		def handle(request: httpx.Request) -> httpx.Response:
+			sent.append(request.headers.get("cookie"))
+			return httpx.Response(200, headers={"set-cookie": "sid=user_a; Path=/"}, json={})
+
+		client = self._client(handle)
+		await client.get("http://web/api/method/x", headers={"Cookie": "sid=user_a"})
+		# A token-authenticated connect must not inherit the previous user's session.
+		await client.get("http://web/api/method/x", headers={"Authorization": "token key:secret"})
+
+		self.assertEqual(sent, ["sid=user_a", None])
+		self.assertEqual(len(client.cookies.jar), 0)
+
+	def _web_request(self, handle: Callable[[httpx.Request], httpx.Response]):
+		"""The production request helper, pointed at a mock transport."""
+		self._client(handle)
+		return auth_mod._make_request(
+			make_environ(site_header="s1"),
+			auth_mod.Credentials(sid="abc"),
+			make_config(),
+			"s1",
+			"shared-secret",
+		)
+
+	async def test_redirects_are_followed(self):
+		def handle(request: httpx.Request) -> httpx.Response:
+			if request.url.path == "/api/method/x":
+				return httpx.Response(302, headers={"location": "http://s1/final"})
+			return httpx.Response(200, json={"message": {"user": "a@b.com"}})
+
+		body = await self._web_request(handle)("/api/method/x")
+		self.assertEqual(body["message"]["user"], "a@b.com")
+
+	async def test_request_carries_credential_site_and_secret(self):
+		seen = {}
+
+		def handle(request: httpx.Request) -> httpx.Response:
+			seen.update(request.headers)
+			seen["method"] = request.method
+			seen["query"] = request.url.params.get("doctype")
+			return httpx.Response(200, json={"message": 1})
+
+		await self._web_request(handle)("/api/method/x", "POST", params={"doctype": "ToDo"})
+
+		self.assertEqual(seen["method"], "POST")
+		self.assertEqual(seen["query"], "ToDo")
+		self.assertEqual(seen["cookie"], "sid=abc")
+		self.assertEqual(seen["x-frappe-site-name"], "s1")
+		self.assertEqual(seen["x-frappe-socket-secret"], "shared-secret")
+
+	async def test_close_clients_drops_both(self):
+		http_client, secret_client = AsyncMock(), AsyncMock()
+		with (
+			patch.object(auth_mod, "_http_client", http_client),
+			patch.object(auth_mod, "_secret_client", secret_client),
+		):
+			await auth_mod.close_clients()
+			self.assertIsNone(auth_mod._http_client)
+			self.assertIsNone(auth_mod._secret_client)
+
+		http_client.aclose.assert_awaited_once()
+		secret_client.aclose.assert_awaited_once()
+
+
+class TestLocalRequest(unittest.IsolatedAsyncioTestCase):
+	"""Embedded, the web callback runs in-process instead of over loopback HTTP."""
+
+	def setUp(self):
+		patcher = patch.object(auth_mod, "get_socketio_secret", new=AsyncMock(return_value="secret"))
+		patcher.start()
+		self.addCleanup(patcher.stop)
+
+	@contextmanager
+	def _wsgi(self, status: str = "200 OK", payload: object = None) -> Iterator[dict]:
+		"""Stand in for frappe.app.application; importing the real one is expensive."""
+		seen: dict = {}
+
+		def application(environ, start_response):
+			seen.update(environ, _thread=threading.get_ident())
+			body = json.dumps({"message": payload} if payload is not None else {}).encode()
+			start_response(status, [("Content-Type", "application/json")])
+			return [body]
+
+		stub = types.ModuleType("frappe.app")
+		stub.application = application
+		with patch.dict(sys.modules, {"frappe.app": stub}), patch.object(auth_mod, "_local_client", None):
+			yield seen
+
+	def _request(self):
+		return auth_mod._make_request(
+			make_environ(site_header="s1"),
+			auth_mod.Credentials(sid="abc"),
+			make_config(embedded=True),
+			"s1",
+			"shared-secret",
+		)
+
+	async def test_request_carries_credential_site_secret_and_origin(self):
+		with self._wsgi(payload=1) as seen:
+			body = await self._request()("/api/method/x", "POST", params={"doctype": "ToDo"})
+
+		self.assertEqual(body["message"], 1)
+		self.assertEqual(seen["REQUEST_METHOD"], "POST")
+		self.assertEqual(seen["PATH_INFO"], "/api/method/x")
+		self.assertEqual(seen["QUERY_STRING"], "doctype=ToDo")
+		self.assertEqual(seen["HTTP_COOKIE"], "sid=abc")
+		self.assertEqual(seen["HTTP_X_FRAPPE_SITE_NAME"], "s1")
+		self.assertEqual(seen["HTTP_X_FRAPPE_SOCKET_SECRET"], "shared-secret")
+		# The web app reads Origin for site resolution, so a local call must carry it.
+		self.assertEqual(seen["HTTP_ORIGIN"], "http://s1")
+
+	async def test_error_status_raises_like_raise_for_status(self):
+		with self._wsgi(status="403 FORBIDDEN"):
+			with self.assertRaises(ValueError):
+				await self._request()("/api/method/x")
+
+	async def test_empty_body_is_omitted_not_sent_as_null(self):
+		with self._wsgi() as seen:
+			await self._request()("/api/method/x")
+
+		self.assertEqual(seen.get("CONTENT_LENGTH") or "0", "0")
+
+	async def test_authenticate_uses_it_end_to_end(self):
+		with self._wsgi(
+			payload={"user": "a@b.com", "user_type": "System User", "installed_apps": ["frappe"]}
+		):
+			session = await auth_mod.authenticate(
+				make_environ(host="s1", origin="http://s1"), "/s1", make_config(embedded=True)
+			)
+
+		self.assertEqual(session.user, "a@b.com")
+		self.assertEqual(session.site, "s1")
+
+	async def test_it_does_not_block_the_loop(self):
+		# The WSGI call is blocking; it must go to a thread or a slow request would
+		# stall every other socket on the loop.
+		caller = threading.get_ident()
+		with self._wsgi() as seen:
+			await self._request()("/api/method/x")
+
+		self.assertNotEqual(seen["_thread"], caller)
 
 
 class TestRegistry(unittest.TestCase):
@@ -266,12 +510,31 @@ class TestRegistry(unittest.TestCase):
 		reg.on("evt")(lambda s: None)
 		self.assertEqual(len(reg.handlers_for("evt")), 2)
 
+	def test_async_handler_with_frappe_context_rejected(self):
+		reg = Registry()
 
-class TestSocket(unittest.TestCase):
+		async def handler(socket: Socket) -> None:
+			pass
+
+		with self.assertRaises(TypeError):
+			reg.on("evt", frappe_context=True)(handler)
+
+	def test_async_callable_object_with_frappe_context_rejected(self):
+		reg = Registry()
+
+		class Handler:
+			async def __call__(self, socket: Socket) -> None:
+				pass
+
+		with self.assertRaises(TypeError):
+			reg.on("evt", frappe_context=True)(Handler())
+
+
+class TestSocket(unittest.IsolatedAsyncioTestCase):
 	def _socket(
 		self,
 		sio: FakeSio | None = None,
-		request: Callable[..., dict] | None = None,
+		request: Callable[..., Awaitable[dict]] | None = None,
 		data: dict | None = None,
 		**identity: object,
 	) -> Socket:
@@ -287,31 +550,75 @@ class TestSocket(unittest.TestCase):
 		self.assertEqual(s.user_type, "System User")
 		self.assertEqual(s.installed_apps, ["frappe"])
 
-	def test_join_leave_emit(self):
+	async def test_join_leave_emit(self):
 		sio = FakeSio()
 		s = self._socket(sio=sio)
-		s.join("room1")
+		await s.join("room1")
 		self.assertIn("room1", sio.rooms_of("sid1"))
-		s.leave("room1")
+		await s.leave("room1")
 		self.assertNotIn("room1", sio.rooms_of("sid1"))
-		s.emit("e", {"x": 1})
+		await s.emit("e", {"x": 1})
 		self.assertEqual(sio.emits[-1], {"event": "e", "data": {"x": 1}, "to": "sid1", "namespace": "/s1"})
 
-	def test_get_set_persists(self):
+	async def test_get_set_persists(self):
 		sio = FakeSio()
 		s = self._socket(sio=sio)
 		self.assertEqual(s.get("missing", []), [])
-		s.set("subscribed_documents", [["DT", "n1"]])
+		await s.set("subscribed_documents", [["DT", "n1"]])
 		self.assertEqual(sio.sessions["sid1"].data["subscribed_documents"], [["DT", "n1"]])
 
-	def test_has_permission_http(self):
-		s = self._socket(request=lambda path, method="GET", params=None, body=None: {"message": 1})
-		self.assertTrue(s.has_permission("DT", "n1"))
-		s = self._socket(request=lambda path, method="GET", params=None, body=None: {"message": 0})
-		self.assertFalse(s.has_permission("DT", "n1"))
+	async def test_has_permission_http(self):
+		self.assertTrue(await self._socket(request=make_request(1)).has_permission("DT", "n1"))
+		self.assertFalse(await self._socket(request=make_request(0)).has_permission("DT", "n1"))
+
+	async def test_has_permission_stays_on_the_loop(self):
+		# The check is async end to end, so it must not burn a worker thread — those
+		# are all held by blocking handlers under load.
+		calls = []
+		s = self._socket(request=make_request(1, record=calls))
+		await s.has_permission("DT", "n1")
+		self.assertEqual([thread for *_, thread in calls], [threading.current_thread().name])
+
+	async def test_sync_socket_has_permission_bridges_to_loop(self):
+		# A plain handler still calls it without await; the request runs on the loop.
+		calls = []
+		s = self._socket(request=make_request(1, record=calls))
+		sync = SyncSocket(s, asyncio.get_running_loop())
+		loop_thread = threading.current_thread().name
+
+		allowed = await asyncio.to_thread(sync.has_permission, "DT", "n1")
+
+		self.assertTrue(allowed)
+		self.assertEqual([thread for *_, thread in calls], [loop_thread])
+
+	async def test_sync_socket_bridges_to_loop(self):
+		# A plain handler runs in a worker thread and drives the socket through
+		# SyncSocket; the mutations must land on the loop's server state.
+		sio = FakeSio()
+		s = self._socket(sio=sio)
+		sync = SyncSocket(s, asyncio.get_running_loop())
+
+		def handler() -> None:
+			sync.join("room1")
+			sync.set("k", "v")
+			sync.emit("e", {"x": 1})
+
+		await asyncio.to_thread(handler)
+		self.assertIn("room1", sio.rooms_of("sid1"))
+		self.assertEqual(sio.sessions["sid1"].data["k"], "v")
+		self.assertEqual(sio.emits[-1]["event"], "e")
+		self.assertEqual(sync.user, "a@b.com")
+
+	def test_sync_socket_refuses_a_closed_loop(self):
+		# Shutdown must surface as an error on the worker thread, not a forever block.
+		loop = asyncio.new_event_loop()
+		loop.close()
+		sync = SyncSocket(self._socket(), loop)
+		with self.assertRaises(RuntimeError):
+			sync.join("room1")
 
 
-class TestDispatch(unittest.TestCase):
+class TestDispatch(unittest.IsolatedAsyncioTestCase):
 	def setUp(self):
 		self.reg = Registry()
 		patcher = patch.object(dispatch_mod, "realtime", self.reg)
@@ -324,37 +631,90 @@ class TestDispatch(unittest.TestCase):
 		self.sio.sessions["sid1"] = session
 		return session
 
-	def test_install_scoping_skips_uninstalled_app(self):
+	async def test_install_scoping_skips_uninstalled_app(self):
 		calls = []
 		with self.reg.importing_app("otherapp"):
 			self.reg.on("evt")(lambda s: calls.append("ran"))
 		self._session(installed_apps=("frappe",))
-		dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ())
+		await dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ())
 		self.assertEqual(calls, [])
 
-	def test_install_scoping_runs_installed_app(self):
+	async def test_install_scoping_runs_installed_app(self):
 		calls = []
 		with self.reg.importing_app("otherapp"):
 			self.reg.on("evt")(lambda s: calls.append("ran"))
 		self._session(installed_apps=("frappe", "otherapp"))
-		dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ())
+		await dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ())
 		self.assertEqual(calls, ["ran"])
 
-	def test_guest_gate(self):
+	async def test_guest_gate(self):
 		calls = []
 		self.reg.on("evt", allow_guest=False)(lambda s: calls.append("ran"))
 		self._session(user="Guest")
-		dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ())
+		await dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ())
 		self.assertEqual(calls, [])
 
-	def test_guest_allowed(self):
+	async def test_guest_allowed(self):
 		calls = []
 		self.reg.on("evt", allow_guest=True)(lambda s: calls.append("ran"))
 		self._session(user="Guest")
-		dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ())
+		await dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ())
 		self.assertEqual(calls, ["ran"])
 
-	def test_frappe_context_wrap(self):
+	async def test_async_handler_runs_on_loop(self):
+		calls = []
+
+		async def handler(socket: Socket) -> None:
+			await socket.join("room1")
+			calls.append(type(socket).__name__)
+
+		self.reg.on("evt")(handler)
+		self._session()
+		await dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ())
+		self.assertEqual(calls, ["Socket"])
+		self.assertIn("room1", self.sio.rooms_of("sid1"))
+
+	async def test_async_callable_object_runs_on_loop(self):
+		seen = []
+
+		class Handler:
+			async def __call__(self, socket: Socket) -> None:
+				seen.append(type(socket).__name__)
+
+		self.reg.on("evt")(Handler())
+		self._session()
+		await dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ())
+		self.assertEqual(seen, ["Socket"])
+
+	async def test_coroutine_returned_by_a_wrapper_is_awaited(self):
+		ran = []
+
+		async def inner(socket: Socket) -> None:
+			ran.append("ran")
+
+		# An opaque decorator hides the coroutine function behind a plain wrapper.
+		def wrapper(socket: Socket):
+			return inner(socket)
+
+		self.reg.on("evt")(wrapper)
+		self._session()
+		await dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ())
+		self.assertEqual(ran, ["ran"])
+
+	async def test_sync_handler_runs_in_thread(self):
+		seen = []
+
+		def handler(socket: Socket) -> None:
+			socket.join("room1")
+			seen.append((type(socket).__name__, threading.current_thread() is threading.main_thread()))
+
+		self.reg.on("evt")(handler)
+		self._session()
+		await dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ())
+		self.assertEqual(seen, [("SyncSocket", False)])
+		self.assertIn("room1", self.sio.rooms_of("sid1"))
+
+	async def test_frappe_context_wrap(self):
 		entered = []
 
 		@contextmanager
@@ -365,10 +725,10 @@ class TestDispatch(unittest.TestCase):
 		self.reg.on("evt", frappe_context=True)(lambda s: None)
 		self._session()
 		with patch.object(dispatch_mod, "frappe_context", fake_ctx):
-			dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ())
+			await dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ())
 		self.assertEqual(entered, [("s1", "a@b.com")])
 
-	def test_handler_error_swallowed(self):
+	async def test_handler_error_swallowed(self):
 		ran = []
 
 		def boom(s: Socket) -> None:
@@ -378,44 +738,184 @@ class TestDispatch(unittest.TestCase):
 		self.reg.on("evt")(lambda s: ran.append("after"))
 		self._session()
 		# Must not raise; the second handler still runs.
-		dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ())
+		await dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ())
 		self.assertEqual(ran, ["after"])
 
-	def test_passes_event_args(self):
+	async def test_passes_event_args(self):
 		seen = []
 		self.reg.on("evt")(lambda s, a, b: seen.append((a, b)))
 		self._session()
-		dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ("x", "y"))
+		await dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ("x", "y"))
 		self.assertEqual(seen, [("x", "y")])
 
 
-class TestBridge(unittest.TestCase):
+class TestFrappeContext(unittest.IsolatedAsyncioTestCase):
+	def test_init_rebinds_a_fresh_local(self):
+		# frappe.local is a shared mutable dict behind a ContextVar; without force the
+		# worker thread would mutate the loop's copy (or skip init as already done).
+		frappe = MagicMock()
+		with patch.dict(sys.modules, {"frappe": frappe}), frappe_context("s1", "a@b.com"):
+			pass
+
+		frappe.init.assert_called_once_with("s1", force=True)
+		frappe.set_user.assert_called_once_with("a@b.com")
+		frappe.db.commit.assert_called_once()
+		frappe.destroy.assert_called_once()
+
+	async def test_two_concurrent_contexts_do_not_share_local(self):
+		# Two tasks each open a context. frappe.local is one mutable dict behind a
+		# ContextVar; init(force=True) must rebind a fresh one per call, otherwise the
+		# tasks overwrite each other's site/user (plan.md 4.4).
+		frappe = MagicMock()
+
+		async def open_context(site: str, user: str) -> None:
+			with frappe_context(site, user):
+				await asyncio.sleep(0)
+
+		with patch.dict(sys.modules, {"frappe": frappe}):
+			await asyncio.gather(open_context("s1", "a@b.com"), open_context("s2", "c@d.com"))
+
+		self.assertEqual([c.args[0] for c in frappe.init.call_args_list], ["s1", "s2"])
+		self.assertTrue(all(c.kwargs["force"] for c in frappe.init.call_args_list))
+		self.assertEqual([c.args[0] for c in frappe.set_user.call_args_list], ["a@b.com", "c@d.com"])
+
+
+class TestConfig(unittest.TestCase):
+	def _config(self, embedded: bool = False, **conf: object) -> RealtimeConfig:
+		import frappe
+
+		base = {"socketio_port": 9000, "redis_queue": "redis://127.0.0.1:11311"}
+		base.update(conf)
+		with patch.object(frappe, "get_common_site_config", return_value=base):
+			return get_config(sites_path=".", embedded=embedded)
+
+	def test_sites_path_is_absolute(self):
+		# serve() changes into sites/ after the config is built, so a relative path
+		# would then resolve one level too deep.
+		import frappe
+
+		with patch.object(frappe, "get_common_site_config", return_value={"socketio_port": 9000}):
+			config = get_config(sites_path="sites")
+
+		self.assertEqual(config.sites_path, os.path.abspath("sites"))
+
+	def test_worker_threads_override(self):
+		self.assertEqual(self._config(socketio_worker_threads="8").worker_threads, 8)
+
+	def test_embedded_is_off_by_default(self):
+		# The process decides, not the site config: socketio_backend only names the
+		# realtime server of a bench that runs realtime apart.
+		self.assertFalse(self._config().embedded)
+		self.assertFalse(self._config(socketio_backend="python").embedded)
+		self.assertFalse(self._config(socketio_backend="node").embedded)
+
+	def test_embedded_comes_from_the_caller(self):
+		self.assertTrue(self._config(embedded=True).embedded)
+
+
+class TestServerApp(unittest.IsolatedAsyncioTestCase):
+	"""RealtimeServer wiring; needs the real socketio/uvicorn deps."""
+
+	def setUp(self):
+		try:
+			from frappe.realtime import server as server_mod
+		except Exception as exc:  # pragma: no cover - depends on the environment
+			self.skipTest(f"realtime server dependencies unavailable: {exc}")
+		self.server_mod = server_mod
+
+	def test_handlers_are_loaded_before_events_are_wired(self):
+		# wire() snapshots the registry, so an embedder that only builds the server
+		# must still end up with every handler bound.
+		order = []
+		with (
+			patch.object(self.server_mod, "load_handlers", lambda *a, **k: order.append("load")),
+			patch.object(self.server_mod, "wire", lambda *a, **k: order.append("wire")),
+		):
+			self.server_mod.RealtimeServer(make_config())
+
+		self.assertEqual(order, ["load", "wire"])
+
+	def test_discovery_gets_the_sites_path_from_the_config(self):
+		# serve() moves into sites/ before it builds the server, so a cwd-relative path
+		# reads sites/sites/apps.txt there and the bench root's apps.txt when embedded.
+		# Neither exists, and get_all_apps raises rather than returning nothing.
+		seen = []
+		with patch.object(self.server_mod, "wire", lambda *a, **k: None):
+			with patch(
+				"frappe.realtime.registry.discover_app_handlers",
+				lambda sites_path=None: seen.append(sites_path),
+			):
+				self.server_mod.RealtimeServer(make_config(sites_path="/bench/sites"))
+
+		self.assertEqual(seen, ["/bench/sites"])
+
+	def _build(self, config: RealtimeConfig, **kwargs: object):
+		with (
+			patch.object(self.server_mod, "load_handlers", lambda *a, **k: None),
+			patch.object(self.server_mod, "wire", lambda *a, **k: None),
+		):
+			return self.server_mod.RealtimeServer(config, **kwargs)
+
+	def test_other_asgi_app_receives_non_socketio_traffic(self):
+		# Embedded, this is where the Frappe WSGI app is mounted.
+		sentinel = object()
+		self.assertIs(self._build(make_config(), other_asgi_app=sentinel).app.other_asgi_app, sentinel)
+
+	def test_unset_leaves_engineio_to_answer(self):
+		self.assertIsNone(self._build(make_config()).app.other_asgi_app)
+
+	async def _startup(self, config: RealtimeConfig) -> MagicMock:
+		server = self._build(config)
+		loop = asyncio.get_running_loop()
+		with (
+			patch.object(server.bridge, "start"),
+			patch.object(loop, "set_default_executor") as set_executor,
+		):
+			await server._on_startup()
+		return set_executor
+
+	async def test_the_loop_executor_is_left_alone_by_default(self):
+		# set_default_executor replaces it for the whole loop, which embedded is
+		# the host's. Nothing built in dispatches to a thread, so don't touch it.
+		(await self._startup(make_config())).assert_not_called()
+
+	async def test_worker_threads_installs_a_sized_executor(self):
+		set_executor = await self._startup(make_config(worker_threads=7))
+
+		set_executor.assert_called_once()
+		self.assertEqual(set_executor.call_args.args[0]._max_workers, 7)
+
+
+class TestBridge(unittest.IsolatedAsyncioTestCase):
 	def setUp(self):
 		self.sio = MagicMock()
+		self.sio.emit = AsyncMock()
 		self.bridge = bridge_mod.RedisBridge(self.sio, "redis://x")
 
-	def test_room_emit(self):
-		self.bridge._handle('{"namespace": "s1", "room": "user:a", "event": "msg", "message": {"k": 1}}')
+	async def test_room_emit(self):
+		await self.bridge._handle(
+			'{"namespace": "s1", "room": "user:a", "event": "msg", "message": {"k": 1}}'
+		)
 		self.sio.emit.assert_called_once_with("msg", {"k": 1}, room="user:a", namespace="/s1")
 
-	def test_no_room_broadcast(self):
+	async def test_no_room_broadcast(self):
 		self.sio.manager.rooms = {"/s1": {}, "/s2": {}}
-		self.bridge._handle('{"namespace": "s1", "event": "build", "message": {"k": 1}}')
+		await self.bridge._handle('{"namespace": "s1", "event": "build", "message": {"k": 1}}')
 		self.assertEqual(self.sio.emit.call_count, 2)
 		namespaces = {c.kwargs["namespace"] for c in self.sio.emit.call_args_list}
 		self.assertEqual(namespaces, {"/s1", "/s2"})
 
-	def test_malformed_message_skipped(self):
-		self.bridge._handle("not json")
-		self.bridge._handle('{"no_namespace": true}')
+	async def test_malformed_message_skipped(self):
+		await self.bridge._handle("not json")
+		await self.bridge._handle('{"no_namespace": true}')
 		self.sio.emit.assert_not_called()
 
 
-class TestCoreHandlers(unittest.TestCase):
+class TestCoreHandlers(unittest.IsolatedAsyncioTestCase):
 	def _socket(
 		self,
 		sio: FakeSio,
-		request: Callable[..., dict] | None = None,
+		request: Callable[..., Awaitable[dict]] | None = None,
 		data: dict | None = None,
 		**identity: object,
 	) -> Socket:
@@ -423,67 +923,67 @@ class TestCoreHandlers(unittest.TestCase):
 		sio.sessions["sid1"] = session
 		return Socket(sio, "sid1", "/s1", session)
 
-	def test_ping_pong(self):
+	async def test_ping_pong(self):
 		sio = FakeSio()
 		s = self._socket(sio)
-		handlers_mod.ping(s)
+		await handlers_mod.ping(s)
 		self.assertEqual(sio.emits[-1]["event"], "pong")
 
-	def test_on_connect_joins_rooms(self):
+	async def test_on_connect_joins_rooms(self):
 		sio = FakeSio()
 		s = self._socket(sio, user="a@b.com")
-		handlers_mod.on_connect(s)
+		await handlers_mod.on_connect(s)
 		rooms = sio.rooms_of("sid1")
 		self.assertIn("user:a@b.com", rooms)
 		self.assertIn("website", rooms)
 		self.assertIn("all", rooms)  # System User
 
-	def test_on_connect_website_user_skips_site_room(self):
+	async def test_on_connect_website_user_skips_site_room(self):
 		sio = FakeSio()
 		s = self._socket(sio, user_type="Website User")
-		handlers_mod.on_connect(s)
+		await handlers_mod.on_connect(s)
 		self.assertNotIn("all", sio.rooms_of("sid1"))
 
-	def test_doctype_subscribe_permission_gated(self):
+	async def test_doctype_subscribe_permission_gated(self):
 		sio = FakeSio()
-		allow = self._socket(sio, request=lambda path, method="GET", params=None, body=None: {"message": 1})
-		handlers_mod.doctype_subscribe(allow, "ToDo")
+		allow = self._socket(sio, request=make_request(1))
+		await handlers_mod.doctype_subscribe(allow, "ToDo")
 		self.assertIn("doctype:ToDo", sio.rooms_of("sid1"))
 
 		sio2 = FakeSio()
-		deny = self._socket(sio2, request=lambda path, method="GET", params=None, body=None: {"message": 0})
-		handlers_mod.doctype_subscribe(deny, "ToDo")
+		deny = self._socket(sio2, request=make_request(0))
+		await handlers_mod.doctype_subscribe(deny, "ToDo")
 		self.assertNotIn("doctype:ToDo", sio2.rooms_of("sid1"))
 
-	def test_doc_close_removes_tracked_pair(self):
+	async def test_doc_close_removes_tracked_pair(self):
 		# Regression for the Node bug: the pair must actually be dropped.
 		sio = FakeSio()
 		s = self._socket(sio, data={"subscribed_documents": [["ToDo", "n1"], ["ToDo", "n2"]]})
-		handlers_mod.doc_close(s, "ToDo", "n1")
+		await handlers_mod.doc_close(s, "ToDo", "n1")
 		self.assertEqual(sio.sessions["sid1"].data["subscribed_documents"], [["ToDo", "n2"]])
 
-	def test_doc_viewers_emitted_for_multiple_users(self):
+	async def test_doc_viewers_emitted_for_multiple_users(self):
 		sio = FakeSio()
 		session_a = make_session(user="a@b.com")
 		sio.sessions["sid1"] = session_a
 		sio.sessions["sid2"] = make_session(user="b@b.com")
 		room = handlers_mod.open_doc_room("ToDo", "n1")
-		sio.enter_room("sid1", room)
-		sio.enter_room("sid2", room)
+		await sio.enter_room("sid1", room)
+		await sio.enter_room("sid2", room)
 		s = Socket(sio, "sid1", "/s1", session_a)
-		handlers_mod.notify_doc_viewers(s, "ToDo", "n1")
+		await handlers_mod.notify_doc_viewers(s, "ToDo", "n1")
 		emit = sio.emits[-1]
 		self.assertEqual(emit["event"], "doc_viewers")
 		self.assertEqual(set(emit["data"]["users"]), {"a@b.com", "b@b.com"})
 
-	def test_doc_viewers_silent_for_lone_self(self):
+	async def test_doc_viewers_silent_for_lone_self(self):
 		sio = FakeSio()
 		session_a = make_session(user="a@b.com")
 		sio.sessions["sid1"] = session_a
 		room = handlers_mod.open_doc_room("ToDo", "n1")
-		sio.enter_room("sid1", room)
+		await sio.enter_room("sid1", room)
 		s = Socket(sio, "sid1", "/s1", session_a)
-		handlers_mod.notify_doc_viewers(s, "ToDo", "n1")
+		await handlers_mod.notify_doc_viewers(s, "ToDo", "n1")
 		self.assertEqual(sio.emits, [])
 
 

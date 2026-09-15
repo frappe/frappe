@@ -146,7 +146,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-15 12:00:00.000000",
+ "modified": "2026-08-21 23:24:24.285309",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role",
@@ -163,6 +163,10 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "role": "Desk User",
+   "select": 1
   }
  ],
  "quick_entry": 1,

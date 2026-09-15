@@ -352,6 +352,7 @@ const FIELD_PLUCK_KEYS = [
 	"row_condition",
 	"show_label",
 	"align",
+	"allow_page_break",
 	"label_justify",
 	"label_gap",
 	"visible_if",
