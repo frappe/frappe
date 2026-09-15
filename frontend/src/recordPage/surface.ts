@@ -20,19 +20,30 @@ type Op<Item extends SurfaceItem> =
 
 export const BUILTIN = "builtin";
 
+/** The keys a surface reads off an item, and the name its warnings call the surface by. */
+export interface Vocabulary {
+	surface: string;
+	keys: readonly string[];
+}
+
 export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceVerbs<Item> {
 	private ops: Op<Item>[] = reactive([]);
+	private saidKeys = new Set<string>();
 	// Where a replay's ops accumulate until it commits. Non-null only inside a
 	// replay; ops recorded anywhere else render immediately.
 	private pending: Op<Item>[] | null = null;
 	private replaying = 0;
 	private builtins: () => Item[] = () => [];
 
+	/** Without a vocabulary every key is kept. */
+	constructor(private readonly vocabulary?: Vocabulary) {}
+
 	// A block splices as a unit at the anchor: the first item takes the caller's
 	// position and each one after it follows the one before.
 	add(item: Item | Item[], position?: Position) {
 		let anchor = position;
-		for (const one of Array.isArray(item) ? item : [item]) {
+		for (const given of Array.isArray(item) ? item : [item]) {
+			const one = this.readKeys("add", given.name, given);
 			ensureIcons(one);
 			keepComponentRaw(one);
 			this.record({ verb: "add", source: runningSource(), item: one, position: anchor });
@@ -49,9 +60,10 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 	}
 
 	update(name: string, patch: Partial<Item>) {
-		ensureIcons(patch);
-		keepComponentRaw(patch);
-		this.record({ verb: "update", source: runningSource(), name, patch });
+		const kept = this.readKeys("update", name, patch);
+		ensureIcons(kept);
+		keepComponentRaw(kept);
+		this.record({ verb: "update", source: runningSource(), name, patch: kept });
 	}
 
 	move(name: string, position: Position) {
@@ -119,6 +131,28 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 
 	private record(op: Op<Item>) {
 		(this.pending ?? this.ops).push(op);
+	}
+
+	// `has`, `find` and a later `update` must not see a dropped key.
+	private readKeys<Given extends Partial<Item>>(verb: string, name: string, given: Given): Given {
+		const vocabulary = this.vocabulary;
+		if (!vocabulary) return given;
+		const kept: Record<string, any> = {};
+		for (const key of Object.keys(given)) {
+			if (vocabulary.keys.includes(key)) kept[key] = given[key];
+			else this.warnUnreadKey(vocabulary.surface, verb, name, key);
+		}
+		return kept as Given;
+	}
+
+	private warnUnreadKey(surface: string, verb: string, name: string, key: string) {
+		if (!import.meta.env.DEV) return;
+		const once = JSON.stringify([runningSource(), name, key]);
+		if (this.saidKeys.has(once)) return;
+		this.saidKeys.add(once);
+		console.warn(
+			`[record-page] ${surface}.${verb}('${name}'): key '${key}' is not one the engine reads — dropped.`,
+		);
 	}
 
 	private fold(ops: Op<Item>[]): ResolvedItem<Item>[] {

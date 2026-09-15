@@ -20,6 +20,16 @@ export interface QuickAction extends SurfaceItem {
   run?: (page: RecordPageApi) => any;
 }
 
+// Each item type's keys as a list beside it: a key outside the list is dropped with a dev
+// warning, so a key a component starts reading is added here, or scripts never see it.
+export const QUICK_ACTION_KEYS: readonly string[] = [
+  "name",
+  "label",
+  "icon",
+  "description",
+  "run",
+];
+
 /** Which half of the header row an item sits in; omitted means `right`. */
 export type HeaderZone = "left" | "right";
 
@@ -39,6 +49,17 @@ export interface HeaderItem extends SurfaceItem {
   run?: (page: RecordPageApi) => any;
 }
 
+export const HEADER_ITEM_KEYS: readonly string[] = [
+  "name",
+  "label",
+  "icon",
+  "zone",
+  "display",
+  "group",
+  "href",
+  "run",
+];
+
 export interface TabCreateAction {
   label: string;
   icon: string;
@@ -53,6 +74,15 @@ export interface TabItem extends SurfaceItem {
   create?: TabCreateAction;
 }
 
+export const TAB_ITEM_KEYS: readonly string[] = [
+  "name",
+  "label",
+  "icon",
+  "component",
+  "props",
+  "create",
+];
+
 /** One item of the panel's single list; a `label` gives it a header, a layout name renders its fields. */
 export interface PanelSectionItem extends SurfaceItem {
   component?: Component;
@@ -60,6 +90,15 @@ export interface PanelSectionItem extends SurfaceItem {
   /** Whether a section with a header starts open; meaningless without one. */
   opened?: boolean;
 }
+
+export const PANEL_SECTION_KEYS: readonly string[] = [
+  "name",
+  "label",
+  "icon",
+  "component",
+  "props",
+  "opened",
+];
 
 /** The panel surface also opens and shuts a section for the reader. */
 export interface PanelSectionsApi extends SurfaceVerbs<PanelSectionItem> {

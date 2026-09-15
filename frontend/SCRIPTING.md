@@ -48,6 +48,7 @@ The surface speaks the seven verbs: `add`, `hide`, `show`, `update`, `move`, `ha
 | `run` | `(page) => any`. A crumb or button with one runs it; `run` wins over `href`. |
 | `group` | The container this sits in. A member sits in its container's zone. A name no item declares forms a band of its own in `⋯`, with no heading. |
 | `icon` | `lucide-<name>`, any of the shell's lucide icons; the page draws one the bundle never used from its sprite. |
+| any other key | Not read: dropped from the item on `add` and `update`, and a development build warns once, naming the item and the key. The same holds on `page.quickActions`, `page.tabs` and `page.panelSections`. |
 
 `zone` and `display` are orthogonal: a favourite star is `{ zone: 'left', display: 'button' }`.
 A `section` on the left has no menu to title a band in, so its members render in its
@@ -145,6 +146,7 @@ The surface speaks the seven verbs, and two **acts**: `open(name)` and `close(na
 | `component` | Rendered for any name the layout does not carry, with `props` and a `page` prop. |
 | `props` | Bound onto `component`. |
 | `opened` | Whether a section with a header starts open. Meaningless without a `label`, and a dev warning there. |
+| any other key | Not read: dropped from the item on `add` and `update`, and a development build warns once, naming the item and the key. |
 
 A name the Side Panel layout carries renders that section's fields, one column, click to
 edit. Any other name renders its `component`. The header rule is derived, not declared: a
