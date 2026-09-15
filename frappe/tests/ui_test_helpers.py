@@ -688,3 +688,145 @@ def empty_my_workspaces():
 	my_workspaces = frappe.get_doc("Workspace Sidebar", "My Workspaces")
 	my_workspaces.items = []
 	my_workspaces.save()
+	
+def clear_list_layout_test_layouts():
+	"""Remove saved layouts created by Cypress saved-layout tests."""
+	frappe.db.delete("List Filter", {"filter_name": ["like", f"{LIST_LAYOUT_TEST_PREFIX}%"]})
+
+
+@whitelist_for_tests()
+def reset_list_layout_test_user_settings(doctype: str = "ToDo"):
+	"""Clear saved layout preference so Cypress starts from Default Layout."""
+	import json
+
+	from frappe.model.utils.user_settings import get_user_settings, update_user_settings
+
+	settings = json.loads(get_user_settings(doctype, for_update=True) or "{}")
+	list_settings = settings.get("List") or {}
+	list_settings["active_layout_name"] = ""
+	settings["List"] = list_settings
+	update_user_settings(doctype, settings)
+
+
+@whitelist_for_tests()
+def create_list_layout_test_layout(
+	layout_name: str | None = None,
+	filter_name: str | None = None,
+	reference_doctype: str = "ToDo",
+	for_user: str | None = None,
+	filters: str | None = None,
+	columns: str | None = None,
+	sort_field: str = "modified",
+	sort_order: str = "desc",
+):
+	"""Insert a saved list filter for Cypress tests."""
+	import json
+
+	filter_name = filter_name or layout_name or f"{LIST_LAYOUT_TEST_PREFIX}open"
+
+	if frappe.db.exists("List Filter", {"filter_name": filter_name, "reference_doctype": reference_doctype}):
+		frappe.db.delete(
+			"List Filter",
+			{"filter_name": filter_name, "reference_doctype": reference_doctype},
+		)
+
+	doc = frappe.get_doc(
+		{
+			"doctype": "List Filter",
+			"filter_name": filter_name,
+			"reference_doctype": reference_doctype,
+			"for_user": for_user if for_user is not None else frappe.session.user,
+			"filters": filters if filters is not None else json.dumps([["ToDo", "status", "=", "Open"]]),
+			"columns": columns
+			if columns is not None
+			else json.dumps([{"fieldname": "status", "label": "Status"}]),
+			"sort_field": sort_field,
+			"sort_order": sort_order,
+		}
+	).insert(ignore_permissions=True)
+	return doc.name
+
+
+@whitelist_for_tests()
+def create_webform_with_child_table_dropdown():
+	"""Set up a Web Form that is long enough to scroll and has a child table with an
+	Autocomplete field, so tests can check where the dropdown is drawn."""
+	frappe.delete_doc_if_exists("Web Form", "test-grid-dropdown")
+	frappe.delete_doc_if_exists("DocType", "Test Grid Dropdown Parent")
+	frappe.delete_doc_if_exists("DocType", "Test Grid Dropdown Child")
+
+	frappe.get_doc(
+		{
+			"doctype": "DocType",
+			"name": "Test Grid Dropdown Child",
+			"module": "Custom",
+			"custom": 1,
+			"istable": 1,
+			"editable_grid": 1,
+			"fields": [
+				{
+					"fieldname": "item",
+					"label": "Item",
+					"fieldtype": "Autocomplete",
+					"options": "Almond\nBlueberry\nChocolate\nCinnamon",
+					"in_list_view": 1,
+					"columns": 4,
+				},
+				{"fieldname": "qty", "label": "Qty", "fieldtype": "Int", "in_list_view": 1, "columns": 2},
+			],
+		}
+	).insert()
+
+	# filler fields so the child table sits well below the fold
+	fields = [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}]
+	fields += [
+		{"fieldname": f"filler_{i}", "label": f"Filler {i}", "fieldtype": "Small Text"} for i in range(8)
+	]
+	fields.append(
+		{
+			"fieldname": "rows",
+			"label": "Rows",
+			"fieldtype": "Table",
+			"options": "Test Grid Dropdown Child",
+		}
+	)
+
+	frappe.get_doc(
+		{
+			"doctype": "DocType",
+			"name": "Test Grid Dropdown Parent",
+			"module": "Custom",
+			"custom": 1,
+			"naming_rule": "Expression",
+			"autoname": "format:TEST-GRID-DROPDOWN-{#####}",
+			"fields": fields,
+			"permissions": [
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+				{"role": "Guest", "read": 1, "write": 1, "create": 1},
+			],
+		}
+	).insert()
+
+	meta = frappe.get_meta("Test Grid Dropdown Parent")
+	frappe.get_doc(
+		{
+			"doctype": "Web Form",
+			"title": "Test Grid Dropdown",
+			"route": "test-grid-dropdown",
+			"doc_type": "Test Grid Dropdown Parent",
+			"module": "Custom",
+			"published": 1,
+			"login_required": 0,
+			"allow_multiple": 1,
+			"web_form_fields": [
+				{
+					"fieldname": df.fieldname,
+					"label": df.label,
+					"fieldtype": df.fieldtype,
+					"options": df.options,
+				}
+				for df in meta.fields
+			],
+		}
+	).insert()
+>>>>>>> 50ab536 (test(grid): cover child table dropdown placement on a scrolled web form)
