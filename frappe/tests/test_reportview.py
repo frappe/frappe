@@ -222,7 +222,7 @@ class TestReportview(IntegrationTestCase):
 		self.enable_link_titles("User")
 		with self.set_user("test@example.com"):
 			todo = self.make_todo("Report view link title task")
-			response = self.get_rows(todo.name, with_link_titles=1)
+			response = self.get_todo_rows(todo.name, with_link_titles=1)
 
 			full_name = frappe.db.get_value("User", "test@example.com", "full_name")
 			self.assertEqual(frappe.local.response["_link_titles"]["User::test@example.com"], full_name)
@@ -232,29 +232,50 @@ class TestReportview(IntegrationTestCase):
 		self.enable_link_titles("User")
 		with self.set_user("test@example.com"):
 			todo = self.make_todo("Report view task without titles")
-			self.get_rows(todo.name)
+			self.get_todo_rows(todo.name)
 			self.assertNotIn("_link_titles", frappe.local.response)
 
-	def get_rows(self, name, **extra_params):
-		previous_response = frappe.local.response
-		self.addCleanup(setattr, frappe.local, "response", previous_response)
-		frappe.local.response = frappe._dict()
-		frappe.local.form_dict = frappe._dict(
+	def test_get_sends_link_titles_for_child_table_columns(self):
+		"""`compress` drops the child table prefix, so keys pair back to the requested fields."""
+		self.enable_link_titles("Role", title_field="role_name")
+
+		self.get_rows(
+			doctype="User",
+			fields=["`tabUser`.`name`", "`tabHas Role`.`role`"],
+			filters={"name": "Administrator"},
+			with_link_titles=1,
+		)
+
+		self.assertEqual(frappe.local.response["_link_titles"]["Role::System Manager"], "System Manager")
+
+	def get_todo_rows(self, name, **extra_params):
+		return self.get_rows(
 			doctype="ToDo",
 			fields=["name", "allocated_to"],
 			filters={"name": name},
 			**extra_params,
 		)
+
+	def get_rows(self, **form_params):
+		previous_response = frappe.local.response
+		self.addCleanup(setattr, frappe.local, "response", previous_response)
+		frappe.local.response = frappe._dict()
+		frappe.local.form_dict = frappe._dict(**form_params)
 		return get()
 
-	def enable_link_titles(self, doctype):
+	def enable_link_titles(self, doctype, title_field=None):
+		self.set_doctype_property(doctype, "show_title_field_in_link", "1", "Check")
+		if title_field:
+			self.set_doctype_property(doctype, "title_field", title_field, "Data")
+
+	def set_doctype_property(self, doctype, property, value, property_type):
 		property_setter = frappe.get_doc(
 			doctype="Property Setter",
 			doc_type=doctype,
 			doctype_or_field="DocType",
-			property="show_title_field_in_link",
-			property_type="Check",
-			value="1",
+			property=property,
+			property_type=property_type,
+			value=value,
 		).insert()
 		self.addCleanup(property_setter.delete)
 
