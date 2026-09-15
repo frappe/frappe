@@ -132,30 +132,36 @@ class TestWriteFileContainment(IntegrationTestCase):
 		from frappe.utils.file_manager import write_file
 
 		files_path = get_files_path(is_private=1)
-		# where a name that resolves out of the files dir would land if not confined
-		escaped_target = os.path.realpath(os.path.join(files_path, "../../../../ESCAPE_TEST.txt"))
-		self.assertFalse(os.path.exists(escaped_target))
-
-		for fname in ("../../../../ESCAPE_TEST.txt", "sub/../../ESCAPE_TEST.txt", "/tmp/ESCAPE_TEST.txt"):
+		bad_names = (
+			"../../../../ESCAPE_TEST.txt",  # parent traversal
+			"sub/../../ESCAPE_TEST.txt",  # traversal via a nested segment
+			"/tmp/ESCAPE_TEST.txt",  # absolute path outside the files dir
+			"subdir/ESCAPE_TEST.txt",  # nested name: not a direct child of the files dir
+		)
+		for fname in bad_names:
 			with self.subTest(fname=fname):
+				# where the bytes would land if the target were not confined
+				would_be = os.path.realpath(os.path.join(files_path, fname))
 				self.assertRaises(ValidationError, write_file, b"data\n", fname, is_private=1)
+				self.assertFalse(os.path.exists(would_be))
 
-		self.assertFalse(os.path.exists(escaped_target))
-
-	def test_write_file_allows_plain_name(self):
+	def test_write_file_allows_plain_basename(self):
 		from frappe.utils.file_manager import write_file
 
-		fname = f"{frappe.generate_hash()}.txt"
 		content = b"safe content\n"
-		write_file(content, fname, is_private=1)
+		for is_private in (0, 1):
+			with self.subTest(is_private=is_private):
+				fname = f"{frappe.generate_hash()}.txt"
+				write_file(content, fname, is_private=is_private)
 
-		on_disk = get_files_path(fname, is_private=1)
-		self.addCleanup(lambda: os.path.exists(on_disk) and os.remove(on_disk))
-		self.assertEqual(
-			os.path.realpath(os.path.dirname(on_disk)), os.path.realpath(get_files_path(is_private=1))
-		)
-		with open(on_disk, "rb") as f:
-			self.assertEqual(f.read(), content)
+				on_disk = get_files_path(fname, is_private=is_private)
+				self.addCleanup(lambda p=on_disk: os.path.exists(p) and os.remove(p))
+				self.assertEqual(
+					os.path.realpath(os.path.dirname(on_disk)),
+					os.path.realpath(get_files_path(is_private=is_private)),
+				)
+				with open(on_disk, "rb") as f:
+					self.assertEqual(f.read(), content)
 
 
 class TestExtensionValidations(IntegrationTestCase):
