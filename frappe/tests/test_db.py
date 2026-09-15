@@ -1323,6 +1323,19 @@ class TestDDLCommandsSQLite(IntegrationTestCase):
 		database.rollback()
 		self.assertFalse(database.table_exists(self.doctype, cached=False))
 
+	def test_schema_cache_is_invalidated_after_rollback(self) -> None:
+		from frappe.database import get_db
+
+		database = get_db(cur_db_name=frappe.conf.db_name)
+		self.addCleanup(database.close)
+		database.connect()
+
+		database.sql(f"CREATE TABLE `{self.table_name}` (`name` TEXT)")
+		self.assertTrue(database.table_exists(self.doctype))
+
+		database.rollback()
+		self.assertFalse(database.table_exists(self.doctype))
+
 	def get_test_meta(self, field: frappe._dict):
 		class TestMeta(frappe._dict):
 			def get(self, key, default=None):

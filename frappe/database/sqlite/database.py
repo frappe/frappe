@@ -13,6 +13,7 @@ from sqlglot.errors import ErrorLevel, SqlglotError
 
 import frappe
 from frappe.database.database import (
+	DDL_QUERY_TYPES,
 	TRANSACTION_DISABLED_MSG,
 	Database,
 )
@@ -32,8 +33,8 @@ from frappe.database.sqlite.query_parameters import (
 	restore_transpiled_query_parameters,
 )
 from frappe.database.sqlite.schema import SQLiteTable, quote_identifier
-from frappe.database.utils import convert_backtick_identifiers
-from frappe.utils import get_table_name, now
+from frappe.database.utils import FallBackDateTimeStr, convert_backtick_identifiers
+from frappe.utils import get_datetime, get_table_name, now
 
 _TRANSPILABLE_STATEMENTS = (exp.Select, exp.Insert, exp.Update, exp.Delete, exp.Union)
 
@@ -186,6 +187,14 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 	def set_session_time_zone(self, timezone: str):
 		self._session_time_zone = ZoneInfo(timezone)
+
+	@staticmethod
+	def format_datetime(value):
+		"""Format datetimes the same way sqlite3 stores Python datetime values."""
+		if not value:
+			return FallBackDateTimeStr
+
+		return get_datetime(value).isoformat(" ")
 
 	def _convert_to_unix_timestamp(self, value):
 		return convert_datetime_to_unix_timestamp(value, self._session_time_zone)
@@ -508,12 +517,12 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		to_query = not cached
 
 		if cached:
-			tables = frappe.cache.get_value("db_tables")
+			tables = frappe.client_cache.get_value("db_tables")
 			to_query = not tables
 
 		if to_query:
 			tables = self.sql("SELECT name FROM sqlite_master WHERE type='table';", pluck=True)
-			frappe.cache.set_value("db_tables", tables)
+			frappe.client_cache.set_value("db_tables", tables)
 
 		return tables
 
@@ -522,7 +531,18 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		raise NotImplementedError("SQLite does not support getting row size directly.")
 
 	def execute_query(self, query, values=None):
+		if self._is_raw_commit_statement(query):
+			# sqlite3's SQL parser raises when COMMIT is repeated without an
+			# active transaction. Connection.commit() has the same commit
+			# semantics, but is safely a no-op when no transaction is active.
+			self._conn.commit()
+			return self._cursor
 		return self._cursor.execute(query, values)
+
+	@staticmethod
+	def _is_raw_commit_statement(query: str) -> bool:
+		query_without_trace_id = query.partition("/* FRAPPE_TRACE_ID:")[0]
+		return query_without_trace_id.strip().removesuffix(";").strip().upper() == "COMMIT"
 
 	def _transform_query(self, query, values):
 		return convert_frappe_query_parameters(query, values)
@@ -606,6 +626,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 		self._conn.commit()
 		self.transaction_writes = 0
+		self._transaction_has_schema_changes = False
 		self.begin()  # explicitly start a new transaction
 		self.value_cache.clear()
 		self.run_after_transaction_callbacks(self.after_commit)
@@ -616,6 +637,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			self.connect()
 		if save_point:
 			self.sql(f"rollback to savepoint {save_point}")
+			self._invalidate_transactional_schema_cache()
 			self.value_cache.clear()
 		elif not self._disable_transaction_control:
 			self.before_commit.reset()
@@ -624,11 +646,26 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			self.before_rollback.run()
 
 			self._conn.rollback()
+			self._invalidate_transactional_schema_cache()
+			self._transaction_has_schema_changes = False
 			self.begin()
 			self.value_cache.clear()
 			self.run_after_transaction_callbacks(self.after_rollback)
 		else:
 			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
+
+	def clear_db_table_cache(self, query_type: str) -> None:
+		"""Track cache entries that may become stale if transactional DDL is rolled back."""
+		super().clear_db_table_cache(query_type)
+		if query_type in DDL_QUERY_TYPES:
+			self._transaction_has_schema_changes = True
+			frappe.client_cache.delete_keys("table_columns::*")
+
+	def _invalidate_transactional_schema_cache(self) -> None:
+		if not getattr(self, "_transaction_has_schema_changes", False):
+			return
+		frappe.client_cache.delete_value("db_tables")
+		frappe.client_cache.delete_keys("table_columns::*")
 
 	def get_db_table_columns(self, table) -> list[str]:
 		"""Return list of column names from given table."""
@@ -644,7 +681,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			columns = [col["name"] for col in columns]
 
 			if columns:
-				frappe.cache.set_value(key, columns)
+				frappe.client_cache.set_value(key, columns)
 
 		return columns
 
