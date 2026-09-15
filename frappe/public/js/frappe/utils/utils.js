@@ -1951,6 +1951,20 @@ Object.assign(frappe.utils, {
 		return frappe._link_titles[doctype + "::" + name];
 	},
 
+	get_link_title_sorter(docfield) {
+		// Datatable sorts on the stored value, so a Link column showing a title sorts by
+		// the document name the reader cannot see. Returns null when there is no title.
+		const doctype = docfield?._options || docfield?.options;
+		if (
+			docfield?.fieldtype !== "Link" ||
+			!frappe.boot.link_title_doctypes?.includes(doctype)
+		) {
+			return null;
+		}
+
+		return (cell) => frappe.utils.get_link_title(doctype, cell.content) || cell.content;
+	},
+
 	add_link_title(doctype, name, value) {
 		if (!doctype || !name) {
 			return;
