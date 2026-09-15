@@ -360,9 +360,9 @@ frappe.ui.Filter = class {
 
 	make_field(df, old_fieldtype) {
 		let old_text = this.field ? this.field.get_value() : null;
-		this.hide_invalid_conditions(df.fieldtype, df.original_type);
+		let current_condition = this.filter_edit_area.find(".condition").val();
+		this.refresh_condition_options(df, current_condition);
 		this.set_special_condition_labels(df.original_type);
-		this.toggle_nested_set_conditions(df);
 		let field_area = this.filter_edit_area.find(".filter-field").empty().get(0);
 		df.input_class = "input-xs";
 		let f = frappe.ui.form.make_control({
@@ -515,16 +515,48 @@ frappe.ui.Filter = class {
 		</div>`);
 	}
 
-	hide_invalid_conditions(fieldtype, original_type) {
+	refresh_condition_options(df, current_value) {
+		// Safari doesn't honor display:none on <option>, so options are removed
+		// from the DOM; normal and nested-set options are rebuilt together to
+		// keep order and restore logic in one place.
 		let invalid_conditions =
-			this.invalid_condition_map[original_type] ||
-			this.invalid_condition_map[fieldtype] ||
+			this.invalid_condition_map[df.original_type] ||
+			this.invalid_condition_map[df.fieldtype] ||
 			[];
 
+		let show_nested_set_conditions =
+			df.fieldtype === "Link" && frappe.boot.nested_set_doctypes.includes(df.options);
+
+		let is_nested_set_condition = (value) =>
+			this.nested_set_conditions.some(([condition]) => condition === value);
+
+		let $select = this.filter_edit_area.find(".condition");
+		$select.empty();
+
 		for (let condition of this.conditions) {
-			this.filter_edit_area
-				.find(`.condition option[value="${condition[0]}"]`)
-				.toggle(!invalid_conditions.includes(condition[0]));
+			if (is_nested_set_condition(condition[0]) && !show_nested_set_conditions) continue;
+			if (invalid_conditions.includes(condition[0])) continue;
+			$select.append($("<option>").attr("value", condition[0]).text(condition[1]));
+		}
+
+		if ($select.find(`option[value="${current_value}"]`).length) {
+			$select.val(current_value);
+		} else if (
+			current_value &&
+			!(is_nested_set_condition(current_value) && !show_nested_set_conditions)
+		) {
+			// preserve a saved/URL condition even if invalid_condition_map excludes it,
+			// but never a nested-set condition on a field that can't use one
+			let existing_condition = this.conditions.find(
+				([condition]) => condition === current_value
+			);
+			$select
+				.append(
+					$("<option>")
+						.attr("value", current_value)
+						.text(existing_condition ? existing_condition[1] : current_value)
+				)
+				.val(current_value);
 		}
 	}
 
@@ -542,16 +574,6 @@ frappe.ui.Filter = class {
 					.text(__(condition[1]));
 			}
 		}
-	}
-
-	toggle_nested_set_conditions(df) {
-		let show_condition =
-			df.fieldtype === "Link" && frappe.boot.nested_set_doctypes.includes(df.options);
-		this.nested_set_conditions.forEach((condition) => {
-			this.filter_edit_area
-				.find(`.condition option[value="${condition[0]}"]`)
-				.toggle(show_condition);
-		});
 	}
 };
 
