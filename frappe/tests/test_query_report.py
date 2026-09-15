@@ -568,8 +568,24 @@ data = columns, result
 
 		self.assertNotIn("User::Administrator", frappe.local.response.get("_link_titles", {}))
 
+	def test_export_uses_link_titles(self):
+		from csv import DictReader
+		from io import StringIO
+
+		report = self.make_link_column_report()
+		self.enable_link_titles("User")
+
+		previous_form_dict = frappe.local.form_dict
+		self.addCleanup(setattr, frappe.local, "form_dict", previous_form_dict)
+		frappe.local.form_dict = frappe._dict(report_name=report.name, file_format_type="CSV")
+		export_query()
+
+		rows = list(DictReader(StringIO(frappe.response["filecontent"].decode("utf-8-sig"))))
+		self.assertEqual(rows[0]["Allocated To"], frappe.db.get_value("User", "Administrator", "full_name"))
+		self.assertEqual(rows[0]["ID"], "todo-1")
+
 	def make_link_column_report(self):
-		"""Script report with a single User link column, returning one row for Administrator."""
+		"""Script report with an ID column and a User link column, returning one row."""
 		frappe.set_user("Administrator")
 		report = frappe.get_doc(
 			{
@@ -580,11 +596,12 @@ data = columns, result
 				"is_standard": "No",
 				"roles": [{"role": "System Manager"}],
 				"columns": [
-					dict(fieldname="allocated_to", label="Allocated To", fieldtype="Link", options="User")
+					dict(fieldname="name", label="ID", fieldtype="Link", options="ToDo"),
+					dict(fieldname="allocated_to", label="Allocated To", fieldtype="Link", options="User"),
 				],
 			}
 		).insert(ignore_permissions=True)
-		report.report_script = 'result = [{"allocated_to": "Administrator"}]'
+		report.report_script = 'result = [{"name": "todo-1", "allocated_to": "Administrator"}]'
 		report.save()
 		return report
 
