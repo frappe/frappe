@@ -19,7 +19,7 @@
 
 .grid-heading-row {
 	border-bottom: 1px solid var(--table-border-color);
-	color: var(--gray-600);
+	color: var(--text-muted);
 	@include get_textstyle("sm", "regular");
 	height: 32px;
 	padding: 0 !important;
