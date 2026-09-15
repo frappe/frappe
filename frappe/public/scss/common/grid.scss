@@ -378,7 +378,35 @@
 			border: 0 !important;
 		}
 
+		// Combobox Link cell: match the flat .form-control cell above
+		.es-combobox {
+			height: auto;
+			padding: 10px 8px 12px;
+			line-height: 21px;
+			border-radius: 0;
+
+			// the trigger takes its height from the input here, so give it the line
+			> .es-combobox__value {
+				height: 21px;
+			}
+		}
+
+		.es-combobox:focus-visible,
+		.es-combobox:focus-within {
+			outline: none;
+			box-shadow: inset 0px 0px 0 2px rgba(124, 124, 124, 0.25);
+		}
+
+		.es-combobox:not(:hover):not(:focus-within):not([data-state="open"])
+			.es-combobox__chevron {
+			display: none;
+		}
+
 		input.form-control.invalid {
+			background-color: var(--error-bg);
+		}
+
+		.es-combobox:has(> .es-combobox__value.invalid) {
 			background-color: var(--error-bg);
 		}
 

@@ -172,21 +172,53 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 	}
 
 	if (["Link", "Dynamic Link"].includes(fieldtype)) {
-		cy.get("@input").clear().focus();
-		// Wait for dropdown to appear (request might be cached, so don't wait for network)
-		cy.get("@input").parent().findByRole("listbox").as("dropdown");
-		cy.get("@dropdown").should("be.visible");
-		cy.get("@input").type(value, { delay: 100 });
-		// Wait for dropdown to update with search results
-		cy.get("@dropdown")
-			.should("be.visible")
-			.find("div[role='option']")
-			.first()
-			.should("include.text", value);
-		cy.get("@input").type("{enter}");
-		cy.get("@input").blur();
-		cy.get("@dropdown").should("not.exist");
-		cy.get("@input").should("have.value", value);
+		cy.get("@input").then(($input) => {
+			if ($input.closest(".es-combobox").length) {
+				// combobox Link field: a click opens the panel even on a filled
+				// value (a click on an open one would close it); type in its search box
+				cy.get("@input").then(($i) => {
+					if ($i.closest(".es-combobox").attr("data-state") !== "open")
+						cy.wrap($i).click();
+				});
+				// the panel is mounted in <body>, outside any .within() scope
+				cy.document()
+					.its("body")
+					.find(".es-combobox__panel[data-state='open']")
+					.as("dropdown");
+				cy.get("@dropdown")
+					.find(".es-combobox__input")
+					.clear()
+					.type(value, { delay: 100 });
+				cy.get("@dropdown")
+					.find(".es-combobox__list [role='option']")
+					.first()
+					.should("include.text", value);
+				cy.get("@dropdown").find(".es-combobox__input").type("{enter}");
+				cy.get("@dropdown").should("not.exist");
+				// the input may show a title, so check the value on the widget
+				cy.get("@input")
+					.closest(".es-combobox")
+					.should(($trigger) => {
+						expect($trigger.data("es-combobox").value).to.eq(value);
+					});
+				return;
+			}
+			cy.wrap($input).clear().focus();
+			// Wait for dropdown to appear (request might be cached, so don't wait for network)
+			cy.wrap($input).parent().findByRole("listbox").as("dropdown");
+			cy.get("@dropdown").should("be.visible");
+			cy.wrap($input).type(value, { delay: 100 });
+			// Wait for dropdown to update with search results
+			cy.get("@dropdown")
+				.should("be.visible")
+				.find("div[role='option']")
+				.first()
+				.should("include.text", value);
+			cy.wrap($input).type("{enter}");
+			cy.wrap($input).blur();
+			cy.get("@dropdown").should("not.exist");
+			cy.get("@input").should("have.value", value);
+		});
 	} else if (fieldtype === "Select") {
 		cy.get("@input").select(value);
 	} else {
@@ -316,6 +348,13 @@ Cypress.Commands.add("dialog", (opts) => {
 			var d = new frappe.ui.Dialog(opts);
 			d.show();
 			return d;
+		})
+		.then((d) => {
+			// wait for shown: until then the modal pulls focus from anything in <body>
+			cy.window({ log: false }).should((win) =>
+				expect(win.cur_dialog === d && d.display).to.eq(true)
+			);
+			return cy.wrap(d, { log: false });
 		});
 });
 

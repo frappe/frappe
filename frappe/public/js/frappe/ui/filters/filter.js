@@ -385,8 +385,23 @@ frappe.ui.Filter = class {
 	}
 
 	bind_filter_field_events() {
-		// Apply filter on input focus out
-		this.field.$input.on("focusout", () => this.on_change());
+		// Apply filter on input focus out — but not when focus moves into the
+		// combobox Link field's own panel (the pick is still in progress)
+		this.field.$input.on("focusout", (e) => {
+			if (e.relatedTarget && e.relatedTarget.closest(".es-combobox__panel")) return;
+			// a combobox pick already applied this value
+			if (this.field.combobox && this.field.get_value() === this.field.applied_value) return;
+			this.on_change();
+		});
+		// a combobox pick or clear reaches the input as a change (Enter happens
+		// in its panel, outside the wrapper)
+		if (this.field.combobox) {
+			this.field.$input.on("change", () => {
+				if (this.field.get_value() === this.field.applied_value) return;
+				this.field.applied_value = this.field.get_value();
+				this.on_change();
+			});
+		}
 
 		// run on enter
 		$(this.field.wrapper)
