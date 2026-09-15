@@ -26,18 +26,20 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	);
 	--checkbox-disabled-gradient: linear-gradient(
 		180deg,
-		var(--gray-600) -124.51%,
-		var(--gray-600) 100%
+		var(--gray-400) -124.51%,
+		var(--gray-400) 100%
 	);
 	--checkbox-focus-shadow: var(--focus-default);
 
 	input[type="checkbox"] {
 		&:checked {
+			background-color: var(--surface-gray-10);
 			background-image: $check-icon-dark, var(--checkbox-gradient);
 		}
 
 		&.disabled-selected,
 		&:disabled:checked {
+			background-color: var(--gray-400);
 			background-image: $check-icon-dark, var(--checkbox-disabled-gradient);
 		}
 
