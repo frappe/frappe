@@ -5,10 +5,10 @@ import datetime
 import json
 
 import frappe
-from frappe.desk.form.bulk_edit import (
+from frappe.desk.form.grid_import import (
 	MAX_TEMPLATE_ROWS,
-	download_bulk_edit_template,
-	parse_bulk_edit_file,
+	download_template,
+	parse_file,
 	stringify,
 )
 from frappe.tests import IntegrationTestCase
@@ -29,10 +29,10 @@ def as_dataurl(content: bytes) -> str:
 	return "data:application/octet-stream;base64," + base64.b64encode(content).decode()
 
 
-class TestBulkEdit(IntegrationTestCase):
+class TestGridImport(IntegrationTestCase):
 	def test_download_returns_an_xlsx_binary(self):
 		rows = [*HEADER_ROWS, ["System Manager", "everything"]]
-		download_bulk_edit_template("User", "Roles", json.dumps(rows))
+		download_template("User", "Roles", json.dumps(rows))
 
 		self.assertEqual(frappe.response["type"], "binary")
 		self.assertEqual(frappe.response["filename"], "Roles.xlsx")
@@ -40,19 +40,19 @@ class TestBulkEdit(IntegrationTestCase):
 
 	def test_download_rejects_csv(self):
 		with self.assertRaises(frappe.ValidationError):
-			download_bulk_edit_template("User", "Roles", json.dumps(HEADER_ROWS), file_type="CSV")
+			download_template("User", "Roles", json.dumps(HEADER_ROWS), file_type="CSV")
 
 	def test_download_rejects_oversized_template(self):
 		rows = [["x"]] * (MAX_TEMPLATE_ROWS + 1)
 		with self.assertRaises(frappe.ValidationError):
-			download_bulk_edit_template("User", "Roles", json.dumps(rows))
+			download_template("User", "Roles", json.dumps(rows))
 
 	def test_xlsx_and_csv_uploads_agree(self):
 		rows = [*HEADER_ROWS, ["System Manager", "everything"]]
 
-		xlsx = parse_bulk_edit_file("User", "roles.xlsx", as_dataurl(make_xlsx(rows, "Roles").getvalue()))
+		xlsx = parse_file("User", "roles.xlsx", as_dataurl(make_xlsx(rows, "Roles").getvalue()))
 		csv_text = "\n".join(",".join(f'"{cell}"' for cell in row) for row in rows)
-		csv = parse_bulk_edit_file("User", "roles.csv", as_dataurl(csv_text.encode()))
+		csv = parse_file("User", "roles.csv", as_dataurl(csv_text.encode()))
 
 		self.assertEqual(xlsx[2][:2], ["role", "description"])
 		self.assertEqual(csv[2][:2], ["role", "description"])
@@ -61,15 +61,15 @@ class TestBulkEdit(IntegrationTestCase):
 
 	def test_upload_rejects_unsupported_extension(self):
 		with self.assertRaises(frappe.ValidationError):
-			parse_bulk_edit_file("User", "roles.txt", as_dataurl(b"role\n"))
+			parse_file("User", "roles.txt", as_dataurl(b"role\n"))
 
 	def test_upload_rejects_empty_content(self):
 		with self.assertRaises(frappe.ValidationError):
-			parse_bulk_edit_file("User", "roles.csv", "")
+			parse_file("User", "roles.csv", "")
 
 	def test_dates_round_trip_through_a_spreadsheet(self):
 		rows = [*HEADER_ROWS, ["System Manager", datetime.date(2026, 8, 25)]]
-		parsed = parse_bulk_edit_file("User", "roles.xlsx", as_dataurl(make_xlsx(rows, "Roles").getvalue()))
+		parsed = parse_file("User", "roles.xlsx", as_dataurl(make_xlsx(rows, "Roles").getvalue()))
 		self.assertEqual(parsed[-1][1], "2026-08-25 00:00:00")
 
 	def test_stringify_renders_cells_for_the_grid(self):
@@ -85,11 +85,11 @@ class TestBulkEdit(IntegrationTestCase):
 	def test_permission_is_checked_against_the_parent_doctype(self):
 		self.assertRaises(
 			frappe.PermissionError,
-			lambda: self.with_user("Guest", download_bulk_edit_template, "User", "Roles", "[]"),
+			lambda: self.with_user("Guest", download_template, "User", "Roles", "[]"),
 		)
 		self.assertRaises(
 			frappe.PermissionError,
-			lambda: self.with_user("Guest", parse_bulk_edit_file, "User", "roles.csv", as_dataurl(b"role\n")),
+			lambda: self.with_user("Guest", parse_file, "User", "roles.csv", as_dataurl(b"role\n")),
 		)
 
 	def with_user(self, user, fn, *args, **kwargs):

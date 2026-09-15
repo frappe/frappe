@@ -7,7 +7,7 @@ context("Child Table Data Import", () => {
 			.its("frappe")
 			.then((frappe) => {
 				return frappe.call(
-					"frappe.tests.ui_test_helpers.create_contact_phone_nos_records",
+					"frappe.tests.ui_test_helpers.create_contact_phone_nos_records"
 				);
 			});
 	});
@@ -23,8 +23,8 @@ context("Child Table Data Import", () => {
 				cy.wrap(frm.doc.phone_nos.length).as("rowsBefore");
 			});
 		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
-		cy.intercept("POST", "/api/method/frappe.desk.form.bulk_edit.parse_bulk_edit_file").as(
-			"parse_file",
+		cy.intercept("POST", "/api/method/frappe.desk.form.grid_import.parse_file").as(
+			"parse_file"
 		);
 	});
 
@@ -32,13 +32,13 @@ context("Child Table Data Import", () => {
 		cy.get("@table").find(".grid-upload").should("not.have.class", "hidden").click({
 			force: true,
 		});
-		cy.get(".bulk-edit-dialog:visible").should("exist");
+		cy.get(".grid-import-dialog:visible").should("exist");
 	};
 
 	const upload = (rows) => {
 		const csv = ["Number (phone),Is Primary Phone (is_primary_phone)", ...rows].join("\n");
 		cy.click_modal_primary_button("Next");
-		cy.get(".bulk-edit-dialog:visible")
+		cy.get(".grid-import-dialog:visible")
 			.find(".file-upload-area")
 			.selectFile(
 				{
@@ -46,7 +46,7 @@ context("Child Table Data Import", () => {
 					fileName: "phone_nos.csv",
 					mimeType: "text/csv",
 				},
-				{ action: "drag-drop" },
+				{ action: "drag-drop" }
 			);
 		cy.click_modal_primary_button("Upload");
 		cy.wait("@parse_file");
@@ -56,7 +56,7 @@ context("Child Table Data Import", () => {
 		open_import();
 		upload(["9876500001,0", "9876500002,1"]);
 
-		cy.get(".bulk-edit-dialog:visible").find(".bulk-edit-preview-table").should("exist");
+		cy.get(".grid-import-dialog:visible").find(".grid-import-preview-table").should("exist");
 		cy.click_modal_primary_button("Apply");
 
 		cy.get("@rowsBefore").then((rows_before) => {
@@ -77,15 +77,15 @@ context("Child Table Data Import", () => {
 		open_import();
 		upload(["9876500003,maybe", "9876500004,0"]);
 
-		cy.get(".bulk-edit-dialog:visible").find(".bulk-edit-pending-cell").should("exist");
-		cy.get(".bulk-edit-dialog:visible").find(".btn-modal-primary").should("be.disabled");
+		cy.get(".grid-import-dialog:visible").find(".grid-import-pending-cell").should("exist");
+		cy.get(".grid-import-dialog:visible").find(".btn-modal-primary").should("be.disabled");
 	});
 
 	it("lets a bad row be skipped instead of fixed", () => {
 		open_import();
 		upload(["9876500003,maybe", "9876500004,0"]);
 
-		cy.get(".bulk-edit-dialog:visible").find(".bulk-edit-skip-all").click({ force: true });
+		cy.get(".grid-import-dialog:visible").find(".grid-import-skip-all").click({ force: true });
 		cy.click_modal_primary_button("Next");
 		cy.click_modal_primary_button("Apply");
 

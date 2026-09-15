@@ -21,7 +21,7 @@ MAX_TEMPLATE_ROWS = 10000
 
 
 @frappe.whitelist(methods=["POST"])
-def download_bulk_edit_template(doctype: str, title: str, data: str, file_type: str = "Excel"):
+def download_template(doctype: str, title: str, data: str, file_type: str = "Excel"):
 	if not frappe.has_permission(doctype, "read"):
 		raise frappe.PermissionError
 
@@ -43,7 +43,7 @@ def download_bulk_edit_template(doctype: str, title: str, data: str, file_type: 
 
 
 @frappe.whitelist(methods=["POST"])
-def parse_bulk_edit_file(
+def parse_file(
 	doctype: str, filename: str | None = None, dataurl: str | None = None, file_url: str | None = None
 ) -> list[list[str]]:
 	if not frappe.has_permission(doctype, "write"):
@@ -75,7 +75,7 @@ def parse_bulk_edit_file(
 
 
 @frappe.whitelist(methods=["POST"])
-def parse_bulk_edit_google_sheet(doctype: str, url: str) -> list[list[str]]:
+def parse_google_sheet(doctype: str, url: str) -> list[list[str]]:
 	if not frappe.has_permission(doctype, "write"):
 		raise frappe.PermissionError
 
@@ -86,7 +86,7 @@ def parse_bulk_edit_google_sheet(doctype: str, url: str) -> list[list[str]]:
 
 
 @frappe.whitelist(methods=["POST"])
-def get_bulk_edit_column_map(doctype: str, fieldname: str, headers: str) -> dict[int, str]:
+def get_column_map(doctype: str, fieldname: str, headers: str) -> dict[int, str]:
 	if not frappe.has_permission(doctype, "write"):
 		raise frappe.PermissionError
 
