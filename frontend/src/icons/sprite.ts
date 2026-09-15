@@ -4,8 +4,7 @@
 import { ref } from "vue";
 
 const SPRITE_URL = "/assets/frappe/icons/lucide/icons.svg";
-// Not `lucide-sprite`: that id is frappe-ui's own sprite, whose symbol ids are bare, and
-// `recordPage/iconClasses.ts` reads it.
+// Not `lucide-sprite`: that id is frappe-ui's own sprite, whose symbol ids are bare.
 const CONTAINER_ID = "frappe-icon-sprite";
 
 /** Flips once the sprite is in the document. A ref: not every browser lets a `<use>` pick up a symbol that arrives later. */
@@ -46,6 +45,12 @@ export function hasSymbol(name: string): boolean {
 /** The sprite's own spelling of a symbol id. */
 export function symbolId(name: string): string {
 	return `icon-${name}`;
+}
+
+/** A symbol's inner geometry once the sprite lands, or `null` for a name it does not hold. */
+export async function symbolGeometry(name: string): Promise<string | null> {
+	await loadSprite();
+	return container().querySelector(`#${CSS.escape(symbolId(name))}`)?.innerHTML ?? null;
 }
 
 /** Whether an `Icon` field's value is an emoji glyph, not a symbol name. */

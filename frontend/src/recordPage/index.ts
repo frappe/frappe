@@ -20,6 +20,8 @@ export { createRecordPage, SAVE_VETO } from "./createRecordPage";
 export { createCommitChannel } from "./commitChannel";
 export type { RecordCommitChannel } from "./commitChannel";
 export { errorMessage } from "./errorMessage";
+export { setIconSource } from "./iconClasses";
+export type { IconSource } from "./iconClasses";
 export { loadClientScripts, reloadClientScripts } from "./clientScripts";
 export type { RecordPageController } from "./createRecordPage";
 

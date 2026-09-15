@@ -47,7 +47,7 @@ The surface speaks the seven verbs: `add`, `hide`, `show`, `update`, `move`, `ha
 | `href` | A path inside this app's prefix; a crumb with one is a link. |
 | `run` | `(page) => any`. A crumb or button with one runs it; `run` wins over `href`. |
 | `group` | The container this sits in. A member sits in its container's zone. A name no item declares forms a band of its own in `⋯`, with no heading. |
-| `icon` | A lucide name. |
+| `icon` | `lucide-<name>`, any of the shell's lucide icons; the page draws one the bundle never used from its sprite. |
 
 `zone` and `display` are orthogonal: a favourite star is `{ zone: 'left', display: 'button' }`.
 A `section` on the left has no menu to title a band in, so its members render in its

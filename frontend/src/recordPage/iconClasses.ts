@@ -1,15 +1,23 @@
 // Script-named icons bridged to CSS classes at runtime: `lucide-*` classes are built
-// at build time and a Client Script can never ship a file, so the rule is built from the sprite.
+// at build time and a Client Script can never ship a file, so the rule is built from a sprite.
 import type { SurfaceItem } from "./types";
 
+/** Resolves a bare lucide name to its symbol's inner geometry, or `null` when the host has none. */
+export type IconSource = (name: string) => Promise<string | null>;
+
 const PREFIX = "lucide-";
-const SPRITE_ID = "lucide-sprite";
 const STYLE_ID = "record-page-icon-classes";
 /** `lucideIconsPlugin`'s normalization; lucide itself ships 2. */
 const STROKE_WIDTH = 1.5;
 
 const bridged = new Set<string>();
-let warnedMissingSprite = false;
+let source: IconSource | null = null;
+let warnedNoSource = false;
+
+/** The host's sprite lookup. The engine imports no icon tier of its own. */
+export function setIconSource(next: IconSource | null) {
+	source = next;
+}
 
 /** Every icon an item can name: its own, plus a tab's create-action icon. */
 export function ensureIcons(item: Partial<SurfaceItem>) {
@@ -23,23 +31,19 @@ export function ensureIconClass(icon?: string) {
 	if (typeof document === "undefined") return;
 	if (!icon?.startsWith(PREFIX) || bridged.has(icon)) return;
 	bridged.add(icon);
-	const geometry = symbolGeometry(icon.slice(PREFIX.length));
-	if (geometry) addRule(icon, dataUri(geometry));
-}
-
-function symbolGeometry(name: string) {
-	const sprite = document.getElementById(SPRITE_ID);
-	if (!sprite) {
-		// Once per session, not once per icon: absent sprite means every icon is absent.
-		if (!warnedMissingSprite)
-			console.warn("[record-page] lucide sprite missing; script-named icons will not render");
-		warnedMissingSprite = true;
-		return null;
+	if (!source) {
+		if (!warnedNoSource)
+			console.warn("[record-page] no icon source; script-named icons will not render");
+		warnedNoSource = true;
+		return;
 	}
-	// Scoped to the sprite: symbol ids are bare words like 'flag' that collide readily.
-	const symbol = sprite.querySelector(`#${CSS.escape(name)}`);
-	if (!symbol) console.warn(`[record-page] unknown lucide icon '${PREFIX}${name}'`);
-	return symbol?.innerHTML ?? null;
+	const name = icon.slice(PREFIX.length);
+	source(name)
+		.then((geometry) => {
+			if (geometry) addRule(icon, dataUri(geometry));
+			else console.warn(`[record-page] unknown lucide icon '${icon}'`);
+		})
+		.catch((error) => console.warn(`[record-page] icon source failed for '${icon}'`, error));
 }
 
 // The sprite's symbols carry geometry only, so rebuild the wrapper Icon.vue draws.

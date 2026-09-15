@@ -8,6 +8,7 @@ import {
 	reportMissingIcon,
 	resetSprite,
 	spriteLoaded,
+	symbolGeometry,
 	symbolId,
 } from "../sprite";
 
@@ -62,8 +63,7 @@ describe("loadSprite", () => {
 	});
 
 	it("does not answer to `lucide-sprite`", async () => {
-		// That id belongs to frappe-ui's sprite, whose symbols carry bare ids, and
-		// `recordPage/iconClasses.ts` reads it.
+		// That id belongs to frappe-ui's sprite, whose symbols carry bare ids.
 		stubFetch();
 
 		await loadSprite();
@@ -109,6 +109,30 @@ describe("isEmoji", () => {
 		expect(isEmoji("users")).toBe(false);
 		expect(isEmoji("contact-round")).toBe(false);
 		expect(isEmoji("")).toBe(false);
+	});
+});
+
+describe("symbolGeometry", () => {
+	it("waits for the sprite and hands back the symbol's inner markup", async () => {
+		stubFetch();
+
+		const geometry = await symbolGeometry("users");
+
+		expect(geometry).toContain('<circle cx="9" cy="7" r="4"');
+		expect(document.getElementById("frappe-icon-sprite")).not.toBeNull();
+	});
+
+	it("is null for a name the sprite does not hold", async () => {
+		stubFetch();
+
+		expect(await symbolGeometry("not-an-icon")).toBeNull();
+	});
+
+	it("is null, not a rejection, when the sprite cannot be fetched", async () => {
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		stubFetch("", false);
+
+		expect(await symbolGeometry("users")).toBeNull();
 	});
 });
 

@@ -9,7 +9,8 @@ import { fetchAddresses, type Addresses } from "@/addresses";
 import { createShellRouter } from "@/router";
 import { registerShell } from "@/router/routeFor";
 import { loadTranslations } from "@/i18n";
-import { loadSprite } from "@/icons/sprite";
+import { loadSprite, symbolGeometry } from "@/icons/sprite";
+import { setIconSource } from "@/recordPage";
 import { registerContributions } from "@/contributions/registry";
 import AppShell from "@/shell/AppShell.vue";
 import Unauthorized from "@/shell/Unauthorized.vue";
@@ -33,6 +34,7 @@ async function start() {
 	// Translations and the icon sprite are fired, not awaited.
 	loadTranslations(boot.translations_version, boot.lang);
 	loadSprite();
+	setIconSource(symbolGeometry);
 
 	// The address table is awaited: the route table cannot resolve a URL without it, and
 	// it is keyed on `boot.metadata_version`, so it cannot be fetched alongside boot.
