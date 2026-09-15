@@ -237,7 +237,20 @@ frappe.request.call = function (opts) {
 			}
 		},
 		504: function (xhr) {
-			frappe.msgprint(__("Request Timed Out"));
+			frappe.msgprint({
+				title: __("Request Timed Out"),
+				indicator: "red",
+				message:
+					__(
+						"The server did not respond in the permitted time. The server stopped this request."
+					) +
+					`<p class="text-muted small">${__(
+						"This happens when one action takes longer than the HTTP timeout of the bench."
+					)}</p>` +
+					`<a href="https://docs.frappe.io/cloud/private-benches/common-issues/request-timed-out" target="_blank" rel="noopener noreferrer">${__(
+						"Read the documentation to know more"
+					)}</a>`,
+			});
 			opts.error_callback && opts.error_callback();
 		},
 		502: function (xhr) {
@@ -252,7 +265,14 @@ frappe.request.call = function (opts) {
 			frappe.msgprint({
 				title: __("Request Timeout"),
 				indicator: "red",
-				message: __("Server was too busy to process this request. Please try again."),
+				message:
+					__("Server was too busy to process this request. Please try again.") +
+					`<p class="text-muted small">${__(
+						"A database query waited too long for a row lock from a different transaction."
+					)}</p>` +
+					`<a href="https://docs.frappe.io/cloud/site/common-issues/request-timeout-server-was-too-busy-to-process-this-request" target="_blank" rel="noopener noreferrer">${__(
+						"Read the documentation to know more"
+					)}</a>`,
 			});
 		},
 		QueryDeadlockError: function () {
