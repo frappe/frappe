@@ -52,6 +52,9 @@ export const FRAPPE_UI_COMPONENTS = [
 	"SidebarLabel",
 	"SidebarCollapseToggle",
 	"SidebarCard",
+	// SidebarRail family
+	"SidebarRail",
+	"SidebarRailItem",
 	// RadioGroup family
 	"RadioGroup",
 	"Radio",

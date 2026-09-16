@@ -60,6 +60,7 @@ NAVIGATION:
 - Tabs: {tabs: [{label: "string", value: "string"}], modelValue: "value of the active tab"} # slots: tab-prefix, tab-label, tab-suffix, tab-panel
 - TabButtons: {options: [{label: "string", value: "string"}], modelValue: "string", variant: "subtle|ghost|underline|browser-tab", size: "sm|md"}
 - Sidebar: {collapsible: true} — a bare frame; compose its default-slot children ("c") from SidebarHeader {title: "string", subtitle: "string", menuItems: [{label, icon, onClick}]}, SidebarLabel {label: "string"}, SidebarItem {label: "string", icon: "lucide-icon-name", route: "string", active: false} and SidebarCard {title: "string", description: "string", theme: "gray(DEFAULT)|blue|green|amber|red", dismissible: false, action: {label: "string", onClick: "function"}} (a promo/notice card for the sidebar footer)
+- SidebarRail: {} — a bare 50px icon column that sits BESIDE a Sidebar (not inside it); compose its default-slot children ("c") from SidebarRailItem {label: "string" (tooltip), icon: "lucide-icon-name", variant: "subtle(DEFAULT)|ghost", route: "string", href: "string", active: false, badge: number, badgeStyle: "count|dot"}; use ghost + icon for shortcuts (Search, Notifications) and subtle with initials/Avatar children for workspaces; wrap the middle items in a flex-1 column container to push the rest to the bottom
   # icon must be a valid lucide-* string from https://lucide.dev/icons
 
 DATA DISPLAY:

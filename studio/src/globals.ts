@@ -35,6 +35,8 @@ import {
 	SidebarLabel,
 	SidebarCollapseToggle,
 	SidebarCard,
+	SidebarRail,
+	SidebarRailItem,
 	Slider,
 	Switch,
 	TabButtons,
@@ -172,6 +174,10 @@ export function registerGlobalComponents(app: App) {
 	app.component("SidebarLabel", SidebarLabel)
 	app.component("SidebarCollapseToggle", SidebarCollapseToggle)
 	app.component("SidebarCard", SidebarCard)
+
+	// SidebarRail family — dropped as a tree via the `sidebar-rail` block template.
+	app.component("SidebarRail", SidebarRail)
+	app.component("SidebarRailItem", SidebarRailItem)
 
 	// RadioGroup family — dropped as a tree via the `radio-group` block template.
 	app.component("RadioGroup", RadioGroup)

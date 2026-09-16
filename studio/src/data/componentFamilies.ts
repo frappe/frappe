@@ -12,6 +12,7 @@ import LucidePanelLeftClose from "~icons/lucide/panel-left-close"
 import LucideRows3 from "~icons/lucide/rows-3"
 import LucideSettings from "~icons/lucide/settings"
 import LucideSidebar from "~icons/lucide/sidebar"
+import LucideSquareMenu from "~icons/lucide/square-menu"
 import LucideTag from "~icons/lucide/tag"
 
 // Component families: the primary (isGroup) drops a whole working tree via its block template
@@ -250,6 +251,25 @@ export const COMPONENT_FAMILIES: FrappeUIComponents = {
 			title: "Your trial ends soon!",
 			description: "Upgrade to keep enjoying features.",
 			action: { label: "Upgrade now", onClick: "() => {}" },
+		},
+	},
+	// SidebarRail family (sits beside Sidebar in the app shell, not inside it)
+	SidebarRail: {
+		name: "SidebarRail",
+		title: "Sidebar Rail",
+		icon: LucideSquareMenu,
+		isGroup: true,
+		blockTemplate: "sidebar-rail",
+	},
+	SidebarRailItem: {
+		name: "SidebarRailItem",
+		title: "Sidebar Rail Item",
+		icon: LucideSquareMenu,
+		group: "SidebarRail",
+		initialState: {
+			label: "Item",
+			icon: "lucide-circle-dashed",
+			variant: "ghost",
 		},
 	},
 	// RadioGroup family

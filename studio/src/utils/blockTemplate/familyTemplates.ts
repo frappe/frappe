@@ -12,6 +12,7 @@ export const familyTemplates = {
 	"settings-dialog": settingsDialogTemplate,
 	sidebar: sidebarTemplate,
 	"sidebar-label": sidebarLabelTemplate,
+	"sidebar-rail": sidebarRailTemplate,
 	"radio-group": radioGroupTemplate,
 } satisfies Record<string, () => BlockOptions>
 
@@ -257,6 +258,45 @@ function sidebarLabelTemplate(): BlockOptions {
 
 function sidebarLabel(text: string): BlockOptions {
 	return { componentName: "SidebarLabel", children: [textBlock(text)] }
+}
+
+function sidebarRailTemplate(): BlockOptions {
+	return {
+		componentName: "SidebarRail",
+		blockName: "SidebarRail",
+		children: [
+			railItem("Home", { icon: "lucide-house" }),
+			{
+				componentName: "container",
+				originalElement: "div",
+				baseStyles: {
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "center",
+					gap: "12px",
+					flex: "1",
+					width: "100%",
+					paddingTop: "12px",
+				} as BlockStyleMap,
+				children: [workspaceRailItem("Design", "DE", true), workspaceRailItem("Engineering", "EN")],
+			},
+			railItem("Search", { icon: "lucide-search" }),
+			railItem("Notifications", { icon: "lucide-bell", badge: 5 }),
+		],
+	}
+}
+
+function railItem(label: string, props: Record<string, unknown>): BlockOptions {
+	return { componentName: "SidebarRailItem", componentProps: { label, variant: "ghost", ...props } }
+}
+
+// subtle items show initials (or an image/avatar) in the default slot
+function workspaceRailItem(label: string, initials: string, active = false): BlockOptions {
+	return {
+		componentName: "SidebarRailItem",
+		componentProps: { label, active },
+		children: [textBlock(initials, { color: "var(--ink-gray-5)", fontWeight: "500" }, "text-2xs")],
+	}
 }
 
 function radioGroupTemplate(): BlockOptions {
