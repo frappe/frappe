@@ -107,7 +107,9 @@ import { getSocketInstance } from "@framework/ui/socket";
 import {
 	createRecordPage,
 	errorMessage,
+	formItems,
 	isEmptyHeader,
+	joinForm,
 	loadClientScripts,
 	projectFrame,
 	projectHeader,
@@ -220,7 +222,13 @@ const bodyItems = computed(() => {
 	return items.filter((item) => item.name !== "panel" || panelShown.value);
 });
 
-const form = computed(() => detailsLayout.value?.layout.value ?? []);
+// The layout as the source joins it, then as `page.form` arranges it.
+const detailsForm = computed(() => detailsLayout.value?.layout.value ?? []);
+const form = computed(() => {
+	actionsVersion.value;
+	const page = controller.value;
+	return page ? joinForm(detailsForm.value, page.form.resolve(), page.page) : detailsForm.value;
+});
 
 // Resolved against the draft, as the form's own `depends_on` is.
 const sections = computed(() => layoutSections(panelLayout.value?.layout.value ?? [], doc.value));
@@ -383,7 +391,7 @@ async function load() {
 		doc: saved,
 		fallback: "meta",
 		overrides: () => controller.value?.fields.resolve() ?? {},
-		tabOverrides: () => controller.value?.formTabs.resolve() ?? {},
+		tabOverrides: () => controller.value?.form.tabs.resolve() ?? {},
 	});
 	const panel = useFormLayout({
 		doctype: target.doctype,
@@ -423,7 +431,7 @@ async function load() {
 		// No tab strip on this page, so activation is a no-op.
 		activeTab: () => "",
 		activateTab: () => {},
-		formLayout: () => form.value,
+		formLayout: () => detailsForm.value,
 		activeFormTab: () => activeFormTab.value,
 		activateFormTab: (identity) => void (formTab.value = identity),
 		discloseSection: disclosure.disclose,
@@ -438,6 +446,7 @@ async function load() {
 		quickActionBuiltins(docinfo.value?.permissions ?? {}, tagsOf(docinfo.value).length > 0)
 	);
 	created.panelSections.provideBuiltins(panelBuiltins);
+	created.form.provideBuiltins(() => formItems(detailsForm.value));
 	panelLayout.value = panel;
 	detailsLayout.value = details;
 	controller.value = created;

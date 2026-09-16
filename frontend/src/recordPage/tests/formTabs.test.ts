@@ -75,7 +75,7 @@ describe("addressing a tab", () => {
     formTabs.hide("nope");
 
     expect(warn).toHaveBeenCalledTimes(1);
-    expect(warn.mock.calls[0][0]).toContain('page.formTabs.hide("nope")');
+    expect(warn.mock.calls[0][0]).toContain('page.form.tabs.hide("nope")');
   });
 });
 
@@ -110,6 +110,19 @@ describe("the overlay", () => {
 
     expect(formTabs.resolve().products).toEqual({});
     expect(warn.mock.calls[0][0]).toContain("use hide()/show()");
+  });
+
+  it("clears every tab the layout carries; a later show brings one back", () => {
+    const formTabs = makeSurface();
+
+    formTabs.clear();
+    formTabs.show("products");
+
+    expect(formTabs.resolve()).toEqual({
+      lead_details: { hidden: true },
+      products: { hidden: false },
+      "contacts-more": { hidden: true },
+    });
   });
 
   it("keeps `__proto__` off `Object.prototype`", () => {
@@ -180,7 +193,7 @@ describe("reading a tab back", () => {
 
     expect(() => {
       (tab as any).hidden = true;
-    }).toThrow(/page\.formTabs/);
+    }).toThrow(/page\.form\.tabs/);
   });
 
   it("answers null for a tab that is not there", () => {

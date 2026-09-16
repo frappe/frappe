@@ -92,7 +92,7 @@ describe("moving the reader", () => {
   it("hands the form strip's identity to its own host hook", () => {
     const { page, moved, movedInForm } = makePage();
 
-    page.formTabs.activate("lead_details");
+    page.form.tabs.activate("lead_details");
 
     expect(movedInForm).toEqual(["lead_details"]);
     expect(moved).toEqual([]);
@@ -123,7 +123,7 @@ describe("moving the reader", () => {
     // and this is the answer to the question the strip asks when it mounts.
     const { page, movedInForm } = makePage({ activeFormTab: () => "" });
 
-    page.formTabs.activate("lead_details");
+    page.form.tabs.activate("lead_details");
 
     expect(movedInForm).toEqual(["lead_details"]);
   });
@@ -154,7 +154,7 @@ describe("the three ways to miss", () => {
   it("counts a tab `depends_on` has closed as hidden on the form strip too", () => {
     const { page, movedInForm } = makePage();
 
-    page.formTabs.activate("products");
+    page.form.tabs.activate("products");
 
     expect(movedInForm).toEqual([]);
     expect(warnings[0]).toContain("it is hidden");
@@ -164,12 +164,12 @@ describe("the three ways to miss", () => {
     const { page, moved, movedInForm } = makePage();
 
     page.tabs.activate("lead_details");
-    page.formTabs.activate("emails");
+    page.form.tabs.activate("emails");
 
     expect(moved).toEqual([]);
     expect(movedInForm).toEqual([]);
     expect(warnings[0]).toContain(
-      `it is on the form's strip — page.formTabs.activate("lead_details")`,
+      `it is on the form's strip — page.form.tabs.activate("lead_details")`,
     );
     expect(warnings[1]).toContain(
       `it is on the record's strip — page.tabs.activate("emails")`,
@@ -181,7 +181,7 @@ describe("the three ways to miss", () => {
     // the move is dropped, not queued.
     const { page, movedInForm } = makePage({ formLayout: () => [] });
 
-    page.formTabs.activate("lead_details");
+    page.form.tabs.activate("lead_details");
 
     expect(movedInForm).toEqual([]);
     expect(warnings).toEqual([]);
@@ -190,7 +190,7 @@ describe("the three ways to miss", () => {
   it("says so when the host draws the form's strip but cannot move it", () => {
     const { page } = makePage({ activateFormTab: undefined });
 
-    page.formTabs.activate("lead_details");
+    page.form.tabs.activate("lead_details");
 
     expect(warnings[0]).toContain("cannot move the reader on that strip");
   });
@@ -246,7 +246,7 @@ describe("a replay's activation", () => {
       onRefresh: (page) => {
         page.tabs.activate("emails");
         page.tabs.activate("details");
-        page.formTabs.activate("lead_details");
+        page.form.tabs.activate("lead_details");
       },
     });
     const { controller, moved, movedInForm } = makePage();

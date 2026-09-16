@@ -40,11 +40,14 @@ export type {
   HeaderNode,
   HeaderProjection,
 } from "./headerRenderings";
+export { formItems, joinForm } from "./formJoin";
 export type {
   BodyItem,
+  FormItem,
   FrameItem,
   HeaderItem,
   PanelSectionItem,
+  PageForm,
   PanelSectionsApi,
   QuickAction,
   RecordPageApi,

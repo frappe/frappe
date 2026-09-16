@@ -106,6 +106,15 @@ export const PANEL_SECTION_KEYS: readonly string[] = [
   "opened",
 ];
 
+/** One item of the Details form: a section the layout stores, or a part a script adds. */
+export interface FormItem extends SurfaceItem {
+  /** Draws the part; absent on a section, whose fields the layout draws. */
+  component?: Component;
+  props?: Record<string, any>;
+}
+
+export const FORM_ITEM_KEYS: readonly string[] = ["name", "label", "component", "props"];
+
 /** One item of the frame's column: a band a script adds, or one of the two built-in regions. */
 export interface FrameItem extends SurfaceItem {
   /** Draws the band; absent on a built-in, which the host draws itself. */
@@ -253,7 +262,7 @@ export interface PageFormTabPatch {
   label?: string;
 }
 
-/** What `page.formTabs.get()` hands back: the tab as the strip resolves it. */
+/** What `page.form.tabs.get()` hands back: the tab as the strip resolves it. */
 export interface PageFormTab {
   /** What the author wrote, if anything; the address is `identity`. */
   name?: string;
@@ -279,6 +288,13 @@ export interface PageFormTabs {
   readonly active: string;
   /** Moves the reader to a tab of the form, on `TabsApi.activate`'s terms. */
   activate(identity: string): void;
+  /** Hides every tab present at the call; a later `show(identity)` brings one back. */
+  clear(): void;
+}
+
+/** The Details form as one list: its sections and a script's parts, with the strip inside it. */
+export interface PageForm extends SurfaceVerbs<FormItem> {
+  tabs: PageFormTabs;
 }
 
 /**
@@ -450,8 +466,8 @@ export interface RecordPageApi {
   tabs: TabsApi;
   panelSections: PanelSectionsApi;
   fields: PageFields;
-  /** The Form Layout's own tab strip, inside the Details form. */
-  formTabs: PageFormTabs;
+  /** The Details form: the layout's sections and a script's parts as one list, and its tab strip. */
+  form: PageForm;
   /** The child table's rows as handles, in array order; a non-table fieldname answers empty. */
   rows(parentfield: string): PageRow[];
   save(): Promise<void>;
