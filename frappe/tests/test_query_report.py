@@ -5,6 +5,7 @@ import datetime
 import json
 
 import frappe
+from frappe.desk.link_title import get_report_link_titles
 from frappe.desk.query_report import build_xlsx_data, export_query, format_fields, run
 from frappe.tests import IntegrationTestCase
 from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, make_xlsx
@@ -551,6 +552,66 @@ data = columns, result
 
 		frappe.delete_doc("Report", REPORT_NAME, delete_permanently=True)
 		frappe.db.commit()
+
+	def test_run_sends_link_titles(self):
+		report = self.make_link_column_report()
+		self.enable_link_titles("User")
+
+		self.run_report(report)
+
+		full_name = frappe.db.get_value("User", "Administrator", "full_name")
+		self.assertEqual(frappe.local.response["_link_titles"]["User::Administrator"], full_name)
+
+	def test_run_skips_link_titles_when_doctype_does_not_show_them(self):
+		report = self.make_link_column_report()
+
+		self.run_report(report)
+
+		self.assertNotIn("User::Administrator", frappe.local.response.get("_link_titles", {}))
+
+	def test_legacy_string_columns_resolve_link_titles(self):
+		"""Prepared reports can still carry `Label:Link/DocType:width` column strings."""
+		from frappe.desk.query_report import get_column_as_dict
+
+		self.enable_link_titles("User")
+		columns = [get_column_as_dict("Allocated To:Link/User:120")]
+
+		titles = get_report_link_titles(columns, [["Administrator"]])
+
+		full_name = frappe.db.get_value("User", "Administrator", "full_name")
+		self.assertEqual(titles["User::Administrator"], full_name)
+
+	def make_link_column_report(self):
+		"""Script report with an ID column and a User link column, returning one row."""
+		frappe.set_user("Administrator")
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Link Title Report " + frappe.generate_hash(length=6),
+				"report_type": "Script Report",
+				"is_standard": "No",
+				"roles": [{"role": "System Manager"}],
+				"columns": [
+					dict(fieldname="name", label="ID", fieldtype="Link", options="ToDo"),
+					dict(fieldname="allocated_to", label="Allocated To", fieldtype="Link", options="User"),
+				],
+			}
+		).insert(ignore_permissions=True)
+		report.report_script = 'result = [{"name": "todo-1", "allocated_to": "Administrator"}]'
+		report.save()
+		return report
+
+	def run_report(self, report):
+		previous_response = frappe.local.response
+		self.addCleanup(setattr, frappe.local, "response", previous_response)
+		frappe.local.response = frappe._dict()
+		run(report.name)
+
+	def enable_link_titles(self, doctype):
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+		make_property_setter(doctype, None, "show_title_field_in_link", "1", "Check", for_doctype=True)
 
 
 def create_mock_data():
