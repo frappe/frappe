@@ -24,9 +24,11 @@ jobs:
         with:
           node-version: 24
       - name: Check commit titles
+        # npm cannot read the root package.json (yarn's link: protocol), so commitlint is
+        # installed above the checkout, where Node's module lookup still finds it.
         run: |
-          npm install @commitlint/cli @commitlint/config-conventional
-          npx commitlint --verbose \
+          npm install --prefix "$GITHUB_WORKSPACE/.." @commitlint/cli @commitlint/config-conventional
+          "$GITHUB_WORKSPACE/../node_modules/.bin/commitlint" --verbose \
             --from ${{ github.event.pull_request.base.sha }} \
             --to ${{ github.event.pull_request.head.sha }}
 
