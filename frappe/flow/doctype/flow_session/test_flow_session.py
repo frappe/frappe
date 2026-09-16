@@ -555,7 +555,12 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 				"model": self.model.name,
 				"instructions": "Be terse.",
 				"max_iterations": 7,
-				"tools": [{"tool": "read"}, {"tool": "execute"}],
+				"tools": [
+					{"tool": "read"},
+					{"tool": "execute"},
+					{"tool": "read_file"},
+					{"tool": "grep"},
+				],
 				"enabled": 1,
 			}
 		).insert()
@@ -658,7 +663,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 
 	def test_default_iterations_apply_when_unset(self):
 		self.agent.db_set("max_iterations", 0)
-		self.assertEqual(self.config()["max_turns"], 20)
+		self.assertEqual(self.config()["max_turns"], 50)
 
 	def test_trigger_sessions_always_auto_approve(self):
 		session = self.session(source="Trigger", auto_approve=0)

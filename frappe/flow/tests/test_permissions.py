@@ -93,6 +93,7 @@ class TestFlowAccess(IntegrationTestCase):
 			"sync_session": {"session": session.name},
 			"submit_feedback": {"run_name": run.name, "rating": "Up"},
 			"attach_file": {"file": "x"},
+			"cleanup_attachments": {"session": session.name},
 		}
 		self.assertEqual(set(calls), set(api.__all__))
 		frappe.set_user(_user("flow-access-none@example.com"))
