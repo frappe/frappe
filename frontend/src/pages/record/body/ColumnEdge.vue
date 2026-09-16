@@ -45,7 +45,8 @@ const props = defineProps<{
 	bounds?: ColumnBounds;
 	collapsible: boolean;
 }>();
-const emit = defineEmits<{ toggle: []; "update:width": [number] }>();
+// `resize` follows the pointer; `update:width` lands once, when the drag ends.
+const emit = defineEmits<{ toggle: []; resize: [number]; "update:width": [number] }>();
 
 // The column animates its width open and shut, and must not animate under a drag.
 const dragging = defineModel<boolean>("dragging", { default: false });
@@ -53,12 +54,14 @@ const dragging = defineModel<boolean>("dragging", { default: false });
 let startX = 0;
 let startWidth = 0;
 let dragged = false;
+let resized: number | undefined;
 
 function onPointerDown(event: PointerEvent) {
 	if (!props.bounds) return;
 	startX = event.clientX;
 	startWidth = props.width;
 	dragged = false;
+	resized = undefined;
 	dragging.value = true;
 	window.addEventListener("pointermove", onPointerMove);
 	window.addEventListener("pointerup", stopDrag, { once: true });
@@ -78,7 +81,7 @@ function onPointerMove(event: PointerEvent) {
 		props.bounds!,
 		props.collapsible
 	);
-	if (width) emit("update:width", width);
+	if (width) emit("resize", (resized = width));
 	if (!toggle) return;
 	dragged = true;
 	emit("toggle");
@@ -87,6 +90,8 @@ function onPointerMove(event: PointerEvent) {
 
 function stopDrag() {
 	dragging.value = false;
+	if (resized !== undefined) emit("update:width", resized);
+	resized = undefined;
 	window.removeEventListener("pointermove", onPointerMove);
 	window.removeEventListener("pointerup", stopDrag);
 	window.removeEventListener("pointercancel", stopDrag);

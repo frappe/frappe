@@ -8,7 +8,8 @@
 				v-bind="edgeProps(column)"
 				v-model:dragging="dragging[column.item.name]"
 				@toggle="toggle(column)"
-				@update:width="remember(column.item.name, { width: $event })"
+				@resize="live[column.item.name] = $event"
+				@update:width="settle(column.item.name, $event)"
 			/>
 
 			<BodyColumn
@@ -39,7 +40,8 @@
 				v-bind="edgeProps(column)"
 				v-model:dragging="dragging[column.item.name]"
 				@toggle="toggle(column)"
-				@update:width="remember(column.item.name, { width: $event })"
+				@resize="live[column.item.name] = $event"
+				@update:width="settle(column.item.name, $event)"
 			/>
 		</template>
 	</div>
@@ -71,10 +73,22 @@ const { remembered, remember } = useColumnStore(props.user);
 const root = ref<HTMLElement | null>(null);
 const measured = ref(0);
 const dragging = reactive<Record<string, boolean>>({});
+// The width under a drag, drawn at once and stored only when the drag ends.
+const live = reactive<Record<string, number>>({});
 
 const columns = computed(() =>
-	projectBody(props.items, remembered, props.available ?? measured.value)
+	projectBody(props.items, withLive, props.available ?? measured.value)
 );
+
+function withLive(name: string) {
+	const width = live[name];
+	return width === undefined ? remembered(name) : { ...remembered(name), width };
+}
+
+function settle(name: string, width: number) {
+	delete live[name];
+	remember(name, { width });
+}
 const drawn = computed(() => columns.value.filter(isDrawn));
 
 function edgeProps(column: Column) {

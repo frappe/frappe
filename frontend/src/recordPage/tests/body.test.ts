@@ -84,6 +84,8 @@ describe("columnBounds", () => {
     expect(columnBounds({ name: "a", width: 280 })).toEqual({ width: 280, minWidth: 240, maxWidth: 640 });
     expect(columnBounds({ name: "a", width: 100, minWidth: 200 })).toEqual({ width: 200, minWidth: 200, maxWidth: 640 });
     expect(SCRIPT_COLUMN_DEFAULTS).toEqual({ minWidth: 240, maxWidth: 640 });
+    expect(columnBounds({ name: "a", width: 300, minWidth: Number.NaN, maxWidth: -1 })).toEqual({ width: 300, minWidth: 240, maxWidth: 640 });
+    expect(columnBounds({ name: "a", width: Number.POSITIVE_INFINITY, maxWidth: Number.POSITIVE_INFINITY })).toEqual({ width: 240, minWidth: 240, maxWidth: 640 });
   });
 });
 

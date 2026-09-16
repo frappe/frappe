@@ -51,9 +51,14 @@ export interface ColumnBounds {
 /** The fixed column's default width and its drag range; `null` for a column that flexes. */
 export function columnBounds(item: BodyItem): ColumnBounds | null {
   if (typeof item.width !== "number") return null;
-  const minWidth = item.minWidth ?? SCRIPT_COLUMN_DEFAULTS.minWidth;
-  const maxWidth = Math.max(item.maxWidth ?? SCRIPT_COLUMN_DEFAULTS.maxWidth, minWidth);
-  return { width: clamp(item.width, minWidth, maxWidth), minWidth, maxWidth };
+  const minWidth = pixels(item.minWidth, SCRIPT_COLUMN_DEFAULTS.minWidth);
+  const maxWidth = Math.max(pixels(item.maxWidth, SCRIPT_COLUMN_DEFAULTS.maxWidth), minWidth);
+  return { width: clamp(pixels(item.width, minWidth), minWidth, maxWidth), minWidth, maxWidth };
+}
+
+/** A bound a script gave that is not a finite, positive number is the default. */
+function pixels(given: unknown, fallback: number) {
+  return typeof given === "number" && Number.isFinite(given) && given > 0 ? given : fallback;
 }
 
 /** What the reader left behind for one column, by name. */
