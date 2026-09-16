@@ -7,7 +7,7 @@
 			class="flex cursor-pointer items-center gap-0.5 font-bold"
 		>
 			<component :is="isExpanded('root') ? LucideChevronDown : LucideChevronRight" class="h-3 w-3" />
-			<span class="text-ink-pink-8">{{ name }}</span>
+			<span class="text-ink-pink-7">{{ name }}</span>
 		</div>
 
 		<!-- object properties -->
@@ -19,12 +19,12 @@
 						:is="isExpanded(key) ? LucideChevronDown : LucideChevronRight"
 						class="-ml-0.5 h-3 w-3"
 					/>
-					<span class="text-ink-pink-8">{{ key }}:</span>
+					<span class="text-ink-pink-7">{{ key }}:</span>
 					<span
 						:class="[
 							// wrap truncated text on expansion to display the entire value
 							!isObject(value) && isExpanded(key) ? 'whitespace-normal text-wrap break-all' : 'truncate',
-							'text-ink-violet-8',
+							'text-ink-violet-7',
 						]"
 					>
 						{{ formatValue(value) }}

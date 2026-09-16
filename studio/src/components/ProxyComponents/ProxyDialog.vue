@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="dialog-content rounded-xl my-8 inline-block w-full transform overflow-hidden bg-surface-elevation-1 text-start align-middle shadow-xl focus-visible:outline-none"
+		class="dialog-content my-8 inline-block w-full transform overflow-hidden rounded-7 bg-surface-elevation-1 text-start align-middle shadow-xl focus-visible:outline-none"
 		:class="sizeClass"
 		:style="outOfFlowStyles"
 	>
@@ -285,10 +285,10 @@ const dialogIconClasses = computed(() => {
 	const theme = iconTheme.value
 	if (!theme) return "text-ink-gray-5"
 	const map: Record<DialogTheme, string> = {
-		yellow: "text-ink-amber-6",
-		blue: "text-ink-blue-6",
-		red: "text-ink-red-8",
-		green: "text-ink-green-6",
+		yellow: "text-ink-amber-5",
+		blue: "text-ink-blue-5",
+		red: "text-ink-red-7",
+		green: "text-ink-green-5",
 	}
 	return map[theme]
 })

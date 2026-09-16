@@ -18,7 +18,7 @@
 	user-select: text;
 	padding: 0px !important;
 	position: relative !important;
-	@apply rounded border border-outline-gray-2;
+	@apply rounded-4 border border-outline-gray-2;
 }
 .cm-placeholder {
 	@apply !leading-6 !text-ink-gray-4;
@@ -36,13 +36,13 @@
 	outline: none !important;
 }
 .cm-tooltip-autocomplete {
-	@apply !rounded-lg !shadow-md !bg-surface-base !p-1.5 !border-none;
+	@apply !rounded-6 !shadow-md !bg-surface-base !p-1.5 !border-none;
 }
 .cm-tooltip-autocomplete > ul {
 	font-family: 'Inter' !important;
 }
 .cm-tooltip-autocomplete ul li[aria-selected='true'] {
-	@apply !rounded !bg-surface-gray-3/80;
+	@apply !rounded-4 !bg-surface-gray-3/80;
 	color: #000 !important;
 }
 .cm-completionLabel {

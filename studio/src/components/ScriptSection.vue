@@ -12,12 +12,12 @@
 				:emitOnChange="true"
 				:completions="completions"
 			/>
-			<div v-else class="rounded-lg flex flex-col items-center border border-outline-elevation-2 p-4">
+			<div v-else class="flex flex-col items-center rounded-6 border border-outline-elevation-2 p-4">
 				<span v-if="description" class="px-2 py-1 text-center text-sm leading-5 text-ink-gray-4">
 					{{ description }}
 				</span>
 				<button
-					class="rounded flex cursor-pointer items-center p-1 text-ink-gray-6 hover:bg-surface-gray-4"
+					class="flex cursor-pointer items-center rounded-4 p-1 text-ink-gray-6 hover:bg-surface-gray-4"
 					@click="handleAdd"
 				>
 					<LucidePlus class="h-3 w-3" />

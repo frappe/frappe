@@ -2,10 +2,10 @@
 	<div class="flex flex-col">
 		<FormInputLabel v-if="label" :label="label">{{ label }}</FormInputLabel>
 
-		<div class="rounded border border-gray-100">
+		<div class="rounded-4 border border-gray-100">
 			<!-- Header -->
 			<div
-				class="rounded-t-sm grid items-center bg-surface-gray-2"
+				class="grid items-center rounded-t-1 bg-surface-gray-2"
 				:style="{ gridTemplateColumns: gridTemplateColumns }"
 			>
 				<div class="border-r p-1 text-center">
@@ -33,7 +33,7 @@
 				<Draggable class="w-full" v-model="rows" group="rows" item-key="name">
 					<template #item="{ element: row, index }">
 						<div
-							class="grid-row last:rounded-b grid cursor-pointer items-center border-b border-gray-100 bg-surface-base last:border-b-0"
+							class="grid-row grid cursor-pointer items-center border-b border-gray-100 bg-surface-base last:rounded-b-4 last:border-b-0"
 							:style="{ gridTemplateColumns: gridTemplateColumns }"
 						>
 							<div class="flex h-full items-center justify-center border-r">
@@ -87,7 +87,7 @@
 				</Draggable>
 			</template>
 
-			<div v-else class="rounded flex flex-col items-center p-5 text-sm text-ink-gray-5">No Data</div>
+			<div v-else class="flex flex-col items-center rounded-4 p-5 text-sm text-ink-gray-5">No Data</div>
 		</div>
 
 		<div class="mt-2 flex flex-row gap-2">

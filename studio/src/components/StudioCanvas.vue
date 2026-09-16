@@ -19,7 +19,7 @@
 				transform: `scale(${canvasProps.scale}) translate(${canvasProps.translateX}px, ${canvasProps.translateY}px)`,
 			}"
 		>
-			<div class="dark:bg-zinc-900 rounded-md absolute right-0 top-[-60px] flex bg-surface-base px-3">
+			<div class="dark:bg-zinc-900 absolute right-0 top-[-60px] flex rounded-5 bg-surface-base px-3">
 				<div
 					v-show="!canvasProps.scaling && !canvasProps.panning"
 					class="w-auto cursor-pointer p-2"
@@ -74,7 +74,7 @@
 		</div>
 
 		<div
-			class="rounded-lg text-sm-semibold fixed bottom-12 left-[50%] z-40 flex translate-x-[-50%] cursor-default items-center justify-center gap-2 bg-surface-base px-3 py-2 text-center text-ink-gray-5 shadow-md"
+			class="text-sm-semibold fixed bottom-12 left-[50%] z-40 flex translate-x-[-50%] cursor-default items-center justify-center gap-2 rounded-6 bg-surface-base px-3 py-2 text-center text-ink-gray-5 shadow-md"
 			v-show="!canvasProps.panning"
 		>
 			{{ Math.round(canvasProps.scale * 100) + "%" }}

@@ -4,7 +4,7 @@
 			<div class="w-full" v-for="page in store.appPages" :key="page.name">
 				<div
 					@click="openPage(page)"
-					class="rounded group flex cursor-pointer items-center gap-2 truncate px-2 py-2 transition duration-300 ease-in-out"
+					class="group flex cursor-pointer items-center gap-2 truncate rounded-4 px-2 py-2 transition duration-300 ease-in-out"
 					:class="[isPageActive(page) ? 'border-[1px] border-outline-gray-2' : 'hover:bg-surface-gray-1']"
 				>
 					<Tooltip :text="page.published ? 'Published' : 'Draft'" placement="top">
@@ -31,7 +31,7 @@
 						<Dropdown :options="getPageMenu(page)" trigger="click">
 							<template v-slot="{ open }">
 								<button
-									class="rounded-sm flex cursor-pointer items-center p-0.5 text-ink-gray-6 hover:bg-surface-gray-4"
+									class="flex cursor-pointer items-center rounded-1 p-0.5 text-ink-gray-6 hover:bg-surface-gray-4"
 									:class="open ? 'active-item' : ''"
 								>
 									<LucideEllipsis class="h-4 w-4" />

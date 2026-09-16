@@ -52,7 +52,7 @@
 				</div>
 				<div v-else class="grid w-full grid-cols-5 items-start gap-5">
 					<router-link
-						class="rounded-lg flex flex-col justify-center gap-1 border-2 p-4"
+						class="flex flex-col justify-center gap-1 rounded-6 border-2 p-4"
 						v-for="app in studioApps.data"
 						:to="{ name: 'StudioApp', params: { appID: app.name } }"
 						:key="app.name"

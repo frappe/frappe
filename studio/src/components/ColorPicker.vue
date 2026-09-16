@@ -14,12 +14,12 @@
 			></slot>
 		</template>
 		<template #body="{ close }">
-			<div class="flex w-[200px] flex-col rounded bg-surface-base shadow-lg">
+			<div class="flex w-[200px] flex-col rounded-4 bg-surface-base shadow-lg">
 				<Tabs v-if="showTokens" :tabs="[{ label: 'Custom' }, { label: 'Tokens' }]" v-model="activeTab"></Tabs>
 				<div
 					v-show="!showTokens || activeTab === 0"
 					ref="colorPicker"
-					class="rounded-b-lg bg-surface-base p-3"
+					class="rounded-b-6 bg-surface-base p-3"
 				>
 					<div
 						ref="colorMap"
@@ -31,7 +31,7 @@
 							`,
 						}"
 						@mousedown.prevent="handleSelectorMove"
-						class="relative m-auto h-24 w-44 rounded-md"
+						class="relative m-auto h-24 w-44 rounded-5"
 						@click.prevent="setColor"
 					>
 						<div
@@ -52,7 +52,7 @@
 					</div>
 					<div
 						ref="hueMap"
-						class="relative m-auto mt-2 h-3 w-44 rounded-md"
+						class="relative m-auto mt-2 h-3 w-44 rounded-5"
 						@click="setHue"
 						@mousedown.prevent="handleHueSelectorMove"
 						:style="{
@@ -105,7 +105,7 @@
 						class="h-[184px]"
 					>
 						<template #option-prefix="{ option }">
-							<div class="mr-2 size-4 rounded border" :style="{ background: option.value }"></div>
+							<div class="mr-2 size-4 rounded-4 border" :style="{ background: option.value }"></div>
 						</template>
 					</ListBox>
 				</div>

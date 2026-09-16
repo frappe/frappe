@@ -5,7 +5,7 @@
 				if (route) $router.push(route)
 			}
 		"
-		class="rounded-lg mb-2 flex w-full items-center justify-center overflow-hidden border border-outline-elevation-2 p-2"
+		class="mb-2 flex w-full items-center justify-center overflow-hidden rounded-6 border border-outline-elevation-2 p-2"
 	>
 		<Avatar :image="imageURL" size="2xl" shape="square" />
 		<div class="flex-grow pl-2">

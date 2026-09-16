@@ -2,7 +2,7 @@
 	<div class="flex h-full w-full flex-col gap-3">
 		<InputLabel
 			v-if="label"
-			:class="[required ? `after:text-ink-red-7 after:content-['_*']` : '']"
+			:class="[required ? `after:text-ink-red-6 after:content-['_*']` : '']"
 			class="mb-1"
 		>
 			{{ label }}
@@ -52,7 +52,7 @@
 			<div
 				v-for="(item, index) in items"
 				:key="index"
-				class="group/item rounded-md relative flex flex-col gap-1.5 border p-3"
+				class="group/item relative flex flex-col gap-1.5 rounded-5 border p-3"
 			>
 				<div
 					v-for="(fieldSchema, fieldKey) in itemTypes"

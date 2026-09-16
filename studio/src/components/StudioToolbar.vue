@@ -96,7 +96,7 @@
 								v-if="!store.areRouteVariablesSet"
 								text="Set route variable values here to preview page data"
 							>
-								<LucideCircleAlert class="h-[14px] w-[14px] text-ink-amber-6" />
+								<LucideCircleAlert class="h-[14px] w-[14px] text-ink-amber-5" />
 							</Tooltip>
 						</div>
 						<LucideExternalLink
@@ -108,7 +108,7 @@
 				</template>
 				<template #body="{ isOpen }">
 					<div
-						class="rounded flex w-96 flex-col gap-3 bg-surface-base p-4 shadow-lg"
+						class="flex w-96 flex-col gap-3 rounded-4 bg-surface-base p-4 shadow-lg"
 						v-if="store.activePage && store.activeApp"
 					>
 						<PageOptions

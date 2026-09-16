@@ -29,7 +29,7 @@
 					<div
 						v-for="(slot, slotName) in block?.componentSlots"
 						:key="slotName"
-						class="rounded flex w-full cursor-pointer items-center justify-between gap-1 py-0.5"
+						class="flex w-full cursor-pointer items-center justify-between gap-1 rounded-4 py-0.5"
 						@click="selectSlot(slotName)"
 					>
 						<div class="flex min-w-0 items-center gap-1.5">

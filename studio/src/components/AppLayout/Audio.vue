@@ -33,7 +33,7 @@
 				:max="duration"
 				:value="currentTime"
 				@input="seek"
-				class="rounded-lg h-2 w-full cursor-pointer bg-surface-gray-3 accent-gray-800 dark:bg-surface-gray-8"
+				class="h-2 w-full cursor-pointer rounded-6 bg-surface-gray-3 accent-gray-800 dark:bg-surface-gray-8"
 			/>
 		</div>
 		<div class="mt-2 flex justify-between text-sm text-ink-gray-6">

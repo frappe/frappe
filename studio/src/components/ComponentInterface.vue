@@ -29,7 +29,7 @@
 					>
 						<template #target>
 							<div
-								class="rounded group flex flex-1 cursor-pointer justify-between border border-outline-gray-2 px-2 py-1 hover:bg-surface-gray-1"
+								class="group flex flex-1 cursor-pointer justify-between rounded-4 border border-outline-gray-2 px-2 py-1 hover:bg-surface-gray-1"
 								@click="editInput(input, index)"
 							>
 								<div class="flex items-center gap-2">
@@ -37,7 +37,7 @@
 									<span class="text-sm text-ink-gray-7">{{ input.input_name }}</span>
 								</div>
 								<button
-									class="rounded-sm flex cursor-pointer items-center p-1 text-ink-gray-6 opacity-0 transition-opacity hover:text-ink-gray-8 group-hover:opacity-100"
+									class="flex cursor-pointer items-center rounded-1 p-1 text-ink-gray-6 opacity-0 transition-opacity hover:text-ink-gray-8 group-hover:opacity-100"
 									@click.stop="componentEditorStore.removeComponentInput(index)"
 								>
 									<LucideX class="h-4 w-4" />
@@ -118,9 +118,9 @@
 								</div>
 								<div class="text-xs text-ink-gray-4">
 									Press
-									<kbd class="rounded bg-surface-gray-2 px-1 py-0.5">⌘</kbd>
+									<kbd class="rounded-4 bg-surface-gray-2 px-1 py-0.5">⌘</kbd>
 									+
-									<kbd class="rounded bg-surface-gray-2 px-1 py-0.5">S</kbd>
+									<kbd class="rounded-4 bg-surface-gray-2 px-1 py-0.5">S</kbd>
 									to save
 								</div>
 							</div>

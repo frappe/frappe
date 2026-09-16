@@ -9,7 +9,7 @@
 			:description="label"
 			:class="[
 				enableSlider ? 'cursor-ns-resize' : '',
-				required ? `after:text-ink-red-7 after:content-['_*']` : '',
+				required ? `after:text-ink-red-6 after:content-['_*']` : '',
 			]"
 			@mousedown="handleMouseDown"
 		>
@@ -22,7 +22,7 @@
 				<template #body>
 					<slot name="body">
 						<div
-							class="w-fit max-w-52 rounded bg-surface-gray-9 px-2 py-1 text-center text-xs text-ink-base shadow-xl"
+							class="w-fit max-w-52 rounded-4 bg-surface-gray-9 px-2 py-1 text-center text-xs text-ink-base shadow-xl"
 							v-html="description"
 						></div>
 					</slot>

@@ -34,26 +34,26 @@
 					<img
 						v-if="msg.metadata?.attachedImageUrl"
 						:src="msg.metadata.attachedImageUrl"
-						class="rounded-md max-h-40 max-w-[88%] border border-outline-gray-2 object-contain"
+						class="max-h-40 max-w-[88%] rounded-5 border border-outline-gray-2 object-contain"
 						alt="Attached design"
 					/>
 					<div
 						v-if="msg.content"
-						class="rounded-md w-fit max-w-[88%] border bg-surface-gray-1 px-3 py-2 text-p-xs text-ink-gray-8"
+						class="w-fit max-w-[88%] rounded-5 border bg-surface-gray-1 px-3 py-2 text-p-xs text-ink-gray-8"
 					>
 						<div class="whitespace-pre-wrap break-words">{{ msg.content }}</div>
 					</div>
 				</div>
 				<div v-else class="flex w-full flex-col items-start gap-2">
 					<div
-						class="[&_code]:rounded [&_pre]:rounded w-fit max-w-full break-words text-p-xs text-ink-gray-8 [&_a]:text-ink-blue-3 [&_a]:underline [&_code]:bg-surface-gray-2 [&_code]:px-1 [&_code]:py-0.5 [&_h1]:my-1.5 [&_h1]:text-sm [&_h1]:font-semibold [&_h2]:my-1.5 [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:font-semibold [&_li]:my-0.5 [&_ol]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1 [&_pre]:my-1 [&_pre]:overflow-x-auto [&_pre]:bg-surface-gray-2 [&_pre]:p-2 [&_strong]:font-semibold [&_ul]:my-1 [&_ul]:list-disc [&_ul]:pl-5"
+						class="w-fit max-w-full break-words text-p-xs text-ink-gray-8 [&_a]:text-ink-blue-2 [&_a]:underline [&_code]:rounded-4 [&_code]:bg-surface-gray-2 [&_code]:px-1 [&_code]:py-0.5 [&_h1]:my-1.5 [&_h1]:text-sm [&_h1]:font-semibold [&_h2]:my-1.5 [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:font-semibold [&_li]:my-0.5 [&_ol]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1 [&_pre]:my-1 [&_pre]:overflow-x-auto [&_pre]:rounded-4 [&_pre]:bg-surface-gray-2 [&_pre]:p-2 [&_strong]:font-semibold [&_ul]:my-1 [&_ul]:list-disc [&_ul]:pl-5"
 						v-html="renderMarkdown(msg.content)"
 					/>
 
 					<!-- Proposed plan: data plan + layout plan + palette + approve -->
 					<div
 						v-if="msg.metadata?.status === 'plan_summary'"
-						class="rounded-md flex w-full min-w-0 flex-col gap-3 border border-outline-gray-1 bg-surface-gray-1 p-3"
+						class="flex w-full min-w-0 flex-col gap-3 rounded-5 border border-outline-gray-1 bg-surface-gray-1 p-3"
 					>
 						<div v-if="msg.metadata.data_plan?.length" class="flex flex-col gap-1">
 							<div class="text-[10px] font-semibold uppercase tracking-wide text-ink-gray-5">Data</div>
@@ -122,7 +122,7 @@
 		<div v-if="isAIEnabled" class="shrink-0 border-t border-outline-gray-1 bg-surface-base p-4">
 			<ErrorMessage v-if="error" :message="error" class="mb-2" />
 
-			<div v-if="isModifyMode" class="rounded mb-2 flex items-center gap-1.5 py-1">
+			<div v-if="isModifyMode" class="mb-2 flex items-center gap-1.5 rounded-4 py-1">
 				<span class="truncate text-xs text-ink-gray-5">Editing:</span>
 				<Badge variant="subtle" size="sm">
 					{{ selectedBlock?.blockName || selectedBlock?.componentName }}
@@ -133,7 +133,7 @@
 				<div class="relative">
 					<img
 						:src="imagePreviewUrl"
-						class="rounded h-12 w-12 border border-outline-gray-2 object-cover"
+						class="h-12 w-12 rounded-4 border border-outline-gray-2 object-cover"
 						alt="Attached design"
 					/>
 					<button
@@ -151,7 +151,7 @@
 				<textarea
 					v-model="prompt"
 					rows="4"
-					class="rounded w-full resize-none border border-[--surface-gray-2] bg-surface-gray-2 px-2 py-1.5 text-p-sm text-ink-gray-8 placeholder-ink-gray-4 transition-colors hover:border-[--outline-elevation-2] hover:bg-surface-gray-3 focus:border-outline-gray-4 focus:bg-surface-base focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3 disabled:cursor-not-allowed disabled:bg-surface-gray-1 disabled:text-ink-gray-5"
+					class="w-full resize-none rounded-4 border border-[--surface-gray-2] bg-surface-gray-2 px-2 py-1.5 text-p-sm text-ink-gray-8 placeholder-ink-gray-4 transition-colors hover:border-[--outline-elevation-2] hover:bg-surface-gray-3 focus:border-outline-gray-4 focus:bg-surface-base focus:shadow-sm focus:ring-0 focus-visible:ring-2 focus-visible:ring-outline-gray-3 disabled:cursor-not-allowed disabled:bg-surface-gray-1 disabled:text-ink-gray-5"
 					:placeholder="
 						isModifyMode ? 'Describe what to change in this block...' : 'Chat to create or edit this page...'
 					"
@@ -169,7 +169,7 @@
 					<Popover placement="top-start" :offset="6">
 						<template #target="{ togglePopover }">
 							<button
-								class="rounded flex h-7 max-w-[9rem] items-center gap-1.5 px-1.5 text-ink-gray-5 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-8"
+								class="flex h-7 max-w-[9rem] items-center gap-1.5 rounded-4 px-1.5 text-ink-gray-5 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-8"
 								@click="togglePopover"
 							>
 								<LucideCpu class="h-3.5 w-3.5 shrink-0" />
@@ -177,7 +177,7 @@
 							</button>
 						</template>
 						<template #body="{ close }">
-							<div class="rounded-lg min-w-40 border border-outline-gray-2 bg-surface-base py-1 shadow-lg">
+							<div class="min-w-40 rounded-6 border border-outline-gray-2 bg-surface-base py-1 shadow-lg">
 								<button
 									v-for="option in modelOptions"
 									:key="option.value"
@@ -203,7 +203,7 @@
 
 					<button
 						v-if="isVisionModel"
-						class="rounded flex h-7 items-center gap-1.5 px-1.5 text-ink-gray-5 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-8 disabled:cursor-not-allowed disabled:opacity-50"
+						class="flex h-7 items-center gap-1.5 rounded-4 px-1.5 text-ink-gray-5 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-8 disabled:cursor-not-allowed disabled:opacity-50"
 						title="Attach a screenshot or design to reproduce"
 						:disabled="loading"
 						@click="imageInput?.click()"

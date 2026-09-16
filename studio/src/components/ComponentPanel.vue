@@ -33,7 +33,7 @@
 				>
 					<template #title-suffix v-if="section.label === 'Framework UI'">
 						<Tooltip text="Experimental — these components are still under development">
-							<LucideFlaskConical class="h-3.5 w-3.5 text-ink-amber-6" />
+							<LucideFlaskConical class="h-3.5 w-3.5 text-ink-amber-5" />
 						</Tooltip>
 					</template>
 					<!-- Component family tile -->
@@ -49,7 +49,7 @@
 							<!-- component family tray -->
 							<div
 								v-if="index === section.trayAfter"
-								class="rounded-xl relative col-span-full mt-1 bg-surface-gray-1 p-2.5"
+								class="relative col-span-full mt-1 rounded-7 bg-surface-gray-1 p-2.5"
 							>
 								<span
 									class="absolute -top-1.5 h-3 w-3 -translate-x-1/2 rotate-45 rounded-[2px] bg-surface-gray-1"
@@ -78,7 +78,7 @@
 						v-for="component in customVueComponents"
 						:key="component.component_name"
 						:data-vue-component-name="component.component_name"
-						class="user-component group/vue-component rounded flex cursor-grab select-none items-center justify-between p-1 hover:bg-surface-gray-1"
+						class="user-component group/vue-component flex cursor-grab select-none items-center justify-between rounded-4 p-1 hover:bg-surface-gray-1"
 						:class="{
 							'border border-outline-gray-4': store.selectedVueComponent === component.component_name,
 						}"
@@ -88,7 +88,7 @@
 					>
 						<div class="flex items-center gap-2 text-ink-gray-7">
 							<div
-								class="rounded flex h-6 w-6 items-center justify-center bg-surface-green-1 text-ink-green-6"
+								class="flex h-6 w-6 items-center justify-center rounded-4 bg-surface-green-1 text-ink-green-5"
 							>
 								<LucideCode class="h-3 w-3" />
 							</div>
@@ -98,7 +98,7 @@
 							<Dropdown :options="getVueComponentMenu(component)" trigger="click">
 								<template v-slot="{ open }">
 									<button
-										class="rounded-sm flex cursor-pointer items-center p-1 text-ink-gray-6 hover:bg-surface-gray-4"
+										class="flex cursor-pointer items-center rounded-1 p-1 text-ink-gray-6 hover:bg-surface-gray-4"
 										:class="open ? 'active-item' : ''"
 									>
 										<LucideEllipsis class="h-3 w-3" />
@@ -116,7 +116,7 @@
 					<div
 						v-for="component in componentList"
 						:key="component.component_id"
-						class="group/component user-component rounded flex cursor-grab select-none items-center justify-between p-1 hover:bg-surface-gray-1"
+						class="group/component user-component flex cursor-grab select-none items-center justify-between rounded-4 p-1 hover:bg-surface-gray-1"
 						:class="{
 							'border border-outline-gray-4':
 								componentEditorStore.selectedComponent === component.component_id,
@@ -127,7 +127,7 @@
 					>
 						<div class="flex items-center gap-2 text-ink-gray-7">
 							<div
-								class="rounded flex h-6 w-6 items-center justify-center bg-surface-purple-1 text-ink-purple-7"
+								class="flex h-6 w-6 items-center justify-center rounded-4 bg-surface-purple-1 text-ink-purple-6"
 							>
 								<LucideBox class="h-3 w-3" />
 							</div>
@@ -139,7 +139,7 @@
 							<Dropdown :options="getComponentMenu(component)" trigger="click">
 								<template v-slot="{ open }">
 									<button
-										class="rounded-sm flex cursor-pointer items-center p-1 text-ink-gray-6 hover:bg-surface-gray-4"
+										class="flex cursor-pointer items-center rounded-1 p-1 text-ink-gray-6 hover:bg-surface-gray-4"
 										:class="open ? 'active-item' : ''"
 									>
 										<LucideEllipsis class="h-3 w-3" />

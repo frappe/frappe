@@ -1,5 +1,5 @@
 <template>
-	<div v-if="error" class="border-ink-red-6 flex flex-col gap-2 border p-2 text-ink-red-6" ref="componentRef">
+	<div v-if="error" class="border-ink-red-5 flex flex-col gap-2 border p-2 text-ink-red-5" ref="componentRef">
 		<p class="text-sm-semibold">An error occurred while rendering {{ block.componentName }}:</p>
 		<pre class="text-xs">{{ error }}</pre>
 	</div>

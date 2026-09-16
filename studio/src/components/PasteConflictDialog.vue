@@ -13,7 +13,7 @@
 					which version to keep.
 				</p>
 
-				<div class="max-h-[420px] overflow-auto rounded-lg border border-outline-gray-2">
+				<div class="max-h-[420px] overflow-auto rounded-6 border border-outline-gray-2">
 					<List
 						class="w-full"
 						:columns="['minmax(0, 1fr)', '8rem', 'minmax(16rem, 1.4fr)']"
@@ -48,7 +48,7 @@
 				</div>
 
 				<div
-					class="flex items-start gap-2 rounded-md bg-surface-gray-1 px-3 py-2 text-p-base text-ink-gray-6"
+					class="flex items-start gap-2 rounded-5 bg-surface-gray-1 px-3 py-2 text-p-base text-ink-gray-6"
 					v-if="state.warning"
 				>
 					<span class="lucide-info mt-1"></span>
@@ -59,7 +59,7 @@
 
 				<div
 					v-if="hasComponentOverwrite"
-					class="flex items-start gap-2 rounded-md bg-surface-gray-1 px-3 py-2 text-p-base text-ink-gray-6"
+					class="flex items-start gap-2 rounded-5 bg-surface-gray-1 px-3 py-2 text-p-base text-ink-gray-6"
 				>
 					<span class="lucide-info mt-1"></span>
 					<p>"Use copied" overwrites a shared component and can affect blocks on other pages.</p>

@@ -658,7 +658,7 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: LucideEdit,
 		initialState: {
 			modelValue: "Type something...",
-			editorClass: "prose-sm max-w-none min-h-[4rem] border rounded-b-lg border-t-0 p-2",
+			editorClass: "prose-sm max-w-none min-h-[4rem] border rounded-b-6 border-t-0 p-2",
 			editable: true,
 			fixedMenu: true,
 			bubbleMenu: true,
