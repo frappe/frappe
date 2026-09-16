@@ -429,6 +429,10 @@
 	color: var(--gray-600);
 }
 
+.print-format-doc .child-table .cell-line * {
+	margin: 0;
+}
+
 .print-format-doc .page-break {
 	page-break-after: always;
 }
