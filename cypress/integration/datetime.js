@@ -168,4 +168,17 @@ context("Control Date, Time and DateTime", () => {
 			});
 		});
 	});
+
+	it("accepts the datetime and time values the server sends", () => {
+		cy.visit("/desk/website");
+		cy.window()
+			.its("frappe.datetime")
+			.then((datetime) => {
+				expect(datetime.validate("2026-09-10 06:04:32.450382")).to.be.true;
+				expect(datetime.validate("2026-09-10 06:04:32")).to.be.true;
+				expect(datetime.validate("6:07:52")).to.be.true;
+				expect(datetime.validate("2026-09-10 06:04:32.")).to.be.false;
+				expect(datetime.validate("10-09-2026")).to.be.false;
+			});
+	});
 });
