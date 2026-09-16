@@ -238,22 +238,14 @@ class AttachmentQueue(Document):
 	def clear_old_logs(days=30):
 		from frappe.utils import add_days, create_batch, now_datetime
 
-		# Only a Completed row is a log. Every other status is live intake that still owns
-		# its source file: Draft and Queued are waiting for a worker, Processing is
-		# mid-extraction, and REVIEWABLE_STATUSES are waiting for a reviewer. Age does not
-		# make any of those disposable - the queue row holds the only copy of the upload, and
-		# delete_doc takes the File with it. A Completed row has already handed its file to
-		# the document it produced, so it is the one state with nothing left to lose.
 		cutoff = add_days(now_datetime(), -cint(days))
 		names = frappe.get_all(
 			"Attachment Queue",
 			filters={"creation": ["<", cutoff], "status": "Completed"},
 			pluck="name",
 		)
-		for batch in create_batch(names, 100):
-			for name in batch:
-				frappe.delete_doc("Attachment Queue", name, ignore_permissions=True, delete_permanently=True)
-			frappe.db.commit()
+		for name in names:
+			frappe.delete_doc("Attachment Queue", name, ignore_permissions=True, force=True, delete_permanently=True)
 
 
 # ---- the background job ----
@@ -658,15 +650,10 @@ def _json_safe(value):
 
 
 def has_permission(doc, ptype="read", user=None):
-	"""Mirror the target DocType's permissions onto the queue row.
-
-	Controller hooks can only deny, never grant (see `has_controller_permissions`), so this
-	narrows Attachment Queue's own DocPerms rather than widening them: a queue row is only as
-	reachable as the DocType it feeds.
+	"""
+	Only users with permission to the target DocType can access the queued attachment.
 	"""
 	if not doc or not getattr(doc, "document_type", None):
-		# `document_type` is mandatory, so this is the pre-target case only. Such a row stays
-		# governed by Attachment Queue's own owner-scoped DocPerms.
 		return True
 
 	return frappe.has_permission(doc.document_type, ptype=ptype, user=user)
@@ -684,11 +671,6 @@ def get_permission_query_conditions(user: str | None = None) -> "str | Criterion
 	readable_doctypes = get_doctypes_with_read(user)
 
 	if not readable_doctypes:
-		return "1=0"
+		readable_doctypes = []
 
-	# A criterion rather than an assembled string. Both callers of this hook take a pypika
-	# term as well as raw SQL (frappe/model/db_query.py and frappe/database/query.py), and
-	# each renders it through frappe.db.escape - the same escaping the string form reached
-	# for by hand. Handing over the term instead means this hook no longer quotes the
-	# identifiers or builds the IN list itself.
 	return DocType("Attachment Queue").document_type.isin(readable_doctypes)
