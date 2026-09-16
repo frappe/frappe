@@ -79,6 +79,9 @@
         },
         "required": {
           "type": "boolean"
+        },
+        "newRow": {
+          "type": "object"
         }
       },
       "required": [

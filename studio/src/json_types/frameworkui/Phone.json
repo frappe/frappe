@@ -44,8 +44,7 @@
           "enum": [
             "sm",
             "md",
-            "lg",
-            "xl"
+            "lg"
           ]
         },
         "variant": {

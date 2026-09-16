@@ -45,6 +45,12 @@
               "document_name": {
                 "type": "string"
               },
+              "source_doctype": {
+                "type": "string"
+              },
+              "source_name": {
+                "type": "string"
+              },
               "link": {
                 "type": "string"
               },

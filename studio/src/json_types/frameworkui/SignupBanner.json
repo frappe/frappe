@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "SignupBannerProps": {
+      "type": "object",
+      "properties": {
+        "isSidebarCollapsed": {
+          "type": "boolean"
+        },
+        "appName": {
+          "type": "string"
+        },
+        "redirectURL": {
+          "type": "string"
+        },
+        "afterSignup": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

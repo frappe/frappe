@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "GettingStartedBannerProps": {
+      "type": "object",
+      "properties": {
+        "isSidebarCollapsed": {
+          "type": "boolean"
+        },
+        "appName": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

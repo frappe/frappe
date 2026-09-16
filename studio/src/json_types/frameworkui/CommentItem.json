@@ -48,6 +48,31 @@
                 },
                 "content": {
                   "type": "string"
+                },
+                "attachments": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "file_url": {
+                        "type": "string"
+                      },
+                      "is_private": {
+                        "type": "number",
+                        "enum": [
+                          0,
+                          1
+                        ]
+                      },
+                      "file_name": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "file_url"
+                    ],
+                    "additionalProperties": false
+                  }
                 }
               },
               "required": [
@@ -66,6 +91,12 @@
         },
         "editable": {
           "type": "boolean"
+        },
+        "editorClass": {
+          "type": "string"
+        },
+        "uploadFunction": {
+          "type": "object"
         }
       },
       "required": [
