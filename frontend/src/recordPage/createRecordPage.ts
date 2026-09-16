@@ -14,6 +14,7 @@ import type {
 import { holdsChildRows } from "@framework/ui/components/Fields/rowIdentity";
 import type { RowAddress } from "@framework/ui/components/Fields/types";
 import { FieldsSurface, LAYOUT_BREAKS } from "./fields";
+import { FormSurface } from "./form";
 import { FormTabsSurface } from "./formTabs";
 import { FrameSurface } from "./frame";
 import { BodySurface } from "./body";
@@ -80,11 +81,11 @@ const SAVED_IS_READ_ONLY: ReadOnlyAdvice = {
 };
 
 /** The two tab strips, by the member each is reached through. */
-type TabStrip = "tabs" | "formTabs";
+type TabStrip = "tabs" | "form.tabs";
 
 const STRIPS: Record<TabStrip, { other: string; sibling: TabStrip }> = {
-  tabs: { other: "form's", sibling: "formTabs" },
-  formTabs: { other: "record's", sibling: "tabs" },
+  tabs: { other: "form's", sibling: "form.tabs" },
+  "form.tabs": { other: "record's", sibling: "tabs" },
 };
 
 export interface RecordPageHost {
@@ -101,7 +102,7 @@ export interface RecordPageHost {
   activeTab: () => string;
   /** Moves the reader to a tab of the record's strip; the engine has already resolved the name. */
   activateTab: (name: string) => void;
-  /** The record's Details layout, which `page.formTabs` addresses; absent for a host with no form. */
+  /** The record's Details layout, which `page.form` addresses; absent for a host with no form. */
   formLayout?: () => FormLayoutSchema | undefined;
   /** The identity of the Form Layout tab the reader is on, or `''` outside the form. */
   activeFormTab?: () => string;
@@ -133,8 +134,8 @@ export interface RecordPageController {
   panelSections: Surface<PanelSectionItem>;
   /** Field property overrides; the host feeds `resolve()` to its layout source. */
   fields: FieldsSurface;
-  /** Form Layout tab overrides; fed to the same layout source alongside them. */
-  formTabs: FormTabsSurface;
+  /** The Details form's list; its `tabs` overlay is fed to the same layout source. */
+  form: FormSurface;
   /** What the host provides as `CommitKey`: a field's commit fires its handler through it. */
   commits: RecordCommitChannel;
   /** The replay: clears every surface, then runs every source's `refresh` in run order. */
@@ -173,6 +174,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     tabs: () => host.formLayout?.(),
     doc: () => host.doc.value,
   });
+  const form = new FormSurface({ fields: () => host.meta.value?.fields }, formTabs);
   const rows = createRows({
     doc: () => host.doc.value,
     fields: () => host.meta.value?.fields,
@@ -188,6 +190,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     tabs,
     panelSections,
     fields,
+    form,
     formTabs,
   ];
 
@@ -209,7 +212,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     value: (name: string) => activate("tabs", name),
   });
   Object.defineProperty(formTabs, "activate", {
-    value: (identity: string) => activate("formTabs", identity),
+    value: (identity: string) => activate("form.tabs", identity),
   });
 
   // Same terms as an activation: resolved now, delivered when the panel on screen is this replay's.
@@ -267,7 +270,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     tabs: tabs as unknown as TabsApi,
     panelSections: panelSections as unknown as PanelSectionsApi,
     fields,
-    formTabs,
+    form,
     rows: rows.rows,
     save: () => save(),
     reload: () => host.reload(),
@@ -465,9 +468,9 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   function canReach(strip: TabStrip, name: string) {
     // Until the Details layout lands, "never authored" and "not here yet" are the
     // same answer; an activation is never queued, so the move is dropped either way.
-    if (strip === "formTabs" && !host.formLayout?.()?.length) return false;
+    if (strip === "form.tabs" && !host.formLayout?.()?.length) return false;
     const here = surfaceFor(strip);
-    const there = surfaceFor(strip === "tabs" ? "formTabs" : "tabs");
+    const there = surfaceFor(STRIPS[strip].sibling);
     if (!here.has(name)) {
       warnActivate(
         strip,
@@ -489,7 +492,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   /** The host's half, and the only place the engine hands a strip a name. */
   function move(strip: TabStrip, name: string) {
     // A host that draws the form's strip but cannot move it must not swallow the move silently.
-    if (strip === "formTabs" && !host.activateFormTab) {
+    if (strip === "form.tabs" && !host.activateFormTab) {
       warnActivate(strip, name, "this host cannot move the reader on that strip");
       return;
     }
@@ -607,7 +610,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     tabs,
     panelSections,
     fields,
-    formTabs,
+    form,
     commits,
     refresh,
     fireEvent,

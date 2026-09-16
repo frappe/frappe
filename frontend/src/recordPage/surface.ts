@@ -9,6 +9,8 @@ export interface ResolvedItem<Item extends SurfaceItem = SurfaceItem> {
 	item: Item;
 	source: string;
 	hidden: boolean;
+	/** The neighbour the last `add` or `move` named, for a host whose grain the neighbour decides. */
+	position?: Position;
 }
 
 type Op<Item extends SurfaceItem> =
@@ -188,7 +190,10 @@ function apply<Item extends SurfaceItem>(items: ResolvedItem<Item>[], op: Op<Ite
 	if (op.verb === "hide") found.hidden = true;
 	if (op.verb === "show") found.hidden = false;
 	if (op.verb === "update") Object.assign(found.item, op.patch);
-	if (op.verb === "move") reposition(items, found, op.position);
+	if (op.verb === "move") {
+		found.position = op.position;
+		reposition(items, found, op.position);
+	}
 }
 
 // A name collision replaces in place and transfers ownership; the earlier item
@@ -197,7 +202,8 @@ function add<Item extends SurfaceItem>(
 	items: ResolvedItem<Item>[],
 	op: { source: string; item: Item; position?: Position },
 ) {
-	const entry = { item: { ...op.item }, source: op.source, hidden: false };
+	const entry: ResolvedItem<Item> = { item: { ...op.item }, source: op.source, hidden: false };
+	if (op.position) entry.position = op.position;
 	const existing = items.find((candidate) => candidate.item.name === op.item.name);
 	if (existing) {
 		warnCollision(existing, op);

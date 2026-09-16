@@ -29,9 +29,9 @@ export default {
 
 **Every place on the page is a list, every list takes a component item, and `before` /
 `after` names a neighbour.** There is no vocabulary of places on top of that: no zone or
-slot words say where a thing goes, a neighbour does. The frame, the header row and the
-panel are each a list that accepts the same item shape, `name`, `component`, `props`, and
-speaks the seven verbs and `clear`. A script author learns one item and one position
+slot words say where a thing goes, a neighbour does. The frame, the header row, the panel
+and the form are each a list that accepts the same item shape, `name`, `component`,
+`props`, and speaks the seven verbs and `clear`. A script author learns one item and one position
 spelling; the sections below only refer to it.
 
 ## The frame: `page.frame`
@@ -489,13 +489,111 @@ export default {
 }
 ```
 
+## The form: `page.form`
+
+The Details form is the main column of the record, and it is **one list**. Its items are
+the sections of the doctype's `Details` layout, in layout order, and the **parts** a
+script adds between and inside them: a chart between two sections, a score beside its
+field, a note at the top. The surface speaks the eight verbs, `clear` among them, and
+every verb works on a section as on a part. Its strip of tabs is `page.form.tabs`, below.
+
+The fields themselves are not items here. A verb on `page.form` that names a data field
+records nothing and warns in a development build, naming the verb that owns it:
+`page.form.hide("credit_limit") — a field, not a section; page.fields.hide("credit_limit")
+is the verb.` A Section, Column or Tab Break is not a field for this rule.
+
+### An item
+
+| Key | What it does |
+| --- | --- |
+| `name` | The address every verb uses. One namespace with the fields: a field first, then a section, so the Form Layout refuses a section or tab name equal to a fieldname of the doctype. |
+| `label` | Draws the part framed like its neighbour: a field label above it beside a field, a section heading above it beside a section. Without one the component is drawn bare. |
+| `component` | A Vue component that draws the part. It receives `{ ...props, page }`, as a panel section's does. |
+| `props` | Forwarded to the component beside `page`. |
+| any other key | Not read: dropped from the item on `add` and `update`, and a development build warns once, naming the item and the key. |
+
+A part is script only; it has no record form. A Form Layout row's column stays a list of
+fieldnames, and a part joins the header's component and the frame's band on the map of
+what the row does not yet carry.
+
+### The built-ins
+
+The layout's sections, under the names the Form Layout stores: a stored row is named at
+save, and a doctype with no `Details` row falls back to its meta, where a section is named
+after its Section Break's fieldname, or `section_1` when fields come before the first
+break. A section answers `hide`, `show`, `update` with a `label`, `move` and `order` like
+any item, and `move` past a section in another tab moves it into that tab. `clear()`
+hides every section and part present at the call, and the form draws no section; a later
+`add` or `show` draws.
+
+### Where a part sits
+
+The neighbour decides the grain. `{ after: 'credit_limit' }`, a field, draws the part as
+a **cell in that field's column**, taking the column's equal share of the width; columns
+have no stored width, so there is no width word. `{ after: 'pricing' }`, a section, draws
+it as a **full-width block** between the two sections. An absent position appends at the
+end of the form, in its last tab. There is no word for a tab: a part before a tab's first
+section or after its last one is in that tab. For a cell the neighbour is the position:
+`order` ranks the parts that share one neighbour, and a cell leaves its field only by
+`move`.
+
+Two scripts adding at one place are ordered by run order, then by the position, as on the
+frame. A part costs no new server call, cache key or permission check: it comes from the
+scripts already loaded, and folds over the layout the page already fetches, one wrapper
+element per part on a cold load.
+
+### The strip: `page.form.tabs`
+
+The tabs inside the form are an **overlay** on the Form Layout's tabs, on `page.fields`'
+terms: no `add`, `move` or `order`, since a tab there is a container of fields the
+administrator arranged. It speaks `hide`, `show`, `update` with a `label` and nothing
+else, `has`, `get`, and `clear()`, which hides every tab present at the call. A script
+beats `depends_on` in both directions: `hide()` closes a tab the condition opened,
+`show()` opens one it closed.
+
+Two members are the strip's own, since a strip has a reader standing on it. `active` reads
+the tab the reader is on as an **identity**, or `''` when the reader is not in the form;
+an identity is safe to store, because a Form Layout is named when it is saved and a
+relabelled tab keeps its address. `activate(name)` moves the reader, on the record strip's
+terms: resolved at the call, delivered when the replay commits, and a hidden, unknown or
+other-strip name warns in a development build and moves nobody. The handler for a change
+on this strip is `onFormTabChange`. The record's own strip, activity to details, is
+`page.tabs` and is not this one.
+
+### The script this design was judged by
+
+```js
+// A full-width chart between two sections of the Details form.
+page.form.add({ name: 'pipeline_chart', label: 'Pipeline', component: PipelineChart, props: { limit: 12 } }, { after: 'pricing' })
+
+// A score beside its field, drawn like a field: label above, the column's width.
+page.form.add({ name: 'credit_score', label: 'Credit score', component: Score }, { after: 'credit_limit' })
+
+// A bare banner at the top of the form.
+page.form.add({ name: 'stale_note', component: StaleNote }, { before: 'overview' })
+
+// A section is an item: hide it, rename it, move it.
+page.form.hide('terms')
+page.form.update('pricing', { label: 'Commercials' })
+page.form.move('pricing', { before: 'overview' })
+
+// The strip inside the form.
+page.form.tabs.hide('products_tab')
+page.form.tabs.activate('details')
+
+// The field overlay is unchanged and still reaches the panel.
+page.fields.update('probability', { label: 'Win chance (%)' })
+```
+
 ## The field: `page.fields`
 
 The Details form is the main column of the record: the doctype's `Details` layout, or its
 fields in DocType order when no row applies. `page.fields` is an **overlay** on the fields
 authored there, cleared before every replay. It has no `add`, `move` or `order`, since
 ordering is the Form Layout's job; it speaks `hide`, `show`, `update`, `has` and `get`,
-and one **act**, `focus(fieldname)`.
+and one **act**, `focus(fieldname)`. The overlay reaches the panel too: one field patch
+feeds the Details form and the Side Panel layout, so `page.fields.hide('x')` hides `x` in
+both. A part beside a field is `page.form`'s to add, above.
 
 ### What `update` takes
 

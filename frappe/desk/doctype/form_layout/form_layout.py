@@ -10,12 +10,24 @@ from frappe import _
 from frappe.model.document import Document
 
 FORM_LAYOUT_TYPES = ("Details", "Side Panel", "Quick Entry")
+LAYOUT_BREAKS = ("Section Break", "Column Break", "Tab Break")
 
 
 class FormLayout(Document):
 	def validate(self):
 		self.validate_single_default()
 		self.name_layout()
+		self.validate_names_are_not_fields()
+
+	def validate_names_are_not_fields(self):
+		"""Refuse a tab or section named like a data field; a script addresses both by one name."""
+		if not self.layout:
+			return
+		fieldnames = data_fieldnames(self.dt)
+		for tab in parse_layout(self.layout):
+			refuse_field_name(_("Tab"), tab["name"], fieldnames, self.dt)
+			for section in tab["sections"]:
+				refuse_field_name(_("Section"), section["name"], fieldnames, self.dt)
 
 	def name_layout(self):
 		"""Name every container at write time, so a label edit cannot rename what a script addresses."""
@@ -159,8 +171,24 @@ def assign_names(nodes: list, kind: str):
 		taken.add(name)
 
 
+def data_fieldnames(dt: str) -> set[str]:
+	"""Every fieldname a script may hand to `page.fields`; a layout break is a section's own name."""
+	return {field.fieldname for field in frappe.get_meta(dt).fields if field.fieldtype not in LAYOUT_BREAKS}
+
+
+def refuse_field_name(kind: str, name: str, fieldnames: set[str], dt: str):
+	if name not in fieldnames:
+		return
+	frappe.throw(
+		_("{0} '{1}' has the name of a field of {2}; a script could not tell the two apart.").format(
+			kind, name, dt
+		),
+		title=_("Layout Name Is a Field"),
+	)
+
+
 def validate_unique_names(tabs: list):
-	"""Refuse a layout where two siblings share a name; one of them would be unaddressable."""
+	"""Refuse a layout where two tabs, two sections or two sibling columns share a name."""
 	for node, kind, _taken in duplicate_names(tabs):
 		frappe.throw(duplicate_message(kind, node["name"]), title=_("Duplicate Layout Name"))
 
@@ -172,8 +200,8 @@ def deduplicate_names(tabs: list):
 
 
 def duplicate_names(tabs: list):
-	"""Yield each container whose name a sibling took, before recording it, so a caller can rename it."""
-	for nodes, kind in sibling_groups(tabs):
+	"""Yield each container whose name is taken in its group, before recording it, so a caller can rename it."""
+	for nodes, kind in name_groups(tabs):
 		taken = set()
 		for node in nodes:
 			if node["name"] in taken:
@@ -181,13 +209,13 @@ def duplicate_names(tabs: list):
 			taken.add(node["name"])
 
 
-def sibling_groups(tabs: list):
+def name_groups(tabs: list):
+	"""A script addresses a section across the whole form, so sections share one group; columns stay per section."""
 	yield tabs, "tab"
-	for tab in tabs:
-		sections = tab.get("sections") or []
-		yield sections, "section"
-		for section in sections:
-			yield section.get("columns") or [], "column"
+	sections = [section for tab in tabs for section in tab.get("sections") or []]
+	yield sections, "section"
+	for section in sections:
+		yield section.get("columns") or [], "column"
 
 
 def free_name(name: str, taken: set) -> str:

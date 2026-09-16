@@ -18,9 +18,9 @@ import { readOnly, type ReadOnlyAdvice } from "./readOnly";
 import type { PageFormTab, PageFormTabPatch, PageFormTabs } from "./types";
 
 const SNAPSHOT_IS_READ_ONLY: ReadOnlyAdvice = {
-  path: "page.formTabs.get()",
+  path: "page.form.tabs.get()",
   instead:
-    "page.formTabs.hide(identity) / .show(identity) / .update(identity, { label })",
+    "page.form.tabs.hide(identity) / .show(identity) / .update(identity, { label })",
 };
 
 export interface FormTabsSurfaceHost {
@@ -32,7 +32,8 @@ export interface FormTabsSurfaceHost {
 
 type Op =
   | { verb: "hide" | "show"; identity: string }
-  | { verb: "update"; identity: string; patch: TabOverride };
+  | { verb: "update"; identity: string; patch: TabOverride }
+  | { verb: "clear" };
 
 export class FormTabsSurface implements PageFormTabs {
   // Reactive so the host's layout re-joins on a replay; shallow for the reason `FieldsSurface` gives.
@@ -63,6 +64,11 @@ export class FormTabsSurface implements PageFormTabs {
     // Named before the keys are read, so a mistyped identity is heard first.
     this.warnIfAbsent(identity, "update");
     this.record({ verb: "update", identity, patch: translate(identity, patch) });
+  }
+
+  /** Every tab the layout carries at the call; a later `show` brings one back. */
+  clear() {
+    this.record({ verb: "clear" });
   }
 
   has(identity: string) {
@@ -126,11 +132,16 @@ export class FormTabsSurface implements PageFormTabs {
   /** One override per tab, in op order. A `Map`, not an object, for the reason `FieldsSurface.fold` gives. */
   private fold(ops: Op[]): Record<string, TabOverride> {
     const overrides = new Map<string, TabOverride>();
+    const into = (identity: string) => {
+      let override = overrides.get(identity);
+      if (!override) overrides.set(identity, (override = {}));
+      return override;
+    };
     for (const op of ops) {
-      let into = overrides.get(op.identity);
-      if (!into) overrides.set(op.identity, (into = {}));
-      if (op.verb === "update") Object.assign(into, op.patch);
-      else into.hidden = op.verb === "hide";
+      if (op.verb === "clear") {
+        for (const tab of this.identified()) into(tab.identity).hidden = true;
+      } else if (op.verb === "update") Object.assign(into(op.identity), op.patch);
+      else into(op.identity).hidden = op.verb === "hide";
     }
     return Object.fromEntries(overrides);
   }
@@ -167,7 +178,7 @@ export class FormTabsSurface implements PageFormTabs {
   private warnIfAbsent(identity: string, verb: string) {
     const tabs = this.host.tabs();
     if (!tabs?.length || this.raw(identity)) return;
-    warnOnce(`page.formTabs.${verb}("${identity}") — no such tab.`);
+    warnOnce(`page.form.tabs.${verb}("${identity}") — no such tab.`);
   }
 }
 
@@ -184,8 +195,8 @@ function translate(identity: string, patch: PageFormTabPatch): TabOverride {
     }
     warnOnce(
       key === "hidden"
-        ? `page.formTabs.update("${identity}", { hidden }) — use hide()/show(); dropped.`
-        : `page.formTabs.update("${identity}", { ${key} }) — not a tab property a script may set; dropped.`,
+        ? `page.form.tabs.update("${identity}", { hidden }) — use hide()/show(); dropped.`
+        : `page.form.tabs.update("${identity}", { ${key} }) — not a tab property a script may set; dropped.`,
     );
   }
   return translated;
