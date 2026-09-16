@@ -35,41 +35,49 @@
 
 		<FrameBands v-else-if="controller" :bands="frame.between" :page="controller.page" />
 
-		<div v-if="doctype && frame.body" class="flex min-h-0 flex-1">
-			<ScrollArea class="min-h-0 flex-1">
-				<p v-if="error" class="py-5 text-sm text-ink-red-4" :class="pageGutter">
-					{{ error }}
-				</p>
+		<template v-if="doctype && frame.body">
+			<p v-if="error" class="py-5 text-sm text-ink-red-4" :class="pageGutter">
+				{{ error }}
+			</p>
 
-				<div v-else-if="controller" ref="formRoot" data-record-form>
-					<FormLayout
-						v-if="form.length"
-						v-model:doc="doc"
-						:layout="form"
-						:tab="formTab"
-						:class="formClasses"
-						@update:tab="chooseFormTab"
-						@update:activeTab="activeFormTab = $event"
-					/>
-				</div>
-			</ScrollArea>
-
-			<RecordPanel
-				v-if="controller && !error && panelShown"
-				v-model:doc="doc"
+			<BodyColumns
+				v-else-if="controller"
+				:items="bodyItems"
+				:page="controller.page"
 				:user="boot.user.name"
-				:doctype="doctype"
-				:docname="docname"
-				:controller="controller"
-				:meta="meta"
-				:docinfo="docinfo"
-				:sections="sections"
-				:disclosure="disclosure"
-				:run="runAction"
-				:reloadDocinfo="reloadDocinfo"
-				@expand="expand"
-			/>
-		</div>
+			>
+				<template #form>
+					<div ref="formRoot" data-record-form>
+						<FormLayout
+							v-if="form.length"
+							v-model:doc="doc"
+							:layout="form"
+							:tab="formTab"
+							:class="formClasses"
+							@update:tab="chooseFormTab"
+							@update:activeTab="activeFormTab = $event"
+						/>
+					</div>
+				</template>
+
+				<template #panel="{ collapsed }">
+					<RecordPanel
+						v-model:doc="doc"
+						:doctype="doctype"
+						:docname="docname"
+						:controller="controller"
+						:meta="meta"
+						:docinfo="docinfo"
+						:sections="sections"
+						:disclosure="disclosure"
+						:collapsed="collapsed"
+						:run="runAction"
+						:reloadDocinfo="reloadDocinfo"
+						@expand="expand"
+					/>
+				</template>
+			</BodyColumns>
+		</template>
 
 		<FrameBands v-if="controller" :bands="frame.after" :page="controller.page" />
 
@@ -90,7 +98,7 @@ import {
 	watch,
 } from "vue";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
-import { ScrollArea, toast } from "frappe-ui";
+import { toast } from "frappe-ui";
 import { FormLayout } from "@framework/ui/components/FormLayout";
 import { CommitKey, LinkTitlesKey } from "@framework/ui/components/Fields/types";
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
@@ -111,6 +119,7 @@ import {
 } from "@/recordPage";
 import type { UseFormLayout } from "@/recordPage/formLayoutSource/useFormLayout";
 import { routeFor } from "@/router/routeFor";
+import BodyColumns from "./record/body/BodyColumns.vue";
 import FrameBands from "./record/FrameBands.vue";
 import RecordHeader from "./record/RecordHeader.vue";
 import PageDialogs from "./record/dialogs/PageDialogs.vue";
@@ -201,6 +210,12 @@ const frame = computed(() => {
 const panelShown = computed(() => {
 	actionsVersion.value;
 	return (controller.value?.panelSections.visible().length ?? 0) > 0;
+});
+
+const bodyItems = computed(() => {
+	actionsVersion.value;
+	const items = controller.value?.body.visible() ?? [];
+	return items.filter((item) => item.name !== "panel" || panelShown.value);
 });
 
 const form = computed(() => detailsLayout.value?.layout.value ?? []);

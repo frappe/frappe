@@ -41,7 +41,11 @@
 					</div>
 				</Dropdown>
 
-				<Button v-else v-bind="bind(segment, { variant: 'ghost' })" @click="run(segment.item)" />
+				<Button
+					v-else
+					v-bind="bind(segment, { variant: 'ghost' })"
+					@click="run(segment.item)"
+				/>
 			</template>
 		</nav>
 
@@ -80,7 +84,9 @@
 				>
 					<!-- The trigger must own a box: a display:contents wrapper anchors the menu at 0,0. -->
 					<div class="flex shrink-0">
-						<Button v-bind="bind(control, { variant: 'subtle', iconRight: CHEVRON })" />
+						<Button
+							v-bind="bind(control, { variant: 'subtle', iconRight: CHEVRON })"
+						/>
 					</div>
 				</Dropdown>
 
@@ -93,13 +99,21 @@
 					<!-- The two host marks go on last: a script's props never free a clean record's Save. -->
 					<div class="flex shrink-0">
 						<Button
-							v-bind="{ ...bind(control, { variant: 'solid' }), disabled: !dirty, loading: saving }"
+							v-bind="{
+								...bind(control, { variant: 'solid' }),
+								disabled: !dirty,
+								loading: saving,
+							}"
 							@click="run(control.item)"
 						/>
 					</div>
 				</Tooltip>
 
-				<Button v-else v-bind="bind(control, { variant: 'subtle' })" @click="run(control.item)" />
+				<Button
+					v-else
+					v-bind="bind(control, { variant: 'subtle' })"
+					@click="run(control.item)"
+				/>
 			</template>
 		</div>
 	</div>
