@@ -10,12 +10,24 @@ from frappe import _
 from frappe.model.document import Document
 
 FORM_LAYOUT_TYPES = ("Details", "Side Panel", "Quick Entry")
+LAYOUT_BREAKS = ("Section Break", "Column Break", "Tab Break")
 
 
 class FormLayout(Document):
 	def validate(self):
 		self.validate_single_default()
 		self.name_layout()
+		self.validate_names_are_not_fields()
+
+	def validate_names_are_not_fields(self):
+		"""Refuse a tab or section named like a data field; a script addresses both by one name."""
+		if not self.layout:
+			return
+		fieldnames = data_fieldnames(self.dt)
+		for tab in parse_layout(self.layout):
+			refuse_field_name(_("Tab"), tab["name"], fieldnames, self.dt)
+			for section in tab["sections"]:
+				refuse_field_name(_("Section"), section["name"], fieldnames, self.dt)
 
 	def name_layout(self):
 		"""Name every container at write time, so a label edit cannot rename what a script addresses."""
@@ -157,6 +169,22 @@ def assign_names(nodes: list, kind: str):
 			name = f"{name}_{index}"
 		node["name"] = name
 		taken.add(name)
+
+
+def data_fieldnames(dt: str) -> set[str]:
+	"""Every fieldname a script may hand to `page.fields`; a layout break is a section's own name."""
+	return {field.fieldname for field in frappe.get_meta(dt).fields if field.fieldtype not in LAYOUT_BREAKS}
+
+
+def refuse_field_name(kind: str, name: str, fieldnames: set[str], dt: str):
+	if name not in fieldnames:
+		return
+	frappe.throw(
+		_("{0} '{1}' has the name of a field of {2}; a script could not tell the two apart.").format(
+			kind, name, dt
+		),
+		title=_("Layout Name Is a Field"),
+	)
 
 
 def validate_unique_names(tabs: list):

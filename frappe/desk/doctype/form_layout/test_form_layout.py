@@ -27,6 +27,15 @@ class TestFormLayout(IntegrationTestCase):
 		make_layout().insert()
 		self.assertRaises(frappe.ValidationError, make_layout().insert)
 
+	def test_refuses_a_section_or_tab_named_like_a_field(self):
+		section = [{"sections": [{"name": "title", "columns": [{"fields": ["content"]}]}]}]
+		self.assertRaises(frappe.ValidationError, make_layout(layout=json.dumps(section)).insert)
+		tab = [{"name": "public", "sections": [{"columns": [{"fields": ["content"]}]}]}]
+		self.assertRaises(frappe.ValidationError, make_layout(layout=json.dumps(tab)).insert)
+		# A break's fieldname is the section's own, as the meta fallback names it.
+		own = [{"sections": [{"name": "seen_by_section", "columns": [{"fields": ["content"]}]}]}]
+		make_layout(layout=json.dumps(own)).insert()
+
 	def test_conditional_rows_coexist_with_default(self):
 		make_layout().insert()
 		make_layout(condition="doc.public").insert()
