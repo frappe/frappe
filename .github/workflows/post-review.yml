@@ -39,6 +39,7 @@ jobs:
           printf '%s' "$REVIEW_B64" | base64 -d > review.json
           jq -e '(.event == "COMMENT" or .event == "REQUEST_CHANGES") and (.body | type == "string") and (.comments | type == "array")' review.json > /dev/null
           if [ -n "$REVIEW_ID" ]; then
+            jq -e '.event == "COMMENT"' review.json > /dev/null || { echo "an update replaces only the body; the event must be COMMENT" >&2; exit 1; }
             jq '{body: .body}' review.json > payload.json
             gh api -X PUT "repos/${{ github.repository }}/pulls/$PR/reviews/$REVIEW_ID" --input payload.json --jq '.html_url'
           else
