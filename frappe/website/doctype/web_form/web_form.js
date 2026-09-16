@@ -642,21 +642,28 @@ class GetFieldsDialog {
 	}
 
 	add_row(df, selected) {
-		return this.frm.add_child("web_form_fields", {
-			fieldname: df.fieldname,
-			label: df.label,
-			fieldtype: get_web_form_fieldtype(df),
-			options: df.options,
-			reqd: df.reqd,
-			default: df.default,
-			read_only: df.read_only,
-			precision: df.precision,
-			placeholder: df.placeholder,
-			max_length: df.length,
-			description: df.description,
-			...resolve_field_dependencies(df, selected),
-		});
+		return this.frm.add_child("web_form_fields", get_web_form_field_values(df, selected));
 	}
+}
+
+// Get Fields and the builder's picker both add a field with these values. A condition is
+// kept only if `fieldnames` has every field it reads. Fields already on the form are not
+// revisited, so adding a field later does not restore a condition dropped earlier.
+function get_web_form_field_values(df, fieldnames) {
+	return {
+		fieldname: df.fieldname,
+		label: df.label,
+		fieldtype: get_web_form_fieldtype(df),
+		options: df.options,
+		reqd: df.reqd,
+		default: df.default,
+		read_only: df.read_only,
+		precision: df.precision,
+		placeholder: df.placeholder,
+		max_length: df.length,
+		description: df.description,
+		...resolve_field_dependencies(df, fieldnames),
+	};
 }
 
 function get_fields_for_doctype(doctype) {
@@ -706,7 +713,6 @@ function render_form_builder(frm) {
 	// a mounted builder falls through, so clearing doc_type blanks its field picker
 	if (!frm.doc.doc_type && !mounted_here) return;
 
-	// not init(true) here: it re-runs watch_changes() and stacks a duplicate watchEffect
 	if (mounted_here) {
 		builder.docname = frm.doc.name;
 		builder.doctype = frm.doc.doc_type;
@@ -750,6 +756,7 @@ function render_form_builder(frm) {
 			customize: false,
 			is_web_form: true,
 			tab_fieldname: "form_builder_tab",
+			get_source_field_values: get_web_form_field_values,
 		});
 		frappe.web_form_builder.docname = frm.doc.name;
 		frm._web_form_builder_loading = false;
