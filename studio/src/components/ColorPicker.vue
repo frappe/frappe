@@ -1,23 +1,23 @@
 <!-- Extracted from Builder, modified later -->
 <template>
-	<Popover transition="default" :placement="placement" class="!block w-full" popoverClass="!min-w-fit">
-		<template #target="{ togglePopover, isOpen }">
-			<slot
-				name="target"
-				:togglePopover="
-					() => {
-						togglePopover()
-						setSelectorPosition(modelColor)
-					}
-				"
-				:isOpen="isOpen"
-			></slot>
+	<Popover v-model:open="isOpen" trigger="manual" :side="side" :align="align" bare>
+		<template #trigger>
+			<div class="w-full">
+				<slot name="target" :togglePopover="togglePopover" :isOpen="isOpen"></slot>
+			</div>
 		</template>
-		<template #body="{ close }">
+		<template #default>
 			<div class="flex w-[200px] flex-col rounded-4 bg-surface-base shadow-lg">
-				<Tabs v-if="showTokens" :tabs="[{ label: 'Custom' }, { label: 'Tokens' }]" v-model="activeTab"></Tabs>
+				<Tabs
+					v-if="showTokens"
+					:tabs="[
+						{ label: 'Custom', value: 'custom' },
+						{ label: 'Tokens', value: 'tokens' },
+					]"
+					v-model="activeTab"
+				></Tabs>
 				<div
-					v-show="!showTokens || activeTab === 0"
+					v-show="!showTokens || activeTab === 'custom'"
 					ref="colorPicker"
 					class="rounded-b-6 bg-surface-base p-3"
 				>
@@ -97,7 +97,7 @@
 						</div>
 					</div>
 				</div>
-				<div v-show="showTokens && activeTab === 1" class="p-1">
+				<div v-show="showTokens && activeTab === 'tokens'" class="p-1">
 					<ListBox
 						:borderLess="true"
 						:options="tokens"
@@ -142,31 +142,27 @@ const props = withDefaults(
 		modelValue: HashString | RGBString | null
 		property?: "backgroundColor" | "borderColor" | "textColor"
 		showTokens?: boolean
-		placement?:
-			| "bottom-start"
-			| "top-start"
-			| "top-end"
-			| "bottom-end"
-			| "right-start"
-			| "right-end"
-			| "left-start"
-			| "left-end"
-			| "bottom"
-			| "top"
-			| "right"
-			| "left"
+		side?: "top" | "right" | "bottom" | "left"
+		align?: "start" | "center" | "end"
 	}>(),
 	{
 		modelValue: null,
-		placement: "bottom-start",
+		side: "bottom",
+		align: "start",
 		showTokens: true,
 	},
 )
 
-const activeTab = ref(1)
+const activeTab = ref("tokens")
+const isOpen = ref(false)
 const modelColor = computed(() => {
 	return getRGB(props.modelValue)
 })
+
+const togglePopover = () => {
+	isOpen.value = !isOpen.value
+	setSelectorPosition(modelColor.value)
+}
 
 const emit = defineEmits(["update:modelValue"])
 

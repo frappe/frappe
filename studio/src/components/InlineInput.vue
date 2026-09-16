@@ -15,19 +15,14 @@
 		>
 			{{ label }}
 
-			<Popover trigger="hover" v-if="description" placement="top">
-				<template #target>
-					<LucideInfo class="ml-1 h-[12px] w-[12px] text-ink-gray-4" />
-				</template>
-				<template #body>
+			<Tooltip v-if="description" side="top">
+				<LucideInfo class="ml-1 h-[12px] w-[12px] text-ink-gray-4" />
+				<template #content>
 					<slot name="body">
-						<div
-							class="w-fit max-w-52 rounded-4 bg-surface-gray-9 px-2 py-1 text-center text-xs text-ink-base shadow-xl"
-							v-html="description"
-						></div>
+						<div class="max-w-52 text-center" v-html="description"></div>
 					</slot>
 				</template>
-			</Popover>
+			</Tooltip>
 		</InputLabel>
 		<Autocomplete
 			v-if="type === 'autocomplete'"
@@ -62,7 +57,7 @@
 
 <script setup lang="ts">
 import { isNumber } from "@tiptap/vue-3"
-import { Popover } from "frappe-ui"
+import { Tooltip } from "frappe-ui"
 import { computed, StyleValue, useAttrs } from "vue"
 import { isDynamicValue } from "@/utils/code"
 import { extractNumberAndUnit, normalizeValueWithUnits } from "@/utils/helpers"

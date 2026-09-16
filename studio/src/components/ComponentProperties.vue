@@ -14,14 +14,14 @@
 					<Combobox
 						:key="Object.keys(block?.componentSlots || {}).length"
 						:options="availableSlotOptions"
-						:allowCustomValue="true"
 						placeholder="Search or add a slot"
 						@update:modelValue="(slotName: string) => addSlot(slotName)"
 						align="end"
 					>
-						<template #trigger="{ togglePopover }">
-							<Button @click="togglePopover" size="sm" variant="ghost" icon="lucide-plus" />
+						<template #trigger>
+							<Button size="sm" variant="ghost" icon="lucide-plus" />
 						</template>
+						<template #item-add-slot="{ query }">Add "{{ query.trim() }}"</template>
 					</Combobox>
 				</template>
 
@@ -34,7 +34,7 @@
 					>
 						<div class="flex min-w-0 items-center gap-1.5">
 							<Tooltip
-								placement="left"
+								side="left"
 								:hoverDelay="0"
 								:text="isDynamicSlot(slotName) ? 'Dynamic slot' : 'Standard slot'"
 							>
@@ -155,12 +155,20 @@ watchEffect(async () => {
 	declaredSlots.value = slots.map((slot) => slot.name)
 })
 
-type SlotOption = { label: string; value: string }
-const availableSlotOptions = computed<SlotOption[]>(() =>
-	declaredSlots.value
+const availableSlotOptions = computed(() => [
+	...declaredSlots.value
 		.filter((name) => !props.block?.getSlot(name))
 		.map((name) => ({ label: name, value: name })),
-)
+	{
+		type: "custom" as const,
+		key: "add-slot",
+		label: "Add slot",
+		slot: "add-slot",
+		condition: ({ query }: { query: string }) =>
+			Boolean(query.trim()) && !declaredSlots.value.includes(query.trim()),
+		onClick: ({ query }: { query: string }) => addSlot(query),
+	},
+])
 
 const addSlot = (slotName: string) => {
 	if (!slotName) return

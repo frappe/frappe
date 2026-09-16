@@ -4,7 +4,7 @@
 		<div
 			class="flex h-full w-12 flex-col items-center space-y-2 border-r border-outline-elevation-2 bg-surface-base p-3"
 		>
-			<Tooltip v-for="tab in sidebarMenu" :key="tab.label" placement="right" :text="tab.label">
+			<Tooltip v-for="tab in sidebarMenu" :key="tab.label" side="right" :text="tab.label">
 				<Button
 					:icon="tab.icon"
 					size="md"

@@ -19,15 +19,17 @@
 					<Popover
 						v-for="(input, index) in componentInputs"
 						:key="input.input_name"
-						:show="showEditPopover && editingIndex === index"
-						@update:show="
-							(show: boolean) => {
-								if (!show) cancelEdit()
+						:open="showEditPopover && editingIndex === index"
+						@update:open="
+							(open: boolean) => {
+								if (!open) cancelEdit()
 							}
 						"
-						placement="bottom-center"
+						trigger="manual"
+						side="bottom"
+						align="center"
 					>
-						<template #target>
+						<template #trigger>
 							<div
 								class="group flex flex-1 cursor-pointer justify-between rounded-4 border border-outline-gray-2 px-2 py-1 hover:bg-surface-gray-1"
 								@click="editInput(input, index)"
@@ -44,7 +46,7 @@
 								</button>
 							</div>
 						</template>
-						<template #body-main>
+						<template #default>
 							<div
 								class="w-64 space-y-4 p-4"
 								v-if="editingInput && editingIndex === index"

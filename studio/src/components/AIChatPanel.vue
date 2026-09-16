@@ -166,17 +166,16 @@
 
 			<div class="mt-2 flex items-center justify-between gap-2">
 				<div class="flex items-center gap-0.5">
-					<Popover placement="top-start" :offset="6">
-						<template #target="{ togglePopover }">
+					<Popover side="top" align="start" :offset="6" bare>
+						<template #trigger>
 							<button
 								class="flex h-7 max-w-[9rem] items-center gap-1.5 rounded-4 px-1.5 text-ink-gray-5 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-8"
-								@click="togglePopover"
 							>
 								<LucideCpu class="h-3.5 w-3.5 shrink-0" />
 								<span class="truncate text-xs">{{ modelLabel }}</span>
 							</button>
 						</template>
-						<template #body="{ close }">
+						<template #default="{ close }">
 							<div class="min-w-40 rounded-6 border border-outline-gray-2 bg-surface-base py-1 shadow-lg">
 								<button
 									v-for="option in modelOptions"
@@ -213,12 +212,12 @@
 					<input ref="imageInput" type="file" accept="image/*" class="hidden" @change="onImageSelected" />
 				</div>
 
-				<Button v-if="loading" variant="subtle" label="Stop" icon="square" @click="stop" />
+				<Button v-if="loading" variant="subtle" label="Stop" icon="lucide-square" @click="stop" />
 				<Button
 					v-else
 					variant="solid"
 					:label="isModifyMode ? 'Edit' : 'Generate'"
-					icon="arrow-up"
+					icon="lucide-arrow-up"
 					:disabled="!prompt.trim() && !imagePreviewUrl"
 					@click="generate"
 				/>
