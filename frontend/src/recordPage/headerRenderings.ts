@@ -1,5 +1,6 @@
 // How the header's one flat list becomes its two zones, and what happens when the
 // right zone asks for more top-level controls than fit.
+import { forwardedProps } from "./drawnProps";
 import { Surface, type ResolvedItem } from "./surface";
 import { HEADER_ITEM_KEYS } from "./types";
 import type { HeaderItem, HeaderZone, Position } from "./types";
@@ -16,6 +17,10 @@ export const MAX_CONTAINER_DEPTH = 2;
 /** One row of a rendered list: an action, or a container holding more rows. */
 export interface HeaderNode {
   item: HeaderItem;
+  /** The script that owns the item, or `builtin`; the props warning names it. */
+  source: string;
+  /** The item's `props` as the menu option declares them; set once the row is placed in a menu. */
+  props: Record<string, any>;
   /** Set when this row holds others; absent on a plain action row. */
   container?: ContainerDisplay;
   /** Set when this container could not render where declared; it is then a band of `⋯`, never a control. */
@@ -23,11 +28,18 @@ export interface HeaderNode {
   members: HeaderNode[];
 }
 
-/** A control the host draws in the row itself: a crumb, a button, or a dropdown. */
+/** A control the host draws in the row itself; `props` are filtered to `Button`'s except a component's. */
 export type HeaderControl =
   | { kind: "crumb"; item: HeaderItem }
-  | { kind: "button"; item: HeaderItem }
-  | { kind: "dropdown"; item: HeaderItem; members: HeaderNode[] };
+  | { kind: "button"; item: HeaderItem; source: string; props: Record<string, any> }
+  | {
+      kind: "dropdown";
+      item: HeaderItem;
+      source: string;
+      props: Record<string, any>;
+      members: HeaderNode[];
+    }
+  | { kind: "component"; item: HeaderItem; source: string; props: Record<string, any> };
 
 /** One band of the `⋯` menu; it shows a heading iff its container was declared. */
 export interface HeaderBand {
@@ -43,46 +55,93 @@ export interface HeaderProjection {
   bands: HeaderBand[];
 }
 
+/** Whether the row has nothing to draw, so the host supplies no row at all. */
+export function isEmptyHeader(projection: HeaderProjection) {
+  return !projection.left.length && !projection.controls.length && !projection.bands.length;
+}
+
 /** An item's zone, with the default applied; a member sits wherever its container does. */
 export function zoneOf(item: HeaderItem): HeaderZone {
   return item.zone === "left" ? "left" : "right";
 }
 
-/** Both zones from the resolved list, not the visible one: a hidden container takes its members with it. */
+/** Both zones from the resolved list, not the visible one; `pinned` names controls that keep a slot. */
 export function projectHeader(
   resolved: ResolvedItem<HeaderItem>[],
-  budget: number
+  budget: number,
+  pinned: readonly string[] = []
 ): HeaderProjection {
   if (import.meta.env.DEV) for (const entry of resolved) warnItem(entry.item);
-  const items = surviving(resolved);
-  const containers = containersOf(items);
-  const tree = prune(build(items, containers));
+  const entries = surviving(resolved);
+  const containers = containersOf(entries.map((entry) => entry.item));
+  const tree = prune(build(entries, containers));
   const right = tree.filter((node) => zoneOf(node.item) === "right");
   // An empty dropdown is a button that opens nothing, so it is dropped before the budget applies.
   const controls = right
     .filter(isControl)
     .map(asControl)
-    .filter((control) => control.kind === "button" || control.members.length);
-  const kept = Math.max(budget, 0);
+    .filter((control) => control.kind !== "dropdown" || control.members.length);
+  const { kept, demoted } = fit(controls, budget, pinned);
   return {
     left: leftControls(tree.filter((node) => zoneOf(node.item) === "left")),
-    controls: controls.slice(0, kept),
-    bands: [...demotedBands(controls.slice(kept)), ...menuBands(right)],
+    controls: kept,
+    bands: [...demotedBands(demoted), ...menuBands(right)],
   };
+}
+
+// A pinned control is never demoted; the rest demote from the end, in order, once the pinned
+// ones have taken their slots. A component cannot live in `⋯`, so past the budget it is dropped.
+function fit(controls: HeaderControl[], budget: number, pinned: readonly string[]) {
+  const isPinned = (control: HeaderControl) => pinned.includes(control.item.name);
+  const free = Math.max(budget - controls.filter(isPinned).length, 0);
+  let taken = 0;
+  const kept: HeaderControl[] = [];
+  const demoted: HeaderControl[] = [];
+  for (const control of controls) {
+    if (isPinned(control) || taken++ < free) kept.push(control);
+    else if (control.kind === "component") warnDroppedComponent(control.item);
+    else demoted.push(control);
+  }
+  return { kept, demoted };
 }
 
 // A section has no band to title on the left, so its members render in its place.
 function leftControls(nodes: HeaderNode[]): HeaderControl[] {
   return nodes.flatMap((node): HeaderControl[] => {
     if (node.container === "section") return leftControls(node.members);
-    if (node.container === "dropdown")
-      return [{ kind: "dropdown", item: node.item, members: node.members }];
+    if (node.container === "dropdown") return [asDropdown(node)];
+    if (node.item.component) return [asComponent(node)];
     if (node.item.display === "crumb") return [{ kind: "crumb", item: node.item }];
-    return [{ kind: "button", item: node.item }];
+    return [asButton(node)];
   });
 }
 
+function asButton(node: HeaderNode): HeaderControl {
+  return { kind: "button", item: node.item, source: node.source, props: buttonProps(node) };
+}
+
+function asDropdown(node: HeaderNode): HeaderControl {
+  return {
+    kind: "dropdown",
+    item: node.item,
+    source: node.source,
+    props: buttonProps(node),
+    members: menuRows(node.members),
+  };
+}
+
+// Unfiltered: the engine cannot know what a script's own component declares.
+function asComponent(node: HeaderNode): HeaderControl {
+  return { kind: "component", item: node.item, source: node.source, props: { ...node.item.props } };
+}
+
+function buttonProps(node: HeaderNode) {
+  return forwardedProps("button", node.item, node.source);
+}
+
+// A component is drawn by itself, so `display` and `group` are not read off it.
 function containerDisplay(item: HeaderItem): ContainerDisplay | undefined {
+  if (item.component) return undefined;
   if (item.display === "dropdown" || item.display === "section")
     return item.display;
   return undefined;
@@ -96,7 +155,7 @@ function containersOf(items: HeaderItem[]) {
 }
 
 /** The items a hidden container has not taken with it; a `group` naming a plain item is no floor. */
-function surviving(resolved: ResolvedItem<HeaderItem>[]): HeaderItem[] {
+function surviving(resolved: ResolvedItem<HeaderItem>[]): ResolvedItem<HeaderItem>[] {
   const containers = containersOf(resolved.map((entry) => entry.item));
   const hidden = new Set(
     resolved.filter((entry) => entry.hidden).map((entry) => entry.item.name)
@@ -111,9 +170,7 @@ function surviving(resolved: ResolvedItem<HeaderItem>[]): HeaderItem[] {
     }
     return false;
   };
-  return resolved
-    .filter((entry) => !hidden.has(entry.item.name) && !buried(entry.item))
-    .map((entry) => entry.item);
+  return resolved.filter((entry) => !hidden.has(entry.item.name) && !buried(entry.item));
 }
 
 /**
@@ -162,22 +219,25 @@ function placeContainer(
   return { group, clamped: true };
 }
 
-/** The container an item's `group` names, if one was declared. */
+/** The container an item's `group` names, if one was declared; a component sits in none. */
 function declaredGroup(
   item: HeaderItem,
   containers: Map<string, HeaderItem>
 ) {
+  if (item.component) return undefined;
   return item.group && containers.has(item.group) ? item.group : undefined;
 }
 
 /** `group: 'x'` puts an item inside the item named `x`; an undeclared `x` synthesises an anonymous container. */
-function build(items: HeaderItem[], containers: Map<string, HeaderItem>) {
+function build(entries: ResolvedItem<HeaderItem>[], containers: Map<string, HeaderItem>) {
   const nodes = new Map<string, HeaderNode>();
   const top: HeaderNode[] = [];
   const parents: (string | undefined)[] = [];
-  for (const item of items) {
+  for (const { item, source } of entries) {
     const node: HeaderNode = {
       item,
+      source,
+      props: {},
       container: containerDisplay(item),
       members: [],
     };
@@ -191,7 +251,7 @@ function build(items: HeaderItem[], containers: Map<string, HeaderItem>) {
     parents.push(placed.group);
   }
   // A container is placed by its own item, never by its first member.
-  items.forEach((item, index) => {
+  entries.forEach(({ item }, index) => {
     const node = nodes.get(item.name)!;
     const parent = parents[index];
     if (parent) nodes.get(parent)!.members.push(node);
@@ -213,24 +273,25 @@ function prune(nodes: HeaderNode[]): HeaderNode[] {
   });
 }
 
-/** A top-level control: a bare button, or a dropdown that renders as one. */
+/** A top-level control: a bare button, a dropdown that renders as one, or the item's own component. */
 function isControl(node: HeaderNode) {
   if (node.clamped) return false;
+  if (node.item.component) return true;
   return node.item.display === "button" || node.container === "dropdown";
 }
 
 function asControl(node: HeaderNode): HeaderControl {
-  return node.container === "dropdown"
-    ? { kind: "dropdown", item: node.item, members: node.members }
-    : { kind: "button", item: node.item };
+  if (node.item.component) return asComponent(node);
+  return node.container === "dropdown" ? asDropdown(node) : asButton(node);
 }
 
 // A demoted control keeps a band of its own, ahead of the built-ins. Banded by its
 // own name, not its `group`, so it does not read as a member of a dropdown demoted beside it.
+// A demoted item is drawn by the menu option now, so its props are read against that.
 function demotedBands(controls: HeaderControl[]): HeaderBand[] {
   return controls.map((control) =>
-    control.kind === "button"
-      ? { group: control.item.name, items: [row(control.item)] }
+    control.kind !== "dropdown"
+      ? { group: control.item.name, items: [row(control)] }
       : {
           group: control.item.name,
           label: control.item.label,
@@ -239,15 +300,31 @@ function demotedBands(controls: HeaderControl[]): HeaderBand[] {
   );
 }
 
-function row(item: HeaderItem): HeaderNode {
-  return { item, members: [] };
+function row(control: HeaderControl & { source: string }): HeaderNode {
+  return menuRow({ item: control.item, source: control.source, props: {}, members: [] });
 }
 
 /** A band's rows: a section cannot keep its title inside a band, so it flattens in place. */
 function bandRows(nodes: HeaderNode[]): HeaderNode[] {
   return nodes.flatMap((node) =>
-    node.container === "section" ? bandRows(node.members) : [node]
+    node.container === "section" ? bandRows(node.members) : [menuRow(node)]
   );
+}
+
+/** A dropdown control's content keeps its sections, so only the rows inside them are read. */
+function menuRows(nodes: HeaderNode[]): HeaderNode[] {
+  return nodes.map((node) => {
+    if (node.container !== "section") return menuRow(node);
+    node.members = menuRows(node.members);
+    return node;
+  });
+}
+
+// Rows are read once the list has settled, so a button demoted into `⋯` is read as a menu row.
+function menuRow(node: HeaderNode): HeaderNode {
+  node.props = forwardedProps("menuOption", node.item, node.source);
+  if (node.container === "dropdown") node.members = menuRows(node.members);
+  return node;
 }
 
 // Bands are derived by adjacency, except where an author declared a container:
@@ -268,8 +345,8 @@ function menuBands(top: HeaderNode[]): HeaderBand[] {
     const group = node.item.group ?? "actions";
     const last = bands[bands.length - 1];
     if (last?.group === group && last.label === undefined)
-      last.items.push(node);
-    else bands.push({ group, items: [node] });
+      last.items.push(menuRow(node));
+    else bands.push({ group, items: [menuRow(node)] });
   }
   return bands;
 }
@@ -283,7 +360,7 @@ export function renderingOf(item: HeaderItem, items: HeaderItem[]): string {
   const group = declaredGroup(item, containers);
   if (group) return `container:${group}`;
   if (zoneOf(item) === "left") return "left";
-  if (item.display === "button" || item.display === "dropdown") return "row";
+  if (item.component || item.display === "button" || item.display === "dropdown") return "row";
   return "menu";
 }
 
@@ -364,6 +441,7 @@ function describe(item: HeaderItem, items: HeaderItem[]) {
     return `an entry in the “${container.label}” ${kind}`;
   }
   if (zoneOf(item) === "left") return "an item in the left zone";
+  if (item.component) return "a component control";
   if (item.display === "button") return "a top-level button";
   if (item.display === "dropdown") return `the “${item.label}” dropdown button`;
   return "an entry in the ⋯ menu";
@@ -383,6 +461,13 @@ export function resetHeaderWarnings(): void {
   warned.clear();
 }
 
+function warnDroppedComponent(item: HeaderItem) {
+  warnOnce(
+    `header: '${item.name}' is a component past the right zone's budget — ` +
+      `a component cannot live in ⋯, so it is not drawn; hide or move a control to make room.`
+  );
+}
+
 function warnClamp(item: HeaderItem, depth: number) {
   const where =
     depth === Infinity
@@ -400,6 +485,19 @@ function warnItem(item: HeaderItem) {
   const display = item.display;
   // Read as a string: the index signature lets any value through the type.
   const zone = item.zone as string | undefined;
+  if (item.component) {
+    if (display)
+      warnOnce(
+        `header: '${item.name}' has a component and display: '${display}' — ` +
+          `a component draws itself, so display is ignored.`
+      );
+    if (item.group)
+      warnOnce(
+        `header: '${item.name}' has a component and group: '${item.group}' — ` +
+          `a component cannot live in a menu, so group is ignored; it is a control in its zone.`
+      );
+  }
+  if (item.component) return;
   if (display && !containerDisplay(item) && display !== "button" && display !== "crumb")
     warnOnce(
       `header: '${item.name}' has display: '${display}' — expected 'button', ` +

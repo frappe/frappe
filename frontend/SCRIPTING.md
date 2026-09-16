@@ -32,9 +32,13 @@ export default {
 The row is **one flat list** of items, drawn in **two zones**. Every crumb, button, menu
 entry and `Save` is an item on it, so every one of them has a name a script can reach.
 
-The surface speaks the seven verbs: `add`, `hide`, `show`, `update`, `move`, `has`,
-`order`. `add` takes one item or an array, and a `position` of `{ before }` or
-`{ after }` naming another item; an anchor that names nothing appends.
+The surface speaks the eight verbs: `add`, `hide`, `show`, `update`, `move`, `has`,
+`order`, `clear`. `add` takes one item or an array, and a `position` of `{ before }` or
+`{ after }` naming another item; an anchor that names nothing appends. `clear` hides
+every item present at the call, built-in or added by an earlier script; it is an op in
+source order like `hide`, so a later `add` draws, a later `show(name)` brings one item
+back, and the items stay addressable. The same verb is on `page.panelSections`,
+`page.tabs` and `page.quickActions`.
 
 ### An item
 
@@ -48,12 +52,21 @@ The surface speaks the seven verbs: `add`, `hide`, `show`, `update`, `move`, `ha
 | `run` | `(page) => any`. A crumb or button with one runs it; `run` wins over `href`. |
 | `group` | The container this sits in. A member sits in its container's zone. A name no item declares forms a band of its own in `⋯`, with no heading. |
 | `icon` | `lucide-<name>`, any of the shell's lucide icons; the page draws one the bundle never used from its sprite. |
+| `component` | A Vue component that draws the item itself, as a panel section's does. It is a control in its zone and receives `{ ...props, page }`. |
+| `props` | Forwarded to whatever draws the item, filtered to what that thing declares. A control in the row (`display: 'button'`, a `display: 'dropdown'` trigger, `Save`) is drawn by frappe-ui's `Button`: `theme`, `size`, `variant`, `iconLeft`, `iconRight`, `tooltip`, `loading`, `loadingText`, `disabled`, `route`, `link`, `type`, plus `class`; not `style`. A row in a menu (an entry in `⋯`, a member of a dropdown, a button demoted into `⋯`) is drawn by the menu option: `description`, `selected`, `disabled`, `theme`, `condition`, `route`. An item's own `component` receives `{ ...props, page }` unfiltered. A key the drawer does not declare is dropped, and a development build warns once, naming the source, the item and the key. `label` and `icon` go on the item, not in `props`. With `run` or `href` on the item, `route` and `link` in `props` are dropped. A script's `props` beat the host's defaults, except `Save`'s `disabled` (the dirty flag) and `loading` (a save in flight). |
 | any other key | Not read: dropped from the item on `add` and `update`, and a development build warns once, naming the item and the key. The same holds on `page.quickActions`, `page.tabs` and `page.panelSections`. |
 
 `zone` and `display` are orthogonal: a favourite star is `{ zone: 'left', display: 'button' }`.
 A `section` on the left has no menu to title a band in, so its members render in its
 place. A `crumb` on the right draws nowhere, so it lands in `⋯`. Both warn in a
 development build.
+
+A `component` is a control in either zone. On the left its wrapper is `flex-1 min-w-0`:
+a sole component fills the row, and one between the crumbs and a button takes the spare
+width, so that button sits at the zone's far end; the crumbs keep their collapse rule.
+On the right its wrapper is `shrink-0` and it spends one of the zone's slots; past the
+budget it is not drawn, and a development build warns, since a component cannot live in
+`⋯`. `display` and `group` beside a `component` are ignored, each with a warning.
 
 ### The built-ins
 
@@ -64,22 +77,52 @@ The generated page seeds these items, in this order:
 | `doctype` | left | The doctype's crumb; links to the list. |
 | `record` | left | The record's crumb: its title field, or its name. |
 | `favourite` | left | The star, after the crumbs: toggles the reader's favourite, and lists everyone who favourited the record on hover. A favourite is a `Favourite` row, read off `docinfo`; it is not desk v1's like and posts nothing on the timeline. |
-| `save` | right | The Save button. Disabled by the host while nothing has changed. |
+| `save` | right | The Save button. Disabled by the host while nothing has changed. Pinned: it spends a slot and is never demoted. |
 | `favourite_row` | right | The star's row in `⋯`: *Add to favourites* or *Remove from favourites*, whichever the star would do next. Hiding the star keeps this row, and the other way round. |
 | `copy_url` | right | A row in `⋯`: copies the record's address, as the `copy_link` quick action does. |
 | `copy_id` | right | A row in `⋯`: copies the record's name. |
 | `delete` | right | A row in `⋯`, in a band of its own, only with the delete right. Confirms, deletes, and leaves for the list. |
 
-`Save` is an ordinary item. `hide('save')` removes it, as desk v1's `frm.disable_save()`
-does. A new item with no anchor lands **after** `Save`; to sit to its left, anchor it:
+`Save` is **pinned**: it spends one of the right zone's slots and is never demoted into
+`⋯`, whatever a script adds around it. It is still an item. `hide('save')` removes it and
+frees its slot, as desk v1's `frm.disable_save()` does, and `update('save', { props })`
+restyles it, short of `disabled` and `loading`, which the host keeps. A new item with no
+anchor lands **after** `Save`; to sit to its left, anchor it:
 `page.header.add(item, { before: 'save' })`.
 
 ### Fitting
 
 The host decides how many top-level controls the right zone keeps, and a script cannot
-observe it. The generated page keeps three. Beyond that, the last control in list order
-demotes into `⋯` first, so `order()` and `move()` are the priority knob. The left zone
-has no menu and nothing in it is demoted.
+observe it. The generated page keeps three. `Save` is pinned and holds one of them while
+it is shown. The script's controls fill the rest in list order, and beyond the budget
+they demote into `⋯` from the end, so `order()` and `move()` are the priority knob.
+With four script buttons before `Save` the row reads `Right one │ Right two │ ⋯ │ Save`,
+and `⋯` holds `Right three` and `Right four`. A `component` on the right is dropped
+rather than demoted, with a warning. The left zone has no menu and nothing in it is
+demoted.
+
+When the row is empty, because every item is hidden or a script called `clear()` and
+added nothing, the page draws no row at all: no padding, no border, no `⋯`. The
+sidebar's title still draws on its own side.
+
+### A component's edges
+
+The row's padding, border and minimum height are the shell's, not the item's. They come
+from frappe-ui's `PageHeader`, which the frame mounts: a minimum height of 48px, a bottom
+border, and side padding of `--page-gutter` (12px, and 20px from `sm`). No item key
+reaches them.
+
+A component that wants the row's full width pulls itself to the edges with a negative
+margin of the same gutter, and pads itself back if it wants its content aligned with
+the crumbs:
+
+```html
+<div style="margin-inline: calc(-1 * var(--page-gutter)); padding-inline: var(--page-gutter)">…</div>
+```
+
+The style form is the one a stored script can rely on: the build never scans a stored
+script, so a utility such as `-mx-[--page-gutter]` exists only if some scanned file
+already uses it. The height is a minimum: a taller component grows the row.
 
 ### The script this design was judged by
 
@@ -128,6 +171,36 @@ export default {
 }
 ```
 
+And the items the row's ownership was settled on: a button with `props`, a component in
+each zone, and no row at all.
+
+```js
+page.header.add({
+  name: 'approve',
+  label: 'Approve',
+  icon: 'lucide-check',
+  display: 'button',
+  props: { variant: 'solid', tooltip: 'Marks the record approved' },
+  run: (page) => page.call('myapp.api.approve', { name: page.docname }),
+})
+
+// A component in each zone. Each receives { ...item.props, page }.
+const StageBadge = {
+  props: { page: Object, size: String },
+  setup: (props) => () => `Stage: ${props.page.doc.status}`,
+}
+page.header.add({ name: 'stage_badge', zone: 'left', component: StageBadge, props: { size: 'sm' } }, { after: 'record' })
+page.header.add({ name: 'owner_avatar', component: OwnerAvatar }, { before: 'save' })
+
+// Or, in a script of its own: no row at all.
+page.header.clear()
+```
+
+A stored script has an import map for `vue`, `vue-router`, `frappe-ui` and
+`@framework/ui`, so it may `import { h } from 'vue'` for a render function, or write an
+import-free one that returns a string, as `StageBadge` does. An app extension imports a
+`.vue` file. The item is the same.
+
 ## The panel: `page.panelSections`
 
 The panel is the column on the right of the record, and it is **one list**. The identity
@@ -135,7 +208,9 @@ block, the quick actions, the people rows and the sections of the doctype's Side
 layout are all items on it, so a script hides, moves or adds between any of them by name.
 Nothing above or beside the list is chrome the engine cannot name.
 
-The surface speaks the seven verbs, and two **acts**: `open(name)` and `close(name)`.
+The surface speaks the eight verbs, `clear` among them, and two **acts**: `open(name)`
+and `close(name)`. With every section hidden the page draws no panel, and the form takes
+the width.
 
 ### An item
 

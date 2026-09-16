@@ -18,20 +18,14 @@ export function bandRows(nodes: HeaderNode[], run: Run): any[] {
   return nodes.map((node) => row(node, run));
 }
 
+// The item's own keys go on last: `props` was filtered to the option's declared keys, not the engine's.
 function row(node: HeaderNode, run: Run) {
+  const base = { ...node.props, label: node.item.label, icon: node.item.icon };
   // A submenu trigger can never also be an action, which is why a container's `run` warns.
-  if (node.container === "dropdown")
-    return {
-      label: node.item.label,
-      icon: node.item.icon,
-      submenu: menuContent(node.members, run),
-    };
+  if (node.container === "dropdown") return { ...base, submenu: menuContent(node.members, run) };
   // `run` wins over `href`, as the item type promises.
-  if (!node.item.run && node.item.href)
-    return { label: node.item.label, icon: node.item.icon, route: node.item.href };
-  return {
-    label: node.item.label,
-    icon: node.item.icon,
-    onClick: () => run(node.item),
-  };
+  if (!node.item.run && node.item.href) return { ...base, route: node.item.href };
+  // A `route` in props is the link when the item has neither; the engine has dropped it otherwise.
+  if (!node.item.run && base.route) return base;
+  return { ...base, onClick: () => run(node.item) };
 }

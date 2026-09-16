@@ -217,43 +217,76 @@ callback argument straight to a dependency.** Everything a script hands `page` i
 picked apart by the engine and forwarded key by key; everything the engine hands a
 script's callback is the engine's own object.
 
-This costs something real, and the cost is deliberate. It means a new option that
-frappe-ui adds does **not** reach your script for free — somebody has to add it to
-`page` and release it. "frappe-ui got better" and "scripts got better" are unrelated
-events, on purpose.
+There is one shaped hand-through, and it is shaped on purpose. A header item's `props`
+goes to whatever draws the item, and only to the props that thing declares:
 
-What we bought for that cost is the thing a script author cannot otherwise see: an
-option whose _meaning_ a dependency changes cannot silently change what a stored Client
-Script does on an upgrade nobody reviewed. If `page` accepted the object and passed it
-on, every such change would arrive invisibly, and the author holding the script would
-have no way to tell which of their options were safe and which were borrowed.
+- a control in the row (a button, a dropdown trigger, `Save`) is drawn by frappe-ui's
+  `Button`, so `props` is filtered to `Button`'s declared props;
+- a row in a menu is drawn by the menu option, so `props` is filtered to the option's
+  declared keys;
+- an item with its own `component` is drawn by that component, and its `props` are not
+  filtered, because the engine cannot know what a component it did not write declares.
 
-A key `page` does not forward is **dropped, with a dev-mode warning naming it**. It
-does not silently do nothing.
+**The line: the engine forwards a frappe-ui component's public declared props where
+that component draws the item, and frappe-ui carries the deprecation of a renamed
+prop.**
+
+The line moved here from a stricter one, and the reason is the version reality above.
+After frappe-ui v1 its props lock, and a renamed prop keeps its old spelling for a time
+before it goes. So the change a stored script could not see, a prop whose meaning moves
+under it, is frappe-ui's to announce and phase out, not the engine's to intercept. The
+engine adds no word of its own for emphasis, a tooltip or a disabled state; a script
+says `variant: 'solid'` in `Button`'s spelling and reads `Button`'s deprecations.
+
+The trade is plain. A new prop frappe-ui declares on `Button` does reach a script's
+`props` without anyone adding it to `page`, so "frappe-ui got better" now moves a
+script's reach along with it. What a script gets for that is a vocabulary it can look up
+in frappe-ui's own documentation. What the engine keeps is the boundary: a key the
+drawing component does not declare is **dropped, with a dev-mode warning** naming the
+source, the item and the key. It does not silently do nothing. `class` is allowed on a
+`Button` control, since it reaches the button as an attribute; `style` is not. `label`
+and `icon` belong on the item, and a copy inside `props` is refused with the same
+warning.
+
+The engine owns no list of frappe-ui's props. The host reads `Button`'s declared props
+off the component, hand-lists the menu option's keys, and hands both to the engine, the
+way it hands the icon source. Every other `page` verb keeps the old rule: a key `page`
+does not read is dropped, with a dev-mode warning naming it.
 
 ### What that means for the header's menus
 
 The header renders through frappe-ui's `Menu`, which offers a good deal more than
-`display` and `group` do. The question is never *which of its keys do we pass on* —
-none, by the rule above — but **which of its capabilities the engine adopts into its
-own vocabulary**, and there the answer follows from what the engine already owns.
+`display` and `group` do. Two questions sort its capabilities.
 
 Sections and submenus are **arrangement**: the shape of a list the engine builds
-itself, which it can therefore say in its own words, with no frappe-ui key ever
-reaching a script. That is why they are in.
+itself, which it says in its own words (`display: 'section'`, `display: 'dropdown'`,
+`group`), with no frappe-ui key ever reaching a script. That is why they are in, and
+why a script does not spell them in `props`.
 
-The rest is out for the same reason, read the other way. A switch is **state**, which
-the engine neither holds nor has a verb for. A custom row component is options
-forwarding at its purest — and is deprecated upstream, so adopting it would mean
-inheriting somebody else's exit. A route duplicates what `run` already does and drags
-in navigation policy that is `page.router`'s argument, not this one. Trigger width,
-side, alignment and portal target are **host layout**, which no script has ever been
-able to set anywhere else on the page.
+Everything else falls under the declared-props line. A menu row's `props` is filtered to
+the option's declared keys: `description`, `selected`, `disabled`, `theme`, `condition`
+and `route`. A declared key is in. An undeclared one warns and is dropped.
 
-Expect that line to hold as `Menu` grows: a new frappe-ui option is not a new script
-capability, and the fact that it renders in a menu we happen to use is not an argument
-for it. There is no compiler help here either — a menu option type carries an index
-signature, so a key we do not adopt type-checks and vanishes.
+The exclusions the earlier line drew by hand now fall out of the same rule:
+
+- A switch is **state**, which the engine neither holds nor has a verb for, and it is
+  not a declared key of an action option here.
+- The custom row component is deprecated upstream and is not declared, so it stays out.
+  Adopting it would mean inheriting somebody else's exit.
+- `route` in `props` is a declared key, but it loses to `run` exactly as `href` does: an
+  item with `run` drops `route` from its binding.
+- Trigger width, side, alignment and portal target are **host layout**, which no script
+  has ever been able to set anywhere else on the page. They are the menu's keys, not the
+  option's, so no row's `props` reaches them.
+
+A menu row's `props` and a `Button`'s `props` are different lists. A button the row
+demotes into `⋯` is drawn by the menu option, so its `props` is read against the
+option's keys there: `disabled` carries over, and a `Button`-only key such as `variant`
+warns and is dropped from the demoted copy.
+
+There is no compiler help here. A menu option type carries an index signature, so a key
+the option does not declare type-checks and would vanish; that is why the host
+hand-lists the declared keys instead of reading them off the type.
 
 ### The same line, outbound
 

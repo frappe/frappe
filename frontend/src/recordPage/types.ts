@@ -47,6 +47,10 @@ export interface HeaderItem extends SurfaceItem {
   /** A path this item links to; `run` wins when both are given. */
   href?: string;
   run?: (page: RecordPageApi) => any;
+  /** Draws the item itself, as a control in either zone; `display` and `group` then do nothing. */
+  component?: Component;
+  /** Forwarded to whatever draws the item, filtered to its declared props; a `component`'s are not filtered. */
+  props?: Record<string, any>;
 }
 
 export const HEADER_ITEM_KEYS: readonly string[] = [
@@ -58,6 +62,8 @@ export const HEADER_ITEM_KEYS: readonly string[] = [
   "group",
   "href",
   "run",
+  "component",
+  "props",
 ];
 
 export interface TabCreateAction {
@@ -119,6 +125,8 @@ export interface SurfaceVerbs<Item extends SurfaceItem = SurfaceItem> {
   move(name: string, position: Position): void;
   has(name: string): boolean;
   order(names: string[]): void;
+  /** Hides every item present at the call; a later `add` draws, a later `show(name)` brings one back. */
+  clear(): void;
 }
 
 /** The tabs surface also tells a handler which tab the reader is on. */

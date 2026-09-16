@@ -102,6 +102,35 @@ describe("surface verbs", () => {
 
 // A replay used to clear the ops and re-add them a microtask later, so a keyless
 // `v-for` rebuilt the strip and lost the reader's place. These are the staged replay's rules.
+describe("clear", () => {
+	it("hides every item present at the call, and keeps each one addressable", () => {
+		const surface = new Surface();
+		builtins(surface, "email", "print");
+		surface.add({ name: "convert" });
+		surface.clear();
+		expect(names(surface)).toEqual([]);
+		expect(surface.has("email")).toBe(true);
+		expect(surface.has("convert")).toBe(true);
+	});
+
+	it("is an op in source order: a later add draws and a later show brings one back", () => {
+		const surface = new Surface();
+		builtins(surface, "email", "print");
+		surface.clear();
+		surface.add({ name: "banner" });
+		surface.show("print");
+		expect(names(surface)).toEqual(["print", "banner"]);
+	});
+
+	it("leaves the items a later source adds untouched", async () => {
+		const surface = new Surface();
+		builtins(surface, "email");
+		await withRegisteringSource("first", async () => surface.clear());
+		await withRegisteringSource("second", async () => surface.add({ name: "banner" }));
+		expect(names(surface)).toEqual(["banner"]);
+	});
+});
+
 describe("staged replay", () => {
 	it("never renders the middle of a replay", async () => {
 		const surface = new Surface();

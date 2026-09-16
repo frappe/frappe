@@ -4,10 +4,12 @@
 -->
 <template>
 	<PageFrame :scroll="false">
-		<template v-if="doctype" #header>
+		<!-- No slot when a script emptied the row: the frame then draws no row at all. -->
+		<template v-if="doctype && (!controller || !isEmptyHeader(header))" #header>
 			<RecordHeader
 				v-if="controller"
 				:projection="header"
+				:page="controller.page"
 				:dirty="dirty"
 				:saving="saving"
 				:favourites="favourites"
@@ -44,7 +46,7 @@
 			</ScrollArea>
 
 			<RecordPanel
-				v-if="controller && !error"
+				v-if="controller && !error && panelShown"
 				v-model:doc="doc"
 				:user="boot.user.name"
 				:doctype="doctype"
@@ -85,6 +87,7 @@ import { identifyTabs } from "@framework/ui/components/FormLayout/tabIdentity";
 import {
 	createRecordPage,
 	errorMessage,
+	isEmptyHeader,
 	loadClientScripts,
 	projectHeader,
 	SAVE_VETO,
@@ -153,6 +156,8 @@ const formClasses = [
 
 // The right zone keeps this many top-level controls; the rest demote into `⋯`.
 const HEADER_BUDGET = 3;
+// Save keeps its slot whatever a script adds; it is the only pinned control.
+const PINNED_CONTROLS = ["save"];
 
 // The slower of two in-flight loads must not win: `save()` would then POST the wrong record.
 let generation = 0;
@@ -171,7 +176,13 @@ const favourited = computed(() => hasFavourited(docinfo.value, boot.user.name));
 const header = computed(() => {
 	actionsVersion.value;
 	const resolved = controller.value?.header.resolve() ?? [];
-	return projectHeader(resolved, HEADER_BUDGET);
+	return projectHeader(resolved, HEADER_BUDGET, PINNED_CONTROLS);
+});
+
+// A panel with every section hidden draws nothing, on the header's precedent: the form takes the width.
+const panelShown = computed(() => {
+	actionsVersion.value;
+	return (controller.value?.panelSections.visible().length ?? 0) > 0;
 });
 
 const form = computed(() => detailsLayout.value?.layout.value ?? []);
