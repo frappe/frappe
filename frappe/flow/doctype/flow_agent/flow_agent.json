@@ -1,0 +1,156 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:title",
+ "creation": "2026-05-24 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "enabled",
+  "is_system_generated",
+  "column_break_meta",
+  "model",
+  "max_iterations",
+  "section_break_instructions",
+  "instructions",
+  "section_break_tools",
+  "tools",
+  "section_break_skills",
+  "skills",
+  "section_break_knowledge",
+  "knowledge_bases"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Enabled"
+  },
+  {
+   "description": "Defined in code and owned by it: the Desk can enable or disable the agent and switch its model, nothing else.",
+   "fieldname": "is_system_generated",
+   "fieldtype": "Check",
+   "label": "System Generated",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_meta",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Flow Model used to drive this agent.",
+   "fieldname": "model",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Model",
+   "options": "Flow Model",
+   "reqd": 1
+  },
+  {
+   "default": "50",
+   "description": "Maximum number of think → tool → think loops before the run gives up.",
+   "fieldname": "max_iterations",
+   "fieldtype": "Int",
+   "label": "Max Iterations",
+   "non_negative": 1,
+   "read_only_depends_on": "eval:doc.is_system_generated"
+  },
+  {
+   "fieldname": "section_break_instructions",
+   "fieldtype": "Section Break",
+   "label": "Instructions"
+  },
+  {
+   "description": "System message shown to the LLM. Describe the agent's role, scope, and rules.",
+   "fieldname": "instructions",
+   "fieldtype": "Long Text",
+   "ignore_xss_filter": 1,
+   "label": "Instructions",
+   "read_only_depends_on": "eval:doc.is_system_generated",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_tools",
+   "fieldtype": "Section Break",
+   "label": "Tools"
+  },
+  {
+   "description": "Flow Tools this agent can call.",
+   "fieldname": "tools",
+   "fieldtype": "Table MultiSelect",
+   "label": "Tools",
+   "options": "Flow Agent Tool",
+   "read_only_depends_on": "eval:doc.is_system_generated"
+  },
+  {
+   "fieldname": "section_break_skills",
+   "fieldtype": "Section Break",
+   "label": "Skills"
+  },
+  {
+   "description": "Flow Skills this agent can load. Their names and descriptions are listed in its prompt; the agent loads one when a task matches.",
+   "fieldname": "skills",
+   "fieldtype": "Table MultiSelect",
+   "label": "Skills",
+   "options": "Flow Agent Skill",
+   "read_only_depends_on": "eval:doc.is_system_generated"
+  },
+  {
+   "fieldname": "section_break_knowledge",
+   "fieldtype": "Section Break",
+   "label": "Knowledge"
+  },
+  {
+   "description": "Knowledge bases this agent can search. Empty means all enabled knowledge bases.",
+   "fieldname": "knowledge_bases",
+   "fieldtype": "Table MultiSelect",
+   "label": "Knowledge Bases",
+   "options": "Flow Agent Knowledge Base",
+   "read_only_depends_on": "eval:doc.is_system_generated"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-12 21:37:09.803489",
+ "modified_by": "Administrator",
+ "module": "Flow",
+ "name": "Flow Agent",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Flow User"
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

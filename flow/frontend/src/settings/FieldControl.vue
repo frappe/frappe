@@ -1,0 +1,282 @@
+<template>
+	<FormControl
+		v-if="field.type === 'readonly'"
+		:type="readonlyText.includes('\n') || readonlyText.length > 80 ? 'textarea' : 'text'"
+		variant="outline"
+		:label="field.label"
+		:description="field.description"
+		:model-value="readonlyText"
+		disabled
+	/>
+
+	<!-- the switch centred on the label and its description, not on the label alone -->
+	<label v-else-if="field.type === 'check'" class="flex items-center justify-between gap-4">
+		<span class="flex flex-col gap-1">
+			<span data-slot="label">{{ field.label }}</span>
+			<span v-if="field.description" class="text-xs text-ink-gray-5">{{
+				field.description
+			}}</span>
+		</span>
+		<Switch
+			size="sm"
+			:model-value="!!doc[field.name]"
+			:disabled="disabled"
+			@update:model-value="(value) => (doc[field.name] = value ? 1 : 0)"
+		/>
+	</label>
+
+	<div v-else-if="field.type === 'code'" class="flex flex-col gap-1">
+		<FormLabel :label="field.label" :required="field.required" />
+		<CodeEditor
+			:model-value="doc[field.name] ?? ''"
+			:language="field.language"
+			:disabled="disabled"
+			:placeholder="field.placeholder ?? ''"
+			style="--cm-max-height: 24rem"
+			@update:model-value="(value) => (doc[field.name] = value)"
+		/>
+		<span v-if="field.description" class="text-2xs text-ink-gray-5">{{
+			field.description
+		}}</span>
+	</div>
+
+	<div v-else-if="field.type === 'attach'" class="flex flex-col gap-1">
+		<FormLabel :label="field.label" :required="field.required" />
+		<div class="flex min-w-0 items-center gap-3">
+			<FileUploader
+				:file-types="fileTypes"
+				:private="true"
+				@success="(file) => (doc[field.name] = file.file_url)"
+			>
+				<template #default="{ openFileSelector, uploading, progress }">
+					<Button
+						variant="outline"
+						:loading="uploading"
+						:label="
+							uploading
+								? `Uploading ${progress}%`
+								: doc[field.name]
+								? 'Replace file'
+								: 'Upload file'
+						"
+						:disabled="disabled"
+						@click="openFileSelector"
+					/>
+				</template>
+			</FileUploader>
+			<a
+				v-if="doc[field.name]"
+				:href="doc[field.name]"
+				target="_blank"
+				class="truncate text-xs text-ink-gray-7 underline"
+			>
+				{{ fileName }}
+			</a>
+		</div>
+	</div>
+
+	<FormControl
+		v-else-if="field.type === 'link'"
+		type="combobox"
+		variant="outline"
+		:label="field.label"
+		:description="field.description"
+		:required="field.required"
+		:options="options"
+		v-model:query="linkQuery"
+		:filterable="false"
+		:loading="linksLoading"
+		:error="linksError"
+		:model-value="doc[field.name] || null"
+		:disabled="disabled"
+		placeholder="Select…"
+		@update:model-value="(value) => (doc[field.name] = value ?? '')"
+	/>
+
+	<FormControl
+		v-else-if="field.type === 'multilink'"
+		type="multiselect"
+		variant="outline"
+		:label="field.label"
+		:description="field.description"
+		:options="options"
+		v-model:query="linkQuery"
+		:filterable="false"
+		:loading="linksLoading"
+		:error="linksError"
+		:model-value="doc[field.name] ?? []"
+		:disabled="disabled"
+		placeholder="Select…"
+		@update:model-value="(value) => (doc[field.name] = value ?? [])"
+	/>
+
+	<FormControl
+		v-else-if="field.type === 'select'"
+		type="select"
+		variant="outline"
+		:label="field.label"
+		:description="field.description"
+		:required="field.required"
+		:options="field.options"
+		:model-value="doc[field.name]"
+		:disabled="disabled"
+		@update:model-value="(value) => (doc[field.name] = value)"
+	/>
+
+	<FormControl
+		v-else-if="field.type === 'textarea'"
+		type="textarea"
+		variant="outline"
+		:label="field.label"
+		:description="field.description"
+		:required="field.required"
+		:rows="field.rows ?? 4"
+		:placeholder="field.placeholder"
+		:model-value="doc[field.name] ?? ''"
+		:disabled="disabled"
+		@update:model-value="(value) => (doc[field.name] = value)"
+	/>
+
+	<!-- with a provider, its known models are offered; any other id can still be typed -->
+	<FormControl
+		v-else-if="field.type === 'model_id' && known.length"
+		type="combobox"
+		variant="outline"
+		:label="field.label"
+		:description="field.description"
+		:required="field.required"
+		:placeholder="field.placeholder"
+		v-model:query="typed"
+		:filterable="false"
+		:options="modelOptions"
+		:model-value="doc[field.name] || null"
+		:disabled="disabled"
+		@update:model-value="pickModel"
+	/>
+
+	<FormControl
+		v-else
+		:type="inputType"
+		variant="outline"
+		:label="field.label"
+		:description="field.description"
+		:required="field.required"
+		:placeholder="field.placeholder"
+		:model-value="doc[field.name] ?? ''"
+		:disabled="disabled"
+		@update:model-value="
+			(value) => (doc[field.name] = field.type === 'int' ? Number(value) || 0 : value)
+		"
+	/>
+</template>
+
+<script setup>
+import { computed, inject, ref, watch } from "vue";
+import { Button, FileUploader, FormControl, FormLabel, Switch } from "frappe-ui";
+import { CodeEditor } from "frappe-ui/experimental";
+
+import { useDebouncedValue } from "@flow/ui-core/debounce.js";
+
+import { call } from "../api/frappe.js";
+import { searchLinks } from "./links.js";
+
+const props = defineProps({
+	field: { type: Object, required: true },
+	doc: { type: Object, required: true },
+	disabled: { type: Boolean, default: false },
+});
+const page = inject("flowPage");
+
+// numbers read with separators; everything else as it is
+const readonlyText = computed(() => {
+	const value = props.doc[props.field.name];
+	if (value == null || value === "") return "";
+	return typeof value === "number" ? value.toLocaleString() : String(value);
+});
+
+const inputType = computed(
+	() => ({ int: "number", password: "password", url: "url" }[props.field.type] ?? "text")
+);
+
+// Selected values remain visible while a different query is loading.
+const linkQuery = ref("");
+const debouncedLinkQuery = useDebouncedValue(linkQuery, 150);
+const links = ref([]);
+const linksLoading = ref(false);
+const linksError = ref("");
+const options = computed(() => {
+	const value = props.doc[props.field.name];
+	const selected = Array.isArray(value) ? value : value ? [value] : [];
+	return [
+		...links.value,
+		...selected
+			.filter((name) => !links.value.some((option) => option.value === name))
+			.map((name) => ({ value: name, label: name })),
+	];
+});
+watch(
+	[() => props.field.link, debouncedLinkQuery],
+	async ([doctype, query], _, onCleanup) => {
+		let stale = false;
+		onCleanup(() => (stale = true));
+		links.value = [];
+		linksError.value = "";
+		linksLoading.value = !!doctype;
+		if (!doctype) return;
+		try {
+			const data = await searchLinks(doctype, query, props.doc.doctype);
+			if (!stale) links.value = data;
+		} catch (err) {
+			if (!stale) linksError.value = err.message;
+		} finally {
+			if (!stale) linksLoading.value = false;
+		}
+	},
+	{ immediate: true }
+);
+
+// a linked provider's known models, offered in the model id dropdown
+const known = ref([]);
+watch(
+	() => (props.field.type === "model_id" ? props.doc.provider : null),
+	async (provider) => {
+		known.value = provider
+			? await call("flow.flow.doctype.flow_model.flow_model.get_provider_models", {
+					provider,
+			  }).catch(() => [])
+			: [];
+	},
+	{ immediate: true }
+);
+// the list is filtered here, a beat after typing, rather than on every keystroke
+const typed = ref("");
+const debouncedTyped = useDebouncedValue(typed, 150);
+const modelOptions = computed(() => {
+	const q = debouncedTyped.value.trim().toLowerCase();
+	return [
+		...known.value
+			.filter((model) => !q || model.toLowerCase().includes(q))
+			.map((model) => ({ label: model, value: model })),
+		{
+			type: "custom",
+			key: "typed",
+			label: "Use the typed id",
+			condition: ({ query }) => !!query.trim() && !known.value.includes(query.trim()),
+			onClick: ({ query }) => pickModel(query.trim()),
+		},
+	];
+});
+function pickModel(value) {
+	props.doc[props.field.name] = value ?? "";
+	typed.value = "";
+}
+
+const fileTypes = computed(() =>
+	(page.state.boot.file_types ?? []).map((ext) => `.${ext}`).join(",")
+);
+const fileName = computed(() =>
+	String(props.doc[props.field.name] ?? "")
+		.split("/")
+		.pop()
+);
+</script>

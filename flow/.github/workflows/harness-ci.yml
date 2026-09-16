@@ -1,0 +1,77 @@
+name: Harness CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "harness/**"
+      - ".github/workflows/harness-ci.yml"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: harness
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39
+        with:
+          python-version: "3.14"
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run tests
+        run: uv run pytest
+
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: harness
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: harness/ui/package-lock.json
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39
+        with:
+          python-version: "3.14"
+
+      - name: Build distribution
+        run: uv build
+
+      - name: Smoke-test wheel
+        run: |
+          uvx --from ./dist/frappe_flow-*.whl flow --version
+          python -c "import glob, zipfile; wheel = glob.glob('dist/frappe_flow-*.whl')[0]; archive = zipfile.ZipFile(wheel); assert any(name.endswith('flow_harness/server/webui/index.html') for name in archive.namelist())"
+          uv tool install ./dist/frappe_flow-*.whl
+          "$(uv tool dir --bin)/flow" --version
+
+  # Single roll-up status check — make THIS the only required check in the
+  # ruleset. It aggregates the individual jobs so the required-checks list never
+  # has to be maintained. Pre-commit runs for the whole repository from linters.yml.
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: ${{ !cancelled() }}
+    steps:
+      - name: Verify all checks passed
+        run: |
+          echo "test=${{ needs.test.result }} build=${{ needs.build.result }}"
+
+          [ "${{ needs.test.result }}" = "success" ] || { echo "::error::unit tests failed"; exit 1; }
+          [ "${{ needs.build.result }}" = "success" ] || { echo "::error::package build failed"; exit 1; }
+
+          echo "All required checks passed."

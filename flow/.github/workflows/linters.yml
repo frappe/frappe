@@ -1,0 +1,46 @@
+name: Linters
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: linters-flow-${{ github.event.number }}
+  cancel-in-progress: true
+
+jobs:
+  commit-lint:
+    name: Semantic Commits
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 200
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Check commit titles
+        # npm cannot read the root package.json (yarn's link: protocol), so commitlint is
+        # installed above the checkout, where Node's module lookup still finds it. Only the
+        # PR's own line of history is checked; what a merge brings in was checked where it was made.
+        run: |
+          npm install --prefix "$GITHUB_WORKSPACE/.." @commitlint/cli @commitlint/config-conventional
+          for sha in $(git rev-list --first-parent --no-merges \
+              ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}); do
+            git log -1 --format=%B "$sha" | "$GITHUB_WORKSPACE/../node_modules/.bin/commitlint" --verbose
+          done
+
+  pre-commit:
+    name: Pre-Commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: '3.14'
+      - name: Run pre-commit
+        run: uvx pre-commit run --all-files --show-diff-on-failure
