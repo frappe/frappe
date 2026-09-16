@@ -1,53 +1,36 @@
-<!-- The record's right-hand column: `page.panelSections` as one list, resizable, and
-     collapsible to a strip that keeps the quick actions as icons. -->
+<!-- The panel column's content: `page.panelSections` as one list, or the quick actions as
+     icons when the reader shut the column to a strip. -->
 <template>
-	<PanelEdge
-		v-model:width="width"
-		v-model:dragging="dragging"
-		:open="!collapsed"
-		@toggle="collapsed = !collapsed"
-	/>
-
-	<aside
-		class="flex shrink-0 flex-col overflow-hidden border-l border-outline-gray-1"
-		:class="dragging ? '' : 'transition-[width] duration-300 ease-in-out'"
-		:style="{ width: `${collapsed ? STRIP_WIDTH : width}px` }"
-		data-record-panel
-		@transitionend.self="onTransitionEnd"
-	>
+	<div class="flex min-h-full flex-col" data-record-panel>
 		<!-- A script that hid `quick_actions` leaves the strip with the expand control alone. -->
-		<div v-if="collapsed && !closing" class="flex flex-col items-center py-3">
+		<div v-if="collapsed" class="flex flex-col items-center py-3">
 			<QuickActions v-if="controller.panelSections.isVisible('quick_actions')" vertical />
 		</div>
 
-		<div v-else class="min-h-0 flex-1 overflow-y-auto" :style="{ width: `${width}px` }">
-			<PanelLayout
-				v-model:doc="doc"
-				:surface="controller.panelSections"
-				:sections="sections"
-				:page="controller.page"
-				:isOpen="disclosure.isOpen"
-				@toggle="disclosure.toggle"
-				@expand="emit('expand', $event)"
-			/>
-		</div>
-	</aside>
+		<PanelLayout
+			v-else
+			v-model:doc="doc"
+			:surface="controller.panelSections"
+			:sections="sections"
+			:page="controller.page"
+			:isOpen="disclosure.isOpen"
+			@toggle="disclosure.toggle"
+			@expand="emit('expand', $event)"
+		/>
+	</div>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, provide, ref, toRef, watch } from "vue";
+import { provide, toRef } from "vue";
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
 import type { QuickAction, RecordPageController } from "@/recordPage";
 import { PanelContextKey, type DocInfo } from "./context";
 import type { Disclosure } from "./disclosure";
-import { STRIP_WIDTH, usePanelGeometry } from "./geometry";
-import PanelEdge from "./PanelEdge.vue";
 import PanelLayout from "./PanelLayout.vue";
 import type { LayoutSection } from "./panelEntries";
 import QuickActions from "./QuickActions.vue";
 
 const props = defineProps<{
-	user: string;
 	doctype: string;
 	docname: string;
 	controller: RecordPageController;
@@ -55,6 +38,7 @@ const props = defineProps<{
 	docinfo: DocInfo | null;
 	sections: LayoutSection[];
 	disclosure: Disclosure;
+	collapsed: boolean;
 	run: (action: QuickAction) => void;
 	reloadDocinfo: () => Promise<void>;
 }>();
@@ -62,32 +46,6 @@ const props = defineProps<{
 const emit = defineEmits<{ expand: [field: FieldNode] }>();
 
 const doc = defineModel<Record<string, any>>("doc", { required: true });
-
-const { width, collapsed } = usePanelGeometry(props.user);
-const dragging = ref(false);
-
-// The content stays mounted while the width shrinks over it, as it does when it grows.
-// The timer matches `duration-300`; the test DOM and a drag-toggle fire no transitionend.
-const CLOSE_DURATION = 300;
-const closing = ref(false);
-let settle: ReturnType<typeof setTimeout> | undefined;
-
-watch(collapsed, (value) => {
-	clearTimeout(settle);
-	closing.value = value;
-	if (value) settle = setTimeout(settled, dragging.value ? 0 : CLOSE_DURATION);
-});
-
-onBeforeUnmount(() => clearTimeout(settle));
-
-function onTransitionEnd(event: TransitionEvent) {
-	if (event.propertyName === "width") settled();
-}
-
-function settled() {
-	clearTimeout(settle);
-	closing.value = false;
-}
 
 provide(PanelContextKey, {
 	doctype: props.doctype,
