@@ -36,6 +36,8 @@ export type Boot = {
 	frappe_version: string;
 	site_name: string;
 	socketio_port: number;
+	// `bench start` serves the realtime server on its own port; nginx puts it behind the origin.
+	dev_server: boolean;
 	read_only_mode: boolean;
 	csrf_token: string;
 	setup_complete: boolean;
