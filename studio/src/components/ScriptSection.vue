@@ -20,7 +20,7 @@
 					class="flex cursor-pointer items-center rounded-4 p-1 text-ink-gray-6 hover:bg-surface-gray-4"
 					@click="handleAdd"
 				>
-					<LucidePlus class="h-3 w-3" />
+					<span class="lucide-plus h-3 w-3" />
 					<span class="ml-1 text-sm">Add Script</span>
 				</button>
 			</div>
@@ -32,7 +32,6 @@
 import { Button } from "frappe-ui"
 import Code from "@/components/Code.vue"
 import type { CompletionContext } from "@codemirror/autocomplete"
-import LucidePlus from "~icons/lucide/plus"
 
 const modelValue = defineModel<string | null>({ default: null })
 

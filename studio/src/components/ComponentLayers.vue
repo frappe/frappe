@@ -40,9 +40,9 @@
 							'!opacity-50': !element.isVisible() || isParentHidden,
 						}"
 					>
-						<component
+						<span
 							v-if="isExpandable(element)"
-							:is="isExpanded(element) ? LucideChevronDown : LucideChevronRight"
+							:class="isExpanded(element) ? 'lucide-chevron-down' : 'lucide-chevron-right'"
 							class="h-3 w-3"
 							@click.stop="toggleExpanded(element)"
 						/>
@@ -91,11 +91,14 @@
 								class="invisible cursor-pointer group-hover:visible"
 								@click.stop="element.toggleVisibilityCondition()"
 							>
-								<component :is="element.visibilityCondition ? LucideZap : LucideZapOff" class="h-3 w-3" />
+								<span
+									:class="element.visibilityCondition ? 'lucide-zap' : 'lucide-zap-off'"
+									class="h-3 w-3"
+								/>
 							</div>
-							<component
+							<span
 								v-if="!element.isRoot() && !isParentHidden"
-								:is="element.isVisible() ? LucideEye : LucideEyeOff"
+								:class="element.isVisible() ? 'lucide-eye' : 'lucide-eye-off'"
 								class="invisible mr-2 h-3 w-3 cursor-pointer group-hover:visible"
 								@click.stop="element.toggleVisibility()"
 							/>
@@ -132,9 +135,9 @@
 								class="group my-[7px] flex items-center gap-1.5 pr-[2px] font-medium"
 								:style="{ paddingLeft: `${childIndent}px` }"
 							>
-								<component
+								<span
 									v-if="isSlotExpandable(slot)"
-									:is="isSlotExpanded(slot) ? LucideChevronDown : LucideChevronRight"
+									:class="isSlotExpanded(slot) ? 'lucide-chevron-down' : 'lucide-chevron-right'"
 									class="h-3 w-3"
 									@click.stop="toggleSlotExpanded(slot)"
 								/>
@@ -176,12 +179,6 @@ import SlotIcon from "@/components/Icons/SlotIcon.vue"
 import LucideRepeat from "~icons/lucide/repeat"
 import LucidePenLine from "~icons/lucide/pen-line"
 import type { Slot } from "@/types"
-import LucideChevronDown from "~icons/lucide/chevron-down"
-import LucideChevronRight from "~icons/lucide/chevron-right"
-import LucideZap from "~icons/lucide/zap"
-import LucideZapOff from "~icons/lucide/zap-off"
-import LucideEye from "~icons/lucide/eye"
-import LucideEyeOff from "~icons/lucide/eye-off"
 
 type LayerInstance = InstanceType<typeof ComponentLayers>
 

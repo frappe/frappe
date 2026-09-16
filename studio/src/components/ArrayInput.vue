@@ -82,7 +82,7 @@
 					title="Remove"
 					class="absolute right-0 top-0 hidden -translate-y-1/2 translate-x-1/2 cursor-pointer rounded-full border border-outline-gray-2 bg-surface-base p-0.5 hover:bg-surface-gray-1 group-hover/item:block"
 				>
-					<LucideX @click="removeItem(index)" class="size-3 rounded-full" />
+					<span @click="removeItem(index)" class="lucide-x size-3 rounded-full" />
 				</div>
 			</div>
 		</template>
@@ -103,7 +103,6 @@ import InputLabel from "@/components/InputLabel.vue"
 import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import LucideGripVertical from "~icons/lucide/grip-vertical"
-import LucideX from "~icons/lucide/x"
 
 const props = defineProps<{
 	modelValue: any[]

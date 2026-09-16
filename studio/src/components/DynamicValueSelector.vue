@@ -34,7 +34,7 @@
 		<template #footer v-if="dynamicValueOptions.length > 0">
 			<div class="flex items-center gap-1 px-2" @mousedown.prevent>
 				<Tooltip text="Changing the selected variable value will change the prop value and vice versa">
-					<LucideInfo class="size-3 text-ink-gray-5" />
+					<span class="lucide-info size-3 text-ink-gray-5" />
 				</Tooltip>
 				<Switch v-model="bindVariable" label="Sync with variable" class="w-full hover:bg-transparent" />
 			</div>
@@ -58,7 +58,6 @@ import { getBindingType } from "@/utils/parseCode"
 import useCodeStore from "@/stores/codeStore"
 import Link2 from "~icons/lucide/link-2"
 import LucideCirclePlus from "~icons/lucide/circle-plus"
-import LucideInfo from "~icons/lucide/info"
 
 const props = defineProps<{ block?: Block; isVariableBound?: string | null }>()
 const emit = defineEmits<{

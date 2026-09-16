@@ -10,7 +10,10 @@
 						<router-link class="flex items-center gap-2" :to="{ name: 'Home' }">
 							<h1 class="text-md-semibold mt-[2px] leading-5 text-ink-gray-7">Studio</h1>
 						</router-link>
-						<component :is="open ? LucideChevronUp : LucideChevronDown" class="h-4 w-4 text-ink-gray-6" />
+						<span
+							:class="open ? 'lucide-chevron-up' : 'lucide-chevron-down'"
+							class="h-4 w-4 text-ink-gray-6"
+						/>
 					</div>
 				</template>
 			</Dropdown>
@@ -35,7 +38,7 @@
 						"
 					>
 						<template #prefix>
-							<LucideSearch class="h-4 w-4 text-ink-gray-4" />
+							<span class="lucide-search h-4 w-4 text-ink-gray-4" />
 						</template>
 					</Input>
 				</div>
@@ -112,9 +115,6 @@ import session from "@/utils/session"
 import { watchDebounced } from "@vueuse/core"
 import useStudioStore from "@/stores/studioStore"
 import { openInDesk } from "@/utils/helpers"
-import LucideChevronUp from "~icons/lucide/chevron-up"
-import LucideChevronDown from "~icons/lucide/chevron-down"
-import LucideSearch from "~icons/lucide/search"
 
 const store = useStudioStore()
 

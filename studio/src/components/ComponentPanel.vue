@@ -104,7 +104,7 @@
 										class="flex cursor-pointer items-center rounded-1 p-1 text-ink-gray-6 hover:bg-surface-gray-4"
 										:class="open ? 'active-item' : ''"
 									>
-										<LucideEllipsis class="h-3 w-3" />
+										<span class="lucide-ellipsis h-3 w-3" />
 									</button>
 								</template>
 							</Dropdown>
@@ -145,7 +145,7 @@
 										class="flex cursor-pointer items-center rounded-1 p-1 text-ink-gray-6 hover:bg-surface-gray-4"
 										:class="open ? 'active-item' : ''"
 									>
-										<LucideEllipsis class="h-3 w-3" />
+										<span class="lucide-ellipsis h-3 w-3" />
 									</button>
 								</template>
 							</Dropdown>
@@ -182,7 +182,6 @@ import type { StudioComponent } from "@/types/Studio/StudioComponent"
 import type { CustomVueComponentMeta } from "@/types/vue"
 import LucideCode from "~icons/lucide/code"
 import LucideBox from "~icons/lucide/box"
-import LucideEllipsis from "~icons/lucide/ellipsis"
 
 const canvasStore = useCanvasStore()
 const store = useStudioStore()

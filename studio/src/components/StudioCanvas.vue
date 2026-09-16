@@ -27,13 +27,15 @@
 					:key="breakpoint.device"
 					@click.stop="selectBreakpoint(breakpoint)"
 				>
-					<component
-						:is="breakpoint.icon"
+					<span
 						class="h-8 w-6"
-						:class="{
-							'dark:text-zinc-50 text-ink-gray-6': breakpoint.visible,
-							'dark:text-zinc-500 text-ink-gray-2': !breakpoint.visible,
-						}"
+						:class="[
+							breakpoint.icon,
+							{
+								'dark:text-zinc-50 text-ink-gray-6': breakpoint.visible,
+								'dark:text-zinc-500 text-ink-gray-2': !breakpoint.visible,
+							},
+						]"
 					/>
 				</div>
 			</div>
@@ -118,9 +120,6 @@ import type { Slot } from "@/types"
 import { useCanvasEvents } from "@/utils/useCanvasEvents"
 import { getBlockCopy } from "@/utils/serializer"
 import { useCanvasNavigationGuard } from "@/utils/useCanvasNavigationGuard"
-import LucideMonitor from "~icons/lucide/monitor"
-import LucideTablet from "~icons/lucide/tablet"
-import LucideSmartphone from "~icons/lucide/smartphone"
 
 const props = defineProps({
 	componentTree: {
@@ -151,21 +150,21 @@ const canvasProps = reactive({
 	panning: false,
 	breakpoints: [
 		{
-			icon: LucideMonitor,
+			icon: "lucide-monitor",
 			device: "desktop",
 			displayName: "Desktop",
 			width: 1400,
 			visible: true,
 		},
 		{
-			icon: LucideTablet,
+			icon: "lucide-tablet",
 			device: "tablet",
 			displayName: "Tablet",
 			width: 800,
 			visible: false,
 		},
 		{
-			icon: LucideSmartphone,
+			icon: "lucide-smartphone",
 			device: "mobile",
 			displayName: "Mobile",
 			width: 420,

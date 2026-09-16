@@ -37,7 +37,7 @@
 								{{ store.activePage?.page_title }}
 							</a>
 							<template v-for="(fragment, index) in canvasStore.fragmentStack" :key="fragment.fragmentId">
-								<LucideChevronRight class="h-3 w-3" />
+								<span class="lucide-chevron-right h-3 w-3" />
 								<a
 									v-if="index < canvasStore.fragmentStack.length - 1"
 									class="flex cursor-pointer items-center gap-1.5"
@@ -69,7 +69,7 @@
 								@click.prevent="store.studioLayout.rightPanelActiveTab = 'Interface'"
 							></Button>
 							<Button variant="subtle" class="text-xs" @click="canvasStore.exitFragmentMode">
-								<template #prefix><LucideChevronLeft class="!h-3 !w-3" /></template>
+								<template #prefix><span class="lucide-chevron-left !h-3 !w-3" /></template>
 								{{ parentFragmentName }}
 							</Button>
 							<Button variant="solid" class="text-xs" :loading="savingFragment" @click="saveFragmentMode">
@@ -196,8 +196,6 @@ import { useStudioEvents } from "@/utils/useStudioEvents"
 import { getBlockCopy, getRootBlock } from "@/utils/serializer"
 import { useStudioCompletions, useDynamicValueCompletions } from "@/utils/useStudioCompletions"
 import { toast } from "frappe-ui"
-import LucideChevronRight from "~icons/lucide/chevron-right"
-import LucideChevronLeft from "~icons/lucide/chevron-left"
 
 const route = useRoute()
 const router = useRouter()

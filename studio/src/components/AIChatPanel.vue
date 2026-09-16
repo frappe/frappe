@@ -141,7 +141,7 @@
 						title="Remove image"
 						@click="controller.clearImage()"
 					>
-						<LucideX class="h-3 w-3" />
+						<span class="lucide-x h-3 w-3" />
 					</button>
 				</div>
 				<span class="truncate text-xs text-ink-gray-5">{{ imageFileName }}</span>
@@ -171,7 +171,7 @@
 							<button
 								class="flex h-7 max-w-[9rem] items-center gap-1.5 rounded-4 px-1.5 text-ink-gray-5 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-8"
 							>
-								<LucideCpu class="h-3.5 w-3.5 shrink-0" />
+								<span class="lucide-cpu h-3.5 w-3.5 shrink-0" />
 								<span class="truncate text-xs">{{ modelLabel }}</span>
 							</button>
 						</template>
@@ -190,9 +190,9 @@
 									"
 								>
 									<span>{{ option.label }}</span>
-									<LucideImage
+									<span
 										v-if="option.vision"
-										class="h-3.5 w-3.5 shrink-0 text-ink-gray-4"
+										class="lucide-image h-3.5 w-3.5 shrink-0 text-ink-gray-4"
 										title="Supports image attachments"
 									/>
 								</button>
@@ -207,7 +207,7 @@
 						:disabled="loading"
 						@click="imageInput?.click()"
 					>
-						<LucideImage class="h-3.5 w-3.5 shrink-0" />
+						<span class="lucide-image h-3.5 w-3.5 shrink-0" />
 					</button>
 					<input ref="imageInput" type="file" accept="image/*" class="hidden" @change="onImageSelected" />
 				</div>
@@ -239,9 +239,6 @@ import { getBlockInstance, getBlockString } from "@/utils/serializer"
 import type { BlockOptions } from "@/types"
 import { studioSettings } from "@/data/studioSettings"
 import LucideSparkle from "~icons/lucide/sparkle"
-import LucideX from "~icons/lucide/x"
-import LucideCpu from "~icons/lucide/cpu"
-import LucideImage from "~icons/lucide/image"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()

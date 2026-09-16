@@ -6,7 +6,7 @@
 			@click="toggleExpanded('root')"
 			class="flex cursor-pointer items-center gap-0.5 font-bold"
 		>
-			<component :is="isExpanded('root') ? LucideChevronDown : LucideChevronRight" class="h-3 w-3" />
+			<span :class="isExpanded('root') ? 'lucide-chevron-down' : 'lucide-chevron-right'" class="h-3 w-3" />
 			<span class="text-ink-pink-7">{{ name }}</span>
 		</div>
 
@@ -14,9 +14,9 @@
 		<div v-if="!name || isExpanded('root')" class="ml-4">
 			<div v-for="(value, key) in object" :key="key">
 				<div class="group/key my-[7px] flex cursor-pointer items-start gap-0.5" @click="toggleExpanded(key)">
-					<component
+					<span
 						v-if="isObject(value)"
-						:is="isExpanded(key) ? LucideChevronDown : LucideChevronRight"
+						:class="isExpanded(key) ? 'lucide-chevron-down' : 'lucide-chevron-right'"
 						class="-ml-0.5 h-3 w-3"
 					/>
 					<span class="text-ink-pink-7">{{ key }}:</span>
@@ -54,8 +54,6 @@ import { copyToClipboard } from "@/utils/helpers"
 import { ref, computed } from "vue"
 import IconButton from "@/components/IconButton.vue"
 import LucideCopy from "~icons/lucide/copy"
-import LucideChevronDown from "~icons/lucide/chevron-down"
-import LucideChevronRight from "~icons/lucide/chevron-right"
 
 const props = withDefaults(
 	defineProps<{

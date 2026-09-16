@@ -16,7 +16,7 @@
 			{{ label }}
 
 			<Tooltip v-if="description" side="top">
-				<LucideInfo class="ml-1 h-[12px] w-[12px] text-ink-gray-4" />
+				<span class="lucide-info ml-1 h-[12px] w-[12px] text-ink-gray-4" />
 				<template #content>
 					<slot name="body">
 						<div class="max-w-52 text-center" v-html="description"></div>
@@ -65,7 +65,6 @@ import Input from "@/components/Input.vue"
 import Autocomplete from "@/components/Autocomplete.vue"
 import ColorInput from "@/components/ColorInput.vue"
 import InputLabel from "@/components/InputLabel.vue"
-import LucideInfo from "~icons/lucide/info"
 
 const props = withDefaults(
 	defineProps<{

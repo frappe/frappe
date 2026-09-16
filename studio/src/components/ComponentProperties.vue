@@ -76,7 +76,7 @@
 						variant="ghost"
 						@click.stop="block?.toggleVisibilityCondition()"
 					>
-						<component :is="block.visibilityCondition ? LucideZap : LucideZapOff" class="h-3 w-3" />
+						<span :class="block.visibilityCondition ? 'lucide-zap' : 'lucide-zap-off'" class="h-3 w-3" />
 					</Button>
 				</template>
 				<Code
@@ -127,7 +127,6 @@ import useCanvasStore from "@/stores/canvasStore"
 
 import LucideZap from "~icons/lucide/zap"
 import LucideHash from "~icons/lucide/hash"
-import LucideZapOff from "~icons/lucide/zap-off"
 
 const props = defineProps<{
 	block?: Block

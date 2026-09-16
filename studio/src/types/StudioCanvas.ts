@@ -1,8 +1,8 @@
 import { useCanvasHistory } from "@/utils/useCanvasHistory"
-import { Component, Ref } from "vue"
+import { Ref } from "vue"
 
 export interface BreakpointConfig {
-	icon: Component
+	icon: string
 	device: "desktop" | "tablet" | "mobile"
 	displayName: string
 	width: number

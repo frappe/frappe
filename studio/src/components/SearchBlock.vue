@@ -40,7 +40,7 @@
 						>
 							{{ selectedFiltersCount }}
 						</span>
-						<component :is="open ? LucideChevronUp : LucideChevronDown" class="size-4" />
+						<span :class="open ? 'lucide-chevron-up' : 'lucide-chevron-down'" class="size-4" />
 					</Button>
 				</template>
 				<template #default>
@@ -109,7 +109,7 @@
 		<div v-if="!query" class="mt-6 text-center">
 			<div class="flex flex-col items-center justify-center py-8">
 				<div class="mb-4 flex size-16 items-center justify-center rounded-full bg-surface-gray-2">
-					<LucideSearch class="size-8 text-ink-gray-4" />
+					<span class="lucide-search size-8 text-ink-gray-4" />
 				</div>
 				<h3 class="text-sm-medium mb-2 text-ink-gray-6">Search your blocks</h3>
 			</div>
@@ -145,7 +145,7 @@
 		<div v-else-if="query && results.length === 0" class="mt-6 text-center">
 			<!-- No Results State -->
 			<div class="flex flex-col items-center justify-center py-6">
-				<LucideSearch class="mb-3 size-6 text-ink-gray-4" />
+				<span class="lucide-search mb-3 size-6 text-ink-gray-4" />
 				<h3 class="text-sm-medium mb-1 text-ink-gray-6">No results found</h3>
 				<p class="text-xs text-ink-gray-5">Try different keywords or adjust your filters</p>
 			</div>
@@ -161,9 +161,6 @@ import { computed, nextTick, onMounted, Ref, ref } from "vue"
 import { toast } from "frappe-ui"
 import OptionToggle from "@/components/OptionToggle.vue"
 import { jsToJson } from "@/utils/serializer"
-import LucideChevronUp from "~icons/lucide/chevron-up"
-import LucideChevronDown from "~icons/lucide/chevron-down"
-import LucideSearch from "~icons/lucide/search"
 
 const canvasStore = useCanvasStore()
 

@@ -47,7 +47,10 @@
 				<template v-slot="{ open }">
 					<div class="flex cursor-pointer items-center gap-1">
 						<StudioLogo class="h-7 w-7"></StudioLogo>
-						<component :is="open ? LucideChevronUp : LucideChevronDown" class="h-4 w-4 text-ink-gray-6" />
+						<span
+							:class="open ? 'lucide-chevron-up' : 'lucide-chevron-down'"
+							class="h-4 w-4 text-ink-gray-6"
+						/>
 					</div>
 				</template>
 			</Dropdown>
@@ -91,12 +94,12 @@
 								v-if="!store.areRouteVariablesSet"
 								text="Set route variable values here to preview page data"
 							>
-								<LucideCircleAlert class="h-[14px] w-[14px] text-ink-amber-5" />
+								<span class="lucide-circle-alert h-[14px] w-[14px] text-ink-amber-5" />
 							</Tooltip>
 						</div>
-						<LucideExternalLink
+						<span
 							v-if="store.activePage && store.activePage.published"
-							class="h-[14px] w-[14px] !text-ink-gray-6 dark:!text-ink-gray-1"
+							class="lucide-external-link h-[14px] w-[14px] !text-ink-gray-6 dark:!text-ink-gray-1"
 							@click.stop="store.openPageInBrowser(store.activeApp!, store.activePage)"
 						/>
 					</div>
@@ -167,10 +170,6 @@ import session from "@/utils/session"
 import LucideArrowUpFromLine from "~icons/lucide/arrow-up-from-line"
 import { isObjectEmpty, openInDesk } from "@/utils/helpers"
 import { StudioApp } from "@/types/Studio/StudioApp"
-import LucideChevronUp from "~icons/lucide/chevron-up"
-import LucideChevronDown from "~icons/lucide/chevron-down"
-import LucideCircleAlert from "~icons/lucide/circle-alert"
-import LucideExternalLink from "~icons/lucide/external-link"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()

@@ -34,7 +34,7 @@
 									class="flex cursor-pointer items-center rounded-1 p-0.5 text-ink-gray-6 hover:bg-surface-gray-4"
 									:class="open ? 'active-item' : ''"
 								>
-									<LucideEllipsis class="h-4 w-4" />
+									<span class="lucide-ellipsis h-4 w-4" />
 								</button>
 							</template>
 						</Dropdown>
@@ -61,7 +61,6 @@ import { isObjectEmpty } from "@/utils/helpers"
 import { copyEntirePage } from "@/utils/blockCopyPaste"
 import { useRouter } from "vue-router"
 import { Dropdown, Button, Badge, Tooltip } from "frappe-ui"
-import LucideEllipsis from "~icons/lucide/ellipsis"
 
 const store = useStudioStore()
 const router = useRouter()

@@ -81,7 +81,7 @@
 						<template #trigger>
 							<Button class="!text-ink-gray-5" variant="ghost" label="Add filter">
 								<template #prefix>
-									<LucidePlus class="h-4" />
+									<span class="lucide-plus h-4" />
 								</template>
 							</Button>
 						</template>
@@ -110,7 +110,6 @@ import MultiSelectInput from "@/components/MultiSelectInput.vue"
 import type { DocTypeField, Fieldtype, Filter, Operators } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
 import type { Filters } from "@/types/Studio/StudioResource"
-import LucidePlus from "~icons/lucide/plus"
 
 const typeCheck = ["Check"]
 const typeLink = ["Link"]
