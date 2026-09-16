@@ -100,6 +100,20 @@ describe("useLiveDocinfo", () => {
 		live.dispose();
 	});
 
+	it("re-reads instead of splicing a share, a tag or a favourite", async () => {
+		const { socket, docinfo, reload, live } = setup();
+		docinfo.value = { shared: [], tags: "", favourites: [] };
+		live.follow("Lead", "L-1");
+		socket.fire("docinfo_update", delta("shared", { name: "s1", user: "a@x.io" }, "add"));
+		socket.fire("docinfo_update", delta("tags", { name: "t1", tag: "hot" }, "add"));
+		socket.fire("docinfo_update", delta("favourites", { name: "f1", user: "a@x.io" }, "add"));
+		// The published rows are not the bucket's rows; the sidecar re-read brings the real ones.
+		expect(docinfo.value).toEqual({ shared: [], tags: "", favourites: [] });
+		await vi.advanceTimersByTimeAsync(250);
+		expect(reload).toHaveBeenCalledTimes(1);
+		live.dispose();
+	});
+
 	it("does not re-read for a comment", async () => {
 		const { socket, reload, live } = setup();
 		live.follow("Lead", "L-1");

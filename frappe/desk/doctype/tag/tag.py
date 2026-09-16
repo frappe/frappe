@@ -178,8 +178,15 @@ def update_tags(doc, tags):
 		).insert(ignore_permissions=True)
 
 	deleted_tags = list(set(existing_tags) - set(new_tags))
-	for tag in deleted_tags:
-		frappe.db.delete("Tag Link", {"document_type": doc.doctype, "document_name": doc.name, "tag": tag})
+	if deleted_tags:
+		# A document delete, not a row delete, so the link's `on_trash` announces the change.
+		links = frappe.get_all(
+			"Tag Link",
+			filters={"document_type": doc.doctype, "document_name": doc.name, "tag": ("in", deleted_tags)},
+			pluck="name",
+		)
+		for link in links:
+			frappe.delete_doc("Tag Link", link, ignore_permissions=True, delete_permanently=True)
 
 
 @frappe.whitelist()

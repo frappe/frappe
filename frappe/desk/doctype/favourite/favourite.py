@@ -21,7 +21,23 @@ class Favourite(Document):
 		user: DF.Link
 	# end: auto-generated types
 
-	pass
+	no_feed_on_delete = True
+
+	def after_insert(self):
+		self.notify_change("add")
+
+	def on_trash(self):
+		self.notify_change("delete")
+
+	def notify_change(self, action):
+		"""Tell the record's room that its `favourites` bucket changed."""
+		frappe.publish_realtime(
+			"docinfo_update",
+			{"doc": self.as_dict(), "key": "favourites", "action": action},
+			doctype=self.reference_doctype,
+			docname=self.reference_name,
+			after_commit=True,
+		)
 
 
 def on_doctype_update():
@@ -58,7 +74,9 @@ def toggle_favourite(doctype: str, name: str, add: str | bool = False):
 
 	key = {"user": frappe.session.user, "reference_doctype": doctype, "reference_name": str(name)}
 	if not sbool(add):
-		frappe.db.delete("Favourite", key)
+		# A document delete, not a row delete, so `on_trash` announces the change.
+		if name := frappe.db.get_value("Favourite", key):
+			frappe.delete_doc("Favourite", name, ignore_permissions=True, delete_permanently=True)
 		return
 
 	if frappe.db.exists("Favourite", key):
