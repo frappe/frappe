@@ -19,6 +19,7 @@ export const FRAPPE_UI_COMPONENTS = [
 	"FileUploader",
 	"FormLabel",
 	"FormControl",
+	"Icon",
 	"MultiSelect",
 	"Popover",
 	"Progress",

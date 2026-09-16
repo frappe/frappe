@@ -18,6 +18,7 @@ import {
 	FileUploader,
 	FormControl,
 	FormLabel,
+	Icon,
 	LoadingIndicator,
 	LoadingText,
 	MultiSelect,
@@ -109,6 +110,7 @@ export function registerGlobalComponents(app: App) {
 	app.component("FileUploader", FileUploader)
 	app.component("FormControl", FormControl)
 	app.component("FormLabel", FormLabel)
+	app.component("Icon", Icon)
 	app.component("LoadingIndicator", LoadingIndicator)
 	app.component("LoadingText", LoadingText)
 	app.component("MultiSelect", MultiSelect)
@@ -217,7 +219,9 @@ export function registerGlobalComponents(app: App) {
 		)
 		app.component(
 			"CommentComposer",
-			defineAsyncComponent(() => import("@framework/ui/components/Composer/CommentComposer/CommentComposer.vue")),
+			defineAsyncComponent(
+				() => import("@framework/ui/components/Composer/CommentComposer/CommentComposer.vue"),
+			),
 		)
 		app.component(
 			"Filter",

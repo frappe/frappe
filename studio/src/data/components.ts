@@ -27,6 +27,7 @@ import LucideCircleX from "~icons/lucide/circle-x"
 import LucideFileUp from "~icons/lucide/file-up"
 import LucideBookType from "~icons/lucide/book-type"
 import LucideTag from "~icons/lucide/tag"
+import LucideSmile from "~icons/lucide/smile"
 import LucideListCheck from "~icons/lucide/list-check"
 import LucideEllipsis from "~icons/lucide/ellipsis"
 import LucideStar from "~icons/lucide/star"
@@ -435,6 +436,15 @@ export const COMPONENTS: FrappeUIComponents = {
 				condition: (state: Record<string, any>) => state.type === "select" || state.type === "combobox",
 			},
 			disabled: { type: Boolean },
+		},
+	},
+	Icon: {
+		name: "Icon",
+		title: "Icon",
+		icon: LucideSmile,
+		initialState: {
+			icon: "lucide-smile",
+			class: "size-5",
 		},
 	},
 	FormLabel: {
