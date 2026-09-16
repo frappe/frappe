@@ -37,7 +37,15 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
-const control = (name: string) => ({ kind: "button" as const, item: { name, label: name } });
+const control = (name: string, props: Record<string, any> = {}) => ({
+  kind: "button" as const,
+  item: { name, label: name },
+  source: "test",
+  props,
+});
+
+// The stub reads no `page`; a component item reads it off its props.
+const page = { doctype: "CRM Deal", docname: "D-1" } as any;
 
 type Favourites = { favourites: { id: string; name: string }[]; favourited: boolean };
 
@@ -45,13 +53,13 @@ async function mount(
   projection: HeaderProjection,
   favourites: Favourites = { favourites: [], favourited: false },
   onRun: (item: any) => void = () => {},
+  state: { dirty: boolean; saving: boolean } = { dirty: false, saving: false },
 ) {
   const root = document.createElement("div");
   document.body.appendChild(root);
   const app = createApp(
     defineComponent({
-      render: () =>
-        h(RecordHeader, { projection, dirty: false, saving: false, ...favourites, onRun }),
+      render: () => h(RecordHeader, { projection, page, ...state, ...favourites, onRun }),
     }),
   );
   const router = createRouter({
@@ -168,5 +176,114 @@ describe("the favourite built-in", () => {
     expect(root.querySelector("[data-favourites]")).toBeNull();
     root.querySelector<HTMLElement>("[data-favourite]")!.click();
     expect(ran).toEqual(["favourite"]);
+  });
+});
+
+// What the zone hands a component: its wrapper, and `{ ...props, page }`.
+const Stamp = defineComponent({
+  props: { page: Object, size: String },
+  setup: (props) => () =>
+    h("span", { "data-stamp": props.size, "data-doc": (props.page as any)?.docname }),
+});
+
+const component = (name: string, props: Record<string, any> = {}) => ({
+  kind: "component" as const,
+  item: { name, label: name, component: Stamp },
+  source: "test",
+  props,
+});
+
+describe("a component in a zone", () => {
+  it("grows on the left and receives its props with page", async () => {
+    const root = await mount({
+      left: [crumb("doctype"), component("stage", { size: "sm" })],
+      controls: [],
+      bands: [],
+    });
+    const wrapper = root.querySelector<HTMLElement>("[data-component]")!;
+    expect(wrapper.className).toContain("flex-1");
+    expect(wrapper.className).toContain("min-w-0");
+    const stamp = wrapper.querySelector<HTMLElement>("[data-stamp]")!;
+    expect(stamp.dataset.stamp).toBe("sm");
+    expect(stamp.dataset.doc).toBe("D-1");
+  });
+
+  it("keeps its width on the right, in the projection's order", async () => {
+    const root = await mount({
+      left: [],
+      controls: [control("archive"), component("owner"), control("save")],
+      bands: [],
+    });
+    const wrapper = root.querySelector<HTMLElement>("[data-component]")!;
+    expect(wrapper.className).toContain("shrink-0");
+    expect(wrapper.className).not.toContain("flex-1");
+    const order = [...root.querySelectorAll<HTMLElement>("[data-label], [data-component]")].map(
+      (el) => el.dataset.label ?? "component",
+    );
+    expect(order).toEqual(["archive", "component", "save"]);
+  });
+});
+
+describe("props on a control", () => {
+  // The stub spreads every bound prop as an attribute; a boolean lands as `""`/absent or `"true"`/`"false"`.
+  const attr = (root: HTMLElement, label: string, name: string) =>
+    root.querySelector<HTMLElement>(`[data-label="${label}"]`)!.getAttribute(name);
+  const flag = (root: HTMLElement, label: string, name: string) => {
+    const value = attr(root, label, name);
+    return value !== null && value !== "false";
+  };
+
+  it("binds the forwarded props over the host's defaults, with the item's label and icon on top", async () => {
+    const root = await mount({
+      left: [{ ...control("watch", { variant: "solid", class: "italic" }), item: { name: "watch", label: "Watch", icon: "lucide-eye" } }],
+      controls: [control("export", { theme: "green" })],
+      bands: [],
+    });
+    expect(attr(root, "Watch", "variant")).toBe("solid");
+    expect(attr(root, "Watch", "class")).toContain("italic");
+    expect(attr(root, "Watch", "iconleft") ?? attr(root, "Watch", "icon-left")).toBe("lucide-eye");
+    expect(attr(root, "export", "variant")).toBe("subtle");
+    expect(attr(root, "export", "theme")).toBe("green");
+  });
+
+  it("binds a dropdown trigger's props under the item's label, keeping the chevron by default", async () => {
+    const root = await mount({
+      left: [],
+      controls: [
+        { kind: "dropdown", item: { name: "tools", label: "Tools" }, source: "test", props: { variant: "ghost" }, members: [] },
+      ],
+      bands: [],
+    });
+    expect(attr(root, "Tools", "variant")).toBe("ghost");
+    expect(attr(root, "Tools", "iconright") ?? attr(root, "Tools", "icon-right")).toBe("lucide-chevron-down");
+  });
+
+  it("hands a script's tooltip to Save's own button, beside the host's clean-record tooltip", async () => {
+    const root = await mount({
+      left: [],
+      controls: [control("save", { tooltip: "Writes the record" })],
+      bands: [],
+    });
+    expect(attr(root, "save", "tooltip")).toBe("Writes the record");
+  });
+
+  it("keeps Save's disabled and loading the host's, whatever the script wrote", async () => {
+    const clean = await mount({
+      left: [],
+      controls: [control("save", { disabled: false, loading: true, variant: "ghost" })],
+      bands: [],
+    });
+    expect(flag(clean, "save", "disabled")).toBe(true);
+    expect(flag(clean, "save", "loading")).toBe(false);
+    expect(attr(clean, "save", "variant")).toBe("ghost");
+
+    const busy = await mount(
+      { left: [], controls: [control("save", { disabled: true })], bands: [] },
+      undefined,
+      undefined,
+      { dirty: true, saving: true },
+    );
+    expect(flag(busy, "save", "disabled")).toBe(false);
+    expect(flag(busy, "save", "loading")).toBe(true);
   });
 });

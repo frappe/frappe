@@ -16,7 +16,8 @@ type Op<Item extends SurfaceItem> =
 	| { verb: "hide" | "show"; source: string; name: string }
 	| { verb: "update"; source: string; name: string; patch: Partial<Item> }
 	| { verb: "move"; source: string; name: string; position: Position }
-	| { verb: "order"; source: string; names: string[] };
+	| { verb: "order"; source: string; names: string[] }
+	| { verb: "clear"; source: string };
 
 export const BUILTIN = "builtin";
 
@@ -72,6 +73,11 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 
 	order(names: string[]) {
 		this.record({ verb: "order", source: runningSource(), names });
+	}
+
+	// An op in source order like `hide`, not a reset: items a later source adds are untouched.
+	clear() {
+		this.record({ verb: "clear", source: runningSource() });
 	}
 
 	// Resolves over the replay in flight: a source that calls `add('x')` and then
@@ -166,15 +172,17 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 	}
 }
 
-// `ops` is reactive, so a component stored on an item would be deep-reactified on
-// its way in, which Vue warns about. Only the component opts out.
+// `ops` is reactive, so a component stored on an item, or inside its props, would be
+// deep-reactified on its way in, which Vue warns about. Both opt out.
 function keepComponentRaw<Item extends SurfaceItem>(item: Partial<Item>) {
 	if (item.component) item.component = markRaw(item.component);
+	if (item.props) item.props = markRaw({ ...item.props });
 }
 
 function apply<Item extends SurfaceItem>(items: ResolvedItem<Item>[], op: Op<Item>) {
 	if (op.verb === "add") return add(items, op);
 	if (op.verb === "order") return order(items, op.names);
+	if (op.verb === "clear") return clear(items);
 	const found = items.find((entry) => entry.item.name === op.name);
 	if (!found) return;
 	if (op.verb === "hide") found.hidden = true;
@@ -231,6 +239,11 @@ function order<Item extends SurfaceItem>(items: ResolvedItem<Item>[], names: str
 		.sort((a, b) => rank(a.entry) - rank(b.entry) || a.position - b.position)
 		.map(({ entry }) => entry);
 	items.splice(0, items.length, ...arranged);
+}
+
+// Every item present at the call, built-in or added by an earlier source; the items stay addressable.
+function clear<Item extends SurfaceItem>(items: ResolvedItem<Item>[]) {
+	for (const entry of items) entry.hidden = true;
 }
 
 function warnCollision(existing: ResolvedItem<any>, op: { source: string; item: SurfaceItem }) {

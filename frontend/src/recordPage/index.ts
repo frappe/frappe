@@ -27,7 +27,9 @@ export type { RecordPageController } from "./createRecordPage";
 
 export type { AuthoredHandlers, Handler, RecordPageHandlers } from "./types";
 
-export { projectHeader, zoneOf } from "./headerRenderings";
+export { isEmptyHeader, projectHeader, zoneOf } from "./headerRenderings";
+export { setDrawnProps } from "./drawnProps";
+export type { DrawnProps } from "./drawnProps";
 export type {
   HeaderBand,
   HeaderControl,

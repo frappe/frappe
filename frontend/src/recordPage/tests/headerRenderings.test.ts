@@ -2,12 +2,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   HeaderSurface,
+  isEmptyHeader,
   projectHeader,
   renderingOf,
   resetHeaderWarnings,
   zoneOf,
   type HeaderNode,
 } from "../headerRenderings";
+import { resetDrawnPropsWarnings, setDrawnProps } from "../drawnProps";
 import type { HeaderItem } from "../types";
 
 const BUDGET = 2;
@@ -22,6 +24,8 @@ afterEach(() => {
 // another's message reads an empty `mock.calls` and passes for the wrong reason.
 beforeEach(() => {
   resetHeaderWarnings();
+  resetDrawnPropsWarnings();
+  setDrawnProps(null);
 });
 
 function action(name: string, extra: Partial<HeaderItem> = {}): HeaderItem {
@@ -175,7 +179,7 @@ describe("the fitting rule", () => {
     const { bands } = project(items);
     expect(bands[0]).toEqual({
       group: "three",
-      items: [{ item: items[2], members: [] }],
+      items: [{ item: items[2], source: "test", props: {}, members: [] }],
     });
   });
 
@@ -869,5 +873,189 @@ describe("the two zones", () => {
       "save",
     ]);
     expect(warn.mock.calls[0][0]).toContain("an item in the left zone");
+  });
+});
+
+// A component is a control in either zone; it never lives in `⋯`.
+const Badge = { render: () => null };
+
+const component = (name: string, extra: Partial<HeaderItem> = {}) =>
+  action(name, { component: Badge, ...extra });
+
+describe("a component in a zone", () => {
+  it("is a component control on the left and on the right", () => {
+    const items = [component("stage", { zone: "left" }), component("owner")];
+    const { left, controls } = project(items);
+    expect(left.map((control) => control.kind)).toEqual(["component"]);
+    expect(controls.map((control) => `${control.kind}:${control.item.name}`)).toEqual([
+      "component:owner",
+    ]);
+  });
+
+  it("hands the item's props through unfiltered, and never draws it as a menu row", () => {
+    setDrawnProps({ button: ["variant"], menuOption: [] });
+    const [control] = project([component("owner", { props: { size: "sm", anything: 1 } })])
+      .controls;
+    expect(control.kind).toBe("component");
+    expect(control.kind === "component" && control.props).toEqual({ size: "sm", anything: 1 });
+  });
+
+  it("spends a slot on the right, and past the budget is dropped with a warning, not demoted", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const items = [button("one"), button("two"), component("owner"), action("audit")];
+    const { controls, bands } = project(items);
+    expect(controls.map((control) => control.item.name)).toEqual(["one", "two"]);
+    expect(bands.map((band) => band.group)).toEqual(["actions"]);
+    expect(warn.mock.calls.flat().join("\n")).toMatch(/'owner' is a component past the right zone's budget/);
+  });
+
+  it("ignores display and group beside a component, each with a warning", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const items = [
+      dropdown("tools"),
+      component("owner", { display: "button", group: "tools" }),
+      action("call", { group: "tools" }),
+    ];
+    expect(controlNames(items)).toEqual(["dropdown:tools", "component:owner"]);
+    const said = warn.mock.calls.flat().join("\n");
+    expect(said).toMatch(/'owner' has a component and display: 'button'/);
+    expect(said).toMatch(/'owner' has a component and group: 'tools'/);
+  });
+
+  it("warns that run and href are not wired on a component", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    project([component("owner", { run: () => {} }), component("stage", { href: "/x" })]);
+    const said = warn.mock.calls.flat().join("\n");
+    expect(said).toMatch(/'owner' has a component and run/);
+    expect(said).toMatch(/'stage' has a component and href/);
+  });
+
+  it("renders in the row, so an anchor on a menu entry warns and one on a button does not", () => {
+    const items = [button("one"), component("owner"), action("audit")];
+    expect(renderingOf(items[1], items)).toBe("row");
+    expect(renderingOf(component("stage", { zone: "left" }), items)).toBe("left");
+  });
+});
+
+describe("a pinned control", () => {
+  const save = () => button("save");
+
+  it("keeps its slot whatever the budget, and the others demote from the end in order", () => {
+    const items = [button("one"), button("two"), button("three"), save()];
+    const { controls, bands } = projectHeader(resolved(items), 3, ["save"]);
+    expect(controls.map((control) => control.item.name)).toEqual(["one", "two", "save"]);
+    expect(bands.map((band) => band.group)).toEqual(["three"]);
+  });
+
+  it("is never demoted even when it is last past the budget", () => {
+    const items = [button("one"), button("two"), save()];
+    const { controls } = projectHeader(resolved(items), 2, ["save"]);
+    expect(controls.map((control) => control.item.name)).toEqual(["one", "save"]);
+  });
+
+  it("frees its slot when hidden", () => {
+    const items = [button("one"), button("two"), button("three"), save()];
+    const { controls } = projectHeader(resolved(items, "save"), 3, ["save"]);
+    expect(controls.map((control) => control.item.name)).toEqual(["one", "two", "three"]);
+  });
+
+  it("drops a component before it, when the component sits later in the list", () => {
+    const items = [button("one"), button("two"), component("owner"), save()];
+    const { controls } = projectHeader(resolved(items), 3, ["save"]);
+    expect(controls.map((control) => control.item.name)).toEqual(["one", "two", "save"]);
+  });
+});
+
+describe("props on an item", () => {
+  beforeEach(() => {
+    setDrawnProps({
+      button: ["variant", "theme", "tooltip", "disabled", "route"],
+      menuOption: ["description", "disabled", "theme", "route"],
+    });
+  });
+
+  it("forwards a control's declared Button props and allows class", () => {
+    const [control] = project([
+      button("approve", { props: { variant: "solid", class: "ml-2", tooltip: "Approves" } }),
+    ]).controls;
+    expect(control.kind === "button" && control.props).toEqual({
+      variant: "solid",
+      class: "ml-2",
+      tooltip: "Approves",
+    });
+  });
+
+  it("drops an undeclared key and style with one warning per source, item and key", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const items = [button("approve", { props: { variant: "solid", style: "color: red", glow: 1 } })];
+    project(items);
+    project(items);
+    const [control] = project(items).controls;
+    expect(control.kind === "button" && control.props).toEqual({ variant: "solid" });
+    const said = warn.mock.calls.flat().filter((line) => /props\./.test(String(line)));
+    expect(said).toHaveLength(2);
+    expect(said.join("\n")).toMatch(/'approve' from test has props.style, which Button does not declare/);
+    expect(said.join("\n")).toMatch(/props.glow/);
+  });
+
+  it("refuses label and icon inside props, pointing at the item's own key", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const [control] = project([button("approve", { props: { label: "x", icon: "lucide-x" } })])
+      .controls;
+    expect(control.kind === "button" && control.props).toEqual({});
+    expect(warn.mock.calls.flat().join("\n")).toMatch(/props.label, which set it on the item/);
+  });
+
+  it("lets a link in props lose to run and to href, and keeps it on an item with neither", () => {
+    const linked = button("docs", { props: { route: "/docs" } });
+    const [plain] = project([linked]).controls;
+    expect(plain.kind === "button" && plain.props).toEqual({ route: "/docs" });
+    const [ran] = project([button("docs", { props: { route: "/docs" }, run: () => {} })]).controls;
+    expect(ran.kind === "button" && ran.props).toEqual({});
+    const [hrefed] = project([button("docs", { props: { route: "/docs" }, href: "/x" })]).controls;
+    expect(hrefed.kind === "button" && hrefed.props).toEqual({});
+  });
+
+  it("reads a dropdown trigger's props against Button and its rows against the menu option", () => {
+    const items = [
+      dropdown("tools", { props: { variant: "ghost" } }),
+      action("call", { group: "tools", props: { description: "Dial", variant: "ghost" } }),
+    ];
+    const [control] = project(items).controls;
+    expect(control.kind === "dropdown" && control.props).toEqual({ variant: "ghost" });
+    expect(control.kind === "dropdown" && control.members[0].props).toEqual({ description: "Dial" });
+  });
+
+  it("reads a menu entry's props against the menu option", () => {
+    const { bands } = project([action("audit", { props: { theme: "red", variant: "solid" } })]);
+    expect(bands[0].items[0].props).toEqual({ theme: "red" });
+  });
+
+  it("reads a demoted button's props against the menu option it is now drawn by", () => {
+    const items = [
+      button("one"),
+      button("two"),
+      button("three", { props: { variant: "solid", disabled: true } }),
+    ];
+    const { bands } = project(items);
+    expect(bands[0].items[0].props).toEqual({ disabled: true });
+  });
+
+  it("keeps every key when the host handed in no list, and says so once", () => {
+    setDrawnProps(null);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const [control] = project([button("approve", { props: { whatever: 1 } })]).controls;
+    expect(control.kind === "button" && control.props).toEqual({ whatever: 1 });
+    project([button("other", { props: { whatever: 1 } })]);
+    expect(warn.mock.calls.flat().filter((line) => /no declared-prop list/.test(String(line)))).toHaveLength(1);
+  });
+});
+
+describe("an empty row", () => {
+  it("is empty only when both zones and the menu are", () => {
+    expect(isEmptyHeader(project([]))).toBe(true);
+    expect(isEmptyHeader(project([action("audit")]))).toBe(false);
+    expect(isEmptyHeader(project([action("stage", { zone: "left", display: "crumb" })]))).toBe(false);
+    expect(isEmptyHeader(projectHeader(resolved([button("save")], "save"), 3))).toBe(true);
   });
 });
