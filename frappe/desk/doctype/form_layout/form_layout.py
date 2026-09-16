@@ -188,7 +188,7 @@ def refuse_field_name(kind: str, name: str, fieldnames: set[str], dt: str):
 
 
 def validate_unique_names(tabs: list):
-	"""Refuse a layout where two siblings share a name; one of them would be unaddressable."""
+	"""Refuse a layout where two tabs, two sections or two sibling columns share a name."""
 	for node, kind, _taken in duplicate_names(tabs):
 		frappe.throw(duplicate_message(kind, node["name"]), title=_("Duplicate Layout Name"))
 
@@ -200,8 +200,8 @@ def deduplicate_names(tabs: list):
 
 
 def duplicate_names(tabs: list):
-	"""Yield each container whose name a sibling took, before recording it, so a caller can rename it."""
-	for nodes, kind in sibling_groups(tabs):
+	"""Yield each container whose name is taken in its group, before recording it, so a caller can rename it."""
+	for nodes, kind in name_groups(tabs):
 		taken = set()
 		for node in nodes:
 			if node["name"] in taken:
@@ -209,13 +209,13 @@ def duplicate_names(tabs: list):
 			taken.add(node["name"])
 
 
-def sibling_groups(tabs: list):
+def name_groups(tabs: list):
+	"""A script addresses a section across the whole form, so sections share one group; columns stay per section."""
 	yield tabs, "tab"
-	for tab in tabs:
-		sections = tab.get("sections") or []
-		yield sections, "section"
-		for section in sections:
-			yield section.get("columns") or [], "column"
+	sections = [section for tab in tabs for section in tab.get("sections") or []]
+	yield sections, "section"
+	for section in sections:
+		yield section.get("columns") or [], "column"
 
 
 def free_name(name: str, taken: set) -> str:

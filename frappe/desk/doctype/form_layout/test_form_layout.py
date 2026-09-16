@@ -36,6 +36,16 @@ class TestFormLayout(IntegrationTestCase):
 		own = [{"sections": [{"name": "seen_by_section", "columns": [{"fields": ["content"]}]}]}]
 		make_layout(layout=json.dumps(own)).insert()
 
+	def test_section_names_are_unique_across_tabs(self):
+		twice = [
+			{"name": "a", "sections": [{"name": "details", "columns": [{"fields": ["title"]}]}]},
+			{"name": "b", "sections": [{"name": "details", "columns": [{"fields": ["content"]}]}]},
+		]
+		self.assertRaises(frappe.ValidationError, make_layout(layout=json.dumps(twice)).insert)
+		tabs = parse_layout(json.dumps(twice))
+		deduplicate_names(tabs)
+		self.assertEqual([s["name"] for t in tabs for s in t["sections"]], ["details", "details-2"])
+
 	def test_conditional_rows_coexist_with_default(self):
 		make_layout().insert()
 		make_layout(condition="doc.public").insert()
