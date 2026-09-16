@@ -68,14 +68,21 @@
 								'cell-lines--horizontal': col.merge_direction === 'horizontal',
 							}"
 						>
-							<div
-								v-for="(mf, mi) in text_merges(col)"
-								:key="mi"
-								class="cell-line"
-								:class="`cell-line--${mf.style || 'primary'}`"
-							>
-								{{ format_merged(row, i, mf.fieldname) }}
-							</div>
+							<template v-for="(mf, mi) in text_merges(col)" :key="mi">
+								<div
+									v-if="merged_html(row, i, mf)"
+									class="cell-line"
+									:class="`cell-line--${mf.style || 'primary'}`"
+									v-html="merged_html(row, i, mf)"
+								></div>
+								<div
+									v-else
+									class="cell-line"
+									:class="`cell-line--${mf.style || 'primary'}`"
+								>
+									{{ format_merged(row, i, mf.fieldname) }}
+								</div>
+							</template>
 						</div>
 					</div>
 					<!-- Single (default) -->
@@ -136,6 +143,7 @@ const {
 	image_merge,
 	text_merges,
 	format_merged,
+	merged_html,
 	cell_image,
 	thumb_box,
 	thumb,

@@ -5,6 +5,7 @@ const IMAGE_FIELDTYPES = new Set(["Attach Image", "Image", "Attach"]);
 const IMAGE_EXTENSIONS = /\.(png|jpe?g|gif|webp|svg|bmp|ico)(\?.*)?$/i;
 const HTML_CONTENT_FIELDTYPES = new Set(["Text Editor", "Long Text"]);
 const MERGE_IMAGE_FIELDTYPES = new Set(["Attach Image", "Attach"]);
+const MERGE_HTML_FIELDTYPES = new Set(["Text Editor", "HTML Editor", "HTML"]);
 
 export function useFieldFormat(props, store, preview_doc) {
 	const preview_value = computed(() => {
@@ -161,6 +162,15 @@ export function useFieldFormat(props, store, preview_doc) {
 		return val;
 	}
 
+	function merged_html(row, i, mf) {
+		if (!MERGE_HTML_FIELDTYPES.has(mf.fieldtype)) return null;
+		const server = store.preview_child_values.value?.[props.df.fieldname]?.[i]?.[mf.fieldname];
+		const raw =
+			server !== null && server !== undefined && server !== "" ? server : row[mf.fieldname];
+		if (raw === null || raw === undefined || raw === "") return null;
+		return sanitize_html(String(raw));
+	}
+
 	function cell_image(col, row) {
 		const img = image_merge(col);
 		const v = img ? row[img.fieldname] : null;
@@ -200,6 +210,7 @@ export function useFieldFormat(props, store, preview_doc) {
 		image_merge,
 		text_merges,
 		format_merged,
+		merged_html,
 		cell_image,
 		thumb_box,
 		thumb,

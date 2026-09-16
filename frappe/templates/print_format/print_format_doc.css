@@ -429,6 +429,15 @@
 	color: var(--gray-600);
 }
 
+.print-format-doc .child-table .cell-line .ql-editor p {
+	margin: 0;
+}
+
+.print-format-doc .child-table .cell-line .ql-editor ul,
+.print-format-doc .child-table .cell-line .ql-editor ol {
+	margin: 0;
+}
+
 .print-format-doc .page-break {
 	page-break-after: always;
 }

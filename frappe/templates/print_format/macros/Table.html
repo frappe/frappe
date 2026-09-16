@@ -64,7 +64,7 @@
 								{%- endif -%}
 							{%- endif -%}
 							<div class="cell-lines{% if column.merge_direction == 'horizontal' %} cell-lines--horizontal{% endif %}">
-								{%- for mf in _merged -%}{%- if mf.fieldname and mf.fieldname != ns.img_fn -%}<div class="cell-line cell-line--{{ (mf.style or 'primary')|e }}">{{ row.get_formatted(mf.fieldname)|striptags|e }}</div>{%- endif -%}{%- endfor -%}
+								{%- for mf in _merged -%}{%- if mf.fieldname and mf.fieldname != ns.img_fn -%}<div class="cell-line cell-line--{{ (mf.style or 'primary')|e }}">{% if mf.fieldtype in ("Text Editor", "HTML Editor", "HTML") %}{{ row.get_formatted(mf.fieldname) }}{% else %}{{ row.get_formatted(mf.fieldname)|striptags|e }}{% endif %}</div>{%- endif -%}{%- endfor -%}
 							</div>
 						</div>
 					{%- else -%}
