@@ -43,21 +43,18 @@
 			</button>
 		</div>
 		<span class="absolute bottom-0 right-0.5 flex items-center gap-1">
-			<span
-				v-if="time"
-				class="mr-1 text-2xs text-ink-gray-4 opacity-0 transition-opacity group-hover:opacity-100"
-			>{{ time }}</span>
+			<span v-if="time" class="flow-hover-reveal mr-1 text-2xs text-ink-gray-4">{{ time }}</span>
 			<button
 				v-if="flow.capabilities?.rewind"
 				title="Rewind to this message"
-				class="grid h-6 w-6 place-items-center rounded-5 text-ink-gray-4 opacity-0 transition-opacity hover:bg-surface-gray-2 hover:text-ink-gray-8 focus-visible:opacity-100 group-hover:opacity-100"
+				class="flow-hover-reveal grid h-6 w-6 place-items-center rounded-5 text-ink-gray-4 hover:bg-surface-gray-2 hover:text-ink-gray-8"
 				@click="confirmRewind"
 			>
 				<FeatherIcon name="rotate-ccw" class="h-3.5 w-3.5" />
 			</button>
 			<CopyButton
 				:text="text"
-				class="grid h-6 w-6 place-items-center rounded-5 text-ink-gray-4 opacity-0 transition-opacity hover:bg-surface-gray-2 hover:text-ink-gray-8 focus-visible:opacity-100 group-hover:opacity-100"
+				class="flow-hover-reveal grid h-6 w-6 place-items-center rounded-5 text-ink-gray-4 hover:bg-surface-gray-2 hover:text-ink-gray-8"
 			/>
 		</span>
 		<ImageViewer v-if="viewer" :src="previews[viewer.id]" :alt="viewer.name" @close="viewer = null" />

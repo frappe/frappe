@@ -131,6 +131,22 @@
 .flow-turn-copy:focus-within {
 	opacity: 1;
 }
+/* a message's own actions (the user bubble's time, rewind and copy) reveal on hovering it */
+.flow-hover-reveal {
+	opacity: 0;
+	transition: opacity 0.12s ease;
+}
+.group:hover .flow-hover-reveal,
+.flow-hover-reveal:focus-visible {
+	opacity: 1;
+}
+/* touch screens have no hover: everything hover-revealed stays visible */
+@media (hover: none) {
+	.flow-turn-copy,
+	.flow-hover-reveal {
+		opacity: 1;
+	}
+}
 
 /* streaming */
 @keyframes flow-shimmer {
