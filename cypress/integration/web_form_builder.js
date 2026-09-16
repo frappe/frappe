@@ -1,5 +1,9 @@
 const ROUTE = "builder-note";
 
+// a Desk tab panel is also a .tab-content, and Web Form has a "title" field of its
+// own, so an unscoped [data-fieldname] query reaches the Desk control
+const CANVAS = ".form-builder-container";
+
 // two pages: the Page Break is the boundary, page one is implicit and has no row.
 // "public" is left out so the add-field picker has something unplaced to offer.
 const SEEDED_FIELDS = [
@@ -18,7 +22,7 @@ function web_form_fields() {
 function open_builder() {
 	cy.visit(`/desk/web-form/${ROUTE}`);
 	cy.findByRole("tab", { name: "Form" }).click();
-	cy.get(".form-builder-container").should("exist");
+	cy.get(CANVAS).should("exist");
 }
 
 // never split: no Page Break row, so the builder shows one page
@@ -104,8 +108,8 @@ context("Web Form Builder", () => {
 		// one Page Break row, but two pages — page one is implicit
 		cy.get(".tab-header .tabs .tab").should("have.length", 2);
 		cy.get(".tab-header .tabs .tab:first").should("contain.text", "Page 1");
-		cy.get(".tab-content.active [data-fieldname='title']").should("exist");
-		cy.get(".tab-content.active [data-fieldname='content']").should("not.exist");
+		cy.get(`${CANVAS} .tab-content.active [data-fieldname='title']`).should("exist");
+		cy.get(`${CANVAS} .tab-content.active [data-fieldname='content']`).should("not.exist");
 	});
 
 	it("Does not dirty the form by rendering", () => {
@@ -156,7 +160,7 @@ context("Web Form Builder", () => {
 		cy.get(".combo-box-options:visible .combo-box-option").should("not.contain.text", "Title");
 		cy.get(".combo-box-options:visible .search-box > input").type("public{enter}");
 
-		cy.get(".tab-content.active [data-fieldname='public']").should("exist");
+		cy.get(`${CANVAS} .tab-content.active [data-fieldname='public']`).should("exist");
 
 		cy.click_doc_primary_button("Save");
 
@@ -172,7 +176,7 @@ context("Web Form Builder", () => {
 		seed_web_form();
 		open_builder();
 
-		cy.get(".tab-content.active [data-fieldname='title']").should("exist");
+		cy.get(`${CANVAS} .tab-content.active [data-fieldname='title']`).should("exist");
 
 		// the grid sits in the collapsed Fields section on Settings
 		cy.findByRole("tab", { name: "Settings" }).click();
@@ -190,6 +194,6 @@ context("Web Form Builder", () => {
 		cy.click_doc_primary_button("Save");
 
 		cy.findByRole("tab", { name: "Form" }).click();
-		cy.get(".tab-content [data-fieldname='title']").should("not.exist");
+		cy.get(`${CANVAS} .tab-content [data-fieldname='title']`).should("not.exist");
 	});
 });
