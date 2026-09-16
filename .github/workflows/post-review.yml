@@ -8,7 +8,7 @@ on:
         required: true
         type: number
       review:
-        description: base64 of a review JSON ({event, body, comments}); event must be COMMENT
+        description: base64 of a review JSON ({event, body, comments}); event must be COMMENT or REQUEST_CHANGES
         required: true
         type: string
       review_id:
@@ -37,7 +37,7 @@ jobs:
           REVIEW_ID: ${{ inputs.review_id }}
         run: |
           printf '%s' "$REVIEW_B64" | base64 -d > review.json
-          jq -e '.event == "COMMENT" and (.body | type == "string") and (.comments | type == "array")' review.json > /dev/null
+          jq -e '(.event == "COMMENT" or .event == "REQUEST_CHANGES") and (.body | type == "string") and (.comments | type == "array")' review.json > /dev/null
           if [ -n "$REVIEW_ID" ]; then
             jq '{body: .body}' review.json > payload.json
             gh api -X PUT "repos/${{ github.repository }}/pulls/$PR/reviews/$REVIEW_ID" --input payload.json --jq '.html_url'
