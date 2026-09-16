@@ -103,6 +103,7 @@ import { FormLayout } from "@framework/ui/components/FormLayout";
 import { CommitKey, LinkTitlesKey } from "@framework/ui/components/Fields/types";
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
 import { identifyTabs } from "@framework/ui/components/FormLayout/tabIdentity";
+import { getSocketInstance } from "@framework/ui/socket";
 import {
 	createRecordPage,
 	errorMessage,
@@ -128,6 +129,7 @@ import { fetchMeta } from "./record/metaSource";
 import { PANEL_BUILTINS } from "./record/panel/builtins";
 import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
 import { favouritesOf, hasFavourited } from "./record/favourites";
+import { useLiveDocinfo } from "./record/liveDocinfo";
 import { personOf, type DocInfo } from "./record/panel/context";
 import { tagsOf } from "./record/panel/people";
 import { useDisclosure } from "./record/panel/disclosure";
@@ -234,6 +236,9 @@ const disclosure = useDisclosure(
 );
 
 const tabMemory = computed(() => formTabMemory(boot.user.name, doctype.value ?? ""));
+
+// The record's realtime room, joined per load; the panel's rows follow another tab's assign or comment.
+const live = useLiveDocinfo({ socket: getSocketInstance(), docinfo, reload: reloadDocinfo });
 
 provide(LinkTitlesKey, linkTitles);
 
@@ -347,11 +352,15 @@ async function reloadDocinfo() {
 }
 
 async function load() {
-	if (!doctype.value) return;
+	if (!doctype.value) {
+		live.release();
+		return;
+	}
 	const mine = ++generation;
 	docinfoRead++;
 	const target = { doctype: doctype.value, name: docname.value };
 	error.value = "";
+	live.follow(target.doctype, target.name);
 
 	// Blanked before the fetch: the heading changes synchronously, and the old controller's quick
 	// actions close over the previous page. `saved` goes with `doc` so `isDirty` stays false.
@@ -489,6 +498,8 @@ async function send() {
 		// A request the previous record left behind must not clear this record's flag.
 		if (mine === generation) saving.value = false;
 	}
+	// A save writes a version row and its hooks may assign.
+	live.reloadQuietly();
 	await controller.value?.refresh();
 	actionsVersion.value++;
 }
@@ -604,6 +615,7 @@ onMounted(() => {
 	window.addEventListener("beforeunload", onBeforeUnload);
 });
 onUnmounted(() => {
+	live.dispose();
 	window.removeEventListener("keydown", onKeydown);
 	window.removeEventListener("beforeunload", onBeforeUnload);
 });

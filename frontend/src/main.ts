@@ -14,6 +14,7 @@ import { setDrawnProps, setIconSource } from "@/recordPage";
 import { recordDrawnProps } from "@/pages/record/drawnProps";
 import { registerContributions } from "@/contributions/registry";
 import AppShell from "@/shell/AppShell.vue";
+import { createSocket } from "@/shell/socket";
 import Unauthorized from "@/shell/Unauthorized.vue";
 import BootError from "@/shell/BootError.vue";
 
@@ -58,7 +59,9 @@ async function start() {
 	registerShell({ boot, addresses, router });
 
 	const app = createApp(AppShell);
-	app.use(FrappeUI, { socketio: { port: boot.socketio_port } });
+	app.use(FrappeUI);
+	// Where `getSocketInstance` looks; the plugin no longer opens one.
+	app.config.globalProperties.$socket = createSocket(boot);
 	app.use(router);
 	app.provide("boot", boot);
 	app.provide("addresses", addresses);
