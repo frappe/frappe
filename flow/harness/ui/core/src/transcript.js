@@ -496,9 +496,12 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 		// that thought ended: it settles to "Thought" and the status line takes over.
 		const lastLiveIdx = provisional ? blocks.length - 1 : -1
 		for (const [blockIdx, block] of blocks.entries()) {
+			// only a thought with text takes an ordinal: the preview never streams a text-less block
 			const key =
 				block.type === "thinking"
-					? `${currentTurnKey}:th:${thoughtCount++}`
+					? block.thinking
+						? `${currentTurnKey}:th:${thoughtCount++}`
+						: `th:${entry.seq}:${blockIdx}`
 					: provisional
 						? `p:${blockIdx}`
 						: `t:${entry.seq}:${blockIdx}`

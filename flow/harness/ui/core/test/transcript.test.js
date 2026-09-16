@@ -917,6 +917,31 @@ test("a thought keeps its id from the streamed preview through its merge into a 
 	)
 })
 
+test("a text-less thinking block in the durable message takes no thought ordinal", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started" })
+	applyEvent(conversation, { type: "user_message", seq: 1, content: "hi" })
+	applyEvent(conversation, { type: "thinking_delta", thinking: "let me see" })
+	applyEvent(conversation, { type: "tool_call_display_ready", id: "call-1", name: "bash", arguments: { command: "ls" } })
+	assert.equal(toolGroups(conversation)[0].steps[0].id, "turn:1:th:0")
+
+	// the redacted block never streamed; it lands only in the durable message
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 2,
+		content: [
+			{ type: "thinking", thinking: "", redacted: true },
+			{ type: "thinking", thinking: "let me see" },
+			{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "ls" } },
+		],
+		stop_reason: "tool_use",
+	})
+	assert.deepEqual(
+		toolGroups(conversation)[0].steps.map((step) => step.call?.id ?? step.id),
+		["th:2:0", "turn:1:th:0", "call-1"],
+	)
+})
+
 test("a settled turn stays unfolded while one of its rows is open", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "user_message", seq: 1, ts: 100, content: "Fix it" })
