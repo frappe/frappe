@@ -76,9 +76,9 @@ context("Web Form Builder", () => {
 		seed_web_form(SINGLE_PAGE_FIELDS);
 		open_builder();
 
-		// the strip stays hidden with one page, but the header still holds the add button
-		cy.get(".tab-header .tabs .tab").should("not.be.visible");
-		cy.get(".tab-header .tab-actions .new-tab-btn").should("be.visible").click();
+		// like DocType, a single page has no header; page 2 is added from the sidebar
+		cy.get(`${CANVAS} .tab-header`).should("not.exist");
+		cy.get(`${CANVAS} .sidebar-container .new-tab-btn`).should("be.visible").click();
 
 		cy.get(".tab-header .tabs .tab").should("have.length", 2);
 		cy.get(".tab-header .tabs .tab:last").should("contain.text", "Page 2");
