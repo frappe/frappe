@@ -5,7 +5,7 @@ import datetime
 import json
 
 import frappe
-from frappe.desk.query_report import build_xlsx_data, export_query, format_fields, run
+from frappe.desk.query_report import build_xlsx_data, export_query, format_fields, get_user_match_filters, run
 from frappe.tests import IntegrationTestCase
 from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, make_xlsx
 
@@ -551,6 +551,36 @@ data = columns, result
 
 		frappe.delete_doc("Report", REPORT_NAME, delete_permanently=True)
 		frappe.db.commit()
+
+	def test_report_with_unreadable_link_column_doctype(self):
+		"""Post-filtering must not abort when a Link column targets a doctype the user can't read.
+
+		Mirrors ERPNext's Stock Ledger Variance report, whose voucher_type column is a
+		Link → DocType. A role without Read on the DocType doctype used to raise
+		frappe.PermissionError out of get_user_match_filters; the report's own access was already
+		validated against ref_doctype, so an unreadable Link target should just be skipped.
+		"""
+		role = "Variance Test Role"
+		user = "variance_reader@example.com"
+
+		if not frappe.db.exists("Role", role):
+			frappe.get_doc({"doctype": "Role", "role_name": role}).insert()
+
+		if not frappe.db.exists("User", user):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": user,
+					"first_name": "Variance",
+					"roles": [{"role": role}],
+				}
+			).insert()
+
+		self.assertFalse(frappe.has_permission("DocType", "read", user=user))
+
+		# before the fix this raised frappe.PermissionError: No permission to read DocType
+		match_filters = get_user_match_filters(["DocType"], user)
+		self.assertNotIn("DocType", match_filters)
 
 
 def create_mock_data():
