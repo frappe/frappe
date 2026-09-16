@@ -44,7 +44,7 @@ Paths for `read`, `write`, `edit`, and `grep` are resolved from `cwd`. With `FLO
 
 ## Bundled tools
 
-Shipped with the harness but off by default: the default `tools` list is `bash`, `read`, `write`, `edit`. A session enables a bundled tool by naming it in `tools`; the web UI lists them unticked in the preset editor, and `GET /tools` marks them with `"bundled": true`.
+Shipped with the harness but off by default: the default `tools` list is `bash`, `read`, `write`, `edit`. A session enables a bundled tool by naming it in `tools`; the web UI lists them unticked in the preset editor (the Default preset included), and `GET /tools` marks them with `"bundled": true`.
 
 | Tool | Arguments | Default confirmation | Behavior |
 | --- | --- | --- | --- |

@@ -730,6 +730,45 @@ test("the active preset shapes new sessions and joins the custom instructions", 
 	assert.equal("s3" in flow.state.sessionPresets, false)
 })
 
+test("the Default preset adds bundled and extension tools on top of the core tools", async () => {
+	const configs = []
+	const client = {
+		...sessionClient(configs),
+		async tools() {
+			return {
+				tools: [
+					{ name: "bash", extension: null, bundled: false },
+					{ name: "grep", extension: null, bundled: true },
+					{ name: "hello", extension: "hello", bundled: false },
+				],
+			}
+		},
+	}
+	const flow = createFlowStore(client)
+	await flow.refreshTools()
+	assert.equal(flow.defaultPreset(), null) // nothing ticked: the daemon's own defaults
+	await flow.newSession()
+	assert.equal("tools" in configs[0], false)
+	assert.equal("extension_tools" in configs[0], false)
+
+	flow.saveDefaultPreset({ tools: ["bash", "grep"], extensionTools: [] })
+	assert.deepEqual(flow.state.prefs.defaultPreset, { tools: ["grep"], extensionTools: [] }) // only what sits on top of the core
+	assert.deepEqual(flow.defaultPreset(), { tools: ["bash", "grep"], extensionTools: [] })
+	await flow.newSession()
+	assert.deepEqual(configs[1].tools, ["bash", "grep"])
+	assert.deepEqual(configs[1].extension_tools, [])
+	assert.equal("s2" in flow.state.sessionPresets, false) // not a saved preset
+
+	// a core tool the daemon adds later is on without a re-save
+	flow.state.tools.push({ name: "agent", extension: null, bundled: false })
+	assert.deepEqual(flow.defaultPreset().tools, ["bash", "agent", "grep"])
+
+	// no tool list to build on: the daemon's defaults, never a chat without its core tools
+	flow.state.tools = []
+	await flow.newSession()
+	assert.equal("tools" in configs[2], false)
+})
+
 test("reloading extensions refetches the tool list", async () => {
 	const client = {
 		async reloadExtensions() {

@@ -6,11 +6,11 @@
 				<button class="flow-icon-btn -my-1 -ml-1.5" title="Back to presets" @click="back">
 					<FeatherIcon name="arrow-left" class="h-4 w-4" />
 				</button>
-				<h2 class="text-base font-semibold text-ink-gray-9">{{ draft.id ? "Edit preset" : "New preset" }}</h2>
+				<h2 class="text-base font-semibold text-ink-gray-9">{{ draft.default ? "Default preset" : draft.id ? "Edit preset" : "New preset" }}</h2>
 			</div>
 
 			<div class="mt-6 flex flex-col gap-5 pb-6">
-				<TextInput v-model="draft.name" label="Name" placeholder="Reviewer" autofocus />
+				<TextInput v-if="!draft.default" v-model="draft.name" label="Name" placeholder="Reviewer" autofocus />
 
 				<div>
 					<div class="text-sm font-medium text-ink-gray-9">Tools</div>
@@ -25,6 +25,7 @@
 							>
 								<Checkbox
 									:model-value="draft[group.key].includes(tool.name)"
+									:disabled="locked(tool)"
 									@update:model-value="toggleTool(group.key, tool.name, $event)"
 								/>
 								<span class="w-20 flex-none text-xs font-medium text-ink-gray-9">{{ tool.name }}</span>
@@ -34,7 +35,7 @@
 					</div>
 				</div>
 
-				<div>
+				<div v-if="!draft.default">
 					<div class="text-sm font-medium text-ink-gray-9">Prompt</div>
 					<div class="mt-2 grid grid-cols-2 gap-2">
 						<button
@@ -61,7 +62,7 @@
 		<div class="flex items-center justify-end gap-3 border-t border-outline-gray-1 px-4 py-4 sm:px-8">
 			<span v-if="dirty" class="text-xs text-ink-gray-5">Unsaved changes</span>
 			<Button v-if="draft.id" label="Delete" variant="ghost" theme="red" @click="confirmDelete" />
-			<Button variant="solid" label="Save" :disabled="!draft.name.trim() || !dirty" @click="save" />
+			<Button variant="solid" label="Save" :disabled="!dirty || (!draft.default && !draft.name.trim())" @click="save" />
 		</div>
 	</div>
 
@@ -98,7 +99,7 @@
 						<span class="mt-1 block truncate text-xs text-ink-gray-6">{{ row.summary }}</span>
 					</span>
 				</button>
-				<button v-if="row.preset" class="flow-icon-btn" title="Edit preset" @click="edit(row.preset)">
+				<button class="flow-icon-btn" title="Edit preset" @click="row.preset ? edit(row.preset) : editDefault()">
 					<FeatherIcon name="edit" class="h-4 w-4" />
 				</button>
 			</div>
@@ -135,6 +136,8 @@ const toolGroups = computed(() =>
 		{ key: "extensionTools", label: "Extensions", tools: flow.state.tools.filter((t) => t.extension) },
 	].filter((group) => group.tools.length),
 )
+// the Default preset always has the core tools; only bundled and extension tools are a choice there
+const locked = (tool) => draft.value.default && !tool.bundled && !tool.extension
 
 const dirty = computed(() => !!draft.value && JSON.stringify(draft.value) !== opened)
 
@@ -143,7 +146,7 @@ const listRows = computed(() => {
 	const wanted = inSession.value ? flow.state.sessionPresets[flow.state.sessionId] : flow.state.prefs.activePreset
 	const active = flow.state.presets.some((p) => p.id === wanted) ? wanted : null
 	return [
-		{ id: null, name: "Default", summary: "Core tools and the built-in prompt.", active: !active },
+		{ id: null, name: "Default", summary: summary(defaultPreset()), active: !active },
 		...flow.state.presets.map((p) => ({ id: p.id, name: p.name, summary: summary(p), active: p.id === active, preset: p })),
 	]
 })
@@ -153,20 +156,31 @@ function summary(preset) {
 	const enabled = preset.tools.length + (preset.extensionTools ?? extensionNames.value).length
 	return [
 		total ? `${enabled} of ${total} tools` : `${enabled} tools`,
-		preset.prompt.trim() ? (preset.promptMode === "replace" ? "Replaces prompt" : "Adds to prompt") : null,
+		preset.prompt?.trim() ? (preset.promptMode === "replace" ? "Replaces prompt" : "Adds to prompt") : null,
 	]
 		.filter(Boolean)
 		.join(" · ")
 }
 
-function blank() {
-	return openDraft({
-		name: "",
-		tools: flow.state.tools.filter((t) => !t.extension && !t.bundled).map((t) => t.name), // bundled tools opt in
+// what a chat gets with no preset: core tools and every extension on, bundled tools off
+function daemonDefaults() {
+	return {
+		tools: flow.state.tools.filter((t) => !t.extension && !t.bundled).map((t) => t.name),
 		extensionTools: extensionNames.value,
-		promptMode: "append",
-		prompt: "",
-	})
+	}
+}
+
+// the Default preset as chats get it
+function defaultPreset() {
+	return flow.defaultPreset() ?? daemonDefaults()
+}
+
+function blank() {
+	return openDraft({ name: "", ...daemonDefaults(), promptMode: "append", prompt: "" })
+}
+
+function editDefault() {
+	draft.value = openDraft({ default: true, ...defaultPreset() })
 }
 
 function edit(preset) {
@@ -188,7 +202,8 @@ function toggleTool(key, name, on) {
 }
 
 function save() {
-	flow.savePreset({ ...draft.value, name: draft.value.name.trim() })
+	if (draft.value.default) flow.saveDefaultPreset(draft.value)
+	else flow.savePreset({ ...draft.value, name: draft.value.name.trim() })
 	flow.notify("Preset saved")
 	draft.value = null
 }

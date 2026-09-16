@@ -63,6 +63,7 @@ export function createFlowStore(client, options = {}) {
 		mode: "ask", // "ask" | "auto" — applied at session create
 		customInstructions: "", // sent as system_suffix at session create
 		activePreset: null, // id of the agent preset applied to new chats
+		defaultPreset: null, // { tools, extensionTools } ticked for the Default preset on top of the core tools
 		lastModel: null,
 		lastEffort: null,
 		cwd: null,
@@ -446,11 +447,12 @@ export function createFlowStore(client, options = {}) {
 
 	async function newSession({ cwd = null, model = null, sending = [] } = {}) {
 		const preset = activePreset()
+		const picked = preset ?? defaultPreset()
 		const config = {
 			auto_approve: state.prefs.mode === "auto",
 		}
-		if (preset?.tools) config.tools = preset.tools
-		if (preset?.extensionTools) config.extension_tools = preset.extensionTools
+		if (picked?.tools) config.tools = picked.tools
+		if (picked?.extensionTools) config.extension_tools = picked.extensionTools
 		const prompt = preset?.prompt?.trim() ?? ""
 		if (prompt && preset.promptMode === "replace") config.system_preamble = prompt
 		const suffix = [preset?.promptMode === "append" ? prompt : "", state.prefs.customInstructions.trim()]
@@ -1099,6 +1101,23 @@ export function createFlowStore(client, options = {}) {
 		savePrefs()
 	}
 
+	// the Default preset: the daemon's core tools plus what settings ticked on top of them,
+	// or null when the daemon's own defaults apply (nothing ticked, or no tool list to build on)
+	function defaultPreset() {
+		const picked = state.prefs.defaultPreset
+		if (!picked || !state.tools.length) return null
+		return { tools: [...coreNames(), ...extras(picked.tools)], extensionTools: [...picked.extensionTools] }
+	}
+
+	// keeps only what sits on top of the core tools, so a core tool added later is on too
+	function saveDefaultPreset({ tools, extensionTools }) {
+		state.prefs.defaultPreset = { tools: extras(tools), extensionTools }
+		savePrefs()
+	}
+
+	const coreNames = () => state.tools.filter((t) => !t.extension && !t.bundled).map((t) => t.name)
+	const extras = (tools) => tools.filter((name) => !coreNames().includes(name))
+
 	async function renameSession(sid, title) {
 		const data = await guard(() => client.patchConfig(sid, { title }))
 		if (!data) return
@@ -1214,6 +1233,8 @@ export function createFlowStore(client, options = {}) {
 		savePreset,
 		deletePreset,
 		setActivePreset,
+		defaultPreset,
+		saveDefaultPreset,
 		renameSession,
 		deleteSession,
 		pickFolder,
