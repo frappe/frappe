@@ -2,6 +2,7 @@ import { defineAsyncComponent } from "vue"
 import type { FrappeUIComponents } from "@/types"
 
 import LucideAppWindowMac from "~icons/lucide/app-window-mac"
+import LucideCircleDot from "~icons/lucide/circle-dot"
 import LucideArrowUpDown from "~icons/lucide/arrow-up-down"
 import LucideColumns3 from "~icons/lucide/columns-3"
 import LucideFrame from "~icons/lucide/frame"
@@ -238,5 +239,25 @@ export const COMPONENT_FAMILIES: FrappeUIComponents = {
 		title: "Sidebar Collapse Toggle",
 		icon: LucidePanelLeftClose,
 		group: "Sidebar",
+	},
+	// RadioGroup family
+	RadioGroup: {
+		name: "RadioGroup",
+		title: "Radio Group",
+		icon: LucideCircleDot,
+		isGroup: true,
+		blockTemplate: "radio-group",
+	},
+	// Radio throws without the RadioGroup context
+	Radio: {
+		name: "Radio",
+		title: "Radio",
+		icon: LucideCircleDot,
+		group: "RadioGroup",
+		isStandalone: false,
+		initialState: {
+			value: "option",
+			label: "Option",
+		},
 	},
 }

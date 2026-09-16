@@ -30,6 +30,8 @@ INPUTS:
 - TimePicker: {modelValue: "string", label: "string", placeholder: "string"}
 - DateTimePicker: {modelValue: "string", label: "string", placeholder: "string"} # slots: prefix, suffix, actions
 - MultiSelect: {modelValue: [], label: "string", placeholder: "string", options: [{label: "string", value: "string"}]} # slots: prefix, suffix, summary, empty, footer
+- Password: {modelValue: "string", label: "string", placeholder: "string"}
+- RadioGroup: {modelValue: "value of the selected Radio", label: "string", orientation: "vertical(DEFAULT)|horizontal", padded: false, size: "xs|sm(DEFAULT)|md"} — compose its default-slot children ("c") from Radio {value: "string", label: "string", description: "string", disabled: false}; a Radio outside a RadioGroup throws
 - Rating: {modelValue: 0, max: 5, label: "string", disabled: false}
 - Slider: {modelValue: [number] (single thumb) | [number, number] (range), min: 0, max: 100, step: 1, label: "string", size: "sm|md"}
 - FileUploader: {label: "string", fileTypes: "['image/*']"}

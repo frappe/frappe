@@ -12,6 +12,7 @@ export const familyTemplates = {
 	"settings-dialog": settingsDialogTemplate,
 	sidebar: sidebarTemplate,
 	"sidebar-label": sidebarLabelTemplate,
+	"radio-group": radioGroupTemplate,
 } satisfies Record<string, () => BlockOptions>
 
 const MEMBERS = [
@@ -256,6 +257,19 @@ function sidebarLabelTemplate(): BlockOptions {
 
 function sidebarLabel(text: string): BlockOptions {
 	return { componentName: "SidebarLabel", children: [textBlock(text)] }
+}
+
+function radioGroupTemplate(): BlockOptions {
+	return {
+		componentName: "RadioGroup",
+		blockName: "RadioGroup",
+		componentProps: { label: "Choose a plan", modelValue: "free" },
+		children: [radio("free", "Free"), radio("pro", "Pro"), radio("enterprise", "Enterprise")],
+	}
+}
+
+function radio(value: string, label: string): BlockOptions {
+	return { componentName: "Radio", componentProps: { value, label } }
 }
 
 function sidebarItem(label: string, icon: string): BlockOptions {

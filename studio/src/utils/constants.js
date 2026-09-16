@@ -21,6 +21,7 @@ export const FRAPPE_UI_COMPONENTS = [
 	"FormControl",
 	"Icon",
 	"MultiSelect",
+	"Password",
 	"Popover",
 	"Progress",
 	"Rating",
@@ -50,6 +51,9 @@ export const FRAPPE_UI_COMPONENTS = [
 	"SidebarItem",
 	"SidebarLabel",
 	"SidebarCollapseToggle",
+	// RadioGroup family
+	"RadioGroup",
+	"Radio",
 ]
 
 // frappe-ui "molecules"

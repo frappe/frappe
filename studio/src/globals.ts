@@ -22,8 +22,11 @@ import {
 	LoadingIndicator,
 	LoadingText,
 	MultiSelect,
+	Password,
 	Progress,
 	Popover,
+	Radio,
+	RadioGroup,
 	Rating,
 	Select,
 	Sidebar,
@@ -114,6 +117,7 @@ export function registerGlobalComponents(app: App) {
 	app.component("LoadingIndicator", LoadingIndicator)
 	app.component("LoadingText", LoadingText)
 	app.component("MultiSelect", MultiSelect)
+	app.component("Password", Password)
 	app.component("Progress", Progress)
 	app.component("Popover", Popover)
 	app.component("Rating", Rating)
@@ -166,6 +170,10 @@ export function registerGlobalComponents(app: App) {
 	app.component("SidebarItem", SidebarItem)
 	app.component("SidebarLabel", SidebarLabel)
 	app.component("SidebarCollapseToggle", SidebarCollapseToggle)
+
+	// RadioGroup family — dropped as a tree via the `radio-group` block template.
+	app.component("RadioGroup", RadioGroup)
+	app.component("Radio", Radio)
 
 	// @framework/ui components — only on frappe versions that ship apps/frappe/ui.
 	// __FRAMEWORK_UI_AVAILABLE__ is a build-time constant; when false, production

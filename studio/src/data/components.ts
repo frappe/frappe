@@ -31,6 +31,7 @@ import LucideSmile from "~icons/lucide/smile"
 import LucideListCheck from "~icons/lucide/list-check"
 import LucideEllipsis from "~icons/lucide/ellipsis"
 import LucideStar from "~icons/lucide/star"
+import LucideKeyRound from "~icons/lucide/key-round"
 import LucideMousePointer2 from "~icons/lucide/mouse-pointer-2"
 import LucideToggleLeft from "~icons/lucide/toggle-left"
 import LucideArrowRightLeft from "~icons/lucide/arrow-right-left"
@@ -523,6 +524,15 @@ export const COMPONENTS: FrappeUIComponents = {
 					value: "grape",
 				},
 			],
+		},
+	},
+	Password: {
+		name: "Password",
+		title: "Password",
+		icon: LucideKeyRound,
+		initialState: {
+			label: "Password",
+			placeholder: "Enter your password",
 		},
 	},
 	Popover: {
