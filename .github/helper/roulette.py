@@ -187,7 +187,7 @@ def report_shadow_selection(files_list):
 		for f in files_list
 		if f.endswith((".py", ".po")) or (f.endswith(".json") and f.startswith("frappe/"))
 	]
-	# A test module's content can only break its own tests, wherever it lives.
+	# A test module's content can only break its own tests and those of modules importing it.
 	core_files = [f for f in relevant_files if f.startswith(CORE_PATHS) and not impact_map.is_test_module(f)]
 
 	if schema_files := [f for f in relevant_files if not f.endswith(".py")]:
