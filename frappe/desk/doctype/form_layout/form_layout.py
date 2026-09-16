@@ -177,6 +177,7 @@ def data_fieldnames(dt: str) -> set[str]:
 
 
 def refuse_field_name(kind: str, name: str, fieldnames: set[str], dt: str):
+	"""Throw when a tab or section carries a data fieldname of the doctype."""
 	if name not in fieldnames:
 		return
 	frappe.throw(
