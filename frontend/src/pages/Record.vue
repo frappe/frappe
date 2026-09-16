@@ -248,11 +248,11 @@ const tabMemory = computed(() => formTabMemory(boot.user.name, doctype.value ?? 
 
 // The record's realtime room, joined per load; the panel's rows follow another tab's assign or comment.
 const live = useLiveDocinfo({ socket: getSocketInstance(), docinfo, reload: reloadDocinfo });
-// Before the first replay settles, the load's own refresh already re-reads the dropped tier.
 useLiveClientScripts({
 	doctype,
 	dirty: () => dirty.value,
-	refresh: () => (controller.value?.ready.value ? controller.value.refresh() : undefined),
+	ready: () => controller.value?.ready.value ?? false,
+	refresh: () => controller.value?.refresh(),
 });
 
 provide(LinkTitlesKey, linkTitles);

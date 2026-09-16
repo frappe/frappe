@@ -4,12 +4,18 @@ import { nextTick, ref } from "vue";
 import { invalidateClientScripts, resetClientScripts } from "@/recordPage/clientScripts";
 import { useLiveClientScripts } from "../liveClientScripts";
 
-function setup(doctype: string | null = "CRM Deal") {
+function setup(doctype: string | null = "CRM Deal", isReady = true) {
 	const target = ref<string | null>(doctype);
+	const ready = ref(isReady);
 	const refresh = vi.fn(() => Promise.resolve());
 	let dirty = false;
-	const stop = useLiveClientScripts({ doctype: target, dirty: () => dirty, refresh });
-	return { target, refresh, stop, edit: () => void (dirty = true) };
+	const stop = useLiveClientScripts({
+		doctype: target,
+		dirty: () => dirty,
+		ready: () => ready.value,
+		refresh,
+	});
+	return { target, ready, refresh, stop, edit: () => void (dirty = true) };
 }
 
 describe("useLiveClientScripts", () => {
@@ -63,10 +69,34 @@ describe("useLiveClientScripts", () => {
 		expect(refresh).toHaveBeenCalledTimes(1);
 	});
 
+	it("holds a change that lands before the first replay settles, then re-runs once", async () => {
+		const { ready, refresh } = setup("CRM Deal", false);
+		invalidateClientScripts("CRM Deal");
+		await nextTick();
+		expect(refresh).not.toHaveBeenCalled();
+		ready.value = true;
+		await nextTick();
+		expect(refresh).toHaveBeenCalledTimes(1);
+		ready.value = false;
+		ready.value = true;
+		await nextTick();
+		expect(refresh).toHaveBeenCalledTimes(1);
+	});
+
+	it("drops a held change when the route moves to another doctype", async () => {
+		const { target, ready, refresh } = setup("CRM Deal", false);
+		invalidateClientScripts("CRM Deal");
+		target.value = "CRM Lead";
+		await nextTick();
+		ready.value = true;
+		await nextTick();
+		expect(refresh).not.toHaveBeenCalled();
+	});
+
 	it("tolerates a page that is not built yet", async () => {
 		const target = ref<string | null>("CRM Deal");
 		const refresh = vi.fn(() => undefined);
-		useLiveClientScripts({ doctype: target, dirty: () => false, refresh });
+		useLiveClientScripts({ doctype: target, dirty: () => false, ready: () => true, refresh });
 		invalidateClientScripts("CRM Deal");
 		await nextTick();
 		expect(refresh).toHaveBeenCalledTimes(1);
@@ -76,7 +106,7 @@ describe("useLiveClientScripts", () => {
 		const target = ref<string | null>("CRM Deal");
 		const refresh = vi.fn(() => Promise.reject(new Error("boom")));
 		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-		useLiveClientScripts({ doctype: target, dirty: () => false, refresh });
+		useLiveClientScripts({ doctype: target, dirty: () => false, ready: () => true, refresh });
 		invalidateClientScripts("CRM Deal");
 		await nextTick();
 		await Promise.resolve();
