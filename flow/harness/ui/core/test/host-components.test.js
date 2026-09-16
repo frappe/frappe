@@ -670,8 +670,10 @@ test("the Default preset locks the core tools and takes bundled and extension pi
 		{ name: "hello", description: "Say hi", extension: "hello", bundled: false },
 	]
 	const store = createFlowStore({ async tools() { return { tools } } }, { requireCwd: false, skillsEnabled: false })
-	await store.refreshTools()
 	const { el } = mount(t, SettingsPresets, {}, store)
+	assert.match(el.textContent, /Core tools and the built-in prompt/) // no list yet: nothing to count
+	await store.refreshTools()
+	await nextTick()
 	assert.match(el.textContent, /2 of 3 tools/) // the Default row: core and extensions on, bundled off
 
 	el.querySelector("button[title='Edit preset']").click() // the Default row comes first

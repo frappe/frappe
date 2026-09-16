@@ -146,10 +146,15 @@ const listRows = computed(() => {
 	const wanted = inSession.value ? flow.state.sessionPresets[flow.state.sessionId] : flow.state.prefs.activePreset
 	const active = flow.state.presets.some((p) => p.id === wanted) ? wanted : null
 	return [
-		{ id: null, name: "Default", summary: summary(defaultPreset()), active: !active },
+		{ id: null, name: "Default", summary: defaultSummary(), active: !active },
 		...flow.state.presets.map((p) => ({ id: p.id, name: p.name, summary: summary(p), active: p.id === active, preset: p })),
 	]
 })
+
+// without a tool list there is nothing to count, so describe the daemon's defaults instead
+function defaultSummary() {
+	return flow.state.tools.length ? summary(defaultPreset()) : "Core tools and the built-in prompt."
+}
 
 function summary(preset) {
 	const total = flow.state.tools.length

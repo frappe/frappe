@@ -118,6 +118,7 @@ export function createFlowStore(client, options = {}) {
 	let sendCount = 0 // keys the bubbles waiting for the server to echo them
 	let loadingSkills = null // { key, promise }
 	let loadedSkillsFor = null // key of the list in state.skills
+	let toolsLoading = null // the /tools fetch in flight; a first send waits for it
 
 	function savePrefs() {
 		localStorage.setItem(keys.prefs, JSON.stringify(state.prefs))
@@ -217,8 +218,13 @@ export function createFlowStore(client, options = {}) {
 		}
 	}
 
+	function refreshTools() {
+		toolsLoading = loadTools()
+		return toolsLoading
+	}
+
 	// silent: an older daemon has no /tools route, and the list is optional
-	async function refreshTools() {
+	async function loadTools() {
 		try {
 			state.tools = (await client.tools()).tools
 		} catch {
@@ -446,6 +452,7 @@ export function createFlowStore(client, options = {}) {
 	}
 
 	async function newSession({ cwd = null, model = null, sending = [] } = {}) {
+		await toolsLoading // the Default preset's picks need the tool list to build on
 		const preset = activePreset()
 		const picked = preset ?? defaultPreset()
 		const config = {

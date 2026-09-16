@@ -767,6 +767,15 @@ test("the Default preset adds bundled and extension tools on top of the core too
 	flow.state.tools = []
 	await flow.newSession()
 	assert.equal("tools" in configs[2], false)
+
+	// a send right after page load waits for the tool list instead of dropping the picks
+	let listTools
+	client.tools = () => new Promise((resolve) => (listTools = resolve))
+	flow.refreshTools()
+	const creating = flow.newSession()
+	listTools({ tools: [{ name: "bash", extension: null, bundled: false }, { name: "grep", extension: null, bundled: true }] })
+	await creating
+	assert.deepEqual(configs[3].tools, ["bash", "grep"])
 })
 
 test("reloading extensions refetches the tool list", async () => {
