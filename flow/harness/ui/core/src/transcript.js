@@ -446,7 +446,7 @@ function foldLabel(turn) {
 //   {kind: "user", entry}
 //   {kind: "text", block, entry?, provisional?}
 //   {kind: "thinking", block, entry?, live?}
-//   {kind: "group", steps: [{call, result, aborted} | {thought}]}
+//   {kind: "group", steps: [{call, result, aborted} | {thought, id, live?}]}
 //   {kind: "turn-fold", turnKey, label, expanded}
 //   {kind: "turn-files", turnKey, files: [{path, added, removed}]}
 //   {kind: "approval", calls: [...], seq}      (undecided batch)
@@ -458,7 +458,7 @@ function foldLabel(turn) {
 // Thinking never splits a group: a thought adjacent to tool calls becomes a
 // {thought} row inside the group, and stands alone only when no tools surround
 // it (a pure thinking + text turn).
-export function buildItems(conversation, expandedTurnKeys = new Set()) {
+export function buildItems(conversation, expandedTurnKeys = new Set(), openPanels = new Set()) {
 	const items = []
 	const stepsById = new Map()
 	const pending = conversation.pendingApproval
@@ -466,6 +466,8 @@ export function buildItems(conversation, expandedTurnKeys = new Set()) {
 	const { turns, turnByEntry, latestTurnKey } = deriveTurns(conversation.entries)
 	let currentTurnKey = null
 	let bufferedThoughts = []
+	// a thought has no wire id, so its turn and ordinal name it across the preview's durable swap
+	let thoughtCount = 0
 
 	const currentGroup = (firstCallId) => {
 		const last = items[items.length - 1]
@@ -494,16 +496,22 @@ export function buildItems(conversation, expandedTurnKeys = new Set()) {
 		// that thought ended: it settles to "Thought" and the status line takes over.
 		const lastLiveIdx = provisional ? blocks.length - 1 : -1
 		for (const [blockIdx, block] of blocks.entries()) {
-			const key = provisional
-				? `p:${blockIdx}`
-				: `${block.type === "thinking" ? "th" : "t"}:${entry.seq}:${blockIdx}`
+			// only a thought with text takes an ordinal: the preview never streams a text-less block
+			const key =
+				block.type === "thinking"
+					? block.thinking
+						? `${currentTurnKey}:th:${thoughtCount++}`
+						: `th:${entry.seq}:${blockIdx}`
+					: provisional
+						? `p:${blockIdx}`
+						: `t:${entry.seq}:${blockIdx}`
 			if (block.type === "text" && block.text.trim()) {
 				flushThoughts()
 				items.push({ kind: "text", key, turnKey: currentTurnKey, block, entry, provisional })
 			} else if (block.type === "thinking") {
 				const last = items[items.length - 1]
 				if (last?.kind === "group")
-					last.steps.push({ thought: block, live: provisional && blockIdx === lastLiveIdx })
+					last.steps.push({ thought: block, id: key, live: provisional && blockIdx === lastLiveIdx })
 				else {
 					bufferedThoughts.push({
 						block,
@@ -517,7 +525,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set()) {
 				if (provisional && block.arguments == null) continue
 				if (pendingIds.has(block.id) || stepsById.has(block.id)) continue
 				const group = currentGroup(block.id)
-				for (const thought of bufferedThoughts) group.steps.push({ thought: thought.block })
+				for (const thought of bufferedThoughts) group.steps.push({ thought: thought.block, id: thought.key })
 				bufferedThoughts = []
 				const step = {
 					call: block,
@@ -643,6 +651,11 @@ export function buildItems(conversation, expandedTurnKeys = new Set()) {
 		[...foldableByTurn].map(([turnKey, foldableItems]) => [turnKey, foldableItems[0].key]),
 	)
 	const foldableKeys = new Set([...foldableByTurn.values()].flat().map((item) => item.key))
+	// a fold never hides a row the user has open: that turn stays unfolded
+	const expandedTurns = new Set(expandedTurnKeys)
+	for (const [turnKey, foldableItems] of foldableByTurn) {
+		if (foldableItems.some((item) => panelIds(item).some((id) => openPanels.has(id)))) expandedTurns.add(turnKey)
+	}
 	const result = []
 	for (const item of withCopyRows) {
 		if (firstFoldableKeyByTurn.get(item.turnKey) === item.key) {
@@ -652,16 +665,22 @@ export function buildItems(conversation, expandedTurnKeys = new Set()) {
 				key: `tf:${item.turnKey}`,
 				turnKey: item.turnKey,
 				label: foldLabel(turn),
-				expanded: expandedTurnKeys.has(item.turnKey),
+				expanded: expandedTurns.has(item.turnKey),
 			})
 		}
-		if (foldableKeys.has(item.key) && !expandedTurnKeys.has(item.turnKey)) continue
+		if (foldableKeys.has(item.key) && !expandedTurns.has(item.turnKey)) continue
 		result.push(item)
 	}
 	for (const message of conversation.sending ?? []) {
 		result.push({ kind: "user", key: message.key, turnKey: null, entry: message.entry })
 	}
 	return result
+}
+
+// ids of the rows an item can expand: its tool calls and thoughts
+export function panelIds(item) {
+	if (item.kind === "group") return item.steps.map((step) => step.call?.id ?? step.id)
+	return item.kind === "thinking" ? [item.key] : []
 }
 
 function rawUserText(entry) {

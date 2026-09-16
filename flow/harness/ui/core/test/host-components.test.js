@@ -584,3 +584,77 @@ test("rewind controls follow the host client's capability", async (t) => {
 		assert.equal(composer.el.textContent.includes("branch from before your last message"), supported)
 	}
 })
+
+function rowButton(el, text) {
+	return [...el.querySelectorAll("button")].find((button) => button.textContent.includes(text))
+}
+
+test("a tool row left open stays open and unfolded when the run ends", async (t) => {
+	const conversation = reactive(initialConversation())
+	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
+	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "list files" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 3,
+		ts: 11,
+		content: [{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "ls" } }],
+		stop_reason: "tool_use",
+	})
+	applyEvent(conversation, { type: "tool_result", seq: 4, ts: 12, tool_call_id: "call-1", content: "a.js" })
+	const flow = { options: {}, state: reactive({ sessionId: "s1", loading: false, conversation }) }
+	const { el } = mount(t, MessageList, {}, flow)
+	await nextTick()
+	rowButton(el, "ls").click()
+	await nextTick()
+	assert.ok(el.querySelector("pre"))
+
+	applyEvent(conversation, { type: "assistant_message", seq: 5, ts: 13, content: [{ type: "text", text: "One file." }], stop_reason: "stop" })
+	applyEvent(conversation, { type: "run_ended", seq: 6, ts: 13, reason: "done" })
+	await nextTick()
+	const fold = el.querySelector("[data-turn-fold] button")
+	assert.equal(fold.getAttribute("aria-expanded"), "true")
+	assert.ok(el.querySelector("pre"))
+
+	// folding it by hand closes the row with it
+	fold.click()
+	await nextTick()
+	assert.equal(fold.getAttribute("aria-expanded"), "false")
+	assert.equal(el.querySelector("pre"), null)
+})
+
+test("an opened thought stays open as it merges into a tool group and the run ends", async (t) => {
+	const conversation = reactive(initialConversation())
+	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
+	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "list files" })
+	applyEvent(conversation, { type: "thinking_delta", thinking: "I should list them" })
+	const flow = { options: {}, state: reactive({ sessionId: "s1", loading: false, conversation }) }
+	const { el } = mount(t, MessageList, {}, flow)
+	await nextTick()
+	const panel = () => el.querySelector("[data-stub=MarkdownContent]")
+	assert.equal(panel(), null)
+	rowButton(el, "Thinking").click()
+	await nextTick()
+	assert.ok(panel())
+
+	applyEvent(conversation, { type: "tool_call_display_ready", id: "call-1", name: "bash", arguments: { command: "ls" } })
+	await nextTick()
+	assert.ok(rowButton(el, "Thought"))
+	assert.ok(panel())
+
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 3,
+		ts: 11,
+		content: [
+			{ type: "thinking", thinking: "I should list them" },
+			{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "ls" } },
+		],
+		stop_reason: "tool_use",
+	})
+	applyEvent(conversation, { type: "tool_result", seq: 4, ts: 12, tool_call_id: "call-1", content: "a.js" })
+	applyEvent(conversation, { type: "assistant_message", seq: 5, ts: 13, content: [{ type: "text", text: "One file." }], stop_reason: "stop" })
+	applyEvent(conversation, { type: "run_ended", seq: 6, ts: 13, reason: "done" })
+	await nextTick()
+	assert.equal(el.querySelector("[data-turn-fold] button").getAttribute("aria-expanded"), "true")
+	assert.ok(panel())
+})

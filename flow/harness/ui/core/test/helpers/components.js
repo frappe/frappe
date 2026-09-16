@@ -33,7 +33,7 @@ const settingsPieces = moduleURL(`
 `)
 const components = new Set([
 	"Composer.vue", "ToolStep.vue", "ToolGroup.vue", "ApprovalCard.vue", "MessageList.vue", "ModelButton.vue", "PopMenu.vue",
-	"SettingsDialog.vue", "SettingsPage.vue", "UserBubble.vue",
+	"SettingsDialog.vue", "SettingsPage.vue", "UserBubble.vue", "TurnFold.vue", "ThinkingBlock.vue", "ThoughtStep.vue",
 ])
 const compiled = new Map()
 

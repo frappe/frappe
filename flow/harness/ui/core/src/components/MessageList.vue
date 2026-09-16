@@ -37,7 +37,7 @@
 					:data-turn-fold="item.turnKey"
 					:label="item.label"
 					:expanded="item.expanded"
-					@toggle="toggleTurn(item.turnKey)"
+					@toggle="toggleTurn(item)"
 				/>
 				<AssistantText
 					v-else-if="item.kind === 'text'"
@@ -46,6 +46,7 @@
 				/>
 				<ThinkingBlock
 					v-else-if="item.kind === 'thinking'"
+					:id="item.key"
 					:class="tightGap(i)"
 					:block="item.block"
 					:live="item.live"
@@ -139,10 +140,10 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
-import { buildItems, formatTime, userAttachments, userText } from "../transcript.js"
+import { buildItems, formatTime, panelIds, userAttachments, userText } from "../transcript.js"
 import ApprovalCard from "./ApprovalCard.vue"
 import AssistantText from "./AssistantText.vue"
 import BrandMark from "./BrandMark.vue"
@@ -157,7 +158,10 @@ import UserBubble from "./UserBubble.vue"
 const flow = inject("flow")
 const conversation = computed(() => flow.state.conversation)
 const expandedTurnKeys = ref(new Set())
-const items = computed(() => buildItems(conversation.value, expandedTurnKeys.value))
+// rows (tool calls, thoughts) the user has open, by id
+const openPanels = reactive(new Set())
+provide("openPanels", openPanels)
+const items = computed(() => buildItems(conversation.value, expandedTurnKeys.value, openPanels))
 
 const empty = computed(
 	() => !flow.state.loading && !items.value.length && !conversation.value.running && !conversation.value.liveLabel,
@@ -290,13 +294,16 @@ function toBottom() {
 	stick.value = true
 }
 
-function toggleTurn(turnKey) {
+function toggleTurn(item) {
+	const { turnKey, expanded } = item
 	const next = new Set(expandedTurnKeys.value)
-	const opening = !next.has(turnKey)
-	if (opening) next.add(turnKey)
-	else next.delete(turnKey)
+	if (expanded) {
+		next.delete(turnKey)
+		// an open row holds its turn unfolded, so folding closes the turn's rows
+		for (const id of items.value.filter((i) => i.turnKey === turnKey).flatMap(panelIds)) openPanels.delete(id)
+	} else next.add(turnKey)
 	expandedTurnKeys.value = next
-	if (!opening) return
+	if (expanded) return
 	// reveal the steps the fold just inserted below itself (no-op when visible)
 	void nextTick(() => {
 		const fold = scroller.value?.querySelector(`[data-turn-fold="${CSS.escape(turnKey)}"]`)
@@ -333,6 +340,7 @@ watch(
 	() => {
 		stick.value = true
 		expandedTurnKeys.value = new Set()
+		openPanels.clear()
 	},
 )
 </script>
