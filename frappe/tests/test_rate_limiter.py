@@ -215,16 +215,16 @@ class TestRateLimitDecorator(IntegrationTestCase):
 		frappe.local.request_ip = "10.0.0.6"
 		self.assertEqual(_limited_user_based(), "user-based")
 
-	def test_guests_share_one_pooled_bucket_when_ip_based_is_false(self):
+	def test_guest_retains_ip_scoping_when_ip_based_is_false(self):
 		frappe.set_user("Guest")
 
 		frappe.local.request_ip = "10.0.0.7"
 		_limited_user_based_no_ip()
+		_limited_user_based_no_ip()
+		self.assertRaises(frappe.RateLimitExceededError, _limited_user_based_no_ip)
 
 		frappe.local.request_ip = "10.0.0.8"
-		_limited_user_based_no_ip()
-
-		self.assertRaises(frappe.RateLimitExceededError, _limited_user_based_no_ip)
+		self.assertEqual(_limited_user_based_no_ip(), "user-based-no-ip")
 
 	def test_user_based_with_key_is_further_scoped_by_key(self):
 		self.addCleanup(frappe.form_dict.pop, "priority", None)

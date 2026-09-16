@@ -156,7 +156,7 @@ def rate_limit(
 				elif ip:
 					identity = ip
 				else:
-					identity = "Guest"
+					identity = getattr(frappe.local, "request_ip", None) or "Guest"
 
 				if key and user_key:
 					identity = f"{identity}:{user_key}"
