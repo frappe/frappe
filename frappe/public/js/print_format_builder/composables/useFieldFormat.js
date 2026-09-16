@@ -162,12 +162,14 @@ export function useFieldFormat(props, store, preview_doc) {
 		return val;
 	}
 
-	function merged_html(row, i, mf) {
-		if (!MERGE_HTML_FIELDTYPES.has(mf.fieldtype)) return null;
+	function merged_line(row, i, mf) {
+		if (!MERGE_HTML_FIELDTYPES.has(mf.fieldtype)) {
+			return frappe.utils.escape_html(String(format_merged(row, i, mf.fieldname) ?? ""));
+		}
 		const server = store.preview_child_values.value?.[props.df.fieldname]?.[i]?.[mf.fieldname];
 		const raw =
 			server !== null && server !== undefined && server !== "" ? server : row[mf.fieldname];
-		if (raw === null || raw === undefined || raw === "") return null;
+		if (raw === null || raw === undefined || raw === "") return "";
 		return sanitize_html(String(raw));
 	}
 
@@ -210,7 +212,7 @@ export function useFieldFormat(props, store, preview_doc) {
 		image_merge,
 		text_merges,
 		format_merged,
-		merged_html,
+		merged_line,
 		cell_image,
 		thumb_box,
 		thumb,

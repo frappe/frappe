@@ -429,9 +429,7 @@
 	color: var(--gray-600);
 }
 
-.print-format-doc .child-table .cell-line p,
-.print-format-doc .child-table .cell-line ul,
-.print-format-doc .child-table .cell-line ol {
+.print-format-doc .child-table .cell-line * {
 	margin: 0;
 }
 
