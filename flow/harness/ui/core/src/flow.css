@@ -117,6 +117,16 @@
 	background: var(--surface-base);
 }
 
+/* frappe-ui sizes its settings shell as a full-bleed sheet on phones (w-screen, 100dvh)
+   while its dialog keeps a 1rem gutter and 2rem margins around it: fit the shell to the
+   dialog instead. */
+@media (max-width: 639px) {
+	.dialog-content > [data-orientation="vertical"] {
+		width: 100%;
+		height: calc(100dvh - 6rem);
+	}
+}
+
 /* the per-turn copy row reveals when hovering the turn's last item (its
    previous sibling), itself, or via keyboard focus — same feel as the user
    bubble's hover copy. Scoped to the thread's direct children: a bare

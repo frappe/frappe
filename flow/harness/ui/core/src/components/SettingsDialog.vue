@@ -10,6 +10,15 @@
 			<SettingsNavGroup v-for="(group, i) in groups" :key="i">
 				<template v-if="group.label" #label>
 					<span class="mb-1 block text-2xs font-medium text-ink-gray-7">{{ group.label }}</span>
+					<!-- phones have no Escape key: the first label row carries a way out -->
+					<button
+						v-if="i === 0"
+						class="flow-icon-btn ml-auto sm:hidden"
+						title="Close"
+						@click="flow.setSettingsOpen(false)"
+					>
+						<FeatherIcon name="x" class="h-4 w-4" />
+					</button>
 				</template>
 				<SettingsNavItem v-for="item in group.tabs" :key="item.id" :value="item.id" class="text-xs">
 					<template #prefix>
