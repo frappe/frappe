@@ -277,8 +277,10 @@ page.header.clear()
 
 A stored script has an import map for `vue`, `vue-router`, `frappe-ui` and
 `@framework/ui`, so it may `import { h } from 'vue'` for a render function, or write an
-import-free one that returns a string, as `StageBadge` does. An app extension imports a
-`.vue` file. The item is the same.
+import-free one that returns a string, as `StageBadge` does. An app adds names of its
+own, `<app>/<alias>`, with the `import_map` hook; see
+[`COMPATIBILITY.md`](./COMPATIBILITY.md#what-an-app-publishes-the-import_map-hook). An
+app extension imports a `.vue` file. The item is the same.
 
 ## The panel: `page.panelSections`
 

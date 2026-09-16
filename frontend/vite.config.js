@@ -29,8 +29,8 @@ export default defineConfig(({ command }) => ({
 		vue(),
 		contributions(manifest, allSourceDirs),
 		oneTree(manifest),
-		// Publishes the names a stored Client Script may import; see the plugin.
-		importMap(),
+		// Publishes the names each app's `import_map` hook declares; see the plugin.
+		importMap(manifest),
 	],
 	resolve: {
 		alias: {

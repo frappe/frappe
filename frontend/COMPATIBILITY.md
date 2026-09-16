@@ -350,6 +350,47 @@ not because it earns its keep. Two rules bound it:
 - **It is not a precedent.** No second member is handed through on the strength of this
   one.
 
+## What an app publishes: the `import_map` hook
+
+A stored script imports by bare name, and the document's import map says what those
+names are. The framework publishes four: `vue`, `vue-router`, `frappe-ui` and
+`@framework/ui`. An app publishes its own with one hook:
+
+```python
+# apps/crm/crm/hooks.py
+import_map = {
+	"crm/ui": "@frappe/crm-ui",           # a package the app declares under `dependencies`
+	"crm/lib": "./frontend/lib/index.js", # a file, rooted at the app's source dir (apps/crm/crm)
+}
+```
+
+A stored script then writes `import { DealCard } from "crm/ui"`, and the name resolves
+to a chunk of the bench's one bundle.
+
+**A published name is a promise, and the name rule is what makes it keepable.** Every name
+an app publishes is `<app>/<alias>`, where `<app>` is the app's Python name; the
+framework's four bare names are the one exemption. So two apps cannot publish one name, no
+app can shadow a framework name, and the name outlives the package behind it: the app can
+move `crm/ui` from one package to another, or from a package to a file, without touching a
+single stored script. The name is the app's promise to script authors, not the package's.
+
+What the build checks, before vite starts, naming the app, the key and the value:
+
+- the name starts with `<app>/`, and is not one of the framework's four;
+- a package value is declared under `dependencies` in the app's `package.json`;
+- a file value resolves inside the app's source dir, and exists.
+
+What the promise does **not** cover, in the same voice as the rest of this document:
+
+- **Only named exports are published.** `export * from` forwards named exports and
+  nothing else, so a published file's default export does not reach a script.
+- **A published chunk's stylesheets load with the shell**, on every cold load, whether or
+  not a script imports the name. The build prints the size per published name so the
+  cost is visible; publish a small entry, not a whole app.
+- **What is behind the name moves on the app's cadence**, exactly as the framework's
+  four move on theirs. `page` being unchanged does not mean `crm/ui` still exports what
+  it did.
+
 ## Asking what a host has
 
 `page` carries **no version number**, and will not get one. A version number invites
@@ -401,8 +442,8 @@ invent.
 - **No version, no negotiation.** `page` carries no version number and never will. Ask
   with `typeof`, not with a number.
 - **Nothing reachable _through_ `page` is stable.** frappe-ui components you pass to
-  `add()` or `open()`, and anything you import from the four shared deps, move on
-  their own cadence. `page` being unchanged does not mean your script still works.
+  `add()` or `open()`, and anything you import from the framework's four names or an
+  app's published ones, move on their own cadence. `page` being unchanged does not mean your script still works.
 - **New frappe-ui features do not reach your script for free.** Every `page` verb is
   an allowlist.
 - **No forward compatibility.** A script using an event this host has never heard of

@@ -14,7 +14,15 @@ from frappe.bundler import swap_shell_assets
 from frappe.shell import SHELL_ROOT
 from frappe.shell.doctypes import clear_doctype_owners
 from frappe.shell.install import PrefixCollisionError, before_app_install
-from frappe.shell.manifest import SingletonConflict, enforce_singletons
+from frappe.shell.manifest import (
+	FRAMEWORK_NAMES,
+	ImportMapConflict,
+	SingletonConflict,
+	assemble,
+	enforce_import_map,
+	enforce_singletons,
+	import_map_problems,
+)
 from frappe.shell.registry import (
 	clear_prefix_registry,
 	declared_prefix,
@@ -358,6 +366,111 @@ class TestSingletonEnforcement(IntegrationTestCase):
 				{"app": "gameplan", "deps": {"date-fns": "^2.0.0"}},
 			]
 		)
+
+
+class TestImportMapEnforcement(IntegrationTestCase):
+	"""A published name is a promise to script authors, checked before vite starts."""
+
+	def setUp(self):
+		self.source_dir = tempfile.mkdtemp(prefix="crm")
+		os.makedirs(os.path.join(self.source_dir, "frontend", "lib"))
+		with open(os.path.join(self.source_dir, "frontend", "lib", "index.js"), "w") as f:
+			f.write("export const formatDeal = (doc) => doc;\n")
+		self.addCleanup(shutil.rmtree, self.source_dir)
+
+	def entry(self, import_map, runtime_deps=None):
+		return {
+			"app": "crm",
+			"source_dir": self.source_dir,
+			"runtime_deps": runtime_deps if runtime_deps is not None else {"@frappe/crm-ui": "^1.2.0"},
+			"import_map": import_map,
+		}
+
+	def test_the_framework_publishes_its_four_bare_names(self):
+		frappe_entry = next(entry for entry in assemble() if entry["app"] == "frappe")
+		self.assertEqual(frappe_entry["import_map"], {name: name for name in FRAMEWORK_NAMES})
+		self.assertEqual(import_map_problems(frappe_entry), [])
+
+	def test_a_declared_package_and_a_file_of_the_apps_own_source_pass(self):
+		entry = self.entry({"crm/ui": "@frappe/crm-ui", "crm/lib": "./frontend/lib/index.js"})
+		self.assertEqual(import_map_problems(entry), [])
+
+	def test_a_file_value_is_rooted_at_the_source_dir_with_either_prefix(self):
+		self.assertEqual(import_map_problems(self.entry({"crm/lib": "/frontend/lib/index.js"})), [])
+
+	def test_a_deep_import_of_a_declared_package_passes(self):
+		entry = self.entry({"crm/icons": "@frappe/crm-ui/icons"})
+		self.assertEqual(import_map_problems(entry), [])
+
+	def test_a_name_outside_the_apps_scope_is_refused(self):
+		entry = self.entry({"deals": "@frappe/crm-ui", "gameplan/x": "@frappe/crm-ui"})
+		self.assertEqual(
+			import_map_problems(entry),
+			[
+				"crm publishes `deals`: a published name must start with `crm/`",
+				"crm publishes `gameplan/x`: a published name must start with `crm/`",
+			],
+		)
+
+	def test_a_framework_name_is_refused_to_every_other_app(self):
+		self.assertEqual(
+			import_map_problems(self.entry({"vue": "@frappe/crm-ui"})),
+			["crm publishes `vue`, which is a framework name"],
+		)
+
+	def test_an_undeclared_package_is_refused(self):
+		(problem,) = import_map_problems(self.entry({"crm/ui": "@frappe/crm-ui"}, runtime_deps={}))
+		self.assertTrue(problem.startswith("crm publishes `crm/ui` from `@frappe/crm-ui`, which "))
+		self.assertTrue(problem.endswith("package.json does not declare under dependencies"))
+
+	def test_a_file_outside_the_source_dir_is_refused(self):
+		(problem,) = import_map_problems(self.entry({"crm/lib": "../../frontend/lib/index.js"}))
+		self.assertTrue(
+			problem.startswith(
+				"crm publishes `crm/lib` from `../../frontend/lib/index.js`, which resolves outside "
+			)
+		)
+
+	def test_a_missing_file_is_refused(self):
+		self.assertEqual(
+			import_map_problems(self.entry({"crm/lib": "./frontend/lib/missing.js"})),
+			["crm publishes `crm/lib` from `./frontend/lib/missing.js`, which is not a file"],
+		)
+
+	def test_a_directory_is_not_a_file(self):
+		(problem,) = import_map_problems(self.entry({"crm/lib": "./frontend/lib"}))
+		self.assertTrue(problem.endswith("which is not a file"))
+
+	def test_publishing_alone_puts_an_app_in_the_bundle(self):
+		"""An app that contributes no file but publishes one is bundled; one that does neither is not."""
+		app = next(app for app in frappe.get_installed_apps() if app != "frappe")
+		with patch("frappe.shell.manifest.contributes", return_value=False):
+			with patch("frappe.shell.manifest.app_import_map", side_effect=lambda a: {}):
+				self.assertNotIn(app, [entry["app"] for entry in assemble()])
+			published = {f"{app}/lib": "./lib/index.js"}
+			with patch(
+				"frappe.shell.manifest.app_import_map", side_effect=lambda a: published if a == app else {}
+			):
+				entry = next(entry for entry in assemble() if entry["app"] == app)
+		self.assertEqual(entry["import_map"], published)
+
+	def test_every_problem_is_reported_in_one_failure(self):
+		manifest = [
+			self.entry({"vue": "@frappe/crm-ui", "crm/lib": "./frontend/lib/missing.js"}),
+			{**self.entry({"crm/ui": "@frappe/crm-ui"}, runtime_deps={}), "app": "gameplan"},
+		]
+
+		with self.assertRaises(ImportMapConflict) as caught:
+			enforce_import_map(manifest)
+
+		lines = str(caught.exception).splitlines()
+		self.assertEqual(lines[0], "")
+		self.assertEqual(len(lines), 4)
+		self.assertTrue(all(line.startswith("  ") for line in lines[1:]))
+		self.assertIn("gameplan publishes `crm/ui`", lines[3])
+
+	def test_an_app_with_nothing_to_publish_passes(self):
+		enforce_import_map([{"app": "crm", "source_dir": self.source_dir, "runtime_deps": {}}])
 
 
 class TestShellBoot(IntegrationTestCase):
