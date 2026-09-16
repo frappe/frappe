@@ -8,7 +8,9 @@
       that only ever ran in prod (#42070).
     - no __FRONTEND_ROUTE__, no __SOCKETIO_PORT__. Both were build-time constants of
       an app's own build, and there is no app build now.
-    - no import map. The delivery tier retired with `extend_frontend` (#42071).
+    - one import map, and only for stored Client Scripts. The delivery tier for apps
+      retired with `extend_frontend`; the build writes the map here itself
+      (`plugin/importMap.js`), and it is the same at every prefix.
 
   Which is why ShellPage can serve the built file verbatim, and why #42111 exists to
   ask whether it may be cached. It is NOT cached today.
