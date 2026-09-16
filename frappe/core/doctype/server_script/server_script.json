@@ -10,6 +10,7 @@
   "reference_doctype",
   "event_frequency",
   "cron_format",
+  "queue",
   "doctype_event",
   "api_method",
   "allow_guest",
@@ -142,6 +143,14 @@
    "fieldname": "cron_format",
    "fieldtype": "Data",
    "label": "Cron Format"
+  },
+  {
+   "depends_on": "eval:doc.script_type === \"Scheduler Event\" && doc.event_frequency === 'Cron'",
+   "description": "If unset, cron jobs run on the default queue.",
+   "fieldname": "queue",
+   "fieldtype": "Select",
+   "label": "Queue",
+   "options": "\ndefault\nshort\nlong"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -151,7 +160,7 @@
    "link_fieldname": "server_script"
   }
  ],
- "modified": "2025-09-02 11:11:07.528661",
+ "modified": "2026-08-04 18:13:18.243389",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

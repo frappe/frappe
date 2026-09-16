@@ -8,13 +8,16 @@ import frappe
 from frappe.installer import (
 	disable_app,
 	enable_app,
+	parse_required_app_name,
 	reapply_disabled_app_state,
 	remove_from_installed_apps,
 	set_app_disabled,
 )
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 FAKE_APP = "zzz_test_app"
+# sits inside the requirement string `frappe/erpnext` without being the app it names
+COLLIDING_APP = "next"
 
 hook_calls = []
 
@@ -67,22 +70,22 @@ def write_disabled_apps(apps: list[str]):
 
 
 @contextmanager
-def fake_app(hooks: dict | None = None):
-	"""Present FAKE_APP as installed, with only the hooks a test asks for.
+def fake_app(hooks: dict | None = None, name: str = FAKE_APP):
+	"""Present `name` as an installed app, with only the hooks a test asks for.
 
-	`hooks` maps `(app_name, hook)` to a value. Any other hook of FAKE_APP is empty, and
+	`hooks` maps `(app_name, hook)` to a value. Any other hook of the fake app is empty, and
 	every other app keeps its real hooks. `get_installed_apps_info` is pinned to the real
 	apps because it imports each app module to read a version.
 	"""
 	overrides = hooks or {}
 	real_get_hooks = frappe.get_hooks
-	installed = [*frappe.get_installed_apps(), FAKE_APP]
+	installed = [*frappe.get_installed_apps(), name]
 	apps_info = frappe.utils.get_installed_apps_info()
 
 	def app_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
 		if (app_name, hook) in overrides:
 			return overrides[(app_name, hook)]
-		if app_name == FAKE_APP:
+		if app_name == name:
 			return []
 		return real_get_hooks(hook, default, app_name)
 
@@ -92,6 +95,26 @@ def fake_app(hooks: dict | None = None):
 		patch.object(frappe.utils, "get_installed_apps_info", lambda: apps_info),
 	):
 		yield
+
+
+class TestRequiredAppName(UnitTestCase):
+	def test_every_spelling_of_a_requirement_resolves_to_the_app(self):
+		requirements = [
+			"erpnext",
+			"frappe/erpnext",
+			"frappe/erpnext@version-15",
+			"https://github.com/frappe/erpnext.git",
+			"https://github.com/frappe/erpnext.git#develop",
+			"git@github.com:frappe/erpnext.git",
+			"/home/frappe/frappe-bench/apps/erpnext/",
+		]
+		for requirement in requirements:
+			with self.subTest(requirement=requirement):
+				self.assertEqual(parse_required_app_name(requirement), "erpnext")
+
+	def test_an_app_off_the_bench_resolves_without_a_remote_lookup(self):
+		"""`parse_app_name` asks GitHub for a name it cannot place; a dependency check must not."""
+		self.assertEqual(parse_required_app_name(FAKE_APP), FAKE_APP)
 
 
 class TestAppToggle(IntegrationTestCase):
@@ -210,6 +233,22 @@ class TestAppToggle(IntegrationTestCase):
 			disable_app(FAKE_APP)
 
 		self.assertNotIn(FAKE_APP, read_disabled_apps())
+
+	def test_cannot_disable_an_app_a_qualified_requirement_names(self):
+		"""A `required_apps` entry may be spelled `org/repo`; the dependency is the repo."""
+		hooks = {("frappe", "required_apps"): [f"frappe/{FAKE_APP}"]}
+		with fake_app(hooks), self.assertRaises(frappe.ValidationError):
+			disable_app(FAKE_APP)
+
+		self.assertNotIn(FAKE_APP, read_disabled_apps())
+
+	def test_can_disable_an_app_whose_name_is_only_a_substring_of_a_requirement(self):
+		"""`next` is inside `frappe/erpnext` but is not it, so it must not count as a dependency."""
+		hooks = {("frappe", "required_apps"): ["frappe/erpnext"]}
+		with fake_app(hooks, name=COLLIDING_APP):
+			disable_app(COLLIDING_APP)
+
+		self.assertIn(COLLIDING_APP, read_disabled_apps())
 
 	def test_cannot_enable_an_app_whose_dependency_is_disabled(self):
 		write_disabled_apps([*self.disabled_apps_before, FAKE_APP, "frappe"])

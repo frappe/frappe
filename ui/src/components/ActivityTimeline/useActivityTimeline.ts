@@ -1,113 +1,201 @@
 import { createResource } from "frappe-ui";
 import { computed, onMounted, onUnmounted, reactive, ref, type Ref } from "vue";
 import { getSocketInstance } from "../../socket";
-import type {
-  Activity,
-  CustomActivity,
-  Pagination,
-  UserInfo,
-} from "./types";
-import {
-  compareActivities,
-  dropDuplicateKeys,
-  groupActivities,
-} from "./grouping";
+import type { Activity, CustomActivity, Pagination, UserInfo } from "./types";
+import { compareActivities, dropDuplicateKeys } from "./grouping";
 import { getAssignee, stripHtml } from "./utils";
 
-// One resource per doctype:docname for the session, so reopening a doc is instant.
-const resources = new Map<string, ReturnType<typeof createResource>>();
+// One store per cache key for the session, so reopening a doc is instant and
+// paging state survives cached remounts.
+interface TimelineStore {
+  resource: ReturnType<typeof createResource>;
+  // "older rows remain" per paged source, plus the backend-reported offset of
+  // the next milestone page
+  hasMoreEmails: Ref<boolean>;
+  hasMoreMilestones: Ref<boolean>;
+  milestoneStart: Ref<number>;
+}
+const stores = new Map<string, TimelineStore>();
 
-// "older emails remain" flag, kept outside the resource so it survives cached remounts.
-const hasMoreEmailsByKey = new Map<string, Ref<boolean>>();
+/** e.g. ["email", "comment", { version: ["status", "priority"] }] */
+export type VisibleTypes = Array<Activity["type"] | { version: string[] }>;
 
-export function useActivityTimeline(doctype: string, docname: string) {
-  const cacheKey = `${doctype}:${docname}`;
+// filters are part of the cache identity
+const timelineCacheKey = (
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+) =>
+  `${doctype}:${docname}:${visibleTypes ? JSON.stringify(visibleTypes) : "*"}`;
 
-  let hasMoreEmails = hasMoreEmailsByKey.get(cacheKey);
-  if (!hasMoreEmails) {
-    hasMoreEmails = ref(true);
-    hasMoreEmailsByKey.set(cacheKey, hasMoreEmails);
-  }
+function getTimelineStore(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+): TimelineStore {
+  const cacheKey = timelineCacheKey(doctype, docname, visibleTypes);
+  const existing = stores.get(cacheKey);
+  if (existing) return existing;
 
-  let resource = resources.get(cacheKey);
-  if (!resource) {
-    resource = createResource({
-      url: "frappe.desk.form.activity.get_activity_timeline",
-      params: { doctype, name: docname },
-      cache: `activities:${cacheKey}`,
-      auto: true,
-      // transform sets resource.data; onSuccess still sees the raw response, so
-      // has_more_emails is read there (not from transform's output). On reload
-      // (e.g. a doc_update), re-append the older email pages the user has already loaded.
-      transform: (res: { activities: Activity[] }) => {
-        const oldActivities = (resource.data as Activity[] | undefined) ?? [];
+  const hasMoreEmails = ref(true);
+  const hasMoreMilestones = ref(false);
+  const milestoneStart = ref(0);
 
-        const newActivities = res.activities;
-        const newActivityKeys = new Set(newActivities.map((a) => a.key));
+  const resource: ReturnType<typeof createResource> = createResource({
+    url: "frappe.desk.form.activity.get_activity_timeline",
+    // filtered server-side so pagination math stays correct
+    params: { doctype, name: docname, visible_types: visibleTypes },
+    cache: `activities:${cacheKey}`,
+    auto: true,
+    // transform sets resource.data; onSuccess still sees the raw response, so the
+    // has_more_* flags are read there (not from transform's output). On reload
+    // (e.g. a doc_update), re-append the older pages the user has already loaded.
+    transform: (res: { activities: Activity[] }) => {
+      const oldActivities = (resource.data as Activity[] | undefined) ?? [];
 
-        const paginatedOlderEmails = oldActivities.filter(
-          (a) => a.type === "email" && !newActivityKeys.has(a.key)
-        );
-        return [...newActivities, ...paginatedOlderEmails];
-      },
-      onSuccess: (res: { has_more_emails?: boolean }) => {
-        hasMoreEmails!.value = !!res.has_more_emails;
-      },
-    });
-    resources.set(cacheKey, resource);
-  }
+      const newActivities = res.activities;
+      const newActivityKeys = new Set(newActivities.map((a) => a.key));
 
-  subscribeToLiveUpdates(doctype, docname, resource);
+      const paginatedOlderRows = oldActivities.filter(
+        (a) => isPagedRow(a) && !newActivityKeys.has(a.key)
+      );
+      return [...newActivities, ...paginatedOlderRows];
+    },
+    onSuccess: (res: {
+      has_more_emails?: boolean;
+      has_more_milestones?: boolean;
+      next_milestone_start?: number;
+    }) => {
+      hasMoreEmails.value = !!res.has_more_emails;
+      // This response only carries the first milestone page. Once the user has paged past it
+      // the transform above keeps those older rows, so page one's flag and offset are stale.
+      if (milestoneStart.value === 0) {
+        hasMoreMilestones.value = !!res.has_more_milestones;
+        milestoneStart.value = res.next_milestone_start ?? 0;
+      }
+    },
+  });
 
+  const store: TimelineStore = {
+    resource,
+    hasMoreEmails,
+    hasMoreMilestones,
+    milestoneStart,
+  };
+  stores.set(cacheKey, store);
+  return store;
+}
+
+export function useActivityTimeline(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+) {
+  const visibleTypeNames = visibleTypes?.flatMap((t) =>
+    typeof t === "string" ? [t] : Object.keys(t)
+  );
+
+  const store = getTimelineStore(doctype, docname, visibleTypes);
+  const { resource } = store;
+
+  subscribeToLiveUpdates(doctype, docname, resource, visibleTypeNames);
+
+  // deduped + sorted, but ungrouped: the component folds version runs at render
+  // time, after the consumer's own filtering/merging
   const activities = computed<Array<Activity | CustomActivity>>(() => {
     const fetched = (resource.data as Activity[] | undefined) ?? [];
     const uniqueActivities = dropDuplicateKeys(fetched);
     uniqueActivities.sort(compareActivities);
-    return groupActivities(uniqueActivities);
+    return uniqueActivities;
   });
 
   return {
     activities,
     loading: computed<boolean>(() => resource.loading),
     reload: () => resource.reload(),
-    paginate: createEmailPagination(doctype, docname, resource, hasMoreEmails),
+    paginate: createHistoryPagination(doctype, docname, store),
   };
 }
 
-// Email paging: fetch the next older page and append; the activities computed re-sorts.
-function createEmailPagination(
+// The two paged sources; everything else in the feed arrives whole on the first load.
+function isPagedRow(activity: Activity | CustomActivity): boolean {
+  if (activity.type === "email") return true;
+  if (activity.type !== "log") return false;
+  return (
+    (activity.data as { subtype?: string } | null)?.subtype === "milestone"
+  );
+}
+
+// History paging: fetch the next older page of each paged source and append; activities re-sorts.
+function createHistoryPagination(
   doctype: string,
   docname: string,
-  resource: ReturnType<typeof createResource>,
-  hasMoreEmails: Ref<boolean>
+  store: TimelineStore
 ): Pagination {
+  const { resource } = store;
+  const append = (activities: Activity[]) => {
+    const loaded = (resource.data as Activity[] | undefined) ?? [];
+    resource.data = [...loaded, ...activities];
+  };
+
   const olderEmails = createResource({
     url: "frappe.desk.form.activity.get_more_email_activities",
     auto: false,
     onSuccess: (res: { activities: Activity[]; has_more_emails?: boolean }) => {
-      const loaded = (resource.data as Activity[] | undefined) ?? [];
-      resource.data = [...loaded, ...res.activities];
-      hasMoreEmails.value = !!res.has_more_emails;
+      append(res.activities);
+      store.hasMoreEmails.value = !!res.has_more_emails;
     },
   });
 
+  const olderMilestones = createResource({
+    url: "frappe.desk.form.activity.get_more_milestone_activities",
+    auto: false,
+    onSuccess: (res: {
+      activities: Activity[];
+      has_more_milestones?: boolean;
+      next_milestone_start?: number;
+    }) => {
+      append(res.activities);
+      store.hasMoreMilestones.value = !!res.has_more_milestones;
+      // backend-supplied: a milestone on a field the user cannot read is counted but not
+      // returned, so an offset counted from the rendered rows would skip the rows behind it
+      store.milestoneStart.value =
+        res.next_milestone_start ?? store.milestoneStart.value;
+    },
+  });
+
+  const isFetching = () => olderEmails.loading || olderMilestones.loading;
+
+  // One control, both sources: a row is older history whichever source it came from.
   const fetchNextPage = () => {
-    if (olderEmails.loading || !hasMoreEmails.value) return;
-    const loaded = (resource.data as Activity[] | undefined) ?? [];
-    // count-based offset: emails are only appended, so the loaded count is the next start
-    const emailsLoaded = loaded.filter((a) => a.type === "email").length;
-    olderEmails.submit({ doctype, name: docname, start: emailsLoaded });
+    if (isFetching()) return;
+    if (store.hasMoreEmails.value) {
+      const loaded = (resource.data as Activity[] | undefined) ?? [];
+      // count-based offset: emails are only appended, so the loaded count is the next start
+      const emailsLoaded = loaded.filter((a) => a.type === "email").length;
+      olderEmails.submit({ doctype, name: docname, start: emailsLoaded });
+    }
+    if (store.hasMoreMilestones.value) {
+      olderMilestones.submit({
+        doctype,
+        name: docname,
+        start: store.milestoneStart.value,
+      });
+    }
   };
 
   // reactive() so the refs unwrap when read through the `paginate` prop.
   return reactive({
-    hasNextPage: computed(() => hasMoreEmails.value),
-    isFetchingNextPage: computed(() => olderEmails.loading),
+    hasNextPage: computed(
+      () => store.hasMoreEmails.value || store.hasMoreMilestones.value
+    ),
+    isFetchingNextPage: computed(() => isFetching()),
     fetchNextPage,
-    // in-feed row above the oldest email; email-specific copy lives here, not in the component
+    isPagedRow,
+    // in-feed row above the oldest paged row; the copy lives here, not in the component
     loadMore: {
       position: "inline" as const,
-      label: "Show previous conversations",
+      label: "Show previous activity",
       icon: "lucide-chevrons-up",
     },
   });
@@ -116,7 +204,8 @@ function createEmailPagination(
 function subscribeToLiveUpdates(
   doctype: string,
   docname: string,
-  resource: ReturnType<typeof createResource>
+  resource: ReturnType<typeof createResource>,
+  visibleTypes: string[] | undefined
 ) {
   const socket = getSocketInstance();
   if (!socket) return;
@@ -141,6 +230,8 @@ function subscribeToLiveUpdates(
 
     const activity = normalizeLiveActivity(key, doc, resolveAuthor);
     if (!activity) return;
+    // mirror the server-side visibleTypes filter
+    if (visibleTypes && !visibleTypes.includes(activity.type)) return;
 
     const current = (resource.data as Activity[] | undefined) ?? [];
     if (action === "add") {

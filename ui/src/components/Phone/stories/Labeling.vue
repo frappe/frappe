@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Checkbox, PhoneInput } from "frappe-ui";
+import { Checkbox } from "frappe-ui";
+import { Phone } from "../index";
 
 const phone = ref("");
 const required = ref(true);
@@ -13,7 +14,7 @@ const error = computed(() =>
 
 <template>
 	<div class="flex items-start gap-8">
-		<PhoneInput
+		<Phone
 			v-model="phone"
 			label="Delivery contact"
 			description="The courier will call this number on arrival."

@@ -1,5 +1,6 @@
 import random
 from unittest.case import skipIf
+from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
@@ -201,6 +202,27 @@ class TestDBUpdate(IntegrationTestCase):
 			doctype.save()
 		frappe.db.rollback()
 
+	@run_only_if(db_type_is.MARIADB)
+	def test_blank_values_are_coerced_so_the_conversion_can_proceed(self):
+		"""An empty string only fails to cast because it is empty; migrate makes it the default"""
+
+		doctype = new_doctype(fields=[{"fieldname": "amount", "fieldtype": "Data"}]).insert()
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.db.sql_ddl, f"DROP TABLE IF EXISTS `tab{doctype.name}`")
+		self.addCleanup(doctype.delete)
+
+		blank = frappe.get_doc(doctype=doctype.name, amount="").insert()
+		priced = frappe.get_doc(doctype=doctype.name, amount="99.5").insert()
+		frappe.db.commit()  # nosemgrep
+
+		doctype.fields[0].fieldtype = "Currency"
+		with patch.dict(frappe.flags, {"in_migrate": True}):
+			doctype.save()
+
+		self.assertIn("decimal", frappe.db.get_column_type(doctype.name, "amount"))
+		self.assertEqual(frappe.db.get_value(doctype.name, blank.name, "amount"), 0)
+		self.assertEqual(frappe.db.get_value(doctype.name, priced.name, "amount"), 99.5)
+
 	def test_unique_index_on_install(self):
 		"""Only one unique index should be added"""
 		for dt in frappe.get_all("DocType", {"is_virtual": 0, "issingle": 0}, pluck="name"):
@@ -313,6 +335,36 @@ class TestDBUpdate(IntegrationTestCase):
 		finally:
 			doctype.delete(force=True)
 			frappe.db.commit()  # nosemgrep
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_drop_index_for_accent_colliding_fields(self):
+		# removing two fields whose names collide under the collation must not fail schema sync
+		doctype = new_doctype(
+			fields=[
+				{"fieldname": "some_fieldname", "fieldtype": "Data"},
+				{"fieldname": "patrimonio", "fieldtype": "Data", "unique": 1},
+				{"fieldname": "patrimônio", "fieldtype": "Data", "unique": 1},
+			]
+		).insert()
+		try:
+			self.assertTrue(self.get_unique_index(doctype.name, "patrimonio"))
+			self.assertTrue(self.get_unique_index(doctype.name, "patrimônio"))
+
+			doctype.fields = [f for f in doctype.fields if f.fieldname not in ("patrimonio", "patrimônio")]
+			doctype.save()
+
+			self.assertFalse(self.get_unique_index(doctype.name, "patrimonio"))
+			self.assertFalse(self.get_unique_index(doctype.name, "patrimônio"))
+		finally:
+			# DDL in this test auto-commits, so the cleanup delete must be committed explicitly
+			doctype.delete()
+			frappe.db.commit()  # nosemgrep
+
+	def get_unique_index(self, doctype: str, column: str):
+		# binary match so colliding names are compared exactly
+		return frappe.db.sql(
+			f"show index from `tab{doctype}` where column_name = binary %s and Non_unique = 0", column
+		)
 
 	def test_uuid_varchar_migration(self):
 		doctype = new_doctype().insert()

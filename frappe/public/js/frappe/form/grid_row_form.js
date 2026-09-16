@@ -84,12 +84,6 @@ export default class GridRowForm {
 						<span class="text-medium"> ${__("Shortcuts")}: </span>
 						<kbd>${__("Ctrl + Up")}</kbd> . <kbd>${__("Ctrl + Down")}</kbd> . <kbd>${__("ESC")}</kbd>
 					</div>
-					<span class="row-actions">
-						${frappe.ui.button.html({
-							label: __("Insert Below"),
-							css_class: "pull-right grid-append-row",
-						})}
-					</span>
 				</div>
 			</div>`;
 
@@ -121,18 +115,13 @@ export default class GridRowForm {
 			me.row.move();
 			return false;
 		});
-		this.wrapper.find(".grid-append-row").on("click", function () {
-			me.row.toggle_view(false);
-			me.row.grid.add_new_row(me.row.doc.idx + 1, null, true);
-			return false;
-		});
 		this.wrapper.find(".grid-form-heading, .grid-footer-toolbar").on("click", function () {
 			me.row.toggle_view();
 			return false;
 		});
 	}
 	toggle_add_delete_button_display($parent) {
-		$parent.find(".row-actions, .grid-append-row").toggle(this.row.grid.is_editable());
+		$parent.find(".row-actions").toggle(this.row.grid.is_editable());
 	}
 	refresh_field(fieldname) {
 		const field = this.fields_dict[fieldname];

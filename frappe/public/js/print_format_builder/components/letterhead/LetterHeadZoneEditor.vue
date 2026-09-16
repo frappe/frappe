@@ -8,10 +8,11 @@
 			<div v-else-if="preview_doc" v-html="rendered_content ?? zone_content"></div>
 			<div v-else v-html="zone_content"></div>
 		</div>
-		<div v-else class="lh-zone-empty">
+		<div v-else-if="letterhead" class="lh-zone-empty">
 			<span v-html="frappe.utils.icon('image', 'sm')"></span>
 			<span>{{ empty_label }}</span>
 		</div>
+		<div v-else class="lh-zone-blank"></div>
 	</div>
 </template>
 
@@ -59,14 +60,9 @@ let is_selected = computed(() =>
 		? raw_store.selected_letterhead.value
 		: raw_store.selected_lh_footer.value
 );
-let empty_label = computed(() => {
-	if (letterhead.value) {
-		return __("{0} is empty — click to add", [letterhead.value.name]);
-	}
-	return props.zone === "header"
-		? __("No Letter Head — click to add")
-		: __("No Letter Head Footer — click to add");
-});
+let empty_label = computed(() =>
+	letterhead.value ? __("{0} is empty — click to add", [letterhead.value.name]) : ""
+);
 
 function select_zone() {
 	raw_store.select_letterhead({ footer: props.zone !== "header" });
@@ -125,7 +121,7 @@ watch(
 );
 
 onMounted(() => {
-	if (props.zone === "header" && !letterhead.value && !layout.value?.letter_head) {
+	if (props.zone === "header" && !letterhead.value && layout.value?.letter_head == null) {
 		const lh_name = frappe.boot.sysdefaults.letter_head;
 		if (lh_name) store.value.change_letterhead(lh_name, { keep_clean: true });
 	}
@@ -157,6 +153,10 @@ onMounted(() => {
 	color: var(--text-muted);
 	font-size: var(--text-sm);
 	padding: 0.5rem 0;
+}
+
+.lh-zone:has(.lh-zone-blank) {
+	padding: 0.25rem;
 }
 
 .lh-zone :deep(img) {

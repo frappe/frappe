@@ -102,6 +102,15 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 		# no source -> block is skipped entirely
 		self.assertNotIn("print-image", self.render(df | {"image_url": ""}))
 
+	def test_allow_page_break_marks_field_breakable(self):
+		# the class name also lives in the stylesheet, so assert on the body markup only
+		def body(html):
+			return html.split("<body", 1)[-1]
+
+		df = {"fieldname": "first_name", "fieldtype": "Data", "label": "First Name"}
+		self.assertNotIn("field--breakable", body(self.render(df)))
+		self.assertIn("field--breakable", body(self.render(df | {"allow_page_break": 1})))
+
 	def test_barcode_element(self):
 		df = {"fieldname": "barcode_test", "fieldtype": "Barcode", "custom": 1, "label": ""}
 
@@ -862,3 +871,93 @@ class TestPrintFormatChildTableVisibility(IntegrationTestCase):
 		html = self.render(df)
 		self.assertNotIn('data-fieldname="is_primary"', html)
 		self.assertIn('data-fieldname="email_id"', html)
+
+
+class TestPrintFormatDraft(IntegrationTestCase):
+	"""The builder parks edits in draft_data; only Save & Apply touches what prints."""
+
+	def setUp(self):
+		self.pf = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test Draft {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"format_data": frappe.as_json({"sections": [], "header": {}, "footer": {}}),
+				"margin_top": 10,
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", self.pf.name, force=True)
+
+	def live(self, *fields):
+		return frappe.db.get_value("Print Format", self.pf.name, list(fields), as_dict=True)
+
+	def stamp(self):
+		"""The format's current `modified` — every draft endpoint requires it."""
+		return frappe.db.get_value("Print Format", self.pf.name, "modified")
+
+	def test_draft_does_not_change_what_prints(self):
+		from frappe.printing.doctype.print_format.print_format import (
+			apply_draft,
+			discard_draft,
+			save_draft,
+		)
+
+		save_draft(self.pf.name, {"margin_top": 25, "font": "Inter"}, self.stamp())
+		live = self.live("margin_top", "font", "draft_data")
+		self.assertEqual(live.margin_top, 10)
+		self.assertIsNone(live.font)
+		self.assertEqual(frappe.parse_json(live.draft_data)["margin_top"], 25)
+
+		apply_draft(self.pf.name, self.stamp())
+		live = self.live("margin_top", "font", "draft_data")
+		self.assertEqual(live.margin_top, 25)
+		self.assertEqual(live.font, "Inter")
+		self.assertFalse(live.draft_data)
+
+		save_draft(self.pf.name, {"margin_top": 99}, self.stamp())
+		discard_draft(self.pf.name, self.stamp())
+		live = self.live("margin_top", "draft_data")
+		self.assertEqual(live.margin_top, 25)
+		self.assertFalse(live.draft_data)
+
+	def test_draft_ignores_fields_outside_the_whitelist(self):
+		from frappe.printing.doctype.print_format.print_format import apply_draft, save_draft
+
+		save_draft(self.pf.name, {"margin_top": 25, "disabled": 1, "standard": "Yes"}, self.stamp())
+		self.assertNotIn("disabled", frappe.parse_json(self.live("draft_data").draft_data))
+
+		apply_draft(self.pf.name, self.stamp(), {"margin_top": 30, "disabled": 1})
+		live = self.live("margin_top", "disabled")
+		self.assertEqual(live.margin_top, 30)
+		self.assertEqual(live.disabled, 0)
+
+	def test_css_rides_the_draft_pipeline(self):
+		from frappe.printing.doctype.print_format.print_format import apply_draft, save_draft
+
+		save_draft(self.pf.name, {"css": ".print-format p { margin: 0; }"}, self.stamp())
+		self.assertIn("css", frappe.parse_json(self.live("draft_data").draft_data))
+
+		apply_draft(self.pf.name, self.stamp(), {"css": ".print-format p { margin: 0; }"})
+		self.assertEqual(self.live("css").css, ".print-format p { margin: 0; }")
+
+	def test_a_stale_write_cannot_clobber_a_newer_draft(self):
+		"""db_set skips the timestamp check save() runs, so the endpoints do it."""
+		from frappe.printing.doctype.print_format.print_format import (
+			apply_draft,
+			discard_draft,
+			save_draft,
+		)
+
+		stale = self.stamp()
+		save_draft(self.pf.name, {"margin_top": 20}, stale)
+
+		for call in (
+			lambda: save_draft(self.pf.name, {"margin_top": 55}, stale),
+			lambda: apply_draft(self.pf.name, stale),
+			lambda: discard_draft(self.pf.name, stale),
+		):
+			with self.assertRaises(frappe.TimestampMismatchError):
+				call()
+
+		self.assertEqual(frappe.parse_json(self.live("draft_data").draft_data)["margin_top"], 20)

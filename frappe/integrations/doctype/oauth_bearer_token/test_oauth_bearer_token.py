@@ -22,14 +22,49 @@ class TestOAuthBearerToken(IntegrationTestCase):
 	def test_refresh_token_is_looked_up_by_hash(self):
 		from frappe.oauth import OAuthWebRequestValidator
 
+		owning_client = make_oauth_client()
 		refresh_token = frappe.generate_hash()
-		make_bearer_token(frappe.generate_hash(), refresh_token)
-		request = frappe._dict()
+		make_bearer_token(frappe.generate_hash(), refresh_token, client=owning_client.name)
+		request = frappe._dict(client={"name": owning_client.name})
 		validator = OAuthWebRequestValidator()
 
 		self.assertEqual(validator.get_original_scopes(refresh_token, request), "all openid")
-		self.assertTrue(validator.validate_refresh_token(refresh_token, None, request))
+		self.assertTrue(
+			validator.validate_refresh_token(
+				refresh_token, frappe._dict(client_id=owning_client.name), request
+			)
+		)
 		self.assertEqual(request.user, "Administrator")
+
+	def test_refresh_token_rejects_missing_client(self):
+		from frappe.oauth import OAuthWebRequestValidator
+
+		owning_client = make_oauth_client()
+		refresh_token = frappe.generate_hash()
+		make_bearer_token(frappe.generate_hash(), refresh_token, client=owning_client.name)
+		request = frappe._dict()
+		validator = OAuthWebRequestValidator()
+
+		self.assertFalse(validator.validate_refresh_token(refresh_token, None, request))
+		self.assertNotIn("user", request)
+
+	def test_refresh_token_rejects_mismatched_client(self):
+		"""A refresh token issued to one OAuth client must not be redeemable by another (RFC 6749 §6)."""
+		from frappe.oauth import OAuthWebRequestValidator
+
+		owning_client = make_oauth_client()
+		other_client = make_oauth_client()
+		refresh_token = frappe.generate_hash()
+		make_bearer_token(frappe.generate_hash(), refresh_token, client=owning_client.name)
+		request = frappe._dict()
+		validator = OAuthWebRequestValidator()
+
+		self.assertFalse(
+			validator.validate_refresh_token(
+				refresh_token, frappe._dict(client_id=other_client.name), request
+			)
+		)
+		self.assertNotIn("user", request)
 
 	def test_patch_hashes_existing_tokens(self):
 		access_token = frappe.generate_hash()
@@ -112,7 +147,7 @@ class TestOAuthBearerToken(IntegrationTestCase):
 		self.assertIsNone(frappe.db.get_value("OAuth Bearer Token", empty_token.name, "refresh_token"))
 
 
-def make_bearer_token(access_token: str, refresh_token: str):
+def make_bearer_token(access_token: str, refresh_token: str, client: str | None = None):
 	return frappe.get_doc(
 		{
 			"doctype": "OAuth Bearer Token",
@@ -122,5 +157,17 @@ def make_bearer_token(access_token: str, refresh_token: str):
 			"scopes": "all openid",
 			"status": "Active",
 			"user": "Administrator",
+			"client": client,
+		}
+	).insert(ignore_permissions=True)
+
+
+def make_oauth_client():
+	return frappe.get_doc(
+		{
+			"doctype": "OAuth Client",
+			"app_name": frappe.generate_hash(length=10),
+			"scopes": "all openid",
+			"default_redirect_uri": "http://localhost/callback",
 		}
 	).insert(ignore_permissions=True)

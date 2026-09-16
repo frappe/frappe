@@ -8,14 +8,20 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from "vue";
+import { provide, reactive, ref } from "vue";
 import FormLayout from "../FormLayout.vue";
+import { CommitKey, LinkTitlesKey, NO_COMMIT } from "../types";
 import { registerFieldType } from "../../Fields/fieldTypes";
 import DemoLinkField from "./DemoLinkField.vue";
 import DemoCurrencyField from "./DemoCurrencyField.vue";
 import DemoTableMultiSelectField from "./DemoTableMultiSelectField.vue";
 import type { FormLayoutSchema } from "../types";
 import type { UploadTransport } from "../../FileUpload/types";
+
+// A story has no page behind it, so its fields commit to nothing.
+provide(CommitKey, NO_COMMIT);
+// A title the host already knows, shown by the Link before its search returns it.
+provide(LinkTitlesKey, ref({ "User::admin@example.com": "Administrator" }));
 
 // Fake transport for the stories: no backend, just a placeholder URL and a
 // simulated progress ramp (honoring the abort signal). The Attach/Attach Image
@@ -62,6 +68,7 @@ const doc = reactive<Record<string, any>>({
 	// Select field writes it; their `ui.props.view` getters read it back).
 	editor_view: "auto",
 	reference_id: "REF-0001",
+	owner: "admin@example.com",
 	quantity: 1234,
 	amount: 1234567.5,
 	progress: 42.5,

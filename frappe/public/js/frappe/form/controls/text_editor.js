@@ -275,6 +275,26 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 					sprite_icon("a-large-small", 'class="ql-label-icon"')
 				);
 			});
+
+		// table picker: menu items ride the same data-label channel; the
+		// visible label rides data-title instead, since selectItem copies the
+		// clicked item's data-label onto the label
+		const table_labels = {
+			"insert-table": __("Insert Table"),
+			"insert-row-above": __("Insert Row Above"),
+			"insert-row-below": __("Insert Row Below"),
+			"insert-column-right": __("Insert Column Right"),
+			"insert-column-left": __("Insert Column Left"),
+			"delete-row": __("Delete Row"),
+			"delete-column": __("Delete Column"),
+			"delete-table": __("Delete Table"),
+		};
+		toolbar.container.querySelectorAll(".ql-table .ql-picker-item").forEach((item) => {
+			item.setAttribute("data-label", table_labels[item.dataset.value]);
+		});
+		toolbar.container
+			.querySelector(".ql-table .ql-picker-label")
+			?.setAttribute("data-title", __("Table"));
 	}
 
 	add_toolbar_tooltips(toolbar) {

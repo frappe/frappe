@@ -17,4 +17,10 @@ Object.assign(frappe.defaults, {
 	is_enabled: function (key) {
 		return cint(this.get_global_default(key)) === 1;
 	},
+	get_default: function (key) {
+		return this.get_global_default(key);
+	},
+	get_user_default: function (key) {
+		return this.get_global_default(key);
+	},
 });

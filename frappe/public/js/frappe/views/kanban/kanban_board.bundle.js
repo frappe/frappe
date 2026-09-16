@@ -1577,12 +1577,10 @@ if (frappe.views.KanbanView) {
 			card = Object.assign({}, card, doc);
 		}
 
-		const title_value = card[state.card_meta.title_field.fieldname];
-
 		return {
 			doctype: state.doctype,
 			name: card.name,
-			title: title_value == null || title_value === "" ? card.name : title_value,
+			title: card[state.card_meta.title_field.fieldname],
 			creation: moment(card.creation).format("MMM DD, YYYY"),
 			_liked_by: card._liked_by,
 			image: card[cur_list.meta.image_field],
@@ -1712,12 +1710,12 @@ if (frappe.views.KanbanView) {
 		return col.status !== "Archived";
 	}
 
-	/** Update column background and badge theme without rebuilding cards. */
+	/** Update column dot indicator without rebuilding cards. */
 	function apply_column_indicator($column, indicator) {
 		if (!$column?.length) return;
 		const theme = frappe.scrub(indicator || "gray", "-");
-		$column.css("background-color", `var(--bg-${theme})`);
-		$column.find(".kanban-column-header .es-badge").attr("data-theme", theme);
+		const $dot = $column.find(".kanban-col-dot");
+		$dot.attr("class", `kanban-col-dot indicator ${theme}`);
 	}
 
 	/** Align card column fields with saved board column order (mutates cards in place). */

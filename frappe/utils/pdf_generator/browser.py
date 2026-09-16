@@ -242,12 +242,17 @@ class Browser:
 		)
 
 		if pdf_page_size == "Custom":
-			options["page-height"] = options.get("page-height") or frappe.db.get_single_value(
-				"Print Settings", "pdf_page_height"
-			)
-			options["page-width"] = options.get("page-width") or frappe.db.get_single_value(
-				"Print Settings", "pdf_page_width"
-			)
+			options["page-size"] = pdf_page_size
+			# Print Settings stores these in mm; downstream expects px like the
+			# named-size branch in prepare_options_for_pdf.
+			for dimension, fieldname in (
+				("page-height", "pdf_page_height"),
+				("page-width", "pdf_page_width"),
+			):
+				if not options.get(dimension):
+					value = frappe.db.get_single_value("Print Settings", fieldname)
+					if value:
+						options[dimension] = convert_uom(value, "mm", "px", only_number=True)
 		else:
 			options["page-size"] = pdf_page_size
 
@@ -284,7 +289,7 @@ class Browser:
 		if not options.get("page-height") or not options.get("page-width"):
 			if not (page_size := self.options.get("page-size")):
 				raise frappe.ValidationError("Page size is required")
-			if page_size == "CUSTOM":
+			if page_size == "Custom":
 				raise frappe.ValidationError("Custom page size requires page-height and page-width")
 			size = PageSize.get(page_size)
 			if not size:
@@ -333,7 +338,14 @@ class Browser:
 
 		if self.header_page:
 			header_with_top_margin = self.header_height + (0 if header_owns_top_margin else margin_top)
-			header_spacing = options.get("header-spacing", 0)
+			# comes from print CSS as a string; unitless values are mm (wkhtmltopdf's
+			# --header-spacing unit) and must land in px like everything else here
+			header_spacing = options.get("header-spacing") or 0
+			if header_spacing:
+				parsed = parse_float_and_unit(header_spacing, default_unit="mm")
+				header_spacing = (
+					convert_uom(parsed["value"], parsed["unit"], "px", only_number=True) if parsed else 0
+				)
 			header_with_spacing_top_margin = header_with_top_margin + header_spacing
 			self.header_page.options["paperHeight"] = (
 				convert_uom(header_with_spacing_top_margin, "px", "in", only_number=True)
@@ -370,6 +382,13 @@ class Browser:
 		body_height = options.get("page-height") - (
 			header_with_spacing_top_margin + footer_with_bottom_margin
 		)
+
+		if body_height <= 0:
+			frappe.throw(
+				frappe._(
+					"Header, footer and margins leave no room for content on a {0}px tall page. Reduce their height or use a larger page size."
+				).format(options.get("page-height"))
+			)
 
 		"""
 		matching scale for some old formats is 1.46 #backwards-compatibility ( scale 1 is better in my opinion)

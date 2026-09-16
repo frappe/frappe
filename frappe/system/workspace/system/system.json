@@ -1,0 +1,53 @@
+{
+ "charts": [
+  {
+   "chart_name": "Background Job Activity",
+   "label": "Background Job Activity"
+  },
+  {
+   "chart_name": "Notifications By Type",
+   "label": "Notifications By Type"
+  }
+ ],
+ "content": "[{\"id\":\"kQ2rY7nD4t\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Error Logs\",\"col\":4}},{\"id\":\"pV6mL0sJ8w\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Scheduled Jobs\",\"col\":4}},{\"id\":\"zR3xB5hK9q\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Failed Scheduled Jobs\",\"col\":4}},{\"id\":\"nF1cW4gT7y\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Background Job Activity\",\"col\":12}},{\"id\":\"aD8jP2vN6u\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Notifications By Type\",\"col\":12}}]",
+ "creation": "2026-06-11 11:51:23.254767",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "monitor-check",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "System",
+ "link_type": "DocType",
+ "links": [],
+ "modified": "2026-08-12 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "System",
+ "name": "System",
+ "number_cards": [
+  {
+   "label": "Error Logs",
+   "number_card_name": "Error Logs"
+  },
+  {
+   "label": "Scheduled Jobs",
+   "number_card_name": "Scheduled Jobs"
+  },
+  {
+   "label": "Failed Scheduled Jobs",
+   "number_card_name": "Failed Scheduled Jobs"
+  }
+ ],
+ "owner": "Administrator",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 55.0,
+ "shortcuts": [],
+ "standard": 1,
+ "title": "System",
+ "type": "Workspace"
+}

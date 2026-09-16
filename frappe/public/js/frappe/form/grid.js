@@ -292,16 +292,17 @@ export default class Grid {
 			}
 
 			const num_selected_rows = this.get_selected_children().length;
+			const should_hide_add_buttons =
+				num_selected_rows > 0 ||
+				this.cannot_add_rows ||
+				(this.df && this.df.cannot_add_rows);
 
 			// toggle "Add row" button
+			this.wrapper.find(".grid-add-row").toggleClass("hidden", should_hide_add_buttons);
+
 			this.wrapper
-				.find(".grid-add-row, .grid-add-multiple-rows")
-				.toggleClass(
-					"hidden",
-					num_selected_rows > 0 ||
-						this.cannot_add_rows ||
-						(this.df && this.df.cannot_add_rows)
-				);
+				.find(".grid-add-multiple-rows")
+				.toggleClass("hidden", should_hide_add_buttons || !this.multiple_set);
 
 			// update "Delete" and "Duplicate" button labels
 			if (num_selected_rows == 1) {

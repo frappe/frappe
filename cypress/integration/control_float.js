@@ -40,7 +40,6 @@ context("Control Float", () => {
 				cy.get_field("float_number", "Float").blur();
 				cy.wait(100);
 				cy.get_field("float_number", "Float").focus();
-				cy.wait(100);
 				cy.get_field("float_number", "Float").should("have.value", d.focus_expected);
 			});
 		});

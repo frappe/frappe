@@ -10,7 +10,7 @@ from frappe.twofactor import get_qr_svg_code
 
 def get_context(context):
 	context.no_cache = 1
-	context.qr_code_user, context.qrcode_svg = get_user_svg_from_cache()
+	context.qr_code_user, context.qrcode_svg, context.otp_secret = get_user_svg_from_cache()
 
 
 def get_query_key():
@@ -31,10 +31,11 @@ def get_user_svg_from_cache():
 	key = get_query_key()
 	totp_uri = frappe.cache.get_value(f"{key}_uri")
 	user = frappe.cache.get_value(f"{key}_user")
+	otp_secret = frappe.cache.get_value(f"{key}_secret")
 	if not totp_uri or not user:
 		frappe.throw(_("Page has expired!"), frappe.PermissionError)
 	if not frappe.db.exists("User", user):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 	user = frappe.get_doc("User", user)
 	svg = get_qr_svg_code(totp_uri)
-	return (user, svg.decode())
+	return (user, svg.decode(), otp_secret)

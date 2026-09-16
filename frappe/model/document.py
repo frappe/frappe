@@ -17,6 +17,7 @@ from werkzeug.exceptions import NotFound
 
 import frappe
 from frappe import _, is_whitelisted, msgprint
+from frappe.automation_engine.dispatch import run_automations
 from frappe.core.doctype.file.utils import relink_mismatched_files
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
 from frappe.database.utils import commit_after_response
@@ -1214,7 +1215,7 @@ class Document(BaseDocument):
 				if fail:
 					frappe.throw(
 						_("Value cannot be changed for {0}").format(
-							frappe.bold(_(self.meta.get_label(field.fieldname), context=self.doctype))
+							frappe.bold(self.meta.get_translated_label(field.fieldname))
 						),
 						exc=frappe.CannotChangeConstantError,
 					)
@@ -1703,6 +1704,7 @@ class Document(BaseDocument):
 		self.run_notifications(method)
 		run_webhooks(self, method)
 		run_server_script_for_doc_event(self, method)
+		run_automations(self, method)
 
 		return out
 
@@ -2127,7 +2129,7 @@ class Document(BaseDocument):
 		val2 = doc.cast(val2, df)
 
 		if not compare(val1, condition, val2):
-			label = _(doc.meta.get_label(fieldname), context=doc.doctype)
+			label = doc.meta.get_translated_label(fieldname)
 			if doc.get("parentfield"):
 				msg = _("Incorrect value in row {0}:").format(doc.idx)
 			else:
@@ -2150,7 +2152,7 @@ class Document(BaseDocument):
 	def validate_table_has_rows(self, parentfield, raise_exception=None):
 		"""Raise exception if Table field is empty."""
 		if not (isinstance(self.get(parentfield), list) and len(self.get(parentfield)) > 0):
-			label = _(self.meta.get_label(parentfield), context=self.doctype)
+			label = self.meta.get_translated_label(parentfield)
 			frappe.throw(
 				_("Table {0} cannot be empty").format(label), raise_exception or frappe.EmptyTableError
 			)
@@ -2390,8 +2392,8 @@ class Document(BaseDocument):
 			frappe.throw(
 				table_row
 				+ _("{0} must be after {1}").format(
-					frappe.bold(_(self.meta.get_label(to_date_field), context=self.doctype)),
-					frappe.bold(_(self.meta.get_label(from_date_field), context=self.doctype)),
+					frappe.bold(self.meta.get_translated_label(to_date_field)),
+					frappe.bold(self.meta.get_translated_label(from_date_field)),
 				),
 				frappe.exceptions.InvalidDates,
 			)
@@ -2426,7 +2428,9 @@ class Document(BaseDocument):
 		"""Return a list of Tags attached to this document"""
 		from frappe.desk.doctype.tag.tag import DocTags
 
-		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
+		tags = DocTags(self.doctype).get_tags(self.name)
+
+		return [tag for tag in tags.split(",") if tag]
 
 	def deferred_insert(self) -> None:
 		"""Push the document to redis temporarily and insert later.

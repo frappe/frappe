@@ -101,7 +101,10 @@ on_logout = "frappe.core.doctype.session_default_settings.session_default_settin
 pdf_header_html = "frappe.utils.pdf.pdf_header_html"
 pdf_body_html = "frappe.utils.pdf.pdf_body_html"
 pdf_footer_html = "frappe.utils.pdf.pdf_footer_html"
-pdf_generator = "frappe.utils.pdf.get_chrome_pdf"
+pdf_generator = [
+	"frappe.utils.pdf.get_chrome_pdf",
+	"frappe.utils.print_format_generator.get_typst_pdf",
+]
 # permissions
 
 permission_query_conditions = {
@@ -131,6 +134,7 @@ permission_query_conditions = {
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.get_permission_query_conditions",
 	"Contact": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_contact",
 	"Address": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_address",
+	"Comment": "frappe.core.doctype.comment.comment.get_permission_query_conditions",
 	"Communication": "frappe.core.doctype.communication.communication.get_permission_query_conditions_for_communication",
 	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.get_permission_query_conditions",
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.get_permission_query_condition",
@@ -138,7 +142,10 @@ permission_query_conditions = {
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.get_permission_query_conditions",
 	"Document Template": "frappe.desk.doctype.document_template.document_template.get_permission_query_conditions",
 	"Tag Link": "frappe.desk.doctype.tag_link.tag_link.get_permission_query_conditions",
+	"Document Follow": "frappe.email.doctype.document_follow.document_follow.get_permission_query_conditions",
 	"Scheduled Job Type": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.get_permission_query_conditions",
+	"Custom Sidebar": "frappe.desk.doctype.custom_sidebar.custom_sidebar.get_permission_query_conditions",
+	"Dock": "frappe.desk.doctype.dock.dock.get_permission_query_conditions",
 	"DocType": "frappe.app_state.get_module_permission_query_conditions",
 	"Page": "frappe.app_state.get_module_permission_query_conditions",
 	"Workspace": "frappe.app_state.get_module_permission_query_conditions",
@@ -162,6 +169,7 @@ has_permission = {
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.has_permission",
 	"Contact": "frappe.contacts.address_and_contact.has_permission",
 	"Address": "frappe.contacts.address_and_contact.has_permission",
+	"Comment": "frappe.core.doctype.comment.comment.has_permission",
 	"Communication": "frappe.core.doctype.communication.communication.has_permission",
 	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.has_permission",
 	"File": "frappe.core.doctype.file.file.has_permission",
@@ -171,6 +179,9 @@ has_permission = {
 	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.has_permission",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.has_permission",
 	"Document Template": "frappe.desk.doctype.document_template.document_template.has_permission",
+	"Document Follow": "frappe.email.doctype.document_follow.document_follow.has_permission",
+	"Custom Sidebar": "frappe.desk.doctype.custom_sidebar.custom_sidebar.has_permission",
+	"Dock": "frappe.desk.doctype.dock.dock.has_permission",
 }
 
 has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
@@ -246,6 +257,8 @@ scheduler_events = {
 			"frappe.email.doctype.notification.notification.trigger_offset_alerts",
 			"frappe.search.sqlite_search.index_docs_in_queue",
 			"frappe.integrations.doctype.webhook.webhook.retry_failed_webhooks",
+			"frappe.automation_engine.scheduler.process_cron",
+			"frappe.automation_engine.drainer.drain_due",
 		],
 		# 15 minutes
 		"0/15 * * * *": [
@@ -274,7 +287,9 @@ scheduler_events = {
 		"frappe.monitor.flush",
 		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
 	],
-	"hourly": [],
+	"hourly": [
+		"frappe.automation_engine.scheduler.process_date_based",
+	],
 	# Maintenance queue happen roughly once an hour but don't align with wall-clock time of *:00
 	# Use these for when you don't care about when the job runs but just need some guarantee for
 	# frequency.
@@ -302,8 +317,8 @@ scheduler_events = {
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
+		"frappe.automation_engine.drainer.purge_queue",
 		"frappe.core.doctype.user_invitation.user_invitation.mark_expired_invitations",
-		"frappe.core.doctype.duckdb_sync.duckdb_sync.cleanup_old_syncs",
 		"frappe.integrations.doctype.oauth_client.oauth_client.delete_unused_dynamic_clients",
 		"frappe.core.doctype.security_settings.security_settings_alert.check_security_txt_expiry",
 	],
@@ -337,6 +352,8 @@ after_migrate = [
 	"frappe.website.doctype.website_theme.website_theme.after_migrate",
 	"frappe.search.sqlite_search.build_index_in_background",
 	"frappe.desk.doctype.notification_type.notification_type.install_notification_types",
+	"frappe.automation.doctype.automation_trigger_queue.automation_trigger_queue.ensure_dedup_indexes",
+	"frappe.automation_engine.scheduler.ensure_run_lookup_index",
 ]
 
 otp_methods = ["OTP App", "Email", "SMS"]
@@ -467,6 +484,13 @@ ignore_links_on_delete = [
 	"Access Log",
 	"Permission Log",
 	"Desktop Icon",
+	# Navigation, not references. A sidebar item names a way in to a document; the document does
+	# not belong to it, and a dangling item is already skipped when the sidebar resolves. Without
+	# this, a user hiding something in their own sidebar would stop anyone deleting it.
+	# `Workspace` is on this list for the same reason.
+	"Sidebar",
+	"Custom Sidebar",
+	"Dock",
 ]
 
 # Request Hooks
@@ -576,6 +600,22 @@ user_invitation = {
 # source apps and helps API clients understand what a method does.
 expose_discovery_source = True
 
+# An island draws a desk Dashboard or Dashboard Chart whose `__onload.island` is
+# {"name": <a name in ui_islands>, "props": {...}}. Desk draws the document
+# itself while the key is absent. An app sets the key from its own onload
+# handler, so it decides how it recognizes its documents:
+#
+# doc_events = {"Dashboard": {"onload": "someapp.desk.island.dashboard"}}
+#
+# def dashboard(doc, method=None):
+# 	if doc.someapp_dashboard:
+# 		doc.set_onload("island", {"name": "someapp.dashboard", "props": {...}})
+
+# A `Page` of type "Frappe UI" is drawn by an island too, and registers itself:
+# no hook, and no entry in `ui_islands`. Framework builds those islands for
+# every app on the bench, in one build, after any app's assets are built.
+after_app_build = "frappe.bundler.build_page_islands"
+
 
 add_to_apps_screen = [
 	{
@@ -588,3 +628,31 @@ add_to_apps_screen = [
 		"sequence_id": 1000,
 	}
 ]
+
+# Modules that are a folder of code and nothing else. They are kept out of the dock but stay
+# reachable. Each still owns every doctype, report and page it always did; what they no longer own
+# is navigation, which lives in the semantic modules instead. Left in the dock, each would show a
+# computed base built from whatever doctypes happen to sit in it, which is what the split exists to
+# replace. See `frappe.utils.modules.get_code_only_modules`.
+#
+# Each key maps to the modules that inherited its navigation, so nothing is stranded: an entity
+# whose module is code-only resolves against the heirs instead of dead-ending. Naming the heirs is
+# the app's job, since it made the split and knows where the navigation went. Without it the desk
+# can only infer, and inference gave `User` to erpnext's `Setup` on every erpnext site.
+#
+# The order matters, in two ways. This is a list, not a set, and appending to it is a decision:
+#   1. It breaks ties: when several heirs list the same entity, the earliest declared wins.
+#   2. It names the default home: an entity no heir lists lands in the first heir this user can
+#      see.
+# `System` leads `Core` on purpose. It is the internals shell (settings, versions, logs, jobs), and
+# leading with `Build` would turn the developer-tooling sidebar into the dumping ground for every
+# unplaced `Core` internal.
+#
+# A mapping can go stale where an inference cannot: `Email` is here because `Communication` is a
+# `Core` doctype that only frappe's `Email` sidebar links, which this list used to miss. Keep it
+# up to date.
+code_only_modules = {
+	"Core": ["System", "Build", "Data", "Users", "Email"],
+	"Custom": ["Build"],
+	"Desk": ["Build"],
+}

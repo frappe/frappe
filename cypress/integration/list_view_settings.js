@@ -3,7 +3,7 @@ context("List View Settings", () => {
 		cy.login();
 		cy.visit("/desk/website");
 		cy.visit("/desk/List/DocType/List");
-		cy.wait(300);
+		cy.desk_ready();
 		cy.clear_filters();
 		cy.wait(300);
 		cy.get(".menu-btn-group button").click({ force: true });

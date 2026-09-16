@@ -525,7 +525,7 @@ class TestMaskFieldsInChildTable(IntegrationTestCase):
 		from frappe.model.db_query import DatabaseQuery
 
 		rows = DatabaseQuery(self.dt).execute(
-			fields=["name", "items.rate", f"`tab{self.child_dt}`.`secret_note` as 'child:secret_note'"],
+			fields=["name", "items.rate", f"`tab{self.child_dt}`.`secret_note` as `child:secret_note`"],
 			filters={"name": self.docname},
 		)
 		self.assertEqual(rows[0]["rate"], "XXXXXXXX")

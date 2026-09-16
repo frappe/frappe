@@ -104,6 +104,23 @@ class TestScheduledJobType(IntegrationTestCase):
 		self.assertFalse(job.is_event_due(get_datetime("2019-01-01 00:05:06")))
 		self.assertFalse(job.is_event_due(get_datetime("2019-01-01 00:09:59")))
 
+	def test_queue_selection(self):
+		cron_job = frappe.new_doc("Scheduled Job Type", frequency="Cron", cron_format="0 22 * * *")
+		self.assertEqual(cron_job.get_queue_name(), "default")
+
+		cron_job.queue = "long"
+		self.assertEqual(cron_job.get_queue_name(), "long")
+
+		long_job = frappe.new_doc("Scheduled Job Type", frequency="Daily Long")
+		self.assertEqual(long_job.get_queue_name(), "long")
+
+		long_job.method = "frappe.desk.notifications.clear_notifications"
+		long_job.queue = "short"
+		long_job.insert()
+		self.assertFalse(long_job.queue)
+		self.assertEqual(long_job.get_queue_name(), "long")
+		frappe.db.rollback()
+
 	def test_maintenance_jobs(self):
 		sjt = frappe.new_doc(
 			"Scheduled Job Type",

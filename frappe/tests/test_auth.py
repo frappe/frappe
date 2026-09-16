@@ -8,11 +8,13 @@ from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request
 
 import frappe
-from frappe.auth import LoginAttemptTracker
+from frappe.auth import LoginAttemptTracker, validate_auth
+from frappe.core.doctype.user.user import generate_keys
 from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.test_api import FrappeAPITestCase
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_datetime, get_site_url, now
 from frappe.utils.data import add_to_date
 from frappe.www.login import _generate_temporary_login_link
@@ -61,6 +63,7 @@ class TestAuth(IntegrationTestCase):
 		frappe.clear_cache()
 		frappe.db.commit()
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_allow_login_using_mobile(self):
 		self.set_system_settings("allow_login_using_mobile_number", 1)
 		self.set_system_settings("allow_login_using_user_name", 0)
@@ -88,6 +91,7 @@ class TestAuth(IntegrationTestCase):
 		# Login by email should work
 		FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_allow_login_using_username(self):
 		self.set_system_settings("allow_login_using_mobile_number", 0)
 		self.set_system_settings("allow_login_using_user_name", 1)
@@ -100,6 +104,7 @@ class TestAuth(IntegrationTestCase):
 		FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
 		FrappeClient(self.HOST_NAME, self.test_user_name, self.test_user_password)
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_allow_login_using_username_and_mobile(self):
 		self.set_system_settings("allow_login_using_mobile_number", 1)
 		self.set_system_settings("allow_login_using_user_name", 1)
@@ -109,6 +114,7 @@ class TestAuth(IntegrationTestCase):
 		FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
 		FrappeClient(self.HOST_NAME, self.test_user_name, self.test_user_password)
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_deny_multiple_login(self):
 		self.set_system_settings("deny_multiple_sessions", 1)
 		self.addCleanup(self.set_system_settings, "deny_multiple_sessions", 0)
@@ -128,6 +134,7 @@ class TestAuth(IntegrationTestCase):
 			second_login.get_list("ToDo")
 		third_login.get_list("ToDo")
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_disable_user_pass_login(self):
 		FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
 		self.set_system_settings("disable_user_pass_login", 1)
@@ -136,6 +143,7 @@ class TestAuth(IntegrationTestCase):
 		with self.assertRaises(Exception):
 			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_login_with_email_link(self):
 		user = self.test_user_email
 
@@ -161,6 +169,7 @@ class TestAuth(IntegrationTestCase):
 		else:
 			self.fail("Rate limting not working")
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_correct_cookie_expiry_set(self):
 		client = FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
 
@@ -212,6 +221,75 @@ class TestAllowedReferrer(UnitTestCase):
 		# Clean up
 		frappe.cache.delete_value("allowed_referrers")
 		frappe.local.request = None
+
+
+class TestIPRestrictionForAPIAuth(IntegrationTestCase):
+	"""Header-authenticated requests must honour the user's `restrict_ip` allowlist.
+
+	`validate_ip_address` runs in `LoginManager.post_login` for interactive logins and in
+	`Session.resume` for cookie-based requests. A request authenticated purely from an
+	`Authorization` header takes neither path, so `validate_auth` has to enforce it.
+	"""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.user_email = "test_api_ip_restriction@test.com"
+		if not frappe.db.exists("User", cls.user_email):
+			frappe.get_doc(doctype="User", email=cls.user_email, first_name="API IP Restricted").insert(
+				ignore_permissions=True
+			)
+
+		cls.api_secret = generate_keys(cls.user_email)["api_secret"]
+		cls.api_key = frappe.db.get_value("User", cls.user_email, "api_key")
+		frappe.db.commit()
+
+	def setUp(self):
+		self._request = getattr(frappe.local, "request", None)
+		self._request_ip = getattr(frappe.local, "request_ip", None)
+		self._login_manager = getattr(frappe.local, "login_manager", None)
+		self.addCleanup(self._restore)
+
+	def _restore(self):
+		frappe.local.request = self._request
+		frappe.local.request_ip = self._request_ip
+		frappe.local.login_manager = self._login_manager
+		frappe.set_user("Administrator")
+
+	def _authenticated_request_from(self, request_ip):
+		"""Simulate an unauthenticated request carrying an API key/secret token."""
+		env = EnvironBuilder(
+			headers={"Authorization": f"token {self.api_key}:{self.api_secret}"}
+		).get_environ()
+		frappe.local.request = Request(env)
+		frappe.local.request_ip = request_ip
+		frappe.local.login_manager = frappe._dict(user="Guest")
+		frappe.set_user("Guest")
+
+	def _set_restrict_ip(self, value):
+		frappe.db.set_value("User", self.user_email, "restrict_ip", value)
+		frappe.clear_cache(user=self.user_email)
+
+	def test_api_auth_blocked_from_disallowed_ip(self):
+		self._set_restrict_ip("192.168.255.254")
+		self._authenticated_request_from("10.0.0.1")
+
+		with self.assertRaises(frappe.AuthenticationError):
+			validate_auth()
+
+	def test_api_auth_allowed_from_allowed_ip(self):
+		self._set_restrict_ip("10.0.0.1")
+		self._authenticated_request_from("10.0.0.1")
+
+		validate_auth()
+		self.assertEqual(frappe.session.user, self.user_email)
+
+	def test_api_auth_unaffected_without_ip_restriction(self):
+		self._set_restrict_ip("")
+		self._authenticated_request_from("10.0.0.1")
+
+		validate_auth()
+		self.assertEqual(frappe.session.user, self.user_email)
 
 
 class TestLoginAttemptTracker(IntegrationTestCase):
