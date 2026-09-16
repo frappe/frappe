@@ -29,6 +29,10 @@ class TestDB(IntegrationTestCase):
 		self.assertEqual(frappe.db.format_datetime(None), FallBackDateTimeStr)
 		self.assertEqual(frappe.db.format_datetime(now_str), now_str)
 
+	@run_only_if(db_type_is.SQLITE)
+	def test_sqlite_busy_timeout_allows_short_writer_contention(self):
+		self.assertEqual(frappe.db.sql("PRAGMA busy_timeout")[0][0], 15_000)
+
 	@run_only_if(db_type_is.MARIADB)
 	def test_get_column_type(self):
 		desc_data = frappe.db.sql("desc `tabUser`", as_dict=1)
@@ -2760,6 +2764,38 @@ class TestMariaDBExceptionUtil(IntegrationTestCase):
 
 
 class TestSQLiteExceptionUtil(UnitTestCase):
+	def test_date_converter_accepts_mariadb_date_format(self):
+		from frappe.database.sqlite.compatibility import convert_sqlite_date
+
+		self.assertEqual(convert_sqlite_date(b"2000-1-1"), datetime.date(2000, 1, 1))
+		self.assertEqual(convert_sqlite_date(b"2000-01-01 12:30:45"), datetime.date(2000, 1, 1))
+
+	def test_date_converter_rejects_invalid_dates(self):
+		from frappe.database.sqlite.compatibility import convert_sqlite_date
+
+		for value in (b"2000-13-1", b"2000-1-32", b"not-a-date"):
+			with self.subTest(value=value), self.assertRaises(ValueError):
+				convert_sqlite_date(value)
+
+	def test_time_converter_accepts_erpnext_time_formats(self):
+		from frappe.database.sqlite.compatibility import parse_mariadb_time_duration
+
+		cases = {
+			"02:00": datetime.timedelta(hours=2),
+			"14:28:0.330404": datetime.timedelta(hours=14, minutes=28, microseconds=330_404),
+			"-27:05": -datetime.timedelta(hours=27, minutes=5),
+		}
+		for value, expected in cases.items():
+			with self.subTest(value=value):
+				self.assertEqual(parse_mariadb_time_duration(value), expected)
+
+	def test_time_converter_rejects_invalid_clock_components(self):
+		from frappe.database.sqlite.compatibility import parse_mariadb_time_duration
+
+		for value in ("12:60", "12:30:60", "12", "not-a-time"):
+			with self.subTest(value=value), self.assertRaises(ValueError):
+				parse_mariadb_time_duration(value)
+
 	def test_busy_snapshot_is_a_deadlock(self):
 		from frappe.database.sqlite.database import SQLiteExceptionUtil
 

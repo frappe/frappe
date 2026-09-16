@@ -17,6 +17,7 @@ from frappe.database.database import (
 	TRANSACTION_DISABLED_MSG,
 	Database,
 )
+from frappe.database.sqlite import DEFAULT_BUSY_TIMEOUT_SECONDS
 from frappe.database.sqlite.compatibility import (
 	combine_date_with_time_duration,
 	convert_datetime_to_unix_timestamp,
@@ -37,7 +38,6 @@ from frappe.database.utils import FallBackDateTimeStr, convert_backtick_identifi
 from frappe.utils import get_datetime, get_table_name, now
 
 _TRANSPILABLE_STATEMENTS = (exp.Select, exp.Insert, exp.Update, exp.Delete, exp.Union)
-DEFAULT_BUSY_TIMEOUT_SECONDS = 5
 
 
 class SequenceGeneratorLimitExceeded(sqlite3.Error):
