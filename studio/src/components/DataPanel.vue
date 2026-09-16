@@ -24,7 +24,7 @@
 			<EmptyState v-else message="No resources added" />
 
 			<div class="mt-2 flex flex-col" v-if="store.activePage">
-				<Button icon-left="plus" @click="showResourceDialog = true">Add Data Source</Button>
+				<Button icon-left="lucide-plus" @click="showResourceDialog = true">Add Data Source</Button>
 				<ResourceDialog
 					v-model:showDialog="showResourceDialog"
 					:resource="existingResource"
@@ -66,9 +66,9 @@
 			<EmptyState v-else message="No variables added" />
 
 			<div class="mt-2 flex flex-col" v-if="store.activePage">
-				<Button icon-left="plus" @click="showVariableDialog = true">Add Variable</Button>
+				<Button icon-left="lucide-plus" @click="showVariableDialog = true">Add Variable</Button>
 				<Dialog
-					v-model="showVariableDialog"
+					v-model:open="showVariableDialog"
 					:title="variableRef?.name ? 'Edit Variable' : 'Add Variable'"
 					@after-leave="
 						() =>
@@ -95,7 +95,7 @@
 								v-model="variableRef.variable_type"
 								:required="true"
 								default="String"
-								@change="() => setInitialValue()"
+								@update:modelValue="() => setInitialValue()"
 							/>
 							<Code
 								v-if="variableRef.variable_type === 'Object'"

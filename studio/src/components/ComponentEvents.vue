@@ -14,9 +14,9 @@
 
 			<EmptyState v-else message="No events added" />
 
-			<Button class="mt-2" icon-left="plus" @click="showAddEventDialog = true">Add Event</Button>
+			<Button class="mt-2" icon-left="lucide-plus" @click="showAddEventDialog = true">Add Event</Button>
 			<Dialog
-				v-model="showAddEventDialog"
+				v-model:open="showAddEventDialog"
 				:title="(newEvent.isEditing ? 'Edit Event' : 'Add Event') + ' - ' + block.getBlockDescription()"
 				size="3xl"
 				:actions="[
@@ -33,11 +33,12 @@
 					<div class="flex flex-col gap-3">
 						<Combobox
 							:options="eventOptions"
-							:allowCustomValue="true"
 							label="Event"
 							v-model="newEvent.event"
 							description="Type any event, optionally with modifiers — e.g. keydown.enter, click.prevent, submit.prevent.stop"
-						/>
+						>
+							<template #item-custom-event="{ query }">Use "{{ query.trim() }}"</template>
+						</Combobox>
 						<Combobox :options="Object.keys(actions)" label="Action" v-model="newEvent.action" />
 						<component
 							v-for="control in actionControls"
@@ -54,7 +55,7 @@
 								<div class="mb-3">
 									<h3 class="text-sm-medium mb-2 text-ink-gray-8">On Success</h3>
 									<TabButtons
-										:buttons="[
+										:options="[
 											{ label: 'Message', value: 'message' },
 											{ label: 'Script', value: 'script' },
 										]"
@@ -93,7 +94,7 @@
 								<div class="mb-3">
 									<h3 class="text-sm-medium mb-2 text-ink-gray-8">On Failure</h3>
 									<TabButtons
-										:buttons="[
+										:options="[
 											{ label: 'Message', value: 'message' },
 											{ label: 'Script', value: 'script' },
 										]"
@@ -194,7 +195,7 @@ const newEvent = ref<ComponentEvent>({ ...emptyEvent })
 
 const eventOptions = computed(() => {
 	if (!props.block || props.block.isRoot()) return []
-	return [
+	const events = [
 		"click",
 		"change",
 		"focus",
@@ -204,6 +205,17 @@ const eventOptions = computed(() => {
 		"keyup",
 		"keypress",
 		...componentEvents.value,
+	]
+	return [
+		...events,
+		{
+			type: "custom" as const,
+			key: "custom-event",
+			label: "Use custom event",
+			slot: "custom-event",
+			condition: ({ query }: { query: string }) => Boolean(query.trim()) && !events.includes(query.trim()),
+			onClick: ({ query }: { query: string }) => (newEvent.value.event = query.trim()),
+		},
 	]
 })
 

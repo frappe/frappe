@@ -1,6 +1,6 @@
 <template>
 	<Dialog
-		:model-value="state.open"
+		:open="state.open"
 		title="Pasted block conflicts"
 		size="2xl"
 		:dismissible="false"

@@ -8,7 +8,7 @@
 		>
 			<LucidePencil class="size-3" />
 		</button>
-		<Dropdown :options="menuOptions" trigger="click">
+		<Dropdown :options="menuOptions">
 			<template v-slot="{ open }">
 				<button
 					class="flex cursor-pointer items-center rounded-1 p-1 text-ink-gray-6 hover:bg-surface-gray-4"

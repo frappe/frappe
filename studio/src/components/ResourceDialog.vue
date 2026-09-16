@@ -1,6 +1,6 @@
 <template>
 	<Dialog
-		v-model="showDialog"
+		v-model:open="showDialog"
 		:title="resource?.resource_id ? 'Edit Data Source' : 'Add Data Source'"
 		size="2xl"
 		@after-leave="reset"
@@ -64,7 +64,6 @@
 						:placeholder="`Select fields from ${newResource.document_type}`"
 						v-model="newResource.fields"
 						:options="doctypeFields.data"
-						:multiple="true"
 					>
 						<template #summary="{ selectedOptions, summary }">
 							<template v-if="selectedOptions.length">
@@ -135,10 +134,9 @@
 
 					<FormControl
 						label="Whitelisted Methods"
-						type="autocomplete"
+						type="multiselect"
 						v-model="newResource.whitelisted_methods"
 						:options="whitelistedMethods.data"
-						:multiple="true"
 					/>
 				</template>
 

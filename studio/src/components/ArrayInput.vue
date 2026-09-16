@@ -88,7 +88,7 @@
 		</template>
 		<EmptyState v-else :message="emptyMessage || 'No items added'" />
 
-		<Button variant="outline" class="w-full" icon-left="plus" @click="addItem">
+		<Button variant="outline" class="w-full" icon-left="lucide-plus" @click="addItem">
 			{{ addLabel || "Add" }}
 		</Button>
 	</div>

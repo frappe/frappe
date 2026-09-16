@@ -70,16 +70,13 @@
 								/>
 								<FormControl
 									v-else
-									:type="column.fieldtype.toLowerCase()"
+									:type="column.fieldtype === 'Autocomplete' ? 'combobox' : column.fieldtype.toLowerCase()"
 									:options="column.options"
 									variant="outline"
 									size="md"
 									v-model="row[column.fieldname]"
 									class="text-sm text-ink-gray-7"
-									@change="
-										(e: Event) =>
-											column.onChange && column.onChange((e.target as HTMLInputElement).value, index)
-									"
+									@update:modelValue="(value: string) => column.onChange && column.onChange(value, index)"
 								/>
 							</div>
 						</div>

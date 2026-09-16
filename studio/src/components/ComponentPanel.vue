@@ -14,7 +14,10 @@
 				"
 			/>
 			<OptionToggle
-				:options="[{ label: 'Standard' }, { label: 'Custom' }]"
+				:options="[
+					{ label: 'Standard', value: 'Standard' },
+					{ label: 'Custom', value: 'Custom' },
+				]"
 				:modelValue="activeTab"
 				@update:modelValue="
 					(tab) => (store.studioLayout.leftPanelComponentTab = tab as leftPanelComponentTabOptions)
@@ -149,7 +152,7 @@
 						</div>
 					</div>
 				</div>
-				<Button icon-left="plus" class="mt-3" @click="createComponent">Create Component</Button>
+				<Button icon-left="lucide-plus" class="mt-3" @click="createComponent">Create Component</Button>
 			</CollapsibleSection>
 		</template>
 	</div>

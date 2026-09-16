@@ -99,7 +99,7 @@
 						<Tooltip
 							v-if="node.path === activePagePaths?.folder"
 							text="Currently editing this page"
-							placement="right"
+							side="right"
 						>
 							<span class="ml-1 mt-0.5 shrink-0 text-[8px] text-ink-blue-5">●</span>
 						</Tooltip>

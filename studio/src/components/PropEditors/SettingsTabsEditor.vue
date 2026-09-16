@@ -40,7 +40,7 @@
 				/>
 			</div>
 
-			<Button variant="outline" class="w-full" icon-left="plus" @click="addTab">Add Tab</Button>
+			<Button variant="outline" class="w-full" icon-left="lucide-plus" @click="addTab">Add Tab</Button>
 		</div>
 
 		<!-- nav items and panels drifted (hand-edited values); pairing is by `value` -->

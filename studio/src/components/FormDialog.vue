@@ -1,6 +1,6 @@
 <template>
 	<Dialog
-		v-model="showDialog"
+		v-model:open="showDialog"
 		title="Add Fields from DocType"
 		size="3xl"
 		@after-leave="
@@ -21,7 +21,6 @@
 					:placeholder="`Select fields from ${formMeta.doctype}`"
 					v-model="formMeta.fields"
 					:options="doctypeFields.data"
-					:multiple="true"
 				>
 					<template #summary="{ selectedOptions, summary }">
 						<template v-if="selectedOptions.length">
