@@ -72,6 +72,37 @@ class TestSetupWizardUrl(UnitTestCase):
 
 
 class TestCompleteAppSetup(IntegrationTestCase):
+	def test_global_settings_defer_timezone_job_until_commit(self):
+		args = frappe._dict(language="French", lang="fr", timezone="Europe/Paris")
+		with (
+			patch.object(setup_wizard, "set_default_language"),
+			patch.object(setup_wizard, "get_language_code", return_value="fr"),
+			patch.object(frappe, "clear_cache"),
+			patch.object(setup_wizard, "update_system_settings"),
+			patch.object(setup_wizard, "create_or_update_user"),
+			patch.object(frappe, "enqueue") as enqueue,
+			patch.object(frappe.db, "commit") as commit,
+		):
+			setup_wizard.update_global_settings(args)
+
+		commit.assert_not_called()
+		enqueue.assert_called_once_with(
+			setup_wizard.set_timezone,
+			timezone="Europe/Paris",
+			enqueue_after_commit=True,
+		)
+
+	def test_post_setup_does_not_commit_before_completion_marker(self):
+		with (
+			patch.object(setup_wizard, "disable_future_access"),
+			patch.object(frappe, "clear_cache"),
+			patch.object(frappe, "get_cached_doc", return_value=None),
+			patch.object(frappe.db, "commit") as commit,
+		):
+			setup_wizard.run_post_setup_complete({})
+
+		commit.assert_not_called()
+
 	def test_needs_system_manager(self):
 		with set_user("Guest"):
 			self.assertRaises(frappe.PermissionError, setup_wizard.complete_app_setup)
