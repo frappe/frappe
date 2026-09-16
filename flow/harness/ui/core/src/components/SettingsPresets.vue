@@ -143,7 +143,7 @@ const listRows = computed(() => {
 	const wanted = inSession.value ? flow.state.sessionPresets[flow.state.sessionId] : flow.state.prefs.activePreset
 	const active = flow.state.presets.some((p) => p.id === wanted) ? wanted : null
 	return [
-		{ id: null, name: "Default", summary: "All tools and the built-in prompt.", active: !active },
+		{ id: null, name: "Default", summary: "Core tools and the built-in prompt.", active: !active },
 		...flow.state.presets.map((p) => ({ id: p.id, name: p.name, summary: summary(p), active: p.id === active, preset: p })),
 	]
 })
@@ -162,7 +162,7 @@ function summary(preset) {
 function blank() {
 	return openDraft({
 		name: "",
-		tools: flow.state.tools.filter((t) => !t.extension).map((t) => t.name),
+		tools: flow.state.tools.filter((t) => !t.extension && !t.bundled).map((t) => t.name), // bundled tools opt in
 		extensionTools: extensionNames.value,
 		promptMode: "append",
 		prompt: "",
