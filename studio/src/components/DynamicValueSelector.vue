@@ -1,36 +1,35 @@
 <template>
-	<Autocomplete
+	<Combobox
 		size="sm"
 		:options="dynamicValueOptions"
 		class="!w-auto"
-		placement="left-start"
-		modelValue=""
-		@update:modelValue="(option: VariableOption) => emit('update:modelValue', option.value, bindVariable)"
+		side="left"
+		align="start"
+		:modelValue="null"
+		@update:modelValue="(value) => value != null && emit('update:modelValue', String(value), bindVariable)"
 	>
-		<template #target="{ togglePopover }">
+		<template #trigger>
 			<IconButton
 				v-if="bindVariable"
 				:icon="Link2"
 				label="Synced with variable. Click to change."
-				placement="bottom"
+				tooltipPlacement="bottom"
 				class="mr-1"
 				:tabIndex="-1"
-				@click="togglePopover"
 			/>
 			<IconButton
 				v-else
 				:icon="LucideCirclePlus"
 				label="Click to set dynamic value"
-				placement="left"
+				tooltipPlacement="left"
 				class="mr-1"
 				size="sm"
 				:tabIndex="-1"
-				@click="togglePopover"
 			/>
 		</template>
 
-		<template #item-suffix="{ option }">
-			<span class="text-ink-gray-4">{{ option.type?.toLowerCase() }}</span>
+		<template #item-suffix="{ item }">
+			<span class="text-ink-gray-4">{{ item.type?.toLowerCase() }}</span>
 		</template>
 		<template #footer v-if="dynamicValueOptions.length > 0">
 			<div class="flex items-center gap-1 px-2" @mousedown.prevent>
@@ -40,12 +39,12 @@
 				<Switch v-model="bindVariable" label="Sync with variable" class="w-full hover:bg-transparent" />
 			</div>
 		</template>
-	</Autocomplete>
+	</Combobox>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import { Autocomplete, Switch, Tooltip } from "frappe-ui"
+import { Combobox, Switch, Tooltip } from "frappe-ui"
 import IconButton from "@/components/IconButton.vue"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
@@ -95,7 +94,7 @@ const dynamicValueOptions = computed(() => {
 			})
 			groups.push({
 				group: "Component Inputs",
-				items: componentContext,
+				options: componentContext,
 			})
 		}
 	} else {
@@ -103,7 +102,7 @@ const dynamicValueOptions = computed(() => {
 		if (store.variableOptions.length > 0) {
 			groups.push({
 				group: "Variables",
-				items: store.variableOptions,
+				options: store.variableOptions,
 			})
 		}
 
@@ -112,7 +111,7 @@ const dynamicValueOptions = computed(() => {
 		if (slotScopeOptions.length) {
 			groups.push({
 				group: props.block?.isRepeated() ? "Repeater Scope" : "Slot Scope",
-				items: slotScopeOptions,
+				options: slotScopeOptions,
 			})
 		}
 
@@ -131,7 +130,7 @@ const dynamicValueOptions = computed(() => {
 		if (dataSourceOptions.length > 0) {
 			groups.push({
 				group: "Data Sources",
-				items: dataSourceOptions,
+				options: dataSourceOptions,
 			})
 		}
 
@@ -148,7 +147,7 @@ const dynamicValueOptions = computed(() => {
 		if (pageScriptOptions.length > 0) {
 			groups.push({
 				group: "Page Script",
-				items: pageScriptOptions,
+				options: pageScriptOptions,
 			})
 		}
 	}
