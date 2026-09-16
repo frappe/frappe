@@ -3,6 +3,7 @@
 
 import os
 import shutil
+from contextlib import nullcontext
 from typing import Any
 
 import frappe
@@ -257,10 +258,12 @@ def update_naming_series(doc):
 
 
 def delete_from_table(doctype: str, name: str, ignore_doctypes: list[str], doc):
-	if doctype != "DocType" and doctype == name:
-		frappe.db.delete("Singles", {"doctype": name})
-	else:
-		frappe.db.delete(doctype, {"name": name})
+	from frappe.database.sqlite.router import is_sqlite_doctype, use_sqlite_db
+
+	is_single = doctype != "DocType" and doctype == name
+
+	# Resolve the child list before any storage swap: `tabDocField` and Meta always live in
+	# the primary database, and a SQLite-backed parent only ever has SQLite-backed children.
 	if doc:
 		child_doctypes = [
 			d.options for d in doc.meta.get_table_fields() if frappe.get_meta(d.options).is_virtual == 0
@@ -275,8 +278,19 @@ def delete_from_table(doctype: str, name: str, ignore_doctypes: list[str], doc):
 		)
 
 	child_doctypes_to_delete = set(child_doctypes) - set(ignore_doctypes)
-	for child_doctype in child_doctypes_to_delete:
-		frappe.db.delete(child_doctype, {"parenttype": doctype, "parent": name})
+
+	# Only the row deletes are routed; every other step of delete_doc -- link integrity,
+	# Deleted Document, versions, comments -- stays on the primary database.
+	storage = use_sqlite_db() if not is_single and is_sqlite_doctype(doctype) else nullcontext()
+
+	with storage:
+		if is_single:
+			frappe.db.delete("Singles", {"doctype": name})
+		else:
+			frappe.db.delete(doctype, {"name": name})
+
+		for child_doctype in child_doctypes_to_delete:
+			frappe.db.delete(child_doctype, {"parenttype": doctype, "parent": name})
 
 
 def update_flags(doc, flags=None, ignore_permissions=False):

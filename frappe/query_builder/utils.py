@@ -43,8 +43,11 @@ class ImportMapper:
 		self.func_map = func_map
 
 	def __call__(self, *args: Any, **kwds: Any) -> Callable:
-		db = db_type_is(frappe.conf.db_type)
-		return self.func_map[db](*args, **kwds)
+		# Resolve against the *active* connection, not the site config: a SQLite-backed
+		# DocType temporarily points frappe.db at the side store, and functions like
+		# Locate/Instr have to follow it. Falls back to config before connect().
+		db_type = frappe.db.db_type if frappe.db else frappe.conf.db_type
+		return self.func_map[db_type_is(db_type)](*args, **kwds)
 
 
 class BuilderIdentificationFailed(Exception):

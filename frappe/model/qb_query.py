@@ -9,6 +9,7 @@ from typing import Any
 import frappe
 from frappe.database.utils import DefaultOrderBy, FilterValue
 from frappe.deprecation_dumpster import deprecation_warning
+from frappe.database.sqlite.router import storage_for
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.query_builder.utils import Column
@@ -180,6 +181,64 @@ class DatabaseQuery:
 			if limit is None:
 				limit = page_length
 
+		# A `use_sqlite` DocType keeps its table in the site's SQLite side store, so the column
+		# check, the query build and the run all have to happen on that connection -- the two
+		# backends do not share an SQL dialect.
+		with storage_for(self.doctype):
+			return self._execute_on_storage(
+				fields=fields,
+				filters=filters,
+				or_filters=or_filters,
+				group_by=group_by,
+				order_by=order_by,
+				limit=limit,
+				offset=offset,
+				distinct=distinct,
+				ignore_permissions=ignore_permissions,
+				ignore_user_permissions=ignore_user_permissions,
+				user=user,
+				parent_doctype=parent_doctype,
+				reference_doctype=reference_doctype,
+				ignore_ddl=ignore_ddl,
+				run=run,
+				pluck=pluck,
+				debug=debug,
+				as_list=as_list,
+				update=update,
+				with_comment_count=with_comment_count,
+				save_user_settings=save_user_settings,
+				save_user_settings_fields=save_user_settings_fields,
+				user_settings=user_settings,
+			)
+
+	def _execute_on_storage(
+		self,
+		*,
+		fields,
+		filters,
+		or_filters,
+		group_by,
+		order_by,
+		limit,
+		offset,
+		distinct,
+		ignore_permissions,
+		ignore_user_permissions,
+		user,
+		parent_doctype,
+		reference_doctype,
+		ignore_ddl,
+		run,
+		pluck,
+		debug,
+		as_list,
+		update,
+		with_comment_count,
+		save_user_settings,
+		save_user_settings_fields,
+		user_settings,
+	):
+		"""Build and run the query against whichever database is currently selected."""
 		# Check if table exists before running query
 		from frappe.model.meta import get_table_columns
 

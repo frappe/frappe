@@ -133,10 +133,16 @@ def import_controller(doctype):
 	from frappe.utils.nestedset import NestedSet
 
 	module_name = "Core"
+	uses_sqlite = False
 	if doctype not in DOCTYPES_FOR_DOCTYPE:
 		doctype_info = frappe.db.get_value("DocType", doctype, ("module", "custom", "is_tree"), as_dict=True)
 		if doctype_info:
+			uses_sqlite = _doctype_uses_sqlite(doctype)
 			if doctype_info.custom:
+				if uses_sqlite:
+					from frappe.model.sqlite_document import SQLiteDocument
+
+					return SQLiteDocument
 				return NestedSet if doctype_info.is_tree else Document
 			module_name = doctype_info.module
 
@@ -171,7 +177,30 @@ def import_controller(doctype):
 		raise ImportError(f"{doctype}: {classname} is not a subclass of BaseDocument")
 
 	class_ = _get_extended_class(class_, doctype)
+
+	if uses_sqlite:
+		from frappe.model.sqlite_document import get_sqlite_controller
+
+		class_ = get_sqlite_controller(class_)
+
 	return _update_computed_ct_props(class_, doctype)
+
+
+def _doctype_uses_sqlite(doctype: str) -> bool:
+	"""Return True if the DocType is stored in the SQLite side database.
+
+	Read straight off `tabDocType` rather than through `frappe.model.utils.is_sqlite_doctype`:
+	that helper consults Meta, and building Meta resolves a controller, which would recurse
+	back into this function. The column is absent until the DocType schema itself is synced,
+	so a fresh site reports False until then.
+	"""
+	try:
+		if not frappe.db.has_column("DocType", "use_sqlite"):
+			return False
+	except Exception:
+		return False
+
+	return bool(frappe.db.get_value("DocType", doctype, "use_sqlite"))
 
 
 def _update_computed_ct_props(class_, doctype):
