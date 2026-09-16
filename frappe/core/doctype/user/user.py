@@ -35,7 +35,12 @@ from frappe.utils import (
 )
 from frappe.utils.data import sha256_hash
 from frappe.utils.html_utils import sanitize_html
-from frappe.utils.password import check_password, get_password_reset_limit, is_password_reused
+from frappe.utils.password import (
+	check_password,
+	delete_all_passwords_for,
+	get_password_reset_limit,
+	is_password_reused,
+)
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
 from frappe.website.utils import get_home_page, is_signup_disabled
@@ -486,6 +491,13 @@ class User(Document):
 			# email server not set, don't send email
 			self.log_error("Unable to send new password notification")
 
+	def is_reset_link_from_desk(self) -> bool:
+		"""Only a link from the desk may enroll a passkey, not a Guest's forgot-password one."""
+		if frappe.session.user in ("Guest", ""):
+			return False
+
+		return frappe.session.user == self.name or frappe.has_permission("User", "write", doc=self)
+
 	@Document.hook
 	def validate_reset_password(self):
 		pass
@@ -495,8 +507,14 @@ class User(Document):
 
 		key = frappe.generate_hash()
 		hashed_key = sha256_hash(key)
-		self.db_set("reset_password_key", hashed_key)
-		self.db_set("last_reset_password_key_generated_on", now_datetime())
+
+		self.db_set(
+			{
+				"reset_password_key": hashed_key,
+				"last_reset_password_key_generated_on": now_datetime(),
+				"reset_link_from_desk": cint(self.is_reset_link_from_desk()),
+			}
+		)
 
 		url = "/update-password?key=" + key
 		if password_expired:
@@ -628,6 +646,12 @@ class User(Document):
 
 		# delete shares
 		frappe.db.delete("DocShare", {"user": self.name})
+
+		# delete passkeys, and the public keys they hold in __Auth
+		for passkey in frappe.get_all("User Passkey", filters={"user": self.name}, pluck="name"):
+			delete_all_passwords_for("User Passkey", passkey)
+
+		frappe.db.delete("User Passkey", {"user": self.name})
 		# unlink contact
 		table = DocType("Contact")
 		frappe.qb.update(table).where(table.user == self.name).set(table.user, None).run()
@@ -1000,13 +1024,21 @@ def update_password(
 
 	frappe.local.login_manager.login_as(user)
 
-	frappe.db.set_value("User", user, "last_password_reset_date", today())
-	frappe.db.set_value("User", user, "reset_password_key", "")
+	frappe.db.set_value(
+		"User",
+		user,
+		{"last_password_reset_date": today(), "reset_password_key": "", "reset_link_from_desk": 0},
+	)
 
-	if user_doc.user_type == "System User":
+	return get_redirect_url_for_user(redirect_url, user_doc.user_type)
+
+
+def get_redirect_url_for_user(redirect_url: str | None, user_type: str | None) -> str:
+	"""Where to send a user that just signed in. A System User belongs in the desk, everyone else on the portal."""
+	if user_type == "System User":
 		return get_default_path() or "/desk"
-	else:
-		return redirect_url or get_default_path() or get_home_page()
+
+	return redirect_url or get_default_path() or get_home_page()
 
 
 @frappe.whitelist(allow_guest=True)

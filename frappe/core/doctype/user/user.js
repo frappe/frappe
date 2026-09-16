@@ -136,6 +136,7 @@ frappe.ui.form.on("User", {
 			frm.toggle_display(["sb1", "sb3", "modules_access"], true);
 		}
 		frm.trigger("setup_impersonation");
+		frm.trigger("render_passkeys");
 
 		if (!frm.is_new()) {
 			if (has_access_to_edit_user()) {
@@ -183,7 +184,7 @@ frappe.ui.form.on("User", {
 			}
 
 			frm.add_custom_button(
-				__("Reset Password"),
+				__("Send Sign-in Link"),
 				function () {
 					frappe.call({
 						method: "frappe.core.doctype.user.user.reset_password",
@@ -396,6 +397,223 @@ frappe.ui.form.on("User", {
 			window.location.reload();
 		}
 	},
+	render_passkeys: function (frm) {
+		const field = frm.get_field("passkeys_html");
+		if (!field || frm.is_new()) return;
+
+		const is_self = frm.doc.name === frappe.session.user;
+		if (!is_self && !frappe.user.has_role("System Manager")) return;
+
+		frappe.require("embedded_list.bundle.js").then(() => {
+			const list = new frappe.ui.EmbeddedList({
+				wrapper: $(field.wrapper).empty().addClass("passkey-list"),
+				show_search: false,
+				empty_icon: "key",
+				empty_message: __("No passkeys enrolled"),
+				columns: [
+					{
+						label: __("Label"),
+						fieldname: "label",
+						render: (row) =>
+							`${frappe.utils.escape_html(row.label || "")} ` +
+							frappe.ui.badge.html({ size: "sm", ...get_passkey_sync_badge(row) }),
+					},
+					{ label: __("Domain"), fieldname: "rp_id" },
+					{
+						label: __("Last Used"),
+						fieldname: "last_used",
+						render: (row) =>
+							row.last_used
+								? frappe.datetime.str_to_user(row.last_used)
+								: __("Never"),
+					},
+					...(is_self
+						? [
+								{
+									type: "actions",
+									actions: [
+										{
+											label: __("Rename"),
+											icon: "pencil",
+											action: (row, refresh) =>
+												frm.events.rename_passkey(frm, row, refresh),
+										},
+									],
+								},
+						  ]
+						: []),
+					{
+						type: "actions",
+						actions: [
+							{
+								label: __("Remove"),
+								icon: "trash-2",
+								danger: true,
+								action: (row, refresh) =>
+									frm.events.remove_passkey(frm, row, refresh),
+							},
+						],
+					},
+				],
+				get_data: () =>
+					frappe.xcall("frappe.core.doctype.user.passkey.get_passkeys", {
+						user: frm.doc.name,
+					}),
+			});
+
+			$(field.wrapper).append(`
+				<style>
+					.passkey-list table.embedded-list-table th:not(:last-child),
+					.passkey-list table.embedded-list-table td:not(:last-child) {
+						border-right: 1px solid var(--border-color);
+					}
+					.passkey-list.embedded-list table.embedded-list-table tbody tr:hover {
+						background: transparent;
+					}
+					.passkey-list > button {
+						margin-bottom: var(--margin-md);
+					}
+				</style>
+			`);
+
+			list.refresh();
+
+			if (is_self) {
+				frappe.ui
+					.button({
+						label: __("Add Passkey"),
+						icon: "plus",
+						onclick: () => frm.trigger("add_passkey"),
+					})
+					.appendTo(field.wrapper);
+			}
+		});
+	},
+
+	rename_passkey: function (frm, row, refresh) {
+		frappe.prompt(
+			[
+				{
+					fieldname: "label",
+					fieldtype: "Data",
+					label: __("Name this passkey"),
+					description: __("e.g. Laptop, Phone, Security Key"),
+					default: row.label,
+				},
+			],
+			({ label }) => {
+				if (!strip_html(label).trim()) {
+					frappe.msgprint(__("Invalid label for the passkey"));
+					return;
+				}
+
+				frappe
+					.xcall("frappe.core.doctype.user.passkey.rename_passkey", {
+						name: row.name,
+						label: label,
+					})
+					.then(() => {
+						frappe.show_alert({
+							message: __("Passkey renamed"),
+							indicator: "green",
+						});
+						refresh ? refresh() : frm.trigger("render_passkeys");
+					});
+			},
+			__("Rename Passkey"),
+			__("Save")
+		);
+	},
+
+	remove_passkey: function (frm, row, refresh) {
+		frappe.confirm(
+			__(
+				"Remove passkey {0}? You will no longer be able to sign in with it. Make sure to remove it from your device as well.",
+				[frappe.utils.escape_html(row.label)]
+			),
+			() => {
+				frappe
+					.xcall("frappe.core.doctype.user.passkey.remove_passkey", {
+						name: row.name,
+					})
+					.then(() => {
+						frappe.show_alert({
+							message: __("Passkey removed"),
+							indicator: "green",
+						});
+						refresh ? refresh() : frm.trigger("render_passkeys");
+					});
+			}
+		);
+	},
+
+	add_passkey: function (frm) {
+		if (
+			!window.PublicKeyCredential ||
+			!window.PublicKeyCredential.parseCreationOptionsFromJSON
+		) {
+			frappe.msgprint({
+				title: __("Not Supported"),
+				message: __(
+					"Passkeys are not supported in this browser. Please use the latest version of your browser."
+				),
+				indicator: "red",
+			});
+			return;
+		}
+
+		frappe.prompt(
+			[
+				{
+					fieldname: "label",
+					fieldtype: "Data",
+					label: __("Name this passkey"),
+					description: __("e.g. Laptop, Phone, Security Key"),
+					default: __("Passkey"),
+				},
+			],
+			async ({ label }) => {
+				if (!strip_html(label).trim()) {
+					frappe.msgprint(__("Invalid label for the passkey"));
+					return;
+				}
+
+				try {
+					const options = await frappe.xcall(
+						"frappe.core.doctype.user.passkey.register_options"
+					);
+					const credential = await navigator.credentials.create({
+						publicKey: window.PublicKeyCredential.parseCreationOptionsFromJSON(
+							options.options
+						),
+					});
+					await frappe.xcall("frappe.core.doctype.user.passkey.register_verify", {
+						state: options.state,
+						credential: JSON.stringify(credential.toJSON()),
+						label: label,
+					});
+				} catch (e) {
+					if (e instanceof DOMException) {
+						frappe.msgprint({
+							title: __("Could not add passkey"),
+							message:
+								e.name === "InvalidStateError"
+									? __("This device already has a passkey for this account.")
+									: __("No passkey was created. Please try again."),
+							indicator: "red",
+						});
+					}
+					return;
+				}
+
+				frappe.show_alert({ message: __("Passkey added"), indicator: "green" });
+				frm.trigger("render_passkeys");
+			},
+			__("Add Passkey"),
+			__("Continue")
+		);
+	},
+
 	setup_impersonation: function (frm) {
 		if (
 			(frappe.session.user === "Administrator" || frm.has_perm("impersonate")) &&
@@ -474,6 +692,29 @@ frappe.ui.form.on("User Role Profile", {
 		}
 	},
 });
+
+function get_passkey_sync_badge(row) {
+	if (row.backed_up) {
+		return {
+			label: __("Synced"),
+			theme: "green",
+			title: __("Available on your other devices"),
+		};
+	}
+
+	if (row.multi_device) {
+		return {
+			label: __("Not synced"),
+			theme: "orange",
+			title: __("Could sync, but has not been backed up yet"),
+		};
+	}
+
+	return {
+		label: __("This device only"),
+		title: __("Lost with the device it was created on"),
+	};
+}
 
 function has_access_to_edit_user() {
 	return has_common(frappe.user_roles, get_roles_for_editing_user());

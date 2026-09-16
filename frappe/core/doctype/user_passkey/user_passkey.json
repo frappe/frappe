@@ -1,0 +1,126 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-09-03 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 0,
+ "engine": "InnoDB",
+ "field_order": [
+  "user",
+  "label",
+  "column_break_head",
+  "rp_id",
+  "multi_device",
+  "backed_up",
+  "last_used",
+  "credential_section",
+  "credential_id",
+  "public_key",
+  "column_break_cred",
+  "sign_count",
+  "transports"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "User",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rp_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Relying Party ID",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "multi_device",
+   "fieldtype": "Check",
+   "label": "Multi Device",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "backed_up",
+   "fieldtype": "Check",
+   "label": "Backed Up",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_used",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Last Used"
+  },
+  {
+   "fieldname": "credential_section",
+   "fieldtype": "Section Break",
+   "label": "Credential"
+  },
+  {
+   "fieldname": "credential_id",
+   "fieldtype": "Data",
+   "label": "Credential ID",
+   "reqd": 1,
+   "unique": 1,
+   "length": 512
+  },
+  {
+   "fieldname": "public_key",
+   "fieldtype": "Password",
+   "label": "Public Key",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_cred",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sign_count",
+   "fieldtype": "Long Int",
+   "label": "Sign Count"
+  },
+  {
+   "fieldname": "transports",
+   "fieldtype": "Data",
+   "label": "Transports"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-09-03 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "User Passkey",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
