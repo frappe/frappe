@@ -12,7 +12,6 @@ from frappe.website.doctype.web_form.web_form import (
 	get_form_data,
 	get_table_multiselect_fields,
 	has_link_option,
-	search_web_form_link,
 )
 
 TARGET = "Test WF MultiSelect Target"
@@ -78,6 +77,7 @@ class TestWebFormTableMultiSelect(IntegrationTestCase):
 			[(df["fieldname"], df["fieldtype"], df["options"]) for df in field.fields],
 			[("target", "Link", TARGET)],
 		)
+		self.assertIn("Alpha", self.link_options(web_form))
 
 	def test_missing_child_doctype_does_not_break_the_form(self):
 		self.assertEqual(get_table_multiselect_fields("Test WF No Such Row"), [])
@@ -88,53 +88,28 @@ class TestWebFormTableMultiSelect(IntegrationTestCase):
 		self.assertTrue(has_link_option(fields, TARGET))
 		self.assertFalse(has_link_option(fields, "User"))
 
-	def test_guest_can_search_link_targets_on_a_public_form(self):
+	def test_guest_gets_link_options_on_a_public_form(self):
 		web_form = self.make_web_form()
 		frappe.set_user("Guest")
 
-		self.assertLessEqual({"Alpha", "Beta", "Gamma"}, set(self.search(web_form)))
-		self.assertEqual(self.search(web_form, txt="alp"), ["Alpha"])
+		self.assertLessEqual({"Alpha", "Beta", "Gamma"}, set(self.link_options(web_form)))
 
-	def test_search_rejects_a_doctype_the_form_does_not_link_to(self):
-		"""The query skips permissions, so the form's own fields are the only allowlist."""
-		web_form = self.make_web_form()
-		frappe.set_user("Guest")
-
-		for doctype in ("User", "Test WF No Such DocType"):
-			with self.subTest(doctype=doctype), self.assertRaises(frappe.PermissionError):
-				self.search(web_form, doctype=doctype)
-
-	def test_search_rejects_an_unpublished_form(self):
-		web_form = self.make_web_form(published=0)
-		frappe.set_user("Guest")
-
-		with self.assertRaises(frappe.PermissionError):
-			self.search(web_form)
-
-	def test_search_requires_login_on_a_login_required_form(self):
-		web_form = self.make_web_form(login_required=1)
-		frappe.set_user("Guest")
-
-		with self.assertRaises(frappe.PermissionError):
-			self.search(web_form)
-
-	def test_search_on_a_key_required_form_needs_a_key_and_guest_read(self):
+	def test_key_required_form_needs_guest_read_on_the_link_doctype(self):
+		"""The options are built with permissions ignored, so the form is the only allowlist."""
 		web_form = self.make_web_form(key_required=1)
 		key = self.make_web_form_request(web_form).key
 		frappe.set_user("Guest")
 
 		with self.assertRaises(frappe.PermissionError):
-			self.search(web_form, web_form_request_key=key)
+			self.link_options(web_form, web_form_request_key=key)
 
 		frappe.set_user("Administrator")
 		self.allow_guest_read(TARGET)
 		frappe.set_user("Guest")
 
-		with self.assertRaises(frappe.PermissionError):
-			self.search(web_form)
-		self.assertIn("Alpha", self.search(web_form, web_form_request_key=key))
+		self.assertIn("Alpha", self.link_options(web_form, web_form_request_key=key))
 
-	def test_login_required_search_shows_own_rows_unless_the_field_opts_out(self):
+	def test_login_required_options_show_own_rows_unless_the_field_opts_out(self):
 		user = self.make_website_user()
 		own = frappe.get_doc(doctype=TARGET, title="Owned By TMS Website User").insert()
 		self.addCleanup(frappe.delete_doc, TARGET, own.name, force=True)
@@ -144,8 +119,8 @@ class TestWebFormTableMultiSelect(IntegrationTestCase):
 		opted_out = self.make_web_form(login_required=1, field_settings={"allow_read_on_all_link_options": 1})
 		frappe.set_user(user)
 
-		self.assertEqual(self.search(scoped), [own.name])
-		self.assertLessEqual({"Alpha", own.name}, set(self.search(opted_out)))
+		self.assertEqual(self.link_options(scoped), [own.name])
+		self.assertLessEqual({"Alpha", own.name}, set(self.link_options(opted_out)))
 
 	def test_guest_submission_still_validates_links_on_the_server(self):
 		"""The client skips validate_link_and_fetch for guests, so the save must catch bad links."""
@@ -217,9 +192,14 @@ class TestWebFormTableMultiSelect(IntegrationTestCase):
 		clear_permissions_cache(doctype)
 		self.addCleanup(lambda: (reset_perms(doctype), clear_permissions_cache(doctype)))
 
-	def search(self, web_form, doctype=TARGET, txt="", **kwargs):
-		results = search_web_form_link(web_form_name=web_form.name, doctype=doctype, txt=txt, **kwargs)
-		return sorted(row["value"] for row in results)
+	def link_options(self, web_form, **kwargs):
+		"""The options the portal control filters in the browser, as the page ships them."""
+		out = get_form_data(doctype=PARENT, web_form_name=web_form.name, **kwargs)
+		field = next(f for f in out.web_form.web_form_fields if f.fieldname == "targets")
+		options = field.fields[0]["link_options"]
+		if isinstance(options, str):
+			options = options.split("\n") if options[0] != "[" else json.loads(options)
+		return sorted(row["value"] if isinstance(row, dict) else row for row in options)
 
 	def submit(self, web_form, targets):
 		return accept(

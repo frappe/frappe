@@ -212,19 +212,42 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 	get_options() {
 		return (this.get_link_field() || {}).options;
 	}
-	get_search_method() {
-		// The desk search endpoint is not guest-allowed.
-		return this.df.is_web_form
-			? "frappe.website.doctype.web_form.web_form.search_web_form_link"
-			: super.get_search_method();
-	}
-	get_search_args(term) {
-		const args = super.get_search_args(term);
-		if (args && this.df.is_web_form) {
-			args.web_form_name = frappe.web_form_doc?.name;
-			args.web_form_request_key = frappe.web_form_doc?.web_form_request_key;
+	on_input(e) {
+		// The desk search endpoint is not guest-allowed, so web forms ship the options
+		// with the page, like Table fields do, and match them here.
+		if (!this.df.is_web_form) {
+			return super.on_input(e);
 		}
-		return args;
+
+		const term = (e ? e.target.value : this.$input.val()) || "";
+		this.awesomplete.list = this.filter_web_form_options(term);
+	}
+	filter_web_form_options(term) {
+		if (!this._web_form_options) {
+			let options = this.get_link_field().link_options || [];
+			if (typeof options === "string") {
+				options = options[0] === "[" ? JSON.parse(options) : options.split("\n");
+			}
+			this._web_form_options = options
+				.filter(Boolean)
+				.map((o) => (typeof o === "string" ? { value: o, label: o } : o));
+		}
+		// Matching runs on every keystroke, so stop at a dropdown's worth of results.
+		const limit = 50;
+		const query = term.toLowerCase();
+		if (!query) return this._web_form_options.slice(0, limit);
+
+		const matches = [];
+		for (const o of this._web_form_options) {
+			if (
+				o.value.toLowerCase().includes(query) ||
+				(o.label || "").toLowerCase().includes(query)
+			) {
+				matches.push(o);
+			}
+			if (matches.length === limit) break;
+		}
+		return matches;
 	}
 	get_link_field() {
 		if (!this._link_field) {
