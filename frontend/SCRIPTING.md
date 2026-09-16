@@ -533,7 +533,9 @@ a **cell in that field's column**, taking the column's equal share of the width;
 have no stored width, so there is no width word. `{ after: 'pricing' }`, a section, draws
 it as a **full-width block** between the two sections. An absent position appends at the
 end of the form, in its last tab. There is no word for a tab: a part before a tab's first
-section or after its last one is in that tab.
+section or after its last one is in that tab. For a cell the neighbour is the position:
+`order` ranks the parts that share one neighbour, and a cell leaves its field only by
+`move`.
 
 Two scripts adding at one place are ordered by run order, then by the position, as on the
 frame. A part costs no new server call, cache key or permission check: it comes from the
