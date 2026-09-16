@@ -33,6 +33,8 @@ export default {
 		"text-p-2xl",
 		"text-p-3xl",
 		"text-p-4xl",
+		// app builds replace this with only the icons their pages use (src/scripts/build.js)
+		{ pattern: /^lucide-/ },
 	],
 	content: [
 		"./index.html",

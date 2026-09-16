@@ -15,6 +15,7 @@ from studio.constants import NON_VUE_COMPONENTS
 from studio.utils import walk_blocks
 
 ANSI_ESCAPE_REGEX = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
+LUCIDE_ICON_REGEX = re.compile(r"\blucide-[a-z0-9]+(?:-[a-z0-9]+)*")
 
 
 class StudioAppBuildError(RuntimeError):
@@ -34,6 +35,7 @@ class StudioAppBuilder:
 		self.studio_component_blocks = {}
 		self.custom_vue_components: dict[str, str] = {}  # {ComponentName: absolute_path}
 		self.page_scripts: list[dict] = []  # [{page_name, file_path}]
+		self.icons: set[str] = set()
 
 		if self.is_standard:
 			"""Build a standard (exported) studio app.
@@ -114,6 +116,9 @@ class StudioAppBuilder:
 			page_scripts_json = json.dumps(self.page_scripts)
 			command += f" --page-scripts '{page_scripts_json}'"
 
+		if self.icons:
+			command += f" --icons {','.join(sorted(self.icons))}"
+
 		studio_app_path = frappe.get_app_source_path("studio")
 		result = subprocess.run(
 			command,
@@ -137,14 +142,17 @@ class StudioAppBuilder:
 		pages = frappe.get_all(
 			"Studio Page",
 			filters={"studio_app": self.app_name, "published": 1, "blocks": ("is", "set")},
-			pluck="blocks",
+			fields=["blocks", "script"],
 		)
 		if not pages:
 			return set()
 
-		for blocks in pages:
+		for page in pages:
+			self._add_icons(page.script)
+			blocks = page.blocks
 			if not blocks:
 				continue
+			self._add_icons(blocks if isinstance(blocks, str) else None)
 			if isinstance(blocks, str):
 				self._add_h_function_components(blocks)
 				blocks = frappe.parse_json(blocks)
@@ -172,7 +180,9 @@ class StudioAppBuilder:
 				continue
 			try:
 				with open(page_path) as f:
-					page_data = json.load(f)
+					page_text = f.read()
+				page_data = json.loads(page_text)
+				self._add_icons(page_text)
 			except (json.JSONDecodeError, OSError) as e:
 				click.secho(f"Warning: Could not read {page_path}: {e}", fg="yellow")
 				continue
@@ -187,6 +197,9 @@ class StudioAppBuilder:
 
 			if isinstance(blocks, list) and blocks:
 				self._add_block_components(blocks[0])
+
+	def _add_icons(self, text: str | None) -> None:
+		self.icons.update(LUCIDE_ICON_REGEX.findall(text or ""))
 
 	def _add_h_function_components(self, text: str) -> None:
 		"""Extract component names from h(ComponentName...) function calls"""
@@ -212,6 +225,7 @@ class StudioAppBuilder:
 				self._add_block_components(self.studio_component_blocks[comp_name])
 		else:
 			component_block = frappe.db.get_value("Studio Component", block.get("componentName"), "block")
+			self._add_icons(component_block if isinstance(component_block, str) else None)
 			if isinstance(component_block, str):
 				component_block = frappe.parse_json(component_block)
 			self._add_block_components(component_block)
@@ -230,7 +244,9 @@ class StudioAppBuilder:
 			component_file_path = os.path.join(components_folder, file)
 			try:
 				with open(component_file_path) as f:
-					component = json.load(f)
+					component_text = f.read()
+				component = json.loads(component_text)
+				self._add_icons(component_text)
 
 				component_name = component.get("name")
 				block = component.get("block")

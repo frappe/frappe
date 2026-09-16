@@ -9,6 +9,9 @@ import {
 import { writeFileSync } from "fs"
 import fs from "fs"
 import { build } from "vite"
+import tailwindcss from "tailwindcss"
+import loadTailwindConfig from "tailwindcss/loadConfig.js"
+import autoprefixer from "autoprefixer"
 import vue from "@vitejs/plugin-vue"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
@@ -75,6 +78,7 @@ const { values: argv } = parseArgs({
 		base: { type: "string" },
 		"custom-components": { type: "string" },
 		"page-scripts": { type: "string" },
+		icons: { type: "string" },
 	},
 	strict: false,
 })
@@ -91,6 +95,7 @@ await generateAppBuild(
 	argv.base,
 	argv["custom-components"],
 	argv["page-scripts"],
+	argv.icons,
 )
 
 export async function generateAppBuild(
@@ -100,6 +105,7 @@ export async function generateAppBuild(
 	base,
 	customComponentsJson,
 	pageScriptsJson,
+	icons,
 ) {
 	if (!appName) return
 
@@ -110,7 +116,8 @@ export async function generateAppBuild(
 	const componentSources = findComponentSources(componentList, customComponents)
 	const rendererContent = getRendererContent(componentSources, pageScripts)
 	const tempRendererPath = writeRendererFile(appName, rendererContent)
-	await buildWithVite(appName, tempRendererPath, outDir, base)
+	const iconList = icons ? icons.split(",") : []
+	await buildWithVite(appName, tempRendererPath, outDir, base, iconList)
 	deleteRendererFile(tempRendererPath)
 }
 
@@ -277,7 +284,7 @@ function writeRendererFile(appName, content) {
 	return rendererPath
 }
 
-async function buildWithVite(appName, entryFilePath, outDir, basePath) {
+async function buildWithVite(appName, entryFilePath, outDir, basePath, icons = []) {
 	outDir = outDir || path.resolve(__dirname, `../../../studio/public/app_builds/${appName}`)
 	basePath = basePath || `/assets/studio/app_builds/${appName}/`
 
@@ -305,6 +312,11 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath) {
 			// share the app's runtime — Pinia breaks with duplicate copies
 			dedupe: ["vue", "vue-router", "pinia", "frappe-ui"],
 		},
+		css: {
+			postcss: {
+				plugins: [tailwindcss(getAppTailwindConfig(icons)), autoprefixer()],
+			},
+		},
 		build: {
 			manifest: true,
 			rolldownOptions: {
@@ -324,6 +336,12 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath) {
 	})
 
 	console.log(`Vite build completed for ${appName}`)
+}
+
+function getAppTailwindConfig(icons) {
+	const config = loadTailwindConfig(path.resolve(__dirname, "../../tailwind.config.js"))
+	const safelist = config.safelist.filter((entry) => typeof entry === "string")
+	return { ...config, safelist: [...safelist, ...icons] }
 }
 
 function deleteRendererFile(rendererPath) {
