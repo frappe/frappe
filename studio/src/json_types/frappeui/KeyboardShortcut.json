@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/KeyboardShortcutProps",
+  "definitions": {
+    "KeyboardShortcutProps": {
+      "type": "object",
+      "properties": {
+        "bg": {
+          "type": "boolean"
+        },
+        "combo": {
+          "type": "string"
+        },
+        "showPlus": {
+          "type": "boolean"
+        },
+        "altCombos": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "useIcons": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

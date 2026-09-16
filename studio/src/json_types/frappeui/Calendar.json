@@ -1,13 +1,164 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/CalendarProps",
   "definitions": {
-    "*": {
-      "type": "string",
-      "enum": [
-        "Day",
-        "Week",
-        "Month"
-      ]
+    "CalendarProps": {
+      "type": "object",
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "number"
+                ]
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "number"
+                ]
+              },
+              "title": {
+                "type": "string"
+              },
+              "date": {
+                "type": "string"
+              },
+              "fromDate": {
+                "type": "string"
+              },
+              "toDate": {
+                "type": "string"
+              },
+              "fromTime": {
+                "type": "string"
+              },
+              "toTime": {
+                "type": "string"
+              },
+              "fromDateTime": {
+                "type": "string"
+              },
+              "toDateTime": {
+                "type": "string"
+              },
+              "participant": {
+                "type": "string"
+              },
+              "venue": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "isFullDay": {
+                "type": "boolean"
+              },
+              "isDraft": {
+                "type": "boolean"
+              },
+              "isDeclined": {
+                "type": "boolean"
+              },
+              "startTime": {
+                "type": "number"
+              },
+              "endTime": {
+                "type": "number"
+              },
+              "hallNumber": {
+                "type": "number"
+              },
+              "idx": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": {}
+          }
+        },
+        "config": {
+          "type": "object",
+          "properties": {
+            "scrollToHour": {
+              "type": "number"
+            },
+            "disableModes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Day",
+                  "Week",
+                  "Month"
+                ]
+              }
+            },
+            "defaultMode": {
+              "type": "string",
+              "enum": [
+                "Day",
+                "Week",
+                "Month"
+              ]
+            },
+            "isEditMode": {
+              "type": "boolean"
+            },
+            "eventIcons": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "hourHeight": {
+              "type": "number"
+            },
+            "enableShortcuts": {
+              "type": "boolean"
+            },
+            "showIcon": {
+              "type": "boolean"
+            },
+            "timeFormat": {
+              "type": "string",
+              "enum": [
+                "12h",
+                "24h"
+              ]
+            },
+            "weekends": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "noBorder": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "onClick": {
+          "type": "object"
+        },
+        "onDblClick": {
+          "type": "object"
+        },
+        "onCellClick": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "events"
+      ],
+      "additionalProperties": false
     }
   }
 }

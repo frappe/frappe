@@ -23,6 +23,9 @@
                   }
                 ]
               },
+              "href": {
+                "type": "string"
+              },
               "onClick": {
                 "type": "object"
               }

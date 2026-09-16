@@ -24,9 +24,6 @@
           "type": "boolean"
         },
         "intervals": {
-          "type": "boolean"
-        },
-        "intervalCount": {
           "type": "number"
         }
       },

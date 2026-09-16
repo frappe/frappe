@@ -4,6 +4,11 @@
   "definitions": {
     "DesktopShellProps": {
       "type": "object",
+      "properties": {
+        "scroll": {
+          "type": "boolean"
+        }
+      },
       "additionalProperties": false
     }
   }

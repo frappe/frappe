@@ -5,100 +5,14 @@
     "SidebarProps": {
       "type": "object",
       "properties": {
-        "header": {
-          "type": "object",
-          "properties": {
-            "title": {
-              "type": "string"
-            },
-            "subtitle": {
-              "type": "string"
-            },
-            "logo": {},
-            "menuItems": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "label": {
-                    "type": "string"
-                  },
-                  "icon": {},
-                  "onClick": {
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "label",
-                  "icon"
-                ],
-                "additionalProperties": false
-              }
-            }
-          },
-          "required": [
-            "title"
-          ],
-          "additionalProperties": false
-        },
-        "sections": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "label": {
-                "type": "string"
-              },
-              "items": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "label": {
-                      "type": "string"
-                    },
-                    "accessKey": {
-                      "type": "string"
-                    },
-                    "icon": {},
-                    "suffix": {
-                      "type": "string"
-                    },
-                    "to": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "object"
-                        }
-                      ]
-                    },
-                    "isActive": {
-                      "type": "boolean"
-                    },
-                    "onClick": {
-                      "type": "object"
-                    }
-                  },
-                  "required": [
-                    "label"
-                  ],
-                  "additionalProperties": false
-                }
-              },
-              "collapsible": {
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "items"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "disableCollapse": {
+        "collapsible": {
           "type": "boolean"
+        },
+        "width": {
+          "type": "string"
+        },
+        "collapsedWidth": {
+          "type": "string"
         }
       },
       "additionalProperties": false
