@@ -149,13 +149,17 @@ def test_tools_route_lists_extension_tools_with_their_source(tmp_path):
 	assert [t["name"] for t in tools] == [
 		"bash",
 		"read",
-		"read_file",
 		"write",
 		"edit",
 		"grep",
 		"hello",
 	]
-	assert tools[-1] == {"name": "hello", "description": "Greet someone by name.", "extension": "hello"}
+	assert tools[-1] == {
+		"name": "hello",
+		"description": "Greet someone by name.",
+		"extension": "hello",
+		"bundled": False,
+	}
 	assert all(t["extension"] is None for t in tools[:-1])
 
 
@@ -166,7 +170,7 @@ def test_tools_route_hides_extension_tools_when_the_policy_switch_is_off(tmp_pat
 
 	tools = client.get("/tools").json()["tools"]
 
-	assert [t["name"] for t in tools] == ["bash", "read", "read_file", "write", "edit", "grep"]
+	assert [t["name"] for t in tools] == ["bash", "read", "write", "edit", "grep"]
 
 
 def test_extension_diagnostics_endpoint(tmp_path):
@@ -223,6 +227,13 @@ def setup(flow):
 	session = store.create(SessionConfig(cwd=str(tmp_path), tools=["read"]))
 
 	assert session.server_tools["read"].func.__module__.startswith("flow_extension_override_")
+
+	# the built-in stays listed, so a client can fall back to it by leaving the extension out
+	rows = [(t["name"], t["extension"]) for t in TestClient(create_app(store)).get("/tools").json()["tools"]]
+	assert rows.count(("read", None)) == 1
+	assert ("read", "override") in rows
+	fallback = store.create(SessionConfig(cwd=str(tmp_path), tools=["read"], extension_tools=[]))
+	assert fallback.server_tools["read"].func.__module__.startswith("flow_harness.")
 
 
 def test_cli_reports_extension_diagnostics_on_stderr(tmp_path, capsys):

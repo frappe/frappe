@@ -1,11 +1,10 @@
 import asyncio
-import importlib
 import inspect
 import os
 
 import pytest
 
-from flow_harness.tools.builtins import BUILTIN_TOOLS, bash, edit, grep, read, write
+from flow_harness.tools.builtins import BUILTIN_ALIASES, BUILTIN_TOOLS, bash, edit, read, write
 from flow_harness.tools.tool import ToolContext, ToolResult
 
 
@@ -14,10 +13,11 @@ def _ctx(tmp_path, **kw) -> ToolContext:
 
 
 def test_registry_keys():
-	assert set(BUILTIN_TOOLS) == {"bash", "read", "read_file", "write", "edit", "grep"}
+	assert set(BUILTIN_TOOLS) == {"bash", "read", "write", "edit"}
+	assert set(BUILTIN_ALIASES) == {"read_file"}
 	assert BUILTIN_TOOLS["bash"].requires_confirmation is True
 	assert BUILTIN_TOOLS["read"].requires_confirmation is False
-	assert BUILTIN_TOOLS["read_file"].parameters == BUILTIN_TOOLS["read"].parameters
+	assert BUILTIN_ALIASES["read_file"].parameters == BUILTIN_TOOLS["read"].parameters
 
 
 async def test_write_then_read_roundtrip(tmp_path):
@@ -41,7 +41,6 @@ async def test_path_tools_reject_traversal_outside_allowed_roots(tmp_path):
 		read(path="../outside.txt", ctx=ctx),
 		write(path="../created.txt", content="nope", ctx=ctx),
 		edit(path="../outside.txt", edits=[{"old": "secret", "new": "changed"}], ctx=ctx),
-		grep(pattern="secret", path="..", ctx=ctx),
 	):
 		with pytest.raises(PermissionError, match="outside the configured allowed roots"):
 			await call
@@ -103,27 +102,14 @@ async def test_hidden_paths_remain_available_by_default(tmp_path):
 	assert (await read(path=".secret", ctx=ctx)).content == "needle"
 
 
-@pytest.mark.parametrize("use_ripgrep", [True, False], ids=["ripgrep", "grep"])
-async def test_hidden_paths_can_be_ignored(tmp_path, monkeypatch, use_ripgrep):
-	(tmp_path / "visible.txt").write_text("needle visible")
+async def test_hidden_paths_can_be_ignored(tmp_path):
 	hidden_dir = tmp_path / ".private"
 	hidden_dir.mkdir()
 	(hidden_dir / "secret.txt").write_text("needle hidden")
-	(tmp_path / ".secret").write_text("needle hidden")
 	ctx = _ctx(tmp_path, allowed_roots=(str(tmp_path),), ignore_hidden_files=True)
 
 	with pytest.raises(PermissionError, match="outside the configured allowed roots"):
 		await read(path=".private/secret.txt", ctx=ctx)
-
-	module = importlib.import_module("flow_harness.tools.builtins.grep")
-	rg = module.shutil.which("rg")
-	if use_ripgrep and rg is None:
-		pytest.skip("ripgrep is not installed")
-	monkeypatch.setattr(module.shutil, "which", lambda _name: rg if use_ripgrep else None)
-	result = await grep(pattern="needle", ctx=ctx)
-	assert "visible.txt" in result.content
-	assert ".private" not in result.content
-	assert ".secret" not in result.content
 
 
 async def test_hidden_symlink_targets_are_ignored(tmp_path):
@@ -295,57 +281,6 @@ async def test_bash_truncation_spills_to_temp_file(tmp_path):
 	assert full.strip().splitlines()[-1] == "3000"  # full output preserved
 	assert "3000" in res.content  # tail kept in the model-visible slice
 	assert f"full output: {path}" in res.content
-
-
-async def test_grep_finds_and_misses(tmp_path):
-	(tmp_path / "a.txt").write_text("needle here\nother line")
-	ctx = _ctx(tmp_path)
-	found = await grep(pattern="needle", path=".", ctx=ctx)
-	assert "needle" in found.content
-	assert found.details["matches"] == 1
-	miss = await grep(pattern="zzz-nomatch-zzz", path=".", ctx=ctx)
-	assert miss.content == "[no matches]"
-	assert miss.details["matches"] == 0
-
-
-async def test_grep_stops_reading_a_flood_of_matches(tmp_path):
-	"""A catch-all pattern over a big tree must not be buffered whole: 3 GB of it once froze the daemon."""
-	(tmp_path / "big.txt").write_text("match line\n" * 400_000)
-	ctx = _ctx(tmp_path)
-
-	result = await grep(pattern=".", path=".", ctx=ctx)
-
-	assert result.content.endswith("+ match lines]")
-	assert 0 < result.details["matches"] < 400_000
-	assert result.details["truncation"]["output_lines"] <= 2000
-
-
-async def test_grep_treats_an_option_like_pattern_as_a_pattern(tmp_path):
-	"""An unseparated pattern would be read as a flag, dropping the search path."""
-	allowed = tmp_path / "allowed"
-	allowed.mkdir()
-	(allowed / "a.txt").write_text("-L is a literal here\n")
-	ctx = _ctx(allowed, allowed_roots=(str(allowed),))
-
-	found = await grep(pattern="-L", path=".", ctx=ctx)
-
-	assert "-L is a literal here" in found.content
-	assert found.details["matches"] == 1
-
-
-async def test_grep_option_like_pattern_cannot_search_outside_the_root(tmp_path, monkeypatch):
-	allowed = tmp_path / "allowed"
-	outside = tmp_path / "outside"
-	allowed.mkdir()
-	outside.mkdir()
-	(outside / "secret.txt").write_text("SUPER-SECRET\n")
-	monkeypatch.chdir(outside)  # a bare recursive search would land here
-	ctx = _ctx(allowed, allowed_roots=(str(allowed),))
-
-	for pattern in ("-L", "-l", "-r"):
-		result = await grep(pattern=pattern, path=".", ctx=ctx)
-		assert "secret.txt" not in result.content
-		assert "SUPER-SECRET" not in result.content
 
 
 def test_tools_are_async():

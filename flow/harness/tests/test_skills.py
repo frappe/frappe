@@ -23,7 +23,7 @@ from flow_harness.session.skills import (
 	parse_skill_invocation,
 )
 from flow_harness.session.store import SessionStore
-from flow_harness.tools import BUILTIN_TOOLS
+from flow_harness.tools import BUILTIN_TOOLS, BUNDLED_TOOLS
 from flow_harness.tools.tool import ToolContext
 
 
@@ -299,7 +299,7 @@ async def test_skill_read_roots_do_not_grant_write_access(tmp_path):
 
 	result = await BUILTIN_TOOLS["read"](path=str(path), ctx=ctx)
 	assert result.content == "reference"
-	grep_result = await BUILTIN_TOOLS["grep"](pattern="reference", path=str(global_skills), ctx=ctx)
+	grep_result = await BUNDLED_TOOLS["grep"](pattern="reference", path=str(global_skills), ctx=ctx)
 	assert "reference.txt:1:reference" in grep_result.content
 	with pytest.raises(PermissionError):
 		await BUILTIN_TOOLS["write"](path=str(global_skills / "changed.txt"), content="no", ctx=ctx)

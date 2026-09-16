@@ -34,8 +34,7 @@ from flow_harness.session.skills import (
 	parse_skill_invocation,
 	sorted_skills,
 )
-from flow_harness.tools import Tool
-from flow_harness.tools.builtins import BUILTIN_TOOLS
+from flow_harness.tools import Tool, select_tools
 
 # client-provided session ids land in on-disk filenames — keep them to a safe slug so a
 # value like "../../etc/x" can't escape the sessions dir (arbitrary file write)
@@ -245,7 +244,7 @@ class SessionStore:
 		)
 
 	def _compose_tools(self, config: SessionConfig) -> dict[str, Tool]:
-		selected = {name: BUILTIN_TOOLS[name] for name in config.tools if name in BUILTIN_TOOLS}
+		selected = select_tools(config.tools)
 		composed = self.extension_runtime.compose_tools(selected, config.extension_tools)
 		if self.tool_allowlist is None:
 			return composed

@@ -658,3 +658,39 @@ test("an opened thought stays open as it merges into a tool group and the run en
 	assert.equal(el.querySelector("[data-turn-fold] button").getAttribute("aria-expanded"), "true")
 	assert.ok(panel())
 })
+
+test("the Default preset locks the core tools and takes bundled and extension picks", async (t) => {
+	const { createFlowStore } = await import("../src/store.js")
+	const SettingsPresets = await loadComponent("SettingsPresets")
+	globalThis.localStorage = { getItem: () => null, setItem() {} }
+	t.after(() => delete globalThis.localStorage)
+	const tools = [
+		{ name: "bash", description: "Run a command", extension: null, bundled: false },
+		{ name: "grep", description: "Search files", extension: null, bundled: true },
+		{ name: "hello", description: "Say hi", extension: "hello", bundled: false },
+	]
+	const store = createFlowStore({ async tools() { return { tools } } }, { requireCwd: false, skillsEnabled: false })
+	const { el } = mount(t, SettingsPresets, {}, store)
+	assert.match(el.textContent, /Core tools and the built-in prompt/) // no list yet: nothing to count
+	await store.refreshTools()
+	await nextTick()
+	assert.match(el.textContent, /2 of 3 tools/) // the Default row: core and extensions on, bundled off
+
+	el.querySelector("button[title='Edit preset']").click() // the Default row comes first
+	await nextTick()
+	assert.equal(el.querySelector("h2").textContent, "Default preset")
+	assert.equal(el.querySelector("input[type=text]"), null, "no name to edit")
+	assert.equal(el.querySelector("textarea"), null, "no prompt to edit")
+	const boxes = [...el.querySelectorAll("input[type=checkbox]")]
+	assert.deepEqual(boxes.map((box) => [box.checked, box.disabled]), [[true, true], [false, false], [true, false]])
+	const save = () => [...el.querySelectorAll("button")].find((b) => b.textContent === "Save")
+	assert.ok(save().disabled)
+
+	boxes[1].click()
+	await nextTick()
+	assert.ok(!save().disabled)
+	save().click()
+	await nextTick()
+	assert.deepEqual(store.state.prefs.defaultPreset, { tools: ["grep"], extensionTools: ["hello"] })
+	assert.match(el.textContent, /3 of 3 tools/)
+})

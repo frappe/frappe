@@ -121,7 +121,7 @@ def test_deployed_clamps_defaulted_tools(tmp_path):
 	c = _deployed_client(tmp_path)
 	r = c.post("/sessions", json={"cwd": str(tmp_path)})
 	assert r.status_code == 200
-	assert r.json()["config"]["tools"] == ["read", "grep"]
+	assert r.json()["config"]["tools"] == ["read"]
 
 
 def test_deployed_allows_capped_subset(tmp_path):
@@ -190,7 +190,7 @@ def test_allowlist_rejects_explicitly_requested_extension_tools(tmp_path):
 def test_allowlist_filters_stored_session_on_load(tmp_path):
 	sid = _store(tmp_path).create(SessionConfig(cwd=str(tmp_path))).id
 	reopened = _store(tmp_path, tool_allowlist=DEPLOYED.tool_allowlist)
-	assert set(reopened.get(sid).server_tools) == {"read", "grep"}
+	assert set(reopened.get(sid).server_tools) == {"read"}
 
 
 def test_callback_url_fenced_to_allowed_hosts(tmp_path):

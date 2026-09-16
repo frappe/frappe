@@ -31,6 +31,37 @@ const settingsPieces = moduleURL(`
 	export const SettingsContent = piece("SettingsContent")
 	export const SettingsPanel = piece("SettingsPanel")
 `)
+// frappe-ui form widgets as bare inputs: enough to tick, type and click in a test
+const widgets = moduleURL(`
+	import { h } from ${JSON.stringify(vue)}
+	const text = (tag) => ({
+		props: ["modelValue"],
+		emits: ["update:modelValue"],
+		render() {
+			return h(tag, { value: this.modelValue, onInput: (e) => this.$emit("update:modelValue", e.target.value) })
+		},
+	})
+	export const TextInput = text("input")
+	export const Textarea = text("textarea")
+	export const Checkbox = {
+		props: ["modelValue", "disabled"],
+		emits: ["update:modelValue"],
+		render() {
+			return h("input", {
+				type: "checkbox",
+				checked: this.modelValue,
+				disabled: this.disabled,
+				onChange: (e) => this.$emit("update:modelValue", e.target.checked),
+			})
+		},
+	}
+	export const Button = {
+		props: ["label", "disabled"],
+		render() {
+			return h("button", { disabled: this.disabled }, this.label)
+		},
+	}
+`)
 const components = new Set([
 	"Composer.vue", "ToolStep.vue", "ToolGroup.vue", "ApprovalCard.vue", "MessageList.vue", "ModelButton.vue", "PopMenu.vue",
 	"SettingsDialog.vue", "SettingsPage.vue", "UserBubble.vue", "TurnFold.vue", "ThinkingBlock.vue", "ThoughtStep.vue",
@@ -55,6 +86,8 @@ async function componentURL(url) {
 			resolved = dialogs
 		} else if (specifier === "frappe-ui/src/components/SettingsDialog") {
 			resolved = settingsPieces
+		} else if (specifier.startsWith("frappe-ui/src/components/")) {
+			resolved = widgets
 		} else {
 			resolved = specifier.startsWith(".") ? new URL(specifier, url).href : import.meta.resolve(specifier)
 		}

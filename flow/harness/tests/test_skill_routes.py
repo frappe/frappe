@@ -154,7 +154,6 @@ def test_tools_lists_every_builtin_without_a_cap(tmp_path, monkeypatch):
 	assert [t["name"] for t in tools if t["extension"] is None] == [
 		"bash",
 		"read",
-		"read_file",
 		"write",
 		"edit",
 		"grep",

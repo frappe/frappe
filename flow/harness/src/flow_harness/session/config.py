@@ -30,7 +30,7 @@ class SessionConfig(BaseModel):
 			AGENTS.md files, and suffix, and stores the result here.
 		system_append: Appended to the end of the resolved prompt, composed or verbatim
 			(the `--append-system-prompt` flag of the TUI and the web command).
-		tools: Built-in tools available to the agent.
+		tools: Built-in and bundled tools available to the agent, by name.
 		extension_tools: Extension tools available to the agent; None means every loaded one.
 		client_tools: Schemas registered by a client.
 		callback_url: Where client tools and opted-in run terminals are dispatched.
@@ -66,7 +66,7 @@ class SessionConfig(BaseModel):
 	system_suffix: str | None = None
 	system_prompt: str | None = None
 	system_append: str | None = None
-	tools: list[str] = Field(default_factory=lambda: ["bash", "read", "write", "edit", "grep"])
+	tools: list[str] = Field(default_factory=lambda: ["bash", "read", "write", "edit"])
 	extension_tools: list[str] | None = None
 	client_tools: list[dict] = Field(default_factory=list)
 	callback_url: str | None = None
