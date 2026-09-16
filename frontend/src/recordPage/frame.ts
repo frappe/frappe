@@ -26,6 +26,12 @@ export class FrameSurface extends Surface<FrameItem> {
     if (isBuiltin(name)) return warnBuiltin("move", name, "a region keeps its place; nothing was moved");
     super.move(name, position);
   }
+
+  order(names: string[]) {
+    for (const name of names.filter(isBuiltin))
+      warnBuiltin("order", name, "a region keeps its place; it was left out of the order");
+    super.order(names.filter((name) => !isBuiltin(name)));
+  }
 }
 
 /** The column as the host draws it: each region's visibility, and the visible bands around them. */

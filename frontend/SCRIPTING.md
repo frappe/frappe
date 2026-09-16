@@ -61,7 +61,7 @@ A band is script only; it has no record form yet.
 | `body` | The Details form and the panel. `hide('body')` leaves the header and the bands. |
 
 `move` on a built-in warns in a development build and does nothing; so does an `add`
-under a built-in's name. `hide`, `show` and `update` on a built-in work as on any item,
+under a built-in's name, and `order()` leaves a region it names where it is. `hide`, `show` and `update` on a built-in work as on any item,
 though `update` has nothing to draw on one. `clear()` hides both regions and every band
 present at the call: a blank page. A later `add` draws, and `show('header')` brings the
 row back.

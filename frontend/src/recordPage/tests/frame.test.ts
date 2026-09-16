@@ -41,6 +41,17 @@ describe("the frame surface", () => {
     expect(warn.mock.calls[0][0]).toContain("page.frame.move('header')");
   });
 
+  it("orders bands only: a region named in order() is left out, with a warning", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const surface = new FrameSurface();
+    surface.add({ name: "banner", component: Band }, { after: "header" });
+    surface.add({ name: "footer", component: Band }, { after: "body" });
+    surface.order(["body", "footer", "header", "banner"]);
+    expect(names(surface)).toEqual(["footer", "banner", "header", "body"]);
+    expect(warn).toHaveBeenCalledTimes(2);
+    expect(warn.mock.calls[0][0]).toContain("page.frame.order('body')");
+  });
+
   it("refuses a band under a region's name, and keeps the rest of the block", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const surface = new FrameSurface();
