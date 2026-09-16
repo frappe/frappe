@@ -1,15 +1,16 @@
 <div align="center">
-
-# Flow
-
-**AI agents for Frappe.**
+    <a href="https://github.com/frappe/flow">
+        <img src="./frontend/public/flow.png" alt="Flow Logo" height="80px" width="80px"/>
+    </a>
+    <h2>Flow</h2>
+    <p>AI agents for Frappe.</p>
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![CI](https://github.com/frappe/flow/actions/workflows/ci.yml/badge.svg)](https://github.com/frappe/flow/actions/workflows/ci.yml)
 
 </div>
 
-<img width="1470" height="923" alt="image" src="https://github.com/user-attachments/assets/59749f10-ccc7-49ce-aa30-9d0dc46c117a" />
+<img src="./.github/screenshot.png" alt="A Flow conversation building a Web Form" />
 
 ---
 
@@ -26,12 +27,6 @@ Flow sets up the RAG pipeline, embeds and indexes the files, and keeps the DocTy
 
 **Do anything a user can do:**
 > *"Find all overdue sales orders from last month and mark them as closed."*
-
----
-
-## The Flow page
-
-Open `/flow` on your site (it is also listed in the Desk's apps menu). Conversations, agents, skills, tools, triggers, models, providers, knowledge and memories are all managed there; the Desk is never required.
 
 ---
 
@@ -80,10 +75,6 @@ def agents():
 flow_agents = ["myapp.ai.agents"]
 ```
 
-The definition lives in code, and constructing an `Agent` touches nothing. On every migrate and app install, Flow writes each agent returned by the `flow_agents` hook to the site as a `Flow Agent` record plus an Imported `Flow Tool` for each `@tool` function (`agent.sync()` does the same by hand, say from the console). These records are system-generated: the Desk can enable or disable them and switch the agent's model (a site choice), nothing else. Tools must be module-level functions in an installed app, since the flow server calls them back by import path; they run on the site as the session's owner, with that user's permissions. Users need read access to the `Flow Agent` and its `Flow Model`.
-
-`run()` starts the turn on the flow server and returns the `Flow Run` while it is still `Running`; it never waits. The run is updated when the turn ends, so react to the outcome through `Flow Run` document events, or give the agent a tool that writes the result.
-
 ### Persist a conversation
 
 ```python
@@ -92,16 +83,6 @@ session = agent.new_session(title="Todo assistant")
 session.chat("What tasks do I have open?")
 session.chat("Close the ones due before last Friday.")
 ```
-
-Every turn is saved as a `Flow Run` linked to the session — so conversation history, tool calls, and outputs are all in the database. `chat()` returns the run immediately; a message sent while a turn is still running joins it. Answer a tool approval with `session.resume(answers)` and stop a turn with `session.abort()`.
-
-Files travel with the turn they are sent on: `session.chat("Summarize this", attachments=[file.name])` takes `File` names the user can read (text, PDF, Office, HTML and images; scans and images are read by OCR). Up to half of the model's total context is reserved for exact attachment text on each turn, independent of conversation length; only an attached set larger than that is chunked into a per-session index, with the largest files moved to retrieval first. The turn that attaches such a file gets its most relevant excerpts; later turns search it with the builtin `search_attachments` tool. Images go to a vision model as images.
-
-An agent with the builtin `update_memory` tool remembers: it saves short facts, shared by everyone who uses the agent or private to one user, and each message brings along only the saved facts relevant to it. Relevance is hybrid vector and keyword search with a score floor when Flow Knowledge Settings has an embedding model, keyword search otherwise. A thumbs-down comment on a run is saved the same way.
-
-An agent with the builtin `load_skill` tool sees the name and description of each skill bound to it, plus any skill marked available to all agents, and loads one when a task matches. Binding a skill attaches the tool; the built-in assistant always has it.
-
-Tool calls can require human confirmation before executing, and every run is persisted for audit.
 
 ---
 
@@ -117,15 +98,13 @@ bench --site site-name install-app flow
 
 Then add a `Flow Provider` with your API key and a `Flow Model` with a model ID such as `anthropic/claude-sonnet-4-6`, and open `/flow` to start. For local providers like Ollama or LM Studio, set `Base URL` on the provider or model.
 
-### Flow server
+### Flow agent harness
 
-Conversations run on a bench-local daemon from the `frappe-flow` package, one per bench and shared by every site. Installing the app on a site provisions the site and starts it; `bench flow-server setup|start|stop|restart|status` manage it by hand. Its state lives under `<bench>/sites/flow-server/`, its log at `<bench>/logs/flow-server.log`. Callbacks reach the site through the bench's web server on loopback, naming the site in a header, so no DNS or proxy is involved; `flow_server_url` in site config sends them elsewhere, and `flow_callback_timeout` caps a tool call's seconds. Session events reach the browser through Redis and Frappe's socketio process; the daemon's log stays the record, so clients sync a session after each run.
-
-`Read File` and `Grep` are built-in Flow Tools for inspecting the source of apps installed on the site. A System Manager can disable either tool globally or select which agents receive it from Desk.
+Conversations run on the flow agent harness, a daemon from the [`frappe-flow`](https://pypi.org/project/frappe-flow/) package that is shared by every site on the bench. Installing the app starts it; `bench flow-server setup|start|stop|restart|status` manage it by hand. Its log is at `<bench>/logs/flow-server.log`.
 
 ## Repository layout
 
-The Frappe app is the root of this repository. [`harness/`](harness/) is the flow server, published on PyPI as `frappe-flow`, with its own README, tests and tooling; run its commands from that folder. A bench installs the released package, so for development install the checkout instead:
+The Frappe app is the root of this repository. [`harness/`](harness/) is the flow agent harness, published on PyPI as [`frappe-flow`](https://pypi.org/project/frappe-flow/). For development, install the checkout into the bench:
 
 ```bash
 bench pip install -e apps/flow/harness
