@@ -1,10 +1,11 @@
 // The Client Script tier: the doctype's stored scripts, fetched once per doctype,
 // evaluated as modules and registered as sources after file scripts and extensions.
-import { readonly, ref } from "vue";
+import { reactive, readonly, ref } from "vue";
 import { call, toast } from "frappe-ui";
+import type { RealtimeSocket } from "@framework/ui/socket";
 import { withRegisteringSource } from "./context";
 import { evaluateClientScript } from "./evaluateClientScript";
-import { GET_CLIENT_SCRIPTS } from "./clientScriptTypes";
+import { CLIENT_SCRIPT_CHANGED, GET_CLIENT_SCRIPTS } from "./clientScriptTypes";
 import type { ClientScriptRow, ClientScriptsResponse } from "./clientScriptTypes";
 import { registerRecordPage, unregisterSource } from "./registry";
 import {
@@ -26,8 +27,31 @@ const builds = new Map<string, number>();
 // Whether this session may write Client Scripts; the permission is on the doctype,
 // so it is one answer for every doctype. Gates the failure toast and the editor.
 const writable = ref(false);
+// How often each doctype's stored scripts changed on the server since this tab opened.
+const changes = reactive(new Map<string, number>());
 
 export const canWriteClientScripts = readonly(writable);
+
+/** A count that moves when the doctype's stored scripts change; a page on screen watches its own. */
+export function clientScriptChanges(doctype: string): number {
+  return changes.get(doctype) ?? 0;
+}
+
+/** Drops the cached tier so the next load re-reads, and moves the doctype's change count. */
+export function invalidateClientScripts(doctype: string) {
+  tiers.delete(doctype);
+  changes.set(doctype, clientScriptChanges(doctype) + 1);
+}
+
+/** A Client Script saved, reordered or deleted anywhere invalidates its doctype's tier; returns the stop. */
+export function watchClientScripts(socket: RealtimeSocket | undefined) {
+  const onChanged = (...args: unknown[]) => {
+    const { dt, view } = (args[0] ?? {}) as { dt?: unknown; view?: unknown };
+    if (typeof dt === "string" && dt && view === "Record") invalidateClientScripts(dt);
+  };
+  socket?.on(CLIENT_SCRIPT_CHANGED, onChanged);
+  return () => socket?.off(CLIENT_SCRIPT_CHANGED, onChanged);
+}
 
 /** Tells a script author, and only a script author, about a customization failure, once per key. */
 export function toastScriptError(key: string, message: string) {
@@ -52,6 +76,7 @@ export function reloadClientScripts(doctype: string): Promise<void> {
 export function resetClientScripts() {
   for (const doctype of sources.keys()) clearTier(doctype);
   tiers.clear();
+  changes.clear();
   builds.clear();
   toasted.clear();
   notified.clear();
