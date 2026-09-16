@@ -117,6 +117,32 @@ export interface FrameItem extends SurfaceItem {
 
 export const FRAME_ITEM_KEYS: readonly string[] = ["name", "component", "props", "gutter"];
 
+/** One column of the body row: a built-in (`form`, `panel`) or one a script adds. */
+export interface BodyItem extends SurfaceItem {
+  /** Draws the column; absent on a built-in, which the host draws itself. */
+  component?: Component;
+  props?: Record<string, any>;
+  /** Whether the column's content takes the page's side padding; omitted means it does. */
+  gutter?: boolean;
+  /** Absent, the column flexes and shares the rest with the other flex columns. */
+  width?: number;
+  minWidth?: number;
+  maxWidth?: number;
+  /** The reader can shut the column to a strip; its component then receives `collapsed`. */
+  collapsible?: boolean;
+}
+
+export const BODY_ITEM_KEYS: readonly string[] = [
+  "name",
+  "component",
+  "props",
+  "gutter",
+  "width",
+  "minWidth",
+  "maxWidth",
+  "collapsible",
+];
+
 /** The panel surface also opens and shuts a section for the reader. */
 export interface PanelSectionsApi extends SurfaceVerbs<PanelSectionItem> {
   /**
@@ -418,6 +444,8 @@ export interface RecordPageApi {
   quickActions: SurfaceVerbs<QuickAction>;
   /** The column itself: the built-in `header` and `body`, and a script's bands around them. */
   frame: SurfaceVerbs<FrameItem>;
+  /** The body row as one list: the built-in `form` and `panel`, and a script's columns around them. */
+  body: SurfaceVerbs<BodyItem>;
   header: SurfaceVerbs<HeaderItem>;
   tabs: TabsApi;
   panelSections: PanelSectionsApi;

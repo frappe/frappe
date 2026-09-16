@@ -29,7 +29,7 @@ in that voice.
 
 What `page` is _for_ is a small, closed vocabulary:
 
-- **Five surfaces** — `quickActions`, `header`, `tabs`, `panelSections`, `frame` — each
+- **Six surfaces** — `quickActions`, `header`, `tabs`, `panelSections`, `frame`, `body` — each
   speaking the same **seven verbs**: `add`, `hide`, `show`, `update`, `move`, `has`,
   `order`.
 - **Two more, `fields` and `formTabs`**, speaking a strict subset of them — `hide`,
@@ -144,6 +144,13 @@ What `page` is _for_ is a small, closed vocabulary:
   lean on; they are kept for a major. A band is placed by `before`/`after` naming a
   region or another band, and two scripts adding at one place are ordered by run order,
   then by position. `move` on a built-in warns in a development build and does nothing.
+- **`page.body` is the body row as one list.** Its two built-in columns, `form` and
+  `panel`, and its column keys of its own — `width`, `minWidth`, `maxWidth`,
+  `collapsible`, `gutter` — are the names a script may lean on; they are kept for a
+  major. The keys are engine words, read and dropped from the item, not props forwarded
+  to the component. A column with no `width` flexes; one with `width` is fixed and the
+  reader's remembered width and collapsed state win over it. All eight verbs work on the
+  built-ins. What the host does on a narrow screen is not observable from a script.
 - **How many top-level controls fit is the host's business, and a script cannot observe
   it.** An item that does not fit is **demoted into `⋯`**, keeping its own band ahead of
   the built-ins and in the order it asked for; a dropdown collapses whole, under its label.

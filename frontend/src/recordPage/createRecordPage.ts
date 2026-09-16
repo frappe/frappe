@@ -16,6 +16,7 @@ import type { RowAddress } from "@framework/ui/components/Fields/types";
 import { FieldsSurface, LAYOUT_BREAKS } from "./fields";
 import { FormTabsSurface } from "./formTabs";
 import { FrameSurface } from "./frame";
+import { BodySurface } from "./body";
 import { HeaderSurface } from "./headerRenderings";
 import { ROW_EVENTS } from "./flattenHandlers";
 import { withRemovals } from "./pageCompatibility";
@@ -126,6 +127,7 @@ export interface RecordPageController {
   page: RecordPageApi;
   quickActions: Surface<QuickAction>;
   frame: FrameSurface;
+  body: BodySurface;
   header: HeaderSurface;
   tabs: Surface<TabItem>;
   panelSections: Surface<PanelSectionItem>;
@@ -152,6 +154,7 @@ export interface RecordPageController {
 export function createRecordPage(host: RecordPageHost): RecordPageController {
   const quickActions = new Surface<QuickAction>({ surface: "quickActions", keys: QUICK_ACTION_KEYS });
   const frame = new FrameSurface();
+  const body = new BodySurface();
   const header = new HeaderSurface();
   const tabs = new Surface<TabItem>({ surface: "tabs", keys: TAB_ITEM_KEYS });
   const panelSections = new Surface<PanelSectionItem>({
@@ -180,6 +183,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   const surfaces: { beginReplay: () => void; commitReplay: () => void }[] = [
     quickActions,
     frame,
+    body,
     header,
     tabs,
     panelSections,
@@ -258,6 +262,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     },
     quickActions,
     frame,
+    body,
     header,
     tabs: tabs as unknown as TabsApi,
     panelSections: panelSections as unknown as PanelSectionsApi,
@@ -597,6 +602,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     page,
     quickActions,
     frame,
+    body,
     header,
     tabs,
     panelSections,
