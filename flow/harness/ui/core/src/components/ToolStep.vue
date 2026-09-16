@@ -104,6 +104,7 @@
 import { computed, inject, ref, watch } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
+import { usePanelOpen } from "../panels.js"
 import { compactDisplayText, stepDecision, stepIcon, stepLabel, stepStat, stepSubject } from "../transcript.js"
 import CopyButton from "./CopyButton.vue"
 
@@ -113,7 +114,7 @@ const props = defineProps({
 	live: { type: Boolean, default: false },
 })
 
-const open = ref(false)
+const open = usePanelOpen(() => props.step.call.id)
 
 const flow = inject("flow", null)
 const cwd = computed(() => flow?.state?.session?.config?.cwd ?? null)

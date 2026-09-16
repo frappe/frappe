@@ -33,16 +33,17 @@
 </template>
 
 <script setup>
-import { ref } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
+import { usePanelOpen } from "../panels.js"
 import MarkdownContent from "./MarkdownContent.vue"
 import ThoughtIcon from "./ThoughtIcon.vue"
 
-defineProps({
+const props = defineProps({
+	id: { type: String, required: true },
 	block: { type: Object, required: true },
 	live: { type: Boolean, default: false },
 })
 
-const open = ref(false)
+const open = usePanelOpen(() => props.id)
 </script>

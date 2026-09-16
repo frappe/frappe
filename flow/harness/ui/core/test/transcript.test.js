@@ -889,3 +889,62 @@ test("a running turn shows no changed-files section until the response settles",
 
 	assert.ok(!buildItems(conversation).some((item) => item.kind === "turn-files"))
 })
+
+test("a thought keeps its id from the streamed preview through its merge into a tool group", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "run_started" })
+	applyEvent(conversation, { type: "user_message", seq: 1, content: "hi" })
+	applyEvent(conversation, { type: "thinking_delta", thinking: "let me see" })
+	assert.equal(buildItems(conversation).find((item) => item.kind === "thinking").key, "turn:1:th:0")
+
+	applyEvent(conversation, { type: "tool_call_display_ready", id: "call-1", name: "bash", arguments: { command: "ls" } })
+	assert.equal(toolGroups(conversation)[0].steps[0].id, "turn:1:th:0")
+
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 2,
+		content: [
+			{ type: "thinking", thinking: "let me see" },
+			{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "ls" } },
+		],
+		stop_reason: "tool_use",
+	})
+	applyEvent(conversation, { type: "tool_result", seq: 3, tool_call_id: "call-1", content: "a.js" })
+	applyEvent(conversation, { type: "thinking_delta", thinking: "now write" })
+	assert.deepEqual(
+		toolGroups(conversation)[0].steps.map((step) => step.call?.id ?? step.id),
+		["turn:1:th:0", "call-1", "turn:1:th:1"],
+	)
+})
+
+test("a settled turn stays unfolded while one of its rows is open", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "user_message", seq: 1, ts: 100, content: "Fix it" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 2,
+		ts: 101,
+		content: [
+			{ type: "thinking", thinking: "look first" },
+			{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "ls" } },
+		],
+		stop_reason: "tool_use",
+	})
+	applyEvent(conversation, { type: "tool_result", seq: 3, ts: 102, tool_call_id: "call-1", content: "a.js" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 4,
+		ts: 103,
+		content: [{ type: "text", text: "Done." }],
+		stop_reason: "stop",
+	})
+	applyEvent(conversation, { type: "run_ended", seq: 5, ts: 103, reason: "done" })
+
+	assert.deepEqual(buildItems(conversation).map((item) => item.kind), ["user", "turn-fold", "text", "turn-copy"])
+	for (const id of ["call-1", "turn:1:th:0"]) {
+		const items = buildItems(conversation, new Set(), new Set([id]))
+		assert.deepEqual(items.map((item) => item.kind), ["user", "turn-fold", "group", "text", "turn-copy"], id)
+		assert.equal(items[1].expanded, true)
+	}
+	assert.equal(buildItems(conversation, new Set(), new Set(["call-9"]))[1].expanded, false)
+})

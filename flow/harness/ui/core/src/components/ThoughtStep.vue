@@ -26,7 +26,7 @@
 		</component>
 
 		<div
-			v-if="open"
+			v-if="open && expandable"
 			class="mb-1.5 mt-1 rounded-[10px] border border-outline-gray-1 bg-surface-base px-3.5 py-3"
 		>
 			<div ref="panelEl" class="max-h-[260px] overflow-y-auto" @scroll="onPanelScroll">
@@ -40,16 +40,18 @@
 import { computed, nextTick, ref, watch } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
+import { usePanelOpen } from "../panels.js"
 import MarkdownContent from "./MarkdownContent.vue"
 import ThoughtIcon from "./ThoughtIcon.vue"
 
 const props = defineProps({
+	id: { type: String, required: true },
 	block: { type: Object, required: true },
 	// this thought's chunks are still streaming in
 	live: { type: Boolean, default: false },
 })
 
-const open = ref(false)
+const open = usePanelOpen(() => props.id)
 
 // The open panel follows streamed text like the thread does: pinned while the
 // user is at its bottom (trivially true when the content is still short),

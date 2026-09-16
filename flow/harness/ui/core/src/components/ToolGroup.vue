@@ -1,7 +1,7 @@
 <template>
 	<div>
-		<template v-for="(step, i) in steps" :key="step.call ? step.call.id : `thought-${i}`">
-			<ThoughtStep v-if="step.thought" :block="step.thought" :live="!sealed && !!step.live" />
+		<template v-for="step in steps" :key="step.call ? step.call.id : step.id">
+			<ThoughtStep v-if="step.thought" :id="step.id" :block="step.thought" :live="!sealed && !!step.live" />
 			<ToolStep v-else :step="step" :live="!sealed && step === runningStep" />
 		</template>
 		<!-- results landed but the run continues (model deciding the next step):
