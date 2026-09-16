@@ -219,6 +219,21 @@ context("Web Form", () => {
 		cy.get_field("title").should("have.value", "Note 1 Edited");
 	});
 
+	it("Retain Saved Value Over Field Default", () => {
+		cy.visit("/note");
+		cy.url().should("include", "/note/list");
+		cy.get(".web-list-table tbody tr:last").click();
+
+		cy.get(".web-form-actions a").contains("Edit").click();
+		cy.url().should("include", "/edit");
+
+		cy.get('input[data-fieldname="public"]').check();
+		cy.get(".web-form-actions button").contains("Save").click();
+		cy.get(".success-page .edit-button").click();
+
+		cy.get('input[data-fieldname="public"]').should("be.checked");
+	});
+
 	it("Allow Multiple Response", () => {
 		cy.visit("/desk/web-form/note");
 

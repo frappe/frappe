@@ -70,6 +70,8 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 			let defaults = {};
 
 			$.each(this.fields_list, (i, field) => {
+				if (this.doc?.[field.df.fieldname] !== undefined) return;
+
 				let def_value = this.get_field_default_value(field);
 				if (def_value === undefined) return;
 				defaults[field.df.fieldname] = def_value;
