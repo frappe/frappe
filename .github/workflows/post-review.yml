@@ -1,0 +1,36 @@
+name: Post Review
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Pull request number
+        required: true
+        type: number
+      review:
+        description: base64 of a review JSON ({event, body, comments})
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: post-review-${{ inputs.pr }}
+  cancel-in-progress: false
+
+jobs:
+  post:
+    if: github.actor == 'iamejaaz'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Post review as frappe-pr-bot
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          PR: ${{ inputs.pr }}
+          REVIEW_B64: ${{ inputs.review }}
+        run: |
+          printf '%s' "$REVIEW_B64" | base64 -d > review.json
+          jq -e '.event == "COMMENT" and (.body | type == "string") and (.comments | type == "array")' review.json > /dev/null
+          jq '.comments |= map(with_entries(select(.value != null)))' review.json > payload.json
+          gh api -X POST "repos/${{ github.repository }}/pulls/$PR/reviews" --input payload.json --jq '.html_url'
