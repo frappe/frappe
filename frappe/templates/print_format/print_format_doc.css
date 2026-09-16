@@ -429,12 +429,9 @@
 	color: var(--gray-600);
 }
 
-.print-format-doc .child-table .cell-line .ql-editor p {
-	margin: 0;
-}
-
-.print-format-doc .child-table .cell-line .ql-editor ul,
-.print-format-doc .child-table .cell-line .ql-editor ol {
+.print-format-doc .child-table .cell-line p,
+.print-format-doc .child-table .cell-line ul,
+.print-format-doc .child-table .cell-line ol {
 	margin: 0;
 }
 
