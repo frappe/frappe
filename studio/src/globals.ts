@@ -59,16 +59,24 @@ import {
 	SettingsRow,
 } from "frappe-ui"
 import {
-	AxisChart,
 	Calendar,
 	CodeEditor,
 	CommandPalette,
 	CommandPaletteItem,
-	DonutChart,
 	ListView,
-	NumberChart,
 	TextEditor,
 } from "frappe-ui/experimental"
+import {
+	AreaChart,
+	BarChart,
+	LineChart,
+	DonutChart,
+	FunnelChart,
+	HeatmapChart,
+	ScatterChart,
+	SankeyChart,
+	NumberCard,
+} from "frappe-ui/charts"
 import {
 	List,
 	ListRows,
@@ -139,12 +147,20 @@ export function registerGlobalComponents(app: App) {
 	app.component("CommandPalette", CommandPalette)
 	app.component("CommandPaletteItem", CommandPaletteItem)
 	app.component("Calendar", Calendar)
-	app.component("NumberChart", NumberChart)
-	app.component("AxisChart", AxisChart)
-	app.component("DonutChart", DonutChart)
 	app.component("ContextMenu", ContextMenu)
 	app.component("Duration", Duration)
 	app.component("Spinner", Spinner)
+
+	// frappe-ui/charts
+	app.component("AreaChart", AreaChart)
+	app.component("BarChart", BarChart)
+	app.component("LineChart", LineChart)
+	app.component("DonutChart", DonutChart)
+	app.component("FunnelChart", FunnelChart)
+	app.component("HeatmapChart", HeatmapChart)
+	app.component("ScatterChart", ScatterChart)
+	app.component("SankeyChart", SankeyChart)
+	app.component("NumberCard", NumberCard)
 
 	// List family (frappe-ui/list) — dropped as a tree via the `list` block template.
 	app.component("List", List)

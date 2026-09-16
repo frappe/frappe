@@ -3,6 +3,7 @@ import {
 	FRAPPE_UI_COMPONENTS,
 	FRAPPE_UI_MOLECULES,
 	FRAPPE_UI_EXPERIMENTAL_COMPONENTS,
+	FRAPPE_UI_CHARTS,
 	FRAMEWORK_UI_COMPONENTS,
 } from "@/utils/constants"
 import { COMPONENT_FAMILIES } from "@/data/componentFamilies"
@@ -48,9 +49,15 @@ import LucideImage from "~icons/lucide/image"
 import LucideList from "~icons/lucide/list"
 import LucideLink from "~icons/lucide/link"
 import LucideType from "~icons/lucide/type"
-import LucideDollarSign from "~icons/lucide/dollar-sign"
 import LucideChartLine from "~icons/lucide/chart-line"
 import LucideChartPie from "~icons/lucide/chart-pie"
+import LucideChartColumn from "~icons/lucide/chart-column"
+import LucideChartArea from "~icons/lucide/chart-area"
+import LucideChartScatter from "~icons/lucide/chart-scatter"
+import LucideFunnel from "~icons/lucide/funnel"
+import LucideGrid3x3 from "~icons/lucide/grid-3x3"
+import LucideWorkflow from "~icons/lucide/workflow"
+import LucideHash from "~icons/lucide/hash"
 import LucideListFilter from "~icons/lucide/list-filter"
 import LucideSquareMousePointer from "~icons/lucide/square-mouse-pointer"
 import LucideTimer from "~icons/lucide/timer"
@@ -799,138 +806,66 @@ export const COMPONENTS: FrappeUIComponents = {
 		},
 	},
 	// charts
-	NumberChart: {
-		name: "NumberChart",
-		title: "Number Chart",
-		icon: LucideDollarSign,
-		initialState: {
-			config: {
-				title: "Total Sales",
-				value: 123456,
-				prefix: "$",
-				delta: 10,
-				deltaSuffix: "% MoM",
-				negativeIsBetter: false,
-			},
-		},
+	// frappe-ui/charts: fill their parent, so the templates give the block a height
+	BarChart: {
+		name: "BarChart",
+		title: "Bar Chart",
+		icon: LucideChartColumn,
+		blockTemplate: "bar-chart",
 	},
-	AxisChart: {
-		name: "AxisChart",
-		title: "Axis Chart",
+	LineChart: {
+		name: "LineChart",
+		title: "Line Chart",
 		icon: LucideChartLine,
-		initialState: {
-			config: {
-				data: [
-					{
-						month: "2021-01-01",
-						sales: 200,
-					},
-					{
-						month: "2021-02-01",
-						sales: 300,
-					},
-					{
-						month: "2021-03-01",
-						sales: 250,
-					},
-					{
-						month: "2021-04-01",
-						sales: 350,
-					},
-					{
-						month: "2021-05-01",
-						sales: 400,
-					},
-					{
-						month: "2021-06-01",
-						sales: 300,
-					},
-				],
-				title: "Monthly Sales",
-				subtitle: "Sales data for first half of the year",
-				xAxis: {
-					key: "month",
-					type: "time",
-					title: "Month",
-					timeGrain: "month",
-				},
-				yAxis: {
-					title: "Amount ($)",
-					echartOptions: {
-						min: 0,
-						max: 800,
-					},
-				},
-				series: [
-					{
-						name: "sales",
-						type: "bar",
-					},
-				],
-			},
-		},
+		blockTemplate: "line-chart",
+	},
+	AreaChart: {
+		name: "AreaChart",
+		title: "Area Chart",
+		icon: LucideChartArea,
+		blockTemplate: "area-chart",
 	},
 	DonutChart: {
 		name: "DonutChart",
 		title: "Donut Chart",
 		icon: LucideChartPie,
+		blockTemplate: "donut-chart",
+	},
+	FunnelChart: {
+		name: "FunnelChart",
+		title: "Funnel Chart",
+		icon: LucideFunnel,
+		blockTemplate: "funnel-chart",
+	},
+	HeatmapChart: {
+		name: "HeatmapChart",
+		title: "Heatmap Chart",
+		icon: LucideGrid3x3,
+		blockTemplate: "heatmap-chart",
+	},
+	ScatterChart: {
+		name: "ScatterChart",
+		title: "Scatter Chart",
+		icon: LucideChartScatter,
+		blockTemplate: "scatter-chart",
+	},
+	SankeyChart: {
+		name: "SankeyChart",
+		title: "Sankey Chart",
+		icon: LucideWorkflow,
+		blockTemplate: "sankey-chart",
+	},
+	NumberCard: {
+		name: "NumberCard",
+		title: "Number Card",
+		icon: LucideHash,
 		initialState: {
-			config: {
-				data: [
-					{
-						product: "Apple Watch",
-						sales: 400,
-					},
-					{
-						product: "Services",
-						sales: 400,
-					},
-					{
-						product: "iMac",
-						sales: 350,
-					},
-					{
-						product: "Accessories",
-						sales: 350,
-					},
-					{
-						product: "iPad",
-						sales: 300,
-					},
-					{
-						product: "AirPods",
-						sales: 300,
-					},
-					{
-						product: "Apple TV",
-						sales: 300,
-					},
-					{
-						product: "Others",
-						sales: 300,
-					},
-					{
-						product: "Macbook",
-						sales: 250,
-					},
-					{
-						product: "Beats",
-						sales: 250,
-					},
-					{
-						product: "iPhone",
-						sales: 200,
-					},
-					{
-						product: "HomePod",
-						sales: 200,
-					},
-				],
-				title: "Product Sales Distribution",
-				subtitle: "Sales distribution across products",
-				categoryColumn: "product",
-				valueColumn: "sales",
-			},
+			title: "Total Sales",
+			value: 123456,
+			prefix: "$",
+			delta: 10,
+			deltaSuffix: "%",
+			deltaCaption: "vs last month",
 		},
 	},
 	// @framework/ui components
@@ -1190,7 +1125,8 @@ function isFrappeUIComponent(name: string) {
 	return (
 		FRAPPE_UI_COMPONENTS.includes(name) ||
 		FRAPPE_UI_MOLECULES.includes(name) ||
-		FRAPPE_UI_EXPERIMENTAL_COMPONENTS.includes(name)
+		FRAPPE_UI_EXPERIMENTAL_COMPONENTS.includes(name) ||
+		FRAPPE_UI_CHARTS.includes(name)
 	)
 }
 

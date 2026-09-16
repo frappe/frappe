@@ -1,0 +1,312 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "LineChartProps": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "x": {
+          "type": "string"
+        },
+        "y": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "series": {
+          "type": "string"
+        },
+        "maxSeries": {
+          "type": "number"
+        },
+        "seriesConfig": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "bar",
+                  "line",
+                  "area"
+                ]
+              },
+              "axis": {
+                "type": "string",
+                "enum": [
+                  "y",
+                  "y2"
+                ]
+              },
+              "showDataLabels": {
+                "type": "boolean"
+              },
+              "stackName": {
+                "type": "string"
+              },
+              "dashed": {
+                "type": "boolean"
+              },
+              "showDataPoints": {
+                "type": "boolean"
+              },
+              "smooth": {
+                "type": "boolean"
+              },
+              "echartOptions": {
+                "type": "object"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "showDataLabels": {
+          "type": "boolean"
+        },
+        "hiddenSeries": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tooltipColumns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "format": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "xAxis": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "category",
+                "time",
+                "value"
+              ]
+            },
+            "timeGrain": {
+              "type": "string",
+              "enum": [
+                "second",
+                "minute",
+                "hour",
+                "day",
+                "week",
+                "month",
+                "quarter",
+                "year"
+              ]
+            },
+            "format": {
+              "type": "object"
+            },
+            "echartOptions": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        },
+        "yAxis": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "format": {
+              "type": "object"
+            },
+            "echartOptions": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        },
+        "y2Axis": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "format": {
+              "type": "object"
+            },
+            "echartOptions": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        },
+        "palette": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "sequential",
+                "categorical",
+                "diverging"
+              ]
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "stacked": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string",
+              "const": "normalized"
+            }
+          ]
+        },
+        "connectNulls": {
+          "type": "boolean"
+        },
+        "referenceLines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                ]
+              },
+              "axis": {
+                "type": "string",
+                "enum": [
+                  "y",
+                  "y2",
+                  "x"
+                ]
+              },
+              "label": {
+                "type": "string"
+              },
+              "labelPlacement": {
+                "type": "string",
+                "enum": [
+                  "start-top",
+                  "start-bottom",
+                  "end-top",
+                  "end-bottom"
+                ]
+              },
+              "color": {
+                "type": "string"
+              },
+              "dashed": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "echartOptions": {
+          "type": "object"
+        },
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": "string"
+        },
+        "dir": {
+          "type": "string",
+          "enum": [
+            "ltr",
+            "rtl"
+          ]
+        },
+        "loading": {
+          "type": "boolean"
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "data",
+        "x",
+        "y"
+      ]
+    },
+    "LineChartSlots": {
+      "type": "object"
+    }
+  }
+}

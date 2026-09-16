@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "HeatmapChartProps": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "x": {
+          "type": "string"
+        },
+        "y": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "xAxis": {
+          "type": "object",
+          "properties": {
+            "format": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        },
+        "yAxis": {
+          "type": "object",
+          "properties": {
+            "format": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        },
+        "showDataLabels": {
+          "type": "boolean"
+        },
+        "format": {
+          "type": "object"
+        },
+        "palette": {
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "sequential"
+            },
+            {
+              "type": "string",
+              "const": "diverging"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "echartOptions": {
+          "type": "object"
+        },
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": "string"
+        },
+        "dir": {
+          "type": "string",
+          "enum": [
+            "ltr",
+            "rtl"
+          ]
+        },
+        "loading": {
+          "type": "boolean"
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "data",
+        "value",
+        "x",
+        "y"
+      ]
+    },
+    "HeatmapChartSlots": {
+      "type": "object",
+      "properties": {
+        "tooltip": {
+          "type": "object"
+        },
+        "actions": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

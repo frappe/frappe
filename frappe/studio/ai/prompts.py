@@ -65,9 +65,14 @@ NAVIGATION:
 
 DATA DISPLAY:
 - ListView: {columns: [{label: "string", key: "string", width: number}], rows: [{key: value}], rowKey: "string"}
-- NumberChart: {config: {title: "string", value: number, prefix: "string", delta: number}} # slots: title, subtitle, delta
-- AxisChart: {config: {data: [{xKey: val, yKey: val}], xAxis: {key: "dataFieldName", type: "category|time"}, yAxis: {title: "string"}, series: [{name: "dataFieldName" (should match data field key, not label), type: "bar|line"}]}}
-- DonutChart: {config: {data: [{cat: val, val: number}], categoryColumn: "string", valueColumn: "string"}}
+- NumberCard: {title: "string", value: number, prefix: "string", suffix: "string", delta: number, deltaSuffix: "string", deltaCaption: "string", negativeIsBetter: false} — a KPI tile; draws its own card
+- BarChart / LineChart / AreaChart: {title: "string", data: [{month: "Jan", sales: 200}], x: "month" (category/time column), y: "sales" | ["sales", "target"] (value column(s), one series each), stacked: false, seriesConfig: {sales: {label: "string", type: "bar|line|area"}}} — one seriesConfig type overrides the chart's mark (a BarChart with one "line" series is a combo chart); BarChart also takes horizontal: true
+- DonutChart: {title: "string", data: [{product: "Laptops", sales: 400}], category: "product", value: "sales"}
+- FunnelChart: {title: "string", data: [{stage: "Leads", count: 1200}], category: "stage", value: "count"}
+- HeatmapChart: {title: "string", data: [{day: "Mon", slot: "Morning", orders: 12}], x: "day", y: "slot", value: "orders"}
+- ScatterChart: {title: "string", data: [{price: 10, units: 420}], x: "price", y: "units"}
+- SankeyChart: {title: "string", data: [{source: "Search", target: "Landing", visits: 500}], source: "source", target: "target", value: "visits"}
+  # Charts (not NumberCard) fill their parent: ALWAYS give the chart block a height in style, e.g. {height: "300px", width: "100%"}, or it renders 0px tall. Bind data to {{ <data_source>.data }}; x/y/category/value name columns of those rows.
 - Filter: {doctype: "string", filters: {}}
 - Link: {doctype: "string"}
 - Tree: {nodeKey: "string", nodes: [{name: "string", label: "string", children: []}], guides: "connectors|lines|none"} # slots: item, item-label
@@ -293,7 +298,7 @@ For add_block, pass the new block under "block" using the BLOCK SCHEMA below (na
 {BUILD_RULES}
 
 # Reproducing an attached screenshot / design
-When the user attaches an image (a screenshot or design mock), treat it as the source of truth for the LAYOUT. Read it top-to-bottom and map each region to the closest catalog component (top bar → Sidebar/Breadcrumbs, cards → container, lists/tables → ListView/Repeater, forms → FormControl/Input, stats → NumberChart, etc.). Match the structure, spacing, alignment, and hierarchy; approximate its colors with espresso tokens (never hardcode hex). Because the page is built from the brief you pass to generate_page, that BRIEF must encode what you see — the section order, each section's components and real copy, the palette, and the type scale. Don't add extra elements/components that do not exist in the screenshot. Do not invent data sources; bind only to ones that already exist.
+When the user attaches an image (a screenshot or design mock), treat it as the source of truth for the LAYOUT. Read it top-to-bottom and map each region to the closest catalog component (top bar → Sidebar/Breadcrumbs, cards → container, lists/tables → ListView/Repeater, forms → FormControl/Input, stats → NumberCard, charts → BarChart/LineChart/DonutChart, etc.). Match the structure, spacing, alignment, and hierarchy; approximate its colors with espresso tokens (never hardcode hex). Because the page is built from the brief you pass to generate_page, that BRIEF must encode what you see — the section order, each section's components and real copy, the palette, and the type scale. Don't add extra elements/components that do not exist in the screenshot. Do not invent data sources; bind only to ones that already exist.
 
 {data_and_code_wiring}
 

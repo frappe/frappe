@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "DonutChartProps": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "category": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "maxSlices": {
+          "type": "number"
+        },
+        "hiddenSeries": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "showDataLabels": {
+          "type": "boolean"
+        },
+        "centerLabel": {
+          "type": "string"
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "full",
+            "half"
+          ]
+        },
+        "format": {
+          "type": "object"
+        },
+        "palette": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "sequential",
+                "categorical",
+                "diverging"
+              ]
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "echartOptions": {
+          "type": "object"
+        },
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": "string"
+        },
+        "dir": {
+          "type": "string",
+          "enum": [
+            "ltr",
+            "rtl"
+          ]
+        },
+        "loading": {
+          "type": "boolean"
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "category",
+        "data",
+        "value"
+      ]
+    },
+    "DonutChartSlots": {
+      "type": "object",
+      "properties": {
+        "center": {
+          "type": "object"
+        },
+        "tooltip": {
+          "type": "object"
+        },
+        "actions": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

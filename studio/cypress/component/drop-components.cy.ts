@@ -20,9 +20,15 @@ const DATA_DEPENDENT = [
 	"Link",
 	"Filter",
 	"Calendar",
-	"NumberChart",
-	"AxisChart",
+	"NumberCard",
+	"BarChart",
+	"LineChart",
+	"AreaChart",
 	"DonutChart",
+	"FunnelChart",
+	"HeatmapChart",
+	"ScatterChart",
+	"SankeyChart",
 	"Repeater",
 ]
 const FLOATING = ["Dialog", "Tooltip", "ContextMenu"]

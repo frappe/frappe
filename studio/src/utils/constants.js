@@ -72,14 +72,19 @@ export const FRAPPE_UI_MOLECULES = [
 	"ListGroup",
 ]
 // frappe-ui/experimental: families parked outside the stable root export
-export const FRAPPE_UI_EXPERIMENTAL_COMPONENTS = [
-	"Calendar",
-	"CodeEditor",
-	"ListView",
-	"TextEditor",
-	"AxisChart",
-	"NumberChart",
+export const FRAPPE_UI_EXPERIMENTAL_COMPONENTS = ["Calendar", "CodeEditor", "ListView", "TextEditor"]
+
+// frappe-ui/charts
+export const FRAPPE_UI_CHARTS = [
+	"AreaChart",
+	"BarChart",
+	"LineChart",
 	"DonutChart",
+	"FunnelChart",
+	"HeatmapChart",
+	"ScatterChart",
+	"SankeyChart",
+	"NumberCard",
 ]
 
 // @framework/ui — the in-house shared component library from apps/frappe/ui.

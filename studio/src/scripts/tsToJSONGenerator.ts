@@ -11,7 +11,12 @@ const configMap: Record<string, any> = {
 	frappeui: {
 		srcFolders: [
 			"node_modules/frappe-ui/src/components",
-			{ path: "node_modules/frappe-ui/experimental", skipFolders: ["SpriteIcons", "stories"] },
+			{ path: "node_modules/frappe-ui/experimental", skipFolders: ["SpriteIcons", "Charts", "stories"] },
+			{
+				path: "node_modules/frappe-ui/src/charts",
+				perComponent: true,
+				skipFolders: ["components", "core", "docs", "stories"],
+			},
 			// molecules (List family): several components per folder, keyed off the .vue
 			// files whose `<Component>Props` is exported from the folder's types.ts
 			{ path: "node_modules/frappe-ui/src/molecules", perComponent: true, skipFolders: ["stories"] },

@@ -14,6 +14,68 @@ export const familyTemplates = {
 	"sidebar-label": sidebarLabelTemplate,
 	"sidebar-rail": sidebarRailTemplate,
 	"radio-group": radioGroupTemplate,
+	"bar-chart": () =>
+		chartTemplate("BarChart", { title: "Monthly Sales", data: MONTHLY_SALES, x: "month", y: ["sales", "target"] }),
+	"line-chart": () =>
+		chartTemplate("LineChart", { title: "Revenue", data: MONTHLY_SALES, x: "month", y: ["sales", "expenses"] }),
+	"area-chart": () => chartTemplate("AreaChart", { title: "Sales", data: MONTHLY_SALES, x: "month", y: "sales" }),
+	"donut-chart": () =>
+		chartTemplate("DonutChart", {
+			title: "Sales by Product",
+			data: PRODUCT_SALES,
+			category: "product",
+			value: "sales",
+		}),
+	"funnel-chart": () =>
+		chartTemplate("FunnelChart", {
+			title: "Sales Pipeline",
+			data: [
+				{ stage: "Leads", count: 1200 },
+				{ stage: "Qualified", count: 640 },
+				{ stage: "Proposal", count: 310 },
+				{ stage: "Won", count: 120 },
+			],
+			category: "stage",
+			value: "count",
+		}),
+	"heatmap-chart": () =>
+		chartTemplate("HeatmapChart", {
+			title: "Orders by Day",
+			data: ["Mon", "Tue", "Wed", "Thu", "Fri"].flatMap((day, i) =>
+				["Morning", "Afternoon", "Evening"].map((slot, j) => ({ day, slot, orders: 10 + ((i + 1) * (j + 2) * 7) % 40 })),
+			),
+			x: "day",
+			y: "slot",
+			value: "orders",
+		}),
+	"scatter-chart": () =>
+		chartTemplate("ScatterChart", {
+			title: "Price vs Units Sold",
+			data: [
+				{ price: 10, units: 420 },
+				{ price: 15, units: 380 },
+				{ price: 20, units: 310 },
+				{ price: 25, units: 290 },
+				{ price: 30, units: 210 },
+				{ price: 40, units: 150 },
+				{ price: 50, units: 90 },
+			],
+			x: "price",
+			y: "units",
+		}),
+	"sankey-chart": () =>
+		chartTemplate("SankeyChart", {
+			title: "Traffic Flow",
+			data: [
+				{ source: "Search", target: "Landing", visits: 500 },
+				{ source: "Social", target: "Landing", visits: 300 },
+				{ source: "Landing", target: "Signup", visits: 320 },
+				{ source: "Landing", target: "Bounce", visits: 480 },
+			],
+			source: "source",
+			target: "target",
+			value: "visits",
+		}),
 } satisfies Record<string, () => BlockOptions>
 
 const MEMBERS = [
@@ -296,6 +358,31 @@ function workspaceRailItem(label: string, initials: string, active = false): Blo
 		componentName: "SidebarRailItem",
 		componentProps: { label, active },
 		children: [textBlock(initials, { color: "var(--ink-gray-5)", fontWeight: "500" }, "text-2xs")],
+	}
+}
+
+const MONTHLY_SALES = [
+	{ month: "Jan", sales: 200, target: 250, expenses: 150 },
+	{ month: "Feb", sales: 300, target: 260, expenses: 180 },
+	{ month: "Mar", sales: 250, target: 270, expenses: 170 },
+	{ month: "Apr", sales: 350, target: 280, expenses: 210 },
+	{ month: "May", sales: 400, target: 300, expenses: 220 },
+	{ month: "Jun", sales: 380, target: 320, expenses: 230 },
+]
+
+const PRODUCT_SALES = [
+	{ product: "Laptops", sales: 400 },
+	{ product: "Phones", sales: 350 },
+	{ product: "Tablets", sales: 200 },
+	{ product: "Accessories", sales: 150 },
+]
+
+// charts fill their parent, so the block carries the height
+function chartTemplate(componentName: string, componentProps: Record<string, unknown>): BlockOptions {
+	return {
+		componentName,
+		componentProps,
+		baseStyles: { width: "100%", height: "300px" } as BlockStyleMap,
 	}
 }
 
