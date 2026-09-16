@@ -4,8 +4,15 @@
 -->
 <template>
 	<PageFrame :scroll="false">
-		<!-- No slot when a script emptied the row: the frame then draws no row at all. -->
-		<template v-if="doctype && (!controller || !isEmptyHeader(header))" #header>
+		<template v-if="controller" #aboveHeader>
+			<FrameBands :bands="frame.before" :page="controller.page" />
+		</template>
+
+		<!-- No slot when a script emptied or hid the row: the frame then draws no row at all. -->
+		<template
+			v-if="doctype && frame.header && (!controller || !isEmptyHeader(header))"
+			#header
+		>
 			<RecordHeader
 				v-if="controller"
 				:projection="header"
@@ -26,7 +33,9 @@
 			No doctype is served at <code>{{ route.params.doctype }}</code> under this prefix.
 		</p>
 
-		<div v-else class="flex min-h-0 flex-1">
+		<FrameBands v-else-if="controller" :bands="frame.between" :page="controller.page" />
+
+		<div v-if="doctype && frame.body" class="flex min-h-0 flex-1">
 			<ScrollArea class="min-h-0 flex-1">
 				<p v-if="error" class="py-5 text-sm text-ink-red-4" :class="pageGutter">
 					{{ error }}
@@ -62,6 +71,8 @@
 			/>
 		</div>
 
+		<FrameBands v-if="controller" :bands="frame.after" :page="controller.page" />
+
 		<PageDialogs v-if="controller" :controller="controller" />
 	</PageFrame>
 </template>
@@ -89,6 +100,7 @@ import {
 	errorMessage,
 	isEmptyHeader,
 	loadClientScripts,
+	projectFrame,
 	projectHeader,
 	SAVE_VETO,
 	useFormLayout,
@@ -99,6 +111,7 @@ import {
 } from "@/recordPage";
 import type { UseFormLayout } from "@/recordPage/formLayoutSource/useFormLayout";
 import { routeFor } from "@/router/routeFor";
+import FrameBands from "./record/FrameBands.vue";
 import RecordHeader from "./record/RecordHeader.vue";
 import PageDialogs from "./record/dialogs/PageDialogs.vue";
 import { formTabMemory } from "./record/formTabMemory";
@@ -177,6 +190,11 @@ const header = computed(() => {
 	actionsVersion.value;
 	const resolved = controller.value?.header.resolve() ?? [];
 	return projectHeader(resolved, HEADER_BUDGET, PINNED_CONTROLS);
+});
+
+const frame = computed(() => {
+	actionsVersion.value;
+	return projectFrame(controller.value?.frame.resolve() ?? []);
 });
 
 // A panel with every section hidden draws nothing, on the header's precedent: the form takes the width.

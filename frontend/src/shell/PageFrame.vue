@@ -3,6 +3,12 @@
   The page owns the row's contents, its top and bottom padding, and its max width.
 -->
 <template>
+	<!-- Always mounted and declared before the row: a deferred teleport takes its place in the
+	     target at mount, so a band the page supplies later still lands above the row. -->
+	<PageHeaderBase class="flex flex-col" :class="gutterVar" data-page-above>
+		<slot name="aboveHeader" />
+	</PageHeaderBase>
+
 	<!-- Read in the template, not a computed: the slots object is not reactive, and a page can
 	     supply its header after mount. Without a `PageHeader` the shell's target keeps no height. -->
 	<ScrollArea
@@ -33,7 +39,7 @@ const gutterVar = "[--page-gutter:0.75rem] sm:[--page-gutter:1.25rem]";
 </script>
 
 <script setup lang="ts">
-import { PageHeader, PageHeaderTitle, ScrollArea } from "frappe-ui";
+import { PageHeader, PageHeaderBase, PageHeaderTitle, ScrollArea } from "frappe-ui";
 
 withDefaults(
 	defineProps<{
@@ -46,6 +52,8 @@ withDefaults(
 );
 
 defineSlots<{
+	/** Pinned above the header row, in the shell's target; the page's bands before `header`. */
+	aboveHeader?: () => unknown;
 	header?: () => unknown;
 	default?: () => unknown;
 }>();

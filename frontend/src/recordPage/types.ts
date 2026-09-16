@@ -106,6 +106,17 @@ export const PANEL_SECTION_KEYS: readonly string[] = [
   "opened",
 ];
 
+/** One item of the frame's column: a band a script adds, or one of the two built-in regions. */
+export interface FrameItem extends SurfaceItem {
+  /** Draws the band; absent on a built-in, which the host draws itself. */
+  component?: Component;
+  props?: Record<string, any>;
+  /** Whether the band's wrapper takes the page's side padding; omitted means it does. */
+  gutter?: boolean;
+}
+
+export const FRAME_ITEM_KEYS: readonly string[] = ["name", "component", "props", "gutter"];
+
 /** The panel surface also opens and shuts a section for the reader. */
 export interface PanelSectionsApi extends SurfaceVerbs<PanelSectionItem> {
   /**
@@ -405,6 +416,8 @@ export interface RecordPageApi {
   fieldAccess(fieldname: string): FieldAccess;
   isDirty: boolean;
   quickActions: SurfaceVerbs<QuickAction>;
+  /** The column itself: the built-in `header` and `body`, and a script's bands around them. */
+  frame: SurfaceVerbs<FrameItem>;
   header: SurfaceVerbs<HeaderItem>;
   tabs: TabsApi;
   panelSections: PanelSectionsApi;

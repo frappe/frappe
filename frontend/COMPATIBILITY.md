@@ -29,7 +29,7 @@ in that voice.
 
 What `page` is _for_ is a small, closed vocabulary:
 
-- **Four surfaces** — `quickActions`, `header`, `tabs`, `panelSections` — each
+- **Five surfaces** — `quickActions`, `header`, `tabs`, `panelSections`, `frame` — each
   speaking the same **seven verbs**: `add`, `hide`, `show`, `update`, `move`, `has`,
   `order`.
 - **Two more, `fields` and `formTabs`**, speaking a strict subset of them — `hide`,
@@ -139,6 +139,11 @@ What `page` is _for_ is a small, closed vocabulary:
   development build, because the author asked for "after Refresh Quote" and the reader got
   "below Delete". The left zone is a rendering of its own, so an anchor across the two
   zones warns the same way.
+- **`page.frame` is the column as one list.** Its two built-in regions, `header` and
+  `body`, and its one item key of its own, `gutter`, are the three names a script may
+  lean on; they are kept for a major. A band is placed by `before`/`after` naming a
+  region or another band, and two scripts adding at one place are ordered by run order,
+  then by position. `move` on a built-in warns in a development build and does nothing.
 - **How many top-level controls fit is the host's business, and a script cannot observe
   it.** An item that does not fit is **demoted into `⋯`**, keeping its own band ahead of
   the built-ins and in the order it asked for; a dropdown collapses whole, under its label.
