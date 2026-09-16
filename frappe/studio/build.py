@@ -11,7 +11,7 @@ import frappe
 from frappe.build import get_node_env
 from frappe.utils import get_files_path
 
-from studio.constants import DEFAULT_COMPONENTS, NON_VUE_COMPONENTS
+from studio.constants import NON_VUE_COMPONENTS
 from studio.utils import walk_blocks
 
 ANSI_ESCAPE_REGEX = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
@@ -30,7 +30,7 @@ class StudioAppBuilder:
 		self.app_name = studio_app
 		self.is_standard = is_standard
 		self.frappe_app = frappe_app
-		self.components = set(DEFAULT_COMPONENTS)
+		self.components = set()
 		self.studio_component_blocks = {}
 		self.custom_vue_components: dict[str, str] = {}  # {ComponentName: absolute_path}
 		self.page_scripts: list[dict] = []  # [{page_name, file_path}]
