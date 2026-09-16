@@ -20,7 +20,10 @@ for (const name of [...globals, ...types]) {
 }
 dom.window.HTMLElement.prototype.scrollIntoView = () => {};
 // jsdom has no matchMedia: the page mounts at desktop width
-dom.window.matchMedia = (query) => ({ matches: query === "(min-width: 768px)", addEventListener() {} });
+dom.window.matchMedia = (query) => ({
+	matches: query === "(min-width: 768px)",
+	addEventListener() {},
+});
 const { createApp, nextTick } = await import("vue");
 const { router } = await import("../src/router.js");
 const { loadComponent, transport } = await import("./helpers/components.js");
