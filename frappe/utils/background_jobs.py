@@ -306,7 +306,16 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 			frappe.destroy()
 			time.sleep(retry + 1)
 
-			return execute_job(site, method, event, job_name, kwargs, is_async=is_async, retry=retry + 1)
+			return execute_job(
+				site,
+				method,
+				event,
+				job_name,
+				kwargs,
+				user=user,
+				is_async=is_async,
+				retry=retry + 1,
+			)
 
 		else:
 			frappe.log_error(title=method_name)
