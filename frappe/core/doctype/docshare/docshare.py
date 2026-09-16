@@ -9,7 +9,7 @@ from frappe.utils import cint, get_fullname
 exclude_from_linked_with = True
 
 
-class DocShare(Document):
+class DocShare(Document):  # nosemgrep: frappe-modifying-but-not-comitting-other-method
 	_DOCTYPE_NAME = "DocShare"
 
 	# begin: auto-generated types
