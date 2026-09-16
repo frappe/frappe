@@ -27,6 +27,8 @@ export const useStore = defineStore("form-builder-store", () => {
 	// tab hosting the builder, null for callers that do not set one
 	let tab_fieldname = ref(null);
 	let source_doctype_fields = ref([]);
+	// set by the web form host, which owns what a picked source field carries
+	let get_source_field_values = ref(null);
 	let preview = ref(false);
 	let drag = ref(false);
 	let get_animation = "cubic-bezier(0.34, 1.56, 0.64, 1)";
@@ -773,6 +775,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		is_web_form,
 		tab_fieldname,
 		source_doctype_fields,
+		get_source_field_values,
 		preview,
 		drag,
 		get_animation,

@@ -119,10 +119,10 @@ function add_new_field(field) {
 		let source_df = store.source_doctype_fields.find((f) => f.fieldname === value);
 		if (!source_df) return;
 
-		df = store.get_df(source_df.fieldtype, source_df.fieldname, source_df.label);
-		// Link/Select/Table are unusable without options
-		df.options = source_df.options;
-		df.reqd = source_df.reqd;
+		// the same values Get Fields writes, checked against the fields already placed
+		let values = store.get_source_field_values(source_df, [...placed_fieldnames(), value]);
+		df = store.get_df(values.fieldtype, values.fieldname, values.label);
+		Object.assign(df, values);
 	} else {
 		df = store.get_df(value);
 	}
@@ -144,15 +144,21 @@ function add_new_field(field) {
 	show.value = false;
 }
 
+function placed_fieldnames() {
+	let fieldnames = [];
+	for (let tab of store.form.layout.tabs) {
+		for (let section of tab.sections) {
+			for (let column of section.columns) {
+				fieldnames.push(...column.fields.map((field) => field.df.fieldname));
+			}
+		}
+	}
+	return fieldnames;
+}
+
 // the source doctype's fields that are not on the canvas yet
 function unplaced_source_fields() {
-	let placed = new Set(
-		store.form.layout.tabs.flatMap((t) =>
-			t.sections.flatMap((s) =>
-				s.columns.flatMap((c) => c.fields.map((f) => f.df.fieldname))
-			)
-		)
-	);
+	let placed = new Set(placed_fieldnames());
 
 	return store.source_doctype_fields
 		.filter(

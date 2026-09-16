@@ -5,7 +5,16 @@ import FormBuilderComponent from "./FormBuilder.vue";
 import { registerGlobalComponents } from "./globals.js";
 
 class FormBuilder {
-	constructor({ wrapper, frm, doctype, customize, is_layout, is_web_form, tab_fieldname }) {
+	constructor({
+		wrapper,
+		frm,
+		doctype,
+		customize,
+		is_layout,
+		is_web_form,
+		tab_fieldname,
+		get_source_field_values,
+	}) {
 		this.$wrapper = $(wrapper);
 		this.frm = frm;
 		this.page = frm.page;
@@ -15,6 +24,8 @@ class FormBuilder {
 		this.is_web_form = is_web_form || false;
 		// tab hosting the builder, older callers rely on the label fallback below
 		this.tab_fieldname = tab_fieldname;
+		// web forms: (source_df, fieldnames) => values of a field picked from the source doctype
+		this.get_source_field_values = get_source_field_values;
 		this.read_only = false;
 
 		this.init();
@@ -85,12 +96,15 @@ class FormBuilder {
 		this.store.is_layout_form = this.is_layout;
 		this.store.is_web_form = this.is_web_form;
 		this.store.tab_fieldname = this.tab_fieldname;
+		this.store.get_source_field_values = this.get_source_field_values;
 		this.store.page = this.page;
 		this.store.frm = this.frm;
 	}
 
 	watch_changes() {
-		watchEffect(() => {
+		// init(true) reuses this instance for the next form, so drop the old effect first
+		this.stop_watching_changes?.();
+		this.stop_watching_changes = watchEffect(() => {
 			if (this.store.dirty || this.frm.is_dirty()) {
 				this.frm.dirty();
 			} else {
