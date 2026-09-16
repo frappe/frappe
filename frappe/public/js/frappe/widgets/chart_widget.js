@@ -756,7 +756,7 @@ export default class ChartWidget extends Widget {
 			colors: colors,
 			height: this.height,
 			maxSlices: this.chart_doc.number_of_groups || max_slices,
-			truncateLegends: 0,
+			truncateLegends: 1,
 			axisOptions: {
 				xIsSeries: this.chart_doc.timeseries,
 				shortenYAxisNumbers: 1,
