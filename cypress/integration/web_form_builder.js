@@ -172,14 +172,13 @@ context("Web Form Builder", () => {
 		seed_web_form();
 		open_builder();
 
-		cy.get(".tab-header .tabs .tab:last").click();
-		cy.get(".tab-content.active [data-fieldname='content']").should("exist");
+		cy.get(".tab-content.active [data-fieldname='title']").should("exist");
 
 		// the grid sits in the collapsed Fields section on Settings
 		cy.findByRole("tab", { name: "Settings" }).click();
 		cy.click_form_section("Fields");
 		cy.get('[data-fieldname="web_form_fields"] .grid-row')
-			.contains("Content")
+			.contains("Title")
 			.parents(".grid-row")
 			.find(".grid-row-check")
 			.click();
@@ -187,7 +186,10 @@ context("Web Form Builder", () => {
 			.contains("Delete")
 			.click();
 
+		// a tab switch syncs neither editor, the canvas re-reads the rows on save
+		cy.click_doc_primary_button("Save");
+
 		cy.findByRole("tab", { name: "Form" }).click();
-		cy.get(".tab-content [data-fieldname='content']").should("not.exist");
+		cy.get(".tab-content [data-fieldname='title']").should("not.exist");
 	});
 });
