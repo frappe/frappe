@@ -9,15 +9,16 @@
 			</button>
 		</template>
 
+		<!-- the folder crumb and the cost yield to the title on phones -->
 		<div class="flex min-w-0 items-center gap-2" :title="headerTitle">
 			<span
 				v-if="cwd"
-				class="flex min-w-0 flex-none items-center gap-1.5 text-sm text-ink-gray-5"
+				class="hidden min-w-0 flex-none items-center gap-1.5 text-sm text-ink-gray-5 sm:flex"
 			>
 				<FeatherIcon name="folder" class="h-3.5 w-3.5 flex-none" />
 				<span class="max-w-[220px] truncate">{{ cwdName }}</span>
 			</span>
-			<span v-if="cwd" aria-hidden="true" class="flex-none text-sm text-ink-gray-3">/</span>
+			<span v-if="cwd" aria-hidden="true" class="hidden flex-none text-sm text-ink-gray-3 sm:inline">/</span>
 			<span class="min-w-0 truncate text-sm font-medium text-ink-gray-9">{{ title }}</span>
 		</div>
 
@@ -40,7 +41,7 @@
 				<span v-else-if="contextTokens > 0" title="Current context">
 					{{ formatTokens(contextTokens) }} tokens
 				</span>
-				<span v-if="cost > 0" class="flex items-center gap-2 text-ink-gray-4">
+				<span v-if="cost > 0" class="hidden items-center gap-2 text-ink-gray-4 sm:flex">
 					<span aria-hidden="true" class="text-ink-gray-3">·</span>
 					<span>${{ cost.toFixed(cost < 1 ? 3 : 2) }}</span>
 				</span>
