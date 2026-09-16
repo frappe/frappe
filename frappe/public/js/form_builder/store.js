@@ -305,6 +305,47 @@ export const useStore = defineStore("form-builder-store", () => {
 		});
 	}
 
+	// a Web Form calls a tab a page; each string stays a whole __() literal so it can be translated
+	const tab_text = computed(() =>
+		is_web_form.value
+			? {
+					add: __("Add page"),
+					add_title: __("Add new page"),
+					remove_title: __("Remove page"),
+					delete_title: __("Delete Page", null, "Title of confirmation dialog"),
+					delete_button: __("Delete page", null, "Button text"),
+					delete_with_fields: __("Delete entire page with fields", null, "Button text"),
+					delete_message: __(
+						"Are you sure you want to delete the page? All the sections along with fields in the page will be moved to the previous page.",
+						null,
+						"Confirmation dialog message"
+					),
+					drop_hint: __("Drag & Drop a section here from another page"),
+					move_sections: __("Move sections to new page"),
+					move_sections_tooltip: __(
+						"Move current and all subsequent sections to a new page"
+					),
+			  }
+			: {
+					add: __("Add tab"),
+					add_title: __("Add new tab"),
+					remove_title: __("Remove tab"),
+					delete_title: __("Delete Tab", null, "Title of confirmation dialog"),
+					delete_button: __("Delete tab", null, "Button text"),
+					delete_with_fields: __("Delete entire tab with fields", null, "Button text"),
+					delete_message: __(
+						"Are you sure you want to delete the tab? All the sections along with fields in the tab will be moved to the previous tab.",
+						null,
+						"Confirmation dialog message"
+					),
+					drop_hint: __("Drag & Drop a section here from another tab"),
+					move_sections: __("Move sections to new tab"),
+					move_sections_tooltip: __(
+						"Move current and all subsequent sections to a new tab"
+					),
+			  }
+	);
+
 	async function fetch() {
 		if (is_layout_form.value) return fetch_for_layout();
 		if (is_web_form.value) return fetch_for_web_form();
@@ -735,5 +776,6 @@ export const useStore = defineStore("form-builder-store", () => {
 		get_layout,
 		add_new_tab,
 		activate_tab,
+		tab_text,
 	};
 });

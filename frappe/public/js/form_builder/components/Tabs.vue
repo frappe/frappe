@@ -20,12 +20,6 @@ whenever(Backspace, (value) => {
 const dragged = ref(false);
 const selected = computed(() => store.selected(store.current_tab.df.name));
 const has_tabs = computed(() => store.form.layout.tabs.length > 1);
-
-// a DocType Layout only rearranges the tabs its source doctype already has
-const can_add_tab = computed(() => !store.read_only && !store.is_layout_form);
-
-// a Web Form with one page still needs the header, or page 2 could never be added
-const show_tab_header = computed(() => has_tabs.value || (store.is_web_form && can_add_tab.value));
 store.form.active_tab = store.form.layout.tabs[0].df.name;
 
 function activate_tab(tab) {
@@ -70,12 +64,12 @@ function remove_tab(tab, event, force = false) {
 		delete_tab(tab, true);
 	} else {
 		confirm_dialog(
-			__("Delete Tab", null, "Title of confirmation dialog"),
+			store.tab_text.delete_title,
 			delete_tab_message(tab),
 			() => delete_tab(tab),
-			__("Delete tab", null, "Button text"),
+			store.tab_text.delete_button,
 			() => delete_tab(tab, true),
-			__("Delete entire tab with fields", null, "Button text")
+			store.tab_text.delete_with_fields
 		);
 	}
 }
@@ -119,24 +113,20 @@ function delete_tab(tab, with_children) {
 
 // page 1 has no previous page, so its fields move forward instead (see delete_tab)
 function delete_tab_message(tab) {
-	let moves_forward = store.is_web_form && store.form.layout.tabs.indexOf(tab) === 0;
+	if (store.is_web_form && store.form.layout.tabs.indexOf(tab) === 0) {
+		return __(
+			"Are you sure you want to delete the page? All the sections along with fields in the page will be moved to the next page.",
+			null,
+			"Confirmation dialog message"
+		);
+	}
 
-	return moves_forward
-		? __(
-				"Are you sure you want to delete the tab? All the sections along with fields in the tab will be moved to the next tab.",
-				null,
-				"Confirmation dialog message"
-		  )
-		: __(
-				"Are you sure you want to delete the tab? All the sections along with fields in the tab will be moved to the previous tab.",
-				null,
-				"Confirmation dialog message"
-		  );
+	return store.tab_text.delete_message;
 }
 </script>
 
 <template>
-	<div class="tab-header" v-if="show_tab_header">
+	<div class="tab-header" v-if="store.form.layout.tabs.length > 1">
 		<draggable
 			v-show="has_tabs"
 			class="tabs"
@@ -158,7 +148,10 @@ function delete_tab_message(tab) {
 					@dragend="dragged = false"
 					@dragover="drag_over(element)"
 				>
+					<!-- a Page Break row stores no label, so the builder numbers pages by position -->
+					<span v-if="store.is_web_form">{{ element.df.label }}</span>
 					<EditableInput
+						v-else
 						:text="element.df.label"
 						:placeholder="__('Tab Label')"
 						v-model="element.df.label"
@@ -166,7 +159,7 @@ function delete_tab_message(tab) {
 					<button
 						v-if="!store.is_layout_form"
 						class="remove-tab-btn btn btn-xs"
-						:title="__('Remove tab')"
+						:title="store.tab_text.remove_title"
 						@click.stop="remove_tab(element, $event)"
 						:hidden="store.read_only"
 					>
@@ -175,15 +168,15 @@ function delete_tab_message(tab) {
 				</div>
 			</template>
 		</draggable>
-		<div class="tab-actions" :hidden="!can_add_tab">
+		<div class="tab-actions" :hidden="store.read_only || store.is_layout_form">
 			<button
 				class="new-tab-btn btn btn-xs"
 				:class="{ 'no-tabs': !has_tabs }"
-				:title="__('Add new tab')"
+				:title="store.tab_text.add_title"
 				@click="add_new_tab"
 			>
 				<div class="add-btn-text">
-					{{ __("Add tab") }}
+					{{ store.tab_text.add }}
 				</div>
 			</button>
 		</div>
@@ -215,7 +208,7 @@ function delete_tab_message(tab) {
 				</template>
 			</draggable>
 			<div class="empty-tab" :hidden="store.read_only || store.is_layout_form">
-				<div v-if="has_tabs">{{ __("Drag & Drop a section here from another tab") }}</div>
+				<div v-if="has_tabs">{{ store.tab_text.drop_hint }}</div>
 				<div v-if="has_tabs">{{ __("OR") }}</div>
 				<button class="btn btn-default btn-sm" @click="add_new_section">
 					{{ __("Add a new section") }}

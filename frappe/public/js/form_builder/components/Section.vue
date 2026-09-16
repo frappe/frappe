@@ -295,8 +295,8 @@ const options = computed(() => {
 	// add move to tab option if the current section is not the first section
 	if (props.tab.sections.indexOf(props.section) > 0) {
 		groups[0].items.push({
-			label: __("Move sections to new tab"),
-			tooltip: __("Move current and all subsequent sections to a new tab"),
+			label: store.tab_text.move_sections,
+			tooltip: store.tab_text.move_sections_tooltip,
 			onClick: move_sections_to_tab,
 		});
 	}
