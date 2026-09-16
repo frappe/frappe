@@ -5,7 +5,7 @@ import {
 	load_doctype_model,
 	section_boilerplate,
 } from "./utils";
-import { computed, nextTick, ref } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { useDebouncedRefHistory, onKeyDown, useActiveElement } from "@vueuse/core";
 
 export const useStore = defineStore("form-builder-store", () => {
@@ -296,13 +296,32 @@ export const useStore = defineStore("form-builder-store", () => {
 		// mark page 1 as the tab with no backing row, the way create_layout() does
 		form.value.layout.tabs[0].is_first = true;
 
-		form.value.layout.tabs.forEach((tab, i) => {
-			// a Page Break row carries no label, so number the pages by position
-			tab.df.label = __("Page {0}", [i + 1]);
+		renumber_web_form_pages();
 
-			// create_layout() prunes empty sections, leaving a page with no drop target
+		// create_layout() prunes empty sections, leaving a page with no drop target
+		form.value.layout.tabs.forEach((tab) => {
 			if (!tab.sections.length) tab.sections.push(section_boilerplate());
 		});
+	}
+
+	function renumber_web_form_pages() {
+		// a Page Break row carries no label, so number the pages by position
+		form.value.layout.tabs.forEach((tab, i) => {
+			tab.df.label = __("Page {0}", [i + 1]);
+		});
+	}
+
+	// adding, moving, deleting or dragging a page shifts every later position
+	watch(
+		() => is_web_form.value && form.value.layout.tabs?.map((tab) => tab.df.name).join(),
+		(page_order) => page_order && renumber_web_form_pages()
+	);
+
+	// page 1 is implicit, so 10 tabs is the 9 Page Breaks web_form.js validate() allows
+	function validate_web_form_page_limit() {
+		if (is_web_form.value && form.value.layout.tabs.length >= 10) {
+			frappe.throw(__("There can be only 9 Page Break fields in a Web Form"));
+		}
 	}
 
 	// a Web Form calls a tab a page; each string stays a whole __() literal so it can be translated
@@ -714,14 +733,10 @@ export const useStore = defineStore("form-builder-store", () => {
 
 	// Tab actions
 	function add_new_tab() {
-		// page 1 is implicit, so 10 tabs is the 9 Page Breaks web_form.js validate() allows
-		if (is_web_form.value && form.value.layout.tabs.length >= 10) {
-			frappe.throw(__("There can be only 9 Page Break fields in a Web Form"));
-		}
+		validate_web_form_page_limit();
 
-		// match the numbering fetch_for_web_form() applies on the next read
-		let position = form.value.layout.tabs.length + 1;
-		let label = is_web_form.value ? __("Page {0}", [position]) : "Tab " + position;
+		// a Web Form page is named by the renumbering watcher
+		let label = is_web_form.value ? "" : "Tab " + (form.value.layout.tabs.length + 1);
 
 		let tab = {
 			df: get_df("Tab Break", "", label),
@@ -776,6 +791,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		get_layout,
 		add_new_tab,
 		activate_tab,
+		validate_web_form_page_limit,
 		tab_text,
 	};
 });

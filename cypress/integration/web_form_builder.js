@@ -28,6 +28,28 @@ function open_builder() {
 // never split: no Page Break row, so the builder shows one page
 const SINGLE_PAGE_FIELDS = [{ fieldname: "title", label: "Title", fieldtype: "Data", reqd: 1 }];
 
+// page one has a second section, so "Move sections to new page" is on offer
+const SPLITTABLE_FIELDS = [
+	{ fieldname: "title", label: "Title", fieldtype: "Data", reqd: 1 },
+	{ fieldtype: "Section Break" },
+	{ fieldname: "public", label: "Public", fieldtype: "Check" },
+	{ fieldtype: "Page Break" },
+	{ fieldname: "content", label: "Content", fieldtype: "Text Editor" },
+];
+
+function page_labels_should_be(labels) {
+	cy.get(`${CANVAS} .tab-header .tabs .tab`).should(($tabs) => {
+		expect([...$tabs].map((tab) => tab.innerText.trim())).to.deep.eq(labels);
+	});
+}
+
+function move_second_section_to_new_page() {
+	const section = `${CANVAS} .tab-content.active .form-section-container:eq(1)`;
+	cy.get(section).click(15, 10);
+	cy.get(section).find(".dropdown-btn:first").click();
+	cy.contains(".dropdown-options:visible .dropdown-item", "Move sections to new page").click();
+}
+
 function seed_web_form(fields = SEEDED_FIELDS) {
 	cy.remove_doc("Web Form", ROUTE, true);
 	return cy.insert_doc(
@@ -99,6 +121,43 @@ context("Web Form Builder", () => {
 			const content_idx = fields.findIndex((f) => f.fieldname === "content");
 			expect(content_idx, "content sits on page two").to.be.greaterThan(break_idx);
 		});
+	});
+
+	it("Renumbers the pages after a page is inserted or deleted", () => {
+		seed_web_form(SPLITTABLE_FIELDS);
+		open_builder();
+
+		// the new page goes in after page 1, so the old page 2 becomes page 3
+		move_second_section_to_new_page();
+		page_labels_should_be(["Page 1", "Page 2", "Page 3"]);
+		cy.get(`${CANVAS} .tab-content.active [data-fieldname='public']`).should("exist");
+
+		cy.get(`${CANVAS} .tab-header .tabs .tab:eq(1)`)
+			.realHover()
+			.find(".remove-tab-btn")
+			.click();
+		cy.click_modal_primary_button("Delete page");
+
+		// the fields of the deleted page move back to page 1
+		page_labels_should_be(["Page 1", "Page 2"]);
+		cy.get(`${CANVAS} .tab-content.active [data-fieldname='public']`).should("exist");
+	});
+
+	it("Stops Move sections to new page at the page limit", () => {
+		seed_web_form(SPLITTABLE_FIELDS);
+		open_builder();
+
+		for (let i = 0; i < 8; i++) {
+			cy.get(`${CANVAS} .tab-header`).realHover().find(".tab-actions .new-tab-btn").click();
+		}
+		cy.get(`${CANVAS} .tab-header .tabs .tab`).should("have.length", 10);
+		cy.get(`${CANVAS} .tab-header .tabs .tab:last`).should("contain.text", "Page 10");
+
+		cy.get(`${CANVAS} .tab-header .tabs .tab:first`).click();
+		move_second_section_to_new_page();
+
+		cy.get(".msgprint").should("contain.text", "There can be only 9 Page Break fields");
+		cy.get(`${CANVAS} .tab-header .tabs .tab`).should("have.length", 10);
 	});
 
 	it("Lays the stored rows out as pages", () => {
