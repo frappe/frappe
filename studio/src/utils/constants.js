@@ -1,30 +1,24 @@
 export const FRAPPE_UI_COMPONENTS = [
 	"Alert",
-	"Autocomplete",
 	"Avatar",
 	"Badge",
 	"Button",
 	"Breadcrumbs",
 	"Checkbox",
-	"Calendar",
-	"CodeEditor",
 	"Combobox",
 	"ContextMenu",
 	"DatePicker",
 	"TimePicker",
 	"DateTimePicker",
 	"DateRangePicker",
-	"MonthPicker",
 	"Dialog",
 	"Divider",
 	"Dropdown",
 	"Duration",
 	"ErrorMessage",
-	"FeatherIcon",
 	"FileUploader",
 	"FormLabel",
 	"FormControl",
-	"ListView",
 	"MultiSelect",
 	"Popover",
 	"Progress",
@@ -37,12 +31,8 @@ export const FRAPPE_UI_COMPONENTS = [
 	"TabButtons",
 	"Textarea",
 	"TextInput",
-	"TextEditor",
 	"Tooltip",
 	"Tree",
-	"AxisChart",
-	"NumberChart",
-	"DonutChart",
 	// SettingsDialog family
 	"SettingsDialog",
 	"SettingsSidebar",
@@ -72,9 +62,16 @@ export const FRAPPE_UI_MOLECULES = [
 	"ListHeaderCellSort",
 	"ListGroup",
 ]
-// Legacy frappe-ui/frappe components. Filter and Link now ship from @framework/ui
-// (see FRAMEWORK_UI_COMPONENTS), so this list is currently empty.
-export const FRAPPE_COMPONENTS = []
+// frappe-ui/experimental: families parked outside the stable root export
+export const FRAPPE_UI_EXPERIMENTAL_COMPONENTS = [
+	"Calendar",
+	"CodeEditor",
+	"ListView",
+	"TextEditor",
+	"AxisChart",
+	"NumberChart",
+	"DonutChart",
+]
 
 // @framework/ui — the in-house shared component library from apps/frappe/ui.
 export const FRAMEWORK_UI_COMPONENTS = [

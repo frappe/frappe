@@ -1,5 +1,10 @@
 import { defineAsyncComponent } from "vue"
-import { FRAPPE_UI_COMPONENTS, FRAPPE_UI_MOLECULES, FRAMEWORK_UI_COMPONENTS } from "@/utils/constants"
+import {
+	FRAPPE_UI_COMPONENTS,
+	FRAPPE_UI_MOLECULES,
+	FRAPPE_UI_EXPERIMENTAL_COMPONENTS,
+	FRAMEWORK_UI_COMPONENTS,
+} from "@/utils/constants"
 import { COMPONENT_FAMILIES } from "@/data/componentFamilies"
 
 import type { FrappeUIComponents, FrappeUIComponent } from "@/types"
@@ -15,12 +20,10 @@ import LucideClock from "~icons/lucide/clock"
 import LucideCalendarCheck from "~icons/lucide/calendar-check"
 import LucideCalendarClock from "~icons/lucide/calendar-clock"
 import LucideCalendarSearch from "~icons/lucide/calendar-search"
-import LucideCalendarDays from "~icons/lucide/calendar-days"
 import LucideAppWindowMac from "~icons/lucide/app-window-mac"
 import LucideMinus from "~icons/lucide/minus"
 import LucideChevronDown from "~icons/lucide/chevron-down"
 import LucideCircleX from "~icons/lucide/circle-x"
-import LucideFeather from "~icons/lucide/feather"
 import LucideFileUp from "~icons/lucide/file-up"
 import LucideBookType from "~icons/lucide/book-type"
 import LucideTag from "~icons/lucide/tag"
@@ -336,14 +339,6 @@ export const COMPONENTS: FrappeUIComponents = {
 			placeholder: "Select Date Range",
 		},
 	},
-	MonthPicker: {
-		name: "MonthPicker",
-		title: "Month Picker",
-		icon: LucideCalendarDays,
-		initialState: {
-			placeholder: "Select Month",
-		},
-	},
 	Dialog: {
 		name: "Dialog",
 		title: "Dialog",
@@ -411,15 +406,6 @@ export const COMPONENTS: FrappeUIComponents = {
 			message: "Transaction failed due to insufficient balance",
 		},
 	},
-	FeatherIcon: {
-		name: "FeatherIcon",
-		title: "FeatherIcon",
-		icon: LucideFeather,
-		initialState: {
-			name: "activity",
-			class: "h-6 w-6",
-		},
-	},
 	FileUploader: {
 		name: "FileUploader",
 		title: "File Uploader",
@@ -446,7 +432,7 @@ export const COMPONENTS: FrappeUIComponents = {
 				required: false,
 				type: Array,
 				default: () => ["John Doe", "Jane Doe"],
-				condition: (state: Record<string, any>) => state.type === "select" || state.type === "autocomplete",
+				condition: (state: Record<string, any>) => state.type === "select" || state.type === "combobox",
 			},
 			disabled: { type: Boolean },
 		},
@@ -1181,7 +1167,11 @@ Object.values(COMPONENTS).forEach((component: FrappeUIComponent) => {
 })
 
 function isFrappeUIComponent(name: string) {
-	return FRAPPE_UI_COMPONENTS.includes(name) || FRAPPE_UI_MOLECULES.includes(name)
+	return (
+		FRAPPE_UI_COMPONENTS.includes(name) ||
+		FRAPPE_UI_MOLECULES.includes(name) ||
+		FRAPPE_UI_EXPERIMENTAL_COMPONENTS.includes(name)
+	)
 }
 
 function isFrameworkUIComponent(name: string) {

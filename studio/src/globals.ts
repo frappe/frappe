@@ -14,15 +14,10 @@ import {
 	Dialog,
 	Divider,
 	Dropdown,
-	MonthPicker,
 	ErrorMessage,
-	FeatherIcon,
 	FileUploader,
 	FormControl,
 	FormLabel,
-	Input,
-	ListItem,
-	ListView,
 	LoadingIndicator,
 	LoadingText,
 	MultiSelect,
@@ -41,16 +36,8 @@ import {
 	Tabs,
 	TextInput,
 	Textarea,
-	TextEditor,
-	Toast,
 	Tooltip,
 	Tree,
-	CommandPalette,
-	CommandPaletteItem,
-	Calendar,
-	NumberChart,
-	AxisChart,
-	DonutChart,
 	ContextMenu,
 	Duration,
 	Spinner,
@@ -64,7 +51,17 @@ import {
 	SettingsBody,
 	SettingsRow,
 } from "frappe-ui"
-import { CodeEditor } from "frappe-ui/code-editor"
+import {
+	AxisChart,
+	Calendar,
+	CodeEditor,
+	CommandPalette,
+	CommandPaletteItem,
+	DonutChart,
+	ListView,
+	NumberChart,
+	TextEditor,
+} from "frappe-ui/experimental"
 import {
 	List,
 	ListRows,
@@ -105,18 +102,13 @@ export function registerGlobalComponents(app: App) {
 	app.component("TimePicker", TimePicker)
 	app.component("DateTimePicker", DateTimePicker)
 	app.component("DateRangePicker", DateRangePicker)
-	app.component("MonthPicker", MonthPicker)
 	app.component("Dialog", Dialog)
 	app.component("Divider", Divider)
 	app.component("Dropdown", Dropdown)
 	app.component("ErrorMessage", ErrorMessage)
-	app.component("FeatherIcon", FeatherIcon)
 	app.component("FileUploader", FileUploader)
 	app.component("FormControl", FormControl)
 	app.component("FormLabel", FormLabel)
-	app.component("Input", Input)
-	app.component("ListItem", ListItem)
-	app.component("ListView", ListView)
 	app.component("LoadingIndicator", LoadingIndicator)
 	app.component("LoadingText", LoadingText)
 	app.component("MultiSelect", MultiSelect)
@@ -130,17 +122,17 @@ export function registerGlobalComponents(app: App) {
 	app.component("Tabs", Tabs)
 	app.component("TextInput", TextInput)
 	app.component("Textarea", Textarea)
-	app.component("TextEditor", TextEditor)
-	app.component("Toast", Toast)
 	app.component("Tooltip", Tooltip)
 	app.component("Tree", Tree)
+	app.component("CodeEditor", CodeEditor)
+	app.component("ListView", ListView)
+	app.component("TextEditor", TextEditor)
 	app.component("CommandPalette", CommandPalette)
 	app.component("CommandPaletteItem", CommandPaletteItem)
 	app.component("Calendar", Calendar)
 	app.component("NumberChart", NumberChart)
 	app.component("AxisChart", AxisChart)
 	app.component("DonutChart", DonutChart)
-	app.component("CodeEditor", CodeEditor)
 	app.component("ContextMenu", ContextMenu)
 	app.component("Duration", Duration)
 	app.component("Spinner", Spinner)

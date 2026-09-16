@@ -177,7 +177,9 @@ const frappeUIModules: Record<string, string> = import.meta.glob(
 	[
 		"../../node_modules/frappe-ui/src/components/**/*.vue",
 		"../../node_modules/frappe-ui/src/molecules/**/*.vue",
+		"../../node_modules/frappe-ui/experimental/**/*.vue",
 		"!**/*.story.vue",
+		"!**/stories/**",
 	],
 	{ query: "?raw", eager: true, import: "default" },
 )

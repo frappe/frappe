@@ -1,7 +1,7 @@
 import {
 	FRAPPE_UI_COMPONENTS,
 	FRAPPE_UI_MOLECULES,
-	FRAPPE_COMPONENTS,
+	FRAPPE_UI_EXPERIMENTAL_COMPONENTS,
 	STUDIO_COMPONENTS,
 	FRAMEWORK_UI_COMPONENTS,
 } from "../utils/constants.js"
@@ -116,7 +116,7 @@ export async function generateAppBuild(
 function findComponentSources(appComponents, customComponents = {}) {
 	const frappeUIComponents = []
 	const frappeUIMolecules = []
-	const frappeComponents = []
+	const frappeUIExperimentalComponents = []
 	const frameworkUIComponents = []
 	const studioComponents = []
 	const missingComponents = []
@@ -126,8 +126,8 @@ function findComponentSources(appComponents, customComponents = {}) {
 			frappeUIComponents.push(component)
 		} else if (FRAPPE_UI_MOLECULES.includes(component)) {
 			frappeUIMolecules.push(component)
-		} else if (FRAPPE_COMPONENTS.includes(component)) {
-			frappeComponents.push(component)
+		} else if (FRAPPE_UI_EXPERIMENTAL_COMPONENTS.includes(component)) {
+			frappeUIExperimentalComponents.push(component)
 		} else if (FRAMEWORK_UI_COMPONENTS.includes(component)) {
 			// Drop @framework/ui components when the package isn't on this bench —
 			// a stale app reference must not break the build with an unresolvable import.
@@ -147,7 +147,7 @@ function findComponentSources(appComponents, customComponents = {}) {
 	return {
 		frappeUIComponents,
 		frappeUIMolecules,
-		frappeComponents,
+		frappeUIExperimentalComponents,
 		frameworkUIComponents,
 		studioComponents,
 		customComponents,
@@ -158,7 +158,7 @@ function getRendererContent(componentSources, pageScripts = []) {
 	const {
 		frappeUIComponents,
 		frappeUIMolecules,
-		frappeComponents,
+		frappeUIExperimentalComponents,
 		frameworkUIComponents,
 		studioComponents,
 		customComponents,
@@ -168,8 +168,10 @@ function getRendererContent(componentSources, pageScripts = []) {
 	// Molecules ship from a dedicated subpath
 	const frappeUIMoleculeImports =
 		frappeUIMolecules.length > 0 ? `import { ${frappeUIMolecules.join(",\n ")} } from "frappe-ui/list";` : ""
-	const frappeImports =
-		frappeComponents.length > 0 ? `import { ${frappeComponents.join(",\n ")} } from "frappe-ui/frappe";` : ""
+	const frappeUIExperimentalImports =
+		frappeUIExperimentalComponents.length > 0
+			? `import { ${frappeUIExperimentalComponents.join(",\n ")} } from "frappe-ui/experimental";`
+			: ""
 	const frameworkUIImports = getFrameworkUIImports(frameworkUIComponents)
 	const studioImports = studioComponents
 		.map((comp) => `import ${comp} from "@/components/AppLayout/${comp}.vue"`)
@@ -182,7 +184,7 @@ function getRendererContent(componentSources, pageScripts = []) {
 	const componentRegistrations = [
 		...frappeUIComponents.map((comp) => `app.component("${comp}", ${comp})`),
 		...frappeUIMolecules.map((comp) => `app.component("${comp}", ${comp})`),
-		...frappeComponents.map((comp) => `app.component("${comp}", ${comp})`),
+		...frappeUIExperimentalComponents.map((comp) => `app.component("${comp}", ${comp})`),
 		...frameworkUIComponents.map((comp) => `app.component("${comp}", ${comp})`),
 		...studioComponents.map((comp) => `app.component("${comp}", ${comp})`),
 		...customComponentNames.map((comp) => `app.component("${comp}", ${comp})`),
@@ -209,11 +211,11 @@ import "@/setupFrappeUIResource"
 import app_router from "@/router/app_router"
 import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
-import { spritePlugin } from "frappe-ui/icons"
+import { spritePlugin } from "frappe-ui/experimental"
 
 ${frappeUIImports}
 ${frappeUIMoleculeImports}
-${frappeImports}
+${frappeUIExperimentalImports}
 ${frameworkUIImports}
 ${studioImports}
 ${customImports}
