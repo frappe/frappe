@@ -1,6 +1,7 @@
 import re
 import sqlite3
 import warnings
+from contextlib import contextmanager
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
@@ -545,6 +546,21 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			self._conn.commit()
 			return self._cursor
 		return self._cursor.execute(query, values)
+
+	@contextmanager
+	def unbuffered_cursor(self):
+		"""Temporarily use a cursor that can stream rows from SQLite in batches."""
+		if not self._conn:
+			self.connect()
+
+		original_cursor = self._cursor
+		streaming_cursor = self._conn.cursor()
+		self._cursor = streaming_cursor
+		try:
+			yield
+		finally:
+			self._cursor = original_cursor
+			streaming_cursor.close()
 
 	@staticmethod
 	def _is_raw_commit_statement(query: str) -> bool:

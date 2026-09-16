@@ -2407,7 +2407,7 @@ class TestSqlIterator(IntegrationTestCase):
 				msg=f"{query=} results not same as iterator",
 			)
 
-	@unimplemented_for(db_type_is.POSTGRES, db_type_is.SQLITE)
+	@unimplemented_for(db_type_is.POSTGRES)
 	def test_unbuffered_cursor(self):
 		with frappe.db.unbuffered_cursor():
 			self.test_db_sql_iterator()
