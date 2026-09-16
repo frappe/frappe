@@ -49,7 +49,7 @@
 							<!-- component family tray -->
 							<div
 								v-if="index === section.trayAfter"
-								class="relative col-span-full mt-1 rounded-xl bg-surface-gray-1 p-2.5"
+								class="rounded-xl relative col-span-full mt-1 bg-surface-gray-1 p-2.5"
 							>
 								<span
 									class="absolute -top-1.5 h-3 w-3 -translate-x-1/2 rotate-45 rounded-[2px] bg-surface-gray-1"
@@ -78,7 +78,7 @@
 						v-for="component in customVueComponents"
 						:key="component.component_name"
 						:data-vue-component-name="component.component_name"
-						class="user-component group/vue-component flex cursor-grab select-none items-center justify-between rounded p-1 hover:bg-surface-gray-1"
+						class="user-component group/vue-component rounded flex cursor-grab select-none items-center justify-between p-1 hover:bg-surface-gray-1"
 						:class="{
 							'border border-outline-gray-4': store.selectedVueComponent === component.component_name,
 						}"
@@ -88,7 +88,7 @@
 					>
 						<div class="flex items-center gap-2 text-ink-gray-7">
 							<div
-								class="flex h-6 w-6 items-center justify-center rounded bg-surface-green-1 text-ink-green-6"
+								class="rounded flex h-6 w-6 items-center justify-center bg-surface-green-1 text-ink-green-6"
 							>
 								<LucideCode class="h-3 w-3" />
 							</div>
@@ -98,10 +98,10 @@
 							<Dropdown :options="getVueComponentMenu(component)" trigger="click">
 								<template v-slot="{ open }">
 									<button
-										class="flex cursor-pointer items-center rounded-sm p-1 text-ink-gray-6 hover:bg-surface-gray-4"
+										class="rounded-sm flex cursor-pointer items-center p-1 text-ink-gray-6 hover:bg-surface-gray-4"
 										:class="open ? 'active-item' : ''"
 									>
-										<FeatherIcon name="more-horizontal" class="h-3 w-3" />
+										<LucideEllipsis class="h-3 w-3" />
 									</button>
 								</template>
 							</Dropdown>
@@ -116,7 +116,7 @@
 					<div
 						v-for="component in componentList"
 						:key="component.component_id"
-						class="group/component user-component flex cursor-grab select-none items-center justify-between rounded p-1 hover:bg-surface-gray-1"
+						class="group/component user-component rounded flex cursor-grab select-none items-center justify-between p-1 hover:bg-surface-gray-1"
 						:class="{
 							'border border-outline-gray-4':
 								componentEditorStore.selectedComponent === component.component_id,
@@ -127,7 +127,7 @@
 					>
 						<div class="flex items-center gap-2 text-ink-gray-7">
 							<div
-								class="flex h-6 w-6 items-center justify-center rounded bg-surface-purple-1 text-ink-purple-7"
+								class="rounded flex h-6 w-6 items-center justify-center bg-surface-purple-1 text-ink-purple-7"
 							>
 								<LucideBox class="h-3 w-3" />
 							</div>
@@ -139,10 +139,10 @@
 							<Dropdown :options="getComponentMenu(component)" trigger="click">
 								<template v-slot="{ open }">
 									<button
-										class="flex cursor-pointer items-center rounded-sm p-1 text-ink-gray-6 hover:bg-surface-gray-4"
+										class="rounded-sm flex cursor-pointer items-center p-1 text-ink-gray-6 hover:bg-surface-gray-4"
 										:class="open ? 'active-item' : ''"
 									>
-										<FeatherIcon name="more-horizontal" class="h-3 w-3" />
+										<LucideEllipsis class="h-3 w-3" />
 									</button>
 								</template>
 							</Dropdown>
@@ -158,7 +158,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick } from "vue"
 import { useEventListener } from "@vueuse/core"
-import { Dropdown, FeatherIcon, Tooltip, Button } from "frappe-ui"
+import { Dropdown, Tooltip, Button } from "frappe-ui"
 import LucideFlaskConical from "~icons/lucide/flask-conical"
 import OptionToggle from "@/components/OptionToggle.vue"
 import Input from "@/components/Input.vue"
@@ -179,6 +179,7 @@ import type { StudioComponent } from "@/types/Studio/StudioComponent"
 import type { CustomVueComponentMeta } from "@/types/vue"
 import LucideCode from "~icons/lucide/code"
 import LucideBox from "~icons/lucide/box"
+import LucideEllipsis from "~icons/lucide/ellipsis"
 
 const canvasStore = useCanvasStore()
 const store = useStudioStore()

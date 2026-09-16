@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="dialog-content my-8 inline-block w-full transform overflow-hidden rounded-xl bg-surface-elevation-1 text-start align-middle shadow-xl focus-visible:outline-none"
+		class="dialog-content rounded-xl my-8 inline-block w-full transform overflow-hidden bg-surface-elevation-1 text-start align-middle shadow-xl focus-visible:outline-none"
 		:class="sizeClass"
 		:style="outOfFlowStyles"
 	>
@@ -28,13 +28,6 @@
 									<span
 										v-if="isLucide(resolvedIcon.name)"
 										:class="[resolvedIcon.name, 'size-4', dialogIconClasses]"
-										aria-hidden="true"
-									/>
-									<FeatherIcon
-										v-else
-										:name="resolvedIcon.name"
-										class="h-4 w-4"
-										:class="dialogIconClasses"
 										aria-hidden="true"
 									/>
 								</div>
@@ -103,7 +96,7 @@
 </template>
 <script setup lang="ts">
 import { computed, reactive, ref, useSlots, watchEffect } from "vue"
-import { Button, FeatherIcon } from "frappe-ui"
+import { Button } from "frappe-ui"
 
 type Theme = "gray" | "blue" | "green" | "red"
 type Size = "sm" | "md" | "lg" | "xl" | "2xl"

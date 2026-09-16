@@ -47,7 +47,7 @@
 				<template v-slot="{ open }">
 					<div class="flex cursor-pointer items-center gap-1">
 						<StudioLogo class="h-7 w-7"></StudioLogo>
-						<FeatherIcon :name="open ? 'chevron-up' : 'chevron-down'" class="h-4 w-4 text-ink-gray-6" />
+						<component :is="open ? LucideChevronUp : LucideChevronDown" class="h-4 w-4 text-ink-gray-6" />
 					</div>
 				</template>
 			</Dropdown>
@@ -96,20 +96,19 @@
 								v-if="!store.areRouteVariablesSet"
 								text="Set route variable values here to preview page data"
 							>
-								<FeatherIcon name="alert-circle" class="h-[14px] w-[14px] text-ink-amber-6" />
+								<LucideCircleAlert class="h-[14px] w-[14px] text-ink-amber-6" />
 							</Tooltip>
 						</div>
-						<FeatherIcon
-							name="external-link"
+						<LucideExternalLink
 							v-if="store.activePage && store.activePage.published"
 							class="h-[14px] w-[14px] !text-ink-gray-6 dark:!text-ink-gray-1"
 							@click="store.openPageInBrowser(store.activeApp!, store.activePage)"
-						></FeatherIcon>
+						/>
 					</div>
 				</template>
 				<template #body="{ isOpen }">
 					<div
-						class="flex w-96 flex-col gap-3 rounded bg-surface-base p-4 shadow-lg"
+						class="rounded flex w-96 flex-col gap-3 bg-surface-base p-4 shadow-lg"
 						v-if="store.activePage && store.activeApp"
 					>
 						<PageOptions
@@ -157,7 +156,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { Tooltip, Popover, Dropdown, FeatherIcon, Button } from "frappe-ui"
+import { Tooltip, Popover, Dropdown, Button } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 
@@ -173,6 +172,10 @@ import session from "@/utils/session"
 import LucideArrowUpFromLine from "~icons/lucide/arrow-up-from-line"
 import { isObjectEmpty, openInDesk } from "@/utils/helpers"
 import { StudioApp } from "@/types/Studio/StudioApp"
+import LucideChevronUp from "~icons/lucide/chevron-up"
+import LucideChevronDown from "~icons/lucide/chevron-down"
+import LucideCircleAlert from "~icons/lucide/circle-alert"
+import LucideExternalLink from "~icons/lucide/external-link"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()

@@ -35,7 +35,7 @@
 		<template #footer v-if="dynamicValueOptions.length > 0">
 			<div class="flex items-center gap-1 px-2" @mousedown.prevent>
 				<Tooltip text="Changing the selected variable value will change the prop value and vice versa">
-					<FeatherIcon name="info" class="size-3 text-ink-gray-5" />
+					<LucideInfo class="size-3 text-ink-gray-5" />
 				</Tooltip>
 				<Switch v-model="bindVariable" label="Sync with variable" class="w-full hover:bg-transparent" />
 			</div>
@@ -45,7 +45,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import { Autocomplete, Switch, Tooltip, FeatherIcon } from "frappe-ui"
+import { Autocomplete, Switch, Tooltip } from "frappe-ui"
 import IconButton from "@/components/IconButton.vue"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
@@ -59,6 +59,7 @@ import { getBindingType } from "@/utils/parseCode"
 import useCodeStore from "@/stores/codeStore"
 import Link2 from "~icons/lucide/link-2"
 import LucideCirclePlus from "~icons/lucide/circle-plus"
+import LucideInfo from "~icons/lucide/info"
 
 const props = defineProps<{ block?: Block; isVariableBound?: string | null }>()
 const emit = defineEmits<{

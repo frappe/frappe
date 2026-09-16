@@ -29,18 +29,18 @@
 					>
 						<template #target>
 							<div
-								class="group flex flex-1 cursor-pointer justify-between rounded border border-outline-gray-2 px-2 py-1 hover:bg-surface-gray-1"
+								class="rounded group flex flex-1 cursor-pointer justify-between border border-outline-gray-2 px-2 py-1 hover:bg-surface-gray-1"
 								@click="editInput(input, index)"
 							>
 								<div class="flex items-center gap-2">
-									<FeatherIcon :name="getFieldTypeIcon(input.type)" class="h-4 w-4 text-ink-gray-4" />
+									<component :is="getFieldTypeIcon(input.type)" class="h-4 w-4 text-ink-gray-4" />
 									<span class="text-sm text-ink-gray-7">{{ input.input_name }}</span>
 								</div>
 								<button
-									class="flex cursor-pointer items-center rounded-sm p-1 text-ink-gray-6 opacity-0 transition-opacity hover:text-ink-gray-8 group-hover:opacity-100"
+									class="rounded-sm flex cursor-pointer items-center p-1 text-ink-gray-6 opacity-0 transition-opacity hover:text-ink-gray-8 group-hover:opacity-100"
 									@click.stop="componentEditorStore.removeComponentInput(index)"
 								>
-									<FeatherIcon name="x" class="h-4 w-4" />
+									<LucideX class="h-4 w-4" />
 								</button>
 							</div>
 						</template>
@@ -74,13 +74,13 @@
 									:required="true"
 								>
 									<template #prefix>
-										<FeatherIcon
-											:name="editingInput ? getFieldTypeIcon(editingInput.type) : 'help-circle'"
+										<component
+											:is="editingInput ? getFieldTypeIcon(editingInput.type) : LucideCircleHelp"
 											class="mr-1 h-3 w-3 text-ink-gray-4"
 										/>
 									</template>
 									<template #item-prefix="{ item }">
-										<FeatherIcon :name="getFieldTypeIcon(item.value)" class="h-3 w-3 text-ink-gray-4" />
+										<component :is="getFieldTypeIcon(item.value)" class="h-3 w-3 text-ink-gray-4" />
 									</template>
 								</FormControl>
 								<FormControl
@@ -144,8 +144,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, markRaw, computed } from "vue"
-import { Combobox, Popover, FormControl, Button, FeatherIcon } from "frappe-ui"
+import { ref, markRaw, computed, type Component } from "vue"
+import { Combobox, Popover, FormControl, Button } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"
 import Code from "@/components/Code.vue"
@@ -154,6 +154,15 @@ import PropsEditor from "@/components/PropsEditor.vue"
 import SectionContainer from "@/components/SectionContainer.vue"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import { isCtrlOrCmd } from "@/utils/helpers"
+import LucideX from "~icons/lucide/x"
+import LucideType from "~icons/lucide/type"
+import LucideHash from "~icons/lucide/hash"
+import LucideSquareCheck from "~icons/lucide/square-check"
+import LucideTextAlignStart from "~icons/lucide/text-align-start"
+import LucideList from "~icons/lucide/list"
+import LucideCode from "~icons/lucide/code"
+import LucideDroplet from "~icons/lucide/droplet"
+import LucideCircleHelp from "~icons/lucide/circle-help"
 
 const componentEditorStore = useComponentEditorStore()
 const componentInputs = computed(() => componentEditorStore.componentInputs)
@@ -172,16 +181,16 @@ const fieldTypeOptions = [
 ]
 
 const getFieldTypeIcon = (type: string) => {
-	const iconMap: Record<string, string> = {
-		text: "type",
-		number: "hash",
-		checkbox: "check-square",
-		textarea: "align-left",
-		select: "list",
-		code: "code",
-		color: "droplet",
+	const iconMap: Record<string, Component> = {
+		text: LucideType,
+		number: LucideHash,
+		checkbox: LucideSquareCheck,
+		textarea: LucideTextAlignStart,
+		select: LucideList,
+		code: LucideCode,
+		color: LucideDroplet,
 	}
-	return iconMap[type] || "type"
+	return iconMap[type] || LucideType
 }
 
 const editInput = (input: ComponentInput, index: number) => {

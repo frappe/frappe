@@ -19,7 +19,7 @@
 				transform: `scale(${canvasProps.scale}) translate(${canvasProps.translateX}px, ${canvasProps.translateY}px)`,
 			}"
 		>
-			<div class="dark:bg-zinc-900 absolute right-0 top-[-60px] flex rounded-md bg-surface-base px-3">
+			<div class="dark:bg-zinc-900 rounded-md absolute right-0 top-[-60px] flex bg-surface-base px-3">
 				<div
 					v-show="!canvasProps.scaling && !canvasProps.panning"
 					class="w-auto cursor-pointer p-2"
@@ -27,8 +27,8 @@
 					:key="breakpoint.device"
 					@click.stop="selectBreakpoint(breakpoint)"
 				>
-					<FeatherIcon
-						:name="breakpoint.icon"
+					<component
+						:is="breakpoint.icon"
 						class="h-8 w-6"
 						:class="{
 							'dark:text-zinc-50 text-ink-gray-6': breakpoint.visible,
@@ -74,7 +74,7 @@
 		</div>
 
 		<div
-			class="text-sm-semibold fixed bottom-12 left-[50%] z-40 flex translate-x-[-50%] cursor-default items-center justify-center gap-2 rounded-lg bg-surface-base px-3 py-2 text-center text-ink-gray-5 shadow-md"
+			class="rounded-lg text-sm-semibold fixed bottom-12 left-[50%] z-40 flex translate-x-[-50%] cursor-default items-center justify-center gap-2 bg-surface-base px-3 py-2 text-center text-ink-gray-5 shadow-md"
 			v-show="!canvasProps.panning"
 		>
 			{{ Math.round(canvasProps.scale * 100) + "%" }}
@@ -100,7 +100,7 @@
 
 <script setup lang="ts">
 import { Ref, ref, watch, reactive, computed, onMounted, provide } from "vue"
-import { LoadingIndicator, FeatherIcon } from "frappe-ui"
+import { LoadingIndicator } from "frappe-ui"
 import StudioComponent from "@/components/StudioComponent.vue"
 import FitScreenIcon from "@/components/Icons/FitScreenIcon.vue"
 import DraggablePopup from "@/components/DraggablePopup.vue"
@@ -118,6 +118,9 @@ import type { Slot } from "@/types"
 import { useCanvasEvents } from "@/utils/useCanvasEvents"
 import { getBlockCopy } from "@/utils/serializer"
 import { useCanvasNavigationGuard } from "@/utils/useCanvasNavigationGuard"
+import LucideMonitor from "~icons/lucide/monitor"
+import LucideTablet from "~icons/lucide/tablet"
+import LucideSmartphone from "~icons/lucide/smartphone"
 
 const props = defineProps({
 	componentTree: {
@@ -148,21 +151,21 @@ const canvasProps = reactive({
 	panning: false,
 	breakpoints: [
 		{
-			icon: "monitor",
+			icon: LucideMonitor,
 			device: "desktop",
 			displayName: "Desktop",
 			width: 1400,
 			visible: true,
 		},
 		{
-			icon: "tablet",
+			icon: LucideTablet,
 			device: "tablet",
 			displayName: "Tablet",
 			width: 800,
 			visible: false,
 		},
 		{
-			icon: "smartphone",
+			icon: LucideSmartphone,
 			device: "mobile",
 			displayName: "Mobile",
 			width: 420,

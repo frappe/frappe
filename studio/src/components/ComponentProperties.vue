@@ -29,7 +29,7 @@
 					<div
 						v-for="(slot, slotName) in block?.componentSlots"
 						:key="slotName"
-						class="flex w-full cursor-pointer items-center justify-between gap-1 rounded py-0.5"
+						class="rounded flex w-full cursor-pointer items-center justify-between gap-1 py-0.5"
 						@click="selectSlot(slotName)"
 					>
 						<div class="flex min-w-0 items-center gap-1.5">
@@ -76,7 +76,7 @@
 						variant="ghost"
 						@click.stop="block?.toggleVisibilityCondition()"
 					>
-						<FeatherIcon :name="block.visibilityCondition ? 'zap' : 'zap-off'" class="h-3 w-3" />
+						<component :is="block.visibilityCondition ? LucideZap : LucideZapOff" class="h-3 w-3" />
 					</Button>
 				</template>
 				<Code
@@ -109,7 +109,7 @@
 
 <script setup lang="ts">
 import { ref, computed, toValue, watchEffect } from "vue"
-import { Combobox, Button, Tooltip, Badge, FeatherIcon } from "frappe-ui"
+import { Combobox, Button, Tooltip, Badge } from "frappe-ui"
 import Block from "@/utils/block"
 import { getComponentSlots } from "@/utils/components"
 import PropsEditor from "@/components/PropsEditor.vue"
@@ -127,6 +127,7 @@ import useCanvasStore from "@/stores/canvasStore"
 
 import LucideZap from "~icons/lucide/zap"
 import LucideHash from "~icons/lucide/hash"
+import LucideZapOff from "~icons/lucide/zap-off"
 
 const props = defineProps<{
 	block?: Block

@@ -11,19 +11,19 @@
 				@click="previousTrack"
 				class="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-gray-1 focus:outline-none"
 			>
-				<FeatherIcon name="skip-back" class="h-6 w-6 fill-gray-800 stroke-gray-800" />
+				<LucideSkipBack class="h-6 w-6 fill-gray-800 stroke-gray-800" />
 			</button>
 			<button
 				@click="togglePlay"
 				class="flex h-16 w-16 items-center justify-center rounded-full bg-surface-gray-9 focus:outline-none"
 			>
-				<FeatherIcon :name="isPlaying ? 'pause' : 'play'" class="h-6 w-6 fill-white stroke-white" />
+				<component :is="isPlaying ? LucidePause : LucidePlay" class="h-6 w-6 fill-white stroke-white" />
 			</button>
 			<button
 				@click="nextTrack"
 				class="flex h-10 w-10 items-center justify-center rounded-full hover:bg-surface-gray-1 focus:outline-none"
 			>
-				<FeatherIcon name="skip-forward" class="h-6 w-6 fill-gray-800 stroke-gray-800" />
+				<LucideSkipForward class="h-6 w-6 fill-gray-800 stroke-gray-800" />
 			</button>
 		</div>
 		<div class="relative w-full">
@@ -33,7 +33,7 @@
 				:max="duration"
 				:value="currentTime"
 				@input="seek"
-				class="h-2 w-full cursor-pointer rounded-lg bg-surface-gray-3 accent-gray-800 dark:bg-surface-gray-8"
+				class="rounded-lg h-2 w-full cursor-pointer bg-surface-gray-3 accent-gray-800 dark:bg-surface-gray-8"
 			/>
 		</div>
 		<div class="mt-2 flex justify-between text-sm text-ink-gray-6">
@@ -44,10 +44,13 @@
 </template>
 
 <script setup lang="ts">
-import { FeatherIcon } from "frappe-ui"
 import { ref, onMounted, watch } from "vue"
 
 import type { AudioProps } from "@/types/studio_components/Audio"
+import LucideSkipBack from "~icons/lucide/skip-back"
+import LucidePause from "~icons/lucide/pause"
+import LucidePlay from "~icons/lucide/play"
+import LucideSkipForward from "~icons/lucide/skip-forward"
 
 const props = defineProps<AudioProps>()
 const emit = defineEmits(["previous", "next"])

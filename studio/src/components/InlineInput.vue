@@ -17,7 +17,7 @@
 
 			<Popover trigger="hover" v-if="description" placement="top">
 				<template #target>
-					<FeatherIcon name="info" class="ml-1 h-[12px] w-[12px] text-ink-gray-4" />
+					<LucideInfo class="ml-1 h-[12px] w-[12px] text-ink-gray-4" />
 				</template>
 				<template #body>
 					<slot name="body">
@@ -62,7 +62,7 @@
 
 <script setup lang="ts">
 import { isNumber } from "@tiptap/vue-3"
-import { Popover, FeatherIcon } from "frappe-ui"
+import { Popover } from "frappe-ui"
 import { computed, StyleValue, useAttrs } from "vue"
 import { isDynamicValue } from "@/utils/code"
 import { extractNumberAndUnit, normalizeValueWithUnits } from "@/utils/helpers"
@@ -70,6 +70,7 @@ import Input from "@/components/Input.vue"
 import Autocomplete from "@/components/Autocomplete.vue"
 import ColorInput from "@/components/ColorInput.vue"
 import InputLabel from "@/components/InputLabel.vue"
+import LucideInfo from "~icons/lucide/info"
 
 const props = withDefaults(
 	defineProps<{

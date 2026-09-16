@@ -82,7 +82,7 @@
 					title="Remove"
 					class="absolute right-0 top-0 hidden -translate-y-1/2 translate-x-1/2 cursor-pointer rounded-full border border-outline-gray-2 bg-surface-base p-0.5 hover:bg-surface-gray-1 group-hover/item:block"
 				>
-					<FeatherIcon name="x" @click="removeItem(index)" class="size-3 rounded-full" />
+					<LucideX @click="removeItem(index)" class="size-3 rounded-full" />
 				</div>
 			</div>
 		</template>
@@ -96,13 +96,14 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { Button, FeatherIcon } from "frappe-ui"
+import { Button } from "frappe-ui"
 import { IconPicker } from "frappe-ui/experimental"
 import Input from "@/components/Input.vue"
 import InputLabel from "@/components/InputLabel.vue"
 import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import LucideGripVertical from "~icons/lucide/grip-vertical"
+import LucideX from "~icons/lucide/x"
 
 const props = defineProps<{
 	modelValue: any[]

@@ -81,7 +81,7 @@
 						<template #trigger>
 							<Button class="!text-ink-gray-5" variant="ghost" label="Add filter">
 								<template #prefix>
-									<FeatherIcon name="plus" class="h-4" />
+									<LucidePlus class="h-4" />
 								</template>
 							</Button>
 						</template>
@@ -100,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { Combobox, FeatherIcon, FormControl, Button } from "frappe-ui"
+import { Combobox, FormControl, Button } from "frappe-ui"
 import { computed, h, ref, watch } from "vue"
 import Link from "@framework/ui/components/Link/Link.vue"
 
@@ -110,6 +110,7 @@ import MultiSelectInput from "@/components/MultiSelectInput.vue"
 import type { DocTypeField, Fieldtype, Filter, Operators } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
 import type { Filters } from "@/types/Studio/StudioResource"
+import LucidePlus from "~icons/lucide/plus"
 
 const typeCheck = ["Check"]
 const typeLink = ["Link"]

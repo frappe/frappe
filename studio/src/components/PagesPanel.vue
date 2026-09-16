@@ -4,7 +4,7 @@
 			<div class="w-full" v-for="page in store.appPages" :key="page.name">
 				<div
 					@click="openPage(page)"
-					class="group flex cursor-pointer items-center gap-2 truncate rounded px-2 py-2 transition duration-300 ease-in-out"
+					class="rounded group flex cursor-pointer items-center gap-2 truncate px-2 py-2 transition duration-300 ease-in-out"
 					:class="[isPageActive(page) ? 'border-[1px] border-outline-gray-2' : 'hover:bg-surface-gray-1']"
 				>
 					<Tooltip :text="page.published ? 'Published' : 'Draft'" placement="top">
@@ -31,10 +31,10 @@
 						<Dropdown :options="getPageMenu(page)" trigger="click">
 							<template v-slot="{ open }">
 								<button
-									class="flex cursor-pointer items-center rounded-sm p-0.5 text-ink-gray-6 hover:bg-surface-gray-4"
+									class="rounded-sm flex cursor-pointer items-center p-0.5 text-ink-gray-6 hover:bg-surface-gray-4"
 									:class="open ? 'active-item' : ''"
 								>
-									<FeatherIcon name="more-horizontal" class="h-4 w-4" />
+									<LucideEllipsis class="h-4 w-4" />
 								</button>
 							</template>
 						</Dropdown>
@@ -60,7 +60,8 @@ import type { StudioPage } from "@/types/Studio/StudioPage"
 import { isObjectEmpty } from "@/utils/helpers"
 import { copyEntirePage } from "@/utils/blockCopyPaste"
 import { useRouter } from "vue-router"
-import { Dropdown, Button, Badge, Tooltip, FeatherIcon } from "frappe-ui"
+import { Dropdown, Button, Badge, Tooltip } from "frappe-ui"
+import LucideEllipsis from "~icons/lucide/ellipsis"
 
 const store = useStudioStore()
 const router = useRouter()

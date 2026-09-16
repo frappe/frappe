@@ -10,7 +10,7 @@
 						<router-link class="flex items-center gap-2" :to="{ name: 'Home' }">
 							<h1 class="text-md-semibold mt-[2px] leading-5 text-ink-gray-7">Studio</h1>
 						</router-link>
-						<FeatherIcon :name="open ? 'chevron-up' : 'chevron-down'" class="h-4 w-4 text-ink-gray-6" />
+						<component :is="open ? LucideChevronUp : LucideChevronDown" class="h-4 w-4 text-ink-gray-6" />
 					</div>
 				</template>
 			</Dropdown>
@@ -35,7 +35,7 @@
 						"
 					>
 						<template #prefix>
-							<FeatherIcon name="search" class="h-4 w-4 text-ink-gray-4" />
+							<LucideSearch class="h-4 w-4 text-ink-gray-4" />
 						</template>
 					</Input>
 				</div>
@@ -52,7 +52,7 @@
 				</div>
 				<div v-else class="grid w-full grid-cols-5 items-start gap-5">
 					<router-link
-						class="flex flex-col justify-center gap-1 rounded-lg border-2 p-4"
+						class="rounded-lg flex flex-col justify-center gap-1 border-2 p-4"
 						v-for="app in studioApps.data"
 						:to="{ name: 'StudioApp', params: { appID: app.name } }"
 						:key="app.name"
@@ -102,7 +102,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue"
-import { Dropdown, FeatherIcon, Button } from "frappe-ui"
+import { Dropdown, Button } from "frappe-ui"
 import { studioApps } from "@/data/studioApps"
 import { UseTimeAgo } from "@vueuse/components"
 import Input from "@/components/Input.vue"
@@ -112,6 +112,9 @@ import session from "@/utils/session"
 import { watchDebounced } from "@vueuse/core"
 import useStudioStore from "@/stores/studioStore"
 import { openInDesk } from "@/utils/helpers"
+import LucideChevronUp from "~icons/lucide/chevron-up"
+import LucideChevronDown from "~icons/lucide/chevron-down"
+import LucideSearch from "~icons/lucide/search"
 
 const store = useStudioStore()
 
