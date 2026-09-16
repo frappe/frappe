@@ -230,7 +230,7 @@ remove_slot = Tool(
 	description=(
 		"Remove a NAMED slot (and its content) from a block that ALREADY EXISTS. Use this to undo a "
 		"slot set on the wrong name — e.g. a slot was put on 'footer' but the component's real slot is "
-		"'footer-items', so remove 'footer'. Only affects componentSlots; to clear default-slot content, "
+		"'actions', so remove 'footer'. Only affects componentSlots; to clear default-slot content, "
 		"remove those child blocks with remove_block instead."
 	),
 	parameters={

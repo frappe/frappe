@@ -7,14 +7,13 @@ LAYOUT:
 TEXT & DISPLAY:
 - TextBlock: {text: "string", tag: "p|h1|h2|h3|h4|h5|h6|span", fontSize: "text-2xs(11px)|text-xs(12px)|text-sm(13px)|text-base(14px)|text-md(15px)|text-lg(16px)|text-xl(17px)|text-2xl(18px)|text-3xl(20px)|text-4xl(24px)|text-5xl(26px)|text-6xl(28px)|text-7xl(32px)|text-8xl(40px)|text-9xl(44px)|text-10xl(48px)|text-11xl(52px)|text-12xl(56px)|text-p-xs|text-p-sm|text-p-base|text-p-md|text-p-lg|text-p-xl"}
   # LINE-HEIGHT — pick the right family: use text-p-* for ANY paragraph / body copy / description / caption / multi-line sentence (relaxed line-height, more readable). Use plain text-* ONLY for headings and short UI labels (tight line-height). Default to text-p-* whenever the text is a sentence — e.g. a body paragraph → text-p-sm, NOT text-sm.
-- Badge: {variant: "subtle|solid|outline", theme: "green|red|orange|blue|gray", size: "sm|md|lg", label: "string"} # slots: prefix, suffix
+- Badge: {variant: "subtle|solid|outline", theme: "gray|blue|green|amber|red|violet", size: "sm|md|lg", label: "string"} # slots: prefix, suffix
 - Pill: {label: "string", variant: "default|outline|underline", size: "sm|md", icon: "lucide-icon-name", iconLeft: "lucide-icon-name", iconRight: "lucide-icon-name"} # slots: prefix, suffix
 - Avatar: {shape: "circle|square", size: "xs|sm|md|lg|xl|2xl|3xl", label: "initials", image: "url" (publicly accessible)}
 - Progress: {value: 0-100, size: "sm|md|lg", label: "string"}
 - Spinner: {size: "xs|sm|md|lg", theme: "gray|red"}
-- Alert: {title: "string", description: "string", theme: "yellow|red|green|blue"} # slots: icon, description, footer
+- Alert: {title: "string", description: "string", theme: "gray(DEFAULT)|blue|green|amber|red", dismissible: false} # slots: prefix, title, description, actions
 - ErrorMessage: {message: "string"}
-- FeatherIcon: {name: "feather-icon-name", class: "h-5 w-5"} # (icons from https://feathericons.com/)
 - ImageView: {image: "url", size: "xs|sm|md|lg|xl"}
 - Divider: (no props)
 - Tooltip: {text: "string"}
@@ -40,15 +39,15 @@ INPUTS:
 - FormLabel: {label: "string"} (only for inputs that lack a built-in label prop, e.g. TextEditor; most inputs above already take label directly — prefer that)
 
 ACTIONS:
-- Button: {label: "string", variant: "solid|subtle|outline|ghost", size: "sm|md|lg|xl|2xl", theme: "gray (DEFAULT — omit unless red/green/blue is semantically required)", icon: "lucide-icon-name", iconLeft: "lucide-icon-name", iconRight: "lucide-icon-name"}
+- Button: {label: "string", variant: "solid|subtle|outline|ghost", size: "xs|sm|md|lg", theme: "gray (DEFAULT — omit unless red/green/blue is semantically required)", icon: "lucide-icon-name", iconLeft: "lucide-icon-name", iconRight: "lucide-icon-name"}
 - Dropdown: {options: [{label: "string", icon: "lucide-icon-name", onClick: "function"}] OR grouped [{group: "string", options: [{label, icon}]}], button: {label: "string"}}
 - ContextMenu: {options: [{label: "string", icon: "lucide-icon-name", onClick: "function"}] OR grouped [{group: "string", options: [{label, icon}]}]}
   # A right-click menu — put the target surface as child content in the default slot; the menu opens on right-click of that area.
-# For buttons and dropdowns, icons must be lucide-* strings from https://lucide.dev/icons (e.g. lucide-plus, lucide-edit, etc.)
+# For buttons and dropdowns, icons must be lucide-* strings from https://lucide.dev/icons (e.g. lucide-plus, lucide-pencil, etc.)
 # HANDLER PROPS (onClick inside Dialog actions, Dropdown/ContextMenu options, etc.) must be an function string — "() => { counter.value = 0 }" — NOT a bare statement. The component calls it directly, so a plain "counter.value = 0" string throws "onClick is not a function". Variables are refs (write via .value); data sources and route/router are in scope. (This differs from a block's `events`, which ARE bare statements.)
 
 OVERLAYS:
-- Dialog: {modelValue: false, title: "string", message: "string", size: "xs|sm|md|lg(DEFAULT)|xl|2xl|3xl|4xl|5xl|6xl|7xl", icon: "lucide-icon-name", position: "center(DEFAULT)|top", dismissible: true, showCloseButton: true, bare: false, actions: [{label: "string", variant: "solid|subtle|outline|ghost", theme: "gray (DEFAULT — omit unless red/green/blue is semantically required; Example: red for destructive actions)", onClick: "function"}]}
+- Dialog: {modelValue: false, title: "string", message: "string", size: "xs|sm|md|lg(DEFAULT)|xl|2xl|3xl|4xl|5xl|6xl|7xl", icon: "lucide-icon-name", theme: "gray(DEFAULT)|blue|green|amber|red" (tints the icon), position: "center(DEFAULT)|top", dismissible: true, showCloseButton: true, bare: false, actions: [{label: "string", variant: "solid|subtle|outline|ghost", theme: "gray (DEFAULT — omit unless red/green/blue is semantically required; Example: red for destructive actions)", onClick: "function"}]}
   # modelValue is the open/visibility state (v-model) — keep it false so the dialog starts hidden; it is opened via interaction wired separately.
   # An action's onClick is an function string (see HANDLER PROPS above), e.g. a Reset action → "() => { counter.value = 0; showResetDialog.value = false }". To close the dialog, set its modelValue variable false.
   # Dialog body content goes in the block's default slot, NOT in a prop. title/message/icon/actions render the built-in header + footer chrome around those children.
@@ -56,10 +55,10 @@ OVERLAYS:
 
 NAVIGATION:
 - Breadcrumbs: {items: [{label: "string", route: "string"}]}
-- Tabs: {tabs: [{label: "string"}]} # slots: tab-item, tab-panel
-- TabButtons: {options: [{label: "string", value: "string"}], modelValue: "string", type: "subtle|ghost|underline|browser-tab", size: "sm|md"}
-- Sidebar: {header: {title: "string", subtitle: "string"}, sections: [{label: "string", items: [{label: "string", icon: "{{ getIcon('icon-name') }}", to: "string"}]}]} # slots: header, header-logo, sidebar-item, footer-items
-  # icon-name must be a valid kebab-case lucide icon from https://lucide.dev/icons
+- Tabs: {tabs: [{label: "string", value: "string"}], modelValue: "value of the active tab"} # slots: tab-prefix, tab-label, tab-suffix, tab-panel
+- TabButtons: {options: [{label: "string", value: "string"}], modelValue: "string", variant: "subtle|ghost|underline|browser-tab", size: "sm|md"}
+- Sidebar: {collapsible: true} — a bare frame; compose its default-slot children ("c") from SidebarHeader {title: "string", subtitle: "string", menuItems: [{label, icon, onClick}]}, SidebarLabel {label: "string"} and SidebarItem {label: "string", icon: "lucide-icon-name", route: "string", active: false}
+  # icon must be a valid lucide-* string from https://lucide.dev/icons
 
 DATA DISPLAY:
 - ListView: {columns: [{label: "string", key: "string", width: number}], rows: [{key: value}], rowKey: "string"}
@@ -68,7 +67,7 @@ DATA DISPLAY:
 - DonutChart: {config: {data: [{cat: val, val: number}], categoryColumn: "string", valueColumn: "string"}}
 - Filter: {doctype: "string", filters: {}}
 - Link: {doctype: "string"}
-- Tree: {nodeKey: "string", node: {name: "string", label: "string", children: []}} # slots: label, icon, node
+- Tree: {nodeKey: "string", nodes: [{name: "string", label: "string", children: []}], guides: "connectors|lines|none"} # slots: item, item-label
 - Repeater: {data: array — bind to {{ <data_source>.data }}, dataKey: "field that uniquely identifies a row, usually 'name'", emptyStateMessage: "string"}
   # Repeats its child block(s) once per item in `data`. Build ONE row template as the child — do NOT duplicate the child per record. Inside the repeater, bind child props to the CURRENT ROW via {{ dataItem.<field> }} (and dataIndex for the 0-based index). e.g. a TextBlock showing each row's title → bind prop "text" to dataItem.title.
 - Calendar: {config: {defaultMode: "Month"}, events: []}
@@ -123,7 +122,7 @@ BLOCK_SCHEMA = """BLOCK SCHEMA (each block is a JSON object with these optional 
 - "visibility": "expr"          — render the block only when a {{ }} expression is truthy, e.g. "{{ todos.data.length > 0 }}"
 - "c": [ ]                       — children list (array of block objects). These are the block's DEFAULT-slot content (e.g. a Dialog's body, a ContextMenu's target surface).
 - "slots": { }                  — NAMED slots only, for components that expose them: {"<slotName>": [ ...child block objects... ]} (each value is a block list in THIS same schema — a slot holds blocks only, so use a TextBlock for a plain label). Default content goes in "c" — use "slots" only for a component's named slots. On an EXISTING block, fill a named slot with set_slot(component_id, slot_name, blocks) and drop a wrong one with remove_slot(component_id, slot_name).
-  NAMED SLOTS RULE: use ONLY a component's real slot names — the ones listed after `# slots:` in its catalog entry below. NEVER invent a slot name (e.g. Sidebar's footer is called "footer-items", not "footer"); content placed in a slot the component doesn't declare silently does not render. If a component shows no `# slots:`, treat it as having none — use its props or default-slot "c".
+  NAMED SLOTS RULE: use ONLY a component's real slot names — the ones listed after `# slots:` in its catalog entry below. NEVER invent a slot name (e.g. Dialog's footer is called "actions", not "footer"); content placed in a slot the component doesn't declare silently does not render. If a component shows no `# slots:`, treat it as having none — use its props or default-slot "c".
 
 ROOT BLOCK — the page root is:
 {"name":"div","originalElement":"body","label":"body","style":{"display":"flex","flexDirection":"column","flexShrink":0,"width":"inherit","overflowX":"hidden","height":"100%"},"c":[ ... ]}
