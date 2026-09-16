@@ -2,8 +2,8 @@
 	<div class="relative min-h-0 flex-1">
 	<div
 		ref="scroller"
-		class="h-full overflow-y-auto"
-		:class="prompts.length > 3 ? 'px-10' : 'px-5'"
+		class="h-full overflow-y-auto px-5"
+		:class="prompts.length > 3 ? 'md:px-10' : ''"
 		:style="{ scrollPaddingBottom: composerHeight + 24 + 'px' }"
 		@scroll="onScroll"
 	>
