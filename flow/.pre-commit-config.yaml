@@ -3,16 +3,26 @@ default_stages: [pre-commit]
 default_install_hook_types: [pre-commit, commit-msg]
 fail_fast: false
 
+# The check-ast and debug-statements hooks must parse PEP 695 generics,
+# so they need Python >= 3.12. The system default is 3.10.
+default_language_version:
+  python: python3.12
 
+# The Frappe app is the repository root and harness/ is the flow server; each tree keeps
+# the tool versions it is formatted with, so hooks are scoped by path.
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace
         files: "flow.*"
+        exclude: "^harness/|.*json$|.*txt$|.*csv|.*md|.*svg"
+      - id: trailing-whitespace
+        name: trailing-whitespace (harness)
+        files: "^harness/"
         exclude: ".*json$|.*txt$|.*csv|.*md|.*svg"
       - id: no-commit-to-branch
-        args: ['--branch', 'develop']
+        args: ['--branch', 'develop', '--branch', 'main']
       - id: check-merge-conflict
       - id: check-ast
       - id: check-json
@@ -26,12 +36,41 @@ repos:
       - id: ruff
         name: "Run ruff import sorter"
         args: ["--select=I", "--fix"]
+        exclude: "^harness/"
 
       - id: ruff
         name: "Run ruff linter"
+        exclude: "^harness/"
 
       - id: ruff-format
         name: "Run ruff formatter"
+        exclude: "^harness/"
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.1
+    hooks:
+      - id: ruff
+        name: "Run ruff import sorter (harness)"
+        args: ["--select=I", "--fix"]
+        files: "^harness/"
+
+      - id: ruff
+        name: "Run ruff linter (harness)"
+        files: "^harness/"
+
+      - id: ruff-format
+        name: "Run ruff formatter (harness)"
+        files: "^harness/"
+
+  - repo: local
+    hooks:
+      - id: ty
+        name: "Run ty (harness)"
+        entry: uv run --directory harness --extra dev ty check src
+        language: system
+        types: [python]
+        files: "^harness/src/"
+        pass_filenames: false
 
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v2.7.1
@@ -41,6 +80,7 @@ repos:
         # Ignore any files that might contain jinja / bundles
         exclude: |
             (?x)^(
+                harness/.*|
                 flow/public/dist/.*|
                 .*node_modules.*|
                 .*boilerplate.*|
@@ -58,6 +98,7 @@ repos:
         # Ignore any files that might contain jinja / bundles
         exclude: |
             (?x)^(
+                harness/.*|
                 flow/public/dist/.*|
                 cypress/.*|
                 .*node_modules.*|
@@ -75,5 +116,7 @@ repos:
 
 ci:
     autoupdate_schedule: weekly
-    skip: []
+    # `uv` is not available on the hosted pre-commit.ci runners, so the local
+    # ty hook cannot run there. It still runs locally, which is where the check gates commits.
+    skip: [ty]
     submodules: false

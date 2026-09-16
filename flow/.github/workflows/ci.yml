@@ -57,6 +57,9 @@ jobs:
 
       - uses: astral-sh/setup-uv@v5
 
+      - name: Install the app's apt dependencies
+        run: sudo apt-get install -y libgl1 libglib2.0-0
+
       - name: Install bench
         run: uv tool install frappe-bench
 
@@ -75,10 +78,11 @@ jobs:
           bench set-config -g redis_queue redis://localhost:6379
           bench set-config -g redis_socketio redis://localhost:6379
 
-      - name: Install flow into the bench
+      - name: Install flow and its server into the bench
         working-directory: frappe-bench
         run: |
           cp -r "$GITHUB_WORKSPACE/flow" apps/flow
+          env/bin/pip install -e apps/flow/harness
           env/bin/pip install -e apps/flow
           printf 'frappe\nflow\n' > sites/apps.txt
 

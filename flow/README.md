@@ -123,6 +123,14 @@ Conversations run on a bench-local daemon from the `frappe-flow` package, one pe
 
 `Read File` and `Grep` are built-in Flow Tools for inspecting the source of apps installed on the site. A System Manager can disable either tool globally or select which agents receive it from Desk.
 
+## Repository layout
+
+The Frappe app is the root of this repository. [`harness/`](harness/) is the flow server, published on PyPI as `frappe-flow`, with its own README, tests and tooling; run its commands from that folder. A bench installs the released package, so for development install the checkout instead:
+
+```bash
+bench pip install -e apps/flow/harness
+```
+
 ## License
 
 [GNU AGPLv3](license.txt)
