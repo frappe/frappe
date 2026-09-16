@@ -1521,12 +1521,12 @@ class TestQuery(IntegrationTestCase):
 		self.addCleanup(todo.delete, ignore_permissions=True)
 
 		hooks = (
-			"frappe.tests.test_query.test_single_user_raw_permission_hook",
-			"frappe.tests.test_query.test_single_user_criterion_permission_hook",
+			("frappe.tests.test_query.test_single_user_raw_permission_hook", True),
+			("frappe.tests.test_query.test_single_user_criterion_permission_hook", False),
 		)
-		for hook in hooks:
+		for hook, needs_subquery in hooks:
 			with self.subTest(hook=hook), self.patch_hooks({"permission_query_conditions": {"User": [hook]}}):
-				row = frappe.qb.get_query(
+				query = frappe.qb.get_query(
 					"ToDo",
 					filters={"name": todo.name},
 					fields=[
@@ -1535,8 +1535,12 @@ class TestQuery(IntegrationTestCase):
 						"assigned_by.full_name as assigned_title",
 					],
 					ignore_permissions=False,
-				).run(as_dict=True)[0]
+				)
+				# A criterion is re-pointed at the alias and stays inline, where an index
+				# can still be used. Raw SQL has no table to swap, so it needs a subquery.
+				self.assertEqual("(SELECT" in query.get_sql(), needs_subquery)
 
+				row = query.run(as_dict=True)[0]
 				self.assertEqual(row.name, todo.name)
 				self.assertEqual(
 					row.allocated_title, frappe.db.get_value("User", "test@example.com", "full_name")
