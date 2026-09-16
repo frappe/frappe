@@ -1,5 +1,5 @@
-import type { BlockOptions, BlockStyleMap, Slot } from "@/types";
-import type { TextBlockProps } from "@/types/studio_components/TextBlock";
+import type { BlockOptions, BlockStyleMap, Slot } from "@/types"
+import type { TextBlockProps } from "@/types/studio_components/TextBlock"
 
 export const familyTemplates = {
 	list: listTemplate,
@@ -12,7 +12,7 @@ export const familyTemplates = {
 	"settings-dialog": settingsDialogTemplate,
 	sidebar: sidebarTemplate,
 	"sidebar-label": sidebarLabelTemplate,
-} satisfies Record<string, () => BlockOptions>;
+} satisfies Record<string, () => BlockOptions>
 
 const MEMBERS = [
 	{ name: "Rosa Diaz", email: "rosa@example.com", role: "Admin", since: "2021-06" },
@@ -20,7 +20,7 @@ const MEMBERS = [
 	{ name: "Amy Santiago", email: "amy@example.com", role: "Admin", since: "2020-11" },
 	{ name: "Terry Jeffords", email: "terry@example.com", role: "Member", since: "2023-03" },
 	{ name: "Raymond Holt", email: "holt@example.com", role: "Guest", since: "2024-08" },
-];
+]
 
 function listTemplate(): BlockOptions {
 	return {
@@ -55,11 +55,7 @@ function listTemplate(): BlockOptions {
 						children: [
 							memberCell(),
 							listCell("{{ item.role }}", { color: "var(--ink-gray-7)" }),
-							listCell(
-								"{{ item.since }}",
-								{ color: "var(--ink-gray-6)" },
-								{ justifyContent: "flex-end" }
-							),
+							listCell("{{ item.since }}", { color: "var(--ink-gray-6)" }, { justifyContent: "flex-end" }),
 							{
 								componentName: "ListCell",
 								baseStyles: { justifyContent: "flex-end" } as BlockStyleMap,
@@ -75,7 +71,7 @@ function listTemplate(): BlockOptions {
 				]),
 			},
 		],
-	};
+	}
 }
 
 // Avatar with the member's name and email stacked beside it.
@@ -108,7 +104,7 @@ function memberCell(): BlockOptions {
 				],
 			},
 		],
-	};
+	}
 }
 
 // A minimal two-tab settings dialog
@@ -117,8 +113,8 @@ function settingsDialogTemplate(): BlockOptions {
 		componentName: "SettingsDialog",
 		blockName: "Settings Dialog",
 		componentProps: {
-			modelValue: false,
-			shortcut: false,
+			open: false,
+			keyboardShortcut: false,
 			unmountOnHide: false,
 			// active tab
 			tab: "profile",
@@ -152,7 +148,7 @@ function settingsDialogTemplate(): BlockOptions {
 				],
 			},
 		],
-	};
+	}
 }
 
 function sidebarTemplate(): BlockOptions {
@@ -199,7 +195,7 @@ function sidebarTemplate(): BlockOptions {
 				children: [{ componentName: "SidebarCollapseToggle" }],
 			},
 		],
-	};
+	}
 }
 
 // --- Standalone part templates ------------------------------------------
@@ -209,14 +205,14 @@ function sidebarTemplate(): BlockOptions {
 // banner guides the fix-up.
 
 function listRowTemplate(): BlockOptions {
-	return { componentName: "ListRow", children: [listCell("—"), listCell("—")] };
+	return { componentName: "ListRow", children: [listCell("—"), listCell("—")] }
 }
 
 function listHeaderTemplate(): BlockOptions {
 	return {
 		componentName: "ListHeader",
 		children: [listHeaderCell("Column 1"), listHeaderCell("Column 2")],
-	};
+	}
 }
 
 // Sample items + a row template in a real slot (scoped item/index/value) — the same
@@ -238,44 +234,44 @@ function listRowsTemplate(): BlockOptions {
 				children: [listCell("{{ item.title }}"), listCell("{{ item.status }}")],
 			},
 		]),
-	};
+	}
 }
 
 function listCellTemplate(): BlockOptions {
-	return listCell("Cell");
+	return listCell("Cell")
 }
 
 function listHeaderCellTemplate(): BlockOptions {
-	return listHeaderCell("Label");
+	return listHeaderCell("Label")
 }
 
 function listHeaderCellSortTemplate(): BlockOptions {
-	return { componentName: "ListHeaderCellSort", children: [textBlock("Label")] };
+	return { componentName: "ListHeaderCellSort", children: [textBlock("Label")] }
 }
 
 // A bare SidebarLabel paints nothing — its text lives in the default slot.
 function sidebarLabelTemplate(): BlockOptions {
-	return sidebarLabel("Label");
+	return sidebarLabel("Label")
 }
 
 function sidebarLabel(text: string): BlockOptions {
-	return { componentName: "SidebarLabel", children: [textBlock(text)] };
+	return { componentName: "SidebarLabel", children: [textBlock(text)] }
 }
 
 function sidebarItem(label: string, icon: string): BlockOptions {
-	return { componentName: "SidebarItem", componentProps: { label, icon } };
+	return { componentName: "SidebarItem", componentProps: { label, icon } }
 }
 
 export function listHeaderCell(label: string, styles: BlockStyleMap = {}): BlockOptions {
-	return { componentName: "ListHeaderCell", baseStyles: styles, children: [textBlock(label)] };
+	return { componentName: "ListHeaderCell", baseStyles: styles, children: [textBlock(label)] }
 }
 
 export function listCell(
 	text: string,
 	textStyles: BlockStyleMap = {},
-	cellStyles: BlockStyleMap = {}
+	cellStyles: BlockStyleMap = {},
 ): BlockOptions {
-	return { componentName: "ListCell", baseStyles: cellStyles, children: [textBlock(text, textStyles)] };
+	return { componentName: "ListCell", baseStyles: cellStyles, children: [textBlock(text, textStyles)] }
 }
 
 export function navItem(value: string, label: string): BlockOptions {
@@ -285,7 +281,7 @@ export function navItem(value: string, label: string): BlockOptions {
 		blockName: tabBlockName(label, "NavItem"),
 		componentProps: { value },
 		children: [textBlock(label)],
-	};
+	}
 }
 
 // "User settings" -> "UserSettingsNavItem" — friendly layer names for tab pairs
@@ -294,15 +290,15 @@ export function tabBlockName(label: string, suffix: "NavItem" | "Panel") {
 		.split(/[^a-zA-Z0-9]+/)
 		.filter(Boolean)
 		.map((word) => word[0].toUpperCase() + word.slice(1))
-		.join("");
-	return pascal ? pascal + suffix : suffix;
+		.join("")
+	return pascal ? pascal + suffix : suffix
 }
 
 export function settingsPanel(
 	value: string,
 	title: string,
 	description: string,
-	rows: BlockOptions[]
+	rows: BlockOptions[],
 ): BlockOptions {
 	return {
 		componentName: "SettingsPanel",
@@ -318,7 +314,7 @@ export function settingsPanel(
 				children: rows,
 			},
 		],
-	};
+	}
 }
 
 function settingsRow(title: string, description: string, control: BlockOptions): BlockOptions {
@@ -326,25 +322,25 @@ function settingsRow(title: string, description: string, control: BlockOptions):
 		componentName: "SettingsRow",
 		componentProps: { title, description },
 		children: [control],
-	};
+	}
 }
 
 function textBlock(
 	text: string,
 	styles: BlockStyleMap = {},
-	fontSize?: TextBlockProps["fontSize"]
+	fontSize?: TextBlockProps["fontSize"],
 ): BlockOptions {
 	return {
 		componentName: "TextBlock",
 		baseStyles: styles,
 		componentProps: { text, tag: "span", ...(fontSize && { fontSize }) },
-	};
+	}
 }
 
 // Wrap blocks as a component's default-slot content to access slot scope
 function withDefaultSlot(content: BlockOptions[]): Record<string, Slot> {
-	content.forEach((block) => (block.parentSlotName = "default"));
+	content.forEach((block) => (block.parentSlotName = "default"))
 	return {
 		default: { slotName: "default", slotContent: content },
-	} as unknown as Record<string, Slot>;
+	} as unknown as Record<string, Slot>
 }

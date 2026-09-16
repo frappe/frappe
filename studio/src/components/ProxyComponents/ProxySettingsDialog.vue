@@ -20,10 +20,10 @@ import ProxyDialog from "@/components/ProxyComponents/ProxyDialog.vue"
 // StudioComponent binds all of SettingsDialog's props; only `tab` and `size` matter here.
 // The modal/teleport/shortcut behaviour is intentionally dropped so the dialog shows inline.
 const props = defineProps<{
-	modelValue?: boolean
+	open?: boolean
 	tab?: string | number
 	size?: string
-	shortcut?: boolean
+	keyboardShortcut?: string | false
 	unmountOnHide?: boolean
 }>()
 

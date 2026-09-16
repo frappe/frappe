@@ -92,7 +92,7 @@ export const COMPONENTS: FrappeUIComponents = {
 		initialState: {
 			title: "This user is inactive",
 			description: "Please enable the user to allow login access.",
-			theme: "yellow",
+			theme: "amber",
 		},
 	},
 	Avatar: {
@@ -149,8 +149,8 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: LucideCircleCheck,
 		initialState: {
 			label: "Enable feature",
-			padding: true,
-			checked: true,
+			padded: true,
+			modelValue: true,
 		},
 	},
 	CodeEditor: {
@@ -614,8 +614,11 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Tabs",
 		icon: LucideArrowRightLeft,
 		initialState: {
-			as: "div",
-			tabs: [{ label: "Github" }, { label: "Twitter" }, { label: "Linkedin" }],
+			tabs: [
+				{ label: "Github", value: "github" },
+				{ label: "Twitter", value: "twitter" },
+				{ label: "Linkedin", value: "linkedin" },
+			],
 		},
 		expandArrayProps: true,
 	},
@@ -695,51 +698,48 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Tree",
 		icon: LucideListTree,
 		initialState: {
-			options: {
-				showIndentationGuides: true,
-				rowHeight: "25px",
-				indentWidth: "15px",
-			},
 			nodeKey: "name",
-			node: {
-				name: "guest",
-				label: "Guest",
-				children: [
-					{
-						name: "downloads",
-						label: "Downloads",
-						children: [
-							{
-								name: "download.zip",
-								label: "download.zip",
-								children: [
-									{
-										name: "image.png",
-										label: "image.png",
-										children: [],
-									},
-								],
-							},
-						],
-					},
-					{
-						name: "documents",
-						label: "Documents",
-						children: [
-							{
-								name: "somefile.txt",
-								label: "somefile.txt",
-								children: [],
-							},
-							{
-								name: "somefile.pdf",
-								label: "somefile.pdf",
-								children: [],
-							},
-						],
-					},
-				],
-			},
+			nodes: [
+				{
+					name: "guest",
+					label: "Guest",
+					children: [
+						{
+							name: "downloads",
+							label: "Downloads",
+							children: [
+								{
+									name: "download.zip",
+									label: "download.zip",
+									children: [
+										{
+											name: "image.png",
+											label: "image.png",
+											children: [],
+										},
+									],
+								},
+							],
+						},
+						{
+							name: "documents",
+							label: "Documents",
+							children: [
+								{
+									name: "somefile.txt",
+									label: "somefile.txt",
+									children: [],
+								},
+								{
+									name: "somefile.pdf",
+									label: "somefile.pdf",
+									children: [],
+								},
+							],
+						},
+					],
+				},
+			],
 		},
 	},
 	// Studio Components
@@ -1225,4 +1225,3 @@ export default {
 	getParts,
 	get,
 }
-
