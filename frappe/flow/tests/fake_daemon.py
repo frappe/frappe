@@ -68,9 +68,7 @@ class FakeDaemon:
 		self.running = running
 		self.running_for = 0
 		self.paused = bool(
-			self.rows
-			and self.rows[-1].get("type") == "run_ended"
-			and self.rows[-1].get("reason") == "paused"
+			self.rows and self.rows[-1].get("type") == "run_ended" and self.rows[-1].get("reason") == "paused"
 		)
 		self.title = title
 		self.missing = missing
