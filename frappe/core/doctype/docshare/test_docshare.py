@@ -5,6 +5,7 @@ import frappe
 import frappe.share
 from frappe.automation.doctype.auto_repeat.test_auto_repeat import create_submittable_doctype
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import queued_docinfo_updates
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 
@@ -118,6 +119,24 @@ class TestDocShare(IntegrationTestCase):
 
 		frappe.set_user(self.user)
 		self.assertFalse(self.event.has_permission("share"))
+
+	def test_share_changes_reach_the_document_room(self):
+		"""A share made by a user with share permission announces itself to open record pages."""
+		frappe.share.add("Event", self.event.name, self.user, write=1, share=1)
+		seen = len(queued_docinfo_updates("shared"))
+
+		frappe.set_user(self.user)
+		frappe.share.add("Event", self.event.name, "test1@example.com")
+		frappe.share.set_permission("Event", self.event.name, "test1@example.com", "write")
+		frappe.share.remove("Event", self.event.name, "test1@example.com")
+
+		updates = queued_docinfo_updates("shared")[seen:]
+		self.assertEqual([u["action"] for u in updates], ["add", "update", "delete"])
+		for update in updates:
+			self.assertEqual(update["doc"]["reference_doctype"], "Event")
+			self.assertEqual(update["doc"]["reference_name"], self.event.name)
+			self.assertEqual(update["doc"]["user"], "test1@example.com")
+		self.assertEqual(updates[1]["doc"]["write"], 1)
 
 	def test_share_with_everyone(self):
 		self.assertTrue(self.event.name not in frappe.share.get_shared("Event", self.user))

@@ -24,6 +24,9 @@ interface Options<T extends object> {
 
 // A log row's delta does not carry the bucket the sidecar derives from it (`assignments`, `attachments`).
 const DERIVED_LOGS = new Set(["assignment_logs", "attachment_logs"]);
+// The row published is not the bucket's row (`tags` is a joined string, `shared` and `favourites`
+// are shaped by the sidecar), so the delta only says "re-read".
+const REREAD_ONLY = new Set(["shared", "tags", "favourites"]);
 
 /**
  * Follows one record at a time: `follow` joins its room, `dispose` leaves it and stops listening.
@@ -97,8 +100,8 @@ export function useLiveDocinfo<T extends object>({ socket, docinfo, reload }: Op
 			deltaBeforeDocinfo = true;
 			return;
 		}
-		docinfo.value = applyDocinfoUpdate(docinfo.value, event);
-		if (DERIVED_LOGS.has(event.key)) reloadSoon(target);
+		if (!REREAD_ONLY.has(event.key)) docinfo.value = applyDocinfoUpdate(docinfo.value, event);
+		if (DERIVED_LOGS.has(event.key) || REREAD_ONLY.has(event.key)) reloadSoon(target);
 	}
 
 	function onDisconnect() {

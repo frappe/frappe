@@ -5,6 +5,7 @@ import frappe
 from frappe.desk.doctype.favourite.favourite import get_favourites, toggle_favourite
 from frappe.desk.form.load import get_docinfo
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import queued_docinfo_updates
 
 DESK_USER = "favourite-plain@example.com"
 
@@ -98,6 +99,24 @@ class TestFavourite(IntegrationTestCase):
 		frappe.rename_doc("User", old, new, force=True)
 		self.assertFalse(frappe.db.exists("Favourite", {"user": old}))
 		self.assertEqual(self._users(todo), [new])
+
+	def test_toggles_reach_the_record_room(self):
+		"""A plain user's favourite announces itself to open record pages, add and remove alike."""
+		theirs = self._todo("watched by the plain user", allocated_to=DESK_USER)
+		seen = len(queued_docinfo_updates("favourites"))
+
+		with self.set_user(DESK_USER):
+			toggle_favourite("ToDo", theirs.name, add=True)
+			toggle_favourite("ToDo", theirs.name, add=False)
+		self.assertEqual(self._users(theirs), [])
+		self.assertFalse(frappe.db.exists("Comment", {"reference_doctype": "Favourite"}))
+
+		updates = queued_docinfo_updates("favourites")[seen:]
+		self.assertEqual([u["action"] for u in updates], ["add", "delete"])
+		for update in updates:
+			self.assertEqual(update["doc"]["reference_doctype"], "ToDo")
+			self.assertEqual(update["doc"]["reference_name"], theirs.name)
+			self.assertEqual(update["doc"]["user"], DESK_USER)
 
 	def test_needs_read_on_the_record(self):
 		# A ToDo is visible to its owner and its assignee; a plain user sees neither of these.

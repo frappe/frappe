@@ -24,10 +24,36 @@ class TagLink(Document):
 
 	# end: auto-generated types
 
+	no_feed_on_delete = True
+
 	def clear_cache(self):
 		super().clear_cache()
 		if has_tags(self.document_type):
 			frappe.client_cache.delete_value(f"doctype_has_tags::{self.document_type}")
+
+	def after_insert(self):
+		self.notify_change("add")
+
+	def on_trash(self):
+		self.notify_change("delete")
+
+	def notify_change(self, action):
+		"""Tell the tagged document's room that its `tags` bucket changed."""
+		frappe.publish_realtime(
+			"docinfo_update",
+			{
+				"doc": {
+					"reference_doctype": self.document_type,
+					"reference_name": self.document_name,
+					**self.as_dict(),
+				},
+				"key": "tags",
+				"action": action,
+			},
+			doctype=self.document_type,
+			docname=self.document_name,
+			after_commit=True,
+		)
 
 
 def on_doctype_update():
