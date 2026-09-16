@@ -45,22 +45,17 @@ frappe.ui.SortSelector = class SortSelector {
 		}
 		if (this.sort_order !== sort_order) {
 			this.sort_order = sort_order;
-<<<<<<< HEAD
-			const title = sort_order === "desc" ? __("ascending") : __("descending");
-			const icon_name = sort_order === "asc" ? "sort-ascending" : "sort-descending";
-=======
 			const SORT_TITLE_AND_ICON = {
 				desc: {
 					title: __("descending"),
-					icon: "arrow-down-wide-narrow",
+					icon: "sort-descending",
 				},
 				asc: {
 					title: __("ascending"),
-					icon: "arrow-up-narrow-wide",
+					icon: "sort-ascending",
 				},
 			};
 			const { title, icon } = SORT_TITLE_AND_ICON[sort_order];
->>>>>>> c156628 (fix: sort selector in list view (#42907))
 			$btn.attr("data-value", sort_order);
 			$btn.attr("title", title);
 			$icon.html(frappe.utils.icon(icon, "sm"));
