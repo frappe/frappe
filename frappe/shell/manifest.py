@@ -55,23 +55,23 @@ def read_package(path: str) -> dict:
 		return json.load(f)
 
 
-def package_json_path(app: str) -> str:
+def package_json_path(app: str, source_dir: str) -> str:
 	# frappe's own declaration is `frontend/package.base.json`; `frappe/package.json` is desk v1's
 	# esbuild stack, a different bundle with different pins.
 	if app == "frappe":
 		return os.path.join(frontend_dir(), "package.base.json")
-	return os.path.join(frappe.get_app_path(app, ".."), "package.json")
+	return os.path.normpath(os.path.join(source_dir, "..", "package.json"))
 
 
 def app_deps(app: str) -> dict[str, str]:
 	"""The app's own declared dependencies, dev included."""
-	package = read_package(package_json_path(app))
+	package = read_package(package_json_path(app, frappe.get_app_path(app)))
 	return {**package.get("dependencies", {}), **package.get("devDependencies", {})}
 
 
 def app_runtime_deps(app: str) -> dict[str, str]:
 	"""Only what contributed source can import: `dependencies`, never `devDependencies`."""
-	return read_package(package_json_path(app)).get("dependencies", {})
+	return read_package(package_json_path(app, frappe.get_app_path(app))).get("dependencies", {})
 
 
 def app_import_map(app: str) -> dict[str, str]:
@@ -148,13 +148,14 @@ def import_map_problems(entry: dict) -> list[str]:
 			if package_name(value) not in entry["runtime_deps"]:
 				problems.append(
 					f"{app} publishes `{name}` from `{value}`, which "
-					f"{bench_relative(package_json_path(app))} does not declare under dependencies"
+					f"{bench_relative(package_json_path(app, source_dir))} does not declare under dependencies"
 				)
 			continue
 
-		# `/lib/x.js` is rooted at the source dir, not the filesystem; `..` may still climb out.
-		target = os.path.normpath(os.path.join(source_dir, value.lstrip("/")))
-		if not target.startswith(os.path.normpath(source_dir) + os.sep):
+		# `/lib/x.js` is rooted at the source dir, not the filesystem; `..` or a symlink may still climb out.
+		root = os.path.realpath(source_dir)
+		target = os.path.realpath(os.path.join(root, value.lstrip("/")))
+		if not target.startswith(root + os.sep):
 			problems.append(
 				f"{app} publishes `{name}` from `{value}`, which resolves outside {bench_relative(source_dir)}"
 			)

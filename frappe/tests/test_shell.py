@@ -441,18 +441,39 @@ class TestImportMapEnforcement(IntegrationTestCase):
 		(problem,) = import_map_problems(self.entry({"crm/lib": "./frontend/lib"}))
 		self.assertTrue(problem.endswith("which is not a file"))
 
+	def test_a_symlink_out_of_the_source_dir_is_refused(self):
+		outside = tempfile.mkdtemp(prefix="elsewhere")
+		self.addCleanup(shutil.rmtree, outside)
+		with open(os.path.join(outside, "index.js"), "w") as f:
+			f.write("export const x = 1;\n")
+		os.symlink(
+			os.path.join(outside, "index.js"), os.path.join(self.source_dir, "frontend", "lib", "link.js")
+		)
+		(problem,) = import_map_problems(self.entry({"crm/lib": "./frontend/lib/link.js"}))
+		self.assertIn("resolves outside", problem)
+
 	def test_publishing_alone_puts_an_app_in_the_bundle(self):
 		"""An app that contributes no file but publishes one is bundled; one that does neither is not."""
-		app = next(app for app in frappe.get_installed_apps() if app != "frappe")
-		with patch("frappe.shell.manifest.contributes", return_value=False):
+		# CI installs frappe alone, so the second app is the invented one, located at the temp dir.
+		real_path = frappe.get_app_path
+		with (
+			a_second_app() as (app, _),
+			patch.object(frappe, "get_all_apps", return_value=["frappe", app]),
+			patch.object(
+				frappe,
+				"get_app_path",
+				side_effect=lambda name, *rest: self.source_dir if name == app else real_path(name, *rest),
+			),
+		):
 			with patch("frappe.shell.manifest.app_import_map", side_effect=lambda a: {}):
 				self.assertNotIn(app, [entry["app"] for entry in assemble()])
-			published = {f"{app}/lib": "./lib/index.js"}
+			published = {f"{app}/lib": "./frontend/lib/index.js"}
 			with patch(
 				"frappe.shell.manifest.app_import_map", side_effect=lambda a: published if a == app else {}
 			):
 				entry = next(entry for entry in assemble() if entry["app"] == app)
-		self.assertEqual(entry["import_map"], published)
+				self.assertEqual(entry["import_map"], published)
+				self.assertEqual(import_map_problems(entry), [])
 
 	def test_every_problem_is_reported_in_one_failure(self):
 		manifest = [
