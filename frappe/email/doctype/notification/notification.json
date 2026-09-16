@@ -393,7 +393,11 @@
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2026-04-22 15:37:19.355265",
+=======
+ "modified": "2026-09-03 18:00:00.000000",
+>>>>>>> c6ab5cf (Revert "feat(notification): fill Subject and Message from an Email Template")
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",
