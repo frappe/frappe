@@ -1,6 +1,7 @@
 import { reactive } from "vue"
 
 import { FlowAPIError } from "./client.js"
+import { onSidebarLayoutChange, sidebarIsDrawer } from "./layout.js"
 import {
 	applyEvent,
 	conversationTitle,
@@ -73,6 +74,9 @@ export function createFlowStore(client, options = {}) {
 	}
 	if (typeof prefs.customInstructions !== "string") prefs.customInstructions = ""
 
+	// the docked sidebar follows the saved preference; a drawer starts closed and is never saved
+	const sidebarFromPrefs = () => !sidebarIsDrawer() && prefs.sidebarOpen !== false
+
 	const state = reactive({
 		sessions: [],
 		sessionsMore: false, // the host has pages past the last row
@@ -94,6 +98,7 @@ export function createFlowStore(client, options = {}) {
 		// later) — editor tabs: { kind, path, name, content, error, loading, dirty },
 		// content being the last server-confirmed text (the editor owns unsaved edits)
 		workspace: { open: false, maximized: false, tabs: [], active: null, view: null },
+		sidebarOpen: sidebarFromPrefs(),
 		settingsOpen: false,
 		prefs,
 		// agent presets: { id, name, tools, extensionTools, promptMode, prompt }
@@ -103,6 +108,8 @@ export function createFlowStore(client, options = {}) {
 		titles: readJSON(keys.titles, {}),
 		sessionPresets: readJSON(keys.sessionPresets, {}), // session id -> the preset it was created with
 	})
+
+	onSidebarLayoutChange(() => (state.sidebarOpen = sidebarFromPrefs()))
 
 	let stream = null
 	let streamTask = null
@@ -1038,6 +1045,8 @@ export function createFlowStore(client, options = {}) {
 	}
 
 	function setSidebarOpen(open) {
+		state.sidebarOpen = open
+		if (sidebarIsDrawer()) return
 		state.prefs.sidebarOpen = open
 		savePrefs()
 	}

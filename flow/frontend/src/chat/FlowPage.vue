@@ -115,7 +115,7 @@ provide("flow", store);
 provide("flowPage", page);
 useColorScheme();
 
-const sidebarOpen = computed(() => store.state.prefs.sidebarOpen !== false);
+const sidebarOpen = computed(() => store.state.sidebarOpen);
 // the composer asks in the name of the agent that answers
 const placeholder = computed(() => {
 	const name = store.state.session?.agent ?? page.state.agent;

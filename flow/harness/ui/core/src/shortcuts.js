@@ -9,7 +9,7 @@ export const SHORTCUTS = [
 	{
 		combo: { mod: true, code: "KeyB" },
 		description: "Toggle the session sidebar",
-		run: (store) => store.setSidebarOpen(store.state.prefs.sidebarOpen === false),
+		run: (store) => store.setSidebarOpen(!store.state.sidebarOpen),
 	},
 	{
 		combo: { mod: true, alt: true, code: "KeyB" },

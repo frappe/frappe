@@ -216,6 +216,7 @@ import FeatherIcon from "./FeatherIcon.vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
 import { useDebouncedValue } from "../debounce.js"
+import { sidebarIsDrawer } from "../layout.js"
 import BrandMark from "./BrandMark.vue"
 import PopMenu from "./PopMenu.vue"
 
@@ -269,12 +270,6 @@ function selectProject(cwd) {
 	projectMenu.value = false
 }
 
-// below md the sidebar is a drawer over the chat: it starts closed and closes once a chat is picked
-const drawer = () => !window.matchMedia("(min-width: 768px)").matches
-onMounted(() => {
-	if (drawer() && props.open) emit("close")
-})
-
 // touch has no hover to reveal a row's menu button: a long press opens its menu instead
 let pressTimer = null
 let pressed = false // the click that ends a long press must not open the chat
@@ -292,18 +287,19 @@ function pressEnd() {
 }
 onBeforeUnmount(pressEnd)
 
+// a drawer closes once a chat is picked
 function pick(session) {
 	if (pressed) {
 		pressed = false
 		return
 	}
 	flow.openSession(session.session_id)
-	if (drawer()) emit("close")
+	if (sidebarIsDrawer()) emit("close")
 }
 
 function startNewChat() {
 	flow.startNewChat({ cwd: selectedProject.value })
-	if (drawer()) emit("close")
+	if (sidebarIsDrawer()) emit("close")
 }
 
 watch(projects, (available) => {
