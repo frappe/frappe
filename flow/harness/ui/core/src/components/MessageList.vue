@@ -16,7 +16,7 @@
 		>
 			<slot name="empty">
 				<BrandMark :size="48" />
-				<h2 class="text-5xl font-normal text-ink-gray-9">What would you like to build?</h2>
+				<h2 class="max-w-xs text-5xl font-normal text-ink-gray-9 sm:max-w-none">What would you like to build?</h2>
 			</slot>
 		</div>
 		<div
