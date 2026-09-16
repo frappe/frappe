@@ -6,6 +6,7 @@ import vue from "@vitejs/plugin-vue";
 import frappeui from "frappe-ui/vite";
 import contributions from "./plugin/contributions.js";
 import oneTree from "./plugin/oneTree.js";
+import importMap from "./plugin/importMap.js";
 import { readManifest, readAllSourceDirs } from "./plugin/manifest.js";
 
 // Assembled by Python, which also enforces singletons before vite is spawned.
@@ -28,6 +29,8 @@ export default defineConfig(({ command }) => ({
 		vue(),
 		contributions(manifest, allSourceDirs),
 		oneTree(manifest),
+		// Publishes the names a stored Client Script may import; see the plugin.
+		importMap(),
 	],
 	resolve: {
 		alias: {

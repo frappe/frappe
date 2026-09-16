@@ -11,5 +11,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src/**/*.ts", "src/**/*.vue", "plugin/**/*.js"]
+  "include": ["src/**/*.ts", "src/**/*.vue", "plugin/**/*.js", "plugin/**/*.ts"]
 }

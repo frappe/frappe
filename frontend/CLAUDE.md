@@ -173,8 +173,11 @@ deliberately tiny, and its size is the argument. Keep it that way (`DP2`).
 
 Do not "fix" these:
 
-- **`frontend/index.html` has no boot island**, no `__FRONTEND_ROUTE__`, no
-  `__SOCKETIO_PORT__` and no import map. It is supposed to look under-populated.
+- **`frontend/index.html` has no boot island**, no `__FRONTEND_ROUTE__` and no
+  `__SOCKETIO_PORT__`. It is supposed to look under-populated. The one thing the build
+  adds is an import map (`plugin/importMap.js`), for stored Client Scripts only: they are
+  evaluated as blob-URL modules, which resolve a bare `import "vue"` through the map or
+  not at all. It is a resolution table, not a dedupe device; one bundle has one `vue`.
 - **`frappeui()` is called with `jinjaBootData: false` and `buildConfig: false`, and no
   `frontendRoute`** (`vite.config.js`). Turning any of them back on is a regression.
 - **The router cannot be a module-scope singleton** — boot must resolve first, because the
@@ -189,7 +192,9 @@ Do not "fix" these:
   and `view`/`layout`/`from` are query params by decision.
 - **The shared library list is `SINGLETONS` (`frappe/shell/manifest.py:14`)** — `vue`,
   `vue-router`, `frappe-ui`, `@framework/ui`, `reka-ui`, `dompurify` — enforced at build
-  time and documented nowhere else. For the `frappe` app itself, deps are read from
+  time and documented nowhere else. **The list a stored script may import is a different
+  one**, `PUBLISHED` in `plugin/importMap.js`: what the build enforces is not thereby
+  offered to script authors (#42071). For the `frappe` app itself, deps are read from
   `frontend/package.base.json`, **not** `frappe/package.json`, which is desk v1's esbuild
   stack.
 - **`package.base.json` pins `resolutions: { vite }`** because vitest declares a wide vite
