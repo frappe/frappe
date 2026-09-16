@@ -1,10 +1,57 @@
+from unittest.mock import patch
+
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.tests import IntegrationTestCase
 from frappe.www.printview import get_html_and_style
 
+EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
+
 
 class PrintViewTest(IntegrationTestCase):
+	def test_print_preview_displays_link_titles(self):
+		from frappe.www.printpreview import get_context
+
+		doc, links = self._make_linked_print_doc()
+		custom_format = frappe.get_doc(
+			doctype="Print Format",
+			name=frappe.generate_hash(),
+			doc_type=doc.doctype,
+			custom_format=1,
+			html="""
+				{{ doc.get_formatted('reference') }}
+				{{ doc.entries[0].get_formatted('reference', doc) }}
+			""",
+		).insert()
+		for print_format in ("Standard", custom_format.name):
+			with self.subTest(print_format=print_format):
+				params = frappe._dict(doctype=doc.doctype, name=doc.name, print_format=print_format)
+				with self.set_user("test@example.com"), patch.object(frappe.local, "form_dict", params):
+					context = frappe._dict()
+					get_context(context)
+				self._assert_print_link_titles(context.body, doc, links)
+
+	def test_builder_preview_displays_link_titles(self):
+		from frappe.utils.print_format_generator import (
+			download_builder_preview_pdf,
+			render_builder_preview,
+		)
+		from frappe.www.printview import resolve_print_format
+
+		doc, links = self._make_linked_print_doc()
+		print_format, _ = resolve_print_format("Standard", doc.meta)
+		print_format.pdf_generator = "chrome"
+		with self.set_user("test@example.com"):
+			html = render_builder_preview(print_format.as_dict(), doc.doctype, doc.name)
+			self._assert_print_link_titles(html, doc, links)
+			with (
+				patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"pdf") as render_pdf,
+				patch.object(frappe.local, "response", frappe._dict()),
+			):
+				download_builder_preview_pdf(print_format.as_dict(), doc.doctype, doc.name)
+				self.assertEqual(frappe.local.response.filecontent, b"pdf")
+			self._assert_print_link_titles(render_pdf.call_args.kwargs["html"], doc, links)
+
 	def test_print_view_without_errors(self):
 		user = frappe.get_last_doc("User")
 
@@ -148,3 +195,43 @@ class PrintViewTest(IntegrationTestCase):
 		# without a doctype default it still degrades to the built-in format
 		drop_default()
 		self.assertIsNone(get_print_format_doc("None", frappe.get_meta("Note")))
+
+	def _make_linked_print_doc(self):
+		linked_doctype = new_doctype(title_field="some_fieldname", show_title_field_in_link=1).insert()
+		link_field = {
+			"fieldname": "reference",
+			"label": "Reference",
+			"fieldtype": "Link",
+			"options": linked_doctype.name,
+			"in_list_view": 1,
+		}
+		child_doctype = new_doctype(istable=1, fields=[link_field]).insert()
+		doctype = new_doctype(
+			fields=[
+				link_field,
+				{
+					"fieldname": "entries",
+					"label": "Entries",
+					"fieldtype": "Table",
+					"options": child_doctype.name,
+				},
+			]
+		).insert()
+		links = [
+			frappe.get_doc(doctype=linked_doctype.name, some_fieldname=title).insert()
+			for title in ("Parent Link Title", "Child Link Title")
+		]
+		doc = frappe.get_doc(
+			doctype=doctype.name,
+			reference=links[0].name,
+			entries=[{"reference": links[1].name}],
+		).insert()
+		return doc, links
+
+	def _assert_print_link_titles(self, html, doc, links):
+		for link in links:
+			self.assertIn(link.some_fieldname, html)
+			self.assertNotIn(link.name, html)
+		stored_doc = frappe.get_doc(doc.doctype, doc.name)
+		self.assertEqual(stored_doc.reference, links[0].name)
+		self.assertEqual(stored_doc.entries[0].reference, links[1].name)

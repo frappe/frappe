@@ -158,15 +158,27 @@ export default class ChartWidget extends Widget {
 
 		this.island_handle.ready.then(
 			() => this.loading.hide(),
-			(e) => {
-				console.error(e);
-				this.chart_wrapper.hide();
-				this.loading.hide();
-				this.empty.hide();
-				this.error_state.text(__("Could not draw this chart: {0}", [e.message]));
-				this.error_state.show();
-			}
+			(error) => this.show_island_error(error)
 		);
+	}
+
+	// the error names a build step: console always, screen only in developer mode
+	show_island_error(error) {
+		console.error(`could not mount the "${this.island.name}" island`, error);
+
+		this.chart_wrapper.hide();
+		this.loading.hide();
+		this.empty.hide();
+		this.error_state.empty().append(
+			frappe.ui.empty_state({
+				icon: "package",
+				title: __("This chart has not been built"),
+				description: frappe.boot.developer_mode
+					? error.message
+					: __("Its assets are missing. Build the app that ships it."),
+			})
+		);
+		this.error_state.show();
 	}
 
 	/**

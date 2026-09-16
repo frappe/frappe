@@ -22,12 +22,6 @@
 	// the sidebar and the whole page beside it jumped 164px at once.
 	transition: flex-basis 0.18s ease, width 0.18s ease;
 	height: 100vh;
-	// One above `.body-sidebar-container`, which is also 1020 and comes later in the DOM. Equal
-	// z-index means DOM order decides, so the sidebar used to paint over anything the rail hung
-	// past its right edge -- and a child could not climb out, because this z-index makes the rail
-	// a stacking context. The rail and the sidebar sit side by side rather than overlapping, so
-	// the only thing this changes is which of them owns that overhang.
-	z-index: 1021;
 
 	display: flex;
 	flex-direction: column;

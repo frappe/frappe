@@ -645,16 +645,18 @@ def validate_auth():
 	"""
 	authorization_header = frappe.get_request_header("Authorization", "").split(" ")
 	user_before_auth = frappe.session.user
+	oauth_client_auth = _is_oauth_client_auth(authorization_header)
 
 	if len(authorization_header) == 2:
 		validate_oauth(authorization_header)
-		validate_auth_via_api_keys(authorization_header)
+		if not oauth_client_auth:
+			validate_auth_via_api_keys(authorization_header)
 
 	validate_auth_via_hooks()
 
 	# If login via bearer, basic or keypair didn't work then authentication failed and we
 	# should terminate here.
-	if len(authorization_header) == 2 and frappe.session.user in ("", "Guest"):
+	if len(authorization_header) == 2 and not oauth_client_auth and frappe.session.user in ("", "Guest"):
 		raise frappe.AuthenticationError
 
 	# `restrict_ip` is enforced for interactive logins in `LoginManager.post_login` and for
@@ -663,6 +665,27 @@ def validate_auth():
 	# and bearer tokens bypass the user's IP restrictions entirely.
 	if frappe.session.user != user_before_auth and frappe.session.user not in ("", "Guest"):
 		validate_ip_address(frappe.session.user)
+
+
+def _is_oauth_client_auth(authorization_header) -> bool:
+	"""True if the request carries OAuth client credentials, which OAuthLib authenticates itself.
+
+	Matched on the resolved method name so that every route form is covered: `/api/method/<m>`,
+	`/api/v1/method/<m>`, `/api/v2/method/<m>`, each with an optional trailing slash, and the
+	deprecated `?cmd=<m>`. A false positive only leaves the session as Guest, never grants access.
+	"""
+	from frappe.integrations.oauth2 import ENDPOINTS
+
+	if len(authorization_header) != 2 or authorization_header[0].lower() != "basic":
+		return False
+
+	client_auth_methods = {
+		ENDPOINTS["token_endpoint"].rpartition("/")[2],
+		ENDPOINTS["revocation_endpoint"].rpartition("/")[2],
+	}
+	return bool(
+		client_auth_methods & {frappe.request.path.removesuffix("/").rpartition("/")[2], frappe.form_dict.cmd}
+	)
 
 
 def validate_oauth(authorization_header):

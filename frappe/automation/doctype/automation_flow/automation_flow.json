@@ -1,0 +1,267 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:AUTO-{#####}",
+ "creation": "2026-07-11 21:05:04.231189",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "document_type",
+  "column_break_basic",
+  "enabled",
+  "disabled_reason",
+  "trigger_section",
+  "trigger_type",
+  "trigger_field",
+  "from_value",
+  "to_value",
+  "column_break_trigger",
+  "custom_event",
+  "date_field",
+  "date_offset",
+  "date_direction",
+  "cron_expression",
+  "next_run",
+  "conditions_section",
+  "filters_editor",
+  "filters",
+  "advanced_condition_section",
+  "condition",
+  "relationships",
+  "revalidate_on_run",
+  "actions_section",
+  "actions",
+  "settings_section",
+  "run_as",
+  "automation_user",
+  "stop_on_error"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "description": "Blocked for child tables (istable). Required for document and date-based triggers.",
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Document Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "column_break_basic",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Enabling requires at least one action and a valid trigger.",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Enabled"
+  },
+  {
+   "depends_on": "disabled_reason",
+   "fieldname": "disabled_reason",
+   "fieldtype": "Small Text",
+   "label": "Disabled Reason",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trigger_section",
+   "fieldtype": "Section Break",
+   "label": "Trigger"
+  },
+  {
+   "fieldname": "trigger_type",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Trigger Type",
+   "options": "Doc Created\nDoc Updated\nField Value Changed\nDoc Deleted\nDoc Submitted\nDoc Cancelled\nDate Based\nScheduled\nCustom Event\nManual",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.trigger_type=='Field Value Changed'",
+   "fieldname": "trigger_field",
+   "fieldtype": "Select",
+   "label": "Trigger Field"
+  },
+  {
+   "depends_on": "eval:doc.trigger_type=='Field Value Changed'",
+   "description": "Empty = any value.",
+   "fieldname": "from_value",
+   "fieldtype": "Data",
+   "label": "From Value"
+  },
+  {
+   "depends_on": "eval:doc.trigger_type=='Field Value Changed'",
+   "description": "Empty = any value.",
+   "fieldname": "to_value",
+   "fieldtype": "Data",
+   "label": "To Value"
+  },
+  {
+   "fieldname": "column_break_trigger",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.trigger_type=='Custom Event'",
+   "description": "Matches the event name passed to emit().",
+   "fieldname": "custom_event",
+   "fieldtype": "Data",
+   "label": "Custom Event"
+  },
+  {
+   "depends_on": "eval:doc.trigger_type=='Date Based'",
+   "fieldname": "date_field",
+   "fieldtype": "Select",
+   "label": "Date Field"
+  },
+  {
+   "depends_on": "eval:doc.trigger_type=='Date Based'",
+   "fieldname": "date_offset",
+   "fieldtype": "Int",
+   "label": "Date Offset (Days)"
+  },
+  {
+   "depends_on": "eval:doc.trigger_type=='Date Based'",
+   "fieldname": "date_direction",
+   "fieldtype": "Select",
+   "label": "Date Direction",
+   "options": "Before\nAfter"
+  },
+  {
+   "depends_on": "eval:doc.trigger_type=='Scheduled'",
+   "description": "Standard 5-field cron, for example <code>0 9 * * 1</code>.",
+   "fieldname": "cron_expression",
+   "fieldtype": "Data",
+   "label": "Cron Expression"
+  },
+  {
+   "depends_on": "eval:doc.trigger_type=='Scheduled'",
+   "fieldname": "next_run",
+   "fieldtype": "Datetime",
+   "label": "Next Run",
+   "no_copy": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "conditions_section",
+   "fieldtype": "Section Break",
+   "label": "Conditions"
+  },
+  {
+   "fieldname": "filters_editor",
+   "fieldtype": "HTML",
+   "label": "Match Fields"
+  },
+  {
+   "fieldname": "filters",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Filters",
+   "options": "JSON",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "condition",
+   "fieldname": "advanced_condition_section",
+   "fieldtype": "Section Break",
+   "label": "Advanced Condition"
+  },
+  {
+   "description": "Optional. For logic the match fields cannot express, such as OR groups. The document is available as <code>doc</code>; the match fields and this expression must all be true.",
+   "fieldname": "condition",
+   "fieldtype": "Code",
+   "label": "Advanced Expression using Python",
+   "options": "PythonExpression"
+  },
+  {
+   "fieldname": "relationships",
+   "fieldtype": "JSON",
+   "label": "Relationships"
+  },
+  {
+   "default": "0",
+   "description": "Re-check filters and condition in the worker before executing.",
+   "fieldname": "revalidate_on_run",
+   "fieldtype": "Check",
+   "label": "Revalidate on Run"
+  },
+  {
+   "fieldname": "actions_section",
+   "fieldtype": "Section Break",
+   "label": "Actions"
+  },
+  {
+   "fieldname": "actions",
+   "fieldtype": "Table",
+   "label": "Actions",
+   "options": "Automation Action"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "settings_section",
+   "fieldtype": "Section Break",
+   "label": "Settings"
+  },
+  {
+   "default": "Automation User",
+   "fieldname": "run_as",
+   "fieldtype": "Select",
+   "label": "Run As",
+   "options": "Triggering User\nDocument Owner\nAutomation User"
+  },
+  {
+   "default": "Administrator",
+   "depends_on": "eval:doc.run_as=='Automation User'",
+   "fieldname": "automation_user",
+   "fieldtype": "Link",
+   "label": "Automation User",
+   "options": "User"
+  },
+  {
+   "default": "1",
+   "fieldname": "stop_on_error",
+   "fieldtype": "Check",
+   "label": "Stop on Error"
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-17 01:35:11.457428",
+ "modified_by": "Administrator",
+ "module": "Automation",
+ "name": "Automation Flow",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

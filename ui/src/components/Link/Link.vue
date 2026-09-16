@@ -129,7 +129,11 @@ const createNewOption: ComboboxCustomOption = {
 };
 
 const linkOptions = computed<ComboboxOption[]>(() => {
-	const _options = options.data || [];
+	let _options: ComboboxOption[] = options.data || [];
+	const known = model.value && _options.some((option: any) => option.value === model.value);
+	if (props.title && model.value && !known) {
+		_options = [{ label: props.title, value: model.value }, ..._options];
+	}
 	if (props.creatable) {
 		return [..._options, createNewOption];
 	}
