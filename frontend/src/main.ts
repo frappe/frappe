@@ -10,7 +10,7 @@ import { createShellRouter } from "@/router";
 import { registerShell } from "@/router/routeFor";
 import { loadTranslations } from "@/i18n";
 import { loadSprite, symbolGeometry } from "@/icons/sprite";
-import { setDrawnProps, setIconSource } from "@/recordPage";
+import { setDrawnProps, setIconSource, watchClientScripts } from "@/recordPage";
 import { recordDrawnProps } from "@/pages/record/drawnProps";
 import { registerContributions } from "@/contributions/registry";
 import AppShell from "@/shell/AppShell.vue";
@@ -62,6 +62,7 @@ async function start() {
 	app.use(FrappeUI);
 	// Where `getSocketInstance` looks; the plugin no longer opens one.
 	app.config.globalProperties.$socket = createSocket(boot);
+	watchClientScripts(app.config.globalProperties.$socket);
 	app.use(router);
 	app.provide("boot", boot);
 	app.provide("addresses", addresses);

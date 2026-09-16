@@ -14,9 +14,12 @@ vi.mock("../evaluateClientScript", () => ({ evaluateClientScript }));
 
 import {
   canWriteClientScripts,
+  clientScriptChanges,
+  invalidateClientScripts,
   loadClientScripts,
   reloadClientScripts,
   resetClientScripts,
+  watchClientScripts,
 } from "../clientScripts";
 import { registrationsFor, resetRegistry } from "../registry";
 
@@ -131,5 +134,81 @@ describe("the Client Script tier", () => {
     call.mockRejectedValue(new Error("offline"));
     await loadClientScripts("CRM Deal");
     expect(sources()).toEqual([]);
+  });
+});
+
+describe("the client_script_changed listener", () => {
+  type Handler = (...args: unknown[]) => void;
+  const socket = {
+    handlers: new Map<string, Handler[]>(),
+    emit() {},
+    on(event: string, handler: Handler) {
+      socket.handlers.set(event, [...(socket.handlers.get(event) ?? []), handler]);
+    },
+    off(event: string, handler: Handler) {
+      socket.handlers.set(event, (socket.handlers.get(event) ?? []).filter((one) => one !== handler));
+    },
+    fire(event: string, ...args: unknown[]) {
+      for (const handler of socket.handlers.get(event) ?? []) handler(...args);
+    },
+  };
+
+  beforeEach(() => {
+    resetRegistry();
+    resetClientScripts();
+    call.mockReset();
+    socket.handlers.clear();
+    evaluateClientScript.mockImplementation(async () => ({ onRefresh: () => {} }));
+  });
+
+  it("drops the doctype's cached tier so the next load re-reads", async () => {
+    respond(["first"]);
+    watchClientScripts(socket);
+    await loadClientScripts("CRM Deal");
+    respond(["first", "second"]);
+    socket.fire("client_script_changed", { dt: "CRM Deal", view: "Record" });
+    await loadClientScripts("CRM Deal");
+    expect(call).toHaveBeenCalledTimes(2);
+    expect(sources()).toEqual(["client-script:first", "client-script:second"]);
+  });
+
+  it("leaves every other doctype's tier cached", async () => {
+    respond(["only"]);
+    watchClientScripts(socket);
+    await loadClientScripts("CRM Deal");
+    socket.fire("client_script_changed", { dt: "CRM Lead", view: "Record" });
+    await loadClientScripts("CRM Deal");
+    expect(call).toHaveBeenCalledTimes(1);
+  });
+
+  it("moves the doctype's change count once per event", () => {
+    watchClientScripts(socket);
+    expect(clientScriptChanges("CRM Deal")).toBe(0);
+    socket.fire("client_script_changed", { dt: "CRM Deal", view: "Record" });
+    socket.fire("client_script_changed", { dt: "CRM Deal", view: "Record" });
+    expect(clientScriptChanges("CRM Deal")).toBe(2);
+    expect(clientScriptChanges("CRM Lead")).toBe(0);
+  });
+
+  it("ignores an event without a doctype or for another view, and a missing socket", () => {
+    watchClientScripts(undefined);
+    watchClientScripts(socket);
+    socket.fire("client_script_changed", {});
+    socket.fire("client_script_changed");
+    socket.fire("client_script_changed", { dt: "CRM Deal", view: "List" });
+    expect(clientScriptChanges("CRM Deal")).toBe(0);
+  });
+
+  it("stops listening when its stop is called", () => {
+    const stop = watchClientScripts(socket);
+    stop();
+    socket.fire("client_script_changed", { dt: "CRM Deal", view: "Record" });
+    expect(clientScriptChanges("CRM Deal")).toBe(0);
+  });
+
+  it("forgets the change counts on reset", () => {
+    invalidateClientScripts("CRM Deal");
+    resetClientScripts();
+    expect(clientScriptChanges("CRM Deal")).toBe(0);
   });
 });

@@ -132,6 +132,7 @@ import { PANEL_BUILTINS } from "./record/panel/builtins";
 import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
 import { favouritesOf, hasFavourited } from "./record/favourites";
 import { useLiveDocinfo } from "./record/liveDocinfo";
+import { useLiveClientScripts } from "./record/liveClientScripts";
 import { personOf, type DocInfo } from "./record/panel/context";
 import { tagsOf } from "./record/panel/people";
 import { useDisclosure } from "./record/panel/disclosure";
@@ -247,6 +248,12 @@ const tabMemory = computed(() => formTabMemory(boot.user.name, doctype.value ?? 
 
 // The record's realtime room, joined per load; the panel's rows follow another tab's assign or comment.
 const live = useLiveDocinfo({ socket: getSocketInstance(), docinfo, reload: reloadDocinfo });
+useLiveClientScripts({
+	doctype,
+	dirty: () => dirty.value,
+	ready: () => controller.value?.ready.value ?? false,
+	refresh: () => controller.value?.refresh(),
+});
 
 provide(LinkTitlesKey, linkTitles);
 

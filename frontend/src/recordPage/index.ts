@@ -22,7 +22,13 @@ export type { RecordCommitChannel } from "./commitChannel";
 export { errorMessage } from "./errorMessage";
 export { setIconSource } from "./iconClasses";
 export type { IconSource } from "./iconClasses";
-export { loadClientScripts, reloadClientScripts } from "./clientScripts";
+export {
+  clientScriptChanges,
+  invalidateClientScripts,
+  loadClientScripts,
+  reloadClientScripts,
+  watchClientScripts,
+} from "./clientScripts";
 export type { RecordPageController } from "./createRecordPage";
 
 export type { AuthoredHandlers, Handler, RecordPageHandlers } from "./types";
