@@ -67,9 +67,16 @@ def _extract_url_source(source) -> list[ExtractedDoc]:
 
 	url = (source.url or "").strip()
 	_validate_public_url(url)
+	# a redirect could point a validated public URL at an internal service
 	response = requests.get(
-		url, timeout=URL_TIMEOUT, stream=True, headers={"User-Agent": "Flow-Knowledge/1.0"}
+		url,
+		timeout=URL_TIMEOUT,
+		stream=True,
+		allow_redirects=False,
+		headers={"User-Agent": "Flow-Knowledge/1.0"},
 	)
+	if response.is_redirect:
+		frappe.throw(_("The URL redirects; enter the address it leads to."))
 	response.raise_for_status()
 
 	raw = _read_capped(response)
