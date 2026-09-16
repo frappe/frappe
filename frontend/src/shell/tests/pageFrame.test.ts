@@ -38,26 +38,30 @@ async function mount(page: Component) {
   await nextTick();
   await nextTick();
 
+  const target = root.querySelector<HTMLElement>('[data-testid="target"]')!;
   return {
-    target: root.querySelector<HTMLElement>('[data-testid="target"]')!,
+    target,
     page: root.querySelector<HTMLElement>('[data-testid="page"]')!,
+    /** The header row; the band block above it is a `header` too, so a bare query would find that. */
+    row: () => target.querySelector<HTMLElement>("header:not([data-page-above])"),
+    above: () => target.querySelector<HTMLElement>("[data-page-above]")!,
   };
 }
 
 describe("the header row", () => {
   it("teleports the title into the shell's target, out of the page's own tree", async () => {
-    const { target, page } = await mount(() =>
+    const { row, page } = await mount(() =>
       h(PageFrame, { title: "Lead" }, () => "rows")
     );
 
-    const header = target.querySelector("header");
+    const header = row();
     expect(header?.textContent).toContain("Lead");
     expect(page.querySelector("header")).toBeNull();
     expect(page.textContent).toContain("rows");
   });
 
   it("renders the header slot in place of the title", async () => {
-    const { target } = await mount(() =>
+    const { row } = await mount(() =>
       h(
         PageFrame,
         { title: "Unused" },
@@ -65,32 +69,65 @@ describe("the header row", () => {
       )
     );
 
-    const header = target.querySelector("header")!;
+    const header = row()!;
     expect(header.textContent).toContain("Leads, mine");
     expect(header.textContent).not.toContain("Unused");
   });
 
   it("draws the row for a header slot that appears after mount", async () => {
     const headed = ref(false);
-    const { target } = await mount(() =>
+    const { row } = await mount(() =>
       h(PageFrame, null, headed.value ? { header: () => h("h1", "Late") } : {})
     );
-    expect(target.querySelector("header")).toBeNull();
+    expect(row()).toBeNull();
 
     headed.value = true;
     await nextTick();
     await nextTick();
-    expect(target.querySelector("header")?.textContent).toContain("Late");
+    expect(row()?.textContent).toContain("Late");
   });
 
-  it("leaves the target empty on a page with nothing for the row", async () => {
-    const { target, page } = await mount(() =>
+  it("draws no row on a page with nothing for it, and nothing above it", async () => {
+    const { target, row, page } = await mount(() =>
       h(PageFrame, null, () => "body")
     );
 
-    expect(target.querySelector("header")).toBeNull();
+    expect(row()).toBeNull();
     expect(target.textContent).toBe("");
     expect(page.textContent).toContain("body");
+  });
+});
+
+describe("the band block above the row", () => {
+  it("sits in the target before the row, with the page gutter variable on it", async () => {
+    const { row, above } = await mount(() =>
+      h(PageFrame, { title: "Lead" }, { aboveHeader: () => h("p", "strip") })
+    );
+
+    const block = above();
+    expect(block.textContent).toBe("strip");
+    expect(block.parentElement!.firstElementChild).toBe(block);
+    expect(block.nextElementSibling).toBe(row());
+    expect(block.className).toContain("--page-gutter");
+  });
+
+  it("keeps a band supplied after mount above a row that was there first", async () => {
+    const banded = ref(false);
+    const { row, above } = await mount(() =>
+      h(
+        PageFrame,
+        { title: "Lead" },
+        banded.value ? { aboveHeader: () => h("p", "late strip") } : {}
+      )
+    );
+    expect(above().textContent).toBe("");
+
+    banded.value = true;
+    await nextTick();
+    await nextTick();
+    expect(above().textContent).toBe("late strip");
+    expect(above().parentElement!.firstElementChild).toBe(above());
+    expect(above().nextElementSibling).toBe(row());
   });
 });
 
@@ -114,7 +151,8 @@ describe("the scroll prop", () => {
     );
 
     expect(page.querySelector('[data-slot="scroll-area"]')).toBeNull();
-    const pane = page.firstElementChild as HTMLElement;
+    // The band block's anchor comes first in the page's tree; the pane is the first element with a class.
+    const pane = page.querySelector<HTMLElement>("div")!;
     expect(pane.className).toContain("overflow-hidden");
     expect(pane.className).not.toContain("px-");
   });

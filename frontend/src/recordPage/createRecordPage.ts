@@ -15,6 +15,7 @@ import { holdsChildRows } from "@framework/ui/components/Fields/rowIdentity";
 import type { RowAddress } from "@framework/ui/components/Fields/types";
 import { FieldsSurface, LAYOUT_BREAKS } from "./fields";
 import { FormTabsSurface } from "./formTabs";
+import { FrameSurface } from "./frame";
 import { HeaderSurface } from "./headerRenderings";
 import { ROW_EVENTS } from "./flattenHandlers";
 import { withRemovals } from "./pageCompatibility";
@@ -124,6 +125,7 @@ export interface RecordPageHost {
 export interface RecordPageController {
   page: RecordPageApi;
   quickActions: Surface<QuickAction>;
+  frame: FrameSurface;
   header: HeaderSurface;
   tabs: Surface<TabItem>;
   panelSections: Surface<PanelSectionItem>;
@@ -149,6 +151,7 @@ export interface RecordPageController {
 
 export function createRecordPage(host: RecordPageHost): RecordPageController {
   const quickActions = new Surface<QuickAction>({ surface: "quickActions", keys: QUICK_ACTION_KEYS });
+  const frame = new FrameSurface();
   const header = new HeaderSurface();
   const tabs = new Surface<TabItem>({ surface: "tabs", keys: TAB_ITEM_KEYS });
   const panelSections = new Surface<PanelSectionItem>({
@@ -176,6 +179,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   // Every overlay a replay stages; `fields` and `formTabs` are not `Surface`s but stage here.
   const surfaces: { beginReplay: () => void; commitReplay: () => void }[] = [
     quickActions,
+    frame,
     header,
     tabs,
     panelSections,
@@ -253,6 +257,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       return host.isDirty();
     },
     quickActions,
+    frame,
     header,
     tabs: tabs as unknown as TabsApi,
     panelSections: panelSections as unknown as PanelSectionsApi,
@@ -591,6 +596,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   return {
     page,
     quickActions,
+    frame,
     header,
     tabs,
     panelSections,

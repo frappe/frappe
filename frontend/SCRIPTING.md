@@ -27,6 +27,82 @@ export default {
 }
 ```
 
+**Every place on the page is a list, every list takes a component item, and `before` /
+`after` names a neighbour.** There is no vocabulary of places on top of that: no zone or
+slot words say where a thing goes, a neighbour does. The frame, the header row and the
+panel are each a list that accepts the same item shape, `name`, `component`, `props`, and
+speaks the seven verbs and `clear`. A script author learns one item and one position
+spelling; the sections below only refer to it.
+
+## The frame: `page.frame`
+
+The page's column is **one list**. Its two built-in regions are `header`, the pinned row
+of crumbs and Save, and `body`, the Details form and the panel side by side. A script adds
+a **band** before, between or after them: a banner under the crumbs, a colour strip along
+the top, a footer. The surface speaks the eight verbs, `clear` among them.
+
+### An item
+
+| Key | What it does |
+| --- | --- |
+| `name` | The address every verb uses. `header` and `body` are taken. |
+| `component` | A Vue component that draws the band. It receives `{ ...props, page }`, unfiltered, as a header or panel component does. |
+| `props` | Forwarded to the component beside `page`. |
+| `gutter` | `false` makes the wrapper bare, so the band runs edge to edge. Omitted, the wrapper takes the page's side padding, and the band's content lines up with the crumbs. |
+| any other key | Not read: dropped from the item on `add` and `update`, and a development build warns once, naming the item and the key. |
+
+A band is script only; it has no record form yet.
+
+### The built-ins
+
+| Name | What it is |
+| --- | --- |
+| `header` | The pinned header row: `page.header`'s list. `hide('header')` draws no row, the same result as `page.header.clear()`. |
+| `body` | The Details form and the panel. `hide('body')` leaves the header and the bands. |
+
+`move` on a built-in warns in a development build and does nothing; so does an `add`
+under a built-in's name, and `order()` leaves a region it names where it is. `hide`, `show` and `update` on a built-in work as on any item,
+though `update` has nothing to draw on one. `clear()` hides both regions and every band
+present at the call: a blank page. A later `add` draws, and `show('header')` brings the
+row back.
+
+### Where a band sits
+
+`{ before: 'header' }` is the top of the page, `{ after: 'header' }` or `{ before: 'body' }`
+is between the row and the body, and `{ after: 'body' }` is the bottom. An anchor can also
+name another band; an absent anchor appends at the bottom. Two scripts adding at one place
+are ordered by run order, then by the position: a later script's `{ after: 'header' }`
+lands directly after the header, above the earlier script's band there.
+
+A band before or between the regions is pinned with the header row and does not scroll; a
+tall one takes its height from the scroll region. The band after the body sits at the
+bottom of the page. The wrapper is a bare block, with no vertical padding, border or
+minimum height: the component owns those, and `gutter` is the only word the shell adds for
+the look. A band is the way to a full-width strip; a header component with a negative
+margin is no longer needed for that.
+
+Places inside the body, above the tab strip or above the panel, are not the frame's: they
+belong to the form and panel lists. A band costs no new server call, cache key or
+permission check, since it comes from the scripts already loaded, and one wrapper element
+per band on a cold load.
+
+### The script this design was judged by
+
+```js
+// A band between the header row and the body, pinned with the header, aligned with the crumbs.
+page.frame.add({ name: 'stage_banner', component: StageBanner, props: { tone: 'warning' } }, { after: 'header' })
+
+// A colour strip at the top of the page, edge to edge.
+page.frame.add({ name: 'env_strip', component: EnvStrip, gutter: false }, { before: 'header' })
+
+// A footer.
+page.frame.add({ name: 'audit_note', component: AuditNote }, { after: 'body' })
+
+// A later script hides a band, or the header row, by name.
+page.frame.hide('stage_banner')
+page.frame.hide('header')
+```
+
 ## The header row: `page.header`
 
 The row is **one flat list** of items, drawn in **two zones**. Every crumb, button, menu
@@ -123,7 +199,9 @@ the crumbs:
 
 The style form is the one a stored script can rely on: the build never scans a stored
 script, so a utility such as `-mx-[--page-gutter]` exists only if some scanned file
-already uses it. The height is a minimum: a taller component grows the row.
+already uses it. The height is a minimum: a taller component grows the row. A strip that
+wants the page's width is a band with `gutter: false` on `page.frame`, not a header
+component with a margin.
 
 ### The script this design was judged by
 
