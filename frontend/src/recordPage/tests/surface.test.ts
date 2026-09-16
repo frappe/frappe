@@ -1,6 +1,6 @@
 // The merge & ordering rules as executable claims.
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { nextTick, watchEffect } from "vue";
+import { isReactive, nextTick, watchEffect } from "vue";
 import { Surface } from "../surface";
 import { HeaderSurface } from "../headerRenderings";
 import {
@@ -102,6 +102,17 @@ describe("surface verbs", () => {
 
 // A replay used to clear the ops and re-add them a microtask later, so a keyless
 // `v-for` rebuilt the strip and lost the reader's place. These are the staged replay's rules.
+describe("props on an item", () => {
+	it("keeps a component inside props raw, as it keeps the item's component", () => {
+		const Icon = { render: () => null };
+		const surface = new Surface();
+		surface.add({ name: "badge", props: { icon: Icon, size: "sm" } });
+		const [item] = surface.visible();
+		expect(isReactive(item.props.icon)).toBe(false);
+		expect(item.props.size).toBe("sm");
+	});
+});
+
 describe("clear", () => {
 	it("hides every item present at the call, and keeps each one addressable", () => {
 		const surface = new Surface();

@@ -922,6 +922,14 @@ describe("a component in a zone", () => {
     expect(said).toMatch(/'owner' has a component and group: 'tools'/);
   });
 
+  it("warns that run and href are not wired on a component", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    project([component("owner", { run: () => {} }), component("stage", { href: "/x" })]);
+    const said = warn.mock.calls.flat().join("\n");
+    expect(said).toMatch(/'owner' has a component and run/);
+    expect(said).toMatch(/'stage' has a component and href/);
+  });
+
   it("renders in the row, so an anchor on a menu entry warns and one on a button does not", () => {
     const items = [button("one"), component("owner"), action("audit")];
     expect(renderingOf(items[1], items)).toBe("row");

@@ -66,7 +66,8 @@ a sole component fills the row, and one between the crumbs and a button takes th
 width, so that button sits at the zone's far end; the crumbs keep their collapse rule.
 On the right its wrapper is `shrink-0` and it spends one of the zone's slots; past the
 budget it is not drawn, and a development build warns, since a component cannot live in
-`⋯`. `display` and `group` beside a `component` are ignored, each with a warning.
+`⋯`. `display`, `group`, `run` and `href` beside a `component` are ignored, each with a
+warning: the component draws itself and owns its clicks.
 
 ### The built-ins
 

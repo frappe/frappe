@@ -172,10 +172,11 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 	}
 }
 
-// `ops` is reactive, so a component stored on an item would be deep-reactified on
-// its way in, which Vue warns about. Only the component opts out.
+// `ops` is reactive, so a component stored on an item, or inside its props, would be
+// deep-reactified on its way in, which Vue warns about. Both opt out.
 function keepComponentRaw<Item extends SurfaceItem>(item: Partial<Item>) {
 	if (item.component) item.component = markRaw(item.component);
+	if (item.props) item.props = markRaw({ ...item.props });
 }
 
 function apply<Item extends SurfaceItem>(items: ResolvedItem<Item>[], op: Op<Item>) {

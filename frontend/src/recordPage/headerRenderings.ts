@@ -287,7 +287,6 @@ function asControl(node: HeaderNode): HeaderControl {
 
 // A demoted control keeps a band of its own, ahead of the built-ins. Banded by its
 // own name, not its `group`, so it does not read as a member of a dropdown demoted beside it.
-// A demoted item is drawn by the menu option now, so its props are read against that.
 function demotedBands(controls: HeaderControl[]): HeaderBand[] {
   return controls.map((control) =>
     control.kind !== "dropdown"
@@ -300,6 +299,7 @@ function demotedBands(controls: HeaderControl[]): HeaderBand[] {
   );
 }
 
+// Drawn by the menu option now, so its props are read against that.
 function row(control: HeaderControl & { source: string }): HeaderNode {
   return menuRow({ item: control.item, source: control.source, props: {}, members: [] });
 }
@@ -495,6 +495,11 @@ function warnItem(item: HeaderItem) {
       warnOnce(
         `header: '${item.name}' has a component and group: '${item.group}' — ` +
           `a component cannot live in a menu, so group is ignored; it is a control in its zone.`
+      );
+    if (item.run || item.href)
+      warnOnce(
+        `header: '${item.name}' has a component and ${item.run ? "run" : "href"} — ` +
+          `a component draws itself and owns its clicks, so neither is wired.`
       );
   }
   if (item.component) return;

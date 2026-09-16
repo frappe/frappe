@@ -246,6 +246,27 @@ describe("props on a control", () => {
     expect(attr(root, "export", "theme")).toBe("green");
   });
 
+  it("binds a dropdown trigger's props under the item's label, keeping the chevron by default", async () => {
+    const root = await mount({
+      left: [],
+      controls: [
+        { kind: "dropdown", item: { name: "tools", label: "Tools" }, source: "test", props: { variant: "ghost" }, members: [] },
+      ],
+      bands: [],
+    });
+    expect(attr(root, "Tools", "variant")).toBe("ghost");
+    expect(attr(root, "Tools", "iconright") ?? attr(root, "Tools", "icon-right")).toBe("lucide-chevron-down");
+  });
+
+  it("hands a script's tooltip to Save's own button, beside the host's clean-record tooltip", async () => {
+    const root = await mount({
+      left: [],
+      controls: [control("save", { tooltip: "Writes the record" })],
+      bands: [],
+    });
+    expect(attr(root, "save", "tooltip")).toBe("Writes the record");
+  });
+
   it("keeps Save's disabled and loading the host's, whatever the script wrote", async () => {
     const clean = await mount({
       left: [],
