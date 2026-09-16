@@ -155,7 +155,12 @@ def test_tools_route_lists_extension_tools_with_their_source(tmp_path):
 		"grep",
 		"hello",
 	]
-	assert tools[-1] == {"name": "hello", "description": "Greet someone by name.", "extension": "hello"}
+	assert tools[-1] == {
+		"name": "hello",
+		"description": "Greet someone by name.",
+		"extension": "hello",
+		"bundled": False,
+	}
 	assert all(t["extension"] is None for t in tools[:-1])
 
 

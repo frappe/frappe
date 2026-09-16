@@ -66,7 +66,7 @@ class SessionConfig(BaseModel):
 	system_suffix: str | None = None
 	system_prompt: str | None = None
 	system_append: str | None = None
-	tools: list[str] = Field(default_factory=lambda: ["bash", "read", "write", "edit", "grep"])
+	tools: list[str] = Field(default_factory=lambda: ["bash", "read", "write", "edit"])
 	extension_tools: list[str] | None = None
 	client_tools: list[dict] = Field(default_factory=list)
 	callback_url: str | None = None

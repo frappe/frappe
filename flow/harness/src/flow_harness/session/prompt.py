@@ -15,8 +15,7 @@ from collections.abc import Sequence
 
 from flow_harness.session.config import SessionConfig
 from flow_harness.session.skills import Skill, format_skills_for_prompt
-from flow_harness.tools import Tool
-from flow_harness.tools.builtins import BUILTIN_TOOLS
+from flow_harness.tools import Tool, select_tools
 
 DEFAULT_INTRO = (
 	"You are an expert coding assistant operating inside flow, a coding agent harness. "
@@ -71,11 +70,7 @@ def _appended(prompt: str, append: str | None) -> str:
 
 
 def _default_body(config: SessionConfig, tools: Sequence[Tool] | None = None) -> str:
-	active_tools = (
-		list(tools)
-		if tools is not None
-		else [BUILTIN_TOOLS[name] for name in config.tools if name in BUILTIN_TOOLS]
-	)
+	active_tools = list(tools) if tools is not None else list(select_tools(config.tools).values())
 	snippets = [f"- {tool.name}: {tool.prompt_snippet}" for tool in active_tools if tool.prompt_snippet]
 	guidelines: list[str] = []
 	for t in active_tools:

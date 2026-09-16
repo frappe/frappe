@@ -31,7 +31,7 @@ from flow_harness.session.store import SessionStore
 
 
 def test_session_config_includes_all_builtin_tools_by_default():
-	assert SessionConfig().tools == ["bash", "read", "write", "edit", "grep"]
+	assert SessionConfig().tools == ["bash", "read", "write", "edit"]
 
 
 def test_store_create_and_reload(tmp_path):
