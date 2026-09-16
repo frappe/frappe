@@ -59,7 +59,6 @@
 <script setup lang="ts">
 import { Button } from "frappe-ui";
 import { CommentKit, Editor, EditorContent } from "frappe-ui/editor";
-import "frappe-ui/editor-style.css";
 import { nextTick, ref, watch } from "vue";
 import AttachmentChip from "./AttachmentChip.vue";
 import TimeAgo from "./TimeAgo.vue";
