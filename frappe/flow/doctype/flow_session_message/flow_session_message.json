@@ -1,0 +1,66 @@
+{
+ "actions": [],
+ "creation": "2026-05-27 00:00:00",
+ "doctype": "DocType",
+ "editable_grid": 0,
+ "engine": "InnoDB",
+ "field_order": [
+  "role",
+  "content",
+  "tool_call_id",
+  "tool_calls",
+  "run"
+ ],
+ "fields": [
+  {
+   "description": "system | user | assistant | tool",
+   "fieldname": "role",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Role",
+   "length": 16,
+   "reqd": 1
+  },
+  {
+   "description": "Message body. Null for assistant turns that only call tools.",
+   "fieldname": "content",
+   "fieldtype": "Long Text",
+   "in_list_view": 1,
+   "label": "Content"
+  },
+  {
+   "description": "When role is 'tool', the assistant tool_call.id this result answers.",
+   "fieldname": "tool_call_id",
+   "fieldtype": "Data",
+   "label": "Tool Call ID"
+  },
+  {
+   "description": "When role is 'assistant', the list of tool calls the model requested.",
+   "fieldname": "tool_calls",
+   "fieldtype": "JSON",
+   "label": "Tool Calls"
+  },
+  {
+   "description": "The Flow Run that produced this message.",
+   "fieldname": "run",
+   "fieldtype": "Link",
+   "label": "Run",
+   "options": "Flow Run",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-05-27 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Flow",
+ "name": "Flow Session Message",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "idx",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 0
+}

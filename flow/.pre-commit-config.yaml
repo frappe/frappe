@@ -1,0 +1,79 @@
+exclude: 'node_modules|.git'
+default_stages: [pre-commit]
+default_install_hook_types: [pre-commit, commit-msg]
+fail_fast: false
+
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        files: "flow.*"
+        exclude: ".*json$|.*txt$|.*csv|.*md|.*svg"
+      - id: no-commit-to-branch
+        args: ['--branch', 'develop']
+      - id: check-merge-conflict
+      - id: check-ast
+      - id: check-json
+      - id: check-toml
+      - id: check-yaml
+      - id: debug-statements
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.10
+    hooks:
+      - id: ruff
+        name: "Run ruff import sorter"
+        args: ["--select=I", "--fix"]
+
+      - id: ruff
+        name: "Run ruff linter"
+
+      - id: ruff-format
+        name: "Run ruff formatter"
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v2.7.1
+    hooks:
+      - id: prettier
+        types_or: [javascript, vue, scss]
+        # Ignore any files that might contain jinja / bundles
+        exclude: |
+            (?x)^(
+                flow/public/dist/.*|
+                .*node_modules.*|
+                .*boilerplate.*|
+                flow/templates/includes/.*|
+                flow/public/js/lib/.*
+            )$
+
+
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.44.0
+    hooks:
+      - id: eslint
+        types_or: [javascript]
+        args: ['--quiet']
+        # Ignore any files that might contain jinja / bundles
+        exclude: |
+            (?x)^(
+                flow/public/dist/.*|
+                cypress/.*|
+                .*node_modules.*|
+                .*boilerplate.*|
+                flow/templates/includes/.*|
+                flow/public/js/lib/.*
+            )$
+
+  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+    rev: v9.23.0
+    hooks:
+      - id: commitlint
+        stages: [commit-msg]
+        additional_dependencies: ['conventional-changelog-conventionalcommits']
+
+ci:
+    autoupdate_schedule: weekly
+    skip: []
+    submodules: false

@@ -1,0 +1,150 @@
+# Copyright (c) 2026, Frappe Technologies and contributors
+# License: MIT. See LICENSE
+
+"""Flow Agents defined in code."""
+
+from __future__ import annotations
+
+import importlib
+from typing import TYPE_CHECKING
+
+import frappe
+from frappe import _
+
+if TYPE_CHECKING:
+	from flow.flow.doctype.flow_run.flow_run import FlowRun
+	from flow.flow.doctype.flow_session.flow_session import FlowSession
+	from flow.knowledge import Knowledge
+	from flow.lib.tool import Tool
+
+DEFAULT_MAX_ITERATIONS = 50
+
+
+def sync_agents(_app: str | None = None) -> None:
+	"""Write every agent the installed apps declare through the `flow_agents` hook, whose
+	entries name functions returning a list of Agents. Runs after migrate and app installs."""
+	agents: dict[str, Agent] = {}
+	for path in frappe.get_hooks("flow_agents"):
+		for agent in frappe.get_attr(path)():
+			if agent.name in agents:
+				frappe.throw(
+					_("Flow Agent {0} is declared more than once.").format(agent.name),
+					title=_("Agent Conflict"),
+				)
+			agents[agent.name] = agent
+	for agent in agents.values():
+		agent.sync()
+
+
+class Agent:
+	"""A Flow Agent defined in code.
+
+	Constructing one touches nothing. `sync()` writes the definition to the site as a
+	system-generated Flow Agent doc, plus an Imported Flow Tool for each `@tool` function;
+	Flow does that for the agents listed under the `flow_agents` hook. The desk can enable or
+	disable them and switch the agent's model, nothing else. Tools must be module-level
+	functions in an installed app, since the flow server calls them back by import path.
+	"""
+
+	def __init__(
+		self,
+		*,
+		name: str,
+		model: str,
+		instructions: str,
+		tools: list[Tool] | None = None,
+		knowledge: Knowledge | list[Knowledge] | None = None,
+		max_iterations: int = DEFAULT_MAX_ITERATIONS,
+		auto_approve: bool = False,
+	):
+		if knowledge and not isinstance(knowledge, list):
+			knowledge = [knowledge]
+		self.name = name
+		self.model = model
+		self.instructions = instructions
+		self.tools = list(tools or [])
+		self.knowledge = list(knowledge or [])
+		self.max_iterations = max_iterations
+		self.auto_approve = auto_approve
+
+	def sync(self) -> None:
+		"""Write this definition to the site. The model is set only when the doc is created,
+		or when its model is gone: switching it otherwise is the site's choice."""
+		if frappe.db.exists("Flow Agent", self.name):
+			doc = frappe.get_doc("Flow Agent", self.name)
+			if not doc.is_system_generated:
+				frappe.throw(
+					_("Flow Agent {0} already exists and is not owned by code.").format(self.name),
+					title=_("Agent Conflict"),
+				)
+			if not frappe.db.exists("Flow Model", doc.model):
+				doc.model = self.model
+		else:
+			doc = frappe.get_doc({"doctype": "Flow Agent", "title": self.name, "model": self.model})
+		doc.instructions = self.instructions
+		doc.max_iterations = self.max_iterations
+		doc.is_system_generated = 1
+		doc.set("tools", [{"tool": _ensure_tool(tool)} for tool in self.tools])
+		doc.set("knowledge_bases", [{"knowledge_base": kb.name} for kb in self.knowledge])
+		doc.save(ignore_permissions=True)
+
+	def new_session(self, *, title: str | None = None) -> FlowSession:
+		"""Start a conversation with this agent on the flow server."""
+		from flow.lib.session import new_session
+
+		return new_session(self.name, title=title, auto_approve=self.auto_approve)
+
+	def run(self, input: str) -> FlowRun:
+		"""Start `input` in a new session and return its Running Flow Run without waiting."""
+		return self.new_session().chat(input)
+
+
+def _ensure_tool(tool: Tool) -> str:
+	"""The Flow Tool slug for `tool`, with its Imported row created or brought up to date."""
+	import_path = _tool_import_path(tool)
+	definition = {
+		"description": tool.description,
+		"requires_confirmation": int(tool.requires_confirmation),
+		"is_system_generated": 1,
+	}
+	row = frappe.db.get_value("Flow Tool", tool.name, ["import_path", *definition], as_dict=True)
+	if row and row.import_path != import_path:
+		frappe.throw(
+			_("Flow Tool {0} already exists with a different definition.").format(tool.name),
+			title=_("Tool Conflict"),
+		)
+	if row and all(row.get(key) == value for key, value in definition.items()):
+		return tool.name
+	if row:
+		doc = frappe.get_doc("Flow Tool", tool.name)
+	else:
+		doc = frappe.get_doc(
+			{
+				"doctype": "Flow Tool",
+				"slug": tool.name,
+				"title": tool.name.replace("_", " ").title(),
+				"type": "Imported",
+				"import_path": import_path,
+			}
+		)
+	doc.update(definition)
+	doc.save(ignore_permissions=True)
+	return tool.name
+
+
+def _tool_import_path(tool: Tool) -> str:
+	"""The installed-app module attribute that exports this Tool for callback imports."""
+	module_name = tool.func.__module__
+	if module_name.split(".", 1)[0] in frappe.get_installed_apps():
+		try:
+			module = importlib.import_module(module_name)
+		except Exception:
+			pass
+		else:
+			for name, value in vars(module).items():
+				if value is tool:
+					return f"{module_name}.{name}"
+	frappe.throw(
+		_("Tool {0} must be exported as a module-level attribute by an installed app.").format(tool.name),
+		title=_("Invalid Tool"),
+	)
