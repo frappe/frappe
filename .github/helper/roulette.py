@@ -34,7 +34,8 @@ import impact_map
 # Restored from the nightly run by the workflow; absent means "run everything".
 IMPACT_MAP_FILE = "impact-map.json"
 
-# A change here can affect any test, so the map's answer is not worth trusting.
+# A change to the framework's spine or to test infrastructure can affect any test, so the map's
+# answer is not worth trusting. Test modules under these paths are exempt -- see below.
 CORE_PATHS = (
 	"frappe/__init__.py",
 	"frappe/hooks.py",
@@ -180,17 +181,25 @@ def report_shadow_selection(files_list):
 		print(f"SHADOW: would run full suite, no usable impact map ({exc})")
 		return
 
-	relevant_files = [f for f in files_list if f.endswith((".py", ".json", ".po"))]
+	# JSON outside the `frappe` package -- `ui/package.json` and the like -- is not schema.
+	relevant_files = [
+		f
+		for f in files_list
+		if f.endswith((".py", ".po")) or (f.endswith(".json") and f.startswith("frappe/"))
+	]
+	# A test module's content can only break its own tests and those of modules importing it.
+	core_files = [f for f in relevant_files if f.startswith(CORE_PATHS) and not impact_map.is_test_module(f)]
 
 	if schema_files := [f for f in relevant_files if not f.endswith(".py")]:
 		print(f"SHADOW: would run full suite, schema/translation changes: {schema_files}")
-	elif core_files := [f for f in relevant_files if f.startswith(CORE_PATHS)]:
+	elif core_files:
 		print(f"SHADOW: would run full suite, core changes: {core_files}")
 	elif impact_map.is_stale(loaded_map):
 		print(f"SHADOW: would run full suite, map from {loaded_map['generated_at']} is stale")
-	elif (selected := impact_map.select(loaded_map, relevant_files)) is None:
-		print("SHADOW: would run full suite, some changed files are absent from the map")
+	elif unmapped := impact_map.unmapped(loaded_map, relevant_files):
+		print(f"SHADOW: would run full suite, no tests attributed to: {unmapped}")
 	else:
+		selected = impact_map.select(loaded_map, relevant_files)
 		total = len(impact_map.all_tests(loaded_map))
 		print(f"SHADOW: would run {len(selected)}/{total} test modules for {relevant_files}:")
 		for test_file in selected:
