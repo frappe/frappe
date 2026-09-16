@@ -17,6 +17,14 @@ app_prefix = "desk"
 
 # No `app_permission` on purpose: its absence means "is a System User", which `/desk` has always meant.
 
+# What a stored Client Script imports by bare name; the rule is in frontend/COMPATIBILITY.md.
+import_map = {
+	"vue": "vue",
+	"vue-router": "vue-router",
+	"frappe-ui": "frappe-ui",
+	"@framework/ui": "@framework/ui",
+}
+
 app_email = "developers@frappe.io"
 
 before_install = "frappe.utils.install.before_install"

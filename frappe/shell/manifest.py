@@ -7,6 +7,7 @@ import json
 import os
 
 import frappe
+from frappe.utils import get_bench_path
 
 from .registry import declared_prefix
 
@@ -16,7 +17,15 @@ SINGLETONS = ("vue", "vue-router", "frappe-ui", "@framework/ui", "reka-ui", "dom
 MANIFEST_FILENAME = "manifest.json"
 
 
+#: What a stored Client Script imports by bare name; the one exemption from the `<app>/<alias>` rule.
+FRAMEWORK_NAMES = ("vue", "vue-router", "frappe-ui", "@framework/ui")
+
+
 class SingletonConflict(Exception):
+	pass
+
+
+class ImportMapConflict(Exception):
 	pass
 
 
@@ -46,26 +55,30 @@ def read_package(path: str) -> dict:
 		return json.load(f)
 
 
-def app_deps(app: str) -> dict[str, str]:
-	"""The app's own declared dependencies, dev included."""
+def package_json_path(app: str, source_dir: str) -> str:
 	# frappe's own declaration is `frontend/package.base.json`; `frappe/package.json` is desk v1's
 	# esbuild stack, a different bundle with different pins.
 	if app == "frappe":
-		package = read_package(os.path.join(frontend_dir(), "package.base.json"))
-	else:
-		package = read_package(os.path.join(frappe.get_app_path(app, ".."), "package.json"))
+		return os.path.join(frontend_dir(), "package.base.json")
+	return os.path.normpath(os.path.join(source_dir, "..", "package.json"))
 
+
+def app_deps(app: str) -> dict[str, str]:
+	"""The app's own declared dependencies, dev included."""
+	package = read_package(package_json_path(app, frappe.get_app_path(app)))
 	return {**package.get("dependencies", {}), **package.get("devDependencies", {})}
 
 
 def app_runtime_deps(app: str) -> dict[str, str]:
 	"""Only what contributed source can import: `dependencies`, never `devDependencies`."""
-	if app == "frappe":
-		package = read_package(os.path.join(frontend_dir(), "package.base.json"))
-	else:
-		package = read_package(os.path.join(frappe.get_app_path(app, ".."), "package.json"))
+	return read_package(package_json_path(app, frappe.get_app_path(app))).get("dependencies", {})
 
-	return package.get("dependencies", {})
+
+def app_import_map(app: str) -> dict[str, str]:
+	"""The names the app publishes to the document's import map, as `hooks.py` declares them."""
+	# A dict hook comes back with each value wrapped in a list; one app's hooks hold one value each.
+	declared = frappe.get_hooks("import_map", {}, app_name=app)
+	return {name: value[-1] if isinstance(value, list) else value for name, value in declared.items()}
 
 
 def frontend_dir() -> str:
@@ -83,7 +96,9 @@ def assemble() -> list[dict]:
 			# Fail naming the app: a silently skipped app is a prefix that silently stops resolving.
 			raise RuntimeError(f"Could not locate source for app '{app}': {e}") from e
 
-		if app != "frappe" and not contributes(source_dir):
+		import_map = app_import_map(app)
+		# A published file is bundled, so publishing alone puts an app in the bundle.
+		if app != "frappe" and not contributes(source_dir) and not import_map:
 			continue
 
 		manifest.append(
@@ -93,10 +108,69 @@ def assemble() -> list[dict]:
 				"source_dir": source_dir,
 				"deps": app_deps(app),
 				"runtime_deps": app_runtime_deps(app),
+				"import_map": import_map,
 			}
 		)
 
 	return manifest
+
+
+def is_file_value(value: str) -> bool:
+	"""A `.` or `/` prefix means a file rooted at the app's source dir; anything else is a package."""
+	return value.startswith((".", "/"))
+
+
+def package_name(specifier: str) -> str:
+	"""`@scope/pkg/deep` declares `@scope/pkg`; `pkg/deep` declares `pkg`. The vite plugin's rule."""
+	segments = specifier.split("/")
+	return "/".join(segments[:2]) if specifier.startswith("@") else segments[0]
+
+
+def bench_relative(path: str) -> str:
+	bench = get_bench_path()
+	return os.path.relpath(path, bench) if path.startswith(bench + os.sep) else path
+
+
+def import_map_problems(entry: dict) -> list[str]:
+	"""Every way one app's `import_map` breaks its promise, each naming the app, the key and the value."""
+	app, source_dir = entry["app"], entry["source_dir"]
+	problems = []
+
+	for name, value in entry.get("import_map", {}).items():
+		if name in FRAMEWORK_NAMES and app != "frappe":
+			problems.append(f"{app} publishes `{name}`, which is a framework name")
+			continue
+		if not name.startswith(f"{app}/") and not (app == "frappe" and name in FRAMEWORK_NAMES):
+			problems.append(f"{app} publishes `{name}`: a published name must start with `{app}/`")
+			continue
+
+		if not is_file_value(value):
+			if package_name(value) not in entry["runtime_deps"]:
+				problems.append(
+					f"{app} publishes `{name}` from `{value}`, which "
+					f"{bench_relative(package_json_path(app, source_dir))} does not declare under dependencies"
+				)
+			continue
+
+		# `/lib/x.js` is rooted at the source dir, not the filesystem; `..` or a symlink may still climb out.
+		root = os.path.realpath(source_dir)
+		target = os.path.realpath(os.path.join(root, value.lstrip("/")))
+		if not target.startswith(root + os.sep):
+			problems.append(
+				f"{app} publishes `{name}` from `{value}`, which resolves outside {bench_relative(source_dir)}"
+			)
+		elif not os.path.isfile(target):
+			problems.append(f"{app} publishes `{name}` from `{value}`, which is not a file")
+
+	return problems
+
+
+def enforce_import_map(manifest: list[dict]):
+	"""Fail the build when an app publishes a name it may not, or a value that does not resolve."""
+	# Before vite starts: a bad value would otherwise surface as a resolution failure deep in the build.
+	problems = [problem for entry in manifest for problem in import_map_problems(entry)]
+	if problems:
+		raise ImportMapConflict("\n" + "\n".join(f"  {problem}" for problem in problems))
 
 
 def enforce_singletons(manifest: list[dict]):
@@ -161,6 +235,7 @@ def write(frontend: str | None = None) -> bool:
 	frontend = frontend or frontend_dir()
 	manifest = assemble()
 	enforce_singletons(manifest)
+	enforce_import_map(manifest)
 
 	# `source_dirs` is every app, not just contributors: a `custom/` folder may name a doctype
 	# owned by an app that contributes nothing. Bench-internal path; never request-derived.

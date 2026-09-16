@@ -193,8 +193,9 @@ Do not "fix" these:
 - **The shared library list is `SINGLETONS` (`frappe/shell/manifest.py:14`)** — `vue`,
   `vue-router`, `frappe-ui`, `@framework/ui`, `reka-ui`, `dompurify` — enforced at build
   time and documented nowhere else. **The list a stored script may import is a different
-  one**, `PUBLISHED` in `plugin/importMap.js`: what the build enforces is not thereby
-  offered to script authors (#42071). For the `frappe` app itself, deps are read from
+  one**: each app's `import_map` hook, read from the manifest by `plugin/importMap.js`,
+  with the framework's four bare names in `frappe/hooks.py`. What the build enforces is
+  not thereby offered to script authors (#42071). For the `frappe` app itself, deps are read from
   `frontend/package.base.json`, **not** `frappe/package.json`, which is desk v1's esbuild
   stack.
 - **`package.base.json` pins `resolutions: { vite }`** because vitest declares a wide vite
