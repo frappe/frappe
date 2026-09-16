@@ -185,7 +185,7 @@ def check_for_update():
 			apps[app]["branch_version"].split(" ", 1)[0] if apps[app].get("branch_version", "") else ""
 		)
 		if "develop" in branch_version:
-			return updates
+			continue
 
 		instance_version = Version(branch_version or apps[app].get("version"))
 
