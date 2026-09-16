@@ -4,6 +4,7 @@ import type { FrappeUIComponents } from "@/types"
 import LucideAppWindowMac from "~icons/lucide/app-window-mac"
 import LucideCircleDot from "~icons/lucide/circle-dot"
 import LucideArrowUpDown from "~icons/lucide/arrow-up-down"
+import LucideCreditCard from "~icons/lucide/credit-card"
 import LucideColumns3 from "~icons/lucide/columns-3"
 import LucideFrame from "~icons/lucide/frame"
 import LucideList from "~icons/lucide/list"
@@ -239,6 +240,17 @@ export const COMPONENT_FAMILIES: FrappeUIComponents = {
 		title: "Sidebar Collapse Toggle",
 		icon: LucidePanelLeftClose,
 		group: "Sidebar",
+	},
+	SidebarCard: {
+		name: "SidebarCard",
+		title: "Sidebar Card",
+		icon: LucideCreditCard,
+		group: "Sidebar",
+		initialState: {
+			title: "Your trial ends soon!",
+			description: "Upgrade to keep enjoying features.",
+			action: { label: "Upgrade now", onClick: "() => {}" },
+		},
 	},
 	// RadioGroup family
 	RadioGroup: {

@@ -59,7 +59,7 @@ NAVIGATION:
 - Breadcrumbs: {items: [{label: "string", route: "string"}]}
 - Tabs: {tabs: [{label: "string", value: "string"}], modelValue: "value of the active tab"} # slots: tab-prefix, tab-label, tab-suffix, tab-panel
 - TabButtons: {options: [{label: "string", value: "string"}], modelValue: "string", variant: "subtle|ghost|underline|browser-tab", size: "sm|md"}
-- Sidebar: {collapsible: true} — a bare frame; compose its default-slot children ("c") from SidebarHeader {title: "string", subtitle: "string", menuItems: [{label, icon, onClick}]}, SidebarLabel {label: "string"} and SidebarItem {label: "string", icon: "lucide-icon-name", route: "string", active: false}
+- Sidebar: {collapsible: true} — a bare frame; compose its default-slot children ("c") from SidebarHeader {title: "string", subtitle: "string", menuItems: [{label, icon, onClick}]}, SidebarLabel {label: "string"}, SidebarItem {label: "string", icon: "lucide-icon-name", route: "string", active: false} and SidebarCard {title: "string", description: "string", theme: "gray(DEFAULT)|blue|green|amber|red", dismissible: false, action: {label: "string", onClick: "function"}} (a promo/notice card for the sidebar footer)
   # icon must be a valid lucide-* string from https://lucide.dev/icons
 
 DATA DISPLAY:
