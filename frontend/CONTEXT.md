@@ -166,13 +166,15 @@ _Avoid_: form, frm, context.
 
 **Surface**:
 One customizable **region** of a Record page, whose verbs *record ops*; the rendered list
-is those ops replayed over the host's built-ins. Four are true surfaces —
-`quickActions`, `header`, `tabs`, `panelSections` — sharing the verb set `add`,
-`hide`, `show`, `update`, `move`, `has`, `order`. Two more, `fields` and `formTabs`, are
-counted as surfaces and stage with them but are **not** `Surface`s: they override
-properties rather than arrange items, and speak a strict subset with no `add`, `move` or
-`order`.
-_Avoid_: sections (`panelSections` and `Section` both already claim the word).
+is those ops replayed over the host's built-ins. Seven are true surfaces —
+`quickActions`, `header`, `tabs`, `panelSections`, `frame`, `body`, `form` — sharing the
+verb set `add`, `hide`, `show`, `update`, `move`, `has`, `order`, `clear`. Two overlays,
+`fields` and `form.tabs`, are counted as surfaces and stage with them but are **not**
+`Surface`s: they override properties rather than arrange items, and speak a strict subset
+with no `add`, `move` or `order`. `form.tabs` is the strip inside the form, a child of
+the `form` surface, so everything about the Details form sits under one object.
+_Avoid_: sections (`panelSections` and `Section` both already claim the word), a
+top-level name for the form's strip.
 
 **Built-in**:
 An item the host seeded rather than a script adding it, attributed to the source
@@ -185,6 +187,15 @@ sections are items on it alike. A `label` gives an item a header; a built-in has
 panel resizes and collapses to a strip, and those two are the reader's, kept in the browser.
 _Avoid_: sidebar (taken, see below), side panel (the Form Layout *type* is `Side Panel`; the
 region is the panel).
+
+**Part**:
+A script-added component drawn inside the Details form through `page.form`, at its
+neighbour's grain: a cell in a field's column beside a field, a full-width block beside a
+section. `label` frames it like that neighbour, a field label or a section heading; without
+one it is bare. It receives `{ ...props, page }`. Script only: a Form Layout row's column
+stays a list of fieldnames, so a part has no record form.
+_Avoid_: custom field (a part holds no value and `page.fields` never sees it), widget,
+custom tab (a whole view belongs on the record strip, `page.tabs`).
 
 **Disclosure**:
 The reader's view state of a section: open or shut. It lives in the browser through the

@@ -29,39 +29,47 @@ in that voice.
 
 What `page` is _for_ is a small, closed vocabulary:
 
-- **Six surfaces** — `quickActions`, `header`, `tabs`, `panelSections`, `frame`, `body` — each
-  speaking the same **seven verbs**: `add`, `hide`, `show`, `update`, `move`, `has`,
-  `order`.
-- **Two more, `fields` and `formTabs`**, speaking a strict subset of them — `hide`,
-  `show`, `update`, `has`, `get`. The subset is the point: the other four arrange items
+- **Seven surfaces** — `quickActions`, `header`, `tabs`, `panelSections`, `frame`, `body`,
+  `form` — each speaking the same **seven verbs**, `add`, `hide`, `show`, `update`, `move`,
+  `has`, `order`, and `clear`. `form` is the Details form as one list, its sections the
+  built-ins and a script's parts between and beside them, so a part sits at a neighbour's
+  grain: a cell beside a field, a block beside a section.
+- **Two overlays, `fields` and `form.tabs`**, speaking a strict subset of them — `hide`,
+  `show`, `update`, `has`, `get`, and on `form.tabs` alone `clear`. The subset is the point: the seven arrange items
   a script may also create, while these are authored elsewhere and a script only
   overrides their properties, so there is no `add`, `move` or `order` to mean anything.
-  For `fields` the author is the DocType; for `formTabs` — the **Form Layout tabs**, the
+  For `fields` the author is the DocType; for `form.tabs` — the **Form Layout tabs**, the
   strip inside the record's details tab — it is the administrator editing the layout, and
   a tab there is a container of *fields*, so an `add` would have to invent fields. That is
-  `page.dialog`'s job. On both surfaces a script **beats `depends_on` in both directions**:
-  `hide()` closes a tab the condition opened, `show()` opens one it closed. On `formTabs`,
+  `page.dialog`'s job, and a whole custom view belongs on the record strip, `page.tabs`.
+  On both overlays a script **beats `depends_on` in both directions**:
+  `hide()` closes a tab the condition opened, `show()` opens one it closed. On `form.tabs`,
   `update` takes a **`label` and nothing else**: rewriting the administrator's `depends_on`
   expression is not a script's to do, and a script wanting conditional visibility already
-  has a real `if` in `onRefresh`. `formTabs` additionally carries two members `fields` has
+  has a real `if` in `onRefresh`. `form.tabs` additionally carries two members `fields` has
   no use for — `active` and `activate` — for the plain reason that a strip has a reader
   standing on it and a field list does not. What the subset excludes is **arrangement**,
-  not reading or navigation.
+  not reading or navigation. `fields` is one overlay over every place a field is drawn:
+  the same patch reaches the Details form and the Side Panel layout, which is why an
+  insert beside a field lives on `form` and not here.
 - **Two tab surfaces, and they are not interchangeable.** `page.tabs` means the **record**
-  strip — activity, emails, files, details — and always will; `page.formTabs` means the
-  Form Layout strip *inside* details. `page.tabs.active` returns a tab's **name**, because
-  those tabs are named by whoever wrote them; `page.formTabs.active` returns an
+  strip — activity, emails, files, details — and always will; `page.form.tabs` means the
+  Form Layout strip *inside* details, a child of `page.form` because everything about the
+  Details form sits under that one object. `page.tabs.active` returns a tab's **name**,
+  because those tabs are named by whoever wrote them; `page.form.tabs.active` returns an
   **identity** — a resolved address — or `''` when the reader is not in the form. The
   asymmetry is real; do not assume one from the other. An identity is **safe to store in a
   script**: a Form Layout is named when it is *saved*, once and for good, so renaming a
   tab's label or dragging an unlabelled one leaves its address alone. It reads as an
   identity rather than a name because `FormLayout` resolves it itself — it renders in
   dialogs too, where nothing has named the tabs — not because an administrator's tab might
-  be nameless. It no longer can be.
+  be nameless. It no longer can be. The strip had a top-level name before it was placed
+  under `form`; that spelling is gone, with no alias, because it never reached a release.
+  `onFormTabChange` keeps its name: it names the event, not the surface.
 - **`activate(name)` moves the reader; it and the panel's `open`/`close` are the only verbs
   that act rather than arrange.** Both tab surfaces carry `activate`, each addressing its
   own strip and no other — `page.tabs.activate('emails')`,
-  `page.formTabs.activate('shipping')`. It is a **verb and not a writable `active`** on
+  `page.form.tabs.activate('shipping')`. It is a **verb and not a writable `active`** on
   purpose: `active` is *derived* from what the strip can currently show, so a script that
   assigned a hidden or unknown name would read back something it never wrote. A verb can
   say so instead. Naming a tab that is hidden, unknown, or on the other strip **warns in a
@@ -205,7 +213,7 @@ What `page` is _for_ is a small, closed vocabulary:
   condition taking it away. It does not fire on first paint, and a strip that is torn down
   and rebuilt is a first paint again: returning to the details tab restores where the reader
   was without announcing it, because that move is the *record* strip's and `onTabChange`
-  has already reported it. A script that wants the tab on load reads `page.formTabs.active`
+  has already reported it. A script that wants the tab on load reads `page.form.tabs.active`
   in `onRefresh` — which is what "state lives on `page`" is for.
 - **One rule for a handler's arguments: its key decides them.** A top-level key gets
   `(page)`; one nested under a table gets `(page, row)`, except `onRemove`, whose
