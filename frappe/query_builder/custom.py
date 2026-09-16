@@ -77,6 +77,24 @@ class SQLITE_GROUP_CONCAT(STRING_AGG):
 		super().__init__(column, separator, alias=alias)
 		self.name = "GROUP_CONCAT"
 
+	def get_function_sql(self, **kwargs):
+		if not self._distinct:
+			return super().get_function_sql(**kwargs)
+
+		# SQLite only permits one argument when DISTINCT is used. The omitted separator has
+		# the same comma default requested by STRING_AGG, so no behavior is lost in this case.
+		separator = self.args[1]
+		if getattr(separator, "value", None) != ",":
+			raise NotImplementedError("SQLite GROUP_CONCAT cannot use DISTINCT with a custom separator")
+
+		column = self.args[0]
+		column_sql = (
+			column.get_sql(with_alias=False, subquery=True, **kwargs)
+			if hasattr(column, "get_sql")
+			else self.get_arg_sql(column, **kwargs)
+		)
+		return f"{self.name}(DISTINCT {column_sql})"
+
 
 class MATCH(DistinctOptionFunction):
 	def __init__(self, column: str, *args, **kwargs):

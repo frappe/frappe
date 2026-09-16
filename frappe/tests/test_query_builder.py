@@ -631,6 +631,23 @@ class TestCustomFunctionsSQLite(IntegrationTestCase):
 		self.assertEqual(parameters["param1"], " | ")
 		self.assertEqual(set(query.run(pluck=True)[0].split(" | ")), {"DocType", "User"})
 
+	def test_distinct_group_concat_omits_default_separator(self):
+		doctype = frappe.qb.DocType("DocType")
+		query = frappe.qb.from_(doctype).select(GroupConcat(doctype.module).distinct())
+
+		sql, parameters = query.walk()
+		self.assertIn('GROUP_CONCAT(DISTINCT "module")', sql)
+		self.assertNotIn('GROUP_CONCAT(DISTINCT "module",', sql)
+		self.assertFalse(parameters)
+		self.assertTrue(query.run(pluck=True)[0])
+
+	def test_distinct_group_concat_rejects_custom_separator(self):
+		doctype = frappe.qb.DocType("DocType")
+		query = frappe.qb.from_(doctype).select(GroupConcat(doctype.module, " | ").distinct())
+
+		with self.assertRaisesRegex(NotImplementedError, "custom separator"):
+			query.get_sql()
+
 	def test_raw_and_builder_date_format_preserve_microseconds(self):
 		value = "2026-01-01 12:34:56.123456"
 		raw_result = frappe.db.sql("SELECT DATE_FORMAT(%s, '%f')", (value,))[0][0]
