@@ -41,7 +41,7 @@
 					v-model="askText"
 					rows="2"
 					placeholder="Describe what you want instead…"
-					class="w-full resize-none rounded-6 border border-outline-gray-2 bg-surface-base px-2.5 py-2 text-xs leading-normal text-ink-gray-9 outline-none focus:border-outline-gray-3 focus:ring-0 max-sm:text-[16px]"
+					class="w-full resize-none rounded-6 border border-outline-gray-2 bg-surface-base px-2.5 py-2 text-xs leading-normal text-ink-gray-9 outline-none focus:border-outline-gray-3 focus:ring-0"
 					@keydown.enter.exact.prevent="sendAsk(call)"
 					@keydown.esc="cancelAsk"
 				/>

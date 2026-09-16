@@ -45,7 +45,7 @@
 					v-model="query"
 					placeholder="Search chats"
 					spellcheck="false"
-					class="h-full w-full min-w-0 border-0 bg-transparent p-0 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0 max-sm:text-[16px]"
+					class="h-full w-full min-w-0 border-0 bg-transparent p-0 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 				/>
 				<button
 					v-if="query"

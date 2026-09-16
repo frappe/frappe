@@ -78,10 +78,4 @@ const active = computed({
 :deep([data-slot="trigger"]) {
 	font-size: 14px;
 }
-/* iPhone Safari zooms into fields set below 16px */
-@media (max-width: 639px) {
-	:deep([data-slot="control"]) {
-		font-size: 16px;
-	}
-}
 </style>
