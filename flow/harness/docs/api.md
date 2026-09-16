@@ -59,7 +59,7 @@ The server resolves credentials and prompt context itself; do not send API keys,
 | `GET /providers/{id}/oauth/status` | Reads OAuth progress. |
 | `POST /providers/{id}/oauth/complete` | Completes OAuth with `{"callback_url": "..."}`. |
 | `POST /fs/pick` | Opens a native folder picker when the daemon host supports one. |
-| `GET /tools` | Lists the built-in, bundled, and extension tools a session may enable under the daemon's policy; a bundled row has `"bundled": true`, and an extension row names its extension. |
+| `GET /tools` | Lists the built-in, bundled, and extension tools a session may enable under the daemon's policy; a bundled row has `"bundled": true`, and an extension row names its extension. A built-in stays listed beside an extension tool of the same name. |
 | `GET /skills?cwd=` | Lists every `SKILL.md` under the global skill root and, with `cwd`, the project's, with parse errors per file; `truncated` names the scopes whose folder exceeded the scan cap. |
 | `GET /skills/file?path=&cwd=` | Reads one managed `SKILL.md`. |
 | `PUT /skills/file` | Writes `{"path", "content", "cwd"?}` to a managed `SKILL.md`, creating it. Invalid content is a 400 and nothing is written. |

@@ -79,7 +79,7 @@ def setup(flow) -> None:
     flow.on("tool_call", gate)
 ```
 
-Extension load errors are diagnostics, not daemon failures — and hook failures at runtime are recorded the same way (once per distinct failure) and appear in `GET /sessions/{id}/extensions`, which also lists each extension's hook subscriptions alongside its tools. Extension tools override selected built-ins with the same name; the first extension to register a duplicate name wins. Extensions are trusted Python code with the daemon's permissions.
+Extension load errors are diagnostics, not daemon failures — and hook failures at runtime are recorded the same way (once per distinct failure) and appear in `GET /sessions/{id}/extensions`, which also lists each extension's hook subscriptions alongside its tools. Extension tools override selected built-ins with the same name; the first extension to register a duplicate name wins. `GET /tools` still lists the built-in, so a session gets it back by leaving the extension tool out of `extension_tools`. Extensions are trusted Python code with the daemon's permissions.
 
 `POST /extensions/reload` (TUI and web UI: `/reload`) re-discovers and re-imports all extensions. Sessions use the recomposed tools from their next run — an active run finishes with the tools it started with, and system prompts stay as composed at session creation.
 

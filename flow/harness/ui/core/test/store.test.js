@@ -778,6 +778,27 @@ test("the Default preset adds bundled and extension tools on top of the core too
 	assert.deepEqual(configs[3].tools, ["bash", "grep"])
 })
 
+test("a built-in stays in the Default tools while an extension overrides it", async () => {
+	const configs = []
+	const client = {
+		...sessionClient(configs),
+		async tools() {
+			return {
+				tools: [
+					{ name: "read", extension: null, bundled: false },
+					{ name: "read", extension: "sandbox", bundled: false },
+				],
+			}
+		},
+	}
+	const flow = createFlowStore(client)
+	await flow.refreshTools()
+	flow.saveDefaultPreset({ tools: ["read"], extensionTools: [] }) // the extension's read unticked
+	await flow.newSession()
+	assert.deepEqual(configs[0].tools, ["read"])
+	assert.deepEqual(configs[0].extension_tools, [])
+})
+
 test("reloading extensions refetches the tool list", async () => {
 	const client = {
 		async reloadExtensions() {

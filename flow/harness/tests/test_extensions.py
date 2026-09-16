@@ -228,6 +228,13 @@ def setup(flow):
 
 	assert session.server_tools["read"].func.__module__.startswith("flow_extension_override_")
 
+	# the built-in stays listed, so a client can fall back to it by leaving the extension out
+	rows = [(t["name"], t["extension"]) for t in TestClient(create_app(store)).get("/tools").json()["tools"]]
+	assert rows.count(("read", None)) == 1
+	assert ("read", "override") in rows
+	fallback = store.create(SessionConfig(cwd=str(tmp_path), tools=["read"], extension_tools=[]))
+	assert fallback.server_tools["read"].func.__module__.startswith("flow_harness.")
+
 
 def test_cli_reports_extension_diagnostics_on_stderr(tmp_path, capsys):
 	from flow_harness.cli.main import _report_extension_diagnostics

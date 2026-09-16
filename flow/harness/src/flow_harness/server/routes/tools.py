@@ -27,11 +27,9 @@ def create_tools_router(
 		allowed = store.tool_allowlist
 		runtime = store.extension_runtime
 		extension_tools = runtime.tools if policy.extensions else {}
-		# an extension tool overrides a built-in of the same name, so list it once
-		rows = [_row(tool) for name, tool in BUILTIN_TOOLS.items() if name not in extension_tools]
-		rows += [
-			_row(tool, bundled=True) for name, tool in BUNDLED_TOOLS.items() if name not in extension_tools
-		]
+		# a built-in stays listed even when an extension overrides its name
+		rows = [_row(tool) for tool in BUILTIN_TOOLS.values()]
+		rows += [_row(tool, bundled=True) for tool in BUNDLED_TOOLS.values()]
 		rows += [_row(tool, extension=runtime.tool_sources[name]) for name, tool in extension_tools.items()]
 		return {"tools": [row for row in rows if allowed is None or row["name"] in allowed]}
 
