@@ -35,7 +35,7 @@
 
 /* ---- engine: board / columns -------------------------------------------- */
 .kn-board {
-	--kn-accent: var(--blue-500, #2490ef);
+	--kn-accent: var(--outline-blue-5);
 	height: 100%;
 	overflow-y: hidden;
 	/* Reserve space for the horizontal scrollbar so it doesn't overlap cards/columns. */
@@ -430,7 +430,7 @@
 }
 .kn-swimlane-head:focus-visible,
 .kn-card-title[role="link"]:focus-visible {
-	outline: 2px solid var(--focus-ring-color, var(--kn-accent, #2490ef));
+	outline: 2px solid var(--kn-accent);
 	outline-offset: 2px;
 }
 .kn-card-title[role="link"]:focus-visible {
