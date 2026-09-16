@@ -20,6 +20,7 @@ let declared: DrawnProps | null = null;
 const said = new Set<string>();
 let warnedNoList = false;
 
+/** The host's declared-prop lists per drawer; `null` keeps every key, as a surface without a vocabulary does. */
 export function setDrawnProps(next: DrawnProps | null) {
   declared = next;
 }
