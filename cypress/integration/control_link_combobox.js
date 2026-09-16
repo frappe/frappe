@@ -21,6 +21,18 @@ context("Control Link (combobox)", () => {
 	});
 
 	beforeEach(() => {
+		// frappe asks "leave site?" about unsaved changes unless developer mode is
+		// on, which CI's site is not. Once a page has had real keystrokes
+		// (cy.realPress) the browser shows that prompt, and it blocks the page, so
+		// leaving an unsaved form hangs the run until the job times out. Keep the
+		// guard from being registered on any page these tests load
+		cy.on("window:before:load", (win) => {
+			const add = win.addEventListener;
+			win.addEventListener = function (type, ...args) {
+				if (type === "beforeunload") return;
+				return add.call(this, type, ...args);
+			};
+		});
 		cy.visit("/desk/website");
 		cy.create_records({
 			doctype: "ToDo",
@@ -60,6 +72,15 @@ context("Control Link (combobox)", () => {
 	const close_dialog = () => {
 		cy.window().then((win) => win.cur_dialog && win.cur_dialog.hide());
 		cy.get(".modal.show").should("not.exist");
+	};
+	// a request body, whether frappe.call sent it as JSON or form-encoded
+	const read_body = (body) => {
+		if (body && typeof body === "object") return body;
+		try {
+			return JSON.parse(body);
+		} catch (e) {
+			return Object.fromEntries(new URLSearchParams(body || ""));
+		}
 	};
 	// a paste arrives as a beforeinput carrying a dataTransfer
 	const paste = (text) =>
@@ -273,7 +294,20 @@ context("Control Link (combobox)", () => {
 		);
 		close_dialog();
 
-		// too many rows to preload: the panel reopens as a search, and stays one
+		// too many rows to preload: the panel reopens as a search, and stays one.
+		// A frappe-only site has a few hundred DocTypes, under the preload limit,
+		// so give the preload a list that is over it
+		cy.intercept("POST", "/api/method/frappe.desk.search.search_link", (req) => {
+			const args = read_body(req.body);
+			if (args.doctype !== "DocType" || String(args.page_length) !== "1001") return;
+			req.reply({
+				message: Array.from({ length: 1001 }, (_, i) => ({
+					value: `DocType ${i}`,
+					label: `DocType ${i}`,
+					description: "",
+				})),
+			});
+		});
 		cy.dialog({
 			title: "Link",
 			fields: [{ label: "DocType", fieldname: "dt", fieldtype: "Link", options: "DocType" }],
