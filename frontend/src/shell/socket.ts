@@ -5,13 +5,14 @@ import type { Boot } from "@/boot";
 
 type SocketBoot = Pick<Boot, "site_name" | "socketio_port" | "dev_server">;
 
+/** Opens the site's realtime connection and keeps its rooms across reconnects. */
 export function createSocket(boot: SocketBoot) {
 	const socket = io(socketUrl(boot, window.location), { withCredentials: true });
 	repairRooms(socket);
 	return socket;
 }
 
-// A reconnect is a new socket id, so the server's room membership is gone with it.
+/** Rejoins every held room on each connect: a reconnect is a new socket id, and the server forgot its rooms. */
 export function repairRooms(socket: RealtimeSocket) {
 	socket.on("connect", () => resubscribeHeldDocs(socket));
 }
