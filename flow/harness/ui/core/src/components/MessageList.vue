@@ -2,8 +2,8 @@
 	<div class="relative min-h-0 flex-1">
 	<div
 		ref="scroller"
-		class="h-full overflow-y-auto"
-		:class="prompts.length > 3 ? 'px-10' : 'px-5'"
+		class="h-full overflow-y-auto px-5"
+		:class="prompts.length > 3 ? 'md:px-10' : ''"
 		:style="{ scrollPaddingBottom: composerHeight + 24 + 'px' }"
 		@scroll="onScroll"
 	>
@@ -16,7 +16,7 @@
 		>
 			<slot name="empty">
 				<BrandMark :size="48" />
-				<h2 class="text-5xl font-normal text-ink-gray-9">What would you like to build?</h2>
+				<h2 class="max-w-xs text-5xl font-normal text-ink-gray-9 sm:max-w-none">What would you like to build?</h2>
 			</slot>
 		</div>
 		<div

@@ -71,7 +71,7 @@ const props = defineProps({
 provide("flow", props.store)
 useColorScheme() // restores the saved theme and applies data-theme
 
-const sidebarOpen = computed(() => props.store.state.prefs.sidebarOpen !== false)
+const sidebarOpen = computed(() => props.store.state.sidebarOpen)
 const composer = ref(null)
 
 provideComposerHeight(composer)

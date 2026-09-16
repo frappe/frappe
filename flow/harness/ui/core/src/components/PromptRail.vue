@@ -1,7 +1,8 @@
 <template>
+	<!-- hover previews and hairline bars need a mouse: desktop only -->
 	<nav
 		ref="rail"
-		class="absolute right-3 top-3 z-10 max-h-[72%]"
+		class="absolute right-3 top-3 z-10 hidden max-h-[72%] md:block"
 		aria-label="Go to prompt"
 		@mouseleave="hovered = null"
 	>

@@ -2,7 +2,7 @@
 	<!-- editor: a column that gives the textarea the dialog's height -->
 	<div
 		v-if="editing"
-		class="flex min-h-0 flex-1 flex-col px-8 pb-6 pt-8"
+		class="flex min-h-0 flex-1 flex-col px-4 pb-6 pt-8 sm:px-8"
 		@keydown.meta.s.prevent="save"
 		@keydown.ctrl.s.prevent="save"
 	>
@@ -41,7 +41,7 @@
 	</div>
 
 	<!-- list -->
-	<div v-else class="min-h-0 flex-1 overflow-y-auto px-8 pb-10 pt-8">
+	<div v-else class="min-h-0 flex-1 overflow-y-auto px-4 pb-10 pt-8 sm:px-8">
 		<div class="flex items-start justify-between gap-4">
 			<div>
 				<h2 class="text-base font-semibold text-ink-gray-9">Skills</h2>

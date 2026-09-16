@@ -117,6 +117,16 @@
 	background: var(--surface-base);
 }
 
+/* frappe-ui sizes its settings shell as a full-bleed sheet on phones (w-screen, 100dvh)
+   while its dialog keeps a 1rem gutter and 2rem margins around it: fit the shell to the
+   dialog instead. */
+@media (max-width: 639px) {
+	.dialog-content > [data-orientation="vertical"] {
+		width: 100%;
+		height: calc(100dvh - 6rem);
+	}
+}
+
 /* the per-turn copy row reveals when hovering the turn's last item (its
    previous sibling), itself, or via keyboard focus — same feel as the user
    bubble's hover copy. Scoped to the thread's direct children: a bare
@@ -130,6 +140,22 @@
 .flow-turn-copy:hover,
 .flow-turn-copy:focus-within {
 	opacity: 1;
+}
+/* a message's own actions (the user bubble's time, rewind and copy) reveal on hovering it */
+.flow-hover-reveal {
+	opacity: 0;
+	transition: opacity 0.12s ease;
+}
+.group:hover .flow-hover-reveal,
+.flow-hover-reveal:focus-visible {
+	opacity: 1;
+}
+/* touch screens have no hover: everything hover-revealed stays visible */
+@media (hover: none) {
+	.flow-turn-copy,
+	.flow-hover-reveal {
+		opacity: 1;
+	}
 }
 
 /* streaming */

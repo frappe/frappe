@@ -1,7 +1,8 @@
 <template>
-	<span class="relative min-w-0">
+	<span class="relative min-w-0 max-w-[360px]">
+		<!-- the row shrinks the wrapper; the button, sized to its text, must follow it -->
 		<button
-			class="flex h-7 min-w-0 max-w-[360px] items-center gap-1.5 rounded-5 px-2 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2"
+			class="flex h-7 max-w-full items-center gap-1.5 rounded-5 px-2 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2"
 			:class="menu ? 'bg-surface-gray-2' : ''"
 			:title="`${currentModel ?? modelLabel} · thinking ${effortLabel}`"
 			aria-haspopup="menu"

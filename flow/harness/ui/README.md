@@ -96,7 +96,7 @@ and body that scroll together; `back` adds a way back for a page that replaced a
 the `actions` slot sits at the heading's right, and a `footer` slot is pinned under the
 body) and
 `SettingsRow` (a setting and its control). `v-model:tab`
-opens a given tab. The harness passes its four tabs from `FlowChat`; the Flow Frappe
+opens a given tab. On phones the first group's label row carries the close button. The harness passes its four tabs from `FlowChat`; the Flow Frappe
 app passes its doctype panels.
 
 ## Notes / gaps against the daemon API

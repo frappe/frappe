@@ -1,5 +1,5 @@
 <template>
-	<div class="min-h-0 flex-1 overflow-y-auto px-8 pb-6 pt-8">
+	<div class="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-8 sm:px-8">
 		<div class="flex items-center gap-2">
 			<button v-if="back" class="flow-icon-btn -my-1 -ml-1.5" :title="back" @click="emit('back')">
 				<FeatherIcon name="arrow-left" class="h-4 w-4" />
@@ -12,7 +12,7 @@
 	</div>
 	<div
 		v-if="$slots.footer"
-		class="flex shrink-0 flex-wrap items-center gap-3 border-t border-outline-gray-1 px-8 py-4"
+		class="flex shrink-0 flex-wrap items-center gap-3 border-t border-outline-gray-1 px-4 py-4 sm:px-8"
 	>
 		<slot name="footer" />
 	</div>

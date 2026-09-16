@@ -148,11 +148,12 @@
 					Could not prepare {{ item.name }}: {{ item.error }}
 					<button class="underline" :disabled="submitting" :aria-label="`Retry ${item.name}`" @click="prepareAttachment(item)">Retry</button>
 				</div>
+				<!-- 16px on phones: iPhone Safari zooms into smaller fields (the overlay mirrors the box) -->
 				<div class="relative">
 					<div
 						v-if="skillPrompt"
 						aria-hidden="true"
-						class="pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words px-1.5 pt-1 text-base leading-relaxed text-transparent"
+						class="pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words px-1.5 pt-1 text-base leading-relaxed text-transparent max-sm:text-[16px]"
 					>
 						<div :style="{ transform: `translateY(-${textScrollTop}px)` }">
 							<span class="text-ink-blue-6">{{ skillPrompt.prefix }}</span><span class="text-ink-gray-9">{{ skillPrompt.rest }}</span>
@@ -165,7 +166,7 @@
 						:disabled="submitting"
 						:placeholder="placeholder"
 						style="caret-color: var(--ink-gray-9)"
-						class="relative max-h-40 min-h-[62px] w-full resize-none border-0 bg-transparent px-1.5 pt-1 text-base leading-relaxed outline-none placeholder:text-ink-gray-4 focus:ring-0"
+						class="relative max-h-40 min-h-[62px] w-full resize-none border-0 bg-transparent px-1.5 pt-1 text-base leading-relaxed outline-none placeholder:text-ink-gray-4 focus:ring-0 max-sm:text-[16px]"
 						:class="skillPrompt ? 'text-transparent' : 'text-ink-gray-9'"
 						@keydown="onKey"
 						@paste="onPaste"

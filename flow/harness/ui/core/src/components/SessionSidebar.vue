@@ -119,14 +119,18 @@
 				:key="s.session_id"
 				role="button"
 				tabindex="0"
-				class="group relative flex cursor-pointer items-center rounded-6 px-2.5 py-2 hover:bg-surface-gray-2 focus-visible:bg-surface-gray-2 focus-visible:outline-none"
+				class="group relative flex cursor-pointer select-none items-center rounded-6 px-2.5 py-2 hover:bg-surface-gray-2 focus-visible:bg-surface-gray-2 focus-visible:outline-none"
 				:class="[
 					s.session_id === flow.state.sessionId ? 'bg-surface-gray-3' : '',
 					menuFor === s.session_id ? 'menu-open bg-surface-gray-2' : '',
 				]"
-				@click="flow.openSession(s.session_id)"
-				@keydown.enter.prevent="flow.openSession(s.session_id)"
-				@keydown.space.prevent="flow.openSession(s.session_id)"
+				@click="pick(s)"
+				@keydown.enter.prevent="pick(s)"
+				@keydown.space.prevent="pick(s)"
+				@pointerdown="pressStart(s, $event)"
+				@pointerup="pressEnd"
+				@pointercancel="pressEnd"
+				@pointerleave="pressEnd"
 			>
 				<span
 					class="session-title block min-w-0 w-full truncate text-xs leading-snug"
@@ -161,6 +165,7 @@
 							"
 							title="Session options"
 							@click.stop
+							@pointerdown.stop
 							@keydown.enter.stop
 							@keydown.space.stop
 						>
@@ -211,6 +216,7 @@ import FeatherIcon from "./FeatherIcon.vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
 import { useDebouncedValue } from "../debounce.js"
+import { sidebarIsDrawer } from "../layout.js"
 import BrandMark from "./BrandMark.vue"
 import PopMenu from "./PopMenu.vue"
 
@@ -264,8 +270,36 @@ function selectProject(cwd) {
 	projectMenu.value = false
 }
 
+// touch has no hover to reveal a row's menu button: a long press opens its menu instead
+let pressTimer = null
+let pressed = false // the click that ends a long press must not open the chat
+function pressStart(session, event) {
+	clearTimeout(pressTimer)
+	pressed = false
+	if (event.pointerType !== "touch") return
+	pressTimer = setTimeout(() => {
+		pressed = true
+		menuFor.value = session.session_id
+	}, 500)
+}
+function pressEnd() {
+	clearTimeout(pressTimer)
+}
+onBeforeUnmount(pressEnd)
+
+// a drawer closes once a chat is picked
+function pick(session) {
+	if (pressed) {
+		pressed = false
+		return
+	}
+	flow.openSession(session.session_id)
+	if (sidebarIsDrawer()) emit("close")
+}
+
 function startNewChat() {
 	flow.startNewChat({ cwd: selectedProject.value })
+	if (sidebarIsDrawer()) emit("close")
 }
 
 watch(projects, (available) => {

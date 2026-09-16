@@ -1,7 +1,7 @@
 <template>
 	<!-- form: scrolling body, pinned actions -->
 	<div v-if="draft" class="flex min-h-0 flex-1 flex-col">
-		<div class="min-h-0 flex-1 overflow-y-auto px-8 pt-8">
+		<div class="min-h-0 flex-1 overflow-y-auto px-4 pt-8 sm:px-8">
 			<div class="flex items-center gap-2">
 				<button class="flow-icon-btn -my-1 -ml-1.5" title="Back to presets" @click="back">
 					<FeatherIcon name="arrow-left" class="h-4 w-4" />
@@ -58,7 +58,7 @@
 			</div>
 		</div>
 
-		<div class="flex items-center justify-end gap-3 border-t border-outline-gray-1 px-8 py-4">
+		<div class="flex items-center justify-end gap-3 border-t border-outline-gray-1 px-4 py-4 sm:px-8">
 			<span v-if="dirty" class="text-xs text-ink-gray-5">Unsaved changes</span>
 			<Button v-if="draft.id" label="Delete" variant="ghost" theme="red" @click="confirmDelete" />
 			<Button variant="solid" label="Save" :disabled="!draft.name.trim() || !dirty" @click="save" />
@@ -66,7 +66,7 @@
 	</div>
 
 	<!-- list -->
-	<div v-else class="min-h-0 flex-1 overflow-y-auto px-8 pb-10 pt-8">
+	<div v-else class="min-h-0 flex-1 overflow-y-auto px-4 pb-10 pt-8 sm:px-8">
 		<div class="flex items-start justify-between gap-4">
 			<div>
 				<h2 class="text-base font-semibold text-ink-gray-9">Agent presets</h2>
