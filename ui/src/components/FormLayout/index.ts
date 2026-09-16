@@ -34,6 +34,8 @@ export type {
   Tab,
   Section,
   Column,
+  FormPart,
+  ColumnPart,
   FieldMeta,
   FieldNode,
   FieldOverride,

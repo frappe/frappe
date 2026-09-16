@@ -183,7 +183,7 @@ export function resolveLayout(
  * Bake one tab's conditional visibility against `doc`, returning a **fresh**
  * `Tab` with `hidden` resolved: static `hidden` OR `depends_on` false. Pure.
  *
- * Exported because the Record page's `page.formTabs` answers "is this one tab on
+ * Exported because the Record page's `page.form.tabs` answers "is this one tab on
  * screen" without resolving the whole form, and the two must not drift.
  */
 export function resolveTabConditionals(
