@@ -39,7 +39,6 @@ def test_tools_route_flags_bundled_tools(tmp_path):
 	assert bundled == {
 		"bash": False,
 		"read": False,
-		"read_file": False,
 		"write": False,
 		"edit": False,
 		"grep": True,

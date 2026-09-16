@@ -259,6 +259,14 @@ def test_patch_config_replaces_client_tools_and_confirmation_together(tmp_path):
 	assert c.patch(f"/sessions/{sid}/config", json={"client_tools": tools}).status_code == 400
 
 
+def test_read_file_alias_is_selectable_but_not_listed(tmp_path):
+	c, store = _client(tmp_path)
+	assert "read_file" not in [t["name"] for t in c.get("/tools").json()["tools"]]
+	body = {"model": "mock", "cwd": str(tmp_path), "tools": ["read_file"]}
+	sid = c.post("/sessions", json=body).json()["session_id"]
+	assert list(store.get(sid).server_tools) == ["read_file"]
+
+
 def test_patch_config_replaces_server_tools(tmp_path):
 	c, store = _client(tmp_path)
 	sid = c.post(

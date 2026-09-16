@@ -149,7 +149,6 @@ def test_tools_route_lists_extension_tools_with_their_source(tmp_path):
 	assert [t["name"] for t in tools] == [
 		"bash",
 		"read",
-		"read_file",
 		"write",
 		"edit",
 		"grep",
@@ -171,7 +170,7 @@ def test_tools_route_hides_extension_tools_when_the_policy_switch_is_off(tmp_pat
 
 	tools = client.get("/tools").json()["tools"]
 
-	assert [t["name"] for t in tools] == ["bash", "read", "read_file", "write", "edit", "grep"]
+	assert [t["name"] for t in tools] == ["bash", "read", "write", "edit", "grep"]
 
 
 def test_extension_diagnostics_endpoint(tmp_path):
