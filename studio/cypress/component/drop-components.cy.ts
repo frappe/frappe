@@ -4,7 +4,7 @@ import { setActivePinia } from "pinia"
 import { createRouter, createMemoryHistory } from "vue-router"
 // @ts-ignore
 import { resourcesPlugin } from "frappe-ui"
-import { spritePlugin } from "frappe-ui/icons"
+import { spritePlugin } from "frappe-ui/experimental"
 
 import StudioCanvas from "@/components/StudioCanvas.vue"
 import Block from "@/utils/block"

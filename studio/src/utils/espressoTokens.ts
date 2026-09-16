@@ -7,7 +7,7 @@ import {
 	fontSize,
 	generateCSSVariables,
 	generateSemanticColors,
-} from "frappe-ui/tailwind/tokens.js"
+} from "frappe-ui/tailwind/tokens"
 
 // frappe-ui exposes semantic colors as { category: { name: cssValue } }. Use the names and reference the CSS variable its plugin defines on :root. The
 // resolved light value is baked in as a fallback (var(--surface-base, #ffffff)),

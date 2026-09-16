@@ -82,7 +82,7 @@ import Block from "@/utils/block"
 import { getComponentBlock } from "@/utils/serializer"
 import type { DocTypeField, SelectOption } from "@/types"
 import components from "@/data/components"
-import { Link } from "frappe-ui/frappe"
+import Link from "@framework/ui/components/Link/Link.vue"
 import Grid from "@/components/Grid.vue"
 import { toast } from "frappe-ui"
 

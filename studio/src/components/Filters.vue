@@ -102,7 +102,7 @@
 <script setup lang="ts">
 import { Combobox, FeatherIcon, FormControl, Button } from "frappe-ui"
 import { computed, h, ref, watch } from "vue"
-import { Link } from "frappe-ui/frappe"
+import Link from "@framework/ui/components/Link/Link.vue"
 
 import FormInputLabel from "@/components/FormInputLabel.vue"
 import MultiLinkInput from "@/components/MultiLinkInput.vue"

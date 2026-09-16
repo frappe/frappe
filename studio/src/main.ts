@@ -7,7 +7,7 @@ import studio_router from "@/router/studio_router"
 import App from "./App.vue"
 
 import { resourcesPlugin, frappeRequest } from "frappe-ui"
-import { spritePlugin } from "frappe-ui/icons"
+import { spritePlugin } from "frappe-ui/experimental"
 import { registerGlobalComponents } from "./globals"
 
 import { COMPONENTS } from "@/data/components"

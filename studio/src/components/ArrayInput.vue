@@ -52,7 +52,7 @@
 			<div
 				v-for="(item, index) in items"
 				:key="index"
-				class="group/item relative flex flex-col gap-1.5 rounded-md border p-3"
+				class="group/item rounded-md relative flex flex-col gap-1.5 border p-3"
 			>
 				<div
 					v-for="(fieldSchema, fieldKey) in itemTypes"
@@ -97,7 +97,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { Button, FeatherIcon } from "frappe-ui"
-import { IconPicker } from "frappe-ui/icons"
+import { IconPicker } from "frappe-ui/experimental"
 import Input from "@/components/Input.vue"
 import InputLabel from "@/components/InputLabel.vue"
 import InlineInput from "@/components/InlineInput.vue"

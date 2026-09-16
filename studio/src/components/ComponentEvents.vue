@@ -5,7 +5,7 @@
 				<div
 					v-for="(event, name) in block?.componentEvents"
 					:key="name"
-					class="group/item flex w-full cursor-pointer flex-row items-center justify-between gap-2 rounded border-[1px] border-outline-gray-2 px-2 py-2"
+					class="group/item rounded flex w-full cursor-pointer flex-row items-center justify-between gap-2 border-[1px] border-outline-gray-2 px-2 py-2"
 				>
 					<div class="gap-1 self-center truncate text-base text-ink-gray-6">{{ name }}</div>
 					<ItemActions :menuOptions="getEventMenu(event)" @edit="openEvent(event)" />
@@ -157,7 +157,7 @@ import blockController from "@/utils/blockController"
 import { isObjectEmpty, confirm } from "@/utils/helpers"
 
 import type { ActionConfigurations, ComponentEvent } from "@/types/ComponentEvent"
-import { Link } from "frappe-ui/frappe"
+import Link from "@framework/ui/components/Link/Link.vue"
 import Grid from "@/components/Grid.vue"
 import Code from "@/components/Code.vue"
 import { useStudioCompletions } from "@/utils/useStudioCompletions"
