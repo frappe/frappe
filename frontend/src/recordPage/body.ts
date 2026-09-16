@@ -5,8 +5,8 @@ import { BODY_ITEM_KEYS } from "./types";
 import type { BodyItem, Position } from "./types";
 
 /** A column with `width` and no bounds of its own is bounded by these. */
-export const SCRIPT_COLUMN_DEFAULTS = { width: 320, minWidth: 240, maxWidth: 640 };
-/** A flex column never drops below this; the host drops fixed columns instead. */
+export const SCRIPT_COLUMN_DEFAULTS = { minWidth: 240, maxWidth: 640 };
+/** An open flex column never drops below this; the host drops fixed columns instead. */
 export const FLEX_MIN_WIDTH = 320;
 export const STRIP_WIDTH = 48;
 export const SNAP_DISTANCE = 7;
@@ -76,7 +76,7 @@ export interface BodyColumn {
   collapsed: boolean;
   /** Too narrow a row: not drawn, or drawn as a strip when collapsible. */
   dropped: boolean;
-  /** Where the drag edge sits: facing the nearest flex column, none without one. */
+  /** Where the edge sits: a fixed column's faces the nearest open flex column, a flex column's has only the chevron. */
   edge: EdgeSide | null;
 }
 
@@ -99,13 +99,13 @@ export function isDrawn(column: BodyColumn) {
 
 /** The room a drawn column takes: its strip, its width, or the flex minimum. */
 export function drawnWidth(column: BodyColumn) {
-  if (!column.bounds) return FLEX_MIN_WIDTH;
-  return column.collapsed ? STRIP_WIDTH : column.width;
+  if (column.collapsed) return STRIP_WIDTH;
+  return column.bounds ? column.width : FLEX_MIN_WIDTH;
 }
 
 function layColumn(item: BodyItem, memory: Remembered | undefined): BodyColumn {
   const bounds = columnBounds(item);
-  const collapsible = bounds !== null && item.collapsible === true;
+  const collapsible = item.collapsible === true;
   const kept = typeof memory?.width === "number" ? memory.width : NaN;
   const width = bounds ? clamp(Number.isFinite(kept) ? kept : bounds.width, bounds.minWidth, bounds.maxWidth) : 0;
   return {
@@ -120,7 +120,6 @@ function layColumn(item: BodyItem, memory: Remembered | undefined): BodyColumn {
 }
 
 function fit(columns: BodyColumn[], available: number) {
-  if (!columns.some((column) => !column.bounds)) return;
   for (const at of dropOrder(columns)) {
     if (needed(columns) <= available) return;
     columns[at].dropped = true;
@@ -153,14 +152,24 @@ function dropOrder(columns: BodyColumn[]) {
 
 function placeEdges(columns: BodyColumn[]) {
   const drawn = columns.filter(isDrawn);
-  const flex = drawn.map((column, at) => (column.bounds ? -1 : at)).filter((at) => at >= 0);
+  const flex = drawn.map((column, at) => (isOpenFlex(column) ? at : -1)).filter((at) => at >= 0);
   drawn.forEach((column, at) => {
-    if (!column.bounds || column.dropped || !flex.length) return;
-    const nearest = flex.reduce((best, one) =>
+    if (column.dropped) return;
+    if (!column.bounds) {
+      if (column.collapsible) column.edge = at > 0 ? "left" : "right";
+      return;
+    }
+    const others = flex.filter((one) => one !== at);
+    if (!others.length) return;
+    const nearest = others.reduce((best, one) =>
       Math.abs(one - at) < Math.abs(best - at) ? one : best,
     );
     column.edge = nearest < at ? "left" : "right";
   });
+}
+
+function isOpenFlex(column: BodyColumn) {
+  return !column.bounds && !column.collapsed;
 }
 
 /** What a drag on a column's edge amounts to: a new width, a toggle, or neither yet. */

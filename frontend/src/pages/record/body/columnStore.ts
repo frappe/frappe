@@ -1,5 +1,5 @@
 // What the reader left behind for each body column: its width and whether it is a strip.
-// The browser is the unit, keyed by user because a profile is shared and a reader's view is not.
+// Browser storage, keyed by user then column name.
 import { ref } from "vue";
 import type { Remembered } from "@/recordPage";
 

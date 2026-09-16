@@ -118,9 +118,9 @@ built-ins included: `move('panel', { before: 'form' })` puts the panel on the le
 | `name` | The address every verb uses. `form` and `panel` are taken. |
 | `component` | A Vue component that draws the column. It receives `{ ...props, page }`, and `collapsed` when the column is collapsible. |
 | `props` | Forwarded to the component beside `page`. |
-| `width` | Absent, the column **flexes**: it shares what the fixed columns leave with the other flex columns, equally. Present, the column is **fixed** at that many pixels, and the reader can drag it. Default for a script column that wants one: 320. |
+| `width` | Absent, the column **flexes**: it shares what the fixed columns leave with the other flex columns, equally. Present, the column is **fixed** at that many pixels, and the reader can drag it. |
 | `minWidth`, `maxWidth` | The drag range of a fixed column; 240 and 640 when omitted. Not read on a flex column. |
-| `collapsible` | `true` gives a fixed column the round chevron and a 48px strip. The component draws the strip's content itself from `collapsed`. Default `false`. |
+| `collapsible` | `true` gives the column the round chevron and a 48px strip. The component draws the strip's content itself from `collapsed`. On a flex column the chevron sits on the left edge with no drag. Default `false`. |
 | `gutter` | `false` makes the content bare; omitted, the content takes the page's side padding. The strip never does. |
 | any other key | Not read: dropped on `add` and `update`, and a development build warns once, naming the item and the key. |
 
@@ -141,7 +141,7 @@ back.
 
 Every column scrolls on its own. A 1px separator sits between adjacent visible columns; no
 column draws its own border. A fixed column gets a drag edge on the side that faces the
-nearest flex column, and no edge when no flex column is visible. Dragging past the range
+nearest open flex column, and no edge when none is open. Dragging past the range
 clamps; a drag within 7px of the script's `width` snaps to it; on a collapsible column a
 drag 60px under `minWidth` shuts it.
 
@@ -152,11 +152,12 @@ is no collapse verb: `hide` and `show` are a script's, the strip is the reader's
 
 ### Narrow screens
 
-The flex column keeps at least 320px. When the row cannot fit that, the host drops fixed
-columns from the outside in until it fits: right of the panel first, then left of the
-form, then the panel, then between the two. A dropped column is not drawn but stays on
-the surface, so `has` and `show` see no change. A dropped collapsible column draws its
-strip. A script cannot observe the drop.
+An open flex column keeps at least 320px. When the row cannot fit that, or fixed columns
+alone overflow it, the host drops fixed columns from the outside in until it fits: right
+of the panel first, then left of the form, then the panel, then between the two. A flex
+column is never dropped. A dropped column is not drawn but stays on the surface, so `has`
+and `show` see no change. A dropped collapsible column draws its strip. A script cannot
+observe the drop.
 
 ### The script this design was judged by
 
@@ -168,16 +169,16 @@ import Assistant from '@myapp/Assistant.vue'
 export default {
   setup(page) {
     page.body.add({ name: 'summary', component: Summary, width: 280, minWidth: 200 }, { after: 'form' })
-    page.body.add({ name: 'assistant', component: Assistant, collapsible: true, width: 320 }, { after: 'panel' })
+    page.body.add({ name: 'assistant', component: Assistant, collapsible: true }, { after: 'panel' })
     page.body.move('panel', { before: 'form' })
     page.body.hide('form') // warns: the Details form is hidden
   },
 }
 ```
 
-On a phone that page draws the strips of the panel and the assistant beside the form's
-space. On a desktop all four show; the reader drags the summary and collapses the
-assistant, and both are remembered.
+On a phone that page draws the panel's strip and the flex assistant: the summary, right of
+the panel, is dropped first. On a desktop all three show; the reader drags the summary and
+collapses the assistant, and both are remembered.
 
 ## The header row: `page.header`
 

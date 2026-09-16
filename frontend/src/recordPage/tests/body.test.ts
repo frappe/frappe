@@ -83,7 +83,7 @@ describe("columnBounds", () => {
     expect(columnBounds({ name: "a" })).toBeNull();
     expect(columnBounds({ name: "a", width: 280 })).toEqual({ width: 280, minWidth: 240, maxWidth: 640 });
     expect(columnBounds({ name: "a", width: 100, minWidth: 200 })).toEqual({ width: 200, minWidth: 200, maxWidth: 640 });
-    expect(SCRIPT_COLUMN_DEFAULTS.width).toBe(320);
+    expect(SCRIPT_COLUMN_DEFAULTS).toEqual({ minWidth: 240, maxWidth: 640 });
   });
 });
 
@@ -117,6 +117,24 @@ describe("projectBody", () => {
     expect(b.collapsed).toBe(false);
   });
 
+  it("gives a collapsible flex column a chevron edge, and a strip once shut", () => {
+    const items: BodyItem[] = [form, panel, { name: "assistant", collapsible: true }];
+    const [, p, a] = projectBody(items, none, wide);
+    expect(a).toMatchObject({ bounds: null, collapsible: true, edge: "left" });
+    expect(p.edge).toBe("left");
+    const shut = projectBody(items, (name) => (name === "assistant" ? { collapsed: true } : undefined), wide);
+    expect(shut[2]).toMatchObject({ collapsed: true, width: 0 });
+    expect(shut[1].edge).toBe("left");
+    expect(projectBody([{ name: "only", collapsible: true }], none, wide)[0].edge).toBe("right");
+  });
+
+  it("no longer counts a shut flex column as the one to keep at 320px", () => {
+    const shut = () => ({ collapsed: true });
+    const [f, p] = projectBody([{ name: "form", collapsible: true }, panel], shut, 500);
+    expect(f).toMatchObject({ collapsed: true, dropped: false });
+    expect(p).toMatchObject({ dropped: false, edge: null });
+  });
+
   it("drops fixed columns from the outside in until the flex column keeps 320px", () => {
     const items: BodyItem[] = [
       { name: "nav", width: 240 },
@@ -147,8 +165,11 @@ describe("projectBody", () => {
     expect(c).toMatchObject({ dropped: true, collapsed: false });
   });
 
-  it("drops nothing when no flex column is visible, or the row is unmeasured", () => {
-    expect(projectBody([panel], none, 100)[0].dropped).toBe(false);
+  it("drops fixed columns that overflow on their own, and nothing on an unmeasured row", () => {
+    const [p, s] = projectBody([panel, { name: "s", width: 300 }], none, 400);
+    expect(p.dropped).toBe(false);
+    expect(s.dropped).toBe(true);
+    expect(projectBody([panel, { name: "s", width: 300 }], none, 300)[0]).toMatchObject({ dropped: true, collapsed: true });
     expect(projectBody([form, panel], none, 0)[1].dropped).toBe(false);
   });
 });

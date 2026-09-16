@@ -149,8 +149,8 @@ What `page` is _for_ is a small, closed vocabulary:
   `collapsible`, `gutter` — are the names a script may lean on; they are kept for a
   major. The keys are engine words, read and dropped from the item, not props forwarded
   to the component. A column with no `width` flexes; one with `width` is fixed and the
-  reader's remembered width and collapsed state win over it. All eight verbs work on the
-  built-ins. What the host does on a narrow screen is not observable from a script.
+  reader's remembered width and collapsed state win over it. The seven verbs and `clear`
+  all work on the built-ins. What the host does on a narrow screen is not observable from a script.
 - **How many top-level controls fit is the host's business, and a script cannot observe
   it.** An item that does not fit is **demoted into `⋯`**, keeping its own band ahead of
   the built-ins and in the order it asked for; a dropdown collapses whole, under its label.

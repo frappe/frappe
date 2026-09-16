@@ -1,6 +1,5 @@
-// The body row: a script column gets `page` and its props, a built-in gets its slot, a
-// separator sits between neighbours, the edge faces the flex column, and a shut column
-// keeps its content mounted until the width transition settles.
+// The body row: slots for the built-ins, `page` for a script column, separators, edges,
+// the narrow-row drop, and a shut column that keeps its content until the width settles.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick } from "vue";
 import BodyColumns from "../body/BodyColumns.vue";
@@ -75,9 +74,22 @@ describe("BodyColumns", () => {
 
 	it("puts one edge on the panel, facing the form, and none on a fixed column with no flex neighbour", async () => {
 		const root = await mount([form, panel]);
-		const edge = root.querySelector("[aria-label='Collapse column']")!;
+		const edge = root.querySelector("[aria-label='Collapse panel column']")!;
 		expect(edge.parentElement!.previousElementSibling!.getAttribute("data-body-column")).toBe("form");
 		expect(edges(await mount([panel])).length).toBe(0);
+	});
+
+	it("gives a collapsible flex column a chevron and no drag, and hands it `collapsed`", async () => {
+		vi.useFakeTimers();
+		const root = await mount([form, panel, { name: "aside", component: Column, collapsible: true }]);
+		const chevron = root.querySelector<HTMLButtonElement>("[aria-label='Collapse aside column']")!;
+		expect(chevron.parentElement!.querySelector(".cursor-w-resize")).toBeNull();
+		chevron.click();
+		await nextTick();
+		vi.advanceTimersByTime(300);
+		await nextTick();
+		expect(columns(root)[2].textContent).toBe("undefined:D-1:true");
+		expect(columns(root)[2].style.width).toBe("48px");
 	});
 
 	it("drops the outside columns on a narrow row and draws the panel as a strip", async () => {
@@ -90,12 +102,11 @@ describe("BodyColumns", () => {
 
 	it("remembers a toggle per user and column, and starts from the memory", async () => {
 		const root = await mount([form, panel]);
-		root.querySelector<HTMLButtonElement>("[aria-label='Collapse column']")!.click();
+		root.querySelector<HTMLButtonElement>("[aria-label='Collapse panel column']")!.click();
 		await nextTick();
 		const stored = JSON.parse(localStorage.getItem(STORE_KEY)!);
 		expect(stored.tester.panel).toEqual({ collapsed: true });
 
-		vi.useFakeTimers();
 		const again = await mount([form, panel]);
 		expect(again.querySelector("[data-strip]")).not.toBeNull();
 		expect(columns(again)[1].style.width).toBe("48px");
@@ -111,7 +122,7 @@ function endWidthTransition(root: HTMLElement) {
 describe("closing", () => {
 	it("keeps the content mounted until the width transition ends, then shows the strip", async () => {
 		const root = await mount([form, panel]);
-		root.querySelector<HTMLButtonElement>("[aria-label='Collapse column']")!.click();
+		root.querySelector<HTMLButtonElement>("[aria-label='Collapse panel column']")!.click();
 		await nextTick();
 		expect(root.querySelector("[data-content]")).not.toBeNull();
 		expect(root.querySelector("[data-strip]")).toBeNull();
@@ -126,7 +137,7 @@ describe("closing", () => {
 	it("settles on the timer when no transitionend arrives", async () => {
 		vi.useFakeTimers();
 		const root = await mount([form, panel]);
-		root.querySelector<HTMLButtonElement>("[aria-label='Collapse column']")!.click();
+		root.querySelector<HTMLButtonElement>("[aria-label='Collapse panel column']")!.click();
 		await nextTick();
 		expect(root.querySelector("[data-content]")).not.toBeNull();
 
@@ -138,13 +149,13 @@ describe("closing", () => {
 
 	it("reopens with the content at once", async () => {
 		const root = await mount([form, panel]);
-		root.querySelector<HTMLButtonElement>("[aria-label='Collapse column']")!.click();
+		root.querySelector<HTMLButtonElement>("[aria-label='Collapse panel column']")!.click();
 		await nextTick();
 		endWidthTransition(root);
 		await nextTick();
 		expect(root.querySelector("[data-strip]")).not.toBeNull();
 
-		root.querySelector<HTMLButtonElement>("[aria-label='Expand column']")!.click();
+		root.querySelector<HTMLButtonElement>("[aria-label='Expand panel column']")!.click();
 		await nextTick();
 		expect(root.querySelector("[data-content]")).not.toBeNull();
 		expect(columns(root)[1].style.width).toBe("380px");

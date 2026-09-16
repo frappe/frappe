@@ -30,7 +30,7 @@ export type { AuthoredHandlers, Handler, RecordPageHandlers } from "./types";
 export { isEmptyHeader, projectHeader, zoneOf } from "./headerRenderings";
 export { projectFrame } from "./frame";
 export type { FrameProjection } from "./frame";
-export { columnBounds, dragOutcome, projectBody, STRIP_WIDTH } from "./body";
+export { columnBounds, dragOutcome, isDrawn, projectBody, STRIP_WIDTH } from "./body";
 export type { BodyColumn, ColumnBounds, EdgeSide, Remembered } from "./body";
 export { setDrawnProps } from "./drawnProps";
 export type { DrawnProps } from "./drawnProps";

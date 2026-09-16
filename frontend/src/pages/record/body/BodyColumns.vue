@@ -48,6 +48,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import {
+	isDrawn,
 	projectBody,
 	type BodyColumn as Column,
 	type BodyItem,
@@ -74,16 +75,15 @@ const dragging = reactive<Record<string, boolean>>({});
 const columns = computed(() =>
 	projectBody(props.items, remembered, props.available ?? measured.value)
 );
-const drawn = computed(() =>
-	columns.value.filter((column) => !column.dropped || column.collapsible)
-);
+const drawn = computed(() => columns.value.filter(isDrawn));
 
 function edgeProps(column: Column) {
 	return {
 		side: column.edge!,
+		name: column.item.name,
 		open: !column.collapsed,
 		width: column.width,
-		bounds: column.bounds!,
+		bounds: column.bounds ?? undefined,
 		collapsible: column.collapsible,
 	};
 }

@@ -4,14 +4,12 @@
 	<div
 		class="flex min-h-0 flex-col overflow-hidden"
 		:class="[
-			column.bounds ? 'shrink-0' : 'min-w-0 flex-1',
+			fixed ? 'shrink-0' : 'min-w-0 flex-1',
 			separator ? 'border-l border-outline-gray-1' : '',
-			dragging || !column.bounds ? '' : 'transition-[width] duration-300 ease-in-out',
+			dragging || !fixed ? '' : 'transition-[width] duration-300 ease-in-out',
 		]"
 		:style="
-			column.bounds
-				? { width: `${column.collapsed ? STRIP_WIDTH : column.width}px` }
-				: undefined
+			fixed ? { width: `${column.collapsed ? STRIP_WIDTH : column.width}px` } : undefined
 		"
 		:data-body-column="column.item.name"
 		:data-collapsed="strip ? '' : undefined"
@@ -35,19 +33,21 @@ import { pageGutter } from "@/shell/PageFrame.vue";
 const props = defineProps<{ column: BodyColumn; separator: boolean; dragging: boolean }>();
 
 // The content stays mounted while the width shrinks over it, as it does when it grows.
-// The timer matches `duration-300`; the test DOM and a drag-toggle fire no transitionend.
+// The timer matches `duration-300`, for a DOM that fires no transitionend.
 const CLOSE_DURATION = 300;
 const closing = ref(false);
 let settle: ReturnType<typeof setTimeout> | undefined;
 
 const strip = computed(() => props.column.collapsed && !closing.value);
+// A shut flex column is a 48px strip, so it takes a fixed width while it is shut.
+const fixed = computed(() => props.column.bounds !== null || props.column.collapsed);
 
 watch(
 	() => props.column.collapsed,
 	(value) => {
 		clearTimeout(settle);
 		closing.value = value;
-		if (value) settle = setTimeout(settled, props.dragging ? 0 : CLOSE_DURATION);
+		if (value) settle = setTimeout(settled, CLOSE_DURATION);
 	}
 );
 
