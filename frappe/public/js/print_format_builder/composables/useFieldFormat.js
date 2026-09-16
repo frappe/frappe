@@ -5,7 +5,7 @@ const IMAGE_FIELDTYPES = new Set(["Attach Image", "Image", "Attach"]);
 const IMAGE_EXTENSIONS = /\.(png|jpe?g|gif|webp|svg|bmp|ico)(\?.*)?$/i;
 const HTML_CONTENT_FIELDTYPES = new Set(["Text Editor", "Long Text"]);
 const MERGE_IMAGE_FIELDTYPES = new Set(["Attach Image", "Attach"]);
-const MERGE_HTML_FIELDTYPES = new Set(["Text Editor", "HTML Editor", "HTML"]);
+const MERGE_HTML_FIELDTYPES = new Set(["Text Editor", "HTML Editor"]);
 
 export function useFieldFormat(props, store, preview_doc) {
 	const preview_value = computed(() => {
