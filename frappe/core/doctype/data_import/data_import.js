@@ -88,7 +88,7 @@ function dedupe_import_warnings(warnings) {
 	const rows = [];
 	const others = [];
 	const seen_rows = new Set();
-	const seen_others = new Map(); // Use Map to store the warning, not just seen status
+	const seen_others = new Map();
 
 	for (const w of warnings) {
 		if (w.row) {
@@ -1474,7 +1474,7 @@ frappe.ui.form.on("Data Import", {
 					message +=
 						"<br/>" +
 						__(
-							"Use 'Export Errored Rows' on the Failed metric, fix the errors and import again."
+							"Use 'Download Failed Rows' on the Failed metric, fix the errors and import again."
 						);
 				}
 

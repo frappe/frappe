@@ -83,6 +83,32 @@ class DataImport(Document):
 		value_mappings: DF.Table[DataImportValueMapping]
 	# end: auto-generated types
 
+	def onload(self):
+		self.reconcile_orphaned_import()
+
+	def reconcile_orphaned_import(self):
+		"""Recover a doc stuck at "In Progress" whose background job is gone.
+
+		A worker crash or restart can leave the status at "In Progress" with no live RQ
+		job — the wizard would then show a frozen progress screen forever. On load, if the
+		job is no longer queued/running, move the doc to "Error" so it becomes retryable.
+		"""
+		if self.status != "In Progress":
+			return
+		if is_job_enqueued(f"data_import||{self.name}"):
+			return
+		# Job is gone — mark terminal, but only if the DB is still "In Progress", to avoid
+		# overwriting a final status the worker may have written just now. Don't touch
+		# `modified`: this is a system correction during load, not a user edit, and bumping
+		# it would desync the doc the client just loaded.
+		frappe.db.set_value(
+			"Data Import",
+			{"name": self.name, "status": "In Progress"},
+			{"status": "Error"},
+			update_modified=False,
+		)
+		self.status = "Error"
+
 	def validate(self):
 		doc_before_save = self.get_doc_before_save()
 		if (
@@ -310,7 +336,8 @@ def start_import(data_import):
 	data_import.set_delimiters_flag()
 	i = None
 	try:
-		data_import.get_importer().import_data()
+		i = data_import.get_importer()
+		i.import_data()
 	except JobTimeoutException:
 		frappe.db.rollback()
 		data_import.db_set("status", "Timed Out")

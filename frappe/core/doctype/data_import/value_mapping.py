@@ -192,14 +192,11 @@ def get_blocking_warnings(warnings: list, import_file, data_import=None) -> list
 			):
 				blocking.append(warning)
 			continue
-		# Duplicate ID warnings: skip if all rows except the first are in skipped_rows
+		# Duplicate IDs are non-blocking when every duplicate but the first is skipped.
 		if warning.get("type") == "duplicate_id" and skipped_rows:
 			rows = warning.get("rows") or []
-			if len(rows) > 1:
-				# Check if all duplicate rows except the first are skipped
-				rows_to_skip = rows[1:]  # All rows except the first
-				if all(cint(row) in skipped_rows for row in rows_to_skip):
-					continue  # Not blocking - duplicates are handled by skipping
+			if len(rows) > 1 and all(cint(row) in skipped_rows for row in rows[1:]):
+				continue
 		blocking.append(warning)
 	return blocking
 

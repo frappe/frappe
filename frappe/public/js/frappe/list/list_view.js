@@ -2551,9 +2551,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const doctype = this.doctype;
 		const items = [];
 
-		// Import is surfaced as a toolbar dropdown (setup_import_dropdown), not a menu item,
-		// so users get recent imports + Create + Show All. Same can_import gate.
-
 		if (frappe.user_roles.includes("System Manager")) {
 			items.push({
 				label: __("User Permissions", null, "Button in list view menu"),

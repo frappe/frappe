@@ -84,7 +84,6 @@ function _open(opts, { data_import, reference_doctype, import_type, title, on_im
 	// Optional: notify caller when the import finishes. The controller flips status to
 	// Success/Partial Success; we watch on each refresh.
 	if (on_import_complete) {
-		const orig_refresh = frm.cscript?.refresh;
 		frm.__di_notify_complete = () => {
 			if (["Success", "Partial Success"].includes(frm.doc?.status) && !frm.__di_notified) {
 				frm.__di_notified = true;
@@ -120,7 +119,6 @@ function _open(opts, { data_import, reference_doctype, import_type, title, on_im
 	};
 
 	dialog.$wrapper.addClass("data-import-dialog");
-	_inject_dialog_css();
 	dialog.show();
 
 	// Instantiate after show so the host has layout (make_app_page/measurements are happier).
@@ -132,6 +130,7 @@ function _open(opts, { data_import, reference_doctype, import_type, title, on_im
 
 	// Cleanup: unmount the wizard + drop the embedded form's global side effects.
 	dialog.$wrapper.on("hide.bs.modal", () => {
+		if (frm.__di_poll_timer) clearInterval(frm.__di_poll_timer);
 		try {
 			frm._data_import_wizard?.unmount?.();
 		} catch (e) {
@@ -144,46 +143,6 @@ function _open(opts, { data_import, reference_doctype, import_type, title, on_im
 	return { dialog, frm };
 }
 
-// The embedded form builds a full desk page (make_app_page) inside the dialog body —
-// that page has its own head (breadcrumbs, search, page-actions) and sidebar which are
-// redundant chrome in a modal. Hide them so only the wizard shows. Also constrain the
-// dialog body height so the wizard's viewport-based card sizing scrolls inside the modal.
-function _inject_dialog_css() {
-	if (document.getElementById("data-import-dialog-css")) return;
-	const css = `
-		.data-import-dialog .modal-dialog { max-width: min(1200px, 94vw); }
-		/* This dialog has no footer buttons, so the modal-footer (which carries the rounded
-		   bottom corners) is hidden and the square-cornered modal-body becomes the bottom
-		   edge. Round its bottom corners so they match the modal-content's radius. */
-		.data-import-dialog .modal-body {
-			padding: 0;
-			max-height: 84vh;
-			overflow: hidden;
-			border-bottom-left-radius: var(--radius-md, 0.75rem);
-			border-bottom-right-radius: var(--radius-md, 0.75rem);
-		}
-		.data-import-dialog .data-import-dialog-host .page-head,
-		.data-import-dialog .data-import-dialog-host .layout-side-section,
-		.data-import-dialog .data-import-dialog-host .form-sidebar,
-		.data-import-dialog .data-import-dialog-host .page-actions { display: none !important; }
-		.data-import-dialog .data-import-dialog-host .page-body,
-		.data-import-dialog .data-import-dialog-host .layout-main-section-wrapper { padding: 0; }
-		/* The wizard floors the card at 620px from the viewport; inside a modal that
-		   overflows the dialog and forces a scroll. Cap it to the dialog body so the
-		   whole card (stepper + config + footer) is visible; long step content still
-		   scrolls inside .diw-step-content. !important beats the wizard's inline height. */
-		.data-import-dialog .diw-card {
-			height: calc(84vh - 96px) !important;
-			min-height: calc(84vh - 96px) !important;
-			max-height: calc(84vh - 96px) !important;
-		}
-	`;
-	const style = document.createElement("style");
-	style.id = "data-import-dialog-css";
-	style.textContent = css;
-	document.head.appendChild(style);
-}
-
 function _after_refresh(frm) {
 	// The wizard sizes its card from the viewport (window.innerHeight). Inside a dialog
 	// we want it to fill the dialog body instead. Nudge it once layout settles.
@@ -193,10 +152,12 @@ function _after_refresh(frm) {
 	const notify = frm.__di_notify_complete;
 	if (notify) {
 		// Cheap poll — the controller re-renders on realtime import progress; checking
-		// on an interval avoids threading a callback through the whole controller.
-		const timer = setInterval(() => {
+		// on an interval avoids threading a callback through the whole controller. Cleared
+		// on modal hide (a hidden dialog keeps its wrapper in the DOM, so the DOM check
+		// alone never stops it).
+		frm.__di_poll_timer = setInterval(() => {
 			if (!document.body.contains(frm.wrapper)) {
-				clearInterval(timer);
+				clearInterval(frm.__di_poll_timer);
 				return;
 			}
 			notify();

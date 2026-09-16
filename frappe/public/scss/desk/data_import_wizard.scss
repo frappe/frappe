@@ -631,3 +631,45 @@ ul.diw-map-dropdown-portaled {
 		font-size: 22px;
 	}
 }
+
+// The embedded form builds a full desk page (make_app_page) inside the dialog body —
+// hide its redundant chrome (head, sidebar, page-actions) so only the wizard shows, and
+// constrain the body height so the wizard's viewport-based card sizing scrolls in the modal.
+.data-import-dialog {
+	.modal-dialog {
+		max-width: min(1200px, 94vw);
+	}
+
+	// No footer buttons here, so the modal-footer (which carries the rounded bottom
+	// corners) is hidden and the modal-body becomes the bottom edge — round it to match.
+	.modal-body {
+		padding: 0;
+		max-height: 84vh;
+		overflow: hidden;
+		border-bottom-left-radius: var(--radius-md, 0.75rem);
+		border-bottom-right-radius: var(--radius-md, 0.75rem);
+	}
+
+	.data-import-dialog-host {
+		.page-head,
+		.layout-side-section,
+		.form-sidebar,
+		.page-actions {
+			display: none !important;
+		}
+
+		.page-body,
+		.layout-main-section-wrapper {
+			padding: 0;
+		}
+	}
+
+	// The wizard floors the card at 620px from the viewport; inside a modal that overflows
+	// and forces a scroll. Cap it to the dialog body so the whole card is visible; long step
+	// content still scrolls inside .diw-step-content. !important beats the inline height.
+	.diw-card {
+		height: calc(84vh - 96px) !important;
+		min-height: calc(84vh - 96px) !important;
+		max-height: calc(84vh - 96px) !important;
+	}
+}

@@ -236,9 +236,9 @@ context("Data Import Wizard", () => {
 		open_data_import(import_with_second_file);
 
 		cy.wait("@previewB");
-		cy.wait(3000);
 
 		cy.findByRole("button", { name: "Preview" }).click({ force: true });
+		// Retrying assertions wait for the rendered preview — no fixed sleep needed.
 		active_step_panel().should("contain.text", second_preview_value);
 		active_step_panel().should("not.contain.text", first_preview_value);
 	});
