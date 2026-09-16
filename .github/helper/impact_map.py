@@ -79,21 +79,37 @@ def is_stale(impact_map: dict) -> bool:
 	return datetime.now(UTC) - generated_at > MAX_AGE
 
 
+def is_test_module(file: str) -> bool:
+	"""Is this a test file, as opposed to the source it tests?"""
+	return file.endswith(".py") and os.path.basename(file).startswith("test_")
+
+
+def unmapped(impact_map: dict, py_files: list[str]) -> list[str]:
+	"""The changed files the map has no answer for.
+
+	A file maps to no tests when it is brand new, when no test imports it, or when it only ever
+	ran at import time (`__init__.py` and the like) -- none of which is evidence that changing it
+	is safe, so any of them forces the full suite.
+
+	Test modules are the exception: the tests a test module's content can break are its own, map
+	or no map. Coverage omits `*/tests/*` (see `ci.py`), so most of them are absent by design.
+	"""
+	return [f for f in py_files if not impact_map["map"].get(f) and not is_test_module(f)]
+
+
 def select(impact_map: dict, py_files: list[str]) -> list[str] | None:
 	"""Test files needed for `py_files`, or None if the map cannot answer.
 
-	Returning None means "run everything". A file maps to no tests when it is brand new, when
-	no test imports it, or when it only ever ran at import time (`__init__.py` and the like) --
-	none of which is evidence that changing it is safe.
+	Returning None means "run everything".
 	"""
-	if is_stale(impact_map):
+	if is_stale(impact_map) or unmapped(impact_map, py_files):
 		return None
 
-	tests = set()
+	# A changed test module always runs itself. Anything the map attributes to it on top of that
+	# is a second test importing it for helpers, and needs to run too.
+	tests = {f for f in py_files if is_test_module(f)}
 	for py_file in py_files:
-		if not (tests_for_file := impact_map["map"].get(py_file)):
-			return None
-		tests.update(tests_for_file)
+		tests.update(impact_map["map"].get(py_file) or ())
 
 	return sorted(tests)
 
@@ -123,6 +139,22 @@ def _selftest():
 	assert select(import_only, ["frappe/__init__.py"]) is None, "import-time-only file must bail out"
 	assert select(one, []) == [], "no python changes selects no tests"
 	assert select({**one, "generated_at": old}, ["frappe/a.py"]) is None, "stale map must bail out"
+
+	# A test module runs itself whether or not the map knows it -- coverage omits `*/tests/*`.
+	assert select(one, ["frappe/tests/test_new.py"]) == ["frappe/tests/test_new.py"]
+	assert select(one, ["frappe/a.py", "frappe/tests/test_new.py"]) == [
+		"frappe/tests/test_a.py",
+		"frappe/tests/test_new.py",
+	]
+	helper = {"generated_at": fresh, "map": {"frappe/d/test_d.py": ["frappe/tests/test_a.py"]}}
+	assert select(helper, ["frappe/d/test_d.py"]) == [
+		"frappe/d/test_d.py",
+		"frappe/tests/test_a.py",
+	], "a test module other tests import runs those too"
+
+	assert unmapped(one, ["frappe/a.py", "frappe/tests/test_new.py"]) == []
+	assert unmapped(one, ["frappe/unknown.py"]) == ["frappe/unknown.py"]
+	assert unmapped(import_only, ["frappe/__init__.py"]) == ["frappe/__init__.py"]
 
 	assert all_tests(merged) == {
 		"frappe/tests/test_a.py",
