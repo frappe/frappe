@@ -1825,20 +1825,26 @@ class Engine:
 	def _scope_hook_condition(self, condition: "Criterion", doctype: str, table: Table) -> "Criterion":
 		"""Re-point a permission condition from hooks at `table`.
 
-		Hooks and server scripts build their condition against the real table, as raw SQL
-		or as a query builder criterion. Either way that table is out of scope once it is
-		joined under an alias, so match names through a subquery, where it still resolves."""
+		Hooks and server scripts build their condition against the real table, which an
+		aliased join puts out of scope. A criterion can be re-pointed in place, keeping the
+		condition inline and indexable. Raw SQL has no table to swap, so it has to be
+		matched through a subquery, where the real name still resolves."""
 		source = frappe.qb.DocType(doctype)
+		if not self._has_raw_sql(condition):
+			return condition.replace_table(source, table)
+
 		return table.name.isin(frappe.qb.from_(source).select(source.name).where(condition))
 
-	def get_queried_tables(self) -> list[str]:
-		"""Extract all table names involved in the current query."""
-		tables = []
-		for table in self.query._from:
-			tables.append(table.get_sql())
+	@staticmethod
+	def _has_raw_sql(condition: "Criterion") -> bool:
+		return any(isinstance(node, RawCriterion) for node in condition.nodes_())
 
-		for join in self.query._joins:
-			tables.append(join.item.get_sql())
+	def get_queried_tables(self) -> list[str]:
+		"""Identifiers columns in the current query can be qualified with.
+
+		A joined table that carries an alias is only reachable by that alias."""
+		tables = [table.get_table_name() for table in self.query._from]
+		tables.extend(join.item.get_table_name() for join in self.query._joins)
 		return list(set(tables))
 
 	def get_permission_query_conditions(self, doctype: str | None = None) -> list["Criterion"]:
