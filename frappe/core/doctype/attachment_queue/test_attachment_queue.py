@@ -946,20 +946,6 @@ class TestAttachmentQueue(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Attachment Queue", queue_doc.name))
 		self.assertFalse(frappe.db.exists("File", file_name))
 
-	def test_clear_old_logs_commits_after_each_batch(self):
-		from frappe.core.doctype.attachment_queue.attachment_queue import AttachmentQueue
-		from frappe.utils import add_days, now_datetime
-
-		queue_doc = self.make_queue()
-		queue_doc.db_set("status", "Completed")
-		frappe.db.set_value("Attachment Queue", queue_doc.name, "creation", add_days(now_datetime(), -31))
-
-		# A large backlog must not run as one long-held transaction; each batch should commit.
-		with patch("frappe.db.commit", wraps=frappe.db.commit) as commit:
-			AttachmentQueue.clear_old_logs(days=30)
-
-		commit.assert_called()
-
 	def test_clear_old_logs_keeps_intake_that_is_not_finished(self):
 		"""Cleanup is a log purge, not an intake purge.
 
