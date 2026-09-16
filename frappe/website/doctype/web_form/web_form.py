@@ -597,7 +597,13 @@ def get_context(context):
 				)
 
 			if field.fieldtype == "Table MultiSelect":
-				field.fields = get_table_multiselect_fields(field.options)
+				field.fields = get_table_multiselect_fields(
+					field.options,
+					self.name,
+					web_form_request_key,
+					docname,
+					field.allow_read_on_all_link_options,
+				)
 
 			if field.fieldtype == "Link":
 				process_link_field(field, self.name, web_form_request_key, docname)
@@ -1176,7 +1182,13 @@ def get_form_data(
 			out.update({field.fieldname: field.fields})
 
 		if field.fieldtype == "Table MultiSelect":
-			field.fields = get_table_multiselect_fields(field.options)
+			field.fields = get_table_multiselect_fields(
+				field.options,
+				web_form_name,
+				web_form_request_key,
+				docname,
+				field.allow_read_on_all_link_options,
+			)
 
 		if field.fieldtype == "Link":
 			process_link_field(field, web_form_name, web_form_request_key, docname)
@@ -1226,11 +1238,14 @@ def get_in_list_view_fields(doctype, web_form_name=None, web_form_request_key=No
 	return [get_field_df(f) for f in fields]
 
 
-def get_table_multiselect_fields(child_doctype):
-	"""Return the child table's Link docfield so the portal control can resolve it.
+def get_table_multiselect_fields(
+	child_doctype, web_form_name=None, web_form_request_key=None, docname=None, allow_read_on_all=False
+):
+	"""Return the child table's Link docfield, with its options, for the portal control.
 
 	Not get_in_list_view_fields(): it drops non-list-view fields and turns Link into
-	Autocomplete, but the control needs the raw Link.
+	Autocomplete, but the control needs the raw Link. The options ship with the page the
+	way a Table field's do, so the portal never searches from the browser.
 	"""
 	try:
 		meta = frappe.get_meta(child_doctype)
@@ -1239,7 +1254,15 @@ def get_table_multiselect_fields(child_doctype):
 		return []
 
 	link_field = next((df for df in meta.fields if df.fieldtype == "Link"), None)
-	return [link_field.as_dict()] if link_field else []
+	if not link_field:
+		return []
+
+	df = link_field.as_dict()
+	if web_form_name:
+		df.link_options = get_link_options(
+			web_form_name, df.options, allow_read_on_all, web_form_request_key, docname
+		)
+	return [df]
 
 
 def is_guest_key_web_form(web_form):
@@ -1273,69 +1296,6 @@ def has_link_option(fields, doctype):
 				if getattr(child_field, "options", None) == doctype:
 					return True
 	return False
-
-
-def allows_reading_all_link_options(web_form, doctype):
-	"""Whether a field on this form targeting `doctype` opts out of the owner filter.
-
-	A Table MultiSelect's own options hold the child table, so the searched doctype
-	is one hop away, on the child's Link field.
-	"""
-	for field in web_form.web_form_fields:
-		if field.fieldtype == "Table MultiSelect" and field.options:
-			link_fields = get_table_multiselect_fields(field.options)
-			target = link_fields[0].get("options") if link_fields else None
-		else:
-			target = field.options
-
-		if target == doctype and field.allow_read_on_all_link_options:
-			return True
-
-	return False
-
-
-@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
-@rate_limit(key="web_form_name", limit=60, seconds=60)
-@frappe.read_only()
-def search_web_form_link(
-	web_form_name: str,
-	doctype: str,
-	txt: str = "",
-	web_form_request_key: str | None = None,
-	page_length: int = 10,
-) -> list:
-	"""Search link options for a Table MultiSelect field on a published web form.
-
-	Portal visitors cannot reach frappe.desk.search.search_link, which is not
-	guest-allowed. This is the guest-safe equivalent: it authorises against the
-	web form, then queries with permissions ignored, because the gate below --
-	not the visitor's roles -- is what grants access.
-	"""
-	from frappe.desk.search import build_for_autosuggest
-
-	web_form: WebForm = frappe.get_cached_doc("Web Form", web_form_name)
-	authorize_link_access(web_form, doctype, web_form_request_key)
-
-	meta = frappe.get_meta(doctype)
-	search_fields = ["name"]
-	if meta.title_field and meta.show_title_field_in_link:
-		search_fields.append(meta.title_field)
-
-	filters = {}
-	if web_form.login_required and not allows_reading_all_link_options(web_form, doctype):
-		filters["owner"] = frappe.session.user
-
-	results = frappe.get_all(
-		doctype,
-		filters=filters,
-		or_filters=[[f, "like", f"%{txt}%"] for f in search_fields] if txt else None,
-		fields=search_fields,
-		limit=min(cint(page_length) or 10, 50),
-		order_by="name asc",
-		as_list=True,
-		ignore_permissions=True,
-	)
-	return build_for_autosuggest(results, doctype=doctype)
 
 
 def get_link_options(
