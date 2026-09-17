@@ -23,6 +23,7 @@
 				class="flex-1"
 				:search="search"
 				@show-cc-bcc="revealCcBcc"
+				@move="(recipient) => moveRecipient('to', recipient)"
 			/>
 			<div v-if="showCc || showBcc" class="flex shrink-0 items-center gap-1">
 				<Button
@@ -50,6 +51,7 @@
 				class="flex-1"
 				:search="search"
 				@show-cc-bcc="revealCcBcc"
+				@move="(recipient) => moveRecipient('cc', recipient)"
 			/>
 		</Row>
 		<Row v-if="showBcc && openBcc" label="BCC">
@@ -58,6 +60,7 @@
 				class="flex-1"
 				:search="search"
 				@show-cc-bcc="revealCcBcc"
+				@move="(recipient) => moveRecipient('bcc', recipient)"
 			/>
 		</Row>
 		<div class="border-b bg-surface-gray-1 mt-2"></div>
@@ -135,6 +138,15 @@ function toggleCc() {
 function toggleBcc() {
 	openBcc.value = !openBcc.value;
 	if (!openBcc.value) bcc.value = [];
+}
+
+// a dragged chip lands in one row only, so clear it out of all three first
+function moveRecipient(target: "to" | "cc" | "bcc", recipient: Recipient) {
+	for (const row of [to, cc, bcc]) {
+		row.value = row.value.filter((existing) => existing.email !== recipient.email);
+	}
+	const landed = { to, cc, bcc }[target];
+	landed.value = [...landed.value, recipient];
 }
 
 // a chip being dragged needs the other rows open to have somewhere to land
