@@ -574,7 +574,6 @@ def get_link_title_doctypes():
 def get_link_settings() -> dict[str, dict]:
 	"""Non-default Link field settings per DocType; Property Setters override."""
 	from frappe.desk.search import get_image_field
-	from frappe.utils import cint
 
 	flags: dict[str, dict] = {}
 

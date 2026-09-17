@@ -368,7 +368,9 @@
 			margin-top: 2px;
 		}
 
-		.form-control:focus {
+		.form-control:focus,
+		.es-combobox:focus-visible,
+		.es-combobox:focus-within {
 			border-color: $text-muted;
 			box-shadow: inset 0px 0px 0 2px rgba(124, 124, 124, 0.25);
 		}
@@ -394,7 +396,6 @@
 		.es-combobox:focus-visible,
 		.es-combobox:focus-within {
 			outline: none;
-			box-shadow: inset 0px 0px 0 2px rgba(124, 124, 124, 0.25);
 		}
 
 		.es-combobox:not(:hover):not(:focus-within):not([data-state="open"])

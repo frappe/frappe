@@ -75,7 +75,10 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 
 	to_options(data) {
 		return (data || []).map((d) => ({
-			label: this.translate_values ? __(d.label, null, d.parent) : d.label,
+			// a row given only a value shows the value, as the classic control does
+			label: this.translate_values
+				? __(d.label || d.value, null, d.parent)
+				: d.label || d.value,
 			value: d.value,
 			description: d.description ? __(d.description) : undefined,
 		}));

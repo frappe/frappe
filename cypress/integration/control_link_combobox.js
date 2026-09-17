@@ -21,18 +21,6 @@ context("Control Link (combobox)", () => {
 	});
 
 	beforeEach(() => {
-		// frappe asks "leave site?" about unsaved changes unless developer mode is
-		// on, which CI's site is not. Once a page has had real keystrokes
-		// (cy.realPress) the browser shows that prompt, and it blocks the page, so
-		// leaving an unsaved form hangs the run until the job times out. Keep the
-		// guard from being registered on any page these tests load
-		cy.on("window:before:load", (win) => {
-			const add = win.addEventListener;
-			win.addEventListener = function (type, ...args) {
-				if (type === "beforeunload") return;
-				return add.call(this, type, ...args);
-			};
-		});
 		cy.visit("/desk/website");
 		cy.create_records({
 			doctype: "ToDo",
@@ -73,6 +61,19 @@ context("Control Link (combobox)", () => {
 		cy.window().then((win) => win.cur_dialog && win.cur_dialog.hide());
 		cy.get(".modal.show").should("not.exist");
 	};
+	// frappe asks "leave site?" about unsaved changes unless developer mode is on,
+	// which CI's site is not. After real keystrokes (cy.realPress) the browser
+	// shows that prompt and it blocks the page, so leaving an unsaved form hangs
+	// the run. Take the form's own guard off before leaving it
+	const leave_unsaved_form = () =>
+		cy.window().then((win) => {
+			if (win.cur_frm) {
+				win.removeEventListener("beforeunload", win.cur_frm.beforeUnloadListener, {
+					capture: true,
+				});
+			}
+		});
+	afterEach(() => leave_unsaved_form());
 	// a request body, whether frappe.call sent it as JSON or form-encoded
 	const read_body = (body) => {
 		if (body && typeof body === "object") return body;
@@ -570,6 +571,7 @@ context("Control Link (combobox)", () => {
 			});
 
 			// row navigation and tab-through data entry
+			leave_unsaved_form();
 			cy.new_form("Test Link Combobox Grid");
 			cy.get("@todos").then((todos) => {
 				cy.window()
@@ -620,6 +622,7 @@ context("Control Link (combobox)", () => {
 			});
 
 			// Tab from a link in the last column still adds the next row
+			leave_unsaved_form();
 			cy.new_form("Test Link Combobox Grid");
 			cy.get("@todos").then((todos) => {
 				cy.window()
