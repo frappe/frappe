@@ -12,6 +12,7 @@
 					{{ __("This document is a draft and cannot be printed.") }}
 				</div>
 				<template v-else-if="compare">
+					<div v-if="summary" class="pfb-preview-summary">{{ summary }}</div>
 					<div class="pfb-preview-pane">
 						<div class="pfb-preview-caption">
 							{{ __("Saved version, what prints today") }}
@@ -49,6 +50,7 @@
 <script setup>
 import { useStore } from "../stores";
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { describe_draft_changes } from "../composables/useDraftDiff";
 
 const props = defineProps({ compare: { type: Boolean, default: false } });
 const emit = defineEmits(["close"]);
@@ -59,6 +61,7 @@ let iframe = ref(null);
 let pdf_url = ref(null);
 let before_url = ref(null);
 let before_note = ref("");
+let summary = ref("");
 let after_note = ref("");
 let render_seq = 0;
 let render_abort = null;
@@ -112,6 +115,18 @@ async function render_pdf(format_doc) {
 	return URL.createObjectURL(await res.blob()) + "#view=FitH";
 }
 
+function describe(diff) {
+	const parts = [];
+	if (diff.added.length) parts.push(__("{0} added", [diff.added.length]));
+	if (diff.moved.length) parts.push(__("{0} moved", [diff.moved.length]));
+	if (diff.changed.length) parts.push(__("{0} restyled", [diff.changed.length]));
+	const bits = [];
+	if (parts.length) bits.push(__("Highlighted on the right: {0}", [parts.join(", ")]));
+	if (diff.removed.length) bits.push(__("Removed: {0}", [diff.removed.join(", ")]));
+	if (diff.settings.length) bits.push(diff.settings.join(" · "));
+	return bits.join("   ·   ");
+}
+
 async function render_saved_pdf() {
 	const params = new URLSearchParams({
 		doctype: doctype.value,
@@ -145,12 +160,27 @@ async function render() {
 		);
 	set_pdf_url(null);
 	set_before_url(null);
-	const after = await attempt(render_pdf(store.value.get_preview_format_doc()));
+	summary.value = "";
+	let draft_doc = store.value.get_preview_format_doc();
+	if (props.compare && store.value.saved_format?.format_data) {
+		const diff = describe_draft_changes(store.value.saved_format, draft_doc);
+		summary.value = describe(diff);
+		if (diff.highlight.length) {
+			const selector = diff.highlight.map((f) => `[data-fieldname="${f}"]`).join(", ");
+			draft_doc = {
+				...draft_doc,
+				css: `${
+					draft_doc.css || ""
+				}\n${selector} { outline: 2px solid #f59e0b; outline-offset: 2px; background: #fff7d6; }`,
+			};
+		}
+	}
+	const after = await attempt(render_pdf(draft_doc));
 	if (seq !== render_seq) return;
 	set_pdf_url(after.url || null);
 	after_note.value = after.error || "";
 	if (!props.compare) return;
-	const before = store.value.has_saved_layout
+	const before = store.value.saved_format?.format_data
 		? await attempt(render_saved_pdf())
 		: { error: __("Nothing has been saved yet, so everything here is new.") };
 	if (seq !== render_seq) return;
@@ -215,14 +245,24 @@ onUnmounted(() => {
 
 .pfb-preview-modal--compare {
 	flex-direction: row;
-	gap: 16px;
+	flex-wrap: wrap;
+	gap: 0 16px;
 	width: min(1800px, 96vw);
 	height: 90vh;
+}
+
+.pfb-preview-summary {
+	flex-basis: 100%;
+	margin-bottom: 8px;
+	text-align: center;
+	font-size: var(--text-sm);
+	color: var(--white);
 }
 
 .pfb-preview-pane {
 	flex: 1;
 	min-width: 0;
+	min-height: 0;
 	display: flex;
 	flex-direction: column;
 }
