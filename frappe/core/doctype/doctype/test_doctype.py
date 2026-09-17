@@ -655,7 +655,37 @@ class TestDocType(IntegrationTestCase):
 		dt.insert()
 
 		dt.delete()
+	def test_is_published_field_not_validated_when_web_view_disabled(self):
+		# https://github.com/frappe/frappe/issues/42925
+		dt = new_doctype(
+			"DT is published field test",
+			fields=[
+				{"label": "Route", "fieldname": "route", "fieldtype": "Data"},
+				{"label": "Is Published", "fieldname": "is_published", "fieldtype": "Check"},
+			],
+			has_web_view=1,
+			is_published_field="is_published",
+		)
+		dt.insert()
 
+		# turn off web view and remove the field that was backing is_published_field
+		dt.has_web_view = 0
+		dt.fields = [f for f in dt.fields if f.fieldname != "is_published"]
+		dt.save()  # must not throw "Is Published Field must be a valid fieldname"
+
+		dt.delete()
+	def test_is_published_field_still_validated_when_web_view_enabled(self):
+		dt = new_doctype(
+			"DT is published field validated",
+			fields=[{"label": "Route", "fieldname": "route", "fieldtype": "Data"}],
+			has_web_view=1,
+		)
+		dt.insert()
+
+		dt.is_published_field = "no_such_field"
+		self.assertRaises(frappe.ValidationError, dt.save)
+
+		dt.delete()
 	def test_autoincremented_doctype_transition(self):
 		frappe.delete_doc_if_exists("DocType", "testy_autoinc_dt")
 		dt = new_doctype("testy_autoinc_dt", autoname="autoincrement").insert(ignore_permissions=True)

@@ -1622,7 +1622,10 @@ def validate_fields(meta: Meta):
 	def check_is_published_field(meta):
 		if not meta.is_published_field:
 			return
-
+		
+		if not meta.has_web_view:
+			return
+		
 		if meta.is_published_field not in fieldname_list:
 			frappe.throw(_("Is Published Field must be a valid fieldname"), InvalidFieldNameError)
 
