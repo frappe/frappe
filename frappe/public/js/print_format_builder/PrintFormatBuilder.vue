@@ -15,7 +15,7 @@
 					<div ref="doc_picker_ref" class="canvas-doc-picker"></div>
 				</div>
 				<div class="canvas-toolbar-right">
-					<div ref="zoom_ref" class="canvas-zoom-control">
+					<div ref="zoom_ref" class="canvas-zoom-control select-group-btn">
 						<button
 							type="button"
 							class="es-button canvas-zoom-trigger"

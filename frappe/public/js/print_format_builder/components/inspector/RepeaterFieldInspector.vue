@@ -21,53 +21,66 @@
 			</template>
 		</InspectorSection>
 
-		<InspectorSection v-if="selected_field.source" :label="__('Columns')">
-			<div
-				v-for="(col, ci) in selected_field.repeater_columns"
-				:key="ci"
-				class="pfb-insp-card"
+		<InspectorSection v-if="selected_field.source" :label="__('Columns')" :padded="false">
+			<draggable
+				:list="selected_field.repeater_columns"
+				handle=".pfb-col-drag"
+				:animation="150"
+				:item-key="(col) => selected_field.repeater_columns.indexOf(col)"
+				class="pfb-col-list"
 			>
-				<div class="pfb-rep-col-head">
-					<span class="pfb-insp-label">{{ __("Column {0}", [ci + 1]) }}</span>
-					<div class="pfb-rep-col-head-actions">
-						<input
-							class="pfb-col-width-input"
-							type="number"
-							min="5"
-							max="100"
-							v-model.number="col.width"
-							@blur="clamp_repeater_width(col)"
-							:placeholder="__('auto')"
-							:title="__('Width %')"
-						/>
-						<span class="pfb-col-width-unit">%</span>
-						<button
-							class="es-button"
-							data-size="xs"
-							data-variant="ghost"
-							data-icon-button="true"
-							:title="__('Remove column')"
-							@click="remove_repeater_column(ci)"
-							v-html="frappe.utils.icon('x', 'xs')"
-						></button>
+				<template #item="{ element: col, index: ci }">
+					<div class="pfb-col-item">
+						<div class="pfb-col-row">
+							<span
+								class="pfb-col-drag"
+								v-html="frappe.utils.icon('grip', 'xs')"
+							></span>
+							<TemplateInput v-model="col.template" :fields="repeater_field_opts" />
+							<button
+								class="pfb-col-config"
+								:class="{ open: expanded_col === ci }"
+								@click="expanded_col = expanded_col === ci ? null : ci"
+								:title="__('Column settings')"
+								v-html="frappe.utils.icon('settings-2', 'xs')"
+							></button>
+							<button
+								class="pfb-col-remove"
+								@click="remove_repeater_column(ci)"
+								:title="__('Remove column')"
+								v-html="frappe.utils.icon('x', 'xs')"
+							></button>
+						</div>
+						<div
+							v-if="expanded_col === ci"
+							class="pfb-col-editor pfb-insp-section-body"
+						>
+							<StepperRow
+								:label="__('Width')"
+								:model-value="col.width ?? null"
+								:min="5"
+								:step="5"
+								unit="%"
+								:placeholder="__('auto')"
+								allow-empty
+								@update:model-value="(v) => set_width(col, v)"
+							/>
+							<SegmentedRow
+								:label="__('Align')"
+								v-model="col.align"
+								:options="align_opts"
+							/>
+							<ColorField :label="__('Colour')" v-model="col.color" />
+						</div>
 					</div>
-				</div>
-				<TemplateInput v-model="col.template" :fields="repeater_field_opts" />
-				<SegmentedRow
-					:label="__('Align')"
-					v-model="col.align"
-					:options="align_opts"
-					style="margin-top: 8px"
-				/>
-				<div class="pfb-insp-row" style="margin-top: 8px">
-					<span class="pfb-insp-label">{{ __("Color") }}</span>
-					<div class="pfb-rep-col-color" :ref="(el) => (rep_color_hosts[ci] = el)"></div>
-				</div>
+				</template>
+			</draggable>
+			<div class="pfb-col-add-row">
+				<button class="pfb-add-btn" @click="add_repeater_column">
+					<span v-html="frappe.utils.icon('plus', 'xs')"></span>
+					{{ __("Add column") }}
+				</button>
 			</div>
-			<button class="pfb-add-btn" @click="add_repeater_column">
-				<span v-html="frappe.utils.icon('plus', 'xs')"></span>
-				{{ __("Add column") }}
-			</button>
 		</InspectorSection>
 
 		<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
@@ -77,15 +90,17 @@
 </template>
 
 <script setup>
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, ref } from "vue";
+import draggable from "vuedraggable";
 import { useStore } from "../../stores";
 import SelectRow from "./SelectRow.vue";
 import LabelField from "./LabelField.vue";
 import TemplateInput from "./TemplateInput.vue";
 import SegmentedRow from "./SegmentedRow.vue";
+import StepperRow from "./StepperRow.vue";
+import ColorField from "./ColorField.vue";
 import InspectorSection from "./InspectorSection.vue";
 import StyleSection from "./StyleSection.vue";
-import { mountColorControl } from "./useColorControl";
 import { align_opts } from "./align_opts";
 import { useSelectedField } from "./useSelectedField";
 import { table_field_opts, value_field_opts } from "../../utils";
@@ -112,55 +127,13 @@ function remove_repeater_column(i) {
 	selected_field.value.repeater_columns.splice(i, 1);
 }
 
-function clamp_width(col) {
-	col.width = Math.max(5, Math.min(100, parseInt(col.width) || 10));
-}
+const expanded_col = ref(null);
 
-function clamp_repeater_width(col) {
-	if (isNaN(parseInt(col.width))) {
+function set_width(col, value) {
+	if (value == null) {
 		delete col.width;
 		return;
 	}
-	clamp_width(col);
+	col.width = Math.max(5, Math.min(100, parseInt(value) || 10));
 }
-
-const rep_color_hosts = ref({});
-
-function mount_repeater_color_controls() {
-	(selected_field.value?.repeater_columns || []).forEach((col, ci) => {
-		mountColorControl(rep_color_hosts.value[ci], {
-			value: col.color || "",
-			placeholder: __("Default"),
-			fieldname: `repeater_col_color_${ci}`,
-			onChange(value) {
-				if ((col.color ?? "") !== value) {
-					col.color = value;
-				}
-			},
-		});
-	});
-}
-
-watch(
-	() => [selected_field.value, selected_field.value?.repeater_columns?.length],
-	() => nextTick(mount_repeater_color_controls),
-	{ immediate: true }
-);
 </script>
-
-<style scoped>
-.pfb-rep-col-head {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	margin-bottom: 6px;
-}
-.pfb-rep-col-head-actions {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-}
-.pfb-insp-card {
-	margin-bottom: 8px;
-}
-</style>
