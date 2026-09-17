@@ -72,6 +72,53 @@ class TestSetupWizardUrl(UnitTestCase):
 
 
 class TestCompleteAppSetup(IntegrationTestCase):
+	def test_setup_jobs_are_not_released_by_intermediate_commits(self):
+		queue = MagicMock(count=0)
+		enqueue_counts_during_setup = []
+
+		def setup_task(_args):
+			frappe.enqueue("frappe.utils.background_jobs.get_queue_list", enqueue_after_commit=True)
+			frappe.db.commit()
+			enqueue_counts_during_setup.append(queue.enqueue_call.call_count)
+
+		stages = [{"tasks": [{"fn": setup_task, "args": frappe._dict()}]}]
+		with (
+			patch("frappe.utils.background_jobs.get_queue", return_value=queue),
+			patch.object(setup_wizard, "get_setup_wizard_completed_apps", return_value=[]),
+			patch.object(setup_wizard, "run_setup_success"),
+			patch.object(setup_wizard, "apply_telemetry_preference"),
+			patch.object(setup_wizard, "clear_cache_after_maintenance"),
+			patch("frappe.utils.telemetry.capture"),
+		):
+			setup_wizard.process_setup_stages(stages, frappe._dict())
+
+		self.assertEqual(enqueue_counts_during_setup, [0])
+		queue.enqueue_call.assert_not_called()
+		frappe.db.commit()
+		queue.enqueue_call.assert_called_once()
+
+	def test_setup_jobs_are_discarded_after_a_handled_failure(self):
+		queue = MagicMock(count=0)
+
+		def failing_setup_task(_args):
+			frappe.enqueue("frappe.utils.background_jobs.get_queue_list", enqueue_after_commit=True)
+			frappe.db.commit()
+			raise RuntimeError
+
+		stages = [{"tasks": [{"fn": failing_setup_task, "args": frappe._dict()}]}]
+		with (
+			patch("frappe.utils.background_jobs.get_queue", return_value=queue),
+			patch.object(setup_wizard, "get_setup_wizard_completed_apps", return_value=[]),
+			patch.object(setup_wizard, "handle_setup_exception"),
+			patch.object(setup_wizard, "clear_cache_after_maintenance"),
+			patch.object(frappe, "log_error"),
+			patch("frappe.utils.telemetry.capture"),
+		):
+			setup_wizard.process_setup_stages(stages, frappe._dict(), is_background_task=True)
+
+		frappe.db.commit()
+		queue.enqueue_call.assert_not_called()
+
 	def test_global_settings_defer_timezone_job_until_commit(self):
 		args = frappe._dict(language="French", lang="fr", timezone="Europe/Paris")
 		with (

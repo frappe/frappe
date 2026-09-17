@@ -348,7 +348,8 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 				content,
 				route,
 				published
-				)"""
+				)""",
+				_skip_sqlite_transpilation=True,
 			)
 
 	def create_user_settings_table(self):
