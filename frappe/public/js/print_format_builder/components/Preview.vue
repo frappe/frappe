@@ -141,6 +141,9 @@ function describe(diff) {
 	if (diff.added.length) parts.push(__("{0} added", [diff.added.length]));
 	if (diff.moved.length) parts.push(__("{0} moved", [diff.moved.length]));
 	if (diff.changed.length) parts.push(__("{0} restyled", [diff.changed.length]));
+	if (diff.sections.length) {
+		parts.push(__("sections changed: {0}", [diff.sections.map((s) => s.label).join(", ")]));
+	}
 	const bits = [];
 	if (parts.length) bits.push(__("Highlighted on the right: {0}", [parts.join(", ")]));
 	if (diff.removed.length) bits.push(__("Removed: {0}", [diff.removed.join(", ")]));
@@ -186,8 +189,12 @@ async function render() {
 	if (props.compare && store.value.saved_format?.format_data) {
 		const diff = describe_draft_changes(store.value.saved_format, draft_doc);
 		summary.value = describe(diff);
-		if (diff.highlight.length) {
-			const selector = diff.highlight.map((f) => `[data-fieldname="${f}"]`).join(", ");
+		const targets = [
+			...diff.highlight.map((f) => `[data-fieldname="${f}"]`),
+			...diff.sections.map((sec) => `[data-section="${sec.index}"]`),
+		];
+		if (targets.length) {
+			const selector = targets.join(", ");
 			draft_doc = {
 				...draft_doc,
 				css: `${

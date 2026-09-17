@@ -54,6 +54,18 @@ function layout_fields(layout) {
 	return out;
 }
 
+function layout_sections(layout) {
+	return (layout.sections || [])
+		.filter((s) => !s.remove)
+		.map((s, i) => ({
+			label: s.label || __("Section {0}", [i + 1]),
+			json: JSON.stringify({
+				...s,
+				columns: (s.columns || []).map(({ fields, ...col }) => col),
+			}),
+		}));
+}
+
 export function describe_draft_changes(saved, current) {
 	const settings = DRAFT_SETTING_FIELDS.filter(
 		(f) => String(saved[f] ?? "") !== String(current[f] ?? "")
@@ -63,6 +75,7 @@ export function describe_draft_changes(saved, current) {
 	const moved = [];
 	const changed = [];
 	const removed = [];
+	const sections = [];
 	const base = parse_layout(saved.format_data);
 	const next = parse_layout(current.format_data);
 	if (base && next) {
@@ -75,6 +88,11 @@ export function describe_draft_changes(saved, current) {
 			else if (old.json !== f.json) changed.push(f.fieldname);
 		}
 		for (const [key, f] of before) if (!after.has(key)) removed.push(f.label);
+		const old_sections = layout_sections(base);
+		layout_sections(next).forEach((sec, i) => {
+			if (old_sections[i] && old_sections[i].json !== sec.json)
+				sections.push({ index: i, label: sec.label });
+		});
 	}
 	return {
 		settings,
@@ -82,6 +100,7 @@ export function describe_draft_changes(saved, current) {
 		moved,
 		changed,
 		removed,
+		sections,
 		highlight: [...new Set([...added, ...moved, ...changed])],
 	};
 }
