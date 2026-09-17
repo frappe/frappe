@@ -159,6 +159,9 @@ class TestNotification(IntegrationTestCase):
 			],
 		)
 
+		todo.add_comment("Comment", "x" * 150)
+		self.assertEqual(get_comments_for_context(todo)[-1]["comment"], "x" * 97 + "...")
+
 	def test_condition(self):
 		"""Check notification is triggered based on a condition."""
 		event = frappe.new_doc("Event")

@@ -874,7 +874,15 @@ def get_comments_for_context(doc):
 		limit=100,
 	)
 	comments.sort(key=lambda c: c.creation)
-	return [{"comment": c.content, "by": c.by or c.owner, "name": c.name} for c in comments[-100:]] or None
+	return [
+		{"comment": truncate(c.content), "by": c.by or c.owner, "name": c.name} for c in comments[-100:]
+	] or None
+
+
+def truncate(content):
+	"""Preview length the `_comments` cache used to hand templates."""
+	content = content or ""
+	return (content[:97] + "...") if len(content) > 100 else content
 
 
 def get_context(doc):

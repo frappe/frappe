@@ -217,7 +217,7 @@ class DatabaseQuery:
 
 		with_comment_count = sbool(with_comment_count) and not as_list and bool(self.doctype)
 		# selected after the permission check: never user-requestable, popped in _add_comment_count
-		if with_comment_count and "_comments" in columns:
+		if with_comment_count and not group_by and "_comments" in columns:
 			query = query.select(frappe.qb.DocType(self.doctype)._comments)
 
 		# Run the query
