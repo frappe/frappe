@@ -375,7 +375,7 @@ context("Print Format Builder — create flow", () => {
 			.first()
 			.click({ force: true });
 
-		cy.get(".pfb-inspector").should("contain", "Repeater");
+		cy.get(".pfb-inspector").should("contain", "Custom Table");
 		cy.get(".pfb-inspector").should("contain", "Columns");
 		cy.get(".pfb-inspector").should("contain", "Color");
 		cy.get(".pfb-inspector .pfb-rep-col-color .selected-color").should("exist");
