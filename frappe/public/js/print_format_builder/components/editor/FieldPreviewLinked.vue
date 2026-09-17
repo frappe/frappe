@@ -6,7 +6,9 @@
 	>
 		{{ df.label }}
 	</div>
-	<div v-if="is_image && value" class="value"><img class="w-100" :src="value" /></div>
+	<div v-if="is_image && value" class="value">
+		<img :style="{ maxWidth: '100%', width: df.width || '100%' }" :src="value" />
+	</div>
 	<div v-else class="value" :class="{ 'text-muted': !value }">{{ value || placeholder }}</div>
 </template>
 

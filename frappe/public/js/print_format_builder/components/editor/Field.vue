@@ -102,7 +102,7 @@
 				>
 					<img
 						v-if="df.fieldtype == 'Attach Image' && preview_doc[df.fieldname]"
-						class="w-100"
+						:style="{ maxWidth: '100%', width: df.width || '100%' }"
 						:src="preview_doc[df.fieldname]"
 						:alt="df.label || df.fieldname"
 					/>

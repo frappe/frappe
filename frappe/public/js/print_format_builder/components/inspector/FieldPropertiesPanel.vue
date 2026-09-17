@@ -169,6 +169,17 @@
 					:placeholder="__('Select a field')"
 					@update:model-value="set_link_target"
 				/>
+				<div v-if="linked_is_image" class="pfb-insp-row pfb-insp-row--col">
+					<span class="pfb-insp-label">{{ __("Size") }}</span>
+					<input
+						class="pfb-size-slider"
+						type="range"
+						min="20"
+						max="700"
+						:value="image_size"
+						@input="selected_field.width = $event.target.value + 'px'"
+					/>
+				</div>
 				<LabelField
 					v-model="selected_field.label"
 					:label="__('Label')"
@@ -217,6 +228,17 @@
 					:options="align_opts"
 					@update:model-value="(v) => (selected_field.align = v)"
 				/>
+				<div v-if="is_attach_image" class="pfb-insp-row pfb-insp-row--col">
+					<span class="pfb-insp-label">{{ __("Size") }}</span>
+					<input
+						class="pfb-size-slider"
+						type="range"
+						min="20"
+						max="700"
+						:value="image_size"
+						@input="selected_field.width = $event.target.value + 'px'"
+					/>
+				</div>
 				<div class="pfb-insp-row" v-if="fieldIsInline && current_align === 'left'">
 					<span class="pfb-insp-label">{{ __("Spacing") }}</span>
 					<select
@@ -383,6 +405,12 @@ let link_target_fields = useDoctypeFields(
 	)
 );
 let link_target_options = computed(() => value_field_opts(link_target_fields.value));
+let linked_is_image = computed(
+	() =>
+		link_target_fields.value.find((f) => f.fieldname === link_target_fieldname.value)
+			?.fieldtype === "Attach Image"
+);
+let is_attach_image = computed(() => selected_field.value?.fieldtype === "Attach Image");
 function set_link_fieldname(fieldname) {
 	selected_field.value.link_path = fieldname ? fieldname + "." : "";
 }
