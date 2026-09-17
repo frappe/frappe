@@ -407,17 +407,9 @@ class File(Document):
 		if not allowed_extensions:
 			return
 
-<<<<<<< HEAD
-		if self.file_type not in allowed_extensions.splitlines():
-			frappe.throw(_("File type of {0} is not allowed").format(self.file_type), exc=FileTypeNotAllowed)
-=======
 		file_extension = os.path.splitext(self.file_name)[1].lstrip(".").upper()
 		if file_extension not in allowed_extensions.splitlines():
-			frappe.throw(
-				_("File type of {0} is not allowed").format(file_extension),
-				exc=FileTypeNotAllowed,
-			)
->>>>>>> 4ae61cd (fix: check the allowed file extensions setting against the raw filename)
+			frappe.throw(_("File type of {0} is not allowed").format(file_extension), exc=FileTypeNotAllowed)
 
 	def check_content(self):
 		if self.file_type == "PDF" and self._content and pdf_contains_js(self._content):
