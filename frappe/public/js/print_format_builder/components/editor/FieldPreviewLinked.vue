@@ -52,7 +52,11 @@ watchEffect(() => {
 	pending_key = key;
 	cache[key] ??= frappe.db
 		.get_value(link_df.options, name, target_fieldname)
-		.then((r) => r?.message?.[target_fieldname] ?? "");
+		.then((r) => r?.message?.[target_fieldname] ?? "")
+		.catch(() => {
+			delete cache[key];
+			return "";
+		});
 	cache[key].then((v) => {
 		if (pending_key === key) value.value = v;
 	});
