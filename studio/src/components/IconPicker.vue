@@ -3,17 +3,21 @@
 		<template #trigger>
 			<button
 				type="button"
-				class="flex h-7 w-full items-center gap-2 rounded-4 border px-2 text-start text-base text-ink-gray-8 transition-colors focus-visible:border-outline-gray-4 focus-visible:bg-surface-base focus-visible:outline-none"
+				class="flex h-7 w-full min-w-0 items-center gap-2 rounded-4 border px-2 text-start text-base text-ink-gray-8 transition-colors focus-visible:border-outline-gray-4 focus-visible:bg-surface-base focus-visible:outline-none"
 				:class="VARIANT_CLASSES[variant]"
 				@click="isOpen = !isOpen"
 			>
 				<span v-if="icon" :class="[icon, 'size-4 shrink-0']" aria-hidden="true" />
-				<span class="truncate" :class="{ 'text-ink-gray-4': !icon }">
+				<span
+					class="min-w-0 flex-1 truncate"
+					:class="{ 'text-ink-gray-4': !icon }"
+					:title="icon ? iconLabel(icon) : undefined"
+				>
 					{{ icon ? iconLabel(icon) : "Select icon" }}
 				</span>
 				<span
 					v-if="icon"
-					class="lucide-x ml-auto size-3 shrink-0 text-ink-gray-5 hover:text-ink-gray-8"
+					class="lucide-x size-3 shrink-0 text-ink-gray-5 hover:text-ink-gray-8"
 					title="Clear"
 					@click.stop="select('')"
 				/>

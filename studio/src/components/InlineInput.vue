@@ -1,7 +1,7 @@
 <template>
 	<!-- prettier-ignore -->
 	<div
-		class="flex"
+		class="flex min-w-0"
 		:class="[type === 'textarea' ? 'flex-col gap-1.5' : 'flex-row items-center justify-between', attrs.class]"
 		:style="(attrs.style as StyleValue)"
 	>
