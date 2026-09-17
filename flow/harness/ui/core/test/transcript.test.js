@@ -58,7 +58,7 @@ test("code references appended by the composer split back out of the text", () =
 	assert.deepEqual(splitCodeRefs("plain text"), { body: "plain text", refs: [] })
 })
 
-test("expanded skill messages render compactly like Pi and Tau", () => {
+test("expanded skill messages render as the command the user typed", () => {
 	const expanded =
 		'<skill name="security-review" location="/skills/security-review/SKILL.md">\n' +
 		"References are relative to /skills/security-review.\n\n" +
@@ -69,7 +69,7 @@ test("expanded skill messages render compactly like Pi and Tau", () => {
 	}
 
 	assert.equal(parseSkillInvocation(expanded).name, "security-review")
-	assert.equal(userText(entry), "Using skill: security-review\ncheck this branch")
+	assert.equal(userText(entry), "/skill:security-review check this branch")
 	assert.equal(skillCommand(entry), "/skill:security-review check this branch")
 	assert.equal(conversationTitle({ entries: [entry] }), "check this branch")
 	assert.equal(userText({ content: "ordinary" }), "ordinary")

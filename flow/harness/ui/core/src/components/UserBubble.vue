@@ -33,7 +33,7 @@
 				ref="textEl"
 				class="whitespace-pre-wrap break-words"
 				:class="expanded ? '' : 'line-clamp-[12]'"
-			>{{ body }}</div>
+			><span v-if="slash" class="text-ink-blue-6">{{ slash.prefix }}</span>{{ slash ? slash.rest : body }}</div>
 			<button
 				v-if="clampable"
 				class="mt-1.5 text-xs font-medium text-ink-gray-5 hover:text-ink-gray-8"
@@ -77,6 +77,11 @@ const text = computed(() => userText(props.entry)) // full text, for copy
 const attachments = computed(() => userAttachments(props.entry))
 const split = computed(() => splitCodeRefs(text.value))
 const body = computed(() => split.value.body)
+// a skill command keeps the blue prefix it had in the composer
+const slash = computed(() => {
+	const match = body.value.match(/^\/skill:[^\s]+(?=\s|$)/)
+	return match ? { prefix: match[0], rest: body.value.slice(match[0].length) } : null
+})
 // images stage as full previews on their own row; code refs and files share one row of chips
 const imageTiles = computed(() => attachments.value.filter((item) => previews.value[item.id]))
 const chips = computed(() => [

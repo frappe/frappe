@@ -247,6 +247,17 @@ export class FrappeClient {
 		});
 	}
 
+	// --- skills ----------------------------------------------------------------
+
+	// the store asks a live session, or previews the agent a new chat would start with
+	skills(sid) {
+		return this.transport.call("flow.api.skills", { session: sid });
+	}
+
+	previewSkills() {
+		return this.transport.call("flow.api.skills", { agent: this.hooks.agent?.() ?? null });
+	}
+
 	// --- feedback --------------------------------------------------------------
 
 	submitFeedback(run, rating, comment = "") {

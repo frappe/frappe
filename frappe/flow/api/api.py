@@ -122,6 +122,25 @@ def list_sessions(
 
 
 @frappe.whitelist()
+def skills(session: str | None = None, agent: str | None = None) -> dict[str, Any]:
+	"""The skills a user may start by typing /skill:<name>: those of `session`'s agent, or of
+	`agent` for a chat not started yet."""
+	if session:
+		agent = _load_session(session, "read").agent
+	elif isinstance(agent, str) and agent.strip():
+		agent = agent.strip()
+		frappe.has_permission("Flow Agent", "read", agent, throw=True)
+	else:
+		frappe.throw(_("Session or agent is required."), title=_("Invalid Request"))
+	return {
+		"skills": [
+			{"name": row["command"], "description": row["description"]}
+			for row in frappe.get_doc("Flow Agent", agent).invocable_skills()
+		]
+	}
+
+
+@frappe.whitelist()
 def run(session: str, message: str, attachments: list[str] | str | None = None) -> dict[str, Any]:
 	"""Start a turn and answer at once: "started" with its new run, or "steered" with the
 	active run the message joined. `attachments` are File names staged with attach_file."""

@@ -64,6 +64,7 @@ Object.assign(transport.answers, {
 	"flow.api.session": session,
 	"flow.api.entries": { entries: [], latest_seq: 0, preview: [] },
 	"flow.api.run": { status: "running" },
+	"flow.api.skills": { skills: [] },
 });
 
 const called = (method) => transport.calls.some(([name]) => name === method);
@@ -119,6 +120,10 @@ test("the agent is picked in a palette, before the model, and a new chat starts 
 	await nextTick();
 	assert.equal(rows().length, 0);
 	assert.equal(agent.textContent.trim(), "Reviewer");
+	// the skills a new chat may start follow the agent
+	await until(() =>
+		transport.calls.some(([name, a]) => name === "flow.api.skills" && a.agent === "reviewer")
+	);
 	agent.click();
 	await nextTick();
 	assert.equal(rows()[1].getAttribute("aria-current"), "true");

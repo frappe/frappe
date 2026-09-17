@@ -148,13 +148,14 @@ class FlowSession(Document):
 			build_turn,
 			cleanup_indexed_files,
 		)
+		from flow.flow.doctype.flow_skill.flow_skill import expand_skill_command
 		from flow.memory.memory import memory_block
 
 		if not (input or "").strip():
 			frappe.throw(_("Message is required."), title=_("Invalid Message"))
 		self._assert_can_run()
 		self.sync()
-		turn = build_turn(self, input, attachments or [])
+		turn = build_turn(self, expand_skill_command(self.agent, input), attachments or [])
 		turn.message += memory_block(self.agent, self.owner, input)
 		uploaded = []
 		try:
