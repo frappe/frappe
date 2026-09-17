@@ -11,18 +11,16 @@
 				<div v-else-if="unprintable_reason === 'draft'" class="pfb-preview-empty">
 					{{ __("This document is a draft and cannot be printed.") }}
 				</div>
-				<div v-else-if="!preview_loaded" class="pfb-preview-empty">
-					<span class="pfb-preview-spinner" aria-hidden="true"></span>
-					<span>{{
-						compare ? __("Comparing with what prints now…") : __("Generating preview…")
-					}}</span>
-				</div>
 				<template v-else-if="compare">
 					<div class="pfb-preview-pane">
 						<div class="pfb-preview-caption">
 							{{ __("Saved version, what prints today") }}
 						</div>
 						<div v-if="before_note" class="pfb-preview-empty">{{ before_note }}</div>
+						<div v-else-if="!before_url" class="pfb-preview-empty">
+							<span class="pfb-preview-spinner" aria-hidden="true"></span>
+							<span>{{ __("Rendering the saved version…") }}</span>
+						</div>
 						<iframe v-else :src="before_url" class="pfb-preview-iframe"></iframe>
 					</div>
 					<div class="pfb-preview-pane">
@@ -30,10 +28,18 @@
 							{{ __("Your draft, not applied yet") }}
 						</div>
 						<div v-if="after_note" class="pfb-preview-empty">{{ after_note }}</div>
+						<div v-else-if="!pdf_url" class="pfb-preview-empty">
+							<span class="pfb-preview-spinner" aria-hidden="true"></span>
+							<span>{{ __("Rendering your draft…") }}</span>
+						</div>
 						<iframe v-else :src="pdf_url" class="pfb-preview-iframe"></iframe>
 					</div>
 				</template>
 				<div v-else-if="after_note" class="pfb-preview-empty">{{ after_note }}</div>
+				<div v-else-if="!pdf_url" class="pfb-preview-empty">
+					<span class="pfb-preview-spinner" aria-hidden="true"></span>
+					<span>{{ __("Generating preview…") }}</span>
+				</div>
 				<iframe v-else ref="iframe" :src="pdf_url" class="pfb-preview-iframe"></iframe>
 			</div>
 		</div>
@@ -49,7 +55,6 @@ const emit = defineEmits(["close"]);
 
 let { print_format, layout, store } = useStore();
 
-let preview_loaded = ref(false);
 let iframe = ref(null);
 let pdf_url = ref(null);
 let before_url = ref(null);
@@ -129,10 +134,8 @@ async function render() {
 	if (unprintable_reason.value) {
 		set_pdf_url(null);
 		set_before_url(null);
-		preview_loaded.value = true;
 		return;
 	}
-	preview_loaded.value = false;
 	before_note.value = "";
 	after_note.value = "";
 	const attempt = (job) =>
@@ -140,19 +143,19 @@ async function render() {
 			(url) => ({ url }),
 			(e) => ({ error: e.message || __("Could not render the preview") })
 		);
+	set_pdf_url(null);
+	set_before_url(null);
 	const after = await attempt(render_pdf(store.value.get_preview_format_doc()));
-	let before = null;
-	if (props.compare) {
-		before = store.value.has_saved_layout
-			? await attempt(render_saved_pdf())
-			: { error: __("Nothing has been saved yet, so everything here is new.") };
-	}
 	if (seq !== render_seq) return;
 	set_pdf_url(after.url || null);
 	after_note.value = after.error || "";
-	set_before_url(before?.url || null);
-	before_note.value = before?.error || "";
-	preview_loaded.value = true;
+	if (!props.compare) return;
+	const before = store.value.has_saved_layout
+		? await attempt(render_saved_pdf())
+		: { error: __("Nothing has been saved yet, so everything here is new.") };
+	if (seq !== render_seq) return;
+	set_before_url(before.url || null);
+	before_note.value = before.error || "";
 }
 
 function set_pdf_url(next) {
