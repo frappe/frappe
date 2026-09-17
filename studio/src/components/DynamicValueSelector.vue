@@ -1,7 +1,7 @@
 <template>
 	<Combobox
 		size="sm"
-		:options="dynamicValueOptions"
+		:options="comboboxOptions"
 		class="!w-auto"
 		side="left"
 		align="start"
@@ -30,11 +30,11 @@
 			/>
 		</template>
 
-		<template #item-suffix="{ item }">
-			<span class="text-ink-gray-4">{{ item.type?.toLowerCase() }}</span>
-		</template>
 		<template #footer v-if="dynamicValueOptions.length > 0">
-			<div class="flex items-center gap-1 px-2" @mousedown.prevent>
+			<div
+				class="flex items-center gap-1 border-t border-outline-gray-1 px-2 py-1 text-base"
+				@mousedown.prevent
+			>
 				<Tooltip text="Changing the selected variable value will change the prop value and vice versa">
 					<span class="lucide-info size-3 text-ink-gray-5" />
 				</Tooltip>
@@ -159,6 +159,14 @@ const dynamicValueOptions = computed(() => {
 
 	return groups
 })
+
+// Combobox normalizes every option's `type` to "option", so the binding type goes in `description`
+const comboboxOptions = computed(() =>
+	dynamicValueOptions.value.map((group) => ({
+		...group,
+		options: group.options.map(({ type, ...option }) => ({ ...option, description: type?.toLowerCase() })),
+	})),
+)
 
 function getSlotScopeOptions(slotScope?: SlotScope | null): VariableOption[] {
 	return Object.entries(slotScope || {}).flatMap(([name, value]) => {
