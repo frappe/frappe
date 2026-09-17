@@ -1,7 +1,13 @@
 <template>
 	<Teleport to="body">
 		<div class="pfb-preview-backdrop" @click.self="$emit('close')">
-			<div class="pfb-preview-modal" :class="{ 'pfb-preview-modal--compare': compare }">
+			<div
+				ref="modal"
+				class="pfb-preview-modal"
+				:class="{ 'pfb-preview-modal--compare': compare }"
+				tabindex="-1"
+				@click.self="$emit('close')"
+			>
 				<div v-if="!docname" class="pfb-preview-empty">
 					{{ __("Pick a record in the toolbar above to preview it.") }}
 				</div>
@@ -12,7 +18,17 @@
 					{{ __("This document is a draft and cannot be printed.") }}
 				</div>
 				<template v-else-if="compare">
-					<div v-if="summary" class="pfb-preview-summary">{{ summary }}</div>
+					<div class="pfb-preview-topbar" @click.self="$emit('close')">
+						<span class="pfb-preview-summary">{{ summary }}</span>
+						<button
+							class="es-button"
+							data-variant="ghost"
+							data-icon-button="true"
+							:title="__('Close')"
+							@click="$emit('close')"
+							v-html="frappe.utils.icon('x', 'sm')"
+						></button>
+					</div>
 					<div class="pfb-preview-panes">
 						<div class="pfb-preview-pane">
 							<div class="pfb-preview-caption">
@@ -62,6 +78,7 @@ const emit = defineEmits(["close"]);
 let { print_format, layout, store } = useStore();
 
 let iframe = ref(null);
+let modal = ref(null);
 let pdf_url = ref(null);
 let before_url = ref(null);
 let before_note = ref("");
@@ -213,6 +230,7 @@ function on_keydown(e) {
 }
 
 onMounted(() => {
+	modal.value?.focus();
 	render();
 	window.addEventListener("keydown", on_keydown);
 });
@@ -256,12 +274,26 @@ onUnmounted(() => {
 	height: 100%;
 }
 
-.pfb-preview-summary {
+.pfb-preview-topbar {
 	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
 	margin-bottom: 8px;
-	text-align: center;
+}
+
+.pfb-preview-topbar .es-button {
+	color: var(--white);
+}
+
+.pfb-preview-summary {
 	font-size: var(--text-sm);
 	color: var(--white);
+}
+
+.pfb-preview-modal:focus {
+	outline: none;
 }
 
 .pfb-preview-panes {

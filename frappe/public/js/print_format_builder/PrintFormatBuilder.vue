@@ -295,6 +295,7 @@ function is_typing_context() {
 }
 
 function handle_keydown(e) {
+	if (show_preview.value) return;
 	// Zoom shortcuts: Ctrl+= / Ctrl+- / Ctrl+0
 	if (e.ctrlKey || e.metaKey) {
 		if (e.key === "z" || e.key === "Z" || e.key === "y") {
