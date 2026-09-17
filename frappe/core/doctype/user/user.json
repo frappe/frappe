@@ -860,7 +860,6 @@
  "icon": "fa fa-user",
  "idx": 413,
  "image_field": "user_image",
- "link_display_mode": "Search",
  "links": [
   {
    "group": "Profile",
