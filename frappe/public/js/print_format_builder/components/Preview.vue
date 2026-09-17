@@ -287,6 +287,11 @@ onUnmounted(() => {
 	color: var(--white);
 }
 
+.pfb-preview-topbar .es-button:hover,
+.pfb-preview-topbar .es-button:active {
+	background: rgba(255, 255, 255, 0.18);
+}
+
 .pfb-preview-summary {
 	font-size: var(--text-sm);
 	color: var(--white);
