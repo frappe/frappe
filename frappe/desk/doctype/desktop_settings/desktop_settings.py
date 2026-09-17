@@ -5,8 +5,12 @@ import frappe
 from frappe.model.document import Document
 
 # The two things the /app/desktop page can be. These strings are the options of the
-# `desktop_page` field, so they are what a system manager sees. This module is the only
-# place either is compared -- everything else asks `is_desktop_icons_page()`.
+# `desktop_page` field, so they are what a system manager sees. This module is the only place
+# either is compared; everything else calls `is_desktop_icons_page()`.
+#
+# This is being retired. The field, the mode check and the seed-on-switch below exist only while
+# the desktop has two forms; with the field gone every caller uses the Apps path. They go with the
+# icon-grid batch, on one of the two triggers listed in `frappe/desk/RETIRING.md`.
 APPS = "Apps"
 DESKTOP_ICONS = "Desktop Icons"
 
@@ -27,18 +31,57 @@ class DesktopSettings(Document):
 	# end: auto-generated types
 
 	def on_update(self):
+		if not self.has_value_changed("desktop_page"):
+			return
+
 		# The desktop page is resolved once per boot and bootinfo is cached per user, so
 		# switching it has to rebuild every user's boot.
-		if self.has_value_changed("desktop_page"):
-			frappe.clear_cache()
+		frappe.clear_cache()
+
+		# Whatever turns the grid on is responsible for there being a grid. Both producers are
+		# gated on this setting, so without seeding here a System Manager switching to it lands on
+		# an empty screen. It is enqueued rather than run inline, because seeding walks every
+		# installed app and every public workspace, which is too much for a settings save.
+		# Switching back deletes nothing, which keeps the move reversible.
+		if self.desktop_page == DESKTOP_ICONS:
+			frappe.enqueue(seed_desktop_icons, enqueue_after_commit=True)
+
+
+def seed_desktop_icons():
+	"""Fill a freshly switched-on grid: generated rows, then every app's shipped ones.
+
+	This exists only while the flag has two settings; see `frappe/desk/RETIRING.md`.
+
+	Both producers are idempotent, skipping an icon that already exists, so repeated switches
+	accumulate nothing.
+	"""
+	from frappe.desk.doctype.desktop_icon.desktop_icon import (
+		create_desktop_icons,
+		import_desktop_icon_fixtures,
+	)
+
+	create_desktop_icons()
+	import_desktop_icon_fixtures()
+
+	# Anyone who booted between the save and this job cached an empty grid, and the rows
+	# themselves clear nothing useful: a generated icon is not `standard`, so its own `on_update`
+	# only clears the cache of the user the job runs as.
+	frappe.clear_cache()
 
 
 def get_desktop_page() -> str:
 	"""Which page /app/desktop renders. Defaults to `Apps` when unset (fresh install)."""
-	# This runs on every boot, and `get_single_value` throws on a field the doctype doesn't
-	# know about -- so on a site that has pulled the code but not migrated yet, reading this
-	# blind would take down session boot rather than just falling back to the default page.
-	if not frappe.get_meta(DesktopSettings._DOCTYPE_NAME).has_field("desktop_page"):
+	# This is asked on every boot, and by the fixture-import guard during an install's own doctype
+	# sync, so neither the doctype nor the field can be assumed to exist. Reading either without
+	# checking would break the install, or session boot on a site that has pulled the code but not
+	# migrated, instead of falling back to the default page.
+	try:
+		has_field = frappe.get_meta(DesktopSettings._DOCTYPE_NAME).has_field("desktop_page")
+	except frappe.DoesNotExistError:
+		frappe.clear_last_message()
+		return APPS
+
+	if not has_field:
 		return APPS
 
 	page = frappe.db.get_single_value(DesktopSettings._DOCTYPE_NAME, "desktop_page")

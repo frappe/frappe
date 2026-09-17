@@ -36,6 +36,7 @@ from frappe.installer import add_to_installed_apps, remove_app
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase, timeout
 from frappe.tests.test_query_builder import run_only_if
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import add_to_date, execute_in_shell, get_bench_path, get_bench_relative_path, now
 from frappe.utils.backups import BackupGenerator, fetch_latest_backups
 from frappe.utils.scheduler import enable_scheduler, is_scheduler_inactive
@@ -1147,6 +1148,7 @@ class TestGunicornWorker(IntegrationTestCase):
 		self.assertLessEqual(get_total_usage(), usage_threshold)
 
 
+@requires_test_service(TestService.BACKGROUND_WORKER)
 class TestRQWorker(IntegrationTestCase):
 	def spawn_rq(self, args=None, pool=False):
 		self.handle = subprocess.Popen(

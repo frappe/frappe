@@ -19,7 +19,7 @@
 
 .grid-heading-row {
 	border-bottom: 1px solid var(--table-border-color);
-	color: var(--gray-600);
+	color: var(--text-muted);
 	@include get_textstyle("sm", "regular");
 	height: 32px;
 	padding: 0 !important;
@@ -594,14 +594,15 @@
 			padding-left: 0;
 		}
 	}
-
-	.grid-append-row {
-		margin-top: calc(-1 * var(--margin-xs));
-	}
 }
 
 #freeze.grid-form {
 	z-index: 1020;
+	background-color: var(--gray-800);
+
+	.freeze-message-container {
+		background-color: transparent;
+	}
 }
 
 .recorder-form-in-grid {

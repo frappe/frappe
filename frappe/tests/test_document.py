@@ -283,6 +283,47 @@ class TestDocument(IntegrationTestCase):
 		d.sender = "abcde" * 100 + "@user.com"
 		self.assertRaises(frappe.CharacterLengthExceededError, d.save)
 
+	def test_varchar_length_after_sanitization(self):
+		unclosed_tag = "<strong>"
+		value = "X" * (140 - len(unclosed_tag)) + unclosed_tag
+
+		with self.set_user("test@example.com"):
+			doc = frappe.new_doc("Note")
+			doc.title = value
+
+			with self.assertRaises(frappe.CharacterLengthExceededError):
+				doc._validate()
+
+		self.assertGreater(len(doc.title), 140)
+
+	def test_oversized_varchar_sanitized_within_limit(self):
+		value = "X" * 130 + "<script>1</script>"
+		self.assertGreater(len(value), 140)
+
+		with self.set_user("test@example.com"):
+			doc = frappe.new_doc("Note")
+			doc.title = value
+			doc._validate()
+
+		self.assertEqual(doc.title, "X" * 130)
+
+	def test_child_varchar_length_after_sanitization(self):
+		unclosed_tag = "<strong>"
+		value = "X" * (140 - len(unclosed_tag)) + unclosed_tag
+
+		with self.set_user("test@example.com"):
+			doc = frappe.new_doc("Workspace")
+			doc.update(
+				{"label": "Test Workspace", "module": "Core", "title": "Test Workspace", "type": "Workspace"}
+			)
+			doc.name = "Test Workspace"
+			doc.append("shortcuts", {"type": "URL", "label": value})
+
+			with self.assertRaises(frappe.CharacterLengthExceededError):
+				doc._validate()
+
+		self.assertGreater(len(doc.shortcuts[0].label), 140)
+
 	def test_xss_filter(self):
 		d = self.test_insert()
 		subject = d.subject
@@ -598,6 +639,55 @@ class TestDocument(IntegrationTestCase):
 		doc.flags.skip_docstatus_validation = True
 		doc.save()
 		self.assertEqual(frappe.db.get_value("ToDo", doc.name, "docstatus"), 1)
+
+	def test_ignore_if_duplicate_on_a_unique_autoname_field(self):
+		"""A doctype named after a unique field breaks two indexes with one row.
+
+		`Role` is `autoname: field:role_name` and `role_name` is unique, so re-inserting the
+		same role violates the primary key AND the unique index. Which one the backend reports
+		is its own choice: MariaDB names PRIMARY, SQLite names the secondary index. Callers that
+		seed idempotently pass `ignore_if_duplicate` and must not have to know the difference.
+		"""
+		role = frappe.get_doc(doctype="Role", role_name="_Test Duplicate Role").insert()
+		self.addCleanup(role.delete)
+
+		frappe.get_doc(doctype="Role", role_name="_Test Duplicate Role").insert(ignore_if_duplicate=True)
+		self.assertEqual(frappe.db.count("Role", {"role_name": "_Test Duplicate Role"}), 1)
+
+		# A skipped row has to leave the transaction usable. Postgres aborts it on any failed
+		# statement, so a write here is what proves the row was skipped and not caught.
+		role.db_set("disabled", 1)
+		self.assertEqual(frappe.db.get_value("Role", role.name, "disabled"), 1)
+
+		# Without the flag it is still an error, whichever index the backend blames. The
+		# savepoint is for postgres: the failed insert aborts the transaction, so nothing
+		# after this test could read or write without it.
+		frappe.db.savepoint("test_ignore_if_duplicate")
+		with self.assertRaises((frappe.UniqueValidationError, frappe.DuplicateEntryError)):
+			frappe.get_doc(doctype="Role", role_name="_Test Duplicate Role").insert()
+		frappe.db.rollback(save_point="test_ignore_if_duplicate")
+
+	def test_ignore_if_duplicate_on_a_unique_field_that_is_not_the_name(self):
+		"""The clash can be on a unique index alone, with a name that is free.
+
+		The row still has to be skipped, and the transaction still has to work afterwards.
+		Postgres aborts a transaction on any failed statement, so there the row has to be
+		skipped by the database rather than caught in python.
+		"""
+		doctype = new_doctype(unique=True).insert()
+		self.addCleanup(doctype.delete, force=True)
+
+		first = frappe.get_doc(doctype=doctype.name, some_fieldname="_Test Unique Value").insert()
+		frappe.get_doc(doctype=doctype.name, some_fieldname="_Test Unique Value").insert(
+			ignore_if_duplicate=True
+		)
+		self.assertEqual(frappe.db.count(doctype.name, {"some_fieldname": "_Test Unique Value"}), 1)
+
+		# A write, not a read: this is what an aborted postgres transaction would fail on.
+		first.db_set("some_fieldname", "_Test Unique Value 2")
+		self.assertEqual(
+			frappe.db.get_value(doctype.name, first.name, "some_fieldname"), "_Test Unique Value 2"
+		)
 
 
 class TestDocumentWebView(IntegrationTestCase):

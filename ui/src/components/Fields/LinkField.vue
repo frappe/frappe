@@ -3,6 +3,7 @@
 		v-model="value"
 		:doctype="field.options ?? ''"
 		:filters="field.filters"
+		:title="title"
 		:label="field.label"
 		:description="field.description"
 		:placeholder="field.placeholder"
@@ -17,12 +18,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, inject } from "vue";
 import { Link } from "../Link";
+import { LinkTitlesKey } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
+
+const titles = inject(LinkTitlesKey, null);
+
+const title = computed(() =>
+	props.modelValue ? titles?.value[`${props.field.options}::${props.modelValue}`] : undefined
+);
 
 const value = computed<string | null>({
 	get: () => props.modelValue ?? null,

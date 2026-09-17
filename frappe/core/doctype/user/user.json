@@ -87,7 +87,6 @@
   "user_emails",
   "workspace_section",
   "default_workspace",
-  "workspaces",
   "app_section",
   "default_app",
   "sb2",
@@ -882,12 +881,6 @@
    "fieldname": "form_navigation_buttons",
    "fieldtype": "Check",
    "label": "Show navigation buttons"
-  },
-  {
-   "fieldname": "workspaces",
-   "fieldtype": "Table",
-   "label": "Workspaces",
-   "options": "User Workspaces"
   }
  ],
  "icon": "fa fa-user",

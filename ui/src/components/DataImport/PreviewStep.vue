@@ -24,7 +24,7 @@
 
 		<div v-if="mapping.length" class="space-y-2">
 			<div class="text-ink-gray-5 text-sm">Column Mapping</div>
-			<div class="border rounded-md bg-surface-gray-2 p-4 space-y-4 text-sm text-ink-gray-7">
+			<div class="border rounded-5 bg-surface-gray-2 p-4 space-y-4 text-sm text-ink-gray-7">
 				<div
 					v-for="map in mapping"
 					class="grid grid-cols-[40%,10%,40%] lg:grid-cols-3 space-x-3 items-center"
@@ -33,7 +33,7 @@
 						{{ map[0] }}
 					</div>
 					<div class="flex justify-end">
-						<FeatherIcon name="arrow-right" class="inline size-4 text-ink-gray-5" />
+						<LucideArrowRight class="inline size-4 text-ink-gray-5" />
 					</div>
 					<div>
 						{{ map[1] }}
@@ -44,17 +44,17 @@
 
 		<div v-if="warnings.length" class="space-y-2">
 			<div class="text-ink-gray-5 text-sm">Warnings</div>
-			<div class="rounded-md bg-surface-amber-2 p-2 space-y-2 text-xs">
+			<div class="rounded-5 bg-surface-amber-2 p-2 space-y-2 text-xs">
 				<div v-for="warning in warnings" class="flex items-center space-x-2">
-					<FeatherIcon name="alert-circle" class="size-3 text-ink-amber-6" />
+					<LucideCircleAlert class="size-3 text-ink-amber-6" />
 					<div v-html="warning.message" class="text-ink-amber-6"></div>
 				</div>
 			</div>
 		</div>
 
-		<div v-if="preview?.data?.length" class="border rounded-md overflow-x-auto">
+		<div v-if="preview?.data?.length" class="border rounded-5 overflow-x-auto">
 			<table class="divide-y">
-				<thead class="rounded-t-md">
+				<thead class="rounded-t-5">
 					<tr>
 						<th
 							v-for="column in previewColumns"
@@ -96,7 +96,7 @@
 		<div v-if="data.status != 'Pending' && importLogs.length" class="space-y-4">
 			<div class="font-semibold text-ink-gray-9">Import Logs</div>
 
-			<div class="rounded-md p-2" :class="importBannerClass">
+			<div class="rounded-5 p-2" :class="importBannerClass">
 				{{ importSuccessCount }} {{ importSuccessCount == 1 ? "row" : "rows" }} imported
 				successfully, {{ importErrorCount }}
 				{{ importErrorCount == 1 ? "row" : "rows" }} failed.
@@ -104,9 +104,9 @@
 
 			<TabButtons :buttons="tabButtons" v-model="activeTab" class="w-fit" />
 
-			<div v-if="filteredLogs.length" class="border rounded-md overflow-x-auto">
+			<div v-if="filteredLogs.length" class="border rounded-5 overflow-x-auto">
 				<table class="table-fixed w-full divide-y">
-					<thead class="rounded-t-md">
+					<thead class="rounded-t-5">
 						<tr>
 							<th
 								class="p-2 text-left text-sm text-ink-gray-5 w-20 border-r text-center"
@@ -122,9 +122,9 @@
 								<div class="flex items-center justify-center space-x-2">
 									<div
 										v-if="row.success"
-										class="size-1.5 bg-surface-green-3 rounded"
+										class="size-1.5 bg-surface-green-3 rounded-4"
 									></div>
-									<div v-else class="size-1.5 bg-surface-red-7 rounded"></div>
+									<div v-else class="size-1.5 bg-surface-red-7 rounded-4"></div>
 									<div>
 										{{ JSON.parse(row["row_indexes"])[0] - 1 }}
 									</div>
@@ -153,7 +153,7 @@
 							>
 								<HoverCard v-if="row.exception" side="left" align="start">
 									<template #trigger>
-										<FeatherIcon name="info" class="size-4" />
+										<LucideInfo class="size-4" />
 									</template>
 									<div class="w-[500px] p-2 text-xs leading-5 font-mono">
 										{{ row.exception }}
@@ -172,7 +172,10 @@
 import { getPreviewData, getBadgeColor } from "./dataImport";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import type { DataImport, DataImports, DataImportSocket } from "./types";
-import { Badge, Button, FeatherIcon, HoverCard, TabButtons, call } from "frappe-ui";
+import { Badge, Button, HoverCard, TabButtons, call } from "frappe-ui";
+import LucideArrowRight from "~icons/lucide/arrow-right";
+import LucideCircleAlert from "~icons/lucide/circle-alert";
+import LucideInfo from "~icons/lucide/info";
 
 const preview = ref<any>(null);
 const emit = defineEmits(["updateStep"]);

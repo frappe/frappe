@@ -5,8 +5,6 @@ from csv import Sniffer
 from io import StringIO
 from typing import Any
 
-import requests
-
 import frappe
 from frappe import _, msgprint
 from frappe.core.doctype.file.file import FILE_ENCODING_OPTIONS
@@ -246,6 +244,8 @@ def get_csv_content_from_google_sheets(url):
 	url = url.rsplit("/edit", 1)[0]
 	# add /export path,
 	url = url + f"/export?format=csv&gid={gid}"
+
+	import requests
 
 	headers = {"Accept": "text/csv"}
 	response = requests.get(url, headers=headers)

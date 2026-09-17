@@ -4,24 +4,22 @@
 		:srcdoc="htmlContent"
 		sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
 		referrerpolicy="no-referrer"
-		class="prose-f block h-10 w-full"
-		:class="{ 'email-clipped-fade': isClipped }"
+		class="prose-f email-fade block h-10 w-full"
 		:style="{ maxHeight: `${MAX_CONTENT_HEIGHT}px` }"
 	/>
 </template>
 <!-- sandboxed + CSP: scripts and external resources can't load -->
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { applyCssToIframe, stripEmailColors, useDataTheme } from "./utils";
+import { applyCssToIframe, bottomFade, stripEmailColors, useDataTheme } from "./utils";
 
 const props = defineProps<{
 	content: string;
 }>();
 
-const MAX_CONTENT_HEIGHT = 500; // in px; if the email content exceeds this, the bottom edge fades to indicate more content is clipped.
+const MAX_CONTENT_HEIGHT = 500; // in px; taller emails scroll inside the iframe, with the bottom edge faded while more remains.
 
 const iframeRef = ref<HTMLIFrameElement | null>(null);
-const isClipped = ref(false);
 const dataTheme = useDataTheme(); // needed for the iframe to inherit the host's theme (dark/light) so the email content matches the rest of the app.
 
 // reactive to content: strip inline colors + fold reply quotes into a CSS-only collapse
@@ -195,12 +193,16 @@ watch(iframeRef, (iframe) => {
 			if (!parent) return;
 			parent.setAttribute("data-theme", dataTheme.value);
 
-			// measure content → set iframe height; flag overflow so the edge fades
+			// fade the bottom edge only while there's more email below it
+			const syncMask = () => iframe.style.setProperty("--fade", bottomFade(parent));
+
+			// measure content → set iframe height; max-height caps it, so the rest scrolls
 			const syncHeight = () => {
-				const full = parent.offsetHeight + 1;
-				iframe.style.height = full + "px";
-				isClipped.value = full > MAX_CONTENT_HEIGHT;
+				iframe.style.height = `${parent.offsetHeight + 1}px`;
+				syncMask();
 			};
+
+			iframe.contentWindow?.addEventListener("scroll", syncMask, { passive: true });
 
 			// inherit host styles into the iframe; external sheets load async, so re-measure after
 			applyCssToIframe(iframe, syncHeight);
@@ -246,9 +248,8 @@ watch(dataTheme, (theme) => {
 </script>
 
 <style scoped>
-/* fade the clipped bottom edge (~18px) so a long email never hard-slices a line */
-.email-clipped-fade {
-	-webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
-	mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
+/* at 0px the stop sits on the edge, so the mask is simply opaque */
+.email-fade {
+	mask-image: linear-gradient(to bottom, #000 calc(100% - var(--fade, 0px)), transparent);
 }
 </style>

@@ -109,6 +109,39 @@ context("List View", () => {
 		});
 	});
 
+	it("translates field labels in the bulk edit dialog", { scrollBehavior: false }, () => {
+		const translations = {
+			Route: "Routen-Pfad",
+			"Web Page": "Webseite",
+			"CSS Class": "CSS-Klasse",
+			"Page Building Blocks": "Seitenbausteine",
+		};
+
+		cy.insert_doc(
+			"Web Page",
+			{ title: "Impressum", route: "impressum", content_type: "Rich Text" },
+			true
+		);
+		cy.go_to_list("Web Page");
+		cy.clear_filters();
+		cy.get(".list-header-subject .list-subject .list-check-all").click();
+
+		cy.window().then((win) => Object.assign(win.frappe._messages, translations));
+		cy.click_action_button("Edit");
+
+		cy.get_open_dialog().find('input[data-fieldname="field"]').clear().type("Routen-Pfad");
+		cy.get(".awesomplete li:visible").should("contain.text", "Routen-Pfad (Webseite)");
+
+		cy.get_open_dialog().find('input[data-fieldname="field"]').clear().type("CSS-Klasse");
+		cy.get(".awesomplete li:visible").should("contain.text", "CSS-Klasse (Seitenbausteine)");
+
+		cy.hide_dialog();
+		cy.window().then((win) => {
+			Object.keys(translations).forEach((key) => delete win.frappe._messages[key]);
+		});
+		cy.remove_doc("Web Page", "impressum");
+	});
+
 	it("keeps selected rows checked after a list rerender", { scrollBehavior: false }, () => {
 		cy.go_to_list("ToDo");
 		cy.clear_filters();
@@ -224,4 +257,27 @@ context("List View", () => {
 				});
 		}
 	);
+
+	it("flips sort order icon and title", { scrollBehavior: false }, () => {
+		cy.go_to_list("ToDo");
+		cy.clear_filters();
+
+		// start from a known order, whatever the persisted list settings say
+		cy.window()
+			.its("cur_list.sort_selector")
+			.then((sort_selector) => sort_selector.set_value(sort_selector.sort_by, "desc"));
+
+		cy.get(".sort-selector .btn-order").as("order");
+		cy.get("@order").should("have.attr", "title", "descending");
+		cy.get("@order")
+			.find(".sort-order use")
+			.should("have.attr", "href", "#icon-arrow-down-wide-narrow");
+
+		cy.get("@order").click();
+		cy.get("@order").should("have.attr", "data-value", "asc");
+		cy.get("@order").should("have.attr", "title", "ascending");
+		cy.get("@order")
+			.find(".sort-order use")
+			.should("have.attr", "href", "#icon-arrow-up-narrow-wide");
+	});
 });

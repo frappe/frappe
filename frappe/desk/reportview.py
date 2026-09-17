@@ -4,6 +4,7 @@
 """build query for doclistview and return results"""
 
 import json
+import re
 from functools import lru_cache
 from typing import Any
 
@@ -13,6 +14,7 @@ import frappe
 import frappe.permissions
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.desk.link_title import get_report_link_titles, send_link_titles
 from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
 from frappe.model.base_document import get_controller
 from frappe.model.qb_query import DatabaseQuery
@@ -23,18 +25,29 @@ from frappe.utils.data import sbool
 DISALLOWED_PARAMS = ("cmd", "data", "ignore_permissions", "view", "user", "csrf_token", "join")
 SUPPORTED_AGGREGATE_FUNCTIONS = ("count", "sum", "avg")
 DEFAULT_AGGREGATE_FIELDNAME = "_aggregate_column"
+_FIELDNAME_RE = re.compile(r"^[a-zA-Z0-9_]+$")
 
 
 @frappe.whitelist()
 @frappe.read_only()
 def get():
 	args = get_form_params()
+	with_link_titles = sbool(args.pop("with_link_titles", False))
+
 	# If virtual doctype, get data from controller get_list method
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
 		data = compress(frappe.call(controller.get_list, args=args, **args))
 	else:
 		data = compress(execute(**args), args=args)
+
+	# `compress` returns the rows untouched when there are none, and reduces a child table
+	# field to its bare fieldname, so pair the requested fields back up with its key order.
+	if with_link_titles and isinstance(data, dict):
+		field_info = {info.get("fieldname"): info for info in get_field_info(args.fields, args.doctype)}
+		columns = [field_info.get(key) for key in data["keys"]]
+		send_link_titles(get_report_link_titles(columns, data["values"]))
+
 	return data
 
 
@@ -210,6 +223,39 @@ def raise_invalid_field(fieldname):
 	frappe.throw(_("Field not permitted in query") + f": {fieldname}", frappe.DataError)
 
 
+def _validate_group_by_field(raw: str, doctype: str):
+	"""Validate a single `tabDoctype`.`fieldname` expression from saved report JSON."""
+	if not isinstance(raw, str) or not raw:
+		raise_invalid_field(raw)
+	try:
+		field_doctype, fieldname = parse_field(raw)
+	except ValueError:
+		raise_invalid_field(raw)
+	field_doctype = field_doctype or doctype
+	if not _FIELDNAME_RE.match(fieldname):
+		raise_invalid_field(raw)
+	try:
+		has_col = frappe.db.has_column(field_doctype, fieldname)
+	except frappe.db.TableMissingError:
+		raise_invalid_field(raw)
+	if not has_col:
+		raise_invalid_field(raw)
+
+
+def _validate_group_by_args(group_by: dict, doctype: str):
+	raw_func = group_by.get("aggregate_function")
+	if not isinstance(raw_func, str):
+		frappe.throw(_("Invalid aggregate function: {0}").format(raw_func), frappe.DataError)
+	func = raw_func.lower()
+	if func not in SUPPORTED_AGGREGATE_FUNCTIONS:
+		frappe.throw(_("Invalid aggregate function: {0}").format(func), frappe.DataError)
+
+	_validate_group_by_field(group_by.get("group_by", ""), doctype)
+
+	if func != "count":
+		_validate_group_by_field(group_by.get("aggregate_on", ""), doctype)
+
+
 def is_standard(fieldname):
 	if "." in fieldname:
 		fieldname = fieldname.split(".")[1].strip("`")
@@ -349,6 +395,10 @@ def save_report(name: str | int, doctype: str, report_settings: str):
 		report = frappe.new_doc("Report")
 		report.report_name = name
 		report.ref_doctype = doctype
+
+	settings = json.loads(report_settings)
+	if isinstance(settings, dict) and isinstance(group_by := settings.get("group_by"), dict):
+		_validate_group_by_args(group_by, report.ref_doctype)
 
 	report.report_type = "Report Builder"
 	report.json = report_settings

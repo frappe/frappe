@@ -35,98 +35,91 @@
 	</Combobox>
 
 	<!-- Non-empty: the columns popover with its reorder / rename / remove rows. -->
-	<Popover v-else ref="popoverRef" placement="bottom-end">
-		<template #target="{ togglePopover }">
+	<Popover v-else ref="popoverRef" side="bottom" align="end">
+		<template #trigger>
 			<Button
 				:label="hideLabel ? undefined : 'Columns'"
 				:icon="hideLabel ? 'lucide-columns-3' : undefined"
 				:iconLeft="!hideLabel ? 'lucide-columns-3' : undefined"
-				@click="
-					confirmingReset = false;
-					togglePopover();
-				"
+				@click="confirmingReset = false"
 			/>
 		</template>
-		<template #body>
-			<div
-				class="my-2 min-w-40 rounded-lg bg-surface-elevation-2 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none"
-			>
-				<!-- Reorder / rename / remove the shown columns, add more. Width is
-				     not edited here — drag-resize in the table owns it (ADR-0006). -->
-				<div class="min-w-60 p-2">
-					<Draggable
-						v-if="model.length"
-						class="mb-3 flex flex-col gap-2"
-						:modelValue="model"
-						:item-key="(c) => c.fieldname"
-						handle=".column-drag-handle"
-						tag="div"
-						@update:modelValue="reorder"
-					>
-						<template #item="{ element: column, index: i }">
-							<div class="flex items-center gap-1">
-								<div
-									class="column-drag-handle flex h-7 w-7 shrink-0 items-center justify-center"
-								>
-									<span
-										class="lucide-grip-vertical size-4 cursor-grab text-ink-gray-5"
-										aria-hidden="true"
-									/>
-								</div>
-								<!-- The label is always a TextInput: read-only at rest, click to
-								     rename. Editing writes a local `draft` (so Esc reverts and
-								     typing doesn't churn the dragged list); commit on Enter/blur. -->
-								<TextInput
-									:ref="editIndex === i ? focusInput : undefined"
-									size="sm"
-									class="min-w-44 flex-1"
-									:readonly="editIndex !== i"
-									:modelValue="editIndex === i ? draft : column.label"
-									@click="editColumn(i)"
-									@update:modelValue="(value: string) => (draft = value)"
-									@keydown.enter.prevent="commitEdit"
-									@keydown.esc.prevent="cancelEdit"
-									@blur="commitEdit"
+		<template #default>
+			<!-- Reorder / rename / remove the shown columns, add more. Width is
+			     not edited here — drag-resize in the table owns it (ADR-0006). -->
+			<div class="min-w-60 p-2">
+				<Draggable
+					v-if="model.length"
+					class="mb-3 flex flex-col gap-2"
+					:modelValue="model"
+					:item-key="(c) => c.fieldname"
+					handle=".column-drag-handle"
+					tag="div"
+					@update:modelValue="reorder"
+				>
+					<template #item="{ element: column, index: i }">
+						<div class="flex items-center gap-1">
+							<div
+								class="column-drag-handle flex h-7 w-7 shrink-0 items-center justify-center"
+							>
+								<span
+									class="lucide-grip-vertical size-4 cursor-grab text-ink-gray-5"
+									aria-hidden="true"
 								/>
-								<Button variant="ghost" icon="lucide-x" @click="removeColumn(i)" />
 							</div>
+							<!-- The label is always a TextInput: read-only at rest, click to
+							     rename. Editing writes a local `draft` (so Esc reverts and
+							     typing doesn't churn the dragged list); commit on Enter/blur. -->
+							<TextInput
+								:ref="editIndex === i ? focusInput : undefined"
+								size="sm"
+								class="min-w-44 flex-1"
+								:readonly="editIndex !== i"
+								:modelValue="editIndex === i ? draft : column.label"
+								@click="editColumn(i)"
+								@update:modelValue="(value: string) => (draft = value)"
+								@keydown.enter.prevent="commitEdit"
+								@keydown.esc.prevent="cancelEdit"
+								@blur="commitEdit"
+							/>
+							<Button variant="ghost" icon="lucide-x" @click="removeColumn(i)" />
+						</div>
+					</template>
+				</Draggable>
+				<div class="flex items-center justify-between gap-2">
+					<!-- A custom #trigger renders the same ghost Button as "Reset" beside
+					     it (gray-5, `+` icon, no chevron). The label is static, so the old
+					     per-add remount (`:key`) and placeholder hacks are gone. When
+					     Reset is hidden, `!flex-1` fills the row and `!justify-start`
+					     left-aligns the icon/label (Button defaults to justify-center). -->
+					<Combobox
+						:options="addableOptions"
+						:modelValue="null"
+						@update:selectedOption="addColumn"
+					>
+						<template #trigger>
+							<Button
+								variant="ghost"
+								label="Add Column"
+								iconLeft="lucide-plus"
+								:class="[
+									'!text-ink-gray-5',
+									canReset ? undefined : '!flex-1 !justify-start',
+								]"
+							/>
 						</template>
-					</Draggable>
-					<div class="flex items-center justify-between gap-2">
-						<!-- A custom #trigger renders the same ghost Button as "Reset" beside
-						     it (gray-5, `+` icon, no chevron). The label is static, so the old
-						     per-add remount (`:key`) and placeholder hacks are gone. When
-						     Reset is hidden, `!flex-1` fills the row and `!justify-start`
-						     left-aligns the icon/label (Button defaults to justify-center). -->
-						<Combobox
-							:options="addableOptions"
-							:modelValue="null"
-							@update:selectedOption="addColumn"
-						>
-							<template #trigger>
-								<Button
-									variant="ghost"
-									label="Add Column"
-									iconLeft="lucide-plus"
-									:class="[
-										'!text-ink-gray-5',
-										canReset ? undefined : '!flex-1 !justify-start',
-									]"
-								/>
-							</template>
-						</Combobox>
-						<!-- Reset to the Meta defaults. The host owns the defaults (ADR-0006),
-						     so this only emits; `canReset` hides it when nothing to undo. The
-						     first click arms an inline confirm, the second emits. -->
-						<Button
-							v-if="canReset"
-							:class="confirmingReset ? undefined : '!text-ink-gray-5'"
-							:variant="confirmingReset ? 'subtle' : 'ghost'"
-							:theme="confirmingReset ? 'red' : 'gray'"
-							:label="confirmingReset ? 'Confirm Reset' : 'Reset'"
-							@click="onResetClick"
-						/>
-					</div>
+					</Combobox>
+					<!-- Reset to the Meta defaults. The host owns the defaults (ADR-0006),
+					     so this only emits; `canReset` hides it when nothing to undo. The
+					     first click arms an inline confirm, the second emits. -->
+					<Button
+						v-if="canReset"
+						:class="confirmingReset ? undefined : '!text-ink-gray-5'"
+						:variant="confirmingReset ? 'subtle' : 'ghost'"
+						:theme="confirmingReset ? 'red' : 'gray'"
+						:label="confirmingReset ? 'Confirm Reset' : 'Reset'"
+						@click="onResetClick"
+					/>
 				</div>
 			</div>
 		</template>

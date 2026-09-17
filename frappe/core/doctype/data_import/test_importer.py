@@ -1,6 +1,9 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
+from unittest.mock import patch
+
 import frappe
+from frappe.core.doctype.data_import.data_import import DataImport
 from frappe.core.doctype.data_import.importer import (
 	ACTION_INSERT,
 	ACTION_UPDATE,
@@ -59,6 +62,20 @@ class TestImporter(IntegrationTestCase):
 		create_doctype_if_not_exists(
 			doctype_name,
 		)
+
+	def test_import_uses_the_document_importer(self):
+		self.addCleanup(_delete_doctype_records, doctype_name, SAMPLE_IMPORT_DOC_NAMES)
+		import_file = get_import_file("sample_import_file")
+		data_import = self.get_importer(doctype_name, import_file)
+
+		with patch.object(
+			DataImport, "get_importer", autospec=True, side_effect=DataImport.get_importer
+		) as get_importer:
+			data_import.start_import()
+
+		get_importer.assert_called()
+		self.assertEqual(data_import.reload().status, "Success")
+		self.assertTrue(frappe.db.exists(doctype_name, "Test"))
 
 	def test_data_import_from_file(self):
 		self.addCleanup(_delete_doctype_records, doctype_name, SAMPLE_IMPORT_DOC_NAMES)

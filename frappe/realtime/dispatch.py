@@ -9,7 +9,8 @@ same handlers. Per event, dispatch:
 - loads the session stored at connect and builds a typed Socket
 - install-scoping: runs a handler only if its app is on the site's installed_apps
 - guest gate: skips a handler when user == "Guest" and the handler is not allow_guest
-- context wrap: opens frappe_context for handlers registered with frappe_context=True
+- offloads blocking handlers: a plain (non-async) handler and every
+  frappe_context handler run in a worker thread with a SyncSocket
 
 Handler errors are logged and swallowed so one bad handler never drops the socket.
 Concrete events are bound (rather than a combined catch-all) to avoid ambiguity in
@@ -18,26 +19,51 @@ python-socketio's argument order; the namespace is always prepended for namespac
 
 from __future__ import annotations
 
+import asyncio
+import inspect
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
 from typing import TYPE_CHECKING
 
 from frappe.realtime.auth import authenticate
 from frappe.realtime.config import RealtimeConfig
 from frappe.realtime.context import frappe_context
-from frappe.realtime.registry import realtime
-from frappe.realtime.socket import Socket
+from frappe.realtime.registry import Handler, is_async_callable, realtime
+from frappe.realtime.socket import Socket, SyncSocket
 
 if TYPE_CHECKING:
-	from socketio.server import Server as SocketIOServer
+	from socketio import AsyncServer
 
 logger = logging.getLogger("frappe.realtime")
 
 RESERVED_EVENTS = ("connect", "disconnect")
 
 
-def _run_handlers(
-	sio: SocketIOServer,
+def _run_in_context(handler: Handler, socket: SyncSocket, args: tuple[object, ...]) -> None:
+	"""Run a handler inside a Frappe context. Called on a worker thread."""
+	with frappe_context(socket.site, socket.user):
+		handler.fn(socket, *args)
+
+
+async def _call(handler: Handler, socket: Socket, args: tuple[object, ...]) -> None:
+	"""Run one handler, moving it off the loop if it blocks."""
+	if is_async_callable(handler.fn):
+		await handler.fn(socket, *args)
+		return
+
+	sync_socket = SyncSocket(socket, asyncio.get_running_loop())
+	if handler.frappe_context:
+		await asyncio.to_thread(_run_in_context, handler, sync_socket, args)
+		return
+
+	result = await asyncio.to_thread(handler.fn, sync_socket, *args)
+	# A decorator can hide a coroutine function behind a plain wrapper.
+	if inspect.isawaitable(result):
+		await result
+
+
+async def _run_handlers(
+	sio: AsyncServer,
 	event: str,
 	namespace: str,
 	sid: str,
@@ -48,7 +74,7 @@ def _run_handlers(
 		return
 
 	try:
-		session = sio.get_session(sid, namespace=namespace)
+		session = await sio.get_session(sid, namespace=namespace)
 	except KeyError:
 		return
 
@@ -60,34 +86,30 @@ def _run_handlers(
 		if socket.user == "Guest" and not handler.allow_guest:
 			continue
 		try:
-			if handler.frappe_context:
-				with frappe_context(socket.site, socket.user):
-					handler.fn(socket, *args)
-			else:
-				handler.fn(socket, *args)
+			await _call(handler, socket, args)
 		except Exception:
 			logger.exception("handler error: event=%s app=%s", event, handler.app)
 
 
-def _make_dispatcher(sio: SocketIOServer, event: str) -> Callable[..., None]:
-	def dispatcher(namespace: str, sid: str, *args: object) -> None:
-		_run_handlers(sio, event, namespace, sid, args)
+def _make_dispatcher(sio: AsyncServer, event: str) -> Callable[..., Coroutine]:
+	async def dispatcher(namespace: str, sid: str, *args: object) -> None:
+		await _run_handlers(sio, event, namespace, sid, args)
 
 	return dispatcher
 
 
-def wire(sio: SocketIOServer, config: RealtimeConfig) -> None:
+def wire(sio: AsyncServer, config: RealtimeConfig) -> None:
 	"""Bind connect / disconnect and every registered event onto namespace '*'."""
 
-	def connect(namespace: str, sid: str, environ: dict, auth: object | None = None) -> None:
-		session = authenticate(environ, namespace, config)
-		sio.save_session(sid, session, namespace=namespace)
-		_run_handlers(sio, "connect", namespace, sid, ())
+	async def connect(namespace: str, sid: str, environ: dict, auth: object | None = None) -> None:
+		session = await authenticate(environ, namespace, config)
+		await sio.save_session(sid, session, namespace=namespace)
+		await _run_handlers(sio, "connect", namespace, sid, ())
 
-	def disconnect(namespace: str, sid: str, reason: object | None = None) -> None:
+	async def disconnect(namespace: str, sid: str, reason: object | None = None) -> None:
 		# socketio 5.11+ passes a disconnect reason; accept and ignore it so the
 		# handler binds directly instead of relying on the library's TypeError retry.
-		_run_handlers(sio, "disconnect", namespace, sid, ())
+		await _run_handlers(sio, "disconnect", namespace, sid, ())
 
 	sio.on("connect", connect, namespace="*")
 	sio.on("disconnect", disconnect, namespace="*")

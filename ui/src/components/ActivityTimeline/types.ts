@@ -25,7 +25,7 @@ export interface Pagination {
     position?: "top" | "bottom" | "inline";
     /** Button copy; default "Load more" / "lucide-refresh-cw". */
     label?: string;
-    /** lucide-* string, FeatherIcon name, or a component — same as `Button`'s icon. */
+    /** lucide-* string or a component — same as `Button`'s icon. */
     icon?: string | Component;
   };
 }

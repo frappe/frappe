@@ -19,10 +19,6 @@
 					]"
 					@update:model-value="set_source"
 				/>
-				<div v-if="zone === 'header'" class="pfb-insp-row pfb-insp-row--col">
-					<span class="pfb-insp-label">{{ __("Letter Head") }}</span>
-					<div ref="lh_link_ref"></div>
-				</div>
 			</div>
 		</div>
 
@@ -78,7 +74,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref, watch } from "vue";
+import { computed, inject, onMounted, ref } from "vue";
 import { useStore } from "../../stores";
 import { get_image_dimensions, render_jinja_html } from "../../utils";
 import SegmentedRow from "./SegmentedRow.vue";
@@ -300,36 +296,6 @@ function edit_html() {
 		},
 	});
 }
-
-const lh_link_ref = ref(null);
-let lh_link_ctrl = null;
-
-onMounted(() => {
-	if (props.zone !== "header" || !lh_link_ref.value) return;
-	lh_link_ctrl = frappe.ui.form.make_control({
-		parent: lh_link_ref.value,
-		df: {
-			fieldname: "letter_head",
-			fieldtype: "Link",
-			options: "Letter Head",
-			placeholder: __("No letter head"),
-			change: () => {
-				const name = lh_link_ctrl.get_value() || "";
-				if (name === (letterhead.value?.name || "")) return;
-				name ? store.change_letterhead(name) : store.remove_letterhead();
-			},
-		},
-		render_input: true,
-	});
-	lh_link_ctrl.set_value(letterhead.value?.name || "");
-	lh_link_ref.value.querySelector(".control-label")?.remove();
-	lh_link_ref.value.querySelector(".form-group")?.style.setProperty("margin", "0");
-});
-
-watch(
-	() => letterhead.value?.name,
-	(name) => lh_link_ctrl?.set_value(name || "")
-);
 </script>
 
 <style scoped>

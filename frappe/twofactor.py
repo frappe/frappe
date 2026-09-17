@@ -354,16 +354,17 @@ def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, mess
 	otp = hotp.at(int(token))
 	template_args = {"otp": otp, "otp_issuer": otp_issuer}
 
-	frappe.sendmail(
-		recipients=user_email,
-		subject=subject or get_email_subject_for_2fa(template_args),
-		message=message or get_email_body_for_2fa(template_args),
-		with_container=True,
-		wrapper="templates/emails/auth_email.html",
-		delayed=False,
-		retry=3,
+	return bool(
+		frappe.sendmail(
+			recipients=user_email,
+			subject=subject or get_email_subject_for_2fa(template_args),
+			message=message or get_email_body_for_2fa(template_args),
+			with_container=True,
+			wrapper="templates/emails/auth_email.html",
+			delayed=False,
+			retry=3,
+		)
 	)
-	return True
 
 
 def get_qr_svg_code(totp_uri):

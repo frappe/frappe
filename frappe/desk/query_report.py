@@ -5,13 +5,14 @@ import datetime
 import json
 import os
 from datetime import timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import frappe
 import frappe.desk.reportview
 from frappe import _
 from frappe.core.utils import ljust_list
 from frappe.desk.form.load import get_attachments
+from frappe.desk.link_title import get_report_link_titles, send_link_titles
 from frappe.desk.reportview import clean_params, parse_json
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
@@ -19,7 +20,9 @@ from frappe.monitor import add_data_to_monitor
 from frappe.permissions import get_role_permissions, get_roles, has_permission
 from frappe.utils import cint, cstr, flt, format_datetime, format_duration, formatdate, get_html_format, sbool
 from frappe.utils.caching import request_cache
-from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, handle_html, make_xlsx
+
+if TYPE_CHECKING:
+	from frappe.utils.xlsxutils import XLSXMetadata
 
 
 def get_report_doc(report_name):
@@ -38,8 +41,9 @@ def get_report_doc(report_name):
 				doc.custom_filters = data.get("filters")
 		doc.is_custom_report = True
 
-		# Follow whatever the custom report has set for prepared report field
+		# Follow whatever the custom report has set for prepared report fields
 		doc.prepared_report = custom_report_doc.prepared_report
+		doc.disable_prepared_report_automation = custom_report_doc.disable_prepared_report_automation
 
 	if not doc.is_permitted():
 		frappe.throw(
@@ -57,6 +61,32 @@ def get_report_doc(report_name):
 		frappe.throw(_("Report {0} is disabled").format(_(report_name)))
 
 	return doc
+
+
+@frappe.whitelist()
+def get_print_format_data(print_format: str):
+	pf = frappe.db.get_value(
+		"Print Format",
+		{"name": print_format, "disabled": 0, "print_format_for": "Report"},
+		["report", "html", "css"],
+		as_dict=True,
+	)
+	if not pf:
+		frappe.throw(
+			_("{0} is not an enabled Print Format for a Report").format(frappe.bold(print_format)),
+			frappe.DoesNotExistError,
+		)
+
+	# get_report_doc enforces the referenced Report's own permission model before we hand out its print format
+	report = get_report_doc(pf.report)
+
+	if not frappe.has_permission(report.ref_doctype, "print"):
+		frappe.throw(
+			_("You don't have permission to print: {0}").format(_(report.ref_doctype)),
+			frappe.PermissionError,
+		)
+
+	return {"html": pf.html, "css": pf.css}
 
 
 def get_report_result(report, filters):
@@ -130,6 +160,8 @@ def generate_report_result(
 	if isinstance(filters, dict) and filters.get("translate_data"):
 		result = translate_report_data(result, has_total_row)
 
+	execution_time = frappe.cache.hget("report_execution_time", report.get("custom_report") or report.name)
+
 	return_dict = {
 		"result": result,
 		"columns": columns,
@@ -138,7 +170,7 @@ def generate_report_result(
 		"report_summary": report_summary,
 		"skip_total_row": skip_total_row or 0,
 		"status": None,
-		"execution_time": frappe.cache.hget("report_execution_time", report.name) or 0,
+		"execution_time": execution_time or 0,
 	}
 
 	if report.snapshot_report and report.doctype_to_sync:
@@ -299,6 +331,10 @@ def _run(
 	if sbool(are_default_filters) and report.get("custom_filters"):
 		result["custom_filters"] = report.custom_filters
 
+	# prepared reports can still carry legacy string column definitions
+	columns = [get_column_as_dict(column) for column in result.get("columns") or []]
+	send_link_titles(get_report_link_titles(columns, result.get("result")))
+
 	return result
 
 
@@ -420,6 +456,7 @@ def run_export_query_job(user_email: str, form_params, csv_params):
 
 def _export_query(form_params, csv_params, populate_response=True):
 	from frappe.desk.utils import get_csv_bytes, provide_binary_file
+	from frappe.utils.xlsxutils import handle_html, make_xlsx
 
 	report_name = form_params.report_name
 	file_format_type = form_params.file_format_type
@@ -502,27 +539,10 @@ def _export_query(form_params, csv_params, populate_response=True):
 			msg=_("Only CSV and Excel formats are supported for export"),
 		)
 
-	if include_filters:
-		for value in (data.filters or {}).values():
-			suffix = ""
-			if isinstance(value, list):
-				suffix = "_" + ",".join(value)
-			elif isinstance(value, str) and value not in {"Yes", "No"}:
-				suffix = f"_{value}"
-
-			if valid_report_name(report_name, suffix):
-				report_name += suffix
-
 	if not populate_response:
 		return report_name, file_extension, content
 
 	provide_binary_file(_(report_name), file_extension, content)
-
-
-def valid_report_name(report_name, suffix):
-	if len(report_name) + len(suffix) < 200:
-		return True
-	return False
 
 
 def format_fields(data: frappe._dict, file_format_type: str | None = None) -> None:
@@ -587,6 +607,8 @@ def build_xlsx_data(
 			- column_widths: List of column widths for the Excel sheet
 			- styles: Dictionary of styles for Excel formatting (if applicable)
 	"""
+	from frappe.utils.xlsxutils import XLSXMetadata
+
 	metadata = None
 
 	EXCEL_TYPES = (
@@ -717,12 +739,14 @@ def build_xlsx_data(
 	return result, column_widths, get_xlsx_styles(metadata, data.report_name) if build_styles else None
 
 
-def get_xlsx_styles(metadata: XLSXMetadata, report_name: str | None = None) -> dict | None:
+def get_xlsx_styles(metadata: "XLSXMetadata", report_name: str | None = None) -> dict | None:
 	"""
 	Returns styles for XLSX export.
 
 	If report_name is provided, it tries to fetch styles defined in the report's module.
 	"""
+	from frappe.utils.xlsxutils import XLSXStyleBuilder
+
 	styles = None
 	if report_name:
 		report = frappe.get_doc("Report", report_name)

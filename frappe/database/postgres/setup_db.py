@@ -1,6 +1,8 @@
 import os
 import re
 
+from psycopg2 import sql
+
 import frappe
 from frappe.database.db_manager import DbManager
 from frappe.utils import cint
@@ -22,7 +24,12 @@ def setup_database():
 	if psql_version := root_conn.sql("SHOW server_version_num", as_dict=True):
 		semver_version_num = psql_version[0].get("server_version_num") or "140000"
 		if cint(semver_version_num) > 150000:
-			root_conn.sql(f'ALTER DATABASE "{frappe.conf.db_name}" OWNER TO "{frappe.conf.db_user}"')
+			_set_database_owner(
+				root_conn,
+				frappe.conf.db_name,
+				frappe.conf.db_user,
+				cint(semver_version_num),
+			)
 	root_conn.close()
 
 	# On Azure Managed PostgreSQL the public schema is owned by the azure_pg_admin role.
@@ -58,6 +65,55 @@ def setup_database():
 			db_conn.rollback()
 	finally:
 		db_conn.close()
+
+
+def _set_database_owner(root_conn, db_name: str, db_user: str, postgres_version: int) -> None:
+	role_privilege = "SET" if postgres_version >= 160000 else "MEMBER"
+	can_set_role = root_conn.sql(
+		"SELECT pg_has_role(current_user, %s, %s)",
+		(db_user, role_privilege),
+		pluck=True,
+	)
+	needs_role_access = not can_set_role or not can_set_role[0]
+
+	if needs_role_access:
+		grant, restore = _get_temporary_role_statements(root_conn, db_user, postgres_version)
+		root_conn.execute_query(grant)
+
+	try:
+		root_conn.execute_query(
+			sql.SQL("ALTER DATABASE {} OWNER TO {}").format(
+				sql.Identifier(db_name),
+				sql.Identifier(db_user),
+			)
+		)
+	finally:
+		if needs_role_access:
+			root_conn.execute_query(restore)
+
+
+def _get_temporary_role_statements(
+	root_conn, db_user: str, postgres_version: int
+) -> tuple[sql.Composed, sql.Composed]:
+	grant = sql.SQL("GRANT {} TO current_user").format(sql.Identifier(db_user))
+	restore = sql.SQL("REVOKE {} FROM current_user").format(sql.Identifier(db_user))
+	if postgres_version < 160000:
+		return grant, restore
+
+	# A role can already hold a self-grant with INHERIT TRUE and SET FALSE.
+	# Only restore grants made by this user; grants from other users remain untouched.
+	existing_self_grant = root_conn.sql(
+		"""SELECT 1 FROM pg_auth_members membership
+		JOIN pg_roles member_role ON member_role.oid = membership.member
+		JOIN pg_roles target_role ON target_role.oid = membership.roleid
+		WHERE target_role.rolname = %s AND member_role.rolname = current_user
+			AND membership.grantor = membership.member""",
+		(db_user,),
+		pluck=True,
+	)
+	if existing_self_grant:
+		restore = grant + sql.SQL(" WITH SET FALSE")
+	return grant + sql.SQL(" WITH SET TRUE"), restore
 
 
 def bootstrap_database(verbose, source_sql=None):

@@ -309,6 +309,44 @@ To: =?iso-8859-1?Q?X=E9Y=40example=2Ecom?= <xy@example.com>, "fail@example.com" 
 		)
 		frappe.db.rollback()
 
+	def test_plain_text_body_preserves_bare_angle_bracket_address(self):
+		content_bytes = rb"""MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+From: sender@example.com
+To: receive@example.com
+Subject: Plain text body
+
+Please contact John Doe <john.doe@example.com> for details.
+"""
+
+		email_account = frappe._dict({"email_id": "receive@example.com"})
+		mail = InboundMail(content_bytes, email_account)
+		communication: Communication = mail.process()  # type: ignore
+
+		self.assertIn("&lt;john.doe@example.com&gt;", communication.content)
+		self.assertNotIn("<john.doe@example.com>", communication.content)
+		frappe.db.rollback()
+
+	def test_plain_text_body_escapes_rather_than_executes_markup(self):
+		content_bytes = rb"""MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+From: sender@example.com
+To: receive@example.com
+Subject: Plain text body with script
+
+Hello <script>alert(1)</script> world.
+"""
+
+		email_account = frappe._dict({"email_id": "receive@example.com"})
+		mail = InboundMail(content_bytes, email_account)
+		communication: Communication = mail.process()  # type: ignore
+
+		self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", communication.content)
+		self.assertNotIn("<script>", communication.content)
+		frappe.db.rollback()
+
 
 def fixed_column_width(string, chunk_size):
 	parts = [string[0 + i : chunk_size + i] for i in range(0, len(string), chunk_size)]

@@ -104,7 +104,7 @@
 							item-key="id"
 							filter="a, input, textarea, select, button, label, summary, [contenteditable], [role='button'], [tabindex]:not(.field--chip):not(.field--preview)"
 							:preventOnFilter="false"
-							:emptyInsertThreshold="100"
+							:emptyInsertThreshold="8"
 							v-bind="DRAG_OPTIONS"
 							@start="(e) => on_field_drag_start(column, e)"
 							@end="on_field_drag_end"
@@ -575,6 +575,15 @@ function remove_column(index) {
 
 .column:has(.empty-drop-zone) {
 	min-height: 3rem;
+}
+
+/* the dashed zone is an absolute sibling, so an empty column's drag-container
+   has zero height — give it the column's full area so drops are handled by its
+   own dragover instead of the nearest-empty magnet (whose inflated hit-rect
+   overlapped populated neighbours and made the ghost ping-pong every move) */
+.column:has(.empty-drop-zone) > .drag-container {
+	min-height: 3rem;
+	flex: 1;
 }
 
 .column:has(.pfb-drag-ghost) .empty-drop-zone {

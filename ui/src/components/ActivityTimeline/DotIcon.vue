@@ -11,7 +11,7 @@
 	/>
 	<template v-else>
 		<!-- email + comment: author avatar on the axis + channel badge (mail/comment) -->
-		<div v-if="activity.type === 'email' || activity.type === 'comment'" class="relative">
+		<div v-if="activity.type === 'email' || activity.type === 'comment'" class="relative flex">
 			<Avatar size="lg" :label="activity.author.fullname" :image="activity.author.image" />
 			<span
 				class="absolute -bottom-0.5 -end-1.5 flex size-4.5 items-center justify-center rounded-full bg-surface-base text-ink-gray-5"

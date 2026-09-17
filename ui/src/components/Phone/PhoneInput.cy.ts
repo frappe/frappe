@@ -197,7 +197,7 @@ describe('PhoneInput', () => {
   })
 
   it('reflects each size and variant on the shell', () => {
-    for (const size of ['sm', 'md', 'lg', 'xl'] as const) {
+    for (const size of ['sm', 'md', 'lg'] as const) {
       cy.mount(PhoneInput, { props: { size } })
       cy.get('[data-slot="phone-input"]').should('have.attr', 'data-size', size)
     }

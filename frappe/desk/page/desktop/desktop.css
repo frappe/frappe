@@ -186,6 +186,40 @@ body.apps-page .icon-subtitle {
   color: var(--ink-gray-5);
   line-height: var(--desktop-icon-line-height);
 }
+/* The tile is a <div> holding two destinations: the app itself (its logo and its title) and,
+   for an app whose own UI isn't the desk, the "Open in Desk" subtitle. They are separate
+   anchors because one cannot nest inside another, and they carry no link chrome of their own. */
+body.apps-page .icon-link,
+body.apps-page a.icon-title,
+body.apps-page a.icon-subtitle {
+  text-decoration: none;
+}
+body.apps-page .icon-link,
+body.apps-page a.icon-title {
+  color: inherit;
+}
+/* The tile used to be a single anchor, so its padding, the gap under the logo and the empty
+   space beside the title all opened the app. Stretching the logo's link back across the whole
+   tile keeps that click target after the split. The caption is lifted above the overlay so the
+   title keeps its tooltip and the subtitle stays a link of its own. */
+body.apps-page .icon-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+}
+body.apps-page .icon-caption {
+  position: relative;
+}
+/* The overlay sits between the pointer and the logo, so the zoom is driven by the tile. */
+body.apps-page .desktop-icon:hover .icon-container {
+  transform: scale(1.05);
+  transition: transform 0.1s;
+}
+body.apps-page a.icon-subtitle:hover {
+  color: var(--ink-gray-7);
+  text-decoration: none;
+}
 body.apps-page .timeless-style {
   width: 100vw;
   max-width: 600px;

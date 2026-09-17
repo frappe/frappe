@@ -24,6 +24,7 @@ from frappe.query_builder import Order
 from frappe.utils import cint, cstr, get_assets_json
 from frappe.utils.change_log import has_app_update_notifications
 from frappe.utils.data import add_to_date
+from frappe.utils.island import get_ui_islands
 
 
 @frappe.whitelist()
@@ -132,6 +133,7 @@ def get():
 	from frappe.utils.legacy_gravatar_cleanup import (
 		should_show_gravatar_deletion_prompt,
 	)
+	from frappe.utils.new_navigation_nudge import should_show_new_navigation_prompt
 
 	bootinfo = None
 	if not getattr(frappe.conf, "disable_session_cache", None):
@@ -164,6 +166,7 @@ def get():
 
 	bootinfo.notes = get_unseen_notes()
 	bootinfo.assets_json = get_assets_json()
+	bootinfo.ui_islands = get_ui_islands()
 	bootinfo.read_only = bool(frappe.flags.read_only)
 
 	for hook in frappe.get_hooks("extend_bootinfo"):
@@ -185,6 +188,7 @@ def get():
 	bootinfo.has_app_updates = has_app_update_notifications()
 	bootinfo.show_external_link_warning = frappe.get_system_settings("show_external_link_warning")
 	bootinfo.show_gravatar_deletion_prompt = should_show_gravatar_deletion_prompt()
+	bootinfo.show_new_navigation_prompt = should_show_new_navigation_prompt()
 
 	return bootinfo
 

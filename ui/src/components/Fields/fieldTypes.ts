@@ -1,9 +1,8 @@
-import type { Component } from "vue";
+import { defineAsyncComponent, type Component } from "vue";
 import { setScoped } from "../../utils/scopedRegistry";
 import AutocompleteField from "./AutocompleteField.vue";
 import ButtonField from "./ButtonField.vue";
 import CheckField from "./CheckField.vue";
-import CodeEditorField from "./CodeEditorField.vue";
 import DateField from "./DateField.vue";
 import DatetimeField from "./DatetimeField.vue";
 import DurationField from "./DurationField.vue";
@@ -82,7 +81,11 @@ for (const t of ["Small Text", "Text", "Long Text"]) {
 }
 
 // Code-family types share one CodeEditorField (CodeMirror 6 writer + sanitized
-// preview), with the language derived from the fieldtype/options.
+// preview), with the language derived from the fieldtype/options. Loaded lazily:
+// CodeMirror is heavy, and it's the only field pulling `CodeEditor`/`CodePreview`
+// from `frappe-ui/experimental`
+const CodeEditorField = defineAsyncComponent(() => import("./CodeEditorField.vue"));
+
 for (const t of ["Code", "JSON", "Markdown Editor", "HTML Editor"]) {
   registerFieldType(t, CodeEditorField);
 }
