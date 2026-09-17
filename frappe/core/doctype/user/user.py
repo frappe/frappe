@@ -33,7 +33,7 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
-from frappe.utils.background_jobs import is_job_enqueued
+from frappe.utils.background_jobs import get_jobs
 from frappe.utils.data import sha256_hash
 from frappe.utils.html_utils import sanitize_html
 from frappe.utils.password import check_password, get_password_reset_limit, is_password_reused
@@ -608,6 +608,8 @@ class User(Document):
 		if self.name in STANDARD_USERS:
 			throw(_("User {0} cannot be deleted").format(self.name))
 
+		self.validate_no_pending_owner_sweep(self.name)
+
 		# disable the user and log him/her out
 		self.enabled = 0
 		if getattr(frappe.local, "login_manager", None):
@@ -691,10 +693,19 @@ class User(Document):
 		if old_name in STANDARD_USERS:
 			throw(_("User {0} cannot be renamed").format(self.name))
 
-		if any(is_job_enqueued(f"rewrite-owner-fields-{name}") for name in (old_name, new_name)):
-			throw(_("A previous rename of this user is still being applied. Please try again later."))
-
+		self.validate_no_pending_owner_sweep(old_name, new_name)
 		self.validate_email_type(new_name)
+
+	def validate_no_pending_owner_sweep(self, *names):
+		pending_jobs = get_jobs(frappe.local.site, queue="long", key="kwargs")[frappe.local.site]
+		pending_names = {job.get(key) for job in pending_jobs for key in ("old_name", "new_name")}
+		for name in names:
+			if name in pending_names:
+				throw(
+					_(
+						"A pending rename involving {0} is still being applied. Please try again later."
+					).format(frappe.bold(name))
+				)
 
 	def validate_email_type(self, email):
 		from frappe.utils import validate_email_address
@@ -710,8 +721,6 @@ class User(Document):
 			queue="long",
 			timeout=36000,
 			enqueue_after_commit=True,
-			job_id=f"rewrite-owner-fields-{new_name}",
-			deduplicate=True,
 		)
 
 		if frappe.db.exists("Notification Settings", old_name):
