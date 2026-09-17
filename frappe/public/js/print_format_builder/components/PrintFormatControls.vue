@@ -521,7 +521,7 @@ const draggable_blocks = computed(() => [
 		width: "",
 	},
 	{
-		label: __("Custom Child Table"),
+		label: __("Custom Table"),
 		fieldname: "repeater",
 		fieldtype: "Repeater",
 		custom: 1,
