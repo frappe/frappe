@@ -18,31 +18,14 @@
 					{{ __("This document is a draft and cannot be printed.") }}
 				</div>
 				<template v-else-if="compare">
-					<div class="pfb-preview-topbar" @click.self="$emit('close')">
-						<span class="pfb-preview-title">{{ __("Review changes") }}</span>
-						<div class="pfb-preview-chips">
-							<span
-								v-for="chip in chips"
-								:key="chip.label"
-								class="es-badge"
-								:data-theme="chip.theme"
-								:title="chip.title"
-							>
-								{{ chip.label }}
-							</span>
-							<span v-if="!chips.length" class="pfb-preview-summary">
-								{{ __("No differences found") }}
-							</span>
-						</div>
-						<button
-							class="es-button"
-							data-variant="ghost"
-							data-icon-button="true"
-							:title="__('Close')"
-							@click="$emit('close')"
-							v-html="frappe.utils.icon('x', 'sm')"
-						></button>
-					</div>
+					<button
+						class="es-button pfb-preview-close"
+						data-variant="ghost"
+						data-icon-button="true"
+						:title="__('Close')"
+						@click="$emit('close')"
+						v-html="frappe.utils.icon('x', 'sm')"
+					></button>
 					<div class="pfb-preview-panes">
 						<div class="pfb-preview-pane">
 							<div class="pfb-preview-caption">
@@ -96,7 +79,6 @@ let modal = ref(null);
 let pdf_url = ref(null);
 let before_url = ref(null);
 let before_note = ref("");
-let chips = ref([]);
 let after_note = ref("");
 let render_seq = 0;
 let render_abort = null;
@@ -150,45 +132,6 @@ async function render_pdf(format_doc) {
 	return URL.createObjectURL(await res.blob()) + "#view=FitH";
 }
 
-function describe(diff) {
-	const out = [];
-	const count = (n, one, many) => (n === 1 ? one : __(many, [n]));
-	if (diff.added.length) {
-		out.push({
-			label: count(diff.added.length, __("1 field added"), "{0} fields added"),
-			theme: "amber",
-		});
-	}
-	if (diff.moved.length) {
-		out.push({
-			label: count(diff.moved.length, __("1 field moved"), "{0} fields moved"),
-			theme: "amber",
-		});
-	}
-	if (diff.changed.length) {
-		out.push({
-			label: count(diff.changed.length, __("1 field restyled"), "{0} fields restyled"),
-			theme: "amber",
-		});
-	}
-	if (diff.sections.length) {
-		out.push({
-			label: count(diff.sections.length, __("1 section changed"), "{0} sections changed"),
-			title: diff.sections.map((sec) => sec.label).join(", "),
-			theme: "amber",
-		});
-	}
-	if (diff.removed.length) {
-		out.push({
-			label: count(diff.removed.length, __("1 field removed"), "{0} fields removed"),
-			title: diff.removed.join(", "),
-			theme: "red",
-		});
-	}
-	diff.settings.forEach((line) => out.push({ label: line, theme: "gray" }));
-	return out;
-}
-
 async function render_saved_pdf() {
 	const params = new URLSearchParams({
 		doctype: doctype.value,
@@ -222,14 +165,12 @@ async function render() {
 		);
 	set_pdf_url(null);
 	set_before_url(null);
-	chips.value = [];
 	let draft_doc = store.value.get_preview_format_doc();
-	if (props.compare && store.value.saved_format?.format_data) {
-		const diff = describe_draft_changes(store.value.saved_format, draft_doc);
-		chips.value = describe(diff);
+	if (props.compare && store.value.saved_format_data) {
+		const diff = describe_draft_changes(store.value.saved_format_data, draft_doc.format_data);
 		const targets = [
 			...diff.highlight.map((f) => `[data-fieldname="${f}"]`),
-			...diff.sections.map((sec) => `[data-section="${sec.index}"]`),
+			...diff.sections.map((i) => `[data-section="${i}"]`),
 		];
 		if (targets.length) {
 			const selector = targets.join(", ");
@@ -246,7 +187,7 @@ async function render() {
 	set_pdf_url(after.url || null);
 	after_note.value = after.error || "";
 	if (!props.compare) return;
-	const before = store.value.saved_format?.format_data
+	const before = store.value.saved_format_data
 		? await attempt(render_saved_pdf())
 		: { error: __("Nothing has been saved yet, so everything here is new.") };
 	if (seq !== render_seq) return;
@@ -319,43 +260,17 @@ onUnmounted(() => {
 	height: 100%;
 }
 
-.pfb-preview-topbar {
-	flex-shrink: 0;
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	margin-bottom: 8px;
-}
-
-.pfb-preview-title {
-	font-size: var(--text-base);
-	font-weight: var(--weight-semibold);
+.pfb-preview-close {
+	position: absolute;
+	top: 0;
+	right: 0;
+	z-index: 1;
 	color: var(--white);
 }
 
-.pfb-preview-chips {
-	flex: 1;
-	display: flex;
-	flex-wrap: wrap;
-	gap: 6px;
-}
-
-.pfb-preview-topbar .es-button {
-	color: var(--white);
-}
-
-.pfb-preview-topbar .es-button:hover,
-.pfb-preview-topbar .es-button:active {
+.pfb-preview-close:hover,
+.pfb-preview-close:active {
 	background: rgba(255, 255, 255, 0.18);
-}
-
-.pfb-preview-summary {
-	font-size: var(--text-sm);
-	color: var(--white);
-}
-
-.pfb-preview-modal:focus {
-	outline: none;
 }
 
 .pfb-preview-panes {
@@ -363,6 +278,10 @@ onUnmounted(() => {
 	min-height: 0;
 	display: flex;
 	gap: 12px;
+}
+
+.pfb-preview-modal--compare {
+	position: relative;
 }
 
 .pfb-preview-pane {

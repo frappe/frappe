@@ -11,13 +11,12 @@ import { useSelection } from "../composables/useSelection";
 import { useLayoutMutations } from "../composables/useLayoutMutations";
 import { useClipboard } from "../composables/useClipboard";
 import { useSnippets } from "../composables/useSnippets";
-import { DRAFT_SETTING_FIELDS } from "../composables/useDraftDiff";
 import { watch, ref, inject, computed, nextTick } from "vue";
 
 export function getStore(print_format_name) {
 	// variables
 	let print_format = ref(null);
-	let saved_format = ref(null);
+	let saved_format_data = ref(null);
 	let letterhead = ref(null);
 	let meta = ref(null);
 	let layout = ref(null);
@@ -115,9 +114,7 @@ export function getStore(print_format_name) {
 					const parsed = frappe.utils.parse_json(_print_format.draft_data);
 					const draft = parsed && typeof parsed === "object" ? parsed : null;
 					has_draft.value = !!draft;
-					saved_format.value = Object.fromEntries(
-						["format_data", ...DRAFT_SETTING_FIELDS].map((f) => [f, _print_format[f]])
-					);
+					saved_format_data.value = _print_format.format_data;
 					if (draft) Object.assign(print_format.value, draft);
 					const saved_layout = get_layout();
 					needs_setup.value = !saved_layout;
@@ -526,7 +523,7 @@ export function getStore(print_format_name) {
 		save_status,
 		has_draft,
 		discard_draft,
-		saved_format,
+		saved_format_data,
 		get_preview_format_doc,
 		select_field,
 		set_selected,

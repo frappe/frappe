@@ -1,29 +1,3 @@
-export const DRAFT_SETTING_FIELDS = [
-	"font",
-	"font_size",
-	"page_number",
-	"show_label_colon",
-	"margin_top",
-	"margin_bottom",
-	"margin_left",
-	"margin_right",
-	"label_color",
-	"value_color",
-	"css",
-	"pdf_generator",
-];
-
-function setting_label(fieldname) {
-	return frappe.meta.get_docfield("Print Format", fieldname)?.label || frappe.unscrub(fieldname);
-}
-
-function show_value(fieldname, value) {
-	if (value == null || value === "") return __("Default");
-	if (fieldname === "show_label_colon") return value ? __("Yes") : __("No");
-	if (fieldname === "css") return __("{0} lines", [String(value).split("\n").length]);
-	return String(value);
-}
-
 function parse_layout(format_data) {
 	if (!format_data) return null;
 	const layout =
@@ -43,7 +17,6 @@ function layout_fields(layout) {
 				seen[f.fieldname] = (seen[f.fieldname] || 0) + 1;
 				out.set(`${f.fieldname}#${seen[f.fieldname]}`, {
 					fieldname: f.fieldname,
-					label: f.label || f.fieldname,
 					zone: zi,
 					col: ci,
 					json: JSON.stringify(f),
@@ -57,8 +30,7 @@ function layout_fields(layout) {
 function layout_sections(layout) {
 	return (layout.sections || [])
 		.filter((s) => !s.remove)
-		.map((s, i) => ({
-			label: s.label || __("Section {0}", [i + 1]),
+		.map((s) => ({
 			json: JSON.stringify({
 				...s,
 				columns: (s.columns || []).map(({ fields, ...col }) => col),
@@ -66,18 +38,13 @@ function layout_sections(layout) {
 		}));
 }
 
-export function describe_draft_changes(saved, current) {
-	const settings = DRAFT_SETTING_FIELDS.filter(
-		(f) => String(saved[f] ?? "") !== String(current[f] ?? "")
-	).map((f) => `${setting_label(f)}: ${show_value(f, saved[f])} → ${show_value(f, current[f])}`);
-
+export function describe_draft_changes(saved_format_data, draft_format_data) {
 	const added = [];
 	const moved = [];
 	const changed = [];
-	const removed = [];
 	const sections = [];
-	const base = parse_layout(saved.format_data);
-	const next = parse_layout(current.format_data);
+	const base = parse_layout(saved_format_data);
+	const next = parse_layout(draft_format_data);
 	if (base && next) {
 		const before = layout_fields(base);
 		const after = layout_fields(next);
@@ -87,20 +54,10 @@ export function describe_draft_changes(saved, current) {
 			else if (old.zone !== f.zone || old.col !== f.col) moved.push(f.fieldname);
 			else if (old.json !== f.json) changed.push(f.fieldname);
 		}
-		for (const [key, f] of before) if (!after.has(key)) removed.push(f.label);
 		const old_sections = layout_sections(base);
 		layout_sections(next).forEach((sec, i) => {
-			if (old_sections[i] && old_sections[i].json !== sec.json)
-				sections.push({ index: i, label: sec.label });
+			if (old_sections[i] && old_sections[i].json !== sec.json) sections.push(i);
 		});
 	}
-	return {
-		settings,
-		added,
-		moved,
-		changed,
-		removed,
-		sections,
-		highlight: [...new Set([...added, ...moved, ...changed])],
-	};
+	return { sections, highlight: [...new Set([...added, ...moved, ...changed])] };
 }

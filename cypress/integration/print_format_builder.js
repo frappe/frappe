@@ -445,7 +445,6 @@ context("Print Format Builder — create flow", () => {
 		cy.contains(".page-actions button", "Review Changes").should("be.visible").click();
 		cy.get(".pfb-preview-modal--compare", { timeout: 30000 }).should("be.visible");
 		cy.get(".pfb-preview-caption").should("have.length", 2);
-		cy.get(".pfb-preview-chips .es-badge").should("contain", "Margin Top");
 	});
 
 	// 10. Inspector header shows the doctype field's label, not a custom print label
