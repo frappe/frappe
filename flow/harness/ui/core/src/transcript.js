@@ -449,7 +449,6 @@ function foldLabel(turn) {
 //   {kind: "group", steps: [{call, result, aborted} | {thought, id, live?}]}
 //   {kind: "turn-fold", turnKey, label, expanded}
 //   {kind: "turn-files", turnKey, files: [{path, added, removed}]}
-//   {kind: "approval", calls: [...], seq}      (undecided batch)
 //   {kind: "compaction", entry}
 //   {kind: "error", error}
 // Every item carries a stable `key` (derived from seq / call id) so v-for
@@ -573,15 +572,6 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 	// durable replacement. Tool groups keep their call-id key across the swap.
 	appendAssistantBlocks(conversation.partial ?? [], { provisional: true })
 	flushThoughts()
-	if (pending) {
-		items.push({
-			kind: "approval",
-			key: `a:${pending.seq}`,
-			turnKey: currentTurnKey,
-			calls: pending.calls,
-			seq: pending.seq,
-		})
-	}
 	const filtered = items.filter((i) => i.kind !== "group" || i.steps.some((s) => s.call))
 	// A message in flight opens a new turn (steering queues in the composer instead), and
 	// settles the one before it right away: its run_started lands before the server's copy

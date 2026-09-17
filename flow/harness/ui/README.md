@@ -55,7 +55,8 @@ claimed by an accepted turn.
 
 `argsComponent` is a Vue component receiving an `arguments` prop. It renders in
 expanded tool rows (including rows inside `ToolGroup`) and replaces the default
-argument body in approval cards. For example, a host can return
+argument body in approval cards. The card floats above the composer, so the view
+caps its own height. For example, a host can return
 `{ argsComponent: ArgsView }` for its document tools. Omit it to keep the built-in
 command text, edit diffs and tool output presentation. Tool results and approval
 actions remain available when a custom argument component is supplied.

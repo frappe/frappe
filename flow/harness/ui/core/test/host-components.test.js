@@ -81,10 +81,9 @@ test("host argument components preserve approval titles and actions", async (t) 
 	const answers = []
 	const flow = {
 		options: { presentTool: () => ({ title: "Update invoice?", body: "fallback", argsComponent: ArgsView }) },
-		state: { conversation: {} },
 		answerApproval: (...answer) => answers.push(answer),
 	}
-	const { el } = mount(t, ApprovalCard, { seq: 1, calls: [{ id: "c1", name: "update_document", args }] }, flow)
+	const { el } = mount(t, ApprovalCard, { call: { id: "c1", name: "update_document", args } }, flow)
 	assert.ok(el.textContent.includes("Update invoice?"))
 	assert.equal(el.querySelector("[data-test=args] dd").textContent, "Paid")
 	assert.equal(el.querySelector("pre"), null)
@@ -95,8 +94,8 @@ test("host argument components preserve approval titles and actions", async (t) 
 })
 
 test("the ask-for-changes field takes focus when it opens", async (t) => {
-	const flow = { options: {}, state: { conversation: {} }, answerApproval() {} }
-	const { el } = mount(t, ApprovalCard, { seq: 1, calls: [{ id: "c1", name: "bash", args: { command: "pwd" } }] }, flow)
+	const flow = { options: {}, answerApproval() {} }
+	const { el } = mount(t, ApprovalCard, { call: { id: "c1", name: "bash", args: { command: "pwd" } } }, flow)
 	;[...el.querySelectorAll("button")].find((b) => b.textContent === "Ask for changes").click()
 	await nextTick()
 	await nextTick()
@@ -104,12 +103,14 @@ test("the ask-for-changes field takes focus when it opens", async (t) => {
 })
 
 test("standalone approvals keep command text and edit diffs", (t) => {
-	const { el } = mount(t, ApprovalCard, { seq: 1, calls: [
+	const calls = [
 		{ id: "bash", name: "bash", args: { command: "pwd" } },
 		{ id: "edit", name: "edit", args: { path: "a.txt", edits: [{ old: "before", new: "after" }] } },
-	] }, { state: { conversation: {} } })
+	]
+	const { el } = mount(t, { render: () => calls.map((call) => h(ApprovalCard, { call })) }, {}, { options: {} })
 	assert.ok(el.textContent.includes("Run this command?"))
 	assert.ok(el.textContent.includes("Apply 1 edit to a.txt?"))
+	assert.ok(!el.textContent.includes(" of "), "a lone card carries no batch counter")
 	assert.deepEqual([...el.querySelectorAll("pre")].map((pre) => pre.textContent), ["pwd", "- before+ after"])
 })
 
@@ -249,6 +250,42 @@ test("the composer toolbar defaults to the model button and takes a host's picke
 	await nextTick()
 	assert.equal(host.el.querySelector("[role=menuitem]"), null)
 	assert.ok(host.el.querySelector("[data-stub=ModelPalette]"))
+})
+
+test("the composer shows a pending batch one call at a time, above the box", async (t) => {
+	const pending = {
+		seq: 4,
+		calls: [
+			{ id: "c1", name: "bash", args: { command: "pwd" } },
+			{ id: "c2", name: "write", args: { path: "a.txt", content: "hi" } },
+		],
+		answers: {},
+	}
+	const flow = {
+		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
+		state: reactive({
+			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], codeRefs: [], queued: [],
+			skills: [], conversation: { pendingApproval: pending }, draft: null,
+		}),
+		answerApproval: (id, answer) => (flow.state.conversation.pendingApproval.answers[id] = answer),
+	}
+	const { el } = mount(t, Composer, { commands: [], mentions: false }, flow)
+	const approve = () => [...el.querySelectorAll("button")].find((button) => button.textContent === "Approve")
+	assert.ok(el.textContent.includes("Run this command?"))
+	assert.ok(!el.textContent.includes("Write a.txt?"))
+	assert.ok(el.textContent.includes("1 of 2"))
+	assert.ok(approve().compareDocumentPosition(el.querySelector("fieldset")) & Node.DOCUMENT_POSITION_FOLLOWING)
+
+	approve().click()
+	await nextTick()
+	assert.ok(!el.textContent.includes("Run this command?"))
+	assert.ok(el.textContent.includes("Write a.txt?"))
+	assert.ok(el.textContent.includes("2 of 2"))
+
+	approve().click()
+	await nextTick()
+	assert.equal(approve(), undefined)
+	assert.ok(!el.textContent.includes("Write a.txt?"))
 })
 
 test("the composer takes a host's placeholder and approval-mode copy", async (t) => {
