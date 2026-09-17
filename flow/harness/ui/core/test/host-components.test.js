@@ -622,6 +622,18 @@ test("rewind controls follow the host client's capability", async (t) => {
 	}
 })
 
+test("a skill the user started keeps its blue command prefix in the bubble", async (t) => {
+	const { createFlowStore } = await import("../src/store.js")
+	const UserBubble = await loadComponent("UserBubble")
+	const store = createFlowStore({}, { requireCwd: false, skillsEnabled: false })
+	const content =
+		'<skill name="security-review" location="/skills/security-review/SKILL.md">\nbody\n</skill>\n\ncheck this branch'
+	const { el } = mount(t, UserBubble, { entry: { type: "user_message", seq: 2, content } }, store)
+	assert.equal(el.querySelector(".text-ink-blue-6").textContent, "/skill:security-review")
+	assert.ok(el.textContent.includes("/skill:security-review check this branch"))
+	assert.ok(!el.textContent.includes("body"))
+})
+
 function rowButton(el, text) {
 	return [...el.querySelectorAll("button")].find((button) => button.textContent.includes(text))
 }

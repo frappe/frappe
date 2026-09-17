@@ -707,12 +707,9 @@ export function normalizeSkillCommand(text) {
 	return `/skill:${match[1]}${instructions ? ` ${instructions}` : ""}`
 }
 
+// a skill the user started shows as the command they typed, never its expansion
 export function userText(entry) {
-	const text = rawUserText(entry)
-	const invocation = parseSkillInvocation(text)
-	if (!invocation) return text
-	const label = `Using skill: ${invocation.name}`
-	return invocation.instructions ? `${label}\n${invocation.instructions}` : label
+	return skillCommand(entry) ?? rawUserText(entry)
 }
 
 export function userAttachments(entry) {
