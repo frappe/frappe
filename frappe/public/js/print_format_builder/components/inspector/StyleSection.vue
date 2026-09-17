@@ -9,9 +9,6 @@
 			:value="modelValue"
 			@input="$emit('update:modelValue', $event.target.value)"
 		></textarea>
-		<p class="pfb-insp-hint text-muted">
-			{{ __("CSS declarations applied inline, e.g.") }} <code>color: #1a5fb4;</code>
-		</p>
 	</div>
 </template>
 

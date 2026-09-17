@@ -34,17 +34,12 @@
 					:alt="selected_field.label"
 					@update:model-value="set_image_url"
 				/>
-				<div v-if="selected_field.image_url" class="pfb-insp-row pfb-insp-row--col">
-					<span class="pfb-insp-label">{{ __("Size") }}</span>
-					<input
-						class="pfb-size-slider"
-						type="range"
-						min="20"
-						max="700"
-						:value="image_size"
-						@input="selected_field.width = $event.target.value + 'px'"
-					/>
-				</div>
+				<SliderRow
+					v-if="selected_field.image_url"
+					:label="__('Size')"
+					:model-value="image_size"
+					@update:model-value="(v) => (selected_field.width = v + 'px')"
+				/>
 				<SegmentedRow
 					:label="__('Align')"
 					:model-value="current_align"
@@ -91,17 +86,13 @@
 						</option>
 					</select>
 				</div>
-				<div class="pfb-insp-row pfb-insp-row--col">
-					<span class="pfb-insp-label">{{ __("Size") }}</span>
-					<input
-						class="pfb-size-slider"
-						type="range"
-						min="40"
-						max="500"
-						:value="barcode_size"
-						@input="selected_field.width = $event.target.value + 'px'"
-					/>
-				</div>
+				<SliderRow
+					:label="__('Size')"
+					:min="40"
+					:max="500"
+					:model-value="barcode_size"
+					@update:model-value="(v) => (selected_field.width = v + 'px')"
+				/>
 				<div
 					class="pfb-insp-row"
 					v-if="selected_field.custom && selected_field.barcode_format !== 'QR'"
@@ -169,6 +160,12 @@
 					:placeholder="__('Select a field')"
 					@update:model-value="set_link_target"
 				/>
+				<SliderRow
+					v-if="linked_is_image"
+					:label="__('Size')"
+					:model-value="image_size"
+					@update:model-value="(v) => (selected_field.width = v + 'px')"
+				/>
 				<LabelField
 					v-model="selected_field.label"
 					:label="__('Label')"
@@ -216,6 +213,12 @@
 					:model-value="current_align"
 					:options="align_opts"
 					@update:model-value="(v) => (selected_field.align = v)"
+				/>
+				<SliderRow
+					v-if="is_attach_image"
+					:label="__('Size')"
+					:model-value="image_size"
+					@update:model-value="(v) => (selected_field.width = v + 'px')"
 				/>
 				<div class="pfb-insp-row" v-if="fieldIsInline && current_align === 'left'">
 					<span class="pfb-insp-label">{{ __("Spacing") }}</span>
@@ -286,6 +289,7 @@ import SegmentedRow from "./SegmentedRow.vue";
 import ToggleRow from "./ToggleRow.vue";
 import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
+import SliderRow from "./SliderRow.vue";
 import StyleSection from "./StyleSection.vue";
 import ColorField from "./ColorField.vue";
 import VisibilitySection from "./VisibilitySection.vue";
@@ -383,11 +387,19 @@ let link_target_fields = useDoctypeFields(
 	)
 );
 let link_target_options = computed(() => value_field_opts(link_target_fields.value));
+let linked_is_image = computed(
+	() =>
+		link_target_fields.value.find((f) => f.fieldname === link_target_fieldname.value)
+			?.fieldtype === "Attach Image"
+);
+let is_attach_image = computed(() => selected_field.value?.fieldtype === "Attach Image");
 function set_link_fieldname(fieldname) {
 	selected_field.value.link_path = fieldname ? fieldname + "." : "";
 }
 function set_link_target(fieldname) {
 	selected_field.value.link_path = `${link_fieldname.value}.${fieldname}`;
+	const target = link_target_fields.value.find((f) => f.fieldname === fieldname);
+	if (target) selected_field.value.label = target.label || fieldname;
 }
 
 let image_size = computed(() => parseFloat(selected_field.value?.width) || 200);

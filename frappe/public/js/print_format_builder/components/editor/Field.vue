@@ -102,7 +102,7 @@
 				>
 					<img
 						v-if="df.fieldtype == 'Attach Image' && preview_doc[df.fieldname]"
-						class="w-100"
+						:style="{ maxWidth: '100%', width: df.width || '100%' }"
 						:src="preview_doc[df.fieldname]"
 						:alt="df.label || df.fieldname"
 					/>
@@ -146,15 +146,6 @@
 					class="drag-handle field-drag-handle"
 					v-html="frappe.utils.icon('grip', 'xs')"
 				></div>
-				<button
-					class="es-button"
-					data-size="xs"
-					data-variant="ghost"
-					data-icon-button="true"
-					:title="__('Duplicate')"
-					@click.stop="store.duplicate_field(df)"
-					v-html="frappe.utils.icon('copy-plus', 'xs')"
-				></button>
 				<button
 					class="es-button"
 					data-size="xs"
@@ -233,15 +224,6 @@
 								:title="code_edit.title"
 								@click.stop="code_edit.open"
 								v-html="frappe.utils.icon('pencil', 'sm')"
-							></button>
-							<button
-								class="es-button"
-								data-size="xs"
-								data-variant="ghost"
-								data-icon-button="true"
-								:title="__('Duplicate')"
-								@click.stop="store.duplicate_field(df)"
-								v-html="frappe.utils.icon('copy-plus', 'sm')"
 							></button>
 							<button
 								class="es-button"

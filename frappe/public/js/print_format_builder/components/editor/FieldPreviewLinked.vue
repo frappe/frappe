@@ -1,11 +1,15 @@
 <template>
-	<div class="field" :class="{ 'field-inline': inline }">
-		<div v-if="df.label && df.show_label !== 'hide'" class="label">{{ df.label }}</div>
-		<div v-if="is_image && value" class="value"><img class="w-100" :src="value" /></div>
-		<div v-else class="value" :class="{ 'text-muted': !value }">
-			{{ value || placeholder }}
-		</div>
+	<div
+		v-if="df.label && df.show_label !== 'hide'"
+		class="label"
+		:class="{ 'label--no-colon': df.hide_colon }"
+	>
+		{{ df.label }}
 	</div>
+	<div v-if="is_image && value" class="value">
+		<img :style="{ maxWidth: '100%', width: df.width || '100%' }" :src="value" />
+	</div>
+	<div v-else class="value" :class="{ 'text-muted': !value }">{{ value || placeholder }}</div>
 </template>
 
 <script setup>
@@ -15,7 +19,6 @@ import { useDoctypeFields } from "../../composables/useDoctypeFields";
 const props = defineProps(["df"]);
 const store = inject("$store");
 
-let inline = computed(() => (props.df.show_label || "inline") === "inline");
 let value = ref("");
 let placeholder = computed(() => props.df.link_path || __("No linked field set"));
 

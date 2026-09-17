@@ -523,7 +523,7 @@ defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 	width: 100%;
 }
 
-/* In bulk mode the per-item action toolbars (copy/duplicate/snippet/remove) are
+/* In bulk mode the per-item action toolbars (remove) are
    just noise on top of every highlighted block — the bulk panel drives actions
    instead. Hide them everywhere at once from the one multi-select flag. */
 .builder-root.pfb-multi-select :deep(.field-preview-actions),

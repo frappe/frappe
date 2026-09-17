@@ -34,7 +34,7 @@
 		</div>
 
 		<!-- Nothing selected: canvas-wide print settings -->
-		<div v-if="!has_selection" class="pfb-insp-body pfb-canvas-settings">
+		<div v-if="!has_selection" class="pfb-insp-body">
 			<PrintSettingsPanel />
 		</div>
 
@@ -254,7 +254,4 @@ let field_is_inline = computed(() => parent_section.value?.field_orientation ===
 }
 
 /* ── Canvas settings (nothing selected) ──────────────────── */
-.pfb-canvas-settings {
-	padding: 12px 14px;
-}
 </style>

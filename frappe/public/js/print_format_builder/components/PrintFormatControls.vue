@@ -550,7 +550,6 @@ const draggable_blocks = computed(() => [
 		icon: "link",
 		desc: __("A value from a linked document"),
 		link_path: "",
-		show_label: "inline",
 	},
 ]);
 
