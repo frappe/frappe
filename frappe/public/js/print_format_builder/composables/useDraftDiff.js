@@ -138,8 +138,8 @@ export function describe_draft_changes(saved, draft) {
 	for (const f of unmatched_after) {
 		const i = unmatched_before.findIndex((old) => old.fieldname === f.fieldname);
 		if (i >= 0) {
-			unmatched_before.splice(i, 1);
-			status.set(f.props, { kind: "moved", notes: [] });
+			const [old] = unmatched_before.splice(i, 1);
+			status.set(f.props, { kind: "moved", notes: prop_notes(old.props, f.props) });
 		} else status.set(f.props, { kind: "added", notes: [] });
 	}
 
