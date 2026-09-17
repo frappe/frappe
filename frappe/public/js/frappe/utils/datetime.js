@@ -288,6 +288,7 @@ $.extend(frappe.datetime, {
 				`${frappe.defaultTimeFormat}.SSSSSS`,
 				"H:mm:ss",
 				"H:mm:ss.SSSSSS",
+				"H:mm:s.SSSSSS",
 			],
 			true
 		).isValid();
