@@ -13,27 +13,31 @@
 				</div>
 				<template v-else-if="compare">
 					<div v-if="summary" class="pfb-preview-summary">{{ summary }}</div>
-					<div class="pfb-preview-pane">
-						<div class="pfb-preview-caption">
-							{{ __("Saved version, what prints today") }}
+					<div class="pfb-preview-panes">
+						<div class="pfb-preview-pane">
+							<div class="pfb-preview-caption">
+								{{ __("Saved version, what prints today") }}
+							</div>
+							<div v-if="before_note" class="pfb-preview-empty">
+								{{ before_note }}
+							</div>
+							<div v-else-if="!before_url" class="pfb-preview-empty">
+								<span class="pfb-preview-spinner" aria-hidden="true"></span>
+								<span>{{ __("Rendering the saved version…") }}</span>
+							</div>
+							<iframe v-else :src="before_url" class="pfb-preview-iframe"></iframe>
 						</div>
-						<div v-if="before_note" class="pfb-preview-empty">{{ before_note }}</div>
-						<div v-else-if="!before_url" class="pfb-preview-empty">
-							<span class="pfb-preview-spinner" aria-hidden="true"></span>
-							<span>{{ __("Rendering the saved version…") }}</span>
+						<div class="pfb-preview-pane">
+							<div class="pfb-preview-caption">
+								{{ __("Your draft, not applied yet") }}
+							</div>
+							<div v-if="after_note" class="pfb-preview-empty">{{ after_note }}</div>
+							<div v-else-if="!pdf_url" class="pfb-preview-empty">
+								<span class="pfb-preview-spinner" aria-hidden="true"></span>
+								<span>{{ __("Rendering your draft…") }}</span>
+							</div>
+							<iframe v-else :src="pdf_url" class="pfb-preview-iframe"></iframe>
 						</div>
-						<iframe v-else :src="before_url" class="pfb-preview-iframe"></iframe>
-					</div>
-					<div class="pfb-preview-pane">
-						<div class="pfb-preview-caption">
-							{{ __("Your draft, not applied yet") }}
-						</div>
-						<div v-if="after_note" class="pfb-preview-empty">{{ after_note }}</div>
-						<div v-else-if="!pdf_url" class="pfb-preview-empty">
-							<span class="pfb-preview-spinner" aria-hidden="true"></span>
-							<span>{{ __("Rendering your draft…") }}</span>
-						</div>
-						<iframe v-else :src="pdf_url" class="pfb-preview-iframe"></iframe>
 					</div>
 				</template>
 				<div v-else-if="after_note" class="pfb-preview-empty">{{ after_note }}</div>
@@ -243,20 +247,28 @@ onUnmounted(() => {
 	overflow: hidden;
 }
 
+.pfb-preview-backdrop:has(.pfb-preview-modal--compare) {
+	padding: 12px;
+}
+
 .pfb-preview-modal--compare {
-	flex-direction: row;
-	flex-wrap: wrap;
-	gap: 0 16px;
-	width: min(1800px, 96vw);
-	height: 90vh;
+	width: 100%;
+	height: 100%;
 }
 
 .pfb-preview-summary {
-	flex-basis: 100%;
+	flex-shrink: 0;
 	margin-bottom: 8px;
 	text-align: center;
 	font-size: var(--text-sm);
 	color: var(--white);
+}
+
+.pfb-preview-panes {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	gap: 12px;
 }
 
 .pfb-preview-pane {
