@@ -33,6 +33,7 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
+from frappe.utils.background_jobs import is_job_enqueued
 from frappe.utils.data import sha256_hash
 from frappe.utils.html_utils import sanitize_html
 from frappe.utils.password import check_password, get_password_reset_limit, is_password_reused
@@ -690,6 +691,9 @@ class User(Document):
 		if old_name in STANDARD_USERS:
 			throw(_("User {0} cannot be renamed").format(self.name))
 
+		if any(is_job_enqueued(f"rewrite-owner-fields-{name}") for name in (old_name, new_name)):
+			throw(_("A previous rename of this user is still being applied. Please try again later."))
+
 		self.validate_email_type(new_name)
 
 	def validate_email_type(self, email):
@@ -706,7 +710,7 @@ class User(Document):
 			queue="long",
 			timeout=36000,
 			enqueue_after_commit=True,
-			job_id=f"rewrite-owner-fields-{old_name}-{new_name}",
+			job_id=f"rewrite-owner-fields-{new_name}",
 			deduplicate=True,
 		)
 
