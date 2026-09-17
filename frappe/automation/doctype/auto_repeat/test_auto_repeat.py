@@ -289,6 +289,20 @@ class TestAutoRepeat(IntegrationTestCase):
 
 		self.assertFalse(frappe.db.exists("Auto Repeat User", {"parent": doc.name}))
 
+	def test_reference_document_write_permission_on_delete(self):
+		todo = frappe.get_doc(
+			doctype="ToDo", description="test reference permission", assigned_by="Administrator"
+		).insert()
+		user = create_user_without_reference_access()
+		doc = make_auto_repeat(reference_document=todo.name)
+
+		self.assertTrue(frappe.has_permission("Auto Repeat", "delete", doc.name, user=user))
+
+		with set_user(user):
+			self.assertRaises(frappe.PermissionError, frappe.delete_doc, "Auto Repeat", doc.name)
+
+		self.assertTrue(frappe.db.exists("Auto Repeat", doc.name))
+
 	def test_deleted_reference_does_not_stop_the_scheduler(self):
 		todo = frappe.get_doc(
 			doctype="ToDo", description="test reference permission", assigned_by="Administrator"
