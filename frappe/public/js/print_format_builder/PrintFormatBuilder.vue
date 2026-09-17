@@ -93,7 +93,7 @@ import { computed, ref, onMounted, onUnmounted, provide, nextTick, watch } from 
 const props = defineProps(["print_format_name"]);
 
 const ZOOM_KEY = "pfb_canvas_zoom";
-const ZOOM_LEVELS = [50, 75, 100, 125, 150];
+const ZOOM_LEVELS = [50, 60, 70, 80, 90, 100, 125, 150];
 
 let show_preview = ref(false);
 let doc_picker_ref = ref(null);
