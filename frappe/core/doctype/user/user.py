@@ -19,8 +19,13 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 	toggle_notifications,
 )
 from frappe.desk.notifications import clear_notifications
+<<<<<<< HEAD
 from frappe.model.document import Document
 from frappe.query_builder import DocType
+=======
+from frappe.model.document import Document, get_controller
+from frappe.query_builder import DocType, Table
+>>>>>>> 575d282 (refactor(user): build the owner sweep update with the query builder)
 from frappe.rate_limiter import rate_limit
 from frappe.sessions import clear_sessions
 from frappe.utils import (
@@ -1055,13 +1060,10 @@ def rewrite_owner_fields(old_name: str, new_name: str, commit: bool = False):
 	for tab in tables:
 		desc = frappe.db.get_table_columns_description(tab)
 		has_fields = [d.get("name") for d in desc if d.get("name") in ["owner", "modified_by"]]
+		table = Table(tab)
 		for field in has_fields:
-			frappe.db.sql(
-				"""UPDATE `{}`
-				SET `{}` = {}
-				WHERE `{}` = {}""".format(tab, field, "%s", field, "%s"),
-				(new_name, old_name),
-				auto_commit=commit,
+			frappe.qb.update(table).set(table[field], new_name).where(table[field] == old_name).run(
+				auto_commit=commit
 			)
 
 
