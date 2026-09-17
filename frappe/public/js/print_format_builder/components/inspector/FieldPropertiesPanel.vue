@@ -435,13 +435,7 @@ let is_static_text = computed(() => selected_field.value?.fieldtype === "Static 
 let is_linked_field = computed(() => selected_field.value?.fieldtype === "Linked Field");
 let is_summary_table = computed(() => selected_field.value?.fieldtype === "Summary Table");
 
-// QR comes from Barcode docfields with qrcode options, not the block; the
-// option stays visible only on elements saved as QR before that change
-const barcode_formats = computed(() =>
-	selected_field.value?.barcode_format === "QR"
-		? ["CODE128", "CODE39", "QR"]
-		: ["CODE128", "CODE39"]
-);
+const barcode_formats = ["CODE128", "CODE39", "QR"];
 
 let store = inject("$store");
 
