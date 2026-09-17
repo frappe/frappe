@@ -69,6 +69,11 @@
 	color: var(--text-muted);
 }
 .pfb-insp-input,
+.pfb-insp-autocomplete {
+	flex: 1;
+	min-width: 0;
+}
+
 .pfb-insp-select {
 	width: 100%;
 	padding: 6px 8px;
