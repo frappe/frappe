@@ -617,7 +617,6 @@ test("a paused approval turn stays fully visible until the user resolves it", ()
 	const items = buildItems(conversation)
 	assert.ok(!items.some((item) => item.kind === "turn-fold"))
 	assert.ok(items.some((item) => item.kind === "thinking"))
-	assert.ok(items.some((item) => item.kind === "approval"))
 })
 
 test("a denied tool call leaves a durable notice like an abort", () => {
@@ -649,7 +648,6 @@ test("a denied tool call leaves a durable notice like an abort", () => {
 	applyEvent(conversation, { type: "run_ended", seq: 7, ts: 14.1, reason: "denied" })
 
 	const items = buildItems(conversation)
-	assert.ok(!items.some((item) => item.kind === "approval"))
 	const notice = items.find((item) => item.kind === "notice")
 	assert.equal(notice?.text, "Tool call denied by user")
 })

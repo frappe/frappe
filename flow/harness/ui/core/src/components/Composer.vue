@@ -63,6 +63,10 @@
 				@close="mentionDismissed = true"
 			/>
 
+			<!-- the pending approval rides with the composer, wherever the thread is scrolled;
+			     the batch answers one call at a time, so the next call takes the card over -->
+			<ApprovalCard v-if="approval" :key="approval.id" :call="approval" class="mb-2" />
+
 			<!-- queued steering -->
 			<div
 				v-if="flow.state.queued.length"
@@ -278,6 +282,7 @@ import FeatherIcon from "./FeatherIcon.vue"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
 import { APPROVAL_MODES, codeRefLabel } from "../transcript.js"
+import ApprovalCard from "./ApprovalCard.vue"
 import FileMentionPalette from "./FileMentionPalette.vue"
 import ImageViewer from "./ImageViewer.vue"
 import ModelButton from "./ModelButton.vue"
@@ -601,6 +606,10 @@ const skillPrompt = computed(() => {
 	return { prefix: match[0], rest: text.value.slice(match[0].length) }
 })
 const running = computed(() => flow.state.conversation.running)
+const approval = computed(() => {
+	const pending = flow.state.conversation.pendingApproval
+	return pending?.calls.find((call) => !(call.id in pending.answers)) ?? null
+})
 const codeRefs = computed(() => flow.state.codeRefs)
 // "Add to chat" hands off to typing: pull focus as soon as a ref arrives
 watch(

@@ -80,7 +80,6 @@
 					<span v-if="formatTime(item.ts)" class="text-2xs text-ink-gray-4">{{ formatTime(item.ts) }}</span>
 				</div>
 				<TurnFiles v-else-if="item.kind === 'turn-files'" class="flow-turn-files -mt-1" :files="item.files" />
-				<ApprovalCard v-else-if="item.kind === 'approval'" :calls="item.calls" :seq="item.seq" />
 				<div
 					v-else-if="item.kind === 'compaction'"
 					class="flex items-center gap-2.5 text-sm text-ink-gray-5"
@@ -144,7 +143,6 @@ import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, reacti
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { buildItems, formatTime, panelIds, userAttachments, userText } from "../transcript.js"
-import ApprovalCard from "./ApprovalCard.vue"
 import AssistantText from "./AssistantText.vue"
 import BrandMark from "./BrandMark.vue"
 import CopyButton from "./CopyButton.vue"
