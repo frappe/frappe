@@ -314,7 +314,16 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 
 	else:
 		docs = frappe.parse_json(docs)
-		doc = frappe.get_doc(docs, check_permission=True)
+		# doc is built entirely from these client-supplied fields, not loaded from
+		# the DB, so "read" isn't the right gate, require "write"/"create" to
+		# match what submitting field values for an existing/new doc actually is.
+		# Newness is determined from real DB state, not the client-supplied
+		# "__islocal" flag, since a client could otherwise claim __islocal on an
+		# existing record's name to downgrade "write" to "create".
+		is_new = True
+		if isinstance(docs, dict) and docs.get("doctype") and docs.get("name"):
+			is_new = not frappe.db.exists(docs["doctype"], docs["name"])
+		doc = frappe.get_doc(docs, check_permission="create" if is_new else "write")
 		doc._original_modified = doc.modified
 		doc.check_if_latest()
 

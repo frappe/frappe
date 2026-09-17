@@ -132,6 +132,68 @@ class TestClient(IntegrationTestCase):
 
 		self.assertRaises(frappe.PermissionError, execute_cmd, frappe.local.form_dict.cmd)
 
+	def test_run_doc_method_docs_permission(self):
+		from frappe.handler import run_doc_method
+
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "User",
+				"report_name": frappe.generate_hash(),
+				"report_type": "Query Report",
+				"is_standard": "No",
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert()
+
+		# Report grants "Desk User" read but not write/create -- a client-supplied
+		# docs payload must not be able to run a method by only holding read.
+		reader = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": f"{frappe.generate_hash()}@example.com",
+				"first_name": "Reader",
+				"send_welcome_email": 0,
+				"roles": [{"role": "Desk User"}],
+			}
+		).insert(ignore_permissions=True)
+
+		frappe.local.request = frappe._dict(method="GET")
+
+		existing_doc = {
+			"doctype": report.doctype,
+			"name": report.name,
+			"modified": str(report.modified),
+		}
+		new_doc = {
+			"doctype": report.doctype,
+			"__islocal": 1,
+			"report_name": frappe.generate_hash(),
+			"ref_doctype": "User",
+			"report_type": "Query Report",
+		}
+
+		try:
+			frappe.set_user(reader.name)
+			# read-only: blocked whether it claims to be the existing report...
+			self.assertRaises(
+				frappe.PermissionError,
+				run_doc_method,
+				"toggle_disable",
+				docs=existing_doc,
+				args={"disable": 1},
+			)
+			# ...or a brand new one.
+			self.assertRaises(
+				frappe.PermissionError, run_doc_method, "toggle_disable", docs=new_doc, args={"disable": 1}
+			)
+		finally:
+			frappe.set_user("Administrator")
+
+		# System Manager legitimately has write+create -- must still work.
+		run_doc_method("toggle_disable", docs=existing_doc, args={"disable": 1})
+		self.assertEqual(frappe.db.get_value("Report", report.name, "disabled"), 1)
+
 	@requires_test_service(TestService.WEB_SERVER)
 	def test_array_values_in_request_args(self):
 		import requests
