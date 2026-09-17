@@ -513,12 +513,7 @@ class GetFieldsDialog {
 			<div class="filters-search">
 				<input type="text" placeholder="${__("Search")}" data-element="search" class="form-control">
 			</div>
-			<h6
-				class="form-section-heading"
-				style="font-weight: normal; font-size: var(--text-base); margin-bottom: var(--margin-sm); color: var(--text-muted);"
-			>
-				${__("Select Fields To Update")}
-			</h6>
+			<h6 class="form-section-heading uppercase">${__("Select Fields To Update")}</h6>
 			<div class="mb-3">
 				<button class="btn btn-default btn-sm" data-action="select_all">${__("Select All")}</button>
 				<button class="btn btn-default btn-sm" data-action="select_mandatory">
@@ -724,7 +719,6 @@ function render_form_builder(frm) {
 
 	// meta cached from before the migrate will not have the field
 	if (!frm.fields_dict.form_builder) {
-		console.warn("Web Form: form_builder field missing, skipping builder mount.");
 		return;
 	}
 
