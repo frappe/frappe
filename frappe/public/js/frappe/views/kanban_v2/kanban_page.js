@@ -1,10 +1,6 @@
 frappe.provide("frappe.views");
 
-/**
- * Select-value → badge theme + lucide icon for cards.
- * Case-insensitive keys; missing values fall back to frappe.utils.guess_colour().
- * Override per doctype via `frappe.kanban_v2.settings` (plain string = `{ theme }`).
- */
+// Maps a Select value to a badge color + icon. Keys are lowercase; unknown values get a guessed color.
 const SELECT_STYLES = {
 	low: { theme: "gray", icon: "signal-low" },
 	medium: { theme: "amber", icon: "signal-medium" },
@@ -92,7 +88,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.make_selection_bar();
 	}
 
-	/** Durable empty / error shell via frappe.ui.empty_state. */
+	/** Show an empty/error state in the container. */
 	show_empty(opts) {
 		this.$container.empty().append(
 			frappe.ui.empty_state({
@@ -102,11 +98,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		);
 	}
 
-	/**
-	 * Turn the shared page into the Kanban shell: a full-height, full-width,
-	 * padding-less flex column with the list side section suppressed. Idempotent,
-	 * so it's safe to call on every route load.
-	 */
+	/** Switch the shared page into full-screen Kanban layout. Safe to call repeatedly. */
 	apply_page_shell() {
 		this.setup_board_height_sync();
 		this.page.main.addClass("flex flex-col overflow-hidden p-0");
@@ -125,10 +117,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.page.main.removeClass("flex flex-col overflow-hidden p-0");
 		if (this.$filter_section) this.$filter_section.hide();
 		if (this.$container) this.$container.hide();
-		// NOTE: don't remove `no-list-sidebar`. It's set to true by base_list for
-		// every list view and never unset elsewhere, so the List view we're likely
-		// returning to needs it; our teardown runs after the list's own setup, so
-		// removing it here would clobber the list and re-show its side section.
+		// Leave `no-list-sidebar`: the List view we return to needs it, and our teardown runs after.
 		this.page.container.removeClass("kanban-v2-full-width");
 	}
 
@@ -175,8 +164,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			.find(".kn-sel-delete")
 			.on("click", () => this.confirm_delete(this.selected_ids, done));
 
-		// Escape clears the selection — use Frappe's key pipeline (the same one
-		// dialogs/dropdowns use) so it fires reliably. key_map only emits "escape".
+		// Escape clears the selection, via Frappe's key handler so it fires reliably.
 		frappe.ui.keys.on("escape", () => {
 			if (this.selected_ids.length) this.clear_selection();
 		});
@@ -246,6 +234,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.update_selection_bar([]);
 	}
 
+	/** Lazily create and reuse the BulkOperations helper for this doctype. */
 	bulk() {
 		if (!this._bulk || this._bulk.doctype !== this.doctype) {
 			this._bulk = new frappe.kanban_v2.BulkOperations({ doctype: this.doctype });
@@ -310,21 +299,16 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		}
 	}
 
-	/**
-	 * Rebuild developer bulk buttons from settings.bulk_actions. Defaults
-	 * (Edit / Assign / Tags / Delete / Clear) stay; extras sit between Tags
-	 * and Delete. Called whenever the selection bar is shown so condition()
-	 * and the current ids stay fresh.
-	 */
+	/** Rebuild the custom bulk buttons from settings.bulk_actions (inserted before Delete). */
 	refresh_bulk_actions() {
 		const $slot = this.$selection_bar.find(".kn-sel-custom");
 		$slot.empty();
 
-		const s = this.settings || {};
-		if (typeof s.bulk_actions !== "function") return;
+		const settings = this.settings || {};
+		if (typeof settings.bulk_actions !== "function") return;
 
 		const done = this._selection_done || (() => {});
-		const actions = s.bulk_actions(this.selected_ids, this) || [];
+		const actions = settings.bulk_actions(this.selected_ids, this) || [];
 		actions.forEach((action) => {
 			if (!action || !action.label) return;
 			if (typeof action.condition === "function" && !action.condition()) return;
@@ -417,13 +401,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.setup_quick_filters();
 	}
 
-	/**
-	 * Rebuild the mounted board when its card config changed since we loaded
-	 * it, so edits on the Kanban Board form (Card Fields, Preview Fields, …)
-	 * show up on the next visit without a full page reload. Only the rendering
-	 * config is compared — dragging a card also saves the board, and that must
-	 * not cost a remount.
-	 */
+	/** Remount only if the card config changed, so form edits show without a reload (a card drag also saves, but must not remount). */
 	async remount_if_board_changed(board_name) {
 		try {
 			const config = await frappe.xcall(
@@ -468,12 +446,16 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		// From `{doctype}_kanban.js` and/or `doctype_kanban_js` hooks (ran in
 		// init_doctype). Doctype-level config applies to every board;
 		// `boards[<board name>]` overrides it for one board.
-		const reg = (frappe.kanban_v2.settings || {})[this.doctype] || {};
-		const board_override = (reg.boards && reg.boards[this.current_board]) || {};
+		const doctype_settings = (frappe.kanban_v2.settings || {})[this.doctype] || {};
+		const board_override =
+			(doctype_settings.boards && doctype_settings.boards[this.current_board]) || {};
 		this.settings = {
-			...reg,
+			...doctype_settings,
 			...board_override,
-			callbacks: { ...(reg.callbacks || {}), ...(board_override.callbacks || {}) },
+			callbacks: {
+				...(doctype_settings.callbacks || {}),
+				...(board_override.callbacks || {}),
+			},
 		};
 
 		// Title: board config (name / Data only) → doctype title_field if Data →
@@ -580,14 +562,14 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			this.group_by_field = null;
 		}
 
-		const s = this.settings || {};
+		const settings = this.settings || {};
 		// Clicking the card title opens the document. Turn off where not wanted.
 		this.open_on_title_click =
-			s.open_on_title_click !== undefined ? s.open_on_title_click : true;
+			settings.open_on_title_click !== undefined ? settings.open_on_title_click : true;
 		// Select badge styling: the shared defaults, with this doctype's
 		// overrides layered on top (keys lowercased so lookups are exact).
 		this.select_styles = { ...SELECT_STYLES };
-		Object.entries(s.select_styles || {}).forEach(([value, style]) => {
+		Object.entries(settings.select_styles || {}).forEach(([value, style]) => {
 			this.select_styles[value.toLowerCase()] =
 				typeof style === "string" ? { theme: style } : style;
 		});
@@ -676,7 +658,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			: preview_api.length
 			? preview_api
 			: this.card_field_list || [];
-		// Title, image and the group-by field head/own the preview elsewhere.
+		// Title, image and the group-by field are shown elsewhere in the preview.
 		return list.filter(
 			(fn) =>
 				fn !== this.title_field &&
@@ -764,7 +746,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	/**
 	 * Build the filter bar below the topbar with Filter + Group buttons.
-	 * Similar to List View's FilterArea but placed in our dedicated $filter_bar.
+	 * Similar to List View's FilterArea but placed in our dedicated $filter_section.
 	 */
 	setup_filter_bar() {
 		const $filter_section = this.$filter_section;
@@ -776,12 +758,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.sync_board_height();
 	}
 
-	/**
-	 * Quick filters on the left of the header — the doctype's `in_standard_filter`
-	 * fields (same source as List View), excluding the column field and the active
-	 * swimlane field, capped at 4 so the single-row header never wraps. Applied at
-	 * query time alongside the Filter popover.
-	 */
+	/** Quick filters: the doctype's standard-filter fields (max 4), minus the column and swimlane fields. */
 	setup_quick_filters() {
 		const page = this.page;
 		if (!this.$quick_filters) {
@@ -1045,10 +1022,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	 */
 	setup_filter_button($parent) {
 		try {
-			// Same markup + wiring as the list view's FilterArea.make_filter_list:
-			// a .filter-selector with the funnel Filter button + the ✕ clear button,
-			// both handed to FilterGroup so it manages the "Filters N" label and the
-			// ✕ visibility/clear itself.
+			// Same markup as the list view's FilterArea: Filter + clear button handed to FilterGroup.
 			const $selector = $(`
 				<div class="filter-selector">
 					<div class="btn-group">
@@ -1090,12 +1064,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		}
 	}
 
-	/**
-	 * Point the (per-doctype) filter group at the current board's filters. The
-	 * filter group is built once per doctype, so switching between two boards of
-	 * the same doctype otherwise leaves the previous board's filters in the UI —
-	 * and opening the popover would then apply them to the new board.
-	 */
+	/** Load this board's filters into the shared (per-doctype) filter group so a board switch doesn't keep the old filters. */
 	sync_filter_group_to_board() {
 		if (!this.filter_group) return;
 		const desired = JSON.stringify(this.filters || []);
@@ -1205,7 +1174,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	/** Engine options shared by the flat board and every swimlane board. */
 	board_options(provider, opts = {}) {
-		const s = this.settings || {};
+		const settings = this.settings || {};
 		// Developer callbacks from settings are merged on top: onSelectionChange runs
 		// BOTH (so the selection bar keeps working); everything else the developer
 		// supplies overrides the default.
@@ -1236,14 +1205,14 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			skeletonColumns:
 				(this.board_doc?.columns || []).filter((c) => c.status !== "Archived").length || 3,
 			addCardLabel: __("Add {0}", [__(this.doctype)]),
-			renderCard: s.renderCard
-				? (card, el, ctx) => s.renderCard(card, el, ctx, this)
+			renderCard: settings.renderCard
+				? (card, el, ctx) => settings.renderCard(card, el, ctx, this)
 				: (card, el) => this.render_card(card, el),
-			renderColumnHeader: s.renderColumnHeader,
-			renderEmptyState: s.renderEmptyState,
-			callbacks: this.merge_callbacks(base_callbacks, s.callbacks || {}),
+			renderColumnHeader: settings.renderColumnHeader,
+			renderEmptyState: settings.renderEmptyState,
+			callbacks: this.merge_callbacks(base_callbacks, settings.callbacks || {}),
 			// Any extra engine options (e.g. addColumn, pageLength overrides).
-			...(s.options || {}),
+			...(settings.options || {}),
 		};
 	}
 
@@ -1360,10 +1329,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			return frappe.new_doc(this.doctype, values);
 		}
 
-		// route_options / get_new_doc DROP no_copy fields (e.g. Task.status), so
-		// frappe.new_doc alone can't preset the column value. Build the doc, set
-		// the values directly on it, then open quick-entry / the full form with
-		// that prepared doc — same idea as the classic kanban's inline add.
+		// frappe.new_doc drops no_copy fields (e.g. Task.status), so build the doc, set the column value, then open quick entry.
 		frappe.route_options = { ...values };
 		frappe.model.with_doctype(this.doctype, () => {
 			const doc = frappe.model.get_new_doc(this.doctype, null, null, true);
@@ -1378,8 +1344,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		if (card.color) el.style.borderLeft = `3px solid ${card.color}`;
 
 		const rows = document.createElement("div");
-		// Slightly more air between fields than a form list — title still
-		// sits a touch above the pack (see .kn-title-row margin).
+		// Small gap between field rows.
 		rows.className = "flex flex-col gap-1";
 
 		// Title row — always first, as a clickable link.
@@ -1487,12 +1452,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		})[0];
 	}
 
-	/**
-	 * How long since the chosen footer timestamp (modified or creation), e.g.
-	 * "12 d" — exact time on hover. Ghost badge: no fill, so it reads as quiet
-	 * text next to the assignees while the component keeps the icon and text
-	 * in step.
-	 */
+	/** Relative age of the card (e.g. "12 d"); exact time on hover. */
 	age_badge(card) {
 		const when = card[this.footer_date_field] || card.modified || card.creation;
 		if (!when) return null;
@@ -1510,11 +1470,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return $badge[0];
 	}
 
-	/**
-	 * Title as the card's only loud line — medium weight + darkest ink so the
-	 * field rows below can stay quiet without competing. Optional image thumb
-	 * sits in front when the board has an image field and the card has a value.
-	 */
+	/** The card title row, with an optional image thumbnail. */
 	title_row(card) {
 		const row = document.createElement("div");
 		row.className = "kn-frow kn-title-row flex items-center gap-2 min-w-0 mb-0.5";
@@ -1569,8 +1525,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		const label = this.field_label(df);
 		const icon = (this.card_field_icons || {})[df.fieldname];
 		const row = document.createElement("div");
-
-		// Both icon and text-label rows are horizontal: label/icon on the left, value on the right.
 		row.className = "kn-frow flex items-center gap-2 min-w-0";
 		if (icon) {
 			row.appendChild(this.row_icon(icon, label));
@@ -1600,12 +1554,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return __(custom || df.label || df.fieldname);
 	}
 
-	/**
-	 * A muted leading icon that names its field on hover. Uses the espresso
-	 * tooltip instead of a `title` attribute — the icon is an inline SVG, and
-	 * a native tooltip on its wrapper does not reliably appear when hovering
-	 * the SVG itself.
-	 */
+	/** Leading field icon; the field name shows as a tooltip (native title is unreliable over an inline SVG). */
 	row_icon(icon, label) {
 		const span = document.createElement("span");
 		span.className =
@@ -1616,13 +1565,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return span;
 	}
 
-	/**
-	 * SVG markup for a lucide icon name, but only for names that look like a
-	 * lucide id ([a-z0-9-]). Card/preview icon names come from the board's config
-	 * (user-editable child table) and are fed to innerHTML, so an unvalidated
-	 * name like `x"><img onerror=…>` would break out of the `href` attribute.
-	 * Returns "" for anything else.
-	 */
+	/** Render a lucide icon only for safe names ([a-z0-9-]); names come from user config into innerHTML, so reject anything else. Returns "". */
 	safe_icon(icon) {
 		const name = String(icon || "").trim();
 		if (!name || !/^[a-z0-9-]+$/i.test(name)) return "";
@@ -1652,14 +1595,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return text.replace(/^\s*h([1-6])\.\s+/gm, (_m, n) => "#".repeat(+n) + " ");
 	}
 
-	/**
-	 * Readable single-line text for a value that may carry markup: markdown is
-	 * turned into HTML first, then tags are dropped and entities decoded, and
-	 * the line breaks / indentation the markup leaves behind are squashed into
-	 * single spaces so it fits one card row.
-	 * @param {string} [fieldtype] Field's type — decides whether markdown is
-	 * rendered first and keeps Code values byte-for-byte.
-	 */
+	/** Flatten a possibly-markup value to one plain line for a card row. */
 	plain_text(value, fieldtype) {
 		let text = value == null ? "" : String(value);
 		if (!text) return "";
@@ -1676,15 +1612,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return text.replace(/\s+/g, " ").trim();
 	}
 
-	/**
-	 * Type-aware value element for a field, or null when empty. Link→User shows
-	 * an avatar + name; Select shows a badge on the card (plain text in the
-	 * hover preview); rich text is flattened to one readable line; everything
-	 * else is formatted with frappe.format.
-	 * Metadata stays one step quieter than the title (ink-gray-6).
-	 * @param {{ plain_select?: boolean }} [opts] When true, Select values render
-	 * as text instead of a badge (used by the hover preview).
-	 */
+	/** Build a field's value element, or null if empty. Handles User links, Select badges, dates, rich text; others via frappe.format. */
 	field_value(card, df, opts = {}) {
 		const val = card[df.fieldname];
 		if (val === undefined || val === null || val === "") return null;
@@ -1693,8 +1621,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		el.className = "text-sm text-ink-gray-6 truncate min-w-0";
 
 		if (df.fieldtype === "Link" && df.options === "User") {
-			// A 16px avatar keeps the row on the same rhythm as the icon column.
-			// The provider has already cached these users, so the name is here.
+			// Small avatar to match the icon column; user info is already cached.
 			const info = frappe.user_info(val);
 			el.className = "inline-flex items-center gap-1.5 text-sm text-ink-gray-6 min-w-0";
 			el.innerHTML = `${frappe.ui.avatar.html({
@@ -1855,9 +1782,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		];
 
 		// Extras from frappe.kanban_v2.settings[doctype] (any app via hook).
-		const s = this.settings || {};
-		if (typeof s.card_context_menu === "function") {
-			const extra = s.card_context_menu(card, this) || [];
+		const settings = this.settings || {};
+		if (typeof settings.card_context_menu === "function") {
+			const extra = settings.card_context_menu(card, this) || [];
 			if (Array.isArray(extra)) items.push(...extra);
 		}
 		return items;
@@ -1873,14 +1800,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		});
 	}
 
-	/**
-	 * Hover-preview body — a record peek, distinct from the card: doctype icon +
-	 * title + id, an optional cover image and description, a two-column grid of
-	 * the configured preview fields (type-aware values, Select → icon badge), and
-	 * a footer band gathering people & activity (assignees · tags · comments ·
-	 * likes) when any of those are present. Built entirely from data already
-	 * fetched with the cards.
-	 */
+	/** Build the hover preview: header, optional image + description, preview-field grid, and footer. */
 	more_info_content(card, close) {
 		const wrap = document.createElement("div");
 		wrap.className = "kn-mi flex flex-col w-full";
@@ -1973,23 +1893,23 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			cell.className = "min-w-0";
 			const label = this.preview_field_labels[fn] || __(df.label || df.fieldname);
 			const icon = (this.preview_field_icons || {})[fn];
-			const k = document.createElement("div");
+			const label_el = document.createElement("div");
 			// Fixed hovercard width — labels can truncate; full name on title.
-			k.className = "text-sm text-ink-gray-5 flex items-center gap-1 min-w-0";
+			label_el.className = "text-sm text-ink-gray-5 flex items-center gap-1 min-w-0";
 			if (icon) {
 				// No tooltip — the label sits next to the icon in the preview.
 				const span = document.createElement("span");
 				span.className =
 					"kn-ficon inline-flex items-center justify-center shrink-0 size-4 text-ink-gray-4";
 				span.innerHTML = this.safe_icon(icon);
-				k.appendChild(span);
+				label_el.appendChild(span);
 			}
 			const text = document.createElement("span");
 			text.className = "truncate";
 			text.textContent = label;
 			text.title = label;
-			k.appendChild(text);
-			cell.appendChild(k);
+			label_el.appendChild(text);
+			cell.appendChild(label_el);
 			value.classList.add("mt-1", "kn-mi-val");
 			value.classList.remove("truncate");
 			cell.appendChild(value);
@@ -2074,12 +1994,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return "";
 	}
 
-	/**
-	 * Sanitize markup before innerHTML. remove_script_and_style only drops
-	 * <script>/<style>/… tags and returns the string verbatim when none are
-	 * present — so onerror / javascript: URIs would still run. Strip those too.
-	 * (Server sanitize_html covers normal saves; this is the client last line.)
-	 */
+	/** Sanitize before innerHTML: strip scripts/styles plus on* handlers and javascript:/unsafe-data: URLs. */
 	safe_html(html) {
 		const root = document.createElement("div");
 		root.innerHTML = frappe.dom.remove_script_and_style(html || "");
@@ -2095,12 +2010,12 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				}
 				// Match browser URL parsing: drop tab/newline/CR anywhere, then
 				// leading C0 controls, before testing the scheme.
-				const bare = String(attr.value)
+				const cleaned = String(attr.value)
 					.replace(/[\t\n\r]/g, "")
 					.replace(/^[\u0000-\u0020]+/, "");
-				if (/^(javascript|vbscript):/i.test(bare)) {
+				if (/^(javascript|vbscript):/i.test(cleaned)) {
 					el.removeAttribute(attr.name);
-				} else if (/^data:/i.test(bare) && !/^data:image\//i.test(bare)) {
+				} else if (/^data:/i.test(cleaned) && !/^data:image\//i.test(cleaned)) {
 					el.removeAttribute(attr.name);
 				}
 			}
@@ -2558,8 +2473,8 @@ frappe.views.KanbanV2GroupedBoard = class KanbanV2GroupedBoard {
 					if (b.board) b.board.engine.select(ids);
 				}),
 			get state() {
-				const hit = boards.find((b) => b.board);
-				return (hit && hit.board.engine.state) || { columns: [], selection: [] };
+				const mounted = boards.find((b) => b.board);
+				return (mounted && mounted.board.engine.state) || { columns: [], selection: [] };
 			},
 			applyMove: (cardId, from, to, index) => {
 				const hit = boards.find((b) => b.board && b.board.engine.findCard(cardId));
@@ -2582,6 +2497,7 @@ frappe.views.KanbanV2View = class KanbanV2View {
 		this.show();
 	}
 
+	/** Route to the last-used board, else the first; open the create dialog when none exist. */
 	show() {
 		return frappe.views.KanbanView.get_kanbans(this.doctype).then((kanbans) => {
 			frappe.route_options = {};

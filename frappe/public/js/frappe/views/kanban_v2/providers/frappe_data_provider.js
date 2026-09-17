@@ -1,12 +1,5 @@
-/**
- * FrappeDataProvider — Desk data-access boundary. Wraps the existing whitelisted
- * methods in frappe/desk/doctype/kanban_board/kanban_board.py without changing
- * them. Reportview args (doctype, fields, filters, order_by) come from the Desk
- * page context via config.reportview_args.
- *
- * config: { doctype, board_name, reportview_args? }
- */
-const KB = "frappe.desk.doctype.kanban_board.kanban_board";
+// Data access for the Kanban board; wraps kanban_board.py whitelisted methods.
+const KANBAN_METHOD = "frappe.desk.doctype.kanban_board.kanban_board";
 
 export class FrappeDataProvider {
 	constructor(config) {
@@ -21,7 +14,7 @@ export class FrappeDataProvider {
 
 	call(method, args) {
 		return frappe.call({
-			method: `${KB}.${method}`,
+			method: `${KANBAN_METHOD}.${method}`,
 			args: {
 				board_name: this.config.board_name,
 				...this.config.reportview_args,
@@ -33,21 +26,14 @@ export class FrappeDataProvider {
 	/** Expand a compressed {keys, values, user_info} payload into card objects. */
 	expandCards(compressed) {
 		if (!compressed || !compressed.keys) return [];
-		// reportview.compress ships the assignees'/owners' user_info alongside
-		// the rows — merge it into the boot cache so frappe.user_info(user)
-		// resolves real full names + images on cards and hovercards.
+		// Cache user_info from the payload so cards show full names and images.
 		if (compressed.user_info) {
 			frappe.update_user_info(compressed.user_info);
 		}
 		return frappe.utils.dict(compressed.keys, compressed.values);
 	}
 
-	/**
-	 * reportview only ships names for assignees, so a User link field (owner,
-	 * allocated_to, …) arrives as a bare id and frappe.user_info() has nothing
-	 * to show. Look up every id we have not seen yet in one call and put it in
-	 * the boot cache, so cards render full names straight away.
-	 */
+	// Fetch and cache user_info for User-link fields not already cached.
 	async fetchMissingUserInfo(cards) {
 		const meta = frappe.get_meta(this.config.doctype);
 		if (!meta || !cards || !cards.length) return;
@@ -70,8 +56,7 @@ export class FrappeDataProvider {
 			(await frappe.xcall("frappe.desk.form.load.get_user_info_for_viewers", {
 				users: [...missing],
 			})) || {};
-		// Ids the server knows nothing about (deleted users) are cached as
-		// themselves, so the board stops asking for them.
+		// Cache unknown ids as themselves so we stop re-fetching them.
 		missing.forEach((user) => {
 			if (!info[user]) info[user] = { fullname: user, name: user, email: user };
 		});
@@ -151,9 +136,7 @@ export class FrappeDataProvider {
 	async updateOrder(orderByColumn) {
 		await this.call("update_order", {
 			order: JSON.stringify(orderByColumn || {}),
-			// This is an explicit move, so a missing write permission should error
-			// (and roll the UI back) rather than silently no-op like the classic
-			// board's on-load order sync.
+			// Error on a missing write permission instead of silently skipping.
 			throw_on_no_write: 1,
 		});
 	}

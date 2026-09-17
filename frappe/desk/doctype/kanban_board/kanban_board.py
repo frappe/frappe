@@ -303,15 +303,7 @@ def get_card_config(board_name: str) -> dict:
 	}
 
 
-# Paginated Kanban APIs — load cards in chunks instead of all at once.
-#
-# Before: opening Kanban loaded every card for every column (slow on large boards).
-# Now:
-#   get_kanban_board_data  — first open: count per column + first 50 cards each.
-#   get_kanban_column_page — load more for one column when user scrolls.
-#
-# Uses the same filters and fields as list view. Client sends kanban_start and
-# kanban_page_length to ask for the next chunk.
+# Paginated Kanban APIs: load cards per column in pages instead of all at once.
 def get_kanban_reportview_args():
 	"""Read list-view style args from the request, plus Kanban paging fields."""
 	from frappe.desk.reportview import clean_params, validate_args
@@ -430,10 +422,7 @@ def get_kanban_column_counts(
 @frappe.whitelist()
 @frappe.read_only()
 def get_kanban_board_data():
-	"""First load: total per column + first page of cards (default 50 each).
-
-	Example: 4 columns load 200 cards, not the entire board.
-	"""
+	"""First load: total per column + first page of cards (default 50 each)."""
 	board_name, _, _, kanban_page_length, reportview_args = get_kanban_reportview_args()
 	board, column_names = get_kanban_board_context(board_name)
 	doctype = board.reference_doctype
@@ -588,11 +577,8 @@ def update_order(board_name: str, order: str | dict, throw_on_no_write: bool = F
 	updated_cards = []
 
 	if not frappe.has_permission(doctype, "write"):
-		# The classic board syncs order on load even for users who can only READ the
-		# reference doctype, so it must be able to no-op here (return the board unsaved
-		# and let the client render). The new Kanban only calls this for an explicit
-		# multi-move and passes throw_on_no_write, so a move that can't be saved
-		# surfaces an error instead of silently sticking on screen.
+		# Classic board syncs order on load for read-only users, so it no-ops here.
+		# The new Kanban passes throw_on_no_write, so a failed save errors instead.
 		if frappe.parse_json(throw_on_no_write):
 			frappe.has_permission(doctype, "write", throw=True)
 		return board, updated_cards
