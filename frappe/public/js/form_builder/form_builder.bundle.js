@@ -14,6 +14,7 @@ class FormBuilder {
 		is_web_form,
 		tab_fieldname,
 		get_source_field_values,
+		validate_page_limit,
 	}) {
 		this.$wrapper = $(wrapper);
 		this.frm = frm;
@@ -26,6 +27,8 @@ class FormBuilder {
 		this.tab_fieldname = tab_fieldname;
 		// web forms: (source_df, fieldnames) => values of a field picked from the source doctype
 		this.get_source_field_values = get_source_field_values;
+		// web forms: (page_break_count) => throws when the form has too many pages
+		this.validate_page_limit = validate_page_limit;
 		this.read_only = false;
 
 		this.init();
@@ -97,6 +100,7 @@ class FormBuilder {
 		this.store.is_web_form = this.is_web_form;
 		this.store.tab_fieldname = this.tab_fieldname;
 		this.store.get_source_field_values = this.get_source_field_values;
+		this.store.validate_page_limit = this.validate_page_limit;
 		this.store.page = this.page;
 		this.store.frm = this.frm;
 	}
