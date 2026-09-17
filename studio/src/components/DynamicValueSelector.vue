@@ -15,6 +15,7 @@
 				label="Synced with variable. Click to change."
 				tooltipPlacement="bottom"
 				class="mr-1"
+				:class="attrs.class"
 				:tabIndex="-1"
 			/>
 			<IconButton
@@ -23,6 +24,7 @@
 				label="Click to set dynamic value"
 				tooltipPlacement="left"
 				class="mr-1"
+				:class="attrs.class"
 				size="sm"
 				:tabIndex="-1"
 			/>
@@ -43,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue"
+import { computed, ref, useAttrs, watch } from "vue"
 import { Combobox, Switch, Tooltip } from "frappe-ui"
 import IconButton from "@/components/IconButton.vue"
 import useStudioStore from "@/stores/studioStore"
@@ -58,6 +60,10 @@ import { getBindingType } from "@/utils/parseCode"
 import useCodeStore from "@/stores/codeStore"
 import Link2 from "~icons/lucide/link-2"
 import LucideCirclePlus from "~icons/lucide/circle-plus"
+
+// Combobox drops `class` for a custom #trigger, so it goes on the trigger button itself
+defineOptions({ inheritAttrs: false })
+const attrs = useAttrs()
 
 const props = defineProps<{ block?: Block; isVariableBound?: string | null }>()
 const emit = defineEmits<{
