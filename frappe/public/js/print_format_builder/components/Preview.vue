@@ -13,7 +13,9 @@
 				</div>
 				<div v-else-if="!preview_loaded" class="pfb-preview-empty">
 					<span class="pfb-preview-spinner" aria-hidden="true"></span>
-					<span>{{ __("Generating preview…") }}</span>
+					<span>{{
+						compare ? __("Comparing with what prints now…") : __("Generating preview…")
+					}}</span>
 				</div>
 				<template v-else-if="compare">
 					<div class="pfb-preview-pane">
