@@ -2,16 +2,7 @@
 	<Teleport to="body">
 		<div class="pfb-compare" tabindex="-1" ref="root">
 			<div class="pfb-compare-bar">
-				<Segmented
-					:model-value="mode"
-					:options="[
-						{ value: 'changes', label: __('Changes') },
-						{ value: 'saved', label: __('Saved') },
-						{ value: 'draft', label: __('Draft') },
-					]"
-					@update:model-value="(v) => (mode = v)"
-				/>
-				<span class="pfb-compare-hint">{{ hint }}</span>
+				<span class="pfb-compare-title">{{ __("Review changes") }}</span>
 				<button
 					class="es-button"
 					data-variant="ghost"
@@ -28,15 +19,9 @@
 			<div v-else class="pfb-compare-body">
 				<div class="pfb-compare-stage">
 					<div v-if="note" class="pfb-compare-empty">{{ note }}</div>
-					<div v-else-if="mode !== 'saved' && !html" class="pfb-compare-empty">
+					<div v-else-if="!html" class="pfb-compare-empty">
 						<span class="pfb-compare-spinner" aria-hidden="true"></span>
 					</div>
-					<iframe
-						v-else-if="mode === 'saved'"
-						class="pfb-compare-frame"
-						:src="saved_url"
-						@load="(e) => inject(e.target, HIDE_BANNER)"
-					></iframe>
 					<iframe
 						v-else
 						ref="frame"
@@ -46,7 +31,7 @@
 					></iframe>
 				</div>
 
-				<div v-if="mode === 'changes'" class="pfb-compare-list">
+				<div class="pfb-compare-list">
 					<div class="pfb-compare-list-title">{{ __("Changes") }}</div>
 					<div v-if="!entries.length" class="pfb-compare-list-empty">
 						{{ __("This draft matches the saved version.") }}
@@ -89,7 +74,6 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useStore } from "../stores";
-import Segmented from "./inspector/Segmented.vue";
 import { describe_draft_changes } from "../composables/useDraftDiff";
 
 const emit = defineEmits(["close"]);
@@ -97,7 +81,6 @@ let { print_format, store } = useStore();
 
 const root = ref(null);
 const frame = ref(null);
-const mode = ref("changes");
 const html = ref("");
 const note = ref("");
 const entries = ref([]);
@@ -109,7 +92,6 @@ const KIND_LABEL = {
 	moved: __("Moved"),
 };
 const KIND_THEME = { added: "green", removed: "red", changed: "amber", moved: "gray" };
-const HIDE_BANNER = ".action-banner { display: none !important; }";
 const MARK_CSS = `
 [data-pfb-diff] { position: relative; outline-offset: 2px; }
 [data-pfb-diff]::before { content: attr(data-pfb-diff-label); position: absolute; right: 0; bottom: 100%; margin-bottom: 2px; padding: 0 5px; font: 600 9px/1.6 sans-serif; color: #fff; border-radius: 3px; }
@@ -122,24 +104,10 @@ const MARK_CSS = `
 [data-pfb-diff="moved"] { outline: 2px dashed #6b7280; }
 [data-pfb-diff="moved"]::before { background: #6b7280; }
 .pfb-diff-flash { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.35); transition: box-shadow 0.6s; }
-${HIDE_BANNER}`;
+`;
 
 let docname = computed(() => store.value.preview_doc_name);
 let doctype = computed(() => print_format.value.doc_type);
-let saved_url = computed(
-	() =>
-		"/printview?" +
-		new URLSearchParams({
-			doctype: doctype.value,
-			name: docname.value,
-			format: print_format.value.name,
-		})
-);
-let hint = computed(() => {
-	if (mode.value === "saved") return __("What the format prints today.");
-	if (mode.value === "draft") return __("Your draft as it would print.");
-	return __("Your draft with every change marked. Removed items are shown where they were.");
-});
 let groups = computed(() => [
 	{ title: __("Settings"), items: entries.value.filter((e) => e.group === "settings") },
 	{ title: __("Sections"), items: entries.value.filter((e) => e.group === "sections") },
@@ -162,8 +130,7 @@ function find(item) {
 }
 
 function mark_frame() {
-	inject(frame.value, mode.value === "changes" ? MARK_CSS : HIDE_BANNER);
-	if (mode.value !== "changes") return;
+	inject(frame.value, MARK_CSS);
 	for (const item of entries.value) {
 		const el = item.selector && find(item);
 		if (!el) continue;
@@ -213,8 +180,7 @@ async function load() {
 			occurrence: f.occurrence,
 		})),
 	];
-	const doc =
-		mode.value === "changes" ? { ...draft, format_data: JSON.stringify(diff.merged) } : draft;
+	const doc = { ...draft, format_data: JSON.stringify(diff.merged) };
 	try {
 		const args = { print_format: doc, doctype: doctype.value, name: docname.value };
 		if (store.value.letterhead) args.letterhead = store.value.letterhead.name;
@@ -231,7 +197,7 @@ function on_keydown(e) {
 	if (e.key === "Escape" && !window.cur_dialog?.display) emit("close");
 }
 
-watch([docname, mode], () => mode.value !== "saved" && load());
+watch(docname, load);
 onMounted(() => {
 	root.value?.focus();
 	load();
@@ -271,9 +237,9 @@ onUnmounted(() => window.removeEventListener("keydown", on_keydown));
 	background: rgba(255, 255, 255, 0.18);
 }
 
-.pfb-compare-hint {
-	font-size: var(--text-sm);
-	opacity: 0.8;
+.pfb-compare-title {
+	font-size: var(--text-base);
+	font-weight: var(--weight-semibold);
 }
 
 .pfb-compare-body {
