@@ -356,7 +356,6 @@ def add_custom_column_data(custom_columns, result):
 		for column in pending_columns:
 			key = (column.get("doctype"), column.get("fieldname"))
 			if key not in custom_column_data:
-				# a column linked to another custom column resolves only once that one is filled in
 				unresolved_columns.append(column)
 				continue
 
