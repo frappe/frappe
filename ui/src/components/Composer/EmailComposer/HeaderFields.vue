@@ -1,7 +1,12 @@
 <template>
 	<div class="px-2.5">
 		<Row v-if="showFrom" label="From" :items-center="true">
-			<Select v-model="from" :options="senderOptions" variant="ghost" class="-ml-1" />
+			<Select
+				v-model="from"
+				:options="senderOptions"
+				variant="ghost"
+				class="from-select -ml-1 min-w-0"
+			/>
 		</Row>
 
 		<Row v-if="showSubject" label="Subject" :items-center="true">
@@ -117,3 +122,10 @@ function toggleBcc() {
 	if (!openBcc.value) bcc.value = [];
 }
 </script>
+
+<style scoped>
+/* the sender name can be long, let the select shrink instead of pushing the row */
+:deep(.from-select .grid) {
+	grid-template-columns: minmax(0, 1fr);
+}
+</style>
