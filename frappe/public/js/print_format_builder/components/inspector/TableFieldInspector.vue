@@ -473,6 +473,49 @@ function set_image_size(col, value) {
 </script>
 
 <style scoped>
+.pfb-col-label-input {
+	flex: 1;
+	min-width: 0;
+	font-size: var(--text-sm);
+	border: 1px solid transparent;
+	border-radius: var(--radius);
+	background: transparent;
+	padding: 1px 4px;
+	outline: none;
+}
+
+.pfb-col-label-input:hover {
+	border-color: var(--gray-300);
+}
+
+.pfb-col-label-input:focus {
+	border-color: var(--gray-500);
+	background: var(--fg-color);
+}
+
+/* the column picker sits above its list, so the divider belongs on the other side */
+.pfb-col-add-row.top {
+	padding: 8px 14px;
+	border-top: none;
+	border-bottom: 1px solid var(--gray-100);
+}
+
+.pfb-col-editor .pfb-merge-drag {
+	color: var(--gray-400);
+}
+
+.pfb-merge-drag {
+	cursor: grab;
+	color: var(--gray-300);
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+.pfb-merge-drag:hover {
+	color: var(--gray-500);
+}
+
 .pfb-merge-direction {
 	padding: 8px 14px 10px;
 	border-top: 1px solid var(--gray-100);

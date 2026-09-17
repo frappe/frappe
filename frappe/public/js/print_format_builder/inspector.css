@@ -427,8 +427,7 @@ body.pfb-dragging * {
 	padding: 5px 14px;
 }
 
-.pfb-col-drag,
-.pfb-merge-drag {
+.pfb-col-drag {
 	cursor: grab;
 	color: var(--gray-300);
 	display: flex;
@@ -436,29 +435,8 @@ body.pfb-dragging * {
 	flex-shrink: 0;
 }
 
-.pfb-col-drag:hover,
-.pfb-merge-drag:hover {
+.pfb-col-drag:hover {
 	color: var(--gray-500);
-}
-
-.pfb-col-label-input {
-	flex: 1;
-	min-width: 0;
-	font-size: var(--text-sm);
-	border: 1px solid transparent;
-	border-radius: var(--radius);
-	background: transparent;
-	padding: 1px 4px;
-	outline: none;
-}
-
-.pfb-col-label-input:hover {
-	border-color: var(--gray-300);
-}
-
-.pfb-col-label-input:focus {
-	border-color: var(--gray-500);
-	background: var(--fg-color);
 }
 
 .pfb-col-add-row {
@@ -466,22 +444,11 @@ body.pfb-dragging * {
 	border-top: 1px solid var(--gray-100);
 }
 
-/* the column picker sits above its list, so the divider belongs on the other side */
-.pfb-col-add-row.top {
-	padding: 8px 14px;
-	border-top: none;
-	border-bottom: 1px solid var(--gray-100);
-}
-
 .pfb-col-editor {
 	margin: 6px 10px 10px;
 	background: var(--fg-color);
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);
-}
-
-.pfb-col-editor .pfb-merge-drag {
-	color: var(--gray-400);
 }
 
 .pfb-col-row .pfb-tpl {
