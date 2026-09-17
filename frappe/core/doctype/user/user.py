@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 from collections.abc import Iterable
-from datetime import datetime, timedelta
+from datetime import timedelta
 from functools import cached_property, lru_cache
 from typing import Any
 
@@ -706,7 +706,6 @@ class User(Document):
 			"frappe.core.doctype.user.user.rewrite_owner_fields",
 			old_name=old_name,
 			new_name=new_name,
-			renamed_at=now_datetime(),
 			commit=True,
 			queue="long",
 			timeout=36000,
@@ -1130,23 +1129,25 @@ def _get_user_for_update_password(key, old_password):
 	return result
 
 
-def rewrite_owner_fields(old_name: str, new_name: str, renamed_at: datetime, commit: bool = False):
+def rewrite_owner_fields(old_name: str, new_name: str, commit: bool = False):
 	"""Point `owner` and `modified_by` at a renamed user's new name in every table.
 
 	Neither column is indexed, so this runs for minutes on a large site; `commit` releases the
-	read view and its row locks one statement at a time. Running it again is safe. Rows written
-	after `renamed_at` belong to whoever took the old name since, so they are left alone.
+	read view and its row locks one statement at a time. Running it again is safe. If a new user
+	has taken the old name since, rows written after that user was created are theirs and stay.
 	"""
 	tables = frappe.db.get_tables()
 	for tab in tables:
 		desc = frappe.db.get_table_columns_description(tab)
 		has_fields = [d.get("name") for d in desc if d.get("name") in ["owner", "modified_by"]]
 		table = Table(tab)
+		taken_at = frappe.db.get_value("User", old_name, "creation")
 		for field in has_fields:
-			written_at = table.creation if field == "owner" else table.modified
-			frappe.qb.update(table).set(table[field], new_name).where(
-				(table[field] == old_name) & (written_at <= renamed_at)
-			).run(auto_commit=commit)
+			query = frappe.qb.update(table).set(table[field], new_name).where(table[field] == old_name)
+			if taken_at:
+				written_at = table.creation if field == "owner" else table.modified
+				query = query.where(written_at < taken_at)
+			query.run(auto_commit=commit)
 
 
 def reset_user_data(user):
