@@ -14,7 +14,6 @@
   "channel",
   "slack_webhook_url",
   "filters_section",
-  "subject",
   "event",
   "document_type",
   "col_break_1",
@@ -43,6 +42,8 @@
   "send_to_all_assignees",
   "recipients",
   "message_sb",
+  "email_template",
+  "subject",
   "message_type",
   "message",
   "message_examples",
@@ -91,16 +92,6 @@
    "label": "Filters",
    "options": "JSON",
    "read_only": 1
-  },
-  {
-   "depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel)",
-   "description": "For a dynamic subject, use Jinja tags like this: <code>{{ doc.name }} Delivered</code>",
-   "fieldname": "subject",
-   "fieldtype": "Data",
-   "ignore_xss_filter": 1,
-   "in_list_view": 1,
-   "label": "Subject",
-   "mandatory_depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel)"
   },
   {
    "fieldname": "document_type",
@@ -238,10 +229,29 @@
   {
    "fieldname": "message_sb",
    "fieldtype": "Section Break",
-   "label": "Message"
+   "label": "Content"
+  },
+  {
+   "depends_on": "eval: in_list(['Email', 'System Notification'], doc.channel)",
+   "description": "Send this notification's content from an Email Template instead of Subject/Message. The template is looked up fresh on every send, so editing it later changes what gets sent here too.",
+   "fieldname": "email_template",
+   "fieldtype": "Link",
+   "label": "Email Template",
+   "options": "Email Template"
+  },
+  {
+   "depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel) && !doc.email_template",
+   "description": "For a dynamic subject, use Jinja tags like this: <code>{{ doc.name }} Delivered</code>",
+   "fieldname": "subject",
+   "fieldtype": "Data",
+   "ignore_xss_filter": 1,
+   "in_list_view": 1,
+   "label": "Subject",
+   "mandatory_depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel) && !doc.email_template"
   },
   {
    "default": "Add your message here",
+   "depends_on": "eval: !doc.email_template",
    "fieldname": "message",
    "fieldtype": "Code",
    "ignore_xss_filter": 1,
@@ -373,7 +383,7 @@
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-03 18:00:00.000000",
+ "modified": "2026-09-16 15:32:23.104030",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

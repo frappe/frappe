@@ -185,6 +185,14 @@ frappe.ui.form.on("Notification", {
 				},
 			};
 		});
+		frm.set_query("email_template", function () {
+			return {
+				query: "frappe.email.doctype.email_template.email_template.get_email_templates",
+				filters: {
+					reference_doctype: frm.doc.document_type,
+				},
+			};
+		});
 	},
 	refresh: function (frm) {
 		frappe.notification.setup_fieldname_select(frm);
