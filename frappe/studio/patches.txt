@@ -20,3 +20,4 @@ studio.studio.doctype.studio_page.patches.migrate_slot_content_to_blocks
 studio.studio.doctype.studio_page.patches.fold_raw_styles_into_base_styles
 studio.studio.doctype.studio_page.patches.migrate_blocks_to_frappe_ui_v1
 studio.studio.doctype.studio_page.patches.migrate_charts_to_frappe_ui_charts
+studio.studio.doctype.studio_page.patches.migrate_get_icon_to_lucide_classes
