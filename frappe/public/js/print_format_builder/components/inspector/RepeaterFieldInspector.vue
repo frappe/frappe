@@ -38,16 +38,22 @@
 							></span>
 							<TemplateInput v-model="col.template" :fields="repeater_field_opts" />
 							<button
-								class="pfb-col-config"
-								:class="{ open: expanded_col === ci }"
-								@click="expanded_col = expanded_col === ci ? null : ci"
+								class="es-button"
+								data-size="xs"
+								data-icon-button="true"
+								:data-variant="expanded_col === ci ? 'subtle' : 'ghost'"
 								:title="__('Column settings')"
+								@click="expanded_col = expanded_col === ci ? null : ci"
 								v-html="frappe.utils.icon('settings-2', 'xs')"
 							></button>
 							<button
-								class="pfb-col-remove"
-								@click="remove_repeater_column(ci)"
+								class="es-button"
+								data-size="xs"
+								data-variant="ghost"
+								data-theme="red"
+								data-icon-button="true"
 								:title="__('Remove column')"
+								@click="remove_repeater_column(ci)"
 								v-html="frappe.utils.icon('x', 'xs')"
 							></button>
 						</div>

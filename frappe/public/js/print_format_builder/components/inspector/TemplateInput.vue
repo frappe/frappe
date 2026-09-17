@@ -5,7 +5,7 @@
 				<span v-if="tok.t === 'f'" class="es-badge">
 					{{ field_label(tok.v) }}
 					<span
-						class="pfb-tpl-x"
+						class="es-badge__affix"
 						@click="remove(i)"
 						v-html="frappe.utils.icon('x', 'xs')"
 					></span>
@@ -245,11 +245,10 @@ function remove(i) {
 	flex: 1;
 	min-width: 3ch;
 }
-.pfb-tpl-x {
-	display: inline-flex;
-	cursor: pointer;
-}
 .pfb-tpl-row :deep(.es-badge) {
 	margin: 1px;
+}
+.pfb-tpl-row :deep(.es-badge__affix) {
+	cursor: pointer;
 }
 </style>

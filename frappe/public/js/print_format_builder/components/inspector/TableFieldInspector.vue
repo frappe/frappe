@@ -106,13 +106,16 @@
 									:title="col.fieldname"
 								/>
 								<button
-									class="pfb-col-config"
-									:class="{
-										active: col.merged_fields && col.merged_fields.length > 0,
-										open: expanded_col === ci,
-									}"
-									@click="expanded_col = expanded_col === ci ? null : ci"
+									class="es-button"
+									data-size="xs"
+									data-icon-button="true"
+									:data-variant="
+										expanded_col === ci || col.merged_fields?.length
+											? 'subtle'
+											: 'ghost'
+									"
 									:title="__('Merge fields')"
+									@click="expanded_col = expanded_col === ci ? null : ci"
 									v-html="frappe.utils.icon('settings-2', 'xs')"
 								></button>
 								<input
@@ -126,9 +129,13 @@
 								/>
 								<span class="pfb-col-width-unit">%</span>
 								<button
-									class="pfb-col-remove"
-									@click="remove_table_column(ci)"
+									class="es-button"
+									data-size="xs"
+									data-variant="ghost"
+									data-theme="red"
+									data-icon-button="true"
 									:title="__('Remove column')"
+									@click="remove_table_column(ci)"
 									v-html="frappe.utils.icon('x', 'xs')"
 								></button>
 							</div>
@@ -184,9 +191,13 @@
 												/>
 											</div>
 											<button
-												class="pfb-col-remove"
-												@click="remove_merged_field(col, mi)"
+												class="es-button"
+												data-size="xs"
+												data-variant="ghost"
+												data-theme="red"
+												data-icon-button="true"
 												:title="__('Remove field')"
+												@click="remove_merged_field(col, mi)"
 												v-html="frappe.utils.icon('x', 'xs')"
 											></button>
 										</div>

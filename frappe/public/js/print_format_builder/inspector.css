@@ -461,23 +461,6 @@ body.pfb-dragging * {
 	background: var(--fg-color);
 }
 
-.pfb-col-remove {
-	display: flex;
-	align-items: center;
-	padding: 2px;
-	border: none;
-	background: transparent;
-	cursor: pointer;
-	color: var(--gray-300);
-	border-radius: var(--radius);
-	flex-shrink: 0;
-}
-
-.pfb-col-remove:hover {
-	background: var(--red-50);
-	color: var(--red-500);
-}
-
 .pfb-col-add-row {
 	padding: 6px 14px 10px;
 	border-top: 1px solid var(--gray-100);
@@ -490,32 +473,6 @@ body.pfb-dragging * {
 	border-bottom: 1px solid var(--gray-100);
 }
 
-.pfb-col-config {
-	display: flex;
-	align-items: center;
-	padding: 2px;
-	border: none;
-	background: transparent;
-	cursor: pointer;
-	color: var(--gray-400);
-	border-radius: var(--radius);
-	flex-shrink: 0;
-}
-
-.pfb-col-config:hover {
-	background: var(--gray-100);
-	color: var(--gray-600);
-}
-
-.pfb-col-config.active {
-	color: var(--primary);
-}
-
-.pfb-col-config.open {
-	background: var(--gray-100);
-	color: var(--gray-700);
-}
-
 .pfb-col-editor {
 	margin: 6px 10px 10px;
 	background: var(--fg-color);
@@ -523,7 +480,6 @@ body.pfb-dragging * {
 	border-radius: var(--radius);
 }
 
-.pfb-col-editor .pfb-col-remove,
 .pfb-col-editor .pfb-merge-drag {
 	color: var(--gray-400);
 }
