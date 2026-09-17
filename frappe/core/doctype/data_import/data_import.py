@@ -105,7 +105,10 @@ class DataImport(Document):
 			{"status": "Error"},
 			update_modified=False,
 		)
-		self.status = "Error"
+		# Re-read from DB: if the worker already wrote a terminal status (e.g. "Success")
+		# between the initial load and this onload, the set_value WHERE was a no-op and we
+		# must not overwrite self.status with "Error".
+		self.status = frappe.db.get_value("Data Import", self.name, "status") or self.status
 
 	def validate(self):
 		doc_before_save = self.get_doc_before_save()
