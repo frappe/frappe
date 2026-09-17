@@ -38,19 +38,20 @@ jobs:
         run: |
           printf '%s' "$REVIEW_B64" | base64 -d > review.json
           jq -e '(.event == "COMMENT" or .event == "REQUEST_CHANGES") and (.body | type == "string") and (.comments | type == "array") and ((.replies // []) | type == "array")' review.json > /dev/null
-          jq -c '(.replies // [])[] | select((.in_reply_to | type == "number") and (.body | type == "string") and (.body | length > 0)) | {body, in_reply_to}' review.json | while read -r reply; do
+          jq -e '(.replies // []) | all((.in_reply_to | type == "number") and (.body | type == "string") and (.body | length > 0))' review.json > /dev/null
+          if [ -n "$REVIEW_ID" ]; then
+            jq -e '.event == "COMMENT"' review.json > /dev/null || { echo "an update replaces only the body; the event must be COMMENT" >&2; exit 1; }
+          fi
+          if [ "$(jq -r '(.body | length) + (.comments | length)' review.json)" != "0" ]; then
+            if [ -n "$REVIEW_ID" ]; then
+              jq '{body: .body}' review.json > payload.json
+              gh api -X PUT "repos/${{ github.repository }}/pulls/$PR/reviews/$REVIEW_ID" --input payload.json --jq '.html_url'
+            else
+              jq '.comments |= map(with_entries(select(.value != null)))' review.json > payload.json
+              gh api -X POST "repos/${{ github.repository }}/pulls/$PR/reviews" --input payload.json --jq '.html_url'
+            fi
+          fi
+          jq -c '(.replies // [])[] | {body, in_reply_to}' review.json | while read -r reply; do
             printf '%s' "$reply" > reply.json
             gh api -X POST "repos/${{ github.repository }}/pulls/$PR/comments" --input reply.json --jq '.html_url'
           done
-          if [ "$(jq -r '(.body | length) + (.comments | length)' review.json)" = "0" ]; then
-            echo "replies only; no review to post"
-            exit 0
-          fi
-          if [ -n "$REVIEW_ID" ]; then
-            jq -e '.event == "COMMENT"' review.json > /dev/null || { echo "an update replaces only the body; the event must be COMMENT" >&2; exit 1; }
-            jq '{body: .body}' review.json > payload.json
-            gh api -X PUT "repos/${{ github.repository }}/pulls/$PR/reviews/$REVIEW_ID" --input payload.json --jq '.html_url'
-          else
-            jq '.comments |= map(with_entries(select(.value != null)))' review.json > payload.json
-            gh api -X POST "repos/${{ github.repository }}/pulls/$PR/reviews" --input payload.json --jq '.html_url'
-          fi
