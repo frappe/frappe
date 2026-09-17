@@ -14,7 +14,6 @@ data-fieldtype="{{ df.fieldtype }}"
 {%- endif -%}
 {% endmacro %}
 
-{#- shared by Table.html and SummaryTable.html so table_* props behave the same -#}
 {% macro table_cell_style(df) -%}
 {%- set _cell_pad = df.table_cell_padding if df.table_cell_padding is defined and df.table_cell_padding is not none else none -%}
 {%- if _cell_pad is not none %}padding:{{ _cell_pad }}px;{% endif -%}

@@ -552,18 +552,6 @@ const draggable_blocks = computed(() => [
 		link_path: "",
 		show_label: "inline",
 	},
-	{
-		label: __("Summary Table"),
-		fieldname: "summary_table",
-		fieldtype: "Summary Table",
-		custom: 1,
-		icon: "sigma",
-		desc: __("Group child rows and total them"),
-		source: "",
-		group_by: "",
-		show_totals: 1,
-		columns: [],
-	},
 ]);
 
 function confirm_delete_snippet(name) {
@@ -664,7 +652,6 @@ const FIELD_ICONS = {
 	Table: "table",
 	"Static Text": "type",
 	"Linked Field": "link",
-	"Summary Table": "sigma",
 	Repeater: "rows-3",
 	Image: "image",
 	"Attach Image": "image",

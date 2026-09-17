@@ -222,11 +222,6 @@ class TestPrintSurfaceMarkupContract(UnitTestCase):
 	def test_static_text_macro_properties_mirrored_in_canvas(self):
 		self._assert_df_props_mirrored(APP_PATH / "templates" / "print_format" / "macros" / "StaticText.html")
 
-	def test_summary_table_macro_properties_mirrored_in_canvas(self):
-		self._assert_df_props_mirrored(
-			APP_PATH / "templates" / "print_format" / "macros" / "SummaryTable.html"
-		)
-
 	def test_repeater_macro_properties_mirrored_in_canvas(self):
 		self._assert_df_props_mirrored(APP_PATH / "templates" / "print_format" / "macros" / "Repeater.html")
 

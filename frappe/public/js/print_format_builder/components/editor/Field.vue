@@ -86,7 +86,6 @@
 				{{ df.text || __("Empty text") }}
 			</div>
 			<FieldPreviewLinked v-else-if="df.fieldtype == 'Linked Field'" :df="df" />
-			<FieldPreviewSummary v-else-if="df.fieldtype == 'Summary Table'" :df="df" />
 			<template v-else>
 				<div
 					v-if="df.label && df.show_label !== 'hide'"
@@ -289,23 +288,6 @@
 					</span>
 				</div>
 			</div>
-			<div v-if="df.fieldtype == 'Summary Table'" class="table-preview">
-				<div class="table-columns-list">
-					<span v-if="df.source" class="table-col-chip">{{ df.source }}</span>
-					<span v-if="df.group_by" class="table-col-chip">{{ df.group_by }}</span>
-					<span
-						v-for="(col, i) in df.columns || []"
-						:key="i"
-						class="table-col-chip"
-						:title="col.expr"
-					>
-						{{ col.label || col.expr }}
-					</span>
-					<span v-if="!df.source" class="text-muted no-columns-hint">
-						{{ __("No source table selected") }}
-					</span>
-				</div>
-			</div>
 		</template>
 	</div>
 </template>
@@ -315,7 +297,6 @@ import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
 import FieldPreviewBarcode from "./FieldPreviewBarcode.vue";
 import FieldPreviewLinked from "./FieldPreviewLinked.vue";
 import FieldPreviewRepeater from "./FieldPreviewRepeater.vue";
-import FieldPreviewSummary from "./FieldPreviewSummary.vue";
 import FieldPreviewTable from "./FieldPreviewTable.vue";
 import {
 	render_jinja_html,

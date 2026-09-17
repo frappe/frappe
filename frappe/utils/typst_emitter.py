@@ -39,7 +39,6 @@ BLOCKER_FIELDTYPES = {
 	"HTML": "Custom HTML block",
 	"Field Template": "Field Template (Jinja HTML)",
 	"Linked Field": "Linked Field",
-	"Summary Table": "Summary Table",
 }
 
 PAGE_NUMBER_POSITIONS = {

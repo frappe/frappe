@@ -189,102 +189,6 @@
 					@update:model-value="(v) => (selected_field.show_empty = v ? 1 : 0)"
 				/>
 			</template>
-			<template v-else-if="is_summary_table">
-				<SelectRow
-					:label="__('Source')"
-					:model-value="selected_field.source"
-					:options="table_field_options"
-					:placeholder="__('Select a child table')"
-					@update:model-value="set_summary_source"
-				/>
-				<SelectRow
-					v-if="selected_field.source"
-					:label="__('Group by')"
-					:model-value="selected_field.group_by"
-					:options="summary_child_options"
-					:placeholder="__('Select a field')"
-					@update:model-value="(v) => (selected_field.group_by = v)"
-				/>
-				<ToggleRow
-					:label="__('Totals row')"
-					:model-value="!!selected_field.show_totals"
-					@update:model-value="(v) => (selected_field.show_totals = v ? 1 : 0)"
-				/>
-				<div
-					v-for="(col, i) in selected_field.columns || []"
-					:key="i"
-					class="pfb-insp-card pfb-summary-col"
-				>
-					<div class="pfb-insp-row">
-						<input
-							type="text"
-							class="pfb-insp-input"
-							:placeholder="__('Label')"
-							:value="col.label"
-							@change="col.label = $event.target.value"
-						/>
-						<input
-							type="text"
-							class="pfb-insp-input"
-							:placeholder="__('Group')"
-							:value="col.group || ''"
-							@change="col.group = $event.target.value"
-						/>
-					</div>
-					<div class="pfb-insp-row pfb-insp-row--col">
-						<input
-							type="text"
-							class="pfb-insp-input"
-							:placeholder="__('Expression, e.g. g.amount')"
-							:value="col.expr"
-							@change="col.expr = $event.target.value"
-						/>
-					</div>
-					<div class="pfb-insp-row">
-						<select
-							class="pfb-insp-select"
-							:value="col.format || ''"
-							@change="col.format = $event.target.value"
-						>
-							<option value="">{{ __("Plain") }}</option>
-							<option value="currency">{{ __("Currency") }}</option>
-						</select>
-						<div style="display: flex; align-items: center; gap: 8px">
-							<label class="pfb-insp-check">
-								<input
-									type="checkbox"
-									:checked="!!col.total"
-									@change="col.total = $event.target.checked ? 1 : 0"
-								/>
-								{{ __("Total") }}
-							</label>
-							<button
-								class="es-button"
-								data-size="xs"
-								data-variant="ghost"
-								data-icon-button="true"
-								:title="__('Remove column')"
-								@click="selected_field.columns.splice(i, 1)"
-								v-html="frappe.utils.icon('x', 'xs')"
-							></button>
-						</div>
-					</div>
-				</div>
-				<button class="pfb-add-btn" @click="add_summary_column">
-					<span v-html="frappe.utils.icon('add', 'xs')"></span>
-					{{ __("Add Column") }}
-				</button>
-				<ColorField
-					:label="__('Borders')"
-					:model-value="selected_field.table_border_color || ''"
-					@update:model-value="(v) => set_field_prop('table_border_color', v)"
-				/>
-				<ColorField
-					:label="__('Header')"
-					:model-value="selected_field.table_header_bg || ''"
-					@update:model-value="(v) => set_field_prop('table_header_bg', v)"
-				/>
-			</template>
 			<template v-else-if="is_spacer">
 				<StepperRow
 					:label="__('Height')"
@@ -391,7 +295,7 @@ import { align_opts } from "./align_opts";
 import { useSelectedField } from "./useSelectedField";
 import SelectRow from "./SelectRow.vue";
 import { useDoctypeFields } from "../../composables/useDoctypeFields";
-import { value_field_opts, table_field_opts } from "../../utils";
+import { value_field_opts } from "../../utils";
 
 defineProps(["fieldIsInline"]);
 
@@ -406,7 +310,6 @@ const NON_TEXT_FIELDTYPES = new Set([
 	"Divider",
 	"Field Template",
 	"Static Text",
-	"Summary Table",
 ]);
 let is_text_field = computed(() => !NON_TEXT_FIELDTYPES.has(selected_field.value?.fieldtype));
 
@@ -445,7 +348,6 @@ let label_has_colon = computed(
 );
 let is_static_text = computed(() => selected_field.value?.fieldtype === "Static Text");
 let is_linked_field = computed(() => selected_field.value?.fieldtype === "Linked Field");
-let is_summary_table = computed(() => selected_field.value?.fieldtype === "Summary Table");
 
 const barcode_formats = ["CODE128", "CODE39", "QR"];
 
@@ -486,26 +388,6 @@ function set_link_fieldname(fieldname) {
 }
 function set_link_target(fieldname) {
 	selected_field.value.link_path = `${link_fieldname.value}.${fieldname}`;
-}
-
-// ── summary table ──────────────────────────────────────────
-let table_field_options = computed(() => table_field_opts(store.meta.value?.fields));
-let summary_child_fields = useDoctypeFields(
-	computed(
-		() =>
-			(store.meta.value?.fields || []).find(
-				(f) => f.fieldname === selected_field.value?.source && f.fieldtype === "Table"
-			)?.options
-	)
-);
-let summary_child_options = computed(() => value_field_opts(summary_child_fields.value));
-function set_summary_source(source) {
-	selected_field.value.source = source;
-	selected_field.value.group_by = "";
-}
-function add_summary_column() {
-	if (!selected_field.value.columns) selected_field.value.columns = [];
-	selected_field.value.columns.push({ label: "", expr: "", format: "", group: "", total: 0 });
 }
 
 let image_size = computed(() => parseFloat(selected_field.value?.width) || 200);
