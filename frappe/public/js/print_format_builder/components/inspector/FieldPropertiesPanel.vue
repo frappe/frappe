@@ -388,6 +388,8 @@ function set_link_fieldname(fieldname) {
 }
 function set_link_target(fieldname) {
 	selected_field.value.link_path = `${link_fieldname.value}.${fieldname}`;
+	const target = link_target_fields.value.find((f) => f.fieldname === fieldname);
+	if (target) selected_field.value.label = target.label || fieldname;
 }
 
 let image_size = computed(() => parseFloat(selected_field.value?.width) || 200);
