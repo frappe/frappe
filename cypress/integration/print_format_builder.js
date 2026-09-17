@@ -443,8 +443,9 @@ context("Print Format Builder — create flow", () => {
 		cy.wait("@draft", { timeout: 20000 });
 
 		cy.contains(".page-actions button", "Review Changes").should("be.visible").click();
-		cy.get(".pfb-preview-modal--compare", { timeout: 30000 }).should("be.visible");
-		cy.get(".pfb-preview-caption").should("have.length", 2);
+		cy.get(".pfb-compare", { timeout: 30000 }).should("be.visible");
+		cy.get(".pfb-compare-list").should("contain", "Margin Top");
+		cy.get(".pfb-compare-frame", { timeout: 30000 }).should("exist");
 	});
 
 	// 10. Inspector header shows the doctype field's label, not a custom print label

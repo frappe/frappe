@@ -1,3 +1,23 @@
+import { clone_plain } from "../utils";
+
+export const DRAFT_SETTING_FIELDS = [
+	"font",
+	"font_size",
+	"page_number",
+	"show_label_colon",
+	"margin_top",
+	"margin_bottom",
+	"margin_left",
+	"margin_right",
+	"label_color",
+	"value_color",
+	"css",
+	"pdf_generator",
+];
+
+const SKIP = new Set(["columns", "fields", "id", "fieldname", "fieldtype", "custom", "remove"]);
+const COLUMN_LISTS = new Set(["table_columns", "repeater_columns"]);
+
 function parse_layout(format_data) {
 	if (!format_data) return null;
 	const layout =
@@ -5,32 +25,8 @@ function parse_layout(format_data) {
 	return layout && typeof layout === "object" && !Array.isArray(layout) ? layout : null;
 }
 
-function layout_fields(layout) {
-	const out = new Map();
-	const seen = {};
-	const zones = [layout.header, ...(layout.sections || []), layout.footer].filter(Boolean);
-	zones.forEach((zone, zi) => {
-		if (zone.remove) return;
-		(zone.columns || []).forEach((col, ci) => {
-			(col.fields || []).forEach((f) => {
-				if (f.remove || !f.fieldname) return;
-				seen[f.fieldname] = (seen[f.fieldname] || 0) + 1;
-				out.set(`${f.fieldname}#${seen[f.fieldname]}`, {
-					fieldname: f.fieldname,
-					zone: zi,
-					col: ci,
-					props: f,
-				});
-			});
-		});
-	});
-	return out;
-}
-
-function layout_sections(layout) {
-	return (layout.sections || [])
-		.filter((s) => !s.remove)
-		.map((s) => ({ ...s, columns: (s.columns || []).map(({ fields, ...col }) => col) }));
+function setting_label(fieldname) {
+	return frappe.meta.get_docfield("Print Format", fieldname)?.label || frappe.unscrub(fieldname);
 }
 
 function show(value) {
@@ -42,12 +38,25 @@ function show(value) {
 					.map((v) => (v == null || v === "" ? 0 : v))
 					.join(" ");
 	}
-	if (typeof value === "boolean" || value === 0 || value === 1)
-		return value ? __("on") : __("off");
+	if (typeof value === "boolean") return value ? __("on") : __("off");
 	return String(value);
 }
 
-const SKIP = new Set(["columns", "fields", "id", "fieldname", "fieldtype", "custom", "remove"]);
+function column_notes(before, after) {
+	const name = (c, i) => c.label || c.fieldname || __("column {0}", [i + 1]);
+	const notes = [];
+	after.forEach((col, i) => {
+		const old = before[i];
+		if (!old) notes.push(__("column {0} added", [name(col, i)]));
+		else if (JSON.stringify(old) !== JSON.stringify(col)) {
+			notes.push(`${name(col, i)}: ${prop_notes(old, col).join(", ") || __("changed")}`);
+		}
+	});
+	before
+		.slice(after.length)
+		.forEach((col, i) => notes.push(__("column {0} removed", [name(col, after.length + i)])));
+	return notes;
+}
 
 function prop_notes(before, after) {
 	const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
@@ -56,35 +65,133 @@ function prop_notes(before, after) {
 		if (SKIP.has(key)) continue;
 		const a = JSON.stringify(before[key] ?? null);
 		const b = JSON.stringify(after[key] ?? null);
-		if (a !== b)
-			notes.push(`${frappe.unscrub(key)}: ${show(before[key])} → ${show(after[key])}`);
+		if (a === b) continue;
+		if (COLUMN_LISTS.has(key))
+			notes.push(...column_notes(before[key] || [], after[key] || []));
+		else notes.push(`${frappe.unscrub(key)}: ${show(before[key])} → ${show(after[key])}`);
 	}
 	return notes;
 }
 
-export function describe_draft_changes(saved_format_data, draft_format_data) {
-	const fields = [];
-	const sections = [];
-	const base = parse_layout(saved_format_data);
-	const next = parse_layout(draft_format_data);
-	if (base && next) {
-		const before = layout_fields(base);
-		for (const [key, f] of layout_fields(next)) {
-			const old = before.get(key);
-			if (!old) fields.push({ fieldname: f.fieldname, note: __("Added") });
-			else if (old.zone !== f.zone || old.col !== f.col) {
-				fields.push({ fieldname: f.fieldname, note: __("Moved") });
-			} else {
-				const notes = prop_notes(old.props, f.props);
-				if (notes.length) fields.push({ fieldname: f.fieldname, note: notes.join(", ") });
-			}
-		}
-		const old_sections = layout_sections(base);
-		layout_sections(next).forEach((sec, i) => {
-			if (!old_sections[i]) return;
-			const notes = prop_notes(old_sections[i], sec);
-			if (notes.length) sections.push({ index: i, note: notes.join(", ") });
+function zones_of(layout) {
+	const out = [];
+	if (layout.header) out.push({ id: "header", section: layout.header });
+	(layout.sections || []).forEach((s, i) => !s.remove && out.push({ id: `s${i}`, section: s }));
+	if (layout.footer) out.push({ id: "footer", section: layout.footer });
+	return out;
+}
+
+function fields_of(layout) {
+	const out = new Map();
+	const seen = {};
+	zones_of(layout).forEach(({ id, section }) => {
+		(section.columns || []).forEach((col, ci) => {
+			(col.fields || []).forEach((f, pos) => {
+				if (f.remove || !f.fieldname) return;
+				seen[f.fieldname] = (seen[f.fieldname] || 0) + 1;
+				out.set(`${f.fieldname}#${seen[f.fieldname]}`, {
+					zone: id,
+					col: ci,
+					pos,
+					props: f,
+				});
+			});
 		});
+	});
+	return out;
+}
+
+function section_shell(section) {
+	return { ...section, columns: (section.columns || []).map(({ fields, ...col }) => col) };
+}
+
+function field_label(f) {
+	return f.label || f.fieldname || f.fieldtype;
+}
+
+export function describe_draft_changes(saved, draft) {
+	const settings = DRAFT_SETTING_FIELDS.filter(
+		(f) => String(saved[f] ?? "") !== String(draft[f] ?? "")
+	).map((f) => ({
+		label: setting_label(f),
+		note: `${show(saved[f])} → ${show(draft[f])}`,
+	}));
+
+	const base = parse_layout(saved.format_data) || { sections: [] };
+	const merged = clone_plain(parse_layout(draft.format_data) || { sections: [] });
+	const before = fields_of(base);
+	const after = fields_of(merged);
+	const status = new Map();
+
+	for (const [key, f] of after) {
+		const old = before.get(key);
+		let entry;
+		if (!old) entry = { kind: "added", notes: [] };
+		else if (old.zone !== f.zone || old.col !== f.col) entry = { kind: "moved", notes: [] };
+		else {
+			const notes = prop_notes(old.props, f.props);
+			if (notes.length) entry = { kind: "changed", notes };
+		}
+		if (entry) status.set(f.props, entry);
 	}
-	return { fields, sections };
+
+	const sections = [];
+	const base_sections = (base.sections || []).filter((s) => !s.remove);
+	const live_sections = merged.sections.filter((s) => !s.remove);
+	live_sections.forEach((sec, i) => {
+		const old = base_sections[i];
+		if (!old) sections.push({ section: sec, kind: "added", notes: [] });
+		else {
+			const notes = prop_notes(section_shell(old), section_shell(sec));
+			if (notes.length) sections.push({ section: sec, kind: "changed", notes });
+		}
+	});
+	base_sections.slice(live_sections.length).forEach((old) => {
+		const copy = clone_plain(old);
+		merged.sections.push(copy);
+		sections.push({ section: copy, kind: "removed", notes: [] });
+		(copy.columns || []).forEach((col) =>
+			(col.fields || []).forEach((f) => status.set(f, { kind: "removed", notes: [] }))
+		);
+	});
+
+	const merged_zones = Object.fromEntries(zones_of(merged).map((z) => [z.id, z.section]));
+	for (const [key, old] of before) {
+		if (after.has(key)) continue;
+		const zone = merged_zones[old.zone];
+		if (!zone) continue;
+		const col = (zone.columns || [])[old.col] || (zone.columns || [])[zone.columns.length - 1];
+		if (!col) continue;
+		const copy = clone_plain(old.props);
+		col.fields.splice(Math.min(old.pos, col.fields.length), 0, copy);
+		status.set(copy, { kind: "removed", notes: [] });
+	}
+
+	const fields = [];
+	const seen = {};
+	zones_of(merged).forEach(({ section }) => {
+		(section.columns || []).forEach((col) => {
+			(col.fields || []).forEach((f) => {
+				if (f.remove || !f.fieldname) return;
+				seen[f.fieldname] = (seen[f.fieldname] || 0) + 1;
+				const entry = status.get(f);
+				if (!entry) return;
+				fields.push({
+					fieldname: f.fieldname,
+					occurrence: seen[f.fieldname] - 1,
+					label: field_label(f),
+					...entry,
+				});
+			});
+		});
+	});
+
+	const section_entries = sections.map((s) => ({
+		index: merged.sections.indexOf(s.section),
+		label: s.section.label || __("Section {0}", [merged.sections.indexOf(s.section) + 1]),
+		kind: s.kind,
+		notes: s.notes,
+	}));
+
+	return { settings, fields, sections: section_entries, merged };
 }

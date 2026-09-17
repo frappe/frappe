@@ -62,7 +62,8 @@
 			</div>
 		</div>
 		<FieldInspector v-if="!$store.needs_setup.value" />
-		<Preview v-if="show_preview" :compare="preview_compare" @close="show_preview = false" />
+		<Preview v-if="show_preview" @close="show_preview = false" />
+		<CompareView v-if="show_compare" @close="show_compare = false" />
 		<ContextMenu />
 		<Teleport to="body">
 			<div
@@ -83,6 +84,7 @@
 import PrintFormat from "./components/editor/PrintFormat.vue";
 import PrintFormatSetup from "./components/editor/PrintFormatSetup.vue";
 import Preview from "./components/Preview.vue";
+import CompareView from "./components/CompareView.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
 import ContextMenu from "./components/editor/ContextMenu.vue";
@@ -96,7 +98,7 @@ const ZOOM_KEY = "pfb_canvas_zoom";
 const ZOOM_LEVELS = [50, 60, 70, 80, 90, 100, 125, 150];
 
 let show_preview = ref(false);
-let preview_compare = ref(false);
+let show_compare = ref(false);
 let doc_picker_ref = ref(null);
 let doc_picker_ctrl = ref(null);
 let canvas_zoom = ref(nearest_zoom(parseInt(localStorage.getItem(ZOOM_KEY)) || 100));
@@ -116,13 +118,11 @@ let shouldRender = computed(() => {
 provide("$store", $store.value);
 
 function toggle_preview() {
-	preview_compare.value = false;
 	show_preview.value = !show_preview.value;
 }
 
 function show_changes() {
-	preview_compare.value = true;
-	show_preview.value = true;
+	show_compare.value = true;
 }
 
 const SETTINGS_DOCTYPE = "Print Settings";
@@ -295,7 +295,7 @@ function is_typing_context() {
 }
 
 function handle_keydown(e) {
-	if (show_preview.value) return;
+	if (show_preview.value || show_compare.value) return;
 	// Zoom shortcuts: Ctrl+= / Ctrl+- / Ctrl+0
 	if (e.ctrlKey || e.metaKey) {
 		if (e.key === "z" || e.key === "Z" || e.key === "y") {
