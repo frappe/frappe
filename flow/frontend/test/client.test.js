@@ -266,3 +266,15 @@ test("a steered image leaves the queue when its daemon attachment arrives", asyn
 	await new Promise((resolve) => setImmediate(resolve));
 	assert.equal(store.state.queued.length, 0);
 });
+
+test("skills come from the session's agent, or the page's agent before a chat starts", async () => {
+	const catalog = { skills: [{ name: "expense-approval", description: "Claims" }] };
+	const transport = fakeTransport({ "flow.api.skills": catalog });
+	const client = new FrappeClient({ boot, transport, hooks: { agent: () => "Support" } });
+	assert.deepEqual(await client.skills("S1"), catalog);
+	assert.deepEqual(await client.previewSkills({}), catalog);
+	assert.deepEqual(transport.calls, [
+		["flow.api.skills", { session: "S1" }],
+		["flow.api.skills", { agent: "Support" }],
+	]);
+});

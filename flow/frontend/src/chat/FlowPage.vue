@@ -106,7 +106,6 @@ const client = new FrappeClient({
 });
 const store = createFlowStore(client, {
 	requireCwd: false,
-	skillsEnabled: false,
 	storageKey: `flow.page.${props.boot.user?.name ?? "user"}`,
 	presentTool,
 	turnActions: FeedbackBar,
@@ -114,6 +113,11 @@ const store = createFlowStore(client, {
 provide("flow", store);
 provide("flowPage", page);
 useColorScheme();
+// the store keys a new chat's skills by folder; here they follow the chosen agent
+watch(
+	() => page.state.agent,
+	() => void store.loadSkills({ force: true })
+);
 
 const sidebarOpen = computed(() => store.state.sidebarOpen);
 // the composer asks in the name of the agent that answers

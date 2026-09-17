@@ -164,6 +164,13 @@ export const SPECS = {
 				description: "Every agent can use it, not only the ones it is added to.",
 			},
 			{
+				name: "user_invocable",
+				label: "User invocable",
+				type: "check",
+				description:
+					"Anyone chatting with the agent can start it by typing /skill: and its name.",
+			},
+			{
 				name: "description",
 				label: "Description",
 				type: "textarea",

@@ -16,6 +16,12 @@ test("the typed message is what remains once Flow's blocks are removed", () => {
 	assert.deepEqual(files, ['notes & "plans".txt', "big.pdf"]);
 });
 
+test("a skill the user started keeps the wrapper the chat shows as the command again", () => {
+	const skill =
+		'<skill name="expense-approval" location="Flow Skill/Expense Approval">\nCheck the receipt.\n</skill>\n\nclaim 42';
+	assert.equal(presentEvent({ type: "user_message", content: skill + MEMORY }).content, skill);
+});
+
 test("plain messages pass through untouched", () => {
 	assert.deepEqual(cleanUserText("hello\n\nthere"), { text: "hello\n\nthere", files: [] });
 	assert.deepEqual(cleanUserText(""), { text: "", files: [] });
