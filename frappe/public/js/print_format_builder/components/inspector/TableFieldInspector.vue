@@ -118,16 +118,6 @@
 									@click="expanded_col = expanded_col === ci ? null : ci"
 									v-html="frappe.utils.icon('settings-2', 'xs')"
 								></button>
-								<input
-									class="pfb-col-width-input"
-									type="number"
-									min="5"
-									max="100"
-									v-model.number="col.width"
-									@blur="clamp_width(col)"
-									:title="__('Width %')"
-								/>
-								<span class="pfb-col-width-unit">%</span>
 								<button
 									class="es-button"
 									data-size="xs"
@@ -142,6 +132,16 @@
 
 							<!-- Per-column merged-fields editor: reuses inspector primitives -->
 							<div v-if="expanded_col === ci" class="pfb-col-editor">
+								<div class="pfb-insp-section-body">
+									<StepperRow
+										:label="__('Width')"
+										:model-value="col.width"
+										:min="5"
+										:step="5"
+										unit="%"
+										@update:model-value="(v) => set_width(col, v)"
+									/>
+								</div>
 								<draggable
 									:list="col.merged_fields"
 									handle=".pfb-merge-drag"
@@ -405,8 +405,8 @@ function remove_table_column(idx) {
 
 watch(selected_field, () => (expanded_col.value = null));
 
-function clamp_width(col) {
-	col.width = Math.max(5, Math.min(100, parseInt(col.width) || 10));
+function set_width(col, value) {
+	col.width = Math.max(5, Math.min(100, parseInt(value) || 10));
 }
 
 let expanded_col = ref(null);

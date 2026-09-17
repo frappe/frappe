@@ -135,30 +135,6 @@
 	overflow: hidden;
 	margin-bottom: 2px;
 }
-.pfb-col-width-input {
-	width: 40px;
-	padding: 2px 4px;
-	font-size: var(--text-tiny);
-	text-align: right;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--fg-color);
-	flex-shrink: 0;
-}
-.pfb-col-width-input:focus {
-	outline: none;
-	border-color: var(--gray-500);
-}
-.pfb-col-width-input::-webkit-inner-spin-button,
-.pfb-col-width-input::-webkit-outer-spin-button {
-	-webkit-appearance: none;
-}
-.pfb-col-width-unit {
-	font-size: var(--text-tiny);
-	color: var(--text-muted);
-	flex-shrink: 0;
-}
-
 /* HTML split editor dialog — shared by field and letter-head editors.
    Renders in the modal portal, so it must stay global. */
 .pfb-html-split {
