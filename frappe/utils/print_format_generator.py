@@ -995,6 +995,8 @@ class PrintFormatGenerator:
 		link_df = self.doc.meta.get_field(link_fieldname)
 		if not link_df or link_df.fieldtype != "Link" or not link_df.options:
 			return
+		if not self.has_field_access(self.doc, self.doc.meta, link_fieldname):
+			return
 		name = self.doc.get(link_fieldname)
 		if not name or not frappe.has_permission(link_df.options, "read", doc=name):
 			return
