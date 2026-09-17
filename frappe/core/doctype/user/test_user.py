@@ -345,7 +345,7 @@ class TestUser(IntegrationTestCase):
 			queue="long",
 			timeout=36000,
 			enqueue_after_commit=True,
-			job_id=f"rewrite-owner-fields-{old_name}-{new_name}",
+			job_id=f"rewrite-owner-fields-{new_name}",
 			deduplicate=True,
 		)
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "owner"), old_name)
@@ -354,6 +354,24 @@ class TestUser(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "owner"), new_name)
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "modified_by"), new_name)
+
+	def test_user_rename_blocked_while_owner_sweep_is_pending(self):
+		renamed = "test_user_rename_pending@example.com"
+		other = "test_user_rename_pending_other@example.com"
+		for email in (renamed, other):
+			frappe.get_doc(
+				{"doctype": "User", "email": email, "first_name": "_Test", "send_welcome_email": 0}
+			).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		with patch(
+			"frappe.core.doctype.user.user.is_job_enqueued",
+			side_effect=lambda job_id: job_id == f"rewrite-owner-fields-{renamed}",
+		):
+			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
+				frappe.rename_doc("User", renamed, "test_user_rename_pending_new@example.com")
+
+			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
+				frappe.rename_doc("User", other, renamed, merge=True)
 
 	def test_user_rename_updates_private_workspace(self):
 		old_name = "test_user_rename_ws@example.com"
