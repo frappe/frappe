@@ -359,6 +359,12 @@
 					:model-value="selected_field.value_color || ''"
 					@update:model-value="(v) => set_field_prop('value_color', v)"
 				/>
+				<ToggleRow
+					v-if="label_has_colon"
+					:label="__('Hide colon')"
+					:model-value="!!selected_field.hide_colon"
+					@update:model-value="(v) => (selected_field.hide_colon = v ? 1 : 0)"
+				/>
 			</div>
 			<StyleSection :label="__('Custom CSS')" v-model="selected_field.custom_style" />
 		</InspectorSection>
@@ -431,6 +437,12 @@ let is_image_element = computed(
 // dragged Barcode docfields get size/align only — value and format come from
 // the field itself
 let is_barcode_element = computed(() => selected_field.value?.fieldtype === "Barcode");
+let label_has_colon = computed(
+	() =>
+		!!store.print_format.value?.show_label_colon &&
+		!!selected_field.value?.label &&
+		selected_field.value?.show_label !== "hide"
+);
 let is_static_text = computed(() => selected_field.value?.fieldtype === "Static Text");
 let is_linked_field = computed(() => selected_field.value?.fieldtype === "Linked Field");
 let is_summary_table = computed(() => selected_field.value?.fieldtype === "Summary Table");

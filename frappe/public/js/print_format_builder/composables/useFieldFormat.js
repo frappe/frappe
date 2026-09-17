@@ -60,6 +60,16 @@ export function useFieldFormat(props, store, preview_doc) {
 		return parts.join("; ");
 	}
 
+	function frame_style(df) {
+		return {
+			...(df.table_radius != null ? { "--pfb-radius": df.table_radius + "px" } : {}),
+			...(df.table_header_bg && df.table_header !== "plain"
+				? { "--pfb-header-bg": df.table_header_bg }
+				: {}),
+			...(df.table_min_height ? { minHeight: df.table_min_height + "px" } : {}),
+		};
+	}
+
 	function repeater_cell(col, i, row) {
 		return (col.template || [])
 			.map((tok) => {
@@ -204,6 +214,7 @@ export function useFieldFormat(props, store, preview_doc) {
 		rating_stars,
 		is_image_field,
 		cell_style,
+		frame_style,
 		repeater_cell,
 		multiselect_display,
 		cell_server_html,

@@ -802,7 +802,7 @@ class TypstEmitter:
 		if df.get("font_size"):
 			props.append(f"size: {pt(frappe.utils.flt(df.get('font_size')))}pt")
 		body = typst_escape(_(text)).replace("\n", " \\\n")
-		out = f"#text({', '.join(props)})[{body}]" if props else typst_escape(_(text))
+		out = f"#text({', '.join(props)})[{body}]" if props else body
 		if df.get("align") in ("center", "right"):
 			out = f"#align({df['align']})[{out}]"
 		return out

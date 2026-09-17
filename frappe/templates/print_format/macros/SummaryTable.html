@@ -2,7 +2,7 @@
 {% if _summary and _summary.rows %}
 {%- set _cell_style = table_cell_style(df) | trim -%}
 {%- set _frame_style = table_frame_style(df) | trim -%}
-<div class="child-table child-table--plain child-table--bordered pfb-summary-table"{% if df.custom_style %} style="{{ df.custom_style|e }}"{% endif %} {{ field_attributes(df) }}>
+<div class="child-table child-table--plain child-table--bordered"{% if df.custom_style %} style="{{ df.custom_style|e }}"{% endif %} {{ field_attributes(df) }}>
 	{%- set _show_label = df.show_label if df.show_label else 'show' -%}
 	{% if df.label and _show_label != 'hide' %}
 	<div class="label">{{ _(df.label)|e }}</div>
@@ -31,7 +31,7 @@
 			</tr>
 			{% endfor %}
 			{% if _summary.totals %}
-			<tr class="table-row pfb-summary-total">
+			<tr class="table-row">
 				{% for cell in _summary.totals %}
 				<td class="column-value" style="text-align: {{ cell.align }}; font-weight:700;{{ _cell_style|e }}">{{ cell.value|e }}</td>
 				{% endfor %}

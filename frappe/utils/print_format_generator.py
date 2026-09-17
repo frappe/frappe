@@ -1032,8 +1032,7 @@ class PrintFormatGenerator:
 		"""Group a child table's rows and evaluate per-group column expressions.
 
 		Each column expr sees: key (the group value), g (a dict of summed numeric
-		fields for the group), doc, and tax_rate(pattern) which returns the rate of
-		the first doc.taxes row whose description contains the pattern."""
+		fields for the group) and doc."""
 		if df.get("fieldtype") != "Summary Table" or not df.get("source") or not df.get("columns"):
 			return
 		if not self.has_field_access(self.doc, self.doc.meta, df["source"]):
@@ -1053,12 +1052,6 @@ class PrintFormatGenerator:
 		]
 		expr_doc = self.readable_snapshot(self.doc)
 
-		def tax_rate(pattern):
-			for tax in expr_doc.get("taxes") or []:
-				if pattern.lower() in (tax.get("description") or "").lower():
-					return tax.get("rate") or 0
-			return 0
-
 		groups = {}
 		for row in rows:
 			key = row.get(group_by) or ""
@@ -1077,7 +1070,7 @@ class PrintFormatGenerator:
 			for column in df["columns"]:
 				value = self.eval_logged(
 					column.get("expr") or "''",
-					{"key": key, "g": g, "doc": expr_doc, "tax_rate": tax_rate},
+					{"key": key, "g": g, "doc": expr_doc},
 					f"summary column {column.get('label') or ''}",
 					default="",
 				)

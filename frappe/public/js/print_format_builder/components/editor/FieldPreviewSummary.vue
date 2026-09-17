@@ -1,6 +1,6 @@
 <template>
 	<div class="child-table child-table--plain child-table--bordered pfb-summary-preview">
-		<table class="table">
+		<table class="table" :style="frame_style(df)">
 			<thead>
 				<tr>
 					<th
@@ -8,17 +8,24 @@
 						:key="'h1' + i"
 						:colspan="cell.colspan"
 						:rowspan="cell.rowspan"
+						:style="cell_style(df)"
 					>
 						{{ cell.label }}
 					</th>
 				</tr>
 				<tr v-if="head2.length">
-					<th v-for="(cell, i) in head2" :key="'h2' + i">{{ cell.label }}</th>
+					<th v-for="(cell, i) in head2" :key="'h2' + i" :style="cell_style(df)">
+						{{ cell.label }}
+					</th>
 				</tr>
 			</thead>
 			<tbody>
 				<tr>
-					<td class="text-muted pfb-summary-note" :colspan="leaf_count">
+					<td
+						class="text-muted pfb-summary-note"
+						:colspan="leaf_count"
+						:style="cell_style(df)"
+					>
 						{{
 							df.source
 								? __("Groups of {0} by {1} — computed on print", [
@@ -35,9 +42,13 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, inject } from "vue";
+import { useFieldFormat } from "../../composables/useFieldFormat";
 
 const props = defineProps(["df"]);
+const store = inject("$store");
+const preview_doc = computed(() => store.preview_doc.value);
+const { cell_style, frame_style } = useFieldFormat(props, store, preview_doc);
 
 let leaf_count = computed(() => (props.df.columns || []).length || 1);
 
