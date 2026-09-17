@@ -1011,6 +1011,10 @@ class PrintFormatGenerator:
 		value = frappe.db.get_value(link_df.options, name, target_fieldname)
 		if value is None:
 			return
+		if target_df.fieldtype == "Attach Image":
+			df["renderer"] = "AttachImage"
+			df["_value"] = value
+			return
 		df["_value"] = frappe.format_value(value, df=target_df, doc=self.doc)
 
 	def readable_snapshot(self, doc):
