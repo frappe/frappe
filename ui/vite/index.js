@@ -16,7 +16,20 @@
 // them). frappe-ui notably does not ship vuedraggable, so it lives in this
 // package's dependencies, not the host's.
 
-const SINGLETONS = ["vue", "vue-router", "frappe-ui", "reka-ui", "dompurify"];
+// @codemirror/state and @codemirror/view are here because CodeEditorField builds
+// a CodeMirror extension and hands it to frappe-ui's code editor. CodeMirror keys
+// facets and state fields by module identity, so a second copy fails the
+// instanceof check and the editor throws "Unrecognized extension value in
+// extension set" on mount.
+const SINGLETONS = [
+	"vue",
+	"vue-router",
+	"frappe-ui",
+	"reka-ui",
+	"dompurify",
+	"@codemirror/state",
+	"@codemirror/view",
+];
 
 export default function frameworkUI(options = {}) {
 	const extra = options.dedupe ?? [];

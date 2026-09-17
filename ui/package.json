@@ -68,6 +68,7 @@
   "license": "MIT",
   "dependencies": {
     "dompurify": "^3.4.0",
+    "marked": "^15.0.12",
     "cropperjs": "^2.1.1",
     "leaflet": "^1.9.4",
     "leaflet-draw": "^1.0.4",
@@ -75,7 +76,9 @@
     "vuedraggable": "^4.1.0"
   },
   "peerDependencies": {
-    "frappe-ui": ">=1.0.0-beta.16",
+    "@codemirror/state": "^6.0.0",
+    "@codemirror/view": "^6.0.0",
+    "frappe-ui": ">=1.0.0-beta.74",
     "vue": ">=3.3.0",
     "vue-router": "^4.1.5"
   }

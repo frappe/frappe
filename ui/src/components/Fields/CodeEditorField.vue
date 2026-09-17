@@ -8,52 +8,64 @@
 	     write/preview mode switch; the editor is never hidden. -->
 	<div ref="root" :class="layout === 'split' ? 'grid grid-cols-2 items-start gap-3' : ''">
 		<!-- Writer cell. The inner `relative` box anchors the floating Expand/
-		     Collapse pill to the *editor* (not the whole cell). The description and
-		     the stacked preview are rendered as siblings *below* this box (rather
-		     than inside it) so the editor's bottom fade covers only the code,
-		     never the help text or the preview. -->
+		     Collapse pill to the *editor* (not the whole cell). The stacked preview
+		     is a sibling *below* the labelled group so the editor's bottom fade
+		     covers only the code, never the help text or the preview. -->
 		<div>
-			<div class="relative">
-				<!-- Label / required indicator come from CodeEditor's own labeling
-				     wrapper (`field.label` / `field.reqd`); description is split out
-				     below so it sits clear of the fade. -->
-				<CodeEditor
-					:modelValue="value"
+			<!-- `space-y-1.5` is the gap frappe-ui's own labelled inputs put between
+			     label, control and description. -->
+			<div class="space-y-1.5">
+				<!-- The v1 CodeEditor is renderless and draws no chrome at all, so
+				     the label, the required marker and the description belong to the
+				     field. `forId` is omitted everywhere below: the control is
+				     CodeMirror's contenteditable, which `<label for>` cannot target —
+				     the accessible name reaches it through `contentAttributes`. -->
+				<InputLabel
+					v-if="field.label"
+					:id="labelId"
 					:label="field.label"
 					:required="field.reqd"
-					:language="language"
 					:disabled="field.readOnly"
-					:placeholder="field.placeholder"
-					:class="{ 'code-fade': showExpand && !expanded }"
-					:style="expanded ? undefined : { '--cm-max-height': COLLAPSED_HEIGHT }"
-					@update:modelValue="onInput"
-					@change="onCommit"
-					@overflow="overflowing = $event"
 				/>
-				<!-- Expand/collapse — floats centered over the editor's bottom edge,
-				     sitting on the fade so it reads as "there's more below". Shown
-				     only when content overflows the collapsed cap (or while expanded,
-				     so it can be re-collapsed). A labelled outline pill (solid white
-				     surface) stays legible over the faded code beneath it. -->
-				<Button
-					v-if="showExpand"
-					class="absolute bottom-2 left-1/2 z-10 -translate-x-1/2"
-					variant="outline"
-					size="sm"
-					:iconLeft="expanded ? 'lucide-chevrons-up' : 'lucide-chevrons-down'"
-					:label="expanded ? 'Collapse' : 'Expand'"
-					@click="expanded = !expanded"
+				<div class="relative" :data-readonly="field.readOnly ? 'true' : undefined">
+					<CodeEditor
+						:modelValue="value"
+						:extensions="extensions"
+						:editable="!field.readOnly"
+						@update:modelValue="onInput"
+						@change="onCommit"
+					>
+						<!-- The box. Collapsed it is capped at `max-h-54` (13.5rem);
+						     expanded the cap is dropped entirely. frappe-ui ships the
+						     cap rule at zero specificity, so this class always wins. -->
+						<CodeEditorContent
+							class="code-fade"
+							:class="expanded ? undefined : 'max-h-54'"
+							@overflow="overflowing = $event"
+						/>
+					</CodeEditor>
+					<!-- Expand/collapse — floats centered over the editor's bottom edge,
+					     sitting on the fade so it reads as "there's more below". Shown
+					     only when content overflows the collapsed cap (or while expanded,
+					     so it can be re-collapsed). A labelled outline pill (solid white
+					     surface) stays legible over the faded code beneath it. -->
+					<Button
+						v-if="showExpand"
+						class="absolute bottom-2 left-1/2 z-10 -translate-x-1/2"
+						variant="outline"
+						size="sm"
+						:iconLeft="expanded ? 'lucide-chevrons-up' : 'lucide-chevrons-down'"
+						:label="expanded ? 'Collapse' : 'Expand'"
+						@click="expanded = !expanded"
+					/>
+				</div>
+				<InputDescription
+					v-if="field.description"
+					:id="descriptionId"
+					:description="field.description"
+					:disabled="field.readOnly"
 				/>
 			</div>
-			<!-- Description, split out of CodeEditor so the fade above never touches
-			     it. Uses frappe-ui's InputDescription so the markup/spacing match
-			     every other field's help text. -->
-			<InputDescription
-				v-if="field.description"
-				:id="descriptionId"
-				:description="field.description"
-				class="mt-1"
-			/>
 			<!-- Narrow `stacked` layout: a live preview always sits below the editor
 			     (the wide `split` layout shows it as a side column instead). It's
 			     wrapped in a disclosure so it can be collapsed to reclaim vertical
@@ -72,6 +84,7 @@
 					<span
 						:class="previewOpen ? 'lucide-chevron-down' : 'lucide-chevron-right'"
 						class="size-3.5 text-ink-gray-7"
+						aria-hidden="true"
 					/>
 					<InputLabel
 						:id="previewLabelId"
@@ -82,8 +95,8 @@
 				<CodePreview
 					v-show="previewOpen"
 					:modelValue="value"
-					:language="language"
-					class="mt-1 min-h-[4.5rem] rounded-md border border-surface-gray-2 p-3"
+					:language="languageKey"
+					class="mt-1 min-h-18 rounded-4 border border-outline-gray-2 p-3"
 				/>
 			</div>
 		</div>
@@ -91,9 +104,7 @@
 		     gets its own "Preview" header (only when the writer has a label, so the
 		     two columns either both have a header row or neither does) so its top
 		     lines up with the editor instead of floating above the label. -->
-		<div v-if="layout === 'split'" class="space-y-1">
-			<!-- Pane header — frappe-ui's InputLabel (no `forId`: there's no control
-			     to bind, it just matches CodeEditor's own label so the columns align). -->
+		<div v-if="layout === 'split'" class="space-y-1.5">
 			<InputLabel
 				v-if="field.label"
 				:id="previewLabelId"
@@ -102,8 +113,8 @@
 			/>
 			<CodePreview
 				:modelValue="value"
-				:language="language"
-				class="min-h-[4.5rem] rounded-md border border-surface-gray-2 p-3"
+				:language="languageKey"
+				class="min-h-18 rounded-4 border border-outline-gray-2 p-3"
 			/>
 		</div>
 	</div>
@@ -111,13 +122,16 @@
 
 <script setup lang="ts">
 // Field wrapper for the code-family fieldtypes (JSON / Markdown Editor /
-// HTML Editor / Code). Composes the `CodeEditor` writer with the `CodePreview`
-// primitive, deriving the language from the field. The value stays a string in
-// `doc` (Frappe JSON/Code fields store strings) — the contract is unchanged.
-import { computed, onBeforeUnmount, onMounted, ref, useId, watch } from "vue";
+// HTML Editor / Code). Composes frappe-ui's v1 code-editor family with the local
+// `CodePreview`, deriving the language from the field. The value stays a string
+// in `doc` (Frappe JSON/Code fields store strings) — the contract is unchanged.
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useId, watch } from "vue";
 import { Button } from "frappe-ui";
 import { InputLabel, InputDescription } from "frappe-ui/experimental";
-import { CodeEditor, CodePreview } from "frappe-ui/code-editor";
+import { CodeEditor, CodeEditorContent, CodeKit, loadLanguage } from "frappe-ui/code-editor";
+import { EditorView } from "@codemirror/view";
+import type { Extension } from "@codemirror/state";
+import CodePreview from "./CodePreview.vue";
 import { fieldtypeToLanguage } from "./fieldtypeToLanguage";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 
@@ -143,19 +157,71 @@ const emit = defineEmits<FieldComponentEmits>();
 // no setter — commits flow through `onInput`/`onCommit`).
 const value = computed<string>(() => props.modelValue ?? "");
 
-const language = computed(() => fieldtypeToLanguage(props.field));
+const languageKey = computed(() => fieldtypeToLanguage(props.field));
 
-// Only Markdown / HTML have a meaningful preview; JSON / Code never mount one.
-const hasPreview = computed(() => language.value === "markdown" || language.value === "html");
-// The stacked preview can be collapsed to reclaim vertical space; open by default
-// so the live preview is visible without a click.
-const previewOpen = ref(true);
+// `loadLanguage` code-splits the ten CodeMirror grammars, so the extension lands
+// after mount. `extensions` is reactive, so it is applied with one reconfigure:
+// no remount, and the document, selection and undo history all survive. A key the
+// map doesn't know (`plain`) resolves to `null` — plain text, no highlighting.
+const languageExtension = shallowRef<Extension | null>(null);
+let languageRequest = 0;
+
+watch(
+	languageKey,
+	(key) => {
+		const request = ++languageRequest;
+		loadLanguage(key)
+			.then((extension) => {
+				// A slow earlier load must not land on top of a newer language.
+				if (request === languageRequest) languageExtension.value = extension;
+			})
+			.catch((error) => {
+				// The throw names the `@codemirror/lang-*` package to install.
+				if (request === languageRequest) languageExtension.value = null;
+				console.error(error);
+			});
+	},
+	{ immediate: true }
+);
+
+// Built outside the `extensions` computed: a kit rebuilt on every recompute is a
+// new extension identity, and the reconfigure takes the undo history with it.
+const kit = computed(() =>
+	props.field.placeholder ? CodeKit.configure({ placeholder: props.field.placeholder }) : CodeKit
+);
 
 // Stable ids for the InputLabel/InputDescription elements (frappe-ui's labeling
 // primitives require an explicit id). The split and stacked layouts never render
 // together, so the preview label can share one id.
+const labelId = useId();
 const descriptionId = useId();
 const previewLabelId = useId();
+
+// The family sets no ARIA of its own, and `<label for>` cannot target a
+// contenteditable, so the field pushes its own labelling onto CodeMirror's
+// content element. Recomputes only when the field's meta changes.
+const contentAttributes = computed(() => {
+	const attrs: Record<string, string> = {};
+	if (props.field.label) attrs["aria-labelledby"] = labelId;
+	if (props.field.description) attrs["aria-describedby"] = descriptionId;
+	if (props.field.reqd) attrs["aria-required"] = "true";
+	return EditorView.contentAttributes.of(attrs);
+});
+
+const extensions = computed<Extension[]>(() => {
+	const list: Extension[] = [kit.value];
+	if (languageExtension.value) list.push(languageExtension.value);
+	list.push(contentAttributes.value);
+	return list;
+});
+
+// Only Markdown / HTML have a meaningful preview; JSON / Code never mount one.
+const hasPreview = computed(
+	() => languageKey.value === "markdown" || languageKey.value === "html"
+);
+// The stacked preview can be collapsed to reclaim vertical space; open by default
+// so the live preview is visible without a click.
+const previewOpen = ref(true);
 
 // Responsive layout: when `view` is `"auto"`, a previewable field shows the
 // preview side-by-side in a wide column and stacks it below the editor in a narrow
@@ -173,11 +239,11 @@ const layout = computed<"editor" | "split" | "stacked">(() => {
 	return isWide.value ? "split" : "stacked";
 });
 
-// Expand/collapse: the editor is capped at COLLAPSED_HEIGHT until expanded. The
-// pill only appears once the content overflows the cap (the editor reports this
-// via its `overflow` emit), or while expanded so it can be collapsed back. The
-// editor is always visible (no mode switch), so this tracks the cap alone.
-const COLLAPSED_HEIGHT = "13.5rem";
+// Expand/collapse: the editor is capped at 13.5rem (`max-h-54`) until expanded.
+// The pill only appears once the content overflows the cap (CodeEditorContent
+// reports this through `overflow`), or while expanded — expanding drops the cap,
+// which fires `overflow(false)`, so a pill bound to `overflowing` alone would take
+// the way back with it.
 const expanded = ref(false);
 const overflowing = ref(false);
 const showExpand = computed(() => overflowing.value || expanded.value);
@@ -216,9 +282,10 @@ function onInput(v: string) {
 	emit("update:modelValue", v);
 }
 
-// Commit (blur). JSON is pretty-printed at the component edge; on parse failure
-// the raw text is kept. The rewritten value flows back into the editor via its
-// `modelValue` watch.
+// Commit. `change` fires on a blur that follows an edit, so a focus-and-leave
+// commits nothing. JSON is pretty-printed here; on parse failure the raw text is
+// kept. The rewritten value flows back in through `modelValue`, which the engine
+// applies as a minimal diff — caret, scroll and any in-flight IME survive it.
 function onCommit(v: string) {
 	let out = v;
 	if (props.field.fieldtype === "JSON") {
@@ -234,12 +301,20 @@ function onCommit(v: string) {
 </script>
 
 <style scoped>
-/* Collapsed editors fade their content out at the bottom so the floating Expand
-   pill reads as "there's more below". Masking the scroller (rather than overlaying
-   a solid gradient) fades the actual pixels, so it works regardless of the editor's
-   variant background or focus state. `:deep` reaches CodeMirror's scroller, which is
-   rendered inside the child CodeEditor. */
-.code-fade :deep(.cm-scroller) {
+/* A read-only field takes the quiet non-control fill, which is what every other
+   disabled input in the system uses. v1 dropped the `disabled` prop for
+   `editable`, and `editable` alone changes nothing visual — the surface is the
+   consumer's, set through the `--code-bg` hook on an ancestor. */
+[data-readonly="true"] {
+	--code-bg: var(--surface-gray-1);
+}
+
+/* Collapsed *and* overflowing, the box fades its content out at the bottom so the
+   floating Expand pill reads as "there's more below". `data-overflowing` is part
+   of CodeEditorContent's public surface, and expanding drops the cap — the
+   attribute clears itself, so nothing here needs a JS toggle. Masking fades the
+   real pixels, so it holds on any background and in any focus state. */
+.code-fade[data-overflowing="true"] {
 	-webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent);
 	mask-image: linear-gradient(to bottom, #000 60%, transparent);
 }
