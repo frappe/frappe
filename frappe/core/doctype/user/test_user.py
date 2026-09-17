@@ -3,7 +3,7 @@
 import json
 import time
 from contextlib import contextmanager
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 from urllib.parse import parse_qs, urlparse
 
 from werkzeug.http import parse_cookie
@@ -28,7 +28,7 @@ from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import toggle_test_mode
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import get_url
+from frappe.utils import add_to_date, get_url, now_datetime
 from frappe.utils.data import orjson_dumps
 from frappe.www.login import sanitize_redirect
 
@@ -341,6 +341,7 @@ class TestUser(IntegrationTestCase):
 			"frappe.core.doctype.user.user.rewrite_owner_fields",
 			old_name=old_name,
 			new_name=new_name,
+			renamed_at=ANY,
 			commit=True,
 			queue="long",
 			timeout=36000,
@@ -350,10 +351,37 @@ class TestUser(IntegrationTestCase):
 		)
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "owner"), old_name)
 
-		rewrite_owner_fields(old_name, new_name)
+		rewrite_owner_fields(old_name, new_name, now_datetime())
 
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "owner"), new_name)
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "modified_by"), new_name)
+
+	def test_owner_sweep_leaves_rows_written_after_the_rename(self):
+		old_name = "test_user_rename_reused@example.com"
+		new_name = "test_user_rename_reused_new@example.com"
+		renamed_at = now_datetime()
+
+		before = frappe.get_doc({"doctype": "ToDo", "description": "written before the rename"}).insert()
+		after = frappe.get_doc({"doctype": "ToDo", "description": "written by the new holder"}).insert()
+		for todo, written_at in (
+			(before, add_to_date(renamed_at, minutes=-1)),
+			(after, add_to_date(renamed_at, minutes=1)),
+		):
+			frappe.db.set_value(
+				"ToDo",
+				todo.name,
+				{"owner": old_name, "modified_by": old_name, "creation": written_at, "modified": written_at},
+				update_modified=False,
+			)
+
+		rewrite_owner_fields(old_name, new_name, renamed_at)
+
+		self.assertEqual(
+			frappe.db.get_value("ToDo", before.name, ["owner", "modified_by"]), (new_name, new_name)
+		)
+		self.assertEqual(
+			frappe.db.get_value("ToDo", after.name, ["owner", "modified_by"]), (old_name, old_name)
+		)
 
 	def test_user_rename_blocked_while_owner_sweep_is_pending(self):
 		renamed = "test_user_rename_pending@example.com"
