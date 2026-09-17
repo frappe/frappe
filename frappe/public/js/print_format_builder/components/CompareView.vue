@@ -84,6 +84,7 @@ const frame = ref(null);
 const html = ref("");
 const note = ref("");
 const entries = ref([]);
+let load_seq = 0;
 
 const KIND_LABEL = {
 	added: __("Added"),
@@ -149,6 +150,7 @@ function jump(item) {
 }
 
 async function load() {
+	const seq = ++load_seq;
 	html.value = "";
 	note.value = "";
 	const draft = store.value.get_preview_format_doc();
@@ -184,12 +186,13 @@ async function load() {
 	try {
 		const args = { print_format: doc, doctype: doctype.value, name: docname.value };
 		if (store.value.letterhead) args.letterhead = store.value.letterhead.name;
-		html.value = await frappe.xcall(
+		const rendered = await frappe.xcall(
 			"frappe.utils.print_format_generator.render_builder_preview",
 			args
 		);
+		if (seq === load_seq) html.value = rendered;
 	} catch (e) {
-		note.value = e.message || __("Could not render the draft");
+		if (seq === load_seq) note.value = e.message || __("Could not render the draft");
 	}
 }
 

@@ -83,13 +83,14 @@ function zones_of(layout) {
 
 function fields_of(layout) {
 	const out = new Map();
-	const seen = {};
 	zones_of(layout).forEach(({ id, section }) => {
 		(section.columns || []).forEach((col, ci) => {
+			const seen = {};
 			(col.fields || []).forEach((f, pos) => {
 				if (f.remove || !f.fieldname) return;
 				seen[f.fieldname] = (seen[f.fieldname] || 0) + 1;
-				out.set(`${f.fieldname}#${seen[f.fieldname]}`, {
+				out.set(`${id}/${ci}/${f.fieldname}#${seen[f.fieldname]}`, {
+					fieldname: f.fieldname,
 					zone: id,
 					col: ci,
 					pos,
@@ -123,16 +124,23 @@ export function describe_draft_changes(saved, draft) {
 	const after = fields_of(merged);
 	const status = new Map();
 
+	const unmatched_before = [];
+	const unmatched_after = [];
 	for (const [key, f] of after) {
 		const old = before.get(key);
-		let entry;
-		if (!old) entry = { kind: "added", notes: [] };
-		else if (old.zone !== f.zone || old.col !== f.col) entry = { kind: "moved", notes: [] };
+		if (!old) unmatched_after.push(f);
 		else {
 			const notes = prop_notes(old.props, f.props);
-			if (notes.length) entry = { kind: "changed", notes };
+			if (notes.length) status.set(f.props, { kind: "changed", notes });
 		}
-		if (entry) status.set(f.props, entry);
+	}
+	for (const [key, old] of before) if (!after.has(key)) unmatched_before.push(old);
+	for (const f of unmatched_after) {
+		const i = unmatched_before.findIndex((old) => old.fieldname === f.fieldname);
+		if (i >= 0) {
+			unmatched_before.splice(i, 1);
+			status.set(f.props, { kind: "moved", notes: [] });
+		} else status.set(f.props, { kind: "added", notes: [] });
 	}
 
 	const sections = [];
@@ -156,8 +164,7 @@ export function describe_draft_changes(saved, draft) {
 	});
 
 	const merged_zones = Object.fromEntries(zones_of(merged).map((z) => [z.id, z.section]));
-	for (const [key, old] of before) {
-		if (after.has(key)) continue;
+	for (const old of unmatched_before) {
 		const zone = merged_zones[old.zone];
 		if (!zone) continue;
 		const col = (zone.columns || [])[old.col] || (zone.columns || [])[zone.columns.length - 1];
