@@ -1,7 +1,9 @@
 <!-- Wrapper div so flex-1 applies: MultiEmailInput puts attrs.class on its inner box. -->
 <template>
 	<div
-		class="w-full flex-1"
+		ref="row"
+		tabindex="-1"
+		class="w-full flex-1 outline-none"
 		:class="{ 'drop-target': isDragOver }"
 		@dragover.prevent="isDragOver = true"
 		@dragleave="onDragLeave"
@@ -56,7 +58,7 @@ let droppedOnTarget = false;
 </script>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, useTemplateRef } from "vue";
 import { computedAsync, useDebounceFn } from "@vueuse/core";
 import { Avatar, toast } from "frappe-ui";
 import LucideX from "~icons/lucide/x";
@@ -75,10 +77,14 @@ const emit = defineEmits<{ showCcBcc: [] }>();
 // same payload key frappe mail uses, so the two stay swappable
 const DRAG_TYPE = "recipient";
 const isDragOver = ref(false);
+const row = useTemplateRef<HTMLElement>("row");
 
 function onDragStart(event: DragEvent, email: string, option?: MultiEmailOption) {
 	droppedOnTarget = false;
 	emit("showCcBcc");
+	// the open suggestion list covers the rows being dragged to, and it only
+	// closes when focus leaves the input
+	row.value?.focus();
 	if (!event.dataTransfer) return;
 	event.dataTransfer.effectAllowed = "move";
 	event.dataTransfer.setData(
