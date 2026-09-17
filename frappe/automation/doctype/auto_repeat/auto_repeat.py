@@ -103,6 +103,7 @@ class AutoRepeat(Document):
 		frappe.get_doc(self.reference_doctype, self.reference_document).notify_update()
 
 	def on_trash(self):
+		self.validate_reference_permission()
 		frappe.db.set_value(self.reference_doctype, self.reference_document, "auto_repeat", "")
 		frappe.get_doc(self.reference_doctype, self.reference_document).notify_update()
 
