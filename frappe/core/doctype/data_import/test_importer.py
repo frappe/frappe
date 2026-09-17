@@ -612,12 +612,12 @@ class TestImporter(IntegrationTestCase):
 		df = frappe._dict(fieldname="status", parent="Contact")
 		self.assertEqual(resolve_import_value(" Pasiv ", df, "Contact", lookup), "Passive")
 
-	def test_no_of_rows_count_returns_row_count(self):
-		from frappe.core.doctype.data_import.value_mapping import no_of_rows_count
+	def test_row_count_label_returns_row_count(self):
+		from frappe.core.doctype.data_import.value_mapping import row_count_label
 
-		self.assertEqual(no_of_rows_count([]), "")
-		self.assertEqual(no_of_rows_count([3]), "1")
-		self.assertEqual(no_of_rows_count([2, 3, 4]), "3")
+		self.assertEqual(row_count_label([]), "")
+		self.assertEqual(row_count_label([3]), "1")
+		self.assertEqual(row_count_label([2, 3, 4]), "3")
 
 	def test_format_row_numbers_for_warning_truncates_long_lists(self):
 		from frappe.core.doctype.data_import.importer import format_row_numbers_for_warning

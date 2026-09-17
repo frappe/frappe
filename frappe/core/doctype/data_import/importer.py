@@ -45,8 +45,8 @@ class Importer:
 		self.doctype = doctype
 		self.console = console
 		self.use_sniffer = use_sniffer
-		# Set when prechecks block the run; callers use it to skip the "refresh" broadcast
-		# since a `data_import_blocked` event was already sent.
+		# True when prechecks blocked the run; a `data_import_blocked` event was already
+		# sent, so callers skip the normal "refresh" broadcast.
 		self.blocked_by_warnings = False
 
 		self.data_import = data_import
@@ -170,16 +170,14 @@ class Importer:
 				)
 			return
 
-		# The retry purge below keys off the status of the *previous* attempt, so read it
-		# before "In Progress" overwrites it.
+		# Read previous status before 'In Progress' overwrites it; retry purge needs it.
 		previous_status = self.data_import.status
 
 		if self.data_import.name:
 			self.data_import.db_set("status", "In Progress")
 
 		# setup import log
-		# Only use import log for retry/resume when Data Import is persisted in DB.
-		# For bench data-import (CLI), the doc is never inserted, so we must not reuse logs
+		# Reuse import log only when the doc is persisted; CLI imports never insert it.
 		import_log = []
 		if self.data_import.name and frappe.db.exists("Data Import", self.data_import.name):
 			import_log = (
@@ -199,8 +197,7 @@ class Importer:
 			previous_status in ("Partial Success", "Error", "Timed Out")
 			and len(import_log) >= self.data_import.payload_count
 		):
-			# When the previous attempt fully logged every payload, retry should start from the
-			# successful rows only; stale failed rows must be dropped even after a timeout.
+			# On full-logged retry, keep only successful rows and drop stale failures.
 			import_log = [log for log in import_log if log.get("success")]
 			frappe.db.delete("Data Import Log", {"success": 0, "data_import": self.data_import.name})
 
@@ -486,9 +483,8 @@ class Importer:
 			first_message = messages[0]
 			if isinstance(first_message, dict):
 				if first_message.get("message"):
-					# message_log entries are already clean_html-sanitized by msgprint; run it
-					# again here so the realtime payload is safe to render as HTML regardless of
-					# how the message reached us (defense-in-depth before the client .html() sink).
+					# Already sanitized by msgprint, but re-sanitize so the realtime payload is
+					# safe however the message reached us; the client renders it as HTML.
 					message_text = clean_html(first_message.get("message"))
 					is_html = True
 				else:
@@ -504,8 +500,7 @@ class Importer:
 
 	def process_doc(self, doc):
 		"""Process one import payload; returns ``(document, import_action)``."""
-		# A Custom Import Provider owns record creation; the framework keeps the loop,
-		# batching, progress, logging, resume and status.
+		# Provider owns record creation; framework keeps the loop and logging.
 		if getattr(self, "provider", None):
 			return self.provider.import_row(self, doc)
 		if self.import_type == INSERT:
@@ -913,8 +908,7 @@ class ImportFile:
 		return out
 
 	def get_payloads_for_import(self):
-		# Apply tree move / group edits to the parsed rows before building docs; the
-		# existing sort_tree_payloads() then re-orders parent-before-child for us.
+		# Apply tree edits before building docs; sort_tree_payloads reorders parent-first.
 		self.apply_tree_overrides()
 		payloads = []
 		# make a copy
@@ -927,9 +921,8 @@ class ImportFile:
 		return sort_tree_payloads(payloads, self.doctype, self.import_type)
 
 	def apply_tree_overrides(self):
-		"""Patch the parent / is_group cells of rows the user moved or (un)grouped in the
-		tree preview. Both the preview and the import read from these cells, so this single
-		mutation flows through the whole pipeline (including the parent-before-child sort)."""
+		"""Patch parent/is_group cells for rows the user moved or (un)grouped; preview and
+		import both read these cells, so the one mutation flows through the whole pipeline."""
 		overrides = self.tree_parent_overrides
 		if not overrides:
 			return
@@ -1103,13 +1096,7 @@ def _get_id_fieldname_from_meta(meta) -> str:
 
 
 def _get_tree_alias_field_from_meta(meta) -> str | None:
-	"""Title field for parent-by-alias tree imports; fallback to first required Data field
-	when names are auto-generated without a title_field.
-
-	Returns None only when names come from a ``field:`` autoname (name is in the file).
-	For tree doctypes with auto-generated names, provides a fallback identifier field
-	so tree preview and same-file parent validation work correctly.
-	"""
+	"""Alias field for parent-by-alias tree imports; None when name comes from a field: autoname."""
 	# Not a tree doctype — no alias needed
 	if not meta.is_nested_set():
 		return None
@@ -1607,9 +1594,6 @@ class Row:
 		is_table = frappe.get_meta(doctype).istable
 		is_update = self.import_type in (UPDATE, UPSERT)
 		if is_table and is_update:
-			# check if the row already exists
-			# if yes, fetch the original doc so that it is not updated
-			# if no, create a new doc
 			id_field = get_id_field(doctype)
 			id_value = doc.get(id_field.fieldname)
 			if id_value and frappe.db.exists(doctype, id_value):
@@ -1968,9 +1952,7 @@ class Column:
 		self.skip_import = skip_import
 
 	def guess_date_format_for_column(self):
-		"""Guesses date format for a column by parsing all the values in the column,
-		getting the date format and then returning the one which has the maximum frequency
-		"""
+		"""Return the most common date format among the column's values."""
 
 		def guess_date_format(d):
 			if isinstance(d, datetime | date | time):
@@ -1989,13 +1971,13 @@ class Column:
 			return
 
 		unique_date_formats = set(date_formats)
-		max_occurred_date_format = max(unique_date_formats, key=date_formats.count)
+		most_common_date_format = max(unique_date_formats, key=date_formats.count)
 
 		if len(unique_date_formats) > 1:
 			# fmt: off
 			message = _("The column {0} has {1} different date formats. Automatically setting {2} as the default format as it is the most common. Please change other values in this column to this format.")
 			# fmt: on
-			user_date_format = get_user_format(max_occurred_date_format)
+			user_date_format = get_user_format(most_common_date_format)
 			self.warnings.append(
 				{
 					"col": self.column_number,
@@ -2008,7 +1990,7 @@ class Column:
 				}
 			)
 
-		return max_occurred_date_format
+		return most_common_date_format
 
 	def validate_values(self):
 		"""Validate all values in the column; append column-level warnings with row numbers."""
@@ -2026,12 +2008,7 @@ class Column:
 
 			warn_invalid_link_select_values(self)
 		elif self.df.fieldtype in ("Date", "Time", "Datetime"):
-			# guess date/time format
-			# TODO: add possibility for user, to define the date format explicitly in the Data Import UI
-			# for example, if date column in file is in  %d-%m-%y  format -> 23-04-24.
-			# The date guesser might fail, as, this can be also parsed as %y-%m-%d, as both 23 and 24 are valid for year & for day
-			# This is an issue that cannot be handled automatically, no matter how we try, as it completely depends on the user's input.
-			# Defining an explicit value which surely recognizes
+			# TODO: let user set the date format explicitly; auto-guess is ambiguous (e.g. dd-mm-yy vs yy-mm-dd).
 			self.date_format = self.date_format_override or self.guess_date_format_for_column()
 
 			if not self.date_format:
@@ -2079,11 +2056,10 @@ class _HashableTableDF(frappe._dict):
 
 
 def _build_fields_dict_from_schema(parent_doctype, schema):
-	"""Header -> docfield map built from a Custom Import Provider's schema instead of meta.
+	"""Header -> docfield map built from a provider's schema instead of meta.
 
-	Mirrors ``build_fields_dict_for_column_matching`` but sources the groups (parent + child
-	tables) and their fields from ``get_import_fields``. Each child-table group's child DocType
-	is taken from its fields' ``parent`` (they are complete docfields)."""
+	Mirrors build_fields_dict_for_column_matching; each child table's DocType comes from
+	its fields' ``parent``."""
 	out = {}
 
 	groups = [(parent_doctype, None, schema.get("fields") or [])]

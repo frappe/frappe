@@ -19,9 +19,8 @@ frappe.data_import.DataExporter = class DataExporter {
 		this.doctype = doctype;
 		this.exporting_for = exporting_for;
 		this.hide_blank_template = hide_blank_template;
-		// A Custom Import Provider's field schema ({fields, child_tables} of complete DFs).
-		// When set, the picker's field data comes from it instead of the DocType meta;
-		// rendering is identical, so other callers (e.g. list export) are unaffected.
+		// Provider field schema ({fields, child_tables}); when set the picker reads
+		// from it instead of DocType meta. Other callers (e.g. list export) pass none.
 		this.provider_schema = provider_schema || null;
 		frappe.model.with_doctype(doctype, () => {
 			this.make_dialog(filetype);
@@ -274,8 +273,7 @@ frappe.data_import.DataExporter = class DataExporter {
 		});
 	}
 
-	// Field-picker data source: groups (parent + child tables) with their complete DFs, from
-	// the provider schema when present, otherwise from the DocType meta. Cached per instance.
+	// Picker groups (parent + child tables) from provider or meta; cached.
 	get_field_source() {
 		if (this._field_source) return this._field_source;
 

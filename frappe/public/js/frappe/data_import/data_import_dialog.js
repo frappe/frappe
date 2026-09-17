@@ -70,10 +70,7 @@ function _open(opts, { data_import, reference_doctype, import_type, title, on_im
 	// A plain wrapper for the embedded form. make_app_page() will attach `.page` here.
 	const $host = $('<div class="data-import-dialog-host"></div>').appendTo(dialog.$body);
 
-	// in_form=false: an embedded/dialog form, NOT a standalone form view. This makes
-	// Form.rename_notify() skip its frappe.set_route() on the first save of a new doc
-	// (form.js: `if (this.meta.in_dialog || !this.in_form) return`) — otherwise saving a
-	// new-* doc navigates the whole desk to the form view and tears the dialog down.
+	// in_form=false: skip rename_notify's set_route so first save doesn't tear down the dialog
 	const frm = new frappe.ui.form.Form("Data Import", $host.get(0), false);
 
 	// Let the wizard / controller know it is embedded (so page-context tweaks below
@@ -93,11 +90,7 @@ function _open(opts, { data_import, reference_doctype, import_type, title, on_im
 	}
 
 	const boot_new = () => {
-		// A plain new (unsaved) doc — nothing is persisted until the wizard saves, which
-		// only happens after the user attaches a file / advances. So opening the dialog and
-		// closing it without attaching anything creates NO Data Import record. The first
-		// save renames new-* → real name; with in_form=false above, that no longer reroutes.
-		// (get_new_doc initializes frappe.model.docinfo[doctype][name], so get_docinfo is safe.)
+		// New doc isn't persisted until the wizard saves, so closing without attaching creates no record
 		const name = frappe.model.make_new_doc_and_get_name("Data Import");
 		const doc = frappe.get_doc("Data Import", name);
 		doc.reference_doctype = reference_doctype;
@@ -151,10 +144,8 @@ function _after_refresh(frm) {
 
 	const notify = frm.__di_notify_complete;
 	if (notify) {
-		// Cheap poll — the controller re-renders on realtime import progress; checking
-		// on an interval avoids threading a callback through the whole controller. Cleared
-		// on modal hide (a hidden dialog keeps its wrapper in the DOM, so the DOM check
-		// alone never stops it).
+		// Poll instead of threading a callback through the controller. Clear on hide: a hidden
+		// dialog keeps its wrapper in the DOM, so the contains() check alone never stops it.
 		frm.__di_poll_timer = setInterval(() => {
 			if (!document.body.contains(frm.wrapper)) {
 				clearInterval(frm.__di_poll_timer);

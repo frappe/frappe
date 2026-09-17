@@ -97,10 +97,8 @@ class DataImport(Document):
 			return
 		if is_job_enqueued(f"data_import||{self.name}"):
 			return
-		# Job is gone — mark terminal, but only if the DB is still "In Progress", to avoid
-		# overwriting a final status the worker may have written just now. Don't touch
-		# `modified`: this is a system correction during load, not a user edit, and bumping
-		# it would desync the doc the client just loaded.
+		# Mark terminal only if still In Progress, so we don't clobber the worker's final status.
+		# Leave `modified` untouched: this is a system fix during load, not a user edit.
 		frappe.db.set_value(
 			"Data Import",
 			{"name": self.name, "status": "In Progress"},
@@ -134,8 +132,7 @@ class DataImport(Document):
 		importer = self.get_importer() if (self.import_file or self.google_sheets_url) else None
 		if importer:
 			self.set_payload_count(importer)
-			# Sync can reshape mappings when file content changes at the same URL —
-			# clear snapshotted warnings if that happens so Fix Issues routing stays honest.
+			# File content can change at the same URL — drop snapshotted warnings so Fix Issues stays correct
 			mappings_before_sync = _value_mapping_state(self)
 			self.sync_value_mappings_from_import(importer)
 			if self.template_warnings and _value_mapping_state(self) != mappings_before_sync:
@@ -149,14 +146,12 @@ class DataImport(Document):
 		if not self.template_warnings or not doc_before_save:
 			return
 
-		# URL change is also handled above; keep this explicit so mapping-only saves and
-		# delimiter / column-map edits still invalidate the snapshot.
+		# Also invalidate on mapping-only and delimiter/column-map edits
 		if _import_source_fingerprint(self) != _import_source_fingerprint(doc_before_save):
 			self.template_warnings = ""
 			return
 
-		# Keep template warnings when only skipped_rows changes so skipped row warnings
-		# remain visible in Fix Issues with an Undo Skip action after save.
+		# Keep template warnings on skipped_rows-only changes so Undo Skip stays available
 		if _value_mapping_state(self) != _value_mapping_state(doc_before_save):
 			self.template_warnings = ""
 
@@ -307,10 +302,8 @@ def stop_data_import(doc_name: str):
 		# Job already finished or worker crashed — no active job to stop.
 		job_was_running = False
 
-	# RQ stop can terminate the worker before import cleanup writes a final status.
-	# Also handles orphaned "In Progress" when job died without cleanup.
-	# Mark terminal status only if DB is still "In Progress" at update time.
-	# This avoids overwriting a legitimate terminal status written by the worker.
+	# RQ stop can kill the worker before it writes a final status (also recovers an orphaned
+	# "In Progress"). Only mark terminal if DB is still In Progress, to preserve the worker's status.
 	frappe.db.set_value(
 		"Data Import",
 		{"name": data_import.name, "status": "In Progress"},
@@ -362,9 +355,8 @@ def start_import(data_import):
 			docname=data_import.name,
 		)
 
-		# Notify the reference doctype list view to refresh — realtime `list_update` events
-		# are suppressed during import (frappe.flags.in_import) to avoid flooding, so we
-		# publish a single event after import completes to refresh the list.
+		# list_update is suppressed during import (frappe.flags.in_import) to avoid flooding;
+		# publish one refresh for the reference doctype list after import completes.
 		if data_import.reference_doctype and data_import.status in ("Success", "Partial Success"):
 			data = {"doctype": data_import.reference_doctype, "name": None, "user": frappe.session.user}
 			frappe.publish_realtime("list_update", data, after_commit=True)  # nosemgrep
@@ -599,11 +591,7 @@ def import_doc(path, pre_process=None, sort=False):
 
 def export_json(doctype, path, filters=None, or_filters=None, name=None, order_by="creation asc"):
 	def post_process(out):
-		# Note on Tree DocTypes:
-		# The tree structure is maintained in the database via the fields "lft"
-		# and "rgt". They are automatically set and kept up-to-date. Importing
-		# them would destroy any existing tree structure. For this reason they
-		# are not exported as well.
+		# lft/rgt are DB-managed; exporting them would corrupt the tree, so skip them
 		del_keys = ("modified_by", "creation", "owner", "idx", "lft", "rgt")
 		for doc in out:
 			for key in del_keys:

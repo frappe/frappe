@@ -58,8 +58,7 @@ def get_import_provider(doctype: str) -> ImportProvider | None:
 	"""Resolve the registered provider for ``doctype``, or ``None``."""
 	if not doctype:
 		return None
-	# When no app registers `data_import_providers`, get_hooks returns an empty list
-	# (not a dict), so guard the type before .get().
+	# get_hooks returns [] (not a dict) when nothing is registered; guard before .get().
 	hooks = frappe.get_hooks("data_import_providers")
 	if not isinstance(hooks, dict):
 		return None

@@ -207,15 +207,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.setup_import_menu();
 	}
 
-	/**
-	 * "Import" nested submenu inside the page (⋯) menu — same place the old flat "Import"
-	 * menu item lived, but expandable (like the Kanban view switcher). Holds "New Import"
-	 * (new import dialog) and "Show All" (filtered list). Gated on the same can_import meta.
-	 * The wizard/dialog bundle is loaded lazily, only when an item is clicked.
-	 *
-	 * A (⋯)-menu item whose <li> carries data("menu_submenu", {group, label}) is rendered
-	 * by Page.build_dropdown_options() as one "group" row with a submenu.
-	 */
+	// Nested 'Import' submenu (New Import / Show All); bundle loaded lazily on click.
+	// The <li>'s menu_submenu data is what Page.build_dropdown_options renders as a submenu.
 	setup_import_menu() {
 		if (!frappe.model.can_import(this.doctype, null, this.meta)) return;
 
@@ -229,8 +222,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		};
 
 		const add_sub_item = (label, click) => {
-			// Flat "Group > Label" keeps add_menu_item's dedup unique; the submenu
-			// rendering uses the menu_submenu data, not this flat label.
+			// Flat "Group > Label" keeps add_menu_item dedup unique; the submenu is
+			// rendered from the menu_submenu data below, not from this flat label.
 			const $item = this.page.add_menu_item(`${group} > ${label}`, click, true, null, false);
 			$item.closest("li").data("menu_submenu", { group, label });
 			return $item;
@@ -2331,8 +2324,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return;
 			}
 
-			// When name is not provided (e.g., after bulk import), do a full list refresh
-			// instead of trying to fetch a specific document.
+			// No name (e.g. bulk import): refresh the whole list.
 			if (!data.name) {
 				this.refresh();
 				return;

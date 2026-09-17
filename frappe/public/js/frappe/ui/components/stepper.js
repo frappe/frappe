@@ -8,10 +8,10 @@ frappe.provide("frappe.ui");
  * @property {StepperStep[]} steps
  * @property {number} [current=0] Index of the active step.
  * @property {string} [label] Accessible name for the nav. Defaults to "Steps".
- * @property {(index: number) => boolean} [is_locked] Steps the user can't jump to right now. Re-checked on every render.
- * @property {(index: number) => boolean} [is_completed] What "done" means for this flow. Without it, completion is positional (every step before the current one) — which forgets history when the user navigates back; pass this when completion is a fact (saved, imported…) so revisited flows keep their checks. The active step gets data-completed="true" alongside data-state="active" when both are true.
- * @property {(index: number) => void} [on_step_click] Fires when an unlocked, non-active step is clicked. Navigation stays the caller's job — call set_current when the move is accepted.
- * @property {(index: number) => void} [on_locked_click] Fires when a locked step is clicked — for "finish the earlier steps first" feedback. Without it, locked clicks are silently swallowed.
+ * @property {(index:number)=>boolean} [is_locked] Steps not currently jumpable; re-checked each render.
+ * @property {(index:number)=>boolean} [is_completed] Marks a step done. Without it completion is positional (forgets history on back-nav); pass it when completion is a fact (saved, imported) so revisited steps keep their check.
+ * @property {(index:number)=>void} [on_step_click] Fires on an unlocked, non-active step click; you handle navigation (call set_current).
+ * @property {(index:number)=>void} [on_locked_click] Fires on a locked step click; without it, locked clicks are silently swallowed.
  * @property {boolean} [compact] Render a one-line progress summary (segmented bar + "Step x of y") instead of the step chips — for narrow layouts. Mount a compact and a full instance and toggle visibility at your breakpoint.
  * @property {string} [css_class] Extra classes on the nav.
  */
@@ -71,10 +71,7 @@ frappe.ui.Stepper = class Stepper {
 	}
 
 	render() {
-		// owners tend to re-render on every state poll (the DI wizard does, per
-		// realtime progress tick) — skip when nothing visible would change.
-		// Building the key queries is_locked, so lock flips bust the memo.
-		// completion is a fact when the owner says so, positional otherwise
+		// Skip re-render when the state key is unchanged (owners poll often)
 		const done = (index) =>
 			this.is_completed ? Boolean(this.is_completed(index)) : index < this.current;
 		const render_key = [
@@ -146,10 +143,7 @@ frappe.ui.Stepper = class Stepper {
 
 			const marker = document.createElement("span");
 			marker.className = "es-stepper__marker";
-			// generic state icons: done = bare check on the filled disc, EXCEPT
-			// the step being revisited, whose disc shows a dot ("you are here"
-			// on a finished step); active-in-progress = dashed circle with the
-			// dot, upcoming/locked = plain dash
+			// Icon by state: done=check, revisited=dot, active=dashed+dot, upcoming/locked=dash
 			const icon_name = is_done
 				? state === "active"
 					? "dot"

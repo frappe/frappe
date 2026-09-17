@@ -16,8 +16,7 @@ const DIW_MAP_LABEL = "__diw_col_map_label__";
 
 const DATE_FIELDTYPES = ["Date", "Datetime", "Time"];
 
-// Curated formats for the date format pill (strptime + display). The column's
-// auto-detected format is always offered even if not listed.
+// Curated date formats; the auto-detected one is always offered too.
 const COMMON_DATE_FORMATS = [
 	"%Y-%m-%d",
 	"%d-%m-%Y",
@@ -151,8 +150,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					name:
 						frappe.utils.escape_html(col.header_title) ||
 						(df ? df.label : "Untitled Column"),
-					// Header hosts the inline mapper; the file column title sits in the
-					// first body row directly below it.
+					// Header hosts the mapper; file column title sits in row 1.
 					content: `<span class="diw-col-map-field block min-w-0 w-full" data-col-index="${i}"></span>`,
 					skip_import: true,
 					editable: false,
@@ -188,8 +186,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			return {
 				id: df.fieldname,
 				name: frappe.utils.escape_html(col.header_title),
-				// Header hosts the inline mapper; the file column title sits in the
-				// first body row directly below it.
 				content: `<span class="diw-col-map-field block min-w-0 w-full" data-col-index="${i}"></span>`,
 				df: df,
 				editable: false,
@@ -237,8 +233,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			});
 		});
 
-		// Always prepend the mapping row so column assignments remain visible
-		// after import. Controls are disabled (not hidden) when status is Success.
+		// Prepend the mapping row so mappings stay visible after import.
+		// Controls are disabled, not hidden, once status is Success.
 		this._has_mapping_row = true;
 		this.data = [this.build_mapping_row(), ...this.data];
 	}
@@ -345,8 +341,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			try {
 				this.datatable.refresh(this.data, columns);
 			} catch (error) {
-				// Reparenting during wizard step switches can invalidate datatable's
-				// internal stylesheet reference; recreate the table as a safe fallback.
+				// Reparenting can break datatable's stylesheet ref; rebuild instead.
 				console.warn("Data Import preview datatable refresh failed; rebuilding", error);
 				this.datatable.destroy();
 				this.datatable = null;
@@ -400,20 +395,17 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.mount_column_map_controls();
 		this.mount_date_format_controls();
 
-		// A datatable freshly built inside the wizard preview can be measured before
-		// its pane has a stable width — for tree doctypes the Table pane is revealed
-		// only when its tab is opened, so the body renders narrower than the header
-		// and columns look misaligned. Nudge frappe-datatable once the pane settles.
+		// Pane width can be unstable at build time — a tree doctype's Table pane is
+		// revealed only when its tab opens, so the body renders narrower than the
+		// header and columns misalign. Reconcile once the pane settles.
 		if (built_new) {
 			this._reconcile_wizard_datatable();
 		}
 	}
 
 	/**
-	 * Re-run the datatable layout once the wizard preview pane width is stable, so a
-	 * table built during a tab reveal ends up with its header and body aligned.
-	 * frappe-datatable reconciles both on refresh; a bare reflow otherwise only
-	 * happens on a later resize/interaction, leaving columns misaligned until then.
+	 * Re-run the datatable layout once pane width is stable so header and body align.
+	 * Otherwise the misalignment persists until a later resize or interaction.
 	 */
 	_reconcile_wizard_datatable() {
 		if (!this.$table_preview?.closest(".diw-preview-step").length) return;
@@ -486,9 +478,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		const dynamic_height = Math.min(360, Math.max(220, window.innerHeight * 0.42));
 		// Header (~44px) + each body row (mapping + data at cellHeight 42).
 		const compact_height = Math.max(120, rows * 42 + 44);
-		// Size from rows actually rendered — not whether the file has more rows than
-		// the preview sample (`max_rows_exceeded`). A "first 10 of 12" table still
-		// fits compactly; only large in-memory previews use the capped height.
+		// Size from rendered rows, not whether the file was truncated.
 		const use_compact = rows > 0 && rows <= 13;
 		const scroll_height = use_compact ? compact_height : dynamic_height;
 
@@ -563,9 +553,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			width: "16px",
 			fill: frappe.ui.color.get_color_shade("green", is_dark ? "light" : "dark"),
 		});
-		// Successfully imported rows: readonly + muted. Shade names are light-mode
-		// oriented (extra-light ≈ gray-100); flip for dark so bg stays readable
-		// against .dt-cell { color: var(--text-color) !important }.
+		// Muted readonly rows. Shade names are light-mode; flip for dark so the bg
+		// stays readable against .dt-cell's forced text color.
 		let row_classes = this.datatable
 			.getRows()
 			.filter((row) => this.is_row_imported(row))
@@ -581,12 +570,9 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			color: frappe.ui.color.get_color_shade("gray", is_dark ? "extra-light" : "dark"),
 		});
 
-		// The mapper now sits in the datatable header; the first body row carries the
-		// file column titles. Tint it so it reads as the header for the data below.
+		// Tint row 1 so it reads as the file-column header.
 		if (this._has_mapping_row) {
-			// The mapper header row is surface-gray-2 (see data_import_wizard.scss);
-			// tint the file-header row one step lighter (surface-gray-1) so the two
-			// stacked header rows read as related but distinct.
+			// Use surface-gray-1 (one step lighter than the mapper row).
 			this.datatable.style.setStyle(".dt-row-0 .dt-cell", {
 				backgroundColor: "var(--surface-gray-1)",
 				fontWeight: "500",
@@ -603,9 +589,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			control.$wrapper?.remove();
 		});
 		this._map_controls = [];
-		// Dropdown lists get reparented to <body> when open (see
-		// setup_mapping_dropdown_portal); remove any we left there so they don't
-		// leak across re-renders.
+		// Remove dropdowns portaled to <body> so they don't leak on re-render.
 		this._portaled_dropdowns?.forEach((ul) => ul.remove());
 		this._portaled_dropdowns = [];
 		if (this._mapping_dropdown_scroll_handler) {
@@ -682,10 +666,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			if (input.closest(".form-in-grid")) return;
 			const ul = get_dropdown(input);
 			if (!ul) return;
-			// The mapper now lives in the datatable header, which uses CSS transforms
-			// for scroll-sync and clips with overflow:hidden — that makes position:fixed
-			// resolve against the header and get clipped, so the open list is invisible.
-			// Reparent the list to <body> so it escapes both the transform and the clip.
+			// Reparent to <body> so the list escapes the header transform+clip.
 			if (ul.parentNode !== document.body) {
 				ul.classList.add("diw-map-dropdown-portaled");
 				input._diw_map_ul = ul;
@@ -713,9 +694,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			"awesomplete-open.diw-map-portal",
 			".diw-col-map-field input",
 			function () {
-				// Position now, then again next frame: reparenting to <body> and the
-				// datatable header's scroll-sync layout settle a tick later, so the
-				// first measurement can be stale (list lands left of its input).
+				// Reposition next frame too; first measure can be stale after reparent.
 				position_dropdown(this);
 				const input = this;
 				requestAnimationFrame(() => position_dropdown(input));
@@ -848,16 +827,13 @@ function get_column_map_for_preview(doctype, provider_schema = null) {
 
 function get_fields_as_options(doctype, column_map) {
 	let keys = [doctype, ...Object.keys(column_map).filter((key) => key !== doctype)];
-	// flatten array
 	return [].concat(
 		...keys.map((key) => {
 			return (column_map[key] || []).map((df) => {
 				let label = __(df.label, null, df.parent);
 				let value = df.fieldname;
 				if (doctype !== key) {
-					// Provider child tables (e.g. "contacts") aren't real docfields on the
-					// parent, so get_docfield returns undefined — fall back to the field's
-					// own parent DocType label (e.g. "Contact") instead of the raw fieldname.
+					// Provider child tables aren't docfields; fall back to parent label.
 					const table_field = frappe.meta.get_docfield(doctype, key);
 					const table_label = table_field?.label || df.parent || key;
 					label = `${__(df.label, null, df.parent)} (${__(table_label)})`;

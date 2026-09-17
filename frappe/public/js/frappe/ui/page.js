@@ -624,15 +624,12 @@ frappe.ui.Page = class Page {
 			(el.classList.contains("hidden-xl") &&
 				window.matchMedia("(min-width: 992px)").matches);
 		const segments = [[]];
-		// one submenu row per inner-button group, keyed by group label. Value is
-		// { row, segs }: row is the pushed option object, segs are the submenu's own
-		// segments (split by dividers tagged with data("menu_submenu_divider")).
+		// group label -> { row, segs }: option row plus divider-split submenu sections.
 		const nested_groups = new Map();
 
 		$parent.children("li").each((_, li) => {
 			if (li.classList.contains("dropdown-divider")) {
-				// A divider tagged for a submenu group splits that submenu into
-				// separated sections instead of splitting this (parent) menu.
+				// Tagged divider splits its submenu, not the parent menu.
 				const sub_group = $(li).data("menu_submenu_divider");
 				if (sub_group && nested_groups.has(sub_group)) {
 					const entry = nested_groups.get(sub_group);
@@ -698,8 +695,7 @@ frappe.ui.Page = class Page {
 			});
 		});
 
-		// Finalize each nested group's submenu: a single section stays flat; multiple
-		// sections (split by a tagged divider) render as separated, unlabeled groups.
+		// One section stays flat; multiple render as separated groups.
 		for (const { row, segs } of nested_groups.values()) {
 			const parts = segs.filter((s) => s.length);
 			row.submenu =

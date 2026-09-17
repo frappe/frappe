@@ -139,11 +139,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		});
 	}
 
-	/**
-	 * Build parent→children maps for rendering.
-	 * Nodes in a parent cycle (common after a partial Reset) are not reachable from
-	 * any root — promote them to top-level orphans so they stay visible and editable.
-	 */
+	/** Build parent→children maps; unreachable cycle nodes become orphans. */
 	_build_tree(nodes) {
 		const nodes_by_id = {};
 		nodes.forEach((node) => {
@@ -262,8 +258,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		}
 
 		$row.on("click", (e) => {
-			// Clicking the row's Actions button (or anything inside it) must not
-			// expand/collapse the branch — only the row body toggles.
+			// Clicks on the Actions button must not toggle the branch.
 			if ($(e.target).closest(".diw-tree-node-actions").length) {
 				return;
 			}

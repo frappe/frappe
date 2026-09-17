@@ -2,7 +2,7 @@
 // components (make_control field wrappers, frappe.ui.button/progress/empty_state,
 // frappe.utils.icon).
 // The orchestration lives in data_import.js; this class is only the view layer
-// behind the `frm._data_import_wizard` interface (set_step / bump_ui / …).
+// behind the `frm._data_import_wizard` interface (set_step / refresh_ui / …).
 
 const WIZARD_STEPS = [
 	{ id: "config", label: __("Config") },
@@ -261,11 +261,8 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		window.addEventListener("resize", this._on_resize, { passive: true });
 		this.update_card_height();
 
-		// The preview fetch resolves asynchronously, so the data often lands *after* the
-		// Preview step is mounted — and if the pane wasn't laid out yet, the datatable
-		// gives up retrying (~40 frames) and never builds, leaving the step stuck on its
-		// skeleton until a full page reload. Re-mount the step when the data arrives so
-		// the table is built against a visible, measured pane.
+		// Preview data often lands after the step mounts; if the pane isn't laid out yet the
+		// datatable stops retrying and never builds. Re-mount on arrival to build against a laid-out pane.
 		this._on_preview_ready = () => {
 			if (this.current_step === 1) this.render_panel();
 		};
@@ -313,9 +310,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		const prev_docname = this._docname;
 		const doc_changed = current_docname !== prev_docname;
 		if (doc_changed) {
-			// First save renames new-* → DI-xxx on the same form session — keep the
-			// user's current step (Config). Only recompute the landing step when
-			// opening a different document.
+			// On first save (new-* → DI-xxx) keep the current step; recompute only for a different doc
 			const is_first_save_rename =
 				prev_docname &&
 				String(prev_docname).startsWith("new-") &&
@@ -366,7 +361,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		this.render_footer();
 	}
 
-	bump_ui() {
+	refresh_ui() {
 		this.render_stepper();
 		this.render_footer();
 		this.render_status();
@@ -469,9 +464,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		const frm = this.frm;
 		const $step = $('<div class="diw-config-step flex flex-col gap-4"></div>');
 
-		// Import settings — two-column grid of the configuration fields. The grid
-		// container purposely does NOT use the frappe `section-body` class (whose flex
-		// rules would override display:grid and collapse the columns).
+		// Avoid .section-body class: its flex rules would collapse the grid columns
 		const $settings = $(`
 			<div class="diw-config-section m-0 p-0 border-0 shadow-none bg-transparent">
 				<div class="diw-config-head m-0 p-0 border-0 shadow-none bg-transparent mb-4"><span class="diw-section-head-title text-base-semibold">${__(
@@ -963,12 +956,9 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		}
 
 		const $tree_pane = $('<div class="diw-preview-pane-tree min-h-0 min-w-0 w-full"></div>');
-		// Remembered tab, so a re-render (e.g. when the preview resolves) doesn't yank
-		// the user back to Tree.
+		// Remember tab across re-renders
 		const active = this._preview_tab === "table" ? 1 : 0;
-		// frappe.ui.Tabs owns the panels and their visibility — these are two views of
-		// the same data, which is exactly what Tabs is for (Pills/TabButtons are for
-		// picking a value).
+		// Tabs (not Pills) owns panel visibility — two views of the same data
 		this.preview_tabs = new frappe.ui.Tabs({
 			css_class: "diw-preview-tabs",
 			active,
@@ -1003,9 +993,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 
 	mount_fix_issues($content) {
 		const frm = this.frm;
-		// Value mappings come straight off the saved doc, but warnings are only known once
-		// the preview fetch resolves — rendering now would show the mappings alone and pop
-		// the warnings in a few seconds later. Wait behind a skeleton, then render once.
+		// Wait for the preview fetch so mappings and warnings render together
 		if (frm.has_import_file?.() && !frm._import_preview_ready) {
 			this.render_fix_issues_skeleton($content);
 			const token = ++this._fix_issues_token;
