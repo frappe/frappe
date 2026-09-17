@@ -17,7 +17,10 @@ A tool call can be intercepted three ways, and they do different jobs:
     The pause is in the log, so `resume` can arrive later, from any client, even
     after a restart.
 
-Order per call: bad arguments, before hook, extension hooks, confirm gate, then run it.
+Order per call: bad arguments, before hook, extension hooks, confirm gate, then run it,
+before the next call is looked at. Consecutive calls of tools marked `concurrent` are the
+exception: they are held and run together once a call of another kind, or the end of the
+turn's calls, follows.
 """
 
 from __future__ import annotations
@@ -276,10 +279,8 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 				yield _result(call, _TRUNCATED, is_error=True)
 		else:
 			gated: list[PendingCall] = []
-			for call in assistant.tool_calls:
-				_raise_if_aborted(abort)
-				async for event in _settle_call(call, tools, ctx, inputs, gated):
-					yield event
+			async for event in _settle_calls(assistant.tool_calls, tools, ctx, inputs, gated):
+				yield event
 			if gated:  # free tools already ran; now wait for the human
 				_raise_if_aborted(abort)
 				yield ApprovalRequired(calls=gated)
@@ -447,15 +448,78 @@ class _ContextTracker:
 		return self.usage_tokens + trailing
 
 
+async def _settle_calls(
+	calls: tuple[ToolCall, ...],
+	tools: dict[str, Tool],
+	ctx: ToolContext,
+	inputs: LoopInputs,
+	gated: list[PendingCall],
+) -> AsyncIterator[AnyEvent]:
+	"""Settle one turn's tool calls in order: hooks, the gate, then the run. Consecutive
+	`concurrent` tools are held and run together; a gated call lands in `gated` for the
+	approval pause instead of running."""
+	batch: list[tuple[ToolCall, bool]] = []
+	for call in calls:
+		_raise_if_aborted(inputs.abort)
+		if batch and not _concurrent(call, tools):  # a plain call waits for the held batch to finish
+			async for result in _run_batch(batch, tools, ctx, inputs):
+				yield result
+			batch = []
+		runnable: list[tuple[ToolCall, bool]] = []
+		async for event in _settle_call(call, tools, ctx, inputs, gated, runnable):
+			yield event
+		if not runnable:
+			continue
+		if _concurrent(call, tools):
+			batch.append(runnable[0])
+		else:
+			yield await _run_call(*runnable[0], tools, ctx, inputs)
+	if batch:
+		async for result in _run_batch(batch, tools, ctx, inputs):
+			yield result
+
+
+def _concurrent(call: ToolCall, tools: dict[str, Tool]) -> bool:
+	tool = tools.get(call.name)
+	return tool is not None and tool.concurrent
+
+
+async def _run_batch(
+	batch: list[tuple[ToolCall, bool]], tools: dict[str, Tool], ctx: ToolContext, inputs: LoopInputs
+) -> AsyncIterator[ToolResult]:
+	"""Run a batch together, yielding each result as it lands; leaving early cancels the rest."""
+	tasks = [asyncio.create_task(_run_call(call, rewritten, tools, ctx, inputs)) for call, rewritten in batch]
+	try:
+		for finished in asyncio.as_completed(tasks):
+			yield await finished
+	finally:
+		for task in tasks:
+			task.cancel()
+		await asyncio.gather(*tasks, return_exceptions=True)
+
+
+async def _run_call(
+	call: ToolCall, rewritten: bool, tools: dict[str, Tool], ctx: ToolContext, inputs: LoopInputs
+) -> ToolResult:
+	result = await _finished_call(call, tools, ctx, inputs)
+	if rewritten:  # the durable ToolCall keeps the model's arguments; record what ran
+		result = result.model_copy(
+			update={"details": {**result.details, "effective_arguments": dict(call.args)}}
+		)
+	return result
+
+
 async def _settle_call(
 	call: ToolCall,
 	tools: dict[str, Tool],
 	ctx: ToolContext,
 	inputs: LoopInputs,
 	gated: list[PendingCall],
+	runnable: list[tuple[ToolCall, bool]],
 ) -> AsyncIterator[AnyEvent]:
-	"""Settle one tool call: bad-args feedback, before-hook, extension hooks, confirm gate,
-	dispatch. Appends to `gated` (deferred to approval) instead of running when confirm-gated."""
+	"""Take one tool call up to its run: bad-args feedback, before-hook, extension hooks,
+	confirm gate. A call that may run lands in `runnable` with its rewritten flag; a
+	confirm-gated one in `gated`."""
 	if call.error:  # model emitted malformed args — feed the error back so it can retry
 		yield _result(call, call.error, is_error=True)
 		return
@@ -485,13 +549,7 @@ async def _settle_call(
 		_raise_if_aborted(inputs.abort)
 		gated.append(PendingCall(id=call.id, name=call.name, args=call.args, prompt=prompt))
 		return
-
-	result = await _finished_call(call, tools, ctx, inputs)
-	if rewritten:  # the durable ToolCall keeps the model's arguments; record what ran
-		result = result.model_copy(
-			update={"details": {**result.details, "effective_arguments": dict(call.args)}}
-		)
-	yield result
+	runnable.append((call, rewritten))
 
 
 async def _hook_verdict(call: ToolCall, ctx: ToolContext, inputs: LoopInputs) -> PreToolUseDecision:

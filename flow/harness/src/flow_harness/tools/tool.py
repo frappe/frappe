@@ -112,6 +112,8 @@ class Tool:
 	# User-facing activity text. Simple ``{{ argument }}`` placeholders are filled
 	# from streamed call arguments as soon as all referenced values are complete.
 	display_template: str | None = None
+	# May run alongside the other concurrent tools called in the same turn.
+	concurrent: bool = False
 
 	def __post_init__(self) -> None:
 		if self.display_template is not None:
@@ -153,6 +155,7 @@ def tool(
 	prompt_snippet: str | None = None,
 	prompt_guidelines: tuple[str, ...] = (),
 	display_template: str | None = None,
+	concurrent: bool = False,
 ) -> Callable[[Callable[..., Awaitable[ToolResult]]], Tool]: ...
 
 
@@ -166,6 +169,7 @@ def tool(
 	prompt_snippet: str | None = None,
 	prompt_guidelines: tuple[str, ...] = (),
 	display_template: str | None = None,
+	concurrent: bool = False,
 ) -> Tool | Callable[[Callable[..., Awaitable[ToolResult]]], Tool]:
 	def wrap(f: Callable[..., Awaitable[ToolResult]]) -> Tool:
 		return Tool(
@@ -178,6 +182,7 @@ def tool(
 			prompt_snippet=prompt_snippet,
 			prompt_guidelines=prompt_guidelines,
 			display_template=display_template,
+			concurrent=concurrent,
 		)
 
 	return wrap(func) if func is not None else wrap
