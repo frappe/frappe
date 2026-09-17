@@ -37,11 +37,7 @@
  */
 frappe.provide("frappe.kanban_v2.settings");
 
-/**
- * Layer new Kanban settings on top of whatever is already registered for the
- * doctype. Pass a function to get the previous layer as `super_` (like
- * Python's super()), or a plain object for an automatic merge.
- */
+// Function form gets the previous settings as super_; object form auto-merges.
 frappe.kanban_v2.extend_settings = function (doctype, patch) {
 	const parent = copy_kanban_settings(frappe.kanban_v2.settings[doctype] || {});
 	const next =
@@ -63,11 +59,7 @@ function copy_kanban_settings(src) {
 	};
 }
 
-/**
- * Merge a patch onto parent. `card_context_menu` / `bulk_actions` run parent
- * then child and concatenate items; callbacks / select_styles / options
- * shallow-merge; each `boards[name]` is merged the same way.
- */
+// Merge patch over parent: menu/bulk lists concat, other maps shallow-merge, boards merge recursively.
 function merge_kanban_settings(parent, patch) {
 	const out = { ...parent, ...patch };
 

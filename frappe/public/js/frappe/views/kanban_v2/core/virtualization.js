@@ -1,10 +1,4 @@
-/**
- * Per-column vertical virtualizer — variable-height, measured.
- *
- * Keeps a per-index height cache (seeded with an estimate, corrected after
- * measuring) + a prefix-sum array for O(log n) offset<->index lookups, so the
- * core renders only the visible window ± overscan.
- */
+// Column virtualizer: caches measured card heights + prefix sums to render only the visible range.
 export class ColumnVirtualizer {
 	constructor(count, estimate = 84, overscan = 5) {
 		this.estimate = estimate;

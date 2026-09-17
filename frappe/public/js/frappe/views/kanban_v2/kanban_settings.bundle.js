@@ -12,21 +12,15 @@ class KanbanBoardSettings {
 	constructor(page) {
 		this.page = page;
 		this.doctype = page.doctype;
-		// Edit a deep clone so Cancel discards; the child tables are the arrays the
-		// grids mutate in place, so `doc.<table>` always holds the current rows.
+		// Deep clone so Cancel discards edits; grids mutate the child-table arrays in place.
 		this.doc = $.extend(true, {}, page.board_doc);
 		["columns", "card_fields", "preview_fields", "group_by_fields"].forEach((t) => {
-			// Sanitize child table rows to remove metadata that triggers permission checks.
-			// Without this, controls see doctype/name and try to check permissions which fail
-			// in dialog context (no frm). Keeping only the actual field values.
+			// Strip row metadata so grid controls don't run permission checks in the dialog.
 			this.doc[t] = (this.doc[t] || []).map((row, i) => this._sanitize_row(row, i + 1));
 		});
 	}
 
-	/**
-	 * Strip metadata properties from a child table row so grid controls treat it
-	 * as a "new" row without triggering permission checks in base_control.get_status().
-	 */
+	// Return a clean new-row copy holding only field values.
 	_sanitize_row(row, idx) {
 		const clean = { idx, __islocal: true };
 		// Copy only the actual field values, skip framework metadata
@@ -82,8 +76,7 @@ class KanbanBoardSettings {
 					.filter((d) => d.fieldname && d.fieldtype === "Data" && !d.hidden)
 					.map(to_opt)
 			),
-			// Include the doctype's configured image_field even if hidden, since
-			// image fields are often hidden in forms but used in sidebars/cards.
+			// Include image_field even when hidden.
 			image: meta.fields
 				.filter(
 					(d) =>
@@ -284,9 +277,9 @@ class KanbanBoardSettings {
 				},
 			],
 			render: (panel) => {
-				["card_fields", "preview_fields"].forEach((fn) => {
-					this.set_grid_options(panel, fn, this.opts.card);
-					this.bind_field_label_autofill(panel, fn);
+				["card_fields", "preview_fields"].forEach((field) => {
+					this.set_grid_options(panel, field, this.opts.card);
+					this.bind_field_label_autofill(panel, field);
 				});
 			},
 		};
@@ -376,8 +369,7 @@ class KanbanBoardSettings {
 		});
 	}
 
-	/** Mirror the form: picking a new column field seeds the (empty) column list from
-	 *  its Select options. Only when empty, so a configured column list isn't wiped. */
+	// Seed columns from the field's Select options, only when the column list is empty.
 	bind_field_name(panel) {
 		const field = panel.get_field("field_name");
 		if (!field || !field.$input) return;
@@ -396,15 +388,13 @@ class KanbanBoardSettings {
 	}
 
 	save() {
-		// Collect values from all opened panels. The Table controls mutate their own
-		// df.data arrays (via filter/push), so we must read from the grid directly.
 		for (const panel of Object.values(this.dialog._panels || {})) {
 			const values = panel.get_values();
 			if (values === null) return; // a mandatory field is empty — control shows the error
 			Object.assign(this.doc, values);
 		}
 
-		// Get the current data from each table grid (grids mutate df.data, not this.doc arrays)
+		// Read table rows from each open panel's grid (df.data).
 		const tableFields = ["columns", "card_fields", "preview_fields", "group_by_fields"];
 		for (const panel of Object.values(this.dialog._panels || {})) {
 			for (const fieldname of tableFields) {

@@ -1,8 +1,4 @@
-/**
- * Drag orchestration on Atlassian Pragmatic Drag and Drop (framework-agnostic).
- * Thin binding wrappers + pure geometry/array helpers; the move logic lives in
- * KanbanCore.
- */
+// Drag-and-drop bindings over pragmatic-drag-and-drop; the move logic is in KanbanCore.
 import {
 	draggable,
 	dropTargetForElements,
@@ -26,8 +22,7 @@ export function bindCardDrag(el, data, hooks) {
 	return draggable({
 		element: el,
 		getInitialData: () => ({ ...data }),
-		// Suppress the browser's flat (and, on macOS, translucent) drag image —
-		// KanbanCore renders its own tilted card that follows the pointer instead.
+		// Hide the native drag image; KanbanCore draws its own.
 		onGenerateDragPreview: ({ nativeSetDragImage }) =>
 			disableNativeDragPreview({ nativeSetDragImage }),
 		onDragStart: ({ location }) =>
@@ -37,12 +32,7 @@ export function bindCardDrag(el, data, hooks) {
 	});
 }
 
-/**
- * @param {object} [hooks]
- * @param {(args: { source: object }) => boolean} [hooks.canDrop]
- *        When set, foreign boards (e.g. other swimlanes) reject the drag so
- *        drop indicators and drop handling stay within one board instance.
- */
+// Optional gate to reject drags from other boards/swimlanes.
 export function bindCardDropTarget(el, getData, hooks) {
 	return dropTargetForElements({
 		element: el,
