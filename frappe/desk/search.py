@@ -104,8 +104,7 @@ def get_image_field(doctype: str) -> str | None:
 	df = meta.get_field(meta.image_field)
 	if not df or getattr(df, "is_virtual", False):
 		return None
-	# a customised image_field can sit behind a permlevel: rows are read with
-	# permissions off, so refuse the field rather than hand its value out
+	# don't return an image field the user can't read
 	if df.permlevel and df.permlevel not in meta.get_permlevel_access("read"):
 		return None
 	return meta.image_field
@@ -310,7 +309,7 @@ def search_widget(
 
 	order_by_based_on_meta = get_order_by(doctype, meta)
 	# `idx` is number of times a document is referred, check link_count.py
-	# `name` last as a tiebreaker, so paging never repeats or skips equal rows
+	# sort by `name` last so pages don't repeat or skip rows
 	order_by = f"idx desc, {order_by_based_on_meta}, `tab{doctype}`.`name` asc"
 
 	# With an empty `txt`, LOCATE always returns 1, so `_relevance` is the same constant for

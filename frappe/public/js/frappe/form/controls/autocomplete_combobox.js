@@ -1,6 +1,4 @@
-// Autocomplete field backed by frappe.ui.Combobox.
-// Picked by make_control for Autocomplete fields when "Enable Combobox Link
-// and Autocomplete Fields" is on in System Settings.
+// Autocomplete field using frappe.ui.Combobox, used when the System Settings toggle is on.
 
 import { mount_combobox, awesomplete_shim } from "./combobox_control.js";
 
@@ -14,11 +12,10 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 			value_input: true,
 			open_on_focus: true,
 			arrow_keys_open: !this.grid_row,
-			// client-side filtering, unless a get_query method searches (see before_open)
+			// filter in the browser, unless get_query searches on the server
 			filterable: true,
 			options: (query) => this.fetch_options(query),
-			// free text: Tab keeps what was typed rather than the first partial
-			// match, unless the arrow keys moved to a row on purpose
+			// with free text, Tab keeps the typed text unless a row was chosen with arrows
 			tab_selects: ({ navigated }) => navigated || !this.allows_free_text(),
 			before_open: () => this.before_open(),
 			on_open: () => (this.autocomplete_open = true),
@@ -33,13 +30,13 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 	// ---- classic-control surface ----
 
 	get awesomplete() {
-		// the classic validate() reads the list from _list
+		// classic validate() reads _list
 		return (this._awesomplete_shim ||= awesomplete_shim(this, {
 			_list: { get: () => this.get_data() },
 		}));
 	}
 
-	// the rows stay behind the options function, so a get_query keeps working
+	// use a function so get_query still works
 	set_data(data) {
 		this._data = this.parse_options(data);
 		if (this.combobox?.is_open) this.combobox.load();
@@ -54,14 +51,14 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 
 	set_formatted_input(value) {
 		if (!this.combobox) return;
-		// the value being cleared echoing back (a refresh) is dropped
+		// ignore the old value coming back during a clear
 		if (this.combobox.pending_clear && value === this.combobox.cleared_value) return;
 		this.combobox.set_value(value, { label: this.format_for_input(value) });
 	}
 
 	get_input_value() {
 		if (!this.combobox) return "";
-		// text still being looked up after a close reads as the value
+		// typed text still being checked counts as the value
 		if (this.pending_text != null) return this.pending_text;
 		const value = this.combobox.value;
 		return value == null ? "" : value;
@@ -87,7 +84,7 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 	before_open() {
 		const combobox = this.combobox;
 		this.query_method = this.get_query || this.df.get_query || null;
-		// a get_query naming a server method searches there: no client filtering then
+		// get_query with a server method: search on the server
 		combobox.filterable = !this.query_args("").query;
 		combobox.opts.search_placeholder = __("Search...");
 		combobox.opts.footer = this.get_footer_rows();
@@ -97,7 +94,7 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 		if (!this.query_method) return this.to_options(this.get_data());
 		const seq = (this.query_seq = (this.query_seq || 0) + 1);
 		return this.query(query).then((data) => {
-			// a slower earlier response must not replace the rows for the latest text
+			// ignore late responses for older text
 			if (seq === this.query_seq) this._data = data;
 			return this.to_options(data);
 		});
@@ -132,7 +129,7 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 		return args;
 	}
 
-	// the label is a function of the query so it follows every keystroke
+	// label updates as the user types
 	get_footer_rows() {
 		if (!this.allows_free_text()) return [];
 		return [
@@ -140,7 +137,7 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 				type: "custom",
 				icon: "corner-down-left",
 				label: ({ query }) => __('Use "{0}"', [query]),
-				// only for text that isn't an option already
+				// only when the text isn't already an option
 				condition: ({ query: q }) =>
 					!!q && !this.get_data().some((d) => d.label === q || d.value === q),
 				onclick: ({ query: q }) => this.commit_free_text(q),
@@ -156,8 +153,7 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 
 	// ---- picking ----
 
-	// a native change sets the model (see bind_change_event) and reaches
-	// .on("change") listeners, as the classic control did after a pick
+	// trigger change so the value is set and .on("change") listeners run
 	drop_lookup() {
 		this.lookup = null;
 		this.pending_text = null;
@@ -165,29 +161,28 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 	}
 
 	on_pick(value) {
-		// a pick outranks text still being looked up
+		// a pick cancels the typed text check
 		this.drop_lookup();
 		this.$input.trigger("change");
 		if (value != null) this.$input.trigger("awesomplete-selectcomplete");
 	}
 
-	// text left by clicking away or tabbing: a label picks it, free text commits
+	// on click away or Tab: a matching label is picked, else free text is saved
 	on_close(reason) {
 		this.autocomplete_open = false;
 		const query = this.combobox.query;
-		// a pick, even of the same value, outranks a lookup still out
+		// a pick cancels the typed text check
 		if (reason === "select") this.drop_lookup();
-		// Escape cancels, a field disabled or hidden under the panel drops the
-		// text; every other close commits what was typed, as blur did
+		// Escape, disabled or hidden drop the text; other closes save it
 		if (!query || ["escape", "select", "disabled", "hidden"].includes(reason)) return;
-		// this close commits: it outranks the lookup an earlier one started
+		// cancel the check started by an earlier close
 		this.drop_lookup();
 		if (this.combobox.rows_pending) return this.commit_pending(query);
 		const match = this.get_data().find(
 			(d) => d.label.toLowerCase() === query.toLowerCase() || d.value === query
 		);
 		if (match) {
-			// a pick, even of the value just cleared, ends the clear
+			// any pick ends the clear
 			this.combobox.pending_clear = false;
 			if (match.value !== this.get_input_value()) {
 				this.combobox.set_value(match.value, { label: match.label });
@@ -200,20 +195,19 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 		}
 	}
 
-	// the rows for the text hadn't arrived: free text commits at once, a
-	// list-only field looks the text up once (a scanner, paste + Tab)
+	// rows not loaded yet: save free text now, or look the text up
 	commit_pending(query) {
 		if (this.allows_free_text()) return this.commit_free_text(query);
 		const cb = this.combobox;
 		const current = () => cb.value ?? "";
 		const value_at_close = current();
-		// a clear waiting on the pick is held back until the lookup settles
+		// keep the clear waiting until the check is done
 		cb.hold_clear();
 		this.pending_text = query;
-		// a later close starts its own lookup, which owns the text and the hold
+		// a later close starts its own check
 		const lookup = (this.lookup = {});
 		const settle = (match) => {
-			// superseded: a waiting save must not fire into whatever came next
+			// outdated: don't let a waiting save run
 			if (this.lookup !== lookup) return false;
 			this.pending_text = null;
 			cb.release_clear();
@@ -224,13 +218,13 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 				this.on_pick(match.value);
 				return;
 			}
-			// reopened meanwhile: the next close settles the clear
+			// reopened: the next close finishes the clear
 			if (!cb.is_open) cb.flush_clear();
 		};
 		return this.query(query)
 			.then((data) => {
 				if (current() !== value_at_close) return settle(null);
-				// validate() reads the list: the looked-up rows are it now
+				// validate() reads this list
 				this._data = data;
 				return settle(frappe.ui.Combobox.match_in(this.to_options(data), query));
 			})

@@ -59,33 +59,32 @@ frappe.provide("frappe.ui");
 const EXIT_MS = 140; // keep in sync with es-menu-out in menu.css
 const DEBOUNCE_MS = 300;
 const PANEL_OFFSET = 4;
-// floor for the panel width: a grid cell can be 80px wide
+// grid cells can be very narrow, so keep the panel at least this wide
 const MIN_PANEL_WIDTH = 240;
 const MIN_PANEL_HEIGHT = 160; // below this the panel may overlap the trigger
 const NARROW_PANEL_WIDTH = 320; // below this the filter band drops its label
 const VIEWPORT_PAD = 8;
 const LOAD_MORE_THRESHOLD = 48;
-// pages in a row that add no new row before paging stops (a source ignoring
-// `start`); a map hook may legitimately empty a page or two
+// stop paging after this many pages in a row bring no new rows
 const MAX_EMPTY_PAGES = 3;
-// focus this soon after a pointer press came from that press
+// focus within this time after a mouse press came from the mouse
 const POINTER_FOCUS_MS = 200;
-// a click this soon after pointerdown is a mouse open; later, a keyboard one
+// a click within this time after a press is a mouse click, not a keyboard one
 const CLICK_AFTER_PRESS_MS = 300;
 let last_pointerdown_at = 0;
-// stamped on the press and again on the click, so a long press still counts
+// record both press and click so a long press still counts
 for (const type of ["pointerdown", "click"]) {
 	document.addEventListener(
 		type,
 		(e) => {
-			// a press inside a panel picks a row; it isn't a press on a field
+			// ignore presses inside the panel
 			if (e.target.closest && e.target.closest(".es-combobox__panel")) return;
 			last_pointerdown_at = Date.now();
 		},
 		{ capture: true, passive: true }
 	);
 }
-// a key press means the next focus is the keyboard's
+// after a key press, the next focus is from the keyboard
 document.addEventListener("keydown", () => (last_pointerdown_at = 0), {
 	capture: true,
 	passive: true,
@@ -108,7 +107,7 @@ function normalize_option(entry) {
 	return { ...entry, label: entry.label == null ? String(value) : String(entry.label), value };
 }
 
-// custom rows are set aside: they never take part in filtering
+// custom rows are not filtered
 function normalize_options(options) {
 	const entries = (options || []).filter((entry) => entry != null);
 	const rows = entries
@@ -220,7 +219,7 @@ frappe.ui.Combobox = class Combobox {
 		this.id = `es-combobox-${++id_counter}`;
 
 		this.make_trigger();
-		// lets scripts and tests reach the instance from the DOM
+		// so scripts and tests can get the instance from the element
 		this.$trigger.data("es-combobox", this);
 		this.set_display();
 	}
@@ -242,19 +241,18 @@ frappe.ui.Combobox = class Combobox {
 		this.prefix_el.hidden = true;
 
 		if (this.opts.value_input) {
-			// not readonly: test drivers refuse to type into readonly inputs;
-			// edits are refused at beforeinput instead
+			// not readonly, as tests can't type into readonly inputs; edits are blocked in beforeinput
 			this.value_el = document.createElement("input");
 			this.value_el.type = "text";
 			this.value_el.setAttribute("autocomplete", "off");
 			this.value_el.setAttribute("aria-readonly", "true");
 			this.value_el.addEventListener("beforeinput", (e) => this.on_value_input(e));
 			this.value_el.addEventListener("input", (e) => {
-				// Firefox inserts the composed text after compositionend
+				// Firefox adds the IME text after compositionend
 				if (e.inputType === "insertCompositionText" && !e.isComposing) this.set_display();
 			});
 			this.value_el.addEventListener("compositionend", (e) => {
-				// the composed text becomes the query; the trigger shows the value again
+				// use the IME text as the search and show the value again
 				this.set_display();
 				const query = (e.data || "").split("\n")[0].trim();
 				if (query && !this.disabled && !this.is_open)
@@ -262,14 +260,14 @@ frappe.ui.Combobox = class Combobox {
 			});
 			if (this.opts.open_on_focus) {
 				this.value_el.addEventListener("focus", () => {
-					// not for the press about to click, nor focus returned on close
+					// skip mouse focus and focus given back on close
 					if (this.pointer_active || this.returning_focus || this.disabled) return;
-					// focus while open belongs in the panel
+					// when open, focus goes to the panel
 					if (this.is_open) {
 						(this.input || this.panel).focus({ preventScroll: true });
 						return;
 					}
-					// keyboard focus on a filled value stays put; a pointer press opens
+					// keyboard focus on a filled field doesn't open; a mouse press does
 					const by_pointer = Date.now() - last_pointerdown_at < POINTER_FOCUS_MS;
 					if (!by_pointer && this.value != null) return;
 					this.open({ motion: "instant" });
@@ -300,7 +298,7 @@ frappe.ui.Combobox = class Combobox {
 		}
 		this.action_els = (this.opts.actions || []).map((action) => this.make_action(action));
 		for (const el of [this.clear_btn, ...this.action_els].filter(Boolean)) {
-			// pointerdown would otherwise count as a trigger press
+			// don't count this press as a press on the field
 			el.addEventListener("pointerdown", (e) => e.stopPropagation());
 			this.actions_el.appendChild(el);
 		}
@@ -318,7 +316,7 @@ frappe.ui.Combobox = class Combobox {
 		this.last_pointerdown = 0;
 		this.onpointerdown = () => {
 			this.last_pointerdown = Date.now();
-			// this focus must not open the panel: the click that follows decides
+			// don't open on this focus; the click decides
 			this.pointer_active = true;
 			clearTimeout(this.pointer_timer);
 			this.pointer_timer = setTimeout(() => (this.pointer_active = false), POINTER_FOCUS_MS);
@@ -340,7 +338,7 @@ frappe.ui.Combobox = class Combobox {
 			if (this.disabled || e.isComposing || e.keyCode === 229) return;
 			if (this.run_shortcut(e)) return;
 			if (this.is_open) {
-				// focus is on the trigger while open: hand navigation keys to the panel
+				// field has focus while open: send arrow keys to the panel
 				if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter") {
 					e.preventDefault();
 					(this.input || this.panel).focus({ preventScroll: true });
@@ -357,23 +355,23 @@ frappe.ui.Combobox = class Combobox {
 			const arrow = e.key === "ArrowDown" || e.key === "ArrowUp";
 			if (arrow && this.opts.arrow_keys_open === false) return; // left to the host
 			if (e.key === "Backspace" || e.key === "Delete") {
-				// Tab shows the value selected; deleting that text clears the value
+				// value is selected after Tab; Backspace/Delete clears it
 				if (this.value == null) return;
 				e.preventDefault();
 				this.clear();
 			} else if (e.key === "Enter" && this.value != null) {
-				// Enter on a picked value belongs to the host (dialog primary action)
+				// let Enter reach the dialog's primary action
 				return;
 			} else if (e.key === "Enter" || e.key === " " || arrow) {
 				e.preventDefault();
 				this.open({ motion: "instant" });
 			} else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-				// tab-and-type data entry: open with the character as the query
+				// typing on a focused field opens the panel with that character
 				e.preventDefault();
 				this.open({ motion: "instant", query: e.key });
 			}
 		};
-		// capture phase and stopped here so the host's arrow handlers never see it
+		// stop here so the grid's arrow key handlers don't get it
 		this.onaltarrow = (e) => {
 			if (!e.altKey || e.shiftKey || e.ctrlKey || e.metaKey) return;
 			if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
@@ -392,16 +390,16 @@ frappe.ui.Combobox = class Combobox {
 		if (e.key !== "Enter" || !(e.ctrlKey || e.metaKey)) return false;
 		const index = (this.opts.actions || []).findIndex((a) => a.shortcut === "ctrl+enter");
 		const el = index >= 0 && this.action_els[index];
-		// a host may have taken the button out of the page
+		// the button may have been removed
 		if (!el || el.hidden || !el.isConnected) return false;
 		e.preventDefault();
 		el.click();
 		return true;
 	}
 
-	// covers input with no keydown: virtual keyboards, IME, paste, test drivers
+	// input without keydown: mobile keyboards, IME, paste, tests
 	on_value_input(e) {
-		// an IME is still composing: compositionend brings the text
+		// IME still typing; compositionend handles it
 		if (e.isComposing || e.inputType === "insertCompositionText") return;
 		e.preventDefault();
 		if (this.disabled || this.is_open) return;
@@ -409,13 +407,13 @@ frappe.ui.Combobox = class Combobox {
 			if (this.value != null) this.clear();
 			return;
 		}
-		// a paste / drop carries its text in dataTransfer, not data
+		// paste and drop text is in dataTransfer
 		const text = e.data ?? (e.dataTransfer ? e.dataTransfer.getData("text") : "");
 		const query = (text || "").split("\n")[0].trim();
 		if (query) this.open({ motion: "instant", query });
 	}
 
-	// a link when it has an href, so middle-click / ctrl-click open a tab
+	// use a link when there is an href, so it can open in a new tab
 	make_action(action) {
 		return frappe.ui.button({
 			icon: action.icon,
@@ -444,7 +442,7 @@ frappe.ui.Combobox = class Combobox {
 		} else {
 			t.removeAttribute("aria-disabled");
 			t.removeAttribute("data-disabled");
-			// with a value input, that input is the focusable part
+			// the value input takes focus
 			t.setAttribute("tabindex", this.input_el ? "-1" : "0");
 			if (this.input_el) this.input_el.tabIndex = 0;
 		}
@@ -467,7 +465,7 @@ frappe.ui.Combobox = class Combobox {
 		const text = option ? option.label : this.value == null ? null : String(this.value);
 		if (this.input_el) {
 			this.input_el.value = text == null ? "" : text;
-			// keep the input's own placeholder unless one was given here
+			// keep the existing placeholder if none is given
 			if (this.opts.placeholder != null) this.input_el.placeholder = this.opts.placeholder;
 		} else {
 			this.value_el.textContent =
@@ -491,7 +489,7 @@ frappe.ui.Combobox = class Combobox {
 	set_value(value, { label, image, avatar, silent = true } = {}) {
 		const next = value == null || value === "" ? null : value;
 		const changed = next !== this.value;
-		// a different value arriving while a clear is pending replaces the clear
+		// setting a new value cancels a pending clear
 		if (next != null && this.pending_clear && next !== this.cleared_value) {
 			this.pending_clear = false;
 		}
@@ -505,7 +503,7 @@ frappe.ui.Combobox = class Combobox {
 		return this;
 	}
 
-	// clearing opens the panel; on_change fires once: the pick, or null on close
+	// clear opens the panel; on_change fires once, with the pick or null on close
 	clear() {
 		if (this.value == null) return;
 		this.cleared_value = this.value;
@@ -516,12 +514,12 @@ frappe.ui.Combobox = class Combobox {
 		try {
 			if (!this.is_open && !this.disabled) this.open({ motion: "instant" });
 		} finally {
-			// no panel to pick from (or before_open threw): the clear settles now
+			// panel didn't open, so finish the clear now
 			if (!this.is_open) this.flush_clear();
 		}
 	}
 
-	// a host looking the typed text up at close holds the clear until it knows
+	// wait to finish the clear while the typed text is being looked up
 	hold_clear() {
 		this.clear_held = true;
 	}
@@ -536,7 +534,7 @@ frappe.ui.Combobox = class Combobox {
 		this.opts.on_change && this.opts.on_change(null, null);
 	}
 
-	// a static list is scanned in place; a function source only knows its last rows
+	// for a function source, only the last loaded rows are known
 	find_option(value) {
 		if (!Array.isArray(this.options)) {
 			return this.normalized ? find_in(this.normalized.groups, value) : null;
@@ -576,7 +574,7 @@ frappe.ui.Combobox = class Combobox {
 		return this.normalized ? Combobox.match_in(this.normalized.groups, text) : null;
 	}
 
-	/** True while the rows on screen aren't the ones for the current query. */
+	/** True while the shown rows are not yet for the current search. */
 	get rows_pending() {
 		return this.request_id !== this.settled_request_id;
 	}
@@ -606,12 +604,12 @@ frappe.ui.Combobox = class Combobox {
 		panel.setAttribute("tabindex", "-1");
 		panel.setAttribute("data-motion", motion);
 		if (this.trigger_el.id) panel.setAttribute("aria-labelledby", this.trigger_el.id);
-		// set now so async results below can check this.panel and drop stale ones
+		// set early so late async results can tell they are stale
 		this.panel = panel;
-		// without a search row the typed text jumps to a row instead
+		// without a search box, typing jumps to a row
 		this.query = this.opts.hide_search ? "" : query;
 		this.pending_typeahead = this.opts.hide_search ? query : "";
-		// rows and filters of an earlier open must not answer for this one
+		// reset rows and filters from the last open
 		this.normalized = null;
 		this.has_filters = false;
 		this.filters_items = null;
@@ -646,7 +644,7 @@ frappe.ui.Combobox = class Combobox {
 		}
 
 		this.list_el = document.createElement("div");
-		// py-1 ps-1, not p-1: the scrollbar gutter is the right inset
+		// no right padding: the scrollbar gutter gives it
 		this.list_el.className = "es-combobox__list flex-1 py-1 ps-1";
 		this.list_el.addEventListener(
 			"scroll",
@@ -656,11 +654,10 @@ frappe.ui.Combobox = class Combobox {
 			},
 			{ passive: true }
 		);
-		// overlay scrollbars (macOS) give no hint that the list goes on
+		// macOS hides scrollbars, so show a hint that the list scrolls
 		this.scroll_observer = new ResizeObserver(() => this.update_scroll_cue());
 		this.scroll_observer.observe(this.list_el);
-		// a trigger hidden (depends_on, a collapsed section) shrinks to nothing:
-		// reposition() then closes the panel
+		// close the panel when the field gets hidden
 		this.trigger_observer = new ResizeObserver(() => this.onreposition());
 		this.trigger_observer.observe(this.trigger_el);
 		panel.appendChild(this.list_el);
@@ -671,7 +668,7 @@ frappe.ui.Combobox = class Combobox {
 		this.filters_el.hidden = true;
 		this.filters_el.setAttribute("role", "button");
 		this.filters_el.title = __("Show all filters");
-		// a click expands the band without moving focus from the search input
+		// expand filters without taking focus from search
 		this.filters_expanded = false;
 		this.filters_el.addEventListener("pointerdown", (e) => e.preventDefault());
 		this.filters_el.addEventListener("click", () => {
@@ -688,7 +685,7 @@ frappe.ui.Combobox = class Combobox {
 		this.footer_el.hidden = true;
 		panel.appendChild(this.footer_el);
 
-		// in <body> so no overflow: hidden ancestor clips it
+		// add to <body> so parents with overflow: hidden don't cut it
 		document.body.appendChild(panel);
 		this.trigger_el.setAttribute("aria-expanded", "true");
 		this.trigger_el.setAttribute("aria-controls", panel.id);
@@ -697,7 +694,7 @@ frappe.ui.Combobox = class Combobox {
 		this.onpanelkeydown = (e) => this.handle_keydown(e);
 		this.onoutside = (e) => {
 			if (panel.contains(e.target) || this.trigger_el.contains(e.target)) return;
-			// a press on the list's scrollbar has <html> as target: judge by position
+			// a scrollbar press targets <html>, so check the position
 			const r = panel.getBoundingClientRect();
 			const inside =
 				e.clientX >= r.left &&
@@ -708,7 +705,7 @@ frappe.ui.Combobox = class Combobox {
 			this.close("outside");
 		};
 		this.onreposition = (e) => {
-			// the list's own scroll doesn't move the trigger
+			// scrolling the list itself doesn't move the field
 			if (e && e.target instanceof Node && panel.contains(e.target)) return;
 			if (this.reposition_frame) return;
 			this.reposition_frame = requestAnimationFrame(() => {
@@ -723,13 +720,13 @@ frappe.ui.Combobox = class Combobox {
 
 		this.load();
 		this.reposition();
-		// load or reposition may have closed it (a hidden trigger)
+		// it may have closed already (field hidden)
 		if (this.panel !== panel) return;
 		panel.setAttribute("data-state", "open");
 
 		if (this.input) {
 			this.input.focus({ preventScroll: true });
-			// caret at the end so the seeded character isn't overwritten
+			// cursor at the end so the typed character stays
 			this.input.setSelectionRange(this.input.value.length, this.input.value.length);
 		} else {
 			panel.focus({ preventScroll: true });
@@ -741,12 +738,12 @@ frappe.ui.Combobox = class Combobox {
 		if (!this.panel) return;
 		const t = this.trigger_el;
 		const rect = t.getBoundingClientRect();
-		// the field was hidden or removed under the panel
+		// the field was hidden or removed
 		if (!t.isConnected || (!rect.width && !rect.height)) {
 			this.close("hidden");
 			return;
 		}
-		// trigger scrolled out of view: hide the panel, it returns with the trigger
+		// hide the panel while the field is scrolled out of view
 		const off_screen =
 			rect.bottom <= VIEWPORT_PAD ||
 			rect.top >= window.innerHeight - VIEWPORT_PAD ||
@@ -754,14 +751,13 @@ frappe.ui.Combobox = class Combobox {
 			rect.left >= window.innerWidth - VIEWPORT_PAD;
 		this.panel.style.visibility = off_screen ? "hidden" : "";
 		if (off_screen) return;
-		// fixed width, not min-width: long labels must not widen the panel
+		// fixed width so long labels don't widen the panel
 		const max_width = window.innerWidth - 2 * VIEWPORT_PAD;
 		const width = Math.min(Math.max(Math.round(rect.width), MIN_PANEL_WIDTH), max_width);
 		this.panel.style.width = `${width}px`;
 		this.panel.classList.toggle("es-combobox__panel--narrow", width < NARROW_PANEL_WIDTH);
 
-		// place() would slide a panel over the trigger: cap the height instead
-		// (offsetHeight: the layout size, untouched by the enter animation)
+		// limit the height so the panel doesn't cover the field
 		this.panel.style.maxHeight = "";
 		const natural = this.panel.offsetHeight;
 		const room = {
@@ -772,7 +768,7 @@ frappe.ui.Combobox = class Combobox {
 		if (natural > room[side]) {
 			this.panel.style.maxHeight = `${Math.max(Math.round(room[side]), MIN_PANEL_HEIGHT)}px`;
 		}
-		// place() measures the panel as rendered: wait out the enter animation
+		// position again after the open animation
 		const running = (this.panel.getAnimations?.() || []).filter(
 			(a) => a.playState === "running"
 		);
@@ -822,8 +818,7 @@ frappe.ui.Combobox = class Combobox {
 		this.trigger_el.removeAttribute("aria-controls");
 		this.trigger_el.removeAttribute("data-state");
 
-		// a click elsewhere already moved focus; don't steal it back. Focus
-		// still inside the panel would land on <body> when it's removed
+		// give focus back to the field, unless the user clicked somewhere else
 		const held_focus = reason !== "outside" && panel.contains(document.activeElement);
 		if (reason === "escape" || reason === "tab" || reason === "select" || held_focus) {
 			this.returning_focus = true;
@@ -833,11 +828,10 @@ frappe.ui.Combobox = class Combobox {
 
 		panel.setAttribute("data-state", "closed");
 		setTimeout(() => panel.remove(), EXIT_MS + 50);
-		// the owner may still commit typed text; then a clear waiting on a pick settles
-		// the owner may return a promise for a commit still being looked up
+		// the field may save typed text here; it may return a promise
 		const committed = this.opts.on_close && this.opts.on_close(reason);
 		if (reason === "disabled" || reason === "hidden") {
-			// the field was taken away mid-clear: the clear is withdrawn
+			// field hidden or disabled during a clear: undo the clear
 			if (this.pending_clear) {
 				this.pending_clear = false;
 				const o = this.cleared_option;
@@ -856,16 +850,16 @@ frappe.ui.Combobox = class Combobox {
 
 	on_query(query) {
 		this.query = query;
-		// an Enter armed while the old rows loaded was for those rows
+		// a queued Enter was for the old rows
 		this.pending_activate = false;
 		if (typeof this.options === "function" && !this.filterable) {
-			// the rows on screen no longer answer this query: pending until load
+			// shown rows are for the old search until the load ends
 			this.request_id++;
 			this.highlight(null);
 			clearTimeout(this.debounce_timer);
 			this.debounce_timer = setTimeout(() => this.load(), DEBOUNCE_MS);
 		} else if (typeof this.options === "function") {
-			// a preloaded source is cheap: refilter right away
+			// preloaded rows: filter right away
 			this.load();
 		} else {
 			this.render();
@@ -895,7 +889,7 @@ frappe.ui.Combobox = class Combobox {
 				},
 				(error) => {
 					if (request_id !== this.request_id || !this.panel) return;
-					// the rows stay pending: typed text is still looked up at close
+					// keep rows pending: typed text is looked up on close
 					console.error(error);
 					this.set_loading(false);
 					this.set_rows([]);
@@ -910,7 +904,7 @@ frappe.ui.Combobox = class Combobox {
 
 	set_rows(result) {
 		const { rows, has_more } = unpack(result);
-		// the same array again means only the filter changed
+		// same array: only the filter changed
 		if (rows !== this.source_rows) {
 			this.source_rows = rows;
 			this.normalized = normalize_options(rows);
@@ -918,7 +912,7 @@ frappe.ui.Combobox = class Combobox {
 		this.next_start = this.opts.page_size || 0;
 		this.empty_pages = 0;
 		this.has_more = this.page_allows_more(rows, has_more);
-		// a page load for the previous rows is void now
+		// ignore a page still loading for the old rows
 		this.loading_more = null;
 		this.render();
 	}
@@ -979,9 +973,9 @@ frappe.ui.Combobox = class Combobox {
 		);
 	}
 
-	// append without rebuilding: scroll position and highlight stay put
+	// append rows so scroll and highlight stay
 	append_rows(groups) {
-		// a later page under an empty first one replaces its message
+		// remove the empty message when later rows arrive
 		if (groups.length) this.list_el.querySelector(".es-menu__empty")?.remove();
 		for (const group of groups) {
 			const last = this.group_els[this.group_els.length - 1];
@@ -1005,7 +999,7 @@ frappe.ui.Combobox = class Combobox {
 		group_el.className = "es-menu__group";
 		group_el.setAttribute("role", "group");
 		if (group.group) group_el.dataset.group = group.group;
-		// iconless rows reserve the icon space so labels line up
+		// rows without icon keep the space so labels line up
 		if (needs_icon_space(group.options)) group_el.dataset.reserve = "1";
 		if (group.group) {
 			const label = document.createElement("div");
@@ -1067,7 +1061,7 @@ frappe.ui.Combobox = class Combobox {
 				.then((value) => {
 					if (this.panel !== panel) return;
 					this.render_filters_value(value);
-					// the empty-state text on screen mentions the filters: redraw it
+					// the empty message mentions filters, so redraw it
 					if (!this.rows_pending && this.normalized && !this.rows.length) this.render();
 					else this.reposition();
 				})
@@ -1105,7 +1099,7 @@ frappe.ui.Combobox = class Combobox {
 		} else {
 			const shown = expanded ? items : items.slice(0, 1);
 			for (const item of shown) {
-				// collapsed, a chip may truncate: the title shows it whole
+				// chip text can be cut; the title shows it in full
 				const chip = frappe.ui.badge({
 					label: String(item),
 					size: "sm",
@@ -1170,8 +1164,7 @@ frappe.ui.Combobox = class Combobox {
 		}
 		this.footer_el.hidden = !shown.length;
 
-		// the current value only with nothing typed: typed text means the top
-		// match; with nothing matching, the first custom row so Enter creates
+		// highlight the current value, or the first row when searching
 		const current = query ? null : this.rows.find((r) => r.option.value === this.value);
 		this.highlight(
 			current || this.nav_rows.find((r) => !(r.option && r.option.disabled)) || null
@@ -1187,7 +1180,7 @@ frappe.ui.Combobox = class Combobox {
 		this.update_scroll_cue();
 		this.update_more_row();
 
-		// Enter arrived while rows were loading: commit an option, never a custom row
+		// Enter pressed while loading: pick a row, not a custom row
 		if (this.pending_activate) {
 			this.pending_activate = false;
 			if (this.highlighted && this.highlighted.option) this.activate(this.highlighted);
@@ -1198,7 +1191,7 @@ frappe.ui.Combobox = class Combobox {
 		return [...this.rows, ...this.footer_rows];
 	}
 
-	// list and footer rows kept apart, so a later page still sits before the footer
+	// keep list and footer rows apart so new pages go above the footer
 	add_row(row, { reserve, query } = {}) {
 		const option = row.option || {
 			label:
@@ -1235,7 +1228,7 @@ frappe.ui.Combobox = class Combobox {
 		label.className = "es-menu__label";
 		fill_label(label, option.label || "", row.custom ? "" : query);
 		if (option.badge && option.badge.label) {
-			// the badge validates the theme itself
+			// the badge checks the theme
 			label.insertAdjacentHTML(
 				"beforeend",
 				frappe.ui.badge.html({
@@ -1260,7 +1253,7 @@ frappe.ui.Combobox = class Combobox {
 			);
 		}
 
-		// mousedown would blur the search input before click fires
+		// keep focus in the search box on mousedown
 		el.addEventListener("pointerdown", (e) => e.preventDefault());
 		el.addEventListener("pointermove", () => {
 			this.pointer_highlight = true;
@@ -1285,7 +1278,7 @@ frappe.ui.Combobox = class Combobox {
 		}
 		row.el.setAttribute("data-highlighted", "");
 		owner && owner.setAttribute("aria-activedescendant", row.el.id);
-		// a hovered row is already on screen
+		// hovered row is already visible
 		if (scroll) row.el.scrollIntoView({ block: "nearest" });
 	}
 
@@ -1313,10 +1306,10 @@ frappe.ui.Combobox = class Combobox {
 		if (!row) return;
 		if (row.custom) {
 			row.custom.onclick && row.custom.onclick({ query: this.query, combobox: this });
-			// the row set a value (a link_options value row): that is the pick
+			// the row set a value, so that is the pick
 			if (this.value != null) this.pending_clear = false;
 			this.close("select");
-			// a custom row that picked nothing settles a clear waiting on a pick
+			// custom row picked nothing: finish the pending clear
 			this.flush_clear();
 			return;
 		}
@@ -1325,7 +1318,7 @@ frappe.ui.Combobox = class Combobox {
 	}
 
 	select(option) {
-		// after a clear the value is null, so any pick counts as a change
+		// after a clear any pick is a change
 		const changed = option.value !== this.value || this.pending_clear;
 		this.pending_clear = false;
 		this.value = option.value;
@@ -1336,7 +1329,7 @@ frappe.ui.Combobox = class Combobox {
 	}
 
 	handle_keydown(e) {
-		// keys an IME is still composing with belong to it
+		// leave keys to the IME while typing
 		if (e.isComposing || e.keyCode === 229) return;
 		const handled = () => {
 			e.preventDefault();
@@ -1367,7 +1360,7 @@ frappe.ui.Combobox = class Combobox {
 				break;
 			case "Enter":
 				handled();
-				// rows for the query haven't arrived: commit when they do (see render)
+				// rows still loading: pick when they arrive (see render)
 				if (this.rows_pending) this.pending_activate = true;
 				else this.activate(this.highlighted);
 				break;
@@ -1376,9 +1369,9 @@ frappe.ui.Combobox = class Combobox {
 				this.close("escape");
 				break;
 			case "Tab": {
-				// don't trap focus; typed text (or a row moved to) plus Tab picks it
+				// Tab moves on and picks the typed text or the chosen row
 				const meant = this.navigated || !!this.query;
-				// a row the pointer happens to rest on isn't the one typed for
+				// ignore a row only hovered by the mouse
 				const chosen = this.pointer_highlight
 					? this.rows.find((r) => !r.option.disabled)
 					: this.highlighted;
@@ -1397,7 +1390,7 @@ frappe.ui.Combobox = class Combobox {
 			}
 			default:
 				if (!this.input && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-					// no search row: type-to-jump on the rows (queued while they load)
+					// no search box: typing jumps to a row
 					handled();
 					if (this.pending_typeahead || this.rows_pending) {
 						this.pending_typeahead = (this.pending_typeahead || "") + e.key;
@@ -1405,33 +1398,29 @@ frappe.ui.Combobox = class Combobox {
 						this.typeahead(e.key);
 					}
 				} else if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === "s") {
-					// Ctrl+S saves: the typed text is committed first, as blur did;
-					// a commit still being looked up is waited for, then the desk saves
+					// Ctrl+S: save the typed text first, then let the form save
 					const committed = this.close("owner");
 					if (committed && typeof committed.then === "function") {
 						handled();
-						// the key goes on afterwards, to the same handlers it would have
-						// reached; a dialog closed meanwhile must not hand the save to
-						// the form behind it
+						// send Ctrl+S again once done, unless the dialog closed
 						const dialog = window.cur_dialog;
 						const save = (result) => {
-							// false: the commit was superseded by what the user did next
+							// false: the user did something else meanwhile
 							if (result === false || window.cur_dialog !== dialog) return;
 							this.replay_key(e);
 						};
 						committed.then(save, () => save());
 					}
 				} else if (!this.input && (e.ctrlKey || e.metaKey || e.altKey)) {
-					// no input has focus here: keep other shortcuts off, as an input would
+					// block other shortcuts, like an input does
 					e.stopPropagation();
 				}
 		}
 	}
 
-	// the host's own handlers on the trigger input (a grid row adding the next
-	// row on Tab) see the key that was pressed in the panel
+	// send a panel key to the field's own handlers (e.g. Tab adds a grid row)
 	replay_key(e) {
-		// a trigger gone from the page still hands the key to the document
+		// field removed: send the key to body
 		const el = this.input_el && this.input_el.isConnected ? this.input_el : document.body;
 		const copy = new KeyboardEvent("keydown", {
 			key: e.key,
@@ -1443,7 +1432,7 @@ frappe.ui.Combobox = class Combobox {
 			bubbles: true,
 			cancelable: true,
 		});
-		// jQuery handlers read the legacy code
+		// jQuery handlers read keyCode
 		for (const p of ["keyCode", "which"]) Object.defineProperty(copy, p, { value: e.keyCode });
 		el.dispatchEvent(copy);
 		if (copy.defaultPrevented) e.preventDefault();

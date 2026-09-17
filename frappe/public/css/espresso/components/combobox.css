@@ -1,16 +1,11 @@
-/* Espresso Combobox: a trigger styled like a form control, plus a panel.
- * The panel is an .es-menu (menu.css) with role="listbox", so rows, states,
- * motion and dark mode come from there. Layout comes from the utility
- * classes the JS puts on the elements; this file adds only what a class
- * can't say. The form control's error state is painted by controls.scss. */
+/* Combobox: a field-like trigger and an .es-menu panel. Only styles utility classes can't do. */
 
 /* ---- trigger ---- */
 .es-combobox {
     box-sizing: border-box;
     height: var(--input-height);
     background: var(--control-bg);
-    /* not the .rounded utility: bootstrap also defines it, with !important,
-       which would beat the square corners the grid asks for */
+    /* not .rounded: bootstrap's !important version breaks grid corners */
     border-radius: var(--radius);
     font-size: var(--text-base);
     line-height: 1.4;
@@ -85,11 +80,11 @@ input.es-combobox__value:disabled {
 
 .es-combobox__list {
     overflow-y: auto;
-    /* the desk's scrollbar-width / scrollbar-color make Chrome ignore the
+    /* desk's scrollbar-width / scrollbar-color make Chrome ignore the
        ::-webkit-scrollbar rules below; reset them so the thin bar shows */
     scrollbar-width: auto;
     scrollbar-color: auto;
-    /* gutter as wide as the ps-1 inset, so rows sit evenly from both edges */
+    /* keep space for the scrollbar so rows line up */
     scrollbar-gutter: stable;
 }
 

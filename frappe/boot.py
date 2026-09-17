@@ -132,8 +132,7 @@ def get_bootinfo():
 	bootinfo.desk_settings = get_desk_settings()
 	bootinfo.app_logo_url = get_app_logo()
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
-	# only the combobox controls read this, so an untouched site pays nothing.
-	# cint: the setting comes back as the string "0", which is truthy on its own
+	# only needed when the combobox setting is on; the setting comes back as a string
 	bootinfo.link_settings = (
 		get_link_settings() if cint(frappe.get_system_settings("enable_combobox_link_field")) else {}
 	)
@@ -601,7 +600,7 @@ def get_link_settings() -> dict[str, dict]:
 		else:
 			entry["image"] = bool(cint(ps.value))
 
-	# Property Setters outlive a deleted DocType: drop those before touching meta
+	# skip Property Setters of deleted DocTypes
 	names = filter_out_disabled_doctypes([dt for dt, f in flags.items() if f["select"] or f["image"]])
 	existing = set(frappe.get_all("DocType", filters={"name": ["in", names]}, pluck="name"))
 
@@ -612,10 +611,7 @@ def get_link_settings() -> dict[str, dict]:
 		entry = {}
 		if flags[dt]["select"]:
 			entry["display_mode"] = "Select"
-		# The client needs the field name to fetch avatars without loading meta.
-		# This reads meta (cached) rather than the DocType column, because the
-		# answer depends on Property Setters, Custom Fields and this user's
-		# permlevel access; only DocTypes that asked for images get here.
+		# image field name, so the client can load images without meta
 		if flags[dt]["image"] and (image_field := get_image_field(dt)):
 			entry["image_field"] = image_field
 		if entry:

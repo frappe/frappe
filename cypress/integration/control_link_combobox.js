@@ -50,21 +50,18 @@ context("Control Link (combobox)", () => {
 			});
 	}
 
-	// scoped to the live modal: a hidden dialog keeps its own copy of the field
+	// only the field in the open dialog
 	const field_input = () =>
 		cy.get(".modal.show .frappe-control[data-fieldname=link] .es-combobox input");
 	const panel = () => cy.get(".es-combobox__panel[data-state='open']");
 	const search = () => panel().find(".es-combobox__input");
-	// a hidden dialog keeps its markup, so clicks and panels stay scoped to the live one
+	// use only the open dialog, hidden ones keep their markup
 	const click_away = () => cy.get(".modal.show .modal-title").click();
 	const close_dialog = () => {
 		cy.window().then((win) => win.cur_dialog && win.cur_dialog.hide());
 		cy.get(".modal.show").should("not.exist");
 	};
-	// frappe asks "leave site?" about unsaved changes unless developer mode is on,
-	// which CI's site is not. After real keystrokes (cy.realPress) the browser
-	// shows that prompt and it blocks the page, so leaving an unsaved form hangs
-	// the run. Take the form's own guard off before leaving it
+	// without developer mode, the "leave site?" prompt blocks the test, so remove it
 	const leave_unsaved_form = () =>
 		cy.window().then((win) => {
 			if (win.cur_frm) {
@@ -295,9 +292,7 @@ context("Control Link (combobox)", () => {
 		);
 		close_dialog();
 
-		// too many rows to preload: the panel reopens as a search, and stays one.
-		// A frappe-only site has a few hundred DocTypes, under the preload limit,
-		// so give the preload a list that is over it
+		// too many rows: the panel switches to Search (fake a long list)
 		cy.intercept("POST", "/api/method/frappe.desk.search.search_link", (req) => {
 			const args = read_body(req.body);
 			if (args.doctype !== "DocType" || String(args.page_length) !== "1001") return;
@@ -393,7 +388,7 @@ context("Control Link (combobox)", () => {
 			true
 		);
 
-		// keep the setter on: a worker holding stale ToDo meta answers with bare names
+		// keep the setting on, else old ToDo meta returns names only
 		cy.call("frappe.client.get_value", {
 			doctype: "Property Setter",
 			filters: { doc_type: "ToDo", property: "show_title_field_in_link" },
@@ -445,7 +440,7 @@ context("Control Link (combobox)", () => {
 			cy.visit(`/desk/todo/${todos[0]}`);
 			cy.reload();
 			cy.intercept("/api/method/frappe.client.validate_link_and_fetch*").as("validate_link");
-			// custom fields can push the field below the fold, where Cypress counts it hidden
+			// scroll into view, custom fields may push it down
 			cy.get(".frappe-control[data-fieldname=assigned_by]").scrollIntoView();
 
 			cy.fill_field("assigned_by", cy.config("testUser"), "Link");

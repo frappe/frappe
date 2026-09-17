@@ -174,13 +174,12 @@ Cypress.Commands.add("fill_field", (fieldname, value, fieldtype = "Data") => {
 	if (["Link", "Dynamic Link"].includes(fieldtype)) {
 		cy.get("@input").then(($input) => {
 			if ($input.closest(".es-combobox").length) {
-				// combobox Link field: a click opens the panel even on a filled
-				// value (a click on an open one would close it); type in its search box
+				// combobox: open the panel if closed, then type in its search box
 				cy.get("@input").then(($i) => {
 					if ($i.closest(".es-combobox").attr("data-state") !== "open")
 						cy.wrap($i).click();
 				});
-				// the panel is mounted in <body>, outside any .within() scope
+				// the panel is in <body>, outside .within()
 				cy.document()
 					.its("body")
 					.find(".es-combobox__panel[data-state='open']")
@@ -350,7 +349,7 @@ Cypress.Commands.add("dialog", (opts) => {
 			return d;
 		})
 		.then((d) => {
-			// wait for shown: until then the modal pulls focus from anything in <body>
+			// wait until shown, else the modal takes focus back
 			cy.window({ log: false }).should((win) =>
 				expect(win.cur_dialog === d && d.display).to.eq(true)
 			);
