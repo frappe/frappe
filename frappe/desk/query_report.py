@@ -313,7 +313,9 @@ def _run(
 					filters = json.loads(filters)
 
 				dn = filters.pop("prepared_report_name", None)
-				if dn:
+				if dn and not frappe.db.exists(
+					"Prepared Report", {"name": dn, "owner": user, "report_name": report_name}
+				):
 					frappe.has_permission("Prepared Report", "read", dn, throw=True)
 			else:
 				dn = ""
