@@ -73,9 +73,8 @@
 								:key="mi"
 								class="cell-line"
 								:class="`cell-line--${mf.style || 'primary'}`"
-							>
-								{{ format_merged(row, i, mf.fieldname) }}
-							</div>
+								v-html="merged_line(row, i, mf)"
+							></div>
 						</div>
 					</div>
 					<!-- Single (default) -->
@@ -135,7 +134,7 @@ const {
 	has_merge,
 	image_merge,
 	text_merges,
-	format_merged,
+	merged_line,
 	cell_image,
 	thumb_box,
 	thumb,

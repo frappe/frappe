@@ -25,7 +25,7 @@ class TestOAuthBearerToken(IntegrationTestCase):
 		owning_client = make_oauth_client()
 		refresh_token = frappe.generate_hash()
 		make_bearer_token(frappe.generate_hash(), refresh_token, client=owning_client.name)
-		request = frappe._dict()
+		request = frappe._dict(client={"name": owning_client.name})
 		validator = OAuthWebRequestValidator()
 
 		self.assertEqual(validator.get_original_scopes(refresh_token, request), "all openid")

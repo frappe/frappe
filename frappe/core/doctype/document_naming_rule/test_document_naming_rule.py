@@ -69,6 +69,39 @@ class TestDocumentNamingRule(IntegrationTestCase):
 			todo_1.delete()
 			todo_2.delete()
 
+	def test_conditions_on_one_field_are_required_together(self):
+		naming_rule = frappe.get_doc(
+			doctype="Document Naming Rule",
+			document_type="ToDo",
+			prefix="test-both-",
+			prefix_digits=5,
+			priority=10,
+			conditions=[
+				dict(field="priority", condition="=", value="High"),
+				dict(field="priority", condition="=", value="Low"),
+			],
+		).insert()
+		self.addCleanup(naming_rule.delete)
+		self.make_rule("test-fallback-")
+
+		names = [self.make_todo(priority).name for priority in ("High", "Low")]
+
+		self.assertEqual(names, ["test-fallback-00001", "test-fallback-00002"])
+
+	def test_condition_field_is_validated_on_every_save(self):
+		naming_rule = frappe.get_doc(
+			doctype="Document Naming Rule",
+			document_type="ToDo",
+			prefix="test-revalidate-",
+			prefix_digits=5,
+			conditions=[dict(field="priority", condition="=", value="High")],
+		).insert()
+		self.addCleanup(naming_rule.delete)
+
+		naming_rule.conditions[0].field = "not_a_field"
+
+		self.assertRaises(frappe.ValidationError, naming_rule.save)
+
 	def test_counter_is_scoped_to_the_resolved_prefix(self):
 		naming_rule = frappe.get_doc(
 			doctype="Document Naming Rule",

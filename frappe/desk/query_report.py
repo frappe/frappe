@@ -12,6 +12,7 @@ import frappe.desk.reportview
 from frappe import _
 from frappe.core.utils import ljust_list
 from frappe.desk.form.load import get_attachments
+from frappe.desk.link_title import get_report_link_titles, send_link_titles
 from frappe.desk.reportview import clean_params, parse_json
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
@@ -330,6 +331,10 @@ def _run(
 	if sbool(are_default_filters) and report.get("custom_filters"):
 		result["custom_filters"] = report.custom_filters
 
+	# prepared reports can still carry legacy string column definitions
+	columns = [get_column_as_dict(column) for column in result.get("columns") or []]
+	send_link_titles(get_report_link_titles(columns, result.get("result")))
+
 	return result
 
 
@@ -547,27 +552,10 @@ def _export_query(form_params, csv_params, populate_response=True):
 			msg=_("Only CSV and Excel formats are supported for export"),
 		)
 
-	if include_filters:
-		for value in (data.filters or {}).values():
-			suffix = ""
-			if isinstance(value, list):
-				suffix = "_" + ",".join(value)
-			elif isinstance(value, str) and value not in {"Yes", "No"}:
-				suffix = f"_{value}"
-
-			if valid_report_name(report_name, suffix):
-				report_name += suffix
-
 	if not populate_response:
 		return report_name, file_extension, content
 
 	provide_binary_file(_(report_name), file_extension, content)
-
-
-def valid_report_name(report_name, suffix):
-	if len(report_name) + len(suffix) < 200:
-		return True
-	return False
 
 
 def format_fields(data: frappe._dict, file_format_type: str | None = None) -> None:
