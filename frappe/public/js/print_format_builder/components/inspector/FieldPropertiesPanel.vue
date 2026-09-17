@@ -34,17 +34,12 @@
 					:alt="selected_field.label"
 					@update:model-value="set_image_url"
 				/>
-				<div v-if="selected_field.image_url" class="pfb-insp-row pfb-insp-row--col">
-					<span class="pfb-insp-label">{{ __("Size") }}</span>
-					<input
-						class="pfb-size-slider"
-						type="range"
-						min="20"
-						max="700"
-						:value="image_size"
-						@input="selected_field.width = $event.target.value + 'px'"
-					/>
-				</div>
+				<SliderRow
+					v-if="selected_field.image_url"
+					:label="__('Size')"
+					:model-value="image_size"
+					@update:model-value="(v) => (selected_field.width = v + 'px')"
+				/>
 				<SegmentedRow
 					:label="__('Align')"
 					:model-value="current_align"
@@ -91,17 +86,13 @@
 						</option>
 					</select>
 				</div>
-				<div class="pfb-insp-row pfb-insp-row--col">
-					<span class="pfb-insp-label">{{ __("Size") }}</span>
-					<input
-						class="pfb-size-slider"
-						type="range"
-						min="40"
-						max="500"
-						:value="barcode_size"
-						@input="selected_field.width = $event.target.value + 'px'"
-					/>
-				</div>
+				<SliderRow
+					:label="__('Size')"
+					:min="40"
+					:max="500"
+					:model-value="barcode_size"
+					@update:model-value="(v) => (selected_field.width = v + 'px')"
+				/>
 				<div
 					class="pfb-insp-row"
 					v-if="selected_field.custom && selected_field.barcode_format !== 'QR'"
@@ -169,17 +160,12 @@
 					:placeholder="__('Select a field')"
 					@update:model-value="set_link_target"
 				/>
-				<div v-if="linked_is_image" class="pfb-insp-row pfb-insp-row--col">
-					<span class="pfb-insp-label">{{ __("Size") }}</span>
-					<input
-						class="pfb-size-slider"
-						type="range"
-						min="20"
-						max="700"
-						:value="image_size"
-						@input="selected_field.width = $event.target.value + 'px'"
-					/>
-				</div>
+				<SliderRow
+					v-if="linked_is_image"
+					:label="__('Size')"
+					:model-value="image_size"
+					@update:model-value="(v) => (selected_field.width = v + 'px')"
+				/>
 				<LabelField
 					v-model="selected_field.label"
 					:label="__('Label')"
@@ -228,17 +214,12 @@
 					:options="align_opts"
 					@update:model-value="(v) => (selected_field.align = v)"
 				/>
-				<div v-if="is_attach_image" class="pfb-insp-row pfb-insp-row--col">
-					<span class="pfb-insp-label">{{ __("Size") }}</span>
-					<input
-						class="pfb-size-slider"
-						type="range"
-						min="20"
-						max="700"
-						:value="image_size"
-						@input="selected_field.width = $event.target.value + 'px'"
-					/>
-				</div>
+				<SliderRow
+					v-if="is_attach_image"
+					:label="__('Size')"
+					:model-value="image_size"
+					@update:model-value="(v) => (selected_field.width = v + 'px')"
+				/>
 				<div class="pfb-insp-row" v-if="fieldIsInline && current_align === 'left'">
 					<span class="pfb-insp-label">{{ __("Spacing") }}</span>
 					<select
@@ -308,6 +289,7 @@ import SegmentedRow from "./SegmentedRow.vue";
 import ToggleRow from "./ToggleRow.vue";
 import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
+import SliderRow from "./SliderRow.vue";
 import StyleSection from "./StyleSection.vue";
 import ColorField from "./ColorField.vue";
 import VisibilitySection from "./VisibilitySection.vue";
