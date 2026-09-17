@@ -18,7 +18,12 @@
 		</Row>
 
 		<Row v-if="showTo" label="To">
-			<RecipientSelect v-model="to" class="flex-1" :search="search" />
+			<RecipientSelect
+				v-model="to"
+				class="flex-1"
+				:search="search"
+				@show-cc-bcc="revealCcBcc"
+			/>
 			<div v-if="showCc || showBcc" class="flex shrink-0 items-center gap-1">
 				<Button
 					v-if="showCc"
@@ -40,10 +45,20 @@
 		</Row>
 
 		<Row v-if="showCc && openCc" label="CC">
-			<RecipientSelect v-model="cc" class="flex-1" :search="search" />
+			<RecipientSelect
+				v-model="cc"
+				class="flex-1"
+				:search="search"
+				@show-cc-bcc="revealCcBcc"
+			/>
 		</Row>
 		<Row v-if="showBcc && openBcc" label="BCC">
-			<RecipientSelect v-model="bcc" class="flex-1" :search="search" />
+			<RecipientSelect
+				v-model="bcc"
+				class="flex-1"
+				:search="search"
+				@show-cc-bcc="revealCcBcc"
+			/>
 		</Row>
 		<div class="border-b bg-surface-gray-1 mt-2"></div>
 	</div>
@@ -120,6 +135,12 @@ function toggleCc() {
 function toggleBcc() {
 	openBcc.value = !openBcc.value;
 	if (!openBcc.value) bcc.value = [];
+}
+
+// a chip being dragged needs the other rows open to have somewhere to land
+function revealCcBcc() {
+	if (props.showCc) openCc.value = true;
+	if (props.showBcc) openBcc.value = true;
 }
 </script>
 
