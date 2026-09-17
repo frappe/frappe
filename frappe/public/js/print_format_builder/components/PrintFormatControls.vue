@@ -277,6 +277,24 @@
 						</div>
 						<div v-if="!is_collapsed(section)" class="pfb-tree-children">
 							<div
+								v-if="zone_of(section) && letterhead"
+								class="pfb-tree-row"
+								:class="{ active: letterhead_selected(section) }"
+								role="treeitem"
+								tabindex="0"
+								:aria-selected="letterhead_selected(section)"
+								@click="select_letterhead(section)"
+								@keydown.enter.prevent="select_letterhead(section)"
+								@keydown.space.prevent="select_letterhead(section)"
+							>
+								<span class="pfb-tree-spacer"></span>
+								<span
+									class="pfb-tree-icon"
+									v-html="frappe.utils.icon('image', 'sm')"
+								></span>
+								<span class="pfb-tree-label">{{ letterhead.name }}</span>
+							</div>
+							<div
 								v-for="(col, ci) in section.columns"
 								:key="ci"
 								class="pfb-tree-node"
@@ -427,7 +445,7 @@ function focus_search() {
 
 // store
 let store = inject("$store");
-let { meta, layout, print_format } = useStore();
+let { meta, layout, print_format, letterhead } = useStore();
 
 // ── blocks tab items ──────────────────────────────────────
 const page_break_block = [
@@ -669,6 +687,15 @@ let tree_sections = computed({
 		[layout.value.header, ...layout.value.sections, layout.value.footer].filter(Boolean),
 	set: (v) => (layout.value.sections = v.filter((s) => !zone_of(s))),
 });
+
+function letterhead_selected(section) {
+	return section === layout.value?.footer
+		? store.selected_lh_footer.value
+		: store.selected_letterhead.value;
+}
+function select_letterhead(section) {
+	store.select_letterhead({ footer: section === layout.value?.footer });
+}
 
 function zone_of(section) {
 	if (section && section === layout.value?.header) return __("Header");
