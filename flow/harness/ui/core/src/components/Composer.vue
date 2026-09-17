@@ -65,7 +65,14 @@
 
 			<!-- the pending approval rides with the composer, wherever the thread is scrolled;
 			     the batch answers one call at a time, so the next call takes the card over -->
-			<ApprovalCard v-if="approval" :key="approval.id" :call="approval" class="mb-2" />
+			<ApprovalCard
+				v-if="approval"
+				:key="approval.call.id"
+				:call="approval.call"
+				:position="approval.position"
+				:total="approval.total"
+				class="mb-2"
+			/>
 
 			<!-- queued steering -->
 			<div
@@ -608,7 +615,9 @@ const skillPrompt = computed(() => {
 const running = computed(() => flow.state.conversation.running)
 const approval = computed(() => {
 	const pending = flow.state.conversation.pendingApproval
-	return pending?.calls.find((call) => !(call.id in pending.answers)) ?? null
+	const index = pending?.calls.findIndex((call) => !(call.id in pending.answers)) ?? -1
+	if (index === -1) return null
+	return { call: pending.calls[index], position: index + 1, total: pending.calls.length }
 })
 const codeRefs = computed(() => flow.state.codeRefs)
 // "Add to chat" hands off to typing: pull focus as soon as a ref arrives

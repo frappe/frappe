@@ -110,6 +110,7 @@ test("standalone approvals keep command text and edit diffs", (t) => {
 	const { el } = mount(t, { render: () => calls.map((call) => h(ApprovalCard, { call })) }, {}, { options: {} })
 	assert.ok(el.textContent.includes("Run this command?"))
 	assert.ok(el.textContent.includes("Apply 1 edit to a.txt?"))
+	assert.ok(!el.textContent.includes(" of "), "a lone card carries no batch counter")
 	assert.deepEqual([...el.querySelectorAll("pre")].map((pre) => pre.textContent), ["pwd", "- before+ after"])
 })
 
@@ -272,12 +273,14 @@ test("the composer shows a pending batch one call at a time, above the box", asy
 	const approve = () => [...el.querySelectorAll("button")].find((button) => button.textContent === "Approve")
 	assert.ok(el.textContent.includes("Run this command?"))
 	assert.ok(!el.textContent.includes("Write a.txt?"))
+	assert.ok(el.textContent.includes("1 of 2"))
 	assert.ok(approve().compareDocumentPosition(el.querySelector("fieldset")) & Node.DOCUMENT_POSITION_FOLLOWING)
 
 	approve().click()
 	await nextTick()
 	assert.ok(!el.textContent.includes("Run this command?"))
 	assert.ok(el.textContent.includes("Write a.txt?"))
+	assert.ok(el.textContent.includes("2 of 2"))
 
 	approve().click()
 	await nextTick()

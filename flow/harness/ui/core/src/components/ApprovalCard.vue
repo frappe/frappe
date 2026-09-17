@@ -2,8 +2,14 @@
 	<div
 		class="overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)]"
 	>
-		<div class="px-3.5 py-2.5">
-			<div class="text-base leading-snug text-ink-gray-9">{{ title }}</div>
+		<div class="flex items-start gap-3 px-3.5 py-2.5">
+			<div class="min-w-0 flex-1 text-base leading-snug text-ink-gray-9">{{ title }}</div>
+			<span
+				v-if="total > 1"
+				class="flex-none rounded-full bg-surface-gray-2 px-2 py-0.5 text-2xs font-medium text-ink-gray-6"
+			>
+				{{ position }} of {{ total }}
+			</span>
 		</div>
 
 		<!-- the host's view fills the card body: its own padding, so a table can go edge to
@@ -58,9 +64,12 @@
 <script setup>
 import { computed, inject, nextTick, ref } from "vue"
 
-// One gated call, answered here. The composer shows the batch one call at a time.
+// One gated call, answered here. The composer shows the batch one call at a time,
+// and the call's place in it tells the user how many questions follow.
 const props = defineProps({
 	call: { type: Object, required: true },
+	position: { type: Number, default: 1 },
+	total: { type: Number, default: 1 },
 })
 const flow = inject("flow")
 
