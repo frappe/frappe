@@ -127,7 +127,8 @@ def skills(session: str | None = None, agent: str | None = None) -> dict[str, An
 	`agent` for a chat not started yet."""
 	if session:
 		agent = _load_session(session, "read").agent
-	elif agent:
+	elif isinstance(agent, str) and agent.strip():
+		agent = agent.strip()
 		frappe.has_permission("Flow Agent", "read", agent, throw=True)
 	else:
 		frappe.throw(_("Session or agent is required."), title=_("Invalid Request"))

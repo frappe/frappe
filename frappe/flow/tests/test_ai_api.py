@@ -558,8 +558,9 @@ class TestSessionEndpoints(ApiCase):
 		expected = {"skills": [{"name": "expense-approval", "description": "How to review a claim."}]}
 		self.assertEqual(api.skills(session=self.create()), expected)
 		self.assertEqual(api.skills(agent=self.agent.name), expected)
-		with self.assertRaisesRegex(frappe.ValidationError, "Session or agent"):
-			api.skills()
+		for bad in ({}, {"agent": ["x"]}, {"agent": " "}):
+			with self.assertRaisesRegex(frappe.ValidationError, "Session or agent"):
+				api.skills(**bad)
 
 	def test_delete_session_removes_the_session_and_its_server_copy(self):
 		name = self.create()

@@ -40,6 +40,19 @@ class TestFlowSkill(IntegrationTestCase):
 		self.assertEqual(skill_command("Expense Approval"), "expense-approval")
 		self.assertEqual(skill_command("  Manager's Sign-off / Q&A  "), "manager-s-sign-off-q-a")
 
+	def test_two_user_invocable_skills_cannot_share_a_command(self):
+		frappe.get_doc(_skill(title="Pre flight", user_invocable=1)).insert()
+		frappe.get_doc(_skill(title="Pre-flight")).insert()
+		with self.assertRaisesRegex(
+			frappe.ValidationError, "Pre flight already answers to /skill:pre-flight"
+		):
+			frappe.get_doc(_skill(title="Pre_flight", user_invocable=1)).insert()
+
+	def test_a_user_invocable_skill_needs_a_typable_title(self):
+		frappe.get_doc(_skill(title="खर्च")).insert()
+		with self.assertRaisesRegex(frappe.ValidationError, "letter or digit"):
+			frappe.get_doc(_skill(title="मंज़ूरी", user_invocable=1)).insert()
+
 	def test_two_skills_cannot_share_a_title(self):
 		frappe.get_doc(_skill()).insert()
 		with self.assertRaises(frappe.DuplicateEntryError):

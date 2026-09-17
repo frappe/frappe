@@ -44,6 +44,7 @@ class FlowSkill(Document):
 	def validate(self):
 		self._validate_description()
 		self._validate_global_limit()
+		self._validate_command()
 		validate_immutable(self, ("description", "instructions"))
 
 	def on_trash(self):
@@ -59,6 +60,24 @@ class FlowSkill(Document):
 				_("Description must be at most {0} characters.").format(MAX_DESCRIPTION_LENGTH),
 				title=_("Description Too Long"),
 			)
+
+	def _validate_command(self):
+		"""A user-invocable skill answers to /skill:<command>, so its command must be typable and its own."""
+		if not self.user_invocable:
+			return
+		command = skill_command(self.title or "")
+		if not command:
+			frappe.throw(
+				_("A user-invocable skill needs a letter or digit in its title."), title=_("Invalid Title")
+			)
+		for other in frappe.get_all(
+			"Flow Skill", filters={"user_invocable": 1, "name": ["!=", self.name or ""]}, pluck="name"
+		):
+			if skill_command(other) == command:
+				frappe.throw(
+					_("{0} already answers to /skill:{1}. Choose a different name.").format(other, command),
+					title=_("Duplicate Skill Command"),
+				)
 
 	def _validate_global_limit(self):
 		if not (self.is_global and self.enabled):
