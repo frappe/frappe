@@ -2667,11 +2667,11 @@ frappe.ui.form.on("Data Import", {
 							log.docname,
 							true
 						)}</span>`;
-						html = `<div class="diw-import-log-message">${get_import_log_html(
+						html = `<div class="diw-import-log-message"><div class="flex items-center" style="min-height:1.75rem">${get_import_log_html(
 							frm.doc.import_type,
 							log.import_action,
 							doc_link
-						)}</div>`;
+						)}</div></div>`;
 					} else {
 						const messages = parse_messages(log);
 						// message is server-sanitized HTML (msgprint runs nh3 clean_html) so it
@@ -2714,7 +2714,7 @@ frappe.ui.form.on("Data Import", {
 						let id = frappe.dom.get_unique_id();
 						// Chevron expands extra messages + traceback directly.
 						html = `<div class="diw-import-log-message">
-							<div class="flex items-start justify-between gap-2">
+							<div class="flex items-center justify-between gap-2" style="min-height:1.75rem">
 								<div>${summary}</div>
 								${
 									is_expandable
@@ -2736,7 +2736,7 @@ frappe.ui.form.on("Data Import", {
 							</div>
 							${
 								is_expandable
-									? `<div class="collapse diw-import-log-details mt-1" id="${id}">
+									? `<div class="collapse diw-import-log-details" id="${id}">
 										${detail_list}
 										${traceback_html}
 									</div>`
@@ -2750,9 +2750,9 @@ frappe.ui.form.on("Data Import", {
 					});
 
 					return `<tr>
-							<td class="diw-import-log-cell-row whitespace-nowrap text-sm text-end align-top border-b py-2 px-4" style="width:72px">${row_number_label}</td>
-							<td class="text-sm align-top border-b py-2 px-4">${status_badge}</td>
-							<td class="text-sm align-top border-b py-2 px-4">
+							<td class="diw-import-log-cell-row whitespace-nowrap text-sm align-top border-b py-2 px-4" style="width:72px"><div class="flex items-center" style="min-height:1.75rem">${row_number_label}</div></td>
+							<td class="text-sm align-top border-b py-2 px-4"><div class="flex items-center" style="min-height:1.75rem">${status_badge}</div></td>
+							<td class="text-sm align-top border-b py-2 px-4 break-words">
 								${html}
 							</td>
 						</tr>`;
@@ -2875,10 +2875,10 @@ frappe.ui.form.on("Data Import", {
 				</div>
 				${
 					has_rows
-						? `<table class="diw-import-log-table w-full">
+						? `<table class="diw-import-log-table w-full" style="table-layout:fixed">
 							<thead>
 								<tr class="text-muted">
-										<th class="text-sm-semibold text-end border-b py-2 px-4" width="10%">${__("Row")}</th>
+										<th class="text-sm-semibold border-b py-2 px-4" width="10%">${__("Row")}</th>
 									<th class="text-sm-semibold border-b py-2 px-4" width="14%">${__("Status")}</th>
 									<th class="text-sm-semibold border-b py-2 px-4" width="76%">${__("Message")}</th>
 								</tr>
