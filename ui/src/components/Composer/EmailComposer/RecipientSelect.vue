@@ -23,7 +23,6 @@
 					class="-my-0.5 -ml-1.5 flex min-w-0 items-center gap-1 py-0.5 pl-1.5"
 					draggable="true"
 					@dragstart="onDragStart($event, value, option)"
-					@dragend="onDragEnd(value)"
 				>
 					<Avatar size="xs" :image="option?.image" :label="option?.label || value" />
 					<span class="mb-0.5 leading-4 truncate">{{ option?.label || value }}</span>
@@ -52,11 +51,6 @@
 	</div>
 </template>
 
-<script lang="ts">
-// shared by all three rows, so the row a chip came from knows another row took it
-let droppedOnTarget = false;
-</script>
-
 <script setup lang="ts">
 import { computed, ref, useTemplateRef } from "vue";
 import { computedAsync, useDebounceFn } from "@vueuse/core";
@@ -72,7 +66,7 @@ const model = defineModel<Recipient[]>({ default: () => [] });
 
 const loading = ref(false);
 
-const emit = defineEmits<{ showCcBcc: [] }>();
+const emit = defineEmits<{ showCcBcc: []; move: [recipient: Recipient] }>();
 
 // same payload key frappe mail uses, so the two stay swappable
 const DRAG_TYPE = "recipient";
@@ -80,7 +74,6 @@ const isDragOver = ref(false);
 const row = useTemplateRef<HTMLElement>("row");
 
 function onDragStart(event: DragEvent, email: string, option?: MultiEmailOption) {
-	droppedOnTarget = false;
 	emit("showCcBcc");
 	// the open suggestion list covers the rows being dragged to, and it only
 	// closes when focus leaves the input
@@ -114,14 +107,6 @@ function floatingCopyOf(chip: HTMLElement, box: DOMRect) {
 	return copy;
 }
 
-// drop runs before dragend, so by now we know if another row took the chip
-function onDragEnd(email: string) {
-	isDragOver.value = false;
-	if (droppedOnTarget) {
-		model.value = model.value.filter((recipient) => recipient.email !== email);
-	}
-}
-
 // dragleave also fires moving between children, ignore those
 function onDragLeave(event: DragEvent) {
 	const leaving = event.relatedTarget as Node | null;
@@ -134,11 +119,7 @@ function onDrop(event: DragEvent) {
 	isDragOver.value = false;
 	const data = event.dataTransfer?.getData(DRAG_TYPE);
 	if (!data) return;
-	const dropped = JSON.parse(data) as Recipient;
-	// dropped back on its own row: leave the flag alone so the chip survives
-	if (model.value.some((recipient) => recipient.email === dropped.email)) return;
-	model.value = [...model.value, dropped];
-	droppedOnTarget = true;
+	emit("move", JSON.parse(data) as Recipient);
 }
 
 // Bridge plain emails <-> Recipient objects; Set() dedupes repeated seeds.
