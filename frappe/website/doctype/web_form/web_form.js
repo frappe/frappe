@@ -725,7 +725,7 @@ function render_form_builder(frm) {
 		return;
 	}
 
-	const wrapper = $(frm.fields_dict["form_builder"].wrapper).closest(".tab-pane");
+	const wrapper = $(frm.fields_dict["form_builder"].wrapper);
 
 	// mounted against another frm: repoint it, init(true) reuses the Vue app
 	if (builder) {
@@ -736,7 +736,6 @@ function render_form_builder(frm) {
 		builder.doctype = frm.doc.doc_type;
 		builder.is_web_form = true;
 		builder.init(true);
-		keep_builder_tab_visible(frm);
 		builder.store.fetch();
 		return;
 	}
@@ -758,27 +757,7 @@ function render_form_builder(frm) {
 		});
 		frappe.web_form_builder.docname = frm.doc.name;
 		frm._web_form_builder_loading = false;
-
-		keep_builder_tab_visible(frm);
 	});
-}
-
-// refresh_tabs() hides tabs whose sections scan as empty, which this one always does, and
-// it re-runs on every layout.refresh(), so a one-off toggle does not hold
-function keep_builder_tab_visible(frm) {
-	const builder_tab = get_builder_tab(frm);
-	if (!builder_tab) return;
-
-	if (!builder_tab._web_form_builder_patched) {
-		builder_tab._web_form_builder_patched = true;
-		const _orig_tab_refresh = builder_tab.refresh.bind(builder_tab);
-		builder_tab.refresh = function () {
-			_orig_tab_refresh();
-			if (frappe.web_form_builder) this.toggle(true);
-		};
-	}
-
-	builder_tab.toggle(true);
 }
 
 // page.scss pins the main column width for every Form route, so hiding the sidebar has to
