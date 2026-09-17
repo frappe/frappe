@@ -181,8 +181,8 @@ class Notification(Document):
 		if self.attach_files == "From Field" and not self.from_attach_field:
 			frappe.throw(_("Please specify the field from which to attach files"))
 
-		if self.email_template and self.channel not in ("Email", "System Notification"):
-			frappe.throw(_("Email Template can only be used with the Email or System Notification channel"))
+		if self.email_template and self.channel != "Email":
+			frappe.throw(_("Email Template can only be used with the Email channel"))
 
 		self.validate_forbidden_document_types()
 		self.validate_condition()
@@ -462,8 +462,7 @@ def get_context(context):
 		content = email_template.get_formatted_email(doc.as_dict(), sender=self.sender_email)
 
 		if not content.get("message"):
-			self.log_error(f"Email Template {self.email_template} has no content to send")
-			return None
+			frappe.throw(_("Email Template {0} has no content to send").format(self.email_template))
 
 		return content
 

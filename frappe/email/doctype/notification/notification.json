@@ -232,8 +232,8 @@
    "label": "Content"
   },
   {
-   "depends_on": "eval: in_list(['Email', 'System Notification'], doc.channel)",
-   "description": "Send this notification's content from an Email Template instead of Subject/Message. The template is looked up fresh on every send, so editing it later changes what gets sent here too.",
+   "depends_on": "eval: doc.channel == 'Email'",
+   "description": "Send this notification's content from an Email Template instead of Subject/Message. Also used for the bell if Send System Notification is checked. The template is looked up fresh on every send, so editing it later changes what gets sent here too.",
    "fieldname": "email_template",
    "fieldtype": "Link",
    "label": "Email Template",
