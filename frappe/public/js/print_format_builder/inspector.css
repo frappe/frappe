@@ -73,6 +73,10 @@
 	min-width: 0;
 }
 
+.pfb-insp-row .pfb-insp-autocomplete .frappe-autocomplete-input-wrap {
+	background: var(--fg-color);
+}
+
 .pfb-insp-input,
 .pfb-insp-select {
 	width: 100%;

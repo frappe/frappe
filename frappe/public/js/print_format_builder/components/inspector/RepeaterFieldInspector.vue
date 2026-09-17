@@ -1,41 +1,41 @@
 <template>
 	<div class="pfb-insp-body">
 		<InspectorSection :label="__('Custom Table')">
-			<div class="pfb-insp-row">
-				<span class="pfb-insp-label">{{ __("Source") }}</span>
-				<Autocomplete
-					:options="repeater_source_opts"
-					:model-value="selected_field.source || ''"
-					:placeholder="__('Select table…')"
-					@select="(o) => (selected_field.source = o.value)"
-				/>
-			</div>
-			<LabelField
-				v-model="selected_field.label"
-				:label="__('Title')"
-				:placeholder="__('Optional heading')"
-				show-toggle
-				:show-label="__('Show title')"
-				:show="selected_field.show_label"
-				@update:show="(v) => (selected_field.show_label = v)"
+			<SelectRow
+				:label="__('Source')"
+				:model-value="selected_field.source"
+				:options="repeater_source_opts"
+				:placeholder="__('Select table…')"
+				@update:model-value="(v) => (selected_field.source = v)"
 			/>
-			<div class="pfb-insp-row--col" style="margin-top: 8px">
-				<label class="pfb-insp-label">{{ __("Show row when") }}</label>
-				<input
-					class="pfb-insp-input"
-					type="text"
-					:placeholder="__('e.g. row.qty > 0')"
-					:value="selected_field.row_condition || ''"
-					@input="selected_field.row_condition = $event.target.value"
+			<template v-if="selected_field.source">
+				<LabelField
+					v-model="selected_field.label"
+					:label="__('Title')"
+					:placeholder="__('Optional heading')"
+					show-toggle
+					:show-label="__('Show title')"
+					:show="selected_field.show_label"
+					@update:show="(v) => (selected_field.show_label = v)"
 				/>
-				<p class="pfb-insp-hint text-muted">
-					{{ __("Leave blank to show every row. Reference the row with") }}
-					<code>row.fieldname</code>.
-				</p>
-			</div>
+				<div class="pfb-insp-row--col" style="margin-top: 8px">
+					<label class="pfb-insp-label">{{ __("Show row when") }}</label>
+					<input
+						class="pfb-insp-input"
+						type="text"
+						:placeholder="__('e.g. row.qty > 0')"
+						:value="selected_field.row_condition || ''"
+						@input="selected_field.row_condition = $event.target.value"
+					/>
+					<p class="pfb-insp-hint text-muted">
+						{{ __("Leave blank to show every row. Reference the row with") }}
+						<code>row.fieldname</code>.
+					</p>
+				</div>
+			</template>
 		</InspectorSection>
 
-		<InspectorSection :label="__('Columns')">
+		<InspectorSection v-if="selected_field.source" :label="__('Columns')">
 			<div
 				v-for="(col, ci) in selected_field.repeater_columns"
 				:key="ci"
@@ -93,7 +93,7 @@
 <script setup>
 import { computed, nextTick, ref, watch } from "vue";
 import { useStore } from "../../stores";
-import Autocomplete from "../../../vue-components/Autocomplete.vue";
+import SelectRow from "./SelectRow.vue";
 import LabelField from "./LabelField.vue";
 import TemplateInput from "./TemplateInput.vue";
 import SegmentedRow from "./SegmentedRow.vue";
