@@ -296,8 +296,13 @@
 .pfb-header-area:has(.letter-head) .pfb-header-fields.pfb-header-fields--empty {
 	display: none;
 }
-body.pfb-dragging .pfb-header-area:has(.letter-head) .pfb-header-fields.pfb-header-fields--empty {
+body.pfb-dragging .pfb-header-area:has(.letter-head) .pfb-header-fields.pfb-header-fields--empty,
+.pfb-header-area--selected:has(.letter-head) .pfb-header-fields.pfb-header-fields--empty {
 	display: block;
+}
+
+.pfb-header-area--selected {
+	outline: var(--pfb-ring);
 }
 
 /* panel rows dragged onto the canvas: the clone lives on <body>, outside the

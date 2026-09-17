@@ -2,7 +2,17 @@
 	<div class="pfb-settings">
 		<InspectorSection :label="__('Document')">
 			<div class="form-group">
-				<label class="control-label">{{ __("PDF Renderer") }}</label>
+				<div class="pfb-label-with-hint">
+					<label class="control-label">{{ __("PDF Renderer") }}</label>
+					<button
+						v-if="renderer_hint"
+						type="button"
+						class="pfb-hint-btn"
+						:title="renderer_hint"
+						@click="show_renderer_hint = !show_renderer_hint"
+						v-html="frappe.utils.icon('info', 'xs')"
+					></button>
+				</div>
 				<select
 					class="form-control form-control-sm"
 					:value="renderer"
@@ -15,14 +25,8 @@
 						{{ __("Typst (fast)") }}
 					</option>
 				</select>
-				<p v-if="typst_blockers.length" class="pfb-renderer-hint">
-					{{ __("Typst unavailable:") }} {{ typst_blockers.join(", ") }}
-				</p>
-				<p v-else-if="has_typst_block" class="pfb-renderer-hint">
-					{{ __("Chromium unavailable: this format uses a Typst block.") }}
-				</p>
-				<p v-else-if="renderer === 'Typst'" class="pfb-renderer-hint">
-					{{ __("Experimental") }}
+				<p v-if="renderer_hint && show_renderer_hint" class="pfb-renderer-hint">
+					{{ renderer_hint }}
 				</p>
 			</div>
 			<div class="form-group">
@@ -164,6 +168,16 @@ let google_fonts = ref([]);
 let renderer = computed(() =>
 	print_format.value?.pdf_generator === "Typst" ? "Typst" : "chrome"
 );
+let show_renderer_hint = ref(false);
+let renderer_hint = computed(() => {
+	if (typst_blockers.value.length) {
+		return __("Typst unavailable: {0}", [typst_blockers.value.join(", ")]);
+	}
+	if (has_typst_block.value) {
+		return __("Chromium unavailable: this format uses a Typst block.");
+	}
+	return renderer.value === "Typst" ? __("Experimental") : "";
+});
 function set_renderer(value) {
 	if (value !== "Typst" && has_typst_block.value) return;
 	print_format.value.pdf_generator = value === "Typst" ? "Typst" : "chrome";
@@ -267,8 +281,34 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.pfb-label-with-hint {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.pfb-label-with-hint .control-label {
+	margin: 0;
+}
+
+.pfb-hint-btn {
+	display: inline-flex;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--text-muted);
+	cursor: pointer;
+}
+
+.pfb-hint-btn:hover {
+	color: var(--text-color);
+}
+
 .pfb-renderer-hint {
 	margin: 6px 0 0;
+	padding: 6px 8px;
+	border-radius: var(--border-radius);
+	background: var(--bg-gray);
 	font-size: var(--text-tiny);
 	color: var(--text-muted);
 }
