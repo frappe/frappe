@@ -113,6 +113,7 @@ let inspector_kind = computed(() => {
 	if (selected_letterhead.value) return __("Letter Head");
 	if (selected_field.value) {
 		if (selected_field.value.fieldtype === "Table") return __("Table");
+		if (selected_field.value.fieldtype === "Repeater") return __("Custom Child Table");
 		return __("Field");
 	}
 	if (selected_section.value) return __("Section");

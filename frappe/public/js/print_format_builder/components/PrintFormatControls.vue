@@ -521,12 +521,12 @@ const draggable_blocks = computed(() => [
 		width: "",
 	},
 	{
-		label: __("Repeater"),
+		label: __("Custom Child Table"),
 		fieldname: "repeater",
 		fieldtype: "Repeater",
 		custom: 1,
 		icon: "list",
-		desc: __("Repeat child table rows as templated lines"),
+		desc: __("Child table rows laid out with your own template"),
 		source: "",
 		repeater_columns: [
 			{ template: [], align: "left" },

@@ -1,6 +1,6 @@
 <template>
 	<div class="pfb-insp-body">
-		<InspectorSection :label="__('Repeater')">
+		<InspectorSection :label="__('Custom Child Table')">
 			<div class="pfb-insp-row">
 				<span class="pfb-insp-label">{{ __("Source") }}</span>
 				<Autocomplete
