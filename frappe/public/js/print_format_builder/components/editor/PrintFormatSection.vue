@@ -20,12 +20,7 @@
 				class="drag-handle section-drag-handle"
 				v-html="frappe.utils.icon('grip', 'xs')"
 			></div>
-			<SectionActions
-				:section="section"
-				size="xs"
-				@snippet="save_as_snippet"
-				@remove="remove_section"
-			/>
+			<SectionActions :section="section" size="xs" @remove="remove_section" />
 		</div>
 		<div
 			class="print-format-section"
@@ -64,7 +59,6 @@
 						v-if="!is_header"
 						:section="section"
 						size="sm"
-						@snippet="save_as_snippet"
 						@remove="remove_section"
 					/>
 				</div>
@@ -350,7 +344,7 @@ function on_context_menu(e) {
 		!props.is_header && {
 			label: __("Save as snippet"),
 			icon: "bookmark-plus",
-			action: save_as_snippet,
+			action: () => store.prompt_snippet(props.section, "Section"),
 		},
 		store.clipboard.value && {
 			label: __("Paste"),
@@ -365,30 +359,6 @@ function on_context_menu(e) {
 			action: remove_section,
 		},
 	]);
-}
-
-function save_as_snippet() {
-	frappe.prompt(
-		{
-			label: __("Snippet name"),
-			fieldname: "name",
-			fieldtype: "Data",
-			reqd: 1,
-			default: props.section.label || "",
-		},
-		({ name }) => {
-			store.save_snippet(name, props.section, "Section").then(
-				() =>
-					frappe.show_alert(
-						{ message: __("Section saved as snippet"), indicator: "green" },
-						3
-					),
-				() => {}
-			);
-		},
-		__("Save Section as Snippet"),
-		__("Save")
-	);
 }
 
 function remove_column(index) {

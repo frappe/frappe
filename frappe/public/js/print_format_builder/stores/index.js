@@ -478,11 +478,13 @@ export function getStore(print_format_name) {
 		insert_section,
 		insert_field,
 	});
-	const { snippets, save_snippet, insert_snippet, delete_snippet } = useSnippets({
-		insert_section,
-		insert_field,
-		doc_type: computed(() => print_format.value?.doc_type),
-	});
+	const { snippets, save_snippet, prompt_snippet, insert_snippet, delete_snippet } = useSnippets(
+		{
+			insert_section,
+			insert_field,
+			doc_type: computed(() => print_format.value?.doc_type),
+		}
+	);
 
 	return {
 		print_format,
@@ -543,6 +545,7 @@ export function getStore(print_format_name) {
 		move_selection,
 		snippets,
 		save_snippet,
+		prompt_snippet,
 		insert_snippet,
 		delete_snippet,
 		paste_clipboard,

@@ -160,15 +160,6 @@
 					class="es-button"
 					data-size="xs"
 					data-variant="ghost"
-					data-icon-button="true"
-					:title="__('Save as snippet')"
-					@click.stop="save_as_snippet"
-					v-html="frappe.utils.icon('bookmark-plus', 'xs')"
-				></button>
-				<button
-					class="es-button"
-					data-size="xs"
-					data-variant="ghost"
 					data-theme="red"
 					data-icon-button="true"
 					:title="__('Remove field')"
@@ -584,30 +575,6 @@ function edit_typst() {
 	});
 }
 
-function save_as_snippet() {
-	frappe.prompt(
-		{
-			label: __("Snippet name"),
-			fieldname: "name",
-			fieldtype: "Data",
-			reqd: 1,
-			default: props.df.label || props.df.fieldname || "",
-		},
-		({ name }) => {
-			store.save_snippet(name, props.df, "Field").then(
-				() =>
-					frappe.show_alert(
-						{ message: __("Field saved as snippet"), indicator: "green" },
-						3
-					),
-				() => {}
-			);
-		},
-		__("Save Field as Snippet"),
-		__("Save")
-	);
-}
-
 const { open: open_context_menu } = useContextMenu();
 
 function on_context_menu(e) {
@@ -619,7 +586,11 @@ function on_context_menu(e) {
 			icon: "copy-plus",
 			action: () => store.duplicate_field(props.df),
 		},
-		{ label: __("Save as snippet"), icon: "bookmark-plus", action: save_as_snippet },
+		{
+			label: __("Save as snippet"),
+			icon: "bookmark-plus",
+			action: () => store.prompt_snippet(props.df, "Field"),
+		},
 		store.clipboard.value && {
 			label: __("Paste"),
 			icon: "clipboard-paste",
