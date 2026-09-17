@@ -3,7 +3,7 @@
 import json
 import time
 from contextlib import contextmanager
-from unittest.mock import ANY, patch
+from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
 from werkzeug.http import parse_cookie
@@ -341,7 +341,6 @@ class TestUser(IntegrationTestCase):
 			"frappe.core.doctype.user.user.rewrite_owner_fields",
 			old_name=old_name,
 			new_name=new_name,
-			renamed_at=ANY,
 			commit=True,
 			queue="long",
 			timeout=36000,
@@ -351,21 +350,24 @@ class TestUser(IntegrationTestCase):
 		)
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "owner"), old_name)
 
-		rewrite_owner_fields(old_name, new_name, now_datetime())
+		rewrite_owner_fields(old_name, new_name)
 
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "owner"), new_name)
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "modified_by"), new_name)
 
-	def test_owner_sweep_leaves_rows_written_after_the_rename(self):
+	def test_owner_sweep_leaves_rows_of_a_new_user_at_the_old_name(self):
 		old_name = "test_user_rename_reused@example.com"
 		new_name = "test_user_rename_reused_new@example.com"
-		renamed_at = now_datetime()
+		frappe.get_doc(
+			{"doctype": "User", "email": old_name, "first_name": "_Test", "send_welcome_email": 0}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+		taken_at = frappe.db.get_value("User", old_name, "creation")
 
 		before = frappe.get_doc({"doctype": "ToDo", "description": "written before the rename"}).insert()
 		after = frappe.get_doc({"doctype": "ToDo", "description": "written by the new holder"}).insert()
 		for todo, written_at in (
-			(before, add_to_date(renamed_at, minutes=-1)),
-			(after, add_to_date(renamed_at, minutes=1)),
+			(before, add_to_date(taken_at, minutes=-1)),
+			(after, add_to_date(taken_at, minutes=1)),
 		):
 			frappe.db.set_value(
 				"ToDo",
@@ -374,7 +376,7 @@ class TestUser(IntegrationTestCase):
 				update_modified=False,
 			)
 
-		rewrite_owner_fields(old_name, new_name, renamed_at)
+		rewrite_owner_fields(old_name, new_name)
 
 		self.assertEqual(
 			frappe.db.get_value("ToDo", before.name, ["owner", "modified_by"]), (new_name, new_name)
