@@ -3,7 +3,8 @@
 		<template #trigger>
 			<button
 				type="button"
-				class="flex h-7 w-full items-center gap-2 rounded-4 border border-outline-gray-2 px-2 text-start text-sm text-ink-gray-8 hover:border-outline-gray-3"
+				class="flex h-7 w-full items-center gap-2 rounded-4 border px-2 text-start text-sm text-ink-gray-8 transition-colors focus-visible:border-outline-gray-4 focus-visible:bg-surface-base focus-visible:outline-none"
+				:class="VARIANT_CLASSES[variant]"
 				@click="isOpen = !isOpen"
 			>
 				<span v-if="modelValue" :class="[modelValue, 'size-4 shrink-0']" aria-hidden="true" />
@@ -49,7 +50,15 @@ import { Popover, TextInput } from "frappe-ui"
 
 const MAX_RESULTS = 240
 
-defineProps<{ modelValue?: string }>()
+const VARIANT_CLASSES = {
+	subtle:
+		"border-[--surface-gray-2] bg-surface-gray-2 hover:border-outline-elevation-2 hover:bg-surface-gray-3",
+	outline: "border-outline-gray-2 bg-surface-base hover:border-outline-gray-3 hover:shadow-sm",
+}
+
+withDefaults(defineProps<{ modelValue?: string; variant?: keyof typeof VARIANT_CLASSES }>(), {
+	variant: "subtle",
+})
 const emit = defineEmits<{ "update:modelValue": [value: string] }>()
 
 const isOpen = ref(false)

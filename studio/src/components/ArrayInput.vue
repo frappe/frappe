@@ -57,14 +57,13 @@
 				<div
 					v-for="(fieldSchema, fieldKey) in itemTypes"
 					:key="fieldKey"
-					class="flex w-full flex-row items-center gap-1"
+					class="flex w-full flex-row items-center"
 				>
 					<template v-if="fieldKey === 'icon'">
 						<InputLabel class="text-xs">{{ fieldKey }}</InputLabel>
 						<IconPicker
 							:modelValue="toLucideIcon(item[fieldKey])"
 							@update:modelValue="(icon) => updateItemField(index, fieldKey as string, icon)"
-							class="bg-surface-base"
 						/>
 					</template>
 					<InlineInput
