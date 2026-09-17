@@ -168,18 +168,26 @@ async function render() {
 	let draft_doc = store.value.get_preview_format_doc();
 	if (props.compare && store.value.saved_format_data) {
 		const diff = describe_draft_changes(store.value.saved_format_data, draft_doc.format_data);
-		const targets = [
-			...diff.highlight.map((f) => `[data-fieldname="${f}"]`),
-			...diff.sections.map((i) => `[data-section="${i}"]`),
+		const marks = [
+			...diff.fields.map((f) => ({
+				selector: `[data-fieldname="${f.fieldname}"]`,
+				note: f.note,
+			})),
+			...diff.sections.map((sec) => ({
+				selector: `[data-section="${sec.index}"]`,
+				note: sec.note,
+			})),
 		];
-		if (targets.length) {
-			const selector = targets.join(", ");
-			draft_doc = {
-				...draft_doc,
-				css: `${
-					draft_doc.css || ""
-				}\n${selector} { outline: 2px solid #f59e0b; outline-offset: 2px; background: #fff7d6; }`,
-			};
+		if (marks.length) {
+			const css_text = (text) => text.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+			const rules = marks.map(
+				(m) =>
+					`${m.selector} { position: relative; outline: 2px solid #f59e0b; outline-offset: 2px; background: #fff7d6; }` +
+					`${m.selector}::before { content: "${css_text(
+						m.note
+					)}"; position: absolute; right: 0; bottom: 100%; margin-bottom: 3px; padding: 1px 5px; font-size: 8px; line-height: 1.4; font-family: sans-serif; white-space: nowrap; color: #fff; background: #f59e0b; border-radius: 3px; }`
+			);
+			draft_doc = { ...draft_doc, css: `${draft_doc.css || ""}\n${rules.join("\n")}` };
 		}
 	}
 	const after = await attempt(render_pdf(draft_doc));
