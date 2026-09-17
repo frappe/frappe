@@ -4,15 +4,6 @@
 		data-size="xs"
 		data-variant="ghost"
 		data-icon-button="true"
-		:title="__('Copy section')"
-		@click.stop="store.copy_section(section)"
-		v-html="frappe.utils.icon('copy', size)"
-	></button>
-	<button
-		class="es-button"
-		data-size="xs"
-		data-variant="ghost"
-		data-icon-button="true"
 		:title="__('Duplicate section')"
 		@click.stop="store.duplicate_section(section)"
 		v-html="frappe.utils.icon('copy-plus', size)"
