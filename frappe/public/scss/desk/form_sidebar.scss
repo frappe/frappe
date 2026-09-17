@@ -452,7 +452,7 @@ body[data-route^="Form"] {
 	}
 }
 
-@include media-breakpoint-down(sm) {
+@include media-breakpoint-down(md) {
 	// dont show in mobile
 	.layout-side-section {
 		min-width: 0px;

@@ -119,6 +119,9 @@ $spacers: (
 	64: 16rem,
 );
 
+$link-decoration: none;
+$link-hover-decoration: underline;
+
 @import "~bootstrap/scss/functions";
 @import "~bootstrap/scss/variables";
 @import "~bootstrap/scss/mixins";

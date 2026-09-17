@@ -29,7 +29,7 @@
 					margin-bottom: 0;
 					padding-bottom: 2px;
 
-					@include media-breakpoint-down(sm) {
+					@include media-breakpoint-down(md) {
 						font-size: 1.25rem;
 					}
 				}
@@ -42,7 +42,7 @@
 					background-color: var(--fg-color);
 					padding: 2rem 2rem 0;
 
-					@include media-breakpoint-down(sm) {
+					@include media-breakpoint-down(md) {
 						padding: 1.5rem 1.5rem 0;
 					}
 
@@ -92,7 +92,7 @@
 							p {
 								color: var(--text-muted);
 
-								@include media-breakpoint-down(sm) {
+								@include media-breakpoint-down(md) {
 									font-size: var(--text-xs);
 								}
 							}
@@ -108,7 +108,7 @@
 					border-bottom-left-radius: var(--radius);
 					border-bottom-right-radius: var(--radius);
 
-					@include media-breakpoint-down(sm) {
+					@include media-breakpoint-down(md) {
 						padding: 1rem 1.5rem 1.5rem;
 					}
 
@@ -117,7 +117,7 @@
 							color: var(--text-color);
 							background-color: var(--control-bg);
 
-							@include media-breakpoint-down(sm) {
+							@include media-breakpoint-down(md) {
 								@include get_textstyle("sm", "regular");
 							}
 						}
@@ -134,7 +134,7 @@
 							padding: 0 var(--padding-sm);
 
 							.form-group {
-								@include media-breakpoint-down(sm) {
+								@include media-breakpoint-down(md) {
 									margin-bottom: 0.5rem;
 								}
 							}
@@ -142,7 +142,7 @@
 							.frappe-control {
 								position: relative;
 
-								@include media-breakpoint-down(sm) {
+								@include media-breakpoint-down(md) {
 									@include get_textstyle("sm", "regular");
 								}
 
@@ -170,7 +170,7 @@
 								padding-right: 0;
 							}
 
-							@include media-breakpoint-down(xs) {
+							@include media-breakpoint-down(sm) {
 								padding: 0;
 							}
 						}
@@ -193,7 +193,7 @@
 										padding-right: 0;
 									}
 
-									@include media-breakpoint-down(xs) {
+									@include media-breakpoint-down(sm) {
 										padding: 0;
 									}
 
@@ -220,7 +220,7 @@
 					.web-form-footer {
 						margin-top: 1rem;
 
-						@include media-breakpoint-down(sm) {
+						@include media-breakpoint-down(md) {
 							margin-top: 0.5rem;
 						}
 
@@ -232,7 +232,7 @@
 							.btn {
 								@include get_textstyle("base", "regular");
 
-								@include media-breakpoint-down(sm) {
+								@include media-breakpoint-down(md) {
 									@include get_textstyle("sm", "regular");
 								}
 							}
@@ -250,7 +250,7 @@
 								display: flex;
 								flex: 1;
 
-								@include media-breakpoint-down(sm) {
+								@include media-breakpoint-down(md) {
 									order: 1;
 								}
 							}
@@ -316,14 +316,14 @@
 											}
 										}
 
-										@include media-breakpoint-down(xs) {
+										@include media-breakpoint-down(sm) {
 											width: 16px;
 											height: 16px;
 										}
 									}
 								}
 
-								@include media-breakpoint-down(sm) {
+								@include media-breakpoint-down(md) {
 									order: 0;
 									width: 100%;
 									justify-content: center;
@@ -340,7 +340,7 @@
 								justify-content: flex-end;
 								flex: 1;
 
-								@include media-breakpoint-down(sm) {
+								@include media-breakpoint-down(md) {
 									order: 2;
 								}
 							}
@@ -391,7 +391,7 @@
 							height: 3rem;
 							margin: 0;
 
-							@include media-breakpoint-down(sm) {
+							@include media-breakpoint-down(md) {
 								width: 2rem;
 								height: 2rem;
 							}
@@ -536,13 +536,13 @@
 					}
 				}
 
-				@include media-breakpoint-down(lg) {
+				@include media-breakpoint-down(xl) {
 					padding-left: 1.5rem;
 					padding-right: 1.5rem;
 				}
 			}
 
-			@include media-breakpoint-down(lg) {
+			@include media-breakpoint-down(xl) {
 				padding-left: 0;
 				padding-right: 0;
 			}

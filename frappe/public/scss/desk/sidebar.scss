@@ -261,7 +261,7 @@
 //
 // What is mobile's own is the dimming overlay behind the panel and the full-height pin, because
 // here the panel covers the page rather than standing beside it.
-@include media-breakpoint-down(sm) {
+@include media-breakpoint-down(md) {
 	// A drawer over the page in either mode and in either state -- out of flow even while closed,
 	// because a closed panel left in flow would hold 220px of a phone screen for something that is
 	// not on it.

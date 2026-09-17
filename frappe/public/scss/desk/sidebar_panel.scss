@@ -40,7 +40,7 @@
 
 // Not on mobile, where the sidebar is a drawer over the page rather than a column beside it, and a
 // panel pushed past its width would open off the screen.
-@include media-breakpoint-down(sm) {
+@include media-breakpoint-down(md) {
 	.body-sidebar-container.expanded .sidebar-panel {
 		left: 0;
 	}
@@ -113,7 +113,7 @@
 	overflow-y: auto;
 }
 
-@include media-breakpoint-down(sm) {
+@include media-breakpoint-down(md) {
 	// The sidebar is an overlay at this width and the panel takes the screen, so it is
 	// pinned to the viewport rather than to a container that is 0px wide.
 	.sidebar-panel {

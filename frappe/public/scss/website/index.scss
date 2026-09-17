@@ -274,7 +274,7 @@ h5.modal-title {
 .hidden-xs {
 	@extend .d-block;
 
-	@include media-breakpoint-between(xs, sm) {
+	@include media-breakpoint-between(xs, md) {
 		display: none !important;
 	}
 }

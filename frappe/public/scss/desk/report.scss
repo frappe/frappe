@@ -68,7 +68,7 @@
 			display: inline-block;
 			width: 89%;
 
-			@include media-breakpoint-down(xs) {
+			@include media-breakpoint-down(sm) {
 				width: 77%;
 			}
 		}
@@ -142,7 +142,7 @@
 	}
 }
 
-@include media-breakpoint-down(sm) {
+@include media-breakpoint-down(md) {
 	.datatable .dt-scrollable {
 		height: calc(100vh - 260px) !important;
 	}
@@ -359,7 +359,7 @@
 	}
 }
 
-@include media-breakpoint-down(sm) {
+@include media-breakpoint-down(md) {
 	.group-by-popover {
 		min-width: 100%;
 		margin-left: -5px;

@@ -210,7 +210,7 @@ $threshold: 34;
 	}
 }
 
-@include media-breakpoint-down(sm) {
+@include media-breakpoint-down(md) {
 	.up {
 		position: relative;
 		bottom: 1px;

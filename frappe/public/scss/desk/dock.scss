@@ -384,7 +384,7 @@ body.sidebar-collapsed .dock-resize-handle {
 }
 
 // mirror the body sidebar: the rail collapses away on mobile
-@include media-breakpoint-down(sm) {
+@include media-breakpoint-down(md) {
 	.dock {
 		display: none;
 	}

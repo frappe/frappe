@@ -7,7 +7,7 @@ body {
 		min-height: calc(100vh - 220px);
 		padding-top: 60px;
 
-		@include media-breakpoint-down(xs) {
+		@include media-breakpoint-down(sm) {
 			padding-top: 0;
 			min-height: 100svh;
 		}
@@ -39,7 +39,7 @@ body {
 		margin: 0 auto;
 		border-radius: var(--radius-lg);
 
-		@include media-breakpoint-down(xs) {
+		@include media-breakpoint-down(sm) {
 			max-width: 100%;
 			min-height: 100svh;
 			border-radius: 0;

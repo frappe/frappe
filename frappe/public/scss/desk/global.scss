@@ -150,13 +150,13 @@ pre {
 
 .hidden-xs,
 .hidden-sm {
-	@include media-breakpoint-between(xs, sm) {
+	@include media-breakpoint-between(xs, md) {
 		display: none !important;
 	}
 }
 
 .hidden-md {
-	@include media-breakpoint-between(xs, md) {
+	@include media-breakpoint-between(xs, lg) {
 		display: none !important;
 	}
 }

@@ -108,7 +108,7 @@
 	// below md, a button whose label is breakpoint-hidden (hidden-xs) with no
 	// short-label swap (hidden-lg) is icon-only — square it like an icon
 	// button instead of leaving a lone icon with text padding
-	@include media-breakpoint-down(sm) {
+	@include media-breakpoint-down(md) {
 		.es-button:has(> .es-button__label.hidden-xs):not(:has(> .es-button__label.hidden-lg)) {
 			padding-inline: 0;
 			width: var(--es-bt-h);

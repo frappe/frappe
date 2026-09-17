@@ -96,7 +96,7 @@
 	}
 }
 
-@include media-breakpoint-down(sm) {
+@include media-breakpoint-down(md) {
 	.filter-popover {
 		min-width: 100%;
 		margin-left: -5px;

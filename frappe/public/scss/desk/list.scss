@@ -673,7 +673,7 @@ input.list-header-checkbox {
 	}
 
 	&.list-page-form {
-		@include media-breakpoint-between(xs, sm) {
+		@include media-breakpoint-between(xs, md) {
 			flex-direction: column-reverse;
 			justify-content: flex-end;
 
@@ -689,7 +689,7 @@ input.list-header-checkbox {
 }
 
 .filter-section {
-	@include media-breakpoint-between(xs, sm) {
+	@include media-breakpoint-between(xs, md) {
 		justify-content: space-between;
 
 		.filter-selector {

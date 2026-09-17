@@ -633,7 +633,7 @@ body {
 			font-weight: var(--weight-medium);
 		}
 
-		@include media-breakpoint-down(md) {
+		@include media-breakpoint-down(lg) {
 			.link-item {
 				&:first-child {
 					margin-top: 5px;
@@ -1245,7 +1245,7 @@ body {
 							outline: none;
 						}
 
-						@include media-breakpoint-down(md) {
+						@include media-breakpoint-down(lg) {
 							&.spacer {
 								height: 0 !important;
 								padding: 0 7px;
@@ -1337,7 +1337,7 @@ body {
 			}
 		}
 
-		@include media-breakpoint-down(md) {
+		@include media-breakpoint-down(lg) {
 			.ce-toolbar__content {
 				max-width: 760px;
 			}

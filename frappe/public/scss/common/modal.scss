@@ -202,7 +202,7 @@ body.modal-open[style^="padding-right"] {
 			box-shadow: var(--shadow-lg);
 		}
 
-		@include media-breakpoint-down(sm) {
+		@include media-breakpoint-down(md) {
 			right: 0;
 			width: 100%;
 			min-width: 100%;

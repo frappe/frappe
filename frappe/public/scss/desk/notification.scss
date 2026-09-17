@@ -383,7 +383,7 @@ $notification-dot-size: 8px;
 	margin-bottom: 15px;
 }
 
-@include media-breakpoint-down(sm) {
+@include media-breakpoint-down(md) {
 	.sidebar-panel-notifications .recent-item .user-avatar {
 		margin-right: 10px;
 		margin-left: 5px;
