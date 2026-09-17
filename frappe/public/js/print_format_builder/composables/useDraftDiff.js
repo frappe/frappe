@@ -33,13 +33,16 @@ function parse_layout(format_data) {
 
 function layout_fields(layout) {
 	const out = new Map();
+	const seen = {};
 	const zones = [layout.header, ...(layout.sections || []), layout.footer].filter(Boolean);
 	zones.forEach((zone, zi) => {
 		if (zone.remove) return;
 		(zone.columns || []).forEach((col, ci) => {
 			(col.fields || []).forEach((f) => {
 				if (f.remove || !f.fieldname) return;
-				out.set(f.fieldname, {
+				seen[f.fieldname] = (seen[f.fieldname] || 0) + 1;
+				out.set(`${f.fieldname}#${seen[f.fieldname]}`, {
+					fieldname: f.fieldname,
 					label: f.label || f.fieldname,
 					zone: zi,
 					col: ci,
@@ -67,9 +70,9 @@ export function describe_draft_changes(saved, current) {
 		const after = layout_fields(next);
 		for (const [key, f] of after) {
 			const old = before.get(key);
-			if (!old) added.push(key);
-			else if (old.zone !== f.zone || old.col !== f.col) moved.push(key);
-			else if (old.json !== f.json) changed.push(key);
+			if (!old) added.push(f.fieldname);
+			else if (old.zone !== f.zone || old.col !== f.col) moved.push(f.fieldname);
+			else if (old.json !== f.json) changed.push(f.fieldname);
 		}
 		for (const [key, f] of before) if (!after.has(key)) removed.push(f.label);
 	}
@@ -79,6 +82,6 @@ export function describe_draft_changes(saved, current) {
 		moved,
 		changed,
 		removed,
-		highlight: [...added, ...moved, ...changed],
+		highlight: [...new Set([...added, ...moved, ...changed])],
 	};
 }
