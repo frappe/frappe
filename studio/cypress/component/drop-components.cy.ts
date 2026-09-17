@@ -4,7 +4,6 @@ import { setActivePinia } from "pinia"
 import { createRouter, createMemoryHistory } from "vue-router"
 // @ts-ignore
 import { resourcesPlugin } from "frappe-ui"
-import { spritePlugin } from "frappe-ui/experimental"
 
 import StudioCanvas from "@/components/StudioCanvas.vue"
 import Block from "@/utils/block"
@@ -84,7 +83,7 @@ describe("dropping frappe-ui components on the canvas", () => {
 		cy.mount(StudioCanvas as any, {
 			props: { componentTree: rootBlock },
 			global: {
-				plugins: [pinia, router, resourcesPlugin, spritePlugin, { install: registerGlobalComponents }],
+				plugins: [pinia, router, resourcesPlugin, { install: registerGlobalComponents }],
 			},
 		}).then(({ wrapper }) => {
 			canvas = wrapper.vm

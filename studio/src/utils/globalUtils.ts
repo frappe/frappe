@@ -1,9 +1,8 @@
-import { h } from "vue"
 import { toast, call } from "frappe-ui"
-import { Icon } from "frappe-ui/experimental"
 
+// kept for page scripts and saved bindings written against the removed sprite icons
 function getIcon(name: string) {
-	return h(Icon, { name })
+	return name.startsWith("lucide-") ? name : `lucide-${name}`
 }
 
 export { getIcon, toast, call }

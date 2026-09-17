@@ -62,11 +62,9 @@
 					<template v-if="fieldKey === 'icon'">
 						<InputLabel class="text-xs">{{ fieldKey }}</InputLabel>
 						<IconPicker
-							:modelValue="getUnwrappedIconValue(item[fieldKey])"
-							@update:modelValue="
-								(val) => updateItemField(index, fieldKey as string, `{{ getIcon('${val}') }}`)
-							"
-							class="w-full bg-surface-base"
+							:modelValue="toLucideIcon(item[fieldKey])"
+							@update:modelValue="(icon) => updateItemField(index, fieldKey as string, icon)"
+							class="bg-surface-base"
 						/>
 					</template>
 					<InlineInput
@@ -97,9 +95,10 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { Button } from "frappe-ui"
-import { IconPicker } from "frappe-ui/experimental"
+import IconPicker from "@/components/IconPicker.vue"
 import Input from "@/components/Input.vue"
 import InputLabel from "@/components/InputLabel.vue"
+import { getIcon } from "@/utils/globalUtils"
 import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import LucideGripVertical from "~icons/lucide/grip-vertical"
@@ -120,11 +119,11 @@ const items = computed(() => {
 	return Array.isArray(props.modelValue) ? props.modelValue : []
 })
 
-const getUnwrappedIconValue = (value: string | undefined) => {
-	if (!value) return ""
-	// Match both {{ getIcon('name') }} and getIcon('name') formats
-	const match = value.match(/(?:\{\s*)?(?:getIcon|useIcon)\(['"]([^'"]+)['"]\)(?:\s*\})?/)
-	return match ? match[1] : value
+// older saved values wrap the name in the removed sprite helper: {{ getIcon('name') }}
+const toLucideIcon = (value: string | undefined) => {
+	if (typeof value !== "string" || !value) return ""
+	const match = value.match(/getIcon\(['"]([^'"]+)['"]\)/)
+	return match ? getIcon(match[1]) : value
 }
 
 const updateItemField = (index: number, key: string, value: any) => {

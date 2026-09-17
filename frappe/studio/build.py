@@ -16,6 +16,7 @@ from studio.utils import walk_blocks
 
 ANSI_ESCAPE_REGEX = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
 LUCIDE_ICON_REGEX = re.compile(r"\blucide-[a-z0-9]+(?:-[a-z0-9]+)*")
+GET_ICON_REGEX = re.compile(r"getIcon\(\\?['\"]([a-z0-9-]+)\\?['\"]\)")
 
 
 class StudioAppBuildError(RuntimeError):
@@ -200,6 +201,7 @@ class StudioAppBuilder:
 
 	def _add_icons(self, text: str | None) -> None:
 		self.icons.update(LUCIDE_ICON_REGEX.findall(text or ""))
+		self.icons.update(f"lucide-{name}" for name in GET_ICON_REGEX.findall(text or ""))
 
 	def _add_h_function_components(self, text: str) -> None:
 		"""Extract component names from h(ComponentName...) function calls"""
