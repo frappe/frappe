@@ -4,14 +4,12 @@
 			<div class="form-group">
 				<div class="pfb-label-with-hint">
 					<label class="control-label">{{ __("PDF Renderer") }}</label>
-					<button
+					<span
 						v-if="renderer_hint"
-						type="button"
-						class="pfb-hint-btn"
-						:title="renderer_hint"
-						@click="show_renderer_hint = !show_renderer_hint"
+						ref="hint_icon"
+						class="pfb-hint-icon"
 						v-html="frappe.utils.icon('info', 'xs')"
-					></button>
+					></span>
 				</div>
 				<select
 					class="form-control form-control-sm"
@@ -25,9 +23,6 @@
 						{{ __("Typst (fast)") }}
 					</option>
 				</select>
-				<p v-if="renderer_hint && show_renderer_hint" class="pfb-renderer-hint">
-					{{ renderer_hint }}
-				</p>
 			</div>
 			<div class="form-group">
 				<label class="control-label">{{ __("Letter Head") }}</label>
@@ -168,7 +163,7 @@ let google_fonts = ref([]);
 let renderer = computed(() =>
 	print_format.value?.pdf_generator === "Typst" ? "Typst" : "chrome"
 );
-let show_renderer_hint = ref(false);
+let hint_icon = ref(null);
 let renderer_hint = computed(() => {
 	if (typst_blockers.value.length) {
 		return __("Typst unavailable: {0}", [typst_blockers.value.join(", ")]);
@@ -178,6 +173,15 @@ let renderer_hint = computed(() => {
 	}
 	return renderer.value === "Typst" ? __("Experimental") : "";
 });
+watch(
+	[hint_icon, renderer_hint],
+	([el, title]) => {
+		if (!el) return;
+		$(el).tooltip("dispose");
+		if (title) $(el).tooltip({ title, trigger: "hover", placement: "top" });
+	},
+	{ flush: "post" }
+);
 function set_renderer(value) {
 	if (value !== "Typst" && has_typst_block.value) return;
 	print_format.value.pdf_generator = value === "Typst" ? "Typst" : "chrome";
@@ -291,25 +295,8 @@ onMounted(() => {
 	margin: 0;
 }
 
-.pfb-hint-btn {
+.pfb-hint-icon {
 	display: inline-flex;
-	padding: 0;
-	border: 0;
-	background: none;
-	color: var(--text-muted);
-	cursor: pointer;
-}
-
-.pfb-hint-btn:hover {
-	color: var(--text-color);
-}
-
-.pfb-renderer-hint {
-	margin: 6px 0 0;
-	padding: 6px 8px;
-	border-radius: var(--border-radius);
-	background: var(--bg-gray);
-	font-size: var(--text-tiny);
 	color: var(--text-muted);
 }
 
