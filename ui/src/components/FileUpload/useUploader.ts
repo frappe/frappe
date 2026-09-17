@@ -32,7 +32,7 @@ const lazyDefaultTransport: UploadTransport = async (file, args, ctx) => {
 };
 
 export interface UseUploaderOptions {
-  /** Backend seam; defaults to Frappe's `/api/method/upload_file`. */
+  /** Backend seam; defaults to Frappe's `/api/v2/method/upload_file`. */
   transport?: UploadTransport;
   restrictions?: Restrictions;
   /** Allow more than one queued file. Single-file fields pass `false`. */

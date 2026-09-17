@@ -5,7 +5,7 @@
  * (`useFileUpload`, `useUploader`, `uploadTray`) and the views agree on.
  *
  * The primitive is backend-agnostic: the default `UploadTransport` talks to
- * Frappe's `/api/method/upload_file`, but any consumer can inject its own.
+ * Frappe's `/api/v2/method/upload_file`, but any consumer can inject its own.
  */
 
 /**
