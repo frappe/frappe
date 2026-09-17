@@ -413,7 +413,7 @@ context("Print Format Builder — create flow", () => {
 
 		cy.get(".pfb-inspector .pfb-col-row .pfb-tpl-text").first().type("Mail: /ema");
 		cy.get(".pfb-tpl-menu").should("contain", "Email");
-		cy.get(".pfb-tpl-menu .dropdown-item").first().click();
+		cy.get(".pfb-inspector .pfb-col-row .pfb-tpl-text").first().type("{enter}");
 		cy.get(".pfb-tpl-menu").should("not.exist");
 		cy.get(".pfb-inspector .pfb-col-row .es-badge").should("contain", "Email");
 		cy.get(".pfb-inspector .pfb-col-row .pfb-tpl-text").first().should("have.value", "Mail: ");

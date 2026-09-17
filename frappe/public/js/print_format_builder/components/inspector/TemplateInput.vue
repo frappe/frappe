@@ -31,6 +31,7 @@
 					:class="{ highlighted: k === slash.highlight }"
 					href="#"
 					@mousedown.prevent="pick(f)"
+					@click.prevent="pick(f)"
 				>
 					{{ f.label }}
 				</a>
@@ -112,6 +113,7 @@ function close_slash() {
 }
 
 function pick(f) {
+	if (!slash.value) return;
 	const { i, start, query } = slash.value;
 	const text = display.value[i].v;
 	const pos = display.value.slice(0, i).filter((t) => t.t === "s").length;
