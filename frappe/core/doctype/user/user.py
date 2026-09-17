@@ -1133,7 +1133,7 @@ def rewrite_owner_fields(old_name: str, new_name: str, commit: bool = False):
 	"""Point `owner` and `modified_by` at a renamed user's new name in every table.
 
 	Neither column is indexed, so this runs for minutes on a large site; `commit` releases the
-	read view and its row locks one table at a time. Running it again is safe.
+	read view and its row locks one statement at a time. Running it again is safe.
 	"""
 	tables = frappe.db.get_tables()
 	for tab in tables:
@@ -1145,10 +1145,8 @@ def rewrite_owner_fields(old_name: str, new_name: str, commit: bool = False):
 				SET `{}` = {}
 				WHERE `{}` = {}""".format(tab, field, "%s", field, "%s"),
 				(new_name, old_name),
+				auto_commit=commit,
 			)
-
-		if commit:
-			frappe.db.commit()
 
 
 def reset_user_data(user):
