@@ -135,17 +135,13 @@ async function render() {
 			(url) => ({ url }),
 			(e) => ({ error: e.message || __("Could not render the preview") })
 		);
-	const jobs = [attempt(render_pdf(store.value.get_preview_format_doc()))];
+	const after = await attempt(render_pdf(store.value.get_preview_format_doc()));
+	let before = null;
 	if (props.compare) {
-		jobs.push(
-			store.value.has_saved_layout
-				? attempt(render_saved_pdf())
-				: Promise.resolve({
-						error: __("Nothing has been saved yet, so everything here is new."),
-				  })
-		);
+		before = store.value.has_saved_layout
+			? await attempt(render_saved_pdf())
+			: { error: __("Nothing has been saved yet, so everything here is new.") };
 	}
-	const [after, before] = await Promise.all(jobs);
 	if (seq !== render_seq) return;
 	set_pdf_url(after.url || null);
 	after_note.value = after.error || "";
