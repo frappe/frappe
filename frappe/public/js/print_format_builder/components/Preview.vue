@@ -196,6 +196,7 @@ onUnmounted(() => {
 	flex-direction: row;
 	gap: 16px;
 	width: min(1800px, 96vw);
+	height: 90vh;
 }
 
 .pfb-preview-pane {
