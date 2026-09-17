@@ -20,13 +20,16 @@
 				<template v-else-if="compare">
 					<div class="pfb-preview-pane">
 						<div class="pfb-preview-caption">{{ __("Printing now") }}</div>
-						<iframe :src="before_url" class="pfb-preview-iframe"></iframe>
+						<div v-if="before_note" class="pfb-preview-empty">{{ before_note }}</div>
+						<iframe v-else :src="before_url" class="pfb-preview-iframe"></iframe>
 					</div>
 					<div class="pfb-preview-pane">
 						<div class="pfb-preview-caption">{{ __("This draft") }}</div>
-						<iframe :src="pdf_url" class="pfb-preview-iframe"></iframe>
+						<div v-if="after_note" class="pfb-preview-empty">{{ after_note }}</div>
+						<iframe v-else :src="pdf_url" class="pfb-preview-iframe"></iframe>
 					</div>
 				</template>
+				<div v-else-if="after_note" class="pfb-preview-empty">{{ after_note }}</div>
 				<iframe v-else ref="iframe" :src="pdf_url" class="pfb-preview-iframe"></iframe>
 			</div>
 		</div>
@@ -46,6 +49,8 @@ let preview_loaded = ref(false);
 let iframe = ref(null);
 let pdf_url = ref(null);
 let before_url = ref(null);
+let before_note = ref("");
+let after_note = ref("");
 let render_seq = 0;
 
 let docname = computed(() => store.value.preview_doc_name);
@@ -106,22 +111,30 @@ async function render() {
 		return;
 	}
 	preview_loaded.value = false;
-	try {
-		const jobs = [render_pdf(store.value.get_preview_format_doc())];
-		if (props.compare) jobs.push(render_pdf(store.value.get_applied_format_doc()));
-		const [after, before] = await Promise.all(jobs);
-		if (seq !== render_seq) return;
-		set_pdf_url(after);
-		set_before_url(before || null);
-	} catch (e) {
-		if (seq !== render_seq) return;
-		set_pdf_url(null);
-		set_before_url(null);
-		frappe.show_alert({
-			message: e.message || __("Could not render the preview"),
-			indicator: "red",
-		});
+	before_note.value = "";
+	after_note.value = "";
+	const attempt = (format_doc) =>
+		render_pdf(format_doc).then(
+			(url) => ({ url }),
+			(e) => ({ error: e.message || __("Could not render the preview") })
+		);
+	const jobs = [attempt(store.value.get_preview_format_doc())];
+	if (props.compare) {
+		const applied = store.value.get_applied_format_doc();
+		jobs.push(
+			applied.format_data
+				? attempt(applied)
+				: Promise.resolve({
+						error: __("Nothing has been applied yet, so this draft is all new."),
+				  })
+		);
 	}
+	const [after, before] = await Promise.all(jobs);
+	if (seq !== render_seq) return;
+	set_pdf_url(after.url || null);
+	after_note.value = after.error || "";
+	set_before_url(before?.url || null);
+	before_note.value = before?.error || "";
 	preview_loaded.value = true;
 }
 
