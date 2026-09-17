@@ -331,7 +331,7 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath, icons = [
 			chunkSizeWarningLimit: 1000,
 		},
 		optimizeDeps: {
-			include: ["frappe-ui > feather-icons", "showdown", "engine.io-client"],
+			include: ["showdown", "engine.io-client"],
 		},
 	})
 
