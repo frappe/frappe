@@ -19,7 +19,21 @@
 				</div>
 				<template v-else-if="compare">
 					<div class="pfb-preview-topbar" @click.self="$emit('close')">
-						<span class="pfb-preview-summary">{{ summary }}</span>
+						<span class="pfb-preview-title">{{ __("Review changes") }}</span>
+						<div class="pfb-preview-chips">
+							<span
+								v-for="chip in chips"
+								:key="chip.label"
+								class="es-badge"
+								:data-theme="chip.theme"
+								:title="chip.title"
+							>
+								{{ chip.label }}
+							</span>
+							<span v-if="!chips.length" class="pfb-preview-summary">
+								{{ __("No differences found") }}
+							</span>
+						</div>
 						<button
 							class="es-button"
 							data-variant="ghost"
@@ -82,7 +96,7 @@ let modal = ref(null);
 let pdf_url = ref(null);
 let before_url = ref(null);
 let before_note = ref("");
-let summary = ref("");
+let chips = ref([]);
 let after_note = ref("");
 let render_seq = 0;
 let render_abort = null;
@@ -137,18 +151,42 @@ async function render_pdf(format_doc) {
 }
 
 function describe(diff) {
-	const parts = [];
-	if (diff.added.length) parts.push(__("{0} added", [diff.added.length]));
-	if (diff.moved.length) parts.push(__("{0} moved", [diff.moved.length]));
-	if (diff.changed.length) parts.push(__("{0} restyled", [diff.changed.length]));
-	if (diff.sections.length) {
-		parts.push(__("sections changed: {0}", [diff.sections.map((s) => s.label).join(", ")]));
+	const out = [];
+	const count = (n, one, many) => (n === 1 ? one : __(many, [n]));
+	if (diff.added.length) {
+		out.push({
+			label: count(diff.added.length, __("1 field added"), "{0} fields added"),
+			theme: "amber",
+		});
 	}
-	const bits = [];
-	if (parts.length) bits.push(__("Highlighted on the right: {0}", [parts.join(", ")]));
-	if (diff.removed.length) bits.push(__("Removed: {0}", [diff.removed.join(", ")]));
-	if (diff.settings.length) bits.push(diff.settings.join(" · "));
-	return bits.join("   ·   ");
+	if (diff.moved.length) {
+		out.push({
+			label: count(diff.moved.length, __("1 field moved"), "{0} fields moved"),
+			theme: "amber",
+		});
+	}
+	if (diff.changed.length) {
+		out.push({
+			label: count(diff.changed.length, __("1 field restyled"), "{0} fields restyled"),
+			theme: "amber",
+		});
+	}
+	if (diff.sections.length) {
+		out.push({
+			label: count(diff.sections.length, __("1 section changed"), "{0} sections changed"),
+			title: diff.sections.map((sec) => sec.label).join(", "),
+			theme: "amber",
+		});
+	}
+	if (diff.removed.length) {
+		out.push({
+			label: count(diff.removed.length, __("1 field removed"), "{0} fields removed"),
+			title: diff.removed.join(", "),
+			theme: "red",
+		});
+	}
+	diff.settings.forEach((line) => out.push({ label: line, theme: "gray" }));
+	return out;
 }
 
 async function render_saved_pdf() {
@@ -184,11 +222,11 @@ async function render() {
 		);
 	set_pdf_url(null);
 	set_before_url(null);
-	summary.value = "";
+	chips.value = [];
 	let draft_doc = store.value.get_preview_format_doc();
 	if (props.compare && store.value.saved_format?.format_data) {
 		const diff = describe_draft_changes(store.value.saved_format, draft_doc);
-		summary.value = describe(diff);
+		chips.value = describe(diff);
 		const targets = [
 			...diff.highlight.map((f) => `[data-fieldname="${f}"]`),
 			...diff.sections.map((sec) => `[data-section="${sec.index}"]`),
@@ -285,9 +323,21 @@ onUnmounted(() => {
 	flex-shrink: 0;
 	display: flex;
 	align-items: center;
-	justify-content: center;
 	gap: 12px;
 	margin-bottom: 8px;
+}
+
+.pfb-preview-title {
+	font-size: var(--text-base);
+	font-weight: var(--weight-semibold);
+	color: var(--white);
+}
+
+.pfb-preview-chips {
+	flex: 1;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
 }
 
 .pfb-preview-topbar .es-button {
