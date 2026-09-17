@@ -56,6 +56,7 @@ let before_url = ref(null);
 let before_note = ref("");
 let after_note = ref("");
 let render_seq = 0;
+let render_abort = null;
 
 let docname = computed(() => store.value.preview_doc_name);
 let doctype = computed(() => print_format.value.doc_type);
@@ -91,6 +92,7 @@ async function render_pdf(format_doc) {
 				"X-Frappe-CSRF-Token": frappe.csrf_token,
 			},
 			body: JSON.stringify(params),
+			signal: render_abort.signal,
 		}
 	);
 	if (!res.ok) {
@@ -113,6 +115,7 @@ async function render_saved_pdf() {
 	});
 	const res = await fetch("/api/method/frappe.utils.print_format.download_pdf?" + params, {
 		headers: { "X-Frappe-CSRF-Token": frappe.csrf_token },
+		signal: render_abort.signal,
 	});
 	if (!res.ok) throw new Error(__("Could not render the saved version"));
 	return URL.createObjectURL(await res.blob()) + "#view=FitH";
@@ -120,6 +123,8 @@ async function render_saved_pdf() {
 
 async function render() {
 	let seq = ++render_seq;
+	render_abort?.abort();
+	render_abort = new AbortController();
 	if (!docname.value) return;
 	if (unprintable_reason.value) {
 		set_pdf_url(null);
@@ -175,6 +180,7 @@ onMounted(() => {
 	window.addEventListener("keydown", on_keydown);
 });
 onUnmounted(() => {
+	render_abort?.abort();
 	set_pdf_url(null);
 	set_before_url(null);
 	window.removeEventListener("keydown", on_keydown);
