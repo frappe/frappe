@@ -14,6 +14,8 @@ interface ComponentTypes {
 }
 const componentTypes = jsonTypes as ComponentTypes
 
+const ICON_PROPS = ["icon", "iconLeft", "iconRight"]
+
 const componentFolders: Record<string, string> = {
 	DateTimePicker: "DatePicker",
 	DateRangePicker: "DatePicker",
@@ -397,6 +399,10 @@ function resolveProperty(
 		} else if (propName === "color") {
 			inputType = "color"
 		}
+	}
+
+	if (ICON_PROPS.includes(propName) && type !== "boolean") {
+		inputType = "icon"
 	}
 
 	return { type: type as string, inputType, options }

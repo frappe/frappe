@@ -7,12 +7,12 @@
 				:class="VARIANT_CLASSES[variant]"
 				@click="isOpen = !isOpen"
 			>
-				<span v-if="modelValue" :class="[modelValue, 'size-4 shrink-0']" aria-hidden="true" />
-				<span class="truncate" :class="{ 'text-ink-gray-4': !modelValue }">
-					{{ modelValue ? iconLabel(modelValue) : "Select icon" }}
+				<span v-if="icon" :class="[icon, 'size-4 shrink-0']" aria-hidden="true" />
+				<span class="truncate" :class="{ 'text-ink-gray-4': !icon }">
+					{{ icon ? iconLabel(icon) : "Select icon" }}
 				</span>
 				<span
-					v-if="modelValue"
+					v-if="icon"
 					class="lucide-x ml-auto size-3 shrink-0 text-ink-gray-5 hover:text-ink-gray-8"
 					title="Clear"
 					@click.stop="select('')"
@@ -28,15 +28,15 @@
 				<div v-else-if="!matches.length" class="py-6 text-center text-sm text-ink-gray-5">No icons found</div>
 				<div v-else class="grid max-h-64 grid-cols-8 gap-1 overflow-y-auto">
 					<button
-						v-for="icon in matches"
-						:key="icon"
+						v-for="option in matches"
+						:key="option"
 						type="button"
 						class="flex size-8 items-center justify-center rounded-4 text-ink-gray-7 hover:bg-surface-gray-2"
-						:class="{ 'bg-surface-gray-3 text-ink-gray-9': icon === modelValue }"
-						:title="iconLabel(icon)"
-						@click="select(icon)"
+						:class="{ 'bg-surface-gray-3 text-ink-gray-9': option === icon }"
+						:title="iconLabel(option)"
+						@click="select(option)"
 					>
-						<span :class="[icon, 'size-4']" aria-hidden="true" />
+						<span :class="[option, 'size-4']" aria-hidden="true" />
 					</button>
 				</div>
 			</div>
@@ -47,6 +47,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import { Popover, TextInput } from "frappe-ui"
+import { getIcon } from "@/utils/globalUtils"
 
 const MAX_RESULTS = 240
 
@@ -56,8 +57,14 @@ const VARIANT_CLASSES = {
 	outline: "border-outline-gray-2 bg-surface-base hover:border-outline-gray-3 hover:shadow-sm",
 }
 
-withDefaults(defineProps<{ modelValue?: string; variant?: keyof typeof VARIANT_CLASSES }>(), {
+const props = withDefaults(defineProps<{ modelValue?: string; variant?: keyof typeof VARIANT_CLASSES }>(), {
 	variant: "subtle",
+})
+
+// older saved values wrap the name in the removed sprite helper: {{ getIcon('name') }}
+const icon = computed(() => {
+	const legacyName = props.modelValue?.match(/getIcon\(['"]([^'"]+)['"]\)/)?.[1]
+	return legacyName ? getIcon(legacyName) : props.modelValue
 })
 const emit = defineEmits<{ "update:modelValue": [value: string] }>()
 

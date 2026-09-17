@@ -42,6 +42,12 @@
 			:disabled="disabled"
 			v-bind="attrsWithoutClassAndStyle"
 		/>
+		<IconPicker
+			v-else-if="type === 'icon'"
+			:modelValue="modelValue"
+			@update:modelValue="handleChange"
+			class="w-full"
+		/>
 		<Input
 			v-else
 			:type="inputType"
@@ -64,6 +70,7 @@ import { extractNumberAndUnit, normalizeValueWithUnits } from "@/utils/helpers"
 import Input from "@/components/Input.vue"
 import Autocomplete from "@/components/Autocomplete.vue"
 import ColorInput from "@/components/ColorInput.vue"
+import IconPicker from "@/components/IconPicker.vue"
 import InputLabel from "@/components/InputLabel.vue"
 
 const props = withDefaults(

@@ -59,15 +59,7 @@
 					:key="fieldKey"
 					class="flex w-full flex-row items-center"
 				>
-					<template v-if="fieldKey === 'icon'">
-						<InputLabel class="text-xs">{{ fieldKey }}</InputLabel>
-						<IconPicker
-							:modelValue="toLucideIcon(item[fieldKey])"
-							@update:modelValue="(icon) => updateItemField(index, fieldKey as string, icon)"
-						/>
-					</template>
 					<InlineInput
-						v-else
 						:label="fieldKey"
 						:type="fieldSchema.inputType"
 						:modelValue="item[fieldKey]"
@@ -94,10 +86,8 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { Button } from "frappe-ui"
-import IconPicker from "@/components/IconPicker.vue"
 import Input from "@/components/Input.vue"
 import InputLabel from "@/components/InputLabel.vue"
-import { getIcon } from "@/utils/globalUtils"
 import InlineInput from "@/components/InlineInput.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import LucideGripVertical from "~icons/lucide/grip-vertical"
@@ -117,13 +107,6 @@ const emit = defineEmits(["update:modelValue", "add", "remove", "move"])
 const items = computed(() => {
 	return Array.isArray(props.modelValue) ? props.modelValue : []
 })
-
-// older saved values wrap the name in the removed sprite helper: {{ getIcon('name') }}
-const toLucideIcon = (value: string | undefined) => {
-	if (typeof value !== "string" || !value) return ""
-	const match = value.match(/getIcon\(['"]([^'"]+)['"]\)/)
-	return match ? getIcon(match[1]) : value
-}
 
 const updateItemField = (index: number, key: string, value: any) => {
 	const newItems = [...items.value]
