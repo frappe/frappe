@@ -370,7 +370,8 @@
 
 		.form-control:focus,
 		.es-combobox:focus-visible,
-		.es-combobox:focus-within {
+		.es-combobox:focus-within,
+		.es-combobox[data-state="open"] {
 			border-color: $text-muted;
 			box-shadow: inset 0px 0px 0 2px rgba(124, 124, 124, 0.25);
 		}
@@ -393,8 +394,10 @@
 			}
 		}
 
+		// the outline is drawn outside the cell, where neighbouring cells hide it
 		.es-combobox:focus-visible,
-		.es-combobox:focus-within {
+		.es-combobox:focus-within,
+		.es-combobox[data-state="open"] {
 			outline: none;
 		}
 
