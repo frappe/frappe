@@ -29,6 +29,8 @@ export const useStore = defineStore("form-builder-store", () => {
 	let source_doctype_fields = ref([]);
 	// set by the web form host, which owns what a picked source field carries
 	let get_source_field_values = ref(null);
+	// set by the web form host, which owns the page limit and its message
+	let validate_page_limit = ref(null);
 	let preview = ref(false);
 	let drag = ref(false);
 	let get_animation = "cubic-bezier(0.34, 1.56, 0.64, 1)";
@@ -319,10 +321,10 @@ export const useStore = defineStore("form-builder-store", () => {
 		(page_order) => page_order && renumber_web_form_pages()
 	);
 
-	// page 1 is implicit, so 10 tabs is the 9 Page Breaks web_form.js validate() allows
+	// page 1 has no Page Break, so a new page brings the count to tabs.length
 	function validate_web_form_page_limit() {
-		if (is_web_form.value && form.value.layout.tabs.length >= 10) {
-			frappe.throw(__("There can be only 9 Page Break fields in a Web Form"));
+		if (is_web_form.value) {
+			validate_page_limit.value?.(form.value.layout.tabs.length);
 		}
 	}
 
@@ -776,6 +778,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		tab_fieldname,
 		source_doctype_fields,
 		get_source_field_values,
+		validate_page_limit,
 		preview,
 		drag,
 		get_animation,

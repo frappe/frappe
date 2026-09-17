@@ -87,13 +87,9 @@ frappe.ui.form.on("Web Form", {
 			frappe.throw(__("Add at least one field to the Web Form"));
 		}
 
-		let page_break_count = frm.doc.web_form_fields.filter(
-			(f) => f.fieldtype == "Page Break"
-		).length;
-
-		if (page_break_count >= 10) {
-			frappe.throw(__("There can be only 9 Page Break fields in a Web Form"));
-		}
+		validate_page_break_limit(
+			frm.doc.web_form_fields.filter((f) => f.fieldtype == "Page Break").length
+		);
 	},
 
 	add_publish_button(frm) {
@@ -417,11 +413,9 @@ frappe.ui.form.on("Web Form Field", {
 		let doc = frappe.get_doc(doctype, name);
 
 		if (doc.fieldtype == "Page Break") {
-			let page_break_count = frm.doc.web_form_fields.filter(
-				(f) => f.fieldtype == "Page Break"
-			).length;
-			page_break_count >= 10 &&
-				frappe.throw(__("There can be only 9 Page Break fields in a Web Form"));
+			validate_page_break_limit(
+				frm.doc.web_form_fields.filter((f) => f.fieldtype == "Page Break").length
+			);
 		}
 
 		if (["Section Break", "Column Break", "Page Break"].includes(doc.fieldtype)) {
@@ -661,6 +655,15 @@ function get_web_form_field_values(df, fieldnames) {
 	};
 }
 
+function validate_page_break_limit(page_break_count) {
+	if (page_break_count >= 10) {
+		frappe.throw({
+			title: __("Error"),
+			message: __("There can be only 9 Page Break fields in a Web Form"),
+		});
+	}
+}
+
 function get_fields_for_doctype(doctype) {
 	return new Promise((resolve) => frappe.model.with_doctype(doctype, resolve)).then(() => {
 		return frappe.meta.get_docfields(doctype).filter((df) => {
@@ -751,6 +754,7 @@ function render_form_builder(frm) {
 			is_web_form: true,
 			tab_fieldname: "form_builder_tab",
 			get_source_field_values: get_web_form_field_values,
+			validate_page_limit: validate_page_break_limit,
 		});
 		frappe.web_form_builder.docname = frm.doc.name;
 		frm._web_form_builder_loading = false;
