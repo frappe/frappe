@@ -11,6 +11,7 @@ from frappe.custom.doctype.property_setter.property_setter import make_property_
 from frappe.database.utils import DefaultOrderBy
 from frappe.desk.reportview import get_filters_cond
 from frappe.handler import execute_cmd
+from frappe.model import get_permitted_fields
 from frappe.model.db_query import DatabaseQuery, get_between_date_filter
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 from frappe.query_builder import Field
@@ -648,6 +649,13 @@ class TestDBQuery(IntegrationTestCase):
 			self.assertNotIn("_comments", row)
 			with self.assertRaises(frappe.PermissionError):
 				frappe.get_list("Test Blog Post", filters={"_comments": ("like", "%a%")})
+			# core doctypes permit every table column, so the cache column must not be one
+			self.assertNotIn("_comments", get_permitted_fields("Module Def"))
+			self.assertNotIn(
+				"_comments", frappe.get_list("Module Def", fields=["name", "_comments"], limit=1)[0]
+			)
+			with self.assertRaises(frappe.PermissionError):
+				frappe.get_list("Module Def", filters={"_comments": ("like", "%a%")})
 
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user("test2@example.com")
