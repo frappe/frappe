@@ -199,9 +199,22 @@ class FlowAgent(Document):
 
 		if not any(row.tool == SKILL_TOOL_SLUG for row in self.tools):
 			return []
+		return self._skills(fields)
+
+	def invocable_skills(self) -> list[dict[str, Any]]:
+		"""Skills a user may start with `/skill:<command>`: the bound and global ones flagged for
+		it. No tool gate: the instructions ride in the message, not through load_skill."""
+		from flow.flow.doctype.flow_skill.flow_skill import skill_command
+
+		return [
+			{**row, "command": skill_command(row.name)}
+			for row in self._skills(("description",), user_invocable=1)
+		]
+
+	def _skills(self, fields: tuple[str, ...], **filters: Any) -> list[dict[str, Any]]:
 		return frappe.get_all(
 			"Flow Skill",
-			filters={"enabled": 1},
+			filters={"enabled": 1, **filters},
 			or_filters=[["is_global", "=", 1], ["name", "in", [row.skill for row in self.skills]]],
 			fields=["name", *fields],
 			order_by="name",

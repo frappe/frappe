@@ -15,6 +15,7 @@ from flow.api.api import (
 	set_auto_approve,
 	set_model,
 	set_title,
+	skills,
 	submit_feedback,
 	sync_session,
 )
@@ -35,6 +36,7 @@ __all__ = [
 	"set_auto_approve",
 	"set_model",
 	"set_title",
+	"skills",
 	"submit_feedback",
 	"sync_session",
 ]

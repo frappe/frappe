@@ -176,6 +176,57 @@ class TestLoadSession(ServerCase):
 		self.assertEqual(len([call for call in self.daemon.calls if call[0] == "set_model"]), 1)
 
 
+class TestSkillCommands(ServerCase):
+	"""A message that starts with /skill:<command> reaches the server as that skill's instructions."""
+
+	def setUp(self):
+		super().setUp()
+		self._skill("Expense Approval", user_invocable=1)
+		self._skill("Model Only")
+		self.agent.set("skills", [{"skill": "Expense Approval"}, {"skill": "Model Only"}])
+		self.agent.save()
+		self.session = new_session(self.agent.name)
+
+	def _skill(self, title: str, **fields) -> None:
+		frappe.get_doc(
+			{
+				"doctype": "Flow Skill",
+				"title": title,
+				"description": f"When to use {title}.",
+				"instructions": "Check the receipt.\n",
+				**fields,
+			}
+		).insert()
+
+	def _sent(self) -> str:
+		return next(call[2] for call in self.daemon.calls if call[0] == "run")
+
+	def test_the_command_is_expanded_for_the_server_and_the_run_keeps_what_was_typed(self):
+		run = self.session.chat("/skill:expense-approval  claim 42 ")
+		self.assertEqual(
+			self._sent(),
+			'<skill name="expense-approval" location="Flow Skill/Expense Approval">\n'
+			"This is the full skill, already loaded. Follow it; do not call load_skill for it.\n\n"
+			"Check the receipt.\n</skill>\n\nclaim 42",
+		)
+		self.assertEqual(run.input, "/skill:expense-approval  claim 42 ")
+
+	def test_a_bare_command_sends_the_instructions_alone(self):
+		self.session.chat("/skill:expense-approval")
+		self.assertTrue(self._sent().endswith("Check the receipt.\n</skill>"))
+
+	def test_a_skill_not_flagged_for_users_is_refused_before_anything_is_sent(self):
+		with self.assertRaisesRegex(
+			frappe.ValidationError, "No skill named model-only. Available: expense-approval"
+		):
+			self.session.chat("/skill:model-only")
+		self.assertEqual([call for call in self.daemon.calls if call[0] == "run"], [])
+
+	def test_other_messages_pass_untouched(self):
+		self.session.chat("skill:expense-approval is not a command")
+		self.assertEqual(self._sent(), "skill:expense-approval is not a command")
+
+
 class TestLiveSession(LiveServerCase):
 	"""A conversation through a real flow server with the mock model."""
 

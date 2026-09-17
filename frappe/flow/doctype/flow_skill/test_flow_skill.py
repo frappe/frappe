@@ -6,7 +6,7 @@ from typing import Any
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow.flow.doctype.flow_skill.flow_skill import MAX_GLOBAL_SKILLS
+from flow.flow.doctype.flow_skill.flow_skill import MAX_GLOBAL_SKILLS, skill_command
 
 EXTRA_TEST_RECORD_DEPENDENCIES = []
 IGNORE_TEST_RECORD_DEPENDENCIES = []
@@ -31,6 +31,14 @@ class TestFlowSkill(IntegrationTestCase):
 		skill = frappe.get_doc(_skill()).insert()
 		self.assertEqual(skill.name, "Expense Approval")
 		self.assertEqual(skill.enabled, 1)
+
+	def test_a_skill_is_not_user_invocable_until_flagged(self):
+		skill = frappe.get_doc(_skill()).insert()
+		self.assertEqual(skill.user_invocable, 0)
+
+	def test_the_command_is_the_title_in_lowercase_with_hyphens(self):
+		self.assertEqual(skill_command("Expense Approval"), "expense-approval")
+		self.assertEqual(skill_command("  Manager's Sign-off / Q&A  "), "manager-s-sign-off-q-a")
 
 	def test_two_skills_cannot_share_a_title(self):
 		frappe.get_doc(_skill()).insert()

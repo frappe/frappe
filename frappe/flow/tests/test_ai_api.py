@@ -543,6 +543,24 @@ class TestSessionEndpoints(ApiCase):
 		self.assertEqual(self.daemon.calls, [])
 		self.assertEqual(self.run_status(run), "Completed")
 
+	def test_skills_lists_what_a_user_may_start_in_a_session_or_with_an_agent(self):
+		frappe.get_doc(
+			{
+				"doctype": "Flow Skill",
+				"title": "Expense Approval",
+				"description": "How to review a claim.",
+				"instructions": "Check the receipt.",
+				"user_invocable": 1,
+			}
+		).insert()
+		self.agent.append("skills", {"skill": "Expense Approval"})
+		self.agent.save()
+		expected = {"skills": [{"name": "expense-approval", "description": "How to review a claim."}]}
+		self.assertEqual(api.skills(session=self.create()), expected)
+		self.assertEqual(api.skills(agent=self.agent.name), expected)
+		with self.assertRaisesRegex(frappe.ValidationError, "Session or agent"):
+			api.skills()
+
 	def test_delete_session_removes_the_session_and_its_server_copy(self):
 		name = self.create()
 		with patch("flow.knowledge.attachment_store.delete"):

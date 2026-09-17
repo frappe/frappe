@@ -476,6 +476,34 @@ class TestFlowAgentSkillIndex(IntegrationTestCase):
 		self.assertIn("<name>House Style</name>", self.agent.skill_index())
 
 
+class TestFlowAgentInvocableSkills(IntegrationTestCase):
+	"""What a user may start with /skill:<command>: bound and global skills flagged for it."""
+
+	def setUp(self):
+		sync_builtin_tools()
+		self.model_doc = frappe.get_doc(_model()).insert()
+		self.agent = frappe.get_doc(_agent(self.model_doc.name)).insert()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_flagged_bound_and_global_skills_are_listed_with_their_command(self):
+		_skill_row("Expense Approval", user_invocable=1)
+		_skill_row("House Style", is_global=1, user_invocable=1)
+		_skill_row("Model Only")
+		self.agent.set("skills", [{"skill": "Expense Approval"}, {"skill": "Model Only"}])
+		self.agent.save()
+		self.assertEqual(
+			[(row["name"], row["command"]) for row in self.agent.invocable_skills()],
+			[("Expense Approval", "expense-approval"), ("House Style", "house-style")],
+		)
+
+	def test_the_tool_is_not_needed_to_start_a_skill_by_hand(self):
+		_skill_row("House Style", is_global=1, user_invocable=1)
+		self.assertEqual([row["name"] for row in self.agent.invocable_skills()], ["House Style"])
+		self.assertEqual(self.agent.skill_index(), "")
+
+
 class TestFlowAgentLoadSkill(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
