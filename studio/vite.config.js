@@ -8,6 +8,7 @@ import sharedDependencyResolver from "./vite/sharedDependencyResolver"
 import studioFolderWatcher from "./vite/studioFolderWatcher"
 import studioRootAlias from "./vite/studioRootAlias"
 import frameworkUIAlias from "./vite/frameworkUIAlias"
+import lucideStaticAlias from "./vite/lucideStaticAlias"
 
 const viteDevServerPort = getViteDevServerPort()
 const appsDir = path.resolve(__dirname, "../../")
@@ -82,7 +83,11 @@ export default defineConfig(async () => {
 			studioFolderWatcher(appsDir),
 		],
 		resolve: {
-			alias: [...frameworkUIAliases, { find: "@", replacement: path.resolve(__dirname, "src") }],
+			alias: [
+				...frameworkUIAliases,
+				lucideStaticAlias(__dirname),
+				{ find: "@", replacement: path.resolve(__dirname, "src") },
+			],
 		},
 		build: {
 			rolldownOptions: {
