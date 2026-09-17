@@ -17,7 +17,7 @@
 				:href="open_file(node.value)"
 				:disabled="node.fetching"
 				target="_blank"
-				class="file-doc-link ml-2"
+				class="file-doc-link ms-2"
 				v-html="frappe.utils.icon('external-link', 'sm')"
 				@click.stop
 			/>

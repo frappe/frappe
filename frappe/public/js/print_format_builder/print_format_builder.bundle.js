@@ -82,9 +82,9 @@ class PrintFormatBuilder {
 			() => this.$component.show_preview,
 			(value) => {
 				// the icon is the only affordance, so its tooltip carries the state.
-				// bootstrap caches the initial title in data-original-title, so set both
+				// bootstrap caches the initial title in data-bs-original-title, so set both
 				const label = value ? __("Hide Preview") : __("Show Preview");
-				$preview_btn.attr("title", label).attr("data-original-title", label);
+				$preview_btn.attr("title", label).attr("data-bs-original-title", label);
 			}
 		);
 	}

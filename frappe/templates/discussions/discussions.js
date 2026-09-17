@@ -157,9 +157,9 @@ const post_message_cleanup = () => {
 };
 
 const update_reply_count = (topic) => {
-	let reply_count = $(`[data-target='#t${topic}']`).find(".reply-count").text();
+	let reply_count = $(`[data-bs-target='#t${topic}']`).find(".reply-count").text();
 	reply_count = parseInt(reply_count) + 1;
-	$(`[data-target='#t${topic}']`).find(".reply-count").text(reply_count);
+	$(`[data-bs-target='#t${topic}']`).find(".reply-count").text(reply_count);
 };
 
 const search_topic = (e) => {
@@ -172,7 +172,7 @@ const search_topic = (e) => {
 	}
 
 	topics.each((i, elem) => {
-		let topic_id = $(elem).closest(".sidebar-parent").attr("data-target");
+		let topic_id = $(elem).closest(".sidebar-parent").attr("data-bs-target");
 
 		/* Check match in replies */
 		let match_in_reply = false;

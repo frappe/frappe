@@ -322,7 +322,7 @@ export default class WebFormList {
 		type = type == "danger" ? "danger button-delete" : type;
 
 		let button = $(`
-			<button class="${name} btn btn-${type} btn-sm ml-2 ${hidden}">${text}</button>
+			<button class="${name} btn btn-${type} btn-sm ms-2 ${hidden}">${text}</button>
 		`);
 
 		button.on("click", () => action());

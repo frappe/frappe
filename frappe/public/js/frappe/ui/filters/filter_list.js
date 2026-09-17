@@ -44,7 +44,7 @@ frappe.ui.FilterGroup = class {
 			content: this.get_filter_area_template(),
 			template: `
 				<div class="filter-popover popover">
-					<div class="arrow"></div>
+					<div class="popover-arrow"></div>
 					<div class="popover-body popover-content">
 					</div>
 				</div>

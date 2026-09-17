@@ -21,9 +21,9 @@
 			</p>
 		</div>
 
-		<div class="columns-header row font-weight-bold mb-1">
+		<div class="columns-header row fw-bold mb-1">
 			<div class="col-8">{{ __("Column") }}</div>
-			<div class="col-4 text-right pr-4">{{ __("Width %") }}</div>
+			<div class="col-4 text-end pe-4">{{ __("Width %") }}</div>
 		</div>
 
 		<draggable

@@ -28,7 +28,7 @@ export default class LinksWidget extends Widget {
 
 		if (this.description) {
 			const description = $(`
-				<button class="btn-reset card-description-btn ml-2">
+				<button class="btn-reset card-description-btn ms-2">
 					${frappe.utils.icon("circle-question-mark", "sm")}
 				</button>
 			`).appendTo(this.widget.find(".widget-title"));
@@ -62,7 +62,7 @@ export default class LinksWidget extends Widget {
 			if (is_link_disabled(item)) {
 				return `<span class="link-content ellipsis disabled-link">${item.link_title}</span>
 					<div class="module-link-popover popover fade top in" role="tooltip" style="display: none;">
-						<div class="arrow"></div>
+						<div class="popover-arrow"></div>
 						<h3 class="popover-title" style="display: none;"></h3>
 						<div class="popover-content" style="padding: 12px;">
 							<div class="small text-muted">${__("You need to create these first:") + " "}</div>
@@ -81,7 +81,7 @@ export default class LinksWidget extends Widget {
 			return `
 				<span class="link-content ellipsis">
 					<span class="link-text">${item.link_title}</span>
-					${frappe.utils.icon("arrow-up-right", "xs", "", "", "ml-2")}
+					${frappe.utils.icon("arrow-up-right", "xs", "", "", "ms-2")}
 				</span>
 			`;
 		};

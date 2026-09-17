@@ -224,7 +224,7 @@ frappe.views.Workspace = class Workspace {
 			if (!this.add_workspace_controls) {
 				this.workspace_actions_button = this.page.add_action_icon("ellipsis", "", "");
 
-				$(this.workspace_actions_button).removeAttr("data-original-title");
+				$(this.workspace_actions_button).removeAttr("data-bs-original-title");
 				$(this.workspace_actions_button).removeClass("btn-default");
 				new frappe.ui.Dropdown({
 					trigger: $(this.workspace_actions_button),

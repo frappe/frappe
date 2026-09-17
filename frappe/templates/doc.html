@@ -8,7 +8,7 @@
 {%- block navbar -%}
 <nav class="navbar navbar-light navbar-expand-lg doc-navbar fixed-top">
 	<div class="container-fluid doc-container">
-		<div class="row no-gutters w-100">
+		<div class="row g-0 w-100">
 			<div class="col-12 col-lg-2">
 				<a class="navbar-brand" href="{{ url_prefix }}{{ home_page or "/" }}">
 					{%- if brand_html -%}
@@ -25,8 +25,8 @@
 					<div class="website-search doc-search" id="search-container">
 					</div>
 					<button class="navbar-toggler" type="button"
-						data-toggle="collapse"
-						data-target="#navbarSupportedContent"
+						data-bs-toggle="collapse"
+						data-bs-target="#navbarSupportedContent"
 						aria-controls="navbarSupportedContent"
 						aria-expanded="false"
 						aria-label="Toggle navigation">
@@ -64,7 +64,7 @@ id="page-{{ name or route | e }}" data-path="{{ pathname | e }}"
 {%- endmacro %}
 
 <div class="container-fluid doc-layout doc-container">
-	<div class="row no-gutters" {{ container_attributes() }}>
+	<div class="row g-0" {{ container_attributes() }}>
 		<div class="sidebar-column col-sm-2">
 			<aside class="doc-sidebar">
 				{% block page_sidebar %}

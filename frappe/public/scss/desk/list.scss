@@ -350,7 +350,7 @@ body.list-col-resizing {
 
 	// Right-aligned columns have text flush against the right edge where the
 	// resize handle sits — add breathing room so they don't look glued together
-	.list-row-col.text-right > span {
+	.list-row-col.text-end > span {
 		padding-right: 14px;
 	}
 

@@ -22,7 +22,7 @@
 					style="min-width: {{ col.minWidth }}px"
 				{% endif %}
 				{% if frappe.model.is_numeric_field(col.fieldtype) %}
-					class="text-right"
+					class="text-end"
 				{% endif %}
 			>
 				{{ __(col.name) }}</th>

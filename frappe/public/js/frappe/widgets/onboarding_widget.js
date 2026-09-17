@@ -178,7 +178,7 @@ export default class OnboardingWidget extends Widget {
 					actions[step.action](step);
 				});
 
-			$(`<button class="btn btn-secondary ml-2 btn-sm">${__("Back")}</button>`)
+			$(`<button class="btn btn-secondary ms-2 btn-sm">${__("Back")}</button>`)
 				.appendTo(this.step_footer)
 				.on("click", toggle_content);
 		};

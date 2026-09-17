@@ -9,7 +9,7 @@
 	display: flex;
 	align-items: center;
 	// frappe-ui's <SidebarHeader> trigger, read off the component rather than measured off a
-	// screenshot: `h-10 rounded px-1.5`, a `size-7` mark, `ml-2` to the text and again to the
+	// screenshot: `h-10 rounded px-1.5`, a `size-7` mark, `ms-2` to the text and again to the
 	// chevron. The 48px band it is centred in belongs to whatever puts the header there -- the rail
 	// gives it the navbar's height and the `px-1` gutter that goes with it.
 	//

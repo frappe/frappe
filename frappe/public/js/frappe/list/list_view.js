@@ -1266,7 +1266,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					"list-row-col ellipsis",
 					col.type == "Subject" ? "list-subject level" : "hidden-xs",
 					col.type == "Tag" ? `tag-col ${!this.tags_shown ? "hide" : ""} ` : "",
-					frappe.model.is_numeric_field(col.df) ? "text-right" : "",
+					frappe.model.is_numeric_field(col.df) ? "text-end" : "",
 				].join(" ");
 
 				let html = "";
@@ -1539,7 +1539,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let css_class = [
 			"list-row-col ellipsis",
 			class_map[col.type],
-			frappe.model.is_numeric_field(df) ? "text-right" : "",
+			frappe.model.is_numeric_field(df) ? "text-end" : "",
 		].join(" ");
 
 		let column_html;
@@ -1682,7 +1682,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					${this.get_like_html(doc)}
 				</span>
 			</div>
-			<div class="level-item visible-xs text-right">
+			<div class="level-item visible-xs text-end">
 				${this.get_indicator_html(doc)}
 			</div>
 		`;
@@ -1729,7 +1729,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			let dropdown_buttons = "";
 			if (button_actions) {
 				dropdown_buttons = `
-					<button type="button" class="btn btn-xs btn-default ellipsis" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					<button type="button" class="btn btn-xs btn-default ellipsis" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						${this.settings.dropdown_button.get_label}
 						${frappe.utils.icon("chevrons-up-down", "xs")}
 					</button>
@@ -2074,7 +2074,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return;
 			}
 
-			if ($target.is("[data-toggle='dropdown']")) return true;
+			if ($target.is("[data-bs-toggle='dropdown']")) return true;
 
 			// don't open form when checkbox, like, filterable are clicked
 			if (

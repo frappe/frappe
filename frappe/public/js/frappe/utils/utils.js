@@ -1878,18 +1878,18 @@ Object.assign(frappe.utils, {
 					<span class="label">${selected_action.label}</span>
 				</button>
 
-				<button type="button" class="btn ${btn_type} btn-sm dropdown-toggle dropdown-toggle-split" data-toggle="dropdown">
+				<button type="button" class="btn ${btn_type} btn-sm dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
 					${frappe.utils.icon("chevron-down", "xs")}
 				</button>
 
-				<ul class="dropdown-menu dropdown-menu-right" role="menu"></ul>
+				<ul class="dropdown-menu dropdown-menu-end" role="menu"></ul>
 			</div>
 		`);
 
 		actions.forEach((action) => {
 			$(`<li>
 				<a class="dropdown-item flex">
-					<div class="tick-icon mr-2">${frappe.utils.icon("check", "xs")}</div>
+					<div class="tick-icon me-2">${frappe.utils.icon("check", "xs")}</div>
 					<div>
 						<div class="item-label">${action.label}</div>
 						<div class="item-description text-muted small">${action.description || ""}</div>

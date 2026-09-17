@@ -97,7 +97,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 		{% elif render_field %}
 			<div class="row {% if df.bold %}important{% endif %} data-field" {{ fieldmeta(df) }}>
 				<div class="{{label_col_class}}
-					{%- if doc.align_labels_right %} text-right{%- endif -%}">
+					{%- if doc.align_labels_right %} text-end{%- endif -%}">
 					{% if df.fieldtype not in ("Image", "HTML") %}
 					<label>{{ _(df.label, context=df.parent) }}: </label>
 					{% endif %}
@@ -188,7 +188,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {% macro get_align_class(df, no_of_cols=2) %}
 	{% if no_of_cols >= 3 %}{{ "" }}
 	{%- elif df.align -%}{{ "text-" + df.align }}
-	{%- elif df.fieldtype in ("Int", "Float", "Currency", "Percent") -%}{{ "text-right" }}
+	{%- elif df.fieldtype in ("Int", "Float", "Currency", "Percent") -%}{{ "text-end" }}
 	{%- elif df.fieldtype in ("Check",) -%}{{ "text-center" }}
 	{%- else -%}{{ "" }}
 	{%- endif -%}

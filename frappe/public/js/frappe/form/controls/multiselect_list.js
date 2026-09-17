@@ -5,7 +5,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 	make_input() {
 		let template = `
 			<div class="multiselect-list dropdown">
-				<div class="form-control cursor-pointer input-xs" data-toggle="dropdown" tabindex=0>
+				<div class="form-control cursor-pointer input-xs" data-bs-toggle="dropdown" tabindex=0>
 					<div class="status-text ellipsis"></div>
 				</div>
 				<ul class="dropdown-menu">
@@ -15,7 +15,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 					<div class="selectable-items">
 					</div>
 					<li class="d-flex justify-content-end">
-						<button class="btn btn-secondary btn-xs select-all-options text-nowrap mr-2">
+						<button class="btn btn-secondary btn-xs select-all-options text-nowrap me-2">
 							${__("Select All")}
 						</button>
 						<button class="btn btn-primary btn-xs clear-selections text-nowrap">
@@ -51,7 +51,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		});
 
 		// open dropdown on tab focus
-		const $toggle = this.$list_wrapper.find('[data-toggle="dropdown"]');
+		const $toggle = this.$list_wrapper.find('[data-bs-toggle="dropdown"]');
 		let focus_triggered_by_mouse = false;
 		$toggle.on("mousedown", () => {
 			focus_triggered_by_mouse = true;

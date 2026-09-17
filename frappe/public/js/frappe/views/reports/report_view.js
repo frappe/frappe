@@ -88,7 +88,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	setup_charts_area() {
 		this.$charts_wrapper = $(`<div class="charts-wrapper hidden">
-			<div class="text-right"><button class="btn btn-default btn-xs btn-chart-configure"
+			<div class="text-end"><button class="btn btn-default btn-xs btn-chart-configure"
 				style="margin-right: 15px; margin-top: 15px">Configure</button></div>
 			<div class="charts-inner-wrapper"></div>
 		</div>`);

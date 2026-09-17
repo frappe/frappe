@@ -617,7 +617,7 @@ export default class ChartWidget extends Widget {
 
 	set_chart_actions(actions) {
 		this.chart_actions = $(`<div class="chart-actions dropdown pull-right">
-			<button data-toggle="dropdown"
+			<button data-bs-toggle="dropdown"
 				aria-haspopup="true"aria-expanded="false"
 				class="btn btn-xs btn-secondary chart-menu"
 			>
@@ -626,7 +626,7 @@ export default class ChartWidget extends Widget {
 					</use>
 				</svg>
 			</button>
-			<ul class="dropdown-menu dropdown-menu-right">
+			<ul class="dropdown-menu dropdown-menu-end">
 				${actions
 					.map(
 						(action) =>

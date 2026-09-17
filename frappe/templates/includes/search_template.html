@@ -21,11 +21,9 @@
 			<div class="input-group">
 				<input name="q" class="form-control" type="text" value="{{ query or ''}}"
 					placeholder="{{ _('Search...') }}">
-				<div class="input-group-append">
-					<button type="submit" class="btn btn-sm btn-primary btn-search">
-						{{ _('Search') }}
-					</button>
-				</div>
+				<button type="submit" class="btn btn-sm btn-primary btn-search">
+					{{ _('Search') }}
+				</button>
 			</div>
 			{% if frappe.form_dict.scope %}
 				<input type="text" hidden name="scope" value="{{ frappe.utils.escape_html(frappe.form_dict.scope) }}">

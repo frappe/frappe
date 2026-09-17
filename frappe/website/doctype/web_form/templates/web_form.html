@@ -36,7 +36,7 @@
 	{% if allow_print and in_view_mode %}
 		{% set print_format_url = "/printview?doctype=" + doc_type + "&name=" + doc_name + "&format=" + (print_format or "standard") %}
 		<!-- print button -->
-		<a href="{{ print_format_url }}" target="_blank" class="print-btn btn btn-default btn-sm ml-2">
+		<a href="{{ print_format_url }}" target="_blank" class="print-btn btn btn-default btn-sm ms-2">
 			<svg class="icon icon-sm"><use href="#icon-printer"></use></svg>
 		</a>
 	{% endif %}
@@ -54,7 +54,7 @@
 				{{ _("Discard", context="Button in web form") }}
 			</button>
 			<!-- submit button -->
-			<button type="submit" class="submit-btn btn btn-primary btn-sm ml-2">{{ _(button_label, context="Button in web form") or _("Submit", context="Button in web form") }}</button>
+			<button type="submit" class="submit-btn btn btn-primary btn-sm ms-2">{{ _(button_label, context="Button in web form") or _("Submit", context="Button in web form") }}</button>
 		{% endif %}
 		{% if has_delete_permission %}
 			<!-- delete button -->

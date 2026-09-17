@@ -6,7 +6,7 @@
 {%- set dropdown_id = 'id-' + frappe.utils.generate_hash(length=12) -%}
 <li class="nav-item dropdown {% if submenu %} dropdown-submenu {% endif %}">
 	<a class="nav-link dropdown-toggle" href="#" id="{{ dropdown_id }}" role="button"
-		data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 		{{ _(item.label) }}
 	</a>
   	<ul class="dropdown-menu" aria-labelledby="{{ dropdown_id }}">
@@ -19,7 +19,7 @@
 {%- set dropdown_id = 'id-' + frappe.utils.generate_hash(length=12) -%}
 <li class="dropdown {% if submenu %} dropdown-submenu {% endif %}">
 	<a class="dropdown-item dropdown-toggle" href="#" id="{{ dropdown_id }}" role="button"
-		data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 		{{ _(item.label) }}
 	</a>
 	<ul class="dropdown-menu" aria-labelledby="{{ dropdown_id }}">
@@ -53,7 +53,7 @@
 {% endmacro %}
 
 {% if top_bar_items -%}
-<ul class="mr-auto navbar-nav">
+<ul class="me-auto navbar-nav">
 	{%- for item in top_bar_items -%}
 		{% if not item.parent_label and not item.right -%}
 			{{ render_item(item, parent=True) }}
@@ -61,7 +61,7 @@
 	{%- endfor %}
 </ul>
 {%- endif %}
-<ul class="ml-auto navbar-nav">
+<ul class="ms-auto navbar-nav">
 	{% include "templates/includes/navbar/navbar_search.html" %}
 	{%- for item in top_bar_items -%}
 		{% if not item.parent_label and item.right -%}

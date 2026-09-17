@@ -153,7 +153,7 @@ export default class Grid {
 						</div>
 						<div class="grid-pagination">
 						</div>
-						<div class="grid-bulk-actions text-right">
+						<div class="grid-bulk-actions text-end">
 							${frappe.ui.button.html({
 								label: __("Download"),
 								size: "sm",

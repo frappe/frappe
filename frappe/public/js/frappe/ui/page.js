@@ -231,7 +231,7 @@ frappe.ui.Page = class Page {
 
 		// https://axesslab.com/skip-links
 		this.skip_link_to_main = $("<button>")
-			.addClass("sr-only sr-only-focusable btn btn-primary-light my-2")
+			.addClass("visually-hidden visually-hidden-focusable btn btn-primary-light my-2")
 			.text(__("Navigate to main content"))
 			.attr({ tabindex: 0, role: "link" })
 			.on("click", (e) => {
@@ -762,7 +762,7 @@ frappe.ui.Page = class Page {
 			// snapshots it on every open
 			$group = $(
 				`<div class="inner-group-button" data-label="${encodeURIComponent(label)}">
-					<div role="presentation" class="dropdown-menu ${align_right ? "dropdown-menu-right" : ""}"></div>
+					<div role="presentation" class="dropdown-menu ${align_right ? "dropdown-menu-end" : ""}"></div>
 				</div>`
 			).appendTo(this.inner_toolbar);
 			const $btn = frappe.ui

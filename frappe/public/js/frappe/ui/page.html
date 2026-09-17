@@ -30,7 +30,7 @@
 						<svg class="icon icon-sm"><use href="#icon-search"></use></svg>
 					</span>
 				</button>
-				<div class="flex col page-actions justify-content-end {% if frappe.is_mobile() %} pl-0 {% endif %}">
+				<div class="flex col page-actions justify-content-end {% if frappe.is_mobile() %} ps-0 {% endif %}">
 					<!-- buttons -->
 					<div class="filters flex"></div>
 					<div class="custom-actions hide hidden-xs hidden-md"></div>
@@ -46,7 +46,7 @@
 							<!-- hidden item store, not UI: add_dropdown_item writes <li><a> here
 							(the returned jQuery is public API); frappe.ui.Dropdown snapshots it
 							into menu rows on every open — see page.js build_dropdown_options -->
-							<ul class="dropdown-menu dropdown-menu-right" role="presentation"></ul>
+							<ul class="dropdown-menu dropdown-menu-end" role="presentation"></ul>
 						</div>
 						{%= frappe.ui.button.html({ css_class: "secondary-action hide" }) %}
 						<div class="actions-btn-group hide">
@@ -55,7 +55,7 @@
 								icon_right: "chevrons-up-down",
 								variant: "solid",
 							}) %}
-							<ul class="dropdown-menu dropdown-menu-right" role="presentation">
+							<ul class="dropdown-menu dropdown-menu-end" role="presentation">
 							</ul>
 						</div>
 						{%= frappe.ui.button.html({ variant: "solid", css_class: "primary-action hide" }) %}

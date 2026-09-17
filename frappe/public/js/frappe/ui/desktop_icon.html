@@ -12,7 +12,7 @@
         {% } %}
     </a>
     <div class="icon-caption">
-        <a class="icon-title" href="#" data-toggle="tooltip" data-original-title="{{ frappe.utils.escape_html(__(icon.label)) }}">{{ frappe.utils.escape_html(__(icon.label)) }}</a>
+        <a class="icon-title" href="#" data-bs-toggle="tooltip" data-bs-original-title="{{ frappe.utils.escape_html(__(icon.label)) }}">{{ frappe.utils.escape_html(__(icon.label)) }}</a>
         {% if (icon.desk_route) { %}
         <a class="icon-subtitle" href="{{ frappe.utils.escape_html(icon.desk_route) }}">{{ frappe.utils.escape_html(__("Open in Desk")) }}</a>
         {% } %}

@@ -657,7 +657,7 @@ label.switch-control {
 	}
 
 	// Keep the checkbox accessible and label-clickable, but visually hidden
-	// (standard sr-only clip pattern — focus moves through it to drive the track).
+	// (standard visually-hidden clip pattern — focus moves through it to drive the track).
 	.input-area {
 		position: absolute;
 		width: 1px;

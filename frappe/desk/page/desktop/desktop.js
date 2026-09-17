@@ -111,7 +111,7 @@ class DesktopPage {
 			this.add_icon($grid, icon_data, app.route);
 		});
 
-		$('[data-toggle="tooltip"]').tooltip({ placement: "bottom" });
+		$('[data-bs-toggle="tooltip"]').tooltip({ placement: "bottom" });
 	}
 	add_icon($grid, icon_data, route) {
 		const $icon = $(frappe.render_template("desktop_icon", { icon: icon_data }));

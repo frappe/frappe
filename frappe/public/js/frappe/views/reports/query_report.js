@@ -857,7 +857,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					}
 					if (minutes_old >= 1) {
 						this.show_status(`
-						<div class="indicator orange pl-1">
+						<div class="indicator orange ps-1">
 							<span>
 								${__("This report was generated {0}.", [pretty_diff])}
 							</span>
@@ -871,7 +871,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						let diff = frappe.datetime.comment_when(this.snapshot_at);
 						let pretty_diff = `<span style="color:var(--red-600)">${diff}</span>`;
 						this.show_status(`
-						<div class="indicator orange pl-1">
+						<div class="indicator orange ps-1">
 							<span>
 								${__("This is a snapshot report generated {0}.", [pretty_diff])}
 							</span>

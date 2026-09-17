@@ -5,13 +5,13 @@
 
 {% endif %}
 
-<div class=" {% if not single_thread %} collapse {% endif %} discussion-on-page" data-parent="#discussion-group"
+<div class=" {% if not single_thread %} collapse {% endif %} discussion-on-page" data-bs-parent="#discussion-group"
 	{% if topic %} id="t{{ topic.name }}" data-topic="{{ topic.name }}" {% endif %}>
 
 	{% if not single_thread %}
 	<div class="reply-section-header">
 		<div class="back-button">
-			<svg class="icon icon-sm mr-0">
+			<svg class="icon icon-sm me-0">
 				<use class="" href="#icon-chevron-left"></use>
 			</svg>
 		</div>

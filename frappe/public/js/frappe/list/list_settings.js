@@ -169,7 +169,7 @@ export default class ListSettings {
 							<input
 								inputmode="numeric"
 								autocomplete="number"
-								class="form-control text-right"
+								class="form-control text-end"
 								data-fieldname="${me.fields[idx].fieldname}"
 								style="background-color: var(--modal-bg); height: 22px;"
 								value="${
@@ -192,7 +192,7 @@ export default class ListSettings {
 
 		fields_html.html(`
 			<div class="form-group">
-				<div class="text-right mb-1">
+				<div class="text-end mb-1">
 					<a class="add-new-fields text-muted" style="font-size: var(--text-xs); white-space: nowrap;">
 						${__("+ Add / Remove Fields")}
 					</a>
@@ -204,10 +204,10 @@ export default class ListSettings {
 							"Fields"
 						)}</label>
 					</div>
-					<div class="col-2 text-right pr-2" style="white-space: nowrap;">
+					<div class="col-2 text-end pe-2" style="white-space: nowrap;">
 						${__("Width (px)")}
 						<span
-							class="ml-1"
+							class="ms-1"
 							title="${__("You can also drag column borders directly in the list view to resize")}"
 							style="cursor: help;"
 						>${frappe.utils.icon("info", "xs")}</span>

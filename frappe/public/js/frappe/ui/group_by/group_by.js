@@ -33,7 +33,7 @@ frappe.ui.GroupBy = class {
 			content: group_by_template,
 			template: `
 				<div class="group-by-popover popover">
-					<div class="arrow"></div>
+					<div class="popover-arrow"></div>
 					<div class="popover-body popover-content">
 					</div>
 				</div>

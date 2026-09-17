@@ -132,8 +132,8 @@
 		}
 	}
 
-	// One rail row, to frappe-ui's <SidebarItem>: `h-7 rounded`, the link inside it `pl-2`, a
-	// `size-4` glyph, then the label `ml-2 truncate text-sm`. Inactive is `text-ink-gray-6` with
+	// One rail row, to frappe-ui's <SidebarItem>: `h-7 rounded`, the link inside it `ps-2`, a
+	// `size-4` glyph, then the label `ms-2 truncate text-sm`. Inactive is `text-ink-gray-6` with
 	// `hover:bg-surface-gray-2`; active is `bg-surface-elevation-3 text-ink-gray-8 shadow-sm`, which
 	// is .active-sidebar. The body sidebar's rows are the same row from the same component.
 	//
@@ -175,8 +175,8 @@
 			justify-content: center;
 		}
 
-		// `ml-2` is the gap between glyph and label, and `flex: 1` is what pushes anything after
-		// it -- a count, a shortcut -- to the row's far end, where a suffix takes its own `mr-2`.
+		// `ms-2` is the gap between glyph and label, and `flex: 1` is what pushes anything after
+		// it -- a count, a shortcut -- to the row's far end, where a suffix takes its own `me-2`.
 		.dock-item-label {
 			@include truncate();
 			flex: 1 1 auto;

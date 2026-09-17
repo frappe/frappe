@@ -55,7 +55,7 @@ function show_configure_search_fields_dialog(doctype, frm) {
 			});
 
 			dialog.get_field("doctype_heading").$wrapper.html(`
-				<div class="mb-3 font-weight-bold">${frappe.utils.escape_html(__(doctype))}</div>
+				<div class="mb-3 fw-bold">${frappe.utils.escape_html(__(doctype))}</div>
 			`);
 
 			dialog.get_field("search_bar").$wrapper.html(`

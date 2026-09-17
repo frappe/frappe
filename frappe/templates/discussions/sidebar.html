@@ -1,21 +1,21 @@
 {% from "frappe/templates/includes/avatar_macro.html" import avatar %}
 {% set creator = frappe.db.get_value("User", topic.owner, ["name", "username", "full_name", "user_image"], as_dict=True) %}
 
-<div class="sidebar-parent" data-target="#t{{ topic.name }}" data-toggle="collapse" aria-expanded="false">
-	<div class="mr-4">
+<div class="sidebar-parent" data-bs-target="#t{{ topic.name }}" data-bs-toggle="collapse" aria-expanded="false">
+	<div class="me-4">
 		{{ avatar(creator.name, size="avatar-medium") }}
 	</div>
 	<div class="flex-grow-1">
 		<div class="discussion-topic-title">{{ topic.title }}</div>
 		<div class="sidebar-topic">
-			<svg class="icon icon-sm m-0 mr-2">
+			<svg class="icon icon-sm m-0 me-2">
 				<use class="" href="#icon-reply"></use>
 			</svg>
 			<div class="topic-author">{{ creator.full_name }}</div>
-			<div class="ml-2 frappe-timestamp small" data-timestamp="{{ topic.creation }}"> {{ frappe.utils.pretty_date(topic.creation) }} </div>
-			<div class="ml-auto">
+			<div class="ms-2 frappe-timestamp small" data-timestamp="{{ topic.creation }}"> {{ frappe.utils.pretty_date(topic.creation) }} </div>
+			<div class="ms-auto">
 				<span class="d-flex align-items-center">
-					<svg class="icon icon-sm mr-1"><use href="#icon-message-circle"></use></svg>
+					<svg class="icon icon-sm me-1"><use href="#icon-message-circle"></use></svg>
 					<span class="reply-count">{{ replies | length }}</span>
 				</span>
 			</div>

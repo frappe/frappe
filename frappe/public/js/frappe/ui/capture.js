@@ -346,8 +346,8 @@ frappe.ui.Capture.OPTIONS = {
 frappe.ui.Capture.ERR_MESSAGE = __("Unable to load camera.");
 frappe.ui.Capture.TEMPLATE = `
 <div class="frappe-capture">
-	<div class="embed-responsive embed-responsive-16by9 fc-stream-container">
-		<video class="fc-stream embed-responsive-item">${frappe.ui.Capture.ERR_MESSAGE}</video>
+	<div class="ratio ratio-16x9 fc-stream-container">
+		<video class="fc-stream">${frappe.ui.Capture.ERR_MESSAGE}</video>
 	</div>
 	<div class="fc-preview-container px-2" style="display: none;">
 

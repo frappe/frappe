@@ -108,7 +108,7 @@
 	}
 
 	// The panel's rows and the rail's are one row drawn twice, both to frappe-ui's <SidebarItem>:
-	// `h-7 rounded`, `pl-2` inside it, a `size-4` glyph, the label `ml-2 truncate text-sm`, and
+	// `h-7 rounded`, `ps-2` inside it, a `size-4` glyph, the label `ms-2 truncate text-sm`, and
 	// `space-y-0.5` between rows.
 	.standard-sidebar-item {
 		display: flex;
@@ -137,7 +137,7 @@
 			align-items: center;
 			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 			cursor: pointer;
-			// `ml-2` from the glyph; `flex: 1` above is what pushes a suffix to the row's far end
+			// `ms-2` from the glyph; `flex: 1` above is what pushes a suffix to the row's far end
 			margin-left: 8px;
 		}
 
@@ -339,7 +339,7 @@
 	}
 }
 
-// A group's own heading, to frappe-ui's <SidebarLabel>: `h-7 pl-2` around `text-base
+// A group's own heading, to frappe-ui's <SidebarLabel>: `h-7 ps-2` around `text-base
 // text-ink-gray-5`. It names the rows under it rather than being one of them, which is why it is
 // the one line here that is not --text-sm -- and why it is not bold either: the size and the fade
 // do the work.
@@ -378,7 +378,7 @@
 	}
 }
 
-// A count, or a shortcut hint: `mr-2 text-sm text-ink-gray-4` on a zone the label's flex-grow has
+// A count, or a shortcut hint: `me-2 text-sm text-ink-gray-4` on a zone the label's flex-grow has
 // already stranded at the row's end.
 .sidebar-item-suffix {
 	margin-left: auto;

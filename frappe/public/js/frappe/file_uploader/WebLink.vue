@@ -7,7 +7,7 @@
 			<input
 				ref="web_link_input"
 				type="text"
-				class="form-control mr-1"
+				class="form-control me-1"
 				:class="{ 'is-invalid': error_message }"
 				:placeholder="__('Attach a web link')"
 				v-model="url"

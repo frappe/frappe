@@ -1,17 +1,15 @@
 <div class="website-list-filters my-4">
 	<div class="row">
 		<div class="col-6">
-			<form class="form-inline form-search" action="/{{ pathname | urlencode }}">
+			<form class="d-flex flex-wrap align-items-center form-search" action="/{{ pathname | urlencode }}">
 				<div class="input-group">
 					<input class="form-control" doctype="text" name="txt"
 						placeholder="Search..." value="{{ (txt or '') | e }}">
-					<div class="input-group-append">
-						<button class="btn btn-light" type="submit">
+					<button class="btn btn-light" type="submit">
 						<span class="desktop-search-icon">
 							<svg class="icon icon-xs"><use href="#icon-search"></use></svg>
 						</span>
-						</button>
-					</div>
+					</button>
 				</div>
 			</form>
 		</div>

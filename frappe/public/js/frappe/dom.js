@@ -359,7 +359,7 @@ frappe.get_modal = function (title, content) {
 							variant: "ghost",
 							title: __("Close"),
 							css_class: "btn-modal-close icon-btn",
-							attrs: { "data-dismiss": "modal" },
+							attrs: { "data-bs-dismiss": "modal" },
 						})}
 					</div>
 				</div>

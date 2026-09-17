@@ -93,7 +93,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			return;
 		}
 
-		this.$next_button = $(`<button class="btn btn-default btn-next btn-sm ml-2">
+		this.$next_button = $(`<button class="btn btn-default btn-next btn-sm ms-2">
 			${__("Next")}
 		</button>`);
 

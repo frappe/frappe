@@ -1,7 +1,7 @@
 {% for (var i=0, l=change_log.length; i < l; i++) {
     var app_info = change_log[i]; %}
 	{% if (i > 0) { %} <hr> {% } %}
-	<div class="text-left app-change-log">
+	<div class="text-start app-change-log">
 		<h2 style="margin-top: 10px;">
             {{ app_info.title }}
 			<small>{{ __("updated to {0}", [app_info.version]) }}</small>

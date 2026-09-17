@@ -9,10 +9,10 @@
 				</svg>
 			</span>
 		</button>
-		<button type="button" class="btn btn-default btn-sm sort-selector-button text-nowrap" data-toggle="dropdown">
+		<button type="button" class="btn btn-default btn-sm sort-selector-button text-nowrap" data-bs-toggle="dropdown">
 			<span class="dropdown-text hidden-sm">{{ __(sort_by_label, null, doctype) }}</span>
 			<span>{{ frappe.utils.icon("chevron-down") }}</span>
-			<ul class="dropdown-menu dropdown-menu-right">
+			<ul class="dropdown-menu dropdown-menu-end">
 				{% for value in options %}
 				<li>
 					<a class="dropdown-item option" data-value="{{ value.fieldname }}">

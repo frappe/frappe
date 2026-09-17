@@ -1,12 +1,12 @@
 {% if slideshow %}
 {{ slideshow_header or '' }}
 
-<div id="the-carousel" class="carousel slide" data-ride="carousel">
+<div id="the-carousel" class="carousel slide" data-bs-ride="carousel">
 	{% if slides | len > 1 %}
 	<!-- Indicators -->
 	<ol class="carousel-indicators">
 		{% for slide in slides %}
-		<li data-target="#the-carousel" data-slide-to="{{ loop.index }}"
+		<li data-bs-target="#the-carousel" data-bs-slide-to="{{ loop.index }}"
 			{%- if loop.index==0 %}class="active"{% endif %}></li>
 		{% endfor %}
 	</ol>
@@ -29,13 +29,13 @@
 
 	<!-- Controls -->
 	{% if slides | len > 1 %}
-	<a class="carousel-control-prev" href="#the-carousel" data-slide="prev" role="button">
+	<a class="carousel-control-prev" href="#the-carousel" data-bs-slide="prev" role="button">
 		<span class="carousel-control-prev-icon" aria-hidden="true"></span>
-		<span class="sr-only">{{ _('Previous') }}</span>
+		<span class="visually-hidden">{{ _('Previous') }}</span>
 	</a>
-	<a class="carousel-control-next" href="#the-carousel" data-slide="next" role="button">
+	<a class="carousel-control-next" href="#the-carousel" data-bs-slide="next" role="button">
 		<span class="carousel-control-next-icon" aria-hidden="true"></span>
-		<span class="sr-only">{{ _('Next') }}</span>
+		<span class="visually-hidden">{{ _('Next') }}</span>
 	</a>
 	{% endif %}
 </div>

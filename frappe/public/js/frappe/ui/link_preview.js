@@ -150,7 +150,7 @@ frappe.ui.LinkPreview = class {
 			container: "body",
 			template: `
 				<div class="link-preview-popover popover">
-					<div class="arrow"></div>
+					<div class="popover-arrow"></div>
 					<div class="popover-body popover-content">
 					</div>
 				</div>

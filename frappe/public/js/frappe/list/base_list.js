@@ -827,7 +827,7 @@ class FilterArea {
 			}
 
 			return `<div class="group-by-field list-link form-group frappe-control input-max-width">
-						<a class="btn btn-default btn-sm flex justify-between list-sidebar-button w-100" data-toggle="dropdown"
+						<a class="btn btn-default btn-sm flex justify-between list-sidebar-button w-100" data-bs-toggle="dropdown"
 						aria-haspopup="true" aria-expanded="false"
 						data-label="${label}" data-fieldname="${fieldname}" data-fieldtype="${fieldtype}"
 						href="#" onclick="return false;">
@@ -1293,16 +1293,16 @@ class FilterArea {
 			const $inputGroup = $input.parent();
 
 			const $dropdown = $(`
-			<div class="input-group-btn mr-0">
+			<div class="input-group-btn me-0">
 				<button type="button"
 					class="btn btn-default  match-type-dropdown-btn"
-					data-toggle="dropdown"
+					data-bs-toggle="dropdown"
 					aria-haspopup="true"
 					aria-expanded="false">
 					${getIcon(df.match_type || "≈")}
 
 				</button>
-				<ul class="dropdown-menu match-type-dropdown-menu dropdown-menu-right">
+				<ul class="dropdown-menu match-type-dropdown-menu dropdown-menu-end">
 					<li class="dropdown-item" data-match-type="=">${__("Equals")}</li>
 					<li class="dropdown-item" data-match-type="like">${__("Like")}</li>
 				</ul>

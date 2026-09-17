@@ -11,7 +11,7 @@ frappe.ui.Slide = class Slide {
 
 	setup() {
 		this.$wrapper = $('<div class="slide-wrapper hidden"></div>')
-			.attr({ "data-slide-id": this.id, "data-slide-name": this.name })
+			.attr({ "data-bs-slide-id": this.id, "data-bs-slide-name": this.name })
 			.appendTo(this.parent);
 	}
 
@@ -368,14 +368,14 @@ frappe.ui.Slides = class Slides {
 		this.$footer.empty();
 
 		$(`<div class="row">
-			<div class="col-sm-4 text-left prev-div">
+			<div class="col-sm-4 text-start prev-div">
 				<button class="prev-btn btn btn-secondary btn-sm" tabindex="0">${__(
 					"Previous",
 					null,
 					"Go to previous slide"
 				)}</button>
 			</div>
-			<div class="col-sm-8 text-right next-div">
+			<div class="col-sm-8 text-end next-div">
 				<button class="complete-btn btn btn-sm primary">${__(
 					"Complete Setup",
 					null,

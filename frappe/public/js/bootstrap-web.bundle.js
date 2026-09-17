@@ -1,5 +1,3 @@
-import "bootstrap/dist/js/bootstrap.bundle";
-
 // multilevel dropdown
 $(".dropdown-menu a.dropdown-toggle").on("click", function (e) {
 	e.preventDefault();
@@ -22,11 +20,11 @@ $(".dropdown-menu a.dropdown-toggle").on("click", function (e) {
 frappe.get_modal = function (title, content) {
 	return $(
 		`<div class="modal" tabindex="-1" role="dialog">
-			<div class="modal-dialog" role="document">
+			<div class="modal-dialog modal-dialog-scrollable" role="document">
 				<div class="modal-content">
 					<div class="modal-header">
 						<h5 class="modal-title">${title}</h5>
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
 						${frappe.utils.icon("x", "sm", "close-alt")}
 						</button>
 					</div>
@@ -34,10 +32,7 @@ frappe.get_modal = function (title, content) {
 						${content}
 					</div>
 					<div class="modal-footer hidden">
-						<button type="button" class="btn btn-default btn-sm btn-modal-close" data-dismiss="modal">
-						${frappe.utils.icon("x", "sm", "close-alt")}
-							<span class="hidden-xs">${__("Close")}</span>
-						</button>
+						<button type="button" class="btn btn-sm btn-secondary hidden"></button>
 						<button type="button" class="btn btn-sm btn-primary hidden"></button>
 					</div>
 				</div>
@@ -51,9 +46,17 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.Dialog {
 		return this.$wrapper.find(".modal-footer .btn-primary");
 	}
 
+	get_secondary_btn() {
+		return this.$wrapper.find(".modal-footer .btn-secondary");
+	}
+
 	set_primary_action(label, click) {
 		this.$wrapper.find(".modal-footer").removeClass("hidden");
 		return super.set_primary_action(label, click).removeClass("hidden");
+	}
+
+	set_secondary_action(click) {
+		return super.set_secondary_action(click).removeClass("hidden");
 	}
 
 	make() {

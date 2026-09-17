@@ -18,7 +18,7 @@ frappe.provide("frappe.ui");
  * @property {boolean} [loading] Shows spinner, blocks clicks, sets aria-busy.
  * @property {"button"|"submit"|"reset"} [type="button"]
  * @property {string} [css_class] Extra CSS classes.
- * @property {Object<string, string|true>} [attrs] Extra attributes, e.g. { "data-toggle": "dropdown" }.
+ * @property {Object<string, string|true>} [attrs] Extra attributes, e.g. { "data-bs-toggle": "dropdown" }.
  * @property {function} [onclick] Click handler (element form only). Return a promise to show the busy state until it settles.
  */
 

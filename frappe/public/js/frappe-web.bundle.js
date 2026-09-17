@@ -42,7 +42,7 @@ import "./frappe/model/meta.js";
 import "./frappe/model/model.js";
 import "./frappe/model/perm.js";
 
-import "./bootstrap-4-web.bundle";
+import "./bootstrap-web.bundle";
 
 import "../../website/js/website.js";
 import "./frappe/socketio_client.js";

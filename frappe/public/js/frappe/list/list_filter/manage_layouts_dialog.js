@@ -53,8 +53,8 @@ export default class ManageLayoutsDialog {
 		return `
 			<div class="layout-manage-row d-flex justify-content-between align-items-center py-2 border-bottom"
 				data-name="${esc(layout.name)}">
-				<div class="layout-manage-row-label min-width-0 pr-2">
-					<div class="ellipsis font-weight-bold text-sm" title="${esc(layout.filter_name)}">
+				<div class="layout-manage-row-label min-width-0 pe-2">
+					<div class="ellipsis fw-bold text-sm" title="${esc(layout.filter_name)}">
 						${esc(__(layout.filter_name))}
 					</div>
 					<div class="text-muted" style="font-size: var(--text-xs)">${esc(scope_label)}</div>

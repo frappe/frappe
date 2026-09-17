@@ -766,12 +766,12 @@ class DesktopIconGrid {
 		}
 	}
 	setup_tooltip() {
-		$('[data-toggle="tooltip"]').tooltip({
+		$('[data-bs-toggle="tooltip"]').tooltip({
 			placement: "bottom",
 		});
 	}
 	remove_label_tooltip() {
-		$('[data-toggle="tooltip"]').tooltip("disable");
+		$('[data-bs-toggle="tooltip"]').tooltip("disable");
 	}
 	setup_reordering(grid) {
 		const me = this;

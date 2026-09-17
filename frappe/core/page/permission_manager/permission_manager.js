@@ -387,7 +387,7 @@ frappe.PermissionEngine = class PermissionEngine {
 								role_label,
 							]);
 
-							message_html += `<ul class="border rounded pl-4 pb-2 pt-2 mb-3 mt-3">${user_list}</ul>`;
+							message_html += `<ul class="border rounded ps-4 pb-2 pt-2 mb-3 mt-3">${user_list}</ul>`;
 
 							// show compact "View All" link if more users
 							if (user_count > display_count) {
@@ -401,7 +401,7 @@ frappe.PermissionEngine = class PermissionEngine {
 
 								message_html += `<div class="text-center">
                     								<a href="${route}" class="text-muted">
-														${frappe.utils.icon("external-link", "sm", "mr-1")}
+														${frappe.utils.icon("external-link", "sm", "me-1")}
 														${__("View all {0} users", [user_count])}
                     								</a>
                 								</div>`;
@@ -717,9 +717,9 @@ frappe.PermissionEngine = class PermissionEngine {
 							<tbody>${rows}</tbody>
 						</table>
 					</div>
-					<div class="text-right mt-2">
+					<div class="text-end mt-2">
 						<button class="btn btn-sm btn-default btn-view-full-log">
-							${frappe.utils.icon("external-link", "sm", "mr-1")}
+							${frappe.utils.icon("external-link", "sm", "me-1")}
 							${__("View full log")}
 						</button>
 					</div>

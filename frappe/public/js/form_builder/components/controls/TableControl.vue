@@ -31,11 +31,7 @@ function open_new_child_doctype_dialog() {
 		</div>
 
 		<!-- table grid -->
-		<div
-			v-if="df.fieldtype == 'Table'"
-			class="table-controls row no-gutters"
-			:style="{ opacity: 1 }"
-		>
+		<div v-if="df.fieldtype == 'Table'" class="table-controls row g-0" :style="{ opacity: 1 }">
 			<div
 				class="table-column"
 				:style="{ width: size * 10 + '%' }"

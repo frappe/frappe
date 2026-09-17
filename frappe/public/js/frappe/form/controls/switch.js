@@ -26,7 +26,7 @@ frappe.ui.form.ControlSwitch = class ControlSwitch extends frappe.ui.form.Contro
 				<span class="switch-visual" aria-hidden="true">
 					<span class="switch-thumb"></span>
 				</span>
-				<span class="ml-1 help"></span>
+				<span class="ms-1 help"></span>
 			</label>
 		</div>`).appendTo(this.parent);
 	}

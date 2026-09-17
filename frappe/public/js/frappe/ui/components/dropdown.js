@@ -22,7 +22,7 @@ frappe.provide("frappe.ui");
 
 /**
  * Action menu on a trigger button — the espresso replacement for bootstrap's
- * data-toggle="dropdown". Follows the menu-button pattern: ArrowDown/Enter/
+ * data-bs-toggle="dropdown". Follows the menu-button pattern: ArrowDown/Enter/
  * Space open it (keyboard opens skip the animation and focus the first row),
  * arrows navigate, ArrowRight/Left walk submenus, typing jumps to a matching
  * row, holding Alt underlines each row's letter (Alt+letter activates it),

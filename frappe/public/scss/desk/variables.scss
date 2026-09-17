@@ -15,8 +15,6 @@ $border-radius: var(--radius);
 $border-radius-sm: var(--radius);
 $border-radius-lg: var(--radius-lg);
 
-$nav-divider-margin-y: 4px;
-
 $container-max-widths: (
 	sm: 540px,
 	md: 840px,
@@ -60,7 +58,6 @@ $dropdown-min-width: 200px;
 $btn-padding-y-lg: 1rem !default;
 $btn-padding-x-lg: 2.5rem !default;
 $btn-font-size-lg: 1.125rem !default;
-$btn-line-height-lg: 1 !default;
 $btn-border-radius-lg: 0.5rem !default;
 $btn-border-radius: 0.375rem !default;
 $btn-padding-x: 1rem !default;
@@ -88,12 +85,6 @@ $popover-arrow-outer-color: var(--dark-border-color);
 $popover-header-bg: white;
 
 // custom toggle switch
-$custom-switch-width: 1.625rem;
-$custom-switch-indicator-border-radius: 1rem;
-$custom-control-indicator-border-color: var(--fg-color);
-$custom-control-label-color: var(--text-color);
-$custom-switch-indicator-size: 8px;
-$custom-control-indicator-border-width: 2px;
 
 // progress bar
 $progress-bar-bg: var(--progress-bar-bg);

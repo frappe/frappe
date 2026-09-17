@@ -153,7 +153,7 @@ export default class LayoutFieldSelector {
 							<input
 								inputmode="numeric"
 								autocomplete="off"
-								class="form-control text-right layout-column-width"
+								class="form-control text-end layout-column-width"
 								data-fieldname="${field.fieldname}"
 								style="background-color: var(--modal-bg); height: 22px;"
 								value="${width}"
@@ -171,7 +171,7 @@ export default class LayoutFieldSelector {
 
 		this.parent.html(`
 			<div class="form-group mb-0">
-				<div class="text-right mb-1">
+				<div class="text-end mb-1">
 					<a class="add-new-fields text-muted" style="font-size: var(--text-xs); white-space: nowrap;">
 						${__("+ Add / Remove Fields")}
 					</a>
@@ -183,7 +183,7 @@ export default class LayoutFieldSelector {
 							"Fields"
 						)}</label>
 					</div>
-					<div class="col-2 text-right pr-2" style="white-space: nowrap;">
+					<div class="col-2 text-end pe-2" style="white-space: nowrap;">
 						${__("Width (px)")}
 					</div>
 					<div class="col-1"></div>

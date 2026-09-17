@@ -338,7 +338,7 @@ export default class GridRow {
 				if (!this.configure_columns) {
 					const edit_msg = __("Edit", "", "Edit grid row");
 					this.open_form_button = $(`
-						<div class="btn-open-row" data-toggle="tooltip" data-placement="right" title="${edit_msg}">
+						<div class="btn-open-row" data-bs-toggle="tooltip" data-bs-placement="right" title="${edit_msg}">
 							<a>${frappe.utils.icon("pencil", "xs")}</a>
 						</div>
 					`).appendTo(this.open_form_button);
@@ -587,7 +587,7 @@ export default class GridRow {
 								${__(docfield.label, null, docfield.parent)}
 							</div>
 							<div class='col-3' style='padding-top: 2px; margin-top:-2px;' title='${__("Width in pixels")}'>
-								<input class='form-control column-width my-1 input-xs text-right'
+								<input class='form-control column-width my-1 input-xs text-end'
 								style='height: 24px; max-width: 80px; background: var(--bg-color);'
 									value='${cint(d.width) || this.grid.get_column_width(docfield)}'
 									data-fieldname='${docfield.fieldname}'>
@@ -889,7 +889,7 @@ export default class GridRow {
 
 	_get_fieldtype_class(fieldtype) {
 		if (["Text", "Small Text"].includes(fieldtype)) return "grid-overflow-no-ellipsis";
-		if (["Int", "Currency", "Float", "Percent"].includes(fieldtype)) return "text-right";
+		if (["Int", "Currency", "Float", "Percent"].includes(fieldtype)) return "text-end";
 		if (fieldtype === "Check") return "text-center";
 		return "";
 	}

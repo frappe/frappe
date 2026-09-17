@@ -262,14 +262,6 @@ body {
 		.timeline-item {
 			&.user-content {
 				margin: var(--margin-lg) var(--margin-md);
-				.media-body {
-					margin-left: 0;
-					max-width: 100%;
-					overflow: hidden;
-					&:before {
-						content: none;
-					}
-				}
 				.action-btns {
 					padding: 7px 10px 2px 5px;
 					.edit-btn-container {

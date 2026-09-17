@@ -33,7 +33,7 @@
 			<p class="field-error text-base text-ink-red-8 mb-0"></p>
 		</div>
 		{% if not disable_user_pass_login %}
-		<p class="text-lg text-right w-full mb-0">
+		<p class="text-lg text-end w-full mb-0">
 			<a href="#forgot" class="text-base text-ink-gray-5">{{ _("Forgot password?") }}</a>
 		</p>
 		{% endif %}
@@ -78,7 +78,7 @@
 {% endblock %}
 
 {% macro logo_section(title=null, subtitle=null) %}
-<div class="page-card-head flex flex-col items-start gap-4 text-left">
+<div class="page-card-head flex flex-col items-start gap-4 text-start">
 	<img class="app-logo" src="{{ logo }}">
 	<div class="page-card-head-text flex flex-col gap-1.5 w-full">
 		{% if title %}

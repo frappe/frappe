@@ -275,7 +275,7 @@ frappe.ui.NamingSeriesTable = class NamingSeriesTable {
 
 			this.$wrapper
 				.find(".badge")
-				.removeClass("badge-light badge-dark")
+				.removeClass("bg-light text-dark bg-dark")
 				.addClass(badge_class);
 		});
 
@@ -357,8 +357,8 @@ frappe.ui.NamingSeriesTable = class NamingSeriesTable {
 
 	get_current_badge_class() {
 		return document.documentElement.getAttribute("data-theme") === "dark"
-			? "badge-dark"
-			: "badge-light";
+			? "bg-dark"
+			: "bg-light text-dark";
 	}
 
 	series_list_background(series_list) {

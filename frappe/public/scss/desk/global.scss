@@ -411,26 +411,6 @@ select.input-xs {
 	}
 }
 
-.custom-control.custom-switch {
-	@include get_textstyle("base", "regular");
-	line-height: 1.6;
-
-	.custom-control-input ~ .custom-control-label {
-		cursor: pointer;
-
-		&:before {
-			background: var(--gray-500);
-			border: none;
-		}
-	}
-
-	.custom-control-input:checked ~ .custom-control-label {
-		&:before {
-			background: $primary;
-		}
-	}
-}
-
 // .frappe-card {
 // 	@include card();
 // }

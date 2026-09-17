@@ -13,7 +13,7 @@ frappe.dashboard_utils = {
 			}
 
 			let chart_filter_html = `<div class="${button_class} ${filter_class} btn-group dropdown pull-right">
-					<a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					<a data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						<button class="btn btn-secondary btn-xs">
 							${icon_html}
 							<span class="filter-label">${__(filter.label)}</span>

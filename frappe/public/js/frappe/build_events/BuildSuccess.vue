@@ -1,7 +1,7 @@
 <template>
 	<div v-if="is_shown" class="flex justify-between build-success-message align-center">
 		Compiled successfully
-		<a v-if="!live_reload" class="ml-4 text-white underline" href="/" @click.prevent="reload">
+		<a v-if="!live_reload" class="ms-4 text-white underline" href="/" @click.prevent="reload">
 			Refresh
 		</a>
 	</div>
