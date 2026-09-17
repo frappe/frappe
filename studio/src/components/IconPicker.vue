@@ -3,7 +3,7 @@
 		<template #trigger>
 			<button
 				type="button"
-				class="flex h-7 w-full items-center gap-2 rounded-4 border px-2 text-start text-sm text-ink-gray-8 transition-colors focus-visible:border-outline-gray-4 focus-visible:bg-surface-base focus-visible:outline-none"
+				class="flex h-7 w-full items-center gap-2 rounded-4 border px-2 text-start text-base text-ink-gray-8 transition-colors focus-visible:border-outline-gray-4 focus-visible:bg-surface-base focus-visible:outline-none"
 				:class="VARIANT_CLASSES[variant]"
 				@click="isOpen = !isOpen"
 			>
