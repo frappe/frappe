@@ -44,6 +44,7 @@
 						<template v-for="(component, index) in section.tiles" :key="component.name">
 							<ComponentTile
 								:component="component"
+								:deprecated="components.isDeprecatedComponent(component.name)"
 								:stacked="!isSearching && component.isGroup"
 								:expanded="!isSearching && expandedFamily === component.name"
 								@click="onTileClick(component)"
@@ -63,6 +64,7 @@
 										v-for="(part, partIndex) in expandedParts"
 										:key="part.name"
 										:component="part"
+										:deprecated="components.isDeprecatedComponent(part.name)"
 										:compact-label="isLastTrayRow(partIndex)"
 										inverted
 									/>

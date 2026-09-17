@@ -18,6 +18,7 @@
 						: 'bg-surface-gray-1 group-hover:border-outline-gray-3 group-hover:bg-surface-gray-2',
 					!inverted && (stacked ? 'border-outline-gray-3' : 'border-outline-gray-2'),
 					expanded && '!border-outline-gray-4',
+					deprecated && 'opacity-50',
 				]"
 			>
 				<component :is="component.icon" class="h-6 w-6" />
@@ -26,21 +27,27 @@
 		<!-- reserve two lines so a wrapping label doesn't make its tile (and thus its whole
 		     grid row) taller than its neighbours — keeps grid rows even. `compactLabel` opts
 		     out (e.g. the parts tray) so the tile sizes to its content instead. -->
-		<span
-			class="line-clamp-2 w-full text-balance text-center text-xs leading-normal"
-			:class="{ 'min-h-[2lh]': !compactLabel }"
-			:title="component.title"
-		>
-			{{ component.title }}
-		</span>
+		<Tooltip :text="deprecated ? 'Deprecated — frappe-ui might remove this in the future' : component.title">
+			<span
+				class="line-clamp-2 w-full text-balance text-center text-xs leading-normal"
+				:class="[
+					{ 'min-h-[2lh]': !compactLabel },
+					deprecated && 'text-ink-gray-4 line-through decoration-from-font',
+				]"
+			>
+				{{ component.title }}
+			</span>
+		</Tooltip>
 	</div>
 </template>
 
 <script setup lang="ts">
+import { Tooltip } from "frappe-ui"
 import type { FrappeUIComponent } from "@/types"
 
 defineProps<{
 	component: FrappeUIComponent
+	deprecated?: boolean
 	stacked?: boolean
 	expanded?: boolean
 	compactLabel?: boolean

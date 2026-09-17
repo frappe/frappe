@@ -1130,6 +1130,12 @@ function isFrappeUIComponent(name: string) {
 	)
 }
 
+// frappe-ui/experimental carries no stability promise: these are on their way out
+// and the panel marks them as deprecated.
+function isDeprecatedComponent(name: string) {
+	return FRAPPE_UI_EXPERIMENTAL_COMPONENTS.includes(name)
+}
+
 function isFrameworkUIComponent(name: string) {
 	return FRAMEWORK_UI_COMPONENTS.includes(name)
 }
@@ -1175,6 +1181,7 @@ export default {
 	names: Object.keys(COMPONENTS),
 	getProxyComponent,
 	isFrappeUIComponent,
+	isDeprecatedComponent,
 	isFrameworkUIComponent,
 	isFrameworkUIAvailable,
 	getComponentGroups,
