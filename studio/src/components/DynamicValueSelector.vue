@@ -10,18 +10,8 @@
 	>
 		<template #trigger>
 			<IconButton
-				v-if="bindVariable"
-				:icon="Link2"
-				label="Synced with variable. Click to change."
-				tooltipPlacement="bottom"
-				class="mr-1"
-				:class="attrs.class"
-				:tabIndex="-1"
-			/>
-			<IconButton
-				v-else
-				:icon="LucideCirclePlus"
-				label="Click to set dynamic value"
+				:icon="bindVariable ? Link2 : LucideCirclePlus"
+				:label="bindVariable ? 'Synced with variable. Click to change.' : 'Click to set dynamic value'"
 				tooltipPlacement="left"
 				class="mr-1"
 				:class="attrs.class"
