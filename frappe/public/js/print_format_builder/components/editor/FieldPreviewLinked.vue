@@ -41,6 +41,7 @@ watchEffect(() => {
 	const preview_doc = store.preview_doc.value;
 	if (!path || !path.includes(".")) return;
 	const [link_fieldname, target_fieldname] = path.split(".");
+	if (!target_fieldname) return;
 	const link_df = (store.meta.value?.fields || []).find(
 		(f) => f.fieldname === link_fieldname && f.fieldtype === "Link"
 	);
