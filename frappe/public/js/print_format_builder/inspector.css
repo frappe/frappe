@@ -68,6 +68,11 @@
 	font-size: var(--text-sm);
 	color: var(--text-muted);
 }
+.pfb-insp-autocomplete {
+	flex: 1;
+	min-width: 0;
+}
+
 .pfb-insp-input,
 .pfb-insp-select {
 	width: 100%;
@@ -296,13 +301,19 @@
 .pfb-header-area:has(.letter-head) .pfb-header-fields.pfb-header-fields--empty {
 	display: none;
 }
-body.pfb-dragging .pfb-header-area:has(.letter-head) .pfb-header-fields.pfb-header-fields--empty {
+body.pfb-dragging .pfb-header-area:has(.letter-head) .pfb-header-fields.pfb-header-fields--empty,
+.pfb-header-area--selected:has(.letter-head) .pfb-header-fields.pfb-header-fields--empty {
 	display: block;
 }
 
-/* panel rows dragged onto the canvas: the clone lives on <body>, outside the
-   panel's scoped styles, so restate the row's look as a proper card */
-.pfb-field-row.pfb-drag-fallback {
+.pfb-header-area--selected {
+	outline: var(--pfb-ring);
+}
+
+/* panel rows and block cards dragged onto the canvas: the clone lives on <body>,
+   outside the panel's scoped styles, so restate the look as a proper card */
+.pfb-field-row.pfb-drag-fallback,
+.pfb-block-card.pfb-drag-fallback {
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -385,3 +396,16 @@ body.pfb-dragging * {
 .print-format-container .field--preview:focus {
 	outline: none;
 }
+
+.pfb-static-text-input {
+	resize: vertical;
+	margin-bottom: 6px;
+}
+
+/* boxed group of related inputs (repeater columns) */
+.pfb-insp-card {
+	padding: 8px;
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+}
+

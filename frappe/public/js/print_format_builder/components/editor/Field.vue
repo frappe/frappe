@@ -62,6 +62,7 @@
 				<div
 					v-if="df.label && df.show_label !== 'hide'"
 					class="label"
+					:class="{ 'label--no-colon': df.hide_colon }"
 					:style="label_text_style(df)"
 				>
 					{{ df.label }}
@@ -76,10 +77,20 @@
 			</template>
 			<FieldPreviewTable v-else-if="df.fieldtype == 'Table'" :df="df" />
 			<FieldPreviewRepeater v-else-if="df.fieldtype == 'Repeater'" :df="df" />
+			<div
+				v-else-if="df.fieldtype == 'Static Text'"
+				class="value"
+				:class="{ 'text-muted': !df.text }"
+				:style="static_text_style"
+			>
+				{{ df.text || __("Empty text") }}
+			</div>
+			<FieldPreviewLinked v-else-if="df.fieldtype == 'Linked Field'" :df="df" />
 			<template v-else>
 				<div
 					v-if="df.label && df.show_label !== 'hide'"
 					class="label"
+					:class="{ 'label--no-colon': df.hide_colon }"
 					:style="label_text_style(df)"
 				>
 					{{ df.label }}
@@ -127,7 +138,7 @@
 						</svg>
 					</template>
 					<span v-else-if="preview_value_html" v-html="preview_value_html"></span>
-					<span v-else>{{ preview_value || "—" }}</span>
+					<span v-else>{{ preview_value || (df.show_empty ? "" : "—") }}</span>
 				</div>
 			</template>
 			<div class="field-preview-actions">
@@ -140,27 +151,9 @@
 					data-size="xs"
 					data-variant="ghost"
 					data-icon-button="true"
-					:title="__('Copy')"
-					@click.stop="store.copy_field(df)"
-					v-html="frappe.utils.icon('copy', 'xs')"
-				></button>
-				<button
-					class="es-button"
-					data-size="xs"
-					data-variant="ghost"
-					data-icon-button="true"
 					:title="__('Duplicate')"
 					@click.stop="store.duplicate_field(df)"
 					v-html="frappe.utils.icon('copy-plus', 'xs')"
-				></button>
-				<button
-					class="es-button"
-					data-size="xs"
-					data-variant="ghost"
-					data-icon-button="true"
-					:title="__('Save as snippet')"
-					@click.stop="save_as_snippet"
-					v-html="frappe.utils.icon('bookmark-plus', 'xs')"
 				></button>
 				<button
 					class="es-button"
@@ -201,6 +194,12 @@
 						<div class="custom-html" v-else-if="df.fieldtype == 'Field Template'">
 							{{ df.label }}
 						</div>
+						<div
+							v-else-if="df.fieldtype == 'Static Text' && df.text"
+							:style="static_text_style"
+						>
+							{{ df.text }}
+						</div>
 						<img
 							v-else-if="df.fieldtype == 'Image' && df.custom && df.image_url"
 							:src="df.image_url"
@@ -234,15 +233,6 @@
 								:title="code_edit.title"
 								@click.stop="code_edit.open"
 								v-html="frappe.utils.icon('pencil', 'sm')"
-							></button>
-							<button
-								class="es-button"
-								data-size="xs"
-								data-variant="ghost"
-								data-icon-button="true"
-								:title="__('Copy')"
-								@click.stop="store.copy_field(df)"
-								v-html="frappe.utils.icon('copy', 'sm')"
 							></button>
 							<button
 								class="es-button"
@@ -305,6 +295,7 @@
 <script setup>
 import ConfigureColumnsVue from "../inspector/ConfigureColumns.vue";
 import FieldPreviewBarcode from "./FieldPreviewBarcode.vue";
+import FieldPreviewLinked from "./FieldPreviewLinked.vue";
 import FieldPreviewRepeater from "./FieldPreviewRepeater.vue";
 import FieldPreviewTable from "./FieldPreviewTable.vue";
 import {
@@ -339,6 +330,13 @@ let template_render_failed = ref(false);
 let rendered_template = ref(null);
 
 let custom_style = computed(() => parse_inline_style(props.df.custom_style));
+
+let static_text_style = computed(() => ({
+	whiteSpace: "pre-line",
+	...(props.df.bold ? { fontWeight: 700 } : {}),
+	...(props.df.font_size ? { fontSize: props.df.font_size + "px" } : {}),
+	...(props.df.align ? { textAlign: props.df.align } : {}),
+}));
 
 let is_selected = computed(
 	() => store.selected_field.value === props.df || store.selected_fields.value.includes(props.df)
@@ -558,30 +556,6 @@ function edit_typst() {
 	});
 }
 
-function save_as_snippet() {
-	frappe.prompt(
-		{
-			label: __("Snippet name"),
-			fieldname: "name",
-			fieldtype: "Data",
-			reqd: 1,
-			default: props.df.label || props.df.fieldname || "",
-		},
-		({ name }) => {
-			store.save_snippet(name, props.df, "Field").then(
-				() =>
-					frappe.show_alert(
-						{ message: __("Field saved as snippet"), indicator: "green" },
-						3
-					),
-				() => {}
-			);
-		},
-		__("Save Field as Snippet"),
-		__("Save")
-	);
-}
-
 const { open: open_context_menu } = useContextMenu();
 
 function on_context_menu(e) {
@@ -593,7 +567,11 @@ function on_context_menu(e) {
 			icon: "copy-plus",
 			action: () => store.duplicate_field(props.df),
 		},
-		{ label: __("Save as snippet"), icon: "bookmark-plus", action: save_as_snippet },
+		{
+			label: __("Save as snippet"),
+			icon: "bookmark-plus",
+			action: () => store.prompt_snippet(props.df, "Field"),
+		},
 		store.clipboard.value && {
 			label: __("Paste"),
 			icon: "clipboard-paste",

@@ -277,6 +277,24 @@
 						</div>
 						<div v-if="!is_collapsed(section)" class="pfb-tree-children">
 							<div
+								v-if="zone_of(section) && letterhead"
+								class="pfb-tree-row"
+								:class="{ active: letterhead_selected(section) }"
+								role="treeitem"
+								tabindex="0"
+								:aria-selected="letterhead_selected(section)"
+								@click="select_letterhead(section)"
+								@keydown.enter.prevent="select_letterhead(section)"
+								@keydown.space.prevent="select_letterhead(section)"
+							>
+								<span class="pfb-tree-spacer"></span>
+								<span
+									class="pfb-tree-icon"
+									v-html="frappe.utils.icon('image', 'sm')"
+								></span>
+								<span class="pfb-tree-label">{{ letterhead.name }}</span>
+							</div>
+							<div
 								v-for="(col, ci) in section.columns"
 								:key="ci"
 								class="pfb-tree-node"
@@ -393,6 +411,7 @@ import {
 	get_table_columns,
 	pluck,
 	setDragging,
+	FIELD_PLUCK_KEYS,
 } from "../utils";
 import BlockCard from "./BlockCard.vue";
 import { useStore } from "../stores";
@@ -489,17 +508,49 @@ const draggable_blocks = computed(() => [
 		width: "",
 	},
 	{
-		label: __("Repeater"),
+		label: __("Barcode"),
+		fieldname: "barcode",
+		fieldtype: "Barcode",
+		custom: 1,
+		icon: "barcode",
+		desc: __("Barcode or QR code from a field or static value"),
+		barcode_field: "",
+		barcode_value: "",
+		barcode_format: "CODE128",
+		show_text: true,
+		width: "",
+	},
+	{
+		label: __("Custom Table"),
 		fieldname: "repeater",
 		fieldtype: "Repeater",
 		custom: 1,
 		icon: "list",
-		desc: __("Repeat child table rows as templated lines"),
+		desc: __("Child table rows laid out with your own template"),
 		source: "",
 		repeater_columns: [
 			{ template: [], align: "left" },
 			{ template: [], align: "right" },
 		],
+	},
+	{
+		label: __("Text"),
+		fieldname: "static_text",
+		fieldtype: "Static Text",
+		custom: 1,
+		icon: "type",
+		desc: __("Fixed text like a title or a note"),
+		text: "",
+	},
+	{
+		label: __("Linked Field"),
+		fieldname: "linked_field",
+		fieldtype: "Linked Field",
+		custom: 1,
+		icon: "link",
+		desc: __("A value from a linked document"),
+		link_path: "",
+		show_label: "inline",
 	},
 ]);
 
@@ -509,26 +560,7 @@ function confirm_delete_snippet(name) {
 
 // ── helpers ────────────────────────────────────────────────
 function clone_field(df) {
-	let cloned = pluck(df, [
-		"label",
-		"fieldname",
-		"fieldtype",
-		"options",
-		"table_columns",
-		"html",
-		"typst",
-		"field_template",
-		"source",
-		"repeater_columns",
-		"custom",
-		"image_url",
-		"width",
-		"height",
-		"barcode_field",
-		"barcode_value",
-		"barcode_format",
-		"show_text",
-	]);
+	let cloned = pluck(df, FIELD_PLUCK_KEYS);
 	if (cloned.custom) {
 		cloned.fieldname += "_" + frappe.utils.get_random(8);
 	}
@@ -618,6 +650,8 @@ function field_broken(f) {
 
 const FIELD_ICONS = {
 	Table: "table",
+	"Static Text": "type",
+	"Linked Field": "link",
 	Repeater: "rows-3",
 	Image: "image",
 	"Attach Image": "image",
@@ -636,17 +670,19 @@ function field_icon(f) {
 // the zones are sections too, so the tree lists them alongside the body ones —
 // only their order is fixed, since a header can't become a body section
 let tree_sections = computed({
-	get: () => {
-		// an empty header merges into the letterhead region on the canvas, so it
-		// isn't listed as a section either — it reappears once it holds fields
-		const header_has_fields = (layout.value.header?.columns || []).some((c) =>
-			(c.fields || []).some((f) => !f.remove)
-		);
-		const header = letterhead.value && !header_has_fields ? null : layout.value.header;
-		return [header, ...layout.value.sections, layout.value.footer].filter(Boolean);
-	},
+	get: () =>
+		[layout.value.header, ...layout.value.sections, layout.value.footer].filter(Boolean),
 	set: (v) => (layout.value.sections = v.filter((s) => !zone_of(s))),
 });
+
+function letterhead_selected(section) {
+	return section === layout.value?.footer
+		? store.selected_lh_footer.value
+		: store.selected_letterhead.value;
+}
+function select_letterhead(section) {
+	store.select_letterhead({ footer: section === layout.value?.footer });
+}
 
 function zone_of(section) {
 	if (section && section === layout.value?.header) return __("Header");

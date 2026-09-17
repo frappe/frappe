@@ -1,107 +1,112 @@
 <template>
 	<div class="pfb-settings">
-		<div class="form-group">
-			<label class="control-label">{{ __("PDF Renderer") }}</label>
-			<select
-				class="form-control form-control-sm"
-				:value="renderer"
-				@change="set_renderer($event.target.value)"
-			>
-				<option value="chrome" :disabled="has_typst_block">{{ __("Chromium") }}</option>
-				<option value="Typst" :disabled="typst_blockers.length > 0">
-					{{ __("Typst (fast)") }}
-				</option>
-			</select>
-			<p v-if="typst_blockers.length" class="pfb-renderer-hint">
-				{{ __("Typst unavailable:") }} {{ typst_blockers.join(", ") }}
-			</p>
-			<p v-else-if="has_typst_block" class="pfb-renderer-hint">
-				{{ __("Chromium unavailable: this format uses a Typst block.") }}
-			</p>
-			<p v-else-if="renderer === 'Typst'" class="pfb-renderer-hint">
-				{{ __("Experimental") }}
-			</p>
-		</div>
+		<InspectorSection :label="__('Document')">
+			<div class="form-group">
+				<div class="pfb-label-with-hint">
+					<label class="control-label">{{ __("PDF Renderer") }}</label>
+					<span
+						v-if="renderer_hint"
+						ref="hint_icon"
+						class="pfb-hint-icon"
+						v-html="frappe.utils.icon('info', 'xs')"
+					></span>
+				</div>
+				<select
+					class="form-control form-control-sm"
+					:value="renderer"
+					@change="set_renderer($event.target.value)"
+				>
+					<option value="chrome" :disabled="has_typst_block">
+						{{ __("Chromium") }}
+					</option>
+					<option value="Typst" :disabled="typst_blockers.length > 0">
+						{{ __("Typst (fast)") }}
+					</option>
+				</select>
+			</div>
+			<div class="form-group">
+				<label class="control-label">{{ __("Letter Head") }}</label>
+				<div ref="lh_host"></div>
+			</div>
+		</InspectorSection>
 
-		<div class="form-group">
-			<label class="control-label">{{ __("Letter Head") }}</label>
-			<div ref="lh_host"></div>
-		</div>
+		<InspectorSection :label="__('Text')">
+			<div class="form-group">
+				<label class="control-label">{{ __("Google Font") }}</label>
+				<Autocomplete
+					:options="font_options"
+					:model-value="print_format.font || ''"
+					:placeholder="__('Default')"
+					@select="(o) => (print_format.font = o.value)"
+				/>
+			</div>
+			<div class="form-group">
+				<label class="control-label">{{ __("Font Size (pt)") }}</label>
+				<input
+					type="number"
+					class="form-control form-control-sm"
+					placeholder="12, 13, 14"
+					:value="print_format.font_size"
+					@change="(e) => (print_format.font_size = parseFloat(e.target.value))"
+				/>
+			</div>
+			<div class="form-group" v-for="c in color_settings" :key="c.fieldname">
+				<label class="control-label">{{ c.label }}</label>
+				<div :ref="(el) => (color_hosts[c.fieldname] = el)"></div>
+			</div>
+			<div class="form-group">
+				<ToggleRow
+					:label="__('Colon after labels')"
+					:model-value="!!print_format.show_label_colon"
+					@update:model-value="(v) => (print_format.show_label_colon = v ? 1 : 0)"
+				/>
+			</div>
+		</InspectorSection>
 
-		<div class="form-group">
-			<label class="control-label">{{ __("Google Font") }}</label>
-			<Autocomplete
-				:options="font_options"
-				:model-value="print_format.font || ''"
-				:placeholder="__('Default')"
-				@select="(o) => (print_format.font = o.value)"
-			/>
-		</div>
-		<div class="form-group">
-			<label class="control-label">{{ __("Font Size (pt)") }}</label>
-			<input
-				type="number"
-				class="form-control form-control-sm"
-				placeholder="12, 13, 14"
-				:value="print_format.font_size"
-				@change="(e) => (print_format.font_size = parseFloat(e.target.value))"
-			/>
-		</div>
-		<div class="form-group" v-for="c in color_settings" :key="c.fieldname">
-			<label class="control-label">{{ c.label }}</label>
-			<div :ref="(el) => (color_hosts[c.fieldname] = el)"></div>
-		</div>
-
-		<div class="form-group">
-			<label class="control-label">{{ __("Page Margins (mm)") }}</label>
-			<div class="pfb-margin-grid">
-				<div class="pfb-margin-cell" v-for="df in margins" :key="df.fieldname">
-					<label class="pfb-margin-label control-label">{{ df.label }}</label>
-					<input
-						type="number"
-						class="form-control form-control-sm"
-						:value="print_format[df.fieldname]"
-						min="0"
-						@change="(e) => update_margin(df.fieldname, e.target.value)"
-					/>
+		<InspectorSection :label="__('Page')">
+			<div class="form-group">
+				<label class="control-label">{{ __("Margins (mm)") }}</label>
+				<div class="pfb-margin-grid">
+					<div class="pfb-margin-cell" v-for="df in margins" :key="df.fieldname">
+						<label class="pfb-margin-label control-label">{{ df.label }}</label>
+						<input
+							type="number"
+							class="form-control form-control-sm"
+							:value="print_format[df.fieldname]"
+							min="0"
+							@change="(e) => update_margin(df.fieldname, e.target.value)"
+						/>
+					</div>
 				</div>
 			</div>
-		</div>
+			<div class="form-group">
+				<label class="control-label">{{ __("Page Number") }}</label>
+				<select class="form-control form-control-sm" v-model="print_format.page_number">
+					<option v-for="p in page_number_positions" :value="p.value">
+						{{ p.label }}
+					</option>
+				</select>
+			</div>
+		</InspectorSection>
 
-		<div class="form-group">
-			<label class="pfb-insp-check">
-				<input
-					type="checkbox"
-					:checked="!!print_format.show_label_colon"
-					@change="(e) => (print_format.show_label_colon = e.target.checked ? 1 : 0)"
+		<InspectorSection :label="__('Style')" :init-open="false">
+			<div class="form-group">
+				<ToggleRow
+					:label="__('Custom CSS')"
+					:model-value="css_enabled"
+					@update:model-value="toggle_css"
 				/>
-				{{ __("Show colon after labels") }}
-			</label>
-		</div>
-
-		<div class="form-group">
-			<label class="control-label">{{ __("Page Number") }}</label>
-			<select class="form-control form-control-sm" v-model="print_format.page_number">
-				<option v-for="p in page_number_positions" :value="p.value">{{ p.label }}</option>
-			</select>
-		</div>
-
-		<div class="form-group">
-			<ToggleRow
-				:label="__('Custom CSS')"
-				:model-value="css_enabled"
-				@update:model-value="toggle_css"
-			/>
-			<textarea
-				v-if="css_enabled"
-				class="form-control form-control-sm pfb-css-input"
-				:placeholder="__('.print-format p { margin: 0; }')"
-				spellcheck="false"
-				rows="8"
-				:value="print_format.css || ''"
-				@input="(e) => (print_format.css = e.target.value)"
-			></textarea>
-		</div>
+				<textarea
+					v-if="css_enabled"
+					class="form-control form-control-sm pfb-css-input"
+					:placeholder="__('.print-format p { margin: 0; }')"
+					spellcheck="false"
+					rows="8"
+					:value="print_format.css || ''"
+					@input="(e) => (print_format.css = e.target.value)"
+				></textarea>
+			</div>
+		</InspectorSection>
 	</div>
 </template>
 
@@ -109,6 +114,7 @@
 import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
 import ToggleRow from "./inspector/ToggleRow.vue";
+import InspectorSection from "./inspector/InspectorSection.vue";
 import { mountColorControl } from "./inspector/useColorControl";
 import { useStore } from "../stores";
 
@@ -156,6 +162,25 @@ let google_fonts = ref([]);
 
 let renderer = computed(() =>
 	print_format.value?.pdf_generator === "Typst" ? "Typst" : "chrome"
+);
+let hint_icon = ref(null);
+let renderer_hint = computed(() => {
+	if (typst_blockers.value.length) {
+		return __("Typst unavailable: {0}", [typst_blockers.value.join(", ")]);
+	}
+	if (has_typst_block.value) {
+		return __("Chromium unavailable: this format uses a Typst block.");
+	}
+	return renderer.value === "Typst" ? __("Experimental") : "";
+});
+watch(
+	[hint_icon, renderer_hint],
+	([el, title]) => {
+		if (!el) return;
+		$(el).tooltip("dispose");
+		if (title) $(el).tooltip({ title, trigger: "hover", placement: "top" });
+	},
+	{ flush: "post" }
 );
 function set_renderer(value) {
 	if (value !== "Typst" && has_typst_block.value) return;
@@ -260,9 +285,18 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.pfb-renderer-hint {
-	margin: 6px 0 0;
-	font-size: var(--text-tiny);
+.pfb-label-with-hint {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.pfb-label-with-hint .control-label {
+	margin: 0;
+}
+
+.pfb-hint-icon {
+	display: inline-flex;
 	color: var(--text-muted);
 }
 

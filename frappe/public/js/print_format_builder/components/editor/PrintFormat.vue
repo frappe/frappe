@@ -18,7 +18,7 @@
 		<!-- One header area: the letterhead and the header fields zone read as a single
 		     region. The fields wrapper carries the body font (letterhead stays unstyled),
 		     and the empty header drop-zone only surfaces while a drag is in progress. -->
-		<div class="pfb-header-area">
+		<div class="pfb-header-area" :class="{ 'pfb-header-area--selected': header_selected }">
 			<LetterHeadZoneEditor zone="header" />
 			<div
 				class="pfb-header-fields"
@@ -96,6 +96,7 @@ let header_is_empty = computed(
 		!(layout.value.header?.columns || []).some((c) => (c.fields || []).some((f) => !f.remove))
 );
 let store = inject("$store");
+let header_selected = computed(() => store.selected_sections.value.includes(layout.value.header));
 
 const PAGE_SIZES_MM = { A4: [210, 297], Letter: [216, 279.4] };
 let page_size = ref("A4");
