@@ -126,3 +126,11 @@ def test_tool_call_display_ready_round_trips_as_live_metadata():
 		{"id": "c1", "name": "edit", "arguments": {}, "display": "Editing file src/app.py"}
 	)
 	assert legacy.display == [DisplaySegment(text="Editing file src/app.py")]
+
+
+def test_the_subagent_tag_rides_on_events_and_is_absent_from_untagged_rows():
+	tagged = parse_event({"type": "run_ended", "seq": 1, "reason": "done", "subagent_id": "c1"})
+	assert tagged.subagent_id == "c1"
+	assert "subagent_id" not in ToolResult(tool_call_id="c", name="read", content="").model_dump(
+		exclude_none=True
+	)

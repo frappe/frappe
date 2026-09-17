@@ -14,6 +14,7 @@ from flow_harness.events import (
 	ToolCall,
 	ToolResult,
 	UserMessage,
+	parse_event,
 )
 from flow_harness.session.log import SessionLog
 from flow_harness.session.transcript import COMPACTION_SUMMARY_PREFIX, Transcript, active_path
@@ -567,3 +568,40 @@ def test_compaction_boundary_is_by_seq_not_list_position(tmp_path):
 	assert [m.type for m in transcript.messages] == ["user_message", "user_message"]
 	assert transcript.messages[0].seq == 3  # the compacted boundary
 	assert transcript.messages[1].content == "next"
+
+
+def test_a_subagents_rows_advance_the_leaf_but_stay_out_of_the_conversation(tmp_path):
+	child = dict(subagent_id="c1")
+	log = make_log(
+		tmp_path,
+		UserMessage(content="go"),
+		AssistantMessage(content=[ToolCall(id="c1", name="subagent", arguments={})], stop_reason="tool_use"),
+		RunStarted(run_id="run_c1", **child),
+		UserMessage(content="count the beans", **child),
+		AssistantMessage(content="forty-two", **child),
+		RunEnded(reason="done", **child),
+		ToolResult(tool_call_id="c1", name="subagent", content="forty-two"),
+		AssistantMessage(content="done"),
+	)
+
+	session = Transcript.replay(log)
+	assert [m.type for m in session.messages] == [
+		"user_message",
+		"assistant_message",
+		"tool_result",
+		"assistant_message",
+	]
+	assert session.leaf_seq == 8  # the child's rows are on the chain
+	assert session.subagent_id is None
+
+	child_transcript = Transcript.replay(log, subagent_id="c1")
+	assert [m.type for m in child_transcript.messages] == ["user_message", "assistant_message"]
+	assert [m.text for m in child_transcript.messages] == ["count the beans", "forty-two"]
+	assert child_transcript.leaf_seq == 8
+	assert child_transcript.subagent_id == "c1"
+
+	# live recording folds the same way as replay
+	live = Transcript()
+	for row in active_path(log.read_since(0)):
+		live.record(parse_event(row))
+	assert [m.model_dump() for m in live.messages] == [m.model_dump() for m in session.messages]

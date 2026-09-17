@@ -18,6 +18,9 @@ A result is matched against whichever tool calls are open when it arrives. So th
 stand-in results that close an interrupted turn (`missing_results`) have to reach the
 log before any newer message does; the session writes them when it settles a failed
 run, and at load for a run a dead process never settled.
+
+A sub-agent's rows share the log, tagged with its id. A transcript folds only the rows
+of the agent it belongs to; every other row just advances the leaf.
 """
 
 from __future__ import annotations
@@ -140,7 +143,8 @@ class _OpenApproval:
 
 
 class Transcript:
-	def __init__(self) -> None:
+	def __init__(self, subagent_id: str | None = None) -> None:
+		self.subagent_id = subagent_id  # whose conversation this is; None = the session's own
 		self.messages: list[TranscriptMessage] = []
 		self.leaf_seq: int = 0  # what the next committed event follows; 0 = the root
 		self.model: str | None = None  # last model change on the path; None = session config
@@ -152,12 +156,15 @@ class Transcript:
 		self._open_approval: _OpenApproval | None = None
 
 	@classmethod
-	def replay(cls, log: SessionLog, *, leaf_seq: int | None = None) -> Transcript:
+	def replay(
+		cls, log: SessionLog, *, leaf_seq: int | None = None, subagent_id: str | None = None
+	) -> Transcript:
 		"""Rebuild the transcript from disk — the one full read, at session load.
 
-		Only the active branch is folded; pass `leaf_seq` to preview a rewind target.
+		Only the active branch is folded; pass `leaf_seq` to preview a rewind target,
+		`subagent_id` to rebuild a sub-agent's conversation instead of the session's.
 		"""
-		transcript = cls()
+		transcript = cls(subagent_id)
 		for row in active_path(log.read_since(0), leaf_seq):
 			transcript.record(parse_event(row))
 		return transcript
@@ -177,6 +184,8 @@ class Transcript:
 			return
 		assert event.seq is not None  # recorded events are committed ones
 		self.leaf_seq = event.seq
+		if event.subagent_id != self.subagent_id:
+			return  # another agent's row: on the chain, not in this conversation
 		if isinstance(event, UserMessage):
 			self._close_turn()
 			self.messages.append(event)

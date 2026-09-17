@@ -26,6 +26,8 @@ The loop owns model calls, tool execution, confirmation pauses, steering, retrie
 - Durable events are append-only JSONL rows with a monotonic `seq`: messages, tool results, approval requests, model changes, compactions, run endings, errors, and rewinds.
 - Live-only events are display hints: text/thinking deltas, tool-start notifications, retry progress, compaction progress, and generated titles. While a run is active, `Session` retains its provisional assistant events in memory so a newly attached client can rebuild the preview; the terminal durable assistant message supersedes them.
 
+Every event carries an optional `subagent_id`, the id of the `subagent` call whose child produced it. A transcript folds only the rows of the agent it belongs to; another agent's rows just advance the leaf.
+
 The `Transcript` reducer rebuilds state from the active log branch and updates it incrementally during a run. It holds the provider-facing messages, unresolved tool calls, pending approvals, model selection, and context usage. A session is `running` while its task is alive, `paused` while an approval remains, and otherwise `idle`.
 
 ## Branches, repair, and compaction
