@@ -310,9 +310,10 @@ body.pfb-dragging .pfb-header-area:has(.letter-head) .pfb-header-fields.pfb-head
 	outline: var(--pfb-ring);
 }
 
-/* panel rows dragged onto the canvas: the clone lives on <body>, outside the
-   panel's scoped styles, so restate the row's look as a proper card */
-.pfb-field-row.pfb-drag-fallback {
+/* panel rows and block cards dragged onto the canvas: the clone lives on <body>,
+   outside the panel's scoped styles, so restate the look as a proper card */
+.pfb-field-row.pfb-drag-fallback,
+.pfb-block-card.pfb-drag-fallback {
 	display: flex;
 	align-items: center;
 	gap: 8px;
