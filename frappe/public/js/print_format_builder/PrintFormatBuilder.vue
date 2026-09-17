@@ -62,7 +62,7 @@
 			</div>
 		</div>
 		<FieldInspector v-if="!$store.needs_setup.value" />
-		<Preview v-if="show_preview" @close="show_preview = false" />
+		<Preview v-if="show_preview" :compare="preview_compare" @close="show_preview = false" />
 		<ContextMenu />
 		<Teleport to="body">
 			<div
@@ -96,6 +96,7 @@ const ZOOM_KEY = "pfb_canvas_zoom";
 const ZOOM_LEVELS = [50, 60, 70, 80, 90, 100, 125, 150];
 
 let show_preview = ref(false);
+let preview_compare = ref(false);
 let doc_picker_ref = ref(null);
 let doc_picker_ctrl = ref(null);
 let canvas_zoom = ref(nearest_zoom(parseInt(localStorage.getItem(ZOOM_KEY)) || 100));
@@ -115,7 +116,13 @@ let shouldRender = computed(() => {
 provide("$store", $store.value);
 
 function toggle_preview() {
+	preview_compare.value = false;
 	show_preview.value = !show_preview.value;
+}
+
+function show_changes() {
+	preview_compare.value = true;
+	show_preview.value = true;
 }
 
 const SETTINGS_DOCTYPE = "Print Settings";
@@ -533,7 +540,7 @@ onUnmounted(() => {
 	window.removeEventListener("pointerup", on_canvas_pointerup);
 });
 
-defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
+defineExpose({ toggle_preview, show_changes, open_print_settings, show_preview, $store });
 </script>
 
 <style scoped>

@@ -431,19 +431,3 @@ body.pfb-dragging * {
 	flex: 1;
 	min-width: 0;
 }
-
-.pfb-changes-group + .pfb-changes-group {
-	margin-top: 12px;
-}
-
-.pfb-changes-title {
-	font-size: var(--text-sm);
-	font-weight: var(--weight-semibold);
-	margin-bottom: 4px;
-}
-
-.pfb-changes-group ul {
-	margin: 0;
-	padding-left: 18px;
-	font-size: var(--text-sm);
-}

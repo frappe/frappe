@@ -1,7 +1,7 @@
 <template>
 	<Teleport to="body">
 		<div class="pfb-preview-backdrop" @click.self="$emit('close')">
-			<div class="pfb-preview-modal">
+			<div class="pfb-preview-modal" :class="{ 'pfb-preview-modal--compare': compare }">
 				<div v-if="!docname" class="pfb-preview-empty">
 					{{ __("Pick a record in the toolbar above to preview it.") }}
 				</div>
@@ -15,12 +15,17 @@
 					<span class="pfb-preview-spinner" aria-hidden="true"></span>
 					<span>{{ __("Generating preview…") }}</span>
 				</div>
-				<iframe
-					v-show="docname && preview_loaded && !unprintable_reason"
-					ref="iframe"
-					:src="pdf_url"
-					class="pfb-preview-iframe"
-				></iframe>
+				<template v-else-if="compare">
+					<div class="pfb-preview-pane">
+						<div class="pfb-preview-caption">{{ __("Printing now") }}</div>
+						<iframe :src="before_url" class="pfb-preview-iframe"></iframe>
+					</div>
+					<div class="pfb-preview-pane">
+						<div class="pfb-preview-caption">{{ __("This draft") }}</div>
+						<iframe :src="pdf_url" class="pfb-preview-iframe"></iframe>
+					</div>
+				</template>
+				<iframe v-else ref="iframe" :src="pdf_url" class="pfb-preview-iframe"></iframe>
 			</div>
 		</div>
 	</Teleport>
@@ -30,6 +35,7 @@
 import { useStore } from "../stores";
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 
+const props = defineProps({ compare: { type: Boolean, default: false } });
 const emit = defineEmits(["close"]);
 
 let { print_format, layout, store } = useStore();
@@ -37,6 +43,7 @@ let { print_format, layout, store } = useStore();
 let preview_loaded = ref(false);
 let iframe = ref(null);
 let pdf_url = ref(null);
+let before_url = ref(null);
 let render_seq = 0;
 
 let docname = computed(() => store.value.preview_doc_name);
@@ -58,51 +65,56 @@ let unprintable_reason = computed(() => {
 // Chromium decides where a page actually breaks — automatic breaks depend on
 // laid-out heights, keep-together and table splitting — so the paged view asks
 // the print renderer for a real PDF of the unsaved format.
+async function render_pdf(format_doc) {
+	const params = { print_format: format_doc, doctype: doctype.value, name: docname.value };
+	const layout_lh = frappe.utils.parse_json(format_doc.format_data)?.letter_head;
+	if (layout_lh || store.value.letterhead) {
+		params.letterhead = layout_lh || store.value.letterhead.name;
+	}
+	const res = await fetch(
+		"/api/method/frappe.utils.print_format_generator.download_builder_preview_pdf",
+		{
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"X-Frappe-CSRF-Token": frappe.csrf_token,
+			},
+			body: JSON.stringify(params),
+		}
+	);
+	if (!res.ok) {
+		let message = "";
+		try {
+			const data = await res.json();
+			message =
+				JSON.parse(JSON.parse(data._server_messages || "[]")[0] || "{}").message || "";
+		} catch {}
+		throw new Error(strip_html(message));
+	}
+	return URL.createObjectURL(await res.blob()) + "#view=FitH";
+}
+
 async function render() {
 	let seq = ++render_seq;
 	if (!docname.value) return;
 	if (unprintable_reason.value) {
 		set_pdf_url(null);
+		set_before_url(null);
 		preview_loaded.value = true;
 		return;
 	}
 	preview_loaded.value = false;
-	const params = {
-		print_format: store.value.get_preview_format_doc(),
-		doctype: doctype.value,
-		name: docname.value,
-	};
-	if (store.value.letterhead) {
-		params.letterhead = store.value.letterhead.name;
-	}
 	try {
-		const res = await fetch(
-			"/api/method/frappe.utils.print_format_generator.download_builder_preview_pdf",
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					"X-Frappe-CSRF-Token": frappe.csrf_token,
-				},
-				body: JSON.stringify(params),
-			}
-		);
-		if (!res.ok) {
-			let message = "";
-			try {
-				const data = await res.json();
-				message =
-					JSON.parse(JSON.parse(data._server_messages || "[]")[0] || "{}").message || "";
-			} catch {}
-			throw new Error(strip_html(message));
-		}
-		const blob = await res.blob();
+		const jobs = [render_pdf(store.value.get_preview_format_doc())];
+		if (props.compare) jobs.push(render_pdf(store.value.get_applied_format_doc()));
+		const [after, before] = await Promise.all(jobs);
 		if (seq !== render_seq) return;
-		// keep the browser's own PDF toolbar — page nav, zoom and download come free
-		set_pdf_url(URL.createObjectURL(blob) + "#view=FitH");
+		set_pdf_url(after);
+		set_before_url(before || null);
 	} catch (e) {
 		if (seq !== render_seq) return;
 		set_pdf_url(null);
+		set_before_url(null);
 		frappe.show_alert({
 			message: e.message || __("Could not render the preview"),
 			indicator: "red",
@@ -114,6 +126,11 @@ async function render() {
 function set_pdf_url(next) {
 	if (pdf_url.value) URL.revokeObjectURL(pdf_url.value.split("#")[0]);
 	pdf_url.value = next;
+}
+
+function set_before_url(next) {
+	if (before_url.value) URL.revokeObjectURL(before_url.value.split("#")[0]);
+	before_url.value = next;
 }
 
 // docstatus arrives async and can resolve after docname already triggered a render
@@ -132,6 +149,7 @@ onMounted(() => {
 });
 onUnmounted(() => {
 	set_pdf_url(null);
+	set_before_url(null);
 	window.removeEventListener("keydown", on_keydown);
 });
 </script>
@@ -157,6 +175,27 @@ onUnmounted(() => {
 	/* no chrome of its own — the PDF viewer fills the frame edge to edge */
 	background: transparent;
 	overflow: hidden;
+}
+
+.pfb-preview-modal--compare {
+	flex-direction: row;
+	gap: 16px;
+	width: min(1800px, 96vw);
+}
+
+.pfb-preview-pane {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.pfb-preview-caption {
+	margin-bottom: 6px;
+	text-align: center;
+	font-size: var(--text-sm);
+	font-weight: var(--weight-medium);
+	color: var(--white);
 }
 
 /* opaque while there's no PDF yet — the modal itself is transparent, so without

@@ -32,7 +32,7 @@ class PrintFormatBuilder {
 			);
 		});
 		let $changes_btn = this.page.add_button(__("Review Changes"), () =>
-			this.show_draft_changes()
+			this.$component.show_changes()
 		);
 		let $preview_btn = this.page.add_action_icon(
 			"eye",
@@ -93,30 +93,6 @@ class PrintFormatBuilder {
 				$preview_btn.attr("title", label).attr("data-original-title", label);
 			}
 		);
-	}
-
-	show_draft_changes() {
-		const groups = this.$component.$store.draft_changes();
-		const esc = frappe.utils.escape_html;
-		const html = groups.length
-			? groups
-					.map(
-						(g) =>
-							`<div class="pfb-changes-group"><div class="pfb-changes-title">${esc(
-								g.title
-							)}</div><ul>${g.lines
-								.map((l) => `<li>${esc(l)}</li>`)
-								.join("")}</ul></div>`
-					)
-					.join("")
-			: `<p class="text-muted">${esc(__("This draft matches what the format prints."))}</p>`;
-		const dialog = new frappe.ui.Dialog({
-			title: __("Changes in this draft"),
-			fields: [{ fieldtype: "HTML", fieldname: "changes", options: html }],
-			primary_action_label: __("Close"),
-			primary_action: () => dialog.hide(),
-		});
-		dialog.show();
 	}
 
 	destroy() {
