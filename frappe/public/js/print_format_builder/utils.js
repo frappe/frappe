@@ -139,21 +139,6 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 }
 
 // Blocks the builder invents — they never map to a docfield on the document type
-export const DRAFT_FIELDS = [
-	"format_data",
-	"font",
-	"font_size",
-	"page_number",
-	"show_label_colon",
-	"margin_top",
-	"margin_bottom",
-	"margin_left",
-	"margin_right",
-	"label_color",
-	"value_color",
-	"css",
-	"pdf_generator",
-];
 
 export const BLOCK_FIELDTYPES = new Set(["Spacer", "Divider", "Repeater", "HTML"]);
 

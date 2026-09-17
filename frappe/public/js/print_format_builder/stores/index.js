@@ -1,7 +1,6 @@
 import {
 	clone_plain,
 	create_default_layout,
-	DRAFT_FIELDS,
 	layout_nodes,
 	serialize_layout,
 	typst_blockers_client,
@@ -17,7 +16,7 @@ import { watch, ref, inject, computed, nextTick } from "vue";
 export function getStore(print_format_name) {
 	// variables
 	let print_format = ref(null);
-	let applied_format = ref(null);
+	let has_saved_layout = ref(false);
 	let letterhead = ref(null);
 	let meta = ref(null);
 	let layout = ref(null);
@@ -115,9 +114,7 @@ export function getStore(print_format_name) {
 					const parsed = frappe.utils.parse_json(_print_format.draft_data);
 					const draft = parsed && typeof parsed === "object" ? parsed : null;
 					has_draft.value = !!draft;
-					applied_format.value = Object.fromEntries(
-						DRAFT_FIELDS.map((f) => [f, _print_format[f]])
-					);
+					has_saved_layout.value = !!_print_format.format_data;
 					if (draft) Object.assign(print_format.value, draft);
 					const saved_layout = get_layout();
 					needs_setup.value = !saved_layout;
@@ -374,9 +371,6 @@ export function getStore(print_format_name) {
 		serialize_layout(snapshot);
 		return { ...print_format.value, format_data: JSON.stringify(snapshot) };
 	}
-	function get_applied_format_doc() {
-		return { ...print_format.value, ...applied_format.value };
-	}
 	function get_layout() {
 		if (print_format.value && print_format.value.format_data) {
 			if (typeof print_format.value.format_data == "string") {
@@ -529,7 +523,7 @@ export function getStore(print_format_name) {
 		save_status,
 		has_draft,
 		discard_draft,
-		get_applied_format_doc,
+		has_saved_layout,
 		get_preview_format_doc,
 		select_field,
 		set_selected,

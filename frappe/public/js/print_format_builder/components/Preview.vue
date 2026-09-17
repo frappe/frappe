@@ -19,12 +19,16 @@
 				</div>
 				<template v-else-if="compare">
 					<div class="pfb-preview-pane">
-						<div class="pfb-preview-caption">{{ __("Printing now") }}</div>
+						<div class="pfb-preview-caption">
+							{{ __("Saved version, what prints today") }}
+						</div>
 						<div v-if="before_note" class="pfb-preview-empty">{{ before_note }}</div>
 						<iframe v-else :src="before_url" class="pfb-preview-iframe"></iframe>
 					</div>
 					<div class="pfb-preview-pane">
-						<div class="pfb-preview-caption">{{ __("This draft") }}</div>
+						<div class="pfb-preview-caption">
+							{{ __("Your draft, not applied yet") }}
+						</div>
 						<div v-if="after_note" class="pfb-preview-empty">{{ after_note }}</div>
 						<iframe v-else :src="pdf_url" class="pfb-preview-iframe"></iframe>
 					</div>
@@ -101,6 +105,19 @@ async function render_pdf(format_doc) {
 	return URL.createObjectURL(await res.blob()) + "#view=FitH";
 }
 
+async function render_saved_pdf() {
+	const params = new URLSearchParams({
+		doctype: doctype.value,
+		name: docname.value,
+		format: print_format.value.name,
+	});
+	const res = await fetch("/api/method/frappe.utils.print_format.download_pdf?" + params, {
+		headers: { "X-Frappe-CSRF-Token": frappe.csrf_token },
+	});
+	if (!res.ok) throw new Error(__("Could not render the saved version"));
+	return URL.createObjectURL(await res.blob()) + "#view=FitH";
+}
+
 async function render() {
 	let seq = ++render_seq;
 	if (!docname.value) return;
@@ -113,19 +130,18 @@ async function render() {
 	preview_loaded.value = false;
 	before_note.value = "";
 	after_note.value = "";
-	const attempt = (format_doc) =>
-		render_pdf(format_doc).then(
+	const attempt = (job) =>
+		job.then(
 			(url) => ({ url }),
 			(e) => ({ error: e.message || __("Could not render the preview") })
 		);
-	const jobs = [attempt(store.value.get_preview_format_doc())];
+	const jobs = [attempt(render_pdf(store.value.get_preview_format_doc()))];
 	if (props.compare) {
-		const applied = store.value.get_applied_format_doc();
 		jobs.push(
-			applied.format_data
-				? attempt(applied)
+			store.value.has_saved_layout
+				? attempt(render_saved_pdf())
 				: Promise.resolve({
-						error: __("Nothing has been applied yet, so this draft is all new."),
+						error: __("Nothing has been saved yet, so everything here is new."),
 				  })
 		);
 	}
