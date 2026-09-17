@@ -2,6 +2,11 @@
 
 :root,
 [data-theme="light"] {
+	--bs-body-color: var(--text-muted);
+	--bs-link-color: var(--text-color);
+	--bs-link-hover-color: var(--text-color);
+	--bs-code-color: var(--purple-600);
+
 	// breakpoints
 	--xxl-width: 1440px;
 	--xl-width: 1200px;
