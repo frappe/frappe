@@ -48,14 +48,12 @@ watchEffect(() => {
 	const name = preview_doc?.[link_fieldname];
 	if (!name) return;
 	const key = `${link_df.options}:${name}:${target_fieldname}`;
-	if (key in cache) {
-		value.value = cache[key];
-		return;
-	}
 	pending_key = key;
-	frappe.db.get_value(link_df.options, name, target_fieldname).then((r) => {
-		cache[key] = r?.message?.[target_fieldname] ?? "";
-		if (pending_key === key) value.value = cache[key];
+	cache[key] ??= frappe.db
+		.get_value(link_df.options, name, target_fieldname)
+		.then((r) => r?.message?.[target_fieldname] ?? "");
+	cache[key].then((v) => {
+		if (pending_key === key) value.value = v;
 	});
 });
 </script>
