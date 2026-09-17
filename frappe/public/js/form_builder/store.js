@@ -57,32 +57,17 @@ export const useStore = defineStore("form-builder-store", () => {
 	// structural rows name no source field, so they carry no fieldname and no options
 	const WEB_FORM_STRUCTURAL_FIELDTYPES = ["Section Break", "Column Break", "Page Break"];
 
-	const WEB_FORM_FIELD_PROPS = [
-		"fieldname",
-		"label",
-		"fieldtype",
-		"options",
-		"reqd",
-		"default",
-		"read_only",
-		"precision",
-		"depends_on",
-		"placeholder",
-		"max_length",
-		"description",
-		"mandatory_depends_on",
-		"read_only_depends_on",
-		// not seeded by Desk, but must round-trip or the builder zeroes them on save
-		"hidden",
-		"max_value",
-		"show_in_filter",
-		"allow_read_on_all_link_options",
-	];
-
 	// Getters
 	let get_docfields = computed(() => {
 		return is_customize_form.value ? custom_docfields.value : docfields.value;
 	});
+
+	// read from meta, so a Custom Field an app adds to Web Form Field round-trips too
+	let web_form_field_props = computed(() =>
+		docfields.value
+			.filter((df) => !frappe.model.no_value_type.includes(df.fieldtype))
+			.map((df) => df.fieldname)
+	);
 
 	let current_tab = computed(() => {
 		return form.value.layout.tabs.find((tab) => tab.df.name == form.value.active_tab);
@@ -275,8 +260,10 @@ export const useStore = defineStore("form-builder-store", () => {
 
 		let fields = rows.map((row) => {
 			let df = get_df(row.fieldtype, row.fieldname, row.label);
+			// df.name is replaced on save, so the row is tracked separately
+			df.web_form_field_row = row.name;
 
-			for (let prop of WEB_FORM_FIELD_PROPS) {
+			for (let prop of web_form_field_props.value) {
 				if (row[prop] !== undefined) {
 					df[prop] = row[prop];
 				}
@@ -582,7 +569,7 @@ export const useStore = defineStore("form-builder-store", () => {
 
 		try {
 			let rows = web_form_fields_to_rows(get_updated_fields());
-			frm.value.set_value("web_form_fields", rows);
+			frm.value.refresh_field("web_form_fields");
 			return rows;
 		} catch (e) {
 			return write_back_error(e);
@@ -591,16 +578,28 @@ export const useStore = defineStore("form-builder-store", () => {
 		}
 	}
 
-	// write direction: layout nodes back to web_form_fields rows
+	// write direction: layout nodes back to web_form_fields rows. Rows are updated in place,
+	// because frm.set_value() on a table drops each row's name and recreates every row
 	function web_form_fields_to_rows(fields) {
 		// page 1 is implicit, so drop tab 0 — but only if get_updated_fields() kept it,
 		// or we would eat page 2's break instead
 		let tab_count = fields.filter((df) => df.fieldtype === "Tab Break").length;
-		let rows = tab_count === form.value.layout.tabs.length ? fields.slice(1) : fields;
+		let dfs = tab_count === form.value.layout.tabs.length ? fields.slice(1) : fields;
 
-		return rows.map((df, i) => {
-			let row = { idx: i + 1 };
-			for (let prop of WEB_FORM_FIELD_PROPS) {
+		let parent = frm.value.doc;
+		let unclaimed = new Map((parent.web_form_fields || []).map((row) => [row.name, row]));
+
+		let rows = dfs.map((df, i) => {
+			// a duplicated field carries its source's row, so only the first one claims it
+			let row = unclaimed.get(df.web_form_field_row);
+			if (row) {
+				unclaimed.delete(row.name);
+			} else {
+				row = frappe.model.add_child(parent, "Web Form Field", "web_form_fields");
+			}
+
+			row.idx = i + 1;
+			for (let prop of web_form_field_props.value) {
 				row[prop] = df[prop] !== undefined ? df[prop] : null;
 			}
 			// a tab boundary is a Page Break in a Web Form
@@ -620,6 +619,12 @@ export const useStore = defineStore("form-builder-store", () => {
 
 			return row;
 		});
+
+		parent.web_form_fields = rows;
+		// fields removed in the builder
+		unclaimed.forEach((row) => frappe.model.clear_doc(row.doctype, row.name));
+
+		return rows;
 	}
 
 	function update_fields() {
