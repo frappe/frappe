@@ -18,17 +18,16 @@ interface TimelineStore {
   hasMoreEmails: Ref<boolean>;
   hasMoreMilestones: Ref<boolean>;
   milestoneStart: Ref<number>;
-  /** one refetch, however many callers ask for it; resolves when it lands */
+  /** one refetch however many callers ask; resolves when it lands */
   refresh: () => Promise<void>;
-  /** the socket is wired once, for all consumers */
-  retain: () => () => void;
+  /** start watching the doc; call the result to stop */
+  watch: () => () => void;
 }
 const stores = new Map<string, TimelineStore>();
 
-// Rows a consumer has shown before the server confirmed them. Keyed by document
-// rather than by cache key: an unconfirmed comment belongs in every filtered view
-// of that document.
-// keyed for dedupe, so unlike a plain CustomActivity the key is not optional
+// Rows shown before the server confirmed them. Keyed by document, not cache key,
+// so every filtered view of that doc shows them. `key` is required here: it is
+// what matches a row to the real one once it arrives.
 type PendingRow = (Activity | CustomActivity) & { key: string };
 const pendingActivities = ref<Record<string, PendingRow[]>>({});
 
@@ -53,22 +52,27 @@ export function addPendingActivity(
   const doc = docKey(doctype, docname);
   let key = activity.key ?? `pending:${crypto.randomUUID()}`;
 
-  const edit = (fn: (rows: PendingRow[]) => PendingRow[]) => {
+  const setRows = (next: (rows: PendingRow[]) => PendingRow[]) => {
     pendingActivities.value = {
       ...pendingActivities.value,
-      [doc]: fn(pendingActivities.value[doc] ?? []),
+      [doc]: next(pendingActivities.value[doc] ?? []),
     };
   };
 
-  edit((rows) => [...rows, { ...activity, key, pending: true } as PendingRow]);
+  setRows((rows) => [
+    ...rows,
+    { ...activity, key, pending: true } as PendingRow,
+  ]);
 
   return {
     resolve: (confirmedKey: string) => {
-      const previous = key;
+      const oldKey = key;
       key = confirmedKey;
-      edit((rows) => rows.map((r) => (r.key === previous ? { ...r, key } : r)));
+      setRows((rows) =>
+        rows.map((r) => (r.key === oldKey ? { ...r, key } : r))
+      );
     },
-    drop: () => edit((rows) => rows.filter((r) => r.key !== key)),
+    drop: () => setRows((rows) => rows.filter((r) => r.key !== key)),
   };
 }
 
@@ -138,22 +142,20 @@ function getTimelineStore(
     },
   });
 
-  let refreshPending: Promise<void> | undefined;
-  const refresh = () => {
-    if (refreshPending) return refreshPending;
-    refreshPending = new Promise<void>((resolve) => {
-      setTimeout(async () => {
-        try {
-          // a fetch already running started before the change, so it may miss it
-          if (resource.loading) await resource.promise?.catch(() => {});
-          await resource.reload();
-        } finally {
-          refreshPending = undefined;
-          resolve();
-        }
-      }, REFRESH_DEBOUNCE_MS);
-    });
-    return refreshPending;
+  // Every trigger in the window joins the same fetch, so one save costs one request.
+  let pendingRefresh: Promise<void> | undefined;
+  const refresh = (): Promise<void> => {
+    pendingRefresh ??= (async () => {
+      await new Promise((done) => setTimeout(done, REFRESH_DEBOUNCE_MS));
+      // a fetch already running was sent before the change, so it may miss it
+      if (resource.loading) await resource.promise?.catch(() => {});
+      await resource.reload();
+    })()
+      .catch(() => {})
+      .finally(() => {
+        pendingRefresh = undefined;
+      });
+    return pendingRefresh;
   };
 
   const store: TimelineStore = {
@@ -162,7 +164,7 @@ function getTimelineStore(
     hasMoreMilestones,
     milestoneStart,
     refresh,
-    retain: createLiveUpdates(
+    watch: createLiveUpdates(
       doctype,
       docname,
       resource,
@@ -182,29 +184,28 @@ export function useActivityTimeline(
   const store = getTimelineStore(doctype, docname, visibleTypes);
   const { resource } = store;
 
-  // the store is shared, so its subscription is too: count the consumers
-  let release: (() => void) | undefined;
+  // the store is shared, so one socket serves every consumer of it
+  let unwatch: (() => void) | undefined;
   onMounted(() => {
-    release = store.retain();
+    unwatch = store.watch();
   });
   onUnmounted(() => {
-    release?.();
-    release = undefined;
+    unwatch?.();
+    unwatch = undefined;
   });
 
   // deduped + sorted, but ungrouped: the component folds version runs at render
   // time, after the consumer's own filtering/merging
   const activities = computed<Array<Activity | CustomActivity>>(() => {
-    const fetched = (resource.data as Activity[] | undefined) ?? [];
-    const uniqueActivities = dropDuplicateKeys(fetched);
-    const confirmed = new Set(uniqueActivities.map((a) => a.key));
-    // a pending row lasts exactly until its confirmed row arrives, by key
-    const unconfirmed = (
+    const confirmed = dropDuplicateKeys(
+      (resource.data as Activity[] | undefined) ?? []
+    );
+    const confirmedKeys = new Set(confirmed.map((a) => a.key));
+    // a pending row lasts until the real one arrives, matched by key
+    const pending = (
       pendingActivities.value[docKey(doctype, docname)] ?? []
-    ).filter((a) => !confirmed.has(a.key));
-    const rows = [...uniqueActivities, ...unconfirmed];
-    rows.sort(compareActivities);
-    return rows;
+    ).filter((a) => !confirmedKeys.has(a.key));
+    return [...confirmed, ...pending].sort(compareActivities);
   });
 
   return {
@@ -299,7 +300,7 @@ function createHistoryPagination(
   });
 }
 
-/** Wires the socket on the first consumer, unwires it on the last. */
+/** Returns watch(): the first caller wires the socket, the last unwires it. */
 function createLiveUpdates(
   doctype: string,
   docname: string,
@@ -351,46 +352,46 @@ function createLiveUpdates(
     refresh();
   };
 
-  // After a reconnect the server has forgotten we were watching this doc, and
-  // anything sent while we were away is gone: rejoin, then catch up. `connect`
-  // fires on the first connect too, so only act if we had dropped.
-  let wasDisconnected = false;
+  // A reconnect gives us a new socket, so the server no longer has us in the
+  // room and whatever was sent meanwhile is gone: rejoin, then catch up.
+  // `connect` also fires on the very first connect, so only act after a drop.
+  let dropped = false;
   const onDisconnect = () => {
-    wasDisconnected = true;
+    dropped = true;
   };
   const onConnect = () => {
-    if (!wasDisconnected) return;
-    wasDisconnected = false;
+    if (!dropped) return;
+    dropped = false;
     resubscribeHeldDocs(socket);
     refresh();
   };
 
-  let holders = 0;
-  let releaseRoom: (() => void) | undefined;
-  return () => {
-    holders += 1;
-    if (holders === 1) {
-      releaseRoom = subscribeToDoc(socket, doctype, docname);
-      socket.on("docinfo_update", onUpdate); // live communications, comments, likes, assignments, attachments
-      socket.on("doc_update", onDocUpdate); // field changes
-      socket.on("disconnect", onDisconnect);
-      socket.on("connect", onConnect);
+  const handlers: Record<string, (...args: unknown[]) => void> = {
+    docinfo_update: onUpdate, // comments, emails, likes, assignments, attachments
+    doc_update: onDocUpdate, // field changes
+    disconnect: onDisconnect,
+    connect: onConnect,
+  };
+
+  let watchers = 0;
+  let leaveRoom: (() => void) | undefined;
+
+  return function watch() {
+    if (++watchers === 1) {
+      leaveRoom = subscribeToDoc(socket, doctype, docname);
+      for (const event in handlers) socket.on(event, handlers[event]);
       // nobody was listening while this was closed, so the feed may have moved
       if (resource.fetched) refresh();
     }
 
-    let released = false;
-    return () => {
-      if (released) return;
-      released = true;
-      holders -= 1;
-      if (holders > 0) return;
-      releaseRoom?.();
-      releaseRoom = undefined;
-      socket.off("docinfo_update", onUpdate);
-      socket.off("doc_update", onDocUpdate);
-      socket.off("disconnect", onDisconnect);
-      socket.off("connect", onConnect);
+    let stopped = false;
+    return function unwatch() {
+      if (stopped) return;
+      stopped = true;
+      if (--watchers > 0) return;
+      leaveRoom?.();
+      leaveRoom = undefined;
+      for (const event in handlers) socket.off(event, handlers[event]);
     };
   };
 }
