@@ -420,7 +420,76 @@ def apply_draft(name: str, modified: str | datetime, data: str | dict | None = N
 		doc.set(field, value)
 	doc.draft_data = None
 	doc.save()
+	_record_version(doc, "Save & Apply", {field: doc.get(field) for field in BUILDER_DRAFT_FIELDS})
 	return doc.as_dict()
+
+
+VERSION_KEY = "print_format_version"
+
+
+def _record_version(doc, snapshot_type: str, fields: dict, label: str | None = None):
+	comment = _("saved version {0}").format(frappe.bold(label)) if label else _("applied the builder draft")
+	frappe.get_doc(
+		{
+			"doctype": "Version",
+			"ref_doctype": doc.doctype,
+			"docname": doc.name,
+			"data": frappe.as_json(
+				{
+					"comment": comment,
+					VERSION_KEY: {"type": snapshot_type, "label": label, "fields": fields},
+				},
+				indent=None,
+			),
+		}
+	).insert(ignore_permissions=True)
+
+
+@frappe.whitelist()
+def save_version(name: str, label: str, data: str | dict, modified: str | datetime):
+	"""Keep a named copy of the builder draft that can be restored later."""
+	doc = _writable_format(name, modified)
+	label = (label or "").strip()
+	if not label:
+		frappe.throw(_("Give the version a name"))
+	_record_version(doc, "Manual", _draft_payload(data), label)
+
+
+@frappe.whitelist()
+def get_versions(name: str):
+	"""Versions recorded by the builder, newest first."""
+	frappe.has_permission("Print Format", "read", doc=name, throw=True)
+	out = []
+	for row in frappe.get_all(
+		"Version",
+		filters={"ref_doctype": "Print Format", "docname": name},
+		fields=["name", "owner", "creation", "data"],
+		order_by="creation desc",
+	):
+		snapshot = (frappe.parse_json(row.data) or {}).get(VERSION_KEY)
+		if snapshot:
+			out.append(
+				{
+					"name": row.name,
+					"owner": row.owner,
+					"creation": row.creation,
+					"type": snapshot.get("type"),
+					"label": snapshot.get("label"),
+				}
+			)
+	return out
+
+
+@frappe.whitelist()
+def restore_version(name: str, version: str, modified: str | datetime):
+	"""Load a recorded version into the draft; what prints waits for Save & Apply."""
+	doc = _writable_format(name, modified)
+	row = frappe.db.get_value("Version", version, ["ref_doctype", "docname", "data"], as_dict=True)
+	snapshot = row and row.docname == name and (frappe.parse_json(row.data) or {}).get(VERSION_KEY)
+	if not snapshot:
+		frappe.throw(_("This version does not belong to {0}").format(frappe.bold(name)))
+	doc.db_set("draft_data", frappe.as_json(_draft_payload(snapshot.get("fields"))))
+	return doc.modified
 
 
 @frappe.whitelist()
