@@ -16,6 +16,7 @@
 				:min="min"
 				:value="value"
 				:placeholder="placeholder"
+				:style="{ width: input_width }"
 				@change="(e) => $emit('input', e.target.value)"
 			/>
 			<span v-if="unit && value !== '' && value != null" class="pfb-stepper-unit">{{
@@ -35,7 +36,9 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from "vue";
+
+const props = defineProps({
 	value: { type: [Number, String], default: "" },
 	min: { type: [Number, String], default: 0 },
 	unit: { type: String, default: "" },
@@ -43,19 +46,24 @@ defineProps({
 	sm: { type: Boolean, default: false },
 });
 defineEmits(["decrement", "increment", "input"]);
+
+const input_width = computed(() => {
+	const shown =
+		props.value === "" || props.value == null ? props.placeholder : String(props.value);
+	return Math.max(shown.length, 1) + 1 + "ch";
+});
 </script>
 
 <style scoped>
 .pfb-stepper {
 	display: inline-flex;
 	align-items: center;
-	gap: 4px;
+	gap: 6px;
 	justify-self: end;
 	margin-left: auto;
 }
 
 .pfb-stepper-value {
-	min-width: 48px;
 	display: flex;
 	align-items: baseline;
 	justify-content: center;
@@ -65,9 +73,8 @@ defineEmits(["decrement", "increment", "input"]);
 }
 
 .pfb-stepper-input {
-	width: 4ch;
 	min-width: 0;
-	text-align: right;
+	text-align: center;
 	font-size: var(--text-sm);
 	font-variant-numeric: tabular-nums;
 	border: none;
@@ -76,10 +83,6 @@ defineEmits(["decrement", "increment", "input"]);
 	padding: 0;
 	outline: none;
 	-moz-appearance: textfield;
-}
-
-.pfb-stepper-input::placeholder {
-	text-align: center;
 }
 
 .pfb-stepper-input::-webkit-inner-spin-button,
