@@ -921,6 +921,33 @@ class TestPrintFormatDraft(IntegrationTestCase):
 		self.assertEqual(live.margin_top, 25)
 		self.assertFalse(live.draft_data)
 
+	def test_versions_are_recorded_and_restore_into_the_draft(self):
+		from frappe.printing.doctype.print_format.print_format import (
+			apply_draft,
+			delete_version,
+			get_versions,
+			restore_version,
+			save_draft,
+			save_version,
+		)
+
+		save_draft(self.pf.name, {"margin_top": 25}, self.stamp())
+		apply_draft(self.pf.name, self.stamp())
+		save_draft(self.pf.name, {"margin_top": 40}, self.stamp())
+		save_version(self.pf.name, "Wide top", {"margin_top": 40}, self.stamp())
+
+		versions = get_versions(self.pf.name)
+		self.assertEqual([v["type"] for v in versions], ["Manual", "Save & Apply"])
+		self.assertEqual(versions[0]["label"], "Wide top")
+
+		restore_version(self.pf.name, versions[1]["name"], self.stamp())
+		live = self.live("margin_top", "draft_data")
+		self.assertEqual(live.margin_top, 25)
+		self.assertEqual(frappe.parse_json(live.draft_data)["margin_top"], 25)
+
+		delete_version(self.pf.name, versions[0]["name"])
+		self.assertEqual([v["type"] for v in get_versions(self.pf.name)], ["Save & Apply"])
+
 	def test_draft_ignores_fields_outside_the_whitelist(self):
 		from frappe.printing.doctype.print_format.print_format import apply_draft, save_draft
 

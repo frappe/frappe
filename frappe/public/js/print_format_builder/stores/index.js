@@ -11,13 +11,15 @@ import { useSelection } from "../composables/useSelection";
 import { useLayoutMutations } from "../composables/useLayoutMutations";
 import { useClipboard } from "../composables/useClipboard";
 import { useSnippets } from "../composables/useSnippets";
-import { DRAFT_SETTING_FIELDS } from "../composables/useDraftDiff";
 import { watch, ref, inject, computed, nextTick } from "vue";
 
 export function getStore(print_format_name) {
 	// variables
 	let print_format = ref(null);
-	let saved_format = ref(null);
+	let versions = ref([]);
+	let viewing_version = ref(null);
+	let show_history = ref(false);
+	let edit_state = null;
 	let letterhead = ref(null);
 	let meta = ref(null);
 	let layout = ref(null);
@@ -115,9 +117,6 @@ export function getStore(print_format_name) {
 					const parsed = frappe.utils.parse_json(_print_format.draft_data);
 					const draft = parsed && typeof parsed === "object" ? parsed : null;
 					has_draft.value = !!draft;
-					saved_format.value = Object.fromEntries(
-						["format_data", ...DRAFT_SETTING_FIELDS].map((f) => [f, _print_format[f]])
-					);
 					if (draft) Object.assign(print_format.value, draft);
 					const saved_layout = get_layout();
 					needs_setup.value = !saved_layout;
@@ -127,10 +126,7 @@ export function getStore(print_format_name) {
 						: Promise.resolve(saved_layout);
 					layout_ready.then((resolved_layout) => {
 						const converted = is_classic && !!resolved_layout;
-						layout.value = resolved_layout || get_default_layout();
-						layout.value.sections = layout.value.sections.filter((s) => !s.remove);
-						layout.value.header = migrate_to_section(layout.value.header);
-						layout.value.footer = migrate_to_section(layout.value.footer);
+						adopt_layout(resolved_layout);
 						edit_letterhead.value = false;
 						selected_field.value = null;
 						selected_section.value = null;
@@ -244,72 +240,68 @@ export function getStore(print_format_name) {
 	// bumped by every apply/discard so a reply from an autosave that was already in
 	// flight can't put the draft back after it was cleared
 	let draft_epoch = 0;
-	function save_changes() {
-		frappe.dom.freeze(__("Applying…"));
-		saving_count.value++;
+	function call_format(method, args = {}) {
+		return frappe.call("frappe.printing.doctype.print_format.print_format." + method, {
+			name: print_format_name,
+			...args,
+		});
+	}
+	// an autosave already in flight will move `modified` on; wait it out so an
+	// explicit write reads the fresh stamp instead of being rejected as stale
+	function after_autosave() {
+		return Promise.resolve(autosave_promise).catch(() => {});
+	}
+	// a write that replaces the loaded format: freeze so an edit made during the
+	// round trip isn't silently erased when fetch() swaps the layout, then re-arm
+	// autosave the way a deliberate reset should
+	function replace_from_server(freeze_label, request, message) {
+		frappe.dom.freeze(freeze_label);
 		draft_epoch++;
 		applying = true;
-
-		// an autosave already in flight will move `modified` on; wait it out so this
-		// explicit save reads the fresh stamp instead of being rejected as stale
-		Promise.resolve(autosave_promise)
-			.catch(() => {})
-			.then(() => {
-				// the letterhead goes first so apply-time validation reads its live state
-				if (letterhead.value && letterhead.value._dirty) {
-					return frappe
-						.call("frappe.client.save", {
-							doc: letterhead.value,
-						})
-						.then((r) => (letterhead.value = r.message));
-				}
-			})
-			.then(() =>
-				frappe.call("frappe.printing.doctype.print_format.print_format.apply_draft", {
-					name: print_format_name,
-					data: get_preview_format_doc(),
-					modified: print_format.value.modified,
-				})
-			)
+		return after_autosave()
+			.then(request)
 			.then(() => fetch())
+			.then(() => show_history.value && load_versions().catch(() => {}))
 			.then(() => {
 				autosave_stopped = false;
 				save_failed.value = false;
-				frappe.show_alert({ message: __("Applied"), indicator: "green" });
+				frappe.show_alert({ message, indicator: "green" });
 			})
-			.catch(() => (save_failed.value = true))
 			.finally(() => {
 				applying = false;
-				saving_count.value--;
 				frappe.dom.unfreeze();
 			});
 	}
+	function save_changes() {
+		saving_count.value++;
+		return replace_from_server(
+			__("Applying…"),
+			() =>
+				save_letterhead().then(() =>
+					call_format("apply_draft", {
+						data: get_preview_format_doc(),
+						modified: print_format.value.modified,
+					})
+				),
+			__("Applied")
+		)
+			.catch(() => (save_failed.value = true))
+			.finally(() => saving_count.value--);
+	}
+	// the letterhead goes first so apply-time validation reads its live state
+	function save_letterhead() {
+		if (!letterhead.value?._dirty) return Promise.resolve();
+		return frappe
+			.call("frappe.client.save", { doc: letterhead.value })
+			.then((r) => (letterhead.value = r.message));
+	}
 	function discard_draft() {
-		// freeze like save_changes does — an edit made while the round trip runs
-		// would be silently erased when fetch() replaces the layout
-		frappe.dom.freeze(__("Discarding…"));
-		draft_epoch++;
-		applying = true;
-		return Promise.resolve(autosave_promise)
-			.catch(() => {})
-			.then(() =>
-				frappe.call("frappe.printing.doctype.print_format.print_format.discard_draft", {
-					name: print_format_name,
-					modified: print_format.value.modified,
-				})
-			)
-			.then(() => fetch())
-			.then(() => {
-				// discarding is a deliberate reset, so it re-arms autosave the same
-				// way an apply does — otherwise edits after a failure stay in memory
-				autosave_stopped = false;
-				save_failed.value = false;
-				frappe.show_alert({ message: __("Draft discarded"), indicator: "green" });
-			})
-			.finally(() => {
-				applying = false;
-				frappe.dom.unfreeze();
-			});
+		forget_version();
+		return replace_from_server(
+			__("Discarding…"),
+			() => call_format("discard_draft", { modified: print_format.value.modified }),
+			__("Draft discarded")
+		);
 	}
 	// stops after a failure so the error dialog doesn't loop; a manual save re-arms it
 	let autosave_stopped = false;
@@ -321,7 +313,7 @@ export function getStore(print_format_name) {
 	let autosave_promise = null;
 	let applying = false;
 	function autosave_changes() {
-		if (!dirty.value || autosave_stopped) return;
+		if (!dirty.value || autosave_stopped || viewing_version.value) return;
 		if (applying || autosave_inflight || document.body.classList.contains("pfb-dragging")) {
 			autosave();
 			return;
@@ -330,15 +322,10 @@ export function getStore(print_format_name) {
 		dirty.value = false;
 		saving_count.value++;
 		const epoch = draft_epoch;
-		autosave_promise = frappe
-			.call({
-				method: "frappe.printing.doctype.print_format.print_format.save_draft",
-				args: {
-					name: print_format_name,
-					data: get_preview_format_doc(),
-					modified: print_format.value.modified,
-				},
-			})
+		autosave_promise = call_format("save_draft", {
+			data: get_preview_format_doc(),
+			modified: print_format.value.modified,
+		})
 			.then((r) => {
 				// sync only the stamp — the user may have kept editing mid-request
 				const was_dirty = dirty.value;
@@ -412,10 +399,104 @@ export function getStore(print_format_name) {
 		});
 	}
 
+	function load_versions() {
+		return call_format("get_versions").then((r) => (versions.value = r.message || []));
+	}
+	function save_version(label) {
+		return after_autosave()
+			.then(() =>
+				call_format("save_version", {
+					label,
+					data: get_preview_format_doc(),
+					modified: print_format.value.modified,
+				})
+			)
+			.then(() => load_versions())
+			.then(() => frappe.show_alert({ message: __("Version saved"), indicator: "green" }));
+	}
+	function delete_version(version) {
+		return call_format("delete_version", { version })
+			.then(() => {
+				if (viewing_version.value?.name === version) exit_version();
+				return load_versions();
+			})
+			.then(() => frappe.show_alert({ message: __("Version deleted"), indicator: "green" }));
+	}
+	function restore_version(version) {
+		forget_version();
+		return replace_from_server(
+			__("Restoring…"),
+			() =>
+				call_format("restore_version", { version, modified: print_format.value.modified }),
+			__("Version restored")
+		);
+	}
+	const VERSION_FIELDS = [
+		"font",
+		"font_size",
+		"page_number",
+		"show_label_colon",
+		"margin_top",
+		"margin_bottom",
+		"margin_left",
+		"margin_right",
+		"label_color",
+		"value_color",
+		"css",
+		"pdf_generator",
+	];
+	function adopt_layout(resolved) {
+		layout.value = resolved || get_default_layout();
+		layout.value.sections = layout.value.sections.filter((s) => !s.remove);
+		layout.value.header = migrate_to_section(layout.value.header);
+		layout.value.footer = migrate_to_section(layout.value.footer);
+	}
+	function show_version_fields(fields) {
+		adopt_layout(frappe.utils.parse_json(fields.format_data));
+		VERSION_FIELDS.forEach((f) => (print_format.value[f] = fields[f]));
+		selected_field.value = null;
+		selected_section.value = null;
+		nextTick(() => (dirty.value = false));
+	}
+	function view_version(version) {
+		const fields_ready = version.published
+			? frappe.db.get_doc("Print Format", print_format_name)
+			: call_format("get_version_fields", { version: version.name }).then((r) => r.message);
+		return fields_ready.then((fields) => {
+			if (!edit_state) {
+				edit_state = get_preview_format_doc();
+				pause_history(true);
+			}
+			viewing_version.value = version;
+			show_version_fields(fields);
+		});
+	}
+	function forget_version() {
+		edit_state = null;
+		viewing_version.value = null;
+		pause_history(false);
+	}
+	function exit_version() {
+		if (!edit_state) return;
+		show_version_fields(edit_state);
+		forget_version();
+	}
+	function toggle_history() {
+		if (show_history.value) close_history();
+		else show_history.value = true;
+	}
+	function close_history() {
+		exit_version();
+		show_history.value = false;
+	}
+
 	const {
 		undo,
 		redo,
 		reset: reset_history,
+		pause: pause_history,
+		can_undo,
+		can_redo,
 	} = useLayoutHistory(layout, () => {
 		selected_field.value = null;
 		selected_section.value = null;
@@ -526,7 +607,19 @@ export function getStore(print_format_name) {
 		save_status,
 		has_draft,
 		discard_draft,
-		saved_format,
+		versions,
+		load_versions,
+		save_version,
+		restore_version,
+		delete_version,
+		viewing_version,
+		view_version,
+		exit_version,
+		show_history,
+		toggle_history,
+		close_history,
+		can_undo,
+		can_redo,
 		get_preview_format_doc,
 		select_field,
 		set_selected,

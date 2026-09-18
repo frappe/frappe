@@ -15,6 +15,28 @@
 					<div ref="doc_picker_ref" class="canvas-doc-picker"></div>
 				</div>
 				<div class="canvas-toolbar-right">
+					<button
+						type="button"
+						class="es-button"
+						data-variant="ghost"
+						data-size="sm"
+						data-icon-button="true"
+						:title="__('Undo')"
+						:disabled="!$store.can_undo.value"
+						@click="$store.undo()"
+						v-html="frappe.utils.icon('undo-2', 'sm')"
+					></button>
+					<button
+						type="button"
+						class="es-button"
+						data-variant="ghost"
+						data-size="sm"
+						data-icon-button="true"
+						:title="__('Redo')"
+						:disabled="!$store.can_redo.value"
+						@click="$store.redo()"
+						v-html="frappe.utils.icon('redo-2', 'sm')"
+					></button>
 					<div ref="zoom_ref" class="canvas-zoom-control select-group-btn">
 						<button
 							type="button"
@@ -46,9 +68,31 @@
 					</div>
 				</div>
 			</div>
+			<div v-if="$store.viewing_version.value" class="pfb-viewing-banner">
+				<span v-html="frappe.utils.icon('history', 'sm')"></span>
+				<span>
+					{{
+						__("Viewing {0} ({1}). Editing is off.", [
+							$store.viewing_version.value.label,
+							$store.viewing_version.value.when,
+						])
+					}}
+				</span>
+				<button
+					class="es-button pfb-viewing-restore"
+					data-variant="subtle"
+					data-size="sm"
+					@click="restore_viewed"
+				>
+					{{ __("Restore this version") }}
+				</button>
+			</div>
 			<div
 				class="print-format-container"
-				:class="{ 'pfb-marquee-dragging': marquee_dragging }"
+				:class="{
+					'pfb-marquee-dragging': marquee_dragging,
+					'pfb-viewing': $store.viewing_version.value,
+				}"
 				:style="{ '--pfb-zoom': canvas_zoom / 100 }"
 				@click="clear_selection"
 				@pointerdown="on_canvas_pointerdown"
@@ -63,7 +107,6 @@
 		</div>
 		<FieldInspector v-if="!$store.needs_setup.value" />
 		<Preview v-if="show_preview" @close="show_preview = false" />
-		<CompareView v-if="show_compare" @close="show_compare = false" />
 		<ContextMenu />
 		<Teleport to="body">
 			<div
@@ -84,7 +127,6 @@
 import PrintFormat from "./components/editor/PrintFormat.vue";
 import PrintFormatSetup from "./components/editor/PrintFormatSetup.vue";
 import Preview from "./components/Preview.vue";
-import CompareView from "./components/CompareView.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
 import ContextMenu from "./components/editor/ContextMenu.vue";
@@ -98,7 +140,6 @@ const ZOOM_KEY = "pfb_canvas_zoom";
 const ZOOM_LEVELS = [50, 60, 70, 80, 90, 100, 125, 150];
 
 let show_preview = ref(false);
-let show_compare = ref(false);
 let doc_picker_ref = ref(null);
 let doc_picker_ctrl = ref(null);
 let canvas_zoom = ref(nearest_zoom(parseInt(localStorage.getItem(ZOOM_KEY)) || 100));
@@ -121,8 +162,21 @@ function toggle_preview() {
 	show_preview.value = !show_preview.value;
 }
 
-function show_changes() {
-	show_compare.value = true;
+function toggle_history() {
+	$store.value.toggle_history();
+}
+
+watch(
+	[() => $store.value.selected_field.value, () => $store.value.selected_section.value],
+	([field, section]) => {
+		if ((field || section) && $store.value.show_history.value) $store.value.close_history();
+	}
+);
+
+function restore_viewed() {
+	const v = $store.value.viewing_version.value;
+	if (v.published) $store.value.discard_draft();
+	else $store.value.restore_version(v.name);
 }
 
 const SETTINGS_DOCTYPE = "Print Settings";
@@ -295,7 +349,7 @@ function is_typing_context() {
 }
 
 function handle_keydown(e) {
-	if (show_preview.value || show_compare.value) return;
+	if (show_preview.value || $store.value.viewing_version.value) return;
 	// Zoom shortcuts: Ctrl+= / Ctrl+- / Ctrl+0
 	if (e.ctrlKey || e.metaKey) {
 		if (e.key === "z" || e.key === "Z" || e.key === "y") {
@@ -541,7 +595,7 @@ onUnmounted(() => {
 	window.removeEventListener("pointerup", on_canvas_pointerup);
 });
 
-defineExpose({ toggle_preview, show_changes, open_print_settings, show_preview, $store });
+defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview, $store });
 </script>
 
 <style scoped>
@@ -649,6 +703,24 @@ defineExpose({ toggle_preview, show_changes, open_print_settings, show_preview, 
 }
 
 /* ── Canvas scroll area ──────────────────────────────────── */
+.pfb-viewing-banner {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 12px;
+	font-size: var(--text-sm);
+	background: var(--surface-amber-2);
+	color: var(--ink-amber-8);
+}
+
+.pfb-viewing-restore {
+	margin-left: auto;
+}
+
+.print-format-container.pfb-viewing {
+	pointer-events: none;
+}
+
 .print-format-container {
 	flex: 1;
 	overflow-y: auto;
