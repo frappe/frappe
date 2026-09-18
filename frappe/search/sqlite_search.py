@@ -249,12 +249,14 @@ class SQLiteSearch(ABC):
 
 		schema = self.INDEX_SCHEMA.copy()
 
-		# Default text fields to title and content
-		schema.setdefault("text_fields", ["title", "content"])
-
+		# Default text fields to title and content, in a list of our own: INDEX_SCHEMA is usually
+		# a class attribute, and appending to the one it holds would follow the class around.
+		text_fields = list(schema.get("text_fields") or ["title", "content"])
 		for column in self._get_indexed_columns():
-			if column not in schema["text_fields"]:
-				schema["text_fields"].append(column)
+			if column not in text_fields:
+				text_fields.append(column)
+
+		schema["text_fields"] = text_fields
 
 		# Default tokenizer
 		schema.setdefault("tokenizer", "unicode61 remove_diacritics 2")
