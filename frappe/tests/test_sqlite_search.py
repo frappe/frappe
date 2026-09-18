@@ -6,7 +6,6 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.search_index.search_index import sync_search_indexes
-from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.search.sqlite_search import (
 	SQLiteSearch,
 	SQLiteSearchIndexMissingError,
@@ -34,6 +33,7 @@ class TestSQLiteSearch(SQLiteSearch):
 	INDEXABLE_DOCTYPES: ClassVar = {
 		"Note": {
 			"fields": ["name", "title", "content", "owner", {"modified": "creation"}],
+			"child_fields": {"seen_by": ["user"]},
 		},
 		"ToDo": {
 			"fields": ["name", {"title": "description"}, {"content": "description"}, "owner", "modified"],
@@ -53,14 +53,12 @@ class TestSQLiteSearch(SQLiteSearch):
 
 
 class TestSearchIndexFields(IntegrationTestCase):
-	"""Fields marked in_search_index, and the child rows they are read through."""
+	"""Declared child_fields, and the child rows they are read through."""
 
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		make_property_setter("Note Seen By", "user", "in_search_index", 1, "Check")
-		frappe.clear_cache(doctype="Note")
-		frappe.clear_cache(doctype="Note Seen By")
+		cls.search = TestSQLiteSearch()
 
 	@classmethod
 	def tearDownClass(cls):
@@ -72,7 +70,7 @@ class TestSearchIndexFields(IntegrationTestCase):
 		self.search.drop_index()
 		self.addCleanup(self.search.drop_index)
 
-	def test_a_flagged_child_field_becomes_a_column(self):
+	def test_a_declared_child_field_becomes_a_column(self):
 		self.assertIn("seen_by", self.search.schema["text_fields"])
 		source = self.search.doc_configs["Note"]["child_sources"][0]
 		self.assertEqual(

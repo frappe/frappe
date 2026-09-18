@@ -205,13 +205,10 @@ class SQLiteSearch(ABC):
 			if not title_field and "title" in parsed_fields:
 				title_field = "title"
 
-			meta = frappe.get_meta(doctype)
-			flagged_fields = [f for f in meta.get_search_index_fields() if f not in parsed_fields]
-			child_sources = meta.get_search_index_child_sources()
+			child_sources = self._build_child_sources(doctype, config)
 
 			doc_configs[doctype] = {
-				"fields": [*parsed_fields, *flagged_fields],
-				"flagged_fields": flagged_fields,
+				"fields": parsed_fields,
 				"child_sources": child_sources,
 				"field_mappings": field_mappings,
 				"content_field": content_field,
@@ -221,6 +218,29 @@ class SQLiteSearch(ABC):
 			}
 
 		return doc_configs
+
+	def _build_child_sources(self, doctype, config) -> list:
+		"""Resolve declared child_fields into the table each one is read through.
+
+		{"barcodes": ["barcode"]} names a Table field on the document; the child doctype and the
+		parent link come from the schema.
+		"""
+		declared = config.get("child_fields") or {}
+		if not declared:
+			return []
+
+		meta = frappe.get_meta(doctype)
+		sources = []
+		for fieldname, fields in declared.items():
+			table_field = meta.get_field(fieldname)
+			if not table_field or table_field.fieldtype != "Table":
+				raise ValueError(f"{doctype}.{fieldname} is not a Table field")
+
+			sources.append(
+				frappe._dict(fieldname=fieldname, doctype=table_field.options, fields=list(fields))
+			)
+
+		return sources
 
 	def _get_schema(self):
 		"""Get the search index schema with automatic defaults."""
@@ -262,11 +282,9 @@ class SQLiteSearch(ABC):
 		return schema
 
 	def _get_indexed_columns(self) -> list[str]:
-		"""Columns contributed by `in_search_index`, across every doctype this index covers."""
+		"""Columns contributed by child tables, across every doctype this index covers."""
 		columns = []
 		for config in self.doc_configs.values():
-			for fieldname in config.get("flagged_fields", []):
-				columns.append(fieldname)
 			for source in config.get("child_sources", []):
 				columns.append(source.fieldname)
 
@@ -729,7 +747,7 @@ class SQLiteSearch(ABC):
 
 		A table built before a column was added no longer covers everything that is searched, so
 		it reports as absent: callers fall back, and the builder replaces it. Adding a column is
-		what `in_search_index` does, so this moves whenever someone ticks that box.
+		declaring a child table does, so this moves whenever that declaration changes.
 		"""
 		if not os.path.exists(self.db_path):
 			return False
@@ -1693,14 +1711,11 @@ class SQLiteSearch(ABC):
 		return document
 
 	def _add_indexed_fields_to_document(self, document, doc, config):
-		"""Fill the columns contributed by `in_search_index`.
+		"""Fill the columns contributed by child tables.
 
 		Every column is written, empty where the document has nothing, because a text field left
 		unset is treated as a document that cannot be indexed at all.
 		"""
-		for fieldname in config.get("flagged_fields", []):
-			document[fieldname] = self._process_content(getattr(doc, fieldname, "") or "")
-
 		sources = config.get("child_sources") or []
 		if not sources:
 			return
