@@ -4,10 +4,8 @@ How a Studio page should LOOK, distilled from the design language of shipping
 Frappe apps (Gameplan, CRM, Helpdesk, Drive, Insights). Vocabulary here is
 Studio blocks: camelCase `style` properties and `var(--*)` espresso tokens —
 the Tailwind/Vue original lives in the frappe-ui skill
-(`frappe-ui/skills/frappe-ui/DESIGN.md`, `TOKENS.md`). This file is also baked
-into Studio's AI prompts (`studio/ai/prompts.py`), so every agent — runtime or
-CLI — designs from the same source of truth. When unsure how something should
-look, copy a shipping Frappe app; don't invent.
+(`frappe-ui/skills/frappe-ui/DESIGN.md`, `TOKENS.md`). When unsure how something
+should look, copy a shipping Frappe app; don't invent.
 
 ## Principles
 

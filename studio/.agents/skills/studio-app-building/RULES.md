@@ -1,7 +1,3 @@
----
-description: Runtime rules shared VERBATIM by both surfaces — external coding agents read this file via SKILL.md, and Studio's in-product AI bakes it into its prompts (studio/ai/prompts.py loads it at import, frontmatter stripped). Write a rule once here when it applies to both; keep rules audience-neutral — no repo paths, no tool names.
----
-
 # Runtime rules (bindings, events, handler props)
 
 - `{{ expression }}` bindings work in props, styles, and visibility.
@@ -33,6 +29,12 @@ description: Runtime rules shared VERBATIM by both surfaces — external coding 
   (those are read-only).
 - Repeater children see `dataItem` (the current row) and `dataIndex` (its
   0-based index).
+- A `List` is a family of blocks, not a single table with `rows` and `columns`
+  objects. Give `List` CSS grid track sizes in `columns`; put `ListHeader` and
+  `ListRows` directly inside it. Bind records to `ListRows.items`, and put one
+  `ListRow` template in its `default` component slot. That slot exposes `item`,
+  `index`, and `value`; bind cells with `{{ item.<field> }}` and the row's
+  `value` prop with `{{ value }}`.
 - Style values use espresso tokens — `var(--ink-…)` for text, `var(--surface-…)`
   for backgrounds, `var(--outline-…)` for borders — NEVER raw hex or rgb().
   Pick the exact step by ROLE from the design language.

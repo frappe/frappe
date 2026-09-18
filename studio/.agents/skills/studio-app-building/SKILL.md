@@ -8,9 +8,8 @@ description: Build or edit Frappe Studio apps and pages, including block trees, 
 Studio apps contain `Studio Page` documents with a JSON block tree, optional
 `Studio Page Resource` rows, and page logic. Read [RULES.md](RULES.md) before
 writing bindings, events, or styles. Read [DESIGN.md](DESIGN.md) before building
-or restyling a page. PR #244's in-product AI loads both files from this exact
-directory; keep their paths when bringing over that runtime code. For component
-APIs and the compact AI tool schema, check `studio/ai/prompts.py`.
+or restyling a page. For available components, check
+`frontend/src/data/components.ts` and `frontend/src/data/componentFamilies.ts`.
 
 ## Standard vs custom apps
 
