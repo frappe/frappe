@@ -62,7 +62,12 @@ NAVIGATION:
   # icon-name must be a valid kebab-case lucide icon from https://lucide.dev/icons
 
 DATA DISPLAY:
-- ListView: {columns: [{label: "string", key: "string", width: number}], rows: [{key: value}], rowKey: "string"}
+- List: {columns: ["minmax(0, 1fr)", "8rem", ...], rowHeight: 56} # List family: c contains ListHeader and ListRows; columns are CSS grid track sizes, one per cell
+- ListHeader: c contains one ListHeaderCell per column; each cell contains a TextBlock label
+- ListRows: {items: "{{ <source>.data }}", rowKey: "name"} # slots: default (scoped row template; ONE ListRow)
+  # In slots.default, ListRow has props {"value":"{{ value }}"} and one ListCell child per column. Row bindings use {{ item.<field> }}; the default slot exposes item, index, and value. Put labels/content inside each ListCell, not in ListRows props.
+- ListRow: c contains ListCell blocks, one per column
+- ListCell: c contains the cell content (TextBlock, Badge, Button, etc.)
 - NumberChart: {config: {title: "string", value: number, prefix: "string", delta: number}} # slots: title, subtitle, delta
 - AxisChart: {config: {data: [{xKey: val, yKey: val}], xAxis: {key: "dataFieldName", type: "category|time"}, yAxis: {title: "string"}, series: [{name: "dataFieldName" (should match data field key, not label), type: "bar|line"}]}}
 - DonutChart: {config: {data: [{cat: val, val: number}], categoryColumn: "string", valueColumn: "string"}}
@@ -121,9 +126,9 @@ BLOCK_SCHEMA = """BLOCK SCHEMA (each block is a JSON object with these optional 
 - "tstyle": { }                 — tablet style overrides
 - "events": { }                 — event handlers, eventName → JS script, e.g. {"click":"counter.value++"}. Variables are refs (write with .value); the script also sees data sources and route/router.
 - "visibility": "expr"          — render the block only when a {{ }} expression is truthy, e.g. "{{ todos.data.length > 0 }}"
-- "c": [ ]                       — children list (array of block objects). These are the block's DEFAULT-slot content (e.g. a Dialog's body, a ContextMenu's target surface).
-- "slots": { }                  — NAMED slots only, for components that expose them: {"<slotName>": [ ...child block objects... ]} (each value is a block list in THIS same schema — a slot holds blocks only, so use a TextBlock for a plain label). Default content goes in "c" — use "slots" only for a component's named slots. On an EXISTING block, fill a named slot with set_slot(component_id, slot_name, blocks) and drop a wrong one with remove_slot(component_id, slot_name).
-  NAMED SLOTS RULE: use ONLY a component's real slot names — the ones listed after `# slots:` in its catalog entry below. NEVER invent a slot name (e.g. Sidebar's footer is called "footer-items", not "footer"); content placed in a slot the component doesn't declare silently does not render. If a component shows no `# slots:`, treat it as having none — use its props or default-slot "c".
+- "c": [ ]                       — children list (array of block objects). Usually the block's default content (e.g. a Dialog's body, a ContextMenu's target surface); use slots.default for ListRows so its row template receives item/index/value.
+- "slots": { }                  — Slots exposed by components: {"<slotName>": [ ...child block objects... ]} (each value is a block list in THIS same schema — a slot holds blocks only, so use a TextBlock for a plain label). Ordinary default content goes in "c"; ListRows is the exception: its row template MUST go in "slots":{"default":[...]} so item/index/value are in scope. On an EXISTING block, fill a slot with set_slot(component_id, slot_name, blocks) and drop a wrong one with remove_slot(component_id, slot_name).
+  SLOTS RULE: use ONLY a component's real slot names — the ones listed after `# slots:` in its catalog entry below. NEVER invent a slot name (e.g. Sidebar's footer is called "footer-items", not "footer"); content placed in a slot the component doesn't declare silently does not render. If a component shows no `# slots:`, treat it as having none — use its props or ordinary default content in "c".
 
 ROOT BLOCK — the page root is:
 {"name":"div","originalElement":"body","label":"body","style":{"display":"flex","flexDirection":"column","flexShrink":0,"width":"inherit","overflowX":"hidden","height":"100%"},"c":[ ... ]}
@@ -136,18 +141,20 @@ LAYOUT CONTAINERS (CRITICAL — originalElement is required or children won't re
 """
 
 BUILD_RULES = """BUILDING BLOCKS RULES:
-- ALWAYS use a frappe-ui/catalog component (Sidebar, Button, Badge, ListView, FormControl, Tabs, Dialog, …) before hand-building the same thing from container/div/TextBlock + styles.
+- ALWAYS use a frappe-ui/catalog component (Sidebar, Button, Badge, List, FormControl, Tabs, Dialog, …) before hand-building the same thing from container/div/TextBlock + styles.
+- For tabular records, build the List family as a tree: List → ListHeader with ListHeaderCell children, then ListRows with one ListRow in slots.default and ListCell children. Do not use List as a single block with rows/columns objects.
+  Example: {"name":"List","props":{"columns":["minmax(0, 1fr)","8rem"]},"c":[{"name":"ListHeader","c":[{"name":"ListHeaderCell","c":[{"name":"TextBlock","props":{"text":"Title"}}]},{"name":"ListHeaderCell","c":[{"name":"TextBlock","props":{"text":"Status"}}]}]},{"name":"ListRows","props":{"items":"{{ tasks.data }}","rowKey":"name"},"slots":{"default":[{"name":"ListRow","props":{"value":"{{ value }}"},"c":[{"name":"ListCell","c":[{"name":"TextBlock","props":{"text":"{{ item.title }}"}}]},{"name":"ListCell","c":[{"name":"Badge","props":{"label":"{{ item.status }}"}}]}]}]}}]}
 - style keys are camelCase CSS property names (backgroundColor, borderRadius, …).
 - Do NOT include "id" or "parentBlock" — Studio assigns ids automatically.
 - Keep props to only what the request needs.
-- WRAP SIBLINGS IN A SPACING CONTAINER. Whenever a parent holds MORE THAN ONE block — a Dialog body, a slot, a card, a form — put them inside a single `container` with {"display":"flex","flexDirection":"column","gap":"..."} (e.g. gap 12–16px for a form, 8px for tight groups) rather than dropping the blocks in as bare siblings. Bare siblings have no gap and render cramped. A row of items → the same but flexDirection "row".
+- WRAP SIBLINGS IN A SPACING CONTAINER for ordinary layout. Whenever a parent holds MORE THAN ONE unrelated block — a Dialog body, a card, a form — put them inside a single `container` with {"display":"flex","flexDirection":"column","gap":"..."} (e.g. gap 12–16px for a form, 8px for tight groups). A row of items → the same but flexDirection "row". Keep List family parts as direct children in their required structure.
 """
 
 
 # Plain string (not an f-string) so `{{ }}` binding tokens survive; interpolated into
 # SYSTEM_PROMPT so one-shot generation can bake live-data bindings into props.
 BINDING_CONTRACT = """DATA BINDING — when the page shows live data or a variable, a block prop's VALUE is a `{{ }}` expression (bound at render):
-- list of records → a Repeater with props {"data":"{{ <source>.data }}","dataKey":"name"} whose ONE row-template child uses {{ dataItem.<field> }} in its props; or a ListView with props {"rows":"{{ <source>.data }}"} + columns.
+- list of records → a Repeater with props {"data":"{{ <source>.data }}","dataKey":"name"} whose ONE row-template child uses {{ dataItem.<field> }} in its props; or the List family with ListRows props {"items":"{{ <source>.data }}","rowKey":"name"} and ONE ListRow in slots.default whose cells use {{ item.<field> }}.
 - a single Document's field → {{ <source>.doc.<field> }}; a count → {{ <source>.data.length }}.
 - a variable (read-only display) → {{ <variable> }} (e.g. a TextBlock with props {"text":"{{ counter }}"}).
 - an INPUT whose value should SYNC with a variable two-way (v-model) → props {"modelValue":{"$type":"variable","name":"<variable>"}} — an object, NOT a {{ }} string. Typing updates the variable and vice-versa; use this for TextInput/FormControl/Select/Checkbox/Switch/etc.
@@ -208,7 +215,7 @@ Build a data-driven view — BACKEND FIRST, then layout:
   2. Create the data layer FIRST — add_data_source (+ local state, see State & logic below). Call get_page_state first to reuse an existing source/variable instead of duplicating. Keep filters concrete, e.g. open ToDos → {"status":"Open"}.
   3. Build the layout binding to it, with the bindings baked into props. The columns/fields you show ARE the data source's fields[] — never bind a field the source didn't fetch.
      - list with a custom row → a Repeater, props {"data":"{{ <source>.data }}","dataKey":"name"}, with ONE child row-template whose props use {{ dataItem.<field> }} (dataItem = current row, dataIndex = its 0-based index). Build ONE template — it repeats automatically; never one child per record.
-     - tabular list → a ListView with its columns set and props {"rows":"{{ <source>.data }}"}.
+     - tabular list → the List family: List columns are CSS grid tracks; ListHeader has labeled ListHeaderCell children; ListRows binds {"items":"{{ <source>.data }}","rowKey":"name"} and has ONE ListRow in slots.default, with ListCell children bound to {{ item.<field> }}.
      - single value / count → a block prop bound to {{ <source>.doc.<field> }} or {{ <source>.data.length }}.
      - a variable → the display block's prop bound to {{ <variable> }} (e.g. a TextBlock with props {"text":"{{ counter }}"}).
 
@@ -291,7 +298,7 @@ For add_block, pass the new block under "block" using the BLOCK SCHEMA below (na
 {BUILD_RULES}
 
 # Reproducing an attached screenshot / design
-When the user attaches an image (a screenshot or design mock), treat it as the source of truth for the LAYOUT. Read it top-to-bottom and map each region to the closest catalog component (top bar → Sidebar/Breadcrumbs, cards → container, lists/tables → ListView/Repeater, forms → FormControl/Input, stats → NumberChart, etc.). Match the structure, spacing, alignment, and hierarchy; approximate its colors with espresso tokens (never hardcode hex). Because the page is built from the brief you pass to generate_page, that BRIEF must encode what you see — the section order, each section's components and real copy, the palette, and the type scale. Don't add extra elements/components that do not exist in the screenshot. Do not invent data sources; bind only to ones that already exist.
+When the user attaches an image (a screenshot or design mock), treat it as the source of truth for the LAYOUT. Read it top-to-bottom and map each region to the closest catalog component (top bar → Sidebar/Breadcrumbs, cards → container, lists/tables → List family/Repeater, forms → FormControl/Input, stats → NumberChart, etc.). Match the structure, spacing, alignment, and hierarchy; approximate its colors with espresso tokens (never hardcode hex). Because the page is built from the brief you pass to generate_page, that BRIEF must encode what you see — the section order, each section's components and real copy, the palette, and the type scale. Don't add extra elements/components that do not exist in the screenshot. Do not invent data sources; bind only to ones that already exist.
 
 {data_and_code_wiring}
 
