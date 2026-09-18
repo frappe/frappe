@@ -180,11 +180,6 @@
 					:options="align_opts"
 					@update:model-value="(v) => (selected_field.align = v)"
 				/>
-				<ToggleRow
-					:label="__('Show when empty')"
-					:model-value="!!selected_field.show_empty"
-					@update:model-value="(v) => (selected_field.show_empty = v ? 1 : 0)"
-				/>
 			</template>
 			<template v-else-if="is_spacer">
 				<StepperRow
@@ -294,6 +289,13 @@
 		</InspectorSection>
 
 		<InspectorSection :label="__('Visibility')" :init-open="false" :padded="false">
+			<div v-if="is_linked_field" class="pfb-insp-section-body">
+				<ToggleRow
+					:label="__('Show when empty')"
+					:model-value="!!selected_field.show_empty"
+					@update:model-value="(v) => (selected_field.show_empty = v ? 1 : 0)"
+				/>
+			</div>
 			<VisibilitySection v-model="selected_field.visible_if" :previewDoc="preview_doc" />
 		</InspectorSection>
 	</div>

@@ -23,10 +23,6 @@
 					{{ __("Load a document to see live status") }}
 				</span>
 			</div>
-			<p class="pfb-insp-hint text-muted">
-				{{ __("Leave blank to always show. Reference fields with") }}
-				<code>doc.fieldname</code>.
-			</p>
 		</div>
 	</div>
 </template>
