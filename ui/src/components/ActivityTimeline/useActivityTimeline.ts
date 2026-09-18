@@ -26,15 +26,30 @@ interface TimelineStore {
 const stores = new Map<string, TimelineStore>();
 
 // Rows shown before the server confirmed them. Keyed by document, not cache key,
-// so every filtered view of that doc shows them. `key` is required here: it is
-// what matches a row to the real one once it arrives.
-type PendingRow = (Activity | CustomActivity) & { key: string };
+// so every filtered view of that doc shows them. `key` is the row's identity for
+// the whole of its life and never changes; `confirmedKey` is what it waits for.
+type PendingRow = (Activity | CustomActivity) & {
+  key: string;
+  confirmedKey?: string;
+};
 const pendingActivities = ref<Record<string, PendingRow[]>>({});
 
 const docKey = (doctype: string, docname: string) => `${doctype}:${docname}`;
 
+const PENDING_KEY = "pending:";
+const isUnresolved = (row: PendingRow) =>
+  !row.confirmedKey && row.key.startsWith(PENDING_KEY);
+
+/** What a row says, for matching one the server echoed back under a key we don't know yet. */
+const rowText = (activity: Activity | CustomActivity) => {
+  const content = (activity.data as { content?: unknown } | null)?.content;
+  if (typeof content !== "string") return undefined;
+  const text = stripHtml(content).replace(/\s+/g, " ").trim();
+  return text && JSON.stringify([activity.type, text]);
+};
+
 export interface PendingActivity {
-  /** give the row the key its confirmed row will have; it drops when that arrives */
+  /** tell the row which key the server gave it; it retires when that row arrives */
   resolve: (key: string) => void;
   /** take the row back, e.g. the request failed */
   drop: () => void;
@@ -50,7 +65,7 @@ export function addPendingActivity(
   activity: Omit<Activity | CustomActivity, "key"> & { key?: string }
 ): PendingActivity {
   const doc = docKey(doctype, docname);
-  let key = activity.key ?? `pending:${crypto.randomUUID()}`;
+  const key = activity.key ?? `${PENDING_KEY}${crypto.randomUUID()}`;
 
   const setRows = (next: (rows: PendingRow[]) => PendingRow[]) => {
     pendingActivities.value = {
@@ -65,13 +80,10 @@ export function addPendingActivity(
   ]);
 
   return {
-    resolve: (confirmedKey: string) => {
-      const oldKey = key;
-      key = confirmedKey;
+    resolve: (confirmedKey: string) =>
       setRows((rows) =>
-        rows.map((r) => (r.key === oldKey ? { ...r, key } : r))
-      );
-    },
+        rows.map((r) => (r.key === key ? { ...r, confirmedKey } : r))
+      ),
     drop: () => setRows((rows) => rows.filter((r) => r.key !== key)),
   };
 }
@@ -210,12 +222,39 @@ export function useActivityTimeline(
     const confirmed = dropDuplicateKeys(
       (resource.data as Activity[] | undefined) ?? []
     );
+    const rows = pendingActivities.value[docKey(doctype, docname)] ?? [];
+    if (!rows.length) return [...confirmed].sort(compareActivities);
+
     const confirmedKeys = new Set(confirmed.map((a) => a.key));
-    // a pending row lasts until the real one arrives, matched by key
-    const pending = (
-      pendingActivities.value[docKey(doctype, docname)] ?? []
-    ).filter((a) => !confirmedKeys.has(a.key));
-    return [...confirmed, ...pending].sort(compareActivities);
+    // The socket can deliver the real row before the request that created it answers, so a
+    // row with no key to wait for yet is matched on what it says. An identical older row
+    // can swallow it, which only costs it the wait until the next fetch.
+    const keyByText = new Map<string, string>();
+    if (rows.some(isUnresolved)) {
+      for (const a of confirmed) {
+        const text = rowText(a);
+        if (text) keyByText.set(text, a.key);
+      }
+    }
+
+    // A pending row keeps its place: the real row renders under the key the pending one
+    // already had, so Vue patches that node instead of replacing it. Replacing it would
+    // rebuild the email iframe, which comes back at its collapsed height and jumps.
+    const adopted = new Map<string, string>();
+    const waiting = rows.filter((row) => {
+      const real =
+        row.confirmedKey ??
+        (isUnresolved(row) ? keyByText.get(rowText(row) ?? "") : row.key);
+      if (!real || !confirmedKeys.has(real)) return true;
+      adopted.set(real, row.key);
+      return false;
+    });
+
+    const shown = confirmed.map((a) => {
+      const key = adopted.get(a.key);
+      return key ? { ...a, key } : a;
+    });
+    return [...shown, ...waiting].sort(compareActivities);
   });
 
   return {
