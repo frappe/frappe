@@ -227,8 +227,11 @@ let columns_gap_style = computed(() => {
 });
 
 let handle_offset = computed(() => {
-	if (preview_doc.value) return `${-((props.section.gap ?? 20) / 2 + 4)}px`;
-	const gap = props.section.columns.length > 1 && props.section.gap ? props.section.gap : 0;
+	if (preview_doc.value) return `${-((is_grid.value ? 0 : props.section.gap ?? 20) / 2 + 4)}px`;
+	const gap =
+		!is_grid.value && props.section.columns.length > 1 && props.section.gap
+			? props.section.gap
+			: 0;
 	return `${-(gap + 12.5)}px`;
 });
 
