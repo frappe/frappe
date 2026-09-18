@@ -10,6 +10,7 @@ import sqlglot
 from pypika.queries import QueryBuilder
 from sqlglot import expressions as exp
 from sqlglot.errors import ErrorLevel, SqlglotError
+from sqlglot.tokens import TokenType
 
 import frappe
 from frappe.database.database import (
@@ -665,13 +666,17 @@ def _modify_query(query) -> tuple[str, tuple[int, ...]]:
 
 @lru_cache(maxsize=1024)
 def _transpile_to_sqlite(query: str) -> tuple[str, tuple[int, ...]] | None:
-	"""Returns the query rewritten for SQLite, or None if sqlglot couldn't
-	parse it (as MariaDB SQL), or didn't parse it as one of _TRANSPILABLE_STATEMENTS.
+	"""Return the query rewritten for SQLite.
+
+	Return None when it uses SQLite-native quoted identifiers, sqlglot couldn't parse it
+	as MariaDB SQL, or the parsed statement isn't supported.
 
 	`%s` / `%(name)s` DB-API placeholders aren't valid MySQL expressions on their own. They are replaced only when they are SQL placeholder tokens, so identical text inside strings and comments remains the same.
 	"""
 	try:
 		masked_query, parameters = mask_query_parameters(query)
+		if '"' in masked_query and _uses_sqlite_quoted_identifiers(masked_query):
+			return None
 		parsed_queries = sqlglot.parse(masked_query, read="mysql")
 		if len(parsed_queries) != 1 or parsed_queries[0] is None:
 			return None
@@ -692,6 +697,13 @@ def _transpile_to_sqlite(query: str) -> tuple[str, tuple[int, ...]] | None:
 		return restore_transpiled_query_parameters(rewritten, parameters)
 	except (SqlglotError, ValueError):
 		return None
+
+
+def _uses_sqlite_quoted_identifiers(query: str) -> bool:
+	for token in sqlglot.tokenize(query, read="sqlite"):
+		if token.token_type is TokenType.IDENTIFIER and query[token.start] == '"':
+			return True
+	return False
 
 
 def _unwrap_single_argument_coalesce(node):

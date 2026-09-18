@@ -993,6 +993,20 @@ class TestDB(IntegrationTestCase):
 			self.assertEqual(frappe.db.sql(query), [("Administrator",)])
 
 	@run_only_if(db_type_is.SQLITE)
+	def test_raw_sql_preserves_sqlite_quoted_identifiers(self):
+		self.assertEqual(
+			frappe.db.sql(
+				'SELECT "name" FROM "tabUser" WHERE "name" = %s',
+				("Administrator",),
+			),
+			[("Administrator",)],
+		)
+		self.assertEqual(
+			frappe.db.sql("SELECT IF(1, '{\"key\": \"value\"}', 'no')")[0][0],
+			'{"key": "value"}',
+		)
+
+	@run_only_if(db_type_is.SQLITE)
 	def test_modify_query_falls_back_for_unparseable_queries(self):
 		import sqlglot
 		from sqlglot.errors import SqlglotError
