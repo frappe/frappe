@@ -36,6 +36,15 @@ switcher rather than a hand-rolled tablist — `Tabs` provides the ARIA + keyboa
 nav, and reka-ui's `unmountOnHide` keeps inactive panels (e.g. CameraSource)
 lazy.
 
+## Server calls go through `@framework/ui/api`
+
+Every request goes through the wrapper in `src/api/`, which sends to `/api/v2` only and
+returns the response envelope (`data` plus the keys beside it). New code never imports
+frappe-ui's fetch primitives (`call`, `createResource*`, `useCall`, `useList`, `useDoc`,
+`useFileUpload`); the callers that still do move onto the wrapper region by region on
+the API v2 map. The rule and its reasons are
+[ADR 0010](./docs/adr/0010-server-calls-go-through-one-v2-wrapper.md).
+
 ## Formatting
 
 This repo's `.editorconfig` mandates **tabs** (indent_size 4, max_line_length 99) for

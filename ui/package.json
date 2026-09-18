@@ -57,6 +57,10 @@
       "import": "./src/components/Fields/index.ts",
       "types": "./src/components/Fields/index.ts"
     },
+    "./api": {
+      "import": "./src/api/index.ts",
+      "types": "./src/api/index.ts"
+    },
     "./utils": {
       "import": "./src/utils/index.ts",
       "types": "./src/utils/index.ts"
