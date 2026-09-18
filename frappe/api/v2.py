@@ -17,6 +17,7 @@ import frappe
 import frappe.client
 from frappe import _, cint, cstr, get_newargs, is_whitelisted
 from frappe.api import discovery
+from frappe.api.include import add_document_parts, add_meta_parts, parse_include
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.database.utils import DefaultOrderBy
 from frappe.handler import is_valid_http_method, run_server_script, upload_file
@@ -84,6 +85,7 @@ def logout():
 def read_doc(doctype: str, name: str):
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
+	add_document_parts(doc, parse_include(frappe.form_dict.get("include")))
 	doc.apply_fieldlevel_read_permissions()
 	_doc = doc.as_dict()
 
@@ -137,6 +139,7 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 	args = frappe.form_dict
 	fields: list | None = frappe.parse_json(args.get("fields", None))
 	filters: dict | None = frappe.parse_json(args.get("filters", None))
+	or_filters: dict | None = frappe.parse_json(args.get("or_filters", None))
 	order_by: str | None = args.get("order_by", DefaultOrderBy)
 	start: int = cint(args.get("start", 0))
 	limit: int = cint(args.get("limit", 20))
@@ -148,6 +151,8 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 		raise FrappeValueError("'fields' must be a list")
 	if filters and not isinstance(filters, (list, dict)):
 		raise FrappeValueError("'filters' must be a list or dictionary")
+	if or_filters and not isinstance(or_filters, (list, dict)):
+		raise FrappeValueError("'or_filters' must be a list or dictionary")
 	if order_by and not isinstance(order_by, str):
 		raise FrappeValueError("'order_by' must be a string")
 	if group_by and not isinstance(group_by, str):
@@ -157,6 +162,7 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 		table=doctype,
 		fields=fields,
 		filters=filters,
+		or_filters=or_filters,
 		order_by=order_by,
 		offset=start,
 		limit=limit + 1,  # Fetch one extra to check if there's a next page
@@ -244,6 +250,7 @@ def delete_doc(doctype: str, name: str):
 
 def get_meta(doctype: str):
 	frappe.only_for("All")
+	add_meta_parts(doctype, parse_include(frappe.form_dict.get("include")))
 	return frappe.get_meta(doctype)
 
 
