@@ -1,8 +1,15 @@
 import re
 import sqlite3
 import warnings
-from datetime import date, datetime, time
+from datetime import datetime
+from functools import lru_cache
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+import sqlglot
+from pypika.queries import QueryBuilder
+from sqlglot import expressions as exp
+from sqlglot.errors import ErrorLevel, SqlglotError
 
 import frappe
 from frappe.database.database import (
@@ -10,12 +17,29 @@ from frappe.database.database import (
 	Database,
 	ImplicitCommitError,
 )
+from frappe.database.sqlite.compatibility import (
+	combine_date_with_time_duration,
+	convert_datetime_to_unix_timestamp,
+	convert_sqlite_date,
+	convert_sqlite_time,
+	difference_in_calendar_days,
+	format_datetime_with_mariadb_tokens,
+	json_contains_mariadb_value,
+)
+from frappe.database.sqlite.query_parameters import (
+	convert_frappe_query_parameters,
+	mask_query_parameters,
+	render_query_with_bound_values,
+	restore_transpiled_query_parameters,
+)
 from frappe.database.sqlite.schema import SQLiteTable
 from frappe.database.utils import convert_backtick_identifiers
-from frappe.utils import get_table_name
+from frappe.utils import get_table_name, now
 
-_PARAM_COMP = re.compile(r"%\([\w]*\)s")
+# matches both bare `%s` and named `%(param)s` DB-API placeholders
+_PARAM_COMP = re.compile(r"%\(\w+\)s|%s")
 IMPLICIT_COMMIT_QUERY_TYPES = frozenset(("start", "alter", "drop", "create", "truncate"))
+_TRANSPILABLE_STATEMENTS = (exp.Select, exp.Insert, exp.Update, exp.Delete, exp.Union)
 
 
 class SequenceGeneratorLimitExceeded(sqlite3.Error):
@@ -115,9 +139,20 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	SequenceGeneratorLimitExceeded = SequenceGeneratorLimitExceeded
 
 	def get_connection(self, read_only: bool = False):
+		if not hasattr(self, "_session_time_zone"):
+			self._session_time_zone = ZoneInfo("UTC")
 		conn = self.create_connection(read_only)
 		conn.create_function("regexp", 2, regexp)
 		conn.create_function("regexp_replace", 3, regexp_replace)
+		conn.create_function("regexp_like", 2, regexp_like)
+		conn.create_function(
+			"frappe_combine_datetime", 2, combine_date_with_time_duration, deterministic=True
+		)
+		conn.create_function("datediff", 2, difference_in_calendar_days, deterministic=True)
+		conn.create_function("frappe_date_format", 2, format_datetime_with_mariadb_tokens, deterministic=True)
+		conn.create_function("frappe_json_contains", 2, json_contains_mariadb_value, deterministic=True)
+		conn.create_function("frappe_unix_timestamp", 1, self._convert_to_unix_timestamp)
+		conn.create_function("now", 0, now)
 		pragmas = {
 			"journal_mode": "WAL",
 			"synchronous": "NORMAL",
@@ -132,8 +167,8 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def create_connection(self, read_only: bool = False):
 		db_path = self.get_db_path()
 		sqlite3.register_converter("timestamp", lambda x: datetime.fromisoformat(x.decode()))
-		sqlite3.register_converter("date", lambda x: date.fromisoformat(x.decode()))
-		sqlite3.register_converter("time", lambda x: time.fromisoformat(x.decode()))
+		sqlite3.register_converter("date", convert_sqlite_date)
+		sqlite3.register_converter("time", convert_sqlite_time)
 		if read_only:
 			return sqlite3.connect(
 				f"file:{db_path}?mode=ro",
@@ -150,7 +185,10 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		self.sql(f"PRAGMA busy_timeout = {int(seconds) * 1000}")
 
 	def set_session_time_zone(self, timezone: str):
-		pass
+		self._session_time_zone = ZoneInfo(timezone)
+
+	def _convert_to_unix_timestamp(self, value):
+		return convert_datetime_to_unix_timestamp(value, self._session_time_zone)
 
 	def setup_type_map(self):
 		self.db_type = "sqlite"
@@ -203,6 +241,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	@staticmethod
 	def escape(s, percent=True):
 		"""Escape quotes and percent in given string."""
+		s = frappe.as_unicode(s)
 		s = s.replace("'", "''")
 		if percent:
 			s = s.replace("%", "%%")
@@ -469,19 +508,13 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		raise NotImplementedError("SQLite does not support getting row size directly.")
 
 	def execute_query(self, query, values=None):
-		query = query.replace("%s", "?")
-		try:
-			if isinstance(values, dict):
-				for k, v in values.items():
-					if isinstance(v, str) and "'" in v:
-						values[k] = self.escape(v)
-					else:
-						values[k] = f"'{v}'"
-				query = query % values
-		except TypeError:
-			pass
+		return self._cursor.execute(query, values)
 
-		return self._cursor.execute(query, values or ())
+	def _transform_query(self, query, values):
+		return convert_frappe_query_parameters(query, values)
+
+	def mogrify(self, query, values):
+		return render_query_with_bound_values(query, values)
 
 	def log_query(self, query, query_type, values, debug):
 		# sqlite3 cursors expose no equivalent of the executed statement, so the
@@ -494,13 +527,27 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		return mogrified_query
 
 	def sql(self, *args, **kwargs):
-		if args:
+		query = args[0] if args else kwargs.get("query")
+		skip_transpilation = kwargs.pop("_skip_sqlite_transpilation", False) or isinstance(
+			query, QueryBuilder
+		)
+		if args and not skip_transpilation:
 			# since tuple is immutable
 			args = list(args)
-			args[0] = modify_query(args[0])
+			args[0], positional_parameter_order = _modify_query(args[0])
+			if len(args) > 1:
+				args[1] = _reorder_positional_parameters(args[1], positional_parameter_order)
+			elif "values" in kwargs:
+				kwargs["values"] = _reorder_positional_parameters(
+					kwargs["values"], positional_parameter_order
+				)
 			args = tuple(args)
-		elif kwargs.get("query"):
-			kwargs["query"] = modify_query(kwargs.get("query"))
+		elif kwargs.get("query") and not skip_transpilation:
+			kwargs["query"], positional_parameter_order = _modify_query(kwargs["query"])
+			if "values" in kwargs:
+				kwargs["values"] = _reorder_positional_parameters(
+					kwargs["values"], positional_parameter_order
+				)
 
 		return super().sql(*args, **kwargs)
 
@@ -606,15 +653,72 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 
 def modify_query(query):
-	"""
-	Modifies query according to the requirements of SQLite
-	"""
-	# Replace ` with " only where a backtick delimits an identifier
+	"""Translate raw MariaDB-style SQL into SQLite SQL."""
+	return _modify_query(query)[0]
+
+
+def _modify_query(query) -> tuple[str, tuple[int, ...]]:
 	query = str(query)
+	transpiled = _transpile_to_sqlite(query)
+	return transpiled if transpiled is not None else (_legacy_modify_query(query), ())
+
+
+@lru_cache(maxsize=1024)
+def _transpile_to_sqlite(query: str) -> tuple[str, tuple[int, ...]] | None:
+	"""Returns the query rewritten for SQLite, or None if sqlglot couldn't
+	parse it (as MariaDB SQL), or didn't parse it as one of _TRANSPILABLE_STATEMENTS.
+
+	`%s` / `%(name)s` DB-API placeholders aren't valid MySQL expressions on their own. They are replaced only when they are SQL placeholder tokens, so identical text inside strings and comments remains the same.
+	"""
+	try:
+		masked_query, parameters = mask_query_parameters(query)
+		parsed_queries = sqlglot.parse(masked_query, read="mysql")
+		if len(parsed_queries) != 1 or parsed_queries[0] is None:
+			return None
+
+		parsed = parsed_queries[0]
+		if not isinstance(parsed, _TRANSPILABLE_STATEMENTS):
+			return None
+
+		# MariaDB permits COALESCE(x), but SQLite requires at least two arguments.
+		parsed = parsed.transform(_unwrap_single_argument_coalesce)
+
+		# SQLite has no row-level locks. Remove only this known incompatibility;
+		# any other unsupported construct must take the safe fallback below.
+		for select in parsed.find_all(exp.Select):
+			select.set("locks", None)
+
+		rewritten = parsed.sql(dialect="sqlite", unsupported_level=ErrorLevel.RAISE)
+		return restore_transpiled_query_parameters(rewritten, parameters)
+	except (SqlglotError, ValueError):
+		return None
+
+
+def _unwrap_single_argument_coalesce(node):
+	while isinstance(node, exp.Coalesce) and not node.expressions:
+		node = node.this.copy()
+	return node
+
+
+def _reorder_positional_parameters(values, positional_parameter_order: tuple[int, ...]):
+	if (
+		not isinstance(values, list | tuple)
+		or not positional_parameter_order
+		or positional_parameter_order == tuple(range(len(positional_parameter_order)))
+	):
+		return values
+
+	reordered = (values[index] for index in positional_parameter_order)
+	return list(reordered) if isinstance(values, list) else tuple(reordered)
+
+
+def _legacy_modify_query(query: str) -> str:
+	"""Fallback for queries sqlglot can't parse"""
+	# Replace backticks only when they delimit identifiers. Literal backticks in
+	# strings and comments must survive the fallback translation unchanged.
 	query = convert_backtick_identifiers(query)
 	query = replace_locate_with_instr(query)
 
-	# Select from requires ""
 	if re.search("from tab", query, flags=re.IGNORECASE):
 		query = re.sub("from tab([a-zA-Z]*)", r'from "tab\1"', query, flags=re.IGNORECASE)
 
@@ -628,12 +732,14 @@ def replace_locate_with_instr(query: str) -> str:
 	return query
 
 
-def regexp(expr: str, item: str) -> bool:
+def regexp(expr: str | None, item: str | None) -> bool | None:
 	"""
 	Define regexp implementation for SQLite manually
 
 	Although it works in the CLI - doesn't work through python
 	"""
+	if expr is None or item is None:
+		return None
 	return re.search(expr, item) is not None
 
 
@@ -642,3 +748,7 @@ def regexp_replace(item: str, pattern: str, repl: str) -> str:
 	Define regexp_replace implementation for SQLite
 	"""
 	return re.sub(pattern, repl, item)
+
+
+def regexp_like(item: str | None, expr: str | None) -> bool | None:
+	return regexp(expr, item)
