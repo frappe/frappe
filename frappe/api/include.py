@@ -200,12 +200,17 @@ def add_count(doctype: str, filters, or_filters) -> None:
 	frappe.local.form_dict = frappe._dict(
 		doctype=doctype, filters=filters, or_filters=or_filters, limit=COUNT_CAP
 	)
+	headers = frappe.local.response_headers
+	cache_control = headers.get("Cache-Control")
 	try:
 		count = get_count()
 	finally:
 		frappe.local.form_dict = list_form
 	# get_count marks a capped or timed-out count cacheable; the list rows beside it are not
-	frappe.local.response_headers.remove("Cache-Control")
+	if cache_control is None:
+		headers.remove("Cache-Control")
+	else:
+		headers.set("Cache-Control", cache_control)
 	frappe.response["count"] = count
 	frappe.response["count_capped"] = count == COUNT_CAP
 

@@ -96,15 +96,19 @@ export function useNotifications(
   // server on reload / realtime / filter change.
   const unread = ref(0);
   const unreadError = ref<unknown>(null);
+  let unreadGeneration = 0;
+  // A count that lands after a later request is dropped, so a slow answer never wins.
   async function refreshUnreadCount() {
+    const mine = ++unreadGeneration;
     try {
       const { data } = await countDocuments(DOCTYPE, {
         filters: { ...scopedFilters(), read: 0 },
       });
+      if (mine !== unreadGeneration) return;
       unread.value = data ?? 0;
       unreadError.value = null;
     } catch (failure) {
-      unreadError.value = failure;
+      if (mine === unreadGeneration) unreadError.value = failure;
     }
   }
   void refreshUnreadCount();

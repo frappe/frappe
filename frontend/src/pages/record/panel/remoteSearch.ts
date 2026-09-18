@@ -9,6 +9,12 @@ export type SearchOption = { label: string; value: string; image?: string };
 type Call = (method: string, params?: Record<string, any>) => Promise<any>;
 
 const PAGE_LENGTH = 10;
+// A dict, not a list: the server hands User searches to a standard query that reads filters by key.
+const USER_FILTERS = {
+	enabled: 1,
+	user_type: "System User",
+	name: ["not in", ["Administrator", "Guest"]],
+};
 
 export function useUserSearch(pinned: Ref<SearchOption[]>) {
 	return useRemoteSearch(searchUsers, pinned);
@@ -62,11 +68,7 @@ export function useRemoteSearch<Option extends SearchOption>(
 async function searchUsers(query: string): Promise<SearchOption[]> {
 	const { data } = await searchDocuments("User", {
 		txt: query,
-		filters: [
-			["enabled", "=", 1],
-			["user_type", "=", "System User"],
-			["name", "not in", ["Administrator", "Guest"]],
-		],
+		filters: USER_FILTERS,
 		limit: PAGE_LENGTH,
 	});
 	return data.map((row) => ({ label: row.label || row.value, value: row.value }));

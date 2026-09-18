@@ -106,11 +106,16 @@
 
 		<template #footer>
 			<!-- Real list footer: page-length selector (left), Load More + "N of total"
-			     (right). `v-model` is the page length — a change refetches page 1. -->
+			     (right). `v-model:pageSize` is the page length — a change refetches page 1. -->
 			<ListFooter
-				v-model="data.pageLength.value"
-				:options="{ rowCount: data.rowCount.value, totalCount: data.totalCount.value }"
-				@loadMore="data.loadMore()"
+				v-model:pageSize="data.pageLength.value"
+				:rowCount="data.rowCount.value"
+				:totalCount="data.totalCount.value"
+				:totalCapped="data.totalCapped.value"
+				:totalUnknown="data.totalUnknown.value"
+				:hasCounts="!data.loading.value"
+				@load-more="data.loadMore()"
+				@count="data.countExact()"
 			/>
 			<!-- The dev wire-output readout this surface was built to verify. -->
 			<div class="mt-2 space-y-0.5 border-t border-outline-gray-1 pt-2">
@@ -131,8 +136,8 @@ import {
 	ListHeader,
 	ListRows,
 	ListSelectBanner,
-	ListFooter,
 } from "frappe-ui/experimental";
+import { ListFooter } from "../../../experimental/List";
 import { computed, onMounted, watch } from "vue";
 import { ListViewShell } from "../index";
 import { useListView } from "../useListView";

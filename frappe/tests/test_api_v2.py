@@ -1193,6 +1193,34 @@ class TestListPartsV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200, response.json)
 		self.assertEqual([row["value"] for row in response.json["data"]], [self.todos[1].name])
 
+	def test_search_limit_zero_falls_back_to_the_default_page(self):
+		extra = [
+			frappe.get_doc({"doctype": "ToDo", "description": f"{self.prefix} extra {index}"}).insert()
+			for index in range(8)
+		]
+		frappe.db.commit()  # nosemgrep
+		try:
+			response = self.search(txt=self.prefix, limit=0)
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertEqual(len(response.json["data"]), 10)
+		finally:
+			for todo in extra:
+				frappe.delete_doc_if_exists("ToDo", todo.name, force=True)
+			frappe.db.commit()  # nosemgrep
+
+	def test_search_user_through_the_standard_query(self):
+		# User routes to user_query, which reads the filters as a dict
+		response = self.get(
+			self.doctype_path("User", "search"),
+			{
+				"sid": self.sid,
+				"txt": "Admin",
+				"filters": json.dumps({"enabled": 1, "user_type": "System User"}),
+			},
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertIn("Administrator", [row["value"] for row in response.json["data"]])
+
 	def test_search_refuses_a_guest(self):
 		# no suppress_stdout: the refusal prints, and a None stdout turns that into a 500
 		response = self.get(self.doctype_path("ToDo", "search"), {"sid": "Guest", "txt": self.prefix})

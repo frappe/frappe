@@ -68,11 +68,11 @@ describe("the searches", () => {
 		await search("an");
 		expect(fake.searchDocuments).toHaveBeenCalledWith("User", {
 			txt: "an",
-			filters: [
-				["enabled", "=", 1],
-				["user_type", "=", "System User"],
-				["name", "not in", ["Administrator", "Guest"]],
-			],
+			filters: {
+				enabled: 1,
+				user_type: "System User",
+				name: ["not in", ["Administrator", "Guest"]],
+			},
 			limit: 10,
 		});
 		expect(options.value).toEqual([

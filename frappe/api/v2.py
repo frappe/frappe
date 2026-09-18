@@ -28,6 +28,8 @@ from frappe.core.doctype.server_script.server_script_utils import get_server_scr
 from frappe.database.utils import DefaultOrderBy
 from frappe.handler import is_valid_http_method, run_server_script, upload_file
 
+SEARCH_PAGE_LENGTH = 10
+
 PERMISSION_MAP = {
 	"GET": "read",
 	"POST": "write",
@@ -226,24 +228,25 @@ def search(doctype: str):
 		filters: JSON filters on the searched doctype
 		reference_doctype: The doctype the link field sits on
 		query: A whitelisted custom search method
-		limit: Rows per page (search_link's default when absent)
+		limit: Rows per page (10 when absent or below 1)
 		start: Row offset (default: 0)
 	"""
 	from frappe.desk.search import build_for_autosuggest, search_widget
 
 	args = frappe.form_dict
-	kwargs = {}
-	if args.get("limit") is not None:
-		kwargs["page_length"] = cint(args.get("limit"))
+	# a zero limit would mean no limit at all in get_list
+	page_length = cint(args.get("limit"))
+	if page_length < 1:
+		page_length = SEARCH_PAGE_LENGTH
 
 	results = search_widget(
 		doctype,
 		cstr(args.get("txt")).strip(),
 		args.get("query") or None,
 		start=cint(args.get("start", 0)),
+		page_length=page_length,
 		filters=args.get("filters") or None,
 		reference_doctype=args.get("reference_doctype") or None,
-		**kwargs,
 	)
 	# the same Cache-Control that search_link's @http_cache sends; it keys on the v1 path, so it
 	# does not fire for this route

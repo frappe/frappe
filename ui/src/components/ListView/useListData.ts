@@ -1,5 +1,6 @@
 import { computed, ref, watch } from "vue";
 import type { ComputedRef, Ref } from "vue";
+import { countDocuments } from "../../api";
 import { fetchFields } from "../ColumnSettings/columns";
 import { usePagedList } from "../../composables/usePagedList";
 import type { UseListView } from "./useListView";
@@ -25,6 +26,12 @@ export interface UseListData {
   rowCount: ComputedRef<number>;
   /** Total rows matching the filters (the footer's `totalCount`); the loaded rows when the count timed out. */
   totalCount: ComputedRef<number>;
+  /** The total stopped at the server's cap, so it reads as a floor; `countExact` lifts it. */
+  totalCapped: ComputedRef<boolean>;
+  /** The server gave up counting; the footer reads "many". */
+  totalUnknown: ComputedRef<boolean>;
+  /** Asks for the exact total after a capped one; a null or failed answer leaves it as is. */
+  countExact: () => Promise<void>;
   /** The page length; ListFooter `v-model`s this and a change refetches. */
   pageLength: Ref<number>;
   /** Grow the loaded set by one page (`start += pageLength`), appending rows. */
@@ -52,6 +59,28 @@ export function useListData(doctype: string, view: UseListView): UseListData {
     { pageLength, withCount: true }
   );
 
+  // The exact total replaces the included one until the next reload resets it.
+  const exact = ref<number | null>(null);
+  const count = computed(() => exact.value ?? list.count.value);
+  // False until the first page answered without error, so a failure never reads "many".
+  const answered = ref(false);
+  let generation = 0;
+
+  async function reload() {
+    const mine = ++generation;
+    exact.value = null;
+    answered.value = false;
+    await list.reload();
+    if (mine === generation) answered.value = list.error.value == null;
+  }
+
+  async function countExact() {
+    const filters = view.filters.wire.value;
+    const { data } = await countDocuments(doctype, { filters }).catch(() => ({ data: null }));
+    if (data == null || filters !== view.filters.wire.value) return;
+    exact.value = data;
+  }
+
   // One watcher drives every fetch but `loadMore`: the wire filters (identity
   // changes as conditions serialize), the order_by string, the field set, and the
   // page length. `immediate` does the mount fetch, so there's no separate `auto`.
@@ -62,7 +91,7 @@ export function useListData(doctype: string, view: UseListView): UseListData {
       () => fields.value,
       pageLength,
     ],
-    () => void list.reload(),
+    () => void reload(),
     { immediate: true }
   );
 
@@ -70,9 +99,12 @@ export function useListData(doctype: string, view: UseListView): UseListData {
     rows: list.rows,
     loading: computed(() => list.loading.value && list.rows.value.length === 0),
     rowCount: computed(() => list.rows.value.length),
-    totalCount: computed(() => list.count.value ?? list.rows.value.length),
+    totalCount: computed(() => count.value ?? list.rows.value.length),
+    totalCapped: computed(() => exact.value == null && list.countCapped.value),
+    totalUnknown: computed(() => answered.value && count.value == null),
+    countExact,
     pageLength,
     loadMore: () => void list.loadMore(),
-    reload: () => void list.reload(),
+    reload: () => void reload(),
   };
 }

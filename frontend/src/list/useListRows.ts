@@ -38,7 +38,7 @@ export interface ListRows {
 	totalCapped: ComputedRef<boolean>;
 	/** True when the server gave up counting; the footer reads "many". */
 	totalUnknown: ComputedRef<boolean>;
-	/** False until the count has answered; the footer shows a skeleton meanwhile. */
+	/** False until the count has answered; the footer shows a skeleton meanwhile, also after an error. */
 	hasCounts: ComputedRef<boolean>;
 	hasNextPage: ComputedRef<boolean>;
 	/** How many rows the page asked to show; the rows fall short when the query has fewer. */
@@ -174,7 +174,6 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		} catch (failure) {
 			if (mine !== generation) return;
 			page.error = failure as Error;
-			if (first) total.value = { count: null, capped: false, answered: true };
 		}
 	}
 

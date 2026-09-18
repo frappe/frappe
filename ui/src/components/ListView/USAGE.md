@@ -302,7 +302,10 @@ const data = useListData(doctype, view);
 data.rows; // ComputedRef<Record<string, unknown>[]>  — the table's rows
 data.loading; // first-page fetch in flight
 data.rowCount; // rows currently loaded
-data.totalCount; // total matching the filters
+data.totalCount; // total matching the filters; capped at 1000 on the wire
+data.totalCapped; // the total is a floor; the footer draws it as a button
+data.totalUnknown; // the server gave up counting; the footer reads "many"
+data.countExact(); // the exact total after a capped one, on the footer's `count` event
 data.pageLength; // Ref<number> — ListFooter v-models this; a change refetches
 data.loadMore(); // append the next page
 data.reload(); // refetch page 1
@@ -355,12 +358,14 @@ add/remove/resize, not just quick filters. (This mirrors the `ListViewToolbar` s
 
     <template #footer>
       <ListFooter
-        v-model="data.pageLength.value"
-        :options="{
-          rowCount: data.rowCount.value,
-          totalCount: data.totalCount.value,
-        }"
-        @loadMore="data.loadMore()"
+        v-model:pageSize="data.pageLength.value"
+        :rowCount="data.rowCount.value"
+        :totalCount="data.totalCount.value"
+        :totalCapped="data.totalCapped.value"
+        :totalUnknown="data.totalUnknown.value"
+        :hasCounts="!data.loading.value"
+        @load-more="data.loadMore()"
+        @count="data.countExact()"
       />
     </template>
   </ListViewShell>
@@ -369,7 +374,8 @@ add/remove/resize, not just quick filters. (This mirrors the `ListViewToolbar` s
 <script setup lang="ts">
 import { onMounted, watch } from "vue";
 import { useDebounceFn } from "@vueuse/core";
-import { ListView, ListHeader, ListRows, ListFooter } from "frappe-ui";
+import { ListView, ListHeader, ListRows } from "frappe-ui";
+import { ListFooter } from "@framework/ui/experimental/List";
 import {
   ListViewShell,
   useListView,

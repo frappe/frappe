@@ -72,7 +72,7 @@ field and wires it to the controller:
 - **Suggests existing users** from the **User** doctype (enabled, non-Website users —
   not Contacts), excluding anyone already invited to the app (pending or accepted).
   The panel debounces the field's `update:query` into `controller.searchUsers`.
-- Matching users show in a dropdown (name over email, with avatar); pick one with the
+- Matching users show in a dropdown (name over email); pick one with the
   mouse or keyboard. Selected addresses render as removable chips with native chip
   keyboard navigation (Delete / Backspace / Arrow / Home / End) courtesy of reka-ui's
   `TagsInput`.

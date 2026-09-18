@@ -116,6 +116,29 @@ describe("useInviteUser", () => {
     expect(pending.reload).toHaveBeenCalled();
   });
 
+  it("invite() re-runs the held user search, so the invited person leaves the suggestions", async () => {
+    const appName = freshApp();
+    const store = useInviteUser({ appName });
+    const invite = resourceFor("invite_by_email");
+    invite.__result = {
+      invited_emails: ["a@x.com"],
+      disabled_user_emails: [],
+      pending_invite_emails: [],
+      accepted_invite_emails: [],
+    };
+    await store.invite("a@x.com", ["Sales User"]);
+    expect(api.searchDocuments).not.toHaveBeenCalled();
+
+    await store.searchUsers("a");
+    api.listDocuments.mockResolvedValue({ data: [{ email: "a@x.com" }], has_next_page: false });
+    await store.invite("a@x.com", ["Sales User"]);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(api.searchDocuments).toHaveBeenCalledTimes(2);
+    expect(api.searchDocuments).toHaveBeenLastCalledWith("User", expect.objectContaining({ txt: "a" }));
+    await vi.waitFor(() => expect(store.users.map((u) => u.value)).toEqual(["b@y.com"]));
+  });
+
   it("applies transformRoles and merges extraParams", async () => {
     const appName = freshApp();
     const store = useInviteUser({

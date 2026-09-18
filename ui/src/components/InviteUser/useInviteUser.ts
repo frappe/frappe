@@ -47,9 +47,12 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
   const usersLoading = ref(false);
   const usersError = ref<unknown>(null);
   let searchGeneration = 0;
+  // The last query typed, so a successful invite can drop the invited person from the suggestions.
+  let currentQuery: string | null = null;
 
   async function searchUsers(query: string): Promise<void> {
     const mine = ++searchGeneration;
+    currentQuery = query;
     usersLoading.value = true;
     try {
       const { data: found } = await searchDocuments("User", {
@@ -114,6 +117,7 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
       app_name: appName,
     })) as InviteResult;
     pendingResource.reload();
+    if (currentQuery !== null) void searchUsers(currentQuery);
     return result;
   }
 

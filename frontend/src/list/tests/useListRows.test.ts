@@ -112,6 +112,17 @@ describe("useListRows", () => {
 		expect(rows.totalCapped.value).toBe(true);
 	});
 
+	it("keeps the count unanswered when the first page fails", async () => {
+		fake.listDocuments.mockRejectedValue(new Error("Not permitted"));
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await nextTick();
+		await settle();
+		expect(rows.error.value?.message).toBe("Not permitted");
+		expect(rows.loading.value).toBe(false);
+		expect(rows.hasCounts.value).toBe(false);
+		expect(rows.totalUnknown.value).toBe(false);
+	});
+
 	it("deletes a row through the wrapper", async () => {
 		const rows = useListRows("ToDo", () => queryOf(20));
 		await rows.remove("T-1");
