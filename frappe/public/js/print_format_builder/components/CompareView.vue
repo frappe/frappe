@@ -107,7 +107,6 @@ const MARK_CSS = `
 .pfb-diff-ghost > span { background: #6b7280; }
 .pfb-diff-badge { top: auto; bottom: 100%; left: auto; right: 0; margin-bottom: 2px; border-radius: 3px; display: flex; align-items: center; gap: 4px; }
 .pfb-diff-swatch { display: inline-block; width: 10px; height: 10px; border: 1px solid #fff; border-radius: 2px; vertical-align: middle; }
-.pfb-diff-old-label { text-decoration: line-through; opacity: .6; margin-right: 4px; }
 .action-banner { display: none !important; }`;
 
 const KIND_WORD = {
@@ -383,15 +382,6 @@ function draw_colours(el, changes) {
 	el.appendChild(badge);
 }
 
-function draw_old_label(el, change) {
-	const label = el.querySelector(".label, .section-label");
-	if (!label) return;
-	const old = el.ownerDocument.createElement("span");
-	old.className = "pfb-diff-old-label";
-	old.textContent = value_text(change.before);
-	label.prepend(old);
-}
-
 function annotate(el, item) {
 	const changes = item.changes || [];
 	const colours = changes.filter((c) => COLOUR.has(c.key));
@@ -401,7 +391,6 @@ function annotate(el, item) {
 		if (BOX_KEYS[c.key]) draw_box_bands(el, c.key, c);
 		else if (GAP_KEYS.has(c.key)) draw_gap_bands(el, c);
 		else if (c.key === "width") draw_ghost_width(el, c);
-		else if (c.key === "label") draw_old_label(el, c);
 		else if (TEXT_BADGE.has(c.key)) {
 			badges.push(
 				`${frappe.unscrub(c.key)} ${value_text(c.before)} → ${value_text(c.after)}`
