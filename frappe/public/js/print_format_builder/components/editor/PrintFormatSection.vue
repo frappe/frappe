@@ -5,7 +5,8 @@
 		:data-section-uid="field_uid(section)"
 		v-show="!preview_doc || has_visible_fields"
 		:class="{
-			'section-container--condition-hidden': preview_doc && !is_section_visible,
+			'section-container--condition-hidden':
+				preview_doc && (!is_section_visible || !has_content),
 			'pfb-section-active': is_selected,
 			'pfb-layer-hover': store.hovered_node.value === section,
 		}"
@@ -271,6 +272,11 @@ function field_has_content(f) {
 	return !!doc[f.fieldname];
 }
 let has_visible_fields = computed(
+	() =>
+		!props.section.label ||
+		props.section.columns.some((col) => col.fields.some((f) => !f.remove))
+);
+let has_content = computed(
 	() =>
 		!props.section.label ||
 		props.section.columns.some((col) => col.fields.some(field_has_content))
