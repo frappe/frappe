@@ -99,7 +99,7 @@ Everything is gray unless the color MEANS something:
 - **App shell**: Sidebar (14rem, `header` + grouped nav items with lucide
   icons) beside a main column (`flex: "1"`, `flexDirection: "column"`); the
   main column is header row + scrollable body. Never nest a second sidebar.
-- **List page**: header (title + primary Button) → ListView, or a Repeater of
+- **List page**: header (title + primary Button) → List, or a Repeater of
   divider-separated rows: leading title `text-base` `ink-gray-8`, meta line
   `text-sm` `ink-gray-5`, trailing Badge/timestamp in a fixed-width right
   column.
