@@ -115,7 +115,7 @@ function restore(v) {
 	frappe.confirm(
 		__(
 			"Replace your current draft with {0}? Nothing prints differently until you Save & Apply.",
-			[frappe.bold(v.label || when(v.creation))]
+			[frappe.utils.bold(v.label || when(v.creation))]
 		),
 		() => store.restore_version(v.name)
 	);
@@ -124,7 +124,7 @@ function restore(v) {
 function remove(v) {
 	frappe.confirm(
 		__("Delete the version {0}? This cannot be undone.", [
-			frappe.bold(v.label || when(v.creation)),
+			frappe.utils.bold(v.label || when(v.creation)),
 		]),
 		() => store.delete_version(v.name)
 	);
