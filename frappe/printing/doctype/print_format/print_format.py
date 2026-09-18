@@ -408,8 +408,18 @@ def _writable_format(name: str, modified: str | datetime):
 def save_draft(name: str, data: str | dict, modified: str | datetime):
 	"""Store the builder's in-progress changes without touching what prints."""
 	doc = _writable_format(name, modified)
-	doc.db_set("draft_data", frappe.as_json(_draft_payload(data)))
+	payload = _draft_payload(data)
+	_check_draft(doc, payload)
+	doc.db_set("draft_data", frappe.as_json(payload))
 	return doc.modified
+
+
+def _check_draft(doc, payload):
+	"""The cheap validations, so a bad colour or condition is reported while editing."""
+	for field, value in payload.items():
+		doc.set(field, value)
+	doc.validate_colors()
+	doc.validate_conditions()
 
 
 @frappe.whitelist()
@@ -479,9 +489,14 @@ def get_versions(name: str):
 	out = []
 	for row in frappe.get_all(
 		"Version",
-		filters={"ref_doctype": "Print Format", "docname": name},
+		filters={
+			"ref_doctype": "Print Format",
+			"docname": name,
+			"data": ("like", f'%"{VERSION_KEY}"%'),
+		},
 		fields=["name", "owner", "creation", "data"],
 		order_by="creation desc",
+		limit_page_length=50,
 	):
 		snapshot = (frappe.parse_json(row.data) or {}).get(VERSION_KEY)
 		if snapshot:
