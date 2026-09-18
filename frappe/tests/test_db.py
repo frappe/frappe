@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import datetime
+import sqlite3
 from math import ceil
 from random import choice
 from unittest.mock import patch
@@ -1325,6 +1326,28 @@ class TestDDLCommandsSQLite(IntegrationTestCase):
 		database.rollback()
 		self.assertFalse(database.table_exists(self.doctype))
 
+	def test_schema_cache_is_invalidated_after_commit(self) -> None:
+		from frappe.database import get_db
+
+		database = frappe.db
+		secondary_database = get_db(cur_db_name=frappe.conf.db_name)
+		self.addCleanup(secondary_database.close)
+		secondary_database.connect()
+		cache_key = f"table_columns::{self.table_name}"
+		frappe.db.sql_ddl(f"CREATE TABLE `{self.table_name}` (`name` TEXT)")
+
+		database.sql(f"ALTER TABLE `{self.table_name}` ADD COLUMN `value` TEXT")
+		self.assertEqual(database.get_db_table_columns(self.table_name), ["name", "value"])
+		self.assertIsNone(frappe.client_cache.get_value(cache_key))
+
+		self.assertEqual(secondary_database.get_db_table_columns(self.table_name), ["name"])
+		secondary_database.rollback()
+
+		database.commit()
+		self.assertIsNone(frappe.client_cache.get_value(cache_key))
+		self.assertEqual(secondary_database.get_db_table_columns(self.table_name), ["name", "value"])
+		secondary_database.rollback()
+
 	def get_test_meta(self, field: frappe._dict):
 		class TestMeta(frappe._dict):
 			def get(self, key, default=None):
@@ -1500,6 +1523,38 @@ class TestDDLCommandsSQLite(IntegrationTestCase):
 		)
 		self.assertEqual(frappe.db.sql(f"SELECT `value` FROM `{legacy_temp_table}`"), [("keep me",)])
 
+	def test_schema_sync_preserves_unique_expression_indexes(self) -> None:
+		from frappe.database.sqlite.database import get_table_indexes
+		from frappe.database.sqlite.schema import SQLiteTable
+
+		index_name = f"{self.table_name}_code_expression_unique"
+		self.create_doctype_table("`code` varchar(140), `other` varchar(140)")
+		frappe.db.sql_ddl(
+			f"CREATE UNIQUE INDEX `{index_name}` ON `{self.table_name}` (`code`, LOWER(`other`))"
+		)
+
+		table = SQLiteTable(
+			self.doctype,
+			self.get_test_meta(frappe._dict(fieldname="code", fieldtype="Data", unique=0)),
+		)
+		table.validate()
+		table.alter()
+
+		self.assertTrue(frappe.db.has_index(self.table_name, index_name))
+		expression_index = next(
+			index for index in get_table_indexes(self.table_name) if index["name"] == index_name
+		)
+		self.assertEqual(expression_index["columns"], ("code", None))
+		frappe.db.sql(
+			f"INSERT INTO `{self.table_name}` (`name`, `code`, `other`) VALUES (%s, %s, %s)",
+			("first", "same", "VALUE"),
+		)
+		with self.assertRaises(sqlite3.IntegrityError):
+			frappe.db.sql(
+				f"INSERT INTO `{self.table_name}` (`name`, `code`, `other`) VALUES (%s, %s, %s)",
+				("second", "same", "value"),
+			)
+
 	def test_rebuild_failure_rolls_back_to_the_original_table(self) -> None:
 		frappe.db.sql_ddl(f"CREATE TABLE `{self.table_name}` (`name` TEXT PRIMARY KEY, `value` TEXT)")
 		frappe.db.sql_ddl(f"CREATE INDEX `{self.table_name}_value_idx` ON `{self.table_name}` (`value`)")
@@ -1567,7 +1622,7 @@ class TestDDLCommandsSQLite(IntegrationTestCase):
 		definitions: dict[str, str | None] = {
 			"check": "`name` TEXT PRIMARY KEY, `value` TEXT CHECK (`value` <> '')",
 			"collation": "`name` TEXT PRIMARY KEY, `value` TEXT COLLATE NOCASE",
-			"foreign key": "`name` TEXT PRIMARY KEY, `parent` TEXT REFERENCES `parent` (`name`)",
+			"foreign key": "`name` TEXT PRIMARY KEY, `value` TEXT, `parent` TEXT REFERENCES `parent` (`name`)",
 			"generated": "`name` TEXT PRIMARY KEY, `value` TEXT, `normalized` TEXT AS (LOWER(`value`))",
 			"strict": None,
 			"without rowid": None,

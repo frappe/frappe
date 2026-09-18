@@ -386,7 +386,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		)
 		unique_columns, indexed_columns = set(), set()
 		for index in get_table_indexes(table_name):
-			if index["origin"] == "pk" or index["partial"]:
+			if index["origin"] == "pk" or index["partial"] or index["has_expressions"]:
 				continue
 			if index["unique"] and len(index["columns"]) == 1:
 				unique_columns.add(index["columns"][0])
@@ -513,15 +513,17 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 	def get_tables(self, cached=True):
 		"""Return list of tables."""
-		to_query = not cached
+		transaction_has_schema_changes = getattr(self, "_transaction_has_schema_changes", False)
+		to_query = not cached or transaction_has_schema_changes
 
-		if cached:
+		if cached and not transaction_has_schema_changes:
 			tables = frappe.client_cache.get_value("db_tables")
 			to_query = not tables
 
 		if to_query:
 			tables = self.sql("SELECT name FROM sqlite_master WHERE type='table';", pluck=True)
-			frappe.client_cache.set_value("db_tables", tables)
+			if not transaction_has_schema_changes:
+				frappe.client_cache.set_value("db_tables", tables)
 
 		return tables
 
@@ -625,6 +627,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 
 		self._conn.commit()
 		self.transaction_writes = 0
+		self._invalidate_transactional_schema_cache()
 		self._transaction_has_schema_changes = False
 		self.begin()  # explicitly start a new transaction
 
@@ -669,7 +672,8 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def get_db_table_columns(self, table) -> list[str]:
 		"""Return list of column names from given table."""
 		key = f"table_columns::{table}"
-		columns = frappe.client_cache.get_value(key)
+		transaction_has_schema_changes = getattr(self, "_transaction_has_schema_changes", False)
+		columns = None if transaction_has_schema_changes else frappe.client_cache.get_value(key)
 		if columns is None:
 			columns = self.sql(
 				"SELECT * FROM pragma_table_info(%s)",
@@ -679,7 +683,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			)
 			columns = [col["name"] for col in columns]
 
-			if columns:
+			if columns and not transaction_has_schema_changes:
 				frappe.client_cache.set_value(key, columns)
 
 		return columns
@@ -830,7 +834,6 @@ def get_table_indexes(table_name: str) -> list[dict]:
 				as_dict=True,
 				_skip_sqlite_transpilation=True,
 			)
-			if column["name"] is not None
 		)
 		definition = frappe.db.sql(
 			"SELECT sql FROM sqlite_master WHERE type = 'index' AND name = %s",
@@ -844,6 +847,7 @@ def get_table_indexes(table_name: str) -> list[dict]:
 				"origin": index["origin"],
 				"partial": bool(index["partial"]),
 				"columns": columns,
+				"has_expressions": any(column is None for column in columns),
 				"sql": definition[0] if definition else None,
 			}
 		)
@@ -903,7 +907,7 @@ def _append_primary_key(column_definitions: list[str], table_name: str) -> None:
 
 
 def _should_drop_index(index: dict, drop_index_fields: set[str], drop_unique_fields: set[str]) -> bool:
-	if index["partial"] or len(index["columns"]) != 1:
+	if index["partial"] or index["has_expressions"] or len(index["columns"]) != 1:
 		return False
 	fieldname = index["columns"][0]
 	if index["unique"]:

@@ -194,8 +194,7 @@ def clear_log_table(doctype, days=90):
 		frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `{temporary}`")
 		raise
 	else:
-		if frappe.db.db_type == "sqlite":
-			frappe.db.commit()
-			return
-		frappe.db.sql_ddl(f"DROP TABLE `{backup}`")
-		frappe.db.commit()
+		if frappe.db.db_type != "sqlite":
+			frappe.db.sql_ddl(f"DROP TABLE `{backup}`")
+		# Each cleanup is a durable unit of progress and releases locks before the next log table.
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
