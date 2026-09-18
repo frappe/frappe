@@ -130,7 +130,7 @@
 	padding: 6px 8px;
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);
-	background: var(--gray-50);
+	background: var(--surface-gray-1);
 	max-height: 100px;
 	overflow: hidden;
 	margin-bottom: 2px;
@@ -163,7 +163,7 @@
 	color: var(--text-muted);
 	padding: 10px 12px 8px;
 	border-bottom: 1px solid var(--border-color);
-	background: var(--gray-50);
+	background: var(--surface-gray-1);
 	flex-shrink: 0;
 }
 .pfb-html-ctrl-host {
@@ -221,7 +221,7 @@
 	overflow: hidden;
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);
-	background: var(--gray-50);
+	background: var(--surface-gray-1);
 	box-sizing: border-box;
 }
 

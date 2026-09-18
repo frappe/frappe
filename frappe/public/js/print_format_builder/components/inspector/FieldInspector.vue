@@ -290,7 +290,7 @@ let field_is_inline = computed(() => parent_section.value?.field_orientation ===
 }
 
 .pfb-breadcrumb-btn:hover {
-	background: var(--gray-100);
+	background: var(--surface-gray-2);
 }
 
 .pfb-breadcrumb-label {
