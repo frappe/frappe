@@ -85,10 +85,10 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 	const add = (reason) => !blockers.includes(reason) && blockers.push(reason);
 	if (print_format?.custom_format) return [__("Custom HTML format")];
 	if (!print_format?.print_format_builder_beta) return [__("Not a builder format")];
-	if ((print_format?.css || "").trim()) add(__("Custom CSS on the format"));
+	if ((print_format?.css || "").trim()) add(__("Custom CSS in the Style box"));
+	const colors = new Set();
 	for (const key of ["label_color", "value_color"]) {
-		if (non_hex_color(print_format?.[key]))
-			add(__("Format color Typst can't render: {0}", [print_format[key]]));
+		if (non_hex_color(print_format?.[key])) colors.add(print_format[key]);
 	}
 	if (letterhead) {
 		if ((letterhead.custom_css || "").trim()) add(__("Letterhead with custom CSS"));
@@ -117,7 +117,6 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 		}
 		if (node.fieldtype === "HTML") add(__("Custom HTML block"));
 		if (node.fieldtype === "Field Template") add(__("Field Template (Jinja HTML)"));
-		if (node.fieldtype === "Linked Field") add(__("Linked Field"));
 		if (node.fieldtype === "Barcode") {
 			if (node.custom) {
 				if (node.barcode_format !== "QR") add(__("Barcode (non-QR)"));
@@ -130,11 +129,11 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 		if (node.fieldtype === "Image" && /^https?:\/\//.test(node.image_url || ""))
 			add(__("Remote image URL"));
 		for (const key of ["label_color", "value_color"]) {
-			if (non_hex_color(node[key]))
-				add(__("Field color Typst can't render: {0}", [node[key]]));
+			if (non_hex_color(node[key])) colors.add(node[key]);
 		}
 	}
-	if (unknown.size) add(__("Untranslatable CSS: {0}", [[...unknown].join(", ")]));
+	if (colors.size) add(__("Colors Typst can't render: {0}", [[...colors].join(", ")]));
+	if (unknown.size) add(__("Field styles Typst can't render: {0}", [[...unknown].join(", ")]));
 	return blockers;
 }
 

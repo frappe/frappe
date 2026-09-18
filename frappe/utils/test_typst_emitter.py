@@ -73,7 +73,7 @@ class TestTypstGate(IntegrationTestCase):
 			"Not a builder format", typst_blockers(self.pf(print_format_builder_beta=0), layout_with())
 		)
 		self.assertIn(
-			"Custom CSS on the format", typst_blockers(self.pf(css=".x { color: red }"), layout_with())
+			"Custom CSS in the Style box", typst_blockers(self.pf(css=".x { color: red }"), layout_with())
 		)
 
 	def test_custom_style_blocks_only_untranslatable_properties(self):
@@ -271,7 +271,7 @@ class TestTypstGate(IntegrationTestCase):
 		"""HTML renders any CSS color; Typst emits only rgb("#..."), so a non-hex
 		field/format color is gated (falls back to Chromium) rather than dropped."""
 		self.assertIn(
-			"Field color Typst can't render: red",
+			"Colors Typst can't render: red",
 			typst_blockers(
 				self.pf(),
 				layout_with({"fieldtype": "Data", "fieldname": "x", "label_color": "red"}),
@@ -286,7 +286,7 @@ class TestTypstGate(IntegrationTestCase):
 		)
 		self.assertTrue(
 			any(
-				"Format color" in b
+				"Colors Typst can't render: rgb(1,2,3)" in b
 				for b in typst_blockers(
 					self.pf(value_color="rgb(1,2,3)"),
 					layout_with({"fieldtype": "Data", "fieldname": "x"}),

@@ -38,7 +38,6 @@ def pt(px, default=0.0) -> float:
 BLOCKER_FIELDTYPES = {
 	"HTML": "Custom HTML block",
 	"Field Template": "Field Template (Jinja HTML)",
-	"Linked Field": "Linked Field",
 }
 
 PAGE_NUMBER_POSITIONS = {
@@ -131,7 +130,7 @@ def typst_blockers(print_format, layout) -> list[str]:
 		blockers.append(_("Not a builder format"))
 		return blockers
 	if (print_format.get("css") or "").strip():
-		blockers.append(_("Custom CSS on the format"))
+		blockers.append(_("Custom CSS in the Style box"))
 
 	if not isinstance(layout, dict):
 		return blockers
@@ -146,31 +145,28 @@ def typst_blockers(print_format, layout) -> list[str]:
 		)
 		blockers.extend(letterhead_blockers(lh))
 
-	for key in _COLOR_KEYS:
-		value = print_format.get(key)
-		if value and not safe_color(value):
-			blockers.append(_("Format color Typst can't render: {0}").format(value))
-
+	colors = _unsafe_colors(print_format)
+	unknown_css = []
 	seen = set()
-	for where, node in _walk(layout):
+	for _where, node in _walk(layout):
 		style = node.get("custom_style")
 		if isinstance(style, str) and style.strip():
 			_effects, unknown = translate_custom_style(style)
-			if unknown:
-				key = ("custom_style", where)
-				if key not in seen:
-					seen.add(key)
-					blockers.append(_("Untranslatable CSS on {0}: {1}").format(where, ", ".join(unknown)))
+			unknown_css.extend(u for u in unknown if u not in unknown_css)
+		colors.extend(c for c in _unsafe_colors(node) if c not in colors)
 		fieldtype_reason = BLOCKER_FIELDTYPES.get(node.get("fieldtype"))
 		reason = (
 			(_(fieldtype_reason) if fieldtype_reason else None)
 			or _barcode_blocker(node, print_format)
 			or _image_blocker(node)
-			or _color_blocker(node)
 		)
 		if reason and reason not in seen:
 			seen.add(reason)
 			blockers.append(reason)
+	if colors:
+		blockers.append(_("Colors Typst can't render: {0}").format(", ".join(colors)))
+	if unknown_css:
+		blockers.append(_("Field styles Typst can't render: {0}").format(", ".join(unknown_css)))
 	return blockers
 
 
@@ -225,12 +221,8 @@ def _image_blocker(df):
 _COLOR_KEYS = ("label_color", "value_color")
 
 
-def _color_blocker(df):
-	for key in _COLOR_KEYS:
-		value = df.get(key)
-		if value and not safe_color(value):
-			return _("Field color Typst can't render: {0}").format(value)
-	return None
+def _unsafe_colors(df):
+	return [df.get(key) for key in _COLOR_KEYS if df.get(key) and not safe_color(df.get(key))]
 
 
 def has_typst_blocks(layout) -> bool:
@@ -783,7 +775,7 @@ class TypstEmitter:
 			return self._table(df)
 		if fieldtype == "Barcode":
 			return self._barcode(df)
-		if fieldtype in ("Image", "Attach Image"):
+		if fieldtype in ("Image", "Attach Image") or df.get("renderer") == "AttachImage":
 			return self._image(df)
 		if fieldtype == "Repeater":
 			return self._repeater(df)
@@ -819,6 +811,8 @@ class TypstEmitter:
 			)
 
 	def _formatted_value(self, df):
+		if df.get("fieldtype") == "Linked Field":
+			return _text_value(df.get("_value") or "")
 		fieldname = df.get("fieldname")
 		if not fieldname:
 			return ""
@@ -948,7 +942,11 @@ class TypstEmitter:
 		return name
 
 	def _image(self, df) -> str:
-		src = df.get("image_url") or (self.doc.get(df.get("fieldname")) if df.get("fieldname") else "")
+		src = (
+			df.get("image_url")
+			or df.get("_value")
+			or (self.doc.get(df.get("fieldname")) if df.get("fieldname") else "")
+		)
 		if not src:
 			return ""
 		name = self._embed_image(src)
