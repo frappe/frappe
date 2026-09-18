@@ -5,6 +5,8 @@ part under its own top-level key. `GET /api/v2/doctype/<doctype>/meta?include=ch
 does the same for the child-table doctypes.
 """
 
+from collections.abc import Iterable
+
 import frappe
 from frappe import _
 from frappe.desk.doctype.favourite.favourite import get_favourites as get_favourite_rows
@@ -43,13 +45,14 @@ def add_meta_parts(doctype: str, include: list[str]) -> None:
 	for part in include:
 		if part not in META_PARTS:
 			raise UnknownPartError(part, META_PARTS)
+	for part in include:
 		frappe.response[part] = META_PARTS[part](doctype)
 
 
 class UnknownPartError(frappe.ValidationError):
 	http_status_code = 417
 
-	def __init__(self, part: str, known: dict):
+	def __init__(self, part: str, known: Iterable[str]):
 		super().__init__(_("Unknown include part {0}. Known parts: {1}").format(part, ", ".join(known)))
 
 
@@ -101,10 +104,11 @@ def get_link_titles(doc: Document) -> dict:
 
 
 USERS_PART = "users"
-USER_KEYS = ("user", "owner", "modified_by", "comment_by")
+USER_KEYS = ("user", "owner")
 
 
 def get_users(doc: Document, include: list[str]) -> dict:
+	"""Names and images keyed by user; the v2 keys are `full_name` and `user_image`, not v1's `fullname`/`image`."""
 	names = {doc.owner, doc.modified_by}
 	for part in include:
 		rows = frappe.response.get(part)
@@ -123,8 +127,9 @@ def get_users(doc: Document, include: list[str]) -> dict:
 
 def mark_seen(doc: Document) -> list[str]:
 	seen = frappe.parse_json(doc.get("_seen") or "[]")
-	if doc.meta.track_seen and frappe.session.user not in seen:
-		# add_seen writes after the response, so the list is composed here
+	# the same guard as add_seen, which writes after the response; the list is composed here
+	writes = doc.meta.track_seen and not frappe.flags.read_only and not doc.meta.issingle
+	if writes and frappe.session.user not in seen:
 		doc.add_seen()
 		seen.append(frappe.session.user)
 	return seen
@@ -145,10 +150,9 @@ DOCUMENT_PARTS = {
 
 def get_children(doctype: str) -> list[dict]:
 	meta = frappe.get_meta(doctype)
-	return [
-		frappe.get_meta(df.options).as_dict(no_nulls=True)
-		for df in meta.get_table_fields(include_computed=True)
-	]
+	# two table fields can share one child doctype
+	children = {df.options for df in meta.get_table_fields(include_computed=True)}
+	return [frappe.get_meta(child).as_dict(no_nulls=True) for child in sorted(children)]
 
 
 META_PARTS = {"children": get_children}

@@ -1,5 +1,6 @@
 import json
 import typing
+from functools import cached_property
 from random import choice
 from unittest.mock import patch
 
@@ -9,6 +10,7 @@ import frappe
 import frappe.share
 from frappe.api import discovery
 from frappe.installer import update_site_config
+from frappe.model.document import Document
 from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
 from frappe.tests.utils import toggle_test_mode, wait_for_job, whitelist_for_tests
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
@@ -906,6 +908,7 @@ class TestIncludePartsV2(FrappeAPITestCase):
 
 	@classmethod
 	def setUpClass(cls):
+		# the test client answers on another thread, so fixtures are committed to be visible there
 		super().setUpClass()
 		if not frappe.db.exists("User", cls.TEST_USER):
 			frappe.get_doc(
@@ -946,7 +949,7 @@ class TestIncludePartsV2(FrappeAPITestCase):
 				"reference_name": cls.todo.name,
 			}
 		).insert(ignore_permissions=True)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 	@classmethod
 	def tearDownClass(cls):
@@ -955,23 +958,32 @@ class TestIncludePartsV2(FrappeAPITestCase):
 		frappe.delete_doc_if_exists("ToDo", cls.assignment.name, force=True)
 		frappe.delete_doc_if_exists("ToDo", cls.todo.name, force=True)
 		frappe.delete_doc_if_exists("User", cls.TEST_USER, force=True)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 		super().tearDownClass()
 
+	@cached_property
 	def user_sid(self) -> str:
 		from frappe.auth import CookieManager, LoginManager
 		from frappe.utils import set_request
 
+		original_request = getattr(frappe.local, "request", None)
 		set_request(path="/")
-		frappe.local.cookie_manager = CookieManager()
-		frappe.local.login_manager = LoginManager()
-		frappe.local.login_manager.login_as(self.TEST_USER)
-		return frappe.session.sid
+		try:
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as(self.TEST_USER)
+			return frappe.session.sid
+		finally:
+			frappe.local.request = original_request
 
 	def read(self, include: str, name: str | None = None):
 		return self.get(
-			self.resource("ToDo", name or self.todo.name), {"sid": self.user_sid(), "include": include}
+			self.resource("ToDo", name or self.todo.name), {"sid": self.user_sid, "include": include}
 		)
+
+	def seed_seen(self, users: list[str]):
+		frappe.db.set_value("ToDo", self.todo.name, "_seen", json.dumps(users), update_modified=False)
+		frappe.db.commit()  # nosemgrep
 
 	def test_parts_beside_the_document(self):
 		response = self.read("permissions,attachments,assignments,shares,tags,favourites,comments,users")
@@ -992,17 +1004,27 @@ class TestIncludePartsV2(FrappeAPITestCase):
 		self.assertIn("Administrator", body["users"])
 
 	def test_bare_read_has_no_parts_and_marks_nothing(self):
-		response = self.read("")
+		with patch.object(Document, "add_seen") as add_seen:
+			response = self.read("")
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(set(response.json), {"data"})
-		self.assertEqual(frappe.db.get_value("ToDo", self.todo.name, "_seen"), None)
+		add_seen.assert_not_called()
 
 	def test_seen_marks_and_returns_the_list(self):
-		response = self.read("seen")
+		# a GET's write is rolled back under test, so the mark is asserted on the call
+		self.seed_seen(["other@example.com"])
+		with patch.object(Document, "add_seen") as add_seen:
+			response = self.read("seen")
 		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json["seen"], ["other@example.com", self.TEST_USER])
+		add_seen.assert_called_once()
+
+	def test_seen_does_not_mark_twice(self):
+		self.seed_seen([self.TEST_USER])
+		with patch.object(Document, "add_seen") as add_seen:
+			response = self.read("seen")
 		self.assertEqual(response.json["seen"], [self.TEST_USER])
-		# a GET rolls back under test, so persistence is add_seen's contract; a second read must not duplicate
-		self.assertEqual(self.read("seen").json["seen"], [self.TEST_USER])
+		add_seen.assert_not_called()
 
 	def test_unknown_part_is_an_error(self):
 		with suppress_stdout():
@@ -1012,9 +1034,7 @@ class TestIncludePartsV2(FrappeAPITestCase):
 		self.assertNotIn("permissions", response.json)
 
 	def test_meta_children(self):
-		response = self.get(
-			self.doctype_path("User", "meta"), {"sid": self.user_sid(), "include": "children"}
-		)
+		response = self.get(self.doctype_path("User", "meta"), {"sid": self.user_sid, "include": "children"})
 		self.assertEqual(response.status_code, 200, response.json)
 		self.assertEqual(response.json["data"]["name"], "User")
 		self.assertIn("Has Role", [child["name"] for child in response.json["children"]])
@@ -1022,7 +1042,7 @@ class TestIncludePartsV2(FrappeAPITestCase):
 	def test_meta_unknown_part_is_an_error(self):
 		with suppress_stdout():
 			response = self.get(
-				self.doctype_path("User", "meta"), {"sid": self.user_sid(), "include": "fields"}
+				self.doctype_path("User", "meta"), {"sid": self.user_sid, "include": "fields"}
 			)
 		self.assertEqual(response.status_code, 417)
 		self.assertEqual(response.json["errors"][0]["type"], "UnknownPartError")

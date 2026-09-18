@@ -85,8 +85,8 @@ def logout():
 def read_doc(doctype: str, name: str):
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
-	add_document_parts(doc, parse_include(frappe.form_dict.get("include")))
 	doc.apply_fieldlevel_read_permissions()
+	add_document_parts(doc, parse_include(frappe.form_dict.get("include")))
 	_doc = doc.as_dict()
 
 	for key in _doc:
