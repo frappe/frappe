@@ -50,7 +50,7 @@ defineEmits(["decrement", "increment", "input"]);
 const input_width = computed(() => {
 	const shown =
 		props.value === "" || props.value == null ? props.placeholder : String(props.value);
-	return Math.max(shown.length, 1) + 1 + "ch";
+	return Math.max(shown.length, 1) + "ch";
 });
 </script>
 
@@ -67,14 +67,14 @@ const input_width = computed(() => {
 	display: flex;
 	align-items: baseline;
 	justify-content: center;
-	gap: 3px;
+	gap: 2px;
 	font-size: var(--text-sm);
 	color: var(--text-color);
 }
 
 .pfb-stepper-input {
 	min-width: 0;
-	text-align: center;
+	text-align: right;
 	font-size: var(--text-sm);
 	font-variant-numeric: tabular-nums;
 	border: none;
