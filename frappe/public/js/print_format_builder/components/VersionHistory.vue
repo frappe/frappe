@@ -52,7 +52,7 @@
 				@click.stop="discard"
 				v-html="frappe.utils.icon('rotate-ccw', 'sm')"
 			></button>
-			<span v-html="frappe.avatar(print_format.modified_by, 'avatar-small')"></span>
+			<span v-html="frappe.avatar(print_format.modified_by, 'avatar-xs')"></span>
 		</div>
 		<div v-if="versions.length" class="pfb-history-label">{{ __("Saved versions") }}</div>
 		<div
@@ -92,7 +92,7 @@
 				@click.stop="remove(v)"
 				v-html="frappe.utils.icon('trash', 'sm')"
 			></button>
-			<span v-html="frappe.avatar(v.owner, 'avatar-small')"></span>
+			<span v-html="frappe.avatar(v.owner, 'avatar-xs')"></span>
 		</div>
 	</div>
 </template>
@@ -147,9 +147,9 @@ onMounted(() => store.load_versions());
 }
 .pfb-history-row {
 	display: flex;
-	align-items: flex-start;
-	gap: 10px;
-	padding: 8px 10px;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 10px;
 	border-radius: var(--radius);
 }
 .pfb-history-row--link {
@@ -162,9 +162,8 @@ onMounted(() => store.load_versions());
 	background: var(--surface-gray-2);
 }
 .pfb-history-dot {
-	width: 8px;
-	height: 8px;
-	margin-top: 6px;
+	width: 6px;
+	height: 6px;
 	border-radius: 50%;
 	flex-shrink: 0;
 	background: var(--surface-gray-5);
@@ -180,18 +179,22 @@ onMounted(() => store.load_versions());
 	min-width: 0;
 }
 .pfb-history-name {
-	font-size: var(--text-base);
+	font-size: var(--text-sm);
+	font-weight: var(--weight-medium);
 	color: var(--text-color);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 .pfb-history-meta {
-	font-size: var(--text-sm);
+	font-size: var(--text-xs);
 	color: var(--text-muted);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 .pfb-history-label {
-	padding: 10px 10px 4px;
+	padding: 10px 10px 2px;
 	font-size: var(--text-xs);
 	color: var(--text-muted);
 }
