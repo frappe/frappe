@@ -349,7 +349,8 @@ function draw_gap_bands(el, change) {
 
 function draw_ghost_width(el, change) {
 	const doc = el.ownerDocument;
-	const before = String(change.before || "");
+	const before =
+		typeof change.before === "number" ? `${change.before}%` : String(change.before || "");
 	if (!before) return;
 	el.appendChild(
 		place(make(doc, "pfb-diff-ghost", `${__("was")} ${before}`), {
