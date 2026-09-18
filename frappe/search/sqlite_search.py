@@ -1771,13 +1771,12 @@ def build_index(
 	if search.index_exists() and not force:
 		return
 
-	# For continuation jobs, always proceed regardless of existing index
-	if is_continuation or force:
-		if is_continuation:
-			print(f"{SearchClass.__name__}: Continuing incremental index build...")
-		else:
-			print(f"{SearchClass.__name__}: Index does not exist or force=True, building...")
-		search.build_index(is_continuation=is_continuation)
+	if is_continuation:
+		print(f"{SearchClass.__name__}: Continuing incremental index build...")
+	else:
+		print(f"{SearchClass.__name__}: Index does not exist or force=True, building...")
+
+	search.build_index(is_continuation=is_continuation)
 
 
 def _enqueue_index_job(search_class_path: str, is_continuation: bool = False):
