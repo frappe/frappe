@@ -296,6 +296,7 @@ def run_doc_method(doctype, name, doc_method, **kwargs):
 def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True, retry=0):
 	"""Executes job in a worker, performs commit/rollback and logs if there is any error"""
 	retval = None
+	retrying = False
 
 	if is_async:
 		frappe.init(site, force=True, is_job=True)
@@ -349,7 +350,9 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 			# 1205 = lock wait timeout
 			# or RetryBackgroundJobError is explicitly raised
 			frappe.job.after_job.reset()
-			frappe.destroy()
+			retrying = True
+			if is_async:
+				frappe.destroy()
 			time.sleep(retry + 1)
 
 			return execute_job(
@@ -380,15 +383,16 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		return retval
 
 	finally:
-		if not hasattr(frappe.local, "site"):
-			frappe.init(site, force=True, is_job=True)
-			frappe.connect()
-		for after_job_task in frappe.get_hooks("after_job"):
-			frappe.call(after_job_task, method=method_name, kwargs=kwargs, result=retval)
-		frappe.local.job.after_job.run()
+		if not retrying:
+			if not hasattr(frappe.local, "site"):
+				frappe.init(site, force=True, is_job=True)
+				frappe.connect()
+			for after_job_task in frappe.get_hooks("after_job"):
+				frappe.call(after_job_task, method=method_name, kwargs=kwargs, result=retval)
+			frappe.local.job.after_job.run()
 
-		if is_async:
-			frappe.destroy()
+			if is_async:
+				frappe.destroy()
 
 
 def start_worker(

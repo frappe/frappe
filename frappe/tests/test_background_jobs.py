@@ -1,5 +1,6 @@
 import time
 from contextlib import contextmanager
+from contextvars import copy_context
 from unittest.mock import patch
 
 from rq import Queue
@@ -144,6 +145,44 @@ class TestBackgroundJobs(IntegrationTestCase):
 		rollback.assert_called_once_with(chain=True)
 		commit.assert_called_once_with(chain=True)
 		sleep.assert_called_once_with(1)
+
+	def test_async_job_retry_keeps_cleanup_context(self):
+		attempts = 0
+		after_job_calls = 0
+		database_class = type(frappe.local.db)
+		site = frappe.local.site
+
+		def record_after_job():
+			nonlocal after_job_calls
+			after_job_calls += 1
+
+		def locked_once():
+			nonlocal attempts
+			attempts += 1
+			if attempts == 1:
+				raise frappe.QueryDeadlockError("database is locked")
+			frappe.local.job.after_job.add(record_after_job)
+			return "completed"
+
+		with (
+			patch.object(database_class, "rollback"),
+			patch.object(database_class, "commit"),
+			patch("frappe.utils.background_jobs.time.sleep"),
+			patch("frappe.utils.background_jobs.frappe.get_hooks", return_value=[]),
+		):
+			result = copy_context().run(
+				execute_job,
+				site,
+				locked_once,
+				None,
+				"async-locked-once",
+				{},
+				is_async=True,
+			)
+
+		self.assertEqual(result, "completed")
+		self.assertEqual(attempts, 2)
+		self.assertEqual(after_job_calls, 1)
 
 	def test_job_retry_preserves_user(self):
 		def locked_once():
