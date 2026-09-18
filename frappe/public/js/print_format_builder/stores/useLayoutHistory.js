@@ -4,6 +4,7 @@ export function useLayoutHistory(layoutRef, clearSelection) {
 	let history = [];
 	let redo_stack = [];
 	let restoring = false;
+	let paused = false;
 	let last_snap = null;
 	const can_undo = ref(false);
 	const can_redo = ref(false);
@@ -49,6 +50,11 @@ export function useLayoutHistory(layoutRef, clearSelection) {
 		restore(redo_stack.pop());
 	}
 
+	function pause(value) {
+		paused = value;
+		if (!value) last_snap = JSON.stringify(layoutRef.value);
+	}
+
 	function reset() {
 		history = [];
 		redo_stack = [];
@@ -59,7 +65,7 @@ export function useLayoutHistory(layoutRef, clearSelection) {
 	watch(
 		layoutRef,
 		() => {
-			if (restoring) {
+			if (restoring || paused) {
 				restoring = false;
 				return;
 			}
@@ -68,5 +74,5 @@ export function useLayoutHistory(layoutRef, clearSelection) {
 		{ deep: true }
 	);
 
-	return { undo, redo, reset, can_undo, can_redo };
+	return { undo, redo, reset, pause, can_undo, can_redo };
 }

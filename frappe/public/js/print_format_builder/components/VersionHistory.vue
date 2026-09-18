@@ -22,7 +22,11 @@
 			></button>
 		</div>
 		<div class="pfb-history-list">
-			<div class="pfb-history-row pfb-history-row--current">
+			<div
+				class="pfb-history-row pfb-history-row--link"
+				:class="{ 'pfb-history-row--current': !viewing_version }"
+				@click="store.exit_version()"
+			>
 				<span class="pfb-history-dot" data-kind="current"></span>
 				<div class="pfb-history-text">
 					<div class="pfb-history-name">{{ __("Current version") }}</div>
@@ -35,7 +39,17 @@
 					</div>
 				</div>
 			</div>
-			<div class="pfb-history-row pfb-history-row--link" @click="preview_published">
+			<div
+				class="pfb-history-row pfb-history-row--link"
+				:class="{ 'pfb-history-row--current': viewing_version?.published }"
+				@click="
+					view({
+						published: true,
+						label: __('Published version'),
+						when: when(print_format.modified),
+					})
+				"
+			>
 				<span class="pfb-history-dot" data-kind="published"></span>
 				<div class="pfb-history-text">
 					<div class="pfb-history-name">{{ __("Published version") }}</div>
@@ -60,7 +74,8 @@
 				v-for="v in versions"
 				:key="v.name"
 				class="pfb-history-row pfb-history-row--link"
-				@click="preview(v)"
+				:class="{ 'pfb-history-row--current': viewing_version?.name === v.name }"
+				@click="view({ ...v, label: v.label || __('Saved'), when: when(v.creation) })"
 			>
 				<span
 					class="pfb-history-dot"
@@ -91,9 +106,9 @@
 <script setup>
 import { inject, onMounted } from "vue";
 
-const emit = defineEmits(["close", "preview"]);
+defineEmits(["close"]);
 const store = inject("$store");
-const { print_format, has_draft, versions } = store;
+const { print_format, has_draft, versions, viewing_version } = store;
 
 function when(value) {
 	return frappe.datetime.prettyDate(value);
@@ -118,17 +133,8 @@ function restore(v) {
 	);
 }
 
-function preview_published() {
-	frappe.db.get_doc("Print Format", print_format.value.name).then((doc) => emit("preview", doc));
-}
-
-function preview(v) {
-	frappe
-		.call("frappe.printing.doctype.print_format.print_format.get_version_fields", {
-			name: print_format.value.name,
-			version: v.name,
-		})
-		.then((r) => emit("preview", { ...print_format.value, ...r.message }));
+function view(version) {
+	store.view_version(version);
 }
 
 function discard() {

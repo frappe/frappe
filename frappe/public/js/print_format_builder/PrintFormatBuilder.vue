@@ -68,9 +68,41 @@
 					</div>
 				</div>
 			</div>
+			<div v-if="$store.viewing_version.value" class="pfb-viewing-banner">
+				<span v-html="frappe.utils.icon('history', 'sm')"></span>
+				<span>
+					{{
+						__("Viewing {0} ({1}). Editing is off.", [
+							$store.viewing_version.value.label,
+							$store.viewing_version.value.when,
+						])
+					}}
+				</span>
+				<span class="pfb-viewing-actions">
+					<button
+						class="es-button"
+						data-variant="subtle"
+						data-size="sm"
+						@click="$store.exit_version()"
+					>
+						{{ __("Back to current") }}
+					</button>
+					<button
+						class="es-button"
+						data-variant="solid"
+						data-size="sm"
+						@click="restore_viewed"
+					>
+						{{ __("Restore this version") }}
+					</button>
+				</span>
+			</div>
 			<div
 				class="print-format-container"
-				:class="{ 'pfb-marquee-dragging': marquee_dragging }"
+				:class="{
+					'pfb-marquee-dragging': marquee_dragging,
+					'pfb-viewing': $store.viewing_version.value,
+				}"
 				:style="{ '--pfb-zoom': canvas_zoom / 100 }"
 				@click="clear_selection"
 				@pointerdown="on_canvas_pointerdown"
@@ -83,16 +115,7 @@
 				<component :is="PrintFormat" v-else />
 			</div>
 		</div>
-		<VersionHistory
-			v-if="show_history"
-			@close="show_history = false"
-			@preview="(doc) => (preview_version = doc)"
-		/>
-		<Preview
-			v-if="preview_version"
-			:format="preview_version"
-			@close="preview_version = null"
-		/>
+		<VersionHistory v-if="show_history" @close="close_history" />
 		<FieldInspector v-else-if="!$store.needs_setup.value" />
 		<Preview v-if="show_preview" @close="show_preview = false" />
 		<ContextMenu />
@@ -130,7 +153,6 @@ const ZOOM_LEVELS = [50, 60, 70, 80, 90, 100, 125, 150];
 
 let show_preview = ref(false);
 let show_history = ref(false);
-let preview_version = ref(null);
 let doc_picker_ref = ref(null);
 let doc_picker_ctrl = ref(null);
 let canvas_zoom = ref(nearest_zoom(parseInt(localStorage.getItem(ZOOM_KEY)) || 100));
@@ -154,7 +176,19 @@ function toggle_preview() {
 }
 
 function toggle_history() {
-	show_history.value = !show_history.value;
+	if (show_history.value) close_history();
+	else show_history.value = true;
+}
+
+function close_history() {
+	$store.value.exit_version();
+	show_history.value = false;
+}
+
+function restore_viewed() {
+	const v = $store.value.viewing_version.value;
+	if (v.published) $store.value.discard_draft();
+	else $store.value.restore_version(v.name);
 }
 
 const SETTINGS_DOCTYPE = "Print Settings";
@@ -327,7 +361,7 @@ function is_typing_context() {
 }
 
 function handle_keydown(e) {
-	if (show_preview.value || preview_version.value) return;
+	if (show_preview.value || $store.value.viewing_version.value) return;
 	// Zoom shortcuts: Ctrl+= / Ctrl+- / Ctrl+0
 	if (e.ctrlKey || e.metaKey) {
 		if (e.key === "z" || e.key === "Z" || e.key === "y") {
@@ -681,6 +715,26 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 }
 
 /* ── Canvas scroll area ──────────────────────────────────── */
+.pfb-viewing-banner {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 12px;
+	font-size: var(--text-sm);
+	background: var(--bg-orange);
+	color: var(--text-on-orange);
+}
+
+.pfb-viewing-actions {
+	margin-left: auto;
+	display: flex;
+	gap: 6px;
+}
+
+.print-format-container.pfb-viewing {
+	pointer-events: none;
+}
+
 .print-format-container {
 	flex: 1;
 	overflow-y: auto;

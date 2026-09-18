@@ -17,6 +17,8 @@ export function getStore(print_format_name) {
 	// variables
 	let print_format = ref(null);
 	let versions = ref([]);
+	let viewing_version = ref(null);
+	let edit_state = null;
 	let letterhead = ref(null);
 	let meta = ref(null);
 	let layout = ref(null);
@@ -281,6 +283,9 @@ export function getStore(print_format_name) {
 			});
 	}
 	function discard_draft() {
+		edit_state = null;
+		viewing_version.value = null;
+		pause_history(false);
 		// freeze like save_changes does — an edit made while the round trip runs
 		// would be silently erased when fetch() replaces the layout
 		frappe.dom.freeze(__("Discarding…"));
@@ -317,7 +322,7 @@ export function getStore(print_format_name) {
 	let autosave_promise = null;
 	let applying = false;
 	function autosave_changes() {
-		if (!dirty.value || autosave_stopped) return;
+		if (!dirty.value || autosave_stopped || viewing_version.value) return;
 		if (applying || autosave_inflight || document.body.classList.contains("pfb-dragging")) {
 			autosave();
 			return;
@@ -429,7 +434,62 @@ export function getStore(print_format_name) {
 			.then(() => load_versions())
 			.then(() => frappe.show_alert({ message: __("Version saved"), indicator: "green" }));
 	}
+	const VERSION_FIELDS = [
+		"font",
+		"font_size",
+		"page_number",
+		"show_label_colon",
+		"margin_top",
+		"margin_bottom",
+		"margin_left",
+		"margin_right",
+		"label_color",
+		"value_color",
+		"css",
+	];
+	function show_version_fields(fields) {
+		const parsed =
+			typeof fields.format_data === "string"
+				? JSON.parse(fields.format_data)
+				: fields.format_data;
+		layout.value = parsed || get_default_layout();
+		layout.value.sections = layout.value.sections.filter((s) => !s.remove);
+		layout.value.header = migrate_to_section(layout.value.header);
+		layout.value.footer = migrate_to_section(layout.value.footer);
+		VERSION_FIELDS.forEach((f) => (print_format.value[f] = fields[f]));
+		selected_field.value = null;
+		selected_section.value = null;
+		nextTick(() => (dirty.value = false));
+	}
+	function view_version(version) {
+		const fields_ready = version.published
+			? frappe.db.get_doc("Print Format", print_format_name)
+			: frappe
+					.call("frappe.printing.doctype.print_format.print_format.get_version_fields", {
+						name: print_format_name,
+						version: version.name,
+					})
+					.then((r) => r.message);
+		return fields_ready.then((fields) => {
+			if (!edit_state) {
+				edit_state = get_preview_format_doc();
+				pause_history(true);
+			}
+			viewing_version.value = version;
+			show_version_fields(fields);
+		});
+	}
+	function exit_version() {
+		if (!edit_state) return;
+		show_version_fields(edit_state);
+		edit_state = null;
+		viewing_version.value = null;
+		pause_history(false);
+	}
 	function restore_version(version) {
+		edit_state = null;
+		viewing_version.value = null;
+		pause_history(false);
 		frappe.dom.freeze(__("Restoring…"));
 		draft_epoch++;
 		applying = true;
@@ -458,6 +518,7 @@ export function getStore(print_format_name) {
 		undo,
 		redo,
 		reset: reset_history,
+		pause: pause_history,
 		can_undo,
 		can_redo,
 	} = useLayoutHistory(layout, () => {
@@ -574,6 +635,9 @@ export function getStore(print_format_name) {
 		load_versions,
 		save_version,
 		restore_version,
+		viewing_version,
+		view_version,
+		exit_version,
 		can_undo,
 		can_redo,
 		get_preview_format_doc,
