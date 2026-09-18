@@ -29,6 +29,7 @@ class SearchIndex(Document):
 			self.enqueue_build()
 
 	def enqueue_build(self):
+		"""Queue after the commit: the job reads this record, and would find the older value."""
 		from frappe.search.sqlite_search import build_index
 
 		frappe.enqueue(
@@ -36,6 +37,7 @@ class SearchIndex(Document):
 			queue="long",
 			job_id=self.search_class,
 			deduplicate=True,
+			enqueue_after_commit=True,
 			timeout=2 * 60 * 60,
 			search_class_path=self.search_class,
 			force=True,
