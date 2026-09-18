@@ -1,26 +1,38 @@
-// Vertical rail left of the body sidebar listing the current app's workspaces, with the app logo
-// pinned to the top corner. Rendered by frappe.ui.Dock and opt-in per app.
+// Vertical rail listing the current app's modules, with the app logo pinned to the top corner.
+// Rendered by frappe.ui.Dock and opt-in per app.
+//
+// It is an overlay that is off screen until it is called for, not a column standing beside the
+// sidebar. The body sidebar holds the left edge of the window and is permanent; the rail slides in
+// over it when the pointer rests against that edge, the way the macOS Dock slides in over the
+// desktop. dock.js carries the reasoning for the edge test and the dwell; what is here is the
+// geometry.
 //
 // Every row carries an icon and its label side by side, the shape the body sidebar's own rows have,
-// so the two columns read as one list split in two rather than as a strip of glyphs beside a column
-// of words. The label names the workspace now, which is what retired the hover tooltips: a row says
+// so the two read as one vocabulary drawn twice rather than as a strip of glyphs beside a column
+// of words. The label names the workspace, which is what retired the hover tooltips: a row says
 // what it is without being pointed at.
 //
-// Nothing sits behind a glyph: every row, workspace and shortcut alike, is <RailItem variant=
-// "ghost">, transparent until the row is hovered or active, which is how the body sidebar's rows
-// have always drawn themselves.
+// Nothing sits behind a glyph: every row is <RailItem variant="ghost">, transparent until the row
+// is hovered or active, which is how the body sidebar's rows have always drawn themselves.
 :root {
 	--dock-width: 220px;
 }
 
 .dock {
-	position: relative;
-	flex: 0 0 var(--dock-width);
+	// Out of flow and pinned to the window's left edge. It reserves no width: the sidebar holds
+	// the edge and the rail comes over it, so nothing in the layout moves when it arrives or
+	// leaves -- which is the macOS behaviour, and the reason the page never reflows on a hover.
+	position: fixed;
+	left: 0;
+	top: 0;
 	width: var(--dock-width);
-	// Both, because the rail is a flex item: `flex-basis` is what the row lays out against and
-	// `width` is what it falls back to. Without this the collapse resolved in a single frame and
-	// the sidebar and the whole page beside it jumped 164px at once.
-	transition: flex-basis 0.18s ease, width 0.18s ease;
+	// Parked one full width off screen rather than hidden, so there is something for the transform
+	// to animate from and the rail is never mid-paint when it lands.
+	transform: translateX(-100%);
+	transition: transform 0.18s ease;
+	// Above the body sidebar's 1020: the rail covers the sidebar it was summoned from.
+	z-index: 1030;
+	box-shadow: 2px 0 14px rgba(0, 0, 0, 0.18);
 	height: 100vh;
 
 	display: flex;
@@ -56,28 +68,6 @@
 			width: 100%;
 		}
 	}
-
-	// Shortcuts (search, notifications) pinned under the logo. Rows on the same rhythm as the
-	// workspaces below them, held apart from that band by a gap rather than a rule. Collapses to
-	// nothing when no shortcut is enabled, taking its own bottom margin with it.
-	.dock-shortcuts {
-		flex: 0 0 auto;
-		width: 100%;
-		margin-bottom: 8px;
-		margin-top: 2px;
-		padding: 0 8px;
-
-		display: flex;
-		flex-direction: column;
-		align-items: stretch;
-		// `space-y-0.5`
-		gap: 2px;
-
-		&:empty {
-			display: none;
-		}
-	}
-
 	// A scroll container clips on both axes, and the active row's shadow spreads 3px sideways, so
 	// it was being cut off against the rail's edges. The band is widened by 4px all round and pulled
 	// back by the same margin: the rows land exactly where they did, and the shadow now falls inside
@@ -209,129 +199,30 @@
 			@extend .active-sidebar;
 			color: var(--ink-gray-8);
 		}
-
-		// unread indicator — a small dot on the icon's top-right corner (mirrors <RailItemBadge>
-		// dot). It marks the bell, not the row, so it hangs off the cell rather than the row's far
-		// end, a label's width away from the thing it is about.
-		.notification-count {
-			position: absolute;
-			top: -2px;
-			right: -2px;
-			width: 8px;
-			height: 8px;
-			padding: 0;
-			border-radius: 50%;
-			// A halo that holds the dot off whatever is under it, so it has to be the colour of
-			// the surface it actually sits on -- the rail's, not the page's. The two are the same
-			// thing in light and differ by a step in dark.
-			border: 1px solid var(--desk-sidebar-bg);
-			background: var(--ink-gray-9);
-			// dot only — hide any count text the shared notifications view sets on it
-			font-size: 0;
-			color: transparent;
-			overflow: hidden;
-
-			&.hidden {
-				display: none;
-			}
-		}
 	}
 }
 
-// While the rail is on screen it carries the header, the user button, search and notifications --
-// so the sidebar's copies go. The whole standard-items band goes with them, which is what finally
-// takes background tasks off a docked app's sidebar: it was the one of the three that showed there,
-// while its sibling bell was hidden.
+// The sidebar keeps everything it owns. The rail used to carry the header's menu, the user button,
+// search and notifications, and the sidebar's own copies were switched off to stop the pair saying
+// the same thing twice down one edge. That traded on the rail being the surface that is always
+// there. It is not any more -- it is an overlay a hover away -- so a sidebar stripped to bare
+// labels would be a permanent surface missing its furniture for the sake of a hidden one, and
+// nothing is taken off it here.
 //
-// The header is nearly that story, with one exception. Two full headers, one naming the app and one
-// the module, said the same thing twice down one edge of the screen -- but only one of the two
-// names is in the rail's, so the panel keeps its title and gives up everything around it: the mark,
-// the second line, and the height those needed. What is left names the list underneath it.
-//
-// It still opens the menu, and the chevron still says so; the rail's header carries a second copy
-// of the same menu (see Dock.refresh). A dock-less app draws the full header, since there is no
-// rail there to carry any of it.
-//
-// With no rail there is nothing to collapse *to*. Collapsing takes the
-// body sidebar off screen entirely (see .body-sidebar-container:not(.expanded)) and the way back
-// in is the rail's right-edge handle -- which a dock-less app does not have. So on a dock-less app
-// the panel's own collapse handle goes too.
-body:not(.dock-active) .body-sidebar .sidebar-resize-handle {
-	display: none;
-}
+// Nor does `dock-active` change where the sidebar starts. The rail is summoned by how close the
+// pointer is to the window's edge rather than by a strip drawn there to hover (see dock.js), so
+// there is nothing the sidebar has to be held back from: it keeps the edge, and the rail arrives
+// on top of it.
 
-// All of this is scoped to the widths where the rail is actually drawn. `dock-active` says the app
-// has a rail, not that one is on screen: the rail is display:none below md, and handing its jobs to
-// something that is not there left the drawer with no search, no notifications, no user button and
-// a stripped header.
+// Nothing collapses the sidebar on a desktop any more. Collapsing was the docked shape -- the panel
+// left the screen and the rail's edge handle was the way back -- and with the panel permanent there
+// is neither a state to collapse into nor a handle to return from. Below md it is still a drawer,
+// so this is scoped rather than deleted.
 @include media-breakpoint-up(md) {
-	body.dock-active .body-sidebar {
-		.dropdown-navbar-user,
-		.standard-items-band {
-			display: none;
-		}
-
-		// A label for the sidebar under it rather than a control: the menu it used to open hangs
-		// on the rail's header while there is a rail (see SidebarHeader.menu_on_rail), so the
-		// chevron goes with it and nothing here reacts to a pointer.
-		.sidebar-header {
-			height: 36px;
-			cursor: default;
-
-			&:hover,
-			&.hover,
-			&.active-sidebar {
-				background: none;
-			}
-
-			.header-logo,
-			.drop-icon {
-				display: none;
-			}
-
-			// With the mark gone the title leads the row, so it takes the inset the rows below have:
-			// 1px of .body-sidebar-top's padding plus the 8px their labels carry.
-			.header-title {
-				margin-left: 2px;
-				font-size: var(--text-base);
-			}
-		}
-	}
-
-	// The panel is an overlay only where something calls it up and something closes it, which is to say
-	// only where there is a rail: a docked app opens it from a rail row, it covers the page while it is
-	// out, and the next click elsewhere takes it away. So it goes out of flow here, its container
-	// measures 0, and the page runs the full width underneath.
-	//
-	// A dock-less app leaves it in flow (the default, see sidebar.scss), because there it is permanent
-	// and a permanent overlay is just a strip of the page you cannot use. Mobile leaves it out of flow
-	// in both modes, since there it is a drawer either way.
-	body.dock-active .body-sidebar {
-		position: absolute;
-	}
-
-	// Leading icons on the sidebar's own rows. A docked app leaves iconography to the rail and keeps
-	// a label-only sidebar next to it; a dock-less app has no rail, so the rows carry their icons
-	// themselves -- which is also what gives the standard-items band (search, notifications,
-	// background tasks) the icon-plus-label shape it is described as having.
-	//
-	// The template renders the span either way; the docked case hides it, so toggling the rail on or
-	// off is a class flip rather than a re-render.
-	//
-	// The selector carries the whole `.standard-sidebar-item .item-anchor` chain only to outweigh the
-	// rule that gives the span its `display: flex` in sidebar.scss -- two classes more specific than
-	// `body.dock-active .body-sidebar .sidebar-item-icon` would be on its own.
-	body.dock-active .body-sidebar .standard-sidebar-item .item-anchor .sidebar-item-icon {
+	.body-sidebar .sidebar-resize-handle {
 		display: none;
 	}
-
-	// The label's 8px margin is the gap between a glyph and its label. A docked app draws no glyph on
-	// these rows (see above), so there is nothing for that gap to be between: the label leads the row
-	// and the row's own 8px of padding is its whole inset.
-	body.dock-active .body-sidebar .standard-sidebar-item .sidebar-item-label {
-		margin-left: 0;
-	}
-} // media-breakpoint-up(md)
+}
 
 // The standard-items band: search, notifications and background tasks, directly under the header
 // and above the module's own items, behind a divider. Full-width rows in the sidebar's own
@@ -349,178 +240,24 @@ body:not(.dock-active) .body-sidebar .sidebar-resize-handle {
 	}
 }
 
-// Right-edge handle that reopens the collapsed body sidebar -- the mirror of the sidebar's own
-// .sidebar-resize-handle. Only present while collapsed (body.sidebar-collapsed), so it doesn't
-// offer an expand affordance when the sidebar is already open.
-.dock-resize-handle {
-	position: absolute;
-	top: 0;
-	right: -4px;
-	width: 8px;
-	height: 100%;
-	z-index: 1022;
-	cursor: e-resize;
-	display: none;
-
-	&::after {
-		content: "";
-		position: absolute;
-		left: 50%;
-		top: 0;
-		transform: translateX(-50%);
-		width: 2px;
-		height: 100%;
-		background: transparent;
-		transition: background 0.15s ease;
-	}
-
-	&:hover::after {
-		background: var(--outline-gray-2);
-	}
+// Out. One class on <body>, set by frappe.ui.Dock, so the rail's arrival is one transform on one
+// fixed element and nothing underneath it moves.
+body.dock-open .dock {
+	transform: none;
 }
 
-body.sidebar-collapsed .dock-resize-handle {
-	display: block;
+// The slide is the whole of the rail's arrival, so with motion turned down it simply is or is not
+// there. Both states are still reachable: the transform is what changes, not the class that drives
+// it.
+@media (prefers-reduced-motion: reduce) {
+	.dock {
+		transition: none;
+	}
 }
 
 // mirror the body sidebar: the rail collapses away on mobile
 @include media-breakpoint-down(sm) {
 	.dock {
 		display: none;
-	}
-}
-
-// ---------------------------------------------------------------------------------------------
-// Collapsed: the rail without its words
-//
-// The rail's default shape pairs a glyph with its label, and the header of this file records why:
-// a row says what it is without being pointed at. Collapsing trades that back the other way. It is
-// a per-user choice, stored under `dock-collapsed` and applied to <body> by frappe.ui.Dock, so the
-// width and everything keyed to it stay here rather than in inline styles.
-//
-// Nothing is removed from the rail, only narrowed: the same rows in the same order, so the muscle
-// memory of position survives the toggle. Tooltips come back with the words gone -- see
-// Dock.sync_row_tooltips.
-// ---------------------------------------------------------------------------------------------
-
-:root {
-	// 8px of rail padding either side of a 34px row, the square a 16px glyph is centred in.
-	--dock-width-collapsed: 50px;
-}
-
-// The toggle: an arrow on the rail's right edge. It rides `.dock`'s own `position: relative`, so
-// it needs no slot in the column and the rows keep the rhythm they had.
-//
-// Straddles the edge, half on the rail and half over the sidebar. That overhang is what the
-// rail's `z-index: 1021` buys: at 1020 the sidebar painted over it, and no z-index on this button
-// could have helped, since the rail's own z-index makes it a stacking context its children cannot
-// leave. `.dock-resize-handle` overhangs on the same edge but only shows while the sidebar is
-// collapsed, when nothing is there to cover it; this one has to work with the sidebar open.
-//
-// Revealed on hover of the rail rather than drawn always, because it is chrome rather than a row,
-// and kept reachable by keyboard through `:focus-visible`. Above `.dock-resize-handle` in z-order
-// so the two do not fight over the same edge while the sidebar is collapsed.
-.dock-collapse-toggle {
-	position: absolute;
-	top: 50%;
-	right: -11px;
-	transform: translateY(-50%);
-
-	width: 22px;
-	height: 22px;
-	padding: 0;
-	z-index: 1023;
-
-	display: flex;
-	align-items: center;
-	justify-content: center;
-
-	border: 1px solid var(--outline-gray-2);
-	border-radius: 50%;
-	// `--surface-white` used to sit here and is defined nowhere, so the declaration was
-	// invalid and the circle painted nothing in either theme -- a ring with the rail showing
-	// through it. Elevation-2 is what the token was reaching for: white over the light rail,
-	// and a step above the rail in dark rather than a hole in it.
-	background: var(--surface-elevation-2);
-	color: var(--ink-gray-6);
-	cursor: pointer;
-
-	opacity: 0;
-	transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
-
-	&:hover {
-		background: var(--surface-gray-2);
-		color: var(--ink-gray-8);
-	}
-
-	svg {
-		width: 12px;
-		height: 12px;
-	}
-}
-
-.dock:hover .dock-collapse-toggle,
-.dock-collapse-toggle:focus-visible {
-	opacity: 1;
-}
-
-body.dock-collapsed {
-	--dock-width: var(--dock-width-collapsed);
-
-	.dock {
-		// The row's label folds to nothing and fades as the rail narrows, so the words and the
-		// width finish together.
-		.dock-item-label {
-			flex: 0 0 0;
-			width: 0;
-			margin-left: 0;
-			opacity: 0;
-		}
-
-		// The header's and the user button's two-line block. Switched off outright: both sit in a
-		// fixed-height band that never took part in the width change, so there is nothing here for
-		// an animation to keep in step with.
-		.title-container {
-			display: none;
-		}
-
-		// The header's chevron goes with them. At 50px there is room for the mark and nothing
-		// else, and the menu still opens from the mark.
-		.dock-logo .drop-icon {
-			display: none;
-		}
-
-		// The surface the header wears while its menu is open goes too, shadow and all. It is a
-		// row's state, and with the words gone the header is down to its mark: a lit box around a
-		// lone logo reads as the mark having been picked rather than as a menu being open. Only the
-		// paint is dropped -- the menu opens, and the header still says so through aria-expanded.
-		.dock-logo .shell-header.active-sidebar {
-			background: none;
-			box-shadow: none;
-		}
-
-		// Nothing is re-aligned here, deliberately. Centring the glyph looks like the obvious
-		// thing to do once the label is gone, but the rule lands on the first frame while the
-		// rail is still 220px wide: the glyph jumped to the centre of a 220px row and then slid
-		// back left as the rail narrowed, which is a bigger movement than the collapse itself.
-		//
-		// It is unnecessary as well as harmful. The rows keep their 8px indent inside bands that
-		// already carry 8px, so at a 50px rail the glyph sits 8px from one edge and 10px from the
-		// other -- a pixel off centre, and nothing moves but the rail.
-
-		// Points the other way, because it now offers the opposite move.
-		.dock-collapse-toggle svg {
-			transform: rotate(180deg);
-		}
-	}
-}
-
-// Nothing here is load-bearing: the collapse is a width change and reads perfectly well as an
-// instant one.
-@media (prefers-reduced-motion: reduce) {
-	.dock,
-	.dock .dock-item-label,
-	.dock-collapse-toggle {
-		transition: none;
 	}
 }

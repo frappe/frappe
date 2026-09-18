@@ -1,32 +1,55 @@
-// Dock: a slim vertical rail rendered to the left of the body sidebar. Its top slot says
-// what you are inside and links back out of it, and below that it lists the modules you can switch
-// to. Both come from the only question app context answers: which app owns the sidebar on screen
-// (Sidebar.get_sidebar_app):
+// Dock: the app switcher, kept off screen until it is called for. It lists the modules of the app
+// that owns the sidebar on screen, with that app's mark in the top slot, and it slides in over the
+// body sidebar the way the macOS Dock slides in over the desktop.
 //
-//   placed      logo = app icon      items = the app's other modules
-//   standalone  logo = module icon   items = (empty)
+// It is an overlay, not a column. The body sidebar is the desk's permanent navigation and holds
+// the left edge of the window; the rail sits one step above it in the hierarchy and one step
+// behind it on screen.
+//
+// It is called up by resting the pointer within EDGE_PX of the window's left edge. The rail arms
+// only after DWELL_MS, so a pointer merely crossing the edge on its way somewhere else does not
+// summon it, and it goes again once the pointer settles anywhere else.
+//
+// The edge is read off the pointer rather than drawn as a strip to hover. A strip would be a real
+// element over the leftmost pixels of the sidebar, and those pixels are the left edge of every row
+// in it: it would take the clicks aimed at "Item" and "Stock Entry" along with the hovers it
+// wanted. Nothing is in front of the sidebar this way, and the sidebar keeps the window's edge.
 //
 // It is drawn only when the app on screen resolves to at least one visible entry
-// (Sidebar.dock_enabled) and the page on screen allows it (page_allows_dock; the desktop
-// or apps screen does not). An app that resolves to no entries gets no rail rather than an empty
-// stripe: the user button moves back to the body sidebar and the sidebar header carries a switcher
-// instead.
+// (Sidebar.dock_enabled) and the page on screen allows it (page_allows_dock; the desktop or the
+// apps screen does not). An app that resolves to no entries gets no rail rather than an empty
+// stripe, and its sidebar header carries a switcher menu instead.
+//
+// Search, notifications, background tasks and the user button are not on the rail. They were while
+// the rail was the permanent surface and the sidebar was the thing that came and went; a surface
+// that is hidden by default cannot hold them, so all four belong to the sidebar again (see
+// Sidebar.add_standard_items and the sidebar's own user button).
 frappe.ui.Dock = class Dock {
-	// Collapsed means icon-only: the rail keeps every row but drops the words, so it costs a
-	// glyph's width instead of a column's. Read here rather than on first render so the rail is
-	// drawn in the right shape once, with no visible widening on load.
-	static COLLAPSED_KEY = "dock-collapsed";
+	// How long the pointer has to rest against the edge before the rail comes out, and how long it
+	// has to stay away before it goes back. Both exist for the same reason: a rail that answered
+	// the edge on contact would flash open every time a pointer crossed it, and one that left on
+	// contact would drop out from under a pointer travelling the few pixels from the edge to its
+	// own first row.
+	static DWELL_MS = 250;
+	static CLOSE_MS = 220;
+	// How close to the window's edge counts as the edge. Not a CSS variable, because nothing is
+	// drawn at this width: it is a distance the pointer is tested against, not a box.
+	static EDGE_PX = 6;
 
 	constructor(sidebar) {
 		this.sidebar = sidebar;
+		this.is_open = false;
+		this.enabled = false;
 		this.make();
 	}
 
 	make() {
-		// The body is a horizontal flex row (body-sidebar-container, then main-section). Insert the
-		// dock as the leftmost element so it sits to the left of the sidebar.
-		this.$dock = $(`<div class="dock hidden" role="navigation" aria-label="${__(
-			"Workspaces"
+		// The body is a horizontal flex row (body-sidebar-container, then main-section). The rail
+		// is out of flow, but it is still inserted as the leftmost element so its place in the
+		// document matches its place on screen: a screen reader and a Tab reach it before the
+		// sidebar it stands in front of.
+		this.$dock = $(`<div class="dock hidden" id="desk-dock" role="navigation" aria-label="${__(
+			"Apps"
 		)}">
 			<div class="dock-logo">
 				<button class="btn-reset shell-header">
@@ -39,12 +62,7 @@ frappe.ui.Dock = class Dock {
 					</span>
 				</button>
 			</div>
-			<div class="dock-shortcuts"></div>
 			<div class="dock-items"></div>
-			<button class="dock-collapse-toggle" aria-label="${__("Collapse rail")}">
-				${frappe.utils.icon("chevron-left", "sm")}
-			</button>
-			<button class="dock-user shell-header" aria-label="${__("User Menu")}"></button>
 		</div>`);
 
 		let $container = $(".body-sidebar-container");
@@ -53,191 +71,139 @@ frappe.ui.Dock = class Dock {
 		} else {
 			this.$dock.prependTo("body");
 		}
-		// Right-edge handle, mirroring the body sidebar's own collapse handle. While the sidebar is
-		// collapsed and only the rail shows, clicking the rail's right edge reopens it. CSS shows it
-		// only in the collapsed state (body.sidebar-collapsed), so it does not compete with the
-		// sidebar handle while expanded.
-		let $resize = $(`<div class="dock-resize-handle" aria-hidden="true"></div>`);
-		$resize.on("click", () => this.sidebar.open());
-		this.$dock.append($resize);
-
-		this.$collapse_toggle = this.$dock.find(".dock-collapse-toggle");
-		this.$collapse_toggle.on("click", () => this.toggle_collapsed());
-		this.collapsed = localStorage.getItem(frappe.ui.Dock.COLLAPSED_KEY) === "true";
-		this.apply_collapsed();
 
 		// Built once and never replaced: the header's menu binds to this node, and render_logo
 		// rewrites what is inside it rather than the node itself.
 		this.$header = this.$dock.find(".dock-logo .shell-header");
 		this.$header_logo = this.$header.find(".header-logo");
 		this.$header_title = this.$header.find(".header-title");
-		this.$shortcuts = this.$dock.find(".dock-shortcuts");
 		this.$items = this.$dock.find(".dock-items");
-		this.$user = this.$dock.find(".dock-user");
-		this.render_shortcuts();
-		this.render_user();
+
+		this.setup_reveal();
+		this.apply_open_state();
 	}
 
-	// Icon shortcuts pinned directly under the app logo: search and notifications, replacing the
-	// page header's buttons. They are declared as configuration so the set, the order and each
-	// item's label live in one place, and render_shortcuts() turns each entry into a rail row.
-	// Every item mirrors <RailItem variant="ghost">: transparent until hovered.
+	// -------------------------------------------------------------------------------------------
+	// Reveal. Everything that opens the rail and everything that closes it again.
+	// -------------------------------------------------------------------------------------------
+
+	setup_reveal() {
+		$(document)
+			.off(".dock-edge")
+			// Watching the pointer is the whole trigger. It is one comparison per move and it runs
+			// only while a rail exists and is not already out; `arm` is what makes it a dwell
+			// rather than a hair trigger, by leaving a timer it started alone rather than
+			// restarting it on every pixel.
+			.on("mousemove.dock-edge", (e) => {
+				if (!this.enabled || this.is_open) return;
+				if (e.clientX <= frappe.ui.Dock.EDGE_PX) {
+					this.arm();
+				} else {
+					this.disarm();
+				}
+			});
+
+		$(document)
+			.off(".dock-reveal")
+			// A click anywhere that is not the rail dismisses it, the way a menu goes on the next
+			// click elsewhere. The pointer usually gets there first, but a click can outrun
+			// CLOSE_MS.
+			.on("click.dock-reveal", (e) => {
+				if (!this.is_open) return;
+				if ($(e.target).closest(".dock").length) return;
+				this.close();
+			})
+			.on("keydown.dock-reveal", (e) => {
+				if (e.key === "Escape" && this.is_open) this.close();
+			});
+	}
+
+	// What closes the rail once it is out.
 	//
-	// Item shape:
-	//   name      identifier
-	//   icon      icon name passed to frappe.utils.icon
-	//   label     the row's visible label, and its accessible label
-	//   css_class extra classes on the button (external code hooks off these)
-	//   condition () => bool, whether to render this shortcut at all
-	//   badge     optional extra markup appended inside the button, such as a count dot
-	//   on_click  optional click handler
-	//   setup     optional ($item) => {} hook run after the button is built
-	get_shortcuts() {
-		return [
-			{
-				name: "search",
-				icon: "search",
-				label: __("Search"),
-				// AwesomeBar's delegated click handler in page.js opens the shared search modal
-				// from this class, so keep it or search stops working from the dock.
-				css_class: "navbar-modal-search-mobile",
-				condition: () => frappe.boot.desk_settings.search_bar,
-			},
-			{
-				name: "notifications",
-				icon: "bell",
-				label: __("Notifications"),
-				// The Notifications view keeps the unread count in sync from these classes (see
-				// notifications.js) and opens the same SidebarPanel the sidebar's own bell does.
-				css_class: "sidebar-notification",
-				condition: () => frappe.boot.desk_settings.notifications,
-				badge: `<span class="notification-count hidden" aria-live="polite"></span>`,
-				on_click: () => this.toggle_notifications(),
-				setup: ($item) => {
-					// Seed the badge from boot; the Notifications view keeps it updated after
-					// that.
-					this.sync_notification_count(
-						$item,
-						frappe.boot.notification_unread_count || 0
-					);
-				},
-			},
-			{
-				name: "background-tasks",
-				icon: "server",
-				label: __("Background Tasks"),
-				// Same class as the sidebar's button. BackgroundTasks shows and hides every
-				// trigger from it, and it is the panel's trigger_selector, so the rail's
-				// button needs no wiring of its own.
-				css_class: "sidebar-background-tasks hidden",
-				on_click: () => frappe.ui.sidebar_panels.toggle("background-tasks"),
-				setup: ($item) => {
-					// Starts hidden, like the sidebar's. Seed it from what the view has
-					// already fetched, since the rail may be built after that call returned.
-					$item.toggleClass("hidden", !this.sidebar.background_tasks?.db_tasks?.length);
-				},
-			},
-		];
-	}
-
-	// Render the configured shortcuts under the logo, each as one labelled row. This runs once, from
-	// make(), so handlers are not re-bound.
-	render_shortcuts() {
-		if (frappe.session.user === "Guest") {
-			return;
-		}
-
-		this.get_shortcuts().forEach((item) => {
-			if (item.condition && !item.condition()) {
-				return;
-			}
-
-			let $item = $(`<button
-				class="dock-item ${item.css_class || ""}"
-				aria-label="${frappe.utils.escape_html(item.label)}"
-			>
-				<span class="dock-item-icon">
-					${frappe.utils.icon(item.icon, "md")}
-					${item.badge || ""}
-				</span>
-				<span class="dock-item-label">${frappe.utils.escape_html(item.label)}</span>
-			</button>`);
-
-			if (item.on_click) {
-				$item.on("click", item.on_click);
-			}
-			if (item.setup) {
-				item.setup($item);
-			}
-
-			this.$shortcuts.append($item);
+	// Not the rail's own mouseleave, which is the obvious answer and does not work: the rail slides
+	// out from under a pointer that is already resting against the edge and has not moved, and a
+	// browser does not fire mouseenter for an element that arrives beneath a stationary pointer. No
+	// enter means no leave, so the rail stayed out until something else dismissed it.
+	//
+	// So the pointer is followed instead, and only while the rail is out: a move that lands off the
+	// rail starts the close, and one that lands back on it cancels it. The edge counts as on it, or
+	// the rail would begin closing in the gap between the window's edge and its own first pixel.
+	// The listener is bound on open and dropped on close, so nothing is watching the document the
+	// rest of the time.
+	track_pointer(on) {
+		$(document).off("mousemove.dock-track");
+		if (!on) return;
+		$(document).on("mousemove.dock-track", (e) => {
+			const on_rail =
+				$(e.target).closest(".dock").length || e.clientX <= frappe.ui.Dock.EDGE_PX;
+			on_rail ? this.hold() : this.release();
 		});
 	}
 
-	// The rail shows unread as a small dot on the bell rather than a number, so toggle it on whether
-	// any exist.
-	sync_notification_count($bell, count) {
-		$bell.find(".notification-count").toggleClass("hidden", count <= 0);
+	// Start the dwell, or leave a running one alone. Restarting it on every move would mean a
+	// pointer held at the edge kept resetting its own countdown and the rail never came out.
+	arm() {
+		if (this.dwell_timer) return;
+		this.dwell_timer = setTimeout(() => {
+			this.dwell_timer = null;
+			this.open();
+		}, frappe.ui.Dock.DWELL_MS);
 	}
 
-	// Same panel the sidebar bell opens. The registry owns it, so the rail does not have
-	// to know where it lives or what else might be open.
-	toggle_notifications() {
-		frappe.ui.sidebar_panels.toggle("notifications");
+	disarm() {
+		clearTimeout(this.dwell_timer);
+		this.dwell_timer = null;
 	}
 
-	// User avatar pinned to the bottom of the rail, opening the same dropdown as the sidebar's user
-	// button. This runs once, from make(), so the menu is not re-bound on every refresh().
-	toggle_collapsed() {
-		this.collapsed = !this.collapsed;
-		localStorage.setItem(frappe.ui.Dock.COLLAPSED_KEY, String(this.collapsed));
-		this.apply_collapsed();
+	hold() {
+		clearTimeout(this.close_timer);
 	}
 
-	// One class on <body>, the same way the body sidebar states its own collapse, so the width and
-	// everything that keys off it live in dock.scss rather than in inline styles here.
-	apply_collapsed() {
-		$("body").toggleClass("dock-collapsed", this.collapsed);
-		this.$collapse_toggle
-			.attr("aria-expanded", String(!this.collapsed))
-			.attr("aria-label", this.collapsed ? __("Expand rail") : __("Collapse rail"));
-		this.sync_row_tooltips();
+	release() {
+		clearTimeout(this.close_timer);
+		this.close_timer = setTimeout(() => this.close(), frappe.ui.Dock.CLOSE_MS);
 	}
 
-	// Tooltips exist only while collapsed. The header of dock.scss records that labels are what
-	// retired them -- a row says what it is without being pointed at -- and that holds right up
-	// until the words are gone. With only a glyph left there is nothing else to name the row, so
-	// the tooltip comes back for exactly as long as the label is missing.
-	sync_row_tooltips() {
-		this.$dock.find(".dock-item, .dock-shortcuts button").each((_, el) => {
-			let $el = $(el);
-			let label = $el.attr("aria-label");
-			if (this.collapsed && label) {
-				$el.attr("title", label);
-			} else {
-				$el.removeAttr("title");
-			}
-		});
+	open() {
+		if (!this.enabled) return;
+		this.disarm();
+		this.hold();
+		if (this.is_open) return;
+		this.is_open = true;
+		this.track_pointer(true);
+		this.apply_open_state();
 	}
 
-	render_user() {
-		// Two lines in the header's own classes: who you are over how you are addressed, which is
-		// what the body sidebar's own user button has always shown. The only two-line header left,
-		// now that neither the rail's logo nor the body sidebar's header names the site.
-		this.$user.html(
-			`${frappe.avatar(frappe.session.user, "avatar-medium")}
-			<div class="title-container">
-				<div class="header-title">${frappe.utils.escape_html(frappe.session.user_fullname)}</div>
-				<div class="header-subtitle">${frappe.utils.escape_html(frappe.session.user_email)}</div>
-			</div>`
-		);
-		this.sidebar.create_user_menu({ parent: this.$user, button: this.$user });
+	close() {
+		this.disarm();
+		clearTimeout(this.close_timer);
+		if (!this.is_open) return;
+		this.is_open = false;
+		this.track_pointer(false);
+		this.apply_open_state();
 	}
 
-	// The menu the panel's header used to open hangs on this header while the rail is up, and only
-	// here: the two are stacked one above the other, and one menu with a trigger on each offered
-	// the same rows twice. SidebarHeader owns which one that is (see menu_on_rail) and drops its
-	// own trigger whenever this one has it.
+	// One class on <body>, the same way the sidebar states its own, so the transform and everything
+	// keyed to it live in dock.scss rather than in inline styles here.
+	//
+	// `inert` rather than `aria-hidden` alone: a rail translated off screen is still in the
+	// document and still focusable, so a Tab from the sidebar would otherwise land in rows nobody
+	// can see. Both are set, since `inert` is what takes it out of the tab order and
+	// `aria-hidden` is what older assistive technology reads.
+	apply_open_state() {
+		$("body").toggleClass("dock-open", this.is_open);
+		this.$dock.attr("aria-hidden", String(!this.is_open));
+		this.$dock.prop("inert", !this.is_open);
+	}
+
+	// -------------------------------------------------------------------------------------------
+	// Contents
+	// -------------------------------------------------------------------------------------------
+
+	// The menu that names this app's own affairs -- Edit Sidebar, the navbar settings, help, and
+	// the way out to the apps screen -- hangs on the rail's header. SidebarHeader owns which header
+	// carries a second copy of the same menu on its own header, and only ever one of the two is in
+	// front of you, since the rail covers the panel rather than standing beside it.
 	//
 	// Done from refresh() rather than make() because the rail can be built before the header it
 	// borrows the menu from. The node is built once, so this is too: the dropdown binds to the
@@ -253,13 +219,16 @@ frappe.ui.Dock = class Dock {
 		this.app = this.sidebar.get_sidebar_app();
 		// It is drawn only if it has entries and the page on screen allows it. The desktop or apps
 		// screen, and any page that has not rendered yet, do not.
-		let enabled = this.sidebar.dock_enabled() && this.sidebar.page_allows_dock();
-		// Drives the CSS that hides the sidebar's own user button while the rail is active, so
-		// switching this off returns the user button to the sidebar.
-		$("body").toggleClass("dock-active", enabled);
+		this.enabled = this.sidebar.dock_enabled() && this.sidebar.page_allows_dock();
+		// `dock-active` says the app on screen has a rail. Nothing about the sidebar depends on it
+		// any more -- the rail arrives on top rather than beside -- but the class is what the edge
+		// test reads to know whether there is anything to summon, and what other code asks.
+		$("body").toggleClass("dock-active", this.enabled);
 
-		if (!enabled) {
+		if (!this.enabled) {
 			this.$dock.addClass("hidden");
+			// A rail that has gone must not leave the page holding it open.
+			this.close();
 			return;
 		}
 		this.$dock.removeClass("hidden");
@@ -303,8 +272,6 @@ frappe.ui.Dock = class Dock {
 		// "All apps" row now, so the header is a menu trigger rather than the link it used to be.
 		this.$header_logo.html(icon);
 		this.$header_title.text(title);
-		// The header is a menu button, and a collapsed rail takes its title off screen, so the name
-		// it is read out by is set here rather than left to the text to supply.
 		this.$header.attr("aria-label", title);
 	}
 
@@ -341,9 +308,6 @@ frappe.ui.Dock = class Dock {
 			let $item = this.make_dock_item(entry);
 			if ($item) this.$items.append($item);
 		});
-
-		// The rows are new nodes, so whatever `apply_collapsed` put on the old ones is gone.
-		this.sync_row_tooltips();
 	}
 
 	// One rail button, for either kind of entry. A pinned workspace needs no markup of its own,
@@ -364,7 +328,12 @@ frappe.ui.Dock = class Dock {
 			<span class="dock-item-label">${frappe.utils.escape_html(label)}</span>
 		</button>`);
 
-		$item.on("click", () => this.sidebar.open_dock_entry(entry));
+		$item.on("click", () => {
+			// Picking a module is leaving the rail: the sidebar behind it is about to be rebuilt
+			// for what was chosen, and that is the thing to look at.
+			this.close();
+			this.sidebar.open_dock_entry(entry);
+		});
 		return $item;
 	}
 };

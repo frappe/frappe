@@ -450,17 +450,15 @@ frappe.ui.Sidebar = class Sidebar {
 
 	// The body sidebar is displayed unless the page opts out via the standard `hide_sidebar` option.
 	//
-	// The opt-out is about room. It was written when the panel sat in the flow of the page and took
-	// 220px from it, so a page that wanted the width said so and got it. With a rail on screen the
-	// panel takes no room at all: it is an overlay that starts closed and the page already runs the
-	// full width underneath it (see .body-sidebar-container in sidebar.scss). Opting out there buys
-	// nothing and costs the way back, since the rail's rows and its right-edge handle then open a
-	// panel that is not in the document -- which is how the POS and shop floor pages ended up with
-	// a rail whose handle did nothing.
+	// The opt-out is about room, and it means what it says again. It was written when the panel sat
+	// in the flow of the page and took 220px from it, so a page that wanted the width said so and
+	// got it; that is the panel once more, on every screen where the rail is an overlay rather than
+	// a column, so a page like POS or shop floor gets its full width back.
 	//
-	// So where the rail can bring the panel back, `hide_sidebar` keeps the meaning it can still
-	// afford: the panel is closed on arrival (see apply_page_visibility) rather than taken away.
-	// Where there is no rail the panel is the page's own 220px again and the opt-out stands.
+	// The one place it still cannot be taken at face value is a drawer. Below md the panel is
+	// opened from the navbar, and a page that removed it from the document would leave that trigger
+	// opening nothing -- so there `hide_sidebar` keeps the weaker meaning it can afford: closed on
+	// arrival (see apply_page_visibility) rather than taken away.
 	page_allows_sidebar() {
 		const page = this.current_page();
 		if (!page) return false;
@@ -469,13 +467,19 @@ frappe.ui.Sidebar = class Sidebar {
 
 	// Whether the panel is allowed to close at all.
 	//
-	// Closing takes it off screen entirely rather than shrinking it to a strip, and the way back in
-	// is the rail: its rows open the panel, and its edge handle reopens it. A dock-less app has no
-	// rail, and the panel's own collapse chevron is gone, so closing one there would leave its only
-	// navigation unreachable. Where there is nothing to reopen it, it does not close -- and it is
-	// this same question that decides where the panel starts (see load_sidebar_state).
+	// On a desktop it is not. The panel is the desk's navigation -- the rail above it is an overlay
+	// that is off screen until it is called for (see dock.js) -- and closing it would leave nothing
+	// to navigate with and nothing visible to bring it back, since its own collapse chevron is gone
+	// and the rail's edge handle went with the rail's permanence.
+	//
+	// Below 768px there is no rail at all (`display: none`, dock.scss) and the panel is a drawer
+	// over the page, which has to be able to shut. That is the same 768 the rail is drawn at, and
+	// `frappe.is_mobile` already holds it and already clears its answer on resize, so it is read
+	// from there rather than stated again.
+	//
+	// It is this same question that decides where the panel starts (see load_sidebar_state).
 	panel_can_close() {
-		return this.dock_enabled() && this.page_allows_dock();
+		return frappe.is_mobile();
 	}
 
 	// The dock is displayed unless the page opts out with `hide_dock`. That and
@@ -494,26 +498,10 @@ frappe.ui.Sidebar = class Sidebar {
 		if (!this.wrapper) return;
 		const page = this.current_page();
 
-		// This is the first moment the panel's start state can be decided honestly: it is read
-		// off the rail, and a cold load into a document resolves its module and builds its page
-		// after the sidebar was constructed (see load_sidebar_state). Settle it once, so a panel
-		// the user opened by hand is not shut again by the next page change.
-		//
-		// Only once the sidebar has been built for a module, since a half-built one has no rail
-		// to read and no header for expand_sidebar to lay out.
-		//
-		// Settled before it is shown, not after. The panel is built open, since at that point
-		// there is no page and no rail to say otherwise, and showing it in that state to close it
-		// a moment later is the panel sliding out and back on every reload. Deciding first means
-		// it only ever appears in the state it is going to keep.
-		if (!this.sidebar_state_settled && this.current_module && this.sidebar_header) {
-			this.set_sidebar_state();
-		}
-
 		const allowed = this.page_allows_sidebar();
-		// A page that asked for no sidebar and kept it anyway, because the rail can reopen it,
-		// gets it out of the way instead: closed on arrival, however it was left. Every other
-		// page keeps the panel as it was, since the rail is what states where it stands.
+		// A page that asked for no sidebar and kept it anyway -- a drawer, which has to stay in the
+		// document for the navbar to open it -- gets it out of the way instead: closed on arrival,
+		// however it was left.
 		if (allowed && page && page.hide_sidebar && this.sidebar_expanded) this.close();
 
 		this.wrapper.toggle(allowed);
@@ -768,43 +756,20 @@ frappe.ui.Sidebar = class Sidebar {
 		this.expand_sidebar();
 	}
 
-	// Where the panel starts, which is decided by whether the app has a rail rather than by anything
-	// the user left behind.
+	// Where the panel starts, which is now the same answer everywhere: out.
 	//
-	// A docked app opens with the rail alone and the panel at nothing: the panel is an overlay you
-	// call up from a rail row, it covers the page while it is out, and it closes again on the next
-	// click elsewhere -- so it starts closed on every load rather than restoring where it was left.
-	// A dock-less app has no rail, so the panel is the whole of its navigation and is always out.
+	// The panel is the desk's permanent navigation, so on a desktop it is open on arrival and stays
+	// open; below md it is a drawer, and a drawer starts shut. Between those two there is no
+	// per-user state left to keep, which is why `sidebar-expanded` is neither read nor written.
 	//
-	// Between those two there is no per-user state left to keep, which is why `sidebar-expanded` is
-	// no longer read or written.
-	//
-	// The rail is only knowable once the module has resolved and a page is on screen to allow it,
-	// and on a cold load into a document neither is true yet: `panel_can_close` answers "no rail",
-	// which opens the panel over the form that is about to render. So the answer counts as settled
-	// only when both were there to ask, and apply_page_visibility takes another pass when they
-	// were not.
-	//
-	// A page that hides the rail is not asked at all. `panel_can_close` cannot tell a page that
-	// draws no rail from an app that has none, so the apps screen -- which hides both shells --
-	// answers "no rail" and opens the panel, and settling there carries that answer onto the next
-	// page, which does draw one. Leaving both the state and the question alone keeps the panel as
-	// it was until a page that shows the rail can answer.
+	// This used to have to wait. The answer was read off the rail -- a docked app opened with the
+	// rail alone and the panel at nothing -- and the rail is only knowable once the module has
+	// resolved and a page is on screen to allow it, so a cold load into a document had to draw the
+	// panel closed, settle later, and open it if it turned out there was no rail. `panel_can_close`
+	// asks the window's width now, which is answerable at any moment, so there is nothing left to
+	// settle and nothing that has to be drawn in a state it will not keep.
 	load_sidebar_state() {
-		if (this.current_page() && !this.page_allows_dock()) return;
-
-		this.sidebar_state_settled = !!this.current_page() && !!this.current_module;
-		// Until it is settled the rail cannot be read, and `panel_can_close` answers "no rail" for
-		// want of a page rather than for want of a dock. Draw it closed meanwhile, which is where
-		// a docked app keeps it, and let the settling pass open it where there turns out to be no
-		// rail. Taking the answer at face value paints an opaque panel that then has to fade back
-		// out -- the blank sidebar that showed up on every reload, since `.body-sidebar` animates
-		// its background and the collapsed state is where that animation ends.
-		this.sidebar_expanded = this.sidebar_state_settled ? !this.panel_can_close() : false;
-
-		if (frappe.is_mobile()) {
-			this.sidebar_expanded = false;
-		}
+		this.sidebar_expanded = !this.panel_can_close();
 	}
 
 	empty() {

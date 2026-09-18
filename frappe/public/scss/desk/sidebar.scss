@@ -37,23 +37,25 @@
 	flex-direction: column;
 	height: fit-content;
 	width: fit-content;
-	// Positioning context for the body sidebar and for .sidebar-panel, both of which are absolute
-	// inside it. It reserves no width of its own: the sidebar is an overlay in every state, so this
-	// box is 0 wide and sits between the rail and the main section, which runs the shell's full
-	// width underneath. It used to hold a placeholder element the width of the sidebar, so the main
-	// section could glide across as the sidebar came and went; nothing moves now, and the panel
-	// names its own offset (see sidebar_panel.scss) rather than reading it off this box.
+	// Positioning context for .sidebar-panel, which is absolute inside it, and the box that holds
+	// the sidebar's width in the layout. On a desktop the sidebar is in flow and permanent, so this
+	// measures its 220px and the main section starts after it. Below md the sidebar is a drawer and
+	// goes out of flow, and this measures nothing.
+	//
+	// The panel still names its own offset (see sidebar_panel.scss) rather than reading it off this
+	// box, because it has to clear the sidebar in both cases and only one of them has a width here.
 	position: relative;
 }
 
 .body-sidebar {
-	// In flow by default, and a positioning context for the handle on its edge. Its container is
-	// `fit-content`, so in flow the container measures the panel's own 220px and the page starts
-	// after it -- which is what a dock-less app wants, since its sidebar is permanent.
+	// In flow, and a positioning context for the handle on its edge. Its container is
+	// `fit-content`, so the container measures the panel's own 220px and the page starts after it.
 	//
-	// A docked app takes it out of flow instead (see dock.scss): there the panel is called up from
-	// a rail row and covers the page while it is out, so the container measures 0 and the page runs
-	// the full width underneath. That one declaration is the whole difference between the modes.
+	// This is the panel in every mode on a desktop now. It used to depend on whether the app had a
+	// rail -- a docked app took the panel out of flow and let the rail call it up over the page --
+	// and that is the polarity the rail's auto-hide reversed: the panel is the permanent surface
+	// and the rail is what comes and goes (see dock.scss). Below md it goes out of flow again, but
+	// as a drawer rather than as a second column.
 	position: relative;
 	width: var(--sidebar-width);
 	background: var(--desk-sidebar-bg);
