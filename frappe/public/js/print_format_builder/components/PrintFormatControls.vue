@@ -570,8 +570,8 @@ function clone_field(df) {
 
 function add_to_layout(df) {
 	const lv = layout.value;
-	const sections = lv?.sections;
-	if (!sections || !sections.length) return;
+	if (!lv) return;
+	const sections = (lv.sections ||= []);
 
 	// If a field is selected, insert right after it in the same column.
 	// Search body sections and header/footer zones so a selected header field
@@ -596,8 +596,11 @@ function add_to_layout(df) {
 	const is_valid_target =
 		selected &&
 		(sections.includes(selected) || selected === lv?.header || selected === lv?.footer);
-	const target_section = is_valid_target ? selected : sections.slice(-1)[0];
-	if (!target_section) return;
+	let target_section = is_valid_target ? selected : sections.slice(-1)[0];
+	if (!target_section) {
+		target_section = { label: "", columns: [{ label: "", fields: [] }] };
+		sections.push(target_section);
+	}
 	const last_column = target_section.columns.slice(-1)[0];
 	if (!last_column) return;
 	last_column.fields.push(clone_field(df));

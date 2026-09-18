@@ -28,6 +28,7 @@ SERVER_SOURCES = [
 	APP_PATH / "templates" / "print_format" / "macros.html",
 	*sorted((APP_PATH / "templates" / "print_format" / "macros").glob("*.html")),
 	APP_PATH / "templates" / "print_formats" / "chrome_pdf_header_footer.html",
+	APP_PATH / "utils" / "print_format_generator.py",
 ]
 
 BUILDER_DIR = APP_PATH / "public" / "js" / "print_format_builder"

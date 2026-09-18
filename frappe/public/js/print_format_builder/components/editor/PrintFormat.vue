@@ -98,13 +98,12 @@ let header_is_empty = computed(
 let store = inject("$store");
 let header_selected = computed(() => store.selected_sections.value.includes(layout.value.header));
 
-const PAGE_SIZES_MM = { A4: [210, 297], Letter: [216, 279.4] };
-let page_size = ref("A4");
+let page_mm = ref([210, 297]);
 
 onMounted(() => {
-	frappe.db.get_single_value("Print Settings", "pdf_page_size").then((v) => {
-		if (v && PAGE_SIZES_MM[v]) page_size.value = v;
-	});
+	frappe
+		.call("frappe.utils.print_format_generator.get_page_size_mm")
+		.then((r) => r.message && (page_mm.value = r.message));
 });
 
 const CUSTOM_CSS_ID = "pfb-letterhead-custom-css";
@@ -122,7 +121,7 @@ watch(
 			el.id = CUSTOM_CSS_ID;
 			document.head.appendChild(el);
 		}
-		el.textContent = css;
+		el.textContent = scope_css(css, ".print-format-main");
 	},
 	{ immediate: true, deep: true }
 );
@@ -137,11 +136,8 @@ watch(
 			// scrolls to its own node so the exact row lands on screen, not just
 			// the section it lives in
 			if (target.columns) {
-				const els = document.querySelectorAll("[data-pfb-section]");
-				const idx = layout.value.sections.indexOf(target);
-				if (idx >= 0 && els[idx]) {
-					els[idx].scrollIntoView({ behavior: "smooth", block: "start" });
-				}
+				const el = document.querySelector(`[data-section-uid="${field_uid(target)}"]`);
+				el?.scrollIntoView({ behavior: "smooth", block: "start" });
 			} else {
 				const el = document.querySelector(`[data-field-uid="${field_uid(target)}"]`);
 				el?.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -184,7 +180,7 @@ let rootStyles = computed(() => {
 		margin_left = 0,
 		margin_right = 0,
 	} = print_format.value;
-	const [page_w, page_h] = PAGE_SIZES_MM[page_size.value] || PAGE_SIZES_MM.A4;
+	const [page_w, page_h] = page_mm.value;
 	return {
 		padding: `${margin_top}mm ${margin_right}mm ${margin_bottom}mm ${margin_left}mm`,
 		width: `${page_w}mm`,
@@ -255,10 +251,11 @@ let color_css = computed(() => {
 	return css;
 });
 
-let page_number_hidden = computed(() => print_format.value.page_number.includes("Hide"));
+let page_number = computed(() => print_format.value.page_number || "Hide");
+let page_number_hidden = computed(() => page_number.value.includes("Hide"));
 
 let page_number_style = computed(() => {
-	const pn = print_format.value.page_number;
+	const pn = page_number.value;
 	const { margin_top, margin_bottom, margin_left, margin_right } = print_format.value;
 	const style = { position: "absolute" };
 	if (pn.includes("Top")) {
@@ -313,7 +310,7 @@ let page_number_style = computed(() => {
 	padding: 2rem 1rem;
 	border: 1px dashed var(--gray-300);
 	border-radius: var(--radius);
-	background: var(--gray-50);
+	background: var(--surface-gray-1);
 	color: var(--text-muted);
 	cursor: pointer;
 	transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
@@ -321,7 +318,7 @@ let page_number_style = computed(() => {
 
 .body-empty:hover {
 	border-color: var(--gray-500);
-	background: var(--gray-100);
+	background: var(--surface-gray-2);
 	color: var(--text-color);
 }
 
@@ -333,7 +330,7 @@ let page_number_style = computed(() => {
 	height: 28px;
 	margin-bottom: 2px;
 	border-radius: 50%;
-	background: var(--gray-200);
+	background: var(--surface-gray-3);
 	color: var(--gray-700);
 }
 

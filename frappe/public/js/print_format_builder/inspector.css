@@ -15,7 +15,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding: 10px 14px;
+	padding: 10px 16px;
 	cursor: pointer;
 	user-select: none;
 }
@@ -23,10 +23,10 @@
 	background: var(--subtle-accent);
 }
 .pfb-insp-section-label {
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-bold);
+	font-size: var(--text-sm);
+	font-weight: var(--weight-semibold);
 	letter-spacing: 0;
-	color: var(--text-muted);
+	color: var(--text-color);
 }
 .pfb-insp-chevron {
 	display: flex;
@@ -38,16 +38,16 @@
 	transform: rotate(-90deg);
 }
 .pfb-insp-section-body {
-	padding: 4px 14px 12px;
+	padding: 4px 16px 16px;
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
+	gap: 12px;
 }
 .pfb-insp-row {
 	display: grid;
-	grid-template-columns: 80px 1fr;
+	grid-template-columns: 88px 1fr;
 	align-items: center;
-	gap: 8px;
+	gap: 10px;
 }
 .pfb-insp-row > * {
 	min-width: 0;
@@ -130,7 +130,7 @@
 	padding: 6px 8px;
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);
-	background: var(--gray-50);
+	background: var(--surface-gray-1);
 	max-height: 100px;
 	overflow: hidden;
 	margin-bottom: 2px;
@@ -163,7 +163,7 @@
 	color: var(--text-muted);
 	padding: 10px 12px 8px;
 	border-bottom: 1px solid var(--border-color);
-	background: var(--gray-50);
+	background: var(--surface-gray-1);
 	flex-shrink: 0;
 }
 .pfb-html-ctrl-host {
@@ -221,7 +221,7 @@
 	overflow: hidden;
 	border: 1px solid var(--border-color);
 	border-radius: var(--radius);
-	background: var(--gray-50);
+	background: var(--surface-gray-1);
 	box-sizing: border-box;
 }
 

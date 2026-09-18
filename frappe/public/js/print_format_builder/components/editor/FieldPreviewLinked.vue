@@ -13,7 +13,7 @@
 </template>
 
 <script setup>
-import { computed, inject, ref, watchEffect } from "vue";
+import { computed, inject, ref, watch, watchEffect } from "vue";
 import { useDoctypeFields } from "../../composables/useDoctypeFields";
 
 const props = defineProps(["df"]);
@@ -38,6 +38,10 @@ let is_image = computed(() => {
 
 const cache = {};
 let pending_key = null;
+watch(
+	() => store.preview_doc.value?.name,
+	() => Object.keys(cache).forEach((k) => delete cache[k])
+);
 
 watchEffect(() => {
 	value.value = "";

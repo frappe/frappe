@@ -122,6 +122,14 @@ function set_pdf_url(next) {
 
 // docstatus arrives async and can resolve after docname already triggered a render
 watch([docname, () => store.value.preview_doc?.docstatus], render, { flush: "post" });
+watch(
+	[
+		() => store.value.letterhead?.name,
+		() => JSON.stringify(store.value.get_preview_format_doc()),
+	],
+	frappe.utils.debounce(render, 600),
+	{ flush: "post" }
+);
 
 function on_keydown(e) {
 	if (e.key !== "Escape") return;

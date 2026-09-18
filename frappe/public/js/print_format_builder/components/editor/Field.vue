@@ -32,7 +32,7 @@
 			}}</span>
 			<div
 				v-else-if="df.fieldtype == 'HTML' && df.html"
-				v-html="rendered_html ?? df.html"
+				v-html="sanitize_html(rendered_html ?? df.html)"
 			></div>
 			<!-- Typst can't render in the HTML canvas — show the markup, the PDF preview shows the output -->
 			<pre v-else-if="df.fieldtype == 'Typst'" class="typst-block-source">{{
@@ -55,7 +55,7 @@
 			<FieldPreviewBarcode v-else-if="df.fieldtype == 'Barcode'" :df="df" />
 			<div
 				v-else-if="df.fieldtype == 'Field Template'"
-				v-html="rendered_template || ''"
+				v-html="sanitize_html(rendered_template || '')"
 			></div>
 			<!-- Table MultiSelect field: render as a comma-separated value list -->
 			<template v-else-if="df.fieldtype == 'Table MultiSelect'">
@@ -175,7 +175,7 @@
 						<div
 							class="custom-html"
 							v-if="df.fieldtype == 'HTML' && df.html"
-							v-html="df.html"
+							v-html="sanitize_html(df.html)"
 						></div>
 						<pre
 							v-else-if="df.fieldtype == 'Typst' && df.typst"
@@ -285,6 +285,7 @@ import {
 	evaluate_visible_if,
 	parse_inline_style,
 	field_uid,
+	sanitize_html,
 } from "../../utils";
 import { createApp, ref, nextTick, watch, computed, inject } from "vue";
 import { useFieldFormat } from "../../composables/useFieldFormat";
@@ -399,21 +400,25 @@ function preview_data_attr(value) {
 }
 
 // Render Jinja2 HTML fields server-side when in preview mode
+let render_seq = 0;
 watch(
 	[preview_doc, () => props.df.html],
 	async ([doc]) => {
 		const html = props.df.html;
+		const seq = ++render_seq;
 		if (!doc || !html || props.df.fieldtype !== "HTML") {
 			rendered_html.value = null;
 			template_render_failed.value = false;
 			return;
 		}
-		rendered_html.value = await render_jinja_html(
+		const rendered = await render_jinja_html(
 			html,
 			store.meta.value?.name,
 			store.preview_doc_name.value
 		);
-		template_render_failed.value = rendered_html.value === null;
+		if (seq !== render_seq) return;
+		rendered_html.value = rendered;
+		template_render_failed.value = rendered === null;
 	},
 	{ immediate: true }
 );
@@ -422,6 +427,7 @@ watch(
 watch(
 	[preview_doc, () => props.df.field_template],
 	async ([doc]) => {
+		const seq = ++render_seq;
 		if (!doc || props.df.fieldtype !== "Field Template" || !props.df.field_template) {
 			rendered_template.value = null;
 			template_render_failed.value = false;
@@ -434,13 +440,16 @@ watch(
 				"template"
 			);
 			const html = tmpl?.message?.template || "";
-			rendered_template.value = await render_jinja_html(
+			const rendered = await render_jinja_html(
 				html,
 				store.meta.value?.name,
 				store.preview_doc_name.value
 			);
-			template_render_failed.value = rendered_template.value === null;
+			if (seq !== render_seq) return;
+			rendered_template.value = rendered;
+			template_render_failed.value = rendered === null;
 		} catch {
+			if (seq !== render_seq) return;
 			rendered_template.value = null;
 			template_render_failed.value = true;
 		}
@@ -526,7 +535,7 @@ function edit_html() {
 		title: __("Edit HTML"),
 		key: "html",
 		field: { label: __("HTML"), options: "HTML" },
-		clean: (html) => frappe.dom.remove_script_and_style(html),
+		clean: (html) => sanitize_html(html),
 	});
 }
 
@@ -601,9 +610,6 @@ function configure_columns() {
 			const app = createApp(ConfigureColumnsVue, { df: props.df });
 			SetVueGlobals(app);
 			app.mount(dialog.get_field("columns_area").$wrapper.get(0));
-		},
-		on_hide: () => {
-			props.df["table_columns"] = props.df.table_columns.filter((col) => !col.invalid_width);
 		},
 	});
 	dialog.show();
@@ -790,7 +796,7 @@ watch(
 	font-size: var(--text-xs);
 	font-weight: 500;
 	color: var(--text-muted);
-	background: var(--gray-50);
+	background: var(--surface-gray-1);
 	border: 1px solid var(--gray-200);
 	border-radius: var(--radius);
 	padding: 3px 8px;
@@ -803,7 +809,7 @@ watch(
 .configure-columns-btn:hover {
 	color: var(--gray-800);
 	border-color: var(--gray-400);
-	background: var(--gray-100);
+	background: var(--surface-gray-2);
 }
 
 .configure-columns-btn:focus {
@@ -892,7 +898,7 @@ watch(
 	white-space: pre-wrap;
 	word-break: break-word;
 	color: var(--text-color);
-	background: var(--gray-50);
+	background: var(--surface-gray-1);
 	border-radius: var(--radius-sm);
 	padding: 4px 6px;
 }

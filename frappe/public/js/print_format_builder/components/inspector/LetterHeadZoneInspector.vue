@@ -265,17 +265,15 @@ function open_html_split_dialog({ title, initial_html, on_save, doctype, docname
 
 		update_preview(preview, initial_html || "");
 
-		setTimeout(() => {
-			if (ctrl.editor) {
-				ctrl.editor.on(
-					"change",
-					frappe.utils.debounce(() => {
-						update_preview(preview, ctrl.editor.getValue());
-					}, 400)
-				);
-				ctrl.editor.refresh();
-			}
-		}, 300);
+		ctrl.load_lib().then(() => {
+			ctrl.editor.on(
+				"change",
+				frappe.utils.debounce(() => {
+					update_preview(preview, ctrl.editor.getValue());
+				}, 400)
+			);
+			ctrl.editor.resize();
+		});
 	}, 200);
 }
 
@@ -303,7 +301,7 @@ function edit_html() {
 	font-weight: var(--weight-semibold);
 	letter-spacing: 0;
 	color: var(--gray-600);
-	background: var(--gray-50);
+	background: var(--surface-gray-1);
 	border-bottom: 1px solid var(--gray-200);
 	padding: 7px 14px;
 	flex-shrink: 0;

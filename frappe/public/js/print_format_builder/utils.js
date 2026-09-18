@@ -19,7 +19,8 @@ export function canvas_zoom(el) {
 
 export function read_json(key, fallback = null) {
 	try {
-		return JSON.parse(localStorage.getItem(key)) || fallback;
+		const raw = localStorage.getItem(key);
+		return raw === null ? fallback : JSON.parse(raw);
 	} catch {
 		return fallback;
 	}
@@ -145,6 +146,10 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 	return blockers;
 }
 
+export function clamp_column_width(value) {
+	return Math.max(5, Math.min(100, parseInt(value) || 10));
+}
+
 // Blocks the builder invents — they never map to a docfield on the document type
 
 export const BLOCK_FIELDTYPES = new Set(["Spacer", "Divider", "Repeater", "HTML"]);
@@ -246,7 +251,8 @@ export function create_default_layout(meta, print_format) {
 					field.label = `${__(df.label, null, df.parent)} (${__("Field Template")})`;
 					field.fieldtype = "Field Template";
 					field.field_template = field_template.name;
-					field.fieldname = df.fieldname = "_template";
+					field.source_fieldname = df.fieldname;
+					field.fieldname = df.fieldname = `${df.fieldname}_template`;
 				}
 
 				if (df.fieldtype === "Table") {
@@ -272,7 +278,6 @@ export function get_table_columns(df) {
 		if (
 			!["Section Break", "Column Break"].includes(tf.fieldtype) &&
 			!tf.print_hide &&
-			df.label &&
 			total_width < 100
 		) {
 			let width =
