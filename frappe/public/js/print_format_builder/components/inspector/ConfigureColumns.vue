@@ -17,7 +17,7 @@
 				></div>
 			</div>
 			<p v-if="total_width > 100" class="text-danger mt-1" style="font-size: var(--text-xs)">
-				{{ __("Total exceeds 100%. Columns in red will be removed on save.") }}
+				{{ __("Total exceeds 100%. Columns in red run past the page.") }}
 			</p>
 		</div>
 
@@ -54,10 +54,13 @@
 							<input
 								type="number"
 								class="width-input"
-								v-model.number="column.width"
-								min="0"
+								:value="column.width"
+								min="5"
 								max="100"
 								step="5"
+								@change="
+									(e) => (column.width = clamp_column_width(e.target.value))
+								"
 							/>
 							<span class="width-suffix">%</span>
 						</div>
@@ -78,6 +81,7 @@
 </template>
 
 <script setup>
+import { clamp_column_width } from "../../utils";
 import { computed } from "vue";
 import draggable from "vuedraggable";
 
@@ -107,7 +111,7 @@ let total_width = computed(() => {
 }
 .total-bar-track {
 	height: 6px;
-	background: var(--gray-200);
+	background: var(--surface-gray-3);
 	border-radius: var(--radius-full);
 	overflow: hidden;
 }
