@@ -167,7 +167,7 @@ let hint_icon = ref(null);
 let renderer_hint = computed(() => {
 	if (typst_blockers.value.length) {
 		const items = typst_blockers.value.map((b) => "• " + frappe.utils.escape_html(b));
-		return [__("Typst can't print this format yet. Fix these first:"), ...items].join("<br>");
+		return [__("Typst needs these fixed:"), ...items].join("<br>");
 	}
 	if (has_typst_block.value) {
 		return __("Chromium unavailable: this format uses a Typst block.");
