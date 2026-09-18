@@ -288,4 +288,37 @@ context("Web Form Builder", () => {
 		// the picker used to teleport into the hidden DocType page and render off screen
 		cy.get(".combo-box-options:visible").should("exist");
 	});
+
+	it("Keeps the sidebar hidden on the builder tab across a save", () => {
+		seed_web_form();
+		open_builder();
+
+		cy.get(`${PAGE} .layout-side-section`).should("not.be.visible");
+
+		// dirty the canvas, or the save is a no-op and never rebuilds the sidebar
+		cy.get(`${PAGE} ${CANVAS} .tab-content.active .form-section-container:first`)
+			.find("div[title='Double click to edit label']:first")
+			.dblclick()
+			.type("{selectall}Contact Details");
+		cy.click_doc_primary_button("Save");
+
+		// the save rebuilds the sidebar and clears `hide-sidebar`, the re-sync puts it back
+		cy.get(`${PAGE} .layout-side-section`).should("not.be.visible");
+
+		// and the rule is still a rule, not a permanent hide
+		cy.get(PAGE).findByRole("tab", { name: "Settings" }).click();
+		cy.get(`${PAGE} .layout-side-section`).should("be.visible");
+	});
+
+	it("Leaves the sidebar hidden on an unsaved form", () => {
+		// Desk hides the sidebar of a new doc because it has nothing to show
+		cy.visit("/desk/web-form/new");
+		cy.get(`${PAGE} .layout-side-section`).should("not.be.visible");
+
+		// move onto the builder tab and back off it, the path that asks for the sidebar.
+		// Showing it here with an inline display would outrank Desk and leave an empty shell.
+		cy.get(PAGE).findByRole("tab", { name: "Form" }).click();
+		cy.get(PAGE).findByRole("tab", { name: "Settings" }).click();
+		cy.get(`${PAGE} .layout-side-section`).should("not.be.visible");
+	});
 });
