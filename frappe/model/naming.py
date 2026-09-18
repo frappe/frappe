@@ -426,6 +426,15 @@ def determine_consecutive_week_number(datetime):
 
 
 def getseries(key, digits):
+	if frappe.db.db_type == "sqlite":
+		current = frappe.db.sql(
+			"""INSERT INTO `tabSeries` (`name`, `current`) VALUES (%s, 1)
+			ON CONFLICT (`name`) DO UPDATE SET `current` = `current` + 1
+			RETURNING `current`""",
+			(key,),
+		)[0][0]
+		return ("%0" + str(digits) + "d") % current
+
 	# series created ?
 	# Using frappe.qb as frappe.get_values does not allow order_by=None
 	series = DocType("Series")

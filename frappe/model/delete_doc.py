@@ -215,7 +215,12 @@ def delete_doc(
 					"frappe.model.delete_doc.delete_dynamic_links",
 					doctype=doc.doctype,
 					name=doc.name,
-					now=frappe.in_test,
+					now=(
+						frappe.in_test
+						or frappe.flags.in_install
+						or frappe.flags.in_migrate
+						or frappe.flags.in_setup_wizard
+					),
 					enqueue_after_commit=True,
 				)
 

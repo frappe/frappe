@@ -1,6 +1,7 @@
 import re
 import sqlite3
 import warnings
+from contextlib import contextmanager
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
@@ -18,6 +19,7 @@ from frappe.database.database import (
 	TRANSACTION_DISABLED_MSG,
 	Database,
 )
+from frappe.database.sqlite import DEFAULT_BUSY_TIMEOUT_SECONDS
 from frappe.database.sqlite.compatibility import (
 	combine_date_with_time_duration,
 	convert_datetime_to_unix_timestamp,
@@ -37,8 +39,6 @@ from frappe.database.sqlite.schema import SQLiteTable, quote_identifier
 from frappe.database.utils import FallBackDateTimeStr, convert_backtick_identifiers
 from frappe.utils import get_datetime, get_table_name, now
 
-# matches both bare `%s` and named `%(param)s` DB-API placeholders
-_PARAM_COMP = re.compile(r"%\(\w+\)s|%s")
 _TRANSPILABLE_STATEMENTS = (exp.Select, exp.Insert, exp.Update, exp.Delete, exp.Union)
 
 
@@ -61,11 +61,13 @@ class SQLiteExceptionUtil:
 
 	@staticmethod
 	def is_deadlocked(e: sqlite3.Error) -> bool:
-		return "database is locked" in str(e)
+		return getattr(e, "sqlite_errorcode", None) == sqlite3.SQLITE_BUSY_SNAPSHOT
 
-	@staticmethod
-	def is_timedout(e: sqlite3.Error) -> bool:
-		return "database is locked" in str(e)
+	@classmethod
+	def is_timedout(cls, e: sqlite3.Error) -> bool:
+		return not cls.is_deadlocked(e) and (
+			getattr(e, "sqlite_errorcode", None) == sqlite3.SQLITE_BUSY or "database is locked" in str(e)
+		)
 
 	@staticmethod
 	def is_read_only_mode_error(e: sqlite3.Error) -> bool:
@@ -138,6 +140,10 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	MAX_ROW_SIZE_LIMIT = None
 	SequenceGeneratorLimitExceeded = SequenceGeneratorLimitExceeded
 
+	def connect(self):
+		super().connect()
+		self.begin()
+
 	def get_connection(self, read_only: bool = False):
 		if not hasattr(self, "_session_time_zone"):
 			self._session_time_zone = ZoneInfo("UTC")
@@ -156,7 +162,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		pragmas = {
 			"journal_mode": "WAL",
 			"synchronous": "NORMAL",
-			"busy_timeout": 5000,  # in milliseconds
+			"busy_timeout": DEFAULT_BUSY_TIMEOUT_SECONDS * 1000,
 		}
 		cursor = conn.cursor()
 		for pragma, value in pragmas.items():
@@ -174,9 +180,13 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 				f"file:{db_path}?mode=ro",
 				uri=True,
 				detect_types=sqlite3.PARSE_DECLTYPES,
-				timeout=15,
+				timeout=DEFAULT_BUSY_TIMEOUT_SECONDS,
 			)
-		return sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES, timeout=15)
+		return sqlite3.connect(
+			db_path,
+			detect_types=sqlite3.PARSE_DECLTYPES,
+			timeout=DEFAULT_BUSY_TIMEOUT_SECONDS,
+		)
 
 	def get_db_path(self):
 		return Path(frappe.get_site_path()) / "db" / f"{self.cur_db_name}.db"
@@ -339,7 +349,8 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 				content,
 				route,
 				published
-				)"""
+				)""",
+				_skip_sqlite_transpilation=True,
 			)
 
 	def create_user_settings_table(self):
@@ -540,6 +551,21 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			return self._cursor
 		return self._cursor.execute(query, values)
 
+	@contextmanager
+	def unbuffered_cursor(self):
+		"""Temporarily use a cursor that can stream rows from SQLite in batches."""
+		if not self._conn:
+			self.connect()
+
+		original_cursor = self._cursor
+		streaming_cursor = self._conn.cursor()
+		self._cursor = streaming_cursor
+		try:
+			yield
+		finally:
+			self._cursor = original_cursor
+			streaming_cursor.close()
+
 	@staticmethod
 	def _is_raw_commit_statement(query: str) -> bool:
 		query_without_trace_id = query.partition("/* FRAPPE_TRACE_ID:")[0]
@@ -630,7 +656,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		self._invalidate_transactional_schema_cache()
 		self._transaction_has_schema_changes = False
 		self.begin()  # explicitly start a new transaction
-
+		self.value_cache.clear()
 		self.run_after_transaction_callbacks(self.after_commit)
 
 	def rollback(self, *, save_point=None, chain=None):
@@ -651,7 +677,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			self._invalidate_transactional_schema_cache()
 			self._transaction_has_schema_changes = False
 			self.begin()
-
+			self.value_cache.clear()
 			self.run_after_transaction_callbacks(self.after_rollback)
 		else:
 			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)

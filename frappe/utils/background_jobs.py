@@ -50,6 +50,51 @@ QUEUE_STARVATION_THRESHOLD = 16
 _redis_queue_conn = None
 
 
+class _DeferredEnqueueAfterCommit:
+	"""Keep after-commit jobs pending across intermediate commits."""
+
+	def __init__(self):
+		self.callbacks = CallbackManager()
+		self.parent_callbacks = None
+		self.cancelled = False
+
+	def __enter__(self):
+		self.parent_callbacks = getattr(frappe.local, "deferred_enqueue_after_commit", None)
+		frappe.local.deferred_enqueue_after_commit = self.callbacks
+		return self
+
+	def __exit__(self, exc_type, exc_value, traceback):
+		try:
+			if exc_type is None and not self.cancelled:
+				self._release_after_transaction_commit()
+		finally:
+			if self.parent_callbacks is None:
+				del frappe.local.deferred_enqueue_after_commit
+			else:
+				frappe.local.deferred_enqueue_after_commit = self.parent_callbacks
+			self.callbacks.reset()
+
+	def cancel(self):
+		"""Discard held jobs when a workflow handles an error without raising it."""
+		self.cancelled = True
+
+	def _release_after_transaction_commit(self):
+		"""Move held jobs to the enclosing deferral or the database commit callbacks."""
+		target = self.parent_callbacks or frappe.db.after_commit
+		for callback in self.callbacks.cut(0):
+			target.add(callback)
+
+
+def defer_enqueue_after_commit():
+	"""Hold after-commit jobs across intermediate commits in a larger workflow.
+
+	A clean context exit moves held jobs to the real transaction callbacks. An
+	exception discards them. Call ``cancel`` only when an error is handled inside
+	the context and therefore does not escape it.
+	"""
+	return _DeferredEnqueueAfterCommit()
+
+
 @lru_cache
 def get_queues_timeout() -> dict[str, int]:
 	"""
@@ -214,7 +259,8 @@ def enqueue(
 		)
 
 	if enqueue_after_commit:
-		frappe.db.after_commit.add(enqueue_call)
+		callbacks = getattr(frappe.local, "deferred_enqueue_after_commit", None)
+		(callbacks or frappe.db.after_commit).add(enqueue_call)
 		return
 
 	return enqueue_call()
@@ -283,11 +329,19 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	try:
 		retval = method(**kwargs)
 
-	except (frappe.db.InternalError, frappe.RetryBackgroundJobError) as e:
+	except (
+		frappe.db.InternalError,
+		frappe.QueryDeadlockError,
+		frappe.QueryTimeoutError,
+		frappe.RetryBackgroundJobError,
+	) as e:
 		frappe.db.rollback(chain=True)
 
 		if retry < 5 and (
-			isinstance(e, frappe.RetryBackgroundJobError)
+			isinstance(
+				e,
+				(frappe.QueryDeadlockError, frappe.QueryTimeoutError, frappe.RetryBackgroundJobError),
+			)
 			or (frappe.db.is_deadlocked(e) or frappe.db.is_timedout(e))
 		):
 			# retry the job if
@@ -298,7 +352,16 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 			frappe.destroy()
 			time.sleep(retry + 1)
 
-			return execute_job(site, method, event, job_name, kwargs, is_async=is_async, retry=retry + 1)
+			return execute_job(
+				site,
+				method,
+				event,
+				job_name,
+				kwargs,
+				user=user,
+				is_async=is_async,
+				retry=retry + 1,
+			)
 
 		else:
 			frappe.log_error(title=method_name)

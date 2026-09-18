@@ -113,6 +113,70 @@ class TestBackgroundJobs(IntegrationTestCase):
 			self.assertEqual(r, "pong")
 			self.assertLess(_test_JOB_HOOK.get("before_job"), _test_JOB_HOOK.get("after_job"))
 
+	def test_job_retries_framework_deadlock_errors(self):
+		attempts = 0
+
+		def locked_once():
+			nonlocal attempts
+			attempts += 1
+			if attempts == 1:
+				raise frappe.QueryDeadlockError("database is locked")
+			return "completed"
+
+		with (
+			patch.object(frappe.db, "rollback") as rollback,
+			patch.object(frappe.db, "commit") as commit,
+			patch("frappe.utils.background_jobs.time.sleep") as sleep,
+			patch("frappe.utils.background_jobs.frappe.destroy"),
+			patch("frappe.utils.background_jobs.frappe.get_hooks", return_value=[]),
+		):
+			result = execute_job(
+				site=frappe.local.site,
+				method=locked_once,
+				event=None,
+				job_name="locked-once",
+				kwargs={},
+				is_async=False,
+			)
+
+		self.assertEqual(result, "completed")
+		self.assertEqual(attempts, 2)
+		rollback.assert_called_once_with(chain=True)
+		commit.assert_called_once_with(chain=True)
+		sleep.assert_called_once_with(1)
+
+	def test_job_retry_preserves_user(self):
+		def locked_once():
+			raise frappe.QueryDeadlockError("database is locked")
+
+		with (
+			patch("frappe.utils.background_jobs.execute_job", return_value="completed") as retry_job,
+			patch("frappe.utils.background_jobs.time.sleep"),
+			patch("frappe.utils.background_jobs.frappe.destroy"),
+			patch("frappe.utils.background_jobs.frappe.get_hooks", return_value=[]),
+		):
+			result = execute_job(
+				site=frappe.local.site,
+				user="test@example.com",
+				method=locked_once,
+				event=None,
+				job_name="locked-once-as-user",
+				is_async=False,
+				kwargs={},
+			)
+
+		self.assertEqual(result, "completed")
+		retry_job.assert_called_once_with(
+			frappe.local.site,
+			locked_once,
+			None,
+			"locked-once-as-user",
+			{},
+			user="test@example.com",
+			is_async=False,
+			retry=1,
+		)
+
 
 def fail_function():
 	return 1 / 0
