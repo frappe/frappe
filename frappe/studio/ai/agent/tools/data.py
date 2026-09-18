@@ -7,7 +7,7 @@ standard page auto-exports its JSON (`on_update`). After a successful write the
 handler commits and emits a `reload` event so the canvas re-fetches resources and
 live `{{ <name>.data }}` bindings start resolving.
 
-Block edits (ListView/Repeater + bind_prop) are CLIENT tools applied on the
+Block edits (List/Repeater + bind_prop) are CLIENT tools applied on the
 canvas; add the data source FIRST, then lay out and bind the blocks — that order
 keeps the canvas block edits from racing this save.
 """

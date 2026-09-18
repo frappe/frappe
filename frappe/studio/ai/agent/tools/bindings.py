@@ -50,8 +50,8 @@ set_repeater_data = Tool(
 		"as the row template — do not add a child per record. Then bind that child's props (and its "
 		"descendants') to the CURRENT ROW with bind_prop using `dataItem.<field>` expressions, e.g. "
 		"bind_prop(prop='text', expression='dataItem.description'). For a Repeater you are CREATING this "
-		"turn, set data and dataKey directly in its add_block props instead. For a tabular ListView, "
-		"bind its 'rows' prop to {{ <data_source>.data }}."
+		"turn, set data and dataKey directly in its add_block props instead. For a tabular List, "
+		"bind its ListRows child's 'items' prop to {{ <data_source>.data }}; its row template belongs in the default slot."
 	),
 	parameters={
 		"type": "object",
