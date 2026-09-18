@@ -51,6 +51,17 @@ body {
 	}
 }
 
+{%- if for_chrome and chrome_layout_footer %}
+body {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+}
+.print-footer-once {
+	margin-top: auto;
+}
+{%- endif %}
+
 {%- if repeat_frame %}
 .print-repeating-frame {
 	width: 100%;
