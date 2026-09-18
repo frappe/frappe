@@ -687,6 +687,7 @@ def _transpile_to_sqlite(query: str) -> tuple[str, tuple[int, ...]] | None:
 
 		# MariaDB permits COALESCE(x), but SQLite requires at least two arguments.
 		parsed = parsed.transform(_unwrap_single_argument_coalesce)
+		parsed = parsed.transform(_rewrite_date_format)
 
 		# SQLite has no row-level locks. Remove only this known incompatibility;
 		# any other unsupported construct must take the safe fallback below.
@@ -709,6 +710,15 @@ def _uses_sqlite_quoted_identifiers(query: str) -> bool:
 def _unwrap_single_argument_coalesce(node):
 	while isinstance(node, exp.Coalesce) and not node.expressions:
 		node = node.this.copy()
+	return node
+
+
+def _rewrite_date_format(node):
+	if isinstance(node, exp.TimeToStr):
+		return exp.Anonymous(
+			this="FRAPPE_DATE_FORMAT",
+			expressions=[node.this.copy(), node.args["format"].copy()],
+		)
 	return node
 
 
