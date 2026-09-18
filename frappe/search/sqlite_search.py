@@ -15,7 +15,7 @@ from typing import Any
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import now_datetime, update_progress_bar
+from frappe.utils import convert_utc_to_system_timezone, get_datetime, now_datetime, update_progress_bar
 from frappe.utils.file_lock import LockTimeoutError
 from frappe.utils.synchronization import filelock
 
@@ -402,7 +402,7 @@ class SQLiteSearch(ABC):
 		if not self.is_search_enabled():
 			return
 
-		started_at = now_datetime()
+		started_at = self._build_started_at(is_continuation)
 
 		# Use temporary database path for atomic replacement (only for new index builds)
 		temp_db_path = None
@@ -564,6 +564,23 @@ class SQLiteSearch(ABC):
 				self.db_path = original_db_path
 
 		self.queue_documents_changed_during_build(started_at)
+
+	def _build_started_at(self, is_continuation: bool):
+		"""When this build began, carried across a resumed one.
+
+		A continuation skips the rows the earlier run already indexed, so a document edited
+		between the two runs falls outside a fresh timestamp and would never be caught up. The
+		progress rows survive the interruption and record the original start, in UTC.
+		"""
+		if is_continuation:
+			stamps = [
+				row["started_at"] for row in self._get_index_progress().values() if row.get("started_at")
+			]
+			if stamps:
+				# naive, to compare with modified the same way now_datetime() does
+				return convert_utc_to_system_timezone(get_datetime(min(stamps))).replace(tzinfo=None)
+
+		return now_datetime()
 
 	def queue_documents_changed_during_build(self, started_at):
 		"""Queue documents saved while the build was running.
