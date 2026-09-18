@@ -194,12 +194,15 @@ COUNT_CAP = 1000
 
 def add_count(doctype: str, filters, or_filters, group_by: str | None) -> None:
 	"""`count` (at most COUNT_CAP) and `count_capped` for the list's filters; `count` is None when the one-second timeout hits."""
-	from frappe.desk.reportview import count_rows, parse_args
+	from frappe.desk.reportview import count_rows
 
-	args = frappe._dict(doctype=doctype, filters=filters, or_filters=or_filters, limit=COUNT_CAP + 1)
-	if group_by is not None:
-		args.group_by = group_by
-	count = count_rows(parse_args(args))
+	count = count_rows(
+		doctype=doctype,
+		filters=filters,
+		or_filters=or_filters,
+		group_by=group_by,
+		limit=COUNT_CAP + 1,
+	)
 	capped = count is not None and count > COUNT_CAP
 	frappe.response["count"] = COUNT_CAP if capped else count
 	frappe.response["count_capped"] = capped
