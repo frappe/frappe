@@ -1054,7 +1054,14 @@ class Engine:
 			return self.permitted_fields_cache[cache_key]
 		else:
 			# for read permission, use standard permitted fields
-			return self._get_cached_permitted_fields(doctype, parenttype, permission_type)
+			permitted_fields = self._get_cached_permitted_fields(doctype, parenttype, permission_type)
+			if doctype == "User" and "user_type" not in permitted_fields:
+				# user_type is permlevel 1 but not itself sensitive, and the built-in
+				# Link-field search (user.user_query) filters by it for every caller.
+				# Allow it for filtering only - do not mutate the cached set, since that
+				# is also used to check permission for selecting/returning fields.
+				return permitted_fields | {"user_type"}
+			return permitted_fields
 
 	def parse_string_field(self, field: str):
 		"""
