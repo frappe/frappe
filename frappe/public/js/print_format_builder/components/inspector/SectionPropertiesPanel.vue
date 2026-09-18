@@ -79,6 +79,9 @@
 					</option>
 				</select>
 			</div>
+		</InspectorSection>
+
+		<InspectorSection :label="__('Borders')" :init-open="false">
 			<ToggleRow
 				:label="__('Field borders')"
 				:model-value="section_field_borders"
