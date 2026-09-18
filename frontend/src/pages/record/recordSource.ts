@@ -9,6 +9,7 @@ export const RECORD_PARTS = [
 	"shares",
 	"tags",
 	"favourites",
+	"follows",
 	"users",
 	"link_titles",
 ] as const;
@@ -24,7 +25,7 @@ export function loadRecord(doctype: string, name: string): Promise<LoadedRecord>
 	return read(doctype, name, [...RECORD_PARTS, "seen"]);
 }
 
-/** The parts alone after an assign, share, tag or favourite; the draft is untouched and nothing is marked seen. */
+/** The parts alone, on a realtime delta; the draft is untouched and nothing is marked seen. */
 export async function loadParts(doctype: string, name: string): Promise<DocInfo> {
 	const { docinfo } = await read(doctype, name, RECORD_PARTS);
 	return docinfo;
@@ -49,6 +50,7 @@ async function read(doctype: string, name: string, include: readonly string[]): 
 			shares: envelope.shares as DocInfo["shares"],
 			tags: envelope.tags as DocInfo["tags"],
 			favourites: envelope.favourites as DocInfo["favourites"],
+			follows: envelope.follows as DocInfo["follows"],
 			users: envelope.users as DocInfo["users"],
 		},
 		linkTitles: (envelope.link_titles ?? {}) as Record<string, string>,

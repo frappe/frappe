@@ -24,6 +24,7 @@ const ENVELOPE = {
 	shares: [{ user: "everyone", read: 1 }],
 	tags: ["urgent"],
 	favourites: [{ user: "ann@example.com" }],
+	follows: true,
 	users: { "ann@example.com": { full_name: "Ann", user_image: "/ann.png" } },
 	link_titles: { "CRM Lead::L-1": "Lead One" },
 	seen: ["ann@example.com"],
@@ -48,6 +49,7 @@ describe("loadRecord", () => {
 			"shares",
 			"tags",
 			"favourites",
+			"follows",
 			"users",
 			"link_titles",
 			"seen",
@@ -59,6 +61,7 @@ describe("loadRecord", () => {
 			shares: ENVELOPE.shares,
 			tags: ENVELOPE.tags,
 			favourites: ENVELOPE.favourites,
+			follows: true,
 			users: ENVELOPE.users,
 		});
 		expect(loaded.linkTitles).toEqual(ENVELOPE.link_titles);
@@ -81,6 +84,7 @@ describe("loadParts", () => {
 		expect(include).not.toContain("seen");
 		expect(include).toContain("shares");
 		expect(parts.tags).toEqual(["urgent"]);
+		expect(parts.follows).toBe(true);
 		expect(parts).not.toHaveProperty("document");
 	});
 });

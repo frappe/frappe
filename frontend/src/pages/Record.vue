@@ -73,6 +73,7 @@
 						:collapsed="collapsed"
 						:run="runAction"
 						:reloadDocinfo="reloadDocinfo"
+						:whileOnRecord="whileOnRecord"
 						@expand="expand"
 					/>
 				</template>
@@ -99,7 +100,7 @@ import {
 } from "vue";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
 import { toast } from "frappe-ui";
-import { isApiError } from "@framework/ui/api";
+import { addFavourite, isApiError, removeFavourite } from "@framework/ui/api";
 import { FormLayout } from "@framework/ui/components/FormLayout";
 import { CommitKey, LinkTitlesKey } from "@framework/ui/components/Fields/types";
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
@@ -135,6 +136,7 @@ import { favouritesOf, hasFavourited } from "./record/favourites";
 import { useLiveDocinfo } from "./record/liveDocinfo";
 import { useLiveClientScripts } from "./record/liveClientScripts";
 import { personOf, type DocInfo } from "./record/panel/context";
+import { mergePart } from "./record/panel/peopleActions";
 import { tagsOf } from "./record/panel/people";
 import { useDisclosure } from "./record/panel/disclosure";
 import { layoutItems, layoutSections } from "./record/panel/panelEntries";
@@ -295,27 +297,30 @@ function headerBuiltins(): HeaderItem[] {
 	return items;
 }
 
-// The answer is discarded and the sidecar re-read, as the people rows do, so the star never
-// disagrees with the server. A failure toasts here: `runAction` would otherwise reload over the draft.
-// Clicks queue: each one reads the state the one before it left, so two quick clicks toggle twice.
+// A failure toasts here: `runAction` would otherwise reload over the draft. Clicks queue, so
+// each one reads the state the one before it left and two quick clicks toggle twice.
 let favouriteTurn: Promise<void> = Promise.resolve();
 
 function toggleFavourite(page: RecordPageApi) {
 	favouriteTurn = favouriteTurn.then(async () => {
 		// A turn that outlived its record would read the next record's state; it does nothing.
 		if (page.doctype !== doctype.value || page.docname !== docname.value) return;
+		const current = whileOnRecord();
+		const write = favourited.value ? removeFavourite : addFavourite;
 		try {
-			await page.call("frappe.desk.doctype.favourite.favourite.toggle_favourite", {
-				doctype: page.doctype,
-				name: page.docname,
-				add: !favourited.value,
-			});
-			await reloadDocinfo();
+			const { data } = await write(page.doctype, page.docname);
+			if (current()) docinfo.value = mergePart(docinfo.value, data);
 		} catch (e) {
 			toast.error(errorMessage(e));
 		}
 	});
 	return favouriteTurn;
+}
+
+// Marks the record on show; the check is false once another load or a navigation replaced it.
+function whileOnRecord() {
+	const mine = generation;
+	return () => mine === generation;
 }
 
 // Three built-ins first, then the Side Panel layout's sections, as they resolve now.
