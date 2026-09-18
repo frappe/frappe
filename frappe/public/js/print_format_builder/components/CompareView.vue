@@ -1,74 +1,76 @@
 <template>
 	<Teleport to="body">
-		<div class="pfb-compare" tabindex="-1" ref="root">
-			<div class="pfb-compare-stage">
-				<div v-if="!docname" class="pfb-compare-empty">
-					{{ __("Pick a record in the toolbar above to compare it.") }}
+		<div class="pfb-overlay" @click.self="$emit('close')">
+			<div class="pfb-compare" tabindex="-1" ref="root">
+				<div class="pfb-compare-stage">
+					<div v-if="!docname" class="pfb-compare-empty">
+						{{ __("Pick a record in the toolbar above to compare it.") }}
+					</div>
+					<div v-else-if="note" class="pfb-compare-empty">{{ note }}</div>
+					<div v-else-if="!html" class="pfb-compare-empty">
+						<span class="pfb-compare-spinner" aria-hidden="true"></span>
+					</div>
+					<iframe
+						v-else
+						ref="frame"
+						class="pfb-compare-frame"
+						sandbox="allow-same-origin"
+						:srcdoc="html"
+						@load="mark_frame"
+					></iframe>
 				</div>
-				<div v-else-if="note" class="pfb-compare-empty">{{ note }}</div>
-				<div v-else-if="!html" class="pfb-compare-empty">
-					<span class="pfb-compare-spinner" aria-hidden="true"></span>
-				</div>
-				<iframe
-					v-else
-					ref="frame"
-					class="pfb-compare-frame"
-					sandbox="allow-same-origin"
-					:srcdoc="html"
-					@load="mark_frame"
-				></iframe>
-			</div>
 
-			<div class="pfb-compare-panel">
-				<div class="pfb-compare-head">
-					<div>
-						<div class="pfb-compare-title">{{ __("Review changes") }}</div>
-						<div class="pfb-compare-summary">{{ summary }}</div>
-					</div>
-					<button
-						class="es-button"
-						data-variant="ghost"
-						data-icon-button="true"
-						:title="__('Close')"
-						@click="$emit('close')"
-						v-html="frappe.utils.icon('x', 'sm')"
-					></button>
-				</div>
-				<div class="pfb-compare-list">
-					<div v-if="!entries.length" class="pfb-compare-none">
-						{{ __("This draft matches the saved version.") }}
-					</div>
-					<template v-for="group in groups" :key="group.title">
-						<div
-							v-if="group.items.length"
-							class="pfb-insp-section-label pfb-compare-group"
-						>
-							{{ group.title }}
+				<div class="pfb-compare-panel">
+					<div class="pfb-compare-head">
+						<div>
+							<div class="pfb-compare-title">{{ __("Review changes") }}</div>
+							<div class="pfb-compare-summary">{{ summary }}</div>
 						</div>
-						<div
-							v-for="item in group.items"
-							:key="item.id"
-							class="pfb-compare-item"
-							:class="{ 'pfb-compare-item--jump': item.selector }"
-							@click="item.selector && jump(item)"
-							@mouseenter="item.selector && hover(item, true)"
-							@mouseleave="item.selector && hover(item, false)"
-						>
-							<span class="pfb-compare-marker" :data-kind="item.kind">{{
-								item.n
-							}}</span>
-							<span class="pfb-compare-item-body">
-								<span class="pfb-compare-item-label">{{ item.label }}</span>
-								<span
-									v-for="line in item.lines"
-									:key="line"
-									class="pfb-compare-item-line"
-								>
-									{{ line }}
+						<button
+							class="es-button"
+							data-variant="ghost"
+							data-icon-button="true"
+							:title="__('Close')"
+							@click="$emit('close')"
+							v-html="frappe.utils.icon('x', 'sm')"
+						></button>
+					</div>
+					<div class="pfb-compare-list">
+						<div v-if="!entries.length" class="pfb-compare-none">
+							{{ __("This draft matches the saved version.") }}
+						</div>
+						<template v-for="group in groups" :key="group.title">
+							<div
+								v-if="group.items.length"
+								class="pfb-insp-section-label pfb-compare-group"
+							>
+								{{ group.title }}
+							</div>
+							<div
+								v-for="item in group.items"
+								:key="item.id"
+								class="pfb-compare-item"
+								:class="{ 'pfb-compare-item--jump': item.selector }"
+								@click="item.selector && jump(item)"
+								@mouseenter="item.selector && hover(item, true)"
+								@mouseleave="item.selector && hover(item, false)"
+							>
+								<span class="pfb-compare-marker" :data-kind="item.kind">{{
+									item.n
+								}}</span>
+								<span class="pfb-compare-item-body">
+									<span class="pfb-compare-item-label">{{ item.label }}</span>
+									<span
+										v-for="line in item.lines"
+										:key="line"
+										class="pfb-compare-item-line"
+									>
+										{{ line }}
+									</span>
 								</span>
-							</span>
-						</div>
-					</template>
+							</div>
+						</template>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -114,6 +116,7 @@ function mark_css() {
 		)
 		.join("");
 	return `
+.print-format-doc .section--grid { overflow: visible; }
 [data-pfb-diff] { position: relative; outline-offset: 2px; }
 [data-pfb-diff]::before { content: attr(data-pfb-n); position: absolute; top: -9px; left: -9px; z-index: 1; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; font: 700 10px/18px sans-serif; text-align: center; color: ${white}; box-shadow: 0 1px 2px rgba(0,0,0,.25); }
 [data-pfb-diff="removed"] { text-decoration: line-through; opacity: 0.6; }
@@ -508,11 +511,13 @@ onUnmounted(() => window.removeEventListener("keydown", on_keydown));
 
 <style scoped>
 .pfb-compare {
-	position: fixed;
-	inset: 0;
-	z-index: 1035;
 	display: flex;
-	background: var(--bg-color);
+	width: min(1280px, 96vw);
+	height: 94vh;
+	background: var(--fg-color);
+	border-radius: var(--radius-lg, 8px);
+	box-shadow: var(--shadow-lg);
+	overflow: hidden;
 	outline: none;
 }
 
@@ -522,6 +527,7 @@ onUnmounted(() => window.removeEventListener("keydown", on_keydown));
 	display: flex;
 	flex-direction: column;
 	padding: 12px;
+	background: var(--bg-color);
 }
 
 .pfb-compare-frame {
