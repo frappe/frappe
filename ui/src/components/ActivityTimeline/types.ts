@@ -52,8 +52,6 @@ export interface BaseActivity<TType extends string, TData> {
   author?: UserInfo;
   /** lucide name or component; per-type default when absent */
   icon?: string | Component;
-  /** set by addPendingActivity: not confirmed by the server yet, rendered muted */
-  pending?: boolean;
   data: TData;
 }
 
