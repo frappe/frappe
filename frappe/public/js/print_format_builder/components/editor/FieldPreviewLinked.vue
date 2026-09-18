@@ -20,7 +20,9 @@ const props = defineProps(["df"]);
 const store = inject("$store");
 
 let value = ref("");
-let placeholder = computed(() => props.df.link_path || __("No linked field set"));
+let placeholder = computed(() =>
+	store.preview_doc.value ? "" : props.df.link_path || __("No linked field set")
+);
 
 let link_options = computed(() => {
 	const link_fieldname = (props.df.link_path || "").split(".")[0];
