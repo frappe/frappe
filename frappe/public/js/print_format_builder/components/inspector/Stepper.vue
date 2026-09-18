@@ -6,6 +6,7 @@
 			data-variant="subtle"
 			data-size="sm"
 			data-icon-button="true"
+			:aria-label="__('Decrease')"
 			@click="$emit('decrement')"
 			v-html="frappe.utils.icon('minus', 'sm')"
 		></button>
@@ -29,6 +30,7 @@
 			data-variant="subtle"
 			data-size="sm"
 			data-icon-button="true"
+			:aria-label="__('Increase')"
 			@click="$emit('increment')"
 			v-html="frappe.utils.icon('plus', 'sm')"
 		></button>
