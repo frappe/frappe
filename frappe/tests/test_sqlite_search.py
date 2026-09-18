@@ -8,11 +8,13 @@ import frappe
 from frappe.search.sqlite_search import (
 	SQLiteSearch,
 	SQLiteSearchIndexMissingError,
+	_build_lock_name,
 	build_index,
 	build_index_if_not_exists,
 	index_docs_in_queue,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.utils.synchronization import filelock
 
 
 class TestSQLiteSearch(SQLiteSearch):
@@ -133,6 +135,18 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[TestSQLiteSearch]):
 			build_index_if_not_exists()
 
+		self.assertTrue(self.search.index_exists())
+
+	def test_a_second_build_skips_while_one_is_running(self):
+		"""A fresh build deletes any temp database it finds, so two would delete each other's work."""
+		self.search.drop_index()
+		self.addCleanup(self.search.drop_index)
+
+		with filelock(_build_lock_name(TestSQLiteSearch), timeout=0):
+			build_index(TestSQLiteSearch, force=True)
+			self.assertFalse(self.search.index_exists())
+
+		build_index(TestSQLiteSearch, force=True)
 		self.assertTrue(self.search.index_exists())
 
 	def test_index_lifecycle_and_status_methods(self):
