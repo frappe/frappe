@@ -519,6 +519,21 @@ data = columns, result
 		self.assertIn("num_format", date_style)
 		self.assertEqual(date_style.get("align"), "right")
 
+	def test_xlsx_style_builder_float_indent_is_whole_number(self):
+		"""Excel ignores a fractional alignment indent, so float tree levels must become integers"""
+		column_map = {0: {"fieldname": "account", "fieldtype": "Data", "label": "Account"}}
+		row_map = {1: {"account": "Current Assets", "indent": 1.0}, 2: {"account": "Debtors", "indent": 2.0}}
+
+		builder = XLSXStyleBuilder(
+			XLSXMetadata(column_map=column_map, row_map=row_map), default_styling=False
+		)
+		builder.apply_indentations()
+
+		for row_idx, expected in ((1, 2), (2, 4)):
+			indent = builder.styles[builder.cell_styles[(row_idx, 0)][0]]["indent"]
+			self.assertEqual(indent, expected)
+			self.assertIsInstance(indent, int)
+
 	def test_export_report_via_email(self):
 		REPORT_NAME = "Test CSV Report"
 		REF_DOCTYPE = "DocType"
