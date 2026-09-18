@@ -50,7 +50,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 	def test_unauthorized_call_v2(self):
 		# test 1: fetch documents without auth
 		response = requests.get(self.resource(self.DOCTYPE))
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 403, response.get_data(as_text=True)[-3000:])
 
 	def test_get_list_v2(self):
 		# test 2: fetch documents without params
@@ -156,7 +156,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 				self.resource("Website Theme", "Standard", "method", "get_apps"), {"sid": self.sid}
 			)
 
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 403, response.get_data(as_text=True)[-3000:])
 
 	def test_update_document_v2(self):
 		generated_desc = frappe.mock("paragraph")
@@ -851,7 +851,7 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			with self.subTest(path=path):
 				with suppress_stdout():
 					response = self.get(path, {"sid": sid})
-				self.assertEqual(response.status_code, 403)
+				self.assertEqual(response.status_code, 403, response.get_data(as_text=True)[-3000:])
 
 
 class TestReadOnlyMode(FrappeAPITestCase):
@@ -1093,3 +1093,107 @@ class TestIncludePartsV2(FrappeAPITestCase):
 		with suppress_stdout():
 			response = self.get(self.resource("ToDo"), {"sid": self.sid, "or_filters": '"name"'})
 		self.assertEqual(response.status_code, 417)
+
+
+class TestListPartsV2(FrappeAPITestCase):
+	"""`include=count` beside a list read, and the link-field search route."""
+
+	version = "v2"
+
+	@classmethod
+	def setUpClass(cls):
+		# the test client answers on another thread, so fixtures are committed to be visible there
+		super().setUpClass()
+		cls.prefix = f"api-search-{frappe.generate_hash(length=8)}"
+		cls.todos = [
+			frappe.get_doc({"doctype": "ToDo", "description": f"{cls.prefix} {word}"}).insert()
+			for word in ("alpha", "bravo", "charlie")
+		]
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		for todo in cls.todos:
+			frappe.delete_doc_if_exists("ToDo", todo.name, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	@property
+	def filters(self) -> str:
+		return json.dumps({"description": ["like", f"{self.prefix}%"]})
+
+	def list(self, **params):
+		return self.get(self.resource("ToDo"), {"sid": self.sid, "filters": self.filters, **params})
+
+	def search(self, **params):
+		return self.get(self.doctype_path("ToDo", "search"), {"sid": self.sid, **params})
+
+	def test_count_beside_the_list(self):
+		response = self.list(include="count", limit=1)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(len(response.json["data"]), 1)
+		self.assertTrue(response.json["has_next_page"])
+		self.assertEqual(response.json["count"], 3)
+		self.assertFalse(response.json["count_capped"])
+		# get_count's own ten-minute cache header must not reach the list response
+		self.assertNotIn("max-age=600", response.headers["Cache-Control"])
+
+	def test_count_stops_at_the_cap(self):
+		with patch("frappe.api.include.COUNT_CAP", 2):
+			response = self.list(include="count")
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(len(response.json["data"]), 3)
+		self.assertEqual(response.json["count"], 2)
+		self.assertTrue(response.json["count_capped"])
+
+	def test_count_is_null_on_timeout(self):
+		with patch("frappe.desk.reportview.get_count", return_value=None):
+			response = self.list(include="count")
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertIsNone(response.json["count"])
+		self.assertFalse(response.json["count_capped"])
+
+	def test_count_follows_or_filters(self):
+		or_filters = json.dumps([["name", "=", self.todos[0].name], ["name", "=", self.todos[1].name]])
+		response = self.list(include="count", or_filters=or_filters)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["count"], 2)
+
+	def test_no_count_without_include(self):
+		for params in ({}, {"include": ""}):
+			response = self.list(**params)
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertEqual(set(response.json), {"data", "has_next_page"})
+
+	def test_list_unknown_part_is_an_error(self):
+		with suppress_stdout():
+			response = self.list(include="count,totals")
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "UnknownPartError")
+		self.assertNotIn("count", response.json)
+
+	def test_search_rows(self):
+		response = self.search(txt=self.prefix)
+		self.assertEqual(response.status_code, 200, response.json)
+		rows = response.json["data"]
+		self.assertEqual({row["value"] for row in rows}, {todo.name for todo in self.todos})
+		self.assertEqual(set(rows[0]), {"value", "label", "description"})
+		self.assertEqual(response.headers["Cache-Control"], "private,max-age=60,stale-while-revalidate=300")
+
+	def test_search_limit_and_start(self):
+		first = self.search(txt=self.prefix, limit=2)
+		self.assertEqual(len(first.json["data"]), 2)
+		rest = self.search(txt=self.prefix, limit=2, start=2)
+		self.assertEqual(len(rest.json["data"]), 1)
+		self.assertNotIn(rest.json["data"][0]["value"], [row["value"] for row in first.json["data"]])
+
+	def test_search_takes_filters(self):
+		response = self.search(txt=self.prefix, filters=json.dumps({"name": self.todos[1].name}))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual([row["value"] for row in response.json["data"]], [self.todos[1].name])
+
+	def test_search_refuses_a_guest(self):
+		# no suppress_stdout: the refusal prints, and a None stdout turns that into a 500
+		response = self.get(self.doctype_path("ToDo", "search"), {"sid": "Guest", "txt": self.prefix})
+		self.assertEqual(response.status_code, 403)
