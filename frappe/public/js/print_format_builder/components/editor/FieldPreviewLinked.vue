@@ -49,6 +49,7 @@ watchEffect(() => {
 		(f) => f.fieldname === link_fieldname && f.fieldtype === "Link"
 	);
 	if (!link_df?.options) return;
+	if (!target_fields.value.some((f) => f.fieldname === target_fieldname)) return;
 	const name = preview_doc?.[link_fieldname];
 	if (!name) return;
 	const key = `${link_df.options}:${name}:${target_fieldname}`;
