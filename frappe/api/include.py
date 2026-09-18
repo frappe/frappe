@@ -7,6 +7,7 @@ does the same for the child-table doctypes.
 
 import frappe
 from frappe import _
+from frappe.desk.doctype.favourite.favourite import get_favourites as get_favourite_rows
 from frappe.desk.form.load import (
 	get_attachments,
 	get_comments,
@@ -90,7 +91,7 @@ def get_tags(doc: Document) -> list[str]:
 
 
 def get_favourites(doc: Document) -> list[dict]:
-	return [{"user": user} for user in frappe.parse_json(doc.get("_liked_by") or "[]")]
+	return get_favourite_rows(doc.doctype, doc.name)
 
 
 def get_link_titles(doc: Document) -> dict:

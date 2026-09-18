@@ -938,9 +938,14 @@ class TestIncludePartsV2(FrappeAPITestCase):
 				"content": "a comment",
 			}
 		).insert()
-		frappe.db.set_value(
-			"ToDo", cls.todo.name, "_liked_by", json.dumps([cls.TEST_USER]), update_modified=False
-		)
+		frappe.get_doc(
+			{
+				"doctype": "Favourite",
+				"user": cls.TEST_USER,
+				"reference_doctype": "ToDo",
+				"reference_name": cls.todo.name,
+			}
+		).insert(ignore_permissions=True)
 		frappe.db.commit()
 
 	@classmethod
@@ -981,7 +986,7 @@ class TestIncludePartsV2(FrappeAPITestCase):
 			body["shares"], [{"user": self.TEST_USER, "read": 1, "write": 1, "submit": 0, "share": 0}]
 		)
 		self.assertEqual(body["tags"], [])
-		self.assertEqual(body["favourites"], [{"user": self.TEST_USER}])
+		self.assertEqual(body["favourites"][0]["user"], self.TEST_USER)
 		self.assertIn("a comment", body["comments"][0]["content"])
 		self.assertEqual(body["users"][self.TEST_USER]["full_name"], "Include User")
 		self.assertIn("Administrator", body["users"])
