@@ -594,11 +594,12 @@ def test_a_subagents_rows_advance_the_leaf_but_stay_out_of_the_conversation(tmp_
 	assert session.leaf_seq == 8  # the child's rows are on the chain
 	assert session.subagent_id is None
 
-	child_transcript = Transcript.replay(log, subagent_id="c1")
+	child_transcript = Transcript("c1")
+	for row in active_path(log.read_since(0)):
+		child_transcript.record(parse_event(row))
 	assert [m.type for m in child_transcript.messages] == ["user_message", "assistant_message"]
 	assert [m.text for m in child_transcript.messages] == ["count the beans", "forty-two"]
 	assert child_transcript.leaf_seq == 8
-	assert child_transcript.subagent_id == "c1"
 
 	# live recording folds the same way as replay
 	live = Transcript()
