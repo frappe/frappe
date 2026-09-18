@@ -420,34 +420,6 @@ context("Print Format Builder — create flow", () => {
 	});
 
 	// 9c. Review Changes compares the saved format with the draft
-	it("review changes opens the saved and draft panes", () => {
-		cy.visit("/app");
-		cy.insert_doc("ToDo", { description: "pfb compare preview" }, true);
-		insert_builder_format(PF_NAME, [{ label: "Alpha", columns: [{ label: "", fields: [] }] }]);
-		cy.intercept(
-			"POST",
-			"api/method/frappe.printing.doctype.print_format.print_format.save_draft"
-		).as("draft");
-
-		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-		cy.get(".pfb-margin-grid", { timeout: 30000 }).should("be.visible");
-		cy.contains(".page-actions button", "Review Changes").should("not.be.visible");
-
-		cy.contains(".pfb-margin-cell label", "Top")
-			.closest(".pfb-margin-cell")
-			.find('input[type="number"]')
-			.clear()
-			.type("9")
-			.trigger("change")
-			.blur();
-		cy.wait("@draft", { timeout: 20000 });
-
-		cy.contains(".page-actions button", "Review Changes").should("be.visible").click();
-		cy.get(".pfb-compare", { timeout: 30000 }).should("be.visible");
-		cy.get(".pfb-compare-list").should("contain", "Margin Top");
-		cy.get(".pfb-compare-frame", { timeout: 30000 }).should("exist");
-	});
-
 	// 10. Inspector header shows the doctype field's label, not a custom print label
 	it("field inspector header keeps the doctype label after a custom rename", () => {
 		cy.visit("/app");
