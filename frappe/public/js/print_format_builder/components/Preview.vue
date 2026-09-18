@@ -1,6 +1,6 @@
 <template>
 	<Teleport to="body">
-		<div class="pfb-preview-backdrop" @click.self="$emit('close')">
+		<div class="pfb-overlay" @click.self="$emit('close')">
 			<div class="pfb-preview-modal">
 				<div v-if="!docname" class="pfb-preview-empty">
 					{{ __("Pick a record in the toolbar above to preview it.") }}
@@ -142,17 +142,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.pfb-preview-backdrop {
-	position: fixed;
-	inset: 0;
-	z-index: 1035;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 24px;
-	background: rgba(0, 0, 0, 0.6);
-}
-
 .pfb-preview-modal {
 	position: relative;
 	display: flex;

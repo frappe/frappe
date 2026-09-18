@@ -36,9 +36,8 @@ def pt(px, default=0.0) -> float:
 # translated at use, not import — a module-level _() would pin the first site's language
 # mirrored client-side in print_format_builder/utils.js typst_blockers_client
 BLOCKER_FIELDTYPES = {
-	"HTML": "Custom HTML block",
-	"Field Template": "Field Template (Jinja HTML)",
-	"Linked Field": "Linked Field",
+	"HTML": "HTML block",
+	"Field Template": "Field Template block",
 }
 
 PAGE_NUMBER_POSITIONS = {
@@ -131,7 +130,7 @@ def typst_blockers(print_format, layout) -> list[str]:
 		blockers.append(_("Not a builder format"))
 		return blockers
 	if (print_format.get("css") or "").strip():
-		blockers.append(_("Custom CSS on the format"))
+		blockers.append(_("Custom CSS in the Style box"))
 
 	if not isinstance(layout, dict):
 		return blockers
@@ -146,32 +145,35 @@ def typst_blockers(print_format, layout) -> list[str]:
 		)
 		blockers.extend(letterhead_blockers(lh))
 
-	for key in _COLOR_KEYS:
-		value = print_format.get(key)
-		if value and not safe_color(value):
-			blockers.append(_("Format color Typst can't render: {0}").format(value))
-
+	colors = _unsafe_colors(print_format)
+	styled_fields = []
 	seen = set()
-	for where, node in _walk(layout):
+	for _where, node in _walk(layout):
 		style = node.get("custom_style")
 		if isinstance(style, str) and style.strip():
 			_effects, unknown = translate_custom_style(style)
 			if unknown:
-				key = ("custom_style", where)
-				if key not in seen:
-					seen.add(key)
-					blockers.append(_("Untranslatable CSS on {0}: {1}").format(where, ", ".join(unknown)))
+				styled_fields.append(node.get("label") or node.get("fieldname") or "?")
+		colors.extend(c for c in _unsafe_colors(node) if c not in colors)
 		fieldtype_reason = BLOCKER_FIELDTYPES.get(node.get("fieldtype"))
 		reason = (
 			(_(fieldtype_reason) if fieldtype_reason else None)
 			or _barcode_blocker(node, print_format)
 			or _image_blocker(node)
-			or _color_blocker(node)
 		)
 		if reason and reason not in seen:
 			seen.add(reason)
 			blockers.append(reason)
+	if colors:
+		blockers.append(_("Colours that are not hex codes: {0}").format(", ".join(colors)))
+	if styled_fields:
+		blockers.append(_("Custom CSS on fields: {0}").format(_list_names(styled_fields)))
 	return blockers
+
+
+def _list_names(names):
+	shown = ", ".join(names[:4])
+	return _("{0} and {1} more").format(shown, len(names) - 4) if len(names) > 4 else shown
 
 
 def _barcode_blocker(df, print_format):
@@ -179,7 +181,7 @@ def _barcode_blocker(df, print_format):
 	if df.get("fieldtype") != "Barcode":
 		return None
 	if df.get("custom"):
-		return None if df.get("barcode_format") == "QR" else _("Barcode (non-QR)")
+		return None if df.get("barcode_format") == "QR" else _("Barcode that is not a QR code")
 	try:
 		meta_df = frappe.get_meta(print_format.doc_type).get_field(df.get("fieldname"))
 	except Exception:
@@ -188,7 +190,7 @@ def _barcode_blocker(df, print_format):
 
 	if meta_df and is_qr_barcode_options(meta_df.options):
 		return None
-	return _("Barcode (non-QR)")
+	return _("Barcode that is not a QR code")
 
 
 def letterhead_blockers(lh) -> list[str]:
@@ -206,7 +208,7 @@ def letterhead_blockers(lh) -> list[str]:
 		blockers.append(_("Letterhead footer with HTML content"))
 	for image in (header_is_image and lh.get("image"), footer_is_image and lh.get("footer_image")):
 		if image and str(image).startswith(("http://", "https://")):
-			blockers.append(_("Letterhead with a remote image URL"))
+			blockers.append(_("Letterhead image loaded from a web address"))
 			break
 	return blockers
 
@@ -216,7 +218,7 @@ def _image_blocker(df):
 		return None
 	src = df.get("image_url") or ""
 	if src.startswith(("http://", "https://")):
-		return _("Remote image URL")
+		return _("Image loaded from a web address")
 	return None
 
 
@@ -225,12 +227,8 @@ def _image_blocker(df):
 _COLOR_KEYS = ("label_color", "value_color")
 
 
-def _color_blocker(df):
-	for key in _COLOR_KEYS:
-		value = df.get(key)
-		if value and not safe_color(value):
-			return _("Field color Typst can't render: {0}").format(value)
-	return None
+def _unsafe_colors(df):
+	return [df.get(key) for key in _COLOR_KEYS if df.get(key) and not safe_color(df.get(key))]
 
 
 def has_typst_blocks(layout) -> bool:
@@ -783,7 +781,7 @@ class TypstEmitter:
 			return self._table(df)
 		if fieldtype == "Barcode":
 			return self._barcode(df)
-		if fieldtype in ("Image", "Attach Image"):
+		if fieldtype in ("Image", "Attach Image") or df.get("renderer") == "AttachImage":
 			return self._image(df)
 		if fieldtype == "Repeater":
 			return self._repeater(df)
@@ -795,13 +793,7 @@ class TypstEmitter:
 		text = (df.get("text") or "").strip()
 		if not text:
 			return ""
-		props = []
-		if df.get("bold"):
-			props.append('weight: "bold"')
-		if df.get("font_size"):
-			props.append(f"size: {pt(frappe.utils.flt(df.get('font_size')))}pt")
-		body = typst_escape(_(text)).replace("\n", " \\\n")
-		out = f"#text({', '.join(props)})[{body}]" if props else body
+		out = self._text_props(df, typst_escape(_(text)).replace("\n", " \\\n"))
 		if df.get("align") in ("center", "right"):
 			out = f"#align({df['align']})[{out}]"
 		return out
@@ -819,6 +811,8 @@ class TypstEmitter:
 			)
 
 	def _formatted_value(self, df):
+		if df.get("fieldtype") == "Linked Field":
+			return _text_value(df.get("_value") or "")
 		fieldname = df.get("fieldname")
 		if not fieldname:
 			return ""
@@ -866,12 +860,20 @@ class TypstEmitter:
 				body = f"#grid(columns: (1fr, auto), column-gutter: {gap_pt}pt, [{label}], [#align(right)[{value_text}]])"
 			else:
 				body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
-			return body
+			return self._text_props(df, body)
 		spacing = gap_effect if gap_effect is not None else 4
 		parts = [f"[{label}]"] if label else []
 		parts.append(f"[{value_text}]")
 		body = f"#stack(spacing: {spacing}pt,\n" + ",\n".join(parts) + ")" if len(parts) > 1 else value_text
-		return _aligned(body, align)
+		return _aligned(self._text_props(df, body), align)
+
+	def _text_props(self, df, body: str) -> str:
+		props = []
+		if df.get("bold"):
+			props.append('weight: "bold"')
+		if df.get("font_size"):
+			props.append(f"size: {pt(frappe.utils.flt(df.get('font_size')))}pt")
+		return f"#text({', '.join(props)})[{body}]" if props else body
 
 	def _asset(self, suffix: str, data: bytes) -> str:
 		name = f"asset_{len(self.assets)}.{suffix}"
@@ -948,7 +950,11 @@ class TypstEmitter:
 		return name
 
 	def _image(self, df) -> str:
-		src = df.get("image_url") or (self.doc.get(df.get("fieldname")) if df.get("fieldname") else "")
+		src = (
+			df.get("image_url")
+			or df.get("_value")
+			or (self.doc.get(df.get("fieldname")) if df.get("fieldname") else "")
+		)
 		if not src:
 			return ""
 		name = self._embed_image(src)

@@ -342,9 +342,10 @@ body.pfb-dragging .pfb-header-area:has(.letter-head) .pfb-header-fields.pfb-head
 	right: 0;
 	top: -3px;
 	height: 6px;
-	background: radial-gradient(circle 3px at left center, var(--blue-500) 99%, transparent 100%)
-			no-repeat,
-		radial-gradient(circle 3px at right center, var(--blue-500) 99%, transparent 100%) no-repeat;
+	background:
+		radial-gradient(circle 3px at left center, var(--blue-500) 99%, transparent 100%) no-repeat,
+		radial-gradient(circle 3px at right center, var(--blue-500) 99%, transparent 100%)
+			no-repeat;
 }
 
 .pfb-field-row,
@@ -430,4 +431,15 @@ body.pfb-dragging * {
 .pfb-col-row .pfb-tpl {
 	flex: 1;
 	min-width: 0;
+}
+
+.pfb-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 1035;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+	background: rgba(0, 0, 0, 0.6);
 }

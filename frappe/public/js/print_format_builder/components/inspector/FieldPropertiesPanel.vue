@@ -180,11 +180,6 @@
 					:options="align_opts"
 					@update:model-value="(v) => (selected_field.align = v)"
 				/>
-				<ToggleRow
-					:label="__('Show when empty')"
-					:model-value="!!selected_field.show_empty"
-					@update:model-value="(v) => (selected_field.show_empty = v ? 1 : 0)"
-				/>
 			</template>
 			<template v-else-if="is_spacer">
 				<StepperRow
@@ -256,6 +251,23 @@
 
 		<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
 			<div v-if="is_text_field" class="pfb-insp-section-body">
+				<ToggleRow
+					v-if="!is_static_text"
+					:label="__('Bold')"
+					:model-value="!!selected_field.bold"
+					@update:model-value="(v) => (selected_field.bold = v ? 1 : 0)"
+				/>
+				<StepperRow
+					v-if="!is_static_text"
+					:label="__('Font size')"
+					:model-value="selected_field.font_size"
+					:base="13"
+					:step="1"
+					unit="px"
+					:placeholder="__('auto')"
+					allow-empty
+					@update:model-value="(v) => (selected_field.font_size = v)"
+				/>
 				<ColorField
 					:label="__('Label')"
 					:model-value="selected_field.label_color || ''"
@@ -277,6 +289,13 @@
 		</InspectorSection>
 
 		<InspectorSection :label="__('Visibility')" :init-open="false" :padded="false">
+			<div v-if="is_linked_field" class="pfb-insp-section-body">
+				<ToggleRow
+					:label="__('Print if empty')"
+					:model-value="!!selected_field.show_empty"
+					@update:model-value="(v) => (selected_field.show_empty = v ? 1 : 0)"
+				/>
+			</div>
 			<VisibilitySection v-model="selected_field.visible_if" :previewDoc="preview_doc" />
 		</InspectorSection>
 	</div>

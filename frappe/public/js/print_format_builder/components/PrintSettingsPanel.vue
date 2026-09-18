@@ -166,7 +166,8 @@ let renderer = computed(() =>
 let hint_icon = ref(null);
 let renderer_hint = computed(() => {
 	if (typst_blockers.value.length) {
-		return __("Typst unavailable: {0}", [typst_blockers.value.join(", ")]);
+		const items = typst_blockers.value.map((b) => "• " + frappe.utils.escape_html(b));
+		return [__("Typst needs these fixed:"), ...items].join("<br>");
 	}
 	if (has_typst_block.value) {
 		return __("Chromium unavailable: this format uses a Typst block.");
@@ -178,7 +179,7 @@ watch(
 	([el, title]) => {
 		if (!el) return;
 		$(el).tooltip("dispose");
-		if (title) $(el).tooltip({ title, trigger: "hover", placement: "top" });
+		if (title) $(el).tooltip({ title, html: true, trigger: "hover", placement: "top" });
 	},
 	{ flush: "post" }
 );
