@@ -92,11 +92,11 @@ let load_seq = 0;
 const MARK_CSS = `
 [data-pfb-diff] { position: relative; outline-offset: 2px; }
 [data-pfb-diff]::before { content: attr(data-pfb-n); position: absolute; top: -9px; left: -9px; z-index: 1; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; font: 700 10px/18px sans-serif; text-align: center; color: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); }
-[data-pfb-diff="added"] { outline: 2px solid #16a34a; background: #ecfdf3; }
+[data-pfb-diff="added"] { outline: 2px solid #16a34a; }
 [data-pfb-diff="added"]::before { background: #16a34a; }
-[data-pfb-diff="removed"] { outline: 2px dashed #dc2626; background: #fef2f2; text-decoration: line-through; opacity: 0.75; }
+[data-pfb-diff="removed"] { outline: 2px dashed #dc2626; text-decoration: line-through; opacity: 0.6; }
 [data-pfb-diff="removed"]::before { background: #dc2626; text-decoration: none; }
-[data-pfb-diff="changed"] { outline: 2px solid #d97706; background: #fffbeb; }
+[data-pfb-diff="changed"] { outline: 2px solid #d97706; }
 [data-pfb-diff="changed"]::before { background: #d97706; }
 [data-pfb-diff="moved"] { outline: 2px dashed #6b7280; }
 [data-pfb-diff="moved"]::before { background: #6b7280; }
@@ -319,10 +319,9 @@ function draw_box_bands(el, key, change) {
 		  ];
 	bands.forEach((style, i) => {
 		const size = i < 2 ? parseFloat(style.height) : parseFloat(style.width);
-		if (!size) return;
-		el.appendChild(place(make(doc, "pfb-diff-band", i === 0 ? text : ""), style));
+		if (size) el.appendChild(place(make(doc, "pfb-diff-band"), style));
 	});
-	if (!t) el.appendChild(place(make(doc, "pfb-diff-badge", text), {}));
+	return text;
 }
 
 function draw_gap_bands(el, change) {
@@ -337,7 +336,7 @@ function draw_gap_bands(el, change) {
 	cols.slice(1).forEach((rect, i) => {
 		const prev = cols[i];
 		el.appendChild(
-			place(make(doc, "pfb-diff-band", i === 0 ? text : ""), {
+			place(make(doc, "pfb-diff-band"), {
 				top: `${prev.top - base.top}px`,
 				left: `${prev.right - base.left}px`,
 				width: `${rect.left - prev.right}px`,
@@ -345,6 +344,7 @@ function draw_gap_bands(el, change) {
 			})
 		);
 	});
+	return text;
 }
 
 function draw_ghost_width(el, change) {
@@ -388,8 +388,8 @@ function annotate(el, item) {
 	if (colours.length) draw_colours(el, colours);
 	const badges = [];
 	for (const c of changes) {
-		if (BOX_KEYS[c.key]) draw_box_bands(el, c.key, c);
-		else if (GAP_KEYS.has(c.key)) draw_gap_bands(el, c);
+		if (BOX_KEYS[c.key]) badges.push(draw_box_bands(el, c.key, c));
+		else if (GAP_KEYS.has(c.key)) badges.push(draw_gap_bands(el, c));
 		else if (c.key === "width") draw_ghost_width(el, c);
 		else if (TEXT_BADGE.has(c.key)) {
 			badges.push(
@@ -397,8 +397,8 @@ function annotate(el, item) {
 			);
 		}
 	}
-	if (badges.length && !colours.length)
-		el.appendChild(make(el.ownerDocument, "pfb-diff-badge", badges.join(" · ")));
+	const text = badges.filter(Boolean).join(" · ");
+	if (text && !colours.length) el.appendChild(make(el.ownerDocument, "pfb-diff-badge", text));
 }
 
 function mark_frame() {
