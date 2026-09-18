@@ -1150,7 +1150,7 @@ class TestListPartsV2(FrappeAPITestCase):
 		self.assertFalse(response.json["count_capped"])
 
 	def test_count_is_null_on_timeout(self):
-		with patch("frappe.desk.reportview.get_count", return_value=None):
+		with patch("frappe.desk.reportview.count_rows", return_value=None):
 			response = self.list(include="count")
 		self.assertEqual(response.status_code, 200, response.json)
 		self.assertIsNone(response.json["count"])

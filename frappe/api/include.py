@@ -193,26 +193,12 @@ COUNT_CAP = 1000
 
 def add_count(doctype: str, filters, or_filters, group_by: str | None) -> None:
 	"""`count` (at most COUNT_CAP) and `count_capped` for the list's filters; `count` is None when the one-second timeout hits."""
-	from frappe.desk.reportview import get_count
+	from frappe.desk.reportview import count_rows, parse_args
 
-	# get_count reads the request's form_dict; hand it only the list's filters, its group_by and the cap
-	list_form = frappe.local.form_dict
-	frappe.local.form_dict = frappe._dict(
-		doctype=doctype, filters=filters, or_filters=or_filters, limit=COUNT_CAP + 1
-	)
+	args = frappe._dict(doctype=doctype, filters=filters, or_filters=or_filters, limit=COUNT_CAP + 1)
 	if group_by is not None:
-		frappe.local.form_dict.group_by = group_by
-	headers = frappe.local.response_headers
-	cache_control = headers.get("Cache-Control")
-	try:
-		count = get_count()
-	finally:
-		frappe.local.form_dict = list_form
-	# get_count marks a capped or timed-out count cacheable; the list rows beside it are not
-	if cache_control is None:
-		headers.remove("Cache-Control")
-	else:
-		headers.set("Cache-Control", cache_control)
+		args.group_by = group_by
+	count = count_rows(parse_args(args))
 	capped = count is not None and count > COUNT_CAP
 	frappe.response["count"] = COUNT_CAP if capped else count
 	frappe.response["count_capped"] = capped
