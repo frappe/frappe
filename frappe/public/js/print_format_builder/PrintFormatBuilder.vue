@@ -170,6 +170,13 @@ function toggle_history() {
 	else show_history.value = true;
 }
 
+watch(
+	[() => $store.value.selected_field.value, () => $store.value.selected_section.value],
+	([field, section]) => {
+		if ((field || section) && show_history.value) close_history();
+	}
+);
+
 function close_history() {
 	$store.value.exit_version();
 	show_history.value = false;
