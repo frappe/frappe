@@ -99,6 +99,7 @@ import {
 } from "vue";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
 import { toast } from "frappe-ui";
+import { isApiError } from "@framework/ui/api";
 import { FormLayout } from "@framework/ui/components/FormLayout";
 import { CommitKey, LinkTitlesKey } from "@framework/ui/components/Fields/types";
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
@@ -138,13 +139,8 @@ import { tagsOf } from "./record/panel/people";
 import { useDisclosure } from "./record/panel/disclosure";
 import { layoutItems, layoutSections } from "./record/panel/panelEntries";
 import RecordPanel from "./record/panel/RecordPanel.vue";
-import {
-	changedFields,
-	conflictError,
-	isTimestampMismatch,
-	SAVE_CONFLICT,
-	serverMessage,
-} from "./record/saveResponse";
+import { loadParts, loadRecord, saveRecord } from "./record/recordSource";
+import { changedFields, conflictError, SAVE_CONFLICT, stripTags } from "./record/saveResponse";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
@@ -332,36 +328,11 @@ function chooseFormTab(identity: string) {
 	tabMemory.value.remember(identity);
 }
 
-/** `getdoc`: the document, its sidecar and the link titles in one round trip. */
-async function fetchDoc(target: { doctype: string; name: string }) {
-	const res = await fetch(
-		`/api/method/frappe.desk.form.load.getdoc?${new URLSearchParams(target)}`
-	);
-	if (!res.ok) throw new Error(String(res.status));
-	const body = await res.json();
-	const document = body.docs?.[0];
-	if (!document) throw new Error("404");
-	return {
-		document,
-		docinfo: body.docinfo as DocInfo,
-		linkTitles: (body._link_titles ?? {}) as Record<string, string>,
-	};
-}
-
-/** `get_docinfo` alone: the sidecar after an assign, share or tag, with the draft untouched. */
-async function fetchDocinfo(target: { doctype: string; name: string }) {
-	const res = await fetch(
-		`/api/method/frappe.desk.form.load.get_docinfo?${new URLSearchParams(target)}`
-	);
-	if (!res.ok) throw new Error(String(res.status));
-	return (await res.json()).docinfo as DocInfo;
-}
-
 async function reloadDocinfo() {
 	if (!doctype.value) return;
 	const mine = generation;
 	const read = ++docinfoRead;
-	const fresh = await fetchDocinfo({ doctype: doctype.value, name: docname.value });
+	const fresh = await loadParts(doctype.value, docname.value);
 	if (mine !== generation || read !== docinfoRead) return;
 	docinfo.value = fresh;
 }
@@ -409,7 +380,7 @@ async function load() {
 	});
 	try {
 		const [loaded, metadata] = await Promise.all([
-			fetchDoc(target),
+			loadRecord(target.doctype, target.name),
 			fetchMeta(target.doctype),
 		]);
 		if (mine !== generation) return;
@@ -421,7 +392,7 @@ async function load() {
 	} catch (e) {
 		if (mine !== generation) return;
 		error.value =
-			String(e) === "Error: 403"
+			isApiError(e) && e.status === 403
 				? "You do not have permission to read this record."
 				: "Not found.";
 		return;
@@ -488,25 +459,7 @@ async function send() {
 	const mine = generation;
 	saving.value = true;
 	try {
-		const res = await fetch("/api/method/frappe.client.save", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				"X-Frappe-CSRF-Token": boot.csrf_token,
-			},
-			body: JSON.stringify({ doc: { ...doc.value, doctype: doctype.value } }),
-		});
-		const body = await res.json().catch(() => null);
-		if (!res.ok) {
-			if (isTimestampMismatch(body)) {
-				saving.value = false;
-				await resolveConflict();
-				throw conflictError();
-			}
-			throw new Error(serverMessage(body) ?? `Save failed with ${res.status}`);
-		}
-
-		const document = body.message;
+		const document = await saveRecord(doctype.value!, doc.value).catch(rethrowSaveError);
 		if (mine !== generation) return;
 		saved.value = { ...document };
 		doc.value = JSON.parse(JSON.stringify(document));
@@ -520,10 +473,19 @@ async function send() {
 	actionsVersion.value++;
 }
 
+// A conflict is resolved with the reader; any other refusal reads as text, since a msgprint is often HTML.
+async function rethrowSaveError(e: unknown): Promise<never> {
+	if (isApiError(e) && e.isTimestampMismatch) {
+		saving.value = false;
+		await resolveConflict();
+		throw conflictError();
+	}
+	throw isApiError(e) ? new Error(stripTags(e.message)) : e;
+}
+
 // Nothing is re-applied: the reader sees who saved and what they changed, and chooses.
 async function resolveConflict() {
-	const target = { doctype: doctype.value!, name: docname.value };
-	const latest = await fetchDoc(target).catch(() => null);
+	const latest = await loadRecord(doctype.value!, docname.value).catch(() => null);
 	const editor = latest
 		? personOf(latest.docinfo, latest.document.modified_by).name
 		: "Someone else";

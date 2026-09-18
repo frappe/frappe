@@ -36,6 +36,10 @@ vi.mock("frappe-ui", () => ({
   call: vi.fn(),
   toast: { success: vi.fn(), error: vi.fn() },
 }));
+vi.mock("@framework/ui/api", () => ({
+  runMethod: vi.fn(async () => ({ data: null })),
+  getMeta: vi.fn(async () => ({ data: null })),
+}));
 
 vi.mock("@framework/ui/components/FormLayout", () => ({
   // The real FormLayout is exercised in Chrome; here it only has to own the doc.

@@ -1,7 +1,8 @@
 // The Client Script tier: the doctype's stored scripts, fetched once per doctype,
 // evaluated as modules and registered as sources after file scripts and extensions.
 import { reactive, readonly, ref } from "vue";
-import { call, toast } from "frappe-ui";
+import { toast } from "frappe-ui";
+import { runMethod } from "@framework/ui/api";
 import type { RealtimeSocket } from "@framework/ui/socket";
 import { withRegisteringSource } from "./context";
 import { evaluateClientScript } from "./evaluateClientScript";
@@ -105,7 +106,11 @@ async function fetchScripts(
   doctype: string,
 ): Promise<ClientScriptsResponse | null> {
   try {
-    return await call(GET_CLIENT_SCRIPTS, { dt: doctype, view: "Record" });
+    const { data } = await runMethod<ClientScriptsResponse>(GET_CLIENT_SCRIPTS, {
+      dt: doctype,
+      view: "Record",
+    });
+    return data;
   } catch (error) {
     console.error(`[client-script] could not load scripts for ${doctype}`, error);
     reportCustomizationError(error, {

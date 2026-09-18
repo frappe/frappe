@@ -20,14 +20,16 @@ export interface UploadArgs {
   optimize?: boolean;
   maxWidth?: number;
   maxHeight?: number;
+  /** The record the File hangs on; a private file is then readable by whoever can read the record. */
+  attachTo?: { doctype: string; docname: string; fieldname?: string };
 }
 
 /**
  * The single seam between the queue and a backend. Receives one file plus its
  * args and a context carrying an `AbortSignal` (cancel) and an `onProgress`
  * callback (bytes loaded / total). Resolves with at least the resulting
- * `file_url`. Swap this out for non-Frappe backends; the default wraps
- * frappe-ui's `useFileUpload` and ports desk's chunked loop for large files.
+ * `file_url`. Swap this out for non-Frappe backends; the default is the chunked
+ * loop against `upload_file`.
  */
 export type UploadTransport = (
   file: File,

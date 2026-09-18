@@ -9,6 +9,10 @@ vi.mock("frappe-ui", () => ({
 	createResource: () => ({ data: null, loading: false, fetch() {}, reload() {} }),
 	frappeRequest: vi.fn(),
 }));
+vi.mock("@framework/ui/api", () => ({
+	runMethod: vi.fn(async () => ({ data: null })),
+	getMeta: vi.fn(async () => ({ data: null })),
+}));
 
 import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
 import { CommitKey, NO_COMMIT } from "@framework/ui/components/FormLayout/types";

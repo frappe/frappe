@@ -1,6 +1,6 @@
-import { computed, ref, toValue, watch } from "vue";
+import { computed, ref, toValue } from "vue";
 import type { ComputedRef, MaybeRefOrGetter, Ref } from "vue";
-import { createResource, frappeRequest } from "frappe-ui";
+import { getMeta } from "../api";
 import type { RawMetaField } from "../components/FormLayout/types";
 import { memoizedState } from "../utils/sharedState";
 
@@ -20,16 +20,10 @@ export interface DoctypeMeta {
   permissions?: DocPermRow[];
 }
 
-interface GetDoctypeResponse {
-  docs?: DoctypeMeta[];
-  user_settings?: string;
-}
-
 export interface UseDoctypeMeta {
   /** The requested doctype's meta; `null` until it loads (or if absent). */
   meta: ComputedRef<DoctypeMeta | null>;
-  /** Every doctype meta from `getdoctype`, keyed by name. `with_parent: 1`
-   *  includes child-table metas, used to resolve `Table` columns. */
+  /** The doctype's meta and its child tables' (`include=children`), keyed by name. */
   metas: ComputedRef<Record<string, DoctypeMeta>>;
   loading: ComputedRef<boolean>;
   error: ComputedRef<unknown>;
@@ -48,10 +42,9 @@ interface DoctypeMetaEntry {
 const entries = memoizedState((doctype: string) => doctype, buildEntry);
 
 /**
- * Fetch a doctype's meta via `frappe.desk.form.load.getdoctype` (`with_parent: 1`)
- * and expose it as a name-keyed map plus the requested doctype's own meta.
- * Fetch-only — building the layout schema is `buildLayoutFromMeta`'s job
- * (or `joinLayout`'s, on the stored Form Layout path).
+ * Fetch a doctype's meta with its child tables through `getMeta` and expose it as a
+ * name-keyed map plus the requested doctype's own meta. Fetch-only: building the
+ * layout schema is `buildLayoutFromMeta`'s job (or `joinLayout`'s, on the stored Form Layout path).
  */
 export function useDoctypeMeta(
   doctype: MaybeRefOrGetter<string>
@@ -78,41 +71,39 @@ export function resetDoctypeMeta(): void {
 function buildEntry(doctype: string): DoctypeMetaEntry {
   const metas = ref<Record<string, DoctypeMeta>>({});
   const error = ref<unknown>(null);
+  const loading = ref(false);
+  // The slower of two reloads must not overwrite the newer answer.
+  let turn = 0;
 
-  const resource = createResource({
-    url: "frappe.desk.form.load.getdoctype",
-    params: { doctype, with_parent: 1, cached_timestamp: null },
-    cache: ["Meta", doctype],
-    resourceFetcher: frappeRequest,
-    onError: (err: unknown) => {
+  async function reload() {
+    const mine = ++turn;
+    loading.value = true;
+    try {
+      const envelope = await getMeta<DoctypeMeta | null>(doctype, { include: ["children"] });
+      if (mine !== turn) return;
+      metas.value = keyByName(doctype, envelope.data, envelope.children as DoctypeMeta[] | undefined);
+      error.value = envelope.data ? null : new Error(`Doctype meta not found for "${doctype}".`);
+    } catch (caught) {
+      if (mine !== turn) return;
       metas.value = {};
-      error.value = err;
-    },
-  });
+      error.value = caught;
+    } finally {
+      if (mine === turn) loading.value = false;
+    }
+  }
 
-  // Driven off `resource.data` (not `onSuccess`) so it also fires for an
-  // already-cached resource on the same `['Meta', …]` key, where `onSuccess` wouldn't.
-  watch(
-    () => resource.data as GetDoctypeResponse | null,
-    (res) => {
-      if (!res) return;
-      const map: Record<string, DoctypeMeta> = {};
-      for (const d of res.docs ?? []) map[d.name] = d;
-      metas.value = map;
-      error.value = map[doctype]
-        ? null
-        : new Error(`Doctype meta not found for "${doctype}".`);
-    },
-    { immediate: true }
-  );
+  reload();
 
-  // Only hit the network if nothing has fetched this meta yet.
-  if (!resource.fetched && !resource.loading) resource.fetch();
+  return { metas, error, loading: computed(() => loading.value), reload };
+}
 
-  return {
-    metas,
-    error,
-    loading: computed(() => resource.loading),
-    reload: () => resource.reload(),
-  };
+function keyByName(
+  doctype: string,
+  meta: DoctypeMeta | null,
+  children: DoctypeMeta[] | undefined
+): Record<string, DoctypeMeta> {
+  const map: Record<string, DoctypeMeta> = {};
+  if (meta) map[doctype] = meta;
+  for (const child of children ?? []) map[child.name] = child;
+  return map;
 }

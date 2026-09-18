@@ -5,9 +5,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const { call } = vi.hoisted(() => ({ call: vi.fn() }));
 
 vi.mock("frappe-ui", () => ({
-  call,
   toast: { success: vi.fn(), error: vi.fn() },
 }));
+vi.mock("@framework/ui/api", () => ({ runMethod: call }));
 
 import {
   reportCustomizationError,

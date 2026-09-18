@@ -20,6 +20,10 @@ vi.mock("frappe-ui", () => ({
     reload() {},
   }),
 }));
+vi.mock("@framework/ui/api", () => ({
+  runMethod: vi.fn(async () => ({ data: null })),
+  getMeta: vi.fn(async () => ({ data: null })),
+}));
 
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { withRunningSource } from "../context";
@@ -28,7 +32,8 @@ import { readOnly } from "../readOnly";
 import { resetRegistry } from "../registry";
 import { resetCustomizationErrorReports } from "../reportError";
 import { resetUserRoles } from "@framework/ui/composables/useUserRoles";
-import { call as mockedCall, toast as mockedToast } from "frappe-ui";
+import { toast as mockedToast } from "frappe-ui";
+import { runMethod as mockedCall } from "@framework/ui/api";
 
 const REPORT_METHOD =
   "frappe.desk.customization_error.report_customization_error";
@@ -63,7 +68,7 @@ function makeHost(overrides: Partial<RecordPageHost> = {}): RecordPageHost {
 
 /** The tier's fetch is what carries whether this session may write scripts. */
 async function withEditorPermission(canWrite: boolean) {
-  (mockedCall as any).mockResolvedValue({ scripts: [], can_write: canWrite });
+  (mockedCall as any).mockResolvedValue({ data: { scripts: [], can_write: canWrite } });
   await loadClientScripts("CRM Deal");
   (mockedCall as any).mockClear();
 }
@@ -75,7 +80,7 @@ function reset() {
   resetClientScripts();
   resetCustomizationErrorReports();
   (mockedCall as any).mockReset();
-  (mockedCall as any).mockResolvedValue({});
+  (mockedCall as any).mockResolvedValue({ data: null });
   (mockedToast as any).error.mockReset();
   vi.spyOn(console, "error").mockImplementation(() => {});
 }

@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Hoisted so the factory passed to `vi.mock` can reference them.
-const { createResourceMock, state } = vi.hoisted(() => ({
+const { createResourceMock, getMeta, state } = vi.hoisted(() => ({
   createResourceMock: vi.fn(),
+  getMeta: vi.fn(),
   state: {
     roles: null as string[] | null,
     permissions: undefined as Record<string, unknown>[] | undefined,
@@ -10,37 +11,39 @@ const { createResourceMock, state } = vi.hoisted(() => ({
   },
 }));
 
+// The roles still come through frappe-ui's resource; the meta comes through the v2 wrapper.
 vi.mock("frappe-ui", () => ({
   createResource: createResourceMock,
   frappeRequest: vi.fn(),
 }));
+vi.mock("../../api", () => ({ getMeta }));
 
 const ROLES_URL = "frappe.core.doctype.user.user.get_current_user_roles";
 
-createResourceMock.mockImplementation((options: any) => {
-  const roles = options.url === ROLES_URL;
-  return {
-    get data() {
-      if (roles) return state.roles ?? undefined;
-      return {
-        docs: [
-          {
-            name: options.params.doctype,
-            fields: [],
-            permissions: state.permissions,
-          },
-        ],
-      };
-    },
-    get loading() {
-      return state.loading;
-    },
-    fetched: false,
-    error: null,
-    fetch: vi.fn(),
-    reload: vi.fn(),
-  };
-});
+createResourceMock.mockImplementation(() => ({
+  get data() {
+    return state.roles ?? undefined;
+  },
+  get loading() {
+    return state.loading;
+  },
+  fetched: false,
+  error: null,
+  fetch: vi.fn(),
+  reload: vi.fn(),
+}));
+
+getMeta.mockImplementation(async (doctype: string) => ({
+  data: { name: doctype, fields: [], permissions: state.permissions },
+  children: [],
+}));
+
+/** Field access reads the meta once it lands, a tick after the call. */
+async function access(doctype = "Note") {
+  const perms = useDocPermissions(doctype);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  return perms;
+}
 
 import { useDocPermissions } from "../useDocPermissions";
 import { resetDoctypeMeta } from "../useDoctypeMeta";
@@ -92,47 +95,39 @@ describe("field-level access", () => {
     expect(fieldAccess({})).toBe("write");
   });
 
-  it("grants write on a permlevel one of the user's roles writes", () => {
+  it("grants write on a permlevel one of the user's roles writes", async () => {
     state.roles = ["Accounts Manager"];
     state.permissions = [
       { role: "Accounts Manager", permlevel: 1, read: 1, write: 1 },
     ];
 
-    expect(useDocPermissions("Note").fieldAccess({ permlevel: 1 })).toBe(
-      "write"
-    );
+    expect((await access()).fieldAccess({ permlevel: 1 })).toBe("write");
   });
 
-  it("grants read only, when the row reads but does not write", () => {
+  it("grants read only, when the row reads but does not write", async () => {
     state.roles = ["Sales User"];
     state.permissions = [{ role: "Sales User", permlevel: 2, read: 1 }];
 
-    expect(useDocPermissions("Note").fieldAccess({ permlevel: 2 })).toBe(
-      "read"
-    );
+    expect((await access()).fieldAccess({ permlevel: 2 })).toBe("read");
   });
 
-  it("refuses a permlevel no role of the user's holds", () => {
+  it("refuses a permlevel no role of the user's holds", async () => {
     state.roles = ["Sales User"];
     state.permissions = [
       { role: "Accounts Manager", permlevel: 1, read: 1, write: 1 },
     ];
 
-    expect(useDocPermissions("Note").fieldAccess({ permlevel: 1 })).toBe(
-      "none"
-    );
+    expect((await access()).fieldAccess({ permlevel: 1 })).toBe("none");
   });
 
-  it("ignores a DocPerm row for a role the user does not hold", () => {
+  it("ignores a DocPerm row for a role the user does not hold", async () => {
     state.roles = ["Sales User"];
     state.permissions = [
       { role: "Sales User", permlevel: 1, read: 1 },
       { role: "Accounts Manager", permlevel: 1, read: 1, write: 1 },
     ];
 
-    expect(useDocPermissions("Note").fieldAccess({ permlevel: 1 })).toBe(
-      "read"
-    );
+    expect((await access()).fieldAccess({ permlevel: 1 })).toBe("read");
   });
 
   // Better a field the server refuses to save than a form that flashes empty.
@@ -151,14 +146,14 @@ describe("field-level access", () => {
 describe("allowedPermlevels", () => {
   beforeEach(reset);
 
-  it("lists the permlevels the user's roles hold the right on, in order", () => {
+  it("lists the permlevels the user's roles hold the right on, in order", async () => {
     state.roles = ["Sales User", "Accounts Manager"];
     state.permissions = [
       { role: "Accounts Manager", permlevel: 2, read: 1, write: 1 },
       { role: "Sales User", permlevel: 1, read: 1 },
       { role: "Sales User", permlevel: 0, read: 1, write: 1 },
     ];
-    const { allowedPermlevels } = useDocPermissions("Note");
+    const { allowedPermlevels } = await access();
 
     expect(allowedPermlevels("read")).toEqual([0, 1, 2]);
     expect(allowedPermlevels("write")).toEqual([0, 2]);

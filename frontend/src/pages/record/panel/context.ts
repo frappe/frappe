@@ -2,13 +2,14 @@
 import type { InjectionKey, Ref } from "vue";
 import type { QuickAction, RecordPageController } from "@/recordPage";
 
-/** `getdoc`'s sidecar, the parts the panel reads; the rest is not typed here. */
+/** The parts the record read returns beside the document, as the panel reads them. */
 export interface DocInfo {
-	assignments?: { owner: string; description?: string }[];
-	shared?: { user: string; everyone?: 0 | 1; write?: 0 | 1 }[];
-	tags?: string;
+	assignments?: { user: string; description?: string }[];
+	/** `user` is the string "everyone" for the everyone share. */
+	shares?: { user: string; read?: 0 | 1; write?: 0 | 1; submit?: 0 | 1; share?: 0 | 1 }[];
+	tags?: string[];
 	favourites?: { user: string; creation?: string }[];
-	user_info?: Record<string, { fullname?: string; image?: string }>;
+	users?: Record<string, { full_name?: string; user_image?: string }>;
 	permissions?: Record<string, any>;
 }
 
@@ -26,8 +27,8 @@ export interface PanelContext {
 
 export const PanelContextKey: InjectionKey<PanelContext> = Symbol("record-panel");
 
-/** A person as `docinfo.user_info` describes them, or their id when it does not. */
+/** A person as the `users` part describes them, or their id when it does not. */
 export function personOf(docinfo: DocInfo | null, user: string) {
-	const info = docinfo?.user_info?.[user];
-	return { id: user, name: info?.fullname || user, image: info?.image };
+	const info = docinfo?.users?.[user];
+	return { id: user, name: info?.full_name || user, image: info?.user_image || undefined };
 }

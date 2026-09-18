@@ -1,6 +1,6 @@
 // A customization failure's Error Log row, which an admin can read without being in
 // the room. Fire-and-forget: an error channel that can itself error is a loop.
-import { call } from "frappe-ui";
+import { runMethod } from "@framework/ui/api";
 import { HOST_SOURCE } from "./context";
 
 const REPORT_METHOD =
@@ -49,7 +49,7 @@ export function reportCustomizationError(
   // Every call site is already inside a catch, so a throw from here would escape
   // as the failure of whatever it was reporting.
   try {
-    const sent = call(REPORT_METHOD, {
+    const sent = runMethod(REPORT_METHOD, {
       source: context.source,
       tier: context.tier ?? tierOf(context.source),
       event: context.event,

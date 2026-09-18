@@ -70,6 +70,22 @@ describe("defaultTransport", () => {
     expect(FakeXHR.sent[0].form.get("total_chunk_count")).toBe("3");
   });
 
+  it("names the record and field the file attaches to, and nothing when unattached", async () => {
+    FakeXHR.respond = () => ({ status: 200, body: { data: { file_url: "/files/pic.png" } } });
+    const file = new File(["x"], "pic.png");
+    await defaultTransport(file, {}, ctx());
+    expect(FakeXHR.sent[0].form.get("doctype")).toBeNull();
+    await defaultTransport(
+      file,
+      { attachTo: { doctype: "CRM Lead", docname: "LEAD-1", fieldname: "image" } },
+      ctx()
+    );
+    const { form } = FakeXHR.sent[1];
+    expect(form.get("doctype")).toBe("CRM Lead");
+    expect(form.get("docname")).toBe("LEAD-1");
+    expect(form.get("fieldname")).toBe("image");
+  });
+
   it("reports the server's first error message on a failed chunk", async () => {
     FakeXHR.respond = () => ({
       status: 417,

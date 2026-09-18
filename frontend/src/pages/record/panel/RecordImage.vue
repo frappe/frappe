@@ -90,8 +90,9 @@
 
 <script setup lang="ts">
 import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
-import { LoadingIndicator, Tooltip, useFileUpload } from "frappe-ui";
+import { LoadingIndicator, Tooltip } from "frappe-ui";
 import { CommitKey, LinkTitlesKey, NO_COMMIT } from "@framework/ui/components/Fields/types";
+import { defaultTransport } from "@framework/ui/components/FileUpload/useFileUpload";
 import type { UploadResult, UploadTransport } from "@framework/ui/components/FileUpload";
 import { useDocPermissions } from "@framework/ui/composables/useDocPermissions";
 import { routeFor } from "@/router/routeFor";
@@ -119,18 +120,18 @@ const field = computed(() =>
 // Attached to the record: a private File is readable by whoever can read what it hangs on,
 // where an unattached one is the uploader's alone and every other reader sees a broken tile.
 const transport: UploadTransport = (file, args, ctx) =>
-	useFileUpload().upload(file, {
-		doctype: context.doctype,
-		docname: context.docname,
-		fieldname: field.value?.fieldname,
-		private: args.isPrivate,
-		folder: args.folder,
-		optimize: args.optimize,
-		max_width: args.maxWidth,
-		max_height: args.maxHeight,
-		signal: ctx.signal,
-		onProgress: ({ loaded, total }) => ctx.onProgress(loaded, total),
-	});
+	defaultTransport(
+		file,
+		{
+			...args,
+			attachTo: {
+				doctype: context.doctype,
+				docname: context.docname,
+				fieldname: field.value?.fieldname,
+			},
+		},
+		ctx
+	);
 
 // Display only, as the form's fields are: the server drops a permlevel the reader cannot write.
 const access = useDocPermissions(context.doctype, () => context.docinfo.value?.permissions);

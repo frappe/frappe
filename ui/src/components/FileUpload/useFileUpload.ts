@@ -84,6 +84,11 @@ async function uploadChunked(
       form.append("chunk_index", String(chunkIndex));
       form.append("total_chunk_count", String(totalChunks));
       form.append("chunk_byte_offset", String(offset));
+      if (args.attachTo) {
+        form.append("doctype", args.attachTo.doctype);
+        form.append("docname", args.attachTo.docname);
+        if (args.attachTo.fieldname) form.append("fieldname", args.attachTo.fieldname);
+      }
       if (args.optimize) {
         form.append("optimize", "1");
         if (args.maxWidth) form.append("max_width", String(args.maxWidth));

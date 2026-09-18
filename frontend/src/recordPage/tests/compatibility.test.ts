@@ -8,10 +8,10 @@ const { call, toast } = vi.hoisted(() => ({
 }));
 
 vi.mock("frappe-ui", () => ({
-  call,
   toast,
   dialog: { confirm: vi.fn(), danger: vi.fn() },
 }));
+vi.mock("@framework/ui/api", () => ({ runMethod: call }));
 
 import {
   resetRemovalNotices,
@@ -48,7 +48,7 @@ function makePage() {
 
 /** The tier's fetch is what carries whether this session may write scripts. */
 async function withEditorPermission(canWrite: boolean) {
-  call.mockResolvedValue({ scripts: [], can_write: canWrite });
+  call.mockResolvedValue({ data: { scripts: [], can_write: canWrite } });
   await loadClientScripts("CRM Deal");
   call.mockClear();
 }
@@ -59,7 +59,7 @@ describe("removals", () => {
     resetClientScripts();
     resetCustomizationErrorReports();
     call.mockReset();
-    call.mockResolvedValue({});
+    call.mockResolvedValue({ data: null });
     toast.error.mockReset();
   });
 

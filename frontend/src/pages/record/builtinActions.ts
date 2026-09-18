@@ -1,5 +1,6 @@
 // The actions every record gets from the framework, gated by its rights: quick actions on
 // the panel, the `⋯` menu's rows in the header. Each is an ordinary item a script hides or reorders by name.
+import { deleteDocument } from "@framework/ui/api";
 import type { HeaderItem, QuickAction, RecordPageApi } from "@/recordPage";
 import { routeFor } from "@/router/routeFor";
 
@@ -75,7 +76,7 @@ async function remove(page: RecordPageApi) {
   });
   if (!confirmed) return;
   const list = routeFor(page.doctype);
-  await page.call("frappe.client.delete", { doctype: page.doctype, name: page.docname });
+  await deleteDocument(page.doctype, page.docname);
   page.toast.success("Deleted");
   await page.router.push(list);
 }

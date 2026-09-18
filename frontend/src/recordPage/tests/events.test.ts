@@ -14,13 +14,17 @@ vi.mock("frappe-ui", () => ({
   }),
   frappeRequest: vi.fn(),
 }));
+vi.mock("@framework/ui/api", () => ({
+  runMethod: vi.fn(async () => ({ data: null })),
+  getMeta: vi.fn(async () => ({ data: null })),
+}));
 
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { registerRecordPage, resetRegistry } from "../registry";
 import { withRegisteringSource } from "../context";
 import { resetCustomizationErrorReports } from "../reportError";
 import { resetRowWarnings } from "../rows";
-import { call as mockedCall } from "frappe-ui";
+import { runMethod as mockedCall } from "@framework/ui/api";
 
 function makeHost(overrides: Partial<RecordPageHost> = {}): RecordPageHost {
   return {

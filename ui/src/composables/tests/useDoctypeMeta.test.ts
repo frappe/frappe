@@ -2,25 +2,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
 // Hoisted so the factory passed to `vi.mock` can reference it.
-const { createResourceMock } = vi.hoisted(() => ({
-  createResourceMock: vi.fn(),
-}));
+const { getMeta } = vi.hoisted(() => ({ getMeta: vi.fn() }));
 
-vi.mock("frappe-ui", () => ({
-  createResource: createResourceMock,
-  frappeRequest: vi.fn(),
-}));
+vi.mock("../../api", () => ({ getMeta }));
 
-createResourceMock.mockImplementation((options: any) => ({
-  data: { docs: [{ name: options.params.doctype, fields: [] }] },
-  fetched: false,
-  loading: false,
-  error: null,
-  fetch: vi.fn(),
-  reload: vi.fn(),
+getMeta.mockImplementation(async (doctype: string) => ({
+  data: { name: doctype, fields: [] },
+  children: [{ name: `${doctype} Item`, fields: [] }],
 }));
 
 import { resetDoctypeMeta, useDoctypeMeta } from "../useDoctypeMeta";
+
+const settled = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 describe("useDoctypeMeta", () => {
   beforeEach(() => {
@@ -28,38 +21,66 @@ describe("useDoctypeMeta", () => {
     vi.clearAllMocks();
   });
 
-  it("fetches a doctype's meta once, however many callers ask", () => {
+  it("fetches a doctype's meta with its children once, however many callers ask", async () => {
     useDoctypeMeta("Note");
     useDoctypeMeta("Note");
 
-    expect(createResourceMock).toHaveBeenCalledTimes(1);
+    expect(getMeta).toHaveBeenCalledTimes(1);
+    expect(getMeta).toHaveBeenCalledWith("Note", { include: ["children"] });
   });
 
-  it("reads the meta of the doctype it was asked for", () => {
-    expect(useDoctypeMeta("Note").meta.value?.name).toBe("Note");
+  it("reads the meta of the doctype it was asked for, and keys the children beside it", async () => {
+    const { meta, metas, loading } = useDoctypeMeta("Note");
+    expect(loading.value).toBe(true);
+    await settled();
+
+    expect(loading.value).toBe(false);
+    expect(meta.value?.name).toBe("Note");
+    expect(Object.keys(metas.value)).toEqual(["Note", "Note Item"]);
   });
 
-  it("follows a reactive doctype onto the other meta", () => {
+  it("follows a reactive doctype onto the other meta", async () => {
     const doctype = ref("Note");
     const { meta } = useDoctypeMeta(doctype);
+    await settled();
 
     expect(meta.value?.name).toBe("Note");
 
     doctype.value = "Task";
+    // The entry is built on the first read after the move; nothing fetches before it.
+    expect(meta.value).toBeNull();
+    await settled();
 
     expect(meta.value?.name).toBe("Task");
-    expect(createResourceMock).toHaveBeenCalledTimes(2);
+    expect(getMeta).toHaveBeenCalledTimes(2);
   });
 
-  it("goes back to a meta it already holds rather than refetching it", () => {
+  it("goes back to a meta it already holds rather than refetching it", async () => {
     const doctype = ref("Note");
     const { meta } = useDoctypeMeta(doctype);
 
     doctype.value = "Task";
+    expect(meta.value).toBeNull();
+    await settled();
     expect(meta.value?.name).toBe("Task");
     doctype.value = "Note";
 
     expect(meta.value?.name).toBe("Note");
-    expect(createResourceMock).toHaveBeenCalledTimes(2);
+    expect(getMeta).toHaveBeenCalledTimes(2);
+  });
+
+  it("holds the error of a failed read, and clears it on a reload that succeeds", async () => {
+    getMeta.mockRejectedValueOnce(new Error("Not permitted"));
+    const { meta, error, reload } = useDoctypeMeta("Note");
+    await settled();
+
+    expect(meta.value).toBeNull();
+    expect(String(error.value)).toContain("Not permitted");
+
+    reload();
+    await settled();
+
+    expect(error.value).toBeNull();
+    expect(meta.value?.name).toBe("Note");
   });
 });

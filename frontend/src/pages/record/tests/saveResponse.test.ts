@@ -1,12 +1,6 @@
-// A failed save's response, read the two ways the page acts on it.
+// What the page makes of a failed save: the message it shows and the fields the reader would lose.
 import { describe, expect, it } from "vitest";
-import {
-  changedFields,
-  conflictError,
-  isTimestampMismatch,
-  SAVE_CONFLICT,
-  serverMessage,
-} from "../saveResponse";
+import { changedFields, conflictError, SAVE_CONFLICT, stripTags } from "../saveResponse";
 
 const FIELDS = [
   { fieldname: "status", fieldtype: "Select", label: "Status" },
@@ -14,38 +8,12 @@ const FIELDS = [
   { fieldname: "notes", fieldtype: "Text" },
 ];
 
-describe("isTimestampMismatch", () => {
-  it("reads the exception class the server names", () => {
-    expect(isTimestampMismatch({ exc_type: "TimestampMismatchError" })).toBe(true);
-    expect(isTimestampMismatch({ exc_type: "ValidationError" })).toBe(false);
-    expect(isTimestampMismatch(null)).toBe(false);
-  });
-});
-
-describe("serverMessage", () => {
-  it("unwraps the first msgprint from the doubly encoded list", () => {
-    const body = {
-      _server_messages: JSON.stringify([
-        JSON.stringify({ message: "Amount is required", title: "Message" }),
-        JSON.stringify({ message: "Second" }),
-      ]),
-    };
-    expect(serverMessage(body)).toBe("Amount is required");
-  });
-
-  it("reads a msgprint's HTML as text", () => {
-    const body = {
-      _server_messages: JSON.stringify([
-        JSON.stringify({ message: "<b>Amount</b> is required<br>for a won deal" }),
-      ]),
-    };
-    expect(serverMessage(body)).toBe("Amount is required for a won deal");
-  });
-
-  it("answers nothing for a body with no messages or a broken one", () => {
-    expect(serverMessage({})).toBeUndefined();
-    expect(serverMessage({ _server_messages: "nope" })).toBeUndefined();
-    expect(serverMessage(null)).toBeUndefined();
+describe("stripTags", () => {
+  it("reads a msgprint's HTML as text, with a break as a space", () => {
+    expect(stripTags("<p>Amount is required<br>for a won deal</p>")).toBe(
+      "Amount is required for a won deal"
+    );
+    expect(stripTags("plain")).toBe("plain");
   });
 });
 
