@@ -8,22 +8,23 @@ const state = vi.hoisted(() => ({
   meta: null as any,
 }));
 
-// Both composables underneath fetch through `createResource`; here they read
+// The roles come through `createResource`, the meta through the v2 wrapper; both read
 // whatever the test staged, so no request is made.
 vi.mock("frappe-ui", () => ({
-  call: vi.fn(),
   toast: { success: vi.fn(), error: vi.fn() },
   frappeRequest: vi.fn(),
-  createResource: (options: any) => ({
+  createResource: () => ({
     get data() {
-      return options.url.endsWith("get_current_user_roles")
-        ? state.roles
-        : state.meta && { docs: [state.meta] };
+      return state.roles;
     },
     loading: false,
     fetch() {},
     reload() {},
   }),
+}));
+vi.mock("@framework/ui/api", () => ({
+  runMethod: vi.fn(async () => ({ data: null })),
+  getMeta: vi.fn(async () => ({ data: state.meta, children: [] })),
 }));
 
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
@@ -137,7 +138,7 @@ describe("page.roles", () => {
 describe("page.fieldAccess", () => {
   beforeEach(reset);
 
-  it("reads a permlevel'd field against the roles' DocPerm rows", () => {
+  it("reads a permlevel'd field against the roles' DocPerm rows", async () => {
     state.roles = ["Sales User"];
     state.meta = {
       name: "CRM Deal",
@@ -148,6 +149,8 @@ describe("page.fieldAccess", () => {
       ],
     };
     const { page } = createRecordPage(makeHost());
+    // The meta lands a tick after the page is built.
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(page.fieldAccess("status")).toBe("write");
     expect(page.fieldAccess("margin")).toBe("read");

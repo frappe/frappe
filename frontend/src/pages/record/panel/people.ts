@@ -12,25 +12,26 @@ export interface SharedPerson extends Person {
 	canWrite: boolean;
 }
 
+export const EVERYONE = "everyone";
+
 export function assigneesOf(docinfo: DocInfo | null): Person[] {
-	return (docinfo?.assignments ?? []).map((row) => personOf(docinfo, row.owner));
+	return (docinfo?.assignments ?? []).map((row) => personOf(docinfo, row.user));
 }
 
 // A share with everyone has no person to draw; it is named as such.
 export function sharedWith(docinfo: DocInfo | null): SharedPerson[] {
-	return (docinfo?.shared ?? []).map((row) => ({
-		...(row.everyone ? { id: "everyone", name: "Everyone" } : personOf(docinfo, row.user)),
-		everyone: Boolean(row.everyone),
-		canWrite: Boolean(row.write),
-	}));
+	return (docinfo?.shares ?? []).map((row) => {
+		const everyone = row.user === EVERYONE;
+		return {
+			...(everyone ? { id: EVERYONE, name: "Everyone" } : personOf(docinfo, row.user)),
+			everyone,
+			canWrite: Boolean(row.write),
+		};
+	});
 }
 
-/** `getdoc` joins the tags with commas. */
 export function tagsOf(docinfo: DocInfo | null): string[] {
-	return (docinfo?.tags ?? "")
-		.split(",")
-		.map((tag) => tag.trim())
-		.filter(Boolean);
+	return docinfo?.tags ?? [];
 }
 
 /** What a new selection adds and drops against the one it replaces. */
@@ -46,7 +47,7 @@ export function matchingTags(known: string[], query: string): string[] {
 	return known.filter((tag) => normalize(tag).includes(wanted));
 }
 
-// The server joins tags with commas, so a name with one would come back as two.
+// Desk v1 joins tags with commas on the document, so a name with one would read as two there.
 export function canCreateTag(known: string[], query: string): boolean {
 	const wanted = normalize(query);
 	if (!wanted || wanted.includes(",")) return false;

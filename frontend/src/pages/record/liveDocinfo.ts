@@ -22,10 +22,10 @@ interface Options<T extends object> {
 	reload: () => Promise<void>;
 }
 
-// A log row's delta does not carry the bucket the sidecar derives from it (`assignments`, `attachments`).
+// A log row's delta does not carry the bucket derived from it (`assignments`, `attachments`).
 const DERIVED_LOGS = new Set(["assignment_logs", "attachment_logs"]);
-// The row published is not the bucket's row (`tags` is a joined string, `shared` and `favourites`
-// are shaped by the sidecar), so the delta only says "re-read".
+// The keys are the server's docinfo names (`shared` is the `shares` part), and the row published
+// is not the part's row, so the delta only says "re-read".
 const REREAD_ONLY = new Set(["shared", "tags", "favourites"]);
 
 /**
@@ -50,7 +50,7 @@ export function useLiveDocinfo<T extends object>({ socket, docinfo, reload }: Op
 	// Once for a burst of deltas: an assign of three people lands three logs.
 	const reloadSoon = useDebounceFn(reloadQuietly, 200);
 
-	// `getdoc` may have read before the write that the dropped delta announced.
+	// The record read may have run before the write that the dropped delta announced.
 	watch(
 		docinfo,
 		(value) => {
@@ -123,10 +123,10 @@ export function isForRecord(event: DocinfoUpdate, { doctype, docname }: Target) 
 	return reference_doctype === doctype && reference_name === docname;
 }
 
-/** Splices one delta into its own bucket, leaving every other bucket alone. */
+/** Splices one delta into the bucket it names; a bucket the page does not hold is never added. */
 export function applyDocinfoUpdate<T extends object>(docinfo: T, event: DocinfoUpdate): T {
-	const buckets = docinfo as Record<string, any>;
-	const bucket: any[] = Array.isArray(buckets[event.key]) ? buckets[event.key] : [];
+	const bucket = (docinfo as Record<string, any>)[event.key];
+	if (!Array.isArray(bucket)) return docinfo;
 	return { ...docinfo, [event.key]: splice(bucket, event) };
 }
 

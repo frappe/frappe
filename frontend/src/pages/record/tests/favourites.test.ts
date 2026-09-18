@@ -4,11 +4,11 @@ import { favouritesOf, hasFavourited } from "../favourites";
 
 const docinfo = {
 	favourites: [{ user: "ann@example.com" }, { user: "me@example.com" }, { user: "bob@example.com" }],
-	user_info: { "ann@example.com": { fullname: "Ann", image: "/ann.png" } },
+	users: { "ann@example.com": { full_name: "Ann", user_image: "/ann.png" } },
 };
 
 describe("favouritesOf", () => {
-	it("puts the reader first as You, and names the rest from user_info", () => {
+	it("puts the reader first as You, and names the rest from the users part", () => {
 		expect(favouritesOf(docinfo, "me@example.com")).toEqual([
 			{ id: "me@example.com", name: "You" },
 			{ id: "ann@example.com", name: "Ann", image: "/ann.png" },

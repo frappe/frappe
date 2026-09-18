@@ -39,7 +39,7 @@
 					icon="lucide-x"
 					variant="ghost"
 					:aria-label="`Stop sharing with ${person.name}`"
-					@click="actions.unshare(person.id, person.everyone)"
+					@click="actions.unshare(person.id)"
 				/>
 			</div>
 

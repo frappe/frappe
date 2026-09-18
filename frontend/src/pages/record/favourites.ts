@@ -1,4 +1,4 @@
-// Who has favourited the record: the `favourites` rows of `docinfo`, named by its `user_info`.
+// Who has favourited the record: the `favourites` part, named by the `users` part.
 import { personOf, type DocInfo } from "./panel/context";
 import type { Person } from "./panel/people";
 

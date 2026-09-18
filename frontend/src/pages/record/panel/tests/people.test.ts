@@ -11,17 +11,17 @@ import {
 } from "../people";
 
 const docinfo = {
-	assignments: [{ owner: "ann@example.com" }, { owner: "bob@example.com" }],
-	shared: [
-		{ user: "ann@example.com", write: 1 as const },
-		{ user: "", everyone: 1 as const },
+	assignments: [{ user: "ann@example.com" }, { user: "bob@example.com" }],
+	shares: [
+		{ user: "ann@example.com", read: 1 as const, write: 1 as const },
+		{ user: "everyone", read: 1 as const },
 	],
-	tags: "urgent, q3 ,,",
-	user_info: { "ann@example.com": { fullname: "Ann", image: "/ann.png" } },
+	tags: ["urgent", "q3"],
+	users: { "ann@example.com": { full_name: "Ann", user_image: "/ann.png" } },
 };
 
 describe("people", () => {
-	it("names an assignee from user_info and falls back to the id", () => {
+	it("names an assignee from the users part and falls back to the id", () => {
 		expect(assigneesOf(docinfo)).toEqual([
 			{ id: "ann@example.com", name: "Ann", image: "/ann.png" },
 			{ id: "bob@example.com", name: "bob@example.com", image: undefined },
@@ -41,7 +41,7 @@ describe("people", () => {
 		expect(tagsOf(null)).toEqual([]);
 	});
 
-	it("splits the comma-joined tags", () => {
+	it("reads the tags part as it is", () => {
 		expect(tagsOf(docinfo)).toEqual(["urgent", "q3"]);
 	});
 });

@@ -8,6 +8,10 @@ vi.mock("frappe-ui", () => ({
   frappeRequest: vi.fn(),
   createResource: () => ({ data: null, loading: false, fetch() {}, reload() {} }),
 }));
+vi.mock("@framework/ui/api", () => ({
+  runMethod: vi.fn(async () => ({ data: null })),
+  getMeta: vi.fn(async () => ({ data: null })),
+}));
 
 import { markRaw } from "vue";
 import { FieldsSurface, resetFieldWarnings } from "../fields";

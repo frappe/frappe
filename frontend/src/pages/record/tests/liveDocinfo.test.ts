@@ -93,7 +93,8 @@ describe("useLiveDocinfo", () => {
 		live.follow("Lead", "L-1");
 		socket.fire("docinfo_update", delta("assignment_logs", { name: "a1" }, "add"));
 		socket.fire("docinfo_update", delta("assignment_logs", { name: "a2" }, "add"));
-		expect(docinfo.value!.assignment_logs).toHaveLength(2);
+		// The page holds no log bucket; the delta only says "re-read".
+		expect(docinfo.value).toEqual({ comments: [], assignments: [] });
 		expect(reload).not.toHaveBeenCalled();
 		await vi.advanceTimersByTimeAsync(250);
 		expect(reload).toHaveBeenCalledTimes(1);
@@ -102,13 +103,13 @@ describe("useLiveDocinfo", () => {
 
 	it("re-reads instead of splicing a share, a tag or a favourite", async () => {
 		const { socket, docinfo, reload, live } = setup();
-		docinfo.value = { shared: [], tags: "", favourites: [] };
+		docinfo.value = { shares: [], tags: [], favourites: [] };
 		live.follow("Lead", "L-1");
 		socket.fire("docinfo_update", delta("shared", { name: "s1", user: "a@x.io" }, "add"));
 		socket.fire("docinfo_update", delta("tags", { name: "t1", tag: "hot" }, "add"));
 		socket.fire("docinfo_update", delta("favourites", { name: "f1", user: "a@x.io" }, "add"));
-		// The published rows are not the bucket's rows; the sidecar re-read brings the real ones.
-		expect(docinfo.value).toEqual({ shared: [], tags: "", favourites: [] });
+		// The published rows are not the parts' rows; the re-read brings the real ones.
+		expect(docinfo.value).toEqual({ shares: [], tags: [], favourites: [] });
 		await vi.advanceTimersByTimeAsync(250);
 		expect(reload).toHaveBeenCalledTimes(1);
 		live.dispose();
@@ -222,9 +223,9 @@ describe("applyDocinfoUpdate", () => {
 		expect(unknown.comments).toEqual(docinfo.comments);
 	});
 
-	it("starts a bucket the sidecar did not send", () => {
-		const fresh = applyDocinfoUpdate({} as Record<string, any>, delta("like_logs", { name: "l1" }, "add"));
-		expect(fresh.like_logs).toHaveLength(1);
+	it("never adds a bucket the page does not hold", () => {
+		const same = applyDocinfoUpdate(docinfo, delta("like_logs", { name: "l1" }, "add"));
+		expect(same).toBe(docinfo);
 	});
 });
 

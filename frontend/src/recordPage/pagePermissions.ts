@@ -6,7 +6,7 @@ import {
 } from "@framework/ui/composables/useDocPermissions";
 import { useUserRoles } from "@framework/ui/composables/useUserRoles";
 
-/** Enforcement bookkeeping `getdoc` ships beside the rights. Closed list: the
+/** Enforcement bookkeeping the `permissions` part ships beside the rights. Closed list: the
  *  right set is open-ended (custom `Permission Type` rows), so never allowlist. */
 const NON_RIGHTS = ["if_owner", "has_if_owner_enabled"];
 

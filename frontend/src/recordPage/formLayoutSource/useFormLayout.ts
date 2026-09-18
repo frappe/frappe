@@ -1,6 +1,6 @@
-import { computed, toValue, watch } from "vue";
+import { computed, shallowReactive, toValue, watch } from "vue";
 import type { ComputedRef, MaybeRefOrGetter, Ref } from "vue";
-import { createResource, frappeRequest } from "frappe-ui";
+import { runMethod } from "@framework/ui/api";
 import type {
 	FormLayoutSchema,
 	RawMetaField,
@@ -98,7 +98,7 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 	};
 }
 
-/** Answers now when nothing is loading; the resource raises its flag synchronously at fetch, so this cannot miss it. */
+/** Answers now when nothing is loading; the entry raises its flag synchronously at fetch, so this cannot miss it. */
 export function whenSettled(loading: { value: boolean }): Promise<void> {
 	if (!loading.value) return Promise.resolve();
 	return new Promise((resolve) => {
@@ -115,13 +115,38 @@ export function resetFormLayouts(): void {
 	entries.reset();
 }
 
+const GET_FORM_LAYOUTS = "frappe.desk.doctype.form_layout.form_layout.get_form_layouts";
+
 function buildEntry(input: { doctype: string; type: FormLayoutType }) {
-	const resource = createResource({
-		url: "frappe.desk.doctype.form_layout.form_layout.get_form_layouts",
-		params: { dt: input.doctype, type: input.type },
-		cache: ["Form Layout", input.doctype, input.type],
-		resourceFetcher: frappeRequest,
+	const entry = shallowReactive({
+		data: null as FormLayoutsResponse | null,
+		loading: false,
+		error: null as unknown,
+		reload,
 	});
-	if (!resource.fetched && !resource.loading) resource.fetch();
-	return resource;
+	// The slower of two reloads must not overwrite the newer answer.
+	let turn = 0;
+
+	async function reload() {
+		const mine = ++turn;
+		entry.loading = true;
+		try {
+			const { data } = await runMethod<FormLayoutsResponse>(
+				GET_FORM_LAYOUTS,
+				{ dt: input.doctype, type: input.type },
+				{ http: "GET" }
+			);
+			if (mine !== turn) return;
+			entry.data = data;
+			entry.error = null;
+		} catch (caught) {
+			if (mine !== turn) return;
+			entry.error = caught;
+		} finally {
+			if (mine === turn) entry.loading = false;
+		}
+	}
+
+	reload();
+	return entry;
 }

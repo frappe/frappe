@@ -3,6 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/router/routeFor", () => ({ routeFor: (doctype: string) => ({ name: "list", doctype }) }));
 
+const { deleteDocument } = vi.hoisted(() => ({ deleteDocument: vi.fn(async () => ({ data: "ok" })) }));
+vi.mock("@framework/ui/api", () => ({ deleteDocument }));
+
 import { headerMenuBuiltins, quickActionBuiltins, type FavouriteState } from "../builtinActions";
 
 const names = (perms: Record<string, any>, tagged = false) =>
@@ -82,17 +85,14 @@ describe("quickActionBuiltins", () => {
   it("deletes after a confirmed danger dialog, then leaves for the list", async () => {
     const page = fakePage(true);
     await menuRow({ delete: 1 }, "delete").run!(page);
-    expect(page.call).toHaveBeenCalledWith("frappe.client.delete", {
-      doctype: "CRM Deal",
-      name: "CRM-DEAL-1",
-    });
+    expect(deleteDocument).toHaveBeenCalledWith("CRM Deal", "CRM-DEAL-1");
     expect(page.router.push).toHaveBeenCalledWith({ name: "list", doctype: "CRM Deal" });
   });
 
   it("does nothing when the dialog is dismissed", async () => {
     const page = fakePage(null);
     await menuRow({ delete: 1 }, "delete").run!(page);
-    expect(page.call).not.toHaveBeenCalled();
+    expect(deleteDocument).not.toHaveBeenCalled();
     expect(page.router.push).not.toHaveBeenCalled();
   });
 

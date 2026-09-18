@@ -18,15 +18,16 @@ vi.mock("frappe-ui", async (importOriginal) => ({
 	...(await importOriginal<object>()),
 	call: fake.call,
 	useList: fake.useList,
-	createResource: ({ url }: { url: string }) => ({
-		get data() {
-			if (url.endsWith("get_current_user_roles")) return ["Desk User"];
-			return fake.meta && { docs: [fake.meta] };
-		},
+	createResource: () => ({
+		data: ["Desk User"],
 		loading: false,
 		fetch() {},
 		reload() {},
 	}),
+}));
+
+vi.mock("@framework/ui/api", () => ({
+	getMeta: vi.fn(async () => ({ data: fake.meta, children: [] })),
 }));
 
 vi.mock("@/contributions/registry", () => ({

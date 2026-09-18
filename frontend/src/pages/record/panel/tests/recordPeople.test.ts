@@ -99,10 +99,10 @@ function setup(info: DocInfo, component: any = RecordPeople, props: Record<strin
 }
 
 const info = (permissions: Record<string, 0 | 1>): DocInfo => ({
-	assignments: [{ owner: "ann@example.com" }],
-	shared: [{ user: "bob@example.com" }],
-	tags: "urgent",
-	user_info: { "ann@example.com": { fullname: "Ann" }, "bob@example.com": { fullname: "Bob" } },
+	assignments: [{ user: "ann@example.com" }],
+	shares: [{ user: "bob@example.com", read: 1 }],
+	tags: ["urgent"],
+	users: { "ann@example.com": { full_name: "Ann" }, "bob@example.com": { full_name: "Bob" } },
 	permissions,
 });
 
@@ -205,7 +205,7 @@ describe("the share dialog", () => {
 
 	it("stops a share by dropping read, for a person and for everyone", async () => {
 		const shared = info({ share: 1 });
-		shared.shared = [{ user: "bob@example.com", write: 1 }, { user: "", everyone: 1 }];
+		shared.shares = [{ user: "bob@example.com", read: 1, write: 1 }, { user: "everyone", read: 1 }];
 		const { root, page, context } = open(shared);
 		expect(root.textContent).toContain("Can edit");
 		root.querySelector<HTMLElement>("[aria-label='Stop sharing with Bob']")!.click();
@@ -226,7 +226,7 @@ describe("the share dialog", () => {
 	it("follows the live sidecar, and says so when nobody is left", async () => {
 		const { root, docinfo } = open(info({ share: 1 }));
 		expect(root.querySelectorAll("[data-shared-with]")).toHaveLength(1);
-		docinfo.value = { ...docinfo.value, shared: [] };
+		docinfo.value = { ...docinfo.value, shares: [] };
 		await nextTick();
 		expect(root.querySelectorAll("[data-shared-with]")).toHaveLength(0);
 		expect(root.textContent).toContain("not shared with anyone");

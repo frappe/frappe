@@ -1,27 +1,12 @@
-// What a failed `frappe.client.save` answers, read into the two things the page acts on:
-// a timestamp mismatch, and the message the server meant the reader to see.
+// What the page makes of a failed save: the conflict it throws, the message it shows,
+// and the fields the reader would lose.
 import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
 
 /** The name a save rejected for a conflict throws under; the dialog has already told the reader. */
 export const SAVE_CONFLICT = "SaveConflict";
 
-export function isTimestampMismatch(body: any): boolean {
-  return body?.exc_type === "TimestampMismatchError";
-}
-
-/** The server's first `msgprint` as text, or nothing; `_server_messages` is a JSON list of JSON strings. */
-export function serverMessage(body: any): string | undefined {
-  try {
-    const messages: string[] = JSON.parse(body?._server_messages ?? "[]");
-    const first = messages[0] && JSON.parse(messages[0]);
-    return typeof first?.message === "string" ? stripTags(first.message) : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
 // A msgprint is often HTML; the page renders it as text, so the tags go and a break becomes a space.
-function stripTags(html: string): string {
+export function stripTags(html: string): string {
   return html
     .replace(/<br\s*\/?>/gi, " ")
     .replace(/<[^>]+>/g, "")

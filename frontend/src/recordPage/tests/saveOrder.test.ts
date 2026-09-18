@@ -13,6 +13,10 @@ vi.mock("frappe-ui", () => ({
   }),
   frappeRequest: vi.fn(),
 }));
+vi.mock("@framework/ui/api", () => ({
+  runMethod: vi.fn(async () => ({ data: null })),
+  getMeta: vi.fn(async () => ({ data: null })),
+}));
 
 import { createRecordPage, SAVE_VETO, type RecordPageHost } from "../createRecordPage";
 import { registerRecordPage, resetRegistry } from "../registry";

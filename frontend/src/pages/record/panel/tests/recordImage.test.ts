@@ -14,8 +14,9 @@ const { upload, Plain } = vi.hoisted(() => ({
 vi.mock("frappe-ui", () => ({
 	Tooltip: Plain("span"),
 	LoadingIndicator: Plain("i"),
-	useFileUpload: () => ({ upload }),
 }));
+
+vi.mock("@framework/ui/components/FileUpload/useFileUpload", () => ({ defaultTransport: upload }));
 
 vi.mock("@/router/routeFor", () => ({ routeFor: () => ({ name: "record" }) }));
 
@@ -128,11 +129,9 @@ describe("the identity tile", () => {
 			signal: new AbortController().signal,
 			onProgress: () => {},
 		});
-		expect(upload.mock.calls[0][1]).toMatchObject({
-			doctype: "CRM Lead",
-			docname: "LEAD-1",
-			fieldname: "image",
-			private: true,
+		expect(upload.mock.calls[0][1]).toEqual({
+			isPrivate: true,
+			attachTo: { doctype: "CRM Lead", docname: "LEAD-1", fieldname: "image" },
 		});
 
 		dialog.emit("committed", [{ file_url: "/files/new.png", file_name: "new.png", is_private: true }]);

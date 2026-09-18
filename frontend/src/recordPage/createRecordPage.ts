@@ -2,7 +2,8 @@
 // run serially, each in its own try/catch; only a `beforeSave` throw aborts anything.
 import { computed, ref, type ComputedRef, type Ref } from "vue";
 import type { Router } from "vue-router";
-import { call, toast } from "frappe-ui";
+import { toast } from "frappe-ui";
+import { runMethod } from "@framework/ui/api";
 import { createCommitChannel, type RecordCommitChannel } from "./commitChannel";
 import { withRunningSource } from "./context";
 import { createPageDialogs, type PageDialogEntry } from "./dialog";
@@ -95,7 +96,7 @@ export interface RecordPageHost {
   /** The document as the server last showed it; the draft's baseline. */
   saved: Ref<Record<string, any>>;
   meta: Ref<any>;
-  /** `docinfo.permissions` as `getdoc` gave it; the engine curates it. */
+  /** The record read's `permissions` part; the engine curates it. */
   perms: () => Record<string, any>;
   isDirty: () => boolean;
   /** The name of the tab the reader is on, as the host's strip resolves it. */
@@ -280,7 +281,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       error: (message) => toast.error(message),
     },
     dialog: dialogs.api,
-    call: (method, params) => call(method, params),
+    call: (method, params) => runMethod(method, params).then((envelope) => envelope.data),
     // The one member handed straight through, and the only one; see frontend/CLAUDE.md.
     router: host.router,
   };

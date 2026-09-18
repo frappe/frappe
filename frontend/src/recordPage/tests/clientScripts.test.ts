@@ -9,7 +9,8 @@ const { call, toast, evaluateClientScript } = vi.hoisted(() => ({
   evaluateClientScript: vi.fn(),
 }));
 
-vi.mock("frappe-ui", () => ({ call, toast }));
+vi.mock("frappe-ui", () => ({ toast }));
+vi.mock("@framework/ui/api", () => ({ runMethod: call }));
 vi.mock("../evaluateClientScript", () => ({ evaluateClientScript }));
 
 import {
@@ -25,8 +26,10 @@ import { registrationsFor, resetRegistry } from "../registry";
 
 function respond(scripts: string[], canWrite = true) {
   call.mockResolvedValue({
-    scripts: scripts.map((name) => ({ name, script: "export default {}" })),
-    can_write: canWrite,
+    data: {
+      scripts: scripts.map((name) => ({ name, script: "export default {}" })),
+      can_write: canWrite,
+    },
   });
 }
 
@@ -108,8 +111,7 @@ describe("the Client Script tier", () => {
     respond(["fresh"]);
     await reloadClientScripts("CRM Deal");
     releaseStale({
-      scripts: [{ name: "stale", script: "export default {}" }],
-      can_write: true,
+      data: { scripts: [{ name: "stale", script: "export default {}" }], can_write: true },
     });
     await slow;
 

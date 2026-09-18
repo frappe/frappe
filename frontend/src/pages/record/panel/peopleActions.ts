@@ -1,6 +1,7 @@
 // The six writes the people editors make, each followed by a re-read of `docinfo`.
 import { errorMessage } from "@/recordPage";
 import type { PanelContext } from "./context";
+import { EVERYONE } from "./people";
 
 export function peopleActions(context: PanelContext) {
 	const { doctype, docname, controller, reloadDocinfo } = context;
@@ -25,14 +26,14 @@ export function peopleActions(context: PanelContext) {
 		share: (user: string) =>
 			send("frappe.share.add", { doctype, name: docname, user, read: 1, write: 1 }),
 		// Dropping read drops the higher rights with it, and the empty share deletes itself.
-		unshare: (user: string, everyone = false) =>
+		unshare: (user: string) =>
 			send("frappe.share.set_permission", {
 				doctype,
 				name: docname,
-				user: everyone ? null : user,
+				user: user === EVERYONE ? null : user,
 				permission_to: "read",
 				value: 0,
-				everyone: everyone ? 1 : 0,
+				everyone: user === EVERYONE ? 1 : 0,
 			}),
 		addTag: (tag: string) =>
 			send("frappe.desk.doctype.tag.tag.add_tag", { tag, dt: doctype, dn: docname }),
