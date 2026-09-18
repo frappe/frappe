@@ -198,6 +198,11 @@ onMounted(() => store.load_versions());
 	font-size: var(--text-xs);
 	color: var(--text-muted);
 }
+.pfb-history-row :deep(.avatar-xs) {
+	width: 24px;
+	height: 24px;
+	font-size: var(--text-xs);
+}
 .pfb-history-action {
 	visibility: hidden;
 }
