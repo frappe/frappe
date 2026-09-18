@@ -105,8 +105,7 @@
 				<component :is="PrintFormat" v-else />
 			</div>
 		</div>
-		<VersionHistory v-if="show_history" @close="close_history" />
-		<FieldInspector v-else-if="!$store.needs_setup.value" />
+		<FieldInspector v-if="!$store.needs_setup.value" />
 		<Preview v-if="show_preview" @close="show_preview = false" />
 		<ContextMenu />
 		<Teleport to="body">
@@ -128,7 +127,6 @@
 import PrintFormat from "./components/editor/PrintFormat.vue";
 import PrintFormatSetup from "./components/editor/PrintFormatSetup.vue";
 import Preview from "./components/Preview.vue";
-import VersionHistory from "./components/VersionHistory.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
 import ContextMenu from "./components/editor/ContextMenu.vue";
@@ -142,7 +140,6 @@ const ZOOM_KEY = "pfb_canvas_zoom";
 const ZOOM_LEVELS = [50, 60, 70, 80, 90, 100, 125, 150];
 
 let show_preview = ref(false);
-let show_history = ref(false);
 let doc_picker_ref = ref(null);
 let doc_picker_ctrl = ref(null);
 let canvas_zoom = ref(nearest_zoom(parseInt(localStorage.getItem(ZOOM_KEY)) || 100));
@@ -166,21 +163,15 @@ function toggle_preview() {
 }
 
 function toggle_history() {
-	if (show_history.value) close_history();
-	else show_history.value = true;
+	$store.value.toggle_history();
 }
 
 watch(
 	[() => $store.value.selected_field.value, () => $store.value.selected_section.value],
 	([field, section]) => {
-		if ((field || section) && show_history.value) close_history();
+		if ((field || section) && $store.value.show_history.value) $store.value.close_history();
 	}
 );
-
-function close_history() {
-	$store.value.exit_version();
-	show_history.value = false;
-}
 
 function restore_viewed() {
 	const v = $store.value.viewing_version.value;

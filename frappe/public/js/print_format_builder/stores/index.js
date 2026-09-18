@@ -18,6 +18,7 @@ export function getStore(print_format_name) {
 	let print_format = ref(null);
 	let versions = ref([]);
 	let viewing_version = ref(null);
+	let show_history = ref(false);
 	let edit_state = null;
 	let letterhead = ref(null);
 	let meta = ref(null);
@@ -479,6 +480,14 @@ export function getStore(print_format_name) {
 			show_version_fields(fields);
 		});
 	}
+	function toggle_history() {
+		if (show_history.value) close_history();
+		else show_history.value = true;
+	}
+	function close_history() {
+		exit_version();
+		show_history.value = false;
+	}
 	function exit_version() {
 		if (!edit_state) return;
 		show_version_fields(edit_state);
@@ -638,6 +647,9 @@ export function getStore(print_format_name) {
 		viewing_version,
 		view_version,
 		exit_version,
+		show_history,
+		toggle_history,
+		close_history,
 		can_undo,
 		can_redo,
 		get_preview_format_doc,

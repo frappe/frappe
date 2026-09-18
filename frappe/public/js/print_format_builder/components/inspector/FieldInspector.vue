@@ -1,67 +1,100 @@
 <template>
 	<div class="pfb-inspector" @click.stop>
-		<!-- Header — hidden on the canvas (settings) view -->
-		<div v-if="has_selection" class="pfb-inspector-head">
-			<div class="pfb-inspector-title">
-				<span class="pfb-inspector-kind">{{ inspector_kind }}</span>
-				<span class="pfb-inspector-name">{{ inspector_subtitle }}</span>
+		<template v-if="show_history">
+			<div class="pfb-inspector-head">
+				<div class="pfb-inspector-title">
+					<span class="pfb-inspector-kind">{{ __("Version history") }}</span>
+				</div>
+				<div class="pfb-inspector-actions">
+					<button
+						class="es-button"
+						data-size="xs"
+						data-variant="ghost"
+						data-icon-button="true"
+						:title="__('Save a named version')"
+						@click="save_named_version"
+						v-html="frappe.utils.icon('bookmark-plus', 'sm')"
+					></button>
+					<button
+						class="es-button"
+						data-size="xs"
+						data-variant="ghost"
+						data-icon-button="true"
+						:title="__('Close')"
+						@click="store.close_history()"
+						v-html="frappe.utils.icon('x', 'sm')"
+					></button>
+				</div>
 			</div>
-			<button
-				v-if="snippet_kind"
-				class="es-button"
-				data-size="xs"
-				data-variant="ghost"
-				data-icon-button="true"
-				:title="__('Save as snippet')"
-				@click="store.prompt_snippet(selected_field || selected_section, snippet_kind)"
-				v-html="frappe.utils.icon('bookmark-plus', 'sm')"
-			></button>
-		</div>
+			<VersionHistory />
+		</template>
+		<template v-else>
+			<!-- Header — hidden on the canvas (settings) view -->
+			<div v-if="has_selection" class="pfb-inspector-head">
+				<div class="pfb-inspector-title">
+					<span class="pfb-inspector-kind">{{ inspector_kind }}</span>
+					<span class="pfb-inspector-name">{{ inspector_subtitle }}</span>
+				</div>
+				<button
+					v-if="snippet_kind"
+					class="es-button"
+					data-size="xs"
+					data-variant="ghost"
+					data-icon-button="true"
+					:title="__('Save as snippet')"
+					@click="store.prompt_snippet(selected_field || selected_section, snippet_kind)"
+					v-html="frappe.utils.icon('bookmark-plus', 'sm')"
+				></button>
+			</div>
 
-		<!-- Breadcrumb: navigate up to parent section when a field is selected -->
-		<div v-if="selected_field && parent_section && !is_multi_select" class="pfb-breadcrumb">
-			<button
-				class="pfb-breadcrumb-btn"
-				@click="select_parent_section"
-				:title="__('Select parent section (Esc)')"
+			<!-- Breadcrumb: navigate up to parent section when a field is selected -->
+			<div
+				v-if="selected_field && parent_section && !is_multi_select"
+				class="pfb-breadcrumb"
 			>
-				<span v-html="frappe.utils.icon('arrow-up', 'xs')"></span>
-				<span class="pfb-breadcrumb-label">{{ __("Section:") }}</span>
-				<span class="pfb-breadcrumb-name">{{
-					parent_section.label || __("Untitled")
-				}}</span>
-			</button>
-		</div>
+				<button
+					class="pfb-breadcrumb-btn"
+					@click="select_parent_section"
+					:title="__('Select parent section (Esc)')"
+				>
+					<span v-html="frappe.utils.icon('arrow-up', 'xs')"></span>
+					<span class="pfb-breadcrumb-label">{{ __("Section:") }}</span>
+					<span class="pfb-breadcrumb-name">{{
+						parent_section.label || __("Untitled")
+					}}</span>
+				</button>
+			</div>
 
-		<!-- Nothing selected: canvas-wide print settings -->
-		<div v-if="!has_selection" class="pfb-insp-body">
-			<PrintSettingsPanel />
-		</div>
+			<!-- Nothing selected: canvas-wide print settings -->
+			<div v-if="!has_selection" class="pfb-insp-body">
+				<PrintSettingsPanel />
+			</div>
 
-		<!-- ── Letter Head Footer inspector ──────────────────────── -->
-		<template v-else-if="selected_lh_footer">
-			<LetterHeadZoneInspector zone="footer" />
+			<!-- ── Letter Head Footer inspector ──────────────────────── -->
+			<template v-else-if="selected_lh_footer">
+				<LetterHeadZoneInspector zone="footer" />
+			</template>
+
+			<!-- ── Letter Head inspector ──────────────────────────────── -->
+			<template v-else-if="selected_letterhead">
+				<LetterHeadZoneInspector zone="header" />
+			</template>
+
+			<!-- ── Multi-select bulk inspector ─────────────────────── -->
+			<BulkPropertiesPanel v-else-if="is_multi_select" />
+
+			<!-- ── Table field inspector ───────────────────────────────── -->
+			<TableFieldInspector v-else-if="selected_field && is_table_field" />
+
+			<!-- ── Repeater inspector ──────────────────────────────── -->
+			<RepeaterFieldInspector v-else-if="selected_field && is_repeater_field" />
+
+			<!-- ── Field inspector ─────────────────────────────────── -->
+			<FieldPropertiesPanel v-else-if="selected_field" :field-is-inline="field_is_inline" />
+
+			<!-- ── Section inspector ───────────────────────────────── -->
+			<SectionPropertiesPanel v-else-if="selected_section" />
 		</template>
-
-		<!-- ── Letter Head inspector ──────────────────────────────── -->
-		<template v-else-if="selected_letterhead">
-			<LetterHeadZoneInspector zone="header" />
-		</template>
-
-		<!-- ── Multi-select bulk inspector ─────────────────────── -->
-		<BulkPropertiesPanel v-else-if="is_multi_select" />
-
-		<!-- ── Table field inspector ───────────────────────────────── -->
-		<TableFieldInspector v-else-if="selected_field && is_table_field" />
-
-		<!-- ── Repeater inspector ──────────────────────────────── -->
-		<RepeaterFieldInspector v-else-if="selected_field && is_repeater_field" />
-
-		<!-- ── Field inspector ─────────────────────────────────── -->
-		<FieldPropertiesPanel v-else-if="selected_field" :field-is-inline="field_is_inline" />
-
-		<!-- ── Section inspector ───────────────────────────────── -->
-		<SectionPropertiesPanel v-else-if="selected_section" />
 	</div>
 </template>
 
@@ -74,9 +107,20 @@ import RepeaterFieldInspector from "./RepeaterFieldInspector.vue";
 import TableFieldInspector from "./TableFieldInspector.vue";
 import FieldPropertiesPanel from "./FieldPropertiesPanel.vue";
 import BulkPropertiesPanel from "./BulkPropertiesPanel.vue";
+import VersionHistory from "../VersionHistory.vue";
 import PrintSettingsPanel from "../PrintSettingsPanel.vue";
 
 let store = inject("$store");
+let { show_history } = store;
+
+function save_named_version() {
+	frappe.prompt(
+		{ fieldname: "label", fieldtype: "Data", label: __("Version name"), reqd: 1 },
+		({ label }) => store.save_version(label),
+		__("Save version"),
+		__("Save")
+	);
+}
 let { letterhead, layout, print_format } = useStore();
 
 let selected_field = computed(() => store.selected_field.value);
@@ -163,7 +207,23 @@ let field_is_inline = computed(() => parent_section.value?.field_orientation ===
 </script>
 
 <style scoped>
+.pfb-inspector {
+	width: 280px;
+	flex-shrink: 0;
+	height: calc(100vh - var(--pfb-chrome-offset, 95px));
+	overflow-y: auto;
+	border-left: 1px solid var(--border-color);
+	background: var(--fg-color);
+	display: flex;
+	flex-direction: column;
+}
+
 /* ── Header ─────────────────────────────────────────────── */
+.pfb-inspector-actions {
+	display: flex;
+	gap: 2px;
+}
+
 .pfb-inspector-head {
 	height: 40px;
 	box-sizing: border-box;

@@ -1,111 +1,88 @@
 <template>
-	<div class="pfb-inspector pfb-history" @click.stop>
-		<div class="pfb-history-head">
-			<span class="pfb-history-title">{{ __("Version history") }}</span>
-			<button
-				class="es-button"
-				data-size="xs"
-				data-variant="ghost"
-				data-icon-button="true"
-				:title="__('Save a named version')"
-				@click="save_named"
-				v-html="frappe.utils.icon('bookmark-plus', 'sm')"
-			></button>
-			<button
-				class="es-button"
-				data-size="xs"
-				data-variant="ghost"
-				data-icon-button="true"
-				:title="__('Close')"
-				@click="$emit('close')"
-				v-html="frappe.utils.icon('x', 'sm')"
-			></button>
+	<div class="pfb-history-list">
+		<div
+			v-if="has_draft"
+			class="pfb-history-row pfb-history-row--link"
+			:class="{ 'pfb-history-row--current': !viewing_version }"
+			@click="store.exit_version()"
+		>
+			<span class="pfb-history-dot" data-kind="current"></span>
+			<div class="pfb-history-text">
+				<div class="pfb-history-name">{{ __("Current version") }}</div>
+				<div class="pfb-history-meta">
+					{{
+						has_draft
+							? __("Working draft · not applied yet")
+							: __("Same as what prints")
+					}}
+				</div>
+			</div>
 		</div>
-		<div class="pfb-history-list">
-			<div
+		<div
+			class="pfb-history-row pfb-history-row--link"
+			:class="{
+				'pfb-history-row--current':
+					viewing_version?.published || (!has_draft && !viewing_version),
+			}"
+			@click="
+				has_draft
+					? view({
+							published: true,
+							label: __('Published version'),
+							when: when(print_format.modified),
+					  })
+					: store.exit_version()
+			"
+		>
+			<span class="pfb-history-dot" data-kind="published"></span>
+			<div class="pfb-history-text">
+				<div class="pfb-history-name">{{ __("Published version") }}</div>
+				<div class="pfb-history-meta">
+					{{ has_draft ? __("What prints now") : __("Current version") }} ·
+					{{ when(print_format.modified) }}
+				</div>
+			</div>
+			<button
 				v-if="has_draft"
-				class="pfb-history-row pfb-history-row--link"
-				:class="{ 'pfb-history-row--current': !viewing_version }"
-				@click="store.exit_version()"
-			>
-				<span class="pfb-history-dot" data-kind="current"></span>
-				<div class="pfb-history-text">
-					<div class="pfb-history-name">{{ __("Current version") }}</div>
-					<div class="pfb-history-meta">
-						{{
-							has_draft
-								? __("Working draft · not applied yet")
-								: __("Same as what prints")
-						}}
-					</div>
+				class="es-button pfb-history-restore"
+				data-size="xs"
+				data-variant="ghost"
+				data-icon-button="true"
+				:title="__('Discard the draft and go back to this')"
+				@click.stop="discard"
+				v-html="frappe.utils.icon('rotate-ccw', 'sm')"
+			></button>
+			<span v-html="frappe.avatar(print_format.modified_by, 'avatar-small')"></span>
+		</div>
+		<div v-if="versions.length" class="pfb-history-label">{{ __("Saved versions") }}</div>
+		<div
+			v-for="v in versions"
+			:key="v.name"
+			class="pfb-history-row pfb-history-row--link"
+			:class="{ 'pfb-history-row--current': viewing_version?.name === v.name }"
+			@click="view({ ...v, label: v.label || __('Saved'), when: when(v.creation) })"
+		>
+			<span
+				class="pfb-history-dot"
+				:data-kind="v.type === 'Manual' ? 'named' : 'saved'"
+			></span>
+			<div class="pfb-history-text">
+				<div class="pfb-history-name">{{ v.label || __("Saved") }}</div>
+				<div class="pfb-history-meta">
+					<template v-if="v.type !== 'Manual'">{{ __("Save & Apply") }} · </template>
+					{{ when(v.creation) }}
 				</div>
 			</div>
-			<div
-				class="pfb-history-row pfb-history-row--link"
-				:class="{
-					'pfb-history-row--current':
-						viewing_version?.published || (!has_draft && !viewing_version),
-				}"
-				@click="
-					has_draft
-						? view({
-								published: true,
-								label: __('Published version'),
-								when: when(print_format.modified),
-						  })
-						: store.exit_version()
-				"
-			>
-				<span class="pfb-history-dot" data-kind="published"></span>
-				<div class="pfb-history-text">
-					<div class="pfb-history-name">{{ __("Published version") }}</div>
-					<div class="pfb-history-meta">
-						{{ has_draft ? __("What prints now") : __("Current version") }} ·
-						{{ when(print_format.modified) }}
-					</div>
-				</div>
-				<button
-					v-if="has_draft"
-					class="es-button pfb-history-restore"
-					data-size="xs"
-					data-variant="ghost"
-					data-icon-button="true"
-					:title="__('Discard the draft and go back to this')"
-					@click.stop="discard"
-					v-html="frappe.utils.icon('rotate-ccw', 'sm')"
-				></button>
-				<span v-html="frappe.avatar(print_format.modified_by, 'avatar-small')"></span>
-			</div>
-			<div v-if="versions.length" class="pfb-history-label">{{ __("Saved versions") }}</div>
-			<div
-				v-for="v in versions"
-				:key="v.name"
-				class="pfb-history-row pfb-history-row--link"
-				:class="{ 'pfb-history-row--current': viewing_version?.name === v.name }"
-				@click="view({ ...v, label: v.label || __('Saved'), when: when(v.creation) })"
-			>
-				<span
-					class="pfb-history-dot"
-					:data-kind="v.type === 'Manual' ? 'named' : 'saved'"
-				></span>
-				<div class="pfb-history-text">
-					<div class="pfb-history-name">{{ v.label || __("Saved") }}</div>
-					<div class="pfb-history-meta">
-						<template v-if="v.type !== 'Manual'">{{ __("Save & Apply") }} · </template>
-						{{ when(v.creation) }}
-					</div>
-				</div>
-				<button
-					class="es-button pfb-history-restore"
-					data-size="xs"
-					data-variant="ghost"
-					data-icon-button="true"
-					:title="__('Restore this version as your draft')"
-					@click.stop="restore(v)"
-					v-html="frappe.utils.icon('rotate-ccw', 'sm')"
-				></button>
-				<span v-html="frappe.avatar(v.owner, 'avatar-small')"></span>
-			</div>
+			<button
+				class="es-button pfb-history-restore"
+				data-size="xs"
+				data-variant="ghost"
+				data-icon-button="true"
+				:title="__('Restore this version as your draft')"
+				@click.stop="restore(v)"
+				v-html="frappe.utils.icon('rotate-ccw', 'sm')"
+			></button>
+			<span v-html="frappe.avatar(v.owner, 'avatar-small')"></span>
 		</div>
 	</div>
 </template>
@@ -113,31 +90,11 @@
 <script setup>
 import { inject, onMounted } from "vue";
 
-defineEmits(["close"]);
 const store = inject("$store");
 const { print_format, has_draft, versions, viewing_version } = store;
 
 function when(value) {
 	return frappe.datetime.prettyDate(value);
-}
-
-function save_named() {
-	frappe.prompt(
-		{ fieldname: "label", fieldtype: "Data", label: __("Version name"), reqd: 1 },
-		({ label }) => store.save_version(label),
-		__("Save version"),
-		__("Save")
-	);
-}
-
-function restore(v) {
-	frappe.confirm(
-		__(
-			"Replace your current draft with {0}? Nothing prints differently until you Save & Apply.",
-			[frappe.bold(v.label || when(v.creation))]
-		),
-		() => store.restore_version(v.name)
-	);
 }
 
 function view(version) {
@@ -155,18 +112,6 @@ onMounted(() => store.load_versions());
 </script>
 
 <style scoped>
-.pfb-history-head {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	padding: 10px 10px 10px 14px;
-	border-bottom: 1px solid var(--border-color);
-}
-.pfb-history-title {
-	flex: 1;
-	font-weight: var(--weight-semibold);
-	font-size: var(--text-base);
-}
 .pfb-history-list {
 	padding: 8px;
 	overflow-y: auto;
