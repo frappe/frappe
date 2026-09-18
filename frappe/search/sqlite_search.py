@@ -1350,9 +1350,49 @@ def build_index(
 	search = SearchClass()
 	if not search.is_search_enabled():
 		return
+<<<<<<< HEAD
 	if not search.index_exists() or force:
 		print(f"{SearchClass.__name__}: Index does not exist, building...")
 		search.build_index()
+=======
+
+	if search.index_exists() and not force:
+		return
+
+	if is_continuation:
+		print(f"{SearchClass.__name__}: Continuing incremental index build...")
+	else:
+		print(f"{SearchClass.__name__}: Index does not exist or force=True, building...")
+
+	search.build_index(is_continuation=is_continuation)
+
+
+def _enqueue_index_job(search_class_path: str, is_continuation: bool = False):
+	"""Enqueue a search index build job.
+
+	Args:
+	    search_class_path: Full path to the search class (e.g., 'module.ClassName')
+	    is_continuation: Whether this is a continuation of an incomplete build
+	"""
+	job_id = f"{search_class_path}_continuation" if is_continuation else search_class_path
+	job_type = "continuation" if is_continuation else "fresh build"
+	print(f"Enqueuing {job_type} for {search_class_path}.build_index")
+
+	# timeout for 2 hour 10 minutes to account for job queue delays
+	timeout = 2 * 60 * 60 + 10 * 60
+
+	enqueue_kwargs = {
+		"queue": "long",
+		"job_id": job_id,
+		"deduplicate": True,
+		"search_class_path": search_class_path,
+		"force": True,
+		"is_continuation": is_continuation,
+		"timeout": timeout,
+	}
+
+	frappe.enqueue("frappe.search.sqlite_search.build_index", **enqueue_kwargs)
+>>>>>>> ba7a316 (fix(search): build a search index that does not exist yet)
 
 
 def build_index_in_background():
