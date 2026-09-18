@@ -1,22 +1,19 @@
-// The rows and the total for one query: frappe-ui's `useList` per fetched page, `get_count` for
-// the total. A changed query is a new list. The pages are a buffer; the page size and Load More
+// The rows and the total for one query: one list read per fetched page, the first carrying the
+// count. A changed query is a new list. The pages are a buffer; the page size and Load More
 // decide how much of it shows, and only rows past its end are fetched.
-import { call, useList, type Filters, type OrderBy } from "frappe-ui";
+import { countDocuments, deleteDocument, listDocuments } from "@framework/ui/api";
 import {
 	computed,
-	effectScope,
 	onScopeDispose,
+	reactive,
 	ref,
 	shallowRef,
 	watch,
 	type ComputedRef,
-	type EffectScope,
 } from "vue";
 
 export type ListRow = { name: string } & Record<string, unknown>;
 
-/** Past this many rows the count is not exact and the footer reads "1000+". */
-export const COUNT_BOUND = 1000;
 const QUERY_DEBOUNCE_MS = 300;
 
 export interface RowsQuery {
@@ -37,8 +34,10 @@ export interface ListRows {
 	error: ComputedRef<Error | null>;
 	rowCount: ComputedRef<number>;
 	totalCount: ComputedRef<number>;
-	/** True when the total hit the bound or its query timed out. */
+	/** True when the total stopped at the server's cap, or is unknown and a next page remains. */
 	totalCapped: ComputedRef<boolean>;
+	/** True when the server gave up counting; the footer reads "many". */
+	totalUnknown: ComputedRef<boolean>;
 	/** False until the count has answered; the footer shows a skeleton meanwhile. */
 	hasCounts: ComputedRef<boolean>;
 	hasNextPage: ComputedRef<boolean>;
@@ -51,18 +50,28 @@ export interface ListRows {
 	next: () => void;
 	/** Refetches the query and shows as many rows as before. */
 	reload: () => void;
+	/** Asks for the exact total after a capped one. */
+	countExact: () => Promise<void>;
 	remove: (name: string) => Promise<unknown>;
 }
 
-type ListHandle = ReturnType<typeof useList<ListRow>>;
+interface Page {
+	data: ListRow[] | null;
+	error: Error | null;
+	hasNextPage: boolean;
+}
+
+interface Total {
+	count: number | null;
+	capped: boolean;
+	answered: boolean;
+}
 
 export function useListRows(doctype: string, query: () => RowsQuery | null): ListRows {
-	const pages = shallowRef<ListHandle[]>([]);
+	const pages = shallowRef<Page[]>([]);
 	const shown = ref(0);
 	const loadedKey = ref<string | null>(null);
-	const total = ref<number | null>(null);
-	const counted = ref(false);
-	let scope: EffectScope | null = null;
+	const total = ref<Total>({ count: null, capped: false, answered: false });
 	let generation = 0;
 	let timer = 0;
 
@@ -72,9 +81,7 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 	const firstPage = computed(() => pages.value[0] ?? null);
 	const lastPage = computed(() => pages.value[pages.value.length - 1] ?? null);
 	const inFlight = computed(() => lastPage.value != null && lastPage.value.data == null);
-	const error = computed(
-		() => (pages.value.find((page) => page.error)?.error as Error | null) ?? null
-	);
+	const error = computed(() => pages.value.find((page) => page.error)?.error ?? null);
 	const hasNextPage = computed(
 		() => loaded.value.length > shown.value || (lastPage.value?.hasNextPage ?? false)
 	);
@@ -103,10 +110,7 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		}
 	);
 
-	onScopeDispose(() => {
-		clearTimeout(timer);
-		scope?.stop();
-	});
+	onScopeDispose(() => clearTimeout(timer));
 
 	/** Undefined while there is no query yet, so the first real one still counts as the first. */
 	function queryKey(): string | undefined {
@@ -118,14 +122,13 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 
 	function reload(target = shown.value) {
 		const current = query();
-		scope?.stop();
+		generation++;
 		pages.value = [];
 		shown.value = 0;
+		total.value = { count: null, capped: false, answered: false };
 		loadedKey.value = current?.key ?? null;
 		if (!current) return;
-		scope = effectScope();
 		show(Math.max(target ?? 0, current.limit));
-		void count(current.filters);
 	}
 
 	/** Shows `target` rows: from the buffer where it reaches, fetched past its end. */
@@ -133,8 +136,9 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		shown.value = target;
 		const missing = target - loaded.value.length;
 		if (missing <= 0 || lastPage.value?.hasNextPage === false) return;
-		const page = scope!.run(() => createList(doctype, query()!, loaded.value.length, missing));
-		if (page) pages.value = [...pages.value, page];
+		const page = reactive<Page>({ data: null, error: null, hasNextPage: false });
+		pages.value = [...pages.value, page];
+		void fetchPage(page, query()!, loaded.value.length, missing);
 	}
 
 	// A page still in flight has no data yet; a second Load More then would start at a stale offset.
@@ -144,23 +148,50 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		show(rowCount.value + current.limit);
 	}
 
-	// `limit` caps the count and puts a one-second cap on its query; a timeout answers null.
-	async function count(filters: Record<string, unknown>) {
-		const mine = ++generation;
-		counted.value = false;
-		total.value = null;
-		const params = { doctype, filters, limit: COUNT_BOUND + 1 };
-		const answer = await call<number | null>("frappe.client.get_count", params)
-			.then((value) => value ?? COUNT_BOUND + 1)
-			.catch(() => null);
-		if (mine !== generation) return;
-		total.value = answer;
-		counted.value = true;
+	// The first page of a query carries the count; a page from an earlier query lands nowhere.
+	async function fetchPage(page: Page, current: RowsQuery, start: number, limit: number) {
+		const mine = generation;
+		const first = start === 0;
+		try {
+			const answer = await listDocuments<ListRow>(
+				doctype,
+				{
+					fields: current.fields,
+					filters: current.filters,
+					order_by: current.orderBy,
+					start,
+					limit,
+				},
+				{ include: first ? ["count"] : undefined }
+			);
+			if (mine !== generation) return;
+			page.hasNextPage = answer.has_next_page;
+			page.data = answer.data;
+			if (first) {
+				const capped = Boolean(answer.count_capped);
+				total.value = { count: answer.count ?? null, capped, answered: true };
+			}
+		} catch (failure) {
+			if (mine !== generation) return;
+			page.error = failure as Error;
+			if (first) total.value = { count: null, capped: false, answered: true };
+		}
 	}
 
-	// A failed count shows the rows as a floor; Load More follows the list's own next page.
+	async function countExact() {
+		const current = query();
+		if (!current) return;
+		const mine = generation;
+		const { data } = await countDocuments(doctype, { filters: current.filters }).catch(() => ({
+			data: null,
+		}));
+		if (mine !== generation || data == null) return;
+		total.value = { count: data, capped: false, answered: true };
+	}
+
+	// An unknown total shows the rows as a floor; Load More follows the list's own next page.
 	const totalCapped = computed(() =>
-		total.value == null ? hasNextPage.value : total.value > COUNT_BOUND
+		total.value.count == null ? hasNextPage.value : total.value.capped
 	);
 
 	return {
@@ -170,11 +201,10 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		),
 		error,
 		rowCount,
-		totalCount: computed(() =>
-			total.value == null ? rowCount.value : Math.min(total.value, COUNT_BOUND)
-		),
+		totalCount: computed(() => total.value.count ?? rowCount.value),
 		totalCapped,
-		hasCounts: computed(() => counted.value),
+		totalUnknown: computed(() => total.value.answered && total.value.count == null),
+		hasCounts: computed(() => total.value.answered),
 		hasNextPage,
 		shown: computed(() => shown.value),
 		loadedKey: computed(() => loadedKey.value),
@@ -185,19 +215,7 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		},
 		next,
 		reload: () => reload(),
-		remove: (name) => firstPage.value!.delete.submit({ name }),
+		countExact,
+		remove: (name) => deleteDocument(doctype, name),
 	};
-}
-
-/** One page, fetched once: `refetch` is off, so a delete never refetches from a stale offset. */
-function createList(doctype: string, query: RowsQuery, start: number, limit: number): ListHandle {
-	return useList<ListRow>({
-		doctype,
-		fields: query.fields,
-		filters: query.filters as Filters,
-		orderBy: query.orderBy as OrderBy,
-		start,
-		limit,
-		refetch: false,
-	});
 }

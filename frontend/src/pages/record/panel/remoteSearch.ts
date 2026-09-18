@@ -1,6 +1,7 @@
 // Options matched on the server as the reader types, for the assign, share and tag pickers.
 import { computed, ref, type Ref } from "vue";
 import { useDebounceFn } from "@vueuse/core";
+import { searchDocuments } from "@framework/ui/api";
 import { errorMessage } from "@/recordPage";
 
 export type SearchOption = { label: string; value: string; image?: string };
@@ -9,8 +10,8 @@ type Call = (method: string, params?: Record<string, any>) => Promise<any>;
 
 const PAGE_LENGTH = 10;
 
-export function useUserSearch(call: Call, pinned: Ref<SearchOption[]>) {
-	return useRemoteSearch((query) => searchUsers(call, query), pinned);
+export function useUserSearch(pinned: Ref<SearchOption[]>) {
+	return useRemoteSearch(searchUsers, pinned);
 }
 
 export function useTagSearch(call: Call, doctype: string, pinned: Ref<SearchOption[]>) {
@@ -58,29 +59,17 @@ export function useRemoteSearch<Option extends SearchOption>(
 	return { options, loading, error, searched, search, searchSoon };
 }
 
-async function searchUsers(call: Call, query: string): Promise<SearchOption[]> {
-	const rows: any[] = await call("frappe.client.get_list", {
-		doctype: "User",
-		fields: ["name", "full_name", "user_image"],
+async function searchUsers(query: string): Promise<SearchOption[]> {
+	const { data } = await searchDocuments("User", {
+		txt: query,
 		filters: [
 			["enabled", "=", 1],
 			["user_type", "=", "System User"],
 			["name", "not in", ["Administrator", "Guest"]],
 		],
-		or_filters: query
-			? [
-					["full_name", "like", `%${query}%`],
-					["name", "like", `%${query}%`],
-			  ]
-			: undefined,
-		order_by: "full_name asc",
-		limit_page_length: PAGE_LENGTH,
+		limit: PAGE_LENGTH,
 	});
-	return rows.map((row) => ({
-		label: row.full_name || row.name,
-		value: row.name,
-		image: row.user_image || "",
-	}));
+	return data.map((row) => ({ label: row.label || row.value, value: row.value }));
 }
 
 async function searchTags(call: Call, doctype: string, query: string): Promise<SearchOption[]> {

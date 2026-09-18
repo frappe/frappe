@@ -1,7 +1,7 @@
 // The composable as claims: what seeds it, what it writes to the URL, when it rebuilds the list,
-// and what a delete does. frappe-ui's data layer is faked; the router and history are real.
+// and what a delete does. The api wrapper is faked; the router and history are real.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, nextTick, reactive, type App } from "vue";
+import { createApp, defineComponent, nextTick, type App } from "vue";
 import { createRouter, createWebHistory, type Router } from "vue-router";
 
 const fake = vi.hoisted(() => ({
@@ -9,15 +9,14 @@ const fake = vi.hoisted(() => ({
 	contributed: [] as { columns?: { fieldname: string; width?: number }[] }[],
 	lists: [] as any[],
 	tiers: { site: null, user: null } as { site: unknown; user: unknown },
-	useList: vi.fn(),
-	call: vi.fn(),
-	remove: vi.fn(),
+	listDocuments: vi.fn(),
+	countDocuments: vi.fn(),
+	deleteDocument: vi.fn(),
+	runMethod: vi.fn(),
 }));
 
 vi.mock("frappe-ui", async (importOriginal) => ({
 	...(await importOriginal<object>()),
-	call: fake.call,
-	useList: fake.useList,
 	createResource: () => ({
 		data: ["Desk User"],
 		loading: false,
@@ -28,6 +27,10 @@ vi.mock("frappe-ui", async (importOriginal) => ({
 
 vi.mock("@framework/ui/api", () => ({
 	getMeta: vi.fn(async () => ({ data: fake.meta, children: [] })),
+	listDocuments: fake.listDocuments,
+	countDocuments: fake.countDocuments,
+	deleteDocument: fake.deleteDocument,
+	runMethod: fake.runMethod,
 }));
 
 vi.mock("@/contributions/registry", () => ({
@@ -58,17 +61,22 @@ let router: Router;
 let app: App | null = null;
 let page: ListPage;
 
-function fakeList() {
-	const list = reactive({
-		data: null as Record<string, unknown>[] | null,
-		error: null,
+/** One list read, answered when a test assigns `data`; `count` is 42 unless a test says otherwise. */
+function fakeList(_doctype: string, query: Record<string, unknown>, options?: { include?: string[] }) {
+	let resolve!: (answer: unknown) => void;
+	const promise = new Promise((done) => (resolve = done));
+	const list = {
+		query,
+		include: options?.include,
 		hasNextPage: true,
-		loading: true,
-		next: vi.fn(),
-		delete: { submit: fake.remove },
-	});
+		count: 42 as number | null,
+		capped: false,
+		set data(rows: Record<string, unknown>[]) {
+			resolve({ data: rows, has_next_page: list.hasNextPage, count: list.count, count_capped: list.capped });
+		},
+	};
 	fake.lists.push(list);
-	return list;
+	return promise;
 }
 
 function rowsNamed(count: number, from = 0) {
@@ -97,7 +105,7 @@ async function mount(path: string) {
 	);
 	app.use(router);
 	app.mount(root);
-	await nextTick();
+	await settle();
 }
 
 async function settle() {
@@ -107,9 +115,8 @@ async function settle() {
 	}
 }
 
-/** The count answers 42; a settings call answers the tiers, a write patched in. */
+/** A settings call answers the tiers, a write patched in. */
 function answer(method: string, args: Record<string, any>) {
-	if (method === "frappe.client.get_count") return Promise.resolve(42);
 	if (method.endsWith(".save")) {
 		const row = (fake.tiers[args.scope as "site" | "user"] ?? {}) as Record<string, unknown>;
 		fake.tiers = { ...fake.tiers, [args.scope]: { ...row, ...args.settings } };
@@ -119,11 +126,11 @@ function answer(method: string, args: Record<string, any>) {
 		delete row[args.key];
 		fake.tiers = { ...fake.tiers, [args.scope]: Object.keys(row).length ? row : null };
 	}
-	return Promise.resolve(fake.tiers);
+	return Promise.resolve({ data: fake.tiers });
 }
 
 function writes() {
-	return fake.call.mock.calls.filter(([method]) => method.startsWith(SETTINGS_API) && !method.endsWith(".get"));
+	return fake.runMethod.mock.calls.filter(([method]) => method.startsWith(SETTINGS_API) && !method.endsWith(".get"));
 }
 
 /** A changed query waits out the typing debounce before it builds a list. */
@@ -142,9 +149,10 @@ beforeEach(() => {
 	fake.contributed = [];
 	fake.lists = [];
 	fake.tiers = { site: null, user: null };
-	fake.useList.mockReset().mockImplementation(fakeList);
-	fake.call.mockReset().mockImplementation(answer);
-	fake.remove.mockReset().mockResolvedValue("ok");
+	fake.listDocuments.mockReset().mockImplementation(fakeList);
+	fake.runMethod.mockReset().mockImplementation(answer);
+	fake.countDocuments.mockReset().mockResolvedValue({ data: 1234 });
+	fake.deleteDocument.mockReset().mockResolvedValue({ data: "ok" });
 });
 
 afterEach(() => {
@@ -172,19 +180,17 @@ describe("seeding", () => {
 	it("builds the list once meta is in, from offset zero, with the count beside it", async () => {
 		await mount("/lead");
 		await settle();
-		expect(page.totalCapped.value).toBe(false);
-		expect(fake.useList).toHaveBeenCalledTimes(1);
-		expect(fake.useList.mock.calls[0][0]).toMatchObject({
-			doctype: "Lead",
-			fields: ["name", "title", "status", "amount"],
-			filters: {},
-			orderBy: "amount asc",
-			start: 0,
-			limit: 20,
-			refetch: false,
-		});
-		expect(fake.call).toHaveBeenCalledWith("frappe.client.get_count", { doctype: "Lead", filters: {}, limit: 1001 });
+		expect(page.hasCounts.value).toBe(false);
+		expect(fake.listDocuments).toHaveBeenCalledTimes(1);
+		expect(fake.listDocuments.mock.calls[0]).toEqual([
+			"Lead",
+			{ fields: ["name", "title", "status", "amount"], filters: {}, order_by: "amount asc", start: 0, limit: 20 },
+			{ include: ["count"] },
+		]);
+		fake.lists[0].data = [];
+		await settle();
 		expect(page.totalCount.value).toBe(42);
+		expect(page.totalCapped.value).toBe(false);
 		expect(page.hasCounts.value).toBe(true);
 	});
 });
@@ -196,7 +202,7 @@ describe("the tiers", () => {
 			user: { columns: [{ fieldname: "status", width: "80px" }, { fieldname: "title" }] },
 		};
 		await mount("/lead");
-		expect(fake.call).toHaveBeenCalledWith(`${SETTINGS_API}.get`, { doctype: "Lead", type: "List" });
+		expect(fake.runMethod).toHaveBeenCalledWith(`${SETTINGS_API}.get`, { doctype: "Lead", type: "List" });
 		expect(page.columns.value).toEqual([
 			{ fieldname: "status", label: "Status", align: "left", width: "80px" },
 			{ fieldname: "title", label: "Title", align: "left" },
@@ -205,7 +211,7 @@ describe("the tiers", () => {
 		expect(page.columnsCustomized.value).toBe(true);
 		await settle();
 		expect(router.currentRoute.value.query).toEqual({});
-		expect(fake.useList.mock.calls[0][0]).toMatchObject({ fields: ["name", "status", "title"], orderBy: "title desc" });
+		expect(fake.lists[0].query).toMatchObject({ fields: ["name", "status", "title"], order_by: "title desc" });
 	});
 
 	it("drops a stored fieldname meta lacks or the person cannot read, and falls back when none is left", async () => {
@@ -335,15 +341,19 @@ describe("the URL", () => {
 });
 
 describe("the rows", () => {
-	it("keeps the selection across a load-more, minus any row that left", async () => {
+	it("keeps the selection across a load-more, and drops it with the rows on a reload", async () => {
 		await mount("/lead");
 		await settle();
-		fake.lists[0].data = [{ name: "LEAD-1" }, { name: "LEAD-2" }];
-		await nextTick();
+		fake.lists[0].data = rowsNamed(20);
+		await settle();
 		page.selection.value = ["LEAD-1", "LEAD-2"];
-		fake.lists[0].data = [{ name: "LEAD-2" }, { name: "LEAD-3" }];
-		await nextTick();
-		expect(page.selection.value).toEqual(["LEAD-2"]);
+		page.next();
+		fake.lists[1].data = rowsNamed(20, 20);
+		await settle();
+		expect(page.selection.value).toEqual(["LEAD-1", "LEAD-2"]);
+		page.reload();
+		await settle();
+		expect(page.selection.value).toEqual([]);
 	});
 
 	it("rebuilds the list for a changed filter after the typing debounce, with no selection", async () => {
@@ -354,10 +364,10 @@ describe("the rows", () => {
 		page.selection.value = ["LEAD-1"];
 		page.filters.value = [{ fieldname: "status", operator: "equals", value: "Open" } as never];
 		await settle();
-		expect(fake.useList).toHaveBeenCalledTimes(1);
+		expect(fake.listDocuments).toHaveBeenCalledTimes(1);
 		await settleQuery();
-		expect(fake.useList).toHaveBeenCalledTimes(2);
-		expect(fake.useList.mock.calls[1][0].filters).toEqual({ status: ["=", "Open"] });
+		expect(fake.listDocuments).toHaveBeenCalledTimes(2);
+		expect(fake.lists[1].query.filters).toEqual({ status: ["=", "Open"] });
 		expect(page.selection.value).toEqual([]);
 	});
 
@@ -369,13 +379,13 @@ describe("the rows", () => {
 		page.pageSize.value = 100;
 		await settleQuery();
 		expect((history.state as { list?: unknown }).list).toEqual({ pageSize: 100 });
-		expect(fake.useList).toHaveBeenCalledTimes(2);
-		expect(fake.useList.mock.calls[1][0]).toMatchObject({ start: 20, limit: 80 });
+		expect(fake.listDocuments).toHaveBeenCalledTimes(2);
+		expect(fake.lists[1].query).toMatchObject({ start: 20, limit: 80 });
 		fake.lists[1].data = rowsNamed(80, 20);
 		await nextTick();
 		expect(page.rows.value).toHaveLength(100);
 		page.next();
-		expect(fake.useList.mock.calls[2][0]).toMatchObject({ start: 100, limit: 100 });
+		expect(fake.lists[2].query).toMatchObject({ start: 100, limit: 100 });
 	});
 
 	it("choosing the size already chosen after a Load More trims the list back to it", async () => {
@@ -391,13 +401,13 @@ describe("the rows", () => {
 		page.show(20);
 		await nextTick();
 		expect(page.rows.value).toHaveLength(20);
-		expect(fake.useList).toHaveBeenCalledTimes(2);
+		expect(fake.listDocuments).toHaveBeenCalledTimes(2);
 
 		// Nothing beyond the size is shown, so the same click again asks the server for nothing.
 		page.show(20);
 		await nextTick();
 		expect(page.rows.value).toHaveLength(20);
-		expect(fake.useList).toHaveBeenCalledTimes(2);
+		expect(fake.listDocuments).toHaveBeenCalledTimes(2);
 	});
 
 	it("a bigger page size while the first page is in flight starts the list over", async () => {
@@ -405,8 +415,8 @@ describe("the rows", () => {
 		await settle();
 		page.pageSize.value = 500;
 		await settleQuery();
-		expect(fake.useList).toHaveBeenCalledTimes(2);
-		expect(fake.useList.mock.calls[1][0]).toMatchObject({ start: 0, limit: 500 });
+		expect(fake.listDocuments).toHaveBeenCalledTimes(2);
+		expect(fake.lists[1].query).toMatchObject({ start: 0, limit: 500 });
 	});
 
 	it("a smaller page size shows fewer of the loaded rows, and next reveals them before fetching", async () => {
@@ -417,13 +427,13 @@ describe("the rows", () => {
 		await nextTick();
 		page.pageSize.value = 20;
 		await settleQuery();
-		expect(fake.useList).toHaveBeenCalledTimes(1);
+		expect(fake.listDocuments).toHaveBeenCalledTimes(1);
 		expect(page.rows.value).toHaveLength(20);
 		expect(page.hasNextPage.value).toBe(true);
 		page.next();
 		await nextTick();
 		expect(page.rows.value).toHaveLength(40);
-		expect(fake.useList).toHaveBeenCalledTimes(1);
+		expect(fake.listDocuments).toHaveBeenCalledTimes(1);
 	});
 
 	it("a return to the same query shows as many rows as before, by one request", async () => {
@@ -433,22 +443,24 @@ describe("the rows", () => {
 		await nextTick();
 		page.next();
 		await nextTick();
-		expect(fake.useList.mock.calls[1][0]).toMatchObject({ start: 20, limit: 20 });
+		expect(fake.lists[1].query).toMatchObject({ start: 20, limit: 20 });
 
 		app!.unmount();
 		app = null;
-		fake.useList.mockClear();
+		fake.listDocuments.mockClear();
+		fake.lists = [];
 		await mount("/lead");
 		await settle();
-		expect(fake.useList).toHaveBeenCalledTimes(1);
-		expect(fake.useList.mock.calls[0][0]).toMatchObject({ start: 0, limit: 40 });
+		expect(fake.listDocuments).toHaveBeenCalledTimes(1);
+		expect(fake.lists[0].query).toMatchObject({ start: 0, limit: 40 });
 
 		app!.unmount();
 		app = null;
-		fake.useList.mockClear();
+		fake.listDocuments.mockClear();
+		fake.lists = [];
 		await mount("/lead?status=Open");
 		await settle();
-		expect(fake.useList.mock.calls[0][0]).toMatchObject({ start: 0, limit: 20 });
+		expect(fake.lists[0].query).toMatchObject({ start: 0, limit: 20 });
 	});
 
 	it("a page size changed while a filter waits is remembered under the rows' own query", async () => {
@@ -488,14 +500,14 @@ describe("the rows", () => {
 		await nextTick();
 		page.selection.value = ["LEAD-0"];
 		await page.deleteSelection();
-		expect(fake.useList.mock.calls[2][0]).toMatchObject({ start: 0, limit: 40 });
+		expect(fake.lists[2].query).toMatchObject({ start: 0, limit: 40 });
 	});
 
 	it("next waits for a page in flight", async () => {
 		await mount("/lead");
 		await settle();
 		page.next();
-		expect(fake.useList).toHaveBeenCalledTimes(1);
+		expect(fake.listDocuments).toHaveBeenCalledTimes(1);
 	});
 
 	it("links a row to its record through the shell's route", async () => {
@@ -505,21 +517,30 @@ describe("the rows", () => {
 });
 
 describe("the count", () => {
-	it("reads a total past the bound as capped", async () => {
-		fake.call.mockResolvedValue(1001);
+	it("reads a capped total as a floor, and asks for the exact one on request", async () => {
 		await mount("/lead");
+		await settle();
+		fake.lists[0].count = 1000;
+		fake.lists[0].capped = true;
+		fake.lists[0].data = rowsNamed(20);
 		await settle();
 		expect(page.totalCount.value).toBe(1000);
 		expect(page.totalCapped.value).toBe(true);
+		expect(page.totalUnknown.value).toBe(false);
+		await page.countExact();
+		expect(fake.countDocuments).toHaveBeenCalledWith("Lead", { filters: {} });
+		expect(page.totalCount.value).toBe(1234);
+		expect(page.totalCapped.value).toBe(false);
 	});
 
-	it("shows the rows as a floor when the count fails, and keeps the next page reachable", async () => {
-		fake.call.mockRejectedValue(new Error("timeout"));
+	it("shows the rows as a floor when the server gave up counting, and keeps the next page reachable", async () => {
 		await mount("/lead");
 		await settle();
+		fake.lists[0].count = null;
 		fake.lists[0].data = [{ name: "LEAD-1" }];
-		await nextTick();
+		await settle();
 		expect(page.hasCounts.value).toBe(true);
+		expect(page.totalUnknown.value).toBe(true);
 		expect(page.totalCount.value).toBe(1);
 		expect(page.totalCapped.value).toBe(true);
 		expect(page.hasNextPage.value).toBe(true);
@@ -530,12 +551,15 @@ describe("deleteSelection", () => {
 	it("deletes each selected name, reports a failure, clears the selection and reloads", async () => {
 		await mount("/lead");
 		await settle();
-		fake.remove.mockResolvedValueOnce("ok").mockRejectedValueOnce(new Error("Not permitted"));
+		fake.deleteDocument.mockResolvedValueOnce({ data: "ok" }).mockRejectedValueOnce(new Error("Not permitted"));
 		page.selection.value = ["LEAD-1", "LEAD-2"];
 		const outcome = await page.deleteSelection();
-		expect(fake.remove.mock.calls.map(([params]) => params)).toEqual([{ name: "LEAD-1" }, { name: "LEAD-2" }]);
+		expect(fake.deleteDocument.mock.calls).toEqual([
+			["Lead", "LEAD-1"],
+			["Lead", "LEAD-2"],
+		]);
 		expect(outcome).toEqual({ deleted: ["LEAD-1"], failed: [{ name: "LEAD-2", error: "Not permitted" }] });
 		expect(page.selection.value).toEqual([]);
-		expect(fake.useList).toHaveBeenCalledTimes(2);
+		expect(fake.listDocuments).toHaveBeenCalledTimes(2);
 	});
 });
