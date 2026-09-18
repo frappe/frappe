@@ -39,7 +39,7 @@ let is_visible = computed(() => evaluate_visible_if(props.modelValue, props.prev
 
 <style scoped>
 .pfb-visibility-body {
-	padding: 4px 14px 12px;
+	padding: 4px 16px 16px;
 }
 
 .pfb-vis-status-row {
