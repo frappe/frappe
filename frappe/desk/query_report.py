@@ -313,8 +313,15 @@ def _run(
 					filters = json.loads(filters)
 
 				dn = filters.pop("prepared_report_name", None)
-				if dn and not frappe.db.exists("Prepared Report", {"name": dn, "owner": user}):
-					frappe.has_permission("Prepared Report", "read", dn, throw=True)
+				if dn:
+					prepared_for = frappe.db.get_value(
+						"Prepared Report", {"name": dn, "owner": user}, "report_name"
+					)
+					if prepared_for != report_name and (
+						not prepared_for
+						or get_reference_report(frappe.get_doc("Report", prepared_for)).name != report.name
+					):
+						frappe.has_permission("Prepared Report", "read", dn, throw=True)
 			else:
 				dn = ""
 			result = get_prepared_report_result(report, filters, dn, user)
