@@ -448,16 +448,33 @@ def _record_version(doc, snapshot_type: str, fields: dict, label: str | None = N
 @frappe.whitelist()
 def save_version(name: str, label: str, data: str | dict, modified: str | datetime):
 	"""Keep a named copy of the builder draft that can be restored later."""
+	_require_str(name=name, label=label)
 	doc = _writable_format(name, modified)
-	label = (label or "").strip()
+	label = label.strip()
 	if not label:
 		frappe.throw(_("Give the version a name"))
 	_record_version(doc, "Manual", _draft_payload(data), label)
 
 
+def _require_str(**values):
+	for key, value in values.items():
+		if not isinstance(value, str):
+			frappe.throw(_("{0} must be text").format(key), frappe.ValidationError)
+
+
+@frappe.whitelist()
+def delete_version(name: str, version: str):
+	"""Remove a recorded version; the format itself is untouched."""
+	_require_str(name=name, version=version)
+	frappe.has_permission("Print Format", "write", doc=name, throw=True)
+	_version_snapshot(name, version)
+	frappe.delete_doc("Version", version, ignore_permissions=True)
+
+
 @frappe.whitelist()
 def get_versions(name: str):
 	"""Versions recorded by the builder, newest first."""
+	_require_str(name=name)
 	frappe.has_permission("Print Format", "read", doc=name, throw=True)
 	out = []
 	for row in frappe.get_all(
@@ -483,6 +500,7 @@ def get_versions(name: str):
 @frappe.whitelist()
 def get_version_fields(name: str, version: str):
 	"""The builder fields a recorded version holds, for previewing it."""
+	_require_str(name=name, version=version)
 	frappe.has_permission("Print Format", "read", doc=name, throw=True)
 	return _version_snapshot(name, version).get("fields")
 
@@ -498,6 +516,7 @@ def _version_snapshot(name: str, version: str) -> dict:
 @frappe.whitelist()
 def restore_version(name: str, version: str, modified: str | datetime):
 	"""Load a recorded version into the draft; what prints waits for Save & Apply."""
+	_require_str(name=name, version=version)
 	doc = _writable_format(name, modified)
 	snapshot = _version_snapshot(name, version)
 	doc.db_set("draft_data", frappe.as_json(_draft_payload(snapshot.get("fields"))))

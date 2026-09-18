@@ -44,7 +44,7 @@
 			</div>
 			<button
 				v-if="has_draft"
-				class="es-button pfb-history-restore"
+				class="es-button pfb-history-action"
 				data-size="xs"
 				data-variant="ghost"
 				data-icon-button="true"
@@ -74,13 +74,23 @@
 				</div>
 			</div>
 			<button
-				class="es-button pfb-history-restore"
+				class="es-button pfb-history-action"
 				data-size="xs"
 				data-variant="ghost"
 				data-icon-button="true"
 				:title="__('Restore this version as your draft')"
 				@click.stop="restore(v)"
 				v-html="frappe.utils.icon('rotate-ccw', 'sm')"
+			></button>
+			<button
+				class="es-button pfb-history-action"
+				data-size="xs"
+				data-variant="ghost"
+				data-theme="red"
+				data-icon-button="true"
+				:title="__('Delete this version')"
+				@click.stop="remove(v)"
+				v-html="frappe.utils.icon('trash', 'sm')"
 			></button>
 			<span v-html="frappe.avatar(v.owner, 'avatar-small')"></span>
 		</div>
@@ -99,6 +109,25 @@ function when(value) {
 
 function view(version) {
 	store.view_version(version);
+}
+
+function restore(v) {
+	frappe.confirm(
+		__(
+			"Replace your current draft with {0}? Nothing prints differently until you Save & Apply.",
+			[frappe.bold(v.label || when(v.creation))]
+		),
+		() => store.restore_version(v.name)
+	);
+}
+
+function remove(v) {
+	frappe.confirm(
+		__("Delete the version {0}? This cannot be undone.", [
+			frappe.bold(v.label || when(v.creation)),
+		]),
+		() => store.delete_version(v.name)
+	);
 }
 
 function discard() {
@@ -166,10 +195,10 @@ onMounted(() => store.load_versions());
 	font-size: var(--text-xs);
 	color: var(--text-muted);
 }
-.pfb-history-restore {
+.pfb-history-action {
 	visibility: hidden;
 }
-.pfb-history-row:hover .pfb-history-restore {
+.pfb-history-row:hover .pfb-history-action {
 	visibility: visible;
 }
 </style>

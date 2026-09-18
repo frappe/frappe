@@ -495,6 +495,18 @@ export function getStore(print_format_name) {
 		viewing_version.value = null;
 		pause_history(false);
 	}
+	function delete_version(version) {
+		return frappe
+			.call("frappe.printing.doctype.print_format.print_format.delete_version", {
+				name: print_format_name,
+				version,
+			})
+			.then(() => {
+				if (viewing_version.value?.name === version) exit_version();
+				return load_versions();
+			})
+			.then(() => frappe.show_alert({ message: __("Version deleted"), indicator: "green" }));
+	}
 	function restore_version(version) {
 		edit_state = null;
 		viewing_version.value = null;
@@ -644,6 +656,7 @@ export function getStore(print_format_name) {
 		load_versions,
 		save_version,
 		restore_version,
+		delete_version,
 		viewing_version,
 		view_version,
 		exit_version,

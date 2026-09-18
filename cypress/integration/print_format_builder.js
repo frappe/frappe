@@ -419,7 +419,6 @@ context("Print Format Builder — create flow", () => {
 		cy.get(".pfb-inspector .pfb-col-row .pfb-tpl-text").first().should("have.value", "Mail: ");
 	});
 
-	// 9c. Review Changes compares the saved format with the draft
 	// 10. Inspector header shows the doctype field's label, not a custom print label
 	it("field inspector header keeps the doctype label after a custom rename", () => {
 		cy.visit("/app");
@@ -1196,7 +1195,13 @@ context("Print Format Builder — selection & spacing", () => {
 
 // ─── Draft / Save & Apply ─────────────────────────────────────────────────────
 
-const DISCARD_BTN = `.custom-actions [data-label="${encodeURIComponent("Discard Draft")}"]`;
+function open_history() {
+	cy.get(".page-actions")
+		.find('[title="Version History"], [data-original-title="Version History"]')
+		.first()
+		.click({ force: true });
+	cy.get(".pfb-history-list", { timeout: 20000 }).should("be.visible");
+}
 
 context("Print Format Builder — draft and Save & Apply", () => {
 	let PF_NAME;
@@ -1231,13 +1236,11 @@ context("Print Format Builder — draft and Save & Apply", () => {
 		).as("draft");
 
 		cy.get('[data-testid="page-status"]').should("not.be.visible");
-		cy.get(DISCARD_BTN).should("not.be.visible");
 
 		set_margin_top("17");
 
 		cy.wait("@draft").its("response.statusCode").should("eq", 200);
 		cy.get('[data-testid="page-status"]').should("contain", "Draft");
-		cy.get(DISCARD_BTN).should("be.visible");
 
 		// the live format is untouched until Save & Apply
 		cy.call("frappe.client.get_value", {
@@ -1263,7 +1266,6 @@ context("Print Format Builder — draft and Save & Apply", () => {
 		cy.wait("@apply").its("response.statusCode").should("eq", 200);
 
 		cy.get('[data-testid="page-status"]').should("not.be.visible");
-		cy.get(DISCARD_BTN).should("not.be.visible");
 
 		cy.call("frappe.client.get_value", {
 			doctype: "Print Format",
@@ -1273,6 +1275,9 @@ context("Print Format Builder — draft and Save & Apply", () => {
 			expect(Number(r.message.margin_top)).to.equal(19);
 			expect(r.message.draft_data).to.be.oneOf([null, ""]);
 		});
+
+		open_history();
+		cy.get(".pfb-history-list").should("contain", "Save & Apply");
 	});
 
 	it("keeps Typst block markup through Save & Apply", () => {
@@ -1325,7 +1330,7 @@ context("Print Format Builder — draft and Save & Apply", () => {
 		});
 	});
 
-	it("Discard Draft throws the draft away and leaves the format as it prints", () => {
+	it("restoring the published version throws the draft away", () => {
 		cy.intercept(
 			"POST",
 			"api/method/frappe.printing.doctype.print_format.print_format.discard_draft"
@@ -1334,12 +1339,15 @@ context("Print Format Builder — draft and Save & Apply", () => {
 		set_margin_top("23");
 		cy.get('[data-testid="page-status"]').should("contain", "Draft");
 
-		cy.get(DISCARD_BTN).click({ force: true });
+		open_history();
+		cy.contains(".pfb-history-row", "Published version")
+			.find(".pfb-history-action")
+			.first()
+			.click({ force: true });
 		cy.get(".modal-footer .btn-modal-primary:visible").click();
 		cy.wait("@discard").its("response.statusCode").should("eq", 200);
 
 		cy.get('[data-testid="page-status"]').should("not.be.visible");
-		cy.get(DISCARD_BTN).should("not.be.visible");
 
 		cy.call("frappe.client.get_value", {
 			doctype: "Print Format",
