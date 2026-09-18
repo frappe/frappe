@@ -79,39 +79,40 @@
 					</option>
 				</select>
 			</div>
-			<SegmentedRow
-				:label="__('Mode')"
+		</InspectorSection>
+
+		<InspectorSection :label="__('Borders')" :init-open="false">
+			<ToggleRow
+				:label="__('Field borders')"
 				:model-value="section_field_borders"
-				:options="[
-					{ value: false, label: __('Normal') },
-					{ value: true, label: __('Table') },
-				]"
 				@update:model-value="toggle_field_borders"
 			/>
-			<SegmentedRow
-				v-if="section_field_borders"
-				:label="__('Borders')"
-				:model-value="selected_section.grid_borders || 'all'"
-				:options="[
-					{ value: 'all', label: __('All') },
-					{ value: 'rows', label: __('Rows') },
-					{ value: 'columns', label: __('Columns') },
-				]"
-				@update:model-value="set_grid_borders"
-			/>
-			<StepperRow
-				:label="__('Cell padding')"
-				:model-value="section_cell_padding"
-				:base="8"
-				unit="px"
-				@update:model-value="(v) => (selected_section.cell_padding = v)"
-			/>
-			<ColorField
-				v-if="section_field_borders"
-				:label="__('Border color')"
-				:model-value="selected_section.border_color || ''"
-				@update:model-value="(v) => set_section_prop('border_color', v)"
-			/>
+			<template v-if="section_field_borders">
+				<div class="pfb-insp-row pfb-insp-row--col">
+					<span class="pfb-insp-label">{{ __("Grid lines") }}</span>
+					<select
+						class="pfb-insp-select"
+						:value="selected_section.grid_borders || 'all'"
+						@change="set_grid_borders($event.target.value)"
+					>
+						<option value="all">{{ __("Both") }}</option>
+						<option value="rows">{{ __("Rows") }}</option>
+						<option value="columns">{{ __("Columns") }}</option>
+					</select>
+				</div>
+				<StepperRow
+					:label="__('Cell padding')"
+					:model-value="section_cell_padding"
+					:base="8"
+					unit="px"
+					@update:model-value="(v) => (selected_section.cell_padding = v)"
+				/>
+				<ColorField
+					:label="__('Border color')"
+					:model-value="selected_section.border_color || ''"
+					@update:model-value="(v) => set_section_prop('border_color', v)"
+				/>
+			</template>
 		</InspectorSection>
 
 		<InspectorSection :label="__('Print')" :init-open="false">
