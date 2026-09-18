@@ -164,6 +164,7 @@ async def compact(instructions: str | None, inputs: LoopInputs) -> AsyncIterator
 		cancellation=inputs.abort,
 		summary_instructions=instructions,
 		resolve_attachment=inputs.resolve_attachment,
+		params=reasoning_params(inputs.model_name, inputs.reasoning_effort),
 	):
 		yield event
 	yield RunEnded(reason="done")
@@ -213,6 +214,7 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	"""The turn core shared by `run` and `resume`."""
 	config, abort = inputs.config, inputs.abort
 	model = inputs.model or await _authenticated_model(inputs)
+	params = reasoning_params(inputs.model_name, inputs.reasoning_effort)
 	if config.auto_compact:
 		await model.load_model_limits(abort)
 	tools = inputs.server_tools or {}
@@ -244,6 +246,7 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 			stream=config.stream,
 			cancellation=abort,
 			resolve_attachment=inputs.resolve_attachment,
+			params=params,
 		)
 		async for event in _model_turn(model, request, inputs, context):
 			if isinstance(event, AssistantMessage):
@@ -413,6 +416,7 @@ async def _compact_once(
 		compaction_reason=reason,
 		cancellation=inputs.abort,
 		resolve_attachment=inputs.resolve_attachment,
+		params=reasoning_params(inputs.model_name, inputs.reasoning_effort),
 	):
 		if isinstance(event, Compaction):
 			context.mark_compacted()
@@ -655,7 +659,6 @@ async def _authenticated_model(inputs: LoopInputs) -> Model:
 		api_key=auth.api_key,
 		api_base=auth.base_url,
 		headers=auth.headers,
-		params=reasoning_params(inputs.model_name, inputs.reasoning_effort),
 		refresh_auth=auth.refresh,
 	)
 

@@ -9,8 +9,9 @@ from __future__ import annotations
 
 import asyncio
 import json
-from collections.abc import AsyncIterator, Callable, Sequence
+from collections.abc import AsyncIterator, Callable, Mapping, Sequence
 from dataclasses import dataclass
+from typing import Any
 
 from flow_harness.events import (
 	AnyEvent,
@@ -132,6 +133,7 @@ async def compact_events(
 	cancellation: asyncio.Event | None,
 	summary_instructions: str | None = None,
 	resolve_attachment: Callable[[str], bytes] | None = None,
+	params: Mapping[str, Any] | None = None,
 ) -> AsyncIterator[AnyEvent]:
 	"""Summarize the plan and yield one balanced start/end protocol.
 
@@ -146,6 +148,7 @@ async def compact_events(
 			cancellation=cancellation,
 			summary_instructions=summary_instructions,
 			resolve_attachment=resolve_attachment,
+			params=params,
 		)
 	except ModelCancelled:
 		yield CompactionEnded(reason=compaction_reason, error_message="aborted")
@@ -168,6 +171,7 @@ async def summarize(
 	cancellation: asyncio.Event | None,
 	summary_instructions: str | None = None,
 	resolve_attachment: Callable[[str], bytes] | None = None,
+	params: Mapping[str, Any] | None = None,
 ) -> str:
 	"""One standalone tool-less model call; deltas are consumed here, never yielded.
 	Every prompt part is bounded to the model's window."""
@@ -204,6 +208,7 @@ async def summarize(
 		stream=False,
 		cancellation=cancellation,
 		max_output_tokens=max_summary_output_tokens,
+		params=params,
 	)
 	summary_response: AssistantMessage | None = None
 	async for response_event in iterate_with_cancellation(model.run(summary_request), cancellation):

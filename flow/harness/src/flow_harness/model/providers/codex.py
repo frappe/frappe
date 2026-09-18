@@ -367,6 +367,7 @@ class CodexModel(Model):
 			"tool_choice": "auto",
 			"parallel_tool_calls": True,
 			**self._params,
+			**(request.params or {}),
 		}
 		if request.tools:
 			payload["tools"] = [_responses_tool(tool) for tool in request.tools]

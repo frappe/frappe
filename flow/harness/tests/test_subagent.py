@@ -188,6 +188,25 @@ async def test_a_named_agent_runs_with_its_own_prompt_and_tools(tmp_path):
 	assert result["content"] == "found" and result["details"]["agent"] == "Lookup"
 
 
+async def test_a_named_agent_runs_at_its_own_effort(tmp_path):
+	careful = SubagentConfig(name="Careful", reasoning_effort="low")
+	session, _ = _session(tmp_path, reasoning_effort="high", subagents=[careful])
+	model = ScriptedModel(
+		{
+			"go": [
+				AssistantMessage(content=[_spawn("c1", "think", agent="Careful")]),
+				AssistantMessage(content="done"),
+			],
+			"think": [AssistantMessage(content="thought")],
+		}
+	)
+
+	await _run(session, "go", model)
+
+	parent, child = model.requests[0], model.requests[1]
+	assert (parent.params["reasoning_effort"], child.params["reasoning_effort"]) == ("high", "low")
+
+
 async def test_an_unknown_agent_is_an_error_result(tmp_path):
 	session, events = _session(tmp_path, subagents=[SubagentConfig(name="Lookup")])
 	model = ScriptedModel(

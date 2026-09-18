@@ -130,6 +130,7 @@ class LiteLLMModel(Model):
 			"model": self.name,
 			"messages": messages,
 			**self._params,
+			**(request.params or {}),
 		}
 		if self._api_key:
 			kwargs["api_key"] = self._api_key
