@@ -113,6 +113,8 @@
 				v-bind="config.props"
 			/>
 		</div>
+
+		<DeprecatedProps v-if="!multiEdit && block" :block="block" :propConfigs="propConfigs" />
 	</div>
 </template>
 
@@ -137,6 +139,7 @@ import useComponentEditorStore from "@/stores/componentEditorStore"
 import type { ComponentProp, ComponentProps } from "@/types"
 import { ComponentInput } from "@/types/Studio/StudioComponent"
 import DynamicValueSelector from "@/components/DynamicValueSelector.vue"
+import DeprecatedProps from "@/components/DeprecatedProps.vue"
 import useStudioStore from "@/stores/studioStore"
 import useComponentInstance from "@/utils/useComponentInstance"
 
