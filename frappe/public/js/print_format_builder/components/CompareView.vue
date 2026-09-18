@@ -380,9 +380,8 @@ function draw_ghost_width(el, change) {
 	);
 }
 
-function draw_colours(el, changes) {
-	const doc = el.ownerDocument;
-	const badge = make(doc, "pfb-diff-badge");
+function add_colours(badge, changes) {
+	const doc = badge.ownerDocument;
 	for (const c of changes) {
 		const label = doc.createElement("span");
 		label.textContent = `${frappe.unscrub(c.key)} `;
@@ -398,26 +397,27 @@ function draw_colours(el, changes) {
 			if (arrow) badge.appendChild(doc.createTextNode(arrow));
 		}
 	}
-	el.appendChild(badge);
 }
 
 function annotate(el, item) {
 	const changes = item.changes || [];
 	const colours = changes.filter((c) => COLOUR.has(c.key));
-	if (colours.length) draw_colours(el, colours);
-	const badges = [];
+	const notes = [];
 	for (const c of changes) {
-		if (BOX_KEYS[c.key]) badges.push(draw_box_bands(el, c.key, c));
-		else if (GAP_KEYS.has(c.key)) badges.push(draw_gap_bands(el, c));
+		if (BOX_KEYS[c.key]) notes.push(draw_box_bands(el, c.key, c));
+		else if (GAP_KEYS.has(c.key)) notes.push(draw_gap_bands(el, c));
 		else if (c.key === "width") draw_ghost_width(el, c);
 		else if (TEXT_BADGE.has(c.key)) {
-			badges.push(
+			notes.push(
 				`${frappe.unscrub(c.key)} ${value_text(c.before)} → ${value_text(c.after)}`
 			);
 		}
 	}
-	const text = badges.filter(Boolean).join(" · ");
-	if (text && !colours.length) el.appendChild(make(el.ownerDocument, "pfb-diff-badge", text));
+	const text = notes.filter(Boolean).join(" · ");
+	if (!text && !colours.length) return;
+	const badge = make(el.ownerDocument, "pfb-diff-badge", text);
+	if (colours.length) add_colours(badge, colours);
+	el.appendChild(badge);
 }
 
 function mark_frame() {
