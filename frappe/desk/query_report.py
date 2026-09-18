@@ -530,6 +530,12 @@ def format_fields(data: frappe._dict, file_format_type: str | None = None) -> No
 				val = row.get(index) if isinstance(row, dict) else row[index]
 				if val:
 					row[index] = format_datetime(val)
+		elif col.get("fieldtype") in ("Link", "Dynamic Link"):
+			for row in data.result:
+				index = col.get("fieldname") if isinstance(row, dict) else i
+				val = row.get(index) if isinstance(row, dict) else row[index]
+				if isinstance(val, str) and val.startswith("'") and val.endswith("'"):
+					row[index] = val[1:-1]
 
 
 def build_xlsx_data(
