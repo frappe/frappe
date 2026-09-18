@@ -8,6 +8,11 @@ const CANVAS = ".form-builder-container";
 // form pages in the DOM. Scope to the one on screen.
 const PAGE = ".page-container:visible";
 
+// a form page is named after its doctype. While a route change is still in flight the
+// page on screen is still the old one, so `:visible` cannot tell the two apart.
+const WEB_FORM_PAGE = ".page-container[data-page-route='Web Form']";
+const DOCTYPE_PAGE = ".page-container[data-page-route='DocType']";
+
 // two pages: the Page Break is the boundary, page one is implicit and has no row.
 // "public" is left out so the add-field picker has something unplaced to offer.
 const SEEDED_FIELDS = [
@@ -268,19 +273,23 @@ context("Web Form Builder", () => {
 
 		// the DocType builder goes first, so its container comes first in the DOM
 		cy.visit("/desk/doctype/ToDo");
-		cy.get(PAGE).findByRole("tab", { name: "Form" }).click();
-		cy.get(`${PAGE} ${CANVAS}`).should("exist");
+		cy.get(DOCTYPE_PAGE).findByRole("tab", { name: "Form" }).click();
+		cy.get(`${DOCTYPE_PAGE} ${CANVAS}`).should("be.visible");
 
+		// set_route resolves before the form renders, so wait for the Web Form to be the
+		// form on screen. Clicking a tab too early lands it on the DocType page, and the
+		// builder tab of the Web Form stays closed.
 		cy.window().then((win) => win.frappe.set_route("Form", "Web Form", ROUTE));
-		cy.get(PAGE).findByRole("tab", { name: "Form" }).click();
-		cy.get(`${PAGE} ${CANVAS}`).should("exist");
+		cy.window().its("cur_frm.doc.name").should("eq", ROUTE);
+		cy.get(WEB_FORM_PAGE).findByRole("tab", { name: "Form" }).click();
+		cy.get(`${WEB_FORM_PAGE} ${CANVAS}`).should("be.visible");
 
 		// the premise: both builders are on the page, and both own a teleport target
 		cy.get(CANVAS).should("have.length", 2);
 		cy.get(".autocomplete-area").should("have.length", 2);
 
 		cy.get(
-			`${PAGE} ${CANVAS} .tab-content.active .section-columns-container:first .column:first`
+			`${WEB_FORM_PAGE} ${CANVAS} .tab-content.active .section-columns-container:first .column:first`
 		)
 			.find(".add-new-field-btn button")
 			.click();
