@@ -78,24 +78,14 @@
 						])
 					}}
 				</span>
-				<span class="pfb-viewing-actions">
-					<button
-						class="es-button"
-						data-variant="subtle"
-						data-size="sm"
-						@click="$store.exit_version()"
-					>
-						{{ __("Back to current") }}
-					</button>
-					<button
-						class="es-button"
-						data-variant="solid"
-						data-size="sm"
-						@click="restore_viewed"
-					>
-						{{ __("Restore this version") }}
-					</button>
-				</span>
+				<button
+					class="es-button pfb-viewing-restore"
+					data-variant="subtle"
+					data-size="sm"
+					@click="restore_viewed"
+				>
+					{{ __("Restore this version") }}
+				</button>
 			</div>
 			<div
 				class="print-format-container"
@@ -725,10 +715,8 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 	color: var(--ink-amber-8);
 }
 
-.pfb-viewing-actions {
+.pfb-viewing-restore {
 	margin-left: auto;
-	display: flex;
-	gap: 6px;
 }
 
 .print-format-container.pfb-viewing {
