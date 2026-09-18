@@ -50,6 +50,7 @@ frappe.ui.form.on("Web Form", {
 		frm.trigger("render_condition_table");
 		frm.trigger("render_dynamic_filters_table");
 		render_form_builder(frm);
+		sync_form_sidebar(frm);
 	},
 
 	on_tab_change: function (frm) {
@@ -59,7 +60,7 @@ frappe.ui.form.on("Web Form", {
 		frm.footer?.wrapper.toggle(!on_builder_tab);
 		frm.form_wrapper.find(".form-message").toggle(!on_builder_tab);
 		frm.form_wrapper.toggleClass("mb-1", on_builder_tab);
-		toggle_form_sidebar(frm, !on_builder_tab);
+		sync_form_sidebar(frm);
 	},
 
 	login_required: on_controlled_access_change,
@@ -761,17 +762,26 @@ function render_form_builder(frm) {
 }
 
 // page.scss pins the main column width for every Form route, so hiding the sidebar has to
-// clear the inline widths too
+// clear the inline widths too. Hide via Desk's `hide-sidebar` class — an inline display
+// outranks it and would survive the sidebar's refresh after save.
 function toggle_form_sidebar(frm, show) {
 	if (!frm.page?.sidebar || frm.page.hide_sidebar || !frappe.boot.desk_settings?.form_sidebar) {
 		return;
 	}
 
-	frm.page.sidebar.toggle(show);
+	// an unsaved doc has no sidebar content
+	let visible = show && !frm.is_new();
+
+	frm.page.sidebar.toggleClass("hide-sidebar", !visible);
 	frm.page.wrapper.find(".layout-main-section-wrapper").css({
-		width: show ? "" : "100%",
-		flex: show ? "" : "1 0 100%",
+		width: visible ? "" : "100%",
+		flex: visible ? "" : "1 0 100%",
 	});
+}
+
+// the sidebar reappears on save, so re-sync on every refresh, not only on a tab change
+function sync_form_sidebar(frm) {
+	toggle_form_sidebar(frm, frm.get_active_tab()?.df?.fieldname !== "form_builder_tab");
 }
 
 // the builder is a singleton, so it can still point at the Web Form the user just left
