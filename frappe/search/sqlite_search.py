@@ -503,10 +503,28 @@ class SQLiteSearch(ABC):
 
 		for doctype, config in self.doc_configs.items():
 			filters = dict(config.get("filters") or {})
-			filters[config.get("modified_field") or "modified"] = (">=", started_at)
+			filters["modified"] = (">=", started_at)
 
 			for name in frappe.get_all(doctype, filters=filters, pluck="name"):
 				self.index_doc(doctype, name)
+
+			self.remove_documents_deleted_during_build(doctype, started_at)
+
+	def remove_documents_deleted_during_build(self, doctype, started_at):
+		"""Drop documents deleted while the build was running.
+
+		delete_doc_index also skips an index it considers absent, so a row the build copied can
+		belong to a document that is gone by the time the index goes live, and it would stay
+		searchable until the next rebuild.
+		"""
+		deleted = frappe.get_all(
+			"Deleted Document",
+			filters={"deleted_doctype": doctype, "creation": (">=", started_at)},
+			pluck="deleted_name",
+		)
+
+		for name in deleted:
+			self.remove_doc(doctype, name)
 
 	def _get_incomplete_count(self, where_clause):
 		"""Get count of incomplete records from search_index_progress table.
