@@ -30,7 +30,7 @@ import inspect
 import json
 import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Any
 
 from flow_harness.agent.client_tools import call_client
@@ -589,7 +589,8 @@ async def _dispatch(
 	try:
 		tool = tools.get(call.name)
 		if tool is not None:
-			outcome = await tool(**call.args, ctx=ctx)  # Tool.__call__ validates/coerces args
+			# Tool.__call__ validates/coerces args; the context names the call for tools that need it
+			outcome = await tool(**call.args, ctx=replace(ctx, tool_call_id=call.id))
 			return _result(
 				call,
 				outcome.content,

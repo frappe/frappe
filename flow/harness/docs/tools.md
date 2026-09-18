@@ -39,14 +39,23 @@ When Flow reaches a gated call, it saves `approval_required` and ends the run wi
 | `read_file` | `path`, `offset?`, `limit?` | No | Alias for `read`, for clients that already have a tool named `read`. Selectable by name, not listed by `GET /tools`. |
 | `write` | `path`, `content` | Yes | Creates parent directories and overwrites the file. |
 | `edit` | `path`, `edits` | Yes | Applies non-overlapping exact replacements. Every old value must appear exactly once. |
+| `subagent` | `task`, `description` | No | Runs a sub-agent inside the session and returns its final answer. See [Sub-agents](#sub-agents). |
 
 Tool output is capped at 2,000 lines or 50 KB. `bash` keeps the tail and saves oversized full output to a temporary log; reading and search keep the head. `edit` returns a unified diff in `details` and preserves BOM and line-ending style.
 
 Paths for `read`, `write`, `edit`, and `grep` are resolved from `cwd`. With `FLOW_ALLOWED_ROOTS`, those tools reject targets outside the configured roots, including symlink escapes. A tenant may also opt into `ignore_hidden_files`, which rejects dot-prefixed descendants and excludes them from recursive grep. This is a path policy, not a sandbox: `bash` can still access anything the daemon process can access.
 
+## Sub-agents
+
+`subagent` runs a child agent inside the session and returns only its final text. The child is a copy of the caller with a fresh context: the same model, prompt and tools, minus `subagent` itself (and its line in the prompt's tool list), and nothing of the session's conversation beyond the task. Sub-agents cannot start sub-agents.
+
+The child's events go into the session's own log, each tagged with `subagent_id`: the id of the tool call that started the child. The session's transcript skips tagged rows, so a rewind never lands inside a child, and the child's usage counts toward the session's totals. In-process `before_tool_call` and `after_tool_call` hooks passed to the run apply inside its children too.
+
+`subagent` calls made in the same reply run at the same time, up to `max_concurrent_subagents` (default 5); their hooks and gates are checked in order first, then the batch runs, while calls of other tools keep running one at a time in order. Abort stops every running child. A child that ends without a final answer, by error, abort, turn limit or budget, returns an error result naming the reason, and the session carries on. A gated tool inside a child cannot be answered yet: the child's batch is cancelled and it ends the same way.
+
 ## Bundled tools
 
-Shipped with the harness but off by default: the default `tools` list is `bash`, `read`, `write`, `edit`. A session enables a bundled tool by naming it in `tools`; the web UI lists them unticked in the preset editor (the Default preset included), and `GET /tools` marks them with `"bundled": true`.
+Shipped with the harness but off by default: the default `tools` list is `bash`, `read`, `write`, `edit`, `subagent`. A session enables a bundled tool by naming it in `tools`; the web UI lists them unticked in the preset editor (the Default preset included), and `GET /tools` marks them with `"bundled": true`.
 
 | Tool | Arguments | Default confirmation | Behavior |
 | --- | --- | --- | --- |

@@ -41,6 +41,7 @@ def test_tools_route_flags_bundled_tools(tmp_path):
 		"read": False,
 		"write": False,
 		"edit": False,
+		"subagent": False,
 		"grep": True,
 	}
 

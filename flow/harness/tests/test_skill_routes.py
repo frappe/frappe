@@ -156,6 +156,7 @@ def test_tools_lists_every_builtin_without_a_cap(tmp_path, monkeypatch):
 		"read",
 		"write",
 		"edit",
+		"subagent",
 		"grep",
 	]
 	assert all(t["description"] for t in tools)

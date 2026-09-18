@@ -87,6 +87,11 @@ def _default_body(config: SessionConfig, tools: Sequence[Tool] | None = None) ->
 	return "\n\n".join(parts)
 
 
+def strip_tool_from_prompt(prompt: str, name: str) -> str:
+	"""The prompt without the tools-list line of `name`, for a child that lacks the tool."""
+	return "\n".join(line for line in prompt.split("\n") if not line.startswith(f"- {name}: "))
+
+
 def _project_context(config: SessionConfig, home: str) -> str | None:
 	"""AGENTS.md files wrapped pi-style: $HOME/AGENTS.md first, then the project
 	chain outermost first."""

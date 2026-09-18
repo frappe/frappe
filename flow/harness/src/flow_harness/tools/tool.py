@@ -81,6 +81,8 @@ class ToolContext:
 	timeout: float = 120.0
 	# stores image bytes beside the session log; None when the caller has no attachment store
 	store_image: Callable[[str, bytes], Awaitable[AttachmentContent]] | None = None
+	# the call being executed, set per dispatch
+	tool_call_id: str = ""
 
 
 @dataclass

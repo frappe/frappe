@@ -461,6 +461,8 @@ def _summary(session: Session, from_seq: int) -> dict:
 	input_tokens = output_tokens = cache_read_tokens = cache_write_tokens = 0
 	for row in session.log.read_since(from_seq):
 		t = row["type"]
+		if row.get("subagent_id") and t != "usage":
+			continue  # a sub-agent's rows: only its usage counts toward the turn
 		if t == "assistant_message":
 			message = parse_event(row)
 			assert isinstance(message, AssistantMessage)

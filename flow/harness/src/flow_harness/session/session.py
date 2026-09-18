@@ -9,17 +9,20 @@ message, so position keeps them attached), then the terminal events.
 
 State is derived, not tracked: a session is RUNNING while its task is alive, PAUSED
 while the transcript holds an undecided approval, else IDLE.
+
+A sub-agent the `subagent` tool starts runs inside the session's own task, driven by
+`SubagentRunner`: its events go through the same `_commit`, tagged with its id.
 """
 
 from __future__ import annotations
 
 import asyncio
-import json
 import uuid
 from collections import deque
 from collections.abc import AsyncGenerator, AsyncIterator, Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import StrEnum
+from functools import partial
 from typing import TYPE_CHECKING, Literal
 
 from flow_harness import config as server_config
@@ -72,13 +75,14 @@ from flow_harness.session.skills import (
 	parse_skill_command,
 	sorted_skills,
 )
+from flow_harness.session.subagents import CANCELLED, SubagentRunner
 from flow_harness.session.transcript import PendingApproval, Transcript
 from flow_harness.tools import Tool
+from flow_harness.tools.builtins.subagent import bind_subagent, subagent
 
 if TYPE_CHECKING:
 	from flow_harness.extensions import ExtensionRuntime
 
-_CANCELLED = json.dumps({"status": "cancelled", "message": "User cancelled this pending tool call."})
 _SUBSCRIBER_QUEUE_SIZE = 256
 
 
@@ -215,6 +219,7 @@ class Session:
 		self._persist_meta = persist_meta
 		self._resolve_skill = resolve_skill
 		self._persist_skill_catalog = persist_skill_catalog
+		self._subagent_runner = SubagentRunner(self._commit, _run_error, config.max_concurrent_subagents)
 		self.transcript = Transcript.replay(log)
 		self.abort_signal = asyncio.Event()
 		self._operation_lock = asyncio.Lock()
@@ -396,7 +401,7 @@ class Session:
 				return False
 			for call in approval.calls:
 				self._commit(
-					ToolResult(tool_call_id=call.id, name=call.name, content=_CANCELLED, is_error=True)
+					ToolResult(tool_call_id=call.id, name=call.name, content=CANCELLED, is_error=True)
 				)
 			return True
 
@@ -456,25 +461,11 @@ class Session:
 		if event.durable:
 			event.parent_seq = self.transcript.leaf_seq  # after a rewind, not the last row
 			self.log.append(event)
-			if isinstance(event, (RunStarted, AssistantMessage, RunEnded)):
+			if event.subagent_id is None and isinstance(event, (RunStarted, AssistantMessage, RunEnded)):
 				self._preview_replay.clear()
 			self.transcript.record(event)
-		elif isinstance(event, Retry) and event.status == "started":
-			self._preview_replay[:] = [event]
-		elif isinstance(event, TextDelta):
-			previous = self._preview_replay[-1] if self._preview_replay else None
-			if isinstance(previous, TextDelta):
-				self._preview_replay[-1] = TextDelta(text=previous.text + event.text)
-			else:
-				self._preview_replay.append(event)
-		elif isinstance(event, ThinkingDelta):
-			previous = self._preview_replay[-1] if self._preview_replay else None
-			if isinstance(previous, ThinkingDelta):
-				self._preview_replay[-1] = ThinkingDelta(thinking=previous.thinking + event.thinking)
-			else:
-				self._preview_replay.append(event)
-		elif isinstance(event, (ToolCallStarted, ToolCallDisplayReady, Retry)):
-			self._preview_replay.append(event)
+		elif event.subagent_id is None:  # a sub-agent's preview is not replayed
+			self._retain_preview(event)
 		for queue in list(self._subscribers):
 			try:
 				queue.put_nowait(event)
@@ -496,9 +487,28 @@ class Session:
 				)
 			except Exception:  # streaming is best-effort; the log heals gaps
 				pass
-		if isinstance(event, RunEnded) and self.config.notify_run_ended:
+		if isinstance(event, RunEnded) and event.subagent_id is None and self.config.notify_run_ended:
 			task = asyncio.create_task(notify_run_ended(self.config, self.id, event))
 			task.add_done_callback(_mark_retrieved)
+
+	def _retain_preview(self, event: AnyEvent) -> None:
+		"""Keep the live preview a late subscriber needs to rebuild the run so far."""
+		if isinstance(event, Retry) and event.status == "started":
+			self._preview_replay[:] = [event]
+		elif isinstance(event, TextDelta):
+			previous = self._preview_replay[-1] if self._preview_replay else None
+			if isinstance(previous, TextDelta):
+				self._preview_replay[-1] = TextDelta(text=previous.text + event.text)
+			else:
+				self._preview_replay.append(event)
+		elif isinstance(event, ThinkingDelta):
+			previous = self._preview_replay[-1] if self._preview_replay else None
+			if isinstance(previous, ThinkingDelta):
+				self._preview_replay[-1] = ThinkingDelta(thinking=previous.thinking + event.thinking)
+			else:
+				self._preview_replay.append(event)
+		elif isinstance(event, (ToolCallStarted, ToolCallDisplayReady, Retry)):
+			self._preview_replay.append(event)
 
 	# --- driving one admitted operation -----------------------------------
 
@@ -521,7 +531,7 @@ class Session:
 		"""Prepare a fresh operation's inputs — including its own abort signal, so a
 		late abort of the previous run cannot leak into this one."""
 		self.abort_signal = asyncio.Event()
-		return loop.LoopInputs(
+		inputs = loop.LoopInputs(
 			config=self.config,
 			messages=self.transcript.messages,
 			credential_store=self.credential_store,
@@ -544,6 +554,11 @@ class Session:
 			server_tools=self.server_tools,
 			extension_runtime=self.extension_runtime,
 		)
+		tools = inputs.server_tools
+		if tools is not None and tools.get(subagent.name) is subagent:  # the builtin, bound to this run
+			bound = bind_subagent(partial(self._subagent_runner.run, inputs))
+			inputs = replace(inputs, server_tools={**tools, subagent.name: bound})
+		return inputs
 
 	async def _store_tool_image(self, name: str, data: bytes) -> AttachmentContent:
 		"""Store a tool's image and claim it at once: the result referencing it is
@@ -651,18 +666,7 @@ class Session:
 				)
 			)
 		if error is not None:
-			provider_error = error if isinstance(error, ProviderError) else None
-			kind: ProviderErrorKind | None = provider_error.kind if provider_error else None
-			self._commit(
-				RunError(
-					message=f"{type(error).__name__}: {error}",
-					kind=kind,
-					retryable=provider_error.retryable if provider_error else None,
-					status_code=provider_error.status_code if provider_error else None,
-					provider=provider_error.provider if provider_error else None,
-					detail=provider_error.detail if provider_error else None,
-				)
-			)
+			self._commit(_run_error(error))
 		self._commit(RunEnded(reason=reason))
 
 	# --- background titling -----------------------------------------------
@@ -717,6 +721,19 @@ class Session:
 			self._commit(TitleChanged(title=title))
 		except Exception:
 			pass  # titling must never disturb the run
+
+
+def _run_error(error: Exception) -> RunError:
+	provider_error = error if isinstance(error, ProviderError) else None
+	kind: ProviderErrorKind | None = provider_error.kind if provider_error else None
+	return RunError(
+		message=f"{type(error).__name__}: {error}",
+		kind=kind,
+		retryable=provider_error.retryable if provider_error else None,
+		status_code=provider_error.status_code if provider_error else None,
+		provider=provider_error.provider if provider_error else None,
+		detail=provider_error.detail if provider_error else None,
+	)
 
 
 def _mark_retrieved(task: asyncio.Task[None]) -> None:
