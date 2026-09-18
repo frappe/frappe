@@ -1,233 +1,262 @@
-// Vertical rail listing the current app's modules, with the app logo pinned to the top corner.
-// Rendered by frappe.ui.Dock and opt-in per app.
+// The dock: a floating tray of app-module icons, parked off the left edge of the window and
+// revealed by pushing the pointer into that edge. Rendered by frappe.ui.Dock and opt-in per app.
 //
-// It is an overlay that is off screen until it is called for, not a column standing beside the
-// sidebar. The body sidebar holds the left edge of the window and is permanent; the rail slides in
-// over it when the pointer rests against that edge, the way the macOS Dock slides in over the
-// desktop. dock.js carries the reasoning for the edge test and the dwell; what is here is the
-// geometry.
+// It is an overlay, not a column. The body sidebar holds the left edge of the window and is
+// permanent; the dock rides above it, vertically centred and clear of both ends, the way the macOS
+// Dock floats over the desktop rather than taking a strip of it. Nothing in the layout moves when
+// it arrives or leaves.
 //
-// Every row carries an icon and its label side by side, the shape the body sidebar's own rows have,
-// so the two read as one vocabulary drawn twice rather than as a strip of glyphs beside a column
-// of words. The label names the workspace, which is what retired the hover tooltips: a row says
-// what it is without being pointed at.
+// Icons only. A label per row is what a 220px column is for, and this is 56px wide: the tile is the
+// whole row, and the name it would have carried is a tooltip (see Dock.sync_row_tooltips). That is
+// also why the tray can be centred at all -- sixteen modules at 28px of row each is a column, and
+// at 40px of tile each it is a strip half the screen's height.
 //
-// Nothing sits behind a glyph: every row is <RailItem variant="ghost">, transparent until the row
-// is hovered or active, which is how the body sidebar's rows have always drawn themselves.
+// dock.js carries the reveal rules; what is here is the geometry.
 :root {
-	--dock-width: 220px;
+	// The tray's own width: a 40px tile in 8px of padding either side.
+	--dock-tile: 40px;
+	--dock-width: 56px;
+
+	// The tray's surface, and the ink that has to read on it.
+	//
+	// `--surface-gray-4` rather than the raw `--gray-500` this started as. A palette token is one
+	// flat colour in both themes, and a mid-grey that looked like a floating panel over a dark page
+	// was mud over a white one. The surface scale inverts: this is #424242 in dark, which is the
+	// colour the tray already was, and #e2e2e2 in light, which is the same relationship to a white
+	// page. The inks invert with it, so one declaration each serves both.
+	--dock-bg: var(--surface-gray-4);
+	--dock-ink: var(--ink-gray-7);
+	--dock-ink-strong: var(--ink-gray-9);
+
+	// A tile's own fills, and the rule under the app mark. These are the one thing the token scales
+	// cannot express, because "a step forward" is not the same direction in both themes: on a light
+	// tray it is darker and on a dark tray it is lighter, and no single `--surface-gray-N` is on the
+	// near side of `--surface-gray-4` in both. So they are overlays, stated per theme, the way
+	// `--desk-sidebar-bg` is in sidebar.scss.
+	--dock-tile-hover: rgba(0, 0, 0, 0.07);
+	--dock-tile-active: rgba(0, 0, 0, 0.12);
+	--dock-rule: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="dark"] {
+	--dock-tile-hover: rgba(255, 255, 255, 0.14);
+	--dock-tile-active: rgba(255, 255, 255, 0.22);
+	--dock-rule: rgba(255, 255, 255, 0.18);
 }
 
 .dock {
-	// Out of flow and pinned to the window's left edge. It reserves no width: the sidebar holds
-	// the edge and the rail comes over it, so nothing in the layout moves when it arrives or
-	// leaves -- which is the macOS behaviour, and the reason the page never reflows on a hover.
+	// Fixed to the window rather than placed in the shell's flex row, and centred on the window's
+	// own height. The two transforms are written together on this one element: the centring is
+	// permanent and the slide is the state, so they cannot be split across a wrapper without one
+	// overwriting the other.
 	position: fixed;
-	left: 0;
-	top: 0;
-	width: var(--dock-width);
-	// Parked one full width off screen rather than hidden, so there is something for the transform
-	// to animate from and the rail is never mid-paint when it lands.
-	transform: translateX(-100%);
-	transition: transform 0.18s ease;
-	// Above the body sidebar's 1020: the rail covers the sidebar it was summoned from.
+	left: 8px;
+	top: 50%;
+	// Parked off screen: 150% of its own width clears the 8px inset with room to spare. Off rather
+	// than hidden, so there is something for the transform to animate from and the tray is never
+	// mid-paint when it lands.
+	transform: translate(-150%, -50%);
+	// Above the body sidebar's 1020: the dock covers whatever it is over.
 	z-index: 1030;
-	box-shadow: 2px 0 14px rgba(0, 0, 0, 0.18);
-	height: 100vh;
+
+	width: var(--dock-width);
+	transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+	// Tall enough for the modules it has and no taller. Sixteen tiles is already most of a laptop's
+	// height, so the tray scrolls rather than running off both ends of a short window.
+	max-height: calc(100vh - 32px);
+	overflow-y: auto;
+	// The tray is the scroll container, so its own bar would sit inside the rounded corner.
+	scrollbar-width: none;
+
+	&::-webkit-scrollbar {
+		display: none;
+	}
 
 	display: flex;
 	flex-direction: column;
-	// The gutter lives on the bands rather than here, because the reference does not use one width
-	// for all of them: the header band is `px-1` and the scrolling list is `px-2`, which is what
-	// puts a 28px mark further out than a 16px glyph. No top padding keeps the header on the
-	// navbar band.
-	align-items: stretch;
-	padding: 0 0 12px 0;
+	align-items: center;
+	gap: 6px;
+	padding: 8px;
 
-	// The panel's surface, not `--surface-sidebar` directly: that token is transparent in dark
-	// and the rail would show the page through it. See sidebar.scss for why the two share it.
-	background: var(--desk-sidebar-bg);
-	border-right: 1px solid var(--outline-gray-1);
+	background: var(--dock-bg);
+	border-radius: 18px;
+	box-shadow: var(--shadow-2xl);
 
 	&.hidden {
 		display: none;
 	}
 
-	// The rail's header sits in the navbar's band so it lines up with the page title beside it;
-	// everything inside it is .shell-header's, shared with the body sidebar's own header.
+	// The app's mark, pinned to the top of the tray. It is the same 40px tile as a module below it,
+	// so the column reads as one run of tiles, and it opens the menu the sidebar header's chevron
+	// opens (see Dock.setup_header_menu).
 	.dock-logo {
 		flex: 0 0 auto;
-		// `h-12 px-1`: the band the 40px trigger is centred in, sized to the navbar so the header
-		// lines up with the page title beside it
-		height: var(--navbar-height, 48px);
-		padding: 0 4px;
-		display: flex;
-		align-items: center;
+		width: 100%;
 
 		.shell-header {
-			width: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+
+			width: var(--dock-tile);
+			height: var(--dock-tile);
+			padding: 0;
+			border: none;
+			border-radius: 12px;
+			background: transparent;
+			cursor: pointer;
+			transition: background-color 0.15s ease;
+
+			&:hover,
+			&.active-sidebar {
+				background: var(--dock-tile-hover);
+			}
 		}
-	}
-	// A scroll container clips on both axes, and the active row's shadow spreads 3px sideways, so
-	// it was being cut off against the rail's edges. The band is widened by 4px all round and pulled
-	// back by the same margin: the rows land exactly where they did, and the shadow now falls inside
-	// the scroll box instead of on its edge. The width comes from the rail's own `align-items:
-	// stretch`, not from `width: 100%`, which would ignore the negative margins and overhang.
-	.dock-items {
-		flex: 1 1 auto;
-		// `px-2`, and 4px of it vertically so the active row's shadow lands inside the scroll box
-		// rather than on its clip edge; the top 4px is pulled back so the first row keeps its place
-		margin-top: 8px;
-		padding: 4px 8px;
 
-		display: flex;
-		flex-direction: column;
-		align-items: stretch;
-		// `space-y-0.5`
-		gap: 2px;
-
-		overflow-y: auto;
-		// hide the scrollbar -- it would sit between the labels and the body sidebar's own
-		scrollbar-width: none;
-		&::-webkit-scrollbar {
+		// Both are the column's width talking: a name and a chevron are what a 220px header has
+		// room for. The mark alone says which app this is, and the menu still opens from it.
+		.title-container,
+		.drop-icon {
 			display: none;
 		}
-	}
 
-	// The user row is the header's twin at the other end of the rail: a 28px mark, two lines of text
-	// beside it, a menu behind the whole thing. So it wears .shell-header and adds only what is its
-	// own -- the gutter it sits in, and the class its menu toggles. That also puts the avatar on the
-	// header mark's column, 10px in, while the rows' glyphs stay at 16px.
-	//
-	// No `width: 100%`: the rail stretches its children already, and 100% plus a side margin is 100%
-	// of the rail *and then* the margin, which is how this row came to hang 8px off the edge.
-	.dock-user {
-		flex: 0 0 auto;
-		margin: 8px 4px 0;
-		border: none;
-		background: transparent;
-		text-align: left;
+		// Same for the app's mark, on the same reasoning as the tiles below it. An app whose mark is
+		// a real logo is an <img> and takes no notice of either token.
+		color: var(--dock-ink-strong);
+		--icon-stroke: currentColor;
 
-		.avatar {
-			margin: 0;
-			flex: 0 0 auto;
-		}
-
-		// What .shell-header calls .active-sidebar, the user menu calls this. Same state, same
-		// surface: a fill on the row rather than a ring on the avatar, because a ring on a 28px
-		// mark in a full-width row marks the wrong thing.
-		&.user-menu-active {
-			background: var(--surface-elevation-2);
-			box-shadow: var(--shadow-sm);
-		}
-	}
-
-	// One rail row, to frappe-ui's <SidebarItem>: `h-7 rounded`, the link inside it `pl-2`, a
-	// `size-4` glyph, then the label `ml-2 truncate text-sm`. Inactive is `text-ink-gray-6` with
-	// `hover:bg-surface-gray-2`; active is `bg-surface-elevation-3 text-ink-gray-8 shadow-sm`, which
-	// is .active-sidebar. The body sidebar's rows are the same row from the same component.
-	//
-	// Both of the tile variant's marks are gone with the icon-only column they belonged to: the
-	// filled cell, which read as a button in a list of plain rows, and the left indicator bar, which
-	// hung 11px into a centring gutter that no longer exists.
-	.dock-item {
-		position: relative;
-		flex: 0 0 auto;
-		width: 100%;
-		height: 28px;
-		padding: 0 0 0 8px;
-
-		display: flex;
-		align-items: center;
-
-		border: none;
-		border-radius: var(--radius);
-		background: transparent;
-		color: var(--ink-gray-6);
-		font-family: inherit;
-		text-align: left;
-		cursor: pointer;
-		transition: background-color 0.15s ease;
-
-		// the same fill and radius the panel's rows take on hover, from sidebar.scss
-		&:not(.active):hover {
-			@include hover-mixin();
-		}
-
-		// Holds the glyph and nothing else. It takes no colour of its own: the glyph is the row's
-		// own ink through currentColor, which is what makes it darken with the label when the row
-		// goes active.
-		.dock-item-icon {
-			position: relative;
-			flex: 0 0 auto;
+		.header-logo {
 			display: flex;
 			align-items: center;
 			justify-content: center;
 		}
 
-		// `ml-2` is the gap between glyph and label, and `flex: 1` is what pushes anything after
-		// it -- a count, a shortcut -- to the row's far end, where a suffix takes its own `mr-2`.
-		.dock-item-label {
-			@include truncate();
-			flex: 1 1 auto;
-			margin-left: 8px;
-			font-size: var(--text-sm);
-			// Collapsed alongside the rail rather than switched off. `display: none` removed the
-			// words on the first frame and left a 220px rail of bare glyphs for the rest of the
-			// animation, which read as two separate movements.
-			transition: opacity 0.12s ease, margin-left 0.18s ease;
-		}
-
 		svg,
 		img {
-			width: 16px;
-			height: 16px;
+			width: 22px;
+			height: 22px;
 		}
 
-		// A module with no authored icon wears the letter tile desktop_icon() builds, which brings
-		// its own colour. Round it so it reads as a mark in the column rather than a swatch.
+		// An app whose mark is a letter tile rather than a logo. Round it to the tile's own radius
+		// so it fills the slot instead of sitting in it as a swatch.
 		.icon-container {
-			border-radius: var(--radius);
+			border-radius: 12px;
 			overflow: hidden;
 		}
+	}
 
-		// The active row IS the panel's active row: it takes .active-sidebar from sidebar.scss
-		// rather than restating its surface, radius and shadow here, so the two can never drift.
-		// Only the ink is ours -- the rail's rows sit at --ink-gray-6, and the active one steps
-		// forward the way the panel's does.
-		&.active {
-			@extend .active-sidebar;
-			color: var(--ink-gray-8);
-		}
+	// The rule between the app's mark and its modules. Inset from the tray's padding so it reads as
+	// a division of the column rather than a line across the whole object.
+	.dock-logo + .dock-items::before {
+		content: "";
+		display: block;
+		width: 24px;
+		height: 1px;
+		margin: 2px auto 6px;
+		background: var(--dock-rule);
+	}
+
+	.dock-items {
+		flex: 1 1 auto;
+		width: 100%;
+
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 6px;
 	}
 }
 
-// The sidebar keeps everything it owns. The rail used to carry the header's menu, the user button,
-// search and notifications, and the sidebar's own copies were switched off to stop the pair saying
-// the same thing twice down one edge. That traded on the rail being the surface that is always
-// there. It is not any more -- it is an overlay a hover away -- so a sidebar stripped to bare
-// labels would be a permanent surface missing its furniture for the sake of a hidden one, and
-// nothing is taken off it here.
-//
-// Nor does `dock-active` change where the sidebar starts. The rail is summoned by how close the
-// pointer is to the window's edge rather than by a strip drawn there to hover (see dock.js), so
-// there is nothing the sidebar has to be held back from: it keeps the edge, and the rail arrives
-// on top of it.
+// One tile. The whole row, since there is no label beside it: a 40px square with the module's glyph
+// centred in it, transparent until it is hovered or active -- the ghost treatment the rail's rows
+// have always had, restated here because the surfaces it used to borrow are page surfaces and this
+// tray is not the page.
+.dock-item {
+	position: relative;
+	flex: 0 0 auto;
 
-// Nothing collapses the sidebar on a desktop any more. Collapsing was the docked shape -- the panel
-// left the screen and the rail's edge handle was the way back -- and with the panel permanent there
-// is neither a state to collapse into nor a handle to return from. Below md it is still a drawer,
-// so this is scoped rather than deleted.
-@include media-breakpoint-up(md) {
-	.body-sidebar .sidebar-resize-handle {
+	width: var(--dock-tile);
+	height: var(--dock-tile);
+	padding: 0;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	border: none;
+	border-radius: 12px;
+	background: transparent;
+	// Held a step back from the strongest ink, so the hovered and active tiles have somewhere to
+	// step forward to.
+	color: var(--dock-ink);
+	// A desk glyph is stroked from `--icon-stroke`, not from `color` (see common/icons.scss), and
+	// that token is set per surface -- `--gray-700` on the page, `--gray-300` in dark. Neither is
+	// answering this tray, which is why the glyphs came out near-black on the grey in light. Point
+	// the stroke at `currentColor` instead and the hover and active steps above carry the glyph
+	// with them for free.
+	--icon-stroke: currentColor;
+	cursor: pointer;
+	transition: background-color 0.15s ease, color 0.15s ease;
+
+	svg,
+	img {
+		width: 20px;
+		height: 20px;
+	}
+
+	// No words in a 56px tray, and nothing that widens to make room for them. What names a tile is
+	// the label beside it (below), which is why this can go rather than fold.
+	.dock-item-label {
 		display: none;
 	}
+
+	// A module with no authored icon wears the letter tile desktop_icon() builds, which brings its
+	// own colour. Round it to the tile's radius so it fills the slot.
+	.icon-container {
+		border-radius: 12px;
+		overflow: hidden;
+	}
+
+	// A fill and a step in ink, and nothing that moves. A tile that slid out of the tray on hover
+	// read as bouncing, and it dragged the tooltip's gap around with it -- the bubble is placed
+	// when the pointer arrives and the tile then travelled toward it.
+	&:hover {
+		background: var(--dock-tile-hover);
+		color: var(--dock-ink-strong);
+	}
+
+	// Where you are. A filled tile rather than the page's `.active-sidebar` surface, for the same
+	// reason the ink is white: that surface is drawn to sit on the page, and this one sits on the
+	// tray.
+	&.active {
+		background: var(--dock-tile-active);
+		color: var(--dock-ink-strong);
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--dock-ink-strong);
+		outline-offset: 2px;
+	}
 }
 
-// The standard-items band: search, notifications and background tasks, directly under the header
-// and above the module's own items, behind a divider. Full-width rows in the sidebar's own
-// vocabulary rather than the rail's ghost-icon strip -- which is what makes search legible in a
-// 220px panel rather than merely present.
+// Out. One class on <body>, set by frappe.ui.Dock, so the arrival is one transform on one fixed
+// element and nothing underneath it moves. The centring half is carried through unchanged; only the
+// slide resolves.
+body.dock-open .dock {
+	transform: translate(0, -50%);
+}
+
+// The slide is the whole of the dock's arrival, so with motion turned down it simply is or is not
+// there. Both states stay reachable: the transform is what changes, not the class that drives it.
+@media (prefers-reduced-motion: reduce) {
+	.dock,
+	.dock-item {
+		transition: none;
+	}
+}
+
+// The standard-items band on the body sidebar: search, notifications and background tasks, directly
+// under the header and above the module's own items, behind a divider.
 //
 // The divider is drawn only when the band has something in it: each row hides itself until it has
 // something to say (background tasks until there is a task, notifications until they load), and a
@@ -240,22 +269,25 @@
 	}
 }
 
-// Out. One class on <body>, set by frappe.ui.Dock, so the rail's arrival is one transform on one
-// fixed element and nothing underneath it moves.
-body.dock-open .dock {
-	transform: none;
-}
+// The sidebar keeps everything it owns. The dock used to carry the header's menu, the user button,
+// search and notifications, and the sidebar's own copies were switched off to stop the pair saying
+// the same thing twice down one edge. That traded on the dock being the surface that is always
+// there. It is not -- it is a push at the edge away -- so a sidebar stripped to bare labels would be
+// a permanent surface missing its furniture for the sake of a hidden one, and nothing is taken off
+// it here. Nor does `dock-active` change where the sidebar starts: the dock floats over it.
 
-// The slide is the whole of the rail's arrival, so with motion turned down it simply is or is not
-// there. Both states are still reachable: the transform is what changes, not the class that drives
-// it.
-@media (prefers-reduced-motion: reduce) {
-	.dock {
-		transition: none;
+// Nothing collapses the sidebar on a desktop any more. Collapsing was the docked shape -- the panel
+// left the screen and the dock's edge handle was the way back -- and with the panel permanent there
+// is neither a state to collapse into nor a handle to return from. Below md it is still a drawer, so
+// this is scoped rather than deleted.
+@include media-breakpoint-up(md) {
+	.body-sidebar .sidebar-resize-handle {
+		display: none;
 	}
 }
 
-// mirror the body sidebar: the rail collapses away on mobile
+// mirror the body sidebar: the dock goes away on mobile, where there is no pointer to push an edge
+// with and no room to float a tray over the page.
 @include media-breakpoint-down(sm) {
 	.dock {
 		display: none;

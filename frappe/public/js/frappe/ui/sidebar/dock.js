@@ -3,12 +3,21 @@
 // body sidebar the way the macOS Dock slides in over the desktop.
 //
 // It is an overlay, not a column. The body sidebar is the desk's permanent navigation and holds
-// the left edge of the window; the rail sits one step above it in the hierarchy and one step
+// the left edge of the window; the dock sits one step above it in the hierarchy and one step
 // behind it on screen.
 //
-// It is called up by resting the pointer within EDGE_PX of the window's left edge. The rail arms
-// only after DWELL_MS, so a pointer merely crossing the edge on its way somewhere else does not
-// summon it, and it goes again once the pointer settles anywhere else.
+// It is called up by pushing the pointer into the window's left edge, and the rule for that is
+// `should_show` -- ported from the frappe-os desktop's `shouldShowDock`, which had already settled
+// the shape of it. Two thresholds rather than one:
+//
+//   reveal   the pointer has to reach the true edge (REVEAL_EDGE px). Nothing short of that opens
+//            it, so travelling past the edge on the way somewhere else leaves it alone, and no
+//            timer is needed to tell a deliberate push from a passing one.
+//   hide     it closes once the pointer rises clear of HIDE_BAND, about the tray's own reach.
+//
+// Between the two the answer is whatever it already was. That hysteresis is what makes the tray
+// usable: revealing demands the edge, but once out it survives the 50-odd px of travel from the
+// edge to the tile you are aiming at, which a single threshold would have closed it on.
 //
 // The edge is read off the pointer rather than drawn as a strip to hover. A strip would be a real
 // element over the leftmost pixels of the sidebar, and those pixels are the left edge of every row
@@ -17,34 +26,35 @@
 //
 // It is drawn only when the app on screen resolves to at least one visible entry
 // (Sidebar.dock_enabled) and the page on screen allows it (page_allows_dock; the desktop or the
-// apps screen does not). An app that resolves to no entries gets no rail rather than an empty
+// apps screen does not). An app that resolves to no entries gets no dock rather than an empty
 // stripe, and its sidebar header carries a switcher menu instead.
 //
-// Search, notifications, background tasks and the user button are not on the rail. They were while
-// the rail was the permanent surface and the sidebar was the thing that came and went; a surface
+// Search, notifications, background tasks and the user button are not on the dock. They were while
+// the dock was the permanent surface and the sidebar was the thing that came and went; a surface
 // that is hidden by default cannot hold them, so all four belong to the sidebar again (see
 // Sidebar.add_standard_items and the sidebar's own user button).
 frappe.ui.Dock = class Dock {
-	// How long the pointer has to rest against the edge before the rail comes out, and how long it
-	// has to stay away before it goes back. Both exist for the same reason: a rail that answered
-	// the edge on contact would flash open every time a pointer crossed it, and one that left on
-	// contact would drop out from under a pointer travelling the few pixels from the edge to its
-	// own first row.
-	static DWELL_MS = 250;
-	static CLOSE_MS = 220;
-	// How close to the window's edge counts as the edge. Not a CSS variable, because nothing is
-	// drawn at this width: it is a distance the pointer is tested against, not a box.
-	static EDGE_PX = 6;
+	// The two thresholds the reveal hangs on, in px from the window's left edge. Neither is a CSS
+	// variable, because nothing is drawn at either width: they are distances the pointer is tested
+	// against, not boxes.
+	//
+	// REVEAL_EDGE is the true edge, which is the whole intent test -- a pointer only lands there by
+	// being pushed there. HIDE_BAND is roughly the tray's own reach, so the dock stays out across
+	// the gap between the edge and the tile being aimed at.
+	static REVEAL_EDGE = 1;
+	static HIDE_BAND = 90;
 
 	constructor(sidebar) {
 		this.sidebar = sidebar;
 		this.is_open = false;
 		this.enabled = false;
+		// One per tile, held so they can be torn down when the tiles are replaced.
+		this.tooltips = [];
 		this.make();
 	}
 
 	make() {
-		// The body is a horizontal flex row (body-sidebar-container, then main-section). The rail
+		// The body is a horizontal flex row (body-sidebar-container, then main-section). The dock
 		// is out of flow, but it is still inserted as the leftmost element so its place in the
 		// document matches its place on screen: a screen reader and a Tab reach it before the
 		// sidebar it stands in front of.
@@ -84,30 +94,33 @@ frappe.ui.Dock = class Dock {
 	}
 
 	// -------------------------------------------------------------------------------------------
-	// Reveal. Everything that opens the rail and everything that closes it again.
+	// Reveal. Everything that opens the dock and everything that closes it again.
 	// -------------------------------------------------------------------------------------------
 
 	setup_reveal() {
+		// One listener for both directions. `should_show` is a pure function of where the pointer
+		// is and what the dock is already doing, so the loop has nothing to remember and no timer
+		// to cancel: every move re-asks the same question and the answer is applied.
 		$(document)
 			.off(".dock-edge")
-			// Watching the pointer is the whole trigger. It is one comparison per move and it runs
-			// only while a rail exists and is not already out; `arm` is what makes it a dwell
-			// rather than a hair trigger, by leaving a timer it started alone rather than
-			// restarting it on every pixel.
 			.on("mousemove.dock-edge", (e) => {
-				if (!this.enabled || this.is_open) return;
-				if (e.clientX <= frappe.ui.Dock.EDGE_PX) {
-					this.arm();
-				} else {
-					this.disarm();
-				}
+				if (!this.enabled) return;
+				const over_dock = !!$(e.target).closest(".dock").length;
+				this.apply_visibility(
+					this.should_show({
+						over_dock,
+						menu_open: this.menu_open(),
+						dist_from_edge: e.clientX,
+						currently_shown: this.is_open,
+					})
+				);
 			});
 
 		$(document)
 			.off(".dock-reveal")
-			// A click anywhere that is not the rail dismisses it, the way a menu goes on the next
-			// click elsewhere. The pointer usually gets there first, but a click can outrun
-			// CLOSE_MS.
+			// A click anywhere that is not the dock dismisses it, the way a menu goes on the next
+			// click elsewhere. The pointer usually gets there first, but a click can outrun a
+			// move -- a trackpad tap reports no travel at all.
 			.on("click.dock-reveal", (e) => {
 				if (!this.is_open) return;
 				if ($(e.target).closest(".dock").length) return;
@@ -118,75 +131,60 @@ frappe.ui.Dock = class Dock {
 			});
 	}
 
-	// What closes the rail once it is out.
+	// Ported from frappe-os `desktop/dock-visibility.ts`. Kept a pure function of its input, and
+	// separate from the listener that feeds it, so the branchy part is the part you can read.
 	//
-	// Not the rail's own mouseleave, which is the obvious answer and does not work: the rail slides
-	// out from under a pointer that is already resting against the edge and has not moved, and a
-	// browser does not fire mouseenter for an element that arrives beneath a stationary pointer. No
-	// enter means no leave, so the rail stayed out until something else dismissed it.
+	// Order matters. `over_dock` is ours rather than the port's: the tray happens to sit inside
+	// HIDE_BAND today, so the band alone would carry it, but resting on a thing should not depend on
+	// that arithmetic holding. A menu hanging off the dock is the other override -- it has to keep
+	// its own dock on screen however far the pointer travelled to reach a row of it.
+	should_show({ over_dock, menu_open, dist_from_edge, currently_shown }) {
+		if (over_dock || menu_open) return true;
+		if (dist_from_edge <= frappe.ui.Dock.REVEAL_EDGE) return true;
+		if (dist_from_edge > frappe.ui.Dock.HIDE_BAND) return false;
+		return currently_shown;
+	}
+
+	// Whether the menu on its own header is up. It is the header's `.active-sidebar` class
+	// rather than a flag of ours, because the dropdown already sets that on open and clears it on
+	// close (see SidebarHeader.toggle_active) and a second record of the same fact would be one
+	// that could disagree.
+	menu_open() {
+		return this.$header.hasClass("active-sidebar");
+	}
+
+	apply_visibility(show) {
+		show ? this.open() : this.close();
+	}
+
+	// Nothing tracks the pointer separately once the dock is out: the one `mousemove.dock-edge`
+	// listener above answers both directions, and the hysteresis in `should_show` is what stops it
+	// closing the moment the pointer leaves the edge it was summoned from.
 	//
-	// So the pointer is followed instead, and only while the rail is out: a move that lands off the
-	// rail starts the close, and one that lands back on it cancels it. The edge counts as on it, or
-	// the rail would begin closing in the gap between the window's edge and its own first pixel.
-	// The listener is bound on open and dropped on close, so nothing is watching the document the
-	// rest of the time.
-	track_pointer(on) {
-		$(document).off("mousemove.dock-track");
-		if (!on) return;
-		$(document).on("mousemove.dock-track", (e) => {
-			const on_rail =
-				$(e.target).closest(".dock").length || e.clientX <= frappe.ui.Dock.EDGE_PX;
-			on_rail ? this.hold() : this.release();
-		});
-	}
-
-	// Start the dwell, or leave a running one alone. Restarting it on every move would mean a
-	// pointer held at the edge kept resetting its own countdown and the rail never came out.
-	arm() {
-		if (this.dwell_timer) return;
-		this.dwell_timer = setTimeout(() => {
-			this.dwell_timer = null;
-			this.open();
-		}, frappe.ui.Dock.DWELL_MS);
-	}
-
-	disarm() {
-		clearTimeout(this.dwell_timer);
-		this.dwell_timer = null;
-	}
-
-	hold() {
-		clearTimeout(this.close_timer);
-	}
-
-	release() {
-		clearTimeout(this.close_timer);
-		this.close_timer = setTimeout(() => this.close(), frappe.ui.Dock.CLOSE_MS);
-	}
+	// The obvious alternative -- the dock's own `mouseleave` -- does not work here and is worth
+	// recording. The dock slides out from under a pointer that is already resting at the edge and
+	// has not moved, and a browser fires no `mouseenter` for an element that arrives beneath a
+	// stationary pointer. No enter means no leave, so a dock closed that way stayed out until
+	// something else dismissed it.
 
 	open() {
-		if (!this.enabled) return;
-		this.disarm();
-		this.hold();
-		if (this.is_open) return;
+		if (!this.enabled || this.is_open) return;
 		this.is_open = true;
-		this.track_pointer(true);
 		this.apply_open_state();
 	}
 
 	close() {
-		this.disarm();
-		clearTimeout(this.close_timer);
 		if (!this.is_open) return;
 		this.is_open = false;
-		this.track_pointer(false);
+		// A bubble is appended to <body>, so nothing about the tray leaving takes it with it.
+		this.tooltips.forEach((tip) => tip.hide());
 		this.apply_open_state();
 	}
 
 	// One class on <body>, the same way the sidebar states its own, so the transform and everything
 	// keyed to it live in dock.scss rather than in inline styles here.
 	//
-	// `inert` rather than `aria-hidden` alone: a rail translated off screen is still in the
+	// `inert` rather than `aria-hidden` alone: a dock translated off screen is still in the
 	// document and still focusable, so a Tab from the sidebar would otherwise land in rows nobody
 	// can see. Both are set, since `inert` is what takes it out of the tab order and
 	// `aria-hidden` is what older assistive technology reads.
@@ -201,11 +199,11 @@ frappe.ui.Dock = class Dock {
 	// -------------------------------------------------------------------------------------------
 
 	// The menu that names this app's own affairs -- Edit Sidebar, the navbar settings, help, and
-	// the way out to the apps screen -- hangs on the rail's header. SidebarHeader owns which header
+	// the way out to the apps screen -- hangs on the dock's header. SidebarHeader owns which header
 	// carries a second copy of the same menu on its own header, and only ever one of the two is in
-	// front of you, since the rail covers the panel rather than standing beside it.
+	// front of you, since the dock covers the panel rather than standing beside it.
 	//
-	// Done from refresh() rather than make() because the rail can be built before the header it
+	// Done from refresh() rather than make() because the dock can be built before the header it
 	// borrows the menu from. The node is built once, so this is too: the dropdown binds to the
 	// element and reads its rows fresh on every open.
 	setup_header_menu() {
@@ -220,14 +218,14 @@ frappe.ui.Dock = class Dock {
 		// It is drawn only if it has entries and the page on screen allows it. The desktop or apps
 		// screen, and any page that has not rendered yet, do not.
 		this.enabled = this.sidebar.dock_enabled() && this.sidebar.page_allows_dock();
-		// `dock-active` says the app on screen has a rail. Nothing about the sidebar depends on it
-		// any more -- the rail arrives on top rather than beside -- but the class is what the edge
+		// `dock-active` says the app on screen has a dock. Nothing about the sidebar depends on it
+		// any more -- the dock arrives on top rather than beside -- but the class is what the edge
 		// test reads to know whether there is anything to summon, and what other code asks.
 		$("body").toggleClass("dock-active", this.enabled);
 
 		if (!this.enabled) {
 			this.$dock.addClass("hidden");
-			// A rail that has gone must not leave the page holding it open.
+			// A dock that has gone must not leave the page holding it open.
 			this.close();
 			return;
 		}
@@ -236,9 +234,9 @@ frappe.ui.Dock = class Dock {
 		// One navigation calls this up to three times: once from the router and twice from
 		// Sidebar.refresh(), its own call plus the one inside apply_page_visibility. Each call
 		// rebuilds every button, so rendering unconditionally did that two or three times for a
-		// rail that had not changed.
+		// dock that had not changed.
 		//
-		// Everything the rail draws goes into this signature, labels and icons as well as the
+		// Everything the dock draws goes into this signature, labels and icons as well as the
 		// entries, so renaming a module's sidebar still redraws its row. If the signature matches,
 		// there is nothing to redraw.
 		const entries = this.sidebar.collect_dock_entries(this.app);
@@ -259,12 +257,12 @@ frappe.ui.Dock = class Dock {
 		this.render_entries(entries);
 	}
 
-	// The rail's top slot: what you are inside, and the way out. It shows the app's icon when the
+	// The dock's top slot: what you are inside, and the way out. It shows the app's icon when the
 	// module on screen belongs to an app, and the module's own icon when it does not. Both link to
 	// the desktop, so a module you entered always has a way out.
 	//
-	// There is no fallback to the first installed app's logo, so no rail shows unrelated branding.
-	// Every rail now carries an icon of its own, resolved from data it already holds.
+	// There is no fallback to the first installed app's logo, so no dock shows unrelated branding.
+	// Every dock now carries an icon of its own, resolved from data it already holds.
 	render_logo() {
 		const { icon, title } = this.app ? this.app_logo() : this.module_logo();
 
@@ -273,6 +271,19 @@ frappe.ui.Dock = class Dock {
 		this.$header_logo.html(icon);
 		this.$header_title.text(title);
 		this.$header.attr("aria-label", title);
+		// Built once with the header, then renamed in place: the tooltip binds to the node, and the
+		// node outlives every module this dock goes on to show.
+		if (this.header_tooltip) {
+			this.header_tooltip.set_text(title);
+		} else {
+			this.header_tooltip = new frappe.ui.Tooltip(this.$header[0], {
+				text: title,
+				side: "right",
+				delay: 0,
+				offset: 10,
+				class: "es-tooltip--plain",
+			});
+		}
 	}
 
 	// A module belonging to an app shows that app's logo. The dock-less sidebar's header draws
@@ -282,7 +293,7 @@ frappe.ui.Dock = class Dock {
 	}
 
 	// A module belonging to no app shows its own icon. No new boot payload is needed, because the
-	// module sidebar the rail already reads carries both the header icon and the label.
+	// module sidebar the dock already reads carries both the header icon and the label.
 	module_logo() {
 		let sidebar = frappe.boot.module_sidebars[this.sidebar.current_module] || {};
 		let label = sidebar.label || this.sidebar.current_module || __("Apps");
@@ -290,7 +301,7 @@ frappe.ui.Dock = class Dock {
 	}
 
 	// A dock entry's icon: the authored one, otherwise a letter icon from its label. The top slot
-	// and the items below it share this, so a module looks the same wherever the rail shows it and
+	// and the items below it share this, so a module looks the same wherever the dock shows it and
 	// a pinned workspace gets its own icon on the same terms.
 	entry_icon(icon, label) {
 		return icon
@@ -298,10 +309,41 @@ frappe.ui.Dock = class Dock {
 			: frappe.utils.desktop_icon(label, "gray", "sm");
 	}
 
+	// Name a tile with the desk's own tooltip, which is what every other icon-only control here
+	// uses. Two departures from its defaults, both because of what this tray is:
+	//
+	//   no arrow   `es-tooltip--plain`. An arrow points a bubble at the one control it belongs to,
+	//              which earns its keep in a toolbar of mixed shapes. Here every tile is the same
+	//              40px square in one column and every bubble lands in the same place beside it, so
+	//              the arrow names nothing the position had not already said.
+	//   no delay   the default 500ms is for a label you already half know and are confirming. These
+	//              glyphs are the opposite: a stranger cannot guess them, so waiting half a second
+	//              per tile to find out is the cost the tooltip exists to remove.
+	//
+	// Kept so they can be destroyed: the tiles are replaced whenever the module changes, and a
+	// bubble showing at that moment would outlive the tile it names.
+	name_tile($el, label) {
+		this.tooltips.push(
+			new frappe.ui.Tooltip($el[0], {
+				text: label,
+				side: "right",
+				delay: 0,
+				// The arrow filled the component's default 4px, and there is no arrow here, so the
+				// bubble needs a gap of its own. This is the gap it keeps: nothing on the tile
+				// moves on hover, so the bubble is not placed against a tile that is about to
+				// travel toward it.
+				offset: 10,
+				class: "es-tooltip--plain",
+			})
+		);
+	}
+
 	// Inside a module no app claims, this renders nothing: collect_dock_entries returns no
-	// entries, and an empty items region is better than a rail of one, since an item permanently
+	// entries, and an empty items region is better than a dock of one, since an item permanently
 	// active with no alternatives is a switcher that cannot switch.
 	render_entries(entries = this.sidebar.collect_dock_entries(this.app)) {
+		this.tooltips.forEach((tip) => tip.destroy());
+		this.tooltips = [];
 		this.$items.empty();
 
 		entries.forEach((entry) => {
@@ -310,7 +352,7 @@ frappe.ui.Dock = class Dock {
 		});
 	}
 
-	// One rail button, for either kind of entry. A pinned workspace needs no markup of its own,
+	// One dock button, for either kind of entry. A pinned workspace needs no markup of its own,
 	// because `dock_entry` resolved its label and icon from the boot payload the same way a
 	// module's come from its sidebar, so from here on the two are the same.
 	make_dock_item(entry) {
@@ -328,8 +370,10 @@ frappe.ui.Dock = class Dock {
 			<span class="dock-item-label">${frappe.utils.escape_html(label)}</span>
 		</button>`);
 
+		this.name_tile($item, label);
+
 		$item.on("click", () => {
-			// Picking a module is leaving the rail: the sidebar behind it is about to be rebuilt
+			// Picking a module is leaving the dock: the sidebar behind it is about to be rebuilt
 			// for what was chosen, and that is the thing to look at.
 			this.close();
 			this.sidebar.open_dock_entry(entry);
