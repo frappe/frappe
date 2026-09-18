@@ -1,16 +1,36 @@
 <template>
 	<div class="pfb-stepper" :class="{ 'pfb-stepper--sm': sm }">
-		<button type="button" @click="$emit('decrement')">−</button>
-		<input
-			class="pfb-stepper-input"
-			type="number"
-			:min="min"
-			:value="value"
-			:placeholder="placeholder"
-			@change="(e) => $emit('input', e.target.value)"
-		/>
-		<span v-if="unit" class="pfb-stepper-unit">{{ unit }}</span>
-		<button type="button" @click="$emit('increment')">+</button>
+		<button
+			type="button"
+			class="es-button"
+			data-variant="subtle"
+			data-size="xs"
+			data-icon-button="true"
+			@click="$emit('decrement')"
+			v-html="frappe.utils.icon('minus', 'xs')"
+		></button>
+		<span class="pfb-stepper-value">
+			<input
+				class="pfb-stepper-input"
+				type="number"
+				:min="min"
+				:value="value"
+				:placeholder="placeholder"
+				@change="(e) => $emit('input', e.target.value)"
+			/>
+			<span v-if="unit && value !== '' && value != null" class="pfb-stepper-unit">{{
+				unit
+			}}</span>
+		</span>
+		<button
+			type="button"
+			class="es-button"
+			data-variant="subtle"
+			data-size="xs"
+			data-icon-button="true"
+			@click="$emit('increment')"
+			v-html="frappe.utils.icon('plus', 'xs')"
+		></button>
 	</div>
 </template>
 
@@ -29,10 +49,7 @@ defineEmits(["decrement", "increment", "input"]);
 .pfb-stepper {
 	display: inline-flex;
 	align-items: center;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	overflow: hidden;
-	background: var(--subtle-accent);
+	gap: 4px;
 	width: 100%;
 }
 
@@ -40,45 +57,33 @@ defineEmits(["decrement", "increment", "input"]);
 	width: auto;
 }
 
-.pfb-stepper--sm .pfb-stepper-input {
-	width: 30px;
-	flex: none;
-}
-
-.pfb-stepper button {
-	padding: 4px 8px;
-	border: none;
-	background: transparent;
-	cursor: pointer;
-	font-size: 14px;
-	color: var(--text-muted);
-	line-height: 1;
-	flex-shrink: 0;
-}
-
-.pfb-stepper button:hover {
-	background: var(--gray-100);
+.pfb-stepper-value {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	align-items: baseline;
+	justify-content: center;
+	gap: 3px;
+	font-size: var(--text-sm);
 	color: var(--text-color);
 }
 
 .pfb-stepper-input {
-	flex: 1;
+	width: 4ch;
 	min-width: 0;
-	width: 100%;
-	text-align: center;
+	text-align: right;
 	font-size: var(--text-sm);
-	font-weight: 500;
+	font-variant-numeric: tabular-nums;
 	border: none;
-	border-left: 1px solid var(--border-color);
-	border-right: 1px solid var(--border-color);
 	background: transparent;
-	color: var(--text-color);
-	padding: 4px 2px;
+	color: inherit;
+	padding: 0;
 	outline: none;
+	-moz-appearance: textfield;
 }
 
-.pfb-stepper-input:focus {
-	background: var(--fg-color);
+.pfb-stepper-input::placeholder {
+	text-align: center;
 }
 
 .pfb-stepper-input::-webkit-inner-spin-button,
@@ -87,8 +92,6 @@ defineEmits(["decrement", "increment", "input"]);
 }
 
 .pfb-stepper-unit {
-	font-size: var(--text-tiny);
 	color: var(--text-muted);
-	padding: 0 6px 0 2px;
 }
 </style>
