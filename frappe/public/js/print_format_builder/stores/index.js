@@ -447,6 +447,7 @@ export function getStore(print_format_name) {
 		"label_color",
 		"value_color",
 		"css",
+		"pdf_generator",
 	];
 	function show_version_fields(fields) {
 		const parsed =
