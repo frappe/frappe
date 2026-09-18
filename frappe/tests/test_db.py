@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import datetime
+import sqlite3
 from math import ceil
 from random import choice
 from unittest.mock import patch
@@ -709,7 +710,7 @@ class TestDB(IntegrationTestCase):
 		# data-type should be list
 		self.assertIsInstance(note_docs, tuple)
 
-	@run_only_if(db_type_is.POSTGRES)
+	@unimplemented_for(db_type_is.MARIADB)
 	def test_column_metadata_queries_bind_table_name(self):
 		self.assertFalse(frappe.db.get_table_columns_description("tabUser' OR TRUE --"))
 		self.assertFalse(frappe.db.describe("User' OR TRUE --"))
@@ -1285,6 +1286,475 @@ class TestDDLCommandsMaria(IntegrationTestCase):
 		self.assertEqual(len(indexs_in_table), 2)
 
 
+@run_only_if(db_type_is.SQLITE)
+class TestDDLCommandsSQLite(IntegrationTestCase):
+	def setUp(self) -> None:
+		suffix = frappe.generate_hash(length=8)
+		self.doctype = f"SQLiteSchema{suffix}"
+		self.table_name = f"tab{self.doctype}"
+		self.audit_table = f"__sqlite_schema_audit_{suffix}"
+		self.other_tables = []
+
+	def tearDown(self) -> None:
+		for table_name in [self.table_name, self.audit_table, *self.other_tables]:
+			frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `{table_name}`")
+
+	def create_doctype_table(self, field_definition: str) -> None:
+		frappe.db.sql_ddl(
+			f"""CREATE TABLE `{self.table_name}` (
+				`name` varchar(140) PRIMARY KEY,
+				`creation` timestamp,
+				`modified` timestamp,
+				`modified_by` varchar(140),
+				`owner` varchar(140),
+				`docstatus` INTEGER NOT NULL DEFAULT 0,
+				`idx` INTEGER NOT NULL DEFAULT 0,
+				{field_definition}
+			)"""
+		)
+
+	def test_schema_cache_is_invalidated_after_rollback(self) -> None:
+		from frappe.database import get_db
+
+		database = get_db(cur_db_name=frappe.conf.db_name)
+		self.addCleanup(database.close)
+		database.connect()
+
+		database.sql(f"CREATE TABLE `{self.table_name}` (`name` TEXT)")
+		self.assertTrue(database.table_exists(self.doctype))
+
+		database.rollback()
+		self.assertFalse(database.table_exists(self.doctype))
+
+	def test_schema_cache_is_invalidated_after_commit(self) -> None:
+		from frappe.database import get_db
+
+		database = frappe.db
+		secondary_database = get_db(cur_db_name=frappe.conf.db_name)
+		self.addCleanup(secondary_database.close)
+		secondary_database.connect()
+		cache_key = f"table_columns::{self.table_name}"
+		frappe.db.sql_ddl(f"CREATE TABLE `{self.table_name}` (`name` TEXT)")
+
+		database.sql(f"ALTER TABLE `{self.table_name}` ADD COLUMN `value` TEXT")
+		self.assertEqual(database.get_db_table_columns(self.table_name), ["name", "value"])
+		self.assertIsNone(frappe.client_cache.get_value(cache_key))
+
+		self.assertEqual(secondary_database.get_db_table_columns(self.table_name), ["name"])
+		secondary_database.rollback()
+
+		database.commit()
+		self.assertIsNone(frappe.client_cache.get_value(cache_key))
+		self.assertEqual(secondary_database.get_db_table_columns(self.table_name), ["name", "value"])
+		secondary_database.rollback()
+
+	def get_test_meta(self, field: frappe._dict):
+		class TestMeta(frappe._dict):
+			def get(self, key, default=None):
+				return super().get(key) if key in self else default
+
+			def get_fieldnames_with_value(self, **kwargs):
+				return self.fields
+
+		return TestMeta(
+			istable=1,
+			issingle=0,
+			autoname="hash",
+			sort_field="creation",
+			track_seen=0,
+			is_virtual=0,
+			fields=[field],
+		)
+
+	def test_only_known_equivalent_types_skip_a_rebuild(self) -> None:
+		from frappe.database.sqlite.schema import SQLiteTable, types_are_compatible
+
+		self.assertTrue(types_are_compatible("TEXT", "varchar(140)"))
+		self.assertTrue(types_are_compatible("DATETIME", "timestamp"))
+		self.assertFalse(types_are_compatible("varchar(140)", "varchar(255)"))
+		self.assertFalse(types_are_compatible("DATE", "timestamp"))
+		self.assertFalse(types_are_compatible("TEXT", "uuid"))
+		self.assertFalse(types_are_compatible("INT", "bigint"))
+
+		self.create_doctype_table("`payload` TEXT")
+		table = SQLiteTable(
+			self.doctype,
+			self.get_test_meta(frappe._dict(fieldname="payload", fieldtype="Data")),
+		)
+		table.validate()
+		with patch("frappe.database.sqlite.database.rebuild_table") as rebuild_table:
+			table.alter()
+		rebuild_table.assert_not_called()
+		self.assertEqual(frappe.db.get_column_type(self.doctype, "payload"), "text")
+
+	def test_numeric_type_change_validates_syntax_and_range(self) -> None:
+		from frappe.database.sqlite.schema import SQLiteTable
+
+		self.create_doctype_table("`amount` TEXT")
+		table = SQLiteTable.__new__(SQLiteTable)
+		table.doctype = self.doctype
+		table.table_name = self.table_name
+
+		invalid_values = (
+			("Int", None, "not-a-number"),
+			("Int", None, str(2**31)),
+			("Long Int", None, str(2**63)),
+			("Float", None, "1e999"),
+			("Float", None, "1e-999"),
+		)
+		for fieldtype, length, value in invalid_values:
+			with self.subTest(fieldtype=fieldtype, value=value):
+				frappe.db.sql(f"DELETE FROM `{self.table_name}`")
+				frappe.db.sql(
+					f"INSERT INTO `{self.table_name}` (`name`, `amount`) VALUES ('row', %s)",
+					(value,),
+				)
+				column = frappe._dict(fieldname="amount", fieldtype=fieldtype, length=length)
+				with self.assertRaisesRegex(frappe.ValidationError, "cannot be converted"):
+					table.validate_type_change(column)
+
+		valid_values = (
+			("Int", None, str(-(2**31))),
+			("Int", None, str(2**31 - 1)),
+			("Long Int", None, str(-(2**63))),
+			("Long Int", None, str(2**63 - 1)),
+			("Float", None, "1.25e100"),
+		)
+		for fieldtype, length, value in valid_values:
+			with self.subTest(fieldtype=fieldtype, value=value):
+				frappe.db.sql(f"DELETE FROM `{self.table_name}`")
+				frappe.db.sql(
+					f"INSERT INTO `{self.table_name}` (`name`, `amount`) VALUES ('row', %s)",
+					(value,),
+				)
+				column = frappe._dict(fieldname="amount", fieldtype=fieldtype, length=length)
+				table.validate_type_change(column)
+
+	def test_numeric_type_change_replaces_blanks_with_the_default(self) -> None:
+		from frappe.database.sqlite.schema import SQLiteTable
+
+		self.create_doctype_table("`amount` TEXT")
+		frappe.db.sql(
+			f"INSERT INTO `{self.table_name}` (`name`, `amount`) VALUES (%s, %s), (%s, %s)",
+			("blank", "", "number", "12.5"),
+		)
+		table = SQLiteTable(
+			self.doctype,
+			self.get_test_meta(frappe._dict(fieldname="amount", fieldtype="Currency", default="7.5")),
+		)
+		table.validate()
+		table.alter()
+
+		self.assertEqual(frappe.db.get_column_type(self.doctype, "amount"), "real")
+		self.assertEqual(
+			frappe.db.sql(f"SELECT `name`, `amount` FROM `{self.table_name}` ORDER BY `name`"),
+			[("blank", 7.5), ("number", 12.5)],
+		)
+
+	def test_rename_column_uses_the_column_name_from_pragma(self) -> None:
+		frappe.db.sql_ddl(f"CREATE TABLE `{self.table_name}` (`name` TEXT PRIMARY KEY, `old_name` TEXT)")
+		frappe.db.sql(
+			f"INSERT INTO `{self.table_name}` (`name`, `old_name`) VALUES (%s, %s)",
+			("row-1", "value"),
+		)
+
+		frappe.db.rename_column(self.doctype, "old_name", "new_name")
+
+		columns = frappe.db.sql(f"PRAGMA table_info(`{self.table_name}`)", as_dict=True)
+		self.assertEqual([column.name for column in columns], ["name", "new_name"])
+		self.assertEqual(frappe.db.sql(f"SELECT `new_name` FROM `{self.table_name}`")[0][0], "value")
+
+	def test_change_type_preserves_schema_and_an_unrelated_new_table(self) -> None:
+		legacy_temp_table = f"{self.table_name}_new"
+		self.other_tables.append(legacy_temp_table)
+		frappe.db.sql_ddl(f"CREATE TABLE `{self.audit_table}` (`row_id` INTEGER)")
+		frappe.db.sql_ddl(f"CREATE TABLE `{legacy_temp_table}` (`value` TEXT)")
+		frappe.db.sql(f"INSERT INTO `{legacy_temp_table}` VALUES ('keep me')")
+		frappe.db.sql_ddl(
+			f"""CREATE TABLE `{self.table_name}` (
+				`id` INTEGER PRIMARY KEY AUTOINCREMENT,
+				`code` TEXT NOT NULL DEFAULT 'fallback' UNIQUE,
+				`payload` TEXT
+			)"""
+		)
+		frappe.db.sql_ddl(f"CREATE INDEX `{self.table_name}_payload_idx` ON `{self.table_name}` (`payload`)")
+		frappe.db.sql_ddl(
+			f"CREATE INDEX `{self.table_name}_partial_idx` ON `{self.table_name}` (`code`) "
+			"WHERE `payload` IS NOT NULL"
+		)
+		frappe.db.sql_ddl(
+			f"""CREATE TRIGGER `{self.table_name}_audit`
+			AFTER INSERT ON `{self.table_name}`
+			BEGIN
+				INSERT INTO `{self.audit_table}` (`row_id`) VALUES (NEW.`id`);
+			END"""
+		)
+		frappe.db.sql(
+			f"INSERT INTO `{self.table_name}` (`code`, `payload`) VALUES (%s, %s)",
+			("first", "one"),
+		)
+
+		frappe.db.change_column_type(self.doctype, "payload", "varchar(140)", nullable=True)
+
+		columns = {
+			column.name: column
+			for column in frappe.db.sql(f"PRAGMA table_info(`{self.table_name}`)", as_dict=True)
+		}
+		self.assertEqual(columns["id"].pk, 1)
+		self.assertEqual(columns["code"].notnull, 1)
+		self.assertEqual(columns["code"].dflt_value, "'fallback'")
+		self.assertEqual(columns["payload"].type.lower(), "varchar(140)")
+
+		from frappe.database.sqlite.database import get_table_indexes
+
+		indexes = get_table_indexes(self.table_name)
+		self.assertTrue(any(index["unique"] and index["columns"] == ("code",) for index in indexes))
+		self.assertTrue(any(index["columns"] == ("payload",) for index in indexes))
+		self.assertTrue(any(index["partial"] for index in indexes))
+
+		frappe.db.sql(
+			f"INSERT INTO `{self.table_name}` (`code`, `payload`) VALUES (%s, %s)",
+			("second", "two"),
+		)
+		self.assertEqual(frappe.db.sql(f"SELECT `id` FROM `{self.table_name}` ORDER BY `id`"), [(1,), (2,)])
+		self.assertEqual(
+			frappe.db.sql(f"SELECT `row_id` FROM `{self.audit_table}` ORDER BY `row_id`"),
+			[(1,), (2,)],
+		)
+		self.assertEqual(frappe.db.sql(f"SELECT `value` FROM `{legacy_temp_table}`"), [("keep me",)])
+
+	def test_schema_sync_preserves_unique_expression_indexes(self) -> None:
+		from frappe.database.sqlite.database import get_table_indexes
+		from frappe.database.sqlite.schema import SQLiteTable
+
+		index_name = f"{self.table_name}_code_expression_unique"
+		self.create_doctype_table("`code` varchar(140), `other` varchar(140)")
+		frappe.db.sql_ddl(
+			f"CREATE UNIQUE INDEX `{index_name}` ON `{self.table_name}` (`code`, LOWER(`other`))"
+		)
+
+		table = SQLiteTable(
+			self.doctype,
+			self.get_test_meta(frappe._dict(fieldname="code", fieldtype="Data", unique=0)),
+		)
+		table.validate()
+		table.alter()
+
+		self.assertTrue(frappe.db.has_index(self.table_name, index_name))
+		expression_index = next(
+			index for index in get_table_indexes(self.table_name) if index["name"] == index_name
+		)
+		self.assertEqual(expression_index["columns"], ("code", None))
+		frappe.db.sql(
+			f"INSERT INTO `{self.table_name}` (`name`, `code`, `other`) VALUES (%s, %s, %s)",
+			("first", "same", "VALUE"),
+		)
+		with self.assertRaises(sqlite3.IntegrityError):
+			frappe.db.sql(
+				f"INSERT INTO `{self.table_name}` (`name`, `code`, `other`) VALUES (%s, %s, %s)",
+				("second", "same", "value"),
+			)
+
+	def test_rebuild_failure_rolls_back_to_the_original_table(self) -> None:
+		frappe.db.sql_ddl(f"CREATE TABLE `{self.table_name}` (`name` TEXT PRIMARY KEY, `value` TEXT)")
+		frappe.db.sql_ddl(f"CREATE INDEX `{self.table_name}_value_idx` ON `{self.table_name}` (`value`)")
+		frappe.db.sql(f"INSERT INTO `{self.table_name}` VALUES (%s, %s)", ("row-1", "value"))
+
+		with (
+			patch(
+				"frappe.database.sqlite.database._restore_explicit_indexes",
+				side_effect=RuntimeError("injected rebuild failure"),
+			),
+			self.assertRaisesRegex(RuntimeError, "injected rebuild failure"),
+		):
+			frappe.db.change_column_type(self.doctype, "value", "varchar(140)", nullable=True)
+
+		columns = {
+			column.name: column
+			for column in frappe.db.sql(f"PRAGMA table_info(`{self.table_name}`)", as_dict=True)
+		}
+		self.assertEqual(columns["value"].type.lower(), "text")
+		self.assertEqual(frappe.db.sql(f"SELECT * FROM `{self.table_name}`"), [("row-1", "value")])
+		self.assertTrue(frappe.db.has_index(self.table_name, f"{self.table_name}_value_idx"))
+
+	def test_schema_changes_remain_in_the_caller_transaction(self) -> None:
+		from frappe.database.sqlite.schema import SQLiteTable
+
+		frappe.db.sql_ddl(f"CREATE TABLE `{self.audit_table}` (`value` TEXT)")
+		frappe.db.sql(f"INSERT INTO `{self.audit_table}` VALUES ('pending')")
+		SQLiteTable.run_schema_queries([f"CREATE TABLE `{self.table_name}` (`name` TEXT)"])
+
+		frappe.db.rollback()
+		self.assertFalse(frappe.db.table_exists(self.doctype, cached=False))
+		self.assertEqual(frappe.db.sql(f"SELECT * FROM `{self.audit_table}`"), [])
+
+	def test_schema_batch_failure_does_not_commit_pending_writes(self) -> None:
+		from frappe.database.sqlite.schema import SQLiteTable
+
+		frappe.db.sql_ddl(f"CREATE TABLE `{self.audit_table}` (`value` TEXT)")
+		frappe.db.sql(f"INSERT INTO `{self.audit_table}` VALUES ('pending')")
+
+		with self.assertRaises(frappe.db.OperationalError):
+			SQLiteTable.run_schema_queries(
+				[
+					f"CREATE TABLE `{self.table_name}` (`name` TEXT)",
+					f"CREATE INDEX `invalid_index` ON `{self.table_name}` (`missing`)",
+				]
+			)
+
+		with self.secondary_connection():
+			self.assertEqual(frappe.db.sql(f"SELECT * FROM `{self.audit_table}`"), [])
+		self.assertFalse(frappe.db.table_exists(self.doctype, cached=False))
+
+	def test_rebuild_remains_in_the_caller_transaction(self) -> None:
+		frappe.db.sql_ddl(f"CREATE TABLE `{self.audit_table}` (`value` TEXT)")
+		frappe.db.sql_ddl(f"CREATE TABLE `{self.table_name}` (`name` TEXT PRIMARY KEY, `value` TEXT)")
+		frappe.db.sql(f"INSERT INTO `{self.audit_table}` VALUES ('pending')")
+
+		frappe.db.change_column_type(self.doctype, "value", "varchar(140)", nullable=True)
+		self.assertEqual(frappe.db.get_column_type(self.doctype, "value"), "varchar(140)")
+
+		frappe.db.rollback()
+		self.assertEqual(frappe.db.get_column_type(self.doctype, "value"), "text")
+		self.assertEqual(frappe.db.sql(f"SELECT * FROM `{self.audit_table}`"), [])
+
+	def test_rebuild_rejects_schema_features_it_cannot_preserve(self) -> None:
+		definitions: dict[str, str | None] = {
+			"check": "`name` TEXT PRIMARY KEY, `value` TEXT CHECK (`value` <> '')",
+			"collation": "`name` TEXT PRIMARY KEY, `value` TEXT COLLATE NOCASE",
+			"foreign key": "`name` TEXT PRIMARY KEY, `value` TEXT, `parent` TEXT REFERENCES `parent` (`name`)",
+			"generated": "`name` TEXT PRIMARY KEY, `value` TEXT, `normalized` TEXT AS (LOWER(`value`))",
+			"strict": None,
+			"without rowid": None,
+		}
+
+		for feature, definition in definitions.items():
+			with self.subTest(feature=feature):
+				frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `{self.table_name}`")
+				if feature == "strict":
+					frappe.db.sql_ddl(
+						f"CREATE TABLE `{self.table_name}` (`name` TEXT PRIMARY KEY, `value` TEXT) STRICT"
+					)
+				elif feature == "without rowid":
+					frappe.db.sql_ddl(
+						f"CREATE TABLE `{self.table_name}` (`name` TEXT PRIMARY KEY, `value` TEXT) WITHOUT ROWID"
+					)
+				else:
+					assert definition is not None
+					frappe.db.sql_ddl(f"CREATE TABLE `{self.table_name}` ({definition})")
+
+				with self.assertRaisesRegex(RuntimeError, "unsupported schema features"):
+					frappe.db.change_column_type(self.doctype, "value", "varchar(140)", nullable=True)
+
+	def test_schema_alter_uses_the_preserving_rebuild(self) -> None:
+		from frappe.database.sqlite.schema import SQLiteTable
+
+		class TestMeta(frappe._dict):
+			def get(self, key, default=None):
+				return super().get(key) if key in self else default
+
+			def get_fieldnames_with_value(self, **kwargs):
+				return self.fields
+
+		frappe.db.sql_ddl(f"CREATE TABLE `{self.audit_table}` (`name` TEXT)")
+		frappe.db.sql_ddl(
+			f"""CREATE TABLE `{self.table_name}` (
+				`name` varchar(140) PRIMARY KEY,
+				`creation` timestamp,
+				`modified` timestamp,
+				`modified_by` varchar(140),
+				`owner` varchar(140),
+				`docstatus` INTEGER NOT NULL DEFAULT 0,
+				`idx` INTEGER NOT NULL DEFAULT 0,
+				`payload` TEXT NOT NULL DEFAULT 'before' UNIQUE
+			)"""
+		)
+		frappe.db.sql_ddl(f"CREATE INDEX `{self.table_name}_payload_idx` ON `{self.table_name}` (`payload`)")
+		frappe.db.sql_ddl(
+			f"""CREATE TRIGGER `{self.table_name}_audit`
+			AFTER INSERT ON `{self.table_name}`
+			BEGIN
+				INSERT INTO `{self.audit_table}` (`name`) VALUES (NEW.`name`);
+			END"""
+		)
+		frappe.db.sql(f"INSERT INTO `{self.table_name}` (`name`) VALUES ('first')")
+
+		meta = TestMeta(
+			istable=0,
+			issingle=0,
+			autoname="hash",
+			sort_field="modified",
+			track_seen=0,
+			is_virtual=0,
+			fields=[
+				frappe._dict(
+					fieldname="payload",
+					fieldtype="Data",
+					default="after",
+					search_index=1,
+					unique=1,
+				)
+			],
+		)
+		table = SQLiteTable(self.doctype, meta)
+		table.validate()
+		table.alter()
+
+		columns = {
+			column.name: column
+			for column in frappe.db.sql(f"PRAGMA table_info(`{self.table_name}`)", as_dict=True)
+		}
+		self.assertEqual(columns["payload"].type.lower(), f"varchar({frappe.db.VARCHAR_LEN})")
+		self.assertEqual(columns["payload"].dflt_value, "'after'")
+		self.assertTrue(frappe.db.get_column_index(self.table_name, "payload", unique=True))
+		self.assertTrue(frappe.db.get_column_index(self.table_name, "payload", unique=False))
+
+		frappe.db.sql(f"INSERT INTO `{self.table_name}` (`name`) VALUES ('second')")
+		self.assertEqual(
+			frappe.db.sql(f"SELECT `name` FROM `{self.audit_table}` ORDER BY `name`"),
+			[("first",), ("second",)],
+		)
+
+	def test_table_creation_uses_framework_declared_types_and_indexes(self) -> None:
+		from frappe.database.sqlite.schema import SQLiteTable
+
+		class TestMeta(frappe._dict):
+			def get(self, key, default=None):
+				return super().get(key) if key in self else default
+
+			def get_fieldnames_with_value(self, **kwargs):
+				return self.fields
+
+		indexed_field = frappe._dict(
+			fieldname="indexed_value",
+			fieldtype="Data",
+			search_index=1,
+		)
+		meta = TestMeta(
+			istable=0,
+			issingle=0,
+			autoname="UUID",
+			sort_field="modified",
+			track_seen=0,
+			is_virtual=0,
+			fields=[indexed_field],
+		)
+
+		table = SQLiteTable(self.doctype, meta)
+		table.create()
+
+		columns = {
+			column.name: column.type.lower()
+			for column in frappe.db.sql(f"PRAGMA table_info(`{self.table_name}`)", as_dict=True)
+		}
+		self.assertEqual(columns["name"], "uuid")
+		self.assertEqual(columns["creation"], "timestamp")
+		self.assertEqual(columns["modified"], "timestamp")
+		self.assertEqual(columns["owner"], f"varchar({frappe.db.VARCHAR_LEN})")
+		self.assertEqual(columns["indexed_value"], f"varchar({frappe.db.VARCHAR_LEN})")
+		self.assertTrue(frappe.db.get_column_index(self.table_name, "indexed_value", unique=False))
+
+
 class TestDBSetValue(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
@@ -1757,8 +2227,10 @@ class TestDDLCommandsPost(IntegrationTestCase):
 
 		dt = new_doctype("autoinc_dt_seq_test", autoname="autoincrement").insert(ignore_permissions=True)
 		self.addCleanup(
-			lambda: frappe.db.exists("DocType", "autoinc_dt_seq_test")
-			and frappe.delete_doc("DocType", "autoinc_dt_seq_test", force=True, ignore_permissions=True)
+			lambda: (
+				frappe.db.exists("DocType", "autoinc_dt_seq_test")
+				and frappe.delete_doc("DocType", "autoinc_dt_seq_test", force=True, ignore_permissions=True)
+			)
 		)
 
 		if frappe.db.db_type == "postgres":
