@@ -23,6 +23,7 @@
 		</div>
 		<div class="pfb-history-list">
 			<div
+				v-if="has_draft"
 				class="pfb-history-row pfb-history-row--link"
 				:class="{ 'pfb-history-row--current': !viewing_version }"
 				@click="store.exit_version()"
@@ -41,20 +42,26 @@
 			</div>
 			<div
 				class="pfb-history-row pfb-history-row--link"
-				:class="{ 'pfb-history-row--current': viewing_version?.published }"
+				:class="{
+					'pfb-history-row--current':
+						viewing_version?.published || (!has_draft && !viewing_version),
+				}"
 				@click="
-					view({
-						published: true,
-						label: __('Published version'),
-						when: when(print_format.modified),
-					})
+					has_draft
+						? view({
+								published: true,
+								label: __('Published version'),
+								when: when(print_format.modified),
+						  })
+						: store.exit_version()
 				"
 			>
 				<span class="pfb-history-dot" data-kind="published"></span>
 				<div class="pfb-history-text">
 					<div class="pfb-history-name">{{ __("Published version") }}</div>
 					<div class="pfb-history-meta">
-						{{ __("What prints now") }} · {{ when(print_format.modified) }}
+						{{ has_draft ? __("What prints now") : __("Current version") }} ·
+						{{ when(print_format.modified) }}
 					</div>
 				</div>
 				<button
