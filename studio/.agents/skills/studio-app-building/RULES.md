@@ -13,11 +13,14 @@ description: Runtime rules shared VERBATIM by both surfaces — external coding 
   page: returned from `setup()`). An inline IIFE in a prop is unreadable,
   undebuggable, and re-evaluated on every render of every Repeater row — the
   page script is where logic lives.
-- Block `events` scripts are BARE statements (no wrapper function). `$event`
-  is the event's first argument, as in Vue (e.g.
-  `taskId.value = $event.dataTransfer.getData('text')`); an event emitting
-  several arguments → define `function handleEvent(a, b) { … }` to name them
-  all. For preventDefault/stopPropagation, don't write code — put a MODIFIER
+- Block `events` scripts can be bare statements. Emitted values are available
+  in `eventArgs`; define
+  `function handleEvent(event) { taskId.value = event.dataTransfer.getData('text') }`
+  to receive the first value. The
+  runtime calls `handleEvent(...eventArgs)` after evaluating the script, so
+  use `handleEvent(a, b)` for an event with two arguments. `$event` is Vue
+  template syntax and is not available in block event scripts. For
+  preventDefault/stopPropagation, put a MODIFIER
   on the event name: `dragover.prevent`, `drop.prevent`,
   `submit.prevent.stop`, `keydown.enter`, `click.stop`.
 - HANDLER PROPS living INSIDE component props — a Dialog action's `onClick`,
