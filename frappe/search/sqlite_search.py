@@ -15,7 +15,7 @@ from typing import Any
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import update_progress_bar
+from frappe.utils import now_datetime, update_progress_bar
 from frappe.utils.file_lock import LockTimeoutError
 from frappe.utils.synchronization import filelock
 
@@ -327,6 +327,8 @@ class SQLiteSearch(ABC):
 		if not self.is_search_enabled():
 			return
 
+		started_at = now_datetime()
+
 		# Use temporary database path for atomic replacement (only for new index builds)
 		temp_db_path = None
 		original_db_path = self.db_path
@@ -485,6 +487,26 @@ class SQLiteSearch(ABC):
 			# Restore original database path
 			if temp_db_path:
 				self.db_path = original_db_path
+
+		self.queue_documents_changed_during_build(started_at)
+
+	def queue_documents_changed_during_build(self, started_at):
+		"""Queue documents saved while the build was running.
+
+		A build reads each document once, and update_doc_index skips an index it considers
+		absent, which it is for the whole of a build. A document saved after its row was read
+		therefore carries stale text in the finished index, and a search matching only its new
+		text would not return it.
+		"""
+		if not self.index_exists():
+			return
+
+		for doctype, config in self.doc_configs.items():
+			filters = dict(config.get("filters") or {})
+			filters[config.get("modified_field") or "modified"] = (">=", started_at)
+
+			for name in frappe.get_all(doctype, filters=filters, pluck="name"):
+				self.index_doc(doctype, name)
 
 	def _get_incomplete_count(self, where_clause):
 		"""Get count of incomplete records from search_index_progress table.
