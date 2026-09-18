@@ -5,7 +5,6 @@ from typing import ClassVar
 from unittest.mock import patch
 
 import frappe
-from frappe.core.doctype.search_index.search_index import sync_search_indexes
 from frappe.search.sqlite_search import (
 	SQLiteSearch,
 	SQLiteSearchIndexMissingError,
@@ -129,54 +128,6 @@ class TestSearchIndexFields(IntegrationTestCase):
 			return row[column] if row else None
 		finally:
 			connection.close()
-
-
-class TestSearchIndexRecord(IntegrationTestCase):
-	"""The Search Index record that decides whether an index runs."""
-
-	def test_a_record_is_created_for_every_registered_class(self):
-		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[ChildFieldSearch]):
-			sync_search_indexes()
-
-		name = ChildFieldSearch().search_class_path
-		self.assertTrue(frappe.db.exists("Search Index", name))
-
-	def test_the_record_decides_whether_the_index_runs(self):
-		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[ChildFieldSearch]):
-			sync_search_indexes()
-
-		name = ChildFieldSearch().search_class_path
-		self.addCleanup(frappe.clear_document_cache, "Search Index", name)
-
-		self.set_enabled(name, 0)
-		self.assertFalse(ChildFieldSearch().is_search_enabled())
-
-		self.set_enabled(name, 1)
-		self.assertTrue(ChildFieldSearch().is_search_enabled())
-
-	def test_an_index_is_not_switched_off_by_the_upgrade_that_adds_the_record(self):
-		"""Before a record exists the class default decides, so existing indexes keep running."""
-		frappe.db.delete("Search Index", {"search_class": ChildFieldSearch().search_class_path})
-		self.assertTrue(ChildFieldSearch().is_search_enabled())
-
-	def test_a_build_is_recorded_on_the_document(self):
-		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[ChildFieldSearch]):
-			sync_search_indexes()
-
-		search = ChildFieldSearch()
-		search.drop_index()
-		self.addCleanup(search.drop_index)
-		search.build_index()
-
-		record = frappe.get_doc("Search Index", search.search_class_path)
-		self.assertEqual(record.status, "Ready")
-		self.assertGreater(record.indexed_documents, 0)
-		self.assertTrue(record.index_size)
-		self.assertTrue(record.last_built_on)
-
-	def set_enabled(self, name, value):
-		frappe.db.set_value("Search Index", name, "enabled", value)
-		frappe.clear_document_cache("Search Index", name)
 
 
 class TestSQLiteSearchAPI(IntegrationTestCase):

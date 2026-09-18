@@ -116,12 +116,6 @@ class SQLiteSearch(ABC):
 	- Permission-aware search results via query-level filtering
 	"""
 
-	ENABLED_BY_DEFAULT = True
-	"""Whether a newly created Search Index record starts switched on.
-
-	Set False where building costs enough that nobody should meet it by surprise.
-	"""
-
 	BUILD_VOCABULARY = True
 	"""Whether to build the vocabulary that backs spelling correction in search().
 
@@ -569,7 +563,6 @@ class SQLiteSearch(ABC):
 			if temp_db_path:
 				self.db_path = original_db_path
 
-		self._record_build()
 		self.queue_documents_changed_during_build(started_at)
 
 	def queue_documents_changed_during_build(self, started_at):
@@ -609,19 +602,6 @@ class SQLiteSearch(ABC):
 
 		for name in deleted:
 			self.remove_doc(doctype, name)
-
-	def _record_build(self):
-		"""Tell this index's Search Index record what the finished file holds."""
-		if not frappe.db.exists("Search Index", self.search_class_path):
-			return
-
-		try:
-			document_count = self.sql("SELECT COUNT(*) FROM search_fts", read_only=True)[0][0]
-			size_in_bytes = os.path.getsize(self._get_db_path())
-		except Exception:
-			return
-
-		frappe.get_doc("Search Index", self.search_class_path).record_build(document_count, size_in_bytes)
 
 	def _get_incomplete_count(self, where_clause):
 		"""Get count of incomplete records from search_index_progress table.
@@ -787,21 +767,9 @@ class SQLiteSearch(ABC):
 				frappe.log_error(f"Failed to remove search index file {self.db_path}: {e}")
 				raise
 
-	@property
-	def search_class_path(self) -> str:
-		return f"{type(self).__module__}.{type(self).__name__}"
-
 	def is_search_enabled(self):
-		"""Whether this index is switched on, from its Search Index record.
-
-		Falls back to ENABLED_BY_DEFAULT before that record exists, so an index is not switched
-		off by the upgrade that introduces the record. Override to decide it some other way.
-		"""
-		if not frappe.db.table_exists("Search Index", cached=True):
-			return self.ENABLED_BY_DEFAULT
-
-		enabled = frappe.get_cached_value("Search Index", self.search_class_path, "enabled")
-		return self.ENABLED_BY_DEFAULT if enabled is None else bool(enabled)
+		"""Override this to enable/disable search"""
+		return True
 
 	def raise_if_not_indexed(self):
 		"""Raise exception if search index doesn't exist."""
