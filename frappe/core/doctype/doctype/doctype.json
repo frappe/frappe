@@ -44,7 +44,6 @@
   "beta",
   "deprecated",
   "is_virtual",
-  "use_sqlite",
   "queue_in_background",
   "description",
   "form_settings_section",
@@ -556,14 +555,6 @@
    "fieldname": "is_virtual",
    "fieldtype": "Check",
    "label": "Is Virtual"
-  },
-  {
-   "default": "0",
-   "depends_on": "eval:!doc.issingle && !doc.is_tree && !doc.is_virtual",
-   "description": "Store this DocType's data in the site's secondary SQLite database (<code>db/doctype_store.db</code>) instead of the primary database. Intended for high-volume auxiliary data such as logs. Transactions in the two databases are independent.",
-   "fieldname": "use_sqlite",
-   "fieldtype": "Check",
-   "label": "Use SQLite"
   },
   {
    "fieldname": "default_email_template",

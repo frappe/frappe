@@ -183,7 +183,6 @@ class DocType(Document):
 		track_seen: DF.Check
 		track_views: DF.Check
 		translated_doctype: DF.Check
-		use_sqlite: DF.Check
 		website_search_field: DF.Data | None
 	# end: auto-generated types
 
@@ -220,7 +219,6 @@ class DocType(Document):
 		self.validate_child_table()
 		self.validate_website()
 		self.validate_virtual_doctype_methods()
-		self.validate_sqlite_storage()
 		self.ensure_minimum_max_attachment_limit()
 		self.patch_old_naming_expressions()
 		self.deduplicate_document_links()
@@ -436,67 +434,6 @@ class DocType(Document):
 
 		validate_controller(self.name)
 
-	def validate_sqlite_storage(self):
-		"""Validate the constraints of storing this DocType in the SQLite side database.
-
-		The side store is a separate database engine, so nothing in it can be joined to the
-		primary database. Everything below keeps a SQLite-backed DocType self-contained.
-		"""
-		if not self.get("use_sqlite"):
-			# Turning the checkbox off would leave the existing rows stranded in the side
-			# store while the framework started looking for them in the primary database.
-			if not self.is_new() and frappe.db.get_value("DocType", self.name, "use_sqlite"):
-				frappe.throw(
-					_(
-						"{0} stores its data in SQLite. Disabling {1} would orphan the existing rows; "
-						"export the data and create a new DocType instead."
-					).format(frappe.bold(self.name), frappe.bold(_("Use SQLite"))),
-					title=_("Cannot Switch Storage"),
-				)
-			return
-
-		if self.get("is_virtual"):
-			frappe.throw(
-				_("A Virtual DocType manages its own storage and cannot also use SQLite."),
-				title=_("Invalid SQLite Configuration"),
-			)
-
-		# Singles live in the shared `tabSingles` table and trees need lft/rgt rebuilds that
-		# span the whole table; both are excluded until the core storage path is settled.
-		if self.get("issingle"):
-			frappe.throw(
-				_("Single DocTypes cannot use SQLite storage."),
-				title=_("Invalid SQLite Configuration"),
-			)
-
-		if self.get("is_tree"):
-			frappe.throw(
-				_("Tree DocTypes cannot use SQLite storage."),
-				title=_("Invalid SQLite Configuration"),
-			)
-
-		if not self.is_new() and frappe.db.table_exists(self.name):
-			frappe.throw(
-				_(
-					"{0} already stores data in the primary database. Storage cannot be switched to SQLite "
-					"for an existing table; create a new DocType with SQLite enabled instead."
-				).format(frappe.bold(self.name)),
-				title=_("Cannot Switch Storage"),
-			)
-
-		# A child table is read and written as part of its parent's query, so it has to sit in
-		# the same database as every parent that uses it.
-		for df in self.get("fields", {"fieldtype": ["in", table_fields]}):
-			if not df.options:
-				continue
-			if not frappe.db.get_value("DocType", df.options, "use_sqlite"):
-				frappe.throw(
-					_("Child table {0} must also have {1} enabled, as it is stored alongside {2}.").format(
-						frappe.bold(df.options), frappe.bold(_("Use SQLite")), frappe.bold(self.name)
-					),
-					title=_("Invalid SQLite Configuration"),
-				)
-
 	def ensure_minimum_max_attachment_limit(self):
 		"""Ensure that max_attachments is *at least* bigger than number of attach fields."""
 		from frappe.model import attachment_fieldtypes
@@ -600,18 +537,8 @@ class DocType(Document):
 		if self.get("can_change_name_type"):
 			self.setup_autoincrement_and_sequence()
 
-		from frappe.database.sqlite.router import clear_sqlite_doctype_cache, use_sqlite_db
-
-		# The owned-table set drives statement routing, so refresh it before any DDL runs --
-		# a newly SQLite-backed DocType is not in the cached listing yet.
-		clear_sqlite_doctype_cache()
-
 		try:
-			if self.get("use_sqlite"):
-				with use_sqlite_db():
-					frappe.db.updatedb(self.name, Meta(self))
-			else:
-				frappe.db.updatedb(self.name, Meta(self))
+			frappe.db.updatedb(self.name, Meta(self))
 		except Exception as e:
 			print(f"\n\nThere was an issue while migrating the DocType: {self.name}\n")
 			raise e
@@ -781,13 +708,6 @@ class DocType(Document):
 				where doctype=%s and field='name' and value = %s""",
 				(new, new, old),
 			)
-		elif self.get("use_sqlite"):
-			from frappe.database.sqlite.router import clear_sqlite_doctype_cache, use_sqlite_db
-
-			with use_sqlite_db():
-				frappe.db.rename_table(old, new)
-				frappe.db.commit()
-			clear_sqlite_doctype_cache()
 		elif not self.is_virtual:
 			frappe.db.rename_table(old, new)
 			frappe.db.commit()

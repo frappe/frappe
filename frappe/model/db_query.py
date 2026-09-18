@@ -31,7 +31,6 @@ from frappe.database.utils import (
 )
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.meta import get_table_columns
-from frappe.database.sqlite.router import storage_for
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.mask import mask_field_value
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
@@ -238,19 +237,13 @@ class DatabaseQuery:
 			} | self.__dict__
 			return frappe.call(controller.get_list, args=kwargs, **kwargs)
 
-		# A `use_sqlite` DocType keeps its table in the site's SQLite side store. Everything
-		# from here on -- column lookup, permission conditions, the query itself -- has to run
-		# against that connection and its dialect. Tables outside the store that the permission
-		# machinery reaches for (DocShare, Custom Field, ...) are routed back to the primary
-		# database by SQLiteSideDatabase.sql.
-		with storage_for(self.doctype):
-			self.columns = self.get_table_columns()
+		self.columns = self.get_table_columns()
 
-			# no table & ignore_ddl, return
-			if not self.columns:
-				return []
+		# no table & ignore_ddl, return
+		if not self.columns:
+			return []
 
-			result = self.build_and_run()
+		result = self.build_and_run()
 
 		if sbool(with_comment_count) and not as_list and self.doctype:
 			self.add_comment_count(result)
@@ -1239,7 +1232,7 @@ from {tables}
 			or (f.value and f.operator.lower() in ("=", "like"))
 			or "ifnull(" in column_name.lower()
 		):
-			if f.operator.lower() == "like" and frappe.db.db_type == "postgres":
+			if f.operator.lower() == "like" and frappe.conf.get("db_type") == "postgres":
 				f.operator = "ilike"
 			condition = f"{column_name} {f.operator} {value}"
 		else:

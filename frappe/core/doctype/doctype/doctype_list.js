@@ -13,7 +13,6 @@ frappe.listview_settings["DocType"] = {
 			is_single = 0,
 			is_tree = 0,
 			is_custom = 0,
-			use_sqlite = 0,
 			editable_grid = 1,
 		} = args || {};
 
@@ -97,20 +96,6 @@ frappe.listview_settings["DocType"] = {
 				default: is_virtual,
 			});
 		}
-
-		// Offered to every user, unlike Is Virtual: storing a DocType in the secondary SQLite
-		// database needs no controller and no developer mode. Singles, trees and virtual
-		// DocTypes are excluded, matching the server-side validation.
-		fields.push({
-			label: __("Use SQLite"),
-			fieldname: "use_sqlite",
-			fieldtype: "Check",
-			default: use_sqlite,
-			depends_on: "eval:!doc.issingle && !doc.is_tree && !doc.is_virtual",
-			description: __(
-				"Store this DocType's data in the site's secondary SQLite database instead of the primary database. Intended for high-volume auxiliary data such as logs."
-			),
-		});
 
 		let new_d = new frappe.ui.Dialog({
 			title: __("Create New DocType"),

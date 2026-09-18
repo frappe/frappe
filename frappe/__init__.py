@@ -472,16 +472,10 @@ class init_site:
 def destroy():
 	"""Closes connection and releases werkzeug local."""
 	try:
-		if getattr(local, "sqlite_db", None):
-			from frappe.database.sqlite.router import close_sqlite_db
-
-			close_sqlite_db()
+		if db:
+			db.close()
 	finally:
-		try:
-			if db:
-				db.close()
-		finally:
-			release_local(local)
+		release_local(local)
 
 
 _redis_init_lock = threading.Lock()

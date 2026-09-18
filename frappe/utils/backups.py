@@ -358,13 +358,6 @@ class BackupGenerator:
 			files_path = frappe.get_site_path(folder, "files")
 			backup_path = self.backup_path_files if folder == "public" else self.backup_path_private_files
 
-			# The SQLite side store holds real site data for `use_sqlite` DocTypes, so it has to
-			# survive a restore. It rides along in the private-files archive: `installer.extract_files`
-			# untars with `--strip 2` relative to the site directory, which puts `db/doctype_store.db`
-			# back exactly where it came from, with no separate restore step to keep in sync.
-			if folder == "private":
-				files_path = " ".join([files_path, *self.get_sqlite_store_paths()])
-
 			if self.compress_files:
 				cmd_string = "set -o pipefail; tar cf - {1} | gzip > {0}"
 			else:
@@ -385,31 +378,6 @@ class BackupGenerator:
 					)
 				else:
 					raise e
-
-	def get_sqlite_store_paths(self) -> list[str]:
-		"""Return the SQLite side-store file to include in the backup, if the site has one.
-
-		A WAL checkpoint runs first so the committed pages live in the `.db` file itself and the
-		archived copy is self-contained without the sidecar `-wal`/`-shm` files.
-		"""
-		from frappe.database.sqlite.side_database import SQLITE_STORE_FILENAME
-
-		store_path = os.path.join(frappe.get_site_path(), "db", SQLITE_STORE_FILENAME)
-		if not os.path.exists(store_path):
-			return []
-
-		try:
-			from frappe.database.sqlite.router import get_sqlite_db
-
-			store = get_sqlite_db()
-			# A checkpoint can't run while this connection still holds an open transaction,
-			# which it does by default -- SQLiteDatabase.begin() starts one after every commit.
-			store.commit()
-			store.sql("PRAGMA wal_checkpoint(TRUNCATE)")
-		except Exception as e:
-			click.secho(f"Could not checkpoint SQLite store before backup: {e}", fg="yellow")
-
-		return [store_path]
 
 	def copy_site_config(self):
 		site_config_backup_path = self.backup_path_conf

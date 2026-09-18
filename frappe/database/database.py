@@ -1,7 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import functools
 import itertools
 import json
 import random
@@ -85,28 +84,6 @@ SQL_ITERATOR_BATCH_SIZE = 1000
 TRANSACTION_DISABLED_MSG = """Commit/rollback are disabled during certain events. This command will
 be ignored. Commit/Rollback from here WILL CAUSE very hard to debug problems with atomicity and
 concurrent data update bugs."""
-
-
-def route_to_storage(fn):
-	"""Run a `Database` method against whichever database owns its DocType.
-
-	DocTypes with `use_sqlite` enabled keep their table in the site's SQLite side store, so
-	the query has to be both built and executed on that connection -- the two backends do not
-	share an SQL dialect, and building here and running there would emit the wrong quoting.
-
-	Applied to the methods that build and run a query of their own; `get_value` and `exists`
-	inherit the routing through `get_values`. No-op for every DocType in the primary database,
-	and re-entrant, so it costs one set lookup on the common path.
-	"""
-
-	@functools.wraps(fn)
-	def wrapper(self, doctype, *args, **kwargs):
-		from frappe.database.sqlite.router import storage_for
-
-		with storage_for(doctype):
-			return fn(self, doctype, *args, **kwargs)
-
-	return wrapper
 
 
 class Database:
@@ -632,7 +609,6 @@ class Database:
 		# single field is requested, send it without wrapping in containers
 		return row[0]
 
-	@route_to_storage
 	def get_values(
 		self,
 		doctype: str,
@@ -973,7 +949,6 @@ class Database:
 		"""Alias for get_single_value"""
 		return self.get_single_value(*args, **kwargs)
 
-	@route_to_storage
 	def set_value(
 		self,
 		dt: str,
@@ -1326,7 +1301,6 @@ class Database:
 
 		return self.get_value(dt, dn, ignore=True, cache=cache, order_by=None, debug=debug)
 
-	@route_to_storage
 	def count(self, dt, filters=None, debug=False, cache=False, distinct: bool = True):
 		"""Return `COUNT(*)` for given DocType and filters."""
 		cache_key = "COUNT(*)"
@@ -1475,7 +1449,6 @@ class Database:
 		assert query is not None, f"multisql has no query for dialect {current_dialect!r} and no '*' fallback"
 		return self.sql(query, values, **kwargs)
 
-	@route_to_storage
 	def delete(self, doctype: str, filters: dict | list | None = None, debug=False, **kwargs):
 		"""Delete rows from a table in site which match the passed filters. This
 		does not trigger DocType hooks. Simply runs a DELETE query in the database.
@@ -1565,11 +1538,9 @@ class Database:
 
 		if ignore_duplicates:
 			# Pypika does not have same api for ignoring duplicates
-			# Keyed off this connection rather than the site config, so a bulk insert into the
-			# SQLite side store picks the SQLite spelling instead of the primary backend's.
-			if self.db_type in ("mariadb", "sqlite"):
+			if frappe.conf.db_type in ("mariadb", "sqlite"):
 				query = query.ignore()
-			elif self.db_type == "postgres":
+			elif frappe.conf.db_type == "postgres":
 				query = query.on_conflict().do_nothing()
 
 		value_iterator = iter(values)
