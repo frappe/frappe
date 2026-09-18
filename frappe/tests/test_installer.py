@@ -74,9 +74,7 @@ class TestInstallAppOrdering(IntegrationTestCase):
 		frappe.db.commit()  # nosemgrep
 
 	def stamped_fake_patches(self) -> set[str]:
-		return set(
-			frappe.get_all("Patch Log", filters={"patch": ["in", FAKE_PATCHES]}, pluck="patch")
-		)
+		return set(frappe.get_all("Patch Log", filters={"patch": ["in", FAKE_PATCHES]}, pluck="patch"))
 
 	def test_after_install_success_marks_patches_complete(self):
 		with install_fake_app(after_install=f"{__name__}.record_after_install"):
