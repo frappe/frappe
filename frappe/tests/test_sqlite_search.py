@@ -5,6 +5,8 @@ from typing import ClassVar
 from unittest.mock import patch
 
 import frappe
+from frappe.core.doctype.search_index.search_index import sync_search_indexes
+from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.search.sqlite_search import (
 	SQLiteSearch,
 	SQLiteSearchIndexMissingError,
@@ -12,6 +14,7 @@ from frappe.search.sqlite_search import (
 	build_index,
 	build_index_if_not_exists,
 	index_docs_in_queue,
+	update_doc_index,
 )
 from frappe.tests import IntegrationTestCase
 from frappe.utils.synchronization import filelock
@@ -47,6 +50,123 @@ class TestSQLiteSearch(SQLiteSearch):
 			return {}
 		# Simulate user-specific filtering
 		return {"owner": frappe.session.user}
+
+
+class TestSearchIndexFields(IntegrationTestCase):
+	"""Fields marked in_search_index, and the child rows they are read through."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		make_property_setter("Note Seen By", "user", "in_search_index", 1, "Check")
+		frappe.clear_cache(doctype="Note")
+		frappe.clear_cache(doctype="Note Seen By")
+
+	@classmethod
+	def tearDownClass(cls):
+		TestSQLiteSearch().drop_index()
+		super().tearDownClass()
+
+	def setUp(self):
+		self.search = TestSQLiteSearch()
+		self.search.drop_index()
+		self.addCleanup(self.search.drop_index)
+
+	def test_a_flagged_child_field_becomes_a_column(self):
+		self.assertIn("seen_by", self.search.schema["text_fields"])
+		source = self.search.doc_configs["Note"]["related_sources"][0]
+		self.assertEqual(
+			(source.doctype, source.link_field, source.is_child), ("Note Seen By", "parent", True)
+		)
+
+	def test_a_document_without_related_rows_is_still_indexed(self):
+		"""A declared column must not become a requirement: such documents were dropped entirely."""
+		note = frappe.get_doc(doctype="Note", title="Nobody Saw This", content="body").insert()
+		self.addCleanup(frappe.delete_doc, "Note", note.name, force=True)
+
+		self.search.build_index()
+
+		self.assertEqual(self.column_of(note.name, "seen_by"), "")
+
+	def test_a_child_row_edit_reindexes_its_parent(self):
+		"""Child rows raise no document events, so the parent save is the only signal there is."""
+		note = frappe.get_doc(doctype="Note", title="Seen Note", content="body").insert()
+		self.addCleanup(frappe.delete_doc, "Note", note.name, force=True)
+		self.search.build_index()
+		self.assertEqual(self.column_of(note.name, "seen_by"), "")
+
+		note.append("seen_by", {"user": "Administrator"})
+		note.save()
+		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[TestSQLiteSearch]):
+			update_doc_index(note)
+			index_docs_in_queue()
+
+		self.assertEqual(self.column_of(note.name, "seen_by"), "Administrator")
+
+	def test_a_drifted_schema_reports_the_index_as_absent(self):
+		"""Ticking the flag changes the schema, so a table built before it no longer covers it."""
+		self.search.build_index()
+		self.assertTrue(self.search.index_exists())
+
+		drifted = TestSQLiteSearch()
+		drifted.schema["text_fields"] = [*drifted.schema["text_fields"], "a_column_added_later"]
+		self.assertFalse(drifted.index_exists())
+
+	def column_of(self, name, column):
+		connection = self.search._get_connection(read_only=True)
+		try:
+			row = connection.execute(f"SELECT {column} FROM search_fts WHERE name = ?", (name,)).fetchone()
+			return row[column] if row else None
+		finally:
+			connection.close()
+
+
+class TestSearchIndexRecord(IntegrationTestCase):
+	"""The Search Index record that decides whether an index runs."""
+
+	def test_a_record_is_created_for_every_registered_class(self):
+		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[TestSQLiteSearch]):
+			sync_search_indexes()
+
+		name = TestSQLiteSearch().search_class_path
+		self.assertTrue(frappe.db.exists("Search Index", name))
+
+	def test_the_record_decides_whether_the_index_runs(self):
+		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[TestSQLiteSearch]):
+			sync_search_indexes()
+
+		name = TestSQLiteSearch().search_class_path
+		self.addCleanup(frappe.clear_document_cache, "Search Index", name)
+
+		self.set_enabled(name, 0)
+		self.assertFalse(TestSQLiteSearch().is_search_enabled())
+
+		self.set_enabled(name, 1)
+		self.assertTrue(TestSQLiteSearch().is_search_enabled())
+
+	def test_an_index_is_not_switched_off_by_the_upgrade_that_adds_the_record(self):
+		"""Before a record exists the class default decides, so existing indexes keep running."""
+		frappe.db.delete("Search Index", {"search_class": TestSQLiteSearch().search_class_path})
+		self.assertTrue(TestSQLiteSearch().is_search_enabled())
+
+	def test_a_build_is_recorded_on_the_document(self):
+		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[TestSQLiteSearch]):
+			sync_search_indexes()
+
+		search = TestSQLiteSearch()
+		search.drop_index()
+		self.addCleanup(search.drop_index)
+		search.build_index()
+
+		record = frappe.get_doc("Search Index", search.search_class_path)
+		self.assertEqual(record.status, "Ready")
+		self.assertGreater(record.indexed_documents, 0)
+		self.assertTrue(record.index_size)
+		self.assertTrue(record.last_built_on)
+
+	def set_enabled(self, name, value):
+		frappe.db.set_value("Search Index", name, "enabled", value)
+		frappe.clear_document_cache("Search Index", name)
 
 
 class TestSQLiteSearchAPI(IntegrationTestCase):
