@@ -89,25 +89,43 @@ const note = ref("");
 const entries = ref([]);
 let load_seq = 0;
 
-const MARK_CSS = `
+function token(name) {
+	return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function mark_css() {
+	const c = {
+		added: { fill: token("--diff-added"), line: token("--outline-green-7") },
+		changed: { fill: token("--diff-changed"), line: token("--outline-blue-7") },
+		removed: { fill: token("--diff-removed"), line: token("--outline-red-7") },
+		moved: { fill: token("--surface-gray-2"), line: token("--outline-gray-6") },
+	};
+	const white = token("--white") || "#fff";
+	const kinds = Object.entries(c)
+		.map(
+			([kind, { fill, line }]) => `
+[data-pfb-diff="${kind}"] { outline: 2px ${
+				kind === "removed" || kind === "moved" ? "dashed" : "solid"
+			} ${line}; background: ${fill}; }
+[data-pfb-diff="${kind}"]::before { background: ${line}; }
+[data-pfb-diff="${kind}"] .pfb-diff-badge { background: ${line}; }
+[data-pfb-diff="${kind}"].pfb-diff-hot { box-shadow: 0 0 0 6px color-mix(in srgb, ${line} 30%, transparent); }`
+		)
+		.join("");
+	return `
 [data-pfb-diff] { position: relative; outline-offset: 2px; }
-[data-pfb-diff]::before { content: attr(data-pfb-n); position: absolute; top: -9px; left: -9px; z-index: 1; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; font: 700 10px/18px sans-serif; text-align: center; color: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); }
-[data-pfb-diff="added"] { outline: 2px solid #16a34a; }
-[data-pfb-diff="added"]::before { background: #16a34a; }
-[data-pfb-diff="removed"] { outline: 2px dashed #dc2626; text-decoration: line-through; opacity: 0.6; }
-[data-pfb-diff="removed"]::before { background: #dc2626; text-decoration: none; }
-[data-pfb-diff="changed"] { outline: 2px solid #d97706; }
-[data-pfb-diff="changed"]::before { background: #d97706; }
-[data-pfb-diff="moved"] { outline: 2px dashed #6b7280; }
-[data-pfb-diff="moved"]::before { background: #6b7280; }
-[data-pfb-diff].pfb-diff-hot { box-shadow: 0 0 0 6px rgba(217, 119, 6, 0.3); }
-.pfb-diff-band { position: absolute; z-index: 1; pointer-events: none; background: repeating-linear-gradient(45deg, rgba(217,119,6,.28) 0 4px, rgba(217,119,6,.12) 4px 8px); }
-.pfb-diff-band > span, .pfb-diff-badge, .pfb-diff-ghost > span { position: absolute; top: 0; left: 0; padding: 0 4px; font: 600 9px/14px sans-serif; white-space: nowrap; color: #fff; background: #d97706; border-radius: 0 0 3px 0; }
-.pfb-diff-ghost { position: absolute; z-index: 1; pointer-events: none; outline: 2px dashed #6b7280; outline-offset: -2px; }
-.pfb-diff-ghost > span { background: #6b7280; }
-.pfb-diff-badge { top: auto; bottom: 100%; left: auto; right: 0; margin-bottom: 2px; border-radius: 3px; display: flex; align-items: center; gap: 4px; }
-.pfb-diff-swatch { display: inline-block; width: 10px; height: 10px; border: 1px solid #fff; border-radius: 2px; vertical-align: middle; }
+[data-pfb-diff]::before { content: attr(data-pfb-n); position: absolute; top: -9px; left: -9px; z-index: 1; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; font: 700 10px/18px sans-serif; text-align: center; color: ${white}; box-shadow: 0 1px 2px rgba(0,0,0,.25); }
+[data-pfb-diff="removed"] { text-decoration: line-through; opacity: 0.6; }
+[data-pfb-diff="removed"]::before { text-decoration: none; }
+${kinds}
+.pfb-diff-band { position: absolute; z-index: 1; pointer-events: none; background: repeating-linear-gradient(45deg, color-mix(in srgb, ${c.changed.line} 28%, transparent) 0 4px, color-mix(in srgb, ${c.changed.line} 10%, transparent) 4px 8px); }
+.pfb-diff-badge, .pfb-diff-ghost > span { position: absolute; padding: 0 5px; font: 600 9px/14px sans-serif; white-space: nowrap; color: ${white}; border-radius: 3px; }
+.pfb-diff-badge { bottom: 100%; right: 0; margin-bottom: 2px; display: flex; align-items: center; gap: 4px; }
+.pfb-diff-ghost { position: absolute; z-index: 1; pointer-events: none; outline: 2px dashed ${c.moved.line}; outline-offset: -2px; }
+.pfb-diff-ghost > span { top: 0; left: 0; background: ${c.moved.line}; border-radius: 0 0 3px 0; }
+.pfb-diff-swatch { display: inline-block; width: 10px; height: 10px; border: 1px solid ${white}; border-radius: 2px; vertical-align: middle; }
 .action-banner { display: none !important; }`;
+}
 
 const KIND_WORD = {
 	added: __("added"),
@@ -403,7 +421,7 @@ function annotate(el, item) {
 }
 
 function mark_frame() {
-	inject(frame.value, MARK_CSS);
+	inject(frame.value, mark_css());
 	for (const item of entries.value) {
 		const el = item.selector && find(item);
 		if (!el) continue;
@@ -595,19 +613,23 @@ onUnmounted(() => window.removeEventListener("keydown", on_keydown));
 	line-height: 20px;
 	text-align: center;
 	color: var(--white);
-	background: var(--gray-500);
+	background: var(--outline-gray-6);
 }
 
 .pfb-compare-marker[data-kind="added"] {
-	background: #16a34a;
+	background: var(--outline-green-7);
 }
 
 .pfb-compare-marker[data-kind="removed"] {
-	background: #dc2626;
+	background: var(--outline-red-7);
 }
 
 .pfb-compare-marker[data-kind="changed"] {
-	background: #d97706;
+	background: var(--outline-blue-7);
+}
+
+.pfb-compare-marker[data-kind="moved"] {
+	background: var(--outline-gray-6);
 }
 
 .pfb-compare-item-body {
