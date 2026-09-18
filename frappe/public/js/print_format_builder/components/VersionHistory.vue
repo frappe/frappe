@@ -91,7 +91,7 @@ const store = inject("$store");
 const { print_format, has_draft, versions } = store;
 
 function when(value) {
-	return frappe.datetime.comment_when(value);
+	return frappe.datetime.prettyDate(value);
 }
 
 function save_named() {
