@@ -33,7 +33,6 @@ class TestSQLiteSearch(SQLiteSearch):
 	INDEXABLE_DOCTYPES: ClassVar = {
 		"Note": {
 			"fields": ["name", "title", "content", "owner", {"modified": "creation"}],
-			"child_fields": {"seen_by": ["user"]},
 		},
 		"ToDo": {
 			"fields": ["name", {"title": "description"}, {"content": "description"}, "owner", "modified"],
@@ -52,21 +51,34 @@ class TestSQLiteSearch(SQLiteSearch):
 		return {"owner": frappe.session.user}
 
 
+class ChildFieldSearch(TestSQLiteSearch):
+	"""Its own index file: these tests drop and rebuild, and must not touch a shared one."""
+
+	INDEX_NAME = "test_child_field_search.db"
+
+	INDEXABLE_DOCTYPES: ClassVar = {
+		"Note": {
+			"fields": ["name", "title", "content", "owner", {"modified": "creation"}],
+			"child_fields": {"seen_by": ["user"]},
+		},
+	}
+
+
 class TestSearchIndexFields(IntegrationTestCase):
 	"""Declared child_fields, and the child rows they are read through."""
 
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		cls.search = TestSQLiteSearch()
+		cls.search = ChildFieldSearch()
 
 	@classmethod
 	def tearDownClass(cls):
-		TestSQLiteSearch().drop_index()
+		ChildFieldSearch().drop_index()
 		super().tearDownClass()
 
 	def setUp(self):
-		self.search = TestSQLiteSearch()
+		self.search = ChildFieldSearch()
 		self.search.drop_index()
 		self.addCleanup(self.search.drop_index)
 
@@ -95,7 +107,7 @@ class TestSearchIndexFields(IntegrationTestCase):
 
 		note.append("seen_by", {"user": "Administrator"})
 		note.save()
-		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[TestSQLiteSearch]):
+		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[ChildFieldSearch]):
 			update_doc_index(note)
 			index_docs_in_queue()
 
@@ -106,7 +118,7 @@ class TestSearchIndexFields(IntegrationTestCase):
 		self.search.build_index()
 		self.assertTrue(self.search.index_exists())
 
-		drifted = TestSQLiteSearch()
+		drifted = ChildFieldSearch()
 		drifted.schema["text_fields"] = [*drifted.schema["text_fields"], "a_column_added_later"]
 		self.assertFalse(drifted.index_exists())
 
@@ -123,35 +135,35 @@ class TestSearchIndexRecord(IntegrationTestCase):
 	"""The Search Index record that decides whether an index runs."""
 
 	def test_a_record_is_created_for_every_registered_class(self):
-		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[TestSQLiteSearch]):
+		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[ChildFieldSearch]):
 			sync_search_indexes()
 
-		name = TestSQLiteSearch().search_class_path
+		name = ChildFieldSearch().search_class_path
 		self.assertTrue(frappe.db.exists("Search Index", name))
 
 	def test_the_record_decides_whether_the_index_runs(self):
-		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[TestSQLiteSearch]):
+		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[ChildFieldSearch]):
 			sync_search_indexes()
 
-		name = TestSQLiteSearch().search_class_path
+		name = ChildFieldSearch().search_class_path
 		self.addCleanup(frappe.clear_document_cache, "Search Index", name)
 
 		self.set_enabled(name, 0)
-		self.assertFalse(TestSQLiteSearch().is_search_enabled())
+		self.assertFalse(ChildFieldSearch().is_search_enabled())
 
 		self.set_enabled(name, 1)
-		self.assertTrue(TestSQLiteSearch().is_search_enabled())
+		self.assertTrue(ChildFieldSearch().is_search_enabled())
 
 	def test_an_index_is_not_switched_off_by_the_upgrade_that_adds_the_record(self):
 		"""Before a record exists the class default decides, so existing indexes keep running."""
-		frappe.db.delete("Search Index", {"search_class": TestSQLiteSearch().search_class_path})
-		self.assertTrue(TestSQLiteSearch().is_search_enabled())
+		frappe.db.delete("Search Index", {"search_class": ChildFieldSearch().search_class_path})
+		self.assertTrue(ChildFieldSearch().is_search_enabled())
 
 	def test_a_build_is_recorded_on_the_document(self):
-		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[TestSQLiteSearch]):
+		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[ChildFieldSearch]):
 			sync_search_indexes()
 
-		search = TestSQLiteSearch()
+		search = ChildFieldSearch()
 		search.drop_index()
 		self.addCleanup(search.drop_index)
 		search.build_index()
