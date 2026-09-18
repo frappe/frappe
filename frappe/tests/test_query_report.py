@@ -130,6 +130,18 @@ class TestQueryReport(FrappeTestCase):
 		self.assertIsInstance(csv_data.result[0]["posting_date"], str)
 		self.assertIsInstance(csv_data.result[0]["created_on"], str)
 
+	def test_export_strips_quotes_from_link_labels(self):
+		"""Quoted link values are plain text labels in desk, so exports must drop the quotes too"""
+		data = frappe._dict(
+			columns=[
+				{"fieldname": "account", "fieldtype": "Link"},
+				{"fieldname": "remarks", "fieldtype": "Data"},
+			],
+			result=[{"account": "'Total Asset (Debit)'", "remarks": "'As per ledger'"}],
+		)
+		format_fields(data, "Excel")
+		self.assertEqual(data.result[0], {"account": "Total Asset (Debit)", "remarks": "'As per ledger'"})
+
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader
 		from io import StringIO
