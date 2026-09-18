@@ -128,7 +128,8 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 		frappe.response["data"]: List of document records as dicts
 		frappe.response["has_next_page"]: Indicates if more pages are available
 		frappe.response["count"], ["count_capped"]: With include=count, the row count under the
-			same filters, stopped at frappe.api.include.COUNT_CAP; None when the count timed out
+			same filters, reported as frappe.api.include.COUNT_CAP with count_capped when more
+			rows than that match; None when the count timed out
 
 	Controller Customization:
 		Doctype controllers can customize queries by implementing a static get_list(query) method

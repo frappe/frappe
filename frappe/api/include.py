@@ -187,18 +187,19 @@ def serialize_meta(meta, parenttype: str | None = None) -> dict:
 META_PARTS = {"children": get_children}
 
 
-# a list count stops here; the client shows "1000+" past it
+# a list count stops here; the client shows "1000+" past it. The query reads one row
+# past the cap so a list of exactly COUNT_CAP rows is not reported as capped
 COUNT_CAP = 1000
 
 
 def add_count(doctype: str, filters, or_filters) -> None:
-	"""`count` and `count_capped` for the list's filters; `count` is None when the one-second timeout hits."""
+	"""`count` (at most COUNT_CAP) and `count_capped` for the list's filters; `count` is None when the one-second timeout hits."""
 	from frappe.desk.reportview import get_count
 
 	# get_count reads the request's form_dict; hand it only the list's filters and the cap
 	list_form = frappe.local.form_dict
 	frappe.local.form_dict = frappe._dict(
-		doctype=doctype, filters=filters, or_filters=or_filters, limit=COUNT_CAP
+		doctype=doctype, filters=filters, or_filters=or_filters, limit=COUNT_CAP + 1
 	)
 	headers = frappe.local.response_headers
 	cache_control = headers.get("Cache-Control")
@@ -211,8 +212,9 @@ def add_count(doctype: str, filters, or_filters) -> None:
 		headers.remove("Cache-Control")
 	else:
 		headers.set("Cache-Control", cache_control)
-	frappe.response["count"] = count
-	frappe.response["count_capped"] = count == COUNT_CAP
+	capped = count is not None and count > COUNT_CAP
+	frappe.response["count"] = COUNT_CAP if capped else count
+	frappe.response["count_capped"] = capped
 
 
 LIST_PARTS = {"count": add_count}
