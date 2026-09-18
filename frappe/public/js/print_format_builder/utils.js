@@ -139,6 +139,7 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 }
 
 // Blocks the builder invents — they never map to a docfield on the document type
+
 export const BLOCK_FIELDTYPES = new Set(["Spacer", "Divider", "Repeater", "HTML"]);
 
 // Mirrors PrintFormatGenerator.JUSTIFY_MODES; the class names are spelled out so

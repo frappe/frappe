@@ -901,7 +901,11 @@ function handle_slash_key(e) {
 }
 
 .es-tabs__list {
+	height: 40px;
+	box-sizing: border-box;
+	align-items: center;
 	gap: calc(var(--spacing) * 3);
+	padding-block: 0;
 	padding-inline: calc(var(--spacing) * 3);
 }
 

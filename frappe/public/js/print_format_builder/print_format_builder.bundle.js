@@ -31,6 +31,9 @@ class PrintFormatBuilder {
 				() => this.$component.$store.discard_draft()
 			);
 		});
+		let $changes_btn = this.page.add_button(__("Review Changes"), () =>
+			this.$component.show_changes()
+		);
 		let $preview_btn = this.page.add_action_icon(
 			"eye",
 			() => this.$component.toggle_preview(),
@@ -74,7 +77,10 @@ class PrintFormatBuilder {
 
 		watch(
 			() => this.$component.$store.has_draft,
-			(has_draft) => $discard_btn.toggle(!!has_draft.value),
+			(has_draft) => {
+				$discard_btn.toggle(!!has_draft.value);
+				$changes_btn.toggle(!!has_draft.value);
+			},
 			{ deep: true, immediate: true }
 		);
 

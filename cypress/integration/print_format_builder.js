@@ -34,6 +34,39 @@ function one_section_layout() {
 	);
 }
 
+function insert_contact_table_format(name) {
+	cy.insert_doc(
+		"Print Format",
+		{
+			name,
+			doc_type: "Contact",
+			print_format_builder_beta: 1,
+			format_data: JSON.stringify(
+				builder_layout([
+					{
+						label: "Rep Section",
+						columns: [
+							{
+								label: "",
+								fields: [
+									{
+										fieldtype: "Repeater",
+										fieldname: "rep1",
+										label: "Rep",
+										source: "email_ids",
+										repeater_columns: [{ template: [], align: "left" }],
+									},
+								],
+							},
+						],
+					},
+				])
+			),
+		},
+		true
+	);
+}
+
 function insert_builder_format(name, sections = []) {
 	cy.insert_doc(
 		"Print Format",
@@ -344,31 +377,12 @@ context("Print Format Builder — create flow", () => {
 		});
 	});
 
-	// 9. Selecting a repeater field exposes per-column width and color controls
-	it("repeater inspector shows column width and color controls", () => {
+	// 9. A custom table column row opens its width, align and colour settings
+	it("custom table column settings open from the row", () => {
 		cy.visit("/app");
-
-		insert_builder_format(PF_NAME, [
-			{
-				label: "Rep Section",
-				columns: [
-					{
-						label: "",
-						fields: [
-							{
-								fieldtype: "Repeater",
-								fieldname: "rep1",
-								label: "Rep",
-								repeater_columns: [{ template: [], align: "left" }],
-							},
-						],
-					},
-				],
-			},
-		]);
+		insert_contact_table_format(PF_NAME);
 
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-
 		cy.get("[data-pfb-section]", { timeout: 30000 }).should("be.visible");
 		cy.contains("[data-pfb-section]", "Rep Section")
 			.find(".field")
@@ -377,9 +391,61 @@ context("Print Format Builder — create flow", () => {
 
 		cy.get(".pfb-inspector").should("contain", "Custom Table");
 		cy.get(".pfb-inspector").should("contain", "Columns");
-		cy.get(".pfb-inspector").should("contain", "Color");
-		cy.get(".pfb-inspector .pfb-rep-col-color .selected-color").should("exist");
-		cy.get(".pfb-inspector .pfb-col-width-input").should("exist");
+		cy.get(".pfb-inspector .pfb-col-row").should("have.length", 1);
+		cy.get(".pfb-inspector .pfb-col-editor").should("not.exist");
+		cy.get(".pfb-inspector .pfb-col-row button[title='Column settings']").click();
+		cy.get(".pfb-inspector .pfb-col-editor").should("contain", "Width");
+		cy.get(".pfb-inspector .pfb-col-editor").should("contain", "Align");
+		cy.get(".pfb-inspector .pfb-col-editor").should("contain", "Colour");
+	});
+
+	// 9b. Typing / in a column template offers the source table's fields
+	it("slash in a custom table column inserts a field chip", () => {
+		cy.visit("/app");
+		insert_contact_table_format(PF_NAME);
+
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+		cy.get("[data-pfb-section]", { timeout: 30000 }).should("be.visible");
+		cy.contains("[data-pfb-section]", "Rep Section")
+			.find(".field")
+			.first()
+			.click({ force: true });
+
+		cy.get(".pfb-inspector .pfb-col-row .pfb-tpl-text").first().type("Mail: /ema");
+		cy.get(".pfb-tpl-menu").should("contain", "Email");
+		cy.get(".pfb-inspector .pfb-col-row .pfb-tpl-text").first().type("{enter}");
+		cy.get(".pfb-tpl-menu").should("not.exist");
+		cy.get(".pfb-inspector .pfb-col-row .es-badge").should("contain", "Email");
+		cy.get(".pfb-inspector .pfb-col-row .pfb-tpl-text").first().should("have.value", "Mail: ");
+	});
+
+	// 9c. Review Changes compares the saved format with the draft
+	it("review changes opens the saved and draft panes", () => {
+		cy.visit("/app");
+		cy.insert_doc("ToDo", { description: "pfb compare preview" }, true);
+		insert_builder_format(PF_NAME, [{ label: "Alpha", columns: [{ label: "", fields: [] }] }]);
+		cy.intercept(
+			"POST",
+			"api/method/frappe.printing.doctype.print_format.print_format.save_draft"
+		).as("draft");
+
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+		cy.get(".pfb-margin-grid", { timeout: 30000 }).should("be.visible");
+		cy.contains(".page-actions button", "Review Changes").should("not.be.visible");
+
+		cy.contains(".pfb-margin-cell label", "Top")
+			.closest(".pfb-margin-cell")
+			.find('input[type="number"]')
+			.clear()
+			.type("9")
+			.trigger("change")
+			.blur();
+		cy.wait("@draft", { timeout: 20000 });
+
+		cy.contains(".page-actions button", "Review Changes").should("be.visible").click();
+		cy.get(".pfb-compare", { timeout: 30000 }).should("be.visible");
+		cy.get(".pfb-compare-list").should("contain", "Margin Top");
+		cy.get(".pfb-compare-frame", { timeout: 30000 }).should("exist");
 	});
 
 	// 10. Inspector header shows the doctype field's label, not a custom print label
