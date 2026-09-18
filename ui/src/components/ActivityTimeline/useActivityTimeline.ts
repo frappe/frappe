@@ -155,6 +155,7 @@ function getTimelineStore(
         await new Promise((done) => setTimeout(done, REFRESH_DEBOUNCE_MS));
         // a fetch already running was sent before the change, so it may miss it
         if (resource.loading) await resource.promise?.catch(() => {});
+        // the window is closed, so everything in it is covered by the fetch below
         changedSinceFetch = false;
         await resource.reload();
         // a change that landed mid-fetch is not in what came back: go again
