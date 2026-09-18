@@ -124,7 +124,7 @@ class TestSearchIndexFields(IntegrationTestCase):
 	def column_of(self, name, column):
 		connection = self.search._get_connection(read_only=True)
 		try:
-			row = connection.execute(f"SELECT {column} FROM search_fts WHERE name = ?", (name,)).fetchone()
+			row = connection.execute("SELECT * FROM search_fts WHERE name = ?", (name,)).fetchone()
 			return row[column] if row else None
 		finally:
 			connection.close()
