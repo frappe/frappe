@@ -58,9 +58,17 @@ def get_list():
 @frappe.whitelist()
 @frappe.read_only()
 def get_count() -> int | None:
-	from frappe.query_builder.functions import Count
-
 	args = get_form_params()
+	count = count_rows(args)
+	# a count that hit `limit` or timed out is cacheable; a virtual doctype counts itself, without either
+	if args.limit and (count == args.limit or count is None) and not is_virtual_doctype(args.doctype):
+		frappe.local.response_headers.set("Cache-Control", "private,max-age=600,stale-while-revalidate=10800")
+	return count
+
+
+def count_rows(args: frappe._dict) -> int | None:
+	"""Count the rows `args` selects, `args` as `parse_args` returns them; None when the one-second timeout hits."""
+	from frappe.query_builder.functions import Count
 
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
@@ -95,9 +103,6 @@ def get_count() -> int | None:
 		else:
 			raise
 
-	if count == args.limit or count is None:
-		frappe.local.response_headers.set("Cache-Control", "private,max-age=600,stale-while-revalidate=10800")
-
 	return count
 
 
@@ -107,7 +112,11 @@ def execute(doctype, *args, **kwargs):
 
 def get_form_params():
 	"""parse GET request parameters."""
-	data = frappe._dict(frappe.local.form_dict)
+	return parse_args(frappe._dict(frappe.local.form_dict))
+
+
+def parse_args(data: frappe._dict) -> frappe._dict:
+	"""Validate list arguments in place: JSON filters and fields parsed, fields checked against the meta."""
 	clean_params(data)
 	validate_args(data)
 	return data
