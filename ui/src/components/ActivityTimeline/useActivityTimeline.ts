@@ -144,12 +144,21 @@ function getTimelineStore(
 
   // Every trigger in the window joins the same fetch, so one save costs one request.
   let pendingRefresh: Promise<void> | undefined;
+  let changedSinceFetch = false;
   const refresh = (): Promise<void> => {
-    pendingRefresh ??= (async () => {
-      await new Promise((done) => setTimeout(done, REFRESH_DEBOUNCE_MS));
-      // a fetch already running was sent before the change, so it may miss it
-      if (resource.loading) await resource.promise?.catch(() => {});
-      await resource.reload();
+    if (pendingRefresh) {
+      changedSinceFetch = true;
+      return pendingRefresh;
+    }
+    pendingRefresh = (async () => {
+      do {
+        await new Promise((done) => setTimeout(done, REFRESH_DEBOUNCE_MS));
+        // a fetch already running was sent before the change, so it may miss it
+        if (resource.loading) await resource.promise?.catch(() => {});
+        changedSinceFetch = false;
+        await resource.reload();
+        // a change that landed mid-fetch is not in what came back: go again
+      } while (changedSinceFetch);
     })()
       .catch(() => {})
       .finally(() => {
