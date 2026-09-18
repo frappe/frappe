@@ -35,7 +35,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="pfb-history-row">
+			<div class="pfb-history-row pfb-history-row--link" @click="preview_published">
 				<span class="pfb-history-dot" data-kind="published"></span>
 				<div class="pfb-history-text">
 					<div class="pfb-history-name">{{ __("Published version") }}</div>
@@ -50,13 +50,18 @@
 					data-variant="ghost"
 					data-icon-button="true"
 					:title="__('Discard the draft and go back to this')"
-					@click="discard"
+					@click.stop="discard"
 					v-html="frappe.utils.icon('rotate-ccw', 'sm')"
 				></button>
 				<span v-html="frappe.avatar(print_format.modified_by, 'avatar-small')"></span>
 			</div>
 			<div v-if="versions.length" class="pfb-history-label">{{ __("Saved versions") }}</div>
-			<div v-for="v in versions" :key="v.name" class="pfb-history-row">
+			<div
+				v-for="v in versions"
+				:key="v.name"
+				class="pfb-history-row pfb-history-row--link"
+				@click="preview(v)"
+			>
 				<span
 					class="pfb-history-dot"
 					:data-kind="v.type === 'Manual' ? 'named' : 'saved'"
@@ -74,7 +79,7 @@
 					data-variant="ghost"
 					data-icon-button="true"
 					:title="__('Restore this version as your draft')"
-					@click="restore(v)"
+					@click.stop="restore(v)"
 					v-html="frappe.utils.icon('rotate-ccw', 'sm')"
 				></button>
 				<span v-html="frappe.avatar(v.owner, 'avatar-small')"></span>
@@ -86,7 +91,7 @@
 <script setup>
 import { inject, onMounted } from "vue";
 
-defineEmits(["close"]);
+const emit = defineEmits(["close", "preview"]);
 const store = inject("$store");
 const { print_format, has_draft, versions } = store;
 
@@ -111,6 +116,19 @@ function restore(v) {
 		),
 		() => store.restore_version(v.name)
 	);
+}
+
+function preview_published() {
+	frappe.db.get_doc("Print Format", print_format.value.name).then((doc) => emit("preview", doc));
+}
+
+function preview(v) {
+	frappe
+		.call("frappe.printing.doctype.print_format.print_format.get_version_fields", {
+			name: print_format.value.name,
+			version: v.name,
+		})
+		.then((r) => emit("preview", { ...print_format.value, ...r.message }));
 }
 
 function discard() {
@@ -147,7 +165,10 @@ onMounted(() => store.load_versions());
 	padding: 8px 10px;
 	border-radius: var(--radius);
 }
-.pfb-history-row:hover {
+.pfb-history-row--link {
+	cursor: pointer;
+}
+.pfb-history-row--link:hover {
 	background: var(--surface-gray-1);
 }
 .pfb-history-row--current {

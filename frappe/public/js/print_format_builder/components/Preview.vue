@@ -30,6 +30,7 @@
 import { useStore } from "../stores";
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 
+const props = defineProps({ format: { type: Object, default: null } });
 const emit = defineEmits(["close"]);
 
 let { print_format, layout, store } = useStore();
@@ -71,7 +72,7 @@ async function render() {
 	}
 	preview_loaded.value = false;
 	const params = {
-		print_format: store.value.get_preview_format_doc(),
+		print_format: props.format || store.value.get_preview_format_doc(),
 		doctype: doctype.value,
 		name: docname.value,
 	};

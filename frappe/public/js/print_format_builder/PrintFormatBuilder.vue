@@ -83,7 +83,16 @@
 				<component :is="PrintFormat" v-else />
 			</div>
 		</div>
-		<VersionHistory v-if="show_history" @close="show_history = false" />
+		<VersionHistory
+			v-if="show_history"
+			@close="show_history = false"
+			@preview="(doc) => (preview_version = doc)"
+		/>
+		<Preview
+			v-if="preview_version"
+			:format="preview_version"
+			@close="preview_version = null"
+		/>
 		<FieldInspector v-else-if="!$store.needs_setup.value" />
 		<Preview v-if="show_preview" @close="show_preview = false" />
 		<ContextMenu />
@@ -121,6 +130,7 @@ const ZOOM_LEVELS = [50, 60, 70, 80, 90, 100, 125, 150];
 
 let show_preview = ref(false);
 let show_history = ref(false);
+let preview_version = ref(null);
 let doc_picker_ref = ref(null);
 let doc_picker_ctrl = ref(null);
 let canvas_zoom = ref(nearest_zoom(parseInt(localStorage.getItem(ZOOM_KEY)) || 100));
@@ -317,7 +327,7 @@ function is_typing_context() {
 }
 
 function handle_keydown(e) {
-	if (show_preview.value) return;
+	if (show_preview.value || preview_version.value) return;
 	// Zoom shortcuts: Ctrl+= / Ctrl+- / Ctrl+0
 	if (e.ctrlKey || e.metaKey) {
 		if (e.key === "z" || e.key === "Z" || e.key === "y") {

@@ -481,13 +481,25 @@ def get_versions(name: str):
 
 
 @frappe.whitelist()
-def restore_version(name: str, version: str, modified: str | datetime):
-	"""Load a recorded version into the draft; what prints waits for Save & Apply."""
-	doc = _writable_format(name, modified)
-	row = frappe.db.get_value("Version", version, ["ref_doctype", "docname", "data"], as_dict=True)
+def get_version_fields(name: str, version: str):
+	"""The builder fields a recorded version holds, for previewing it."""
+	frappe.has_permission("Print Format", "read", doc=name, throw=True)
+	return _version_snapshot(name, version).get("fields")
+
+
+def _version_snapshot(name: str, version: str) -> dict:
+	row = frappe.db.get_value("Version", version, ["docname", "data"], as_dict=True)
 	snapshot = row and row.docname == name and (frappe.parse_json(row.data) or {}).get(VERSION_KEY)
 	if not snapshot:
 		frappe.throw(_("This version does not belong to {0}").format(frappe.bold(name)))
+	return snapshot
+
+
+@frappe.whitelist()
+def restore_version(name: str, version: str, modified: str | datetime):
+	"""Load a recorded version into the draft; what prints waits for Save & Apply."""
+	doc = _writable_format(name, modified)
+	snapshot = _version_snapshot(name, version)
 	doc.db_set("draft_data", frappe.as_json(_draft_payload(snapshot.get("fields"))))
 	return doc.modified
 
