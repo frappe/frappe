@@ -74,9 +74,9 @@ class TestSearchIndexFields(IntegrationTestCase):
 
 	def test_a_flagged_child_field_becomes_a_column(self):
 		self.assertIn("seen_by", self.search.schema["text_fields"])
-		source = self.search.doc_configs["Note"]["related_sources"][0]
+		source = self.search.doc_configs["Note"]["child_sources"][0]
 		self.assertEqual(
-			(source.doctype, source.link_field, source.is_child), ("Note Seen By", "parent", True)
+			(source.fieldname, source.doctype, source.fields), ("seen_by", "Note Seen By", ["user"])
 		)
 
 	def test_a_document_without_related_rows_is_still_indexed(self):
