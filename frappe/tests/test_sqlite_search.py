@@ -14,7 +14,6 @@ from frappe.search.sqlite_search import (
 	index_docs_in_queue,
 )
 from frappe.tests import IntegrationTestCase
-from frappe.utils import add_to_date, now_datetime
 from frappe.utils.synchronization import filelock
 
 
@@ -150,30 +149,43 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 		build_index(TestSQLiteSearch, force=True)
 		self.assertTrue(self.search.index_exists())
 
-	def test_a_document_saved_during_a_build_is_queued(self):
-		"""update_doc_index skips an index it thinks is absent, which it is for a whole build."""
+	def test_build_reconciles_documents_changed_while_it_ran(self):
+		"""update_doc_index and delete_doc_index both skip an index they think is absent, which it
+		is for the whole of a build. build_index itself has to catch those up."""
 		self.search.drop_index()
 		self.addCleanup(self.search.drop_index)
-		note = frappe.get_doc({"doctype": "Note", "title": "Original Title", "content": "body"}).insert()
-		self.addCleanup(frappe.delete_doc, "Note", note.name, force=True)
 
-		self.search.build_index()
-		started_at = add_to_date(now_datetime(), seconds=-5)
+		edited = frappe.get_doc({"doctype": "Note", "title": "Edited Note", "content": "x"}).insert()
+		removed = frappe.get_doc({"doctype": "Note", "title": "Removed Note", "content": "x"}).insert()
+		self.addCleanup(frappe.delete_doc, "Note", edited.name, force=True)
 
-		with patch.object(TestSQLiteSearch, "index_exists", return_value=False):
-			note.title = "Renamed During Build"
-			note.save()
+		original_index_documents = SQLiteSearch._index_documents
+		changes_made = []
 
-		self.assertFalse(self._finds("Renamed During Build"))
+		def change_documents_mid_build(search, documents):
+			"""Edit one Note and delete another once the build has read them."""
+			original_index_documents(search, documents)
+			if changes_made:
+				return
+			changes_made.append(True)
+			edited.db_set("title", "Renamed Mid Build")
+			frappe.delete_doc("Note", removed.name)
 
-		self.search.queue_documents_changed_during_build(started_at)
+		with patch.object(
+			SQLiteSearch, "_index_documents", autospec=True, side_effect=change_documents_mid_build
+		):
+			self.search.build_index()
+
+		self.assertTrue(changes_made, "the build never read a batch, so nothing was exercised")
+
 		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[TestSQLiteSearch]):
 			index_docs_in_queue()
 
-		self.assertTrue(self._finds("Renamed During Build"))
+		self.assertTrue(self._search_finds("Renamed Mid Build", edited.name))
+		self.assertFalse(self._search_finds("Removed Note", removed.name))
 
-	def _finds(self, query):
-		return any("Renamed" in str(hit) for hit in self.search.search(query)["results"])
+	def _search_finds(self, query, name):
+		return any(hit.get("name") == name for hit in self.search.search(query)["results"])
 
 	def test_index_lifecycle_and_status_methods(self):
 		"""Test index building, existence checking, and status validation."""
