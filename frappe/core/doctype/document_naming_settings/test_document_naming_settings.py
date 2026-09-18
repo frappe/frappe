@@ -13,9 +13,8 @@ from frappe.utils import cint
 
 class TestNamingSeries(IntegrationTestCase):
 	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.ns_doctype = (
+	def create_naming_series_doctype(cls):
+		return (
 			new_doctype(
 				fields=[
 					{
@@ -32,7 +31,14 @@ class TestNamingSeries(IntegrationTestCase):
 			.name
 		)
 
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.ns_doctype = cls.create_naming_series_doctype()
+
 	def setUp(self):
+		if not frappe.db.exists("DocType", self.ns_doctype):
+			self.__class__.ns_doctype = self.create_naming_series_doctype()
 		self.dns: DocumentNamingSettings = frappe.get_doc("Document Naming Settings")
 
 	def tearDown(self):

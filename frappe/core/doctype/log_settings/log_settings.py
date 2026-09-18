@@ -163,7 +163,9 @@ def clear_log_table(doctype, days=90):
 	backup = f"{original} backup_table"
 
 	try:
-		if frappe.db.db_type == "postgres":
+		if frappe.db.db_type == "sqlite":
+			frappe.db.delete(doctype, {"creation": ("<=", cutoff)})
+		elif frappe.db.db_type == "postgres":
 			frappe.db.sql_ddl(f'CREATE TABLE "{temporary}" (LIKE "{original}" INCLUDING ALL)')
 
 			frappe.db.sql(
@@ -188,5 +190,8 @@ def clear_log_table(doctype, days=90):
 		frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `{temporary}`")
 		raise
 	else:
+		if frappe.db.db_type == "sqlite":
+			frappe.db.commit()
+			return
 		frappe.db.sql_ddl(f"DROP TABLE `{backup}`")
 		frappe.db.commit()
