@@ -18,6 +18,8 @@ from bs4 import BeautifulSoup
 import frappe
 from frappe.model.document import Document
 from frappe.utils import update_progress_bar
+from frappe.utils.file_lock import LockTimeoutError
+from frappe.utils.synchronization import filelock
 
 
 class WarningType(Enum):
@@ -1776,7 +1778,17 @@ def build_index(
 	else:
 		print(f"{SearchClass.__name__}: Index does not exist or force=True, building...")
 
-	search.build_index(is_continuation=is_continuation)
+	try:
+		with filelock(_build_lock_name(SearchClass), timeout=0):
+			search.build_index(is_continuation=is_continuation)
+	except LockTimeoutError:
+		print(f"{SearchClass.__name__}: another build is already running, skipping.")
+
+
+def _build_lock_name(SearchClass: type[SQLiteSearch]) -> str:
+	"""One lock per search class. A fresh build deletes any temporary database it finds, so two
+	of them on one class would delete each other's work."""
+	return f"search_index_{SearchClass.__module__}.{SearchClass.__name__}"
 
 
 def _enqueue_index_job(search_class_path: str, is_continuation: bool = False):
