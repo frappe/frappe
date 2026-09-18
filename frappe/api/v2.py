@@ -17,7 +17,7 @@ import frappe
 import frappe.client
 from frappe import _, cint, cstr, get_newargs, is_whitelisted
 from frappe.api import discovery
-from frappe.api.include import add_document_parts, add_meta_parts, parse_include
+from frappe.api.include import add_document_parts, add_meta_parts, parse_include, serialize_meta
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.database.utils import DefaultOrderBy
 from frappe.handler import is_valid_http_method, run_server_script, upload_file
@@ -251,7 +251,7 @@ def delete_doc(doctype: str, name: str):
 def get_meta(doctype: str):
 	frappe.only_for("All")
 	add_meta_parts(doctype, parse_include(frappe.form_dict.get("include")))
-	return frappe.get_meta(doctype)
+	return serialize_meta(frappe.get_meta(doctype))
 
 
 def execute_doc_method(doctype: str, name: str, method: str | None = None):

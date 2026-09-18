@@ -22,6 +22,7 @@ from frappe.share import _get_users as get_shares
 
 
 def parse_include(value: str | list | None) -> list[str]:
+	"""The part names from `include`, a comma-separated string or a JSON list."""
 	if not value:
 		return []
 	if isinstance(value, str):
@@ -30,6 +31,7 @@ def parse_include(value: str | list | None) -> list[str]:
 
 
 def add_document_parts(doc: Document, include: list[str]) -> None:
+	"""Put each named part of `doc` on `frappe.response` under its own key; an unknown name raises."""
 	for part in include:
 		if part not in DOCUMENT_PARTS and part != USERS_PART:
 			raise UnknownPartError(part, [*DOCUMENT_PARTS, USERS_PART])
@@ -42,6 +44,7 @@ def add_document_parts(doc: Document, include: list[str]) -> None:
 
 
 def add_meta_parts(doctype: str, include: list[str]) -> None:
+	"""Put each named part of the doctype's meta on `frappe.response`; an unknown name raises."""
 	for part in include:
 		if part not in META_PARTS:
 			raise UnknownPartError(part, META_PARTS)
@@ -111,11 +114,11 @@ def get_users(doc: Document, include: list[str]) -> dict:
 	"""Names and images keyed by user; the v2 keys are `full_name` and `user_image`, not v1's `fullname`/`image`."""
 	names = {doc.owner, doc.modified_by}
 	for part in include:
-		rows = frappe.response.get(part)
-		if isinstance(rows, list):
-			names.update(
-				row[key] for row in rows for key in USER_KEYS if isinstance(row, dict) and row.get(key)
-			)
+		for row in frappe.response.get(part) or []:
+			if isinstance(row, str):
+				names.add(row)
+			elif isinstance(row, dict):
+				names.update(row[key] for key in USER_KEYS if row.get(key))
 	names.discard("everyone")
 	users = frappe.get_all(
 		"User",
@@ -152,7 +155,14 @@ def get_children(doctype: str) -> list[dict]:
 	meta = frappe.get_meta(doctype)
 	# two table fields can share one child doctype
 	children = {df.options for df in meta.get_table_fields(include_computed=True)}
-	return [frappe.get_meta(child).as_dict(no_nulls=True) for child in sorted(children)]
+	return [serialize_meta(frappe.get_meta(child), parenttype=doctype) for child in sorted(children)]
+
+
+def serialize_meta(meta, parenttype: str | None = None) -> dict:
+	"""The meta as the route sends it, with the fields masked for the caller."""
+	d = meta.as_dict(no_nulls=True)
+	d["masked_fields"] = [df.fieldname for df in meta.get_masked_fields(parenttype=parenttype)]
+	return d
 
 
 META_PARTS = {"children": get_children}

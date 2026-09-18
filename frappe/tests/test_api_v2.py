@@ -1019,6 +1019,12 @@ class TestIncludePartsV2(FrappeAPITestCase):
 		self.assertEqual(response.json["seen"], ["other@example.com", self.TEST_USER])
 		add_seen.assert_called_once()
 
+	def test_users_covers_the_seen_list(self):
+		self.seed_seen(["other@example.com"])
+		with patch.object(Document, "add_seen"):
+			response = self.read("seen,users")
+		self.assertIn(self.TEST_USER, response.json["users"])
+
 	def test_seen_does_not_mark_twice(self):
 		self.seed_seen([self.TEST_USER])
 		with patch.object(Document, "add_seen") as add_seen:
@@ -1037,7 +1043,10 @@ class TestIncludePartsV2(FrappeAPITestCase):
 		response = self.get(self.doctype_path("User", "meta"), {"sid": self.user_sid, "include": "children"})
 		self.assertEqual(response.status_code, 200, response.json)
 		self.assertEqual(response.json["data"]["name"], "User")
-		self.assertIn("Has Role", [child["name"] for child in response.json["children"]])
+		self.assertEqual(response.json["data"]["masked_fields"], [])
+		children = {child["name"]: child for child in response.json["children"]}
+		self.assertIn("Has Role", children)
+		self.assertEqual(children["Has Role"]["masked_fields"], [])
 
 	def test_meta_unknown_part_is_an_error(self):
 		with suppress_stdout():
