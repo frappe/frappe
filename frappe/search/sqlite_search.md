@@ -190,6 +190,23 @@ INDEXABLE_DOCTYPES = {
 }
 ```
 
+### Child Table Fields
+
+Values that live in a child table are indexed with `child_fields`. The key is the Table field on the parent, the value is the child fields to index:
+
+```python
+INDEXABLE_DOCTYPES = {
+    "Item": {
+        "fields": ["name", {"title": "item_code"}, {"content": "item_name"}],
+        "child_fields": {"barcodes": ["barcode"]},
+    }
+}
+```
+
+Each declared table becomes one text column named after its Table field, holding every listed value of every row joined by spaces. The child doctype and the parent link come from the schema, so only the fieldname is declared.
+
+A child row raises no document event of its own, so the parent save is the only signal that one of its values changed. A doctype declaring `child_fields` is therefore re-indexed on every save of the parent, not only when one of its own indexed fields changed.
+
 ### Field Mapping Rules
 
 - **String fields**: Direct mapping `"field_name"`
@@ -301,6 +318,13 @@ search_result = search.search("projetc managment")  # Will find "project managem
 # Access correction information
 print(search_result["summary"]["corrected_words"])
 # Output: {"projetc": "project", "managment": "management"}
+```
+
+Building the vocabulary this reads from costs about a third of a full build. An index that never calls `search()` — one used only to narrow another query — can skip that pass:
+
+```python
+class ItemSearch(SQLiteSearch):
+    BUILD_VOCABULARY = False
 ```
 
 ### Content Processing
@@ -451,7 +475,7 @@ Remove a single document from the index.
 Check if search is enabled (override to add disable logic).
 
 #### `index_exists()`
-Check if the search index exists.
+Check if the search index exists. A table built before a schema change (a new indexed field or child table) no longer covers what is searched, and is reported absent until it is rebuilt.
 
 #### `get_search_filters()`
 **Must be implemented by subclasses.** Return filters for the current user.

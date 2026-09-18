@@ -612,8 +612,8 @@ class SQLiteSearch(ABC):
 		belong to a document that is gone by the time the index goes live.
 
 		Reads Deleted Document, which is the only record left of a deletion once it has happened.
-		A delete_permanently=True deletion writes no such row and is not recoverable here; that
-		entry survives until the next build.
+		A delete_permanently=True deletion writes no such row, so it cannot be found here and the
+		indexed record can remain in the search index until the next full build.
 		"""
 		deleted = frappe.get_all(
 			"Deleted Document",
