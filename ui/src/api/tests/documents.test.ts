@@ -9,6 +9,7 @@ import {
   listDocuments,
   runDocumentMethod,
   runMethod,
+  searchDocuments,
   TIMESTAMP_MISMATCH,
   updateDocument,
 } from "../index";
@@ -77,11 +78,68 @@ describe("listDocuments and countDocuments", () => {
     expect(query.get("start")).toBe("20");
   });
 
+  it("carries no count keys when include did not ask for one", async () => {
+    respond({ data: [], has_next_page: false });
+    const envelope = await listDocuments("ToDo", { limit: 20 });
+    expect(lastCall().url).toBe("/api/v2/document/ToDo?limit=20");
+    expect("count" in envelope).toBe(false);
+    expect("count_capped" in envelope).toBe(false);
+  });
+
+  it("asks for the count as an include, from an array or a string", async () => {
+    respond({ data: [{ name: "T-1" }], has_next_page: true, count: 41, count_capped: false });
+    const envelope = await listDocuments("ToDo", { limit: 1 }, { include: ["count"] });
+    expect(lastCall().url).toBe("/api/v2/document/ToDo?limit=1&include=count");
+    expect(envelope.count).toBe(41);
+    expect(envelope.count_capped).toBe(false);
+    await listDocuments("ToDo", {}, { include: "count,permissions" });
+    expect(lastCall().url).toBe("/api/v2/document/ToDo?include=count%2Cpermissions");
+  });
+
+  it("passes a null count through when the server gave up counting", async () => {
+    respond({ data: [], has_next_page: false, count: null, count_capped: false });
+    const envelope = await listDocuments("ToDo", {}, { include: ["count"] });
+    expect(envelope.count).toBeNull();
+  });
+
   it("counts on the doctype route", async () => {
     respond({ data: 7 });
     const { data } = await countDocuments("ToDo", { filters: { status: "Open" } });
     expect(data).toBe(7);
     expect(lastCall().url).toBe("/api/v2/doctype/ToDo/count?filters=%7B%22status%22%3A%22Open%22%7D");
+  });
+
+  it("counts with or_filters and no limit, and passes a null count through", async () => {
+    respond({ data: null });
+    const or_filters = [["owner", "=", "a@x.com"], ["assigned_to", "=", "a@x.com"]];
+    const { data } = await countDocuments("ToDo", { or_filters });
+    expect(data).toBeNull();
+    const query = new URL(lastCall().url, "http://x").searchParams;
+    expect(JSON.parse(query.get("or_filters")!)).toEqual(or_filters);
+    expect(query.has("limit")).toBe(false);
+  });
+});
+
+describe("searchDocuments", () => {
+  it("searches on the doctype route with every param by its server name", async () => {
+    respond({ data: [{ value: "a@x.com", label: "A", description: "A (a@x.com)" }] });
+    const { data } = await searchDocuments("User", {
+      txt: "a",
+      filters: { enabled: 1 },
+      reference_doctype: "ToDo",
+      query: "frappe.core.doctype.user.user.user_query",
+      limit: 10,
+      start: 0,
+    });
+    expect(data[0].value).toBe("a@x.com");
+    const { pathname, searchParams: query } = new URL(lastCall().url, "http://x");
+    expect(pathname).toBe("/api/v2/doctype/User/search");
+    expect(query.get("txt")).toBe("a");
+    expect(JSON.parse(query.get("filters")!)).toEqual({ enabled: 1 });
+    expect(query.get("reference_doctype")).toBe("ToDo");
+    expect(query.get("query")).toBe("frappe.core.doctype.user.user.user_query");
+    expect(query.get("limit")).toBe("10");
+    expect(query.get("start")).toBe("0");
   });
 });
 
