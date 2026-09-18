@@ -1,10 +1,14 @@
 import { createResource } from "frappe-ui";
-import { computed, onMounted, onUnmounted, reactive, ref, type Ref } from "vue";
 import {
-  getSocketInstance,
-  resubscribeHeldDocs,
-  subscribeToDoc,
-} from "../../socket";
+  computed,
+  onMounted,
+  onUnmounted,
+  reactive,
+  ref,
+  watch,
+  type Ref,
+} from "vue";
+import { getSocketInstance, subscribeToDoc } from "../../socket";
 import type { Activity, CustomActivity, Pagination, UserInfo } from "./types";
 import { compareActivities, dropDuplicateKeys } from "./grouping";
 import { getAssignee, stripHtml } from "./utils";
@@ -33,6 +37,9 @@ type PendingRow = (Activity | CustomActivity) & {
   confirmedKey?: string;
 };
 const pendingActivities = ref<Record<string, PendingRow[]>>({});
+
+// All a retired pending row leaves behind: the key it rendered under, per document.
+const adoptedKeys = ref<Record<string, Record<string, string>>>({});
 
 const docKey = (doctype: string, docname: string) => `${doctype}:${docname}`;
 
@@ -85,6 +92,46 @@ export function addPendingActivity(
         rows.map((r) => (r.key === key ? { ...r, confirmedKey } : r))
       ),
     drop: () => setRows((rows) => rows.filter((r) => r.key !== key)),
+  };
+}
+
+/**
+ * Drops pending rows the server has echoed back, keeping the key each rendered under.
+ * The real row then takes that key, so Vue patches the node the pending row mounted
+ * rather than replacing it — replacing it rebuilds the email iframe, which comes back
+ * at its collapsed height and jumps.
+ */
+function retirePendingRows(doctype: string, docname: string, feed: Activity[]) {
+  const doc = docKey(doctype, docname);
+  const rows = pendingActivities.value[doc];
+  if (!rows?.length) return;
+
+  const confirmedKeys = new Set(feed.map((a) => a.key));
+  // The socket can deliver the real row before the request that created it answers, so a
+  // row with no key to wait for yet is matched on what it says. An identical older row
+  // can swallow it, which only costs it the wait until the next fetch.
+  const keyByText = new Map<string, string>();
+  if (rows.some(isUnresolved))
+    for (const a of feed) {
+      const text = rowText(a);
+      if (text) keyByText.set(text, a.key);
+    }
+
+  const adopted: Record<string, string> = {};
+  const waiting = rows.filter((row) => {
+    const real =
+      row.confirmedKey ??
+      (isUnresolved(row) ? keyByText.get(rowText(row) ?? "") : row.key);
+    if (!real || !confirmedKeys.has(real)) return true;
+    adopted[real] = row.key;
+    return false;
+  });
+  if (waiting.length === rows.length) return;
+
+  pendingActivities.value = { ...pendingActivities.value, [doc]: waiting };
+  adoptedKeys.value = {
+    ...adoptedKeys.value,
+    [doc]: { ...adoptedKeys.value[doc], ...adopted },
   };
 }
 
@@ -154,6 +201,13 @@ function getTimelineStore(
     },
   });
 
+  // sync: the feed and the rows drawn from it must not disagree for a render.
+  watch(
+    () => resource.data,
+    (feed) => retirePendingRows(doctype, docname, (feed as Activity[]) ?? []),
+    { flush: "sync" }
+  );
+
   // Every trigger in the window joins the same fetch, so one save costs one request.
   let pendingRefresh: Promise<void> | undefined;
   let changedSinceFetch = false;
@@ -222,38 +276,14 @@ export function useActivityTimeline(
     const confirmed = dropDuplicateKeys(
       (resource.data as Activity[] | undefined) ?? []
     );
-    const rows = pendingActivities.value[docKey(doctype, docname)] ?? [];
-    if (!rows.length) return [...confirmed].sort(compareActivities);
-
-    const confirmedKeys = new Set(confirmed.map((a) => a.key));
-    // The socket can deliver the real row before the request that created it answers, so a
-    // row with no key to wait for yet is matched on what it says. An identical older row
-    // can swallow it, which only costs it the wait until the next fetch.
-    const keyByText = new Map<string, string>();
-    if (rows.some(isUnresolved)) {
-      for (const a of confirmed) {
-        const text = rowText(a);
-        if (text) keyByText.set(text, a.key);
-      }
-    }
-
-    // A pending row keeps its place: the real row renders under the key the pending one
-    // already had, so Vue patches that node instead of replacing it. Replacing it would
-    // rebuild the email iframe, which comes back at its collapsed height and jumps.
-    const adopted = new Map<string, string>();
-    const waiting = rows.filter((row) => {
-      const real =
-        row.confirmedKey ??
-        (isUnresolved(row) ? keyByText.get(rowText(row) ?? "") : row.key);
-      if (!real || !confirmedKeys.has(real)) return true;
-      adopted.set(real, row.key);
-      return false;
-    });
-
-    const shown = confirmed.map((a) => {
-      const key = adopted.get(a.key);
-      return key ? { ...a, key } : a;
-    });
+    const doc = docKey(doctype, docname);
+    const adopted = adoptedKeys.value[doc];
+    const shown = adopted
+      ? confirmed.map((a) =>
+          adopted[a.key] ? { ...a, key: adopted[a.key] } : a
+        )
+      : confirmed;
+    const waiting = pendingActivities.value[doc] ?? [];
     return [...shown, ...waiting].sort(compareActivities);
   });
 
@@ -401,8 +431,8 @@ function createLiveUpdates(
     refresh();
   };
 
-  // A reconnect gives us a new socket, so the server no longer has us in the
-  // room and whatever was sent meanwhile is gone: rejoin, then catch up.
+  // A reconnect gives us a new socket, so whatever was sent meanwhile is gone and the
+  // feed has to catch up. Rejoining the rooms is the socket module's own job.
   // `connect` also fires on the very first connect, so only act after a drop.
   let dropped = false;
   const onDisconnect = () => {
@@ -411,7 +441,6 @@ function createLiveUpdates(
   const onConnect = () => {
     if (!dropped) return;
     dropped = false;
-    resubscribeHeldDocs(socket);
     refresh();
   };
 
