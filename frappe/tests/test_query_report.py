@@ -54,6 +54,9 @@ class TestQueryReport(FrappeTestCase):
 				"is_standard": "No",
 			}
 		).insert(ignore_permissions=True)
+		other_report = frappe.copy_doc(report)
+		other_report.report_name = "Closed ToDos " + frappe.generate_hash(length=6)
+		other_report.insert(ignore_permissions=True)
 
 		# the ready notification links a custom report's prepared report to its reference report
 		with self.set_user("test1@example.com"):
@@ -65,6 +68,8 @@ class TestQueryReport(FrappeTestCase):
 			)
 			filters = json.dumps({"prepared_report_name": prepared_report.name})
 			self.assertEqual(run(report.name, filters)["doc"].name, prepared_report.name)
+			with self.assertRaises(frappe.PermissionError):
+				run(other_report.name, filters)
 
 		with self.set_user("test2@example.com"), self.assertRaises(frappe.PermissionError):
 			run(report.name, filters)
