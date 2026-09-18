@@ -40,8 +40,8 @@ def backup_sqlite_database(database_path: str | os.PathLike, backup_path: str | 
 	with tempfile.TemporaryDirectory(prefix="frappe-sqlite-backup-") as temp_directory:
 		snapshot_path = Path(temp_directory) / "snapshot.db"
 		with (
-			sqlite3.connect(database_uri, uri=True, timeout=15) as source,
-			sqlite3.connect(snapshot_path) as snapshot,
+			contextlib.closing(sqlite3.connect(database_uri, uri=True, timeout=15)) as source,
+			contextlib.closing(sqlite3.connect(snapshot_path)) as snapshot,
 		):
 			source.backup(snapshot)
 
