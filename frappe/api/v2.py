@@ -9,6 +9,7 @@ Note:
 """
 
 import json
+from functools import partial
 from typing import Any
 
 from werkzeug.routing import Rule
@@ -16,7 +17,7 @@ from werkzeug.routing import Rule
 import frappe
 import frappe.client
 from frappe import _, cint, cstr, get_newargs, is_whitelisted
-from frappe.api import discovery
+from frappe.api import collaboration, discovery
 from frappe.api.include import (
 	add_document_parts,
 	add_list_parts,
@@ -660,6 +661,21 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 	return response
 
 
+def collaboration_rules() -> list[Rule]:
+	# only a literal part segment beats the greedy `<path:name>`
+	rules = []
+	for part in collaboration.ADD:
+		path = f"/document/<doctype>/<path:name>/{part}"
+		add = partial(collaboration.add, part=part)
+		remove = partial(collaboration.remove, part=part)
+		update = partial(collaboration.update, part=part)
+		rules.append(Rule(path, methods=["POST"], endpoint=add))
+		rules.append(Rule(path, methods=["DELETE"], endpoint=remove))
+		rules.append(Rule(f"{path}/<path:key>", methods=["DELETE"], endpoint=remove))
+		rules.append(Rule(f"{path}/<path:key>", methods=["PATCH"], endpoint=update))
+	return rules
+
+
 url_rules = [
 	# Discovery APIs
 	Rule("/discovery", methods=["GET"], endpoint=discovery.root),
@@ -704,6 +720,7 @@ url_rules = [
 		methods=["GET", "POST", "QUERY"],
 		endpoint=execute_doc_method,
 	),
+	*collaboration_rules(),
 	# Collection level APIs
 	Rule("/doctype/<doctype>/meta", methods=["GET"], endpoint=get_meta),
 	Rule("/doctype/<doctype>/count", methods=["GET", "QUERY"], endpoint=count),

@@ -1241,3 +1241,304 @@ class TestListPartsV2(FrappeAPITestCase):
 		# no suppress_stdout: the refusal prints, and a None stdout turns that into a 500
 		response = self.get(self.doctype_path("ToDo", "search"), {"sid": "Guest", "txt": self.prefix})
 		self.assertEqual(response.status_code, 403)
+
+
+class TestCollaborationWritesV2(FrappeAPITestCase):
+	"""`POST`, `DELETE` and `PATCH` on the collaboration parts of a document route."""
+
+	version = "v2"
+	TEST_USER = "api-collab-user@example.com"
+	PEER = "api-collab-peer@example.com"
+	# adding a tag creates a Tag master that outlives the class; these are the ones the tests add
+	TAGS = ("urgent", "slashed")
+
+	@classmethod
+	def setUpClass(cls):
+		# the test client answers on another thread, so fixtures are committed to be visible there
+		super().setUpClass()
+		for email in (cls.TEST_USER, cls.PEER):
+			cls.make_user(email)
+		cls.todo = cls.make_todo()
+		# owned by Administrator and allocated to someone else, so TEST_USER cannot read it
+		cls.unreadable = cls.make_todo(cls.PEER)
+		cls.note = frappe.get_doc({"doctype": "Note", "title": frappe.generate_hash(), "public": 1}).insert()
+		slash = cls.make_todo()
+		cls.slash_name = frappe.rename_doc("ToDo", slash.name, f"SO/2026/{slash.name}", force=True)
+		cls.admin_comment = cls.make_comment(cls.todo.name)
+		cls.other_comment = cls.make_comment(cls.slash_name)
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def make_user(cls, email: str):
+		if frappe.db.exists("User", email):
+			return
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": "Collab User",
+				"send_welcome_email": 0,
+				"document_follow_notify": 1,
+			}
+		).insert(ignore_permissions=True)
+		user.add_roles("Desk User")
+
+	@classmethod
+	def make_todo(cls, allocated_to: str | None = None):
+		return frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": frappe.generate_hash(),
+				"allocated_to": allocated_to or cls.TEST_USER,
+			}
+		).insert()
+
+	@classmethod
+	def make_comment(cls, name: str) -> str:
+		return (
+			frappe.get_doc(
+				{
+					"doctype": "Comment",
+					"comment_type": "Comment",
+					"reference_doctype": "ToDo",
+					"reference_name": name,
+					"content": "a comment",
+				}
+			)
+			.insert()
+			.name
+		)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		frappe.delete_doc_if_exists("ToDo", cls.slash_name, force=True)
+		frappe.delete_doc_if_exists("ToDo", cls.todo.name, force=True)
+		frappe.delete_doc_if_exists("ToDo", cls.unreadable.name, force=True)
+		frappe.delete_doc_if_exists("Note", cls.note.name, force=True)
+		for tag in cls.TAGS:
+			frappe.delete_doc_if_exists("Tag", tag, force=True)
+		for email in (cls.TEST_USER, cls.PEER):
+			frappe.delete_doc_if_exists("User", email, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	@cached_property
+	def user_sid(self) -> str:
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		original_request = getattr(frappe.local, "request", None)
+		set_request(path="/")
+		try:
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as(self.TEST_USER)
+			return frappe.session.sid
+		finally:
+			frappe.local.request = original_request
+
+	def part(self, *parts, doctype: str = "ToDo", name: str | None = None):
+		return self.resource(doctype, name or self.todo.name, *parts)
+
+	def add(self, path: str, body: dict | None = None, sid: str | None = None):
+		return self.post(path, {"sid": sid or self.user_sid, **(body or {})})
+
+	def remove(self, path: str, sid: str | None = None):
+		return self.delete(path, data={"sid": sid or self.user_sid})
+
+	def edit(self, path: str, body: dict, sid: str | None = None):
+		return self.patch(path, {"sid": sid or self.user_sid, **body})
+
+	def test_assignment_add_and_remove(self):
+		response = self.add(self.part("assignments"), {"user": self.PEER, "description": "look"})
+		self.assertEqual(response.status_code, 200, response.json)
+		rows = response.json["data"]["assignments"]
+		self.assertEqual(rows[0]["user"], self.PEER)
+		self.assertEqual(set(rows[0]), {"user", "description", "priority", "date"})
+		self.assertIn(self.PEER, response.json["data"]["users"])
+
+		response = self.remove(self.part("assignments", self.PEER))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["assignments"], [])
+		frappe.db.rollback()
+		status = frappe.db.get_value(
+			"ToDo",
+			{"reference_type": "ToDo", "reference_name": self.todo.name, "allocated_to": self.PEER},
+			"status",
+		)
+		self.assertEqual(status, "Cancelled")
+
+	def test_assignment_rejects_an_unstringy_option(self):
+		with suppress_stdout():
+			response = self.add(self.part("assignments"), {"user": self.PEER, "priority": ["High"]})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "InvalidRequestError")
+
+	def test_assignment_needs_write_on_the_document(self):
+		# not under suppress_stdout: it sets sys.stdout to None, and the share lookup this
+		# refusal walks prints a deprecation warning
+		response = self.add(
+			self.part("assignments", doctype="Note", name=self.note.name), {"user": self.PEER}
+		)
+		self.assertEqual(response.status_code, 403, response.json)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+
+	def test_share_upserts_one_row(self):
+		self.add(self.part("shares"), {"user": self.PEER, "write": 1})
+		response = self.add(self.part("shares"), {"user": self.PEER, "write": 0, "share": 1})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(
+			response.json["data"]["shares"],
+			[{"user": self.PEER, "read": 1, "write": 0, "submit": 0, "share": 1}],
+		)
+		self.assertIn(self.PEER, response.json["data"]["users"])
+		response = self.remove(self.part("shares", self.PEER))
+		self.assertEqual(response.json["data"]["shares"], [])
+
+	def test_share_with_everyone(self):
+		response = self.add(self.part("shares"), {"user": "everyone"})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["shares"][0]["user"], "everyone")
+		self.assertNotIn("everyone", response.json["data"]["users"])
+		response = self.remove(self.part("shares", "everyone"))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["shares"], [])
+
+	def test_share_cannot_drop_read(self):
+		with suppress_stdout():
+			response = self.add(self.part("shares"), {"user": self.PEER, "read": 0})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "InvalidRequestError")
+
+	def test_share_needs_the_share_right(self):
+		response = self.add(self.part("shares", doctype="Note", name=self.note.name), {"user": self.PEER})
+		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+
+	def test_tag_add_and_remove(self):
+		response = self.add(self.part("tags"), {"tag": "urgent"})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"], {"tags": ["urgent"]})
+		response = self.remove(self.part("tags", "urgent"))
+		self.assertEqual(response.json["data"], {"tags": []})
+
+	def test_tag_needs_write(self):
+		response = self.add(self.part("tags", doctype="Note", name=self.note.name), {"tag": "urgent"})
+		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+
+	def test_tag_rejects_a_comma(self):
+		with suppress_stdout():
+			response = self.add(self.part("tags"), {"tag": "a,b"})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "InvalidRequestError")
+
+	def test_favourite_add_and_remove(self):
+		response = self.add(self.part("favourites"))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["favourites"][0]["user"], self.TEST_USER)
+		self.assertIn(self.TEST_USER, response.json["data"]["users"])
+		response = self.remove(self.part("favourites"))
+		self.assertEqual(response.json["data"]["favourites"], [])
+
+	def test_follow_add_read_and_remove(self):
+		path = self.part("follows", doctype="Note", name=self.note.name)
+		response = self.add(path)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"], {"follows": True})
+		response = self.get(
+			self.resource("Note", self.note.name), {"sid": self.user_sid, "include": "follows"}
+		)
+		self.assertIs(response.json["follows"], True)
+		response = self.remove(path)
+		self.assertEqual(response.json["data"], {"follows": False})
+
+	def test_declined_follow_answers_with_the_true_state(self):
+		with suppress_stdout():
+			response = self.add(self.part("follows"))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"], {"follows": False})
+
+	def test_comment_add_edit_and_remove(self):
+		response = self.add(self.part("comments"), {"content": "hello"})
+		self.assertEqual(response.status_code, 200, response.json)
+		mine = [row for row in response.json["data"]["comments"] if row["owner"] == self.TEST_USER]
+		self.assertIn("hello", mine[0]["content"])
+		self.assertIn(self.TEST_USER, response.json["data"]["users"])
+
+		response = self.edit(self.part("comments", mine[0]["name"]), {"content": "edited"})
+		self.assertEqual(response.status_code, 200, response.json)
+		contents = [row["content"] for row in response.json["data"]["comments"]]
+		self.assertTrue(any("edited" in content for content in contents))
+
+		response = self.remove(self.part("comments", mine[0]["name"]))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual([row["name"] for row in response.json["data"]["comments"]], [self.admin_comment])
+
+	def test_comment_on_an_unreadable_record_is_refused(self):
+		response = self.add(self.part("comments", name=self.unreadable.name), {"content": "hello"})
+		self.assertEqual(response.status_code, 403, response.json)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+
+	def test_comment_of_another_user_cannot_be_removed(self):
+		with suppress_stdout():
+			response = self.remove(self.part("comments", self.admin_comment))
+		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+		self.assertTrue(frappe.db.exists("Comment", self.admin_comment))
+
+	def test_comment_of_another_user_cannot_be_edited(self):
+		with suppress_stdout():
+			response = self.edit(self.part("comments", self.admin_comment), {"content": "mine now"})
+		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+
+	def test_comment_on_another_record_cannot_be_removed(self):
+		with suppress_stdout():
+			response = self.remove(self.part("comments", self.other_comment))
+		self.assertEqual(response.status_code, 404)
+		self.assertEqual(response.json["errors"][0]["type"], "DoesNotExistError")
+		self.assertTrue(frappe.db.exists("Comment", self.other_comment))
+
+	def test_bad_body_is_an_error(self):
+		with suppress_stdout():
+			response = self.add(self.part("tags"), {"tag": ""})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "InvalidRequestError")
+
+	def test_key_rules(self):
+		with suppress_stdout():
+			keyless = self.remove(self.part("favourites", "someone"))
+			keyed = self.remove(self.part("tags"))
+			edited = self.edit(self.part("tags", "urgent"), {"tag": "x"})
+		self.assertEqual(keyless.status_code, 417)
+		self.assertEqual(keyed.status_code, 417)
+		self.assertEqual(edited.status_code, 417)
+		self.assertEqual(edited.json["errors"][0]["type"], "ValidationError")
+
+	def test_unknown_part_is_not_a_route(self):
+		with suppress_stdout():
+			response = self.add(self.part("views"))
+		self.assertEqual(response.status_code, 404)
+
+	def test_slash_named_record_routes(self):
+		name = self.slash_name
+		response = self.get(self.resource("ToDo", name), {"sid": self.user_sid, "include": "tags"})
+		self.assertEqual(response.json["data"]["name"], name)
+		response = self.add(self.part("tags", name=name), {"tag": "slashed"})
+		self.assertEqual(response.json["data"], {"tags": ["slashed"]}, response.json)
+		response = self.remove(self.part("tags", "slashed", name=name))
+		self.assertEqual(response.json["data"], {"tags": []}, response.json)
+		response = self.add(self.part("favourites", name=name))
+		self.assertEqual(response.json["data"]["favourites"][0]["user"], self.TEST_USER)
+		response = self.remove(self.part("favourites", name=name))
+		self.assertEqual(response.json["data"]["favourites"], [])
+		response = self.edit(self.resource("ToDo", name), {"description": "still a document"})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["description"], "still a document")
+		response = self.remove(self.resource("ToDo", name))
+		self.assertEqual(response.status_code, 202, response.json)
+		frappe.db.rollback()
+		self.assertFalse(frappe.db.exists("ToDo", name))
