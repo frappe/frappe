@@ -1019,6 +1019,25 @@ class TestIncludePartsV2(FrappeAPITestCase):
 		self.assertEqual(response.json["seen"], ["other@example.com", self.TEST_USER])
 		add_seen.assert_called_once()
 
+	def test_users_ignores_parts_that_name_no_user(self):
+		frappe.get_doc({"doctype": "Tag", "name": "read"}).insert(
+			ignore_permissions=True, ignore_if_duplicate=True
+		)
+		frappe.db.commit()  # nosemgrep
+		from frappe.desk.doctype.tag.tag import add_tag
+
+		add_tag("read", "ToDo", self.todo.name)
+		frappe.db.commit()  # nosemgrep
+		response = self.read("permissions,tags,link_titles,users")
+		self.assertEqual(response.json["tags"], ["read"])
+		self.assertEqual(set(response.json["users"]), {"Administrator"})
+
+	def test_include_must_be_a_string(self):
+		with suppress_stdout():
+			response = self.get(self.resource("ToDo", self.todo.name), {"sid": self.sid, "include": ["seen"]})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "ValidationError")
+
 	def test_users_covers_the_seen_list(self):
 		self.seed_seen(["other@example.com"])
 		with patch.object(Document, "add_seen"):

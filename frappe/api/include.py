@@ -21,13 +21,13 @@ from frappe.permissions import get_doc_permissions
 from frappe.share import _get_users as get_shares
 
 
-def parse_include(value: str | list | None) -> list[str]:
-	"""The part names from `include`, a comma-separated string or a JSON list."""
-	if not value:
+def parse_include(value) -> list[str]:
+	"""The part names from `include`, a comma-separated string."""
+	if value is None:
 		return []
-	if isinstance(value, str):
-		value = value.split(",")
-	return [part.strip() for part in value if part.strip()]
+	if not isinstance(value, str):
+		raise frappe.ValidationError(_("'include' must be a comma-separated string"))
+	return [part.strip() for part in value.split(",") if part.strip()]
 
 
 def add_document_parts(doc: Document, include: list[str]) -> None:
@@ -107,18 +107,27 @@ def get_link_titles(doc: Document) -> dict:
 
 
 USERS_PART = "users"
-USER_KEYS = ("user", "owner")
+# the parts that name users, and the row key that holds the id (`None`: the row is the id)
+USER_ROW_KEY = {
+	"assignments": "user",
+	"shares": "user",
+	"favourites": "user",
+	"comments": "owner",
+	"seen": None,
+}
 
 
 def get_users(doc: Document, include: list[str]) -> dict:
 	"""Names and images keyed by user; the v2 keys are `full_name` and `user_image`, not v1's `fullname`/`image`."""
 	names = {doc.owner, doc.modified_by}
 	for part in include:
+		if part not in USER_ROW_KEY:
+			continue
+		key = USER_ROW_KEY[part]
 		for row in frappe.response.get(part) or []:
-			if isinstance(row, str):
-				names.add(row)
-			elif isinstance(row, dict):
-				names.update(row[key] for key in USER_KEYS if row.get(key))
+			user = row if key is None else row.get(key)
+			if user:
+				names.add(user)
 	names.discard("everyone")
 	users = frappe.get_all(
 		"User",
