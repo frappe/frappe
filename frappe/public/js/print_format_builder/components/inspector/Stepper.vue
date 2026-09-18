@@ -4,10 +4,10 @@
 			type="button"
 			class="es-button"
 			data-variant="subtle"
-			data-size="xs"
+			data-size="sm"
 			data-icon-button="true"
 			@click="$emit('decrement')"
-			v-html="frappe.utils.icon('minus', 'xs')"
+			v-html="frappe.utils.icon('minus', 'sm')"
 		></button>
 		<span class="pfb-stepper-value">
 			<input
@@ -26,10 +26,10 @@
 			type="button"
 			class="es-button"
 			data-variant="subtle"
-			data-size="xs"
+			data-size="sm"
 			data-icon-button="true"
 			@click="$emit('increment')"
-			v-html="frappe.utils.icon('plus', 'xs')"
+			v-html="frappe.utils.icon('plus', 'sm')"
 		></button>
 	</div>
 </template>
@@ -50,16 +50,12 @@ defineEmits(["decrement", "increment", "input"]);
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
-	width: 100%;
-}
-
-.pfb-stepper--sm {
-	width: auto;
+	justify-self: end;
+	margin-left: auto;
 }
 
 .pfb-stepper-value {
-	flex: 1;
-	min-width: 0;
+	min-width: 48px;
 	display: flex;
 	align-items: baseline;
 	justify-content: center;
