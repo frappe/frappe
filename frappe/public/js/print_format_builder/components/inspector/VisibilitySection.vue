@@ -11,12 +11,24 @@
 			/>
 			<div v-if="modelValue && modelValue.trim()" class="pfb-vis-status-row">
 				<template v-if="previewDoc">
-					<span class="es-badge" :data-theme="is_visible ? 'green' : 'gray'">
+					<span
+						v-if="check.error"
+						class="es-badge"
+						data-theme="orange"
+						:title="check.error"
+					>
+						{{ __("Can't check this condition") }}
+					</span>
+					<span
+						v-else-if="check.visible != null"
+						class="es-badge"
+						:data-theme="check.visible ? 'green' : 'gray'"
+					>
 						<span
 							class="pfb-vis-dot"
-							:class="is_visible ? 'pfb-vis-dot--show' : 'pfb-vis-dot--hide'"
+							:class="check.visible ? 'pfb-vis-dot--show' : 'pfb-vis-dot--hide'"
 						></span>
-						{{ is_visible ? __("Currently visible") : __("Currently hidden") }}
+						{{ check.visible ? __("Currently visible") : __("Currently hidden") }}
 					</span>
 				</template>
 				<span v-else class="pfb-vis-hint-no-doc">
@@ -28,18 +40,32 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
-import { evaluate_visible_if } from "../../utils";
+import { ref, watch } from "vue";
 
 const props = defineProps(["modelValue", "previewDoc"]);
 defineEmits(["update:modelValue"]);
 
-let is_visible = computed(() => evaluate_visible_if(props.modelValue, props.previewDoc));
+let check = ref({});
+let seq = 0;
+const run_check = frappe.utils.debounce(() => {
+	const condition = (props.modelValue || "").trim();
+	const doc = props.previewDoc;
+	if (!condition || !doc?.name) return (check.value = {});
+	const mine = ++seq;
+	frappe
+		.call("frappe.utils.print_format_generator.check_condition", {
+			doctype: doc.doctype,
+			name: doc.name,
+			condition,
+		})
+		.then((r) => mine === seq && (check.value = r.message || {}));
+}, 400);
+watch([() => props.modelValue, () => props.previewDoc?.name], run_check, { immediate: true });
 </script>
 
 <style scoped>
 .pfb-visibility-body {
-	padding: 4px 14px 12px;
+	padding: 4px 16px 16px;
 }
 
 .pfb-vis-status-row {

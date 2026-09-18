@@ -5,7 +5,8 @@
 		:data-section-uid="field_uid(section)"
 		v-show="!preview_doc || has_visible_fields"
 		:class="{
-			'section-container--condition-hidden': preview_doc && !is_section_visible,
+			'section-container--condition-hidden':
+				preview_doc && (!is_section_visible || !has_content),
 			'pfb-section-active': is_selected,
 			'pfb-layer-hover': store.hovered_node.value === section,
 		}"
@@ -227,6 +228,7 @@ let columns_gap_style = computed(() => {
 });
 
 let handle_offset = computed(() => {
+	if (is_grid.value) return "-4px";
 	if (preview_doc.value) return `${-((props.section.gap ?? 20) / 2 + 4)}px`;
 	const gap = props.section.columns.length > 1 && props.section.gap ? props.section.gap : 0;
 	return `${-(gap + 12.5)}px`;
@@ -252,10 +254,32 @@ function start_col_width_resize(e, i) {
 	start_column_resize(handle, "col-width-handle--active", on_move);
 }
 
+const ALWAYS_CONTENT = new Set([
+	"HTML",
+	"Divider",
+	"Spacer",
+	"Field Template",
+	"Image",
+	"Barcode",
+]);
+function field_has_content(f) {
+	if (f.remove) return false;
+	const doc = preview_doc.value;
+	if (!doc) return true;
+	if (ALWAYS_CONTENT.has(f.fieldtype)) return true;
+	if (f.fieldtype === "Repeater") return !!(f.source && doc[f.source]?.length);
+	if (f.fieldtype === "Table") return !!(doc[f.fieldname]?.length && f.table_columns?.length);
+	return !!doc[f.fieldname];
+}
 let has_visible_fields = computed(
 	() =>
 		!props.section.label ||
 		props.section.columns.some((col) => col.fields.some((f) => !f.remove))
+);
+let has_content = computed(
+	() =>
+		!props.section.label ||
+		props.section.columns.some((col) => col.fields.some(field_has_content))
 );
 
 let section_inline_style = computed(() => {
@@ -578,7 +602,7 @@ function remove_column(index) {
 	color: var(--text-muted);
 	font-size: var(--text-xs);
 	pointer-events: none;
-	background: var(--gray-50);
+	background: var(--surface-gray-1);
 	transition: border-color 0.15s, background 0.15s;
 }
 

@@ -208,7 +208,7 @@ let field_is_inline = computed(() => parent_section.value?.field_orientation ===
 
 <style scoped>
 .pfb-inspector {
-	width: 280px;
+	width: 300px;
 	flex-shrink: 0;
 	height: calc(100vh - var(--pfb-chrome-offset, 95px));
 	overflow-y: auto;
@@ -231,7 +231,7 @@ let field_is_inline = computed(() => parent_section.value?.field_orientation ===
 	align-items: center;
 	justify-content: space-between;
 	gap: 8px;
-	padding: 8px 12px;
+	padding: 8px 12px 8px 16px;
 	border-bottom: 1px solid var(--border-color);
 	flex-shrink: 0;
 	min-height: 0;
@@ -269,7 +269,7 @@ let field_is_inline = computed(() => parent_section.value?.field_orientation ===
 
 /* ── Breadcrumb ──────────────────────────────────────────── */
 .pfb-breadcrumb {
-	padding: 4px 10px;
+	padding: 4px 16px;
 	border-bottom: 1px solid var(--border-color);
 	background: var(--fg-color);
 }
@@ -290,7 +290,7 @@ let field_is_inline = computed(() => parent_section.value?.field_orientation ===
 }
 
 .pfb-breadcrumb-btn:hover {
-	background: var(--gray-100);
+	background: var(--surface-gray-2);
 }
 
 .pfb-breadcrumb-label {

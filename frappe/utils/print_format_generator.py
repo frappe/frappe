@@ -97,6 +97,9 @@ def get_qr_code(value: str) -> str:
 	import base64
 	import io
 
+	if not isinstance(value, str) or len(value) > 2000:
+		frappe.throw(_("Barcode value must be text under 2000 characters"), frappe.ValidationError)
+
 	from pyqrcode import create as qrcreate
 
 	stream = io.BytesIO()
@@ -247,6 +250,45 @@ def get_html(
 	return generator.get_html_preview(action_banner=action_banner, trigger_print=trigger_print)
 
 
+def page_size_mm(print_settings) -> tuple[float, float]:
+	"""Paper size in mm from Print Settings, the same table Chromium and Typst use."""
+	from frappe.utils.data import flt
+	from frappe.utils.pdf_generator.browser import PageSize
+
+	size = print_settings.get("pdf_page_size")
+	if size == "Custom":
+		return (
+			flt(print_settings.get("pdf_page_width")) or 210,
+			flt(print_settings.get("pdf_page_height")) or 297,
+		)
+	known = PageSize.page_sizes.get(size)
+	return tuple(known) if known else (210, 297)
+
+
+@frappe.whitelist()
+def get_page_size_mm():
+	"""Paper size the builder canvas should draw, in mm."""
+	return page_size_mm(frappe.get_cached_doc("Print Settings"))
+
+
+@frappe.whitelist()
+def check_condition(doctype: str, name: str, condition: str):
+	"""Evaluate a visibility condition against a document the way the print does."""
+	if not all(isinstance(v, str) for v in (doctype, name, condition)):
+		frappe.throw(_("Invalid arguments"), frappe.ValidationError)
+	doc = frappe.get_doc(doctype, name)
+	doc.check_permission("read")
+	try:
+		visible = bool(
+			frappe.safe_eval(
+				condition, None, {"doc": doc, "print_settings": frappe.get_cached_doc("Print Settings")}
+			)
+		)
+	except Exception as e:
+		return {"error": str(e)[:200]}
+	return {"visible": visible}
+
+
 class PrintFormatGenerator:
 	"""Generate a PDF of a Document using Chromium-based rendering."""
 
@@ -325,8 +367,7 @@ class PrintFormatGenerator:
 
 		run_before_print(self.doc, self.print_settings.as_dict())
 
-		page_width_map = {"A4": 210, "Letter": 216}
-		page_width = page_width_map.get(self.print_settings.pdf_page_size) or 210
+		page_width = page_size_mm(self.print_settings)[0]
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
 		style_name = self.style or self.print_settings.print_style
 		print_style = (
@@ -641,6 +682,7 @@ class PrintFormatGenerator:
 		return "\n".join(parts) or None
 
 	_ZONE_SECTION_TEMPLATE = """\
+{%- import "templates/print_format/macros.html" as macros -%}
 {%- set justify_classes = {'space-between': 'row-col-space-between', 'space-evenly': 'row-col-space-evenly', 'center': 'row-col-center', 'right-end': 'row-col-right-end'} -%}
 {%- set ns = namespace(has_fields=false) -%}
 {%- for col in section.columns -%}{%- for df in col.get('fields', []) -%}{%- set ns.has_fields = true -%}{%- endfor -%}{%- endfor -%}
@@ -649,38 +691,7 @@ class PrintFormatGenerator:
 <div class="section section-columns row {{ justify_classes.get(section.get('justify'), '') }}" style="gap:{{ col_gap }}">
 {%- for column in section.columns %}
 <div class="column col"{% if column.get('width') %} style="flex: {{ column.get('width')|float }} 1 0%"{% endif %}>
-{%- for df in column.get('fields', []) -%}
-{%- if not df.get('_hidden') -%}
-{%- if df.fieldtype == 'HTML' and df.html -%}
-<div class="custom-html">{{ frappe.render_template(df.html, {'doc': doc}) }}</div>
-{%- elif df.fieldtype == 'Spacer' -%}
-<div style="height:{{ (df.height|int|string + 'px') if df.get('height') else '1em' }}"></div>
-{%- elif df.fieldtype == 'Divider' -%}
-<hr style="border-top:1px solid #e5e7eb;margin:4px 0"/>
-{%- elif df.fieldtype == 'Image' -%}
-{%- set _src = df.image_url or doc.get(df.fieldname) -%}
-{%- if _src -%}
-<div{% if df.align and df.align != 'left' %} style="text-align:{{ df.align }}"{% endif %}>
-<img src="{{ _src }}" style="max-width:100%;{% if df.width %}width:{{ df.width|e }};{% endif %}">
-</div>
-{%- endif -%}
-{%- elif df.fieldtype == 'Barcode' -%}
-{%- if df.get('_qr_data_uri') -%}
-<div{% if df.align and df.align != 'left' %} style="text-align:{{ df.align }}"{% endif %}>
-<img src="{{ df._qr_data_uri }}" style="{% if df.width %}width:{{ df.width|e }};{% else %}width:35mm;{% endif %}">
-</div>
-{%- endif -%}
-{%- else -%}
-{%- set _raw = doc.get(df.fieldname) -%}
-{%- if _raw is not none and _raw != '' -%}
-<div class="field-render">
-{%- if df.show_label != 'hide' %}<div class="label">{{ _(df.label or df.fieldname) }}</div>{%- endif -%}
-<div class="value">{{ doc.get_formatted(df.fieldname) }}</div>
-</div>
-{%- endif -%}
-{%- endif -%}
-{%- endif -%}
-{%- endfor -%}
+{%- for df in column.get('fields', []) %}{{ macros.render_field(df, doc) }}{%- endfor %}
 </div>
 {%- endfor %}
 </div>
@@ -689,6 +700,11 @@ class PrintFormatGenerator:
 
 	def _render_zone_section(self, section: dict, doc) -> str:
 		"""Render a header/footer zone section dict to HTML for the Chrome overlay."""
+		eval_locals = {"doc": doc, "print_settings": self.print_settings}
+		for column in section.get("columns", []):
+			for df in column.get("fields", []):
+				if "renderer" not in df:
+					self._prepare_field(df, section, eval_locals)
 		# _ZONE_SECTION_TEMPLATE is a hardcoded class-level string constant, not user input.
 		return frappe.render_template(
 			self._ZONE_SECTION_TEMPLATE, {"section": section, "doc": doc}
@@ -784,7 +800,8 @@ class PrintFormatGenerator:
 				yield from zone_layout.get("columns", [])
 
 	@staticmethod
-	def has_field_access(doc, meta, fieldname) -> bool:
+	def has_field_access(doc, meta, fieldname, source_fieldname=None) -> bool:
+		fieldname = source_fieldname or fieldname
 		if not fieldname:
 			return True
 		df = meta.get_field(fieldname)
@@ -802,7 +819,7 @@ class PrintFormatGenerator:
 			fields = [
 				df
 				for df in column.get("fields", [])
-				if self.has_field_access(self.doc, meta, df.get("fieldname"))
+				if self.has_field_access(self.doc, meta, df.get("fieldname"), df.get("source_fieldname"))
 			]
 			column["fields"] = fields
 			for df in fields:

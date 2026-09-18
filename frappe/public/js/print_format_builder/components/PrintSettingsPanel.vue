@@ -41,13 +41,13 @@
 				/>
 			</div>
 			<div class="form-group">
-				<label class="control-label">{{ __("Font Size (pt)") }}</label>
+				<label class="control-label">{{ __("Font Size (px)") }}</label>
 				<input
 					type="number"
 					class="form-control form-control-sm"
 					placeholder="12, 13, 14"
 					:value="print_format.font_size"
-					@change="(e) => (print_format.font_size = parseFloat(e.target.value))"
+					@change="(e) => (print_format.font_size = parseFloat(e.target.value) || 14)"
 				/>
 			</div>
 			<div class="form-group" v-for="c in color_settings" :key="c.fieldname">
@@ -210,9 +210,7 @@ let page_number_positions = computed(() => [
 ]);
 
 function update_margin(fieldname, value) {
-	value = parseFloat(value);
-	if (value < 0) value = 0;
-	print_format.value[fieldname] = value;
+	print_format.value[fieldname] = Math.max(0, parseFloat(value) || 0);
 }
 
 // ── colors ─────────────────────────────────────────────────

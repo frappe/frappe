@@ -97,11 +97,14 @@ function build_image_content() {
 	if (!letterhead.value) return;
 	const lh = letterhead.value;
 	const f = F.value;
+	if ((lh[f.source] || "Image") !== "Image") return;
 	if (!lh[f.image] || !lh[f.width] || !lh[f.height]) return;
 	const dim = lh[f.width] > lh[f.height] ? "width" : "height";
 	const dim_val = lh[f[dim]];
 	lh[f.content] = `<div style="text-align:${(lh[f.align] || "Left").toLowerCase()}">
-<img src="${lh[f.image]}" alt="${lh.name}" ${dim}="${dim_val}" style="${dim}:${dim_val}px">
+<img src="${lh[f.image]}" alt="${frappe.utils.escape_html(
+		lh.name
+	)}" ${dim}="${dim_val}" style="${dim}:${dim_val}px">
 </div>`;
 }
 

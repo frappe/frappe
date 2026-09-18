@@ -496,17 +496,15 @@ function open_html_split_dialog({ title, initial_html, on_save }) {
 
 		if (preview) preview.innerHTML = initial_html || "";
 
-		setTimeout(() => {
-			if (ctrl.editor) {
-				ctrl.editor.on(
-					"change",
-					frappe.utils.debounce(() => {
-						if (preview) preview.innerHTML = ctrl.editor.getValue();
-					}, 150)
-				);
-				ctrl.editor.refresh();
-			}
-		}, 300);
+		ctrl.load_lib().then(() => {
+			ctrl.editor.on(
+				"change",
+				frappe.utils.debounce(() => {
+					if (preview) preview.innerHTML = ctrl.editor.getValue();
+				}, 150)
+			);
+			ctrl.editor.resize();
+		});
 	}, 200);
 }
 
