@@ -3,14 +3,17 @@
 import contextlib
 
 # imports - standard imports
-import gzip
 import os
+import shlex
+import stat
 import sys
+import tempfile
 from calendar import timegm
 from collections.abc import Callable
 from datetime import datetime
+from functools import partial
 from glob import glob
-from shutil import which
+from shutil import copyfileobj, which
 
 # imports - third party imports
 import click
@@ -20,7 +23,7 @@ from cryptography.fernet import Fernet
 import frappe
 import frappe.utils
 from frappe import _, conf
-from frappe.utils import cint, get_file_size, get_url, now, now_datetime
+from frappe.utils import cint, format_bytes, get_file_size, get_url, now, now_datetime
 
 # backup variable for backwards compatibility
 verbose = False
@@ -29,6 +32,30 @@ _verbose = verbose
 base_tables = ["__Auth", "__global_search", "__UserSettings"]
 
 BACKUP_ENCRYPTION_CONFIG_KEY = "backup_encryption_key"
+
+
+def is_stream_path(path: str | None) -> bool:
+	"""Return True if `path` is a pipe, device or socket rather than a regular file.
+
+	A backup written to one of these is *streamed*: the consumer reads the bytes
+	as they are produced - straight into object storage, a restore, or another
+	host - instead of picking a finished file off disk. Point `--backup-path-db`
+	and friends at a FIFO and the backup streams there; no flag needed.
+	"""
+	if not path:
+		return False
+
+	try:
+		mode = os.stat(path).st_mode
+	except OSError:
+		return False
+
+	return stat.S_ISFIFO(mode) or stat.S_ISCHR(mode) or stat.S_ISSOCK(mode)
+
+
+def _remove_if_exists(path: str) -> None:
+	with contextlib.suppress(FileNotFoundError):
+		os.remove(path)
 
 
 class BackupGenerator:
@@ -60,9 +87,13 @@ class BackupGenerator:
 		verbose=False,
 		old_backup_metadata=False,
 		rollback_callback=None,
+		destination=None,
 	):
 		global _verbose
 		self.compress_files = compress_files or compress
+		# A destination takes the bytes as they are produced; there is no local
+		# file at any point, so every artifact is a stream by definition.
+		self.destination = destination
 		self.db_socket = db_socket
 		self.db_host = db_host
 		self.db_port = db_port
@@ -115,6 +146,94 @@ class BackupGenerator:
 				if file_path:
 					dir = os.path.dirname(file_path)
 					os.makedirs(dir, exist_ok=True)
+
+	def is_streamed(self, path: str | None) -> bool:
+		"""Whether `path` receives a stream of bytes instead of a file on disk."""
+		if not path:
+			return False
+		return bool(self.destination) or is_stream_path(path)
+
+	@property
+	def streaming(self) -> bool:
+		"""Whether any artifact of this backup is being streamed."""
+		if self.destination:
+			return True
+		return any(
+			self.is_streamed(path)
+			for path in (
+				self.backup_path_db,
+				self.backup_path_conf,
+				self.backup_path_files,
+				self.backup_path_private_files,
+			)
+		)
+
+	@contextlib.contextmanager
+	def open_artifact(self, path: str):
+		"""Open `path` once, for the whole artifact, and yield its descriptor.
+
+		Every byte of an artifact leaves through this one descriptor. On disk that
+		is merely tidy; on a stream it is the contract. A reader sees EOF the
+		moment the last writer closes a pipe, so an artifact written in two
+		sessions - a header, then a dump appended to it - would reach that reader
+		truncated at the first close, and the second writer would go on to block
+		on a pipe nobody is draining any more.
+
+		Opening a pipe for writing blocks until a reader arrives, which is also
+		what paces the backup to the speed the consumer can take it.
+		"""
+		if self.destination:
+			# The path only names the artifact now - the bytes go to the
+			# destination, and the descriptor is a pipe feeding its uploader.
+			with self.destination.stream(os.path.basename(path)) as fd:
+				yield fd
+			return
+
+		flags = os.O_WRONLY | os.O_CREAT
+		if not self.is_streamed(path):
+			# Truncation is a no-op on a pipe and unwanted on a device.
+			flags |= os.O_TRUNC
+
+		fd = os.open(path, flags, 0o666)
+		try:
+			yield fd
+		finally:
+			os.close(fd)
+
+	@contextlib.contextmanager
+	def encryption_filter(self):
+		"""Yield a pipeline segment that encrypts stdin, or "" when encryption is off.
+
+		Encrypting inline - instead of rewriting a finished file in place - is what
+		makes encrypted backups streamable at all, and it keeps the plaintext from
+		ever reaching disk.
+		"""
+		if not frappe.get_system_settings("encrypt_backup"):
+			yield ""
+			return
+
+		gpg_exc = which("gpg")
+		if not gpg_exc:
+			click.secho("Please install `gpg` and ensure its available in your PATH", fg="red")
+			sys.exit(1)
+
+		# The passphrase travels via a 0600 file rather than an argument, so it
+		# never shows up in the process table.
+		with tempfile.NamedTemporaryFile("w", prefix="backup-passphrase-") as passphrase_file:
+			passphrase_file.write(get_or_generate_backup_encryption_key())
+			passphrase_file.flush()
+			yield (
+				f" | {shlex.quote(gpg_exc)} --batch --yes --pinentry-mode loopback"
+				f" --passphrase-file {shlex.quote(passphrase_file.name)} --symmetric"
+			)
+
+	def gzip_executable(self) -> str:
+		gzip_exc = which("gzip")
+		if not gzip_exc:
+			frappe.throw(
+				_("gzip not found in PATH! This is required to take a backup."), exc=frappe.ExecutableNotFound
+			)
+		return gzip_exc
 
 	def _set_existing_tables(self):
 		"""Ensure self._existing_tables is set."""
@@ -174,8 +293,9 @@ class BackupGenerator:
 		and sends the link to the file as email
 		"""
 		# Check if file exists and is less than a day old
-		# If not Take Dump
-		if not force:
+		# If not Take Dump. A streamed artifact can never be reused: the consumer
+		# is waiting on this run's bytes, not on a path to an older file.
+		if not (force or self.streaming):
 			(
 				last_db,
 				last_file,
@@ -205,9 +325,6 @@ class BackupGenerator:
 				self.delete_if_step_fails(
 					self.backup_files, self.backup_path_files, self.backup_path_private_files
 				)
-
-			if frappe.get_system_settings("encrypt_backup"):
-				self.backup_encryption()
 
 		else:
 			self.backup_path_files = last_file
@@ -239,7 +356,17 @@ class BackupGenerator:
 	def backup_encryption(self):
 		"""
 		Encrypt all the backups created using gpg.
+
+		Deprecated: backups are now encrypted as they are written (see
+		:meth:`encryption_filter`), which keeps the plaintext off disk and works on
+		a stream. This rewrites finished files in place and only ever worked on
+		regular files; it is kept for callers outside the framework.
 		"""
+		click.secho(
+			"BackupGenerator.backup_encryption has been deprecated - backups taken by"
+			" BackupGenerator are already encrypted in place while they are written",
+			fg="yellow",
+		)
 		if which("gpg") is None:
 			click.secho("Please install `gpg` and ensure its available in your PATH", fg="red")
 			sys.exit(1)
@@ -317,30 +444,52 @@ class BackupGenerator:
 	def get_summary(self):
 		summary = {
 			"config": {
-				"path": self.backup_path_conf,
-				"size": get_file_size(self.backup_path_conf, format=True),
+				"path": self.artifact_location(self.backup_path_conf),
+				"size": self.artifact_size(self.backup_path_conf),
 			},
 			"database": {
-				"path": self.backup_path_db,
-				"size": get_file_size(self.backup_path_db, format=True),
+				"path": self.artifact_location(self.backup_path_db),
+				"size": self.artifact_size(self.backup_path_db),
 			},
 		}
 
-		if os.path.exists(self.backup_path_files) and os.path.exists(self.backup_path_private_files):
+		if self.artifact_exists(self.backup_path_files) and self.artifact_exists(
+			self.backup_path_private_files
+		):
 			summary.update(
 				{
 					"public": {
-						"path": self.backup_path_files,
-						"size": get_file_size(self.backup_path_files, format=True),
+						"path": self.artifact_location(self.backup_path_files),
+						"size": self.artifact_size(self.backup_path_files),
 					},
 					"private": {
-						"path": self.backup_path_private_files,
-						"size": get_file_size(self.backup_path_private_files, format=True),
+						"path": self.artifact_location(self.backup_path_private_files),
+						"size": self.artifact_size(self.backup_path_private_files),
 					},
 				}
 			)
 
 		return summary
+
+	def artifact_exists(self, path: str) -> bool:
+		if self.destination:
+			return self.destination.size_of(os.path.basename(path)) is not None
+		return os.path.exists(path)
+
+	def artifact_location(self, path: str) -> str:
+		if self.destination:
+			return self.destination.url_for(os.path.basename(path))
+		return path
+
+	def artifact_size(self, path: str) -> str:
+		if self.destination:
+			uploaded = self.destination.size_of(os.path.basename(path))
+			return format_bytes(uploaded) if uploaded is not None else "not uploaded"
+		# A pipe holds nothing, so there is no size to report - whoever drained it
+		# is the one who knows how many bytes came out.
+		if self.is_streamed(path):
+			return "streamed"
+		return get_file_size(path, format=True)
 
 	def print_summary(self):
 		backup_summary = self.get_summary()
@@ -351,64 +500,88 @@ class BackupGenerator:
 
 		for _type, info in backup_summary.items():
 			template = f"{{0:{title}}}: {{1:{path}}} {{2}}"
-			print(template.format(_type.title(), os.path.abspath(info["path"]), info["size"]))
+			location = info["path"] if self.destination else os.path.abspath(info["path"])
+			print(template.format(_type.title(), location, info["size"]))
 
 	def backup_files(self):
 		for folder in ("public", "private"):
 			files_path = frappe.get_site_path(folder, "files")
 			backup_path = self.backup_path_files if folder == "public" else self.backup_path_private_files
 
+			# tar writes to stdout rather than opening the destination itself, so
+			# the archive, the optional compression and the optional encryption are
+			# one pipeline landing on one descriptor - see open_artifact().
+			command = f"tar -cf - {shlex.quote(files_path)}"
 			if self.compress_files:
-				cmd_string = "set -o pipefail; tar cf - {1} | gzip > {0}"
-			else:
-				cmd_string = "tar -cf {0} {1}"
+				command += f" | {shlex.quote(self.gzip_executable())}"
 
-			try:
-				frappe.utils.execute_in_shell(
-					cmd_string.format(backup_path, files_path),
-					verbose=self.verbose,
-					low_priority=True,
-					check_exit_code=True,
-				)
-			except frappe.CommandFailedError as e:
-				if e.err and "file changed as we read it" in e.err:
-					click.secho(
-						"Ignoring `tar: file changed as we read it` to prevent backup failure",
-						fg="red",
+			with self.encryption_filter() as encrypt, self.open_artifact(backup_path) as fd:
+				try:
+					frappe.utils.execute_in_shell(
+						f"set -e -o pipefail; {command}{encrypt}",
+						verbose=self.verbose,
+						low_priority=True,
+						check_exit_code=True,
+						stdout=fd,
 					)
-				else:
-					raise e
+				except frappe.CommandFailedError as e:
+					if e.err and "file changed as we read it" in e.err:
+						click.secho(
+							"Ignoring `tar: file changed as we read it` to prevent backup failure",
+							fg="red",
+						)
+					else:
+						raise e
 
 	def copy_site_config(self):
-		site_config_backup_path = self.backup_path_conf
+		"""Copy site_config.json to the config artifact.
+
+		Left unencrypted deliberately, matching long-standing behaviour: only the
+		database and the two file archives go through `encryption_filter`, even
+		though `set_backup_file_name` stamps `-enc` on this artifact's name too.
+		Note that site_config.json carries `backup_encryption_key`, so this copy
+		exposes the key that decrypts the other artifacts.
+		"""
 		site_config_path = os.path.join(frappe.get_site_path(), "site_config.json")
 
-		with open(site_config_backup_path, "w") as n, open(site_config_path) as c:
-			n.write(c.read())
+		with self.open_artifact(self.backup_path_conf) as fd:
+			# dup the descriptor so closing the buffered wrapper doesn't close the
+			# artifact out from under open_artifact()
+			with open(site_config_path, "rb") as source, os.fdopen(os.dup(fd), "wb") as target:
+				copyfileobj(source, target)
 
 	def take_dump(self):
-		if self.db_type == "sqlite":
-			from pathlib import Path
+		"""Write the database dump to `self.backup_path_db`.
 
-			import frappe
+		The metadata header, the dump and (when enabled) encryption form a single
+		pipeline writing to a single descriptor, so the artifact is as valid on a
+		pipe as it is on disk - see :meth:`open_artifact`.
+		"""
+		command = self.get_dump_command()
 
-			db_path = Path(frappe.get_site_path()) / "db" / f"{self.db_name}.db"
-			command = f"gzip -k {db_path} -c > {self.backup_path_db}"
+		if self.verbose:
+			printable = command.replace(shlex.quote(self.password), "*" * 10) if self.password else command
+			print(printable + "\n")
 
-			frappe.utils.execute_in_shell(command, low_priority=True, check_exit_code=True)
-
-			return
-
-		import shlex
-
-		import frappe.utils
-		from frappe.utils.change_log import get_app_branch
-
-		gzip_exc: str = which("gzip")
-		if not gzip_exc:
-			frappe.throw(
-				_("gzip not found in PATH! This is required to take a backup."), exc=frappe.ExecutableNotFound
+		with self.encryption_filter() as encrypt, self.open_artifact(self.backup_path_db) as fd:
+			frappe.utils.execute_in_shell(
+				f"set -e -o pipefail; {command}{encrypt}",
+				verbose=self.verbose,
+				low_priority=True,
+				check_exit_code=True,
+				stdout=fd,
 			)
+
+	def get_dump_command(self) -> str:
+		"""Return a shell pipeline that writes the compressed database dump to stdout."""
+		gzip_exc = self.gzip_executable()
+
+		if self.db_type == "sqlite":
+			db_path = os.path.join(frappe.get_site_path(), "db", f"{self.db_name}.db")
+			return f"{shlex.quote(gzip_exc)} -c -- {shlex.quote(db_path)}"
+
+		from frappe.database import get_command
+		from frappe.utils.change_log import get_app_branch
 
 		if self.old_backup_metadata:
 			database_header_content = [
@@ -443,10 +616,6 @@ class BackupGenerator:
 
 		generated_header = "\n".join(f"-- {x}" for x in database_header_content) + "\n"
 
-		with gzip.open(self.backup_path_db, "wt") as f:
-			f.write(generated_header)
-
-		cmd = []
 		extra = []
 		if self.db_type == "mariadb":
 			if self.backup_includes:
@@ -459,8 +628,6 @@ class BackupGenerator:
 				extra.extend([f'--table=public."{table}"' for table in self.backup_includes])
 			elif self.backup_excludes:
 				extra.extend([f'--exclude-table-data=public."{table}"' for table in self.backup_excludes])
-
-		from frappe.database import get_command
 
 		bin, args, bin_name = get_command(
 			socket=self.db_socket,
@@ -477,14 +644,14 @@ class BackupGenerator:
 				_("{} not found in PATH! This is required to take a backup.").format(bin_name),
 				exc=frappe.ExecutableNotFound,
 			)
-		cmd.append(bin)
-		cmd.append(shlex.join(args))
 
-		command = " ".join(["set -o pipefail;", *cmd, "|", gzip_exc, ">>", self.backup_path_db])
-		if self.verbose:
-			print(command.replace(shlex.quote(self.password), "*" * 10) + "\n")
-
-		frappe.utils.execute_in_shell(command, low_priority=True, check_exit_code=True)
+		# The header is its own gzip member ahead of the dump's. gzip members
+		# concatenate, so a reader - or `gunzip` - sees one continuous file, while
+		# the writer never has to reopen the destination to append.
+		return (
+			f"{{ printf -- '%s' {shlex.quote(generated_header)} | {shlex.quote(gzip_exc)};"
+			f" {shlex.quote(bin)} {shlex.join(args)} | {shlex.quote(gzip_exc)}; }}"
+		)
 
 	def send_email(self):
 		"""
@@ -530,15 +697,21 @@ download only after 24 hours."""
 		:param paths: The paths to delete
 		:return: Nothing
 		"""
+		# A streamed artifact leaves no file to clean up, and the pipe belongs to
+		# whoever created it - deleting it would only break the consumer. This is
+		# what lets a caller hand us a FIFO and keep it for the whole backup.
+		paths = [path for path in paths if path and not self.is_streamed(path)]
+
 		try:
 			step()
 		except Exception as e:
 			for path in paths:
-				if os.path.exists(path):
-					os.remove(path)
+				_remove_if_exists(path)
 			raise e
 		for path in paths:
-			self.add_to_rollback(lambda: os.remove(path))
+			# partial() binds this iteration's path; a closure over the loop
+			# variable would roll back the last path once per registered callback
+			self.add_to_rollback(partial(_remove_if_exists, path))
 
 
 def _get_tables(doctypes: list[str], existing_tables: list[str], strict: bool = True) -> list[str]:
@@ -644,6 +817,7 @@ def scheduled_backup(
 	verbose=False,
 	old_backup_metadata=False,
 	rollback_callback=None,
+	destination=None,
 ):
 	"""this function is called from scheduler
 	deletes backups older than 7 days
@@ -664,6 +838,7 @@ def scheduled_backup(
 		verbose=verbose,
 		old_backup_metadata=old_backup_metadata,
 		rollback_callback=rollback_callback,
+		destination=destination,
 	)
 
 
@@ -683,6 +858,7 @@ def new_backup(
 	verbose=False,
 	old_backup_metadata=False,
 	rollback_callback=None,
+	destination=None,
 ):
 	delete_temp_backups()
 	odb = BackupGenerator(
@@ -705,6 +881,7 @@ def new_backup(
 		compress_files=compress,
 		old_backup_metadata=old_backup_metadata,
 		rollback_callback=rollback_callback,
+		destination=destination,
 	)
 	odb.get_backup(older_than, ignore_files, force=force)
 	return odb
@@ -720,7 +897,9 @@ def delete_temp_backups(older_than=23):
 		file_list = os.listdir(get_backup_path())
 		for this_file in file_list:
 			this_file_path = os.path.join(get_backup_path(), this_file)
-			if is_file_old(this_file_path, older_than):
+			# Only regular files are ours to clean up: a FIFO here is a consumer
+			# waiting on a streamed backup, not a leftover.
+			if os.path.isfile(this_file_path) and is_file_old(this_file_path, older_than):
 				os.remove(this_file_path)
 
 
