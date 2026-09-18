@@ -58,16 +58,17 @@ const input_width = computed(() => {
 .pfb-stepper {
 	display: inline-flex;
 	align-items: center;
-	gap: 6px;
+	gap: 4px;
 	justify-self: end;
 	margin-left: auto;
 }
 
 .pfb-stepper-value {
+	width: 48px;
 	display: flex;
 	align-items: baseline;
 	justify-content: center;
-	gap: 2px;
+	gap: 3px;
 	font-size: var(--text-sm);
 	color: var(--text-color);
 }
