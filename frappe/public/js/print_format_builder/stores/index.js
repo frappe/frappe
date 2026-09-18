@@ -11,11 +11,13 @@ import { useSelection } from "../composables/useSelection";
 import { useLayoutMutations } from "../composables/useLayoutMutations";
 import { useClipboard } from "../composables/useClipboard";
 import { useSnippets } from "../composables/useSnippets";
+import { DRAFT_SETTING_FIELDS } from "../composables/useDraftDiff";
 import { watch, ref, inject, computed, nextTick } from "vue";
 
 export function getStore(print_format_name) {
 	// variables
 	let print_format = ref(null);
+	let saved_format = ref(null);
 	let letterhead = ref(null);
 	let meta = ref(null);
 	let layout = ref(null);
@@ -113,6 +115,9 @@ export function getStore(print_format_name) {
 					const parsed = frappe.utils.parse_json(_print_format.draft_data);
 					const draft = parsed && typeof parsed === "object" ? parsed : null;
 					has_draft.value = !!draft;
+					saved_format.value = Object.fromEntries(
+						["format_data", ...DRAFT_SETTING_FIELDS].map((f) => [f, _print_format[f]])
+					);
 					if (draft) Object.assign(print_format.value, draft);
 					const saved_layout = get_layout();
 					needs_setup.value = !saved_layout;
@@ -133,11 +138,29 @@ export function getStore(print_format_name) {
 						selected_lh_footer.value = false;
 
 						const lh_name = layout.value?.letter_head;
-						const load_lh = lh_name
-							? frappe.db
-									.get_doc("Letter Head", lh_name)
-									.then((doc) => (letterhead.value = doc))
-							: Promise.resolve((letterhead.value = null));
+						// mirrors the server's get_letterhead: a named letter head loads,
+						// "" is an explicit removal, and an absent key falls back to the
+						// system default — the canvas must show what the print will use
+						let load_lh;
+						if (lh_name) {
+							load_lh = frappe.db
+								.get_doc("Letter Head", lh_name)
+								.then((doc) => (letterhead.value = doc))
+								.catch(() => (letterhead.value = null));
+						} else if (lh_name === "") {
+							load_lh = Promise.resolve((letterhead.value = null));
+						} else {
+							load_lh = frappe.db
+								.get_value("Letter Head", { is_default: 1 }, "name")
+								.then((r) => {
+									const name = r?.message?.name;
+									if (!name) return (letterhead.value = null);
+									return frappe.db
+										.get_doc("Letter Head", name)
+										.then((doc) => (letterhead.value = doc));
+								})
+								.catch(() => (letterhead.value = null));
+						}
 
 						load_lh.then(() => {
 							reset_history();
@@ -460,11 +483,13 @@ export function getStore(print_format_name) {
 		insert_section,
 		insert_field,
 	});
-	const { snippets, save_snippet, insert_snippet, delete_snippet } = useSnippets({
-		insert_section,
-		insert_field,
-		doc_type: computed(() => print_format.value?.doc_type),
-	});
+	const { snippets, save_snippet, prompt_snippet, insert_snippet, delete_snippet } = useSnippets(
+		{
+			insert_section,
+			insert_field,
+			doc_type: computed(() => print_format.value?.doc_type),
+		}
+	);
 
 	return {
 		print_format,
@@ -501,6 +526,7 @@ export function getStore(print_format_name) {
 		save_status,
 		has_draft,
 		discard_draft,
+		saved_format,
 		get_preview_format_doc,
 		select_field,
 		set_selected,
@@ -525,6 +551,7 @@ export function getStore(print_format_name) {
 		move_selection,
 		snippets,
 		save_snippet,
+		prompt_snippet,
 		insert_snippet,
 		delete_snippet,
 		paste_clipboard,

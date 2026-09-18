@@ -34,17 +34,12 @@
 					:alt="selected_field.label"
 					@update:model-value="set_image_url"
 				/>
-				<div v-if="selected_field.image_url" class="pfb-insp-row pfb-insp-row--col">
-					<span class="pfb-insp-label">{{ __("Size") }}</span>
-					<input
-						class="pfb-size-slider"
-						type="range"
-						min="20"
-						max="700"
-						:value="image_size"
-						@input="selected_field.width = $event.target.value + 'px'"
-					/>
-				</div>
+				<SliderRow
+					v-if="selected_field.image_url"
+					:label="__('Size')"
+					:model-value="image_size"
+					@update:model-value="(v) => (selected_field.width = v + 'px')"
+				/>
 				<SegmentedRow
 					:label="__('Align')"
 					:model-value="current_align"
@@ -91,17 +86,13 @@
 						</option>
 					</select>
 				</div>
-				<div class="pfb-insp-row pfb-insp-row--col">
-					<span class="pfb-insp-label">{{ __("Size") }}</span>
-					<input
-						class="pfb-size-slider"
-						type="range"
-						min="40"
-						max="500"
-						:value="barcode_size"
-						@input="selected_field.width = $event.target.value + 'px'"
-					/>
-				</div>
+				<SliderRow
+					:label="__('Size')"
+					:min="40"
+					:max="500"
+					:model-value="barcode_size"
+					@update:model-value="(v) => (selected_field.width = v + 'px')"
+				/>
 				<div
 					class="pfb-insp-row"
 					v-if="selected_field.custom && selected_field.barcode_format !== 'QR'"
@@ -121,6 +112,78 @@
 					:model-value="current_align"
 					:options="align_opts"
 					@update:model-value="(v) => (selected_field.align = v)"
+				/>
+			</template>
+			<template v-else-if="is_static_text">
+				<textarea
+					class="form-control form-control-sm pfb-static-text-input"
+					:placeholder="__('Write the text to print')"
+					rows="4"
+					:value="selected_field.text || ''"
+					@input="(e) => (selected_field.text = e.target.value)"
+				></textarea>
+				<ToggleRow
+					:label="__('Bold')"
+					:model-value="!!selected_field.bold"
+					@update:model-value="(v) => (selected_field.bold = v ? 1 : 0)"
+				/>
+				<StepperRow
+					:label="__('Font size')"
+					:model-value="selected_field.font_size"
+					:base="13"
+					:step="1"
+					unit="px"
+					:placeholder="__('auto')"
+					allow-empty
+					@update:model-value="(v) => (selected_field.font_size = v)"
+				/>
+				<SegmentedRow
+					:label="__('Align')"
+					:model-value="current_align"
+					:options="align_opts"
+					@update:model-value="(v) => (selected_field.align = v)"
+				/>
+			</template>
+			<template v-else-if="is_linked_field">
+				<SelectRow
+					:label="__('Link')"
+					:model-value="link_fieldname"
+					:options="link_field_options"
+					:placeholder="__('Select a link field')"
+					@update:model-value="set_link_fieldname"
+				/>
+				<SelectRow
+					v-if="link_fieldname"
+					:label="__('Field')"
+					:model-value="link_target_fieldname"
+					:options="link_target_options"
+					:placeholder="__('Select a field')"
+					@update:model-value="set_link_target"
+				/>
+				<SliderRow
+					v-if="linked_is_image"
+					:label="__('Size')"
+					:model-value="image_size"
+					@update:model-value="(v) => (selected_field.width = v + 'px')"
+				/>
+				<LabelField
+					v-model="selected_field.label"
+					:label="__('Label')"
+					:placeholder="__('Field label')"
+					show-toggle
+					:show="selected_field.show_label"
+					@update:show="(v) => (selected_field.show_label = v)"
+				/>
+				<SegmentedRow
+					:label="__('Align')"
+					:model-value="current_align"
+					:options="align_opts"
+					@update:model-value="(v) => (selected_field.align = v)"
+				/>
+				<ToggleRow
+					:label="__('Show when empty')"
+					:model-value="!!selected_field.show_empty"
+					@update:model-value="(v) => (selected_field.show_empty = v ? 1 : 0)"
 				/>
 			</template>
 			<template v-else-if="is_spacer">
@@ -150,6 +213,12 @@
 					:model-value="current_align"
 					:options="align_opts"
 					@update:model-value="(v) => (selected_field.align = v)"
+				/>
+				<SliderRow
+					v-if="is_attach_image"
+					:label="__('Size')"
+					:model-value="image_size"
+					@update:model-value="(v) => (selected_field.width = v + 'px')"
 				/>
 				<div class="pfb-insp-row" v-if="fieldIsInline && current_align === 'left'">
 					<span class="pfb-insp-label">{{ __("Spacing") }}</span>
@@ -197,6 +266,12 @@
 					:model-value="selected_field.value_color || ''"
 					@update:model-value="(v) => set_field_prop('value_color', v)"
 				/>
+				<ToggleRow
+					v-if="label_has_colon"
+					:label="__('Hide colon')"
+					:model-value="!!selected_field.hide_colon"
+					@update:model-value="(v) => (selected_field.hide_colon = v ? 1 : 0)"
+				/>
 			</div>
 			<StyleSection :label="__('Custom CSS')" v-model="selected_field.custom_style" />
 		</InspectorSection>
@@ -214,6 +289,7 @@ import SegmentedRow from "./SegmentedRow.vue";
 import ToggleRow from "./ToggleRow.vue";
 import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
+import SliderRow from "./SliderRow.vue";
 import StyleSection from "./StyleSection.vue";
 import ColorField from "./ColorField.vue";
 import VisibilitySection from "./VisibilitySection.vue";
@@ -221,6 +297,9 @@ import ImageUploadControl from "./ImageUploadControl.vue";
 import { get_image_dimensions } from "../../utils";
 import { align_opts } from "./align_opts";
 import { useSelectedField } from "./useSelectedField";
+import SelectRow from "./SelectRow.vue";
+import { useDoctypeFields } from "../../composables/useDoctypeFields";
+import { value_field_opts } from "../../utils";
 
 defineProps(["fieldIsInline"]);
 
@@ -234,6 +313,7 @@ const NON_TEXT_FIELDTYPES = new Set([
 	"Spacer",
 	"Divider",
 	"Field Template",
+	"Static Text",
 ]);
 let is_text_field = computed(() => !NON_TEXT_FIELDTYPES.has(selected_field.value?.fieldtype));
 
@@ -264,14 +344,16 @@ let is_image_element = computed(
 // dragged Barcode docfields get size/align only — value and format come from
 // the field itself
 let is_barcode_element = computed(() => selected_field.value?.fieldtype === "Barcode");
-
-// QR comes from Barcode docfields with qrcode options, not the block; the
-// option stays visible only on elements saved as QR before that change
-const barcode_formats = computed(() =>
-	selected_field.value?.barcode_format === "QR"
-		? ["CODE128", "CODE39", "QR"]
-		: ["CODE128", "CODE39"]
+let label_has_colon = computed(
+	() =>
+		!!store.print_format.value?.show_label_colon &&
+		!!selected_field.value?.label &&
+		selected_field.value?.show_label !== "hide"
 );
+let is_static_text = computed(() => selected_field.value?.fieldtype === "Static Text");
+let is_linked_field = computed(() => selected_field.value?.fieldtype === "Linked Field");
+
+const barcode_formats = ["CODE128", "CODE39", "QR"];
 
 let store = inject("$store");
 
@@ -284,6 +366,41 @@ let barcode_field_options = computed(() => {
 			.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname })),
 	];
 });
+
+// ── linked field ───────────────────────────────────────────
+let link_fieldname = computed(() => (selected_field.value?.link_path || "").split(".")[0] || "");
+let link_target_fieldname = computed(
+	() => (selected_field.value?.link_path || "").split(".")[1] || ""
+);
+let link_field_options = computed(() =>
+	(store.meta.value?.fields || [])
+		.filter((f) => f.fieldtype === "Link" && f.options)
+		.map((f) => ({ label: `${f.label || f.fieldname} (${f.options})`, value: f.fieldname }))
+);
+
+let link_target_fields = useDoctypeFields(
+	computed(
+		() =>
+			(store.meta.value?.fields || []).find(
+				(f) => f.fieldname === link_fieldname.value && f.fieldtype === "Link"
+			)?.options
+	)
+);
+let link_target_options = computed(() => value_field_opts(link_target_fields.value));
+let linked_is_image = computed(
+	() =>
+		link_target_fields.value.find((f) => f.fieldname === link_target_fieldname.value)
+			?.fieldtype === "Attach Image"
+);
+let is_attach_image = computed(() => selected_field.value?.fieldtype === "Attach Image");
+function set_link_fieldname(fieldname) {
+	selected_field.value.link_path = fieldname ? fieldname + "." : "";
+}
+function set_link_target(fieldname) {
+	selected_field.value.link_path = `${link_fieldname.value}.${fieldname}`;
+	const target = link_target_fields.value.find((f) => f.fieldname === fieldname);
+	if (target) selected_field.value.label = target.label || fieldname;
+}
 
 let image_size = computed(() => parseFloat(selected_field.value?.width) || 200);
 let barcode_size = computed(

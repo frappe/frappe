@@ -180,7 +180,7 @@ class TestPrintSurfaceMarkupContract(UnitTestCase):
 
 		# a single colspan cap cell has no interior edges to carry the dividers
 		for source in (
-			APP_PATH / "templates" / "print_format" / "macros" / "Table.html",
+			APP_PATH / "templates" / "print_format" / "macros.html",
 			BUILDER_DIR / "components" / "editor" / "FieldPreviewTable.vue",
 		):
 			foot = re.search(r"<tfoot>(.*?)</tfoot>", source.read_text(), flags=re.S).group(1)
@@ -217,6 +217,10 @@ class TestPrintSurfaceMarkupContract(UnitTestCase):
 		colour, header background, ...) must be handled by Field.vue — these are
 		inline styles, so the stylesheet can't catch drift here."""
 		self._assert_df_props_mirrored(APP_PATH / "templates" / "print_format" / "macros" / "Table.html")
+		self._assert_df_props_mirrored(APP_PATH / "templates" / "print_format" / "macros.html")
+
+	def test_static_text_macro_properties_mirrored_in_canvas(self):
+		self._assert_df_props_mirrored(APP_PATH / "templates" / "print_format" / "macros" / "StaticText.html")
 
 	def test_repeater_macro_properties_mirrored_in_canvas(self):
 		self._assert_df_props_mirrored(APP_PATH / "templates" / "print_format" / "macros" / "Repeater.html")

@@ -15,28 +15,34 @@
 					<div ref="doc_picker_ref" class="canvas-doc-picker"></div>
 				</div>
 				<div class="canvas-toolbar-right">
-					<div class="canvas-zoom-control" role="group" :aria-label="__('Zoom')">
+					<div ref="zoom_ref" class="canvas-zoom-control select-group-btn">
 						<button
-							class="canvas-zoom-btn"
-							:title="__('Zoom out')"
-							:disabled="canvas_zoom <= ZOOM_MIN"
-							@click="zoom_out"
-							v-html="frappe.utils.icon('minus', 'xs')"
-						></button>
-						<button
-							class="canvas-zoom-label"
-							:title="__('Reset zoom')"
-							@click="reset_zoom"
+							type="button"
+							class="es-button canvas-zoom-trigger"
+							data-variant="subtle"
+							data-size="sm"
+							:title="__('Zoom')"
+							:aria-expanded="zoom_open"
+							@click="zoom_open = !zoom_open"
 						>
-							{{ canvas_zoom }}%
+							<span class="es-button__label">{{ canvas_zoom }}%</span>
+							<span v-html="frappe.utils.icon('chevron-down', 'xs')"></span>
 						</button>
-						<button
-							class="canvas-zoom-btn"
-							:title="__('Zoom in')"
-							:disabled="canvas_zoom >= ZOOM_MAX"
-							@click="zoom_in"
-							v-html="frappe.utils.icon('plus', 'xs')"
-						></button>
+						<ul
+							v-if="zoom_open"
+							class="dropdown-menu dropdown-menu-right show canvas-zoom-menu"
+						>
+							<li v-for="z in ZOOM_LEVELS" :key="z">
+								<a class="dropdown-item" href="#" @click.prevent="set_zoom(z)">
+									<span>{{ z }}%</span>
+									<span
+										class="tick-icon"
+										:class="{ selected: z === canvas_zoom }"
+										v-html="frappe.utils.icon('check', 'xs')"
+									></span>
+								</a>
+							</li>
+						</ul>
 					</div>
 				</div>
 			</div>
@@ -57,6 +63,7 @@
 		</div>
 		<FieldInspector v-if="!$store.needs_setup.value" />
 		<Preview v-if="show_preview" @close="show_preview = false" />
+		<CompareView v-if="show_compare" @close="show_compare = false" />
 		<ContextMenu />
 		<Teleport to="body">
 			<div
@@ -77,6 +84,7 @@
 import PrintFormat from "./components/editor/PrintFormat.vue";
 import PrintFormatSetup from "./components/editor/PrintFormatSetup.vue";
 import Preview from "./components/Preview.vue";
+import CompareView from "./components/CompareView.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
 import ContextMenu from "./components/editor/ContextMenu.vue";
@@ -87,14 +95,15 @@ import { computed, ref, onMounted, onUnmounted, provide, nextTick, watch } from 
 const props = defineProps(["print_format_name"]);
 
 const ZOOM_KEY = "pfb_canvas_zoom";
-const ZOOM_STEP = 10;
-const ZOOM_MIN = 50;
-const ZOOM_MAX = 150;
+const ZOOM_LEVELS = [50, 60, 70, 80, 90, 100, 125, 150];
 
 let show_preview = ref(false);
+let show_compare = ref(false);
 let doc_picker_ref = ref(null);
 let doc_picker_ctrl = ref(null);
-let canvas_zoom = ref(parseInt(localStorage.getItem(ZOOM_KEY)) || 100);
+let canvas_zoom = ref(nearest_zoom(parseInt(localStorage.getItem(ZOOM_KEY)) || 100));
+let zoom_open = ref(false);
+let zoom_ref = ref(null);
 
 let $store = computed(() => {
 	return getStore(props.print_format_name);
@@ -110,6 +119,10 @@ provide("$store", $store.value);
 
 function toggle_preview() {
 	show_preview.value = !show_preview.value;
+}
+
+function show_changes() {
+	show_compare.value = true;
 }
 
 const SETTINGS_DOCTYPE = "Print Settings";
@@ -282,6 +295,7 @@ function is_typing_context() {
 }
 
 function handle_keydown(e) {
+	if (show_preview.value || show_compare.value) return;
 	// Zoom shortcuts: Ctrl+= / Ctrl+- / Ctrl+0
 	if (e.ctrlKey || e.metaKey) {
 		if (e.key === "z" || e.key === "Z" || e.key === "y") {
@@ -407,19 +421,36 @@ function handle_keydown(e) {
 	}
 }
 
+function nearest_zoom(value) {
+	return ZOOM_LEVELS.reduce((best, z) =>
+		Math.abs(z - value) < Math.abs(best - value) ? z : best
+	);
+}
+
+function set_zoom(value) {
+	canvas_zoom.value = value;
+	zoom_open.value = false;
+	localStorage.setItem(ZOOM_KEY, value);
+}
+
 function zoom_in() {
-	canvas_zoom.value = Math.min(ZOOM_MAX, canvas_zoom.value + ZOOM_STEP);
-	localStorage.setItem(ZOOM_KEY, canvas_zoom.value);
+	const i = ZOOM_LEVELS.indexOf(canvas_zoom.value);
+	set_zoom(ZOOM_LEVELS[Math.min(ZOOM_LEVELS.length - 1, i + 1)]);
 }
 
 function zoom_out() {
-	canvas_zoom.value = Math.max(ZOOM_MIN, canvas_zoom.value - ZOOM_STEP);
-	localStorage.setItem(ZOOM_KEY, canvas_zoom.value);
+	const i = ZOOM_LEVELS.indexOf(canvas_zoom.value);
+	set_zoom(ZOOM_LEVELS[Math.max(0, i - 1)]);
 }
 
 function reset_zoom() {
-	canvas_zoom.value = 100;
-	localStorage.setItem(ZOOM_KEY, 100);
+	set_zoom(100);
+}
+
+function close_zoom_on_outside(e) {
+	if (zoom_open.value && zoom_ref.value && !zoom_ref.value.contains(e.target)) {
+		zoom_open.value = false;
+	}
 }
 
 function init_doc_picker() {
@@ -488,6 +519,7 @@ watch(
 
 onMounted(() => {
 	document.addEventListener("keydown", handle_keydown);
+	document.addEventListener("pointerdown", close_zoom_on_outside);
 
 	$store.value.fetch().then(() => {
 		if ($store.value.print_format.value?.custom_format) {
@@ -504,11 +536,12 @@ onMounted(() => {
 
 onUnmounted(() => {
 	document.removeEventListener("keydown", handle_keydown);
+	document.removeEventListener("pointerdown", close_zoom_on_outside);
 	window.removeEventListener("pointermove", on_canvas_pointermove);
 	window.removeEventListener("pointerup", on_canvas_pointerup);
 });
 
-defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
+defineExpose({ toggle_preview, show_changes, open_print_settings, show_preview, $store });
 </script>
 
 <style scoped>
@@ -523,7 +556,7 @@ defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 	width: 100%;
 }
 
-/* In bulk mode the per-item action toolbars (copy/duplicate/snippet/remove) are
+/* In bulk mode the per-item action toolbars (remove) are
    just noise on top of every highlighted block — the bulk panel drives actions
    instead. Hide them everywhere at once from the one multi-select flag. */
 .builder-root.pfb-multi-select :deep(.field-preview-actions),
@@ -584,6 +617,7 @@ defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 
 .canvas-toolbar-right {
 	flex-shrink: 0;
+	margin-left: auto;
 	display: flex;
 	align-items: center;
 	gap: 6px;
@@ -591,55 +625,27 @@ defineExpose({ toggle_preview, open_print_settings, show_preview, $store });
 
 /* ── Zoom control ────────────────────────────────────────── */
 .canvas-zoom-control {
-	display: flex;
-	align-items: center;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	overflow: hidden;
+	position: relative;
 }
 
-.canvas-zoom-btn {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 24px;
-	height: 24px;
-	border: none;
-	background: transparent;
-	cursor: pointer;
-	color: var(--text-muted);
-	padding: 0;
-	flex-shrink: 0;
-}
-
-.canvas-zoom-btn:hover:not(:disabled) {
-	background: var(--gray-100);
-	color: var(--text-color);
-}
-
-.canvas-zoom-btn:disabled {
-	opacity: 0.35;
-	cursor: not-allowed;
-}
-
-.canvas-zoom-label {
-	font-size: 11px;
-	font-weight: 500;
+.canvas-zoom-trigger {
 	font-variant-numeric: tabular-nums;
-	color: var(--text-color);
-	background: transparent;
-	border: none;
-	border-left: 1px solid var(--border-color);
-	border-right: 1px solid var(--border-color);
-	padding: 0 6px;
-	height: 24px;
-	min-width: 40px;
-	cursor: pointer;
-	white-space: nowrap;
 }
 
-.canvas-zoom-label:hover {
-	background: var(--gray-100);
+.canvas-zoom-menu {
+	position: absolute;
+	top: calc(100% + 4px);
+	right: 0;
+	left: auto;
+	min-width: 96px;
+}
+
+.canvas-zoom-menu .dropdown-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	font-variant-numeric: tabular-nums;
 }
 
 /* ── Canvas scroll area ──────────────────────────────────── */

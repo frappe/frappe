@@ -54,6 +54,7 @@ class ConnectedApp(Document):
 
 	@frappe.whitelist()
 	def get_openid_configuration(self):
+		self.check_permission("write")
 		if not self.openid_configuration:
 			frappe.throw(_("Please enter OpenID Configuration URL"))
 		return make_get_request(self.openid_configuration)

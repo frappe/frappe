@@ -2,15 +2,7 @@
 	<div v-if="df.label && df.show_label !== 'hide'" class="label">
 		{{ df.label }}
 	</div>
-	<table
-		class="table"
-		:style="{
-			...(df.table_radius != null ? { '--pfb-radius': df.table_radius + 'px' } : {}),
-			...(df.table_header_bg && df.table_header !== 'plain'
-				? { '--pfb-header-bg': df.table_header_bg }
-				: {}),
-		}"
-	>
+	<table class="table" :style="frame_style(df)">
 		<thead v-if="df.table_header !== 'none'">
 			<tr>
 				<th
@@ -73,9 +65,8 @@
 								:key="mi"
 								class="cell-line"
 								:class="`cell-line--${mf.style || 'primary'}`"
-							>
-								{{ format_merged(row, i, mf.fieldname) }}
-							</div>
+								v-html="merged_line(row, i, mf)"
+							></div>
 						</div>
 					</div>
 					<!-- Single (default) -->
@@ -129,13 +120,14 @@ const preview_doc = computed(() => store.preview_doc.value);
 
 const {
 	cell_style,
+	frame_style,
 	is_image_field,
 	cell_server_html,
 	format_cell,
 	has_merge,
 	image_merge,
 	text_merges,
-	format_merged,
+	merged_line,
 	cell_image,
 	thumb_box,
 	thumb,

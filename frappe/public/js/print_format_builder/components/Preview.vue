@@ -38,6 +38,7 @@ let preview_loaded = ref(false);
 let iframe = ref(null);
 let pdf_url = ref(null);
 let render_seq = 0;
+let render_abort = null;
 
 let docname = computed(() => store.value.preview_doc_name);
 let doctype = computed(() => print_format.value.doc_type);
@@ -60,6 +61,8 @@ let unprintable_reason = computed(() => {
 // the print renderer for a real PDF of the unsaved format.
 async function render() {
 	let seq = ++render_seq;
+	render_abort?.abort();
+	render_abort = new AbortController();
 	if (!docname.value) return;
 	if (unprintable_reason.value) {
 		set_pdf_url(null);
@@ -85,9 +88,18 @@ async function render() {
 					"X-Frappe-CSRF-Token": frappe.csrf_token,
 				},
 				body: JSON.stringify(params),
+				signal: render_abort.signal,
 			}
 		);
-		if (!res.ok) throw new Error(res.statusText);
+		if (!res.ok) {
+			let message = "";
+			try {
+				const data = await res.json();
+				message =
+					JSON.parse(JSON.parse(data._server_messages || "[]")[0] || "{}").message || "";
+			} catch {}
+			throw new Error(strip_html(message));
+		}
 		const blob = await res.blob();
 		if (seq !== render_seq) return;
 		// keep the browser's own PDF toolbar — page nav, zoom and download come free
@@ -95,7 +107,10 @@ async function render() {
 	} catch (e) {
 		if (seq !== render_seq) return;
 		set_pdf_url(null);
-		frappe.show_alert({ message: __("Could not render the preview"), indicator: "red" });
+		frappe.show_alert({
+			message: e.message || __("Could not render the preview"),
+			indicator: "red",
+		});
 	}
 	preview_loaded.value = true;
 }
@@ -120,6 +135,7 @@ onMounted(() => {
 	window.addEventListener("keydown", on_keydown);
 });
 onUnmounted(() => {
+	render_abort?.abort();
 	set_pdf_url(null);
 	window.removeEventListener("keydown", on_keydown);
 });

@@ -53,6 +53,16 @@
 				allow-empty
 				@update:model-value="set_table_radius"
 			/>
+			<StepperRow
+				:label="__('Min height')"
+				:model-value="table_min_height"
+				:base="100"
+				:step="10"
+				unit="px"
+				:placeholder="__('auto')"
+				allow-empty
+				@update:model-value="(v) => set_field_prop('table_min_height', v)"
+			/>
 		</InspectorSection>
 
 		<InspectorSection :label="__('Columns')" :padded="false">
@@ -96,35 +106,42 @@
 									:title="col.fieldname"
 								/>
 								<button
-									class="pfb-col-config"
-									:class="{
-										active: col.merged_fields && col.merged_fields.length > 0,
-										open: expanded_col === ci,
-									}"
-									@click="expanded_col = expanded_col === ci ? null : ci"
+									class="es-button"
+									data-size="xs"
+									data-icon-button="true"
+									:data-variant="
+										expanded_col === ci || col.merged_fields?.length
+											? 'subtle'
+											: 'ghost'
+									"
 									:title="__('Merge fields')"
+									@click="expanded_col = expanded_col === ci ? null : ci"
 									v-html="frappe.utils.icon('settings-2', 'xs')"
 								></button>
-								<input
-									class="pfb-col-width-input"
-									type="number"
-									min="5"
-									max="100"
-									v-model.number="col.width"
-									@blur="clamp_width(col)"
-									:title="__('Width %')"
-								/>
-								<span class="pfb-col-width-unit">%</span>
 								<button
-									class="pfb-col-remove"
-									@click="remove_table_column(ci)"
+									class="es-button"
+									data-size="xs"
+									data-variant="ghost"
+									data-theme="red"
+									data-icon-button="true"
 									:title="__('Remove column')"
+									@click="remove_table_column(ci)"
 									v-html="frappe.utils.icon('x', 'xs')"
 								></button>
 							</div>
 
 							<!-- Per-column merged-fields editor: reuses inspector primitives -->
 							<div v-if="expanded_col === ci" class="pfb-col-editor">
+								<div class="pfb-insp-section-body">
+									<StepperRow
+										:label="__('Width')"
+										:model-value="col.width"
+										:min="5"
+										:step="5"
+										unit="%"
+										@update:model-value="(v) => set_width(col, v)"
+									/>
+								</div>
 								<draggable
 									:list="col.merged_fields"
 									handle=".pfb-merge-drag"
@@ -174,9 +191,13 @@
 												/>
 											</div>
 											<button
-												class="pfb-col-remove"
-												@click="remove_merged_field(col, mi)"
+												class="es-button"
+												data-size="xs"
+												data-variant="ghost"
+												data-theme="red"
+												data-icon-button="true"
 												:title="__('Remove field')"
+												@click="remove_merged_field(col, mi)"
 												v-html="frappe.utils.icon('x', 'xs')"
 											></button>
 										</div>
@@ -280,6 +301,7 @@ let table_bordered = computed(() => selected_field.value?.table_bordered ?? true
 let table_header = computed(() => selected_field.value?.table_header ?? "styled");
 let table_cell_padding = computed(() => selected_field.value?.table_cell_padding ?? null);
 let table_radius = computed(() => selected_field.value?.table_radius ?? null);
+let table_min_height = computed(() => selected_field.value?.table_min_height ?? null);
 let table_header_bg = computed(() => selected_field.value?.table_header_bg ?? "");
 let table_border_color = computed(() => selected_field.value?.table_border_color ?? "");
 let has_lines = computed(
@@ -383,8 +405,8 @@ function remove_table_column(idx) {
 
 watch(selected_field, () => (expanded_col.value = null));
 
-function clamp_width(col) {
-	col.width = Math.max(5, Math.min(100, parseInt(col.width) || 10));
+function set_width(col, value) {
+	col.width = Math.max(5, Math.min(100, parseInt(value) || 10));
 }
 
 let expanded_col = ref(null);
@@ -451,39 +473,6 @@ function set_image_size(col, value) {
 </script>
 
 <style scoped>
-.pfb-col-list {
-	padding: 4px 0;
-}
-
-.pfb-col-item {
-	border-bottom: 1px solid var(--gray-100);
-}
-
-.pfb-col-item:last-child {
-	border-bottom: none;
-}
-
-.pfb-col-row {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	padding: 5px 14px;
-}
-
-.pfb-col-drag,
-.pfb-merge-drag {
-	cursor: grab;
-	color: var(--gray-300);
-	display: flex;
-	align-items: center;
-	flex-shrink: 0;
-}
-
-.pfb-col-drag:hover,
-.pfb-merge-drag:hover {
-	color: var(--gray-500);
-}
-
 .pfb-col-label-input {
 	flex: 1;
 	min-width: 0;
@@ -504,28 +493,6 @@ function set_image_size(col, value) {
 	background: var(--fg-color);
 }
 
-.pfb-col-remove {
-	display: flex;
-	align-items: center;
-	padding: 2px;
-	border: none;
-	background: transparent;
-	cursor: pointer;
-	color: var(--gray-300);
-	border-radius: var(--radius);
-	flex-shrink: 0;
-}
-
-.pfb-col-remove:hover {
-	background: var(--red-50);
-	color: var(--red-500);
-}
-
-.pfb-col-add-row {
-	padding: 6px 14px 10px;
-	border-top: 1px solid var(--gray-100);
-}
-
 /* the column picker sits above its list, so the divider belongs on the other side */
 .pfb-col-add-row.top {
 	padding: 8px 14px;
@@ -533,54 +500,25 @@ function set_image_size(col, value) {
 	border-bottom: 1px solid var(--gray-100);
 }
 
+.pfb-col-editor .pfb-merge-drag {
+	color: var(--gray-400);
+}
+
+.pfb-merge-drag {
+	cursor: grab;
+	color: var(--gray-300);
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+.pfb-merge-drag:hover {
+	color: var(--gray-500);
+}
+
 .pfb-merge-direction {
 	padding: 8px 14px 10px;
 	border-top: 1px solid var(--gray-100);
-}
-
-.pfb-col-config {
-	display: flex;
-	align-items: center;
-	padding: 2px;
-	border: none;
-	background: transparent;
-	cursor: pointer;
-	color: var(--gray-400);
-	border-radius: var(--radius);
-	flex-shrink: 0;
-	visibility: hidden;
-}
-
-.pfb-col-item:hover .pfb-col-config,
-.pfb-col-config.active,
-.pfb-col-config.open {
-	visibility: visible;
-}
-
-.pfb-col-config:hover {
-	background: var(--gray-100);
-	color: var(--gray-600);
-}
-
-.pfb-col-config.active {
-	color: var(--primary);
-}
-
-.pfb-col-config.open {
-	background: var(--gray-100);
-	color: var(--gray-700);
-}
-
-.pfb-col-editor {
-	margin: 6px 10px 10px;
-	background: var(--fg-color);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-}
-
-.pfb-col-editor .pfb-col-remove,
-.pfb-col-editor .pfb-merge-drag {
-	color: var(--gray-400);
 }
 
 .pfb-col-cond {

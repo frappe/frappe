@@ -6,6 +6,16 @@
 				<span class="pfb-inspector-kind">{{ inspector_kind }}</span>
 				<span class="pfb-inspector-name">{{ inspector_subtitle }}</span>
 			</div>
+			<button
+				v-if="snippet_kind"
+				class="es-button"
+				data-size="xs"
+				data-variant="ghost"
+				data-icon-button="true"
+				:title="__('Save as snippet')"
+				@click="store.prompt_snippet(selected_field || selected_section, snippet_kind)"
+				v-html="frappe.utils.icon('bookmark-plus', 'sm')"
+			></button>
 		</div>
 
 		<!-- Breadcrumb: navigate up to parent section when a field is selected -->
@@ -24,7 +34,7 @@
 		</div>
 
 		<!-- Nothing selected: canvas-wide print settings -->
-		<div v-if="!has_selection" class="pfb-insp-body pfb-canvas-settings">
+		<div v-if="!has_selection" class="pfb-insp-body">
 			<PrintSettingsPanel />
 		</div>
 
@@ -85,6 +95,15 @@ let has_selection = computed(
 		selected_lh_footer.value
 );
 
+let snippet_kind = computed(() => {
+	if (is_multi_select.value) return "";
+	if (selected_field.value) return "Field";
+	const section = selected_section.value;
+	if (section && section !== layout.value?.header && section !== layout.value?.footer) {
+		return "Section";
+	}
+	return "";
+});
 let is_table_field = computed(() => selected_field.value?.fieldtype === "Table");
 let is_repeater_field = computed(() => selected_field.value?.fieldtype === "Repeater");
 
@@ -94,6 +113,7 @@ let inspector_kind = computed(() => {
 	if (selected_letterhead.value) return __("Letter Head");
 	if (selected_field.value) {
 		if (selected_field.value.fieldtype === "Table") return __("Table");
+		if (selected_field.value.fieldtype === "Repeater") return __("Custom Table");
 		return __("Field");
 	}
 	if (selected_section.value) return __("Section");
@@ -156,6 +176,12 @@ let field_is_inline = computed(() => parent_section.value?.field_orientation ===
 
 /* ── Header ─────────────────────────────────────────────── */
 .pfb-inspector-head {
+	height: 40px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
 	padding: 8px 12px;
 	border-bottom: 1px solid var(--border-color);
 	flex-shrink: 0;
@@ -230,7 +256,4 @@ let field_is_inline = computed(() => parent_section.value?.field_orientation ===
 }
 
 /* ── Canvas settings (nothing selected) ──────────────────── */
-.pfb-canvas-settings {
-	padding: 12px 14px;
-}
 </style>

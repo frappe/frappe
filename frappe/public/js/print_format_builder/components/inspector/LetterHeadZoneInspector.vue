@@ -52,18 +52,13 @@
 				"
 				@update:model-value="set_align"
 			/>
-			<!-- Size slider -->
-			<div v-if="letterhead[image_field]" class="pfb-insp-row pfb-insp-row--col">
-				<span class="pfb-insp-label">{{ __("Size") }}</span>
-				<input
-					class="pfb-size-slider"
-					type="range"
-					min="20"
-					:max="zone_size_max"
-					:value="zone_size"
-					@input="(e) => set_size(e.target.value)"
-				/>
-			</div>
+			<SliderRow
+				v-if="letterhead[image_field]"
+				:label="__('Size')"
+				:max="zone_size_max"
+				:model-value="zone_size"
+				@update:model-value="set_size"
+			/>
 			<!-- Image source -->
 			<ImageUploadControl
 				:model-value="letterhead[image_field] || ''"
@@ -78,6 +73,7 @@ import { computed, inject, onMounted, ref } from "vue";
 import { useStore } from "../../stores";
 import { get_image_dimensions, render_jinja_html } from "../../utils";
 import SegmentedRow from "./SegmentedRow.vue";
+import SliderRow from "./SliderRow.vue";
 import InspectorSection from "./InspectorSection.vue";
 import ImageUploadControl from "./ImageUploadControl.vue";
 

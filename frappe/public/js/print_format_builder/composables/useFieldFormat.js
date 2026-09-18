@@ -5,6 +5,7 @@ const IMAGE_FIELDTYPES = new Set(["Attach Image", "Image", "Attach"]);
 const IMAGE_EXTENSIONS = /\.(png|jpe?g|gif|webp|svg|bmp|ico)(\?.*)?$/i;
 const HTML_CONTENT_FIELDTYPES = new Set(["Text Editor", "Long Text"]);
 const MERGE_IMAGE_FIELDTYPES = new Set(["Attach Image", "Attach"]);
+const MERGE_HTML_FIELDTYPES = new Set(["Text Editor", "HTML Editor"]);
 
 export function useFieldFormat(props, store, preview_doc) {
 	const preview_value = computed(() => {
@@ -57,6 +58,16 @@ export function useFieldFormat(props, store, preview_doc) {
 		if (df.table_cell_padding != null) parts.push(`padding: ${df.table_cell_padding}px`);
 		if (df.table_border_color) parts.push(`border-color: ${df.table_border_color} !important`);
 		return parts.join("; ");
+	}
+
+	function frame_style(df) {
+		return {
+			...(df.table_radius != null ? { "--pfb-radius": df.table_radius + "px" } : {}),
+			...(df.table_header_bg && df.table_header !== "plain"
+				? { "--pfb-header-bg": df.table_header_bg }
+				: {}),
+			...(df.table_min_height ? { minHeight: df.table_min_height + "px" } : {}),
+		};
 	}
 
 	function repeater_cell(col, i, row) {
@@ -161,6 +172,17 @@ export function useFieldFormat(props, store, preview_doc) {
 		return val;
 	}
 
+	function merged_line(row, i, mf) {
+		if (!MERGE_HTML_FIELDTYPES.has(mf.fieldtype)) {
+			return frappe.utils.escape_html(String(format_merged(row, i, mf.fieldname) ?? ""));
+		}
+		const server = store.preview_child_values.value?.[props.df.fieldname]?.[i]?.[mf.fieldname];
+		const raw =
+			server !== null && server !== undefined && server !== "" ? server : row[mf.fieldname];
+		if (raw === null || raw === undefined || raw === "") return "";
+		return sanitize_html(String(raw));
+	}
+
 	function cell_image(col, row) {
 		const img = image_merge(col);
 		const v = img ? row[img.fieldname] : null;
@@ -192,6 +214,7 @@ export function useFieldFormat(props, store, preview_doc) {
 		rating_stars,
 		is_image_field,
 		cell_style,
+		frame_style,
 		repeater_cell,
 		multiselect_display,
 		cell_server_html,
@@ -200,6 +223,7 @@ export function useFieldFormat(props, store, preview_doc) {
 		image_merge,
 		text_merges,
 		format_merged,
+		merged_line,
 		cell_image,
 		thumb_box,
 		thumb,

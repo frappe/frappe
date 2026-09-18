@@ -68,6 +68,15 @@
 	font-size: var(--text-sm);
 	color: var(--text-muted);
 }
+.pfb-insp-autocomplete {
+	flex: 1;
+	min-width: 0;
+}
+
+.pfb-insp-row .pfb-insp-autocomplete .frappe-autocomplete-input-wrap {
+	background: var(--fg-color);
+}
+
 .pfb-insp-input,
 .pfb-insp-select {
 	width: 100%;
@@ -126,30 +135,6 @@
 	overflow: hidden;
 	margin-bottom: 2px;
 }
-.pfb-col-width-input {
-	width: 40px;
-	padding: 2px 4px;
-	font-size: var(--text-tiny);
-	text-align: right;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	background: var(--fg-color);
-	flex-shrink: 0;
-}
-.pfb-col-width-input:focus {
-	outline: none;
-	border-color: var(--gray-500);
-}
-.pfb-col-width-input::-webkit-inner-spin-button,
-.pfb-col-width-input::-webkit-outer-spin-button {
-	-webkit-appearance: none;
-}
-.pfb-col-width-unit {
-	font-size: var(--text-tiny);
-	color: var(--text-muted);
-	flex-shrink: 0;
-}
-
 /* HTML split editor dialog — shared by field and letter-head editors.
    Renders in the modal portal, so it must stay global. */
 .pfb-html-split {
@@ -296,13 +281,20 @@
 .pfb-header-area:has(.letter-head) .pfb-header-fields.pfb-header-fields--empty {
 	display: none;
 }
-body.pfb-dragging .pfb-header-area:has(.letter-head) .pfb-header-fields.pfb-header-fields--empty {
+body.pfb-dragging .pfb-header-area:has(.letter-head) .pfb-header-fields.pfb-header-fields--empty,
+.pfb-header-area--selected:has(.letter-head) .pfb-header-fields.pfb-header-fields--empty {
 	display: block;
 }
 
-/* panel rows dragged onto the canvas: the clone lives on <body>, outside the
-   panel's scoped styles, so restate the row's look as a proper card */
-.pfb-field-row.pfb-drag-fallback {
+.pfb-header-area--selected {
+	outline: var(--pfb-ring);
+}
+
+/* panel rows, block cards and layer rows being dragged: the clone lives on
+   <body>, outside the panel's scoped styles, so restate the look as a card */
+.pfb-field-row.pfb-drag-fallback,
+.pfb-block-card.pfb-drag-fallback,
+.pfb-tree-row.pfb-drag-fallback {
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -384,4 +376,58 @@ body.pfb-dragging * {
 .print-format-container .field--chip:focus,
 .print-format-container .field--preview:focus {
 	outline: none;
+}
+
+.pfb-static-text-input {
+	resize: vertical;
+	margin-bottom: 6px;
+}
+
+/* column rows shared by the child table and custom table inspectors */
+.pfb-col-list {
+	padding: 4px 0;
+}
+
+.pfb-col-item {
+	border-bottom: 1px solid var(--gray-100);
+}
+
+.pfb-col-item:last-child {
+	border-bottom: none;
+}
+
+.pfb-col-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 5px 14px;
+}
+
+.pfb-col-drag {
+	cursor: grab;
+	color: var(--gray-300);
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+.pfb-col-drag:hover {
+	color: var(--gray-500);
+}
+
+.pfb-col-add-row {
+	padding: 6px 14px 10px;
+	border-top: 1px solid var(--gray-100);
+}
+
+.pfb-col-editor {
+	margin: 6px 10px 10px;
+	background: var(--fg-color);
+	border: 1px solid var(--border-color);
+	border-radius: var(--radius);
+}
+
+.pfb-col-row .pfb-tpl {
+	flex: 1;
+	min-width: 0;
 }

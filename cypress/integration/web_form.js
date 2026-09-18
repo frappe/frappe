@@ -221,6 +221,34 @@ context("Web Form", () => {
 		cy.get_field("title").should("have.value", "Note 1 Edited");
 	});
 
+	it("Retain Saved Value Over Field Default", () => {
+		cy.visit("/note");
+		set_web_form_field_default("expire_notification_on", "2030-01-01 00:00:00");
+
+		cy.visit("/note");
+		cy.url().should("include", "/note/list");
+		cy.get(".web-list-table tbody tr:last").click();
+
+		cy.get(".web-form-actions a").contains("Edit").click();
+		cy.url().should("include", "/edit");
+
+		cy.get('input[data-fieldname="public"]').check();
+		cy.get(".web-form-actions button").contains("Save").click();
+		cy.get(".success-page .edit-button").click();
+
+		cy.get('input[data-fieldname="public"]').should("be.checked");
+
+		cy.call("frappe.client.get_value", {
+			doctype: "Note",
+			filters: { title: "Note 1 Edited" },
+			fieldname: "expire_notification_on",
+		})
+			.its("message.expire_notification_on")
+			.should("be.null");
+
+		set_web_form_field_default("expire_notification_on", "");
+	});
+
 	it("Allow Multiple Response", () => {
 		cy.visit("/desk/web-form/note");
 
@@ -290,3 +318,10 @@ context("Web Form", () => {
 		});
 	});
 });
+
+function set_web_form_field_default(fieldname, value) {
+	cy.get_doc("Web Form", "note").then(({ data }) => {
+		const field = data.web_form_fields.find((df) => df.fieldname === fieldname);
+		cy.set_value("Web Form Field", field.name, { default: value });
+	});
+}

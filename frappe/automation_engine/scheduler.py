@@ -91,12 +91,7 @@ def ensure_run_lookup_index():
 	Background Task carries no index of its own and grows with every run, so without this the
 	check degrades into a full scan as history accumulates.
 	"""
-	table = "tabBackground Task"
-	if not frappe.db.has_index(table, RUN_LOOKUP_INDEX):
-		# Raw DDL: the query builder does not create indexes.
-		frappe.db.sql_ddl(
-			f"ALTER TABLE `{table}` ADD INDEX `{RUN_LOOKUP_INDEX}` (`task_name`, `method`, `creation`)"
-		)
+	frappe.db.add_index("Background Task", ["task_name", "method", "creation"], RUN_LOOKUP_INDEX)
 
 
 def _completed_names(automation: str, fire_at: datetime) -> list[str | None]:

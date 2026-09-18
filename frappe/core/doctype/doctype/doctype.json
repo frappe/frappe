@@ -294,6 +294,7 @@
   },
   {
    "default": "1",
+   "depends_on": "eval:!doc.issingle",
    "fieldname": "allow_rename",
    "fieldtype": "Check",
    "label": "Allow Rename",
@@ -830,7 +831,7 @@
    "link_fieldname": "document_type"
   }
  ],
- "modified": "2026-09-03 18:30:00.000000",
+ "modified": "2026-09-17 12:46:29.020996",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

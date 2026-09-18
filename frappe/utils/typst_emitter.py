@@ -34,9 +34,11 @@ def pt(px, default=0.0) -> float:
 
 #: field types that disqualify a format — each with the reason shown to the user
 # translated at use, not import — a module-level _() would pin the first site's language
+# mirrored client-side in print_format_builder/utils.js typst_blockers_client
 BLOCKER_FIELDTYPES = {
 	"HTML": "Custom HTML block",
 	"Field Template": "Field Template (Jinja HTML)",
+	"Linked Field": "Linked Field",
 }
 
 PAGE_NUMBER_POSITIONS = {
@@ -785,7 +787,24 @@ class TypstEmitter:
 			return self._image(df)
 		if fieldtype == "Repeater":
 			return self._repeater(df)
+		if fieldtype == "Static Text":
+			return self._static_text(df)
 		return self._data_field(section, df)
+
+	def _static_text(self, df) -> str:
+		text = (df.get("text") or "").strip()
+		if not text:
+			return ""
+		props = []
+		if df.get("bold"):
+			props.append('weight: "bold"')
+		if df.get("font_size"):
+			props.append(f"size: {pt(frappe.utils.flt(df.get('font_size')))}pt")
+		body = typst_escape(_(text)).replace("\n", " \\\n")
+		out = f"#text({', '.join(props)})[{body}]" if props else body
+		if df.get("align") in ("center", "right"):
+			out = f"#align({df['align']})[{out}]"
+		return out
 
 	def _typst_block(self, df) -> str:
 		markup = (df.get("typst") or "").strip()
