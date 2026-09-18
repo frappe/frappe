@@ -96,7 +96,7 @@ export interface RecordPageHost {
   /** The document as the server last showed it; the draft's baseline. */
   saved: Ref<Record<string, any>>;
   meta: Ref<any>;
-  /** `docinfo.permissions` as `getdoc` gave it; the engine curates it. */
+  /** The record read's `permissions` part; the engine curates it. */
   perms: () => Record<string, any>;
   isDirty: () => boolean;
   /** The name of the tab the reader is on, as the host's strip resolves it. */

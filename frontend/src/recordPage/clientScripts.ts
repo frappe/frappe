@@ -106,10 +106,11 @@ async function fetchScripts(
   doctype: string,
 ): Promise<ClientScriptsResponse | null> {
   try {
-    const { data } = await runMethod<ClientScriptsResponse>(GET_CLIENT_SCRIPTS, {
-      dt: doctype,
-      view: "Record",
-    });
+    const { data } = await runMethod<ClientScriptsResponse>(
+      GET_CLIENT_SCRIPTS,
+      { dt: doctype, view: "Record" },
+      { http: "GET" },
+    );
     return data;
   } catch (error) {
     console.error(`[client-script] could not load scripts for ${doctype}`, error);

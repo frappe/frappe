@@ -4,7 +4,7 @@ import { getMeta } from "../api";
 import type { RawMetaField } from "../components/FormLayout/types";
 import { memoizedState } from "../utils/sharedState";
 
-/** A DocPerm row as `getdoctype` returns it; booleans arrive as `0 | 1`. */
+/** A DocPerm row as the meta read returns it; booleans arrive as `0 | 1`. */
 export interface DocPermRow {
   role: string;
   permlevel?: number;
@@ -41,11 +41,7 @@ interface DoctypeMetaEntry {
 /** Memoised per doctype: fetched once per session, shared by every caller. */
 const entries = memoizedState((doctype: string) => doctype, buildEntry);
 
-/**
- * Fetch a doctype's meta with its child tables through `getMeta` and expose it as a
- * name-keyed map plus the requested doctype's own meta. Fetch-only: building the
- * layout schema is `buildLayoutFromMeta`'s job (or `joinLayout`'s, on the stored Form Layout path).
- */
+/** Fetch a doctype's meta with its child tables; building the layout is `buildLayoutFromMeta`'s job. */
 export function useDoctypeMeta(
   doctype: MaybeRefOrGetter<string>
 ): UseDoctypeMeta {

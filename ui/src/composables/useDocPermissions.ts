@@ -6,7 +6,7 @@ import { useUserRoles } from "./useUserRoles";
 export type FieldAccess = "write" | "read" | "none";
 
 export interface UseDocPermissions {
-  /** Doc-level rights from `docinfo.permissions` (`getdoc`); false until provided. */
+  /** Doc-level rights from the record read's `permissions` part; false until provided. */
   can: (right: string) => boolean;
   /** Permlevels the user's roles hold `right` on, from the meta's DocPerm rows. */
   allowedPermlevels: (right: "read" | "write") => number[];
@@ -20,7 +20,7 @@ export interface UseDocPermissions {
  * The Vue port of desk's `frappe.perm`: doc-level rights come from the
  * server-computed `docinfo.permissions`, field-level permlevel access from the
  * meta's DocPerm rows crossed with the session user's roles. Display-only —
- * enforcement stays server-side (`getdoc` applies field-level read permissions).
+ * enforcement stays server-side (the record read applies field-level read permissions).
  */
 export function useDocPermissions(
   doctype: MaybeRefOrGetter<string>,

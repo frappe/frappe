@@ -93,7 +93,7 @@ import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
 import { LoadingIndicator, Tooltip } from "frappe-ui";
 import { CommitKey, LinkTitlesKey, NO_COMMIT } from "@framework/ui/components/Fields/types";
 import { defaultTransport } from "@framework/ui/components/FileUpload/useFileUpload";
-import type { UploadResult, UploadTransport } from "@framework/ui/components/FileUpload";
+import type { UploadResult, UploadTransport } from "@framework/ui/components/FileUpload/types";
 import { useDocPermissions } from "@framework/ui/composables/useDocPermissions";
 import { routeFor } from "@/router/routeFor";
 import { PanelContextKey } from "./context";

@@ -50,7 +50,7 @@ export function useLiveDocinfo<T extends object>({ socket, docinfo, reload }: Op
 	// Once for a burst of deltas: an assign of three people lands three logs.
 	const reloadSoon = useDebounceFn(reloadQuietly, 200);
 
-	// `getdoc` may have read before the write that the dropped delta announced.
+	// The record read may have run before the write that the dropped delta announced.
 	watch(
 		docinfo,
 		(value) => {

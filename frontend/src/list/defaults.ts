@@ -6,7 +6,7 @@ import type { RawMetaField } from "@framework/ui/FormLayout";
 import { parseOrderBy, type Sort } from "@framework/ui/SortBy";
 import type { ListHandlers } from "@/contributions/types";
 
-/** The meta keys the list reads; `getdoctype` sends the whole doctype record. */
+/** The meta keys the list reads; the meta read sends the whole doctype record. */
 export interface ListMeta {
 	title_field?: string;
 	sort_field?: string;

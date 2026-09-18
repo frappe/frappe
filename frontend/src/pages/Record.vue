@@ -361,7 +361,7 @@ async function load() {
 	disclosure.reset();
 	formTab.value = tabMemory.value.recall();
 
-	// Both layouts need only the doctype, so their fetches ride beside `getdoc` and the meta.
+	// Both layouts need only the doctype, so their fetches ride beside the record read and the meta.
 	// Against the saved document, so a keystroke cannot switch a layout under the reader.
 	const details = useFormLayout({
 		doctype: target.doctype,
