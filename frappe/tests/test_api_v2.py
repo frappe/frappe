@@ -50,7 +50,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 	def test_unauthorized_call_v2(self):
 		# test 1: fetch documents without auth
 		response = requests.get(self.resource(self.DOCTYPE))
-		self.assertEqual(response.status_code, 403, response.get_data(as_text=True)[-3000:])
+		self.assertEqual(response.status_code, 403, response.text[-3000:])
 
 	def test_get_list_v2(self):
 		# test 2: fetch documents without params
