@@ -1,7 +1,7 @@
 <template>
 	<div class="pfb-visibility-body">
 		<div class="pfb-insp-row--col" style="display: flex; flex-direction: column; gap: 6px">
-			<label class="pfb-insp-label">{{ __("Show when") }}</label>
+			<label class="pfb-insp-label">{{ __("Condition") }}</label>
 			<input
 				class="pfb-insp-input"
 				type="text"

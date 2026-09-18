@@ -291,7 +291,7 @@
 		<InspectorSection :label="__('Visibility')" :init-open="false" :padded="false">
 			<div v-if="is_linked_field" class="pfb-insp-section-body">
 				<ToggleRow
-					:label="__('Show when empty')"
+					:label="__('Print if empty')"
 					:model-value="!!selected_field.show_empty"
 					@update:model-value="(v) => (selected_field.show_empty = v ? 1 : 0)"
 				/>
