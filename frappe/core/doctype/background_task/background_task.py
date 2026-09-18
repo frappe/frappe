@@ -19,12 +19,15 @@ class BackgroundTask(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		allow_user_cancellation: DF.Check
+		allow_user_retry: DF.Check
 		arguments: DF.JSON | None
 		ended_at: DF.Datetime | None
+		exception: DF.LongText | None
+		job_id: DF.Data | None
+		method: DF.Data
 		on_failure_callback: DF.Data | None
 		on_success_callback: DF.Data | None
-		exception: DF.LongText | None
-		method: DF.Data
 		progress: DF.Percent
 		queue: DF.Data | None
 		ref_docname: DF.DynamicLink | None
@@ -35,7 +38,6 @@ class BackgroundTask(Document):
 		started_at: DF.Datetime | None
 		status: DF.Literal["Queued", "Running", "Completed", "Failed", "Cancelled"]
 		task_id: DF.Data
-		job_id: DF.Data | None
 		task_name: DF.Data
 		user: DF.Link
 	# end: auto-generated types

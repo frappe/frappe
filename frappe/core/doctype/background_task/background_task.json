@@ -32,7 +32,9 @@
   "results__errors_section",
   "result",
   "exception",
-  "show_progress_bar"
+  "show_progress_bar",
+  "allow_user_cancellation",
+  "allow_user_retry"
  ],
  "fields": [
   {
@@ -210,7 +212,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-01 19:06:34.632943",
+ "modified": "2026-09-18 17:21:41.478355",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Background Task",

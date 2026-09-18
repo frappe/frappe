@@ -3,31 +3,6 @@
 
 frappe.ui.form.on("MapReduce Job", {
 	refresh(frm) {
-		frm.add_custom_button(
-			__("Force Retry"),
-			() => {
-				frappe.confirm(
-					__(
-						"This will force reset status of running tasks to 'queued' and will reschedule. Are you sure?"
-					),
-					() => {
-						frm.call({
-							method: "frappe.core.doctype.mapreduce_job.mapreduce_job.force_retry",
-							args: {
-								job: frm.doc.name,
-							},
-						}).then((r) => {
-							if (!r.exc) {
-								frappe.show_alert(__("Running tasks requeued for processing"));
-								frm.reload_doc();
-							}
-						});
-					}
-				);
-			},
-			__("Actions")
-		);
-
 		if (frm.doc.docstatus == 1) {
 			frm.call({
 				method: "frappe.core.doctype.mapreduce_job.mapreduce_job.get_progress",
@@ -37,6 +12,35 @@ frappe.ui.form.on("MapReduce Job", {
 			}).then((r) => {
 				if (!r.exc) {
 					frm.dashboard.add_progress("Task completion", r.message.progress, "");
+					if (r.message.progress != 100) {
+						frm.add_custom_button(
+							__("Force Retry"),
+							() => {
+								frappe.confirm(
+									__(
+										"This will force reset status of running tasks to 'queued' and will reschedule. Are you sure?"
+									),
+									() => {
+										frm.call({
+											method: "frappe.core.doctype.mapreduce_job.mapreduce_job.force_retry",
+											args: {
+												job: frm.doc.name,
+											},
+										}).then((r) => {
+											if (!r.exc) {
+												frappe.show_alert(
+													__("Running tasks requeued for processing")
+												);
+												frm.reload_doc();
+											}
+										});
+									}
+								);
+							},
+							__("Actions")
+						);
+					}
+
 					if (r.message.status == "Queued") {
 						add_control_button(
 							frm,

@@ -877,6 +877,7 @@ def mapreduce(
 	data: str,
 	document_type: str,
 	document_name: str,
+	job_name: str,
 ):
 	doc = frappe.new_doc("MapReduce Job")
 	doc.map = map_method
@@ -885,6 +886,7 @@ def mapreduce(
 	doc.data = frappe.json.dumps(data)
 	doc.document_type = document_type
 	doc.document_name = document_name
+	doc.job_name = job_name
 	doc.insert().submit()
 	return doc
 
