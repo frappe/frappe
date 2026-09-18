@@ -99,9 +99,9 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 		if ((letterhead.footer || "").trim() && !footer_is_image)
 			add(__("Letterhead footer with HTML content"));
 	}
+	const unknown = new Set();
 	for (const node of layout_nodes(layout)) {
 		if ((node.custom_style || "").trim()) {
-			const unknown = [];
 			for (const declaration of node.custom_style.split(";")) {
 				if (!declaration.includes(":")) continue;
 				const [raw_prop, raw_value] = declaration.split(/:(.+)/);
@@ -109,12 +109,11 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 				const value = (raw_value || "").trim();
 				if (!prop) continue;
 				if (!TYPST_STYLE_PROPS.has(prop)) {
-					unknown.push(prop);
+					unknown.add(prop);
 				} else if (TYPST_STYLE_VALUES[prop] && !TYPST_STYLE_VALUES[prop].test(value)) {
-					unknown.push(`${prop}: ${value}`);
+					unknown.add(`${prop}: ${value}`);
 				}
 			}
-			if (unknown.length) add(__("Untranslatable CSS: {0}", [unknown.join(", ")]));
 		}
 		if (node.fieldtype === "HTML") add(__("Custom HTML block"));
 		if (node.fieldtype === "Field Template") add(__("Field Template (Jinja HTML)"));
@@ -135,6 +134,7 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 				add(__("Field color Typst can't render: {0}", [node[key]]));
 		}
 	}
+	if (unknown.size) add(__("Untranslatable CSS: {0}", [[...unknown].join(", ")]));
 	return blockers;
 }
 
