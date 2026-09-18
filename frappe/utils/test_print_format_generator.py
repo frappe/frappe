@@ -1454,6 +1454,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		self.assertIn("LETTERHEAD_TOP", gen.context.chrome_layout_header)
 		self.assertIn("LETTERHEAD_BOTTOM", gen.context.chrome_layout_footer)
+		self.assertTrue(gen.context.chrome_layout_footer.startswith('<div class="print-footer-once">'))
 		self.assertNotIn("LETTERHEAD_TOP", gen.context.header or "")
 		self.assertNotIn("LETTERHEAD_BOTTOM", gen.context.footer or "")
 

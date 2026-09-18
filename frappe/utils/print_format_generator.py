@@ -551,7 +551,10 @@ class PrintFormatGenerator:
 		else:
 			# Letterhead + layout content → inline (once only, no repeat).
 			self.context.chrome_layout_header = self._render_overlay("header", with_page_no=False) or ""
-			self.context.chrome_layout_footer = self._render_overlay("footer", with_page_no=False) or ""
+			footer_once = self._render_overlay("footer", with_page_no=False)
+			self.context.chrome_layout_footer = (
+				f'<div class="print-footer-once">{footer_once}</div>' if footer_once else ""
+			)
 			# Page numbers → minimal overlay so they still repeat on every page.
 			page_no_header = self._render_page_no_overlay("header")
 			page_no_footer = self._render_page_no_overlay("footer")

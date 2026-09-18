@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="print-format-main print-format"
+		class="print-format-main"
 		data-theme="light"
 		:style="rootStyles"
 		:class="{
