@@ -697,6 +697,7 @@ class TestDocument(IntegrationTestCase):
 			result = _get_extended_class(ToDo, "ToDo")
 			self.assertEqual(result, ToDo)
 
+<<<<<<< HEAD
 	def test_get_extended_class_with_extensions(self):
 		"""Test that _get_extended_class properly combines extension classes with base class."""
 		# Mock frappe.get_hooks to return extension paths
@@ -704,6 +705,20 @@ class TestDocument(IntegrationTestCase):
 			"frappe.tests.test_document.TestExtensionA",
 			"frappe.tests.test_document.TestExtensionB",
 		]
+=======
+		# Without the flag it is still an error, whichever index the backend blames. The
+		# savepoint is for postgres: the failed insert aborts the transaction, so nothing
+		# after this test could read or write without it.
+		frappe.db.savepoint("test_ignore_if_duplicate")
+		expected_error = (
+			frappe.DuplicateEntryError
+			if frappe.db.db_type == "sqlite"
+			else (frappe.UniqueValidationError, frappe.DuplicateEntryError)
+		)
+		with self.assertRaises(expected_error):
+			frappe.get_doc(doctype="Role", role_name="_Test Duplicate Role").insert()
+		frappe.db.rollback(save_point="test_ignore_if_duplicate")
+>>>>>>> ed88b6a (fix(sqlite): support query builder and search)
 
 		with self.patch_hooks({"extend_doctype_class": {"ToDo": extensions}}):
 			extended_class = _get_extended_class(ToDo, "ToDo")
