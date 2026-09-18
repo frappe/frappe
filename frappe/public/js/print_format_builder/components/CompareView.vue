@@ -13,6 +13,7 @@
 					v-else
 					ref="frame"
 					class="pfb-compare-frame"
+					sandbox="allow-same-origin"
 					:srcdoc="html"
 					@load="mark_frame"
 				></iframe>
