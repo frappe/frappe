@@ -43,10 +43,22 @@ class TestQueryReport(FrappeTestCase):
 				"is_standard": "No",
 			}
 		).insert(ignore_permissions=True)
+		custom_report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "My Open ToDos " + frappe.generate_hash(length=6),
+				"report_type": "Custom Report",
+				"reference_report": report.name,
+				"prepared_report": 1,
+				"is_standard": "No",
+			}
+		).insert(ignore_permissions=True)
 
+		# the ready notification links a custom report's prepared report to its reference report
 		with self.set_user("test1@example.com"):
 			prepared_report = frappe.get_doc(
-				{"doctype": "Prepared Report", "report_name": report.name}
+				{"doctype": "Prepared Report", "report_name": custom_report.name}
 			).insert(ignore_permissions=True)
 			create_json_gz_file(
 				{"columns": [], "result": []}, prepared_report.doctype, prepared_report.name, report.name
