@@ -11,13 +11,12 @@ import { useSelection } from "../composables/useSelection";
 import { useLayoutMutations } from "../composables/useLayoutMutations";
 import { useClipboard } from "../composables/useClipboard";
 import { useSnippets } from "../composables/useSnippets";
-import { DRAFT_SETTING_FIELDS } from "../composables/useDraftDiff";
 import { watch, ref, inject, computed, nextTick } from "vue";
 
 export function getStore(print_format_name) {
 	// variables
 	let print_format = ref(null);
-	let saved_format = ref(null);
+	let versions = ref([]);
 	let letterhead = ref(null);
 	let meta = ref(null);
 	let layout = ref(null);
@@ -115,9 +114,6 @@ export function getStore(print_format_name) {
 					const parsed = frappe.utils.parse_json(_print_format.draft_data);
 					const draft = parsed && typeof parsed === "object" ? parsed : null;
 					has_draft.value = !!draft;
-					saved_format.value = Object.fromEntries(
-						["format_data", ...DRAFT_SETTING_FIELDS].map((f) => [f, _print_format[f]])
-					);
 					if (draft) Object.assign(print_format.value, draft);
 					const saved_layout = get_layout();
 					needs_setup.value = !saved_layout;
@@ -412,10 +408,58 @@ export function getStore(print_format_name) {
 		});
 	}
 
+	function load_versions() {
+		return frappe
+			.call("frappe.printing.doctype.print_format.print_format.get_versions", {
+				name: print_format_name,
+			})
+			.then((r) => (versions.value = r.message || []));
+	}
+	function save_version(label) {
+		return Promise.resolve(autosave_promise)
+			.catch(() => {})
+			.then(() =>
+				frappe.call("frappe.printing.doctype.print_format.print_format.save_version", {
+					name: print_format_name,
+					label,
+					data: get_preview_format_doc(),
+					modified: print_format.value.modified,
+				})
+			)
+			.then(() => load_versions())
+			.then(() => frappe.show_alert({ message: __("Version saved"), indicator: "green" }));
+	}
+	function restore_version(version) {
+		frappe.dom.freeze(__("Restoring…"));
+		draft_epoch++;
+		applying = true;
+		return Promise.resolve(autosave_promise)
+			.catch(() => {})
+			.then(() =>
+				frappe.call("frappe.printing.doctype.print_format.print_format.restore_version", {
+					name: print_format_name,
+					version,
+					modified: print_format.value.modified,
+				})
+			)
+			.then(() => fetch())
+			.then(() => {
+				autosave_stopped = false;
+				save_failed.value = false;
+				frappe.show_alert({ message: __("Version restored"), indicator: "green" });
+			})
+			.finally(() => {
+				applying = false;
+				frappe.dom.unfreeze();
+			});
+	}
+
 	const {
 		undo,
 		redo,
 		reset: reset_history,
+		can_undo,
+		can_redo,
 	} = useLayoutHistory(layout, () => {
 		selected_field.value = null;
 		selected_section.value = null;
@@ -526,7 +570,12 @@ export function getStore(print_format_name) {
 		save_status,
 		has_draft,
 		discard_draft,
-		saved_format,
+		versions,
+		load_versions,
+		save_version,
+		restore_version,
+		can_undo,
+		can_redo,
 		get_preview_format_doc,
 		select_field,
 		set_selected,

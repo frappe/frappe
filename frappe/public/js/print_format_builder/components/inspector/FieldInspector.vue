@@ -163,17 +163,6 @@ let field_is_inline = computed(() => parent_section.value?.field_orientation ===
 </script>
 
 <style scoped>
-.pfb-inspector {
-	width: 280px;
-	flex-shrink: 0;
-	height: calc(100vh - var(--pfb-chrome-offset, 95px));
-	overflow-y: auto;
-	border-left: 1px solid var(--border-color);
-	background: var(--fg-color);
-	display: flex;
-	flex-direction: column;
-}
-
 /* ── Header ─────────────────────────────────────────────── */
 .pfb-inspector-head {
 	height: 40px;

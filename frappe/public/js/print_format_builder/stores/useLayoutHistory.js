@@ -1,10 +1,17 @@
-import { watch } from "vue";
+import { ref, watch } from "vue";
 
 export function useLayoutHistory(layoutRef, clearSelection) {
 	let history = [];
 	let redo_stack = [];
 	let restoring = false;
 	let last_snap = null;
+	const can_undo = ref(false);
+	const can_redo = ref(false);
+
+	function sync() {
+		can_undo.value = history.length > 0;
+		can_redo.value = redo_stack.length > 0;
+	}
 
 	function take_snapshot() {
 		const snap = JSON.stringify(layoutRef.value);
@@ -13,6 +20,7 @@ export function useLayoutHistory(layoutRef, clearSelection) {
 		if (history.length > 50) history.shift();
 		last_snap = snap;
 		redo_stack = [];
+		sync();
 	}
 
 	const record_history = frappe.utils.debounce(take_snapshot, 400);
@@ -22,6 +30,7 @@ export function useLayoutHistory(layoutRef, clearSelection) {
 		last_snap = snap;
 		layoutRef.value = JSON.parse(snap);
 		clearSelection();
+		sync();
 	}
 
 	function undo() {
@@ -44,6 +53,7 @@ export function useLayoutHistory(layoutRef, clearSelection) {
 		history = [];
 		redo_stack = [];
 		last_snap = JSON.stringify(layoutRef.value);
+		sync();
 	}
 
 	watch(
@@ -58,5 +68,5 @@ export function useLayoutHistory(layoutRef, clearSelection) {
 		{ deep: true }
 	);
 
-	return { undo, redo, reset };
+	return { undo, redo, reset, can_undo, can_redo };
 }
