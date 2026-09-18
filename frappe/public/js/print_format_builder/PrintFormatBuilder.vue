@@ -615,7 +615,7 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 	--pfb-chrome-offset: 95px;
 	/* single source of truth for every selection/hover ring on the canvas —
 	   change these two and fields, sections, and layer-hover all update */
-	--pfb-accent: var(--gray-600);
+	--pfb-accent: var(--blue-400);
 	--pfb-ring: 2px solid var(--pfb-accent);
 	display: flex;
 	width: 100%;
@@ -759,8 +759,8 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 .pfb-marquee {
 	position: fixed;
 	z-index: 1040;
-	border: 1px solid var(--gray-600);
-	background: color-mix(in srgb, var(--gray-600) 12%, transparent);
+	border: 1px solid var(--blue-400);
+	background: color-mix(in srgb, var(--blue-400) 12%, transparent);
 	border-radius: 2px;
 	pointer-events: none;
 }
