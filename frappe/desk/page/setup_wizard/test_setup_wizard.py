@@ -78,7 +78,7 @@ class TestCompleteAppSetup(IntegrationTestCase):
 
 		def setup_task(_args):
 			frappe.enqueue("frappe.utils.background_jobs.get_queue_list", enqueue_after_commit=True)
-			frappe.db.commit()
+			frappe.db.commit()  # Exercise an intermediate setup commit; nosemgrep
 			enqueue_counts_during_setup.append(queue.enqueue_call.call_count)
 
 		stages = [{"tasks": [{"fn": setup_task, "args": frappe._dict()}]}]
@@ -94,7 +94,7 @@ class TestCompleteAppSetup(IntegrationTestCase):
 
 		self.assertEqual(enqueue_counts_during_setup, [0])
 		queue.enqueue_call.assert_not_called()
-		frappe.db.commit()
+		frappe.db.commit()  # Release callbacks at the request's final commit; nosemgrep
 		queue.enqueue_call.assert_called_once()
 
 	def test_setup_jobs_are_discarded_after_a_handled_failure(self):
@@ -102,7 +102,7 @@ class TestCompleteAppSetup(IntegrationTestCase):
 
 		def failing_setup_task(_args):
 			frappe.enqueue("frappe.utils.background_jobs.get_queue_list", enqueue_after_commit=True)
-			frappe.db.commit()
+			frappe.db.commit()  # Exercise an intermediate setup commit; nosemgrep
 			raise RuntimeError
 
 		stages = [{"tasks": [{"fn": failing_setup_task, "args": frappe._dict()}]}]
@@ -116,7 +116,7 @@ class TestCompleteAppSetup(IntegrationTestCase):
 		):
 			setup_wizard.process_setup_stages(stages, frappe._dict(), is_background_task=True)
 
-		frappe.db.commit()
+		frappe.db.commit()  # Prove a later commit cannot release cancelled jobs; nosemgrep
 		queue.enqueue_call.assert_not_called()
 
 	def test_global_settings_defer_timezone_job_until_commit(self):

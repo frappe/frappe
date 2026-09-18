@@ -64,6 +64,27 @@ jobs:
           # SQLite permits only one writer. Tests run serially in this job, hence disabling workers that can write queued setup jobs.
           disable-workers: true
           enable-server-scripts: false
+      - name: Save pristine SQLite site
+        shell: bash
+        run: |
+          site_db=$(find sites/test_site/db -maxdepth 1 -type f -name '*.db' -print -quit)
+          if [ -z "$site_db" ]; then
+            echo "SQLite database file was not found"
+            exit 1
+          fi
+
+          python - "$site_db" "$RUNNER_TEMP/pristine.db" <<'PY'
+          import sqlite3
+          import sys
+
+          with sqlite3.connect(sys.argv[1]) as source, sqlite3.connect(sys.argv[2]) as target:
+              source.backup(target)
+          PY
+
+          cp -a sites/test_site "$RUNNER_TEMP/pristine-site"
+          cp "$RUNNER_TEMP/pristine.db" "$RUNNER_TEMP/pristine-site/db/$(basename "$site_db")"
+          rm -f "$RUNNER_TEMP/pristine-site/db/$(basename "$site_db")-wal"
+          rm -f "$RUNNER_TEMP/pristine-site/db/$(basename "$site_db")-shm"
       - name: Run Tests
         shell: bash
         run: |
@@ -72,6 +93,11 @@ jobs:
 
           status=0
           while IFS= read -r test; do
+            # MariaDB's individual-test workflow gives every module a fresh site. Restore the
+            # SQLite site too, so committed database rows and files cannot leak between modules.
+            rsync --archive --delete "$RUNNER_TEMP/pristine-site/" sites/test_site/
+            bench --site test_site clear-cache
+
             echo "Running $test"
             bench --site test_site run-tests --app frappe --module "$test" || status=1
           done < shard_tests.txt
