@@ -261,7 +261,7 @@ export function getStore(print_format_name) {
 		return after_autosave()
 			.then(request)
 			.then(() => fetch())
-			.then(() => show_history.value && load_versions())
+			.then(() => show_history.value && load_versions().catch(() => {}))
 			.then(() => {
 				autosave_stopped = false;
 				save_failed.value = false;
