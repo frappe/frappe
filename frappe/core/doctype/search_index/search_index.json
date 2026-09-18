@@ -1,0 +1,109 @@
+{
+ "actions": [
+  {
+   "action": "frappe.core.doctype.search_index.search_index.rebuild",
+   "action_type": "Server Action",
+   "group": "Actions",
+   "label": "Rebuild"
+  }
+ ],
+ "autoname": "field:search_class",
+ "creation": "2026-09-18 09:00:00.000000",
+ "description": "A full text index an app keeps beside the database. Building one reads every document it covers, so it is off until you turn it on. The index is a file under the site directory: with more than one application server each keeps its own copy, they drift apart, and a server whose copy is behind leaves documents out of its results. Leave it off wherever the bench runs more than one.",
+ "doctype": "DocType",
+ "editable_grid": 0,
+ "engine": "InnoDB",
+ "field_order": [
+  "search_class",
+  "enabled",
+  "column_break_main",
+  "status",
+  "status_section",
+  "indexed_documents",
+  "index_size",
+  "column_break_status",
+  "last_built_on"
+ ],
+ "fields": [
+  {
+   "fieldname": "search_class",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Search Class",
+   "read_only": 1,
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "0",
+   "description": "Building this index reads every document it covers and can run for a long time on a large table.",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "column_break_main",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Not Built",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Not Built\nBuilding\nReady\nNeeds Rebuild",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status_section",
+   "fieldtype": "Section Break",
+   "label": "Last Build"
+  },
+  {
+   "fieldname": "indexed_documents",
+   "fieldtype": "Int",
+   "label": "Indexed Documents",
+   "read_only": 1
+  },
+  {
+   "fieldname": "index_size",
+   "fieldtype": "Data",
+   "label": "Index Size",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_status",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_built_on",
+   "fieldtype": "Datetime",
+   "label": "Last Built On",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2026-09-18 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Search Index",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "search_class",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 1
+}

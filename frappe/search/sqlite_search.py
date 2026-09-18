@@ -15,7 +15,7 @@ from typing import Any
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import update_progress_bar
+from frappe.utils import now_datetime, update_progress_bar
 from frappe.utils.file_lock import LockTimeoutError
 from frappe.utils.synchronization import filelock
 
@@ -116,6 +116,19 @@ class SQLiteSearch(ABC):
 	- Permission-aware search results via query-level filtering
 	"""
 
+	ENABLED_BY_DEFAULT = True
+	"""Whether a newly created Search Index record starts switched on.
+
+	Set False where building costs enough that nobody should meet it by surprise.
+	"""
+
+	BUILD_VOCABULARY = True
+	"""Whether to build the vocabulary that backs spelling correction in search().
+
+	It is a second pass over everything indexed, long enough on a large table to outweigh the
+	indexing itself. Set False where search() is not used and its corrections are not wanted.
+	"""
+
 	@staticmethod
 	def scoring_function(func):
 		"""
@@ -192,8 +205,14 @@ class SQLiteSearch(ABC):
 			if not title_field and "title" in parsed_fields:
 				title_field = "title"
 
+			meta = frappe.get_meta(doctype)
+			flagged_fields = [f for f in meta.get_search_index_fields() if f not in parsed_fields]
+			child_sources = meta.get_search_index_child_sources()
+
 			doc_configs[doctype] = {
-				"fields": parsed_fields,
+				"fields": [*parsed_fields, *flagged_fields],
+				"flagged_fields": flagged_fields,
+				"child_sources": child_sources,
 				"field_mappings": field_mappings,
 				"content_field": content_field,
 				"title_field": title_field,
@@ -212,6 +231,10 @@ class SQLiteSearch(ABC):
 
 		# Default text fields to title and content
 		schema.setdefault("text_fields", ["title", "content"])
+
+		for column in self._get_indexed_columns():
+			if column not in schema["text_fields"]:
+				schema["text_fields"].append(column)
 
 		# Default tokenizer
 		schema.setdefault("tokenizer", "unicode61 remove_diacritics 2")
@@ -237,6 +260,44 @@ class SQLiteSearch(ABC):
 		schema["metadata_fields"] = metadata_fields
 
 		return schema
+
+	def _get_indexed_columns(self) -> list[str]:
+		"""Columns contributed by `in_search_index`, across every doctype this index covers."""
+		columns = []
+		for config in self.doc_configs.values():
+			for fieldname in config.get("flagged_fields", []):
+				columns.append(fieldname)
+			for source in config.get("child_sources", []):
+				columns.append(source.fieldname)
+
+		return list(dict.fromkeys(columns))
+
+	def load_child_values(self, doctype, docnames: list[str]) -> dict[str, dict[str, str]]:
+		"""Child table values for these documents, one joined string per Table field.
+
+		Loaded a batch at a time: reading them inside prepare_document would be one query per
+		document, and holding every row for the whole doctype would not bound the memory.
+		"""
+		sources = self.doc_configs.get(doctype, {}).get("child_sources") or []
+		if not sources or not docnames:
+			return {}
+
+		values = {}
+		for source in sources:
+			rows = frappe.get_all(
+				source.doctype,
+				filters={"parent": ("in", docnames), "parentfield": source.fieldname},
+				fields=["parent", *source.fields],
+			)
+			for row in rows:
+				text = " ".join(str(row[f]) for f in source.fields if row.get(f))
+				if not text:
+					continue
+
+				parent = values.setdefault(row.parent, {})
+				parent[source.fieldname] = f"{parent.get(source.fieldname, '')} {text}".strip()
+
+		return values
 
 	# Abstract Method - Must be implemented by subclasses
 
@@ -326,6 +387,8 @@ class SQLiteSearch(ABC):
 		"""
 		if not self.is_search_enabled():
 			return
+
+		started_at = now_datetime()
 
 		# Use temporary database path for atomic replacement (only for new index builds)
 		temp_db_path = None
@@ -456,7 +519,7 @@ class SQLiteSearch(ABC):
 				processed_doctypes += 1
 
 			# Check if all doctypes are indexed before building vocabulary
-			if not self._is_vocabulary_built_needed():
+			if self.BUILD_VOCABULARY and not self._is_vocabulary_built_needed():
 				self._update_progress("All documents indexed, building vocabulary", 80, 100, absolute=True)
 
 				# Build vocabulary incrementally
@@ -485,6 +548,60 @@ class SQLiteSearch(ABC):
 			# Restore original database path
 			if temp_db_path:
 				self.db_path = original_db_path
+
+		self._record_build()
+		self.queue_documents_changed_during_build(started_at)
+
+	def queue_documents_changed_during_build(self, started_at):
+		"""Queue documents saved while the build was running.
+
+		A build reads each document once, and update_doc_index returns as soon as index_exists()
+		is false, which it is for the whole of a build. A document saved after its row was read
+		therefore carries stale text in the finished index.
+
+		Filters on `modified` rather than the doctype config's mapped modified field: that mapping
+		exists for recency scoring and may point at an immutable column such as creation, which
+		would not move when a document is edited.
+		"""
+		if not self.index_exists():
+			return
+
+		for doctype, config in self.doc_configs.items():
+			filters = dict(config.get("filters") or {})
+			filters["modified"] = (">=", started_at)
+
+			for name in frappe.get_all(doctype, filters=filters, pluck="name"):
+				self.index_doc(doctype, name)
+
+			self.remove_documents_deleted_during_build(doctype, started_at)
+
+	def remove_documents_deleted_during_build(self, doctype, started_at):
+		"""Drop documents deleted while the build was running.
+
+		delete_doc_index also skips an index it considers absent, so a row the build copied can
+		belong to a document that is gone by the time the index goes live.
+		"""
+		deleted = frappe.get_all(
+			"Deleted Document",
+			filters={"deleted_doctype": doctype, "creation": (">=", started_at)},
+			pluck="deleted_name",
+		)
+
+		for name in deleted:
+			self.remove_doc(doctype, name)
+
+	def _record_build(self):
+		"""Tell this index's Search Index record what the finished file holds."""
+		if not frappe.db.exists("Search Index", self.search_class_path):
+			return
+
+		try:
+			document_count = self.sql("SELECT COUNT(*) FROM search_fts", read_only=True)[0][0]
+			size_in_bytes = os.path.getsize(self._get_db_path())
+		except Exception:
+			return
+
+		frappe.get_doc("Search Index", self.search_class_path).record_build(document_count, size_in_bytes)
 
 	def _get_incomplete_count(self, where_clause):
 		"""Get count of incomplete records from search_index_progress table.
@@ -608,11 +725,32 @@ class SQLiteSearch(ABC):
 			return False
 
 	def index_exists(self):
-		"""Check if FTS index exists."""
+		"""Whether a usable index exists.
+
+		A table built before a column was added no longer covers everything that is searched, so
+		it reports as absent: callers fall back, and the builder replaces it. Adding a column is
+		what `in_search_index` does, so this moves whenever someone ticks that box.
+		"""
 		if not os.path.exists(self.db_path):
 			return False
 
-		return self._table_exists("search_fts")
+		return self._table_exists("search_fts") and self.has_current_schema()
+
+	def has_current_schema(self) -> bool:
+		"""Whether the built table still carries every column the schema asks for."""
+		try:
+			connection = self._get_connection(read_only=True)
+		except SQLiteSearchIndexMissingError:
+			return False
+
+		try:
+			columns = {row["name"] for row in connection.execute("PRAGMA table_info(search_fts)")}
+		except sqlite3.Error:
+			return False
+		finally:
+			connection.close()
+
+		return set(self.schema["text_fields"]) <= columns
 
 	def drop_index(self):
 		"""Drop the search index by removing the database file."""
@@ -623,9 +761,20 @@ class SQLiteSearch(ABC):
 				frappe.log_error(f"Failed to remove search index file {self.db_path}: {e}")
 				raise
 
+	@property
+	def search_class_path(self) -> str:
+		return f"{type(self).__module__}.{type(self).__name__}"
+
 	def is_search_enabled(self):
-		"""Override this to enable/disable search"""
-		return True
+		"""Whether this index is switched on, from its Search Index record.
+
+		Falls back to ENABLED_BY_DEFAULT before that record exists, so an index is not switched
+		off by the upgrade that introduces the record. Override to decide it some other way.
+		"""
+		if not frappe.db.exists("Search Index", self.search_class_path):
+			return self.ENABLED_BY_DEFAULT
+
+		return bool(frappe.get_cached_value("Search Index", self.search_class_path, "enabled"))
 
 	def raise_if_not_indexed(self):
 		"""Raise exception if search index doesn't exist."""
@@ -652,6 +801,13 @@ class SQLiteSearch(ABC):
 		self, doctype, limit=1000, last_indexed_modified=None, last_indexed_name=None
 	):
 		"""Get records for a specific doctype with pagination support."""
+		docs = self._get_documents_paginated(doctype, limit, last_indexed_modified, last_indexed_name)
+		self._child_values = self.load_child_values(doctype, [doc.name for doc in docs])
+		return docs
+
+	def _get_documents_paginated(
+		self, doctype, limit=1000, last_indexed_modified=None, last_indexed_name=None
+	):
 		config = self.doc_configs.get(doctype)
 		if not config:
 			return []
@@ -1525,8 +1681,32 @@ class SQLiteSearch(ABC):
 
 		self._add_text_fields_to_document(document, doc, config)
 		self._add_metadata_fields_to_document(document, doc, config)
+		self._add_indexed_fields_to_document(document, doc, config)
 
 		return document
+
+	def _add_indexed_fields_to_document(self, document, doc, config):
+		"""Fill the columns contributed by `in_search_index`.
+
+		Every column is written, empty where the document has nothing, because a text field left
+		unset is treated as a document that cannot be indexed at all.
+		"""
+		for fieldname in config.get("flagged_fields", []):
+			document[fieldname] = self._process_content(getattr(doc, fieldname, "") or "")
+
+		sources = config.get("child_sources") or []
+		if not sources:
+			return
+
+		cached = getattr(self, "_child_values", None)
+		values = (
+			cached.get(doc.name, {})
+			if cached is not None
+			else self.load_child_values(doc.doctype, [doc.name]).get(doc.name, {})
+		)
+
+		for source in sources:
+			document[source.fieldname] = self._process_content(values.get(source.fieldname) or "")
 
 	def _validate_document_for_indexing(self, doc):
 		"""Run all validation checks for a document before indexing."""
@@ -1885,6 +2065,12 @@ def build_index_in_background():
 
 
 def update_doc_index(doc: Document, method=None):
+	"""Queue a document whose indexed content changed.
+
+	A document indexing child table values is always queued: child rows carry no document events
+	of their own, so the parent save is the only signal that one of them moved, and none of the
+	parent's own fields need have changed for that to have happened.
+	"""
 	search_classes = get_search_classes()
 
 	for SearchClass in search_classes:
@@ -1899,7 +2085,9 @@ def update_doc_index(doc: Document, method=None):
 				if not fields:
 					continue
 
-				any_field_changed = any(doc.has_value_changed(field) for field in fields)
+				any_field_changed = config.get("child_sources") or any(
+					doc.has_value_changed(field) for field in fields
+				)
 				if any_field_changed:
 					try:
 						search.index_doc(doctype, doc.name)

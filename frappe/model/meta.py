@@ -255,6 +255,32 @@ class Meta(Document):
 
 		return fields
 
+	def get_search_index_fields(self) -> list[str]:
+		"""Return fieldnames on this doctype marked `in_search_index`."""
+		return [
+			df.fieldname
+			for df in self.get("fields", {"in_search_index": 1, "fieldtype": ["not in", NO_VALUE_FIELDS]})
+		]
+
+	def get_search_index_child_sources(self) -> list[frappe._dict]:
+		"""Return this doctype's child tables that carry `in_search_index` fields.
+
+		Each source names the Table fieldname to read through, the child doctype, and which of its
+		fields to collect. A child row carries no document events of its own, so anything indexed
+		from one is only ever refreshed when its parent is saved.
+		"""
+		sources = []
+		for table_field in self.get_table_fields():
+			child_fields = frappe.get_meta(table_field.options).get_search_index_fields()
+			if child_fields:
+				sources.append(
+					frappe._dict(
+						fieldname=table_field.fieldname, doctype=table_field.options, fields=child_fields
+					)
+				)
+
+		return sources
+
 	def get_valid_columns(self) -> list[str]:
 		return self._valid_columns
 
