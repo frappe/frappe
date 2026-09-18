@@ -131,12 +131,7 @@
 
 <script setup lang="ts">
 import { Badge, Button, Dropdown, toast } from "frappe-ui";
-import {
-	ListView,
-	ListHeader,
-	ListRows,
-	ListSelectBanner,
-} from "frappe-ui/experimental";
+import { ListView, ListHeader, ListRows, ListSelectBanner } from "frappe-ui/experimental";
 import { ListFooter } from "../../../experimental/List";
 import { computed, onMounted, watch } from "vue";
 import { ListViewShell } from "../index";

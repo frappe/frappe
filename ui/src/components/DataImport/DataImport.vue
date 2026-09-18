@@ -106,7 +106,10 @@ type WriteOptions = {
 	onError: (err: any) => void;
 };
 
-function write(send: () => Promise<{ data: DataImport }>, { validate, onSuccess, onError }: WriteOptions) {
+function write(
+	send: () => Promise<{ data: DataImport }>,
+	{ validate, onSuccess, onError }: WriteOptions
+) {
 	if (validate && !validate()) return;
 	send()
 		.then(({ data: saved }) => {
@@ -128,7 +131,10 @@ const dataImports: DataImports = reactive({
 	},
 	setValue: {
 		submit: (doc: DataImport, options: WriteOptions) =>
-			write(() => updateDocument(DOCTYPE, doc.name!, doc as DataImport & { name: string }), options),
+			write(
+				() => updateDocument(DOCTYPE, doc.name!, doc as DataImport & { name: string }),
+				options
+			),
 	},
 });
 
