@@ -19,8 +19,6 @@ export interface RoleOption {
 export interface UserOption {
   label: string;
   value: string;
-  /** Avatar image URL (the User's `user_image`), if any. */
-  avatar?: string;
 }
 
 /** One pending invitation row, as returned by `get_pending_invitations`. */

@@ -3,6 +3,10 @@ import { describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 import { useRemoteSearch, useTagSearch, useUserSearch, type SearchOption } from "../remoteSearch";
 
+const fake = vi.hoisted(() => ({ searchDocuments: vi.fn() }));
+
+vi.mock("@framework/ui/api", () => ({ searchDocuments: fake.searchDocuments }));
+
 const option = (value: string): SearchOption => ({ label: value, value });
 
 function deferred<T>() {
@@ -53,26 +57,27 @@ describe("useRemoteSearch", () => {
 });
 
 describe("the searches", () => {
-	it("looks users up by name or email and shapes the rows", async () => {
-		const call = vi.fn(async () => [
-			{ name: "ann@example.com", full_name: "Ann", user_image: "/ann.png" },
-			{ name: "bob@example.com", full_name: "", user_image: null },
-		]);
-		const { options, search } = useUserSearch(call, ref([]));
+	it("searches enabled system users for the typed text and shapes the rows", async () => {
+		fake.searchDocuments.mockResolvedValue({
+			data: [
+				{ value: "ann@example.com", label: "Ann", description: "" },
+				{ value: "bob@example.com", label: "" },
+			],
+		});
+		const { options, search } = useUserSearch(ref([]));
 		await search("an");
-		expect(call).toHaveBeenCalledWith(
-			"frappe.client.get_list",
-			expect.objectContaining({
-				doctype: "User",
-				or_filters: [
-					["full_name", "like", "%an%"],
-					["name", "like", "%an%"],
-				],
-			})
-		);
+		expect(fake.searchDocuments).toHaveBeenCalledWith("User", {
+			txt: "an",
+			filters: {
+				enabled: 1,
+				user_type: "System User",
+				name: ["not in", ["Administrator", "Guest"]],
+			},
+			limit: 10,
+		});
 		expect(options.value).toEqual([
-			{ label: "Ann", value: "ann@example.com", image: "/ann.png" },
-			{ label: "bob@example.com", value: "bob@example.com", image: "" },
+			{ label: "Ann", value: "ann@example.com" },
+			{ label: "bob@example.com", value: "bob@example.com" },
 		]);
 	});
 

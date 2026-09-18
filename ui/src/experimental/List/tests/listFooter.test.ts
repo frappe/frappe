@@ -59,6 +59,34 @@ describe("ListFooter counts", () => {
     await flush();
     expect(loadMore(root)).toBeUndefined();
   });
+
+  it("a capped total is a button whose click asks for the exact count", async () => {
+    const clicks: number[] = [];
+    const { root } = await mount(ListFooter, {
+      hasCounts: true,
+      rowCount: 20,
+      totalCount: 1000,
+      totalCapped: true,
+      onCount: () => clicks.push(1),
+    });
+    const capped = Array.from(root.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("1000+")
+    );
+    capped!.click();
+    expect(clicks).toHaveLength(1);
+  });
+
+  it("an unknown total reads N of many", async () => {
+    const { root } = await mount(ListFooter, {
+      hasCounts: true,
+      rowCount: 20,
+      totalCount: 20,
+      totalCapped: true,
+      totalUnknown: true,
+    });
+    expect(root.textContent).toContain("20 of many");
+    expect(root.textContent).not.toContain("+");
+  });
 });
 
 describe("ListFooter page size", () => {

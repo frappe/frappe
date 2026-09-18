@@ -11,7 +11,7 @@
 		:options="linkOptions"
 		:disabled="disabled"
 		:placeholder="placeholder ?? `Search ${doctype.toLowerCase()}`"
-		:loading="options.loading && !options.data"
+		:loading="options.loading.value && !options.data.value"
 		@update:query="handleInputChange"
 		@focus="() => loadOptions('')"
 	>
@@ -76,9 +76,10 @@
 
 <script setup lang="ts">
 import { computed, ref, useSlots, watch } from "vue";
-import { Combobox, createResource, frappeRequest, debounce } from "frappe-ui";
+import { Combobox, debounce } from "frappe-ui";
 import type { ComboboxOption, ComboboxCustomOption } from "frappe-ui";
-import type { LinkExposed, LinkOption, LinkProps, LinkEmits } from "./types";
+import { useLinkSearch } from "../../composables/useLinkSearch";
+import type { LinkExposed, LinkProps, LinkEmits } from "./types";
 
 const props = withDefaults(defineProps<LinkProps>(), {
 	filters: () => ({}),
@@ -102,22 +103,10 @@ const forwardedSlots = computed(() =>
 	)
 );
 
-const options = createResource({
-	url: "frappe.desk.search.search_link",
-	params: {
-		doctype: props.doctype,
-		txt: "",
-		filters: props.filters,
-	},
-	method: "POST",
-	resourceFetcher: frappeRequest,
-	transform: (data: LinkOption[]): LinkOption[] =>
-		data.map((doc: any) => ({
-			label: doc.label || doc.value,
-			value: doc.value,
-			description: doc.description,
-		})),
-});
+const options = useLinkSearch(
+	() => props.doctype,
+	() => props.filters
+);
 
 const createNewOption: ComboboxCustomOption = {
 	type: "custom",
@@ -129,7 +118,7 @@ const createNewOption: ComboboxCustomOption = {
 };
 
 const linkOptions = computed<ComboboxOption[]>(() => {
-	let _options: ComboboxOption[] = options.data || [];
+	let _options: ComboboxOption[] = options.data.value || [];
 	const known = model.value && _options.some((option: any) => option.value === model.value);
 	if (props.title && model.value && !known) {
 		_options = [{ label: props.title, value: model.value }, ..._options];
@@ -144,17 +133,7 @@ const showClear = computed(() => !props.disabled && !!model.value);
 const showRedirect = computed(() => props.redirectable && !!model.value);
 const showEdit = computed(() => props.editable && !!model.value);
 
-const loadOptions = (txt: string = "") => {
-	if (!props.doctype) return;
-	options.update({
-		params: {
-			txt,
-			doctype: props.doctype,
-			filters: props.filters,
-		},
-	});
-	options.reload();
-};
+const loadOptions = (txt: string = "") => void options.search(txt);
 
 const handleInputChange = debounce((value: string) => {
 	loadOptions(value || "");

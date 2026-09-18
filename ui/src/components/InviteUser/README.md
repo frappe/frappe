@@ -72,7 +72,7 @@ field and wires it to the controller:
 - **Suggests existing users** from the **User** doctype (enabled, non-Website users —
   not Contacts), excluding anyone already invited to the app (pending or accepted).
   The panel debounces the field's `update:query` into `controller.searchUsers`.
-- Matching users show in a dropdown (name over email, with avatar); pick one with the
+- Matching users show in a dropdown (name over email); pick one with the
   mouse or keyboard. Selected addresses render as removable chips with native chip
   keyboard navigation (Delete / Backspace / Arrow / Home / End) courtesy of reka-ui's
   `TagsInput`.
@@ -304,8 +304,8 @@ Whitelisted methods called:
 - `frappe.core.api.user_invitation.get_pending_invitations` (GET — auto-fetch)
 - `frappe.core.api.user_invitation.cancel_invitation` (PATCH)
 - `frappe.core.api.user_invitation.resend_invitation` (POST)
-- `frappe.client.get_list` on `User` (email autocomplete) and `User Invitation`
-  (already-invited exclusion)
+- the `/api/v2` search of `User` (email autocomplete) and list of `User Invitation`
+  (already-invited exclusion, checked against the found emails)
 
 ## Types
 

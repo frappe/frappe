@@ -60,9 +60,11 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue";
-import type { DataImportProps, DataImport } from "./types";
-import { Breadcrumbs, createListResource, createResource } from "frappe-ui";
+import { computed, nextTick, reactive, ref, watch } from "vue";
+import type { DataImportProps, DataImport, DataImports } from "./types";
+import { Breadcrumbs, createResource } from "frappe-ui";
+import { createDocument, updateDocument } from "../../api";
+import { usePagedList } from "../../composables/usePagedList";
 import { useRoute } from "vue-router";
 import type { RouteLocationRaw } from "vue-router";
 import DataImportList from "./DataImportList.vue";
@@ -77,10 +79,13 @@ const data = ref<DataImport | null>(null);
 
 const props = defineProps<Partial<DataImportProps>>();
 
-const dataImports = createListResource({
-	doctype: "Data Import",
+const DOCTYPE = "Data Import";
+const importFilters = ref<unknown[]>([]);
+// `modified` rides along so a step's write can prove it saw the row it overwrites.
+const imports = usePagedList<DataImport>(DOCTYPE, () => ({
 	fields: [
 		"name",
+		"modified",
 		"reference_doctype",
 		"import_type",
 		"status",
@@ -90,8 +95,47 @@ const dataImports = createListResource({
 		"google_sheets_url",
 		"template_options",
 	],
-	auto: true,
-	orderBy: "modified desc",
+	filters: importFilters.value,
+	order_by: "modified desc",
+}));
+void imports.reload();
+
+type WriteOptions = {
+	validate?: () => boolean;
+	onSuccess: (data: DataImport) => void;
+	onError: (err: any) => void;
+};
+
+function write(
+	send: () => Promise<{ data: DataImport }>,
+	{ validate, onSuccess, onError }: WriteOptions
+) {
+	if (validate && !validate()) return;
+	send()
+		.then(({ data: saved }) => {
+			onSuccess(saved);
+			void imports.reload();
+		})
+		.catch(onError);
+}
+
+const dataImports: DataImports = reactive({
+	data: computed(() => imports.rows.value),
+	hasNextPage: computed(() => imports.hasNextPage.value),
+	update: ({ filters }: { filters: any[] }) => (importFilters.value = filters),
+	reload: () => void imports.reload(),
+	next: () => void imports.loadMore(),
+	insert: {
+		submit: (doc: DataImport, options: WriteOptions) =>
+			write(() => createDocument<DataImport & { name: string }>(DOCTYPE, doc), options),
+	},
+	setValue: {
+		submit: (doc: DataImport, options: WriteOptions) =>
+			write(
+				() => updateDocument(DOCTYPE, doc.name!, doc as DataImport & { name: string }),
+				options
+			),
+	},
 });
 
 const fields = createResource({
