@@ -17,7 +17,13 @@ import frappe
 import frappe.client
 from frappe import _, cint, cstr, get_newargs, is_whitelisted
 from frappe.api import discovery
-from frappe.api.include import add_document_parts, add_meta_parts, parse_include, serialize_meta
+from frappe.api.include import (
+	add_document_parts,
+	add_list_parts,
+	add_meta_parts,
+	parse_include,
+	serialize_meta,
+)
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.database.utils import DefaultOrderBy
 from frappe.handler import is_valid_http_method, run_server_script, upload_file
@@ -114,10 +120,13 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 		limit: Maximum number of records to fetch (default: 20)
 		group_by: Group by field
 		as_dict: Return results as dictionary (default: True)
+		include: Comma-separated parts to add beside the list; `count` is the only one
 
 	Response:
 		frappe.response["data"]: List of document records as dicts
 		frappe.response["has_next_page"]: Indicates if more pages are available
+		frappe.response["count"], ["count_capped"]: With include=count, the row count under the
+			same filters, stopped at frappe.api.include.COUNT_CAP; None when the count timed out
 
 	Controller Customization:
 		Doctype controllers can customize queries by implementing a static get_list(query) method
@@ -157,6 +166,8 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 		raise FrappeValueError("'order_by' must be a string")
 	if group_by and not isinstance(group_by, str):
 		raise FrappeValueError("'group_by' must be a string")
+
+	add_list_parts(doctype, parse_include(args.get("include")), filters, or_filters)
 
 	query = frappe.qb.get_query(
 		table=doctype,
@@ -201,6 +212,43 @@ def count(doctype: str) -> int:
 	frappe.form_dict.doctype = doctype
 
 	return get_count()
+
+
+def search(doctype: str):
+	"""
+	GET /api/v2/doctype/<doctype>/search?txt=...
+
+	The link-field search: the same rows `frappe.desk.search.search_link` returns, as
+	`data: [{value, label, description}]`.
+
+	Query Parameters:
+		txt: The text to match
+		filters: JSON filters on the searched doctype
+		reference_doctype: The doctype the link field sits on
+		query: A whitelisted custom search method
+		limit: Rows per page (search_link's default when absent)
+		start: Row offset (default: 0)
+	"""
+	from frappe.desk.search import build_for_autosuggest, search_widget
+
+	args = frappe.form_dict
+	kwargs = {}
+	if args.get("limit") is not None:
+		kwargs["page_length"] = cint(args.get("limit"))
+
+	results = search_widget(
+		doctype,
+		cstr(args.get("txt")).strip(),
+		args.get("query") or None,
+		start=cint(args.get("start", 0)),
+		filters=args.get("filters") or None,
+		reference_doctype=args.get("reference_doctype") or None,
+		**kwargs,
+	)
+	# the same Cache-Control that search_link's @http_cache sends; it keys on the v1 path, so it
+	# does not fire for this route
+	frappe.local.response_headers.set("Cache-Control", "private,max-age=60,stale-while-revalidate=300")
+	return build_for_autosuggest(results, doctype=doctype)
 
 
 def create_doc(doctype: str):
@@ -655,4 +703,5 @@ url_rules = [
 	# Collection level APIs
 	Rule("/doctype/<doctype>/meta", methods=["GET"], endpoint=get_meta),
 	Rule("/doctype/<doctype>/count", methods=["GET", "QUERY"], endpoint=count),
+	Rule("/doctype/<doctype>/search", methods=["GET"], endpoint=search),
 ]

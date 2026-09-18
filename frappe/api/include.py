@@ -2,7 +2,8 @@
 
 `GET /api/v2/document/<doctype>/<name>?include=permissions,seen` adds each named
 part under its own top-level key. `GET /api/v2/doctype/<doctype>/meta?include=children`
-does the same for the child-table doctypes.
+does the same for the child-table doctypes, and `GET /api/v2/document/<doctype>?include=count`
+adds a capped row count beside the list.
 """
 
 from collections.abc import Iterable
@@ -49,6 +50,15 @@ def add_meta_parts(doctype: str, include: list[str]) -> None:
 			raise UnknownPartError(part, META_PARTS)
 	for part in include:
 		frappe.response[part] = META_PARTS[part](doctype)
+
+
+def add_list_parts(doctype: str, include: list[str], filters, or_filters) -> None:
+	"""Put each named part of a list read on `frappe.response`; an unknown name raises."""
+	for part in include:
+		if part not in LIST_PARTS:
+			raise UnknownPartError(part, LIST_PARTS)
+	for part in include:
+		LIST_PARTS[part](doctype, filters, or_filters)
 
 
 class UnknownPartError(frappe.ValidationError):
@@ -174,3 +184,29 @@ def serialize_meta(meta, parenttype: str | None = None) -> dict:
 
 
 META_PARTS = {"children": get_children}
+
+
+# a list count stops here; the client shows "1000+" past it
+COUNT_CAP = 1000
+
+
+def add_count(doctype: str, filters, or_filters) -> None:
+	"""`count` and `count_capped` for the list's filters; `count` is None when the one-second timeout hits."""
+	from frappe.desk.reportview import get_count
+
+	# get_count reads the request's form_dict; hand it only the list's filters and the cap
+	list_form = frappe.local.form_dict
+	frappe.local.form_dict = frappe._dict(
+		doctype=doctype, filters=filters, or_filters=or_filters, limit=COUNT_CAP
+	)
+	try:
+		count = get_count()
+	finally:
+		frappe.local.form_dict = list_form
+	# get_count marks a capped or timed-out count cacheable; the list rows beside it are not
+	frappe.local.response_headers.remove("Cache-Control")
+	frappe.response["count"] = count
+	frappe.response["count_capped"] = count == COUNT_CAP
+
+
+LIST_PARTS = {"count": add_count}
