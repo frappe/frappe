@@ -5,7 +5,17 @@ from typing import ClassVar
 from unittest.mock import patch
 
 import frappe
+<<<<<<< HEAD
 from frappe.search.sqlite_search import SQLiteSearch, SQLiteSearchIndexMissingError
+=======
+from frappe.search.sqlite_search import (
+	SQLiteSearch,
+	SQLiteSearchIndexMissingError,
+	build_index,
+	build_index_if_not_exists,
+	index_docs_in_queue,
+)
+>>>>>>> 41978c5 (test(search): cover building an index that does not exist yet)
 from frappe.tests import IntegrationTestCase
 
 
@@ -110,6 +120,24 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 				pass
 
 		super().tearDown()
+
+	def test_build_index_creates_a_missing_index(self):
+		"""build_index_if_not_exists passes force=False, so that path has to build."""
+		self.search.drop_index()
+		self.addCleanup(self.search.drop_index)
+
+		build_index(TestSQLiteSearch, force=False)
+
+		self.assertTrue(self.search.index_exists())
+
+	def test_scheduled_builder_creates_a_missing_index(self):
+		self.search.drop_index()
+		self.addCleanup(self.search.drop_index)
+
+		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[TestSQLiteSearch]):
+			build_index_if_not_exists()
+
+		self.assertTrue(self.search.index_exists())
 
 	def test_index_lifecycle_and_status_methods(self):
 		"""Test index building, existence checking, and status validation."""
