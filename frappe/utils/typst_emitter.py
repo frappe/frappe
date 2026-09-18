@@ -36,8 +36,8 @@ def pt(px, default=0.0) -> float:
 # translated at use, not import — a module-level _() would pin the first site's language
 # mirrored client-side in print_format_builder/utils.js typst_blockers_client
 BLOCKER_FIELDTYPES = {
-	"HTML": "Custom HTML block",
-	"Field Template": "Field Template (Jinja HTML)",
+	"HTML": "HTML block",
+	"Field Template": "Field Template block",
 }
 
 PAGE_NUMBER_POSITIONS = {
@@ -146,13 +146,14 @@ def typst_blockers(print_format, layout) -> list[str]:
 		blockers.extend(letterhead_blockers(lh))
 
 	colors = _unsafe_colors(print_format)
-	unknown_css = []
+	styled_fields = []
 	seen = set()
 	for _where, node in _walk(layout):
 		style = node.get("custom_style")
 		if isinstance(style, str) and style.strip():
 			_effects, unknown = translate_custom_style(style)
-			unknown_css.extend(u for u in unknown if u not in unknown_css)
+			if unknown:
+				styled_fields.append(node.get("label") or node.get("fieldname") or "?")
 		colors.extend(c for c in _unsafe_colors(node) if c not in colors)
 		fieldtype_reason = BLOCKER_FIELDTYPES.get(node.get("fieldtype"))
 		reason = (
@@ -164,10 +165,15 @@ def typst_blockers(print_format, layout) -> list[str]:
 			seen.add(reason)
 			blockers.append(reason)
 	if colors:
-		blockers.append(_("Colors Typst can't render: {0}").format(", ".join(colors)))
-	if unknown_css:
-		blockers.append(_("Field styles Typst can't render: {0}").format(", ".join(unknown_css)))
+		blockers.append(_("Colours that are not hex codes: {0}").format(", ".join(colors)))
+	if styled_fields:
+		blockers.append(_("Custom CSS on fields: {0}").format(_list_names(styled_fields)))
 	return blockers
+
+
+def _list_names(names):
+	shown = ", ".join(names[:4])
+	return _("{0} and {1} more").format(shown, len(names) - 4) if len(names) > 4 else shown
 
 
 def _barcode_blocker(df, print_format):
@@ -175,7 +181,7 @@ def _barcode_blocker(df, print_format):
 	if df.get("fieldtype") != "Barcode":
 		return None
 	if df.get("custom"):
-		return None if df.get("barcode_format") == "QR" else _("Barcode (non-QR)")
+		return None if df.get("barcode_format") == "QR" else _("Barcode that is not a QR code")
 	try:
 		meta_df = frappe.get_meta(print_format.doc_type).get_field(df.get("fieldname"))
 	except Exception:
@@ -184,7 +190,7 @@ def _barcode_blocker(df, print_format):
 
 	if meta_df and is_qr_barcode_options(meta_df.options):
 		return None
-	return _("Barcode (non-QR)")
+	return _("Barcode that is not a QR code")
 
 
 def letterhead_blockers(lh) -> list[str]:
@@ -202,7 +208,7 @@ def letterhead_blockers(lh) -> list[str]:
 		blockers.append(_("Letterhead footer with HTML content"))
 	for image in (header_is_image and lh.get("image"), footer_is_image and lh.get("footer_image")):
 		if image and str(image).startswith(("http://", "https://")):
-			blockers.append(_("Letterhead with a remote image URL"))
+			blockers.append(_("Letterhead image loaded from a web address"))
 			break
 	return blockers
 
@@ -212,7 +218,7 @@ def _image_blocker(df):
 		return None
 	src = df.get("image_url") or ""
 	if src.startswith(("http://", "https://")):
-		return _("Remote image URL")
+		return _("Image loaded from a web address")
 	return None
 
 
@@ -787,13 +793,7 @@ class TypstEmitter:
 		text = (df.get("text") or "").strip()
 		if not text:
 			return ""
-		props = []
-		if df.get("bold"):
-			props.append('weight: "bold"')
-		if df.get("font_size"):
-			props.append(f"size: {pt(frappe.utils.flt(df.get('font_size')))}pt")
-		body = typst_escape(_(text)).replace("\n", " \\\n")
-		out = f"#text({', '.join(props)})[{body}]" if props else body
+		out = self._text_props(df, typst_escape(_(text)).replace("\n", " \\\n"))
 		if df.get("align") in ("center", "right"):
 			out = f"#align({df['align']})[{out}]"
 		return out
@@ -860,12 +860,20 @@ class TypstEmitter:
 				body = f"#grid(columns: (1fr, auto), column-gutter: {gap_pt}pt, [{label}], [#align(right)[{value_text}]])"
 			else:
 				body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
-			return body
+			return self._text_props(df, body)
 		spacing = gap_effect if gap_effect is not None else 4
 		parts = [f"[{label}]"] if label else []
 		parts.append(f"[{value_text}]")
 		body = f"#stack(spacing: {spacing}pt,\n" + ",\n".join(parts) + ")" if len(parts) > 1 else value_text
-		return _aligned(body, align)
+		return _aligned(self._text_props(df, body), align)
+
+	def _text_props(self, df, body: str) -> str:
+		props = []
+		if df.get("bold"):
+			props.append('weight: "bold"')
+		if df.get("font_size"):
+			props.append(f"size: {pt(frappe.utils.flt(df.get('font_size')))}pt")
+		return f"#text({', '.join(props)})[{body}]" if props else body
 
 	def _asset(self, suffix: str, data: bytes) -> str:
 		name = f"asset_{len(self.assets)}.{suffix}"

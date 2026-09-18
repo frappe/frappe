@@ -80,6 +80,11 @@ function non_hex_color(value) {
 	return value && !TYPST_HEX.test(String(value).trim());
 }
 
+function list_names(names) {
+	const shown = names.slice(0, 4).join(", ");
+	return names.length > 4 ? __("{0} and {1} more", [shown, names.length - 4]) : shown;
+}
+
 export function typst_blockers_client(print_format, layout, letterhead) {
 	const blockers = [];
 	const add = (reason) => !blockers.includes(reason) && blockers.push(reason);
@@ -90,6 +95,7 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 	for (const key of ["label_color", "value_color"]) {
 		if (non_hex_color(print_format?.[key])) colors.add(print_format[key]);
 	}
+	const styled_fields = [];
 	if (letterhead) {
 		if ((letterhead.custom_css || "").trim()) add(__("Letterhead with custom CSS"));
 		const header_is_image = letterhead.source === "Image" && letterhead.image;
@@ -99,41 +105,43 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 		if ((letterhead.footer || "").trim() && !footer_is_image)
 			add(__("Letterhead footer with HTML content"));
 	}
-	const unknown = new Set();
 	for (const node of layout_nodes(layout)) {
 		if ((node.custom_style || "").trim()) {
+			let unknown = false;
 			for (const declaration of node.custom_style.split(";")) {
 				if (!declaration.includes(":")) continue;
 				const [raw_prop, raw_value] = declaration.split(/:(.+)/);
 				const prop = raw_prop.trim().toLowerCase();
 				const value = (raw_value || "").trim();
 				if (!prop) continue;
-				if (!TYPST_STYLE_PROPS.has(prop)) {
-					unknown.add(prop);
-				} else if (TYPST_STYLE_VALUES[prop] && !TYPST_STYLE_VALUES[prop].test(value)) {
-					unknown.add(`${prop}: ${value}`);
+				if (
+					!TYPST_STYLE_PROPS.has(prop) ||
+					(TYPST_STYLE_VALUES[prop] && !TYPST_STYLE_VALUES[prop].test(value))
+				) {
+					unknown = true;
 				}
 			}
+			if (unknown) styled_fields.push(node.label || node.fieldname);
 		}
-		if (node.fieldtype === "HTML") add(__("Custom HTML block"));
-		if (node.fieldtype === "Field Template") add(__("Field Template (Jinja HTML)"));
+		if (node.fieldtype === "HTML") add(__("HTML block"));
+		if (node.fieldtype === "Field Template") add(__("Field Template block"));
 		if (node.fieldtype === "Barcode") {
 			if (node.custom) {
-				if (node.barcode_format !== "QR") add(__("Barcode (non-QR)"));
+				if (node.barcode_format !== "QR") add(__("Barcode that is not a QR code"));
 			} else {
 				const meta_df = frappe.meta.get_docfield(print_format?.doc_type, node.fieldname);
 				if (!meta_df || !is_qr_barcode_options(meta_df.options))
-					add(__("Barcode (non-QR)"));
+					add(__("Barcode that is not a QR code"));
 			}
 		}
 		if (node.fieldtype === "Image" && /^https?:\/\//.test(node.image_url || ""))
-			add(__("Remote image URL"));
+			add(__("Image loaded from a web address"));
 		for (const key of ["label_color", "value_color"]) {
 			if (non_hex_color(node[key])) colors.add(node[key]);
 		}
 	}
-	if (colors.size) add(__("Colors Typst can't render: {0}", [[...colors].join(", ")]));
-	if (unknown.size) add(__("Field styles Typst can't render: {0}", [[...unknown].join(", ")]));
+	if (colors.size) add(__("Colours that are not hex codes: {0}", [[...colors].join(", ")]));
+	if (styled_fields.length) add(__("Custom CSS on fields: {0}", [list_names(styled_fields)]));
 	return blockers;
 }
 

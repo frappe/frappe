@@ -54,10 +54,18 @@ class TestTypstGate(IntegrationTestCase):
 
 	def test_each_blocker_is_named(self):
 		cases = {
-			"Custom HTML block": {"fieldtype": "HTML", "fieldname": "h", "html": "<b>x</b>"},
-			"Field Template (Jinja HTML)": {"fieldtype": "Field Template", "field_template": "T"},
-			"Barcode (non-QR)": {"fieldtype": "Barcode", "custom": 1, "barcode_format": "CODE128"},
-			"Remote image URL": {"fieldtype": "Image", "custom": 1, "image_url": "https://x.test/a.png"},
+			"HTML block": {"fieldtype": "HTML", "fieldname": "h", "html": "<b>x</b>"},
+			"Field Template block": {"fieldtype": "Field Template", "field_template": "T"},
+			"Barcode that is not a QR code": {
+				"fieldtype": "Barcode",
+				"custom": 1,
+				"barcode_format": "CODE128",
+			},
+			"Image loaded from a web address": {
+				"fieldtype": "Image",
+				"custom": 1,
+				"image_url": "https://x.test/a.png",
+			},
 		}
 		for reason, field in cases.items():
 			with self.subTest(reason=reason):
@@ -86,7 +94,7 @@ class TestTypstGate(IntegrationTestCase):
 
 		bad = {"fieldtype": "Data", "fieldname": "x", "custom_style": "transform: rotate(3deg)"}
 		blockers = typst_blockers(self.pf(), layout_with(bad))
-		self.assertTrue(any("transform" in b for b in blockers))
+		self.assertTrue(any(b == "Custom CSS on fields: x" for b in blockers))
 
 	def test_asset_paths_cannot_escape_their_root(self):
 		"""Image srcs are document data; a traversal must read nothing."""
@@ -180,7 +188,7 @@ class TestTypstGate(IntegrationTestCase):
 		from frappe.utils.typst_emitter import letterhead_blockers
 
 		lh = {"source": "Image", "image": "https://x.test/logo.png", "content": "<img>"}
-		self.assertIn("Letterhead with a remote image URL", letterhead_blockers(lh))
+		self.assertIn("Letterhead image loaded from a web address", letterhead_blockers(lh))
 		self.assertEqual(letterhead_blockers({"source": "Image", "image": "/files/logo.png"}), [])
 
 	def test_empty_typst_block_does_not_pin_renderer(self):
@@ -271,7 +279,7 @@ class TestTypstGate(IntegrationTestCase):
 		"""HTML renders any CSS color; Typst emits only rgb("#..."), so a non-hex
 		field/format color is gated (falls back to Chromium) rather than dropped."""
 		self.assertIn(
-			"Colors Typst can't render: red",
+			"Colours that are not hex codes: red",
 			typst_blockers(
 				self.pf(),
 				layout_with({"fieldtype": "Data", "fieldname": "x", "label_color": "red"}),
@@ -286,7 +294,7 @@ class TestTypstGate(IntegrationTestCase):
 		)
 		self.assertTrue(
 			any(
-				"Colors Typst can't render: rgb(1,2,3)" in b
+				"Colours that are not hex codes: rgb(1,2,3)" in b
 				for b in typst_blockers(
 					self.pf(value_color="rgb(1,2,3)"),
 					layout_with({"fieldtype": "Data", "fieldname": "x"}),
