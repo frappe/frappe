@@ -8,7 +8,7 @@
 		<slot>
 			{{ __("Add field") }}
 		</slot>
-		<Teleport to="#autocomplete-area">
+		<Teleport :to="autocomplete_area">
 			<div class="autocomplete" ref="autocomplete_ref">
 				<div v-show="show">
 					<Autocomplete
@@ -31,10 +31,11 @@ import Autocomplete from "./Autocomplete.vue";
 import { useStore } from "../store";
 import { clone_field } from "../utils";
 import { createPopper } from "@popperjs/core";
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, inject, nextTick, ref, watch } from "vue";
 import { onClickOutside } from "@vueuse/core";
 
 const store = useStore();
+const autocomplete_area = inject("autocomplete_area");
 
 const props = defineProps({
 	column: {

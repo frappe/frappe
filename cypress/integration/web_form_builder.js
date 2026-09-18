@@ -4,6 +4,10 @@ const ROUTE = "builder-note";
 // own, so an unscoped [data-fieldname] query reaches the Desk control
 const CANVAS = ".form-builder-container";
 
+// Desk hides the page it leaves instead of removing it, so a route change leaves two
+// form pages in the DOM. Scope to the one on screen.
+const PAGE = ".page-container:visible";
+
 // two pages: the Page Break is the boundary, page one is implicit and has no row.
 // "public" is left out so the add-field picker has something unplaced to offer.
 const SEEDED_FIELDS = [
@@ -255,5 +259,33 @@ context("Web Form Builder", () => {
 
 		cy.findByRole("tab", { name: "Form" }).click();
 		cy.get(`${CANVAS} .tab-content [data-fieldname='title']`).should("not.exist");
+	});
+
+	// the popovers belong to the shared builder, but two builders can only be put on one
+	// page from here, where a Web Form fixture is already seeded
+	it("Shows the field picker in a builder opened without a page reload", () => {
+		seed_web_form();
+
+		// the DocType builder goes first, so its container comes first in the DOM
+		cy.visit("/desk/doctype/ToDo");
+		cy.get(PAGE).findByRole("tab", { name: "Form" }).click();
+		cy.get(`${PAGE} ${CANVAS}`).should("exist");
+
+		cy.window().then((win) => win.frappe.set_route("Form", "Web Form", ROUTE));
+		cy.get(PAGE).findByRole("tab", { name: "Form" }).click();
+		cy.get(`${PAGE} ${CANVAS}`).should("exist");
+
+		// the premise: both builders are on the page, and both own a teleport target
+		cy.get(CANVAS).should("have.length", 2);
+		cy.get(".autocomplete-area").should("have.length", 2);
+
+		cy.get(
+			`${PAGE} ${CANVAS} .tab-content.active .section-columns-container:first .column:first`
+		)
+			.find(".add-new-field-btn button")
+			.click();
+
+		// the picker used to teleport into the hidden DocType page and render off screen
+		cy.get(".combo-box-options:visible").should("exist");
 	});
 });
