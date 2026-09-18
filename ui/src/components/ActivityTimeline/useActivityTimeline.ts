@@ -1,6 +1,10 @@
 import { createResource } from "frappe-ui";
 import { computed, onMounted, onUnmounted, reactive, ref, type Ref } from "vue";
-import { getSocketInstance } from "../../socket";
+import {
+  getSocketInstance,
+  resubscribeHeldDocs,
+  subscribeToDoc,
+} from "../../socket";
 import type { Activity, CustomActivity, Pagination, UserInfo } from "./types";
 import { compareActivities, dropDuplicateKeys } from "./grouping";
 import { getAssignee, stripHtml } from "./utils";
@@ -14,8 +18,66 @@ interface TimelineStore {
   hasMoreEmails: Ref<boolean>;
   hasMoreMilestones: Ref<boolean>;
   milestoneStart: Ref<number>;
+  /** one refetch however many callers ask; resolves when it lands */
+  refresh: () => Promise<void>;
+  /** start watching the doc; call the result to stop */
+  watch: () => () => void;
 }
 const stores = new Map<string, TimelineStore>();
+
+// Rows shown before the server confirmed them. Keyed by document, not cache key,
+// so every filtered view of that doc shows them. `key` is required here: it is
+// what matches a row to the real one once it arrives.
+type PendingRow = (Activity | CustomActivity) & { key: string };
+const pendingActivities = ref<Record<string, PendingRow[]>>({});
+
+const docKey = (doctype: string, docname: string) => `${doctype}:${docname}`;
+
+export interface PendingActivity {
+  /** give the row the key its confirmed row will have; it drops when that arrives */
+  resolve: (key: string) => void;
+  /** take the row back, e.g. the request failed */
+  drop: () => void;
+}
+
+/**
+ * Shows a row in the feed before the server has confirmed it. The row carries
+ * `pending`, so the timeline renders it muted.
+ */
+export function addPendingActivity(
+  doctype: string,
+  docname: string,
+  activity: Omit<Activity | CustomActivity, "key"> & { key?: string }
+): PendingActivity {
+  const doc = docKey(doctype, docname);
+  let key = activity.key ?? `pending:${crypto.randomUUID()}`;
+
+  const setRows = (next: (rows: PendingRow[]) => PendingRow[]) => {
+    pendingActivities.value = {
+      ...pendingActivities.value,
+      [doc]: next(pendingActivities.value[doc] ?? []),
+    };
+  };
+
+  setRows((rows) => [
+    ...rows,
+    { ...activity, key, pending: true } as PendingRow,
+  ]);
+
+  return {
+    resolve: (confirmedKey: string) => {
+      const oldKey = key;
+      key = confirmedKey;
+      setRows((rows) =>
+        rows.map((r) => (r.key === oldKey ? { ...r, key } : r))
+      );
+    },
+    drop: () => setRows((rows) => rows.filter((r) => r.key !== key)),
+  };
+}
+
+// one save can fire several doc_updates: wait a moment, then fetch once
+const REFRESH_DEBOUNCE_MS = 300;
 
 /** e.g. ["email", "comment", { version: ["status", "priority"] }] */
 export type VisibleTypes = Array<Activity["type"] | { version: string[] }>;
@@ -36,6 +98,10 @@ function getTimelineStore(
   const cacheKey = timelineCacheKey(doctype, docname, visibleTypes);
   const existing = stores.get(cacheKey);
   if (existing) return existing;
+
+  const visibleTypeNames = visibleTypes?.flatMap((t) =>
+    typeof t === "string" ? [t] : Object.keys(t)
+  );
 
   const hasMoreEmails = ref(true);
   const hasMoreMilestones = ref(false);
@@ -76,11 +142,45 @@ function getTimelineStore(
     },
   });
 
+  // Every trigger in the window joins the same fetch, so one save costs one request.
+  let pendingRefresh: Promise<void> | undefined;
+  let changedSinceFetch = false;
+  const refresh = (): Promise<void> => {
+    if (pendingRefresh) {
+      changedSinceFetch = true;
+      return pendingRefresh;
+    }
+    pendingRefresh = (async () => {
+      do {
+        await new Promise((done) => setTimeout(done, REFRESH_DEBOUNCE_MS));
+        // a fetch already running was sent before the change, so it may miss it
+        if (resource.loading) await resource.promise?.catch(() => {});
+        // the window is closed, so everything in it is covered by the fetch below
+        changedSinceFetch = false;
+        await resource.reload();
+        // a change that landed mid-fetch is not in what came back: go again
+      } while (changedSinceFetch);
+    })()
+      .catch(() => {})
+      .finally(() => {
+        pendingRefresh = undefined;
+      });
+    return pendingRefresh;
+  };
+
   const store: TimelineStore = {
     resource,
     hasMoreEmails,
     hasMoreMilestones,
     milestoneStart,
+    refresh,
+    watch: createLiveUpdates(
+      doctype,
+      docname,
+      resource,
+      visibleTypeNames,
+      refresh
+    ),
   };
   stores.set(cacheKey, store);
   return store;
@@ -91,28 +191,37 @@ export function useActivityTimeline(
   docname: string,
   visibleTypes?: VisibleTypes
 ) {
-  const visibleTypeNames = visibleTypes?.flatMap((t) =>
-    typeof t === "string" ? [t] : Object.keys(t)
-  );
-
   const store = getTimelineStore(doctype, docname, visibleTypes);
   const { resource } = store;
 
-  subscribeToLiveUpdates(doctype, docname, resource, visibleTypeNames);
+  // the store is shared, so one socket serves every consumer of it
+  let unwatch: (() => void) | undefined;
+  onMounted(() => {
+    unwatch = store.watch();
+  });
+  onUnmounted(() => {
+    unwatch?.();
+    unwatch = undefined;
+  });
 
   // deduped + sorted, but ungrouped: the component folds version runs at render
   // time, after the consumer's own filtering/merging
   const activities = computed<Array<Activity | CustomActivity>>(() => {
-    const fetched = (resource.data as Activity[] | undefined) ?? [];
-    const uniqueActivities = dropDuplicateKeys(fetched);
-    uniqueActivities.sort(compareActivities);
-    return uniqueActivities;
+    const confirmed = dropDuplicateKeys(
+      (resource.data as Activity[] | undefined) ?? []
+    );
+    const confirmedKeys = new Set(confirmed.map((a) => a.key));
+    // a pending row lasts until the real one arrives, matched by key
+    const pending = (
+      pendingActivities.value[docKey(doctype, docname)] ?? []
+    ).filter((a) => !confirmedKeys.has(a.key));
+    return [...confirmed, ...pending].sort(compareActivities);
   });
 
   return {
     activities,
     loading: computed<boolean>(() => resource.loading),
-    reload: () => resource.reload(),
+    reload: () => store.refresh(),
     paginate: createHistoryPagination(doctype, docname, store),
   };
 }
@@ -201,14 +310,16 @@ function createHistoryPagination(
   });
 }
 
-function subscribeToLiveUpdates(
+/** Returns watch(): the first caller wires the socket, the last unwires it. */
+function createLiveUpdates(
   doctype: string,
   docname: string,
   resource: ReturnType<typeof createResource>,
-  visibleTypes: string[] | undefined
-) {
+  visibleTypes: string[] | undefined,
+  refresh: () => Promise<void>
+): () => () => void {
   const socket = getSocketInstance();
-  if (!socket) return;
+  if (!socket) return () => () => {};
 
   // The socket payload has no avatar — reuse a resolved author from the feed, else fall back.
   const resolveAuthor = (email: string | undefined, fallback: UserInfo) => {
@@ -248,18 +359,51 @@ function subscribeToLiveUpdates(
   const onDocUpdate = (payload: unknown) => {
     const { doctype: dt, name } = payload as { doctype: string; name: string };
     if (dt !== doctype || name !== docname) return;
-    resource.reload();
+    refresh();
   };
-  onMounted(() => {
-    socket.emit("doc_subscribe", doctype, docname); // subscribes to doc updates for this doctype:docname
-    socket.on("docinfo_update", onUpdate); // subscribes to live communications, comments, likes, assignments, attachments
-    socket.on("doc_update", onDocUpdate); // subscribes to field changes
-  });
-  onUnmounted(() => {
-    socket.emit("doc_unsubscribe", doctype, docname);
-    socket.off("docinfo_update", onUpdate);
-    socket.off("doc_update", onDocUpdate);
-  });
+
+  // A reconnect gives us a new socket, so the server no longer has us in the
+  // room and whatever was sent meanwhile is gone: rejoin, then catch up.
+  // `connect` also fires on the very first connect, so only act after a drop.
+  let dropped = false;
+  const onDisconnect = () => {
+    dropped = true;
+  };
+  const onConnect = () => {
+    if (!dropped) return;
+    dropped = false;
+    resubscribeHeldDocs(socket);
+    refresh();
+  };
+
+  const handlers: Record<string, (...args: unknown[]) => void> = {
+    docinfo_update: onUpdate, // comments, emails, likes, assignments, attachments
+    doc_update: onDocUpdate, // field changes
+    disconnect: onDisconnect,
+    connect: onConnect,
+  };
+
+  let watchers = 0;
+  let leaveRoom: (() => void) | undefined;
+
+  return function watch() {
+    if (++watchers === 1) {
+      leaveRoom = subscribeToDoc(socket, doctype, docname);
+      for (const event in handlers) socket.on(event, handlers[event]);
+      // nobody was listening while this was closed, so the feed may have moved
+      if (resource.fetched) refresh();
+    }
+
+    let stopped = false;
+    return function unwatch() {
+      if (stopped) return;
+      stopped = true;
+      if (--watchers > 0) return;
+      leaveRoom?.();
+      leaveRoom = undefined;
+      for (const event in handlers) socket.off(event, handlers[event]);
+    };
+  };
 }
 
 // (assignee bolding is backend-supplied, so live assignment rows bold only the actor.)
