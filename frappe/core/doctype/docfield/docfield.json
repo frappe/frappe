@@ -57,7 +57,6 @@
   "column_break_35",
   "in_filter",
   "in_global_search",
-  "in_search_index",
   "permissions",
   "read_only",
   "allow_on_submit",
@@ -191,12 +190,6 @@
    "fieldname": "in_global_search",
    "fieldtype": "Check",
    "label": "In Global Search"
-  },
-  {
-   "description": "Include this field in the app's search index. Set on a child table field, the parent document is indexed with its values.",
-   "fieldname": "in_search_index",
-   "fieldtype": "Check",
-   "label": "In Search Index"
   },
   {
    "default": "0",
