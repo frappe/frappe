@@ -1162,6 +1162,20 @@ class TestListPartsV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200, response.json)
 		self.assertEqual(response.json["count"], 2)
 
+	def test_count_follows_group_by(self):
+		# the fixtures share one status; a grouped list of two statuses counts two groups, not three rows
+		closed = self.todos[2].name
+		frappe.db.set_value("ToDo", closed, "status", "Closed")
+		frappe.db.commit()  # nosemgrep
+		try:
+			response = self.list(include="count", fields=json.dumps(["status"]), group_by="status")
+		finally:
+			frappe.db.set_value("ToDo", closed, "status", "Open")
+			frappe.db.commit()  # nosemgrep
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(len(response.json["data"]), 2)
+		self.assertEqual(response.json["count"], 2)
+
 	def test_no_count_without_include(self):
 		for params in ({}, {"include": ""}):
 			response = self.list(**params)

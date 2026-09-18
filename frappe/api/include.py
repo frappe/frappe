@@ -52,13 +52,13 @@ def add_meta_parts(doctype: str, include: list[str]) -> None:
 		frappe.response[part] = META_PARTS[part](doctype)
 
 
-def add_list_parts(doctype: str, include: list[str], filters, or_filters) -> None:
+def add_list_parts(doctype: str, include: list[str], filters, or_filters, group_by: str | None) -> None:
 	"""Put each named part of a list read on `frappe.response`; an unknown name raises."""
 	for part in include:
 		if part not in LIST_PARTS:
 			raise UnknownPartError(part, LIST_PARTS)
 	for part in include:
-		LIST_PARTS[part](doctype, filters, or_filters)
+		LIST_PARTS[part](doctype, filters, or_filters, group_by)
 
 
 class UnknownPartError(frappe.ValidationError):
@@ -191,15 +191,17 @@ META_PARTS = {"children": get_children}
 COUNT_CAP = 1000
 
 
-def add_count(doctype: str, filters, or_filters) -> None:
+def add_count(doctype: str, filters, or_filters, group_by: str | None) -> None:
 	"""`count` (at most COUNT_CAP) and `count_capped` for the list's filters; `count` is None when the one-second timeout hits."""
 	from frappe.desk.reportview import get_count
 
-	# get_count reads the request's form_dict; hand it only the list's filters and the cap
+	# get_count reads the request's form_dict; hand it only the list's filters, its group_by and the cap
 	list_form = frappe.local.form_dict
 	frappe.local.form_dict = frappe._dict(
 		doctype=doctype, filters=filters, or_filters=or_filters, limit=COUNT_CAP + 1
 	)
+	if group_by is not None:
+		frappe.local.form_dict.group_by = group_by
 	headers = frappe.local.response_headers
 	cache_control = headers.get("Cache-Control")
 	try:

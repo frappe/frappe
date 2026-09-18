@@ -170,7 +170,7 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 	if group_by and not isinstance(group_by, str):
 		raise FrappeValueError("'group_by' must be a string")
 
-	add_list_parts(doctype, parse_include(args.get("include")), filters, or_filters)
+	add_list_parts(doctype, parse_include(args.get("include")), filters, or_filters, group_by)
 
 	query = frappe.qb.get_query(
 		table=doctype,
