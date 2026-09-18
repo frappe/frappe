@@ -62,15 +62,12 @@ frappe.ui.Dock = class Dock {
 			"Apps"
 		)}">
 			<div class="dock-logo">
-				<button class="btn-reset shell-header">
+				<a class="shell-header" href="/desk">
 					<div class="header-logo"></div>
 					<div class="title-container">
 						<div class="header-title"></div>
 					</div>
-					<span class="drop-icon" aria-hidden="true">
-						${frappe.utils.icon("chevron-down", "sm", "", "", "", true)}
-					</span>
-				</button>
+				</a>
 			</div>
 			<div class="dock-items"></div>
 		</div>`);
@@ -88,6 +85,9 @@ frappe.ui.Dock = class Dock {
 		this.$header_logo = this.$header.find(".header-logo");
 		this.$header_title = this.$header.find(".header-title");
 		this.$items = this.$dock.find(".dock-items");
+		// The router turns the href into a route without a reload (see router.js), so nothing else
+		// takes the dock down on the way out.
+		this.$header.on("click", () => this.close());
 
 		this.setup_reveal();
 		this.apply_open_state();
@@ -109,7 +109,6 @@ frappe.ui.Dock = class Dock {
 				this.apply_visibility(
 					this.should_show({
 						over_dock,
-						menu_open: this.menu_open(),
 						dist_from_edge: e.clientX,
 						currently_shown: this.is_open,
 					})
@@ -134,23 +133,16 @@ frappe.ui.Dock = class Dock {
 	// Ported from frappe-os `desktop/dock-visibility.ts`. Kept a pure function of its input, and
 	// separate from the listener that feeds it, so the branchy part is the part you can read.
 	//
-	// Order matters. `over_dock` is ours rather than the port's: the tray happens to sit inside
-	// HIDE_BAND today, so the band alone would carry it, but resting on a thing should not depend on
-	// that arithmetic holding. A menu hanging off the dock is the other override -- it has to keep
-	// its own dock on screen however far the pointer travelled to reach a row of it.
-	should_show({ over_dock, menu_open, dist_from_edge, currently_shown }) {
-		if (over_dock || menu_open) return true;
+	// `over_dock` is ours rather than the port's: the tray happens to sit inside HIDE_BAND today, so
+	// the band alone would carry it, but resting on a thing should not depend on that arithmetic
+	// holding. The port's other override, for a menu hanging off the dock, is gone with the menu --
+	// the mark is a link out to the apps screen now and the tiles are links to modules, so nothing
+	// opens over the dock that it has to stay out for.
+	should_show({ over_dock, dist_from_edge, currently_shown }) {
+		if (over_dock) return true;
 		if (dist_from_edge <= frappe.ui.Dock.REVEAL_EDGE) return true;
 		if (dist_from_edge > frappe.ui.Dock.HIDE_BAND) return false;
 		return currently_shown;
-	}
-
-	// Whether the menu on its own header is up. It is the header's `.active-sidebar` class
-	// rather than a flag of ours, because the dropdown already sets that on open and clears it on
-	// close (see SidebarHeader.toggle_active) and a second record of the same fact would be one
-	// that could disagree.
-	menu_open() {
-		return this.$header.hasClass("active-sidebar");
 	}
 
 	apply_visibility(show) {
@@ -198,21 +190,7 @@ frappe.ui.Dock = class Dock {
 	// Contents
 	// -------------------------------------------------------------------------------------------
 
-	// The menu that names this app's own affairs -- Edit Sidebar, the navbar settings, help, and
-	// the way out to the apps screen -- hangs on the dock's header. SidebarHeader owns which header
-	// carries a second copy of the same menu on its own header, and only ever one of the two is in
-	// front of you, since the dock covers the panel rather than standing beside it.
-	//
-	// Done from refresh() rather than make() because the dock can be built before the header it
-	// borrows the menu from. The node is built once, so this is too: the dropdown binds to the
-	// element and reads its rows fresh on every open.
-	setup_header_menu() {
-		if (this.header_menu || !this.sidebar.sidebar_header) return;
-		this.header_menu = this.sidebar.sidebar_header.attach_menu(this.$header);
-	}
-
 	refresh() {
-		this.setup_header_menu();
 		// The dock belongs to the app whose body sidebar is on screen.
 		this.app = this.sidebar.get_sidebar_app();
 		// It is drawn only if it has entries and the page on screen allows it. The desktop or apps
@@ -270,14 +248,16 @@ frappe.ui.Dock = class Dock {
 		// "All apps" row now, so the header is a menu trigger rather than the link it used to be.
 		this.$header_logo.html(icon);
 		this.$header_title.text(title);
-		this.$header.attr("aria-label", title);
+		// The mark shows which app you are in; what it is for is getting out of it, which is what the
+		// name has to say -- a link read out as "ERPNext" gives no clue that pressing it leaves
+		// ERPNext. This is the row the header was before a menu moved onto it, and "All apps" is the
+		// menu row that held the job in between.
+		this.$header.attr("aria-label", __("All apps"));
 		// Built once with the header, then renamed in place: the tooltip binds to the node, and the
 		// node outlives every module this dock goes on to show.
-		if (this.header_tooltip) {
-			this.header_tooltip.set_text(title);
-		} else {
+		if (!this.header_tooltip) {
 			this.header_tooltip = new frappe.ui.Tooltip(this.$header[0], {
-				text: title,
+				text: __("All apps"),
 				side: "right",
 				delay: 0,
 				offset: 10,

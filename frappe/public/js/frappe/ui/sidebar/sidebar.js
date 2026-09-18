@@ -804,26 +804,19 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	// Search, notifications and background tasks, as full-width rows in their own band.
 	//
-	// Search is here because without a rail it has nowhere else. The rail carried four things
-	// besides navigation, and three of them survive its removal: notifications and the user
-	// button return to the sidebar, and the apps door is covered by the switcher's "All apps".
-	// Search is not. The desk's own full-search button is dead markup, so a dock-less app has no
-	// search affordance otherwise.
+	// These are here because the dock no longer carries them. It used to hold four things besides
+	// navigation, and all four moved: notifications, background tasks and the user button to the
+	// sidebar, and the apps door to the switcher's "All apps". Search had nowhere else to go --
+	// the desk's own full-search button is dead markup -- so it moved here too, and this is the
+	// only search affordance the desk has.
 	//
 	// These are full-width rows rather than an icon strip, so the band uses the sidebar's own
-	// vocabulary instead of the rail's ghost-icon treatment in a 220px panel, and search stays
+	// vocabulary instead of the dock's ghost-icon treatment in a 220px panel, and search stays
 	// legible. Nothing new is built for it: each row is the same icon-plus-label item every
 	// sidebar link is.
 	//
 	// The band sits directly under the header, above the module's own items, behind a divider,
-	// rather than after the user button where the generic add-item helper put these two. The
-	// whole band is hidden when the rail is present (`body.dock-active` hides it),
-	// which is what a docked app's sidebar wants: all three off, including background tasks,
-	// which it used to show while hiding the bell next to it.
-	//
-	// The trade-off is that search has two homes depending on whether the app has a rail. That
-	// was preferred over stripping the rail's shortcuts, which would have changed every docked
-	// app to fix a dock-less one.
+	// rather than after the user button where the generic add-item helper put these two.
 	add_standard_items(items) {
 		if (this.standard_items_setup) return;
 		this.standard_items = [];
@@ -1263,34 +1256,24 @@ frappe.ui.Sidebar = class Sidebar {
 	open_dock_entry(entry) {
 		if (!entry) return;
 
-		// A shell entry names a sidebar, not a page. Clicking it swaps the panel to that shell and
-		// opens the panel; where to go from there is the user's to pick from the rows it now shows.
-		// It used to route to the shell's landing page as well, which is to say it opened the
-		// sidebar's first link on their behalf -- the rail's own row for a module and the first row
-		// of that module's sidebar are not the same destination, and only one of them was asked
-		// for. The switcher menu still lands on it (see `open_module`), because picking a module
-		// out of a menu is a request to go there.
-		if (entry.link_type === "Sidebar") {
-			this.select_module(entry.module);
-			this.open();
-			return;
-		}
-
-		// A pinned row is a destination of its own, so it still travels. Select the shell first, so
-		// the sidebar is correct when the route lands. A URL row selects nothing, because it has no
-		// shell.
+		// Select the shell first, so the sidebar is right when the route lands, then go where the
+		// entry points -- which for a row naming a shell is that shell's landing page, the first
+		// item in its sidebar (see dock_entry_route).
+		//
+		// A shell row used to be the exception: it swapped the sidebar and travelled nowhere, on
+		// the grounds that the dock's row for a module and the first row of that module's sidebar
+		// are not the same destination, and only one of them had been asked for. That held while
+		// the dock was a permanent column beside the panel -- you picked a module on the left and
+		// then picked a page out of the panel that had just changed next to it.
+		//
+		// It does not hold now. The dock is an overlay that covers the panel and dismisses itself
+		// on the click, so swapping the panel and staying put left you on the page you were already
+		// on, with a sidebar you had not asked to read and nothing on screen to say the click had
+		// done anything. Going somewhere is the only outcome the gesture can now have.
 		if (entry.module) this.select_module(entry.module);
 		this.open();
-		const route = frappe.ui.sidebar_item.get_route(
-			{
-				type: "Link",
-				link_type: entry.link_type,
-				link_to: entry.link_to,
-				url: entry.url,
-			},
-			false,
-			entry.module
-		);
+
+		const route = this.dock_entry_route(entry);
 		if (route) frappe.set_route(route);
 	}
 

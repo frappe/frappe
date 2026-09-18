@@ -243,6 +243,18 @@ frappe.router = {
 		// `pageview.with_page` reads both, so this does too.
 		if (frappe.boot.page_info?.[segment] || frappe.standard_pages?.[segment]) return "page";
 
+		// A standard route, which is the spelling the desk used before friendly URLs and still
+		// honours: `/desk/List/DocType/List`, `/desk/Form/User/Administrator`. The desk never
+		// writes one any more, so the only URLs in this shape are old bookmarks and old links,
+		// and they have to keep working.
+		//
+		// Last, because a view name and a doctype slug collide: `Report` is both a view and a
+		// doctype, and `/desk/report` has always been the Report list.
+		//
+		// `render_page` decides what these name by looking for a view factory, so this asks the
+		// same registry rather than keeping a list of view names beside it that could drift.
+		if (frappe.views?.[frappe.utils.to_title_case(segment) + "Factory"]) return "view";
+
 		return null;
 	},
 
@@ -492,6 +504,24 @@ frappe.router = {
 			route.shift();
 		}
 
+		// Drop the shell, for the same reason the prefix above is dropped: it is part of the
+		// address, not part of the route. `make_url` spells routes without one and
+		// `write_shell_into_url` puts it back afterwards, so keeping it here would only give the
+		// same place two spellings.
+		//
+		// A route arrives carrying one whenever it was read off the page rather than built:
+		// `set_route(location.pathname)`, or the body-level handler above passing the `href` of a
+		// link that resolved against a URL the desk had already written a shell into. Every
+		// relative link on the page is now such a link, including `href=""`, which is how a
+		// button that meant to do nothing to the route ended up re-routing.
+		//
+		// Left in, `push_state` compares a path with a shell against `path_on_screen()`, which
+		// has none, reads every self-link as a move, and re-renders the page under it -- throwing
+		// away whatever the render was holding. The form sidebar lost its "Show All" this way.
+		if (this.begins_with_shell(route)) {
+			route.shift();
+		}
+
 		// Handle cases where "/" is part of the name
 		if (route[0] === "Form" && route.length > 3) {
 			route = [route[0], route[1], route.slice(2).join("/")];
@@ -711,14 +741,21 @@ frappe.router = {
 	// A one-segment route never carries a shell. `/desk/stock` stays the Stock workspace it has
 	// always been, and a shell is reached through the two-segment form instead.
 	take_shell_from(route) {
-		const shell = route.length > 1 && this.shell_routes?.[route[0]];
-		if (!shell || !this.route_names_something(route[1])) {
+		if (!this.begins_with_shell(route)) {
 			this.current_shell = null;
 			return route;
 		}
 
-		this.current_shell = shell;
+		this.current_shell = this.shell_routes[route[0]];
 		return route.slice(1);
+	},
+
+	// Whether a route begins with a shell segment that can be taken off the front, by the rule
+	// `take_shell_from` describes. Asked separately by `get_route_from_arguments`, which has to
+	// drop a shell without adopting it.
+	begins_with_shell(route) {
+		if (route.length <= 1 || !this.shell_routes?.[route[0]]) return false;
+		return this.route_names_something(route[1]);
 	},
 
 	// The shell a URL for this route should name, or null when the desk cannot say yet.

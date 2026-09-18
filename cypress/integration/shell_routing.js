@@ -228,6 +228,56 @@ describe("Desk URL shell segment", () => {
 		cy.get(".standard-sidebar-item.active-sidebar").should("have.length", 1);
 	});
 
+	it("reads back a standard route it wrote a shell into", () => {
+		// `/desk/List/DocType/List` is the spelling the desk used before friendly URLs. It still
+		// honours one, so it must also be able to read back the URL it rewrites one into --
+		// otherwise an old bookmark works once and breaks on the first reload.
+		//
+		// It broke because `segment_kind` knew workspaces, doctypes and pages but not view names,
+		// so the shell went on and would not come off, and `build` was then read as the workspace
+		// it also names.
+		cy.visit("/desk/List/DocType/List");
+		cy.location("pathname").should("eq", "/desk/build/List/DocType/List");
+		cy.get(".list-count").should("exist");
+
+		cy.reload();
+		cy.get(".list-count").should("exist");
+		cy.window().then((win) => {
+			expect(win.frappe.get_route()).to.deep.eq(["List", "DocType", "List"]);
+		});
+	});
+
+	it("does not re-route when handed the path already on screen", () => {
+		// `set_route` is given ready-made paths as well as routes, and a path read off the page
+		// carries the shell the desk wrote into it. Every relative link on the page is such a
+		// path, `href=""` included.
+		//
+		// Left in, the shell makes `push_state` compare a path that has one against
+		// `path_on_screen()`, which has none, so a link to the page you are on reads as a move
+		// and re-renders it -- discarding whatever the render was holding. The form sidebar's
+		// "Show All" was a casualty: it collapsed itself the moment it was clicked.
+		cy.visit("/desk/build/todo");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Build");
+
+		cy.window().then((win) => {
+			const router = win.frappe.router;
+			let renders = 0;
+			const render = router.render.bind(router);
+			router.render = function () {
+				renders += 1;
+				return render();
+			};
+
+			// Exactly what the body-level link handler passes when a link on this page resolves
+			// against the URL the desk has already written a shell into.
+			return win.frappe.set_route(win.location.pathname).then(() => {
+				expect(renders, "re-rendered the page it was already on").to.eq(0);
+				expect(win.location.pathname).to.eq("/desk/build/todo");
+				router.render = render;
+			});
+		});
+	});
+
 	it("builds sidebar links that already name their shell", () => {
 		// The other half of the same thing: a link that arrives correct needs no rewriting, so
 		// clicking one does not change the URL out from under itself.

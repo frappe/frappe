@@ -2137,7 +2137,7 @@ class ShellIndex:
 		if own and own in self.computed:
 			return own
 
-		heirs = [shell for shell in map(self.shell_of, heirs_of(module)) if shell]
+		heirs = [shell for heir in heirs_of(module) if (shell := self.shell_of(heir))]
 		for heir in heirs:
 			if heir in listed:
 				return heir
