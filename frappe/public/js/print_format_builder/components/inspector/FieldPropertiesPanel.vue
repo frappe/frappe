@@ -256,6 +256,23 @@
 
 		<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
 			<div v-if="is_text_field" class="pfb-insp-section-body">
+				<ToggleRow
+					v-if="!is_static_text"
+					:label="__('Bold')"
+					:model-value="!!selected_field.bold"
+					@update:model-value="(v) => (selected_field.bold = v ? 1 : 0)"
+				/>
+				<StepperRow
+					v-if="!is_static_text"
+					:label="__('Font size')"
+					:model-value="selected_field.font_size"
+					:base="13"
+					:step="1"
+					unit="px"
+					:placeholder="__('auto')"
+					allow-empty
+					@update:model-value="(v) => (selected_field.font_size = v)"
+				/>
 				<ColorField
 					:label="__('Label')"
 					:model-value="selected_field.label_color || ''"

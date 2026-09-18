@@ -163,7 +163,7 @@
 		<template v-else>
 			<div
 				class="field-row"
-				:style="{ textAlign: df.align || 'left', ...custom_style }"
+				:style="{ textAlign: df.align || 'left', ...text_style, ...custom_style }"
 				:class="{ 'field-row--lr': field_orientation === 'left-right' }"
 			>
 				<div
@@ -313,10 +313,14 @@ let rendered_template = ref(null);
 
 let custom_style = computed(() => parse_inline_style(props.df.custom_style));
 
-let static_text_style = computed(() => ({
-	whiteSpace: "pre-line",
+let text_style = computed(() => ({
 	...(props.df.bold ? { fontWeight: 700 } : {}),
 	...(props.df.font_size ? { fontSize: props.df.font_size + "px" } : {}),
+}));
+
+let static_text_style = computed(() => ({
+	whiteSpace: "pre-line",
+	...text_style.value,
 	...(props.df.align ? { textAlign: props.df.align } : {}),
 }));
 
@@ -383,7 +387,7 @@ const preview_root = computed(() => {
 				? `field-justify-${df.label_justify}`
 				: "",
 		],
-		style: { ...style, ...custom },
+		style: { ...style, ...text_style.value, ...custom },
 	};
 });
 
