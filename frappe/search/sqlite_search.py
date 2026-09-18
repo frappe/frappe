@@ -14,6 +14,7 @@ from enum import Enum
 from typing import Any
 
 import frappe
+from frappe.database.sqlite import DEFAULT_BUSY_TIMEOUT_SECONDS
 from frappe.model.document import Document
 from frappe.utils import convert_utc_to_system_timezone, get_datetime, now_datetime, update_progress_bar
 from frappe.utils.file_lock import LockTimeoutError
@@ -1318,6 +1319,10 @@ class SQLiteSearch(ABC):
 
 	def _set_pragmas(self, cursor, is_read=False):
 		"""Set SQLite performance pragmas."""
+<<<<<<< HEAD
+=======
+		cursor.execute(f"PRAGMA busy_timeout = {DEFAULT_BUSY_TIMEOUT_SECONDS * 1000};")
+>>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)
 		cursor.execute("PRAGMA journal_mode = WAL;")  # Write-Ahead Logging for concurrency
 		cursor.execute("PRAGMA synchronous = NORMAL;")  # Better performance vs FULL
 		cursor.execute("PRAGMA cache_size = -8192;")  # 8MB cache

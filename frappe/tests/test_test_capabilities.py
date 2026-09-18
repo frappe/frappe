@@ -27,10 +27,13 @@ class TestTestCapabilities(unittest.TestCase):
 		with patch.dict(os.environ, {}, clear=True):
 			self.assertTrue(is_test_service_available(TestService.WEB_SERVER))
 			self.assertTrue(is_test_service_available(TestService.BACKGROUND_WORKER))
+			self.assertTrue(is_test_service_available(TestService.SMTP_SERVER))
 
 	def test_service_can_be_disabled_with_environment_variable(self):
 		with patch.dict(os.environ, {"FRAPPE_TEST_WEB_SERVER": "0"}, clear=True):
 			self.assertFalse(is_test_service_available(TestService.WEB_SERVER))
+		with patch.dict(os.environ, {"FRAPPE_TEST_SMTP_SERVER": "0"}, clear=True):
+			self.assertFalse(is_test_service_available(TestService.SMTP_SERVER))
 
 	def test_service_accepts_explicit_true_value(self):
 		with patch.dict(os.environ, {"FRAPPE_TEST_BACKGROUND_WORKER": "yes"}, clear=True):
@@ -54,7 +57,7 @@ class TestTestCapabilities(unittest.TestCase):
 
 	def test_cli_service_name_is_converted_to_enum(self):
 		self.assertEqual(TestService.from_cli_name("web-server"), TestService.WEB_SERVER)
-		with self.assertRaisesRegex(ValueError, "web-server, background-worker"):
+		with self.assertRaisesRegex(ValueError, "web-server, background-worker, smtp-server"):
 			TestService.from_cli_name("unknown")
 
 	def test_required_services_are_collected_from_method_and_class(self):

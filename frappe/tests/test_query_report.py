@@ -449,14 +449,19 @@ class TestQueryReport(IntegrationTestCase):
 		REF_DOCTYPE = "DocType"
 		REPORT_COLUMNS = ["name", "module", "issingle"]
 
-		if not frappe.db.exists("Report", REPORT_NAME):
-			report = frappe.new_doc("Report")
-			report.report_name = REPORT_NAME
-			report.ref_doctype = "User"
-			report.report_type = "Query Report"
-			report.query = frappe.qb.from_(REF_DOCTYPE).select(*REPORT_COLUMNS).limit(10).get_sql()
-			report.is_standard = "No"
-			report.save()
+		report = (
+			frappe.get_doc("Report", REPORT_NAME)
+			if frappe.db.exists("Report", REPORT_NAME)
+			else frappe.new_doc("Report")
+		)
+		report.report_name = REPORT_NAME
+		report.ref_doctype = "User"
+		report.report_type = "Query Report"
+		report.query = (
+			f"SELECT {', '.join(f'`{column}`' for column in REPORT_COLUMNS)} FROM `tab{REF_DOCTYPE}` LIMIT 10"
+		)
+		report.is_standard = "No"
+		report.save()
 
 		for delimiter in (",", ";", "\t", "|"):
 			for quoting in (QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC):
@@ -762,14 +767,19 @@ data = columns, result
 		REF_DOCTYPE = "DocType"
 		REPORT_COLUMNS = ["name", "module", "issingle"]
 
-		if not frappe.db.exists("Report", REPORT_NAME):
-			report = frappe.new_doc("Report")
-			report.report_name = REPORT_NAME
-			report.ref_doctype = "User"
-			report.report_type = "Query Report"
-			report.query = frappe.qb.from_(REF_DOCTYPE).select(*REPORT_COLUMNS).limit(10).get_sql()
-			report.is_standard = "No"
-			report.save()
+		report = (
+			frappe.get_doc("Report", REPORT_NAME)
+			if frappe.db.exists("Report", REPORT_NAME)
+			else frappe.new_doc("Report")
+		)
+		report.report_name = REPORT_NAME
+		report.ref_doctype = "User"
+		report.report_type = "Query Report"
+		report.query = (
+			f"SELECT {', '.join(f'`{column}`' for column in REPORT_COLUMNS)} FROM `tab{REF_DOCTYPE}` LIMIT 10"
+		)
+		report.is_standard = "No"
+		report.save()
 
 		frappe.local.form_dict = frappe._dict(
 			{
@@ -781,6 +791,12 @@ data = columns, result
 			}
 		)
 		frappe.db.delete("Email Queue")
+<<<<<<< HEAD
+=======
+		user_email = frappe.get_cached_value("User", frappe.session.user, "email")
+		frappe.db.delete("Email Unsubscribe", {"email": user_email})
+		frappe.db.commit()
+>>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)
 		export_query()
 
 		jobs = frappe.get_all("RQ Job")

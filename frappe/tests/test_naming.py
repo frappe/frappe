@@ -49,6 +49,15 @@ class TestNaming(IntegrationTestCase):
 		self.assertEqual(append_number_if_name_exists(DOCTYPE, note.name), f"{note.name}-1")
 		self.assertEqual(append_number_if_name_exists(DOCTYPE, TITLE, "title", "_"), f"{TITLE}_1")
 
+	@run_only_if(db_type_is.SQLITE)
+	def test_getseries_uses_an_atomic_sqlite_increment(self):
+		key = f"atomic-series-{frappe.generate_hash()}"
+		self.addCleanup(frappe.db.delete, "Series", {"name": key})
+
+		self.assertEqual(getseries(key, 5), "00001")
+		self.assertEqual(getseries(key, 5), "00002")
+		self.assertEqual(frappe.db.get_value("Series", key, "current"), 2)
+
 	def test_field_autoname_name_sync(self):
 		country = frappe.get_last_doc("Country")
 		original_name = country.name

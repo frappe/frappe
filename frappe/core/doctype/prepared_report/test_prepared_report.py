@@ -2,11 +2,16 @@
 # License: MIT. See LICENSE
 import json
 import time
+import unittest
 from contextlib import contextmanager
 
 import frappe
+<<<<<<< HEAD
 from frappe.core.doctype.prepared_report.prepared_report import delete_prepared_reports
 from frappe.desk.query_report import generate_report_result, get_prepared_report_result, get_report_doc
+=======
+from frappe.desk.query_report import generate_report_result, get_report_doc
+>>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)
 from frappe.tests import IntegrationTestCase, timeout
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 
@@ -64,6 +69,7 @@ class TestPreparedReport(IntegrationTestCase):
 		self.assertEqual(len(prepared_data["result"]), len(generated_data["result"]))
 		self.assertEqual(len(prepared_data), len(generated_data))
 
+<<<<<<< HEAD
 	def test_failed_report_is_surfaced(self):
 		with test_report(report_type="Query Report", query="select * from `tabNoSuchTable`") as report:
 			doc = self.create_prepared_report(report.name)
@@ -83,6 +89,12 @@ class TestPreparedReport(IntegrationTestCase):
 		frappe.set_user("test1@example.com")
 		self.assertRaises(frappe.PermissionError, delete_prepared_reports, [{"name": doc.name}])
 
+=======
+	@unittest.skipIf(
+		frappe.conf.db_type == "sqlite",
+		"This test needs a database sleep function, which SQLite does not provide.",
+	)
+>>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)
 	def test_start_status_and_kill_jobs(self):
 		if frappe.db.db_type == "postgres":
 			query = "select pg_sleep(5)"

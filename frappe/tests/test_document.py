@@ -92,6 +92,31 @@ class TestDocument(IntegrationTestCase):
 		self.assertEqual(d.send_reminder, 1)
 		return d
 
+<<<<<<< HEAD
+=======
+	def test_submittable_insert(self):
+		doctype_name = "Test Document Submittable"
+		if frappe.db.exists("DocType", doctype_name):
+			dt = frappe.get_doc("DocType", doctype_name)
+		else:
+			dt = frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"module": "Core",
+					"name": doctype_name,
+					"custom": 1,
+					"is_submittable": 1,
+					"fields": [{"label": "Field", "fieldname": "test_field", "fieldtype": "Data"}],
+					"permissions": [
+						{"role": "System Manager", "read": 1, "write": 1, "submit": 1, "cancel": 1}
+					],
+				}
+			).insert()
+
+		d = frappe.get_doc({"doctype": dt.name, "test_field": "test"}).insert()
+		return d
+
+>>>>>>> 509b0cc (fix(sqlite): harden runtime and run pull request CI)
 	def test_website_route_default(self):
 		default = frappe.generate_hash()
 		child_table = new_doctype(default=default, istable=1).insert().name
