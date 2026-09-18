@@ -197,6 +197,8 @@ class SessionStore:
 			return
 		requested = set(config.tools) if "tools" in config.model_fields_set else set()
 		requested.update(config.extension_tools or ())
+		for agent in config.subagents:
+			requested.update(agent.tools or ())
 		blocked = sorted(requested - self.tool_allowlist)
 		if blocked:
 			raise PolicyError(f"tools not allowed by server policy: {', '.join(blocked)}")
@@ -458,6 +460,7 @@ class SessionStore:
 			persist_meta=self.save_meta,
 			resolve_skill=partial(self.resolve_skill, config),
 			persist_skill_catalog=self.save_skill_catalog,
+			compose_tools=self._compose_tools,
 		)
 
 	def save_skill_catalog(self, session: Session) -> None:

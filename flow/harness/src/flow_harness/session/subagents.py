@@ -18,8 +18,10 @@ from flow_harness.events import (
 	UserMessage,
 )
 from flow_harness.model.cancellation import ModelCancelled
+from flow_harness.session.config import SessionConfig, SubagentConfig
 from flow_harness.session.prompt import strip_tool_from_prompt
 from flow_harness.session.transcript import Transcript
+from flow_harness.tools import Tool
 from flow_harness.tools.builtins.subagent import SubagentOutcome, subagent
 
 CANCELLED = json.dumps({"status": "cancelled", "message": "User cancelled this pending tool call."})
@@ -33,16 +35,21 @@ class SubagentRunner:
 		self,
 		commit: Callable[[AnyEvent], None],
 		run_error: Callable[[Exception], RunError],
+		compose_tools: Callable[[SessionConfig], dict[str, Tool]],
 		max_concurrent: int,
 	):
 		self._commit = commit
 		self._run_error = run_error
+		self._compose_tools = compose_tools
 		self._slots = asyncio.Semaphore(max_concurrent)
 
-	async def run(self, inputs: loop.LoopInputs, call_id: str, task: str) -> SubagentOutcome:
-		"""Run a sub-agent named by its call through `task`, inside the run `inputs` belong to."""
+	async def run(
+		self, inputs: loop.LoopInputs, call_id: str, task: str, agent: SubagentConfig
+	) -> SubagentOutcome:
+		"""Run `agent` through `task` as the sub-agent named by its call, in the run of `inputs`."""
+		child = Transcript(call_id)
 		async with self._slots:
-			return await self._drive(inputs, Transcript(call_id), task)
+			return await self._drive(_child_inputs(inputs, child, agent, self._compose_tools), child, task)
 
 	async def _drive(self, inputs: loop.LoopInputs, child: Transcript, task: str) -> SubagentOutcome:
 		"""Run the child's turn to its end and report how it went."""
@@ -50,7 +57,7 @@ class SubagentRunner:
 		end_reason: str = "done"
 		error: str | None = None
 		try:
-			async for event in loop.run(UserMessage(content=task), _child_inputs(inputs, child)):
+			async for event in loop.run(UserMessage(content=task), inputs):
 				self._record(child, event)
 				if isinstance(event, AssistantMessage) and event.text:
 					text = event.text
@@ -93,21 +100,33 @@ class SubagentRunner:
 			child.record(event)
 
 
-def _child_inputs(inputs: loop.LoopInputs, child: Transcript) -> loop.LoopInputs:
-	"""The run's inputs with the child's prompt, tools and transcript, and no steering."""
+def _child_inputs(
+	inputs: loop.LoopInputs,
+	child: Transcript,
+	agent: SubagentConfig,
+	compose_tools: Callable[[SessionConfig], dict[str, Tool]],
+) -> loop.LoopInputs:
+	"""The run's inputs with the child's transcript, and the agent's prompt, tools and model where set."""
 	config = inputs.config
-	if config.system_prompt is not None:
-		config = config.model_copy(
-			update={"system_prompt": strip_tool_from_prompt(config.system_prompt, subagent.name)}
-		)
+	prompt = agent.system_prompt
+	if prompt is None and config.system_prompt is not None:
+		prompt = strip_tool_from_prompt(config.system_prompt, subagent.name)
+	own_model = (agent.model, agent.api_key, agent.api_base) != (None, None, None)
+	if own_model:
+		config = config.model_copy(update={"api_key": agent.api_key, "api_base": agent.api_base})
+	tools = inputs.server_tools or {}
+	if agent.tools is not None:
+		tools = compose_tools(config.model_copy(update={"tools": agent.tools}))
 	return replace(
 		inputs,
-		config=config,
+		config=config.model_copy(update={"system_prompt": prompt}),
 		messages=child.messages,
 		context_tokens=child.context_tokens,
 		context_message_count=child.context_message_count,
 		next_steering=None,
-		server_tools={
-			name: tool for name, tool in (inputs.server_tools or {}).items() if name != subagent.name
-		},
+		server_tools={name: tool for name, tool in tools.items() if name != subagent.name},
+		model=None if own_model else inputs.model,
+		model_name=agent.model or inputs.model_name,
+		credential_id=None if own_model else inputs.credential_id,
+		reasoning_effort=agent.reasoning_effort or inputs.reasoning_effort,
 	)

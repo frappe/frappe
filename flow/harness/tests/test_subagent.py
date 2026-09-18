@@ -1,17 +1,27 @@
 """The subagent builtin end to end: a child run inside the session, its rows tagged in
-the session's log, parallel children under the cap, and how a child's end reaches the
-model."""
+the session's log, named agents, parallel children under the cap, and how a child's end
+reaches the model."""
 
 import asyncio
 from dataclasses import replace
 
-from flow_harness.agent.loop import HookDecision
+import pytest
+from fastapi.testclient import TestClient
+from pydantic import ValidationError
+
+from flow_harness.agent.loop import HookDecision, LoopInputs
 from flow_harness.events import AssistantMessage, ToolCall
 from flow_harness.model import ProviderError
+from flow_harness.model.credentials import CredentialStore
 from flow_harness.model.mock import MockModel, _last_user
+from flow_harness.server import create_app
+from flow_harness.server.policy import ServerPolicy
 from flow_harness.server.routes.sessions import _summary
-from flow_harness.session.config import SessionConfig
-from flow_harness.session.store import SessionStore
+from flow_harness.session.config import SessionConfig, SubagentConfig
+from flow_harness.session.store import PolicyError, SessionStore
+from flow_harness.session.subagents import _child_inputs
+from flow_harness.session.transcript import Transcript
+from flow_harness.tools import select_tools
 from flow_harness.tools.builtins.subagent import subagent
 
 
@@ -68,8 +78,8 @@ def _of(events, kind, subagent=None):
 	return [e for e in events if e["type"] == kind and e.get("subagent_id") == subagent]
 
 
-def _spawn(cid, task):
-	return ToolCall(id=cid, name="subagent", arguments={"task": task, "description": "a task"})
+def _spawn(cid, task, **args):
+	return ToolCall(id=cid, name="subagent", arguments={"task": task, "description": "a task", **args})
 
 
 async def test_a_subagent_answers_from_a_fresh_context(tmp_path):
@@ -144,6 +154,117 @@ async def test_an_extension_tool_named_subagent_is_left_alone(tmp_path):
 	# the extension's tool ran as it is; nothing was bound over it and no child started
 	assert "not available" in _of(events, "tool_result")[0]["content"]
 	assert not [e for e in events if e.get("subagent_id")]
+
+
+async def test_a_named_agent_runs_with_its_own_prompt_and_tools(tmp_path):
+	agents = [
+		SubagentConfig(
+			name="Lookup", description="finds things", system_prompt="you look things up", tools=["read"]
+		)
+	]
+	session, events = _session(tmp_path, subagents=agents)
+	model = ScriptedModel(
+		{
+			"go": [
+				AssistantMessage(content=[_spawn("c1", "find it", agent="Lookup")]),
+				AssistantMessage(content="done"),
+			],
+			"find it": [AssistantMessage(content="found")],
+		}
+	)
+
+	await _run(session, "go", model)
+
+	parent, child = model.requests[0], model.requests[1]
+	description = next(
+		t["function"]["description"] for t in parent.tools if t["function"]["name"] == "subagent"
+	)
+	assert description.endswith(
+		"Available agents:\n- general: a copy of you with a fresh context\n- Lookup: finds things"
+	)
+	assert child.system_prompt == "you look things up"
+	assert [t["function"]["name"] for t in child.tools] == ["read"]
+	result = _of(events, "tool_result")[0]
+	assert result["content"] == "found" and result["details"]["agent"] == "Lookup"
+
+
+async def test_an_unknown_agent_is_an_error_result(tmp_path):
+	session, events = _session(tmp_path, subagents=[SubagentConfig(name="Lookup")])
+	model = ScriptedModel(
+		{
+			"go": [
+				AssistantMessage(content=[_spawn("c1", "x", agent="Nobody")]),
+				AssistantMessage(content="done"),
+			]
+		}
+	)
+
+	await _run(session, "go", model)
+
+	result = _of(events, "tool_result")[0]
+	assert result["is_error"] and result["content"] == "[unknown agent 'Nobody'; available: general, Lookup]"
+	assert not [e for e in events if e.get("subagent_id")]
+
+
+def test_a_child_takes_credentials_with_its_model_or_on_their_own(tmp_path):
+	config = SessionConfig(cwd=str(tmp_path), api_key="parent-key", api_base="http://parent")
+	inputs = LoopInputs(
+		config=config,
+		messages=[],
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+		abort=asyncio.Event(),
+		model_name="mock",
+		credential_id="cred",
+		model=MockModel(replies=[]),
+	)
+
+	def child(**definition):
+		agent = SubagentConfig(name="a", **definition)
+		return _child_inputs(inputs, Transcript("c1"), agent, lambda config: select_tools(config.tools))
+
+	def selection(child_inputs):
+		return (
+			child_inputs.model,
+			child_inputs.model_name,
+			child_inputs.credential_id,
+			child_inputs.config.api_key,
+			child_inputs.config.api_base,
+		)
+
+	assert selection(child()) == (inputs.model, "mock", "cred", "parent-key", "http://parent")
+	assert selection(child(api_key="child-key")) == (None, "mock", None, "child-key", None)
+	assert selection(child(model="other")) == (None, "other", None, None, None)
+	assert child().reasoning_effort is None and child(reasoning_effort="low").reasoning_effort == "low"
+
+
+def test_config_checks_agent_names_and_redacts_their_keys():
+	with pytest.raises(ValidationError, match="reserved"):
+		SessionConfig(subagents=[SubagentConfig(name="general")])
+	with pytest.raises(ValidationError, match="unique"):
+		SessionConfig(subagents=[SubagentConfig(name="a"), SubagentConfig(name="a")])
+	config = SessionConfig(subagents=[SubagentConfig(name="a", api_key="sk-secret")])
+	assert config.redacted()["subagents"][0]["api_key"] == "***"
+
+
+def test_an_agents_tools_must_pass_the_allowlist(tmp_path):
+	store = SessionStore(str(tmp_path / "data"), tool_allowlist={"read", "subagent"})
+	config = SessionConfig(cwd=str(tmp_path), subagents=[SubagentConfig(name="a", tools=["bash", "read"])])
+	with pytest.raises(PolicyError, match="bash"):
+		store.create(config)
+
+
+def test_the_api_refuses_agent_credentials_like_the_sessions_and_redacts_them(tmp_path):
+	store = SessionStore(str(tmp_path / "data"))
+	agents = [{"name": "Lookup", "description": "finds things", "model": "mock", "api_key": "sk-secret"}]
+	body = {"cwd": str(tmp_path), "subagents": agents}
+	assert TestClient(create_app(store)).post("/sessions", json=body).status_code == 400
+	client = TestClient(create_app(store, policy=ServerPolicy(inline_credentials=True)))
+	created = client.post("/sessions", json=body)
+	assert created.status_code == 200
+	echoed = client.get(f"/sessions/{created.json()['session_id']}").json()["config"]["subagents"][0]
+	assert echoed["api_key"] == "***" and echoed["model"] == "mock"
+	reserved = {"cwd": str(tmp_path), "subagents": [{"name": "general"}]}
+	assert client.post("/sessions", json=reserved).status_code == 422
 
 
 async def test_a_subagent_cannot_start_subagents(tmp_path):

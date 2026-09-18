@@ -158,6 +158,8 @@ def create_sessions_router(
 	@router.post("/sessions")
 	async def create_session(request: Request, config: SessionConfig):
 		_refuse_inline_credentials(config.api_key, config.api_base)
+		for agent in config.subagents:
+			_refuse_inline_credentials(agent.api_key, agent.api_base)
 		if system_append:
 			joined = "\n\n".join(p for p in (config.system_append, system_append) if p)
 			config = config.model_copy(update={"system_append": joined})

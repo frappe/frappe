@@ -204,6 +204,7 @@ class Session:
 		persist_meta: Callable[[Session], None] | None = None,
 		resolve_skill: Callable[[str], Skill | None] | None = None,
 		persist_skill_catalog: Callable[[Session], None] | None = None,
+		compose_tools: Callable[[SessionConfig], dict[str, Tool]],
 	):
 		self.id = sid
 		self.config = config
@@ -219,7 +220,9 @@ class Session:
 		self._persist_meta = persist_meta
 		self._resolve_skill = resolve_skill
 		self._persist_skill_catalog = persist_skill_catalog
-		self._subagent_runner = SubagentRunner(self._commit, _run_error, config.max_concurrent_subagents)
+		self._subagent_runner = SubagentRunner(
+			self._commit, _run_error, compose_tools, config.max_concurrent_subagents
+		)
 		self.transcript = Transcript.replay(log)
 		self.abort_signal = asyncio.Event()
 		self._operation_lock = asyncio.Lock()
@@ -556,7 +559,7 @@ class Session:
 		)
 		tools = inputs.server_tools
 		if tools is not None and tools.get(subagent.name) is subagent:  # the builtin, bound to this run
-			bound = bind_subagent(partial(self._subagent_runner.run, inputs))
+			bound = bind_subagent(partial(self._subagent_runner.run, inputs), self.config.subagents)
 			inputs = replace(inputs, server_tools={**tools, subagent.name: bound})
 		return inputs
 

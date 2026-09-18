@@ -3,9 +3,12 @@ importing the session lifecycle (which imports the loop)."""
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from flow_harness.events import ReasoningEffort
+
+# the sub-agent every session has: a copy of the caller with a fresh context
+GENERAL_AGENT = "general"
 
 
 class SessionConfig(BaseModel):
@@ -31,6 +34,7 @@ class SessionConfig(BaseModel):
 		system_append: Appended to the end of the resolved prompt, composed or verbatim
 			(the `--append-system-prompt` flag of the TUI and the web command).
 		tools: Built-in and bundled tools available to the agent, by name.
+		subagents: Sub-agents the `subagent` tool can run, beside `general`.
 		max_concurrent_subagents: How many sub-agents may run at once; later ones wait.
 		extension_tools: Extension tools available to the agent; None means every loaded one.
 		client_tools: Schemas registered by a client.
@@ -68,6 +72,7 @@ class SessionConfig(BaseModel):
 	system_prompt: str | None = None
 	system_append: str | None = None
 	tools: list[str] = Field(default_factory=lambda: ["bash", "read", "write", "edit", "subagent"])
+	subagents: list[SubagentConfig] = Field(default_factory=list)
 	max_concurrent_subagents: int = Field(default=5, ge=1)
 	extension_tools: list[str] | None = None
 	client_tools: list[dict] = Field(default_factory=list)
@@ -91,9 +96,48 @@ class SessionConfig(BaseModel):
 	max_output_tokens: int = 200_000
 	stream: bool = True
 
+	@model_validator(mode="after")
+	def _check_agents(self) -> SessionConfig:
+		names = [agent.name for agent in self.subagents]
+		if GENERAL_AGENT in names:
+			raise ValueError(f"agent name {GENERAL_AGENT!r} is reserved")
+		if len(set(names)) != len(names):
+			raise ValueError("agent names must be unique")
+		return self
+
 	def redacted(self) -> dict:
 		data = self.model_dump()
 		for secret in ("callback_token", "api_key"):
 			if data.get(secret):
 				data[secret] = "***"
+		for agent in data["subagents"]:
+			if agent.get("api_key"):
+				agent["api_key"] = "***"
 		return data
+
+
+class SubagentConfig(BaseModel):
+	"""An agent the `subagent` tool can run; an unset field inherits the session's value.
+
+	Attributes:
+		name: What the model passes as `agent`; unique per session, and never `general`.
+		description: What the agent is for, listed in the tool's description.
+		model: The model to use.
+		api_key: Client-supplied model API key that replaces the daemon's credential
+			store. Redacted in API responses.
+		api_base: Endpoint override that travels with `api_key`.
+		reasoning_effort: How hard the model should think.
+		system_prompt: Verbatim system prompt.
+		tools: Built-in and bundled tools, by name; `subagent` is never one of them.
+	"""
+
+	model_config = ConfigDict(extra="forbid")
+
+	name: str = Field(min_length=1, max_length=64)
+	description: str = ""
+	model: str | None = None
+	api_key: str | None = None
+	api_base: str | None = None
+	reasoning_effort: ReasoningEffort | None = None
+	system_prompt: str | None = None
+	tools: list[str] | None = None

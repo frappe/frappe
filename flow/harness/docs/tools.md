@@ -39,7 +39,7 @@ When Flow reaches a gated call, it saves `approval_required` and ends the run wi
 | `read_file` | `path`, `offset?`, `limit?` | No | Alias for `read`, for clients that already have a tool named `read`. Selectable by name, not listed by `GET /tools`. |
 | `write` | `path`, `content` | Yes | Creates parent directories and overwrites the file. |
 | `edit` | `path`, `edits` | Yes | Applies non-overlapping exact replacements. Every old value must appear exactly once. |
-| `subagent` | `task`, `description` | No | Runs a sub-agent inside the session and returns its final answer. See [Sub-agents](#sub-agents). |
+| `subagent` | `task`, `description`, `agent?` | No | Runs a sub-agent inside the session and returns its final answer. See [Sub-agents](#sub-agents). |
 
 Tool output is capped at 2,000 lines or 50 KB. `bash` keeps the tail and saves oversized full output to a temporary log; reading and search keep the head. `edit` returns a unified diff in `details` and preserves BOM and line-ending style.
 
@@ -47,7 +47,9 @@ Paths for `read`, `write`, `edit`, and `grep` are resolved from `cwd`. With `FLO
 
 ## Sub-agents
 
-`subagent` runs a child agent inside the session and returns only its final text. The child is a copy of the caller with a fresh context: the same model, prompt and tools, minus `subagent` itself (and its line in the prompt's tool list), and nothing of the session's conversation beyond the task. Sub-agents cannot start sub-agents.
+`subagent` runs a child agent inside the session and returns only its final text. The child starts from a fresh context: its system prompt plus the task, nothing of the session's conversation. Unless the call names an agent, the child is `general`: a copy of the caller with the same model, prompt and tools, minus `subagent` itself (and its line in the prompt's tool list). Sub-agents cannot start sub-agents.
+
+`SessionConfig.subagents` lists the other agents the model may name, each with a `name` and a `description`, and any of `model`, `api_key`, `api_base`, `reasoning_effort`, `system_prompt` and `tools`; an unset field inherits the session's value. The model and its credentials travel together: setting any of the three replaces all three, and a credential left unset then comes from the daemon's store. An agent's inline credentials fall under the same server policy as the session's, and its tools under the same allowlist. An inherited prompt keeps the session's tool list, so an agent with different tools should set its own prompt. The tool's description lists every agent, so the model picks one by name. The list is fixed when the session is created.
 
 The child's events go into the session's own log, each tagged with `subagent_id`: the id of the tool call that started the child. The session's transcript skips tagged rows, so a rewind never lands inside a child, and the child's usage counts toward the session's totals. In-process `before_tool_call` and `after_tool_call` hooks passed to the run apply inside its children too.
 

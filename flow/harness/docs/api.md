@@ -39,7 +39,7 @@ One daemon can serve many sites (a Frappe bench): point `FLOW_TENANTS_FILE` at a
 
 - `model`, `credential_id`, and optional `reasoning_effort` (`off` through `max`);
 - `cwd`, `tools`, `extension_tools` (omit it to get every loaded extension tool), `client_tools`, and `auto_approve` (default: `false`);
-- `max_concurrent_subagents`, how many sub-agents the `subagent` tool may run at once (see [tools.md](tools.md#sub-agents));
+- `subagents`, the sub-agents the `subagent` tool may run beside `general`, and `max_concurrent_subagents`, how many may run at once (see [tools.md](tools.md#sub-agents)); an agent's `api_key` and `api_base` are refused wherever the session's own are;
 - `system_prompt` for a complete prompt override, or `system_preamble`, `system_suffix`, and `system_append` for composition;
 - `skills_enabled`, `skill_paths`, and compaction settings.
 
