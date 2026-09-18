@@ -101,6 +101,13 @@ const MARK_CSS = `
 [data-pfb-diff="moved"] { outline: 2px dashed #6b7280; }
 [data-pfb-diff="moved"]::before { background: #6b7280; }
 [data-pfb-diff].pfb-diff-hot { box-shadow: 0 0 0 6px rgba(217, 119, 6, 0.3); }
+.pfb-diff-band { position: absolute; z-index: 1; pointer-events: none; background: repeating-linear-gradient(45deg, rgba(217,119,6,.28) 0 4px, rgba(217,119,6,.12) 4px 8px); }
+.pfb-diff-band > span, .pfb-diff-badge, .pfb-diff-ghost > span { position: absolute; top: 0; left: 0; padding: 0 4px; font: 600 9px/14px sans-serif; white-space: nowrap; color: #fff; background: #d97706; border-radius: 0 0 3px 0; }
+.pfb-diff-ghost { position: absolute; z-index: 1; pointer-events: none; outline: 2px dashed #6b7280; outline-offset: -2px; }
+.pfb-diff-ghost > span { background: #6b7280; }
+.pfb-diff-badge { top: auto; bottom: 100%; left: auto; right: 0; margin-bottom: 2px; border-radius: 3px; display: flex; align-items: center; gap: 4px; }
+.pfb-diff-swatch { display: inline-block; width: 10px; height: 10px; border: 1px solid #fff; border-radius: 2px; vertical-align: middle; }
+.pfb-diff-old-label { text-decoration: line-through; opacity: .6; margin-right: 4px; }
 .action-banner { display: none !important; }`;
 
 const KIND_WORD = {
@@ -242,6 +249,169 @@ function find(item) {
 	return doc.querySelectorAll(item.selector)[item.occurrence || 0] || null;
 }
 
+const BOX_KEYS = { padding: "padding", margin: "margin" };
+const GAP_KEYS = new Set(["gap"]);
+const TEXT_BADGE = new Set([
+	"font_size",
+	"bold",
+	"align",
+	"label_justify",
+	"justify",
+	"columns",
+	"field_orientation",
+	"show_label",
+	"hide_colon",
+	"show_empty",
+	"radius",
+	"cell_padding",
+	"table_cell_padding",
+	"table_radius",
+	"table_min_height",
+	"height",
+	"label_gap",
+]);
+
+function box_text(v) {
+	if (v && typeof v === "object")
+		return ["top", "right", "bottom", "left"].map((k) => v[k] || 0).join(" ");
+	return value_text(v);
+}
+
+function make(doc, cls, text) {
+	const div = doc.createElement("div");
+	div.className = cls;
+	if (text) {
+		const label = doc.createElement("span");
+		label.textContent = text;
+		div.appendChild(label);
+	}
+	return div;
+}
+
+function place(node, style) {
+	Object.assign(node.style, style);
+	return node;
+}
+
+function draw_box_bands(el, key, change) {
+	const doc = el.ownerDocument;
+	const cs = doc.defaultView.getComputedStyle(el);
+	const side = (k) => parseFloat(cs[`${key}-${k}`]) || 0;
+	const t = side("top"),
+		r = side("right"),
+		b = side("bottom"),
+		l = side("left");
+	const text = `${frappe.unscrub(key)} ${box_text(change.after)} (${__("was")} ${box_text(
+		change.before
+	)})`;
+	const inside = key === "padding";
+	const bands = inside
+		? [
+				{ top: 0, left: 0, right: 0, height: `${t}px` },
+				{ bottom: 0, left: 0, right: 0, height: `${b}px` },
+				{ top: 0, bottom: 0, left: 0, width: `${l}px` },
+				{ top: 0, bottom: 0, right: 0, width: `${r}px` },
+		  ]
+		: [
+				{ top: `-${t}px`, left: `-${l}px`, right: `-${r}px`, height: `${t}px` },
+				{ bottom: `-${b}px`, left: `-${l}px`, right: `-${r}px`, height: `${b}px` },
+				{ top: 0, bottom: 0, left: `-${l}px`, width: `${l}px` },
+				{ top: 0, bottom: 0, right: `-${r}px`, width: `${r}px` },
+		  ];
+	bands.forEach((style, i) => {
+		const size = i < 2 ? parseFloat(style.height) : parseFloat(style.width);
+		if (!size) return;
+		el.appendChild(place(make(doc, "pfb-diff-band", i === 0 ? text : ""), style));
+	});
+	if (!t) el.appendChild(place(make(doc, "pfb-diff-badge", text), {}));
+}
+
+function draw_gap_bands(el, change) {
+	const doc = el.ownerDocument;
+	const row = el.querySelector(".section-columns");
+	if (!row) return;
+	const base = el.getBoundingClientRect();
+	const cols = [...row.children].map((c) => c.getBoundingClientRect());
+	const text = `${__("Gap")} ${value_text(change.after)} (${__("was")} ${value_text(
+		change.before
+	)})`;
+	cols.slice(1).forEach((rect, i) => {
+		const prev = cols[i];
+		el.appendChild(
+			place(make(doc, "pfb-diff-band", i === 0 ? text : ""), {
+				top: `${prev.top - base.top}px`,
+				left: `${prev.right - base.left}px`,
+				width: `${rect.left - prev.right}px`,
+				height: `${prev.height}px`,
+			})
+		);
+	});
+}
+
+function draw_ghost_width(el, change) {
+	const doc = el.ownerDocument;
+	const before = String(change.before || "");
+	if (!before) return;
+	el.appendChild(
+		place(make(doc, "pfb-diff-ghost", `${__("was")} ${before}`), {
+			top: 0,
+			left: 0,
+			height: `${el.getBoundingClientRect().height}px`,
+			width: before,
+		})
+	);
+}
+
+function draw_colours(el, changes) {
+	const doc = el.ownerDocument;
+	const badge = make(doc, "pfb-diff-badge");
+	for (const c of changes) {
+		const label = doc.createElement("span");
+		label.textContent = `${frappe.unscrub(c.key)} `;
+		badge.appendChild(label);
+		for (const [v, arrow] of [
+			[c.before, " → "],
+			[c.after, ""],
+		]) {
+			const sw = doc.createElement("i");
+			sw.className = "pfb-diff-swatch";
+			sw.style.background = v || "transparent";
+			badge.appendChild(sw);
+			if (arrow) badge.appendChild(doc.createTextNode(arrow));
+		}
+	}
+	el.appendChild(badge);
+}
+
+function draw_old_label(el, change) {
+	const label = el.querySelector(".label, .section-label");
+	if (!label) return;
+	const old = el.ownerDocument.createElement("span");
+	old.className = "pfb-diff-old-label";
+	old.textContent = value_text(change.before);
+	label.prepend(old);
+}
+
+function annotate(el, item) {
+	const changes = item.changes || [];
+	const colours = changes.filter((c) => COLOUR.has(c.key));
+	if (colours.length) draw_colours(el, colours);
+	const badges = [];
+	for (const c of changes) {
+		if (BOX_KEYS[c.key]) draw_box_bands(el, c.key, c);
+		else if (GAP_KEYS.has(c.key)) draw_gap_bands(el, c);
+		else if (c.key === "width") draw_ghost_width(el, c);
+		else if (c.key === "label") draw_old_label(el, c);
+		else if (TEXT_BADGE.has(c.key)) {
+			badges.push(
+				`${frappe.unscrub(c.key)} ${value_text(c.before)} → ${value_text(c.after)}`
+			);
+		}
+	}
+	if (badges.length && !colours.length)
+		el.appendChild(make(el.ownerDocument, "pfb-diff-badge", badges.join(" · ")));
+}
+
 function mark_frame() {
 	inject(frame.value, MARK_CSS);
 	for (const item of entries.value) {
@@ -250,6 +420,7 @@ function mark_frame() {
 		el.setAttribute("data-pfb-diff", item.kind);
 		el.setAttribute("data-pfb-n", item.n);
 		el.title = [item.label, ...item.lines].join("\n");
+		annotate(el, item);
 	}
 }
 
@@ -282,6 +453,7 @@ async function load() {
 			kind: s.kind,
 			label: section_name(s.section, s.index),
 			lines: s.kind === "changed" ? sentences(s.changes) : [],
+			changes: s.changes,
 			selector: `[data-section="${s.index}"]`,
 		})),
 		...diff.fields.map((f, i) => ({
@@ -290,6 +462,7 @@ async function load() {
 			kind: f.kind,
 			label: field_name(f.field),
 			lines: sentences(f.changes),
+			changes: f.changes,
 			selector: `[data-fieldname="${f.field.fieldname}"]`,
 			occurrence: f.occurrence,
 		})),
