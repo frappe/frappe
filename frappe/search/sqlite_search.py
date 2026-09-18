@@ -734,23 +734,29 @@ class SQLiteSearch(ABC):
 		if not os.path.exists(self.db_path):
 			return False
 
-		return self._table_exists("search_fts") and self.has_current_schema()
+		return set(self.schema["text_fields"]) <= self._indexed_columns()
 
 	def has_current_schema(self) -> bool:
 		"""Whether the built table still carries every column the schema asks for."""
+		return bool(self._indexed_columns()) and set(self.schema["text_fields"]) <= self._indexed_columns()
+
+	def _indexed_columns(self) -> set[str]:
+		"""Columns the built search_fts table carries, empty when there is no table.
+
+		One connection answers both questions this is asked, whether the table is there and
+		whether it still covers the schema, because index_exists runs on every document save.
+		"""
 		try:
 			connection = self._get_connection(read_only=True)
 		except SQLiteSearchIndexMissingError:
-			return False
+			return set()
 
 		try:
-			columns = {row["name"] for row in connection.execute("PRAGMA table_info(search_fts)")}
+			return {row["name"] for row in connection.execute("PRAGMA table_info(search_fts)")}
 		except sqlite3.Error:
-			return False
+			return set()
 		finally:
 			connection.close()
-
-		return set(self.schema["text_fields"]) <= columns
 
 	def drop_index(self):
 		"""Drop the search index by removing the database file."""
@@ -771,10 +777,11 @@ class SQLiteSearch(ABC):
 		Falls back to ENABLED_BY_DEFAULT before that record exists, so an index is not switched
 		off by the upgrade that introduces the record. Override to decide it some other way.
 		"""
-		if not frappe.db.exists("Search Index", self.search_class_path):
+		if not frappe.db.table_exists("Search Index", cached=True):
 			return self.ENABLED_BY_DEFAULT
 
-		return bool(frappe.get_cached_value("Search Index", self.search_class_path, "enabled"))
+		enabled = frappe.get_cached_value("Search Index", self.search_class_path, "enabled")
+		return self.ENABLED_BY_DEFAULT if enabled is None else bool(enabled)
 
 	def raise_if_not_indexed(self):
 		"""Raise exception if search index doesn't exist."""
