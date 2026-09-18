@@ -12,7 +12,7 @@
   CRM renders — fed by `serializeColumns` (`view.columns.wire`), so the drag math and
   grid layout come for free and stay pixel-parity with CRM. Rows are now LIVE: the
   host-side `useListData` turns the controls' wire projections (filters / order_by /
-  fields) into `frappe.client.get_list` rows, so editing any control refetches.
+  fields) into `/api/v2` list rows, so editing any control refetches.
 
   Selection and the footer are the host's job too — `selectable` turns on row
   checkboxes, `ListSelectBanner` surfaces bulk actions over the live selection, and

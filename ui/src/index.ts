@@ -11,6 +11,10 @@ export type {
 export * from "./components/Composer";
 export { useDoctypeMeta } from "./composables/useDoctypeMeta";
 export type { UseDoctypeMeta, DoctypeMeta } from "./composables/useDoctypeMeta";
+export { usePagedList } from "./composables/usePagedList";
+export type { UsePagedList, UsePagedListOptions, PageQuery } from "./composables/usePagedList";
+export { useLinkSearch } from "./composables/useLinkSearch";
+export type { UseLinkSearch, LinkSearchOption } from "./composables/useLinkSearch";
 export * from "./utils";
 export * from "./components/Grid";
 export * from "./components/Phone";

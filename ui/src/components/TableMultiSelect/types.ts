@@ -7,7 +7,7 @@ interface InputLabelingProps {
 export interface TableMultiSelectProps extends InputLabelingProps {
   /** Doctype the links point at — the picker searches its records. */
   doctype: string;
-  /** Link search filters, forwarded to `search_link`. */
+  /** Link search filters, forwarded to the search. */
   filters?: Record<string, unknown>;
   placeholder?: string;
   disabled?: boolean;

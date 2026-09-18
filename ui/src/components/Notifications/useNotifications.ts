@@ -6,7 +6,9 @@ import {
   ref,
   watch,
 } from "vue";
-import { call, createListResource, createResource } from "frappe-ui";
+import { call, createResource } from "frappe-ui";
+import { countDocuments, listDocuments } from "../../api";
+import { usePagedList } from "../../composables/usePagedList";
 import type {
   NotificationLog,
   NotificationStore,
@@ -15,6 +17,7 @@ import type {
 } from "./types";
 
 const METHOD = "frappe.desk.doctype.notification_log.notification_log";
+const DOCTYPE = "Notification Log";
 
 export function useNotifications(
   options: UseNotificationsOptions = {}
@@ -33,27 +36,20 @@ export function useNotifications(
   const currentUser = ref<string | undefined>(options.currentUser);
   const userFilter = () =>
     currentUser.value ? { for_user: currentUser.value } : {};
-
-  const list = createListResource({
-    doctype: "Notification Log",
-    // always fetch every column: Custom Fields flow through automatically, and trimming
-    // columns was never real fetch control (the row is read from the table regardless).
-    fields: ["*"],
-    filters: { ...serverFilters.value, ...appFilter, ...userFilter() },
-    orderBy: "creation desc",
-    pageLength,
-    // Persist the feed across mounts (and sessions, via localStorage). Reopening the panel
-    // returns this same cached resource with its rows intact and revalidates in the
-    // background, instead of starting empty and flashing the empty state. Keyed by scope so
-    // different apps / users don't share a cache. Tab filters are applied via `update()`, so
-    // they intentionally aren't part of the key (one feed resource, re-filtered in place).
-    cache: [
-      "notification_log_feed",
-      appName ?? "all",
-      options.currentUser ?? "self",
-    ],
-    auto: true,
+  const scopedFilters = () => ({
+    ...serverFilters.value,
+    ...appFilter,
+    ...userFilter(),
   });
+
+  // always fetch every column: Custom Fields flow through automatically, and trimming
+  // columns was never real fetch control (the row is read from the table regardless).
+  const list = usePagedList<NotificationLog>(
+    DOCTYPE,
+    () => ({ fields: ["*"], filters: scopedFilters(), order_by: "creation desc" }),
+    { pageLength }
+  );
+  void list.reload();
 
   // sender photos for the default avatar, keyed by user id; resolved lazily as rows load
   const userImages = ref<Record<string, string>>({});
@@ -69,11 +65,14 @@ export function useNotifications(
     // mark as attempted so we don't refetch users without an image
     missing.forEach((u) => (userImages.value[u] = userImages.value[u] ?? ""));
     try {
-      const users = (await call("frappe.client.get_list", {
-        doctype: "User",
-        filters: { name: ["in", missing] },
-        fields: ["name", "user_image"],
-      })) as Array<{ name: string; user_image?: string }>;
+      const { data: users } = await listDocuments<{ name: string; user_image?: string }>(
+        "User",
+        {
+          filters: { name: ["in", missing] },
+          fields: ["name", "user_image"],
+          limit: missing.length,
+        }
+      );
       for (const u of users)
         if (u.user_image) userImages.value[u.name] = u.user_image;
     } catch {
@@ -82,71 +81,60 @@ export function useNotifications(
   }
 
   const notifications = computed<NotificationLog[]>(() =>
-    ((list.data as NotificationLog[]) || []).map((n) => ({
+    list.rows.value.map((n) => ({
       ...n,
       from_user_image: n.from_user
         ? userImages.value[n.from_user] || undefined
         : undefined,
     }))
   );
-  watch(
-    () => list.data,
-    (rows) => resolveUserImages((rows as NotificationLog[]) || []),
-    { immediate: true }
-  );
+  watch(list.rows, (rows) => resolveUserImages(rows), { immediate: true });
 
   // Unread count comes from the server (a COUNT over all of the user's matching rows),
   // not from the fetched page — counting `notifications.value` would cap at `pageLength`.
   // It is adjusted optimistically on mark-read for instant UI, then reconciled against the
   // server on reload / realtime / filter change.
-  const unreadResource = createResource({
-    url: "frappe.client.get_count",
-    makeParams: () => ({
-      doctype: "Notification Log",
-      filters: {
-        ...serverFilters.value,
-        ...appFilter,
-        ...userFilter(),
-        read: 0,
-      },
-    }),
-    auto: true,
-  });
-  function refreshUnreadCount() {
-    unreadResource.reload();
+  const unread = ref(0);
+  const unreadError = ref<unknown>(null);
+  async function refreshUnreadCount() {
+    try {
+      const { data } = await countDocuments(DOCTYPE, {
+        filters: { ...scopedFilters(), read: 0 },
+      });
+      unread.value = data ?? 0;
+      unreadError.value = null;
+    } catch (failure) {
+      unreadError.value = failure;
+    }
   }
-  const unreadCount = computed<number>(
-    () => (unreadResource.data as number) ?? 0
-  );
-  const hasNextPage = computed(() => Boolean(list.hasNextPage));
+  void refreshUnreadCount();
+  const unreadCount = computed<number>(() => unread.value);
+  const hasNextPage = computed(() => list.hasNextPage.value);
   // true only while a fetch is in flight with nothing to show yet — lets the panel hold off
-  // the empty state on a cold first load (a cached feed already has rows, so it stays false).
+  // the empty state on a cold first load
   const loading = computed(
-    () =>
-      Boolean(list.list?.loading) && !(list.data as NotificationLog[])?.length
+    () => list.loading.value && !list.rows.value.length
   );
   // surfaced to the panel's #error slot; null while healthy
   const error = computed<unknown>(
-    () => list.list?.error ?? unreadResource.error ?? null
+    () => list.error.value ?? unreadError.value ?? null
   );
 
   async function markAsRead(name: string) {
-    const n = (list.data as NotificationLog[])?.find((x) => x.name === name);
+    const n = list.rows.value.find((x) => x.name === name);
     if (n && !n.read) {
       n.read = 1; // optimistic
-      const current = unreadResource.data as number;
-      if (typeof current === "number" && current > 0)
-        unreadResource.data = current - 1;
+      if (unread.value > 0) unread.value -= 1;
     }
     await call(`${METHOD}.mark_as_read`, { docname: name });
-    refreshUnreadCount();
+    void refreshUnreadCount();
   }
 
   async function markAllAsRead() {
-    (list.data as NotificationLog[])?.forEach((n) => (n.read = 1)); // optimistic
-    unreadResource.data = 0;
+    list.rows.value.forEach((n) => (n.read = 1)); // optimistic
+    unread.value = 0;
     await call(`${METHOD}.mark_all_as_read`);
-    refreshUnreadCount();
+    void refreshUnreadCount();
   }
 
   /** tell the backend the bell indicator was seen (clears the unseen dot) */
@@ -155,15 +143,12 @@ export function useNotifications(
   }
 
   function reload() {
-    list.reload();
+    void list.reload();
   }
 
   function applyFilters() {
-    list.update({
-      filters: { ...serverFilters.value, ...appFilter, ...userFilter() },
-    });
-    list.reload();
-    refreshUnreadCount();
+    reload();
+    void refreshUnreadCount();
   }
 
   /** set arbitrary server-side filters; the app scope (if any) is always preserved */
@@ -203,7 +188,7 @@ export function useNotifications(
 
   const onRealtime = () => {
     reload();
-    refreshUnreadCount();
+    void refreshUnreadCount();
   };
   onMounted(() => {
     options.socket?.on("notification", onRealtime);
@@ -226,7 +211,7 @@ export function useNotifications(
     markAllAsRead,
     markSeen,
     reload,
-    loadMore: () => list.next?.(),
+    loadMore: () => void list.loadMore(),
     setFilters,
     filterByTab,
   }) as NotificationStore;

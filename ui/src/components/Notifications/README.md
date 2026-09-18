@@ -207,10 +207,9 @@ Log` list and calls these whitelisted methods:
 
 - `notification_log.mark_as_read`, `notification_log.mark_all_as_read`
 - `notification_log.trigger_indicator_hide`
-- `frappe.client.get_count` / `frappe.client.get_list` on `Notification Log` (feed + unread
-  count; always scoped to the recipient via `for_user`, and by the `app` column when `appName`
-  is set)
+- the `/api/v2` list and count of `Notification Log` (feed + unread count; always scoped to
+  the recipient via `for_user`, and by the `app` column when `appName` is set)
 - `frappe.auth.get_logged_user` (to resolve the recipient when `currentUser` isn't passed)
-- `frappe.client.get_list` on `User` (to resolve sender avatar images)
+- the `/api/v2` list of `User` (to resolve sender avatar images)
 
 Realtime updates listen on the `notification` event.

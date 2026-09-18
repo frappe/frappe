@@ -1,4 +1,5 @@
-<!-- The list footer: page-size tabs, Load More, and "N of M". The host sets its padding. -->
+<!-- The list footer: page-size tabs, Load More, and "N of M". The host sets its padding.
+     A capped total is a button; its click asks the host for the exact number. -->
 <template>
 	<div
 		class="flex shrink-0 items-center justify-between gap-2 border-t border-outline-gray-1 py-2"
@@ -14,7 +15,17 @@
 		</div>
 		<div class="flex items-center gap-2">
 			<span v-if="hasCounts" class="text-sm text-ink-gray-5">
-				{{ rowCount }} of {{ totalCount }}{{ totalCapped ? "+" : "" }}
+				{{ rowCount }} of
+				<template v-if="totalUnknown">many</template>
+				<button
+					v-else-if="totalCapped"
+					type="button"
+					class="underline-offset-2 hover:underline"
+					@click="emit('count')"
+				>
+					{{ totalCount }}+
+				</button>
+				<template v-else>{{ totalCount }}</template>
 			</span>
 			<Skeleton v-else class="h-3 w-16 rounded-1" />
 		</div>
@@ -33,6 +44,8 @@ const props = withDefaults(
 		hasCounts?: boolean;
 		/** The total is a floor, shown with a trailing "+". */
 		totalCapped?: boolean;
+		/** The server gave up counting; the total reads "many". */
+		totalUnknown?: boolean;
 		/** Whether Load More shows; unset, the counts decide. */
 		hasNextPage?: boolean;
 		pageSizeOptions?: number[];
@@ -42,6 +55,7 @@ const props = withDefaults(
 		totalCount: 0,
 		hasCounts: false,
 		totalCapped: false,
+		totalUnknown: false,
 		// An explicit default keeps an absent prop undefined; Vue would cast it to false otherwise.
 		hasNextPage: undefined,
 		pageSizeOptions: () => [20, 100, 500, 2500],
@@ -53,6 +67,8 @@ const pageSize = defineModel<number>("pageSize", { default: 20 });
 const emit = defineEmits<{
 	"load-more": [];
 	"page-size": [size: number];
+	/** The capped total was clicked. */
+	count: [];
 }>();
 
 // Each tab's own click, not the model: a click on the chosen size is still a choice, and

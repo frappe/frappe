@@ -304,8 +304,8 @@ Whitelisted methods called:
 - `frappe.core.api.user_invitation.get_pending_invitations` (GET — auto-fetch)
 - `frappe.core.api.user_invitation.cancel_invitation` (PATCH)
 - `frappe.core.api.user_invitation.resend_invitation` (POST)
-- `frappe.client.get_list` on `User` (email autocomplete) and `User Invitation`
-  (already-invited exclusion)
+- the `/api/v2` search of `User` (email autocomplete) and list of `User Invitation`
+  (already-invited exclusion, checked against the found emails)
 
 ## Types
 

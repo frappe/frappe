@@ -1,5 +1,6 @@
-import { computed, reactive } from "vue";
+import { computed, reactive, ref } from "vue";
 import { createResource } from "frappe-ui";
+import { listDocuments, searchDocuments } from "../../api";
 import type {
   InviteResult,
   InviteStore,
@@ -40,50 +41,47 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
     auto: false,
   });
 
-  // Emails already invited to this app (pending or accepted). The email field
-  // excludes these from its suggestions so you can't re-invite someone who's
-  // already in flight or has already joined.
-  const invitedEmailsResource = createResource({
-    url: "frappe.client.get_list",
-    params: {
-      doctype: "User Invitation",
-      filters: { app_name: appName, status: ["in", ["Pending", "Accepted"]] },
+  // Existing users suggested in the email field: enabled, real (non-Website) users,
+  // minus anyone already invited to this app (pending or accepted).
+  const users = ref<UserOption[]>([]);
+  const usersLoading = ref(false);
+  const usersError = ref<unknown>(null);
+  let searchGeneration = 0;
+
+  async function searchUsers(query: string): Promise<void> {
+    const mine = ++searchGeneration;
+    usersLoading.value = true;
+    try {
+      const { data: found } = await searchDocuments("User", {
+        txt: query,
+        filters: { enabled: 1, user_type: ["!=", "Website User"] },
+        limit: 20,
+      });
+      const invited = await invitedAmong(found.map((row) => row.value));
+      if (mine !== searchGeneration) return;
+      users.value = found
+        .filter((row) => !invited.has(row.value))
+        .map((row) => ({ label: row.label || row.value, value: row.value }));
+      usersError.value = null;
+    } catch (failure) {
+      if (mine === searchGeneration) usersError.value = failure;
+    } finally {
+      if (mine === searchGeneration) usersLoading.value = false;
+    }
+  }
+
+  async function invitedAmong(emails: string[]): Promise<Set<string>> {
+    if (!emails.length) return new Set();
+    const { data } = await listDocuments<{ email: string }>("User Invitation", {
+      filters: {
+        app_name: appName,
+        status: ["in", ["Pending", "Accepted"]],
+        email: ["in", emails],
+      },
       fields: ["email"],
-      limit_page_length: 0,
-    },
-    auto: false,
-    transform: (rows: Array<{ email: string }>): string[] =>
-      rows.map((r) => r.email),
-  });
-
-  // Existing users suggested in the email field — enabled, real (non-Website)
-  // users from the User doctype (NOT Contact). Driven by `searchUsers(query)`.
-  const usersResource = createResource({
-    url: "frappe.client.get_list",
-    transform: (
-      rows: Array<{ name: string; full_name?: string; user_image?: string }>
-    ): UserOption[] =>
-      rows.map((r) => ({
-        label: r.full_name || r.name,
-        value: r.name,
-        avatar: r.user_image || undefined,
-      })),
-  });
-
-  function searchUsers(query: string): void {
-    usersResource.submit({
-      doctype: "User",
-      filters: { enabled: 1, user_type: ["!=", "Website User"] },
-      or_filters: query
-        ? [
-            ["User", "name", "like", `%${query}%`],
-            ["User", "full_name", "like", `%${query}%`],
-          ]
-        : undefined,
-      fields: ["name", "full_name", "user_image"],
-      order_by: "full_name asc",
-      limit_page_length: 20,
+      limit: emails.length,
     });
+    return new Set(data.map((row) => row.email));
   }
 
   const inviteResource = createResource({
@@ -116,14 +114,12 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
       app_name: appName,
     })) as InviteResult;
     pendingResource.reload();
-    invitedEmailsResource.reload();
     return result;
   }
 
   async function cancel(name: string): Promise<void> {
     await cancelResource.submit({ name, app_name: appName });
     pendingResource.reload();
-    invitedEmailsResource.reload();
   }
 
   async function resend(name: string): Promise<void> {
@@ -132,13 +128,12 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
 
   // Lazy initial fetch — runs once per controller (the panel calls it on mount).
   // Roles are a static host list; users for the email field stay on-demand via
-  // `searchUsers`. So only the pending list + already-invited set are fetched here.
+  // `searchUsers`. So only the pending list is fetched here.
   let loaded = false;
   function load(): void {
     if (loaded) return;
     loaded = true;
     pendingResource.fetch();
-    invitedEmailsResource.fetch();
   }
 
   const store = reactive({
@@ -146,15 +141,9 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
       () => (pendingResource.data as PendingInvitation[]) ?? []
     ),
     roles: roleOptions,
-    users: computed<UserOption[]>(() => {
-      const invited = new Set(
-        (invitedEmailsResource.data as string[] | null) ?? []
-      );
-      const found = (usersResource.data as UserOption[] | null) ?? [];
-      return found.filter((u) => !invited.has(u.value));
-    }),
+    users: computed<UserOption[]>(() => users.value),
     loading: computed(() => Boolean(pendingResource.loading)),
-    usersLoading: computed(() => Boolean(usersResource.loading)),
+    usersLoading: computed(() => usersLoading.value),
     inviting: computed(() => Boolean(inviteResource.loading)),
     // surface which row is busy so a host acting on pending invites can show spinners
     cancellingName: computed<string | null>(() =>
@@ -171,10 +160,9 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
     loadError: computed(
       () =>
         pendingResource.error ??
-        invitedEmailsResource.error ??
         cancelResource.error ??
         resendResource.error ??
-        usersResource.error ??
+        usersError.value ??
         null
     ),
     invite,
@@ -184,7 +172,6 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
     load,
     reload: () => {
       pendingResource.reload();
-      invitedEmailsResource.reload();
     },
   }) as InviteStore;
 

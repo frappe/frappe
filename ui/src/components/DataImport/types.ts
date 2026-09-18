@@ -22,6 +22,7 @@ export interface DataImportProps {
 
 export interface DataImport {
   name?: string;
+  modified?: string;
   reference_doctype: string;
   import_type: string;
   status: DataImportStatus;
@@ -32,12 +33,7 @@ export interface DataImport {
   template_options?: string;
 }
 
-/**
- * The slice of frappe-ui's `createListResource` return that these screens use.
- * The paging members are optional so a plain `ListResource` satisfies the type;
- * `hasNextPage` is a boolean on the resource, not the function it was declared
- * as before the move.
- */
+/** The list handle the steps share: the rows, the paging, and the two writes. */
 export interface DataImports {
   data: DataImport[] | null;
   update: (args: { filters: any[] }) => void;

@@ -293,7 +293,7 @@ loads any subset.
 
 The half ADR-0001 leaves to the host. Opt in for doctype-agnostic data out of the
 box, or skip it and keep your own data layer (the controls stay fetch-free either
-way). It binds `frappe.client.get_list` (rows) + `get_count` (total) and refetches
+way). It reads the rows and the total in one `/api/v2` list request and refetches
 from page 1 whenever a wire projection or the page length changes.
 
 ```ts
