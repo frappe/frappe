@@ -721,8 +721,8 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 	gap: 8px;
 	padding: 6px 12px;
 	font-size: var(--text-sm);
-	background: var(--bg-orange);
-	color: var(--text-on-orange);
+	background: var(--surface-amber-2);
+	color: var(--ink-amber-8);
 }
 
 .pfb-viewing-actions {

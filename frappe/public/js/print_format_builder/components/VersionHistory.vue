@@ -186,13 +186,13 @@ onMounted(() => store.load_versions());
 	margin-top: 6px;
 	border-radius: 50%;
 	flex-shrink: 0;
-	background: var(--gray-400);
+	background: var(--surface-gray-5);
 }
 .pfb-history-dot[data-kind="published"] {
-	background: var(--green-500);
+	background: var(--surface-green-5);
 }
 .pfb-history-dot[data-kind="named"] {
-	background: var(--blue-500);
+	background: var(--surface-blue-5);
 }
 .pfb-history-text {
 	flex: 1;
