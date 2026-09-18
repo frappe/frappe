@@ -218,6 +218,23 @@ class TestReportview(IntegrationTestCase):
 
 		self.assertTrue(email_queue, "Email was not enqueued")
 
+	def test_export_ignores_link_titles_argument(self):
+		"""Regression: the report view exports with the same args it renders the table with."""
+		previous_response = frappe.local.response
+		self.addCleanup(setattr, frappe.local, "response", previous_response)
+		frappe.local.response = frappe._dict()
+		frappe.local.form_dict = frappe._dict(
+			doctype="DocType",
+			file_format_type="CSV",
+			fields=("name", "module", "issingle"),
+			filters={"issingle": 1, "module": "Core"},
+			with_link_titles=1,
+		)
+
+		export_query()
+
+		self.assertIn("filecontent", frappe.local.response)
+
 	def test_get_sends_link_titles_when_requested(self):
 		self.enable_link_titles("User")
 		with self.set_user("test@example.com"):
