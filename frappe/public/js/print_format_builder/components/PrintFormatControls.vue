@@ -936,7 +936,7 @@ function handle_slash_key(e) {
 
 .pfb-search-icon {
 	flex-shrink: 0;
-	color: var(--gray-500);
+	color: var(--ink-gray-4);
 }
 
 .pfb-search {
@@ -951,16 +951,16 @@ function handle_slash_key(e) {
 }
 
 .pfb-search::placeholder {
-	color: var(--gray-400);
+	color: var(--ink-gray-3);
 }
 
 .pfb-search-kbd {
 	flex-shrink: 0;
 	font-family: inherit;
 	font-size: var(--text-tiny);
-	color: var(--gray-400);
-	background: var(--gray-100);
-	border: 1px solid var(--gray-300);
+	color: var(--ink-gray-3);
+	background: var(--surface-gray-2);
+	border: 1px solid var(--outline-gray-2);
 	border-radius: 3px;
 	padding: 1px 5px;
 	cursor: pointer;
@@ -1006,7 +1006,7 @@ function handle_slash_key(e) {
 	padding: 7px 10px;
 	font-size: var(--text-sm);
 	cursor: grab;
-	border-bottom: 1px solid var(--gray-100);
+	border-bottom: 1px solid var(--border-color);
 }
 
 .pfb-field-row:last-child {
@@ -1014,19 +1014,19 @@ function handle_slash_key(e) {
 }
 
 .pfb-field-row:hover {
-	background: var(--gray-50);
+	background: var(--surface-gray-1);
 }
 
 .pfb-field-drag {
 	display: flex;
 	align-items: center;
-	color: var(--gray-300);
+	color: var(--ink-gray-2);
 	flex-shrink: 0;
 	transition: color 0.1s;
 }
 
 .pfb-field-row:hover .pfb-field-drag {
-	color: var(--gray-500);
+	color: var(--ink-gray-4);
 }
 
 .pfb-field-label {
@@ -1040,7 +1040,7 @@ function handle_slash_key(e) {
 
 .pfb-field-type {
 	font-size: var(--text-tiny);
-	color: var(--gray-500);
+	color: var(--ink-gray-4);
 	padding: 2px 6px;
 	white-space: nowrap;
 	flex-shrink: 0;
@@ -1082,8 +1082,8 @@ function handle_slash_key(e) {
 }
 
 .pfb-tree-row.active {
-	background: var(--gray-200);
-	color: var(--gray-900);
+	background: var(--surface-gray-3);
+	color: var(--text-color);
 	font-weight: 500;
 }
 
@@ -1097,7 +1097,7 @@ function handle_slash_key(e) {
 	border: none;
 	background: transparent;
 	cursor: pointer;
-	color: var(--gray-500);
+	color: var(--ink-gray-4);
 	flex-shrink: 0;
 	transition: transform 0.12s ease;
 }
@@ -1114,12 +1114,12 @@ function handle_slash_key(e) {
 .pfb-tree-icon {
 	display: flex;
 	align-items: center;
-	color: var(--gray-500);
+	color: var(--ink-gray-4);
 	flex-shrink: 0;
 }
 
 .pfb-tree-row.active .pfb-tree-icon {
-	color: var(--gray-700);
+	color: var(--ink-gray-6);
 }
 
 .pfb-tree-label {
@@ -1162,7 +1162,7 @@ function handle_slash_key(e) {
 }
 
 .pfb-field-group {
-	border-bottom: 1px solid var(--gray-100);
+	border-bottom: 1px solid var(--border-color);
 }
 
 .pfb-field-group:last-child {
