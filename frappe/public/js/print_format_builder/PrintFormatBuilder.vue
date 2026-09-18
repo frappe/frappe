@@ -13,6 +13,9 @@
 				</div>
 				<div class="canvas-toolbar-center">
 					<div ref="doc_picker_ref" class="canvas-doc-picker"></div>
+					<span v-if="no_records" class="canvas-toolbar-hint">
+						{{ __("No records to preview yet") }}
+					</span>
 				</div>
 				<div class="canvas-toolbar-right">
 					<button
@@ -140,6 +143,7 @@ const ZOOM_KEY = "pfb_canvas_zoom";
 const ZOOM_LEVELS = [50, 60, 70, 80, 90, 100, 125, 150];
 
 let show_preview = ref(false);
+let no_records = ref(false);
 let doc_picker_ref = ref(null);
 let doc_picker_ctrl = ref(null);
 let canvas_zoom = ref(nearest_zoom(parseInt(localStorage.getItem(ZOOM_KEY)) || 100));
@@ -550,7 +554,7 @@ function init_doc_picker() {
 				fields: ["name"],
 				order_by: "creation desc",
 			})
-			.then((rows) => rows?.length && select(rows[0].name));
+			.then((rows) => (rows?.length ? select(rows[0].name) : (no_records.value = true)));
 	if (saved) {
 		frappe.db
 			.get_value(meta?.name, saved, ["name", "docstatus"])
@@ -571,9 +575,15 @@ watch(
 	}
 );
 
+function warn_before_unload(e) {
+	const st = $store.value;
+	if (st.dirty.value || st.saving_count.value > 0 || st.save_failed.value) e.preventDefault();
+}
+
 onMounted(() => {
 	document.addEventListener("keydown", handle_keydown);
 	document.addEventListener("pointerdown", close_zoom_on_outside);
+	window.addEventListener("beforeunload", warn_before_unload);
 
 	$store.value.fetch().then(() => {
 		if ($store.value.print_format.value?.custom_format) {
@@ -591,6 +601,7 @@ onMounted(() => {
 onUnmounted(() => {
 	document.removeEventListener("keydown", handle_keydown);
 	document.removeEventListener("pointerdown", close_zoom_on_outside);
+	window.removeEventListener("beforeunload", warn_before_unload);
 	window.removeEventListener("pointermove", on_canvas_pointermove);
 	window.removeEventListener("pointerup", on_canvas_pointerup);
 });
@@ -604,7 +615,7 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 	--pfb-chrome-offset: 95px;
 	/* single source of truth for every selection/hover ring on the canvas —
 	   change these two and fields, sections, and layer-hover all update */
-	--pfb-accent: var(--blue-400);
+	--pfb-accent: var(--gray-600);
 	--pfb-ring: 2px solid var(--pfb-accent);
 	display: flex;
 	width: 100%;
@@ -667,6 +678,12 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 	height: 28px;
 	padding: 2px 8px;
 	border-radius: var(--radius);
+}
+
+.canvas-toolbar-hint {
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+	white-space: nowrap;
 }
 
 .canvas-toolbar-right {
@@ -742,8 +759,8 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 .pfb-marquee {
 	position: fixed;
 	z-index: 1040;
-	border: 1px solid var(--blue-400);
-	background: rgba(97, 175, 239, 0.12);
+	border: 1px solid var(--gray-600);
+	background: color-mix(in srgb, var(--gray-600) 12%, transparent);
 	border-radius: 2px;
 	pointer-events: none;
 }
