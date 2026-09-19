@@ -135,13 +135,14 @@ const value_text_style = (df) => (df.value_color ? { color: df.value_color } : {
 const rendered_html = ref(null);
 const rendered_template = ref(null);
 const template_render_failed = ref(false);
-let render_seq = 0;
+let html_seq = 0;
+let template_seq = 0;
 
 watch(
 	[preview_doc, () => props.df.html],
 	async ([doc]) => {
 		const html = props.df.html;
-		const seq = ++render_seq;
+		const seq = ++html_seq;
 		if (!doc || !html || props.df.fieldtype !== "HTML") {
 			rendered_html.value = null;
 			template_render_failed.value = false;
@@ -152,7 +153,7 @@ watch(
 			store.meta.value?.name,
 			store.preview_doc_name.value
 		);
-		if (seq !== render_seq) return;
+		if (seq !== html_seq) return;
 		rendered_html.value = rendered;
 		template_render_failed.value = rendered === null;
 	},
@@ -162,7 +163,7 @@ watch(
 watch(
 	[preview_doc, () => props.df.field_template],
 	async ([doc]) => {
-		const seq = ++render_seq;
+		const seq = ++template_seq;
 		if (!doc || props.df.fieldtype !== "Field Template" || !props.df.field_template) {
 			rendered_template.value = null;
 			template_render_failed.value = false;
@@ -179,11 +180,11 @@ watch(
 				store.meta.value?.name,
 				store.preview_doc_name.value
 			);
-			if (seq !== render_seq) return;
+			if (seq !== template_seq) return;
 			rendered_template.value = rendered;
 			template_render_failed.value = rendered === null;
 		} catch {
-			if (seq !== render_seq) return;
+			if (seq !== template_seq) return;
 			rendered_template.value = null;
 			template_render_failed.value = true;
 		}
