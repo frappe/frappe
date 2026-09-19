@@ -16,7 +16,7 @@ from typing import Any
 import frappe
 from frappe.database.sqlite import DEFAULT_BUSY_TIMEOUT_SECONDS
 from frappe.model.document import Document
-from frappe.utils import update_progress_bar
+from frappe.utils import convert_utc_to_system_timezone, get_datetime, now_datetime, update_progress_bar
 from frappe.utils.file_lock import LockTimeoutError
 from frappe.utils.synchronization import filelock
 
@@ -117,6 +117,13 @@ class SQLiteSearch(ABC):
 	- Permission-aware search results via query-level filtering
 	"""
 
+	BUILD_VOCABULARY = True
+	"""Whether to build the vocabulary that backs spelling correction in search().
+
+	It is a second pass over everything indexed, long enough on a large table to outweigh the
+	indexing itself. Set False where search() is not used and its corrections are not wanted.
+	"""
+
 	@staticmethod
 	def scoring_function(func):
 		"""
@@ -193,8 +200,11 @@ class SQLiteSearch(ABC):
 			if not title_field and "title" in parsed_fields:
 				title_field = "title"
 
+			child_sources = self._build_child_sources(doctype, config)
+
 			doc_configs[doctype] = {
 				"fields": parsed_fields,
+				"child_sources": child_sources,
 				"field_mappings": field_mappings,
 				"content_field": content_field,
 				"title_field": title_field,
@@ -204,6 +214,29 @@ class SQLiteSearch(ABC):
 
 		return doc_configs
 
+	def _build_child_sources(self, doctype, config) -> list:
+		"""Resolve declared child_fields into the table each one is read through.
+
+		{"barcodes": ["barcode"]} names a Table field on the document; the child doctype and the
+		parent link come from the schema.
+		"""
+		declared = config.get("child_fields") or {}
+		if not declared:
+			return []
+
+		meta = frappe.get_meta(doctype)
+		sources = []
+		for fieldname, fields in declared.items():
+			table_field = meta.get_field(fieldname)
+			if not table_field or table_field.fieldtype != "Table":
+				raise ValueError(f"{doctype}.{fieldname} is not a Table field")
+
+			sources.append(
+				frappe._dict(fieldname=fieldname, doctype=table_field.options, fields=list(fields))
+			)
+
+		return sources
+
 	def _get_schema(self):
 		"""Get the search index schema with automatic defaults."""
 		if not hasattr(self, "INDEX_SCHEMA"):
@@ -211,8 +244,14 @@ class SQLiteSearch(ABC):
 
 		schema = self.INDEX_SCHEMA.copy()
 
-		# Default text fields to title and content
-		schema.setdefault("text_fields", ["title", "content"])
+		# Default text fields to title and content, in a list of our own: INDEX_SCHEMA is usually
+		# a class attribute, and appending to the one it holds would follow the class around.
+		text_fields = list(schema.get("text_fields") or ["title", "content"])
+		for column in self._get_indexed_columns():
+			if column not in text_fields:
+				text_fields.append(column)
+
+		schema["text_fields"] = text_fields
 
 		# Default tokenizer
 		schema.setdefault("tokenizer", "unicode61 remove_diacritics 2")
@@ -238,6 +277,42 @@ class SQLiteSearch(ABC):
 		schema["metadata_fields"] = metadata_fields
 
 		return schema
+
+	def _get_indexed_columns(self) -> list[str]:
+		"""Columns contributed by child tables, across every doctype this index covers."""
+		columns = []
+		for config in self.doc_configs.values():
+			for source in config.get("child_sources", []):
+				columns.append(source.fieldname)
+
+		return list(dict.fromkeys(columns))
+
+	def load_child_values(self, doctype, docnames: list[str]) -> dict[str, dict[str, str]]:
+		"""Child table values for these documents, one joined string per Table field.
+
+		Loaded a batch at a time: reading them inside prepare_document would be one query per
+		document, and holding every row for the whole doctype would not bound the memory.
+		"""
+		sources = self.doc_configs.get(doctype, {}).get("child_sources") or []
+		if not sources or not docnames:
+			return {}
+
+		values = {}
+		for source in sources:
+			rows = frappe.get_all(
+				source.doctype,
+				filters={"parent": ("in", docnames), "parentfield": source.fieldname},
+				fields=["parent", *source.fields],
+			)
+			for row in rows:
+				text = " ".join(str(row[f]) for f in source.fields if row.get(f))
+				if not text:
+					continue
+
+				parent = values.setdefault(row.parent, {})
+				parent[source.fieldname] = f"{parent.get(source.fieldname, '')} {text}".strip()
+
+		return values
 
 	# Abstract Method - Must be implemented by subclasses
 
@@ -327,6 +402,8 @@ class SQLiteSearch(ABC):
 		"""
 		if not self.is_search_enabled():
 			return
+
+		started_at = self._build_started_at(is_continuation)
 
 		# Use temporary database path for atomic replacement (only for new index builds)
 		temp_db_path = None
@@ -457,7 +534,7 @@ class SQLiteSearch(ABC):
 				processed_doctypes += 1
 
 			# Check if all doctypes are indexed before building vocabulary
-			if not self._is_vocabulary_built_needed():
+			if self.BUILD_VOCABULARY and not self._is_vocabulary_built_needed():
 				self._update_progress("All documents indexed, building vocabulary", 80, 100, absolute=True)
 
 				# Build vocabulary incrementally
@@ -486,6 +563,67 @@ class SQLiteSearch(ABC):
 			# Restore original database path
 			if temp_db_path:
 				self.db_path = original_db_path
+
+		self.queue_documents_changed_during_build(started_at)
+
+	def _build_started_at(self, is_continuation: bool):
+		"""When this build began, carried across a resumed one.
+
+		A continuation skips the rows the earlier run already indexed, so a document edited
+		between the two runs falls outside a fresh timestamp and would never be caught up. The
+		progress rows survive the interruption and record the original start, in UTC.
+		"""
+		if is_continuation:
+			stamps = [
+				row["started_at"] for row in self._get_index_progress().values() if row.get("started_at")
+			]
+			if stamps:
+				# naive, to compare with modified the same way now_datetime() does
+				return convert_utc_to_system_timezone(get_datetime(min(stamps))).replace(tzinfo=None)
+
+		return now_datetime()
+
+	def queue_documents_changed_during_build(self, started_at):
+		"""Queue documents saved while the build was running.
+
+		A build reads each document once, and update_doc_index returns as soon as index_exists()
+		is false, which it is for the whole of a build. A document saved after its row was read
+		therefore carries stale text in the finished index.
+
+		Filters on `modified` rather than the doctype config's mapped modified field: that mapping
+		exists for recency scoring and may point at an immutable column such as creation, which
+		would not move when a document is edited.
+		"""
+		if not self.index_exists():
+			return
+
+		for doctype, config in self.doc_configs.items():
+			filters = dict(config.get("filters") or {})
+			filters["modified"] = (">=", started_at)
+
+			for name in frappe.get_all(doctype, filters=filters, pluck="name"):
+				self.index_doc(doctype, name)
+
+			self.remove_documents_deleted_during_build(doctype, started_at)
+
+	def remove_documents_deleted_during_build(self, doctype, started_at):
+		"""Drop documents deleted while the build was running.
+
+		delete_doc_index also skips an index it considers absent, so a row the build copied can
+		belong to a document that is gone by the time the index goes live.
+
+		Reads Deleted Document, which is the only record left of a deletion once it has happened.
+		A delete_permanently=True deletion writes no such row, so it cannot be found here and the
+		indexed record can remain in the search index until the next full build.
+		"""
+		deleted = frappe.get_all(
+			"Deleted Document",
+			filters={"deleted_doctype": doctype, "creation": (">=", started_at)},
+			pluck="deleted_name",
+		)
+
+		for name in deleted:
+			self.remove_doc(doctype, name)
 
 	def _get_incomplete_count(self, where_clause):
 		"""Get count of incomplete records from search_index_progress table.
@@ -609,11 +747,38 @@ class SQLiteSearch(ABC):
 			return False
 
 	def index_exists(self):
-		"""Check if FTS index exists."""
+		"""Whether a usable index exists.
+
+		A table built before a column was added no longer covers everything that is searched, so
+		it reports as absent: callers fall back, and the builder replaces it. Adding a column is
+		declaring a child table does, so this moves whenever that declaration changes.
+		"""
 		if not os.path.exists(self.db_path):
 			return False
 
-		return self._table_exists("search_fts")
+		return set(self.schema["text_fields"]) <= self._indexed_columns()
+
+	def has_current_schema(self) -> bool:
+		"""Whether the built table still carries every column the schema asks for."""
+		return bool(self._indexed_columns()) and set(self.schema["text_fields"]) <= self._indexed_columns()
+
+	def _indexed_columns(self) -> set[str]:
+		"""Columns the built search_fts table carries, empty when there is no table.
+
+		One connection answers both questions this is asked, whether the table is there and
+		whether it still covers the schema, because index_exists runs on every document save.
+		"""
+		try:
+			connection = self._get_connection(read_only=True)
+		except SQLiteSearchIndexMissingError:
+			return set()
+
+		try:
+			return {row["name"] for row in connection.execute("PRAGMA table_info(search_fts)")}
+		except sqlite3.Error:
+			return set()
+		finally:
+			connection.close()
 
 	def drop_index(self):
 		"""Drop the search index by removing the database file."""
@@ -653,6 +818,13 @@ class SQLiteSearch(ABC):
 		self, doctype, limit=1000, last_indexed_modified=None, last_indexed_name=None
 	):
 		"""Get records for a specific doctype with pagination support."""
+		docs = self._get_documents_paginated(doctype, limit, last_indexed_modified, last_indexed_name)
+		self._child_values = self.load_child_values(doctype, [doc.name for doc in docs])
+		return docs
+
+	def _get_documents_paginated(
+		self, doctype, limit=1000, last_indexed_modified=None, last_indexed_name=None
+	):
 		config = self.doc_configs.get(doctype)
 		if not config:
 			return []
@@ -1526,8 +1698,29 @@ class SQLiteSearch(ABC):
 
 		self._add_text_fields_to_document(document, doc, config)
 		self._add_metadata_fields_to_document(document, doc, config)
+		self._add_indexed_fields_to_document(document, doc, config)
 
 		return document
+
+	def _add_indexed_fields_to_document(self, document, doc, config):
+		"""Fill the columns contributed by child tables.
+
+		Every column is written, empty where the document has nothing, because a text field left
+		unset is treated as a document that cannot be indexed at all.
+		"""
+		sources = config.get("child_sources") or []
+		if not sources:
+			return
+
+		cached = getattr(self, "_child_values", None)
+		values = (
+			cached.get(doc.name, {})
+			if cached is not None
+			else self.load_child_values(doc.doctype, [doc.name]).get(doc.name, {})
+		)
+
+		for source in sources:
+			document[source.fieldname] = self._process_content(values.get(source.fieldname) or "")
 
 	def _validate_document_for_indexing(self, doc):
 		"""Run all validation checks for a document before indexing."""
@@ -1886,6 +2079,12 @@ def build_index_in_background():
 
 
 def update_doc_index(doc: Document, method=None):
+	"""Queue a document whose indexed content changed.
+
+	A document indexing child table values is always queued: child rows carry no document events
+	of their own, so the parent save is the only signal that one of them moved, and none of the
+	parent's own fields need have changed for that to have happened.
+	"""
 	search_classes = get_search_classes()
 
 	for SearchClass in search_classes:
@@ -1900,7 +2099,9 @@ def update_doc_index(doc: Document, method=None):
 				if not fields:
 					continue
 
-				any_field_changed = any(doc.has_value_changed(field) for field in fields)
+				any_field_changed = config.get("child_sources") or any(
+					doc.has_value_changed(field) for field in fields
+				)
 				if any_field_changed:
 					try:
 						search.index_doc(doctype, doc.name)

@@ -12,6 +12,7 @@ from frappe.search.sqlite_search import (
 	build_index,
 	build_index_if_not_exists,
 	index_docs_in_queue,
+	update_doc_index,
 )
 from frappe.tests import IntegrationTestCase
 from frappe.utils.synchronization import filelock
@@ -47,6 +48,86 @@ class TestSQLiteSearch(SQLiteSearch):
 			return {}
 		# Simulate user-specific filtering
 		return {"owner": frappe.session.user}
+
+
+class ChildFieldSearch(TestSQLiteSearch):
+	"""Its own index file: these tests drop and rebuild, and must not touch a shared one."""
+
+	INDEX_NAME = "test_child_field_search.db"
+
+	INDEXABLE_DOCTYPES: ClassVar = {
+		"Note": {
+			"fields": ["name", "title", "content", "owner", {"modified": "creation"}],
+			"child_fields": {"seen_by": ["user"]},
+		},
+	}
+
+
+class TestSearchIndexFields(IntegrationTestCase):
+	"""Declared child_fields, and the child rows they are read through."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.search = ChildFieldSearch()
+
+	@classmethod
+	def tearDownClass(cls):
+		ChildFieldSearch().drop_index()
+		super().tearDownClass()
+
+	def setUp(self):
+		self.search = ChildFieldSearch()
+		self.search.drop_index()
+		self.addCleanup(self.search.drop_index)
+
+	def test_a_declared_child_field_becomes_a_column(self):
+		self.assertIn("seen_by", self.search.schema["text_fields"])
+		source = self.search.doc_configs["Note"]["child_sources"][0]
+		self.assertEqual(
+			(source.fieldname, source.doctype, source.fields), ("seen_by", "Note Seen By", ["user"])
+		)
+
+	def test_a_document_without_related_rows_is_still_indexed(self):
+		"""A declared column must not become a requirement: such documents were dropped entirely."""
+		note = frappe.get_doc(doctype="Note", title="Nobody Saw This", content="body").insert()
+		self.addCleanup(frappe.delete_doc, "Note", note.name, force=True)
+
+		self.search.build_index()
+
+		self.assertEqual(self.column_of(note.name, "seen_by"), "")
+
+	def test_a_child_row_edit_reindexes_its_parent(self):
+		"""Child rows raise no document events, so the parent save is the only signal there is."""
+		note = frappe.get_doc(doctype="Note", title="Seen Note", content="body").insert()
+		self.addCleanup(frappe.delete_doc, "Note", note.name, force=True)
+		self.search.build_index()
+		self.assertEqual(self.column_of(note.name, "seen_by"), "")
+
+		note.append("seen_by", {"user": "Administrator"})
+		note.save()
+		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[ChildFieldSearch]):
+			update_doc_index(note)
+			index_docs_in_queue()
+
+		self.assertEqual(self.column_of(note.name, "seen_by"), "Administrator")
+
+	def test_a_drifted_schema_reports_the_index_as_absent(self):
+		"""Ticking the flag changes the schema, so a table built before it no longer covers it."""
+		self.search.build_index()
+		self.assertTrue(self.search.index_exists())
+
+		drifted = ChildFieldSearch()
+		drifted.schema["text_fields"] = [*drifted.schema["text_fields"], "a_column_added_later"]
+		self.assertFalse(drifted.index_exists())
+
+	def column_of(self, name, column):
+		connection = self.search._get_connection(read_only=True)
+		try:
+			row = connection.execute("SELECT * FROM search_fts WHERE name = ?", (name,)).fetchone()
+			return row[column] if row else None
+		finally:
+			connection.close()
 
 
 class TestSQLiteSearchAPI(IntegrationTestCase):
