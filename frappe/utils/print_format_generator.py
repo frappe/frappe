@@ -677,11 +677,14 @@ class PrintFormatGenerator:
 				zone_html = frappe.render_template(
 					layout_template, ctx
 				)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+				if zone_html:
+					zone_html = '<div class="document-header-content">' + zone_html + "</div>"
 			else:
-				# Section object — render using the same logic as print_format.html
-				zone_html = self._render_zone_section(layout_template, ctx["doc"])
+				# Section object — same markup the HTML page emits, wrapper class included
+				zone_class = "document-header-content" if is_header else "document-footer-content"
+				zone_html = self._render_zone_section(layout_template, ctx["doc"], zone_class)
 			if zone_html:
-				body_parts.append('<div class="document-header-content">' + zone_html + "</div>")
+				body_parts.append(zone_html)
 		if not is_header and page_no_html:
 			body_parts.append(page_no_html)
 
@@ -691,10 +694,11 @@ class PrintFormatGenerator:
 		return "\n".join(parts) or None
 
 	_ZONE_SECTION_TEMPLATE = (
-		'{%- import "templates/print_format/macros.html" as macros -%}{{ macros.render_zone(section, doc) }}'
+		'{%- import "templates/print_format/macros.html" as macros -%}'
+		"{{ macros.render_zone(section, doc, zone_class) }}"
 	)
 
-	def _render_zone_section(self, section: dict, doc) -> str:
+	def _render_zone_section(self, section: dict, doc, zone_class: str = "") -> str:
 		"""Render a header/footer zone section dict to HTML for the Chrome overlay."""
 		eval_locals = {"doc": doc, "print_settings": self.print_settings}
 		for column in section.get("columns", []):
@@ -703,7 +707,7 @@ class PrintFormatGenerator:
 					self._prepare_field(df, section, eval_locals)
 		# _ZONE_SECTION_TEMPLATE is a hardcoded class-level string constant, not user input.
 		html = frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
-			self._ZONE_SECTION_TEMPLATE, {"section": section, "doc": doc}
+			self._ZONE_SECTION_TEMPLATE, {"section": section, "doc": doc, "zone_class": zone_class}
 		)
 		return html.strip()
 

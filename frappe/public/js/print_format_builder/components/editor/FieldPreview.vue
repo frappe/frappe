@@ -5,7 +5,7 @@
 	}}</span>
 	<div
 		v-else-if="df.fieldtype == 'HTML' && df.html"
-		v-html="sanitize_html(rendered_html ?? df.html)"
+		v-html="strip_unsafe_html(rendered_html ?? df.html)"
 	></div>
 	<!-- Typst can't render in the HTML canvas — show the markup, the PDF preview shows the output -->
 	<pre v-else-if="df.fieldtype == 'Typst'" class="typst-block-source">{{
@@ -25,7 +25,7 @@
 	<FieldPreviewBarcode v-else-if="df.fieldtype == 'Barcode'" :df="df" />
 	<div
 		v-else-if="df.fieldtype == 'Field Template'"
-		v-html="sanitize_html(rendered_template || '')"
+		v-html="strip_unsafe_html(rendered_template || '')"
 	></div>
 	<!-- Table MultiSelect field: render as a comma-separated value list -->
 	<template v-else-if="df.fieldtype == 'Table MultiSelect'">
@@ -115,7 +115,7 @@ import FieldPreviewBarcode from "./FieldPreviewBarcode.vue";
 import FieldPreviewLinked from "./FieldPreviewLinked.vue";
 import FieldPreviewRepeater from "./FieldPreviewRepeater.vue";
 import FieldPreviewTable from "./FieldPreviewTable.vue";
-import { render_jinja_html, sanitize_html } from "../../utils";
+import { render_jinja_html, strip_unsafe_html } from "../../utils";
 import { useFieldFormat } from "../../composables/useFieldFormat";
 import { useFieldStyles } from "./useFieldRoot";
 
