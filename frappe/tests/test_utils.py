@@ -48,6 +48,7 @@ from frappe.utils import (
 	validate_url,
 )
 from frappe.utils.change_log import (
+	check_for_update,
 	get_source_url,
 	parse_github_url,
 )
@@ -1662,6 +1663,28 @@ class TestChangeLog(FrappeTestCase):
 		self.assertIsNone(repo)
 
 		self.assertRaises(ValueError, parse_github_url, remote_url=None)
+
+	def test_check_for_update_skips_develop_branch(self):
+		from semantic_version import Version
+
+		versions = {
+			"on_develop": {"title": "On Develop", "branch_version": "develop"},
+			"released": {"title": "Released", "version": "1.0.0"},
+		}
+		with (
+			patch("frappe.get_system_settings", return_value=0),
+			patch("frappe.is_setup_complete", return_value=True),
+			patch("frappe.utils.change_log.get_versions", return_value=versions),
+			patch("frappe.utils.change_log.get_source_url", return_value="https://github.com/frappe/app"),
+			patch(
+				"frappe.utils.change_log.check_release_on_github", return_value=(Version("2.0.0"), "frappe")
+			),
+			patch("frappe.utils.change_log.security_issues_count", return_value=0),
+			patch("frappe.utils.change_log.add_message_to_redis"),
+		):
+			updates = check_for_update()
+
+		self.assertEqual([u.app_name for u in updates.major], ["released"])
 
 
 class TestCrypto(FrappeTestCase):
