@@ -1597,8 +1597,8 @@ class TestQuery(IntegrationTestCase):
 	def test_link_field_permission_hook_referencing_target_table(self):
 		"""A target doctype's permission_query_conditions hook may return a raw SQL
 		string that references its own `tabDoctype`. When the target is joined under an
-		alias (link field fetched via dot-notation), that reference must be rewritten to
-		the alias, otherwise the join references a table that isn't in scope.
+		alias (link field fetched via dot-notation), that table isn't in scope, so the
+		condition must still apply to the aliased join.
 		"""
 		target_dt_name = "TargetDocForHookAlias"
 		source_dt_name = "SourceDocForHookAlias"
@@ -1623,7 +1623,8 @@ class TestQuery(IntegrationTestCase):
 			],
 		).insert(ignore_if_duplicate=True)
 
-		allowed = frappe.get_doc(doctype=target_dt_name, value="Allowed").insert(ignore_permissions=True)
+		allowed_value = f"Allowed tab{target_dt_name} batch"
+		allowed = frappe.get_doc(doctype=target_dt_name, value=allowed_value).insert(ignore_permissions=True)
 		denied = frappe.get_doc(doctype=target_dt_name, value="Denied").insert(ignore_permissions=True)
 		src_allowed = frappe.get_doc(doctype=source_dt_name, link_field=allowed.name).insert(
 			ignore_permissions=True
@@ -1651,7 +1652,7 @@ class TestQuery(IntegrationTestCase):
 		# governs which linked row attaches.
 		self.assertIn(src_allowed.name, by_name)
 		self.assertIn(src_denied.name, by_name)
-		self.assertEqual(by_name[src_allowed.name].linked_value, "Allowed")
+		self.assertEqual(by_name[src_allowed.name].linked_value, allowed_value)
 		self.assertIsNone(by_name[src_denied.name].linked_value)
 
 		# Cleanup
@@ -3435,7 +3436,7 @@ def test_deny_all_permission_hook(user, doctype=None):
 	return "1=0"
 
 
-# Returns a raw SQL string referencing the target's own table, to verify the reference
-# gets rewritten to the aliased link table when fetched via dot-notation.
+# Returns a raw SQL string referencing the target's own table, to verify it still applies
+# to the aliased link table when fetched via dot-notation.
 def allow_named_target_hook(user, doctype=None):
-	return f"`tab{doctype}`.`value` = 'Allowed'"
+	return f"`tab{doctype}`.`value` = 'Allowed tab{doctype} batch'"
