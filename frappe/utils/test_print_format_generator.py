@@ -379,6 +379,24 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			# SandboxedEnvironment raises SecurityError on .__class__.__bases__
 			render_jinja_template("{{ doc.__class__.__bases__ }}", "ToDo", todo.name)
 
+	def test_check_conditions_evaluates_a_bounded_distinct_batch(self):
+		"""The builder asks for every visible_if at once: each distinct expression
+		gets a verdict or an error, blanks are skipped, and the batch is capped."""
+		from frappe.utils.print_format_generator import MAX_CONDITIONS, check_conditions
+
+		todo = self._make_todo()
+		result = check_conditions(
+			"ToDo",
+			todo.name,
+			["doc.status == 'Open'", "doc.status == 'Open'", "doc.nope(", ""],
+		)
+		self.assertEqual(result["doc.status == 'Open'"], {"visible": True})
+		self.assertIn("error", result["doc.nope("])
+		self.assertEqual(len(result), 2)
+
+		flood = [f"doc.idx == {i}" for i in range(MAX_CONDITIONS + 50)]
+		self.assertEqual(len(check_conditions("ToDo", todo.name, flood)), MAX_CONDITIONS)
+
 	# ------------------------------------------------------------------ #
 	# PrintFormatGenerator: section / zone rendering
 	# ------------------------------------------------------------------ #

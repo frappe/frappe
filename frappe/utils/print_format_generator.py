@@ -284,9 +284,7 @@ def check_conditions(doctype: str, name: str, conditions: list[str] | str):
 	conditions = frappe.parse_json(conditions) if isinstance(conditions, str) else conditions
 	if not all(isinstance(v, str) for v in (doctype, name)) or not isinstance(conditions, list):
 		frappe.throw(_("Invalid arguments"), frappe.ValidationError)
-	conditions = list(
-		dict.fromkeys(c for c in conditions if isinstance(c, str) and c.strip() and len(c) <= 2000)
-	)[:MAX_CONDITIONS]
+	conditions = list(dict.fromkeys(c for c in conditions if c.strip() and len(c) <= 2000))[:MAX_CONDITIONS]
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
 	eval_locals = {"doc": doc, "print_settings": frappe.get_cached_doc("Print Settings")}
