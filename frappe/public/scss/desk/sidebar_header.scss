@@ -44,19 +44,24 @@
 		background: var(--surface-elevation-2);
 	}
 
-	// The app's logo, or the letter tile desktop_icon() builds for whatever has no logo of its own.
-	// Both bring their own colour, so nothing is drawn behind them.
+	// The app's logo, or the letter tile desktop_icon() builds for whatever has no logo of its own,
+	// on a chip of its own so a bare line glyph reads as a mark rather than as a stray icon.
+	//
+	// `--surface-gray-3`, not the raw `--gray-500` this was: a palette token is one flat colour in
+	// both themes, and a mid-grey chip that sat quietly on a dark sidebar was a heavy slab on a
+	// light one. This inverts with the theme and stays a step off whichever surface it lands on --
+	// the panel's #f8f8f8 or the dock's own tray, since both wear `.shell-header`.
 	.header-logo {
 		flex: 0 0 auto;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		background-color: var(--surface-gray-3);
 		// `size-7 rounded-[6px]`
 		width: 28px;
 		height: 28px;
 		border-radius: 6px;
 		overflow: hidden;
-		background: transparent;
 
 		img {
 			width: 100%;

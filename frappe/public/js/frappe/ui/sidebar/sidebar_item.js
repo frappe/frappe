@@ -1,8 +1,43 @@
 frappe.provide("frappe.ui.sidebar_item");
 
+// Put the shell in front of a desk path, so a link in a sidebar names the shell it sits in.
+//
+// Without this the rendered href says `/desk/todo` while the URL it leads to says
+// `/desk/build/todo`, and `is_route_in_sidebar` compares the two by string, so nothing is ever
+// highlighted. It also means clicking the link arrives already correct, instead of arriving bare
+// and being rewritten a moment later.
+//
+// A `URL` item is left alone: it points wherever its author said, which need not be the desk at
+// all. So is anything that is not a desk path.
+//
+// The rule has to be the one `write_shell_into_url` uses, character for character, because the
+// highlight is a string comparison between this href and the URL. That includes not saying the
+// shell twice: `/desk/build` is the Build workspace and its shell is Build, so the prefix would
+// add a segment and no information.
+function in_shell(path, shell) {
+	if (!shell || !path || !path.startsWith("/desk/")) return path;
+
+	// The query string is not part of what the shell goes in front of, and leaving it in would
+	// make `/desk/build?x=1` look unlike `/desk/build` and take a prefix it should not.
+	const [route, rest] = split_query(path.slice("/desk/".length));
+	const slug = frappe.router.shell_slug(shell);
+	if (route === slug || route.startsWith(slug + "/")) return path;
+
+	return "/desk/" + slug + "/" + route + rest;
+}
+
+function split_query(path) {
+	const at = path.search(/[?#]/);
+	return at === -1 ? [path, ""] : [path.slice(0, at), path.slice(at)];
+}
+
 // Resolve a sidebar item (from `bootinfo.module_sidebars`) to a navigable route.
 // Shared by the rendered sidebar links and the header workspace switcher.
-frappe.ui.sidebar_item.get_route = function (item, edit_mode = false) {
+//
+// `shell` is the sidebar the item belongs to, and the caller says which: an item on screen belongs
+// to the sidebar showing it, while `module_landing_route` asks about a module that is not the one
+// on screen. Left out, the route carries no shell and the desk writes one in on arrival.
+frappe.ui.sidebar_item.get_route = function (item, edit_mode = false, shell = null) {
 	let path;
 	if (item.type !== "Link") return path;
 
@@ -78,12 +113,12 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false) {
 			);
 			if (layout_info) {
 				const doctype_slug = frappe.router.slug(item.link_to);
-				path = `/app/${doctype_slug}?layout=${encodeURIComponent(layout_info.name)}`;
+				path = `/desk/${doctype_slug}?layout=${encodeURIComponent(layout_info.name)}`;
 			}
 		}
 	}
 
-	return path;
+	return in_shell(path, shell);
 };
 
 frappe.ui.sidebar_item.TypeLink = class SidebarItem {
@@ -103,7 +138,7 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		this.make();
 	}
 	get_path() {
-		return frappe.ui.sidebar_item.get_route(this.item);
+		return frappe.ui.sidebar_item.get_route(this.item, false, this.current_module);
 	}
 
 	prepare() {}

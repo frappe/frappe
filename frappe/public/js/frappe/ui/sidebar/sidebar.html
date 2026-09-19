@@ -1,11 +1,12 @@
 <div class="body-sidebar-container {%= expanded ? 'expanded' : ''%}">
 		<div class="body-sidebar">
+			<!-- The standard-items band: search, notifications and background tasks, as
+			     full-width rows directly under the header and above the module's own items.
+			     The dock carries none of them -- see Sidebar.add_standard_items. It sits outside
+			     .body-sidebar-top, the box that scrolls, so it stays put when a long sidebar
+			     scrolls under it. -->
+			<div class="standard-items-band"></div>
 			<div class="body-sidebar-top">
-				<!-- The standard-items band: search, notifications and background tasks, as
-				     full-width rows directly under the header and above the module's own items.
-				     Only drawn on a dock-less app, where the rail is not there to carry them --
-				     see Sidebar.add_standard_items and body.dock-active. -->
-				<div class="standard-items-band"></div>
 				<div class="sidebar-items">
 				</div>
 			</div>

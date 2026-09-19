@@ -13,6 +13,50 @@ const ENTITY_VIEW_ROUTES = {
 	"dashboard-view": "Dashboard",
 };
 
+// How strongly a sidebar item's href claims the page at `path`. 0 means it does not.
+//
+// An item claims its own URL, and the URLs under it: `/desk/selling/item` claims
+// `/desk/selling/item/ITEM-0001`, since a document is part of the list it came from.
+//
+// A workspace claims only its own URL. Its href is also the root of the shell, so everything
+// in the shell sits under it: `/desk/selling` is a prefix of `/desk/selling/dashboard` and of
+// every other page in Selling. Letting it claim what is under it lit the workspace up on every
+// page the sidebar holds no item for. `/desk/accounts/invoicing` did the same to Accounts.
+//
+// Between two claims, the longer href wins, because it names the page more precisely. An
+// item whose filters match the URL's beats one with no filters, which is how two items for one
+// doctype with different filters tell themselves apart. An item whose filters do not match
+// claims nothing.
+function route_claim(raw_href, link_type, path, params) {
+	const [href_path, query] = (raw_href || "").split("?");
+	const href = strip_trailing_slash(decodeURIComponent(href_path.split("#")[0]));
+
+	// A root or empty href strips to "", and "" is a prefix of every route. A `URL` item is
+	// where this came from: its href is whatever its author wrote, and one pointing at "/"
+	// claimed every page.
+	if (!href) return 0;
+
+	const exact = path === href;
+	const under = path.startsWith(href + "/");
+	if (!exact && !(under && link_type !== "Workspace")) return 0;
+
+	let filtered = false;
+	if (query) {
+		for (const [key, value] of new URLSearchParams(query)) {
+			if (String(params[key]) !== String(value)) return 0;
+		}
+		filtered = true;
+	}
+
+	// Filters outrank length, and an exact match outranks a prefix of the same length (it
+	// cannot tie with one, but the order says which question comes first).
+	return (filtered ? 1e6 : 0) + href.length * 2 + (exact ? 1 : 0);
+}
+
+function strip_trailing_slash(path) {
+	return path.replace(/\/$/, "");
+}
+
 frappe.ui.Sidebar = class Sidebar {
 	constructor() {
 		if (!frappe.boot.setup_complete) {
@@ -32,9 +76,6 @@ frappe.ui.Sidebar = class Sidebar {
 		this.$sidebar = this.wrapper.find(".body-sidebar");
 		this.items = [];
 		this.cards = [];
-		// Route whose cold-entry sidebar was resolved without the doctype's meta, so it still
-		// needs a re-resolve against the entity's module. See resolve_initial_sidebar.
-		this.pending_cold_entry = null;
 		this.setup_events();
 		this.standard_items_setup = false;
 	}
@@ -372,16 +413,14 @@ frappe.ui.Sidebar = class Sidebar {
 
 	// Whether moving to `entity_shell` leaves the app `shell` belongs to.
 	//
-	// This is the one thing the shell on screen does not survive (see resolve_sidebar_for step 1).
-	// App context in the desk means only what supplies the rail, so a shell kept across an app
+	// This is the one thing the shell on screen does not survive (see `shell_can_show`). App
+	// context in the desk means only what supplies the rail, so a shell kept across an app
 	// boundary is a rail whose logo and rows belong to an app the page is not in: reaching Job
 	// Applicant from a Journal Entry left erpnext's rail on screen over an hrms document.
 	//
-	// It asks about the entity's own shell and nothing else, so it says nothing while the module
-	// is unreadable, and an unreadable module holds the shell rather than moving it. A doctype
-	// route reached through the router is readable by then, since router.route() awaits
-	// `with_doctype` before firing the `change` this resolves on; anything still unreadable is
-	// already flagged provisional below and re-resolved on the second pass.
+	// It asks about the entity's own shell and nothing else. That shell comes from the boot map
+	// the server resolved rather than from a doctype's meta, so it is known on the first pass and
+	// there is nothing to re-check once the meta loads.
 	crosses_app(shell, entity_shell) {
 		if (!entity_shell || entity_shell === shell) return false;
 		const here = this.app_for_sidebar(shell);
@@ -455,17 +494,15 @@ frappe.ui.Sidebar = class Sidebar {
 
 	// The body sidebar is displayed unless the page opts out via the standard `hide_sidebar` option.
 	//
-	// The opt-out is about room. It was written when the panel sat in the flow of the page and took
-	// 220px from it, so a page that wanted the width said so and got it. With a rail on screen the
-	// panel takes no room at all: it is an overlay that starts closed and the page already runs the
-	// full width underneath it (see .body-sidebar-container in sidebar.scss). Opting out there buys
-	// nothing and costs the way back, since the rail's rows and its right-edge handle then open a
-	// panel that is not in the document -- which is how the POS and shop floor pages ended up with
-	// a rail whose handle did nothing.
+	// The opt-out is about room, and it means what it says again. It was written when the panel sat
+	// in the flow of the page and took 220px from it, so a page that wanted the width said so and
+	// got it; that is the panel once more, on every screen where the rail is an overlay rather than
+	// a column, so a page like POS or shop floor gets its full width back.
 	//
-	// So where the rail can bring the panel back, `hide_sidebar` keeps the meaning it can still
-	// afford: the panel is closed on arrival (see apply_page_visibility) rather than taken away.
-	// Where there is no rail the panel is the page's own 220px again and the opt-out stands.
+	// The one place it still cannot be taken at face value is a drawer. Below md the panel is
+	// opened from the navbar, and a page that removed it from the document would leave that trigger
+	// opening nothing -- so there `hide_sidebar` keeps the weaker meaning it can afford: closed on
+	// arrival (see apply_page_visibility) rather than taken away.
 	page_allows_sidebar() {
 		const page = this.current_page();
 		if (!page) return false;
@@ -474,13 +511,19 @@ frappe.ui.Sidebar = class Sidebar {
 
 	// Whether the panel is allowed to close at all.
 	//
-	// Closing takes it off screen entirely rather than shrinking it to a strip, and the way back in
-	// is the rail: its rows open the panel, and its edge handle reopens it. A dock-less app has no
-	// rail, and the panel's own collapse chevron is gone, so closing one there would leave its only
-	// navigation unreachable. Where there is nothing to reopen it, it does not close -- and it is
-	// this same question that decides where the panel starts (see load_sidebar_state).
+	// On a desktop it is not. The panel is the desk's navigation -- the rail above it is an overlay
+	// that is off screen until it is called for (see dock.js) -- and closing it would leave nothing
+	// to navigate with and nothing visible to bring it back, since its own collapse chevron is gone
+	// and the rail's edge handle went with the rail's permanence.
+	//
+	// Below 768px there is no rail at all (`display: none`, dock.scss) and the panel is a drawer
+	// over the page, which has to be able to shut. That is the same 768 the rail is drawn at, and
+	// `frappe.is_mobile` already holds it and already clears its answer on resize, so it is read
+	// from there rather than stated again.
+	//
+	// It is this same question that decides where the panel starts (see load_sidebar_state).
 	panel_can_close() {
-		return this.dock_enabled() && this.page_allows_dock();
+		return frappe.is_mobile();
 	}
 
 	// The dock is displayed unless the page opts out with `hide_dock`. That and
@@ -499,26 +542,10 @@ frappe.ui.Sidebar = class Sidebar {
 		if (!this.wrapper) return;
 		const page = this.current_page();
 
-		// This is the first moment the panel's start state can be decided honestly: it is read
-		// off the rail, and a cold load into a document resolves its module and builds its page
-		// after the sidebar was constructed (see load_sidebar_state). Settle it once, so a panel
-		// the user opened by hand is not shut again by the next page change.
-		//
-		// Only once the sidebar has been built for a module, since a half-built one has no rail
-		// to read and no header for expand_sidebar to lay out.
-		//
-		// Settled before it is shown, not after. The panel is built open, since at that point
-		// there is no page and no rail to say otherwise, and showing it in that state to close it
-		// a moment later is the panel sliding out and back on every reload. Deciding first means
-		// it only ever appears in the state it is going to keep.
-		if (!this.sidebar_state_settled && this.current_module && this.sidebar_header) {
-			this.set_sidebar_state();
-		}
-
 		const allowed = this.page_allows_sidebar();
-		// A page that asked for no sidebar and kept it anyway, because the rail can reopen it,
-		// gets it out of the way instead: closed on arrival, however it was left. Every other
-		// page keeps the panel as it was, since the rail is what states where it stands.
+		// A page that asked for no sidebar and kept it anyway -- a drawer, which has to stay in the
+		// document for the navbar to open it -- gets it out of the way instead: closed on arrival,
+		// however it was left.
 		if (allowed && page && page.hide_sidebar && this.sidebar_expanded) this.close();
 
 		this.wrapper.toggle(allowed);
@@ -711,57 +738,37 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 	}
 
+	// Find the item the current URL belongs to and make it `active_item`. Returns whether any did.
+	//
+	// Every item is scored by `route_claim` and the strongest claim wins. The URL is read once
+	// rather than per item, since it is the same for all of them.
 	is_route_in_sidebar() {
-		let match = false;
-		const that = this;
-		let exact_match = null;
-		let path_match = null;
-
-		const route_params = Object.assign(
+		const path = strip_trailing_slash(decodeURIComponent(window.location.pathname));
+		const params = Object.assign(
 			{},
 			Object.fromEntries(new URLSearchParams(window.location.search)),
 			frappe.route_options || {}
 		);
 
-		$(".item-anchor").each(function () {
-			const raw = $(this).attr("href") || "";
-			const [href_path, href_query] = raw.split("?");
-			const href = decodeURIComponent(href_path.split("#")[0]);
-
-			const path = decodeURIComponent(window.location.pathname);
-
-			// ensure no trailing slash mismatch
-			const clean_href = href.replace(/\/$/, "");
-			const clean_path = path.replace(/\/$/, "");
-
-			// A root or empty href strips to "", and "" prefix-matches every route, so such an
-			// item was highlighted on every page. A URL item is where this came from: it is the
-			// one kind whose href is arbitrary rather than a route this desk generated, and an
-			// item pointing at "/" claimed the highlight from whichever item the route really
-			// belonged to.
-			if (!clean_href) return;
-
-			const isActive = clean_path === clean_href || clean_path.startsWith(clean_href + "/");
-			if (!href || !isActive) return;
-
-			if (href_query) {
-				let filter_match = true;
-				new URLSearchParams(href_query).forEach((value, key) => {
-					if (String(route_params[key]) !== String(value)) filter_match = false;
-				});
-				if (filter_match) exact_match = $(this).parent();
-			} else {
-				path_match = $(this).parent();
+		let best = null;
+		let best_claim = 0;
+		$(".item-anchor[href]").each(function () {
+			const claim = route_claim(
+				this.getAttribute("href"),
+				this.dataset.linkType,
+				path,
+				params
+			);
+			if (claim > best_claim) {
+				best = $(this).parent();
+				best_claim = claim;
 			}
 		});
 
-		const best = exact_match || path_match;
-		if (best) {
-			match = true;
-			if (that.active_item) that.active_item.removeClass("active-sidebar");
-			that.active_item = best;
-		}
-		return match;
+		if (!best) return false;
+		if (this.active_item) this.active_item.removeClass("active-sidebar");
+		this.active_item = best;
+		return true;
 	}
 
 	set_sidebar_state() {
@@ -773,43 +780,20 @@ frappe.ui.Sidebar = class Sidebar {
 		this.expand_sidebar();
 	}
 
-	// Where the panel starts, which is decided by whether the app has a rail rather than by anything
-	// the user left behind.
+	// Where the panel starts, which is now the same answer everywhere: out.
 	//
-	// A docked app opens with the rail alone and the panel at nothing: the panel is an overlay you
-	// call up from a rail row, it covers the page while it is out, and it closes again on the next
-	// click elsewhere -- so it starts closed on every load rather than restoring where it was left.
-	// A dock-less app has no rail, so the panel is the whole of its navigation and is always out.
+	// The panel is the desk's permanent navigation, so on a desktop it is open on arrival and stays
+	// open; below md it is a drawer, and a drawer starts shut. Between those two there is no
+	// per-user state left to keep, which is why `sidebar-expanded` is neither read nor written.
 	//
-	// Between those two there is no per-user state left to keep, which is why `sidebar-expanded` is
-	// no longer read or written.
-	//
-	// The rail is only knowable once the module has resolved and a page is on screen to allow it,
-	// and on a cold load into a document neither is true yet: `panel_can_close` answers "no rail",
-	// which opens the panel over the form that is about to render. So the answer counts as settled
-	// only when both were there to ask, and apply_page_visibility takes another pass when they
-	// were not.
-	//
-	// A page that hides the rail is not asked at all. `panel_can_close` cannot tell a page that
-	// draws no rail from an app that has none, so the apps screen -- which hides both shells --
-	// answers "no rail" and opens the panel, and settling there carries that answer onto the next
-	// page, which does draw one. Leaving both the state and the question alone keeps the panel as
-	// it was until a page that shows the rail can answer.
+	// This used to have to wait. The answer was read off the rail -- a docked app opened with the
+	// rail alone and the panel at nothing -- and the rail is only knowable once the module has
+	// resolved and a page is on screen to allow it, so a cold load into a document had to draw the
+	// panel closed, settle later, and open it if it turned out there was no rail. `panel_can_close`
+	// asks the window's width now, which is answerable at any moment, so there is nothing left to
+	// settle and nothing that has to be drawn in a state it will not keep.
 	load_sidebar_state() {
-		if (this.current_page() && !this.page_allows_dock()) return;
-
-		this.sidebar_state_settled = !!this.current_page() && !!this.current_module;
-		// Until it is settled the rail cannot be read, and `panel_can_close` answers "no rail" for
-		// want of a page rather than for want of a dock. Draw it closed meanwhile, which is where
-		// a docked app keeps it, and let the settling pass open it where there turns out to be no
-		// rail. Taking the answer at face value paints an opaque panel that then has to fade back
-		// out -- the blank sidebar that showed up on every reload, since `.body-sidebar` animates
-		// its background and the collapsed state is where that animation ends.
-		this.sidebar_expanded = this.sidebar_state_settled ? !this.panel_can_close() : false;
-
-		if (frappe.is_mobile()) {
-			this.sidebar_expanded = false;
-		}
+		this.sidebar_expanded = !this.panel_can_close();
 	}
 
 	empty() {
@@ -844,26 +828,19 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 	// Search, notifications and background tasks, as full-width rows in their own band.
 	//
-	// Search is here because without a rail it has nowhere else. The rail carried four things
-	// besides navigation, and three of them survive its removal: notifications and the user
-	// button return to the sidebar, and the apps door is covered by the switcher's "All apps".
-	// Search is not. The desk's own full-search button is dead markup, so a dock-less app has no
-	// search affordance otherwise.
+	// These are here because the dock no longer carries them. It used to hold four things besides
+	// navigation, and all four moved: notifications, background tasks and the user button to the
+	// sidebar, and the apps door to the switcher's "All apps". Search had nowhere else to go --
+	// the desk's own full-search button is dead markup -- so it moved here too, and this is the
+	// only search affordance the desk has.
 	//
 	// These are full-width rows rather than an icon strip, so the band uses the sidebar's own
-	// vocabulary instead of the rail's ghost-icon treatment in a 220px panel, and search stays
+	// vocabulary instead of the dock's ghost-icon treatment in a 220px panel, and search stays
 	// legible. Nothing new is built for it: each row is the same icon-plus-label item every
 	// sidebar link is.
 	//
 	// The band sits directly under the header, above the module's own items, behind a divider,
-	// rather than after the user button where the generic add-item helper put these two. The
-	// whole band is hidden when the rail is present (`body.dock-active` hides it),
-	// which is what a docked app's sidebar wants: all three off, including background tasks,
-	// which it used to show while hiding the bell next to it.
-	//
-	// The trade-off is that search has two homes depending on whether the app has a rail. That
-	// was preferred over stripping the rail's shortcuts, which would have changed every docked
-	// app to fix a dock-less one.
+	// rather than after the user button where the generic add-item helper put these two.
 	add_standard_items(items) {
 		if (this.standard_items_setup) return;
 		this.standard_items = [];
@@ -1017,76 +994,20 @@ frappe.ui.Sidebar = class Sidebar {
 
 	// Pick the sidebar for the route we just landed on.
 	//
-	// The sidebar is usually something the user chooses, from the header switcher or by going
-	// straight to a workspace, and it then stays put during navigation. It moves on its own only
-	// when the thing navigated to cannot be reached from where you are, and `resolve_sidebar_for`
-	// decides where it moves to.
+	// One rule, `shell_for_route`, and the URL carries its answer, so there is nothing to remember
+	// between routes and nothing to resolve twice. What replaced the ladder that used to live here
+	// is the server: `bootinfo.canonical_shell` says where each entity opens, worked out once for
+	// this user, so the desk no longer has to guess from link data while a doctype's meta loads
+	// and then correct itself when it arrives.
 	//
-	// Everything is resolved from boot data rather than from the DOM or the URL, so it does not
-	// depend on when the route and the page render. The highlight on the active item is separate
-	// and stays route-aware, in set_active_workspace_item().
+	// The highlight on the active item is separate and stays route-aware, in
+	// set_active_workspace_item().
 	set_workspace_sidebar() {
 		try {
 			const route = frappe.get_route();
+			const target = this.shell_for_current_route(route);
 
-			if (route[0] === "Workspaces" && route.length >= 2) {
-				// An explicit workspace route means the user picked this workspace, so make it
-				// the sticky selection. The route names a workspace, so map it to its module
-				// before selecting.
-				const name = route[route.length - 1];
-				const module = this.module_for_workspace(name);
-				// Leaving here is what states the shell for the next navigation: it is then the
-				// one on screen.
-				if (module) this.select_module(module);
-			} else {
-				// Resolution never looks at which app the route belongs to. A sidebar may link
-				// something from another app on purpose: System Settings belongs to `frappe` but
-				// is linked in erpnext's ERPNext Settings sidebar. Filtering by the entity's app
-				// would drop the sidebar you are standing in.
-				const entity = this.entity_from_route(route);
-
-				if (this.cold_entry_needs_recheck(route, entity)) {
-					// The previous pass ran before the doctype's meta existed and could only
-					// guess from the sidebars linking it. The module is readable now, so resolve
-					// again with no sticky, so the guess cannot keep its own place.
-					this.pending_cold_entry = null;
-					const { sidebar: target } = this.resolve_sidebar_for(route, null);
-					if (target && target !== this.current_module) {
-						frappe.app.sidebar.setup(target);
-					}
-				} else {
-					// One ladder, whether the user navigated here or arrived cold. The only
-					// difference is what counts as the shell you are in: the sidebar on screen
-					// while navigating, or the last one picked when there is none.
-					//
-					// This used to be two ladders, and they disagreed. Navigating jumped straight
-					// to the first sidebar linking the entity and skipped the step that prefers
-					// the entity's own module, so deep-linking to a document and navigating to it
-					// could land in different shells.
-					// The shell can be stated two ways, strongest first: it is the one on screen,
-					// or it is the last one picked. The first is stated -- somebody chose this
-					// shell and is standing in it -- so it holds across a link into another
-					// module. The second is only a memory of an older choice and still has to
-					// prove it can show the entity.
-					const on_screen = this.current_module;
-					const sticky = on_screen || localStorage.getItem("selected_module");
-					const { sidebar: target, provisional } = this.resolve_sidebar_for(
-						route,
-						sticky,
-						!!on_screen
-					);
-
-					// Remember a guess made without the meta, so the branch above re-resolves it
-					// once the meta arrives. Set on both paths: a doctype visited for the first
-					// time this session has no meta yet, however it was reached.
-					this.pending_cold_entry = provisional ? route.join("/") : null;
-
-					if (target && target !== this.current_module) {
-						if (this.current_module) this.select_module(target);
-						else frappe.app.sidebar.setup(target);
-					}
-				}
-			}
+			if (target && target !== this.current_module) this.select_module(target);
 		} catch (e) {
 			console.error(e);
 		}
@@ -1094,13 +1015,138 @@ frappe.ui.Sidebar = class Sidebar {
 		this.set_active_workspace_item();
 	}
 
-	// Switch to a workspace's sidebar and remember it so the choice survives navigation and
-	// reload.
+	// The shell this route should show, including the route that names nothing at all.
+	shell_for_current_route(route) {
+		// `/desk` itself, which names nothing. The user's own default workspace answers, and its
+		// shell is what shows.
+		//
+		// The ladder this replaces refused to read `User.default_workspace`, because there it
+		// would have outranked entity routes too and pinned the sidebar to one workspace whatever
+		// you opened. Asking it for the empty route alone has none of that. It is also the only
+		// thing left that the sticky in `localStorage` was doing: every other route now carries
+		// its shell in the URL, so a reload restores it without anything being remembered.
+		if (!route.length) return this.default_shell();
+
+		// The server's map gives every entity the user can read a shell, so `shell_for_route`
+		// answers for every real route. What is left is a route naming nothing the map knows,
+		// such as a mistyped slug. Stay in the sidebar already on screen rather than showing none.
+		// `shell_for_route` itself still says null, so the URL is not given a shell it never had.
+		return this.shell_for_route(route) || this.current_module || this.default_shell();
+	}
+
+	// Where the desk lands when the route names nothing.
+	//
+	// The server works this out with the map (`home_shell` in sidebar.py): the user's default
+	// workspace, else the shell holding most of what they can reach. The first shell is only for
+	// a boot that predates it.
+	default_shell() {
+		return frappe.boot.home_shell || Object.keys(frappe.boot.module_sidebars || {})[0] || null;
+	}
+
+	// The shell the URL names, when it names one this route can be shown in.
+	//
+	// A shell in the URL is a statement: somebody was standing in that sidebar when the link was
+	// made, and following the link should not move them out of it. It is honoured on two
+	// conditions, which are the two ways a shell can legitimately show an entity:
+	//
+	//   the shell lists the entity, which is somebody having put it there on purpose, or
+	//   the shell belongs to the same app as the entity's own, which is how the desk already
+	//   behaves while you navigate inside one app (see crosses_app).
+	//
+	// The first is what the whole segment exists for. Clicking `Customer` in the Accounts sidebar
+	// should leave you in Accounts, and on this site 190 of 605 doctype links in a sidebar point
+	// at an entity whose own shell is a different one. Without this test every one of those would
+	// throw you out of the sidebar you just clicked in.
+	//
+	// Anything else is a URL naming a shell that cannot show what it points at: a stale name
+	// after a doctype moved module, a hand-edited link, a shell this user cannot see. The ladder
+	// answers those instead, and the URL is corrected rather than obeyed.
+	shell_from_url(route) {
+		const shell = frappe.router.current_shell;
+		if (!shell) return null;
+
+		return this.shell_can_show(shell, route) ? shell : null;
+	}
+
+	// Whether `shell` may be the one a URL for `route` names.
+	//
+	// Two ways, and they are the two ways a shell can legitimately show an entity:
+	//
+	//   the shell lists the entity, which is somebody having put it there on purpose, or
+	//   the shell belongs to the same app as the entity's own, which is how the desk already
+	//   behaves while you navigate inside one app (see crosses_app).
+	//
+	// The first is what the whole thing exists for. Clicking `Customer` in the Accounts sidebar
+	// should leave you in Accounts, and on a site with erpnext 190 of 605 doctype links in a
+	// sidebar point at an entity whose own shell is a different one. Without the listing test
+	// every one of those would throw you out of the sidebar you clicked them in.
+	//
+	// Everything else fails: a shell this user does not have, a stale name after a doctype moved
+	// module, a hand-edited link. Those are corrected rather than obeyed.
+	shell_can_show(shell, route) {
+		if (!shell || !frappe.boot.module_sidebars?.[shell]) return false;
+
+		const entity = this.entity_from_route(route);
+		if (!entity) return false;
+
+		if (this.get_modules_linking(entity).includes(shell)) return true;
+
+		const canonical = this.canonical_shell_for(route, entity);
+		return !!canonical && !this.crosses_app(shell, canonical);
+	}
+
+	// The shell a URL for this route should name. Three answers, strongest first:
+	//
+	//   1. the shell the URL already names, when it can show the route. A URL is a statement, and
+	//      it has to outrank the sidebar on screen or the back button would rewrite history:
+	//      going back to `/desk/accounts/customer` while standing somewhere else would replace
+	//      that entry with wherever you happen to be.
+	//   2. the shell on screen, when it can show the route. This is what makes the sidebar
+	//      survive a navigation: you are in Accounts, you click something Accounts lists, and the
+	//      URL that gets written says Accounts.
+	//   3. where the route opens on its own, from the map the server resolved.
+	//
+	// One rule, and both directions use it: building a URL asks what to write, and arriving at
+	// one asks whether what is written can stay.
+	shell_for_route(route) {
+		// A workspace route names a workspace rather than an entity, and which shell holds one is
+		// stored on the shell rather than resolved, so it is answered before the three below.
+		if (route[0] === "Workspaces" && route.length >= 2) {
+			return this.module_for_workspace(route[route.length - 1]);
+		}
+
+		const stated = this.shell_from_url(route);
+		if (stated) return stated;
+
+		const on_screen = this.current_module;
+		if (on_screen && this.shell_can_show(on_screen, route)) return on_screen;
+
+		return this.canonical_shell_for(route);
+	}
+
+	// Where an entity opens when nothing states a shell, read straight out of the map the server
+	// resolved. It is the ladder's answer without the ladder, so it needs no meta and is final on
+	// the first pass.
+	//
+	// Keyed by kind before name, because entity names are not unique across kinds: `Attendance`
+	// is a DocType one shell lists and a Dashboard another lists, so the route has to say which
+	// it means.
+	canonical_shell_for(route, entity = null) {
+		entity = entity || this.entity_from_route(route);
+		if (!entity) return null;
+
+		return frappe.boot.canonical_shell?.[this.link_type_from_route(route)]?.[entity] || null;
+	}
+
+	// Switch to a shell.
+	//
+	// It used to remember the choice in `localStorage` so it survived navigation and reload. The
+	// URL carries the shell now, which does both better: it survives being shared, it is the same
+	// on every device, and two tabs can sit in different shells.
 	select_module(module) {
 		if (module && module !== this.current_module) {
 			frappe.app.sidebar.setup(module);
 		}
-		if (module) localStorage.setItem("selected_module", module);
 	}
 
 	// Switch to a sidebar and navigate into it. This is how the dock's items move between an
@@ -1133,11 +1179,11 @@ frappe.ui.Sidebar = class Sidebar {
 		const shell = this.get_modules_linking(name)[0];
 		if (shell) this.select_module(shell);
 
-		const route = frappe.ui.sidebar_item.get_route({
-			type: "Link",
-			link_type: "Workspace",
-			link_to: name,
-		});
+		const route = frappe.ui.sidebar_item.get_route(
+			{ type: "Link", link_type: "Workspace", link_to: name },
+			false,
+			shell
+		);
 		if (route) frappe.set_route(route);
 	}
 
@@ -1236,30 +1282,24 @@ frappe.ui.Sidebar = class Sidebar {
 	open_dock_entry(entry) {
 		if (!entry) return;
 
-		// A shell entry names a sidebar, not a page. Clicking it swaps the panel to that shell and
-		// opens the panel; where to go from there is the user's to pick from the rows it now shows.
-		// It used to route to the shell's landing page as well, which is to say it opened the
-		// sidebar's first link on their behalf -- the rail's own row for a module and the first row
-		// of that module's sidebar are not the same destination, and only one of them was asked
-		// for. The switcher menu still lands on it (see `open_module`), because picking a module
-		// out of a menu is a request to go there.
-		if (entry.link_type === "Sidebar") {
-			this.select_module(entry.module);
-			this.open();
-			return;
-		}
-
-		// A pinned row is a destination of its own, so it still travels. Select the shell first, so
-		// the sidebar is correct when the route lands. A URL row selects nothing, because it has no
-		// shell.
+		// Select the shell first, so the sidebar is right when the route lands, then go where the
+		// entry points -- which for a row naming a shell is that shell's landing page, the first
+		// item in its sidebar (see dock_entry_route).
+		//
+		// A shell row used to be the exception: it swapped the sidebar and travelled nowhere, on
+		// the grounds that the dock's row for a module and the first row of that module's sidebar
+		// are not the same destination, and only one of them had been asked for. That held while
+		// the dock was a permanent column beside the panel -- you picked a module on the left and
+		// then picked a page out of the panel that had just changed next to it.
+		//
+		// It does not hold now. The dock is an overlay that covers the panel and dismisses itself
+		// on the click, so swapping the panel and staying put left you on the page you were already
+		// on, with a sidebar you had not asked to read and nothing on screen to say the click had
+		// done anything. Going somewhere is the only outcome the gesture can now have.
 		if (entry.module) this.select_module(entry.module);
 		this.open();
-		const route = frappe.ui.sidebar_item.get_route({
-			type: "Link",
-			link_type: entry.link_type,
-			link_to: entry.link_to,
-			url: entry.url,
-		});
+
+		const route = this.dock_entry_route(entry);
 		if (route) frappe.set_route(route);
 	}
 
@@ -1299,12 +1339,16 @@ frappe.ui.Sidebar = class Sidebar {
 	dock_entry_route(entry) {
 		if (!entry) return null;
 		if (entry.link_type === "Sidebar") return this.module_landing_route(entry.module);
-		return frappe.ui.sidebar_item.get_route({
-			type: "Link",
-			link_type: entry.link_type,
-			link_to: entry.link_to,
-			url: entry.url,
-		});
+		return frappe.ui.sidebar_item.get_route(
+			{
+				type: "Link",
+				link_type: entry.link_type,
+				link_to: entry.link_to,
+				url: entry.url,
+			},
+			false,
+			entry.module
+		);
 	}
 
 	// The last step above, and the switcher's own list: the app's modules this user can navigate
@@ -1338,7 +1382,7 @@ frappe.ui.Sidebar = class Sidebar {
 		if (!sidebar) return null;
 
 		for (const item of sidebar.items || []) {
-			const route = frappe.ui.sidebar_item.get_route(item);
+			const route = frappe.ui.sidebar_item.get_route(item, false, module);
 			if (route) return route;
 		}
 		return null;
@@ -1360,237 +1404,24 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 		return !!entry.module && entry.module === this.current_module;
 	}
-
-	// An entity resolves to a module, and only to a module. This is the one place that happens.
-	// Every module has a sidebar, authored or generated, so a module always has an answer.
-	// Workspaces do not, which is why the two resolvers that used to answer which workspace a
-	// doctype lives in (Meta.load_workspaces and the breadcrumb's set_workspace) both had a
-	// silent empty case, and why they were deleted rather than taught about ownership. A surface
-	// that needs a workspace asks the resolved module for one via module_landing_route(); it does
-	// not resolve the entity itself.
-	//
-	// Pick the sidebar to show on cold entry, returning the choice, why it was made, and whether
-	// the answer is provisional (see below).
-	//
-	// The rule is: membership holds you, ownership decides when nothing does. Every step above
-	// the fallbacks asks whether a sidebar actually lists the entity, and the ownership claim
-	// breaks the tie among the sidebars that do not list it.
-	//
-	// Precedence:
-	//   1. The last selected sidebar, if it links the entity. Continuity outranks everything
-	//      below, including the ownership claim: on a reload or a deep link you stay in the shell
-	//      you were working in instead of being moved. It is gated on the link so it can only
-	//      hold you where the entity is reachable; an unrelated shell is never kept.
-	//   2. An item flagged `is_default_module` names the module that owns the entity. This is the
-	//      one authored signal, and it decides when nothing above holds you.
-	//   3. The entity's own module, but only while its sidebar lists the entity. A module that
-	//      can show the entity beats an unrelated sidebar that only curates a link to it. A module
-	//      that ships no navigation of its own is read through its declared heirs here, membership
-	//      first, so the rule is unchanged for it. See sidebar_from_module.
-	//   4. Then the remaining sidebars that link the entity: the first one, owner-first per
-	//      get_modules_linking. A link is a weak signal, since an entity can be curated into any
-	//      number of other sidebars, so it decides only once nothing above can show the entity.
-	//   3b. The entity's own module anyway, when nothing links the entity at all. This is a
-	//      demotion rather than a rejection: the module is still the last principled answer, and
-	//      gating step 3 on membership alone would drop a standalone doctype, which by definition
-	//      is linked nowhere, into the arbitrary fallbacks below.
-	//   5. Otherwise keep the last selected sidebar, when the route belongs to no sidebar at all.
-	//   6. The first available sidebar.
-	// User.default_workspace is deliberately not consulted here: it made the sidebar stick to one
-	// workspace regardless of route, which broke the sense that each entity lives in its own app
-	// shell.
-	//
-	// One trade-off was accepted when this order was chosen, and it is not a bug: the ownership
-	// claim drops from the signal that beats every heuristic below to the signal that decides when
-	// nothing holds you, so a per-user sticky can outrank an app-authored fact. That is acceptable
-	// because step 1's gate only holds you where the entity is visibly present.
-	//
-	// Membership means someone chose to list the entity, which is why step 3 checks `is_computed`:
-	// a computed sidebar lists at most COMPUTED_DOCTYPE_LIMIT doctypes (sidebar.py), so an entity
-	// missing from one was not left out on purpose and must not be read that way.
-	//
-	// Only steps 3 and 3b need the routed doctype's meta, which is not loaded on the first pass of
-	// a cold load, because the router fires before the page's meta arrives. When the module cannot
-	// be read yet, the results below it are flagged `provisional`: they are the best guess from
-	// link data alone, and set_workspace_sidebar re-resolves once the meta arrives. Without that
-	// second pass a cold entry would keep the step-4 answer permanently and the module would never
-	// be considered. Steps 1 and 2 read only boot data and localStorage, so they are final on the
-	// first pass.
-	resolve_initial_sidebar(route) {
-		return this.resolve_sidebar_for(route, localStorage.getItem("selected_module"));
-	}
-
-	// The steps themselves, with step 1's "shell you are in" passed in rather than read here.
-	//
-	// Three callers, differing only in that one value:
-	//   - arriving cold   -> the last sidebar explicitly selected (localStorage)
-	//   - navigating      -> the sidebar on screen
-	//   - the second pass -> nothing. Continuity was already applied on the first pass, and the
-	//                        point of re-resolving is to decide again on full information.
-	//                        Passing the provisional answer back in would let step 1 keep it and
-	//                        the second pass would never move anything.
-	//
-	// Everything below step 1 is the same for all three, which is the point: where a document
-	// opens must not depend on how you got there.
-	resolve_sidebar_for(route, sticky, on_screen = false) {
-		const all = frappe.boot.module_sidebars || {};
-		const exists = (name) => (name && all[name] ? name : null);
-
-		const entity = this.entity_from_route(route);
-		const persisted = exists(sticky);
-		// Resolved up front rather than at step 4, because steps 1 and 3 are both membership
-		// tests against it: whether the sidebar links the entity is the same question either way.
-		const candidates = this.get_modules_linking(entity);
-		// The entity's own shell, resolved once here and reused by steps 1, 3 and 3b. Step 1 asks
-		// only which app it belongs to; the later steps take the shell itself.
-		const from_module = this.sidebar_from_module(entity, route, candidates);
-
-		// 1. The shell you are in, or the last one selected when it can show the entity.
-		//
-		// `on_screen` says the shell is a stated fact rather than a leftover: it is the sidebar
-		// you are standing in, and you got here by following a link out of it. A shell stated
-		// that way holds across the app it belongs to, whatever the route is, which is what stops
-		// a link into another module moving the shell underneath you. A sticky read from
-		// localStorage is only a memory, so it still has to prove it can show the entity.
-		//
-		// What it does not survive is leaving the app (see crosses_app): the rail is the app that
-		// owns the shell, so holding erpnext's shell while standing on an hrms document leaves the
-		// rail naming an app the page has nothing to do with. A shell that lists the entity is
-		// exempt, since curating a cross-app link is how a sidebar says the entity belongs here.
-		if (
-			persisted &&
-			(candidates.includes(persisted) ||
-				(on_screen && !this.crosses_app(persisted, from_module)))
-		) {
-			return {
-				sidebar: persisted,
-				reason: candidates.includes(persisted)
-					? `last selected sidebar "${persisted}" — route entity "${entity}" is linked in it, so the selection is kept over the entity's owner and its module`
-					: `sidebar "${persisted}" is the shell on screen and "${entity}" does not leave its app, so the shell is kept`,
-				provisional: false,
-			};
-		}
-
-		// 2. The entity is explicitly owned by a module.
-		const owner = exists(this.module_for_entity(entity));
-		if (owner) {
-			return {
-				sidebar: owner,
-				reason: `"${entity}" is flagged is_default_module in "${owner}"`,
-				provisional: false,
-			};
-		}
-
-		// 3. The entity's module decides, but only while its sidebar can show the entity. The
-		//    membership test lives here rather than inside sidebar_from_module(), because that
-		//    function also triggers cold_entry_needs_recheck: gating it would stop the second
-		//    pass for exactly the entities whose module cannot show them, which are the ones
-		//    that need it. The trigger and the resolver stay separate.
-		//
-		//    "Cannot show the entity" only means something when someone chose what the sidebar
-		//    shows. A computed sidebar lists what its module holds, capped at
-		//    COMPUTED_DOCTYPE_LIMIT, so an entity missing from one was not left out, it just fell
-		//    past a display limit. Reading that as a decision would hand the entity to whichever
-		//    other sidebar happens to link it. A module always contains its own entities, so for
-		//    a computed sidebar the module answers regardless.
-		if (from_module && (candidates.includes(from_module) || this.is_computed(from_module))) {
-			return {
-				sidebar: from_module,
-				reason: candidates.includes(from_module)
-					? `derived from "${entity}"'s module — the shell the entity belongs to, and it lists the entity`
-					: `derived from "${entity}"'s module — its sidebar is computed, so not listing the entity is a display limit rather than a decision`,
-				provisional: false,
-			};
-		}
-
-		// Step 4 and the fallbacks below can be reached with the module unread, so mark them
-		// provisional whenever it is unreadable, since it may only be a doctype meta that has not
-		// loaded. Only doctypes can be in that state: a Report, Page or Dashboard reads its module
-		// from boot data, so it is never provisional and never waits for a second pass. Marking
-		// too eagerly is free, because the caller only acts on the flag once the module resolves,
-		// which never happens for a route with nothing left to load, such as a workspace or an
-		// entity nobody may see. 3b needs no flag: an unreadable module makes
-		// sidebar_from_module() null, so 3b cannot fire on a pass that could not read it.
-		const provisional = !!entity && !this.get_module_for_entity(entity, route);
-
-		// 4. The entity is linked in one or more sidebars. The last selected one is not among
-		//    them, since step 1 would have taken it, and neither is its own module, since step 3
-		//    would have.
-		if (candidates.length) {
-			return {
-				sidebar: candidates[0],
-				reason: `route entity "${entity}" is not listed by its own module's sidebar; it is linked in: ${candidates.join(
-					", "
-				)}`,
-				provisional,
-			};
-		}
-
-		// 3b. Nothing links the entity anywhere, so its own module answers after all. It is
-		//     demoted below the links it lost to but still ahead of the arbitrary fallbacks. This
-		//     is where a standalone doctype lands: linked by no sidebar, it would otherwise fall
-		//     through to a sticky or to whatever sidebar happens to be first.
-		if (from_module) {
-			return {
-				sidebar: from_module,
-				reason: `derived from "${entity}"'s module — no sidebar links the entity at all, so its own module answers even though it does not list it`,
-				provisional: false,
-			};
-		}
-
-		// 5. Nothing ties the route to a sidebar, so keep the last selection.
-		if (persisted) {
-			return {
-				sidebar: persisted,
-				reason: `last selected sidebar "${persisted}" — route "${entity}" belongs to no sidebar, so the selection is kept`,
-				provisional,
-			};
-		}
-
-		// 6. The first available sidebar.
-		// `Object.keys`, not `first.module`: the payload is keyed by shell identity, and every
-		// other step returns a key into it. A shell renamed away from its module would make
-		// `first.module` a string this map does not hold, so the last resort resolved to nothing.
-		const first = Object.keys(all)[0];
-		return {
-			sidebar: first,
-			reason: `fallback to the first available sidebar (route entity "${entity}" matched none)`,
-			provisional,
-		};
-	}
-
-	// True when a cold entry for `route` was resolved before the routed doctype's meta was
-	// available, so it could not consult the module, and the module is readable now. This is the
-	// trigger for the second resolution pass; see resolve_initial_sidebar.
-	//
-	// It is broader than step 3's gate on purpose: it asks only whether the module is readable,
-	// never whether that module's sidebar lists the entity. Narrowing it to reachable modules
-	// would stop the second pass for exactly the entities whose module cannot show them, which
-	// are the ones the re-resolve exists for. Firing when the answer will not change is free: the
-	// caller compares the re-resolved target against the current sidebar and does nothing when
-	// they match.
-	cold_entry_needs_recheck(route, entity) {
-		return (
-			this.pending_cold_entry === route.join("/") &&
-			!!this.sidebar_from_module(entity, route)
-		);
-	}
-
-	// Debug helper: explain why the current sidebar is shown.
+	// Debug helper: explain why this sidebar is shown.
 	// Call from the console as `frappe.app.sidebar.explain()`.
 	explain(route = frappe.get_route()) {
-		const { sidebar: resolved, reason } = this.resolve_initial_sidebar(route);
-		const current = this.current_module;
-		const was_manually_selected = current && resolved && current !== resolved;
-
 		const info = {
-			current_sidebar: current,
+			current_sidebar: this.current_module,
 			route,
-			reason: was_manually_selected
-				? `shown because it was explicitly selected ("${current}"). On a cold reload it would instead resolve to "${resolved}" — ${reason}`
-				: reason,
-			resolved_on_reload: resolved,
+			shell_in_url: frappe.router.current_shell,
+			canonical: this.canonical_shell_for(route),
+			resolved: this.shell_for_route(route),
 		};
+		info.reason = !info.resolved
+			? "the route names no entity, so nothing decides a shell"
+			: info.resolved === info.shell_in_url
+			? `the URL names "${info.shell_in_url}" and it can show this route`
+			: info.resolved === this.current_module
+			? `the sidebar on screen, "${this.current_module}", can show this route`
+			: `nothing held, so the route opens where it belongs: "${info.canonical}"`;
+
 		console.info("[sidebar] why:", info);
 		return info;
 	}
@@ -1611,89 +1442,6 @@ frappe.ui.Sidebar = class Sidebar {
 		if (view && route.length > 1) return view;
 		if (route[0] && frappe.boot.page_info?.[route[0]]) return "Page";
 		return "DocType";
-	}
-
-	// The module an entity belongs to, or null, for every kind of entity rather than just
-	// doctypes.
-	//
-	// A DocType's module comes from its meta, which is why it is the only kind that can be
-	// unreadable on a cold first pass. Report, Page and Dashboard modules come from the boot maps
-	// DeskViews already ships (`allowed_reports`, `page_info`, `dashboards`), which are present
-	// from the first byte and permission-filtered per user, so ownership stays per-user. A
-	// site-wide `frappe.get_all("Report")` map would have broken that.
-	//
-	// Dashboards are a list rather than a name-keyed map, since search_utils' get_dashboards
-	// iterates it, so this scans. It is about 17 rows, read once per cold entry.
-	get_module_for_entity(entity, route) {
-		if (!entity) return null;
-		switch (this.link_type_from_route(route)) {
-			case "Report":
-				return frappe.boot.allowed_reports?.[entity]?.module || null;
-			case "Page":
-				return frappe.boot.page_info?.[entity]?.module || null;
-			case "Dashboard":
-				return (
-					(frappe.boot.dashboards || []).find((d) => d.name === entity)?.module || null
-				);
-			default:
-				return frappe.get_meta(entity)?.module || null;
-		}
-	}
-
-	// The entity's own module, when that module has a sidebar to land in. With one sidebar per
-	// module this is a direct lookup: the payload is keyed by module name. The old version had to
-	// fall back to scanning every sidebar for one carrying the module, because a module's sidebar
-	// could be titled anything (module "Accounts" mapped to workspace "Accounting"). That scan is
-	// no longer needed.
-	//
-	// A module that ships no navigation at all answers through its heirs instead. `Core`, `Custom`
-	// and `Desk` are declared code_only_modules and are absent from the payload. The app that
-	// split a module's navigation out declares where it went, and the desk picks among the heirs
-	// by the same membership rule everything else uses:
-	//
-	//   the first heir whose sidebar lists the entity, otherwise the first heir that exists here.
-	//
-	// A module-level declaration is enough because of that first rule: `Core` fans out to five
-	// heirs and never has to say which of them owns `User`, since frappe already curated `User`
-	// into `Users`. Both answers come from gates that already exist, so this adds no step: an heir
-	// that lists the entity is in `candidates`, so step 3's membership gate passes and it answers
-	// there, ahead of step 4's alphabetical order, which is what handed `User` to erpnext's
-	// `Setup`. The default heir is not in `candidates`, so step 3 fails, step 4 still lets a
-	// foreign link win, and otherwise 3b returns it as the last principled answer before the
-	// fallbacks.
-	//
-	// "Exists here" is the per-user part: the payload is permission-filtered, so a user who cannot
-	// see `System` falls to the next heir. Two users can correctly land in different shells.
-	//
-	// It still returns null when nothing answers: an undeclared code-only module, or heirs this
-	// user has none of.
-	//
-	// `linking` is the caller's already-computed candidate list. resolve_sidebar_for_route builds
-	// it before step 1 and every step below uses it, so recomputing it here walked every module's
-	// items a second time on each route change. It is optional, because cold_entry_needs_recheck
-	// calls this for the trigger alone and has no list to pass.
-	sidebar_from_module(entity, route, linking = null) {
-		const module = this.get_module_for_entity(entity, route);
-		if (!module) return null;
-		// A module names its own shell unless the sidebar was renamed, and the payload is keyed
-		// by shell, so this returns a shell either way.
-		const own = frappe.utils.sidebar_for_module(module);
-		if (own) return own.name;
-
-		const heirs = (frappe.boot.code_only_module_heirs?.[module] || [])
-			.map((heir) => frappe.utils.sidebar_for_module(heir)?.name)
-			.filter(Boolean);
-		const links = linking || this.get_modules_linking(entity);
-
-		return heirs.find((heir) => links.includes(heir)) || heirs[0] || null;
-	}
-
-	// Whether a sidebar was built from what its module holds rather than shipped by an app. This
-	// matters because an entity missing from a shipped sidebar was left out on purpose, while one
-	// missing from a computed sidebar may only have fallen past a display limit. Only the first
-	// says anything about where the entity belongs.
-	is_computed(shell) {
-		return !!frappe.boot.module_sidebars?.[shell]?.computed;
 	}
 
 	// The sidebar a workspace belongs to, from the payload's `workspaces` list. A direct workspace
