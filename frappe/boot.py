@@ -280,7 +280,9 @@ def load_desktop_data(bootinfo, desk_views: DeskViews | None = None):
 	# builders. Keyed by kind, then by name, because entity names are not unique across kinds.
 	# See `build_canonical_shells` for the ladder and for why it is resolved here rather than in
 	# the desk.
-	bootinfo.canonical_shell = build_canonical_shells(
+	# `home_shell` is where a route that names nothing lands, and the shell the map falls back to
+	# for anything the ladder could not place. It comes out of the same call so the two agree.
+	bootinfo.canonical_shell, bootinfo.home_shell = build_canonical_shells(
 		bootinfo.module_sidebars, bootinfo.entity_module, desk_views
 	)
 

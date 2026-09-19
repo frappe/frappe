@@ -2053,9 +2053,25 @@ def build_canonical_shells(module_sidebars: dict, entity_module: dict, perm_ctx:
 	shell to a list of entities, was measured at 7.8KB gzipped against 9.3KB on a site with
 	erpnext and hrms, out of 72KB of boot. Two percent is not worth a payload the desk has to
 	invert before it can read it, and the router needs the answer while parsing a route.
+
+	The map is total: every entity the user can read gets a shell. Read comes from DocPerm and
+	the shells come from module visibility, and the two do not agree. A user who may only see
+	Selling can still read `Item`, `Company` and `Dashboard`, and has to, because their Sales
+	Orders link to them. Every step of the ladder needs a shell that lists the entity or belongs
+	to its module, so for that user it answers for only a small part of what they can open. On
+	erpnext.site, `sales-repro@example.com` could read 151 doctypes and the ladder placed 16. The
+	rest opened with no sidebar at all. So two last steps follow the ladder:
+
+	  same app       a shell of the entity's own app, which is how the desk already treats
+	                 moving around inside one app (see `crosses_app` on the client)
+	  home           the user's home shell, see `home_shell`
+
+	Returns the map and the home shell. The desk needs the home shell too, for a route that
+	names nothing, and it has to be the same one that was used here.
 	"""
 	shells = ShellIndex(module_sidebars)
 	canonical = {kind: {} for kind in ROUTABLE_ENTITY_KINDS}
+	homeless = []
 
 	for name, shell in shells.workspace_owners():
 		canonical["Workspace"][name] = shell
@@ -2068,11 +2084,49 @@ def build_canonical_shells(module_sidebars: dict, entity_module: dict, perm_ctx:
 			# One entity on an erpnext and hrms site is claimed at all, so this is noted rather
 			# than worked around; keying it would change a payload the desk reads today.
 			shell = entity_module.get(name) if entity_module.get(name) in shells.all else None
-			canonical[kind][name] = shell or shells.resolve(kind, name, module)
+			shell = shell or shells.resolve(kind, name, module)
+			if shell:
+				canonical[kind][name] = shell
+			else:
+				homeless.append((kind, name, module))
 
-	return {
-		kind: {name: shell for name, shell in found.items() if shell} for kind, found in canonical.items()
-	}
+	# Worked out before the homeless are placed, so it counts only what the ladder decided.
+	home = home_shell(module_sidebars, canonical)
+
+	for kind, name, module in homeless:
+		shell = shells.shell_of_app(app_of_module(module)) or home
+		if shell:
+			canonical[kind][name] = shell
+
+	return canonical, home
+
+
+def home_shell(module_sidebars: dict, canonical: dict) -> str | None:
+	"""The shell a user is taken to when nothing else says where to go.
+
+	The shell of the user's default workspace, if they set one and can see it. Otherwise the
+	shell the ladder placed the most entities in, which is where this user's work actually is:
+	for a user who may only see Selling it is Selling, not whichever of their shells sorts first
+	(`Custom Workspaces`). Ties go to the one earlier in the payload, so the answer is the same
+	on every boot.
+	"""
+	if not module_sidebars:
+		return None
+
+	default_workspace = frappe.db.get_value("User", frappe.session.user, "default_workspace")
+	if default_workspace and (shell := canonical["Workspace"].get(default_workspace)):
+		return shell
+
+	placed = Counter(
+		shell for kind, found in canonical.items() if kind != "Workspace" for shell in found.values()
+	)
+	return max(module_sidebars, key=lambda shell: placed[shell])
+
+
+def app_of_module(module: str | None) -> str | None:
+	if not module:
+		return None
+	return (frappe.local.module_app or {}).get(frappe.scrub(module))
 
 
 class ShellIndex:
@@ -2088,6 +2142,7 @@ class ShellIndex:
 		self.listing = {}
 		self.of_module = {}
 		self.of_workspace = {}
+		self.of_app = {}
 		# Shells built from what their module holds rather than shipped by an app. See `resolve`.
 		self.computed = {shell for shell, sidebar in module_sidebars.items() if sidebar.get("computed")}
 
@@ -2103,6 +2158,10 @@ class ShellIndex:
 			module = sidebar.get("module")
 			if module:
 				self.of_module.setdefault(module, shell)
+			# The first shell of each app, in the payload's order. A shell the user made has no
+			# app, so it never stands in for one.
+			if sidebar.get("app"):
+				self.of_app.setdefault(sidebar["app"], shell)
 			for workspace in sidebar.get("workspaces") or []:
 				self.of_workspace.setdefault(workspace, shell)
 
@@ -2113,6 +2172,9 @@ class ShellIndex:
 		if not module:
 			return None
 		return module if module in self.all else self.of_module.get(module)
+
+	def shell_of_app(self, app: str | None) -> str | None:
+		return self.of_app.get(app) if app else None
 
 	def listed_in(self, kind: str, entity: str) -> list[str]:
 		return self.listing.get((kind, entity), [])

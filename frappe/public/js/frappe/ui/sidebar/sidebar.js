@@ -1003,18 +1003,20 @@ frappe.ui.Sidebar = class Sidebar {
 		// its shell in the URL, so a reload restores it without anything being remembered.
 		if (!route.length) return this.default_shell();
 
-		return this.shell_for_route(route);
+		// The server's map gives every entity the user can read a shell, so `shell_for_route`
+		// answers for every real route. What is left is a route naming nothing the map knows,
+		// such as a mistyped slug. Stay in the sidebar already on screen rather than showing none.
+		// `shell_for_route` itself still says null, so the URL is not given a shell it never had.
+		return this.shell_for_route(route) || this.current_module || this.default_shell();
 	}
 
 	// Where the desk lands when the route names nothing.
 	//
-	// The first shell is a last resort rather than a choice, and it is the same for everyone, so
-	// two people with no default land in the same place rather than wherever each was last.
+	// The server works this out with the map (`home_shell` in sidebar.py): the user's default
+	// workspace, else the shell holding most of what they can reach. The first shell is only for
+	// a boot that predates it.
 	default_shell() {
-		const workspace = frappe.boot.user?.default_workspace?.name;
-		const chosen = workspace && this.module_for_workspace(workspace);
-
-		return chosen || Object.keys(frappe.boot.module_sidebars || {})[0] || null;
+		return frappe.boot.home_shell || Object.keys(frappe.boot.module_sidebars || {})[0] || null;
 	}
 
 	// The shell the URL names, when it names one this route can be shown in.

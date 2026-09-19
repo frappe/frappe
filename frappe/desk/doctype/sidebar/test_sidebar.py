@@ -19,9 +19,11 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	get_computed_base,
 	get_module_shell,
 	get_sidebar,
+	home_shell,
 	item_key,
 	mark_as_standard,
 	reset_app_sidebar,
+	routable_entities,
 	save_app_sidebar,
 	unmark_as_standard,
 )
@@ -868,23 +870,60 @@ class TestCanonicalShellPayload(IntegrationTestCase):
 	"""The whole map, against the site as it stands."""
 
 	@staticmethod
-	def build():
+	def build(with_home=False):
 		from frappe.boot import build_entity_module_map, get_module_sidebars
 		from frappe.desk.desk_views import DeskViews
 
 		desk_views = DeskViews()
 		desk_views.build_entities()
 		sidebars = get_module_sidebars()
-		return build_canonical_shells(sidebars, build_entity_module_map(sidebars), desk_views)
+		canonical, home = build_canonical_shells(sidebars, build_entity_module_map(sidebars), desk_views)
+		if with_home:
+			return canonical, home, routable_entities(desk_views)
+		return canonical
+
+	def assert_total(self):
+		"""Everything the user can reach is in the map. Compared against what they can reach
+		rather than read off the map itself, because the map leaves out what it could not place,
+		so checking its own values for a missing shell finds nothing by construction.
+		"""
+		canonical, home, reachable = self.build(with_home=True)
+
+		self.assertTrue(reachable["DocType"], "the user can read nothing, so this test proves nothing")
+		for kind, entities in reachable.items():
+			self.assertEqual(sorted(set(entities) - set(canonical[kind])), [], kind)
+		return canonical, home
 
 	def test_every_doctype_the_user_can_read_lands_somewhere(self):
 		"""The ladder has to be total. A doctype with no shell has no prefix to put in its URL,
 		so it would be the one route shaped differently from every other.
 		"""
-		canonical = self.build()
+		self.assert_total()
 
-		self.assertTrue(canonical["DocType"], "the map is empty, so this test proves nothing")
-		self.assertEqual([name for name, shell in canonical["DocType"].items() if not shell], [])
+	def test_a_user_with_most_modules_blocked_still_lands_everywhere(self):
+		"""The case the map used to miss. Administrator sees every module, so every step of the
+		ladder has a shell to answer with, and the map was complete for the user it was built
+		and tested as. A user who may see one module can still read doctypes from all the others,
+		and before the last two steps those opened with no sidebar. On erpnext.site it was 135
+		of 151 doctypes for a Selling-only user.
+		"""
+		from frappe.boot import get_module_sidebars
+
+		frappe.set_user("Administrator")
+		kept = next(iter(get_module_sidebars()))
+		blocked = [m for m in frappe.get_all("Module Def", pluck="name") if m != kept]
+		email = user_with_roles("test-sidebar-one-module@example.com", ["System Manager"])
+		user = frappe.get_doc("User", email)
+		user.set("block_modules", [{"module": module} for module in blocked])
+		user.save(ignore_permissions=True)
+		self.enterContext(self.set_user(email))
+
+		shells = set(get_module_sidebars())
+		canonical, home = self.assert_total()
+
+		self.assertIn(home, shells)
+		named = {shell for found in canonical.values() for shell in found.values()}
+		self.assertEqual(named - shells, set())
 
 	def test_every_shell_named_is_one_the_user_can_see(self):
 		"""The map is built from an already-filtered payload, so it can only name a shell this
@@ -896,6 +935,21 @@ class TestCanonicalShellPayload(IntegrationTestCase):
 		named = {shell for found in self.build().values() for shell in found.values()}
 
 		self.assertEqual(named - shells, set())
+
+	def test_home_is_where_most_of_the_work_is(self):
+		"""Not the shell that sorts first. For a user whose shells are `Custom Workspaces` and
+		`Selling`, the first is a place to keep their own pages, and Selling is where they work.
+		"""
+		sidebars = {"Custom Workspaces": {}, "Selling": {}}
+		canonical = {
+			"DocType": {"Customer": "Selling", "Quotation": "Selling", "Note": "Custom Workspaces"},
+			"Workspace": {"Mine": "Custom Workspaces", "Other": "Custom Workspaces"},
+		}
+
+		self.assertEqual(home_shell(sidebars, canonical), "Selling")
+
+	def test_home_ties_go_to_the_earlier_shell(self):
+		self.assertEqual(home_shell({"A": {}, "B": {}}, {"DocType": {}, "Workspace": {}}), "A")
 
 	def test_child_tables_are_absent(self):
 		"""A child table is never routed to, so carrying one would only make the payload bigger."""
