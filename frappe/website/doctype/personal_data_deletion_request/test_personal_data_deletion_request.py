@@ -1,6 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 from datetime import datetime, timedelta
+from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
@@ -38,8 +39,15 @@ class TestPersonalDataDeletionRequest(IntegrationTestCase):
 
 		self.delete_request.status = "Pending Approval"
 		self.delete_request.save()
-		self.delete_request.trigger_data_deletion()
+		with patch("frappe.enqueue", wraps=frappe.enqueue) as enqueue:
+			self.delete_request.trigger_data_deletion()
 		self.delete_request.reload()
+
+		self.assertNotIn(
+			"frappe.core.doctype.user.user.rewrite_owner_fields",
+			[call.args[0] for call in enqueue.call_args_list if call.args],
+		)
+		self.assertFalse(frappe.flags.in_personal_data_deletion)
 
 		deleted_user = frappe.get_all(
 			"User",
