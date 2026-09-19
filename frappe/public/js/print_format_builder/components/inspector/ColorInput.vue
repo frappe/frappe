@@ -9,6 +9,7 @@ import { mountColorControl } from "./useColorControl";
 const props = defineProps({
 	modelValue: { type: String, default: "" },
 	placeholder: { type: String, default: "" },
+	fieldname: { type: String, default: "color" },
 });
 const emit = defineEmits(["update:modelValue"]);
 
@@ -19,6 +20,7 @@ onMounted(() => {
 	control = mountColorControl(host.value, {
 		value: props.modelValue || "",
 		placeholder: props.placeholder || __("Default"),
+		fieldname: props.fieldname,
 		onChange(value) {
 			if ((props.modelValue ?? "") !== value) emit("update:modelValue", value);
 		},

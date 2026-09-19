@@ -57,6 +57,7 @@
 			<div class="form-group" v-for="c in color_settings" :key="c.fieldname">
 				<label class="control-label">{{ c.label }}</label>
 				<ColorInput
+					:fieldname="c.fieldname"
 					:model-value="print_format[c.fieldname] || ''"
 					:placeholder="c.label"
 					@update:model-value="(v) => (print_format[c.fieldname] = v || null)"
