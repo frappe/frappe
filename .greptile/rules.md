@@ -6,8 +6,9 @@ this repository; this file only says how to apply it.
 ## Review
 
 1. Run the "Before reviewing" checks. A missing screenshot for a UI change, no
-   reproduction steps, a branch not based on `develop`, or a title that is not
-   Conventional Commits is a finding on its own. Ask for it before the code.
+   reproduction steps for a bug fix, a branch not based on `develop`, or a title
+   that is not Conventional Commits is a finding on its own. Ask for it before
+   the code.
 2. Read the full diff, the description, the linked issue and the earlier
    comments. Trace a suspected regression through callers and tests before
    reporting it.
