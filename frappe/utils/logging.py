@@ -225,10 +225,11 @@ def _log_table(doctype: str):
 def _run_log_query(query, **kwargs):
 	"""Render a Query Builder query and execute it on the log database.
 
-	`walk()` returns SQL containing named Frappe placeholders and a parameter mapping.
-	For string values, the current Query Builder stores the SQL-quoted representation
-	of the value. Before binding the parameters to SQLite, convert the placeholders
-	to positional `%s` placeholders and restore those strings to their actual values.
+	`walk()` returns SQL containing named Frappe placeholders and a parameter mapping,
+	without executing anything -- the same pattern `frappe.desk.reportview.get_count`
+	uses -- so the statement can be handed to the log database rather than to whatever
+	`frappe.db` happens to be. The placeholders are converted to positional `%s` first;
+	see :func:`_as_positional_params`.
 
 	The resulting values are then handled by SQLiteDatabase.sql(), which converts
 	Frappe's `%s` placeholders to SQLite's `?` placeholders and performs normal
@@ -243,17 +244,21 @@ def _run_log_query(query, **kwargs):
 def _as_positional_params(sql: str, params):
 	"""Convert named Query Builder parameters to positional parameters.
 
-	Query Builder's `walk()` produces parameters such as:
+	Query Builder's `walk()` produces SQL with named placeholders plus a mapping:
 
-		{
-			"param1": "'hello'",
-			"param2": "'world'"
-		}
+		('INSERT INTO "tabError Log" ("name","error") VALUES (%(param1)s,%(param2)s)',
+		 {"param1": "EL-1", "param2": "boom"})
 
-	The string values are already SQL-quoted. SQLite parameter binding must receive
-	the underlying values instead:
+	`SQLiteDatabase.execute_query` only binds parameters natively when it is handed a
+	sequence -- it rewrites `%s` to sqlite3's `?` and passes the values to the driver.
+	Given a dict it instead quotes each value and interpolates it into the statement,
+	which binds nothing and mutates the caller's dict. So the placeholders are rewritten
+	to `%s` here and the values collected into a tuple.
 
-		("hello", "world")
+	The values are taken verbatim: `walk()` stores the raw Python value, not a quoted SQL
+	literal, so unwrapping quotes here would silently mangle any log message that happens
+	to begin and end with one -- `'NoneType' object has no attribute 'name'` being the
+	obvious example.
 
 	The values are collected according to placeholder order in the SQL rather than
 	dictionary order.
@@ -271,25 +276,12 @@ def _as_positional_params(sql: str, params):
 				frappe._("Missing query parameter: {0}").format(name)
 			)
 
-		value = params[name]
-
-		if isinstance(value, str):
-			value = _unquote_sql_string(value)
-
-		values.append(value)
+		values.append(params[name])
 		return "%s"
 
 	sql = _NAMED_PARAMETER_PATTERN.sub(replace_parameter, sql)
 
 	return sql, tuple(values)
-
-
-def _unquote_sql_string(value: str) -> str:
-	"""Convert a SQL single-quoted string literal back to its Python string value."""
-	if len(value) >= 2 and value.startswith("'") and value.endswith("'"):
-		return value[1:-1].replace("''", "'")
-
-	return value
 
 
 def _build_log_query(doctype: str, filters=None):
