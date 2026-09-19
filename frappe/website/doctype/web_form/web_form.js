@@ -769,9 +769,9 @@ function render_form_builder(frm) {
 	});
 }
 
-// page.scss pins the main column width for every Form route, so hiding the sidebar has to
-// clear the inline widths too. Hide via Desk's `hide-sidebar` class — an inline display
-// outranks it and would survive the sidebar's refresh after save.
+// hide with Desk's `hide-sidebar` class, never an inline display: inline outranks the class and
+// would survive the sidebar's refresh after save. the main column needs no width override, it
+// has `flex-grow: 1` and fills the row once the sidebar is gone
 function toggle_form_sidebar(frm, show) {
 	if (!frm.page?.sidebar || frm.page.hide_sidebar || !frappe.boot.desk_settings?.form_sidebar) {
 		return;
@@ -781,10 +781,6 @@ function toggle_form_sidebar(frm, show) {
 	let visible = show && !frm.is_new();
 
 	frm.page.sidebar.toggleClass("hide-sidebar", !visible);
-	frm.page.wrapper.find(".layout-main-section-wrapper").css({
-		width: visible ? "" : "100%",
-		flex: visible ? "" : "1 0 100%",
-	});
 }
 
 // the sidebar reappears on save, so re-sync on every refresh, not only on a tab change
