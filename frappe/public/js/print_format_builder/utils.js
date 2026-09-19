@@ -555,16 +555,22 @@ const SAFE_HTML_ATTRS = new Set([
 	"cellspacing",
 ]);
 
+const UNSAFE_HTML_TAGS = "iframe, frame, frameset, object, embed, applet, form, base, meta, link";
+const URL_ATTRS = ["href", "src", "action", "formaction", "xlink:href", "data"];
+
 export function strip_unsafe_html(html) {
 	const root = document.createElement("div");
 	root.innerHTML = frappe.dom.remove_script_and_style(html || "");
+	root.querySelectorAll(UNSAFE_HTML_TAGS).forEach((el) => el.remove());
 	for (const el of root.querySelectorAll("*")) {
 		for (const attr of [...el.attributes]) {
 			const name = attr.name.toLowerCase();
 			const unsafe_url =
-				["href", "src", "action", "formaction"].includes(name) &&
-				/^\s*javascript:/i.test(attr.value);
-			if (name.startsWith("on") || unsafe_url) el.removeAttribute(attr.name);
+				URL_ATTRS.includes(name) &&
+				/^\s*(javascript|vbscript|data:text)/i.test(attr.value);
+			if (name.startsWith("on") || name === "srcdoc" || unsafe_url) {
+				el.removeAttribute(attr.name);
+			}
 		}
 	}
 	return root.innerHTML;
