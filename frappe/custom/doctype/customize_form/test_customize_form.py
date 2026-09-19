@@ -4,7 +4,7 @@
 import json
 
 import frappe
-from frappe.core.doctype.doctype.doctype import InvalidFieldNameError
+from frappe.core.doctype.doctype.doctype import InvalidFieldNameError, validate_fields_for_doctype
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_records_for_doctype
@@ -121,6 +121,41 @@ class TestCustomizeForm(IntegrationTestCase):
 			),
 			None,
 		)
+
+	def test_combined_field_property_changes_are_validated_together(self):
+		doctype = "Assignment Rule"
+		fieldname = "users"
+
+		try:
+			frappe.make_property_setter(
+				{
+					"doctype": doctype,
+					"fieldname": fieldname,
+					"property": "ignore_user_permissions",
+					"value": "1",
+					"property_type": "Check",
+				}
+			)
+
+			customize_form = self.get_customize_form(doctype)
+			customize_form.make_property_setter("fieldtype", "Table", "Select", fieldname=fieldname)
+			customize_form.make_property_setter("ignore_user_permissions", 0, "Check", fieldname=fieldname)
+
+			validate_fields_for_doctype(doctype)
+
+			field = frappe.get_meta(doctype, cached=False).get_field(fieldname)
+			self.assertEqual(field.fieldtype, "Table")
+			self.assertEqual(field.ignore_user_permissions, 0)
+		finally:
+			frappe.db.delete(
+				"Property Setter",
+				{
+					"doc_type": doctype,
+					"field_name": fieldname,
+					"property": ("in", ("fieldtype", "ignore_user_permissions")),
+				},
+			)
+			frappe.clear_cache(doctype=doctype)
 
 	def test_save_customization_custom_field_property(self):
 		d = self.get_customize_form("Event")

@@ -173,8 +173,13 @@ class CustomField(Document):
 
 	def validate(self):
 		# these imports have been added to avoid cyclical import, should fix in future
-		from frappe.core.doctype.doctype.doctype import check_fieldname_conflicts
+		from frappe.core.doctype.doctype.doctype import (
+			check_fieldname_conflicts,
+			validate_ignore_user_permissions,
+		)
 		from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
+
+		validate_ignore_user_permissions(self)
 
 		# don't always get meta to improve performance
 		# setting idx is just an improvement, not a requirement
