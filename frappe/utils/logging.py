@@ -168,11 +168,22 @@ class LogDocument(Document):
 		filters=None,
 		fields=None,
 		order_by=None,
-		start=0,
-		page_length=20,
+		start=None,
+		offset=None,
+		limit_start=None,
+		page_length=None,
+		limit=None,
+		limit_page_length=None,
 		**kwargs,
 	):
-		"""Return a page of log rows, for the list view and `frappe.get_all`."""
+		"""Return a page of log rows, for the list view and `frappe.get_all`.
+
+		Both spellings of the pagination arguments are accepted because the two virtual
+		DocType dispatchers disagree: `frappe.model.qb_query` sends `start`/`page_length`,
+		while `frappe.model.db_query` forwards its own `__dict__` and so sends
+		`limit_start`/`limit_page_length`. Declaring only one pair would silently ignore
+		paging from the other caller.
+		"""
 		query = _build_log_query(doctype, filters)
 		table = query._from[0]
 
@@ -182,7 +193,16 @@ class LogDocument(Document):
 		if order_by and (ordering := _parse_order_by(table, order_by)):
 			query = query.orderby(ordering[0], order=ordering[1])
 
-		query = query.limit(frappe.utils.cint(page_length) or 20).offset(frappe.utils.cint(start))
+		requested = _first_given(page_length, limit, limit_page_length)
+		# `0` is Frappe's "no limit" (see frappe.get_all); absent means the usual page.
+		if requested is None:
+			requested = 20
+
+		if frappe.utils.cint(requested):
+			query = query.limit(frappe.utils.cint(requested))
+
+		if start_at := frappe.utils.cint(_first_given(start, offset, limit_start) or 0):
+			query = query.offset(start_at)
 
 		return _run_log_query(query, as_dict=True)
 
@@ -199,6 +219,15 @@ class LogDocument(Document):
 	def get_stats(**kwargs):
 		"""Return sidebar stats -- always empty."""
 		return {}
+
+
+def _first_given(*values):
+	"""Return the first argument that was actually supplied, or None."""
+	for value in values:
+		if value is not None:
+			return value
+
+	return None
 
 
 def _log_table(doctype: str):
