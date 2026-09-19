@@ -21,7 +21,6 @@ import frappe
 from frappe.database.sqlite.database import SQLiteDatabase
 from frappe.model.document import Document
 
-
 # `creation desc`, "`tabError Log`.`creation` desc", `creation` -- the shapes the
 # list view and `frappe.get_all` actually send. Anything else is ignored rather
 # than guessed at.
@@ -158,9 +157,7 @@ class LogDocument(Document):
 		"""Delete this document from the log database."""
 		qb, table = _log_table(self.doctype)
 
-		_run_log_query(
-			qb.from_(table).where(table.name == self.name).delete()
-		)
+		_run_log_query(qb.from_(table).where(table.name == self.name).delete())
 		get_log_db().commit()
 
 	# ============ class/static methods ============
@@ -185,11 +182,7 @@ class LogDocument(Document):
 		if order_by and (ordering := _parse_order_by(table, order_by)):
 			query = query.orderby(ordering[0], order=ordering[1])
 
-		query = query.limit(
-			frappe.utils.cint(page_length) or 20
-		).offset(
-			frappe.utils.cint(start)
-		)
+		query = query.limit(frappe.utils.cint(page_length) or 20).offset(frappe.utils.cint(start))
 
 		return _run_log_query(query, as_dict=True)
 
@@ -198,9 +191,7 @@ class LogDocument(Document):
 		"""Return the total number of matching log rows."""
 		from frappe.query_builder.functions import Count
 
-		result = _run_log_query(
-			_build_log_query(doctype, filters).select(Count("*"))
-		)
+		result = _run_log_query(_build_log_query(doctype, filters).select(Count("*")))
 
 		return frappe.utils.cint(result[0][0]) if result else 0
 
@@ -272,9 +263,7 @@ def _as_positional_params(sql: str, params):
 		name = match.group("name")
 
 		if name not in params:
-			raise frappe.ValidationError(
-				frappe._("Missing query parameter: {0}").format(name)
-			)
+			raise frappe.ValidationError(frappe._("Missing query parameter: {0}").format(name))
 
 		values.append(params[name])
 		return "%s"
@@ -302,11 +291,7 @@ def _build_log_query(doctype: str, filters=None):
 		operation = OPERATOR_MAP.get(f.operator.casefold())
 
 		if operation is None:
-			frappe.throw(
-				frappe._(
-					"Unsupported filter operator for log DocTypes: {0}"
-				).format(f.operator)
-			)
+			frappe.throw(frappe._("Unsupported filter operator for log DocTypes: {0}").format(f.operator))
 
 		query = query.where(operation(table[f.fieldname], f.value))
 
@@ -344,6 +329,4 @@ def _parse_order_by(table, order_by: str):
 
 	direction = (match.group("direction") or "asc").casefold()
 
-	return table[match.group("field")], (
-		Order.desc if direction == "desc" else Order.asc
-	)
+	return table[match.group("field")], (Order.desc if direction == "desc" else Order.asc)
