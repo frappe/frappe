@@ -13,6 +13,50 @@ const ENTITY_VIEW_ROUTES = {
 	"dashboard-view": "Dashboard",
 };
 
+// How strongly a sidebar item's href claims the page at `path`. 0 means it does not.
+//
+// An item claims its own URL, and the URLs under it: `/desk/selling/item` claims
+// `/desk/selling/item/ITEM-0001`, since a document is part of the list it came from.
+//
+// A workspace claims only its own URL. Its href is also the root of the shell, so everything
+// in the shell sits under it: `/desk/selling` is a prefix of `/desk/selling/dashboard` and of
+// every other page in Selling. Letting it claim what is under it lit the workspace up on every
+// page the sidebar holds no item for. `/desk/accounts/invoicing` did the same to Accounts.
+//
+// Between two claims, the longer href wins, because it names the page more precisely. An
+// item whose filters match the URL's beats one with no filters, which is how two items for one
+// doctype with different filters tell themselves apart. An item whose filters do not match
+// claims nothing.
+function route_claim(raw_href, link_type, path, params) {
+	const [href_path, query] = (raw_href || "").split("?");
+	const href = strip_trailing_slash(decodeURIComponent(href_path.split("#")[0]));
+
+	// A root or empty href strips to "", and "" is a prefix of every route. A `URL` item is
+	// where this came from: its href is whatever its author wrote, and one pointing at "/"
+	// claimed every page.
+	if (!href) return 0;
+
+	const exact = path === href;
+	const under = path.startsWith(href + "/");
+	if (!exact && !(under && link_type !== "Workspace")) return 0;
+
+	let filtered = false;
+	if (query) {
+		for (const [key, value] of new URLSearchParams(query)) {
+			if (String(params[key]) !== String(value)) return 0;
+		}
+		filtered = true;
+	}
+
+	// Filters outrank length, and an exact match outranks a prefix of the same length (it
+	// cannot tie with one, but the order says which question comes first).
+	return (filtered ? 1e6 : 0) + href.length * 2 + (exact ? 1 : 0);
+}
+
+function strip_trailing_slash(path) {
+	return path.replace(/\/$/, "");
+}
+
 frappe.ui.Sidebar = class Sidebar {
 	constructor() {
 		if (!frappe.boot.setup_complete) {
@@ -694,57 +738,37 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 	}
 
+	// Find the item the current URL belongs to and make it `active_item`. Returns whether any did.
+	//
+	// Every item is scored by `route_claim` and the strongest claim wins. The URL is read once
+	// rather than per item, since it is the same for all of them.
 	is_route_in_sidebar() {
-		let match = false;
-		const that = this;
-		let exact_match = null;
-		let path_match = null;
-
-		const route_params = Object.assign(
+		const path = strip_trailing_slash(decodeURIComponent(window.location.pathname));
+		const params = Object.assign(
 			{},
 			Object.fromEntries(new URLSearchParams(window.location.search)),
 			frappe.route_options || {}
 		);
 
-		$(".item-anchor").each(function () {
-			const raw = $(this).attr("href") || "";
-			const [href_path, href_query] = raw.split("?");
-			const href = decodeURIComponent(href_path.split("#")[0]);
-
-			const path = decodeURIComponent(window.location.pathname);
-
-			// ensure no trailing slash mismatch
-			const clean_href = href.replace(/\/$/, "");
-			const clean_path = path.replace(/\/$/, "");
-
-			// A root or empty href strips to "", and "" prefix-matches every route, so such an
-			// item was highlighted on every page. A URL item is where this came from: it is the
-			// one kind whose href is arbitrary rather than a route this desk generated, and an
-			// item pointing at "/" claimed the highlight from whichever item the route really
-			// belonged to.
-			if (!clean_href) return;
-
-			const isActive = clean_path === clean_href || clean_path.startsWith(clean_href + "/");
-			if (!href || !isActive) return;
-
-			if (href_query) {
-				let filter_match = true;
-				new URLSearchParams(href_query).forEach((value, key) => {
-					if (String(route_params[key]) !== String(value)) filter_match = false;
-				});
-				if (filter_match) exact_match = $(this).parent();
-			} else {
-				path_match = $(this).parent();
+		let best = null;
+		let best_claim = 0;
+		$(".item-anchor[href]").each(function () {
+			const claim = route_claim(
+				this.getAttribute("href"),
+				this.dataset.linkType,
+				path,
+				params
+			);
+			if (claim > best_claim) {
+				best = $(this).parent();
+				best_claim = claim;
 			}
 		});
 
-		const best = exact_match || path_match;
-		if (best) {
-			match = true;
-			if (that.active_item) that.active_item.removeClass("active-sidebar");
-			that.active_item = best;
-		}
-		return match;
+		if (!best) return false;
+		if (this.active_item) this.active_item.removeClass("active-sidebar");
+		this.active_item = best;
+		return true;
 	}
 
 	set_sidebar_state() {
