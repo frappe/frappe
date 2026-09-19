@@ -354,8 +354,7 @@ let page_number_style = computed(() => {
 /* ── Clean preview mode (when live data is loaded) ───────── */
 
 /* Hide all editor chrome */
-.pfb-clean-preview :deep(.section-toolbar),
-.pfb-clean-preview :deep(.configure-columns-btn) {
+.pfb-clean-preview :deep(.section-toolbar) {
 	display: none;
 }
 
