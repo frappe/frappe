@@ -1047,12 +1047,6 @@ function handle_slash_key(e) {
 	letter-spacing: 0;
 }
 
-.pfb-label-actions {
-	display: flex;
-	gap: 2px;
-	margin-right: -4px;
-}
-
 /* ── Outline tab (tree) ──────────────────────────────────── */
 .pfb-tree {
 	padding-top: 4px;

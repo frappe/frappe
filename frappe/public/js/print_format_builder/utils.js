@@ -46,7 +46,7 @@ export function write_json(key, value) {
 
 // Mirrors typst_emitter.py: TRANSLATABLE_STYLE_PROPS + typst_blockers — a UX
 // hint only; the server list is the authority and refuses at save/render
-export const TYPST_STYLE_PROPS = new Set([
+const TYPST_STYLE_PROPS = new Set([
 	"font-weight",
 	"border-top",
 	"border-bottom",
@@ -147,8 +147,6 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 export function clamp_column_width(value) {
 	return Math.max(5, Math.min(100, parseInt(value) || 10));
 }
-
-// Blocks the builder invents — they never map to a docfield on the document type
 
 // Mirrors PrintFormatGenerator.JUSTIFY_MODES; the class names are spelled out so
 // both surfaces can be grepped for them

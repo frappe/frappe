@@ -1,9 +1,9 @@
-export const IMAGE_FIELDTYPES = new Set(["Attach Image", "Image", "Attach"]);
-export const MERGE_IMAGE_FIELDTYPES = new Set(["Attach Image", "Attach"]);
+const IMAGE_FIELDTYPES = new Set(["Attach Image", "Image", "Attach"]);
+const MERGE_IMAGE_FIELDTYPES = new Set(["Attach Image", "Attach"]);
 export const HTML_CONTENT_FIELDTYPES = new Set(["Text Editor", "Long Text"]);
-export const MERGE_HTML_FIELDTYPES = new Set(["Text Editor", "HTML Editor"]);
-export const BLOCK_FIELDTYPES = new Set(["Spacer", "Divider", "Repeater", "HTML"]);
-export const CONTENT_FIELDTYPES = new Set([
+const MERGE_HTML_FIELDTYPES = new Set(["Text Editor", "HTML Editor"]);
+const BLOCK_FIELDTYPES = new Set(["Spacer", "Divider", "Repeater", "HTML"]);
+const CONTENT_FIELDTYPES = new Set([
 	"HTML",
 	"Divider",
 	"Spacer",
@@ -11,14 +11,14 @@ export const CONTENT_FIELDTYPES = new Set([
 	"Image",
 	"Barcode",
 ]);
-export const NON_TEXT_FIELDTYPES = new Set([
+const NON_TEXT_FIELDTYPES = new Set([
 	...CONTENT_FIELDTYPES,
 	"Static Text",
 	"Typst",
 	"Table",
 	"Repeater",
 ]);
-export const BREAKABLE_FIELDTYPES = new Set([
+const BREAKABLE_FIELDTYPES = new Set([
 	"Text Editor",
 	"Text",
 	"Long Text",
