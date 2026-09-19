@@ -3,6 +3,7 @@
 import json
 import time
 from contextlib import contextmanager
+from types import SimpleNamespace
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
@@ -392,9 +393,27 @@ class TestUser(IntegrationTestCase):
 				{"doctype": "User", "email": email, "first_name": "_Test", "send_welcome_email": 0}
 			).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
-		with patch(
-			"frappe.core.doctype.user.user.get_jobs",
-			return_value={frappe.local.site: [{"old_name": freed, "new_name": renamed, "commit": True}]},
+		unrelated = "test_user_rename_pending_unrelated@example.com"
+		frappe.get_doc(
+			{"doctype": "User", "email": unrelated, "first_name": "_Test", "send_welcome_email": 0}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		def pending_job(method, old_name, new_name):
+			return SimpleNamespace(
+				kwargs={
+					"site": frappe.local.site,
+					"method": method,
+					"kwargs": {"old_name": old_name, "new_name": new_name},
+				}
+			)
+
+		pending_jobs = [
+			pending_job("frappe.core.doctype.user.user.rewrite_owner_fields", freed, renamed),
+			pending_job("frappe.utils.global_search.rebuild_for_doctype", unrelated, unrelated),
+		]
+		with (
+			patch("frappe.core.doctype.user.user.get_queue", return_value=SimpleNamespace(jobs=pending_jobs)),
+			patch("frappe.core.doctype.user.user.get_running_jobs_in_queue", return_value=[]),
 		):
 			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
 				frappe.rename_doc("User", renamed, "test_user_rename_pending_new@example.com")
@@ -407,6 +426,8 @@ class TestUser(IntegrationTestCase):
 
 			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
 				frappe.delete_doc("User", freed)
+
+			frappe.rename_doc("User", unrelated, "test_user_rename_pending_unrelated_new@example.com")
 
 	def test_user_rename_updates_private_workspace(self):
 		old_name = "test_user_rename_ws@example.com"
