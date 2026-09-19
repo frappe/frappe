@@ -6,6 +6,7 @@ from typing import ClassVar
 
 import frappe
 from frappe import _
+from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
 from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones
 from frappe.utils.data import cint
 from frappe.utils.jinja_globals import is_rtl
@@ -387,6 +388,7 @@ class PrintFormatGenerator:
 				"body_width": body_width,
 				"lang": frappe.local.lang,
 				"layout_direction": "rtl" if is_rtl() else "ltr",
+				"content_fieldtypes": CONTENT_FIELDTYPES,
 			}
 		)
 

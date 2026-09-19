@@ -4,6 +4,7 @@ Mirrors frappe/public/js/print_format_builder/fieldtypes.js."""
 import frappe.utils
 
 IMAGE_FIELDTYPES = frozenset({"Attach Image", "Image", "Attach"})
+CONTENT_FIELDTYPES = frozenset({"HTML", "Divider", "Spacer", "Field Template", "Image", "Barcode"})
 MERGE_IMAGE_FIELDTYPES = frozenset({"Attach Image", "Attach"})
 
 
