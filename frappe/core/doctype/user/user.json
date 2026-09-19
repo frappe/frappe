@@ -67,6 +67,7 @@
   "logout_all_sessions",
   "reset_password_key",
   "last_reset_password_key_generated_on",
+  "reset_link_from_desk",
   "last_password_reset_date",
   "redirect_url",
   "document_follow_notifications_section",
@@ -105,6 +106,8 @@
   "last_known_versions",
   "third_party_authentication",
   "social_logins",
+  "passkeys_section",
+  "passkeys_html",
   "api_access",
   "api_key",
   "generate_keys",
@@ -586,6 +589,18 @@
   },
   {
    "collapsible": 1,
+   "fieldname": "passkeys_section",
+   "fieldtype": "Section Break",
+   "label": "Passkeys",
+   "depends_on": "eval:doc.name == frappe.session.user || frappe.user_roles.includes('System Manager')"
+  },
+  {
+   "fieldname": "passkeys_html",
+   "fieldtype": "HTML",
+   "label": "Passkeys"
+  },
+  {
+   "collapsible": 1,
    "fieldname": "api_access",
    "fieldtype": "Section Break",
    "label": "API Access"
@@ -649,6 +664,17 @@
    "hidden": 1,
    "label": "Last Reset Password Key Generated On",
    "permlevel": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "reset_link_from_desk",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Reset Link From Desk",
+   "no_copy": 1,
+   "permlevel": 1,
+   "print_hide": 1,
    "read_only": 1
   },
   {
@@ -908,7 +934,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-08-16 20:30:00.000000",
+ "modified": "2026-09-15 16:47:51.772694",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

@@ -7,6 +7,12 @@ no_cache = 1
 
 
 def get_context(context):
+	import frappe
+	from frappe.core.doctype.user.passkey import link_allows_passkey
+
 	context.no_breadcrumbs = True
 	context.parents = [{"name": "me", "title": _("My Account")}]
 	context.logo = get_app_logo()
+	# Passkey enrollment is offered only on links requested from an authenticated desk
+	# session. A forget-password link can set a password, not a passkey.
+	context.allow_passkey = link_allows_passkey(frappe.form_dict.get("key"))

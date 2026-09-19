@@ -45,6 +45,9 @@
 	<button class="es-button w-full" data-variant="solid" type="submit">
 		{{ _("Continue") }}</button>
 	{% endif %}
+	<button class="es-button w-full btn-passkey-login hide"
+		type="button">
+		{{ _("Sign in with a passkey") }}</button>
 	{% if ldap_settings and ldap_settings.enabled %}
 	<button class="es-button w-full btn-ldap-login" data-variant="solid">
 		{{ _("Login with LDAP") }}</button>
