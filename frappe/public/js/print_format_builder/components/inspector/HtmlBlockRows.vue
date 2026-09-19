@@ -9,12 +9,12 @@
 
 <script setup>
 import { computed } from "vue";
-import { sanitize_html } from "../../utils";
+import { strip_unsafe_html } from "../../utils";
 import { open_html_editor } from "../../composables/useHtmlEditorDialog";
 import { useSelectedField } from "./useSelectedField";
 
 const { store, selected_field } = useSelectedField();
-const preview = computed(() => sanitize_html(selected_field.value?.html || ""));
+const preview = computed(() => strip_unsafe_html(selected_field.value?.html || ""));
 
 function edit() {
 	open_html_editor({

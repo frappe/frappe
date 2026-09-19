@@ -317,8 +317,12 @@ export function getStore(print_format_name) {
 		});
 	}
 	function adopt_layout(resolved) {
-		layout.value = resolved || get_default_layout();
-		layout.value.sections = layout.value.sections.filter((s) => !s.remove);
+		// a corrupt format_data can parse to anything; the server normalises the same
+		// input to an empty layout rather than leaving the builder blank
+		const usable = resolved && typeof resolved === "object" && !Array.isArray(resolved);
+		layout.value = usable ? resolved : get_default_layout();
+		const sections = layout.value.sections;
+		layout.value.sections = Array.isArray(sections) ? sections.filter((s) => !s.remove) : [];
 		layout.value.header = migrate_to_section(layout.value.header);
 		layout.value.footer = migrate_to_section(layout.value.footer);
 	}

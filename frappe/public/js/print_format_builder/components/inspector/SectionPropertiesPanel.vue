@@ -129,14 +129,11 @@ import ColorField from "./ColorField.vue";
 import DropdownRow from "./DropdownRow.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import { set_prop } from "../../utils";
+import { zone_of } from "../../layout";
 
 const store = inject("$store");
 const selected_section = computed(() => store.selected_section.value);
-const is_zone = computed(
-	() =>
-		selected_section.value === store.layout.value?.header ||
-		selected_section.value === store.layout.value?.footer
-);
+const is_zone = computed(() => !!zone_of(store.layout.value, selected_section.value));
 
 const spacing_props = [
 	{ key: "padding", label: __("Padding") },
