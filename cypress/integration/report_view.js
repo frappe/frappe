@@ -45,3 +45,32 @@ context("Report View", () => {
 		});
 	});
 });
+
+context("Report View without report permission", () => {
+	before(() => {
+		cy.login();
+		cy.visit("/desk/todo/view/list");
+	});
+
+	it("hides the report view and redirects its route to the list view", () => {
+		cy.window()
+			.its("frappe")
+			.then((frappe) => {
+				frappe.boot.user.can_get_report = frappe.boot.user.can_get_report.filter(
+					(doctype) => doctype !== "ToDo"
+				);
+			});
+
+		cy.get(".custom-btn-group.view-switcher button").click();
+		cy.get(".es-menu[data-state='open']")
+			.should("contain", "Dashboard View")
+			.and("not.contain", "Report View");
+		cy.focused().trigger("keydown", { key: "Escape" });
+
+		cy.window()
+			.its("frappe")
+			.then((frappe) => frappe.set_route("List", "ToDo", "Report"));
+		cy.window().its("cur_list.view_name").should("equal", "List");
+		cy.location("pathname").should("not.contain", "report");
+	});
+});
