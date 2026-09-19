@@ -77,13 +77,13 @@
 					</div>
 				</div>
 			</div>
-			<div v-if="$store.viewing_version.value" class="pfb-viewing-banner">
+			<div v-if="$store.versions.viewing.value" class="pfb-viewing-banner">
 				<span v-html="frappe.utils.icon('history', 'sm')"></span>
 				<span>
 					{{
 						__("Viewing {0} ({1}). Editing is off.", [
-							$store.viewing_version.value.label,
-							$store.viewing_version.value.when,
+							$store.versions.viewing.value.label,
+							$store.versions.viewing.value.when,
 						])
 					}}
 				</span>
@@ -100,7 +100,7 @@
 				class="print-format-container"
 				:class="{
 					'pfb-marquee-dragging': marquee_dragging,
-					'pfb-viewing': $store.viewing_version.value,
+					'pfb-viewing': $store.versions.viewing.value,
 				}"
 				:style="{ '--pfb-zoom': canvas_zoom / 100 }"
 				@click="clear_selection"
@@ -169,20 +169,20 @@ function toggle_preview() {
 }
 
 function toggle_history() {
-	$store.toggle_history();
+	$store.versions.toggle();
 }
 
 watch(
 	[() => $store.selected_field.value, () => $store.selected_section.value],
 	([field, section]) => {
-		if ((field || section) && $store.show_history.value) $store.close_history();
+		if ((field || section) && $store.versions.open.value) $store.versions.close();
 	}
 );
 
 function restore_viewed() {
-	const v = $store.viewing_version.value;
-	if (v.published) $store.discard_draft();
-	else $store.restore_version(v.name);
+	const v = $store.versions.viewing.value;
+	if (v.published) $store.draft.discard();
+	else $store.versions.restore(v.name);
 }
 
 const SETTINGS_DOCTYPE = "Print Settings";
@@ -355,7 +355,7 @@ function is_typing_context() {
 }
 
 function handle_keydown(e) {
-	if (show_preview.value || $store.viewing_version.value) return;
+	if (show_preview.value || $store.versions.viewing.value) return;
 	// Zoom shortcuts: Ctrl+= / Ctrl+- / Ctrl+0
 	if (e.ctrlKey || e.metaKey) {
 		if (e.key === "z" || e.key === "Z" || e.key === "y") {
@@ -548,7 +548,8 @@ watch(doc_picker_df, (df, was) => df && !was && pick_initial_doc());
 
 function warn_before_unload(e) {
 	const st = $store;
-	if (st.dirty.value || st.saving_count.value > 0 || st.save_failed.value) e.preventDefault();
+	if (st.dirty.value || st.draft.saving_count.value > 0 || st.draft.save_failed.value)
+		e.preventDefault();
 }
 
 onMounted(() => {
@@ -563,7 +564,7 @@ onMounted(() => {
 		}
 		if (!$store.layout.value) {
 			$store.layout.value = $store.get_default_layout();
-			$store.save_changes();
+			$store.draft.save();
 		}
 	});
 });

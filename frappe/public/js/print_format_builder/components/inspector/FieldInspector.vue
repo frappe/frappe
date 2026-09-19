@@ -21,7 +21,7 @@
 						data-variant="ghost"
 						data-icon-button="true"
 						:title="__('Close')"
-						@click="store.close_history()"
+						@click="store.versions.close()"
 						v-html="frappe.utils.icon('x', 'sm')"
 					></button>
 				</div>
@@ -109,12 +109,12 @@ import VersionHistory from "../VersionHistory.vue";
 import PrintSettingsPanel from "../PrintSettingsPanel.vue";
 
 let store = inject("$store");
-let { show_history } = store;
+let { open: show_history } = store.versions;
 
 function save_named_version() {
 	frappe.prompt(
 		{ fieldname: "label", fieldtype: "Data", label: __("Version name"), reqd: 1 },
-		({ label }) => store.save_version(label),
+		({ label }) => store.versions.save(label),
 		__("Save version"),
 		__("Save")
 	);
