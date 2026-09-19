@@ -717,8 +717,24 @@ class EmailAccount(Document):
 					frappe.db.rollback()
 				else:
 					frappe.db.commit()
-			else:
-				frappe.db.commit()
+
+				# leave the folder behind this mail so the next pull retries it
+				continue
+
+			if mail.imap_folder:
+				sync_from_uid = cint(mail.uid) + 1
+				frappe.db.set_value(
+					"IMAP Folder",
+					{
+						"parent": self.name,
+						"folder_name": mail.imap_folder,
+						"sync_from_uid": ("<", sync_from_uid),
+					},
+					"sync_from_uid",
+					sync_from_uid,
+					update_modified=False,
+				)
+			frappe.db.commit()
 
 		if exceptions:
 			raise Exception(frappe.as_json(exceptions))
@@ -727,7 +743,7 @@ class EmailAccount(Document):
 		"""retrive and return inbound mails."""
 		mails = []
 
-		def process_mail(messages, append_to=None):
+		def process_mail(messages, append_to=None, imap_folder=None):
 			for index, message in enumerate(messages.get("latest_messages", [])):
 				uid = messages["uid_list"][index] if messages.get("uid_list") else None
 				seen_status = messages.get("seen_status", {}).get(uid)
@@ -740,6 +756,7 @@ class EmailAccount(Document):
 							frappe.safe_decode(uid),
 							seen_status,
 							append_to,
+							imap_folder,
 						)
 					)
 
@@ -760,8 +777,10 @@ class EmailAccount(Document):
 					for folder in self.imap_folder:
 						if email_server.select_imap_folder(folder.folder_name):
 							email_server.settings["uid_validity"] = folder.uidvalidity
+							email_server.settings["sync_from_uid"] = folder.sync_from_uid
+							email_server.settings["email_sync_rule"] = self.build_email_sync_rule(folder)
 							messages = email_server.get_messages(folder=f'"{folder.folder_name}"') or {}
-							process_mail(messages, folder.append_to)
+							process_mail(messages, folder.append_to, folder.folder_name)
 				else:
 					# process the pop3 account
 					messages = email_server.get_messages() or {}
@@ -854,11 +873,14 @@ class EmailAccount(Document):
 	def after_rename(self, old, new, merge=False):
 		frappe.db.set_value("Email Account", new, "email_account_name", new)
 
-	def build_email_sync_rule(self):
+	def build_email_sync_rule(self, folder=None):
 		if not self.use_imap:
 			return "UNSEEN"
 
 		if self.email_sync_option == "ALL":
+			if folder and folder.sync_from_uid:
+				return f"UID {folder.sync_from_uid}:*"
+
 			max_uid = get_max_email_uid(self.name)
 			last_uid = max_uid + int(self.initial_sync_count or 100) if max_uid == 1 else "*"
 			return f"UID {max_uid}:{last_uid}"
