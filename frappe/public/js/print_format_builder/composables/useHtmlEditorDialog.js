@@ -46,10 +46,11 @@ export function open_html_editor({ title, initial_html, on_save, doctype, docnam
 			on_save(sanitize_html(d._html_ctrl?.get_value?.() ?? ""));
 			d.hide();
 		},
+		on_page_show: mount,
 	});
 	d.show();
 
-	setTimeout(() => {
+	function mount() {
 		const host = d.$wrapper.find(".pfb-html-ctrl-host")[0];
 		const preview = d.$wrapper.find(".pfb-html-preview-frame")[0];
 		if (!host) return;
@@ -77,5 +78,5 @@ export function open_html_editor({ title, initial_html, on_save, doctype, docnam
 			);
 			ctrl.editor.resize();
 		});
-	}, 200);
+	}
 }
