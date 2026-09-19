@@ -21,7 +21,7 @@ from frappe.apps import get_apps, get_default_path, is_desk_apps
 from frappe.cache_manager import clear_user_cache, reset_metadata_version
 from frappe.database import savepoint
 from frappe.query_builder import Order
-from frappe.utils import cint, cstr, get_assets_json
+from frappe.utils import cint, cstr, get_assets_json, get_system_timezone
 from frappe.utils.change_log import has_app_update_notifications
 from frappe.utils.data import add_to_date
 from frappe.utils.island import get_ui_islands
@@ -191,6 +191,28 @@ def get():
 	bootinfo.show_new_navigation_prompt = should_show_new_navigation_prompt()
 
 	return bootinfo
+
+
+def get_session_info() -> dict:
+	"""The signed-in person and the site settings a client renders for them."""
+	from frappe.defaults import get_defaults
+
+	user = frappe.get_cached_doc("User", frappe.session.user)
+	# this route is open to a Guest, and the site's merged defaults (company, currency,
+	# fiscal year, anything an app set) are not anonymous surface
+	is_guest = user.name == "Guest"
+	return {
+		"user": {
+			"name": user.name,
+			"full_name": user.full_name,
+			"email": user.email,
+			"user_image": user.user_image,
+		},
+		"roles": frappe.get_roles(),
+		"lang": frappe.local.lang or "en",
+		"timezone": get_system_timezone(),
+		"defaults": {} if is_guest else get_defaults(),
+	}
 
 
 @frappe.whitelist()

@@ -1,12 +1,18 @@
+import json
 import typing
+from functools import cached_property
 from random import choice
 from unittest.mock import patch
 
 import requests
+from werkzeug.test import TestResponse
 
 import frappe
+import frappe.defaults
+import frappe.share
 from frappe.api import discovery
 from frappe.installer import update_site_config
+from frappe.model.document import Document
 from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
 from frappe.tests.utils import toggle_test_mode, wait_for_job, whitelist_for_tests
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
@@ -46,7 +52,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 	def test_unauthorized_call_v2(self):
 		# test 1: fetch documents without auth
 		response = requests.get(self.resource(self.DOCTYPE))
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 403, response.text[-3000:])
 
 	def test_get_list_v2(self):
 		# test 2: fetch documents without params
@@ -152,7 +158,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 				self.resource("Website Theme", "Standard", "method", "get_apps"), {"sid": self.sid}
 			)
 
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 403, response.get_data(as_text=True)[-3000:])
 
 	def test_update_document_v2(self):
 		generated_desc = frappe.mock("paragraph")
@@ -847,7 +853,7 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			with self.subTest(path=path):
 				with suppress_stdout():
 					response = self.get(path, {"sid": sid})
-				self.assertEqual(response.status_code, 403)
+				self.assertEqual(response.status_code, 403, response.get_data(as_text=True)[-3000:])
 
 
 class TestReadOnlyMode(FrappeAPITestCase):
@@ -894,3 +900,454 @@ def test(*, fail: int | bool = False, handled: int | bool = True, message: str =
 			1 / 0
 	else:
 		frappe.msgprint(message)
+
+
+class TestIncludePartsV2(FrappeAPITestCase):
+	"""`include=` parts beside a document read, and `include=children` beside a meta read."""
+
+	version = "v2"
+	TEST_USER = "api-include-user@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		# the test client answers on another thread, so fixtures are committed to be visible there
+		super().setUpClass()
+		if not frappe.db.exists("User", cls.TEST_USER):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": cls.TEST_USER,
+					"first_name": "Include User",
+					"send_welcome_email": 0,
+				}
+			).insert(ignore_permissions=True)
+		cls.todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": frappe.generate_hash(), "allocated_to": cls.TEST_USER}
+		).insert()
+		cls.assignment = frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": frappe.generate_hash(),
+				"allocated_to": cls.TEST_USER,
+				"reference_type": "ToDo",
+				"reference_name": cls.todo.name,
+			}
+		).insert()
+		frappe.share.add("ToDo", cls.todo.name, cls.TEST_USER, write=1)
+		frappe.get_doc(
+			{
+				"doctype": "Comment",
+				"comment_type": "Comment",
+				"reference_doctype": "ToDo",
+				"reference_name": cls.todo.name,
+				"content": "a comment",
+			}
+		).insert()
+		frappe.db.set_value(
+			"ToDo", cls.todo.name, "_liked_by", json.dumps([cls.TEST_USER]), update_modified=False
+		)
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		frappe.delete_doc_if_exists("ToDo", cls.assignment.name, force=True)
+		frappe.delete_doc_if_exists("ToDo", cls.todo.name, force=True)
+		frappe.delete_doc_if_exists("User", cls.TEST_USER, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	@cached_property
+	def user_sid(self) -> str:
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		original_request = getattr(frappe.local, "request", None)
+		set_request(path="/")
+		try:
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as(self.TEST_USER)
+			return frappe.session.sid
+		finally:
+			frappe.local.request = original_request
+
+	def read(self, include: str, name: str | None = None):
+		return self.get(
+			self.resource("ToDo", name or self.todo.name), {"sid": self.user_sid, "include": include}
+		)
+
+	def seed_seen(self, users: list[str]):
+		frappe.db.set_value("ToDo", self.todo.name, "_seen", json.dumps(users), update_modified=False)
+		frappe.db.commit()  # nosemgrep
+
+	def test_parts_beside_the_document(self):
+		response = self.read("permissions,attachments,assignments,shares,tags,favourites,comments,users")
+		self.assertEqual(response.status_code, 200, response.json)
+		body = response.json
+		self.assertEqual(body["data"]["name"], self.todo.name)
+		self.assertEqual(body["permissions"]["read"], 1)
+		self.assertEqual(body["attachments"], [])
+		self.assertEqual(body["assignments"][0]["user"], self.TEST_USER)
+		self.assertNotIn("allocated_to", body["assignments"][0])
+		self.assertEqual(
+			body["shares"], [{"user": self.TEST_USER, "read": 1, "write": 1, "submit": 0, "share": 0}]
+		)
+		self.assertEqual(body["tags"], [])
+		self.assertEqual(body["favourites"], [{"user": self.TEST_USER}])
+		self.assertIn("a comment", body["comments"][0]["content"])
+		self.assertEqual(body["users"][self.TEST_USER]["full_name"], "Include User")
+		self.assertIn("Administrator", body["users"])
+
+	def test_bare_read_has_no_parts_and_marks_nothing(self):
+		with patch.object(Document, "add_seen") as add_seen:
+			response = self.read("")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(set(response.json), {"data"})
+		add_seen.assert_not_called()
+
+	def test_seen_marks_and_returns_the_list(self):
+		# a GET's write is rolled back under test, so the mark is asserted on the call
+		self.seed_seen(["other@example.com"])
+		with patch.object(Document, "add_seen") as add_seen:
+			response = self.read("seen")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json["seen"], ["other@example.com", self.TEST_USER])
+		add_seen.assert_called_once()
+
+	def test_users_ignores_parts_that_name_no_user(self):
+		frappe.get_doc({"doctype": "Tag", "name": "read"}).insert(
+			ignore_permissions=True, ignore_if_duplicate=True
+		)
+		frappe.db.commit()  # nosemgrep
+		from frappe.desk.doctype.tag.tag import add_tag
+
+		add_tag("read", "ToDo", self.todo.name)
+		frappe.db.commit()  # nosemgrep
+		response = self.read("permissions,tags,link_titles,users")
+		self.assertEqual(response.json["tags"], ["read"])
+		self.assertEqual(set(response.json["users"]), {"Administrator"})
+
+	def test_include_must_be_a_string(self):
+		with suppress_stdout():
+			response = self.get(self.resource("ToDo", self.todo.name), {"sid": self.sid, "include": ["seen"]})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "ValidationError")
+
+	def test_users_covers_the_seen_list(self):
+		self.seed_seen(["other@example.com"])
+		with patch.object(Document, "add_seen"):
+			response = self.read("seen,users")
+		self.assertIn(self.TEST_USER, response.json["users"])
+
+	def test_seen_does_not_mark_twice(self):
+		self.seed_seen([self.TEST_USER])
+		with patch.object(Document, "add_seen") as add_seen:
+			response = self.read("seen")
+		self.assertEqual(response.json["seen"], [self.TEST_USER])
+		add_seen.assert_not_called()
+
+	def test_unknown_part_is_an_error(self):
+		with suppress_stdout():
+			response = self.read("permissions,views")
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "UnknownPartError")
+		self.assertNotIn("permissions", response.json)
+
+	def test_meta_children(self):
+		response = self.get(self.doctype_path("User", "meta"), {"sid": self.user_sid, "include": "children"})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["name"], "User")
+		self.assertEqual(response.json["data"]["masked_fields"], [])
+		children = {child["name"]: child for child in response.json["children"]}
+		self.assertIn("Has Role", children)
+		self.assertEqual(children["Has Role"]["masked_fields"], [])
+
+	def test_meta_unknown_part_is_an_error(self):
+		with suppress_stdout():
+			response = self.get(
+				self.doctype_path("User", "meta"), {"sid": self.user_sid, "include": "fields"}
+			)
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "UnknownPartError")
+
+	def test_list_or_filters(self):
+		response = self.get(
+			self.resource("ToDo"),
+			{
+				"sid": self.sid,
+				"fields": '["name"]',
+				"or_filters": json.dumps(
+					[["name", "=", self.todo.name], ["description", "=", self.assignment.description]]
+				),
+			},
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(len(response.json["data"]), 2)
+
+	def test_list_or_filters_shape(self):
+		with suppress_stdout():
+			response = self.get(self.resource("ToDo"), {"sid": self.sid, "or_filters": '"name"'})
+		self.assertEqual(response.status_code, 417)
+
+
+class TestListPartsV2(FrappeAPITestCase):
+	"""`include=count` beside a list read, and the link-field search route."""
+
+	version = "v2"
+
+	@classmethod
+	def setUpClass(cls):
+		# the test client answers on another thread, so fixtures are committed to be visible there
+		super().setUpClass()
+		cls.prefix = f"api-search-{frappe.generate_hash(length=8)}"
+		cls.todos = [
+			frappe.get_doc({"doctype": "ToDo", "description": f"{cls.prefix} {word}"}).insert()
+			for word in ("alpha", "bravo", "charlie")
+		]
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		for todo in cls.todos:
+			frappe.delete_doc_if_exists("ToDo", todo.name, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	@property
+	def filters(self) -> str:
+		return json.dumps({"description": ["like", f"{self.prefix}%"]})
+
+	def list(self, **params):
+		return self.get(self.resource("ToDo"), {"sid": self.sid, "filters": self.filters, **params})
+
+	def search(self, **params):
+		return self.get(self.doctype_path("ToDo", "search"), {"sid": self.sid, **params})
+
+	def test_count_beside_the_list(self):
+		response = self.list(include="count", limit=1)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(len(response.json["data"]), 1)
+		self.assertTrue(response.json["has_next_page"])
+		self.assertEqual(response.json["count"], 3)
+		self.assertFalse(response.json["count_capped"])
+		# get_count's own ten-minute cache header must not reach the list response
+		self.assertNotIn("max-age=600", response.headers["Cache-Control"])
+
+	def test_count_stops_at_the_cap(self):
+		with patch("frappe.api.include.COUNT_CAP", 2):
+			response = self.list(include="count")
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(len(response.json["data"]), 3)
+		self.assertEqual(response.json["count"], 2)
+		self.assertTrue(response.json["count_capped"])
+
+	def test_count_of_exactly_the_cap_is_not_capped(self):
+		with patch("frappe.api.include.COUNT_CAP", 3):
+			response = self.list(include="count")
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["count"], 3)
+		self.assertFalse(response.json["count_capped"])
+
+	def test_count_is_null_on_timeout(self):
+		with patch("frappe.desk.reportview.count_rows", return_value=None):
+			response = self.list(include="count")
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertIsNone(response.json["count"])
+		self.assertFalse(response.json["count_capped"])
+
+	def test_count_follows_or_filters(self):
+		or_filters = json.dumps([["name", "=", self.todos[0].name], ["name", "=", self.todos[1].name]])
+		response = self.list(include="count", or_filters=or_filters)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["count"], 2)
+
+	def test_count_follows_group_by(self):
+		# the fixtures share one status; a grouped list of two statuses counts two groups, not three rows
+		closed = self.todos[2].name
+		frappe.db.set_value("ToDo", closed, "status", "Closed")
+		frappe.db.commit()  # nosemgrep
+		try:
+			response = self.list(include="count", fields=json.dumps(["status"]), group_by="status")
+		finally:
+			frappe.db.set_value("ToDo", closed, "status", "Open")
+			frappe.db.commit()  # nosemgrep
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(len(response.json["data"]), 2)
+		self.assertEqual(response.json["count"], 2)
+
+	def test_no_count_without_include(self):
+		for params in ({}, {"include": ""}):
+			response = self.list(**params)
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertEqual(set(response.json), {"data", "has_next_page"})
+
+	def test_list_unknown_part_is_an_error(self):
+		with suppress_stdout():
+			response = self.list(include="count,totals")
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "UnknownPartError")
+		self.assertNotIn("count", response.json)
+
+	def test_search_rows(self):
+		response = self.search(txt=self.prefix)
+		self.assertEqual(response.status_code, 200, response.json)
+		rows = response.json["data"]
+		self.assertEqual({row["value"] for row in rows}, {todo.name for todo in self.todos})
+		self.assertEqual(set(rows[0]), {"value", "label", "description"})
+		self.assertEqual(response.headers["Cache-Control"], "private,max-age=60,stale-while-revalidate=300")
+
+	def test_search_limit_and_start(self):
+		first = self.search(txt=self.prefix, limit=2)
+		self.assertEqual(len(first.json["data"]), 2)
+		rest = self.search(txt=self.prefix, limit=2, start=2)
+		self.assertEqual(len(rest.json["data"]), 1)
+		self.assertNotIn(rest.json["data"][0]["value"], [row["value"] for row in first.json["data"]])
+
+	def test_search_takes_filters(self):
+		response = self.search(txt=self.prefix, filters=json.dumps({"name": self.todos[1].name}))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual([row["value"] for row in response.json["data"]], [self.todos[1].name])
+
+	def test_search_limit_zero_falls_back_to_the_default_page(self):
+		extra = [
+			frappe.get_doc({"doctype": "ToDo", "description": f"{self.prefix} extra {index}"}).insert()
+			for index in range(8)
+		]
+		frappe.db.commit()  # nosemgrep
+		try:
+			response = self.search(txt=self.prefix, limit=0)
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertEqual(len(response.json["data"]), 10)
+		finally:
+			for todo in extra:
+				frappe.delete_doc_if_exists("ToDo", todo.name, force=True)
+			frappe.db.commit()  # nosemgrep
+
+	def test_search_user_through_the_standard_query(self):
+		# User routes to user_query, which reads the filters as a dict
+		response = self.get(
+			self.doctype_path("User", "search"),
+			{
+				"sid": self.sid,
+				"txt": "Admin",
+				"filters": json.dumps({"enabled": 1, "user_type": "System User"}),
+			},
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertIn("Administrator", [row["value"] for row in response.json["data"]])
+
+	def test_search_refuses_a_guest(self):
+		# no suppress_stdout: the refusal prints, and a None stdout turns that into a 500
+		response = self.get(self.doctype_path("ToDo", "search"), {"sid": "Guest", "txt": self.prefix})
+		self.assertEqual(response.status_code, 403)
+
+
+class TestSessionAPIV2(FrappeAPITestCase):
+	version = "v2"
+
+	def session_path(self):
+		return self.get_path("session")
+
+	def test_session_v2(self):
+		response = self.get(self.session_path(), {"sid": self.sid})
+		self.assertEqual(response.status_code, 200, response.json)
+		data = response.json["data"]
+		self.assertEqual(data["user"]["name"], "Administrator")
+		self.assertIsInstance(data["roles"], list)
+		self.assertIn("System Manager", data["roles"])
+		self.assertTrue(data["lang"])
+		self.assertTrue(data["timezone"])
+		self.assertIsInstance(data["defaults"], dict)
+
+	def test_session_serves_a_guest_v2(self):
+		response = self.get(self.session_path(), {"sid": "Guest"})
+		self.assertEqual(response.status_code, 200, response.json)
+		data = response.json["data"]
+		self.assertEqual(data["user"]["name"], "Guest")
+		self.assertIn("Guest", data["roles"])
+
+	def test_session_withholds_site_defaults_from_a_guest_v2(self):
+		frappe.db.set_default("api_v2_guest_defaults_probe", "leaked")
+		frappe.db.commit()  # nosemgrep
+		try:
+			response = self.get(self.session_path(), {"sid": "Guest"})
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertEqual(response.json["data"]["defaults"], {})
+		finally:
+			frappe.defaults.clear_default("api_v2_guest_defaults_probe")
+			frappe.db.commit()  # nosemgrep
+
+
+class TestNotificationLogAPIV2(FrappeAPITestCase):
+	"""Marking a notification read is a PATCH, so `write` is open to role `All` and only the controller narrows it."""
+
+	version = "v2"
+	RECIPIENT = "notification-log-patch-recipient@example.com"
+	OTHER_USER = "notification-log-patch-other@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.recipient_log = cls.make_user_with_notification(cls.RECIPIENT)
+		cls.other_log = cls.make_user_with_notification(cls.OTHER_USER)
+		# the test client answers on another thread and cannot see an uncommitted fixture
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.commit()  # nosemgrep
+		for name in (cls.recipient_log, cls.other_log):
+			frappe.delete_doc_if_exists("Notification Log", name, force=True)
+		for email in (cls.RECIPIENT, cls.OTHER_USER):
+			frappe.delete_doc_if_exists("User", email, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	@classmethod
+	def make_user_with_notification(cls, email: str) -> str:
+		if not frappe.db.exists("User", email):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": "Notification Patch User",
+					"send_welcome_email": 0,
+				}
+			).insert(ignore_permissions=True)
+		log = frappe.get_doc(
+			{"doctype": "Notification Log", "for_user": email, "subject": f"patch test for {email}"}
+		).insert(ignore_permissions=True)
+		return log.name
+
+	def sid_for(self, email: str) -> str:
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		# logging in here also moves this thread's session; put it back so teardown stays admin
+		original_request = getattr(frappe.local, "request", None)
+		set_request(path="/")
+		try:
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as(email)
+			return frappe.session.sid
+		finally:
+			frappe.local.request = original_request
+			frappe.set_user("Administrator")
+
+	def mark_read(self, sid: str, name: str) -> TestResponse:
+		return self.patch(self.resource("Notification Log", name), {"sid": sid, "read": 1})
+
+	def test_recipient_can_mark_their_notification_read(self):
+		response = self.mark_read(self.sid_for(self.RECIPIENT), self.recipient_log)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["read"], 1)
+
+	def test_another_user_cannot_mark_it_read(self):
+		# no suppress_stdout: the refusal prints, and a None stdout turns that into a 500
+		response = self.mark_read(self.sid_for(self.OTHER_USER), self.recipient_log)
+		self.assertEqual(response.status_code, 403, response.json)
+		self.assertEqual(frappe.db.get_value("Notification Log", self.recipient_log, "read"), 0)
