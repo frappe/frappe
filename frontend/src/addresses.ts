@@ -1,6 +1,8 @@
 // The address table: every doctype on the bench and its URL spelling. Full-bench and the
 // same for every user, so it is fetched and cached by `metadata_version`, not booted.
 
+import { runMethod } from "@framework/ui/api";
+
 export type AddressPayload = {
 	/** `{doctype: [slug, moduleSlug]}` */
 	doctypes: Record<string, [string, string]>;
@@ -74,12 +76,10 @@ export class Addresses {
 
 export async function fetchAddresses(version: string): Promise<Addresses> {
 	// Cached server-side for a year; `v=` is the only invalidator.
-	const res = await fetch(
-		`/api/method/frappe.shell.doctypes.get_addresses?v=${encodeURIComponent(
-			version
-		)}`,
-		{ headers: { Accept: "application/json" } }
+	const response = await runMethod<AddressPayload>(
+		"frappe.shell.doctypes.get_addresses",
+		{ v: version },
+		{ http: "GET" }
 	);
-	if (!res.ok) throw new Error(`Address table failed with ${res.status}`);
-	return new Addresses((await res.json()).message);
+	return new Addresses(response.data);
 }
