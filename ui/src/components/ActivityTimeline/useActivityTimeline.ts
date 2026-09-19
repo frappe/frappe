@@ -8,37 +8,36 @@ import {
   watch,
   type Ref,
 } from "vue";
-import { getSocketInstance, subscribeToDoc } from "../../socket";
 import type {
   Activity,
   CustomActivity,
   Pagination,
   PendingActivity,
-  UserInfo,
   VisibleTypes,
 } from "./types";
 import { compareActivities, dropDuplicateKeys } from "./grouping";
-import { getAssignee, stripHtml } from "./utils";
+import {
+  createLiveUpdates,
+  type Subscribe,
+  type Unsubscribe,
+} from "./liveUpdates";
+import { stripHtml } from "./utils";
 
-// One store per cache key for the session, so reopening a doc is instant and
-// paging state survives cached remounts.
+// One store per cache key: reopening a doc is instant, paging state survives remounts.
 interface TimelineStore {
   resource: ReturnType<typeof createResource>;
-  // "older rows remain" per paged source, plus the backend-reported offset of
-  // the next milestone page
+  // "older rows remain" per paged source, plus the next milestone page's offset
   hasMoreEmails: Ref<boolean>;
   hasMoreMilestones: Ref<boolean>;
   milestoneStart: Ref<number>;
   /** one refetch however many callers ask; resolves when it lands */
   refresh: () => Promise<void>;
-  /** start listening to the doc; call the result to stop */
-  subscribe: () => () => void;
+  subscribe: Subscribe;
 }
 const stores = new Map<string, TimelineStore>();
 
-// Rows shown before the server confirmed them. Keyed by document, not cache key,
-// so every filtered view of that doc shows them. `key` is the row's identity for
-// the whole of its life and never changes; `confirmedKey` is what it waits for.
+// Rows shown before the server confirmed them, keyed by document so every filtered
+// view of it shows them. `key` never changes; `confirmedKey` is what the row waits for.
 type PendingRow = (Activity | CustomActivity) & {
   key: string;
   confirmedKey?: string;
@@ -96,10 +95,9 @@ export function addPendingActivity(
 }
 
 /**
- * Drops pending rows the server has echoed back, keeping the key each rendered under.
- * The real row then takes that key, so Vue patches the node the pending row mounted
- * rather than replacing it — replacing it rebuilds the email iframe, which comes back
- * at its collapsed height and jumps.
+ * Drops pending rows the server echoed back, keeping the key each rendered under so the
+ * real row adopts it. Vue then patches that node rather than remounting it, which would
+ * rebuild the email iframe at its collapsed height and jump.
  */
 function retirePendingRows(doctype: string, docname: string, feed: Activity[]) {
   const doc = docKey(doctype, docname);
@@ -107,9 +105,8 @@ function retirePendingRows(doctype: string, docname: string, feed: Activity[]) {
   if (!rows?.length) return;
 
   const confirmedKeys = new Set(feed.map((a) => a.key));
-  // The socket can deliver the real row before the request that created it answers, so a
-  // row with no key to wait for yet is matched on what it says. An identical older row
-  // can swallow it, which only costs it the wait until the next fetch.
+  // The socket can deliver the real row before the request answers, so a row with no key
+  // yet is matched on its text. An identical older row can swallow it, costing one fetch.
   const keyByText = new Map<string, string>();
   if (rows.some(isUnresolved))
     for (const a of feed) {
@@ -169,9 +166,8 @@ function getTimelineStore(
     params: { doctype, name: docname, visible_types: visibleTypes },
     cache: `activities:${cacheKey}`,
     auto: true,
-    // transform sets resource.data; onSuccess still sees the raw response, so the
-    // has_more_* flags are read there (not from transform's output). On reload
-    // (e.g. a doc_update), re-append the older pages the user has already loaded.
+    // transform sets resource.data, onSuccess sees the raw response, so the has_more_*
+    // flags are read there. On reload, re-append the older pages already loaded.
     transform: (res: { activities: Activity[] }) => {
       const oldActivities = (resource.data as Activity[] | undefined) ?? [];
 
@@ -258,7 +254,7 @@ export function useActivityTimeline(
   const { resource } = store;
 
   // the store is shared, so one socket serves every consumer of it
-  let unsubscribe: (() => void) | undefined;
+  let unsubscribe: Unsubscribe | undefined;
   onMounted(() => {
     unsubscribe = store.subscribe();
   });
@@ -267,8 +263,7 @@ export function useActivityTimeline(
     unsubscribe = undefined;
   });
 
-  // deduped + sorted, but ungrouped: the component folds version runs at render
-  // time, after the consumer's own filtering/merging
+  // deduped + sorted but ungrouped; the component folds version runs at render time
   const activities = computed<Array<Activity | CustomActivity>>(() => {
     const confirmed = dropDuplicateKeys(
       (resource.data as Activity[] | undefined) ?? []
@@ -374,204 +369,4 @@ function createHistoryPagination(
       icon: "lucide-chevrons-up",
     },
   });
-}
-
-/** Returns subscribe(): the first caller wires the socket, the last unwires it. */
-function createLiveUpdates(
-  doctype: string,
-  docname: string,
-  resource: ReturnType<typeof createResource>,
-  visibleTypes: string[] | undefined,
-  refresh: () => Promise<void>
-): () => () => void {
-  const socket = getSocketInstance();
-  if (!socket) return () => () => {};
-
-  // The socket payload has no avatar — reuse a resolved author from the feed, else fall back.
-  const resolveAuthor = (email: string | undefined, fallback: UserInfo) => {
-    if (!email) return fallback;
-    const known = ((resource.data as Activity[] | undefined) ?? []).find(
-      (a) => a.author?.email === email
-    )?.author;
-    return known ?? fallback;
-  };
-
-  const onUpdate = (payload: unknown) => {
-    const { doc, key, action } = payload as {
-      doc: Record<string, unknown>;
-      key: string;
-      action: "add" | "update" | "delete";
-    };
-    if (doc.reference_doctype !== doctype || doc.reference_name !== docname)
-      return;
-
-    const activity = normalizeLiveActivity(key, doc, resolveAuthor);
-    if (!activity) return;
-    // mirror the server-side visibleTypes filter
-    if (visibleTypes && !visibleTypes.includes(activity.type)) return;
-
-    const current = (resource.data as Activity[] | undefined) ?? [];
-    if (action === "add") {
-      resource.data = [...current, activity];
-    } else if (action === "delete") {
-      resource.data = current.filter((a) => a.key !== activity.key);
-    } else {
-      resource.data = current.map((a) =>
-        a.key === activity.key ? activity : a
-      );
-    }
-  };
-
-  const onDocUpdate = (payload: unknown) => {
-    const { doctype: dt, name } = payload as { doctype: string; name: string };
-    if (dt !== doctype || name !== docname) return;
-    refresh();
-  };
-
-  // A reconnect gives us a new socket, so whatever was sent meanwhile is gone and the
-  // feed has to catch up. Rejoining the rooms is the socket module's own job.
-  // `connect` also fires on the very first connect, so only act after a drop.
-  let dropped = false;
-  const onDisconnect = () => {
-    dropped = true;
-  };
-  const onConnect = () => {
-    if (!dropped) return;
-    dropped = false;
-    refresh();
-  };
-
-  const handlers: Record<string, (...args: unknown[]) => void> = {
-    docinfo_update: onUpdate, // comments, emails, likes, assignments, attachments
-    doc_update: onDocUpdate, // field changes
-    disconnect: onDisconnect,
-    connect: onConnect,
-  };
-
-  let subscribers = 0;
-  let leaveRoom: (() => void) | undefined;
-
-  return function subscribe() {
-    if (++subscribers === 1) {
-      leaveRoom = subscribeToDoc(socket, doctype, docname);
-      for (const event in handlers) socket.on(event, handlers[event]);
-      // nobody was listening while this was closed, so the feed may have moved
-      if (resource.fetched) refresh();
-    }
-
-    let stopped = false;
-    return function unsubscribe() {
-      if (stopped) return;
-      stopped = true;
-      if (--subscribers > 0) return;
-      leaveRoom?.();
-      leaveRoom = undefined;
-      for (const event in handlers) socket.off(event, handlers[event]);
-    };
-  };
-}
-
-// (assignee bolding is backend-supplied, so live assignment rows bold only the actor.)
-function normalizeLiveActivity(
-  key: string,
-  doc: Record<string, unknown>,
-  resolveAuthor: (email: string | undefined, fallback: UserInfo) => UserInfo
-): Activity | null {
-  const timestamp = String(doc.creation);
-  const actorEmail = (doc.comment_email as string) || (doc.owner as string);
-  const author = resolveAuthor(actorEmail, {
-    email: actorEmail,
-    fullname: (doc.comment_by as string) || actorEmail,
-  });
-  const name = doc.name as string;
-
-  switch (key) {
-    case "comments":
-      return {
-        type: "comment",
-        key: `comment:${name}`,
-        timestamp,
-        author,
-        data: { name, content: doc.content as string },
-      };
-
-    case "like_logs":
-      return {
-        type: "log",
-        key: `log:${name}`,
-        timestamp,
-        author,
-        data: {
-          name,
-          subtype: "like",
-          text: `${author.fullname} liked`,
-        },
-      };
-
-    case "assignment_logs": {
-      const isCompleted = doc.comment_type === "Assignment Completed";
-      const text = stripHtml(String(doc.content ?? ""));
-      // mirror the backend so the assignee bolds on live rows too (not just the actor)
-      const assignee = getAssignee(text, String(doc.comment_type ?? ""));
-      return {
-        type: "log",
-        key: `log:${name}`,
-        timestamp,
-        author,
-        data: {
-          name,
-          subtype: isCompleted ? "assignment_completed" : "assigned",
-          text,
-          // additive, like the backend: only present when an assignee was found
-          ...(assignee ? { assignee } : {}),
-        },
-      };
-    }
-
-    case "attachment_logs": {
-      const isRemoved = doc.comment_type === "Attachment Removed";
-      const content = String(doc.content ?? "");
-      const href = content.match(/href=['"]([^'"]+)['"]/);
-      const fileUrl = !isRemoved && href ? href[1] : undefined;
-      return {
-        type: "attachment_log",
-        key: `attachment:${name}`,
-        timestamp,
-        author,
-        data: {
-          name,
-          action: isRemoved ? "removed" : "added",
-          fileName: stripHtml(content),
-          // private files live under /private/… — stabler than the `fa-lock` icon
-          isPrivate: fileUrl?.startsWith("/private/") ?? false,
-          ...(fileUrl ? { fileUrl } : {}),
-        },
-      };
-    }
-
-    case "communications":
-      return {
-        type: "email",
-        key: `email:${name}`,
-        timestamp: String(doc.communication_date || doc.creation),
-        author: resolveAuthor(doc.sender as string, {
-          email: doc.sender as string,
-          fullname: (doc.sender_full_name || doc.sender) as string,
-        }),
-        data: {
-          name,
-          subject: doc.subject as string,
-          sender: doc.sender as string,
-          to: doc.recipients as string,
-          cc: doc.cc as string,
-          bcc: doc.bcc as string,
-          content: doc.content as string,
-          deliveryStatus: doc.delivery_status as string,
-          attachments: [],
-        },
-      };
-
-    default:
-      return null;
-  }
 }
