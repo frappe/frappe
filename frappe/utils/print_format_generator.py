@@ -6,6 +6,7 @@ from typing import ClassVar
 
 import frappe
 from frappe import _
+from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones
 from frappe.utils.data import cint
 from frappe.utils.jinja_globals import is_rtl
 
@@ -791,14 +792,6 @@ class PrintFormatGenerator:
 			layout[zone] = clean_zone(layout.get(zone))
 		return layout
 
-	def layout_columns(self, layout):
-		for section in layout.get("sections", []):
-			yield from section.get("columns", [])
-		for zone in ("header", "footer"):
-			zone_layout = layout.get(zone)
-			if isinstance(zone_layout, dict):
-				yield from zone_layout.get("columns", [])
-
 	@staticmethod
 	def has_field_access(doc, meta, fieldname, source_fieldname=None) -> bool:
 		fieldname = source_fieldname or fieldname
@@ -815,7 +808,7 @@ class PrintFormatGenerator:
 		The layout is authored against the doctype, not the reader, so a format may
 		reference permlevel-restricted fields that this user must not see."""
 		meta = self.doc.meta
-		for column in self.layout_columns(layout):
+		for column in iter_layout_columns(layout):
 			fields = [
 				df
 				for df in column.get("fields", [])
@@ -865,7 +858,7 @@ class PrintFormatGenerator:
 		from frappe.www.printview import column_has_value
 
 		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
-		for column in self.layout_columns(layout):
+		for column in iter_layout_columns(layout):
 			for df in column.get("fields", []):
 				if df.get("fieldtype") != "Table" or not df.get("table_columns"):
 					continue
@@ -934,18 +927,9 @@ class PrintFormatGenerator:
 				section["_hidden"] = not self.eval_condition(
 					section["visible_if"], eval_locals, f"section {section.get('label') or ''}"
 				)
-			for column in section["columns"]:
-				for df in column["fields"]:
-					self._prepare_field(df, section, eval_locals)
-
-		# Also process header/footer zones if they are section objects
-		for zone_key in ("header", "footer"):
-			zone = layout.get(zone_key)
-			if isinstance(zone, dict) and "columns" in zone:
-				for column in zone.get("columns", []):
-					for df in column.get("fields", []):
-						self._prepare_field(df, zone, eval_locals)
-
+		for _where, zone in iter_zones(layout):
+			for df in iter_fields(zone):
+				self._prepare_field(df, zone, eval_locals)
 		return layout
 
 	def filter_conditional_rows(self, df):

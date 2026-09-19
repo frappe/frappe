@@ -1,10 +1,10 @@
 import {
 	clone_plain,
 	create_default_layout,
-	layout_nodes,
 	serialize_layout,
 	typst_blockers_client,
 } from "../utils";
+import { fields, layout_nodes } from "../layout";
 import { useLayoutHistory } from "./useLayoutHistory";
 import { usePreviewDoc } from "../composables/usePreviewDoc";
 import { useSelection } from "../composables/useSelection";
@@ -66,15 +66,7 @@ export function getStore(print_format_name) {
 
 	// body fields flattened in layout order — shared by shift-range and marquee select
 	function ordered_body_fields() {
-		const out = [];
-		for (const section of layout.value?.sections || []) {
-			for (const column of section.columns || []) {
-				for (const field of column.fields || []) {
-					if (!field.remove) out.push(field);
-				}
-			}
-		}
-		return out;
+		return (layout.value?.sections || []).flatMap((section) => [...fields(section)]);
 	}
 	function select_field_range(target) {
 		const all = ordered_body_fields();

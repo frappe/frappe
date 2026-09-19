@@ -101,6 +101,7 @@
 <script setup>
 import { computed, inject } from "vue";
 import { useStore } from "../../stores";
+import { section_of } from "../../layout";
 import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
 import SectionPropertiesPanel from "./SectionPropertiesPanel.vue";
 import RepeaterFieldInspector from "./RepeaterFieldInspector.vue";
@@ -181,20 +182,9 @@ let inspector_subtitle = computed(() => {
 	return "";
 });
 
-let parent_section = computed(() => {
-	if (!selected_field.value || !layout.value) return null;
-	const all_sections = [
-		layout.value.header,
-		...(layout.value.sections || []),
-		layout.value.footer,
-	].filter(Boolean);
-	for (const section of all_sections) {
-		for (const column of section.columns || []) {
-			if (column.fields?.includes(selected_field.value)) return section;
-		}
-	}
-	return null;
-});
+let parent_section = computed(() =>
+	selected_field.value ? section_of(layout.value, selected_field.value) : null
+);
 
 function select_parent_section() {
 	if (parent_section.value) {

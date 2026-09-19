@@ -135,6 +135,7 @@ import FieldInspector from "./components/inspector/FieldInspector.vue";
 import ContextMenu from "./components/editor/ContextMenu.vue";
 import { getStore } from "./stores";
 import { field_uid } from "./utils";
+import { section_of } from "./layout";
 import { computed, ref, onMounted, onUnmounted, provide, nextTick, watch } from "vue";
 
 const props = defineProps(["print_format_name"]);
@@ -451,21 +452,8 @@ function handle_keydown(e) {
 	const ss = $store.value.selected_section.value;
 
 	if (sf) {
-		// Navigate up: field → parent section
-		const lv = $store.value.layout.value;
-		const all_sections = [lv?.header, ...(lv?.sections || []), lv?.footer].filter(Boolean);
-		let parent = null;
-		for (const sec of all_sections) {
-			for (const col of sec.columns || []) {
-				if (col.fields?.includes(sf)) {
-					parent = sec;
-					break;
-				}
-			}
-			if (parent) break;
-		}
 		$store.value.selected_field.value = null;
-		$store.value.selected_section.value = parent || null;
+		$store.value.selected_section.value = section_of($store.value.layout.value, sf);
 		e.stopPropagation();
 	} else if (ss) {
 		// Navigate up: section → canvas (clear all)

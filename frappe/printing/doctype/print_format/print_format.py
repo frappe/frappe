@@ -9,6 +9,7 @@ import frappe.utils
 from frappe import _
 from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
 from frappe.model.document import Document
+from frappe.printing.layout import iter_fields, iter_nodes, iter_zones
 from frappe.utils.jinja import validate_template
 from frappe.utils.print_format_generator import download_pdf, get_html
 
@@ -186,7 +187,6 @@ class PrintFormat(Document):
 		block named, instead of breaking every print later."""
 		from frappe.utils.jinja import get_jenv
 		from frappe.utils.typst_emitter import (
-			_walk,
 			compile_typst_source,
 			has_jinja,
 			has_typst_blocks,
@@ -201,7 +201,7 @@ class PrintFormat(Document):
 			return
 		sample_doc = None
 		sample_loaded = False
-		for where, df in _walk(layout):
+		for where, df in iter_nodes(layout):
 			markup = (df.get("typst") or "").strip() if df.get("fieldtype") == "Typst" else ""
 			if not markup:
 				continue
@@ -327,24 +327,16 @@ class PrintFormat(Document):
 
 def _iter_conditions(layout):
 	"""Yield (label, expression) for every condition in a beta layout."""
-	zones = [layout.get("header"), layout.get("footer"), *(layout.get("sections") or [])]
-	for zone in zones:
-		if not isinstance(zone, dict):
-			continue
-		yield from _condition(zone, zone.get("label") or _("Section"), "visible_if")
-		columns = zone.get("columns")
-		for column in columns if isinstance(columns, list) else []:
-			fields = (column or {}).get("fields") if isinstance(column, dict) else None
-			for df in fields if isinstance(fields, list) else []:
-				if not isinstance(df, dict):
-					continue
-				label = df.get("label") or df.get("fieldname") or _("Field")
-				yield from _condition(df, label, "visible_if")
-				yield from _condition(df, label, "row_condition")
-				table_columns = df.get("table_columns")
-				for col in table_columns if isinstance(table_columns, list) else []:
-					if isinstance(col, dict):
-						yield from _condition(col, col.get("label") or label, "column_condition")
+	for where, zone in iter_zones(layout):
+		yield from _condition(zone, where, "visible_if")
+		for df in iter_fields(zone):
+			label = df.get("label") or df.get("fieldname") or _("Field")
+			yield from _condition(df, label, "visible_if")
+			yield from _condition(df, label, "row_condition")
+			table_columns = df.get("table_columns")
+			for col in table_columns if isinstance(table_columns, list) else []:
+				if isinstance(col, dict):
+					yield from _condition(col, col.get("label") or label, "column_condition")
 
 
 def _condition(holder, label, key):

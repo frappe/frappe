@@ -4,6 +4,7 @@
 import json
 
 import frappe
+from frappe.printing.layout import iter_layout_columns
 from frappe.tests import IntegrationTestCase
 
 
@@ -335,7 +336,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 	def _layout_fieldnames(self, generator):
 		return [
 			df.get("fieldname")
-			for column in generator.layout_columns(generator.layout)
+			for column in iter_layout_columns(generator.layout)
 			for df in column.get("fields", [])
 		]
 

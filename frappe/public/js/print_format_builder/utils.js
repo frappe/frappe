@@ -1,3 +1,5 @@
+import { layout_nodes } from "./layout";
+
 export function clone_plain(obj) {
 	return JSON.parse(JSON.stringify(obj));
 }
@@ -63,17 +65,6 @@ const TYPST_STYLE_VALUES = {
 	"padding-bottom": /^\d+(\.\d+)?(px)?$/,
 	gap: /^\d+(\.\d+)?(px)?$/,
 };
-
-export function* layout_nodes(layout) {
-	const zones = [layout?.header, layout?.footer, ...(layout?.sections || [])];
-	for (const zone of zones) {
-		if (!zone || typeof zone !== "object") continue;
-		yield zone;
-		for (const col of zone.columns || []) {
-			for (const df of col?.fields || []) if (df && !df.remove) yield df;
-		}
-	}
-}
 
 // mirrors safe_color / COLOR_PATTERN: Typst emits rgb("#..."), a non-hex value blocks
 const TYPST_HEX = /^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;

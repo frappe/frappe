@@ -415,6 +415,7 @@ import {
 } from "../utils";
 import BlockCard from "./BlockCard.vue";
 import { useStore } from "../stores";
+import { column_of } from "../layout";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
 
 // state
@@ -577,17 +578,10 @@ function add_to_layout(df) {
 	// Search body sections and header/footer zones so a selected header field
 	// is used as the anchor when inserting from the panel.
 	const selected_field = store.selected_field.value;
-	if (selected_field && !selected_field.remove) {
-		const all_zones = [lv?.header, lv?.footer, ...sections].filter(Boolean);
-		for (const section of all_zones) {
-			for (const column of section.columns) {
-				const idx = column.fields.indexOf(selected_field);
-				if (idx !== -1) {
-					column.fields.splice(idx + 1, 0, clone_field(df));
-					return;
-				}
-			}
-		}
+	const column = selected_field && !selected_field.remove && column_of(lv, selected_field);
+	if (column) {
+		column.fields.splice(column.fields.indexOf(selected_field) + 1, 0, clone_field(df));
+		return;
 	}
 
 	// Otherwise add to the last column of the selected (or last body) section.
