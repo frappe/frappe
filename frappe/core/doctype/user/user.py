@@ -33,7 +33,7 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
-from frappe.utils.background_jobs import get_jobs
+from frappe.utils.background_jobs import get_queue, get_running_jobs_in_queue
 from frappe.utils.data import sha256_hash
 from frappe.utils.html_utils import sanitize_html
 from frappe.utils.password import check_password, get_password_reset_limit, is_password_reused
@@ -697,8 +697,14 @@ class User(Document):
 		self.validate_email_type(new_name)
 
 	def validate_no_pending_owner_sweep(self, *names):
-		pending_jobs = get_jobs(frappe.local.site, queue="long", key="kwargs")[frappe.local.site]
-		pending_names = {job.get(key) for job in pending_jobs for key in ("old_name", "new_name")}
+		queue = get_queue("long")
+		pending_names = {
+			job.kwargs["kwargs"].get(key)
+			for job in queue.jobs + get_running_jobs_in_queue(queue)
+			if job.kwargs.get("site") == frappe.local.site
+			and job.kwargs.get("method") == "frappe.core.doctype.user.user.rewrite_owner_fields"
+			for key in ("old_name", "new_name")
+		}
 		for name in names:
 			if name in pending_names:
 				throw(
