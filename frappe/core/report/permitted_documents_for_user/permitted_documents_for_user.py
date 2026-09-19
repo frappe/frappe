@@ -26,8 +26,10 @@ def execute(filters=None):
 		columns = columns + [frappe.unscrub(right) + ":Check:80" for right in rights]
 		data = list(data)
 		for i, doc in enumerate(data):
-			permission = frappe.permissions.get_doc_permissions(frappe.get_doc(doctype, doc[0]), user)
-			data[i] = doc + tuple(permission.get(right) for right in rights)
+			if not doc:
+				continue
+			permission = frappe.permissions.get_doc_permissions(frappe.get_doc(doctype, doc[0]), user) or {}
+			data[i] = doc + tuple(permission.get(right, 0) for right in rights)
 
 	return columns, data
 
