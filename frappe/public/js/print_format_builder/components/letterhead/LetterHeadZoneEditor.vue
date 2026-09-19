@@ -19,6 +19,7 @@
 <script setup>
 import { useStore } from "../../stores";
 import { render_jinja_html } from "../../utils";
+import { zone_fields } from "./zone_fields";
 import { ref, watch, onMounted, inject, computed } from "vue";
 
 const props = defineProps({
@@ -28,26 +29,7 @@ const props = defineProps({
 let { letterhead, store, layout } = useStore();
 let raw_store = inject("$store");
 
-// ── Field name mapping ────────────────────────────────────
-const F = computed(() =>
-	props.zone === "header"
-		? {
-				source: "source",
-				content: "content",
-				image: "image",
-				align: "align",
-				height: "image_height",
-				width: "image_width",
-		  }
-		: {
-				source: "footer_source",
-				content: "footer",
-				image: "footer_image",
-				align: "footer_align",
-				height: "footer_image_height",
-				width: "footer_image_width",
-		  }
-);
+const F = computed(() => zone_fields(props.zone));
 
 let preview_doc = computed(() => raw_store.preview_doc.value);
 let rendered_content = ref(null);
