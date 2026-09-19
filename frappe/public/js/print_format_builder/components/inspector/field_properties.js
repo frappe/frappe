@@ -150,6 +150,7 @@ export const FIELD_SECTIONS = [
 				when: has_align,
 				props: () => ({ label: __("Align"), options: align_opts }),
 				get: (df) => df.align ?? "left",
+				set: (df, v, ctx) => ctx.set(df, "align", v, "left"),
 			},
 			{
 				key: "size",
