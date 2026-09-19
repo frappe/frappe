@@ -20,6 +20,9 @@ import frappe
 from frappe.database.sqlite.database import SQLiteDatabase
 from frappe.model.document import Document
 
+# The named placeholders `QueryBuilder.walk()` emits, e.g. `%(param1)s`.
+_NAMED_PARAM_PATTERN = re.compile(r"%\((\w+)\)s")
+
 # `creation desc`, "`tabError Log`.`creation` desc", `creation` -- the shapes the list view
 # and `frappe.get_all` actually send. Anything else is ignored rather than guessed at.
 _ORDER_BY_PATTERN = re.compile(
@@ -210,9 +213,40 @@ def _run_log_query(query, **kwargs):
 	`walk()` turns the query object into SQL plus its parameters without running it -- the
 	same pattern `frappe.desk.reportview.get_count` uses -- so the statement can be handed to
 	the log database rather than to whatever `frappe.db` happens to be.
+
+	The parameters are converted from `walk()`'s named form to the positional form before
+	handing them over; see :func:`_as_positional_params`.
 	"""
 	sql, params = query.walk()
-	return get_log_db().sql(sql, params, **kwargs)
+	sql, values = _as_positional_params(sql, params)
+
+	return get_log_db().sql(sql, values, **kwargs)
+
+
+def _as_positional_params(sql: str, params):
+	"""Rewrite `%(name)s` placeholders to `%s` and order the values to match.
+
+	`walk()` emits named placeholders with a dict, but `SQLiteDatabase.execute_query` only
+	binds parameters natively when it is given a sequence: it rewrites `%s` to sqlite3's `?`
+	and hands the values to the driver.
+
+	Its dict branch does something else entirely -- it quotes each value, `%`-interpolates
+	them into the statement, then passes the now-spent dict to the driver as well. That binds
+	nothing, mutates the caller's dict in place, and raises `ValueError` (which the branch's
+	`except TypeError` does not catch) whenever the statement contains a literal `%`.
+
+	Converting here keeps every log query on the driver's own binding path.
+	"""
+	if not isinstance(params, dict):
+		return sql, params
+
+	ordered = []
+
+	def collect(match: "re.Match") -> str:
+		ordered.append(params[match.group(1)])
+		return "%s"
+
+	return _NAMED_PARAM_PATTERN.sub(collect, sql), tuple(ordered)
 
 
 def _build_log_query(doctype: str, filters=None):
