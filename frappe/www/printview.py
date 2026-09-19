@@ -208,7 +208,7 @@ def get_rendered_template(
 			frappe.TemplateNotFoundError,
 		)
 
-	doc.absolute_value = print_format.absolute_value
+	doc.flags.absolute_value = print_format.absolute_value
 
 	template = None
 	if hook_func := frappe.get_hooks("get_print_format_template"):

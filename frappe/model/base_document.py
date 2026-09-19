@@ -1530,7 +1530,11 @@ class BaseDocument:
 		if not doc:
 			doc = getattr(self, "parent_doc", None) or self
 
-		if (absolute_value or doc.get("absolute_value")) and isinstance(val, int | float):
+		if (
+			absolute_value
+			or doc.get("absolute_value")
+			or (getattr(doc, "flags", None) and doc.flags.get("absolute_value"))
+		) and isinstance(val, int | float):
 			val = abs(self.get(fieldname))
 
 		return format_value(val, df=df, doc=doc, currency=currency, format=format)
