@@ -107,18 +107,10 @@ class LogDocument(Document):
 			set_new_name(self)
 
 		d = self.get_valid_dict(convert_dates_to_str=True, ignore_virtual=True)
-		columns = list(d)
 
-		log_db = get_log_db()
-		log_db.sql(
-			"INSERT INTO `tab{doctype}` ({columns}) VALUES ({values})".format(
-				doctype=self.doctype,
-				columns=", ".join("`" + c + "`" for c in columns),
-				values=", ".join(["%s"] * len(columns)),
-			),
-			list(d.values()),
-		)
-		log_db.commit()
+		qb, table = _log_table(self.doctype)
+		_run_log_query(qb.into(table).columns(*d.keys()).insert(*d.values()))
+		get_log_db().commit()
 
 		self.set("__islocal", False)
 
@@ -129,24 +121,22 @@ class LogDocument(Document):
 			return
 
 		d = self.get_valid_dict(convert_dates_to_str=True, ignore_virtual=True)
+		# `name` addresses the row rather than being updated; the case may have changed.
 		name = d.pop("name")
-		columns = list(d)
 
-		log_db = get_log_db()
-		log_db.sql(
-			"UPDATE `tab{doctype}` SET {values} WHERE `name` = %s".format(
-				doctype=self.doctype,
-				values=", ".join("`" + c + "`=%s" for c in columns),
-			),
-			[*d.values(), name],
-		)
-		log_db.commit()
+		qb, table = _log_table(self.doctype)
+		query = qb.update(table)
+		for fieldname, value in d.items():
+			query = query.set(table[fieldname], value)
+
+		_run_log_query(query.where(table.name == name))
+		get_log_db().commit()
 
 	def load_from_db(self):
 		"""Populate this document from its row in the log database."""
-		rows = get_log_db().sql(
-			f"SELECT * FROM `tab{self.doctype}` WHERE `name` = %s",
-			(self.name,),
+		qb, table = _log_table(self.doctype)
+		rows = _run_log_query(
+			qb.from_(table).select(table.star).where(table.name == self.name),
 			as_dict=True,
 		)
 
@@ -158,9 +148,9 @@ class LogDocument(Document):
 
 	def delete(self, *args, **kwargs):
 		"""Delete this document from the log database."""
-		log_db = get_log_db()
-		log_db.sql(f"DELETE FROM `tab{self.doctype}` WHERE `name` = %s", (self.name,))
-		log_db.commit()
+		qb, table = _log_table(self.doctype)
+		_run_log_query(qb.from_(table).where(table.name == self.name).delete())
+		get_log_db().commit()
 
 	# ============ class/static methods ============
 
@@ -178,17 +168,14 @@ class LogDocument(Document):
 
 		query = query.limit(frappe.utils.cint(page_length) or 20).offset(frappe.utils.cint(start))
 
-		sql, params = query.walk()
-		return get_log_db().sql(sql, params, as_dict=True)
+		return _run_log_query(query, as_dict=True)
 
 	@staticmethod
 	def get_count(doctype: str, filters=None, **kwargs) -> int:
 		"""Return the total number of matching log rows, for the list view counter."""
 		from frappe.query_builder.functions import Count
 
-		query = _build_log_query(doctype, filters).select(Count("*"))
-		sql, params = query.walk()
-		result = get_log_db().sql(sql, params)
+		result = _run_log_query(_build_log_query(doctype, filters).select(Count("*")))
 
 		return frappe.utils.cint(result[0][0]) if result else 0
 
@@ -204,19 +191,36 @@ class LogDocument(Document):
 		return {}
 
 
-def _build_log_query(doctype: str, filters=None):
-	"""Start a SELECT against `doctype`'s log table, with `filters` applied.
+def _log_table(doctype: str):
+	"""Return `(builder, table)` for a log DocType's table.
 
-	Built with the SQLite dialect explicitly rather than through `frappe.qb`, which is bound
-	to the site's primary backend. The query is only rendered here -- `walk()` returns SQL and
-	parameters, which the caller runs on the log connection -- so no global is touched.
+	The SQLite dialect is requested explicitly instead of using `frappe.qb`, which is bound to
+	the site's primary backend. Asking for the builder class does not read or modify any
+	global, so `frappe.db` / `frappe.local.qb` are left exactly as they are.
 	"""
-	from frappe.database.operator_map import OPERATOR_MAP
 	from frappe.query_builder.utils import get_query_builder
-	from frappe.types.filter import Filters
 
 	qb = get_query_builder("sqlite")
-	table = qb.DocType(doctype)
+	return qb, qb.DocType(doctype)
+
+
+def _run_log_query(query, **kwargs):
+	"""Render `query` and execute it on the log connection.
+
+	`walk()` turns the query object into SQL plus its parameters without running it -- the
+	same pattern `frappe.desk.reportview.get_count` uses -- so the statement can be handed to
+	the log database rather than to whatever `frappe.db` happens to be.
+	"""
+	sql, params = query.walk()
+	return get_log_db().sql(sql, params, **kwargs)
+
+
+def _build_log_query(doctype: str, filters=None):
+	"""Start a SELECT against `doctype`'s log table, with `filters` applied."""
+	from frappe.database.operator_map import OPERATOR_MAP
+	from frappe.types.filter import Filters
+
+	qb, table = _log_table(doctype)
 	query = qb.from_(table)
 
 	if filters is None:
