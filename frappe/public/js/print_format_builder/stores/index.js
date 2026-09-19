@@ -24,7 +24,6 @@ export function getStore(print_format_name) {
 	let layout = ref(null);
 	let dirty = ref(false);
 	let needs_setup = ref(false);
-	let edit_letterhead = ref(false);
 	let scroll_target = ref(null);
 	let hovered_field = ref(null);
 	let hovered_section = ref(null);
@@ -117,7 +116,6 @@ export function getStore(print_format_name) {
 					layout_ready.then((resolved_layout) => {
 						const converted = is_classic && !!resolved_layout;
 						adopt_layout(resolved_layout);
-						edit_letterhead.value = false;
 						selected_field.value = null;
 						selected_section.value = null;
 						selected_letterhead.value = false;
@@ -394,13 +392,11 @@ export function getStore(print_format_name) {
 		insert_section,
 		insert_field,
 	});
-	const { snippets, save_snippet, prompt_snippet, insert_snippet, delete_snippet } = useSnippets(
-		{
-			insert_section,
-			insert_field,
-			doc_type: computed(() => print_format.value?.doc_type),
-		}
-	);
+	const { snippets, prompt_snippet, insert_snippet, delete_snippet } = useSnippets({
+		insert_section,
+		insert_field,
+		doc_type: computed(() => print_format.value?.doc_type),
+	});
 
 	return {
 		print_format,
@@ -411,7 +407,6 @@ export function getStore(print_format_name) {
 		has_typst_block,
 		dirty,
 		needs_setup,
-		edit_letterhead,
 		scroll_target,
 		hovered_field,
 		hovered_section,
@@ -459,7 +454,6 @@ export function getStore(print_format_name) {
 		select_section,
 		select_letterhead,
 		remove_section,
-		get_layout,
 		get_default_layout,
 		change_letterhead,
 		remove_letterhead,
@@ -472,7 +466,6 @@ export function getStore(print_format_name) {
 		duplicate_selection,
 		move_selection,
 		snippets,
-		save_snippet,
 		prompt_snippet,
 		insert_snippet,
 		delete_snippet,
