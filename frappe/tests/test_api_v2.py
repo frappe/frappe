@@ -1597,16 +1597,17 @@ class TestNotificationLogAPIV2(FrappeAPITestCase):
 		super().setUpClass()
 		cls.recipient_log = cls.make_user_with_notification(cls.RECIPIENT)
 		cls.other_log = cls.make_user_with_notification(cls.OTHER_USER)
-		frappe.db.commit()
+		# the test client answers on another thread and cannot see an uncommitted fixture
+		frappe.db.commit()  # nosemgrep
 
 	@classmethod
 	def tearDownClass(cls):
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 		for name in (cls.recipient_log, cls.other_log):
 			frappe.delete_doc_if_exists("Notification Log", name, force=True)
 		for email in (cls.RECIPIENT, cls.OTHER_USER):
 			frappe.delete_doc_if_exists("User", email, force=True)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 		super().tearDownClass()
 
 	@classmethod
