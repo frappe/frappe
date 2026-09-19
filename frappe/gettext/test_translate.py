@@ -97,3 +97,40 @@ class TestTranslate(IntegrationTestCase):
 		os.remove(file_path)
 
 		self.assertTrue(get_is_gitignored_function_for_app(None)("frappe/public/dist"))
+
+	def test_python_extractor_context(self):
+		import io
+		import textwrap
+
+		from frappe.gettext.extractors.python import extract
+
+		code = textwrap.dedent(
+			"""
+			_("Anxious Anaximander", lang="de")
+			_("With context", context="ctx")
+			_("Positional", "de", "greeting")
+			_lt("Lazy", context="lazyctx")
+			_("Plain")
+		"""
+		).encode()
+
+		keywords = {"_": None, "_lt": None, "pgettext": ((1, "c"), 2)}
+
+		def resolve(lineno, funcname, messages, comments):
+			if funcname == "pgettext":
+				return (messages[1], messages[0])
+			message = messages[0] if isinstance(messages, tuple) else messages
+			return (message, None)
+
+		extracted = [resolve(*row) for row in extract(io.BytesIO(code), keywords, (), {})]
+
+		self.assertEqual(
+			extracted,
+			[
+				("Anxious Anaximander", None),
+				("With context", "ctx"),
+				("Positional", "greeting"),
+				("Lazy", "lazyctx"),
+				("Plain", None),
+			],
+		)
