@@ -169,7 +169,6 @@ import { always_has_content } from "../../fieldtypes";
 import {
 	DRAG_OPTIONS,
 	JUSTIFY_CLASSES,
-	evaluate_visible_if,
 	parse_inline_style,
 	setDragging,
 	field_uid,
@@ -201,9 +200,7 @@ let section_chrome_style = computed(() => {
 	};
 });
 let preview_doc = computed(() => store.preview_doc.value);
-let is_section_visible = computed(() =>
-	evaluate_visible_if(props.section.visible_if, preview_doc.value)
-);
+let is_section_visible = computed(() => store.is_visible(props.section.visible_if));
 
 let is_grid = computed(() => !!props.section.field_borders);
 

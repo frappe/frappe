@@ -274,21 +274,24 @@ def get_page_size_mm():
 
 
 @frappe.whitelist()
-def check_condition(doctype: str, name: str, condition: str):
-	"""Evaluate a visibility condition against a document the way the print does."""
-	if not all(isinstance(v, str) for v in (doctype, name, condition)):
+def check_conditions(doctype: str, name: str, conditions):
+	"""Evaluate visibility conditions against a document the way the print does.
+	Returns {condition: {"visible": bool} | {"error": str}}."""
+	conditions = frappe.parse_json(conditions) if isinstance(conditions, str) else conditions
+	if not all(isinstance(v, str) for v in (doctype, name)) or not isinstance(conditions, list):
 		frappe.throw(_("Invalid arguments"), frappe.ValidationError)
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
-	try:
-		visible = bool(
-			frappe.safe_eval(
-				condition, None, {"doc": doc, "print_settings": frappe.get_cached_doc("Print Settings")}
-			)
-		)
-	except Exception as e:
-		return {"error": str(e)[:200]}
-	return {"visible": visible}
+	eval_locals = {"doc": doc, "print_settings": frappe.get_cached_doc("Print Settings")}
+	out = {}
+	for condition in conditions:
+		if not isinstance(condition, str) or not condition.strip():
+			continue
+		try:
+			out[condition] = {"visible": bool(frappe.safe_eval(condition, None, eval_locals))}
+		except Exception as e:
+			out[condition] = {"error": str(e)[:200]}
+	return out
 
 
 class PrintFormatGenerator:

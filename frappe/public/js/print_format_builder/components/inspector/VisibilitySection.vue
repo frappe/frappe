@@ -39,28 +39,15 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { computed, inject } from "vue";
 import InspectorRow from "./InspectorRow.vue";
 
-const props = defineProps(["modelValue", "previewDoc"]);
+const props = defineProps(["modelValue"]);
 defineEmits(["update:modelValue"]);
 
-let check = ref({});
-let seq = 0;
-const run_check = frappe.utils.debounce(() => {
-	const condition = (props.modelValue || "").trim();
-	const doc = props.previewDoc;
-	if (!condition || !doc?.name) return (check.value = {});
-	const mine = ++seq;
-	frappe
-		.call("frappe.utils.print_format_generator.check_condition", {
-			doctype: doc.doctype,
-			name: doc.name,
-			condition,
-		})
-		.then((r) => mine === seq && (check.value = r.message || {}));
-}, 400);
-watch([() => props.modelValue, () => props.previewDoc?.name], run_check, { immediate: true });
+const store = inject("$store");
+const previewDoc = computed(() => store.preview_doc.value);
+const check = computed(() => store.condition_state(props.modelValue));
 </script>
 
 <style scoped>

@@ -625,16 +625,6 @@ export function sanitize_html(html) {
 	return root.innerHTML;
 }
 
-export function evaluate_visible_if(expr, doc) {
-	if (!expr || !expr.trim()) return true;
-	try {
-		// eslint-disable-next-line no-new-func
-		return !!new Function("doc", `return (${expr})`)(doc);
-	} catch {
-		return true;
-	}
-}
-
 export function get_image_dimensions(src) {
 	return new Promise((resolve, reject) => {
 		let img = new Image();

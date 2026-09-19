@@ -249,7 +249,7 @@
 		</InspectorSection>
 
 		<InspectorSection :label="__('Visibility')" :padded="false">
-			<VisibilitySection v-model="selected_field.visible_if" :previewDoc="preview_doc" />
+			<VisibilitySection v-model="selected_field.visible_if" />
 			<TextRow
 				class="pfb-row-cond"
 				stacked
@@ -284,7 +284,7 @@ import VisibilitySection from "./VisibilitySection.vue";
 import { useSelectedField } from "./useSelectedField";
 import { is_merge_image } from "../../fieldtypes";
 
-const { selected_field, preview_doc, set_field_prop } = useSelectedField();
+const { selected_field, set_field_prop } = useSelectedField();
 
 let table_style = computed(() => selected_field.value?.table_style ?? "lined");
 let table_bordered = computed(() => selected_field.value?.table_bordered ?? true);

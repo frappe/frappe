@@ -253,7 +253,6 @@ export const FIELD_SECTIONS = [
 				key: "visible_if",
 				component: VisibilitySection,
 				single: true,
-				props: (df, ctx) => ({ previewDoc: ctx.preview_doc }),
 				set: (df, v) => (df.visible_if = v),
 			},
 		],

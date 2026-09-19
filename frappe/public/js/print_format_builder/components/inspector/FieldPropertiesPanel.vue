@@ -45,7 +45,7 @@ import { useSelectedField } from "./useSelectedField";
 import { section_of } from "../../layout";
 import { set_prop } from "../../utils";
 
-const { store, selected_field, selected_fields, preview_doc } = useSelectedField();
+const { store, selected_field, selected_fields } = useSelectedField();
 
 const is_multi = computed(() => store.is_multi_select.value);
 const fields = computed(() =>
@@ -53,9 +53,6 @@ const fields = computed(() =>
 );
 const ctx = {
 	set: set_prop,
-	get preview_doc() {
-		return preview_doc.value;
-	},
 	get print_format() {
 		return store.print_format.value;
 	},
