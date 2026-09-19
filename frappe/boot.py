@@ -28,7 +28,7 @@ from frappe.integrations.frappe_providers.cloud_settings import (
 )
 from frappe.integrations.frappe_providers.frappecloud_billing import current_site_info, is_fc_site
 from frappe.model.base_document import get_controller
-from frappe.utils import add_user_info, get_system_timezone
+from frappe.utils import add_user_info, cint, get_system_timezone
 from frappe.utils.caching import redis_cache
 from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
@@ -132,6 +132,10 @@ def get_bootinfo():
 	bootinfo.desk_settings = get_desk_settings()
 	bootinfo.app_logo_url = get_app_logo()
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
+	# only needed when the combobox setting is on; the setting comes back as a string
+	bootinfo.link_settings = (
+		get_link_settings() if cint(frappe.get_system_settings("enable_combobox_link_field")) else {}
+	)
 	bootinfo.translated_doctypes = get_translated_doctypes()
 	bootinfo.doctype_ptype_map = get_doctype_ptype_map()
 	bootinfo.subscription_conf = add_subscription_conf()
@@ -564,6 +568,56 @@ def get_link_title_doctypes():
 		["doc_type as name"],
 	)
 	return filter_out_disabled_doctypes([d.name for d in dts + custom_dts if d])
+
+
+def get_link_settings() -> dict[str, dict]:
+	"""Non-default Link field settings per DocType; Property Setters override."""
+	from frappe.desk.search import get_image_field
+
+	flags: dict[str, dict] = {}
+
+	for d in frappe.get_all(
+		"DocType",
+		or_filters={"link_display_mode": "Select", "show_image_in_link": 1},
+		fields=["name", "link_display_mode", "show_image_in_link"],
+	):
+		flags[d.name] = {
+			"select": d.link_display_mode == "Select",
+			"image": bool(cint(d.show_image_in_link)),
+		}
+
+	for ps in frappe.get_all(
+		"Property Setter",
+		filters={
+			"doctype_or_field": "DocType",
+			"property": ["in", ["link_display_mode", "show_image_in_link"]],
+		},
+		fields=["doc_type", "property", "value"],
+	):
+		entry = flags.setdefault(ps.doc_type, {"select": False, "image": False})
+		if ps.property == "link_display_mode":
+			entry["select"] = ps.value == "Select"
+		else:
+			entry["image"] = bool(cint(ps.value))
+
+	# skip Property Setters of deleted DocTypes
+	names = filter_out_disabled_doctypes([dt for dt, f in flags.items() if f["select"] or f["image"]])
+	existing = set(frappe.get_all("DocType", filters={"name": ["in", names]}, pluck="name"))
+
+	settings: dict[str, dict] = {}
+	for dt in names:
+		if dt not in existing:
+			continue
+		entry = {}
+		if flags[dt]["select"]:
+			entry["display_mode"] = "Select"
+		# image field name, so the client can load images without meta
+		if flags[dt]["image"] and (image_field := get_image_field(dt)):
+			entry["image_field"] = image_field
+		if entry:
+			settings[dt] = entry
+
+	return settings
 
 
 def set_time_zone(bootinfo):

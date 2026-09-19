@@ -338,4 +338,130 @@ context("Espresso components", () => {
 				.should("have.length", 3);
 		});
 	});
+
+	describe("Combobox", () => {
+		beforeEach(() => show("Combobox"));
+
+		function trigger(group) {
+			return cy.contains(".explorer-group", group).find(".es-combobox").first();
+		}
+
+		it("opens on click with the search focused, filters as you type, and picks with Enter", () => {
+			trigger("Basic").as("trigger");
+			cy.get("@trigger").click();
+			cy.get(".es-combobox__panel[data-state='open']").should("exist");
+			cy.focused().should("have.class", "es-combobox__input");
+
+			cy.focused().type("pend");
+			cy.get(".es-combobox__panel [role='option']").should("have.length", 1);
+			cy.get(".es-combobox__panel [role='option'][data-highlighted]").should(
+				"contain",
+				"Pending Review"
+			);
+
+			cy.focused().type("{enter}");
+			cy.get(".es-combobox__panel[data-state='open']").should("not.exist");
+			cy.get("@trigger").should("contain", "Pending Review");
+			// picking returns focus to the trigger
+			cy.focused().should("have.class", "es-combobox");
+		});
+
+		it("ArrowDown moves the highlight, Escape closes and returns focus", () => {
+			trigger("Basic").as("trigger");
+			cy.get("@trigger").trigger("keydown", { key: "ArrowDown" });
+			cy.get(".es-combobox__panel[data-state='open']").should("exist");
+			cy.get(".es-combobox__panel [role='option'][data-highlighted]").should(
+				"contain",
+				"Open"
+			);
+
+			cy.focused().trigger("keydown", { key: "ArrowDown" });
+			cy.get(".es-combobox__panel [role='option'][data-highlighted]").should(
+				"contain",
+				"Working"
+			);
+
+			cy.focused().trigger("keydown", { key: "Escape" });
+			cy.get(".es-combobox__panel[data-state='open']").should("not.exist");
+			cy.focused().should("have.class", "es-combobox");
+		});
+
+		it("typing on the closed trigger opens it with that query", () => {
+			trigger("Basic").as("trigger");
+			cy.get("@trigger").trigger("keydown", { key: "c" });
+			cy.get(".es-combobox__input").should("have.value", "c");
+			cy.get(".es-combobox__panel [role='option']")
+				.should("have.length", 1)
+				.and("contain", "Closed");
+		});
+
+		it("shows the create row highlighted when nothing matches", () => {
+			trigger("Custom rows").click();
+			cy.focused().type("zebra");
+			cy.get(".es-combobox__panel .es-menu__empty").should("contain", "zebra");
+			// the conditional Browse row hides itself while there is a query; Create stays
+			cy.get(".es-combobox__footer [role='option']").should("have.length", 1);
+			cy.get(".es-combobox__footer [role='option'][data-highlighted]").should(
+				"contain",
+				"Create a new Customer"
+			);
+		});
+
+		it("loads the next page when the list is scrolled to its end", () => {
+			trigger("Load more on scroll").click();
+			cy.get(".es-combobox__panel [role='option']").should("have.length", 20);
+			cy.get(".es-combobox__panel .es-menu__loading").should("exist");
+			cy.get(".es-combobox__list").scrollTo("bottom");
+			cy.get(".es-combobox__panel [role='option']").should("have.length", 40);
+			// the rows that were on screen stay where they were
+			cy.get(".es-combobox__panel [role='option']").first().should("contain", "Item 001");
+		});
+
+		it("keeps the filters to one line and expands to all of them on click", () => {
+			// "Every operator" has many filters: the band shows the first + a count
+			cy.contains(".explorer-group", "Applied filters").find(".es-combobox").eq(1).click();
+			cy.get(".es-combobox__panel[data-state='open'] .es-combobox__filters")
+				.as("band")
+				.should("contain", "Filtered by")
+				.find(".es-badge")
+				.should("have.length", 2);
+			cy.get("@band")
+				.find(".es-badge")
+				.eq(1)
+				.invoke("text")
+				.should("match", /^\+\d+$/);
+			cy.get("@band").click();
+			cy.get("@band").should("have.attr", "data-expanded");
+			cy.get("@band").find(".es-badge").its("length").should("be.gt", 2);
+			// the search box kept focus through the click
+			cy.get(".es-combobox__panel[data-state='open'] .es-combobox__input").should(
+				"have.focus"
+			);
+			// and back to one line
+			cy.get("@band").click();
+			cy.get("@band").should("not.have.attr", "data-expanded");
+			cy.get("@band").find(".es-badge").should("have.length", 2);
+			cy.get(".es-combobox__panel[data-state='open'] .es-combobox__input").type("{esc}");
+		});
+
+		it("has no search row when hide_search is set and clears via the × button", () => {
+			trigger("No search row").as("trigger");
+			cy.get("@trigger").should("contain", "Frappe Technologies");
+			cy.get("@trigger").click();
+			cy.get(".es-combobox__panel .es-combobox__input").should("not.exist");
+			cy.get(".es-combobox__panel [role='option'][aria-selected='true']").should(
+				"contain",
+				"Frappe Technologies"
+			);
+			cy.focused().trigger("keydown", { key: "Escape" });
+
+			cy.get("@trigger").find("[data-role='clear']").click({ force: true });
+			cy.get("@trigger").find(".es-combobox__value").should("have.attr", "data-placeholder");
+			// clearing reopens the panel for the next pick
+			cy.get(".es-combobox__panel[data-state='open']")
+				.should("exist")
+				.trigger("keydown", { key: "Escape" });
+			cy.get(".es-combobox__panel[data-state='open']").should("not.exist");
+		});
+	});
 });
