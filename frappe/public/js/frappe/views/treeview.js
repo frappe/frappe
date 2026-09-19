@@ -218,7 +218,7 @@ frappe.views.TreeView = class TreeView {
 		let me = this;
 
 		frappe.call({
-			method: "frappe.utils.nestedset.rebuild_tree",
+			method: "frappe.utils.nestedset.rebuild_tree_for_doctype",
 			args: {
 				doctype: me.doctype,
 			},
