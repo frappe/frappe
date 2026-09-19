@@ -14,6 +14,7 @@ from frappe.core.doctype.user.user import (
 	User,
 	handle_password_test_fail,
 	reset_password,
+	rewrite_owner_fields,
 	sign_up,
 	test_password_strength,
 	update_password,
@@ -27,7 +28,7 @@ from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import toggle_test_mode
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import get_url
+from frappe.utils import add_to_date, get_url, now_datetime
 from frappe.utils.data import orjson_dumps
 from frappe.www.login import sanitize_redirect
 
@@ -320,6 +321,92 @@ class TestUser(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("Notification Settings", new_name))
 
 		frappe.delete_doc("User", new_name)
+
+	def test_user_rename_defers_the_owner_sweep(self):
+		old_name = "test_user_rename_owner@example.com"
+		new_name = "test_user_rename_owner_new@example.com"
+		user = frappe.get_doc(
+			{"doctype": "User", "email": old_name, "first_name": "_Test", "send_welcome_email": 0}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "owned by a renamed user"}).insert()
+		frappe.db.set_value(
+			"ToDo", todo.name, {"owner": old_name, "modified_by": old_name}, update_modified=False
+		)
+
+		with patch("frappe.enqueue") as enqueue:
+			frappe.rename_doc("User", user.name, new_name)
+
+		enqueue.assert_any_call(
+			"frappe.core.doctype.user.user.rewrite_owner_fields",
+			old_name=old_name,
+			new_name=new_name,
+			commit=True,
+			queue="long",
+			timeout=36000,
+			enqueue_after_commit=True,
+		)
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "owner"), old_name)
+
+		rewrite_owner_fields(old_name, new_name)
+
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "owner"), new_name)
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "modified_by"), new_name)
+
+	def test_owner_sweep_leaves_rows_of_a_new_user_at_the_old_name(self):
+		old_name = "test_user_rename_reused@example.com"
+		new_name = "test_user_rename_reused_new@example.com"
+		frappe.get_doc(
+			{"doctype": "User", "email": old_name, "first_name": "_Test", "send_welcome_email": 0}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+		taken_at = frappe.db.get_value("User", old_name, "creation")
+
+		before = frappe.get_doc({"doctype": "ToDo", "description": "written before the rename"}).insert()
+		after = frappe.get_doc({"doctype": "ToDo", "description": "written by the new holder"}).insert()
+		for todo, written_at in (
+			(before, add_to_date(taken_at, minutes=-1)),
+			(after, add_to_date(taken_at, minutes=1)),
+		):
+			frappe.db.set_value(
+				"ToDo",
+				todo.name,
+				{"owner": old_name, "modified_by": old_name, "creation": written_at, "modified": written_at},
+				update_modified=False,
+			)
+
+		rewrite_owner_fields(old_name, new_name)
+
+		self.assertEqual(
+			frappe.db.get_value("ToDo", before.name, ["owner", "modified_by"]), (new_name, new_name)
+		)
+		self.assertEqual(
+			frappe.db.get_value("ToDo", after.name, ["owner", "modified_by"]), (old_name, old_name)
+		)
+
+	def test_user_rename_and_delete_blocked_while_owner_sweep_is_pending(self):
+		freed = "test_user_rename_pending_freed@example.com"
+		renamed = "test_user_rename_pending@example.com"
+		other = "test_user_rename_pending_other@example.com"
+		for email in (freed, renamed, other):
+			frappe.get_doc(
+				{"doctype": "User", "email": email, "first_name": "_Test", "send_welcome_email": 0}
+			).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		with patch(
+			"frappe.core.doctype.user.user.get_jobs",
+			return_value={frappe.local.site: [{"old_name": freed, "new_name": renamed, "commit": True}]},
+		):
+			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
+				frappe.rename_doc("User", renamed, "test_user_rename_pending_new@example.com")
+
+			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
+				frappe.rename_doc("User", other, renamed, merge=True)
+
+			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
+				frappe.rename_doc("User", freed, "test_user_rename_pending_freed_new@example.com")
+
+			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
+				frappe.delete_doc("User", freed)
 
 	def test_user_rename_updates_private_workspace(self):
 		old_name = "test_user_rename_ws@example.com"
