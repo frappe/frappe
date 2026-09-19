@@ -46,6 +46,7 @@ frappe.confirm = function (
 	});
 
 	d.$body.append(`<p class="frappe-confirm-message">${message}</p>`);
+	d.$wrapper.on("hidden.bs.modal", () => d.$wrapper.remove());
 	d.show();
 
 	// flag, used to bind "okay" on enter
@@ -94,6 +95,7 @@ frappe.warn = function (
 	// destructive confirm: the es-button red theme replaces the old
 	// btn-primary → btn-danger class swap
 	d.get_primary_btn().attr("data-theme", "red");
+	d.$wrapper.on("hidden.bs.modal", () => d.$wrapper.remove());
 
 	d.show();
 	return d;
@@ -126,6 +128,7 @@ frappe.prompt = function (fields, callback, title, primary_label) {
 			callback(values);
 		}
 	);
+	d.$wrapper.on("hidden.bs.modal", () => d.$wrapper.remove());
 	d.show();
 	return d;
 };
