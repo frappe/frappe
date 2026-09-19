@@ -72,6 +72,18 @@ def get_headers():
 	}
 
 
+<<<<<<< HEAD
+=======
+def post(method: str, json: dict | None = None):
+	"""POST to a whitelisted method on Frappe Cloud with this site's credentials."""
+	import requests
+
+	return requests.post(
+		f"{get_base_url()}/api/method/{method}", headers=get_headers(), json=json, timeout=(5, 10)
+	)
+
+
+>>>>>>> 546efb2 (fix(integration): Add connect timeout for requests to frappecloud)
 @frappe.whitelist()
 def current_site_info():
 	from frappe.utils import cint
