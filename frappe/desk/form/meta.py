@@ -1,15 +1,20 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import os
+from typing import TYPE_CHECKING
 
 import frappe
 from frappe import _
 from frappe.app_state import get_disabled_modules
 from frappe.model.meta import Meta
 from frappe.model.utils import render_include
+from frappe.model.workflow import get_workflow_names
 from frappe.modules import get_module_path, load_doctype_module, scrub
 from frappe.utils import get_bench_path, get_html_format
 from frappe.utils.data import get_link_to_form
+
+if TYPE_CHECKING:
+	from frappe.model.document import Document
 
 ASSET_KEYS = (
 	"__js",
@@ -214,16 +219,11 @@ class FormMeta(Meta):
 		self.set("__print_formats", print_formats)
 
 	def load_workflows(self):
-		# get active workflow
-		workflow_name = self.get_workflow()
-		workflow_docs = []
+		"""Ship every active workflow of the doctype; the desk picks the one that fits each document."""
+		workflows = [frappe.get_doc("Workflow", name) for name in get_workflow_names(self.name)]
+		states = {state.state for workflow in workflows for state in workflow.get("states")}
 
-		if workflow_name and frappe.db.exists("Workflow", workflow_name):
-			workflow = frappe.get_doc("Workflow", workflow_name)
-			workflow_docs.append(workflow)
-
-			workflow_docs.extend(frappe.get_doc("Workflow State", d.state) for d in workflow.get("states"))
-		self.set("__workflow_docs", workflow_docs)
+		self.set("__workflow_docs", [*workflows, *get_workflow_state_docs(states)])
 
 	def load_templates(self):
 		if not self.custom:
@@ -254,6 +254,19 @@ class FormMeta(Meta):
 		except frappe.PermissionError:
 			# no access to kanban board
 			pass
+
+
+def get_workflow_state_docs(states: set[str]) -> list["Document"]:
+	"""The Workflow State masters the desk needs to colour the states it was given.
+
+	Read in one query but returned as Documents: the meta bundle is serialized through
+	Meta.as_dict, which walks __dict__ and cannot handle a plain dict.
+	"""
+	if not states:
+		return []
+
+	rows = frappe.get_all("Workflow State", filters={"name": ("in", sorted(states))}, fields=["*"])
+	return [frappe.get_doc({"doctype": "Workflow State", **row}) for row in rows]
 
 
 def get_code_files_via_hooks(hook, name):
