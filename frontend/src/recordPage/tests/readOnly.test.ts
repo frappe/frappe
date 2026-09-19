@@ -2,23 +2,12 @@
 // be mutated into shared state, and `page.doc` is the one exception.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
-
-const state = vi.hoisted(() => ({ roles: null as string[] | null }));
+import type { Session } from "@framework/ui/api";
 
 vi.mock("frappe-ui", () => ({
   call: vi.fn(),
   toast: { success: vi.fn(), error: vi.fn() },
   frappeRequest: vi.fn(),
-  createResource: (options: any) => ({
-    get data() {
-      return options.url.endsWith("get_current_user_roles")
-        ? state.roles
-        : null;
-    },
-    loading: false,
-    fetch() {},
-    reload() {},
-  }),
 }));
 vi.mock("@framework/ui/api", () => ({
   runMethod: vi.fn(async () => ({ data: null })),
@@ -31,6 +20,7 @@ import { loadClientScripts, resetClientScripts } from "../clientScripts";
 import { readOnly } from "../readOnly";
 import { resetRegistry } from "../registry";
 import { resetCustomizationErrorReports } from "../reportError";
+import { setSession } from "@framework/ui/composables/useSession";
 import { resetUserRoles } from "@framework/ui/composables/useUserRoles";
 import { toast as mockedToast } from "frappe-ui";
 import { runMethod as mockedCall } from "@framework/ui/api";
@@ -73,8 +63,25 @@ async function withEditorPermission(canWrite: boolean) {
   (mockedCall as any).mockClear();
 }
 
+/** Publishes the session and hands back the very array `page.roles` reads through. */
+function publishRoles(roles: string[]): string[] {
+  const session: Session = {
+    user: {
+      name: "alice@example.com",
+      full_name: "Alice",
+      email: "alice@example.com",
+      user_image: null,
+    },
+    roles,
+    lang: "en",
+    timezone: "Asia/Kolkata",
+    defaults: {},
+  };
+  setSession(session);
+  return session.roles;
+}
+
 function reset() {
-  state.roles = null;
   resetRegistry();
   resetUserRoles();
   resetClientScripts();
@@ -178,45 +185,45 @@ describe("page.roles", () => {
   beforeEach(reset);
 
   it("refuses push — the write that corrupts the session-global array", () => {
-    state.roles = ["Sales User"];
+    const roles = publishRoles(["Sales User"]);
     const { page } = createRecordPage(makeHost());
 
     expect(() => page.roles.push("System Manager")).toThrow(
       "page.roles[1] is read-only",
     );
-    expect(state.roles).toEqual(["Sales User"]);
+    expect(roles).toEqual(["Sales User"]);
   });
 
   it("refuses sort, which writes through indices like every array mutator", () => {
-    state.roles = ["Sales User", "Accounts User"];
+    const roles = publishRoles(["Sales User", "Accounts User"]);
     const { page } = createRecordPage(makeHost());
 
     expect(() => page.roles.sort()).toThrow("is read-only");
-    expect(state.roles).toEqual(["Sales User", "Accounts User"]);
+    expect(roles).toEqual(["Sales User", "Accounts User"]);
   });
 
   it("refuses setPrototypeOf, the mutation that never reaches the set trap", () => {
-    state.roles = ["Sales User"];
+    const roles = publishRoles(["Sales User"]);
     const { page } = createRecordPage(makeHost());
 
     expect(() =>
       Object.setPrototypeOf(page.roles, { includes: () => true }),
     ).toThrow("page.roles's prototype is read-only");
-    expect(state.roles!.includes("System Manager")).toBe(false);
+    expect(roles.includes("System Manager")).toBe(false);
   });
 
   it("refuses freeze, which would lock the shared array non-extensible", () => {
-    state.roles = ["Sales User"];
+    const roles = publishRoles(["Sales User"]);
     const { page } = createRecordPage(makeHost());
 
     expect(() => Object.freeze(page.roles)).toThrow(
       "page.roles's extensibility is read-only",
     );
-    expect(Object.isFrozen(state.roles)).toBe(false);
+    expect(Object.isFrozen(roles)).toBe(false);
   });
 
   it("still reads, so a copy sorts fine", () => {
-    state.roles = ["Sales User", "Accounts User"];
+    publishRoles(["Sales User", "Accounts User"]);
     const { page } = createRecordPage(makeHost());
 
     expect([...page.roles].sort()).toEqual(["Accounts User", "Sales User"]);

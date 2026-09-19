@@ -1,6 +1,6 @@
 import { computed } from "vue";
 import type { ComputedRef } from "vue";
-import { createResource, frappeRequest } from "frappe-ui";
+import { resetSession, useSession } from "./useSession";
 
 export interface UseUserRoles {
   /** The session user's roles; `null` until they load. */
@@ -9,34 +9,18 @@ export interface UseUserRoles {
   reload: () => void;
 }
 
-/** One session, one user: fetched once and shared by every caller. */
-let resource: any = null;
-
-/**
- * Fetch the session user's roles (desk gets them from boot; hosts built on
- * `@framework/ui` fetch them here instead).
- */
+/** The session user's roles, off the one shared session. */
 export function useUserRoles(): UseUserRoles {
-  resource ??= buildResource();
+  const { session, loading, reload } = useSession();
 
   return {
-    roles: computed(() => (resource.data as string[] | undefined) ?? null),
-    loading: computed(() => resource.loading),
-    reload: () => resource.reload(),
+    roles: computed(() => session.value?.roles ?? null),
+    loading,
+    reload: () => void reload(),
   };
 }
 
-/** Drops the shared fetch, so one test's roles cannot reach the next. */
+/** Drops the shared session, so one test's roles cannot reach the next. */
 export function resetUserRoles(): void {
-  resource = null;
-}
-
-function buildResource() {
-  const created = createResource({
-    url: "frappe.core.doctype.user.user.get_current_user_roles",
-    cache: "User Roles",
-    resourceFetcher: frappeRequest,
-  });
-  if (!created.fetched && !created.loading) created.fetch();
-  return created;
+  resetSession();
 }

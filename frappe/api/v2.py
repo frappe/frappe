@@ -91,6 +91,24 @@ def logout():
 	frappe.db.commit()
 
 
+def get_session() -> dict[str, Any]:
+	"""
+	GET /api/v2/session
+
+	REST API endpoint for the signed-in person and the site settings a client renders for them
+
+	Args:
+		None
+
+	Response:
+		frappe.response["data"]: dict with the keys `user` (name, full_name, email, user_image),
+			`roles`, `lang`, `timezone` and `defaults`. A Guest gets a Guest body, never a 403.
+	"""
+	from frappe.sessions import get_session_info
+
+	return get_session_info()
+
+
 def read_doc(doctype: str, name: str):
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
@@ -692,6 +710,8 @@ url_rules = [
 		methods=["GET"],
 		endpoint=discovery.doctype_method,
 	),
+	# Session
+	Rule("/session", methods=["GET"], endpoint=get_session),
 	# RPC calls
 	Rule("/method/login", endpoint=login),
 	Rule("/method/logout", endpoint=logout, methods=["POST"]),

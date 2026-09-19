@@ -3,10 +3,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, type VNode } from "vue";
 
+const fake = vi.hoisted(() => ({ runMethod: vi.fn() }));
+
+vi.mock("@framework/ui/api", () => ({ runMethod: fake.runMethod }));
+
 // The real barrel drags the icon plugins in. `Button` is stubbed as the element it renders,
 // keeping `aria-label` and `@click`, which is all these tests reach for.
 vi.mock("frappe-ui", () => ({
-  call: vi.fn(),
   // A render function, not a `template`: vitest resolves `vue` to the runtime-only build,
   // which has no compiler, so a string template silently renders nothing at all.
   Button: {
@@ -40,11 +43,10 @@ vi.mock("frappe-ui", () => ({
   },
 }));
 
-import { call as mockedCall } from "frappe-ui";
 import CustomizeSidebarDialog, { type CustomizeTarget } from "../CustomizeSidebarDialog.vue";
 import { dropOn, move, saveArrangement, type ArrangedItem } from "@/arrangement";
 
-const call = mockedCall as unknown as ReturnType<typeof vi.fn>;
+const runMethod = fake.runMethod;
 
 /** Let the mount's own `await` chain settle, then let Vue re-render off it. */
 async function flush() {
@@ -143,15 +145,15 @@ describe("dropping a row", () => {
 });
 
 describe("the endpoint client", () => {
-  beforeEach(() => call.mockReset());
+  beforeEach(() => runMethod.mockReset());
 
   it("sends the whole ordered list and the address it belongs to", async () => {
-    call.mockResolvedValue({ rail: [], sidebars: {} });
+    runMethod.mockResolvedValue({ data: { rail: [], sidebars: {} } });
     const items = [item("b"), item("a")];
 
     await saveArrangement({ container: "Sidebar", address: "module_def_core" }, items);
 
-    expect(call).toHaveBeenCalledWith("frappe.shell.arrangement.save_arrangement", {
+    expect(runMethod).toHaveBeenCalledWith("frappe.shell.arrangement.save_arrangement", {
       container: "Sidebar",
       address: "module_def_core",
       scope: "user",
@@ -160,19 +162,19 @@ describe("the endpoint client", () => {
   });
 
   it("defaults to a person's own layer, and never names a user", async () => {
-    call.mockResolvedValue({ rail: [], sidebars: {} });
+    runMethod.mockResolvedValue({ data: { rail: [], sidebars: {} } });
 
     await saveArrangement({ container: "Rail", address: "frappe" }, []);
 
-    const [, args] = call.mock.calls[0];
+    const [, args] = runMethod.mock.calls[0];
     expect(args.scope).toBe("user");
     expect(args).not.toHaveProperty("user");
   });
 });
 
 async function editor(rows: ArrangedItem[]) {
-  call.mockReset();
-  call.mockResolvedValue(rows);
+  runMethod.mockReset();
+  runMethod.mockResolvedValue({ data: rows });
 
   const host = document.createElement("div");
   document.body.appendChild(host);
@@ -205,7 +207,7 @@ async function editor(rows: ArrangedItem[]) {
       input.dispatchEvent(new Event("input"));
       await flush();
     },
-    sent: () => call.mock.calls.at(-1)![1].items as ArrangedItem[],
+    sent: () => runMethod.mock.calls.at(-1)![1].items as ArrangedItem[],
   };
 }
 
@@ -216,10 +218,10 @@ function rowKeys(host: HTMLElement): (string | null)[] {
 
 /** A live host whose target is a ref; every fetch after the first waits in `resolvers`, in order. */
 async function switching(first: ArrangedItem[]) {
-  call.mockReset();
+  runMethod.mockReset();
   const resolvers: ((rows: ArrangedItem[]) => void)[] = [];
-  call.mockResolvedValueOnce(first).mockImplementation(
-    () => new Promise((resolve) => resolvers.push(resolve))
+  runMethod.mockResolvedValueOnce({ data: first }).mockImplementation(
+    () => new Promise((resolve) => resolvers.push((rows) => resolve({ data: rows })))
   );
 
   const target = ref<CustomizeTarget | null>({
@@ -289,7 +291,7 @@ describe("the dialog", () => {
   it("saves the whole list it is showing, not the difference", async () => {
     // The reduction is the server's; the client sends the whole list.
     const editing = await editor([item("a"), item("b")]);
-    call.mockResolvedValue({ rail: [], sidebars: {} });
+    runMethod.mockResolvedValue({ data: { rail: [], sidebars: {} } });
 
     await editing.click("Move a down");
     await editing.click("Save");
@@ -299,7 +301,7 @@ describe("the dialog", () => {
 
   it("carries a rename as the row's label", async () => {
     const editing = await editor([item("a", { label: "Accounts" })]);
-    call.mockResolvedValue({ rail: [], sidebars: {} });
+    runMethod.mockResolvedValue({ data: { rail: [], sidebars: {} } });
 
     await editing.type("Name of a", "Money");
     await editing.click("Save");
@@ -309,7 +311,7 @@ describe("the dialog", () => {
 
   it("toggles a hide both ways", async () => {
     const editing = await editor([item("a")]);
-    call.mockResolvedValue({ rail: [], sidebars: {} });
+    runMethod.mockResolvedValue({ data: { rail: [], sidebars: {} } });
 
     await editing.click("Hide a");
     await editing.click("Save");
@@ -323,7 +325,7 @@ describe("the dialog", () => {
   it("hands the whole prefix's navigation back to the shell", async () => {
     const editing = await editor([item("a")]);
     const navigation = { rail: [item("a")], sidebars: {} };
-    call.mockResolvedValue(navigation);
+    runMethod.mockResolvedValue({ data: navigation });
 
     await editing.click("Hide a");
     await editing.click("Save");
@@ -334,8 +336,8 @@ describe("the dialog", () => {
   it("says a load failed rather than showing an empty list", async () => {
     // An empty list is a real answer -- an app with nothing on its rail -- so a swallowed
     // failure would render a confident, false "nothing to arrange".
-    call.mockReset();
-    call.mockRejectedValue(new Error("nope"));
+    runMethod.mockReset();
+    runMethod.mockRejectedValue(new Error("nope"));
 
     const host = document.createElement("div");
     createApp({

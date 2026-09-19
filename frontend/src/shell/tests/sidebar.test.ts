@@ -44,7 +44,7 @@ async function shell(
 		shell_base: "/apps/crm",
 		prefixes: { crm: { app: "crm", modular: false } },
 		navigation: { rail, sidebars },
-		user: { name: "reader@example.com", full_name: "Reader" },
+		session: { user: { name: "reader@example.com", full_name: "Reader" } },
 	} as unknown as Boot;
 
 	const router = createRouter({

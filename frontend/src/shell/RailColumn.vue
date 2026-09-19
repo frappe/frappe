@@ -70,9 +70,13 @@
 					type="button"
 					data-key="user-menu"
 					:class="USER_CELL"
-					:aria-label="boot.user.full_name"
+					:aria-label="boot.session.user.full_name"
 				>
-					<Avatar :image="boot.user.user_image" :label="boot.user.full_name" size="lg" />
+					<Avatar
+						:image="boot.session.user.user_image"
+						:label="boot.session.user.full_name"
+						size="lg"
+					/>
 				</button>
 			</Dropdown>
 		</div>
@@ -192,7 +196,7 @@ const userMenu = computed<DropdownOptions>(() => [
 			{
 				label: "My settings",
 				icon: "lucide-circle-user",
-				onClick: () => leave(`/app/user/${encodeURIComponent(boot.user.name)}`),
+				onClick: () => leave(`/app/user/${encodeURIComponent(boot.session.user.name)}`),
 			},
 			{
 				label: "Theme",
@@ -229,7 +233,7 @@ const userMenu = computed<DropdownOptions>(() => [
 
 // A disabled row cannot be selected; the inline cursor beats the wrapper's `cursor-not-allowed`.
 function profileHeader() {
-	const { full_name, user_image, email } = boot.user;
+	const { full_name, user_image, email } = boot.session.user;
 	return {
 		label: full_name,
 		disabled: true,

@@ -13,10 +13,16 @@ import { resetNavigationReports } from "@/navigation/registry";
 import { loadSprite, resetSprite } from "@/icons/sprite";
 import RailColumn from "../RailColumn.vue";
 
-// `logout` posts through frappe-ui's `call`, and a toast needs a provider the rail lacks.
+const fake = vi.hoisted(() => ({ logout: vi.fn() }));
+
+vi.mock("@framework/ui/api", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@framework/ui/api")>()),
+	logout: fake.logout,
+}));
+
+// A toast needs a provider the rail lacks.
 vi.mock("frappe-ui", async (importOriginal) => ({
 	...(await importOriginal<typeof import("frappe-ui")>()),
-	call: vi.fn().mockResolvedValue(null),
 	toast: { success: vi.fn(), error: vi.fn() },
 }));
 
@@ -34,7 +40,9 @@ const crm = {
 	app_title: "CRM",
 	shell_base: "/apps/crm",
 	prefixes: { crm: { app: "crm", modular: false } },
-	user: { name: "jane@example.com", full_name: "Jane Doe", email: "jane@example.com" },
+	session: {
+		user: { name: "jane@example.com", full_name: "Jane Doe", email: "jane@example.com" },
+	},
 } as unknown as Boot;
 
 async function flush() {
@@ -401,7 +409,10 @@ describe("the person's cell", () => {
 	});
 
 	it("shows the person's image when boot carries one", () => {
-		const boot = { ...crm, user: { ...crm.user, user_image: "/files/jane.png" } } as Boot;
+		const boot = {
+			...crm,
+			session: { ...crm.session, user: { ...crm.session.user, user_image: "/files/jane.png" } },
+		} as Boot;
 		const image = userCell(rail([], { boot })).querySelector("img");
 		expect(image?.getAttribute("src")).toBe("/files/jane.png");
 	});
@@ -435,7 +446,10 @@ describe("the user menu", () => {
 	}
 
 	it("opens on a profile header: avatar, full name and email, not a command", async () => {
-		const boot = { ...crm, user: { ...crm.user, user_image: "/files/jane.png" } } as Boot;
+		const boot = {
+			...crm,
+			session: { ...crm.session, user: { ...crm.session.user, user_image: "/files/jane.png" } },
+		} as Boot;
 		const menu = await opened({ boot });
 		const header = menu.querySelector<HTMLElement>("[data-key='profile']")!;
 
@@ -477,7 +491,7 @@ describe("the user menu", () => {
 
 	it("asks before logging out, and Cancel keeps the session", async () => {
 		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
-		const { call } = await import("frappe-ui");
+		fake.logout.mockResolvedValue({ data: null });
 
 		row(await opened(), "Log out").click();
 		await flush();
@@ -492,13 +506,13 @@ describe("the user menu", () => {
 		await flush();
 
 		expect(document.body.querySelector("[role='dialog']")).toBeNull();
-		expect(call).not.toHaveBeenCalled();
+		expect(fake.logout).not.toHaveBeenCalled();
 		expect(assign).not.toHaveBeenCalled();
 	});
 
 	it("logs out on confirmation and goes to login with the way back, hash dropped", async () => {
 		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
-		const { call } = await import("frappe-ui");
+		fake.logout.mockResolvedValue({ data: null });
 		window.history.replaceState(null, "", "/crm-deal?sidebar=fcrm#customize/rail");
 
 		row(await opened(), "Log out").click();
@@ -509,15 +523,15 @@ describe("the user menu", () => {
 		await flush();
 		await flush();
 
-		expect(call).toHaveBeenCalledWith("logout");
+		expect(fake.logout).toHaveBeenCalled();
 		expect(assign).toHaveBeenCalledWith("/login?redirect-to=%2Fcrm-deal%3Fsidebar%3Dfcrm");
 		window.history.replaceState(null, "", "/");
 	});
 
 	it("keeps the dialog and toasts when the log out fails", async () => {
 		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
-		const { call, toast } = await import("frappe-ui");
-		vi.mocked(call).mockRejectedValueOnce(new Error("offline"));
+		const { toast } = await import("frappe-ui");
+		fake.logout.mockRejectedValueOnce(new Error("offline"));
 
 		row(await opened(), "Log out").click();
 		await flush();

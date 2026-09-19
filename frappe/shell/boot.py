@@ -2,8 +2,10 @@
 
 import frappe
 from frappe import _
+from frappe.core.api.file import get_file_chunk_size, get_max_file_size
+from frappe.sessions import get_session_info
 from frappe.translate import get_translation_version
-from frappe.utils import get_system_timezone, orjson_dumps
+from frappe.utils import orjson_dumps
 
 from . import SHELL_ROOT
 from .doctypes import metadata_version
@@ -23,7 +25,6 @@ BUDGET_LOG_TITLE = "Boot key over budget"
 
 def core_boot() -> dict:
 	"""The keys every prefix gets, regardless of which app it belongs to."""
-	user = frappe.get_cached_doc("User", frappe.session.user)
 	return {
 		"frappe_version": frappe.__version__,
 		"site_name": frappe.local.site,
@@ -32,15 +33,9 @@ def core_boot() -> dict:
 		"read_only_mode": frappe.flags.read_only,
 		"csrf_token": frappe.sessions.get_csrf_token(),
 		"setup_complete": bool(frappe.is_setup_complete()),
-		"sysdefaults": frappe.defaults.get_defaults(),
-		"timezone": get_system_timezone(),
-		"user": {
-			"name": user.name,
-			"full_name": user.full_name,
-			"email": user.email,
-			"user_image": user.user_image,
-		},
-		"lang": frappe.local.lang or "en",
+		"session": get_session_info(),
+		"max_file_size": get_max_file_size(),
+		"file_chunk_size": get_file_chunk_size(),
 		# Fetched separately and keyed on this, so translations stay cacheable for a year.
 		"translations_version": get_translation_version(),
 		# Active, not installed, so a disabled app is neither ordered nor served. Not named
@@ -161,7 +156,7 @@ def get_boot(path: str | None = None) -> dict:
 			frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
 		screen = app_screen(app)
-		# Core LAST, so a contributed key cannot overwrite `csrf_token`, `user` or `shell_base`.
+		# Core LAST, so a contributed key cannot overwrite `csrf_token`, `session` or `shell_base`.
 		boot = {
 			**app_boot(app),
 			**core_boot(),

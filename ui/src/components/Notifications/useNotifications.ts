@@ -6,9 +6,9 @@ import {
   ref,
   watch,
 } from "vue";
-import { call, createResource } from "frappe-ui";
-import { countDocuments, listDocuments } from "../../api";
+import { countDocuments, listDocuments, runMethod, updateDocument } from "../../api";
 import { usePagedList } from "../../composables/usePagedList";
+import { useSession } from "../../composables/useSession";
 import type {
   NotificationLog,
   NotificationStore,
@@ -124,26 +124,27 @@ export function useNotifications(
     () => list.error.value ?? unreadError.value ?? null
   );
 
+  // The feed is fetched with `["*"]`, so the row carries the `modified` the save needs to
+  // refuse a stale write.
   async function markAsRead(name: string) {
     const n = list.rows.value.find((x) => x.name === name);
-    if (n && !n.read) {
-      n.read = 1; // optimistic
-      if (unread.value > 0) unread.value -= 1;
-    }
-    await call(`${METHOD}.mark_as_read`, { docname: name });
+    if (!n || n.read) return;
+    n.read = 1; // optimistic
+    if (unread.value > 0) unread.value -= 1;
+    await updateDocument(DOCTYPE, name, { ...n, read: 1 });
     void refreshUnreadCount();
   }
 
   async function markAllAsRead() {
     list.rows.value.forEach((n) => (n.read = 1)); // optimistic
     unread.value = 0;
-    await call(`${METHOD}.mark_all_as_read`);
+    await runMethod(`${METHOD}.mark_all_as_read`);
     void refreshUnreadCount();
   }
 
   /** tell the backend the bell indicator was seen (clears the unseen dot) */
   function markSeen() {
-    call(`${METHOD}.trigger_indicator_hide`).catch(() => {});
+    runMethod(`${METHOD}.trigger_indicator_hide`).catch(() => {});
   }
 
   function reload() {
@@ -168,19 +169,12 @@ export function useNotifications(
     setFilters(f && typeof f !== "function" ? f : {});
   }
 
-  // Resolve the logged-in user when the host didn't supply one, then re-scope the feed.
-  // Declared after applyFilters so the watch can call it. For a non-admin session the
-  // permission query already scopes to the user, so this only changes what an admin sees;
-  // the initial (unscoped) load self-corrects once the user resolves. We watch the resource's
-  // data (not onSuccess) because a *cached* result skips onSuccess on later mounts.
+  // Scope the feed to the session user when the host didn't supply one. Watched, not read
+  // once, because the session may still be in flight; the unscoped first load self-corrects.
   if (!options.currentUser) {
-    const loggedUser = createResource({
-      url: "frappe.auth.get_logged_user",
-      auto: true,
-      cache: "notification_current_user",
-    });
+    const { session } = useSession();
     watch(
-      () => loggedUser.data as string | undefined,
+      () => session.value?.user.name,
       (user) => {
         if (!user || user === currentUser.value) return;
         currentUser.value = user;

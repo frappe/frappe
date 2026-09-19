@@ -1,7 +1,7 @@
 // The client half of arranging: the whole ordered list goes up and the server reduces it.
 // Nothing here is a store; a save returns the prefix's navigation and the caller swaps it in.
 
-import { call } from "frappe-ui";
+import { runMethod } from "@framework/ui/api";
 import type { Navigation, NavigationItem } from "@/boot";
 
 /** Which of the two containers is being arranged. */
@@ -26,11 +26,12 @@ export async function fetchArrangement(
 	{ container, address }: Address,
 	scope: Scope = "user"
 ): Promise<ArrangedItem[]> {
-	return await call("frappe.shell.arrangement.get_arrangement", {
-		container,
-		address,
-		scope,
-	});
+	const response = await runMethod<ArrangedItem[]>(
+		"frappe.shell.arrangement.get_arrangement",
+		{ container, address, scope },
+		{ http: "GET" }
+	);
+	return response.data;
 }
 
 export async function saveArrangement(
@@ -38,23 +39,25 @@ export async function saveArrangement(
 	items: ArrangedItem[],
 	scope: Scope = "user"
 ): Promise<Navigation> {
-	return await call("frappe.shell.arrangement.save_arrangement", {
+	const response = await runMethod<Navigation>("frappe.shell.arrangement.save_arrangement", {
 		container,
 		address,
 		scope,
 		items,
 	});
+	return response.data;
 }
 
 export async function resetArrangement(
 	{ container, address }: Address,
 	scope: Scope = "user"
 ): Promise<Navigation> {
-	return await call("frappe.shell.arrangement.reset_arrangement", {
+	const response = await runMethod<Navigation>("frappe.shell.arrangement.reset_arrangement", {
 		container,
 		address,
 		scope,
 	});
+	return response.data;
 }
 
 /**

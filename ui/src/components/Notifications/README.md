@@ -119,6 +119,10 @@ Actions are events; wire them to the controller's verbs.
 Routing / side-effects live in the `@mark-as-read` handler (or wherever you call
 `controller.markAsRead` from your own UI).
 
+`markAsRead(name)` acts only on a row the feed has already loaded, and does nothing for any
+other name: the save carries that row's `modified`, so there is nothing to send for a row the
+feed never fetched. A row that is already read costs no request either.
+
 ## Slots
 
 Every slot's default is the standard markup, so passing none renders the default panel.
@@ -202,14 +206,14 @@ The feed is always fetched with `["*"]`, so app-specific Custom Fields flow thro
 
 ## Backend
 
-Requires Frappe with the `Notification Type` doctype. The controller reads the `Notification
-Log` list and calls these whitelisted methods:
+Requires Frappe with the `Notification Type` doctype. Everything goes through `/api/v2`:
 
-- `notification_log.mark_as_read`, `notification_log.mark_all_as_read`
-- `notification_log.trigger_indicator_hide`
-- the `/api/v2` list and count of `Notification Log` (feed + unread count; always scoped to
-  the recipient via `for_user`, and by the `app` column when `appName` is set)
-- `frappe.auth.get_logged_user` (to resolve the recipient when `currentUser` isn't passed)
-- the `/api/v2` list of `User` (to resolve sender avatar images)
+- the list and count of `Notification Log` (feed + unread count; always scoped to the
+  recipient via `for_user`, and by the `app` column when `appName` is set)
+- a save of the `Notification Log` row with `read: 1` (mark one as read)
+- `notification_log.mark_all_as_read` and `notification_log.trigger_indicator_hide`
+- the list of `User` (to resolve sender avatar images)
+
+The recipient comes from the shared session (`useSession`) when `currentUser` isn't passed.
 
 Realtime updates listen on the `notification` event.

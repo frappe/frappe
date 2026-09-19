@@ -1,5 +1,7 @@
 // The shell's boot payload: small, per prefix, separate from desk v1's `frappe.sessions.get()`.
 
+import { isApiError, runMethod, type Session } from "@framework/ui/api";
+
 /**
  * One resolved navigation item; the rail and a sidebar share this shape. A blank field
  * is omitted, never sent as `null`.
@@ -41,10 +43,9 @@ export type Boot = {
 	read_only_mode: boolean;
 	csrf_token: string;
 	setup_complete: boolean;
-	sysdefaults: Record<string, unknown>;
-	timezone: string;
-	user: { name: string; full_name: string; email: string; user_image?: string };
-	lang: string;
+	session: Session;
+	file_chunk_size: number;
+	max_file_size: number;
 	translations_version: string;
 	app_order: string[];
 
@@ -86,21 +87,24 @@ export type Boot = {
 export class BootUnauthorized extends Error {}
 
 export async function fetchBoot(): Promise<Boot> {
-	// The server needs the path to know which app's contribution to merge in.
-	const res = await fetch(
-		`/api/method/frappe.shell.boot.get_boot?path=${encodeURIComponent(
-			location.pathname
-		)}`,
-		{ headers: { Accept: "application/json" } }
-	);
+	let boot: Boot;
+	try {
+		// The server needs the path to know which app's contribution to merge in.
+		const response = await runMethod<Boot>(
+			"frappe.shell.boot.get_boot",
+			{ path: location.pathname },
+			{ http: "GET" }
+		);
+		boot = response.data;
+	} catch (error) {
+		// 401 as well as 403: an expired session answers 401, and the user needs the way back
+		// to login, not a generic failure.
+		if (!isApiError(error)) throw error;
+		if (error.status === 401 || error.status === 403)
+			throw new BootUnauthorized("Not permitted");
+		throw new Error(`Boot failed with ${error.status}`, { cause: error });
+	}
 
-	// 401 as well as 403: an expired session answers 401, and the user needs the way back
-	// to login, not a generic failure.
-	if (res.status === 401 || res.status === 403)
-		throw new BootUnauthorized("Not permitted");
-	if (!res.ok) throw new Error(`Boot failed with ${res.status}`);
-
-	const boot: Boot = (await res.json()).message;
 	// frappe-ui's request layer reads the token from this global; the shell has no Jinja to set it.
 	window.csrf_token = boot.csrf_token;
 	return boot;
