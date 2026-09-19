@@ -294,7 +294,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	item_key(item) {
 		if (!this.is_linked(item)) return [item.type || "", item.label || ""].join("|");
 
-		const key = ["type", "link_type", "link_to", "url"]
+		const key = ["type", "link_type", "link_to", "url", "filters"]
 			.map((field) => item[field] || "")
 			.join("|");
 
