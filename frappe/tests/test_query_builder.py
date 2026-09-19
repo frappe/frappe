@@ -45,6 +45,27 @@ class TestCustomFunctionsMariaDB(IntegrationTestCase):
 		self.assertIn("SEPARATOR ' | '", sql)
 		self.assertIn("`user_list`", sql)
 
+	def test_concat_alias_escapes_the_quote_char(self):
+		# The alias goes through format_alias_sql like every other term, so the quote char inside
+		# it is doubled. Rendering it raw would close the identifier early, and would disagree
+		# with the escaped alias pypika emits for the same term in GROUP BY / ORDER BY.
+		user = frappe.qb.DocType("User")
+		gc = GroupConcat(user.email).as_("a`b")
+		sql = frappe.qb.from_(user).select(gc).groupby(gc).get_sql()
+		self.assertIn("`a``b`", sql)
+		self.assertNotIn("`a`b`", sql)
+		# the alias SELECT declares is the one GROUP BY refers to
+		self.assertEqual(2, sql.count("`a``b`"))
+
+	def test_concat_alias_only_in_select_position(self):
+		# an alias is part of the select clause, not of the expression: appending it in operand
+		# position produces `GROUP_CONCAT(...) `x` LIKE ...`, which is a syntax error
+		user = frappe.qb.DocType("User")
+		gc = GroupConcat(user.email).as_("user_list")
+		sql = frappe.qb.from_(user).select(user.name).where(gc.like("%admin%")).get_sql()
+		self.assertNotIn("`user_list`", sql)
+		self.assertIn("GROUP_CONCAT(`email` SEPARATOR ',') LIKE", sql)
+
 	def test_match(self):
 		query = Match("Notes")
 		with self.assertRaises(Exception):
