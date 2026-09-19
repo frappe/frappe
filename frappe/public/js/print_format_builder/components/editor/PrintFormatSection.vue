@@ -164,6 +164,7 @@ import SectionSpacingHandles from "./SectionSpacingHandles.vue";
 import SectionRadiusHandle from "./SectionRadiusHandle.vue";
 import { computed, inject } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
+import { always_has_content } from "../../fieldtypes";
 import {
 	DRAG_OPTIONS,
 	JUSTIFY_CLASSES,
@@ -254,19 +255,11 @@ function start_col_width_resize(e, i) {
 	start_column_resize(handle, "col-width-handle--active", on_move);
 }
 
-const ALWAYS_CONTENT = new Set([
-	"HTML",
-	"Divider",
-	"Spacer",
-	"Field Template",
-	"Image",
-	"Barcode",
-]);
 function field_has_content(f) {
 	if (f.remove) return false;
 	const doc = preview_doc.value;
 	if (!doc) return true;
-	if (ALWAYS_CONTENT.has(f.fieldtype)) return true;
+	if (always_has_content(f)) return true;
 	if (f.fieldtype === "Repeater") return !!(f.source && doc[f.source]?.length);
 	if (f.fieldtype === "Table") return !!(doc[f.fieldname]?.length && f.table_columns?.length);
 	return !!doc[f.fieldname];
