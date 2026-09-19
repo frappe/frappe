@@ -10,7 +10,7 @@
 				<div
 					class="custom-html"
 					v-if="df.fieldtype == 'HTML' && df.html"
-					v-html="sanitize_html(df.html)"
+					v-html="strip_unsafe_html(df.html)"
 				></div>
 				<pre v-else-if="df.fieldtype == 'Typst' && df.typst" class="typst-block-source">{{
 					df.typst
@@ -100,7 +100,7 @@
 
 <script setup>
 import { computed, inject, nextTick, ref, watch } from "vue";
-import { sanitize_html } from "../../utils";
+import { strip_unsafe_html } from "../../utils";
 import { useFieldStyles } from "./useFieldRoot";
 import { open_html_editor } from "../../composables/useHtmlEditorDialog";
 

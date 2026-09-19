@@ -1,4 +1,4 @@
-import { render_jinja_html, sanitize_html, strip_unsafe_html } from "../utils";
+import { render_jinja_html, strip_unsafe_html } from "../utils";
 
 const PREVIEW_CSS = `
 	* { box-sizing: border-box; }
@@ -13,7 +13,7 @@ function write_preview(iframe, html) {
 	if (!doc) return;
 	doc.open();
 	doc.write(
-		`<!DOCTYPE html><html><head><meta charset="utf-8"><style>${PREVIEW_CSS}</style></head><body>${sanitize_html(
+		`<!DOCTYPE html><html><head><meta charset="utf-8"><style>${PREVIEW_CSS}</style></head><body>${strip_unsafe_html(
 			html
 		)}</body></html>`
 	);

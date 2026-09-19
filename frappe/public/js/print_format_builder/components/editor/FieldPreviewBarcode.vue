@@ -16,7 +16,7 @@
 <script setup>
 import { ref, computed, watch, inject } from "vue";
 import JsBarcode from "jsbarcode";
-import { sanitize_html, is_qr_barcode_options } from "../../utils";
+import { strip_unsafe_html, is_qr_barcode_options } from "../../utils";
 
 const props = defineProps(["df"]);
 const store = inject("$store");
@@ -54,7 +54,7 @@ let barcode_svg = computed(() => {
 	const value = barcode_raw_value.value;
 	if (!value || format.value === "QR") return null;
 	const str = String(value);
-	if (str.startsWith("<svg")) return sanitize_html(str);
+	if (str.startsWith("<svg")) return strip_unsafe_html(str);
 	const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 	try {
 		JsBarcode(svg, str, {
