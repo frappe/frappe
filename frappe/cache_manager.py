@@ -206,6 +206,7 @@ def build_table_count_cache():
 	information_schema = frappe.qb.Schema("information_schema")
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	data = (frappe.qb.from_(information_schema.tables).select(table_name, table_rows)).run(as_dict=True)
 	counts = {d.get("name").replace("tab", "", 1): d.get("count", None) for d in data}
 	frappe.cache.set_value("information_schema:counts", counts)
@@ -215,6 +216,12 @@ def build_table_count_cache():
 			.select(table_name, table_rows)
 			.where(information_schema.tables.table_schema == frappe.db.cur_db_name)
 		).run(as_dict=True)
+=======
+		query = frappe.qb.from_(information_schema.tables).select(table_name, table_rows)
+		if frappe.db.db_type == "mariadb":
+			query = query.where(information_schema.tables.table_schema == frappe.db.cur_db_name)
+		data = query.run(as_dict=True)
+>>>>>>> f972885 (fix: login fails on postgres while building table counts)
 		counts = {d.get("name").replace("tab", "", 1): d.get("count", None) for d in data}
 		frappe.cache.set_value("information_schema:counts", counts)
 	else:
