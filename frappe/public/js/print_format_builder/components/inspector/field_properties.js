@@ -1,7 +1,7 @@
 import SegmentedRow from "./SegmentedRow.vue";
 import ToggleRow from "./ToggleRow.vue";
 import StepperRow from "./StepperRow.vue";
-import SliderRow from "./SliderRow.vue";
+import SizeRow from "./SizeRow.vue";
 import DropdownRow from "./DropdownRow.vue";
 import ColorField from "./ColorField.vue";
 import LabelField from "./LabelField.vue";
@@ -150,15 +150,14 @@ export const FIELD_SECTIONS = [
 				when: has_align,
 				props: () => ({ label: __("Align"), options: align_opts }),
 				get: (df) => df.align ?? "left",
+				set: (df, v, ctx) => ctx.set(df, "align", v, "left"),
 			},
 			{
-				key: "size",
-				component: SliderRow,
+				key: "width",
+				component: SizeRow,
 				when: ft("Attach Image"),
 				props: () => ({ label: __("Size") }),
-				get: (df) => parseFloat(df.width) || 200,
-				set: (df, v) => (df.width = v + "px"),
-				mixed: 200,
+				set: (df, v) => (df.width = v),
 			},
 			{
 				key: "label_justify",
@@ -253,7 +252,6 @@ export const FIELD_SECTIONS = [
 				key: "visible_if",
 				component: VisibilitySection,
 				single: true,
-				props: (df, ctx) => ({ previewDoc: ctx.preview_doc }),
 				set: (df, v) => (df.visible_if = v),
 			},
 		],

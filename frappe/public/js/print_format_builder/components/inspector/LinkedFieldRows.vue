@@ -14,18 +14,18 @@
 		:placeholder="__('Select a field')"
 		@update:model-value="set_link_target"
 	/>
-	<SliderRow
+	<SizeRow
 		v-if="linked_is_image"
 		:label="__('Size')"
-		:model-value="parseFloat(selected_field.width) || 200"
-		@update:model-value="(v) => (selected_field.width = v + 'px')"
+		:model-value="selected_field.width"
+		@update:model-value="(v) => (selected_field.width = v)"
 	/>
 </template>
 
 <script setup>
 import { computed } from "vue";
 import SelectRow from "./SelectRow.vue";
-import SliderRow from "./SliderRow.vue";
+import SizeRow from "./SizeRow.vue";
 import { useDoctypeFields } from "../../composables/useDoctypeFields";
 import { value_field_opts } from "../../utils";
 import { useSelectedField } from "./useSelectedField";

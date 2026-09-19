@@ -110,10 +110,7 @@
 			</InspectorSection>
 
 			<InspectorSection :label="__('Visibility')" :init-open="false" :padded="false">
-				<VisibilitySection
-					v-model="selected_section.visible_if"
-					:previewDoc="store.preview_doc.value"
-				/>
+				<VisibilitySection v-model="selected_section.visible_if" />
 			</InspectorSection>
 		</template>
 	</div>

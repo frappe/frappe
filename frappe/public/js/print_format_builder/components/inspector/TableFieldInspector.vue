@@ -249,7 +249,7 @@
 		</InspectorSection>
 
 		<InspectorSection :label="__('Visibility')" :padded="false">
-			<VisibilitySection v-model="selected_field.visible_if" :previewDoc="preview_doc" />
+			<VisibilitySection v-model="selected_field.visible_if" />
 			<TextRow
 				class="pfb-row-cond"
 				stacked
@@ -283,8 +283,9 @@ import ColorField from "./ColorField.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import { useSelectedField } from "./useSelectedField";
 import { is_merge_image } from "../../fieldtypes";
+import { clamp_column_width } from "../../utils";
 
-const { selected_field, preview_doc, set_field_prop } = useSelectedField();
+const { selected_field, set_field_prop } = useSelectedField();
 
 let table_style = computed(() => selected_field.value?.table_style ?? "lined");
 let table_bordered = computed(() => selected_field.value?.table_bordered ?? true);
@@ -387,7 +388,7 @@ function remove_table_column(idx) {
 watch(selected_field, () => (expanded_col.value = null));
 
 function set_width(col, value) {
-	col.width = Math.max(5, Math.min(100, parseInt(value) || 10));
+	col.width = clamp_column_width(value);
 }
 
 let expanded_col = ref(null);

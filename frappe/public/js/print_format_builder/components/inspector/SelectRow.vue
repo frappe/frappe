@@ -14,6 +14,11 @@
 import Autocomplete from "../../../vue-components/Autocomplete.vue";
 import InspectorRow from "./InspectorRow.vue";
 
-defineProps(["label", "modelValue", "options", "placeholder"]);
+defineProps({
+	label: { type: String, required: true },
+	modelValue: { type: String, default: "" },
+	options: { type: Array, required: true },
+	placeholder: { type: String, default: "" },
+});
 defineEmits(["update:modelValue"]);
 </script>

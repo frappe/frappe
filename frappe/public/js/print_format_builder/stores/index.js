@@ -7,6 +7,7 @@ import {
 	typst_blockers_client,
 } from "../utils";
 import { fields, layout_nodes } from "../layout";
+import { useConditions } from "../composables/useConditions";
 import { useLayoutHistory } from "./useLayoutHistory";
 import { usePreviewDoc } from "../composables/usePreviewDoc";
 import { useSelection } from "../composables/useSelection";
@@ -93,6 +94,7 @@ export function getStore(print_format_name) {
 		load_preview_doc,
 		persisted_preview_doc_name,
 	} = usePreviewDoc(print_format, print_format_name);
+	const { condition_state, is_visible } = useConditions(layout, preview_doc);
 
 	// methods
 	function fetch() {
@@ -413,6 +415,8 @@ export function getStore(print_format_name) {
 		is_multi_select,
 		preview_doc,
 		preview_doc_name,
+		condition_state,
+		is_visible,
 		preview_values,
 		preview_child_values,
 		load_preview_doc,

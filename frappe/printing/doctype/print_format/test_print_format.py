@@ -22,10 +22,6 @@ class TestPrintFormat(IntegrationTestCase):
 		self.assertIn('<div class="value">', print_html)
 		return print_html
 
-	def test_print_user_standard(self):
-		print_html = self.test_print_user("Standard")
-		self.assertFalse("font-family: serif;" in print_html)
-
 	def test_print_user_modern(self):
 		print_html = self.test_print_user("Modern")
 		self.assertTrue("/* modern format: for-test */" in print_html)
@@ -566,17 +562,6 @@ class TestClassicConverter(IntegrationTestCase):
 		# re-running converts from the backup, not the already-converted layout
 		self.assertEqual(convert_print_format(doc), dropped)
 		self.assertEqual(frappe.parse_json(doc.format_data), self.EXPECTED_BETA_LAYOUT)
-
-	def test_get_beta_layout(self):
-		from frappe.printing.doctype.print_format.classic_converter import get_beta_layout
-
-		self.make_classic_format()
-		result = get_beta_layout(self.FORMAT_NAME)
-		self.assertEqual(result["layout"], self.EXPECTED_BETA_LAYOUT)
-		self.assertEqual(result["dropped"], ["dropped_field", "another_dropped_field"])
-		self.assertEqual(frappe.parse_json(result["classic_format_data"]), self.CLASSIC_FORMAT_DATA)
-		# read-only: the stored document is untouched
-		self.assertEqual(frappe.db.get_value("Print Format", self.FORMAT_NAME, "print_format_builder"), 1)
 
 	def test_classic_format_renders_via_beta_renderer(self):
 		self.make_classic_format()

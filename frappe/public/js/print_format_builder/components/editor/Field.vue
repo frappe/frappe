@@ -53,7 +53,7 @@
 import { computed, inject, ref } from "vue";
 import FieldPreview from "./FieldPreview.vue";
 import FieldChip from "./FieldChip.vue";
-import { evaluate_visible_if, field_uid } from "../../utils";
+import { field_uid } from "../../utils";
 import { useContextMenu } from "../../composables/useContextMenu";
 import { useFieldRoot } from "./useFieldRoot";
 
@@ -65,9 +65,7 @@ const preview_doc = computed(() => store.preview_doc.value);
 const is_selected = computed(
 	() => store.selected_field.value === props.df || store.selected_fields.value.includes(props.df)
 );
-const is_field_visible = computed(() =>
-	evaluate_visible_if(props.df.visible_if, preview_doc.value)
-);
+const is_field_visible = computed(() => store.is_visible(props.df.visible_if));
 const { preview_root, preview_data_attr } = useFieldRoot(props, preview_doc);
 
 function select_field(e) {

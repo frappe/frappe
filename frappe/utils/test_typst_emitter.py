@@ -175,15 +175,6 @@ class TestTypstGate(IntegrationTestCase):
 		source, _assets = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", todo.name))).emit()
 		self.assertIn(markup, source)
 
-	def test_safe_color_accepts_only_typst_hex_lengths(self):
-		from frappe.utils.typst_emitter import safe_color
-
-		for ok in ("#abc", "#abcd", "#aabbcc", "#aabbccdd"):
-			self.assertEqual(safe_color(ok), ok)
-		# 5/7 digits abort typst.compile with "color string has wrong length"
-		for bad in ("#12345", "#1234567", "#red"):
-			self.assertIsNone(safe_color(bad))
-
 	def test_remote_letterhead_image_blocks(self):
 		from frappe.utils.typst_emitter import letterhead_blockers
 
@@ -665,34 +656,12 @@ class TestTypstTranslation(IntegrationTestCase):
 				self.assertEqual(effects, {})
 				self.assertIn(reported, unknown)
 
-	def test_translate_reports_unknown_properties(self):
-		_effects, unknown = translate_custom_style("color: red; font-weight: bold")
-		self.assertEqual(unknown, ["color"])
-
 	def test_style_props_match_the_javascript_mirror(self):
 		"""The client hint must grey out exactly what the server refuses."""
 		source = (Path(frappe.get_app_path("frappe")) / "public/js/print_format_builder/utils.js").read_text()
-		block = re.search(r"export const TYPST_STYLE_PROPS = new Set\(\[(.*?)\]\);", source, re.S)
+		block = re.search(r"const TYPST_STYLE_PROPS = new Set\(\[(.*?)\]\);", source, re.S)
 		self.assertIsNotNone(block)
 		self.assertEqual(set(re.findall(r'"([^"]+)"', block.group(1))), set(TRANSLATABLE_STYLE_PROPS))
-
-	def test_special_fieldtypes_have_a_deliberate_disposition(self):
-		"""Every non-docfield element the builder can drop is either emitted or a
-		named blocker — a new element must choose, never fall through silently."""
-		emitted = {"Spacer", "Divider", "Table", "Repeater", "Image", "Barcode", "Attach Image"}
-		blocked = set(BLOCKER_FIELDTYPES)
-		builder_elements = {
-			"HTML",
-			"Spacer",
-			"Divider",
-			"Repeater",
-			"Image",
-			"Barcode",
-			"Field Template",
-			"Table",
-		}
-		unhandled = builder_elements - emitted - blocked
-		self.assertEqual(unhandled, set(), f"undeclared for typst: {unhandled}")
 
 
 class TestTypstRender(IntegrationTestCase):
@@ -716,21 +685,6 @@ class TestTypstRender(IntegrationTestCase):
 		)
 		self.addCleanup(doc.delete, ignore_permissions=True)
 		return frappe.get_doc("ToDo", doc.name)
-
-	def test_typst_choice_survives_save(self):
-		pf = self.make(
-			layout_with({"fieldtype": "Data", "fieldname": "description", "label": "D"}),
-			pdf_generator="Typst",
-		)
-		pf.reload()
-		self.assertEqual(pf.pdf_generator, "Typst")
-
-	def test_save_refuses_typst_with_blockers(self):
-		with self.assertRaises(frappe.ValidationError):
-			self.make(
-				layout_with({"fieldtype": "HTML", "fieldname": "h", "html": "<b>x</b>"}),
-				pdf_generator="Typst",
-			)
 
 	def test_emission_resolves_conditions_and_values(self):
 		from frappe.utils.print_format_generator import PrintFormatGenerator

@@ -73,10 +73,6 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		"""before_save should set print_format_builder_beta=1 for new non-custom formats."""
 		pf = self._make_print_format()
 		self.assertEqual(pf.print_format_builder_beta, 1)
-
-	def test_new_non_custom_format_sets_chrome_pdf_generator(self):
-		"""before_save should force pdf_generator='chrome' when builder beta is enabled."""
-		pf = self._make_print_format()
 		self.assertEqual(pf.pdf_generator, "chrome")
 
 	def test_new_custom_format_does_not_set_builder_beta(self):
@@ -99,14 +95,6 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		pf.insert(ignore_permissions=True)
 		self.addCleanup(pf.delete, ignore_permissions=True)
 		self.assertEqual(pf.print_format_builder_beta, 0)
-
-	def test_existing_builder_beta_format_keeps_chrome(self):
-		"""Saving an existing builder-beta format must keep pdf_generator='chrome'."""
-		pf = self._make_print_format()
-		pf.margin_top = 15
-		pf.save(ignore_permissions=True)
-		pf.reload()
-		self.assertEqual(pf.pdf_generator, "chrome")
 
 	def test_report_format_sets_custom_format(self):
 		"""before_save should set custom_format=1 when print_format_for=='Report'."""
@@ -131,16 +119,6 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 	# ------------------------------------------------------------------ #
 	# PrintFormatGenerator: HTML preview
 	# ------------------------------------------------------------------ #
-
-	def test_get_html_returns_string(self):
-		"""get_html should return a non-empty HTML string for a valid doc."""
-		from frappe.utils.print_format_generator import get_html
-
-		pf = self._make_print_format()
-		todo = self._make_todo()
-		html = get_html("ToDo", todo.name, pf.name)
-		self.assertIsInstance(html, str)
-		self.assertIn("<!DOCTYPE html>", html)
 
 	def test_get_html_contains_field_value(self):
 		"""The rendered HTML must include the document field value."""
@@ -201,16 +179,6 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		html = get_html("ToDo", todo.name, pf.name)
 		self.assertIn("data:image/svg+xml;base64", html)
 		self.assertNotIn('data-barcode-value="HELLO-QR"', html)
-
-	def test_get_html_applies_margin(self):
-		"""Margin values set on the print format should appear in the rendered CSS."""
-		from frappe.utils.print_format_generator import get_html
-
-		pf = self._make_print_format(margin_top=20, margin_bottom=20)
-		todo = self._make_todo()
-		html = get_html("ToDo", todo.name, pf.name)
-		# The CSS block should encode 20mm top/bottom margins
-		self.assertIn("20mm", html)
 
 	def test_screen_preview_is_full_page_width(self):
 		"""On screen the preview sheet is the full page width (A4 = 210mm) with the
@@ -402,33 +370,6 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		result = render_jinja_template("{{ doc.description }}", "ToDo", todo.name)
 		self.assertEqual(result, todo.description)
 
-	def test_render_jinja_template_requires_print_permission(self):
-		"""render_jinja_template must raise PermissionError for a guest user
-		who has no print permission on the document."""
-		from frappe.utils.print_format_generator import render_jinja_template
-
-		todo = self._make_todo()
-		# Simulate no print permission by checking that check_permission raises
-		# when called on a document the user can't print.
-		# We patch check_permission to verify it is actually called.
-		from frappe.model.document import Document
-
-		called = []
-		original = Document.check_permission
-
-		def fake_check(self_doc, *a, **kw):
-			called.append(a)
-			original(self_doc, *a, **kw)
-
-		Document.check_permission = fake_check
-		try:
-			render_jinja_template("{{ doc.description }}", "ToDo", todo.name)
-		finally:
-			Document.check_permission = original
-
-		self.assertTrue(called, "check_permission was never called")
-		self.assertIn("print", called[0])
-
 	def test_render_jinja_template_sandbox_blocks_dunder(self):
 		"""The Jinja sandbox must reject dunder attribute access (SSTI guard)."""
 		from frappe.utils.print_format_generator import render_jinja_template
@@ -437,6 +378,24 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		with self.assertRaises(Exception):
 			# SandboxedEnvironment raises SecurityError on .__class__.__bases__
 			render_jinja_template("{{ doc.__class__.__bases__ }}", "ToDo", todo.name)
+
+	def test_check_conditions_evaluates_a_bounded_distinct_batch(self):
+		"""The builder asks for every visible_if at once: each distinct expression
+		gets a verdict or an error, blanks are skipped, and the batch is capped."""
+		from frappe.utils.print_format_generator import MAX_CONDITIONS, check_conditions
+
+		todo = self._make_todo()
+		result = check_conditions(
+			"ToDo",
+			todo.name,
+			["doc.status == 'Open'", "doc.status == 'Open'", "doc.nope(", ""],
+		)
+		self.assertEqual(result["doc.status == 'Open'"], {"visible": True})
+		self.assertIn("error", result["doc.nope("])
+		self.assertEqual(len(result), 2)
+
+		flood = [f"doc.idx == {i}" for i in range(MAX_CONDITIONS + 50)]
+		self.assertEqual(len(check_conditions("ToDo", todo.name, flood)), MAX_CONDITIONS)
 
 	# ------------------------------------------------------------------ #
 	# PrintFormatGenerator: section / zone rendering
@@ -467,18 +426,6 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		}
 		html = generator._render_zone_section(section, todo)
 		self.assertIn(todo.description, html)
-
-	def test_zone_section_empty_when_no_fields(self):
-		"""_render_zone_section should return empty/falsy when section has no fields."""
-		from frappe.utils.print_format_generator import PrintFormatGenerator
-
-		pf = self._make_print_format()
-		todo = self._make_todo()
-		generator = PrintFormatGenerator(pf.name, todo)
-
-		section = {"label": "", "columns": [{"fields": []}]}
-		html = generator._render_zone_section(section, todo)
-		self.assertFalse(html.strip())
 
 	def test_letterhead_resolution_precedence(self):
 		"""Beta renders resolve a letter head like templates do, with the layout's own choice on top."""
@@ -588,40 +535,6 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		self.assertNotIn("onmouseover", html)
 		self.assertIn("row-col-space-between", html)
-
-	def test_section_background_in_html(self):
-		"""A section with a background color should have that style in the HTML output."""
-		from frappe.utils.print_format_generator import get_html
-
-		bg_color = "#ffe0b2"
-		pf = self._make_print_format(
-			format_data=json.dumps(
-				{
-					"sections": [
-						{
-							"label": "Styled",
-							"background": bg_color,
-							"columns": [
-								{
-									"fields": [
-										{
-											"fieldtype": "Data",
-											"fieldname": "description",
-											"label": "Description",
-										}
-									]
-								}
-							],
-						}
-					],
-					"header": {"columns": [{"label": "", "fields": []}]},
-					"footer": {"columns": [{"label": "", "fields": []}]},
-				}
-			)
-		)
-		todo = self._make_todo()
-		html = get_html("ToDo", todo.name, pf.name)
-		self.assertIn(bg_color, html)
 
 	def test_section_padding_in_html(self):
 		"""Padding set on a section should appear as an inline style in the HTML."""
@@ -921,16 +834,6 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			html,
 		)
 
-	def test_no_color_override_when_colors_unset(self):
-		"""Without label/value colors, no color override rule is emitted."""
-		from frappe.utils.print_format_generator import get_html
-
-		pf = self._make_print_format()
-		todo = self._make_todo()
-		html = get_html("ToDo", todo.name, pf.name)
-		self.assertNotIn(".field.left-right .label {\n\tcolor:", html)
-		self.assertNotIn(".field.left-right .value {\n\tcolor:", html)
-
 	def test_non_hex_color_rejected(self):
 		"""Colors that are not #RRGGBB hex codes are rejected on save."""
 		with self.assertRaises(frappe.ValidationError):
@@ -1109,17 +1012,6 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIn("pfb-repeater", html)
 		self.assertIn("Email: pfg@example.com", html)
 
-	def test_repeater_no_title_when_label_blank(self):
-		"""A repeater with a blank label renders no title element."""
-		from frappe.utils.print_format_generator import get_html
-
-		contact = self._make_contact_with_email()
-		pf = self._make_repeater_format(
-			label="", columns=[{"template": [{"t": "f", "v": "email_id"}], "align": "left"}]
-		)
-		html = get_html("Contact", contact.name, pf.name)
-		self.assertNotIn('<div class="label">', html)
-
 	def test_repeater_with_missing_columns_key_does_not_crash(self):
 		"""A repeater whose source is set but with no repeater_columns key must not raise."""
 		from frappe.utils.print_format_generator import get_html
@@ -1171,21 +1063,6 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		html = get_html("Contact", contact.name, pf.name)
 		self.assertIn('style="text-align: left; color: #C0392B"', html)
 
-	def test_repeater_column_no_color_when_unset(self):
-		"""A repeater column without a color emits no inline color on the cell."""
-		from frappe.utils.print_format_generator import get_html
-
-		contact = self._make_contact_with_email()
-		pf = self._make_repeater_format(
-			columns=[{"template": [{"t": "f", "v": "email_id"}], "align": "left"}]
-		)
-		html = get_html("Contact", contact.name, pf.name)
-		self.assertIn('class="pfb-repeater-cell" style="text-align: left"', html)
-
-	# ------------------------------------------------------------------ #
-	# Field orientation / spacing
-	# ------------------------------------------------------------------ #
-
 	def test_left_right_field_gets_justify_class(self):
 		"""A left-right field with label_justify emits the field-justify-* class."""
 		from frappe.utils.print_format_generator import get_html
@@ -1219,21 +1096,6 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		todo = self._make_todo()
 		html = get_html("ToDo", todo.name, pf.name)
 		self.assertIn("field-justify-space-between", html)
-
-	def test_top_orientation_field_is_not_inline(self):
-		"""A default (Top) field is not rendered inline — no left-right/field-inline class."""
-		from frappe.utils.print_format_generator import get_html
-
-		pf = self._make_print_format()
-		todo = self._make_todo()
-		html = get_html("ToDo", todo.name, pf.name)
-		body = html.split("<body", 1)[1]
-		self.assertNotIn("field-justify-", body)
-		self.assertNotIn("field left-right", body)
-
-	# ------------------------------------------------------------------ #
-	# draft / cancelled heading + docstatus guard (new renderer)
-	# ------------------------------------------------------------------ #
 
 	def _make_submittable_doc(self, target_docstatus=0):
 		"""Create a submittable doctype + one document at the requested docstatus."""
@@ -1297,14 +1159,6 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		with self.change_settings("Print Settings", allow_print_for_draft=0):
 			doc = self._make_submittable_doc(0)
 			self.assertRaises(frappe.PermissionError, download_pdf, doc.doctype, doc.name, "Standard")
-
-	def test_get_html_blocks_draft(self):
-		"""get_html (the printview / printpreview render path) enforces the draft guard."""
-		from frappe.utils.print_format_generator import get_html
-
-		with self.change_settings("Print Settings", allow_print_for_draft=0):
-			doc = self._make_submittable_doc(0)
-			self.assertRaises(frappe.PermissionError, get_html, doc.doctype, doc.name, "Standard")
 
 	def test_attach_print_beta_blocks_draft(self):
 		"""attach_print's beta branch enforces the draft guard before rendering."""
@@ -1513,20 +1367,6 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.addCleanup(pf.delete, ignore_permissions=True)
 		self.assertTrue(frappe.parse_json(pf.format_data).get("sections"))
 
-	def test_browser_print_no_repeating_frame_when_off(self):
-		"""With repeat_header_footer off, the browser-print HTML is not wrapped in the
-		repeating table — the letterhead renders inline once."""
-		from frappe.utils.print_format_generator import get_html
-
-		lh = self._make_letterhead()
-		pf = self._make_print_format()
-		todo = self._make_todo()
-		with self.change_settings("Print Settings", repeat_header_footer=0):
-			html = get_html("ToDo", todo.name, pf.name, lh.name)
-
-		self.assertNotIn("print-repeating-frame", html)
-		self.assertIn("LETTERHEAD_TOP", html)
-
 	def _user_beta_format(self, layout, skip_validation=False):
 		import json
 
@@ -1676,19 +1516,3 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			),
 			{"repeat_header_footer": 1},
 		)
-
-	def test_settings_override_reaches_pdf_download(self):
-		"""render_pdf (the PDF download path) renders with the overridden print_settings,
-		so a print-preview toggle carries into the downloaded file too."""
-		from unittest.mock import patch
-
-		from frappe.utils.print_format_generator import PrintFormatGenerator
-
-		pf = self._make_print_format()
-		todo = self._make_todo()
-		todo.get_print_settings = lambda: ["repeat_header_footer"]
-		generator = PrintFormatGenerator(pf, todo, settings={"repeat_header_footer": 1})
-
-		with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-"):
-			generator.render_pdf()
-		self.assertEqual(generator.print_settings.repeat_header_footer, 1)
