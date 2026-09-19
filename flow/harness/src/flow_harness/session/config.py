@@ -3,6 +3,8 @@ importing the session lifecycle (which imports the loop)."""
 
 from __future__ import annotations
 
+from collections.abc import Iterable
+
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from flow_harness.events import ReasoningEffort
@@ -141,3 +143,11 @@ class SubagentConfig(BaseModel):
 	reasoning_effort: ReasoningEffort | None = None
 	system_prompt: str | None = None
 	tools: list[str] | None = None
+
+
+GENERAL_SUBAGENT = SubagentConfig(name=GENERAL_AGENT, description="a copy of you with a fresh context")
+
+
+def known_agents(subagents: Iterable[SubagentConfig]) -> dict[str, SubagentConfig]:
+	"""The agents a session offers, by name, the general one first."""
+	return {item.name: item for item in (GENERAL_SUBAGENT, *subagents)}

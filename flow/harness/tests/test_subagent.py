@@ -23,7 +23,7 @@ from flow_harness.session.session import ResumeError, SessionConflict
 from flow_harness.session.store import PolicyError, SessionStore
 from flow_harness.session.subagents import _child_inputs
 from flow_harness.session.transcript import Transcript
-from flow_harness.tools import select_tools
+from flow_harness.tools import ToolContext, ToolResult, select_tools, tool
 from flow_harness.tools.builtins.subagent import subagent
 
 
@@ -132,40 +132,6 @@ async def test_a_subagent_answers_from_a_fresh_context(tmp_path):
 		"assistant_message",
 	]
 	assert _of(events, "run_ended")[-1]["reason"] == "done"
-
-
-async def test_the_tool_stays_bound_when_the_session_tools_are_recomposed(tmp_path):
-	events: list[dict] = []
-	store = SessionStore(str(tmp_path / "data"), event_sink=lambda _sid, ev: events.append(ev))
-	session = store.create(SessionConfig(cwd=str(tmp_path)))
-	session.server_tools = store.resolve_tools(
-		session.config
-	)  # what a config patch or an extension reload does
-	model = ScriptedModel(
-		{
-			"go": [AssistantMessage(content=[_spawn("c1", "count")]), AssistantMessage(content="done")],
-			"count": [AssistantMessage(content="three")],
-		}
-	)
-
-	await _run(session, "go", model)
-
-	assert _of(events, "tool_result")[0]["content"] == "three"
-
-
-async def test_an_extension_tool_named_subagent_is_left_alone(tmp_path):
-	session, events = _session(tmp_path)
-	assert session.server_tools is not None
-	session.server_tools["subagent"] = replace(subagent, description="an extension's own")
-	model = ScriptedModel(
-		{"go": [AssistantMessage(content=[_spawn("c1", "x")]), AssistantMessage(content="done")]}
-	)
-
-	await _run(session, "go", model)
-
-	# the extension's tool ran as it is; nothing was bound over it and no child started
-	assert "not available" in _of(events, "tool_result")[0]["content"]
-	assert not [e for e in events if e.get("subagent_id")]
 
 
 async def test_a_named_agent_runs_with_its_own_prompt_and_tools(tmp_path):
@@ -316,6 +282,37 @@ async def test_a_subagent_cannot_start_subagents(tmp_path):
 	assert nested["tool_call_id"] == "c2" and nested["is_error"]
 	assert "unknown tool: subagent" in nested["content"]
 	assert "gave up" in _of(events, "tool_result")[0]["content"]
+
+
+async def test_a_child_has_no_runner_so_nothing_inside_it_can_delegate(tmp_path):
+	@tool
+	async def delegate(*, ctx: ToolContext) -> ToolResult:
+		return ToolResult(content="runner: " + ("absent" if ctx.run_subagent is None else "present"))
+
+	session, events = _session(tmp_path)
+	assert session.server_tools is not None
+	session.server_tools["delegate"] = (
+		delegate  # what an extension tool would be, in the session and its children
+	)
+	model = ScriptedModel(
+		{
+			"go": [
+				AssistantMessage(content=[ToolCall(id="p1", name="delegate", arguments={})]),
+				AssistantMessage(content=[_spawn("c1", "try it")]),
+				AssistantMessage(content="done"),
+			],
+			"try it": [
+				AssistantMessage(content=[ToolCall(id="c2", name="delegate", arguments={})]),
+				AssistantMessage(content="tried"),
+			],
+		}
+	)
+
+	await _run(session, "go", model)
+
+	assert _of(events, "tool_result")[0]["content"] == "runner: present"
+	assert _of(events, "tool_result", subagent="c1")[0]["content"] == "runner: absent"
+	assert {e["subagent_id"] for e in events if e.get("subagent_id")} == {"c1"}
 
 
 async def test_subagents_called_in_one_turn_run_together(tmp_path):

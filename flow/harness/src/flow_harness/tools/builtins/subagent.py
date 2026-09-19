@@ -2,25 +2,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable, Iterable
-from dataclasses import dataclass, replace
+from collections.abc import Iterable
 from typing import Annotated
 
-from flow_harness.session.config import GENERAL_AGENT, SubagentConfig
+from flow_harness.session.config import SubagentConfig, known_agents
 from flow_harness.tools.builtins.common import truncate
-from flow_harness.tools.tool import Tool, ToolContext, ToolResult, tool
+from flow_harness.tools.tool import SubagentOutcome, ToolContext, ToolResult, tool
 
 _FAILED = frozenset({"error", "aborted", "max_turns", "budget", "cancelled", "denied"})
-_GENERAL = SubagentConfig(name=GENERAL_AGENT, description="a copy of you with a fresh context")
-
-
-@dataclass
-class SubagentOutcome:
-	"""How a sub-agent run ended, for the tool to report."""
-
-	end_reason: str
-	text: str
-	error: str | None = None
 
 
 @tool(
@@ -44,33 +33,25 @@ async def subagent(
 	handful of tool calls yourself. Calls made in the same reply run at the same time.
 	Sub-agents cannot delegate further.
 	"""
-	# the session binds its runner with `bind_subagent`; unbound, the tool cannot run
-	return ToolResult(content="[sub-agents are not available here]", is_error=True)
+	if ctx.run_subagent is None:
+		return ToolResult(content="[sub-agents are not available here]", is_error=True)
+	try:
+		outcome = await ctx.run_subagent(ctx.tool_call_id, task, agent)
+	except ValueError as error:  # an agent the session does not have
+		return ToolResult(content=f"[{error}]", is_error=True)
+	return _report(outcome)
 
 
-def bind_subagent(
-	run: Callable[[str, str, SubagentConfig], Awaitable[SubagentOutcome]], subagents: Iterable[SubagentConfig]
-) -> Tool:
-	"""The tool wired to a session's runner, with the session's agents listed in its description."""
-	known = {item.name: item for item in (_GENERAL, *subagents)}
+def describe_agents(subagents: Iterable[SubagentConfig]) -> str:
+	"""The tool's description with the session's agents listed, for the model to pick from."""
 	lines = [
 		f"- {item.name}: {item.description}" if item.description else f"- {item.name}"
-		for item in known.values()
+		for item in known_agents(subagents).values()
 	]
-
-	async def bound(task: str, description: str, agent: str | None = None, *, ctx: ToolContext) -> ToolResult:
-		subagent_config = known.get(agent or GENERAL_AGENT)
-		if subagent_config is None:
-			return ToolResult(
-				content=f"[unknown agent {agent!r}; available: {', '.join(known)}]", is_error=True
-			)
-		return _report(await run(ctx.tool_call_id, task, subagent_config), subagent_config.name)
-
-	description = subagent.description + "\n\nAvailable agents:\n" + "\n".join(lines)
-	return replace(subagent, func=bound, description=description)
+	return subagent.description + "\n\nAvailable agents:\n" + "\n".join(lines)
 
 
-def _report(outcome: SubagentOutcome, agent: str) -> ToolResult:
+def _report(outcome: SubagentOutcome) -> ToolResult:
 	body, trunc = truncate(outcome.text, keep="head")
 	parts = [body or "[the sub-agent gave no answer]"]
 	failed = outcome.end_reason in _FAILED
@@ -84,5 +65,5 @@ def _report(outcome: SubagentOutcome, agent: str) -> ToolResult:
 	return ToolResult(
 		content="\n\n".join(parts),
 		is_error=failed,
-		details={"agent": agent, "end_reason": outcome.end_reason, "truncation": trunc},
+		details={"agent": outcome.agent, "end_reason": outcome.end_reason, "truncation": trunc},
 	)

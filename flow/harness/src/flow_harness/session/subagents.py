@@ -18,11 +18,11 @@ from flow_harness.events import (
 	UserMessage,
 )
 from flow_harness.model.cancellation import ModelCancelled, await_with_cancellation
-from flow_harness.session.config import SessionConfig, SubagentConfig
+from flow_harness.session.config import GENERAL_AGENT, SessionConfig, SubagentConfig, known_agents
 from flow_harness.session.prompt import strip_tool_from_prompt
 from flow_harness.session.transcript import PendingApproval, Transcript
-from flow_harness.tools import Tool
-from flow_harness.tools.builtins.subagent import SubagentOutcome, subagent
+from flow_harness.tools import SubagentOutcome, Tool
+from flow_harness.tools.builtins.subagent import subagent
 
 CANCELLED = json.dumps({"status": "cancelled", "message": "User cancelled this pending tool call."})
 
@@ -53,12 +53,15 @@ class SubagentRunner:
 		self._pauses: dict[int | None, _Pause] = {}  # by approval seq, while a child waits on it
 
 	async def run(
-		self, inputs: loop.LoopInputs, call_id: str, task: str, agent: SubagentConfig
+		self, inputs: loop.LoopInputs, call_id: str, task: str, agent: str | None
 	) -> SubagentOutcome:
 		"""Run `agent` through `task` as the sub-agent named by its call, in the run of `inputs`."""
+		config = _agent(inputs.config, agent)
 		child = Transcript(call_id)
 		async with self._slots:
-			return await self._drive(_child_inputs(inputs, child, agent, self._compose_tools), child, task)
+			return await self._drive(
+				_child_inputs(inputs, child, config, self._compose_tools), child, task, config.name
+			)
 
 	def pending(self, approval_seq: int | None) -> PendingApproval | None:
 		"""The batch a child waits on under `approval_seq`, if any."""
@@ -77,7 +80,9 @@ class SubagentRunner:
 			pause.answers.set_result(None)
 		return bool(pauses)
 
-	async def _drive(self, inputs: loop.LoopInputs, child: Transcript, task: str) -> SubagentOutcome:
+	async def _drive(
+		self, inputs: loop.LoopInputs, child: Transcript, task: str, agent: str
+	) -> SubagentOutcome:
 		"""Commit the child's events and report how it went; when its loop raises instead, settle it here."""
 		text = ""
 		end_reason: str = "done"
@@ -101,7 +106,7 @@ class SubagentRunner:
 		except Exception as failure:
 			self._settle(child, reason="error", error=failure)
 			end_reason, error = "error", f"{type(failure).__name__}: {failure}"
-		return SubagentOutcome(end_reason=end_reason, text=text, error=error)
+		return SubagentOutcome(agent=agent, end_reason=end_reason, text=text, error=error)
 
 	async def _turns(self, inputs: loop.LoopInputs, child: Transcript, task: str) -> AsyncIterator[AnyEvent]:
 		"""The child's run, continued past each approval pause a human answers."""
@@ -172,8 +177,18 @@ def _child_inputs(
 		context_message_count=child.context_message_count,
 		next_steering=None,
 		server_tools={name: tool for name, tool in tools.items() if name != subagent.name},
+		run_subagent=None,  # nothing inside a child can delegate
 		model=None if own_model else inputs.model,
 		model_name=agent.model or inputs.model_name,
 		credential_id=None if own_model else inputs.credential_id,
 		reasoning_effort=agent.reasoning_effort or inputs.reasoning_effort,
 	)
+
+
+def _agent(config: SessionConfig, name: str | None) -> SubagentConfig:
+	"""The agent to run as: `name` from the session's list, or general when unnamed."""
+	known = known_agents(config.subagents)
+	agent = known.get(name or GENERAL_AGENT)
+	if agent is None:
+		raise ValueError(f"unknown agent {name!r}; available: {', '.join(known)}")
+	return agent

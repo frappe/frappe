@@ -31,6 +31,7 @@ import json
 import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from dataclasses import dataclass, replace
+from functools import partial
 from typing import TYPE_CHECKING, Any
 
 from flow_harness.agent.client_tools import call_client
@@ -70,7 +71,7 @@ from flow_harness.model.credentials import CredentialStore
 from flow_harness.model.reasoning import reasoning_params
 from flow_harness.session.config import SessionConfig
 from flow_harness.session.transcript import PendingApproval
-from flow_harness.tools import Tool, ToolContext
+from flow_harness.tools import SubagentOutcome, Tool, ToolContext
 
 if TYPE_CHECKING:
 	from flow_harness.extensions import ExtensionRuntime
@@ -121,6 +122,7 @@ class LoopInputs:
 	after_tool_call: AfterHook | None = None
 	resolve_attachment: Callable[[str], bytes] | None = None
 	store_image: Callable[[str, bytes], Awaitable[AttachmentContent]] | None = None
+	run_subagent: Callable[[LoopInputs, str, str, str | None], Awaitable[SubagentOutcome]] | None = None
 	server_tools: dict[str, Tool] | None = None
 	extension_runtime: ExtensionRuntime | None = None
 
@@ -671,6 +673,8 @@ def _tool_context(inputs: LoopInputs) -> ToolContext:
 		read_only_roots=inputs.read_only_roots,
 		abort=inputs.abort,
 		store_image=inputs.store_image,
+		# the runner needs this run's inputs; a tool only names the call, task and agent
+		run_subagent=partial(inputs.run_subagent, inputs) if inputs.run_subagent is not None else None,
 	)
 
 

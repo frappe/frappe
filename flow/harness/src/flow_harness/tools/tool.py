@@ -81,6 +81,8 @@ class ToolContext:
 	timeout: float = 120.0
 	# stores image bytes beside the session log; None when the caller has no attachment store
 	store_image: Callable[[str, bytes], Awaitable[AttachmentContent]] | None = None
+	# runs a sub-agent in this run, given the call id, task and agent name; None where none can run
+	run_subagent: Callable[[str, str, str | None], Awaitable[SubagentOutcome]] | None = None
 	# the call being executed, set per dispatch
 	tool_call_id: str = ""
 
@@ -95,6 +97,17 @@ class ToolResult:
 	is_error: bool = False
 	# images the tool produced; the loop copies these onto the durable event
 	attachments: list[AttachmentContent] = field(default_factory=list)
+
+
+@dataclass
+class SubagentOutcome:
+	"""What `ToolContext.run_subagent` reports back: how the child's run ended, and the
+	agent it ran as."""
+
+	agent: str
+	end_reason: str
+	text: str
+	error: str | None = None
 
 
 @dataclass

@@ -21,9 +21,8 @@ import asyncio
 import uuid
 from collections import deque
 from collections.abc import AsyncGenerator, AsyncIterator, Callable
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 from enum import StrEnum
-from functools import partial
 from typing import TYPE_CHECKING, Literal
 
 from flow_harness import config as server_config
@@ -79,7 +78,6 @@ from flow_harness.session.skills import (
 from flow_harness.session.subagents import CANCELLED, SubagentRunner
 from flow_harness.session.transcript import PendingApproval, Transcript
 from flow_harness.tools import Tool
-from flow_harness.tools.builtins.subagent import bind_subagent, subagent
 
 if TYPE_CHECKING:
 	from flow_harness.extensions import ExtensionRuntime
@@ -545,7 +543,7 @@ class Session:
 		"""Prepare a fresh operation's inputs — including its own abort signal, so a
 		late abort of the previous run cannot leak into this one."""
 		self.abort_signal = asyncio.Event()
-		inputs = loop.LoopInputs(
+		return loop.LoopInputs(
 			config=self.config,
 			messages=self.transcript.messages,
 			credential_store=self.credential_store,
@@ -565,14 +563,10 @@ class Session:
 			after_tool_call=after_tool_call,
 			resolve_attachment=self.attachment_store.read if self.attachment_store is not None else None,
 			store_image=self._store_tool_image if self.attachment_store is not None else None,
+			run_subagent=self._subagent_runner.run,
 			server_tools=self.server_tools,
 			extension_runtime=self.extension_runtime,
 		)
-		tools = inputs.server_tools
-		if tools is not None and tools.get(subagent.name) is subagent:  # the builtin, bound to this run
-			bound = bind_subagent(partial(self._subagent_runner.run, inputs), self.config.subagents)
-			inputs = replace(inputs, server_tools={**tools, subagent.name: bound})
-		return inputs
 
 	async def _store_tool_image(self, name: str, data: bytes) -> AttachmentContent:
 		"""Store a tool's image and claim it at once: the result referencing it is
