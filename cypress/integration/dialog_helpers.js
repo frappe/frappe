@@ -31,4 +31,16 @@ context("Dialog helpers", () => {
 			"Rename Project"
 		);
 	});
+
+	it("removes the frappe.show_progress dialog from the DOM once hidden", () => {
+		cy.window()
+			.its("frappe")
+			.then((frappe) => frappe.show_progress("Importing Customers", 40, 100))
+			.as("dialog");
+		cy.get("@dialog").its("display").should("be.true");
+		cy.window()
+			.its("frappe")
+			.then((frappe) => frappe.hide_progress());
+		cy.contains("Importing Customers").should("not.exist");
+	});
 });
