@@ -1,5 +1,5 @@
 // The signed-in person: published by a host that has already booted, fetched once by anyone else.
-import { computed, inject, ref, shallowRef } from "vue";
+import { computed, getCurrentInstance, inject, ref, shallowRef } from "vue";
 import type { App, ComputedRef, InjectionKey, Ref } from "vue";
 import { getSession } from "../api";
 import type { Session } from "../api";
@@ -22,8 +22,9 @@ let generation = 0;
 let started = false;
 
 export function useSession(): UseSession {
-  // Outside a component `inject` returns undefined; the module ref is the store either way.
-  const shared = inject(SessionKey, store) ?? store;
+  // `inject` warns when there is no component instance, and plain module code calls this
+  // through `useUserRoles`; the module ref is the store in that case anyway.
+  const shared = getCurrentInstance() ? inject(SessionKey, store) : store;
   if (!shared.value && !started) void fetchSession();
 
   return {
