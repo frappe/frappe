@@ -1,16 +1,17 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# License: MIT. See LICENSE
+# License: MIT. See license.txt
 
 """Dedicated SQLite database for the framework's log DocTypes.
 
-Log records -- errors, page views, access and activity trails -- are written far more
-often than they are read, and they must survive the transaction they were recorded in:
-an Error Log describing a failure is worthless if it rolls back together with the failure.
+Log records -- errors, page views, access and activity trails -- are written more
+often than they are read, and they must survive the transaction they were recorded
+in: an Error Log describing a failure is worthless if it rolls back together with
+the failure.
 
-Keeping them in their own SQLite database gives both properties for free. The connection
-here is entirely separate from `frappe.db`, which continues to serve every other DocType
-from the site's primary database. Nothing in this module reads, assigns to, or otherwise
-touches `frappe.db` / `frappe.local.db`.
+Keeping them in their own SQLite database gives both properties for free. The
+connection here is entirely separate from `frappe.db`, which continues to serve
+every other DocType from the site's primary database. Nothing in this module reads,
+assigns to, or otherwise touches `frappe.db` / `frappe.local.db`.
 """
 
 import re
@@ -20,15 +21,16 @@ import frappe
 from frappe.database.sqlite.database import SQLiteDatabase
 from frappe.model.document import Document
 
-# The named placeholders `QueryBuilder.walk()` emits, e.g. `%(param1)s`.
-_NAMED_PARAM_PATTERN = re.compile(r"%\((\w+)\)s")
 
-# `creation desc`, "`tabError Log`.`creation` desc", `creation` -- the shapes the list view
-# and `frappe.get_all` actually send. Anything else is ignored rather than guessed at.
+# `creation desc`, "`tabError Log`.`creation` desc", `creation` -- the shapes the
+# list view and `frappe.get_all` actually send. Anything else is ignored rather
+# than guessed at.
 _ORDER_BY_PATTERN = re.compile(
 	r"^\s*(?:[`\"]?tab[^`\"]+[`\"]?\.)?[`\"]?(?P<field>\w+)[`\"]?(?:\s+(?P<direction>asc|desc))?\s*$",
 	flags=re.IGNORECASE,
 )
+
+_NAMED_PARAMETER_PATTERN = re.compile(r"%\((?P<name>\w+)\)s")
 
 #: Basename of the log database, stored as `<site>/logs/<LOG_DB_NAME>.db`.
 LOG_DB_NAME = "logs"
@@ -37,9 +39,9 @@ LOG_DB_NAME = "logs"
 class LogDatabase(SQLiteDatabase):
 	"""The site's log database.
 
-	Identical to :class:`~frappe.database.sqlite.database.SQLiteDatabase` apart from where
-	the file lives: the base class keeps site databases in `<site>/db/`, while log data
-	belongs in `<site>/logs/` next to the site's other log output.
+	Identical to :class:`~frappe.database.sqlite.database.SQLiteDatabase` apart from
+	where the file lives: the base class keeps site databases in `<site>/db/`, while
+	log data belongs in `<site>/logs/` next to the site's other log output.
 	"""
 
 	def __init__(self):
@@ -58,11 +60,12 @@ class LogDatabase(SQLiteDatabase):
 def get_log_db() -> LogDatabase:
 	"""Return the log database handle, connecting on first use.
 
-	The handle is cached on `frappe.local` so a request or job that logs repeatedly reuses
-	one connection, and is released by :func:`close_log_db` when that request or job ends.
+	The handle is cached on `frappe.local` so a request or job that logs repeatedly
+	reuses one connection, and is released by :func:`close_log_db` when that request
+	or job ends.
 
-	This is a second, independent connection -- it does not replace `frappe.db`, and callers
-	are responsible for committing their own writes on it.
+	This is a second, independent connection -- it does not replace `frappe.db`, and
+	callers are responsible for committing their own writes on it.
 	"""
 	log_db = getattr(frappe.local, "log_db", None)
 
@@ -90,14 +93,13 @@ def close_log_db():
 class LogDocument(Document):
 	"""Base controller for log DocTypes that store their rows in the log database.
 
-	Log DocTypes are declared `is_virtual`, which tells the framework it owns no table for
-	them in the site's primary database, and routes persistence and listing through the
-	controller instead. This class implements that contract -- the
-	:class:`frappe.model.virtual_doctype.VirtualDoctype` protocol -- against
-	:func:`get_log_db`, so a log DocType only has to subclass it.
+	Log DocTypes are declared `is_virtual`, which tells the framework it owns no table
+	for them in the site's primary database, and routes persistence and listing through
+	the controller. This class implements that contract against :func:`get_log_db`,
+	so a log DocType only has to subclass it.
 
-	Writes commit immediately on the log connection. That is the point of the design: a
-	record of a failure has to outlive the primary transaction that failed.
+	Writes commit immediately on the log connection. That is the point of the design:
+	a record of a failure has to outlive the primary transaction that failed.
 	"""
 
 	# ============ instance methods ============
@@ -124,11 +126,13 @@ class LogDocument(Document):
 			return
 
 		d = self.get_valid_dict(convert_dates_to_str=True, ignore_virtual=True)
-		# `name` addresses the row rather than being updated; the case may have changed.
+
+		# `name` addresses the row rather than being updated.
 		name = d.pop("name")
 
 		qb, table = _log_table(self.doctype)
 		query = qb.update(table)
+
 		for fieldname, value in d.items():
 			query = query.set(table[fieldname], value)
 
@@ -138,6 +142,7 @@ class LogDocument(Document):
 	def load_from_db(self):
 		"""Populate this document from its row in the log database."""
 		qb, table = _log_table(self.doctype)
+
 		rows = _run_log_query(
 			qb.from_(table).select(table.star).where(table.name == self.name),
 			as_dict=True,
@@ -152,13 +157,24 @@ class LogDocument(Document):
 	def delete(self, *args, **kwargs):
 		"""Delete this document from the log database."""
 		qb, table = _log_table(self.doctype)
-		_run_log_query(qb.from_(table).where(table.name == self.name).delete())
+
+		_run_log_query(
+			qb.from_(table).where(table.name == self.name).delete()
+		)
 		get_log_db().commit()
 
 	# ============ class/static methods ============
 
 	@staticmethod
-	def get_list(doctype: str, filters=None, fields=None, order_by=None, start=0, page_length=20, **kwargs):
+	def get_list(
+		doctype: str,
+		filters=None,
+		fields=None,
+		order_by=None,
+		start=0,
+		page_length=20,
+		**kwargs,
+	):
 		"""Return a page of log rows, for the list view and `frappe.get_all`."""
 		query = _build_log_query(doctype, filters)
 		table = query._from[0]
@@ -169,37 +185,36 @@ class LogDocument(Document):
 		if order_by and (ordering := _parse_order_by(table, order_by)):
 			query = query.orderby(ordering[0], order=ordering[1])
 
-		query = query.limit(frappe.utils.cint(page_length) or 20).offset(frappe.utils.cint(start))
+		query = query.limit(
+			frappe.utils.cint(page_length) or 20
+		).offset(
+			frappe.utils.cint(start)
+		)
 
 		return _run_log_query(query, as_dict=True)
 
 	@staticmethod
 	def get_count(doctype: str, filters=None, **kwargs) -> int:
-		"""Return the total number of matching log rows, for the list view counter."""
+		"""Return the total number of matching log rows."""
 		from frappe.query_builder.functions import Count
 
-		result = _run_log_query(_build_log_query(doctype, filters).select(Count("*")))
+		result = _run_log_query(
+			_build_log_query(doctype, filters).select(Count("*"))
+		)
 
 		return frappe.utils.cint(result[0][0]) if result else 0
 
 	@staticmethod
 	def get_stats(**kwargs):
-		"""Return sidebar stats -- always empty.
-
-		`frappe.desk.reportview.get_sidebar_stats` calls this with only `stats` and
-		`filters`; it never passes the doctype. A shared base class therefore has no way to
-		know which table to aggregate, so there is nothing meaningful to return. Frappe's own
-		virtual DocTypes (e.g. RQ Job) return an empty dict here for the same reason.
-		"""
+		"""Return sidebar stats -- always empty."""
 		return {}
 
 
 def _log_table(doctype: str):
 	"""Return `(builder, table)` for a log DocType's table.
 
-	The SQLite dialect is requested explicitly instead of using `frappe.qb`, which is bound to
-	the site's primary backend. Asking for the builder class does not read or modify any
-	global, so `frappe.db` / `frappe.local.qb` are left exactly as they are.
+	The SQLite dialect is requested explicitly instead of using `frappe.qb`, which is
+	bound to the site's primary backend.
 	"""
 	from frappe.query_builder.utils import get_query_builder
 
@@ -208,14 +223,16 @@ def _log_table(doctype: str):
 
 
 def _run_log_query(query, **kwargs):
-	"""Render `query` and execute it on the log connection.
+	"""Render a Query Builder query and execute it on the log database.
 
-	`walk()` turns the query object into SQL plus its parameters without running it -- the
-	same pattern `frappe.desk.reportview.get_count` uses -- so the statement can be handed to
-	the log database rather than to whatever `frappe.db` happens to be.
+	`walk()` returns SQL containing named Frappe placeholders and a parameter mapping.
+	For string values, the current Query Builder stores the SQL-quoted representation
+	of the value. Before binding the parameters to SQLite, convert the placeholders
+	to positional `%s` placeholders and restore those strings to their actual values.
 
-	The parameters are converted from `walk()`'s named form to the positional form before
-	handing them over; see :func:`_as_positional_params`.
+	The resulting values are then handled by SQLiteDatabase.sql(), which converts
+	Frappe's `%s` placeholders to SQLite's `?` placeholders and performs normal
+	parameter binding.
 	"""
 	sql, params = query.walk()
 	sql, values = _as_positional_params(sql, params)
@@ -224,29 +241,55 @@ def _run_log_query(query, **kwargs):
 
 
 def _as_positional_params(sql: str, params):
-	"""Rewrite `%(name)s` placeholders to `%s` and order the values to match.
+	"""Convert named Query Builder parameters to positional parameters.
 
-	`walk()` emits named placeholders with a dict, but `SQLiteDatabase.execute_query` only
-	binds parameters natively when it is given a sequence: it rewrites `%s` to sqlite3's `?`
-	and hands the values to the driver.
+	Query Builder's `walk()` produces parameters such as:
 
-	Its dict branch does something else entirely -- it quotes each value, `%`-interpolates
-	them into the statement, then passes the now-spent dict to the driver as well. That binds
-	nothing, mutates the caller's dict in place, and raises `ValueError` (which the branch's
-	`except TypeError` does not catch) whenever the statement contains a literal `%`.
+		{
+			"param1": "'hello'",
+			"param2": "'world'"
+		}
 
-	Converting here keeps every log query on the driver's own binding path.
+	The string values are already SQL-quoted. SQLite parameter binding must receive
+	the underlying values instead:
+
+		("hello", "world")
+
+	The values are collected according to placeholder order in the SQL rather than
+	dictionary order.
 	"""
 	if not isinstance(params, dict):
 		return sql, params
 
-	ordered = []
+	values = []
 
-	def collect(match: "re.Match") -> str:
-		ordered.append(params[match.group(1)])
+	def replace_parameter(match):
+		name = match.group("name")
+
+		if name not in params:
+			raise frappe.ValidationError(
+				frappe._("Missing query parameter: {0}").format(name)
+			)
+
+		value = params[name]
+
+		if isinstance(value, str):
+			value = _unquote_sql_string(value)
+
+		values.append(value)
 		return "%s"
 
-	return _NAMED_PARAM_PATTERN.sub(collect, sql), tuple(ordered)
+	sql = _NAMED_PARAMETER_PATTERN.sub(replace_parameter, sql)
+
+	return sql, tuple(values)
+
+
+def _unquote_sql_string(value: str) -> str:
+	"""Convert a SQL single-quoted string literal back to its Python string value."""
+	if len(value) >= 2 and value.startswith("'") and value.endswith("'"):
+		return value[1:-1].replace("''", "'")
+
+	return value
 
 
 def _build_log_query(doctype: str, filters=None):
@@ -265,8 +308,14 @@ def _build_log_query(doctype: str, filters=None):
 
 	for f in filters:
 		operation = OPERATOR_MAP.get(f.operator.casefold())
+
 		if operation is None:
-			frappe.throw(frappe._("Unsupported filter operator for log DocTypes: {0}").format(f.operator))
+			frappe.throw(
+				frappe._(
+					"Unsupported filter operator for log DocTypes: {0}"
+				).format(f.operator)
+			)
+
 		query = query.where(operation(table[f.fieldname], f.value))
 
 	return query
@@ -280,12 +329,12 @@ def _select_fields(fields) -> list[str]:
 	if isinstance(fields, str):
 		fields = [fields]
 
-	# Strip any `tabX`. prefix and backticks the list view adds; drop anything that isn't a
-	# bare column, since expressions and joins are out of scope for log tables.
 	names = []
+
 	for field in fields:
 		if not isinstance(field, str):
 			continue
+
 		if match := _ORDER_BY_PATTERN.match(field):
 			names.append(match.group("field"))
 
@@ -297,8 +346,12 @@ def _parse_order_by(table, order_by: str):
 	from pypika import Order
 
 	match = _ORDER_BY_PATTERN.match(order_by)
+
 	if not match:
 		return None
 
 	direction = (match.group("direction") or "asc").casefold()
-	return table[match.group("field")], (Order.desc if direction == "desc" else Order.asc)
+
+	return table[match.group("field")], (
+		Order.desc if direction == "desc" else Order.asc
+	)
