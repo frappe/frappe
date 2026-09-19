@@ -196,11 +196,13 @@
 			<div class="file-preview-container" v-if="!show_image_cropper">
 				<FilePreview
 					v-for="(file, i) in files"
-					:key="file.name"
+					:key="i"
 					:file="file"
 					:allow_toggle_private="allow_toggle_private"
 					:allow_toggle_optimize="allow_toggle_optimize"
 					@remove="remove_file(file)"
+					@rename="(new_name) => rename_file(file, new_name)"
+					@upload="() => upload_files()"
 					@toggle_private="file.private = !file.private"
 					@toggle_optimize="file.optimize = !file.optimize"
 					@toggle_image_cropper="toggle_image_cropper(i)"
@@ -378,6 +380,13 @@ function on_file_input(e) {
 function remove_file(file) {
 	files.value = files.value.filter((f) => f !== file);
 	if (file_input.value) file_input.value.value = "";
+}
+function rename_file(file, new_name) {
+	let ext = file.name.includes(".") ? "." + file.name.split(".").pop() : "";
+	if (ext && !new_name.toLowerCase().endsWith(ext.toLowerCase())) {
+		new_name += ext;
+	}
+	file.name = new_name;
 }
 function toggle_image_cropper(index) {
 	crop_image_with_index.value = show_image_cropper.value ? -1 : index;
