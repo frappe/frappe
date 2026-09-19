@@ -51,7 +51,7 @@ data-fieldtype="{{ df.fieldtype }}"
 {%- for col in section.columns -%}{%- for df in col.get('fields', []) -%}{%- set ns.has_fields = true -%}{%- endfor -%}{%- endfor -%}
 {%- if ns.has_fields -%}
 {%- set col_gap = (section.gap if section.gap is defined and section.gap is not none else 20)|string + 'px' -%}
-<div class="section {{ zone_class }}">
+<div class="section{% if zone_class %} {{ zone_class }}{% endif %}">
 <div class="section-columns row {{ justify_classes.get(section.justify, '') }}" style="gap:{{ col_gap }}">
 {%- for column in section.columns %}
 <div class="column col"{% if column.width %} style="flex: {{ column.width|float }} 1 0%"{% endif %}>
