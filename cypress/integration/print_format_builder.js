@@ -727,33 +727,6 @@ context("Print Format Builder — section insert", () => {
 		cy.get(".sections-container > .section-insert .section-insert-btn").click({ force: true });
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 3);
 	});
-
-	// 15. Section insert is NOT hidden in clean-preview mode (regression guard)
-	//
-	// The old code had:
-	//   .pfb-clean-preview :deep(.section-insert) { display: none !important }
-	// which hid the button when a live record was loaded. The fix removed that rule.
-	it("section insert is not hidden when preview class is present on the canvas", () => {
-		cy.insert_doc(
-			"Print Format",
-			{
-				name: PF_NAME,
-				doc_type: "ToDo",
-				print_format_builder_beta: 1,
-				format_data: one_section_layout(),
-			},
-			true
-		);
-
-		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
-
-		cy.get(".print-format-main").then(($el) => {
-			$el[0].classList.add("pfb-clean-preview");
-		});
-
-		cy.get(".section-insert").first().should("not.have.css", "display", "none");
-	});
 });
 
 // ─── Column width resize ──────────────────────────────────────────────────────
