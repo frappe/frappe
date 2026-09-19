@@ -4,7 +4,6 @@
 		data-theme="light"
 		:style="rootStyles"
 		:class="{
-			'pfb-clean-preview': !!store.preview_doc.value,
 			'print-format-doc': !!store.preview_doc.value,
 			'show-label-colon': !!print_format.show_label_colon,
 		}"
