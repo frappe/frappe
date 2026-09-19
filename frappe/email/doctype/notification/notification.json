@@ -42,10 +42,10 @@
   "send_to_all_assignees",
   "recipients",
   "message_sb",
+  "email_template",
   "subject",
   "message_type",
   "message",
-  "fetch_email_template",
   "message_examples",
   "view_properties",
   "column_break_25",
@@ -92,16 +92,6 @@
    "label": "Filters",
    "options": "JSON",
    "read_only": 1
-  },
-  {
-   "depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel)",
-   "description": "For a dynamic subject, use Jinja tags like this: <code>{{ doc.name }} Delivered</code>",
-   "fieldname": "subject",
-   "fieldtype": "Data",
-   "ignore_xss_filter": 1,
-   "in_list_view": 1,
-   "label": "Subject",
-   "mandatory_depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel)"
   },
   {
    "fieldname": "document_type",
@@ -242,13 +232,26 @@
    "label": "Content"
   },
   {
-   "depends_on": "eval: frappe.meta.has_field('Notification', 'subject') || frappe.meta.has_field('Notification', 'message')",
-   "fieldname": "fetch_email_template",
-   "fieldtype": "Button",
-   "label": "Fetch from Email Template"
+   "depends_on": "eval: doc.channel == 'Email'",
+   "description": "Send this notification's content from an Email Template instead of Subject/Message. Also used for the bell if Send System Notification is checked. The template is looked up fresh on every send, so editing it later changes what gets sent here too.",
+   "fieldname": "email_template",
+   "fieldtype": "Link",
+   "label": "Email Template",
+   "options": "Email Template"
+  },
+  {
+   "depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel) && !doc.email_template",
+   "description": "For a dynamic subject, use Jinja tags like this: <code>{{ doc.name }} Delivered</code>",
+   "fieldname": "subject",
+   "fieldtype": "Data",
+   "ignore_xss_filter": 1,
+   "in_list_view": 1,
+   "label": "Subject",
+   "mandatory_depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel) && !doc.email_template"
   },
   {
    "default": "Add your message here",
+   "depends_on": "eval: !doc.email_template",
    "fieldname": "message",
    "fieldtype": "Code",
    "ignore_xss_filter": 1,
@@ -380,7 +383,7 @@
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-03 18:00:00.000001",
+ "modified": "2026-09-16 15:32:23.104030",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",
