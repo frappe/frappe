@@ -43,7 +43,6 @@ export type Boot = {
 	read_only_mode: boolean;
 	csrf_token: string;
 	setup_complete: boolean;
-	// The signed-in person, their roles and the site settings rendered for them.
 	session: Session;
 	file_chunk_size: number;
 	max_file_size: number;
@@ -103,7 +102,7 @@ export async function fetchBoot(): Promise<Boot> {
 		if (!isApiError(error)) throw error;
 		if (error.status === 401 || error.status === 403)
 			throw new BootUnauthorized("Not permitted");
-		throw new Error(`Boot failed with ${error.status}`);
+		throw new Error(`Boot failed with ${error.status}`, { cause: error });
 	}
 
 	// frappe-ui's request layer reads the token from this global; the shell has no Jinja to set it.

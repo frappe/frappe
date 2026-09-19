@@ -19,6 +19,16 @@ describe("loadTranslations", () => {
     expect(translate("Save")).toBe("Enregistrer");
   });
 
+  it("keeps the messages it has when the answer carries no body", async () => {
+    fake.getTranslations.mockResolvedValue({ data: { Close: "Fermer" } });
+    await loadTranslations("v1", "fr");
+
+    fake.getTranslations.mockResolvedValue({ data: undefined });
+    await loadTranslations("v1", "fr");
+
+    expect(translate("Close")).toBe("Fermer");
+  });
+
   it("swallows a failure and leaves the text as it is", async () => {
     fake.getTranslations.mockRejectedValue(new Error("offline"));
 

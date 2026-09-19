@@ -1,14 +1,16 @@
 // The signed-in person: published by a host that has already booted, fetched once by anyone else.
-import { computed, getCurrentInstance, inject, ref, shallowRef } from "vue";
+import { computed, hasInjectionContext, inject, ref, shallowRef } from "vue";
 import type { App, ComputedRef, InjectionKey, Ref } from "vue";
 import { getSession } from "../api";
 import type { Session } from "../api";
 
-/** Provided by the host app through `provideSession`; it always carries the module's own ref. */
+/**
+ * `provideSession` always provides the module's own ref, so a host that provides its own ref
+ * under this key instead will read a session that `currentSession()` does not know about.
+ */
 export const SessionKey: InjectionKey<Ref<Session | null>> = Symbol("session");
 
 export interface UseSession {
-  /** The session, `null` until it is published or the first fetch lands. */
   session: ComputedRef<Session | null>;
   loading: ComputedRef<boolean>;
   error: ComputedRef<unknown>;
@@ -22,9 +24,9 @@ let generation = 0;
 let started = false;
 
 export function useSession(): UseSession {
-  // `inject` warns when there is no component instance, and plain module code calls this
-  // through `useUserRoles`; the module ref is the store in that case anyway.
-  const shared = getCurrentInstance() ? inject(SessionKey, store) : store;
+  // True in setup and inside `app.runWithContext`; `inject` warns outside both, and plain
+  // module code reaches here through `useUserRoles`.
+  const shared = hasInjectionContext() ? inject(SessionKey, store) : store;
   if (!shared.value && !started) void fetchSession();
 
   return {
@@ -37,7 +39,11 @@ export function useSession(): UseSession {
 
 /** The host publishes the session it already has, so no caller fetches it again. */
 export function setSession(session: Session): void {
+  // Bumping the generation drops a fetch already in flight, which would land on top of this.
+  generation++;
   store.value = session;
+  loading.value = false;
+  error.value = null;
   started = true;
 }
 
@@ -71,7 +77,10 @@ async function fetchSession(): Promise<void> {
     store.value = envelope.data;
     error.value = null;
   } catch (failure) {
-    if (mine === generation) error.value = failure;
+    if (mine === generation) {
+      error.value = failure;
+      started = false; // a transient failure must not disable the session for the page
+    }
   } finally {
     if (mine === generation) loading.value = false;
   }

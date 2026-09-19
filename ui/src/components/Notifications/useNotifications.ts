@@ -124,15 +124,13 @@ export function useNotifications(
     () => list.error.value ?? unreadError.value ?? null
   );
 
-  // Saved as a whole row rather than through `mark_as_read`: the feed is fetched with
-  // `["*"]`, so the row carries the `modified` the save needs to refuse a stale write.
+  // The feed is fetched with `["*"]`, so the row carries the `modified` the save needs to
+  // refuse a stale write.
   async function markAsRead(name: string) {
     const n = list.rows.value.find((x) => x.name === name);
-    if (!n) return;
-    if (!n.read) {
-      n.read = 1; // optimistic
-      if (unread.value > 0) unread.value -= 1;
-    }
+    if (!n || n.read) return;
+    n.read = 1; // optimistic
+    if (unread.value > 0) unread.value -= 1;
     await updateDocument(DOCTYPE, name, { ...n, read: 1 });
     void refreshUnreadCount();
   }

@@ -119,6 +119,10 @@ Actions are events; wire them to the controller's verbs.
 Routing / side-effects live in the `@mark-as-read` handler (or wherever you call
 `controller.markAsRead` from your own UI).
 
+`markAsRead(name)` acts only on a row the feed has already loaded, and does nothing for any
+other name: the save carries that row's `modified`, so there is nothing to send for a row the
+feed never fetched. A row that is already read costs no request either.
+
 ## Slots
 
 Every slot's default is the standard markup, so passing none renders the default panel.

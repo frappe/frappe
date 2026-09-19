@@ -18,7 +18,6 @@ export type { UseLinkSearch, LinkSearchOption } from "./composables/useLinkSearc
 export {
   currentSession,
   provideSession,
-  resetSession,
   SessionKey,
   setSession,
   useSession,

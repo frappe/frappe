@@ -1,8 +1,15 @@
 // The session store: a published session is read as it is, and everyone else shares one fetch.
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp } from "vue";
+import { createApp, defineComponent, h, provide, shallowRef } from "vue";
 import type { Session } from "../../api";
-import { currentSession, provideSession, resetSession, setSession, useSession } from "../useSession";
+import {
+  currentSession,
+  provideSession,
+  resetSession,
+  SessionKey,
+  setSession,
+  useSession,
+} from "../useSession";
 
 const api = vi.hoisted(() => ({ getSession: vi.fn() }));
 
@@ -64,6 +71,59 @@ describe("useSession", () => {
     await vi.waitFor(() => expect(error.value).toBe(failure));
     expect(session.value).toBeNull();
     expect(loading.value).toBe(false);
+  });
+
+  it("retries after a failed fetch instead of staying empty for the page", async () => {
+    api.getSession.mockRejectedValueOnce(new Error("no session"));
+    api.getSession.mockResolvedValue({ data: aSession() });
+    const app = host();
+
+    const { error } = app.runWithContext(() => useSession());
+    await vi.waitFor(() => expect(error.value).not.toBeNull());
+
+    const { session } = app.runWithContext(() => useSession());
+    await vi.waitFor(() => expect(session.value).not.toBeNull());
+    expect(api.getSession).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps the host's session when a fetch it started lands afterwards", async () => {
+    let land: (envelope: { data: Session }) => void = () => {};
+    api.getSession.mockReturnValue(
+      new Promise<{ data: Session }>((resolve) => (land = resolve))
+    );
+    const app = host();
+    const { session } = app.runWithContext(() => useSession());
+
+    const published = aSession("host@example.com");
+    setSession(published);
+    land({ data: aSession("late@example.com") });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(session.value).toBe(published);
+    expect(currentSession()).toBe(published);
+  });
+
+  it("reads a ref a component provided under the key", () => {
+    const own = shallowRef<Session | null>(aSession("own@example.com"));
+    let read: ReturnType<typeof useSession> | null = null;
+
+    const child = defineComponent({
+      setup() {
+        read = useSession();
+        return () => null;
+      },
+    });
+    const parent = defineComponent({
+      setup() {
+        provide(SessionKey, own);
+        return () => h(child);
+      },
+    });
+    createApp(parent).mount(document.createElement("div"));
+
+    expect(read!.session.value).toBe(own.value);
+    expect(currentSession()).toBeNull();
+    expect(api.getSession).not.toHaveBeenCalled();
   });
 
   it("re-reads on reload", async () => {

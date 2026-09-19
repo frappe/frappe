@@ -52,4 +52,11 @@ describe("fetchBoot", () => {
     await expect(fetchBoot()).rejects.toThrow("Boot failed with 500");
     await expect(fetchBoot()).rejects.not.toBeInstanceOf(BootUnauthorized);
   });
+
+  it("keeps the server's own error as the cause", async () => {
+    refuse(500);
+    const failure = await fetchBoot().catch((e: Error) => e);
+    expect((failure as Error).cause).toBeInstanceOf(ApiError);
+    expect(((failure as Error).cause as ApiError).status).toBe(500);
+  });
 });

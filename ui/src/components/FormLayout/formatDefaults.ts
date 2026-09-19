@@ -1,22 +1,12 @@
 /**
- * Site-default resolver for `FormLayout`'s built-in field components. The single
- * seam that assumes a Frappe runtime: reads framework defaults from the session's
- * `defaults` (`frappe.defaults.get_defaults()`).
- *
- * Precedence (lowest to highest): lib fallback → session defaults →
- * `setFormatDefaults` override. Per-field meta beats all of these, resolved by
- * the field component itself. Framework data defaults only.
+ * Site-default resolver for `FormLayout`'s field components: lib fallback → the session's
+ * `defaults` → `setFormatDefaults` override. Per-field meta beats all three.
  */
 import { shallowRef } from "vue";
 import { currentSession } from "../../composables/useSession";
 import { DEFAULT_NUMBER_FORMAT, DEFAULT_ROUNDING_METHOD } from "./formatNumber";
 
-/**
- * Framework formatting defaults, keyed in snake_case to mirror Frappe's
- * defaults / `DocField` names so the session's `defaults` is a pass-through.
- * Date/time keys are unused today (Date/Time fields delegate to frappe-ui
- * pickers) but carried so adding them later stays additive.
- */
+/** snake_case to mirror Frappe's own names, so the session's `defaults` passes straight through. */
 export interface FormatDefaults {
   number_format?: string;
   /** ISO currency code, or null/absent when the site has none. */
@@ -35,11 +25,8 @@ const LIB_FALLBACK: FormatDefaults = {
 };
 
 /**
- * App/test override, layered over the session read. Reactive (`shallowRef`)
- * so a `setFormatDefaults()` after fields render re-triggers computeds that read
- * `getFormatDefaults()` — otherwise rendered fields keep stale defaults. (The
- * session's defaults are static; new System Settings need a reload, same as
- * desk/CRM.)
+ * App/test override, layered over the session read. Reactive so a `setFormatDefaults()`
+ * after fields render re-triggers the computeds that read `getFormatDefaults()`.
  */
 const override = shallowRef<FormatDefaults>({});
 

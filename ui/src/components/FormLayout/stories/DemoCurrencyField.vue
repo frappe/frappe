@@ -38,12 +38,13 @@ import { flt, formatCurrency } from "../formatNumber";
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
 
-// The app's own settings source — a Frappe host publishes the session; the
-// fallback keeps the story self-contained.
-const sys = (currentSession()?.defaults as Record<string, any>) || {
+// The app's own settings source: the session's defaults where the host has them, the
+// story's own where it does not.
+const sys = {
 	number_format: "#.###,##", // european, to make the override visibly different
 	currency: "EUR",
 	currency_precision: 2,
+	...((currentSession()?.defaults as Record<string, any>) ?? {}),
 };
 
 const doc = inject(DocKey, null);

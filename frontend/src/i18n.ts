@@ -5,10 +5,9 @@ import { getTranslations } from '@framework/ui/api'
 let messages: Record<string, string> = {}
 
 export function loadTranslations(version: string, lang = 'en') {
-  // Cached server-side for a year; the version is the only invalidator.
   return getTranslations(lang, version)
     .then((response) => {
-      messages = response.data ?? {}
+      if (response.data) messages = response.data
     })
     .catch(() => {
       // A failed fetch leaves English on screen; it must never take the shell down.
