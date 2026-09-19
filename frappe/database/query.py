@@ -1862,24 +1862,11 @@ class Engine:
 		hooks = frappe.get_hooks("permission_query_conditions", {})
 		condition_methods = hooks.get(doctype, []) + hooks.get("*", [])
 
-		# When the doctype is joined under an alias (e.g. a link field fetched via
-		# dot-notation), raw SQL strings from hooks/server scripts still reference the
-		# base `tabDoctype`, which is not in scope. Rewrite them to the aliased table.
-		def alias_raw_condition(condition: str) -> str:
-			alias = getattr(table, "alias", None)
-			if not alias:
-				return condition
-			quote = '"' if frappe.db.db_type == "postgres" else "`"
-			aliased = f"{quote}{alias}{quote}"
-			table_name = f"tab{doctype}"
-			condition = condition.replace(f"`{table_name}`", aliased).replace(f'"{table_name}"', aliased)
-			return re.sub(rf"(?<![\w'\"`]){re.escape(table_name)}(?![\w'\"`])", aliased, condition)
-
 		for method in condition_methods:
 			if c := frappe.call(frappe.get_attr(method), self.user, doctype=doctype):
 				# Hooks may return a raw SQL string or a pypika term. A term already
 				# participates in `Criterion.all`/`get_sql`, so only strings need wrapping.
-				conditions.append(RawCriterion(f"({alias_raw_condition(c)})") if isinstance(c, str) else c)
+				conditions.append(RawCriterion(f"({c})") if isinstance(c, str) else c)
 
 		active_child_tables = []
 		current_tables = self.get_queried_tables()
@@ -1895,7 +1882,14 @@ class Engine:
 			if condition := script.get_permission_query_conditions(
 				self.user, active_child_tables=active_child_tables
 			):
-				conditions.append(RawCriterion(f"({alias_raw_condition(condition)})"))
+				conditions.append(RawCriterion(f"({condition})"))
+
+		if conditions and getattr(table, "alias", None):
+			base_table = frappe.qb.DocType(doctype)
+			permitted_names = (
+				frappe.qb.from_(base_table).select(base_table.name).where(Criterion.all(conditions))
+			)
+			return [table.name.isin(permitted_names)]
 		return conditions
 
 	def get_permission_type(
