@@ -1,7 +1,6 @@
 <template>
 	<div class="pfb-visibility-body">
-		<div class="pfb-insp-row--col" style="display: flex; flex-direction: column; gap: 6px">
-			<label class="pfb-insp-label">{{ __("Condition") }}</label>
+		<InspectorRow :label="__('Condition')" stacked>
 			<input
 				class="pfb-insp-input"
 				type="text"
@@ -35,12 +34,13 @@
 					{{ __("Load a document to see live status") }}
 				</span>
 			</div>
-		</div>
+		</InspectorRow>
 	</div>
 </template>
 
 <script setup>
 import { ref, watch } from "vue";
+import InspectorRow from "./InspectorRow.vue";
 
 const props = defineProps(["modelValue", "previewDoc"]);
 defineEmits(["update:modelValue"]);

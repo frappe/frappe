@@ -80,8 +80,7 @@
 				<LetterHeadZoneInspector zone="header" />
 			</template>
 
-			<!-- ── Multi-select bulk inspector ─────────────────────── -->
-			<BulkPropertiesPanel v-else-if="is_multi_select" />
+			<FieldPropertiesPanel v-else-if="is_multi_select" />
 
 			<!-- ── Table field inspector ───────────────────────────────── -->
 			<TableFieldInspector v-else-if="selected_field && is_table_field" />
@@ -90,7 +89,7 @@
 			<RepeaterFieldInspector v-else-if="selected_field && is_repeater_field" />
 
 			<!-- ── Field inspector ─────────────────────────────────── -->
-			<FieldPropertiesPanel v-else-if="selected_field" :field-is-inline="field_is_inline" />
+			<FieldPropertiesPanel v-else-if="selected_field" />
 
 			<!-- ── Section inspector ───────────────────────────────── -->
 			<SectionPropertiesPanel v-else-if="selected_section" />
@@ -107,7 +106,6 @@ import SectionPropertiesPanel from "./SectionPropertiesPanel.vue";
 import RepeaterFieldInspector from "./RepeaterFieldInspector.vue";
 import TableFieldInspector from "./TableFieldInspector.vue";
 import FieldPropertiesPanel from "./FieldPropertiesPanel.vue";
-import BulkPropertiesPanel from "./BulkPropertiesPanel.vue";
 import VersionHistory from "../VersionHistory.vue";
 import PrintSettingsPanel from "../PrintSettingsPanel.vue";
 
@@ -192,8 +190,6 @@ function select_parent_section() {
 		store.selected_field.value = null;
 	}
 }
-
-let field_is_inline = computed(() => parent_section.value?.field_orientation === "left-right");
 </script>
 
 <style scoped>

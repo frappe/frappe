@@ -1,6 +1,5 @@
 <template>
-	<div class="pfb-insp-row">
-		<span class="pfb-insp-label">{{ label }}</span>
+	<InspectorRow :label="label">
 		<Autocomplete
 			class="pfb-insp-autocomplete"
 			:options="options"
@@ -8,11 +7,12 @@
 			:placeholder="placeholder"
 			@select="(o) => $emit('update:modelValue', o.value)"
 		/>
-	</div>
+	</InspectorRow>
 </template>
 
 <script setup>
 import Autocomplete from "../../../vue-components/Autocomplete.vue";
+import InspectorRow from "./InspectorRow.vue";
 
 defineProps(["label", "modelValue", "options", "placeholder"]);
 defineEmits(["update:modelValue"]);

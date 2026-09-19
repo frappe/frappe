@@ -1,5 +1,12 @@
 import { layout_nodes } from "./layout";
 
+export function set_prop(target, key, value, fallback) {
+	if (!target) return;
+	if (value === null || value === undefined || value === "" || value === fallback)
+		delete target[key];
+	else target[key] = value;
+}
+
 export function clone_plain(obj) {
 	return JSON.parse(JSON.stringify(obj));
 }
@@ -142,8 +149,6 @@ export function clamp_column_width(value) {
 }
 
 // Blocks the builder invents — they never map to a docfield on the document type
-
-export const BLOCK_FIELDTYPES = new Set(["Spacer", "Divider", "Repeater", "HTML"]);
 
 // Mirrors PrintFormatGenerator.JUSTIFY_MODES; the class names are spelled out so
 // both surfaces can be grepped for them

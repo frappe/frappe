@@ -47,7 +47,6 @@ export function getStore(print_format_name) {
 		select_section,
 		select_letterhead,
 		remove_field,
-		align_selected_fields,
 	} = selection;
 
 	// remove everything currently selected — field tombstones + spliced sections
@@ -582,7 +581,6 @@ export function getStore(print_format_name) {
 		selected_fields,
 		remove_selection,
 		remove_field,
-		align_selected_fields,
 		selected_section,
 		selected_sections,
 		selected_letterhead,

@@ -72,6 +72,7 @@
 import { computed, inject, onMounted, ref } from "vue";
 import { useStore } from "../../stores";
 import { get_image_dimensions } from "../../utils";
+import { zone_fields } from "../letterhead/zone_fields";
 import { open_html_editor } from "../../composables/useHtmlEditorDialog";
 import SegmentedRow from "./SegmentedRow.vue";
 import SliderRow from "./SliderRow.vue";
@@ -85,16 +86,13 @@ const props = defineProps({
 const store = inject("$store");
 const { letterhead } = useStore();
 
-const source_field = computed(() => (props.zone === "header" ? "source" : "footer_source"));
-const align_field = computed(() => (props.zone === "header" ? "align" : "footer_align"));
-const image_field = computed(() => (props.zone === "header" ? "image" : "footer_image"));
-const html_content_field = computed(() => (props.zone === "header" ? "content" : "footer"));
-const width_field = computed(() =>
-	props.zone === "header" ? "image_width" : "footer_image_width"
-);
-const height_field = computed(() =>
-	props.zone === "header" ? "image_height" : "footer_image_height"
-);
+const F = computed(() => zone_fields(props.zone));
+const source_field = computed(() => F.value.source);
+const align_field = computed(() => F.value.align);
+const image_field = computed(() => F.value.image);
+const html_content_field = computed(() => F.value.content);
+const width_field = computed(() => F.value.width);
+const height_field = computed(() => F.value.height);
 
 const zone_source = computed(() => letterhead.value?.[source_field.value] || "Image");
 const zone_align = computed(() => letterhead.value?.[align_field.value] ?? "Left");

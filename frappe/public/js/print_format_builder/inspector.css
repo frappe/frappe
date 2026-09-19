@@ -256,15 +256,6 @@
 	padding: 0;
 }
 
-.pfb-insp-check {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	font-size: var(--text-sm);
-	color: var(--text-color);
-	cursor: pointer;
-	margin: 0;
-}
 
 .pfb-drag-fallback {
 	opacity: 0.95 !important;
@@ -442,4 +433,10 @@ body.pfb-dragging * {
 	justify-content: center;
 	padding: 24px;
 	background: rgba(0, 0, 0, 0.6);
+}
+
+body.pfb-col-resizing,
+body.pfb-col-resizing * {
+	cursor: col-resize !important;
+	user-select: none;
 }

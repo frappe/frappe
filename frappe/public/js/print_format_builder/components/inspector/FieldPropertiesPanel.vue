@@ -1,461 +1,106 @@
 <template>
 	<div class="pfb-insp-body">
-		<InspectorSection :label="__('Field')">
-			<template v-if="is_html_field">
-				<div
-					class="pfb-html-preview"
-					v-if="selected_field.html"
-					v-html="selected_field.html"
-				></div>
-				<div v-else class="pfb-insp-hint text-muted">
-					{{ __("No HTML content yet.") }}
-				</div>
-				<button class="es-button" data-size="xs" @click="edit_html_field">
-					<span v-html="frappe.utils.icon('pencil', 'xs')"></span>
-					{{ __("Edit HTML") }}
-				</button>
-			</template>
-			<template v-else-if="is_typst_field">
-				<textarea
-					class="form-control form-control-sm pfb-typst-input"
-					:placeholder="'#text(weight: \'bold\')[Hello]'"
-					spellcheck="false"
-					rows="8"
-					:value="selected_field.typst || ''"
-					@input="(e) => (selected_field.typst = e.target.value)"
-				></textarea>
-				<div class="pfb-insp-hint text-muted">
-					{{ typst_hint }}
-				</div>
-			</template>
-			<template v-else-if="is_image_element">
-				<ImageUploadControl
-					:model-value="selected_field.image_url"
-					:alt="selected_field.label"
-					@update:model-value="set_image_url"
-				/>
-				<SliderRow
-					v-if="selected_field.image_url"
-					:label="__('Size')"
-					:model-value="image_size"
-					@update:model-value="(v) => (selected_field.width = v + 'px')"
-				/>
-				<SegmentedRow
-					:label="__('Align')"
-					:model-value="current_align"
-					:options="align_opts"
-					@update:model-value="(v) => (selected_field.align = v)"
-				/>
-			</template>
-			<template v-else-if="is_barcode_element">
-				<div class="pfb-insp-row" v-if="selected_field.custom">
-					<span class="pfb-insp-label">{{ __("Value from") }}</span>
-					<select
-						class="pfb-insp-select"
-						:value="selected_field.barcode_field || ''"
-						@change="selected_field.barcode_field = $event.target.value"
-					>
-						<option value="">{{ __("Static value") }}</option>
-						<option v-for="f in barcode_field_options" :key="f.value" :value="f.value">
-							{{ f.label }}
-						</option>
-					</select>
-				</div>
-				<div
-					class="pfb-insp-row"
-					v-if="selected_field.custom && !selected_field.barcode_field"
-				>
-					<span class="pfb-insp-label">{{ __("Value") }}</span>
-					<input
-						type="text"
-						class="pfb-insp-input"
-						:placeholder="__('Static value')"
-						:value="selected_field.barcode_value"
-						@change="selected_field.barcode_value = $event.target.value"
-					/>
-				</div>
-				<div class="pfb-insp-row" v-if="selected_field.custom">
-					<span class="pfb-insp-label">{{ __("Format") }}</span>
-					<select
-						class="pfb-insp-select"
-						:value="selected_field.barcode_format || 'CODE128'"
-						@change="selected_field.barcode_format = $event.target.value"
-					>
-						<option v-for="fmt in barcode_formats" :key="fmt" :value="fmt">
-							{{ fmt }}
-						</option>
-					</select>
-				</div>
-				<SliderRow
-					:label="__('Size')"
-					:min="40"
-					:max="500"
-					:model-value="barcode_size"
-					@update:model-value="(v) => (selected_field.width = v + 'px')"
-				/>
-				<div
-					class="pfb-insp-row"
-					v-if="selected_field.custom && selected_field.barcode_format !== 'QR'"
-				>
-					<span class="pfb-insp-label">{{ __("Value text") }}</span>
-					<label class="pfb-insp-check">
-						<input
-							type="checkbox"
-							:checked="selected_field.show_text !== false"
-							@change="selected_field.show_text = $event.target.checked"
-						/>
-						{{ __("Show") }}
-					</label>
-				</div>
-				<SegmentedRow
-					:label="__('Align')"
-					:model-value="current_align"
-					:options="align_opts"
-					@update:model-value="(v) => (selected_field.align = v)"
-				/>
-			</template>
-			<template v-else-if="is_static_text">
-				<textarea
-					class="form-control form-control-sm pfb-static-text-input"
-					:placeholder="__('Write the text to print')"
-					rows="4"
-					:value="selected_field.text || ''"
-					@input="(e) => (selected_field.text = e.target.value)"
-				></textarea>
-				<ToggleRow
-					:label="__('Bold')"
-					:model-value="!!selected_field.bold"
-					@update:model-value="(v) => (selected_field.bold = v ? 1 : 0)"
-				/>
-				<StepperRow
-					:label="__('Font size')"
-					:model-value="selected_field.font_size"
-					:base="13"
-					:step="1"
-					unit="px"
-					:placeholder="__('auto')"
-					allow-empty
-					@update:model-value="(v) => (selected_field.font_size = v)"
-				/>
-				<SegmentedRow
-					:label="__('Align')"
-					:model-value="current_align"
-					:options="align_opts"
-					@update:model-value="(v) => (selected_field.align = v)"
-				/>
-			</template>
-			<template v-else-if="is_linked_field">
-				<SelectRow
-					:label="__('Link')"
-					:model-value="link_fieldname"
-					:options="link_field_options"
-					:placeholder="__('Select a link field')"
-					@update:model-value="set_link_fieldname"
-				/>
-				<SelectRow
-					v-if="link_fieldname"
-					:label="__('Field')"
-					:model-value="link_target_fieldname"
-					:options="link_target_options"
-					:placeholder="__('Select a field')"
-					@update:model-value="set_link_target"
-				/>
-				<SliderRow
-					v-if="linked_is_image"
-					:label="__('Size')"
-					:model-value="image_size"
-					@update:model-value="(v) => (selected_field.width = v + 'px')"
-				/>
-				<LabelField
-					v-model="selected_field.label"
-					:label="__('Label')"
-					:placeholder="__('Field label')"
-					show-toggle
-					:show="selected_field.show_label"
-					@update:show="(v) => (selected_field.show_label = v)"
-				/>
-				<SegmentedRow
-					:label="__('Align')"
-					:model-value="current_align"
-					:options="align_opts"
-					@update:model-value="(v) => (selected_field.align = v)"
-				/>
-			</template>
-			<template v-else-if="is_spacer">
-				<StepperRow
-					:label="__('Height')"
-					:model-value="selected_field.height"
-					:base="16"
-					:step="4"
-					unit="px"
-					:placeholder="__('auto')"
-					allow-empty
-					@update:model-value="(v) => (selected_field.height = v)"
-				/>
-			</template>
-			<template v-else-if="is_divider"></template>
-			<template v-else>
-				<LabelField
-					v-model="selected_field.label"
-					:label="__('Label')"
-					:placeholder="__('Field label')"
-					show-toggle
-					:show="selected_field.show_label"
-					@update:show="(v) => (selected_field.show_label = v)"
-				/>
-				<SegmentedRow
-					:label="__('Align')"
-					:model-value="current_align"
-					:options="align_opts"
-					@update:model-value="(v) => (selected_field.align = v)"
-				/>
-				<SliderRow
-					v-if="is_attach_image"
-					:label="__('Size')"
-					:model-value="image_size"
-					@update:model-value="(v) => (selected_field.width = v + 'px')"
-				/>
-				<div class="pfb-insp-row" v-if="fieldIsInline && current_align === 'left'">
-					<span class="pfb-insp-label">{{ __("Spacing") }}</span>
-					<select
-						class="pfb-insp-select"
-						:value="current_label_justify"
-						@change="selected_field.label_justify = $event.target.value"
-					>
-						<option value="">{{ __("Normal") }}</option>
-						<option value="space-between">
-							{{ __("Space Between") }}
-						</option>
-						<option value="space-evenly">{{ __("Space Evenly") }}</option>
-					</select>
-				</div>
-				<StepperRow
-					v-if="fieldIsInline"
-					:label="__('Label gap')"
-					:model-value="selected_field.label_gap"
-					:base="8"
-					:step="2"
-					unit="px"
-					:placeholder="__('auto')"
-					allow-empty
-					@update:model-value="(v) => (selected_field.label_gap = v)"
-				/>
-				<ToggleRow
-					v-if="can_break"
-					:label="__('Split across pages')"
-					:model-value="!!selected_field.allow_page_break"
-					@update:model-value="(v) => (selected_field.allow_page_break = v)"
-				/>
-			</template>
-		</InspectorSection>
-
-		<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
-			<div v-if="is_text_field" class="pfb-insp-section-body">
-				<ToggleRow
-					v-if="!is_static_text"
-					:label="__('Bold')"
-					:model-value="!!selected_field.bold"
-					@update:model-value="(v) => (selected_field.bold = v ? 1 : 0)"
-				/>
-				<StepperRow
-					v-if="!is_static_text"
-					:label="__('Font size')"
-					:model-value="selected_field.font_size"
-					:base="13"
-					:step="1"
-					unit="px"
-					:placeholder="__('auto')"
-					allow-empty
-					@update:model-value="(v) => (selected_field.font_size = v)"
-				/>
-				<ColorField
-					:label="__('Label')"
-					:model-value="selected_field.label_color || ''"
-					@update:model-value="(v) => set_field_prop('label_color', v)"
-				/>
-				<ColorField
-					:label="__('Value')"
-					:model-value="selected_field.value_color || ''"
-					@update:model-value="(v) => set_field_prop('value_color', v)"
-				/>
-				<ToggleRow
-					v-if="label_has_colon"
-					:label="__('Hide colon')"
-					:model-value="!!selected_field.hide_colon"
-					@update:model-value="(v) => (selected_field.hide_colon = v ? 1 : 0)"
+		<InspectorSection
+			v-for="sec in sections"
+			:key="sec.key"
+			:label="sec.label()"
+			:init-open="sec.init_open !== false"
+			:padded="false"
+		>
+			<div v-if="sec.rows.length" class="pfb-insp-section-body">
+				<component
+					v-for="row in sec.rows"
+					:key="row.key"
+					:is="row.component"
+					v-bind="row_props(row)"
+					v-on="row_listeners(row)"
 				/>
 			</div>
-			<StyleSection :label="__('Custom CSS')" v-model="selected_field.custom_style" />
+			<component
+				v-for="row in sec.after"
+				:key="row.key"
+				:is="row.component"
+				v-bind="row_props(row)"
+				v-on="row_listeners(row)"
+			/>
 		</InspectorSection>
-
-		<InspectorSection :label="__('Visibility')" :init-open="false" :padded="false">
-			<div v-if="is_linked_field" class="pfb-insp-section-body">
-				<ToggleRow
-					:label="__('Print if empty')"
-					:model-value="!!selected_field.show_empty"
-					@update:model-value="(v) => (selected_field.show_empty = v ? 1 : 0)"
-				/>
-			</div>
-			<VisibilitySection v-model="selected_field.visible_if" :previewDoc="preview_doc" />
-		</InspectorSection>
+		<div v-if="is_multi" class="pfb-insp-section-body">
+			<button
+				class="es-button pfb-bulk-remove"
+				data-variant="subtle"
+				data-theme="red"
+				@click="store.remove_selection()"
+			>
+				{{ __("Remove selected") }}
+			</button>
+		</div>
 	</div>
 </template>
 
 <script setup>
-import { computed, inject } from "vue";
-import LabelField from "./LabelField.vue";
-import SegmentedRow from "./SegmentedRow.vue";
-import ToggleRow from "./ToggleRow.vue";
+import { computed } from "vue";
 import InspectorSection from "./InspectorSection.vue";
-import StepperRow from "./StepperRow.vue";
-import SliderRow from "./SliderRow.vue";
-import StyleSection from "./StyleSection.vue";
-import ColorField from "./ColorField.vue";
-import VisibilitySection from "./VisibilitySection.vue";
-import ImageUploadControl from "./ImageUploadControl.vue";
-import { get_image_dimensions } from "../../utils";
-import { open_html_editor } from "../../composables/useHtmlEditorDialog";
-import { align_opts } from "./align_opts";
+import { FIELD_SECTIONS } from "./field_properties";
 import { useSelectedField } from "./useSelectedField";
-import SelectRow from "./SelectRow.vue";
-import { useDoctypeFields } from "../../composables/useDoctypeFields";
-import { value_field_opts } from "../../utils";
+import { section_of } from "../../layout";
+import { set_prop } from "../../utils";
 
-defineProps(["fieldIsInline"]);
+const { store, selected_field, selected_fields, preview_doc } = useSelectedField();
 
-const { selected_field, preview_doc, set_field_prop } = useSelectedField();
-
-// Fieldtypes rendered as a label/value pair that a text colour can target
-const NON_TEXT_FIELDTYPES = new Set([
-	"HTML",
-	"Image",
-	"Barcode",
-	"Spacer",
-	"Divider",
-	"Field Template",
-	"Static Text",
-]);
-let is_text_field = computed(() => !NON_TEXT_FIELDTYPES.has(selected_field.value?.fieldtype));
-
-// Long-content fields that render through Data.html and can safely flow across
-// a page boundary instead of jumping whole
-const BREAKABLE_FIELDTYPES = new Set([
-	"Text Editor",
-	"Text",
-	"Long Text",
-	"Small Text",
-	"Code",
-	"HTML Editor",
-]);
-let can_break = computed(() => BREAKABLE_FIELDTYPES.has(selected_field.value?.fieldtype));
-
-let is_html_field = computed(() => selected_field.value?.fieldtype === "HTML");
-let is_typst_field = computed(() => selected_field.value?.fieldtype === "Typst");
-let typst_hint = __(
-	"Write Typst here. Use {0} for values from the document. Check the PDF preview to see the result.",
-	["{{ doc.field_name }}"]
+const is_multi = computed(() => store.is_multi_select.value);
+const fields = computed(() =>
+	is_multi.value ? selected_fields.value : selected_field.value ? [selected_field.value] : []
 );
-// a spacer prints a gap and a divider a rule — neither carries a label to align
-let is_spacer = computed(() => selected_field.value?.fieldtype === "Spacer");
-let is_divider = computed(() => selected_field.value?.fieldtype === "Divider");
-let is_image_element = computed(
-	() => selected_field.value?.fieldtype === "Image" && selected_field.value?.custom
-);
-// dragged Barcode docfields get size/align only — value and format come from
-// the field itself
-let is_barcode_element = computed(() => selected_field.value?.fieldtype === "Barcode");
-let label_has_colon = computed(
-	() =>
-		!!store.print_format.value?.show_label_colon &&
-		!!selected_field.value?.label &&
-		selected_field.value?.show_label !== "hide"
-);
-let is_static_text = computed(() => selected_field.value?.fieldtype === "Static Text");
-let is_linked_field = computed(() => selected_field.value?.fieldtype === "Linked Field");
+const ctx = {
+	set: set_prop,
+	get preview_doc() {
+		return preview_doc.value;
+	},
+	get print_format() {
+		return store.print_format.value;
+	},
+	inline: (df) => section_of(store.layout.value, df)?.field_orientation === "left-right",
+};
 
-const barcode_formats = ["CODE128", "CODE39", "QR"];
-
-let store = inject("$store");
-
-let barcode_field_options = computed(() => {
-	const fields = store.meta.value?.fields || [];
-	return [
-		{ label: __("ID (name)"), value: "name" },
-		...fields
-			.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype))
-			.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname })),
-	];
-});
-
-// ── linked field ───────────────────────────────────────────
-let link_fieldname = computed(() => (selected_field.value?.link_path || "").split(".")[0] || "");
-let link_target_fieldname = computed(
-	() => (selected_field.value?.link_path || "").split(".")[1] || ""
-);
-let link_field_options = computed(() =>
-	(store.meta.value?.fields || [])
-		.filter((f) => f.fieldtype === "Link" && f.options)
-		.map((f) => ({ label: `${f.label || f.fieldname} (${f.options})`, value: f.fieldname }))
-);
-
-let link_target_fields = useDoctypeFields(
-	computed(
-		() =>
-			(store.meta.value?.fields || []).find(
-				(f) => f.fieldname === link_fieldname.value && f.fieldtype === "Link"
-			)?.options
-	)
-);
-let link_target_options = computed(() => value_field_opts(link_target_fields.value));
-let linked_is_image = computed(
-	() =>
-		link_target_fields.value.find((f) => f.fieldname === link_target_fieldname.value)
-			?.fieldtype === "Attach Image"
-);
-let is_attach_image = computed(() => selected_field.value?.fieldtype === "Attach Image");
-function set_link_fieldname(fieldname) {
-	selected_field.value.link_path = fieldname ? fieldname + "." : "";
+function visible(rows) {
+	if (!fields.value.length) return [];
+	return rows.filter(
+		(row) =>
+			(is_multi.value ? !row.single : !row.multi) &&
+			fields.value.every((df) => !row.when || row.when(df, ctx))
+	);
 }
-function set_link_target(fieldname) {
-	selected_field.value.link_path = `${link_fieldname.value}.${fieldname}`;
-	const target = link_target_fields.value.find((f) => f.fieldname === fieldname);
-	if (target) selected_field.value.label = target.label || fieldname;
-}
-
-let image_size = computed(() => parseFloat(selected_field.value?.width) || 200);
-let barcode_size = computed(
-	() =>
-		parseFloat(selected_field.value?.width) ||
-		(selected_field.value?.barcode_format === "QR" ? 130 : 200)
+const sections = computed(() =>
+	FIELD_SECTIONS.map((sec) => ({
+		...sec,
+		rows: visible(sec.rows),
+		after: visible(sec.after || []),
+	})).filter((sec) => sec.rows.length || sec.after.length)
 );
 
-function set_image_url(url) {
-	selected_field.value.image_url = url;
-	if (!url) {
-		selected_field.value.width = "";
-		return;
-	}
-	get_image_dimensions(url)
-		.then(({ width }) => {
-			if (!parseFloat(selected_field.value.width)) {
-				selected_field.value.width = Math.min(width, 300) + "px";
-			}
-		})
-		.catch(() => {});
+function value(row) {
+	const values = fields.value.map((df) => (row.get ? row.get(df, ctx) : df[row.key]));
+	return values.every((v) => v === values[0]) ? values[0] : row.mixed ?? "";
 }
-
-let current_align = computed(() => selected_field.value?.align ?? "left");
-let current_label_justify = computed(() => selected_field.value?.label_justify ?? "");
-
-function edit_html_field() {
-	open_html_editor({
-		title: __("Edit HTML"),
-		initial_html: selected_field.value?.html || "",
-		doctype: store.meta.value?.name,
-		docname: store.preview_doc_name.value,
-		on_save: (html) => {
-			selected_field.value.html = html;
-		},
-	});
+function row_props(row) {
+	const props = row.props ? row.props(fields.value[0], ctx) : {};
+	return row.bare ? props : { ...props, modelValue: value(row) };
+}
+function each(fn) {
+	return (v) => fields.value.forEach((df) => fn(df, v, ctx));
+}
+function row_listeners(row) {
+	if (row.bare) return {};
+	const listeners = {
+		"update:modelValue": each(row.set || ((df, v) => set_prop(df, row.key, v))),
+	};
+	for (const [event, fn] of Object.entries(row.on || {})) listeners[event] = each(fn);
+	return listeners;
 }
 </script>
+
+<style scoped>
+.pfb-bulk-remove {
+	align-self: flex-start;
+}
+</style>
