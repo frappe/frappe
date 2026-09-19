@@ -205,9 +205,29 @@ def build_table_count_cache():
 	table_rows = frappe.qb.Field("table_rows").as_("count")
 	information_schema = frappe.qb.Schema("information_schema")
 
+<<<<<<< HEAD
 	data = (frappe.qb.from_(information_schema.tables).select(table_name, table_rows)).run(as_dict=True)
 	counts = {d.get("name").replace("tab", "", 1): d.get("count", None) for d in data}
 	frappe.cache.set_value("information_schema:counts", counts)
+=======
+		data = (
+			frappe.qb.from_(information_schema.tables)
+			.select(table_name, table_rows)
+			.where(information_schema.tables.table_schema == frappe.db.cur_db_name)
+		).run(as_dict=True)
+		counts = {d.get("name").replace("tab", "", 1): d.get("count", None) for d in data}
+		frappe.cache.set_value("information_schema:counts", counts)
+	else:
+		counts = {}
+		name = frappe.qb.Field("name")
+		type = frappe.qb.Field("type")
+		sqlite_master = frappe.qb.Schema("sqlite_master")
+		data = frappe.qb.from_(sqlite_master).select(name).where(type == "table").run(as_dict=True)
+		for table in data:
+			count = frappe.db.sql(f"SELECT COUNT(*) FROM `{table.name}`")[0][0]
+			counts[table.name.replace("tab", "", 1)] = count
+		frappe.cache.set_value("information_schema:counts", counts)
+>>>>>>> 0593978 (fix: scope information_schema queries to the site database)
 
 	return counts
 
