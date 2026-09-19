@@ -12,7 +12,13 @@
 					<span class="canvas-toolbar-eyebrow">{{ __("Data") }}</span>
 				</div>
 				<div class="canvas-toolbar-center">
-					<div ref="doc_picker_ref" class="canvas-doc-picker"></div>
+					<DeskControl
+						v-if="doc_picker_df"
+						class="canvas-doc-picker"
+						:df="doc_picker_df"
+						:model-value="$store.preview_doc_name.value || ''"
+						@update:model-value="(name) => $store.load_preview_doc(name || null)"
+					/>
 					<span v-if="no_records" class="canvas-toolbar-hint">
 						{{ __("No records to preview yet") }}
 					</span>
@@ -133,10 +139,11 @@ import Preview from "./components/Preview.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
 import ContextMenu from "./components/editor/ContextMenu.vue";
+import DeskControl from "./components/DeskControl.vue";
 import { getStore } from "./stores";
 import { field_uid } from "./utils";
 import { section_of } from "./layout";
-import { computed, ref, onMounted, onUnmounted, provide, nextTick, watch } from "vue";
+import { computed, ref, onMounted, onUnmounted, provide, watch } from "vue";
 
 const props = defineProps(["print_format_name"]);
 
@@ -145,8 +152,6 @@ const ZOOM_LEVELS = [50, 60, 70, 80, 90, 100, 125, 150];
 
 let show_preview = ref(false);
 let no_records = ref(false);
-let doc_picker_ref = ref(null);
-let doc_picker_ctrl = ref(null);
 let canvas_zoom = ref(nearest_zoom(parseInt(localStorage.getItem(ZOOM_KEY)) || 100));
 let zoom_open = ref(false);
 let zoom_ref = ref(null);
@@ -499,69 +504,52 @@ function close_zoom_on_outside(e) {
 	}
 }
 
-function init_doc_picker() {
-	if (!doc_picker_ref.value) return;
+const is_printable_docstatus = (docstatus) =>
+	frappe.model.can_print_docstatus($store.value.meta.value?.name, docstatus);
+const printable_filters = computed(() => {
 	const meta = $store.value.meta.value;
-	// draft/cancelled documents can't be printed unless Print Settings allows it, so
-	// keep them out of the picker unless that's turned on
-	const is_printable_docstatus = (docstatus) =>
-		frappe.model.can_print_docstatus(meta?.name, docstatus);
-	const printable_filters = meta?.is_submittable
+	return meta?.is_submittable
 		? { docstatus: ["in", [0, 1, 2].filter(is_printable_docstatus)] }
 		: {};
-	doc_picker_ctrl.value = frappe.ui.form.make_control({
-		parent: doc_picker_ref.value,
-		df: {
-			fieldname: "preview_doc",
-			fieldtype: "Link",
-			options: meta?.name,
-			placeholder: __("Pick a {0} to preview...", [__(meta?.name || "document")]),
-			get_query: () => ({ filters: printable_filters }),
-			change: () => {
-				const name = doc_picker_ctrl.value.get_value();
-				$store.value.load_preview_doc(name || null);
-			},
-		},
-		render_input: true,
-	});
-	doc_picker_ref.value.querySelector(".control-label")?.remove();
-	doc_picker_ref.value.querySelector(".form-group")?.style.setProperty("margin", "0");
-
-	const select = (name) => {
-		doc_picker_ctrl.value?.set_value(name);
-		$store.value.load_preview_doc(name);
+});
+const doc_picker_df = computed(() => {
+	const meta = $store.value.meta.value;
+	if (!meta || $store.value.needs_setup.value) return null;
+	return {
+		fieldname: "preview_doc",
+		fieldtype: "Link",
+		options: meta.name,
+		placeholder: __("Pick a {0} to preview...", [__(meta.name)]),
+		get_query: () => ({ filters: printable_filters.value }),
 	};
-	// Prefer the record chosen last time (persisted across refresh); otherwise
-	// auto-select the most recent printable record so the preview is ready immediately.
-	const saved = $store.value.persisted_preview_doc_name();
+});
+
+function pick_initial_doc() {
+	const st = $store.value;
+	const meta = st.meta.value;
+	const saved = st.persisted_preview_doc_name();
 	const auto_select = () =>
 		frappe.db
 			.get_list(meta?.name, {
-				filters: printable_filters,
+				filters: printable_filters.value,
 				limit: 1,
 				fields: ["name"],
 				order_by: "creation desc",
 			})
-			.then((rows) => (rows?.length ? select(rows[0].name) : (no_records.value = true)));
-	if (saved) {
-		frappe.db
-			.get_value(meta?.name, saved, ["name", "docstatus"])
-			.then((r) =>
-				r?.message?.name && is_printable_docstatus(r.message.docstatus)
-					? select(saved)
-					: auto_select()
+			.then((rows) =>
+				rows?.length ? st.load_preview_doc(rows[0].name) : (no_records.value = true)
 			);
-	} else {
-		auto_select();
-	}
+	if (!saved) return auto_select();
+	frappe.db
+		.get_value(meta?.name, saved, ["name", "docstatus"])
+		.then((r) =>
+			r?.message?.name && is_printable_docstatus(r.message.docstatus)
+				? st.load_preview_doc(saved)
+				: auto_select()
+		);
 }
 
-watch(
-	() => $store.value.needs_setup.value,
-	(needs_setup) => {
-		if (!needs_setup && !doc_picker_ctrl.value) nextTick(init_doc_picker);
-	}
-);
+watch(doc_picker_df, (df, was) => df && !was && pick_initial_doc());
 
 function warn_before_unload(e) {
 	const st = $store.value;
@@ -582,7 +570,6 @@ onMounted(() => {
 			$store.value.layout.value = $store.value.get_default_layout();
 			$store.value.save_changes();
 		}
-		nextTick(init_doc_picker);
 	});
 });
 
