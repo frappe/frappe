@@ -406,6 +406,7 @@ frappe.show_progress = (title, count, total = 100, description, hide_on_completi
 		</div`).appendTo(dialog.body);
 		dialog.progress_bar = dialog.progress.css({ "margin-top": "10px" }).find(".progress-bar");
 		dialog.$wrapper.removeClass("fade");
+		dialog.$wrapper.on("hidden.bs.modal", () => dialog.$wrapper.remove());
 		dialog.show();
 		frappe.cur_progress = dialog;
 	}
