@@ -67,6 +67,16 @@ def update_comment(name: str | int, content: str):
 	doc.save(ignore_permissions=True)
 
 
+def delete_comment(name: str | int):
+	"""Allow the owner, the Administrator or a System Manager to delete a comment."""
+	doc = frappe.get_doc("Comment", name)
+
+	if frappe.session.user not in ["Administrator", doc.owner] and "System Manager" not in frappe.get_roles():
+		frappe.throw(_("Comment can only be deleted by the owner"), frappe.PermissionError)
+
+	frappe.delete_doc("Comment", doc.name, ignore_permissions=True)
+
+
 @frappe.whitelist()
 def update_comment_publicity(name: str, publish: bool):
 	doc = frappe.get_doc("Comment", name)
