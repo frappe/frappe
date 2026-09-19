@@ -25,18 +25,24 @@ EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 @contextmanager
 def setup_test_user(set_user=False):
 	test_user = frappe.get_doc("User", "test@example.com")
-	user_roles = frappe.get_roles()
-	test_user.remove_roles(*user_roles)
-	test_user.add_roles("Blogger")
+	original_user = frappe.session.user
+	original_roles = [role.role for role in test_user.roles]
 
-	if set_user:
-		frappe.set_user(test_user.name)
+	try:
+		test_user.set("roles", [])
+		test_user.append_roles("Blogger")
+		test_user.save(ignore_permissions=True)
 
-	yield test_user
+		if set_user:
+			frappe.set_user(test_user.name)
 
-	test_user.reload()
-	test_user.remove_roles("Blogger")
-	test_user.add_roles(*user_roles)
+		yield test_user
+	finally:
+		frappe.set_user(original_user)
+		test_user.reload()
+		test_user.set("roles", [])
+		test_user.append_roles(*original_roles)
+		test_user.save(ignore_permissions=True)
 
 
 @contextmanager
@@ -447,7 +453,7 @@ class TestDBQuery(IntegrationTestCase):
 			in build_match_conditions(as_condition=False)
 		)
 		# get as conditions
-		if frappe.db.db_type == "mariadb":
+		if frappe.db.db_type in {"mariadb", "sqlite"}:
 			assertion_string = """(((ifnull(`tabTest Blog Post`.`name`, '')='' or `tabTest Blog Post`.`name` in ('_Test Blog Post 1', '_Test Blog Post'))))"""
 		elif frappe.db.db_type == "postgres":
 			assertion_string = """(((ifnull(cast(`tabTest Blog Post`.`name` as varchar), '')='' or cast(`tabTest Blog Post`.`name` as varchar) in ('_Test Blog Post 1', '_Test Blog Post'))))"""
@@ -1708,6 +1714,18 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertIn("roles", result[0], "Child table data is missing when parent name is omitted")
 		self.assertTrue(len(result[0]["roles"]) > 0, "Child table is empty")
 		self.assertNotIn("name", result[0], "Injected 'name' field leaked into the final output")
+
+	def test_setup_test_user_restores_user_and_roles(self):
+		original_user = frappe.session.user
+		test_user = frappe.get_doc("User", "test@example.com")
+		original_roles = {role.role for role in test_user.roles}
+
+		with setup_test_user(set_user=True):
+			self.assertEqual(frappe.session.user, test_user.name)
+			self.assertEqual({role.role for role in test_user.reload().roles}, {"Blogger"})
+
+		self.assertEqual(frappe.session.user, original_user)
+		self.assertEqual({role.role for role in test_user.reload().roles}, original_roles)
 
 	def test_distinct_with_injected_name_raises(self):
 		with self.assertRaises(frappe.ValidationError):
