@@ -2,13 +2,23 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.desk.utils import slug
+from frappe.permissions import check_doctype_permission
 
 
 def get(name):
 	"""
 	Return the :term:`doclist` of the `Page` specified by `name`
 	"""
-	page = frappe.get_doc("Page", name)
+	try:
+		page = frappe.get_doc("Page", name)
+	except frappe.DoesNotExistError:
+		if doctype := next(
+			(d for d in frappe.get_all("DocType", {"istable": 0}, pluck="name") if slug(d) == name), None
+		):
+			check_doctype_permission(doctype)
+		raise
+
 	if page.is_permitted():
 		page.load_assets()
 		docs = frappe._dict(page.as_dict())
