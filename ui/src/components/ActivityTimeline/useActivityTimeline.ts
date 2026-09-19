@@ -24,8 +24,8 @@ interface TimelineStore {
   milestoneStart: Ref<number>;
   /** one refetch however many callers ask; resolves when it lands */
   refresh: () => Promise<void>;
-  /** start watching the doc; call the result to stop */
-  watch: () => () => void;
+  /** start listening to the doc; call the result to stop */
+  subscribe: () => () => void;
 }
 const stores = new Map<string, TimelineStore>();
 
@@ -240,7 +240,7 @@ function getTimelineStore(
     hasMoreMilestones,
     milestoneStart,
     refresh,
-    watch: createLiveUpdates(
+    subscribe: createLiveUpdates(
       doctype,
       docname,
       resource,
@@ -261,13 +261,13 @@ export function useActivityTimeline(
   const { resource } = store;
 
   // the store is shared, so one socket serves every consumer of it
-  let unwatch: (() => void) | undefined;
+  let unsubscribe: (() => void) | undefined;
   onMounted(() => {
-    unwatch = store.watch();
+    unsubscribe = store.subscribe();
   });
   onUnmounted(() => {
-    unwatch?.();
-    unwatch = undefined;
+    unsubscribe?.();
+    unsubscribe = undefined;
   });
 
   // deduped + sorted, but ungrouped: the component folds version runs at render
@@ -379,7 +379,7 @@ function createHistoryPagination(
   });
 }
 
-/** Returns watch(): the first caller wires the socket, the last unwires it. */
+/** Returns subscribe(): the first caller wires the socket, the last unwires it. */
 function createLiveUpdates(
   doctype: string,
   docname: string,
@@ -451,11 +451,11 @@ function createLiveUpdates(
     connect: onConnect,
   };
 
-  let watchers = 0;
+  let subscribers = 0;
   let leaveRoom: (() => void) | undefined;
 
-  return function watch() {
-    if (++watchers === 1) {
+  return function subscribe() {
+    if (++subscribers === 1) {
       leaveRoom = subscribeToDoc(socket, doctype, docname);
       for (const event in handlers) socket.on(event, handlers[event]);
       // nobody was listening while this was closed, so the feed may have moved
@@ -463,10 +463,10 @@ function createLiveUpdates(
     }
 
     let stopped = false;
-    return function unwatch() {
+    return function unsubscribe() {
       if (stopped) return;
       stopped = true;
-      if (--watchers > 0) return;
+      if (--subscribers > 0) return;
       leaveRoom?.();
       leaveRoom = undefined;
       for (const event in handlers) socket.off(event, handlers[event]);
