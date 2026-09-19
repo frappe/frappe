@@ -1241,3 +1241,28 @@ class TestListPartsV2(FrappeAPITestCase):
 		# no suppress_stdout: the refusal prints, and a None stdout turns that into a 500
 		response = self.get(self.doctype_path("ToDo", "search"), {"sid": "Guest", "txt": self.prefix})
 		self.assertEqual(response.status_code, 403)
+
+
+class TestSessionAPIV2(FrappeAPITestCase):
+	version = "v2"
+
+	def session_path(self):
+		return self.get_path("session")
+
+	def test_session_v2(self):
+		response = self.get(self.session_path(), {"sid": self.sid})
+		self.assertEqual(response.status_code, 200, response.json)
+		data = response.json["data"]
+		self.assertEqual(data["user"]["name"], "Administrator")
+		self.assertIsInstance(data["roles"], list)
+		self.assertIn("System Manager", data["roles"])
+		self.assertTrue(data["lang"])
+		self.assertTrue(data["timezone"])
+		self.assertIsInstance(data["defaults"], dict)
+
+	def test_session_serves_a_guest_v2(self):
+		response = self.get(self.session_path(), {"sid": "Guest"})
+		self.assertEqual(response.status_code, 200, response.json)
+		data = response.json["data"]
+		self.assertEqual(data["user"]["name"], "Guest")
+		self.assertIn("Guest", data["roles"])
