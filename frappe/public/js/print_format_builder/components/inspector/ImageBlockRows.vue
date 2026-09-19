@@ -4,17 +4,17 @@
 		:alt="selected_field.label"
 		@update:model-value="set_image_url"
 	/>
-	<SliderRow
+	<SizeRow
 		v-if="selected_field.image_url"
 		:label="__('Size')"
-		:model-value="parseFloat(selected_field.width) || 200"
-		@update:model-value="(v) => (selected_field.width = v + 'px')"
+		:model-value="selected_field.width"
+		@update:model-value="(v) => (selected_field.width = v)"
 	/>
 </template>
 
 <script setup>
 import ImageUploadControl from "./ImageUploadControl.vue";
-import SliderRow from "./SliderRow.vue";
+import SizeRow from "./SizeRow.vue";
 import { get_image_dimensions } from "../../utils";
 import { useSelectedField } from "./useSelectedField";
 

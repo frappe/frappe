@@ -8,6 +8,7 @@
 			:value="modelValue"
 			@input="$emit('update:modelValue', Number($event.target.value))"
 		/>
+		<slot />
 	</InspectorRow>
 </template>
 

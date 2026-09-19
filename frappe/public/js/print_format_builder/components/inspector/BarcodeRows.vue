@@ -20,12 +20,13 @@
 			@update:model-value="(v) => (selected_field.barcode_format = v)"
 		/>
 	</template>
-	<SliderRow
+	<SizeRow
 		:label="__('Size')"
 		:min="40"
 		:max="500"
-		:model-value="size"
-		@update:model-value="(v) => (selected_field.width = v + 'px')"
+		:fallback="selected_field.barcode_format === 'QR' ? 130 : 200"
+		:model-value="selected_field.width"
+		@update:model-value="(v) => (selected_field.width = v)"
 	/>
 	<ToggleRow
 		v-if="selected_field.custom && selected_field.barcode_format !== 'QR'"
@@ -39,7 +40,7 @@
 import { computed } from "vue";
 import DropdownRow from "./DropdownRow.vue";
 import TextRow from "./TextRow.vue";
-import SliderRow from "./SliderRow.vue";
+import SizeRow from "./SizeRow.vue";
 import ToggleRow from "./ToggleRow.vue";
 import { useSelectedField } from "./useSelectedField";
 
@@ -53,9 +54,4 @@ const field_options = computed(() => [
 		.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype))
 		.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname })),
 ]);
-const size = computed(
-	() =>
-		parseFloat(selected_field.value?.width) ||
-		(selected_field.value?.barcode_format === "QR" ? 130 : 200)
-);
 </script>
