@@ -230,6 +230,18 @@ def ensure_todo_kanban_board():
 	return doc.name
 
 
+@whitelist_for_tests()
+def db_set_values(doctype: str, name: str, values: str | dict):
+	"""Set fixture fields directly without running document validation hooks.
+
+	Intended for UI test setup over HTTP requests. Callers are responsible for
+	cleaning up or resetting mutated records explicitly.
+	"""
+	values = frappe.parse_json(values)
+	frappe.db.set_value(doctype, name, values, update_modified=False)
+	return frappe.get_doc(doctype, name).as_dict()
+
+
 def insert_contact(first_name, phone_number):
 	doc = frappe.get_doc({"doctype": "Contact", "first_name": first_name})
 	doc.append("phone_nos", {"phone": phone_number})

@@ -1,22 +1,9 @@
 // Data Import
-.map-columns .form-section {
-	padding: 0 7px 7px;
-	border-top: none;
-
-	.clearfix {
-		display: none;
-	}
-}
-
-.map-columns .form-section:first-child {
-	padding-top: 7px;
-}
+// Layout/spacing/border utilities live on the markup (utilities.scss).
+// Keep only component-specific rules: form overrides and indicators.
+// Tree chrome lives in data_import_wizard.scss (tree only mounts in the wizard).
 
 .table-preview {
-	margin-top: 12px;
-	overflow-x: auto;
-	width: 100%;
-
 	.datatable {
 		width: max-content;
 		min-width: 100%;
@@ -35,47 +22,15 @@
 	}
 }
 
-.import-tree-status-alert {
-	margin-bottom: var(--margin-sm);
-}
-
-.import-tree-preview-panel {
-	.import-tree-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: var(--margin-md);
-		margin-bottom: var(--margin-xs);
+// Column header status dots (mapped / skipped) — status colors not espresso utilities.
+.diw-preview-col-dot {
+	&--mapped {
+		background-color: var(--green-500, #39a84b);
 	}
 
-	.import-tree-title {
-		display: inline-flex;
-		align-items: center;
-		gap: var(--margin-sm);
-		min-width: 0;
-	}
-
-	.import-tree-doctype-label {
-		font-size: var(--text-lg);
-		font-weight: 600;
-		color: var(--text-color);
-		line-height: 1.4;
-	}
-
-	.import-tree-body {
-		max-height: 380px;
-		overflow: auto;
-
-		.tree {
-			padding: var(--padding-sm);
-		}
-	}
-
-	.import-tree-row-number {
-		font-weight: normal;
-	}
-
-	.import-tree-node-orphan > .tree-link .tree-label {
-		color: var(--orange-600);
+	&--skipped {
+		background-color: var(--gray-400, #c0c5cc);
 	}
 }
+
+@import "data_import_wizard";

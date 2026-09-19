@@ -1,5 +1,23 @@
 let imports_in_progress = [];
 
+// Quick Entry for Data Import: apply the same importable-DocType filter
+// as the full form (frm.set_query("reference_doctype") in data_import.js).
+frappe.ui.form.DataImportQuickEntryForm = class DataImportQuickEntryForm extends (
+	frappe.ui.form.QuickEntryForm
+) {
+	render_dialog() {
+		super.render_dialog();
+		const field = this.fields_dict?.reference_doctype;
+		if (field) {
+			field.get_query = () => ({
+				filters: {
+					name: ["in", frappe.boot.user.can_import || []],
+				},
+			});
+		}
+	}
+};
+
 frappe.listview_settings["Data Import"] = {
 	onload(listview) {
 		frappe.realtime.on("data_import_progress", (data) => {
@@ -15,7 +33,6 @@ frappe.listview_settings["Data Import"] = {
 	get_indicator: function (doc) {
 		var colors = {
 			Pending: "amber",
-			"Not Started": "amber",
 			"Partial Success": "amber",
 			Success: "green",
 			"In Progress": "amber",

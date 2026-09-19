@@ -40,11 +40,8 @@ def normalize_source_value(value) -> str:
 def build_lookup_from_mappings(
 	mappings: list, reference_doctype: str | None = None
 ) -> dict[str, dict[str, str]]:
-	"""Build nested lookup ``{field_key: {source_value: target_value}}`` from child-table rows.
-
-	Used at import time for O(1) per-cell remapping. Rows with empty source or target are skipped.
-	Later rows for the same field + source overwrite earlier ones.
-	"""
+	"""Build nested lookup {field_key: {source_value: target_value}}; skip empty source/target.
+	Later rows for the same field + source overwrite earlier ones."""
 	lookup: dict[str, dict[str, str]] = {}
 	for row in mappings:
 		row = frappe._dict(row)
@@ -170,12 +167,7 @@ def get_unmapped_invalid_values_for_column(
 
 
 def get_blocking_warnings(warnings: list, import_file, data_import=None) -> list:
-	"""Filter template warnings to those that should prevent import from starting.
-
-	Info warnings are ignored. ``value_mapping`` warnings stay only while unmapped invalid values
-	remain; fully mapped columns keep their warning for display but no longer block import.
-	Row warnings for user-skipped rows are ignored.
-	"""
+	"""Filter template warnings to those that should block the import."""
 	cols = {c.column_number: c for c in import_file.header.columns}
 	skipped_rows = get_skipped_row_numbers(data_import)
 	blocking = []
@@ -191,6 +183,11 @@ def get_blocking_warnings(warnings: list, import_file, data_import=None) -> list
 			):
 				blocking.append(warning)
 			continue
+		# Duplicate IDs are non-blocking when every duplicate but the first is skipped.
+		if warning.get("type") == "duplicate_id" and skipped_rows:
+			rows = warning.get("rows") or []
+			if len(rows) > 1 and all(cint(row) in skipped_rows for row in rows[1:]):
+				continue
 		blocking.append(warning)
 	return blocking
 
@@ -264,8 +261,9 @@ def warn_invalid_link_select_values(col) -> None:
 		lines.append(line)
 
 	if col.df.fieldtype == "Select" and options_string and lines:
+		# Put 'Allowed:' on its own line so it doesn't run into the row list.
 		allowed = _("Allowed: {0}").format(frappe.bold(options_string))
-		lines[-1] = f"{lines[-1]} · {allowed}"
+		lines[-1] = f"{lines[-1]}<br><span class='text-muted'>{allowed}</span>"
 
 	message = "<br>".join(lines)
 	col.warnings.append({"col": col.column_number, "message": message, "type": "value_mapping"})
@@ -276,7 +274,7 @@ def mapping_row_key(row) -> str:
 	return f"{row.get('column')}|{row.get('fieldname')}|{row.get('parent_field') or ''}|{row.get('source_value')}"
 
 
-def no_of_rows_count(rows: list) -> str:
+def row_count_label(rows: list) -> str:
 	"""Row count for the Value Mappings grid (actual row numbers live in ``row_numbers``)."""
 	if not rows:
 		return ""
@@ -303,7 +301,7 @@ def child_row_from_hint(item: dict, columns: dict) -> dict:
 		"source_value": item.source_value,
 		"target_value": item.target_value or "",
 		"row_numbers": json.dumps(rows),
-		"no_of_rows": no_of_rows_count(rows),
+		"no_of_rows": row_count_label(rows),
 	}
 
 

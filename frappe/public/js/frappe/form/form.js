@@ -98,6 +98,11 @@ frappe.ui.form.Form = class FrappeForm {
 		this.page = this.wrapper.page;
 		this.layout_main = this.page.main.get(0);
 
+		// For forms embedded in dialogs, prevent the page from changing the browser title
+		if (this.in_dialog) {
+			this.page.set_document_title = false;
+		}
+
 		this.$wrapper.on("hide", () => {
 			this.script_manager.trigger("on_hide");
 		});
@@ -597,7 +602,10 @@ frappe.ui.form.Form = class FrappeForm {
 				me.trigger_link_fields();
 			});
 
-			frappe.breadcrumbs.add(me.meta.module, me.doctype);
+			// Skip breadcrumb changes for forms embedded in dialogs
+			if (!me.in_dialog) {
+				frappe.breadcrumbs.add(me.meta.module, me.doctype);
+			}
 		});
 
 		// update seen
@@ -878,8 +886,8 @@ frappe.ui.form.Form = class FrappeForm {
 
 	refresh_header(switched) {
 		// set title
-		// main title
-		if (!this.meta.in_dialog || this.in_form) {
+		// main title — skip for forms embedded in dialogs
+		if ((!this.meta.in_dialog || this.in_form) && !this.in_dialog) {
 			frappe.utils.set_title(this.meta.issingle ? this.doctype : this.docname);
 		}
 
