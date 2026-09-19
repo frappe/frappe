@@ -515,9 +515,29 @@ class TestShellBoot(IntegrationTestCase):
 		self.assertEqual(boot["app"], app)
 		# Core.
 		self.assertIn("csrf_token", boot)
-		self.assertIn("timezone", boot)
+		self.assertIn("timezone", boot["session"])
 		# The declaring app's contribution, merged under core.
 		self.assertEqual(boot["default_route"], "/deals")
+
+	def test_boot_carries_the_session_and_the_upload_limits(self):
+		"""The signed-in person is one nested object, and the limits the uploader reads are top-level."""
+		from frappe.core.api.file import get_file_chunk_size, get_max_file_size
+		from frappe.shell.boot import get_boot
+
+		boot = get_boot("/apps/desk")
+
+		session = boot["session"]
+		self.assertEqual(session["user"]["name"], "Administrator")
+		self.assertIn("System Manager", session["roles"])
+		self.assertTrue(session["lang"])
+		self.assertTrue(session["timezone"])
+		self.assertIsInstance(session["defaults"], dict)
+
+		self.assertEqual(boot["max_file_size"], get_max_file_size())
+		self.assertEqual(boot["file_chunk_size"], get_file_chunk_size())
+
+		for moved in ("user", "lang", "sysdefaults", "timezone"):
+			self.assertNotIn(moved, boot)
 
 	def test_boot_names_the_app_tile(self):
 		"""The rail's tile reads the app's own screen entry, and falls back to the app's name."""
@@ -638,12 +658,12 @@ class TestShellBoot(IntegrationTestCase):
 		"""Core is spread last, or an app could break every save at its own prefix with a bare 400."""
 		from frappe.shell.boot import get_boot
 
-		poison = {"csrf_token": "stolen", "user": {"name": "nobody"}, "shell_base": "/elsewhere"}
+		poison = {"csrf_token": "stolen", "session": {"user": {"name": "nobody"}}, "shell_base": "/elsewhere"}
 		with patch("frappe.shell.boot.app_boot", return_value=poison):
 			boot = get_boot("/apps/desk")
 
 		self.assertNotEqual(boot["csrf_token"], "stolen")
-		self.assertNotEqual(boot["user"]["name"], "nobody")
+		self.assertNotEqual(boot["session"]["user"]["name"], "nobody")
 		self.assertEqual(boot["shell_base"], "/apps/desk")
 
 	def test_the_desk_prefix_boot_is_small_too(self):
