@@ -1,5 +1,12 @@
 <template>
 	<img v-if="format == 'QR' && qr_src" :src="qr_src" :style="{ width: df.width || '35mm' }" />
+	<img
+		v-else-if="barcode_img"
+		class="pf-barcode-svg"
+		:src="barcode_img"
+		:style="df.width ? { width: df.width } : {}"
+		alt=""
+	/>
 	<div
 		v-else-if="barcode_svg"
 		class="pf-barcode-svg"
@@ -16,7 +23,7 @@
 <script setup>
 import { ref, computed, watch, inject } from "vue";
 import JsBarcode from "jsbarcode";
-import { strip_unsafe_html, is_qr_barcode_options } from "../../utils";
+import { is_qr_barcode_options } from "../../utils";
 
 const props = defineProps(["df"]);
 const store = inject("$store");
@@ -50,11 +57,21 @@ let barcode_raw_value = computed(() => {
 	return props.df.barcode_value || null;
 });
 
-let barcode_svg = computed(() => {
+// A Barcode docfield stores its own <svg>. That markup is document data, not
+// something the format author wrote, so it renders as an image rather than into
+// the desk DOM: an SVG in <img> runs no script and fetches nothing external.
+let barcode_img = computed(() => {
 	const value = barcode_raw_value.value;
 	if (!value || format.value === "QR") return null;
 	const str = String(value);
-	if (str.startsWith("<svg")) return strip_unsafe_html(str);
+	if (!str.startsWith("<svg")) return null;
+	return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(str)}`;
+});
+
+let barcode_svg = computed(() => {
+	const value = barcode_raw_value.value;
+	if (!value || format.value === "QR" || barcode_img.value) return null;
+	const str = String(value);
 	const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 	try {
 		JsBarcode(svg, str, {
