@@ -17,6 +17,8 @@ import re
 
 import frappe
 from frappe import _
+from frappe.printing.fieldtypes import MERGE_IMAGE_FIELDTYPES, is_image_column
+from frappe.printing.layout import iter_nodes
 from frappe.utils.html_utils import unescape_html
 
 #: px (builder/CSS space) → pt (Typst space)
@@ -148,7 +150,7 @@ def typst_blockers(print_format, layout) -> list[str]:
 	colors = _unsafe_colors(print_format)
 	styled_fields = []
 	seen = set()
-	for _where, node in _walk(layout):
+	for _where, node in iter_nodes(layout):
 		style = node.get("custom_style")
 		if isinstance(style, str) and style.strip():
 			_effects, unknown = translate_custom_style(style)
@@ -238,23 +240,9 @@ def has_typst_blocks(layout) -> bool:
 	if not isinstance(layout, dict):
 		return False
 	return any(
-		df.get("fieldtype") == "Typst" and (df.get("typst") or "").strip() for _where, df in _walk(layout)
+		df.get("fieldtype") == "Typst" and (df.get("typst") or "").strip()
+		for _where, df in iter_nodes(layout)
 	)
-
-
-def _walk(layout):
-	zones = [
-		(_("Header"), layout.get("header")),
-		(_("Footer"), layout.get("footer")),
-	] + [(s.get("label") or _("Section"), s) for s in layout.get("sections") or [] if isinstance(s, dict)]
-	for where, zone in zones:
-		if not isinstance(zone, dict):
-			continue
-		yield where, zone
-		for column in zone.get("columns") or []:
-			for df in (column or {}).get("fields") or []:
-				if isinstance(df, dict):
-					yield where, df
 
 
 def typst_font_paths() -> list[str]:
@@ -1083,7 +1071,7 @@ class TypstEmitter:
 				(
 					mf.get("fieldname")
 					for mf in merged
-					if mf.get("fieldname") and mf.get("fieldtype") in ("Attach Image", "Attach")
+					if mf.get("fieldname") and mf.get("fieldtype") in MERGE_IMAGE_FIELDTYPES
 				),
 				None,
 			)
@@ -1091,7 +1079,7 @@ class TypstEmitter:
 			first_text = True
 			for mf in merged:
 				fieldname = mf.get("fieldname")
-				if not fieldname or mf.get("fieldtype") in ("Attach Image", "Attach"):
+				if not fieldname or mf.get("fieldtype") in MERGE_IMAGE_FIELDTYPES:
 					continue
 				value = _text_value(row.get_formatted(fieldname))
 				if not value:
@@ -1122,9 +1110,7 @@ class TypstEmitter:
 			return f"#text({q(row.get('idx'))})"
 		fieldtype = col.get("fieldtype")
 		src = row.get(col.get("options") or "") if fieldtype == "Image" else row.get(fieldname)
-		if fieldtype in ("Attach Image", "Image") or (
-			fieldtype == "Attach" and frappe.utils.is_image(str(src or ""))
-		):
+		if is_image_column(fieldtype, src):
 			name = self._embed_image(src)
 			if not name:
 				return ""
@@ -1137,7 +1123,7 @@ class TypstEmitter:
 		img_type = next((mf.get("fieldtype") for mf in merged if mf.get("fieldname") == img_fn), None)
 		# a plain Attach can hold any file — embedding a PDF would abort the compile
 		name = None
-		if img_type != "Attach" or frappe.utils.is_image(src):
+		if is_image_column(img_type, src):
 			name = self._embed_image(src)
 		if name:
 			return (

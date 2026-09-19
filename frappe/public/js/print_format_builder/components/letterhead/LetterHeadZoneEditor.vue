@@ -17,55 +17,34 @@
 </template>
 
 <script setup>
-import { useStore } from "../../stores";
 import { render_jinja_html } from "../../utils";
+import { zone_fields } from "./zone_fields";
 import { ref, watch, onMounted, inject, computed } from "vue";
 
 const props = defineProps({
 	zone: { type: String, required: true }, // 'header' | 'footer'
 });
 
-let { letterhead, store, layout } = useStore();
-let raw_store = inject("$store");
+let store = inject("$store");
+let { letterhead, layout } = store;
 
-// ── Field name mapping ────────────────────────────────────
-const F = computed(() =>
-	props.zone === "header"
-		? {
-				source: "source",
-				content: "content",
-				image: "image",
-				align: "align",
-				height: "image_height",
-				width: "image_width",
-		  }
-		: {
-				source: "footer_source",
-				content: "footer",
-				image: "footer_image",
-				align: "footer_align",
-				height: "footer_image_height",
-				width: "footer_image_width",
-		  }
-);
+const F = computed(() => zone_fields(props.zone));
 
-let preview_doc = computed(() => raw_store.preview_doc.value);
+let preview_doc = computed(() => store.preview_doc.value);
 let rendered_content = ref(null);
 let render_failed = ref(false);
 let render_pending = ref(false);
 
 let zone_content = computed(() => letterhead.value?.[F.value.content] ?? "");
 let is_selected = computed(() =>
-	props.zone === "header"
-		? raw_store.selected_letterhead.value
-		: raw_store.selected_lh_footer.value
+	props.zone === "header" ? store.selected_letterhead.value : store.selected_lh_footer.value
 );
 let empty_label = computed(() =>
 	letterhead.value ? __("{0} is empty — click to add", [letterhead.value.name]) : ""
 );
 
 function select_zone() {
-	raw_store.select_letterhead({ footer: props.zone !== "header" });
+	store.select_letterhead({ footer: props.zone !== "header" });
 }
 
 async function refresh_rendered_content() {
@@ -81,8 +60,8 @@ async function refresh_rendered_content() {
 	try {
 		rendered_content.value = await render_jinja_html(
 			content,
-			raw_store.meta.value?.name,
-			raw_store.preview_doc_name.value
+			store.meta.value?.name,
+			store.preview_doc_name.value
 		);
 		render_failed.value = rendered_content.value === null;
 	} finally {
@@ -126,7 +105,7 @@ watch(
 onMounted(() => {
 	if (props.zone === "header" && !letterhead.value && layout.value?.letter_head == null) {
 		const lh_name = frappe.boot.sysdefaults.letter_head;
-		if (lh_name) store.value.change_letterhead(lh_name, { keep_clean: true });
+		if (lh_name) store.change_letterhead(lh_name, { keep_clean: true });
 	}
 });
 </script>

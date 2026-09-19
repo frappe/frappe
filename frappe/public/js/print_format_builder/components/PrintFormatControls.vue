@@ -249,7 +249,7 @@
 							@mouseenter="store.hovered_section.value = section"
 							@mouseleave="store.hovered_section.value = null"
 							:class="{
-								'pfb-drag-handle': !zone_of(section),
+								'pfb-drag-handle': !zone_label(section),
 								active: store.selected_sections.value.includes(section),
 								'pfb-tree-hover': store.hovered_node.value === section,
 							}"
@@ -272,12 +272,14 @@
 								v-html="frappe.utils.icon('rectangle-horizontal', 'sm')"
 							></span>
 							<span class="pfb-tree-label">
-								{{ section.label || zone_of(section) || __("Untitled section") }}
+								{{
+									section.label || zone_label(section) || __("Untitled section")
+								}}
 							</span>
 						</div>
 						<div v-if="!is_collapsed(section)" class="pfb-tree-children">
 							<div
-								v-if="zone_of(section) && letterhead"
+								v-if="zone_label(section) && letterhead"
 								class="pfb-tree-row"
 								:class="{ active: letterhead_selected(section) }"
 								role="treeitem"
@@ -403,8 +405,8 @@
 
 <script setup>
 import draggable from "vuedraggable";
+import { is_block } from "../fieldtypes";
 import {
-	BLOCK_FIELDTYPES,
 	DRAG_OPTIONS,
 	clone_plain,
 	freshen_field,
@@ -414,7 +416,7 @@ import {
 	FIELD_PLUCK_KEYS,
 } from "../utils";
 import BlockCard from "./BlockCard.vue";
-import { useStore } from "../stores";
+import { column_of, zone_of, zones } from "../layout";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
 
 // state
@@ -445,7 +447,7 @@ function focus_search() {
 
 // store
 let store = inject("$store");
-let { meta, layout, print_format, letterhead } = useStore();
+let { meta, layout, print_format, letterhead } = store;
 
 // ── blocks tab items ──────────────────────────────────────
 const page_break_block = [
@@ -577,17 +579,10 @@ function add_to_layout(df) {
 	// Search body sections and header/footer zones so a selected header field
 	// is used as the anchor when inserting from the panel.
 	const selected_field = store.selected_field.value;
-	if (selected_field && !selected_field.remove) {
-		const all_zones = [lv?.header, lv?.footer, ...sections].filter(Boolean);
-		for (const section of all_zones) {
-			for (const column of section.columns) {
-				const idx = column.fields.indexOf(selected_field);
-				if (idx !== -1) {
-					column.fields.splice(idx + 1, 0, clone_field(df));
-					return;
-				}
-			}
-		}
+	const column = selected_field && !selected_field.remove && column_of(lv, selected_field);
+	if (column) {
+		column.fields.splice(column.fields.indexOf(selected_field) + 1, 0, clone_field(df));
+		return;
 	}
 
 	// Otherwise add to the last column of the selected (or last body) section.
@@ -646,7 +641,7 @@ let known_fieldnames = computed(() => {
 });
 function field_broken(f) {
 	if (f.custom || f.fieldtype === "Field Template" || !f.fieldname) return false;
-	if (BLOCK_FIELDTYPES.has(f.fieldtype)) return false;
+	if (is_block(f)) return false;
 	return !known_fieldnames.value.has(f.fieldname);
 }
 
@@ -672,9 +667,8 @@ function field_icon(f) {
 // the zones are sections too, so the tree lists them alongside the body ones —
 // only their order is fixed, since a header can't become a body section
 let tree_sections = computed({
-	get: () =>
-		[layout.value.header, ...layout.value.sections, layout.value.footer].filter(Boolean),
-	set: (v) => (layout.value.sections = v.filter((s) => !zone_of(s))),
+	get: () => [...zones(layout.value)],
+	set: (v) => (layout.value.sections = v.filter((s) => !zone_of(layout.value, s))),
 });
 
 function letterhead_selected(section) {
@@ -686,11 +680,8 @@ function select_letterhead(section) {
 	store.select_letterhead({ footer: section === layout.value?.footer });
 }
 
-function zone_of(section) {
-	if (section && section === layout.value?.header) return __("Header");
-	if (section && section === layout.value?.footer) return __("Footer");
-	return "";
-}
+const ZONE_LABELS = { header: __("Header"), footer: __("Footer") };
+const zone_label = (section) => ZONE_LABELS[zone_of(layout.value, section)] || "";
 
 let collapsed_nodes = ref(new Set());
 function is_collapsed(node) {

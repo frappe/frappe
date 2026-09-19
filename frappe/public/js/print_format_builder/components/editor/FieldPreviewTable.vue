@@ -154,14 +154,6 @@ function start_col_resize(e, ci) {
 }
 </script>
 
-<style>
-body.pfb-col-resizing,
-body.pfb-col-resizing * {
-	cursor: col-resize !important;
-	user-select: none;
-}
-</style>
-
 <style scoped>
 .column-header {
 	position: relative;

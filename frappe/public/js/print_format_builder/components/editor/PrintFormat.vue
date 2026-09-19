@@ -4,7 +4,6 @@
 		data-theme="light"
 		:style="rootStyles"
 		:class="{
-			'pfb-clean-preview': !!store.preview_doc.value,
 			'print-format-doc': !!store.preview_doc.value,
 			'show-label-colon': !!print_format.show_label_colon,
 		}"
@@ -83,10 +82,10 @@ import LetterHeadZoneEditor from "../letterhead/LetterHeadZoneEditor.vue";
 import PrintFormatSection from "./PrintFormatSection.vue";
 import SectionInsert from "./SectionInsert.vue";
 import { DRAG_OPTIONS, setDragging, field_uid } from "../../utils";
-import { useStore } from "../../stores";
 import { computed, inject, watch, nextTick, onMounted, onUnmounted, ref } from "vue";
 
-let { layout, letterhead, print_format } = useStore();
+let store = inject("$store");
+let { layout, letterhead, print_format } = store;
 
 // one definition of "the header holds no fields" — the tree and the canvas
 // both key off it, so a deleted field (kept in the DOM as a tombstone) can't
@@ -95,7 +94,6 @@ let header_is_empty = computed(
 	() =>
 		!(layout.value.header?.columns || []).some((c) => (c.fields || []).some((f) => !f.remove))
 );
-let store = inject("$store");
 let header_selected = computed(() => store.selected_sections.value.includes(layout.value.header));
 
 let page_mm = ref([210, 297]);
@@ -350,60 +348,5 @@ let page_number_style = computed(() => {
 
 .section-with-insert:hover :deep(.section-insert) {
 	opacity: 1;
-}
-
-/* ── Clean preview mode (when live data is loaded) ───────── */
-
-/* Hide all editor chrome */
-.pfb-clean-preview :deep(.section-toolbar),
-.pfb-clean-preview :deep(.configure-columns-btn) {
-	display: none;
-}
-
-/* Default section skin in clean-preview — grid sections style themselves */
-.pfb-clean-preview :deep(.print-format-section:not(.section--grid)) {
-	border: 1px solid transparent;
-	border-radius: var(--radius);
-	overflow: visible;
-	transition: border-color 0.1s;
-}
-
-/* section hover/selection rings live in one place — PrintFormatSection.vue */
-
-.pfb-clean-preview :deep(.print-format-section-container) {
-	margin-bottom: 0;
-}
-
-/* Field selection chrome lives in Field.vue and is outline-only */
-
-/* Section columns: no vertical padding in preview (matches PDF) */
-.pfb-clean-preview :deep(.section-columns) {
-	padding: 0;
-}
-
-/* Remove drag container min-height gaps; grid sections keep their own gap */
-.pfb-clean-preview :deep(.drag-container) {
-	min-height: 0;
-}
-
-/* Field spacing comes from the shared .field + .field margin, like the PDF */
-.pfb-clean-preview :deep(.drag-container:not(.section--grid *)) {
-	gap: 0;
-}
-
-/* Section drag handle in clean-preview: show on hover */
-.pfb-clean-preview :deep(.section-preview-actions) {
-	display: flex;
-}
-
-.pfb-clean-preview :deep(.print-format-section-container:hover .section-preview-actions),
-.pfb-clean-preview
-	:deep(.print-format-section-container.pfb-section-active .section-preview-actions) {
-	opacity: 1;
-}
-
-/* Section title: typography/border come from the shared .section-label rules */
-.pfb-clean-preview :deep(.section-title-display) {
-	display: block;
 }
 </style>

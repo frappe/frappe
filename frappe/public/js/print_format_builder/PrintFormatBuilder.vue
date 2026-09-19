@@ -12,7 +12,13 @@
 					<span class="canvas-toolbar-eyebrow">{{ __("Data") }}</span>
 				</div>
 				<div class="canvas-toolbar-center">
-					<div ref="doc_picker_ref" class="canvas-doc-picker"></div>
+					<DeskControl
+						v-if="doc_picker_df"
+						class="canvas-doc-picker"
+						:df="doc_picker_df"
+						:model-value="$store.preview_doc_name.value || ''"
+						@update:model-value="(name) => $store.load_preview_doc(name || null)"
+					/>
 					<span v-if="no_records" class="canvas-toolbar-hint">
 						{{ __("No records to preview yet") }}
 					</span>
@@ -71,13 +77,13 @@
 					</div>
 				</div>
 			</div>
-			<div v-if="$store.viewing_version.value" class="pfb-viewing-banner">
+			<div v-if="$store.versions.viewing.value" class="pfb-viewing-banner">
 				<span v-html="frappe.utils.icon('history', 'sm')"></span>
 				<span>
 					{{
 						__("Viewing {0} ({1}). Editing is off.", [
-							$store.viewing_version.value.label,
-							$store.viewing_version.value.when,
+							$store.versions.viewing.value.label,
+							$store.versions.viewing.value.when,
 						])
 					}}
 				</span>
@@ -94,7 +100,7 @@
 				class="print-format-container"
 				:class="{
 					'pfb-marquee-dragging': marquee_dragging,
-					'pfb-viewing': $store.viewing_version.value,
+					'pfb-viewing': $store.versions.viewing.value,
 				}"
 				:style="{ '--pfb-zoom': canvas_zoom / 100 }"
 				@click="clear_selection"
@@ -133,9 +139,11 @@ import Preview from "./components/Preview.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
 import ContextMenu from "./components/editor/ContextMenu.vue";
+import DeskControl from "./components/DeskControl.vue";
 import { getStore } from "./stores";
 import { field_uid } from "./utils";
-import { computed, ref, onMounted, onUnmounted, provide, nextTick, watch } from "vue";
+import { section_of } from "./layout";
+import { computed, ref, onMounted, onUnmounted, provide, watch } from "vue";
 
 const props = defineProps(["print_format_name"]);
 
@@ -144,43 +152,37 @@ const ZOOM_LEVELS = [50, 60, 70, 80, 90, 100, 125, 150];
 
 let show_preview = ref(false);
 let no_records = ref(false);
-let doc_picker_ref = ref(null);
-let doc_picker_ctrl = ref(null);
 let canvas_zoom = ref(nearest_zoom(parseInt(localStorage.getItem(ZOOM_KEY)) || 100));
 let zoom_open = ref(false);
 let zoom_ref = ref(null);
 
-let $store = computed(() => {
-	return getStore(props.print_format_name);
-});
+const $store = getStore(props.print_format_name);
 
 let shouldRender = computed(() => {
-	return Boolean(
-		$store.value.print_format.value && $store.value.meta.value && $store.value.layout.value
-	);
+	return Boolean($store.print_format.value && $store.meta.value && $store.layout.value);
 });
 
-provide("$store", $store.value);
+provide("$store", $store);
 
 function toggle_preview() {
 	show_preview.value = !show_preview.value;
 }
 
 function toggle_history() {
-	$store.value.toggle_history();
+	$store.versions.toggle();
 }
 
 watch(
-	[() => $store.value.selected_field.value, () => $store.value.selected_section.value],
+	[() => $store.selected_field.value, () => $store.selected_section.value],
 	([field, section]) => {
-		if ((field || section) && $store.value.show_history.value) $store.value.close_history();
+		if ((field || section) && $store.versions.open.value) $store.versions.close();
 	}
 );
 
 function restore_viewed() {
-	const v = $store.value.viewing_version.value;
-	if (v.published) $store.value.discard_draft();
-	else $store.value.restore_version(v.name);
+	const v = $store.versions.viewing.value;
+	if (v.published) $store.draft.discard();
+	else $store.versions.restore(v.name);
 }
 
 const SETTINGS_DOCTYPE = "Print Settings";
@@ -227,10 +229,10 @@ function clear_selection() {
 		suppress_next_click = false;
 		return;
 	}
-	$store.value.selected_field.value = null;
-	$store.value.selected_section.value = null;
-	$store.value.selected_letterhead.value = false;
-	$store.value.selected_lh_footer.value = false;
+	$store.selected_field.value = null;
+	$store.selected_section.value = null;
+	$store.selected_letterhead.value = false;
+	$store.selected_lh_footer.value = false;
 }
 
 // ── Marquee (rubber-band) selection ──────────────────────────
@@ -256,8 +258,8 @@ function on_canvas_pointerdown(e) {
 	marquee_dragging.value = true; // suppresses text selection while dragging
 	const additive = e.shiftKey || e.metaKey || e.ctrlKey;
 	marquee_base = {
-		fields: additive ? $store.value.selected_fields.value.slice() : [],
-		sections: additive ? $store.value.selected_sections.value.slice() : [],
+		fields: additive ? $store.selected_fields.value.slice() : [],
+		sections: additive ? $store.selected_sections.value.slice() : [],
 	};
 	const el_of = (uid) =>
 		document.querySelector(`[data-field-uid="${uid}"], [data-section-uid="${uid}"]`);
@@ -266,8 +268,8 @@ function on_canvas_pointerdown(e) {
 		return el ? { [key]: obj, el, r: el.getBoundingClientRect() } : null;
 	};
 	marquee_targets = {
-		sections: ($store.value.layout.value?.sections || []).map(target("s")).filter(Boolean),
-		fields: $store.value.ordered_body_fields().map(target("df")).filter(Boolean),
+		sections: ($store.layout.value?.sections || []).map(target("s")).filter(Boolean),
+		fields: $store.ordered_body_fields().map(target("df")).filter(Boolean),
 	};
 	window.addEventListener("pointermove", on_canvas_pointermove);
 	window.addEventListener("pointerup", on_canvas_pointerup);
@@ -305,7 +307,7 @@ function update_marquee_selection() {
 
 	const fields = dedupe([...marquee_base.fields, ...looseFields]);
 	const sections = dedupe([...marquee_base.sections, ...enclosed.map((x) => x.s)]);
-	$store.value.set_selection({ fields, sections });
+	$store.set_selection({ fields, sections });
 }
 
 function on_canvas_pointerup() {
@@ -318,16 +320,16 @@ function on_canvas_pointerup() {
 }
 
 function on_start_default() {
-	const src = $store.value.layout.value;
+	const src = $store.layout.value;
 	// Drop empty columns, then sections that have no columns left
 	const sections = (src.sections || [])
 		.map((s) => ({ ...s, columns: s.columns.filter((c) => c.fields.length > 0) }))
 		.filter((s) => s.columns.length > 0);
 	const layout = { ...src, sections };
-	$store.value.layout.value = layout;
-	$store.value.print_format.value.format_data = JSON.stringify(layout);
-	$store.value.dirty.value = true;
-	$store.value.needs_setup.value = false;
+	$store.layout.value = layout;
+	$store.print_format.value.format_data = JSON.stringify(layout);
+	$store.dirty.value = true;
+	$store.needs_setup.value = false;
 }
 
 function on_start_blank() {
@@ -336,10 +338,10 @@ function on_start_blank() {
 		header: { columns: [{ label: "", fields: [] }] },
 		footer: { columns: [{ label: "", fields: [] }] },
 	};
-	$store.value.layout.value = blank;
-	$store.value.print_format.value.format_data = JSON.stringify(blank);
-	$store.value.dirty.value = true;
-	$store.value.needs_setup.value = false;
+	$store.layout.value = blank;
+	$store.print_format.value.format_data = JSON.stringify(blank);
+	$store.dirty.value = true;
+	$store.needs_setup.value = false;
 }
 
 function is_typing_context() {
@@ -353,15 +355,15 @@ function is_typing_context() {
 }
 
 function handle_keydown(e) {
-	if (show_preview.value || $store.value.viewing_version.value) return;
+	if (show_preview.value || $store.versions.viewing.value) return;
 	// Zoom shortcuts: Ctrl+= / Ctrl+- / Ctrl+0
 	if (e.ctrlKey || e.metaKey) {
 		if (e.key === "z" || e.key === "Z" || e.key === "y") {
 			// rich text editors and dialogs keep their own undo
 			if (is_typing_context()) return;
 			e.preventDefault();
-			if (e.key === "y" || e.shiftKey) $store.value.redo();
-			else $store.value.undo();
+			if (e.key === "y" || e.shiftKey) $store.redo();
+			else $store.undo();
 			return;
 		}
 		if (e.key === "c" || e.key === "C" || e.key === "v" || e.key === "V") {
@@ -371,22 +373,21 @@ function handle_keydown(e) {
 				// Let native copy work when text is highlighted or nothing in the
 				// canvas is selected
 				if (String(window.getSelection() || "")) return;
-				if (!$store.value.selected_field.value && !$store.value.selected_section.value)
-					return;
+				if (!$store.selected_field.value && !$store.selected_section.value) return;
 				e.preventDefault();
-				$store.value.copy_selection();
+				$store.copy_selection();
 			} else {
-				if (!$store.value.clipboard.value) return;
+				if (!$store.clipboard.value) return;
 				e.preventDefault();
-				$store.value.paste_clipboard();
+				$store.paste_clipboard();
 			}
 			return;
 		}
 		if (e.key === "d" || e.key === "D") {
 			if (is_typing_context()) return;
-			if (!$store.value.selected_field.value && !$store.value.selected_section.value) return;
+			if (!$store.selected_field.value && !$store.selected_section.value) return;
 			e.preventDefault();
-			$store.value.duplicate_selection();
+			$store.duplicate_selection();
 			return;
 		}
 		if (e.key === "=" || e.key === "+") {
@@ -408,31 +409,31 @@ function handle_keydown(e) {
 
 	if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
 		if (is_typing_context()) return;
-		if (!$store.value.selected_field.value && !$store.value.selected_section.value) return;
+		if (!$store.selected_field.value && !$store.selected_section.value) return;
 		e.preventDefault();
-		$store.value.move_selection(e.key === "ArrowUp" ? -1 : 1);
+		$store.move_selection(e.key === "ArrowUp" ? -1 : 1);
 		return;
 	}
 
 	if (e.key === "Delete" || e.key === "Backspace") {
 		// Never hijack delete/backspace from text editing contexts
 		if (is_typing_context()) return;
-		const sf = $store.value.selected_field.value;
-		const ss = $store.value.selected_section.value;
-		if ($store.value.is_multi_select.value) {
-			$store.value.remove_selection();
+		const sf = $store.selected_field.value;
+		const ss = $store.selected_section.value;
+		if ($store.is_multi_select.value) {
+			$store.remove_selection();
 			e.preventDefault();
 		} else if (sf) {
 			sf.remove = true;
-			$store.value.selected_field.value = null;
+			$store.selected_field.value = null;
 			e.preventDefault();
 		} else if (ss) {
 			// Header/footer zones aren't in layout.sections, so they can't be deleted
-			const sections = $store.value.layout.value?.sections || [];
+			const sections = $store.layout.value?.sections || [];
 			const idx = sections.indexOf(ss);
 			if (idx !== -1) {
 				sections.splice(idx, 1);
-				$store.value.selected_section.value = null;
+				$store.selected_section.value = null;
 				e.preventDefault();
 			}
 		}
@@ -447,34 +448,21 @@ function handle_keydown(e) {
 	);
 	if (dialog_open) return;
 
-	const sf = $store.value.selected_field.value;
-	const ss = $store.value.selected_section.value;
+	const sf = $store.selected_field.value;
+	const ss = $store.selected_section.value;
 
 	if (sf) {
-		// Navigate up: field → parent section
-		const lv = $store.value.layout.value;
-		const all_sections = [lv?.header, ...(lv?.sections || []), lv?.footer].filter(Boolean);
-		let parent = null;
-		for (const sec of all_sections) {
-			for (const col of sec.columns || []) {
-				if (col.fields?.includes(sf)) {
-					parent = sec;
-					break;
-				}
-			}
-			if (parent) break;
-		}
-		$store.value.selected_field.value = null;
-		$store.value.selected_section.value = parent || null;
+		$store.selected_field.value = null;
+		$store.selected_section.value = section_of($store.layout.value, sf);
 		e.stopPropagation();
 	} else if (ss) {
 		// Navigate up: section → canvas (clear all)
-		$store.value.selected_section.value = null;
+		$store.selected_section.value = null;
 		e.stopPropagation();
-	} else if ($store.value.selected_letterhead.value || $store.value.selected_lh_footer.value) {
+	} else if ($store.selected_letterhead.value || $store.selected_lh_footer.value) {
 		// letter head zones have no parent — Escape just deselects them
-		$store.value.selected_letterhead.value = false;
-		$store.value.selected_lh_footer.value = false;
+		$store.selected_letterhead.value = false;
+		$store.selected_lh_footer.value = false;
 		e.stopPropagation();
 	}
 }
@@ -511,73 +499,57 @@ function close_zoom_on_outside(e) {
 	}
 }
 
-function init_doc_picker() {
-	if (!doc_picker_ref.value) return;
-	const meta = $store.value.meta.value;
-	// draft/cancelled documents can't be printed unless Print Settings allows it, so
-	// keep them out of the picker unless that's turned on
-	const is_printable_docstatus = (docstatus) =>
-		frappe.model.can_print_docstatus(meta?.name, docstatus);
-	const printable_filters = meta?.is_submittable
+const is_printable_docstatus = (docstatus) =>
+	frappe.model.can_print_docstatus($store.meta.value?.name, docstatus);
+const printable_filters = computed(() => {
+	const meta = $store.meta.value;
+	return meta?.is_submittable
 		? { docstatus: ["in", [0, 1, 2].filter(is_printable_docstatus)] }
 		: {};
-	doc_picker_ctrl.value = frappe.ui.form.make_control({
-		parent: doc_picker_ref.value,
-		df: {
-			fieldname: "preview_doc",
-			fieldtype: "Link",
-			options: meta?.name,
-			placeholder: __("Pick a {0} to preview...", [__(meta?.name || "document")]),
-			get_query: () => ({ filters: printable_filters }),
-			change: () => {
-				const name = doc_picker_ctrl.value.get_value();
-				$store.value.load_preview_doc(name || null);
-			},
-		},
-		render_input: true,
-	});
-	doc_picker_ref.value.querySelector(".control-label")?.remove();
-	doc_picker_ref.value.querySelector(".form-group")?.style.setProperty("margin", "0");
-
-	const select = (name) => {
-		doc_picker_ctrl.value?.set_value(name);
-		$store.value.load_preview_doc(name);
+});
+const doc_picker_df = computed(() => {
+	const meta = $store.meta.value;
+	if (!meta || $store.needs_setup.value) return null;
+	return {
+		fieldname: "preview_doc",
+		fieldtype: "Link",
+		options: meta.name,
+		placeholder: __("Pick a {0} to preview...", [__(meta.name)]),
+		get_query: () => ({ filters: printable_filters.value }),
 	};
-	// Prefer the record chosen last time (persisted across refresh); otherwise
-	// auto-select the most recent printable record so the preview is ready immediately.
-	const saved = $store.value.persisted_preview_doc_name();
+});
+
+function pick_initial_doc() {
+	const st = $store;
+	const meta = st.meta.value;
+	const saved = st.persisted_preview_doc_name();
 	const auto_select = () =>
 		frappe.db
 			.get_list(meta?.name, {
-				filters: printable_filters,
+				filters: printable_filters.value,
 				limit: 1,
 				fields: ["name"],
 				order_by: "creation desc",
 			})
-			.then((rows) => (rows?.length ? select(rows[0].name) : (no_records.value = true)));
-	if (saved) {
-		frappe.db
-			.get_value(meta?.name, saved, ["name", "docstatus"])
-			.then((r) =>
-				r?.message?.name && is_printable_docstatus(r.message.docstatus)
-					? select(saved)
-					: auto_select()
+			.then((rows) =>
+				rows?.length ? st.load_preview_doc(rows[0].name) : (no_records.value = true)
 			);
-	} else {
-		auto_select();
-	}
+	if (!saved) return auto_select();
+	frappe.db
+		.get_value(meta?.name, saved, ["name", "docstatus"])
+		.then((r) =>
+			r?.message?.name && is_printable_docstatus(r.message.docstatus)
+				? st.load_preview_doc(saved)
+				: auto_select()
+		);
 }
 
-watch(
-	() => $store.value.needs_setup.value,
-	(needs_setup) => {
-		if (!needs_setup && !doc_picker_ctrl.value) nextTick(init_doc_picker);
-	}
-);
+watch(doc_picker_df, (df, was) => df && !was && pick_initial_doc());
 
 function warn_before_unload(e) {
-	const st = $store.value;
-	if (st.dirty.value || st.saving_count.value > 0 || st.save_failed.value) e.preventDefault();
+	const st = $store;
+	if (st.dirty.value || st.draft.saving_count.value > 0 || st.draft.save_failed.value)
+		e.preventDefault();
 }
 
 onMounted(() => {
@@ -585,16 +557,15 @@ onMounted(() => {
 	document.addEventListener("pointerdown", close_zoom_on_outside);
 	window.addEventListener("beforeunload", warn_before_unload);
 
-	$store.value.fetch().then(() => {
-		if ($store.value.print_format.value?.custom_format) {
+	$store.fetch().then(() => {
+		if ($store.print_format.value?.custom_format) {
 			frappe.set_route("Form", "Print Format", props.print_format_name);
 			return;
 		}
-		if (!$store.value.layout.value) {
-			$store.value.layout.value = $store.value.get_default_layout();
-			$store.value.save_changes();
+		if (!$store.layout.value) {
+			$store.layout.value = $store.get_default_layout();
+			$store.draft.save();
 		}
-		nextTick(init_doc_picker);
 	});
 });
 
@@ -667,10 +638,6 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 	flex: 1;
 	min-width: 0;
 	max-width: 320px;
-}
-
-.canvas-doc-picker :deep(.form-group) {
-	margin: 0;
 }
 
 .canvas-doc-picker :deep(.form-control) {

@@ -6,6 +6,8 @@ from typing import ClassVar
 
 import frappe
 from frappe import _
+from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
+from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones
 from frappe.utils.data import cint
 from frappe.utils.jinja_globals import is_rtl
 
@@ -386,6 +388,7 @@ class PrintFormatGenerator:
 				"body_width": body_width,
 				"lang": frappe.local.lang,
 				"layout_direction": "rtl" if is_rtl() else "ltr",
+				"content_fieldtypes": CONTENT_FIELDTYPES,
 			}
 		)
 
@@ -681,22 +684,9 @@ class PrintFormatGenerator:
 		parts.extend(body_parts)
 		return "\n".join(parts) or None
 
-	_ZONE_SECTION_TEMPLATE = """\
-{%- import "templates/print_format/macros.html" as macros -%}
-{%- set justify_classes = {'space-between': 'row-col-space-between', 'space-evenly': 'row-col-space-evenly', 'center': 'row-col-center', 'right-end': 'row-col-right-end'} -%}
-{%- set ns = namespace(has_fields=false) -%}
-{%- for col in section.columns -%}{%- for df in col.get('fields', []) -%}{%- set ns.has_fields = true -%}{%- endfor -%}{%- endfor -%}
-{%- if ns.has_fields -%}
-{%- set col_gap = (section.gap if section.gap is defined and section.gap is not none else 20)|string + 'px' -%}
-<div class="section section-columns row {{ justify_classes.get(section.get('justify'), '') }}" style="gap:{{ col_gap }}">
-{%- for column in section.columns %}
-<div class="column col"{% if column.get('width') %} style="flex: {{ column.get('width')|float }} 1 0%"{% endif %}>
-{%- for df in column.get('fields', []) %}{{ macros.render_field(df, doc) }}{%- endfor %}
-</div>
-{%- endfor %}
-</div>
-{%- endif -%}
-"""
+	_ZONE_SECTION_TEMPLATE = (
+		'{%- import "templates/print_format/macros.html" as macros -%}{{ macros.render_zone(section, doc) }}'
+	)
 
 	def _render_zone_section(self, section: dict, doc) -> str:
 		"""Render a header/footer zone section dict to HTML for the Chrome overlay."""
@@ -706,9 +696,10 @@ class PrintFormatGenerator:
 				if "renderer" not in df:
 					self._prepare_field(df, section, eval_locals)
 		# _ZONE_SECTION_TEMPLATE is a hardcoded class-level string constant, not user input.
-		return frappe.render_template(
+		html = frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 			self._ZONE_SECTION_TEMPLATE, {"section": section, "doc": doc}
-		)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+		)
+		return html.strip()
 
 	def _page_number_html(self, position: str) -> str:
 		align = self._ALIGN_MAP.get(position, "center")
@@ -791,14 +782,6 @@ class PrintFormatGenerator:
 			layout[zone] = clean_zone(layout.get(zone))
 		return layout
 
-	def layout_columns(self, layout):
-		for section in layout.get("sections", []):
-			yield from section.get("columns", [])
-		for zone in ("header", "footer"):
-			zone_layout = layout.get(zone)
-			if isinstance(zone_layout, dict):
-				yield from zone_layout.get("columns", [])
-
 	@staticmethod
 	def has_field_access(doc, meta, fieldname, source_fieldname=None) -> bool:
 		fieldname = source_fieldname or fieldname
@@ -815,7 +798,7 @@ class PrintFormatGenerator:
 		The layout is authored against the doctype, not the reader, so a format may
 		reference permlevel-restricted fields that this user must not see."""
 		meta = self.doc.meta
-		for column in self.layout_columns(layout):
+		for column in iter_layout_columns(layout):
 			fields = [
 				df
 				for df in column.get("fields", [])
@@ -865,7 +848,7 @@ class PrintFormatGenerator:
 		from frappe.www.printview import column_has_value
 
 		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
-		for column in self.layout_columns(layout):
+		for column in iter_layout_columns(layout):
 			for df in column.get("fields", []):
 				if df.get("fieldtype") != "Table" or not df.get("table_columns"):
 					continue
@@ -934,18 +917,9 @@ class PrintFormatGenerator:
 				section["_hidden"] = not self.eval_condition(
 					section["visible_if"], eval_locals, f"section {section.get('label') or ''}"
 				)
-			for column in section["columns"]:
-				for df in column["fields"]:
-					self._prepare_field(df, section, eval_locals)
-
-		# Also process header/footer zones if they are section objects
-		for zone_key in ("header", "footer"):
-			zone = layout.get(zone_key)
-			if isinstance(zone, dict) and "columns" in zone:
-				for column in zone.get("columns", []):
-					for df in column.get("fields", []):
-						self._prepare_field(df, zone, eval_locals)
-
+		for _where, zone in iter_zones(layout):
+			for df in iter_fields(zone):
+				self._prepare_field(df, zone, eval_locals)
 		return layout
 
 	def filter_conditional_rows(self, df):

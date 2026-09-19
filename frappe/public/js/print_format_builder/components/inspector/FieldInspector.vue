@@ -21,7 +21,7 @@
 						data-variant="ghost"
 						data-icon-button="true"
 						:title="__('Close')"
-						@click="store.close_history()"
+						@click="store.versions.close()"
 						v-html="frappe.utils.icon('x', 'sm')"
 					></button>
 				</div>
@@ -80,8 +80,7 @@
 				<LetterHeadZoneInspector zone="header" />
 			</template>
 
-			<!-- ── Multi-select bulk inspector ─────────────────────── -->
-			<BulkPropertiesPanel v-else-if="is_multi_select" />
+			<FieldPropertiesPanel v-else-if="is_multi_select" />
 
 			<!-- ── Table field inspector ───────────────────────────────── -->
 			<TableFieldInspector v-else-if="selected_field && is_table_field" />
@@ -90,7 +89,7 @@
 			<RepeaterFieldInspector v-else-if="selected_field && is_repeater_field" />
 
 			<!-- ── Field inspector ─────────────────────────────────── -->
-			<FieldPropertiesPanel v-else-if="selected_field" :field-is-inline="field_is_inline" />
+			<FieldPropertiesPanel v-else-if="selected_field" />
 
 			<!-- ── Section inspector ───────────────────────────────── -->
 			<SectionPropertiesPanel v-else-if="selected_section" />
@@ -100,28 +99,27 @@
 
 <script setup>
 import { computed, inject } from "vue";
-import { useStore } from "../../stores";
+import { section_of } from "../../layout";
 import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
 import SectionPropertiesPanel from "./SectionPropertiesPanel.vue";
 import RepeaterFieldInspector from "./RepeaterFieldInspector.vue";
 import TableFieldInspector from "./TableFieldInspector.vue";
 import FieldPropertiesPanel from "./FieldPropertiesPanel.vue";
-import BulkPropertiesPanel from "./BulkPropertiesPanel.vue";
 import VersionHistory from "../VersionHistory.vue";
 import PrintSettingsPanel from "../PrintSettingsPanel.vue";
 
 let store = inject("$store");
-let { show_history } = store;
+let { open: show_history } = store.versions;
 
 function save_named_version() {
 	frappe.prompt(
 		{ fieldname: "label", fieldtype: "Data", label: __("Version name"), reqd: 1 },
-		({ label }) => store.save_version(label),
+		({ label }) => store.versions.save(label),
 		__("Save version"),
 		__("Save")
 	);
 }
-let { letterhead, layout, print_format } = useStore();
+let { letterhead, layout, print_format } = store;
 
 let selected_field = computed(() => store.selected_field.value);
 let selected_count = computed(
@@ -181,20 +179,9 @@ let inspector_subtitle = computed(() => {
 	return "";
 });
 
-let parent_section = computed(() => {
-	if (!selected_field.value || !layout.value) return null;
-	const all_sections = [
-		layout.value.header,
-		...(layout.value.sections || []),
-		layout.value.footer,
-	].filter(Boolean);
-	for (const section of all_sections) {
-		for (const column of section.columns || []) {
-			if (column.fields?.includes(selected_field.value)) return section;
-		}
-	}
-	return null;
-});
+let parent_section = computed(() =>
+	selected_field.value ? section_of(layout.value, selected_field.value) : null
+);
 
 function select_parent_section() {
 	if (parent_section.value) {
@@ -202,8 +189,6 @@ function select_parent_section() {
 		store.selected_field.value = null;
 	}
 }
-
-let field_is_inline = computed(() => parent_section.value?.field_orientation === "left-right");
 </script>
 
 <style scoped>

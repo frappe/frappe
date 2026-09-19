@@ -15,12 +15,12 @@ class PrintFormatBuilder {
 
 		this.page.set_title(this.print_format);
 		this.page.set_primary_action(__("Save & Apply"), () => {
-			this.$component.$store.save_changes();
+			this.$component.$store.draft.save();
 		});
 
 		frappe.ui.keys.add_shortcut({
 			shortcut: "ctrl+s",
-			action: () => this.$component.$store.save_changes(),
+			action: () => this.$component.$store.draft.save(),
 			description: __("Save & Apply Print Format"),
 			page: this.page,
 		});
@@ -60,7 +60,7 @@ class PrintFormatBuilder {
 		// the indicator only speaks up when something is pending — a format whose
 		// edits are live needs no badge
 		watch(
-			() => this.$component.$store.save_status,
+			() => this.$component.$store.draft.status,
 			(status) => {
 				if (status.value === "saving") this.page.set_indicator(__("Saving…"), "gray");
 				else if (status.value === "failed")

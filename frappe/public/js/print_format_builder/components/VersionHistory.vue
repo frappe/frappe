@@ -4,7 +4,7 @@
 			v-if="has_draft"
 			class="pfb-history-row pfb-history-row--link"
 			:class="{ 'pfb-history-row--current': !viewing_version }"
-			@click="store.exit_version()"
+			@click="store.versions.exit()"
 		>
 			<span class="pfb-history-dot" data-kind="current"></span>
 			<div class="pfb-history-text">
@@ -31,7 +31,7 @@
 							label: __('Published version'),
 							when: when(print_format.modified),
 					  })
-					: store.exit_version()
+					: store.versions.exit()
 			"
 		>
 			<span class="pfb-history-dot" data-kind="published"></span>
@@ -101,14 +101,16 @@
 import { inject, onMounted } from "vue";
 
 const store = inject("$store");
-const { print_format, has_draft, versions, viewing_version } = store;
+const { print_format } = store;
+const { has_draft } = store.draft;
+const { list: versions, viewing: viewing_version } = store.versions;
 
 function when(value) {
 	return frappe.datetime.prettyDate(value);
 }
 
 function view(version) {
-	store.view_version(version);
+	store.versions.view(version);
 }
 
 function restore(v) {
@@ -117,7 +119,7 @@ function restore(v) {
 			"Replace your current draft with {0}? Nothing prints differently until you Save & Apply.",
 			[frappe.utils.bold(v.label || when(v.creation))]
 		),
-		() => store.restore_version(v.name)
+		() => store.versions.restore(v.name)
 	);
 }
 
@@ -126,18 +128,18 @@ function remove(v) {
 		__("Delete the version {0}? This cannot be undone.", [
 			frappe.utils.bold(v.label || when(v.creation)),
 		]),
-		() => store.delete_version(v.name)
+		() => store.versions.remove(v.name)
 	);
 }
 
 function discard() {
 	frappe.confirm(
 		__("Discard your unapplied changes and go back to what this format prints?"),
-		() => store.discard_draft()
+		() => store.draft.discard()
 	);
 }
 
-onMounted(() => store.load_versions());
+onMounted(() => store.versions.load());
 </script>
 
 <style scoped>

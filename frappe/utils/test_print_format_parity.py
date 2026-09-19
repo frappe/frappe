@@ -32,8 +32,8 @@ SERVER_SOURCES = [
 ]
 
 BUILDER_DIR = APP_PATH / "public" / "js" / "print_format_builder"
-# utils.js holds class names the components render from, so it speaks the markup too
-CANVAS_SOURCES = [*sorted(BUILDER_DIR.rglob("*.vue")), BUILDER_DIR / "utils.js"]
+# composables and helpers hold class names the components render from, so they speak the markup too
+CANVAS_SOURCES = [*sorted(BUILDER_DIR.rglob("*.vue")), *sorted(BUILDER_DIR.rglob("*.js"))]
 
 # Classes that legitimately exist on only one surface.
 SERVER_ONLY_CLASSES = {
@@ -64,7 +64,10 @@ def _canvas_text():
 
 @functools.cache
 def _field_vue_text():
-	return (BUILDER_DIR / "components" / "editor" / "Field.vue").read_text()
+	editor = BUILDER_DIR / "components" / "editor"
+	return "\n".join(
+		p.read_text() for p in (editor / "Field.vue", editor / "FieldPreview.vue", editor / "useFieldRoot.js")
+	)
 
 
 @functools.cache
@@ -72,8 +75,7 @@ def _canvas_logic_text():
 	"""The preview surface that reads df.* — Field.vue dispatches to the
 	FieldPreview* components, which lean on the composables; a df prop handled
 	in any of them is mirrored, so the check spans .vue markup + composables."""
-	js = "\n".join(p.read_text() for p in sorted((BUILDER_DIR / "composables").glob("*.js")))
-	return _canvas_text() + "\n" + js
+	return _canvas_text()
 
 
 @functools.cache

@@ -2,6 +2,7 @@
 	<div class="pfb-insp-body">
 		<InspectorSection :label="__('Section')">
 			<LabelField
+				v-if="!is_zone"
 				v-model="selected_section.label"
 				:label="__('Title')"
 				:placeholder="__('Untitled section')"
@@ -20,21 +21,17 @@
 
 			<SegmentedRow
 				:label="__('Label side')"
-				:model-value="section_orientation === 'left-right' ? 'left-right' : 'top'"
+				:model-value="selected_section.field_orientation || 'top'"
 				:options="[
 					{ value: 'top', label: __('Top') },
 					{ value: 'left-right', label: __('Left') },
 				]"
-				@update:model-value="
-					(v) =>
-						(selected_section.field_orientation =
-							v === 'left-right' ? 'left-right' : '')
-				"
+				@update:model-value="(v) => set('field_orientation', v, 'top')"
 			/>
 
 			<StepperRow
 				:label="__('Gap')"
-				:model-value="section_gap"
+				:model-value="selected_section.gap ?? 20"
 				:step="4"
 				:base="20"
 				unit="px"
@@ -42,83 +39,88 @@
 			/>
 		</InspectorSection>
 
-		<InspectorSection :label="__('Background')" :init-open="false">
-			<div ref="bg_color_host"></div>
-			<StepperRow
-				v-if="section_has_box"
-				:label="__('Radius')"
-				:model-value="section_radius"
-				unit="px"
-				:placeholder="__('none')"
-				allow-empty
-				@update:model-value="set_section_radius"
-			/>
-		</InspectorSection>
-
-		<InspectorSection :label="__('Spacing')" :init-open="false">
-			<SpacingRow
-				v-for="prop in spacing_props"
-				:key="prop.key"
-				:label="prop.label"
-				:model-value="selected_section[prop.key]"
-				@update:model-value="(v) => (selected_section[prop.key] = v)"
-			/>
-		</InspectorSection>
-
-		<InspectorSection :label="__('Borders')" :init-open="false">
-			<ToggleRow
-				:label="__('Field borders')"
-				:model-value="section_field_borders"
-				@update:model-value="toggle_field_borders"
-			/>
-			<template v-if="section_field_borders">
-				<div class="pfb-insp-row pfb-insp-row--col">
-					<span class="pfb-insp-label">{{ __("Grid lines") }}</span>
-					<select
-						class="pfb-insp-select"
-						:value="selected_section.grid_borders || 'all'"
-						@change="set_grid_borders($event.target.value)"
-					>
-						<option value="all">{{ __("Both") }}</option>
-						<option value="rows">{{ __("Rows") }}</option>
-						<option value="columns">{{ __("Columns") }}</option>
-					</select>
-				</div>
-				<StepperRow
-					:label="__('Cell padding')"
-					:model-value="section_cell_padding"
-					:base="8"
-					unit="px"
-					@update:model-value="(v) => (selected_section.cell_padding = v)"
-				/>
+		<template v-if="!is_zone">
+			<InspectorSection :label="__('Background')" :init-open="false">
 				<ColorField
-					:label="__('Border color')"
-					:model-value="selected_section.border_color || ''"
-					@update:model-value="(v) => set_section_prop('border_color', v)"
+					:label="__('Color')"
+					:placeholder="__('Transparent')"
+					:model-value="selected_section.background || ''"
+					@update:model-value="(v) => set('background', v)"
 				/>
-			</template>
-		</InspectorSection>
+				<StepperRow
+					v-if="selected_section.background || selected_section.field_borders"
+					:label="__('Radius')"
+					:model-value="selected_section.radius ?? null"
+					unit="px"
+					:placeholder="__('none')"
+					allow-empty
+					@update:model-value="(v) => set('radius', v)"
+				/>
+			</InspectorSection>
 
-		<InspectorSection :label="__('Print')" :init-open="false">
-			<ToggleRow
-				:label="__('Keep together')"
-				:model-value="!!selected_section.keep_together"
-				@update:model-value="(v) => (selected_section.keep_together = v)"
-			/>
-		</InspectorSection>
+			<InspectorSection :label="__('Spacing')" :init-open="false">
+				<SpacingRow
+					v-for="prop in spacing_props"
+					:key="prop.key"
+					:label="prop.label"
+					:model-value="selected_section[prop.key]"
+					@update:model-value="(v) => (selected_section[prop.key] = v)"
+				/>
+			</InspectorSection>
 
-		<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
-			<StyleSection v-model="selected_section.custom_style" />
-		</InspectorSection>
+			<InspectorSection :label="__('Borders')" :init-open="false">
+				<ToggleRow
+					:label="__('Field borders')"
+					:model-value="!!selected_section.field_borders"
+					@update:model-value="toggle_field_borders"
+				/>
+				<template v-if="selected_section.field_borders">
+					<DropdownRow
+						:label="__('Grid lines')"
+						stacked
+						:model-value="selected_section.grid_borders || 'all'"
+						:options="grid_opts"
+						@update:model-value="(v) => set('grid_borders', v, 'all')"
+					/>
+					<StepperRow
+						:label="__('Cell padding')"
+						:model-value="selected_section.cell_padding ?? 8"
+						:base="8"
+						unit="px"
+						@update:model-value="(v) => (selected_section.cell_padding = v)"
+					/>
+					<ColorField
+						:label="__('Border color')"
+						:model-value="selected_section.border_color || ''"
+						@update:model-value="(v) => set('border_color', v)"
+					/>
+				</template>
+			</InspectorSection>
 
-		<InspectorSection :label="__('Visibility')" :init-open="false" :padded="false">
-			<VisibilitySection v-model="selected_section.visible_if" :previewDoc="preview_doc" />
-		</InspectorSection>
+			<InspectorSection :label="__('Print')" :init-open="false">
+				<ToggleRow
+					:label="__('Keep together')"
+					:model-value="!!selected_section.keep_together"
+					@update:model-value="(v) => set('keep_together', v, false)"
+				/>
+			</InspectorSection>
+
+			<InspectorSection :label="__('Style')" :init-open="false" :padded="false">
+				<StyleSection v-model="selected_section.custom_style" />
+			</InspectorSection>
+
+			<InspectorSection :label="__('Visibility')" :init-open="false" :padded="false">
+				<VisibilitySection
+					v-model="selected_section.visible_if"
+					:previewDoc="store.preview_doc.value"
+				/>
+			</InspectorSection>
+		</template>
 	</div>
 </template>
 
 <script setup>
-import { computed, inject, nextTick, ref, watch } from "vue";
+import { computed, inject } from "vue";
 import LabelField from "./LabelField.vue";
 import SegmentedRow from "./SegmentedRow.vue";
 import InspectorSection from "./InspectorSection.vue";
@@ -127,82 +129,42 @@ import SpacingRow from "./SpacingRow.vue";
 import StyleSection from "./StyleSection.vue";
 import ToggleRow from "./ToggleRow.vue";
 import ColorField from "./ColorField.vue";
+import DropdownRow from "./DropdownRow.vue";
 import VisibilitySection from "./VisibilitySection.vue";
-import { mountColorControl } from "./useColorControl";
+import { set_prop } from "../../utils";
 
-let store = inject("$store");
-
-let selected_section = computed(() => store.selected_section.value);
+const store = inject("$store");
+const selected_section = computed(() => store.selected_section.value);
+const is_zone = computed(
+	() =>
+		selected_section.value === store.layout.value?.header ||
+		selected_section.value === store.layout.value?.footer
+);
 
 const spacing_props = [
 	{ key: "padding", label: __("Padding") },
 	{ key: "margin", label: __("Margin") },
 ];
-let preview_doc = computed(() => store.preview_doc.value);
+const grid_opts = [
+	{ value: "all", label: __("Both") },
+	{ value: "rows", label: __("Rows") },
+	{ value: "columns", label: __("Columns") },
+];
 
-let section_orientation = computed(() => selected_section.value?.field_orientation ?? "");
-let section_gap = computed(() => selected_section.value?.gap ?? 20);
-let section_field_borders = computed(() => !!selected_section.value?.field_borders);
-let section_cell_padding = computed(() => selected_section.value?.cell_padding ?? 8);
-let section_radius = computed(() => selected_section.value?.radius ?? null);
-let section_has_box = computed(
-	() => !!(selected_section.value?.background || selected_section.value?.field_borders)
-);
-
-function set_section_radius(v) {
-	if (v === null) delete selected_section.value.radius;
-	else selected_section.value.radius = v;
-}
-
-const bg_color_host = ref(null);
-
-function mount_bg_color_control() {
-	mountColorControl(bg_color_host.value, {
-		value: selected_section.value?.background || "",
-		placeholder: __("Transparent"),
-		fieldname: "section_background",
-		onChange(value) {
-			if ((selected_section.value?.background ?? "") !== value) {
-				selected_section.value.background = value;
-			}
-		},
-	});
-}
-
-watch(selected_section, () => nextTick(mount_bg_color_control), { immediate: true });
+const set = (key, value, fallback) => set_prop(selected_section.value, key, value, fallback);
 
 function set_columns(n) {
-	if (!selected_section.value) return;
-	const current = selected_section.value.columns.length;
-	if (n === current) return;
-	const all_fields = selected_section.value.columns.flatMap((col) => col.fields);
-	const new_columns = Array.from({ length: n }, () => ({ label: "", fields: [] }));
-	all_fields.forEach((field, i) => new_columns[i % n].fields.push(field));
-	selected_section.value.columns = new_columns;
+	const columns = selected_section.value.columns;
+	if (n === columns.length) return;
+	const kept = columns.slice(0, n);
+	columns.slice(n).forEach((col) => kept[n - 1].fields.push(...col.fields));
+	while (kept.length < n) kept.push({ label: "", fields: [] });
+	kept.forEach((col) => delete col.width);
+	selected_section.value.columns = kept;
 }
 
 function toggle_field_borders(on) {
-	if (on) {
-		selected_section.value.field_borders = true;
-	} else {
-		delete selected_section.value.field_borders;
-		delete selected_section.value.grid_borders;
-	}
-}
-
-function set_grid_borders(v) {
-	if (v === "all") {
-		delete selected_section.value.grid_borders;
-	} else {
-		selected_section.value.grid_borders = v;
-	}
-}
-
-function set_section_prop(key, value) {
-	if (value) {
-		selected_section.value[key] = value;
-	} else {
-		delete selected_section.value[key];
-	}
+	set("field_borders", on, false);
+	if (!on) set("grid_borders", null);
 }
 </script>

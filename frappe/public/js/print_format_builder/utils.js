@@ -1,3 +1,12 @@
+import { layout_nodes } from "./layout";
+
+export function set_prop(target, key, value, fallback) {
+	if (!target) return;
+	if (value === null || value === undefined || value === "" || value === fallback)
+		delete target[key];
+	else target[key] = value;
+}
+
 export function clone_plain(obj) {
 	return JSON.parse(JSON.stringify(obj));
 }
@@ -63,17 +72,6 @@ const TYPST_STYLE_VALUES = {
 	"padding-bottom": /^\d+(\.\d+)?(px)?$/,
 	gap: /^\d+(\.\d+)?(px)?$/,
 };
-
-export function* layout_nodes(layout) {
-	const zones = [layout?.header, layout?.footer, ...(layout?.sections || [])];
-	for (const zone of zones) {
-		if (!zone || typeof zone !== "object") continue;
-		yield zone;
-		for (const col of zone.columns || []) {
-			for (const df of col?.fields || []) if (df && !df.remove) yield df;
-		}
-	}
-}
 
 // mirrors safe_color / COLOR_PATTERN: Typst emits rgb("#..."), a non-hex value blocks
 const TYPST_HEX = /^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
@@ -151,8 +149,6 @@ export function clamp_column_width(value) {
 }
 
 // Blocks the builder invents — they never map to a docfield on the document type
-
-export const BLOCK_FIELDTYPES = new Set(["Spacer", "Divider", "Repeater", "HTML"]);
 
 // Mirrors PrintFormatGenerator.JUSTIFY_MODES; the class names are spelled out so
 // both surfaces can be grepped for them
@@ -393,6 +389,7 @@ export const FIELD_PLUCK_KEYS = [
 const ZONE_FIELD_PLUCK_KEYS = FIELD_PLUCK_KEYS.filter(
 	(key) => key !== "table_cell_padding" && key !== "table_radius"
 );
+export const ZONE_KEYS = ["columns", "gap", "justify", "field_orientation"];
 
 export function serialize_layout(layout) {
 	layout.sections = layout.sections
@@ -419,6 +416,7 @@ export function serialize_layout(layout) {
 
 	function clean_zone(zone) {
 		if (!zone || !zone.columns) return zone;
+		zone = pluck(zone, ZONE_KEYS);
 		zone.columns = zone.columns.map((column) => {
 			column.fields = column.fields
 				.filter((df) => !df.remove)
@@ -556,6 +554,27 @@ const SAFE_HTML_ATTRS = new Set([
 	"cellpadding",
 	"cellspacing",
 ]);
+
+const UNSAFE_HTML_TAGS = "iframe, frame, frameset, object, embed, applet, form, base, meta, link";
+const URL_ATTRS = ["href", "src", "action", "formaction", "xlink:href", "data"];
+
+export function strip_unsafe_html(html) {
+	const root = document.createElement("div");
+	root.innerHTML = frappe.dom.remove_script_and_style(html || "");
+	root.querySelectorAll(UNSAFE_HTML_TAGS).forEach((el) => el.remove());
+	for (const el of root.querySelectorAll("*")) {
+		for (const attr of [...el.attributes]) {
+			const name = attr.name.toLowerCase();
+			const scheme = attr.value.replace(/[\u0000-\u0020\u007f-\u009f]/g, "").toLowerCase();
+			const unsafe_url =
+				URL_ATTRS.includes(name) && /^(javascript|vbscript|data:text)/.test(scheme);
+			if (name.startsWith("on") || name === "srcdoc" || unsafe_url) {
+				el.removeAttribute(attr.name);
+			}
+		}
+	}
+	return root.innerHTML;
+}
 
 export function sanitize_html(html) {
 	const root = document.createElement("div");

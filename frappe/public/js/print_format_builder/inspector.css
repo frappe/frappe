@@ -196,11 +196,11 @@
 .pfb-html-ctrl-host .CodeMirror-scroll {
 	height: 100%;
 }
-.pfb-html-preview-content {
+.pfb-html-preview-frame {
 	flex: 1;
-	overflow-y: auto;
-	padding: 16px 20px;
-	font-size: var(--text-sm);
+	width: 100%;
+	border: none;
+	background: #fff;
 }
 
 /* ── Image / Barcode element rows ───────────────────────── */
@@ -256,15 +256,6 @@
 	padding: 0;
 }
 
-.pfb-insp-check {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	font-size: var(--text-sm);
-	color: var(--text-color);
-	cursor: pointer;
-	margin: 0;
-}
 
 .pfb-drag-fallback {
 	opacity: 0.95 !important;
@@ -442,4 +433,10 @@ body.pfb-dragging * {
 	justify-content: center;
 	padding: 24px;
 	background: rgba(0, 0, 0, 0.6);
+}
+
+body.pfb-col-resizing,
+body.pfb-col-resizing * {
+	cursor: col-resize !important;
+	user-select: none;
 }
