@@ -219,7 +219,15 @@ const emit = defineEmits(["title", "actions"]);
 
 The island is named `<app>.page.<page name>`, derived from the Page on both sides, so `<Island name="insights.page.sales-dashboard">` hosts the same page inside a frappe-ui app.
 
-**What a page island may import.** Framework builds these, one build for every page on the bench, rooted at `vite/island/toolchain/`. So a page island compiles against `frappe-ui`, `@framework/ui`, `vue` and what those bring, and nothing of the app's own. A page that needs the app's components has outgrown the starter: move the entry and the component into the app's frontend and build it as an ordinary island, with the two steps above. See [decision 0013](island/decisions/0013-framework-builds-page-islands.md).
+**What a page island may import.** Framework builds these, one build for every page on the bench, rooted at `vite/island/toolchain/`. So a page island compiles against `frappe-ui`, `@framework/ui`, `vue` and what those bring, and nothing of the app's own. See [decision 0013](island/decisions/0013-framework-builds-page-islands.md).
+
+**A page the app draws itself.** A page that needs the app's own components names one of the app's islands instead, in the Page's `island` field:
+
+```json
+{ "doctype": "Page", "name": "insights-dashboard", "type": "Frappe UI", "island": "insights.dashboard" }
+```
+
+Framework then builds nothing for the page and scaffolds nothing beside its json, so the page needs no folder and need not be Standard. Desk mounts the named island and the page keeps everything the type gives it: the mount, the unmount, the route race, `route` and `query` as props, and the head. The island is the app's own, so it takes its content from props and not from the desk route.
 
 **One setup step, once per bench.** The toolchain's dependencies are not in any lockfile a bench installs:
 
