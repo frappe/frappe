@@ -11,6 +11,7 @@ from collections.abc import Iterable
 import frappe
 from frappe import _
 from frappe.desk.doctype.favourite.favourite import get_favourites as get_favourite_rows
+from frappe.desk.form.document_follow import is_document_followed
 from frappe.desk.form.load import (
 	get_attachments,
 	get_comments,
@@ -110,6 +111,11 @@ def get_favourites(doc: Document) -> list[dict]:
 	return get_favourite_rows(doc.doctype, doc.name)
 
 
+def get_follows(doc: Document) -> bool:
+	"""Whether the caller follows the document."""
+	return bool(is_document_followed(doc.doctype, doc.name, frappe.session.user))
+
+
 def get_link_titles(doc: Document) -> dict:
 	titles = get_title_values_for_link_and_dynamic_link_fields(doc)
 	titles.update(get_title_values_for_table_and_multiselect_fields(doc))
@@ -128,13 +134,16 @@ USER_ROW_KEY = {
 
 
 def get_users(doc: Document, include: list[str]) -> dict:
+	parts = {part: frappe.response.get(part) for part in include if part in USER_ROW_KEY}
+	return users_named_by(doc, parts)
+
+
+def users_named_by(doc: Document, parts: dict[str, list]) -> dict:
 	"""Names and images keyed by user; the v2 keys are `full_name` and `user_image`, not v1's `fullname`/`image`."""
 	names = {doc.owner, doc.modified_by}
-	for part in include:
-		if part not in USER_ROW_KEY:
-			continue
+	for part, rows in parts.items():
 		key = USER_ROW_KEY[part]
-		for row in frappe.response.get(part) or []:
+		for row in rows or []:
 			user = row if key is None else row.get(key)
 			if user:
 				names.add(user)
@@ -164,6 +173,7 @@ DOCUMENT_PARTS = {
 	"shares": get_share_rows,
 	"tags": get_tags,
 	"favourites": get_favourites,
+	"follows": get_follows,
 	"comments": lambda doc: get_comments(doc.doctype, doc.name),
 	"seen": mark_seen,
 	"link_titles": get_link_titles,

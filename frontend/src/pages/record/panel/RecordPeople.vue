@@ -1,4 +1,4 @@
-<!-- The `people` built-in: who the record is assigned to and shared with, read from `docinfo`.
+<!-- The `people` built-in: assigned to, shared with and followed, read from `docinfo`.
      Each row edits with the right `docinfo.permissions` carries, and reads otherwise. -->
 <template>
 	<PeopleRow label="Assigned to" icon="lucide-user">
@@ -29,10 +29,22 @@
 			<PeopleAvatars :people="shared" placeholder="Not shared" />
 		</span>
 	</PeopleRow>
+
+	<PeopleRow label="Following" icon="lucide-bell">
+		<Button
+			variant="ghost"
+			class="w-fit"
+			:label="following ? 'Following' : 'Follow'"
+			:aria-pressed="following"
+			data-follow
+			@click="following ? actions.unfollow() : actions.follow()"
+		/>
+	</PeopleRow>
 </template>
 
 <script setup lang="ts">
 import { computed, inject, markRaw } from "vue";
+import { Button } from "frappe-ui";
 import AssigneePicker from "./AssigneePicker.vue";
 import { PanelContextKey } from "./context";
 import { assigneesOf, sharedWith } from "./people";
@@ -47,6 +59,7 @@ const actions = peopleActions(context);
 
 const assignees = computed(() => assigneesOf(context.docinfo.value));
 const shared = computed(() => sharedWith(context.docinfo.value));
+const following = computed(() => Boolean(context.docinfo.value?.follows));
 
 const canWrite = computed(() => Boolean(context.docinfo.value?.permissions?.write));
 const canShare = computed(() => Boolean(context.docinfo.value?.permissions?.share));

@@ -9,6 +9,7 @@ export interface DocInfo {
 	shares?: { user: string; read?: 0 | 1; write?: 0 | 1; submit?: 0 | 1; share?: 0 | 1 }[];
 	tags?: string[];
 	favourites?: { user: string; creation?: string }[];
+	follows?: boolean;
 	users?: Record<string, { full_name?: string; user_image?: string }>;
 	permissions?: Record<string, any>;
 }
@@ -21,8 +22,10 @@ export interface PanelContext {
 	docinfo: Ref<DocInfo | null>;
 	controller: RecordPageController;
 	run: (action: QuickAction) => void;
-	/** Re-reads the sidecar alone, after an assign, share or tag. */
+	/** Re-reads the sidecar alone. */
 	reloadDocinfo: () => Promise<void>;
+	/** Marks the record on show; the check it hands back is false once the page has moved on. */
+	whileOnRecord: () => () => boolean;
 }
 
 export const PanelContextKey: InjectionKey<PanelContext> = Symbol("record-panel");
