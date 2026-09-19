@@ -421,6 +421,7 @@ def _attach_field_values(doc: "Document", candidates: list[tuple["DocField", Any
 				"attached_to_name": ["is", "not set"],
 				"attached_to_field": ["is", "not set"],
 				"file_url": ["in", remaining_values],
+				"owner": frappe.session.user,
 			},
 			fields=["name", "file_url"],
 		)

@@ -1,5 +1,5 @@
 <template>
-	<div class="rounded-md border border-outline-gray-2 bg-surface-base p-2">
+	<div class="rounded-5 border border-outline-gray-2 bg-surface-base p-2">
 		<EmailComposer
 			ref="composerRef"
 			v-model="body"

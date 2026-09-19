@@ -1,3 +1,12 @@
+import { layout_nodes } from "./layout";
+
+export function set_prop(target, key, value, fallback) {
+	if (!target) return;
+	if (value === null || value === undefined || value === "" || value === fallback)
+		delete target[key];
+	else target[key] = value;
+}
+
 export function clone_plain(obj) {
 	return JSON.parse(JSON.stringify(obj));
 }
@@ -19,7 +28,8 @@ export function canvas_zoom(el) {
 
 export function read_json(key, fallback = null) {
 	try {
-		return JSON.parse(localStorage.getItem(key)) || fallback;
+		const raw = localStorage.getItem(key);
+		return raw === null ? fallback : JSON.parse(raw);
 	} catch {
 		return fallback;
 	}
@@ -36,7 +46,7 @@ export function write_json(key, value) {
 
 // Mirrors typst_emitter.py: TRANSLATABLE_STYLE_PROPS + typst_blockers — a UX
 // hint only; the server list is the authority and refuses at save/render
-export const TYPST_STYLE_PROPS = new Set([
+const TYPST_STYLE_PROPS = new Set([
 	"font-weight",
 	"border-top",
 	"border-bottom",
@@ -63,21 +73,15 @@ const TYPST_STYLE_VALUES = {
 	gap: /^\d+(\.\d+)?(px)?$/,
 };
 
-export function* layout_nodes(layout) {
-	const zones = [layout?.header, layout?.footer, ...(layout?.sections || [])];
-	for (const zone of zones) {
-		if (!zone || typeof zone !== "object") continue;
-		yield zone;
-		for (const col of zone.columns || []) {
-			for (const df of col?.fields || []) if (df && !df.remove) yield df;
-		}
-	}
-}
-
 // mirrors safe_color / COLOR_PATTERN: Typst emits rgb("#..."), a non-hex value blocks
 const TYPST_HEX = /^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
 function non_hex_color(value) {
 	return value && !TYPST_HEX.test(String(value).trim());
+}
+
+function list_names(names) {
+	const shown = names.slice(0, 4).join(", ");
+	return names.length > 4 ? __("{0} and {1} more", [shown, names.length - 4]) : shown;
 }
 
 export function typst_blockers_client(print_format, layout, letterhead) {
@@ -85,11 +89,12 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 	const add = (reason) => !blockers.includes(reason) && blockers.push(reason);
 	if (print_format?.custom_format) return [__("Custom HTML format")];
 	if (!print_format?.print_format_builder_beta) return [__("Not a builder format")];
-	if ((print_format?.css || "").trim()) add(__("Custom CSS on the format"));
+	if ((print_format?.css || "").trim()) add(__("Custom CSS in the Style box"));
+	const colors = new Set();
 	for (const key of ["label_color", "value_color"]) {
-		if (non_hex_color(print_format?.[key]))
-			add(__("Format color Typst can't render: {0}", [print_format[key]]));
+		if (non_hex_color(print_format?.[key])) colors.add(print_format[key]);
 	}
+	const styled_fields = [];
 	if (letterhead) {
 		if ((letterhead.custom_css || "").trim()) add(__("Letterhead with custom CSS"));
 		const header_is_image = letterhead.source === "Image" && letterhead.image;
@@ -101,44 +106,47 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 	}
 	for (const node of layout_nodes(layout)) {
 		if ((node.custom_style || "").trim()) {
-			const unknown = [];
+			let unknown = false;
 			for (const declaration of node.custom_style.split(";")) {
 				if (!declaration.includes(":")) continue;
 				const [raw_prop, raw_value] = declaration.split(/:(.+)/);
 				const prop = raw_prop.trim().toLowerCase();
 				const value = (raw_value || "").trim();
 				if (!prop) continue;
-				if (!TYPST_STYLE_PROPS.has(prop)) {
-					unknown.push(prop);
-				} else if (TYPST_STYLE_VALUES[prop] && !TYPST_STYLE_VALUES[prop].test(value)) {
-					unknown.push(`${prop}: ${value}`);
+				if (
+					!TYPST_STYLE_PROPS.has(prop) ||
+					(TYPST_STYLE_VALUES[prop] && !TYPST_STYLE_VALUES[prop].test(value))
+				) {
+					unknown = true;
 				}
 			}
-			if (unknown.length) add(__("Untranslatable CSS: {0}", [unknown.join(", ")]));
+			if (unknown) styled_fields.push(node.label || node.fieldname);
 		}
-		if (node.fieldtype === "HTML") add(__("Custom HTML block"));
-		if (node.fieldtype === "Field Template") add(__("Field Template (Jinja HTML)"));
+		if (node.fieldtype === "HTML") add(__("HTML block"));
+		if (node.fieldtype === "Field Template") add(__("Field Template block"));
 		if (node.fieldtype === "Barcode") {
 			if (node.custom) {
-				if (node.barcode_format !== "QR") add(__("Barcode (non-QR)"));
+				if (node.barcode_format !== "QR") add(__("Barcode that is not a QR code"));
 			} else {
 				const meta_df = frappe.meta.get_docfield(print_format?.doc_type, node.fieldname);
 				if (!meta_df || !is_qr_barcode_options(meta_df.options))
-					add(__("Barcode (non-QR)"));
+					add(__("Barcode that is not a QR code"));
 			}
 		}
 		if (node.fieldtype === "Image" && /^https?:\/\//.test(node.image_url || ""))
-			add(__("Remote image URL"));
+			add(__("Image loaded from a web address"));
 		for (const key of ["label_color", "value_color"]) {
-			if (non_hex_color(node[key]))
-				add(__("Field color Typst can't render: {0}", [node[key]]));
+			if (non_hex_color(node[key])) colors.add(node[key]);
 		}
 	}
+	if (colors.size) add(__("Colours that are not hex codes: {0}", [[...colors].join(", ")]));
+	if (styled_fields.length) add(__("Custom CSS on fields: {0}", [list_names(styled_fields)]));
 	return blockers;
 }
 
-// Blocks the builder invents — they never map to a docfield on the document type
-export const BLOCK_FIELDTYPES = new Set(["Spacer", "Divider", "Repeater", "HTML"]);
+export function clamp_column_width(value) {
+	return Math.max(5, Math.min(100, parseInt(value) || 10));
+}
 
 // Mirrors PrintFormatGenerator.JUSTIFY_MODES; the class names are spelled out so
 // both surfaces can be grepped for them
@@ -237,7 +245,8 @@ export function create_default_layout(meta, print_format) {
 					field.label = `${__(df.label, null, df.parent)} (${__("Field Template")})`;
 					field.fieldtype = "Field Template";
 					field.field_template = field_template.name;
-					field.fieldname = df.fieldname = "_template";
+					field.source_fieldname = df.fieldname;
+					field.fieldname = df.fieldname = `${df.fieldname}_template`;
 				}
 
 				if (df.fieldtype === "Table") {
@@ -263,7 +272,6 @@ export function get_table_columns(df) {
 		if (
 			!["Section Break", "Column Break"].includes(tf.fieldtype) &&
 			!tf.print_hide &&
-			df.label &&
 			total_width < 100
 		) {
 			let width =
@@ -331,7 +339,7 @@ const TABLE_COLUMN_PLUCK_KEYS = [
 	"column_condition",
 ];
 
-const FIELD_PLUCK_KEYS = [
+export const FIELD_PLUCK_KEYS = [
 	"label",
 	"fieldname",
 	"fieldtype",
@@ -367,11 +375,19 @@ const FIELD_PLUCK_KEYS = [
 	"barcode_value",
 	"barcode_format",
 	"show_text",
+	"text",
+	"bold",
+	"font_size",
+	"link_path",
+	"show_empty",
+	"hide_colon",
+	"table_min_height",
 ];
 
 const ZONE_FIELD_PLUCK_KEYS = FIELD_PLUCK_KEYS.filter(
 	(key) => key !== "table_cell_padding" && key !== "table_radius"
 );
+export const ZONE_KEYS = ["columns", "gap", "justify", "field_orientation"];
 
 export function serialize_layout(layout) {
 	layout.sections = layout.sections
@@ -398,6 +414,7 @@ export function serialize_layout(layout) {
 
 	function clean_zone(zone) {
 		if (!zone || !zone.columns) return zone;
+		zone = pluck(zone, ZONE_KEYS);
 		zone.columns = zone.columns.map((column) => {
 			column.fields = column.fields
 				.filter((df) => !df.remove)
@@ -536,6 +553,27 @@ const SAFE_HTML_ATTRS = new Set([
 	"cellspacing",
 ]);
 
+const UNSAFE_HTML_TAGS = "iframe, frame, frameset, object, embed, applet, form, base, meta, link";
+const URL_ATTRS = ["href", "src", "action", "formaction", "xlink:href", "data"];
+
+export function strip_unsafe_html(html) {
+	const root = document.createElement("div");
+	root.innerHTML = frappe.dom.remove_script_and_style(html || "");
+	root.querySelectorAll(UNSAFE_HTML_TAGS).forEach((el) => el.remove());
+	for (const el of root.querySelectorAll("*")) {
+		for (const attr of [...el.attributes]) {
+			const name = attr.name.toLowerCase();
+			const scheme = attr.value.replace(/[\u0000-\u0020\u007f-\u009f]/g, "").toLowerCase();
+			const unsafe_url =
+				URL_ATTRS.includes(name) && /^(javascript|vbscript|data:text)/.test(scheme);
+			if (name.startsWith("on") || name === "srcdoc" || unsafe_url) {
+				el.removeAttribute(attr.name);
+			}
+		}
+	}
+	return root.innerHTML;
+}
+
 export function sanitize_html(html) {
 	const root = document.createElement("div");
 	root.innerHTML = frappe.dom.remove_script_and_style(html || "");
@@ -585,16 +623,6 @@ export function sanitize_html(html) {
 	return root.innerHTML;
 }
 
-export function evaluate_visible_if(expr, doc) {
-	if (!expr || !expr.trim()) return true;
-	try {
-		// eslint-disable-next-line no-new-func
-		return !!new Function("doc", `return (${expr})`)(doc);
-	} catch {
-		return true;
-	}
-}
-
 export function get_image_dimensions(src) {
 	return new Promise((resolve, reject) => {
 		let img = new Image();
@@ -605,4 +633,17 @@ export function get_image_dimensions(src) {
 		img.onerror = () => reject(new Error(`could not load image: ${src}`));
 		img.src = src;
 	});
+}
+
+// Option lists shared by the inspectors
+export function value_field_opts(fields) {
+	return (fields || [])
+		.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype))
+		.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname }));
+}
+
+export function table_field_opts(fields) {
+	return (fields || [])
+		.filter((f) => f.fieldtype === "Table")
+		.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname }));
 }

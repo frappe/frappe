@@ -7,6 +7,7 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.doctype.bulk_update.bulk_update import submit_cancel_or_update_docs
 from frappe.tests import IntegrationTestCase, timeout
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 
 
 class TestBulkUpdate(IntegrationTestCase):
@@ -15,9 +16,24 @@ class TestBulkUpdate(IntegrationTestCase):
 		super().setUpClass()
 		cls.doctype = new_doctype(is_submittable=1, custom=1).insert().name
 		cls.child_doctype = new_doctype(istable=1, custom=1).insert().name
-		frappe.db.commit()
+		# Schema fixtures must exist before worker processes load their documents.
+		frappe.db.commit()  # nosemgrep
 		for _ in range(50):
 			frappe.new_doc(cls.doctype, some_fieldname=frappe.mock("name")).insert()
+		# Workers have their own database connections, so publish the fixtures
+		# and release SQLite's single writer slot before a job is enqueued.
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls) -> None:
+		# Committed fixtures cannot be removed by the test framework's rollback.
+		try:
+			for doctype in (cls.doctype, cls.child_doctype):
+				if frappe.db.exists("DocType", doctype):
+					frappe.delete_doc("DocType", doctype, force=True)
+			frappe.db.commit()  # nosemgrep
+		finally:
+			super().tearDownClass()
 
 	@timeout()
 	def wait_for_assertion(self, assertion):
@@ -27,6 +43,7 @@ class TestBulkUpdate(IntegrationTestCase):
 				break
 			time.sleep(0.2)
 
+	@requires_test_service(TestService.BACKGROUND_WORKER)
 	def test_bulk_submit_in_background(self):
 		unsubmitted = frappe.get_all(self.doctype, {"docstatus": 0}, limit=5, pluck="name")
 		failed = submit_cancel_or_update_docs(self.doctype, unsubmitted, action="submit")
@@ -48,6 +65,7 @@ class TestBulkUpdate(IntegrationTestCase):
 		submit_cancel_or_update_docs(self.doctype, submitted, action="cancel")
 		self.wait_for_assertion(lambda: check_docstatus(submitted, 2))
 
+	@requires_test_service(TestService.BACKGROUND_WORKER)
 	def test_bulk_update_parent_fields(self):
 		docnames = frappe.get_all(self.doctype, {"docstatus": 0}, limit=5, pluck="name")
 		failed = submit_cancel_or_update_docs(
@@ -67,20 +85,23 @@ class TestBulkUpdate(IntegrationTestCase):
 
 		self.wait_for_assertion(lambda: check_field_values(docnames_bg, "_Test Background"))
 
+	@requires_test_service(TestService.BACKGROUND_WORKER)
 	def test_bulk_update_child_fields(self):
 		doctype_doc = frappe.get_doc("DocType", self.doctype)
 		doctype_doc.append(
 			"fields", {"fieldname": "child_table", "fieldtype": "Table", "options": self.child_doctype}
 		)
 		doctype_doc.save()
-		frappe.db.commit()
+		# The worker must see the child table added by this schema change.
+		frappe.db.commit()  # nosemgrep
 
 		existing_docs = frappe.get_all(self.doctype, {"docstatus": 0}, pluck="name")
 		for docname in existing_docs:
 			doc = frappe.get_doc(self.doctype, docname)
 			doc.append("child_table", {"some_fieldname": "_Test Child Value"})
 			doc.save()
-		frappe.db.commit()
+		# Publish child rows before the background update reads them.
+		frappe.db.commit()  # nosemgrep
 
 		update_data = {
 			"child_table_updates": {
@@ -144,4 +165,5 @@ class TestBulkUpdate(IntegrationTestCase):
 		finally:
 			for name in todo_names:
 				frappe.delete_doc("ToDo", name)
-			frappe.db.commit()
+			# bulk_update can commit, so its durable fixtures need durable cleanup.
+			frappe.db.commit()  # nosemgrep

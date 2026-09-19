@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import os
 import re
+import shlex
 import shutil
 import subprocess
 from contextlib import suppress
@@ -131,7 +132,71 @@ def watch(apps=None):
 
 	check_node_executable()
 	frappe_app_path = frappe.get_app_source_path("frappe")
-	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
+
+	# A second watcher, on its own tooling, beside esbuild rather than inside it.
+	# It lives exactly as long as the esbuild watcher below, which blocks.
+	page_islands = watch_page_islands()
+	try:
+		frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
+	finally:
+		if page_islands:
+			page_islands.terminate()
+
+
+def page_island_build_command(production: bool = False, watch: bool = False) -> str:
+	"""The framework page-island build, as a shell command.
+
+	It runs on framework's own toolchain, installed beside the preset, so it
+	needs neither an app frontend nor the bench's node_modules. A bench with no
+	Frappe UI page exits before it touches either.
+	"""
+	script = os.path.join(frappe.get_app_source_path("frappe"), "ui", "vite", "island", "build-pages.js")
+	command = f"node {shlex.quote(script)}"
+	if production:
+		command += " --production"
+	if watch:
+		command += " --watch"
+	return command
+
+
+def build_page_islands(built_apps: list[str] | None = None):
+	"""Build every Frappe UI page's island. Runs from the `after_app_build` hook.
+
+	One build takes the whole bench, so which app was just built does not change
+	what it compiles. A failure is reported and does not stop `bench build`: a
+	page island is additive, and an unbuilt one already says so on its own page.
+	"""
+	# The same reading `bench build` uses to pick its own mode.
+	development = frappe.local.conf.developer_mode or frappe._dev_server
+	command = page_island_build_command(production=not development)
+
+	if frappe.commands.popen(command, cwd=frappe.get_app_source_path("frappe"), env=get_node_env()):
+		click.secho(
+			f"The page-island build failed ({command}). "
+			"Every Frappe UI page shows its unbuilt state until this passes.",
+			fg="red",
+		)
+
+
+def watch_page_islands():
+	"""Start the page-island watcher, or `None` if it cannot start.
+
+	`frappe.commands.popen` waits, and this one has to run beside the esbuild
+	watcher, so it starts its own process. The environment is merged the same
+	way, or node is not on the PATH the build inherits.
+	"""
+	command = page_island_build_command(watch=True)
+
+	try:
+		return subprocess.Popen(
+			command,
+			shell=True,
+			cwd=frappe.get_app_source_path("frappe"),
+			env=dict(os.environ, **get_node_env()),
+		)
+	except OSError as e:
+		click.secho(f"Could not watch page islands: {e}", fg="yellow")
+		return None
 
 
 def check_node_executable():

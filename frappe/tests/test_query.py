@@ -4,12 +4,14 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.permissions import add_permission, update_permission_property
 from frappe.query_builder import Field
-from frappe.query_builder.functions import Abs, Count, Ifnull, Max, Now, Timestamp
+from frappe.query_builder.functions import Abs, Cast, Count, Ifnull, Max, Now, Timestamp
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import enable_safe_exec
 from frappe.tests.test_db_query import (
 	create_nested_doctype,
 	create_nested_doctype_records,
+	setup_autoincrement_link_doctypes,
+	setup_autoincrement_parent_doctypes,
 	setup_patched_blog_post,
 	setup_test_user,
 )
@@ -92,6 +94,16 @@ class TestQuery(IntegrationTestCase):
 			).get_sql(),
 			query,
 		)
+
+	def test_like_filter_on_non_text_field(self):
+		query = frappe.qb.get_query("DocType", fields=["name"], filters={"docstatus": ["like", "0"]})
+		names = query.run(pluck=True)
+
+		self.assertIn("DocType", names)
+		if frappe.db.db_type == "postgres":
+			self.assertIn('CAST("DOCSTATUS" AS VARCHAR) ILIKE', query.get_sql().upper())
+		else:
+			self.assertNotIn("CAST(", query.get_sql().upper())
 
 	def test_string_fields(self):
 		self.assertEqual(
@@ -1148,6 +1160,60 @@ class TestQuery(IntegrationTestCase):
 		).run(as_dict=True)
 		self.assertTrue(len(result) > 0, "Should be able to filter User by user_type and enabled")
 
+	def test_core_doctype_filterable_fields_with_read_and_select_permission(self):
+		"""Read+select on User should still allow filtering by user_type."""
+		test_role = "CoreReadSelectTestRole"
+		test_user_email = "test2@example.com"
+
+		frappe.set_user("Administrator")
+		test_user = frappe.get_doc("User", test_user_email)
+		test_user.remove_roles(test_role)
+		frappe.delete_doc("Role", test_role, ignore_missing=True, force=True)
+
+		frappe.get_doc({"doctype": "Role", "role_name": test_role}).insert(ignore_if_duplicate=True)
+		# read defaults to 1 on a new Custom DocPerm row — leave it on, unlike the
+		# select-only test above, so both read and select are granted at once.
+		add_permission("User", test_role, 0, ptype="select")
+		test_user.add_roles(test_role)
+
+		def cleanup():
+			frappe.set_user("Administrator")
+			test_user.remove_roles(test_role)
+			frappe.delete_doc("Role", test_role, ignore_missing=True, force=True)
+
+		self.addCleanup(cleanup)
+
+		frappe.set_user(test_user_email)
+
+		self.assertFalse(
+			frappe.only_has_select_perm("User"),
+			"Sanity check: user should have read as well as select, not select-only",
+		)
+
+		# filter by user_type and enabled — the exact filters used by search_link for assignment
+		result = frappe.qb.get_query(
+			"User",
+			filters={"user_type": "System User", "enabled": 1},
+			fields=["name"],
+			ignore_permissions=False,
+		).run(as_dict=True)
+		self.assertTrue(
+			len(result) > 0,
+			"Should be able to filter User by user_type and enabled with read+select permission",
+		)
+
+		# the exemption is filter-only - explicitly requesting user_type as an output
+		# field should not return its value (field-level read permission drops it silently)
+		qb_result = frappe.qb.get_query("User", fields=["name", "user_type"], ignore_permissions=False).run(
+			as_dict=True
+		)
+		self.assertTrue(qb_result)
+		self.assertNotIn("user_type", qb_result[0])
+
+		list_result = frappe.get_list("User", fields=["name", "user_type"], limit=3)
+		self.assertTrue(list_result)
+		self.assertNotIn("user_type", list_result[0])
+
 	def test_nested_permission(self):
 		"""Test permission on nested doctypes"""
 		frappe.set_user("Administrator")
@@ -1595,6 +1661,55 @@ class TestQuery(IntegrationTestCase):
 		denied.delete(ignore_permissions=True)
 		source_dt.delete()
 		target_dt.delete()
+
+	def test_autoincrement_link_field_join(self):
+		with setup_autoincrement_link_doctypes() as (
+			_target_dt_name,
+			source_dt_name,
+			target_doc,
+			source_doc,
+		):
+			query = frappe.qb.get_query(
+				source_dt_name,
+				fields=["name", "link_field.target_title"],
+				filters={"name": source_doc.name},
+			)
+			result = query.run(as_dict=True)
+
+			self.assertEqual(result[0].target_title, target_doc.target_title)
+			if frappe.db.db_type == "postgres":
+				self.assertIn(
+					'CAST("TAB_TEST AUTO LINK TARGET_1"."NAME" AS VARCHAR)', query.get_sql().upper()
+				)
+			else:
+				self.assertNotIn("CAST(", query.get_sql().upper())
+
+	def test_autoincrement_child_table_join(self):
+		with setup_autoincrement_parent_doctypes() as (parent_dt_name, _child_dt_name, parent_doc):
+			query = frappe.qb.get_query(
+				parent_dt_name,
+				fields=["name", "child_table.child_value"],
+				filters={"name": parent_doc.name, "child_table.child_value": "Child"},
+			)
+			result = query.run(as_dict=True)
+
+			self.assertEqual(len(result), 1)
+			self.assertEqual(result[0].child_value, "Child")
+			if frappe.db.db_type == "postgres":
+				self.assertIn('CAST("TABTEST AUTO PARENT"."NAME" AS VARCHAR)', query.get_sql().upper())
+			else:
+				self.assertNotIn("CAST(", query.get_sql().upper())
+
+	def test_autoincrement_child_query(self):
+		with setup_autoincrement_parent_doctypes() as (parent_dt_name, _child_dt_name, parent_doc):
+			result = frappe.qb.get_query(
+				parent_dt_name,
+				fields=["name", {"child_table": ["child_value"]}],
+				filters={"name": parent_doc.name},
+			).run(as_dict=True)
+
+			self.assertEqual(len(result), 1)
+			self.assertEqual(result[0].child_table[0].child_value, "Child")
 
 	def test_filter_direct_field_permission(self):
 		"""Test that filtering is only allowed on permitted direct fields."""
@@ -2096,6 +2211,9 @@ class TestQuery(IntegrationTestCase):
 		if frappe.db.db_type == "postgres":
 			self.assertIn("CAST(date_part('year'", sql)
 			self.assertIn('"creation_year"', sql)
+		elif frappe.db.db_type == "sqlite":
+			self.assertIn("CAST(STRFTIME('%Y'", sql)
+			self.assertIn('"creation_year"', sql)
 		else:
 			self.assertIn(self.normalize_sql("YEAR(`creation`) `creation_year`"), sql)
 		self.assertIn(self.normalize_sql("GROUP BY `creation_year`"), self.normalize_sql(sql))
@@ -2131,7 +2249,8 @@ class TestQuery(IntegrationTestCase):
 		# Test TIMESTAMP function
 		query = frappe.qb.get_query("User", fields=[{"TIMESTAMP": "creation", "as": "ts"}])
 		sql = query.get_sql()
-		self.assertIn(self.normalize_sql("TIMESTAMP(`creation`) `ts`"), self.normalize_sql(sql))
+		expected_function = "DATETIME" if frappe.db.db_type == "sqlite" else "TIMESTAMP"
+		self.assertIn(self.normalize_sql(f"{expected_function}(`creation`) `ts`"), self.normalize_sql(sql))
 
 		# Test mixed regular fields and function fields
 		query = frappe.qb.get_query(
@@ -2339,6 +2458,116 @@ class TestQuery(IntegrationTestCase):
 		):  # since Postgres requires fields in Order by to be grouped or aggregated, order by is dropped
 			self.assertIn(self.normalize_sql("ORDER BY `created_date`"), self.normalize_sql(sql))
 		self.assertIn(self.normalize_sql("`creation` `created_date`"), self.normalize_sql(sql))
+
+	def test_distinct_keeps_valid_order_by(self):
+		for field, order_by in (
+			("user_type", "user_type asc"),
+			("user_type as type", "type asc"),
+			("`tabUser`.`user_type`", "`tabUser`.`user_type` asc"),
+		):
+			with self.subTest(field=field, order_by=order_by):
+				query = frappe.qb.get_query("User", fields=[field], distinct=True, order_by=order_by)
+				result = query.run()
+
+				self.assertIn("order by", query.get_sql().lower())
+				self.assertEqual(list(result), sorted(result))
+
+	def test_distinct_drops_unselected_order_by_on_postgres(self):
+		if frappe.db.db_type == "postgres":
+			with self.assertWarnsRegex(UserWarning, "ORDER BY fields have been ignored"):
+				query = frappe.qb.get_query(
+					"User", fields=["user_type"], distinct=True, order_by="creation desc"
+				)
+			self.assertNotIn("order by", query.get_sql().lower())
+		else:
+			query = frappe.qb.get_query("User", fields=["user_type"], distinct=True, order_by="creation desc")
+			self.assertIn("order by", query.get_sql().lower())
+
+	def test_distinct_keeps_order_by_on_star_column(self):
+		query = frappe.qb.get_query("User", fields=["*"], distinct=True, order_by="user_type asc")
+		result = query.run(as_dict=True)
+
+		self.assertIn("order by", query.get_sql().lower())
+		self.assertEqual([row.user_type for row in result], sorted(row.user_type for row in result))
+
+	def test_distinct_keeps_order_by_on_link_field(self):
+		query = frappe.qb.get_query(
+			"User",
+			fields=["name", "language.language_name"],
+			distinct=True,
+			order_by="language.language_name asc",
+		)
+		query.run()
+
+		self.assertIn("order by", query.get_sql().lower())
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_distinct_order_by_preserves_link_table_identity(self):
+		for order_by in ("creation desc", "`tabUser`.`creation` desc"):
+			with self.subTest(order_by=order_by):
+				with self.assertWarnsRegex(UserWarning, "ORDER BY fields have been ignored"):
+					query = frappe.qb.get_query(
+						"User",
+						fields=["language.creation as language_creation"],
+						distinct=True,
+						order_by=order_by,
+					)
+				self.assertNotIn("order by", query.get_sql().lower())
+				query.run()
+
+		for order_by in ("language_creation asc", "language.creation asc"):
+			with self.subTest(order_by=order_by):
+				query = frappe.qb.get_query(
+					"User",
+					fields=["language.creation as language_creation"],
+					distinct=True,
+					order_by=order_by,
+				)
+				self.assertIn("order by", query.get_sql().lower())
+				query.run()
+
+	def test_distinct_order_by_result_position(self):
+		for group_by in (None, "user_type, enabled"):
+			for position, direction in ((1, "asc"), (2, "desc")):
+				with self.subTest(group_by=group_by, position=position):
+					query = frappe.qb.get_query(
+						"User",
+						fields=["user_type", "enabled"],
+						distinct=True,
+						group_by=group_by,
+						order_by=f"{position} {direction}",
+					)
+					values = [row[position - 1] for row in query.run()]
+					self.assertEqual(values, sorted(values, reverse=direction == "desc"))
+
+	def test_distinct_order_by_star_result_position(self):
+		query = frappe.qb.get_query("User", fields=["*"], distinct=True, order_by="2 asc")
+		self.assertIn("ORDER BY 2 ASC", query.get_sql())
+		query.run()
+
+	def test_distinct_order_by_selected_grouped_field(self):
+		for field in ("creation", "enabled"):
+			with self.subTest(field=field):
+				query = frappe.qb.get_query(
+					"User",
+					fields=["name", field],
+					group_by="name",
+					distinct=True,
+					order_by=f"{field} asc",
+				)
+				values = [row[1] for row in query.run()]
+				self.assertEqual(values, sorted(values))
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_distinct_drops_invalid_result_position(self):
+		for position in (0, 2):
+			with self.subTest(position=position):
+				with self.assertWarnsRegex(UserWarning, "ORDER BY fields have been ignored"):
+					query = frappe.qb.get_query(
+						"User", fields=["user_type"], distinct=True, order_by=f"{position} asc"
+					)
+				self.assertNotIn("order by", query.get_sql().lower())
+				query.run()
 
 	def test_field_alias_permission_check(self):
 		query = frappe.qb.get_query(
@@ -2580,6 +2809,24 @@ class TestQuery(IntegrationTestCase):
 		).run()
 		# Query should succeed and return results (tuple or list)
 		self.assertTrue(len(result) >= 0, "Query should succeed with proper permissions")
+
+	def test_autoincrement_parent_permission_join(self):
+		with setup_autoincrement_parent_doctypes() as (parent_dt_name, child_dt_name, parent_doc):
+			query = frappe.qb.get_query(
+				child_dt_name,
+				fields=["name", "child_value"],
+				filters={"parent": parent_doc.name},
+				parent_doctype=parent_dt_name,
+				ignore_permissions=False,
+				user="Administrator",
+			)
+			result = query.run(as_dict=True)
+
+			self.assertEqual(result[0].child_value, "Child")
+			if frappe.db.db_type == "postgres":
+				self.assertIn('CAST("TABTEST AUTO PARENT"."NAME" AS VARCHAR)', query.get_sql().upper())
+			else:
+				self.assertNotIn("CAST(", query.get_sql().upper())
 
 	def test_child_table_filters_orphaned_rows(self):
 		"""Test that child table queries filter out orphaned rows (rows without valid parent)."""
@@ -3030,6 +3277,145 @@ class TestQuery(IntegrationTestCase):
 
 		rows = frappe.db.sql(f"SELECT name FROM `tabToDo` WHERE 1=1 and {cond}", as_dict=True)
 		self.assertIn(todo.name, [r.name for r in rows])
+
+
+class TestJSONFieldQueries(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.doctype = "Test JSON Field Query"
+		new_doctype(
+			cls.doctype,
+			fields=[
+				{"fieldname": "payload", "label": "Payload", "fieldtype": "JSON"},
+				{"fieldname": "secret", "label": "Secret", "fieldtype": "JSON", "permlevel": 1},
+			],
+		).insert(ignore_if_duplicate=True)
+		cls.names = {
+			label: frappe.get_doc(doctype=cls.doctype, payload=payload).insert().name
+			for label, payload in (("null", None), ("empty", "[]"), ("filled", '["x"]'))
+		}
+
+	def get_names(self, *filters):
+		"""Names matching the filters among the docs this class created; the table persists between runs."""
+		filters = [*filters, ["name", "in", list(self.names.values())]]
+		return set(frappe.get_all(self.doctype, filters=filters, pluck="name"))
+
+	def test_json_filter_operators(self):
+		null, empty, filled = (self.names[label] for label in ("null", "empty", "filled"))
+		cases = [
+			(["is", "not set"], {null}),
+			(["is", "set"], {empty, filled}),
+			(["=", "[]"], {empty}),
+			(["!=", "[]"], {null, filled}),
+			(["in", ["[]"]], {empty}),
+			(["not in", ["[]"]], {null, filled}),
+			(["like", "%x%"], {filled}),
+			(["=", None], {null}),
+			(["!=", None], {empty, filled}),
+		]
+		for operator_and_value, expected in cases:
+			with self.subTest(filter=operator_and_value):
+				self.assertEqual(self.get_names(["payload", *operator_and_value]), expected)
+
+	def test_json_filter_field_references(self):
+		empty = self.names["empty"]
+		for key in (f"`tab{self.doctype}`.`payload`", Field("payload")):
+			with self.subTest(key=str(key)):
+				self.assertEqual(self.get_names([key, "=", "[]"]), {empty})
+
+		self.assertEqual(frappe.db.get_value(self.doctype, {"payload": "[]"}, "name"), empty)
+
+	def test_json_filter_sql_shape(self):
+		compat = frappe.qb.get_query(
+			self.doctype, filters={"payload": ["!=", "[]"]}, db_query_compat=True
+		).get_sql()
+		aliased = frappe.qb.get_query(
+			self.doctype, filters={frappe.qb.DocType(self.doctype).as_("x").payload: "[]"}
+		).get_sql()
+
+		if frappe.db.db_type == "postgres":
+			self.assertIn('IFNULL(CAST("payload" AS VARCHAR)', compat)
+			self.assertEqual(compat.count("CAST("), 1)
+			self.assertIn('CAST("x"."payload" AS VARCHAR)', aliased)
+		else:
+			self.assertNotIn("CAST(", compat)
+			self.assertNotIn("CAST(", aliased)
+
+	def test_json_filter_with_cold_metadata(self):
+		frappe.clear_cache()
+		frappe.clear_messages()
+
+		# Custom Field is a core doctype whose meta loads through this same filter builder
+		frappe.get_all("Custom Field", filters={"link_filters": ["is", "not set"]}, limit=1)
+		self.assertEqual(self.get_names(["payload", "=", "[]"]), {self.names["empty"]})
+		self.assertEqual(frappe.local.message_log, [])
+
+	def test_json_field_sorting_and_grouping(self):
+		from frappe.desk.listview import get_group_by_count
+
+		own_docs = {"name": ["in", list(self.names.values())]}
+		for order_by in ("payload asc", f"`tab{self.doctype}`.`payload` asc"):
+			with self.subTest(order_by=order_by):
+				query = frappe.qb.get_query(
+					self.doctype, fields=["payload"], filters=own_docs, distinct=True, order_by=order_by
+				)
+				self.assertIn("ORDER BY", query.get_sql())
+				self.assertEqual(len(query.run()), 3)
+
+		grouped = frappe.get_all(
+			self.doctype,
+			fields=["payload", {"COUNT": "*", "as": "total"}],
+			filters=own_docs,
+			group_by="payload",
+		)
+		self.assertEqual({row.payload: row.total for row in grouped}, {None: 1, "[]": 1, '["x"]': 1})
+
+		counts = get_group_by_count(self.doctype, [["name", "in", list(self.names.values())]], "payload")
+		self.assertEqual({row["name"] for row in counts}, {None, "[]", '["x"]'})
+
+	def test_json_clause_sql_shape(self):
+		distinct = frappe.qb.get_query(self.doctype, fields=["payload as p"], distinct=True).get_sql()
+		ordered = frappe.qb.get_query(self.doctype, fields=["name"], order_by="payload asc").get_sql()
+
+		if frappe.db.db_type == "postgres":
+			self.assertIn('DISTINCT CAST("payload" AS VARCHAR) "p"', distinct)
+			self.assertIn('ORDER BY CAST("payload" AS VARCHAR)', ordered)
+
+			# a caller-supplied Cast is not looked through: its ORDER BY is still unselected
+			foreign_cast = frappe.qb.get_query(
+				self.doctype,
+				fields=[Cast(frappe.qb.DocType(self.doctype).payload, "varchar")],
+				distinct=True,
+				order_by="payload asc",
+			).get_sql()
+			self.assertNotIn("ORDER BY", foreign_cast)
+		else:
+			self.assertNotIn("CAST(", distinct)
+			self.assertNotIn("CAST(", ordered)
+
+	def test_permlevel_json_field_with_distinct(self):
+		"""The select cast runs after the permission pass, which only checks Field terms."""
+		role = "JSON Query Test Role"
+		user = "test2@example.com"
+		frappe.get_doc({"doctype": "Role", "role_name": role}).insert(ignore_if_duplicate=True)
+		add_permission(self.doctype, role, 0, ptype="read")
+		add_permission(self.doctype, "System Manager", 1, ptype="read")
+		frappe.get_doc("User", user).add_roles(role)
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		fields = ["payload", "secret"]
+		frappe.set_user(user)
+		restricted = frappe.qb.get_query(
+			self.doctype, fields=fields, distinct=True, ignore_permissions=False
+		).get_sql()
+		frappe.set_user("Administrator")
+		permitted = frappe.qb.get_query(
+			self.doctype, fields=fields, distinct=True, ignore_permissions=False
+		).get_sql()
+
+		self.assertNotIn("secret", restricted)
+		self.assertIn("secret", permitted)
 
 
 # This function is used as a permission query condition hook

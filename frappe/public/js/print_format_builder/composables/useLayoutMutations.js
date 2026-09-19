@@ -1,18 +1,10 @@
 import { clone_plain, freshen_field } from "../utils";
+import { column_of, fields } from "../layout";
 
 export function useLayoutMutations(layout, selection) {
 	const { selected_field, selected_fields, selected_section } = selection;
 
-	function find_field_column(df) {
-		const lv = layout.value;
-		const zones = [lv?.header, lv?.footer, ...(lv?.sections || [])].filter(Boolean);
-		for (const section of zones) {
-			for (const column of section.columns || []) {
-				if (column.fields?.includes(df)) return column;
-			}
-		}
-		return null;
-	}
+	const find_field_column = (df) => column_of(layout.value, df);
 	function duplicate_field(df) {
 		if (!df || !layout.value) return;
 		const col = find_field_column(df);
@@ -145,10 +137,7 @@ export function useLayoutMutations(layout, selection) {
 		if (selected_section.value === section) {
 			selected_section.value = null;
 		}
-		if (
-			selected_field.value &&
-			section.columns.some((c) => c.fields.includes(selected_field.value))
-		) {
+		if (selected_field.value && [...fields(section)].includes(selected_field.value)) {
 			selected_field.value = null;
 		}
 	}

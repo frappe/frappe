@@ -1,0 +1,57 @@
+name: Post Review
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Pull request number
+        required: true
+        type: number
+      review:
+        description: base64 of a review JSON ({event, body, comments, replies}); event must be COMMENT or REQUEST_CHANGES; replies are [{in_reply_to, body}] posted into existing threads
+        required: true
+        type: string
+      review_id:
+        description: Existing review id to update; only its body is replaced
+        required: false
+        type: string
+        default: ""
+
+permissions: {}
+
+concurrency:
+  group: post-review-${{ inputs.pr }}
+  cancel-in-progress: false
+
+jobs:
+  post:
+    if: github.actor == 'iamejaaz'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Post or update review as frappe-pr-bot
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          PR: ${{ inputs.pr }}
+          REVIEW_B64: ${{ inputs.review }}
+          REVIEW_ID: ${{ inputs.review_id }}
+        run: |
+          printf '%s' "$REVIEW_B64" | base64 -d > review.json
+          jq -e '(.event == "COMMENT" or .event == "REQUEST_CHANGES") and (.body | type == "string") and (.comments | type == "array") and ((.replies // []) | type == "array")' review.json > /dev/null
+          jq -e '(.replies // []) | all((.in_reply_to | type == "number") and (.body | type == "string") and (.body | length > 0))' review.json > /dev/null
+          if [ -n "$REVIEW_ID" ]; then
+            jq -e '.event == "COMMENT"' review.json > /dev/null || { echo "an update replaces only the body; the event must be COMMENT" >&2; exit 1; }
+          fi
+          if [ "$(jq -r '(.body | length) + (.comments | length)' review.json)" != "0" ]; then
+            if [ -n "$REVIEW_ID" ]; then
+              jq '{body: .body}' review.json > payload.json
+              gh api -X PUT "repos/${{ github.repository }}/pulls/$PR/reviews/$REVIEW_ID" --input payload.json --jq '.html_url'
+            else
+              jq '.comments |= map(with_entries(select(.value != null)))' review.json > payload.json
+              gh api -X POST "repos/${{ github.repository }}/pulls/$PR/reviews" --input payload.json --jq '.html_url'
+            fi
+          fi
+          jq -c '(.replies // [])[] | {body, in_reply_to}' review.json | while read -r reply; do
+            printf '%s' "$reply" > reply.json
+            gh api -X POST "repos/${{ github.repository }}/pulls/$PR/comments" --input reply.json --jq '.html_url'
+          done

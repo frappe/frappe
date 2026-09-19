@@ -27,7 +27,7 @@
 
 		<div
 			v-if="columns.length"
-			class="relative isolate overflow-hidden rounded border border-outline-gray-2"
+			class="relative isolate overflow-hidden rounded-4 border border-outline-gray-2"
 			:class="{ 'grid-disabled': disabled }"
 		>
 			<!-- Scroller + shadows share a `relative` box so the shadows clamp to the

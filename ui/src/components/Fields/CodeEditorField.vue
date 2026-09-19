@@ -83,7 +83,7 @@
 					v-show="previewOpen"
 					:modelValue="value"
 					:language="language"
-					class="mt-1 min-h-[4.5rem] rounded-md border border-outline-gray-1 p-3"
+					class="mt-1 min-h-[4.5rem] rounded-5 border border-outline-gray-1 p-3"
 				/>
 			</div>
 		</div>
@@ -103,7 +103,7 @@
 			<CodePreview
 				:modelValue="value"
 				:language="language"
-				class="min-h-[4.5rem] rounded-md border border-outline-gray-1 p-3"
+				class="min-h-[4.5rem] rounded-5 border border-outline-gray-1 p-3"
 			/>
 		</div>
 	</div>
@@ -116,8 +116,7 @@
 // `doc` (Frappe JSON/Code fields store strings) — the contract is unchanged.
 import { computed, onBeforeUnmount, onMounted, ref, useId, watch } from "vue";
 import { Button } from "frappe-ui";
-import { InputLabel, InputDescription } from "frappe-ui/experimental";
-import { CodeEditor, CodePreview } from "frappe-ui/code-editor";
+import { CodeEditor, CodePreview, InputDescription, InputLabel } from "frappe-ui/experimental";
 import { fieldtypeToLanguage } from "./fieldtypeToLanguage";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 

@@ -13,6 +13,19 @@ from frappe.utils.bench_helper import CliCtxObj
 
 if TYPE_CHECKING:
 	from frappe.testing import TestRunner
+	from frappe.tests.utils.test_capabilities import TestService
+
+
+def _parse_test_service(_context, _parameter, value: str | None) -> "TestService | None":
+	if value is None:
+		return None
+
+	from frappe.tests.utils.test_capabilities import TestService
+
+	try:
+		return TestService.from_cli_name(value)
+	except ValueError as error:
+		raise click.BadParameter(str(error)) from error
 
 
 def main(
@@ -34,6 +47,7 @@ def main(
 	debug_exceptions: tuple[Exception] | None = None,
 	selected_categories: list[str] | None = None,
 	lightmode: bool = False,
+	test_service: "TestService | None" = None,
 ) -> None:
 	"""Main function to run tests"""
 	if lightmode:
@@ -53,6 +67,7 @@ def main(
 			doctype_list_path=doctype_list_path,
 			failfast=failfast,
 			case=case,
+			test_service=test_service,
 		)
 		run_tests_in_light_mode(test_params)
 		return
@@ -107,6 +122,7 @@ def main(
 		"debug_exceptions",
 		"debug",
 		"selected_categories",
+		"test_service",
 	]:
 		param_value = locals()[param_name]
 		if param_value is not None:
@@ -132,6 +148,7 @@ def main(
 		pdb_on_exceptions=debug_exceptions,
 		selected_categories=selected_categories or [],
 		skip_before_tests=skip_before_tests,
+		test_service=test_service,
 	)
 
 	_initialize_test_environment(site, test_config)
@@ -316,6 +333,12 @@ def _get_doctypes_for_module_def(app, module_def):
 	default="all",
 	help="Select test category to run",
 )
+@click.option(
+	"--test-service",
+	callback=_parse_test_service,
+	metavar="SERVICE",
+	help="Run only tests that declare a required service (for example, web-server).",
+)
 @click.option("--lightmode", is_flag=True, default=False)
 @pass_context
 def run_tests(
@@ -335,6 +358,7 @@ def run_tests(
 	case=None,
 	test_category="all",
 	lightmode=False,
+	test_service=None,
 	debug=False,
 ):
 	"""Run python unit-tests"""
@@ -380,6 +404,7 @@ def run_tests(
 			debug=debug,
 			selected_categories=[] if test_category == "all" else test_category,
 			lightmode=lightmode,
+			test_service=test_service,
 		)
 
 

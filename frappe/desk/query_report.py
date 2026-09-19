@@ -12,6 +12,7 @@ import frappe.desk.reportview
 from frappe import _
 from frappe.core.utils import ljust_list
 from frappe.desk.form.load import get_attachments
+from frappe.desk.link_title import get_report_link_titles, send_link_titles
 from frappe.desk.reportview import clean_params, parse_json
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
@@ -40,8 +41,9 @@ def get_report_doc(report_name):
 				doc.custom_filters = data.get("filters")
 		doc.is_custom_report = True
 
-		# Follow whatever the custom report has set for prepared report field
+		# Follow whatever the custom report has set for prepared report fields
 		doc.prepared_report = custom_report_doc.prepared_report
+		doc.disable_prepared_report_automation = custom_report_doc.disable_prepared_report_automation
 
 	if not doc.is_permitted():
 		frappe.throw(
@@ -158,6 +160,8 @@ def generate_report_result(
 	if isinstance(filters, dict) and filters.get("translate_data"):
 		result = translate_report_data(result, has_total_row)
 
+	execution_time = frappe.cache.hget("report_execution_time", report.get("custom_report") or report.name)
+
 	return_dict = {
 		"result": result,
 		"columns": columns,
@@ -166,7 +170,7 @@ def generate_report_result(
 		"report_summary": report_summary,
 		"skip_total_row": skip_total_row or 0,
 		"status": None,
-		"execution_time": frappe.cache.hget("report_execution_time", report.name) or 0,
+		"execution_time": execution_time or 0,
 	}
 
 	if report.snapshot_report and report.doctype_to_sync:
@@ -326,6 +330,10 @@ def _run(
 
 	if sbool(are_default_filters) and report.get("custom_filters"):
 		result["custom_filters"] = report.custom_filters
+
+	# prepared reports can still carry legacy string column definitions
+	columns = [get_column_as_dict(column) for column in result.get("columns") or []]
+	send_link_titles(get_report_link_titles(columns, result.get("result")))
 
 	return result
 
@@ -531,27 +539,10 @@ def _export_query(form_params, csv_params, populate_response=True):
 			msg=_("Only CSV and Excel formats are supported for export"),
 		)
 
-	if include_filters:
-		for value in (data.filters or {}).values():
-			suffix = ""
-			if isinstance(value, list):
-				suffix = "_" + ",".join(value)
-			elif isinstance(value, str) and value not in {"Yes", "No"}:
-				suffix = f"_{value}"
-
-			if valid_report_name(report_name, suffix):
-				report_name += suffix
-
 	if not populate_response:
 		return report_name, file_extension, content
 
 	provide_binary_file(_(report_name), file_extension, content)
-
-
-def valid_report_name(report_name, suffix):
-	if len(report_name) + len(suffix) < 200:
-		return True
-	return False
 
 
 def format_fields(data: frappe._dict, file_format_type: str | None = None) -> None:
@@ -582,6 +573,12 @@ def format_fields(data: frappe._dict, file_format_type: str | None = None) -> No
 				val = row.get(index) if isinstance(row, dict) else row[index]
 				if val:
 					row[index] = format_datetime(val)
+		elif col.get("fieldtype") in ("Link", "Dynamic Link"):
+			for row in data.result:
+				index = col.get("fieldname") if isinstance(row, dict) else i
+				val = row.get(index) if isinstance(row, dict) else row[index]
+				if isinstance(val, str) and val.startswith("'") and val.endswith("'"):
+					row[index] = val[1:-1]
 
 
 def format_filter_value(value):

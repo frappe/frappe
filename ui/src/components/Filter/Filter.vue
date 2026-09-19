@@ -32,14 +32,13 @@
 	</Combobox>
 
 	<!-- Non-empty: the filter popover with its condition rows. -->
-	<Popover v-else ref="popoverRef" placement="bottom-end">
-		<template #target="{ togglePopover, close }">
+	<Popover v-else ref="popoverRef" side="bottom" align="end">
+		<template #trigger="{ close }">
 			<div class="flex items-center">
 				<Button
 					label="Filter"
 					class="relative rounded-r-none focus-visible:z-10"
 					iconLeft="lucide-list-filter"
-					@click="togglePopover"
 				>
 					<template #suffix>
 						<div
@@ -57,91 +56,87 @@
 				/>
 			</div>
 		</template>
-		<template #body="{ close }">
-			<div
-				class="my-2 min-w-40 rounded-lg bg-surface-elevation-2 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none"
-			>
-				<div class="min-w-72 p-2 sm:min-w-[400px]">
-					<!-- One grid for all rows so the field / operator / value columns
-					     line up across rows instead of each row sizing to its own
-					     content. Columns auto-size to the widest cell; the controls
-					     fill their column (`w-full`) so every box shares a width. -->
-					<div
-						v-if="model.length"
-						class="mb-3 grid grid-cols-[auto_auto_auto_auto_auto] items-center gap-x-2 gap-y-3"
+		<template #default="{ close }">
+			<div class="min-w-72 p-2 sm:min-w-[400px]">
+				<!-- One grid for all rows so the field / operator / value columns
+				     line up across rows instead of each row sizing to its own
+				     content. Columns auto-size to the widest cell; the controls
+				     fill their column (`w-full`) so every box shares a width. -->
+				<div
+					v-if="model.length"
+					class="mb-3 grid grid-cols-[auto_auto_auto_auto_auto] items-center gap-x-2 gap-y-3"
+				>
+					<template v-for="(f, i) in model" :key="i">
+						<div class="w-13 pl-2 text-end text-base text-ink-gray-5">
+							{{ i == 0 ? "Where" : "And" }}
+						</div>
+						<div class="min-w-[140px]">
+							<Combobox
+								class="w-full"
+								trigger="button"
+								variant="subtle"
+								size="md"
+								:modelValue="f.fieldname"
+								:options="allFields"
+								placeholder="Select field"
+								@update:selectedOption="(o) => updateField(o, i)"
+							/>
+						</div>
+						<div>
+							<Select
+								class="w-full"
+								:modelValue="f.operator"
+								:options="getOperators(f.field?.fieldtype ?? '', f.fieldname)"
+								placeholder="Equals"
+								@update:modelValue="(v) => updateOperator(v, i)"
+							/>
+						</div>
+						<div class="w-[180px]">
+							<component
+								:is="VALUE_CONTROLS[valueControl(f).control]"
+								v-bind="valueControl(f).props"
+								class="w-full"
+								:modelValue="f.value"
+								@update:modelValue="(v) => updateValue(v, i)"
+							/>
+						</div>
+						<Button
+							class="flex"
+							variant="ghost"
+							icon="lucide-x"
+							@click="removeFilter(i)"
+						/>
+					</template>
+				</div>
+				<div v-else class="mb-3 flex h-7 items-center px-3 text-sm text-ink-gray-5">
+					Empty - Choose a field to filter by
+				</div>
+				<div class="flex items-center justify-between gap-2">
+					<!-- A custom #trigger renders the same ghost Button as "Clear All
+					     Filters" beside it (gray-5, `+` icon, no chevron). The label is
+					     static, so the old per-add remount (`:key`) and the placeholder /
+					     chevron CSS hacks are no longer needed. -->
+					<Combobox
+						:options="allFields"
+						:modelValue="null"
+						@update:selectedOption="addFilter"
 					>
-						<template v-for="(f, i) in model" :key="i">
-							<div class="w-13 pl-2 text-end text-base text-ink-gray-5">
-								{{ i == 0 ? "Where" : "And" }}
-							</div>
-							<div class="min-w-[140px]">
-								<Combobox
-									class="w-full"
-									trigger="button"
-									variant="subtle"
-									size="md"
-									:modelValue="f.fieldname"
-									:options="allFields"
-									placeholder="Select field"
-									@update:selectedOption="(o) => updateField(o, i)"
-								/>
-							</div>
-							<div>
-								<Select
-									class="w-full"
-									:modelValue="f.operator"
-									:options="getOperators(f.field?.fieldtype ?? '', f.fieldname)"
-									placeholder="Equals"
-									@update:modelValue="(v) => updateOperator(v, i)"
-								/>
-							</div>
-							<div class="w-[180px]">
-								<component
-									:is="VALUE_CONTROLS[valueControl(f).control]"
-									v-bind="valueControl(f).props"
-									class="w-full"
-									:modelValue="f.value"
-									@update:modelValue="(v) => updateValue(v, i)"
-								/>
-							</div>
+						<template #trigger>
 							<Button
-								class="flex"
+								class="!text-ink-gray-5"
 								variant="ghost"
-								icon="lucide-x"
-								@click="removeFilter(i)"
+								label="Add Filter"
+								iconLeft="lucide-plus"
 							/>
 						</template>
-					</div>
-					<div v-else class="mb-3 flex h-7 items-center px-3 text-sm text-ink-gray-5">
-						Empty - Choose a field to filter by
-					</div>
-					<div class="flex items-center justify-between gap-2">
-						<!-- A custom #trigger renders the same ghost Button as "Clear All
-						     Filters" beside it (gray-5, `+` icon, no chevron). The label is
-						     static, so the old per-add remount (`:key`) and the placeholder /
-						     chevron CSS hacks are no longer needed. -->
-						<Combobox
-							:options="allFields"
-							:modelValue="null"
-							@update:selectedOption="addFilter"
-						>
-							<template #trigger>
-								<Button
-									class="!text-ink-gray-5"
-									variant="ghost"
-									label="Add Filter"
-									iconLeft="lucide-plus"
-								/>
-							</template>
-						</Combobox>
-						<Button
-							v-if="model.length"
-							class="!text-ink-gray-5"
-							variant="ghost"
-							label="Clear All Filters"
-							@click="clearAll(close)"
-						/>
-					</div>
+					</Combobox>
+					<Button
+						v-if="model.length"
+						class="!text-ink-gray-5"
+						variant="ghost"
+						label="Clear All Filters"
+						@click="clearAll(close)"
+					/>
 				</div>
 			</div>
 		</template>

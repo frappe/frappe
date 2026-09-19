@@ -1,5 +1,5 @@
 <template>
-	<div class="rounded-md border border-outline-gray-2 bg-surface-base p-4">
+	<div class="rounded-5 border border-outline-gray-2 bg-surface-base p-4">
 		<div class="flex flex-col gap-4">
 			<div v-for="comment in comments" :key="comment.id" class="flex gap-3">
 				<Avatar size="md" :label="comment.author" />
@@ -19,7 +19,7 @@
 
 		<div class="mt-4 flex gap-3 border-t border-outline-gray-1 pt-4">
 			<Avatar size="md" label="Sydney" />
-			<div class="min-w-0 flex-1 rounded-md border border-outline-gray-2">
+			<div class="min-w-0 flex-1 rounded-5 border border-outline-gray-2">
 				<CommentComposer
 					ref="composerRef"
 					v-model="draft"

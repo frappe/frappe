@@ -1,10 +1,11 @@
 from typing import Any
 
-from pypika.functions import DistinctOptionFunction, Function
-from pypika.terms import Term
+from pypika.functions import DistinctOptionFunction
+from pypika.terms import Function, Term
 from pypika.utils import builder, format_alias_sql, format_quotes
 
 import frappe
+from frappe.query_builder.terms import SQLiteParameterizedValueWrapper
 
 
 class GROUP_CONCAT(DistinctOptionFunction):
@@ -29,19 +30,27 @@ class GROUP_CONCAT(DistinctOptionFunction):
 		self._separator = separator
 
 	def get_sql(self, **kwargs):
+		# SEPARATOR goes inside the closing paren, so render without the alias and re-attach it
+		# below rather than let Function.get_sql place it before the clause exists.
 		query_alias = self.alias
 		self.alias = None
-		sql = super().get_sql(**kwargs)
+		try:
+			sql = super().get_sql(**kwargs)
+		finally:
+			self.alias = query_alias
 		# an explicit "" is a real request for no delimiter, not "use the default": dropping the
 		# clause would silently fall back to MariaDB's comma while STRING_AGG concatenates bare.
 		if self._separator is not None:
 			assert sql.endswith(")"), "GROUP_CONCAT SQL must end with ')' before injecting SEPARATOR"
 			sql = f"{sql[:-1]} SEPARATOR {frappe.db.escape(self._separator)})"
 
-		self.alias = query_alias
-		if self.alias:
-			quote = kwargs.get("quote_char", "`")
-			sql += f" {quote}{self.alias}{quote}"
+		# Re-attach through format_alias_sql, the same path every other term uses: it escapes the
+		# quote char in the alias, and honours `with_alias` so the alias is emitted in the SELECT
+		# clause only. Hand-rolling it quoted the alias raw -- disagreeing with the escaped alias
+		# pypika renders for the same term in GROUP BY / ORDER BY -- and appended it in operand
+		# position too, where `GROUP_CONCAT(...) `a` LIKE ...` is a syntax error.
+		if kwargs.get("with_alias"):
+			return format_alias_sql(sql, query_alias, **kwargs)
 		return sql
 
 
@@ -61,6 +70,30 @@ class STRING_AGG(DistinctOptionFunction):
 		"""Mirror GROUP_CONCAT.separator() so GroupConcat(...).separator(...) chaining works on
 		postgres too. STRING_AGG takes the separator as its second argument."""
 		self.args[1] = self.wrap_constant(separator)
+
+
+class SQLITE_GROUP_CONCAT(STRING_AGG):
+	def __init__(self, column: str, separator: str = ",", alias: str | None = None):
+		super().__init__(column, separator, alias=alias)
+		self.name = "GROUP_CONCAT"
+
+	def get_function_sql(self, **kwargs):
+		if not self._distinct:
+			return super().get_function_sql(**kwargs)
+
+		# SQLite only permits one argument when DISTINCT is used. The omitted separator has
+		# the same comma default requested by STRING_AGG, so no behavior is lost in this case.
+		separator = self.args[1]
+		if getattr(separator, "value", None) != ",":
+			raise NotImplementedError("SQLite GROUP_CONCAT cannot use DISTINCT with a custom separator")
+
+		column = self.args[0]
+		column_sql = (
+			column.get_sql(with_alias=False, subquery=True, **kwargs)
+			if hasattr(column, "get_sql")
+			else self.get_arg_sql(column, **kwargs)
+		)
+		return f"{self.name}(DISTINCT {column_sql})"
 
 
 class MATCH(DistinctOptionFunction):
@@ -121,6 +154,48 @@ class TO_TSVECTOR(DistinctOptionFunction):
 		self._PLAINTO_TSQUERY = text
 
 
+def build_fts5_prefix_query(search_text: str) -> str:
+	"""Return an escaped FTS5 phrase whose final token supports prefix matching."""
+	escaped_search_text = search_text.replace('"', '""')
+	return f'"{escaped_search_text}"*'
+
+
+class SQLiteFullTextMatch(Function):
+	"""Render FTS5 filtering in WHERE clauses and FTS5 ranking in SELECT clauses."""
+
+	def __init__(self, column: str | Term, *args, **kwargs):
+		super().__init__("MATCH", column, *args, alias=kwargs.get("alias"))
+		self._search_text = None
+
+	@builder
+	def Against(self, search_text: str):
+		self._search_text = search_text
+
+	def get_sql(self, **kwargs):
+		if self._search_text is None:
+			raise ValueError("Chain Against(search_text) after Match(column)")
+
+		kwargs = dict(kwargs)
+		with_alias = kwargs.pop("with_alias", False)
+		kwargs.pop("subquery", None)
+		quote_char = kwargs.pop("quote_char", None)
+		column = self.args[0]
+		column_sql = column.get_sql(with_alias=False, subquery=True, quote_char=quote_char, **kwargs)
+
+		if with_alias:
+			table = getattr(column, "table", None)
+			if table is None:
+				raise ValueError("SQLite full-text ranking requires a column associated with an FTS5 table")
+			table_sql = table.get_sql(quote_char=quote_char)
+			# FTS5 gives better matches smaller, usually negative, BM25 values.
+			# Negating the result preserves Frappe's existing ORDER BY rank DESC behavior.
+			return format_alias_sql(f"-BM25({table_sql})", self.alias, quote_char=quote_char, **kwargs)
+
+		search_parameter = SQLiteParameterizedValueWrapper(build_fts5_prefix_query(self._search_text))
+		search_sql = search_parameter.get_sql(quote_char=quote_char, **kwargs)
+		return f"{column_sql} MATCH {search_sql}"
+
+
 class ConstantColumn(Term):
 	alias = None
 
@@ -137,24 +212,49 @@ class ConstantColumn(Term):
 		)
 
 
-# MONTHNAME/MONTH/QUARTER are MySQL-only. On postgres use to_char / date_part: to_char(.., 'FMMonth')
-# gives the full month name, and date_part gives the numeric month/quarter. date_part returns double
-# precision, so MONTH/QUARTER cast it back to INTEGER to match MySQL's integer result exactly (see
-# _PostgresIntDatePart) -- otherwise a `2.0` leaks into report JSON/UI where MariaDB shows `2`.
+# MariaDB, PostgreSQL, and SQLite expose different functions for these date parts.
 def _is_postgres() -> bool:
-	return bool(frappe.db) and frappe.db.db_type == "postgres"
+	return getattr(frappe.conf, "db_type", None) == "postgres"
 
 
-class _PostgresIntDatePart:
-	"""Mixin for the postgres date_part(...) functions below: wrap the result in
-	CAST(... AS INTEGER) so it matches MySQL's integer MONTH()/QUARTER(). Mirrors the
-	UnixTimestamp BIGINT cast. No-op on MariaDB (those branches use the native int function)."""
+def _is_sqlite() -> bool:
+	return getattr(frappe.conf, "db_type", None) == "sqlite"
+
+
+SQLITE_MONTH_NAME_CASES = " ".join(
+	f"WHEN '{number:02}' THEN '{name}'"
+	for number, name in enumerate(
+		(
+			"January",
+			"February",
+			"March",
+			"April",
+			"May",
+			"June",
+			"July",
+			"August",
+			"September",
+			"October",
+			"November",
+			"December",
+		),
+		start=1,
+	)
+)
+
+
+class _IntegerDatePart:
+	"""Return numeric date parts as integers on every database."""
 
 	def get_sql(self, **kwargs):
-		if not self._postgres:
+		if not (self._postgres or self._sqlite):
 			return super().get_sql(**kwargs)
 		with_alias = kwargs.pop("with_alias", False)
-		sql = f"CAST({super().get_sql(**kwargs)} AS INTEGER)"
+		date_part_sql = super().get_sql(**kwargs)
+		if self._sqlite and self._date_part == "quarter":
+			sql = f"CAST((CAST({date_part_sql} AS INTEGER) + 2) / 3 AS INTEGER)"
+		else:
+			sql = f"CAST({date_part_sql} AS INTEGER)"
 		if with_alias:
 			return format_alias_sql(sql, self.alias, **kwargs)
 		return sql
@@ -162,34 +262,55 @@ class _PostgresIntDatePart:
 
 class MonthName(Function):
 	def __init__(self, field, alias=None):
+		self._sqlite = _is_sqlite()
 		if _is_postgres():
 			super().__init__("to_char", field, "FMMonth", alias=alias)
+		elif self._sqlite:
+			super().__init__("STRFTIME", field, alias=alias)
 		else:
 			super().__init__("MONTHNAME", field, alias=alias)
 
+	def get_function_sql(self, **kwargs):
+		if not self._sqlite:
+			return super().get_function_sql(**kwargs)
+		field_sql = self.args[0].get_sql(with_alias=False, subquery=True, **kwargs)
+		return f"CASE STRFTIME('%m', {field_sql}) {SQLITE_MONTH_NAME_CASES} END"
 
-class Quarter(_PostgresIntDatePart, Function):
+
+class Quarter(_IntegerDatePart, Function):
 	def __init__(self, field, alias=None):
 		self._postgres = _is_postgres()
+		self._sqlite = _is_sqlite()
+		self._date_part = "quarter"
 		if self._postgres:
 			super().__init__("date_part", "quarter", field, alias=alias)
+		elif self._sqlite:
+			super().__init__("STRFTIME", "%m", field, alias=alias)
 		else:
 			super().__init__("QUARTER", field, alias=alias)
 
 
-class Month(_PostgresIntDatePart, Function):
+class Month(_IntegerDatePart, Function):
 	def __init__(self, field, alias=None):
 		self._postgres = _is_postgres()
+		self._sqlite = _is_sqlite()
+		self._date_part = "month"
 		if self._postgres:
 			super().__init__("date_part", "month", field, alias=alias)
+		elif self._sqlite:
+			super().__init__("STRFTIME", "%m", field, alias=alias)
 		else:
 			super().__init__("MONTH", field, alias=alias)
 
 
-class Year(_PostgresIntDatePart, Function):
+class Year(_IntegerDatePart, Function):
 	def __init__(self, field, alias=None):
 		self._postgres = _is_postgres()
+		self._sqlite = _is_sqlite()
+		self._date_part = "year"
 		if self._postgres:
 			super().__init__("date_part", "year", field, alias=alias)
+		elif self._sqlite:
+			super().__init__("STRFTIME", "%Y", field, alias=alias)
 		else:
 			super().__init__("YEAR", field, alias=alias)

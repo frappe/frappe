@@ -1408,6 +1408,26 @@ Object.assign(frappe.utils, {
 		icon_html.find("svg").css("color", stroke_color);
 		return icon_html.get(0).outerHTML;
 	},
+	// An app's mark and name, as `{ icon, title }`, or null when there is no app.
+	//
+	// An app that declares no logo gets a letter icon from its title, the same one the desktop
+	// apps screen draws for it. Both surfaces that stand in for the app on screen -- the dock's
+	// top slot and a dock-less sidebar's header -- resolve it here, so an app looks the same
+	// whichever of the two is up.
+	app_logo(app) {
+		if (!app) return null;
+		const title = app.app_title || app.app_name;
+		// `app_logo_url` is a list on an app that ships a light and a dark mark; the first is
+		// the one the rest of the desk uses.
+		const logo_url = Array.isArray(app.app_logo_url) ? app.app_logo_url[0] : app.app_logo_url;
+		const icon = logo_url
+			? `<img src="${frappe.utils.escape_html(logo_url)}" alt="${frappe.utils.escape_html(
+					title
+			  )}" />`
+			: frappe.utils.desktop_icon(title, "gray", "sm");
+		return { icon, title };
+	},
+
 	// The boot entry for a module's own shell, or undefined.
 	//
 	// `frappe.boot.module_sidebars` is keyed by shell: a `Sidebar` document's name, or the module's

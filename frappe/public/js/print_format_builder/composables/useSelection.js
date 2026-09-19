@@ -65,9 +65,6 @@ export function useSelection() {
 		if (rest.length !== selected_fields.value.length) selected_fields.value = rest;
 		if (selected_field.value === df) selected_field.value = rest[rest.length - 1] || null;
 	}
-	function align_selected_fields(align) {
-		selected_fields.value.forEach((df) => (df.align = align));
-	}
 	function select_section(section) {
 		selected_section.value = section;
 		selected_sections.value = section ? [section] : [];
@@ -97,6 +94,5 @@ export function useSelection() {
 		select_section,
 		select_letterhead,
 		remove_field,
-		align_selected_fields,
 	};
 }

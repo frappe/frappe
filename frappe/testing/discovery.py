@@ -28,6 +28,7 @@ from typing import TYPE_CHECKING
 
 import frappe
 from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests.utils.test_capabilities import apply_test_service_skips, requires_selected_test_service
 
 from .utils import debug_timer
 
@@ -128,6 +129,9 @@ def _add_module_tests(runner, app: str, module: str):
 	for test in runner._iterate_suite(test_suite):
 		if runner.cfg.tests and test._testMethodName not in runner.cfg.tests:
 			continue
+		if not requires_selected_test_service(test, runner.cfg.test_service):
+			continue
+		apply_test_service_skips(test)
 		match test:
 			case IntegrationTestCase():
 				category = "integration"

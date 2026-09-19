@@ -198,13 +198,15 @@ class Report(Document):
 		# save the timestamp to automatically set to prepared
 		threshold = 15
 
+		executed_report = self.get("custom_report") or self.name
+
 		start_time = datetime.datetime.now()
 		prepared_report_watcher = None
 		if not self.prepared_report and not self.disable_prepared_report_automation:
 			prepared_report_watcher = threading.Timer(
 				interval=threshold,
 				function=enable_prepared_report,
-				kwargs={"report": self.name, "site": frappe.local.site},
+				kwargs={"report": executed_report, "site": frappe.local.site},
 			)
 			prepared_report_watcher.start()
 
@@ -222,7 +224,7 @@ class Report(Document):
 
 		execution_time = (datetime.datetime.now() - start_time).total_seconds()
 
-		frappe.cache.hset("report_execution_time", self.name, execution_time)
+		frappe.cache.hset("report_execution_time", executed_report, execution_time)
 
 		return res
 

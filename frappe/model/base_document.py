@@ -587,7 +587,7 @@ class BaseDocument:
 					value = self.get_virtual_field_value(df)
 
 				fieldtype = df.fieldtype
-				if isinstance(value, list) and fieldtype not in table_fields:
+				if isinstance(value, list) and fieldtype not in table_fields and fieldtype != "JSON":
 					frappe.throw(_("Value for {0} cannot be a list").format(_(df.label, context=df.parent)))
 
 				if fieldtype == "Check":
@@ -596,7 +596,7 @@ class BaseDocument:
 				elif fieldtype == "Int" and not isinstance(value, int):
 					value = cint(value)
 
-				elif fieldtype == "JSON" and isinstance(value, dict):
+				elif fieldtype == "JSON" and isinstance(value, (dict, list)):
 					value = json.dumps(value, separators=(",", ":"))
 
 				elif fieldtype in float_like_fields and not isinstance(value, float):
@@ -772,7 +772,7 @@ class BaseDocument:
 
 		args:
 		        ignore_if_duplicate: ignore primary key collision
-		                                        at database level (postgres)
+		                                        at database level (postgres, sqlite)
 		                                        in python (mariadb)
 		"""
 		if not self.name:
@@ -799,6 +799,8 @@ class BaseDocument:
 				# breaks both with one row. Letting postgres skip the row keeps the transaction
 				# usable, which catching the error below would not.
 				conflict_handler = "on conflict do nothing"
+		elif ignore_if_duplicate and frappe.db.db_type == "sqlite":
+			conflict_handler = "on conflict (name) do nothing"
 
 		if not self.creation:
 			self.creation = self.modified = now()
@@ -848,6 +850,14 @@ class BaseDocument:
 				# above, SQLite says the secondary index and arrives here. `ignore_if_duplicate`
 				# has to mean the same thing in both places.
 				if not ignore_if_duplicate:
+					if frappe.db.db_type == "sqlite" and frappe.db.exists(self.doctype, self.name):
+						frappe.msgprint(
+							_("{0} {1} already exists").format(_(self.doctype), frappe.bold(self.name)),
+							title=_("Duplicate Name"),
+							indicator="red",
+						)
+						raise frappe.DuplicateEntryError(self.doctype, self.name, e)
+
 					# unique constraint
 					self.show_unique_validation_message(e)
 

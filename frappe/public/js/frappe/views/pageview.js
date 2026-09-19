@@ -4,6 +4,11 @@
 frappe.provide("frappe.views.pageview");
 frappe.provide("frappe.standard_pages");
 
+// Set on <body> while a Frappe UI page is on screen. `island_page.scss` keys the
+// bounded box off this class. The island scrolls its own body, which needs a
+// definite height to scroll in, and desk's page is document-scrolled.
+const ISLAND_PAGE_CLASS = "island-page";
+
 frappe.views.pageview = {
 	with_page: function (name, callback) {
 		if (frappe.standard_pages[name]) {
@@ -85,10 +90,16 @@ frappe.views.Page = class Page {
 			this.wrapper = frappe.container.add_page(this.name);
 			this.wrapper.page_name = this.pagedoc.name;
 
-			// set content, script and style
-			if (this.pagedoc.content) this.wrapper.innerHTML = this.pagedoc.content;
-			frappe.dom.eval(this.pagedoc.__script || this.pagedoc.script);
-			frappe.dom.set_style(this.pagedoc.style || "");
+			if (this.pagedoc.island) {
+				// A Frappe UI page. `island` is the name its Page row registered,
+				// and desk ships no script or style for one of these.
+				this.setup_island_page();
+			} else {
+				// set content, script and style
+				if (this.pagedoc.content) this.wrapper.innerHTML = this.pagedoc.content;
+				frappe.dom.eval(this.pagedoc.__script || this.pagedoc.script);
+				frappe.dom.set_style(this.pagedoc.style || "");
+			}
 
 			// set breadcrumbs
 			frappe.breadcrumbs.add(this.pagedoc.module || null);
@@ -107,6 +118,121 @@ frappe.views.Page = class Page {
 			me.trigger_page_event("on_page_show");
 			me.trigger_page_event("refresh");
 		});
+	}
+
+	/**
+	 * A Frappe UI page: desk builds the page, and an island draws its body.
+	 *
+	 * Desk keeps its page head and sets the chrome from what the island reports.
+	 * `title` names the page and `actions` fill the page menu. See
+	 * ui/island/decisions/0010-a-page-island-reports-title-and-actions.md.
+	 *
+	 * The island stays mounted while the page is hidden, so coming back keeps
+	 * what the reader left. A route change inside the page updates its props
+	 * instead of re-mounting it.
+	 */
+	setup_island_page() {
+		frappe.ui.make_app_page({ parent: this.wrapper, single_column: true });
+		this.island_container = $('<div class="island-page-body">').appendTo(
+			$(this.wrapper).find(".page-content")
+		);
+
+		// What the island last reported. Desk re-applies both on every visit,
+		// because another page owns the head in between.
+		this.island_title = null;
+		this.island_actions = [];
+
+		$(this.wrapper).on("show", () => {
+			document.body.classList.add(ISLAND_PAGE_CLASS);
+			this.show_island();
+			this.set_island_chrome();
+		});
+
+		$(this.wrapper).on("hide", () => {
+			document.body.classList.remove(ISLAND_PAGE_CLASS);
+		});
+	}
+
+	/**
+	 * Mounts the island on the first visit and updates its props on the rest.
+	 *
+	 * The props are the part of the URL below the page. An island reads its own
+	 * address from them rather than from desk's router, so the same component
+	 * runs under a host that has no desk.
+	 */
+	show_island() {
+		const props = {
+			route: frappe.get_route().slice(1),
+			query: Object.fromEntries(new URLSearchParams(window.location.search)),
+		};
+
+		if (this.island) {
+			this.island.update(props);
+			return;
+		}
+
+		this.island = frappe.ui.mount_island(this.pagedoc.island, this.island_container[0], {
+			...props,
+			onTitle: (title) => {
+				this.island_title = title;
+				this.set_island_chrome();
+			},
+			onActions: (actions) => {
+				this.island_actions = actions || [];
+				this.set_island_chrome();
+			},
+		});
+
+		this.island.ready.catch((error) => this.show_island_error(error));
+	}
+
+	/**
+	 * The page head, from what the island reported.
+	 *
+	 * The title goes to the last breadcrumb and to the browser tab, not to
+	 * `page.set_title`: that writes into the `.title-text` crumb, which the next
+	 * `breadcrumbs.update()` overwrites.
+	 *
+	 * An action is `{ label, icon? }` plus either an `onClick` or an `href`. An
+	 * `href` leads out of desk, so desk opens it in a new tab. A desk menu row is
+	 * a click handler rather than a link, because `add_dropdown_item` writes its
+	 * own `href="#"`. Desk's menu rows carry no icon, so the icon goes unread.
+	 */
+	set_island_chrome() {
+		const label = this.island_title || __(this.pagedoc.title) || this.pagedoc.name;
+		frappe.breadcrumbs.add({
+			type: "Custom",
+			label: label,
+			route: frappe.get_route_str(),
+		});
+		frappe.utils.set_title(label);
+
+		const page = this.wrapper.page;
+		page.clear_menu();
+		this.island_actions.forEach((action) => {
+			const click = action.href ? () => window.open(action.href, "_blank") : action.onClick;
+			page.add_menu_item(action.label, click);
+		});
+	}
+
+	/**
+	 * The island did not load. It is the whole page here, so desk says so where
+	 * the page would have been. Nearly every cause is a bundle that was never
+	 * built, and the loader's own message names the asset and the fix, so
+	 * developer mode shows it as it is.
+	 */
+	show_island_error(error) {
+		console.error(`could not mount the "${this.pagedoc.island}" island`, error);
+
+		this.island_container.empty().append(
+			frappe.ui.empty_state({
+				icon: "package",
+				title: __("This page has not been built"),
+				description: frappe.boot.developer_mode
+					? error.message
+					: __("Its assets are missing. Build the app that ships this page."),
+			})
+		);
 	}
 
 	trigger_page_event(eventname) {

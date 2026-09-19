@@ -1,5 +1,5 @@
 <template>
-	<div class="rounded-md border border-outline-gray-2 bg-surface-base">
+	<div class="rounded-5 border border-outline-gray-2 bg-surface-base">
 		<div class="flex gap-3 border-b border-outline-gray-2 px-4 py-3">
 			<Avatar size="md" label="Grace Hopper" />
 			<div class="min-w-0">

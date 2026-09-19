@@ -2,6 +2,20 @@
 // `add_menu_item()` without one lands after the built-ins but before Logout.
 const DEFAULT_MENU_ITEM_ORDER = 50;
 
+// One avatar-menu entry as a frappe.ui.Dropdown row.
+//
+// Rows apps contribute through `add_menu_item()` were written against the menu this one replaced,
+// so its key names are still accepted alongside the component's own: `onClick` for `onclick`,
+// `url` for `href`. Labels arrive untranslated here, as they always have.
+function menu_row(item) {
+	const row = { label: __(item.label), icon: item.icon, condition: item.condition };
+	const href = item.href || item.url;
+	if (href) row.href = href;
+	const onclick = item.onclick || item.onClick;
+	if (onclick) row.onclick = onclick;
+	return row;
+}
+
 frappe.pages["desktop"].on_page_load = function (wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
@@ -235,7 +249,7 @@ class DesktopPage {
 			{
 				icon: is_dark ? "sun" : "moon",
 				label: "Toggle Theme",
-				onClick: function () {
+				onclick: function () {
 					new frappe.ui.ThemeSwitcher().show();
 				},
 				order: 20,
@@ -243,7 +257,7 @@ class DesktopPage {
 			{
 				icon: "info",
 				label: "About",
-				onClick: function () {
+				onclick: function () {
 					return frappe.ui.toolbar.show_about();
 				},
 				order: 30,
@@ -251,7 +265,7 @@ class DesktopPage {
 			{
 				icon: "life-buoy",
 				label: "Frappe Support",
-				onClick: function () {
+				onclick: function () {
 					window.open("https://support.frappe.io/help", "_blank");
 				},
 				order: 40,
@@ -265,16 +279,16 @@ class DesktopPage {
 		menu_items.push({
 			icon: "log-out",
 			label: "Logout",
-			onClick: function () {
+			onclick: function () {
 				frappe.app.logout();
 			},
 		});
-		frappe.ui.create_menu({
-			parent: $(".desktop-avatar"),
-			menu_items: menu_items,
-			// If it's RTL, we want it to open on the right (false);
-			// if it's LTR, we want it to open on the left (true).
-			open_on_left: !frappe.utils.is_rtl(),
+		new frappe.ui.Dropdown({
+			trigger: $(".desktop-avatar"),
+			// The avatar sits at the end of the header, so the menu hangs back under it.
+			// "end" is the logical edge, which the component mirrors under RTL.
+			align: "end",
+			options: menu_items.map(menu_row),
 		});
 	}
 	// `item.order` is optional; lower sorts higher up the menu. Built-ins occupy

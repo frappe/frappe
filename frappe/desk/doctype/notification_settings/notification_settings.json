@@ -17,7 +17,6 @@
   "enable_email_mention",
   "enable_email_assignment",
   "enable_email_share",
-  "user",
   "seen"
  ],
  "fields": [
@@ -84,15 +83,6 @@
    "label": "Document Share"
   },
   {
-   "default": "__user",
-   "fieldname": "user",
-   "fieldtype": "Link",
-   "hidden": 1,
-   "label": "User",
-   "options": "User",
-   "read_only": 1
-  },
-  {
    "default": "0",
    "fieldname": "seen",
    "fieldtype": "Check",
@@ -118,7 +108,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-02-24 11:06:24.112935",
+ "modified": "2026-09-04 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Settings",

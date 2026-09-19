@@ -9,9 +9,6 @@
 			:value="modelValue"
 			@input="$emit('update:modelValue', $event.target.value)"
 		></textarea>
-		<p class="pfb-insp-hint text-muted">
-			{{ __("CSS declarations applied inline, e.g.") }} <code>color: #1a5fb4;</code>
-		</p>
 	</div>
 </template>
 
@@ -25,7 +22,7 @@ defineEmits(["update:modelValue"]);
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
-	padding: 4px 14px 12px;
+	padding: 4px 16px 16px;
 }
 
 .pfb-style-label {

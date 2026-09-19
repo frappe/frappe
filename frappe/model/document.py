@@ -17,6 +17,7 @@ from werkzeug.exceptions import NotFound
 
 import frappe
 from frappe import _, is_whitelisted, msgprint
+from frappe.automation_engine.dispatch import run_automations
 from frappe.core.doctype.file.utils import relink_mismatched_files
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
 from frappe.database.utils import commit_after_response
@@ -225,7 +226,7 @@ def get_docs(
 		(df.fieldname, df.options) for df in meta.get_table_fields() if not is_virtual_doctype(df.options)
 	]
 	controller = get_controller(doctype)
-	for_update = for_update and frappe.db.db_type != "sqlite"
+	lock_rows = for_update and frappe.db.db_type != "sqlite"
 
 	iterator = _get_docs_generator(
 		doctype,
@@ -236,6 +237,7 @@ def get_docs(
 		limit_start=limit_start,
 		order_by=order_by,
 		for_update=for_update,
+		lock_rows=lock_rows,
 		distinct=distinct,
 	)
 
@@ -256,6 +258,7 @@ def _get_docs_generator(
 	limit_start,
 	order_by,
 	for_update,
+	lock_rows,
 	distinct,
 ) -> Generator["Document"]:
 	offset = limit_start
@@ -267,7 +270,7 @@ def _get_docs_generator(
 			order_by=order_by,
 			limit=chunk_size,
 			offset=offset,
-			for_update=for_update,
+			for_update=lock_rows,
 			child_tables=child_tables,
 			distinct=distinct,
 		)
@@ -1085,7 +1088,6 @@ class Document(BaseDocument):
 		self._validate_selects()
 		self._validate_non_negative()
 		self._validate_min_max_value()
-		self._validate_length()
 		self._fix_rating_value()
 		self._validate_code_fields()
 		self._sync_autoname_field()
@@ -1093,19 +1095,20 @@ class Document(BaseDocument):
 		self._sanitize_content()
 		self._save_passwords()
 		self.validate_workflow()
+		self._validate_length()
 
 		for d in self.get_all_children():
 			d._validate_data_fields()
 			d._validate_selects()
 			d._validate_non_negative()
 			d._validate_min_max_value()
-			d._validate_length()
 			d._fix_rating_value()
 			d._validate_code_fields()
 			d._sync_autoname_field()
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
 			d._save_passwords()
+			d._validate_length()
 		if self.is_new():
 			# don't set fields like _assign, _comments for new doc
 			for fieldname in optional_fields:
@@ -1703,6 +1706,7 @@ class Document(BaseDocument):
 		self.run_notifications(method)
 		run_webhooks(self, method)
 		run_server_script_for_doc_event(self, method)
+		run_automations(self, method)
 
 		return out
 
@@ -2426,7 +2430,9 @@ class Document(BaseDocument):
 		"""Return a list of Tags attached to this document"""
 		from frappe.desk.doctype.tag.tag import DocTags
 
-		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
+		tags = DocTags(self.doctype).get_tags(self.name)
+
+		return [tag for tag in tags.split(",") if tag]
 
 	def deferred_insert(self) -> None:
 		"""Push the document to redis temporarily and insert later.

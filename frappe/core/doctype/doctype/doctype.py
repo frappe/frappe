@@ -282,6 +282,7 @@ class DocType(Document):
 	def set_defaults_for_single_and_table(self):
 		if self.issingle:
 			self.allow_import = 0
+			self.allow_rename = 0
 			self.is_submittable = 0
 			self.istable = 0
 
@@ -1333,6 +1334,10 @@ def _test_connection_query(doctype, field, idx):
 	filters[field] = ""
 
 	try:
+		# SQLite treats unknown double-quoted identifiers as string literals, so an
+		# invalid link field can otherwise make this validation query appear valid.
+		if frappe.db.db_type == "sqlite" and field not in frappe.get_meta(doctype).get_valid_columns():
+			raise InvalidFieldNameError(field)
 		frappe.get_all(doctype, filters=filters, limit=1, distinct=True, ignore_ifnull=True)
 	except Exception as e:
 		frappe.clear_last_message()

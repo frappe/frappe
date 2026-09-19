@@ -26,6 +26,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import toggle_test_mode
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_url
 from frappe.utils.data import orjson_dumps
 from frappe.www.login import sanitize_redirect
@@ -285,14 +286,17 @@ class TestUser(IntegrationTestCase):
 		"""
 		self.assertListEqual(extract_mentions(comment), ["test@example.com", "test1@example.com"])
 
+	@requires_test_service(TestService.WEB_SERVER)
 	@IntegrationTestCase.change_settings("System Settings", commit=True, password_reset_limit=1)
 	def test_rate_limiting_for_reset_password(self):
 		url = get_url()
 		data = {"cmd": "frappe.core.doctype.user.user.reset_password", "user": "test@test.com"}
 
-		# Clear rate limit tracker to start fresh
-		key = f"rl:{data['cmd']}:{data['user']}"
-		frappe.cache.delete(key)
+		# Password reset is limited by the request IP, not the submitted user.
+		# Clear all identities for this endpoint instead of guessing the IP key.
+		counter_prefix = f"rl:{data['cmd']}:"
+		frappe.cache.delete_keys(counter_prefix)
+		self.addCleanup(frappe.cache.delete_keys, counter_prefix)
 
 		c = FrappeClient(url)
 		res1 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
@@ -560,10 +564,11 @@ class TestUser(IntegrationTestCase):
 class TestImpersonation(FrappeAPITestCase):
 	def test_impersonation(self):
 		with test_user(roles=["System Manager"], commit=True) as user:
-			self.post(
+			response = self.post(
 				self.method("frappe.core.doctype.user.user.impersonate"),
 				{"user": user.name, "reason": "test", "sid": self.sid},
 			)
+			self.assertEqual(response.status_code, 200)
 			resp = self.get(self.method("frappe.auth.get_logged_user"))
 			self.assertEqual(resp.json["message"], user.name)
 

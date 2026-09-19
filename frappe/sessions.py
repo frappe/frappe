@@ -24,6 +24,7 @@ from frappe.query_builder import Order
 from frappe.utils import cint, cstr, get_assets_json
 from frappe.utils.change_log import has_app_update_notifications
 from frappe.utils.data import add_to_date
+from frappe.utils.island import get_ui_islands
 
 
 @frappe.whitelist()
@@ -165,6 +166,7 @@ def get():
 
 	bootinfo.notes = get_unseen_notes()
 	bootinfo.assets_json = get_assets_json()
+	bootinfo.ui_islands = get_ui_islands()
 	bootinfo.read_only = bool(frappe.flags.read_only)
 
 	for hook in frappe.get_hooks("extend_bootinfo"):
@@ -221,8 +223,10 @@ class Session:
 		session_end: str | None = None,
 		audit_user: str | None = None,
 	):
+		request = getattr(frappe.local, "request", None)
 		self.sid = cstr(
-			frappe.form_dict.pop("sid", None) or unquote(frappe.request.cookies.get("sid", "Guest"))
+			frappe.form_dict.pop("sid", None)
+			or unquote(request.cookies.get("sid", "Guest") if request is not None else "Guest")
 		)
 		assert isinstance(self.sid, str), "sid must be a string after cstr normalization"
 		self.user = user

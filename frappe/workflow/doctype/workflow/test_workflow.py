@@ -9,6 +9,7 @@ from frappe.model.workflow import (
 	WorkflowTransitionError,
 	apply_workflow,
 	get_common_transition_actions,
+	get_workflow_name,
 )
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_records
@@ -71,6 +72,15 @@ class TestWorkflow(IntegrationTestCase):
 
 		self.workflow.transitions[0].condition = ""
 		self.workflow.save()
+
+	def test_deleting_workflow_clears_cached_name(self):
+		"""A deleted workflow must not stay cached against its document type"""
+		self.assertEqual(get_workflow_name("ToDo"), "Test ToDo")
+
+		frappe.delete_doc("Workflow", "Test ToDo")
+
+		self.assertFalse(get_workflow_name("ToDo"))
+		create_new_todo()
 
 	def test_get_common_transition_actions(self):
 		todo1 = create_new_todo()

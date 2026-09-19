@@ -3,6 +3,8 @@
 
 import json
 import os
+import threading
+from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
@@ -390,6 +392,28 @@ result = [
 
 		# check values
 		self.assertTrue("System User" in [d.get("type") for d in data[1]])
+
+	def test_prepared_report_automation_targets_the_report_that_ran(self):
+		"""A custom report auto-enables prepared report on itself, not on its reference report."""
+		reference_report = "Permitted Documents For User"
+		filters = {"user": "Administrator", "doctype": "User"}
+		custom_report = save_report(
+			reference_report, "Permitted Documents For User Prepared", "[]", json.dumps(filters)
+		)
+		frappe.cache.hdel("report_execution_time", [reference_report, custom_report])
+
+		def prepared_report_watcher_targets():
+			timer = MagicMock()
+			with patch.object(threading, "Timer", timer):
+				run(report_name=custom_report, filters=filters, are_default_filters=False)
+			return [call.kwargs["kwargs"]["report"] for call in timer.call_args_list]
+
+		self.assertEqual(prepared_report_watcher_targets(), [custom_report])
+		self.assertIsNotNone(frappe.cache.hget("report_execution_time", custom_report))
+		self.assertIsNone(frappe.cache.hget("report_execution_time", reference_report))
+
+		frappe.db.set_value("Report", custom_report, "disable_prepared_report_automation", 1)
+		self.assertEqual(prepared_report_watcher_targets(), [])
 
 	def test_toggle_disabled(self):
 		"""Make sure that authorization is respected."""

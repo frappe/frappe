@@ -2,18 +2,20 @@
 # License: MIT. See LICENSE
 import datetime
 import time
+from unittest.mock import Mock, patch
 
 import requests
 from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request
 
 import frappe
-from frappe.auth import LoginAttemptTracker, validate_auth
+from frappe.auth import CookieManager, LoginAttemptTracker, validate_auth, validate_ip_address
 from frappe.core.doctype.user.user import generate_keys
 from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.test_api import FrappeAPITestCase
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_datetime, get_site_url, now
 from frappe.utils.data import add_to_date
 from frappe.www.login import _generate_temporary_login_link
@@ -62,6 +64,30 @@ class TestAuth(IntegrationTestCase):
 		frappe.clear_cache()
 		frappe.db.commit()
 
+	def test_validate_ip_address_without_a_request(self):
+		with (
+			patch.object(frappe.local, "request", None, create=True),
+			patch(
+				"frappe.auth.frappe.get_cached_doc",
+				return_value=Mock(get_restricted_ip_list=lambda: []),
+			),
+		):
+			self.assertIsNone(validate_ip_address("Administrator"))
+
+	def test_session_without_a_request_uses_guest_sid(self):
+		original_session = frappe.local.session
+		self.addCleanup(setattr, frappe.local, "session", original_session)
+
+		with patch.object(frappe.local, "request", None, create=True):
+			self.assertEqual(Session(user="").sid, "Guest")
+
+	def test_cookie_manager_without_a_request_uses_non_secure_cookie(self):
+		with patch.object(frappe.local, "request", None, create=True):
+			cookies = CookieManager()
+			cookies.set_cookie("sid", "test")
+			self.assertFalse(cookies.cookies["sid"]["secure"])
+
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_allow_login_using_mobile(self):
 		self.set_system_settings("allow_login_using_mobile_number", 1)
 		self.set_system_settings("allow_login_using_user_name", 0)
@@ -74,6 +100,7 @@ class TestAuth(IntegrationTestCase):
 		with self.assertRaises(AuthError):
 			FrappeClient(self.HOST_NAME, self.test_user_name, self.test_user_password)
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_allow_login_using_only_email(self):
 		self.set_system_settings("allow_login_using_mobile_number", 0)
 		self.set_system_settings("allow_login_using_user_name", 0)
@@ -89,6 +116,7 @@ class TestAuth(IntegrationTestCase):
 		# Login by email should work
 		FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_allow_login_using_username(self):
 		self.set_system_settings("allow_login_using_mobile_number", 0)
 		self.set_system_settings("allow_login_using_user_name", 1)
@@ -101,6 +129,7 @@ class TestAuth(IntegrationTestCase):
 		FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
 		FrappeClient(self.HOST_NAME, self.test_user_name, self.test_user_password)
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_allow_login_using_username_and_mobile(self):
 		self.set_system_settings("allow_login_using_mobile_number", 1)
 		self.set_system_settings("allow_login_using_user_name", 1)
@@ -110,6 +139,7 @@ class TestAuth(IntegrationTestCase):
 		FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
 		FrappeClient(self.HOST_NAME, self.test_user_name, self.test_user_password)
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_deny_multiple_login(self):
 		self.set_system_settings("deny_multiple_sessions", 1)
 		self.addCleanup(self.set_system_settings, "deny_multiple_sessions", 0)
@@ -129,6 +159,7 @@ class TestAuth(IntegrationTestCase):
 			second_login.get_list("ToDo")
 		third_login.get_list("ToDo")
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_disable_user_pass_login(self):
 		FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
 		self.set_system_settings("disable_user_pass_login", 1)
@@ -137,6 +168,7 @@ class TestAuth(IntegrationTestCase):
 		with self.assertRaises(Exception):
 			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_login_with_email_link(self):
 		user = self.test_user_email
 
@@ -162,6 +194,7 @@ class TestAuth(IntegrationTestCase):
 		else:
 			self.fail("Rate limting not working")
 
+	@requires_test_service(TestService.WEB_SERVER)
 	def test_correct_cookie_expiry_set(self):
 		client = FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
 
