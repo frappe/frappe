@@ -9,7 +9,14 @@ import {
   type Ref,
 } from "vue";
 import { getSocketInstance, subscribeToDoc } from "../../socket";
-import type { Activity, CustomActivity, Pagination, UserInfo } from "./types";
+import type {
+  Activity,
+  CustomActivity,
+  Pagination,
+  PendingActivity,
+  UserInfo,
+  VisibleTypes,
+} from "./types";
 import { compareActivities, dropDuplicateKeys } from "./grouping";
 import { getAssignee, stripHtml } from "./utils";
 
@@ -54,13 +61,6 @@ const rowText = (activity: Activity | CustomActivity) => {
   const text = stripHtml(content).replace(/\s+/g, " ").trim();
   return text && JSON.stringify([activity.type, text]);
 };
-
-export interface PendingActivity {
-  /** tell the row which key the server gave it; it retires when that row arrives */
-  resolve: (key: string) => void;
-  /** take the row back, e.g. the request failed */
-  drop: () => void;
-}
 
 /**
  * Shows a row in the feed before the server has confirmed it. The row carries
@@ -137,9 +137,6 @@ function retirePendingRows(doctype: string, docname: string, feed: Activity[]) {
 
 // one save can fire several doc_updates: wait a moment, then fetch once
 const REFRESH_DEBOUNCE_MS = 300;
-
-/** e.g. ["email", "comment", { version: ["status", "priority"] }] */
-export type VisibleTypes = Array<Activity["type"] | { version: string[] }>;
 
 // filters are part of the cache identity
 const timelineCacheKey = (

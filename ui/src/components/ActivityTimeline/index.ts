@@ -6,8 +6,6 @@ export { default as CommentItem } from "./CommentItem.vue";
 export { default as LogItem } from "./LogItem.vue";
 export { default as VersionItem } from "./VersionItem.vue";
 export { addPendingActivity, useActivityTimeline } from "./useActivityTimeline";
-export type { PendingActivity } from "./useActivityTimeline";
-export type { VisibleTypes } from "./useActivityTimeline";
 export type {
   Activity,
   ActivityTimelineProps,
@@ -23,8 +21,11 @@ export type {
   EmailAttachment,
   EmailItemProps,
   EmailItemSlots,
+  Pagination,
+  PendingActivity,
   UserInfo,
   VersionActivity,
   VersionChange,
   VersionItemProps,
+  VisibleTypes,
 } from "./types";
