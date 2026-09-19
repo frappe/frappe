@@ -33,7 +33,7 @@ class TestComment(IntegrationTestCase):
 		# check if updated in _comments cache
 		comments = json.loads(test_doc.get("_comments"))
 		self.assertEqual(comments[0].get("name"), comment.name)
-		self.assertEqual(comments[0].get("comment"), comment.content)
+		self.assertEqual(comments[0].get("comment"), comment.content[:5])
 
 		# Check comment count
 		counts = frappe.get_all("ToDo", {"name": test_doc.name}, ["*"], with_comment_count=True)
