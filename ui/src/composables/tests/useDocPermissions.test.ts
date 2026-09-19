@@ -1,44 +1,47 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Session } from "../../api";
 
 // Hoisted so the factory passed to `vi.mock` can reference them.
-const { createResourceMock, getMeta, state } = vi.hoisted(() => ({
-  createResourceMock: vi.fn(),
+const { getMeta, getSession, state } = vi.hoisted(() => ({
   getMeta: vi.fn(),
+  getSession: vi.fn(),
   state: {
     roles: null as string[] | null,
     permissions: undefined as Record<string, unknown>[] | undefined,
-    loading: false,
   },
 }));
 
-// The roles still come through frappe-ui's resource; the meta comes through the v2 wrapper.
-vi.mock("frappe-ui", () => ({
-  createResource: createResourceMock,
-  frappeRequest: vi.fn(),
-}));
-vi.mock("../../api", () => ({ getMeta }));
+// Roles and meta both come through the v2 wrapper now.
+vi.mock("../../api", () => ({ getMeta, getSession }));
 
-const ROLES_URL = "frappe.core.doctype.user.user.get_current_user_roles";
+function aSession(roles: string[]): Session {
+  return {
+    user: {
+      name: "alice@example.com",
+      full_name: "Alice",
+      email: "alice@example.com",
+      user_image: null,
+    },
+    roles,
+    lang: "en",
+    timezone: "Asia/Kolkata",
+    defaults: {},
+  };
+}
 
-createResourceMock.mockImplementation(() => ({
-  get data() {
-    return state.roles ?? undefined;
-  },
-  get loading() {
-    return state.loading;
-  },
-  fetched: false,
-  error: null,
-  fetch: vi.fn(),
-  reload: vi.fn(),
-}));
+// `roles: null` stands for a session still in flight, so the fetch never settles.
+getSession.mockImplementation(() =>
+  state.roles === null
+    ? new Promise(() => {})
+    : Promise.resolve({ data: aSession(state.roles) })
+);
 
 getMeta.mockImplementation(async (doctype: string) => ({
   data: { name: doctype, fields: [], permissions: state.permissions },
   children: [],
 }));
 
-/** Field access reads the meta once it lands, a tick after the call. */
+/** Field access reads the session and the meta once they land, a tick after the call. */
 async function access(doctype = "Note") {
   const perms = useDocPermissions(doctype);
   await new Promise((resolve) => setTimeout(resolve, 0));
@@ -47,6 +50,7 @@ async function access(doctype = "Note") {
 
 import { useDocPermissions } from "../useDocPermissions";
 import { resetDoctypeMeta } from "../useDoctypeMeta";
+import { setSession } from "../useSession";
 import { resetUserRoles } from "../useUserRoles";
 
 function reset() {
@@ -55,31 +59,28 @@ function reset() {
   vi.clearAllMocks();
   state.roles = null;
   state.permissions = undefined;
-  state.loading = false;
 }
 
-describe("useUserRoles' endpoint", () => {
+describe("where the roles come from", () => {
   beforeEach(reset);
 
-  // The composable is useless if this name drifts from the whitelisted method,
-  // and nothing else would notice: every other test here mocks the transport, so
-  // the URL is never resolved against a server. It was in fact wrong once — the
-  // method was left behind when this code was split out of its original branch.
-  it("asks the whitelisted method that returns the session user's roles", () => {
-    useDocPermissions("Note");
+  it("reads the roles a host already published, without fetching", async () => {
+    setSession(aSession(["Accounts Manager"]));
+    state.permissions = [
+      { role: "Accounts Manager", permlevel: 1, read: 1, write: 1 },
+    ];
 
-    const urls = createResourceMock.mock.calls.map(([o]: any[]) => o.url);
-    expect(urls).toContain(ROLES_URL);
+    expect((await access()).fieldAccess({ permlevel: 1 })).toBe("write");
+    expect(getSession).not.toHaveBeenCalled();
   });
 
-  it("fetches the roles once, however many callers ask", () => {
+  it("fetches the session once, however many callers ask", async () => {
+    state.roles = [];
     useDocPermissions("Note");
     useDocPermissions("ToDo");
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const rolesCalls = createResourceMock.mock.calls.filter(
-      ([o]: any[]) => o.url === ROLES_URL
-    );
-    expect(rolesCalls).toHaveLength(1);
+    expect(getSession).toHaveBeenCalledTimes(1);
   });
 });
 

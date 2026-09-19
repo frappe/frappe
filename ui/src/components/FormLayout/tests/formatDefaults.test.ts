@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed } from 'vue'
 import {
   getFormatDefaults,
@@ -6,14 +6,35 @@ import {
   setFormatDefaults,
 } from '../formatDefaults'
 import { DEFAULT_NUMBER_FORMAT, DEFAULT_ROUNDING_METHOD } from '../formatNumber'
+import { resetSession, setSession } from '../../../composables/useSession'
+import type { Session } from '../../../api'
 
-// These run in vitest's node env where `window` is undefined — exactly the
-// "no window.sysdefaults" condition called out in ui/CLAUDE.md. So the boot read
-// returns nothing and we exercise the fallback + override layers cleanly.
+// The session fetch never runs here: every test either publishes a session or
+// leaves the store empty, and `getFormatDefaults` only reads it synchronously.
+vi.mock('../../../api', () => ({ getSession: vi.fn() }))
+
+function aSession(defaults: Record<string, unknown>): Session {
+  return {
+    user: {
+      name: 'alice@example.com',
+      full_name: 'Alice',
+      email: 'alice@example.com',
+      user_image: null,
+    },
+    roles: ['All'],
+    lang: 'en',
+    timezone: 'Asia/Kolkata',
+    defaults,
+  }
+}
+
+// With no session published, the session read returns nothing and we exercise the
+// fallback + override layers cleanly.
 describe('getFormatDefaults', () => {
+  beforeEach(() => resetSession())
   afterEach(() => resetFormatDefaults())
 
-  it('falls back to lib defaults with no boot and no override', () => {
+  it('falls back to lib defaults with no session and no override', () => {
     expect(getFormatDefaults()).toEqual({
       number_format: DEFAULT_NUMBER_FORMAT,
       rounding_method: DEFAULT_ROUNDING_METHOD,
@@ -54,38 +75,39 @@ describe('getFormatDefaults', () => {
   })
 })
 
-describe('getFormatDefaults — window.sysdefaults (boot) layer', () => {
+describe('getFormatDefaults — session defaults layer', () => {
   beforeEach(() => {
-    ;(globalThis as any).window = {
-      sysdefaults: {
+    resetSession()
+    setSession(
+      aSession({
         number_format: '# ###.##',
         currency: 'JPY',
         currency_precision: '0',
-        float_precision: '', // blank boot value must NOT clobber a fallback
-      },
-    }
+        float_precision: '', // blank session value must NOT clobber a fallback
+      })
+    )
   })
   afterEach(() => {
     resetFormatDefaults()
-    delete (globalThis as any).window
+    resetSession()
   })
 
-  it('reads framework defaults from window.sysdefaults', () => {
+  it("reads framework defaults from the session's defaults", () => {
     const d = getFormatDefaults()
     expect(d.number_format).toBe('# ###.##')
     expect(d.currency).toBe('JPY')
     expect(d.currency_precision).toBe('0')
   })
 
-  it('drops blank boot values so the fallback survives', () => {
+  it('drops blank session values so the fallback survives', () => {
     expect(getFormatDefaults().float_precision).toBeUndefined()
   })
 
-  it('precedence: override beats boot beats fallback', () => {
+  it('precedence: override beats session beats fallback', () => {
     setFormatDefaults({ currency: 'USD' })
     const d = getFormatDefaults()
     expect(d.currency).toBe('USD') // override
-    expect(d.number_format).toBe('# ###.##') // boot (no override)
+    expect(d.number_format).toBe('# ###.##') // session (no override)
     expect(d.rounding_method).toBe(DEFAULT_ROUNDING_METHOD) // fallback
   })
 })

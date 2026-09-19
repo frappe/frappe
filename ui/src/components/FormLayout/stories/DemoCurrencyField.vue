@@ -3,7 +3,7 @@
   when an app needs more than the framework defaults give.
 
   NOTE: site-accurate formatting no longer requires this. The lib's own NumberField
-  now reads the site defaults (`setFormatDefaults` / `window.sysdefaults`, see
+  now reads the site defaults (`setFormatDefaults` / the session's `defaults`, see
   `formatDefaults.ts`) and formats correctly out of the box. This field exists to
   show that a custom component still wins when registered — it sources its own
   settings and calls the lib's *exported* formatting utils, with no FormLayout prop
@@ -30,6 +30,7 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, ref } from "vue";
 import { TextInput } from "frappe-ui";
+import { currentSession } from "../../../composables/useSession";
 import { DocKey } from "../types";
 import type { FieldComponentEmits, FieldComponentProps } from "../types";
 import { flt, formatCurrency } from "../formatNumber";
@@ -37,9 +38,9 @@ import { flt, formatCurrency } from "../formatNumber";
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
 
-// The app's own settings source — Frappe desk sets `window.sysdefaults`; the
+// The app's own settings source — a Frappe host publishes the session; the
 // fallback keeps the story self-contained.
-const sys = (typeof window !== "undefined" && (window as any).sysdefaults) || {
+const sys = (currentSession()?.defaults as Record<string, any>) || {
 	number_format: "#.###,##", // european, to make the override visibly different
 	currency: "EUR",
 	currency_precision: 2,
