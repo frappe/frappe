@@ -1,7 +1,7 @@
 {
   "strictness": 2,
   "commentTypes": ["logic", "syntax"],
-  "autoReview": ["open"],
+  "autoReview": ["open", "push", "rebase"],
   "triggerOnDrafts": false,
   "disabledLabels": ["conflicts", "skip-greptile"],
   "excludeAuthors": ["mergify[bot]", "dependabot[bot]", "github-actions[bot]"],
