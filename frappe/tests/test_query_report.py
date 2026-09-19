@@ -77,6 +77,10 @@ class TestQueryReport(FrappeTestCase):
 		with self.set_user(reader.name), self.assertRaises(frappe.PermissionError):
 			run(report.name, filters)
 
+		custom_report.delete()
+		with self.set_user(owner.name), self.assertRaises(frappe.PermissionError):
+			run(report.name, filters)
+
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
 
