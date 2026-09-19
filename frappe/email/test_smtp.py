@@ -107,6 +107,7 @@ class TestSMTP(IntegrationTestCase):
 			EmailAccount.find_outgoing(match_by_email="support@example.com").email_id, "support@example.com"
 		)
 		self.assertEqual(EmailAccount.find_outgoing(match_by_doctype="ToDo").email_id, "support@example.com")
+		self.assertEqual(EmailAccount.find_outgoing("support@example.com").email_id, "support@example.com")
 
 
 def create_email_account(email_id, password, enable_outgoing, default_outgoing=0, append_to=None):
