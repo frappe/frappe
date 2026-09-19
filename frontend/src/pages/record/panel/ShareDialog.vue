@@ -71,10 +71,7 @@ const pinned = computed<SearchOption[]>(() =>
 		.map(({ id, name, image }) => ({ label: name, value: id, image }))
 );
 
-const { options, loading, error, search, searchSoon } = useUserSearch(
-	props.context.controller.page.call,
-	pinned
-);
+const { options, loading, error, search, searchSoon } = useUserSearch(pinned);
 
 // Listening to the query owns it, so every open resets it and the list.
 const query = ref("");

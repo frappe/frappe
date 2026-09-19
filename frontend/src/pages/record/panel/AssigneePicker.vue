@@ -44,10 +44,7 @@ import { listDiff } from "./people";
 import PeopleAvatars from "./PeopleAvatars.vue";
 import { useUserSearch, type SearchOption } from "./remoteSearch";
 
-const props = defineProps<{
-	assignees: Person[];
-	call: (method: string, params?: Record<string, any>) => Promise<any>;
-}>();
+const props = defineProps<{ assignees: Person[] }>();
 
 const emit = defineEmits<{ assign: [string]; unassign: [string] }>();
 
@@ -57,7 +54,7 @@ const pinned = computed<SearchOption[]>(() =>
 	props.assignees.map(({ id, name, image }) => ({ label: name, value: id, image }))
 );
 
-const { options, loading, error, search, searchSoon } = useUserSearch(props.call, pinned);
+const { options, loading, error, search, searchSoon } = useUserSearch(pinned);
 
 // Listening to the query owns it, so every open resets it and the list.
 const query = ref("");

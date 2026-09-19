@@ -7,7 +7,7 @@
 		:placeholder="placeholder"
 		:required="required"
 		:disabled="disabled"
-		:loading="search.loading && !search.data"
+		:loading="search.loading.value && !search.data.value"
 		@update:open="onOpen"
 		@update:query="onQuery"
 	>
@@ -86,9 +86,10 @@
 
 <script setup lang="ts">
 // Link-backed multiselect: `Link` for an array of link names. Owns the
-// `search_link` resource, the white-chip trigger, and the `creatable` footer.
+// link search, the white-chip trigger, and the `creatable` footer.
 import { computed, watch } from "vue";
-import { MultiSelect, Button, createResource, frappeRequest, debounce } from "frappe-ui";
+import { MultiSelect, Button, debounce } from "frappe-ui";
+import { useLinkSearch } from "../../composables/useLinkSearch";
 import type {
 	TableMultiSelectEmits,
 	TableMultiSelectOption,
@@ -105,21 +106,13 @@ const emit = defineEmits<TableMultiSelectEmits>();
 
 const model = defineModel<string[]>({ default: () => [] });
 
-const search = createResource({
-	url: "frappe.desk.search.search_link",
-	params: { doctype: props.doctype, txt: "", filters: props.filters },
-	method: "POST",
-	resourceFetcher: frappeRequest,
-	transform: (data: any[]): TableMultiSelectOption[] =>
-		data.map((d) => ({ label: d.label || d.value, value: d.value })),
-});
+const search = useLinkSearch(
+	() => props.doctype,
+	() => props.filters
+);
 
 function loadOptions(txt = "") {
-	if (!props.doctype) return;
-	search.update({
-		params: { txt, doctype: props.doctype, filters: props.filters },
-	});
-	search.reload();
+	void search.search(txt);
 }
 
 function onOpen(isOpen: boolean) {
@@ -135,8 +128,11 @@ function removeTag(v: string) {
 // Keep selected values in the options even when absent from search results, so
 // MultiSelect can still resolve their chip labels.
 const options = computed<TableMultiSelectOption[]>(() => {
-	const found = search.data ?? [];
-	const present = new Set(found.map((o: TableMultiSelectOption) => o.value));
+	const found: TableMultiSelectOption[] = (search.data.value ?? []).map(({ label, value }) => ({
+		label,
+		value,
+	}));
+	const present = new Set(found.map((o) => o.value));
 	const selectedOnly = model.value
 		.filter((v) => !present.has(v))
 		.map((v) => ({ label: v, value: v }));

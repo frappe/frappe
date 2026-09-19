@@ -1,6 +1,6 @@
 // One doctype's stored list settings: the site row and the person's own, fetched once per session
 // beside meta, and written back silently. A write's response replaces both rows.
-import { call } from "frappe-ui";
+import { runMethod } from "@framework/ui/api";
 import { computed, getCurrentScope, onScopeDispose, ref, type ComputedRef, type Ref } from "vue";
 import type { ListSettings, ListSettingsKey } from "./storedSettings";
 
@@ -54,7 +54,7 @@ export function useListSettings(doctype: string): ListSettingsHandle {
 		entry.timer = null;
 		if (!patch) return entry.queue;
 		const marks = { ...entry.resets };
-		return write(entry, () => call(`${API}.save`, { ...address, scope: "user", settings: patch }), () =>
+		return write(entry, () => send(`${API}.save`, { ...address, scope: "user", settings: patch }), () =>
 			restore(entry, patch, marks)
 		);
 	}
@@ -69,15 +69,15 @@ export function useListSettings(doctype: string): ListSettingsHandle {
 		if (entry.pending) delete entry.pending[key];
 		entry.resets[key] = (entry.resets[key] ?? 0) + 1;
 		await flush();
-		await write(entry, () => call(`${API}.reset`, { ...address, scope: "user", key }));
+		await write(entry, () => send(`${API}.reset`, { ...address, scope: "user", key }));
 	}
 
 	async function saveForSite(patch: ListSettings) {
-		await write(entry, () => call(`${API}.save`, { ...address, scope: "site", settings: patch }));
+		await write(entry, () => send(`${API}.save`, { ...address, scope: "site", settings: patch }));
 	}
 
 	async function resetForSite(key: ListSettingsKey) {
-		await write(entry, () => call(`${API}.reset`, { ...address, scope: "site", key }));
+		await write(entry, () => send(`${API}.reset`, { ...address, scope: "site", key }));
 	}
 
 	if (getCurrentScope()) onScopeDispose(() => void flush());
@@ -122,7 +122,7 @@ function entryFor(doctype: string): Entry {
 
 async function load(entry: Entry, doctype: string) {
 	try {
-		entry.tiers.value = tiersOf(await call(`${API}.get`, { doctype, type: VIEW_TYPE }));
+		entry.tiers.value = tiersOf(await send(`${API}.get`, { doctype, type: VIEW_TYPE }));
 	} catch (failure) {
 		console.warn(`[list] settings for ${doctype} did not load`, failure);
 	}
@@ -148,6 +148,11 @@ function restore(entry: Entry, patch: ListSettings, marks: Entry["resets"]) {
 		if ((entry.resets[key] ?? 0) === (marks[key] ?? 0)) Object.assign(kept, { [key]: patch[key] });
 	}
 	entry.pending = { ...kept, ...entry.pending };
+}
+
+async function send(method: string, args: Record<string, unknown>): Promise<unknown> {
+	const { data } = await runMethod(method, args);
+	return data;
 }
 
 function tiersOf(response: unknown): Tiers {

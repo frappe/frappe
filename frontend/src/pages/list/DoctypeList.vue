@@ -66,10 +66,12 @@
 					:rowCount="rowCount"
 					:totalCount="totalCount"
 					:totalCapped="totalCapped"
+					:totalUnknown="totalUnknown"
 					:hasCounts="hasCounts"
 					:hasNextPage="hasNextPage"
 					@load-more="next"
 					@page-size="show"
+					@count="countExact"
 				/>
 			</div>
 		</template>
@@ -133,10 +135,12 @@ const {
 	rowCount,
 	totalCount,
 	totalCapped,
+	totalUnknown,
 	hasCounts,
 	hasNextPage,
 	next,
 	show,
+	countExact,
 	columnsCustomized,
 	resetColumns,
 	resizeColumn,

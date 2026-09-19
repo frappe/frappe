@@ -2,7 +2,8 @@
 
 `GET /api/v2/document/<doctype>/<name>?include=permissions,seen` adds each named
 part under its own top-level key. `GET /api/v2/doctype/<doctype>/meta?include=children`
-does the same for the child-table doctypes.
+does the same for the child-table doctypes, and `GET /api/v2/document/<doctype>?include=count`
+adds a capped row count beside the list.
 """
 
 from collections.abc import Iterable
@@ -51,6 +52,15 @@ def add_meta_parts(doctype: str, include: list[str]) -> None:
 			raise UnknownPartError(part, META_PARTS)
 	for part in include:
 		frappe.response[part] = META_PARTS[part](doctype)
+
+
+def add_list_parts(doctype: str, include: list[str], filters, or_filters, group_by: str | None) -> None:
+	"""Put each named part of a list read on `frappe.response`; an unknown name raises."""
+	for part in include:
+		if part not in LIST_PARTS:
+			raise UnknownPartError(part, LIST_PARTS)
+	for part in include:
+		LIST_PARTS[part](doctype, filters, or_filters, group_by)
 
 
 class UnknownPartError(frappe.ValidationError):
@@ -185,3 +195,27 @@ def serialize_meta(meta, parenttype: str | None = None) -> dict:
 
 
 META_PARTS = {"children": get_children}
+
+
+# a list count stops here; the client shows "1000+" past it. The query reads one row
+# past the cap so a list of exactly COUNT_CAP rows is not reported as capped
+COUNT_CAP = 1000
+
+
+def add_count(doctype: str, filters, or_filters, group_by: str | None) -> None:
+	"""`count` (at most COUNT_CAP) and `count_capped` for the list's filters; `count` is None when the one-second timeout hits."""
+	from frappe.desk.reportview import count_rows
+
+	count = count_rows(
+		doctype=doctype,
+		filters=filters,
+		or_filters=or_filters,
+		group_by=group_by,
+		limit=COUNT_CAP + 1,
+	)
+	capped = count is not None and count > COUNT_CAP
+	frappe.response["count"] = COUNT_CAP if capped else count
+	frappe.response["count_capped"] = capped
+
+
+LIST_PARTS = {"count": add_count}

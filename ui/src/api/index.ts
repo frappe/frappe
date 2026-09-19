@@ -23,8 +23,8 @@ export interface CallOptions {
 }
 
 export interface IncludeOptions extends CallOptions {
-  /** Named parts the server returns beside `data`, one key each. */
-  include?: readonly string[];
+  /** Named parts the server returns beside `data`, one key each; a string is sent as it is. */
+  include?: readonly string[] | string;
 }
 
 /** The list route's query, passed through by name; `filters` and `or_filters` are opaque JSON. */
@@ -38,9 +38,32 @@ export interface ListQuery extends Query {
   group_by?: string;
 }
 
+/** The list route's response; `count` is `null` when the server gave up counting in time. */
+export type ListEnvelope<T> = Envelope<T[]> & {
+  has_next_page: boolean;
+  count?: number | null;
+  count_capped?: boolean;
+};
+
 export interface CountQuery extends Query {
   filters?: unknown;
+  or_filters?: unknown;
   distinct?: boolean;
+}
+
+export interface SearchQuery extends Query {
+  txt: string;
+  filters?: unknown;
+  reference_doctype?: string;
+  query?: string;
+  limit?: number;
+  start?: number;
+}
+
+export interface SearchResult {
+  value: string;
+  label?: string;
+  description?: string;
 }
 
 export const UPLOAD_PATH = "/method/upload_file";
@@ -59,17 +82,28 @@ export function getDocument<T extends DocumentRecord = DocumentRecord>(
 export function listDocuments<T = DocumentRecord>(
   doctype: string,
   query: ListQuery = {},
-  { signal }: CallOptions = {}
-): Promise<Envelope<T[]>> {
-  return request<T[]>("GET", `/document/${segment(doctype)}`, { query, signal });
+  { include, signal }: IncludeOptions = {}
+): Promise<ListEnvelope<T>> {
+  return request<T[]>("GET", `/document/${segment(doctype)}`, {
+    query: { ...query, include: joinInclude(include) },
+    signal,
+  }) as Promise<ListEnvelope<T>>;
 }
 
 export function countDocuments(
   doctype: string,
   query: CountQuery = {},
   { signal }: CallOptions = {}
-): Promise<Envelope<number>> {
-  return request<number>("GET", `/doctype/${segment(doctype)}/count`, { query, signal });
+): Promise<Envelope<number | null>> {
+  return request<number | null>("GET", `/doctype/${segment(doctype)}/count`, { query, signal });
+}
+
+export function searchDocuments(
+  doctype: string,
+  query: SearchQuery,
+  { signal }: CallOptions = {}
+): Promise<Envelope<SearchResult[]>> {
+  return request<SearchResult[]>("GET", `/doctype/${segment(doctype)}/search`, { query, signal });
 }
 
 export function createDocument<T extends DocumentRecord = DocumentRecord>(
@@ -160,7 +194,8 @@ function segment(value: string): string {
   return encodeURIComponent(value);
 }
 
-function joinInclude(include?: readonly string[]): string | undefined {
+function joinInclude(include?: readonly string[] | string): string | undefined {
+  if (typeof include === "string") return include || undefined;
   return include?.length ? include.join(",") : undefined;
 }
 

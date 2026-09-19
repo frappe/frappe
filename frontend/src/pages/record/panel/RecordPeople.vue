@@ -5,7 +5,6 @@
 		<AssigneePicker
 			v-if="canWrite"
 			:assignees="assignees"
-			:call="page.call"
 			@assign="actions.assign"
 			@unassign="actions.unassign"
 		/>

@@ -1,14 +1,11 @@
 // The settings composable as claims: one fetch per doctype, the layering, the debounced write, and
-// the reset. frappe-ui's `call` is faked; the debounce runs on fake timers.
+// the reset. The wrapper's method call is faked; the debounce runs on fake timers.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
-const fake = vi.hoisted(() => ({ call: vi.fn() }));
+const fake = vi.hoisted(() => ({ runMethod: vi.fn() }));
 
-vi.mock("frappe-ui", async (importOriginal) => ({
-	...(await importOriginal<object>()),
-	call: fake.call,
-}));
+vi.mock("@framework/ui/api", () => ({ runMethod: fake.runMethod }));
 
 import { resetListSettings, useListSettings, WRITE_DEBOUNCE_MS } from "../useListSettings";
 
@@ -27,7 +24,7 @@ function respond(method: string, args: { settings?: Record<string, unknown>; key
 		delete row[args.key!];
 		tiers = { ...tiers, [args.scope!]: Object.keys(row).length ? row : null };
 	}
-	return Promise.resolve(tiers);
+	return Promise.resolve({ data: tiers });
 }
 
 async function settle() {
@@ -41,7 +38,7 @@ beforeEach(() => {
 	vi.useFakeTimers();
 	resetListSettings();
 	tiers = { site: { sort: [{ fieldname: "title", direction: "asc" }] }, user: null };
-	fake.call.mockReset().mockImplementation(respond);
+	fake.runMethod.mockReset().mockImplementation(respond);
 });
 
 afterEach(() => {
@@ -54,8 +51,8 @@ describe("reading", () => {
 		const second = useListSettings("Lead");
 		expect(first.loaded.value).toBe(false);
 		await settle();
-		expect(fake.call).toHaveBeenCalledTimes(1);
-		expect(fake.call).toHaveBeenCalledWith(`${API}.get`, ADDRESS);
+		expect(fake.runMethod).toHaveBeenCalledTimes(1);
+		expect(fake.runMethod).toHaveBeenCalledWith(`${API}.get`, ADDRESS);
 		expect(second.loaded.value).toBe(true);
 		expect(second.stored.value).toEqual({ sort: [{ fieldname: "title", direction: "asc" }] });
 		expect(first.has("site", "sort")).toBe(true);
@@ -63,7 +60,7 @@ describe("reading", () => {
 	});
 
 	it("reads a failed fetch as no rows, and is still loaded", async () => {
-		fake.call.mockRejectedValue(new Error("down"));
+		fake.runMethod.mockRejectedValue(new Error("down"));
 		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 		const handle = useListSettings("Lead");
 		await settle();
@@ -80,11 +77,11 @@ describe("writing", () => {
 		handle.save({ columns: [{ fieldname: "title" }] });
 		handle.save({ sort: [] });
 		expect(handle.has("user", "columns")).toBe(true);
-		expect(fake.call).toHaveBeenCalledTimes(1);
+		expect(fake.runMethod).toHaveBeenCalledTimes(1);
 		vi.advanceTimersByTime(WRITE_DEBOUNCE_MS);
 		await settle();
-		expect(fake.call).toHaveBeenCalledTimes(2);
-		expect(fake.call).toHaveBeenLastCalledWith(`${API}.save`, {
+		expect(fake.runMethod).toHaveBeenCalledTimes(2);
+		expect(fake.runMethod).toHaveBeenLastCalledWith(`${API}.save`, {
 			...ADDRESS,
 			scope: "user",
 			settings: { columns: [{ fieldname: "title" }], sort: [] },
@@ -97,8 +94,8 @@ describe("writing", () => {
 		await settle();
 		handle.save({ columns: [{ fieldname: "title" }], quick_filter_fields: ["name"] });
 		await handle.reset("columns");
-		expect(fake.call.mock.calls.map(([method]) => method.split(".").pop())).toEqual(["get", "save", "reset"]);
-		expect(fake.call).toHaveBeenLastCalledWith(`${API}.reset`, { ...ADDRESS, scope: "user", key: "columns" });
+		expect(fake.runMethod.mock.calls.map(([method]) => method.split(".").pop())).toEqual(["get", "save", "reset"]);
+		expect(fake.runMethod).toHaveBeenLastCalledWith(`${API}.reset`, { ...ADDRESS, scope: "user", key: "columns" });
 		expect(handle.has("user", "columns")).toBe(false);
 		expect(handle.stored.value).toEqual({
 			sort: [{ fieldname: "title", direction: "asc" }],
@@ -110,14 +107,14 @@ describe("writing", () => {
 		const handle = useListSettings("Lead");
 		await settle();
 		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-		fake.call.mockRejectedValueOnce(new Error("down"));
+		fake.runMethod.mockRejectedValueOnce(new Error("down"));
 		handle.save({ columns: [{ fieldname: "title" }] });
 		await handle.flush();
 		expect(handle.stored.value).toEqual({ sort: [{ fieldname: "title", direction: "asc" }] });
 		expect(handle.has("user", "columns")).toBe(true);
 		handle.save({ sort: [] });
 		await handle.flush();
-		expect(fake.call).toHaveBeenLastCalledWith(`${API}.save`, {
+		expect(fake.runMethod).toHaveBeenLastCalledWith(`${API}.save`, {
 			...ADDRESS,
 			scope: "user",
 			settings: { columns: [{ fieldname: "title" }], sort: [] },
@@ -129,7 +126,7 @@ describe("writing", () => {
 		const handle = useListSettings("Lead");
 		await settle();
 		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-		fake.call.mockRejectedValueOnce(new Error("down"));
+		fake.runMethod.mockRejectedValueOnce(new Error("down"));
 		handle.save({ columns: [{ fieldname: "title" }], sort: [] });
 		const failing = handle.flush();
 		const resetting = handle.reset("columns");
@@ -138,7 +135,7 @@ describe("writing", () => {
 		expect(handle.has("user", "sort")).toBe(true);
 		handle.save({ quick_filter_fields: [] });
 		await handle.flush();
-		expect(fake.call).toHaveBeenLastCalledWith(`${API}.save`, {
+		expect(fake.runMethod).toHaveBeenLastCalledWith(`${API}.save`, {
 			...ADDRESS,
 			scope: "user",
 			settings: { sort: [], quick_filter_fields: [] },
@@ -150,13 +147,13 @@ describe("writing", () => {
 		const handle = useListSettings("Lead");
 		await settle();
 		await handle.saveForSite({ columns: [{ fieldname: "amount" }] });
-		expect(fake.call).toHaveBeenLastCalledWith(`${API}.save`, {
+		expect(fake.runMethod).toHaveBeenLastCalledWith(`${API}.save`, {
 			...ADDRESS,
 			scope: "site",
 			settings: { columns: [{ fieldname: "amount" }] },
 		});
 		await handle.resetForSite("sort");
-		expect(fake.call).toHaveBeenLastCalledWith(`${API}.reset`, { ...ADDRESS, scope: "site", key: "sort" });
+		expect(fake.runMethod).toHaveBeenLastCalledWith(`${API}.reset`, { ...ADDRESS, scope: "site", key: "sort" });
 		expect(handle.stored.value).toEqual({ columns: [{ fieldname: "amount" }] });
 	});
 });
