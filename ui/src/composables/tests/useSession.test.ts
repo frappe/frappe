@@ -126,6 +126,33 @@ describe("useSession", () => {
     expect(api.getSession).not.toHaveBeenCalled();
   });
 
+  it("reloads into the ref a component provided, not the module store", async () => {
+    api.getSession.mockResolvedValue({ data: aSession("reloaded@example.com") });
+    const published = aSession("host@example.com");
+    setSession(published);
+    const own = shallowRef<Session | null>(aSession("own@example.com"));
+    let read: ReturnType<typeof useSession> | null = null;
+
+    const child = defineComponent({
+      setup() {
+        read = useSession();
+        return () => null;
+      },
+    });
+    const parent = defineComponent({
+      setup() {
+        provide(SessionKey, own);
+        return () => h(child);
+      },
+    });
+    createApp(parent).mount(document.createElement("div"));
+
+    await read!.reload();
+    expect(own.value?.user.email).toBe("reloaded@example.com");
+    expect(read!.session.value).toBe(own.value);
+    expect(currentSession()).toBe(published);
+  });
+
   it("re-reads on reload", async () => {
     api.getSession.mockResolvedValue({ data: aSession("bob@example.com") });
     const app = host();

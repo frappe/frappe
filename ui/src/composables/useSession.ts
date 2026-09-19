@@ -27,13 +27,14 @@ export function useSession(): UseSession {
   // True in setup and inside `app.runWithContext`; `inject` warns outside both, and plain
   // module code reaches here through `useUserRoles`.
   const shared = hasInjectionContext() ? inject(SessionKey, store) : store;
-  if (!shared.value && !started) void fetchSession();
+  if (!shared.value && !started) void fetchSession(shared);
 
   return {
     session: computed(() => shared.value),
     loading: computed(() => loading.value),
     error: computed(() => error.value),
-    reload: fetchSession,
+    // Publishes into the ref this caller reads, so a host with its own ref sees the answer.
+    reload: () => fetchSession(shared),
   };
 }
 
@@ -67,14 +68,14 @@ export function resetSession(): void {
 }
 
 // An answer that lands after a reset or a later reload is dropped rather than published.
-async function fetchSession(): Promise<void> {
+async function fetchSession(target: Ref<Session | null> = store): Promise<void> {
   const mine = ++generation;
   started = true;
   loading.value = true;
   try {
     const envelope = await getSession();
     if (mine !== generation) return;
-    store.value = envelope.data;
+    target.value = envelope.data;
     error.value = null;
   } catch (failure) {
     if (mine === generation) {
