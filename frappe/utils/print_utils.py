@@ -118,26 +118,17 @@ def get_print(
 				print_format=print_format,
 				html=html,
 				options=pdf_options,
-				output=output,
+				output=None,
 				pdf_generator=local.form_dict.pdf_generator,
 			)
 			# if hook returns a value, assume it was the correct pdf_generator and return it
 			if pdf:
-				if output and isinstance(pdf, bytes):
-					from io import BytesIO
-
-					from pypdf import PdfReader
-
-					reader = PdfReader(BytesIO(pdf))
-					for page in reader.pages:
-						output.add_page(page)
-					return output
-				return pdf
+				return _finalize_pdf(doctype, name, pdf, output)
 
 	for hook in frappe.get_hooks("on_print_pdf"):
 		frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
 
-	return get_pdf(html, options=pdf_options, output=output)
+	return _finalize_pdf(doctype, name, get_pdf(html, options=pdf_options), output)
 
 
 def attach_print(
@@ -191,7 +182,9 @@ def attach_print(
 			if cint(print_settings.send_print_as_pdf):
 				ext = ".pdf"
 				if html:
-					content = get_pdf(html, options={"password": password} if password else None)
+					content = run_after_print_hook(
+						doctype, name, get_pdf(html, options={"password": password} if password else None)
+					)
 				elif render_via_generator:
 					from frappe.utils.print_format_generator import PrintFormatGenerator
 					from frappe.www.printview import validate_print_for_docstatus
@@ -279,3 +272,30 @@ def convert_uom(
 	if only_number:
 		return round(number * converstion_factor[0][f"from_{from_uom}"][0][f"to_{to_uom}"], 3)
 	return f"{round(number * converstion_factor[0][f'from_{from_uom}'][0][f'to_{to_uom}'], 3)}{to_uom}"
+
+
+def _finalize_pdf(doctype: str, name: str, pdf, output=None):
+	"""When output is provided, append the after_print-hook PDF-pages to output"""
+	from io import BytesIO
+
+	from pypdf import PdfReader, PdfWriter
+
+	from frappe.utils.pdf import get_file_data_from_writer
+
+	if isinstance(pdf, PdfWriter):
+		pdf = get_file_data_from_writer(pdf)
+	assert isinstance(pdf, bytes)
+
+	pdf = run_after_print_hook(doctype, name, pdf)
+
+	if output:
+		for page in PdfReader(BytesIO(pdf)).pages:
+			output.add_page(page)
+		return output
+	return pdf
+
+
+def run_after_print_hook(doctype: str, name: str, pdf: bytes) -> bytes:
+	"""run the after_print hook for a document after its pdf is generated"""
+	doc = frappe.get_cached_doc(doctype, name)
+	return doc.run_method("after_print", pdf=pdf) or pdf
