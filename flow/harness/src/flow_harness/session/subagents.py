@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import json
-from collections.abc import Callable
-from dataclasses import replace
+from collections.abc import AsyncIterator, Callable
+from dataclasses import dataclass, replace
 from typing import Literal
 
 from flow_harness.agent import loop
@@ -17,14 +17,22 @@ from flow_harness.events import (
 	ToolResult,
 	UserMessage,
 )
-from flow_harness.model.cancellation import ModelCancelled
+from flow_harness.model.cancellation import ModelCancelled, await_with_cancellation
 from flow_harness.session.config import SessionConfig, SubagentConfig
 from flow_harness.session.prompt import strip_tool_from_prompt
-from flow_harness.session.transcript import Transcript
+from flow_harness.session.transcript import PendingApproval, Transcript
 from flow_harness.tools import Tool
 from flow_harness.tools.builtins.subagent import SubagentOutcome, subagent
 
 CANCELLED = json.dumps({"status": "cancelled", "message": "User cancelled this pending tool call."})
+
+
+@dataclass
+class _Pause:
+	"""A batch a child waits on, and where its answers go; None closes it as cancelled."""
+
+	approval: PendingApproval
+	answers: asyncio.Future[dict[str, str] | None]
 
 
 class SubagentRunner:
@@ -42,6 +50,7 @@ class SubagentRunner:
 		self._run_error = run_error
 		self._compose_tools = compose_tools
 		self._slots = asyncio.Semaphore(max_concurrent)
+		self._pauses: dict[int | None, _Pause] = {}  # by approval seq, while a child waits on it
 
 	async def run(
 		self, inputs: loop.LoopInputs, call_id: str, task: str, agent: SubagentConfig
@@ -51,13 +60,30 @@ class SubagentRunner:
 		async with self._slots:
 			return await self._drive(_child_inputs(inputs, child, agent, self._compose_tools), child, task)
 
+	def pending(self, approval_seq: int | None) -> PendingApproval | None:
+		"""The batch a child waits on under `approval_seq`, if any."""
+		pause = self._pauses.get(approval_seq)
+		return pause.approval if pause is not None else None
+
+	def answer(self, approval_seq: int | None, answers: dict[str, str]) -> None:
+		"""Wake the child waiting on `approval_seq` with its answers."""
+		self._pauses.pop(approval_seq).answers.set_result(dict(answers))
+
+	def cancel_pending(self) -> bool:
+		"""Close every batch a child waits on; False when there is none."""
+		pauses = list(self._pauses.values())
+		self._pauses.clear()
+		for pause in pauses:
+			pause.answers.set_result(None)
+		return bool(pauses)
+
 	async def _drive(self, inputs: loop.LoopInputs, child: Transcript, task: str) -> SubagentOutcome:
-		"""Run the child's turn to its end and report how it went."""
+		"""Commit the child's events and report how it went; when its loop raises instead, settle it here."""
 		text = ""
 		end_reason: str = "done"
 		error: str | None = None
 		try:
-			async for event in loop.run(UserMessage(content=task), inputs):
+			async for event in self._turns(inputs, child, task):
 				self._record(child, event)
 				if isinstance(event, AssistantMessage) and event.text:
 					text = event.text
@@ -65,14 +91,7 @@ class SubagentRunner:
 					error = event.message
 				elif isinstance(event, RunEnded):
 					end_reason = event.reason
-			if end_reason == "paused":  # nothing answers a child's approval yet: close its batch
-				approval = child.pending_approval
-				assert approval is not None  # the pause put it there
-				for call in approval.calls:
-					self._record(
-						child,
-						ToolResult(tool_call_id=call.id, name=call.name, content=CANCELLED, is_error=True),
-					)
+			if end_reason == "paused":  # only a cancelled batch leaves the pause behind
 				end_reason = "cancelled"
 		except (ModelCancelled, asyncio.CancelledError) as cancelled:
 			self._settle(child, reason="aborted")
@@ -83,6 +102,34 @@ class SubagentRunner:
 			self._settle(child, reason="error", error=failure)
 			end_reason, error = "error", f"{type(failure).__name__}: {failure}"
 		return SubagentOutcome(end_reason=end_reason, text=text, error=error)
+
+	async def _turns(self, inputs: loop.LoopInputs, child: Transcript, task: str) -> AsyncIterator[AnyEvent]:
+		"""The child's run, continued past each approval pause a human answers."""
+		async for event in loop.run(UserMessage(content=task), inputs):
+			yield event
+		while (pending_approval := child.pending_approval) is not None:
+			answers = await self._wait_for_answers(pending_approval, inputs.abort)
+			if answers is None:  # cancel_pending closed the batch
+				for call in pending_approval.calls:
+					yield ToolResult(tool_call_id=call.id, name=call.name, content=CANCELLED, is_error=True)
+				return
+			continued = replace(
+				inputs, context_tokens=child.context_tokens, context_message_count=child.context_message_count
+			)
+			async for event in loop.resume(pending_approval, answers, continued):
+				yield event
+
+	async def _wait_for_answers(
+		self, pending_approval: PendingApproval, abort: asyncio.Event
+	) -> dict[str, str] | None:
+		"""Park the child until `answer` or `cancel_pending` settles its batch; abort raises."""
+		pause = self._pauses[pending_approval.seq] = _Pause(
+			pending_approval, asyncio.get_running_loop().create_future()
+		)
+		try:
+			return await await_with_cancellation(pause.answers, abort)
+		finally:
+			self._pauses.pop(pending_approval.seq, None)  # already gone unless the run aborted
 
 	def _settle(
 		self, child: Transcript, *, reason: Literal["aborted", "error"], error: Exception | None = None

@@ -91,9 +91,9 @@ Add `?wait=true` to `run`, `resume`, or `compact` to wait for completion. The re
 
 | Route | Purpose |
 | --- | --- |
-| `POST /sessions/{sid}/resume` | Continues a pause with `{"approval_seq": N, "answers": {"call-id": "Approve"}}`. Answers must cover exactly the pending calls. Use `Deny` or other text to reject or redirect. |
+| `POST /sessions/{sid}/resume` | Continues a pause with `{"approval_seq": N, "answers": {"call-id": "Approve"}}`. Answers must cover exactly the pending calls. Use `Deny` or other text to reject or redirect. A batch a running sub-agent waits on is answered the same way and returns `{"status": "resumed"}`. |
 | `POST /sessions/{sid}/abort` | Stops an active run and drops uncommitted steering. |
-| `POST /sessions/{sid}/cancel_pending` | Cancels every unanswered approval call and returns the session to idle. |
+| `POST /sessions/{sid}/cancel_pending` | Cancels every unanswered approval call and returns the session to idle. While a run is active, it cancels the batches its sub-agents wait on instead. |
 | `POST /sessions/{sid}/attachments` | Multipart upload with one or more `files` fields. Only supported images are accepted and normalized. |
 | `DELETE /sessions/{sid}/attachments` | Removes unclaimed uploaded attachments: `{"attachments": ["id"]}`. |
 

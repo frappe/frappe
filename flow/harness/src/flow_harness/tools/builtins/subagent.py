@@ -10,7 +10,7 @@ from flow_harness.session.config import GENERAL_AGENT, SubagentConfig
 from flow_harness.tools.builtins.common import truncate
 from flow_harness.tools.tool import Tool, ToolContext, ToolResult, tool
 
-_FAILED = frozenset({"error", "aborted", "max_turns", "budget", "cancelled"})
+_FAILED = frozenset({"error", "aborted", "max_turns", "budget", "cancelled", "denied"})
 _GENERAL = SubagentConfig(name=GENERAL_AGENT, description="a copy of you with a fresh context")
 
 

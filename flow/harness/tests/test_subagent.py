@@ -18,6 +18,7 @@ from flow_harness.server import create_app
 from flow_harness.server.policy import ServerPolicy
 from flow_harness.server.routes.sessions import _summary
 from flow_harness.session.config import SessionConfig, SubagentConfig
+from flow_harness.session.session import ResumeError, SessionConflict
 from flow_harness.session.store import PolicyError, SessionStore
 from flow_harness.session.subagents import _child_inputs
 from flow_harness.session.transcript import Transcript
@@ -80,6 +81,16 @@ def _of(events, kind, subagent=None):
 
 def _spawn(cid, task, **args):
 	return ToolCall(id=cid, name="subagent", arguments={"task": task, "description": "a task", **args})
+
+
+def _bash(cid):
+	return ToolCall(id=cid, name="bash", arguments={"command": "true"})
+
+
+async def _until(check):
+	async with asyncio.timeout(5):
+		while not check():
+			await asyncio.sleep(0.01)
 
 
 async def test_a_subagent_answers_from_a_fresh_context(tmp_path):
@@ -418,26 +429,123 @@ async def test_a_failing_child_is_an_error_result_and_the_session_carries_on(tmp
 	assert _of(events, "run_ended")[-1]["reason"] == "done"
 
 
-async def test_a_gated_tool_inside_a_child_cancels_its_batch(tmp_path):
+async def test_a_child_approval_pauses_only_the_child_and_resume_reaches_it(tmp_path):
 	session, events = _session(tmp_path)
 	model = ScriptedModel(
 		{
 			"go": [AssistantMessage(content=[_spawn("c1", "risky")]), AssistantMessage(content="done")],
-			"risky": [
-				AssistantMessage(content=[ToolCall(id="c2", name="bash", arguments={"command": "true"})]),
-				AssistantMessage(content="never reached"),
-			],
+			"risky": [AssistantMessage(content=[_bash("c2")]), AssistantMessage(content="ran it")],
 		}
 	)
 
-	await _run(session, "go", model)
+	handle = await session.run("go", model=model)
+	await _until(lambda: _of(events, "run_ended", subagent="c1"))
 
-	assert [e["reason"] for e in _of(events, "run_ended", subagent="c1")] == ["paused"]
-	cancelled = _of(events, "tool_result", subagent="c1")[0]
-	assert cancelled["tool_call_id"] == "c2" and cancelled["is_error"] and "cancelled" in cancelled["content"]
+	approval = _of(events, "approval_required", subagent="c1")[0]
+	assert [call["id"] for call in approval["calls"]] == ["c2"]
+	assert _of(events, "run_ended", subagent="c1")[0]["reason"] == "paused"
+	assert session.state == "running" and session.transcript.pending_approval is None
+	with pytest.raises(ResumeError):
+		await session.resume({"c9": "Approve"}, approval_seq=approval["seq"])
+
+	resumed = await session.resume({"c2": "Approve"}, approval_seq=approval["seq"])
+	assert resumed.status == "resumed" and resumed.task is None
+	assert handle.task is not None
+	await handle.task
+
+	ran = _of(events, "tool_result", subagent="c1")[0]
+	assert ran["tool_call_id"] == "c2" and not ran["is_error"]
+	assert [e["reason"] for e in _of(events, "run_ended", subagent="c1")] == ["paused", "done"]
+	assert _of(events, "tool_result")[0]["content"] == "ran it"
+	assert _of(events, "run_ended")[-1]["reason"] == "done"
+
+
+@pytest.mark.parametrize("how", ["deny", "cancel"])
+async def test_a_denied_or_cancelled_child_is_an_error_result(tmp_path, how):
+	session, events = _session(tmp_path)
+	model = ScriptedModel(
+		{
+			"go": [AssistantMessage(content=[_spawn("c1", "risky")]), AssistantMessage(content="done")],
+			"risky": [AssistantMessage(content=[_bash("c2")]), AssistantMessage(content="never reached")],
+		}
+	)
+
+	handle = await session.run("go", model=model)
+	await _until(lambda: _of(events, "run_ended", subagent="c1"))
+	if how == "deny":
+		seq = _of(events, "approval_required", subagent="c1")[0]["seq"]
+		await session.resume({"c2": "Deny"}, approval_seq=seq)
+	else:
+		assert await session.cancel_pending() is True
+	assert handle.task is not None
+	await handle.task
+
+	stopped = "denied" if how == "deny" else "cancelled"
+	child = _of(events, "tool_result", subagent="c1")[0]
+	assert child["tool_call_id"] == "c2" and child["is_error"] and stopped in child["content"]
 	result = _of(events, "tool_result")[0]
-	assert result["is_error"] and "[sub-agent stopped: cancelled]" in result["content"]
+	assert result["is_error"] and f"[sub-agent stopped: {stopped}]" in result["content"]
 	assert session.state == "idle" and _of(events, "run_ended")[-1]["reason"] == "done"
+
+
+async def test_a_batch_answered_twice_is_refused_the_second_time(tmp_path):
+	session, events = _session(tmp_path)
+	model = ScriptedModel(
+		{
+			"go": [AssistantMessage(content=[_spawn("c1", "risky")]), AssistantMessage(content="done")],
+			"risky": [AssistantMessage(content=[_bash("c2")]), AssistantMessage(content="ran it")],
+		}
+	)
+
+	handle = await session.run("go", model=model)
+	await _until(lambda: _of(events, "run_ended", subagent="c1"))
+	seq = _of(events, "approval_required", subagent="c1")[0]["seq"]
+	await session.resume({"c2": "Approve"}, approval_seq=seq)
+	with pytest.raises(SessionConflict):  # answered, but the child has not woken yet
+		await session.resume({"c2": "Approve"}, approval_seq=seq)
+	with pytest.raises(SessionConflict):
+		await session.cancel_pending()
+	assert handle.task is not None
+	await handle.task
+
+	assert [e["reason"] for e in _of(events, "run_ended", subagent="c1")] == ["paused", "done"]
+
+
+async def test_abort_ends_a_child_waiting_for_approval(tmp_path):
+	session, events = _session(tmp_path)
+	model = ScriptedModel(
+		{
+			"go": [AssistantMessage(content=[_spawn("c1", "risky")])],
+			"risky": [AssistantMessage(content=[_bash("c2")])],
+		}
+	)
+
+	handle = await session.run("go", model=model)
+	await _until(lambda: _of(events, "run_ended", subagent="c1"))
+	assert session.abort() is True
+	assert handle.task is not None
+	await handle.task
+
+	assert [e["reason"] for e in _of(events, "run_ended", subagent="c1")] == ["paused", "aborted"]
+	assert _of(events, "run_ended")[0]["reason"] == "aborted" and session.state == "idle"
+
+
+async def test_answers_and_cancellation_are_refused_while_no_child_waits(tmp_path):
+	session, _ = _session(tmp_path)
+	model = ScriptedModel(
+		{"go": [AssistantMessage(content=[_spawn("c1", "slow")])], "slow": [AssistantMessage()]}
+	)
+	model.gate("slow")
+
+	handle = await session.run("go", model=model)
+	await model.started["slow"].wait()
+	with pytest.raises(SessionConflict):
+		await session.resume({"c2": "Approve"}, approval_seq=99)
+	with pytest.raises(SessionConflict):
+		await session.cancel_pending()
+	model.gates["slow"].set()
+	assert handle.task is not None
+	await handle.task
 
 
 async def test_the_run_hooks_reach_the_child(tmp_path):

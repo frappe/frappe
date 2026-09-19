@@ -19,7 +19,7 @@ The agent loop yields events. `Session` is the only writer: it appends durable e
 
 The loop owns model calls, tool execution, confirmation pauses, steering, retries, and compaction. It does not write files or manage subscribers. Provider adapters own provider-specific request formats, authentication refresh, and retry behavior.
 
-A sub-agent the `subagent` tool starts is a second loop the session drives inside the same run: its events go through the same commit path, tagged with the child's id.
+A sub-agent the `subagent` tool starts is a second loop the session drives inside the same run: its events go through the same commit path, tagged with the child's id, and an approval it pauses for is answered through `resume` while the session stays running.
 
 ## Events and state
 

@@ -11,7 +11,8 @@ State is derived, not tracked: a session is RUNNING while its task is alive, PAU
 while the transcript holds an undecided approval, else IDLE.
 
 A sub-agent the `subagent` tool starts runs inside the session's own task, driven by
-`SubagentRunner`: its events go through the same `_commit`, tagged with its id.
+`SubagentRunner`: its events go through the same `_commit`, tagged with its id, and an
+approval it pauses for is answered through `resume` while the session stays RUNNING.
 """
 
 from __future__ import annotations
@@ -134,9 +135,10 @@ def validate_resume(
 @dataclass(frozen=True)
 class RunHandle:
 	"""What `run`/`resume` hand back: the started operation's task, or confirmation the
-	message was steered into the already-active run."""
+	message was steered into the already-active run or the answers reached a paused
+	sub-agent."""
 
-	status: Literal["started", "steered"]
+	status: Literal["started", "steered", "resumed"]
 	from_seq: int  # the log cursor before the operation; replay from here to watch it
 	task: asyncio.Task[None] | None = None
 
@@ -313,8 +315,14 @@ class Session:
 		before_tool_call: BeforeHook | None = None,
 		after_tool_call: AfterHook | None = None,
 	) -> RunHandle:
-		"""Continue a paused run with a decision per pending call."""
+		"""Continue a paused run with a decision per pending call. A batch a sub-agent
+		waits on goes to it, while the session keeps running."""
 		async with self._operation_lock:
+			batch = self._subagent_runner.pending(approval_seq)
+			if batch is not None:
+				validate_resume(batch, approval_seq, answers)
+				self._subagent_runner.answer(approval_seq, answers)
+				return RunHandle(status="resumed", from_seq=self.log.latest_seq)
 			if self.state is SessionState.RUNNING:
 				raise SessionConflict("run is not paused")
 			approval = self.transcript.pending_approval
@@ -395,9 +403,12 @@ class Session:
 
 	async def cancel_pending(self) -> bool:
 		"""Abandon a paused run's approval batch: answer every undecided call with a
-		cancellation so the transcript closes and the session returns to idle."""
+		cancellation so the transcript closes and the session returns to idle. While the
+		session runs, this abandons the batches its sub-agents wait on instead."""
 		async with self._operation_lock:
 			if self.state is SessionState.RUNNING:
+				if self._subagent_runner.cancel_pending():
+					return True
 				raise SessionConflict("a run is already active")
 			approval = self.transcript.pending_approval
 			if approval is None:

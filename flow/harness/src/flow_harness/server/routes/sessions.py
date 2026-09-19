@@ -287,8 +287,6 @@ def create_sessions_router(
 	async def run(request: Request, sid: str, req: RunRequest, wait: bool = False):
 		session = _get(resolve_store(request), sid)
 		handle = await session.run(req.message, attachment_ids=req.attachments)
-		if handle.status == "steered":
-			return {"status": "steered"}
 		return await _finish(session, handle, wait)
 
 	@router.post("/sessions/{sid}/resume")
@@ -447,12 +445,11 @@ def create_sessions_router(
 
 
 async def _finish(session: Session, handle: RunHandle, wait: bool) -> dict:
-	"""Fire-and-forget by default; `?wait=true` drains the run and returns its summary."""
-	if not wait:
-		return {"status": "started"}
-	assert handle.task is not None  # a "started" handle always carries its task
-	await handle.task
-	return _summary(session, handle.from_seq)
+	"""The handle's status; with `?wait=true`, a started run is drained and summarized."""
+	if wait and handle.task is not None:
+		await handle.task
+		return _summary(session, handle.from_seq)
+	return {"status": handle.status}
 
 
 def _summary(session: Session, from_seq: int) -> dict:

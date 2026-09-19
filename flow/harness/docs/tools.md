@@ -53,7 +53,7 @@ Paths for `read`, `write`, `edit`, and `grep` are resolved from `cwd`. With `FLO
 
 The child's events go into the session's own log, each tagged with `subagent_id`: the id of the tool call that started the child. The session's transcript skips tagged rows, so a rewind never lands inside a child, and the child's usage counts toward the session's totals. In-process `before_tool_call` and `after_tool_call` hooks passed to the run apply inside its children too.
 
-`subagent` calls made in the same reply run at the same time, up to `max_concurrent_subagents` (default 5); their hooks and gates are checked in order first, then the batch runs, while calls of other tools keep running one at a time in order. Abort stops every running child. A child that ends without a final answer, by error, abort, turn limit or budget, returns an error result naming the reason, and the session carries on. A gated tool inside a child cannot be answered yet: the child's batch is cancelled and it ends the same way.
+`subagent` calls made in the same reply run at the same time, up to `max_concurrent_subagents` (default 5); their hooks and gates are checked in order first, then the batch runs, while calls of other tools keep running one at a time in order. Abort stops every running child. A child that ends without a final answer, by error, abort, turn limit or budget, returns an error result naming the reason, and the session carries on. A gated tool inside a child pauses only the child: the session keeps running, and the batch is answered through `resume` with its `approval_seq`, or abandoned with `cancel_pending`, like the session's own; a denied or cancelled child ends the same way.
 
 ## Bundled tools
 
