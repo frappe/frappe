@@ -283,6 +283,7 @@ import ColorField from "./ColorField.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import { useSelectedField } from "./useSelectedField";
 import { is_merge_image } from "../../fieldtypes";
+import { clamp_column_width } from "../../utils";
 
 const { selected_field, set_field_prop } = useSelectedField();
 
@@ -387,7 +388,7 @@ function remove_table_column(idx) {
 watch(selected_field, () => (expanded_col.value = null));
 
 function set_width(col, value) {
-	col.width = Math.max(5, Math.min(100, parseInt(value) || 10));
+	col.width = clamp_column_width(value);
 }
 
 let expanded_col = ref(null);
