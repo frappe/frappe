@@ -125,10 +125,9 @@ import ToggleRow from "./inspector/ToggleRow.vue";
 import InspectorSection from "./inspector/InspectorSection.vue";
 import ColorInput from "./inspector/ColorInput.vue";
 import DeskControl from "./DeskControl.vue";
-import { useStore } from "../stores";
 
 let store = inject("$store");
-let { print_format, letterhead } = useStore();
+let { print_format, letterhead } = store;
 let { typst_blockers, has_typst_block } = store;
 
 // ── custom css ─────────────────────────────────────────────

@@ -99,7 +99,6 @@
 
 <script setup>
 import { computed, inject } from "vue";
-import { useStore } from "../../stores";
 import { section_of } from "../../layout";
 import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
 import SectionPropertiesPanel from "./SectionPropertiesPanel.vue";
@@ -120,7 +119,7 @@ function save_named_version() {
 		__("Save")
 	);
 }
-let { letterhead, layout, print_format } = useStore();
+let { letterhead, layout, print_format } = store;
 
 let selected_field = computed(() => store.selected_field.value);
 let selected_count = computed(

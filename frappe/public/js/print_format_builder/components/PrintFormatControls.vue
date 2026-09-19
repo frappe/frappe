@@ -414,7 +414,6 @@ import {
 	FIELD_PLUCK_KEYS,
 } from "../utils";
 import BlockCard from "./BlockCard.vue";
-import { useStore } from "../stores";
 import { column_of } from "../layout";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
 
@@ -446,7 +445,7 @@ function focus_search() {
 
 // store
 let store = inject("$store");
-let { meta, layout, print_format, letterhead } = useStore();
+let { meta, layout, print_format, letterhead } = store;
 
 // ── blocks tab items ──────────────────────────────────────
 const page_break_block = [

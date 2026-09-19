@@ -27,12 +27,12 @@
 </template>
 
 <script setup>
-import { useStore } from "../stores";
-import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { ref, computed, inject, onMounted, onUnmounted, watch } from "vue";
 
 const emit = defineEmits(["close"]);
 
-let { print_format, layout, store } = useStore();
+let store = inject("$store");
+let { print_format, layout, letterhead } = store;
 
 let preview_loaded = ref(false);
 let iframe = ref(null);
@@ -40,14 +40,14 @@ let pdf_url = ref(null);
 let render_seq = 0;
 let render_abort = null;
 
-let docname = computed(() => store.value.preview_doc_name);
+let docname = computed(() => store.preview_doc_name.value);
 let doctype = computed(() => print_format.value.doc_type);
 
 // draft/cancelled documents aren't printable unless Print Settings allows it (see
 // printview.validate_print_for_docstatus) — asking the server for a preview would
 // only bounce back a permission error, so skip the round trip and say so directly.
 let preview_doc_docstatus = computed(() =>
-	store.value.preview_doc?.name === docname.value ? store.value.preview_doc?.docstatus : null
+	store.preview_doc.value?.name === docname.value ? store.preview_doc.value?.docstatus : null
 );
 let unprintable_reason = computed(() => {
 	const docstatus = preview_doc_docstatus.value;
@@ -71,12 +71,12 @@ async function render() {
 	}
 	preview_loaded.value = false;
 	const params = {
-		print_format: store.value.get_preview_format_doc(),
+		print_format: store.get_preview_format_doc(),
 		doctype: doctype.value,
 		name: docname.value,
 	};
-	if (store.value.letterhead) {
-		params.letterhead = store.value.letterhead.name;
+	if (letterhead.value) {
+		params.letterhead = letterhead.value.name;
 	}
 	try {
 		const res = await fetch(
@@ -121,12 +121,9 @@ function set_pdf_url(next) {
 }
 
 // docstatus arrives async and can resolve after docname already triggered a render
-watch([docname, () => store.value.preview_doc?.docstatus], render, { flush: "post" });
+watch([docname, () => store.preview_doc.value?.docstatus], render, { flush: "post" });
 watch(
-	[
-		() => store.value.letterhead?.name,
-		() => JSON.stringify(store.value.get_preview_format_doc()),
-	],
+	[() => letterhead.value?.name, () => JSON.stringify(store.get_preview_format_doc())],
 	frappe.utils.debounce(render, 600),
 	{ flush: "post" }
 );

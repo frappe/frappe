@@ -70,7 +70,6 @@
 
 <script setup>
 import { computed, inject, onMounted, ref } from "vue";
-import { useStore } from "../../stores";
 import { get_image_dimensions } from "../../utils";
 import { zone_fields } from "../letterhead/zone_fields";
 import { open_html_editor } from "../../composables/useHtmlEditorDialog";
@@ -84,7 +83,7 @@ const props = defineProps({
 });
 
 const store = inject("$store");
-const { letterhead } = useStore();
+const { letterhead } = store;
 
 const F = computed(() => zone_fields(props.zone));
 const source_field = computed(() => F.value.source);

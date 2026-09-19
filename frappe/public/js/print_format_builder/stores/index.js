@@ -642,24 +642,3 @@ export function getStore(print_format_name) {
 		redo,
 	};
 }
-
-export function useStore() {
-	// inject store
-	let store = ref(inject("$store"));
-
-	// computed
-	let print_format = computed(() => {
-		return store.value.print_format;
-	});
-	let layout = computed(() => {
-		return store.value.layout;
-	});
-	let letterhead = computed(() => {
-		return store.value.letterhead;
-	});
-	let meta = computed(() => {
-		return store.value.meta;
-	});
-
-	return { print_format, layout, letterhead, meta, store };
-}

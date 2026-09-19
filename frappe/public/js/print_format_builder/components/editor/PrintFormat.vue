@@ -83,10 +83,10 @@ import LetterHeadZoneEditor from "../letterhead/LetterHeadZoneEditor.vue";
 import PrintFormatSection from "./PrintFormatSection.vue";
 import SectionInsert from "./SectionInsert.vue";
 import { DRAG_OPTIONS, setDragging, field_uid } from "../../utils";
-import { useStore } from "../../stores";
 import { computed, inject, watch, nextTick, onMounted, onUnmounted, ref } from "vue";
 
-let { layout, letterhead, print_format } = useStore();
+let store = inject("$store");
+let { layout, letterhead, print_format } = store;
 
 // one definition of "the header holds no fields" — the tree and the canvas
 // both key off it, so a deleted field (kept in the DOM as a tombstone) can't
@@ -95,7 +95,6 @@ let header_is_empty = computed(
 	() =>
 		!(layout.value.header?.columns || []).some((c) => (c.fields || []).some((f) => !f.remove))
 );
-let store = inject("$store");
 let header_selected = computed(() => store.selected_sections.value.includes(layout.value.header));
 
 let page_mm = ref([210, 297]);
