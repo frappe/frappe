@@ -682,22 +682,9 @@ class PrintFormatGenerator:
 		parts.extend(body_parts)
 		return "\n".join(parts) or None
 
-	_ZONE_SECTION_TEMPLATE = """\
-{%- import "templates/print_format/macros.html" as macros -%}
-{%- set justify_classes = {'space-between': 'row-col-space-between', 'space-evenly': 'row-col-space-evenly', 'center': 'row-col-center', 'right-end': 'row-col-right-end'} -%}
-{%- set ns = namespace(has_fields=false) -%}
-{%- for col in section.columns -%}{%- for df in col.get('fields', []) -%}{%- set ns.has_fields = true -%}{%- endfor -%}{%- endfor -%}
-{%- if ns.has_fields -%}
-{%- set col_gap = (section.gap if section.gap is defined and section.gap is not none else 20)|string + 'px' -%}
-<div class="section section-columns row {{ justify_classes.get(section.get('justify'), '') }}" style="gap:{{ col_gap }}">
-{%- for column in section.columns %}
-<div class="column col"{% if column.get('width') %} style="flex: {{ column.get('width')|float }} 1 0%"{% endif %}>
-{%- for df in column.get('fields', []) %}{{ macros.render_field(df, doc) }}{%- endfor %}
-</div>
-{%- endfor %}
-</div>
-{%- endif -%}
-"""
+	_ZONE_SECTION_TEMPLATE = (
+		'{%- import "templates/print_format/macros.html" as macros -%}{{ macros.render_zone(section, doc) }}'
+	)
 
 	def _render_zone_section(self, section: dict, doc) -> str:
 		"""Render a header/footer zone section dict to HTML for the Chrome overlay."""
@@ -709,7 +696,7 @@ class PrintFormatGenerator:
 		# _ZONE_SECTION_TEMPLATE is a hardcoded class-level string constant, not user input.
 		return frappe.render_template(
 			self._ZONE_SECTION_TEMPLATE, {"section": section, "doc": doc}
-		)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+		).strip()  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 
 	def _page_number_html(self, position: str) -> str:
 		align = self._ALIGN_MAP.get(position, "center")
