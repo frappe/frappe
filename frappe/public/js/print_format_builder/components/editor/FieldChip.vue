@@ -102,6 +102,7 @@
 import { computed, inject, nextTick, ref, watch } from "vue";
 import { sanitize_html } from "../../utils";
 import { useFieldStyles } from "./useFieldRoot";
+import { open_html_editor } from "../../composables/useHtmlEditorDialog";
 
 const props = defineProps(["df", "field_orientation"]);
 const store = inject("$store");
@@ -162,11 +163,12 @@ function edit_code({ title, key, field, clean }) {
 	d.show();
 }
 function edit_html() {
-	edit_code({
+	open_html_editor({
 		title: __("Edit HTML"),
-		key: "html",
-		field: { label: __("HTML"), options: "HTML" },
-		clean: (html) => sanitize_html(html),
+		initial_html: props.df.html || "",
+		doctype: store.meta.value?.name,
+		docname: store.preview_doc_name.value,
+		on_save: (html) => (props.df.html = html),
 	});
 }
 function edit_typst() {
