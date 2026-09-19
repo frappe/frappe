@@ -672,7 +672,7 @@ class TestTypstTranslation(IntegrationTestCase):
 	def test_style_props_match_the_javascript_mirror(self):
 		"""The client hint must grey out exactly what the server refuses."""
 		source = (Path(frappe.get_app_path("frappe")) / "public/js/print_format_builder/utils.js").read_text()
-		block = re.search(r"export const TYPST_STYLE_PROPS = new Set\(\[(.*?)\]\);", source, re.S)
+		block = re.search(r"const TYPST_STYLE_PROPS = new Set\(\[(.*?)\]\);", source, re.S)
 		self.assertIsNotNone(block)
 		self.assertEqual(set(re.findall(r'"([^"]+)"', block.group(1))), set(TRANSLATABLE_STYLE_PROPS))
 
