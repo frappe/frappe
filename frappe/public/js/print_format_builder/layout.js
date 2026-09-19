@@ -21,6 +21,12 @@ export function* layout_nodes(layout) {
 	}
 }
 
+export function zone_of(layout, section) {
+	if (section && section === layout?.header) return "header";
+	if (section && section === layout?.footer) return "footer";
+	return null;
+}
+
 export function column_of(layout, df) {
 	for (const zone of zones(layout)) {
 		for (const col of columns(zone)) if (col.fields?.includes(df)) return col;
