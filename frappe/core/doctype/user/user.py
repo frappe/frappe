@@ -719,15 +719,16 @@ class User(Document):
 		validate_email_address(email.strip(), True)
 
 	def after_rename(self, old_name, new_name, merge=False):
-		frappe.enqueue(
-			"frappe.core.doctype.user.user.rewrite_owner_fields",
-			old_name=old_name,
-			new_name=new_name,
-			commit=True,
-			queue="long",
-			timeout=36000,
-			enqueue_after_commit=True,
-		)
+		if not frappe.flags.in_personal_data_deletion:
+			frappe.enqueue(
+				"frappe.core.doctype.user.user.rewrite_owner_fields",
+				old_name=old_name,
+				new_name=new_name,
+				commit=True,
+				queue="long",
+				timeout=36000,
+				enqueue_after_commit=True,
+			)
 
 		if frappe.db.exists("Notification Settings", old_name):
 			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)

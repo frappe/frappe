@@ -293,8 +293,11 @@ class PersonalDataDeletionRequest(Document):
 			if commit:
 				frappe.db.commit()
 
-		frappe.rename_doc("User", email, anon, force=True, show_alert=False)
-		# the rename only queues this; the address has to be gone before the status below
+		frappe.flags.in_personal_data_deletion = True
+		try:
+			frappe.rename_doc("User", email, anon, force=True, show_alert=False)
+		finally:
+			frappe.flags.in_personal_data_deletion = False
 		rewrite_owner_fields(email, anon, commit=commit)
 		self.db_set("status", "Deleted")
 
