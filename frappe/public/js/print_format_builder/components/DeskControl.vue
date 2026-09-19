@@ -32,3 +32,9 @@ watch(
 	}
 );
 </script>
+
+<style scoped>
+:deep(.form-group) {
+	margin-bottom: 0;
+}
+</style>

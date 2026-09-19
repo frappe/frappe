@@ -640,10 +640,6 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 	max-width: 320px;
 }
 
-.canvas-doc-picker :deep(.form-group) {
-	margin: 0;
-}
-
 .canvas-doc-picker :deep(.form-control) {
 	font-size: var(--text-sm);
 	height: 28px;
