@@ -492,14 +492,15 @@ class GetFieldsDialog {
 			primary_action_label: __("Update"),
 			primary_action: () => this.update(),
 			on_page_show: () => {
+				this.freeze_list_height();
 				frappe.utils.setup_search(this.dialog.$body, ".unit-checkbox", ".label-area");
 				// only on a form without fields, or it would re-tick fields removed on purpose
 				!this.existing_rows.length && this.select_mandatory();
 			},
 		});
 		this.make_header();
-		// fixed height, so the dialog does not resize while the search filters rows
-		this.dialog.get_field("fields").$wrapper.addClass("h-80 overflow-y-auto");
+		// caps a long list at 20rem, while a short one still hugs its rows
+		this.dialog.get_field("fields").$wrapper.addClass("max-h-80 overflow-y-auto");
 		this.dialog.show();
 	}
 
@@ -576,6 +577,13 @@ class GetFieldsDialog {
 	// MultiCheck listens for "change", so its get_value() stays in sync
 	set_all_checked(checked) {
 		this.dialog.$wrapper.find(":checkbox").prop("checked", checked).trigger("change");
+	}
+
+	// the search hides rows with display:none, so the list would resize on every
+	// keystroke: pin it to the height it has before the first one
+	freeze_list_height() {
+		const $wrapper = this.dialog.get_field("fields").$wrapper;
+		$wrapper.height($wrapper.height());
 	}
 
 	update() {
