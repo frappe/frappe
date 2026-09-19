@@ -383,10 +383,10 @@ class TestQuery(IntegrationTestCase):
 				fields=["name"],
 				filters={"module.app_name": "frappe"},
 			).get_sql(),
-			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` `tabModule Def_1` ON `tabModule Def_1`.`name`=`tabDocType`.`module` WHERE `tabModule Def_1`.`app_name`='frappe'",
+			"SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` `tab_Module Def_1` ON `tab_Module Def_1`.`name`=`tabDocType`.`module` WHERE `tab_Module Def_1`.`app_name`='frappe'",
 		)
 
-		query = "SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` `tabModule Def_1` ON `tabModule Def_1`.`name`=`tabDocType`.`module` WHERE `tabModule Def_1`.`app_name` LIKE 'frap%'"
+		query = "SELECT `tabDocType`.`name` FROM `tabDocType` LEFT JOIN `tabModule Def` `tab_Module Def_1` ON `tab_Module Def_1`.`name`=`tabDocType`.`module` WHERE `tab_Module Def_1`.`app_name` LIKE 'frap%'"
 		query = query.replace("LIKE", "ILIKE" if frappe.db.db_type == "postgres" else "LIKE")
 		self.assertQueryEqual(
 			frappe.qb.get_query(
@@ -768,7 +768,7 @@ class TestQuery(IntegrationTestCase):
 				"DocType",
 				fields=["name", "module.app_name as app_name"],
 			).get_sql(),
-			"SELECT `tabDocType`.`name`,`tabModule Def_1`.`app_name` `app_name` FROM `tabDocType` LEFT JOIN `tabModule Def` `tabModule Def_1` ON `tabModule Def_1`.`name`=`tabDocType`.`module`",
+			"SELECT `tabDocType`.`name`,`tab_Module Def_1`.`app_name` `app_name` FROM `tabDocType` LEFT JOIN `tabModule Def` `tab_Module Def_1` ON `tab_Module Def_1`.`name`=`tabDocType`.`module`",
 		)
 
 	# fields now has strict validation, so this test is not valid anymore
