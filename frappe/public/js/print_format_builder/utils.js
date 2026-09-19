@@ -555,6 +555,21 @@ const SAFE_HTML_ATTRS = new Set([
 	"cellspacing",
 ]);
 
+export function strip_unsafe_html(html) {
+	const root = document.createElement("div");
+	root.innerHTML = frappe.dom.remove_script_and_style(html || "");
+	for (const el of root.querySelectorAll("*")) {
+		for (const attr of [...el.attributes]) {
+			const name = attr.name.toLowerCase();
+			const unsafe_url =
+				["href", "src", "action", "formaction"].includes(name) &&
+				/^\s*javascript:/i.test(attr.value);
+			if (name.startsWith("on") || unsafe_url) el.removeAttribute(attr.name);
+		}
+	}
+	return root.innerHTML;
+}
+
 export function sanitize_html(html) {
 	const root = document.createElement("div");
 	root.innerHTML = frappe.dom.remove_script_and_style(html || "");

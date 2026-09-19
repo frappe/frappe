@@ -1,4 +1,4 @@
-import { render_jinja_html, sanitize_html } from "../utils";
+import { render_jinja_html, sanitize_html, strip_unsafe_html } from "../utils";
 
 const PREVIEW_CSS = `
 	* { box-sizing: border-box; }
@@ -43,7 +43,7 @@ export function open_html_editor({ title, initial_html, on_save, doctype, docnam
 		],
 		primary_action_label: __("Save"),
 		primary_action: () => {
-			on_save(sanitize_html(d._html_ctrl?.get_value?.() ?? ""));
+			on_save(strip_unsafe_html(d._html_ctrl?.get_value?.() ?? ""));
 			d.hide();
 		},
 		on_page_show: mount,
