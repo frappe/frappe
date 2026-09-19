@@ -301,15 +301,8 @@ let has_lines = computed(
 		table_header.value === "plain"
 );
 
-function set_cell_padding(v) {
-	if (v === null) delete selected_field.value.table_cell_padding;
-	else selected_field.value.table_cell_padding = v;
-}
-
-function set_table_radius(v) {
-	if (v === null) delete selected_field.value.table_radius;
-	else selected_field.value.table_radius = v;
-}
+const set_cell_padding = (v) => set_field_prop("table_cell_padding", v);
+const set_table_radius = (v) => set_field_prop("table_radius", v);
 
 const LOOKS = {
 	grid: { style: "lined", bordered: true },
@@ -335,10 +328,8 @@ let table_look = computed(
 
 function set_table_look(look) {
 	const { style, bordered } = LOOKS[look];
-	if (style === "lined") delete selected_field.value.table_style;
-	else selected_field.value.table_style = style;
-	if (bordered) delete selected_field.value.table_bordered;
-	else selected_field.value.table_bordered = bordered;
+	set_field_prop("table_style", style, "lined");
+	set_field_prop("table_bordered", bordered, true);
 }
 
 let child_value_fields = computed(() => {
