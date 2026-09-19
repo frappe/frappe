@@ -401,6 +401,22 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 	# PrintFormatGenerator: section / zone rendering
 	# ------------------------------------------------------------------ #
 
+	def test_overlay_zone_wrapper_matches_the_html_page(self):
+		"""The Chrome overlay must nest a zone exactly like print_format.html: one
+		section div carrying the zone class, and a footer labelled as a footer."""
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		section = {"columns": [{"fields": [{"fieldtype": "Data", "fieldname": "description", "label": "D"}]}]}
+		generator = PrintFormatGenerator(pf.name, todo)
+		html = generator._render_zone_section(section, todo, "document-footer-content")
+
+		self.assertIn('class="section document-footer-content"', html)
+		self.assertEqual(html.count("document-footer-content"), 1)
+		self.assertNotIn("document-header-content", html)
+		self.assertNotIn('class="section "', generator._render_zone_section(section, todo))
+
 	def test_zone_section_renders_field_values(self):
 		"""_render_zone_section should produce HTML containing field values from doc."""
 		from frappe.utils.print_format_generator import PrintFormatGenerator

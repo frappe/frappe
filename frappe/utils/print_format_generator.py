@@ -672,16 +672,16 @@ class PrintFormatGenerator:
 				'<div class="letter-head">' + frappe.render_template(letterhead_html, ctx) + "</div>"
 			)
 		if layout_template:
+			zone_class = "document-header-content" if is_header else "document-footer-content"
 			if isinstance(layout_template, str):
 				# layout_template is persisted header/footer HTML from the stored Print Format document.
 				zone_html = frappe.render_template(
 					layout_template, ctx
 				)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 				if zone_html:
-					zone_html = '<div class="document-header-content">' + zone_html + "</div>"
+					zone_html = f'<div class="{zone_class}">{zone_html}</div>'
 			else:
 				# Section object — same markup the HTML page emits, wrapper class included
-				zone_class = "document-header-content" if is_header else "document-footer-content"
 				zone_html = self._render_zone_section(layout_template, ctx["doc"], zone_class)
 			if zone_html:
 				body_parts.append(zone_html)
