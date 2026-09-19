@@ -601,7 +601,7 @@ user_invitation = {
 expose_discovery_source = True
 
 # An island draws a desk Dashboard or Dashboard Chart whose `__onload.island` is
-# {"name": <a name in ui_islands>, "props": {...}}. Desk draws the document
+# {"name": <an island name>, "props": {...}}. Desk draws the document
 # itself while the key is absent. An app sets the key from its own onload
 # handler, so it decides how it recognizes its documents:
 #
@@ -611,9 +611,9 @@ expose_discovery_source = True
 # 	if doc.someapp_dashboard:
 # 		doc.set_onload("island", {"name": "someapp.dashboard", "props": {...}})
 
-# A `Page` of type "Frappe UI" is drawn by an island too, and registers itself:
-# no hook, and no entry in `ui_islands`. Framework builds those islands for
-# every app on the bench, in one build, after any app's assets are built.
+# A `Page` of type "Frappe UI" is drawn by an island too, and needs no line of
+# Python. Framework builds those islands for every app on the bench, in one
+# build, after any app's assets are built.
 after_app_build = "frappe.bundler.build_page_islands"
 
 
