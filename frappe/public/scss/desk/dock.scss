@@ -255,37 +255,6 @@ body.dock-open .dock {
 	}
 }
 
-// The standard-items band on the body sidebar: search, notifications and background tasks, directly
-// under the header and above the module's own items, behind a divider.
-//
-// The divider is drawn only when the band has something in it: each row hides itself until it has
-// something to say (background tasks until there is a task, notifications until they load), and a
-// rule under an empty band would read as a stray line.
-.body-sidebar .standard-items-band {
-	&:not(:empty) {
-		padding-bottom: 4px;
-		margin-bottom: 4px;
-		width: 100%;
-	}
-}
-
-// The sidebar keeps everything it owns. The dock used to carry the header's menu, the user button,
-// search and notifications, and the sidebar's own copies were switched off to stop the pair saying
-// the same thing twice down one edge. That traded on the dock being the surface that is always
-// there. It is not -- it is a push at the edge away -- so a sidebar stripped to bare labels would be
-// a permanent surface missing its furniture for the sake of a hidden one, and nothing is taken off
-// it here. Nor does `dock-active` change where the sidebar starts: the dock floats over it.
-
-// Nothing collapses the sidebar on a desktop any more. Collapsing was the docked shape -- the panel
-// left the screen and the dock's edge handle was the way back -- and with the panel permanent there
-// is neither a state to collapse into nor a handle to return from. Below md it is still a drawer, so
-// this is scoped rather than deleted.
-@include media-breakpoint-up(md) {
-	.body-sidebar .sidebar-resize-handle {
-		display: none;
-	}
-}
-
 // mirror the body sidebar: the dock goes away on mobile, where there is no pointer to push an edge
 // with and no room to float a tray over the page.
 @include media-breakpoint-down(sm) {
