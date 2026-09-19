@@ -196,11 +196,11 @@
 .pfb-html-ctrl-host .CodeMirror-scroll {
 	height: 100%;
 }
-.pfb-html-preview-content {
+.pfb-html-preview-frame {
 	flex: 1;
-	overflow-y: auto;
-	padding: 16px 20px;
-	font-size: var(--text-sm);
+	width: 100%;
+	border: none;
+	background: #fff;
 }
 
 /* ── Image / Barcode element rows ───────────────────────── */

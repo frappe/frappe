@@ -314,6 +314,7 @@ import ColorField from "./ColorField.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import ImageUploadControl from "./ImageUploadControl.vue";
 import { get_image_dimensions } from "../../utils";
+import { open_html_editor } from "../../composables/useHtmlEditorDialog";
 import { align_opts } from "./align_opts";
 import { useSelectedField } from "./useSelectedField";
 import SelectRow from "./SelectRow.vue";
@@ -446,72 +447,12 @@ function set_image_url(url) {
 let current_align = computed(() => selected_field.value?.align ?? "left");
 let current_label_justify = computed(() => selected_field.value?.label_justify ?? "");
 
-function open_html_split_dialog({ title, initial_html, on_save }) {
-	let d = new frappe.ui.Dialog({
-		title,
-		size: "extra-large",
-		fields: [
-			{
-				fieldname: "split_layout",
-				fieldtype: "HTML",
-				options: `<div class="pfb-html-split">
-					<div class="pfb-html-split-pane pfb-html-split-editor">
-						<div class="pfb-html-split-label">${__("HTML")}</div>
-						<div class="pfb-html-ctrl-host"></div>
-					</div>
-					<div class="pfb-html-split-divider"></div>
-					<div class="pfb-html-split-pane pfb-html-split-preview">
-						<div class="pfb-html-split-label">${__("Preview")}</div>
-						<div class="pfb-html-preview-content"></div>
-					</div>
-				</div>`,
-			},
-		],
-		primary_action_label: __("Save"),
-		primary_action: () => {
-			const val = d._html_ctrl?.get_value?.() ?? "";
-			on_save(frappe.dom.remove_script_and_style(val));
-			d.hide();
-		},
-	});
-	d.show();
-
-	setTimeout(() => {
-		const host = d.$wrapper.find(".pfb-html-ctrl-host")[0];
-		const preview = d.$wrapper.find(".pfb-html-preview-content")[0];
-		if (!host) return;
-
-		const ctrl = frappe.ui.form.make_control({
-			parent: host,
-			df: {
-				fieldtype: "Code",
-				fieldname: "html_code",
-				options: "HTML",
-				show_label: false,
-			},
-			render_input: true,
-		});
-		ctrl.set_value(initial_html || "");
-		d._html_ctrl = ctrl;
-
-		if (preview) preview.innerHTML = initial_html || "";
-
-		ctrl.load_lib().then(() => {
-			ctrl.editor.on(
-				"change",
-				frappe.utils.debounce(() => {
-					if (preview) preview.innerHTML = ctrl.editor.getValue();
-				}, 150)
-			);
-			ctrl.editor.resize();
-		});
-	}, 200);
-}
-
 function edit_html_field() {
-	open_html_split_dialog({
+	open_html_editor({
 		title: __("Edit HTML"),
 		initial_html: selected_field.value?.html || "",
+		doctype: store.meta.value?.name,
+		docname: store.preview_doc_name.value,
 		on_save: (html) => {
 			selected_field.value.html = html;
 		},
