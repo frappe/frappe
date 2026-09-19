@@ -72,7 +72,7 @@ export const FRAPPE_UI_MOLECULES = [
 	"ListGroup",
 ]
 // frappe-ui/experimental: families parked outside the stable root export
-export const FRAPPE_UI_EXPERIMENTAL_COMPONENTS = ["Calendar", "CodeEditor", "ListView", "TextEditor"]
+export const FRAPPE_UI_EXPERIMENTAL_COMPONENTS = ["Calendar", "ListView", "TextEditor"]
 
 // frappe-ui/charts
 export const FRAPPE_UI_CHARTS = [

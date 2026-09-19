@@ -78,10 +78,19 @@
               },
               "idx": {
                 "type": "number"
+              },
+              "over": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/interface-1440702529-583-1942-1440702529-0-7292"
+                }
               }
             },
             "additionalProperties": {}
           }
+        },
+        "loading": {
+          "type": "boolean"
         },
         "config": {
           "type": "object",
@@ -96,7 +105,8 @@
                 "enum": [
                   "Day",
                   "Week",
-                  "Month"
+                  "Month",
+                  "Agenda"
                 ]
               }
             },
@@ -105,7 +115,8 @@
               "enum": [
                 "Day",
                 "Week",
-                "Month"
+                "Month",
+                "Agenda"
               ]
             },
             "isEditMode": {
@@ -159,6 +170,87 @@
         "events"
       ],
       "additionalProperties": false
+    },
+    "interface-1440702529-583-1942-1440702529-0-7292": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "name": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "fromDate": {
+          "type": "string"
+        },
+        "toDate": {
+          "type": "string"
+        },
+        "fromTime": {
+          "type": "string"
+        },
+        "toTime": {
+          "type": "string"
+        },
+        "fromDateTime": {
+          "type": "string"
+        },
+        "toDateTime": {
+          "type": "string"
+        },
+        "participant": {
+          "type": "string"
+        },
+        "venue": {
+          "type": "string"
+        },
+        "color": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "isFullDay": {
+          "type": "boolean"
+        },
+        "isDraft": {
+          "type": "boolean"
+        },
+        "isDeclined": {
+          "type": "boolean"
+        },
+        "startTime": {
+          "type": "number"
+        },
+        "endTime": {
+          "type": "number"
+        },
+        "hallNumber": {
+          "type": "number"
+        },
+        "idx": {
+          "type": "number"
+        },
+        "over": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/interface-1440702529-583-1942-1440702529-0-7292"
+          }
+        }
+      },
+      "additionalProperties": {}
     }
   }
 }

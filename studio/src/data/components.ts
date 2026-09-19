@@ -162,15 +162,6 @@ export const COMPONENTS: FrappeUIComponents = {
 			modelValue: true,
 		},
 	},
-	CodeEditor: {
-		name: "CodeEditor",
-		title: "Code Editor",
-		icon: LucideCode,
-		initialState: {
-			modelValue: "console.log('Hello, world!')",
-			language: "javascript",
-		},
-	},
 	ContextMenu: {
 		name: "ContextMenu",
 		title: "Context Menu",

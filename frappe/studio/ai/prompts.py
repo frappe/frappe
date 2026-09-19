@@ -36,7 +36,6 @@ INPUTS:
 - Slider: {modelValue: [number] (single thumb) | [number, number] (range), min: 0, max: 100, step: 1, label: "string", size: "sm|md"}
 - FileUploader: {label: "string", fileTypes: "['image/*']"}
 - TextEditor: {modelValue: "string", editable: true, fixedMenu: true}
-- CodeEditor: {modelValue: "string", language: "javascript|python|json|html|css|sql|markdown|yaml|xml", label: "string", placeholder: "string"}
 - Duration: {modelValue: number (total seconds), label: "string", placeholder: "string", format: "short(DEFAULT)|long|colon"}
 - FormLabel: {label: "string"} (only for inputs that lack a built-in label prop, e.g. TextEditor; most inputs above already take label directly — prefer that)
 

@@ -60,7 +60,6 @@ import {
 } from "frappe-ui"
 import {
 	Calendar,
-	CodeEditor,
 	CommandPalette,
 	CommandPaletteItem,
 	ListView,
@@ -141,7 +140,6 @@ export function registerGlobalComponents(app: App) {
 	app.component("Textarea", Textarea)
 	app.component("Tooltip", Tooltip)
 	app.component("Tree", Tree)
-	app.component("CodeEditor", CodeEditor)
 	app.component("ListView", ListView)
 	app.component("TextEditor", TextEditor)
 	app.component("CommandPalette", CommandPalette)

@@ -33,7 +33,6 @@ const DATA_DEPENDENT = [
 const FLOATING = ["Dialog", "Tooltip", "ContextMenu"]
 // These need fixes in frappe-ui before they can render or select reliably in isolation.
 const KNOWN_COMPONENT_FAILURES = [
-	"CodeEditor",
 	"MultiSelect",
 	"Slider",
 	"TableMultiSelect",
