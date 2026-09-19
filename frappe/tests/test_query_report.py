@@ -175,8 +175,11 @@ class TestQueryReport(IntegrationTestCase):
 
 	def test_owner_opens_prepared_report_by_name_without_prepared_report_role(self):
 		from frappe.core.doctype.prepared_report.prepared_report import create_json_gz_file
+		from frappe.core.doctype.user_permission.test_user_permission import create_user
 
 		frappe.set_user("Administrator")
+		owner = create_user("test_prepared_report_owner@example.com", "Website Manager")
+		reader = create_user("test_prepared_report_reader@example.com", "Website Manager")
 		report = frappe.get_doc(
 			{
 				"doctype": "Report",
@@ -204,7 +207,7 @@ class TestQueryReport(IntegrationTestCase):
 		other_report.insert(ignore_permissions=True)
 
 		# the ready notification links a custom report's prepared report to its reference report
-		with self.set_user("test1@example.com"):
+		with self.set_user(owner.name):
 			prepared_report = frappe.get_doc(
 				{"doctype": "Prepared Report", "report_name": custom_report.name}
 			).insert(ignore_permissions=True)
@@ -216,7 +219,7 @@ class TestQueryReport(IntegrationTestCase):
 			with self.assertRaises(frappe.PermissionError):
 				run(other_report.name, filters)
 
-		with self.set_user("test2@example.com"), self.assertRaises(frappe.PermissionError):
+		with self.set_user(reader.name), self.assertRaises(frappe.PermissionError):
 			run(report.name, filters)
 
 	def test_xlsx_data_with_multiple_datatypes(self):
