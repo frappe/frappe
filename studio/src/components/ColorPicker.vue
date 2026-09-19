@@ -15,6 +15,7 @@
 						{ label: 'Tokens', value: 'tokens' },
 					]"
 					v-model="activeTab"
+					class="[&_[data-slot=tab-list]]:px-5 [&_[data-slot=tab-list]]:py-2"
 				></Tabs>
 				<div
 					v-show="!showTokens || activeTab === 'custom'"
@@ -98,12 +99,7 @@
 					</div>
 				</div>
 				<div v-show="showTokens && activeTab === 'tokens'" class="p-1">
-					<ListBox
-						:borderLess="true"
-						:options="tokens"
-						@update:modelValue="emit('update:modelValue', $event)"
-						class="h-[184px]"
-					>
+					<ListBox :borderLess="true" :options="tokens" @update:modelValue="selectToken" class="h-[184px]">
 						<template #option-prefix="{ option }">
 							<div class="mr-2 size-4 rounded-4 border" :style="{ background: option.value }"></div>
 						</template>
@@ -165,6 +161,11 @@ const togglePopover = () => {
 }
 
 const emit = defineEmits(["update:modelValue"])
+
+const selectToken = (value?: string | null) => {
+	emit("update:modelValue", value)
+	isOpen.value = false
+}
 
 const colors = [
 	"#FFB3E6",
