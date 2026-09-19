@@ -11,15 +11,14 @@ import { useSelection } from "../composables/useSelection";
 import { useLayoutMutations } from "../composables/useLayoutMutations";
 import { useClipboard } from "../composables/useClipboard";
 import { useSnippets } from "../composables/useSnippets";
-import { watch, ref, inject, computed, nextTick } from "vue";
+import { watch, ref, computed, nextTick } from "vue";
+import { useDraftSave } from "./useDraftSave";
+import { useVersions } from "./useVersions";
 
 export function getStore(print_format_name) {
 	// variables
 	let print_format = ref(null);
-	let versions = ref([]);
 	let viewing_version = ref(null);
-	let show_history = ref(false);
-	let edit_state = null;
 	let letterhead = ref(null);
 	let meta = ref(null);
 	let layout = ref(null);
@@ -215,77 +214,67 @@ export function getStore(print_format_name) {
 			],
 		};
 	}
-	// count, not a flag — autosave and a manual save can overlap
-	let saving_count = ref(0);
-	let save_failed = ref(false);
-	let has_draft = ref(false);
-	let save_status = computed(() =>
-		save_failed.value
-			? "failed"
-			: saving_count.value > 0
-			? "saving"
-			: has_draft.value
-			? "draft"
-			: "saved"
-	);
-	// bumped by every apply/discard so a reply from an autosave that was already in
-	// flight can't put the draft back after it was cleared
-	let draft_epoch = 0;
-	function call_format(method, args = {}) {
-		return frappe.call("frappe.printing.doctype.print_format.print_format." + method, {
-			name: print_format_name,
-			...args,
-		});
+	const {
+		undo,
+		redo,
+		reset: reset_history,
+		pause: pause_history,
+		can_undo,
+		can_redo,
+	} = useLayoutHistory(layout, clear_selection);
+
+	function clear_selection() {
+		selected_field.value = null;
+		selected_section.value = null;
 	}
-	// an autosave already in flight will move `modified` on; wait it out so an
-	// explicit write reads the fresh stamp instead of being rejected as stale
-	function after_autosave() {
-		return Promise.resolve(autosave_promise).catch(() => {});
-	}
-	// a write that replaces the loaded format: freeze so an edit made during the
-	// round trip isn't silently erased when fetch() swaps the layout, then re-arm
-	// autosave the way a deliberate reset should
-	function replace_from_server(freeze_label, request, message) {
-		frappe.dom.freeze(freeze_label);
-		draft_epoch++;
-		applying = true;
-		return after_autosave()
-			.then(request)
-			.then(() => fetch())
-			.then(() => show_history.value && load_versions().catch(() => {}))
-			.then(() => {
-				autosave_stopped = false;
-				save_failed.value = false;
-				frappe.show_alert({ message, indicator: "green" });
-			})
-			.finally(() => {
-				applying = false;
-				frappe.dom.unfreeze();
-			});
-	}
-	function save_changes() {
-		saving_count.value++;
-		return replace_from_server(
-			__("Applying…"),
-			() =>
-				save_letterhead().then(() =>
-					call_format("apply_draft", {
-						data: get_preview_format_doc(),
-						modified: print_format.value.modified,
-					})
-				),
-			__("Applied")
-		)
-			.catch(() => (save_failed.value = true))
-			.finally(() => saving_count.value--);
-	}
-	// the letterhead goes first so apply-time validation reads its live state
-	function save_letterhead() {
-		if (!letterhead.value?._dirty) return Promise.resolve();
-		return frappe
-			.call("frappe.client.save", { doc: letterhead.value })
-			.then((r) => (letterhead.value = r.message));
-	}
+	const {
+		saving_count,
+		save_failed,
+		has_draft,
+		save_status,
+		call_format,
+		after_autosave,
+		replace_from_server,
+		save_changes,
+		save_letterhead,
+		autosave,
+	} = useDraftSave({
+		name: print_format_name,
+		print_format,
+		letterhead,
+		layout,
+		dirty,
+		viewing_version,
+		get_preview_format_doc,
+		fetch,
+		after_replace: () => history_panel.refresh_if_open(),
+	});
+	const history_panel = useVersions({
+		name: print_format_name,
+		print_format,
+		dirty,
+		viewing_version,
+		call_format,
+		after_autosave,
+		replace_from_server,
+		get_preview_format_doc,
+		adopt_layout,
+		pause_history,
+		clear_selection,
+	});
+	const {
+		versions,
+		show_history,
+		load_versions,
+		save_version,
+		delete_version,
+		restore_version,
+		view_version,
+		forget_version,
+		exit_version,
+		toggle_history,
+		close_history,
+	} = history_panel;
 	function discard_draft() {
 		forget_version();
 		return replace_from_server(
@@ -294,59 +283,6 @@ export function getStore(print_format_name) {
 			__("Draft discarded")
 		);
 	}
-	// stops after a failure so the error dialog doesn't loop; a manual save re-arms it
-	let autosave_stopped = false;
-	// one autosave at a time — a second would carry the same `modified` as the one
-	// still in flight and be rejected as stale. An apply/discard moves the timestamp
-	// too, so a queued autosave waits for it rather than firing against the old one.
-	let autosave_inflight = false;
-	// the in-flight autosave, so an explicit save can wait for it to settle
-	let autosave_promise = null;
-	let applying = false;
-	function autosave_changes() {
-		if (!dirty.value || autosave_stopped || viewing_version.value) return;
-		if (applying || autosave_inflight || document.body.classList.contains("pfb-dragging")) {
-			autosave();
-			return;
-		}
-		autosave_inflight = true;
-		dirty.value = false;
-		saving_count.value++;
-		const epoch = draft_epoch;
-		autosave_promise = call_format("save_draft", {
-			data: get_preview_format_doc(),
-			modified: print_format.value.modified,
-		})
-			.then((r) => {
-				// sync only the stamp — the user may have kept editing mid-request
-				const was_dirty = dirty.value;
-				print_format.value.modified = r.message;
-				if (epoch !== draft_epoch) return;
-				has_draft.value = true;
-				if (!was_dirty) nextTick(() => (dirty.value = false));
-				if (letterhead.value && letterhead.value._dirty) {
-					return frappe
-						.call("frappe.client.save", { doc: letterhead.value })
-						.then((res) => {
-							letterhead.value.modified = res.message.modified;
-							letterhead.value._dirty = false;
-						});
-				}
-			})
-			.then(() => (save_failed.value = false))
-			.catch(() => {
-				// an apply landed first and moved the timestamp on — not a failure
-				if (epoch !== draft_epoch) return;
-				autosave_stopped = true;
-				dirty.value = true;
-				save_failed.value = true;
-			})
-			.always(() => {
-				autosave_inflight = false;
-				saving_count.value--;
-			});
-	}
-	const autosave = frappe.utils.debounce(autosave_changes, 3000);
 	function get_preview_format_doc() {
 		const snapshot = clone_plain(layout.value);
 		serialize_layout(snapshot);
@@ -389,109 +325,12 @@ export function getStore(print_format_name) {
 			}
 		});
 	}
-
-	function load_versions() {
-		return call_format("get_versions").then((r) => (versions.value = r.message || []));
-	}
-	function save_version(label) {
-		return after_autosave()
-			.then(() =>
-				call_format("save_version", {
-					label,
-					data: get_preview_format_doc(),
-					modified: print_format.value.modified,
-				})
-			)
-			.then(() => load_versions())
-			.then(() => frappe.show_alert({ message: __("Version saved"), indicator: "green" }));
-	}
-	function delete_version(version) {
-		return call_format("delete_version", { version })
-			.then(() => {
-				if (viewing_version.value?.name === version) exit_version();
-				return load_versions();
-			})
-			.then(() => frappe.show_alert({ message: __("Version deleted"), indicator: "green" }));
-	}
-	function restore_version(version) {
-		forget_version();
-		return replace_from_server(
-			__("Restoring…"),
-			() =>
-				call_format("restore_version", { version, modified: print_format.value.modified }),
-			__("Version restored")
-		);
-	}
-	const VERSION_FIELDS = [
-		"font",
-		"font_size",
-		"page_number",
-		"show_label_colon",
-		"margin_top",
-		"margin_bottom",
-		"margin_left",
-		"margin_right",
-		"label_color",
-		"value_color",
-		"css",
-		"pdf_generator",
-	];
 	function adopt_layout(resolved) {
 		layout.value = resolved || get_default_layout();
 		layout.value.sections = layout.value.sections.filter((s) => !s.remove);
 		layout.value.header = migrate_to_section(layout.value.header);
 		layout.value.footer = migrate_to_section(layout.value.footer);
 	}
-	function show_version_fields(fields) {
-		adopt_layout(frappe.utils.parse_json(fields.format_data));
-		VERSION_FIELDS.forEach((f) => (print_format.value[f] = fields[f]));
-		selected_field.value = null;
-		selected_section.value = null;
-		nextTick(() => (dirty.value = false));
-	}
-	function view_version(version) {
-		const fields_ready = version.published
-			? frappe.db.get_doc("Print Format", print_format_name)
-			: call_format("get_version_fields", { version: version.name }).then((r) => r.message);
-		return fields_ready.then((fields) => {
-			if (!edit_state) {
-				edit_state = get_preview_format_doc();
-				pause_history(true);
-			}
-			viewing_version.value = version;
-			show_version_fields(fields);
-		});
-	}
-	function forget_version() {
-		edit_state = null;
-		viewing_version.value = null;
-		pause_history(false);
-	}
-	function exit_version() {
-		if (!edit_state) return;
-		show_version_fields(edit_state);
-		forget_version();
-	}
-	function toggle_history() {
-		if (show_history.value) close_history();
-		else show_history.value = true;
-	}
-	function close_history() {
-		exit_version();
-		show_history.value = false;
-	}
-
-	const {
-		undo,
-		redo,
-		reset: reset_history,
-		pause: pause_history,
-		can_undo,
-		can_redo,
-	} = useLayoutHistory(layout, () => {
-		selected_field.value = null;
-		selected_section.value = null;
-	});
 
 	watch(
 		layout,

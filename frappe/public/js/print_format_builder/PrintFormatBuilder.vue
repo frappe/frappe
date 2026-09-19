@@ -520,7 +520,7 @@ const doc_picker_df = computed(() => {
 });
 
 function pick_initial_doc() {
-	const st = $store.value;
+	const st = $store;
 	const meta = st.meta.value;
 	const saved = st.persisted_preview_doc_name();
 	const auto_select = () =>
@@ -547,7 +547,7 @@ function pick_initial_doc() {
 watch(doc_picker_df, (df, was) => df && !was && pick_initial_doc());
 
 function warn_before_unload(e) {
-	const st = $store.value;
+	const st = $store;
 	if (st.dirty.value || st.saving_count.value > 0 || st.save_failed.value) e.preventDefault();
 }
 
