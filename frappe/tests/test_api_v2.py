@@ -1549,6 +1549,8 @@ class TestCollaborationWritesV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 202, response.json)
 		frappe.db.rollback()
 		self.assertFalse(frappe.db.exists("ToDo", name))
+
+
 class TestSessionAPIV2(FrappeAPITestCase):
 	version = "v2"
 
