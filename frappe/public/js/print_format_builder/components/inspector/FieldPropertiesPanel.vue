@@ -78,13 +78,19 @@ const sections = computed(() =>
 	})).filter((sec) => sec.rows.length || sec.after.length)
 );
 
+const MIXED = Symbol("mixed");
 function value(row) {
 	const values = fields.value.map((df) => (row.get ? row.get(df, ctx) : df[row.key]));
-	return values.every((v) => v === values[0]) ? values[0] : row.mixed ?? "";
+	return values.every((v) => v === values[0]) ? values[0] : MIXED;
 }
 function row_props(row) {
 	const props = row.props ? row.props(fields.value[0], ctx) : {};
-	return row.bare ? props : { ...props, modelValue: value(row) };
+	if (row.bare) return props;
+	const v = value(row);
+	if (v !== MIXED) return { ...props, modelValue: v };
+	const mixed = { ...props, modelValue: row.mixed ?? "" };
+	if (row.component.props?.placeholder) mixed.placeholder = __("Mixed");
+	return mixed;
 }
 function each(fn) {
 	return (v) => fields.value.forEach((df) => fn(df, v, ctx));
