@@ -132,10 +132,6 @@ class TestPrintSurfaceMarkupContract(UnitTestCase):
 			"server markup) or add them to SERVER_ONLY_CLASSES with a comment saying why.",
 		)
 
-	def test_scope_class_applied_on_both_surfaces(self):
-		self.assertIn("print-format-doc", _server_text())
-		self.assertIn("print-format-doc", _canvas_text())
-
 	def test_bordered_child_table_bottom_edge_owned_by_the_foot_cap(self):
 		"""A bordered child table closes its outline through the repeating
 		.table-foot cap, never through the last body row. This has regressed

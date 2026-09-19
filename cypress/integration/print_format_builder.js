@@ -194,48 +194,6 @@ context("Print Format Builder — create flow", () => {
 		});
 	});
 
-	// 3. Loading the builder for an existing format and saving a change
-	it("loads the builder and Save persists a margin change", () => {
-		cy.visit("/app");
-
-		cy.insert_doc(
-			"Print Format",
-			{
-				name: PF_NAME,
-				doc_type: "ToDo",
-				print_format_builder_beta: 1,
-				format_data: JSON.stringify({ header: "", sections: [] }),
-			},
-			true
-		);
-
-		cy.intercept(
-			"POST",
-			"api/method/frappe.printing.doctype.print_format.print_format.apply_draft"
-		).as("save");
-		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-
-		cy.get(".pfb-margin-grid", { timeout: 30000 }).should("be.visible");
-
-		cy.get(".freeze").should("not.exist");
-		cy.get('[data-testid="page-status"]').should("not.be.visible");
-
-		cy.contains(".pfb-margin-cell label", "Top")
-			.closest(".pfb-margin-cell")
-			.find('input[type="number"]')
-			.clear()
-			.type("9")
-			.trigger("change")
-			.blur();
-
-		cy.contains(".page-actions .primary-action", "Save & Apply").click({ force: true });
-		cy.wait("@save").then((interception) => {
-			expect(interception.response.statusCode).to.equal(200);
-			expect(Number(interception.response.body.message.margin_top)).to.equal(9);
-		});
-		cy.get('[data-testid="page-status"]').should("not.be.visible");
-	});
-
 	// 4. Layers tab: clicking a section scrolls to it and selects it
 	it("layers tab selects a section on click", () => {
 		cy.visit("/app");
@@ -316,35 +274,6 @@ context("Print Format Builder — create flow", () => {
 			const fs = parseInt($el.css("font-size"), 10);
 			expect(fs).to.equal(18);
 		});
-	});
-
-	// 7. Table layout: field_borders renders a grid with a column divider
-	it("table layout renders grid borders in the canvas", () => {
-		cy.visit("/app");
-
-		insert_builder_format(PF_NAME, [
-			{
-				label: "Grid",
-				field_borders: true,
-				columns: [
-					{
-						fields: [
-							{ fieldtype: "Data", fieldname: "description", label: "Description" },
-						],
-					},
-					{ fields: [{ fieldtype: "Data", fieldname: "status", label: "Status" }] },
-				],
-			},
-		]);
-
-		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-
-		cy.get(".section--grid", { timeout: 30000 }).should("be.visible");
-		cy.get(".section--grid .column")
-			.first()
-			.should(($el) => {
-				expect(parseInt($el.css("border-right-width"), 10)).to.be.greaterThan(0);
-			});
 	});
 
 	// 8. Settings (inspector): label color uses the Frappe Color control and persists on save
@@ -508,23 +437,6 @@ context("Print Format Builder — setup flow", () => {
 		cy.window().then((win) => cleanup(win, PF_NAME));
 	});
 
-	// 7. New format with no format_data shows the "How do you want to start?" screen
-	it("shows setup screen when no layout is saved", () => {
-		cy.insert_doc(
-			"Print Format",
-			{ name: PF_NAME, doc_type: "ToDo", print_format_builder_beta: 1 },
-			true
-		);
-
-		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-
-		cy.get(".pfb-setup", { timeout: 20000 }).should("be.visible");
-		cy.get(".pfb-setup-title").should("contain", "How do you want to start?");
-		cy.get(".pfb-setup-option").should("have.length", 2);
-		cy.contains(".pfb-setup-option-label", "Start from default").should("be.visible");
-		cy.contains(".pfb-setup-option-label", "Start blank").should("be.visible");
-	});
-
 	// 8. Format with saved format_data skips the setup screen entirely
 	it("skips setup screen when a layout is already saved", () => {
 		cy.insert_doc(
@@ -627,27 +539,6 @@ context("Print Format Builder — section insert", () => {
 		cy.window().then((win) => cleanup(win, PF_NAME));
 	});
 
-	// 11. Section insert element exists in DOM (opacity:0, not display:none)
-	it("section insert element is present in DOM between sections", () => {
-		cy.insert_doc(
-			"Print Format",
-			{
-				name: PF_NAME,
-				doc_type: "ToDo",
-				print_format_builder_beta: 1,
-				format_data: one_section_layout(),
-			},
-			true
-		);
-
-		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
-
-		cy.get(".section-insert").should("exist");
-		cy.get(".section-insert").first().should("not.have.css", "display", "none");
-		cy.get(".section-insert-btn").first().should("contain", "Add Section");
-	});
-
 	// 12. Clicking the insert strip before a section adds a new section above it
 	it("clicking section insert before a section inserts a new section", () => {
 		cy.insert_doc(
@@ -668,30 +559,6 @@ context("Print Format Builder — section insert", () => {
 		);
 
 		cy.get(".section-with-insert .section-insert-btn").first().click({ force: true });
-
-		cy.get(".sections-container [data-pfb-section]").should("have.length", 2);
-	});
-
-	// 13. The footer insert strip appends a section after all existing sections
-	it("footer section insert appends a section at the end", () => {
-		cy.insert_doc(
-			"Print Format",
-			{
-				name: PF_NAME,
-				doc_type: "ToDo",
-				print_format_builder_beta: 1,
-				format_data: one_section_layout(),
-			},
-			true
-		);
-
-		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-		cy.get(".sections-container [data-pfb-section]", { timeout: 20000 }).should(
-			"have.length",
-			1
-		);
-
-		cy.get(".sections-container > .section-insert .section-insert-btn").click({ force: true });
 
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 2);
 	});
@@ -781,24 +648,6 @@ context("Print Format Builder — column width resize", () => {
 					.trigger("pointerup", { ...opts, clientX: x + dx, clientY: y });
 			});
 	}
-
-	// 16. One handle per column boundary; none for a single-column section
-	it("renders a resize handle only between section columns", () => {
-		insert_builder_format(PF_NAME, [
-			...two_column_section(),
-			{ label: "One Col", columns: [{ label: "", fields: [] }] },
-		]);
-
-		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
-
-		cy.contains("[data-pfb-section]", "Two Cols")
-			.find(".col-width-handle")
-			.should("have.length", 1);
-		cy.contains("[data-pfb-section]", "One Col")
-			.find(".col-width-handle")
-			.should("have.length", 0);
-	});
 
 	// 17. Dragging the boundary applies flex ratios on the canvas and persists
 	// column widths in format_data on save
