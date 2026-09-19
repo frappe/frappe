@@ -694,9 +694,10 @@ class PrintFormatGenerator:
 				if "renderer" not in df:
 					self._prepare_field(df, section, eval_locals)
 		# _ZONE_SECTION_TEMPLATE is a hardcoded class-level string constant, not user input.
-		return frappe.render_template(
+		html = frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 			self._ZONE_SECTION_TEMPLATE, {"section": section, "doc": doc}
-		).strip()  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+		)
+		return html.strip()
 
 	def _page_number_html(self, position: str) -> str:
 		align = self._ALIGN_MAP.get(position, "center")
