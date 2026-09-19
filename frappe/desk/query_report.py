@@ -312,6 +312,7 @@ def _run(
 					)
 					if prepared_for != report_name and (
 						not prepared_for
+						or not frappe.db.exists("Report", prepared_for)
 						or get_reference_report(frappe.get_doc("Report", prepared_for)).name != report.name
 					):
 						frappe.has_permission("Prepared Report", "read", dn, throw=True)
