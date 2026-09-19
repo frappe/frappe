@@ -1,6 +1,8 @@
 import {
+	ZONE_KEYS,
 	clone_plain,
 	create_default_layout,
+	pluck,
 	serialize_layout,
 	typst_blockers_client,
 } from "../utils";
@@ -192,7 +194,7 @@ export function getStore(print_format_name) {
 			});
 	}
 	function migrate_to_section(value) {
-		if (value && typeof value === "object" && value.columns) return value;
+		if (value && typeof value === "object" && value.columns) return pluck(value, ZONE_KEYS);
 		const old_html = typeof value === "string" && value.trim() ? value : null;
 		return {
 			columns: [

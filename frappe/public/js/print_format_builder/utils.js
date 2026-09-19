@@ -389,6 +389,7 @@ export const FIELD_PLUCK_KEYS = [
 const ZONE_FIELD_PLUCK_KEYS = FIELD_PLUCK_KEYS.filter(
 	(key) => key !== "table_cell_padding" && key !== "table_radius"
 );
+export const ZONE_KEYS = ["columns", "gap", "justify", "field_orientation"];
 
 export function serialize_layout(layout) {
 	layout.sections = layout.sections
@@ -415,6 +416,7 @@ export function serialize_layout(layout) {
 
 	function clean_zone(zone) {
 		if (!zone || !zone.columns) return zone;
+		zone = pluck(zone, ZONE_KEYS);
 		zone.columns = zone.columns.map((column) => {
 			column.fields = column.fields
 				.filter((df) => !df.remove)
