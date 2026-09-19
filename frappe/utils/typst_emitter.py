@@ -17,6 +17,7 @@ import re
 
 import frappe
 from frappe import _
+from frappe.printing.fieldtypes import MERGE_IMAGE_FIELDTYPES, is_image_column
 from frappe.printing.layout import iter_nodes
 from frappe.utils.html_utils import unescape_html
 
@@ -1070,7 +1071,7 @@ class TypstEmitter:
 				(
 					mf.get("fieldname")
 					for mf in merged
-					if mf.get("fieldname") and mf.get("fieldtype") in ("Attach Image", "Attach")
+					if mf.get("fieldname") and mf.get("fieldtype") in MERGE_IMAGE_FIELDTYPES
 				),
 				None,
 			)
@@ -1078,7 +1079,7 @@ class TypstEmitter:
 			first_text = True
 			for mf in merged:
 				fieldname = mf.get("fieldname")
-				if not fieldname or mf.get("fieldtype") in ("Attach Image", "Attach"):
+				if not fieldname or mf.get("fieldtype") in MERGE_IMAGE_FIELDTYPES:
 					continue
 				value = _text_value(row.get_formatted(fieldname))
 				if not value:
@@ -1109,9 +1110,7 @@ class TypstEmitter:
 			return f"#text({q(row.get('idx'))})"
 		fieldtype = col.get("fieldtype")
 		src = row.get(col.get("options") or "") if fieldtype == "Image" else row.get(fieldname)
-		if fieldtype in ("Attach Image", "Image") or (
-			fieldtype == "Attach" and frappe.utils.is_image(str(src or ""))
-		):
+		if is_image_column(fieldtype, src):
 			name = self._embed_image(src)
 			if not name:
 				return ""
@@ -1124,7 +1123,7 @@ class TypstEmitter:
 		img_type = next((mf.get("fieldtype") for mf in merged if mf.get("fieldname") == img_fn), None)
 		# a plain Attach can hold any file — embedding a PDF would abort the compile
 		name = None
-		if img_type != "Attach" or frappe.utils.is_image(src):
+		if is_image_column(img_type, src):
 			name = self._embed_image(src)
 		if name:
 			return (
