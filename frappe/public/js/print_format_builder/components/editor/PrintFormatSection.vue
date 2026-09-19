@@ -9,6 +9,7 @@
 				preview_doc && (!is_section_visible || !has_content),
 			'pfb-section-active': is_selected,
 			'pfb-layer-hover': store.hovered_node.value === section,
+			'section--preview': !!preview_doc,
 		}"
 		@click.stop="select_section"
 		@contextmenu="on_context_menu"
@@ -637,7 +638,7 @@ function remove_column(index) {
 
 /* ── Section preview actions pill (only visible in clean-preview, hidden in edit) ── */
 .section-preview-actions {
-	display: none; /* shown via .pfb-clean-preview :deep() override */
+	display: none;
 	position: absolute;
 	bottom: calc(100% + 2px);
 	right: 4px;
@@ -715,5 +716,46 @@ function remove_column(index) {
 }
 .section--grid-columns :deep(.field--chip) {
 	border-bottom: none;
+}
+
+/* ── Preview with a live record: editor chrome off, spacing matches the PDF ── */
+.section--preview .section-toolbar {
+	display: none;
+}
+
+.section--preview .print-format-section:not(.section--grid) {
+	border: 1px solid transparent;
+	border-radius: var(--radius);
+	overflow: visible;
+	transition: border-color 0.1s;
+}
+
+.print-format-section-container.section--preview {
+	margin-bottom: 0;
+}
+
+.section--preview .section-columns {
+	padding: 0;
+}
+
+.section--preview .drag-container {
+	min-height: 0;
+}
+
+.section--preview .drag-container:not(.section--grid *) {
+	gap: 0;
+}
+
+.section--preview .section-preview-actions {
+	display: flex;
+}
+
+.section--preview:hover .section-preview-actions,
+.section--preview.pfb-section-active .section-preview-actions {
+	opacity: 1;
+}
+
+.section--preview .section-title-display {
+	display: block;
 }
 </style>
