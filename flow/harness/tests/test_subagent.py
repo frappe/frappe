@@ -9,6 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
+from flow_harness.agent.agent import Agent
 from flow_harness.agent.loop import HookDecision, LoopInputs
 from flow_harness.events import AssistantMessage, ToolCall
 from flow_harness.model import ProviderError
@@ -528,6 +529,31 @@ async def test_abort_ends_a_child_waiting_for_approval(tmp_path):
 
 	assert [e["reason"] for e in _of(events, "run_ended", subagent="c1")] == ["paused", "aborted"]
 	assert _of(events, "run_ended")[0]["reason"] == "aborted" and session.state == "idle"
+
+
+async def test_the_agent_facade_answers_a_child_batch_and_streams_the_whole_run(tmp_path):
+	model = ScriptedModel(
+		{
+			"go": [AssistantMessage(content=[_spawn("c1", "risky")]), AssistantMessage(content="done")],
+			"risky": [AssistantMessage(content=[_bash("c2")]), AssistantMessage(content="ran it")],
+		}
+	)
+	agent = Agent(model=model, data_dir=str(tmp_path / "data"), cwd=str(tmp_path))
+	seen = []
+
+	async def stream():
+		async for event in agent.run("go"):
+			seen.append(event)
+
+	run = asyncio.create_task(stream())
+	await _until(lambda: any(e.type == "run_ended" and e.subagent_id == "c1" for e in seen))
+	approval = next(e for e in seen if e.type == "approval_required")
+	assert [e async for e in agent.resume({"c2": "Approve"}, approval_seq=approval.seq)] == []
+	await run
+
+	assert [e.reason for e in seen if e.type == "run_ended" and e.subagent_id == "c1"] == ["paused", "done"]
+	assert [e.reason for e in seen if e.type == "run_ended" and e.subagent_id is None] == ["done"]
+	assert seen[-1].type == "run_ended" and seen[-1].subagent_id is None
 
 
 async def test_answers_and_cancellation_are_refused_while_no_child_waits(tmp_path):

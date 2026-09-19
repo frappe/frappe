@@ -19,7 +19,7 @@ async for event in agent.run("Summarize this project"):
 | Method | Use |
 | --- | --- |
 | `run(message, before_tool_call=..., after_tool_call=...)` | Start a turn and yield events until it ends or pauses. |
-| `resume(answers, approval_seq=..., ...)` | Continue a paused approval batch. |
+| `resume(answers, approval_seq=..., ...)` | Continue a paused approval batch. A batch a running sub-agent waits on is answered too; its continuation shows in the run's stream. |
 | `compact(instructions=None)` | Replace older context with a durable summary. |
 | `abort()` | Ask the active run to stop; returns whether one was active. |
 | `await rewind(target_seq)` | Move the active conversation branch back to an earlier entry. |

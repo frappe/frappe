@@ -61,7 +61,9 @@ class Agent:
 		approval_seq: int | None = None,
 		**hooks: Any,
 	) -> AsyncIterator[AnyEvent]:
-		"""Continue a paused run; yields the event stream of the continuation."""
+		"""Continue a paused run; yields the event stream of the continuation. A batch a
+		running sub-agent waits on is answered too, and yields nothing: its continuation
+		stays in the run's own stream."""
 		return self._events(
 			lambda: self._session.resume(answers, approval_seq=approval_seq, model=self._model, **hooks)
 		)
@@ -90,6 +92,8 @@ class Agent:
 		next_event: asyncio.Task[AnyEvent | None] | None = None
 		try:
 			handle = await submit()
+			if handle.status == "resumed":  # the answers reached a child inside the run being streamed
+				return
 			if handle.status != "started":
 				raise RuntimeError("session already has an active run")
 			task = handle.task
@@ -109,7 +113,7 @@ class Agent:
 				if event is None:
 					raise RuntimeError("event subscriber fell behind")
 				yield event
-				if event.type == "run_ended":  # always the terminal event
+				if event.type == "run_ended" and event.subagent_id is None:  # the run's own terminal event
 					break
 		finally:
 			if next_event is not None and not next_event.done():
