@@ -374,6 +374,7 @@ class PrintFormatGenerator:
 		from frappe.www.printview import run_before_print
 
 		run_before_print(self.doc, self.print_settings.as_dict())
+		self.doc.absolute_value = self.print_format.absolute_value
 
 		page_width = page_size_mm(self.print_settings)[0]
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
