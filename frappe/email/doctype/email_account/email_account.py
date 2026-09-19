@@ -4,6 +4,7 @@
 import email.utils
 import functools
 import imaplib
+import inspect
 import time
 from datetime import datetime, timedelta
 from poplib import error_proto
@@ -30,13 +31,16 @@ class SentEmailInInbox(Exception):
 
 def cache_email_account(cache_name):
 	def decorator_cache_email_account(func):
+		signature = inspect.signature(func)
+
 		@functools.wraps(func)
 		def wrapper_cache_email_account(*args, **kwargs):
 			if not hasattr(frappe.local, cache_name):
 				setattr(frappe.local, cache_name, {})
 
 			cached_accounts = getattr(frappe.local, cache_name)
-			match_by = (kwargs.get("match_by_email"), kwargs.get("match_by_doctype"))
+			lookup = signature.bind(*args, **kwargs).arguments
+			match_by = (lookup.get("match_by_email"), lookup.get("match_by_doctype"))
 			if account := cached_accounts.get(match_by):
 				return account
 
