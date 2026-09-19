@@ -9,6 +9,7 @@
   "form_tab",
   "title",
   "route",
+  "banner_image",
   "published",
   "column_break_vdhm",
   "doc_type",
@@ -16,7 +17,8 @@
   "is_standard",
   "section_break_1",
   "introduction_text",
-  "web_form_fields",
+  "form_builder_tab",
+  "form_builder",
   "settings_tab",
   "access_control_section",
   "key_required",
@@ -51,9 +53,10 @@
   "section_break_4",
   "show_sidebar",
   "website_sidebar",
+  "web_form_fields_section",
+  "web_form_fields",
   "customization_tab",
   "button_label",
-  "banner_image",
   "column_break_3",
   "breadcrumbs",
   "section_break_5",
@@ -101,6 +104,7 @@
   },
   {
    "default": "0",
+   "description": "If enabled, Frappe exports this web form to its module folder with .py and .js files.",
    "fieldname": "is_standard",
    "fieldtype": "Check",
    "label": "Is standard",
@@ -180,13 +184,30 @@
    "fieldname": "introduction_text",
    "fieldtype": "Text Editor",
    "ignore_xss_filter": 1,
-   "label": "Introduction"
+   "label": "Description",
+   "placeholder": "Add a short description to tell users what this form is for..."
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "web_form_fields_section",
+   "fieldtype": "Section Break",
+   "label": "Fields"
   },
   {
    "fieldname": "web_form_fields",
    "fieldtype": "Table",
    "label": "Web Form Fields",
    "options": "Web Form Field"
+  },
+  {
+   "fieldname": "form_builder_tab",
+   "fieldtype": "Tab Break",
+   "label": "Form"
+  },
+  {
+   "fieldname": "form_builder",
+   "fieldtype": "HTML",
+   "label": "Form Builder"
   },
   {
    "description": "Set size in MB",
@@ -233,6 +254,7 @@
    "max_height": "140px"
   },
   {
+   "description": "For help see <a href=\"https://docs.frappe.io/framework/user/en/web-form/customization#custom-css\" target=\"_blank\" rel=\"noopener noreferrer\">Web Form Custom CSS</a>",
    "fieldname": "custom_css",
    "fieldtype": "Code",
    "label": "Custom CSS",
@@ -293,7 +315,7 @@
   {
    "fieldname": "form_tab",
    "fieldtype": "Tab Break",
-   "label": "Form"
+   "label": "Details"
   },
   {
    "fieldname": "section_break_1",
@@ -455,7 +477,7 @@
    "link_fieldname": "web_form"
   }
  ],
- "modified": "2026-06-18 15:58:18.453845",
+ "modified": "2026-09-11 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",

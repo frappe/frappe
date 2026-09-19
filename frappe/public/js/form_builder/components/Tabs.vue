@@ -52,6 +52,9 @@ function remove_tab(tab, event, force = false) {
 	// is remove_tab_btn is not visible then return
 	if (!event?.currentTarget?.offsetParent && !force) return;
 
+	// page 1 always exists — the header hides its delete button, but Backspace bypasses that
+	if (store.is_web_form && store.form.layout.tabs.length === 1) return;
+
 	if (store.is_customize_form && store.current_tab.df.is_custom_field == 0) {
 		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 		throw "cannot delete standard field";
@@ -61,16 +64,12 @@ function remove_tab(tab, event, force = false) {
 		delete_tab(tab, true);
 	} else {
 		confirm_dialog(
-			__("Delete Tab", null, "Title of confirmation dialog"),
-			__(
-				"Are you sure you want to delete the tab? All the sections along with fields in the tab will be moved to the previous tab.",
-				null,
-				"Confirmation dialog message"
-			),
+			store.tab_text.delete_title,
+			delete_tab_message(tab),
 			() => delete_tab(tab),
-			__("Delete tab", null, "Button text"),
+			store.tab_text.delete_button,
 			() => delete_tab(tab, true),
-			__("Delete entire tab with fields", null, "Button text")
+			store.tab_text.delete_with_fields
 		);
 	}
 }
@@ -85,6 +84,12 @@ function delete_tab(tab, with_children) {
 			if (!is_tab_empty(tab)) {
 				// move all sections from current tab to previous tab
 				prev_tab.sections = [...prev_tab.sections, ...tab.sections];
+			}
+		} else if (store.is_web_form) {
+			// no previous page, so move the fields forward into page 2
+			let next_tab = tabs[1];
+			if (!is_tab_empty(tab)) {
+				next_tab.sections = [...tab.sections, ...next_tab.sections];
 			}
 		} else {
 			// create a new tab and push sections to it
@@ -104,6 +109,19 @@ function delete_tab(tab, with_children) {
 	let prev_tab_index = index == 0 ? 0 : index - 1;
 	store.form.active_tab = tabs[prev_tab_index].df.name;
 	store.form.selected_field = null;
+}
+
+// page 1 has no previous page, so its fields move forward instead (see delete_tab)
+function delete_tab_message(tab) {
+	if (store.is_web_form && store.form.layout.tabs.indexOf(tab) === 0) {
+		return __(
+			"Are you sure you want to delete the page? All the sections along with fields in the page will be moved to the next page.",
+			null,
+			"Confirmation dialog message"
+		);
+	}
+
+	return store.tab_text.delete_message;
 }
 </script>
 
@@ -130,7 +148,10 @@ function delete_tab(tab, with_children) {
 					@dragend="dragged = false"
 					@dragover="drag_over(element)"
 				>
+					<!-- a Page Break row stores no label, so the builder numbers pages by position -->
+					<span v-if="store.is_web_form">{{ element.df.label }}</span>
 					<EditableInput
+						v-else
 						:text="element.df.label"
 						:placeholder="__('Tab Label')"
 						v-model="element.df.label"
@@ -138,7 +159,7 @@ function delete_tab(tab, with_children) {
 					<button
 						v-if="!store.is_layout_form"
 						class="remove-tab-btn btn btn-xs"
-						:title="__('Remove tab')"
+						:title="store.tab_text.remove_title"
 						@click.stop="remove_tab(element, $event)"
 						:hidden="store.read_only"
 					>
@@ -151,11 +172,11 @@ function delete_tab(tab, with_children) {
 			<button
 				class="new-tab-btn btn btn-xs"
 				:class="{ 'no-tabs': !has_tabs }"
-				:title="__('Add new tab')"
+				:title="store.tab_text.add_title"
 				@click="add_new_tab"
 			>
 				<div class="add-btn-text">
-					{{ __("Add tab") }}
+					{{ store.tab_text.add }}
 				</div>
 			</button>
 		</div>
@@ -187,7 +208,7 @@ function delete_tab(tab, with_children) {
 				</template>
 			</draggable>
 			<div class="empty-tab" :hidden="store.read_only || store.is_layout_form">
-				<div v-if="has_tabs">{{ __("Drag & Drop a section here from another tab") }}</div>
+				<div v-if="has_tabs">{{ store.tab_text.drop_hint }}</div>
 				<div v-if="has_tabs">{{ __("OR") }}</div>
 				<button class="btn btn-default btn-sm" @click="add_new_section">
 					{{ __("Add a new section") }}

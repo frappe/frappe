@@ -158,6 +158,8 @@ frappe.ui.form.on("DocType Layout", {
 				doctype: frm.doc.document_type,
 				customize: false,
 				is_layout: true,
+				// labelled "Parent Layout", so the label == "Form" fallback never matched
+				tab_fieldname: "tab_break_form",
 			});
 			frappe.layout_builder.docname = frm.doc.name;
 			frm._layout_builder_loading = false;

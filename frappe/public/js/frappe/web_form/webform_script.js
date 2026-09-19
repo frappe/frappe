@@ -87,8 +87,14 @@ frappe.ready(function () {
 
 				return df;
 			}
-			if (df.fieldtype === "Link") {
+			// Portal visitors cannot create documents, so never offer "Create a new ...".
+			if (["Link", "Table MultiSelect"].includes(df.fieldtype)) {
 				df.only_select = true;
+			}
+			// frappe.client.validate_link_and_fetch is not guest-allowed. The server
+			// still rejects unknown links when the form is saved.
+			if (df.fieldtype === "Table MultiSelect") {
+				df.ignore_link_validation = true;
 			}
 			if (["Attach", "Attach Image"].includes(df.fieldtype)) {
 				if (typeof df.options !== "object") {

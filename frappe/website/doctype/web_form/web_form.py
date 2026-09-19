@@ -107,6 +107,7 @@ class WebForm(WebsiteGenerator):
 
 		if not frappe.flags.in_import:
 			self.validate_fields()
+			self.validate_pages_have_fields()
 
 		self.validate_hidden_and_mandatory()
 		self.validate_guest_key_link_fields()
@@ -139,6 +140,33 @@ class WebForm(WebsiteGenerator):
 
 		if missing:
 			frappe.throw(_("Following fields are missing:") + "<br>" + "<br>".join(missing))
+
+	def validate_pages_have_fields(self):
+		"""The portal skips a page with no visible fields, so its Page Break does nothing."""
+		if empty_pages := self.get_empty_pages():
+			frappe.throw(
+				_("These pages have no visible fields, so the web form does not show them: {0}").format(
+					", ".join(frappe.bold(frappe.utils.escape_html(label)) for label in empty_pages)
+				)
+				+ "<br>"
+				+ _("Add fields to them or delete them."),
+				title=_("Empty Page"),
+			)
+
+	def get_empty_pages(self):
+		"""Labels of the empty pages. The first page always shows, so it is not checked."""
+		pages = []
+		for df in self.web_form_fields:
+			if df.fieldtype == "Page Break":
+				pages.append({"label": df.label, "has_fields": False})
+			elif pages and not df.hidden and df.fieldtype not in ("Section Break", "Column Break"):
+				pages[-1]["has_fields"] = True
+
+		return [
+			page["label"] or _("Page {0}").format(i + 2)
+			for i, page in enumerate(pages)
+			if not page["has_fields"]
+		]
 
 	def validate_hidden_and_mandatory(self):
 		if self.allow_incomplete:
@@ -563,6 +591,15 @@ def get_context(context):
 			if field.fieldtype == "Table":
 				field.fields = get_in_list_view_fields(
 					field.options, self.name, web_form_request_key, docname
+				)
+
+			if field.fieldtype == "Table MultiSelect":
+				field.fields = get_table_multiselect_fields(
+					field.options,
+					self.name,
+					web_form_request_key,
+					docname,
+					field.allow_read_on_all_link_options,
 				)
 
 			if field.fieldtype == "Link":
@@ -1141,6 +1178,15 @@ def get_form_data(
 			)
 			out.update({field.fieldname: field.fields})
 
+		if field.fieldtype == "Table MultiSelect":
+			field.fields = get_table_multiselect_fields(
+				field.options,
+				web_form_name,
+				web_form_request_key,
+				docname,
+				field.allow_read_on_all_link_options,
+			)
+
 		if field.fieldtype == "Link":
 			process_link_field(field, web_form_name, web_form_request_key, docname)
 
@@ -1178,7 +1224,8 @@ def get_in_list_view_fields(doctype, web_form_name=None, web_form_request_key=No
 
 	def get_field_df(fieldname):
 		if fieldname == "name":
-			return {"label": "Name", "fieldname": "name", "fieldtype": "Data"}
+			# these dfs also back the editable Table child-row grids, where name is not user-settable
+			return {"label": "Name", "fieldname": "name", "fieldtype": "Data", "hidden": 1}
 
 		df = meta.get_field(fieldname).as_dict()
 		if df.get("options") and df.get("fieldtype") == "Link":
@@ -1186,6 +1233,33 @@ def get_in_list_view_fields(doctype, web_form_name=None, web_form_request_key=No
 		return df
 
 	return [get_field_df(f) for f in fields]
+
+
+def get_table_multiselect_fields(
+	child_doctype, web_form_name=None, web_form_request_key=None, docname=None, allow_read_on_all=False
+):
+	"""Return the child table's Link docfield, with its options, for the portal control.
+
+	Not get_in_list_view_fields(): it drops non-list-view fields and turns Link into
+	Autocomplete, but the control needs the raw Link. The options ship with the page the
+	way a Table field's do, so the portal never searches from the browser.
+	"""
+	try:
+		meta = frappe.get_meta(child_doctype)
+	except frappe.DoesNotExistError:
+		# A stale field whose child table was deleted must not take the whole form down.
+		return []
+
+	link_field = next((df for df in meta.fields if df.fieldtype == "Link"), None)
+	if not link_field:
+		return []
+
+	df = link_field.as_dict()
+	if web_form_name:
+		df.link_options = get_link_options(
+			web_form_name, df.options, allow_read_on_all, web_form_request_key, docname
+		)
+	return [df]
 
 
 def is_guest_key_web_form(web_form):
@@ -1207,7 +1281,7 @@ def has_link_option(fields, doctype):
 	for f in fields:
 		if f.options == doctype:
 			return True
-		if f.fieldtype == "Table" and f.options:
+		if f.fieldtype in ("Table", "Table MultiSelect") and f.options:
 			child_doctype = f.options
 			if not isinstance(child_doctype, str) or not child_doctype.strip():
 				continue
@@ -1229,24 +1303,7 @@ def get_link_options(
 	docname=None,
 ):
 	web_form: WebForm = frappe.get_cached_doc("Web Form", web_form_name)
-
-	if web_form.login_required and frappe.session.user == "Guest":
-		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)
-	if getattr(web_form, "key_required", False):
-		get_web_form_request(
-			web_form.name,
-			web_form_request_key,
-			required=True,
-			allow_used=True,
-		)
-
-	ensure_guest_key_link_doctype_allowed(web_form, doctype)
-
-	if not web_form.published or not has_link_option(web_form.web_form_fields, doctype):
-		frappe.throw(
-			_("You don't have permission to access the {0} DocType.").format(doctype),
-			frappe.PermissionError,
-		)
+	authorize_link_access(web_form, doctype, web_form_request_key)
 
 	link_options, filters = [], {}
 	if web_form.login_required and not allow_read_on_all_link_options:
@@ -1275,6 +1332,30 @@ def get_link_options(
 
 		# Use the actual names as options without labels
 		return "\n".join([str(doc.value) for doc in link_options])
+
+
+def authorize_link_access(web_form, doctype, web_form_request_key=None):
+	"""Raise PermissionError unless this form may list records of `doctype`.
+
+	Callers query with permissions ignored, so this is the only gate.
+	"""
+	if web_form.login_required and frappe.session.user == "Guest":
+		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)
+	if getattr(web_form, "key_required", False):
+		get_web_form_request(
+			web_form.name,
+			web_form_request_key,
+			required=True,
+			allow_used=True,
+		)
+
+	ensure_guest_key_link_doctype_allowed(web_form, doctype)
+
+	if not web_form.published or not has_link_option(web_form.web_form_fields, doctype):
+		frappe.throw(
+			_("You don't have permission to access the {0} DocType.").format(doctype),
+			frappe.PermissionError,
+		)
 
 
 @redis_cache(ttl=60 * 60)

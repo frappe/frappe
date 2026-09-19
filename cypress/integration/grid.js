@@ -220,4 +220,40 @@ context("Grid", () => {
 
 		cy.get("@table").find(".grid-add-row").should("not.have.class", "hidden");
 	});
+
+	it("parks the Link dropdown on the grid and puts it back when it closes", () => {
+		cy.visit("/desk/contact/Test Contact");
+		cy.get('.frappe-control[data-fieldname="links"]').as("table");
+		cy.get("@table").scrollIntoView();
+		// the drift this guards against is the page scroll, so there has to be some;
+		// Desk scrolls .main-section, not the window, so window.scrollY stays 0
+		cy.get("@table").closest(".main-section").its("0.scrollTop").should("be.greaterThan", 100);
+
+		cy.get("@table").find(".grid-add-row").click();
+		// the cell renders its control only once the row turns editable
+		cy.get("@table").find('.grid-row[data-idx="1"] [data-fieldname="link_doctype"]').click();
+		cy.get("@table")
+			.find('.grid-row[data-idx="1"] [data-fieldname="link_doctype"] input')
+			.as("cell")
+			.type("User");
+
+		// the cell clips the dropdown, so it opens parked on the grid instead
+		cy.get("@table").find(".grid-field > .awesomplete").as("parked");
+		cy.get("@parked").find("ul").should("be.visible");
+
+		// parked, but still under the cell it belongs to
+		cy.get("@parked").then(($parked) => {
+			cy.get("@cell").then(($cell) => {
+				const parked = $parked[0].getBoundingClientRect();
+				const cell = $cell[0].getBoundingClientRect();
+				expect(parked.top - cell.top).to.be.within(0, 100);
+				expect(parked.left).to.be.closeTo(cell.left, 5);
+			});
+		});
+
+		cy.get("@cell").type("{esc}");
+
+		// closing puts it home again, leaving no empty wrapper behind
+		cy.get("@table").find(".grid-field > .awesomplete").should("not.exist");
+	});
 });
