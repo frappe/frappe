@@ -2021,3 +2021,103 @@ class TestAppSidebarLayer(IntegrationTestCase):
 			):
 				with self.assertRaises(frappe.ValidationError):
 					call()
+
+
+class TestPageItemRoute(IntegrationTestCase):
+	"""`Sidebar Item.route` is the path inside the page an item opens.
+
+	It is what tells apart the several destinations that share one page: `insights-dashboard` is
+	one `link_to` and one route per module's dashboard.
+	"""
+
+	PAGE = "permission-manager"
+
+	def setUp(self):
+		if not frappe.db.exists("Module Def", MODULE):
+			with no_developer_mode():
+				frappe.get_doc(
+					{"doctype": "Module Def", "module_name": MODULE, "app_name": "frappe"}
+				).insert()
+
+	def tearDown(self):
+		for name in frappe.get_all("Sidebar", filters={"module": MODULE}, pluck="name"):
+			frappe.delete_doc("Sidebar", name, force=True, ignore_permissions=True)
+		with no_developer_mode():
+			frappe.delete_doc("Module Def", MODULE, force=True, ignore_missing=True)
+
+	def sidebar_with(self, *items, **item):
+		doc = frappe.new_doc("Sidebar")
+		doc.module = MODULE
+		for row in items or (item,):
+			doc.append("items", {"type": "Link", "label": "Dashboard", **row})
+		with developer_mode():
+			return doc.insert(ignore_permissions=True)
+
+	def test_a_page_item_keeps_the_route_inside_the_page(self):
+		doc = self.sidebar_with(link_type="Page", link_to=self.PAGE, route="payroll")
+
+		self.assertEqual(frappe.get_doc("Sidebar", doc.name).items[0].route, "payroll")
+
+	def test_the_boot_payload_carries_the_route(self):
+		"""The desk decides which sidebar a route belongs to from this payload, so a route the
+		boot drops is a route no item can name."""
+		self.sidebar_with(link_type="Page", link_to=self.PAGE, route="payroll")
+
+		items = filter_sidebar_items(frappe.get_doc("Sidebar", MODULE).items, None, check_permission=False)
+
+		self.assertEqual(items[0]["route"], "payroll")
+
+	def test_a_route_that_leaves_the_page_is_refused(self):
+		"""The route is appended to the page's own, so anything that can address something
+		outside the page would point the item away from the page it links."""
+		for route in ("/payroll", "../payroll", "payroll/../../todo", "https://example.com"):
+			with self.subTest(route=route), self.assertRaises(frappe.ValidationError):
+				self.sidebar_with(link_type="Page", link_to=self.PAGE, route=route)
+
+	def test_a_query_or_a_fragment_is_not_a_route(self):
+		"""Neither is part of the path. `route_options` is where an item states query
+		parameters."""
+		for route in ("payroll?dashboard=1", "payroll#top"):
+			with self.subTest(route=route), self.assertRaises(frappe.ValidationError):
+				self.sidebar_with(link_type="Page", link_to=self.PAGE, route=route)
+
+	def test_only_a_page_item_has_a_route_inside_it(self):
+		"""Every other link type has one route per `link_to`, so a route on one names nothing
+		and is refused rather than ignored."""
+		with self.assertRaises(frappe.ValidationError):
+			self.sidebar_with(link_type="DocType", link_to="User", route="payroll")
+
+	def test_a_page_item_needs_no_route(self):
+		"""An item with none names the page itself, which is the shape every page item had
+		before this field existed."""
+		doc = self.sidebar_with(link_type="Page", link_to=self.PAGE)
+
+		self.assertFalse(frappe.get_doc("Sidebar", doc.name).items[0].route)
+
+	def test_the_route_is_part_of_the_identity(self):
+		"""Two items linking one page and naming different routes are two destinations. Sharing
+		an identity would make a customization about one apply to both."""
+		accounts = {"type": "Link", "link_type": "Page", "link_to": self.PAGE, "route": "accounts"}
+
+		self.assertNotEqual(item_key(accounts), item_key({**accounts, "route": "payments"}))
+		self.assertEqual(item_key(accounts), "Link|Page|permission-manager|||accounts")
+
+	def test_an_item_with_no_route_keeps_the_key_it_always_had(self):
+		"""`Custom Sidebar` rows on customer sites name items by this string, so the key of an
+		item written before the column existed has to survive the column byte for byte."""
+		self.assertEqual(
+			item_key({"type": "Link", "link_type": "Page", "link_to": self.PAGE}),
+			"Link|Page|permission-manager||",
+		)
+
+	def test_both_routes_survive_the_filter_that_drops_duplicates(self):
+		"""What the defect was: erpnext's Accounts sidebar holds two items linking
+		`insights-dashboard`, and the boot payload carried only the first."""
+		self.sidebar_with(
+			{"link_type": "Page", "link_to": self.PAGE, "route": "accounts"},
+			{"link_type": "Page", "link_to": self.PAGE, "route": "payments"},
+		)
+
+		items = filter_sidebar_items(frappe.get_doc("Sidebar", MODULE).items, None, check_permission=False)
+
+		self.assertEqual([item["route"] for item in items], ["accounts", "payments"])

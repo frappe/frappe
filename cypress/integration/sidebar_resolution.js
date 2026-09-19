@@ -16,7 +16,9 @@ context("Cold-entry sidebar resolution", () => {
 		cy.visit("/desk/todo");
 	});
 
-	// An entity's home is decided against this payload; `items` only ever needs `link_to` here.
+	// An entity's home is decided against this payload; `items` usually only needs `link_to`, so a
+	// link is written as one. A link written as an object is passed through as the item itself,
+	// which is how a case states `link_type` and `route`.
 	//
 	// A shell maps to its links, or to `{ links, computed, app }` when the test needs to say the
 	// sidebar was built from the module's contents rather than shipped by an app, or which app
@@ -42,7 +44,9 @@ context("Cold-entry sidebar resolution", () => {
 						module,
 						app,
 						computed,
-						items: links.map((link_to) => ({ link_to })),
+						items: links.map((link) =>
+							typeof link === "string" ? { link_to: link } : link
+						),
 					},
 				];
 			})
@@ -248,6 +252,75 @@ context("Cold-entry sidebar resolution", () => {
 			(resolved) => {
 				expect(resolved.sidebar).to.equal("Website");
 				expect(resolved.provisional).to.be.false;
+			}
+		);
+	});
+
+	// One page, several destinations. Insights ships the page `insights-dashboard` and every
+	// module's sidebar links it with a `route` naming that module's dashboard, so `link_to` alone
+	// reads nine routes as one entity owned by Insights, and each of them landed in the Insights
+	// sidebar.
+	const shared_page = {
+		sidebars: {
+			Insights: [{ link_to: "insights-dashboard", link_type: "Page" }],
+			Payroll: [{ link_to: "insights-dashboard", link_type: "Page", route: "payroll" }],
+			Selling: [{ link_to: "insights-dashboard", link_type: "Page", route: "selling" }],
+		},
+		pages: { "insights-dashboard": { module: "Insights" } },
+	};
+
+	it("sends a shared page to the sidebar whose item names the route", () => {
+		resolve({ ...shared_page, route: ["insights-dashboard", "payroll"] }, (resolved) => {
+			expect(resolved.sidebar).to.equal("Payroll");
+			expect(resolved.provisional).to.be.false;
+		});
+	});
+
+	it("moves off a sidebar whose item on that page names another route", () => {
+		resolve(
+			{ ...shared_page, route: ["insights-dashboard", "payroll"], persisted: "Selling" },
+			(resolved) => {
+				expect(resolved.sidebar).to.equal("Payroll");
+			}
+		);
+	});
+
+	// The item with no route of its own names the page and every route under it, so it is the one
+	// that answers where no item names more of the route. Longest match wins.
+	it("leaves a route no item names to the item that names the page", () => {
+		resolve({ ...shared_page, route: ["insights-dashboard", "hiring"] }, (resolved) => {
+			expect(resolved.sidebar).to.equal("Insights");
+		});
+	});
+
+	it("leaves the page itself to the module that owns it", () => {
+		resolve({ ...shared_page, route: ["insights-dashboard"] }, (resolved) => {
+			expect(resolved.sidebar).to.equal("Insights");
+		});
+	});
+
+	// `route_options` on a doctype item is a filter, one list view narrowed rather than a second
+	// destination, so it is no part of what the item links and the item links the doctype whatever
+	// the route asks for.
+	it("keeps a sidebar whose item filters the doctype the route names", () => {
+		resolve(
+			{
+				sidebars: {
+					Support: [
+						{
+							link_to: "ToDo",
+							link_type: "DocType",
+							route_options: '{"status": "Open"}',
+						},
+					],
+					Desk: ["ToDo"],
+				},
+				metas: { ToDo: { module: "Desk" } },
+				persisted: "Support",
+				route: ["List", "ToDo"],
+			},
+			(resolved) => {
+				expect(resolved.sidebar).to.equal("Support");
 			}
 		);
 	});

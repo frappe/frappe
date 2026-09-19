@@ -716,6 +716,7 @@ frappe.ui.Sidebar = class Sidebar {
 		const that = this;
 		let exact_match = null;
 		let path_match = null;
+		let path_match_length = 0;
 
 		const route_params = Object.assign(
 			{},
@@ -750,8 +751,12 @@ frappe.ui.Sidebar = class Sidebar {
 					if (String(route_params[key]) !== String(value)) filter_match = false;
 				});
 				if (filter_match) exact_match = $(this).parent();
-			} else {
+			} else if (clean_href.length > path_match_length) {
+				// Longest path wins, the same rule the resolver uses: an item naming a route
+				// inside a page and the item naming the page itself both match, and the one
+				// that accounts for more of the route is the one you are standing on.
 				path_match = $(this).parent();
+				path_match_length = clean_href.length;
 			}
 		});
 
@@ -1377,11 +1382,15 @@ frappe.ui.Sidebar = class Sidebar {
 	// breaks the tie among the sidebars that do not list it.
 	//
 	// Precedence:
-	//   1. The last selected sidebar, if it links the entity. Continuity outranks everything
+	//   1. The last selected sidebar, if it links the route. Continuity outranks everything
 	//      below, including the ownership claim: on a reload or a deep link you stay in the shell
 	//      you were working in instead of being moved. It is gated on the link so it can only
 	//      hold you where the entity is reachable; an unrelated shell is never kept.
-	//   2. An item flagged `is_default_module` names the module that owns the entity. This is the
+	//   2. An item naming a route inside the page. Several sidebars can link one page and mean
+	//      different destinations by it -- a page shared by every module's dashboard is one
+	//      entity and nine routes -- and the item's own `route` is the only thing that says
+	//      which. So this outranks both claims below, which speak for the entity.
+	//   2b. An item flagged `is_default_module` names the module that owns the entity. This is the
 	//      one authored signal, and it decides when nothing above holds you.
 	//   3. The entity's own module, but only while its sidebar lists the entity. A module that
 	//      can show the entity beats an unrelated sidebar that only curates a link to it. A module
@@ -1414,8 +1423,8 @@ frappe.ui.Sidebar = class Sidebar {
 	// be read yet, the results below it are flagged `provisional`: they are the best guess from
 	// link data alone, and set_workspace_sidebar re-resolves once the meta arrives. Without that
 	// second pass a cold entry would keep the step-4 answer permanently and the module would never
-	// be considered. Steps 1 and 2 read only boot data and localStorage, so they are final on the
-	// first pass.
+	// be considered. Steps 1, 2 and 2b read only boot data, the route and localStorage, so they
+	// are final on the first pass.
 	resolve_initial_sidebar(route) {
 		return this.resolve_sidebar_for(route, localStorage.getItem("selected_module"));
 	}
@@ -1438,9 +1447,13 @@ frappe.ui.Sidebar = class Sidebar {
 
 		const entity = this.entity_from_route(route);
 		const persisted = exists(sticky);
+		// Only a page owns what lies below it in the route, so only on a page route can an item
+		// name something narrower than the entity. Everywhere else the entity is the whole
+		// address and the route says nothing more. See route_depth.
+		const page_route = this.link_type_from_route(route) === "Page" ? route : null;
 		// Resolved up front rather than at step 4, because steps 1 and 3 are both membership
 		// tests against it: whether the sidebar links the entity is the same question either way.
-		const candidates = this.get_modules_linking(entity);
+		const candidates = this.get_modules_linking(entity, page_route);
 		// The entity's own shell, resolved once here and reused by steps 1, 3 and 3b. Step 1 asks
 		// only which app it belongs to; the later steps take the shell itself.
 		const from_module = this.sidebar_from_module(entity, route, candidates);
@@ -1471,7 +1484,23 @@ frappe.ui.Sidebar = class Sidebar {
 			};
 		}
 
-		// 2. The entity is explicitly owned by a module.
+		// 2. A sidebar item names a route inside the page.
+		//
+		//    It sits above ownership because it is the more specific claim: `is_default_module`
+		//    and the entity's module both speak for the entity, and every route under a shared
+		//    page has the same entity. Only the item's `route` says which of them this is, so
+		//    without this step every module's dashboard resolved to the sidebar of the app that
+		//    ships the page.
+		const named = page_route && exists(this.modules_naming_route(page_route)[0]);
+		if (named) {
+			return {
+				sidebar: named,
+				reason: `an item in "${named}" names this route inside the page`,
+				provisional: false,
+			};
+		}
+
+		// 2b. The entity is explicitly owned by a module.
 		const owner = exists(this.module_for_entity(entity));
 		if (owner) {
 			return {
@@ -1733,10 +1762,21 @@ frappe.ui.Sidebar = class Sidebar {
 
 	// Every module whose sidebar contains `link_to`. It ignores which app a link belongs to on
 	// purpose (see set_workspace_sidebar), so curated cross-app links resolve correctly.
-	get_modules_linking(link_to) {
+	//
+	// `route` narrows the test to the items that link the route on screen rather than the page
+	// above it: a page is one `link_to` and any number of routes, and a sidebar whose item names
+	// a different one does not link this route. Callers naming a route the desk has not gone to
+	// yet (open_workspace) pass nothing and get the plain `link_to` test.
+	get_modules_linking(link_to, route = null) {
 		let modules = [];
 		Object.entries(frappe.boot.module_sidebars || {}).forEach(([module, sidebar]) => {
-			if ((sidebar.items || []).some((item) => item.link_to === link_to)) {
+			if (
+				(sidebar.items || []).some(
+					(item) =>
+						item.link_to === link_to &&
+						(!route || this.route_depth(item, route) !== null)
+				)
+			) {
 				modules.push(module);
 			}
 		});
@@ -1748,6 +1788,46 @@ frappe.ui.Sidebar = class Sidebar {
 			modules = [owner, ...modules.filter((m) => m !== owner)];
 		}
 		return modules;
+	}
+
+	// How much of a desk route a sidebar item accounts for, or null when it does not name the
+	// route at all.
+	//
+	// Only a Page item can name something narrower than its `link_to`: the page owns everything
+	// below its own route, and `Sidebar Item.route` is the path inside it an item points at, so
+	// `{link_to: "insights-dashboard", route: "payroll"}` is /desk/insights-dashboard/payroll.
+	// Nine module sidebars link that one page and differ only in that path, so `link_to` alone
+	// reads nine routes as one entity.
+	//
+	// The number is how many route segments below the page the item accounts for, so an item
+	// with no route of its own answers 0: it names the bare page and every route under it, and
+	// loses to any item that names more of the route. A doctype item's `route_options` are
+	// filters on one list rather than a second destination, so they are no part of this.
+	route_depth(item, route) {
+		if (item.link_type !== "Page" || route[0] !== item.link_to) return null;
+		const segments = (item.route || "").split("/").filter(Boolean);
+		if (segments.length > route.length - 1) return null;
+		return segments.every((segment, i) => segment === route[i + 1]) ? segments.length : null;
+	}
+
+	// Every module with an item naming a route inside the page, the one naming most of it first.
+	// Unlike a plain link it is a claim on one destination rather than on the page, which is what
+	// lets a shared page resolve to the sidebar the route came from.
+	//
+	// An item with no route of its own is not a claim and is not here: it names the page, and the
+	// bare page belongs to the module that owns it.
+	modules_naming_route(route) {
+		return Object.entries(frappe.boot.module_sidebars || {})
+			.map(([module, sidebar]) => [
+				module,
+				Math.max(
+					0,
+					...(sidebar.items || []).map((item) => this.route_depth(item, route) || 0)
+				),
+			])
+			.filter(([, depth]) => depth > 0)
+			.sort(([, a], [, b]) => b - a)
+			.map(([module]) => module);
 	}
 
 	// The module an entity belongs to, or undefined. An entity can appear in several sidebars, and

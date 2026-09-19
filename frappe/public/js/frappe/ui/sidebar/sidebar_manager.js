@@ -294,7 +294,13 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	item_key(item) {
 		if (!this.is_linked(item)) return [item.type || "", item.label || ""].join("|");
 
-		return ["type", "link_type", "link_to", "url"].map((field) => item[field] || "").join("|");
+		const key = ["type", "link_type", "link_to", "url"]
+			.map((field) => item[field] || "")
+			.join("|");
+
+		// A Page item's route is part of where it points, and the server appends it the same
+		// way: only when it is set, so an item without one keeps the key it has always had.
+		return item.route ? `${key}|${item.route}` : key;
 	}
 
 	// Whether an entry leads anywhere. A section does not, which is what makes it a different

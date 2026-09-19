@@ -18,6 +18,7 @@ from frappe.desk.doctype.custom_sidebar.custom_sidebar import (
 from frappe.desk.doctype.sidebar.sidebar import item_key, resolve_sidebar, unlinked_key
 from frappe.desk.doctype.sidebar.test_sidebar import (
 	delete_page,
+	developer_mode,
 	make_page,
 	make_report,
 	no_developer_mode,
@@ -1135,3 +1136,65 @@ class TestAnAddedItemIsStillPermissionChecked(CustomizationTestCase):
 
 		frappe.set_user(MANAGER)
 		self.assertIn("https://example.com", [item["url"] for item in self.items()])
+
+
+class TestPageRouteIsPartOfTheIdentity(CustomizationTestCase):
+	"""Two items linking one page and naming different routes are two items to a layer.
+
+	erpnext's Accounts sidebar holds two of them, both linking `insights-dashboard`. Sharing an
+	identity dropped the second from the boot payload, and would make a layer's row about one of
+	them apply to the other.
+	"""
+
+	MODULE = "Test Page Route Module"
+
+	def routed_module(self):
+		"""A module whose sidebar is two routes into one page."""
+		module = sidebarless_module(self.MODULE)
+		module.__enter__()
+		self.addCleanup(module.__exit__, None, None, None)
+		self.addCleanup(self.wipe, self.MODULE)
+		page = make_page(self.MODULE, "test-route-page")
+		self.addCleanup(delete_page, page.name)
+
+		doc = frappe.new_doc("Sidebar")
+		doc.module = self.MODULE
+		for route in ("accounts", "payments"):
+			doc.append(
+				"items",
+				{
+					"type": "Link",
+					"link_type": "Page",
+					"link_to": page.name,
+					"label": route.title(),
+					"route": route,
+				},
+			)
+		with developer_mode():
+			doc.insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Sidebar", doc.name, force=True, ignore_permissions=True)
+
+	def routes(self):
+		return [item.get("route") for item in self.items(self.MODULE)]
+
+	def test_an_arrangement_keeps_both(self):
+		"""A saved arrangement names each item by its key, so a shared key would fold the two
+		into one row and lose the other on the next resolution."""
+		self.routed_module()
+
+		self.as_user()
+		items = self.items(self.MODULE)
+		self.assertEqual(len({item["key"] for item in items}), 2, "sanity: two identities")
+
+		save_sidebar_customization(self.MODULE, json.dumps(list(reversed(items))))
+
+		self.assertEqual(self.routes(), ["payments", "accounts"])
+
+	def test_hiding_one_route_leaves_the_other(self):
+		self.routed_module()
+
+		self.as_user()
+		payments = next(i for i in self.items(self.MODULE) if i["route"] == "payments")
+		save_sidebar_customization(self.MODULE, json.dumps([{**payments, "hidden": 1}]))
+
+		self.assertEqual(self.routes(), ["accounts"])

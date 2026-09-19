@@ -81,7 +81,12 @@ SIDEBAR_ITEM_FIELDS = (
 # identity would break the very delta that set it -- `narrow_reference` stores label and icon as
 # overrides for exactly that reason, and stores no filters, which is what makes filters stable
 # enough to identify by.
-LINKED_IDENTITY_FIELDS = ("type", "link_type", "link_to", "url", "filters")
+#
+# `route` is one of them for the same reason as `filters`: a Page item's route is the part of the
+# address the page owns, so two items linking one page and naming different routes are two
+# destinations. It is last because `item_key` appends it only when it is set, which is what keeps
+# every key written before the column existed byte for byte what it was.
+LINKED_IDENTITY_FIELDS = ("type", "link_type", "link_to", "url", "filters", "route")
 
 # Flags that mean the system is installing app content, not that a user is editing.
 #
@@ -121,6 +126,7 @@ class Sidebar(Document, DeskViews):
 		self.set_default_title()
 		self.validate_title_is_its_own()
 		self.validate_standard()
+		self.validate_item_routes()
 		self.clear_stored_keys()
 
 	def before_save(self):
@@ -192,6 +198,10 @@ class Sidebar(Document, DeskViews):
 		from frappe.desk.doctype.dock.dock import rename_sidebar_rows
 
 		rename_sidebar_rows(old_name, new_name)
+
+	def validate_item_routes(self):
+		for item in self.items:
+			validate_item_route(item)
 
 	def clear_stored_keys(self):
 		"""Blank the `key` column on every item.
@@ -663,6 +673,7 @@ ARRANGED_ITEM_FIELDS = (
 	"url",
 	"show_arrow",
 	"filters",
+	"route",
 	"route_options",
 	"open_in_new_tab",
 	"is_default_module",
@@ -809,6 +820,47 @@ def is_linked(item) -> bool:
 	return bool(item.get("link_to") or item.get("url"))
 
 
+def validate_item_route(item) -> None:
+	"""Refuse a `route` that is not a path inside the page.
+
+	`route` is the part of the address the page owns, appended to the page's own route, so an
+	item linking `insights-dashboard` with a route of `payroll` opens
+	`/desk/insights-dashboard/payroll`. Anything that can address something outside the page --
+	a scheme, a leading slash, a `..` segment -- would point the item away from the page it
+	links while still reading as part of it. A query or a fragment are refused for the opposite
+	reason: they are not part of the path at all, and `route_options` is where an item states
+	query parameters.
+
+	Only a Page item has anything below its link to name, so a route anywhere else is refused
+	rather than ignored: every other link type has one route per `link_to`.
+	"""
+	route = (item.get("route") or "").strip()
+	if not route:
+		return
+
+	if item.get("link_type") != "Page":
+		frappe.throw(
+			_("Only a Page item has a route inside it. {0} links a {1}.").format(
+				frappe.bold(item.get("label") or item.get("link_to")), item.get("link_type")
+			),
+			title=_("Route Not Allowed"),
+		)
+
+	if (
+		route.startswith("/")
+		or ":" in route.split("/")[0]
+		or ".." in route.split("/")
+		or "?" in route
+		or "#" in route
+	):
+		frappe.throw(
+			_("{0} is not a path inside a page. Give a relative path, with no query or fragment.").format(
+				frappe.bold(route)
+			),
+			title=_("Invalid Route"),
+		)
+
+
 def item_key(item) -> str:
 	"""Return the identity of one sidebar item. A customization row uses this to name the item
 	it refers to.
@@ -830,9 +882,15 @@ def item_key(item) -> str:
 	This function only reads columns the rows already carry, so importing the same JSON twice
 	produces the same identities. Standard child rows are hash-named and recreated on every
 	import, which is why a customization can never point at a row's `name`.
+
+	A linked row's key gains a segment for its `route` only when it has one, so an item that
+	names no route keeps the key it had before the column existed and the `Custom Sidebar` rows
+	pointing at it on customer sites still find it.
 	"""
 	if is_linked(item):
-		return "|".join(item.get(field) or "" for field in LINKED_IDENTITY_FIELDS)
+		*columns, route = (item.get(field) or "" for field in LINKED_IDENTITY_FIELDS)
+		key = "|".join(columns)
+		return f"{key}|{route}" if route else key
 
 	return item.get("key") or unlinked_key(item)
 
@@ -1690,6 +1748,7 @@ def get_sidebar_items(sidebar_names):
 			"url",
 			"show_arrow",
 			"filters",
+			"route",
 			"route_options",
 			"navigate_to_tab",
 			"open_in_new_tab",
@@ -1830,6 +1889,7 @@ def filter_sidebar_items(items, perm_ctx, check_permission: bool = True):
 			"url": item.url,
 			"show_arrow": item.show_arrow,
 			"filters": item.filters,
+			"route": item.route,
 			"route_options": item.route_options,
 			"tab": item.navigate_to_tab,
 			"open_in_new_tab": item.open_in_new_tab,

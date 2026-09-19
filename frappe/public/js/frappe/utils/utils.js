@@ -1482,17 +1482,15 @@ Object.assign(frappe.utils, {
 								route = "/desk/private/" + frappe.router.slug(workspaces.title);
 							}
 						}
-
-						if (first_link.route) {
-							route = first_link.route;
-						}
 					} else if (first_link.link_type === "URL") {
 						route = first_link.url;
-					} else if (first_link.link_type == "Page" && first_link.route_options) {
+					} else if (first_link.link_type == "Page" && first_link.route) {
+						// `route` is the path inside the page, so it goes on the end of the
+						// page's own route.
 						route = frappe.utils.generate_route({
 							type: first_link.link_type,
 							name: first_link.link_to,
-							route_options: JSON.parse(first_link.route_options),
+							route: `${first_link.link_to}/${first_link.route}`,
 						});
 					} else {
 						route = frappe.utils.generate_route({

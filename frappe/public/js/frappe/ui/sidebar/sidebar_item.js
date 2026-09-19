@@ -30,17 +30,14 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false) {
 		} else {
 			path = "/desk/private/" + frappe.router.slug(item.link_to);
 		}
-
-		if (item.route) {
-			path = item.route;
-		}
 	} else if (item.link_type === "URL") {
 		path = item.url;
-	} else if (item.link_type == "Page" && item.route_options) {
+	} else if (item.link_type == "Page" && item.route) {
+		// `route` is the path inside the page, so it goes on the end of the page's own route.
 		path = frappe.utils.generate_route({
 			type: item.link_type,
 			name: item.link_to,
-			route_options: JSON.parse(item.route_options),
+			route: `${item.link_to}/${item.route}`,
 		});
 	} else {
 		let args = {
