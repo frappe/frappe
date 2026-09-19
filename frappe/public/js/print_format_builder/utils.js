@@ -565,9 +565,9 @@ export function strip_unsafe_html(html) {
 	for (const el of root.querySelectorAll("*")) {
 		for (const attr of [...el.attributes]) {
 			const name = attr.name.toLowerCase();
+			const scheme = attr.value.replace(/[\u0000-\u0020\u007f-\u009f]/g, "").toLowerCase();
 			const unsafe_url =
-				URL_ATTRS.includes(name) &&
-				/^\s*(javascript|vbscript|data:text)/i.test(attr.value);
+				URL_ATTRS.includes(name) && /^(javascript|vbscript|data:text)/.test(scheme);
 			if (name.startsWith("on") || name === "srcdoc" || unsafe_url) {
 				el.removeAttribute(attr.name);
 			}
