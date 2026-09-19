@@ -364,9 +364,10 @@ context("Control Link", () => {
 		cy.wait(500);
 
 		cy.get("@dialog").then((dialog) => {
-			let filters = dialog.get_field("link").get_search_args("").filters;
+			let args = {};
+			dialog.get_field("link").set_custom_query(args);
 
-			expect(filters).to.deep.eq([
+			expect(args.filters).to.deep.eq([
 				["ToDo", "priority", "=", "High"],
 				["Communication", "status", "=", "Open"],
 				["description", "like", "%test todo%"],
