@@ -281,6 +281,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:[\"Link\", \"Dynamic Link\", \"Table MultiSelect\"].includes(doc.fieldtype)",
    "fieldname": "ignore_user_permissions",
    "fieldtype": "Check",
    "label": "Ignore User Permissions"

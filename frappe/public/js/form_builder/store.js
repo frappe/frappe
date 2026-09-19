@@ -46,6 +46,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		"in_standard_filter",
 		"translatable",
 	];
+	const IGNORE_USER_PERMISSIONS_FIELD_TYPES = ["Link", "Dynamic Link", "Table MultiSelect"];
 
 	// Getters
 	let get_docfields = computed(() => {
@@ -355,6 +356,14 @@ export const useStore = defineStore("form-builder-store", () => {
 		return error_message;
 	}
 
+	function normalize_fields(fields) {
+		fields.forEach((df) => {
+			if (!IGNORE_USER_PERMISSIONS_FIELD_TYPES.includes(df.fieldtype)) {
+				df.ignore_user_permissions = 0;
+			}
+		});
+	}
+
 	function update_layout_fields() {
 		if (!dirty.value && !frm.value.is_new()) return;
 
@@ -394,6 +403,7 @@ export const useStore = defineStore("form-builder-store", () => {
 
 		try {
 			let fields = get_updated_fields();
+			normalize_fields(fields);
 			let has_error = validate_fields(fields, doc.value.istable);
 			if (has_error) return has_error;
 			frm.value.set_value("fields", fields);
