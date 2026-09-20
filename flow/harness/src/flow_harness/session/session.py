@@ -221,7 +221,7 @@ class Session:
 		self._resolve_skill = resolve_skill
 		self._persist_skill_catalog = persist_skill_catalog
 		self._subagent_runner = SubagentRunner(
-			self._commit, _run_error, compose_tools, config.max_concurrent_subagents
+			self._commit, _run_error, compose_tools, log, config.max_concurrent_subagents
 		)
 		self.transcript = Transcript.replay(log)
 		self.abort_signal = asyncio.Event()

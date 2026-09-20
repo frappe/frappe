@@ -39,7 +39,7 @@ When Flow reaches a gated call, it saves `approval_required` and ends the run wi
 | `read_file` | `path`, `offset?`, `limit?` | No | Alias for `read`, for clients that already have a tool named `read`. Selectable by name, not listed by `GET /tools`. |
 | `write` | `path`, `content` | Yes | Creates parent directories and overwrites the file. |
 | `edit` | `path`, `edits` | Yes | Applies non-overlapping exact replacements. Every old value must appear exactly once. |
-| `subagent` | `task`, `description`, `agent?` | No | Runs a sub-agent inside the session and returns its final answer. See [Sub-agents](#sub-agents). |
+| `subagent` | `task`, `description`, `agent?`, `subagent_id?` | No | Runs a sub-agent inside the session and returns its final answer, or continues an earlier one. See [Sub-agents](#sub-agents). |
 
 Tool output is capped at 2,000 lines or 50 KB. `bash` keeps the tail and saves oversized full output to a temporary log; reading and search keep the head. `edit` returns a unified diff in `details` and preserves BOM and line-ending style.
 
@@ -47,13 +47,15 @@ Paths for `read`, `write`, `edit`, and `grep` are resolved from `cwd`. With `FLO
 
 ## Sub-agents
 
-`subagent` runs a child agent inside the session and returns only its final text. The child starts from a fresh context: its system prompt plus the task, nothing of the session's conversation. Unless the call names an agent, the child is `general`: a copy of the caller with the same model, prompt and tools, minus `subagent` itself (and its line in the prompt's tool list). Sub-agents cannot start sub-agents.
+`subagent` runs a child agent inside the session and returns only its final text, with `[subagent_id: <id>]` appended so the model can continue it. The child starts from a fresh context: its system prompt plus the task, nothing of the session's conversation. Unless the call names an agent, the child is `general`: a copy of the caller with the same model, prompt and tools, minus `subagent` itself (and its line in the prompt's tool list). Sub-agents cannot start sub-agents.
 
 `SessionConfig.subagents` lists the other agents the model may name, each with a `name` and a `description`, and any of `model`, `api_key`, `api_base`, `reasoning_effort`, `system_prompt` and `tools`; an unset field inherits the session's value. The model and its credentials travel together: setting any of the three replaces all three. With only `model` set, the key comes from the daemon's store; a set `api_key` or `api_base` is used as given, as for the session's own fields. An agent's inline credentials fall under the same server policy as the session's, and its tools under the same allowlist. An inherited prompt keeps the session's tool list, so an agent with different tools should set its own prompt; an own prompt is used as written, without the session's `system_append`. The tool's description lists every agent, so the model picks one by name. The list is fixed when the session is created.
 
 The child's events go into the session's own log, each tagged with `subagent_id`: the id of the tool call that started the child. The session's transcript skips tagged rows, so a rewind never lands inside a child, and the child's usage counts toward the session's totals. In-process `before_tool_call` and `after_tool_call` hooks passed to the run apply inside its children too.
 
 `subagent` calls made in the same reply run at the same time, up to `max_concurrent_subagents` (default 5); their hooks and gates are checked in order first, then the batch runs, while calls of other tools keep running one at a time in order. Abort stops every running child. A child that ends without a final answer, by error, abort, turn limit or budget, returns an error result naming the reason, and the session carries on. A gated tool inside a child pauses only the child: the session keeps running, and the batch is answered through `resume` with its `approval_seq`, or abandoned with `cancel_pending`, like the session's own; a denied or cancelled child ends the same way.
+
+Pass `subagent_id` instead of `agent` to continue an earlier child with its context intact: it runs as the agent it started as, and its new rows keep its id. The child is rebuilt from the log, so this works after a restart too; a pause a crash left behind is cancelled first, and calls an abort left open are closed as interrupted. A child that is still running cannot be continued.
 
 ## Bundled tools
 

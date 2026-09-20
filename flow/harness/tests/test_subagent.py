@@ -3,6 +3,7 @@ the session's log, named agents, parallel children under the cap, and how a chil
 reaches the model."""
 
 import asyncio
+import shutil
 from dataclasses import replace
 
 import pytest
@@ -119,9 +120,9 @@ async def test_a_subagent_answers_from_a_fresh_context(tmp_path):
 	assert "subagent" not in [t["function"]["name"] for t in child.tools]
 	# the parent got the answer and nothing of the child's steps
 	result = _of(events, "tool_result")[0]
-	assert result["content"] == "forty-two beans"
+	assert result["content"] == "forty-two beans\n\n[subagent_id: c1]"
 	assert result["is_error"] is False
-	assert result["details"]["end_reason"] == "done"
+	assert result["details"]["end_reason"] == "done" and result["details"]["subagent_id"] == "c1"
 	# the child's rows share the log under the call id and stay out of the session's transcript
 	durable = [e for e in events if e.get("subagent_id") == "c1" and "seq" in e and e["type"] != "usage"]
 	assert [e["type"] for e in durable] == ["run_started", "user_message", "assistant_message", "run_ended"]
@@ -163,7 +164,7 @@ async def test_a_named_agent_runs_with_its_own_prompt_and_tools(tmp_path):
 	assert child.system_prompt == "you look things up"
 	assert [t["function"]["name"] for t in child.tools] == ["read"]
 	result = _of(events, "tool_result")[0]
-	assert result["content"] == "found" and result["details"]["agent"] == "Lookup"
+	assert result["content"] == "found\n\n[subagent_id: c1]" and result["details"]["agent"] == "Lookup"
 
 
 async def test_a_named_agent_runs_at_its_own_effort(tmp_path):
@@ -338,7 +339,10 @@ async def test_subagents_called_in_one_turn_run_together(tmp_path):
 	assert handle.task is not None
 	await handle.task
 
-	assert {r["tool_call_id"]: r["content"] for r in _of(events, "tool_result")} == {"c1": "L", "c2": "R"}
+	assert {r["tool_call_id"]: r["content"] for r in _of(events, "tool_result")} == {
+		"c1": "L\n\n[subagent_id: c1]",
+		"c2": "R\n\n[subagent_id: c2]",
+	}
 	assert {e["subagent_id"] for e in events if e.get("subagent_id")} == {"c1", "c2"}
 
 
@@ -454,7 +458,7 @@ async def test_a_child_approval_pauses_only_the_child_and_resume_reaches_it(tmp_
 	ran = _of(events, "tool_result", subagent="c1")[0]
 	assert ran["tool_call_id"] == "c2" and not ran["is_error"]
 	assert [e["reason"] for e in _of(events, "run_ended", subagent="c1")] == ["paused", "done"]
-	assert _of(events, "tool_result")[0]["content"] == "ran it"
+	assert _of(events, "tool_result")[0]["content"] == "ran it\n\n[subagent_id: c1]"
 	assert _of(events, "run_ended")[-1]["reason"] == "done"
 
 
@@ -569,6 +573,131 @@ async def test_answers_and_cancellation_are_refused_while_no_child_waits(tmp_pat
 	model.gates["slow"].set()
 	assert handle.task is not None
 	await handle.task
+
+
+async def test_continuing_a_child_keeps_its_context_and_agent_even_after_a_reload(tmp_path):
+	agents = [SubagentConfig(name="Counter", description="counts", system_prompt="you count")]
+	session, events = _session(tmp_path, subagents=agents)
+	model = ScriptedModel(
+		{
+			"go": [
+				AssistantMessage(content=[_spawn("c1", "first", agent="Counter")]),
+				AssistantMessage(content=[_spawn("c9", "second", subagent_id="c1")]),
+				AssistantMessage(content="done"),
+			],
+			"first": [AssistantMessage(content="one")],
+			"second": [AssistantMessage(content="two")],
+			"again": [
+				AssistantMessage(content=[_spawn("c20", "third", subagent_id="c1")]),
+				AssistantMessage(content="done"),
+			],
+			"third": [AssistantMessage(content="three")],
+		}
+	)
+
+	await _run(session, "go", model)
+
+	second = next(r for r in model.requests if _last_user(r.messages) == "second")
+	assert [m.text for m in second.messages if m.type == "user_message"] == ["first", "second"]
+	assert second.system_prompt == "you count"
+	result = _of(events, "tool_result")[1]
+	assert result["content"] == "two\n\n[subagent_id: c1]" and result["details"]["agent"] == "Counter"
+	assert {e["subagent_id"] for e in events if e.get("subagent_id")} == {"c1"}  # one child, two runs
+
+	reloaded = SessionStore(str(tmp_path / "data"), event_sink=lambda _sid, ev: events.append(ev)).get(
+		session.id
+	)
+	await _run(reloaded, "again", model)
+
+	third = next(r for r in model.requests if _last_user(r.messages) == "third")
+	assert [m.text for m in third.messages if m.type == "user_message"] == ["first", "second", "third"]
+	assert third.system_prompt == "you count"
+	assert _of(events, "tool_result")[-1]["content"] == "three\n\n[subagent_id: c1]"
+	assert [m.type for m in Transcript.replay(reloaded.log, subagent_id="c1").messages] == [
+		"user_message",
+		"assistant_message",
+	] * 3
+
+
+async def test_a_continuation_is_refused_for_a_running_child_an_unknown_id_or_with_an_agent(tmp_path):
+	session, events = _session(tmp_path)
+	model = ScriptedModel(
+		{
+			"go": [
+				AssistantMessage(
+					content=[
+						_spawn("c1", "slow"),
+						_spawn("c2", "more", subagent_id="c1"),
+						_spawn("c3", "more", subagent_id="nope"),
+						_spawn("c4", "more", agent="general", subagent_id="c1"),
+					]
+				),
+				AssistantMessage(content="done"),
+			],
+			"slow": [AssistantMessage(content="late")],
+		}
+	)
+	model.gate("slow")
+
+	handle = await session.run("go", model=model)
+	await model.started["slow"].wait()
+	model.gates["slow"].set()
+	assert handle.task is not None
+	await handle.task
+
+	results = {r["tool_call_id"]: r for r in _of(events, "tool_result")}
+	assert results["c1"]["content"] == "late\n\n[subagent_id: c1]" and not results["c1"]["is_error"]
+	assert results["c2"]["content"] == "[sub-agent 'c1' is still running]"
+	assert results["c3"]["content"] == "[unknown subagent_id 'nope']"
+	assert results["c4"]["content"] == "[pass either agent or subagent_id, not both]"
+	assert all(results[cid]["is_error"] for cid in ("c2", "c3", "c4"))
+
+
+@pytest.mark.parametrize("how", ["abort", "restart"])
+async def test_a_continued_child_has_what_an_abort_or_a_crash_left_open_closed_first(tmp_path, how):
+	session, events = _session(tmp_path)
+	model = ScriptedModel(
+		{
+			"go": [AssistantMessage(content=[_spawn("c1", "first")]), AssistantMessage(content="done")],
+			"first": [AssistantMessage(content="one")],
+			"more": [AssistantMessage(content=[_spawn("c2", "second", subagent_id="c1")])],
+			"second": [AssistantMessage(content=[_bash("c9")])],
+			"again": [
+				AssistantMessage(content=[_spawn("c3", "third", subagent_id="c1")]),
+				AssistantMessage(content="done"),
+			],
+			"third": [AssistantMessage(content="three")],
+		}
+	)
+
+	await _run(session, "go", model)
+	handle = await session.run("more", model=model)
+	await _until(lambda: [e["reason"] for e in _of(events, "run_ended", subagent="c1")] == ["done", "paused"])
+	assert handle.task is not None
+	if how == "abort":
+		assert session.abort() is True
+		await handle.task
+		continued = session
+	else:  # the log as a crash leaves it, opened by a fresh process
+		shutil.copytree(tmp_path / "data", tmp_path / "restarted")
+		continued = SessionStore(
+			str(tmp_path / "restarted"), event_sink=lambda _sid, ev: events.append(ev)
+		).get(session.id)
+	await _run(continued, "again", model)
+
+	third = next(r for r in model.requests if _last_user(r.messages) == "third")
+	assert [m.type for m in third.messages] == ["user_message", "assistant_message"] * 2 + [
+		"tool_result",
+		"user_message",
+	]
+	closed = third.messages[4]
+	assert (
+		closed.tool_call_id == "c9" and ("interrupted" if how == "abort" else "cancelled") in closed.content
+	)
+	assert _of(events, "tool_result")[-1]["content"] == "three\n\n[subagent_id: c1]"
+	if how == "restart":  # the paused session's own run is still parked in this process
+		session.abort()
+		await handle.task
 
 
 async def test_the_run_hooks_reach_the_child(tmp_path):

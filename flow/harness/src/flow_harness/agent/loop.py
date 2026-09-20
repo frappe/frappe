@@ -122,7 +122,9 @@ class LoopInputs:
 	after_tool_call: AfterHook | None = None
 	resolve_attachment: Callable[[str], bytes] | None = None
 	store_image: Callable[[str, bytes], Awaitable[AttachmentContent]] | None = None
-	run_subagent: Callable[[LoopInputs, str, str, str | None], Awaitable[SubagentOutcome]] | None = None
+	run_subagent: (
+		Callable[[LoopInputs, str, str, str | None, str | None], Awaitable[SubagentOutcome]] | None
+	) = None
 	server_tools: dict[str, Tool] | None = None
 	extension_runtime: ExtensionRuntime | None = None
 
@@ -673,7 +675,7 @@ def _tool_context(inputs: LoopInputs) -> ToolContext:
 		read_only_roots=inputs.read_only_roots,
 		abort=inputs.abort,
 		store_image=inputs.store_image,
-		# the runner needs this run's inputs; a tool only names the call, task and agent
+		# the runner needs this run's inputs; a tool only names the call, task, agent and child
 		run_subagent=partial(inputs.run_subagent, inputs) if inputs.run_subagent is not None else None,
 	)
 

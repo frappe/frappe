@@ -19,8 +19,9 @@ from flow_harness.events import (
 )
 from flow_harness.model.cancellation import ModelCancelled, await_with_cancellation
 from flow_harness.session.config import GENERAL_AGENT, SessionConfig, SubagentConfig, known_agents
+from flow_harness.session.log import SessionLog
 from flow_harness.session.prompt import strip_tool_from_prompt
-from flow_harness.session.transcript import PendingApproval, Transcript
+from flow_harness.session.transcript import PendingApproval, Transcript, active_path
 from flow_harness.tools import SubagentOutcome, Tool
 from flow_harness.tools.builtins.subagent import subagent
 
@@ -44,24 +45,39 @@ class SubagentRunner:
 		commit: Callable[[AnyEvent], None],
 		run_error: Callable[[Exception], RunError],
 		compose_tools: Callable[[SessionConfig], dict[str, Tool]],
+		log: SessionLog,
 		max_concurrent: int,
 	):
 		self._commit = commit
 		self._run_error = run_error
 		self._compose_tools = compose_tools
+		self._log = log  # a continued child is rebuilt from it
 		self._slots = asyncio.Semaphore(max_concurrent)
+		self._running: set[str] = set()  # children in flight, by id
 		self._pauses: dict[int | None, _Pause] = {}  # by approval seq, while a child waits on it
 
 	async def run(
-		self, inputs: loop.LoopInputs, call_id: str, task: str, agent: str | None
+		self, inputs: loop.LoopInputs, call_id: str, task: str, agent: str | None, subagent_id: str | None
 	) -> SubagentOutcome:
-		"""Run `agent` through `task` as the sub-agent named by its call, in the run of `inputs`."""
-		config = _agent(inputs.config, agent)
-		child = Transcript(call_id)
-		async with self._slots:
-			return await self._drive(
-				_child_inputs(inputs, child, config, self._compose_tools), child, task, config.name
-			)
+		"""Run `agent` through `task` as a new child named by its call, or continue child `subagent_id`."""
+		child_id = subagent_id or call_id
+		if subagent_id is None:
+			child, config = Transcript(child_id), _agent(inputs.config, agent)
+		elif agent is not None:
+			raise ValueError("pass either agent or subagent_id, not both")
+		else:
+			child, config = self._continued(inputs.config, child_id)
+		self._running.add(child_id)
+		try:
+			async with self._slots:
+				return await self._drive(
+					_child_inputs(inputs, child, config, self._compose_tools),
+					child,
+					task,
+					config.name,
+				)
+		finally:
+			self._running.discard(child_id)
 
 	def pending(self, approval_seq: int | None) -> PendingApproval | None:
 		"""The batch a child waits on under `approval_seq`, if any."""
@@ -79,6 +95,29 @@ class SubagentRunner:
 		for pause in pauses:
 			pause.answers.set_result(None)
 		return bool(pauses)
+
+	def _continued(self, config: SessionConfig, subagent_id: str) -> tuple[Transcript, SubagentConfig]:
+		"""The child `subagent_id` rebuilt from the log for one more task, with the agent it ran as."""
+		if subagent_id in self._running:
+			raise ValueError(f"sub-agent {subagent_id!r} is still running")
+		name = _recorded_agent(self._log, subagent_id)
+		if name is None:
+			raise ValueError(f"unknown subagent_id {subagent_id!r}")
+		child = Transcript.replay(self._log, subagent_id=subagent_id)
+		self._close_open_calls(child)
+		return child, _agent(config, name)
+
+	def _close_open_calls(self, child: Transcript) -> None:
+		"""Close what an abort or a crash left open in the child: its pause, then any call nothing will answer."""
+		approval = child.pending_approval
+		if approval is not None:
+			for call in approval.calls:
+				self._record(
+					child,
+					ToolResult(tool_call_id=call.id, name=call.name, content=CANCELLED, is_error=True),
+				)
+		for repair in child.missing_results():
+			self._record(child, repair)
 
 	async def _drive(
 		self, inputs: loop.LoopInputs, child: Transcript, task: str, agent: str
@@ -119,7 +158,9 @@ class SubagentRunner:
 					yield ToolResult(tool_call_id=call.id, name=call.name, content=CANCELLED, is_error=True)
 				return
 			continued = replace(
-				inputs, context_tokens=child.context_tokens, context_message_count=child.context_message_count
+				inputs,
+				context_tokens=child.context_tokens,
+				context_message_count=child.context_message_count,
 			)
 			async for event in loop.resume(pending_approval, answers, continued):
 				yield event
@@ -137,7 +178,11 @@ class SubagentRunner:
 			self._pauses.pop(pending_approval.seq, None)  # already gone unless the run aborted
 
 	def _settle(
-		self, child: Transcript, *, reason: Literal["aborted", "error"], error: Exception | None = None
+		self,
+		child: Transcript,
+		*,
+		reason: Literal["aborted", "error"],
+		error: Exception | None = None,
 	) -> None:
 		for repair in child.missing_results():
 			self._record(child, repair)
@@ -192,3 +237,11 @@ def _agent(config: SessionConfig, name: str | None) -> SubagentConfig:
 	if agent is None:
 		raise ValueError(f"unknown agent {name!r}; available: {', '.join(known)}")
 	return agent
+
+
+def _recorded_agent(log: SessionLog, subagent_id: str) -> str | None:
+	"""The agent a child ran as, from the result of its first run; None when no such child ran."""
+	for row in active_path(log.read_since(0)):
+		if row.get("type") == "tool_result" and row.get("details", {}).get("subagent_id") == subagent_id:
+			return row["details"]["agent"]
+	return None

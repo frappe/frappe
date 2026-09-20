@@ -156,12 +156,15 @@ class Transcript:
 		self._open_approval: _OpenApproval | None = None
 
 	@classmethod
-	def replay(cls, log: SessionLog, *, leaf_seq: int | None = None) -> Transcript:
+	def replay(
+		cls, log: SessionLog, *, leaf_seq: int | None = None, subagent_id: str | None = None
+	) -> Transcript:
 		"""Rebuild the transcript from disk — the one full read, at session load.
 
-		Only the active branch is folded; pass `leaf_seq` to preview a rewind target.
+		Only the active branch is folded; pass `leaf_seq` to preview a rewind target,
+		`subagent_id` to rebuild a sub-agent's conversation instead of the session's.
 		"""
-		transcript = cls()
+		transcript = cls(subagent_id)
 		for row in active_path(log.read_since(0), leaf_seq):
 			transcript.record(parse_event(row))
 		return transcript

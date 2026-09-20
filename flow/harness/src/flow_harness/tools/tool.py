@@ -81,8 +81,8 @@ class ToolContext:
 	timeout: float = 120.0
 	# stores image bytes beside the session log; None when the caller has no attachment store
 	store_image: Callable[[str, bytes], Awaitable[AttachmentContent]] | None = None
-	# runs a sub-agent in this run, given the call id, task and agent name; None where none can run
-	run_subagent: Callable[[str, str, str | None], Awaitable[SubagentOutcome]] | None = None
+	# runs a sub-agent: call id, task, agent name, id of a child to continue; None where none can run
+	run_subagent: Callable[[str, str, str | None, str | None], Awaitable[SubagentOutcome]] | None = None
 	# the call being executed, set per dispatch
 	tool_call_id: str = ""
 
