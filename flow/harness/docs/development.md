@@ -71,7 +71,7 @@ the manual step above.
 | `FLOW_REDIS_MAX_PENDING_PER_SITE` | `128` | Maximum queued events across a site's sessions. |
 | `FLOW_REDIS_MAX_PENDING` | `1024` | Maximum queued events across the daemon. |
 
-Use `-e PATH` to load a Python extension and `--no-extensions` to omit the global extension directory. See [tools.md](tools.md).
+Use `-e PATH` to load a Python extension and `--no-extensions` to omit the global extension directory. See [extensions.md](extensions.md).
 
 Redis uses one async worker and one FIFO queue per site. Each active site gets one publishing turn. Events stay ordered within each site; sessions within a site share its allowance without separate limits or scheduling. Non-tenant sessions share a separate local queue with the same limit. Empty site queues are removed. The server lifecycle starts and stops the worker. Session commits only enqueue events; they never wait for Redis.
 
