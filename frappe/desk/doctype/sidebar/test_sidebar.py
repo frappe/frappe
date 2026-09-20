@@ -936,6 +936,21 @@ class TestCanonicalShellPayload(IntegrationTestCase):
 
 		self.assertEqual(named - shells, set())
 
+	def set_default_workspace(self, workspace):
+		"""Give the session user a default workspace for the length of one test.
+
+		Put back by hand rather than left to the transaction. This suite rolls back once per
+		class, not once per test (`addClassCleanup` in IntegrationTestCase), so a value written
+		here is still there for every test that runs after it in the same class -- and
+		`home_shell` reads it off the user, so those tests would be answering a question they
+		did not ask.
+		"""
+		user, field = frappe.session.user, "default_workspace"
+		before = frappe.db.get_value("User", user, field)
+
+		self.addCleanup(frappe.db.set_value, "User", user, field, before)
+		frappe.db.set_value("User", user, field, workspace)
+
 	def test_home_is_where_most_of_the_work_is(self):
 		"""Not the shell that sorts first. For a user whose shells are `Custom Workspaces` and
 		`Selling`, the first is a place to keep their own pages, and Selling is where they work.
@@ -946,9 +961,15 @@ class TestCanonicalShellPayload(IntegrationTestCase):
 			"Workspace": {"Mine": "Custom Workspaces", "Other": "Custom Workspaces"},
 		}
 
+		# The count is only consulted for a user with no default, so say so rather than trust
+		# the site to have left this user without one.
+		self.set_default_workspace(None)
+
 		self.assertEqual(home_shell(sidebars, canonical), "Selling")
 
 	def test_home_ties_go_to_the_earlier_shell(self):
+		self.set_default_workspace(None)
+
 		self.assertEqual(home_shell({"A": {}, "B": {}}, {"DocType": {}, "Workspace": {}}), "A")
 
 	def test_home_is_the_shell_of_the_users_default_workspace(self):
@@ -962,7 +983,7 @@ class TestCanonicalShellPayload(IntegrationTestCase):
 			"Workspace": {"Mine": "Custom Workspaces"},
 		}
 
-		frappe.db.set_value("User", frappe.session.user, "default_workspace", "Mine")
+		self.set_default_workspace("Mine")
 
 		self.assertEqual(home_shell(sidebars, canonical), "Custom Workspaces")
 
@@ -974,7 +995,7 @@ class TestCanonicalShellPayload(IntegrationTestCase):
 		sidebars = {"Custom Workspaces": {}, "Selling": {}}
 		canonical = {"DocType": {"Customer": "Selling"}, "Workspace": {}}
 
-		frappe.db.set_value("User", frappe.session.user, "default_workspace", "Gone")
+		self.set_default_workspace("Gone")
 
 		self.assertEqual(home_shell(sidebars, canonical), "Selling")
 
