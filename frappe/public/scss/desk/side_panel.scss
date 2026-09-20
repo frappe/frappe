@@ -125,6 +125,168 @@ body.side-panel-resizing {
 	padding: var(--padding-xl);
 }
 
+// Loading overlay. The boxes and gaps below copy the rendered form: tab strip (.nav-link),
+// section head and body (form.scss), column padding (bootstrap), label and input (common/form.scss).
+.side-panel-skeleton {
+	position: absolute;
+	inset: 0;
+	padding: 0 var(--padding-md);
+	overflow: hidden;
+	background-color: var(--surface-base);
+	transition: opacity 150ms ease-out;
+
+	&.is-done {
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.skeleton-tabs {
+		display: flex;
+		align-items: center;
+		gap: 30px;
+		height: 42px;
+		border-bottom: 1px solid var(--border-color);
+		color: var(--text-light);
+		@include get_textstyle("base", "regular");
+
+		.active {
+			color: var(--text-neutral);
+			padding: 10px 0 9px;
+			border-bottom: 1px solid var(--text-color);
+		}
+	}
+
+	.skeleton-section {
+		padding-top: 28px;
+		border-bottom: 1px solid var(--border-color);
+
+		&.has-heading {
+			padding-top: 0;
+		}
+
+		&:last-child,
+		&.hide-border {
+			border-bottom: 0;
+		}
+	}
+
+	.skeleton-heading {
+		display: flex;
+		align-items: center;
+		height: 51px;
+		margin-bottom: 7px;
+		@include get_textstyle("md", "medium");
+		color: var(--text-color);
+	}
+
+	.skeleton-columns {
+		display: flex;
+		gap: 30px;
+	}
+
+	.skeleton-field {
+		margin-bottom: 16px;
+
+		&.is-last {
+			margin-bottom: 8px;
+		}
+	}
+
+	// Inline-block like .control-label, so the required marker keeps its leading space.
+	.skeleton-label {
+		display: inline-block;
+		height: 21px;
+		line-height: 21px;
+		padding-right: 5px;
+		margin-bottom: 6px;
+		color: var(--text-muted);
+		@include get_textstyle("base", "regular");
+
+		> .es-skeleton {
+			display: inline-block;
+			vertical-align: middle;
+		}
+	}
+
+	// Same text as .checkbox .label-area: 13px medium, near-black. The box spacing comes from
+	// the global checkbox rule, which reads --checkbox-right-margin (8px inside forms).
+	.skeleton-check {
+		--checkbox-right-margin: 8px;
+		display: flex;
+		align-items: center;
+		height: 25px;
+		color: var(--ink-gray-8);
+		@include get_textstyle("sm", "medium");
+	}
+
+	// Same box, heading and row geometry as .form-grid (common/grid.scss).
+	.skeleton-grid {
+		border: 1px solid var(--table-border-color);
+		border-radius: var(--radius-md);
+		background-color: var(--subtle-accent);
+		overflow: hidden;
+	}
+
+	.skeleton-grid-head,
+	.skeleton-grid-row {
+		display: flex;
+		align-items: center;
+		border-bottom: 1px solid var(--table-border-color);
+	}
+
+	.skeleton-grid-head {
+		height: 32px;
+		color: var(--text-muted);
+		@include get_textstyle("sm", "regular");
+	}
+
+	.skeleton-grid-row {
+		height: 44px;
+
+		&:last-child {
+			height: 43px;
+			border-bottom: 0;
+		}
+	}
+
+	// row-check (31px) + row-index (40px)
+	.skeleton-grid-index {
+		flex: none;
+		width: 71px;
+		padding-left: 39px;
+	}
+
+	.skeleton-grid-col {
+		flex: 1 1 0;
+		min-width: 0;
+		padding: 0 8px;
+		@include truncate;
+	}
+
+	.skeleton-label.reqd::after {
+		content: " *";
+		color: var(--red-400);
+	}
+
+	.skeleton-help {
+		margin: 4px 0 8px;
+		line-height: 1.6;
+		@include get_textstyle("sm", "regular");
+	}
+
+	.skeleton-check + .skeleton-help {
+		margin-top: 0;
+	}
+}
+
+.side-panel-doc {
+	visibility: hidden;
+
+	&.is-ready {
+		visibility: visible;
+	}
+}
+
 .side-panel-row-dialog {
 	.modal-dialog {
 		max-width: var(--page-max-width);

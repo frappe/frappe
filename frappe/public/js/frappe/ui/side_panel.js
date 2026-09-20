@@ -47,68 +47,17 @@ function force_read_only(fields_list) {
 	}
 }
 
-function get_read_only_docfields(doctype, preview) {
-	const meta = preview?.metas?.[doctype];
-
-	return (meta?.fields || []).map((df) => {
+function get_read_only_docfields(doctype) {
+	return (frappe.get_meta(doctype)?.fields || []).map((df) => {
 		const clone = { ...df, parent: df.parent || doctype };
 
 		// Frm-less, Grid.setup_fields() reads child docfields from df.fields, not the parent meta.
 		if (TABLE_FIELDTYPES.includes(df.fieldtype) && df.options) {
-			clone.fields = get_read_only_docfields(df.options, preview);
+			clone.fields = get_read_only_docfields(df.options);
 		}
 
 		return clone;
 	});
-}
-
-// Statuses we can't classify (custom listview_settings.get_indicator lives in list JS). Blue is
-// visible without implying success/failure, unlike the near-invisible default gray.
-const UNKNOWN_STATUS_COLOR = "blue";
-
-// Same Workflow State style -> colour mapping frappe.get_indicator uses.
-const WORKFLOW_STYLE_COLORS = {
-	Success: "green",
-	Warning: "orange",
-	Danger: "red",
-	Primary: "blue",
-	Inverse: "gray", // no black badge theme
-	Info: "light-blue",
-};
-
-// Same chain as frappe.get_indicator, which needs the meta cache; keep the two in step. The
-// custom listview_settings.get_indicator branch is unavailable here.
-function get_preview_indicator(doctype, preview) {
-	const doc = preview.doc;
-	const meta = preview.metas?.[doctype] || {};
-	const workflow = preview.workflow;
-
-	if (workflow?.workflow_state_field && !cint(workflow.override_status)) {
-		const state = doc[workflow.workflow_state_field];
-		if (state) {
-			const style = workflow.state_styles?.[state];
-			return [
-				__(state, null, doctype),
-				WORKFLOW_STYLE_COLORS[style] || UNKNOWN_STATUS_COLOR,
-			];
-		}
-	}
-
-	if (cint(meta.is_submittable) && cint(doc.docstatus) === 0) {
-		return [__("Draft", null, doctype), "red"];
-	}
-	if (cint(meta.is_submittable) && cint(doc.docstatus) === 2) {
-		return [__("Cancelled", null, doctype), "red"];
-	}
-
-	const state = doc.status && (meta.states || []).find((s) => s.title === doc.status);
-	if (state) return [__(doc.status, null, doctype), frappe.scrub(state.color, "-")];
-
-	if (cint(meta.is_submittable) && cint(doc.docstatus) === 1) {
-		return [__("Submitted", null, doctype), "blue"];
-	}
-
-	return doc.status ? [__(doc.status, null, doctype), UNKNOWN_STATUS_COLOR] : null;
 }
 
 // Child rows render as static formatted values — live controls need a frm/doc for formatting,
@@ -174,7 +123,7 @@ function render_static_field_value($value_el, df, doc) {
 // Reuses the form's own classes (.form-section, .control-label, .like-disabled-input) so it
 // inherits form.scss directly. `parent` is what a child-row depends_on "eval:" sees as `parent`.
 function render_static_doc_fields(container_el, doctype, doc, parent, preview) {
-	const meta = preview?.metas?.[doctype];
+	const meta = frappe.get_meta(doctype);
 	const $root = $('<div class="side-panel-detail form-layout"></div>').appendTo(container_el);
 	// Child doctypes carry no perms of their own; the parent's permlevels come from the preview.
 	const permlevels = (preview?.permlevels || []).map(cint);
@@ -255,10 +204,183 @@ function render_static_doc_fields(container_el, doctype, doc, parent, preview) {
 	});
 }
 
+const SKELETON_SKIP_FIELDTYPES = new Set(["HTML", "Button", "Fold", "Heading"]);
+const SKELETON_TALL_FIELDTYPES = new Set([
+	"Text",
+	"Small Text",
+	"Long Text",
+	"Text Editor",
+	"Markdown Editor",
+	"HTML Editor",
+	"Code",
+	"JSON",
+]);
+
+const bar = (width, height, css_class) => frappe.ui.skeleton.html({ width, height, css_class });
+
+// Real text where we know it, a bar where we don't.
+function text_or_bar(label, width) {
+	return label ? frappe.utils.escape_html(__(label)) : bar(width, "12px");
+}
+
+// Heading row with the child table's list-view columns, then two placeholder rows. Row count
+// and column widths are only known once the document arrives.
+function skeleton_table(df) {
+	const child = frappe.get_meta(df.options);
+	const columns = (child?.fields || [])
+		.filter((f) => cint(f.in_list_view) && !cint(f.hidden))
+		.slice(0, 5);
+	const head = columns.length
+		? columns
+				.map((f) => `<div class="skeleton-grid-col">${text_or_bar(f.label, "60%")}</div>`)
+				.join("")
+		: `<div class="skeleton-grid-col">${bar("60%", "12px")}</div>`.repeat(3);
+	const cells = `<div class="skeleton-grid-col">${bar("60%", "12px")}</div>`.repeat(columns.length || 3);
+	const row = `<div class="skeleton-grid-row"><div class="skeleton-grid-index"></div>${cells}</div>`;
+	return `<div class="skeleton-grid">
+		<div class="skeleton-grid-head"><div class="skeleton-grid-index">${__("No.")}</div>${head}</div>
+		${row.repeat(2)}
+	</div>`;
+}
+
+function skeleton_field(df) {
+	// Same rule as base_input.js: a description shows under the field unless it is set to
+	// open on click. Descriptions are meta text, so they render as HTML like the real ones.
+	const description =
+		df.description && !df.show_description_on_click
+			? `<div class="skeleton-help text-extra-muted">${__(df.description, null, df.parent)}</div>`
+			: "";
+	// Table labels carry no marker in the form (the grid draws its own label).
+	const reqd = cint(df.reqd) && df.fieldtype !== "Table" ? " reqd" : "";
+
+	// Checkbox labels carry no required marker in the form either.
+	if (df.fieldtype === "Check") {
+		return `<div class="skeleton-field">
+			<div class="skeleton-check"><input type="checkbox" disabled><span>${text_or_bar(df.label, "40%")}</span></div>
+			${description}
+		</div>`;
+	}
+	let value;
+	if (df.fieldtype === "Table") value = skeleton_table(df);
+	else if (SKELETON_TALL_FIELDTYPES.has(df.fieldtype)) value = bar("100%", "72px");
+	else value = bar("100%", "28px");
+	return `<div class="skeleton-field">
+		<div class="skeleton-label${reqd}">${text_or_bar(df.label, "30%")}</div>
+		${value}
+		${description}
+	</div>`;
+}
+
+// Same tabs, sections and columns as the form that replaces it, sized like the real controls,
+// so the crossfade lands on matching boxes. Without a meta it is a plain stack of fields.
+function skeleton_form(meta) {
+	if (!meta?.fields) {
+		const column = (n) => `<div class="flex-1 min-w-0">${skeleton_field({}).repeat(n)}</div>`;
+		const section = (n) =>
+			`<div class="skeleton-section"><div class="skeleton-columns">${column(n)}${column(n)}</div></div>`;
+		return section(3) + section(2);
+	}
+
+	// Without the document a depends_on cannot be judged, so those fields are left out; the
+	// form adds them once it lands.
+	const skip = (df) =>
+		SKELETON_SKIP_FIELDTYPES.has(df.fieldtype) || cint(df.hidden) || Boolean(df.depends_on);
+
+	// The form opens on its first tab; a first field that is not a Tab Break starts one too.
+	const tab_labels = meta.fields.filter((df) => df.fieldtype === "Tab Break").map((df) => df.label);
+	if (meta.fields[0]?.fieldtype !== "Tab Break") tab_labels.unshift(__("Details"));
+
+	const sections = [];
+	let section = null;
+	let section_ok = true;
+	let column = null;
+	// The form gives a trailing table a smaller margin (form.scss), but only when nothing
+	// follows it in the DOM, hidden fields included. So the mark goes on when the last field
+	// of the column in the meta is a table we drew.
+	let column_ends_on_drawn_field = false;
+	let in_first_tab = true;
+
+	const close_column = () => {
+		if (column?.length && column_ends_on_drawn_field) {
+			column[column.length - 1] = column[column.length - 1].replace(
+				'class="skeleton-field"',
+				'class="skeleton-field is-last"'
+			);
+		}
+		column = null;
+		column_ends_on_drawn_field = false;
+	};
+	const open_section = (df) => {
+		close_column();
+		section_ok = !df?.depends_on;
+		section = { heading: Boolean(df?.label), label: df?.label, hide_border: cint(df?.hide_border), columns: [] };
+		if (section_ok) sections.push(section);
+	};
+	const open_column = () => {
+		close_column();
+		if (!section) open_section();
+		column = [];
+		section.columns.push(column);
+	};
+
+	for (const df of meta.fields) {
+		if (df.fieldtype === "Tab Break") {
+			if (!in_first_tab || sections.length) break;
+			in_first_tab = false;
+			continue;
+		}
+		if (df.fieldtype === "Section Break") {
+			open_section(df);
+			continue;
+		}
+		if (!section_ok) continue;
+		if (df.fieldtype === "Column Break") {
+			open_column();
+			continue;
+		}
+		if (skip(df)) {
+			column_ends_on_drawn_field = false;
+			continue;
+		}
+		if (!column) open_column();
+		column.push(skeleton_field(df));
+		column_ends_on_drawn_field = df.fieldtype === "Table";
+	}
+	close_column();
+
+	const tabs =
+		tab_labels.length > 1
+			? `<div class="skeleton-tabs">${tab_labels
+					.slice(0, 5)
+					.map((label, i) => `<span class="${i ? "" : "active"}">${text_or_bar(label, "60px")}</span>`)
+					.join("")}</div>`
+			: "";
+
+	const body = sections
+		.filter((s) => s.columns.some((c) => c.length))
+		.map((s) => {
+			const heading = s.heading
+				? `<div class="skeleton-heading">${text_or_bar(s.label, "25%")}</div>`
+				: "";
+			const columns = s.columns.map((c) => `<div class="flex-1 min-w-0">${c.join("")}</div>`);
+			const classes = ["skeleton-section", s.heading && "has-heading", s.hide_border && "hide-border"]
+				.filter(Boolean)
+				.join(" ");
+			return `<div class="${classes}">
+				${heading}<div class="skeleton-columns">${columns.join("")}</div>
+			</div>`;
+		})
+		.join("");
+
+	return tabs + body;
+}
+
 frappe.ui.SidePanel = class SidePanel {
 	constructor() {
 		// One Layout per doctype; refresh(doc) repoints it at a different document.
 		this.layouts = {};
+		// Previews fetched while the panel is open, so back and revisits are instant.
+		this.previews = {};
 		// [doctype, docname] pairs of child-row docfield copies seeded by this preview.
 		this.cached_child_docfields = [];
 		this.history = [];
@@ -421,11 +543,23 @@ frappe.ui.SidePanel = class SidePanel {
 		const token = ++this.token;
 
 		this.$panel.find(".side-panel-back").toggleClass("hidden", !this.history.length);
+
+		const cached = this.previews[`${doctype}/${docname}`];
+		if (cached) {
+			this.show_preview(doctype, docname, cached);
+			return;
+		}
+
 		this.set_header(doctype, docname, null);
+		const had_meta = Boolean(frappe.get_meta(doctype));
 		this.set_state("loading");
 
-		// Not with_doctype: once the meta is in the cache, Layout swaps the read-only fields back
-		// on every refresh. get_preview keeps the metas out of it.
+		// The meta comes from the framework cache (one fetch per doctype per session); only the
+		// document is fetched every time. A doctype seen for the first time gets its skeleton
+		// redrawn once the meta is in.
+		const meta_ready = frappe.model.with_doctype(doctype).then(() => {
+			if (!had_meta && token === this.token) this.set_state("loading");
+		});
 		const timeout = new Promise((_, reject) => setTimeout(reject, LOAD_TIMEOUT_MS));
 
 		const load = frappe
@@ -437,21 +571,26 @@ frappe.ui.SidePanel = class SidePanel {
 			.then((r) => r?.message);
 
 		// Building the form is heavy; doing it mid-slide stalls the animation.
-		Promise.all([Promise.race([load, timeout]), this.slide_done])
-			.then(([preview]) => {
+		Promise.all([meta_ready, Promise.race([load, timeout]), this.slide_done])
+			.then(([, preview]) => {
 				if (token !== this.token) return;
 				if (!preview?.doc) throw new Error("not loaded");
 
-				this.preview = preview;
-				this.render_doc(doctype, preview);
-				this.set_header(doctype, docname, preview);
-				this.set_state("ready");
+				this.previews[`${doctype}/${docname}`] = preview;
+				this.show_preview(doctype, docname, preview);
 			})
 			.catch((e) => {
 				if (token !== this.token) return;
 				console.error("[side panel] failed to render", doctype, docname, e);
 				this.set_state("error");
 			});
+	}
+
+	show_preview(doctype, docname, preview) {
+		this.preview = preview;
+		this.render_doc(doctype, preview);
+		this.set_header(doctype, docname, preview);
+		this.set_state("ready");
 	}
 
 	render_doc(doctype, preview) {
@@ -464,7 +603,7 @@ frappe.ui.SidePanel = class SidePanel {
 				parent: $wrapper,
 				doctype: doctype,
 				// Explicit fields also avoid get_doctype_fields(), which needs a frm.
-				fields: get_read_only_docfields(doctype, preview),
+				fields: get_read_only_docfields(doctype),
 				doc: doc,
 				card_layout: true,
 			});
@@ -571,27 +710,33 @@ frappe.ui.SidePanel = class SidePanel {
 		this.$panel.find(".side-panel-title").text(docname);
 
 		const $indicator = this.$panel.find(".side-panel-indicator").empty();
-		const indicator = preview ? get_preview_indicator(doctype, preview) : null;
+		const indicator = preview ? frappe.get_indicator(preview.doc, doctype) : null;
 		if (indicator) {
-			frappe.ui.badge({ label: indicator[0], theme: indicator[1] }).appendTo($indicator);
+			const theme = indicator[1] === "black" ? "gray" : indicator[1]; // no black badge theme
+			frappe.ui.badge({ label: indicator[0], theme }).appendTo($indicator);
 		}
 	}
 
+	// The skeleton is an overlay: the form renders underneath, then the skeleton fades out,
+	// so nothing in the body moves when the document lands.
 	set_state(state) {
+		const $skeleton = this.$body.find(".side-panel-skeleton");
 		this.$body.find(".side-panel-message").remove();
-		this.$body.find(".side-panel-doc").toggleClass("invisible", state !== "ready");
+		this.$body.find(".side-panel-doc").toggleClass("is-ready", state === "ready");
 
-		const message =
-			state === "loading"
-				? __("Loading...")
-				: state === "error"
-				? __("Could not load this document")
-				: null;
-
-		if (message) {
-			$('<div class="side-panel-message text-center text-extra-muted"></div>')
-				.text(message)
+		if (state === "loading") {
+			$skeleton.remove();
+			$('<div class="side-panel-skeleton"></div>')
+				.html(skeleton_form(frappe.get_meta(this.current?.doctype)))
 				.appendTo(this.$body);
+		} else if (state === "ready") {
+			$skeleton.addClass("is-done");
+			setTimeout(() => $skeleton.remove(), 200);
+		} else if (state === "error") {
+			$skeleton.remove();
+			$('<div class="side-panel-message text-center text-extra-muted"></div>')
+				.text(__("Could not load this document"))
+				.prependTo(this.$body);
 		}
 	}
 
@@ -629,6 +774,7 @@ frappe.ui.SidePanel = class SidePanel {
 		$("body").removeClass("side-panel-open");
 		this.history = [];
 		this.current = null;
+		this.previews = {};
 		this.row_dialog?.hide();
 		this.clear_cached_child_docfields();
 	}
