@@ -1531,9 +1531,7 @@ class BaseDocument:
 			doc = getattr(self, "parent_doc", None) or self
 
 		if (
-			absolute_value
-			or doc.get("absolute_value")
-			or (getattr(doc, "flags", None) and doc.flags.get("absolute_value"))
+			absolute_value or (getattr(doc, "flags", None) and doc.flags.get("absolute_value"))
 		) and isinstance(val, int | float):
 			val = abs(self.get(fieldname))
 
