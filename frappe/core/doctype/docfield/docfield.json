@@ -172,7 +172,7 @@
    "depends_on": "eval:doc.fieldtype !== 'Attachment Gallery'",
    "fieldname": "in_standard_filter",
    "fieldtype": "Check",
-   "label": "In List Filter"
+   "label": "In Standard Filter"
   },
   {
    "default": "0",
@@ -617,7 +617,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-07-17 16:27:03.961037",
+ "modified": "2026-09-20 19:27:13.075415",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
