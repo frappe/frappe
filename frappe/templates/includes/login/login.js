@@ -32,6 +32,11 @@ login.bind_events = function () {
 		return false;
 	});
 
+	$(".btn-passkey-login").on("click", function (event) {
+		event.preventDefault();
+		login.passkey();
+	});
+
 	$(".page-card-body input").on("input", function () {
 		$(this).closest(".form-group").removeClass("invalid").find(".field-error").text("");
 		$(this).closest(".page-card-body").removeClass("invalid").find(".login-error-banner, .login-success-banner").addClass("hidden");
@@ -291,6 +296,34 @@ login.set_invalid = function (message) {
 	$("#login_password").focus();
 }
 
+login.passkey = async function () {
+	if (!window.PublicKeyCredential || !PublicKeyCredential.parseRequestOptionsFromJSON) {
+		login.set_invalid({{ _("Passkeys are not supported in this browser. Please use the latest version of your browser.") | tojson }});
+		return;
+	}
+
+	var response;
+	var assertion;
+
+	try {
+		response = await frappe.xcall("frappe.core.doctype.user.passkey.login_options");
+		assertion = await navigator.credentials.get({
+			publicKey: PublicKeyCredential.parseRequestOptionsFromJSON(response.options),
+		});
+	} catch (e) {
+		if (e instanceof DOMException) {
+			login.set_invalid({{ _("No passkey was used. Try again, or sign in with your password.") | tojson }});
+		}
+		return;
+	}
+
+	login.call(
+		{ state: response.state, credential: JSON.stringify(assertion.toJSON()) },
+		null,
+		"/api/method/frappe.core.doctype.user.passkey.login"
+	);
+}
+
 login.login_handlers = (function () {
 	var get_error_handler = function (default_message) {
 		return function (xhr, data) {
@@ -389,6 +422,10 @@ frappe.ready(function () {
 	login.bind_events();
 	if (window.show_footer_on_login) {
 		$("body .web-footer").show();
+	}
+
+	if (window.PublicKeyCredential && PublicKeyCredential.parseRequestOptionsFromJSON) {
+		$(".btn-passkey-login").removeClass("hide");
 	}
 
 	$(".form-signup, .form-forgot, .form-login-with-email-link").removeClass("hide");
