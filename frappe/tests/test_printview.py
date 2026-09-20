@@ -138,7 +138,9 @@ class PrintViewTest(IntegrationTestCase):
 		html = get_html_and_style(doc=doc.as_json(), print_format=print_format.name, no_letterhead=1)["html"]
 		self.assertIn("543.21", html)
 		self.assertNotIn("-543.21", html)
-		self.assertNotIn("-9", html)
+		# ">-9<" (not the bare "-9") — CSS custom properties like var(--gray-900)
+		# would otherwise false-positive the substring check
+		self.assertNotIn(">-9<", html)
 
 	def test_print_error(self):
 		"""Print failures shouldn't generate PDF with failure message but instead escalate the error"""
