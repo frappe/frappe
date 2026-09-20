@@ -96,7 +96,7 @@
 								<!-- p-0.5 keeps button focus rings from being clipped by overflow-x-auto. -->
 								<div
 									ref="toolbarScroller"
-									class="ml-1 flex items-center gap-1 overflow-x-auto p-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+									class="ml-[3px] flex items-center gap-1 overflow-x-auto p-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 								>
 									<Button
 										v-if="uploadFunction"
