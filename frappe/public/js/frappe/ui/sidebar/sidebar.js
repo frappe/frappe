@@ -564,7 +564,7 @@ frappe.ui.Sidebar = class Sidebar {
 		this.wrapper = $(
 			frappe.render_template("sidebar", {
 				expanded: this.sidebar_expanded,
-				avatar: frappe.avatar(frappe.session.user, "avatar-medium-2"),
+				avatar: frappe.avatar(frappe.session.user, "avatar-medium"),
 				navbar_settings: frappe.boot.navbar_settings,
 			})
 		)

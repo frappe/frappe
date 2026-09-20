@@ -951,6 +951,33 @@ class TestCanonicalShellPayload(IntegrationTestCase):
 	def test_home_ties_go_to_the_earlier_shell(self):
 		self.assertEqual(home_shell({"A": {}, "B": {}}, {"DocType": {}, "Workspace": {}}), "A")
 
+	def test_home_is_the_shell_of_the_users_default_workspace(self):
+		"""What the user asked for beats where the ladder put the most of their work. The desk
+		used to settle this for itself, off `boot.user.default_workspace`; it reads the answer
+		as `boot.home_shell` now, so this is the only place the choice is honoured.
+		"""
+		sidebars = {"Custom Workspaces": {}, "Selling": {}}
+		canonical = {
+			"DocType": {"Customer": "Selling", "Quotation": "Selling"},
+			"Workspace": {"Mine": "Custom Workspaces"},
+		}
+
+		frappe.db.set_value("User", frappe.session.user, "default_workspace", "Mine")
+
+		self.assertEqual(home_shell(sidebars, canonical), "Custom Workspaces")
+
+	def test_a_default_workspace_the_user_cannot_see_is_ignored(self):
+		"""A workspace absent from the map is one this user cannot reach, so landing them on it
+		would land them on nothing. The count decides instead, as it does for a user who set no
+		default at all.
+		"""
+		sidebars = {"Custom Workspaces": {}, "Selling": {}}
+		canonical = {"DocType": {"Customer": "Selling"}, "Workspace": {}}
+
+		frappe.db.set_value("User", frappe.session.user, "default_workspace", "Gone")
+
+		self.assertEqual(home_shell(sidebars, canonical), "Selling")
+
 	def test_child_tables_are_absent(self):
 		"""A child table is never routed to, so carrying one would only make the payload bigger."""
 		canonical = self.build()

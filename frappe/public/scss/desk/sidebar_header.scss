@@ -87,9 +87,14 @@
 		min-width: 0;
 	}
 
-	// `text-base-medium text-ink-gray-8` in a `leading-none` line
+	// `text-base-medium text-ink-gray-8`, spelled out rather than leant on: the shared
+	// .header-title below sets a 1.2 line and takes its tracking from the page, and the token is
+	// 1.15 on 0.015em.
 	.header-title {
 		font-size: var(--text-md);
+		line-height: 1.15;
+		font-weight: var(--font-weight-medium);
+		letter-spacing: 0.015em;
 		color: var(--ink-gray-8);
 		// the shared .header-title carries a 2px nudge for the logo-less header this replaced
 		margin-left: 0;
@@ -100,7 +105,9 @@
 	// Worn only by the rail's user button now, where the email sits under the name.
 	.header-subtitle {
 		color: var(--ink-gray-6);
-		line-height: 1;
+		line-height: 1.15;
+		font-weight: var(--font-weight-regular);
+		letter-spacing: 0.02em;
 		margin-top: 2px;
 	}
 

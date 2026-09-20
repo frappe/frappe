@@ -26,8 +26,8 @@
                 data-link-type="{{ item.link_type || "" }}"
             >
                 {% if (item.icon && !item.show_arrow) { %}
-                    <span class="sidebar-item-icon text-ink-gray-7" item-icon="{{ item.icon }}">
-                        {%= frappe.utils.icon(item.icon, "sm", "", "", "text-ink-gray-7 current-color", true) %}
+                    <span class="sidebar-item-icon" item-icon="{{ item.icon }}">
+                        {%= frappe.utils.icon(item.icon, "sm", "", "", "current-color", true) %}
                     </span>
                 {% } %}
                 <span class="sidebar-item-label">{{ item.label }}</span>

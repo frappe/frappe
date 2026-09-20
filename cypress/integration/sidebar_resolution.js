@@ -213,39 +213,50 @@ context("Sidebar resolution", () => {
 		});
 	});
 
+	// `default_shell` used to work the landing shell out here, from the user's own default
+	// workspace. It does not any more: the server decides, with the same map it builds the rest
+	// of the payload from (`home_shell` in sidebar.py, tested in test_sidebar.py), and sends the
+	// answer down as `boot.home_shell`. What is left on this side is that the desk reads it.
 	context("the route that names nothing", () => {
-		it("lands on the user's own default workspace", () => {
+		it("lands on the home shell the server worked out", () => {
 			cy.window().then((win) => {
 				const sidebar = win.frappe.app.sidebar;
-				const real = win.frappe.boot.user.default_workspace;
-				const shell = Object.values(win.frappe.boot.module_sidebars).find(
-					(entry) => (entry.workspaces || []).length
+				const real = win.frappe.boot.home_shell;
+				// Neither the home the server sent nor the first shell, which is the fallback
+				// below. A shell that is either of those would be returned by a `default_shell`
+				// that ignored `home_shell` entirely, and this would pass without asking
+				// anything.
+				const shells = Object.keys(win.frappe.boot.module_sidebars);
+				const other = shells.find((shell) => shell !== real && shell !== shells[0]);
+
+				expect(other, "no third shell here, so this test proves nothing").to.be.a(
+					"string"
 				);
 
 				try {
-					win.frappe.boot.user.default_workspace = { name: shell.workspaces[0] };
-					expect(sidebar.default_shell()).to.equal(shell.name);
+					win.frappe.boot.home_shell = other;
+					expect(sidebar.default_shell()).to.equal(other);
 				} finally {
-					win.frappe.boot.user.default_workspace = real;
+					win.frappe.boot.home_shell = real;
 				}
 			});
 		});
 
-		it("lands somewhere rather than nowhere when the user has no default", () => {
-			// The first shell is a last resort rather than a choice, and being the same for
-			// everyone is the point: two people with no default land together, not wherever each
-			// of them was last.
+		it("falls to the first shell on a boot that carries no home", () => {
+			// Only for a desk loaded before the server began sending one. Every boot since has a
+			// home shell, so this is the last resort and not the rule -- and the first shell is
+			// the same for everyone, so two people who hit it land together.
 			cy.window().then((win) => {
 				const sidebar = win.frappe.app.sidebar;
-				const real = win.frappe.boot.user.default_workspace;
+				const real = win.frappe.boot.home_shell;
 
 				try {
-					win.frappe.boot.user.default_workspace = null;
+					win.frappe.boot.home_shell = null;
 					expect(sidebar.default_shell()).to.equal(
 						Object.keys(win.frappe.boot.module_sidebars)[0]
 					);
 				} finally {
-					win.frappe.boot.user.default_workspace = real;
+					win.frappe.boot.home_shell = real;
 				}
 			});
 		});

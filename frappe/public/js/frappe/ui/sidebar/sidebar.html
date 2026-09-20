@@ -20,11 +20,19 @@
 						aria-label="{{ __("User Menu") }}"
 					>
 						<div> {{ avatar }} </div>
-						<div class="avatar-name-email text-small overflow-hidden w-75" style="margin-left: 8px;">
+						<!-- The two lines take their size and their grey from the tokens that the
+						     header title and subtitle take theirs from (see sidebar.scss), so the
+						     Bootstrap classes .text-small, .text-secondary and .w-75 are off them:
+						     each is a size or a grey from another system, and .text-secondary
+						     carries an !important. Note: no apostrophes in this file. The template
+						     compiler escapes only one per segment (see microtemplate.js), and a
+						     second one is a syntax error in the compiled function, swallowed by a
+						     catch that then hands back undefined. -->
+						<div class="avatar-name-email overflow-hidden" style="margin-left: 8px;">
 							<span class="d-block text-truncate">
 								{{ frappe.session.user_fullname }}
 							</span>
-							<span class="d-block text-secondary text-truncate" style="margin-top: -1px;">
+							<span class="d-block text-truncate">
 								{{ frappe.session.user_email }}
 							</span>
 						</div>
