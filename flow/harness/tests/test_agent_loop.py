@@ -396,34 +396,46 @@ async def test_run_wires_the_resolved_refresh_hook_into_the_model(tmp_path, monk
 	assert [event["reason"] for event in _of(events, "run_ended")] == ["done"]
 
 
-async def test_reasoning_effort_reaches_the_model_as_params(tmp_path, monkeypatch):
-	captured = {}
+class _RecordingModel(MockModel):
+	"""Keeps the params of every request it served."""
 
-	def fake_get_model(name, **kwargs):
-		captured.update(kwargs)
-		return MockModel(replies=[AssistantMessage(content="ok")])
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.params: list = []
 
-	monkeypatch.setattr("flow_harness.agent.loop.get_model", fake_get_model)
+	async def run(self, request):
+		self.params.append(request.params)
+		async for event in super().run(request):
+			yield event
+
+
+async def test_reasoning_effort_reaches_the_model_as_request_params(tmp_path, monkeypatch):
+	model = _RecordingModel(replies=[AssistantMessage(content="ok")])
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda name, **kwargs: model)
 	session, _ = _session(tmp_path, reasoning_effort="high")
 
 	await _run(session, "hello")
 
-	assert captured["params"]["reasoning_effort"] == "high"
+	assert model.params[0]["reasoning_effort"] == "high"
 
 
 async def test_no_reasoning_effort_sends_no_params(tmp_path, monkeypatch):
-	captured = {}
-
-	def fake_get_model(name, **kwargs):
-		captured.update(kwargs)
-		return MockModel(replies=[AssistantMessage(content="ok")])
-
-	monkeypatch.setattr("flow_harness.agent.loop.get_model", fake_get_model)
+	model = _RecordingModel(replies=[AssistantMessage(content="ok")])
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda name, **kwargs: model)
 	session, _ = _session(tmp_path)
 
 	await _run(session, "hello")
 
-	assert captured["params"] is None
+	assert model.params == [None]
+
+
+async def test_a_client_handed_to_the_run_still_takes_the_effort(tmp_path):
+	model = _RecordingModel(replies=[AssistantMessage(content="ok")])
+	session, _ = _session(tmp_path, reasoning_effort="high")
+
+	await _run(session, "hello", model=model)
+
+	assert model.params[0]["reasoning_effort"] == "high"
 
 
 async def test_hook_failure_repairs_all_unreturned_tool_calls(tmp_path):
@@ -644,6 +656,57 @@ async def test_abort_between_tool_calls_prevents_later_tool_from_starting(tmp_pa
 	assert started == ["first"]
 	assert [event["tool_call_id"] for event in _of(events, "tool_result")] == ["c1", "c2"]
 	assert _of(events, "run_ended")[-1]["reason"] == "aborted"
+
+
+async def test_concurrent_tools_run_together_and_other_tools_alone(tmp_path, monkeypatch):
+	timeline: list[str] = []
+	both_running = asyncio.Event()
+
+	@tool(concurrent=True)
+	async def pair(name: str, *, ctx) -> RuntimeToolResult:
+		timeline.append(f"start {name}")
+		if len([t for t in timeline if t.startswith("start")]) == 2:
+			both_running.set()
+		await asyncio.wait_for(both_running.wait(), 5)  # hangs if the pair ran one after the other
+		timeline.append(f"end {name}")
+		return RuntimeToolResult(content=name)
+
+	@tool
+	async def solo(*, ctx) -> RuntimeToolResult:
+		timeline.append("solo")
+		return RuntimeToolResult(content="solo")
+
+	def before(call, ctx):
+		timeline.append(f"hook {call.args.get('name', call.name)}")
+
+	monkeypatch.setitem(BUILTIN_TOOLS, "pair", pair)
+	monkeypatch.setitem(BUILTIN_TOOLS, "solo", solo)
+	session, _ = _session(tmp_path, tools=["pair", "solo"], auto_approve=True)
+	model = MockModel(
+		replies=[
+			AssistantMessage(
+				content=[
+					ToolCall(id="c1", name="pair", arguments={"name": "a"}),
+					ToolCall(id="c2", name="pair", arguments={"name": "b"}),
+					ToolCall(id="c3", name="solo", arguments={}),
+				]
+			),
+			AssistantMessage(content="done"),
+		]
+	)
+
+	await _run(session, "go", model=model, before_tool_call=before)
+
+	# the pair is held while its second member passes the hooks, then runs together
+	assert timeline[:4] == ["hook a", "hook b", "start a", "start b"]
+	# the held pair ran before the next call's hook looked
+	assert timeline[-2:] == ["hook solo", "solo"]
+	# results reach the model in call order however the pair finished
+	assert [m.tool_call_id for m in session.transcript.messages if m.type == "tool_result"] == [
+		"c1",
+		"c2",
+		"c3",
+	]
 
 
 async def test_client_tool_round_trips_the_callback_and_unwraps_the_frappe_envelope(tmp_path, monkeypatch):

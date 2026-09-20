@@ -44,8 +44,9 @@
 		</div>
 		<span class="absolute bottom-0 right-0.5 flex items-center gap-1">
 			<span v-if="time" class="flow-hover-reveal mr-1 text-2xs text-ink-gray-4">{{ time }}</span>
+			<!-- a sub-agent's task is not a point the session can rewind to -->
 			<button
-				v-if="flow.capabilities?.rewind"
+				v-if="flow.capabilities?.rewind && !entry.subagent_id"
 				title="Rewind to this message"
 				class="flow-hover-reveal grid h-6 w-6 place-items-center rounded-5 text-ink-gray-4 hover:bg-surface-gray-2 hover:text-ink-gray-8"
 				@click="confirmRewind"

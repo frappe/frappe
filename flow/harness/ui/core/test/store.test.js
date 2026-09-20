@@ -920,6 +920,7 @@ test("saved state lives under the host's storage key", () => {
 			storageKey: "flow.ui",
 			maxAttachments: MAX_ATTACHMENTS,
 			skillsEnabled: true,
+			workspace: true,
 			presentTool: null,
 		})
 	} finally {
@@ -1186,4 +1187,81 @@ test("a list served before live events landed doesn't undo them on the open sess
 	assert.equal(flow.sessionTitle(flow.state.sessions[0]), "Read Aadhaar PDF")
 	assert.equal(flow.state.sessions[0].state, "idle")
 	flow.detach()
+})
+
+function subagentSeed() {
+	return [
+		{ type: "run_started", seq: 1, run_id: "r1" },
+		{ type: "user_message", seq: 2, content: "go" },
+		{
+			type: "assistant_message",
+			seq: 3,
+			content: [{ type: "tool_call", id: "c1", name: "subagent", arguments: { task: "count", description: "count beans" } }],
+		},
+		{ type: "run_started", seq: 4, run_id: "r2", subagent_id: "c1" },
+		{ type: "user_message", seq: 5, content: "count", subagent_id: "c1" },
+	]
+}
+
+test("a sub-agent opens as a workspace tab that survives a refresh and follows the branch", async () => {
+	const backing = new Map()
+	const previousStorage = globalThis.localStorage
+	globalThis.localStorage = {
+		getItem: (key) => backing.get(key) ?? null,
+		setItem: (key, value) => backing.set(key, value),
+	}
+	try {
+		let entries = subagentSeed()
+		let reads = 0
+		const client = {
+			session: async () => ({ session_id: "s1", latest_seq: 5, config: { cwd: "/proj" }, model: "mock" }),
+			entries: async () => ({ entries, latest_seq: 5 }),
+			readFile: async (cwd, path) => (reads++, { path, content: "hello" }),
+			stream: () => ({ close() {}, async *[Symbol.asyncIterator]() {} }),
+		}
+		const flow = createFlowStore(client)
+		await flow.openSession("s1")
+		flow.openSubagent("c1")
+		assert.deepEqual(flow.state.workspace.tabs, [{ kind: "subagent", path: "c1", name: "Sub-agent: count beans" }])
+		assert.equal(flow.state.workspace.active, "c1")
+		assert.equal(flow.state.workspace.open, true)
+		flow.openSubagent("c1") // again: the same tab
+		assert.equal(flow.state.workspace.tabs.length, 1)
+		flow.selectFile("c1")
+		await new Promise((resolve) => setTimeout(resolve, 0))
+		assert.equal(reads, 0) // nothing to fetch for a thread
+
+		// a fresh store (page refresh) restores the tab and names it from the loaded thread
+		const restored = createFlowStore(client)
+		await restored.openSession("s1")
+		assert.deepEqual(restored.state.workspace.tabs, [{ kind: "subagent", path: "c1", name: "Sub-agent: count beans" }])
+		assert.equal(restored.state.workspace.active, "c1")
+
+		// a rewind past the call reloads the same session; the child is off the branch now
+		entries = entries.slice(0, 2)
+		await restored.openSession("s1")
+		assert.deepEqual(restored.state.workspace.tabs, [])
+		assert.equal(restored.state.workspace.open, false)
+	} finally {
+		globalThis.localStorage = previousStorage
+	}
+})
+
+test("a sub-agent's batch is answered with its own seq while the session runs", async () => {
+	const resumes = []
+	const client = {
+		async resume(sessionId, seq, answers) {
+			resumes.push({ seq, answers })
+			return { status: "resumed" }
+		},
+	}
+	const flow = createFlowStore(client)
+	flow.state.sessionId = "s1"
+	for (const event of subagentSeed()) applyEvent(flow.state.conversation, event)
+	const calls = [{ id: "c2", name: "bash", args: { command: "rm x" } }]
+	applyEvent(flow.state.conversation, { type: "approval_required", seq: 6, calls, subagent_id: "c1" })
+	applyEvent(flow.state.conversation, { type: "run_ended", seq: 7, reason: "paused", subagent_id: "c1" })
+
+	await flow.answerApproval("c2", "Approve")
+	assert.deepEqual(resumes, [{ seq: 6, answers: { c2: "Approve" } }])
 })

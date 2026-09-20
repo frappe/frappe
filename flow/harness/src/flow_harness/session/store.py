@@ -11,7 +11,7 @@ import os
 import re
 import uuid
 from collections.abc import Callable, Collection, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import partial
 from pathlib import Path
 from tempfile import mkstemp
@@ -35,6 +35,7 @@ from flow_harness.session.skills import (
 	sorted_skills,
 )
 from flow_harness.tools import Tool, select_tools
+from flow_harness.tools.builtins.subagent import describe_agents, subagent
 
 # client-provided session ids land in on-disk filenames — keep them to a safe slug so a
 # value like "../../etc/x" can't escape the sessions dir (arbitrary file write)
@@ -197,6 +198,8 @@ class SessionStore:
 			return
 		requested = set(config.tools) if "tools" in config.model_fields_set else set()
 		requested.update(config.extension_tools or ())
+		for agent in config.subagents:
+			requested.update(agent.tools or ())
 		blocked = sorted(requested - self.tool_allowlist)
 		if blocked:
 			raise PolicyError(f"tools not allowed by server policy: {', '.join(blocked)}")
@@ -245,6 +248,8 @@ class SessionStore:
 
 	def _compose_tools(self, config: SessionConfig) -> dict[str, Tool]:
 		selected = select_tools(config.tools)
+		if subagent.name in selected:  # its description lists the session's agents
+			selected[subagent.name] = replace(subagent, description=describe_agents(config.subagents))
 		composed = self.extension_runtime.compose_tools(selected, config.extension_tools)
 		if self.tool_allowlist is None:
 			return composed
@@ -458,6 +463,7 @@ class SessionStore:
 			persist_meta=self.save_meta,
 			resolve_skill=partial(self.resolve_skill, config),
 			persist_skill_catalog=self.save_skill_catalog,
+			compose_tools=self._compose_tools,
 		)
 
 	def save_skill_catalog(self, session: Session) -> None:

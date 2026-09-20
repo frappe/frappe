@@ -71,6 +71,7 @@
 				:call="approval.call"
 				:position="approval.position"
 				:total="approval.total"
+				:subagent="approval.subagent"
 				class="mb-2"
 			/>
 
@@ -288,7 +289,7 @@ import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } fr
 import FeatherIcon from "./FeatherIcon.vue"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
-import { APPROVAL_MODES, codeRefLabel } from "../transcript.js"
+import { APPROVAL_MODES, approvalToAnswer, codeRefLabel, subagentTitle } from "../transcript.js"
 import ApprovalCard from "./ApprovalCard.vue"
 import FileMentionPalette from "./FileMentionPalette.vue"
 import ImageViewer from "./ImageViewer.vue"
@@ -614,10 +615,17 @@ const skillPrompt = computed(() => {
 })
 const running = computed(() => flow.state.conversation.running)
 const approval = computed(() => {
-	const pending = flow.state.conversation.pendingApproval
+	const conversation = flow.state.conversation
+	const pending = approvalToAnswer(conversation)
 	const index = pending?.calls.findIndex((call) => !(call.id in pending.answers)) ?? -1
 	if (index === -1) return null
-	return { call: pending.calls[index], position: index + 1, total: pending.calls.length }
+	return {
+		call: pending.calls[index],
+		position: index + 1,
+		total: pending.calls.length,
+		// a sub-agent's question says which sub-agent asks
+		subagent: pending.subagentId ? (subagentTitle(conversation, pending.subagentId) ?? "") : null,
+	}
 })
 const codeRefs = computed(() => flow.state.codeRefs)
 // "Add to chat" hands off to typing: pull focus as soon as a ref arrives

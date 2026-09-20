@@ -29,7 +29,8 @@ class ModelRequest:
 	"""Provider-neutral input for one model turn.
 
 	``cancellation`` is owned by the session. Adapters race their transport against it
-	so a hung provider cannot hold a run open.
+	so a hung provider cannot hold a run open. ``params`` are provider-shaped request
+	params for this turn, such as the reasoning effort, merged over the client's own.
 	"""
 
 	messages: list[TranscriptMessage]
@@ -40,6 +41,7 @@ class ModelRequest:
 	max_output_tokens: int | None = None
 	resolve_attachment: Callable[[str], bytes] | None = None
 	tool_display_templates: Mapping[str, str] = field(default_factory=dict)
+	params: Mapping[str, Any] | None = None
 
 
 class Model(abc.ABC):

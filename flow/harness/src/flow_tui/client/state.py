@@ -11,7 +11,9 @@ The rules mirror the wire contract:
   - `approval_required` pends until matching tool results, a `run_started`, or a
     non-paused `run_ended` settle it;
   - `rewind` truncates the active path and refolds model/effort from what is left,
-    falling back to the seeded session config.
+    falling back to the seeded session config;
+  - a sub-agent's rows (tagged `subagent_id`) add its messages and results to the
+    transcript and its usage to the totals; its previews and pauses stay its own.
 
 Replaying history through `apply` (from `GET /entries?path=active`) and folding the
 live stream use the same code path, so a reattached client and a live one agree.
@@ -183,6 +185,8 @@ class ConversationState:
 		"""Fold one event; return what a renderer must do about it."""
 		if event.durable and event.seq is not None:
 			self.latest_seq = max(self.latest_seq, event.seq)
+		if event.subagent_id is not None:
+			return self._apply_subagent(event)
 
 		if isinstance(event, UserMessage):
 			# arrives mid-run when steering; the preview keeps streaming, so keep it
@@ -323,6 +327,19 @@ class ConversationState:
 		return []
 
 	# --- internals --------------------------------------------------------
+
+	def _apply_subagent(self, event: AnyEvent) -> list[Change]:
+		if isinstance(event, (AssistantMessage, ToolResult)):
+			self.entries.append(event)
+			return [EntryAdded(event)]
+		if isinstance(event, Usage):
+			self.input_tokens += event.input_tokens
+			self.output_tokens += event.output_tokens
+			self.cache_read_tokens += event.cache_read_tokens
+			self.cache_write_tokens += event.cache_write_tokens
+			self.cost += event.cost
+			return [StatusChanged()]
+		return []
 
 	def _settle_approval(self, call_id: str) -> bool:
 		pending = self.pending_approval

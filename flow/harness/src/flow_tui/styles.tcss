@@ -102,3 +102,8 @@ CommandPalette SearchIcon {
 	background: $panel;
 	color: $text-muted;
 }
+
+/* a sub-agent's rows sit one step in from the session's */
+EntryView.entry--subagent {
+	margin-left: 2;
+}

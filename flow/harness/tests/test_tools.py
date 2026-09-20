@@ -13,7 +13,7 @@ def _ctx(tmp_path, **kw) -> ToolContext:
 
 
 def test_registry_keys():
-	assert set(BUILTIN_TOOLS) == {"bash", "read", "write", "edit"}
+	assert set(BUILTIN_TOOLS) == {"bash", "read", "write", "edit", "subagent"}
 	assert set(BUILTIN_ALIASES) == {"read_file"}
 	assert BUILTIN_TOOLS["bash"].requires_confirmation is True
 	assert BUILTIN_TOOLS["read"].requires_confirmation is False

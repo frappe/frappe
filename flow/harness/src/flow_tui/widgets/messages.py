@@ -86,6 +86,8 @@ def call_line(name: str, args: dict | None, display: list[DisplaySegment] | None
 		return line.append(f" {args.get('path', '')}")
 	if name == "grep":
 		return line.append(f" {args.get('pattern', '')} {args.get('path', '')}".rstrip())
+	if name == "subagent":
+		return line.append(f" {args.get('description', '')}")
 	if not args:
 		return line
 	return line.append(f" {json.dumps(args, ensure_ascii=False)}")
@@ -294,6 +296,8 @@ class EntryView(Vertical):
 		self.add_class(f"entry--{entry.type}")
 		if steered:
 			self.add_class("entry--steered")
+		if entry.subagent_id is not None:
+			self.add_class("entry--subagent")
 		self._parts = entry_widgets(
 			entry,
 			steered=steered,

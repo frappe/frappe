@@ -158,6 +158,8 @@ def create_sessions_router(
 	@router.post("/sessions")
 	async def create_session(request: Request, config: SessionConfig):
 		_refuse_inline_credentials(config.api_key, config.api_base)
+		for agent in config.subagents:
+			_refuse_inline_credentials(agent.api_key, agent.api_base)
 		if system_append:
 			joined = "\n\n".join(p for p in (config.system_append, system_append) if p)
 			config = config.model_copy(update={"system_append": joined})
@@ -285,8 +287,6 @@ def create_sessions_router(
 	async def run(request: Request, sid: str, req: RunRequest, wait: bool = False):
 		session = _get(resolve_store(request), sid)
 		handle = await session.run(req.message, attachment_ids=req.attachments)
-		if handle.status == "steered":
-			return {"status": "steered"}
 		return await _finish(session, handle, wait)
 
 	@router.post("/sessions/{sid}/resume")
@@ -445,12 +445,11 @@ def create_sessions_router(
 
 
 async def _finish(session: Session, handle: RunHandle, wait: bool) -> dict:
-	"""Fire-and-forget by default; `?wait=true` drains the run and returns its summary."""
-	if not wait:
-		return {"status": "started"}
-	assert handle.task is not None  # a "started" handle always carries its task
-	await handle.task
-	return _summary(session, handle.from_seq)
+	"""The handle's status; with `?wait=true`, a started run is drained and summarized."""
+	if wait and handle.task is not None:
+		await handle.task
+		return _summary(session, handle.from_seq)
+	return {"status": handle.status}
 
 
 def _summary(session: Session, from_seq: int) -> dict:
@@ -461,6 +460,8 @@ def _summary(session: Session, from_seq: int) -> dict:
 	input_tokens = output_tokens = cache_read_tokens = cache_write_tokens = 0
 	for row in session.log.read_since(from_seq):
 		t = row["type"]
+		if row.get("subagent_id") and t != "usage":
+			continue  # a sub-agent's rows: only its usage counts toward the turn
 		if t == "assistant_message":
 			message = parse_event(row)
 			assert isinstance(message, AssistantMessage)

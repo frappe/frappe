@@ -19,12 +19,16 @@ The agent loop yields events. `Session` is the only writer: it appends durable e
 
 The loop owns model calls, tool execution, confirmation pauses, steering, retries, and compaction. It does not write files or manage subscribers. Provider adapters own provider-specific request formats, authentication refresh, and retry behavior.
 
+A sub-agent the `subagent` tool starts is a second loop the session drives inside the same run: its events go through the same commit path, tagged with the child's id, and an approval it pauses for is answered through `resume` while the session stays running.
+
 ## Events and state
 
 `flow_harness.events` is the shared wire contract.
 
 - Durable events are append-only JSONL rows with a monotonic `seq`: messages, tool results, approval requests, model changes, compactions, run endings, errors, and rewinds.
 - Live-only events are display hints: text/thinking deltas, tool-start notifications, retry progress, compaction progress, and generated titles. While a run is active, `Session` retains its provisional assistant events in memory so a newly attached client can rebuild the preview; the terminal durable assistant message supersedes them.
+
+Every event carries an optional `subagent_id`, the id of the `subagent` call whose child produced it. A transcript folds only the rows of the agent it belongs to; another agent's rows just advance the leaf.
 
 The `Transcript` reducer rebuilds state from the active log branch and updates it incrementally during a run. It holds the provider-facing messages, unresolved tool calls, pending approvals, model selection, and context usage. A session is `running` while its task is alive, `paused` while an approval remains, and otherwise `idle`.
 

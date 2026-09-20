@@ -106,6 +106,7 @@ const client = new FrappeClient({
 });
 const store = createFlowStore(client, {
 	requireCwd: false,
+	workspace: false, // the page mounts no workspace panel
 	storageKey: `flow.page.${props.boot.user?.name ?? "user"}`,
 	presentTool,
 	turnActions: FeedbackBar,

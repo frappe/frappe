@@ -1,10 +1,10 @@
 <template>
 	<div>
 		<component
-			:is="expandable ? 'button' : 'div'"
+			:is="expandable || link ? 'button' : 'div'"
 			class="flex w-full items-baseline gap-2.5 py-2.5 text-left"
-			:class="[expandable ? 'group cursor-pointer' : '', live ? 'flow-tool-live' : '']"
-			@click="expandable && (open = !open)"
+			:class="[expandable || link ? 'group cursor-pointer' : '', live ? 'flow-tool-live' : '']"
+			@click="link ? flow.openSubagent(subagentId(step.call)) : expandable && (open = !open)"
 		>
 			<!-- leading slot doubles as the disclosure control: the tool icon yields
 			     to a chevron on hover, and to the rotated (close) chevron while open -->
@@ -12,10 +12,10 @@
 				<FeatherIcon
 					:name="icon"
 					class="h-3.5 w-3.5 transition-opacity"
-					:class="open ? 'opacity-0' : expandable ? 'group-hover:opacity-0' : ''"
+					:class="open ? 'opacity-0' : expandable || link ? 'group-hover:opacity-0' : ''"
 				/>
 				<FeatherIcon
-					v-if="expandable"
+					v-if="expandable || link"
 					name="chevron-right"
 					class="absolute inset-0 h-3.5 w-3.5 transition-[opacity,transform]"
 					:class="open ? 'rotate-90 opacity-100' : 'opacity-0 group-hover:opacity-100'"
@@ -105,7 +105,15 @@ import { computed, inject, ref, watch } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { usePanelOpen } from "../panels.js"
-import { compactDisplayText, stepDecision, stepIcon, stepLabel, stepStat, stepSubject } from "../transcript.js"
+import {
+	compactDisplayText,
+	stepDecision,
+	stepIcon,
+	stepLabel,
+	stepStat,
+	stepSubject,
+	subagentId,
+} from "../transcript.js"
 import CopyButton from "./CopyButton.vue"
 
 const props = defineProps({
@@ -140,6 +148,15 @@ const failed = computed(() => props.step.result?.is_error === true)
 const details = computed(() => props.step.result?.details ?? {})
 const output = computed(() => props.step.result?.content ?? "")
 
+// a sub-agent's row opens the child's thread in the workspace panel instead of a
+// dropdown, unless the host has no panel or the call was refused before any child ran
+const link = computed(
+	() =>
+		props.step.call.name === "subagent" &&
+		flow?.options?.workspace !== false &&
+		(!props.step.result || "end_reason" in details.value),
+)
+
 const decision = computed(() => stepDecision(props.step.result))
 const decisionTitle = computed(
 	() =>
@@ -152,6 +169,9 @@ const decisionTitle = computed(
 
 const stat = computed(() => {
 	if (props.step.aborted && !props.step.result) return "aborted"
+	// a running sub-agent's row carries what the child is doing right now
+	const child = props.step.subagent
+	if (child?.running && !props.step.result) return child.liveLabel ?? "Working"
 	// a host describes its own tool, like icon and label — but what the user decided
 	// about the call outranks anything the tool says about itself
 	if (decision.value) return stepStat(props.step)
@@ -189,6 +209,7 @@ const payloadEl = ref(null)
 watch(payloadEl, (el) => el?.scrollIntoView({ block: "nearest", behavior: "smooth" }))
 
 const expandable = computed(() => {
+	if (link.value) return false
 	if (failed.value || decision.value) return true
 	if (meta.value.expandable === false) return false
 	if (meta.value.argsComponent) return true

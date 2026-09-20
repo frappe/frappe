@@ -19,6 +19,7 @@ const MessageList = await loadComponent("MessageList")
 const ModelButton = await loadComponent("ModelButton")
 const SettingsDialog = await loadComponent("SettingsDialog")
 const SettingsPage = await loadComponent("SettingsPage")
+const SubagentView = await loadComponent("SubagentView")
 
 function mount(t, component, props, flow) {
 	const el = document.createElement("div")
@@ -742,4 +743,117 @@ test("the Default preset locks the core tools and takes bundled and extension pi
 	await nextTick()
 	assert.deepEqual(store.state.prefs.defaultPreset, { tools: ["grep"], extensionTools: ["hello"] })
 	assert.match(el.textContent, /3 of 3 tools/)
+})
+
+function subagentConversation() {
+	const conversation = reactive(initialConversation())
+	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
+	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "go" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 3,
+		ts: 11,
+		content: [{ type: "tool_call", id: "c1", name: "subagent", arguments: { task: "count", description: "count beans" } }],
+	})
+	applyEvent(conversation, { type: "run_started", seq: 4, ts: 11, subagent_id: "c1" })
+	applyEvent(conversation, { type: "user_message", seq: 5, ts: 11, content: "count", subagent_id: "c1" })
+	return conversation
+}
+
+test("a sub-agent's row opens its tab and shows its state instead of a dropdown", async (t) => {
+	const conversation = subagentConversation()
+	const opened = []
+	const flow = { options: {}, state: reactive({ sessionId: "s1", loading: false, conversation }), openSubagent: (id) => opened.push(id) }
+	const { el } = mount(t, MessageList, {}, flow)
+	await nextTick()
+	const row = () => rowButton(el, "count beans")
+	assert.ok(row().textContent.includes("Working"))
+	applyEvent(conversation, { type: "thinking_delta", thinking: "hmm", subagent_id: "c1" })
+	await nextTick()
+	assert.ok(row().textContent.includes("Thinking"))
+	row().click()
+	await nextTick()
+	assert.deepEqual(opened, ["c1"])
+	assert.equal(el.querySelector("pre"), null)
+
+	applyEvent(conversation, { type: "assistant_message", seq: 6, ts: 12, content: [{ type: "text", text: "forty-two" }], subagent_id: "c1" })
+	applyEvent(conversation, { type: "run_ended", seq: 7, ts: 12, reason: "done", subagent_id: "c1" })
+	applyEvent(conversation, {
+		type: "tool_result", seq: 8, ts: 12, tool_call_id: "c1", name: "subagent",
+		content: "forty-two\n\n[subagent_id: c1]", details: { subagent_id: "c1", agent: "researcher", end_reason: "done" },
+	})
+	await nextTick()
+	assert.ok(row().textContent.includes("researcher"))
+	assert.ok(!el.textContent.includes("forty-two")) // the child's answer lives in its tab
+})
+
+test("a host without a workspace panel keeps the sub-agent row's dropdown", async (t) => {
+	const conversation = subagentConversation()
+	applyEvent(conversation, { type: "assistant_message", seq: 6, ts: 12, content: [{ type: "text", text: "forty-two" }], subagent_id: "c1" })
+	applyEvent(conversation, { type: "run_ended", seq: 7, ts: 12, reason: "done", subagent_id: "c1" })
+	applyEvent(conversation, {
+		type: "tool_result", seq: 8, ts: 12, tool_call_id: "c1", name: "subagent",
+		content: "forty-two\n\n[subagent_id: c1]", details: { subagent_id: "c1", agent: "general", end_reason: "done" },
+	})
+	const opened = []
+	const flow = { options: { workspace: false }, state: reactive({ sessionId: "s1", loading: false, conversation }), openSubagent: (id) => opened.push(id) }
+	const { el } = mount(t, MessageList, {}, flow)
+	await nextTick()
+	rowButton(el, "count beans").click()
+	await nextTick()
+	assert.deepEqual(opened, [])
+	assert.ok(el.querySelector("pre").textContent.includes("forty-two"))
+})
+
+test("a sub-agent's tab draws the child's thread with the session's own rows", async (t) => {
+	const conversation = subagentConversation()
+	const flow = { options: {}, capabilities: { rewind: true }, state: reactive({ sessionId: "s1", loading: false, conversation }) }
+	const { el } = mount(t, SubagentView, { id: "c9" }, flow)
+	assert.ok(el.textContent.includes("Starting…"))
+
+	const { el: view } = mount(t, SubagentView, { id: "c1" }, flow)
+	await nextTick()
+	assert.ok(view.textContent.includes("count")) // the task bubble
+	assert.equal(view.querySelector("button[title='Rewind to this message']"), null)
+	applyEvent(conversation, {
+		type: "assistant_message", seq: 6, ts: 12, subagent_id: "c1",
+		content: [{ type: "tool_call", id: "c2", name: "bash", arguments: { command: "wc -l beans" } }],
+	})
+	applyEvent(conversation, { type: "tool_result", seq: 7, ts: 12, tool_call_id: "c2", content: "42", subagent_id: "c1" })
+	await nextTick()
+	rowButton(view, "wc -l beans").click() // the same tool dropdowns
+	await nextTick()
+	assert.equal(view.querySelector("pre").textContent, "42")
+
+	applyEvent(conversation, { type: "assistant_message", seq: 8, ts: 13, content: [{ type: "text", text: "forty-two" }], subagent_id: "c1" })
+	applyEvent(conversation, { type: "run_ended", seq: 9, ts: 13, reason: "done", subagent_id: "c1" })
+	await nextTick()
+	assert.ok(view.querySelector("[data-turn-fold] button").textContent.includes("Worked")) // and the same turn fold
+	assert.ok(view.querySelector("[data-stub='AssistantText']"))
+})
+
+test("a sub-agent's question shows in the composer, named after the sub-agent", async (t) => {
+	const conversation = subagentConversation()
+	const calls = [{ id: "c2", name: "bash", args: { command: "rm x" } }]
+	applyEvent(conversation, { type: "approval_required", seq: 6, calls, subagent_id: "c1" })
+	applyEvent(conversation, { type: "run_ended", seq: 7, reason: "paused", subagent_id: "c1" })
+	const answers = []
+	const flow = {
+		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
+		state: reactive({
+			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], codeRefs: [], queued: [],
+			skills: [], conversation, draft: null,
+		}),
+		answerApproval: (id, answer) => answers.push([id, answer]),
+	}
+	const { el } = mount(t, Composer, { commands: [], mentions: false }, flow)
+	assert.ok(el.textContent.includes("Run this command?"))
+	assert.ok(el.textContent.includes("Sub-agent: count beans"))
+	;[...el.querySelectorAll("button")].find((button) => button.textContent === "Approve").click()
+	assert.deepEqual(answers, [["c2", "Approve"]])
+
+	// the session's run ending takes the question with it
+	applyEvent(conversation, { type: "run_ended", seq: 8, reason: "aborted" })
+	await nextTick()
+	assert.ok(!el.textContent.includes("Run this command?"))
 })

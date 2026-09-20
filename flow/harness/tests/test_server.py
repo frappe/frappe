@@ -139,11 +139,13 @@ def test_set_model_is_a_durable_entry_used_by_later_runs(tmp_path, monkeypatch):
 def test_reasoning_effort_travels_with_the_selection_and_rewinds_with_it(tmp_path, monkeypatch):
 	captured = []
 
-	def spy(name, **kwargs):
-		captured.append(kwargs.get("params"))
-		return MockModel()
+	class Recording(MockModel):
+		async def run(self, request):
+			captured.append(request.params)
+			async for event in super().run(request):
+				yield event
 
-	monkeypatch.setattr("flow_harness.agent.loop.get_model", spy)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda name, **kwargs: Recording())
 	c = _client(tmp_path)
 	sid = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path), "reasoning_effort": "low"}).json()[
 		"session_id"

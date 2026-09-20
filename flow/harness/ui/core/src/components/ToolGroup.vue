@@ -2,7 +2,7 @@
 	<div>
 		<template v-for="step in steps" :key="step.call ? step.call.id : step.id">
 			<ThoughtStep v-if="step.thought" :id="step.id" :block="step.thought" :live="!sealed && !!step.live" />
-			<ToolStep v-else :step="step" :live="!sealed && step === runningStep" />
+			<ToolStep v-else :step="step" :live="!sealed && isLive(step)" />
 		</template>
 		<!-- results landed but the run continues (model deciding the next step):
 		     no row carries the live signal, so a trailing status line does -->
@@ -29,6 +29,8 @@ const props = defineProps({
 const runningStep = computed(
 	() => props.steps.find((s) => s.call && !s.result && !s.aborted) ?? null,
 )
+// a sub-agent's row runs on its child's clock: several can be live at once
+const isLive = (step) => step === runningStep.value || (!!step.subagent?.running && !step.result)
 
 const tailLabel = computed(() => {
 	if (props.sealed || runningStep.value) return null

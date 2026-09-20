@@ -17,7 +17,10 @@ A tool call can be intercepted three ways, and they do different jobs:
     The pause is in the log, so `resume` can arrive later, from any client, even
     after a restart.
 
-Order per call: bad arguments, before hook, extension hooks, confirm gate, then run it.
+Order per call: bad arguments, before hook, extension hooks, confirm gate, then run it,
+before the next call is looked at. Consecutive calls of tools marked `concurrent` are the
+exception: they are held and run together once a call of another kind, or the end of the
+turn's calls, follows.
 """
 
 from __future__ import annotations
@@ -27,7 +30,8 @@ import inspect
 import json
 import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from functools import partial
 from typing import TYPE_CHECKING, Any
 
 from flow_harness.agent.client_tools import call_client
@@ -67,7 +71,7 @@ from flow_harness.model.credentials import CredentialStore
 from flow_harness.model.reasoning import reasoning_params
 from flow_harness.session.config import SessionConfig
 from flow_harness.session.transcript import PendingApproval
-from flow_harness.tools import Tool, ToolContext
+from flow_harness.tools import SubagentOutcome, Tool, ToolContext
 
 if TYPE_CHECKING:
 	from flow_harness.extensions import ExtensionRuntime
@@ -96,7 +100,8 @@ class LoopInputs:
 	"""Everything a run needs from its session, prepared once at admission.
 
 	``messages`` is the live provider-facing transcript the session's reducer
-	maintains; the loop only reads it.
+	maintains; the loop only reads it. A child has its own config copy, but its
+	approval gate reads the session's live config through ``approval_config``.
 	"""
 
 	config: SessionConfig
@@ -106,6 +111,7 @@ class LoopInputs:
 	model_name: str  # the session's effective selection at admission, not config
 	credential_id: str | None = None
 	reasoning_effort: ReasoningEffort | None = None
+	approval_config: SessionConfig | None = None
 	allowed_roots: tuple[str, ...] = ()
 	ignore_hidden_files: bool = False
 	read_only_roots: tuple[str, ...] = ()
@@ -118,6 +124,9 @@ class LoopInputs:
 	after_tool_call: AfterHook | None = None
 	resolve_attachment: Callable[[str], bytes] | None = None
 	store_image: Callable[[str, bytes], Awaitable[AttachmentContent]] | None = None
+	run_subagent: (
+		Callable[[LoopInputs, str, str, str | None, str | None], Awaitable[SubagentOutcome]] | None
+	) = None
 	server_tools: dict[str, Tool] | None = None
 	extension_runtime: ExtensionRuntime | None = None
 
@@ -161,6 +170,7 @@ async def compact(instructions: str | None, inputs: LoopInputs) -> AsyncIterator
 		cancellation=inputs.abort,
 		summary_instructions=instructions,
 		resolve_attachment=inputs.resolve_attachment,
+		params=reasoning_params(inputs.model_name, inputs.reasoning_effort),
 	):
 		yield event
 	yield RunEnded(reason="done")
@@ -210,6 +220,7 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	"""The turn core shared by `run` and `resume`."""
 	config, abort = inputs.config, inputs.abort
 	model = inputs.model or await _authenticated_model(inputs)
+	params = reasoning_params(inputs.model_name, inputs.reasoning_effort)
 	if config.auto_compact:
 		await model.load_model_limits(abort)
 	tools = inputs.server_tools or {}
@@ -241,6 +252,7 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 			stream=config.stream,
 			cancellation=abort,
 			resolve_attachment=inputs.resolve_attachment,
+			params=params,
 		)
 		async for event in _model_turn(model, request, inputs, context):
 			if isinstance(event, AssistantMessage):
@@ -276,10 +288,8 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 				yield _result(call, _TRUNCATED, is_error=True)
 		else:
 			gated: list[PendingCall] = []
-			for call in assistant.tool_calls:
-				_raise_if_aborted(abort)
-				async for event in _settle_call(call, tools, ctx, inputs, gated):
-					yield event
+			async for event in _settle_calls(assistant.tool_calls, tools, ctx, inputs, gated):
+				yield event
 			if gated:  # free tools already ran; now wait for the human
 				_raise_if_aborted(abort)
 				yield ApprovalRequired(calls=gated)
@@ -412,6 +422,7 @@ async def _compact_once(
 		compaction_reason=reason,
 		cancellation=inputs.abort,
 		resolve_attachment=inputs.resolve_attachment,
+		params=reasoning_params(inputs.model_name, inputs.reasoning_effort),
 	):
 		if isinstance(event, Compaction):
 			context.mark_compacted()
@@ -447,15 +458,78 @@ class _ContextTracker:
 		return self.usage_tokens + trailing
 
 
+async def _settle_calls(
+	calls: tuple[ToolCall, ...],
+	tools: dict[str, Tool],
+	ctx: ToolContext,
+	inputs: LoopInputs,
+	gated: list[PendingCall],
+) -> AsyncIterator[AnyEvent]:
+	"""Settle one turn's tool calls in order: hooks, the gate, then the run. Consecutive
+	`concurrent` tools are held and run together; a gated call lands in `gated` for the
+	approval pause instead of running."""
+	batch: list[tuple[ToolCall, bool]] = []
+	for call in calls:
+		_raise_if_aborted(inputs.abort)
+		if batch and not _concurrent(call, tools):  # a plain call waits for the held batch to finish
+			async for result in _run_batch(batch, tools, ctx, inputs):
+				yield result
+			batch = []
+		runnable: list[tuple[ToolCall, bool]] = []
+		async for event in _settle_call(call, tools, ctx, inputs, gated, runnable):
+			yield event
+		if not runnable:
+			continue
+		if _concurrent(call, tools):
+			batch.append(runnable[0])
+		else:
+			yield await _run_call(*runnable[0], tools, ctx, inputs)
+	if batch:
+		async for result in _run_batch(batch, tools, ctx, inputs):
+			yield result
+
+
+def _concurrent(call: ToolCall, tools: dict[str, Tool]) -> bool:
+	tool = tools.get(call.name)
+	return tool is not None and tool.concurrent
+
+
+async def _run_batch(
+	batch: list[tuple[ToolCall, bool]], tools: dict[str, Tool], ctx: ToolContext, inputs: LoopInputs
+) -> AsyncIterator[ToolResult]:
+	"""Run a batch together, yielding each result as it lands; leaving early cancels the rest."""
+	tasks = [asyncio.create_task(_run_call(call, rewritten, tools, ctx, inputs)) for call, rewritten in batch]
+	try:
+		for finished in asyncio.as_completed(tasks):
+			yield await finished
+	finally:
+		for task in tasks:
+			task.cancel()
+		await asyncio.gather(*tasks, return_exceptions=True)
+
+
+async def _run_call(
+	call: ToolCall, rewritten: bool, tools: dict[str, Tool], ctx: ToolContext, inputs: LoopInputs
+) -> ToolResult:
+	result = await _finished_call(call, tools, ctx, inputs)
+	if rewritten:  # the durable ToolCall keeps the model's arguments; record what ran
+		result = result.model_copy(
+			update={"details": {**result.details, "effective_arguments": dict(call.args)}}
+		)
+	return result
+
+
 async def _settle_call(
 	call: ToolCall,
 	tools: dict[str, Tool],
 	ctx: ToolContext,
 	inputs: LoopInputs,
 	gated: list[PendingCall],
+	runnable: list[tuple[ToolCall, bool]],
 ) -> AsyncIterator[AnyEvent]:
-	"""Settle one tool call: bad-args feedback, before-hook, extension hooks, confirm gate,
-	dispatch. Appends to `gated` (deferred to approval) instead of running when confirm-gated."""
+	"""Take one tool call up to its run: bad-args feedback, before-hook, extension hooks,
+	confirm gate. A call that may run lands in `runnable` with its rewritten flag; a
+	confirm-gated one in `gated`."""
 	if call.error:  # model emitted malformed args — feed the error back so it can retry
 		yield _result(call, call.error, is_error=True)
 		return
@@ -480,18 +554,12 @@ async def _settle_call(
 		call = call.model_copy(update={"arguments": dict(verdict.arguments)})
 		rewritten = True
 
-	if _needs_confirmation(inputs.config, call.name, tools):
+	if _needs_confirmation(inputs.approval_config or inputs.config, call.name, tools):
 		prompt = await _confirmation_prompt(call, tools, inputs)
 		_raise_if_aborted(inputs.abort)
 		gated.append(PendingCall(id=call.id, name=call.name, args=call.args, prompt=prompt))
 		return
-
-	result = await _finished_call(call, tools, ctx, inputs)
-	if rewritten:  # the durable ToolCall keeps the model's arguments; record what ran
-		result = result.model_copy(
-			update={"details": {**result.details, "effective_arguments": dict(call.args)}}
-		)
-	yield result
+	runnable.append((call, rewritten))
 
 
 async def _hook_verdict(call: ToolCall, ctx: ToolContext, inputs: LoopInputs) -> PreToolUseDecision:
@@ -531,7 +599,8 @@ async def _dispatch(
 	try:
 		tool = tools.get(call.name)
 		if tool is not None:
-			outcome = await tool(**call.args, ctx=ctx)  # Tool.__call__ validates/coerces args
+			# Tool.__call__ validates/coerces args; the context names the call for tools that need it
+			outcome = await tool(**call.args, ctx=replace(ctx, tool_call_id=call.id))
 			return _result(
 				call,
 				outcome.content,
@@ -596,7 +665,6 @@ async def _authenticated_model(inputs: LoopInputs) -> Model:
 		api_key=auth.api_key,
 		api_base=auth.base_url,
 		headers=auth.headers,
-		params=reasoning_params(inputs.model_name, inputs.reasoning_effort),
 		refresh_auth=auth.refresh,
 	)
 
@@ -609,6 +677,8 @@ def _tool_context(inputs: LoopInputs) -> ToolContext:
 		read_only_roots=inputs.read_only_roots,
 		abort=inputs.abort,
 		store_image=inputs.store_image,
+		# the runner needs this run's inputs; a tool only names the call, task, agent and child
+		run_subagent=partial(inputs.run_subagent, inputs) if inputs.run_subagent is not None else None,
 	)
 
 

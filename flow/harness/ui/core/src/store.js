@@ -4,10 +4,12 @@ import { FlowAPIError } from "./client.js"
 import { onSidebarLayoutChange, sidebarIsDrawer } from "./layout.js"
 import {
 	applyEvent,
+	approvalToAnswer,
 	conversationTitle,
 	initialConversation,
 	normalizeSkillCommand,
 	skillCommand,
+	subagentTitle,
 } from "./transcript.js"
 
 // mirrors MAX_ATTACHMENTS_PER_MESSAGE on the daemon; the client has no endpoint to
@@ -34,6 +36,8 @@ function readJSON(key, fallback) {
 //   storageKey     localStorage prefix, so a host can scope saved state per user
 //   maxAttachments per-message cap enforced by the host's upload path
 //   skillsEnabled  false disables skill catalog requests and composer suggestions
+//   workspace      false when the host mounts no workspace panel: a sub-agent's row then
+//                  expands in place instead of opening the child's thread in a tab
 //   presentTool    (name, args, result) => { icon, label, subject, stat, expandable, title,
 //                  body, argsComponent, resultComponent }, any subset, describing the host's
 //                  own tools in rows, approvals and expanded output. Both components fill
@@ -48,6 +52,7 @@ export function createFlowStore(client, options = {}) {
 		storageKey: "flow.ui",
 		maxAttachments: MAX_ATTACHMENTS,
 		skillsEnabled: true,
+		workspace: true,
 		presentTool: null,
 		...options,
 	}
@@ -95,9 +100,10 @@ export function createFlowStore(client, options = {}) {
 		toast: null,
 		draft: null, // { text, attachments } handed to the composer after rewind
 		codeRefs: [], // { path, rel, start, end } selections queued for the next message
-		// right panel; tabs are typed ({ kind: "editor" } today, browser/terminal
-		// later) — editor tabs: { kind, path, name, content, error, loading, dirty },
-		// content being the last server-confirmed text (the editor owns unsaved edits)
+		// right panel; tabs are typed, keyed by `path` (browser/terminal later) —
+		// editor tabs: { kind, path, name, content, error, loading, dirty }, content
+		// being the last server-confirmed text (the editor owns unsaved edits);
+		// sub-agent tabs: { kind: "subagent", path: the child's id, name: its description }
 		workspace: { open: false, maximized: false, tabs: [], active: null, view: null },
 		sidebarOpen: sidebarFromPrefs(),
 		settingsOpen: false,
@@ -256,7 +262,7 @@ export function createFlowStore(client, options = {}) {
 				maximized: ws.maximized,
 				active: ws.active,
 				view: ws.view ?? null,
-				tabs: ws.tabs.map((t) => ({ path: t.path, diff: !!t.diff })),
+				tabs: ws.tabs.map((t) => ({ kind: t.kind, path: t.path, diff: !!t.diff })),
 			}
 		} else {
 			delete workspaceBySession[sid]
@@ -277,17 +283,21 @@ export function createFlowStore(client, options = {}) {
 			open: saved.open ?? true,
 			maximized: (saved.open ?? true) && !!saved.maximized,
 			view: ["files", "diff"].includes(saved.view) ? saved.view : null,
-			tabs: stored.map(({ path, diff }) => ({
-				kind: "editor",
-				path,
-				name: path.split(/[\\/]/).filter(Boolean).pop() ?? path,
-				content: null,
-				original: null,
-				error: null,
-				loading: false,
-				dirty: false,
-				diff: !!diff,
-			})),
+			tabs: stored.map(({ kind, path, diff }) =>
+				kind === "subagent"
+					? { kind, path, name: "Sub-agent" } // named once the thread is loaded
+					: {
+							kind: "editor",
+							path,
+							name: path.split(/[\\/]/).filter(Boolean).pop() ?? path,
+							content: null,
+							original: null,
+							error: null,
+							loading: false,
+							dirty: false,
+							diff: !!diff,
+						},
+			),
 			active: saved.active == null ? null : paths.includes(saved.active) ? saved.active : (paths[0] ?? null),
 		}
 	}
@@ -345,6 +355,7 @@ export function createFlowStore(client, options = {}) {
 		state.conversation.reasoningEffort = info.reasoning_effort ?? null
 		state.conversation.contextTokens = info.context_tokens ?? 0
 		for (const entry of seed.entries) applyEvent(state.conversation, entry)
+		syncSubagentTabs()
 		// A trailing model_changed has no usage yet, so fall back to the selected
 		// model's static limit from the session detail response.
 		state.conversation.contextWindow ??= info.context_window ?? null
@@ -382,10 +393,13 @@ export function createFlowStore(client, options = {}) {
 			if (listed) listed.title = event.title
 			return
 		}
-		if (event.type === "run_error" && event.seq > (state.session?.latest_seq ?? 0)) {
-			state.conversation.liveErrorSeqs.push(event.seq)
-		}
 		applyEvent(state.conversation, event)
+		// an error witnessed live shows in full, in the thread it belongs to
+		if (event.type === "run_error" && event.seq > (state.session?.latest_seq ?? 0)) {
+			const thread = event.subagent_id ? state.conversation.subagents[event.subagent_id] : state.conversation
+			thread.liveErrorSeqs.push(event.seq)
+		}
+		if (event.subagent_id) return // a sub-agent's rows change nothing below
 		if (event.type === "user_message") {
 			// Match attachment messages, whose text is wrapped in content blocks.
 			const blocks = Array.isArray(event.content) ? event.content : []
@@ -658,7 +672,7 @@ export function createFlowStore(client, options = {}) {
 	// A deny stops the run, so it settles the batch: undecided calls deny with it
 	// (explicit answers stand, matching the server's approve-then-halt order).
 	async function answerApproval(callId, answer) {
-		const pending = state.conversation.pendingApproval
+		const pending = approvalToAnswer(state.conversation)
 		if (!pending) return
 		pending.answers[callId] = answer
 		if (answer === "Deny") {
@@ -800,7 +814,7 @@ export function createFlowStore(client, options = {}) {
 		if (state.session) state.session.config = data.config
 		// a batch already waiting at the gate is covered by the new mode: approve
 		// whatever the user hasn't decided yet (their explicit answers stand)
-		const pending = state.conversation.pendingApproval
+		const pending = approvalToAnswer(state.conversation)
 		if (mode === "auto" && pending) {
 			for (const call of pending.calls) {
 				if (!(call.id in pending.answers)) await answerApproval(call.id, "Approve")
@@ -981,8 +995,36 @@ export function createFlowStore(client, options = {}) {
 		if (!tab) return
 		state.workspace.active = path
 		persistWorkspace()
-		if (tab.content == null && !tab.loading && !tab.error)
+		if (tab.kind === "editor" && tab.content == null && !tab.loading && !tab.error)
 			void (tab.diff ? openDiffFile(path) : openFile(path))
+	}
+
+	// Open a sub-agent's thread in the workspace panel, beside the file tabs.
+	function openSubagent(id) {
+		const ws = state.workspace
+		if (!ws.tabs.some((t) => t.path === id)) {
+			const name = subagentTabName(id) ?? "Sub-agent"
+			ws.tabs.push({ kind: "subagent", path: id, name })
+		}
+		ws.active = id
+		ws.open = true
+		persistWorkspace()
+	}
+
+	// a sub-agent tab is named by the loaded thread; one whose child left the branch closes
+	function syncSubagentTabs() {
+		for (const tab of [...state.workspace.tabs]) {
+			if (tab.kind !== "subagent") continue
+			const name = subagentTabName(tab.path)
+			if (name == null) closeFile(tab.path)
+			else tab.name = name
+		}
+	}
+
+	// the tab reads like the step row; null once the call left the branch
+	function subagentTabName(id) {
+		const title = subagentTitle(state.conversation, id)
+		return title == null ? null : `Sub-agent: ${title}`
 	}
 
 	async function saveFile(path, content) {
@@ -1222,6 +1264,7 @@ export function createFlowStore(client, options = {}) {
 		searchFiles,
 		gitChanges,
 		selectFile,
+		openSubagent,
 		showFilesView,
 		showDiffView,
 		closeFilesView,

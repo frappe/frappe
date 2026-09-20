@@ -116,6 +116,7 @@ class _Event(BaseModel):
 	seq: int | None = None  # assigned by the log when persisted
 	parent_seq: int | None = None  # the entry this one follows; 0 at the root
 	ts: float | None = None  # unix seconds, stamped by the log when persisted
+	subagent_id: str | None = None  # the sub-agent run this event belongs to; None for the session's own
 
 
 # --- durable events -------------------------------------------------------

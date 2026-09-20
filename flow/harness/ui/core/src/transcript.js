@@ -34,7 +34,9 @@ export function initialConversation() {
 		partial: [],
 		running: false,
 		compacting: false,
-		pendingApproval: null, // { seq, calls: [PendingCall], answers: {id: string} }
+		pendingApproval: null, // { seq, calls: [PendingCall], answers: {id: string}, subagentId? }
+		// the sub-agents this conversation started, by id: each a conversation of its own
+		subagents: {},
 		model: null,
 		reasoningEffort: null,
 		usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0 },
@@ -66,6 +68,31 @@ function appendPartialThinking(partial, thinking) {
 
 // Applies one wire event. Returns the state for chaining.
 export function applyEvent(s, e) {
+	return e.subagent_id ? applySubagentEvent(s, e) : foldEvent(s, e)
+}
+
+// A sub-agent's event folds into the child's own conversation; the session keeps
+// only its cost, and answers the question a paused child asks (approvalToAnswer).
+function applySubagentEvent(s, e) {
+	if (typeof e.seq === "number") s.latestSeq = Math.max(s.latestSeq, e.seq)
+	const child = (s.subagents[e.subagent_id] ??= initialConversation())
+	foldEvent(child, e)
+	if (e.type === "usage") addUsage(s, e)
+	else if (e.type === "approval_required") child.pendingApproval.subagentId = e.subagent_id
+	return s
+}
+
+// the batch to answer: the session's own, else the oldest a sub-agent waits on while
+// the session runs (the session's run ending takes its children's questions with it)
+export function approvalToAnswer(conversation) {
+	if (conversation.pendingApproval || !conversation.running) return conversation.pendingApproval ?? null
+	const asked = Object.values(conversation.subagents ?? {})
+		.map((child) => child.pendingApproval)
+		.filter(Boolean)
+	return asked.sort((a, b) => a.seq - b.seq)[0] ?? null
+}
+
+function foldEvent(s, e) {
 	if (typeof e.seq === "number") s.latestSeq = Math.max(s.latestSeq, e.seq)
 	switch (e.type) {
 		case "run_started":
@@ -121,11 +148,7 @@ export function applyEvent(s, e) {
 			s.contextTokens = 0
 			break
 		case "usage":
-			s.usage.input += e.input_tokens ?? 0
-			s.usage.output += e.output_tokens ?? 0
-			s.usage.cacheRead += e.cache_read_tokens ?? 0
-			s.usage.cacheWrite += e.cache_write_tokens ?? 0
-			s.usage.cost += e.cost ?? 0
+			addUsage(s, e)
 			if (e.context_window != null) s.contextWindow = e.context_window
 			if ((e.input_tokens ?? 0) + (e.output_tokens ?? 0) > 0)
 				s.contextTokens = (e.input_tokens ?? 0) + (e.output_tokens ?? 0)
@@ -202,6 +225,14 @@ export function applyEvent(s, e) {
 	return s
 }
 
+function addUsage(s, e) {
+	s.usage.input += e.input_tokens ?? 0
+	s.usage.output += e.output_tokens ?? 0
+	s.usage.cacheRead += e.cache_read_tokens ?? 0
+	s.usage.cacheWrite += e.cache_write_tokens ?? 0
+	s.usage.cost += e.cost ?? 0
+}
+
 const END_NOTICES = {
 	aborted: "Interrupted by user",
 	denied: "Tool call denied by user",
@@ -211,6 +242,7 @@ const END_NOTICES = {
 }
 
 const STEP_LABELS = {
+	subagent: "Sub-agent",
 	read: "Reading file",
 	grep: "Searching code",
 	bash: "Running command",
@@ -224,6 +256,7 @@ export function stepLabel(name) {
 
 // Leading row icons for the built-in tools; extension tools get the generic wrench.
 const STEP_ICONS = {
+	subagent: "bot",
 	read: "file-text",
 	grep: "search",
 	bash: "terminal",
@@ -308,6 +341,8 @@ export function stepSubject(call) {
 			return a.pattern ?? ""
 		case "bash":
 			return a.command ?? ""
+		case "subagent":
+			return a.description ?? ""
 		default: {
 			const first = Object.values(a)[0]
 			return typeof first === "string" ? first : ""
@@ -336,6 +371,11 @@ export function stepStat(step) {
 	const d = step.result?.details
 	if (!d) return ""
 	if (d.exit_code !== undefined && d.exit_code !== null) return `exit ${d.exit_code}`
+	// a stopped sub-agent says why; a finished one names its agent, unless it was the default
+	if (d.end_reason !== undefined) {
+		if (d.end_reason !== "done") return d.end_reason.replace("_", " ")
+		return d.agent === "general" ? "" : d.agent
+	}
 	if (d.matches !== undefined) return `${d.matches} matches`
 	if (d.lines_added !== undefined || d.lines_removed !== undefined)
 		return `+${d.lines_added ?? 0} -${d.lines_removed ?? 0}`
@@ -344,6 +384,22 @@ export function stepStat(step) {
 	if (d.total_lines !== undefined) return `${d.total_lines} lines`
 	if (d.chars !== undefined) return `${d.chars} chars`
 	return ""
+}
+
+// the child a subagent call runs: the one it continues, else the one it starts, named by the call
+export function subagentId(call) {
+	return (call.arguments ?? call.args ?? {}).subagent_id || call.id
+}
+
+// what the session called a sub-agent: the description of the call that started it
+export function subagentTitle(conversation, id) {
+	const isCall = (block) => block.type === "tool_call" && block.id === id
+	for (const entry of conversation.entries) {
+		if (entry.type !== "assistant_message") continue
+		const call = (entry.content ?? []).find(isCall)
+		if (call) return call.arguments?.description ?? null
+	}
+	return conversation.partial.find(isCall)?.arguments?.description ?? null // still streaming
 }
 
 // Matches t3code's compact elapsed-time buckets without relying on wall-clock
@@ -530,6 +586,8 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 					call: block,
 					result: null,
 					aborted: !provisional && entry.stop_reason === "aborted",
+					// a subagent call's child, once its first event has landed
+					subagent: block.name === "subagent" ? conversation.subagents?.[subagentId(block)] ?? null : null,
 				}
 				stepsById.set(block.id, step)
 				group.steps.push(step)

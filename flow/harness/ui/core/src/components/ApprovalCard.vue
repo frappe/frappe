@@ -5,6 +5,12 @@
 		<div class="flex items-start gap-3 px-3.5 py-2.5">
 			<div class="min-w-0 flex-1 text-base leading-snug text-ink-gray-9">{{ title }}</div>
 			<span
+				v-if="subagent != null"
+				class="max-w-[45%] flex-none truncate rounded-full bg-surface-gray-2 px-2 py-0.5 text-2xs font-medium text-ink-gray-6"
+			>
+				Sub-agent{{ subagent ? `: ${subagent}` : "" }}
+			</span>
+			<span
 				v-if="total > 1"
 				class="flex-none rounded-full bg-surface-gray-2 px-2 py-0.5 text-2xs font-medium text-ink-gray-6"
 			>
@@ -70,6 +76,8 @@ const props = defineProps({
 	call: { type: Object, required: true },
 	position: { type: Number, default: 1 },
 	total: { type: Number, default: 1 },
+	// asked by a sub-agent the session runs, named by its description
+	subagent: { type: String, default: null },
 })
 const flow = inject("flow")
 
