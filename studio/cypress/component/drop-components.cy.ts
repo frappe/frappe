@@ -14,24 +14,10 @@ import { registerGlobalComponents } from "@/globals"
 import useCanvasStore from "@/stores/canvasStore"
 import type { FrappeUIComponent } from "@/types"
 
-const DATA_DEPENDENT = [
-	"ListView",
-	"ListViewShell",
-	"Link",
-	"Filter",
-	"QuickFilter",
-	"Calendar",
-	"NumberCard",
-	"BarChart",
-	"LineChart",
-	"AreaChart",
-	"DonutChart",
-	"FunnelChart",
-	"HeatmapChart",
-	"ScatterChart",
-	"SankeyChart",
-	"Repeater",
-]
+// These fetch a doctype from the server: the rejected request fails whichever test is
+// running when it lands. Every other component renders from its initialState or
+// blockTemplate, charts and ListView included.
+const DATA_DEPENDENT = ["Link", "Filter", "QuickFilter", "ListViewShell"]
 const FLOATING = ["Dialog", "Tooltip", "ContextMenu"]
 // These need fixes in frappe-ui before they can render or select reliably in isolation.
 const KNOWN_COMPONENT_FAILURES = [
