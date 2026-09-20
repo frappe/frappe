@@ -2355,24 +2355,16 @@ class LinkTableField(DynamicTableField):
 		self.table = frappe.qb.DocType(self.doctype)
 		self.field = self.table[self.fieldname]
 
-	def _resolve_alias(self, engine: "Engine" = None) -> None:
-		"""Bind the joined table to a unique alias so multiple link fields pointing at
-		the same doctype don't share a join. Resolved via the engine registry when
-		available so the select and filter passes agree on the alias."""
-		alias = (
-			engine.get_link_table_alias(self.doctype, self.link_fieldname)
-			if engine is not None
-			else f"tab{self.doctype}_{self.link_fieldname}"
-		)
-		self.table = frappe.qb.DocType(self.doctype).as_(alias)
-		self.field = self.table[self.fieldname]
-
 	def apply_select(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
 		query = self.apply_join(query, engine=engine)
 		return query.select(self.field.as_(self.alias or None))
 
 	def apply_join(self, query: QueryBuilder, engine: "Engine" = None) -> QueryBuilder:
-		self._resolve_alias(engine)
+		if engine is not None:
+			alias = engine.get_link_table_alias(self.doctype, self.link_fieldname)
+			self.table = frappe.qb.DocType(self.doctype).as_(alias)
+			self.field = self.table[self.fieldname]
+
 		main_table = frappe.qb.DocType(self.parent_doctype)
 		if not query.is_joined(self.table):
 			link_name = _cast_autoincrement_name(self.table.name, self.doctype)
