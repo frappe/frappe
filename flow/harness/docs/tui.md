@@ -1,6 +1,6 @@
 # TUI
 
-This file documents the shipped Textual client. It is not a phased implementation plan.
+This file documents the Textual client.
 
 ## Start it
 
@@ -39,6 +39,7 @@ Commands are available as slash commands and through Ctrl+P.
 | `/rewind [seq]` | Rewind the active branch. Without a sequence, it removes the latest user message and puts it back in the composer. |
 | `/new` or `/clear` | Start a new session. |
 | `/resume [id]` | Switch to another session. |
+| `/reload` | Reload server extensions; new tools apply from the next run. |
 | `/editor` | Edit the draft externally. |
 | `/help` and `/quit` | Show commands or exit. |
 

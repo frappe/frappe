@@ -44,7 +44,7 @@ Compaction creates a durable summary entry. The original entries remain in the l
 
 `SessionStore` validates the working directory, discovers skills, selects built-in and extension tools, builds the system prompt once, and creates private per-session files for the log, metadata, skills catalog, and attachments.
 
-The prompt is either a verbatim `system_prompt` or a composed prompt containing the active tools, optional suffix, global and project `AGENTS.md` files, skill index, working directory, and final append text. Prompt text is fixed at session creation; skill instructions are read when a skill is invoked. The catalog is fixed too, except that explicitly invoking a skill added later records it.
+The prompt is either a verbatim `system_prompt` or a composed prompt containing the active tools, a pointer to Flow's own docs and examples, optional suffix, global and project `AGENTS.md` files, skill index, working directory, and final append text. Prompt text is fixed at session creation; skill instructions are read when a skill is invoked. The catalog is fixed too, except that explicitly invoking a skill added later records it.
 
 ## Tools and safety boundaries
 
@@ -57,3 +57,25 @@ Built-in, extension, and client-side tools are combined into one model-facing sc
 The HTTP server exposes session operations and SSE. SSE replays durable rows from a cursor, then any retained provisional preview, and finally new live events. Subscriber queues are bounded, so slow clients reconnect instead of growing server memory.
 
 The Textual TUI is a separate client package. Its reducer and stream client use the same events as the server, and it never imports server internals. The Vue web UI is served by the daemon but uses the HTTP API as well.
+
+## Invariants
+
+- Persist a durable event before publishing it to clients.
+- One operation at a time per session: input during a run is steering, and a paused run is resumed or cancelled before anything else starts.
+- Keep credential secrets, attachment bytes, and provider-specific opaque state out of user-visible fields.
+
+## Code map
+
+| Area | Main modules | Responsibility |
+| --- | --- | --- |
+| Event contract | `events.py` | Typed durable and live events. |
+| Lifecycle | `session/session.py` | Run admission, commit, state, cancellation, rewind, and settlement. |
+| Stored state | `session/log.py`, `session/transcript.py`, `session/store.py` | JSONL storage, active-branch reduction, and session files. |
+| Prompt and skills | `session/prompt.py`, `session/skills.py` | Prompt composition, skill discovery, and invocation expansion. |
+| Sub-agents | `session/subagents.py` | Child agents run inside a session's run. |
+| Agent behavior | `agent/loop.py`, `agent/compaction.py` | Model/tool loop, confirmations, steering, and compaction. |
+| Embedded API | `agent/agent.py` | The `Agent` facade over one session. |
+| Models | `model/` | Provider adapters, credentials, discovery, and reasoning parameters. |
+| Tools | `tools/`, `extensions/` | Built-in and bundled tools, schemas, extensions, and client-tool callbacks. |
+| HTTP | `server/app.py`, `server/routes/` | Thin API and SSE boundary over sessions; policy, tenants, audit, and the Redis sink sit beside it. |
+| Clients | `flow_tui/`, `ui/` | Textual and Vue presentations of the API. |
