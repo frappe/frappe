@@ -436,8 +436,9 @@ frappe.ui.SidePanel = class SidePanel {
 			})
 			.then((r) => r?.message);
 
-		Promise.race([load, timeout])
-			.then((preview) => {
+		// Building the form is heavy; doing it mid-slide stalls the animation.
+		Promise.all([Promise.race([load, timeout]), this.slide_done])
+			.then(([preview]) => {
 				if (token !== this.token) return;
 				if (!preview?.doc) throw new Error("not loaded");
 
@@ -596,9 +597,22 @@ frappe.ui.SidePanel = class SidePanel {
 
 	show() {
 		this.$panel.removeClass("hidden");
-		// Next frame, so the slide has a start state to animate from.
-		requestAnimationFrame(() => this.$panel.addClass("is-open"));
+		this.$panel[0].offsetWidth; // commit the closed position so the slide starts from it
+		this.$panel.addClass("is-open");
 		$("body").addClass("side-panel-open");
+		this.slide_done = this.after_slide();
+	}
+
+	after_slide() {
+		return new Promise((resolve) => {
+			const done = (e) => {
+				if (e && e.target !== this.$panel[0]) return;
+				this.$panel.off("transitionend.side-panel");
+				resolve();
+			};
+			this.$panel.on("transitionend.side-panel", done);
+			setTimeout(done, 300); // in case the transition never fires
+		});
 	}
 
 	is_open() {
@@ -608,7 +622,10 @@ frappe.ui.SidePanel = class SidePanel {
 	close() {
 		if (!this.is_open()) return;
 		this.token++; // abandon any in-flight render
-		this.$panel.removeClass("is-open").addClass("hidden");
+		this.$panel.removeClass("is-open");
+		this.after_slide().then(() => {
+			if (!this.is_open()) this.$panel.addClass("hidden");
+		});
 		$("body").removeClass("side-panel-open");
 		this.history = [];
 		this.current = null;
