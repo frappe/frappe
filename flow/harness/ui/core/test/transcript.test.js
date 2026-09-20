@@ -1198,3 +1198,29 @@ test("a tool result that failed says so", () => {
 	assert.equal(tool.failed, true)
 	assert.equal(tool.output, "ENOENT")
 })
+
+test("a compaction owns the summarizer's call without moving the context reading", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "user_message", seq: 2, content: "hello" })
+	applyEvent(conversation, { type: "assistant_message", seq: 3, content: [{ type: "text", text: "hi" }] })
+	applyEvent(conversation, usageEvent(4, 1000, 10))
+	applyEvent(conversation, { type: "compaction", seq: 5, reason: "threshold", summary: "so far…", compact_up_to_seq: 3 })
+	applyEvent(conversation, { ...usageEvent(6, 880, 120), standalone: true })
+
+	// the summarizer prompted with the transcript, not with the new context
+	assert.equal(conversation.contextTokens, 0)
+	const compaction = buildTranscriptRows(conversation).find((row) => row.kind === "compaction")
+	assert.equal(compaction.request.input, 880)
+	assert.equal(conversation.usage.output, 130) // its spend still counts
+})
+
+test("failed compaction usage does not attach to an assistant response", () => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "user_message", seq: 2, content: "hello" })
+	applyEvent(conversation, { type: "assistant_message", seq: 3, content: [{ type: "text", text: "hi" }] })
+	applyEvent(conversation, { ...usageEvent(4, 880, 120), standalone: true })
+	applyEvent(conversation, { type: "run_error", seq: 5, message: "summary failed" })
+
+	assert.equal(buildTranscriptRows(conversation).find((row) => row.kind === "assistant").request, undefined)
+	assert.equal(conversation.usage.output, 120)
+})

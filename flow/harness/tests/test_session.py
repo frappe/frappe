@@ -709,8 +709,12 @@ async def test_compact_writes_a_durable_summary_and_survives_reload(tmp_path):
 	rows = session.log.read_since(0)
 	assert rows[: len(rows_before)] == rows_before
 	tail_types = [r["type"] for r in rows[len(rows_before) :]]
-	assert tail_types == ["run_started", "compaction", "run_ended"]
-	assert rows[-2]["reason"] == "manual"
+	# the summarizer's own call is durable too, marked so clients spend it without
+	# reading its prompt as the conversation's new size
+	assert tail_types == ["run_started", "compaction", "usage", "run_ended"]
+	assert rows[-3]["reason"] == "manual"
+	assert rows[-2]["standalone"] is True and rows[-2]["input_tokens"] > 0
+	assert session.transcript.context_tokens is None
 	reloaded = SessionStore(str(tmp_path)).get(session.id)
 	assert [m.model_dump() for m in reloaded.transcript.messages] == [
 		m.model_dump() for m in session.transcript.messages
@@ -783,6 +787,9 @@ async def test_compact_failure_settles_as_a_failed_run(tmp_path):
 	assert errors and "no summary" in errors[-1]["message"]
 	assert [e["reason"] for e in events if e["type"] == "run_ended"][-1] == "error"
 	assert [m.model_dump() for m in session.transcript.messages] == messages_before
+	# A failed summary may still have used tokens; its report survives the failure.
+	usage = [e for e in session.log.read_since(0) if e["type"] == "usage"][-1]
+	assert usage["standalone"] is True and usage["input_tokens"] > 0
 
 
 class _BlockingSummarizer(MockModel):

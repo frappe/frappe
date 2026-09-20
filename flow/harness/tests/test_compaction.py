@@ -29,6 +29,7 @@ from flow_harness.events import (
 	TextContent,
 	ToolCall,
 	ToolResult,
+	Usage,
 	UserMessage,
 )
 from flow_harness.model.mock import MockModel
@@ -231,9 +232,11 @@ async def test_summarize_returns_the_text():
 	plan = plan_all([_user(1, "hello")])
 	assert plan is not None
 
-	summary = await summarize(mock, plan, cancellation=None)
+	summary, usage = await summarize(mock, plan, cancellation=None)
 
 	assert summary == "## Goal\nship compaction"
+	# a call of its own: its tokens are spend, not the conversation's size
+	assert usage is not None and usage.output_tokens > 0 and usage.standalone
 
 
 async def test_summarize_raises_on_error_and_empty_replies():
@@ -265,12 +268,37 @@ async def test_compact_events_yields_the_full_protocol():
 		)
 	]
 
-	assert [event.type for event in events] == ["compaction_started", "compaction", "compaction_ended"]
+	# the summarizer's own call is logged too, after the row it paid for
+	assert [event.type for event in events] == [
+		"compaction_started",
+		"compaction",
+		"usage",
+		"compaction_ended",
+	]
 	row = events[1]
 	assert isinstance(row, Compaction)
 	assert row.reason == "threshold"
 	assert row.summary == "the summary"
 	assert row.compact_up_to_seq == 2
+	spend = events[2]
+	assert isinstance(spend, Usage)
+	assert spend.standalone and spend.input_tokens > 0
+
+
+async def test_compact_events_logs_the_spend_of_a_failed_summary():
+	plan = plan_all([_user(1, "hello")])
+	assert plan is not None
+	mock = MockModel(replies=[AssistantMessage(stop_reason="error", error_message="boom")])
+
+	events = []
+	with pytest.raises(RuntimeError, match="boom"):
+		async for event in compact_events(mock, plan, compaction_reason="threshold", cancellation=None):
+			events.append(event)
+
+	# a provider still charges for a call that failed
+	assert [event.type for event in events] == ["compaction_started", "usage", "compaction_ended"]
+	assert isinstance(events[1], Usage) and events[1].standalone
+	assert events[2].error_message == "boom"
 
 
 def test_serialization_clips_giant_texts():
@@ -336,7 +364,7 @@ async def test_summarizer_prompt_fits_a_small_window_despite_giant_fields():
 	plan = plan_all(messages)
 	assert plan is not None
 
-	summary = await summarize(
+	summary, _usage = await summarize(
 		model,
 		plan,
 		cancellation=None,

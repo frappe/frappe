@@ -262,7 +262,8 @@ class ConversationState:
 			self.output_tokens += event.output_tokens
 			self.cache_read_tokens += event.cache_read_tokens
 			self.cache_write_tokens += event.cache_write_tokens
-			self.context_tokens = event.input_tokens + event.output_tokens
+			if not event.standalone:
+				self.context_tokens = event.input_tokens + event.output_tokens
 			if event.context_window is not None:
 				self.context_window = event.context_window
 			self.cost += event.cost

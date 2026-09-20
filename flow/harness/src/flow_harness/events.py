@@ -205,6 +205,8 @@ class Usage(_Event):
 	cache_write_tokens: int = 0
 	cost: float = 0.0
 	context_window: int | None = None
+	# the summarizer's own call: count its tokens as spend, not as the context size
+	standalone: bool = False
 
 
 class PendingCall(BaseModel):

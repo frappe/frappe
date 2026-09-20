@@ -153,7 +153,8 @@ function foldEvent(s, e) {
 			addUsage(s, e)
 			recordRequest(s, e)
 			if (e.context_window != null) s.contextWindow = e.context_window
-			if ((e.input_tokens ?? 0) + (e.output_tokens ?? 0) > 0)
+			// the summarizer's own call prompts with its own text: spend, not context
+			if (!e.standalone && (e.input_tokens ?? 0) + (e.output_tokens ?? 0) > 0)
 				s.contextTokens = (e.input_tokens ?? 0) + (e.output_tokens ?? 0)
 			break
 		case "run_error":
@@ -246,6 +247,7 @@ function recordRequest(s, e) {
 		cacheRead: e.cache_read_tokens ?? 0,
 		cacheWrite: e.cache_write_tokens ?? 0,
 		cost: e.cost ?? 0,
+		standalone: e.standalone ?? false,
 	})
 }
 
@@ -742,8 +744,8 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 }
 
 // One row per operation, in transcript order. Usage belongs to model requests,
-// so attach each provider report to its assistant response rather than
-// attributing request input to individual messages or tool results.
+// so attach each provider report to the row that made the call — a response, or
+// a compaction — rather than attributing its input to messages or tool results.
 //   {key, kind: "user"|"assistant"|"tool"|"compaction"|"error",
 //    body, subject?, thinking?, name?, input?, output?, failed?, request?, spent?}
 export function buildTranscriptRows(conversation) {
@@ -754,15 +756,15 @@ export function buildTranscriptRows(conversation) {
 	let cursor = 0
 
 	for (const [index, entry] of entries.entries()) {
-		let response = null
+		let caller = null // the row whose model call a usage report in this gap belongs to
 		if (entry.type === "user_message") {
 			// an image-only message has no text at all: its attachments name the row
 			const names = userAttachments(entry).map((item) => item.name).join(", ")
 			rows.push({ key: `u:${entry.seq}`, kind: "user", subject: names, body: userText(entry) })
 		} else if (entry.type === "assistant_message" && entry.content?.length) {
 			// an aborted turn can leave a message with no blocks at all: nothing to show
-			response = assistantRow(entry)
-			rows.push(response)
+			caller = assistantRow(entry)
+			rows.push(caller)
 			for (const call of entry.content.filter((block) => block.type === "tool_call")) {
 				const step = toolRow(call, conversation)
 				steps.set(call.id, step)
@@ -775,22 +777,23 @@ export function buildTranscriptRows(conversation) {
 				step.failed = entry.is_error === true
 			}
 		} else if (entry.type === "compaction") {
-			const summary = entry.summary ?? ""
-			rows.push({
+			caller = {
 				key: `k:${entry.seq}`,
 				kind: "compaction",
 				subject: "everything before this is now a summary",
-				body: summary,
-			})
+				body: entry.summary ?? "",
+			}
+			rows.push(caller)
 		} else if (entry.type === "run_error") {
 			rows.push({ key: `e:${entry.seq}`, kind: "error", subject: entry.message ?? "", body: entry.detail ?? "" })
 		}
 
-		// Usage normally follows its assistant message immediately.
+		// Usage normally follows its assistant message or compaction immediately.
 		const until = entries[index + 1]?.seq ?? Infinity
 		while (cursor < requests.length && requests[cursor].seq < until) {
 			const request = requests[cursor++]
-			if (response && !response.request) response.request = request
+			if (caller && !caller.request && (caller.kind === "compaction") === request.standalone)
+				caller.request = request
 		}
 	}
 	return rows

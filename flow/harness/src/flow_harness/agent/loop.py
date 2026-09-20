@@ -259,8 +259,9 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 				assistant = event
 			elif isinstance(event, Usage):
 				output_tokens += event.output_tokens
-				context.observe_usage(event, len(inputs.messages))
-				event = event.model_copy(update={"context_window": model.context_window})
+				if not event.standalone:
+					context.observe_usage(event, len(inputs.messages))
+					event = event.model_copy(update={"context_window": model.context_window})
 			yield event
 		if assistant is None:
 			raise RuntimeError("model stream ended without an assistant message")
