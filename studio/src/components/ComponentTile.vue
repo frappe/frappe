@@ -27,13 +27,10 @@
 		<!-- reserve two lines so a wrapping label doesn't make its tile (and thus its whole
 		     grid row) taller than its neighbours — keeps grid rows even. `compactLabel` opts
 		     out (e.g. the parts tray) so the tile sizes to its content instead. -->
-		<Tooltip :text="deprecated ? 'Deprecated — frappe-ui might remove this in the future' : component.title">
+		<Tooltip :text="deprecated ? 'Deprecated - frappe-ui might remove this in the future' : component.title">
 			<span
 				class="line-clamp-2 w-full text-balance text-center text-xs leading-normal"
-				:class="[
-					{ 'min-h-[2lh]': !compactLabel },
-					deprecated && 'text-ink-gray-4 line-through decoration-from-font',
-				]"
+				:class="[{ 'min-h-[2lh]': !compactLabel }, deprecated && 'text-ink-gray-4']"
 			>
 				{{ component.title }}
 			</span>
