@@ -16,8 +16,10 @@ import type { FrappeUIComponent } from "@/types"
 
 const DATA_DEPENDENT = [
 	"ListView",
+	"ListViewShell",
 	"Link",
 	"Filter",
+	"QuickFilter",
 	"Calendar",
 	"NumberCard",
 	"BarChart",
@@ -34,10 +36,8 @@ const FLOATING = ["Dialog", "Tooltip", "ContextMenu"]
 // These need fixes in frappe-ui before they can render or select reliably in isolation.
 const KNOWN_COMPONENT_FAILURES = [
 	"MultiSelect",
-	"Slider",
 	"TableMultiSelect",
 	"SortBy",
-	"QuickFilter",
 	"ColumnSettings",
 	"FileUploadDialog",
 	"UploadTray",
@@ -46,10 +46,11 @@ const KNOWN_COMPONENT_FAILURES = [
 	"ListHeader",
 	"ListHeaderCell",
 	"ListHeaderCellSort",
-	"ListViewShell",
 	"SettingsDialog",
 	"Sidebar",
 	"SidebarLabel",
+	// roots a Tooltip, so the data-component-id never reaches its button
+	"SidebarRailItem",
 ]
 const SKIP = new Set([...DATA_DEPENDENT, ...FLOATING, ...KNOWN_COMPONENT_FAILURES])
 
@@ -111,9 +112,11 @@ describe("dropping frappe-ui components on the canvas", () => {
 			cy.then(() => {
 				cy.get(`[data-component-id="${block.componentId}"]`)
 					.should("exist")
-					// (b) clicking the element selects the block
+					// (b) clicking the element selects the block. Near the corner, not the
+					// center: a family template's child can fill the middle (SidebarRail),
+					// leaving only the parent's own padding to click.
 					.first()
-					.click({ force: true })
+					.click(3, 3, { force: true })
 			})
 
 			cy.then(() => {
