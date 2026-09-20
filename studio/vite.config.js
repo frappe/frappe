@@ -8,6 +8,7 @@ import sharedDependencyResolver from "./vite/sharedDependencyResolver"
 import studioFolderWatcher from "./vite/studioFolderWatcher"
 import studioRootAlias from "./vite/studioRootAlias"
 import frameworkUIAlias from "./vite/frameworkUIAlias"
+import frameworkUICodeEditorShim from "./vite/frameworkUICodeEditorShim"
 import lucideStaticAlias from "./vite/lucideStaticAlias"
 
 const viteDevServerPort = getViteDevServerPort()
@@ -36,7 +37,9 @@ const isStudioAppTsconfig = (file) =>
 // https://vitejs.dev/config/
 export default defineConfig(async () => {
 	// Only pull in @framework/ui's vite plugin + source aliases when it exists.
-	const frameworkUIPlugins = frameworkUIAvailable ? [(await import("@framework/ui/vite")).default()] : []
+	const frameworkUIPlugins = frameworkUIAvailable
+		? [(await import("@framework/ui/vite")).default(), frameworkUICodeEditorShim(appsDir, __dirname)]
+		: []
 	// When absent, alias @framework/ui/* to a stub so the dev server can resolve the
 	// (dead-branch) imports in globals.ts. Production builds DCE them; the dev server
 	// doesn't, so without this it errors "Failed to resolve import @framework/ui/...".
@@ -87,6 +90,16 @@ export default defineConfig(async () => {
 				...frameworkUIAliases,
 				lucideStaticAlias(__dirname),
 				{ find: "@", replacement: path.resolve(__dirname, "src") },
+			],
+			// frappe-ui's code editor rejects extensions built from a second copy of these
+			// (e.g. a language package resolved from a linked frappe-ui checkout).
+			dedupe: [
+				"@codemirror/state",
+				"@codemirror/view",
+				"@codemirror/language",
+				"@lezer/common",
+				"@lezer/highlight",
+				"@lezer/lr",
 			],
 		},
 		build: {
