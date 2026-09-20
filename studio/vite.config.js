@@ -9,7 +9,6 @@ import studioFolderWatcher from "./vite/studioFolderWatcher"
 import studioRootAlias from "./vite/studioRootAlias"
 import frameworkUIAlias from "./vite/frameworkUIAlias"
 import frameworkUICodeEditorShim from "./vite/frameworkUICodeEditorShim"
-import frappeUICodeLanguagesFix from "./vite/frappeUICodeLanguagesFix"
 import lucideStaticAlias from "./vite/lucideStaticAlias"
 
 const viteDevServerPort = getViteDevServerPort()
@@ -78,10 +77,15 @@ export default defineConfig(async () => {
 				frappeProxy: true,
 				lucideIcons: true,
 				buildConfig: false,
+				// Its esbuild half calls build.resolve, which Vite 8's rolldown shim does not
+				// implement: the dep scan dies and pre-bundling is skipped, so deps are found
+				// mid-run and the page reloads under whatever is on screen. Nothing is lost —
+				// rolldown already replaces an absent @codemirror/lang-* with a throwing stub,
+				// which is what the plugin was there to do, and loadLanguage catches it.
+				codeLanguages: false,
 				jinjaBootData: false,
 			}),
 			...frameworkUIPlugins,
-			frappeUICodeLanguagesFix(),
 			studioRootAlias(),
 			// Root must be the frontend dir
 			sharedDependencyResolver(path.resolve(__dirname)),
