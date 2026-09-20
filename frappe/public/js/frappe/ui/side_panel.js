@@ -72,7 +72,7 @@ const WORKFLOW_STYLE_COLORS = {
 	Warning: "orange",
 	Danger: "red",
 	Primary: "blue",
-	Inverse: "black",
+	Inverse: "gray", // no black badge theme
 	Info: "light-blue",
 };
 
@@ -273,16 +273,7 @@ frappe.ui.SidePanel = class SidePanel {
 
 		this.$body = this.$panel.find(".side-panel-body");
 		this.setup_resize();
-
-		this.$panel.find(".side-panel-back").on("click", () => this.back());
-
-		this.$panel.find(".side-panel-expand").on("click", () => {
-			const current = this.current;
-			this.close();
-			if (current) frappe.set_route("Form", current.doctype, current.docname);
-		});
-
-		this.$panel.find(".side-panel-close").on("click", () => this.close());
+		this.make_buttons();
 
 		// Links drill into their target in the drawer. stopPropagation keeps the router's
 		// delegated <a> handler on <body> from routing the page away.
@@ -302,6 +293,29 @@ frappe.ui.SidePanel = class SidePanel {
 			if ($(".modal:visible, .grid-row-open").length) return;
 			this.close();
 		});
+	}
+
+	make_buttons() {
+		const ghost = (opts) => frappe.ui.button({ variant: "ghost", ...opts });
+
+		ghost({
+			icon: "arrow-left",
+			tooltip: __("Back"),
+			css_class: "side-panel-back hidden",
+			onclick: () => this.back(),
+		}).prependTo(this.$panel.find(".side-panel-header"));
+
+		const $actions = this.$panel.find(".side-panel-actions");
+		ghost({
+			icon: "arrow-up-right",
+			tooltip: __("Open in full page"),
+			onclick: () => {
+				const current = this.current;
+				this.close();
+				if (current) frappe.set_route("Form", current.doctype, current.docname);
+			},
+		}).appendTo($actions);
+		ghost({ icon: "x", tooltip: __("Close"), onclick: () => this.close() }).appendTo($actions);
 	}
 
 	// Width lives in --side-panel-width, which the closed offset derives from too, so the drawer
@@ -558,10 +572,7 @@ frappe.ui.SidePanel = class SidePanel {
 		const $indicator = this.$panel.find(".side-panel-indicator").empty();
 		const indicator = preview ? get_preview_indicator(doctype, preview) : null;
 		if (indicator) {
-			// badge-legacy-colors.css maps arbitrary indicator colour names onto es-badge themes.
-			$indicator.append(
-				$('<span class="es-badge">').attr("data-theme", indicator[1]).text(indicator[0])
-			);
+			frappe.ui.badge({ label: indicator[0], theme: indicator[1] }).appendTo($indicator);
 		}
 	}
 

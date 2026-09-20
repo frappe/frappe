@@ -109,6 +109,9 @@ body.side-panel-resizing {
 		// No top padding — the tab bar brings its own (.nav-link, form.scss).
 		padding: 0 0 var(--padding-md);
 	}
+	.form-section {
+		padding-inline: 0;
+	}
 
 	// The routed form centres and caps its page width; in a drawer that just wastes space.
 	.form-page,
