@@ -30,7 +30,7 @@
 			@dblclick="resetWidth"
 		/>
 
-		<!-- panel-level tab strip: one tab per open item of any kind (editor today,
+		<!-- panel-level tab strip: one tab per open item of any kind (a file, a sub-agent;
 		     browser/terminal later) — kind-specific chrome lives in the view below.
 		     The view picker (nothing open) renders without it. -->
 		<div
@@ -53,7 +53,7 @@
 							? 'flow-tab-active bg-surface-gray-2 text-ink-gray-9'
 							: 'text-ink-gray-5 hover:bg-surface-gray-1 hover:text-ink-gray-8'
 					"
-					:title="tab.path"
+					:title="tab.kind === 'editor' ? tab.path : tab.name"
 					@click="flow.selectFile(tab.path)"
 					@keydown.enter.prevent="flow.selectFile(tab.path)"
 				>
@@ -108,8 +108,9 @@
 			</button>
 		</div>
 
-		<!-- kind-specific body; only the editor kind exists so far -->
-		<EditorView v-if="viewActive" />
+		<!-- kind-specific body: a sub-agent's thread, or the editor -->
+		<SubagentView v-if="activeTab?.kind === 'subagent'" :id="activeTab.path" />
+		<EditorView v-else-if="viewActive" />
 
 		<!-- nothing open and no view picked: the view picker (no tab strip, but the
 		     panel's window controls stay reachable) -->
@@ -151,16 +152,15 @@ import FeatherIcon from "./FeatherIcon.vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
 import EditorView from "./EditorView.vue"
+import SubagentView from "./SubagentView.vue"
 
 const flow = inject("flow")
 const workspace = computed(() => flow.state.workspace)
 const activeTab = computed(
 	() => workspace.value.tabs.find((tab) => tab.path === workspace.value.active) ?? null,
 )
-// a view (editor, files, or diffs) is showing; false means the view picker
-const viewActive = computed(
-	() => activeTab.value?.kind === "editor" || ["files", "diff"].includes(workspace.value.view),
-)
+// a view (a tab, files, or diffs) is showing; false means the view picker
+const viewActive = computed(() => !!activeTab.value || ["files", "diff"].includes(workspace.value.view))
 // label of the stand-in tab shown while the view has no file open yet
 const transientTab = computed(() =>
 	activeTab.value ? null : ({ files: "Files", diff: "Diffs" }[workspace.value.view] ?? null),

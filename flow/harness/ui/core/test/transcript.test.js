@@ -3,6 +3,7 @@ import test from "node:test"
 
 import {
 	applyEvent,
+	approvalToAnswer,
 	buildItems,
 	codeRefLabel,
 	compactDisplayText,
@@ -16,6 +17,10 @@ import {
 	skillCommand,
 	splitCodeRefs,
 	stepLiveLabel,
+	stepStat,
+	stepSubject,
+	subagentId,
+	subagentTitle,
 	userAttachments,
 	userText,
 } from "../src/transcript.js"
@@ -970,4 +975,92 @@ test("a settled turn stays unfolded while one of its rows is open", () => {
 		assert.equal(items[1].expanded, true)
 	}
 	assert.equal(buildItems(conversation, new Set(), new Set(["call-9"]))[1].expanded, false)
+})
+
+function subagentTurn(conversation) {
+	applyEvent(conversation, { type: "run_started", seq: 1, run_id: "r1" })
+	applyEvent(conversation, { type: "user_message", seq: 2, content: "go" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 3,
+		content: [{ type: "tool_call", id: "c1", name: "subagent", arguments: { task: "count", description: "count beans" } }],
+	})
+	applyEvent(conversation, { type: "run_started", seq: 4, run_id: "r2", subagent_id: "c1" })
+	applyEvent(conversation, { type: "user_message", seq: 5, content: "count", subagent_id: "c1" })
+	applyEvent(conversation, { type: "text_delta", text: "forty", subagent_id: "c1" })
+}
+
+test("a sub-agent's events fold into a thread of their own that its step carries", () => {
+	const conversation = initialConversation()
+	subagentTurn(conversation)
+	const child = conversation.subagents.c1
+	assert.equal(child.running, true)
+	assert.deepEqual(child.partial, [{ type: "text", text: "forty" }])
+	assert.equal(conversation.partial.length, 0) // the child's preview is not the session's
+	assert.equal(conversation.entries.length, 2)
+	assert.equal(subagentTitle(conversation, "c1"), "count beans")
+	assert.equal(subagentTitle(conversation, "c9"), null)
+
+	let [step] = toolGroups(conversation)[0].steps
+	assert.equal(step.subagent, child)
+	assert.equal(subagentId(step.call), "c1")
+	assert.equal(stepSubject(step.call), "count beans")
+
+	applyEvent(conversation, { type: "assistant_message", seq: 6, content: [{ type: "text", text: "forty-two" }], subagent_id: "c1" })
+	applyEvent(conversation, { type: "usage", seq: 7, input_tokens: 30, output_tokens: 9, cost: 0.5, subagent_id: "c1" })
+	applyEvent(conversation, { type: "run_ended", seq: 8, reason: "done", subagent_id: "c1" })
+	applyEvent(conversation, {
+		type: "tool_result",
+		seq: 9,
+		tool_call_id: "c1",
+		name: "subagent",
+		content: "forty-two\n\n[subagent_id: c1]",
+		details: { subagent_id: "c1", agent: "general", end_reason: "done" },
+	})
+	;[step] = toolGroups(conversation)[0].steps
+	assert.equal(step.result.seq, 9)
+	assert.equal(stepStat(step), "") // the default agent is not worth a stat
+	assert.equal(child.running, false)
+	assert.equal(child.entries.at(-1).subagent_id, "c1") // a child's row keeps its tag
+	assert.equal(conversation.usage.output, 9) // the child's cost is the session's cost
+	assert.equal(conversation.usage.cost, 0.5)
+	assert.equal(conversation.contextTokens, 0) // its context is not
+	assert.equal(conversation.latestSeq, 9)
+	// the child's thread reads like the session's: its task, then its answer
+	assert.deepEqual(buildItems(child).map((item) => item.kind), ["user", "text", "turn-copy"])
+
+	// a continuation names the same child; a stopped child says why
+	const again = { id: "c2", name: "subagent", arguments: { task: "again", description: "recount", subagent_id: "c1" } }
+	assert.equal(subagentId(again), "c1")
+	assert.equal(stepStat({ result: { details: { agent: "general", end_reason: "max_turns" } } }), "max turns")
+	assert.equal(stepStat({ result: { details: { agent: "researcher", end_reason: "done" } } }), "researcher")
+})
+
+test("a sub-agent's question is the batch to answer while the session runs", () => {
+	const conversation = initialConversation()
+	subagentTurn(conversation)
+	const calls = [{ id: "c2", name: "bash", args: { command: "rm x" } }]
+	applyEvent(conversation, { type: "approval_required", seq: 6, calls, subagent_id: "c1" })
+	applyEvent(conversation, { type: "run_ended", seq: 7, reason: "paused", subagent_id: "c1" })
+	assert.equal(conversation.pendingApproval, null) // the session itself never paused
+	assert.equal(conversation.running, true)
+	assert.deepEqual(approvalToAnswer(conversation), { seq: 6, calls, answers: {}, subagentId: "c1" })
+	assert.equal(buildItems(conversation.subagents.c1).some((item) => item.kind === "group"), false) // the gated call waits in the card
+
+	// the answers reached the child
+	applyEvent(conversation, { type: "run_started", seq: 8, run_id: "r3", subagent_id: "c1" })
+	assert.equal(approvalToAnswer(conversation), null)
+
+	// a cancelled batch drops its calls one result at a time
+	applyEvent(conversation, { type: "approval_required", seq: 9, calls, subagent_id: "c1" })
+	applyEvent(conversation, { type: "tool_result", seq: 10, tool_call_id: "c2", name: "bash", content: "{}", subagent_id: "c1" })
+	assert.equal(approvalToAnswer(conversation), null)
+
+	// several waiting children ask oldest first, and the session's run ending voids them all
+	applyEvent(conversation, { type: "run_started", seq: 11, run_id: "r4", subagent_id: "c3" })
+	applyEvent(conversation, { type: "approval_required", seq: 12, calls, subagent_id: "c3" })
+	applyEvent(conversation, { type: "approval_required", seq: 13, calls, subagent_id: "c1" })
+	assert.equal(approvalToAnswer(conversation).subagentId, "c3")
+	applyEvent(conversation, { type: "run_ended", seq: 14, reason: "aborted" })
+	assert.equal(approvalToAnswer(conversation), null)
 })

@@ -57,6 +57,8 @@ The child's events go into the session's own log, each tagged with `subagent_id`
 
 Pass `subagent_id` instead of `agent` to continue an earlier child with its context intact: it runs as the agent it started as, and its new rows keep its id. The child is rebuilt from the log, so this works after a restart too; a pause a crash left behind is cancelled first, and calls an abort left open are closed as interrupted. A child that is still running cannot be continued.
 
+The web UI shows a sub-agent as a row in the session's thread that opens the child's own thread in a tab of the workspace panel, and asks a child's approvals in the composer with a `Sub-agent` pill. The TUI indents a child's rows under the session's.
+
 ## Bundled tools
 
 Shipped with the harness but off by default: the default `tools` list is `bash`, `read`, `write`, `edit`, `subagent`. A session enables a bundled tool by naming it in `tools`; the web UI lists them unticked in the preset editor (the Default preset included), and `GET /tools` marks them with `"bundled": true`.

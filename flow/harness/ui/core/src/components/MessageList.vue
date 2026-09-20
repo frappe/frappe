@@ -153,8 +153,12 @@ import TurnFiles from "./TurnFiles.vue"
 import TurnFold from "./TurnFold.vue"
 import UserBubble from "./UserBubble.vue"
 
+const props = defineProps({
+	// the thread to draw: a sub-agent's, else the session's
+	conversation: { type: Object, default: null },
+})
 const flow = inject("flow")
-const conversation = computed(() => flow.state.conversation)
+const conversation = computed(() => props.conversation ?? flow.state.conversation)
 const expandedTurnKeys = ref(new Set())
 // rows (tool calls, thoughts) the user has open, by id
 const openPanels = reactive(new Set())

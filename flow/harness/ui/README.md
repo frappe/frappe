@@ -38,6 +38,8 @@ filesystem must change, so it can reuse the components instead of copying them:
 - `maxAttachments` — per-message cap of the host's upload path.
 - `skillsEnabled` — `false` skips skill catalog requests and hides skill
   suggestions/highlighting in the composer; defaults to `true`.
+- `workspace` — `false` when the host mounts no workspace panel: a sub-agent's row
+  then expands in place instead of opening the child's thread in a tab.
 - `presentTool(name, args)` — `{ icon, label, subject, title, body, argsComponent }`, any
   subset, for the host's own tools in transcript rows and approval cards.
 - `turnActions` — a component rendered after each finished turn's copy button, with
@@ -67,7 +69,9 @@ or a host's own `{ name, label, icon, hint, view }`; default all built-ins),
 file when the host stages uploads itself), `placeholder` (the textarea's hint),
 `modes` (the approval modes as `{ id, label, desc }`, worded for the host's
 tools), `disabled` (shown but inert, every control included). `ChatHeader` takes `workspace` (`false` when the host mounts no file
-panel). `MessageList` has an `empty` slot for the host's own empty state.
+panel). `MessageList` has an `empty` slot for the host's own empty state, and a
+`conversation` prop to draw a thread other than the session's (the workspace panel
+draws a sub-agent's this way).
 
 `Composer` also has a `toolbar` slot: the pickers after the attach button. It
 defaults to `ModelButton`, and is scoped with `openPalette(view)` so a host's own

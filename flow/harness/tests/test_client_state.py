@@ -350,3 +350,30 @@ def test_replaying_history_matches_live_folding():
 	assert replayed.latest_seq == live.latest_seq == 6
 	assert not replayed.running
 	assert replayed.input_tokens == 10
+
+
+def test_a_sub_agents_rows_join_the_transcript_and_its_usage_the_totals():
+	state = State()
+	state.apply(RunStarted(run_id="r1", seq=1))
+	state.apply(RunStarted(run_id="r2", seq=2, subagent_id="c1"))
+	state.apply(UserMessage(content="count", seq=3, subagent_id="c1"))
+	assert state.apply(TextDelta(text="forty", subagent_id="c1")) == []
+	assert state.partial == []  # the child's preview is not the session's
+
+	message = AssistantMessage(content=[TextContent(text="forty-two")], seq=4, subagent_id="c1")
+	assert state.apply(message) == [EntryAdded(message)]
+	result = ToolResult(tool_call_id="c2", name="bash", content="42", seq=5, subagent_id="c1")
+	assert state.apply(result) == [EntryAdded(result)]
+	assert state.entries == [message, result]
+
+	calls = (PendingCall(id="c3", name="bash", args={"command": "rm x"}),)
+	assert state.apply(ApprovalRequired(calls=list(calls), seq=6, subagent_id="c1")) == []
+	assert state.pending_approval is None  # a child's pause is never the session's
+	assert state.apply(Usage(input_tokens=30, output_tokens=9, cost=0.5, seq=7, subagent_id="c1")) == [
+		StatusChanged()
+	]
+	assert (state.input_tokens, state.output_tokens, state.cost) == (30, 9, 0.5)
+	assert state.context_tokens == 0  # its context is not
+	assert state.apply(RunEnded(reason="done", seq=8, subagent_id="c1")) == []
+	assert state.running is True
+	assert state.latest_seq == 8
