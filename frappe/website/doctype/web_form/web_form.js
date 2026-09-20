@@ -81,17 +81,10 @@ frappe.ui.form.on("Web Form", {
 		!frm.doc.allow_multiple && frm.set_value("allow_delete", 0);
 		frm.doc.allow_multiple && frm.set_value("show_list", 1);
 
-		if (!frm.doc.web_form_fields?.length) {
-			// check_mandatory reports the missing doc_type after this hook
-			if (!frm.doc.doc_type) return;
-
-			get_builder_tab(frm)?.set_active();
-			frappe.throw(__("Add at least one field to the Web Form"));
-		}
-
-		validate_page_break_limit(
-			frm.doc.web_form_fields.filter((f) => f.fieldtype == "Page Break").length
-		);
+		// a field-less web form is allowed: it renders blank, and always has
+		const page_breaks =
+			frm.doc.web_form_fields?.filter((f) => f.fieldtype == "Page Break") ?? [];
+		validate_page_break_limit(page_breaks.length);
 	},
 
 	add_publish_button(frm) {
