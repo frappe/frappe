@@ -145,7 +145,7 @@
 									"
 								/>
 							</div>
-							<div class="flex shrink-0 items-center gap-2">
+							<div class="-mr-2 flex shrink-0 items-center gap-2">
 								<Button v-if="!isEmpty" label="Discard" @click="reset" />
 								<!-- The spinner trails the label; Button's own `loading` would lead it. -->
 								<Button
