@@ -76,8 +76,8 @@ const WORKFLOW_STYLE_COLORS = {
 	Info: "light-blue",
 };
 
-// Mirrors frappe.get_indicator's chain, fed from the preview instead of locals. Only the custom
-// listview_settings.get_indicator branch is unavailable — that lives in list JS.
+// Same chain as frappe.get_indicator, which needs the meta cache; keep the two in step. The
+// custom listview_settings.get_indicator branch is unavailable here.
 function get_preview_indicator(doctype, preview) {
 	const doc = preview.doc;
 	const meta = preview.metas?.[doctype] || {};
@@ -410,9 +410,8 @@ frappe.ui.SidePanel = class SidePanel {
 		this.set_header(doctype, docname, null);
 		this.set_state("loading");
 
-		// Not with_doctype/with_doc: those ship and execute form/list/client scripts, run onload,
-		// write a View Log, and seed locals — which would also make a later form view skip loading
-		// its own scripts. get_preview returns just the doc and trimmed metas.
+		// Not with_doctype: once the meta is in the cache, Layout swaps the read-only fields back
+		// on every refresh. get_preview keeps the metas out of it.
 		const timeout = new Promise((_, reject) => setTimeout(reject, LOAD_TIMEOUT_MS));
 
 		const load = frappe
@@ -623,9 +622,9 @@ frappe.ui.split_view_enabled = function () {
 	return enabled === undefined || cint(enabled) === 1;
 };
 
-// Previews a clicked Link cell instead of routing to it. `is_link_cell` is the caller's policy —
-// report view keeps a docfield on the column, query reports put fieldtype/options on it directly.
-frappe.ui.handle_link_cell_click = function (e, is_link_cell) {
+// Previews a clicked Link cell instead of routing to it. The ID column's anchor looks the same
+// but should still route to the form, so only Link and Dynamic Link columns qualify.
+frappe.ui.handle_link_cell_click = function (e, datatable) {
 	if (!frappe.ui.split_view_enabled()) return false;
 	if (e.which !== 1 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return false;
 
@@ -633,7 +632,12 @@ frappe.ui.handle_link_cell_click = function (e, is_link_cell) {
 	const { doctype, name } = link.dataset;
 	if (!doctype || !name) return false;
 
-	if (is_link_cell && !is_link_cell($(link).closest(".dt-cell"))) return false;
+	const col_index = $(link).closest(".dt-cell").attr("data-col-index");
+	if (col_index == null) return false;
+	const column = datatable.getColumn(Number(col_index));
+	// report view keeps a docfield on the column, query reports set fieldtype on it directly
+	const fieldtype = column?.docfield?.fieldtype ?? column?.fieldtype;
+	if (!["Link", "Dynamic Link"].includes(fieldtype)) return false;
 
 	e.preventDefault();
 	// stopPropagation keeps router.js's delegated <a> handler on <body> from routing away.

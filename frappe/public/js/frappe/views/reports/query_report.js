@@ -1227,19 +1227,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.setup_link_side_panel();
 	}
 
-	// Preview Link cells in the side panel. Query report columns carry fieldtype directly
-	// (report_utils.prepare_field_from_column) rather than a docfield.
+	// Preview Link cells in the side panel.
 	setup_link_side_panel() {
 		this.$report
 			.off("click.side-panel")
-			.on("click.side-panel", "a[data-doctype][data-name]", (e) => {
-				frappe.ui.handle_link_cell_click(e, ($cell) => {
-					const col_index = $cell.attr("data-col-index");
-					if (col_index == null) return false;
-					const column = this.datatable.getColumn(Number(col_index));
-					return ["Link", "Dynamic Link"].includes(column?.fieldtype);
-				});
-			});
+			.on("click.side-panel", "a[data-doctype][data-name]", (e) =>
+				frappe.ui.handle_link_cell_click(e, this.datatable)
+			);
 	}
 
 	update_masked_fields_in_columns(columns) {
