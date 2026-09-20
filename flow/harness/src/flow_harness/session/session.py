@@ -68,6 +68,7 @@ from flow_harness.session.attachments import (
 )
 from flow_harness.session.config import SessionConfig
 from flow_harness.session.log import SessionLog
+from flow_harness.session.prompt import doc_roots
 from flow_harness.session.skills import (
 	Skill,
 	SkillCatalog,
@@ -543,6 +544,7 @@ class Session:
 		"""Prepare a fresh operation's inputs — including its own abort signal, so a
 		late abort of the previous run cannot leak into this one."""
 		self.abort_signal = asyncio.Event()
+		skill_dirs = (skill.base_dir for skill in self.skill_catalog.skills)
 		return loop.LoopInputs(
 			config=self.config,
 			messages=self.transcript.messages,
@@ -553,7 +555,7 @@ class Session:
 			reasoning_effort=self.reasoning_effort,
 			allowed_roots=self.allowed_roots,
 			ignore_hidden_files=self.ignore_hidden_files,
-			read_only_roots=tuple(dict.fromkeys(skill.base_dir for skill in self.skill_catalog.skills)),
+			read_only_roots=tuple(dict.fromkeys((*skill_dirs, *doc_roots()))),
 			session_id=self.id,
 			model=model,
 			context_tokens=self.transcript.context_tokens,

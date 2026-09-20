@@ -124,6 +124,6 @@ Working extensions live in [examples/extensions/](../examples/extensions/):
 | Example | Shows |
 | --- | --- |
 | `hello_tool.py` | The smallest extension: one tool, one `setup`. |
-| `protected_paths.py` | A `tool_call` hook that blocks writes to sensitive files. |
+| `protected_paths.py` | A `tool_call` hook that blocks `write` and `edit` on sensitive filenames; `bash` is not covered. |
 | `redact_secrets.py` | A `tool_result` hook that rewrites what the model sees. |
 | `browser/` | A directory extension with a third-party dependency, imported lazily and run off the event loop. |

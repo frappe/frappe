@@ -13,6 +13,7 @@ from __future__ import annotations
 import os
 from collections.abc import Sequence
 
+from flow_harness.path_policy import canonical_path
 from flow_harness.session.config import SessionConfig
 from flow_harness.session.skills import Skill, format_skills_for_prompt
 from flow_harness.tools import Tool, select_tools
@@ -116,6 +117,12 @@ def _docs_section(active_tools: Sequence[Tool]) -> str | None:
 		]
 	)
 	return "\n".join(lines)
+
+
+def doc_roots() -> tuple[str, ...]:
+	"""Flow's docs and examples directories, for a fenced session to read but not write."""
+	found = (_docs_dir("docs"), _docs_dir("examples"))
+	return tuple(canonical_path(path) for path in found if path is not None)
 
 
 def _docs_dir(name: str) -> str | None:
