@@ -668,7 +668,7 @@ function get_web_form_field_values(df, fieldnames) {
 function validate_page_break_limit(page_break_count) {
 	if (page_break_count >= 10) {
 		frappe.throw({
-			title: __("Error"),
+			title: __("Too Many Pages"),
 			message: __("There can be only 9 Page Break fields in a Web Form"),
 		});
 	}
