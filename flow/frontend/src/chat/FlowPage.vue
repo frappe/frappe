@@ -40,6 +40,7 @@
 		<Dialogs />
 		<ToastProvider />
 		<FlowSettings />
+		<TranscriptDialog />
 	</div>
 </template>
 
@@ -53,6 +54,7 @@ import Composer from "@flow/ui-core/components/Composer.vue";
 import MessageList from "@flow/ui-core/components/MessageList.vue";
 import ModelButton from "@flow/ui-core/components/ModelButton.vue";
 import SessionSidebar from "@flow/ui-core/components/SessionSidebar.vue";
+import TranscriptDialog from "@flow/ui-core/components/TranscriptDialog.vue";
 import { installShortcuts } from "@flow/ui-core/shortcuts.js";
 import { provideComposerHeight } from "@flow/ui-core/composerHeight.js";
 import { createFlowStore } from "@flow/ui-core/store.js";
@@ -75,6 +77,7 @@ const COMMANDS = [
 	"model",
 	"thinking",
 	"settings",
+	"transcript",
 	"new",
 	"abort",
 ];
