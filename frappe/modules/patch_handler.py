@@ -42,6 +42,18 @@ patches by using INI like file format:
 
 3. simple python commands can be added by starting line with `execute:`
 `execute:` example: `execute:print("hello world")`
+
+Failing patches:
+
+`bench migrate --skip-failing` logs a failing patch in Patch Log with `skipped`
+set and carries on with the remaining patches. Patches that must never be
+skipped this way can be listed by an app in its hooks.py:
+
+	```hooks.py
+	never_skip_patches = ["app.patches.v16_0.critical_data_fix"]
+	```
+
+Such a patch always stops the migration when it fails.
 """
 
 import configparser
@@ -65,6 +77,7 @@ class PatchType(Enum):
 def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> None:
 	"""run all pending patches"""
 	executed = set(frappe.get_all("Patch Log", filters={"skipped": 0}, fields="patch", pluck="patch"))
+	never_skip = set(frappe.get_hooks("never_skip_patches"))
 
 	frappe.flags.final_patches = []
 
@@ -75,6 +88,10 @@ def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> 
 				raise PatchError(patch)
 		except Exception:
 			if not skip_failing:
+				raise
+
+			if should_never_skip(patch, never_skip):
+				print(patch + ": failed: patch cannot be skipped: STOPPED")
 				raise
 
 			print("Failed to execute patch")
@@ -222,6 +239,22 @@ def execute_patch(patchmodule: str, method=None, methodargs=None):
 		print(f"Success: Done in {round(end_time - start_time, 3)}s")
 
 	return True
+
+
+def should_never_skip(patchmodule: str, never_skip: set[str]) -> bool:
+	"""return True if patch is listed in the `never_skip_patches` hook
+
+	Such patches stop the migration when they fail, even with `--skip-failing`."""
+	patchmodule = patchmodule.replace("finally:", "")
+
+	if patchmodule in never_skip:
+		return True
+
+	if patchmodule.startswith("execute:"):
+		return False
+
+	# patches.txt entries can have trailing arguments to force a re-run, e.g. `app.module.patch #2`
+	return patchmodule.split(maxsplit=1)[0] in never_skip
 
 
 def update_patch_log(patchmodule, skipped=False):

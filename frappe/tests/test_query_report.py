@@ -296,6 +296,18 @@ class TestQueryReport(IntegrationTestCase):
 		self.assertIsInstance(csv_data.result[0]["posting_date"], str)
 		self.assertIsInstance(csv_data.result[0]["created_on"], str)
 
+	def test_export_strips_quotes_from_link_labels(self):
+		"""Quoted link values are plain text labels in desk, so exports must drop the quotes too"""
+		data = frappe._dict(
+			columns=[
+				{"fieldname": "account", "fieldtype": "Link"},
+				{"fieldname": "remarks", "fieldtype": "Data"},
+			],
+			result=[{"account": "'Total Asset (Debit)'", "remarks": "'As per ledger'"}],
+		)
+		format_fields(data, "Excel")
+		self.assertEqual(data.result[0], {"account": "Total Asset (Debit)", "remarks": "'As per ledger'"})
+
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader
 		from io import StringIO
@@ -304,14 +316,19 @@ class TestQueryReport(IntegrationTestCase):
 		REF_DOCTYPE = "DocType"
 		REPORT_COLUMNS = ["name", "module", "issingle"]
 
-		if not frappe.db.exists("Report", REPORT_NAME):
-			report = frappe.new_doc("Report")
-			report.report_name = REPORT_NAME
-			report.ref_doctype = "User"
-			report.report_type = "Query Report"
-			report.query = frappe.qb.from_(REF_DOCTYPE).select(*REPORT_COLUMNS).limit(10).get_sql()
-			report.is_standard = "No"
-			report.save()
+		report = (
+			frappe.get_doc("Report", REPORT_NAME)
+			if frappe.db.exists("Report", REPORT_NAME)
+			else frappe.new_doc("Report")
+		)
+		report.report_name = REPORT_NAME
+		report.ref_doctype = "User"
+		report.report_type = "Query Report"
+		report.query = (
+			f"SELECT {', '.join(f'`{column}`' for column in REPORT_COLUMNS)} FROM `tab{REF_DOCTYPE}` LIMIT 10"
+		)
+		report.is_standard = "No"
+		report.save()
 
 		for delimiter in (",", ";", "\t", "|"):
 			for quoting in (QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC):
@@ -543,19 +560,39 @@ data = columns, result
 		self.assertIn("num_format", date_style)
 		self.assertEqual(date_style.get("align"), "right")
 
+	def test_xlsx_style_builder_float_indent_is_whole_number(self):
+		"""Excel ignores a fractional alignment indent, so float tree levels must become integers"""
+		column_map = {0: {"fieldname": "account", "fieldtype": "Data", "label": "Account"}}
+		row_map = {1: {"account": "Current Assets", "indent": 1.0}, 2: {"account": "Debtors", "indent": 2.0}}
+
+		builder = XLSXStyleBuilder(
+			XLSXMetadata(column_map=column_map, row_map=row_map), default_styling=False
+		)
+		builder.apply_indentations()
+
+		for row_idx, expected in ((1, 2), (2, 4)):
+			indent = builder.styles[builder.cell_styles[(row_idx, 0)][0]]["indent"]
+			self.assertEqual(indent, expected)
+			self.assertIsInstance(indent, int)
+
 	def test_export_report_via_email(self):
 		REPORT_NAME = "Test CSV Report"
 		REF_DOCTYPE = "DocType"
 		REPORT_COLUMNS = ["name", "module", "issingle"]
 
-		if not frappe.db.exists("Report", REPORT_NAME):
-			report = frappe.new_doc("Report")
-			report.report_name = REPORT_NAME
-			report.ref_doctype = "User"
-			report.report_type = "Query Report"
-			report.query = frappe.qb.from_(REF_DOCTYPE).select(*REPORT_COLUMNS).limit(10).get_sql()
-			report.is_standard = "No"
-			report.save()
+		report = (
+			frappe.get_doc("Report", REPORT_NAME)
+			if frappe.db.exists("Report", REPORT_NAME)
+			else frappe.new_doc("Report")
+		)
+		report.report_name = REPORT_NAME
+		report.ref_doctype = "User"
+		report.report_type = "Query Report"
+		report.query = (
+			f"SELECT {', '.join(f'`{column}`' for column in REPORT_COLUMNS)} FROM `tab{REF_DOCTYPE}` LIMIT 10"
+		)
+		report.is_standard = "No"
+		report.save()
 
 		frappe.local.form_dict = frappe._dict(
 			{
@@ -567,6 +604,8 @@ data = columns, result
 			}
 		)
 		frappe.db.delete("Email Queue")
+		user_email = frappe.get_cached_value("User", frappe.session.user, "email")
+		frappe.db.delete("Email Unsubscribe", {"email": user_email})
 		frappe.db.commit()
 		export_query()
 

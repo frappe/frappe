@@ -213,10 +213,29 @@ class TestReportview(IntegrationTestCase):
 		)
 
 		frappe.db.delete("Email Queue")
+		user_email = frappe.get_cached_value("User", frappe.session.user, "email")
+		frappe.db.delete("Email Unsubscribe", {"email": user_email})
 		export_query()
 		email_queue = frappe.get_all("Email Queue")
 
 		self.assertTrue(email_queue, "Email was not enqueued")
+
+	def test_export_ignores_link_titles_argument(self):
+		"""Regression: the report view exports with the same args it renders the table with."""
+		previous_response = frappe.local.response
+		self.addCleanup(setattr, frappe.local, "response", previous_response)
+		frappe.local.response = frappe._dict()
+		frappe.local.form_dict = frappe._dict(
+			doctype="DocType",
+			file_format_type="CSV",
+			fields=("name", "module", "issingle"),
+			filters={"issingle": 1, "module": "Core"},
+			with_link_titles=1,
+		)
+
+		export_query()
+
+		self.assertIn("filecontent", frappe.local.response)
 
 	def test_get_sends_link_titles_when_requested(self):
 		self.enable_link_titles("User")

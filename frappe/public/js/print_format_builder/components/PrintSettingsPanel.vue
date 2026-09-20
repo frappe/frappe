@@ -1,119 +1,134 @@
 <template>
 	<div class="pfb-settings">
-		<div class="form-group">
-			<label class="control-label">{{ __("PDF Renderer") }}</label>
-			<select
-				class="form-control form-control-sm"
-				:value="renderer"
-				@change="set_renderer($event.target.value)"
-			>
-				<option value="chrome" :disabled="has_typst_block">{{ __("Chromium") }}</option>
-				<option value="Typst" :disabled="typst_blockers.length > 0">
-					{{ __("Typst (fast)") }}
-				</option>
-			</select>
-			<p v-if="typst_blockers.length" class="pfb-renderer-hint">
-				{{ __("Typst unavailable:") }} {{ typst_blockers.join(", ") }}
-			</p>
-			<p v-else-if="has_typst_block" class="pfb-renderer-hint">
-				{{ __("Chromium unavailable: this format uses a Typst block.") }}
-			</p>
-			<p v-else-if="renderer === 'Typst'" class="pfb-renderer-hint">
-				{{ __("Experimental") }}
-			</p>
-		</div>
+		<InspectorSection :label="__('Document')">
+			<div class="form-group">
+				<div class="pfb-label-with-hint">
+					<label class="control-label">{{ __("PDF Renderer") }}</label>
+					<span
+						v-if="renderer_hint"
+						ref="hint_icon"
+						class="pfb-hint-icon"
+						v-html="frappe.utils.icon('info', 'xs')"
+					></span>
+				</div>
+				<select
+					class="form-control form-control-sm"
+					:value="renderer"
+					@change="set_renderer($event.target.value)"
+				>
+					<option value="chrome" :disabled="has_typst_block">
+						{{ __("Chromium") }}
+					</option>
+					<option value="Typst" :disabled="typst_blockers.length > 0">
+						{{ __("Typst (fast)") }}
+					</option>
+				</select>
+			</div>
+			<div class="form-group">
+				<label class="control-label">{{ __("Letter Head") }}</label>
+				<DeskControl
+					:df="letterhead_df"
+					:model-value="letterhead?.name || ''"
+					@update:model-value="set_letterhead"
+				/>
+			</div>
+		</InspectorSection>
 
-		<div class="form-group">
-			<label class="control-label">{{ __("Letter Head") }}</label>
-			<div ref="lh_host"></div>
-		</div>
+		<InspectorSection :label="__('Text')">
+			<div class="form-group">
+				<label class="control-label">{{ __("Google Font") }}</label>
+				<Autocomplete
+					:options="font_options"
+					:model-value="print_format.font || ''"
+					:placeholder="__('Default')"
+					@select="(o) => (print_format.font = o.value)"
+				/>
+			</div>
+			<div class="form-group">
+				<label class="control-label">{{ __("Font Size (px)") }}</label>
+				<input
+					type="number"
+					class="form-control form-control-sm"
+					placeholder="12, 13, 14"
+					:value="print_format.font_size"
+					@change="(e) => (print_format.font_size = parseFloat(e.target.value) || 14)"
+				/>
+			</div>
+			<div class="form-group" v-for="c in color_settings" :key="c.fieldname">
+				<label class="control-label">{{ c.label }}</label>
+				<ColorInput
+					:fieldname="c.fieldname"
+					:model-value="print_format[c.fieldname] || ''"
+					:placeholder="c.label"
+					@update:model-value="(v) => (print_format[c.fieldname] = v || null)"
+				/>
+			</div>
+			<div class="form-group">
+				<ToggleRow
+					:label="__('Colon after labels')"
+					:model-value="!!print_format.show_label_colon"
+					@update:model-value="(v) => (print_format.show_label_colon = v ? 1 : 0)"
+				/>
+			</div>
+		</InspectorSection>
 
-		<div class="form-group">
-			<label class="control-label">{{ __("Google Font") }}</label>
-			<Autocomplete
-				:options="font_options"
-				:model-value="print_format.font || ''"
-				:placeholder="__('Default')"
-				@select="(o) => (print_format.font = o.value)"
-			/>
-		</div>
-		<div class="form-group">
-			<label class="control-label">{{ __("Font Size (pt)") }}</label>
-			<input
-				type="number"
-				class="form-control form-control-sm"
-				placeholder="12, 13, 14"
-				:value="print_format.font_size"
-				@change="(e) => (print_format.font_size = parseFloat(e.target.value))"
-			/>
-		</div>
-		<div class="form-group" v-for="c in color_settings" :key="c.fieldname">
-			<label class="control-label">{{ c.label }}</label>
-			<div :ref="(el) => (color_hosts[c.fieldname] = el)"></div>
-		</div>
-
-		<div class="form-group">
-			<label class="control-label">{{ __("Page Margins (mm)") }}</label>
-			<div class="pfb-margin-grid">
-				<div class="pfb-margin-cell" v-for="df in margins" :key="df.fieldname">
-					<label class="pfb-margin-label control-label">{{ df.label }}</label>
-					<input
-						type="number"
-						class="form-control form-control-sm"
-						:value="print_format[df.fieldname]"
-						min="0"
-						@change="(e) => update_margin(df.fieldname, e.target.value)"
-					/>
+		<InspectorSection :label="__('Page')">
+			<div class="form-group">
+				<label class="control-label">{{ __("Margins (mm)") }}</label>
+				<div class="pfb-margin-grid">
+					<div class="pfb-margin-cell" v-for="df in margins" :key="df.fieldname">
+						<label class="pfb-margin-label control-label">{{ df.label }}</label>
+						<input
+							type="number"
+							class="form-control form-control-sm"
+							:value="print_format[df.fieldname]"
+							min="0"
+							@change="(e) => update_margin(df.fieldname, e.target.value)"
+						/>
+					</div>
 				</div>
 			</div>
-		</div>
+			<div class="form-group">
+				<label class="control-label">{{ __("Page Number") }}</label>
+				<select class="form-control form-control-sm" v-model="print_format.page_number">
+					<option v-for="p in page_number_positions" :value="p.value">
+						{{ p.label }}
+					</option>
+				</select>
+			</div>
+		</InspectorSection>
 
-		<div class="form-group">
-			<label class="pfb-insp-check">
-				<input
-					type="checkbox"
-					:checked="!!print_format.show_label_colon"
-					@change="(e) => (print_format.show_label_colon = e.target.checked ? 1 : 0)"
+		<InspectorSection :label="__('Style')" :init-open="false">
+			<div class="form-group">
+				<ToggleRow
+					:label="__('Custom CSS')"
+					:model-value="css_enabled"
+					@update:model-value="toggle_css"
 				/>
-				{{ __("Show colon after labels") }}
-			</label>
-		</div>
-
-		<div class="form-group">
-			<label class="control-label">{{ __("Page Number") }}</label>
-			<select class="form-control form-control-sm" v-model="print_format.page_number">
-				<option v-for="p in page_number_positions" :value="p.value">{{ p.label }}</option>
-			</select>
-		</div>
-
-		<div class="form-group">
-			<ToggleRow
-				:label="__('Custom CSS')"
-				:model-value="css_enabled"
-				@update:model-value="toggle_css"
-			/>
-			<textarea
-				v-if="css_enabled"
-				class="form-control form-control-sm pfb-css-input"
-				:placeholder="__('.print-format p { margin: 0; }')"
-				spellcheck="false"
-				rows="8"
-				:value="print_format.css || ''"
-				@input="(e) => (print_format.css = e.target.value)"
-			></textarea>
-		</div>
+				<textarea
+					v-if="css_enabled"
+					class="form-control form-control-sm pfb-css-input"
+					:placeholder="__('.print-format p { margin: 0; }')"
+					spellcheck="false"
+					rows="8"
+					:value="print_format.css || ''"
+					@input="(e) => (print_format.css = e.target.value)"
+				></textarea>
+			</div>
+		</InspectorSection>
 	</div>
 </template>
 
 <script setup>
-import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
+import { computed, inject, onMounted, ref, watch } from "vue";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
 import ToggleRow from "./inspector/ToggleRow.vue";
-import { mountColorControl } from "./inspector/useColorControl";
-import { useStore } from "../stores";
+import InspectorSection from "./inspector/InspectorSection.vue";
+import ColorInput from "./inspector/ColorInput.vue";
+import DeskControl from "./DeskControl.vue";
 
 let store = inject("$store");
-let { print_format, letterhead } = useStore();
+let { print_format, letterhead } = store;
 let { typst_blockers, has_typst_block } = store;
 
 // ── custom css ─────────────────────────────────────────────
@@ -157,6 +172,26 @@ let google_fonts = ref([]);
 let renderer = computed(() =>
 	print_format.value?.pdf_generator === "Typst" ? "Typst" : "chrome"
 );
+let hint_icon = ref(null);
+let renderer_hint = computed(() => {
+	if (typst_blockers.value.length) {
+		const items = typst_blockers.value.map((b) => "• " + frappe.utils.escape_html(b));
+		return [__("Typst needs these fixed:"), ...items].join("<br>");
+	}
+	if (has_typst_block.value) {
+		return __("Chromium unavailable: this format uses a Typst block.");
+	}
+	return renderer.value === "Typst" ? __("Experimental") : "";
+});
+watch(
+	[hint_icon, renderer_hint],
+	([el, title]) => {
+		if (!el) return;
+		$(el).tooltip("dispose");
+		if (title) $(el).tooltip({ title, html: true, trigger: "hover", placement: "top" });
+	},
+	{ flush: "post" }
+);
 function set_renderer(value) {
 	if (value !== "Typst" && has_typst_block.value) return;
 	print_format.value.pdf_generator = value === "Typst" ? "Typst" : "chrome";
@@ -184,9 +219,7 @@ let page_number_positions = computed(() => [
 ]);
 
 function update_margin(fieldname, value) {
-	value = parseFloat(value);
-	if (value < 0) value = 0;
-	print_format.value[fieldname] = value;
+	print_format.value[fieldname] = Math.max(0, parseFloat(value) || 0);
 }
 
 // ── colors ─────────────────────────────────────────────────
@@ -194,61 +227,18 @@ const color_settings = [
 	{ fieldname: "label_color", label: __("Label Color") },
 	{ fieldname: "value_color", label: __("Value Color") },
 ];
-let color_hosts = ref({});
-let color_controls = {};
-
-function mount_color_controls() {
-	for (const c of color_settings) {
-		const host = color_hosts.value[c.fieldname];
-		if (!host) continue;
-		color_controls[c.fieldname] = mountColorControl(host, {
-			value: print_format.value[c.fieldname] || "",
-			placeholder: c.label,
-			fieldname: c.fieldname,
-			onChange(value) {
-				const v = value || null;
-				if ((print_format.value[c.fieldname] ?? null) !== v) {
-					print_format.value[c.fieldname] = v;
-				}
-			},
-		});
-	}
+const letterhead_df = {
+	fieldname: "letter_head",
+	fieldtype: "Link",
+	options: "Letter Head",
+	placeholder: __("No letter head"),
+};
+function set_letterhead(name) {
+	if (name === (letterhead.value?.name || "")) return;
+	name ? store.change_letterhead(name) : store.remove_letterhead();
 }
-
-// ── letter head ────────────────────────────────────────────
-let lh_host = ref(null);
-let lh_ctrl = null;
-
-function mount_letterhead_control() {
-	if (!lh_host.value) return;
-	lh_ctrl = frappe.ui.form.make_control({
-		parent: lh_host.value,
-		df: {
-			fieldname: "letter_head",
-			fieldtype: "Link",
-			options: "Letter Head",
-			placeholder: __("No letter head"),
-			change: () => {
-				const name = lh_ctrl.get_value() || "";
-				if (name === (letterhead.value?.name || "")) return;
-				name ? store.change_letterhead(name) : store.remove_letterhead();
-			},
-		},
-		render_input: true,
-	});
-	lh_ctrl.set_value(letterhead.value?.name || "");
-	lh_host.value.querySelector(".control-label")?.remove();
-	lh_host.value.querySelector(".form-group")?.style.setProperty("margin", "0");
-}
-
-watch(
-	() => letterhead.value?.name,
-	(name) => lh_ctrl?.set_value(name || "")
-);
 
 onMounted(() => {
-	nextTick(mount_color_controls);
-	nextTick(mount_letterhead_control);
 	let method = "frappe.printing.page.print_format_builder.print_format_builder.get_google_fonts";
 	frappe.call(method).then((r) => {
 		google_fonts.value = r.message || [];
@@ -260,9 +250,18 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.pfb-renderer-hint {
-	margin: 6px 0 0;
-	font-size: var(--text-tiny);
+.pfb-label-with-hint {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.pfb-label-with-hint .control-label {
+	margin: 0;
+}
+
+.pfb-hint-icon {
+	display: inline-flex;
 	color: var(--text-muted);
 }
 

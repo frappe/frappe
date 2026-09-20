@@ -14,8 +14,11 @@ from enum import Enum
 from typing import Any
 
 import frappe
+from frappe.database.sqlite import DEFAULT_BUSY_TIMEOUT_SECONDS
 from frappe.model.document import Document
 from frappe.utils import update_progress_bar
+from frappe.utils.file_lock import LockTimeoutError
+from frappe.utils.synchronization import filelock
 
 SURROGATE_RE = re.compile(r"[\ud800-\udfff]")
 
@@ -1229,7 +1232,7 @@ class SQLiteSearch(ABC):
 
 	def _set_pragmas(self, cursor, is_read=False):
 		"""Set SQLite performance pragmas."""
-		cursor.execute("PRAGMA busy_timeout = 5000;")  # Wait up to 5 seconds if the database is locked
+		cursor.execute(f"PRAGMA busy_timeout = {DEFAULT_BUSY_TIMEOUT_SECONDS * 1000};")
 		cursor.execute("PRAGMA journal_mode = WAL;")  # Write-Ahead Logging for concurrency
 		cursor.execute("PRAGMA synchronous = NORMAL;")  # Better performance vs FULL
 		cursor.execute("PRAGMA cache_size = -8192;")  # 8MB cache
@@ -1812,13 +1815,22 @@ def build_index(
 	if search.index_exists() and not force:
 		return
 
-	# For continuation jobs, always proceed regardless of existing index
-	if is_continuation or force:
-		if is_continuation:
-			print(f"{SearchClass.__name__}: Continuing incremental index build...")
-		else:
-			print(f"{SearchClass.__name__}: Index does not exist or force=True, building...")
-		search.build_index(is_continuation=is_continuation)
+	if is_continuation:
+		print(f"{SearchClass.__name__}: Continuing incremental index build...")
+	else:
+		print(f"{SearchClass.__name__}: Index does not exist or force=True, building...")
+
+	try:
+		with filelock(_build_lock_name(SearchClass), timeout=0):
+			search.build_index(is_continuation=is_continuation)
+	except LockTimeoutError:
+		print(f"{SearchClass.__name__}: another build is already running, skipping.")
+
+
+def _build_lock_name(SearchClass: type[SQLiteSearch]) -> str:
+	"""One lock per search class. A fresh build deletes any temporary database it finds, so two
+	of them on one class would delete each other's work."""
+	return f"search_index_{SearchClass.__module__}.{SearchClass.__name__}"
 
 
 def _enqueue_index_job(search_class_path: str, is_continuation: bool = False):

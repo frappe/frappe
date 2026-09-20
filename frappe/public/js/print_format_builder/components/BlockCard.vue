@@ -25,14 +25,14 @@ defineProps({
 	padding: 8px 10px;
 	border-radius: var(--radius);
 	border: 1px solid var(--border-color);
-	background: var(--gray-50);
+	background: var(--surface-gray-1);
 	cursor: grab;
 	margin-top: 6px;
 }
 
 .pfb-block-card:hover {
-	background: var(--gray-100);
-	border-color: var(--gray-500);
+	background: var(--surface-gray-2);
+	border-color: var(--outline-gray-4);
 }
 
 .pfb-block-icon {
@@ -42,7 +42,7 @@ defineProps({
 	width: 28px;
 	height: 28px;
 	border-radius: var(--radius);
-	background: var(--gray-200);
+	background: var(--surface-gray-3);
 	flex-shrink: 0;
 }
 
