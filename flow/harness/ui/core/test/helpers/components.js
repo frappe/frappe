@@ -55,6 +55,12 @@ const widgets = moduleURL(`
 			})
 		},
 	}
+	export const Badge = {
+		props: ["label", "theme", "variant", "size"],
+		render() {
+			return h("span", { "data-stub": "Badge" }, this.$slots.default?.() ?? this.label)
+		},
+	}
 	export const Button = {
 		props: ["label", "disabled"],
 		render() {
@@ -65,7 +71,7 @@ const widgets = moduleURL(`
 const components = new Set([
 	"Composer.vue", "ToolStep.vue", "ToolGroup.vue", "ApprovalCard.vue", "MessageList.vue", "ModelButton.vue", "PopMenu.vue",
 	"SettingsDialog.vue", "SettingsPage.vue", "UserBubble.vue", "TurnFold.vue", "ThinkingBlock.vue", "ThoughtStep.vue",
-	"SubagentView.vue",
+	"SubagentView.vue", "TranscriptDialog.vue",
 ])
 const compiled = new Map()
 

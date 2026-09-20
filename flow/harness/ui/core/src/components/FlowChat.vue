@@ -16,6 +16,7 @@
 			<template #presets><SettingsPresets /></template>
 			<template #skills><SettingsSkills /></template>
 		</SettingsDialog>
+		<TranscriptDialog />
 
 		<Transition name="flow-toast">
 			<div
@@ -50,6 +51,7 @@ import SettingsDialog from "./SettingsDialog.vue"
 import SettingsGeneral from "./SettingsGeneral.vue"
 import SettingsPresets from "./SettingsPresets.vue"
 import SettingsSkills from "./SettingsSkills.vue"
+import TranscriptDialog from "./TranscriptDialog.vue"
 import WorkspacePanel from "./WorkspacePanel.vue"
 
 const SETTINGS = [

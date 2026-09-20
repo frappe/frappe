@@ -25,9 +25,12 @@
 		<span class="min-w-2 flex-1" />
 
 		<span class="flex flex-none items-center gap-6">
-			<span
-				v-if="contextTokens > 0 || cost > 0"
-				class="flex items-center gap-2 whitespace-nowrap text-xs font-normal tabular-nums text-ink-gray-5"
+			<!-- the readout opens the transcript: the same totals, step by step -->
+			<button
+				v-if="contextTokens > 0 || spent > 0"
+				class="flex items-center gap-2 whitespace-nowrap rounded-4 px-1.5 py-1 text-xs font-normal tabular-nums text-ink-gray-5 hover:bg-surface-gray-2"
+				title="Tokens, step by step"
+				@click="flow.setTranscriptOpen(true)"
 			>
 				<span v-if="contextWindow && contextTokens > 0" class="flex items-center gap-1.5" title="Context used">
 					<span class="h-1 w-10 flex-none overflow-hidden rounded-full bg-surface-gray-3">
@@ -41,11 +44,13 @@
 				<span v-else-if="contextTokens > 0" title="Current context">
 					{{ formatTokens(contextTokens) }} tokens
 				</span>
+				<!-- a model switch drops the context reading; the session's spend stands in -->
+				<span v-else title="Tokens used so far">{{ formatTokens(spent) }} used</span>
 				<span v-if="cost > 0" class="hidden items-center gap-2 text-ink-gray-4 sm:flex">
 					<span aria-hidden="true" class="text-ink-gray-3">·</span>
 					<span>${{ cost.toFixed(cost < 1 ? 3 : 2) }}</span>
 				</span>
-			</span>
+			</button>
 
 			<button
 				v-if="workspace && !workspaceOpen"
@@ -88,6 +93,10 @@ const cwdName = computed(() => (cwd.value ?? "").split("/").filter(Boolean).pop(
 const headerTitle = computed(() => (cwd.value ? `${cwd.value} / ${title.value}` : title.value))
 
 const cost = computed(() => flow.state.conversation.usage.cost)
+const spent = computed(() => {
+	const { input, output } = flow.state.conversation.usage
+	return input + output
+})
 const contextTokens = computed(() => flow.state.conversation.contextTokens ?? 0)
 const contextWindow = computed(() => flow.state.conversation.contextWindow ?? null)
 

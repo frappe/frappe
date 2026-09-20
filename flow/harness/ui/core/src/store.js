@@ -107,6 +107,7 @@ export function createFlowStore(client, options = {}) {
 		workspace: { open: false, maximized: false, tabs: [], active: null, view: null },
 		sidebarOpen: sidebarFromPrefs(),
 		settingsOpen: false,
+		transcriptOpen: false,
 		prefs,
 		// agent presets: { id, name, tools, extensionTools, promptMode, prompt }
 		presets: [].concat(readJSON(keys.presets, [])).filter(
@@ -1116,6 +1117,10 @@ export function createFlowStore(client, options = {}) {
 		state.settingsOpen = open
 	}
 
+	function setTranscriptOpen(open) {
+		state.transcriptOpen = open
+	}
+
 	function savePresets() {
 		localStorage.setItem(keys.presets, JSON.stringify(state.presets))
 	}
@@ -1279,6 +1284,7 @@ export function createFlowStore(client, options = {}) {
 		setSidebarWidth,
 		setCustomInstructions,
 		setSettingsOpen,
+		setTranscriptOpen,
 		activePreset,
 		savePreset,
 		deletePreset,

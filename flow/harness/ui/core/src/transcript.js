@@ -40,6 +40,8 @@ export function initialConversation() {
 		model: null,
 		reasoningEffort: null,
 		usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0 },
+		// one record per model request, in log order, for the per-step token view
+		requests: [],
 		contextTokens: 0,
 		contextWindow: null,
 		latestSeq: 0,
@@ -149,6 +151,7 @@ function foldEvent(s, e) {
 			break
 		case "usage":
 			addUsage(s, e)
+			recordRequest(s, e)
 			if (e.context_window != null) s.contextWindow = e.context_window
 			if ((e.input_tokens ?? 0) + (e.output_tokens ?? 0) > 0)
 				s.contextTokens = (e.input_tokens ?? 0) + (e.output_tokens ?? 0)
@@ -231,6 +234,19 @@ function addUsage(s, e) {
 	s.usage.cacheRead += e.cache_read_tokens ?? 0
 	s.usage.cacheWrite += e.cache_write_tokens ?? 0
 	s.usage.cost += e.cost ?? 0
+}
+
+function recordRequest(s, e) {
+	// a cancelled turn reports an empty Usage(): no numbers to show, no call to count
+	if (!(e.input_tokens ?? 0) && !(e.output_tokens ?? 0)) return
+	s.requests.push({
+		seq: e.seq ?? 0,
+		input: e.input_tokens ?? 0,
+		output: e.output_tokens ?? 0,
+		cacheRead: e.cache_read_tokens ?? 0,
+		cacheWrite: e.cache_write_tokens ?? 0,
+		cost: e.cost ?? 0,
+	})
 }
 
 const END_NOTICES = {
@@ -723,6 +739,90 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 		result.push({ kind: "user", key: message.key, turnKey: null, entry: message.entry })
 	}
 	return result
+}
+
+// One row per operation, in transcript order. Usage belongs to model requests,
+// so attach each provider report to its assistant response rather than
+// attributing request input to individual messages or tool results.
+//   {key, kind: "user"|"assistant"|"tool"|"compaction"|"error",
+//    body, subject?, thinking?, name?, input?, output?, failed?, request?, spent?}
+export function buildTranscriptRows(conversation) {
+	const rows = []
+	const steps = new Map() // tool call id -> its row, filled when the result lands
+	const entries = conversation.entries ?? []
+	const requests = conversation.requests ?? []
+	let cursor = 0
+
+	for (const [index, entry] of entries.entries()) {
+		let response = null
+		if (entry.type === "user_message") {
+			// an image-only message has no text at all: its attachments name the row
+			const names = userAttachments(entry).map((item) => item.name).join(", ")
+			rows.push({ key: `u:${entry.seq}`, kind: "user", subject: names, body: userText(entry) })
+		} else if (entry.type === "assistant_message" && entry.content?.length) {
+			// an aborted turn can leave a message with no blocks at all: nothing to show
+			response = assistantRow(entry)
+			rows.push(response)
+			for (const call of entry.content.filter((block) => block.type === "tool_call")) {
+				const step = toolRow(call, conversation)
+				steps.set(call.id, step)
+				rows.push(step)
+			}
+		} else if (entry.type === "tool_result") {
+			const step = steps.get(entry.tool_call_id)
+			if (step) {
+				step.output = entry.content ?? ""
+				step.failed = entry.is_error === true
+			}
+		} else if (entry.type === "compaction") {
+			const summary = entry.summary ?? ""
+			rows.push({
+				key: `k:${entry.seq}`,
+				kind: "compaction",
+				subject: "everything before this is now a summary",
+				body: summary,
+			})
+		} else if (entry.type === "run_error") {
+			rows.push({ key: `e:${entry.seq}`, kind: "error", subject: entry.message ?? "", body: entry.detail ?? "" })
+		}
+
+		// Usage normally follows its assistant message immediately.
+		const until = entries[index + 1]?.seq ?? Infinity
+		while (cursor < requests.length && requests[cursor].seq < until) {
+			const request = requests[cursor++]
+			if (response && !response.request) response.request = request
+		}
+	}
+	return rows
+}
+
+function assistantRow(entry) {
+	const blocks = entry.content ?? []
+	const join = (type, field) => blocks.filter((b) => b.type === type).map((b) => b[field]).join("\n\n")
+	return {
+		key: `a:${entry.seq}`,
+		kind: "assistant",
+		subject: "",
+		thinking: join("thinking", "thinking"),
+		body: join("text", "text"),
+	}
+}
+
+function toolRow(call, conversation) {
+	// a sub-agent's own spend never enters this context: report it beside the row
+	const child = call.name === "subagent" ? conversation.subagents?.[subagentId(call)] : null
+	// every tool reads the same way, built-in or not: what it was called with,
+	// then what it returned — no per-tool summary of a chosen argument
+	const args = call.arguments ?? call.args ?? {}
+	return {
+		key: `c:${call.id}`,
+		kind: "tool",
+		name: call.name,
+		input: Object.keys(args).length ? JSON.stringify(args, null, 2) : "",
+		output: "",
+		failed: false,
+		spent: child ? child.usage.input + child.usage.output : 0,
+	}
 }
 
 // ids of the rows an item can expand: its tool calls and thoughts
