@@ -9,6 +9,7 @@ import studioFolderWatcher from "./vite/studioFolderWatcher"
 import studioRootAlias from "./vite/studioRootAlias"
 import frameworkUIAlias from "./vite/frameworkUIAlias"
 import frameworkUICodeEditorShim from "./vite/frameworkUICodeEditorShim"
+import frappeUICodeLanguagesFix from "./vite/frappeUICodeLanguagesFix"
 import lucideStaticAlias from "./vite/lucideStaticAlias"
 
 const viteDevServerPort = getViteDevServerPort()
@@ -80,6 +81,7 @@ export default defineConfig(async () => {
 				jinjaBootData: false,
 			}),
 			...frameworkUIPlugins,
+			frappeUICodeLanguagesFix(),
 			studioRootAlias(),
 			// Root must be the frontend dir
 			sharedDependencyResolver(path.resolve(__dirname)),
