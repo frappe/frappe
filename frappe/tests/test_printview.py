@@ -117,6 +117,29 @@ class PrintViewTest(IntegrationTestCase):
 		self.assertNotIn('onerror="alert(1)"', html)
 		self.assertIn("&#34;", html)
 
+	def test_absolute_value_print_format_prints_positive_numbers(self):
+		"""Print Format's "Show Absolute Values" should flip negative Currency/Int
+		fields positive at render time."""
+		doctype = new_doctype(
+			fields=[
+				{"label": "Amount", "fieldname": "amount", "fieldtype": "Currency"},
+				{"label": "Qty", "fieldname": "qty", "fieldtype": "Int"},
+			]
+		).insert()
+		doc = frappe.get_doc(doctype=doctype.name, amount=-543.21, qty=-9).insert()
+
+		print_format = frappe.get_doc(
+			doctype="Print Format",
+			name=frappe.generate_hash(length=10),
+			doc_type=doctype.name,
+			print_format_builder_beta=1,
+			absolute_value=1,
+		).insert()
+		html = get_html_and_style(doc=doc.as_json(), print_format=print_format.name, no_letterhead=1)["html"]
+		self.assertIn("543.21", html)
+		self.assertNotIn("-543.21", html)
+		self.assertNotIn("-9", html)
+
 	def test_print_error(self):
 		"""Print failures shouldn't generate PDF with failure message but instead escalate the error"""
 		doctype = new_doctype(is_submittable=1).insert()
