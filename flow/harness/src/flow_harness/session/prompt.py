@@ -31,6 +31,10 @@ TAIL_GUIDELINES = (
 	"Show file paths clearly when working with files",
 )
 
+_PACKAGE_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+# a wheel carries flow's docs and examples under the package; a checkout keeps them at the harness root
+_DOC_ROOTS = (os.path.join(_PACKAGE_ROOT, "data"), os.path.dirname(os.path.dirname(_PACKAGE_ROOT)))
+
 
 def build_system_prompt(
 	config: SessionConfig,
@@ -84,7 +88,43 @@ def _default_body(config: SessionConfig, tools: Sequence[Tool] | None = None) ->
 		CUSTOM_TOOLS_NOTE,
 		"Guidelines:\n" + "\n".join(f"- {g}" for g in guidelines),
 	]
+	docs = _docs_section(active_tools)
+	if docs is not None:
+		parts.append(docs)
 	return "\n\n".join(parts)
+
+
+def _docs_section(active_tools: Sequence[Tool]) -> str | None:
+	"""Point the model at flow's own docs, pi-style, so a question about flow is answered
+	from them and a customization is written as an extension rather than a source edit."""
+	docs = _docs_dir("docs")
+	if docs is None or not any(tool.name in ("read", "bash") for tool in active_tools):
+		return None
+	lines = [
+		"Flow documentation (read only for questions related to flow itself or extentions):",
+		f"- Docs: {docs}",
+	]
+	examples = _docs_dir("examples")
+	if examples is not None:
+		lines.append(f"- Examples: {examples}")
+	lines.extend(
+		[
+			"- Resolve docs/... and examples/... under those roots, not the cwd",
+			"- extensions.md, skills.md, tools.md (tools and client hooks), api.md, architecture.md",
+			"- Customize flow with an extension, never by editing its source; read "
+			"docs/extensions.md fully, links included, before starting",
+		]
+	)
+	return "\n".join(lines)
+
+
+def _docs_dir(name: str) -> str | None:
+	"""Flow's own `name` directory, as installed or as checked out; None when it ships neither."""
+	for root in _DOC_ROOTS:
+		path = os.path.join(root, name)
+		if os.path.isdir(path):
+			return path
+	return None
 
 
 def strip_tool_from_prompt(prompt: str, name: str) -> str:

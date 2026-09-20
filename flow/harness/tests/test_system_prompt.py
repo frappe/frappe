@@ -1,10 +1,11 @@
 import json
+import os
 
 from fastapi.testclient import TestClient
 
 from flow_harness.server import create_app
 from flow_harness.session.config import SessionConfig
-from flow_harness.session.prompt import DEFAULT_INTRO, build_system_prompt
+from flow_harness.session.prompt import DEFAULT_INTRO, _docs_dir, build_system_prompt
 from flow_harness.session.store import SessionStore
 
 
@@ -204,3 +205,25 @@ def test_server_append_option_joins_the_client_append(tmp_path, monkeypatch):
 	).json()
 	prompt = created["config"]["system_prompt"]
 	assert prompt.endswith("client rules\n\noperator rules")
+
+
+def test_docs_pointer_names_the_extension_guide(tmp_path):
+	home = _home(tmp_path)
+	config = SessionConfig(cwd=str(tmp_path))
+	prompt = build_system_prompt(config, home=str(home))
+	docs = _docs_dir("docs")
+	assert docs is not None and os.path.isfile(os.path.join(docs, "extensions.md"))
+	assert f"- Docs: {docs}" in prompt
+	assert "docs/extensions.md" in prompt
+	examples = _docs_dir("examples")
+	assert examples is not None and os.path.isdir(os.path.join(examples, "extensions"))
+	assert f"- Examples: {examples}" in prompt
+	# the pointer is part of the composed body, so a preamble override replaces it
+	override = SessionConfig(cwd=str(tmp_path), system_preamble="short preamble")
+	assert "Flow documentation" not in build_system_prompt(override, home=str(home))
+
+
+def test_docs_pointer_needs_a_tool_that_can_read_it(tmp_path):
+	home = _home(tmp_path)
+	config = SessionConfig(cwd=str(tmp_path), tools=["write"])
+	assert "Flow documentation" not in build_system_prompt(config, home=str(home))
