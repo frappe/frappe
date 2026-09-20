@@ -1,10 +1,13 @@
 import json
+import os
 
 from fastapi.testclient import TestClient
 
+from flow_harness.events import AssistantMessage, ToolCall, ToolResult, Usage
+from flow_harness.model import Model
 from flow_harness.server import create_app
 from flow_harness.session.config import SessionConfig
-from flow_harness.session.prompt import DEFAULT_INTRO, build_system_prompt
+from flow_harness.session.prompt import DEFAULT_INTRO, _docs_dir, build_system_prompt
 from flow_harness.session.store import SessionStore
 
 
@@ -204,3 +207,61 @@ def test_server_append_option_joins_the_client_append(tmp_path, monkeypatch):
 	).json()
 	prompt = created["config"]["system_prompt"]
 	assert prompt.endswith("client rules\n\noperator rules")
+
+
+def test_docs_pointer_names_the_extension_guide(tmp_path):
+	home = _home(tmp_path)
+	config = SessionConfig(cwd=str(tmp_path))
+	prompt = build_system_prompt(config, home=str(home))
+	docs = _docs_dir("docs")
+	assert docs is not None and os.path.isfile(os.path.join(docs, "extensions.md"))
+	assert f"- Docs: {docs}" in prompt
+	assert "docs/extensions.md" in prompt
+	examples = _docs_dir("examples")
+	assert examples is not None and os.path.isdir(os.path.join(examples, "extensions"))
+	assert f"- Examples: {examples}" in prompt
+	# the pointer is part of the composed body, so a preamble override replaces it
+	override = SessionConfig(cwd=str(tmp_path), system_preamble="short preamble")
+	assert "Flow documentation" not in build_system_prompt(override, home=str(home))
+
+
+def test_docs_pointer_needs_a_tool_that_can_read_it(tmp_path):
+	home = _home(tmp_path)
+	config = SessionConfig(cwd=str(tmp_path), tools=["write"])
+	assert "Flow documentation" not in build_system_prompt(config, home=str(home))
+
+
+class _ReadsDocsModel(Model):
+	def __init__(self, path):
+		self.path = path
+		self.calls = 0
+		self.results = []
+
+	async def run(self, request):
+		self.calls += 1
+		if self.calls == 1:
+			yield AssistantMessage(
+				content=[ToolCall(id="read-docs", name="read", arguments={"path": self.path})],
+				stop_reason="tool_use",
+			)
+		else:
+			self.results.extend(m.content for m in request.messages if isinstance(m, ToolResult))
+			yield AssistantMessage(content="read the docs")
+		yield Usage()
+
+
+async def test_fenced_session_can_read_the_docs_its_prompt_names(tmp_path):
+	project = tmp_path / "project"
+	project.mkdir()
+	docs = _docs_dir("docs")
+	assert docs is not None
+	store = SessionStore(str(tmp_path / "data"), allowed_roots=[str(project)])
+	session = store.create(SessionConfig(cwd=str(project), auto_approve=True))
+	model = _ReadsDocsModel(os.path.join(docs, "extensions.md"))
+
+	handle = await session.run("how do I write an extension?", model=model)
+	assert handle.task is not None
+	await handle.task
+
+	assert model.calls == 2
+	assert model.results and model.results[0].startswith("# Extensions")

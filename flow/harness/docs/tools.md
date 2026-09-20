@@ -69,36 +69,7 @@ Shipped with the harness but off by default: the default `tools` list is `bash`,
 
 ## Extensions
 
-The CLI can load server extensions from `~/.flow/extensions/` or explicit `-e/--extension PATH` values. `--no-extensions` disables the global directory but keeps explicit paths.
-
-An extension is a `.py` file, or a directory with `extension.py`, exposing a synchronous `setup(flow)` function:
-
-```python
-from flow_harness.tools import ToolContext, ToolResult, tool
-
-@tool(prompt_snippet="Greet a person", display_template="Greeting {{ name }}")
-async def hello(name: str, *, ctx: ToolContext) -> ToolResult:
-    return ToolResult(content=f"Hello, {name}!")
-
-def setup(flow) -> None:
-    flow.register_tool(hello)
-```
-An extension can also hook tool execution with `flow.on(event, handler)`. A `tool_call` handler runs before a tool executes — ahead of any approval gate, so approval prompts show the effective arguments, and a rewrite is recorded in the result's `details.effective_arguments` — and can return `PreToolUseDecision(block=True, reason=...)` to stop the call or `PreToolUseDecision(arguments=...)` to rewrite it; a `tool_result` handler runs after and can return `PostToolUseOverride(content=..., details=...)` to rewrite what the model sees (`details` replaces the tool's whole dict — spread `event.result.details` to keep existing keys). A resumed approval re-checks blocking only; approved arguments run as approved. Handlers may be sync or async and return `None` to pass. A raising `tool_call` handler blocks the call (fail-safe); a raising `tool_result` handler is skipped and the result stands. A `tool_call` handler can run more than once for the same call — a gated call is checked before the approval prompt and again when it resumes — so keep handlers side-effect free. Payload types live in `flow_harness.extensions.hooks`.
-
-```python
-from flow_harness.extensions import PreToolUseDecision
-
-def gate(event):
-    if event.tool_name == "bash" and "rm -rf" in str(event.arguments):
-        return PreToolUseDecision(block=True, reason="destructive command blocked")
-
-def setup(flow) -> None:
-    flow.on("tool_call", gate)
-```
-
-Extension load errors are diagnostics, not daemon failures — and hook failures at runtime are recorded the same way (once per distinct failure) and appear in `GET /sessions/{id}/extensions`, which also lists each extension's hook subscriptions alongside its tools. Extension tools override selected built-ins with the same name; the first extension to register a duplicate name wins. `GET /tools` still lists the built-in, so a session gets it back by leaving the extension tool out of `extension_tools`. Extensions are trusted Python code with the daemon's permissions.
-
-`POST /extensions/reload` (TUI and web UI: `/reload`) re-discovers and re-imports all extensions. Sessions use the recomposed tools from their next run — an active run finishes with the tools it started with, and system prompts stay as composed at session creation.
+An extension adds tools and tool hooks to a running daemon: Python loaded from `~/.flow/extensions/` or an explicit `-e/--extension PATH`, with no change to Flow's own source. A session gets every loaded extension tool unless it names a subset in `extension_tools`, and an extension tool overrides a built-in of the same name. See [extensions.md](extensions.md).
 
 ## Client-side tools and hooks
 

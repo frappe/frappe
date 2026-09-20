@@ -45,8 +45,14 @@ path = "hatch_build.py"
 packages = ["src/flow_harness", "src/flow_tui"]
 artifacts = ["src/flow_harness/server/webui/**"]
 
+# Flow's own docs and examples ship inside the package, so a session can point the
+# model at them on any install; flow_harness.session.prompt resolves them.
+[tool.hatch.build.targets.wheel.force-include]
+"docs" = "flow_harness/data/docs"
+"examples" = "flow_harness/data/examples"
+
 [tool.hatch.build.targets.sdist]
-include = ["src", "ui", "hatch_build.py", "README.md", "LICENSE", "pyproject.toml"]
+include = ["src", "ui", "docs", "examples", "hatch_build.py", "README.md", "LICENSE", "pyproject.toml"]
 exclude = ["ui/node_modules", "ui/**/dist"]
 artifacts = ["src/flow_harness/server/webui/**"]
 
