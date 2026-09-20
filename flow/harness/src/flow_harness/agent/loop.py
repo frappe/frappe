@@ -241,7 +241,12 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 			yield message
 
 		async for event in _auto_compact(model, inputs, schemas, context):
+			if isinstance(event, Usage):
+				output_tokens += event.output_tokens
 			yield event
+		if output_tokens >= config.max_output_tokens:
+			yield RunEnded(reason="budget")
+			return
 
 		assistant: AssistantMessage | None = None
 		request = ModelRequest(

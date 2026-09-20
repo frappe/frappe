@@ -953,6 +953,17 @@ async def test_threshold_compaction_folds_before_the_next_model_call(tmp_path):
 	assert [m.model_dump() for m in reloaded.transcript.messages] == [m.model_dump() for m in msgs]
 
 
+async def test_auto_compaction_output_counts_toward_run_budget(tmp_path):
+	session, events = _session(tmp_path, compact_threshold_tokens=100, max_output_tokens=5)
+	await _run(session, BIG, model=MockModel(replies=[AssistantMessage(content="first answer")]))
+
+	mock = MockModel(replies=[AssistantMessage(content="## Goal\ncompacted summary"), _read_call()])
+	await _run(session, "continue", model=mock)
+
+	assert mock._turn == 1  # the summarizer used the remaining output budget
+	assert _of(events, "run_ended")[-1]["reason"] == "budget"
+
+
 async def test_threshold_compaction_failure_keeps_the_turn(tmp_path):
 	session, events = _session(tmp_path, compact_threshold_tokens=100)
 	await _run(session, BIG, model=MockModel(replies=[AssistantMessage(content="first answer")]))
