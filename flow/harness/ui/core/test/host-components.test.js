@@ -20,6 +20,7 @@ const ModelButton = await loadComponent("ModelButton")
 const SettingsDialog = await loadComponent("SettingsDialog")
 const SettingsPage = await loadComponent("SettingsPage")
 const SubagentView = await loadComponent("SubagentView")
+const TranscriptDialog = await loadComponent("TranscriptDialog")
 
 function mount(t, component, props, flow) {
 	const el = document.createElement("div")
@@ -856,4 +857,71 @@ test("a sub-agent's question shows in the composer, named after the sub-agent", 
 	applyEvent(conversation, { type: "run_ended", seq: 8, reason: "aborted" })
 	await nextTick()
 	assert.ok(!el.textContent.includes("Run this command?"))
+})
+
+test("the transcript shows request usage beside assistant responses", async (t) => {
+	const conversation = initialConversation()
+	applyEvent(conversation, { type: "user_message", seq: 2, content: "find the leak" })
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 3,
+		content: [{ type: "tool_call", id: "a", name: "read", arguments: { path: "server.py" } }],
+	})
+	applyEvent(conversation, {
+		type: "usage",
+		seq: 4,
+		input_tokens: 1000,
+		output_tokens: 40,
+		cache_read_tokens: 900,
+		context_window: 200000,
+	})
+	applyEvent(conversation, { type: "tool_result", seq: 5, tool_call_id: "a", name: "read", content: "leaky line" })
+
+	const flow = {
+		state: reactive({ transcriptOpen: true, conversation, session: null }),
+		setTranscriptOpen(open) {
+			flow.state.transcriptOpen = open
+		},
+	}
+	mount(t, TranscriptDialog, {}, flow)
+	await nextTick()
+
+	const panel = document.querySelector("[role=dialog]")
+	assert.match(panel.textContent, /Tokens1k.*Input1k.*Output40.*Model calls1.*Context1kof 200k/s)
+	assert.match(panel.textContent, /user\s*find the leak/)
+	// cached is a share of the input, not a number to add to it
+	assert.match(panel.textContent, /assistant\s*in 1k \(90% cached\)\s*out 40/)
+	// every tool reads the same way: the call, then what it returned
+	assert.match(panel.textContent, /tool\s*read\s*input.*"path": "server\.py".*output\s*leaky line/s)
+	assert.doesNotMatch(panel.textContent, /estimated|reported|~4|prompt & tool definitions/)
+	assert.equal(panel.querySelectorAll("button").length, 1) // only the close button
+	assert.equal(panel.querySelectorAll("[data-stub=Badge]").length, 2)
+})
+
+test("the transcript names an attachment-only message and flags a failed call", async (t) => {
+	const conversation = initialConversation()
+	applyEvent(conversation, {
+		type: "user_message",
+		seq: 2,
+		content: [{ type: "attachment", id: "i1", name: "screen.png", kind: "image" }],
+	})
+	applyEvent(conversation, {
+		type: "assistant_message",
+		seq: 3,
+		content: [{ type: "tool_call", id: "a", name: "read", arguments: { path: "gone.py" } }],
+	})
+	applyEvent(conversation, { type: "tool_result", seq: 4, tool_call_id: "a", name: "read", content: "ENOENT", is_error: true })
+
+	const flow = {
+		state: reactive({ transcriptOpen: true, conversation, session: null }),
+		setTranscriptOpen(open) {
+			flow.state.transcriptOpen = open
+		},
+	}
+	mount(t, TranscriptDialog, {}, flow)
+	await nextTick()
+
+	const panel = document.querySelector("[role=dialog]")
+	assert.match(panel.textContent, /user\s*screen\.png/) // the row is not blank
+	assert.deepEqual([...panel.querySelectorAll("[data-stub=Badge]")].map((b) => b.textContent), ["error"])
 })

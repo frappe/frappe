@@ -22,6 +22,7 @@ from flow_harness.events import (
 	CompactionStarted,
 	ToolResult,
 	TranscriptMessage,
+	Usage,
 	UserMessage,
 )
 from flow_harness.model.base import Model, ModelRequest
@@ -141,26 +142,32 @@ async def compact_events(
 	choose whether a failed automatic attempt is fatal; they never repair the protocol.
 	"""
 	yield CompactionStarted(reason=compaction_reason)
+	usage_seen: list[Usage] = []
 	try:
-		summary = await summarize(
+		summary, usage = await summarize(
 			model,
 			compaction_plan,
 			cancellation=cancellation,
 			summary_instructions=summary_instructions,
 			resolve_attachment=resolve_attachment,
 			params=params,
+			on_usage=usage_seen.append,
 		)
-	except ModelCancelled:
-		yield CompactionEnded(reason=compaction_reason, error_message="aborted")
-		raise
 	except Exception as error:
-		yield CompactionEnded(reason=compaction_reason, error_message=str(error))
+		if usage_seen:
+			yield usage_seen[-1]
+		yield CompactionEnded(
+			reason=compaction_reason,
+			error_message="aborted" if isinstance(error, ModelCancelled) else str(error),
+		)
 		raise
 	yield Compaction(
 		reason=compaction_reason,
 		summary=summary,
 		compact_up_to_seq=compaction_plan.compact_up_to_seq,
 	)
+	if usage is not None:
+		yield usage  # after the row it paid for, so clients can attribute it there
 	yield CompactionEnded(reason=compaction_reason)
 
 
@@ -172,9 +179,12 @@ async def summarize(
 	summary_instructions: str | None = None,
 	resolve_attachment: Callable[[str], bytes] | None = None,
 	params: Mapping[str, Any] | None = None,
-) -> str:
+	on_usage: Callable[[Usage], None] | None = None,
+) -> tuple[str, Usage | None]:
 	"""One standalone tool-less model call; deltas are consumed here, never yielded.
-	Every prompt part is bounded to the model's window."""
+	Every prompt part is bounded to the model's window.
+
+	Returns the summary and what the call cost, for the caller to log."""
 	context_window_tokens = model.context_window or DEFAULT_CONTEXT_WINDOW_TOKENS
 	reserved_output_tokens = calculate_reserved_output_tokens(context_window_tokens)
 	max_summary_output_tokens = max(1, reserved_output_tokens * 4 // 5)
@@ -211,9 +221,15 @@ async def summarize(
 		params=params,
 	)
 	summary_response: AssistantMessage | None = None
+	summary_usage: Usage | None = None
 	async for response_event in iterate_with_cancellation(model.run(summary_request), cancellation):
 		if isinstance(response_event, AssistantMessage):
 			summary_response = response_event
+		elif isinstance(response_event, Usage):
+			# this prompt is the transcript being summarized, not the conversation itself
+			summary_usage = response_event.model_copy(update={"standalone": True})
+			if on_usage is not None:
+				on_usage(summary_usage)
 	if summary_response is None:
 		raise RuntimeError("summarization ended without an assistant message")
 	if summary_response.stop_reason == "aborted":
@@ -225,7 +241,7 @@ async def summarize(
 		raise RuntimeError("summarization returned an empty summary")
 	# Native adapters may not expose an output-limit control. Keep the durable
 	# summary bounded even when the provider ignores the requested cap.
-	return _fit_text(generated_summary, max_summary_output_tokens * CHARS_PER_TOKEN)
+	return _fit_text(generated_summary, max_summary_output_tokens * CHARS_PER_TOKEN), summary_usage
 
 
 def calculate_compaction_input_limit(model: Model) -> int:

@@ -13,6 +13,7 @@ from flow_harness.events import (
 	ThinkingContent,
 	ToolCall,
 	ToolResult,
+	Usage,
 	UserMessage,
 	parse_event,
 )
@@ -501,6 +502,24 @@ def test_compaction_folds_the_prefix_into_a_summary(tmp_path):
 	assert transcript.messages[1].content == "B"
 	assert transcript.leaf_seq == 6
 	assert transcript.missing_results() == ()
+
+
+def test_a_standalone_call_spends_without_moving_the_context_reading(tmp_path):
+	"""The summarizer prompts with the transcript it is compacting; that is not
+	the conversation's new size, which only the next real request reports."""
+	log = make_log(
+		tmp_path,
+		UserMessage(content="A"),  # 1
+		AssistantMessage(content="X"),  # 2
+		Usage(input_tokens=900, output_tokens=40),  # 3
+		Compaction(reason="threshold", summary="S", compact_up_to_seq=2),  # 4
+		Usage(input_tokens=880, output_tokens=120, standalone=True),  # 5
+	)
+
+	transcript = Transcript.replay(log)
+
+	assert transcript.context_tokens is None  # the compaction cleared it, the summarizer did not set it
+	assert transcript.context_message_count == 0
 
 
 def test_live_compaction_mutates_the_messages_list_in_place(tmp_path):

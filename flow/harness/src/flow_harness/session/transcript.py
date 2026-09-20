@@ -216,7 +216,7 @@ class Transcript:
 			self.context_tokens = None
 			self.context_message_count = 0
 		elif isinstance(event, Usage):
-			reported_context_tokens = event.input_tokens + event.output_tokens
+			reported_context_tokens = 0 if event.standalone else event.input_tokens + event.output_tokens
 			if reported_context_tokens > 0:
 				self.context_tokens = reported_context_tokens
 				self.context_message_count = len(self.messages)

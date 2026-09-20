@@ -578,6 +578,7 @@ const COMMANDS = [
 	{ name: "thinking", label: "Thinking", icon: "zap", hint: "set the reasoning effort", stacked: true, run: () => (paletteView.value = "thinking") },
 	{ name: "providers", label: "Providers", icon: "key", hint: "connect model providers", stacked: true, run: () => (paletteView.value = "providers") },
 	{ name: "settings", label: "Settings", icon: "settings", hint: "custom instructions, defaults and theme", run: () => flow.setSettingsOpen(true) },
+	{ name: "transcript", label: "Transcript", icon: "list", hint: "every step and what it cost in tokens", run: () => flow.setTranscriptOpen(true) },
 	{ name: "new", label: "New chat", icon: "plus", hint: "start a fresh conversation", run: () => flow.startNewChat() },
 	{ name: "rewind", label: "Rewind", icon: "rotate-ccw", hint: "branch from before your last message", run: rewind },
 	{ name: "compact", label: "Compact", icon: "minimize-2", hint: "summarize and shrink context", run: () => flow.compact() },

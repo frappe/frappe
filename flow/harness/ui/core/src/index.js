@@ -6,6 +6,7 @@ export {
 	EFFORT_LABELS,
 	applyEvent,
 	buildItems,
+	buildTranscriptRows,
 	conversationTitle,
 	formatTokens,
 	humanizeToolName,
@@ -40,6 +41,7 @@ export { default as ModelPalette } from "./components/ModelPalette.vue"
 export { default as ThinkingPalette } from "./components/ThinkingPalette.vue"
 export { default as ProvidersDialog } from "./components/ProvidersDialog.vue"
 export { default as SettingsDialog } from "./components/SettingsDialog.vue"
+export { default as TranscriptDialog } from "./components/TranscriptDialog.vue"
 export { default as SettingsPage } from "./components/SettingsPage.vue"
 export { default as SettingsRow } from "./components/SettingsRow.vue"
 export { default as SettingsGeneral } from "./components/SettingsGeneral.vue"
