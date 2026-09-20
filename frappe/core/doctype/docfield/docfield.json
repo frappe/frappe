@@ -667,11 +667,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2026-07-17 14:00:00.000000",
-=======
- "modified": "2026-09-20 10:18:33.114207",
->>>>>>> 73192f7 (fix: doctype field editor labels the standard filter option differently)
+ "modified": "2026-09-20 19:25:55.873389",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
