@@ -55,29 +55,34 @@
 					</div>
 
 					<div class="mt-auto">
-						<div v-if="attachments.length" class="my-2 flex flex-wrap gap-2 px-2.5">
-							<Button
-								v-for="attachment in attachments"
-								:key="attachment.file_url"
-								theme="gray"
-								variant="subtle"
-								:label="attachment.file_name"
-								:title="attachment.file_name"
-								class="min-w-0 max-w-36"
+						<div v-if="attachments.length" class="my-2 flex flex-wrap gap-2">
+							<slot
+								name="attachments"
+								v-bind="{ attachments, remove: removeAttachment }"
 							>
-								<template #prefix>
-									<component
-										:is="attachmentIcon(attachment)"
-										class="size-3.5 shrink-0"
-									/>
-								</template>
-								<template #suffix>
-									<span
-										class="lucide-x size-3.5 cursor-pointer shrink-0"
-										@click.self.stop="removeAttachment(attachment)"
-									/>
-								</template>
-							</Button>
+								<Button
+									v-for="attachment in attachments"
+									:key="attachment.file_url"
+									theme="gray"
+									variant="outline"
+									:label="attachment.file_name"
+									:title="attachment.file_name"
+									class="min-w-0 max-w-36"
+								>
+									<template #prefix>
+										<component
+											:is="attachmentIcon(attachment)"
+											class="size-3.5 shrink-0"
+										/>
+									</template>
+									<template #suffix>
+										<span
+											class="lucide-x size-3.5 cursor-pointer shrink-0"
+											@click.self.stop="removeAttachment(attachment)"
+										/>
+									</template>
+								</Button>
+							</slot>
 						</div>
 
 						<!-- Host content pinned above the utilities row, e.g. actions staged for send. -->
