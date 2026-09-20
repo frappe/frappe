@@ -24,7 +24,8 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	refresh: function (frm) {
-		frm.embed_link && frm.embed_link.remove();
+		// add_user_action returns the <a>, not its row
+		frm.embed_link?.closest(".user-action-row").remove();
 
 		// get iframe url for web form
 		frm.embed_link = frm.sidebar

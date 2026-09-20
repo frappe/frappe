@@ -74,6 +74,22 @@ function seed_web_form(fields = SEEDED_FIELDS) {
 	);
 }
 
+// an unsaved form, filled in through the UI and given fields by Get Fields. It saves under
+// the route slugged from its title, so that is the name to clear first.
+function fill_new_web_form(title) {
+	cy.remove_doc("Web Form", title.toLowerCase().replace(/ /g, "-"), true);
+	cy.visit("/desk/web-form/new");
+
+	cy.fill_field("title", title);
+	cy.fill_field("doc_type", "Note", "Link");
+	cy.fill_field("module", "Website", "Link");
+
+	cy.click_custom_action_button("Get Fields");
+	cy.get_open_dialog().find('[data-action="select_all"]').click();
+	cy.click_modal_primary_button("Update");
+	cy.get('[data-fieldname="web_form_fields"] .grid-row').should("have.length.greaterThan", 0);
+}
+
 context("Web Form Builder", () => {
 	before(() => {
 		cy.login();
@@ -82,25 +98,27 @@ context("Web Form Builder", () => {
 
 	it("Get Fields survives the first save", () => {
 		// the builder mounts with an empty grid, and must not write that back over Get Fields
-		cy.remove_doc("Web Form", "builder-note-new", true);
-		cy.visit("/desk/web-form/new");
-
-		cy.fill_field("title", "Builder Note New");
-		cy.fill_field("doc_type", "Note", "Link");
-		cy.fill_field("module", "Website", "Link");
-
-		cy.click_custom_action_button("Get Fields");
-		cy.get_open_dialog().find('[data-action="select_all"]').click();
-		cy.click_modal_primary_button("Update");
-		cy.get('[data-fieldname="web_form_fields"] .grid-row').should(
-			"have.length.greaterThan",
-			0
-		);
+		fill_new_web_form("Builder Note New");
 
 		web_form_fields().then((collected) => {
 			cy.save();
 			web_form_fields().should("have.length", collected.length);
 		});
+	});
+
+	it("Adds Copy embed code once on the first save", () => {
+		fill_new_web_form("Embed Note New");
+
+		// the first save renames the form, and that drives a second refresh
+		cy.save();
+
+		// the saved name routes to a second page, so scope to the Web Form one
+		cy.get(`${WEB_FORM_PAGE} .user-action-link`)
+			.filter(':contains("Copy embed code")')
+			.should("have.length", 1);
+
+		// removing the <a> alone leaves its row behind, and the list's gap still counts it
+		cy.get(`${WEB_FORM_PAGE} .user-action-row:empty`).should("not.exist");
 	});
 
 	it("Adds page two to a form that has only page one", () => {
