@@ -217,6 +217,7 @@ def _child_inputs(
 	return replace(
 		inputs,
 		config=config.model_copy(update={"system_prompt": prompt}),
+		approval_config=inputs.approval_config or inputs.config,
 		messages=child.messages,
 		context_tokens=child.context_tokens,
 		context_message_count=child.context_message_count,

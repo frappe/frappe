@@ -100,7 +100,8 @@ class LoopInputs:
 	"""Everything a run needs from its session, prepared once at admission.
 
 	``messages`` is the live provider-facing transcript the session's reducer
-	maintains; the loop only reads it.
+	maintains; the loop only reads it. A child has its own config copy, but its
+	approval gate reads the session's live config through ``approval_config``.
 	"""
 
 	config: SessionConfig
@@ -110,6 +111,7 @@ class LoopInputs:
 	model_name: str  # the session's effective selection at admission, not config
 	credential_id: str | None = None
 	reasoning_effort: ReasoningEffort | None = None
+	approval_config: SessionConfig | None = None
 	allowed_roots: tuple[str, ...] = ()
 	ignore_hidden_files: bool = False
 	read_only_roots: tuple[str, ...] = ()
@@ -552,7 +554,7 @@ async def _settle_call(
 		call = call.model_copy(update={"arguments": dict(verdict.arguments)})
 		rewritten = True
 
-	if _needs_confirmation(inputs.config, call.name, tools):
+	if _needs_confirmation(inputs.approval_config or inputs.config, call.name, tools):
 		prompt = await _confirmation_prompt(call, tools, inputs)
 		_raise_if_aborted(inputs.abort)
 		gated.append(PendingCall(id=call.id, name=call.name, args=call.args, prompt=prompt))

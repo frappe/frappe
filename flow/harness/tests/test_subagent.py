@@ -462,6 +462,32 @@ async def test_a_child_approval_pauses_only_the_child_and_resume_reaches_it(tmp_
 	assert _of(events, "run_ended")[-1]["reason"] == "done"
 
 
+@pytest.mark.parametrize("initial_auto_approve", [True, False])
+async def test_an_approval_mode_change_reaches_a_running_childs_next_gate(tmp_path, initial_auto_approve):
+	session, events = _session(tmp_path, auto_approve=initial_auto_approve)
+	model = ScriptedModel(
+		{
+			"go": [AssistantMessage(content=[_spawn("c1", "risky")]), AssistantMessage(content="done")],
+			"risky": [AssistantMessage(content=[_bash("c2")]), AssistantMessage(content="ran it")],
+		}
+	)
+	gate = model.gate("risky")
+
+	handle = await session.run("go", model=model)
+	await model.started["risky"].wait()  # the child is running, its tool call still to come
+	session.config.auto_approve = not initial_auto_approve  # PATCH /config mutates this object
+	gate.set()
+
+	if initial_auto_approve:
+		await _until(lambda: _of(events, "approval_required", subagent="c1"))
+		approval = _of(events, "approval_required", subagent="c1")[0]
+		await session.resume({"c2": "Approve"}, approval_seq=approval["seq"])
+	assert handle.task is not None
+	await asyncio.wait_for(handle.task, timeout=5)
+	assert bool(_of(events, "approval_required", subagent="c1")) is initial_auto_approve
+	assert _of(events, "tool_result")[0]["content"] == "ran it\n\n[subagent_id: c1]"
+
+
 @pytest.mark.parametrize("how", ["deny", "cancel"])
 async def test_a_denied_or_cancelled_child_is_an_error_result(tmp_path, how):
 	session, events = _session(tmp_path)
