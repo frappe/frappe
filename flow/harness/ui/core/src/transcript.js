@@ -393,12 +393,13 @@ export function subagentId(call) {
 
 // what the session called a sub-agent: the description of the call that started it
 export function subagentTitle(conversation, id) {
+	const isCall = (block) => block.type === "tool_call" && block.id === id
 	for (const entry of conversation.entries) {
 		if (entry.type !== "assistant_message") continue
-		const call = (entry.content ?? []).find((block) => block.type === "tool_call" && block.id === id)
+		const call = (entry.content ?? []).find(isCall)
 		if (call) return call.arguments?.description ?? null
 	}
-	return null
+	return conversation.partial.find(isCall)?.arguments?.description ?? null // still streaming
 }
 
 // Matches t3code's compact elapsed-time buckets without relying on wall-clock

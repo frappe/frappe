@@ -1222,7 +1222,7 @@ test("a sub-agent opens as a workspace tab that survives a refresh and follows t
 		const flow = createFlowStore(client)
 		await flow.openSession("s1")
 		flow.openSubagent("c1")
-		assert.deepEqual(flow.state.workspace.tabs, [{ kind: "subagent", path: "c1", name: "count beans" }])
+		assert.deepEqual(flow.state.workspace.tabs, [{ kind: "subagent", path: "c1", name: "Sub-agent: count beans" }])
 		assert.equal(flow.state.workspace.active, "c1")
 		assert.equal(flow.state.workspace.open, true)
 		flow.openSubagent("c1") // again: the same tab
@@ -1234,7 +1234,7 @@ test("a sub-agent opens as a workspace tab that survives a refresh and follows t
 		// a fresh store (page refresh) restores the tab and names it from the loaded thread
 		const restored = createFlowStore(client)
 		await restored.openSession("s1")
-		assert.deepEqual(restored.state.workspace.tabs, [{ kind: "subagent", path: "c1", name: "count beans" }])
+		assert.deepEqual(restored.state.workspace.tabs, [{ kind: "subagent", path: "c1", name: "Sub-agent: count beans" }])
 		assert.equal(restored.state.workspace.active, "c1")
 
 		// a rewind past the call reloads the same session; the child is off the branch now

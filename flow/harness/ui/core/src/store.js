@@ -1003,7 +1003,7 @@ export function createFlowStore(client, options = {}) {
 	function openSubagent(id) {
 		const ws = state.workspace
 		if (!ws.tabs.some((t) => t.path === id)) {
-			const name = subagentTitle(state.conversation, id) ?? "Sub-agent"
+			const name = subagentTabName(id) ?? "Sub-agent"
 			ws.tabs.push({ kind: "subagent", path: id, name })
 		}
 		ws.active = id
@@ -1015,10 +1015,16 @@ export function createFlowStore(client, options = {}) {
 	function syncSubagentTabs() {
 		for (const tab of [...state.workspace.tabs]) {
 			if (tab.kind !== "subagent") continue
-			const name = subagentTitle(state.conversation, tab.path)
+			const name = subagentTabName(tab.path)
 			if (name == null) closeFile(tab.path)
 			else tab.name = name
 		}
+	}
+
+	// the tab reads like the step row; null once the call left the branch
+	function subagentTabName(id) {
+		const title = subagentTitle(state.conversation, id)
+		return title == null ? null : `Sub-agent: ${title}`
 	}
 
 	async function saveFile(path, content) {

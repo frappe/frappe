@@ -1000,6 +1000,10 @@ test("a sub-agent's events fold into a thread of their own that its step carries
 	assert.equal(conversation.entries.length, 2)
 	assert.equal(subagentTitle(conversation, "c1"), "count beans")
 	assert.equal(subagentTitle(conversation, "c9"), null)
+	// a call still streaming already has a row to open, so it has a title too
+	const live = initialConversation()
+	applyEvent(live, { type: "tool_call_display_ready", id: "c2", name: "subagent", arguments: { description: "sort beans" } })
+	assert.equal(subagentTitle(live, "c2"), "sort beans")
 
 	let [step] = toolGroups(conversation)[0].steps
 	assert.equal(step.subagent, child)
