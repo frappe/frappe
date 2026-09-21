@@ -956,7 +956,7 @@ function handle_slash_key(e) {
 	font-weight: var(--weight-semibold);
 	letter-spacing: 0;
 	color: var(--text-color);
-	padding: 12px 16px 4px;
+	padding: 16px 16px 6px;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
@@ -967,7 +967,9 @@ function handle_slash_key(e) {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	padding: 6px 16px;
+	/* the design sizes a row at 39px; pin it so the label's line box can't shrink it */
+	min-height: 39px;
+	padding: 4px 16px;
 	font-size: var(--text-sm);
 	cursor: grab;
 }
