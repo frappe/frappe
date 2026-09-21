@@ -47,10 +47,16 @@
 }
 
 // ── Stacked sections within a tab (e.g. Naming's Series + Rules) ──
-// Header layout/type is utility classes in the markup (frappe.doctype_settings.section);
-// only the gap between repeated sections (a sibling selector) isn't utility-expressible.
-.dts-section + .dts-section {
-	margin-top: var(--margin-xl);
+.dts-section {
+	// The panel header pads 0.5rem on its own; inside the body that would double up.
+	.settings-dialog-panel-header {
+		padding: 0;
+		margin-bottom: var(--margin-md);
+	}
+
+	& + & {
+		margin-top: var(--margin-xl);
+	}
 }
 
 .dts-settings-group-heading {

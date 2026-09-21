@@ -100,22 +100,23 @@ frappe.doctype_settings.empty_state = function ($container, opts) {
 	return $empty;
 };
 
+// A titled section inside a tab, with the same header as the tab itself.
 frappe.doctype_settings.section = function ($parent, { title, description } = {}) {
 	const $section = $('<div class="dts-section"></div>').appendTo($parent);
 	const $header = $(`
-		<div class="flex justify-between items-start gap-4 mb-4">
-			<div class="flex flex-col gap-1 w-full min-w-0">
-				<div class="dts-section-title text-xl-semibold"></div>
-				<div class="dts-section-description text-base text-ink-gray-6"></div>
+		<div class="settings-dialog-panel-header">
+			<div class="settings-dialog-panel-heading">
+				<div class="settings-dialog-panel-title"></div>
+				<div class="settings-dialog-panel-description"></div>
 			</div>
-			<div class="dts-section-actions flex items-center gap-2 shrink-0"></div>
+			<div class="settings-dialog-panel-actions"></div>
 		</div>
 	`).appendTo($section);
-	$header.find(".dts-section-title").text(title || "");
-	const $desc = $header.find(".dts-section-description");
+	$header.find(".settings-dialog-panel-title").text(title || "");
+	const $desc = $header.find(".settings-dialog-panel-description");
 	description ? $desc.text(description) : $desc.remove();
 	const $body = $('<div class="dts-section-body"></div>').appendTo($section);
-	return { $section, $body, $actions: $header.find(".dts-section-actions") };
+	return { $section, $body, $actions: $header.find(".settings-dialog-panel-actions") };
 };
 
 frappe.doctype_settings.render_error = function (panel, retry_fn, err) {
