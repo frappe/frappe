@@ -138,17 +138,6 @@
 				>
 					{{ flow.sessionTitle(s) }}
 				</span>
-				<span
-					class="absolute right-2 top-1/2 grid h-5 w-5 -translate-y-1/2 place-items-center text-2xs text-ink-gray-5 transition-opacity group-hover:opacity-0"
-					:class="menuFor === s.session_id ? 'opacity-0' : ''"
-				>
-					<span
-						v-if="s.state === 'running'"
-						class="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-surface-green-7"
-						title="Running"
-					/>
-					<span v-else-if="s.state === 'paused'" title="Waiting for approval">⏸</span>
-				</span>
 				<Dropdown
 					align="end"
 					:options="sessionActions(s)"
