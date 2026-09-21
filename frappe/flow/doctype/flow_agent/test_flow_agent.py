@@ -323,6 +323,7 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 				"slug": "helpdesk_ticket",
 				"type": "Server",
 				"description": "Fetch a ticket.",
+				"is_system_generated": 1,
 			}
 		).insert()
 		self.agent_doc.append("tools", {"tool": "helpdesk_ticket"})

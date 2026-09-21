@@ -103,6 +103,11 @@ class FlowTool(Document):
 					title=_("Unexpected Import Path"),
 				)
 		elif self.type == "Server":
+			if not self.is_system_generated:
+				frappe.throw(
+					_("Server tools come from the flow server's extensions; add an extension instead."),
+					title=_("Server Tool"),
+				)
 			if self.import_path or self.code:
 				frappe.throw(
 					_("Server tools have no code here; the flow server provides them."),

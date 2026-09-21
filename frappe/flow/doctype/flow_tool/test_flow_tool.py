@@ -46,6 +46,7 @@ def _script(**overrides: Any) -> dict:
 
 def _server(**overrides: Any) -> dict:
 	doc = _module(slug="helpdesk_ticket", title="Helpdesk Ticket", type="Server", import_path=None)
+	doc["is_system_generated"] = 1
 	doc.update(overrides)
 	return doc
 
@@ -69,6 +70,10 @@ class IntegrationTestFlowTool(IntegrationTestCase):
 		self.assertEqual(doc.type, "Server")
 		with self.assertRaisesRegex(frappe.ValidationError, "no code here"):
 			frappe.get_doc(_server(slug="server_with_code", code=VALID_SCRIPT_CODE)).insert()
+
+	def test_a_server_tool_cannot_be_created_by_hand(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "add an extension instead"):
+			frappe.get_doc(_server(is_system_generated=0)).insert()
 
 	def test_slug_must_be_snake_case(self):
 		for bad in ("bad-slug", "1starts_with_digit", "bad slug", "has.dot", "HasCaps"):
