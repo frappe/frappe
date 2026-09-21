@@ -21,7 +21,12 @@ class NetworkPrinterSettings(Document):
 	# end: auto-generated types
 
 	@frappe.whitelist()
+<<<<<<< HEAD
 	def get_printers_list(self, ip: str = "127.0.0.1", port: int = 631):
+=======
+	def get_printers_list(self):
+		self.check_permission("write")
+>>>>>>> 3c6aaf5 (fix(network_printer_settings): add perm. check in whitelisted method)
 		printer_list = []
 		try:
 			import cups
