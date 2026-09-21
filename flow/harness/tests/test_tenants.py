@@ -40,6 +40,7 @@ def test_load_tenants_parses_sites_tokens_and_roots(tmp_path):
 					"allowed_roots": ["/srv/site1"],
 					"ignore_hidden_files": True,
 					"callback_hosts": ["site1.localhost:8000"],
+					"data_dir": "/srv/site1/private/flow",
 				},
 				"site2.localhost": {"token": "def", "allowed_roots": ["/srv/site2"]},
 			}
@@ -53,6 +54,7 @@ def test_load_tenants_parses_sites_tokens_and_roots(tmp_path):
 			allowed_roots=("/srv/site1",),
 			callback_hosts=("site1.localhost:8000",),
 			ignore_hidden_files=True,
+			data_dir="/srv/site1/private/flow",
 		),
 		Tenant(site="site2.localhost", token="def", allowed_roots=("/srv/site2",)),
 	]
@@ -82,6 +84,10 @@ def test_load_tenants_rejects_broken_files(tmp_path):
 			"callback_hosts must be a list",
 		),
 		(
+			'{"site1": {"token": "a", "allowed_roots": ["/x"], "data_dir": "flow/site1"}}',
+			"data_dir must be an absolute path",
+		),
+		(
 			'{"site1": {"token": "same", "allowed_roots": ["/x"]},'
 			' "site2": {"token": "same", "allowed_roots": ["/x"]}}',
 			"reuses another site's token",
@@ -108,6 +114,9 @@ def test_for_site_partitions_sessions_and_credentials(tmp_path):
 	assert site.credential_store.get("anthropic") is None
 	other = store.for_site("site2.localhost")
 	assert other.sessions_dir != site.sessions_dir
+	own = store.for_site("site3.localhost", data_dir=str(tmp_path / "site3" / "flow"))
+	assert own.sessions_dir == str(tmp_path / "site3" / "flow" / "sessions")
+	assert own.credential_store.path == str(tmp_path / "site3" / "flow" / "credentials.json")
 
 
 def test_for_site_rejects_unsafe_names(tmp_path):
@@ -308,6 +317,16 @@ def test_tenants_reload_applies_changed_roots(tmp_path):
 	assert create(old) == 400
 	sid = started.json()["session_id"]  # the session already loaded is fenced out too
 	assert c.get(f"/sessions/{sid}", headers=_auth("token-one")).status_code == 400
+
+
+def test_tenants_reload_applies_changed_data_dir(tmp_path):
+	c, path = _live_client(tmp_path, {"site1.localhost": _entry(tmp_path)})
+	sid = c.post("/sessions", json={"cwd": str(tmp_path)}, headers=_auth("token-one")).json()["session_id"]
+	moved = {**_entry(tmp_path), "data_dir": str(tmp_path / "site1" / "flow")}
+	path.write_text(json.dumps({"site1.localhost": moved}))
+	assert c.post("/tenants/reload", headers=_auth("token-one")).status_code == 200
+	assert c.get(f"/sessions/{sid}", headers=_auth("token-one")).status_code == 404
+	assert (tmp_path / "site1" / "flow" / "sessions").is_dir()
 
 
 def test_tenants_reload_applies_changed_callback_hosts(tmp_path):
