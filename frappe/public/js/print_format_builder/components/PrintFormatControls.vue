@@ -964,8 +964,9 @@ function handle_slash_key(e) {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	/* the design sizes a row at 39px; pin it so the label's line box can't shrink it */
-	min-height: 39px;
+	/* the design sizes a row at 39px on a 284px panel; 34px keeps the drag target
+	   comfortable here and gives back about four fields per screen */
+	min-height: 34px;
 	/* hover is a pill inset from the panel edge, so the row carries 8px of margin
 	   and 8px of padding and the label still sits on the 16px text grid */
 	margin: 0 8px;
