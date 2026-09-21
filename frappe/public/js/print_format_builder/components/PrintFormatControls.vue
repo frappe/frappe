@@ -427,16 +427,16 @@ let raw_templates = ref([]);
 // ── tab definitions ───────────────────────────────────────
 const TAB_STORE_KEY = "pfb_active_tab";
 const tabs = computed(() => [
-	{ id: "layers", label: __("Layers") },
 	{ id: "fields", label: __("Fields") },
 	{ id: "blocks", label: __("Blocks") },
+	{ id: "layers", label: __("Layers") },
 	{ id: "library", label: __("Library") },
 ]);
 
 // A stale tab id would render an empty sidebar, so fall back to the first tab
 function restore_tab() {
 	const saved = localStorage.getItem(TAB_STORE_KEY);
-	return tabs.value.some((t) => t.id === saved) ? saved : "layers";
+	return tabs.value.some((t) => t.id === saved) ? saved : tabs.value[0].id;
 }
 let activeTab = ref(restore_tab());
 
