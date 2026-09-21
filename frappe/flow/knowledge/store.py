@@ -12,6 +12,9 @@ be rebuilt from MariaDB at any time.
 
 from __future__ import annotations
 
+import atexit
+import shutil
+import tempfile
 from typing import Any
 
 import frappe
@@ -25,8 +28,21 @@ MAX_SEARCH_LIMIT = 100
 
 
 def db_path() -> str:
-	name = "lancedb_test" if frappe.flags.in_test else "lancedb"
-	return frappe.get_site_path("private", "files", name)
+	if frappe.flags.in_test:
+		return _test_db_path()
+	return frappe.get_site_path("private", "files", "lancedb")
+
+
+_test_db: str | None = None
+
+
+def _test_db_path() -> str:
+	"""A throwaway store for the test run, removed when the process exits."""
+	global _test_db
+	if _test_db is None:
+		_test_db = tempfile.mkdtemp(prefix="flow-lancedb-")
+		atexit.register(shutil.rmtree, _test_db, ignore_errors=True)
+	return _test_db
 
 
 def _connect():

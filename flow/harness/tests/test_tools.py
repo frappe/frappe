@@ -278,6 +278,7 @@ async def test_bash_truncation_spills_to_temp_file(tmp_path):
 	path = res.details["full_output_path"]
 	assert path and os.path.isfile(path)
 	full = open(path, encoding="utf-8").read()
+	os.unlink(path)  # the spill outlives the call by design; the test cleans it up
 	assert full.strip().splitlines()[-1] == "3000"  # full output preserved
 	assert "3000" in res.content  # tail kept in the model-visible slice
 	assert f"full output: {path}" in res.content
