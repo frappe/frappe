@@ -205,6 +205,7 @@ class Session:
 		persist_meta: Callable[[Session], None] | None = None,
 		resolve_skill: Callable[[str], Skill | None] | None = None,
 		persist_skill_catalog: Callable[[Session], None] | None = None,
+		on_settled: Callable[[Session], None] | None = None,
 		compose_tools: Callable[[SessionConfig], dict[str, Tool]],
 	):
 		self.id = sid
@@ -221,6 +222,7 @@ class Session:
 		self._persist_meta = persist_meta
 		self._resolve_skill = resolve_skill
 		self._persist_skill_catalog = persist_skill_catalog
+		self._on_settled = on_settled
 		self._subagent_runner = SubagentRunner(
 			self._commit, _run_error, compose_tools, log, config.max_concurrent_subagents
 		)
@@ -253,6 +255,21 @@ class Session:
 	@property
 	def is_running(self) -> bool:
 		return self.state is SessionState.RUNNING
+
+	@property
+	def in_use(self) -> bool:
+		"""Something in this process still needs the object itself: a run, a live
+		stream, or a title being written. Anything else can be rebuilt from the log."""
+		return (
+			self.is_running
+			or bool(self._subscribers)
+			or (self._title_task is not None and not self._title_task.done())
+		)
+
+	def _settled(self, _task: asyncio.Task[None] | None = None) -> None:
+		"""An `in_use` reason cleared; the store may now re-cost or drop this object."""
+		if self._on_settled is not None:
+			self._on_settled(self)
 
 	@property
 	def model(self) -> str:
@@ -427,6 +444,8 @@ class Session:
 
 	def unsubscribe(self, queue: asyncio.Queue[AnyEvent | None]) -> None:
 		self._subscribers.discard(queue)
+		if not self._subscribers:
+			self._settled()
 
 	async def events(self, since: int = 0) -> AsyncGenerator[AnyEvent]:
 		"""Replay stored events, then follow the live stream.
@@ -535,6 +554,7 @@ class Session:
 		self._operation_type = operation_type
 		task = asyncio.create_task(self._drive(events, operation_type=operation_type))
 		task.add_done_callback(_mark_retrieved)
+		task.add_done_callback(self._settled)
 		self._task = task
 		return RunHandle(status="started", from_seq=from_seq, task=task)
 
@@ -693,6 +713,7 @@ class Session:
 	def _start_titling(self, first_message: str) -> None:
 		task = asyncio.create_task(self._title_session(first_message))
 		task.add_done_callback(_mark_retrieved)
+		task.add_done_callback(self._settled)
 		self._title_task = task
 
 	def cancel_titling(self) -> None:
