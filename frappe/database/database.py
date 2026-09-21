@@ -442,7 +442,7 @@ class Database:
 
 	def lazy_mogrify(self, query: Query, values: QueryValues) -> LazyMogrify:
 		"""Wrap the object with str to generate mogrified query."""
-		return LazyMogrify(query, values)
+		return LazyMogrify(query, values, self)
 
 	def explain_query(self, query, values=EmptyQueryValues):
 		"""Print `EXPLAIN` in error log."""

@@ -72,12 +72,10 @@ class ErrorLog(LogDocument):
 
 	def onload(self):
 		if not self.seen and not frappe.flags.read_only:
-			# `db_set` would route through `frappe.db.set_value` to the primary database, and
-			# its `frappe.db.commit()` would commit the primary transaction. `db_update` writes
-			# this row in the log database and commits only that connection. `modified` is left
-			# as loaded, preserving the previous `update_modified=0`.
-			self.seen = 1
-			self.db_update()
+			# `LogDocument.db_set` writes to the log database and commits that connection, so
+			# the previous explicit `frappe.db.commit()` -- which committed the *primary*
+			# transaction -- is neither needed nor wanted here.
+			self.db_set("seen", 1, update_modified=0)
 
 	@staticmethod
 	def clear_old_logs(days=30):
