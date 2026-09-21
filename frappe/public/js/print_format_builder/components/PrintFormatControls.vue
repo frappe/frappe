@@ -124,10 +124,10 @@
 		<!-- ── Library ───────────────────────────────────────── -->
 		<div v-else-if="activeTab === 'library'" class="pfb-tab-body">
 			<div class="pfb-group-label">
-				{{ __("Saved Snippets") }}
+				{{ __("Saved assets") }}
 			</div>
-			<div v-if="!store.snippets.value.length" class="pfb-empty">
-				{{ __("Save a section or field as a snippet to reuse it here.") }}
+			<div class="pfb-group-desc">
+				{{ __("Save a section or field as an asset") }}
 			</div>
 			<template v-for="grp in snippet_groups" :key="grp.type">
 				<draggable
@@ -168,8 +168,8 @@
 				</draggable>
 			</template>
 
-			<div class="pfb-group-label mt-3">
-				{{ __("Field Templates") }}
+			<div class="pfb-group-label">
+				{{ __("Field template") }}
 				<a
 					:href="'/app/print-format-field-template'"
 					target="_blank"
@@ -178,16 +178,11 @@
 					{{ __("Manage") }}
 				</a>
 			</div>
-			<div v-if="!print_templates_list.length" class="pfb-empty">
-				{{
-					__(
-						"Field templates render a specific field with custom Jinja/HTML, e.g. a custom items table."
-					)
-				}}
-				<a :href="new_template_link" target="_blank">{{ __("Create one") }}</a>
+			<div class="pfb-group-desc">
+				{{ __("Make a custom field with HTML or Jinja") }}
 			</div>
 			<draggable
-				v-else
+				v-if="print_templates_list.length"
 				:list="print_templates_list"
 				:group="{ name: 'fields', pull: 'clone', put: false }"
 				:sort="false"
@@ -828,10 +823,6 @@ let print_templates_list = computed(() => {
 });
 
 // ── computed: misc ─────────────────────────────────────────
-let new_template_link = computed(
-	() => `/app/print-format-field-template/new?document_type=${meta.value?.name || ""}`
-);
-
 // ── lifecycle ──────────────────────────────────────────────
 onMounted(() => {
 	document.addEventListener("keydown", handle_slash_key);
@@ -898,7 +889,7 @@ function handle_slash_key(e) {
 .pfb-tab-body {
 	flex: 1;
 	overflow-y: auto;
-	padding: 10px;
+	padding: 10px 0;
 }
 
 /* ── Search (Fields tab) ─────────────────────────────────── */
@@ -962,6 +953,12 @@ function handle_slash_key(e) {
 	align-items: center;
 }
 
+.pfb-group-desc {
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+	padding: 0 16px 4px;
+}
+
 /* ── Field row (Fields tab) ──────────────────────────────── */
 .pfb-field-row {
 	display: flex;
@@ -1008,7 +1005,7 @@ function handle_slash_key(e) {
 
 /* ── Outline tab (tree) ──────────────────────────────────── */
 .pfb-tree {
-	padding-top: 4px;
+	padding: 4px 10px 0;
 }
 
 .pfb-tree-row {
@@ -1101,7 +1098,7 @@ function handle_slash_key(e) {
 	color: var(--text-muted);
 	font-size: var(--text-sm);
 	text-align: center;
-	padding: 16px 8px;
+	padding: 16px;
 }
 
 .pfb-fields-tab .pfb-empty {
