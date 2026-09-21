@@ -426,7 +426,7 @@ class FormTimeline extends BaseTimeline {
 				  );
 
 			attachment_timeline_contents.push({
-				icon: is_file_upload ? "paperclip" : "trash-2",
+				icon: is_file_upload ? "paperclip" : "trash",
 				icon_size: "sm",
 				creation: attachment_log.creation,
 				content: timeline_content,

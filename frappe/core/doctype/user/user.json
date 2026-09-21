@@ -5,6 +5,7 @@
  "creation": "2022-01-10 17:29:51.672911",
  "description": "Represents a User in the system.",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions",
  "engine": "InnoDB",
  "field_order": [
   "user_details_tab",
@@ -877,7 +878,7 @@
    "label": "Show navigation buttons"
   }
  ],
- "icon": "fa fa-user",
+ "icon": "user-round",
  "idx": 413,
  "image_field": "user_image",
  "links": [

@@ -30,7 +30,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 								},
 								{
 									label: "Delete",
-									icon: "trash-2",
+									icon: "trash",
 									theme: "red",
 									onclick: () =>
 										frappe.ui.toast({ message: "Deleted", type: "error" }),

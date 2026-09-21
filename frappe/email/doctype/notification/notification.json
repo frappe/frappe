@@ -5,6 +5,7 @@
  "creation": "2014-07-11 17:18:09.923399",
  "doctype": "DocType",
  "document_type": "System",
+ "documentation": "https://docs.frappe.io/framework/notifications",
  "engine": "InnoDB",
  "field_order": [
   "enabled",
@@ -390,7 +391,7 @@
   }
  ],
  "grid_page_length": 50,
- "icon": "fa fa-envelope",
+ "icon": "bell-dot",
  "index_web_pages_for_search": 1,
  "links": [],
  "modified": "2026-04-22 15:37:19.355265",

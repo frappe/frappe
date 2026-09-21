@@ -50,7 +50,7 @@ frappe.doctype_settings.register("workflow", function (panel, doctype) {
 			{ label: __("Edit"), icon: "pencil", onclick: () => open(r.name) },
 			{
 				label: __("Delete"),
-				icon: "trash-2",
+				icon: "trash",
 				danger: true,
 				onclick: (list) =>
 					frappe.model.delete_doc("Workflow", r.name, () => {

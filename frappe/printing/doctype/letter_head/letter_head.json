@@ -5,6 +5,7 @@
  "creation": "2012-11-22 17:45:46",
  "doctype": "DocType",
  "document_type": "Setup",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/letter-head",
  "engine": "InnoDB",
  "field_order": [
   "letter_head_name",
