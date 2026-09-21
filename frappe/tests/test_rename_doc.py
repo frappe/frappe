@@ -37,7 +37,6 @@ def patch_db(endpoints: list[str] | None = None):
 		frappe.db.rollback(save_point=savepoint)
 
 
-
 class TestRenameDoc(FrappeTestCase):
 	@classmethod
 	def setUpClass(self):
