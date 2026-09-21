@@ -17,7 +17,7 @@ from werkzeug.routing import Rule
 import frappe
 import frappe.client
 from frappe import _, cint, cstr, get_newargs, is_whitelisted
-from frappe.api import collaboration, discovery
+from frappe.api import collaboration, discovery, files
 from frappe.api.include import (
 	add_document_parts,
 	add_list_parts,
@@ -729,6 +729,8 @@ url_rules = [
 	# Document level APIs
 	Rule("/document/<doctype>", methods=["GET", "QUERY"], endpoint=document_list),
 	Rule("/document/<doctype>", methods=["POST"], endpoint=create_doc),
+	# a static rule beats the dynamic one, so an upload of bytes never reaches `create_doc`
+	Rule("/document/File", methods=["POST"], endpoint=files.create_file),
 	Rule("/document/<doctype>/bulk_delete", methods=["POST"], endpoint=bulk_delete_docs),
 	Rule("/document/<doctype>/bulk_update", methods=["POST"], endpoint=bulk_update_docs),
 	Rule("/document/<doctype>/<path:name>/", methods=["GET"], endpoint=read_doc),
@@ -741,6 +743,12 @@ url_rules = [
 		endpoint=execute_doc_method,
 	),
 	*collaboration_rules(),
+	Rule("/document/<doctype>/<path:name>/attachments", methods=["POST"], endpoint=files.attach),
+	Rule(
+		"/document/<doctype>/<path:name>/attachments/<path:file_name>",
+		methods=["DELETE"],
+		endpoint=files.detach,
+	),
 	# Collection level APIs
 	Rule("/doctype/<doctype>/meta", methods=["GET"], endpoint=get_meta),
 	Rule("/doctype/<doctype>/count", methods=["GET", "QUERY"], endpoint=count),
