@@ -244,12 +244,30 @@ def test_cli_reports_extension_diagnostics_on_stderr(tmp_path, capsys):
 	broken = _write_extension(tmp_path / "extensions", "broken", "raise RuntimeError('boom')\n")
 	store = SessionStore(str(tmp_path / "data"), extension_paths=[str(missing), str(broken)])
 
-	_report_extension_diagnostics(store)
+	_report_extension_diagnostics(store.extension_runtime)
 
 	stderr = capsys.readouterr().err
 	assert f"flow: extension error: explicit extension path does not exist ({missing})" in stderr
 	assert "flow: extension error: failed to import extension" in stderr
 	assert str(broken) in stderr
+
+
+def test_cli_lists_the_tools_extensions_register_as_json(tmp_path, capsys):
+	from types import SimpleNamespace
+
+	from flow_harness.cli.main import _extension_tools
+
+	folder = tmp_path / "extensions"
+	_write_extension(folder, "hello", HELLO_EXTENSION)
+	_write_extension(folder, "broken", "raise RuntimeError('boom')\n")
+
+	_extension_tools(SimpleNamespace(path=[str(folder)]))
+
+	out, err = capsys.readouterr()
+	assert json.loads(out) == {
+		"tools": [{"name": "hello", "description": "Greet someone by name.", "extension": "hello"}]
+	}
+	assert "flow: extension error: failed to import extension" in err
 
 
 def _hook_session(tmp_path, hook_body: str, **cfg):

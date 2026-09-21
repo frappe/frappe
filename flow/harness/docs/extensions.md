@@ -117,6 +117,10 @@ Tools run on the daemon's event loop, which a blocking call stalls for every ses
 
 A load failure is never fatal to the daemon. Failures — a bad import, a missing or async `setup`, a duplicate name, a handler that raised — are collected as diagnostics and reported by `GET /sessions/{id}/extensions`, which also lists each extension's tools and hook subscriptions. A repeated runtime failure is recorded once per distinct message, since hooks run on every tool call. The CLI prints load diagnostics to stderr at startup.
 
+## Listing tools
+
+`flow extension-tools PATH...` loads the given extension files or directories the way `flow serve -e` would, prints one JSON row per registered tool (`name`, `description`, `extension`) on stdout, and reports load problems on stderr. A client that fronts the daemon uses it to learn the tool names before the daemon starts, for example to build a `tool_allowlist` and a tool picker.
+
 ## Examples
 
 Working extensions live in [examples/extensions/](../examples/extensions/):
