@@ -89,6 +89,13 @@ class SQLiteSearch(ABC):
 	- Permission-aware search results via query-level filtering
 	"""
 
+	BUILD_VOCABULARY = True
+	"""Whether to build the vocabulary that backs spelling correction in search().
+
+	It is a second pass over everything indexed, long enough on a large table to outweigh the
+	indexing itself. Set False where search() is not used and its corrections are not wanted.
+	"""
+
 	@staticmethod
 	def scoring_function(func):
 		"""
@@ -340,10 +347,66 @@ class SQLiteSearch(ABC):
 			# Build vocabulary for spelling correction
 			self._build_vocabulary(documents)
 
+<<<<<<< HEAD
 			# Atomic replacement: move temp database to final location
 			if os.path.exists(original_db_path):
 				os.unlink(original_db_path)
 			os.rename(temp_db_path, original_db_path)
+=======
+					if not docs:
+						# No more documents for this doctype
+						self._mark_doctype_complete(doctype)
+						break
+
+					# Prepare and index documents
+					documents = []
+					for doc in docs:
+						document = self.prepare_document(doc)
+						if document:
+							documents.append(document)
+
+					if documents:
+						self._index_documents(documents)
+
+					# Advance the cursor even when nothing in this batch was indexable: these
+					# rows have been consumed either way. Advancing only when `documents` was
+					# non-empty meant a batch whose documents all failed prepare_document()
+					# was fetched again forever, so build_index() never returned.
+					last_doc_modified = docs[-1].get(progress_field) or docs[-1].get("modified")
+					last_doc_name = docs[-1]["name"]
+					self._update_index_progress(doctype, last_doc_name, last_doc_modified, len(documents))
+					last_indexed_modified = last_doc_modified
+					last_indexed_name = last_doc_name
+
+					batch_count += 1
+
+					# Show progress based on total document counts across all doctypes
+					indexed_docs, total_docs = self._get_indexing_progress()
+					if total_docs > 0:
+						progress_percent = 20 + (indexed_docs * 60) // total_docs
+						self._update_progress(
+							f"Indexing {doctype} {indexed_docs}/{total_docs}",
+							progress_percent,
+							100,
+							absolute=True,
+						)
+
+				processed_doctypes += 1
+
+			# Check if all doctypes are indexed before building vocabulary
+			if self.BUILD_VOCABULARY and not self._is_vocabulary_built_needed():
+				self._update_progress("All documents indexed, building vocabulary", 80, 100, absolute=True)
+
+				# Build vocabulary incrementally
+				self._build_vocabulary_incremental()
+				self._mark_vocabulary_built()
+
+			# Final atomic replacement if this was a fresh build
+			if temp_db_path and os.path.exists(temp_db_path):
+				if os.path.exists(original_db_path):
+					os.unlink(original_db_path)
+				os.rename(temp_db_path, original_db_path)
+>>>>>>> d20902e (perf(search): let an index skip the vocabulary pass)
 
 			self._update_progress("Search index build complete", 100, 100, absolute=True)
 
