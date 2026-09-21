@@ -738,6 +738,15 @@ frappe.router = {
 	// `/desk/workflow/WF-0001` starts with a shell slug -- but `WF-0001` names nothing, so the
 	// route is left whole and parses as the form it has always been.
 	//
+	// The other side of that collision is a document named like something routable. A Workflow
+	// called `item` makes `/desk/workflow/item` read as the Item list in the Workflow shell, not
+	// as that Workflow's form. It is accepted rather than guessed around, because the parser runs
+	// before any document is fetched and cannot ask whether one exists: it touches only the
+	// shells that are also doctypes (three, above), and only documents whose whole name slugs to
+	// a doctype, workspace, page or view. Such a form still opens from its standard route typed
+	// as one, `/desk/Form/Workflow/item`; `set_route` spells it the friendly way and lands on the
+	// list.
+	//
 	// A one-segment route never carries a shell. `/desk/stock` stays the Stock workspace it has
 	// always been, and a shell is reached through the two-segment form instead.
 	take_shell_from(route) {
@@ -803,12 +812,21 @@ frappe.router = {
 		// It falls out of the same rule for the reserved segment: `/desk/private/<workspace>`
 		// under the `Private` shell already begins with `private`, so it is left alone too,
 		// while a private workspace belonging to some other module still gets that module.
-		if (rest === this.shell_slug(shell) || rest.startsWith(this.shell_slug(shell) + "/")) {
-			return;
-		}
+		//
+		// "Left alone" means no segment is added, not that the URL is kept. A stale shell has
+		// already been dropped from `rest` above, and it still has to leave the address bar:
+		// `/desk/stock/build` is the Build workspace under a shell that cannot show it, and
+		// returning here without writing kept `stock` on screen and in every link copied from
+		// it.
+		const slug = this.shell_slug(shell);
+		const names_itself = rest === slug || rest.startsWith(slug + "/");
+		const path = "/desk/" + (names_itself ? rest : slug + "/" + rest);
+		if (path === window.location.pathname) return;
 
-		this.current_shell = shell;
-		const path = "/desk/" + this.shell_slug(shell) + "/" + rest;
+		// `path_on_screen` strips one segment whenever this is set, so it has to say what the URL
+		// now spells: the shell when one was written, nothing when the route already begins with
+		// its own shell's slug.
+		this.current_shell = names_itself ? null : shell;
 		history.replaceState(
 			history.state,
 			"",

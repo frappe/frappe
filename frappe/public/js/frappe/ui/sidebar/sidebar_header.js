@@ -159,7 +159,14 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 		// The rail switches on a docked app -- it is a hover at the window's edge away -- so the
 		// menu carries no switcher there. The one row it keeps is the way out to the apps screen,
 		// which is what the rail's header was a link to before the menu moved onto it.
-		if (sidebar.dock_enabled()) return [this.all_apps_item()];
+		//
+		// Only where something can hover, though. On a touch screen wide enough for a dock there
+		// is nothing to push into the edge with, and without this the dock would be drawn and
+		// unreachable and the switcher gone with it. Read on every open, as all these rows are,
+		// so plugging in a trackpad is picked up without a reload.
+		if (sidebar.dock_enabled() && frappe.ui.Dock.pointer_can_reveal()) {
+			return [this.all_apps_item()];
+		}
 
 		const items = [];
 		const modules = sidebar.app_modules(sidebar.get_sidebar_app());

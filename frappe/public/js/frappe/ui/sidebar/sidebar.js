@@ -738,7 +738,8 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 	}
 
-	// Find the item the current URL belongs to and make it `active_item`. Returns whether any did.
+	// Find the item the current URL belongs to and make it `active_item`, or null when none does.
+	// Returns whether any did.
 	//
 	// Every item is scored by `route_claim` and the strongest claim wins. The URL is read once
 	// rather than per item, since it is the same for all of them.
@@ -765,10 +766,12 @@ frappe.ui.Sidebar = class Sidebar {
 			}
 		});
 
-		if (!best) return false;
+		// The item lit for the last route is cleared either way. Kept when nothing claims the new
+		// route, it would point at a page you have left: ToDo stayed lit after opening something
+		// the sidebar does not list.
 		if (this.active_item) this.active_item.removeClass("active-sidebar");
 		this.active_item = best;
-		return true;
+		return !!best;
 	}
 
 	set_sidebar_state() {
@@ -1089,7 +1092,8 @@ frappe.ui.Sidebar = class Sidebar {
 		const entity = this.entity_from_route(route);
 		if (!entity) return false;
 
-		if (this.get_modules_linking(entity).includes(shell)) return true;
+		const kind = this.link_type_from_route(route);
+		if (this.get_modules_linking(entity, kind).includes(shell)) return true;
 
 		const canonical = this.canonical_shell_for(route, entity);
 		return !!canonical && !this.crosses_app(shell, canonical);
@@ -1176,7 +1180,7 @@ frappe.ui.Sidebar = class Sidebar {
 	open_workspace(name) {
 		if (!name) return;
 
-		const shell = this.get_modules_linking(name)[0];
+		const shell = this.get_modules_linking(name, "Workspace")[0];
 		if (shell) this.select_module(shell);
 
 		const route = frappe.ui.sidebar_item.get_route(
@@ -1481,12 +1485,19 @@ frappe.ui.Sidebar = class Sidebar {
 
 	// Every module whose sidebar contains `link_to`. It ignores which app a link belongs to on
 	// purpose (see set_workspace_sidebar), so curated cross-app links resolve correctly.
-	get_modules_linking(link_to) {
+	// `link_type` narrows the match to one kind of entity. Names are not unique across kinds --
+	// `Attendance`, `Project`, `Selling` and `Stock` each name a Dashboard and a DocType on an
+	// erpnext and hrms site -- so a caller that knows which one it means has to say, or a shell
+	// listing the Dashboard answers for the DocType. The server map is keyed by kind for the same
+	// reason (`build_canonical_shells`). Left out, any kind matches, which is what a caller holding
+	// only a name gets.
+	get_modules_linking(link_to, link_type = null) {
 		let modules = [];
 		Object.entries(frappe.boot.module_sidebars || {}).forEach(([module, sidebar]) => {
-			if ((sidebar.items || []).some((item) => item.link_to === link_to)) {
-				modules.push(module);
-			}
+			const lists = (sidebar.items || []).some(
+				(item) => item.link_to === link_to && (!link_type || item.link_type === link_type)
+			);
+			if (lists) modules.push(module);
 		});
 
 		// If one of them owns the entity, meaning its item is flagged is_default_module, put it

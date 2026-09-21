@@ -296,6 +296,110 @@ describe("Desk URL shell segment", () => {
 			expect(external).to.eq("https://frappe.io");
 		});
 	});
+
+	it("takes a stale shell off a workspace URL", () => {
+		// `/desk/<other>/<workspace>` is a workspace under a shell that cannot show it. The shell
+		// written in is the workspace's own, and when the workspace is named after that shell
+		// `/desk/<workspace>` already says so, so nothing is added -- but the stale segment still
+		// has to go, or it stays in the address bar and in every link copied from it.
+		//
+		// The pair is read off this site's payload rather than named, because which shell lists
+		// which workspace is site data: on a site where no shell lists `Build`, there is no
+		// workspace to be wrong about.
+		cy.window().then((win) => {
+			const router = win.frappe.router;
+			const sidebars = win.frappe.boot.module_sidebars;
+			const shell = Object.keys(sidebars).find((name) =>
+				(sidebars[name].workspaces || []).some(
+					(ws) =>
+						router.shell_slug(name) === router.slug(ws) &&
+						win.frappe.app.sidebar.module_for_workspace(ws) === name
+				)
+			);
+			if (!shell) return; // no workspace here is named after the shell holding it
+
+			const workspace = router.slug(
+				sidebars[shell].workspaces.find(
+					(ws) => router.slug(ws) === router.shell_slug(shell)
+				)
+			);
+			const stale = Object.keys(sidebars)
+				.map((name) => router.shell_slug(name))
+				.find((slug) => slug !== workspace && slug !== "private");
+
+			cy.visit(`/desk/${stale}/${workspace}`);
+			cy.get(".body-sidebar").should("have.attr", "data-title", shell);
+			cy.location("pathname").should("eq", `/desk/${workspace}`);
+			cy.window().its("frappe.router.current_shell").should("eq", null);
+		});
+	});
+
+	it("clears the highlight when nothing in the sidebar claims the route", () => {
+		// Navigated in place rather than visited, because a fresh load rebuilds the sidebar and
+		// would clear the highlight for the wrong reason. `User` stays in Build (same app) but
+		// Build does not list it, so no item should be lit -- ToDo used to stay lit.
+		cy.visit("/desk/build/todo");
+		cy.get(".standard-sidebar-item.active-sidebar").should("have.length", 1);
+
+		cy.window().then((win) => win.frappe.set_route("List", "User"));
+		cy.location("pathname").should("eq", "/desk/build/user");
+		cy.get(".body-sidebar").should("have.attr", "data-title", "Build");
+		cy.get(".standard-sidebar-item.active-sidebar").should("have.length", 0);
+	});
+
+	it("matches a sidebar item only against the kind the route names", () => {
+		// Names are not unique across kinds. A shell listing the Dashboard `User` does not list
+		// the DocType `User`, and must not be taken as able to show it. No frappe-only site has
+		// such a pair, so one is lent to the Build sidebar for the length of the test.
+		cy.window().then((win) => {
+			const sidebar = win.frappe.app.sidebar;
+			const build = win.frappe.boot.module_sidebars["Build"];
+			const items = build.items;
+			build.items = [...items, { type: "Link", link_type: "Dashboard", link_to: "User" }];
+
+			try {
+				expect(sidebar.get_modules_linking("User", "Dashboard")).to.include("Build");
+				expect(sidebar.get_modules_linking("User", "DocType")).not.to.include("Build");
+				// Asked with no kind, any kind matches, as before.
+				expect(sidebar.get_modules_linking("User")).to.include("Build");
+			} finally {
+				build.items = items;
+			}
+		});
+	});
+
+	it("opens the dock from the keyboard and hands focus back when it closes", () => {
+		// The pointer at the window's edge used to be the only way in, and a closed dock is
+		// inert, so a keyboard could never reach it. Driven through the method the shortcut
+		// calls, since synthesising `shift+ctrl+/` depends on the keyboard layout.
+		cy.visit("/desk/build/todo");
+		cy.window().then((win) => {
+			const dock = win.frappe.app.sidebar.dock;
+			// A site whose app resolves to no dock entries draws no dock; nothing to test there.
+			if (!dock?.enabled) return;
+
+			expect(
+				win.frappe.ui.keys.handlers["shift+ctrl+/"],
+				"shortcut registered"
+			).to.have.length.greaterThan(0);
+
+			const opener = win.document.querySelector(".body-sidebar .item-anchor");
+			opener.focus();
+
+			dock.toggle_from_keyboard();
+			expect(dock.is_open).to.eq(true);
+			expect(dock.$dock[0].contains(win.document.activeElement), "focus in the dock").to.be
+				.true;
+
+			// A pointer nudge far from the edge must not shut it from under the keyboard.
+			win.$(win.document).trigger(win.$.Event("mousemove", { clientX: 600, clientY: 300 }));
+			expect(dock.is_open, "survives a pointer move").to.eq(true);
+
+			win.$(win.document).trigger(win.$.Event("keydown", { key: "Escape" }));
+			expect(dock.is_open).to.eq(false);
+			expect(win.document.activeElement, "focus handed back").to.eq(opener);
+		});
+	});
 });
 
 function frappe_route(win, item, shell) {

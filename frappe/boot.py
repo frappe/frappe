@@ -282,8 +282,11 @@ def load_desktop_data(bootinfo, desk_views: DeskViews | None = None):
 	# the desk.
 	# `home_shell` is where a route that names nothing lands, and the shell the map falls back to
 	# for anything the ladder could not place. It comes out of the same call so the two agree.
+	# `get_user` has already loaded the user's default workspace, so it is handed over rather than
+	# read again. An outside caller with no `bootinfo.user` simply gets the count's answer.
+	default_workspace = ((bootinfo.get("user") or {}).get("default_workspace") or {}).get("name")
 	bootinfo.canonical_shell, bootinfo.home_shell = build_canonical_shells(
-		bootinfo.module_sidebars, bootinfo.entity_module, desk_views
+		bootinfo.module_sidebars, bootinfo.entity_module, desk_views, default_workspace=default_workspace
 	)
 
 	# Only the Desktop Icon grid reads these; the default Apps screen builds itself from

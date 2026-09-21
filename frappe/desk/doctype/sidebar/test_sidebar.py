@@ -9,6 +9,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	ARRANGED_ITEM_FIELDS,
 	COMPUTED_BASE_CACHE_KEY,
 	MODULE_CONTENT_DOCTYPES,
+	ROUTABLE_ENTITY_KINDS,
 	SYSTEM_WRITE_FLAGS,
 	UNROUTABLE_IN_A_TITLE,
 	ShellIndex,
@@ -24,6 +25,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	mark_as_standard,
 	reset_app_sidebar,
 	routable_entities,
+	routable_title,
 	save_app_sidebar,
 	unmark_as_standard,
 )
@@ -717,6 +719,76 @@ class TestSidebarTitleIsRoutable(IntegrationTestCase):
 		self.assertEqual(own.name, self.MODULE)
 		self.assertEqual(second.name, self.SECOND)
 
+	def test_a_title_that_slugs_like_another_shell_is_refused(self):
+		"""The desk keys shells by slug, and the second one written wins. Two titles that differ
+		only in case, the spelling of `&` or their spacing reach it as one segment, and one of
+		them would have no URL at all.
+		"""
+		make_sidebar(self.MODULE, title="Pay & Benefits")
+
+		for title in ("Pay and Benefits", "pay & benefits", "Pay  &  Benefits"):
+			with self.subTest(title=title):
+				frappe.db.savepoint("colliding_title")
+				with self.assertRaises(frappe.ValidationError):
+					make_sidebar(self.MODULE, title=title)
+				frappe.db.rollback(save_point="colliding_title")
+
+	def test_a_title_that_slugs_like_a_bare_module_is_refused(self):
+		"""A module with no sidebar document still gets a computed shell under its own name, and
+		that name is a segment too.
+
+		Spelled with `&` against a module spelled with `and`, so the titles are different strings
+		and `validate_title_is_its_own` -- which refuses another module's exact name -- has
+		nothing to say. Only the slug catches it.
+		"""
+		bare = "Test Sidebar Bare and Module"
+		with no_developer_mode():
+			frappe.get_doc({"doctype": "Module Def", "module_name": bare, "app_name": "frappe"}).insert()
+		self.addCleanup(self.drop_module, bare)
+
+		with self.assertRaises(frappe.ValidationError):
+			make_sidebar(self.MODULE, title="Test Sidebar Bare & Module")
+
+	def test_a_sidebar_may_slug_like_its_own_module(self):
+		"""hrms titles the sidebar of module `Shift and Attendance` as `Shift & Attendance`. Both
+		slug to one segment, and that is fine: a module whose sidebar has a document gets no
+		computed shell of its own, so only one of the two is ever a shell.
+		"""
+		title = self.MODULE.replace(" ", " & ", 1)
+		module = self.MODULE.replace(" ", " and ", 1)
+		with no_developer_mode():
+			frappe.get_doc({"doctype": "Module Def", "module_name": module, "app_name": "frappe"}).insert()
+		self.addCleanup(self.drop_module, module)
+
+		self.assertEqual(make_sidebar(module, title=title).name, title)
+
+	def test_renaming_a_sidebar_to_its_own_slug_is_allowed(self):
+		"""Changing only the case or the spacing of a title leaves its segment where it was, and
+		it must not collide with itself.
+		"""
+		doc = make_sidebar(self.MODULE, title=self.SECOND)
+		doc.title = self.SECOND.lower()
+		with developer_mode():
+			doc.save(ignore_permissions=True)
+
+	def test_an_old_title_is_repaired_rather_than_refused(self):
+		"""What the v16 conversion does with a title from before the rule. The characters a path
+		cannot carry become spaces, so the author's words survive, and a title that still takes
+		another shell's URL falls back to the module.
+		"""
+		self.assertEqual(routable_title("Pay/Benefits", self.MODULE), "Pay Benefits")
+		self.assertEqual(routable_title("100% Club?", self.MODULE), "100 Club")
+
+		make_sidebar(self.MODULE, title="Taken Title")
+		self.assertEqual(routable_title("Taken/Title", self.MODULE), self.MODULE)
+
+	@staticmethod
+	def drop_module(module):
+		for name in frappe.get_all("Sidebar", filters={"module": module}, pluck="name"):
+			frappe.delete_doc("Sidebar", name, force=True, ignore_permissions=True)
+		with no_developer_mode():
+			frappe.delete_doc("Module Def", module, force=True, ignore_missing=True)
+
 	def test_the_sidebars_frappe_ships_all_survive_a_url(self):
 		for name in frappe.get_all("Sidebar", filters={"standard": 1, "app": "frappe"}, pluck="name"):
 			with self.subTest(name=name):
@@ -925,6 +997,14 @@ class TestCanonicalShellPayload(IntegrationTestCase):
 		named = {shell for found in canonical.values() for shell in found.values()}
 		self.assertEqual(named - shells, set())
 
+	def test_workspaces_are_not_in_the_shipped_map(self):
+		"""The desk answers a workspace from `module_sidebars[shell].workspaces`, which it already
+		has. A second copy in the map is payload nothing reads, and two copies of one fact can
+		disagree. `home_shell` still needs the answer, and gets it without shipping it.
+		"""
+		self.assertEqual(sorted(self.build()), sorted(ROUTABLE_ENTITY_KINDS))
+		self.assertNotIn("Workspace", self.build())
+
 	def test_every_shell_named_is_one_the_user_can_see(self):
 		"""The map is built from an already-filtered payload, so it can only name a shell this
 		user has. A name outside it would be a shell the desk cannot render.
@@ -936,41 +1016,18 @@ class TestCanonicalShellPayload(IntegrationTestCase):
 
 		self.assertEqual(named - shells, set())
 
-	def set_default_workspace(self, workspace):
-		"""Give the session user a default workspace for the length of one test.
-
-		Put back by hand rather than left to the transaction. This suite rolls back once per
-		class, not once per test (`addClassCleanup` in IntegrationTestCase), so a value written
-		here is still there for every test that runs after it in the same class -- and
-		`home_shell` reads it off the user, so those tests would be answering a question they
-		did not ask.
-		"""
-		user, field = frappe.session.user, "default_workspace"
-		before = frappe.db.get_value("User", user, field)
-
-		self.addCleanup(frappe.db.set_value, "User", user, field, before)
-		frappe.db.set_value("User", user, field, workspace)
-
 	def test_home_is_where_most_of_the_work_is(self):
 		"""Not the shell that sorts first. For a user whose shells are `Custom Workspaces` and
 		`Selling`, the first is a place to keep their own pages, and Selling is where they work.
 		"""
 		sidebars = {"Custom Workspaces": {}, "Selling": {}}
-		canonical = {
-			"DocType": {"Customer": "Selling", "Quotation": "Selling", "Note": "Custom Workspaces"},
-			"Workspace": {"Mine": "Custom Workspaces", "Other": "Custom Workspaces"},
-		}
+		canonical = {"DocType": {"Customer": "Selling", "Quotation": "Selling", "Note": "Custom Workspaces"}}
+		workspaces = {"Mine": "Custom Workspaces", "Other": "Custom Workspaces"}
 
-		# The count is only consulted for a user with no default, so say so rather than trust
-		# the site to have left this user without one.
-		self.set_default_workspace(None)
-
-		self.assertEqual(home_shell(sidebars, canonical), "Selling")
+		self.assertEqual(home_shell(sidebars, canonical, workspaces, default_workspace=None), "Selling")
 
 	def test_home_ties_go_to_the_earlier_shell(self):
-		self.set_default_workspace(None)
-
-		self.assertEqual(home_shell({"A": {}, "B": {}}, {"DocType": {}, "Workspace": {}}), "A")
+		self.assertEqual(home_shell({"A": {}, "B": {}}, {"DocType": {}}, {}), "A")
 
 	def test_home_is_the_shell_of_the_users_default_workspace(self):
 		"""What the user asked for beats where the ladder put the most of their work. The desk
@@ -978,14 +1035,12 @@ class TestCanonicalShellPayload(IntegrationTestCase):
 		as `boot.home_shell` now, so this is the only place the choice is honoured.
 		"""
 		sidebars = {"Custom Workspaces": {}, "Selling": {}}
-		canonical = {
-			"DocType": {"Customer": "Selling", "Quotation": "Selling"},
-			"Workspace": {"Mine": "Custom Workspaces"},
-		}
+		canonical = {"DocType": {"Customer": "Selling", "Quotation": "Selling"}}
 
-		self.set_default_workspace("Mine")
-
-		self.assertEqual(home_shell(sidebars, canonical), "Custom Workspaces")
+		self.assertEqual(
+			home_shell(sidebars, canonical, {"Mine": "Custom Workspaces"}, default_workspace="Mine"),
+			"Custom Workspaces",
+		)
 
 	def test_a_default_workspace_the_user_cannot_see_is_ignored(self):
 		"""A workspace absent from the map is one this user cannot reach, so landing them on it
@@ -993,11 +1048,35 @@ class TestCanonicalShellPayload(IntegrationTestCase):
 		default at all.
 		"""
 		sidebars = {"Custom Workspaces": {}, "Selling": {}}
-		canonical = {"DocType": {"Customer": "Selling"}, "Workspace": {}}
+		canonical = {"DocType": {"Customer": "Selling"}}
 
-		self.set_default_workspace("Gone")
+		self.assertEqual(home_shell(sidebars, canonical, {}, default_workspace="Gone"), "Selling")
 
-		self.assertEqual(home_shell(sidebars, canonical), "Selling")
+	def test_the_boot_hands_over_the_default_it_already_loaded(self):
+		"""`get_user` reads the default workspace before `load_desktop_data` runs, and the boot
+		passes that value on rather than reading it again. Checked through the boot itself,
+		because the wiring between the two is the part that can break.
+
+		The workspace is picked from a shell the count would not choose, so the answer can only
+		come from the default.
+		"""
+		from frappe.boot import load_desktop_data
+
+		without = frappe._dict(user=frappe._dict(default_workspace=None))
+		load_desktop_data(without)
+
+		# Read through the same index the boot uses, since a workspace two shells list belongs to
+		# the first of them and not to whichever this loop happens to meet.
+		owners = ShellIndex(without.module_sidebars).workspace_owners()
+		elsewhere = next(((ws, shell) for ws, shell in owners if shell != without.home_shell), None)
+		if not elsewhere:
+			self.skipTest("every workspace on this site sits in the home shell")
+
+		workspace, shell = elsewhere
+		chosen = frappe._dict(user=frappe._dict(default_workspace={"name": workspace}))
+		load_desktop_data(chosen)
+
+		self.assertEqual(chosen.home_shell, shell)
 
 	def test_child_tables_are_absent(self):
 		"""A child table is never routed to, so carrying one would only make the payload bigger."""

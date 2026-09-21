@@ -48,6 +48,10 @@ frappe.ui.Dock = class Dock {
 		this.sidebar = sidebar;
 		this.is_open = false;
 		this.enabled = false;
+		// Whatever held focus when the keyboard opened the dock, so closing it can hand focus back
+		// the way a menu does. Null when the pointer opened it, since the pointer never takes
+		// focus away from anything.
+		this.opener = null;
 		// One per tile, held so they can be torn down when the tiles are replaced.
 		this.tooltips = [];
 		this.make();
@@ -90,7 +94,18 @@ frappe.ui.Dock = class Dock {
 		this.$header.on("click", () => this.close());
 
 		this.setup_reveal();
+		this.setup_shortcut();
 		this.apply_open_state();
+	}
+
+	// Whether this device has anything that can hover, and so anything that can push into the
+	// window's edge. A touch screen cannot, so on one the dock is drawn and cannot be summoned;
+	// the sidebar header keeps its switcher for exactly that case (SidebarHeader.switcher_items).
+	//
+	// `any-hover` rather than `hover`: a tablet with a trackpad attached reports its primary input
+	// as touch, and the trackpad reaches the edge perfectly well.
+	static pointer_can_reveal() {
+		return window.matchMedia("(any-hover: hover)").matches;
 	}
 
 	// -------------------------------------------------------------------------------------------
@@ -105,10 +120,16 @@ frappe.ui.Dock = class Dock {
 			.off(".dock-edge")
 			.on("mousemove.dock-edge", (e) => {
 				if (!this.enabled) return;
-				const over_dock = !!$(e.target).closest(".dock").length;
+				// Almost every move the desk sees happens with the dock shut and the pointer away
+				// from the edge, and for those `should_show` can only answer "stay shut": a shut
+				// dock is off screen and inert, so it can be neither under the pointer nor holding
+				// focus. Answering here keeps the DOM walk below off all of them.
+				if (!this.is_open && e.clientX > frappe.ui.Dock.REVEAL_EDGE) return;
+
 				this.apply_visibility(
 					this.should_show({
-						over_dock,
+						over_dock: !!$(e.target).closest(".dock").length,
+						holds_focus: this.holds_focus(),
 						dist_from_edge: e.clientX,
 						currently_shown: this.is_open,
 					})
@@ -128,6 +149,49 @@ frappe.ui.Dock = class Dock {
 			.on("keydown.dock-reveal", (e) => {
 				if (e.key === "Escape" && this.is_open) this.close();
 			});
+
+		// Tabbing out of the last tile is leaving the dock, the same as the pointer rising out of
+		// the band. Only a move that takes focus somewhere outside counts: focus passing from one
+		// tile to the next fires this too.
+		this.$dock.off("focusout.dock-reveal").on("focusout.dock-reveal", (e) => {
+			if (!this.is_open || this.$dock[0].contains(e.relatedTarget)) return;
+			// Focus already went where the user sent it, so `close` must not pull it back.
+			this.opener = null;
+			this.close();
+		});
+	}
+
+	// The dock's only entrance used to be the pointer at the window's edge, and a closed dock is
+	// `inert`, so Tab never reaches it either. A keyboard had no way in at all, and the header
+	// menu drops its switcher wherever there is a dock -- so switching modules was mouse-only.
+	//
+	// `shift+ctrl+/` because `ctrl+/` already toggles the sidebar, and this is the surface one
+	// step above it. The order is how `frappe.ui.keys.get_key` spells a combination, shift before
+	// ctrl. Nothing in the browser claims it, and like every desk shortcut it does not fire while
+	// typing in a field.
+	setup_shortcut() {
+		frappe.ui.keys.add_shortcut({
+			shortcut: "shift+ctrl+/",
+			action: () => this.toggle_from_keyboard(),
+			description: __("Open the app dock"),
+			condition: () => this.enabled,
+		});
+	}
+
+	toggle_from_keyboard() {
+		if (this.is_open) {
+			this.close();
+			return;
+		}
+
+		this.opener = document.activeElement;
+		this.open();
+		// `open` lifts `inert`, so the tiles can take focus from here on.
+		this.$items.find(".dock-item").first().trigger("focus");
+	}
+
+	holds_focus() {
+		return this.$dock[0].contains(document.activeElement);
 	}
 
 	// Ported from frappe-os `desktop/dock-visibility.ts`. Kept a pure function of its input, and
@@ -138,8 +202,12 @@ frappe.ui.Dock = class Dock {
 	// holding. The port's other override, for a menu hanging off the dock, is gone with the menu --
 	// the mark is a link out to the apps screen now and the tiles are links to modules, so nothing
 	// opens over the dock that it has to stay out for.
-	should_show({ over_dock, dist_from_edge, currently_shown }) {
-		if (over_dock) return true;
+	//
+	// `holds_focus` is ours too. A dock opened from the keyboard has focus in one of its tiles and
+	// a pointer that may be anywhere, and a nudge of the mouse must not shut it from under the
+	// keyboard that is using it.
+	should_show({ over_dock, holds_focus, dist_from_edge, currently_shown }) {
+		if (over_dock || holds_focus) return true;
 		if (dist_from_edge <= frappe.ui.Dock.REVEAL_EDGE) return true;
 		if (dist_from_edge > frappe.ui.Dock.HIDE_BAND) return false;
 		return currently_shown;
@@ -167,10 +235,18 @@ frappe.ui.Dock = class Dock {
 
 	close() {
 		if (!this.is_open) return;
+		// Focus inside a dock about to turn inert would fall to <body>, so it goes back to
+		// whatever the keyboard opened the dock from, when that is still on the page.
+		const had_focus = this.holds_focus();
+		const opener = this.opener;
+		this.opener = null;
+
 		this.is_open = false;
 		// A bubble is appended to <body>, so nothing about the tray leaving takes it with it.
 		this.tooltips.forEach((tip) => tip.hide());
 		this.apply_open_state();
+
+		if (had_focus && opener?.isConnected) opener.focus();
 	}
 
 	// One class on <body>, the same way the sidebar states its own, so the transform and everything

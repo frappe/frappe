@@ -42,6 +42,18 @@ let id_counter = 0;
  * @example
  * frappe.ui.tooltip(this.$el.find(".nav-btn"), { text: __("Notifications") });
  */
+// Point the arrow at the trigger's center even when the bubble was nudged sideways to stay on
+// screen, but never into the rounded corners (8px in from either end).
+function point_arrow(bubble, anchor) {
+	const rect = bubble.getBoundingClientRect();
+	const landed = bubble.getAttribute("data-side");
+	const offset =
+		landed === "top" || landed === "bottom"
+			? Math.min(Math.max(anchor.left + anchor.width / 2 - rect.left, 8), rect.width - 8)
+			: Math.min(Math.max(anchor.top + anchor.height / 2 - rect.top, 8), rect.height - 8);
+	bubble.style.setProperty("--arrow-offset", `${Math.round(offset)}px`);
+}
+
 frappe.ui.Tooltip = class Tooltip {
 	/**
 	 * @param {Element|JQuery} trigger The element the tooltip describes.
@@ -142,24 +154,10 @@ frappe.ui.Tooltip = class Tooltip {
 		const anchor = this.trigger_el.getBoundingClientRect();
 		place(bubble, anchor, this.side, this.align, this.offset);
 
-		// point the arrow at the trigger's center even when the bubble was
-		// nudged sideways to stay on screen, but never into the rounded
-		// corners (8px in from either end)
-		const rect = bubble.getBoundingClientRect();
-		const landed = bubble.getAttribute("data-side");
-		if (plain) {
-			// Nothing to point with. The enter animation reads `--arrow-offset` as its origin, so
-			// leaving it unset grows the bubble from its own centre, which is what an arrowless
-			// bubble should do.
-		} else if (landed === "top" || landed === "bottom") {
-			const center = anchor.left + anchor.width / 2 - rect.left;
-			const offset = Math.min(Math.max(center, 8), rect.width - 8);
-			bubble.style.setProperty("--arrow-offset", `${Math.round(offset)}px`);
-		} else {
-			const center = anchor.top + anchor.height / 2 - rect.top;
-			const offset = Math.min(Math.max(center, 8), rect.height - 8);
-			bubble.style.setProperty("--arrow-offset", `${Math.round(offset)}px`);
-		}
+		// An arrowless bubble has nothing to point with. The enter animation reads
+		// `--arrow-offset` as its origin, so leaving it unset grows the bubble from its own
+		// centre, which is what one should do.
+		if (!plain) point_arrow(bubble, anchor);
 
 		bubble.setAttribute("data-state", "open");
 		this.trigger_el.setAttribute("aria-describedby", bubble.id);

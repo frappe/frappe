@@ -29,6 +29,7 @@ fetched once into a `SidebarContext` and the per-module work is plain Python ove
 
 import hashlib
 import json
+import re
 from collections import Counter
 from dataclasses import dataclass, field
 from functools import cached_property
@@ -95,6 +96,62 @@ SYSTEM_WRITE_FLAGS = ("in_import", "in_fixtures", "in_migrate", "in_install", "i
 UNROUTABLE_IN_A_TITLE = "/?#%\\"
 
 
+def shell_slug(name: str) -> str:
+	"""The URL segment a shell is reached by. Mirror of `frappe.router.shell_slug`.
+
+	Kept in step with the client by hand, because the two answer different halves of one rule:
+	the desk turns a name into a segment when it writes a URL, and this refuses two names that
+	would write the same one. An `&` is spelled out rather than encoded, since `%26` is not
+	something anyone types or reads.
+
+	It is deliberately not reversible. A segment is turned back into a shell by looking it up in
+	a map (`setup_shell_routes`), never by transforming it, so all that is asked of it is that
+	two shells do not collide on one slug -- which is what `validate_title_has_its_own_url`
+	enforces.
+	"""
+	return re.sub(r"\s+", "-", name.lower().replace("&", " and ").strip())
+
+
+def unroutable_characters(title: str | None) -> list[str]:
+	"""The characters in `title` that a URL segment cannot carry. See `validate_title_is_routable`."""
+	return sorted({character for character in UNROUTABLE_IN_A_TITLE if character in (title or "")})
+
+
+def shell_holding_slug(title: str, *, name: str | None = None, module: str | None = None) -> str | None:
+	"""The shell already reached by the URL segment `title` would take, or `None` when it is free.
+
+	`name` and `module` are the asking sidebar's own. Its current name is left out because a
+	sidebar does not collide with itself, and its module because a module whose sidebar has a
+	document gets no computed shell of its own (see `get_sidebar_bases`), so the two never both
+	hold a segment. That is how hrms titles module `Shift and Attendance` `Shift & Attendance`.
+
+	Every other shell counts, including a module with no document, since that one is a computed
+	shell under its own name. Two reads of small tables, so it belongs on save and in a patch,
+	not in a loop.
+	"""
+	slug = shell_slug(title)
+	taken = [other for other in frappe.get_all("Sidebar", pluck="name") if other != name]
+	taken += [other for other in frappe.get_all("Module Def", pluck="name") if other != module]
+	return next((other for other in taken if shell_slug(other) == slug), None)
+
+
+def routable_title(title: str | None, module: str | None, name: str | None = None) -> str | None:
+	"""The nearest title to `title` that can be a shell's URL, or `None` when there is none.
+
+	For titles written before the URL rule existed, which is a v16 sidebar being converted.
+	Refusing one would abort a migrate over a label, so it is repaired instead.
+
+	The characters a path cannot carry become spaces, which keeps the words the author chose:
+	`Pay/Benefits` becomes `Pay Benefits`. If that still takes another shell's URL, the module's
+	own name is next, since that is the default title and usually free.
+	"""
+	cleaned = " ".join(re.sub(f"[{re.escape(UNROUTABLE_IN_A_TITLE)}]", " ", title or "").split())
+	for candidate in (cleaned, module):
+		if candidate and not shell_holding_slug(candidate, name=name, module=module):
+			return candidate
+	return None
+
+
 class Sidebar(Document, DeskViews):
 	_DOCTYPE_NAME = "Sidebar"
 
@@ -125,6 +182,7 @@ class Sidebar(Document, DeskViews):
 		self.set_default_title()
 		self.validate_title_is_its_own()
 		self.validate_title_is_routable()
+		self.validate_title_has_its_own_url()
 		self.validate_standard()
 		self.clear_stored_keys()
 
@@ -189,13 +247,41 @@ class Sidebar(Document, DeskViews):
 		titled after it is the one that answers for it (see `get_sidebar_bases`). A second shell
 		called something else is fine and now has a URL of its own.
 		"""
-		bad = sorted({character for character in UNROUTABLE_IN_A_TITLE if character in (self.title or "")})
+		bad = unroutable_characters(self.title)
 		if not bad:
 			return
 
 		frappe.throw(
 			_("A sidebar's name is part of its desk URL, so it cannot contain {0}.").format(
 				frappe.bold(" ".join(bad))
+			),
+			title=_("Pick another title"),
+		)
+
+	def validate_title_has_its_own_url(self):
+		"""Refuse a title that would share its URL segment with another shell.
+
+		`shell_slug` drops what a path cannot carry -- case, the spelling of `&`, runs of
+		whitespace -- so two titles that differ only in those reach the desk as one segment.
+		`Shift & Attendance` and `Shift and Attendance` are both `shift-and-attendance`.
+
+		The desk keeps one map from segment to shell (`setup_shell_routes`), so a collision is
+		not an ambiguity to resolve at read time: the second shell written into the map wins and
+		the first one silently has no URL at all. Refuse it here, while the title can still be
+		changed.
+
+		Every shell is checked, not only the authored ones: see `shell_holding_slug`.
+
+		`validate_title_is_its_own` already refuses a title that *is* another module's name; this
+		is the same rule widened to the names that only look different.
+		"""
+		clash = shell_holding_slug(self.title, name=self.name, module=self.module)
+		if not clash:
+			return
+
+		frappe.throw(
+			_("{0} already answers to the URL {1}, and two shells cannot share one.").format(
+				frappe.bold(clash), frappe.bold(f"/desk/{shell_slug(self.title)}")
 			),
 			title=_("Pick another title"),
 		)
@@ -2006,11 +2092,21 @@ def doctype_landing_route(item: dict) -> str | None:
 
 
 # The kinds of thing a desk route can name, each a `Sidebar Item.link_type`. `URL` is absent
-# because a URL row points outside the desk and has no shell to open in.
-ROUTABLE_ENTITY_KINDS = ("DocType", "Report", "Page", "Dashboard", "Workspace")
+# because a URL row points outside the desk and has no shell to open in. `Workspace` is absent
+# because the desk already holds the answer: which shell a workspace belongs to is stored on the
+# shell, in `module_sidebars[shell].workspaces`, and the desk reads it there
+# (`module_for_workspace`). Shipping it again would be a second copy of one fact, and the two
+# could disagree. The map is still built here, because `home_shell` needs it to place the user's
+# default workspace, and it stays on the server.
+ROUTABLE_ENTITY_KINDS = ("DocType", "Report", "Page", "Dashboard")
 
 
-def build_canonical_shells(module_sidebars: dict, entity_module: dict, perm_ctx: DeskViews) -> dict:
+def build_canonical_shells(
+	module_sidebars: dict,
+	entity_module: dict,
+	perm_ctx: DeskViews,
+	default_workspace: str | None = None,
+) -> tuple[dict, str | None]:
 	"""Map everything a desk route can name to the one shell it opens in.
 
 	A desk URL carries a shell: `/desk/stock/item`. Usually the shell comes from the URL itself,
@@ -2042,8 +2138,9 @@ def build_canonical_shells(module_sidebars: dict, entity_module: dict, perm_ctx:
 	Dashboard and a DocType, and `Project`, `Selling` and `Stock` each name both a Dashboard and
 	a doctype. A flat map answers one of each pair wrong, whichever order it was built in.
 
-	Workspaces skip the ladder. A workspace belongs to the shell listing it in `workspaces`,
-	which is a stored fact rather than something to resolve.
+	Workspaces are not in the map. A workspace belongs to the shell listing it in `workspaces`,
+	which is a stored fact the desk already has, so it is resolved here only for `home_shell`
+	and never shipped.
 
 	Everything read here is already filtered for this user, so the map can only name a shell and
 	an entity they may see. Two users may correctly get different answers, and one who cannot see
@@ -2068,13 +2165,13 @@ def build_canonical_shells(module_sidebars: dict, entity_module: dict, perm_ctx:
 
 	Returns the map and the home shell. The desk needs the home shell too, for a route that
 	names nothing, and it has to be the same one that was used here.
+
+	`default_workspace` is the user's own, by name. The boot has already read it by the time this
+	runs (`bootinfo.user.default_workspace`), so it is passed in rather than read a second time.
 	"""
 	shells = ShellIndex(module_sidebars)
 	canonical = {kind: {} for kind in ROUTABLE_ENTITY_KINDS}
 	homeless = []
-
-	for name, shell in shells.workspace_owners():
-		canonical["Workspace"][name] = shell
 
 	for kind, entities in routable_entities(perm_ctx).items():
 		for name, module in entities.items():
@@ -2091,7 +2188,7 @@ def build_canonical_shells(module_sidebars: dict, entity_module: dict, perm_ctx:
 				homeless.append((kind, name, module))
 
 	# Worked out before the homeless are placed, so it counts only what the ladder decided.
-	home = home_shell(module_sidebars, canonical)
+	home = home_shell(module_sidebars, canonical, dict(shells.workspace_owners()), default_workspace)
 
 	for kind, name, module in homeless:
 		shell = shells.shell_of_app(app_of_module(module)) or home
@@ -2101,7 +2198,9 @@ def build_canonical_shells(module_sidebars: dict, entity_module: dict, perm_ctx:
 	return canonical, home
 
 
-def home_shell(module_sidebars: dict, canonical: dict) -> str | None:
+def home_shell(
+	module_sidebars: dict, canonical: dict, workspace_shells: dict, default_workspace: str | None = None
+) -> str | None:
 	"""The shell a user is taken to when nothing else says where to go.
 
 	The shell of the user's default workspace, if they set one and can see it. Otherwise the
@@ -2109,17 +2208,21 @@ def home_shell(module_sidebars: dict, canonical: dict) -> str | None:
 	for a user who may only see Selling it is Selling, not whichever of their shells sorts first
 	(`Custom Workspaces`). Ties go to the one earlier in the payload, so the answer is the same
 	on every boot.
+
+	`workspace_shells` is the workspace-to-shell map, passed in rather than read from `canonical`
+	because it is not shipped (see `ROUTABLE_ENTITY_KINDS`). A default workspace missing from it
+	is one this user cannot reach, so the count answers instead.
+
+	Nothing here reads the database. The default workspace comes from the caller, which is what
+	lets the boot hand over the value it already loaded.
 	"""
 	if not module_sidebars:
 		return None
 
-	default_workspace = frappe.db.get_value("User", frappe.session.user, "default_workspace")
-	if default_workspace and (shell := canonical["Workspace"].get(default_workspace)):
+	if default_workspace and (shell := workspace_shells.get(default_workspace)):
 		return shell
 
-	placed = Counter(
-		shell for kind, found in canonical.items() if kind != "Workspace" for shell in found.values()
-	)
+	placed = Counter(shell for found in canonical.values() for shell in found.values())
 	return max(module_sidebars, key=lambda shell: placed[shell])
 
 
@@ -2130,7 +2233,7 @@ def app_of_module(module: str | None) -> str | None:
 
 
 class ShellIndex:
-	"""The three questions the ladder asks of the payload, each answered from one pass over it.
+	"""The questions the ladder asks of the payload, each answered from one pass over it.
 
 	Built once per boot rather than per entity: the ladder runs for every doctype, report, page
 	and dashboard the user can see, and walking every shell's items inside that loop would be
@@ -2164,6 +2267,17 @@ class ShellIndex:
 				self.of_app.setdefault(sidebar["app"], shell)
 			for workspace in sidebar.get("workspaces") or []:
 				self.of_workspace.setdefault(workspace, shell)
+
+		# Where a code-only module's navigation went, resolved to shells once. `resolve` runs for
+		# every entity the user can see, `get_code_only_module_heirs` rebuilds its dict on every
+		# call, and `shell_of` is a lookup per heir -- so asking per entity was the same answer
+		# worked out a thousand times. Only the modules that declared an heir are in here, and a
+		# module whose heirs this user cannot see keeps an empty list, which reads the same as
+		# having none.
+		self.heirs = {
+			module: [shell for heir in heirs if (shell := self.shell_of(heir))]
+			for module, heirs in get_code_only_module_heirs().items()
+		}
 
 	def workspace_owners(self):
 		return self.of_workspace.items()
@@ -2199,7 +2313,7 @@ class ShellIndex:
 		if own and own in self.computed:
 			return own
 
-		heirs = [shell for heir in heirs_of(module) if (shell := self.shell_of(heir))]
+		heirs = self.heirs.get(module) or []
 		for heir in heirs:
 			if heir in listed:
 				return heir
@@ -2210,13 +2324,6 @@ class ShellIndex:
 		# An heir with no claim still beats nothing: the module said where its navigation went,
 		# and landing an unlisted entity in a shell of that app is better than landing nowhere.
 		return heirs[0] if heirs else own
-
-
-def heirs_of(module: str | None) -> list[str]:
-	"""The modules a code-only module handed its navigation to, in the order its app declared."""
-	if not module:
-		return []
-	return get_code_only_module_heirs().get(module) or []
 
 
 def routable_entities(perm_ctx: DeskViews) -> dict[str, dict[str, str]]:

@@ -11,6 +11,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	is_linked,
 	item_key,
 	majority_module_of,
+	routable_title,
 )
 
 # The v16 sidebar store. Nothing reads or writes it at runtime any more; this patch only reads.
@@ -73,8 +74,13 @@ def write_base(module: str, plan, as_of) -> None:
 	doc = frappe.new_doc("Sidebar")
 	doc.module = module
 	# the site's own name for the module: one sidebar keeps its workspace's title, a merge of
-	# several takes the module name
-	doc.title = plan["title"]
+	# several takes the module name.
+	#
+	# A v16 title was free text, and a title is a segment of the desk URL now, so one that cannot
+	# be -- `Buying / Selling`, or one slugging like another shell -- is repaired rather than
+	# inserted as it stands. `insert` would refuse it, and one label must not abort a migrate
+	# any more than one dead link may (see below).
+	doc.title = routable_title(plan["title"], module) or module
 	doc.header_icon = plan["header_icon"]
 	doc.standard = 0
 	doc.merged_from = plan["merged_from"]
