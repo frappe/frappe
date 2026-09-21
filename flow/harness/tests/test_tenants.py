@@ -41,6 +41,7 @@ def test_load_tenants_parses_sites_tokens_and_roots(tmp_path):
 					"ignore_hidden_files": True,
 					"callback_hosts": ["site1.localhost:8000"],
 					"data_dir": "/srv/site1/private/flow",
+					"extensions": ["/srv/site1/private/flow/extensions"],
 				},
 				"site2.localhost": {"token": "def", "allowed_roots": ["/srv/site2"]},
 			}
@@ -55,6 +56,7 @@ def test_load_tenants_parses_sites_tokens_and_roots(tmp_path):
 			callback_hosts=("site1.localhost:8000",),
 			ignore_hidden_files=True,
 			data_dir="/srv/site1/private/flow",
+			extensions=("/srv/site1/private/flow/extensions",),
 		),
 		Tenant(site="site2.localhost", token="def", allowed_roots=("/srv/site2",)),
 	]
@@ -86,6 +88,14 @@ def test_load_tenants_rejects_broken_files(tmp_path):
 		(
 			'{"site1": {"token": "a", "allowed_roots": ["/x"], "data_dir": "flow/site1"}}',
 			"data_dir must be an absolute path",
+		),
+		(
+			'{"site1": {"token": "a", "allowed_roots": ["/x"], "extensions": "/x/ext"}}',
+			"extensions must be a list of absolute paths",
+		),
+		(
+			'{"site1": {"token": "a", "allowed_roots": ["/x"], "extensions": ["ext"]}}',
+			"extensions must be a list of absolute paths",
 		),
 		(
 			'{"site1": {"token": "same", "allowed_roots": ["/x"]},'
@@ -207,6 +217,52 @@ def test_per_site_allowed_roots(tmp_path):
 	# no roots of its own: site2 inherits the daemon-wide fence
 	assert c.post("/sessions", json={"cwd": str(shared)}, headers=_auth("token-two")).status_code == 200
 	assert c.post("/sessions", json={"cwd": str(fenced)}, headers=_auth("token-two")).status_code == 400
+
+
+HELLO_EXTENSION = """
+from flow_harness.tools import ToolResult, tool
+
+@tool
+async def hello(who: str = "world", *, ctx) -> ToolResult:
+    \"\"\"Greet someone by name.\"\"\"
+    return ToolResult(content=f"Hello, {who}!")
+
+def setup(flow):
+    flow.register_tool(hello)
+"""
+
+
+def _extension_tools(client: TestClient, token: str) -> list[str]:
+	rows = client.get("/tools", headers=_auth(token)).json()["tools"]
+	return [row["name"] for row in rows if row["extension"]]
+
+
+def test_per_site_extensions_stay_with_their_site(tmp_path):
+	folder = tmp_path / "site1" / "extensions"
+	folder.mkdir(parents=True)
+	(folder / "hello.py").write_text(HELLO_EXTENSION)
+	missing = tmp_path / "site2" / "extensions"
+	tenants = [
+		Tenant(site="site1.localhost", token="token-one", extensions=(str(folder),)),
+		Tenant(site="site2.localhost", token="token-two", extensions=(str(missing),)),
+	]
+	store = _store(tmp_path)
+	c = TestClient(create_app(store, tenants=tenants))
+	assert _extension_tools(c, "token-one") == ["hello"]
+	assert _extension_tools(c, "token-two") == []
+	# a folder that does not exist yet is skipped without a diagnostic
+	assert store.for_site("site2.localhost", extensions=(str(missing),)).extension_runtime.diagnostics == ()
+
+
+def test_tenants_reload_applies_changed_extensions(tmp_path):
+	folder = tmp_path / "extensions"
+	folder.mkdir()
+	(folder / "hello.py").write_text(HELLO_EXTENSION)
+	c, path = _live_client(tmp_path, {"site1.localhost": _entry(tmp_path)})
+	assert _extension_tools(c, "token-one") == []
+	path.write_text(json.dumps({"site1.localhost": {**_entry(tmp_path), "extensions": [str(folder)]}}))
+	assert c.post("/tenants/reload", headers=_auth("token-one")).status_code == 200
+	assert _extension_tools(c, "token-one") == ["hello"]
 
 
 def test_per_site_callback_hosts(tmp_path):

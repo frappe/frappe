@@ -6,7 +6,7 @@ Extensions are trusted code. They run inside the daemon process with the daemon'
 
 ## Where extensions live
 
-The daemon loads `~/.flow/extensions/` plus any explicit `-e/--extension PATH` (repeatable). `--no-extensions` drops the global directory and keeps the explicit paths; the deployed profile skips the global directory too, so an operator opts in per path.
+The daemon loads `~/.flow/extensions/` plus any explicit `-e/--extension PATH` (repeatable). `--no-extensions` drops the global directory and keeps the explicit paths; the deployed profile skips the global directory too, so an operator opts in per path. A daemon serving many sites also loads each site's own `extensions` paths from the tenants file into that site's partition alone (see [api.md](api.md)), so one site's tools and hooks never reach another.
 
 An extension is either a single `.py` file, or a directory holding `extension.py`. Names starting with `.` or `_` are skipped when a directory is scanned. The extension's name is the file stem or the directory name, and the first of a duplicate name wins — the rest are ignored with a diagnostic.
 

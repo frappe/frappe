@@ -146,9 +146,10 @@ class SessionStore:
 		callback_hosts: Collection[str] | None = None,
 		ignore_hidden_files: bool | None = None,
 		data_dir: str | None = None,
+		extensions: Collection[str] = (),
 	) -> SessionStore:
-		"""One site's partition: its own sessions, credentials and fences under
-		`data_dir` (default `<daemon data dir>/tenants/<site>`)."""
+		"""One site's partition: its own sessions, credentials, fences and extensions
+		under `data_dir` (default `<daemon data dir>/tenants/<site>`)."""
 		if not _SITE_RE.match(site):
 			raise ValueError(f"invalid site name {site!r}")
 		partition_dir = data_dir or os.path.join(self.data_dir, "tenants", site)
@@ -166,7 +167,8 @@ class SessionStore:
 				self.ignore_hidden_files if ignore_hidden_files is None else ignore_hidden_files
 			),
 			credential_store=CredentialStore(os.path.join(partition_dir, "credentials.json")),
-			extension_paths=list(self._extension_paths),
+			# the site's own paths on top of the daemon's; a folder may not exist yet
+			extension_paths=[*self._extension_paths, *(path for path in extensions if os.path.exists(path))],
 			extensions_enabled=self._extensions_enabled,
 			tool_allowlist=self.tool_allowlist,
 			callback_hosts=callback_hosts if callback_hosts is not None else self.callback_hosts,
