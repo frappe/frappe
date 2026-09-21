@@ -746,7 +746,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 // One row per operation, in transcript order. Usage belongs to model requests,
 // so attach each provider report to the row that made the call — a response, or
 // a compaction — rather than attributing its input to messages or tool results.
-//   {key, kind: "user"|"assistant"|"tool"|"compaction"|"error",
+//   {key, kind: "system"|"user"|"assistant"|"tool"|"compaction"|"error",
 //    body, subject?, thinking?, name?, input?, output?, failed?, request?, spent?}
 export function buildTranscriptRows(conversation) {
 	const rows = []
@@ -754,6 +754,11 @@ export function buildTranscriptRows(conversation) {
 	const entries = conversation.entries ?? []
 	const requests = conversation.requests ?? []
 	let cursor = 0
+
+	// the system prompt opens every request; its text stays out of the log
+	if (entries.length) {
+		rows.push({ key: "system", kind: "system", subject: "", body: "System prompt." })
+	}
 
 	for (const [index, entry] of entries.entries()) {
 		let caller = null // the row whose model call a usage report in this gap belongs to
