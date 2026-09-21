@@ -461,6 +461,10 @@ class GetFieldsDialog {
 			(d) => d.fieldname && !is_layout_field(d)
 		);
 		this.existing_fieldnames = this.existing_rows.map((d) => d.fieldname);
+		// stale: a row the picker cannot re-add, so unselecting it here is the only way out
+		this.stale_fieldnames = new Set(
+			this.existing_fieldnames.filter((fieldname) => !this.fields_by_name[fieldname])
+		);
 
 		if (!this.fields.length && !this.existing_rows.length) {
 			frappe.msgprint(__("No fields are available from {0}.", [frm.doc.doc_type]));
@@ -516,7 +520,7 @@ class GetFieldsDialog {
 		this.dialog.get_field("picker_header").$wrapper.html($header);
 	}
 
-	// rows whose docfield was deleted stay listed, so they can still be unticked
+	// stale rows stay listed, so they can still be unselected
 	get_options() {
 		const fieldnames = new Set([
 			...this.existing_fieldnames,
@@ -524,19 +528,40 @@ class GetFieldsDialog {
 		]);
 		return [...fieldnames].map((fieldname) => {
 			const df = this.fields_by_name[fieldname];
-			const condition =
-				df?.depends_on || df?.mandatory_depends_on || df?.read_only_depends_on;
+			const is_stale = this.stale_fieldnames.has(fieldname);
+			const warning_title = is_stale
+				? this.get_stale_warning_title(fieldname)
+				: get_condition_warning_title(df);
 			return {
+				// muted, so a row on its way out does not read as an offer
+				label_class: is_stale ? "text-muted" : "",
 				// MultiCheck renders the label as HTML, and a row label is user input
 				label: frappe.utils.escape_html(this.get_label(fieldname)),
 				value: fieldname,
 				checked: this.existing_fieldnames.includes(fieldname),
 				description: df?.fieldtype,
 				danger: this.is_field_mandatory(df),
-				warning: !!condition,
-				warning_title: condition ? __("Depends on: {0}", [condition]) : "",
+				warning: !!warning_title,
+				warning_title,
 			};
 		});
+	}
+
+	// three ways to go stale: doc_type has no such field, or has one skipped as hidden or as
+	// a fieldtype a Web Form cannot render. meta is loaded, so the docfield tells them apart.
+	get_stale_warning_title(fieldname) {
+		const docfield = frappe.meta.get_docfield(this.frm.doc.doc_type, fieldname);
+		if (!docfield) {
+			return __("Not a field in {0}. Unselect to remove it.", [this.frm.doc.doc_type]);
+		}
+		if (docfield.hidden) {
+			return __("Hidden in {0}, so it cannot be added back. Unselect to remove it.", [
+				this.frm.doc.doc_type,
+			]);
+		}
+		return __("A Web Form cannot show this {0} field. Unselect to remove it.", [
+			__(get_web_form_fieldtype(docfield)),
+		]);
 	}
 
 	// a DocType often leaves the label blank, while the row may carry a custom one
@@ -563,7 +588,7 @@ class GetFieldsDialog {
 		this.set_all_checked(false);
 	}
 
-	// df is undefined for a row whose docfield was deleted
+	// df is undefined for a stale row
 	is_field_mandatory(df) {
 		return !!df?.reqd;
 	}
@@ -632,9 +657,11 @@ class GetFieldsDialog {
 				this.existing_rows.find((d) => d.fieldname === df.fieldname) ||
 				this.add_row(df, selected)
 		);
-		// rows whose docfield was deleted were ticked too, so keep them at the end
-		const orphans = this.existing_rows.filter((d) => !this.fields_by_name[d.fieldname]);
-		return [...rows, ...orphans];
+		// stale rows were selected too, so keep them at the end
+		const stale_rows = this.existing_rows.filter((d) =>
+			this.stale_fieldnames.has(d.fieldname)
+		);
+		return [...rows, ...stale_rows];
 	}
 
 	add_row(df, selected) {
@@ -794,6 +821,12 @@ function get_form_builder(frm) {
 
 function get_builder_tab(frm) {
 	return frm.layout?.tabs?.find((t) => t.df.fieldname === "form_builder_tab");
+}
+
+// a stale row has no usable docfield, so it never reaches this
+function get_condition_warning_title(df) {
+	const condition = df?.depends_on || df?.mandatory_depends_on || df?.read_only_depends_on;
+	return condition ? __("Depends on: {0}", [condition]) : "";
 }
 
 function get_web_form_fieldtype(df) {

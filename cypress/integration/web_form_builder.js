@@ -74,6 +74,17 @@ function seed_web_form(fields = SEEDED_FIELDS) {
 	);
 }
 
+// seeded against Note, then pointed at ToDo, which has no `title`: that row is left over
+function open_get_fields_on_leftover_row() {
+	seed_web_form(SINGLE_PAGE_FIELDS);
+	cy.visit(`/desk/web-form/${ROUTE}`);
+	// Get Fields flushes the builder first, so let it mount before the switch
+	cy.get(CANVAS).should("exist");
+
+	cy.fill_field("doc_type", "ToDo", "Link");
+	cy.click_custom_action_button("Get Fields");
+}
+
 // an unsaved form, filled in through the UI and given fields by Get Fields. It saves under
 // the route slugged from its title, so that is the name to clear first.
 function fill_new_web_form(title) {
@@ -103,6 +114,51 @@ context("Web Form Builder", () => {
 		web_form_fields().then((collected) => {
 			cy.save();
 			web_form_fields().should("have.length", collected.length);
+		});
+	});
+
+	it("Marks the fields left over from the previous DocType", () => {
+		open_get_fields_on_leftover_row();
+
+		cy.get_open_dialog().within(() => {
+			// still selected, so Update keeps it until it is unselected
+			cy.get(":checkbox[data-unit='title']").should("be.checked");
+			cy.get(".label-area[data-unit='title']")
+				.should("have.class", "text-muted")
+				.find(".multicheck-warning-icon")
+				// bootstrap moves `title` aside once the tooltip is initialised
+				.should("have.attr", "data-original-title")
+				.and("contain", "Not a field in ToDo");
+
+			// a real ToDo field is left alone
+			cy.get(".label-area[data-unit='description']")
+				.should("not.have.class", "text-muted")
+				.find(".multicheck-warning-icon")
+				.should("not.exist");
+		});
+	});
+
+	it("Removes a field left over from the previous DocType when it is unselected", () => {
+		open_get_fields_on_leftover_row();
+
+		// nothing else is selected, so this is the add-and-remove path, not a rebuild
+		cy.get_open_dialog().find(":checkbox[data-unit='title']").uncheck();
+		cy.click_modal_primary_button("Update");
+
+		web_form_fields().should((fields) => {
+			expect(fields.map((d) => d.fieldname)).to.not.include("title");
+		});
+	});
+
+	it("Keeps a field left over from the previous DocType at the end of a rebuild", () => {
+		open_get_fields_on_leftover_row();
+
+		// everything selected rebuilds in doctype order, and `title` is in no order at all
+		cy.get_open_dialog().find('[data-action="select_all"]').click();
+		cy.click_modal_primary_button("Update");
+
+		web_form_fields().should((fields) => {
+			expect(fields.at(-1).fieldname, "the left over row is last").to.eq("title");
 		});
 	});
 
