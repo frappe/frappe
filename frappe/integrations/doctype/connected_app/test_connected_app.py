@@ -122,33 +122,6 @@ class TestConnectedApp(FrappeTestCase):
 		resp = oauth2_session.get(urljoin(self.base_url, "/api/method/frappe.auth.get_logged_user"))
 		self.assertEqual(resp.json().get("message"), self.user_name)
 
-<<<<<<< HEAD
-=======
-	def test_concurrent_refresh_skips_redundant_call(self):
-		"""A refresh must be skipped if another worker already refreshed the token."""
-		self.complete_web_application_flow()
-
-		self.token_cache.db_set("expires_in", -1)
-
-		# Stand in for a concurrent worker that refreshed first: the reload under the lock
-		# returns a token that is no longer expired.
-		original_reload = TokenCache.reload
-
-		def reload_as_fresh(token_cache, *args, **kwargs):
-			original_reload(token_cache, *args, **kwargs)
-			token_cache.expires_in = 3600
-			return token_cache
-
-		with (
-			patch.object(
-				self.connected_app, "get_oauth2_session", wraps=self.connected_app.get_oauth2_session
-			) as session_spy,
-			patch.object(TokenCache, "reload", reload_as_fresh),
-		):
-			self.connected_app.get_active_token(self.user_name)
-
-		session_spy.assert_not_called()
-
 	def test_get_openid_configuration_requires_write(self):
 		"""A caller must not be able to invoke get_openid_configuration on a
 		Connected App -- real or client-forged via run_doc_method -- without
@@ -196,7 +169,6 @@ class TestConnectedApp(FrappeTestCase):
 		finally:
 			frappe.set_user("Administrator")
 
->>>>>>> 86f131b (fix(connected_app): require write permission before fetching openid_configuration)
 	def tearDown(self):
 		def delete_if_exists(attribute):
 			doc = getattr(self, attribute, None)
