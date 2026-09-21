@@ -34,6 +34,7 @@ frappe.ui.show_user_settings = async function (default_tab) {
 			"timeline",
 			"dashboard",
 			"form_navigation_buttons",
+			"report_split_view",
 		]);
 		user_data = {
 			first_name: boot_user.first_name,
@@ -70,6 +71,7 @@ frappe.ui.show_user_settings = async function (default_tab) {
 					_preferences_tab(user_data || {}),
 					_lists_tab(user_data || {}),
 					_forms_tab(user_data || {}),
+					_reports_tab(user_data || {}),
 					_session_defaults_tab(),
 					_keyboard_shortcuts_tab(),
 				],
@@ -661,6 +663,32 @@ function _forms_tab(user_data) {
 				"show_absolute_datetime_in_timeline",
 				"form_navigation_buttons",
 			]);
+		},
+	};
+}
+
+// ─── Reports ──────────────────────────────────────────────────────────────────
+
+function _reports_tab(user_data) {
+	return {
+		id: "reports",
+		label: __("Reports"),
+		icon: "table",
+		title: __("Reports"),
+		description: __("Configure report view behaviour."),
+		fields: [
+			{
+				fieldtype: "Switch",
+				fieldname: "report_split_view",
+				label: __("Split view"),
+				description: __(
+					"Open a linked document in a side panel instead of navigating away from the report. Not available on mobile."
+				),
+				default: user_data.report_split_view,
+			},
+		],
+		render(panel) {
+			_bind_switch_autosave(panel, ["report_split_view"]);
 		},
 	};
 }

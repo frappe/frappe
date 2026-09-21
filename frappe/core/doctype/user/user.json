@@ -63,6 +63,8 @@
   "timeline",
   "dashboard",
   "show_absolute_datetime_in_timeline",
+  "report_settings_section",
+  "report_split_view",
   "change_password",
   "new_password",
   "logout_all_sessions",
@@ -843,6 +845,19 @@
    "label": "Show Absolute Datetime in Timeline"
   },
   {
+   "collapsible": 1,
+   "fieldname": "report_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Report Settings"
+  },
+  {
+   "default": "1",
+   "description": "Open linked documents in a side panel instead of navigating away from the report.",
+   "fieldname": "report_split_view",
+   "fieldtype": "Check",
+   "label": "Split view in reports"
+  },
+  {
    "fieldname": "sessions_tab",
    "fieldtype": "Tab Break",
    "label": "Sessions"
@@ -913,7 +928,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-09-23 13:18:12.243310",
+ "modified": "2026-09-23 16:29:39.053759",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
