@@ -63,7 +63,10 @@ function onPanelScroll() {
 	if (panelEl.value) panelPinned = atPanelBottom(panelEl.value)
 }
 watch(panelEl, (el) => {
-	if (el) panelPinned = atPanelBottom(el)
+	if (!el) return
+	panelPinned = atPanelBottom(el)
+	// opening near the bottom edge would reveal the panel off-screen; nudge it in
+	el.parentElement.scrollIntoView({ block: "nearest", behavior: "smooth" })
 })
 watch(
 	() => props.block.thinking,
