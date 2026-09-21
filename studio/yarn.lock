@@ -2288,10 +2288,10 @@ fraction.js@^5.3.4:
   resolved "https://registry.yarnpkg.com/fraction.js/-/fraction.js-5.3.4.tgz#8c0fcc6a9908262df4ed197427bdeef563e0699a"
   integrity sha512-1X1NTtiJphryn/uLQz3whtY6jK3fTqoE3ohKs0tT+Ujr1W59oopxmoEh7Lu5p6vBaPbgoM0bzveAW4Qi5RyWDQ==
 
-frappe-ui@1.0.0-beta.76:
-  version "1.0.0-beta.76"
-  resolved "https://registry.yarnpkg.com/frappe-ui/-/frappe-ui-1.0.0-beta.76.tgz#17cbb2524b2abf62363b96f61d4bdba95ab625a9"
-  integrity sha512-20ODyupB1B3I11h76rKJhl5QT3q2IJ3b91vjBJaWN4t72zogbtYgRMqf+kGCbL3sezrDqK2SmPd+YgNf964kHg==
+frappe-ui@1.0.0-beta.77:
+  version "1.0.0-beta.77"
+  resolved "https://registry.yarnpkg.com/frappe-ui/-/frappe-ui-1.0.0-beta.77.tgz#437d870a5a7deac2657eb6d4b9f2a3b0d986987a"
+  integrity sha512-qwjwvPrAcYqAFHeps3N3/caRjSARm8SupupEVTaeYDYIAo5HNepU8paJokoEj47zEH3uyVUld1maDhA/YsCjOg==
   dependencies:
     "@codemirror/autocomplete" "^6.0.0"
     "@codemirror/commands" "^6.0.0"

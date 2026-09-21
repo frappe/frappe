@@ -13,6 +13,9 @@
         },
         "collapsedWidth": {
           "type": "string"
+        },
+        "ariaLabel": {
+          "type": "string"
         }
       },
       "additionalProperties": false

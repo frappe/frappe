@@ -33,10 +33,7 @@ const KNOWN_COMPONENT_FAILURES = [
 	"ListHeaderCell",
 	"ListHeaderCellSort",
 	"SettingsDialog",
-	"Sidebar",
-	"SidebarLabel",
 	// roots a Tooltip, so the data-component-id never reaches its button
-	"SidebarRailItem",
 ]
 const SKIP = new Set([...DATA_DEPENDENT, ...FLOATING, ...KNOWN_COMPONENT_FAILURES])
 
