@@ -26,7 +26,7 @@ from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJ
 from frappe.model.document import Document
 from frappe.utils.background_jobs import get_queue, get_queue_list, get_redis_conn
 from frappe.utils.caching import redis_cache
-from frappe.utils.data import add_to_date
+from frappe.utils.data import add_to_date, cint
 from frappe.utils.scheduler import (
 	get_scheduler_status,
 	get_scheduler_tick,
@@ -281,18 +281,27 @@ class SystemHealthReport(Document):
 
 	@health_check("Errors")
 	def fetch_errors(self):
-		threshold = add_to_date(None, days=-1, as_datetime=True)
-		filters = {"creation": (">", threshold), "modified": (">", threshold)}
-		self.total_errors = frappe.db.count("Error Log", filters)
+		# Error Log rows live in the site's SQLite log database, not the primary one, so both
+		# queries are built with that dialect and run on that connection. Same window, same
+		# grouping and same ordering as before -- only the backend differs.
+		from pypika import Order
 
-		top_errors = frappe.db.sql(
-			"""select method as title, count(*) as occurrences
-			from `tabError Log`
-			where modified > %(threshold)s and creation > %(threshold)s
-			group by method
-			order by occurrences desc
-			limit 5""",
-			{"threshold": threshold},
+		from frappe.query_builder.functions import Count
+		from frappe.utils.logging import log_table, run_log_query
+
+		threshold = add_to_date(None, days=-1, as_datetime=True)
+
+		qb, table = log_table("Error Log")
+		recent = qb.from_(table).where(table.creation > threshold).where(table.modified > threshold)
+
+		count = run_log_query(recent.select(Count("*")))
+		self.total_errors = cint(count[0][0]) if count else 0
+
+		top_errors = run_log_query(
+			recent.groupby(table.method)
+			.orderby(Count("*"), order=Order.desc)
+			.select(table.method.as_("title"), Count("*").as_("occurrences"))
+			.limit(5),
 			as_dict=True,
 		)
 		for row in top_errors:
