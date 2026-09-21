@@ -1,6 +1,6 @@
 import { computed, onMounted, onUnmounted, reactive, ref, type Ref } from "vue";
 import { getDocumentPart } from "../../api";
-import { getSocketInstance } from "../../socket";
+import { getSocketInstance, subscribeToDoc } from "../../socket";
 import type { Activity, CustomActivity, Pagination, UserInfo } from "./types";
 import { compareActivities, dropDuplicateKeys } from "./grouping";
 import { getAssignee, stripHtml } from "./utils";
@@ -263,13 +263,14 @@ function subscribeToLiveUpdates(
     if (dt !== doctype || name !== docname) return;
     void store.load();
   };
+  let release = () => {};
   onMounted(() => {
-    socket.emit("doc_subscribe", doctype, docname); // subscribes to doc updates for this doctype:docname
-    socket.on("docinfo_update", onUpdate); // subscribes to live communications, comments, likes, assignments, attachments
-    socket.on("doc_update", onDocUpdate); // subscribes to field changes
+    release = subscribeToDoc(socket, doctype, docname);
+    socket.on("docinfo_update", onUpdate); // live communications, comments, likes, assignments, attachments
+    socket.on("doc_update", onDocUpdate); // field changes
   });
   onUnmounted(() => {
-    socket.emit("doc_unsubscribe", doctype, docname);
+    release();
     socket.off("docinfo_update", onUpdate);
     socket.off("doc_update", onDocUpdate);
   });
