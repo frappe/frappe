@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import weakref
 from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass, replace
 from typing import Literal
@@ -48,7 +49,8 @@ class SubagentRunner:
 		log: SessionLog,
 		max_concurrent: int,
 	):
-		self._commit = commit
+		# a strong ref would loop back to the session, so an evicted one would not free at once
+		self._commit_ref = weakref.WeakMethod(commit)
 		self._run_error = run_error
 		self._compose_tools = compose_tools
 		self._log = log  # a continued child is rebuilt from it
@@ -192,7 +194,9 @@ class SubagentRunner:
 
 	def _record(self, child: Transcript, event: AnyEvent) -> None:
 		event.subagent_id = child.subagent_id
-		self._commit(event)
+		commit = self._commit_ref()
+		assert commit is not None  # a child only runs inside its session's run
+		commit(event)
 		if event.durable:
 			child.record(event)
 

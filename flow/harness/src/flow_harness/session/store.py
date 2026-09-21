@@ -5,13 +5,14 @@ from __future__ import annotations
 
 import asyncio
 import builtins
+import copy
 import hashlib
 import json
 import os
 import re
 import uuid
 from collections.abc import Callable, Collection, Iterator
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from tempfile import mkstemp
@@ -251,7 +252,9 @@ class SessionStore:
 	def _compose_tools(self, config: SessionConfig) -> dict[str, Tool]:
 		selected = select_tools(config.tools)
 		if subagent.name in selected:  # its description lists the session's agents
-			selected[subagent.name] = replace(subagent, description=describe_agents(config.subagents))
+			tool = copy.copy(subagent)
+			tool.description = describe_agents(config.subagents)
+			selected[subagent.name] = tool
 		composed = self.extension_runtime.compose_tools(selected, config.extension_tools)
 		if self.tool_allowlist is None:
 			return composed
