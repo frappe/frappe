@@ -77,7 +77,12 @@
 import { reactive, ref } from "vue";
 import type { DocField } from "./types";
 import { Button, Checkbox, Dialog, FormControl } from "frappe-ui";
-import { downloadTemplate, fetchDoctypeBundle, fieldsToIgnore, getChildTableName } from "./dataImport";
+import {
+	downloadTemplate,
+	fetchDoctypeBundle,
+	fieldsToIgnore,
+	getChildTableName,
+} from "./dataImport";
 
 const show = defineModel<boolean>({ required: true, default: false });
 const fileType = ref<"Excel" | "CSV">("CSV");
@@ -89,7 +94,9 @@ const props = defineProps<{
 	doctype: string;
 }>();
 
-const fields = reactive<{ data: Record<string, { fieldname: string; label: string; reqd: number }[]> }>({
+const fields = reactive<{
+	data: Record<string, { fieldname: string; label: string; reqd: number }[]>;
+}>({
 	data: {},
 });
 fetchDoctypeBundle(props.doctype).then((docs) => {
