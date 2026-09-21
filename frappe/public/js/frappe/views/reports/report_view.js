@@ -7,6 +7,16 @@ window.DataTable = DataTable;
 frappe.provide("frappe.views");
 
 frappe.views.ReportView = class ReportView extends frappe.views.ListView {
+	static load_last_view() {
+		const doctype = frappe.get_route()[1];
+		if (!frappe.model.can_get_report(doctype)) {
+			frappe.route_flags.replace_route = true;
+			frappe.set_route("list", frappe.router.doctype_layout || doctype, "list");
+			return true;
+		}
+		return super.load_last_view();
+	}
+
 	get view_name() {
 		return "Report";
 	}

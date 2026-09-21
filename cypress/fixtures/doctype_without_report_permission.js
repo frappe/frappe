@@ -1,0 +1,36 @@
+export default {
+	name: "DocType Without Report Permission",
+	custom: 1,
+	actions: [],
+	creation: "2026-09-20 05:10:22.118342",
+	default_view: "Report",
+	doctype: "DocType",
+	editable_grid: 1,
+	engine: "InnoDB",
+	fields: [
+		{
+			fieldname: "title",
+			fieldtype: "Data",
+			label: "Title",
+			reqd: 1,
+		},
+	],
+	links: [],
+	modified: "2026-09-20 05:10:22.118342",
+	modified_by: "Administrator",
+	module: "Custom",
+	owner: "Administrator",
+	permissions: [
+		{
+			create: 1,
+			delete: 1,
+			read: 1,
+			report: 0,
+			role: "Report Permission Test Role",
+			write: 1,
+		},
+	],
+	quick_entry: 1,
+	sort_field: "creation",
+	sort_order: "ASC",
+};
