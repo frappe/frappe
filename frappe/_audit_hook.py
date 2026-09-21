@@ -1,4 +1,12 @@
+"""PEP 578 Audit Hook for Frappe Security.
+
+Provides filesystem access monitoring and path traversal prevention.
+"""
+
+import logging
+import mimetypes
 import os
+import shutil
 import sys
 import tempfile
 import threading
@@ -46,27 +54,56 @@ def setup_audit_hook() -> None:
 
 	bench_path = os.path.realpath(get_bench_path())
 	mode = requested_mode
-	trusted_roots = (
+	trusted_paths = [
 		os.path.join(bench_path, "apps"),
 		os.path.join(bench_path, "logs"),
 		os.path.realpath(sys.prefix),
 		os.path.realpath(sys.base_prefix),
-	)
+		os.path.realpath("/dev/null"),
+		os.path.realpath("/dev/urandom"),
+		os.path.realpath("/dev/zero"),
+	]
+
+	for binary in ("wkhtmltopdf", "chromium", "node", "yarn"):
+		if bin_path := shutil.which(binary):
+			trusted_paths.append(os.path.realpath(bin_path))
+
+	for mime_path in getattr(mimetypes, "knownfiles", []):
+		if os.path.isfile(mime_path):
+			trusted_paths.append(os.path.realpath(mime_path))
+
+	trusted_roots = tuple(trusted_paths)
 
 	untrusted_roots = (
 		os.path.realpath(tempfile.gettempdir()),
-		"/tmp",
+		os.path.realpath("/tmp"),
+		os.path.realpath("/var/tmp"),
 	)
 	sys.addaudithook(frappe_security_audit_hook)
 
 
 def start() -> None:
 	"""Scope the hook to the current site. Called from `before_request` and `before_job`."""
-	if mode != AuditHookMode.OFF and getattr(frappe.local, "site_path", None):
-		frappe.local.audit_roots = {
-			"trusted": trusted_roots,
-			"untrusted": (*untrusted_roots, os.path.realpath(frappe.local.site_path)),
-		}
+
+	if mode == AuditHookMode.OFF or not getattr(frappe.local, "site_path", None):
+		return
+	# Bench-level files shared by every site. Enumerated rather than allowing all of
+	# sites/, which would let one site read another's site_config.json.
+	sites_path = os.path.realpath(frappe.local.sites_path)
+	trusted = (
+		*trusted_roots,
+		os.path.join(sites_path, "assets"),
+		os.path.join(sites_path, "common_site_config.json"),
+		os.path.join(sites_path, "apps.txt"),
+		os.path.join(sites_path, "apps.json"),
+	)
+	site_path = os.path.realpath(frappe.get_site_path())
+	untrusted = [*untrusted_roots, site_path]
+
+	if backup_path := frappe.local.conf.get("backup_path"):
+		untrusted.append(os.path.realpath(os.path.join(site_path, backup_path)))
+
+	frappe.local.audit_roots = {"trusted": trusted, "untrusted": tuple(untrusted)}
 
 
 def stop() -> None:
@@ -101,6 +138,14 @@ def is_allowed_path(path: str, roots: dict[str, tuple[str, ...]]) -> bool:
 	Almost every access is an already normalised absolute path (the interpreter importing
 	modules, mostly) and never reaches `realpath`, which costs a syscall per component.
 	"""
+
+	# compile() and ast.parse() use synthetic names like <unknown>, <serverscript> and
+	# <safe_eval>, which linecache then tries to open. Not filesystem paths.
+	if path.startswith("<") and path.endswith(">"):
+		return True
+
+	# Code directories are not writable through the web, so a symlink planted there already
+	# implies code execution. Skipping realpath() keeps the hot path free of syscalls
 	if path.startswith(os.sep) and ".." not in path:
 		if is_inside(path, roots["trusted"]):
 			return True
@@ -117,7 +162,11 @@ def is_inside(path: str, roots: tuple[str, ...]) -> bool:
 def handle_violation(event: str, path: str) -> None:
 	_recursion_guard.is_active = True
 	try:
-		frappe.logger("security").warning(
+		logger = frappe.logger("security")
+		if logger.level > logging.WARNING:
+			logger.setLevel(logging.WARNING)
+
+		logger.warning(
 			f"Unsafe {event} on {path!r} (resolved to {os.path.realpath(path)!r}), "
 			f"mode={mode.value}, site={getattr(frappe.local, 'site', None)}"
 		)

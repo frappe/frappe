@@ -62,6 +62,12 @@ class TestAuditHook(UnitTestCase):
 			test_roots = {"trusted": (), "untrusted": (tmp,)}
 			self.assertFalse(is_allowed_path(link, test_roots))
 
+	def test_trusted_roots_skip_symlink_resolution(self):
+		with tempfile.TemporaryDirectory() as tmp:
+			link = os.path.join(tmp, "escape")
+			os.symlink("/etc/hosts", link)
+			self.assertTrue(is_allowed_path(link, {"trusted": (tmp,), "untrusted": ()}))
+
 	def test_is_inside(self):
 		self.assertTrue(is_inside("/a/b", ("/a",)))
 		self.assertTrue(is_inside("/a", ("/a",)))
