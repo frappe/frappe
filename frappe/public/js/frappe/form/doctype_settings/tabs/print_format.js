@@ -109,8 +109,16 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 			return;
 		}
 
+		// Default format first (top-left); the rest keep their server order.
+		const ordered = default_pf
+			? [
+					...formats.filter((f) => f.name === default_pf),
+					...formats.filter((f) => f.name !== default_pf),
+			  ]
+			: formats;
+
 		const $grid = $('<div class="dts-pf-grid"></div>').appendTo(panel.body);
-		formats.forEach((f) => $grid.append(make_card(f)));
+		ordered.forEach((f) => $grid.append(make_card(f)));
 	}
 
 	function make_card(f) {
@@ -123,7 +131,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 					${frappe.ui.badge.html({
 						label: __("Custom"),
 						theme: "blue",
-						css_class: "dts-pf-badge hide",
+						css_class: "dts-pf-badge hidden",
 					})}
 					<button type="button" class="dts-pf-star" data-selected="${
 						is_default ? "true" : "false"
@@ -133,7 +141,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 					</div>
 				</div>
 				<div class="dts-pf-footer">
-					<span class="dts-pf-name ellipsis"></span>
+					<span class="dts-pf-name truncate"></span>
 				</div>
 			</div>
 		`);
@@ -141,7 +149,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 		const $thumb = $card.find(".dts-pf-thumb");
 		const $star = $card.find(".dts-pf-star");
 
-		if (is_custom) $card.find(".dts-pf-badge").removeClass("hide");
+		if (is_custom) $card.find(".dts-pf-badge").removeClass("hidden");
 
 		// Thumbnail comes from the Print Format's own `preview_image` (generated from its
 		// form's "Generate Preview" button); formats without one show the placeholder.
