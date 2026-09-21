@@ -90,6 +90,13 @@ class SQLiteSearch(ABC):
 	- Permission-aware search results via query-level filtering
 	"""
 
+	BUILD_VOCABULARY = True
+	"""Whether to build the vocabulary that backs spelling correction in search().
+
+	It is a second pass over everything indexed, long enough on a large table to outweigh the
+	indexing itself. Set False where search() is not used and its corrections are not wanted.
+	"""
+
 	@staticmethod
 	def scoring_function(func):
 		"""
@@ -430,7 +437,7 @@ class SQLiteSearch(ABC):
 				processed_doctypes += 1
 
 			# Check if all doctypes are indexed before building vocabulary
-			if not self._is_vocabulary_built_needed():
+			if self.BUILD_VOCABULARY and not self._is_vocabulary_built_needed():
 				self._update_progress("All documents indexed, building vocabulary", 80, 100, absolute=True)
 
 				# Build vocabulary incrementally
