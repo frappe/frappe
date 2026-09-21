@@ -45,6 +45,9 @@ REDIS_MAX_PENDING_PER_SITE = os.environ.get("FLOW_REDIS_MAX_PENDING_PER_SITE")
 # path fence for session cwds and path-taking tools; empty = unrestricted (never sandboxes bash)
 ALLOWED_ROOTS = [p for p in os.environ.get("FLOW_ALLOWED_ROOTS", "").split(os.pathsep) if p]
 
+# Memory the daemon may spend holding live sessions, across every site it serves.
+SESSION_CACHE_MB = int(os.environ.get("FLOW_SESSION_CACHE_MB", "64"))
+
 # browser origins allowed to call the API; empty sends no CORS headers
 CORS_ORIGINS = [o.strip() for o in os.environ.get("FLOW_CORS_ORIGINS", "").split(",") if o.strip()]
 
