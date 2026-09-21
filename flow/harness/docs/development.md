@@ -68,6 +68,7 @@ the manual step above.
 | `FLOW_MODEL` | `mock` | Initial model for a new TUI session; a saved TUI choice is used when it is unset. |
 | `FLOW_ALLOWED_ROOTS` | unset | `os.pathsep`-separated roots for session directories and path-taking tools. It does not sandbox `bash`. |
 | `FLOW_CORS_ORIGINS` | unset | Comma-separated browser origins allowed to call the API. |
+| `FLOW_SESSION_CACHE_MB` | `64` | Memory the daemon may spend holding live sessions in memory, across every site it serves. Past it, the least recently used are dropped and rebuilt from their logs on the next call; a session with a live run, a live stream, or a title being written is never dropped. |
 | `FLOW_REDIS_URL` | unset | Publishes events without blocking runs. Site events use `harness:<site>:<session-id>`; other events use `harness:<session-id>`. Messages keep their event fields at the top level and add `session_id`, `stream_id`, `revision`, and, for tenants, `site`. |
 | `FLOW_REDIS_MAX_PENDING_PER_SITE` | `128` | Maximum queued events across a site's sessions. |
 | `FLOW_REDIS_MAX_PENDING` | `1024` | Maximum queued events across the daemon. |

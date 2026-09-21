@@ -1,17 +1,18 @@
 """Project-grouped session storage: private log/meta/attachment paths, the cwd fence,
-and a process cache mapping each id to one live object."""
+and a byte-capped cache mapping each id to one live object (see cache.py)."""
 
 from __future__ import annotations
 
 import asyncio
 import builtins
+import copy
 import hashlib
 import json
 import os
 import re
 import uuid
 from collections.abc import Callable, Collection, Iterator
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from tempfile import mkstemp
@@ -22,6 +23,7 @@ from flow_harness.extensions import ExtensionRuntime, unload_extension_modules
 from flow_harness.model.credentials import CredentialStore
 from flow_harness.path_policy import canonical_path, is_path_allowed, normalize_roots
 from flow_harness.session.attachments import AttachmentStore
+from flow_harness.session.cache import SessionCache
 from flow_harness.session.config import SessionConfig
 from flow_harness.session.log import SessionLog
 from flow_harness.session.prompt import build_system_prompt
@@ -93,6 +95,7 @@ class SessionStore:
 		extensions_enabled: bool = False,
 		tool_allowlist: Collection[str] | None = None,
 		callback_hosts: Collection[str] | None = None,
+		session_cache: SessionCache | None = None,
 	):
 		self.data_dir = data_dir
 		self.sessions_dir = os.path.join(data_dir, "sessions")
@@ -110,7 +113,9 @@ class SessionStore:
 		self._extension_paths = tuple(extension_paths or ())
 		self._extensions_enabled = extensions_enabled
 		self.extension_runtime = self._load_extensions()
-		self._cache: dict[str, Session] = {}
+		# one budget for the whole process; site partitions draw on it (see cache.py)
+		self._session_cache = session_cache or SessionCache(server_config.SESSION_CACHE_MB * 1024 * 1024)
+		self._cache = self._session_cache.partition()
 		self.closing = asyncio.Event()  # set when the daemon shuts down; ends every event stream
 
 	def _load_extensions(self) -> ExtensionRuntime:
@@ -130,7 +135,7 @@ class SessionStore:
 		"""
 		unload_extension_modules()
 		self.extension_runtime = self._load_extensions()
-		for session in list(self._cache.values()):
+		for session in self._cache.sessions():
 			session.server_tools = self._compose_tools(session.config)
 			session.extension_runtime = self.extension_runtime
 
@@ -165,6 +170,7 @@ class SessionStore:
 			extensions_enabled=self._extensions_enabled,
 			tool_allowlist=self.tool_allowlist,
 			callback_hosts=callback_hosts if callback_hosts is not None else self.callback_hosts,
+			session_cache=self._session_cache,
 		)
 		partition.closing = self.closing
 		return partition
@@ -251,7 +257,9 @@ class SessionStore:
 	def _compose_tools(self, config: SessionConfig) -> dict[str, Tool]:
 		selected = select_tools(config.tools)
 		if subagent.name in selected:  # its description lists the session's agents
-			selected[subagent.name] = replace(subagent, description=describe_agents(config.subagents))
+			tool = copy.copy(subagent)
+			tool.description = describe_agents(config.subagents)
+			selected[subagent.name] = tool
 		composed = self.extension_runtime.compose_tools(selected, config.extension_tools)
 		if self.tool_allowlist is None:
 			return composed
@@ -291,12 +299,13 @@ class SessionStore:
 		session = self._build(sid, config, paths, skill_catalog=skill_catalog, server_tools=server_tools)
 		self._write_skill_catalog(paths, skill_catalog)
 		self.save_meta(session)
-		self._cache[sid] = session
+		self._cache.put(session)
 		return session
 
 	def get(self, sid: str) -> Session:
-		if sid in self._cache:
-			return self._cache[sid]
+		cached = self._cache.get(sid)
+		if cached is not None:
+			return cached
 		paths = self._locate(sid)
 		if paths is None:
 			raise KeyError(sid)
@@ -312,7 +321,7 @@ class SessionStore:
 			skill_catalog=self._read_skill_catalog(paths),
 			server_tools=self._compose_tools(config),
 		)
-		self._cache[sid] = session
+		self._cache.put(session)
 		return session
 
 	def exists(self, sid: str) -> bool:
@@ -322,7 +331,7 @@ class SessionStore:
 		"""The session's display title: the generated title when one exists, else its
 		first user message read from the log head (the durable row — a compaction's
 		synthetic summary never replaces it)."""
-		session = self._cache.get(sid)
+		session = self._cache.peek(sid)
 		if session is not None:
 			return session.config.title or _read_first_user_message(session.log.path)
 		paths = self._locate(sid)
@@ -341,7 +350,7 @@ class SessionStore:
 		Deletion is refused while the run is active. Attachment cleanup happens first,
 		so a filesystem failure cannot leave unaddressable bytes after meta deletion.
 		"""
-		session = self._cache.get(sid)
+		session = self._cache.peek(sid)
 		paths = (
 			_session_paths(os.path.dirname(session.log.path), sid)
 			if session is not None
@@ -363,7 +372,7 @@ class SessionStore:
 				os.unlink(path)
 			except FileNotFoundError:
 				pass
-		self._cache.pop(sid, None)
+		self._cache.drop(sid)
 		if paths.directory != self.sessions_dir:
 			try:
 				os.rmdir(paths.directory)
@@ -395,7 +404,7 @@ class SessionStore:
 		return [info for _, info in items]
 
 	def _describe(self, sid: str, paths: _SessionPaths) -> SessionInfo | None:
-		session = self._cache.get(sid)
+		session = self._cache.peek(sid)
 		if session is not None:
 			return SessionInfo(
 				session_id=sid,
@@ -465,8 +474,13 @@ class SessionStore:
 			persist_meta=self.save_meta,
 			resolve_skill=partial(self.resolve_skill, config),
 			persist_skill_catalog=self.save_skill_catalog,
+			on_settled=self._session_settled,
 			compose_tools=self._compose_tools,
 		)
+
+	def _session_settled(self, session: Session) -> None:
+		"""A run, a title or the last stream ended: re-cost the session, then evict."""
+		self._cache.settled(session)
 
 	def save_skill_catalog(self, session: Session) -> None:
 		"""Write the skill catalog after an invoked skill was added to it."""
