@@ -124,10 +124,10 @@
 		<!-- ── Library ───────────────────────────────────────── -->
 		<div v-else-if="activeTab === 'library'" class="pfb-tab-body">
 			<div class="pfb-group-label">
-				{{ __("Saved assets") }}
+				{{ __("Saved Snippets") }}
 			</div>
 			<div class="pfb-group-desc">
-				{{ __("Save a section or field as an asset") }}
+				{{ __("Save a section or field as a snippet") }}
 			</div>
 			<template v-for="grp in snippet_groups" :key="grp.type">
 				<draggable
