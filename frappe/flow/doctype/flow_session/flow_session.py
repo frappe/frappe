@@ -111,7 +111,6 @@ class FlowSession(Document):
 			"title": self.title,
 			**model_config(self.model or agent.model),
 			**agent.session_tool_config(self.name),
-			"extension_tools": [],
 			"skills_enabled": False,
 			"auto_approve": bool(self.auto_approve),
 			"max_turns": agent.max_iterations or DEFAULT_MAX_ITERATIONS,
