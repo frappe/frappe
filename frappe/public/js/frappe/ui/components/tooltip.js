@@ -11,6 +11,7 @@ frappe.provide("frappe.ui");
  * @property {"start"|"center"|"end"} [align="center"] How the bubble lines up along that side.
  * @property {number} [delay=500] Hover delay in ms before showing. Focus always shows immediately.
  * @property {number} [offset=4] Gap between trigger and bubble, in px. The 4px arrow fills it, tip touching the trigger (frappe-ui's side-offset).
+ * @property {string} [class] Extra class(es) on the bubble, for a variant — "es-tooltip--plain" drops the arrow. Styling only; the bubble always keeps `es-tooltip`.
  */
 
 // After any tooltip hides, the next one within this window skips the hover
@@ -41,6 +42,18 @@ let id_counter = 0;
  * @example
  * frappe.ui.tooltip(this.$el.find(".nav-btn"), { text: __("Notifications") });
  */
+// Point the arrow at the trigger's center even when the bubble was nudged sideways to stay on
+// screen, but never into the rounded corners (8px in from either end).
+function point_arrow(bubble, anchor) {
+	const rect = bubble.getBoundingClientRect();
+	const landed = bubble.getAttribute("data-side");
+	const offset =
+		landed === "top" || landed === "bottom"
+			? Math.min(Math.max(anchor.left + anchor.width / 2 - rect.left, 8), rect.width - 8)
+			: Math.min(Math.max(anchor.top + anchor.height / 2 - rect.top, 8), rect.height - 8);
+	bubble.style.setProperty("--arrow-offset", `${Math.round(offset)}px`);
+}
+
 frappe.ui.Tooltip = class Tooltip {
 	/**
 	 * @param {Element|JQuery} trigger The element the tooltip describes.
@@ -59,6 +72,9 @@ frappe.ui.Tooltip = class Tooltip {
 		this.align = validated(opts.align, ALIGNS, "align", "Tooltip") || "center";
 		this.delay = opts.delay == null ? 500 : opts.delay;
 		this.offset = opts.offset == null ? 4 : opts.offset;
+		// A variant class, not a replacement: `es-tooltip` is what the stylesheet and the
+		// data-attribute contract hang off, so it is always there and this is appended to it.
+		this.extra_class = opts.class || "";
 
 		this.bubble = null;
 		this.show_timer = null;
@@ -104,7 +120,7 @@ frappe.ui.Tooltip = class Tooltip {
 		visible = this;
 
 		const bubble = document.createElement("div");
-		bubble.className = "es-tooltip";
+		bubble.className = this.extra_class ? `es-tooltip ${this.extra_class}` : "es-tooltip";
 		bubble.setAttribute("role", "tooltip");
 		bubble.id = `es-tooltip-${++id_counter}`;
 		bubble.textContent = this.text; // text, never HTML (set_text edits this node)
@@ -123,9 +139,14 @@ frappe.ui.Tooltip = class Tooltip {
 			bubble.appendChild(hint);
 		}
 
-		const arrow = document.createElement("span");
-		arrow.className = "es-tooltip__arrow";
-		bubble.appendChild(arrow);
+		// `es-tooltip--plain` hides the arrow, so it is not built either -- a node nothing can see,
+		// with a position computed for it below, is work done for no one.
+		const plain = bubble.classList.contains("es-tooltip--plain");
+		if (!plain) {
+			const arrow = document.createElement("span");
+			arrow.className = "es-tooltip__arrow";
+			bubble.appendChild(arrow);
+		}
 
 		// same drill as menus: into <body> first (place() needs the real
 		// size), position, then data-state starts the enter animation
@@ -133,20 +154,10 @@ frappe.ui.Tooltip = class Tooltip {
 		const anchor = this.trigger_el.getBoundingClientRect();
 		place(bubble, anchor, this.side, this.align, this.offset);
 
-		// point the arrow at the trigger's center even when the bubble was
-		// nudged sideways to stay on screen, but never into the rounded
-		// corners (8px in from either end)
-		const rect = bubble.getBoundingClientRect();
-		const landed = bubble.getAttribute("data-side");
-		if (landed === "top" || landed === "bottom") {
-			const center = anchor.left + anchor.width / 2 - rect.left;
-			const offset = Math.min(Math.max(center, 8), rect.width - 8);
-			bubble.style.setProperty("--arrow-offset", `${Math.round(offset)}px`);
-		} else {
-			const center = anchor.top + anchor.height / 2 - rect.top;
-			const offset = Math.min(Math.max(center, 8), rect.height - 8);
-			bubble.style.setProperty("--arrow-offset", `${Math.round(offset)}px`);
-		}
+		// An arrowless bubble has nothing to point with. The enter animation reads
+		// `--arrow-offset` as its origin, so leaving it unset grows the bubble from its own
+		// centre, which is what one should do.
+		if (!plain) point_arrow(bubble, anchor);
 
 		bubble.setAttribute("data-state", "open");
 		this.trigger_el.setAttribute("aria-describedby", bubble.id);
