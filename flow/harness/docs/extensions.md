@@ -119,7 +119,7 @@ A load failure is never fatal to the daemon. Failures — a bad import, a missin
 
 ## Listing tools
 
-`flow extension-tools PATH...` loads the given extension files or directories the way `flow serve -e` would, prints one JSON row per registered tool (`name`, `description`, `extension`) on stdout, and reports load problems on stderr. A client that fronts the daemon uses it to learn the tool names before the daemon starts, for example to build a `tool_allowlist` and a tool picker.
+`flow extension-tools PATH...` loads the given extension files or directories the way `flow serve -e` would, prints one JSON row per registered tool (`name`, `description`, `extension`) on stdout, and reports load problems on stderr, along with anything an extension prints while it loads, so stdout stays valid JSON. A client that fronts the daemon uses it to learn the tool names before the daemon starts, for example to build a `tool_allowlist` and a tool picker.
 
 ## Examples
 

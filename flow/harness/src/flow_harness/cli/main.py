@@ -147,13 +147,15 @@ def _add_extension_options(parser: argparse.ArgumentParser) -> None:
 def _extension_tools(args) -> None:
 	"""What `flow serve -e PATH...` would load, for a client that builds its allowlist and
 	tool picker before the daemon starts: one row per tool, load problems on stderr."""
+	import contextlib
 	import json
 	from pathlib import Path
 
 	from flow_harness.extensions import ExtensionRuntime
 
 	runtime = ExtensionRuntime()
-	runtime.load(global_dir=None, extra_paths=[Path(p) for p in args.path], include_global_dir=False)
+	with contextlib.redirect_stdout(sys.stderr):  # an extension's own prints must not break the JSON
+		runtime.load(global_dir=None, extra_paths=[Path(p) for p in args.path], include_global_dir=False)
 	_report_extension_diagnostics(runtime)
 	rows = [
 		{

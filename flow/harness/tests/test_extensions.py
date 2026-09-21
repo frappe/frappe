@@ -258,7 +258,7 @@ def test_cli_lists_the_tools_extensions_register_as_json(tmp_path, capsys):
 	from flow_harness.cli.main import _extension_tools
 
 	folder = tmp_path / "extensions"
-	_write_extension(folder, "hello", HELLO_EXTENSION)
+	_write_extension(folder, "hello", "print('loading hello')\n" + HELLO_EXTENSION)
 	_write_extension(folder, "broken", "raise RuntimeError('boom')\n")
 
 	_extension_tools(SimpleNamespace(path=[str(folder)]))
@@ -268,6 +268,7 @@ def test_cli_lists_the_tools_extensions_register_as_json(tmp_path, capsys):
 		"tools": [{"name": "hello", "description": "Greet someone by name.", "extension": "hello"}]
 	}
 	assert "flow: extension error: failed to import extension" in err
+	assert "loading hello" in err  # an extension's own output goes to stderr, not into the JSON
 
 
 def _hook_session(tmp_path, hook_body: str, **cfg):
