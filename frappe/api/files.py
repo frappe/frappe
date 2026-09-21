@@ -27,7 +27,7 @@ def create_file():
 
 
 def attach(doctype: str, name: str):
-	"""Upload a file and hang it on the document; answers with the refreshed part."""
+	"""Upload a file and hang it on the document; answers with the refreshed part and the new File."""
 	doc = frappe.get_doc(doctype, name)
 	if not has_upload_part():
 		raise NotAnUploadError(_("Attaching a file needs a multipart request with a 'file' part"))
@@ -37,9 +37,11 @@ def attach(doctype: str, name: str):
 	frappe.form_dict["docname"] = doc.name
 
 	# a chunk that is not the last one writes no File, so there is no refreshed part yet
-	if not upload():
+	created = upload()
+	if not created:
 		return None
-	return refreshed(doc)
+	# the part alone does not say which row this request made, and two files can share a name
+	return {"file": created.name, **refreshed(doc)}
 
 
 def detach(doctype: str, name: str, file_name: str):

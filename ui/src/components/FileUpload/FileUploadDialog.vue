@@ -350,6 +350,7 @@ const uploader = useUploader({
 	multiple: props.multiple,
 	imageOnly: props.imageOnly,
 	folder: props.folder,
+	attachTo: props.attachTo,
 });
 
 // ── the add-menu ───────────────────────────────────────────────────────────

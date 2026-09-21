@@ -77,7 +77,7 @@
 import { ref } from "vue";
 import type { DocField } from "./types";
 import { Button, Checkbox, Dialog, FormControl, createResource } from "frappe-ui";
-import { fieldsToIgnore, getChildTableName } from "./dataImport";
+import { downloadTemplate, fieldsToIgnore, getChildTableName } from "./dataImport";
 
 const show = defineModel<boolean>({ required: true, default: false });
 const fileType = ref<"Excel" | "CSV">("CSV");
@@ -161,32 +161,14 @@ const updateFieldSelection = (
 	});
 };
 
-const getExportURL = () => {
-	let doctype = props.doctype;
-	let exportFields = getExportFields();
-	let exportRecords = getExportType();
-	let exportPageLength = exportType.value == "5 Records" ? 5 : "";
-
-	return `/api/method/frappe.core.doctype.data_import.data_import.download_template
-        ?doctype=${encodeURIComponent(doctype)}
-        &export_fields=${encodeURIComponent(JSON.stringify(exportFields))}
-        &export_records=${encodeURIComponent(exportRecords)}
-        &file_type=${encodeURIComponent(fileType.value)}
-        &export_page_length=${exportPageLength}`.replace(/\s+/g, "");
-};
-
 const handleExport = async () => {
-	let url = getExportURL();
-	const response = await fetch(url);
-	const blob = await response.blob();
-	const link = document.createElement("a");
-
-	link.href = URL.createObjectURL(blob);
-	link.download = props.doctype + (fileType.value === "CSV" ? ".csv" : ".xlsx");
-	document.body.appendChild(link);
-
-	link.click();
-	document.body.removeChild(link);
+	await downloadTemplate({
+		doctype: props.doctype,
+		exportFields: getExportFields(),
+		exportRecords: getExportType(),
+		fileType: fileType.value,
+		exportPageLength: exportType.value == "5 Records" ? 5 : undefined,
+	});
 };
 
 const getExportFields = () => {

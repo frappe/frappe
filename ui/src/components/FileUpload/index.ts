@@ -20,8 +20,10 @@ export {
   useTray,
 } from "./uploadTray";
 export type { TrayBatch } from "./uploadTray";
+export { UploadLimitsKey } from "./types";
 export type {
   UploadArgs,
+  UploadLimits,
   UploadTransport,
   Restrictions,
   UploadItem,

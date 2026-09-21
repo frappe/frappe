@@ -1448,6 +1448,8 @@ class TestCollaborationWritesV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200, response.json)
 		self.assertEqual(response.json["data"]["favourites"][0]["user"], self.TEST_USER)
 		self.assertIn(self.TEST_USER, response.json["data"]["users"])
+		# the answer names the row it just made, so the caller need not guess it from the part
+		self.assertEqual(response.json["data"]["file"], rows[0]["name"])
 		response = self.remove(self.part("favourites"))
 		self.assertEqual(response.json["data"]["favourites"], [])
 
