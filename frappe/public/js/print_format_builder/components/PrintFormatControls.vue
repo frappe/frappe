@@ -111,7 +111,7 @@
 			>
 				<template #item="{ element }">
 					<BlockCard
-						icon="scissors-line-dashed"
+						icon="square-split-vertical"
 						:name="element.label"
 						:desc="element.desc"
 						:title="element.desc"
