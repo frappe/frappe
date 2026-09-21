@@ -195,9 +195,7 @@ class ScheduledJobType(Document):
 		if frappe.debug_log:
 			self.scheduler_log.db_set("debug_log", "\n".join(frappe.debug_log))
 		if status == "Failed":
-			self.scheduler_log.db_set(
-				"details", frappe.get_traceback(with_context=bool(frappe.conf.developer_mode))
-			)
+			self.scheduler_log.db_set("details", frappe.get_traceback(with_context=True))
 		if status == "Start":
 			self.db_set("last_execution", now_datetime(), update_modified=False)
 		frappe.db.commit()
