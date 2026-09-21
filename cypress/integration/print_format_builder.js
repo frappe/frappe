@@ -194,6 +194,38 @@ context("Print Format Builder — create flow", () => {
 		});
 	});
 
+	// Left panel tab bar: order, first-run default, and the remembered tab
+	it("left panel opens on Fields and remembers the tab you left on", () => {
+		cy.visit("/app");
+		insert_builder_format(PF_NAME, [{ label: "Alpha", columns: [{ label: "", fields: [] }] }]);
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+
+		cy.get(".es-tabs__tab", { timeout: 30000 })
+			.should("have.length", 4)
+			.then(($tabs) => {
+				const order = [...$tabs].map((t) => t.dataset.tab);
+				expect(order).to.deep.equal(["fields", "layers", "blocks", "library"]);
+			});
+
+		// a builder nobody has opened before starts on the first tab, not on a named one
+		cy.window().then((win) => win.localStorage.removeItem("pfb_active_tab"));
+		cy.reload();
+		cy.get(".es-tabs__tab[data-tab='fields']", { timeout: 30000 }).should(
+			"have.attr",
+			"data-state",
+			"active"
+		);
+
+		// and the tab you left on survives a reload
+		cy.get(".es-tabs__tab[data-tab='blocks']").click();
+		cy.reload();
+		cy.get(".es-tabs__tab[data-tab='blocks']", { timeout: 30000 }).should(
+			"have.attr",
+			"data-state",
+			"active"
+		);
+	});
+
 	// 4. Layers tab: clicking a section scrolls to it and selects it
 	it("layers tab selects a section on click", () => {
 		cy.visit("/app");
