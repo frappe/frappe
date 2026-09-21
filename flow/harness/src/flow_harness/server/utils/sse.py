@@ -13,16 +13,21 @@ from flow_harness.session.session import Session
 KEEPALIVE_SECONDS = 15.0
 
 
-async def sse_follow_stream(session: Session, since: int) -> AsyncIterator[bytes]:
+async def sse_follow_stream(session: Session, since: int, closing: asyncio.Event) -> AsyncIterator[bytes]:
 	"""Follow mode: never close at a run boundary. The subscription stays attached
 	between runs and an SSE comment goes out whenever the feed is quiet, so proxies
 	and dead-peer detection keep working while the session idles."""
 	since = min(since, session.log.latest_seq)
 	events = session.events(since)
 	pending = asyncio.ensure_future(anext(events))
+	closed = asyncio.ensure_future(closing.wait())
 	try:
 		while True:
-			done, _ = await asyncio.wait({pending}, timeout=KEEPALIVE_SECONDS)
+			done, _ = await asyncio.wait(
+				{pending, closed}, timeout=KEEPALIVE_SECONDS, return_when=asyncio.FIRST_COMPLETED
+			)
+			if closed in done:
+				return  # the daemon is shutting down; an open stream would hold it up
 			if not done:
 				yield b": keepalive\n\n"
 				continue
@@ -33,6 +38,7 @@ async def sse_follow_stream(session: Session, since: int) -> AsyncIterator[bytes
 			yield _sse(event.model_dump(exclude_none=True))
 			pending = asyncio.ensure_future(anext(events))
 	finally:
+		closed.cancel()
 		pending.cancel()
 		with contextlib.suppress(asyncio.CancelledError):
 			await pending

@@ -349,10 +349,16 @@ def _web(args) -> None:
 
 
 def _run_server(app, store, *, sockets=None, **options) -> None:
-	"""One uvicorn entry for every mode; `store` is the daemon's session store."""
+	"""uvicorn, with the event streams ended first on shutdown: they would otherwise
+	hold the graceful wait open (forever without a timeout), so one Ctrl-C is enough."""
 	import uvicorn
 
-	server = uvicorn.Server(uvicorn.Config(app, log_config=None, **options))
+	class Server(uvicorn.Server):
+		async def shutdown(self, sockets=None) -> None:
+			store.closing.set()
+			await super().shutdown(sockets)
+
+	server = Server(uvicorn.Config(app, log_config=None, **options))
 	server.run(sockets=sockets)
 	if not server.started:
 		raise DaemonError("the daemon could not start (see the error above)")

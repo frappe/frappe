@@ -111,6 +111,7 @@ class SessionStore:
 		self._extensions_enabled = extensions_enabled
 		self.extension_runtime = self._load_extensions()
 		self._cache: dict[str, Session] = {}
+		self.closing = asyncio.Event()  # set when the daemon shuts down; ends every event stream
 
 	def _load_extensions(self) -> ExtensionRuntime:
 		runtime = ExtensionRuntime()
