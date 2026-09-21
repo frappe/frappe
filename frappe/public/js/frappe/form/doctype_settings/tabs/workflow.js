@@ -40,9 +40,9 @@ frappe.doctype_settings.register("workflow", function (panel, doctype) {
 					frappe.db
 						.set_value("Workflow", r.name, { is_active: r.is_active ? 0 : 1 })
 						.then(() => {
-							frappe.show_alert({
+							frappe.ui.toast({
 								message: r.is_active ? __("Disabled") : __("Enabled"),
-								indicator: "green",
+								type: "success",
 							});
 							list.reload();
 						}),
@@ -54,7 +54,7 @@ frappe.doctype_settings.register("workflow", function (panel, doctype) {
 				danger: true,
 				onclick: (list) =>
 					frappe.model.delete_doc("Workflow", r.name, () => {
-						frappe.show_alert({ message: __("Deleted"), indicator: "green" });
+						frappe.ui.toast({ message: __("Deleted"), type: "success" });
 						list.reload();
 					}),
 			},

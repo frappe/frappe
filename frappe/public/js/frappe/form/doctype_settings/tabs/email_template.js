@@ -47,6 +47,12 @@ frappe.doctype_settings.register("email-template", function (panel, doctype) {
 					icon: "star",
 					onclick: (list) => set_default(doctype, r.name).then(() => list.reload()),
 				});
+			} else {
+				items.push({
+					label: __("Remove Default"),
+					icon: "star-off",
+					onclick: (list) => remove_default(doctype).then(() => list.reload()),
+				});
 			}
 			items.push({ label: __("Edit"), icon: "pencil", onclick: () => open(r.name) });
 			items.push({
@@ -55,7 +61,7 @@ frappe.doctype_settings.register("email-template", function (panel, doctype) {
 				danger: true,
 				onclick: (list) =>
 					frappe.model.delete_doc("Email Template", r.name, () => {
-						frappe.show_alert({ message: __("Deleted"), indicator: "green" });
+						frappe.ui.toast({ message: __("Deleted"), type: "success" });
 						list.reload();
 					}),
 			});
@@ -72,4 +78,8 @@ frappe.doctype_settings.register("email-template", function (panel, doctype) {
 
 function set_default(doctype, template) {
 	return frappe.doctype_settings.set_property(doctype, "default_email_template", template);
+}
+
+function remove_default(doctype) {
+	return frappe.doctype_settings.clear_property(doctype, "default_email_template");
 }
