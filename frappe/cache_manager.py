@@ -228,7 +228,9 @@ def build_table_count_cache():
 		information_schema = frappe.qb.Schema("information_schema")
 
 		query = frappe.qb.from_(information_schema.tables).select(table_name, table_rows)
-		if frappe.db.db_type == "mariadb":
+		if frappe.db.db_type == "postgres":
+			query = query.where(frappe.qb.Field("schemaname") == frappe.db.db_schema)
+		else:
 			query = query.where(information_schema.tables.table_schema == frappe.db.cur_db_name)
 		data = query.run(as_dict=True)
 		counts = {d.get("name").replace("tab", "", 1): d.get("count", None) for d in data}
