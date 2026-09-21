@@ -24,10 +24,7 @@
 		<div v-if="activeTab === 'fields'" class="pfb-tab-body pfb-fields-tab">
 			<!-- Search -->
 			<div class="pfb-search-wrap">
-				<span
-					class="pfb-search-icon text-muted"
-					v-html="frappe.utils.icon('search', 'sm')"
-				></span>
+				<span class="pfb-search-icon" v-html="frappe.utils.icon('search', 'sm')"></span>
 				<input
 					ref="search_input"
 					class="pfb-search"
@@ -926,6 +923,9 @@ function handle_slash_key(e) {
 
 .pfb-search-icon {
 	flex-shrink: 0;
+	/* frappe icons paint with --icon-stroke, which the desk sets to gray-700;
+	   `color` alone leaves the glyph almost black next to the placeholder */
+	--icon-stroke: var(--ink-gray-4);
 	color: var(--ink-gray-4);
 }
 

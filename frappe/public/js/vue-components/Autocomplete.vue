@@ -158,6 +158,8 @@ defineExpose({ focus: () => input_el.value?.focus() });
 .frappe-autocomplete-icon {
 	display: flex;
 	align-items: center;
+	/* the glyph takes --icon-stroke, not color */
+	--icon-stroke: var(--ink-gray-4);
 	color: var(--ink-gray-4);
 	flex-shrink: 0;
 }
