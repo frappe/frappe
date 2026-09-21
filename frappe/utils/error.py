@@ -58,7 +58,9 @@ def log_error(
 		else:
 			traceback = message
 
-	traceback = frappe.as_unicode(traceback or frappe.get_traceback(with_context=True))
+	traceback = frappe.as_unicode(
+		traceback or frappe.get_traceback(with_context=bool(frappe.conf.developer_mode))
+	)
 
 	if not title:
 		if traceback:
