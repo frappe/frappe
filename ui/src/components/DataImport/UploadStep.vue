@@ -165,11 +165,12 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, inject, nextTick, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import type { DataImports, DataImport, DocField, DocType } from "./types";
 import { Badge, Button, Dropdown, toast } from "frappe-ui";
 import { uploadFile as uploadFileToServer } from "../../api";
+import { UploadLimitsKey } from "../FileUpload/types";
 import LucideChevronDown from "~icons/lucide/chevron-down";
 import LucideChevronLeft from "~icons/lucide/chevron-left";
 import LucideCloudUpload from "~icons/lucide/cloud-upload";
@@ -191,6 +192,7 @@ const showFileSelector = ref(true);
 const showSheetSelector = ref(false);
 const showLibrarySelector = ref(false);
 const router = useRouter();
+const uploadLimits = inject(UploadLimitsKey, {});
 
 const props = defineProps<{
 	dataImports: DataImports;
@@ -234,6 +236,7 @@ const uploadFile = (e: Event) => {
 				uploaded.value = loaded;
 				total.value = size;
 			},
+			chunkSize: uploadLimits.file_chunk_size ?? undefined,
 		}
 	)
 		.then(({ data }) => {
