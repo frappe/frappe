@@ -23,9 +23,12 @@ class TestDaemonLifecycle(UnitTestCase):
 		self.runtime = Path(tmp.name) / "flow-server"
 		self.log = Path(tmp.name) / "logs" / "flow-server.log"
 		self.log.parent.mkdir()
+		self.partition = Path(tmp.name) / "site" / "private" / "flow"
 		self.state_dir = lifecycle.state_dir
 		self.runtime_dir = lifecycle.runtime_dir
 		self.log_path = lifecycle.log_path
+		self.site_data_dir = lifecycle.site_data_dir
+		self.enterContext(patch.object(lifecycle, "site_data_dir", return_value=self.partition))
 		self.enterContext(patch.object(lifecycle, "state_dir", return_value=self.state))
 		self.enterContext(patch.object(lifecycle, "runtime_dir", return_value=self.runtime))
 		self.enterContext(patch.object(lifecycle, "log_path", return_value=self.log))
@@ -69,6 +72,7 @@ class TestDaemonLifecycle(UnitTestCase):
 				"allowed_roots": [str(root) for root in lifecycle.allowed_roots()],
 				"ignore_hidden_files": True,
 				"callback_hosts": [lifecycle.callback_host()],
+				"data_dir": str(self.partition),
 			},
 		)
 		self.assertEqual((self.state / "tenants.json").stat().st_mode & 0o777, 0o600)
@@ -85,6 +89,9 @@ class TestDaemonLifecycle(UnitTestCase):
 		self.assertEqual(root, Path(frappe.get_site_path("public", "files")).resolve())
 		self.assertTrue(root.is_absolute())
 
+	def test_site_data_dir_is_inside_the_site(self):
+		self.assertEqual(self.site_data_dir(), Path(frappe.get_site_path("private", "flow")).resolve())
+
 	def test_allowed_roots_are_the_site_files_and_the_whole_bench_apps_dir(self):
 		bench = self.state.parents[1]
 		with patch.object(lifecycle, "get_bench_path", return_value=str(bench)):
@@ -98,8 +105,7 @@ class TestDaemonLifecycle(UnitTestCase):
 		self.assertIn("custom_app: /apps/custom", prompt)
 
 	def test_remove_site_drops_the_entry_and_the_daemon_data(self):
-		partition = self.state / "data" / "tenants" / self.site
-		partition.mkdir(parents=True)
+		self.partition.mkdir(parents=True)
 		lifecycle.provision_site()
 		lifecycle._edit_tenants(lambda t: t.__setitem__("other.localhost", {"token": "t2"}))
 		with (
@@ -108,7 +114,7 @@ class TestDaemonLifecycle(UnitTestCase):
 		):
 			lifecycle.remove_site()
 		self.assertEqual(list(self.tenants()), ["other.localhost"])
-		self.assertFalse(partition.exists())
+		self.assertFalse(self.partition.exists())
 		reload.assert_called_once_with("site-token")
 		stop.assert_not_called()
 

@@ -139,14 +139,13 @@ class SessionStore:
 		allowed_roots: Collection[str] | None = None,
 		callback_hosts: Collection[str] | None = None,
 		ignore_hidden_files: bool | None = None,
+		data_dir: str | None = None,
 	) -> SessionStore:
-		"""A tenant partition of this store: sessions and credentials live under
-		`data_dir/tenants/<site>` with their own path fence — and their own callback
-		fence when the site lists hosts — sharing sink and caps. The daemon-wide
-		credential store is never a site's to consume."""
+		"""One site's partition: its own sessions, credentials and fences under
+		`data_dir` (default `<daemon data dir>/tenants/<site>`)."""
 		if not _SITE_RE.match(site):
 			raise ValueError(f"invalid site name {site!r}")
-		partition_dir = os.path.join(self.data_dir, "tenants", site)
+		partition_dir = data_dir or os.path.join(self.data_dir, "tenants", site)
 		sink = self.event_sink
 
 		def site_sink(sid: str, event: dict) -> None:

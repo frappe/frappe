@@ -3,8 +3,8 @@
 
 """Keeps the flow server provisioned for every site and running.
 
-Durable state lives under <bench>/sites/flow-server/. Runtime files stay under
-<bench>/flow-server/ and logs use the bench's normal logs directory.
+Bench-wide state: <bench>/sites/flow-server/. Each site's sessions: <site>/private/flow/.
+Runtime files: <bench>/flow-server/. Logs: the bench's logs directory.
 """
 
 from __future__ import annotations
@@ -93,6 +93,7 @@ def provision_site() -> None:
 		"allowed_roots": [str(root) for root in allowed_roots()],
 		"ignore_hidden_files": True,
 		"callback_hosts": [callback_host()],
+		"data_dir": str(site_data_dir()),
 	}
 	_edit_tenants(lambda tenants: tenants.__setitem__(frappe.local.site, entry))
 	reload_tenants(frappe.conf.flow_server_secret)
@@ -107,7 +108,7 @@ def remove_site() -> None:
 			restart()
 	else:
 		stop()
-	shutil.rmtree(state_dir() / "data" / "tenants" / site, ignore_errors=True)
+	shutil.rmtree(site_data_dir(), ignore_errors=True)
 
 
 def reload_tenants(token: str) -> bool:
@@ -126,6 +127,11 @@ def reload_tenants(token: str) -> bool:
 def session_root() -> Path:
 	"""The site's public files folder, which sessions use as their cwd."""
 	return Path(frappe.get_site_path("public", "files")).resolve()
+
+
+def site_data_dir() -> Path:
+	"""The daemon's sessions for this site, kept inside the site so a deploy moves them too."""
+	return Path(frappe.get_site_path("private", "flow")).resolve()
 
 
 def allowed_roots() -> tuple[Path, Path]:

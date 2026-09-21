@@ -30,6 +30,7 @@ class LiveServerCase(IntegrationTestCase):
 		cls.addClassCleanup(tmp.cleanup)
 		root = Path(tmp.name)
 		cls.enterClassContext(patch.object(lifecycle, "state_dir", return_value=root / "state"))
+		cls.enterClassContext(patch.object(lifecycle, "site_data_dir", return_value=root / "site"))
 		cls.enterClassContext(patch.object(lifecycle, "runtime_dir", return_value=root))
 		cls.enterClassContext(patch.object(lifecycle, "log_path", return_value=root / "flow-server.log"))
 		cls.enterClassContext(patch.object(lifecycle, "_redis_url", return_value=None))
