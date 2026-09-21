@@ -900,7 +900,9 @@ function handle_slash_key(e) {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	margin: 16px;
+	/* the heading below carries its own 16px of top padding, so the field only
+	   needs a little clearance under it */
+	margin: 16px 16px 4px;
 	padding: 6px 8px;
 	border-radius: var(--radius);
 	background: var(--surface-gray-2);
