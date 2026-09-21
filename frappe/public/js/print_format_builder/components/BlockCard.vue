@@ -28,7 +28,7 @@ defineProps({
 	border: 1px solid var(--outline-gray-2);
 	background: var(--fg-color);
 	cursor: grab;
-	margin: 8px 10px 0;
+	margin: 8px 16px 0;
 }
 
 .pfb-block-card:hover {
