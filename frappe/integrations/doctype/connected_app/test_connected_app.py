@@ -122,6 +122,53 @@ class TestConnectedApp(FrappeTestCase):
 		resp = oauth2_session.get(urljoin(self.base_url, "/api/method/frappe.auth.get_logged_user"))
 		self.assertEqual(resp.json().get("message"), self.user_name)
 
+	def test_get_openid_configuration_requires_write(self):
+		"""A caller must not be able to invoke get_openid_configuration on a
+		Connected App -- real or client-forged via run_doc_method -- without
+		write access to it, since the method fetches a field-supplied URL."""
+		from frappe.handler import run_doc_method
+
+		reader = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": f"{frappe.generate_hash()}@example.com",
+				"first_name": "Reader",
+				"send_welcome_email": 0,
+				"roles": [{"role": "All"}],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(lambda: frappe.delete_doc("User", reader.name, force=True, ignore_permissions=True))
+
+		previous_request = getattr(frappe.local, "request", None)
+
+		def restore_request():
+			if previous_request is None:
+				delattr(frappe.local, "request")
+			else:
+				frappe.local.request = previous_request
+
+		self.addCleanup(restore_request)
+		frappe.local.request = frappe._dict(method="GET")
+		docs = {
+			"doctype": "Connected App",
+			"name": self.connected_app.name,
+			"modified": str(self.connected_app.modified),
+		}
+
+		try:
+			frappe.set_user(reader.name)
+			self.assertTrue(frappe.has_permission("Connected App", "read"))
+			self.assertFalse(frappe.has_permission("Connected App", "write"))
+			self.assertRaises(frappe.PermissionError, run_doc_method, "get_openid_configuration", docs=docs)
+
+			# The __islocal trick must not downgrade this to a weaker check either.
+			forged_new = dict(docs, __islocal=1, openid_configuration="http://example.com")
+			self.assertRaises(
+				frappe.PermissionError, run_doc_method, "get_openid_configuration", docs=forged_new
+			)
+		finally:
+			frappe.set_user("Administrator")
+
 	def tearDown(self):
 		def delete_if_exists(attribute):
 			doc = getattr(self, attribute, None)
