@@ -915,11 +915,13 @@ function handle_slash_key(e) {
 	font-family: inherit;
 	font-size: var(--text-tiny);
 	color: var(--ink-gray-4);
-	background: var(--fg-color);
+	/* a hint, not a control: an outline on the field's own fill, never a white chip */
+	background: transparent;
+	border: 1px solid var(--outline-gray-2);
 	border-radius: 3px;
-	padding: 1px 5px;
+	padding: 0 5px;
 	cursor: pointer;
-	line-height: 1.6;
+	line-height: 1.5;
 }
 
 .pfb-search-icon {
