@@ -194,10 +194,23 @@ export function runDocumentMethod<T = unknown>(
   name: string,
   method: string,
   args: Args = {},
+  { http = "POST", signal }: MethodOptions = {}
+): Promise<Envelope<T>> {
+  const path = `${documentPath(doctype, name)}/method/${segment(method)}`;
+  if (http === "GET") return request<T>("GET", path, { query: args, signal });
+  return request<T>("POST", path, { body: args, signal });
+}
+
+/** A read beside the document, `GET /document/<doctype>/<name>/<part>`, such as `activity`. */
+export function getDocumentPart<T = unknown>(
+  doctype: string,
+  name: string,
+  part: string,
+  params: Query = {},
   { signal }: CallOptions = {}
 ): Promise<Envelope<T>> {
-  return request<T>("POST", `${documentPath(doctype, name)}/method/${segment(method)}`, {
-    body: args,
+  return request<T>("GET", `${documentPath(doctype, name)}/${segment(part)}`, {
+    query: params,
     signal,
   });
 }

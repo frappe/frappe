@@ -172,7 +172,8 @@
 import { getPreviewData, getBadgeColor } from "./dataImport";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import type { DataImport, DataImports, DataImportSocket } from "./types";
-import { Badge, Button, HoverCard, TabButtons, call } from "frappe-ui";
+import { Badge, Button, HoverCard, TabButtons } from "frappe-ui";
+import { listDocuments, runDocumentMethod } from "../../api";
 import LucideArrowRight from "~icons/lucide/arrow-right";
 import LucideCircleAlert from "~icons/lucide/circle-alert";
 import LucideInfo from "~icons/lucide/info";
@@ -286,15 +287,16 @@ const getMappedColumnName = (index: number) => {
 };
 
 const startImport = () => {
-	call("frappe.core.doctype.data_import.data_import.form_start_import", {
-		data_import: props.data.name,
-	});
+	runDocumentMethod("Data Import", props.data.name, "start_import");
 };
 
 const getImportLogs = () => {
-	call("frappe.core.doctype.data_import.data_import.get_import_logs", {
-		data_import: props.data.name,
-	}).then((data: any) => {
+	listDocuments("Data Import Log", {
+		filters: [["data_import", "=", props.data.name]],
+		fields: ["success", "docname", "messages", "exception", "row_indexes", "import_action"],
+		order_by: "log_index asc",
+		limit: 5000,
+	}).then(({ data }) => {
 		importLogs.value = data;
 		filteredLogs.value = data;
 	});

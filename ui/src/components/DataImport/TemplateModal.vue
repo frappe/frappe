@@ -74,10 +74,10 @@
 	</Dialog>
 </template>
 <script setup lang="ts">
-import { ref } from "vue";
+import { reactive, ref } from "vue";
 import type { DocField } from "./types";
-import { Button, Checkbox, Dialog, FormControl, createResource } from "frappe-ui";
-import { downloadTemplate, fieldsToIgnore, getChildTableName } from "./dataImport";
+import { Button, Checkbox, Dialog, FormControl } from "frappe-ui";
+import { downloadTemplate, fetchDoctypeBundle, fieldsToIgnore, getChildTableName } from "./dataImport";
 
 const show = defineModel<boolean>({ required: true, default: false });
 const fileType = ref<"Excel" | "CSV">("CSV");
@@ -89,17 +89,12 @@ const props = defineProps<{
 	doctype: string;
 }>();
 
-const fields = createResource({
-	url: "frappe.desk.form.load.getdoctype",
-	params: {
-		doctype: props.doctype,
-		with_parent: 1,
-	},
-	auto: true,
-	transform(data: any) {
-		doctypeMeta.value = data.docs;
-		return transformFields(data);
-	},
+const fields = reactive<{ data: Record<string, { fieldname: string; label: string; reqd: number }[]> | null }>({
+	data: null,
+});
+fetchDoctypeBundle(props.doctype).then((docs) => {
+	doctypeMeta.value = docs;
+	fields.data = transformFields({ docs });
 });
 
 const transformFields = (data: any) => {
