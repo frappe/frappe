@@ -372,6 +372,7 @@ class DashboardChart(Document):
 		parent_document_type: DF.Link | None
 		report_name: DF.Link | None
 		roles: DF.Table[HasRole]
+		show_values_over_chart: DF.Check
 		source: DF.Link | None
 		time_interval: DF.Literal["Yearly", "Quarterly", "Monthly", "Weekly", "Daily"]
 		timeseries: DF.Check

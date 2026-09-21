@@ -98,7 +98,7 @@ function make_series_section($body, doctype) {
 					type: "actions",
 					actions: [
 						{
-							icon: "trash-2",
+							icon: "trash",
 							label: __("Delete"),
 							danger: true,
 							confirm: __("Delete series {0}?"),
@@ -308,7 +308,7 @@ function make_rules_section($body, doctype, panel) {
 					actions: [
 						{ icon: "pencil", label: __("Edit"), action: (row) => open(row.name) },
 						{
-							icon: "trash-2",
+							icon: "trash",
 							label: __("Delete"),
 							danger: true,
 							confirm: __("Delete naming rule {0}?"),

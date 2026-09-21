@@ -4,6 +4,7 @@
     "build": "node esbuild",
     "production": "node esbuild --production",
     "watch": "node esbuild --watch",
+    "update-icons": "node esbuild/update_icons.js",
     "coverage:report": "npx nyc report --reporter=clover"
   },
   "repository": {
@@ -91,5 +92,8 @@
   "optionalDependencies": {
     "bufferutil": "^4.0.8",
     "utf-8-validate": "^6.0.3"
+  },
+  "devDependencies": {
+    "lucide-static": "1.47.0"
   }
 }

@@ -3,6 +3,7 @@
  "creation": "2023-08-14 13:06:24.520160",
  "default_view": "List",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/audit-trail",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

@@ -32,7 +32,7 @@ frappe.provide("frappe.ui");
  *     trigger: this.$el.find(".menu-btn"),
  *     options: [
  *         { label: __("Edit"), icon: "pen", onclick: () => this.edit() },
- *         { label: __("Delete"), icon: "trash-2", theme: "red", onclick: () => this.delete() },
+ *         { label: __("Delete"), icon: "trash", theme: "red", onclick: () => this.delete() },
  *     ],
  * });
  */

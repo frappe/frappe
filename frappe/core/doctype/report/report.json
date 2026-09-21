@@ -4,6 +4,7 @@
  "creation": "2013-03-09 15:45:57",
  "doctype": "DocType",
  "document_type": "System",
+ "documentation": "https://docs.frappe.io/framework/user/en/desk/reports/script-report",
  "engine": "InnoDB",
  "field_order": [
   "report_name",
@@ -240,6 +241,7 @@
    "label": "Snapshot Report"
   }
  ],
+ "icon": "sheet",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],

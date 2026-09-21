@@ -4,6 +4,7 @@
  "autoname": "field:label",
  "creation": "2020-01-23 13:45:59.470592",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/desk/workspace",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

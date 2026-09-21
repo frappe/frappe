@@ -5,6 +5,7 @@
  "autoname": "field:module_name",
  "creation": "2013-01-10 16:34:03",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/basics/doctypes/modules",
  "engine": "InnoDB",
  "field_order": [
   "connections_tab",
