@@ -3,6 +3,7 @@
 import "@/index.css";
 import { createApp, h } from "vue";
 import { FrappeUI, frappeRequest, setConfig } from "frappe-ui";
+import { provideSession } from "@framework/ui/composables/useSession";
 
 import { fetchBoot, BootUnauthorized, type Boot } from "@/boot";
 import { fetchAddresses, type Addresses } from "@/addresses";
@@ -34,7 +35,7 @@ async function start() {
 	}
 
 	// Translations and the icon sprite are fired, not awaited.
-	loadTranslations(boot.translations_version, boot.lang);
+	loadTranslations(boot.translations_version, boot.session.lang);
 	loadSprite();
 	setIconSource(symbolGeometry);
 	setDrawnProps(recordDrawnProps());
@@ -65,6 +66,7 @@ async function start() {
 	watchClientScripts(app.config.globalProperties.$socket);
 	app.use(router);
 	app.provide("boot", boot);
+	provideSession(app, boot.session);
 	app.provide("addresses", addresses);
 	app.mount("#app");
 }

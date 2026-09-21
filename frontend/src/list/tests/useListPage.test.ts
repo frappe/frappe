@@ -15,16 +15,6 @@ const fake = vi.hoisted(() => ({
 	runMethod: vi.fn(),
 }));
 
-vi.mock("frappe-ui", async (importOriginal) => ({
-	...(await importOriginal<object>()),
-	createResource: () => ({
-		data: ["Desk User"],
-		loading: false,
-		fetch() {},
-		reload() {},
-	}),
-}));
-
 vi.mock("@framework/ui/api", () => ({
 	getMeta: vi.fn(async () => ({ data: fake.meta, children: [] })),
 	listDocuments: fake.listDocuments,
@@ -41,7 +31,9 @@ import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { registerShell } from "@/router/routeFor";
 import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
+import { setSession } from "@framework/ui/composables/useSession";
 import { resetUserRoles } from "@framework/ui/composables/useUserRoles";
+import type { Session } from "@framework/ui/api";
 import { forgetRows, readListMemory, recallRows, writeListMemory } from "../pageState";
 import { useListPage, type ListPage } from "../useListPage";
 import { resetListSettings, useListSettings } from "../useListSettings";
@@ -139,9 +131,18 @@ async function settleQuery() {
 	await settle();
 }
 
+const SESSION: Session = {
+	user: { name: "alice@example.com", full_name: "Alice", email: "alice@example.com", user_image: null },
+	roles: ["Desk User"],
+	lang: "en",
+	timezone: "Asia/Kolkata",
+	defaults: {},
+};
+
 beforeEach(() => {
 	resetDoctypeMeta();
 	resetUserRoles();
+	setSession(SESSION);
 	resetListSettings();
 	forgetRows("Lead");
 	history.replaceState(null, "");

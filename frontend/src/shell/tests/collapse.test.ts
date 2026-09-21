@@ -41,7 +41,9 @@ async function shell(): Promise<HTMLElement> {
 		shell_base: "/apps/crm",
 		prefixes: { crm: { app: "crm", modular: false } },
 		navigation: { rail: [accounts], sidebars },
-		user: { name: "reader@example.com", full_name: "Reader", email: "reader@example.com" },
+		session: {
+			user: { name: "reader@example.com", full_name: "Reader", email: "reader@example.com" },
+		},
 	} as unknown as Boot;
 
 	const router = createRouter({

@@ -99,7 +99,7 @@ const sections = computed(() =>
 	Object.fromEntries(
 		Object.entries(navigation.value.sidebars).map(([address, rows]) => [
 			address,
-			sectionMemory(boot.user.name, `Sidebar:${address}`, rows),
+			sectionMemory(boot.session.user.name, `Sidebar:${address}`, rows),
 		])
 	)
 );

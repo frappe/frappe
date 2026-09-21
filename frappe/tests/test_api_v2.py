@@ -7,6 +7,7 @@ from unittest.mock import patch
 import requests
 
 import frappe
+import frappe.defaults
 import frappe.share
 from frappe.api import discovery
 from frappe.installer import update_site_config
@@ -1547,3 +1548,39 @@ class TestCollaborationWritesV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 202, response.json)
 		frappe.db.rollback()
 		self.assertFalse(frappe.db.exists("ToDo", name))
+
+
+class TestSessionAPIV2(FrappeAPITestCase):
+	version = "v2"
+
+	def session_path(self):
+		return self.get_path("session")
+
+	def test_session_v2(self):
+		response = self.get(self.session_path(), {"sid": self.sid})
+		self.assertEqual(response.status_code, 200, response.json)
+		data = response.json["data"]
+		self.assertEqual(data["user"]["name"], "Administrator")
+		self.assertIsInstance(data["roles"], list)
+		self.assertIn("System Manager", data["roles"])
+		self.assertTrue(data["lang"])
+		self.assertTrue(data["timezone"])
+		self.assertIsInstance(data["defaults"], dict)
+
+	def test_session_serves_a_guest_v2(self):
+		response = self.get(self.session_path(), {"sid": "Guest"})
+		self.assertEqual(response.status_code, 200, response.json)
+		data = response.json["data"]
+		self.assertEqual(data["user"]["name"], "Guest")
+		self.assertIn("Guest", data["roles"])
+
+	def test_session_withholds_site_defaults_from_a_guest_v2(self):
+		frappe.db.set_default("api_v2_guest_defaults_probe", "leaked")
+		frappe.db.commit()  # nosemgrep
+		try:
+			response = self.get(self.session_path(), {"sid": "Guest"})
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertEqual(response.json["data"]["defaults"], {})
+		finally:
+			frappe.defaults.clear_default("api_v2_guest_defaults_probe")
+			frappe.db.commit()  # nosemgrep

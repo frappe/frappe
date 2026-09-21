@@ -2,25 +2,15 @@
 // what `page.roles` answers, and how `fieldAccess` treats a permlevel and a typo.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { computed, ref } from "vue";
+import type { Session } from "@framework/ui/api";
 
-const state = vi.hoisted(() => ({
-  roles: null as string[] | null,
-  meta: null as any,
-}));
+const state = vi.hoisted(() => ({ meta: null as any }));
 
-// The roles come through `createResource`, the meta through the v2 wrapper; both read
-// whatever the test staged, so no request is made.
+// The roles are published on the session, the meta comes through the v2 wrapper; both
+// read whatever the test staged, so no request is made.
 vi.mock("frappe-ui", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
   frappeRequest: vi.fn(),
-  createResource: () => ({
-    get data() {
-      return state.roles;
-    },
-    loading: false,
-    fetch() {},
-    reload() {},
-  }),
 }));
 vi.mock("@framework/ui/api", () => ({
   runMethod: vi.fn(async () => ({ data: null })),
@@ -31,6 +21,7 @@ import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { whenLoaded } from "../pagePermissions";
 import { resetRegistry } from "../registry";
 import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
+import { setSession } from "@framework/ui/composables/useSession";
 import { resetUserRoles } from "@framework/ui/composables/useUserRoles";
 
 const FIELDS = [
@@ -122,7 +113,7 @@ describe("page.roles", () => {
   beforeEach(reset);
 
   it("is the session user's roles, plain and synchronous", () => {
-    state.roles = ["Sales Manager", "Sales User"];
+    publishRoles(["Sales Manager", "Sales User"]);
     const { page } = createRecordPage(makeHost());
 
     expect(page.roles.includes("Sales Manager")).toBe(true);
@@ -139,7 +130,7 @@ describe("page.fieldAccess", () => {
   beforeEach(reset);
 
   it("reads a permlevel'd field against the roles' DocPerm rows", async () => {
-    state.roles = ["Sales User"];
+    publishRoles(["Sales User"]);
     state.meta = {
       name: "CRM Deal",
       fields: FIELDS,
@@ -194,8 +185,24 @@ describe("the gate the replay waits on", () => {
   });
 });
 
+/** Puts the roles where the composable reads them: the one shared session. */
+function publishRoles(roles: string[]): void {
+  const session: Session = {
+    user: {
+      name: "alice@example.com",
+      full_name: "Alice",
+      email: "alice@example.com",
+      user_image: null,
+    },
+    roles,
+    lang: "en",
+    timezone: "Asia/Kolkata",
+    defaults: {},
+  };
+  setSession(session);
+}
+
 function reset() {
-  state.roles = null;
   state.meta = null;
   resetRegistry();
   resetDoctypeMeta();

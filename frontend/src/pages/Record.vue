@@ -44,7 +44,7 @@
 				v-else-if="controller"
 				:items="bodyItems"
 				:page="controller.page"
-				:user="boot.user.name"
+				:user="boot.session.user.name"
 			>
 				<template #form>
 					<div ref="formRoot" data-record-form>
@@ -195,8 +195,8 @@ const docname = computed(() => String(route.params.name));
 const dirty = computed(() => JSON.stringify(doc.value) !== JSON.stringify(saved.value));
 
 // Off the sidecar, like the people rows: a favourite is never part of the draft.
-const favourites = computed(() => favouritesOf(docinfo.value, boot.user.name));
-const favourited = computed(() => hasFavourited(docinfo.value, boot.user.name));
+const favourites = computed(() => favouritesOf(docinfo.value, boot.session.user.name));
+const favourited = computed(() => hasFavourited(docinfo.value, boot.session.user.name));
 
 const header = computed(() => {
 	actionsVersion.value;
@@ -234,7 +234,7 @@ const sections = computed(() => layoutSections(panelLayout.value?.layout.value ?
 
 // Open sections are the reader's, per doctype; the surface's labelled items are what there is to open.
 const disclosure = useDisclosure(
-	() => boot.user.name,
+	() => boot.session.user.name,
 	() => `Record:${doctype.value}`,
 	() =>
 		(controller.value?.panelSections.visible() ?? [])
@@ -242,7 +242,7 @@ const disclosure = useDisclosure(
 			.map((item) => ({ name: item.name, opened: item.opened !== false }))
 );
 
-const tabMemory = computed(() => formTabMemory(boot.user.name, doctype.value ?? ""));
+const tabMemory = computed(() => formTabMemory(boot.session.user.name, doctype.value ?? ""));
 
 // The record's realtime room, joined per load; the panel's rows follow another tab's assign or comment.
 const live = useLiveDocinfo({ socket: getSocketInstance(), docinfo, reload: reloadDocinfo });

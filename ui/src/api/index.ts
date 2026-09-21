@@ -66,6 +66,22 @@ export interface SearchResult {
   description?: string;
 }
 
+export interface SessionUser {
+  name: string;
+  full_name: string;
+  email: string;
+  user_image: string | null;
+}
+
+/** The signed-in person and the site settings a client renders for them. */
+export interface Session {
+  user: SessionUser;
+  roles: string[];
+  lang: string;
+  timezone: string;
+  defaults: Record<string, unknown>;
+}
+
 export const UPLOAD_PATH = "/method/upload_file";
 
 export function getDocument<T extends DocumentRecord = DocumentRecord>(
@@ -182,6 +198,27 @@ export function getMeta<T = Record<string, unknown>>(
 ): Promise<Envelope<T>> {
   return request<T>("GET", `/doctype/${segment(doctype)}/meta`, {
     query: { include: joinInclude(include) },
+    signal,
+  });
+}
+
+/** A Guest gets a Guest session rather than a refusal, so this never has to be guarded. */
+export function getSession({ signal }: CallOptions = {}): Promise<Envelope<Session>> {
+  return request<Session>("GET", "/session", { signal });
+}
+
+export function logout({ signal }: CallOptions = {}): Promise<Envelope<unknown>> {
+  return request<unknown>("POST", "/method/logout", { signal });
+}
+
+/** Cached server-side for a year: `version` is the only thing that invalidates it. */
+export function getTranslations(
+  lang: string,
+  version: string,
+  { signal }: CallOptions = {}
+): Promise<Envelope<Record<string, string>>> {
+  return request<Record<string, string>>("GET", "/method/frappe.translate.get_boot_translations", {
+    query: { lang, v: version },
     signal,
   });
 }
