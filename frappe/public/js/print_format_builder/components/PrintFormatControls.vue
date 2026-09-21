@@ -32,27 +32,14 @@
 					ref="search_input"
 					class="pfb-search"
 					type="text"
-					:placeholder="__('Search fields...')"
+					:placeholder="__('Search fields')"
 					v-model="search_text"
 				/>
 				<kbd class="pfb-search-kbd" @click="focus_search">/</kbd>
 			</div>
 
-			<!-- Header -->
-			<div class="pfb-fields-header">
-				<span class="pfb-fields-header-title">
-					{{ __("Document Fields") }}
-					<span class="pfb-fields-header-sep">·</span>
-					{{ meta.name }}
-				</span>
-			</div>
-
 			<!-- Groups -->
-			<div
-				v-for="group in field_groups"
-				:key="group.label || '__root__'"
-				class="pfb-field-group"
-			>
+			<div v-for="(group, gi) in field_groups" :key="gi" class="pfb-field-group">
 				<div v-if="group.label" class="pfb-group-label">{{ group.label }}</div>
 				<draggable
 					:list="group.fields"
@@ -732,8 +719,8 @@ function add_page_break() {
 let field_groups = computed(() => {
 	const q = search_text.value.toLowerCase();
 
-	// Seed with ID (name) field
-	const groups = [{ label: null, fields: [] }];
+	// the document's own fields sit under its name, the way a section break names its own
+	const groups = [{ label: meta.value.name, fields: [] }];
 	let current = groups[0];
 
 	// Always show ID field first
@@ -924,8 +911,11 @@ function handle_slash_key(e) {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	padding: 8px 10px;
-	border-bottom: 1px solid var(--border-color);
+	margin: 10px;
+	padding: 5px 8px;
+	border: 1px solid var(--outline-gray-2);
+	border-radius: var(--radius);
+	background: var(--surface-gray-1);
 }
 
 .pfb-search-icon {
@@ -961,32 +951,13 @@ function handle_slash_key(e) {
 	line-height: 1.6;
 }
 
-/* ── Fields header ───────────────────────────────────────── */
-.pfb-fields-header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 10px 10px 4px;
-}
-
-.pfb-fields-header-title {
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-semibold);
-	color: var(--text-muted);
-}
-
-.pfb-fields-header-sep {
-	margin: 0 4px;
-	opacity: 0.5;
-}
-
 /* ── Group label ─────────────────────────────────────────── */
 .pfb-group-label {
-	font-size: var(--text-tiny);
+	font-size: var(--text-base);
 	font-weight: var(--weight-semibold);
 	letter-spacing: 0;
-	color: var(--text-muted);
-	padding: 8px 10px 2px;
+	color: var(--text-color);
+	padding: 12px 10px 4px;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
@@ -997,14 +968,9 @@ function handle_slash_key(e) {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	padding: 7px 10px;
+	padding: 6px 10px;
 	font-size: var(--text-sm);
 	cursor: grab;
-	border-bottom: 1px solid var(--border-color);
-}
-
-.pfb-field-row:last-child {
-	border-bottom: none;
 }
 
 .pfb-field-row:hover {
