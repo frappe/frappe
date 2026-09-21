@@ -816,20 +816,22 @@ function render_form_builder(frm) {
 	if (frm._web_form_builder_loading) return;
 	frm._web_form_builder_loading = true;
 
-	frappe.require("form_builder.bundle.js").then(() => {
-		frappe.web_form_builder = new frappe.ui.FormBuilder({
-			wrapper: wrapper,
-			frm: frm,
-			doctype: frm.doc.doc_type,
-			customize: false,
-			is_web_form: true,
-			tab_fieldname: "form_builder_tab",
-			get_source_field_values: get_web_form_field_values,
-			validate_page_limit: validate_page_break_limit,
-		});
-		frappe.web_form_builder.docname = frm.doc.name;
-		frm._web_form_builder_loading = false;
-	});
+	frappe
+		.require("form_builder.bundle.js")
+		.then(() => {
+			frappe.web_form_builder = new frappe.ui.FormBuilder({
+				wrapper: wrapper,
+				frm: frm,
+				doctype: frm.doc.doc_type,
+				customize: false,
+				is_web_form: true,
+				tab_fieldname: "form_builder_tab",
+				get_source_field_values: get_web_form_field_values,
+				validate_page_limit: validate_page_break_limit,
+			});
+			frappe.web_form_builder.docname = frm.doc.name;
+		})
+		.finally(() => (frm._web_form_builder_loading = false));
 }
 
 // hide with Desk's `hide-sidebar` class, never an inline display: inline outranks the class and
