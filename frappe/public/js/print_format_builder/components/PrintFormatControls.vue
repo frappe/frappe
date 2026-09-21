@@ -1026,10 +1026,18 @@ function handle_slash_key(e) {
 	user-select: none;
 }
 
-.pfb-tree-row:hover,
 .pfb-tree-row.pfb-tree-hover {
 	outline: 1px solid var(--pfb-accent);
 	outline-offset: -1px;
+}
+
+/* hovering a section or a column rings its whole subtree, the way the website
+   builder's layers do; a field has no subtree, so it rings its own row */
+.pfb-tree-node:has(> .pfb-tree-row:hover),
+.pfb-tree-children > .pfb-tree-row:hover {
+	outline: 1px solid var(--pfb-accent);
+	outline-offset: -1px;
+	border-radius: var(--radius);
 }
 
 .pfb-tree-row.active {
