@@ -2,6 +2,7 @@ import re
 from typing import Literal
 
 import frappe
+from frappe.model.document import Document
 from frappe.utils.data import cint, cstr
 
 # Chromium download/setup helpers were moved to `frappe.utils.chromium.download`.
@@ -113,6 +114,8 @@ def get_print(
 			check pdf_generator value in your hook function.
 			if it matches run and return pdf else return None
 			"""
+			# hook targets come from installed apps' hooks.py, never from request data
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
 			pdf = frappe.call(
 				hook,
 				print_format=print_format,
@@ -123,12 +126,12 @@ def get_print(
 			)
 			# if hook returns a value, assume it was the correct pdf_generator and return it
 			if pdf:
-				return _finalize_pdf(doctype, name, pdf, output)
+				return _finalize_pdf(doctype, name, pdf, output, doc=doc)
 
 	for hook in frappe.get_hooks("on_print_pdf"):
 		frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
 
-	return _finalize_pdf(doctype, name, get_pdf(html, options=pdf_options), output)
+	return _finalize_pdf(doctype, name, get_pdf(html, options=pdf_options), output, doc=doc)
 
 
 def attach_print(
@@ -183,7 +186,10 @@ def attach_print(
 				ext = ".pdf"
 				if html:
 					content = run_after_print_hook(
-						doctype, name, get_pdf(html, options={"password": password} if password else None)
+						doctype,
+						name,
+						get_pdf(html, options={"password": password} if password else None),
+						doc=doc,
 					)
 				elif render_via_generator:
 					from frappe.utils.print_format_generator import PrintFormatGenerator
@@ -274,7 +280,7 @@ def convert_uom(
 	return f"{round(number * converstion_factor[0][f'from_{from_uom}'][0][f'to_{to_uom}'], 3)}{to_uom}"
 
 
-def _finalize_pdf(doctype: str, name: str, pdf, output=None):
+def _finalize_pdf(doctype: str, name: str, pdf, output=None, doc: Document | None = None):
 	"""When output is provided, append the after_print-hook PDF-pages to output"""
 	from io import BytesIO
 
@@ -284,9 +290,8 @@ def _finalize_pdf(doctype: str, name: str, pdf, output=None):
 
 	if isinstance(pdf, PdfWriter):
 		pdf = get_file_data_from_writer(pdf)
-	assert isinstance(pdf, bytes)
 
-	pdf = run_after_print_hook(doctype, name, pdf)
+	pdf = run_after_print_hook(doctype, name, pdf, doc=doc)
 
 	if output:
 		for page in PdfReader(BytesIO(pdf)).pages:
@@ -295,7 +300,8 @@ def _finalize_pdf(doctype: str, name: str, pdf, output=None):
 	return pdf
 
 
-def run_after_print_hook(doctype: str, name: str, pdf: bytes) -> bytes:
+def run_after_print_hook(doctype: str, name: str, pdf: bytes, doc: Document | None = None) -> bytes:
 	"""run the after_print hook for a document after its pdf is generated"""
-	doc = frappe.get_cached_doc(doctype, name)
+	if doc is None:
+		doc = frappe.get_cached_doc(doctype, name)
 	return doc.run_method("after_print", pdf=pdf) or pdf

@@ -41,7 +41,8 @@ class TestPrintUtils(IntegrationTestCase):
 		writer = pdf_writer()
 
 		with patch(
-			"frappe.utils.print_utils.run_after_print_hook", side_effect=lambda _d, _n, pdf: pdf
+			"frappe.utils.print_utils.run_after_print_hook",
+			side_effect=lambda _d, _n, pdf, **_: pdf,
 		) as hook:
 			result = _finalize_pdf(todo.doctype, todo.name, writer)
 
@@ -83,7 +84,7 @@ class TestPrintUtils(IntegrationTestCase):
 		todo = self._make_todo()
 		pdf = blank_pdf()
 
-		mock_hook = MagicMock(side_effect=lambda _d, _n, p: p)
+		mock_hook = MagicMock(side_effect=lambda _d, _n, p, **_: p)
 		with (
 			patch("frappe.utils.print_utils.run_after_print_hook", mock_hook),
 			patch("frappe.utils.print_format_generator.run_after_print_hook", mock_hook),
@@ -96,7 +97,7 @@ class TestPrintUtils(IntegrationTestCase):
 				patch("frappe.utils.pdf.get_pdf", return_value=pdf),
 			):
 				get_print(todo.doctype, todo.name, as_pdf=True, pdf_generator="wkhtmltopdf")
-			mock_hook.assert_called_with(todo.doctype, todo.name, pdf)
+			mock_hook.assert_called_with(todo.doctype, todo.name, pdf, doc=None)
 
 			self.assertEqual(mock_hook.call_count, 1)
 
@@ -114,7 +115,7 @@ class TestPrintUtils(IntegrationTestCase):
 			generator = PrintFormatGenerator(pf, todo)
 			with patch("frappe.utils.pdf.get_chrome_pdf", return_value=pdf):
 				generator.render_pdf()
-			mock_hook.assert_called_with(todo.doctype, todo.name, pdf)
+			mock_hook.assert_called_with(todo.doctype, todo.name, pdf, doc=todo)
 
 			self.assertEqual(mock_hook.call_count, 2)
 
@@ -122,6 +123,6 @@ class TestPrintUtils(IntegrationTestCase):
 			generator = PrintFormatGenerator(pf, todo)
 			with patch.object(generator, "render_typst_pdf", return_value=pdf):
 				generator.render_pdf()
-			mock_hook.assert_called_with(todo.doctype, todo.name, pdf)
+			mock_hook.assert_called_with(todo.doctype, todo.name, pdf, doc=todo)
 
 			self.assertEqual(mock_hook.call_count, 3)

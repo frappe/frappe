@@ -414,7 +414,7 @@ class PrintFormatGenerator:
 						pdf_generator=generator_name,
 					)
 					if pdf:
-						return run_after_print_hook(self.doc.doctype, self.doc.name, pdf)
+						return run_after_print_hook(self.doc.doctype, self.doc.name, pdf, doc=self.doc)
 			finally:
 				frappe.local.print_format_generator = previous
 		from frappe.utils.typst_emitter import has_typst_blocks
@@ -444,7 +444,7 @@ class PrintFormatGenerator:
 			output=None,
 			pdf_generator="chrome",
 		)
-		return run_after_print_hook(self.doc.doctype, self.doc.name, pdf)
+		return run_after_print_hook(self.doc.doctype, self.doc.name, pdf, doc=self.doc)
 
 	def render_typst_pdf(self, password=None):
 		"""Compile the resolved layout through Typst — ~10-15x faster than Chromium.
