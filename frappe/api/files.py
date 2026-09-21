@@ -1,9 +1,7 @@
 """File handlers for the v2 document routes.
 
-`POST /document/File` uploads a detached file: multipart, with the File fields beside the
-bytes. `POST /document/<doctype>/<name>/attachments` uploads the same way and hangs the
-File on that document; `DELETE .../attachments/<file>` removes it. Both answer with the
-refreshed `attachments` part, in the shape the read returns it.
+`POST /document/File` uploads a detached file and `POST /document/<dt>/<name>/attachments`
+one that hangs on a record; `DELETE .../attachments/<file>` removes it.
 """
 
 import frappe
@@ -14,6 +12,9 @@ from frappe.model.document import Document
 
 ATTACHMENTS = "attachments"
 
+# the fields that name a record; on this route they would make a second way to attach
+ATTACH_FIELDS = ("doctype", "docname")
+
 
 def create_file():
 	"""Multipart is an upload; JSON stays the plain insert, so base64 `content` still works."""
@@ -22,24 +23,29 @@ def create_file():
 
 		return create_doc("File")
 
+	for field in ATTACH_FIELDS:
+		if frappe.form_dict.get(field):
+			raise NotAnUploadError(
+				_("'{0}' belongs to the attachments route, not the File route").format(field)
+			)
 	doc = upload()
 	return doc.as_dict() if doc else None
 
 
 def attach(doctype: str, name: str):
-	"""Upload a file and hang it on the document; answers with the refreshed part."""
-	doc = frappe.get_doc(doctype, name)
+	"""Upload a file and hang it on the document; answers with the refreshed part and the new File."""
 	if not has_upload_part():
 		raise NotAnUploadError(_("Attaching a file needs a multipart request with a 'file' part"))
 
 	# `upload_file` reads the document it attaches to from the form, and checks `write` on it
 	frappe.form_dict["doctype"] = doctype
-	frappe.form_dict["docname"] = doc.name
+	frappe.form_dict["docname"] = name
 
-	# a chunk that is not the last one writes no File, so there is no refreshed part yet
-	if not upload():
+	created = upload()
+	if not created:
 		return None
-	return refreshed(doc)
+	# two files can share a name, so the part alone does not say which row this request made
+	return {"file": created.name, **refreshed(frappe.get_doc(doctype, name))}
 
 
 def detach(doctype: str, name: str, file_name: str):
@@ -68,8 +74,8 @@ def upload() -> Document | None:
 	if doc:
 		return doc
 
-	# The chunk loop sends every chunk to the same route and only the last one answers with
-	# the File, so the envelope must still carry the key the caller reads.
+	# Every chunk goes to the same route and only the last one answers with the File, so the
+	# envelope must still carry the key the caller reads.
 	frappe.response["data"] = None
 	return None
 

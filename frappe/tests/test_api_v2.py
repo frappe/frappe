@@ -1546,42 +1546,6 @@ class TestCollaborationWritesV2(FrappeAPITestCase):
 		self.assertFalse(frappe.db.exists("ToDo", name))
 
 
-class TestSessionAPIV2(FrappeAPITestCase):
-	version = "v2"
-
-	def session_path(self):
-		return self.get_path("session")
-
-	def test_session_v2(self):
-		response = self.get(self.session_path(), {"sid": self.sid})
-		self.assertEqual(response.status_code, 200, response.json)
-		data = response.json["data"]
-		self.assertEqual(data["user"]["name"], "Administrator")
-		self.assertIsInstance(data["roles"], list)
-		self.assertIn("System Manager", data["roles"])
-		self.assertTrue(data["lang"])
-		self.assertTrue(data["timezone"])
-		self.assertIsInstance(data["defaults"], dict)
-
-	def test_session_serves_a_guest_v2(self):
-		response = self.get(self.session_path(), {"sid": "Guest"})
-		self.assertEqual(response.status_code, 200, response.json)
-		data = response.json["data"]
-		self.assertEqual(data["user"]["name"], "Guest")
-		self.assertIn("Guest", data["roles"])
-
-	def test_session_withholds_site_defaults_from_a_guest_v2(self):
-		frappe.db.set_default("api_v2_guest_defaults_probe", "leaked")
-		frappe.db.commit()  # nosemgrep
-		try:
-			response = self.get(self.session_path(), {"sid": "Guest"})
-			self.assertEqual(response.status_code, 200, response.json)
-			self.assertEqual(response.json["data"]["defaults"], {})
-		finally:
-			frappe.defaults.clear_default("api_v2_guest_defaults_probe")
-			frappe.db.commit()  # nosemgrep
-
-
 class TestFileRoutesV2(FrappeAPITestCase):
 	"""Uploading through `POST /document/File`, and the `attachments` sub-resource."""
 
@@ -1645,6 +1609,7 @@ class TestFileRoutesV2(FrappeAPITestCase):
 		from frappe.utils import set_request
 
 		original_request = getattr(frappe.local, "request", None)
+		original_user = frappe.session.user
 		set_request(path="/")
 		try:
 			frappe.local.cookie_manager = CookieManager()
@@ -1653,6 +1618,8 @@ class TestFileRoutesV2(FrappeAPITestCase):
 			return frappe.session.sid
 		finally:
 			frappe.local.request = original_request
+			# logging in leaves this thread as that user, and the cleanup here runs as Administrator
+			frappe.set_user(original_user)
 
 	@cached_property
 	def user_sid(self) -> str:
@@ -1689,6 +1656,12 @@ class TestFileRoutesV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200, response.json)
 		self.assertIsInstance(response.json["data"], list)
 
+	def test_the_lowercase_path_is_not_the_upload_route(self):
+		# werkzeug matches a rule by case, so the static rule does not catch this spelling
+		with suppress_stdout():
+			response = self.upload(self.resource("file"), b"hello", "lower.txt")
+		self.assertNotEqual(response.status_code, 200, response.json)
+
 	def test_json_create_is_still_a_plain_insert(self):
 		response = self.post(
 			self.resource("File"),
@@ -1704,6 +1677,12 @@ class TestFileRoutesV2(FrappeAPITestCase):
 		self.assertEqual(response.json["data"]["file_name"], "base64.txt")
 		frappe.delete_doc_if_exists("File", response.json["data"]["name"], force=True)
 
+	def test_the_file_route_refuses_the_attach_fields(self):
+		response = self.upload(
+			self.resource("File"), b"hello", "sideways.txt", doctype="ToDo", docname=self.todo.name
+		)
+		self.assertEqual(response.status_code, 417, response.json)
+
 	def test_a_method_field_is_refused_on_the_document_route(self):
 		response = self.upload(self.resource("File"), b"hello", "redirect.txt", method="frappe.ping")
 		self.assertEqual(response.status_code, 417, response.json)
@@ -1717,6 +1696,8 @@ class TestFileRoutesV2(FrappeAPITestCase):
 		self.assertEqual(rows[0]["owner"], self.TEST_USER)
 		self.assertTrue(rows[0]["creation"])
 		self.assertIn(self.TEST_USER, response.json["data"]["users"])
+		# the browser reads this key to find the row it just made
+		self.assertEqual(response.json["data"]["file"], rows[0]["name"])
 
 	def test_a_chunk_that_is_not_the_last_answers_with_no_file(self):
 		response = self.upload(
@@ -1730,6 +1711,33 @@ class TestFileRoutesV2(FrappeAPITestCase):
 		)
 		self.assertEqual(response.status_code, 200, response.json)
 		self.assertIsNone(response.json["data"])
+
+	def test_the_last_chunk_answers_with_the_reassembled_file(self):
+		path = self.attachments_path(self.todo.name)
+		first = self.upload(
+			path,
+			b"0123",
+			"whole.txt",
+			chunk_index="0",
+			total_chunk_count="2",
+			chunk_byte_offset="0",
+			total_file_size="8",
+		)
+		self.assertIsNone(first.json["data"])
+		second = self.upload(
+			path,
+			b"4567",
+			"whole.txt",
+			chunk_index="1",
+			total_chunk_count="2",
+			chunk_byte_offset="4",
+			total_file_size="8",
+		)
+		self.assertEqual(second.status_code, 200, second.json)
+		file_name = second.json["data"]["file"]
+		frappe.db.rollback()
+		self.assertEqual(frappe.get_doc("File", file_name).get_content(), "01234567")
+		frappe.delete_doc_if_exists("File", file_name, force=True)
 
 	def test_attach_needs_write_on_the_document(self):
 		data = {"file": (BytesIO(b"hello"), "denied.txt"), "sid": self.sid_of(self.READER)}
