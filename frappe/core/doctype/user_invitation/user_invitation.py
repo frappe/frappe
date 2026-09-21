@@ -67,6 +67,12 @@ class UserInvitation(Document):
 		)
 		return True
 
+	@frappe.whitelist(methods=["POST"])
+	def resend_invite(self):
+		if self.status != "Pending":
+			frappe.throw(title=_("Error"), msg=_("Only pending invitations can be resent"))
+		self.send_invitation_mail()
+
 	@frappe.whitelist()
 	def expire(self):
 		if self.status != "Pending":
