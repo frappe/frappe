@@ -1318,11 +1318,17 @@ class Database:
 		columns = frappe.cache.hget("table_columns", table)
 		if columns is None:
 			information_schema = frappe.qb.Schema("information_schema")
+			table_schema = (
+				frappe.conf.get("db_schema", "public") if self.db_type == "postgres" else self.cur_db_name
+			)
 
 			columns = (
 				frappe.qb.from_(information_schema.columns)
 				.select(information_schema.columns.column_name)
-				.where(information_schema.columns.table_name == table)
+				.where(
+					(information_schema.columns.table_name == table)
+					& (information_schema.columns.table_schema == table_schema)
+				)
 				.run(pluck=True)
 			)
 
