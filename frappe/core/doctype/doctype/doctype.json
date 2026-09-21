@@ -804,11 +804,7 @@
    "link_fieldname": "document_type"
   }
  ],
-<<<<<<< HEAD
- "modified": "2026-05-26 16:07:46.949040",
-=======
  "modified": "2026-09-17 12:46:29.020996",
->>>>>>> 26dce3b (fix: prevent renaming Single DocTypes)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
