@@ -505,11 +505,11 @@ class GetFieldsDialog {
 			</div>
 			<h6 class="form-section-heading uppercase">${__("Select Fields To Update")}</h6>
 			<div class="mb-3">
-				<button class="btn btn-default btn-sm" data-action="select_all">${__("Select All")}</button>
-				<button class="btn btn-default btn-sm" data-action="select_mandatory">
+				<button class="btn btn-default btn-xs" data-action="select_all">${__("Select All")}</button>
+				<button class="btn btn-default btn-xs" data-action="select_mandatory">
 					${__("Select Mandatory")}
 				</button>
-				<button class="btn btn-default btn-sm" data-action="unselect_all">${__("Unselect All")}</button>
+				<button class="btn btn-default btn-xs" data-action="unselect_all">${__("Unselect All")}</button>
 			</div>
 		`);
 		frappe.utils.bind_actions_with_object($header, this);
@@ -570,11 +570,15 @@ class GetFieldsDialog {
 
 	// MultiCheck listens for "change", so its get_value() stays in sync
 	set_all_checked(checked) {
-		this.dialog.$wrapper.find(":checkbox").prop("checked", checked).trigger("change");
+		this.dialog
+			.get_field("fields")
+			.$wrapper.find(":checkbox")
+			.prop("checked", checked)
+			.trigger("change");
 	}
 
-	// the search hides rows with display:none, so the list would resize on every
-	// keystroke: pin it to the height it has before the first one
+	// the search hides rows with display:none, so the list would resize on every keystroke.
+	// Must run after the dialog paints, or the height reads 0.
 	freeze_list_height() {
 		const $wrapper = this.dialog.get_field("fields").$wrapper;
 		$wrapper.height($wrapper.height());
