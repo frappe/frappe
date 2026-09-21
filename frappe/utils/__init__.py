@@ -351,7 +351,7 @@ def _get_traceback_sanitizer():
 		"authorization",
 		"cookie",
 	]
-	
+
 	exact_blocklist = ["sid"]
 
 	placeholder = "********"
