@@ -732,20 +732,14 @@ frappe.router = {
 	// `item` is a doctype, so the shell comes off. In the second, `item` is not a shell, so
 	// nothing does.
 	//
-	// It is what keeps the slugs that are both a shell and a doctype working. On a site with
-	// erpnext and hrms there are three: `Workflow`, `Newsletter` and `Raven Bot` each name a
-	// module with a sidebar and a doctype at once, so
-	// `/desk/workflow/WF-0001` starts with a shell slug -- but `WF-0001` names nothing, so the
-	// route is left whole and parses as the form it has always been.
-	//
-	// The other side of that collision is a document named like something routable. A Workflow
-	// called `item` makes `/desk/workflow/item` read as the Item list in the Workflow shell, not
-	// as that Workflow's form. It is accepted rather than guessed around, because the parser runs
-	// before any document is fetched and cannot ask whether one exists: it touches only the
-	// shells that are also doctypes (three, above), and only documents whose whole name slugs to
-	// a doctype, workspace, page or view. Such a form still opens from its standard route typed
-	// as one, `/desk/Form/Workflow/item`; `set_route` spells it the friendly way and lands on the
-	// list.
+	// A shell whose slug is also a doctype is never taken off the front. On a site with erpnext
+	// and hrms there are three: `Workflow`, `Newsletter` and `Raven Bot` each name a module with a
+	// sidebar and a doctype at once. `/desk/workflow/<name>` has always been a Workflow form, and
+	// the parser runs before any document is fetched, so it cannot ask whether a Workflow called
+	// `item` exists before reading `/desk/workflow/item` as the Item list. The doctype wins, the
+	// same way a workspace wins over a doctype in `segment_kind`, and `write_shell_into_url`
+	// never writes one of these shells in front of another route, so the desk does not produce
+	// a URL it would then misread.
 	//
 	// A one-segment route never carries a shell. `/desk/stock` stays the Stock workspace it has
 	// always been, and a shell is reached through the two-segment form instead.
@@ -764,6 +758,7 @@ frappe.router = {
 	// drop a shell without adopting it.
 	begins_with_shell(route) {
 		if (route.length <= 1 || !this.shell_routes?.[route[0]]) return false;
+		if (this.segment_kind(route[0]) === "doctype") return false;
 		return this.route_names_something(route[1]);
 	},
 
@@ -820,13 +815,18 @@ frappe.router = {
 		// it.
 		const slug = this.shell_slug(shell);
 		const names_itself = rest === slug || rest.startsWith(slug + "/");
-		const path = "/desk/" + (names_itself ? rest : slug + "/" + rest);
+
+		// A shell that is also a doctype cannot go in front: `/desk/workflow/item` reads back as
+		// the Workflow named `item`, not the Item list (see `take_shell_from`). The route keeps
+		// no shell in its URL, and the sidebar stays on the shell on screen until a reload.
+		const unwritable = !names_itself && this.segment_kind(slug) === "doctype";
+		const path = "/desk/" + (names_itself || unwritable ? rest : slug + "/" + rest);
 		if (path === window.location.pathname) return;
 
 		// `path_on_screen` strips one segment whenever this is set, so it has to say what the URL
 		// now spells: the shell when one was written, nothing when the route already begins with
-		// its own shell's slug.
-		this.current_shell = names_itself ? null : shell;
+		// its own shell's slug or the shell could not be written.
+		this.current_shell = names_itself || unwritable ? null : shell;
 		history.replaceState(
 			history.state,
 			"",

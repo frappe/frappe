@@ -36,11 +36,12 @@ describe("Desk URL shell segment", () => {
 			// Nothing in front, so nothing is taken and this is the form it has always been.
 			expect(read(["todo", "TODO-0001"])).to.deep.eq([["todo", "TODO-0001"], null]);
 
-			// `Workflow` names both a module with a sidebar and a doctype, so the first segment is
-			// a shell slug either way and only the second can decide. A document's name is not
-			// something the desk routes to on its own, so the route is left whole.
+			// `Workflow` names both a module with a sidebar and a doctype, and the doctype wins:
+			// `/desk/workflow/<name>` has always been a Workflow form, and a Workflow may be named
+			// `todo`. The parser cannot fetch the document to find out, so the route is left whole
+			// even when what follows is routable on its own.
 			expect(read(["workflow", "WF-0001"])).to.deep.eq([["workflow", "WF-0001"], null]);
-			expect(read(["workflow", "workflow"])).to.deep.eq([["workflow"], "Workflow"]);
+			expect(read(["workflow", "todo"])).to.deep.eq([["workflow", "todo"], null]);
 
 			// One segment is never a shell. Every workspace route the desk has ever had is one
 			// segment, and 31 of them collide with a shell slug on a site with erpnext installed.
