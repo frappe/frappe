@@ -1018,8 +1018,7 @@ function handle_slash_key(e) {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	/* matches the website builder's layer row: 20px line with 7px above and below */
-	min-height: 34px;
+	/* the website builder sizes a layer row by its content, not a fixed height */
 	padding: 4px 8px;
 	border-radius: var(--radius);
 	cursor: pointer;
