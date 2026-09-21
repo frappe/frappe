@@ -150,7 +150,8 @@ export default class Section {
 
 	has_missing_mandatory() {
 		// a dialog has no doc; its values are the doc
-		const doc = this.layout.doc || (this.layout.get_values && this.layout.get_values(true)) || {};
+		const doc =
+			this.layout.doc || (this.layout.get_values && this.layout.get_values(true)) || {};
 		let missing_mandatory = false;
 		for (let j = 0, l = this.fields_list.length; j < l; j++) {
 			const section_df = this.fields_list[j].df;

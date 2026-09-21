@@ -423,7 +423,9 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 		if (!has_rows) {
 			// "no documents at all" vs "the search box filtered them all out"
 			// — records exist in _all_data only in the latter case
-			const searched = this.get_page ? this.searched : this._all_data && this._all_data.length > 0;
+			const searched = this.get_page
+				? this.searched
+				: this._all_data && this._all_data.length > 0;
 			const $empty = frappe.ui.empty_state(
 				searched
 					? { icon: this.no_match_icon, title: this.no_match_message }
