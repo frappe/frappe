@@ -442,9 +442,8 @@ frappe.ui.form.on("Web Form Field", {
 	},
 });
 
-// one list of the doctype's fields (no breaks), rows already on the form pre-ticked.
-// Update adds what was ticked and removes the rows that were unticked. With everything
-// ticked, it rebuilds the table in doctype order, breaks included.
+// Both modes add the ticked fields and remove the unticked rows. Fields Only keeps the
+// layout the form has; Fields with Layout reorders into doctype order, breaks included.
 class GetFieldsDialog {
 	constructor(frm, fields) {
 		this.frm = frm;
@@ -477,6 +476,21 @@ class GetFieldsDialog {
 		this.dialog = new frappe.ui.Dialog({
 			title: __("Get Fields from {0}", [this.frm.doc.doc_type]),
 			fields: [
+				{
+					fieldname: "update_type",
+					fieldtype: "Select",
+					label: __("Update Type"),
+					options: [
+						{ value: "add_and_remove", label: __("Fields Only") },
+						{ value: "rebuild_layout", label: __("Fields with Layout") },
+					],
+					// rebuilding is destructive, so it is only the default with nothing to lose
+					default: this.frm.doc.web_form_fields?.length
+						? "add_and_remove"
+						: "rebuild_layout",
+					change: () => this.describe_update_type(),
+				},
+				{ fieldtype: "Section Break" },
 				// a sibling of the MultiCheck, which scrolls and would clip the search focus ring
 				{ fieldtype: "HTML", fieldname: "picker_header" },
 				{
@@ -492,20 +506,39 @@ class GetFieldsDialog {
 			on_page_show: () => {
 				this.freeze_list_height();
 				frappe.utils.setup_search(this.dialog.$body, ".unit-checkbox", ".label-area");
-				// only on a form without fields, or it would re-tick fields removed on purpose
-				!this.existing_rows.length && this.select_mandatory();
 			},
 		});
 		this.make_header();
-		// caps a long list at 20rem, while a short one still hugs its rows
+		// the default is applied by now, so there is a value to describe
+		this.describe_update_type();
+		// not on_page_show: that runs on shown.bs.modal, by which time the dialog already
+		// takes clicks, so it would re-tick what Unselect All just cleared.
+		// Only on a form without fields, or it would re-tick fields removed on purpose.
+		!this.existing_rows.length && this.select_mandatory();
+		// Dialog takes no wrapper class, so the scroll cap goes on after construction
 		this.dialog.get_field("fields").$wrapper.addClass("max-h-80 overflow-y-auto");
 		this.dialog.show();
+	}
+
+	describe_update_type() {
+		this.dialog.set_df_property(
+			"update_type",
+			"description",
+			this.dialog.get_value("update_type") === "rebuild_layout"
+				? __("Ticked fields are laid out in doctype order, with sections and pages")
+				: __("Ticked fields are appended, and the current layout is kept")
+		);
 	}
 
 	make_header() {
 		const $header = $(`
 			<div class="filters-search">
-				<input type="text" placeholder="${__("Search")}" data-element="search" class="form-control">
+				<input
+					type="text"
+					placeholder="${__("Search")}"
+					data-element="search"
+					class="form-control input-xs"
+				>
 			</div>
 			<h6 class="form-section-heading uppercase">${__("Select Fields To Update")}</h6>
 			<div class="mb-3">
@@ -527,24 +560,87 @@ class GetFieldsDialog {
 			...this.fields.map((df) => df.fieldname),
 		]);
 		return [...fieldnames].map((fieldname) => {
+			// undefined for a stale row
 			const df = this.fields_by_name[fieldname];
 			const is_stale = this.stale_fieldnames.has(fieldname);
 			const warning_title = is_stale
 				? this.get_stale_warning_title(fieldname)
 				: get_condition_warning_title(df);
 			return {
-				// muted, so a row on its way out does not read as an offer
 				label_class: is_stale ? "text-muted" : "",
 				// MultiCheck renders the label as HTML, and a row label is user input
 				label: frappe.utils.escape_html(this.get_label(fieldname)),
 				value: fieldname,
 				checked: this.existing_fieldnames.includes(fieldname),
 				description: df?.fieldtype,
-				danger: this.is_field_mandatory(df),
+				danger: !!df?.reqd,
 				warning: !!warning_title,
 				warning_title,
 			};
 		});
+	}
+
+	update() {
+		const selected = this.dialog.get_value("fields");
+		if (this.dialog.get_value("update_type") === "rebuild_layout") {
+			this.rebuild_layout(selected);
+		} else {
+			this.add_and_remove(selected);
+		}
+
+		this.frm.refresh_field("web_form_fields");
+		refresh_form_builder(this.frm);
+
+		// not scroll_to_field: its highlight glow wraps the whole builder tab
+		get_builder_tab(this.frm)?.set_active();
+		this.dialog.hide();
+	}
+
+	add_and_remove(selected) {
+		const removed = this.existing_rows.filter((d) => !selected.includes(d.fieldname));
+
+		// clear_doc also renumbers idx, which filtering the array would not
+		removed.forEach((d) => frappe.model.clear_doc(d.doctype, d.name));
+		// ticked rows are kept as they are, so edits made on them survive
+		selected
+			.filter((fieldname) => !this.existing_fieldnames.includes(fieldname))
+			.forEach((fieldname) => this.add_row(this.fields_by_name[fieldname], selected));
+
+		// clear_doc does not dirty the form, and refresh_form_builder would reset __unsaved
+		removed.length && this.frm.dirty();
+	}
+
+	rebuild_layout(selected) {
+		const ordered = this.get_ordered_rows(selected);
+
+		// add_child creates the table, and with nothing ticked it never ran
+		(this.frm.doc.web_form_fields || [])
+			.filter((d) => !ordered.includes(d))
+			.forEach((d) => frappe.model.clear_doc(d.doctype, d.name));
+		this.frm.doc.web_form_fields = ordered;
+		ordered.forEach((d, i) => (d.idx = i + 1));
+		this.frm.dirty();
+	}
+
+	// existing rows are reused, so their edits survive. A break is kept even with nothing
+	// ticked under it: the portal skips an empty page, and the save reports that it did.
+	get_ordered_rows(selected) {
+		const rows = this.doctype_fields
+			.filter((df) => is_layout_field(df) || selected.includes(df.fieldname))
+			.map(
+				(df) =>
+					this.existing_rows.find((d) => d.fieldname === df.fieldname) ||
+					this.add_row(df, selected)
+			);
+		// stale rows match no doctype field, so they land at the end
+		const stale_rows = this.existing_rows.filter(
+			(d) => this.stale_fieldnames.has(d.fieldname) && selected.includes(d.fieldname)
+		);
+		return [...rows, ...stale_rows];
+	}
+
+	add_row(df, fieldnames) {
+		return this.frm.add_child("web_form_fields", get_web_form_field_values(df, fieldnames));
 	}
 
 	// three ways to go stale: doc_type has no such field, or has one skipped as hidden or as
@@ -588,11 +684,6 @@ class GetFieldsDialog {
 		this.set_all_checked(false);
 	}
 
-	// df is undefined for a stale row
-	is_field_mandatory(df) {
-		return !!df?.reqd;
-	}
-
 	// MultiCheck listens for "change", so its get_value() stays in sync
 	set_all_checked(checked) {
 		this.dialog
@@ -607,65 +698,6 @@ class GetFieldsDialog {
 	freeze_list_height() {
 		const $wrapper = this.dialog.get_field("fields").$wrapper;
 		$wrapper.height($wrapper.height());
-	}
-
-	update() {
-		const selected = this.dialog.get_value("fields");
-		// checkbox state, not a Select All flag: Select All then one untick stays additive
-		const all_ticked = selected.length === this.dialog.get_field("fields").options.length;
-		all_ticked ? this.rebuild_layout(selected) : this.add_and_remove(selected);
-
-		this.frm.refresh_field("web_form_fields");
-		refresh_form_builder(this.frm);
-
-		// not scroll_to_field: its highlight glow wraps the whole builder tab
-		get_builder_tab(this.frm)?.set_active();
-		this.dialog.hide();
-	}
-
-	add_and_remove(selected) {
-		const removed = this.existing_rows.filter((d) => !selected.includes(d.fieldname));
-
-		// clear_doc also renumbers idx, which filtering the array would not
-		removed.forEach((d) => frappe.model.clear_doc(d.doctype, d.name));
-		// ticked rows are kept as they are, so edits made on them survive
-		selected
-			.filter((fieldname) => !this.existing_fieldnames.includes(fieldname))
-			.forEach((fieldname) => this.add_row(this.fields_by_name[fieldname], selected));
-
-		// add_child marks the form dirty but clear_doc does not, and the fetch in update()
-		// would then reset __unsaved
-		removed.length && this.frm.dirty();
-	}
-
-	rebuild_layout(selected) {
-		const ordered = this.get_ordered_rows(selected);
-
-		this.frm.doc.web_form_fields
-			.filter((d) => !ordered.includes(d))
-			.forEach((d) => frappe.model.clear_doc(d.doctype, d.name));
-		this.frm.doc.web_form_fields = ordered;
-		ordered.forEach((d, i) => (d.idx = i + 1));
-		this.frm.dirty();
-	}
-
-	// existing rows are reused, so their edits survive. Breaks are always new, and empty
-	// ones are kept: the portal hides empty sections and skips empty pages.
-	get_ordered_rows(selected) {
-		const rows = this.doctype_fields.map(
-			(df) =>
-				this.existing_rows.find((d) => d.fieldname === df.fieldname) ||
-				this.add_row(df, selected)
-		);
-		// stale rows were selected too, so keep them at the end
-		const stale_rows = this.existing_rows.filter((d) =>
-			this.stale_fieldnames.has(d.fieldname)
-		);
-		return [...rows, ...stale_rows];
-	}
-
-	add_row(df, selected) {
-		return this.frm.add_child("web_form_fields", get_web_form_field_values(df, selected));
 	}
 }
 
