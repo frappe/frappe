@@ -83,6 +83,9 @@ class UnitTestDuckDBSync(UnitTestCase):
 
 class IntegrationTestDuckDBSync(IntegrationTestCase):
 	def test_extension_sync_copies_rows_and_marks_completion(self):
+		if frappe.db.db_type not in ("mariadb", "postgres"):
+			self.skipTest(f"The extension sync has no scanner for {frappe.db.db_type}")
+
 		expected_rows = frappe.get_list(
 			"Role",
 			filters={"name": ["in", ["_Test Role", "_Test Role 4"]]},
@@ -120,7 +123,7 @@ class IntegrationTestDuckDBSync(IntegrationTestCase):
 
 	def test_postgres_extension_reads_the_configured_schema(self):
 		if frappe.db.db_type != "postgres":
-			self.skipTest("PostgreSQL schemas are not available on MariaDB")
+			self.skipTest(f"PostgreSQL schemas are not available on {frappe.db.db_type}")
 
 		import duckdb
 
