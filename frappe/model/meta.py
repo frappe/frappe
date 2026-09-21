@@ -393,8 +393,8 @@ class Meta(Document):
 		if field := self.get_field(fieldname):
 			return field.translatable
 
-	def get_workflow(self):
-		return get_workflow_name(self.name)
+	def get_workflow(self, doc=None):
+		return get_workflow_name(self.name, doc)
 
 	def get_naming_series_options(self) -> list[str]:
 		"""Get list naming series options."""
