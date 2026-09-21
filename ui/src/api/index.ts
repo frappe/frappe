@@ -14,6 +14,18 @@ export {
   type ErrorEntry,
 } from "./envelope";
 export { apiUrl, request, requestHeaders, type HttpMethod, type Query } from "./request";
+export {
+  attachFile,
+  downloadFile,
+  removeAttachment,
+  uploadFile,
+  DEFAULT_CHUNK_SIZE,
+  type Attachment,
+  type AttachmentsPart,
+  type FileDocument,
+  type UploadFields,
+  type UploadOptions,
+} from "./upload";
 
 export type DocumentRecord = Record<string, unknown> & { name: string; modified?: string };
 export type Args = Record<string, unknown>;
@@ -81,8 +93,6 @@ export interface Session {
   timezone: string;
   defaults: Record<string, unknown>;
 }
-
-export const UPLOAD_PATH = "/method/upload_file";
 
 export function getDocument<T extends DocumentRecord = DocumentRecord>(
   doctype: string,

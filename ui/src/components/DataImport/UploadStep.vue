@@ -165,16 +165,18 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, inject, nextTick, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import type { DataImports, DataImport, DocField, DocType } from "./types";
-import { Badge, Button, Dropdown, FileUploadHandler, toast } from "frappe-ui";
+import { Badge, Button, Dropdown, toast } from "frappe-ui";
+import { uploadFile as uploadFileToServer } from "../../api";
+import { UploadLimitsKey } from "../FileUpload/types";
 import LucideChevronDown from "~icons/lucide/chevron-down";
 import LucideChevronLeft from "~icons/lucide/chevron-left";
 import LucideCloudUpload from "~icons/lucide/cloud-upload";
 import LucideDownload from "~icons/lucide/download";
 import LucideTrash2 from "~icons/lucide/trash-2";
-import { fieldsToIgnore, getChildTableName, getBadgeColor } from "./dataImport";
+import { downloadTemplate, fieldsToIgnore, getChildTableName, getBadgeColor } from "./dataImport";
 import TemplateModal from "./TemplateModal.vue";
 
 const emit = defineEmits(["updateStep"]);
@@ -190,6 +192,7 @@ const showFileSelector = ref(true);
 const showSheetSelector = ref(false);
 const showLibrarySelector = ref(false);
 const router = useRouter();
+const uploadLimits = inject(UploadLimitsKey, {});
 
 const props = defineProps<{
 	dataImports: DataImports;
@@ -221,33 +224,30 @@ const uploadFile = (e: Event) => {
 	}
 
 	uploadingdFile.value = file;
-	const uploader = new FileUploadHandler();
+	uploading.value = true;
+	uploaded.value = 0;
+	total.value = file.size;
 
-	uploader.on("start", () => {
-		uploading.value = true;
-	});
-
-	uploader.on("progress", (data: { uploaded: number; total: number }) => {
-		uploaded.value = data.uploaded;
-		total.value = data.total;
-	});
-
-	uploader.on("error", (error: any) => {
-		uploading.value = false;
-		toast.error(error);
-		console.error("File upload error:", error);
-	});
-
-	uploader.on("finish", () => {
-		uploading.value = false;
-	});
-	uploader
-		.upload(file, {})
-		.then((data) => {
+	uploadFileToServer(
+		file,
+		{},
+		{
+			onProgress: (loaded, size) => {
+				uploaded.value = loaded;
+				total.value = size;
+			},
+			chunkSize: uploadLimits.file_chunk_size ?? undefined,
+		}
+	)
+		.then(({ data }) => {
 			importFile.value = data;
 		})
-		.catch((error) => {
+		.catch((error: any) => {
+			toast.error(error?.message || "File upload failed");
 			console.error("File upload error:", error);
+		})
+		.finally(() => {
+			uploading.value = false;
 		});
 };
 
@@ -316,28 +316,14 @@ const updateImport = () => {
 };
 
 const exportTemplate = async (type: "mandatory" | "all") => {
-	let url = getExportURL(type);
-	const response = await fetch(url);
-	const blob = await response.blob();
-	const link = document.createElement("a");
-
-	link.href = URL.createObjectURL(blob);
-	link.download = props.doctype + ".csv";
-	document.body.appendChild(link);
-
-	link.click();
-	document.body.removeChild(link);
-};
-
-const getExportURL = (type: "mandatory" | "all") => {
-	if (!props.doctype && !props.data?.reference_doctype) return "";
-	let exportFields = getExportFields(type);
-
-	return `/api/method/frappe.core.doctype.data_import.data_import.download_template
-        ?doctype=${encodeURIComponent(props.doctype || (props.data?.reference_doctype as string))}
-        &export_fields=${encodeURIComponent(JSON.stringify(exportFields))}
-        &export_records=blank_template
-        &file_type=CSV`.replace(/\s+/g, "");
+	const doctype = props.doctype || (props.data?.reference_doctype as string);
+	if (!doctype) return;
+	await downloadTemplate({
+		doctype,
+		exportFields: getExportFields(type),
+		exportRecords: "blank_template",
+		fileType: "CSV",
+	});
 };
 
 const getExportFields = (type: "mandatory" | "all") => {

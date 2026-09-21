@@ -1,6 +1,8 @@
 import json
 import typing
+from base64 import b64encode
 from functools import cached_property
+from io import BytesIO
 from random import choice
 from unittest.mock import patch
 
@@ -12,7 +14,7 @@ import frappe.share
 from frappe.api import discovery
 from frappe.installer import update_site_config
 from frappe.model.document import Document
-from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
+from frappe.tests.test_api import FrappeAPITestCase, make_request, suppress_stdout
 from frappe.tests.utils import toggle_test_mode, wait_for_job, whitelist_for_tests
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 
@@ -1584,3 +1586,248 @@ class TestSessionAPIV2(FrappeAPITestCase):
 		finally:
 			frappe.defaults.clear_default("api_v2_guest_defaults_probe")
 			frappe.db.commit()  # nosemgrep
+
+
+class TestFileRoutesV2(FrappeAPITestCase):
+	"""Uploading through `POST /document/File`, and the `attachments` sub-resource."""
+
+	version = "v2"
+	TEST_USER = "api-file-user@example.com"
+	READER = "api-file-reader@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		# the test client answers on another thread, so fixtures are committed to be visible there
+		super().setUpClass()
+		for email in (cls.TEST_USER, cls.READER):
+			cls.make_user(email)
+		cls.todo = cls.make_todo()
+		cls.other = cls.make_todo()
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def make_user(cls, email: str):
+		if frappe.db.exists("User", email):
+			return
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": "File User",
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_permissions=True)
+		user.add_roles("Desk User")
+
+	@classmethod
+	def make_todo(cls):
+		return frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": frappe.generate_hash(),
+				"allocated_to": cls.TEST_USER,
+			}
+		).insert()
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		for todo in (cls.todo, cls.other):
+			for name in frappe.get_all(
+				"File",
+				filters={"attached_to_doctype": "ToDo", "attached_to_name": todo.name},
+				pluck="name",
+			):
+				frappe.delete_doc_if_exists("File", name, force=True)
+			frappe.delete_doc_if_exists("ToDo", todo.name, force=True)
+		for email in (cls.TEST_USER, cls.READER):
+			frappe.delete_doc_if_exists("User", email, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	def sid_of(self, user: str) -> str:
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		original_request = getattr(frappe.local, "request", None)
+		original_user = frappe.session.user
+		set_request(path="/")
+		try:
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as(user)
+			return frappe.session.sid
+		finally:
+			frappe.local.request = original_request
+			# logging in leaves this thread as that user, and the cleanup here runs as Administrator
+			frappe.set_user(original_user)
+
+	@cached_property
+	def user_sid(self) -> str:
+		return self.sid_of(self.TEST_USER)
+
+	def upload(self, path: str, content: bytes, file_name: str, **fields):
+		"""A multipart POST, the way the browser's chunk loop sends one."""
+		data = {"file": (BytesIO(content), file_name), "sid": self.user_sid, **fields}
+		return make_request(target=self.TEST_CLIENT.post, args=(path,), kwargs={"data": data})
+
+	def attachments_path(self, name: str, file_name: str | None = None) -> str:
+		parts = ("ToDo", name, "attachments")
+		return self.resource(*parts, file_name) if file_name else self.resource(*parts)
+
+	def attach_one(self, todo_name: str, file_name: str) -> str:
+		"""Upload a file to the document and return its File name, as the answer reports it."""
+		response = self.upload(self.attachments_path(todo_name), b"hello", file_name)
+		self.assertEqual(response.status_code, 200, response.json)
+		return response.json["data"]["attachments"][0]["name"]
+
+	def test_detached_upload_creates_a_file(self):
+		response = self.upload(
+			self.resource("File"), b"hello", "detached.txt", is_private="1", folder="Home/Attachments"
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		data = response.json["data"]
+		self.assertEqual(data["file_name"], "detached.txt")
+		self.assertTrue(data["file_url"])
+		frappe.delete_doc_if_exists("File", data["name"], force=True)
+
+	def test_the_file_route_does_not_take_over_the_file_list(self):
+		# the static POST rule shares its path with the dynamic list rule
+		response = self.get(self.resource("File"), {"sid": self.sid, "limit": 1})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertIsInstance(response.json["data"], list)
+
+	def test_the_lowercase_path_is_not_the_upload_route(self):
+		# werkzeug matches a rule by case, so the static rule does not catch this spelling
+		with suppress_stdout():
+			response = self.upload(self.resource("file"), b"hello", "lower.txt")
+		self.assertNotEqual(response.status_code, 200, response.json)
+
+	def test_json_create_is_still_a_plain_insert(self):
+		response = self.post(
+			self.resource("File"),
+			{
+				"sid": self.sid,
+				"file_name": "base64.txt",
+				"is_private": 1,
+				"content": b64encode(b"hello").decode(),
+				"decode": True,
+			},
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["file_name"], "base64.txt")
+		frappe.delete_doc_if_exists("File", response.json["data"]["name"], force=True)
+
+	def test_the_file_route_refuses_the_attach_fields(self):
+		response = self.upload(
+			self.resource("File"), b"hello", "sideways.txt", doctype="ToDo", docname=self.todo.name
+		)
+		self.assertEqual(response.status_code, 417, response.json)
+
+	def test_a_method_field_is_refused_on_the_document_route(self):
+		response = self.upload(self.resource("File"), b"hello", "redirect.txt", method="frappe.ping")
+		self.assertEqual(response.status_code, 417, response.json)
+
+	def test_attach_answers_with_the_refreshed_part(self):
+		response = self.upload(self.attachments_path(self.todo.name), b"hello", "attached.txt")
+		self.assertEqual(response.status_code, 200, response.json)
+		rows = response.json["data"]["attachments"]
+		self.assertEqual([row["file_name"] for row in rows], ["attached.txt"])
+		# the part carries who uploaded it and when, and the users key names them
+		self.assertEqual(rows[0]["owner"], self.TEST_USER)
+		self.assertTrue(rows[0]["creation"])
+		self.assertIn(self.TEST_USER, response.json["data"]["users"])
+		# the browser reads this key to find the row it just made
+		self.assertEqual(response.json["data"]["file"], rows[0]["name"])
+
+	def test_a_chunk_that_is_not_the_last_answers_with_no_file(self):
+		response = self.upload(
+			self.attachments_path(self.todo.name),
+			b"half",
+			"chunked.txt",
+			chunk_index="0",
+			total_chunk_count="2",
+			chunk_byte_offset="0",
+			total_file_size="8",
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertIsNone(response.json["data"])
+
+	def test_the_last_chunk_answers_with_the_reassembled_file(self):
+		path = self.attachments_path(self.todo.name)
+		first = self.upload(
+			path,
+			b"0123",
+			"whole.txt",
+			chunk_index="0",
+			total_chunk_count="2",
+			chunk_byte_offset="0",
+			total_file_size="8",
+		)
+		self.assertIsNone(first.json["data"])
+		second = self.upload(
+			path,
+			b"4567",
+			"whole.txt",
+			chunk_index="1",
+			total_chunk_count="2",
+			chunk_byte_offset="4",
+			total_file_size="8",
+		)
+		self.assertEqual(second.status_code, 200, second.json)
+		file_name = second.json["data"]["file"]
+		frappe.db.rollback()
+		self.assertEqual(frappe.get_doc("File", file_name).get_content(), "01234567")
+		frappe.delete_doc_if_exists("File", file_name, force=True)
+
+	def test_attach_needs_write_on_the_document(self):
+		data = {"file": (BytesIO(b"hello"), "denied.txt"), "sid": self.sid_of(self.READER)}
+		response = make_request(
+			target=self.TEST_CLIENT.post,
+			args=(self.attachments_path(self.todo.name),),
+			kwargs={"data": data},
+		)
+		self.assertEqual(response.status_code, 403, response.json)
+
+	def test_attach_without_bytes_is_an_error(self):
+		response = self.post(self.attachments_path(self.todo.name), {"sid": self.user_sid})
+		self.assertEqual(response.status_code, 417, response.json)
+
+	def test_detach_deletes_the_file(self):
+		file_name = self.attach_one(self.todo.name, "gone.txt")
+		response = self.delete(
+			self.attachments_path(self.todo.name, file_name), query_string={"sid": self.user_sid}
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		# another test attaches to the same document, so the part is read for this file alone
+		names = [row["name"] for row in response.json["data"]["attachments"]]
+		self.assertNotIn(file_name, names)
+		# the request ran on another thread: end this one's read view before asking the database
+		frappe.db.rollback()
+		self.assertFalse(frappe.db.exists("File", file_name))
+
+	def test_detach_refuses_a_file_on_another_document(self):
+		file_name = self.attach_one(self.other.name, "elsewhere.txt")
+		response = self.delete(
+			self.attachments_path(self.todo.name, file_name), query_string={"sid": self.user_sid}
+		)
+		self.assertEqual(response.status_code, 404, response.json)
+		frappe.db.rollback()
+		self.assertTrue(frappe.db.exists("File", file_name))
+		frappe.delete_doc_if_exists("File", file_name, force=True)
+
+	def test_a_file_response_passes_through_the_v2_method_route(self):
+		response = self.get(
+			self.method("frappe.core.doctype.data_import.data_import.download_template"),
+			{
+				"sid": self.sid,
+				"doctype": "ToDo",
+				"export_fields": {"ToDo": ["description"]},
+				"export_records": "blank_template",
+				"file_type": "CSV",
+			},
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertIn("text/csv", response.headers["Content-Type"])
+		self.assertIn("Description", response.get_data(as_text=True))

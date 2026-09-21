@@ -36,7 +36,8 @@ transport later touches this folder only.
 ## The surface
 
 `getDocument`, `listDocuments`, `countDocuments`, `createDocument`, `updateDocument`,
-`deleteDocument`, `copyDocument`, `runMethod`, `runDocumentMethod`, `getMeta`, and for
-the uploader `UPLOAD_PATH`, `apiUrl`, `requestHeaders` and `readEnvelope`. A dotted
-method under `runMethod` is a first-class route, not a fallback; which v1 functions move
-there is decided per region on the API v2 map.
+`deleteDocument`, `copyDocument`, `runMethod`, `runDocumentMethod`, `getMeta`, the file
+calls `uploadFile`, `attachFile`, `removeAttachment` and `downloadFile`, and the pieces a
+caller needs to build a request of its own: `apiUrl`, `requestHeaders` and `readEnvelope`.
+A dotted method under `runMethod` is a first-class route, not a fallback; which v1
+functions move there is decided per region on the API v2 map.

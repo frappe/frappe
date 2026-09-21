@@ -1,4 +1,5 @@
 import { call, toast } from "frappe-ui";
+import { apiUrl, downloadFile } from "../../api";
 import type { DataImportStatus } from "./types";
 
 export const getBadgeColor = (status: DataImportStatus) => {
@@ -59,4 +60,47 @@ export const getPreviewData = (
     toast.error(error.messages?.[0] || error);
     console.error("Error fetching preview data:", error);
   });
+};
+
+
+const TEMPLATE_METHOD = "frappe.core.doctype.data_import.data_import.download_template";
+
+export interface TemplateRequest {
+  doctype: string;
+  /** Fieldnames per doctype, the parent's own and each child table's. */
+  exportFields: Record<string, string[]>;
+  /** `blank_template`, `5_records` or `all`; the server reads the row limit from it. */
+  exportRecords: string;
+  fileType?: string;
+}
+
+/** Fetch the import template for a doctype and save it to the reader's downloads. */
+export const downloadTemplate = async (request: TemplateRequest) => {
+  const fileType = request.fileType || "CSV";
+  const url = apiUrl(`/method/${TEMPLATE_METHOD}`, {
+    doctype: request.doctype,
+    export_fields: request.exportFields,
+    export_records: request.exportRecords,
+    file_type: fileType,
+  });
+  try {
+    const blob = await downloadFile(url);
+    saveBlob(blob, `${request.doctype}.${fileType === "CSV" ? "csv" : "xlsx"}`);
+  } catch (error: any) {
+    toast.error(error?.message || "Could not download the template");
+    console.error("Error downloading the import template:", error);
+  }
+};
+
+// Safari and Firefox start the download after this tick, so revoking the URL here would
+// hand them a dead blob and the file would silently never save.
+const saveBlob = (blob: Blob, fileName: string) => {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 };

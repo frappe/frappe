@@ -4,6 +4,8 @@ import "@/index.css";
 import { createApp, h } from "vue";
 import { FrappeUI, frappeRequest, setConfig } from "frappe-ui";
 import { provideSession } from "@framework/ui/composables/useSession";
+// the types module, not the subsystem barrel: the shell must not load the dialog to boot
+import { UploadLimitsKey } from "@framework/ui/components/FileUpload/types";
 
 import { fetchBoot, BootUnauthorized, type Boot } from "@/boot";
 import { fetchAddresses, type Addresses } from "@/addresses";
@@ -67,6 +69,11 @@ async function start() {
 	app.use(router);
 	app.provide("boot", boot);
 	provideSession(app, boot.session);
+	// The site's own upload limits; the upload primitive reads them by injection.
+	app.provide(UploadLimitsKey, {
+		max_file_size: boot.max_file_size,
+		file_chunk_size: boot.file_chunk_size,
+	});
 	app.provide("addresses", addresses);
 	app.mount("#app");
 }
