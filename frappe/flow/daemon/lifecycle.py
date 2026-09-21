@@ -128,8 +128,9 @@ def session_root() -> Path:
 	return Path(frappe.get_site_path("public", "files")).resolve()
 
 
-def allowed_roots() -> tuple[Path, ...]:
-	return tuple(dict.fromkeys((session_root(), *(root for _app, root in app_sources()))))
+def allowed_roots() -> tuple[Path, Path]:
+	"""The site's files plus bench's apps folder."""
+	return (session_root(), Path(get_bench_path()).resolve() / "apps")
 
 
 def app_source_prompt(tools: list[str]) -> str:
@@ -149,12 +150,6 @@ def app_sources() -> list[tuple[str, Path]]:
 		(app, Path(frappe.get_app_path(app)).resolve().parent)
 		for app in frappe.get_installed_apps(_ensure_on_bench=True)
 	]
-
-
-def refresh_after_app_change(app: str) -> None:
-	"""Keep a site's source roots current when another app is installed or removed."""
-	if app != "flow":
-		provision_site()
 
 
 def callback_host() -> str:

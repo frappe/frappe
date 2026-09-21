@@ -85,25 +85,10 @@ class TestDaemonLifecycle(UnitTestCase):
 		self.assertEqual(root, Path(frappe.get_site_path("public", "files")).resolve())
 		self.assertTrue(root.is_absolute())
 
-	def test_allowed_roots_include_outer_directories_of_installed_apps(self):
-		apps = Path(self.state).parent / "apps"
-		with (
-			patch.object(frappe, "get_installed_apps", return_value=["frappe", "custom_app"]) as installed,
-			patch.object(
-				frappe,
-				"get_app_path",
-				side_effect=lambda app: str(apps / app / app),
-			),
-		):
-			self.assertEqual(
-				lifecycle.allowed_roots(),
-				(
-					lifecycle.session_root(),
-					(apps / "frappe").resolve(),
-					(apps / "custom_app").resolve(),
-				),
-			)
-		installed.assert_called_once_with(_ensure_on_bench=True)
+	def test_allowed_roots_are_the_site_files_and_the_whole_bench_apps_dir(self):
+		bench = self.state.parents[1]
+		with patch.object(lifecycle, "get_bench_path", return_value=str(bench)):
+			self.assertEqual(lifecycle.allowed_roots(), (lifecycle.session_root(), bench.resolve() / "apps"))
 
 	def test_app_source_prompt_is_only_added_when_an_app_code_tool_is_selected(self):
 		self.assertEqual(lifecycle.app_source_prompt([]), "")
@@ -111,12 +96,6 @@ class TestDaemonLifecycle(UnitTestCase):
 			prompt = lifecycle.app_source_prompt(["grep"])
 		self.assertIn("Use grep", prompt)
 		self.assertIn("custom_app: /apps/custom", prompt)
-
-	def test_app_changes_refresh_roots_except_when_flow_itself_is_removed(self):
-		with patch.object(lifecycle, "provision_site") as provision:
-			lifecycle.refresh_after_app_change("custom_app")
-			lifecycle.refresh_after_app_change("flow")
-		provision.assert_called_once_with()
 
 	def test_remove_site_drops_the_entry_and_the_daemon_data(self):
 		partition = self.state / "data" / "tenants" / self.site
