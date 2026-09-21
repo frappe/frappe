@@ -14,6 +14,7 @@ from frappe.search.sqlite_search import (
 	index_docs_in_queue,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.utils import now_datetime
 from frappe.utils.synchronization import filelock
 
 
@@ -47,6 +48,85 @@ class TestSQLiteSearch(SQLiteSearch):
 			return {}
 		# Simulate user-specific filtering
 		return {"owner": frappe.session.user}
+
+
+class BuildWindowSearch(TestSQLiteSearch):
+	"""Its own index file: these tests drop and rebuild, and must not touch a shared one."""
+
+	INDEX_NAME = "test_build_window_search.db"
+	BUILD_VOCABULARY = False
+
+	INDEXABLE_DOCTYPES: ClassVar = {
+		"Note": {
+			"fields": ["name", "title", "content", "owner", {"modified": "creation"}],
+		},
+	}
+
+
+class TestBuildWindow(IntegrationTestCase):
+	"""Writes made while a build was running, which the build itself cannot see."""
+
+	def setUp(self):
+		self.search = BuildWindowSearch()
+		self.search.drop_index()
+		self.addCleanup(self.search.drop_index)
+
+	def test_a_document_edited_during_the_build_is_caught_up(self):
+		"""The config maps modified to creation for scoring, which an edit does not move."""
+		note = frappe.get_doc(doctype="Note", title="Before Edit", content="body").insert()
+		self.addCleanup(frappe.delete_doc, "Note", note.name, force=True)
+
+		started_at = now_datetime()
+		self.search.build_index()
+		self.assertEqual(self.indexed_title(note.name), "Before Edit")
+
+		note.title = "After Edit"
+		note.save()
+		self.search.queue_documents_changed_during_build(started_at)
+
+		self.assertEqual(self.indexed_title(note.name), "After Edit")
+
+	def test_a_document_deleted_during_the_build_is_removed(self):
+		note = frappe.get_doc(doctype="Note", title="Deleted Mid Build", content="body").insert()
+
+		started_at = now_datetime()
+		self.search.build_index()
+		self.assertEqual(self.indexed_title(note.name), "Deleted Mid Build")
+
+		frappe.delete_doc("Note", note.name)
+		self.search.queue_documents_changed_during_build(started_at)
+
+		self.assertIsNone(self.indexed_title(note.name))
+
+	def test_a_continuation_keeps_the_original_start(self):
+		"""A fresh timestamp would skip everything edited between the two runs."""
+		progress = {"Note": {"started_at": "2020-06-15 12:00:00"}}
+		with patch.object(BuildWindowSearch, "_get_index_progress", return_value=progress):
+			carried = self.search._build_started_at(is_continuation=True)
+
+		self.assertEqual((carried.year, carried.month), (2020, 6))
+		self.assertIsNone(carried.tzinfo, "naive, to compare with modified")
+
+	def test_the_vocabulary_pass_runs_only_when_it_is_turned_on(self):
+		with (
+			patch.object(BuildWindowSearch, "_is_vocabulary_built_needed", return_value=False),
+			patch.object(BuildWindowSearch, "_build_vocabulary_incremental") as vocabulary,
+		):
+			BuildWindowSearch().build_index()
+			vocabulary.assert_not_called()
+
+			with patch.object(BuildWindowSearch, "BUILD_VOCABULARY", True):
+				BuildWindowSearch().build_index()
+
+			vocabulary.assert_called()
+
+	def indexed_title(self, name):
+		connection = self.search._get_connection(read_only=True)
+		try:
+			row = connection.execute("SELECT * FROM search_fts WHERE name = ?", (name,)).fetchone()
+			return row["title"] if row else None
+		finally:
+			connection.close()
 
 
 class TestSQLiteSearchAPI(IntegrationTestCase):
