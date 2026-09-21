@@ -1,50 +1,16 @@
-const ROUTE = "builder-note";
-
-// a Desk tab panel is also a .tab-content, and Web Form has a "title" field of its
-// own, so an unscoped [data-fieldname] query reaches the Desk control
-const CANVAS = ".form-builder-container";
-
-// Desk hides the page it leaves instead of removing it, so a route change leaves two
-// form pages in the DOM. Scope to the one on screen.
-const PAGE = ".page-container:visible";
-
-// a form page is named after its doctype. While a route change is still in flight the
-// page on screen is still the old one, so `:visible` cannot tell the two apart.
-const WEB_FORM_PAGE = ".page-container[data-page-route='Web Form']";
-const DOCTYPE_PAGE = ".page-container[data-page-route='DocType']";
-
-// two pages: the Page Break is the boundary, page one is implicit and has no row.
-// "public" is left out so the add-field picker has something unplaced to offer.
-const SEEDED_FIELDS = [
-	{ fieldname: "title", label: "Title", fieldtype: "Data", reqd: 1 },
-	{ fieldtype: "Page Break" },
-	{ fieldname: "content", label: "Content", fieldtype: "Text Editor" },
-];
-
-function web_form_fields() {
-	return cy
-		.window()
-		.its("cur_frm")
-		.then((frm) => frm.doc.web_form_fields || []);
-}
-
-function open_builder() {
-	cy.visit(`/desk/web-form/${ROUTE}`);
-	cy.findByRole("tab", { name: "Form" }).click();
-	cy.get(CANVAS).should("exist");
-}
-
-// never split: no Page Break row, so the builder shows one page
-const SINGLE_PAGE_FIELDS = [{ fieldname: "title", label: "Title", fieldtype: "Data", reqd: 1 }];
-
-// page one has a second section, so "Move sections to new page" is on offer
-const SPLITTABLE_FIELDS = [
-	{ fieldname: "title", label: "Title", fieldtype: "Data", reqd: 1 },
-	{ fieldtype: "Section Break" },
-	{ fieldname: "public", label: "Public", fieldtype: "Check" },
-	{ fieldtype: "Page Break" },
-	{ fieldname: "content", label: "Content", fieldtype: "Text Editor" },
-];
+import {
+	CANVAS,
+	DOCTYPE_PAGE,
+	PAGE,
+	ROUTE,
+	SINGLE_PAGE_FIELDS,
+	SPLITTABLE_FIELDS,
+	WEB_FORM_PAGE,
+	fill_new_web_form,
+	open_builder,
+	seed_web_form,
+	web_form_fields,
+} from "../support/web_form";
 
 function page_labels_should_be(labels) {
 	cy.get(`${CANVAS} .tab-header .tabs .tab`).should(($tabs) => {
@@ -59,107 +25,16 @@ function move_second_section_to_new_page() {
 	cy.contains(".dropdown-options:visible .dropdown-item", "Move sections to new page").click();
 }
 
-function seed_web_form(fields = SEEDED_FIELDS) {
-	cy.remove_doc("Web Form", ROUTE, true);
-	return cy.insert_doc(
-		"Web Form",
-		{
-			title: "Builder Note",
-			route: ROUTE,
-			doc_type: "Note",
-			module: "Website",
-			web_form_fields: fields,
-		},
-		true
-	);
-}
-
-// seeded against Note, then pointed at ToDo, which has no `title`: that row is left over
-function open_get_fields_on_leftover_row() {
-	seed_web_form(SINGLE_PAGE_FIELDS);
-	cy.visit(`/desk/web-form/${ROUTE}`);
-	// Get Fields flushes the builder first, so let it mount before the switch
-	cy.get(CANVAS).should("exist");
-
-	cy.fill_field("doc_type", "ToDo", "Link");
-	cy.click_custom_action_button("Get Fields");
-}
-
-// an unsaved form, filled in through the UI and given fields by Get Fields. It saves under
-// the route slugged from its title, so that is the name to clear first.
-function fill_new_web_form(title) {
-	cy.remove_doc("Web Form", title.toLowerCase().replace(/ /g, "-"), true);
-	cy.visit("/desk/web-form/new");
-
-	cy.fill_field("title", title);
-	cy.fill_field("doc_type", "Note", "Link");
-	cy.fill_field("module", "Website", "Link");
-
-	cy.click_custom_action_button("Get Fields");
-	cy.get_open_dialog().find('[data-action="select_all"]').click();
-	cy.click_modal_primary_button("Update");
-	cy.get('[data-fieldname="web_form_fields"] .grid-row').should("have.length.greaterThan", 0);
+function open_add_field_picker() {
+	cy.get(`${CANVAS} .tab-content.active .section-columns-container:first .column:first`)
+		.find(".add-new-field-btn button")
+		.click();
 }
 
 context("Web Form Builder", () => {
 	before(() => {
 		cy.login();
 		cy.visit("/desk");
-	});
-
-	it("Get Fields survives the first save", () => {
-		// the builder mounts with an empty grid, and must not write that back over Get Fields
-		fill_new_web_form("Builder Note New");
-
-		web_form_fields().then((collected) => {
-			cy.save();
-			web_form_fields().should("have.length", collected.length);
-		});
-	});
-
-	it("Marks the fields left over from the previous DocType", () => {
-		open_get_fields_on_leftover_row();
-
-		cy.get_open_dialog().within(() => {
-			// still selected, so Update keeps it until it is unselected
-			cy.get(":checkbox[data-unit='title']").should("be.checked");
-			cy.get(".label-area[data-unit='title']")
-				.should("have.class", "text-muted")
-				.find(".multicheck-warning-icon")
-				// bootstrap moves `title` aside once the tooltip is initialised
-				.should("have.attr", "data-original-title")
-				.and("contain", "Not a field in ToDo");
-
-			// a real ToDo field is left alone
-			cy.get(".label-area[data-unit='description']")
-				.should("not.have.class", "text-muted")
-				.find(".multicheck-warning-icon")
-				.should("not.exist");
-		});
-	});
-
-	it("Removes a field left over from the previous DocType when it is unselected", () => {
-		open_get_fields_on_leftover_row();
-
-		// nothing else is selected, so this is the add-and-remove path, not a rebuild
-		cy.get_open_dialog().find(":checkbox[data-unit='title']").uncheck();
-		cy.click_modal_primary_button("Update");
-
-		web_form_fields().should((fields) => {
-			expect(fields.map((d) => d.fieldname)).to.not.include("title");
-		});
-	});
-
-	it("Keeps a field left over from the previous DocType at the end of a rebuild", () => {
-		open_get_fields_on_leftover_row();
-
-		// everything selected rebuilds in doctype order, and `title` is in no order at all
-		cy.get_open_dialog().find('[data-action="select_all"]').click();
-		cy.click_modal_primary_button("Update");
-
-		web_form_fields().should((fields) => {
-			expect(fields.at(-1).fieldname, "the left over row is last").to.eq("title");
-		});
 	});
 
 	it("Adds Copy embed code once on the first save", () => {
@@ -239,8 +114,29 @@ context("Web Form Builder", () => {
 		cy.get(`${CANVAS} .tab-header .tabs .tab:first`).click();
 		move_second_section_to_new_page();
 
+		// the limit names itself, so the dialog is not just an unexplained "Message"
+		cy.get(".msgprint-dialog:visible .modal-title").should("contain.text", "Too Many Pages");
 		cy.get(".msgprint").should("contain.text", "There can be only 9 Page Break fields");
 		cy.get(`${CANVAS} .tab-header .tabs .tab`).should("have.length", 10);
+	});
+
+	it("Stops a tenth Page Break added from the fields grid", () => {
+		// nine breaks already, so the row added below is the tenth
+		const nine_breaks = Array.from({ length: 9 }, () => ({ fieldtype: "Page Break" }));
+		seed_web_form([...SINGLE_PAGE_FIELDS, ...nine_breaks]);
+
+		cy.visit(`/desk/web-form/${ROUTE}`);
+		cy.findByRole("tab", { name: "Settings" }).click();
+		cy.click_form_section("Fields");
+
+		cy.get('[data-fieldname="web_form_fields"]').as("grid");
+		cy.get("@grid").find("button.grid-add-row").click();
+		cy.get("@grid").find(".grid-body .grid-row:last").as("new_row");
+		cy.get("@new_row").find('[data-fieldname="fieldtype"]').click();
+		cy.get("@new_row").find('[data-fieldname="fieldtype"] select').select("Page Break");
+
+		// the same limit as the builder's, checked in the one place both call
+		cy.get(".msgprint-dialog:visible .modal-title").should("contain.text", "Too Many Pages");
 	});
 
 	it("Lays the stored rows out as pages", () => {
@@ -294,9 +190,7 @@ context("Web Form Builder", () => {
 		seed_web_form();
 		open_builder();
 
-		cy.get(".tab-content.active .section-columns-container:first .column:first")
-			.find(".add-new-field-btn button")
-			.click();
+		open_add_field_picker();
 
 		// a field already on the canvas is not on offer, an unplaced one is
 		cy.get(".combo-box-options:visible .combo-box-option").should("not.contain.text", "Title");
@@ -312,6 +206,21 @@ context("Web Form Builder", () => {
 			// the picker carries the source fieldtype over, not a chosen one
 			expect(placed[0].fieldtype).to.eq("Check");
 		});
+	});
+
+	it("Repoints the add-field picker when the DocType changes", () => {
+		seed_web_form(SINGLE_PAGE_FIELDS);
+		cy.visit(`/desk/web-form/${ROUTE}`);
+		cy.get(CANVAS).should("exist");
+
+		cy.fill_field("doc_type", "ToDo", "Link");
+
+		cy.findByRole("tab", { name: "Form" }).click();
+		open_add_field_picker();
+
+		// the mounted builder is repointed in place, so it offers ToDo's fields now
+		cy.get(".combo-box-options:visible").should("contain.text", "Priority");
+		cy.get(".combo-box-options:visible").should("not.contain.text", "Content");
 	});
 
 	it("Picks up rows removed from the Settings tab", () => {
@@ -369,6 +278,27 @@ context("Web Form Builder", () => {
 
 		// the picker used to teleport into the hidden DocType page and render off screen
 		cy.get(".combo-box-options:visible").should("exist");
+	});
+
+	it("Steps the desk chrome aside on the builder tab", () => {
+		seed_web_form();
+		open_builder();
+
+		// the canvas is full-bleed, so the timeline below it would only add dead scroll
+		cy.get(`${PAGE} .form-footer`).should("not.be.visible");
+		cy.window()
+			.its("cur_frm")
+			.should(
+				(frm) =>
+					expect(frm.form_wrapper.hasClass("mb-1"), "tight bottom margin").to.be.true
+			);
+
+		cy.get(PAGE).findByRole("tab", { name: "Settings" }).click();
+
+		cy.get(`${PAGE} .form-footer`).should("be.visible");
+		cy.window()
+			.its("cur_frm")
+			.should((frm) => expect(frm.form_wrapper.hasClass("mb-1")).to.be.false);
 	});
 
 	it("Keeps the sidebar hidden on the builder tab across a save", () => {
