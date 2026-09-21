@@ -415,8 +415,8 @@ let raw_templates = ref([]);
 const TAB_STORE_KEY = "pfb_active_tab";
 const tabs = computed(() => [
 	{ id: "fields", label: __("Fields") },
-	{ id: "blocks", label: __("Blocks") },
 	{ id: "layers", label: __("Layers") },
+	{ id: "blocks", label: __("Blocks") },
 	{ id: "library", label: __("Library") },
 ]);
 
