@@ -1011,14 +1011,16 @@ function handle_slash_key(e) {
 
 /* ── Outline tab (tree) ──────────────────────────────────── */
 .pfb-tree {
-	padding: 12px 10px 0;
+	padding: 12px 8px 0;
 }
 
 .pfb-tree-row {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	padding: 4px 6px;
+	/* same rhythm and text grid as a field row in the Fields tab */
+	min-height: 34px;
+	padding: 4px 8px;
 	border-radius: var(--radius);
 	cursor: pointer;
 	font-size: var(--text-sm);
