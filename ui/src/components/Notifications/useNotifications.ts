@@ -6,7 +6,7 @@ import {
   ref,
   watch,
 } from "vue";
-import { countDocuments, listDocuments, runMethod, updateDocument } from "../../api";
+import { countDocuments, listDocuments, runMethod } from "../../api";
 import { usePagedList } from "../../composables/usePagedList";
 import { useSession } from "../../composables/useSession";
 import type {
@@ -124,14 +124,13 @@ export function useNotifications(
     () => list.error.value ?? unreadError.value ?? null
   );
 
-  // The feed is fetched with `["*"]`, so the row carries the `modified` the save needs to
-  // refuse a stale write.
   async function markAsRead(name: string) {
     const n = list.rows.value.find((x) => x.name === name);
-    if (!n || n.read) return;
-    n.read = 1; // optimistic
-    if (unread.value > 0) unread.value -= 1;
-    await updateDocument(DOCTYPE, name, { ...n, read: 1 });
+    if (n && !n.read) {
+      n.read = 1; // optimistic
+      if (unread.value > 0) unread.value -= 1;
+    }
+    await runMethod(`${METHOD}.mark_as_read`, { docname: name });
     void refreshUnreadCount();
   }
 

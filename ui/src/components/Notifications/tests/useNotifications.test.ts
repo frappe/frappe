@@ -1,4 +1,4 @@
-// Mark-as-read: the row is saved whole, and only when it is still unread.
+// Mark-as-read goes to the dotted method, which needs only the name.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent } from "vue";
 import { useNotifications } from "../useNotifications";
@@ -13,6 +13,9 @@ const api = vi.hoisted(() => ({
 }));
 
 vi.mock("../../../api", () => api);
+
+const MARK_AS_READ =
+  "frappe.desk.doctype.notification_log.notification_log.mark_as_read";
 
 function aRow(name: string, read: 0 | 1) {
   return { name, read, subject: name, modified: "2026-09-19 10:00:00" };
@@ -42,35 +45,47 @@ beforeEach(() => {
 });
 
 describe("markAsRead", () => {
-  it("saves the row and drops the unread count", async () => {
+  it("calls the dotted method with the docname", async () => {
     const controller = mount();
     await vi.waitFor(() => expect(controller.notifications.length).toBe(2));
 
     await controller.markAsRead("unread-1");
 
-    expect(api.updateDocument).toHaveBeenCalledTimes(1);
-    expect(api.updateDocument).toHaveBeenCalledWith(
-      "Notification Log",
-      "unread-1",
-      expect.objectContaining({ read: 1, modified: "2026-09-19 10:00:00" })
-    );
-  });
-
-  it("costs no request for a row that is already read", async () => {
-    const controller = mount();
-    await vi.waitFor(() => expect(controller.notifications.length).toBe(2));
-
-    await controller.markAsRead("read-1");
-
+    expect(api.runMethod).toHaveBeenCalledWith(MARK_AS_READ, {
+      docname: "unread-1",
+    });
     expect(api.updateDocument).not.toHaveBeenCalled();
   });
 
-  it("does nothing for a row the feed has not loaded", async () => {
+  it("sends the request for a name the feed has not loaded", async () => {
     const controller = mount();
     await vi.waitFor(() => expect(controller.notifications.length).toBe(2));
 
     await controller.markAsRead("elsewhere");
 
-    expect(api.updateDocument).not.toHaveBeenCalled();
+    expect(api.runMethod).toHaveBeenCalledWith(MARK_AS_READ, {
+      docname: "elsewhere",
+    });
+  });
+
+  it("refreshes the unread count afterwards", async () => {
+    const controller = mount();
+    await vi.waitFor(() => expect(controller.notifications.length).toBe(2));
+    const before = api.countDocuments.mock.calls.length;
+
+    await controller.markAsRead("unread-1");
+
+    await vi.waitFor(() =>
+      expect(api.countDocuments.mock.calls.length).toBeGreaterThan(before)
+    );
+  });
+
+  it("drops the unread count optimistically for a loaded unread row", async () => {
+    const controller = mount();
+    await vi.waitFor(() => expect(controller.unreadCount).toBe(1));
+
+    void controller.markAsRead("unread-1");
+
+    expect(controller.unreadCount).toBe(0);
   });
 });
