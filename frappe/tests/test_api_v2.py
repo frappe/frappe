@@ -1683,6 +1683,12 @@ class TestFileRoutesV2(FrappeAPITestCase):
 		self.assertTrue(data["file_url"])
 		frappe.delete_doc_if_exists("File", data["name"], force=True)
 
+	def test_the_file_route_does_not_take_over_the_file_list(self):
+		# the static POST rule shares its path with the dynamic list rule
+		response = self.get(self.resource("File"), {"sid": self.sid, "limit": 1})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertIsInstance(response.json["data"], list)
+
 	def test_json_create_is_still_a_plain_insert(self):
 		response = self.post(
 			self.resource("File"),
