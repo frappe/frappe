@@ -969,7 +969,11 @@ function handle_slash_key(e) {
 	gap: 8px;
 	/* the design sizes a row at 39px; pin it so the label's line box can't shrink it */
 	min-height: 39px;
-	padding: 4px 16px;
+	/* hover is a pill inset from the panel edge, so the row carries 8px of margin
+	   and 8px of padding and the label still sits on the 16px text grid */
+	margin: 0 8px;
+	padding: 4px 8px;
+	border-radius: var(--radius);
 	font-size: var(--text-sm);
 	cursor: grab;
 }
