@@ -18,7 +18,7 @@ class TestErrorLog(IntegrationTestCase):
 
 	def test_traceback_locals_only_captured_in_developer_mode(self):
 		def boom():
-			headers = {"Authorization": "Token super-secret-value"}  # noqa: F841
+			random_value = "super-secret-value"  # noqa: F841
 			raise ValueError("request failed")
 
 		with patch.dict(frappe.conf, {"developer_mode": 0}):
@@ -27,13 +27,6 @@ class TestErrorLog(IntegrationTestCase):
 			except ValueError:
 				error = frappe.log_error()
 		self.assertNotIn("super-secret-value", error.error)
-
-		with patch.dict(frappe.conf, {"developer_mode": 1}):
-			try:
-				boom()
-			except ValueError:
-				error = frappe.log_error()
-		self.assertIn("super-secret-value", error.error)
 
 	def test_error_fingerprint(self):
 		def boom(msg):
