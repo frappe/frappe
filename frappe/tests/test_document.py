@@ -228,7 +228,7 @@ class TestDocument(FrappeTestCase):
 		self.assertGreater(len(doc.title), 140)
 
 	def test_oversized_varchar_sanitized_within_limit(self):
-		value = "X" * 130 + "<script>1</script>"
+		value = "X" * 130 + '<p onclick="alert(1)">x</p>'
 		self.assertGreater(len(value), 140)
 
 		with self.set_user("test@example.com"):
@@ -236,7 +236,7 @@ class TestDocument(FrappeTestCase):
 			doc.title = value
 			doc._validate()
 
-		self.assertEqual(doc.title, "X" * 130)
+		self.assertEqual(doc.title, "X" * 130 + "<p>x</p>")
 
 	def test_child_varchar_length_after_sanitization(self):
 		unclosed_tag = "<strong>"
