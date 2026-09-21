@@ -92,6 +92,11 @@ def test_load_tenants_rejects_broken_files(tmp_path):
 			' "site2": {"token": "same", "allowed_roots": ["/x"]}}',
 			"reuses another site's token",
 		),
+		(
+			'{"site1": {"token": "a", "allowed_roots": ["/x"], "data_dir": "/srv/flow"},'
+			' "site2": {"token": "b", "allowed_roots": ["/x"], "data_dir": "/srv/flow"}}',
+			"reuses another site's data_dir",
+		),
 	]
 	path = tmp_path / "tenants.json"
 	for content, match in cases:

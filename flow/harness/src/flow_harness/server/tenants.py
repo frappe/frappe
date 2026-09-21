@@ -47,11 +47,15 @@ def load_tenants(path: str) -> list[Tenant]:
 		raise ValueError("tenants file must be a non-empty JSON object keyed by site")
 	tenants: list[Tenant] = []
 	tokens: set[str] = set()
+	dirs: set[str | None] = set()
 	for site, entry in data.items():
 		tenant = _parse_entry(site, entry)
 		if tenant.token in tokens:
 			raise ValueError(f"site {site!r} reuses another site's token")
+		if tenant.data_dir is not None and tenant.data_dir in dirs:
+			raise ValueError(f"site {site!r} reuses another site's data_dir")
 		tokens.add(tenant.token)
+		dirs.add(tenant.data_dir)
 		tenants.append(tenant)
 	return tenants
 
