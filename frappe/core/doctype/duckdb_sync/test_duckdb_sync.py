@@ -1,15 +1,16 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # See license.txt
 
+from contextlib import closing
 from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.duckdb_sync.duckdb_sync import (
-	DuckDBSync,
 	get_attach_query,
 	is_data_sync_pending,
 	sync_data_to_duckdb,
 )
+from frappe.database import get_duckdb
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Role", "User"]
@@ -82,38 +83,40 @@ class UnitTestDuckDBSync(UnitTestCase):
 
 class IntegrationTestDuckDBSync(IntegrationTestCase):
 	def test_extension_sync_copies_rows_and_marks_completion(self):
-		import duckdb
+		expected_rows = frappe.get_list(
+			"Role",
+			filters={"name": ["in", ["_Test Role", "_Test Role 4"]]},
+			fields=["name", "role_name", "desk_access", "disabled", "creation", "owner"],
+			as_list=True,
+		)
+		self.assertEqual(len(expected_rows), 2)
+		settings = frappe.get_doc("System Settings")
+		settings.sync_in_batch = 0
+		settings.save()
 
-		with self.set_user("test@example.com"), duckdb.connect(":memory:") as connection:
-			expected_rows = frappe.get_list(
-				"Role",
-				filters={"name": ["in", ["_Test Role", "_Test Role 4"]]},
-				fields=["name", "role_name", "desk_access", "disabled", "creation", "owner"],
-				as_list=True,
-			)
-			self.assertEqual(len(expected_rows), 2)
-			settings = frappe.get_doc("System Settings")
-			settings.sync_in_batch = 0
-			settings.save()
-			sync = frappe.get_doc(doctype="DuckDB Sync", doc_type="Role").insert()
-
-			# Cursors share the in-memory database and let the sync close its own connection.
-			with patch.object(DuckDBSync, "get_duckdb_conn", side_effect=connection.cursor):
-				sync.sync_schema()
+		# The scheduler owns the record, so only the polling runs as a desk user.
+		sync = frappe.get_doc(doctype="DuckDB Sync", doc_type="Role").insert()
+		with patch("frappe.enqueue"):
+			sync.submit()
+			with self.set_user("test@example.com"):
 				self.assertTrue(is_data_sync_pending(sync.name))
-				with patch("frappe.enqueue"):
-					sync_data_to_duckdb(sync.name)
+				sync_data_to_duckdb(sync.name)
+				self.assertFalse(is_data_sync_pending(sync.name))
 
-			self.assertFalse(is_data_sync_pending(sync.name))
-			rows = connection.execute(
+		with closing(get_duckdb(True, sync.filename)) as synced:
+			rows = synced.execute(
 				'FROM "tabRole" SELECT name, role_name, desk_access, disabled, creation, owner '
 				"WHERE name IN (?, ?)",
 				["_Test Role", "_Test Role 4"],
 			).fetchall()
 			self.assertCountEqual(rows, expected_rows)
 			self.assertEqual(
-				connection.sql('SELECT count(*) FROM "tabRole"').fetchone()[0], frappe.db.count("Role")
+				synced.sql('SELECT count(*) FROM "tabRole"').fetchone()[0], frappe.db.count("Role")
 			)
+
+		# A rollback leaves the file behind, so the cancel and delete path clears it.
+		sync.cancel()
+		frappe.delete_doc("DuckDB Sync", sync.name)
 
 	def test_postgres_extension_reads_the_configured_schema(self):
 		if frappe.db.db_type != "postgres":
