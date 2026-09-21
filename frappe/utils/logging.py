@@ -112,8 +112,10 @@ class LogDocument(Document):
 
 		d = self.get_valid_dict(convert_dates_to_str=True, ignore_virtual=True)
 
-		qb, table = _log_table(self.doctype)
-		_run_log_query(qb.into(table).columns(*d.keys()).insert(*d.values()))
+		ensure_log_table(self.doctype)
+
+		qb, table = log_table(self.doctype)
+		run_log_query(qb.into(table).columns(*d.keys()).insert(*d.values()))
 		get_log_db().commit()
 
 		self.set("__islocal", False)
@@ -129,20 +131,20 @@ class LogDocument(Document):
 		# `name` addresses the row rather than being updated.
 		name = d.pop("name")
 
-		qb, table = _log_table(self.doctype)
+		qb, table = log_table(self.doctype)
 		query = qb.update(table)
 
 		for fieldname, value in d.items():
 			query = query.set(table[fieldname], value)
 
-		_run_log_query(query.where(table.name == name))
+		run_log_query(query.where(table.name == name))
 		get_log_db().commit()
 
 	def load_from_db(self):
 		"""Populate this document from its row in the log database."""
-		qb, table = _log_table(self.doctype)
+		qb, table = log_table(self.doctype)
 
-		rows = _run_log_query(
+		rows = run_log_query(
 			qb.from_(table).select(table.star).where(table.name == self.name),
 			as_dict=True,
 		)
@@ -155,9 +157,9 @@ class LogDocument(Document):
 
 	def delete(self, *args, **kwargs):
 		"""Delete this document from the log database."""
-		qb, table = _log_table(self.doctype)
+		qb, table = log_table(self.doctype)
 
-		_run_log_query(qb.from_(table).where(table.name == self.name).delete())
+		run_log_query(qb.from_(table).where(table.name == self.name).delete())
 		get_log_db().commit()
 
 	# ============ class/static methods ============
@@ -204,14 +206,14 @@ class LogDocument(Document):
 		if start_at := frappe.utils.cint(_first_given(start, offset, limit_start) or 0):
 			query = query.offset(start_at)
 
-		return _run_log_query(query, as_dict=True)
+		return run_log_query(query, as_dict=True)
 
 	@staticmethod
 	def get_count(doctype: str, filters=None, **kwargs) -> int:
 		"""Return the total number of matching log rows."""
 		from frappe.query_builder.functions import Count
 
-		result = _run_log_query(_build_log_query(doctype, filters).select(Count("*")))
+		result = run_log_query(_build_log_query(doctype, filters).select(Count("*")))
 
 		return frappe.utils.cint(result[0][0]) if result else 0
 
@@ -219,6 +221,56 @@ class LogDocument(Document):
 	def get_stats(**kwargs):
 		"""Return sidebar stats -- always empty."""
 		return {}
+
+
+def ensure_log_table(doctype: str) -> None:
+	"""Create `doctype`'s table in the log database if it is not there yet.
+
+	Log DocTypes are virtual, so `frappe.database.schema.DBTable.sync` deliberately skips
+	them and nothing else creates their table. `SQLiteTable` cannot be reused here because it
+	issues its DDL through `frappe.db`, which must keep pointing at the primary database.
+
+	Columns come from the DocType's own meta and the log connection's `type_map`, so the table
+	matches what `get_valid_dict` will hand to :meth:`LogDocument.db_insert`. Creation is
+	one-shot per process: the check is cached on `frappe.local`.
+	"""
+	created = getattr(frappe.local, "log_tables_ready", None)
+
+	if created is None:
+		created = frappe.local.log_tables_ready = set()
+
+	if doctype in created:
+		return
+
+	log_db = get_log_db()
+	table = f"tab{doctype}"
+	meta = frappe.get_meta(doctype)
+
+	definitions = [
+		"`name` TEXT PRIMARY KEY",
+		"`creation` TIMESTAMP",
+		"`modified` TIMESTAMP",
+		"`modified_by` TEXT",
+		"`owner` TEXT",
+		"`docstatus` INTEGER NOT NULL DEFAULT 0",
+		"`idx` INTEGER NOT NULL DEFAULT 0",
+	]
+
+	for column in meta.get_valid_columns():
+		if column in log_db.DEFAULT_COLUMNS:
+			continue
+
+		field = meta.get_field(column)
+		column_type = log_db.type_map.get(field.fieldtype, ("TEXT", None))[0] if field else "TEXT"
+		definitions.append(f"`{column}` {column_type}")
+
+	# `IF NOT EXISTS` rather than a `get_tables()` probe: that helper caches under the
+	# site-global `db_tables` key, which the primary connection also uses, so asking it here
+	# would overwrite the primary's cached table list.
+	log_db.sql_ddl("CREATE TABLE IF NOT EXISTS `{}` ({})".format(table, ", ".join(definitions)))
+	log_db.sql_ddl(f"CREATE INDEX IF NOT EXISTS `{table}_creation_idx` ON `{table}` (`creation`)")
+
+	created.add(doctype)
 
 
 def _first_given(*values):
@@ -230,7 +282,7 @@ def _first_given(*values):
 	return None
 
 
-def _log_table(doctype: str):
+def log_table(doctype: str):
 	"""Return `(builder, table)` for a log DocType's table.
 
 	The SQLite dialect is requested explicitly instead of using `frappe.qb`, which is
@@ -242,7 +294,7 @@ def _log_table(doctype: str):
 	return qb, qb.DocType(doctype)
 
 
-def _run_log_query(query, **kwargs):
+def run_log_query(query, **kwargs):
 	"""Render a Query Builder query and execute it on the log database.
 
 	`walk()` returns SQL containing named Frappe placeholders and a parameter mapping,
@@ -307,7 +359,9 @@ def _build_log_query(doctype: str, filters=None):
 	from frappe.database.operator_map import OPERATOR_MAP
 	from frappe.types.filter import Filters
 
-	qb, table = _log_table(doctype)
+	ensure_log_table(doctype)
+
+	qb, table = log_table(doctype)
 	query = qb.from_(table)
 
 	if filters is None:

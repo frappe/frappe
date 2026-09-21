@@ -2,13 +2,25 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.model.document import Document
-from frappe.query_builder import Interval
-from frappe.query_builder.functions import Count, Date, Max, Min, Now
+from frappe.query_builder.functions import Count, Date, Max, Min
+from frappe.utils import add_days, cint, now
 from frappe.utils.caching import http_cache
+from frappe.utils.logging import LogDocument, get_log_db, log_table, run_log_query
 
 
-class ErrorLog(Document):
+def _cutoff(days: int) -> str:
+	"""Return the timestamp `days` in the past, as a string.
+
+	The cutoff is computed in Python rather than with `Now() - Interval(days=...)`, which the
+	query builder renders for SQLite as `CURRENT_TIMESTAMP - datetime('now', '+N days')` --
+	one timestamp minus another, which SQLite evaluates numerically and never matches. A
+	literal keeps the comparison correct, and `creation` is an ISO timestamp so string
+	ordering is chronological ordering.
+	"""
+	return add_days(now(), -cint(days))
+
+
+class ErrorLog(LogDocument):
 	_DOCTYPE_NAME = "Error Log"
 
 	# begin: auto-generated types
@@ -29,6 +41,27 @@ class ErrorLog(Document):
 		trace_id: DF.Data | None
 	# end: auto-generated types
 
+	# `frappe.model.virtual_doctype.validate_controller` compares each required method against
+	# `controller.mro()[1]` -- here `LogDocument` -- so inheriting them reads as "not
+	# overridden" and warns, even though they do override `Document`. Declaring them keeps the
+	# check satisfied; the behaviour is entirely LogDocument's.
+	#
+	# The signatures mirror the parent's: `Document.insert` calls
+	# `db_insert(ignore_if_duplicate=...)`, so narrowing these to `(self)` would raise
+	# TypeError on every insert.
+
+	def db_insert(self, *args, **kwargs):
+		return super().db_insert(*args, **kwargs)
+
+	def db_update(self, *args, **kwargs):
+		return super().db_update(*args, **kwargs)
+
+	def load_from_db(self):
+		return super().load_from_db()
+
+	def delete(self, *args, **kwargs):
+		return super().delete(*args, **kwargs)
+
 	def validate(self):
 		self.method = str(self.method)
 		self.error = str(self.error)
@@ -39,20 +72,30 @@ class ErrorLog(Document):
 
 	def onload(self):
 		if not self.seen and not frappe.flags.read_only:
-			self.db_set("seen", 1, update_modified=0)
-			frappe.db.commit()
+			# `db_set` would route through `frappe.db.set_value` to the primary database, and
+			# its `frappe.db.commit()` would commit the primary transaction. `db_update` writes
+			# this row in the log database and commits only that connection. `modified` is left
+			# as loaded, preserving the previous `update_modified=0`.
+			self.seen = 1
+			self.db_update()
 
 	@staticmethod
 	def clear_old_logs(days=30):
-		table = frappe.qb.DocType("Error Log")
-		frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))
+		qb, table = log_table("Error Log")
+		run_log_query(qb.from_(table).where(table.creation < _cutoff(days)).delete())
+		get_log_db().commit()
 
 
 @frappe.whitelist()
 def clear_error_logs():
 	"""Flush all Error Logs"""
 	frappe.only_for("System Manager")
-	frappe.db.truncate("Error Log")
+
+	# `frappe.db.truncate` would target the primary database, where Error Log no longer has a
+	# table. A DELETE on the log connection is the equivalent operation here.
+	qb, table = log_table("Error Log")
+	run_log_query(qb.from_(table).delete())
+	get_log_db().commit()
 
 
 @frappe.whitelist()
@@ -84,26 +127,30 @@ def get_fingerprint_stats(fingerprint: str) -> dict:
 	"""
 	frappe.has_permission("Error Log", throw=True)
 
-	table = frappe.qb.DocType("Error Log")
+	# Built with the log database's own dialect and run on its connection: `.run()` would
+	# execute against `frappe.db`, which no longer holds these rows.
+	qb, table = log_table("Error Log")
 
-	summary = (
-		frappe.qb.from_(table)
+	summary = run_log_query(
+		qb.from_(table)
 		.where(table.fingerprint == fingerprint)
 		.select(
 			Count("*").as_("count"),
 			Min(table.creation).as_("first_seen"),
 			Max(table.creation).as_("last_seen"),
-		)
-	).run(as_dict=True)[0]
+		),
+		as_dict=True,
+	)[0]
 
-	timeline = (
-		frappe.qb.from_(table)
+	timeline = run_log_query(
+		qb.from_(table)
 		.where(table.fingerprint == fingerprint)
-		.where(table.creation >= (Now() - Interval(days=30)))
+		.where(table.creation >= _cutoff(30))
 		.groupby(Date(table.creation))
 		.orderby(Date(table.creation))
-		.select(Date(table.creation).as_("day"), Count("*").as_("count"))
-	).run(as_dict=True)
+		.select(Date(table.creation).as_("day"), Count("*").as_("count")),
+		as_dict=True,
+	)
 
 	return {
 		"count": summary.count or 0,
