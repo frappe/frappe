@@ -89,8 +89,8 @@ const props = defineProps<{
 	doctype: string;
 }>();
 
-const fields = reactive<{ data: Record<string, { fieldname: string; label: string; reqd: number }[]> | null }>({
-	data: null,
+const fields = reactive<{ data: Record<string, { fieldname: string; label: string; reqd: number }[]> }>({
+	data: {},
 });
 fetchDoctypeBundle(props.doctype).then((docs) => {
 	doctypeMeta.value = docs;
