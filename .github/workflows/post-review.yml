@@ -62,9 +62,10 @@ jobs:
             gh api -X POST "repos/${{ github.repository }}/issues/$PR/comments" --input note.json --jq '.html_url'
           done
           if [ "$(jq -r '(.resolve // []) | length' review.json)" != "0" ]; then
-            gh api graphql -F o="${GITHUB_REPOSITORY%%/*}" -F r="${GITHUB_REPOSITORY##*/}" -F n="$PR" -f query='
-              query($o:String!,$r:String!,$n:Int!){ repository(owner:$o,name:$r){ pullRequest(number:$n){
-                reviewThreads(first:100){ nodes{ id isResolved comments(first:1){ nodes{ author{ login } } } } } } } }' \
+            gh api graphql --paginate -F o="${GITHUB_REPOSITORY%%/*}" -F r="${GITHUB_REPOSITORY##*/}" -F n="$PR" -f query='
+              query($o:String!,$r:String!,$n:Int!,$endCursor:String){ repository(owner:$o,name:$r){ pullRequest(number:$n){
+                reviewThreads(first:100, after:$endCursor){ pageInfo{ hasNextPage endCursor }
+                  nodes{ id isResolved comments(first:1){ nodes{ author{ login } } } } } } } }' \
               --jq '.data.repository.pullRequest.reviewThreads.nodes[]
                     | select(.isResolved == false and .comments.nodes[0].author.login == "frappe-pr-bot") | .id' > own-threads.txt
             jq -r '(.resolve // [])[]' review.json | while read -r thread; do
