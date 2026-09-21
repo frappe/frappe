@@ -92,6 +92,10 @@ class TestBuildWindow(IntegrationTestCase):
 		note.save()
 		self.search.queue_documents_changed_during_build(started_at)
 
+		# the catch-up queues, and the scheduled drain is what rewrites the row
+		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[BuildWindowSearch]):
+			index_docs_in_queue()
+
 		self.assertEqual(self.indexed_title(note.name), "After Edit")
 
 	def test_a_document_deleted_during_the_build_is_removed(self):
