@@ -270,6 +270,7 @@ def get_user_permission_list(allow: str, txt: str | None = None, start: int = 0,
 		)
 		.where(up.allow == allow)
 		.orderby(up.modified, order=Order.desc)
+		.orderby(up.name, order=Order.desc)
 		.limit(cint(page_length))
 		.offset(cint(start))
 	)

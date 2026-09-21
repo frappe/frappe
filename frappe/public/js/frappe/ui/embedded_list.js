@@ -133,8 +133,11 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 	// asked for to know whether there is more.
 	load_page(start) {
 		const txt = this.search_term();
+		// only the latest request may update the list; a slower older one is dropped
+		const request = (this._request = (this._request || 0) + 1);
 		return this.get_page({ start, page_length: this.page_size + 1, txt })
 			.then((rows) => {
+				if (request !== this._request) return;
 				rows = rows || [];
 				this.has_more = rows.length > this.page_size;
 				const page = rows.slice(0, this.page_size);
@@ -151,7 +154,9 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 				this.after_render();
 				this.toggle_result_area();
 			})
-			.catch((e) => this.show_error(e));
+			.catch((e) => {
+				if (request === this._request) this.show_error(e);
+			});
 	}
 
 	show_error(e) {
