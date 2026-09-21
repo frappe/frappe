@@ -2,24 +2,20 @@ frappe.provide("frappe.ui");
 
 /**
  * @typedef {Object} StepperStep
- * @property {string} label Step name (pre-translated). Rendered as text. The state icon is generic (circle-check when completed, circle-dashed otherwise) — steps carry no icon of their own.
+ * @property {string} label Step name (pre-translated). Rendered as text.
  *
  * @typedef {Object} StepperOpts
  * @property {StepperStep[]} steps
  * @property {number} [current=0] Index of the active step.
  * @property {string} [label] Accessible name for the nav. Defaults to "Steps".
  * @property {(index: number) => boolean} [is_locked] Steps the user can't jump to right now. Re-checked on every render.
- * @property {(index: number) => boolean} [is_completed] What "done" means for this flow. Without it, completion is positional (every step before the current one) — which forgets history when the user navigates back; pass this when completion is a fact (saved, imported…) so revisited flows keep their checks. The active step gets data-completed="true" alongside data-state="active" when both are true.
  * @property {(index: number) => void} [on_step_click] Fires when an unlocked, non-active step is clicked. Navigation stays the caller's job — call set_current when the move is accepted.
- * @property {(index: number) => void} [on_locked_click] Fires when a locked step is clicked — for "finish the earlier steps first" feedback. Without it, locked clicks are silently swallowed.
- * @property {boolean} [compact] Render a one-line progress summary (segmented bar + "Step x of y") instead of the step chips — for narrow layouts. Mount a compact and a full instance and toggle visibility at your breakpoint.
  * @property {string} [css_class] Extra classes on the nav.
  */
 
 /**
  * The step header for multi-step flows — markers, connectors and labels with
- * active / completed / locked states. An espresso original (frappe-ui has no
- * stepper); the CSS contract lives in components/stepper.css.
+ * active / completed / locked states. The CSS contract lives in components/stepper.css.
  *
  * @example
  * const stepper = new frappe.ui.Stepper({
@@ -34,10 +30,7 @@ frappe.ui.Stepper = class Stepper {
 		this.steps = opts.steps || [];
 		this.current = opts.current || 0;
 		this.is_locked = opts.is_locked || null;
-		this.is_completed = opts.is_completed || null;
 		this.on_step_click = opts.on_step_click || null;
-		this.on_locked_click = opts.on_locked_click || null;
-		this.compact = Boolean(opts.compact);
 
 		this.nav = document.createElement("nav");
 		this.nav.className = ["es-stepper", opts.css_class].filter(Boolean).join(" ");
@@ -54,40 +47,19 @@ frappe.ui.Stepper = class Stepper {
 		this.render();
 	}
 
-	/** Advance one step (clamped at the end). Locks are not consulted —
-	 * the owner calls this after its own validation passes. */
-	next_step() {
-		this.set_current(this.current + 1);
-	}
-
-	/** Go back one step (clamped at the start). */
-	prev_step() {
-		this.set_current(this.current - 1);
-	}
-
 	/** Re-evaluate is_locked without moving — for when the flow's rules change. */
 	refresh() {
 		this.render();
 	}
 
+	locked(index) {
+		return Boolean(this.is_locked && index !== this.current && this.is_locked(index));
+	}
+
 	render() {
-		// owners tend to re-render on every state poll (the DI wizard does, per
-		// realtime progress tick) — skip when nothing visible would change.
-		// Building the key queries is_locked, so lock flips bust the memo.
-		// completion is a fact when the owner says so, positional otherwise
-		const done = (index) =>
-			this.is_completed ? Boolean(this.is_completed(index)) : index < this.current;
 		const render_key = [
-			this.compact ? "compact" : "full",
 			this.current,
-			...this.steps.map(
-				(step, index) =>
-					`${step.label}:${Number(done(index))}:${
-						this.is_locked && index !== this.current
-							? Number(Boolean(this.is_locked(index)))
-							: 0
-					}`
-			),
+			...this.steps.map((step, index) => `${step.label}:${Number(this.locked(index))}`),
 		].join("|");
 		if (render_key === this._render_key) return;
 		this._render_key = render_key;
@@ -103,26 +75,19 @@ frappe.ui.Stepper = class Stepper {
 
 		this.nav.textContent = "";
 
-		if (this.compact) {
-			this.render_compact();
-			return;
-		}
-
 		this.steps.forEach((step, index) => {
 			if (index > 0) {
 				const connector = document.createElement("span");
 				connector.className = "es-stepper__connector";
 				connector.setAttribute("aria-hidden", "true");
-				if (done(index - 1)) {
+				if (index - 1 < this.current) {
 					connector.setAttribute("data-completed", "true");
 				}
 				this.nav.appendChild(connector);
 			}
 
-			const locked = Boolean(
-				this.is_locked && index !== this.current && this.is_locked(index)
-			);
-			const is_done = done(index);
+			const locked = this.locked(index);
+			const is_done = index < this.current;
 			const state =
 				index === this.current
 					? "active"
@@ -137,8 +102,6 @@ frappe.ui.Stepper = class Stepper {
 			button.className = "es-stepper__step";
 			if (state) button.setAttribute("data-state", state);
 			if (state === "active") button.setAttribute("aria-current", "step");
-			// revisiting a finished step: both facts ride on the element so CSS
-			// can show "done, and you're here"
 			if (is_done) button.setAttribute("data-completed", "true");
 			// aria-disabled, not disabled: locked steps stay in the tab order so
 			// the whole flow is discoverable; the click guard does the blocking
@@ -146,14 +109,8 @@ frappe.ui.Stepper = class Stepper {
 
 			const marker = document.createElement("span");
 			marker.className = "es-stepper__marker";
-			// generic state icons: done = bare check on the filled disc, EXCEPT
-			// the step being revisited, whose disc shows a dot ("you are here"
-			// on a finished step); active-in-progress = dashed circle with the
-			// dot, upcoming/locked = plain dash
 			const icon_name = is_done
-				? state === "active"
-					? "dot"
-					: "check"
+				? "check"
 				: state === "active"
 				? "circle-dot-dashed"
 				: "circle-dashed";
@@ -166,11 +123,7 @@ frappe.ui.Stepper = class Stepper {
 			button.appendChild(label);
 
 			button.addEventListener("click", () => {
-				if (button.getAttribute("aria-disabled") === "true") {
-					this.on_locked_click && this.on_locked_click(index);
-					return;
-				}
-				if (index === this.current) return;
+				if (locked || index === this.current) return;
 				this.on_step_click && this.on_step_click(index);
 			});
 
@@ -181,23 +134,6 @@ frappe.ui.Stepper = class Stepper {
 			const target = this.nav.querySelectorAll(".es-stepper__step")[had_focus];
 			target && target.focus({ preventScroll: true });
 		}
-	}
-
-	// one-line summary for narrow layouts: the progress interval form gives
-	// one segment per step, the label/hint row gives name + "Step x of y"
-	render_compact() {
-		const done = this.current + 1;
-		const count = this.steps.length;
-		$(this.nav).append(
-			frappe.ui.progress({
-				label: this.steps[this.current]?.label || "",
-				hint: () => __("Step {0} of {1}", [done, count]),
-				intervals: true,
-				interval_count: count,
-				size: "md",
-				value: count ? (done / count) * 100 : 0,
-			})
-		);
 	}
 };
 

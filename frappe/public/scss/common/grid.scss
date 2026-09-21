@@ -937,8 +937,34 @@ body.grid-col-resizing {
 }
 
 .grid-import-upload-pane {
+	height: 100%;
 	display: flex;
 	flex-direction: column;
+}
+
+.grid-import-file-pane > .file-uploader {
+	flex: 0 0 auto;
+}
+
+.grid-import-step-panel {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+.grid-import-upload-tabs {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.grid-import-upload-tabs > .es-tabs__list {
+	flex: 0 0 auto;
+}
+
+.grid-import-upload-tabs > .es-tabs__panel {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
 }
 
 .grid-import-upload-tabs .es-tabs__indicator {
@@ -954,12 +980,26 @@ body.grid-col-resizing {
 	flex-direction: column;
 }
 
+.grid-import-tabs {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
 .grid-import-tabs > .es-tabs__panel {
+	flex: 1 1 auto;
+	min-height: 0;
 	overflow-y: auto;
 }
 
 .grid-import-tabs > .es-tabs__panel:has(.grid-import-preview-table) {
 	overflow-y: hidden;
+}
+
+.grid-import-dialog .grid-import-panel .grid-import-fill {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-height: 0;
 }
 
 .grid-import-tabs .es-tabs__panel {
@@ -969,6 +1009,17 @@ body.grid-col-resizing {
 
 .modal-dialog.grid-import-dialog {
 	max-width: min(80vw, 1400px);
+}
+
+.grid-import-dialog .modal-body {
+	height: calc(90vh - 104px);
+	overflow-y: hidden;
+}
+
+.grid-import-body {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
 }
 
 .grid-import-dialog .es-stepper {
@@ -1073,6 +1124,12 @@ body.grid-col-resizing {
 	text-align: right;
 }
 
+.grid-import-preview-row.has-note {
+	color: var(--orange-600);
+	cursor: pointer;
+	text-decoration: underline dotted;
+}
+
 .grid-import-skip-cell {
 	width: 1%;
 	white-space: nowrap;
@@ -1154,6 +1211,13 @@ body.grid-col-resizing {
 	.help-box {
 		display: none;
 	}
+
+	.select-icon {
+		position: absolute;
+		top: 3px;
+		right: 12px;
+		pointer-events: none;
+	}
 }
 
 .grid-import-preview-table .grid-import-editable-cell .form-control {
@@ -1177,6 +1241,11 @@ body.grid-col-resizing {
 
 .grid-import-preview-table tbody td {
 	height: var(--grid-import-row-height);
+}
+
+.grid-import-preview-table tbody tr[data-row] td:not(.grid-import-editable-cell) {
+	padding: 0 var(--padding-sm);
+	vertical-align: middle;
 }
 
 .grid-import-preview-table td.grid-import-pending-cell {

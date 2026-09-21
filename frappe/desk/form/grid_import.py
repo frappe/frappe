@@ -2,13 +2,16 @@
 # License: MIT. See LICENSE
 import base64
 import datetime
+import html
 
 import frappe
 from frappe import _
-from frappe.core.doctype.data_import.importer import get_df_for_column_header
-from frappe.model import no_value_fields, table_fields
-from frappe.utils import cstr
+from frappe.core.doctype.data_import.importer import Row, get_df_for_column_header, get_item_at_index
+from frappe.model import get_permitted_fields, no_value_fields, table_fields
+from frappe.utils import cstr, get_user_date_format, get_user_time_format, strip_html
+from frappe.utils.caching import request_cache
 from frappe.utils.csvutils import get_csv_content_from_google_sheets, read_csv_content
+from frappe.utils.dateutils import dateformats
 from frappe.utils.xlsxutils import (
 	build_xlsx_response,
 	read_xls_file_from_attached_file,
@@ -18,6 +21,8 @@ from frappe.utils.xlsxutils import (
 SUPPORTED_EXTENSIONS = ("csv", "xlsx", "xls")
 
 MAX_TEMPLATE_ROWS = 10000
+
+MAX_IMPORT_ROWS = 5000
 
 
 @frappe.whitelist(methods=["POST"])
@@ -29,7 +34,7 @@ def download_template(doctype: str, title: str, data: str, file_type: str = "Exc
 	if not isinstance(rows, list):
 		frappe.throw(_("Invalid template data"), title=_("Download Failed"))
 
-	if len(rows) > MAX_TEMPLATE_ROWS:
+	if len(rows) - 1 > MAX_TEMPLATE_ROWS:
 		frappe.throw(
 			_("Cannot download more than {0} rows.").format(MAX_TEMPLATE_ROWS),
 			title=_("Download Failed"),
@@ -87,21 +92,8 @@ def parse_google_sheet(doctype: str, url: str) -> list[list[str]]:
 
 @frappe.whitelist(methods=["POST"])
 def get_column_map(doctype: str, fieldname: str, headers: str) -> dict[int, str]:
-	if not frappe.has_permission(doctype, "write"):
-		raise frappe.PermissionError
-
-	table_df = frappe.get_meta(doctype).get_field(fieldname)
-	if not table_df or table_df.fieldtype not in table_fields:
-		frappe.throw(_("{0} is not a table field").format(frappe.bold(fieldname)))
-
-	child_doctype = table_df.options
-
-	writable = {
-		df.fieldname
-		for df in frappe.get_meta(child_doctype).fields
-		if df.fieldtype not in no_value_fields and not df.read_only
-	}
-	writable.add("name")
+	child_doctype = get_child_doctype(doctype, fieldname)
+	writable = get_writable_fields(doctype, child_doctype)
 
 	column_map = {}
 	for i, header in enumerate(frappe.parse_json(headers) or []):
@@ -116,16 +108,103 @@ def get_column_map(doctype: str, fieldname: str, headers: str) -> dict[int, str]
 
 
 @frappe.whitelist(methods=["POST"])
-def get_invalid_link_values(doctype: str, values_by_doctype: str) -> dict[str, list[str]]:
-	if not frappe.has_permission(doctype, "read"):
+def validate_rows(doctype: str, fieldname: str, headers: str, rows: str, column_map: str) -> list[dict]:
+	child_doctype = get_child_doctype(doctype, fieldname)
+	rows = frappe.parse_json(rows)
+	if len(rows) > MAX_IMPORT_ROWS:
+		frappe.throw(_("Cannot import table with more than {0} rows.").format(MAX_IMPORT_ROWS))
+
+	writable = get_writable_fields(doctype, child_doctype)
+	meta = frappe.get_meta(child_doctype)
+	date_format = dateformats.get(get_user_date_format(), "%Y-%m-%d")
+
+	columns = [
+		frappe._dict(
+			index=int(i), column_number=int(i) + 1, df=meta.get_field(field), date_format=date_format
+		)
+		for i, field in frappe.parse_json(column_map).items()
+		if field in writable and meta.get_field(field)
+	]
+	header = frappe._dict(columns=frappe.parse_json(headers))
+
+	warnings = []
+	for index, data in enumerate(rows):
+		row = GridImportRow(index, data, child_doctype, header, import_type=None)
+		for col in columns:
+			value = cstr(get_item_at_index(data, col.index)).strip()
+			if not value:
+				continue
+			seen = len(row.warnings)
+			row.validate_value(value, col)
+			for warning in row.warnings[seen:]:
+				warning["col"] = col.index
+
+		warnings.extend(
+			{
+				"row": index,
+				"col": warning.get("col"),
+				"blocking": warning.get("col") is not None,
+				"message": html.unescape(strip_html(warning["message"])),
+			}
+			for warning in row.warnings
+		)
+
+	return warnings
+
+
+class GridImportRow(Row):
+	def link_exists(self, value, df):
+		return not can_read(df.options, frappe.session.user) or super().link_exists(value, df)
+
+	def validate_value(self, value, col):
+		if col.df.fieldtype == "Duration" and value.isdigit():
+			return value
+		return super().validate_value(value, col)
+
+	def get_date(self, value, column):
+		parsed = parse_datetime(value, (column.date_format, "%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))
+		return parsed.date() if isinstance(parsed, datetime.datetime) else parsed
+
+	def get_datetime(self, value, column):
+		time_format = get_user_time_format().replace("HH", "%H").replace("mm", "%M").replace("ss", "%S")
+		return parse_datetime(value, (f"{column.date_format} {time_format}", "%Y-%m-%d %H:%M:%S"))
+
+
+@request_cache
+def can_read(doctype: str, user: str) -> bool:
+	return frappe.has_permission(doctype, "read", user=user)
+
+
+def parse_datetime(value: str, formats) -> datetime.datetime | str:
+	for date_format in formats:
+		try:
+			return datetime.datetime.strptime(value, date_format)
+		except ValueError:
+			continue
+	return value
+
+
+def get_child_doctype(doctype: str, fieldname: str) -> str:
+	if not frappe.has_permission(doctype, "write"):
 		raise frappe.PermissionError
 
-	values_by_doctype = frappe.parse_json(values_by_doctype)
-	return {
-		linked_doctype: [value for value in values if not frappe.db.exists(linked_doctype, value, cache=True)]
-		for linked_doctype, values in values_by_doctype.items()
-		if frappe.has_permission(linked_doctype, "read")
+	table_df = frappe.get_meta(doctype).get_field(fieldname)
+	if not table_df or table_df.fieldtype not in table_fields:
+		frappe.throw(_("{0} is not a table field").format(frappe.bold(fieldname)))
+
+	return table_df.options
+
+
+def get_writable_fields(doctype: str, child_doctype: str) -> set[str]:
+	permitted = set(get_permitted_fields(child_doctype, parenttype=doctype, permission_type="write"))
+
+	writable = {
+		df.fieldname
+		for df in frappe.get_meta(child_doctype).fields
+		if df.fieldtype not in no_value_fields and not df.is_virtual and df.fieldname in permitted
 	}
+	writable.add("name")
+	return writable
 
 
 def get_extension(filename: str) -> str:

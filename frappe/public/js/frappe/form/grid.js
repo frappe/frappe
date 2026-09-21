@@ -3,7 +3,6 @@
 
 import GridRow from "./grid_row";
 import GridPagination from "./grid_pagination";
-import GridImport from "./grid_import";
 
 // Static pixel column widths; legacy map migrates old 1-12 `columns`/`colsize`.
 export const GRID_MIN_COLUMN_WIDTH = 60;
@@ -1649,7 +1648,12 @@ export default class Grid {
 			.find(".grid-upload")
 			.removeClass("hidden")
 			.on("click", () => {
-				new GridImport(this).show();
+				if (this.opening_import) return false;
+				this.opening_import = true;
+				frappe.require("grid_import.bundle.js", () => {
+					this.opening_import = false;
+					new frappe.ui.form.GridImport(this).show();
+				});
 				return false;
 			});
 	}

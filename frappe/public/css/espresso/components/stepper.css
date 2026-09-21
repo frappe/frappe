@@ -25,11 +25,6 @@
  * Locked steps stay focusable (aria-disabled, not disabled) so the flow is
  * discoverable by keyboard and screen readers — blocking activation is the
  * owner's job.
- *
- * Compact mode (JS option `compact`) renders a one-line progress summary
- * instead — the frappe.ui.progress interval form with a "Step x of y" hint —
- * for narrow layouts; same API, so a consumer can mount both and toggle
- * visibility at its own breakpoint.
  */
 
 .es-stepper {
@@ -69,9 +64,7 @@
 }
 
 /* completed: a filled disc — the fill lives on the marker BOX (sprite <use>
-   internals can't be part-styled), with a bare white check on top.
-   data-completed is a FACT independent of position (the owner's
-   is_completed), so a revisited done step keeps its check while active */
+   internals can't be part-styled), with a bare white check on top */
 .es-stepper__step[data-completed="true"] .es-stepper__marker {
     border-radius: var(--radius-full);
     background: var(--surface-gray-9);
@@ -82,17 +75,6 @@
 .es-stepper__step[data-completed="true"] .es-stepper__marker svg {
     width: calc(var(--spacing) * 2.5);
     height: calc(var(--spacing) * 2.5);
-}
-
-/* revisiting a done step: the disc swaps its check for a dot ("you are
-   here" on a finished step). The lucide dot is a radius-1 circle in a 24
-   viewBox — full marker size + a fat stroke (viewBox units) turn the speck
-   into a readable ~6px dot; round linecaps keep it circular */
-.es-stepper__step[data-state="active"][data-completed="true"] .es-stepper__marker .icon,
-.es-stepper__step[data-state="active"][data-completed="true"] .es-stepper__marker svg {
-    width: calc(var(--spacing) * 4);
-    height: calc(var(--spacing) * 4);
-    stroke-width: 7px;
 }
 
 .es-stepper__step[data-state="locked"] {
