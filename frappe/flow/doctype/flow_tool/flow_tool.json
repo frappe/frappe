@@ -44,13 +44,13 @@
   },
   {
    "default": "Imported",
-   "description": "<code>Imported</code> tools are loaded from a Python module by path. <code>Script</code> tools store code in the database and run it in a <code>safe_exec</code> sandbox.",
+   "description": "<code>Imported</code> tools are loaded from a Python module by path. <code>Script</code> tools store code in the database and run it in a <code>safe_exec</code> sandbox. <code>Server</code> tools are extension tools the flow server loaded, mirrored here by the app.",
    "fieldname": "type",
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Type",
-   "options": "Imported\nScript",
+   "options": "Imported\nScript\nServer",
    "read_only_depends_on": "eval:doc.is_system_generated",
    "reqd": 1
   },

@@ -35,7 +35,7 @@ class FlowTool(Document):
 		slug: DF.Data
 		summary: DF.SmallText | None
 		title: DF.Data
-		type: DF.Literal["Imported", "Script"]
+		type: DF.Literal["Imported", "Script", "Server"]
 	# end: auto-generated types
 
 	def validate(self):
@@ -55,7 +55,7 @@ class FlowTool(Document):
 			warn_existing_sessions(agents)
 
 	def on_trash(self):
-		block_delete(self, always=True)
+		block_delete(self, always=self.type != "Server")
 
 	def before_rename(self, old: str, _new: str, _merge: bool = False) -> None:
 		block_rename(self, old)
@@ -102,8 +102,14 @@ class FlowTool(Document):
 					_("Script tools must not specify an Import Path."),
 					title=_("Unexpected Import Path"),
 				)
+		elif self.type == "Server":
+			if self.import_path or self.code:
+				frappe.throw(
+					_("Server tools have no code here; the flow server provides them."),
+					title=_("Unexpected Code"),
+				)
 		else:
-			frappe.throw(_("Type must be Imported or Script."), title=_("Invalid Type"))
+			frappe.throw(_("Type must be Imported, Script or Server."), title=_("Invalid Type"))
 
 	def _validate_code(self):
 		try:
@@ -143,3 +149,33 @@ class FlowTool(Document):
 					_("Code must not call <code>main()</code> directly (line {0}).").format(node.lineno),
 					title=_("Invalid Code"),
 				)
+
+
+def sync_server_tools() -> None:
+	"""Mirror this site's extension tools as Server rows: add new ones, refresh
+	descriptions, and delete rows whose tool is gone along with the agent rows naming them."""
+	from flow.daemon import lifecycle
+
+	folder = lifecycle.site_extensions_dir()
+	rows = lifecycle.extension_tools([folder]) if folder.is_dir() else []
+	live = {row["name"]: row["description"] for row in rows}
+	mirrored = set(frappe.get_all("Flow Tool", {"type": "Server"}, pluck="name"))
+	for name in mirrored - set(live):
+		frappe.db.delete("Flow Agent Tool", {"tool": name})
+		frappe.delete_doc("Flow Tool", name, ignore_permissions=True)
+	for name, description in live.items():
+		if name in mirrored:
+			frappe.db.set_value("Flow Tool", name, "description", description)
+		elif frappe.db.exists("Flow Tool", name):
+			frappe.log_error(title=f"Flow Tool {name!r} is not a Server tool; extension tool skipped")
+		else:
+			frappe.get_doc(
+				{
+					"doctype": "Flow Tool",
+					"slug": name,
+					"title": name.replace("_", " ").title(),
+					"type": "Server",
+					"description": description,
+					"is_system_generated": 1,
+				}
+			).insert(ignore_permissions=True)

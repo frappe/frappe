@@ -29,6 +29,7 @@ from frappe.utils import get_bench_path
 from frappe.utils.synchronization import filelock
 
 from flow.daemon.client import DaemonClient, DaemonError
+from flow.flow.doctype.flow_tool.flow_tool import sync_server_tools
 
 START_TIMEOUT = 30
 EXTENSIONS_DIR = "extensions"
@@ -59,12 +60,14 @@ INHERITED_ENV = (
 def after_install() -> None:
 	provision_site()
 	_run_or_warn(ensure_running)
+	_run_or_warn(sync_server_tools)
 
 
 def after_migrate() -> None:
-	"""Restarts so `bench update` ships new daemon code."""
+	"""Restarts so `bench update` ships new daemon code, then mirrors its extension tools."""
 	provision_site()
 	_run_or_warn(restart)
+	_run_or_warn(sync_server_tools)
 
 
 def keep_alive() -> None:

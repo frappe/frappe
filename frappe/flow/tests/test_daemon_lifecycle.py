@@ -217,6 +217,15 @@ class TestDaemonLifecycle(UnitTestCase):
 			lifecycle.extension_tools([Path("/ext")])
 		self.assertEqual(secho.call_args.args[0], "boom")
 
+	def test_migrate_warns_when_the_tool_sync_fails(self):
+		with (
+			patch.object(lifecycle, "restart"),
+			patch.object(lifecycle, "sync_server_tools", side_effect=RuntimeError("no listing")),
+			patch.object(click, "secho") as secho,
+		):
+			lifecycle.after_migrate()
+		self.assertIn("no listing", secho.call_args_list[0].args[0])
+
 	def test_start_refuses_without_a_provisioned_site(self):
 		self.install_flow_bin()
 		with self.assertRaisesRegex(RuntimeError, "no site is provisioned"):
