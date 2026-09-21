@@ -124,6 +124,7 @@ def get_link_titles(doc: Document) -> dict:
 USERS_PART = "users"
 # the parts that name users, and the row key that holds the id (`None`: the row is the id)
 USER_ROW_KEY = {
+	"attachments": "owner",
 	"assignments": "user",
 	"shares": "user",
 	"favourites": "user",
