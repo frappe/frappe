@@ -855,10 +855,13 @@ function get_builder_tab(frm) {
 	return frm.layout?.tabs?.find((t) => t.df.fieldname === "form_builder_tab");
 }
 
-// a stale row has no usable docfield, so it never reaches this
+// a stale row has no usable docfield, so it never reaches this.
+// all three are listed, deduped: each is kept or dropped on its own, and keys often repeat one
 function get_condition_warning_title(df) {
-	const condition = df?.depends_on || df?.mandatory_depends_on || df?.read_only_depends_on;
-	return condition ? __("Depends on: {0}", [condition]) : "";
+	const conditions = [
+		...new Set([df.depends_on, df.mandatory_depends_on, df.read_only_depends_on]),
+	].filter(Boolean);
+	return conditions.length ? __("Depends on: {0}", [conditions.join(", ")]) : "";
 }
 
 function get_web_form_fieldtype(df) {
@@ -887,9 +890,11 @@ function condition_survives(condition, selected_fieldnames) {
 }
 
 // same prefixes as layout.js evaluate_depends_on_value, where a bare condition is doc[condition]
+// both accessor forms: an unmatched doc["x"] gives [], and [].every() is true
 function get_referenced_fieldnames(condition) {
 	if (!condition.startsWith("eval:")) return [condition];
-	return [...condition.matchAll(/\bdoc\.(\w+)/g)].map((m) => m[1]);
+	const refs = condition.matchAll(/\bdoc(?:\.(\w+)|\[["'](\w+)["']\])/g);
+	return [...refs].map((m) => m[1] || m[2]);
 }
 
 function render_list_settings_message(frm) {
