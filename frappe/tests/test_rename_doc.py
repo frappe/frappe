@@ -37,9 +37,6 @@ def patch_db(endpoints: list[str] | None = None):
 		frappe.db.rollback(save_point=savepoint)
 
 
-<<<<<<< HEAD
-class TestRenameDoc(FrappeTestCase):
-=======
 class TestRenameSingleDocType(IntegrationTestCase):
 	def test_rename_single_document_is_rejected(self):
 		doctype = new_doctype("Test Single Rename Rejected", issingle=1).insert()
@@ -67,8 +64,7 @@ class TestRenameSingleDocType(IntegrationTestCase):
 		self.assertEqual(frappe.db.count("Singles", {"doctype": old_name}), 0)
 
 
-class TestRenameDoc(IntegrationTestCase):
->>>>>>> 26dce3b (fix: prevent renaming Single DocTypes)
+class TestRenameDoc(FrappeTestCase):
 	@classmethod
 	def setUpClass(self):
 		"""Setting Up data for the tests defined under TestRenameDoc"""
