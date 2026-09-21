@@ -4,6 +4,7 @@
 """Keeps the flow server provisioned for every site and running.
 
 Bench-wide state: <bench>/sites/flow-server/. Each site's sessions: <site>/private/flow/.
+Extensions an admin adds by hand: <site>/private/flow/extensions/, loaded at start.
 Runtime files: <bench>/flow-server/. Logs: the bench's logs directory.
 """
 
@@ -30,6 +31,7 @@ from frappe.utils.synchronization import filelock
 from flow.daemon.client import DaemonClient, DaemonError
 
 START_TIMEOUT = 30
+EXTENSIONS_DIR = "extensions"
 STOP_TIMEOUT = 5
 LOCK = "flow_server"
 # The daemon inherits only these names: no bench credentials or stray FLOW_* switches.
@@ -129,6 +131,11 @@ def session_root() -> Path:
 	return Path(frappe.get_site_path("public", "files")).resolve()
 
 
+def site_extensions_dir() -> Path:
+	"""Extensions an admin adds over SSH; the daemon loads the folder at start."""
+	return site_data_dir() / EXTENSIONS_DIR
+
+
 def site_data_dir() -> Path:
 	"""The daemon's sessions for this site, kept inside the site so a deploy moves them too."""
 	return Path(frappe.get_site_path("private", "flow")).resolve()
@@ -226,13 +233,16 @@ def _restart() -> None:
 def _start() -> None:
 	if not _flow_bin().exists():
 		raise RuntimeError("flow server is missing from the bench environment; reinstall the Flow app")
-	if not _read_tenants():
+	tenants = _read_tenants()
+	if not tenants:
 		raise RuntimeError("no site is provisioned yet; run `bench flow-server setup`")
 	if healthy():
 		raise RuntimeError(f"a flow server already answers on {socket_path()}; stop it by hand")
 	env = {name: os.environ[name] for name in INHERITED_ENV if name in os.environ}
 	env["FLOW_TENANTS_FILE"] = str(tenants_file())
-	env["FLOW_POLICY"] = json.dumps({"tool_allowlist": ["read_file", "grep"]})
+	folders = _extension_folders(tenants)
+	allowed = ["read_file", "grep", *(row["name"] for row in extension_tools(folders))]
+	env["FLOW_POLICY"] = json.dumps({"tool_allowlist": allowed})
 	if redis_url := _redis_url():
 		env["FLOW_REDIS_URL"] = redis_url
 	command = [
@@ -241,6 +251,7 @@ def _start() -> None:
 		*("--uds", str(socket_path())),
 		*("--data-dir", str(state_dir() / "data")),
 		*("--profile", "deployed"),
+		*(arg for folder in folders for arg in ("--extension", str(folder))),
 	]
 	runtime_dir().mkdir(parents=True, exist_ok=True)
 	log = log_path()
@@ -323,6 +334,28 @@ def _redis_url() -> str | None:
 	socketio process also reads, so one bus serves every site's relay."""
 	conf = frappe.get_common_site_config()
 	return conf.flow_redis_url or conf.redis_queue
+
+
+def extension_tools(folders: list[Path]) -> list[dict]:
+	"""The tools the daemon would load from `folders`, listed by the harness without serving."""
+	if not folders:
+		return []
+	proc = subprocess.run(
+		[str(_flow_bin()), "extension-tools", *map(str, folders)], capture_output=True, text=True
+	)
+	if proc.stderr.strip():
+		click.secho(proc.stderr.strip(), fg="yellow")
+	if proc.returncode != 0:
+		raise RuntimeError("flow extension-tools failed; see the messages above")
+	return json.loads(proc.stdout)["tools"]
+
+
+def _extension_folders(tenants: dict) -> list[Path]:
+	"""Every site's extensions folder that exists."""
+	folders = (
+		Path(entry["data_dir"]) / EXTENSIONS_DIR for entry in tenants.values() if entry.get("data_dir")
+	)
+	return [folder for folder in folders if folder.is_dir()]
 
 
 def _read_tenants() -> dict:

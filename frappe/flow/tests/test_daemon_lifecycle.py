@@ -9,6 +9,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+import click
 import frappe
 from frappe.tests import UnitTestCase
 
@@ -178,6 +179,43 @@ class TestDaemonLifecycle(UnitTestCase):
 		self.assertTrue(kwargs["start_new_session"])
 		self.assertEqual(kwargs["umask"], 0o077)
 		self.assertEqual(lifecycle.pid_file().read_text(), "4242")
+
+	def test_start_loads_each_sites_extensions_folder_and_allows_its_tools(self):
+		self.install_flow_bin()
+		lifecycle.provision_site()
+		folder = self.partition / "extensions"
+		folder.mkdir(parents=True)
+		lifecycle._edit_tenants(lambda tenants: tenants.__setitem__("other", {"data_dir": "/nowhere"}))
+		rows = [{"name": "helpdesk_ticket", "description": "Fetch a ticket.", "extension": "helpdesk"}]
+		with (
+			patch.object(lifecycle, "healthy", side_effect=[False, True]),
+			patch.object(lifecycle, "extension_tools", return_value=rows) as listing,
+			patch.object(subprocess, "Popen", return_value=FakeProcess()) as popen,
+		):
+			lifecycle.start()
+		listing.assert_called_once_with([folder])
+		command, kwargs = popen.call_args.args[0], popen.call_args.kwargs
+		self.assertEqual(command[-2:], ["--extension", str(folder)])
+		self.assertEqual(command.count("--extension"), 1)
+		self.assertEqual(
+			kwargs["env"]["FLOW_POLICY"], '{"tool_allowlist": ["read_file", "grep", "helpdesk_ticket"]}'
+		)
+
+	def test_extension_tools_runs_the_harness_listing(self):
+		listed = subprocess.CompletedProcess([], 0, stdout='{"tools": [{"name": "hello"}]}', stderr="")
+		with patch.object(subprocess, "run", return_value=listed) as run:
+			self.assertEqual(lifecycle.extension_tools([Path("/ext")]), [{"name": "hello"}])
+		self.assertEqual(run.call_args.args[0], [str(self.flow_bin), "extension-tools", "/ext"])
+		self.assertEqual(lifecycle.extension_tools([]), [])
+
+		failed = subprocess.CompletedProcess([], 1, stdout="", stderr="boom")
+		with (
+			patch.object(subprocess, "run", return_value=failed),
+			patch.object(click, "secho") as secho,
+			self.assertRaisesRegex(RuntimeError, "extension-tools failed"),
+		):
+			lifecycle.extension_tools([Path("/ext")])
+		self.assertEqual(secho.call_args.args[0], "boom")
 
 	def test_start_refuses_without_a_provisioned_site(self):
 		self.install_flow_bin()
