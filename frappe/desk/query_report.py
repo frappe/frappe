@@ -314,7 +314,15 @@ def _run(
 
 				dn = filters.pop("prepared_report_name", None)
 				if dn:
-					frappe.has_permission("Prepared Report", "read", dn, throw=True)
+					prepared_for = frappe.db.get_value(
+						"Prepared Report", {"name": dn, "owner": user}, "report_name"
+					)
+					if prepared_for != report_name and (
+						not prepared_for
+						or not frappe.db.exists("Report", prepared_for)
+						or get_reference_report(frappe.get_doc("Report", prepared_for)).name != report.name
+					):
+						frappe.has_permission("Prepared Report", "read", dn, throw=True)
 			else:
 				dn = ""
 			result = get_prepared_report_result(report, filters, dn, user)
