@@ -4,62 +4,63 @@
 import { place } from "../ui/components/position.js";
 import GridPagination from "./grid_pagination";
 
-const BULK_EDIT_CSV_HEADER_ROWS = 1;
-const BULK_EDIT_MAX_ROWS = 5000;
-const BULK_EDIT_FILE_TYPES = [".csv", ".xlsx", ".xls"];
-const BULK_EDIT_ID_FIELDNAME = "name";
-const BULK_EDIT_INSERT = "Insert New Records";
-const BULK_EDIT_UPDATE = "Update Existing Records";
-const BULK_EDIT_UPSERT = "Insert or Update Records";
-const BULK_EDIT_IMPORT_TYPES = [BULK_EDIT_INSERT, BULK_EDIT_UPDATE, BULK_EDIT_UPSERT];
-const BULK_EDIT_DONT_IMPORT = "Don't Import";
-const BULK_EDIT_BLANK_TEMPLATE = "blank_template";
-const BULK_EDIT_ALL_RECORDS = "all";
-const BULK_EDIT_5_RECORDS = "5_records";
-const BULK_EDIT_DURATION_PATTERN = /^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$/;
-const BULK_EDIT_SECONDS_PATTERN = /^\d+$/;
-const BULK_EDIT_CHECK_TRUE = ["t", "true", "y", "yes"];
-const BULK_EDIT_CHECK_FALSE = ["f", "false", "n", "no"];
-const BULK_EDIT_CHECK_VALUES = ["0", "1", ...BULK_EDIT_CHECK_TRUE, ...BULK_EDIT_CHECK_FALSE];
-const BULK_EDIT_NUMERIC_FIELDTYPES = ["Int", "Float", "Currency", "Percent"];
-const BULK_EDIT_DATA_FORMATS = { Email: "email", Phone: "phone", Name: "name", URL: "url" };
-const BULK_EDIT_DEFERRED_FIELDTYPES = ["Date", "Datetime", "Time", "Duration", "Check"];
-const BULK_EDIT_DIALOG_SIZE = "extra-large";
-const BULK_EDIT_DIALOG_HEIGHT = "calc(90vh - 104px)";
-const BULK_EDIT_PREVIEW_ROWS = 10;
-const BULK_EDIT_FIX_PAGE_LENGTH = 50;
+const MAX_ROWS = 5000;
+const MAX_TEMPLATE_ROWS = 10000;
+const FILE_TYPES = [".csv", ".xlsx", ".xls"];
+const ID_FIELDNAME = "name";
+const INSERT = "Insert New Records";
+const UPDATE = "Update Existing Records";
+const UPSERT = "Insert or Update Records";
+const IMPORT_TYPES = [INSERT, UPDATE, UPSERT];
+const DONT_IMPORT = "Don't Import";
+const BLANK_TEMPLATE = "blank_template";
+const ALL_RECORDS = "all";
+const FIVE_RECORDS = "5_records";
+const SECONDS_PATTERN = /^\d+$/;
+const CHECK_TRUE = ["t", "true", "y", "yes"];
+const CHECK_FALSE = ["f", "false", "n", "no"];
+const CHECK_VALUES = ["0", "1", ...CHECK_TRUE, ...CHECK_FALSE];
+const NUMERIC_FIELDTYPES = ["Int", "Float", "Currency", "Percent"];
+const DATA_FORMATS = { Email: "email", Phone: "phone", Name: "name", URL: "url" };
+const DEFERRED_FIELDTYPES = ["Date", "Datetime", "Time", "Duration", "Check"];
+const DIALOG_SIZE = "extra-large";
+const PREVIEW_ROWS = 10;
+const FIX_PAGE_LENGTH = 50;
 
 const TAB_SETUP = 0;
 const TAB_UPLOAD = 1;
 const TAB_FIX = 2;
 const TAB_PREVIEW = 3;
+const UPLOAD_TAB_SHEET = 1;
 const SYSTEM_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}/;
 
-const BULK_EDIT_VALUE_FORMATTERS = {
+const VALUE_FORMATTERS = {
 	Date: (val) => {
 		if (!val) return val;
 		return SYSTEM_DATE_PATTERN.test(val) ? val.slice(0, 10) : frappe.datetime.user_to_str(val);
 	},
-	Datetime: (val) => (val ? frappe.datetime.user_to_str(val) : val),
-	Time: (val) => bulk_edit_to_system_time(val),
+	Datetime: (val) => {
+		if (!val) return val;
+		return moment(val, frappe.defaultDatetimeFormat, true).isValid()
+			? val
+			: frappe.datetime.user_to_str(val);
+	},
+	Time: (val) => to_system_time(val),
 	Int: (val) => cint(val),
 	Check: (val) => {
 		const word = cstr(val).trim().toLowerCase();
-		if (BULK_EDIT_CHECK_TRUE.includes(word)) return 1;
-		if (BULK_EDIT_CHECK_FALSE.includes(word)) return 0;
+		if (CHECK_TRUE.includes(word)) return 1;
+		if (CHECK_FALSE.includes(word)) return 0;
 		return cint(val);
 	},
 	Float: (val) => flt(val),
 	Currency: (val) => flt(val),
 	Percent: (val) => flt(val),
 	Rating: (val) => flt(val),
-	Duration: (val) => bulk_edit_to_seconds(val),
+	Duration: (val) => to_seconds(val),
 };
 
-const BULK_EDIT_TIME_FORMATS = () => [
-	frappe.datetime.get_user_time_fmt(),
-	frappe.defaultTimeFormat,
-];
+const TIME_FORMATS = () => [frappe.datetime.get_user_time_fmt(), frappe.defaultTimeFormat];
 
 export default class GridImport {
 	constructor(grid) {
@@ -71,18 +72,54 @@ export default class GridImport {
 	}
 
 	get_docfields() {
-		return [
-			{ fieldname: BULK_EDIT_ID_FIELDNAME, label: __("ID"), fieldtype: "Data" },
+		const can_write = (df) => this.grid.frm.get_perm(cint(df.permlevel), "write");
+		return (this.docfields ??= [
+			{ fieldname: ID_FIELDNAME, label: __("ID"), fieldtype: "Data" },
 			...frappe
 				.get_meta(this.grid.df.options)
-				.fields.filter((df) => frappe.model.is_value_type(df.fieldtype) && !df.read_only),
-		];
+				.fields.filter(
+					(df) =>
+						frappe.model.is_value_type(df.fieldtype) && !df.is_virtual && can_write(df)
+				),
+		]);
+	}
+
+	mappable_fieldnames() {
+		return (this.mappable ??= new Set(this.get_docfields().map((df) => df.fieldname)));
+	}
+
+	get_id_index(column_map) {
+		return Object.keys(column_map)
+			.map(cint)
+			.find((i) => column_map[i] === ID_FIELDNAME);
+	}
+
+	get_rows_by_id() {
+		return new Map((this.grid.frm.doc[this.grid.df.fieldname] || []).map((d) => [d.name, d]));
+	}
+
+	get_field_label(fieldname) {
+		if (fieldname === ID_FIELDNAME) return __("ID");
+		const df = frappe.meta.get_docfield(this.grid.df.options, fieldname);
+		return df ? __(df.label || df.fieldname, null, df.parent) : fieldname;
+	}
+
+	preview_description() {
+		if (this.state.import_type === UPDATE) {
+			return __("These rows will update the matching rows in the table when you apply.");
+		}
+		if (this.state.import_type === UPSERT) {
+			return __(
+				"Rows with a matching ID will be updated and the rest added to the table when you apply."
+			);
+		}
+		return __("These rows will be added to the table when you apply.");
 	}
 
 	show() {
 		this.can_import = this.grid.is_editable();
 		this.state = {
-			import_type: BULK_EDIT_INSERT,
+			import_type: INSERT,
 			headers: [],
 			rows: [],
 			row_numbers: [],
@@ -97,17 +134,15 @@ export default class GridImport {
 
 		this.panels = {
 			setup: $('<div class="grid-import-panel"></div>'),
-			upload: $('<div class="grid-import-panel"></div>'),
-			fix: $('<div class="grid-import-panel"></div>'),
-			preview: $('<div class="grid-import-panel"></div>'),
+			upload: $('<div class="grid-import-panel grid-import-step-panel"></div>'),
+			fix: $('<div class="grid-import-panel grid-import-step-panel"></div>'),
+			preview: $('<div class="grid-import-panel grid-import-step-panel"></div>'),
 		};
-		this.file_uploader = null;
-		this.sheet_form = null;
-		this.preview_form = null;
 		this.mapping_controls = [];
 		this.building_preview = false;
 		this.preview_request_id = 0;
-		this.link_warnings = [];
+		this.server_warnings = [];
+		this.stale_rows = new Set();
 		this.cell_controls = {};
 
 		this.make_dialog();
@@ -115,28 +150,22 @@ export default class GridImport {
 		this.watch_cell_pickers();
 
 		this.dialog.show();
-		if (this.can_import) this.tabs.set_disabled(TAB_UPLOAD, false);
 		this.set_footer();
 	}
 
 	make_dialog() {
 		this.dialog = new frappe.ui.Dialog({
 			title: __("Upload {0}", [this.get_title()]),
-			size: BULK_EDIT_DIALOG_SIZE,
+			size: DIALOG_SIZE,
 			centered: true,
 		});
 		$(this.dialog.wrapper).addClass("grid-import-dialog");
-		this.dialog.modal_body.css({ height: BULK_EDIT_DIALOG_HEIGHT, "overflow-y": "hidden" });
-		this.dialog.$body.css({ height: "100%", display: "flex", "flex-direction": "column" });
+		this.dialog.$body.addClass("grid-import-body");
 
 		this.tab_defs = this.can_import
 			? [
 					{ label: __("Setup"), content: () => this.panels.setup[0] },
-					{
-						label: __("Upload"),
-						content: () => this.make_upload_panel(),
-						disabled: true,
-					},
+					{ label: __("Upload"), content: () => this.make_upload_panel() },
 					{
 						label: __("Fix Issues"),
 						content: () => this.panels.fix[0],
@@ -167,19 +196,12 @@ export default class GridImport {
 			},
 		});
 		this.tabs.$el.addClass("grid-import-tabs");
-		this.tabs.$el.find(".es-tabs__list").hide();
 
 		this.stepper = new frappe.ui.Stepper({
 			steps: this.tab_defs.map((tab) => ({ label: tab.label })),
 			is_locked: (index) => this.tab_defs[index].disabled,
 			on_step_click: (index) => this.tabs.set_active(index),
 		});
-
-		const set_disabled = this.tabs.set_disabled.bind(this.tabs);
-		this.tabs.set_disabled = (index, disabled) => {
-			set_disabled(index, disabled);
-			this.stepper.refresh();
-		};
 
 		const $card = $('<div class="grid-import-card"></div>');
 		this.dialog.$body.append(this.stepper.$el, $card);
@@ -197,14 +219,11 @@ export default class GridImport {
 			})
 			.addClass("hide")
 			.prependTo(this.dialog.standard_actions);
+	}
 
-		this.tabs.$el.css({
-			flex: "1 1 auto",
-			"min-height": 0,
-			display: "flex",
-			"flex-direction": "column",
-		});
-		this.tabs.$el.find(".es-tabs__panel").css({ flex: "1 1 auto", "min-height": 0 });
+	set_step_disabled(index, disabled) {
+		this.tabs.set_disabled(index, disabled);
+		this.stepper.refresh();
 	}
 
 	make_setup_form() {
@@ -216,19 +235,17 @@ export default class GridImport {
 					fieldtype: "Select",
 					fieldname: "import_type",
 					label: __("Import Type"),
-					options: BULK_EDIT_IMPORT_TYPES.map((value) => ({ label: __(value), value })),
-					default: BULK_EDIT_INSERT,
+					options: IMPORT_TYPES.map((value) => ({ label: __(value), value })),
+					default: INSERT,
 					reqd: 1,
 					change: () => {
 						const value = this.setup_form.get_value("import_type");
 						this.state.import_type = value;
 						this.setup_form.set_value(
 							"export_records",
-							value === BULK_EDIT_INSERT
-								? BULK_EDIT_BLANK_TEMPLATE
-								: BULK_EDIT_ALL_RECORDS
+							value === INSERT ? BLANK_TEMPLATE : ALL_RECORDS
 						);
-						this.tabs.set_disabled(TAB_UPLOAD, !value);
+						this._built_step = null;
 						this.refresh_field_options();
 					},
 				},
@@ -247,11 +264,11 @@ export default class GridImport {
 					fieldname: "export_records",
 					label: __("Export Type"),
 					options: [
-						{ label: __("Blank Template"), value: BULK_EDIT_BLANK_TEMPLATE },
-						{ label: __("All Records"), value: BULK_EDIT_ALL_RECORDS },
-						{ label: __("5 Records"), value: BULK_EDIT_5_RECORDS },
+						{ label: __("Blank Template"), value: BLANK_TEMPLATE },
+						{ label: __("All Records"), value: ALL_RECORDS },
+						{ label: __("5 Records"), value: FIVE_RECORDS },
 					],
-					default: BULK_EDIT_BLANK_TEMPLATE,
+					default: BLANK_TEMPLATE,
 					description: __("{0} rows in this table", [
 						(this.grid.frm.doc[this.grid.df.fieldname] || []).length,
 					]),
@@ -273,12 +290,12 @@ export default class GridImport {
 	}
 
 	get_field_options(selected = []) {
-		const matches_on_id = this.state.import_type !== BULK_EDIT_INSERT;
+		const matches_on_id = this.state.import_type !== INSERT;
 		return this.get_docfields().map((df) => {
-			const is_id = df.fieldname === BULK_EDIT_ID_FIELDNAME;
+			const is_id = df.fieldname === ID_FIELDNAME;
 			const mandatory = is_id ? matches_on_id : !!df.reqd;
 			return {
-				label: __(df.label || df.fieldname, null, df.parent),
+				label: this.get_field_label(df.fieldname),
 				value: df.fieldname,
 				checked: mandatory || (!is_id && selected.includes(df.fieldname)) ? 1 : 0,
 				danger: mandatory,
@@ -297,7 +314,7 @@ export default class GridImport {
 		this.on_document_mousedown = (event) => this.handle_document_mousedown(event);
 		document.addEventListener("mousedown", this.on_document_mousedown, true);
 		this.dialog.$wrapper.on("hidden.bs.modal", () => {
-			this.discard_cell_controls();
+			this.discard_controls();
 			document.removeEventListener("mousedown", this.on_document_mousedown, true);
 		});
 	}
@@ -319,33 +336,18 @@ export default class GridImport {
 	}
 
 	make_upload_panel() {
-		this.panels.upload.css({ height: "100%", display: "flex", "flex-direction": "column" });
-
 		const $file_pane = $('<div class="grid-import-upload-pane grid-import-file-pane"></div>');
 		const $sheet_pane = $('<div class="grid-import-upload-pane"></div>');
 
-		const upload_tabs = new frappe.ui.Tabs({
+		this.upload_tabs = new frappe.ui.Tabs({
 			css_class: "grid-import-upload-tabs",
 			tabs: [
 				{ label: __("File upload"), icon: "upload", content: $file_pane[0] },
 				{ label: __("Google Sheet"), icon: "link", content: $sheet_pane[0] },
 			],
+			on_change: () => this.set_footer(),
 		});
-		this.panels.upload.append(upload_tabs.$el);
-		upload_tabs.$el.css({
-			flex: "1 1 auto",
-			"min-height": 0,
-			display: "flex",
-			"flex-direction": "column",
-		});
-		upload_tabs.$el.find(".es-tabs__list").css({ flex: "0 0 auto" });
-		upload_tabs.$el.find(".es-tabs__panel").css({
-			flex: "1 1 auto",
-			"min-height": 0,
-			"overflow-y": "auto",
-		});
-		$file_pane.css({ height: "100%" });
-		$sheet_pane.css({ height: "100%" });
+		this.panels.upload.append(this.upload_tabs.$el);
 
 		this.file_uploader = new frappe.ui.FileUploader({
 			wrapper: $file_pane,
@@ -354,13 +356,11 @@ export default class GridImport {
 			allow_web_link: false,
 			allow_take_photo: false,
 			allow_google_drive: false,
-			restrictions: { allowed_file_types: BULK_EDIT_FILE_TYPES },
+			restrictions: { allowed_file_types: FILE_TYPES },
 			on_success: (file) => this.read_file(file, (rows) => this.on_file(rows)),
 		});
-		$file_pane.children(".file-uploader").css({ flex: "0 0 auto" });
 		$file_pane.on("click change drop", () =>
 			setTimeout(() => {
-				$file_pane.toggleClass("has-file", Boolean(this.uploaded_file_count()));
 				this.sync_uploaded_file();
 				this.set_footer();
 			}, 0)
@@ -384,6 +384,27 @@ export default class GridImport {
 		return this.panels.upload[0];
 	}
 
+	async upload_selected_file() {
+		const files = this.file_uploader.uploader.files;
+		try {
+			await Promise.all(files.map((file) => file.file_obj?.slice(0, 1).arrayBuffer()));
+		} catch {
+			files.splice(0);
+			this.panels.upload.find("input[type=file]").val("");
+			this.sync_uploaded_file();
+			this.set_footer();
+			frappe.msgprint({
+				title: __("File Changed"),
+				message: __(
+					"The file changed after you selected it. Select it again to load the latest version."
+				),
+				indicator: "orange",
+			});
+			return;
+		}
+		this.file_uploader.upload_files();
+	}
+
 	sync_uploaded_file() {
 		if (this.state.google_sheets_url || this.state.library_file_url) return;
 		if (!this.file_uploader || this.uploaded_file_count() || !this.state.rows.length) return;
@@ -391,38 +412,42 @@ export default class GridImport {
 		this.state.rows = [];
 		this.state.row_numbers = [];
 		this.state.column_map = {};
-		this.tabs.set_disabled(TAB_PREVIEW, true);
+		this._built_step = null;
+		this.set_step_disabled(TAB_FIX, true);
+		this.set_step_disabled(TAB_PREVIEW, true);
 	}
 
 	handle_document_mousedown(event) {
 		Object.values(this.cell_controls).forEach((control) => {
-			const picker = picker_of(control);
-			if (!picker) return;
+			const picker = picker_api(control);
+			if (!picker.el) return;
 
 			if (control.$wrapper.closest("td").get(0)?.contains(event.target)) {
-				if (!picker_is_open(control)) {
-					open_picker(control);
+				if (!picker.is_open()) {
+					picker.open();
 					return;
 				}
-				close_picker(control);
+				picker.close();
 				control._closed_by_cell = true;
 				event.preventDefault();
 				return;
 			}
-			if (picker.contains(event.target)) return;
-			if (picker_is_open(control)) close_picker(control);
+			if (picker.el.contains(event.target)) return;
+			if (picker.is_open()) picker.close();
 		});
 	}
 
-	discard_cell_controls() {
-		return Object.values(this.cell_controls).forEach(discard_cell_control);
+	discard_controls() {
+		[...Object.values(this.cell_controls), ...this.mapping_controls].forEach(
+			discard_cell_control
+		);
 	}
 
 	mapping_options() {
 		return [
-			{ label: __("Don't Import"), value: BULK_EDIT_DONT_IMPORT },
+			{ label: __("Don't Import"), value: DONT_IMPORT },
 			...this.get_docfields().map((df) => ({
-				label: __(df.label || df.fieldname, null, df.parent),
+				label: this.get_field_label(df.fieldname),
 				value: df.fieldname,
 				description: df.fieldname,
 			})),
@@ -436,37 +461,34 @@ export default class GridImport {
 	step_view() {
 		const fixing = this.tabs.get_active() === TAB_FIX;
 		const issues = this.get_issue_rows();
-		const columns = this.state.headers
-			.map((header, index) => index)
-			.filter((index) => fixing || this.state.column_map[index]);
-		const picked = this.state.row_numbers
-			.map((number, index) => index)
-			.filter((index) => {
-				const row = this.state.row_numbers[index];
-				const skipped = this.state.skipped_rows.has(row);
-				return fixing
-					? issues.has(row) || skipped || !issues.size
-					: !issues.has(row) && !skipped;
-			});
-		const page = fixing ? this.paged(picked) : picked;
+		const columns = [...this.state.headers.keys()].filter(
+			(index) => fixing || this.state.column_map[index]
+		);
+		const picked = [...this.state.row_numbers.keys()].filter((index) => {
+			const row = this.state.row_numbers[index];
+			const skipped = this.state.skipped_rows.has(row);
+			return fixing
+				? issues.has(row) || skipped || !issues.size
+				: !issues.has(row) && !skipped;
+		});
+		const page = fixing ? this.paged(picked) : picked.slice(0, PREVIEW_ROWS);
 		return {
 			headers: this.state.headers,
 			columns,
 			rows: page.map((index) => this.state.rows[index]),
 			row_numbers: page.map((index) => this.state.row_numbers[index]),
 			total_rows: picked.length,
-			limit: fixing ? Infinity : BULK_EDIT_PREVIEW_ROWS,
 			mapping: fixing,
 		};
 	}
 
 	make_pagination($table, view) {
-		if (!view.mapping || view.total_rows <= BULK_EDIT_FIX_PAGE_LENGTH) return;
+		if (!view.mapping || view.total_rows <= FIX_PAGE_LENGTH) return;
 		this.pagination = new GridPagination({
 			wrapper: $table,
 			grid: {
 				data: new Array(view.total_rows),
-				meta: { grid_page_length: BULK_EDIT_FIX_PAGE_LENGTH },
+				meta: { grid_page_length: FIX_PAGE_LENGTH },
 				render_result_rows: () => {
 					this.state.fix_page = this.pagination.page_index;
 					this.build_preview(true);
@@ -476,17 +498,19 @@ export default class GridImport {
 		});
 		this.pagination.page_index = this.state.fix_page;
 		this.pagination.render_pagination();
+		const digits = String(this.state.fix_page).length;
+		this.pagination.$page_number.css("width", `${(digits + 1) * 8}px`);
 	}
 
 	paged(rows) {
-		const pages = Math.ceil(rows.length / BULK_EDIT_FIX_PAGE_LENGTH) || 1;
+		const pages = Math.ceil(rows.length / FIX_PAGE_LENGTH) || 1;
 		this.state.fix_page = Math.min(this.state.fix_page, pages);
-		const start = (this.state.fix_page - 1) * BULK_EDIT_FIX_PAGE_LENGTH;
-		return rows.slice(start, start + BULK_EDIT_FIX_PAGE_LENGTH);
+		const start = (this.state.fix_page - 1) * FIX_PAGE_LENGTH;
+		return rows.slice(start, start + FIX_PAGE_LENGTH);
 	}
 
 	build_preview(keep_skipped_rows = false) {
-		this.discard_cell_controls();
+		this.discard_controls();
 		this.panels.fix.empty();
 		this.panels.preview.empty();
 		this.cell_controls = {};
@@ -504,14 +528,11 @@ export default class GridImport {
 		$table.html(this.get_preview_html(view));
 		$table.find(".grid-import-refresh-sheet").on("click", () => this.refresh_google_sheet());
 		$table.find(".grid-import-skip-all").on("click", () => this.skip_issue_rows());
+		$table.on("click", ".grid-import-preview-row.has-note", (e) =>
+			this.show_message(e.currentTarget.title)
+		);
 		this.make_pagination($table, view);
-		$panel.css({ height: "100%", display: "flex", "flex-direction": "column" });
-		$table.parentsUntil($panel).addBack().css({
-			display: "flex",
-			"flex-direction": "column",
-			flex: "1 1 auto",
-			"min-height": 0,
-		});
+		$table.parentsUntil($panel).addBack().addClass("grid-import-fill");
 		const options = this.mapping_options();
 		this.building_preview = true;
 		const seeded = [];
@@ -539,19 +560,22 @@ export default class GridImport {
 				});
 				this.pin_dropdown(control);
 				control.$input?.on("focus click", () => this.show_cell_message(control));
-				seeded.push(control.set_value(this.state.column_map[i] || BULK_EDIT_DONT_IMPORT));
+				seeded.push(control.set_value(this.state.column_map[i] || DONT_IMPORT));
 				this.mapping_controls[i] = control;
 			});
 
 		this._built_step = this.tabs.get_active() === TAB_FIX ? TAB_FIX : TAB_PREVIEW;
 		return Promise.all(seeded).then(() => {
 			this.building_preview = false;
-			return this.refresh_preview();
+			return this.refresh_preview({ revalidate: [] });
 		});
 	}
 
 	show_cell_message(control) {
-		const message = control?._warning?.message || "";
+		this.show_message(control?._warning?.message);
+	}
+
+	show_message(message = "") {
 		this.$message.toggleClass("hide", !message).attr("title", message);
 		this.$message.children("span").text(message);
 	}
@@ -561,23 +585,18 @@ export default class GridImport {
 		const panel = picker && $(picker.$datepicker).get(0);
 		if (!panel) return;
 
-		const reposition = () => {
-			panel.style.position = "fixed";
-			place(panel, control.$input[0].getBoundingClientRect(), "bottom", "start", 4);
-		};
-
+		const follower = follow_input(panel, control.$input[0], 4);
+		add_unpin(control, () => follower.stop());
 		const call = (hook, args) => typeof hook === "function" && hook.apply(picker, args);
 		const original_show = picker.opts.onShow;
 		const original_hide = picker.opts.onHide;
 		picker.opts.onShow = (...args) => {
 			call(original_show, args);
-			reposition();
-			window.addEventListener("resize", reposition);
-			document.addEventListener("scroll", reposition, { capture: true, passive: true });
+			panel.style.position = "fixed";
+			follower.start();
 		};
 		picker.opts.onHide = (...args) => {
-			window.removeEventListener("resize", reposition);
-			document.removeEventListener("scroll", reposition, { capture: true });
+			follower.stop();
 			call(original_hide, args);
 		};
 	}
@@ -589,22 +608,23 @@ export default class GridImport {
 
 		const host = document.createElement("div");
 		host.className = "awesomplete grid-import-dropdown-host";
-
-		const reposition = () =>
-			place(list, control.$input[0].getBoundingClientRect(), "bottom", "start", 2);
+		const follower = follow_input(list, control.$input[0], 2);
+		add_unpin(control, () => {
+			follower.stop();
+			control.awesomplete?.close?.();
+			if (host.contains(list)) home.appendChild(list);
+			host.remove();
+		});
 
 		control.$input.on("awesomplete-open", () => {
 			host.appendChild(list);
 			document.body.appendChild(host);
 			list.style.width = `${control.$input[0].offsetWidth}px`;
-			reposition();
-			window.addEventListener("resize", reposition);
-			document.addEventListener("scroll", reposition, { capture: true, passive: true });
+			follower.start();
 		});
 
 		control.$input.on("awesomplete-close", () => {
-			window.removeEventListener("resize", reposition);
-			document.removeEventListener("scroll", reposition, { capture: true });
+			follower.stop();
 			home.appendChild(list);
 			host.remove();
 			list.style.width = "";
@@ -617,24 +637,26 @@ export default class GridImport {
 
 		df.hidden = 0;
 		df.hidden_due_to_dependency = 0;
+		df.read_only = 0;
 
 		if (df.fieldtype === "Select") {
 			const options = (df.options || "").split("\n").map((o) => o.trim());
 			if (original && !options.includes(cstr(original).trim())) {
-				df.options = [original, ...options].join("\n");
+				const label = frappe.utils.escape_html(cstr(original));
+				df.options = [{ value: original, label }, ...options];
 			}
 		} else if (df.fieldtype === "Link") {
 			df.ignore_link_validation = true;
 		}
 
-		$(cell).addClass("grid-import-editable-cell");
+		$(cell).removeClass("grid-import-pending-cell").addClass("grid-import-editable-cell");
 		const control = frappe.ui.form.make_control({
 			df: {
 				...df,
 				change: () => {
 					if (control._seeding) return;
 					this.state.rows[r][col] = control.get_value();
-					this.refresh_preview();
+					this.refresh_preview({ revalidate: [r] });
 				},
 			},
 			parent: $(cell).empty().get(0),
@@ -643,35 +665,27 @@ export default class GridImport {
 		});
 		control._fieldname = fieldname;
 		control._warning = warning;
-		control.$wrapper.css("position", "relative");
 		this.pin_datepicker(control);
 
 		if (df.fieldtype === "Link") {
 			control.set_link_title = async (value) =>
 				control.translate_and_set_input_value(value, value);
-			$(`<div class="select-icon">${frappe.utils.icon("chevrons-up-down", "sm")}</div>`)
-				.css({
-					position: "absolute",
-					top: "3px",
-					right: "12px",
-					"pointer-events": "none",
-				})
-				.appendTo(control.$wrapper);
+			$(
+				`<div class="select-icon">${frappe.utils.icon("chevrons-up-down", "sm")}</div>`
+			).appendTo(control.$wrapper);
 			this.pin_dropdown(control);
 		}
 
-		if (BULK_EDIT_NUMERIC_FIELDTYPES.includes(df.fieldtype)) {
+		if (NUMERIC_FIELDTYPES.includes(df.fieldtype)) {
 			control.parse = (value) => value;
 			control.format_for_input = (value) => cstr(value);
 			control.validate = (value) => value;
 		}
 
 		control._seeding = true;
-		Promise.resolve(control.set_value(bulk_edit_seed_value(df.fieldtype, original))).then(
-			() => {
-				control._seeding = false;
-			}
-		);
+		Promise.resolve(control.set_value(seed_value(df.fieldtype, original))).then(() => {
+			control._seeding = false;
+		});
 
 		control.$input?.on("focus click", () => {
 			this.show_cell_message(control);
@@ -687,14 +701,23 @@ export default class GridImport {
 	}
 
 	render_skip_buttons($table, warnings) {
-		const rows_with_warnings = new Set(
-			warnings.filter((w) => w.row !== undefined).map((w) => cint(w.row))
-		);
+		const rows_with_warnings = new Set();
+		const notes_by_row = {};
+		warnings.forEach((w) => {
+			if (w.row === undefined) return;
+			rows_with_warnings.add(cint(w.row));
+			if (w.col === undefined) (notes_by_row[cint(w.row)] ??= []).push(w.message);
+		});
 		$table.find("tr[data-row]").each((_, tr) => {
 			const row = cint(tr.dataset.row);
 			const skipped = this.state.skipped_rows.has(row);
+			const notes = notes_by_row[row];
 			const $cell = $(tr).find(".grid-import-skip-cell").empty();
 			$(tr).toggleClass("grid-import-skipped-row", skipped);
+			$(tr)
+				.find(".grid-import-preview-row")
+				.toggleClass("has-note", Boolean(notes))
+				.attr("title", notes ? notes.join("\n") : null);
 			if (!skipped && !rows_with_warnings.has(row)) return;
 
 			frappe.ui
@@ -703,7 +726,7 @@ export default class GridImport {
 					size: "sm",
 					onclick: () => {
 						this.state.skipped_rows[skipped ? "delete" : "add"](row);
-						this.refresh_preview({ recheck_links: false });
+						this.refresh_preview({ revalidate: [] });
 					},
 				})
 				.appendTo($cell);
@@ -734,6 +757,7 @@ export default class GridImport {
 		const $table = this.preview_form.get_field("table").$wrapper;
 		this.render_skip_buttons($table, warnings);
 		this.sync_column_errors($table, warnings);
+		const index_of_row = new Map(this.state.row_numbers.map((number, r) => [number, r]));
 
 		$table.find("tr[data-row] td[data-col]").each((_, cell) => {
 			const row = cint(cell.closest("tr").dataset.row);
@@ -742,6 +766,7 @@ export default class GridImport {
 			const warning = by_cell[key];
 			const fieldname = this.state.column_map[col];
 			const existing = this.cell_controls[key];
+			const r = index_of_row.get(row);
 
 			$(cell).toggleClass("has-error", Boolean(warning));
 
@@ -755,16 +780,15 @@ export default class GridImport {
 				$(cell)
 					.removeClass("grid-import-editable-cell")
 					.empty()
-					.text(this.state.rows[this.state.row_numbers.indexOf(row)][col]);
+					.text(this.state.rows[r][col]);
 			}
 
-			const r = this.state.row_numbers.indexOf(row);
 			const mapped_df =
 				fieldname && frappe.meta.get_docfield(this.grid.df.options, fieldname);
 			const fieldtype = mapped_df?.fieldtype;
 			$(cell).removeClass("grid-import-pending-cell").off("click.grid-import-reveal");
 
-			if (warning?.field && BULK_EDIT_DEFERRED_FIELDTYPES.includes(fieldtype)) {
+			if (warning?.field && DEFERRED_FIELDTYPES.includes(fieldtype)) {
 				$(cell)
 					.addClass("grid-import-pending-cell")
 					.one("click.grid-import-reveal", () => {
@@ -793,15 +817,16 @@ export default class GridImport {
 		);
 	}
 
-	async refresh_preview({ recheck_links = true } = {}) {
+	async refresh_preview({ revalidate = [...this.state.rows.keys()] } = {}) {
 		if (this.building_preview) return;
 		const request_id = ++this.preview_request_id;
 
 		if (this.mapping_controls.length) {
 			const picked = {};
+			const mappable = this.mappable_fieldnames();
 			this.mapping_controls.forEach((control, i) => {
 				const value = control.get_value();
-				if (value && value !== BULK_EDIT_DONT_IMPORT) picked[i] = value;
+				if (value && value !== DONT_IMPORT && mappable.has(value)) picked[i] = value;
 			});
 			this.state.column_map = picked;
 		}
@@ -814,19 +839,18 @@ export default class GridImport {
 				$(cell).attr("data-mapped", map[cint(cell.dataset.col)] ? 1 : 0);
 			});
 
-		const warnings = this.get_warnings(
-			this.state.headers,
-			this.state.rows,
-			this.state.row_numbers,
-			this.state.import_type,
-			map
-		);
-		const link_warnings = recheck_links
-			? await this.get_link_warnings(this.state.rows, this.state.row_numbers, map)
-			: this.link_warnings;
+		const warnings = this.get_warnings(map);
+		revalidate.forEach((r) => this.stale_rows.add(r));
+		const stale = [...this.stale_rows];
+		const fresh = await this.get_server_warnings(map, stale);
 		if (request_id !== this.preview_request_id) return;
-		this.link_warnings = link_warnings;
-		warnings.push(...link_warnings);
+		const checked = new Set(stale.map((r) => this.state.row_numbers[r]));
+		this.server_warnings = [
+			...this.server_warnings.filter((w) => !checked.has(w.row)),
+			...fresh,
+		];
+		this.stale_rows.clear();
+		warnings.push(...this.server_warnings);
 		this.state.warnings = warnings;
 		this.sync_preview_errors(warnings);
 		this.settle_fix_step();
@@ -850,38 +874,54 @@ export default class GridImport {
 
 	skip_issue_rows() {
 		this.get_issue_rows().forEach((row) => this.state.skipped_rows.add(row));
-		this.refresh_preview({ recheck_links: false });
+		this.refresh_preview({ revalidate: [] });
 	}
 
 	get_issue_rows() {
-		return new Set(
-			this.state.warnings
-				.filter(
-					(w) =>
-						w.blocking &&
-						w.row !== undefined &&
-						!this.state.skipped_rows.has(cint(w.row))
-				)
-				.map((w) => cint(w.row))
-		);
+		return this.rows_matching((w) => w.blocking);
+	}
+
+	rows_matching(predicate) {
+		const { warnings, skipped_rows } = this.state;
+		const rows = warnings
+			.filter((w) => w.row !== undefined && !skipped_rows.has(cint(w.row)) && predicate(w))
+			.map((w) => cint(w.row));
+		return new Set(rows);
 	}
 
 	settle_fix_step() {
-		if (this.tab_defs.length <= TAB_PREVIEW) return;
 		if (this.tabs.get_active() !== TAB_FIX) {
-			this.tabs.set_disabled(TAB_FIX, !this.has_issues() && !this.has_unmapped_columns());
+			this.set_step_disabled(TAB_FIX, !this.has_issues() && !this.has_unmapped_columns());
 		}
-		const $table = this.preview_form?.get_field("table").$wrapper;
-		$table?.find(".grid-import-preview-hint").text(this.preview_hint());
+		const $table = this.preview_form.get_field("table").$wrapper;
+		$table.find(".grid-import-preview-hint").text(this.preview_hint());
 		$table
-			?.find(".grid-import-skip-all")
+			.find(".grid-import-skip-all")
 			.prop("disabled", this.has_mapping_issues() || !this.get_issue_rows().size);
 	}
 
 	preview_hint() {
+		const table_issue = this.state.warnings.find(
+			(w) => w.blocking && w.row === undefined && w.col === undefined
+		);
+		if (table_issue) return table_issue.message;
 		if (this.has_mapping_issues()) {
 			return __("Two columns map to the same field. Fix the mapping to continue.");
 		}
+		const note_rows = this.rows_matching((w) => !w.blocking && w.col === undefined);
+		return this.add_note_count(this.row_hint(), note_rows.size);
+	}
+
+	add_note_count(hint, count) {
+		if (!count) return hint;
+		const notes =
+			count === 1
+				? __("1 row has a note. Click its number to see it.")
+				: __("{0} rows have notes. Click a row number to see them.", [count]);
+		return `${hint} ${notes}`;
+	}
+
+	row_hint() {
 		const total = this.state.rows.length;
 		const skipped = this.state.skipped_rows.size;
 
@@ -904,8 +944,13 @@ export default class GridImport {
 	}
 
 	async on_file(data, google_sheets_url = "", is_refresh = false) {
-		if (cint(data.length) - BULK_EDIT_CSV_HEADER_ROWS > BULK_EDIT_MAX_ROWS) {
-			frappe.throw(__("Cannot import table with more than {0} rows.", [BULK_EDIT_MAX_ROWS]));
+		if (cint(data.length) - 1 > MAX_ROWS) {
+			frappe.msgprint({
+				message: __("Cannot import table with more than {0} rows.", [MAX_ROWS]),
+				title: __("Too Many Rows"),
+				indicator: "red",
+			});
+			return;
 		}
 
 		this.state.google_sheets_url = google_sheets_url;
@@ -913,10 +958,10 @@ export default class GridImport {
 		this.state.headers = data[0] || [];
 		this.state.rows = [];
 		this.state.row_numbers = [];
-		data.slice(BULK_EDIT_CSV_HEADER_ROWS).forEach((row, i) => {
+		data.slice(1).forEach((row, i) => {
 			if (!row.some((v) => v)) return;
 			this.state.rows.push(row);
-			this.state.row_numbers.push(BULK_EDIT_CSV_HEADER_ROWS + i + 1);
+			this.state.row_numbers.push(i + 2);
 		});
 
 		if (!this.state.rows.length) {
@@ -932,11 +977,23 @@ export default class GridImport {
 		this.state.column_map = this.apply_column_overrides(
 			await this.get_column_map(this.state.headers)
 		);
-		await this.build_preview();
-		this.tabs.set_disabled(TAB_PREVIEW, false);
-		this.tabs.set_active(
-			this.has_issues() || this.has_unmapped_columns() ? TAB_FIX : TAB_PREVIEW
-		);
+		this.state.skipped_rows = new Set();
+		await this.open_checked_step();
+	}
+
+	async open_checked_step() {
+		const map = this.state.column_map;
+		this.preview_request_id++;
+		this.server_warnings = await this.get_server_warnings(map, [...this.state.rows.keys()]);
+		this.stale_rows.clear();
+		this.state.warnings = [...this.get_warnings(map), ...this.server_warnings];
+
+		const step = this.has_issues() || this.has_unmapped_columns() ? TAB_FIX : TAB_PREVIEW;
+		this._built_step = null;
+		this.set_step_disabled(TAB_FIX, step !== TAB_FIX);
+		this.set_step_disabled(TAB_PREVIEW, false);
+		if (this.tabs.get_active() === step) this.build_preview(true);
+		else this.tabs.set_active(step);
 	}
 
 	download() {
@@ -970,15 +1027,9 @@ export default class GridImport {
 			this.dialog.set_secondary_action(() => this.download());
 			$secondary.prop("disabled", !this.setup_form.get_value("fields")?.length);
 			if (this.can_import) {
-				this.set_action(
-					__("Next"),
-					() => {
-						this.tabs.set_disabled(TAB_UPLOAD, false);
-						this.tabs.set_active(TAB_UPLOAD);
-					},
-					{ solid: true }
-				);
-				this.dialog.get_primary_btn().prop("disabled", false);
+				this.set_action(__("Next"), () => this.tabs.set_active(TAB_UPLOAD), {
+					solid: true,
+				});
 			}
 			return;
 		}
@@ -997,7 +1048,7 @@ export default class GridImport {
 					const rows = this.state.rows.filter(
 						(_, r) => !this.state.skipped_rows.has(this.state.row_numbers[r])
 					);
-					this.apply_rows(rows, this.state.import_type, this.state.column_map);
+					this.apply_rows(rows);
 				},
 				{ solid: true }
 			);
@@ -1005,35 +1056,44 @@ export default class GridImport {
 			return;
 		}
 
+		const from_sheet = this.upload_tabs?.get_active() === UPLOAD_TAB_SHEET;
+		const url = from_sheet ? this.sheet_url() : "";
+		const has_source = from_sheet ? Boolean(url) : this.has_file_selection();
 		this.set_action(
 			__("Upload"),
 			() => {
-				if (this.has_file_selection()) {
-					this.file_uploader.upload_files();
+				if (!from_sheet && has_source) {
+					this.upload_selected_file();
 					return;
 				}
-				const url = this.sheet_url();
 				if (url && !(url === this.state.google_sheets_url && this.state.rows.length)) {
 					this.read_google_sheet(url);
 					return;
 				}
-				this.tabs.set_active(TAB_PREVIEW);
+				this.open_checked_step();
 			},
 			{ solid: true }
 		);
 		this.dialog
 			.get_primary_btn()
-			.prop(
-				"disabled",
-				!this.has_file_selection() &&
-					!this.sheet_url() &&
-					this.tab_defs[TAB_PREVIEW].disabled
-			);
+			.prop("disabled", !has_source && this.tab_defs[TAB_PREVIEW].disabled);
 	}
 
 	download_template(file_type, fieldnames, export_records) {
 		const title = this.get_title();
 		const data = this.get_template_rows(fieldnames, export_records);
+
+		if (data.length - 1 > MAX_TEMPLATE_ROWS) {
+			frappe.msgprint({
+				message: __(
+					"Cannot download more than {0} rows. Export a blank template instead.",
+					[MAX_TEMPLATE_ROWS]
+				),
+				title: __("Too Many Rows"),
+				indicator: "red",
+			});
+			return;
+		}
 
 		if (file_type === "CSV") {
 			frappe.tools.downloadify(data, null, title);
@@ -1055,22 +1115,23 @@ export default class GridImport {
 		}
 
 		const header = docfields.map((df) =>
-			df.fieldname === BULK_EDIT_ID_FIELDNAME
+			df.fieldname === ID_FIELDNAME
 				? __("ID")
 				: `${__(df.label || df.fieldname)} (${df.fieldname})`
 		);
 		const data = [header];
 
 		let grid_rows = this.grid.frm.doc[this.grid.df.fieldname] || [];
-		if (export_records === BULK_EDIT_BLANK_TEMPLATE) grid_rows = [];
-		else if (export_records === BULK_EDIT_5_RECORDS) grid_rows = grid_rows.slice(0, 5);
+		if (export_records === BLANK_TEMPLATE) grid_rows = [];
+		else if (export_records === FIVE_RECORDS) grid_rows = grid_rows.slice(0, 5);
 
 		grid_rows.forEach((d) => {
 			data.push(
 				docfields.map((df) => {
-					const value = d[df.fieldname];
-					if (!value) return "";
-					return df.fieldtype === "Date" ? frappe.datetime.str_to_user(value) : value;
+					const value = d[df.fieldname] ?? "";
+					if (!value) return value;
+					if (df.fieldtype === "Date") return frappe.datetime.str_to_user(value);
+					return df.fieldtype === "Datetime" ? cstr(value).slice(0, 19) : value;
 				})
 			);
 		});
@@ -1116,9 +1177,8 @@ export default class GridImport {
 		});
 	}
 
-	get_preview_html({ headers, rows, row_numbers, columns, limit, mapping, total_rows }) {
+	get_preview_html({ headers, rows, row_numbers, columns, mapping, total_rows }) {
 		const escape = frappe.utils.escape_html;
-		const shown = rows.slice(0, limit);
 
 		const head = columns.map(
 			(i) => `<th data-col="${i}" data-mapped="0">${escape(cstr(headers[i]))}</th>`
@@ -1132,7 +1192,7 @@ export default class GridImport {
 			</tr>
 		`
 			: "";
-		const body = shown.map(
+		const body = rows.map(
 			(row, r) => `
 				<tr data-row="${cint(row_numbers[r])}">
 					<td class="grid-import-preview-row">${cint(row_numbers[r])}</td>
@@ -1149,7 +1209,7 @@ export default class GridImport {
 						? __(
 								"Map each column of the file to a field. Anything left unmapped is ignored."
 						  )
-						: __("These rows will be added to the table when you apply.")
+						: this.preview_description()
 				}</span>
 				<div class="grid-import-preview-head-actions">
 					${
@@ -1172,9 +1232,7 @@ export default class GridImport {
 					}
 				</div>
 			</div>
-			<div class="grid-import-preview-hint text-muted small">${__(
-				"Fix the highlighted cells. Click one to see and resolve its error."
-			)}</div>
+			<div class="grid-import-preview-hint text-muted small"></div>
 			<div class="grid-import-preview-table">
 				<table class="table table-bordered">
 					<thead>
@@ -1188,33 +1246,43 @@ export default class GridImport {
 				</table>
 			</div>
 			${
-				mapping && total_rows > BULK_EDIT_FIX_PAGE_LENGTH
+				mapping && total_rows > FIX_PAGE_LENGTH
 					? '<div class="grid-import-preview-foot"><div class="grid-pagination"></div></div>'
 					: ""
 			}
 		`;
 	}
 
-	get_warnings(headers, rows, row_numbers, import_type, column_map) {
-		const columns = Object.keys(column_map).map(cint);
-		const id_index = columns.find((i) => column_map[i] === BULK_EDIT_ID_FIELDNAME);
+	get_mapped_fields(column_map) {
+		const mappable = this.mappable_fieldnames();
+		return Object.entries(column_map)
+			.filter(([, fieldname]) => fieldname !== ID_FIELDNAME && mappable.has(fieldname))
+			.map(([i, fieldname]) => ({
+				i: cint(i),
+				df: frappe.meta.get_docfield(this.grid.df.options, fieldname),
+			}))
+			.filter(({ df }) => df);
+	}
 
-		const warnings = this.get_header_warnings(headers, column_map);
-		warnings.push(...this.get_id_warnings(rows, row_numbers, import_type, id_index));
-		rows.forEach((row, r) => {
-			warnings.push(
-				...this.get_row_warnings(row, row_numbers[r], headers, columns, column_map, {
-					import_type,
-					id_index,
-				})
-			);
+	get_warnings(column_map) {
+		const id_index = this.get_id_index(column_map);
+		const rows_by_id = this.get_rows_by_id();
+		const fields = this.get_mapped_fields(column_map);
+
+		const warnings = [
+			...this.get_header_warnings(column_map),
+			...this.get_id_warnings(id_index, rows_by_id),
+		];
+		this.state.rows.forEach((row, r) => {
+			const row_number = this.state.row_numbers[r];
+			warnings.push(...this.get_row_warnings(row, row_number, fields, id_index, rows_by_id));
 		});
 		return warnings;
 	}
 
-	get_header_warnings(headers, column_map) {
+	get_header_warnings(column_map) {
 		const warnings = [];
-		headers.forEach((header, i) => {
+		this.state.headers.forEach((header, i) => {
 			if (header && column_map[i] === undefined) {
 				warnings.push({
 					col: i,
@@ -1254,72 +1322,50 @@ export default class GridImport {
 		return warnings;
 	}
 
-	get_id_warnings(rows, row_numbers, import_type, id_index) {
-		const warnings = [];
-
+	get_id_warnings(id_index, rows_by_id) {
+		const { rows, row_numbers, import_type } = this.state;
+		if (import_type === INSERT) return [];
 		if (id_index === undefined) {
-			if (import_type !== BULK_EDIT_INSERT) {
-				warnings.push({
+			return [
+				{
 					blocking: true,
-					message: __(
-						"No ID column is mapped, so no row can be matched. Every row will be skipped."
-					),
-				});
-			}
-			return warnings;
+					message: __("No column is mapped to ID, so rows can't be matched."),
+				},
+			];
 		}
 
-		const rows_by_id = {};
+		const warnings = [];
+		const file_rows_by_id = {};
 		rows.forEach((row, r) => {
 			const id = cstr(row[id_index]).trim();
-			if (id) (rows_by_id[id] ??= []).push(row_numbers[r]);
+			if (id) (file_rows_by_id[id] ??= []).push(row_numbers[r]);
 		});
-		Object.entries(rows_by_id).forEach(([id, id_rows]) => {
-			if (id_rows.length > 1) {
-				warnings.push({
-					message: __("ID {0} appears in rows {1} — only the last one will apply.", [
-						id,
-						id_rows.join(", "),
-					]),
-				});
+		Object.entries(file_rows_by_id).forEach(([id, id_rows]) => {
+			if (id_rows.length > 1 && rows_by_id.has(id)) {
+				const message = __("ID {0} appears in rows {1} — only the last one will apply.", [
+					id,
+					id_rows.join(", "),
+				]);
+				id_rows.forEach((row) => warnings.push({ row, message }));
 			}
 		});
 		return warnings;
 	}
 
-	get_row_warnings(row, row_number, headers, columns, column_map, { import_type, id_index }) {
+	get_row_warnings(row, row_number, fields, id_index, rows_by_id) {
+		const { import_type } = this.state;
 		const warnings = [];
 
-		if (row.length !== headers.length) {
-			warnings.push({
-				row: row_number,
-				message:
-					row.length < headers.length
-						? __("This row has fewer cells than the header.")
-						: __("This row has more cells than the header."),
-			});
-		}
-
 		const id = id_index === undefined ? null : cstr(row[id_index]).trim();
-		const existing = id ? this.get_row_by_id(id) : null;
-		const is_new =
-			import_type === BULK_EDIT_INSERT || (!existing && import_type === BULK_EDIT_UPSERT);
-
-		if (import_type === BULK_EDIT_UPDATE && id && !existing) {
+		if (import_type === UPDATE && id && !rows_by_id.has(id)) {
 			warnings.push({
 				row: row_number,
 				message: __('No row in this table has the ID "{0}".', [id]),
 			});
 		}
 
-		columns.forEach((i) => {
-			const fieldname = column_map[i];
-			if (fieldname === BULK_EDIT_ID_FIELDNAME) return;
-
-			const df = frappe.meta.get_docfield(this.grid.df.options, fieldname);
-			if (!df) return;
-
-			const message = this.get_value_error(df, cstr(row[i]).trim(), is_new);
+		fields.forEach(({ i, df }) => {
+			const message = this.get_value_error(df, cstr(row[i]).trim());
 			if (message) {
 				warnings.push({ blocking: true, row: row_number, col: i, field: df, message });
 			}
@@ -1328,177 +1374,105 @@ export default class GridImport {
 		return warnings;
 	}
 
-	get_value_error(df, value, is_new) {
-		if (!value) return df.reqd && is_new ? __("This field is mandatory and is blank.") : "";
+	get_value_error(df, value) {
+		if (!value) return df.reqd ? __("This field is mandatory and is blank.") : "";
 
-		if (df.fieldtype === "Select") {
-			const options = (df.options || "").split("\n").map((o) => o.trim());
-			if (!options.includes(value)) {
-				return __('"{0}" is not a valid option. Allowed: {1}', [
-					value,
-					options.filter(Boolean).join(", "),
-				]);
-			}
-		}
-
-		if (df.fieldtype === "Date" || df.fieldtype === "Datetime") {
-			const date_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
-			const time_fmt = frappe.datetime.get_user_time_fmt();
-			const is_date = df.fieldtype === "Date";
-			const formats = is_date
-				? [date_fmt, frappe.defaultDateFormat]
-				: [`${date_fmt} ${time_fmt}`, frappe.defaultDatetimeFormat];
-			if (!moment(value, formats, true).isValid()) {
-				return is_date
-					? __('"{0}" is not a valid date. Use {1}', [value, date_fmt])
-					: __('"{0}" is not a valid datetime. Use {1}', [
-							value,
-							`${date_fmt} ${time_fmt}`,
-					  ]);
-			}
-		}
-
-		if (df.fieldtype === "Time" && !moment(value, BULK_EDIT_TIME_FORMATS(), true).isValid()) {
+		if (df.fieldtype === "Time" && !moment(value, TIME_FORMATS(), true).isValid()) {
 			return __('"{0}" is not a valid time. Use {1}', [
 				value,
 				frappe.datetime.get_user_time_fmt(),
 			]);
 		}
 
-		if (
-			df.fieldtype === "Duration" &&
-			!BULK_EDIT_DURATION_PATTERN.test(value) &&
-			!BULK_EDIT_SECONDS_PATTERN.test(value)
-		) {
-			return __('"{0}" is not valid. Use duration format: d h m s', [value]);
-		}
-
-		if (BULK_EDIT_NUMERIC_FIELDTYPES.includes(df.fieldtype) && !bulk_edit_is_number(value)) {
+		if (NUMERIC_FIELDTYPES.includes(df.fieldtype) && !is_number(value)) {
 			return __('"{0}" is not a valid number.', [value]);
 		}
 
-		if (df.fieldtype === "Check" && !BULK_EDIT_CHECK_VALUES.includes(value.toLowerCase())) {
+		if (df.fieldtype === "Check" && !CHECK_VALUES.includes(value.toLowerCase())) {
 			return __('"{0}" is not valid. Use {1}', [value, "0, 1, Yes, No"]);
 		}
 
-		if (df.fieldtype === "Rating" && !bulk_edit_is_rating(value)) {
+		if (df.fieldtype === "Rating" && !is_rating(value)) {
 			return __('"{0}" is not a valid rating. Use a number between 0 and 1.', [value]);
 		}
 
-		const format = bulk_edit_format_of(df);
-		if (format && !bulk_edit_matches_format(value, format)) {
+		const format = format_of(df);
+		if (format && !matches_format(value, format)) {
 			return __('"{0}" is not a valid {1}.', [value, __(df.options || df.fieldtype)]);
 		}
 
 		return "";
 	}
 
-	async get_link_warnings(rows, row_numbers, column_map) {
-		const link_columns = Object.keys(column_map)
-			.map(cint)
-			.map((i) => ({ i, df: frappe.meta.get_docfield(this.grid.df.options, column_map[i]) }))
-			.filter(({ df }) => df?.fieldtype === "Link");
-
-		if (!link_columns.length) return [];
-
-		const values_by_doctype = {};
-		link_columns.forEach(({ i, df }) => {
-			const values = (values_by_doctype[df.options] ??= new Set());
-			rows.forEach((row) => {
-				const value = cstr(row[i]).trim();
-				if (value) values.add(value);
-			});
+	async get_server_warnings(column_map, indexes) {
+		if (!indexes.length) return [];
+		const { headers, rows, row_numbers } = this.state;
+		const warnings = await frappe.xcall("frappe.desk.form.grid_import.validate_rows", {
+			doctype: this.grid.frm.doctype,
+			fieldname: this.grid.df.fieldname,
+			headers: JSON.stringify(headers),
+			rows: JSON.stringify(indexes.map((r) => rows[r])),
+			column_map: JSON.stringify(column_map),
 		});
-
-		const invalid = await frappe.xcall(
-			"frappe.desk.form.grid_import.get_invalid_link_values",
-			{
-				doctype: this.grid.frm.doctype,
-				values_by_doctype: JSON.stringify(
-					Object.fromEntries(
-						Object.entries(values_by_doctype).map(([doctype, values]) => [
-							doctype,
-							[...values],
-						])
-					)
-				),
+		return warnings.map((w) => {
+			const warning = {
+				row: row_numbers[indexes[w.row]],
+				blocking: w.blocking,
+				message: w.message,
+			};
+			if (w.col != null) {
+				warning.col = w.col;
+				warning.field = frappe.meta.get_docfield(this.grid.df.options, column_map[w.col]);
 			}
-		);
-
-		const warnings = [];
-		link_columns.forEach(({ i, df }) => {
-			const invalid_values = new Set(invalid[df.options] || []);
-			if (!invalid_values.size) return;
-			rows.forEach((row, r) => {
-				const value = cstr(row[i]).trim();
-				if (value && invalid_values.has(value)) {
-					warnings.push({
-						blocking: true,
-						row: row_numbers[r],
-						col: i,
-						field: df,
-						message: __('"{0}" is not a valid {1}', [value, df.label]),
-					});
-				}
-			});
+			return warning;
 		});
-		return warnings;
 	}
 
-	get_column_map(headers) {
-		return frappe.xcall("frappe.desk.form.grid_import.get_column_map", {
+	async get_column_map(headers) {
+		const map = await frappe.xcall("frappe.desk.form.grid_import.get_column_map", {
 			doctype: this.grid.frm.doctype,
 			fieldname: this.grid.df.fieldname,
 			headers: JSON.stringify(headers),
 		});
+		const mappable = this.mappable_fieldnames();
+		return Object.fromEntries(
+			Object.entries(map).filter(([, fieldname]) => mappable.has(fieldname))
+		);
 	}
 
 	apply_column_overrides(auto_mapped) {
 		const map = { ...auto_mapped };
 		Object.entries(this.state.column_overrides).forEach(([index, fieldname]) => {
-			if (fieldname === BULK_EDIT_DONT_IMPORT) delete map[index];
+			if (fieldname === DONT_IMPORT) delete map[index];
 			else map[index] = fieldname;
 		});
 		return map;
 	}
 
-	get_row_by_id(id) {
-		return (this.grid.frm.doc[this.grid.df.fieldname] || []).find((d) => d.name === id);
-	}
-
-	apply_rows(rows, import_type, column_map) {
-		const columns = Object.keys(column_map).map(cint);
-		const id_index = columns.find((i) => column_map[i] === BULK_EDIT_ID_FIELDNAME);
+	apply_rows(rows) {
+		const { import_type, column_map } = this.state;
+		const id_index = this.get_id_index(column_map);
+		const rows_by_id = this.get_rows_by_id();
+		const fields = this.get_mapped_fields(column_map);
 		const counts = { insert: 0, update: 0, skip: 0 };
 
 		rows.forEach((row) => {
-			const id = id_index === undefined ? null : cstr(row[id_index]).trim();
-			const existing = id && this.get_row_by_id(id);
-			let target;
+			const id = id_index === undefined ? "" : cstr(row[id_index]).trim();
+			let target = import_type !== INSERT && rows_by_id.get(id);
 
-			if (import_type === BULK_EDIT_INSERT) {
-				target = this.grid.frm.add_child(this.grid.df.fieldname);
-				counts.insert++;
-			} else if (existing) {
-				target = existing;
+			if (target) {
 				counts.update++;
-			} else if (import_type === BULK_EDIT_UPSERT) {
-				target = this.grid.frm.add_child(this.grid.df.fieldname);
-				counts.insert++;
-			} else {
+			} else if (import_type === UPDATE) {
 				counts.skip++;
 				return;
+			} else {
+				target = this.grid.frm.add_child(this.grid.df.fieldname);
+				counts.insert++;
 			}
 
-			columns.forEach((i) => {
-				const fieldname = column_map[i];
-				if (fieldname === BULK_EDIT_ID_FIELDNAME) return;
-
-				const df = frappe.meta.get_docfield(this.grid.df.options, fieldname);
-				if (!df) return;
-
-				const format = BULK_EDIT_VALUE_FORMATTERS[df.fieldtype];
-				target[fieldname] = format ? format(row[i]) : row[i];
+			fields.forEach(({ i, df }) => {
+				const format = VALUE_FORMATTERS[df.fieldtype];
+				target[df.fieldname] = format ? format(row[i]) : row[i];
 			});
 		});
 
@@ -1516,46 +1490,46 @@ export default class GridImport {
 	}
 }
 
-function bulk_edit_to_seconds(value) {
+function to_seconds(value) {
 	const text = cstr(value).trim();
 	if (!text) return 0;
-	if (BULK_EDIT_SECONDS_PATTERN.test(text)) return cint(text);
+	if (SECONDS_PATTERN.test(text)) return cint(text);
 
 	const part = (unit) => cint((text.match(new RegExp(`(\\d+)${unit}`)) || [])[1]);
 	return frappe.utils.duration_to_seconds(part("d"), part("h"), part("m"), part("s"));
 }
 
-function bulk_edit_seed_value(fieldtype, value) {
-	if (fieldtype === "Check") return BULK_EDIT_VALUE_FORMATTERS.Check(value);
-	if (BULK_EDIT_DEFERRED_FIELDTYPES.includes(fieldtype)) return "";
+function seed_value(fieldtype, value) {
+	if (fieldtype === "Check") return VALUE_FORMATTERS.Check(value);
+	if (DEFERRED_FIELDTYPES.includes(fieldtype)) return "";
 	return value;
 }
 
-function bulk_edit_to_system_time(value) {
+function to_system_time(value) {
 	if (!value) return value;
-	const parsed = moment(value, BULK_EDIT_TIME_FORMATS(), true);
+	const parsed = moment(value, TIME_FORMATS(), true);
 	return parsed.isValid() ? parsed.format(frappe.defaultTimeFormat) : value;
 }
 
-function bulk_edit_is_rating(value) {
-	if (!bulk_edit_is_number(value)) return false;
+function is_rating(value) {
+	if (!is_number(value)) return false;
 	const rating = flt(value);
 	return rating >= 0 && rating <= 1;
 }
 
-function bulk_edit_format_of(df) {
+function format_of(df) {
 	if (df.fieldtype === "Phone") return "phone";
-	return df.fieldtype === "Data" ? BULK_EDIT_DATA_FORMATS[df.options] : "";
+	return df.fieldtype === "Data" ? DATA_FORMATS[df.options] : "";
 }
 
-function bulk_edit_matches_format(value, format) {
+function matches_format(value, format) {
 	const parts = format === "email" ? frappe.utils.split_emails(value) : [value];
 	return (
 		Boolean(parts?.length) && parts.every((part) => frappe.utils.validate_type(part, format))
 	);
 }
 
-function bulk_edit_is_number(value) {
+function is_number(value) {
 	let text = cstr(value).trim();
 	if (!text) return false;
 
@@ -1568,31 +1542,58 @@ function bulk_edit_is_number(value) {
 	return text !== "" && !isNaN(Number(text));
 }
 
+const add_unpin = (control, unpin) => {
+	const previous = control._unpin;
+	control._unpin = () => {
+		previous?.();
+		unpin();
+	};
+};
+
 const discard_cell_control = (control) => {
+	control?._unpin?.();
 	control?.hide_picker?.();
 	control?.datepicker?.destroy?.();
 };
 
-const picker_of = (control) =>
-	control?.$picker?.get(0) ||
-	control?.datepicker?.$datepicker?.get(0) ||
-	control?.awesomplete?.ul ||
-	null;
-
-const picker_is_open = (control) => {
-	if (control.$picker) return control.$picker.is(":visible");
-	if (control.datepicker) return Boolean(control.datepicker.visible);
-	return Boolean(control.awesomplete?.opened);
+const picker_api = (control) => {
+	if (control.$picker) {
+		return {
+			el: control.$picker.get(0),
+			is_open: () => control.$picker.is(":visible"),
+			open: () => control.show_picker(),
+			close: () => control.hide_picker(),
+		};
+	}
+	if (control.datepicker) {
+		const picker = control.datepicker;
+		return {
+			el: picker.$datepicker?.get(0),
+			is_open: () => Boolean(picker.visible),
+			open: () => picker.show(),
+			close: () => picker.hide(),
+		};
+	}
+	return {
+		el: control.awesomplete?.ul,
+		is_open: () => Boolean(control.awesomplete?.opened),
+		open: () => control.on_input?.({ target: { value: "" } }),
+		close: () => control.awesomplete?.close(),
+	};
 };
 
-const open_picker = (control) => {
-	if (control.$picker) return control.show_picker();
-	if (control.datepicker) return control.datepicker.show();
-	return control.on_input?.({ target: { value: "" } });
-};
-
-const close_picker = (control) => {
-	if (control.$picker) return control.hide_picker();
-	if (control.datepicker) return control.datepicker.hide();
-	return control.awesomplete?.close();
+const follow_input = (panel, input, offset) => {
+	const reposition = () =>
+		place(panel, input.getBoundingClientRect(), "bottom", "start", offset);
+	return {
+		start() {
+			reposition();
+			window.addEventListener("resize", reposition);
+			document.addEventListener("scroll", reposition, { capture: true, passive: true });
+		},
+		stop() {
+			window.removeEventListener("resize", reposition);
+			document.removeEventListener("scroll", reposition, { capture: true });
+		},
+	};
 };
