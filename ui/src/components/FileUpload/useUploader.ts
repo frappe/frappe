@@ -24,17 +24,15 @@ import {
   type UploadTransport,
 } from "./types";
 
-// The Frappe default transport pulls in `frappe-ui`; import it lazily on first
-// use so consumers that inject their own transport (and the unit tests, which
-// always do) never drag `frappe-ui` into this module's graph. It also keeps the
-// chunked-upload code out of the bundle until an upload actually runs.
+// Imported lazily so the chunked-upload code stays out of the bundle until an upload
+// actually runs; a consumer that injects its own transport never loads it at all.
 const lazyDefaultTransport: UploadTransport = async (file, args, ctx) => {
   const { defaultTransport } = await import("./useFileUpload");
   return defaultTransport(file, args, ctx);
 };
 
 export interface UseUploaderOptions {
-  /** Backend seam; defaults to Frappe's `/api/v2/method/upload_file`. */
+  /** Backend seam; defaults to the v2 document routes through `@framework/ui/api`. */
   transport?: UploadTransport;
   restrictions?: Restrictions;
   /** The record every file in this queue attaches to; without it the file hangs on nothing. */

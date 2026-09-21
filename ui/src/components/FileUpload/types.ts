@@ -30,8 +30,8 @@ export interface UploadArgs {
  * The single seam between the queue and a backend. Receives one file plus its
  * args and a context carrying an `AbortSignal` (cancel) and an `onProgress`
  * callback (bytes loaded / total). Resolves with at least the resulting
- * `file_url`. Swap this out for non-Frappe backends; the default is the chunked
- * loop against `upload_file`.
+ * `file_url`. Swap this out for non-Frappe backends; the default sends to the v2
+ * document routes.
  */
 export type UploadTransport = (
   file: File,

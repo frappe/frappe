@@ -69,10 +69,9 @@ export interface TemplateRequest {
   doctype: string;
   /** Fieldnames per doctype, the parent's own and each child table's. */
   exportFields: Record<string, string[]>;
+  /** `blank_template`, `5_records` or `all`; the server reads the row limit from it. */
   exportRecords: string;
   fileType?: string;
-  /** How many rows of real data to carry; blank for all of them. */
-  exportPageLength?: number;
 }
 
 /** Fetch the import template for a doctype and save it to the reader's downloads. */
@@ -83,7 +82,6 @@ export const downloadTemplate = async (request: TemplateRequest) => {
     export_fields: request.exportFields,
     export_records: request.exportRecords,
     file_type: fileType,
-    export_page_length: request.exportPageLength,
   });
   try {
     const blob = await downloadFile(url);
@@ -94,7 +92,8 @@ export const downloadTemplate = async (request: TemplateRequest) => {
   }
 };
 
-// The object URL holds the blob until it is revoked, so it goes as soon as the click is made.
+// Safari and Firefox start the download after this tick, so revoking the URL here would
+// hand them a dead blob and the file would silently never save.
 const saveBlob = (blob: Blob, fileName: string) => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -103,5 +102,5 @@ const saveBlob = (blob: Blob, fileName: string) => {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 };

@@ -167,7 +167,6 @@ const handleExport = async () => {
 		exportFields: getExportFields(),
 		exportRecords: getExportType(),
 		fileType: fileType.value,
-		exportPageLength: exportType.value == "5 Records" ? 5 : undefined,
 	});
 };
 

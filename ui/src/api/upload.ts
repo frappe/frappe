@@ -1,9 +1,6 @@
 /**
  * Uploads and downloads: multipart on the v2 document routes, with progress and cancel.
- *
- * The bytes go to `POST /document/File` for a detached file, and to
- * `POST /document/<doctype>/<name>/attachments` for one that hangs on a record. A file
- * larger than the chunk size is sent in parts; only the last part answers with the file.
+ * A file larger than the chunk size goes in parts, and only the last part answers with it.
  */
 import { ApiError, readEnvelope, type Envelope } from "./envelope";
 import { apiUrl, request, requestHeaders } from "./request";
@@ -128,9 +125,9 @@ async function uploadTo<T>(
   path: string,
   file: File,
   fields: UploadFields,
-  { onProgress, signal, chunkSize = DEFAULT_CHUNK_SIZE }: UploadOptions
+  { onProgress, signal, chunkSize }: UploadOptions
 ): Promise<Envelope<T>> {
-  const size = Math.max(1, chunkSize);
+  const size = chunkSize && chunkSize > 0 ? chunkSize : DEFAULT_CHUNK_SIZE;
   const total = Math.max(1, Math.ceil(file.size / size));
   let answer: Envelope<T> | null = null;
 

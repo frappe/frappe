@@ -79,6 +79,7 @@
 import { defineAsyncComponent, ref, watch } from "vue";
 import { Button, toast } from "frappe-ui";
 import { removeAttachment } from "../../api";
+import type { Attachment } from "../../api";
 import type { AttachmentsListProps, UploadResult } from "./types";
 
 const FileUploadDialog = defineAsyncComponent(() => import("./FileUploadDialog.vue"));
@@ -124,21 +125,35 @@ watch(dialogOpen, (open) => {
 	if (!open && !busy.value) dialogMounted.value = false;
 });
 
-// With a record, the row is an attachment of it, so the file goes from the server first
-// and the row stays put if that failed. Without one, the list is the only place it lives.
+// With a record, the row is an attachment of it: the file goes from the server, the list
+// becomes what the server answers with, and the row stays put if the delete failed.
 async function remove(index: number) {
 	const row = props.modelValue[index];
 	if (props.attachTo && row?.name) {
 		try {
-			await removeAttachment(props.attachTo.doctype, props.attachTo.docname, row.name);
+			const { data } = await removeAttachment(
+				props.attachTo.doctype,
+				props.attachTo.docname,
+				row.name
+			);
+			emit("update:modelValue", data.attachments.map(asResult));
 		} catch (error: any) {
 			toast.error(error?.message || "Could not remove the attachment");
-			return;
 		}
+		return;
 	}
 	const next = props.modelValue.slice();
 	next.splice(index, 1);
 	emit("update:modelValue", next);
+}
+
+function asResult(row: Attachment): UploadResult {
+	return {
+		name: row.name,
+		file_url: row.file_url,
+		file_name: row.file_name,
+		is_private: Boolean(row.is_private),
+	};
 }
 
 function isImage(url: string): boolean {

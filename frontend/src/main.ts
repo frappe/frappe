@@ -69,7 +69,7 @@ async function start() {
 	app.use(router);
 	app.provide("boot", boot);
 	provideSession(app, boot.session);
-	// The site's own upload limits; `ui/` reads them here rather than from a global.
+	// The site's own upload limits; the upload primitive reads them by injection.
 	app.provide(UploadLimitsKey, {
 		max_file_size: boot.max_file_size,
 		file_chunk_size: boot.file_chunk_size,
