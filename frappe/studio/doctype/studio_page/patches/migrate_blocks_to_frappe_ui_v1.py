@@ -455,12 +455,6 @@ def migrate_list_header_cell_sort(block, props):
 	rename_slots(block, {"suffix": "sort-indicator"})
 
 
-def migrate_bottom_tabs(block, props):
-	for tab in props.get("tabs") or []:
-		if isinstance(tab, dict):
-			tab["icon"] = lucide_icon(tab.get("icon"))
-
-
 def new_block(component_name, props=None):
 	return {
 		"componentId": f"{component_name}-{frappe.generate_hash(length=9).lower()}",
@@ -513,5 +507,4 @@ HANDLERS = {
 	"ListRow": migrate_list_row,
 	"ListGroup": migrate_list_group,
 	"ListHeaderCellSort": migrate_list_header_cell_sort,
-	"BottomTabs": migrate_bottom_tabs,
 }
