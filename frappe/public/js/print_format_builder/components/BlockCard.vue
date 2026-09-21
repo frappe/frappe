@@ -22,13 +22,13 @@ defineProps({
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	padding: 10px 12px;
+	padding: 8px 10px;
 	border-radius: var(--radius-md);
 	/* the card is drawn by its outline, not by a fill, so the panel stays quiet */
 	border: 1px solid var(--outline-gray-2);
 	background: var(--fg-color);
 	cursor: grab;
-	margin-top: 10px;
+	margin-top: 8px;
 }
 
 .pfb-block-card:hover {
@@ -40,8 +40,8 @@ defineProps({
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 32px;
-	height: 32px;
+	width: 28px;
+	height: 28px;
 	border-radius: var(--radius);
 	background: var(--surface-gray-2);
 	flex-shrink: 0;
@@ -53,12 +53,12 @@ defineProps({
 }
 
 .pfb-block-name {
-	font-size: var(--text-base);
+	font-size: var(--text-sm);
 	font-weight: 500;
 }
 
 .pfb-block-desc {
-	font-size: var(--text-sm);
-	margin-top: 2px;
+	font-size: var(--text-tiny);
+	margin-top: 1px;
 }
 </style>

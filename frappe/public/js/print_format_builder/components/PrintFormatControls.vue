@@ -471,7 +471,7 @@ const draggable_blocks = computed(() => [
 		fieldtype: "Spacer",
 		custom: 1,
 		height: 10,
-		icon: "scan",
+		icon: "minus",
 		desc: __("Vertical whitespace"),
 	},
 	{
