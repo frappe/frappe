@@ -9,6 +9,8 @@
   "send_print_as_pdf",
   "repeat_header_footer",
   "pdf_generator",
+  "max_bulk_print_docs",
+  "max_concurrent_bulk_exports",
   "column_break_4",
   "pdf_page_size",
   "pdf_page_height",
@@ -174,18 +176,34 @@
   },
   {
    "default": "wkhtmltopdf",
+   "description": "wkhtmltopdf cannot render multi-column layouts and is no longer maintained. Use chrome unless you depend on a wkhtmltopdf-specific print format.",
    "fieldname": "pdf_generator",
    "fieldtype": "Select",
    "label": "PDF Generator",
-   "options": "wkhtmltopdf\nchrome",
-   "description": "wkhtmltopdf cannot render multi-column layouts and is no longer maintained. Use chrome unless you depend on a wkhtmltopdf-specific print format."
+   "options": "wkhtmltopdf\nchrome"
+  },
+  {
+   "default": "100",
+   "description": "Maximum number of documents that can be combined into a single bulk PDF export.",
+   "fieldname": "max_bulk_print_docs",
+   "fieldtype": "Int",
+   "label": "Max Bulk Print Documents",
+   "non_negative": 1
+  },
+  {
+   "default": "5",
+   "description": "Maximum number of bulk PDF export jobs a single user can have queued or running at once.",
+   "fieldname": "max_concurrent_bulk_exports",
+   "fieldtype": "Int",
+   "label": "Max Concurrent Bulk Exports Per User",
+   "non_negative": 1
   }
  ],
  "icon": "fa fa-cog",
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-07-13 00:00:00.000000",
+ "modified": "2026-09-18 18:08:56.317806",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Settings",
