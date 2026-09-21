@@ -1040,6 +1040,12 @@ function handle_slash_key(e) {
 	border-radius: var(--radius);
 }
 
+/* a section row also carries the canvas-hover ring; inside the subtree ring that
+   second outline reads as a rule under the section's own label */
+.pfb-tree-node:has(> .pfb-tree-row:hover) > .pfb-tree-row.pfb-tree-hover {
+	outline: none;
+}
+
 .pfb-tree-row.active {
 	background: var(--surface-gray-3);
 	color: var(--text-color);
