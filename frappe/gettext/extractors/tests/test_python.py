@@ -32,9 +32,12 @@ class TestPython(UnitTestCase):
 			_lt("Lazy", context="lazyctx")
 			_(
 				"Multi line",
-				context="multictx")
+				context="multictx",
+			)
 			_("Dup") if flag else _("Dup", context="dupctx")
 			_("First", context="firstctx") + _("Second")
+			_("A", "de") if flag else _("B", context="ctx")
+			_("Both keywords", context="bothctx", lang="de")
 		"""
 		)
 		messages = extract(
@@ -49,9 +52,12 @@ class TestPython(UnitTestCase):
 				(4, "Positional", "greeting"),
 				(5, "Lazy", "lazyctx"),
 				(6, "Multi line", "multictx"),
-				(9, "Dup", None),
-				(9, "Dup", "dupctx"),
-				(10, "First", "firstctx"),
-				(10, "Second", None),
+				(10, "Dup", None),
+				(10, "Dup", "dupctx"),
+				(11, "First", "firstctx"),
+				(11, "Second", None),
+				(12, "A", None),
+				(12, "B", "ctx"),
+				(13, "Both keywords", "bothctx"),
 			],
 		)
