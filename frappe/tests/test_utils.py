@@ -1721,7 +1721,7 @@ class TestTBSanitization(IntegrationTestCase):
 
 	def test_sanitization_is_case_insensitive(self):
 		try:
-			PASSWORD = "should_be_masked_now"  # noqa: F841, N806
+			PASSWORD = "should_be_masked_now"  # noqa: F841
 			raise Exception
 		except Exception:
 			traceback = frappe.get_traceback(with_context=True)
