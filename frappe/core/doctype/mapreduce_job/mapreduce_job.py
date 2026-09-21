@@ -256,6 +256,7 @@ def _create_dummy_bg_task(job: str):
 	bg.status = "Running"
 	bg.user = frappe.session.user
 	bg.method = "frappe.core.doctype.mapreduce_job.mapreduce_job._stub"
+	bg.is_mapreduce = True
 	bg.queue = "long"
 	bg.show_progress_bar = True
 	bg.allow_user_cancellation = True

@@ -893,7 +893,7 @@ def mapreduce(
 
 def cancel_mapreduce_job(document_type: str, document_name: str):
 	jobs = frappe.db.get_all(
-		"MapReduce Job", {"document_type": document_type, "document_name": document_name}
+		"MapReduce Job", {"document_type": document_type, "document_name": document_name, "docstatus": 1}
 	)
 	for j in jobs:
 		frappe.get_doc("MapReduce Job", j.name).cancel()

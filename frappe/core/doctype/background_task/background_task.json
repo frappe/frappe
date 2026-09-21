@@ -23,6 +23,7 @@
   "ended_at",
   "reference_section",
   "ref_doctype",
+  "is_mapreduce",
   "column_break_him1",
   "ref_docname",
   "arguments_section",
@@ -207,12 +208,18 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Show Progress Bar"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_mapreduce",
+   "fieldtype": "Check",
+   "label": "Is MapReduce"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-18 17:21:41.478355",
+ "modified": "2026-09-21 11:07:44.535904",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Background Task",
