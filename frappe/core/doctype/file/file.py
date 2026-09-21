@@ -238,8 +238,12 @@ class File(Document):
 		if self.is_remote_file:
 			return
 
+		if self.file_url and ".." in self.file_url.split("/"):
+			frappe.throw(_("The File URL you've entered is incorrect"), title=_("Invalid File URL"))
+
 		base_path = os.path.realpath(get_files_path(is_private=self.is_private))
-		if not os.path.realpath(self.get_full_path()).startswith(base_path):
+		file_path = os.path.realpath(self.get_full_path())
+		if os.path.commonpath((base_path, file_path)) != base_path:
 			frappe.throw(
 				_("The File URL you've entered is incorrect"),
 				title=_("Invalid File URL"),
