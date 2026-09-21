@@ -1,8 +1,4 @@
-"""Read handler for the activity part of a v2 document route.
-
-`GET /document/<doctype>/<name>/activity` answers with the feed's first page, and
-`?stream=emails|milestones&start=<n>` with the next page of one stream.
-"""
+"""Read handler for the activity part of a v2 document route."""
 
 import frappe
 from frappe import _
