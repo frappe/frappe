@@ -280,6 +280,12 @@ class TestSyncServerTools(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Flow Tool", "read", "type"), "Imported")
 		log_error.assert_called_once()
 
+	def test_an_extension_tool_whose_name_is_not_a_slug_is_skipped(self):
+		with patch("frappe.log_error") as log_error:
+			self.sync(_listed("readTicket", "Fetch a ticket."))
+		self.assertFalse(frappe.db.exists("Flow Tool", "readTicket"))
+		log_error.assert_called_once()
+
 	def test_the_desk_cannot_delete_a_server_row_but_the_app_can(self):
 		self.sync(_listed("helpdesk_ticket", "Fetch a ticket."))
 		with self.assertRaisesRegex(frappe.ValidationError, "Cannot delete system-generated"):

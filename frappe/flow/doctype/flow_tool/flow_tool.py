@@ -166,6 +166,8 @@ def sync_server_tools() -> None:
 	for name, description in live.items():
 		if name in mirrored:
 			frappe.db.set_value("Flow Tool", name, "description", description)
+		elif not SLUG_PATTERN.match(name):
+			frappe.log_error(title=f"Extension tool {name!r} is not a valid slug; skipped")
 		elif frappe.db.exists("Flow Tool", name):
 			frappe.log_error(title=f"Flow Tool {name!r} is not a Server tool; extension tool skipped")
 		else:
