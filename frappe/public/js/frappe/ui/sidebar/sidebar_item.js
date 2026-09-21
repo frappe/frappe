@@ -150,13 +150,17 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		this.set_suffix();
 		// `parent` is only set on items find_nested_items() actually nested; a row can carry
 		// `child` without one (a Section Break, or a child with no section above it).
-		if (!this.item.icon && !(this.item.child && this.item.parent?.indent)) {
+		// Items nested under an indented section draw no icon, even one they set themselves.
+		// The item's own icon is left alone so the sidebar editor still sees and saves it.
+		const hide_icon = !!(this.item.child && this.item.parent?.indent);
+		if (!this.item.icon && !hide_icon) {
 			this.item.icon = "list";
 		}
 		this.wrapper = $(
 			frappe.render_template("sidebar_item", {
 				item: this.item,
 				path: this.path,
+				hide_icon,
 			})
 		);
 		$(this.container).append(this.wrapper);
