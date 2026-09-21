@@ -11,17 +11,8 @@ const TABLE_FIELDTYPES = ["Table", "Table MultiSelect"];
 const SIDE_PANEL_WIDTH_KEY = "side_panel_width";
 const LOAD_TIMEOUT_MS = 20000;
 
-// Fails open: showing an extra field beats hiding one the user should see.
+// A broken expression shows the field rather than breaking the preview.
 function passes_depends_on(expression, doc, parent) {
-	if (!expression) return true;
-	if (typeof expression === "boolean") return expression;
-	if (typeof expression === "function") {
-		try {
-			return Boolean(expression(doc));
-		} catch (e) {
-			return true;
-		}
-	}
 	if (expression.startsWith("eval:")) {
 		try {
 			return Boolean(frappe.utils.eval(expression.substr(5), { doc, parent }));
@@ -29,7 +20,7 @@ function passes_depends_on(expression, doc, parent) {
 			return true;
 		}
 	}
-	if (expression.startsWith("fn:")) return true; // script-driven; scripts never run here
+	if (expression.startsWith("fn:")) return false; // needs a frm to run
 	const value = doc[expression];
 	return Array.isArray(value) ? value.length > 0 : Boolean(value);
 }
