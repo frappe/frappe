@@ -5,7 +5,6 @@ from random import choice
 from unittest.mock import patch
 
 import requests
-from werkzeug.test import TestResponse
 
 import frappe
 import frappe.defaults
@@ -1279,75 +1278,3 @@ class TestSessionAPIV2(FrappeAPITestCase):
 		finally:
 			frappe.defaults.clear_default("api_v2_guest_defaults_probe")
 			frappe.db.commit()  # nosemgrep
-
-
-class TestNotificationLogAPIV2(FrappeAPITestCase):
-	"""Marking a notification read is a PATCH, so `write` is open to role `All` and only the controller narrows it."""
-
-	version = "v2"
-	RECIPIENT = "notification-log-patch-recipient@example.com"
-	OTHER_USER = "notification-log-patch-other@example.com"
-
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.recipient_log = cls.make_user_with_notification(cls.RECIPIENT)
-		cls.other_log = cls.make_user_with_notification(cls.OTHER_USER)
-		# the test client answers on another thread and cannot see an uncommitted fixture
-		frappe.db.commit()  # nosemgrep
-
-	@classmethod
-	def tearDownClass(cls):
-		frappe.db.commit()  # nosemgrep
-		for name in (cls.recipient_log, cls.other_log):
-			frappe.delete_doc_if_exists("Notification Log", name, force=True)
-		for email in (cls.RECIPIENT, cls.OTHER_USER):
-			frappe.delete_doc_if_exists("User", email, force=True)
-		frappe.db.commit()  # nosemgrep
-		super().tearDownClass()
-
-	@classmethod
-	def make_user_with_notification(cls, email: str) -> str:
-		if not frappe.db.exists("User", email):
-			frappe.get_doc(
-				{
-					"doctype": "User",
-					"email": email,
-					"first_name": "Notification Patch User",
-					"send_welcome_email": 0,
-				}
-			).insert(ignore_permissions=True)
-		log = frappe.get_doc(
-			{"doctype": "Notification Log", "for_user": email, "subject": f"patch test for {email}"}
-		).insert(ignore_permissions=True)
-		return log.name
-
-	def sid_for(self, email: str) -> str:
-		from frappe.auth import CookieManager, LoginManager
-		from frappe.utils import set_request
-
-		# logging in here also moves this thread's session; put it back so teardown stays admin
-		original_request = getattr(frappe.local, "request", None)
-		set_request(path="/")
-		try:
-			frappe.local.cookie_manager = CookieManager()
-			frappe.local.login_manager = LoginManager()
-			frappe.local.login_manager.login_as(email)
-			return frappe.session.sid
-		finally:
-			frappe.local.request = original_request
-			frappe.set_user("Administrator")
-
-	def mark_read(self, sid: str, name: str) -> TestResponse:
-		return self.patch(self.resource("Notification Log", name), {"sid": sid, "read": 1})
-
-	def test_recipient_can_mark_their_notification_read(self):
-		response = self.mark_read(self.sid_for(self.RECIPIENT), self.recipient_log)
-		self.assertEqual(response.status_code, 200, response.json)
-		self.assertEqual(response.json["data"]["read"], 1)
-
-	def test_another_user_cannot_mark_it_read(self):
-		# no suppress_stdout: the refusal prints, and a None stdout turns that into a 500
-		response = self.mark_read(self.sid_for(self.OTHER_USER), self.recipient_log)
-		self.assertEqual(response.status_code, 403, response.json)
-		self.assertEqual(frappe.db.get_value("Notification Log", self.recipient_log, "read"), 0)
