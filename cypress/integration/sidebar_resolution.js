@@ -431,12 +431,12 @@ context("Cold-entry sidebar resolution", () => {
 			Setup: [
 				"User",
 				"System Settings",
-				"permission-manager",
+				{ link_to: "permission-manager", link_type: "Page" },
 				"Deleted Document",
 				"Company",
 			],
 			System: ["System Settings", "Module Def", "Translation", "Log Settings"],
-			Users: ["User", "permission-manager", "Role"],
+			Users: ["User", { link_to: "permission-manager", link_type: "Page" }, "Role"],
 		},
 		metas: {
 			User: { module: "Core" },

@@ -27,9 +27,9 @@ class TestUiIslandsRegistry(IntegrationTestCase):
 
 	def test_the_name_is_the_key_without_the_suffix(self):
 		with self.patch_assets_json(
-			{"insights.dashboard.island.js": "/assets/insights/dist/island/dashboard.js"}
+			{"frappe.dashboard.island.js": "/assets/frappe/dist/island/dashboard.js"}
 		):
-			self.assertEqual(get_ui_islands(), ["insights.dashboard"])
+			self.assertEqual(get_ui_islands(), ["frappe.dashboard"])
 
 	def test_a_key_of_any_other_form_is_not_an_island(self):
 		with self.patch_assets_json(
