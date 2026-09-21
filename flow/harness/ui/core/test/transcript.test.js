@@ -1087,6 +1087,15 @@ function repliedWith(conversation, seq, calls) {
 	})
 }
 
+test("the transcript opens with a stand-in for the system prompt, never its text", () => {
+	const conversation = initialConversation()
+	assert.deepEqual(buildTranscriptRows(conversation), [])
+	applyEvent(conversation, { type: "user_message", seq: 2, content: "hello" })
+	const [first] = buildTranscriptRows(conversation)
+	assert.equal(first.kind, "system")
+	assert.equal(first.body, "System prompt.")
+})
+
 test("the first request's input and output stay with its assistant response", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "user_message", seq: 2, content: "hello" })
@@ -1094,10 +1103,10 @@ test("the first request's input and output stay with its assistant response", ()
 	applyEvent(conversation, usageEvent(4, 1000, 10))
 
 	const rows = buildTranscriptRows(conversation)
-	assert.deepEqual(rows.map((row) => row.kind), ["user", "assistant"])
-	assert.equal(rows[0].request, undefined)
-	assert.equal(rows[1].request.input, 1000)
-	assert.equal(rows[1].request.output, 10)
+	assert.deepEqual(rows.map((row) => row.kind), ["system", "user", "assistant"])
+	assert.equal(rows[1].request, undefined)
+	assert.equal(rows[2].request.input, 1000)
+	assert.equal(rows[2].request.output, 10)
 })
 
 test("a tool result has no fabricated token count", () => {
@@ -1180,7 +1189,7 @@ test("a message carrying only an attachment is named by what it carried", () => 
 		content: [{ type: "attachment", id: "i1", name: "screen.png", kind: "image" }],
 	})
 
-	const row = buildTranscriptRows(conversation)[0]
+	const row = buildTranscriptRows(conversation).find((row) => row.kind === "user")
 	assert.equal(row.subject, "screen.png")
 	assert.equal(row.body, "")
 })

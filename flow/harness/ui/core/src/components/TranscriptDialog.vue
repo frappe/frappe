@@ -96,6 +96,7 @@ import FeatherIcon from "./FeatherIcon.vue"
 import { buildTranscriptRows, formatTokens } from "../transcript.js"
 
 const ROLES = {
+	system: "system",
 	user: "user",
 	assistant: "assistant",
 	tool: "tool",
