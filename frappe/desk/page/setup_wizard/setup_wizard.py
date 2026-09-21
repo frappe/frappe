@@ -283,7 +283,8 @@ def run_setup_success(args):  # nosemgrep
 
 def login_as_first_user(args):
 	if args.get("email") and hasattr(frappe.local, "login_manager"):
-		frappe.local.login_manager.login_as(args.get("email"))
+		# User.autoname() lowercases the email into the doc name, so login must match.
+		frappe.local.login_manager.login_as(args.get("email").strip().lower())
 
 
 def get_stages_hooks(args):  # nosemgrep
