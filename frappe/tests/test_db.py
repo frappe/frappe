@@ -1300,6 +1300,16 @@ class TestDDLCommandsMaria(IntegrationTestCase):
 		)
 		self.assertEqual(len(indexs_in_table), 2)
 
+	def test_db_table_columns_only_from_site_database(self) -> None:
+		self.assertEqual(frappe.db.get_db_table_columns("COLUMNS"), [])
+
+	def test_table_count_cache_only_from_site_database(self) -> None:
+		from frappe.cache_manager import build_table_count_cache
+
+		counts = build_table_count_cache()
+		self.assertIn(self.test_table_name, counts)
+		self.assertNotIn("COLUMNS", counts)
+
 
 @run_only_if(db_type_is.SQLITE)
 class TestDDLCommandsSQLite(IntegrationTestCase):
@@ -2621,6 +2631,13 @@ class TestPostgresSchemaQueryIndependence(ExtIntegrationTestCase):
 
 		del frappe.conf["db_schema"]
 		frappe.client_cache.delete_keys("table_columns::*")
+
+	def test_table_count_cache_only_from_site_schema(self) -> None:
+		from frappe.cache_manager import build_table_count_cache
+
+		counts = build_table_count_cache()
+		self.assertIn(self.test_table_name, counts)
+		self.assertNotIn(f"{self.test_table_name}_2", counts)
 
 	def test_describe(self) -> None:
 		self.assertSequenceEqual([("col_a",), ("col_b",)], frappe.db.describe(self.test_table_name))

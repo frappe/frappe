@@ -206,13 +206,15 @@ frappe.router = {
 			// doctype route
 			let meta = frappe.get_meta(doctype_route.doctype);
 			this.meta = meta;
+			let default_view = meta.default_view;
+			if (default_view === "Report" && !frappe.model.can_get_report(doctype_route.doctype)) {
+				default_view = null;
+			}
 			if (route[1] && route[1] === "view" && route[2]) {
 				route = this.get_standard_route_for_list(
 					route,
 					doctype_route,
-					meta.force_re_route_to_default_view && meta.default_view
-						? meta.default_view
-						: null
+					meta.force_re_route_to_default_view && default_view ? default_view : null
 				);
 			} else if (route[1] && route[1] !== "view") {
 				let docname = route[1];
@@ -222,14 +224,14 @@ frappe.router = {
 				route = ["Form", doctype_route.doctype, docname];
 			} else if (frappe.model.is_single(doctype_route.doctype)) {
 				route = ["Form", doctype_route.doctype, doctype_route.doctype];
-			} else if (meta.default_view) {
-				if (meta.default_view === "Tree") {
+			} else if (default_view) {
+				if (default_view === "Tree") {
 					route = ["Tree", doctype_route.doctype];
 				} else {
 					route = [
 						"List",
 						doctype_route.doctype,
-						this.list_views_route[meta.default_view.toLowerCase()],
+						this.list_views_route[default_view.toLowerCase()],
 					];
 				}
 			} else {

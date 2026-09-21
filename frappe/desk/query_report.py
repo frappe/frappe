@@ -314,7 +314,15 @@ def _run(
 
 				dn = filters.pop("prepared_report_name", None)
 				if dn:
-					frappe.has_permission("Prepared Report", "read", dn, throw=True)
+					prepared_for = frappe.db.get_value(
+						"Prepared Report", {"name": dn, "owner": user}, "report_name"
+					)
+					if prepared_for != report_name and (
+						not prepared_for
+						or not frappe.db.exists("Report", prepared_for)
+						or get_reference_report(frappe.get_doc("Report", prepared_for)).name != report.name
+					):
+						frappe.has_permission("Prepared Report", "read", dn, throw=True)
 			else:
 				dn = ""
 			result = get_prepared_report_result(report, filters, dn, user)
@@ -347,11 +355,18 @@ def add_custom_column_data(custom_columns, result):
 			doctype_names_from_custom_field.append(doctype_name)
 		column["fieldname"] = column["fieldname"].split("-")[0]
 
-	custom_column_data = get_data_for_custom_report(custom_columns, result)
+	pending_columns = custom_columns
 
-	for column in custom_columns:
-		key = (column.get("doctype"), column.get("fieldname"))
-		if key in custom_column_data:
+	while pending_columns:
+		custom_column_data = get_data_for_custom_report(pending_columns, result)
+		unresolved_columns = []
+
+		for column in pending_columns:
+			key = (column.get("doctype"), column.get("fieldname"))
+			if key not in custom_column_data:
+				unresolved_columns.append(column)
+				continue
+
 			for row in result:
 				link_field = column.get("link_field")
 
@@ -367,6 +382,11 @@ def add_custom_column_data(custom_columns, result):
 				if key[0] in doctype_names_from_custom_field:
 					column["fieldname"] = column.get("id")
 				row[column.get("fieldname")] = custom_column_data.get(key).get(row_reference)
+
+		if len(unresolved_columns) == len(pending_columns):
+			break
+
+		pending_columns = unresolved_columns
 
 	return result
 

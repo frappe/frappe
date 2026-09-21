@@ -883,7 +883,7 @@ def delete_items():
 	doctype = frappe.form_dict.get("doctype")
 
 	if len(items) > 10:
-		frappe.enqueue("frappe.desk.reportview.delete_bulk", doctype=doctype, items=items)
+		frappe.enqueue("frappe.desk.reportview.delete_bulk", doctype=doctype, items=items, queue="long")
 		return None
 
 	return delete_bulk(doctype, items)

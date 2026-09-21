@@ -6,7 +6,13 @@ import json
 
 import frappe
 from frappe.desk.link_title import get_report_link_titles
-from frappe.desk.query_report import build_xlsx_data, export_query, format_fields, run
+from frappe.desk.query_report import (
+	add_custom_column_data,
+	build_xlsx_data,
+	export_query,
+	format_fields,
+	run,
+)
 from frappe.tests import IntegrationTestCase
 from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, make_xlsx
 
@@ -172,6 +178,59 @@ class TestQueryReport(IntegrationTestCase):
 			expected_descriptions,
 			"CSV row order should follow visible_idx sequence, not default order",
 		)
+
+	def test_owner_opens_prepared_report_by_name_without_prepared_report_role(self):
+		from frappe.core.doctype.prepared_report.prepared_report import create_json_gz_file
+		from frappe.core.doctype.user_permission.test_user_permission import create_user
+
+		frappe.set_user("Administrator")
+		owner = create_user("test_prepared_report_owner@example.com", "Website Manager")
+		reader = create_user("test_prepared_report_reader@example.com", "Website Manager")
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Open ToDos " + frappe.generate_hash(length=6),
+				"report_type": "Query Report",
+				"query": "select name from tabToDo",
+				"prepared_report": 1,
+				"is_standard": "No",
+			}
+		).insert(ignore_permissions=True)
+		custom_report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "My Open ToDos " + frappe.generate_hash(length=6),
+				"report_type": "Custom Report",
+				"reference_report": report.name,
+				"prepared_report": 1,
+				"is_standard": "No",
+			}
+		).insert(ignore_permissions=True)
+		other_report = frappe.copy_doc(report)
+		other_report.report_name = "Closed ToDos " + frappe.generate_hash(length=6)
+		other_report.insert(ignore_permissions=True)
+
+		# the ready notification links a custom report's prepared report to its reference report
+		with self.set_user(owner.name):
+			prepared_report = frappe.get_doc(
+				{"doctype": "Prepared Report", "report_name": custom_report.name}
+			).insert(ignore_permissions=True)
+			create_json_gz_file(
+				{"columns": [], "result": []}, prepared_report.doctype, prepared_report.name, report.name
+			)
+			filters = json.dumps({"prepared_report_name": prepared_report.name})
+			self.assertEqual(run(report.name, filters)["doc"].name, prepared_report.name)
+			with self.assertRaises(frappe.PermissionError):
+				run(other_report.name, filters)
+
+		with self.set_user(reader.name), self.assertRaises(frappe.PermissionError):
+			run(report.name, filters)
+
+		custom_report.delete()
+		with self.set_user(owner.name), self.assertRaises(frappe.PermissionError):
+			run(report.name, filters)
 
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
@@ -466,6 +525,40 @@ data = columns, result
 		except Exception as e:
 			raise e
 			frappe.db.rollback()
+
+	def test_custom_column_linked_to_another_custom_column(self):
+		"""Test custom column that looks up its value through another custom column"""
+
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "test_custom_column_chain@example.com",
+				"first_name": "Rhea",
+				"last_name": "Menon",
+				"send_welcome_email": 0,
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert()
+
+		self.addCleanup(frappe.set_user, frappe.session.user)
+		frappe.set_user(user.name)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Follow up on renewal"}).insert()
+
+		custom_columns = [
+			{"fieldname": "owner", "doctype": "ToDo", "link_field": {"fieldname": "todo", "names": []}},
+			{
+				"fieldname": "full_name",
+				"doctype": "User",
+				"link_field": {"fieldname": "owner", "names": []},
+			},
+		]
+
+		result = add_custom_column_data(custom_columns, [{"todo": todo.name}])
+
+		self.assertDictEqual(
+			{"todo": todo.name, "owner": user.name, "full_name": "Rhea Menon"},
+			result[0],
+		)
 
 	def test_xlsx_styles_structure(self):
 		"""build_xlsx_data with build_styles=True returns a well-formed styles dict"""
