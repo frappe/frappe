@@ -22,27 +22,28 @@ defineProps({
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	padding: 8px 10px;
-	border-radius: var(--radius);
-	border: 1px solid var(--border-color);
-	background: var(--surface-gray-1);
+	padding: 10px 12px;
+	border-radius: var(--radius-md);
+	/* the card is drawn by its outline, not by a fill, so the panel stays quiet */
+	border: 1px solid var(--outline-gray-2);
+	background: var(--fg-color);
 	cursor: grab;
-	margin-top: 6px;
+	margin-top: 10px;
 }
 
 .pfb-block-card:hover {
-	background: var(--surface-gray-2);
-	border-color: var(--outline-gray-4);
+	background: var(--surface-gray-1);
+	border-color: var(--outline-gray-3);
 }
 
 .pfb-block-icon {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 28px;
-	height: 28px;
+	width: 32px;
+	height: 32px;
 	border-radius: var(--radius);
-	background: var(--surface-gray-3);
+	background: var(--surface-gray-2);
 	flex-shrink: 0;
 }
 
@@ -52,12 +53,12 @@ defineProps({
 }
 
 .pfb-block-name {
-	font-size: var(--text-sm);
+	font-size: var(--text-base);
 	font-weight: 500;
 }
 
 .pfb-block-desc {
-	font-size: var(--text-tiny);
-	margin-top: 1px;
+	font-size: var(--text-sm);
+	margin-top: 2px;
 }
 </style>

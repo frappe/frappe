@@ -471,7 +471,7 @@ const draggable_blocks = computed(() => [
 		fieldtype: "Spacer",
 		custom: 1,
 		height: 10,
-		icon: "minus",
+		icon: "scan",
 		desc: __("Vertical whitespace"),
 	},
 	{
@@ -479,7 +479,7 @@ const draggable_blocks = computed(() => [
 		fieldname: "divider",
 		fieldtype: "Divider",
 		custom: 1,
-		icon: "minus",
+		icon: "separator-horizontal",
 		desc: __("Horizontal rule"),
 	},
 	{
@@ -510,7 +510,7 @@ const draggable_blocks = computed(() => [
 		fieldname: "repeater",
 		fieldtype: "Repeater",
 		custom: 1,
-		icon: "list",
+		icon: "table",
 		desc: __("Child table rows laid out with your own template"),
 		source: "",
 		repeater_columns: [
