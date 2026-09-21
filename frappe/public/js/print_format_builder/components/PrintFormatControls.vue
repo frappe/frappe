@@ -57,10 +57,6 @@
 							:title="element.fieldname"
 							@click="add_to_layout(element)"
 						>
-							<span
-								class="pfb-field-drag"
-								v-html="frappe.utils.icon('grip', 'xs')"
-							></span>
 							<span class="pfb-field-label">{{ element.label }}</span>
 							<span class="pfb-field-type">{{ element.fieldtype }}</span>
 						</div>
@@ -978,18 +974,6 @@ function handle_slash_key(e) {
 
 .pfb-field-row:hover {
 	background: var(--surface-gray-1);
-}
-
-.pfb-field-drag {
-	display: flex;
-	align-items: center;
-	color: var(--ink-gray-2);
-	flex-shrink: 0;
-	transition: color 0.1s;
-}
-
-.pfb-field-row:hover .pfb-field-drag {
-	color: var(--ink-gray-4);
 }
 
 .pfb-field-label {
