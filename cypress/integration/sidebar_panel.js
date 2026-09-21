@@ -3,9 +3,9 @@
 //
 // What is asserted here is the behaviour the registry took over from the two panels, which
 // is the part a screenshot cannot check: only one panel open at a time, Escape closing it,
-// aria-expanded tracking on the trigger, and the dock's bell driving the same panel as the
-// sidebar's. Before this was one component, each panel dismissed itself and the two had
-// drifted, so this is the part most likely to regress quietly.
+// aria-expanded tracking on the trigger, and the sidebar's own triggers driving the panels.
+// Before this was one component, each panel dismissed itself and the two had drifted, so this
+// is the part most likely to regress quietly.
 //
 // The panels are registered by the features that own them, and background tasks only shows
 // its trigger when the site has tasks, so the registry is driven directly here rather than
@@ -102,28 +102,16 @@ context("Sidebar Panel", () => {
 		cy.get(".sidebar-panel-notifications").should("have.class", "hidden");
 	});
 
-	it("gives the rail its own background-tasks trigger", () => {
-		// Rendered whether or not the site has any; BackgroundTasks un-hides every trigger
-		// once it has fetched a non-empty list.
-		cy.get(".dock .sidebar-background-tasks").should("exist");
-	});
-
-	it("opens the background tasks panel from the rail", () => {
-		// Forced because the button is hidden on a site with no tasks, and this is about the
-		// wiring from the rail to the registry, not about the button's visibility.
-		cy.get(".dock .sidebar-background-tasks").click({ force: true });
-		cy.get(".sidebar-panel-background-tasks").should("not.have.class", "hidden");
+	it("carries both triggers on the sidebar, docked app or not", () => {
+		// The rail used to hold these while it was the surface that was always there. It is an
+		// overlay a hover away now, so both belong to the sidebar in either mode -- and nothing
+		// is on the rail for them to be drawn twice against.
+		cy.get(".standard-items-band .sidebar-notification").should("exist");
+		cy.get(".dock .sidebar-notification").should("not.exist");
 	});
 
 	it("opens from the sidebar bell", () => {
-		// The bell is only drawn on an app without a dock; the rail carries it otherwise.
-		cy.get("body").then(($body) => {
-			if ($body.hasClass("dock-active")) {
-				cy.get(".dock .sidebar-notification").click();
-			} else {
-				cy.get(".standard-items-band .sidebar-notification").click();
-			}
-		});
+		cy.get(".standard-items-band .sidebar-notification").click();
 		cy.get(".sidebar-panel-notifications").should("not.have.class", "hidden");
 	});
 });
