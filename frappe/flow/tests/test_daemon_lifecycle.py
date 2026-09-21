@@ -231,6 +231,15 @@ class TestDaemonLifecycle(UnitTestCase):
 		with self.assertRaisesRegex(RuntimeError, "no site is provisioned"):
 			lifecycle.start()
 
+	def test_ensure_running_reports_whether_it_started_the_daemon(self):
+		with patch.object(lifecycle, "_restart") as restart:
+			with patch.object(lifecycle, "healthy", return_value=True):
+				self.assertFalse(lifecycle.ensure_running())
+			restart.assert_not_called()
+			with patch.object(lifecycle, "healthy", return_value=False):
+				self.assertTrue(lifecycle.ensure_running())
+			restart.assert_called_once()
+
 	def test_ensure_running_checks_health_inside_the_global_lock(self):
 		events = []
 

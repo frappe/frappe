@@ -28,8 +28,10 @@ def start():
 	"""Start the daemon unless it already answers."""
 	from flow.daemon import lifecycle
 
-	lifecycle.ensure_running()
-	_run_on_every_flow_site(_sync_tools)
+	if lifecycle.ensure_running():
+		_run_on_every_flow_site(_sync_tools)
+	else:
+		click.echo("already running; `bench flow-server restart` loads new extensions")
 	click.secho(lifecycle.status(), fg="green")
 
 

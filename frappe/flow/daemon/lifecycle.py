@@ -77,7 +77,7 @@ def keep_alive() -> None:
 	ensure_running()
 
 
-def _run_or_warn(step: Callable[[], None]) -> None:
+def _run_or_warn(step: Callable[[], object]) -> None:
 	"""A daemon that cannot come up must not fail the install or migrate."""
 	try:
 		step()
@@ -206,10 +206,13 @@ def _edit_tenants(change: Callable[[dict], object]) -> dict:
 # --- daemon lifecycle ---------------------------------------------------
 
 
-def ensure_running() -> None:
+def ensure_running() -> bool:
+	"""Start a daemon that is not answering; True when this call started it."""
 	with filelock(LOCK, is_global=True):
-		if not healthy():
-			_restart()
+		if healthy():
+			return False
+		_restart()
+		return True
 
 
 def restart() -> None:
