@@ -108,6 +108,7 @@ def test_load_tenants_rejects_broken_files(tmp_path):
 def test_for_site_partitions_sessions_and_credentials(tmp_path):
 	store = _store(tmp_path)
 	site = store.for_site("site1.localhost", ignore_hidden_files=True)
+	assert site.closing is store.closing  # site streams end with the daemon
 	assert site.sessions_dir == str(tmp_path / "data" / "tenants" / "site1.localhost" / "sessions")
 	# own credential store: a bench-wide key is never a site's to consume
 	assert site.credential_store.path == str(

@@ -153,7 +153,7 @@ class SessionStore:
 			if sink is not None:
 				sink(sid, {**event, "site": site})
 
-		return SessionStore(
+		partition = SessionStore(
 			partition_dir,
 			event_sink=site_sink if sink is not None else None,
 			allowed_roots=list(allowed_roots if allowed_roots is not None else self.allowed_roots),
@@ -166,6 +166,8 @@ class SessionStore:
 			tool_allowlist=self.tool_allowlist,
 			callback_hosts=callback_hosts if callback_hosts is not None else self.callback_hosts,
 		)
+		partition.closing = self.closing
+		return partition
 
 	def create(self, config: SessionConfig) -> Session:
 		self._validate_create_config(config)
