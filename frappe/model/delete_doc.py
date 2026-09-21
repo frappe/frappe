@@ -401,6 +401,8 @@ def get_dynamic_linked_docs(doc, method="Delete") -> list[dict]:
 				.where(RefDoc[df.options] == doc.doctype)
 				.where(RefDoc[df.fieldname] == doc.name)
 			)
+			if df.parent == "Submission Queue" and method == "Delete":
+				query = query.where(RefDoc.status == "Queued")
 			for refdoc in query.run(as_dict=True):
 				# linked to an non-cancelled doc when deleting
 				# or linked to a submitted doc when cancelling
@@ -457,6 +459,7 @@ def raise_link_exists_exception(doc, reference_doctype, reference_docname, row="
 
 
 def delete_dynamic_links(doctype, name):
+	delete_references("Submission Queue", doctype, name, "ref_doctype", "ref_docname")
 	delete_references("ToDo", doctype, name, "reference_type")
 	delete_references("Email Unsubscribe", doctype, name)
 	delete_references("DocShare", doctype, name, "share_doctype", "share_name")
