@@ -890,9 +890,9 @@ class DesktopIconGrid {
 					frappe.desktop_utils.dragged_item = evt.item;
 				},
 				setData: function (/** DataTransfer */ dataTransfer, /** HTMLElement*/ dragEl) {
-					let title = $(dragEl).find(".icon-title").text();
+					let label = $(dragEl).attr("data-id");
 					let icon = me.icons.find((d) => {
-						return d.icon_title === title;
+						return d.icon_title === label;
 					});
 					dataTransfer.setData("text/plain", JSON.stringify(icon.icon_data)); // `dataTransfer` object of HTML5 DragEvent
 				},
@@ -909,8 +909,8 @@ class DesktopIconGrid {
 						} else {
 							let from = $(evt.from.parentElement);
 							let to = $(evt.to.parentElement);
-							let title = $(evt.item).find(".icon-title").text();
-							let selected_icon = get_desktop_icon_by_label(title);
+							let label = $(evt.item).attr("data-id");
+							let selected_icon = get_desktop_icon_by_label(label);
 							if ($(to.get(0).parentElement)) {
 								me.reorder_icons(me.sortable.toArray());
 								me.reorder_icons(
