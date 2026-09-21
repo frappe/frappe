@@ -26,7 +26,7 @@
 			<div class="pfb-search-wrap">
 				<span
 					class="pfb-search-icon text-muted"
-					v-html="frappe.utils.icon('search', 'xs')"
+					v-html="frappe.utils.icon('search', 'sm')"
 				></span>
 				<input
 					ref="search_input"
@@ -160,7 +160,7 @@
 									data-icon-button="true"
 									:title="__('Delete snippet')"
 									@click.stop="confirm_delete_snippet(snip.name)"
-									v-html="frappe.utils.icon('trash', 'xs')"
+									v-html="frappe.utils.icon('trash', 'sm')"
 								></button>
 							</template>
 						</BlockCard>
