@@ -195,8 +195,8 @@ def stop_task(task_id: str):
 		raise frappe.InvalidStatusError(frappe._("Task is not queued or running"))
 
 	if frappe.db.get_value("Background Task", task_name, "is_mapreduce"):
-		docstatus, ref_docname = frappe.db.get_value("Background Task", task_name, "docstatus, ref_docname")
-		if docstatus == 1:
+		ref_docname = frappe.db.get_value("Background Task", task_name, "ref_docname")
+		if frappe.db.get_value("MapReduce Job", ref_docname, "docstatus") == 1:
 			frappe.get_doc("MapReduce Job", ref_docname).cancel()
 	else:
 		from rq.command import send_stop_job_command

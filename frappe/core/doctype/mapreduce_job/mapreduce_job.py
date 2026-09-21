@@ -5,7 +5,7 @@ from types import NoneType
 from uuid import uuid4
 
 import frappe
-from frappe import qb
+from frappe import _, qb
 from frappe.model.document import Document
 from frappe.query_builder.functions import Count
 from frappe.utils import cint
@@ -41,6 +41,9 @@ class MapReduceJob(Document):
 	def on_submit(self):
 		data = frappe.parse_json(self.data)
 		assert isinstance(data, list), "Data should always be a list"
+
+		if not data:
+			frappe.throw(_("Data cannot be an empty list"))
 
 		create_tasks(self.name)
 
@@ -260,7 +263,7 @@ def _create_dummy_bg_task(job: str):
 	bg.queue = "long"
 	bg.show_progress_bar = True
 	bg.allow_user_cancellation = True
-	bg.allow_user_retry = True
+	bg.allow_user_retry = False
 	bg.ref_doctype = "MapReduce Job"
 	bg.ref_docname = job
 	bg.started_at = frappe.utils.now()
