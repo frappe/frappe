@@ -57,7 +57,11 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
   const loading = ref(false);
   const pendingError = ref<unknown>(null);
 
+  // a later read supersedes an earlier one still paging, so the stale rows never land
+  let pendingGeneration = 0;
+
   async function fetchPending(): Promise<void> {
+    const mine = ++pendingGeneration;
     loading.value = true;
     try {
       const rows: PendingRow[] = [];
@@ -75,12 +79,13 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
         more = page.has_next_page;
         start += PAGE;
       }
+      if (mine !== pendingGeneration) return;
       pendingInvites.value = groupPending(rows);
       pendingError.value = null;
     } catch (failure) {
-      pendingError.value = failure;
+      if (mine === pendingGeneration) pendingError.value = failure;
     } finally {
-      loading.value = false;
+      if (mine === pendingGeneration) loading.value = false;
     }
   }
 

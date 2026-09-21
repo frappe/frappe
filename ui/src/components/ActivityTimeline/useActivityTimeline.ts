@@ -157,6 +157,8 @@ function createHistoryPagination(
       });
       append(page.activities);
       store.hasMoreEmails.value = !!page.has_more_emails;
+    } catch (failure) {
+      store.error.value = failure;
     } finally {
       fetchingEmails.value = false;
     }
@@ -175,6 +177,8 @@ function createHistoryPagination(
       // returned, so an offset counted from the rendered rows would skip the rows behind it
       store.milestoneStart.value =
         page.next_milestone_start ?? store.milestoneStart.value;
+    } catch (failure) {
+      store.error.value = failure;
     } finally {
       fetchingMilestones.value = false;
     }

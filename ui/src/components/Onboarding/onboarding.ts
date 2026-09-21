@@ -44,10 +44,12 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
   if (!onboardingSteps.value.length && !isOnboardingStepsCompleted.value) {
     runMethod<Record<string, StoredStep[]>>("frappe.onboarding.get_onboarding_status", {}, {
       http: "GET",
-    }).then(({ data }) => {
-      onboardingStatus.value[userId] = data;
-      syncStatus();
-    });
+    })
+      .then(({ data }) => {
+        onboardingStatus.value[userId] = data;
+        syncStatus();
+      })
+      .catch((failure) => console.error("Could not read the onboarding status:", failure));
   }
 
   const stepsCompleted = computed(
