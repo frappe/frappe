@@ -626,11 +626,6 @@ class Document(BaseDocument):
 		self._validate_data_fields()
 		self._validate_selects()
 		self._validate_non_negative()
-<<<<<<< HEAD
-		self._validate_length()
-=======
-		self._validate_min_max_value()
->>>>>>> bf2c49e (fix(model): validate length after sanitization)
 		self._fix_rating_value()
 		self._validate_code_fields()
 		self._sync_autoname_field()
@@ -644,11 +639,6 @@ class Document(BaseDocument):
 			d._validate_data_fields()
 			d._validate_selects()
 			d._validate_non_negative()
-<<<<<<< HEAD
-			d._validate_length()
-=======
-			d._validate_min_max_value()
->>>>>>> bf2c49e (fix(model): validate length after sanitization)
 			d._fix_rating_value()
 			d._validate_code_fields()
 			d._sync_autoname_field()
