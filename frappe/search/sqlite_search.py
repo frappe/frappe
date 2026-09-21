@@ -16,7 +16,7 @@ from typing import Any
 import frappe
 from frappe.database.sqlite import DEFAULT_BUSY_TIMEOUT_SECONDS
 from frappe.model.document import Document
-from frappe.utils import update_progress_bar
+from frappe.utils import convert_utc_to_system_timezone, get_datetime, now_datetime, update_progress_bar
 from frappe.utils.file_lock import LockTimeoutError
 from frappe.utils.synchronization import filelock
 
@@ -335,6 +335,8 @@ class SQLiteSearch(ABC):
 		if not self.is_search_enabled():
 			return
 
+		started_at = self._build_started_at(is_continuation)
+
 		# Use temporary database path for atomic replacement (only for new index builds)
 		temp_db_path = None
 		original_db_path = self.db_path
@@ -493,6 +495,67 @@ class SQLiteSearch(ABC):
 			# Restore original database path
 			if temp_db_path:
 				self.db_path = original_db_path
+
+		self.queue_documents_changed_during_build(started_at)
+
+	def _build_started_at(self, is_continuation: bool):
+		"""When this build began, carried across a resumed one.
+
+		A continuation skips the rows the earlier run already indexed, so a document edited
+		between the two runs falls outside a fresh timestamp and would never be caught up. The
+		progress rows survive the interruption and record the original start, in UTC.
+		"""
+		if is_continuation:
+			stamps = [
+				row["started_at"] for row in self._get_index_progress().values() if row.get("started_at")
+			]
+			if stamps:
+				# naive, to compare with modified the same way now_datetime() does
+				return convert_utc_to_system_timezone(get_datetime(min(stamps))).replace(tzinfo=None)
+
+		return now_datetime()
+
+	def queue_documents_changed_during_build(self, started_at):
+		"""Queue documents saved while the build was running.
+
+		A build reads each document once, and update_doc_index returns as soon as index_exists()
+		is false, which it is for the whole of a build. A document saved after its row was read
+		therefore carries stale text in the finished index.
+
+		Filters on `modified` rather than the doctype config's mapped modified field: that mapping
+		exists for recency scoring and may point at an immutable column such as creation, which
+		would not move when a document is edited.
+		"""
+		if not self.index_exists():
+			return
+
+		for doctype, config in self.doc_configs.items():
+			filters = dict(config.get("filters") or {})
+			filters["modified"] = (">=", started_at)
+
+			for name in frappe.get_all(doctype, filters=filters, pluck="name"):
+				self.index_doc(doctype, name)
+
+			self.remove_documents_deleted_during_build(doctype, started_at)
+
+	def remove_documents_deleted_during_build(self, doctype, started_at):
+		"""Drop documents deleted while the build was running.
+
+		delete_doc_index also skips an index it considers absent, so a row the build copied can
+		belong to a document that is gone by the time the index goes live.
+
+		Reads Deleted Document, which is the only record left of a deletion once it has happened.
+		A delete_permanently=True deletion writes no such row, so it cannot be found here and the
+		indexed record can remain in the search index until the next full build.
+		"""
+		deleted = frappe.get_all(
+			"Deleted Document",
+			filters={"deleted_doctype": doctype, "creation": (">=", started_at)},
+			pluck="deleted_name",
+		)
+
+		for name in deleted:
+			self.remove_doc(doctype, name)
 
 	def _get_incomplete_count(self, where_clause):
 		"""Get count of incomplete records from search_index_progress table.
