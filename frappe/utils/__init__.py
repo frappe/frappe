@@ -332,6 +332,9 @@ def get_traceback(with_context=False) -> str:
 	if not any([exc_type, exc_value, exc_tb]):
 		return ""
 
+	if with_context and not frappe.conf.developer_mode:
+		with_context = False
+
 	if with_context:
 		trace_list = iter_exc_lines(fmt=_get_traceback_sanitizer())
 		tb = "\n".join(trace_list)
@@ -345,27 +348,45 @@ def get_traceback(with_context=False) -> str:
 
 @functools.lru_cache(maxsize=1)
 def _get_traceback_sanitizer():
+	import re
+
 	from traceback_with_variables import Format
 
 	blocklist = [
 		"password",
 		"passwd",
+		"pwd",
 		"secret",
 		"token",
 		"key",
-		"pwd",
-		"client_secret",
+		"authorization",
+		"cookie",
 	]
+	
+	exact_blocklist = ["sid"]
 
 	placeholder = "********"
 
+	name_pattern = re.compile("|".join(f"(?i:{re.escape(word)})" for word in blocklist))
+	exact_pattern = re.compile("|".join(f"(?i:^{re.escape(word)}$)" for word in exact_blocklist))
+
+	def is_sensitive_name(name) -> bool:
+		return isinstance(name, str) and bool(name_pattern.search(name) or exact_pattern.search(name))
+
 	def dict_printer(v: dict) -> str:
+<<<<<<< HEAD
 		from copy import deepcopy
 
 		v = deepcopy(v)
 		for key in blocklist:
 			if key in v:
 				v[key] = placeholder
+=======
+		v = v.copy()
+		for k in list(v):
+			if is_sensitive_name(k):
+				v[k] = placeholder
+>>>>>>> eb93a72 (fix(log): Hide sensitive info from getting logged)
 
 		return str(v)
 
@@ -375,7 +396,7 @@ def _get_traceback_sanitizer():
 	return Format(
 		custom_var_printers=[
 			# redact variables
-			*[(variable_name, lambda *a, **kw: placeholder) for variable_name in blocklist],
+			(lambda name, *a, **kw: is_sensitive_name(name), lambda *a, **kw: placeholder),
 			# redact dictionary keys
 			(["_secret", dict, lambda *a, **kw: False], dict_printer),
 			(["_secret", frappe._dict, lambda *a, **kw: False], dict_printer),
