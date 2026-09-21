@@ -1018,12 +1018,12 @@ function handle_slash_key(e) {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	/* same rhythm and text grid as a field row in the Fields tab */
+	/* matches the website builder's layer row: 20px line with 7px above and below */
 	min-height: 34px;
 	padding: 4px 8px;
 	border-radius: var(--radius);
 	cursor: pointer;
-	font-size: var(--text-sm);
+	font-size: var(--text-base);
 	user-select: none;
 }
 
@@ -1088,7 +1088,8 @@ function handle_slash_key(e) {
 }
 
 .pfb-tree-children {
-	margin-left: 18px;
+	/* the website builder indents a level by 24px */
+	margin-left: 24px;
 }
 
 .pfb-tree-fields {
