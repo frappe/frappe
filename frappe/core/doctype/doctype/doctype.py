@@ -128,7 +128,7 @@ class DocType(Document):
 		grid_page_length: DF.Int
 		has_web_view: DF.Check
 		hide_toolbar: DF.Check
-		icon: DF.Data | None
+		icon: DF.Icon | None
 		image_field: DF.Data | None
 		in_create: DF.Check
 		index_web_pages_for_search: DF.Check

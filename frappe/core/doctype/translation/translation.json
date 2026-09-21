@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_import": 1,
  "autoname": "hash",
  "creation": "2016-02-17 12:21:16.175465",
@@ -82,6 +83,7 @@
    "reqd": 1
   }
  ],
+ "icon": "languages",
  "links": [],
  "modified": "2024-03-23 16:03:59.551788",
  "modified_by": "Administrator",
@@ -115,6 +117,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

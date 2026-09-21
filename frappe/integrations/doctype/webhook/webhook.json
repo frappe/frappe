@@ -192,6 +192,7 @@
    "label": "Background Jobs Queue"
   }
  ],
+ "icon": "webhook",
  "links": [
   {
    "link_doctype": "Webhook Request Log",

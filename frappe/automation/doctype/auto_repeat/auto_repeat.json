@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_import": 1,
  "allow_rename": 1,
  "autoname": "format:AUT-AR-{#####}",
@@ -219,12 +220,13 @@
    "options": "Auto Repeat User"
   }
  ],
+ "icon": "repeat",
  "links": [],
  "modified": "2025-06-09 18:20:23.775881",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Auto Repeat",
- "naming_rule": "Expression",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {

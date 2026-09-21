@@ -872,7 +872,7 @@
    "label": "Show navigation buttons"
   }
  ],
- "icon": "fa fa-user",
+ "icon": "user-round",
  "idx": 413,
  "image_field": "user_image",
  "links": [

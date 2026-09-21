@@ -8,7 +8,8 @@ const out_dir = path.join(root, "frappe/public/icons/lucide");
 const pkg = path.join(root, "node_modules/lucide-static");
 const version = require(path.join(pkg, "package.json")).version;
 
-const symbol = (id, body) => `    <symbol viewBox="0 0 24 24" id="icon-${id}">\n${body}\n    </symbol>`;
+const symbol = (id, body) =>
+	`    <symbol viewBox="0 0 24 24" id="icon-${id}">\n${body}\n    </symbol>`;
 const inner = (svg) =>
 	svg
 		.replace(/^[\s\S]*?<svg[^>]*>/, "")
@@ -55,5 +56,7 @@ fs.writeFileSync(
 
 const removed = [...before].filter((id) => !icons[id]).sort();
 const added = names.filter((id) => !before.has(id));
-console.log(`lucide-static v${version}: ${names.length} icons (${added.length} added, ${removed.length} removed)`);
+console.log(
+	`lucide-static v${version}: ${names.length} icons (${added.length} added, ${removed.length} removed)`
+);
 if (removed.length) console.log("removed, check the apps for references:", removed.join(" "));

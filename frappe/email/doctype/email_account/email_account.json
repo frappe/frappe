@@ -764,7 +764,7 @@
    "options": "\nSUCCESS\nFAILURE\nDELAY\nSUCCESS,FAILURE\nSUCCESS,FAILURE,DELAY\nNEVER"
   }
  ],
- "icon": "fa fa-inbox",
+ "icon": "inbox",
  "index_web_pages_for_search": 1,
  "links": [],
  "make_attachments_public": 1,

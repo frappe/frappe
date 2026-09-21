@@ -256,7 +256,7 @@
    "read_only": 1
   }
  ],
- "icon": "fa fa-user",
+ "icon": "contact",
  "idx": 1,
  "image_field": "image",
  "index_web_pages_for_search": 1,
@@ -265,7 +265,6 @@
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",
- "name_case": "Title Case",
  "naming_rule": "By script",
  "owner": "Administrator",
  "permissions": [
@@ -395,6 +394,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "show_title_field_in_link": 1,
  "sort_field": "creation",
  "sort_order": "DESC",

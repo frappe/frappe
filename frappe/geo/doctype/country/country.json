@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_import": 1,
  "autoname": "field:country_name",
  "creation": "2013-01-19 10:23:30",
@@ -53,7 +54,7 @@
    "reqd": 1
   }
  ],
- "icon": "fa fa-globe",
+ "icon": "globe",
  "idx": 1,
  "links": [],
  "modified": "2025-01-03 13:01:46.030113",
@@ -84,6 +85,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "country_name",
  "sort_order": "ASC",
  "states": [],

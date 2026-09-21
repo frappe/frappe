@@ -107,7 +107,7 @@
    "options": "Has Role"
   }
  ],
- "icon": "fa fa-file",
+ "icon": "file",
  "idx": 1,
  "links": [],
  "modified": "2026-09-08 12:00:00.000000",
@@ -136,6 +136,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

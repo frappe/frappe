@@ -152,7 +152,7 @@
    "options": "Dynamic Link"
   }
  ],
- "icon": "fa fa-map-marker",
+ "icon": "map-pin-house",
  "idx": 5,
  "links": [],
  "modified": "2026-07-31 16:01:27.068028",
@@ -225,6 +225,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "search_fields": "country, state",
  "sort_field": "creation",
  "sort_order": "DESC",
