@@ -157,6 +157,7 @@ def enqueue_create_notification(users: list[str] | str, doc: dict, dedupe_on: li
 		doc=doc,
 		users=users,
 		now=frappe.flags.in_test,
+		enqueue_after_commit=not frappe.flags.in_test,
 	)
 
 
