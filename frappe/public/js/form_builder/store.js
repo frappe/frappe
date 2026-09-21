@@ -76,6 +76,11 @@ export const useStore = defineStore("form-builder-store", () => {
 		return form.value.layout.tabs.find((tab) => tab.df.name == form.value.active_tab);
 	});
 
+	// keyboard shortcuts mutate the layout directly, so they need the same gate
+	// as the buttons the canvas hides. `read_only`, not `force_read_only`: the
+	// preview toggle flips only the former, and a preview is not editable either
+	const can_edit_layout = computed(() => !read_only.value && !is_layout_form.value);
+
 	const active_element = useActiveElement();
 	const not_using_input = computed(
 		() =>
@@ -419,7 +424,7 @@ export const useStore = defineStore("form-builder-store", () => {
 	}
 
 	let undo_redo_keyboard_event = onKeyDown(true, (e) => {
-		if (!ref_history.value) return;
+		if (!ref_history.value || read_only.value) return;
 		if (is_on_builder_tab() && (e.ctrlKey || e.metaKey)) {
 			if (e.key === "z" && !e.shiftKey && ref_history.value.canUndo) {
 				ref_history.value.undo();
@@ -783,6 +788,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		force_read_only,
 		is_customize_form,
 		is_layout_form,
+		can_edit_layout,
 		is_web_form,
 		tab_fieldname,
 		source_doctype_fields,

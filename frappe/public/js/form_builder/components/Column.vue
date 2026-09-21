@@ -63,7 +63,7 @@ const store = useStore();
 // delete/backspace to delete the field
 const { Backspace } = useMagicKeys();
 whenever(Backspace, (value) => {
-	if (value && selected.value && store.not_using_input && !store.is_layout_form) {
+	if (value && selected.value && store.not_using_input && store.can_edit_layout) {
 		remove_column();
 	}
 });

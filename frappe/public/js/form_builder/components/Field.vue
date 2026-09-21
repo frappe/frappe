@@ -14,14 +14,14 @@ const add_field_ref = ref(null);
 // cmd/ctrl + shift + n to open the add field autocomplete
 const { ctrl_shift_n, Backspace } = useMagicKeys();
 whenever(ctrl_shift_n, (value) => {
-	if (value && selected.value && !store.is_layout_form) {
+	if (value && selected.value && store.can_edit_layout) {
 		add_field_ref.value.open();
 	}
 });
 
 // delete/backspace to delete the field
 whenever(Backspace, (value) => {
-	if (value && selected.value && store.not_using_input && !store.is_layout_form) {
+	if (value && selected.value && store.not_using_input && store.can_edit_layout) {
 		remove_field();
 	}
 });
