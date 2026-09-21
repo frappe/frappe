@@ -98,7 +98,10 @@ const cwdName = computed(() => (cwd.value ?? "").split("/").filter(Boolean).pop(
 
 async function chooseFolder() {
 	const path = await flow.pickFolder()
-	if (path) flow.setCwd(path)
+	if (!path) return
+	// a session restored while the picker was open: the pick still opens a new chat
+	if (flow.state.sessionId) flow.startNewChat({ cwd: path })
+	else flow.setCwd(path)
 }
 const headerTitle = computed(() => (cwd.value ? `${cwd.value} / ${title.value}` : title.value))
 
