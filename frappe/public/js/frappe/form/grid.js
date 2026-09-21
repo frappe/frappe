@@ -359,38 +359,55 @@ export default class Grid {
 	}
 
 	delete_rows() {
-		var dirty = false;
-
-		let tasks = [];
 		let selected_children = this.get_selected_children();
-		selected_children.forEach((doc) => {
-			tasks.push(() => {
-				if (!this.frm) {
-					this.df.data = this.get_data();
-					this.df.data = this.df.data.filter((row) => row.idx != doc.idx);
-				}
-				this.grid_rows_by_docname[doc.name]?.remove();
-				dirty = true;
-			});
-			tasks.push(() => frappe.timeout(0.1));
-		});
-
-		if (!this.frm) {
-			tasks.push(() => {
-				// reorder idx of df.data
-				this.df.data.forEach((row, index) => (row.idx = index + 1));
-			});
+		if (!selected_children.length) {
+			return;
 		}
 
-		tasks.push(() => {
-			if (dirty) {
-				this.refresh();
-				this.frm &&
-					this.frm.script_manager.trigger(this.df.fieldname + "_delete", this.doctype);
-			}
-		});
+		if (!this.frm) {
+			selected_children.forEach((doc) => {
+				this.df.data = this.get_data();
+				this.df.data = this.df.data.filter((row) => row.idx != doc.idx);
+			});
+			// reorder idx of df.data
+			this.df.data.forEach((row, index) => (row.idx = index + 1));
+			this.refresh();
+			return;
+		}
 
-		frappe.run_serially(tasks);
+		// Rows are removed from the model by stable identity (doctype + name) instead of
+		// being looked up in grid_rows_by_docname. That map only contains the currently
+		// rendered page, and _remove handlers may refresh and re-index the grid while the
+		// loop is still running, which previously caused some selected rows to be skipped.
+		const fieldname = this.df.fieldname;
+		const remove_selected_rows = async () => {
+			for (const doc of selected_children) {
+				try {
+					const row = this.grid_rows_by_docname?.[doc.name];
+					if (row?.get_open_form?.()) {
+						row.hide_form();
+					}
+					await this.frm.script_manager.trigger(
+						"before_" + fieldname + "_remove",
+						doc.doctype,
+						doc.name
+					);
+					frappe.model.clear_doc(doc.doctype, doc.name);
+					await this.frm.script_manager.trigger(
+						fieldname + "_remove",
+						doc.doctype,
+						doc.name
+					);
+				} catch (error) {
+					console.trace(error);
+				}
+			}
+			this.frm.dirty();
+			this.refresh();
+			await this.frm.script_manager.trigger(fieldname + "_delete", this.doctype);
+		};
+
+		remove_selected_rows();
 
 		this.wrapper.find(".grid-heading-row .grid-row-check:checked:first").prop("checked", 0);
 		if (selected_children.length == this.grid_pagination.page_length) {
