@@ -27,11 +27,12 @@ function draw(panel, doctype) {
 		wrapper: $('<div class="dts-user-permissions-list"></div>').appendTo(panel.body.empty()),
 		empty_icon: "user-lock",
 		empty_message: __("No user permissions yet."),
-		get_data: () =>
+		// Paged from the server: a doctype like Employee has one permission per user.
+		get_page: ({ start, page_length, txt }) =>
 			frappe
 				.call({
 					method: "frappe.core.doctype.user_permission.user_permission.get_user_permission_list",
-					args: { allow: doctype },
+					args: { allow: doctype, txt, start, page_length },
 				})
 				.then((r) => r.message || []),
 		columns: [
@@ -86,7 +87,7 @@ function user_cell(row) {
 
 function applicable_badge(row) {
 	if (cint(row.apply_to_all_doctypes)) {
-		return frappe.ui.badge.html({ label: __("All doctypes"), theme: "blue" });
+		return frappe.ui.badge.html({ label: __("All DocTypes"), theme: "blue" });
 	}
 	if (row.applicable_for) {
 		return frappe.ui.badge.html({ label: frappe.utils.escape_html(row.applicable_for) });
