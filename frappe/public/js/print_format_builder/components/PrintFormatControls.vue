@@ -910,7 +910,7 @@ function handle_slash_key(e) {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	margin: 10px;
+	margin: 12px;
 	padding: 5px 8px;
 	border: 1px solid var(--outline-gray-2);
 	border-radius: var(--radius);
@@ -956,7 +956,7 @@ function handle_slash_key(e) {
 	font-weight: var(--weight-semibold);
 	letter-spacing: 0;
 	color: var(--text-color);
-	padding: 12px 10px 4px;
+	padding: 12px 16px 4px;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
@@ -967,7 +967,7 @@ function handle_slash_key(e) {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	padding: 6px 10px;
+	padding: 6px 16px;
 	font-size: var(--text-sm);
 	cursor: grab;
 }
