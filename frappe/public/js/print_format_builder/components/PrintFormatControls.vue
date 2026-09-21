@@ -74,7 +74,7 @@
 		</div>
 
 		<!-- ── Blocks ─────────────────────────────────────────── -->
-		<div v-else-if="activeTab === 'blocks'" class="pfb-tab-body">
+		<div v-else-if="activeTab === 'blocks'" class="pfb-tab-body pfb-blocks-tab">
 			<draggable
 				:list="draggable_blocks"
 				:group="{ name: 'fields', pull: 'clone', put: false }"
@@ -889,19 +889,21 @@ function handle_slash_key(e) {
 .pfb-tab-body {
 	flex: 1;
 	overflow-y: auto;
-	padding: 10px 0;
-}
-
-/* ── Search (Fields tab) ─────────────────────────────────── */
-.pfb-fields-tab {
+	/* each tab sets its own first-item spacing so all four start 16px under the
+	   tab bar, on the same 16px left grid */
 	padding: 0;
 }
 
+.pfb-blocks-tab {
+	padding-top: 8px;
+}
+
+/* ── Search (Fields tab) ─────────────────────────────────── */
 .pfb-search-wrap {
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	margin: 12px;
+	margin: 16px;
 	padding: 5px 8px;
 	border: 1px solid var(--outline-gray-2);
 	border-radius: var(--radius);
@@ -1006,7 +1008,7 @@ function handle_slash_key(e) {
 
 /* ── Outline tab (tree) ──────────────────────────────────── */
 .pfb-tree {
-	padding: 4px 10px 0;
+	padding: 12px 10px 0;
 }
 
 .pfb-tree-row {
