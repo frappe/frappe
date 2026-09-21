@@ -87,7 +87,7 @@ class EmailAccount(Document):
 		default_outgoing: DF.Check
 		domain: DF.Link | None
 		dsn_notify_type: DF.Literal[
-			"SUCCESS", "FAILURE", "DELAY", "SUCCESS,FAILURE", "SUCCESS,FAILURE,DELAY", "NEVER"
+			"", "SUCCESS", "FAILURE", "DELAY", "SUCCESS,FAILURE", "SUCCESS,FAILURE,DELAY", "NEVER"
 		]
 		email_account_name: DF.Data | None
 		email_id: DF.Data

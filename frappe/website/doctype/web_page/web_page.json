@@ -6,6 +6,7 @@
  "description": "Page to show on the website\n",
  "doctype": "DocType",
  "document_type": "Document",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/web-page",
  "engine": "InnoDB",
  "field_order": [
   "section_title",

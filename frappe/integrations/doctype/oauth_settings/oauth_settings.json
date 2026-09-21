@@ -4,6 +4,7 @@
  "creation": "2025-07-03 12:04:14.759362",
  "description": "A Frappe Framework instance can function as an OAuth Client, Resource, or Authorization server. This DocType contains settings related to all three.",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/oauth2",
  "engine": "InnoDB",
  "field_order": [
   "authorization_tab",

@@ -3,6 +3,7 @@
  "autoname": "Prompt",
  "creation": "2021-01-13 01:48:02.378548",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

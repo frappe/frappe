@@ -25,7 +25,7 @@ class PrintFormatBuilder {
 			page: this.page,
 		});
 		this.page.add_action_icon(
-			"history",
+			"rotate-ccw-clock",
 			() => this.$component.toggle_history(),
 			"",
 			__("Version History")
