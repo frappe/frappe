@@ -11,13 +11,18 @@
 
 		<!-- the folder crumb and the cost yield to the title on phones -->
 		<div class="flex min-w-0 items-center gap-2" :title="headerTitle">
-			<span
+			<!-- before the first message the crumb is a button: pick the folder the chat starts in -->
+			<component
+				:is="flow.state.sessionId ? 'span' : 'button'"
 				v-if="cwd"
 				class="hidden min-w-0 flex-none items-center gap-1.5 text-sm text-ink-gray-5 sm:flex"
+				:class="!flow.state.sessionId && 'rounded-4 px-1.5 py-1 hover:bg-surface-gray-2 hover:text-ink-gray-8'"
+				:title="flow.state.sessionId ? undefined : 'Change working directory'"
+				@click="!flow.state.sessionId && chooseFolder()"
 			>
 				<FeatherIcon name="folder" class="h-3.5 w-3.5 flex-none" />
 				<span class="max-w-[220px] truncate">{{ cwdName }}</span>
-			</span>
+			</component>
 			<span v-if="cwd" aria-hidden="true" class="hidden flex-none text-sm text-ink-gray-3 sm:inline">/</span>
 			<span class="min-w-0 truncate text-sm font-medium text-ink-gray-9">{{ title }}</span>
 		</div>
@@ -90,6 +95,11 @@ const title = computed(() => {
 	return flow.state.session?.title ?? conversationTitle(flow.state.conversation) ?? "New chat"
 })
 const cwdName = computed(() => (cwd.value ?? "").split("/").filter(Boolean).pop() ?? "")
+
+async function chooseFolder() {
+	const path = await flow.pickFolder()
+	if (path) flow.setCwd(path)
+}
 const headerTitle = computed(() => (cwd.value ? `${cwd.value} / ${title.value}` : title.value))
 
 const cost = computed(() => flow.state.conversation.usage.cost)
