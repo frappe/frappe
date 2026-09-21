@@ -35,6 +35,7 @@
 					:placeholder="__('Search fields')"
 					v-model="search_text"
 				/>
+				<kbd class="pfb-search-kbd" @click="focus_search">/</kbd>
 			</div>
 
 			<!-- Groups -->
@@ -906,6 +907,19 @@ function handle_slash_key(e) {
 	padding: 6px 8px;
 	border-radius: var(--radius);
 	background: var(--surface-gray-2);
+}
+
+/* the field is a plain fill, so the shortcut badge sits on the panel colour to stay legible */
+.pfb-search-kbd {
+	flex-shrink: 0;
+	font-family: inherit;
+	font-size: var(--text-tiny);
+	color: var(--ink-gray-4);
+	background: var(--fg-color);
+	border-radius: 3px;
+	padding: 1px 5px;
+	cursor: pointer;
+	line-height: 1.6;
 }
 
 .pfb-search-icon {
