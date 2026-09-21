@@ -250,8 +250,6 @@ def _serve(args) -> None:
 
 	_warm_litellm()
 
-	import uvicorn
-
 	from flow_harness.server import create_app
 	from flow_harness.server.logs import setup_terminal_logging
 	from flow_harness.session.store import SessionStore
@@ -295,10 +293,10 @@ def _serve(args) -> None:
 
 		sock = bind_unix(args.uds)
 		banner(args.uds)
-		uvicorn.Server(uvicorn.Config(app, log_config=None)).run(sockets=[sock])
+		_run_server(app, store, sockets=[sock])
 	else:
 		banner(f"http://{args.host}:{args.port}")
-		uvicorn.run(app, host=args.host, port=args.port, log_config=None)
+		_run_server(app, store, host=args.host, port=args.port)
 
 
 def _web(args) -> None:
@@ -318,8 +316,6 @@ def _web(args) -> None:
 
 	import threading
 	import webbrowser
-
-	import uvicorn
 
 	from flow_harness.server import create_app
 	from flow_harness.server.logs import setup_terminal_logging
@@ -349,7 +345,17 @@ def _web(args) -> None:
 		timer = threading.Timer(0.8, webbrowser.open, [url])
 		timer.daemon = True  # a Ctrl-C before it fires must not hold the process
 		timer.start()
-	uvicorn.run(app, host=args.host, port=args.port, log_config=None, timeout_graceful_shutdown=1)
+	_run_server(app, store, host=args.host, port=args.port, timeout_graceful_shutdown=1)
+
+
+def _run_server(app, store, *, sockets=None, **options) -> None:
+	"""One uvicorn entry for every mode; `store` is the daemon's session store."""
+	import uvicorn
+
+	server = uvicorn.Server(uvicorn.Config(app, log_config=None, **options))
+	server.run(sockets=sockets)
+	if not server.started:
+		raise DaemonError("the daemon could not start (see the error above)")
 
 
 def _webui_dist() -> str | None:
