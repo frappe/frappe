@@ -433,8 +433,11 @@ def create_sessions_router(
 
 	@router.get("/sessions/{sid}/stream")
 	async def stream(request: Request, sid: str, since: int = 0, follow: bool = False):
-		session = _get(resolve_store(request), sid)
-		body = sse.sse_follow_stream(session, since) if follow else sse.sse_stream(session, since)
+		store = resolve_store(request)
+		session = _get(store, sid)
+		body = (
+			sse.sse_follow_stream(session, since, store.closing) if follow else sse.sse_stream(session, since)
+		)
 		return StreamingResponse(
 			body,
 			media_type="text/event-stream",

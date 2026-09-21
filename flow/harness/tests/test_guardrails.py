@@ -69,8 +69,6 @@ def test_serve_wires_policy_into_the_store(tmp_path, monkeypatch):
 	import importlib
 	from argparse import Namespace
 
-	import uvicorn
-
 	from flow_harness import config
 
 	cli_main = importlib.import_module("flow_harness.cli.main")
@@ -82,7 +80,7 @@ def test_serve_wires_policy_into_the_store(tmp_path, monkeypatch):
 	monkeypatch.setattr(config, "POLICY", None)
 	monkeypatch.setattr(config, "EXTENSIONS_PATH", str(tmp_path / "no-extensions"))
 	monkeypatch.setattr(cli_main, "_warm_litellm", lambda: None)
-	monkeypatch.setattr(uvicorn, "run", lambda *args, **kwargs: None)
+	monkeypatch.setattr(cli_main, "_run_server", lambda *args, **kwargs: None)
 
 	captured: dict = {}
 
