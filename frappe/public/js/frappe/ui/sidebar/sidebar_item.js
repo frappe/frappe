@@ -250,16 +250,14 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		const me = this;
 		this.old_state;
 		$(document).on("sidebar-expand", function (event, expand) {
+			// A heading keeps its row in the rail and loses only its text (see sidebar.scss), so
+			// groups stay apart by the gap they had rather than by a rule drawn for the occasion.
 			if (expand.sidebar_expand) {
-				$(me.wrapper.find(".section-break")).removeClass("hidden");
-				$(me.wrapper.find(".divider")).addClass("hidden");
 				if (me.old_state) {
 					me.collapsed = me.old_state;
 					me.toggle();
 				}
 			} else {
-				$(me.wrapper.find(".section-break")).addClass("hidden");
-				$(me.wrapper.find(".divider")).removeClass("hidden");
 				me.old_state = me.collapsed;
 				me.open();
 				if (me.item.indent) {

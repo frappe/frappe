@@ -7,6 +7,9 @@
 :root {
 	// 14rem, the width the reference panel is drawn at.
 	--sidebar-width: 224px;
+	// 3rem, the reference's `collapsedWidth`: the 16px glyphs in the rows' 8px gutter and `pl-2`,
+	// which centres them, and the header's 40px trigger in its 4px gutter.
+	--sidebar-collapsed-width: 48px;
 
 	// The surface the panel and the rail are painted with.
 	//
@@ -61,8 +64,10 @@
 	width: var(--sidebar-width);
 	background: var(--desk-sidebar-bg);
 	border-right: 1px solid var(--outline-gray-1);
-	// the panel's own chrome fades with its contents when collapsing / expanding
-	transition: background 0.2s ease, border-color 0.2s ease;
+	// the panel's own chrome fades with its contents when collapsing / expanding, and the width
+	// is the reference's `transition-[width] duration-300 ease-in-out`
+	transition: background 0.2s ease, border-color 0.2s ease, width 0.3s ease-in-out;
+	overflow-x: hidden;
 
 	// slide + fade every band of the panel when collapsing / expanding
 	> * {
@@ -286,36 +291,193 @@
 			}
 		}
 	}
-
-	.sidebar-resize-handle {
-		cursor: w-resize;
-	}
 }
 
 .body-sidebar-container.expanded {
 	@include body-sidebar-expanded();
 }
 
-// Collapsed: the dock is the icon rail now, so the body sidebar leaves entirely rather
-// than shrinking to a strip. The placeholder animates its reserved width to 0 (the main section
-// glides left to fill it) while the panel's contents fade and slide out behind the dock. Reopening is done
-// from the dock's right-edge handle. Driven by the container's `expanded` class -- set at render
-// time -- so the initial paint lands in the right state with no flash or stray animation.
-.body-sidebar-container:not(.expanded) {
-	// Panels are mounted on the container rather than in here, so the whole panel can leave
-	// without taking an open one with it. The dock's bell opens one while the sidebar is
-	// collapsed, and it lands against the dock's edge because the container is 0 wide -- which it
-	// is in every state now, not only this one: the placeholder that used to hold the panel's
-	// width in flow is gone, so there is nothing here left to squeeze.
-	.body-sidebar {
-		background: transparent;
-		border-right-color: transparent;
-		pointer-events: none;
+// Collapsed, on a desktop: the reference's rail. The panel narrows to 48px and keeps every mark
+// where it was -- the rows' glyphs, the header's logo, the user's avatar -- while everything that
+// is a word folds to nothing (`w-0 opacity-0`). Nothing moves sideways, because the marks were
+// already inside the first 48px: the rail is the panel with its right side taken away.
+//
+// Headings keep their height and lose their text, so the groups stay apart by the same gap they
+// had, which is what the reference does with a SidebarLabel and no `divider`.
+@include media-breakpoint-up(md) {
+	.body-sidebar-container:not(.expanded) {
+		.body-sidebar {
+			width: var(--sidebar-collapsed-width);
 
-		> * {
-			transform: translateX(-12px);
-			opacity: 0;
+			.sidebar-item-label,
+			.sidebar-item-suffix,
+			.sidebar-item-control,
+			.shell-header .title-container,
+			.shell-header .drop-icon,
+			.avatar-name-email {
+				flex: 0 0 0;
+				width: 0;
+				min-width: 0;
+				// the label's `ml-2` and the chip's inline 8px both go with the word they spaced
+				margin: 0 !important;
+				padding: 0;
+				opacity: 0;
+				overflow: hidden;
+			}
+
+			// `w-auto` on the header's trigger: the 28px mark and its `px-1.5`, nothing after it.
+			.shell-header {
+				gap: 0;
+				width: 40px;
+			}
+
+			// The same for the user chip, which is the header's trigger drawn again. Its width is
+			// an inline style in the markup, hence the weight.
+			.sidebar-user-button {
+				width: 40px !important;
+				padding: 0 6px;
+				border-radius: var(--radius);
+
+				&:hover,
+				&.user-menu-active {
+					@include hover-mixin();
+				}
+			}
+
+			// A group that stays open in the rail shows its rows at the rail's own inset, not
+			// behind the rule an expanded group draws down its left.
+			.indent + .nested-container {
+				margin-left: 0;
+				border-left: none;
+
+				.sidebar-item-container {
+					margin-left: 0;
+				}
+			}
 		}
+
+		// The rail folds every nested group (see SidebarItem.toggle_on_collapse), and the row you
+		// are on goes with it. The group standing in for it wears the active pill instead, so the
+		// rail still says where you are. It reads the fold off the DOM, so it follows navigation
+		// with nothing to keep in step.
+		.sidebar-item-container:has(> .nested-container.hidden .active-sidebar)
+			> .standard-sidebar-item {
+			background: var(--surface-elevation-3);
+			box-shadow: var(--shadow-sm);
+			border-radius: var(--radius);
+
+			.item-anchor {
+				color: var(--ink-gray-8);
+			}
+		}
+
+		// A panel opened from the rail lands against the rail, not against the panel it replaced.
+		.sidebar-panel {
+			left: var(--sidebar-collapsed-width);
+		}
+	}
+}
+
+// The panel's edge is the control: an 8px strip centred on the border, the whole height of the
+// panel, that collapses it to its rail and back from anywhere along it. On hover it draws the
+// border heavier and takes a cursor pointing the way the panel will go.
+//
+// It lives on the container, beside the panel, for the reason the arrow below does.
+.sidebar-edge {
+	position: absolute;
+	top: 0;
+	left: calc(var(--sidebar-width) - 4px);
+	z-index: 1022;
+	width: 8px;
+	height: 100%;
+	cursor: w-resize;
+	transition: left 0.3s ease-in-out;
+
+	&::after {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 50%;
+		width: 2px;
+		height: 100%;
+		transform: translateX(-50%);
+		background: transparent;
+		transition: background-color 0.15s ease;
+	}
+
+	&:hover::after {
+		background: var(--outline-gray-3);
+	}
+
+	.body-sidebar-container:not(.expanded) & {
+		left: calc(var(--sidebar-collapsed-width) - 4px);
+		cursor: e-resize;
+	}
+
+	// A drawer has no edge to fold at; the scrim behind it closes it.
+	@include media-breakpoint-down(sm) {
+		display: none;
+	}
+}
+
+// The collapse arrow: a 24px disc centred on the edge, level with the user chip at the foot of the
+// panel. It shows while the pointer is on the edge, or on the arrow itself, or when a keyboard has
+// brought focus to it, which makes it the edge's keyboard equivalent. It points the way the panel
+// will go -- left to fold into the rail, right to open back out -- so it turns rather than being
+// swapped for a second glyph.
+//
+// It is the container's child, not the panel's, and names its own offset for the same reason the
+// notification panel does (see sidebar_panel.scss): the panel clips what overhangs it.
+.sidebar-collapse-arrow {
+	position: absolute;
+	// centred on the user chip: its 40px row sits 8px off the bottom, so its middle is 28px up
+	bottom: 16px;
+	left: calc(var(--sidebar-width) - 12px);
+	z-index: 1023;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	border-radius: 50%;
+	border: 1px solid var(--outline-gray-2);
+	background: var(--surface-elevation-3, var(--surface-base));
+	box-shadow: var(--shadow-sm);
+	color: var(--ink-gray-6);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.15s ease, left 0.3s ease-in-out, background-color 0.15s ease;
+
+	svg {
+		width: 12px;
+		height: 12px;
+		transition: transform 0.3s ease-in-out;
+	}
+
+	&:hover {
+		background: var(--surface-gray-2);
+		color: var(--ink-gray-8);
+	}
+
+	.sidebar-edge:hover ~ &,
+	&:hover,
+	&:focus-visible {
+		opacity: 1;
+		pointer-events: auto;
+	}
+
+	.body-sidebar-container:not(.expanded) & {
+		left: calc(var(--sidebar-collapsed-width) - 12px);
+
+		svg {
+			transform: rotate(180deg);
+		}
+	}
+
+	// Below md the panel is a drawer and closes by the scrim behind it.
+	@include media-breakpoint-down(sm) {
+		display: none;
 	}
 }
 
@@ -332,6 +494,19 @@
 	// not on it.
 	.body-sidebar {
 		position: absolute;
+	}
+
+	// A closed drawer leaves entirely rather than narrowing to a rail: on a phone the rail would
+	// take 48px of a screen that has none to spare.
+	.body-sidebar-container:not(.expanded) .body-sidebar {
+		background: transparent;
+		border-right-color: transparent;
+		pointer-events: none;
+
+		> * {
+			transform: translateX(-12px);
+			opacity: 0;
+		}
 	}
 
 	// expands when navbar-brand is clicked
@@ -376,32 +551,6 @@
 
 .overlay {
 	display: none;
-}
-
-.sidebar-resize-handle {
-	position: absolute;
-	top: 0;
-	right: -4px;
-	width: 8px;
-	height: 100%;
-	z-index: 1022;
-	cursor: e-resize;
-
-	&::after {
-		content: "";
-		position: absolute;
-		left: 50%;
-		top: 0;
-		transform: translateX(-50%);
-		width: 2px;
-		height: 100%;
-		background: transparent;
-		transition: background 0.15s ease;
-	}
-
-	&:hover::after {
-		background: var(--outline-gray-2);
-	}
 }
 
 // A group's own heading, to frappe-ui's <SidebarLabel>: `h-7 pl-2` around `text-base
@@ -503,13 +652,3 @@
 // there. It is not -- it is a push at the edge away -- so a sidebar stripped to bare labels would be
 // a permanent surface missing its furniture for the sake of a hidden one, and nothing is taken off
 // it here. Nor does `dock-active` change where the sidebar starts: the dock floats over it.
-
-// Nothing collapses the sidebar on a desktop any more. Collapsing was the docked shape -- the panel
-// left the screen and the dock's edge handle was the way back -- and with the panel permanent there
-// is neither a state to collapse into nor a handle to return from. Below md it is still a drawer, so
-// this is scoped rather than deleted.
-@include media-breakpoint-up(md) {
-	.body-sidebar .sidebar-resize-handle {
-		display: none;
-	}
-}

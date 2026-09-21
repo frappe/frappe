@@ -512,9 +512,8 @@ frappe.ui.Sidebar = class Sidebar {
 	// Whether the panel is allowed to close at all.
 	//
 	// On a desktop it is not. The panel is the desk's navigation -- the rail above it is an overlay
-	// that is off screen until it is called for (see dock.js) -- and closing it would leave nothing
-	// to navigate with and nothing visible to bring it back, since its own collapse chevron is gone
-	// and the rail's edge handle went with the rail's permanence.
+	// that is off screen until it is called for (see dock.js) -- so what `close` does there is fold
+	// it to its icon rail, which keeps every destination a click away and its edge to bring it back.
 	//
 	// Below 768px there is no rail at all (`display: none`, dock.scss) and the panel is a drawer
 	// over the page, which has to be able to shut. That is the same 768 the rail is drawn at, and
@@ -575,13 +574,12 @@ frappe.ui.Sidebar = class Sidebar {
 			.prependTo("body");
 		this.$sidebar = this.wrapper.find(".sidebar-items");
 
-		this.wrapper.find(".body-sidebar .sidebar-resize-handle").on("click", () => {
-			this.toggle_width();
-		});
+		this.wrapper.find(".sidebar-edge").on("click", () => this.toggle_width());
 
 		this.wrapper.find(".overlay").on("click", () => {
 			this.close();
 		});
+		this.wrapper.find(".sidebar-collapse-arrow").on("click", () => this.toggle_width());
 		// Any row that goes somewhere takes the panel down behind it: the panel is an overlay over
 		// the page it just navigated, so leaving it up would cover the thing that was asked for.
 		// Rows that only toggle a group carry no href and are left alone, since expanding a group
@@ -783,11 +781,11 @@ frappe.ui.Sidebar = class Sidebar {
 		this.expand_sidebar();
 	}
 
-	// Where the panel starts, which is now the same answer everywhere: out.
+	// Where the panel starts.
 	//
-	// The panel is the desk's permanent navigation, so on a desktop it is open on arrival and stays
-	// open; below md it is a drawer, and a drawer starts shut. Between those two there is no
-	// per-user state left to keep, which is why `sidebar-expanded` is neither read nor written.
+	// Below md it is a drawer, and a drawer starts shut. On a desktop the panel is always on
+	// screen, either whole or as its icon rail, and which of the two is the viewer's own choice,
+	// kept in this browser (see remember_collapsed) so it survives a reload and a change of module.
 	//
 	// This used to have to wait. The answer was read off the rail -- a docked app opened with the
 	// rail alone and the panel at nothing -- and the rail is only knowable once the module has
@@ -796,7 +794,27 @@ frappe.ui.Sidebar = class Sidebar {
 	// asks the window's width now, which is answerable at any moment, so there is nothing left to
 	// settle and nothing that has to be drawn in a state it will not keep.
 	load_sidebar_state() {
-		this.sidebar_expanded = !this.panel_can_close();
+		this.sidebar_expanded = !this.panel_can_close() && !this.remembered_collapsed();
+	}
+
+	// The rail is a per-viewer convenience, so it lives in the browser and nowhere else. Storage
+	// can be missing or refuse (a private window, blocked site data), and then the panel simply
+	// opens whole, which is the state it would have been in anyway.
+	remembered_collapsed() {
+		try {
+			return localStorage.getItem("desk-sidebar-collapsed") === "1";
+		} catch {
+			return false;
+		}
+	}
+
+	remember_collapsed(collapsed) {
+		if (this.panel_can_close()) return;
+		try {
+			localStorage.setItem("desk-sidebar-collapsed", collapsed ? "1" : "0");
+		} catch {
+			// nothing to keep it in; it lasts until the next reload
+		}
 	}
 
 	empty() {
@@ -930,7 +948,7 @@ frappe.ui.Sidebar = class Sidebar {
 				// sidebar's own furniture.
 				if (
 					$(e.target).closest(
-						".body-sidebar, .dock, .sidebar-toggle-btn, .sidebar-panel"
+						".body-sidebar, .dock, .sidebar-toggle-btn, .sidebar-panel, .sidebar-collapse-arrow"
 					).length
 				)
 					return;
@@ -960,22 +978,43 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 
 		this.sidebar_header.toggle_width(this.sidebar_expanded);
-		// While collapsed, the body sidebar is hidden and only the dock (rail) shows.
-		// This gates the rail's edge handle that reopens the sidebar (see dock.scss).
+		this.label_rail();
 		$("body").toggleClass("sidebar-collapsed", !this.sidebar_expanded);
 		$(document).trigger("sidebar-expand", {
 			sidebar_expand: this.sidebar_expanded,
 		});
 	}
 
+	// Words the rail has hidden, said another way. Each row's label becomes its tooltip and its
+	// accessible name while only the glyph shows, the way the reference's SidebarItem gives a
+	// collapsed row a tooltip; and the arrow says what pressing it will do.
+	label_rail() {
+		const collapsed = !this.sidebar_expanded;
+		const arrow = collapsed ? __("Expand sidebar") : __("Collapse sidebar");
+		this.wrapper.find(".sidebar-collapse-arrow").attr({ title: arrow, "aria-label": arrow });
+
+		this.wrapper.find(".body-sidebar .item-anchor").each((_, anchor) => {
+			const label = $(anchor).find(".sidebar-item-label").first().text().trim();
+			if (collapsed && label) {
+				anchor.setAttribute("title", label);
+				anchor.setAttribute("aria-label", label);
+			} else {
+				anchor.removeAttribute("title");
+				anchor.removeAttribute("aria-label");
+			}
+		});
+	}
+
 	close() {
 		this.sidebar_expanded = false;
+		this.remember_collapsed(true);
 
 		this.expand_sidebar();
 		if (frappe.is_mobile()) frappe.app.sidebar.prevent_scroll();
 	}
 	open() {
 		this.sidebar_expanded = true;
+		this.remember_collapsed(false);
 		this.expand_sidebar();
 		this.set_active_workspace_item();
 	}

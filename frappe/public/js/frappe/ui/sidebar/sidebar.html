@@ -39,8 +39,16 @@
 					</a>
 				</div>
 			</div>
-			<div class="sidebar-resize-handle"></div>
 		</div>
+		<!-- The panel edge, which collapses the panel to its rail and back from anywhere along
+		     it, and the arrow that shows while the pointer is on it. Both sit half over the page,
+		     so they are mounted beside the panel rather than in it: the panel clips anything that
+		     overhangs it. The arrow is the one a keyboard reaches, so the edge is hidden from
+		     assistive tech rather than being a second control with the same name. -->
+		<div class="sidebar-edge" aria-hidden="true"></div>
+		<button class="btn-reset sidebar-collapse-arrow" type="button">
+			{%= frappe.utils.icon("chevron-left", "xs", "", "", "current-color", true) %}
+		</button>
 		<div class="overlay" style="z-index: 1021;"></div>
 		<div class="user-onboarding"></div>
 	</div>
