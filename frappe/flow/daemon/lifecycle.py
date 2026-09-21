@@ -4,7 +4,7 @@
 """Keeps the flow server provisioned for every site and running.
 
 Bench-wide state: <bench>/sites/flow-server/. Each site's sessions: <site>/private/flow/.
-Extensions an admin adds by hand: <site>/private/flow/extensions/, loaded at start.
+Extensions an admin adds by hand: <site>/private/flow/extensions/, loaded for that site at start.
 Runtime files: <bench>/flow-server/. Logs: the bench's logs directory.
 """
 
@@ -99,6 +99,7 @@ def provision_site() -> None:
 		"ignore_hidden_files": True,
 		"callback_hosts": [callback_host()],
 		"data_dir": str(site_data_dir()),
+		"extensions": [str(site_extensions_dir())],
 	}
 	_edit_tenants(lambda tenants: tenants.__setitem__(frappe.local.site, entry))
 	reload_tenants(frappe.conf.flow_server_secret)
@@ -135,7 +136,7 @@ def session_root() -> Path:
 
 
 def site_extensions_dir() -> Path:
-	"""Extensions an admin adds over SSH; the daemon loads the folder at start."""
+	"""Extensions an admin adds over SSH; the daemon loads the folder for this site at start."""
 	return site_data_dir() / EXTENSIONS_DIR
 
 
@@ -246,8 +247,11 @@ def _start() -> None:
 		raise RuntimeError(f"a flow server already answers on {socket_path()}; stop it by hand")
 	env = {name: os.environ[name] for name in INHERITED_ENV if name in os.environ}
 	env["FLOW_TENANTS_FILE"] = str(tenants_file())
-	folders = _extension_folders(tenants)
-	allowed = ["read_file", "grep", *(row["name"] for row in extension_tools(folders))]
+	allowed = ["read_file", "grep"]
+	for folder in _extension_folders(tenants):
+		for row in extension_tools([folder]):
+			if row["name"] not in allowed:
+				allowed.append(row["name"])
 	env["FLOW_POLICY"] = json.dumps({"tool_allowlist": allowed})
 	if redis_url := _redis_url():
 		env["FLOW_REDIS_URL"] = redis_url
@@ -257,7 +261,6 @@ def _start() -> None:
 		*("--uds", str(socket_path())),
 		*("--data-dir", str(state_dir() / "data")),
 		*("--profile", "deployed"),
-		*(arg for folder in folders for arg in ("--extension", str(folder))),
 	]
 	runtime_dir().mkdir(parents=True, exist_ok=True)
 	log = log_path()
@@ -358,10 +361,12 @@ def extension_tools(folders: list[Path]) -> list[dict]:
 
 def _extension_folders(tenants: dict) -> list[Path]:
 	"""Every site's extensions folder that exists."""
-	folders = (
-		Path(entry["data_dir"]) / EXTENSIONS_DIR for entry in tenants.values() if entry.get("data_dir")
-	)
-	return [folder for folder in folders if folder.is_dir()]
+	folders = []
+	for entry in tenants.values():
+		for path in entry.get("extensions", ()):
+			if Path(path).is_dir():
+				folders.append(Path(path))
+	return folders
 
 
 def _read_tenants() -> dict:
