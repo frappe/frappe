@@ -1983,6 +1983,11 @@ lru-cache@^4.1.2:
     pseudomap "^1.0.2"
     yallist "^2.1.2"
 
+lucide-static@1.47.0:
+  version "1.47.0"
+  resolved "https://registry.yarnpkg.com/lucide-static/-/lucide-static-1.47.0.tgz#ad0520340308bc22b719e88f037a014866e5fe1f"
+  integrity sha512-yWIrkdXc688Feq5VjOktsKmV5Ikc7y5Nu3rrdtbr8nWjkJWk8QlnZfVtIak22Af+fNhZ7k4cTJpZo1zmj7X5sA==
+
 magic-string@^0.30.5:
   version "0.30.5"
   resolved "https://registry.yarnpkg.com/magic-string/-/magic-string-0.30.5.tgz#1994d980bd1c8835dc6e78db7cbd4ae4f24746f9"

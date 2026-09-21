@@ -2,6 +2,7 @@
  "actions": [],
  "creation": "2018-03-07 10:09:49.794764",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/data-export",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
@@ -58,6 +59,7 @@
   }
  ],
  "hide_toolbar": 1,
+ "icon": "download",
  "issingle": 1,
  "links": [],
  "modified": "2024-03-23 16:02:16.856404",

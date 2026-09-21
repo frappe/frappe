@@ -1,11 +1,13 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_rename": 1,
  "autoname": "field:workflow_name",
  "creation": "2012-12-28 10:49:55",
  "description": "Defines workflow states and rules for a document.",
  "doctype": "DocType",
  "document_type": "Document",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/workflow",
  "engine": "InnoDB",
  "field_order": [
   "workflow_name",
@@ -62,11 +64,11 @@
    "label": "Send Email Alert"
   },
   {
-    "default": "0",
-    "description": "If checked, a confirmation will be required before performing workflow actions.",
-    "fieldname": "enable_action_confirmation",
-    "fieldtype": "Check",
-    "label": "Enable Action Confirmation"
+   "default": "0",
+   "description": "If checked, a confirmation will be required before performing workflow actions.",
+   "fieldname": "enable_action_confirmation",
+   "fieldtype": "Check",
+   "label": "Enable Action Confirmation"
   },
   {
    "description": "Different \"States\" this document can exist in. Like \"Open\", \"Pending Approval\" etc.",
@@ -109,13 +111,14 @@
    "label": "Workflow Data"
   }
  ],
- "icon": "fa fa-random",
+ "icon": "workflow",
  "idx": 1,
  "links": [],
  "modified": "2024-03-23 16:04:04.849665",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -129,6 +132,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "show_name_in_global_search": 1,
  "sort_field": "creation",
  "sort_order": "DESC",
