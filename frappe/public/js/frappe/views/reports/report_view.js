@@ -398,6 +398,16 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		});
 
 		this.setup_inline_filter_observer();
+		this.setup_link_side_panel();
+	}
+
+	// Preview Link cells in the side panel so filters, sort and scroll survive.
+	setup_link_side_panel() {
+		this.$datatable_wrapper
+			.off("click.side-panel")
+			.on("click.side-panel", "a[data-doctype][data-name]", (e) =>
+				frappe.ui.handle_link_cell_click(e, this.datatable)
+			);
 	}
 
 	setup_inline_filter_observer() {
