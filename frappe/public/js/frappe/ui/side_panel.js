@@ -235,7 +235,9 @@ function skeleton_table(df) {
 				.map((f) => `<div class="skeleton-grid-col">${text_or_bar(f.label, "60%")}</div>`)
 				.join("")
 		: `<div class="skeleton-grid-col">${bar("60%", "12px")}</div>`.repeat(3);
-	const cells = `<div class="skeleton-grid-col">${bar("60%", "12px")}</div>`.repeat(columns.length || 3);
+	const cells = `<div class="skeleton-grid-col">${bar("60%", "12px")}</div>`.repeat(
+		columns.length || 3
+	);
 	const row = `<div class="skeleton-grid-row"><div class="skeleton-grid-index"></div>${cells}</div>`;
 	return `<div class="skeleton-grid">
 		<div class="skeleton-grid-head"><div class="skeleton-grid-index">${__("No.")}</div>${head}</div>
@@ -248,7 +250,11 @@ function skeleton_field(df) {
 	// open on click. Descriptions are meta text, so they render as HTML like the real ones.
 	const description =
 		df.description && !df.show_description_on_click
-			? `<div class="skeleton-help text-extra-muted">${__(df.description, null, df.parent)}</div>`
+			? `<div class="skeleton-help text-extra-muted">${__(
+					df.description,
+					null,
+					df.parent
+			  )}</div>`
 			: "";
 	// Table labels carry no marker in the form (the grid draws its own label).
 	const reqd = cint(df.reqd) && df.fieldtype !== "Table" ? " reqd" : "";
@@ -256,7 +262,10 @@ function skeleton_field(df) {
 	// Checkbox labels carry no required marker in the form either.
 	if (df.fieldtype === "Check") {
 		return `<div class="skeleton-field">
-			<div class="skeleton-check"><input type="checkbox" disabled><span>${text_or_bar(df.label, "40%")}</span></div>
+			<div class="skeleton-check"><input type="checkbox" disabled><span>${text_or_bar(
+				df.label,
+				"40%"
+			)}</span></div>
 			${description}
 		</div>`;
 	}
@@ -277,7 +286,9 @@ function skeleton_form(meta) {
 	if (!meta?.fields) {
 		const column = (n) => `<div class="flex-1 min-w-0">${skeleton_field({}).repeat(n)}</div>`;
 		const section = (n) =>
-			`<div class="skeleton-section"><div class="skeleton-columns">${column(n)}${column(n)}</div></div>`;
+			`<div class="skeleton-section"><div class="skeleton-columns">${column(n)}${column(
+				n
+			)}</div></div>`;
 		return section(3) + section(2);
 	}
 
@@ -287,7 +298,9 @@ function skeleton_form(meta) {
 		SKELETON_SKIP_FIELDTYPES.has(df.fieldtype) || cint(df.hidden) || Boolean(df.depends_on);
 
 	// The form opens on its first tab; a first field that is not a Tab Break starts one too.
-	const tab_labels = meta.fields.filter((df) => df.fieldtype === "Tab Break").map((df) => df.label);
+	const tab_labels = meta.fields
+		.filter((df) => df.fieldtype === "Tab Break")
+		.map((df) => df.label);
 	if (meta.fields[0]?.fieldtype !== "Tab Break") tab_labels.unshift(__("Details"));
 
 	const sections = [];
@@ -313,7 +326,12 @@ function skeleton_form(meta) {
 	const open_section = (df) => {
 		close_column();
 		section_ok = !df?.depends_on;
-		section = { heading: Boolean(df?.label), label: df?.label, hide_border: cint(df?.hide_border), columns: [] };
+		section = {
+			heading: Boolean(df?.label),
+			label: df?.label,
+			hide_border: cint(df?.hide_border),
+			columns: [],
+		};
 		if (section_ok) sections.push(section);
 	};
 	const open_column = () => {
@@ -352,7 +370,13 @@ function skeleton_form(meta) {
 		tab_labels.length > 1
 			? `<div class="skeleton-tabs">${tab_labels
 					.slice(0, 5)
-					.map((label, i) => `<span class="${i ? "" : "active"}">${text_or_bar(label, "60px")}</span>`)
+					.map(
+						(label, i) =>
+							`<span class="${i ? "" : "active"}">${text_or_bar(
+								label,
+								"60px"
+							)}</span>`
+					)
 					.join("")}</div>`
 			: "";
 
@@ -362,8 +386,14 @@ function skeleton_form(meta) {
 			const heading = s.heading
 				? `<div class="skeleton-heading">${text_or_bar(s.label, "25%")}</div>`
 				: "";
-			const columns = s.columns.map((c) => `<div class="flex-1 min-w-0">${c.join("")}</div>`);
-			const classes = ["skeleton-section", s.heading && "has-heading", s.hide_border && "hide-border"]
+			const columns = s.columns.map(
+				(c) => `<div class="flex-1 min-w-0">${c.join("")}</div>`
+			);
+			const classes = [
+				"skeleton-section",
+				s.heading && "has-heading",
+				s.hide_border && "hide-border",
+			]
 				.filter(Boolean)
 				.join(" ");
 			return `<div class="${classes}">
