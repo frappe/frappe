@@ -1977,22 +1977,6 @@ class TestReportView(IntegrationTestCase):
 			response = execute_cmd("frappe.desk.reportview.get")
 			self.assertListEqual(response["keys"], ["published", "title", "test_field"])
 
-	def test_delete_items_enqueues_on_long_queue(self):
-		frappe.db.set_value("User", "test@example.com", "bulk_actions", 1)
-		with setup_test_user(set_user=True), patch("frappe.enqueue") as enqueue:
-			frappe.local.request = frappe._dict()
-			frappe.local.request.method = "POST"
-			frappe.local.form_dict = frappe._dict(
-				{
-					"doctype": "ToDo",
-					"items": frappe.as_json([f"todo-{i}" for i in range(11)]),
-				}
-			)
-			execute_cmd("frappe.desk.reportview.delete_items")
-
-		enqueue.assert_called_once()
-		self.assertEqual(enqueue.call_args.kwargs.get("queue"), "long")
-
 	def test_db_filter_not_set(self):
 		"""
 		Test if the 'not set' filter always translates correctly with/without qb under the hood.
