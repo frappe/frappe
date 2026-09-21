@@ -21,6 +21,9 @@ export const useStore = defineStore("form-builder-store", () => {
 	});
 	let dirty = ref(false);
 	let read_only = ref(false);
+	// host's standing answer, re-applied after every fetch. `read_only` alone cannot hold it:
+	// finish_fetch() clears that on each fetch, the way the preview toggle needs
+	let force_read_only = ref(false);
 	let is_customize_form = ref(false);
 	let is_layout_form = ref(false);
 	let is_web_form = ref(false);
@@ -150,7 +153,7 @@ export const useStore = defineStore("form-builder-store", () => {
 				// redraw rather than clear, or the doc's own status (Published) goes too
 				frm.value.toolbar.set_indicator();
 			}
-			read_only.value = false;
+			read_only.value = force_read_only.value;
 			preview.value = false;
 		});
 	}
@@ -777,6 +780,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		form,
 		dirty,
 		read_only,
+		force_read_only,
 		is_customize_form,
 		is_layout_form,
 		is_web_form,

@@ -15,6 +15,7 @@ class FormBuilder {
 		tab_fieldname,
 		get_source_field_values,
 		validate_page_limit,
+		force_read_only,
 	}) {
 		this.$wrapper = $(wrapper);
 		this.frm = frm;
@@ -29,6 +30,8 @@ class FormBuilder {
 		this.get_source_field_values = get_source_field_values;
 		// web forms: (page_break_count) => throws when the form has too many pages
 		this.validate_page_limit = validate_page_limit;
+		// host's standing read-only answer, unlike `read_only` below, which tracks the preview toggle
+		this.force_read_only = force_read_only || false;
 		this.read_only = false;
 
 		this.init();
@@ -101,6 +104,8 @@ class FormBuilder {
 		this.store.tab_fieldname = this.tab_fieldname;
 		this.store.get_source_field_values = this.get_source_field_values;
 		this.store.validate_page_limit = this.validate_page_limit;
+		this.store.force_read_only = this.force_read_only;
+		this.store.read_only = this.force_read_only || this.store.read_only;
 		this.store.page = this.page;
 		this.store.frm = this.frm;
 	}

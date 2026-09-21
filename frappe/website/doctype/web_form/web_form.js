@@ -776,6 +776,11 @@ function add_embed_link(frm) {
 		});
 }
 
+// the canvas is not a Desk field, so frm.disable_form() never reaches it
+function is_builder_read_only(frm) {
+	return (frm.doc.is_standard && !frappe.boot.developer_mode) || !frm.has_perm("write");
+}
+
 function render_form_builder(frm) {
 	const builder = frappe.web_form_builder;
 	const mounted_here = !!get_form_builder(frm);
@@ -786,6 +791,7 @@ function render_form_builder(frm) {
 	if (mounted_here) {
 		builder.docname = frm.doc.name;
 		builder.doctype = frm.doc.doc_type;
+		builder.force_read_only = is_builder_read_only(frm);
 		builder.update_store();
 		builder.setup_page_actions();
 		builder.store.fetch();
@@ -807,6 +813,7 @@ function render_form_builder(frm) {
 		builder.docname = frm.doc.name;
 		builder.doctype = frm.doc.doc_type;
 		builder.is_web_form = true;
+		builder.force_read_only = is_builder_read_only(frm);
 		builder.init(true);
 		builder.store.fetch();
 		return;
@@ -828,6 +835,7 @@ function render_form_builder(frm) {
 				tab_fieldname: "form_builder_tab",
 				get_source_field_values: get_web_form_field_values,
 				validate_page_limit: validate_page_break_limit,
+				force_read_only: is_builder_read_only(frm),
 			});
 			frappe.web_form_builder.docname = frm.doc.name;
 		})
