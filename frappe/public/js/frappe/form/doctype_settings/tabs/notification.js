@@ -78,7 +78,7 @@ frappe.doctype_settings.register("notifications", function (panel, doctype) {
 			{ label: __("Edit"), icon: "pencil", onclick: () => open(r.name) },
 			{
 				label: __("Delete"),
-				icon: "trash-2",
+				icon: "trash",
 				danger: true,
 				// frappe.model.delete_doc handles the confirm prompt, delete sound and
 				// locals cleanup; the callback runs only on success.

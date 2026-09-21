@@ -51,7 +51,7 @@ frappe.doctype_settings.register("email-template", function (panel, doctype) {
 			items.push({ label: __("Edit"), icon: "pencil", onclick: () => open(r.name) });
 			items.push({
 				label: __("Delete"),
-				icon: "trash-2",
+				icon: "trash",
 				danger: true,
 				onclick: (list) =>
 					frappe.model.delete_doc("Email Template", r.name, () => {

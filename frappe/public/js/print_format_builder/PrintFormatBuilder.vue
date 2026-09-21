@@ -78,7 +78,7 @@
 				</div>
 			</div>
 			<div v-if="$store.versions.viewing.value" class="pfb-viewing-banner">
-				<span v-html="frappe.utils.icon('history', 'sm')"></span>
+				<span v-html="frappe.utils.icon('rotate-ccw-clock', 'sm')"></span>
 				<span>
 					{{
 						__("Viewing {0} ({1}). Editing is off.", [
