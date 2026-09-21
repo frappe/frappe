@@ -17,7 +17,7 @@ from werkzeug.routing import Rule
 import frappe
 import frappe.client
 from frappe import _, cint, cstr, get_newargs, is_whitelisted
-from frappe.api import collaboration, discovery, files
+from frappe.api import activity, collaboration, discovery, files
 from frappe.api.include import (
 	add_document_parts,
 	add_list_parts,
@@ -723,6 +723,7 @@ url_rules = [
 		endpoint=execute_doc_method,
 	),
 	*collaboration_rules(),
+	Rule("/document/<doctype>/<path:name>/activity", methods=["GET"], endpoint=activity.read),
 	Rule("/document/<doctype>/<path:name>/attachments", methods=["POST"], endpoint=files.attach),
 	Rule(
 		"/document/<doctype>/<path:name>/attachments/<path:file_name>",

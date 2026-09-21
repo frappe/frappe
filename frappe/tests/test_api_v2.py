@@ -11,6 +11,7 @@ import requests
 import frappe
 import frappe.share
 from frappe.api import discovery
+from frappe.core.doctype.user_invitation.user_invitation import UserInvitation
 from frappe.installer import update_site_config
 from frappe.model.document import Document
 from frappe.tests.test_api import FrappeAPITestCase, make_request, suppress_stdout
@@ -1710,7 +1711,7 @@ class TestFileRoutesV2(FrappeAPITestCase):
 			total_file_size="8",
 		)
 		self.assertEqual(response.status_code, 200, response.json)
-		self.assertIsNone(response.json["data"])
+		self.assertIsNone(response.json.get("data"))
 
 	def test_the_last_chunk_answers_with_the_reassembled_file(self):
 		path = self.attachments_path(self.todo.name)
@@ -1789,3 +1790,184 @@ class TestFileRoutesV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertIn("text/csv", response.headers["Content-Type"])
 		self.assertIn("Description", response.get_data(as_text=True))
+
+
+class TestActivityAPIV2(FrappeAPITestCase):
+	"""`GET /document/<doctype>/<name>/activity`: the feed's first page and one stream's next page."""
+
+	version = "v2"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.todo = frappe.get_doc({"doctype": "ToDo", "description": frappe.generate_hash()}).insert()
+		frappe.get_doc(
+			{
+				"doctype": "Comment",
+				"comment_type": "Comment",
+				"reference_doctype": "ToDo",
+				"reference_name": cls.todo.name,
+				"content": "a remark",
+			}
+		).insert()
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		frappe.delete_doc_if_exists("ToDo", cls.todo.name, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	def activity(self, params: dict | None = None):
+		return self.get(
+			self.resource("ToDo", self.todo.name, "activity"), {"sid": self.sid, **(params or {})}
+		)
+
+	def test_first_page_carries_the_feed_and_its_paging_flags(self):
+		response = self.activity()
+		self.assertEqual(response.status_code, 200, response.json)
+		data = response.json["data"]
+		self.assertEqual(
+			set(data), {"activities", "has_more_emails", "has_more_milestones", "next_milestone_start"}
+		)
+		self.assertIn("comment", {row["type"] for row in data["activities"]})
+
+	def test_types_limits_the_feed(self):
+		response = self.activity({"types": ["email"]})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual([row["type"] for row in response.json["data"]["activities"]], [])
+
+	def test_a_stream_page_carries_only_that_stream(self):
+		response = self.activity({"stream": "emails", "start": 0})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(set(response.json["data"]), {"activities", "has_more_emails"})
+
+		response = self.activity({"stream": "milestones", "start": 0})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(
+			set(response.json["data"]), {"activities", "has_more_milestones", "next_milestone_start"}
+		)
+
+	def test_an_unknown_stream_is_refused(self):
+		response = self.activity({"stream": "likes"})
+		self.assertEqual(response.status_code, 417, response.json)
+
+	def test_a_document_the_user_cannot_read_is_refused(self):
+		user = "api-activity-user@example.com"
+		if not frappe.db.exists("User", user):
+			frappe.get_doc(
+				{"doctype": "User", "email": user, "first_name": "Activity", "send_welcome_email": 0}
+			).insert(ignore_permissions=True)
+			frappe.db.commit()  # nosemgrep
+		try:
+			response = self.get(
+				self.resource("ToDo", self.todo.name, "activity"), {"sid": self.sid_for(user)}
+			)
+			self.assertEqual(response.status_code, 403, response.json)
+		finally:
+			frappe.db.rollback()
+			frappe.set_user("Administrator")
+			frappe.delete_doc_if_exists("User", user, force=True)
+			frappe.db.commit()  # nosemgrep
+
+	def sid_for(self, user: str) -> str:
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		original_request = getattr(frappe.local, "request", None)
+		set_request(path="/")
+		try:
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as(user)
+			return frappe.session.sid
+		finally:
+			frappe.local.request = original_request
+
+
+class TestDocumentMethodRoutesV2(FrappeAPITestCase):
+	"""The controller methods the desk reaches on `/document/<doctype>/<name>/method/<method>`."""
+
+	version = "v2"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.set_user("Administrator")
+		cls.invitation = cls.make_invitation("api-invitee@example.com")
+		cls.data_import = frappe.get_doc(
+			{"doctype": "Data Import", "reference_doctype": "User", "import_type": "Insert New Records"}
+		).insert()
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.delete_doc_if_exists("User Invitation", cls.invitation.name, force=True)
+		frappe.delete_doc_if_exists("Data Import", cls.data_import.name, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	@classmethod
+	def make_invitation(cls, email: str) -> Document:
+		with patch.object(UserInvitation, "send_invitation_mail"):
+			invitation = frappe.get_doc(
+				{
+					"doctype": "User Invitation",
+					"email": email,
+					"roles": [{"role": "System Manager"}],
+					"app_name": "frappe",
+					"redirect_to_path": "/app",
+				}
+			).insert()
+		frappe.db.commit()  # nosemgrep
+		return invitation
+
+	def doc_method(self, doc: Document, method: str) -> str:
+		return self.resource(doc.doctype, doc.name, "method", method)
+
+	def test_resend_invite_sends_the_mail_again(self):
+		with patch.object(UserInvitation, "send_invitation_mail") as send:
+			response = self.post(self.doc_method(self.invitation, "resend_invite"), {"sid": self.sid})
+		self.assertEqual(response.status_code, 200, response.json)
+		send.assert_called_once()
+
+	def test_resend_invite_refuses_a_get(self):
+		response = self.get(self.doc_method(self.invitation, "resend_invite"), {"sid": self.sid})
+		self.assertEqual(response.status_code, 403, response.json)
+
+	def test_cancel_invite_cancels_a_pending_invitation(self):
+		invitation = self.make_invitation("api-cancelled-invitee@example.com")
+		try:
+			with patch("frappe.sendmail"):
+				response = self.post(self.doc_method(invitation, "cancel_invite"), {"sid": self.sid})
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertTrue(response.json["data"])
+			frappe.db.rollback()
+			self.assertEqual(frappe.db.get_value("User Invitation", invitation.name, "status"), "Cancelled")
+
+			response = self.post(self.doc_method(invitation, "resend_invite"), {"sid": self.sid})
+			self.assertEqual(response.status_code, 417, response.json)
+		finally:
+			frappe.db.rollback()
+			frappe.delete_doc_if_exists("User Invitation", invitation.name, force=True)
+			frappe.db.commit()  # nosemgrep
+
+	def test_data_import_preview_reads_on_get(self):
+		response = self.get(self.doc_method(self.data_import, "get_preview_from_template"), {"sid": self.sid})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertIsNone(response.json.get("data"))
+
+	def test_data_import_preview_reads_its_query_arguments(self):
+		response = self.get(
+			self.doc_method(self.data_import, "get_preview_from_template"),
+			{"sid": self.sid, "import_file": "/private/files/no-such-import.csv"},
+		)
+		self.assertEqual(response.status_code, 417, response.json)
+		self.assertEqual(response.json["errors"][0]["message"], "Invalid template file for import")
+
+	def test_data_import_start_is_a_post(self):
+		response = self.get(self.doc_method(self.data_import, "start_import"), {"sid": self.sid})
+		self.assertEqual(response.status_code, 403, response.json)
