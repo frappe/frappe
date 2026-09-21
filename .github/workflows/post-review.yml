@@ -8,7 +8,7 @@ on:
         required: true
         type: number
       review:
-        description: base64 of a review JSON ({event, body, comments, replies, resolve}); event must be COMMENT or REQUEST_CHANGES; replies are [{in_reply_to, body}] posted into existing threads; resolve is [thread node id] and only the bot's own unresolved threads on this PR are closed
+        description: base64 of a review JSON ({event, body, comments, replies, discussion, resolve}); event must be COMMENT or REQUEST_CHANGES; replies are [{in_reply_to, body}] posted into existing threads; discussion is [body] posted as conversation comments; resolve is [thread node id] and only the bot's own unresolved threads on this PR are closed
         required: true
         type: string
       review_id:
@@ -40,6 +40,7 @@ jobs:
           jq -e '(.event == "COMMENT" or .event == "REQUEST_CHANGES") and (.body | type == "string") and (.comments | type == "array") and ((.replies // []) | type == "array") and ((.resolve // []) | type == "array")' review.json > /dev/null
           jq -e '(.replies // []) | all((.in_reply_to | type == "number") and (.body | type == "string") and (.body | length > 0))' review.json > /dev/null
           jq -e '(.resolve // []) | all(type == "string" and startswith("PRRT_"))' review.json > /dev/null
+          jq -e '((.discussion // []) | type == "array") and ((.discussion // []) | all(type == "string" and length > 0))' review.json > /dev/null
           if [ -n "$REVIEW_ID" ]; then
             jq -e '.event == "COMMENT"' review.json > /dev/null || { echo "an update replaces only the body; the event must be COMMENT" >&2; exit 1; }
           fi
@@ -55,6 +56,10 @@ jobs:
           jq -c '(.replies // [])[] | {body, in_reply_to}' review.json | while read -r reply; do
             printf '%s' "$reply" > reply.json
             gh api -X POST "repos/${{ github.repository }}/pulls/$PR/comments" --input reply.json --jq '.html_url'
+          done
+          jq -c '(.discussion // [])[] | {body: .}' review.json | while read -r note; do
+            printf '%s' "$note" > note.json
+            gh api -X POST "repos/${{ github.repository }}/issues/$PR/comments" --input note.json --jq '.html_url'
           done
           if [ "$(jq -r '(.resolve // []) | length' review.json)" != "0" ]; then
             gh api graphql -F o="${GITHUB_REPOSITORY%%/*}" -F r="${GITHUB_REPOSITORY##*/}" -F n="$PR" -f query='
