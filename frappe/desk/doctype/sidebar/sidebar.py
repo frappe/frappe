@@ -33,6 +33,7 @@ import re
 from collections import Counter
 from dataclasses import dataclass, field
 from functools import cached_property
+from itertools import chain, count
 
 import frappe
 from frappe import _
@@ -135,8 +136,8 @@ def shell_holding_slug(title: str, *, name: str | None = None, module: str | Non
 	return next((other for other in taken if shell_slug(other) == slug), None)
 
 
-def routable_title(title: str | None, module: str | None, name: str | None = None) -> str | None:
-	"""The nearest title to `title` that can be a shell's URL, or `None` when there is none.
+def routable_title(title: str | None, module: str, name: str | None = None) -> str:
+	"""The nearest title to `title` that can be a shell's URL.
 
 	For titles written before the URL rule existed, which is a v16 sidebar being converted.
 	Refusing one would abort a migrate over a label, so it is repaired instead.
@@ -144,12 +145,20 @@ def routable_title(title: str | None, module: str | None, name: str | None = Non
 	The characters a path cannot carry become spaces, which keeps the words the author chose:
 	`Pay/Benefits` becomes `Pay Benefits`. If that still takes another shell's URL, the module's
 	own name is next, since that is the default title and usually free.
+
+	Usually, not always: another module's sidebar may already answer to the module's slug, as
+	`Shift and Attendance` does for a module `Shift & Attendance`. Then the module's name is
+	numbered, `Shift & Attendance 2`, since handing back a taken title would only have `insert`
+	refuse it and abort the migrate anyway.
 	"""
 	cleaned = " ".join(re.sub(f"[{re.escape(UNROUTABLE_IN_A_TITLE)}]", " ", title or "").split())
-	for candidate in (cleaned, module):
-		if candidate and not shell_holding_slug(candidate, name=name, module=module):
-			return candidate
-	return None
+	base = " ".join(re.sub(f"[{re.escape(UNROUTABLE_IN_A_TITLE)}]", " ", module).split())
+	candidates = chain((cleaned, base), (f"{base} {n}" for n in count(2)))
+	return next(
+		candidate
+		for candidate in candidates
+		if candidate and not shell_holding_slug(candidate, name=name, module=module)
+	)
 
 
 class Sidebar(Document, DeskViews):

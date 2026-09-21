@@ -3,6 +3,7 @@
 
 import json
 from contextlib import contextmanager
+from unittest.mock import patch
 
 import frappe
 from frappe.desk.doctype.sidebar.sidebar import (
@@ -27,6 +28,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	routable_entities,
 	routable_title,
 	save_app_sidebar,
+	shell_slug,
 	unmark_as_standard,
 )
 from frappe.tests import IntegrationTestCase
@@ -781,6 +783,21 @@ class TestSidebarTitleIsRoutable(IntegrationTestCase):
 
 		make_sidebar(self.MODULE, title="Taken Title")
 		self.assertEqual(routable_title("Taken/Title", self.MODULE), self.MODULE)
+
+	def test_an_old_title_is_numbered_when_the_module_name_is_taken_too(self):
+		"""Another module's sidebar can already answer to this module's slug, as `Shift and
+		Attendance` does for a module `Shift & Attendance`. Handing back the module's name then
+		would only have `insert` refuse it and abort the migrate, so it is numbered instead.
+		"""
+		taken = {shell_slug("Taken Title"), shell_slug(self.MODULE)}
+		with patch(
+			"frappe.desk.doctype.sidebar.sidebar.shell_holding_slug",
+			side_effect=lambda title, **kwargs: "Other" if shell_slug(title) in taken else None,
+		):
+			self.assertEqual(routable_title("Taken/Title", self.MODULE), f"{self.MODULE} 2")
+
+			taken.add(shell_slug(f"{self.MODULE} 2"))
+			self.assertEqual(routable_title("Taken/Title", self.MODULE), f"{self.MODULE} 3")
 
 	@staticmethod
 	def drop_module(module):

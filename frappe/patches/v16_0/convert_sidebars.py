@@ -80,7 +80,7 @@ def write_base(module: str, plan, as_of) -> None:
 	# be -- `Buying / Selling`, or one slugging like another shell -- is repaired rather than
 	# inserted as it stands. `insert` would refuse it, and one label must not abort a migrate
 	# any more than one dead link may (see below).
-	doc.title = routable_title(plan["title"], module) or module
+	doc.title = routable_title(plan["title"], module)
 	doc.header_icon = plan["header_icon"]
 	doc.standard = 0
 	doc.merged_from = plan["merged_from"]
