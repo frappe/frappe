@@ -3,6 +3,7 @@
  "autoname": "prompt",
  "creation": "2017-09-08 16:16:13.060641",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/guides/integration/webhooks",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

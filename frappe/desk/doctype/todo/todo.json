@@ -5,6 +5,7 @@
  "creation": "2012-07-03 13:30:35",
  "doctype": "DocType",
  "document_type": "Setup",
+ "documentation": "https://docs.frappe.io/framework/assignments-and-todos",
  "email_append_to": 1,
  "engine": "InnoDB",
  "field_order": [

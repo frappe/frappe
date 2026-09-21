@@ -7,6 +7,7 @@
  "description": "Defines workflow states and rules for a document.",
  "doctype": "DocType",
  "document_type": "Document",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/workflow",
  "engine": "InnoDB",
  "field_order": [
   "workflow_name",

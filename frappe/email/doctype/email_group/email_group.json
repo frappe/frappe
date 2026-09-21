@@ -7,6 +7,7 @@
  "creation": "2015-03-18 06:08:32.729800",
  "doctype": "DocType",
  "document_type": "Setup",
+ "documentation": "https://docs.frappe.io/framework/user/en/email-groups",
  "engine": "InnoDB",
  "field_order": [
   "title",

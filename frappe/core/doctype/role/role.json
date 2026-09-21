@@ -5,6 +5,7 @@
  "creation": "2013-01-08 15:50:01",
  "doctype": "DocType",
  "document_type": "Document",
+ "documentation": "https://docs.frappe.io/erpnext/role-and-role-profile",
  "engine": "InnoDB",
  "field_order": [
   "role_name",

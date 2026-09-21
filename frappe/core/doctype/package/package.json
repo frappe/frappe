@@ -5,6 +5,7 @@
  "autoname": "Prompt",
  "creation": "2021-09-04 11:54:35.155687",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/guides/deployment/packages",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

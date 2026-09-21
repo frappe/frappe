@@ -6,6 +6,7 @@
  "autoname": "format:AUT-AR-{#####}",
  "creation": "2018-03-09 11:22:31.192349",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/auto-repeat",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

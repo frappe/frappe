@@ -5,6 +5,7 @@
  "creation": "2012-12-20 17:16:49",
  "doctype": "DocType",
  "document_type": "System",
+ "documentation": "https://docs.frappe.io/framework/user/en/api/page",
  "engine": "InnoDB",
  "field_order": [
   "system_page",
