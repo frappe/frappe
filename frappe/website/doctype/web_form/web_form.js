@@ -24,18 +24,7 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	refresh: function (frm) {
-		// add_user_action returns the <a>, not its row
-		frm.embed_link?.closest(".user-action-row").remove();
-
-		// get iframe url for web form
-		frm.embed_link = frm.sidebar
-			.add_user_action(__("Copy embed code"))
-			.attr("href", "#")
-			.on("click", () => {
-				const url = frappe.urllib.get_full_url(frm.doc.route);
-				const code = `<iframe src="${url}" style="border: none; width: 100%; height: inherit;"></iframe>`;
-				frappe.utils.copy_to_clipboard(code, __("Embed code copied"));
-			});
+		add_embed_link(frm);
 
 		if (frm.doc.is_standard && !frappe.boot.developer_mode) {
 			frm.disable_form();
@@ -768,6 +757,23 @@ function flush_form_builder(frm) {
 
 function refresh_form_builder(frm) {
 	get_form_builder(frm)?.store.fetch();
+}
+
+// `frm.sidebar` only exists while the user keeps Form Sidebar on, the way add_web_link guards it
+function add_embed_link(frm) {
+	if (!frm.sidebar) return;
+
+	// add_user_action returns the <a>, not its row
+	frm.embed_link?.closest(".user-action-row").remove();
+
+	frm.embed_link = frm.sidebar
+		.add_user_action(__("Copy embed code"))
+		.attr("href", "#")
+		.on("click", () => {
+			const url = frappe.urllib.get_full_url(frm.doc.route);
+			const code = `<iframe src="${url}" style="border: none; width: 100%; height: inherit;"></iframe>`;
+			frappe.utils.copy_to_clipboard(code, __("Embed code copied"));
+		});
 }
 
 function render_form_builder(frm) {
