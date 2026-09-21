@@ -882,12 +882,15 @@ function handle_slash_key(e) {
 }
 
 .es-tabs__list {
-	height: 40px;
+	height: 44px;
 	box-sizing: border-box;
 	align-items: center;
-	gap: calc(var(--spacing) * 3);
+	/* the four tabs spread across the panel rather than bunching at the left;
+	   the gap is a floor, so a narrower sidebar closes it up instead of overflowing */
+	justify-content: space-between;
+	gap: calc(var(--spacing) * 2);
 	padding-block: 0;
-	padding-inline: calc(var(--spacing) * 3);
+	padding-inline: calc(var(--spacing) * 4);
 }
 
 .es-tabs__tab {
