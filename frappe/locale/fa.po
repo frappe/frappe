@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-09-06 09:32+0000\n"
-"PO-Revision-Date: 2026-09-14 04:19\n"
+"POT-Creation-Date: 2026-09-20 09:34+0000\n"
+"PO-Revision-Date: 2026-09-21 04:20\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -70,7 +70,7 @@ msgstr "&copy; Frappe فن آوری Pvt. Ltd و مشارکت کنندگان"
 msgid "&lt;head&gt; HTML"
 msgstr "&lt;head&gt; HTML"
 
-#: frappe/database/query.py:2383
+#: frappe/database/query.py:2390
 msgid "'*' is only allowed in {0} SQL function(s)"
 msgstr "'*' فقط در {0} تابع(های) SQL مجاز است"
 
@@ -90,7 +90,7 @@ msgstr "در نمای فهرست برای فیلد {0} از نوع {1} مجاز 
 msgid "'In List View' not allowed for type {0} in row {1}"
 msgstr "در نمای فهرست برای نوع {0} در ردیف {1} مجاز نیست"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:164
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:175
 msgid "'Recipients' not specified"
 msgstr "دریافت کنندگان مشخص نشده است"
 
@@ -791,9 +791,13 @@ msgstr "یک نمونه چارچوب Frappe می‌تواند به عنوان م
 msgid "A field with the name {0} already exists in {1}"
 msgstr "فیلدی با نام {0} از قبل در {1} وجود دارد"
 
-#: frappe/core/doctype/file/file.py:348
+#: frappe/core/doctype/file/file.py:354
 msgid "A file with same name {} already exists"
 msgstr "فایلی با همین نام {} از قبل وجود دارد"
+
+#: frappe/core/doctype/file/file.py:124 frappe/core/doctype/file/file.py:176
+msgid "A folder cannot have a File URL"
+msgstr ""
 
 #. Description of the 'Scopes' (Text) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -804,7 +808,7 @@ msgstr "لیستی از منابعی که برنامه مشتری پس از اج
 msgid "A new account has been created for you at {0}."
 msgstr "یک حساب کاربری جدید برای شما در {0} ایجاد شده است."
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:431
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:449
 msgid "A recurring {0} {1} has been created for you via Auto Repeat {2}."
 msgstr "یک {0} {1} تکرارشونده از طریق تکرار خودکار {2} برای شما ایجاد شده است."
 
@@ -1283,6 +1287,7 @@ msgstr "افزودن CSS"
 msgid "Add Card to Dashboard"
 msgstr "افزودن کارت به داشبورد"
 
+#: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:34
 #: frappe/public/js/frappe/views/reports/query_report.js:211
 msgid "Add Chart to Dashboard"
 msgstr "افزودن نمودار به داشبورد"
@@ -1292,8 +1297,8 @@ msgid "Add Child"
 msgstr "افزودن فرزند"
 
 #: frappe/public/js/frappe/views/kanban/kanban_board.html:4
-#: frappe/public/js/frappe/views/reports/query_report.js:1990
-#: frappe/public/js/frappe/views/reports/query_report.js:1993
+#: frappe/public/js/frappe/views/reports/query_report.js:2001
+#: frappe/public/js/frappe/views/reports/query_report.js:2004
 #: frappe/public/js/frappe/views/reports/report_view.js:368
 #: frappe/public/js/frappe/views/reports/report_view.js:393
 #: frappe/public/js/print_format_builder/Field.vue:112
@@ -1801,7 +1806,7 @@ msgstr "تابع تجمعی مبتنی بر"
 msgid "Aggregate Function field is required to create a dashboard chart"
 msgstr "برای ایجاد نمودار داشبورد، فیلد عملکرد جمع مورد نیاز است"
 
-#: frappe/database/query.py:2432
+#: frappe/database/query.py:2439
 msgid "Alias must be a string"
 msgstr "نام مستعار باید یک رشته باشد"
 
@@ -2014,7 +2019,7 @@ msgid "Allow Print for Cancelled"
 msgstr "اجازه چاپ برای لغو شده"
 
 #. Label of the allow_print_for_draft (Check) field in DocType 'Print Settings'
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:438
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:456
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Allow Print for Draft"
 msgstr "اجازه چاپ برای پیش‌نویس"
@@ -3074,7 +3079,7 @@ msgstr "پیوست به فیلد"
 msgid "Attached To Name"
 msgstr "پیوست به نام"
 
-#: frappe/core/doctype/file/file.py:192
+#: frappe/core/doctype/file/file.py:198
 msgid "Attached To Name must be a string or an integer"
 msgstr "پیوست به نام باید یک رشته یا یک عدد صحیح باشد"
 
@@ -3106,7 +3111,7 @@ msgstr "فیلترهای گالری پیوست باید فایل را هدف ق�
 msgid "Attachment Limit (MB)"
 msgstr "محدودیت پیوست (مگابایت)"
 
-#: frappe/core/doctype/file/file.py:417
+#: frappe/core/doctype/file/file.py:423
 #: frappe/public/js/frappe/form/sidebar/attachments.js:36
 msgid "Attachment Limit Reached"
 msgstr "به محدودیت پیوست رسید"
@@ -3137,11 +3142,11 @@ msgstr "تنظیمات پیوست"
 msgid "Attachments"
 msgstr "پیوست‌ها"
 
-#: frappe/public/js/frappe/form/print_utils.js:149
+#: frappe/public/js/frappe/form/print_utils.js:160
 msgid "Attempting Connection to QZ Tray..."
 msgstr "تلاش برای اتصال به سینی QZ..."
 
-#: frappe/public/js/frappe/form/print_utils.js:165
+#: frappe/public/js/frappe/form/print_utils.js:176
 msgid "Attempting to launch QZ Tray..."
 msgstr "تلاش برای راه‌اندازی QZ Tray..."
 
@@ -3321,11 +3326,11 @@ msgstr "تکرار خودکار"
 msgid "Auto Repeat Day"
 msgstr "روز تکرار خودکار"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:173
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:184
 msgid "Auto Repeat Day{0} {1} has been repeated."
 msgstr "روز تکرار خودکار{0} {1} تکرار شده است."
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:479
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:497
 msgid "Auto Repeat Document Creation Failed"
 msgstr "تکرار خودکار ایجاد سند انجام نشد"
 
@@ -3342,7 +3347,7 @@ msgstr "کاربر تکرار خودکار"
 msgid "Auto Repeat created for this document"
 msgstr "تکرار خودکار برای این سند ایجاد شده است"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:482
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:500
 msgid "Auto Repeat failed for {0}"
 msgstr "تکرار خودکار برای {0} ناموفق بود"
 
@@ -3386,9 +3391,13 @@ msgstr "دنبال کردن خودکار اسنادی که در آن‌ها نظ
 msgid "Auto follow documents that you create"
 msgstr "دنبال کردن خودکار اسنادی که ایجاد می‌کنید"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:242
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:259
 msgid "Auto repeat failed. Please enable auto repeat after fixing the issues."
 msgstr "تکرار خودکار ناموفق بود. لطفاً پس از رفع مشکلات، تکرار خودکار را فعال کنید."
+
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:244
+msgid "Auto repeat skipped. The owner cannot access the reference document."
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -4404,11 +4413,11 @@ msgstr "نمی‌توان حذف کرد"
 msgid "Cannot Update After Submit"
 msgstr "پس از ارسال امکان به‌روزرسانی وجود ندارد"
 
-#: frappe/core/doctype/file/file.py:757
+#: frappe/core/doctype/file/file.py:764 frappe/utils/file_manager.py:385
 msgid "Cannot access file path {0}"
 msgstr "دسترسی به مسیر فایل {0} امکان پذیر نیست"
 
-#: frappe/core/doctype/file/file.py:155
+#: frappe/core/doctype/file/file.py:159
 msgid "Cannot attach a folder to a document"
 msgstr "امکان پیوست کردن پوشه به سند وجود ندارد"
 
@@ -4416,7 +4425,7 @@ msgstr "امکان پیوست کردن پوشه به سند وجود ندارد"
 msgid "Cannot cancel before submitting while transitioning from <b>{0} State</b> to <b>{1} State</b>"
 msgstr "هنگام انتقال از <b>{0} وضعیت</b> به <b>{1} وضعیت</b>، نمی‌توان قبل از ارسال لغو کرد"
 
-#: frappe/workflow/doctype/workflow/workflow.py:111
+#: frappe/workflow/doctype/workflow/workflow.py:114
 msgid "Cannot cancel before submitting. See Transition {0}"
 msgstr "قبل از ارسال نمی‌توان لغو کرد. انتقال {0} را ببینید"
 
@@ -4440,7 +4449,7 @@ msgstr ""
 msgid "Cannot change state of Cancelled Document <b>({0} State)</b>"
 msgstr "نمی‌توان وضعیت سند لغو شده <b>({0} حالت)</b> را تغییر داد"
 
-#: frappe/workflow/doctype/workflow/workflow.py:100
+#: frappe/workflow/doctype/workflow/workflow.py:103
 msgid "Cannot change state of Cancelled Document. Transition row {0}"
 msgstr "نمی‌توان وضعیت سند لغو شده را تغییر داد. ردیف انتقال {0}"
 
@@ -4464,7 +4473,7 @@ msgstr "نمی‌توان محیط کار خصوصی از سایر کاربرا�
 msgid "Cannot delete Desktop Icon '{0}' as it is restricted"
 msgstr "امکان حذف آیکون دسکتاپ '{0}' وجود ندارد زیرا محدود شده است"
 
-#: frappe/core/doctype/file/file.py:244
+#: frappe/core/doctype/file/file.py:250
 msgid "Cannot delete Home and Attachments folders"
 msgstr "نمی‌توان پوشه‌های Home و Attachments را حذف کرد"
 
@@ -4540,15 +4549,15 @@ msgstr "نمی‌توان فیلترها را برای کارت‌های شما�
 msgid "Cannot edit standard fields"
 msgstr "نمی‌توان فیلدهای استاندارد را ویرایش کرد"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:131
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:142
 msgid "Cannot enable {0} for a non-submittable doctype"
 msgstr "نمی‌توان {0} را برای یک نوع سند غیرقابل ارسال فعال کرد"
 
-#: frappe/core/doctype/file/file.py:343
+#: frappe/core/doctype/file/file.py:349
 msgid "Cannot find file {} on disk"
 msgstr "نمی‌توان فایل {} را روی دیسک پیدا کرد"
 
-#: frappe/core/doctype/file/file.py:695
+#: frappe/core/doctype/file/file.py:702
 msgid "Cannot get file contents of a Folder"
 msgstr "محتویات فایل یک پوشه را نمی‌توان دریافت کرد"
 
@@ -4831,7 +4840,11 @@ msgstr "URL درخواست را بررسی کنید"
 msgid "Check columns to select, drag to set order."
 msgstr "برای انتخاب، ستون‌ها را علامت بزنید، برای تنظیم ترتیب آن را بکشید."
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:485
+#: frappe/public/js/frappe/microtemplate.js:256
+msgid "Check the Error Log for details."
+msgstr "برای جزئیات، لاگ خطا را بررسی کنید."
+
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:503
 msgid "Check the Error Log for more information: {0}"
 msgstr "برای اطلاعات بیشتر، لاگ خطا را بررسی کنید: {0}"
 
@@ -4902,7 +4915,7 @@ msgstr "جدول فرزند {0} برای فیلد {1} باید مجازی باش
 msgid "Child Tables are shown as a Grid in other DocTypes"
 msgstr "جداول فرزند در سایر DocTypeها به صورت Grid نمایش داده می‌شوند"
 
-#: frappe/database/query.py:1184
+#: frappe/database/query.py:1191
 msgid "Child query fields for '{0}' must be a list or tuple."
 msgstr "فیلدهای کوئری فرزند برای '{0}' باید یک لیست یا تاپل باشند."
 
@@ -5253,7 +5266,7 @@ msgctxt "Shrink code field."
 msgid "Collapse"
 msgstr "جمع شدن"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2293
+#: frappe/public/js/frappe/views/reports/query_report.js:2306
 #: frappe/public/js/frappe/views/treeview.js:133
 msgid "Collapse All"
 msgstr "جمع کردن همه"
@@ -5310,7 +5323,7 @@ msgstr "تاشو بستگی دارد به (JS)"
 #: frappe/desk/doctype/number_card/number_card.json
 #: frappe/desk/doctype/todo/todo.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
-#: frappe/public/js/frappe/views/reports/query_report.js:1305
+#: frappe/public/js/frappe/views/reports/query_report.js:1310
 #: frappe/public/js/frappe/widgets/widget_dialog.js:546
 #: frappe/public/js/frappe/widgets/widget_dialog.js:694
 #: frappe/website/doctype/color/color.json
@@ -5696,7 +5709,7 @@ msgstr "پیکربندی ضبط کننده"
 
 #: frappe/public/js/print_format_builder/Field.vue:103
 msgid "Configure columns for {0}"
-msgstr "پیکربندی ستون‌ها برای {0}"
+msgstr ""
 
 #. Description of the 'Amended Documents' (Section Break) field in DocType
 #. 'Document Naming Settings'
@@ -5788,8 +5801,8 @@ msgstr "برنامه متصل"
 msgid "Connected User"
 msgstr "کاربر متصل"
 
-#: frappe/public/js/frappe/form/print_utils.js:155
-#: frappe/public/js/frappe/form/print_utils.js:179
+#: frappe/public/js/frappe/form/print_utils.js:166
+#: frappe/public/js/frappe/form/print_utils.js:190
 msgid "Connected to QZ Tray!"
 msgstr "به سینی QZ متصل شد!"
 
@@ -6045,11 +6058,15 @@ msgstr "به سرور ایمیل خروجی متصل نشد"
 msgid "Could not find {0}"
 msgstr "{0} پیدا نشد"
 
+#: frappe/public/js/frappe/microtemplate.js:223
+msgid "Could not generate PDF"
+msgstr "امکان تولید PDF وجود ندارد"
+
 #: frappe/core/doctype/data_import/importer.py:952
 msgid "Could not map column {0} to field {1}"
 msgstr "ستون {0} به فیلد {1} نگاشت نشد"
 
-#: frappe/database/query.py:1087
+#: frappe/database/query.py:1094
 msgid "Could not parse field: {0}"
 msgstr "تجزیه فیلد امکان‌پذیر نیست: {0}"
 
@@ -6157,7 +6174,7 @@ msgstr "بس"
 #: frappe/public/js/frappe/list/list_filter.js:121
 #: frappe/public/js/frappe/views/file/file_view.js:106
 #: frappe/public/js/frappe/views/interaction.js:18
-#: frappe/public/js/frappe/views/reports/query_report.js:1337
+#: frappe/public/js/frappe/views/reports/query_report.js:1342
 #: frappe/public/js/frappe/views/workspace/workspace.js:502
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:46
 msgid "Create"
@@ -6181,7 +6198,7 @@ msgid "Create Card"
 msgstr "ایجاد کارت"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:286
-#: frappe/public/js/frappe/views/reports/query_report.js:1264
+#: frappe/public/js/frappe/views/reports/query_report.js:1269
 msgid "Create Chart"
 msgstr "نمودار ایجاد کنید"
 
@@ -6299,7 +6316,7 @@ msgstr "ایجاد شده توسط شما"
 msgid "Created By {0}"
 msgstr "ایجاد شده توسط {0}"
 
-#: frappe/workflow/doctype/workflow/workflow.py:65
+#: frappe/workflow/doctype/workflow/workflow.py:68
 msgid "Created Custom Field {0} in {1}"
 msgstr "فیلد سفارشی {0} در {1} ایجاد شد"
 
@@ -8533,11 +8550,11 @@ msgstr "نوع سند"
 msgid "Document Type and Function are required to create a number card"
 msgstr "نوع و عملکرد سند برای ایجاد کارت شماره مورد نیاز است"
 
-#: frappe/permissions.py:158
+#: frappe/permissions.py:160
 msgid "Document Type is not importable"
 msgstr "نوع سند قابل درون‌بُرد نیست"
 
-#: frappe/permissions.py:154
+#: frappe/permissions.py:156
 msgid "Document Type is not submittable"
 msgstr "نوع سند قابل ارسال نیست"
 
@@ -8989,7 +9006,7 @@ msgstr "خروج"
 #: frappe/public/js/frappe/form/toolbar.js:211
 #: frappe/public/js/frappe/form/toolbar.js:800
 #: frappe/public/js/frappe/views/reports/query_report.js:926
-#: frappe/public/js/frappe/views/reports/query_report.js:1935
+#: frappe/public/js/frappe/views/reports/query_report.js:1946
 #: frappe/public/js/frappe/widgets/base_widget.js:65
 #: frappe/public/js/frappe/widgets/chart_widget.js:304
 #: frappe/public/js/frappe/widgets/number_card_widget.js:365
@@ -9563,7 +9580,7 @@ msgstr "ایمیل‌ها با اقدامات بعدی ممکن گردش کار 
 msgid "Embed code copied"
 msgstr "کد جاسازی کپی شد"
 
-#: frappe/database/query.py:2436
+#: frappe/database/query.py:2443
 msgid "Empty alias is not allowed"
 msgstr "نام مستعار خالی مجاز نیست"
 
@@ -9571,7 +9588,7 @@ msgstr "نام مستعار خالی مجاز نیست"
 msgid "Empty column"
 msgstr "ستون خالی"
 
-#: frappe/database/query.py:2377
+#: frappe/database/query.py:2384
 msgid "Empty string arguments are not allowed"
 msgstr "آرگومان‌های رشته‌ای خالی مجاز نیستند"
 
@@ -9595,7 +9612,7 @@ msgstr "فعال‌سازی تأیید عملیات"
 msgid "Enable Address Autocompletion"
 msgstr "فعال کردن تکمیل خودکار آدرس"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:123
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:124
 msgid "Enable Allow Auto Repeat for the doctype {0} in Customize Form"
 msgstr "Allow Auto Repeat را برای doctype {0} در سفارشی‌سازی فرم فعال کنید"
 
@@ -9865,7 +9882,7 @@ msgstr "پایان"
 #. Label of the end_date (Date) field in DocType 'Audit Trail'
 #. Label of the end_date (Datetime) field in DocType 'Web Page'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:150
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:161
 #: frappe/core/doctype/audit_trail/audit_trail.json
 #: frappe/public/js/frappe/utils/common.js:371
 #: frappe/website/doctype/web_page/web_page.json
@@ -9881,7 +9898,7 @@ msgstr "فیلد تاریخ پایان"
 msgid "End Date cannot be before Start Date!"
 msgstr "تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد!"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:146
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:157
 msgid "End Date cannot be today."
 msgstr "تاریخ پایان نمی‌تواند امروز باشد."
 
@@ -10051,7 +10068,7 @@ msgstr "لاگ‌های خطا"
 msgid "Error Message"
 msgstr "پیام خطا"
 
-#: frappe/public/js/frappe/form/print_utils.js:186
+#: frappe/public/js/frappe/form/print_utils.js:197
 msgid "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Click here to Download and install QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Click here to learn more about Raw Printing</a>."
 msgstr "خطا در اتصال به برنامه QZ Tray...<br><br> برای استفاده از ویژگی Raw Print، باید برنامه QZ Tray را نصب و اجرا کنید.<br><br><a target=\"_blank\" href=\"https ://qz.io/download/\">برای دانلود و نصب QZ Tray</a> اینجا را کلیک کنید.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual /en/setting-up/print/raw-printing\">برای اطلاعات بیشتر در مورد چاپ خام اینجا را کلیک کنید</a>."
 
@@ -10097,7 +10114,7 @@ msgstr "خطا در {0}.get_list: {1}"
 msgid "Error parsing nested filters: {0}. {1}"
 msgstr "خطا در تجزیه فیلترهای تو در تو: {0}. {1}"
 
-#: frappe/desk/search.py:297
+#: frappe/desk/search.py:302
 msgid "Error validating \"Ignore User Permissions\""
 msgstr "خطا در اعتبارسنجی «نادیده گرفتن مجوزهای کاربر»"
 
@@ -10286,7 +10303,7 @@ msgstr "در حال اجرای کد"
 msgid "Executing..."
 msgstr "در حال اجرا..."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2309
+#: frappe/public/js/frappe/views/reports/query_report.js:2322
 msgid "Execution Time: {0} sec"
 msgstr "زمان اجرا: {0} ثانیه"
 
@@ -10315,7 +10332,7 @@ msgctxt "Enlarge code field."
 msgid "Expand"
 msgstr "بسط دادن"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2291
+#: frappe/public/js/frappe/views/reports/query_report.js:2304
 #: frappe/public/js/frappe/views/treeview.js:143
 msgid "Expand All"
 msgstr "گسترش همه"
@@ -10392,7 +10409,7 @@ msgstr "زمان انقضای صفحه تصویر کد QR"
 #: frappe/core/page/permission_manager/permission_manager_help.html:66
 #: frappe/public/js/frappe/data_import/data_exporter.js:92
 #: frappe/public/js/frappe/data_import/data_exporter.js:247
-#: frappe/public/js/frappe/views/reports/query_report.js:1978
+#: frappe/public/js/frappe/views/reports/query_report.js:1989
 #: frappe/public/js/frappe/views/reports/report_view.js:1733
 #: frappe/public/js/frappe/widgets/chart_widget.js:320
 msgid "Export"
@@ -10782,7 +10799,7 @@ msgstr "واکشی فیلدها از {0}..."
 #: frappe/public/js/frappe/list/bulk_operations.js:346
 #: frappe/public/js/frappe/list/list_view_permission_restrictions.html:3
 #: frappe/public/js/frappe/views/reports/query_report.js:237
-#: frappe/public/js/frappe/views/reports/query_report.js:2037
+#: frappe/public/js/frappe/views/reports/query_report.js:2049
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_form_list_column/web_form_list_column.json
 msgid "Field"
@@ -10800,7 +10817,7 @@ msgstr "فیلد \"عنوان\" در صورت تنظیم \"فیلد جستجوی
 msgid "Field \"value\" is mandatory. Please specify value to be updated"
 msgstr "فیلد \"value\" اجباری است. لطفاً مقدار مورد نظر برای به‌روزرسانی را مشخص کنید"
 
-#: frappe/desk/search.py:335
+#: frappe/desk/search.py:340
 msgid "Field <code>{0}</code> not found in {1}"
 msgstr "فیلد <code>{0}</code> در {1} یافت نشد"
 
@@ -10964,7 +10981,7 @@ msgstr "فیلدها"
 msgid "Fields Multicheck"
 msgstr "فیلدهای چندگزینه‌ای"
 
-#: frappe/core/doctype/file/file.py:510
+#: frappe/core/doctype/file/file.py:517
 msgid "Fields `file_name` or `file_url` must be set for File"
 msgstr "فیلدهای \"file_name\" یا \"file_url\" باید برای File تنظیم شوند"
 
@@ -10972,7 +10989,7 @@ msgstr "فیلدهای \"file_name\" یا \"file_url\" باید برای File ت
 msgid "Fields must be a list or tuple when as_list is enabled"
 msgstr "وقتی as_list فعال است، فیلدها باید یک لیست یا تاپل باشند"
 
-#: frappe/database/query.py:1133
+#: frappe/database/query.py:1140
 msgid "Fields must be a string, list, tuple, pypika Field, or pypika Function"
 msgstr "فیلدها باید رشته، لیست، tuple، pypika Field یا pypika Function باشند"
 
@@ -11060,7 +11077,7 @@ msgstr "نوع فایل"
 msgid "File URL"
 msgstr "آدرس فایل"
 
-#: frappe/core/doctype/file/file.py:128
+#: frappe/core/doctype/file/file.py:132
 msgid "File URL is required when copying an existing attachment."
 msgstr "هنگام کپی کردن یک پیوست موجود، آدرس فایل الزامی است."
 
@@ -11068,7 +11085,7 @@ msgstr "هنگام کپی کردن یک پیوست موجود، آدرس فای�
 msgid "File backup is ready"
 msgstr "پشتیبان گیری از فایل آماده است"
 
-#: frappe/core/doctype/file/file.py:760
+#: frappe/core/doctype/file/file.py:767
 msgid "File name cannot have {0}"
 msgstr "نام فایل نمی‌تواند دارای {0} باشد"
 
@@ -11076,7 +11093,7 @@ msgstr "نام فایل نمی‌تواند دارای {0} باشد"
 msgid "File not attached"
 msgstr "فایل پیوست نشده است"
 
-#: frappe/core/doctype/file/file.py:870 frappe/public/js/frappe/request.js:198
+#: frappe/core/doctype/file/file.py:877 frappe/public/js/frappe/request.js:198
 #: frappe/utils/file_manager.py:221
 msgid "File size exceeded the maximum allowed size of {0} MB"
 msgstr "اندازه فایل از حداکثر اندازه مجاز {0} مگابایت بیشتر است"
@@ -11085,7 +11102,7 @@ msgstr "اندازه فایل از حداکثر اندازه مجاز {0} مگا
 msgid "File too big"
 msgstr "فایل خیلی بزرگ است"
 
-#: frappe/core/doctype/file/file.py:469
+#: frappe/core/doctype/file/file.py:476
 msgid "File type of {0} is not allowed"
 msgstr "نوع فایل {0} مجاز نیست"
 
@@ -11093,7 +11110,7 @@ msgstr "نوع فایل {0} مجاز نیست"
 msgid "File upload failed."
 msgstr "آپلود فایل ناموفق بود."
 
-#: frappe/core/doctype/file/file.py:456 frappe/core/doctype/file/file.py:527
+#: frappe/core/doctype/file/file.py:462 frappe/core/doctype/file/file.py:534
 msgid "File {0} does not exist"
 msgstr "فایل {0} وجود ندارد"
 
@@ -11414,7 +11431,7 @@ msgstr "نام پوشه"
 msgid "Folder name should not include '/' (slash)"
 msgstr "نام پوشه نباید شامل '/' (اسلش) باشد"
 
-#: frappe/core/doctype/file/file.py:573
+#: frappe/core/doctype/file/file.py:580
 msgid "Folder {0} is not empty"
 msgstr "پوشه {0} خالی نیست"
 
@@ -11448,7 +11465,7 @@ msgstr "اسناد زیر با {0} مرتبط هستند"
 msgid "Following fields are missing:"
 msgstr "فیلدهای زیر وجود ندارد:"
 
-#: frappe/public/js/frappe/ui/field_group.js:184
+#: frappe/public/js/frappe/ui/field_group.js:186
 msgid "Following fields have invalid values:"
 msgstr "فیلدهای زیر دارای مقادیر نامعتبر هستند:"
 
@@ -11456,7 +11473,7 @@ msgstr "فیلدهای زیر دارای مقادیر نامعتبر هستند:
 msgid "Following fields have missing values"
 msgstr "فیلدهای زیر دارای مقادیر جا افتاده هستند"
 
-#: frappe/public/js/frappe/ui/field_group.js:171
+#: frappe/public/js/frappe/ui/field_group.js:173
 msgid "Following fields have missing values:"
 msgstr "فیلدهای زیر مقادیر گمشده دارند:"
 
@@ -11624,7 +11641,7 @@ msgid "For comparison, use >5, <10 or =324.\n"
 msgstr "برای مقایسه، از >5، <10 یا =324 استفاده کنید.\n"
 "برای بازه‌ها، از 5:10 استفاده کنید (برای مقادیر بین 5 و 10)."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2306
+#: frappe/public/js/frappe/views/reports/query_report.js:2319
 msgid "For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
 msgstr "برای مقایسه، از >5، <10 یا =324 استفاده کنید. برای محدوده ها، از 5:10 (برای مقادیر بین 5 و 10) استفاده کنید."
 
@@ -11921,7 +11938,7 @@ msgstr "از تاریخ"
 msgid "From Date Field"
 msgstr "از فیلد تاریخ"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1998
+#: frappe/public/js/frappe/views/reports/query_report.js:2009
 msgid "From Document Type"
 msgstr "از نوع سند"
 
@@ -11992,7 +12009,7 @@ msgstr "عملکرد بر اساس"
 msgid "Function {0} is not whitelisted."
 msgstr "تابع {0} در لیست سفید قرار ندارد."
 
-#: frappe/database/query.py:2281
+#: frappe/database/query.py:2288
 msgid "Function {0} requires arguments but none were provided"
 msgstr "تابع {0} نیاز به آرگومان دارد اما هیچکدام ارائه نشده است"
 
@@ -12075,6 +12092,10 @@ msgstr "ایجاد اسناد جداگانه برای هر شخص تخصیص‌�
 #: frappe/public/js/frappe/utils/utils.js:2091
 msgid "Generate Tracking URL"
 msgstr "ایجاد URL پیگیری"
+
+#: frappe/public/js/frappe/microtemplate.js:247
+msgid "Generating PDF..."
+msgstr ""
 
 #. Option for the 'Provider' (Select) field in DocType 'Geolocation Settings'
 #: frappe/integrations/doctype/geolocation_settings/geolocation_settings.json
@@ -12506,7 +12527,7 @@ msgstr "نوع دسته‌بندی"
 msgid "Group By field is required to create a dashboard chart"
 msgstr "برای ایجاد نمودار داشبورد فیلد Group By لازم است"
 
-#: frappe/database/query.py:1321
+#: frappe/database/query.py:1328
 msgid "Group By must be a string"
 msgstr "دسته‌بندی بر اساس باید یک رشته متنی باشد"
 
@@ -12899,7 +12920,7 @@ msgstr "پنهان"
 msgid "Hidden Fields"
 msgstr "فیلدهای پنهان"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1785
+#: frappe/public/js/frappe/views/reports/query_report.js:1788
 msgid "Hidden columns include: <br> {0}"
 msgstr "ستون‌های پنهان شامل: <br> {0}"
 
@@ -13086,17 +13107,17 @@ msgstr "صفحه اصلی"
 msgid "Home Settings"
 msgstr "تنظیمات صفحه اصلی"
 
-#: frappe/core/doctype/file/test_file.py:406
-#: frappe/core/doctype/file/test_file.py:408
-#: frappe/core/doctype/file/test_file.py:472
+#: frappe/core/doctype/file/test_file.py:450
+#: frappe/core/doctype/file/test_file.py:452
+#: frappe/core/doctype/file/test_file.py:536
 msgid "Home/Test Folder 1"
 msgstr "صفحه اصلی/پوشه آزمایشی 1"
 
-#: frappe/core/doctype/file/test_file.py:461
+#: frappe/core/doctype/file/test_file.py:505
 msgid "Home/Test Folder 1/Test Folder 3"
 msgstr "صفحه اصلی / پوشه آزمایشی 1 / پوشه آزمایشی 3"
 
-#: frappe/core/doctype/file/test_file.py:417
+#: frappe/core/doctype/file/test_file.py:461
 msgid "Home/Test Folder 2"
 msgstr "Home/Test Folder 2"
 
@@ -13949,16 +13970,16 @@ msgstr "شامل تم از برنامه‌ها"
 msgid "Include Web View Link in Email"
 msgstr "شامل کردن لینک نمای وب در ایمیل"
 
-#: frappe/public/js/frappe/form/print_utils.js:69
-#: frappe/public/js/frappe/views/reports/query_report.js:1759
+#: frappe/public/js/frappe/form/print_utils.js:74
+#: frappe/public/js/frappe/views/reports/query_report.js:1762
 msgid "Include filters"
 msgstr "شامل فیلترها"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1781
+#: frappe/public/js/frappe/views/reports/query_report.js:1784
 msgid "Include hidden columns"
 msgstr "شامل کردن ستون‌های پنهان"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1751
+#: frappe/public/js/frappe/views/reports/query_report.js:1754
 msgid "Include indentation"
 msgstr "شامل تورفتگی"
 
@@ -14127,7 +14148,7 @@ msgstr "درج در بالا"
 
 #. Label of the insert_after (Select) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2043
+#: frappe/public/js/frappe/views/reports/query_report.js:2056
 msgid "Insert After"
 msgstr "درج پس از"
 
@@ -14209,11 +14230,11 @@ msgstr "برنامه‌های نصب شده"
 msgid "Instructions"
 msgstr "دستورالعمل‌ها"
 
-#: frappe/permissions.py:880
+#: frappe/permissions.py:882
 msgid "Insufficient Permission Level for {0}"
 msgstr "سطح مجوز ناکافی برای {0}"
 
-#: frappe/database/query.py:1381
+#: frappe/database/query.py:1388
 msgid "Insufficient Permission for {0}"
 msgstr "مجوز ناکافی برای {0}"
 
@@ -14401,7 +14422,7 @@ msgstr ""
 msgid "Invalid Fieldname"
 msgstr "نام فیلد نامعتبر است"
 
-#: frappe/core/doctype/file/file.py:300
+#: frappe/core/doctype/file/file.py:306
 msgid "Invalid File URL"
 msgstr "URL فایل نامعتبر است"
 
@@ -14414,7 +14435,7 @@ msgstr "فیلتر نامعتبر"
 msgid "Invalid Filter Format for field {0} of type {1}. Try using filter icon on the field to set it correctly"
 msgstr "فرمت فیلتر نامعتبر برای فیلد {0} از نوع {1}. لطفاً از آیکون فیلتر روی فیلد برای تنظیم صحیح آن استفاده کنید"
 
-#: frappe/utils/dashboard.py:61
+#: frappe/utils/dashboard.py:62
 msgid "Invalid Filter Value"
 msgstr "مقدار فیلتر نامعتبر است"
 
@@ -14478,7 +14499,7 @@ msgstr "بازنویسی نامعتبر"
 msgid "Invalid Package Name"
 msgstr ""
 
-#: frappe/integrations/doctype/connected_app/connected_app.py:212
+#: frappe/integrations/doctype/connected_app/connected_app.py:213
 msgid "Invalid Parameters."
 msgstr "پارامترهای نامعتبر"
 
@@ -14507,18 +14528,22 @@ msgstr "نام فیلد جدول نامعتبر است"
 msgid "Invalid Transition"
 msgstr "انتقال نامعتبر است"
 
-#: frappe/core/doctype/file/file.py:311
+#: frappe/core/doctype/file/file.py:317
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:551
 #: frappe/public/js/frappe/widgets/widget_dialog.js:602
 #: frappe/utils/csvutils.py:258 frappe/utils/csvutils.py:279
 msgid "Invalid URL"
 msgstr "URL نامعتبر است"
 
+#: frappe/utils/file_manager.py:237
+msgid "Invalid Upload"
+msgstr "آپلود نامعتبر"
+
 #: frappe/email/receive.py:160
 msgid "Invalid User Name or Support Password. Please rectify and try again."
 msgstr "نام کاربری یا گذرواژه پشتیبانی نامعتبر است. لطفاً اصلاح کنید و دوباره امتحان کنید."
 
-#: frappe/public/js/frappe/ui/field_group.js:182
+#: frappe/public/js/frappe/ui/field_group.js:184
 msgid "Invalid Values"
 msgstr "مقادیر نامعتبر"
 
@@ -14545,7 +14570,7 @@ msgstr "تابع تجمیع نامعتبر است"
 msgid "Invalid aggregate function: {0}"
 msgstr ""
 
-#: frappe/database/query.py:2442
+#: frappe/database/query.py:2449
 msgid "Invalid alias format: {0}. Alias must be a simple identifier."
 msgstr "قالب نام مستعار نامعتبر: {0}. نام مستعار باید یک شناسه ساده باشد."
 
@@ -14553,11 +14578,11 @@ msgstr "قالب نام مستعار نامعتبر: {0}. نام مستعار ب
 msgid "Invalid app"
 msgstr "برنامه نامعتبر"
 
-#: frappe/database/query.py:2402 frappe/database/query.py:2418
+#: frappe/database/query.py:2409 frappe/database/query.py:2425
 msgid "Invalid argument format: {0}. Only quoted string literals or simple field names are allowed."
 msgstr "قالب آرگومان نامعتبر: {0}. فقط رشته‌های نقل‌قولی یا نام فیلدهای ساده مجاز هستند."
 
-#: frappe/database/query.py:2366
+#: frappe/database/query.py:2373
 msgid "Invalid argument type: {0}. Only strings, numbers, dicts, and None are allowed."
 msgstr "نوع آرگومان نامعتبر: {0}. فقط رشته‌ها، اعداد، دیکشنری‌ها و None مجاز هستند."
 
@@ -14581,7 +14606,7 @@ msgstr "نوع شرط نامعتبر در فیلترهای تودرتو: {0}"
 msgid "Invalid credentials, try again."
 msgstr ""
 
-#: frappe/database/query.py:1365
+#: frappe/database/query.py:1372
 msgid "Invalid direction in Order By: {0}. Must be 'ASC' or 'DESC'."
 msgstr "جهت نامعتبر در مرتب‌سازی: {0}. باید 'ASC' یا 'DESC' باشد."
 
@@ -14601,11 +14626,11 @@ msgstr "عبارت نامعتبر تنظیم شده در فیلتر {0}"
 msgid "Invalid expression set in filter {0} ({1})"
 msgstr "عبارت نامعتبر تنظیم شده در فیلتر {0} ({1})"
 
-#: frappe/database/query.py:2169
+#: frappe/database/query.py:2176
 msgid "Invalid field format for SELECT: {0}. Field names must be simple, backticked, table-qualified, aliased, or '*'."
 msgstr "قالب فیلد نامعتبر برای انتخاب: {0}. نام فیلدها باید ساده، با بک‌تیک، واجد شرایط جدول، مستعار یا '*' باشند."
 
-#: frappe/database/query.py:1306
+#: frappe/database/query.py:1313
 msgid "Invalid field format in {0}: {1}. Use 'field', 'link_field.field', or 'child_table.field'."
 msgstr "قالب فیلد نامعتبر در {0}: {1}. از 'field'، 'link_field.field' یا 'child_table.field' استفاده کنید."
 
@@ -14613,13 +14638,17 @@ msgstr "قالب فیلد نامعتبر در {0}: {1}. از 'field'، 'link_fie
 msgid "Invalid field name {0}"
 msgstr "نام فیلد نامعتبر {0}"
 
-#: frappe/database/query.py:1192
+#: frappe/database/query.py:1199
 msgid "Invalid field type: {0}"
 msgstr "نوع فیلد نامعتبر: {0}"
 
 #: frappe/core/doctype/doctype/doctype.py:1129
 msgid "Invalid fieldname '{0}' in autoname"
 msgstr "نام فیلد \"{0}\" در نام خودکار نامعتبر است"
+
+#: frappe/utils/file_manager.py:237
+msgid "Invalid file name"
+msgstr ""
 
 #: frappe/deprecation_dumpster.py:283
 msgid "Invalid file path: {0}"
@@ -14641,7 +14670,7 @@ msgstr "فیلتر نامعتبر: {0}"
 msgid "Invalid format. Supported formats are {0}"
 msgstr ""
 
-#: frappe/database/query.py:2286
+#: frappe/database/query.py:2293
 msgid "Invalid function argument type: {0}. Only strings, numbers, lists, and None are allowed."
 msgstr "نوع آرگومان تابع نامعتبر: {0}. فقط رشته‌ها، اعداد، لیست‌ها و None مجاز هستند."
 
@@ -14666,7 +14695,7 @@ msgstr "سری نام‌گذاری نامعتبر {}: نقطه (.) وجود ند
 msgid "Invalid naming series {}: dot (.) missing before the numeric placeholders. Kindly use a format like <b>ABCD.#####</b>."
 msgstr "سری نام‌گذاری نامعتبر {}: نقطه (.) قبل از جایگزین‌های عددی وجود ندارد. لطفاً از قالبی مانند <b>ABCD.#####</b> استفاده کنید."
 
-#: frappe/database/query.py:2358
+#: frappe/database/query.py:2365
 msgid "Invalid nested expression: dictionary must represent a function or operator"
 msgstr "عبارت تودرتوی نامعتبر: دیکشنری باید نمایانگر یک تابع یا عملگر باشد"
 
@@ -14706,7 +14735,7 @@ msgstr "شروع نامعتبر برای شرط فیلتر: {0}. یک لیست �
 msgid "Invalid template file for import"
 msgstr "فایل الگو برای درون‌بُرد نامعتبر است"
 
-#: frappe/integrations/doctype/connected_app/connected_app.py:218
+#: frappe/integrations/doctype/connected_app/connected_app.py:219
 msgid "Invalid token state! Check if the token has been created by the OAuth user."
 msgstr "حالت توکن نامعتبر! بررسی کنید که آیا توکن توسط کاربر OAuth ایجاد شده است."
 
@@ -14732,7 +14761,7 @@ msgstr "نسخه wkhtmltopdf نامعتبر"
 msgid "Invalid {0} condition"
 msgstr "شرط {0} نامعتبر است"
 
-#: frappe/database/query.py:2247
+#: frappe/database/query.py:2254
 msgid "Invalid {0} dictionary format"
 msgstr "قالب دیکشنری {0} نامعتبر"
 
@@ -15055,7 +15084,7 @@ msgstr "مجازی است"
 msgid "Is standard"
 msgstr "استاندارد است"
 
-#: frappe/core/doctype/file/utils.py:157 frappe/utils/file_manager.py:311
+#: frappe/core/doctype/file/utils.py:157 frappe/utils/file_manager.py:316
 msgid "It is risky to delete this file: {0}. Please contact your System Manager."
 msgstr "حذف این فایل خطرناک است: {0}. لطفا با مدیر سیستم خود تماس بگیرید."
 
@@ -16313,7 +16342,7 @@ msgstr "بارگذاری بیشتر"
 #: frappe/public/js/frappe/list/base_list.js:525
 #: frappe/public/js/frappe/list/list_view.js:405
 #: frappe/public/js/frappe/ui/listing.html:16
-#: frappe/public/js/frappe/views/reports/query_report.js:1165
+#: frappe/public/js/frappe/views/reports/query_report.js:1170
 msgid "Loading"
 msgstr "بارگذاری"
 
@@ -16944,7 +16973,7 @@ msgstr "حداکثر عرض برای نوع ارز 100 پیکسل در ردیف 
 msgid "Maximum"
 msgstr "حداکثر"
 
-#: frappe/core/doctype/file/file.py:411
+#: frappe/core/doctype/file/file.py:417
 msgid "Maximum Attachment Limit of {0} has been reached for {1} {2}."
 msgstr "حداکثر محدودیت پیوست {0} برای {1} {2} رسیده است."
 
@@ -17307,7 +17336,7 @@ msgstr "مجوز از دست رفته"
 msgid "Missing Value"
 msgstr "مقدار از دست رفته"
 
-#: frappe/public/js/frappe/ui/field_group.js:169
+#: frappe/public/js/frappe/ui/field_group.js:171
 #: frappe/public/js/frappe/widgets/widget_dialog.js:374
 #: frappe/public/js/workflow_builder/store.js:97
 #: frappe/workflow/doctype/workflow/workflow.js:71
@@ -18124,7 +18153,7 @@ msgstr "{0} {1} جدید به داشبورد {2} اضافه شد"
 msgid "New {0} {1} created"
 msgstr "{0} {1} جدید ایجاد شد"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:416
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:434
 msgid "New {0}: {1}"
 msgstr "{0} جدید: {1}"
 
@@ -18482,7 +18511,7 @@ msgstr "هنوز نظری وجود ندارد."
 msgid "No contacts added yet."
 msgstr "هنوز مخاطبی اضافه نشده است."
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:469
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:487
 msgid "No contacts linked to document"
 msgstr "هیچ مخاطبی به سند پیوند داده نشده است"
 
@@ -18494,7 +18523,7 @@ msgstr "هیچ فیلد ارزی در {0} وجود ندارد"
 msgid "No data to export"
 msgstr "داده ای برای برون‌بُرد نیست"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1568
+#: frappe/public/js/frappe/views/reports/query_report.js:1573
 msgid "No data to perform this action"
 msgstr "داده‌ای برای انجام این عملیات وجود ندارد"
 
@@ -18778,7 +18807,7 @@ msgstr "تهی‌پذیر نیست"
 msgid "Not Permitted"
 msgstr "غیر مجاز"
 
-#: frappe/desk/query_report.py:842
+#: frappe/desk/query_report.py:849
 msgid "Not Permitted to read {0}"
 msgstr "خواندن {0} مجاز نیست"
 
@@ -18838,7 +18867,7 @@ msgstr "یک اقدام گردش کار معتبر نیست"
 msgid "Not active"
 msgstr "غیرفعال"
 
-#: frappe/permissions.py:408
+#: frappe/permissions.py:410
 msgid "Not allowed for {0}: {1}"
 msgstr "برای {0} مجاز نیست: {1}"
 
@@ -18858,7 +18887,7 @@ msgstr "چاپ اسناد لغو شده مجاز نیست"
 msgid "Not allowed to print draft documents"
 msgstr "چاپ اسناد پیش‌نویس مجاز نیست"
 
-#: frappe/permissions.py:238
+#: frappe/permissions.py:240
 msgid "Not allowed via controller permission check"
 msgstr "از طریق بررسی مجوز کنترلر مجاز نیست"
 
@@ -18899,7 +18928,7 @@ msgid "Not permitted. {0}."
 msgstr "مجاز نیست. {0}."
 
 #. Name of a DocType
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:438
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:456
 #: frappe/desk/doctype/note/note.json
 msgid "Note"
 msgstr "یادداشت"
@@ -19514,7 +19543,7 @@ msgstr "فقط مدیر سیستم مجاز به استفاده از ضبط کن
 msgid "Only Allow Edit For"
 msgstr "اجازه ویرایش فقط برای"
 
-#: frappe/desk/query_report.py:523
+#: frappe/desk/query_report.py:524
 msgid "Only CSV and Excel formats are supported for export"
 msgstr ""
 
@@ -19531,7 +19560,7 @@ msgstr "فقط گزینه‌های مجاز برای فیلد داده عبار�
 msgid "Only Send Records Updated in Last X Hours"
 msgstr "فقط رکوردهای به روز شده در آخرین X ساعت را ارسال کنید"
 
-#: frappe/core/doctype/file/file.py:206
+#: frappe/core/doctype/file/file.py:212
 msgid "Only System Managers can make this file public."
 msgstr "فقط مدیران سیستم می‌توانند این فایل را عمومی کنند."
 
@@ -19749,7 +19778,7 @@ msgstr "عملیات"
 msgid "Operator must be one of {0}"
 msgstr "اپراتور باید یکی از {0} باشد"
 
-#: frappe/database/query.py:2314
+#: frappe/database/query.py:2321
 msgid "Operator {0} requires exactly 2 arguments (left and right operands)"
 msgstr "عملگر {0} دقیقاً به 2 آرگومان نیاز دارد (عملوند چپ و راست)"
 
@@ -19864,7 +19893,7 @@ msgstr "نارنجی"
 msgid "Order"
 msgstr "ترتیب"
 
-#: frappe/database/query.py:1337
+#: frappe/database/query.py:1344
 msgid "Order By must be a string"
 msgstr "مرتب‌سازی بر اساس باید یک رشته متنی باشد"
 
@@ -19972,7 +20001,7 @@ msgstr "PATCH"
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 #: frappe/printing/page/print/print.js:90
 #: frappe/public/js/frappe/form/templates/print_layout.html:44
-#: frappe/public/js/frappe/views/reports/query_report.js:1959
+#: frappe/public/js/frappe/views/reports/query_report.js:1970
 msgid "PDF"
 msgstr "PDF"
 
@@ -20291,7 +20320,7 @@ msgstr "والد نام سندی است که داده‌ها به آن اضاف�
 msgid "Parent-to-child or child-to-different-child grouping is not allowed."
 msgstr "گروه‌بندی والد-به-فرزند یا فرزند-به-فرزند-متفاوت مجاز نیست."
 
-#: frappe/permissions.py:856
+#: frappe/permissions.py:858
 msgid "Parentfield not specified in {0}: {1}"
 msgstr "فیلد والد در {0} مشخص نشده است: {1}"
 
@@ -20431,7 +20460,7 @@ msgstr "وصله"
 msgid "Patch Log"
 msgstr "لاگ پچ"
 
-#: frappe/modules/patch_handler.py:136
+#: frappe/modules/patch_handler.py:153
 msgid "Patch type {} not found in patches.txt"
 msgstr "نوع پچ {} در patches.txt یافت نشد"
 
@@ -20570,7 +20599,7 @@ msgstr "{0} برای همیشه حذف شود؟"
 msgid "Permission"
 msgstr "مجوز"
 
-#: frappe/database/query.py:1001 frappe/database/query.py:1380
+#: frappe/database/query.py:1001 frappe/database/query.py:1387
 #: frappe/desk/doctype/workspace/workspace.py:109
 msgid "Permission Error"
 msgstr "خطای مجوز"
@@ -20743,7 +20772,7 @@ msgstr "شماره تلفن"
 msgid "Phone Number {0} set in field {1} is not valid."
 msgstr "شماره تلفن {0} تنظیم شده در فیلد {1} معتبر نیست."
 
-#: frappe/public/js/frappe/form/print_utils.js:79
+#: frappe/public/js/frappe/form/print_utils.js:84
 #: frappe/public/js/frappe/views/reports/report_view.js:1670
 #: frappe/public/js/frappe/views/reports/report_view.js:1673
 msgid "Pick Columns"
@@ -20820,7 +20849,7 @@ msgstr "لطفا نمودار را تنظیم کنید"
 msgid "Please Update SMS Settings"
 msgstr "لطفا تنظیمات پیامک را به روز کنید"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:623
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:641
 msgid "Please add a subject to your email"
 msgstr "لطفا یک موضوع به ایمیل خود اضافه کنید"
 
@@ -20832,7 +20861,7 @@ msgstr "لطفا یک نظر معتبر اضافه کنید."
 msgid "Please add at least one naming series."
 msgstr "لطفا حداقل یک سری نامگذاری اضافه کنید."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1569
+#: frappe/public/js/frappe/views/reports/query_report.js:1574
 msgid "Please adjust filters to include some data"
 msgstr "لطفاً فیلترها را تنظیم کنید تا داده‌هایی شامل شوند"
 
@@ -20856,7 +20885,7 @@ msgstr "لطفاً یک فایل تصویری را برای تنظیم HTML بر
 msgid "Please attach the package"
 msgstr "لطفا بسته را پیوست کنید"
 
-#: frappe/utils/dashboard.py:58
+#: frappe/utils/dashboard.py:59
 msgid "Please check the filter values set for Dashboard Chart: {}"
 msgstr "لطفاً مقادیر فیلتر تنظیم شده برای نمودار داشبورد را بررسی کنید: {}"
 
@@ -20966,7 +20995,7 @@ msgstr "لطفاً قبل از فعال شدن ورود به سیستم اجتم
 msgid "Please enter Client Secret before social login is enabled"
 msgstr "لطفاً قبل از فعال شدن ورود به سیستم اجتماعی، Client Secret را وارد کنید"
 
-#: frappe/integrations/doctype/connected_app/connected_app.py:56
+#: frappe/integrations/doctype/connected_app/connected_app.py:57
 msgid "Please enter OpenID Configuration URL"
 msgstr "لطفاً URL پیکربندی OpenID را وارد کنید"
 
@@ -21015,7 +21044,7 @@ msgstr "لطفا گذرواژه قدیمی خود را وارد کنید."
 msgid "Please fill the following mandatory fields before saving:"
 msgstr "لطفا قبل از ذخیره، فیلدهای اجباری زیر را پر کنید:"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:444
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:462
 msgid "Please find attached {0}: {1}"
 msgstr "لطفاً پیوست شده را پیدا کنید {0}: {1}"
 
@@ -21075,7 +21104,7 @@ msgstr "لطفا ابتدا Entity Type را انتخاب کنید"
 msgid "Please select Minimum Password Score"
 msgstr "لطفا حداقل امتیاز گذرواژه را انتخاب کنید"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1258
+#: frappe/public/js/frappe/views/reports/query_report.js:1263
 msgid "Please select X and Y fields"
 msgstr "لطفاً فیلدهای X و Y را انتخاب کنید"
 
@@ -21141,7 +21170,7 @@ msgstr "لطفا آدرس ایمیل را تنظیم کنید"
 msgid "Please set a printer mapping for this print format in the Printer Settings"
 msgstr "لطفاً یک نگاشت چاپگر برای این قالب چاپی در تنظیمات چاپگر تنظیم کنید"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1480
+#: frappe/public/js/frappe/views/reports/query_report.js:1485
 msgid "Please set filters"
 msgstr "لطفا فیلترها را تنظیم کنید"
 
@@ -21181,7 +21210,7 @@ msgstr "لطفاً حساب کاربری ایمیل صادر پیش‌فرض ر�
 msgid "Please specify"
 msgstr "لطفا مشخص کنید"
 
-#: frappe/permissions.py:830
+#: frappe/permissions.py:832
 msgid "Please specify a valid parent DocType for {0}"
 msgstr "لطفاً یک DocType والد معتبر برای {0} مشخص کنید"
 
@@ -21553,7 +21582,7 @@ msgstr "کلید اصلی Doctype {0} قابل تغییر نیست زیرا مق
 #: frappe/public/js/frappe/form/templates/print_layout.html:46
 #: frappe/public/js/frappe/form/toolbar.js:465
 #: frappe/public/js/frappe/list/bulk_operations.js:95
-#: frappe/public/js/frappe/views/reports/query_report.js:1941
+#: frappe/public/js/frappe/views/reports/query_report.js:1952
 #: frappe/public/js/frappe/views/reports/report_view.js:1632
 #: frappe/public/js/frappe/views/treeview.js:510 frappe/www/printview.html:19
 msgid "Print"
@@ -21627,7 +21656,7 @@ msgstr "راهنمای قالب چاپ"
 msgid "Print Format Type"
 msgstr "نوع قالب چاپ"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1687
+#: frappe/public/js/frappe/views/reports/query_report.js:1692
 msgid "Print Format not found"
 msgstr "قالب چاپ یافت نشد"
 
@@ -21666,7 +21695,7 @@ msgstr "پنهان در چاپ اگر بدون مقدار"
 msgid "Print Language"
 msgstr "زبان چاپ"
 
-#: frappe/public/js/frappe/form/print_utils.js:255
+#: frappe/public/js/frappe/form/print_utils.js:266
 msgid "Print Sent to the printer!"
 msgstr "چاپ برای چاپگر ارسال شد!"
 
@@ -21681,7 +21710,7 @@ msgstr "سرور چاپ"
 #: frappe/printing/doctype/print_settings/print_settings.json
 #: frappe/printing/doctype/print_style/print_style.js:6
 #: frappe/printing/page/print/print.js:181
-#: frappe/public/js/frappe/form/print_utils.js:129
+#: frappe/public/js/frappe/form/print_utils.js:138
 #: frappe/public/js/frappe/form/templates/print_layout.html:35
 #: frappe/workspace_sidebar/printing.json
 msgid "Print Settings"
@@ -21888,7 +21917,7 @@ msgstr "نوع ویژگی"
 msgid "Protect Attached Files"
 msgstr "محافظت از فایل های پیوست شده"
 
-#: frappe/core/doctype/file/file.py:602
+#: frappe/core/doctype/file/file.py:609
 msgid "Protected File"
 msgstr "فایل محافظت شده"
 
@@ -22086,7 +22115,7 @@ msgstr "کد QR"
 msgid "QR Code for Login Verification"
 msgstr "کد QR برای تأیید ورود"
 
-#: frappe/public/js/frappe/form/print_utils.js:264
+#: frappe/public/js/frappe/form/print_utils.js:275
 msgid "QZ Tray Failed:"
 msgstr "سینی QZ ناموفق بود:"
 
@@ -22423,7 +22452,7 @@ msgstr "حالت خواندن"
 msgid "Read the documentation to know more"
 msgstr "برای دانستن بیشتر مستندات را بخوانید"
 
-#: frappe/utils/safe_exec.py:747 frappe/utils/safe_exec.py:760
+#: frappe/utils/safe_exec.py:749 frappe/utils/safe_exec.py:762
 msgid "Read-Only queries are allowed"
 msgstr "فقط کوئری‌های فقط خواندنی مجاز هستند"
 
@@ -22857,7 +22886,7 @@ msgstr "ارجاع دهنده"
 #: frappe/public/js/frappe/form/form.js:1252
 #: frappe/public/js/frappe/form/templates/print_layout.html:6
 #: frappe/public/js/frappe/list/base_list.js:68
-#: frappe/public/js/frappe/views/reports/query_report.js:1930
+#: frappe/public/js/frappe/views/reports/query_report.js:1941
 #: frappe/public/js/frappe/views/treeview.js:516
 #: frappe/public/js/frappe/widgets/chart_widget.js:296
 #: frappe/public/js/frappe/widgets/number_card_widget.js:358
@@ -23281,6 +23310,10 @@ msgstr "توضیحات گزارش"
 msgid "Report Document Error"
 msgstr "گزارش خطای سند"
 
+#: frappe/core/doctype/data_import/data_import.js:210
+msgid "Report Error"
+msgstr "گزارش خطا"
+
 #. Name of a DocType
 #: frappe/core/doctype/report_filter/report_filter.json
 msgid "Report Filter"
@@ -23325,7 +23358,7 @@ msgstr "مدیر گزارش"
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:39
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/desk/doctype/number_card/number_card.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2130
+#: frappe/public/js/frappe/views/reports/query_report.js:2143
 msgid "Report Name"
 msgstr "نام گزارش"
 
@@ -23389,7 +23422,7 @@ msgstr "به حد مجاز گزارش رسیده است"
 msgid "Report timed out."
 msgstr "زمان گزارش تمام شد."
 
-#: frappe/desk/query_report.py:900
+#: frappe/desk/query_report.py:907
 msgid "Report updated successfully"
 msgstr "گزارش با موفقیت به روز شد"
 
@@ -23397,7 +23430,7 @@ msgstr "گزارش با موفقیت به روز شد"
 msgid "Report was not saved (there were errors)"
 msgstr "گزارش ذخیره نشد (خطاهایی وجود داشت)"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2168
+#: frappe/public/js/frappe/views/reports/query_report.js:2181
 msgid "Report with more than 10 columns looks better in Landscape mode."
 msgstr "گزارش با بیش از 10 ستون در حالت افقی بهتر به نظر می رسد."
 
@@ -23763,6 +23796,7 @@ msgstr "از سرگیری ارسال"
 msgid "Retry"
 msgstr "تلاش دوباره"
 
+#: frappe/email/doctype/email_queue/email_queue.js:28
 #: frappe/email/doctype/email_queue/email_queue_list.js:47
 msgid "Retry Sending"
 msgstr "تلاش دوباره برای ارسال"
@@ -24135,7 +24169,7 @@ msgstr "قانون"
 msgid "Rule Conditions"
 msgstr "شرایط قاعده"
 
-#: frappe/permissions.py:702
+#: frappe/permissions.py:704
 msgid "Rule for this doctype, role, permlevel and if-owner combination already exists."
 msgstr "قانون برای این ترکیب doctype، role، permlevel و if-owner از قبل وجود دارد."
 
@@ -24253,7 +24287,7 @@ msgstr "خروجی SQL"
 msgid "SQL Queries"
 msgstr "پرسمان‌های SQL"
 
-#: frappe/database/query.py:2159
+#: frappe/database/query.py:2166
 msgid "SQL functions are not allowed as strings in SELECT: {0}. Use dict syntax like {{'COUNT': '*'}} instead."
 msgstr "توابع SQL به عنوان رشته در SELECT: {0} مجاز نیستند. به جای آن از سینتکس دیکشنری مانند {{'COUNT': '*'}} استفاده کنید."
 
@@ -24363,7 +24397,7 @@ msgstr "شنبه"
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:45
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:189
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:389
-#: frappe/public/js/frappe/views/reports/query_report.js:2122
+#: frappe/public/js/frappe/views/reports/query_report.js:2135
 #: frappe/public/js/frappe/views/reports/report_view.js:1839
 #: frappe/public/js/frappe/views/workspace/workspace.js:367
 #: frappe/public/js/frappe/widgets/base_widget.js:143
@@ -24386,7 +24420,7 @@ msgstr "ذخیره به عنوان"
 msgid "Save Customizations"
 msgstr "سفارشی‌سازی ها را ذخیره کنید"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2125
+#: frappe/public/js/frappe/views/reports/query_report.js:2138
 msgid "Save Report"
 msgstr "ذخیره گزارش"
 
@@ -24928,7 +24962,7 @@ msgid "Select Column"
 msgstr "ستون را انتخاب کنید"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_field.html:42
-#: frappe/public/js/frappe/form/print_utils.js:85
+#: frappe/public/js/frappe/form/print_utils.js:90
 msgid "Select Columns"
 msgstr "ستون‌ها را انتخاب کنید"
 
@@ -25269,6 +25303,7 @@ msgid "Send Notifications For Email Threads"
 msgstr "ارسال اعلان‌ها برای رشته‌های ایمیل"
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:21
+#: frappe/email/doctype/email_queue/email_queue.js:7
 msgid "Send Now"
 msgstr "در حال حاضر ارسال"
 
@@ -25537,7 +25572,7 @@ msgstr "خطای سرور هنگام بارگذاری. ممکن است فایل 
 msgid "Server failed to process this request because of a concurrent conflicting request. Please try again."
 msgstr "به دلیل وجود یک درخواست متناقض همزمان، سرور نتوانست این درخواست را پردازش کند. لطفاً دوباره امتحان کنید."
 
-#: frappe/concurrency_limiter.py:103
+#: frappe/concurrency_limiter.py:115
 msgid "Server is busy. Please try again in a few seconds."
 msgstr ""
 
@@ -25643,7 +25678,7 @@ msgstr "فیلترها را تنظیم کنید"
 msgid "Set Filters for {0}"
 msgstr "تنظیم فیلترها برای {0}"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2289
+#: frappe/public/js/frappe/views/reports/query_report.js:2302
 msgid "Set Level"
 msgstr "تنظیم سطح"
 
@@ -25885,7 +25920,7 @@ msgstr "راه‌اندازی > کاربر"
 msgid "Setup > User Permissions"
 msgstr "راه‌اندازی > مجوزهای کاربر"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1984
+#: frappe/public/js/frappe/views/reports/query_report.js:1995
 #: frappe/public/js/frappe/views/reports/report_view.js:1817
 msgid "Setup Auto Email"
 msgstr "تنظیم ایمیل خودکار"
@@ -25999,6 +26034,10 @@ msgstr "نمایش پیکان"
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Show Auth Server Metadata"
 msgstr "نمایش متادیتای سرور احراز هویت"
+
+#: frappe/desk/doctype/kanban_board/kanban_board.js:10
+msgid "Show Board"
+msgstr ""
 
 #: frappe/desk/doctype/calendar_view/calendar_view.js:10
 msgid "Show Calendar"
@@ -26923,7 +26962,7 @@ msgstr "شروع"
 #. Label of the start_date (Date) field in DocType 'Audit Trail'
 #. Label of the start_date (Datetime) field in DocType 'Web Page'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:150
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:161
 #: frappe/core/doctype/audit_trail/audit_trail.json
 #: frappe/public/js/frappe/utils/common.js:364
 #: frappe/website/doctype/web_page/web_page.json
@@ -27324,7 +27363,7 @@ msgstr "برچسب دکمه ارسال"
 
 #. Label of the submit_on_creation (Check) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:132
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:143
 msgid "Submit on Creation"
 msgstr "ارسال در هنگام ایجاد"
 
@@ -27349,7 +27388,7 @@ msgstr "{0} سند ارسال شود؟"
 msgid "Submitted"
 msgstr "ارسال شده"
 
-#: frappe/workflow/doctype/workflow/workflow.py:105
+#: frappe/workflow/doctype/workflow/workflow.py:108
 msgid "Submitted Document cannot be converted back to draft. Transition row {0}"
 msgstr "سند ارسال شده را نمی‌توان به پیش‌نویس تبدیل کرد. ردیف انتقال {0}"
 
@@ -27976,7 +28015,7 @@ msgstr "جدول HTML"
 msgid "Table MultiSelect"
 msgstr "جدول MultiSelect"
 
-#: frappe/desk/search.py:348
+#: frappe/desk/search.py:353
 msgid "Table MultiSelect requires a table with at least one Link field, but none was found in {0}"
 msgstr "Table MultiSelect نیاز به یک جدول با حداقل یک فیلد لینک دارد، اما هیچ‌کدام در {0} یافت نشد"
 
@@ -28124,7 +28163,7 @@ msgstr "شناسه کار آزمایشی"
 msgid "Test Spanish"
 msgstr "آزمایش اسپانیایی"
 
-#: frappe/core/doctype/file/test_file.py:464
+#: frappe/core/doctype/file/test_file.py:508
 msgid "Test_Folder"
 msgstr "Test_Folder"
 
@@ -28220,11 +28259,11 @@ msgstr "شناسه کلاینت به‌دست‌آمده از Google Cloud Conso
 msgid "The Condition '{0}' is invalid"
 msgstr "شرط \"{0}\" نامعتبر است"
 
-#: frappe/core/doctype/file/file.py:299
+#: frappe/core/doctype/file/file.py:305
 msgid "The File URL you've entered is incorrect"
 msgstr "URL فایلی که وارد کرده اید نادرست است"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:112
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:113
 msgid "The Next Scheduled Date cannot be later than the End Date."
 msgstr "تاریخ زمان‌بندی شده بعدی نمی‌تواند دیرتر از تاریخ پایان باشد."
 
@@ -28313,15 +28352,15 @@ msgstr "نوع سند انتخاب شده یک جدول فرزند است، بن
 msgid "The email button is enabled for the user in the document."
 msgstr ""
 
-#: frappe/desk/search.py:361
+#: frappe/desk/search.py:366
 msgid "The field {0} in {1} does not allow ignoring user permissions"
 msgstr "فیلد {0} در {1} اجازه نادیده گرفتن مجوزهای کاربر را نمی‌دهد"
 
-#: frappe/desk/search.py:376
+#: frappe/desk/search.py:381
 msgid "The field {0} in {1} links to {2} and not {3}"
 msgstr "فیلد {0} در {1} به {2} پیوند دارد و نه به {3}"
 
-#: frappe/core/doctype/file/file.py:197
+#: frappe/core/doctype/file/file.py:203
 msgid "The fieldname you've specified in Attached To Field is invalid"
 msgstr "نام فیلدی که در Attached To Field مشخص کرده اید نامعتبر است"
 
@@ -28389,9 +28428,17 @@ msgstr "شماره پروژه به‌دست‌آمده از Google Cloud Console
 "\"IAM &amp; Admin\" &gt; \"Settings\"\n"
 "</a>"
 
+#: frappe/public/js/frappe/microtemplate.js:209
+msgid "The report may be too large to render in a single request. Narrow the filters and try again, or use Print and save as PDF from your browser."
+msgstr ""
+
 #: frappe/desk/utils.py:112
 msgid "The report you requested has been generated.<br><br>Click here to download:<br><a href='{0}'>{0}</a><br><br>This link will expire in {1} hours."
 msgstr "گزارش درخواستی شما ایجاد شد.<br><br>برای دانلود اینجا کلیک کنید:<br><a href='{0}'>{0}</a><br><br>این لینک ظرف {1} ساعت آینده منقضی خواهد شد."
+
+#: frappe/public/js/frappe/microtemplate.js:286
+msgid "The request could not be completed. Check your connection and try again."
+msgstr ""
 
 #: frappe/core/doctype/user/user.py:1068
 msgid "The reset password link has been expired"
@@ -28462,7 +28509,7 @@ msgstr "مقداری که چسبانده اید {0} نویسه بود. حداک�
 msgid "The webhook will be triggered if this expression is true"
 msgstr "وب هوک در صورت صحیح بودن این عبارت فعال خواهد شد"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:183
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:194
 msgid "The {0} is already on auto repeat {1}"
 msgstr "{0} قبلاً روی تکرار خودکار است {1}"
 
@@ -28531,7 +28578,7 @@ msgstr "هیچ وظیفه‌ای با نام \"{}\" وجود ندارد"
 msgid "There is nothing new to show you right now."
 msgstr "در حال حاضر چیز جدیدی برای نشان دادن شما وجود ندارد."
 
-#: frappe/core/doctype/file/file.py:754 frappe/utils/file_manager.py:372
+#: frappe/core/doctype/file/file.py:761 frappe/utils/file_manager.py:381
 msgid "There is some problem with the file url: {0}"
 msgstr "آدرس فایل مشکلی دارد: {0}"
 
@@ -28612,7 +28659,7 @@ msgstr "این نمودار کانبان خصوصی خواهد بود"
 msgid "This Month"
 msgstr "این ماه"
 
-#: frappe/core/doctype/file/file.py:475
+#: frappe/core/doctype/file/file.py:482
 msgid "This PDF cannot be uploaded as it contains unsafe content."
 msgstr "این PDF به دلیل محتوای ناامن قابل آپلود نیست."
 
@@ -28722,7 +28769,7 @@ msgstr "این فیلد فقط در صورتی نمایش داده می‌شود
 "eval:doc.myfield=='My Value'\n"
 "eval:doc.age&gt;18"
 
-#: frappe/core/doctype/file/file.py:601
+#: frappe/core/doctype/file/file.py:608
 msgid "This file is attached to a protected document and cannot be deleted."
 msgstr "این فایل به یک سند محافظت شده پیوست شده است و قابل حذف نیست."
 
@@ -28757,7 +28804,7 @@ msgstr "این ارائه دهنده موقعیت جغرافیایی هنوز پ
 msgid "This goes above the slideshow."
 msgstr "این بالای نمایش اسلاید نمایش داده می‌شود."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2366
+#: frappe/public/js/frappe/views/reports/query_report.js:2379
 msgid "This is a background report. Please set the appropriate filters and then generate a new one."
 msgstr "این یک گزارش پس‌زمینه است. لطفا فیلترهای مناسب را تنظیم کنید و سپس گزارش جدیدی ایجاد کنید."
 
@@ -29426,9 +29473,9 @@ msgstr "بالا راست"
 msgid "Topic"
 msgstr "موضوع"
 
-#: frappe/desk/query_report.py:833
+#: frappe/desk/query_report.py:840
 #: frappe/public/js/frappe/views/reports/print_grid.html:50
-#: frappe/public/js/frappe/views/reports/query_report.js:1396
+#: frappe/public/js/frappe/views/reports/query_report.js:1401
 #: frappe/public/js/frappe/views/reports/report_view.js:1647
 msgid "Total"
 msgstr "جمع"
@@ -29586,7 +29633,7 @@ msgstr "انتقال‌ها"
 msgid "Translatable"
 msgstr "قابل ترجمه"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2428
+#: frappe/public/js/frappe/views/reports/query_report.js:2441
 msgid "Translate Data"
 msgstr "ترجمه داده‌ها"
 
@@ -29863,7 +29910,7 @@ msgstr "آدرس URL مخاطب باید با https:// شروع شود"
 msgid "URL for documentation or help"
 msgstr "نشانی اینترنتی برای مستندات یا راهنما"
 
-#: frappe/core/doctype/file/file.py:310
+#: frappe/core/doctype/file/file.py:316
 msgid "URL must start with http:// or https://"
 msgstr "URL باید با http:// یا https:// شروع شود"
 
@@ -29970,7 +30017,7 @@ msgstr "به دلیل وجود حساب ایمیل از دست رفته امکا
 msgid "Unable to update event"
 msgstr "رویداد به‌روزرسانی نشد"
 
-#: frappe/core/doctype/file/file.py:565
+#: frappe/core/doctype/file/file.py:572
 msgid "Unable to write file format for {0}"
 msgstr "امکان نوشتن فرمت فایل برای {0} وجود ندارد"
 
@@ -30031,7 +30078,7 @@ msgstr "شناسه یکتا که توسط توسعه‌دهنده کلاینت �
 "<br>\n"
 "<b>باید یکسان باقی بماند</b> در نسخه‌ها یا به‌روزرسانی‌های مختلف نرم‌افزار."
 
-#: frappe/website/report/website_analytics/website_analytics.js:60
+#: frappe/website/report/website_analytics/website_analytics.js:55
 msgid "Unknown"
 msgstr "ناشناخته"
 
@@ -30076,7 +30123,7 @@ msgstr "خوانده نشده"
 msgid "Unread Notification Sent"
 msgstr "اعلان خوانده‌نشده ارسال شد"
 
-#: frappe/utils/safe_exec.py:748 frappe/utils/safe_exec.py:761
+#: frappe/utils/safe_exec.py:750 frappe/utils/safe_exec.py:763
 msgid "Unsafe SQL query"
 msgstr "پرسمان ناامن SQL"
 
@@ -30115,15 +30162,15 @@ msgstr "پارامترهای لغو اشتراک"
 msgid "Unsubscribed"
 msgstr "لغو اشتراک شده"
 
-#: frappe/desk/query_report.py:522
+#: frappe/desk/query_report.py:523
 msgid "Unsupported file format: {0}"
 msgstr ""
 
-#: frappe/database/query.py:1177
+#: frappe/database/query.py:1184
 msgid "Unsupported function or operator: {0}"
 msgstr "تابع یا عملگر پشتیبانی نشده: {0}"
 
-#: frappe/database/query.py:2250
+#: frappe/database/query.py:2257
 msgid "Unsupported {0}: {1}"
 msgstr "پشتیبانی نشده {0}: {1}"
 
@@ -30664,7 +30711,7 @@ msgstr "مجوز کاربر"
 #. Label of a Link in the Users Workspace
 #: frappe/core/page/permission_manager/permission_manager_help.html:97
 #: frappe/core/workspace/users/users.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2109
+#: frappe/public/js/frappe/views/reports/query_report.js:2122
 #: frappe/public/js/frappe/views/reports/report_view.js:1865
 msgid "User Permissions"
 msgstr "مجوزهای کاربر"
@@ -30778,11 +30825,11 @@ msgstr "کاربر {0} را نمی‌توان غیرفعال کرد"
 msgid "User {0} cannot be renamed"
 msgstr "کاربر {0} را نمی‌توان تغییر نام داد"
 
-#: frappe/permissions.py:146
+#: frappe/permissions.py:148
 msgid "User {0} does not have access to this document"
 msgstr "کاربر {0} به این سند دسترسی ندارد"
 
-#: frappe/permissions.py:171
+#: frappe/permissions.py:173
 msgid "User {0} does not have doctype access via role permission for document {1}"
 msgstr "کاربر {0} دسترسی doctype از طریق مجوز نقش برای سند {1} ندارد"
 
@@ -31311,7 +31358,7 @@ msgstr "هشدار: نمی‌توان {0} را در جدول مربوط به {1}
 #. Description of the 'Counter' (Int) field in DocType 'Document Naming Rule'
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json
 msgid "Warning: Updating counter may lead to document name conflicts if not done properly"
-msgstr "هشدار: به‌روزرسانی شمارنده ممکن است در صورت عدم انجام صحیح منجر به تداخل نام سند شود"
+msgstr "هشدار: اگر به‌درستی انجام نشود، به‌روزرسانی شمارنده ممکن است منجر به تضاد نام سند شود"
 
 #: frappe/core/doctype/doctype/doctype.py:459
 msgid "Warning: Usage of 'format:' is discouraged."
@@ -32147,7 +32194,7 @@ msgstr "فیلدهای محور Y"
 
 #. Label of the y_field (Select) field in DocType 'Dashboard Chart Field'
 #: frappe/desk/doctype/dashboard_chart_field/dashboard_chart_field.json
-#: frappe/public/js/frappe/views/reports/query_report.js:1297
+#: frappe/public/js/frappe/views/reports/query_report.js:1302
 msgid "Y Field"
 msgstr "فیلد Y"
 
@@ -32270,11 +32317,11 @@ msgstr "شما به اینترنت متصل هستید."
 msgid "You are not allowed to access this resource"
 msgstr "شما اجازه دسترسی به این منبع را ندارید"
 
-#: frappe/permissions.py:456
+#: frappe/permissions.py:458
 msgid "You are not allowed to access this {0} record because it is linked to {1} '{2}' in field {3}"
 msgstr "شما مجاز به دسترسی به این رکورد {0} نیستید زیرا به {1} '{2}' در فیلد {3} پیوند داده شده است."
 
-#: frappe/permissions.py:445
+#: frappe/permissions.py:447
 msgid "You are not allowed to access this {0} record because it is linked to {1} '{2}' in row {3}, field {4}"
 msgstr "شما مجاز به دسترسی به این رکورد {0} نیستید زیرا به {1} \"{2}\" در ردیف {3}، فیلد {4} پیوند داده شده است."
 
@@ -32301,7 +32348,7 @@ msgstr "شما مجاز به ویرایش گزارش نیستید."
 #: frappe/core/doctype/data_import/exporter.py:132
 #: frappe/core/doctype/data_import/exporter.py:136
 #: frappe/desk/reportview.py:500 frappe/desk/reportview.py:503
-#: frappe/permissions.py:653
+#: frappe/permissions.py:655
 msgid "You are not allowed to export {} doctype"
 msgstr "شما مجاز به برون‌بُرد {} doctype نیستید"
 
@@ -32398,7 +32445,7 @@ msgstr "پس از کاوش در این صفحه می‌توانید به آشن�
 msgid "You can disable this {0} instead of deleting it."
 msgstr "می‌توانید به جای حذف این {0} آن را غیرفعال کنید."
 
-#: frappe/core/doctype/file/file.py:872
+#: frappe/core/doctype/file/file.py:879
 msgid "You can increase the limit from System Settings."
 msgstr "می‌توانید از تنظیمات سیستم محدودیت را افزایش دهید."
 
@@ -32532,11 +32579,11 @@ msgstr "شما اجازه دسترسی به فیلد: {0} جدول فرزند ر
 msgid "You do not have permission to access field: {0}"
 msgstr "شما اجازه دسترسی به فیلد را ندارید: {0}"
 
-#: frappe/core/doctype/file/file.py:234
+#: frappe/core/doctype/file/file.py:240
 msgid "You do not have permission to access this file"
 msgstr ""
 
-#: frappe/desk/query_report.py:1183
+#: frappe/desk/query_report.py:1190
 msgid "You do not have permission to access {0}: {1}."
 msgstr "شما اجازه دسترسی به {0}: {1} را ندارید."
 
@@ -32581,7 +32628,7 @@ msgstr "شما مجوز دریافت گزارش در مورد: {0} را ندار
 msgid "You don't have permission to print: {0}"
 msgstr "شما اجازه چاپ ندارید: {0}"
 
-#: frappe/utils/file_manager.py:411
+#: frappe/utils/file_manager.py:424
 msgid "You don't have permission to read/attach the file {0}."
 msgstr ""
 
@@ -32724,7 +32771,7 @@ msgstr "برای ادغام به اجازه نوشتن در {0} {1} نیاز د�
 msgid "You need write permission on {0} {1} to rename"
 msgstr "برای تغییر نام به اجازه نوشتن در {0} {1} نیاز دارید"
 
-#: frappe/utils/file_manager.py:402
+#: frappe/utils/file_manager.py:415
 msgid "You need write permissions to add attachments to this record."
 msgstr "برای افزودن پیوست به این رکورد، به مجوزهای نوشتن نیاز دارید."
 
@@ -32920,7 +32967,7 @@ msgstr "صفر"
 msgid "Zero means send records updated at anytime"
 msgstr "صفر به معنای ارسال رکوردهای به روز شده در هر زمان است"
 
-#: frappe/core/doctype/file/file.py:650 frappe/core/doctype/file/file.py:668
+#: frappe/core/doctype/file/file.py:657 frappe/core/doctype/file/file.py:675
 msgid "Zip file extracts to more than the maximum allowed size of {0} MB"
 msgstr "حجم فایل زیپ استخراج شده بیش از حداکثر حجم مجاز {0} مگابایت است"
 
@@ -33153,7 +33200,7 @@ msgstr "ایمیل"
 msgid "email inbox"
 msgstr "صندوق ورودی ایمیل"
 
-#: frappe/permissions.py:450 frappe/permissions.py:461
+#: frappe/permissions.py:452 frappe/permissions.py:463
 msgid "empty"
 msgstr "خالی"
 
@@ -33637,7 +33684,7 @@ msgstr "version_table"
 msgid "via Assignment Rule"
 msgstr "از طریق قانون واگذاری"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:264
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:282
 msgid "via Auto Repeat"
 msgstr "از طریق تکرار خودکار"
 
@@ -34020,7 +34067,7 @@ msgstr "{0} ساعت"
 msgid "{0} has already assigned default value for {1}."
 msgstr "{0} قبلاً مقدار پیش‌فرض را برای {1} اختصاص داده است."
 
-#: frappe/database/query.py:1281
+#: frappe/database/query.py:1288
 msgid "{0} has invalid backtick notation: {1}"
 msgstr "{0} دارای نشانه‌گذاری بک‌تیک نامعتبر است: {1}"
 
@@ -34057,7 +34104,7 @@ msgstr "{0} یک فرزند از {1} است"
 msgid "{0} is a mandatory field"
 msgstr "{0} یک فیلد اجباری است"
 
-#: frappe/core/doctype/file/file.py:663
+#: frappe/core/doctype/file/file.py:670
 msgid "{0} is a not a valid zip file"
 msgstr "{0} یک فایل فشرده معتبر نیست"
 
@@ -34073,7 +34120,7 @@ msgstr "{0} یک والد {1} است"
 msgid "{0} is an invalid Data field."
 msgstr "{0} یک فیلد داده نامعتبر است."
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:162
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:173
 msgid "{0} is an invalid email address in 'Recipients'"
 msgstr "{0} یک آدرس ایمیل نامعتبر در \"گیرندگان\" است"
 
@@ -34186,11 +34233,11 @@ msgstr "{0} یک وضعیت گردش کار معتبر نیست. لطفاً گر
 msgid "{0} is not a valid field of {1}"
 msgstr "{0} یک فیلد معتبر از {1} نیست"
 
-#: frappe/permissions.py:845
+#: frappe/permissions.py:847
 msgid "{0} is not a valid parent DocType for {1}"
 msgstr "{0} یک DocType والد معتبر برای {1} نیست"
 
-#: frappe/permissions.py:865
+#: frappe/permissions.py:867
 msgid "{0} is not a valid parentfield for {1}"
 msgstr "{0} یک فیلد والد معتبر برای {1} نیست"
 
@@ -34198,7 +34245,7 @@ msgstr "{0} یک فیلد والد معتبر برای {1} نیست"
 msgid "{0} is not a valid report format. Report format should one of the following {1}"
 msgstr "{0} قالب گزارش معتبری نیست. قالب گزارش باید یکی از موارد زیر باشد {1}"
 
-#: frappe/core/doctype/file/file.py:627
+#: frappe/core/doctype/file/file.py:634
 msgid "{0} is not a zip file"
 msgstr "{0} یک فایل فشرده نیست"
 
@@ -34212,7 +34259,7 @@ msgstr "{0} جد {1} نیست"
 
 #: frappe/desk/query_report.py:71
 msgid "{0} is not an enabled Print Format for a Report"
-msgstr "{0} فرمت چاپ فعال برای گزارش نیست"
+msgstr "{0} قالب چاپ فعال برای گزارش نیست"
 
 #: frappe/public/js/frappe/form/controls/link.js:694
 #: frappe/public/js/frappe/views/reports/report_view.js:1537
@@ -34360,7 +34407,7 @@ msgstr "{0} باید با یک حرف شروع و پایان یابد و فقط 
 msgid "{0} never sends email, so it cannot be enabled for users."
 msgstr ""
 
-#: frappe/workflow/doctype/workflow/workflow.py:92
+#: frappe/workflow/doctype/workflow/workflow.py:95
 msgid "{0} not a valid State"
 msgstr "{0} یک وضعیت معتبر نیست"
 
@@ -34457,7 +34504,7 @@ msgctxt "User added rows to child table"
 msgid "{0} rows to {1}"
 msgstr "{0} ردیف به {1}"
 
-#: frappe/desk/query_report.py:915
+#: frappe/desk/query_report.py:922
 msgid "{0} saved successfully"
 msgstr "{0} با موفقیت ذخیره شد"
 
@@ -34481,7 +34528,7 @@ msgstr "{0} این سند را با {1} به اشتراک گذاشت"
 msgid "{0} should be indexed because it's referred in dashboard connections"
 msgstr "{0} باید ایندکس شود زیرا در اتصالات داشبورد ذکر شده است"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:149
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:160
 msgid "{0} should not be same as {1}"
 msgstr "{0} نباید مانند {1} باشد"
 
@@ -34578,7 +34625,7 @@ msgstr "{0} {1} وجود ندارد، یک هدف جدید را برای ادغ�
 msgid "{0} {1} is linked with the following submitted documents: {2}"
 msgstr "{0} {1} با اسناد ارسالی زیر پیوند داده شده است: {2}"
 
-#: frappe/model/document.py:296 frappe/permissions.py:605
+#: frappe/model/document.py:296 frappe/permissions.py:607
 msgid "{0} {1} not found"
 msgstr "{0} {1} یافت نشد"
 
@@ -34635,7 +34682,7 @@ msgstr "{0}: ارسال، لغو، اصلاح بدون نوشتن امکان‌�
 msgid "{0}: Cannot set import as {1} is not importable"
 msgstr "{0}: نمی‌توان درون‌بُرد را به عنوان {1} تنظیم کرد، قابل درون‌بُرد نیست"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:436
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:454
 msgid "{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
 msgstr "{0}: سند تکراری جدید پیوست نشد. برای فعال کردن پیوست کردن سند در ایمیل اعلان تکرار خودکار، {1} را در تنظیمات چاپ فعال کنید"
 
@@ -34713,7 +34760,7 @@ msgstr "{0}: {1}"
 msgid "{0}: {1} is set to state {2}"
 msgstr "{0}: {1} روی حالت {2} تنظیم شده است"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1355
+#: frappe/public/js/frappe/views/reports/query_report.js:1360
 msgid "{0}: {1} vs {2}"
 msgstr "{0}: {1} در مقابل {2}"
 
