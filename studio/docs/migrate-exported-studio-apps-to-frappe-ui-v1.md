@@ -16,9 +16,10 @@ The same three functions Studio's patches run on the database, in this order:
 | --- | --- |
 | `migrate_blocks_to_frappe_ui_v1` | Renamed components, props, slots and events; feather icon names to `lucide-*`; `rounded-md` style radius aliases to `rounded-5` |
 | `migrate_charts_to_frappe_ui_charts` | `AxisChart`, `DonutChart`, `NumberChart` `config` objects to frappe-ui/charts props |
-| `migrate_get_icon_to_lucide_classes` | `{{ getIcon('x') }}` bindings to `lucide-x` |
+| `migrate_get_icon_calls` | `{{ getIcon('x') }}` bindings to `lucide-x`; other literal calls, in page scripts and event handlers, to `'lucide-x'` |
 
 All three are idempotent, so the script can run over every file, migrated or not, as often as needed.
+Page scripts (`<page>.ts`) get the `getIcon` rewrite; nothing else in them is touched.
 
 Do not redo these by hand from the frappe-ui migration guide. The guide describes Vue templates;
 these files are Studio's block JSON (`componentProps`, `componentSlots`, `classes`, `baseStyles`),
@@ -41,7 +42,7 @@ leaves to you, listed under [By hand](#by-hand).
    It prints each file it rewrote.
 
 3. Check the result.
-   - `git diff --stat` touches only `studio_page/*/*.json` and `studio_components/*.json`.
+   - `git diff --stat` touches only `studio_page/*/*.{json,ts}` and `studio_components/*.json`.
    - Load the files into a site with `bench --site <site> migrate` (or leave `bench watch-studio`
      running), then open each page in the editor and at its route. Look for blank blocks and for
      errors in the browser console.
@@ -54,9 +55,10 @@ leaves to you, listed under [By hand](#by-hand).
   new props in the page script instead. See frappe-ui's charts docs.
 - Coloured ink tokens (`text-ink-red-5`, `var(--ink-red-5)`) keep their names but v1 renders each
   step one shade lighter. The script does not touch them; adjust a step by hand where it matters.
-- Page scripts (`<page>.ts` / `<page>.js` next to the JSON) are not touched. `getIcon()` still works
-  there. Anything else that calls a removed frappe-ui API needs the frappe-ui migration guide
-  (`frappe-ui/docs/content/docs/migration.md`).
+- A `getIcon(...)` call with a dynamic argument, which the script reports: `getIcon()` is removed,
+  so write the `"lucide-<name>"` string it would have returned.
+- Anything else in a page script that calls a removed frappe-ui API needs the frappe-ui migration
+  guide (`frappe-ui/docs/content/docs/migration.md`).
 - Custom Vue components in the app (`studio/<studio_app>/components/`) are ordinary frappe-ui code.
   Migrate them with the frappe-ui migration guide.
 
@@ -73,7 +75,7 @@ import frappe
 from studio.studio.doctype.studio_page.patches import (
 	migrate_blocks_to_frappe_ui_v1 as frappe_ui_v1,
 	migrate_charts_to_frappe_ui_charts as charts,
-	migrate_get_icon_to_lucide_classes as get_icon,
+	migrate_get_icon_calls as get_icon,
 )
 
 BLOCK_FIELDS = ("blocks", "draft_blocks", "block")
@@ -86,6 +88,9 @@ def main(app):
 	for path in sorted(pages + components):
 		if migrate_file(path):
 			print(path)
+	for path in sorted(glob.glob(f"{folder}/*/studio_page/*/*.ts")):
+		if migrate_script(path):
+			print(path)
 
 
 def migrate_file(path) -> bool:
@@ -96,7 +101,9 @@ def migrate_file(path) -> bool:
 			continue
 		text = frappe_ui_v1.migrate_blocks_json(data[field])
 		text = charts.migrate_blocks_json(text, dynamic_charts, path)
-		data[field] = frappe.parse_json(get_icon.migrate_blocks_json(text))
+		text = get_icon.rewrite_get_icon_calls(text)
+		data[field] = frappe.parse_json(text)
+		report_dynamic_get_icon_calls(text)
 	for _, component_id in dynamic_charts:
 		print(f"  chart {component_id} has a dynamic `config`: migrate its props by hand")
 
@@ -107,6 +114,22 @@ def migrate_file(path) -> bool:
 	with open(path, "w") as file:
 		file.write(text)
 	return True
+
+
+def migrate_script(path) -> bool:
+	source = frappe.read_file(path)
+	text = get_icon.rewrite_get_icon_calls(source)
+	report_dynamic_get_icon_calls(text)
+	if text == source:
+		return False
+	with open(path, "w") as file:
+		file.write(text)
+	return True
+
+
+def report_dynamic_get_icon_calls(text):
+	for call in get_icon.DYNAMIC_CALL.findall(text):
+		print(f"  {call} has a dynamic argument: write the lucide-* string by hand")
 
 
 main(sys.argv[1])
