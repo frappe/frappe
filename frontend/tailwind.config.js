@@ -1,26 +1,19 @@
 // The one Tailwind config. Apps contribute `theme` and `plugins` through a preset; `content`
 // and `safelist` never merge from one, and nobody gets a safelist.
 
-import { createRequire } from "node:module";
-import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import frappeUIPreset from "frappe-ui/tailwind";
 import { appContent } from "./plugin/content.js";
+import { readManifest } from "./plugin/manifest.js";
+import { loadPresets } from "./plugin/presets.js";
 
-const require = createRequire(import.meta.url);
 const here = dirname(fileURLToPath(import.meta.url));
-const manifest = JSON.parse(readFileSync(join(here, "manifest.json"), "utf-8")).apps;
+const manifest = readManifest();
 
-// A colocated file, found like every other contribution. Loaded synchronously: tailwind 3
-// reads this config through jiti, which has no top-level await.
-const appPresets = [];
-for (const { source_dir } of manifest) {
-	const preset = join(source_dir, "frontend", "tailwind.preset.js");
-	if (!existsSync(preset)) continue;
-	const loaded = require(preset);
-	appPresets.push(loaded.default ?? loaded);
-}
+// Checked and wrapped by the loader; `vite.config.js` ran the same check first, so a refusal
+// prints there, once, before any transform.
+const appPresets = loadPresets(manifest).map(({ preset }) => preset);
 
 export default {
 	presets: [frappeUIPreset, ...appPresets],

@@ -9,10 +9,13 @@ import oneTree from "./plugin/oneTree.js";
 import importMap from "./plugin/importMap.js";
 import classList from "./plugin/classList.js";
 import { readManifest, readAllSourceDirs } from "./plugin/manifest.js";
+import { loadPresets } from "./plugin/presets.js";
 
 // Assembled by Python, which also enforces singletons before vite is spawned.
 const manifest = readManifest();
 const allSourceDirs = readAllSourceDirs();
+// Refuses a conflicting app preset here, once, before vite transforms anything.
+loadPresets(manifest);
 
 export default defineConfig(({ command }) => ({
 	// One asset root for the bench: `/assets/frappe/` is a symlink to `frappe/public/`.
