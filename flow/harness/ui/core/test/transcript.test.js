@@ -78,6 +78,8 @@ test("expanded skill messages render as the command the user typed", () => {
 	assert.equal(userText(entry), "/skill:security-review check this branch")
 	assert.equal(skillCommand(entry), "/skill:security-review check this branch")
 	assert.equal(conversationTitle({ entries: [entry] }), "check this branch")
+	const typed = { type: "user_message", content: [{ type: "text", text: "/skill:review fix the tests" }] }
+	assert.equal(conversationTitle({ entries: [], sending: [{ entry: typed }] }), "fix the tests")
 	assert.equal(userText({ content: "ordinary" }), "ordinary")
 	assert.equal(normalizeSkillCommand("/skill:security-review\n\ncheck this branch"), "/skill:security-review check this branch")
 })

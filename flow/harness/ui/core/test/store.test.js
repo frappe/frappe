@@ -878,6 +878,31 @@ test("the first message keeps its bubble while its session is created", async ()
 	flow.detach()
 })
 
+test("the folder stays in the header while the first message's session loads", async () => {
+	const client = hostClient([])
+	client.createSession = async (config) => ({ session_id: "s1", config: { model: "mock", cwd: config.cwd } })
+	let seeding
+	const seeded = new Promise((resolve) => (seeding = resolve))
+	let release
+	const held = new Promise((resolve) => (release = resolve))
+	client.entries = async () => {
+		seeding()
+		await held
+		return { entries: [], latest_seq: 0 }
+	}
+	const flow = createFlowStore(client)
+	flow.setCwd("/project")
+
+	const sent = flow.send("count the todos")
+	await seeded
+
+	assert.equal(flow.state.sessionId, "s1")
+	assert.equal(flow.state.session?.config?.cwd, "/project")
+	release()
+	assert.equal(await sent, true)
+	flow.detach()
+})
+
 test("a host without a filesystem sends without choosing a folder", async () => {
 	const calls = []
 	const flow = createFlowStore(hostClient(calls), { requireCwd: false })

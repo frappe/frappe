@@ -303,7 +303,7 @@ export function createFlowStore(client, options = {}) {
 		}
 	}
 
-	async function openSession(sid, { sending = [] } = {}) {
+	async function openSession(sid, { sending = [], config = null } = {}) {
 		closeStream()
 		// a same-session reload (rewind) keeps the open file tabs as they are
 		const switching = state.sessionId !== sid
@@ -314,7 +314,10 @@ export function createFlowStore(client, options = {}) {
 		// while the full session loads; no session_id, so a list refresh doesn't take
 		// the seed's display title for the session's own
 		const listed = state.sessions.find((s) => s.session_id === sid)
-		state.session = listed ? { title: sessionTitle(listed), config: { cwd: listed.cwd } } : null
+		const known = listed ?? (config && { title: config.title, cwd: config.cwd })
+		state.session = known
+			? { title: known.title ?? state.titles[sid] ?? null, config: { cwd: known.cwd } }
+			: null
 		state.queued = []
 		state.skills = []
 		loadedSkillsFor = null
@@ -501,7 +504,7 @@ export function createFlowStore(client, options = {}) {
 			)
 		}
 		await refreshSessions()
-		await openSession(data.session_id, { sending })
+		await openSession(data.session_id, { sending, config: data.config })
 		return data.session_id
 	}
 
