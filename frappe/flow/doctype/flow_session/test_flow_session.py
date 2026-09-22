@@ -689,6 +689,12 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		self.agent.db_set("max_iterations", 0)
 		self.assertEqual(self.config()["max_turns"], 50)
 
+	def test_the_agents_token_budget_caps_the_run(self):
+		self.agent.db_set("token_budget", 250_000)
+		self.assertEqual(self.config()["token_budget"], 250_000)
+		self.agent.db_set("token_budget", 0)
+		self.assertEqual(self.config()["token_budget"], 10_000_000)
+
 	def test_trigger_sessions_always_auto_approve(self):
 		session = self.session(source="Trigger", auto_approve=0)
 		self.assertTrue(session.auto_approve)
