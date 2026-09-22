@@ -58,6 +58,32 @@ def get_report_doc(report_name):
 	return doc
 
 
+@frappe.whitelist()
+def get_print_format_data(print_format: str):
+	pf = frappe.db.get_value(
+		"Print Format",
+		{"name": print_format, "disabled": 0, "print_format_for": "Report"},
+		["report", "html", "css"],
+		as_dict=True,
+	)
+	if not pf:
+		frappe.throw(
+			_("{0} is not an enabled Print Format for a Report").format(frappe.bold(print_format)),
+			frappe.DoesNotExistError,
+		)
+
+	# get_report_doc enforces the referenced Report's own permission model before we hand out its print format
+	report = get_report_doc(pf.report)
+
+	if not frappe.has_permission(report.ref_doctype, "print"):
+		frappe.throw(
+			_("You don't have permission to print: {0}").format(_(report.ref_doctype)),
+			frappe.PermissionError,
+		)
+
+	return {"html": pf.html, "css": pf.css}
+
+
 def get_report_result(report, filters):
 	res = None
 
@@ -309,11 +335,18 @@ def add_custom_column_data(custom_columns, result):
 			doctype_names_from_custom_field.append(doctype_name)
 		column["fieldname"] = column["fieldname"].split("-")[0]
 
-	custom_column_data = get_data_for_custom_report(custom_columns, result)
+	pending_columns = custom_columns
 
-	for column in custom_columns:
-		key = (column.get("doctype"), column.get("fieldname"))
-		if key in custom_column_data:
+	while pending_columns:
+		custom_column_data = get_data_for_custom_report(pending_columns, result)
+		unresolved_columns = []
+
+		for column in pending_columns:
+			key = (column.get("doctype"), column.get("fieldname"))
+			if key not in custom_column_data:
+				unresolved_columns.append(column)
+				continue
+
 			for row in result:
 				link_field = column.get("link_field")
 
@@ -329,6 +362,11 @@ def add_custom_column_data(custom_columns, result):
 				if key[0] in doctype_names_from_custom_field:
 					column["fieldname"] = column.get("id")
 				row[column.get("fieldname")] = custom_column_data.get(key).get(row_reference)
+
+		if len(unresolved_columns) == len(pending_columns):
+			break
+
+		pending_columns = unresolved_columns
 
 	return result
 
@@ -452,15 +490,16 @@ def _export_query(form_params, csv_params, populate_response=True):
 		return
 
 	has_total_row = cint(data.get("add_total_row"))
-	needs_visible_filtering = (
-		visible_idx
-		and not ignore_visible_idx
-		and len(visible_idx) < len(data.result) - (1 if has_total_row else 0)
-	)
 
-	if needs_visible_filtering:
-		visible_idx = set(visible_idx)
-		filtered_result = [row for idx, row in enumerate(data.result) if idx in visible_idx]
+	# visible_idx is the client's display-order list of row indices into
+	# data.result. Iterate it as an ordered list (not a set) so the UI
+	# sort direction the user applied before Export survives into the file.
+	if visible_idx and not ignore_visible_idx:
+		row_count = len(data.result)
+		# Guard out-of-range indices in case the server's re-run returned
+		# fewer rows than the client had (data changed, or the report is
+		# non-deterministic).
+		filtered_result = [data.result[idx] for idx in visible_idx if 0 <= idx < row_count]
 
 		if has_total_row:
 			filtered_result = add_total_row(filtered_result, data.columns)
@@ -548,6 +587,12 @@ def format_fields(data: frappe._dict, file_format_type: str | None = None) -> No
 				val = row.get(index) if isinstance(row, dict) else row[index]
 				if val:
 					row[index] = format_datetime(val)
+		elif col.get("fieldtype") in ("Link", "Dynamic Link"):
+			for row in data.result:
+				index = col.get("fieldname") if isinstance(row, dict) else i
+				val = row.get(index) if isinstance(row, dict) else row[index]
+				if isinstance(val, str) and val.startswith("'") and val.endswith("'"):
+					row[index] = val[1:-1]
 
 
 def format_filter_value(value):
@@ -852,7 +897,7 @@ def get_data_for_custom_report(columns, result):
 
 
 @frappe.whitelist()
-def save_report(reference_report: str, report_name: str, columns: str, filters: str):
+def save_report(reference_report: str, report_name: str, columns: str | list, filters: str | list | dict):
 	report_doc = get_report_doc(reference_report)
 
 	docname = frappe.db.exists(
@@ -867,8 +912,8 @@ def save_report(reference_report: str, report_name: str, columns: str, filters: 
 	if docname:
 		report = frappe.get_doc("Report", docname)
 		existing_jd = frappe.parse_json(report.json or "{}")
-		existing_jd["columns"] = json.loads(columns)
-		existing_jd["filters"] = json.loads(filters)
+		existing_jd["columns"] = frappe.parse_json(columns)
+		existing_jd["filters"] = frappe.parse_json(filters)
 		report.update({"json": json.dumps(existing_jd, separators=(",", ":"))})
 		report.save()
 		frappe.msgprint(_("Report updated successfully"))

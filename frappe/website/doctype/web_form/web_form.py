@@ -589,7 +589,10 @@ def get_context(context):
 				context.comment_list = get_comment_list(reference_doc.doctype, reference_doc.name)
 
 			doc_dict = reference_doc.as_dict(no_nulls=True)
-			if frappe.session.user == "Guest":
+			# A request key authorises access to the bound document without any
+			# document permission check, so its holder must only ever see the
+			# fields the Web Form itself exposes.
+			if frappe.session.user == "Guest" or web_form_request:
 				allowed_fields = {"name", "doctype", *(field.fieldname for field in self.web_form_fields)}
 				context.reference_doc = {
 					fieldname: doc_dict[fieldname] for fieldname in allowed_fields if fieldname in doc_dict
@@ -718,9 +721,6 @@ def get_context(context):
 
 
 def process_link_field(field, web_form_name, web_form_request_key=None, docname=None):
-	web_form = frappe.get_cached_doc("Web Form", web_form_name)
-	ensure_guest_key_link_doctype_allowed(web_form, field.options)
-
 	field.fieldtype = "Autocomplete"
 	field.options = get_link_options(
 		web_form_name,
@@ -876,7 +876,7 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 
 
 @frappe.whitelist(methods=["POST", "DELETE"], allow_guest=True)
-@rate_limit(key="web_form_name", limit=10, seconds=60)
+@rate_limit(key="web_form_name", limit=999, seconds=60)
 def delete(web_form_name: str, docname: str | int, web_form_request_key: str | None = None):
 	web_form: WebForm = frappe.get_lazy_doc("Web Form", web_form_name)
 	web_form.raise_if_unpublished()
@@ -913,7 +913,7 @@ def delete(web_form_name: str, docname: str | int, web_form_request_key: str | N
 
 
 @frappe.whitelist(methods=["POST", "DELETE"])
-@rate_limit(key="web_form_name", limit=10, seconds=60)
+@rate_limit(key="web_form_name", limit=999, seconds=60)
 def delete_multiple(web_form_name: str, docnames: str | list):
 	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
 	web_form.raise_if_unpublished()

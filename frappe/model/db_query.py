@@ -277,7 +277,7 @@ class DatabaseQuery:
 
 		meta = self.get_meta(self.doctype)
 
-		return meta.get_masked_fields()
+		return meta.get_masked_fields(parenttype=self.parent_doctype)
 
 	def build_and_run(self):
 		args = self.prepare_args()

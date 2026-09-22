@@ -13,6 +13,10 @@
       "import": "./src/components/FormLayout/index.ts",
       "types": "./src/components/FormLayout/index.ts"
     },
+    "./ActivityTimeline": {
+      "import": "./src/components/ActivityTimeline/index.ts",
+      "types": "./src/components/ActivityTimeline/index.ts"
+    },
     "./FileUpload": {
       "import": "./src/components/FileUpload/index.ts",
       "types": "./src/components/FileUpload/index.ts"
@@ -32,6 +36,10 @@
     "./Filter": {
       "import": "./src/components/Filter/index.ts",
       "types": "./src/components/Filter/index.ts"
+    },
+    "./ConditionBuilder": {
+      "import": "./src/components/ConditionBuilder/index.ts",
+      "types": "./src/components/ConditionBuilder/index.ts"
     },
     "./QuickFilter": {
       "import": "./src/components/QuickFilter/index.ts",

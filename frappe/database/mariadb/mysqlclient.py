@@ -422,7 +422,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 		indexes = self.sql(
 			f"""SHOW INDEX FROM `{table_name}`
-				WHERE Column_name = "{fieldname}"
+				WHERE Column_name = BINARY "{fieldname}"
 					AND Seq_in_index = 1
 					AND Non_unique={int(not unique)}
 					AND Index_type != 'FULLTEXT'

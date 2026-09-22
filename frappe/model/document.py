@@ -323,7 +323,9 @@ class Document(BaseDocument):
 			self.set(field.fieldname, mask_field_value(field, val))
 
 		for table_field in self.meta.get_table_fields():
-			child_mask_fields = frappe.get_meta(table_field.options).get_masked_fields()
+			child_mask_fields = frappe.get_meta(table_field.options).get_masked_fields(
+				parenttype=self.doctype
+			)
 			if not child_mask_fields:
 				continue
 
@@ -827,7 +829,6 @@ class Document(BaseDocument):
 		self._validate_data_fields()
 		self._validate_selects()
 		self._validate_non_negative()
-		self._validate_length()
 		self._fix_rating_value()
 		self._validate_code_fields()
 		self._sync_autoname_field()
@@ -835,18 +836,19 @@ class Document(BaseDocument):
 		self._sanitize_content()
 		self._save_passwords()
 		self.validate_workflow()
+		self._validate_length()
 
 		for d in self.get_all_children():
 			d._validate_data_fields()
 			d._validate_selects()
 			d._validate_non_negative()
-			d._validate_length()
 			d._fix_rating_value()
 			d._validate_code_fields()
 			d._sync_autoname_field()
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
 			d._save_passwords()
+			d._validate_length()
 		if self.is_new():
 			# don't set fields like _assign, _comments for new doc
 			for fieldname in optional_fields:
@@ -994,7 +996,7 @@ class Document(BaseDocument):
 		child_mask_fields = {
 			table_field.fieldname: masked
 			for table_field in self.meta.get_table_fields()
-			if (masked := frappe.get_meta(table_field.options).get_masked_fields())
+			if (masked := frappe.get_meta(table_field.options).get_masked_fields(parenttype=self.doctype))
 		}
 		if not mask_fields and not child_mask_fields:
 			return

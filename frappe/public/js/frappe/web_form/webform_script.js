@@ -16,7 +16,8 @@ frappe.ready(function () {
 			primary_action_label: __("Login"),
 			primary_action: () => {
 				window.location.replace(
-					"/login?redirect-to=" + window.location.pathname + window.location.search
+					"/login?redirect-to=" +
+						encodeURIComponent(window.location.pathname + window.location.search)
 				);
 			},
 		});

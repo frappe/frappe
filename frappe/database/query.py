@@ -337,9 +337,11 @@ class Engine:
 
 		self.add_permission_conditions()
 
-		# Store metadata for masked field processing during execution
-		self.query._doctype = self.doctype
-		self.query._fields_list = getattr(self, "fields", [])
+		if self.apply_permissions:
+			# Store metadata for masked field processing during execution.
+			self.query._doctype = self.doctype
+			self.query._parent_doctype = self.parent_doctype
+			self.query._fields_list = getattr(self, "fields", [])
 
 		self.query.immutable = True
 		return self.query
@@ -611,8 +613,8 @@ class Engine:
 		if self.db_query_compat and _value is None and _operator.casefold() in ("in", "not in"):
 			_value = ("",)
 
-		if _operator in NESTED_SET_OPERATORS:
-			hierarchy = _operator
+		if _operator.casefold() in NESTED_SET_OPERATORS:
+			hierarchy = _operator.casefold()
 			docname = _value
 
 			# Use the original field name string for get_field if _field was converted
@@ -1036,7 +1038,7 @@ class Engine:
 			# for select permission on parent doctype, allow all permlevel 0 fields in filters
 			cache_key = (doctype, None, "_filterable_select")
 			if cache_key not in self.permitted_fields_cache:
-				if doctype in PERMITTED_CORE_DOCTYPES:
+				if doctype in PERMITTED_CORE_DOCTYPES and doctype != "User":
 					# no restrictions - return all valid columns
 					self.permitted_fields_cache[cache_key] = set(meta.get_valid_columns())
 				else:
@@ -1044,11 +1046,22 @@ class Engine:
 					for df in meta.get_fieldnames_with_value(with_field_meta=True, with_virtual_fields=False):
 						if df.permlevel == 0:
 							permlevel_0_fields.add(df.fieldname)
+					if doctype == "User":
+						# user_type is permlevel 1 but not itself sensitive, and the built-in
+						# Link-field search (user.user_query) filters by it for every select-only caller
+						permlevel_0_fields.add("user_type")
 					self.permitted_fields_cache[cache_key] = permlevel_0_fields
 			return self.permitted_fields_cache[cache_key]
 		else:
 			# for read permission, use standard permitted fields
-			return self._get_cached_permitted_fields(doctype, parenttype, permission_type)
+			permitted_fields = self._get_cached_permitted_fields(doctype, parenttype, permission_type)
+			if doctype == "User" and "user_type" not in permitted_fields:
+				# user_type is permlevel 1 but not itself sensitive, and the built-in
+				# Link-field search (user.user_query) filters by it for every caller.
+				# Allow it for filtering only - do not mutate the cached set, since that
+				# is also used to check permission for selecting/returning fields.
+				return permitted_fields | {"user_type"}
+			return permitted_fields
 
 	def parse_string_field(self, field: str):
 		"""
@@ -1742,6 +1755,14 @@ class Engine:
 
 			quote_char = "`" if self.is_mariadb else '"'
 			for c in criteria_list:
+				if self.is_mariadb:
+					# pypika's ValueWrapper only escapes quote characters, not backslashes.
+					# MariaDB's default sql_mode treats `\` as an escape char inside string
+					# literals, so an unescaped trailing backslash lets a filter value break
+					# out of its quotes.
+					for node in c.nodes_():
+						if isinstance(node, ValueWrapper) and isinstance(node.value, str):
+							node.value = node.value.replace("\\", "\\\\")
 				conditions.append(c.get_sql(with_namespace=True, quote_char=quote_char))
 		finally:
 			self.apply_permissions = original_apply_permissions

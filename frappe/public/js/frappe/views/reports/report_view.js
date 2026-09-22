@@ -44,7 +44,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				this.order_by = this.report_doc.json.order_by;
 				this.add_totals_row = this.report_doc.json.add_totals_row;
 				this.page_title = __(this.report_name);
-				this.page_length = this.report_doc.json.page_length || 20;
+				this.selected_page_count = this.page_length =
+					this.report_doc.json.page_length || 20;
 				this.order_by = this.report_doc.json.order_by || "creation desc";
 				this.chart_args = this.report_doc.json.chart_args;
 			});
@@ -1296,6 +1297,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						if (!curr.column.docfield) return acc;
 
 						if (
+							curr.content &&
 							curr.column.docfield.fieldtype == "Link" &&
 							frappe.boot.link_title_doctypes.includes(curr.column.docfield.options)
 						) {

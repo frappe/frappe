@@ -83,7 +83,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	}
 
 	is_clear_button_enabled() {
-		return Boolean(cint(frappe.boot?.sysdefaults?.allow_clearing_link_fields));
+		return frappe.defaults.is_enabled("allow_clearing_link_fields");
 	}
 
 	hide_link_and_clear_buttons() {
@@ -845,7 +845,23 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}
 
 		if (this.df.link_filters && !!this.df.link_filters.length) {
-			args.filters = { ...(args.filters || {}), ...this.apply_link_field_filters() };
+			const link_filters = this.apply_link_field_filters();
+
+			if (Array.isArray(args.filters)) {
+				const doctype = this.get_options();
+				const fieldnames = Object.keys(link_filters);
+				args.filters = args.filters
+					.filter((filter) => {
+						const [filter_doctype, fieldname] =
+							filter.length >= 4 ? filter : [doctype, filter[0]];
+						return filter_doctype !== doctype || !fieldnames.includes(fieldname);
+					})
+					.concat(
+						fieldnames.map((fieldname) => [fieldname, ...link_filters[fieldname]])
+					);
+			} else {
+				args.filters = { ...(args.filters || {}), ...link_filters };
+			}
 		}
 	}
 

@@ -1094,6 +1094,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				[cstr(format_number(data.length, null, 0)).bold(), __("export").bold()]
 			);
 
+			if (this.datatable) {
+				this.datatable.destroy();
+				this.datatable = null;
+			}
+
 			this.toggle_message(true, `${frappe.utils.icon("solid-warning")} ${msg}`);
 			return;
 		}
@@ -1674,12 +1679,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		return print_settings.columns?.length || !custom_format ? "print_grid" : custom_format;
 	}
 
-	async get_report_print_format(report_name) {
-		const filters = {
-			name: report_name,
-			disabled: 0,
-		};
-		const r = await frappe.db.get_value("Print Format", filters, ["html", "css"]);
+	async get_report_print_format(print_format) {
+		const r = await frappe.call({
+			method: "frappe.desk.query_report.get_print_format_data",
+			args: { print_format },
+		});
 		if (r && r.message && r.message.html) {
 			const css = r.message.css || "";
 			const html = r.message.html || "";
@@ -1742,8 +1746,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	export_report() {
-		let visible_idx = this.get_validated_visible_indexes();
-
 		const extra_fields = [];
 		const applied_filters = this.get_applied_filters(this.get_filter_values());
 
@@ -1804,6 +1806,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			}) => {
 				this.make_access_log("Export", file_format);
 
+				const has_datatable = !!this.datatable;
+				let visible_idx = has_datatable ? this.get_validated_visible_indexes() : [];
+
 				const filters = this.get_filter_values(true);
 				const applied_filters = this.get_applied_filters(filters);
 
@@ -1811,10 +1816,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					filters.prepared_report_name = this.prepared_report_name;
 				}
 
-				// excluding total row index
-				const ignore_visible_idx =
-					visible_idx.length ===
-					this.data.length - (this.raw_data.add_total_row ? 1 : 0);
+				// visible_idx is a list of ORIGINAL row indices in DISPLAY order
+				// having both search-filter narrowing AND column sort. Only skip sending it
+				// when it exactly matches the default identity order [0, 1, ..., N-1]
+				// (i.e. neither sorted nor filtered), otherwise the server-side
+				// export would silently drop the user's UI sort direction.
+				const totalRows = this.data.length - (this.raw_data.add_total_row ? 1 : 0);
+				const isIdentityOrder =
+					visible_idx.length === totalRows && visible_idx.every((idx, i) => idx === i);
+				const ignore_visible_idx = !has_datatable || isIdentityOrder;
 				visible_idx = ignore_visible_idx ? [] : visible_idx;
 
 				const args = {
@@ -1967,7 +1977,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						this.report_doc.letter_head,
 						this.get_visible_columns(),
 						true,
-						"PDF Settings"
+						"PDF Settings",
+						this.report_doc.default_print_format
 					);
 					this.add_portrait_warning(dialog);
 				},
@@ -1996,6 +2007,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								fieldtype: "Select",
 								fieldname: "doctype",
 								label: __("From Document Type"),
+								reqd: 1,
 								options: this.linked_doctypes?.map((df) => ({
 									label: df.doctype + " (" + frappe.unscrub(df.fieldname) + ")",
 									value: JSON.stringify({
@@ -2036,6 +2048,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								fieldtype: "Autocomplete",
 								label: __("Field"),
 								fieldname: "field",
+								reqd: 1,
 								options: [],
 							},
 							{

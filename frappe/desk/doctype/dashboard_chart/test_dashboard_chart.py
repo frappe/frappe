@@ -10,7 +10,7 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import get
 from frappe.tests import IntegrationTestCase
-from frappe.utils import formatdate, get_last_day, getdate
+from frappe.utils import formatdate, get_last_day, getdate, now_datetime
 from frappe.utils.dateutils import get_period, get_period_ending
 
 
@@ -72,7 +72,8 @@ class TestDashboardChart(IntegrationTestCase):
 			timeseries=1,
 		).insert()
 
-		cur_date = datetime.now() - relativedelta(years=1)
+		# site timezone, same clock the chart uses; datetime.now() drifts a month at midnight
+		cur_date = now_datetime() - relativedelta(years=1)
 
 		result = get(chart_name="Test Dashboard Chart", refresh=1)
 
@@ -100,7 +101,8 @@ class TestDashboardChart(IntegrationTestCase):
 			timeseries=1,
 		).insert()
 
-		cur_date = datetime.now() - relativedelta(years=1)
+		# site timezone, same clock the chart uses; datetime.now() drifts a month at midnight
+		cur_date = now_datetime() - relativedelta(years=1)
 
 		result = get(chart_name="Test Empty Dashboard Chart", refresh=1)
 
@@ -131,7 +133,8 @@ class TestDashboardChart(IntegrationTestCase):
 			timeseries=1,
 		).insert()
 
-		cur_date = datetime.now() - relativedelta(years=1)
+		# site timezone, same clock the chart uses; datetime.now() drifts a month at midnight
+		cur_date = now_datetime() - relativedelta(years=1)
 
 		result = get(chart_name="Test Empty Dashboard Chart 2", refresh=1)
 
@@ -270,6 +273,36 @@ class TestDashboardChart(IntegrationTestCase):
 		with patch.object(frappe.utils.data, "get_user_date_format", return_value="mm-dd-yyyy"):
 			result = get(chart_name="Test Dashboard Chart Date Label")
 			self.assertEqual(sorted(result.get("labels")), sorted(["01-19-2019", "01-05-2019", "01-12-2019"]))
+
+	def test_chart_returns_data_when_last_synced_on_write_deadlocks(self):
+		chart_name = "Test Dashboard Chart Sync Conflict"
+		if frappe.db.exists("Dashboard Chart", chart_name):
+			frappe.delete_doc("Dashboard Chart", chart_name)
+
+		frappe.get_doc(
+			doctype="Dashboard Chart",
+			chart_name=chart_name,
+			chart_type="Count",
+			document_type="DocType",
+			based_on="creation",
+			timespan="Last Year",
+			time_interval="Monthly",
+			filters_json="{}",
+			timeseries=1,
+		).insert()
+
+		set_value = frappe.db.set_value
+
+		def deadlock_on_chart_write(doctype, *args, **kwargs):
+			if doctype == "Dashboard Chart":
+				raise frappe.QueryDeadlockError
+			return set_value(doctype, *args, **kwargs)
+
+		with patch.object(frappe.db, "set_value", side_effect=deadlock_on_chart_write):
+			result = get(chart_name=chart_name, refresh=1)
+
+		self.assertTrue(result.get("labels"))
+		self.assertIsNone(frappe.db.get_value("Dashboard Chart", chart_name, "last_synced_on"))
 
 
 def insert_test_records(doctype_name):

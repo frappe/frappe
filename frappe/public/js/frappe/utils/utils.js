@@ -933,7 +933,7 @@ Object.assign(frappe.utils, {
 		display_text = null,
 		query_params_obj = null
 	) {
-		display_text = display_text || name;
+		display_text = display_text || frappe.utils.escape_html(name);
 		name = encodeURIComponent(name);
 		let route = `/desk/${encodeURIComponent(
 			doctype.toLowerCase().replace(/ /g, "-")
@@ -2154,10 +2154,7 @@ Object.assign(frappe.utils, {
 	 * @returns {boolean}
 	 */
 	can_upload_public_files() {
-		if (
-			Number(frappe.boot.sysdefaults?.only_allow_system_managers_to_upload_public_files) !==
-			1
-		) {
+		if (!frappe.defaults.is_enabled("only_allow_system_managers_to_upload_public_files")) {
 			return true;
 		}
 		return frappe.user.has_role(["System Manager", "Administrator"]);

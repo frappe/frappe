@@ -594,7 +594,7 @@ frappe.ui.Page = class Page {
 	}
 
 	btn_disable_enable(btn, response) {
-		if (response && response.then) {
+		if (response && response.finally) {
 			btn.prop("disabled", true);
 			response.finally(() => {
 				btn.prop("disabled", false);

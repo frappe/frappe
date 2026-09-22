@@ -1,7 +1,7 @@
 <template>
 	<!-- shared card frame for email/comment rows; the header (incl. its padding) is fully slotted -->
 	<div
-		class="grow cursor-pointer overflow-hidden rounded-md border border-outline-gray-2 bg-surface-base text-base leading-6 transition-all duration-300 ease-in-out"
+		class="timeline-card grow overflow-hidden rounded-md border border-outline-gray-2 bg-surface-base text-base leading-6 transition-all duration-300 ease-in-out"
 	>
 		<slot name="header" />
 		<hr class="border-t border-outline-elevation-2" />
