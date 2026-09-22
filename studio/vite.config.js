@@ -77,11 +77,9 @@ export default defineConfig(async () => {
 				frappeProxy: true,
 				lucideIcons: true,
 				buildConfig: false,
-				// Its esbuild half calls build.resolve, which Vite 8's rolldown shim does not
-				// implement: the dep scan dies and pre-bundling is skipped, so deps are found
-				// mid-run and the page reloads under whatever is on screen. Nothing is lost —
-				// rolldown already replaces an absent @codemirror/lang-* with a throwing stub,
-				// which is what the plugin was there to do, and loadLanguage catches it.
+				// Avoid the plugin's incompatible esbuild adapter on Vite 8.
+				// Vite's pre-bundler already handles frappe-ui's missing optional peers
+				// with an error that loadLanguage catches and adds an install hint to.
 				codeLanguages: false,
 				jinjaBootData: false,
 			}),
