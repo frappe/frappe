@@ -59,13 +59,13 @@ def remove_orphaned_apps_and_pages():
 
 	for app in frappe.get_all("Studio App", filters=standard, pluck="name"):
 		if app not in apps:
-			print(f"Deleting orphan Studio App {app}")
+			print(f"Removing orphan Studio App {app}")
 			frappe.delete_doc("Studio App", app, force=True)
 
-	for page in frappe.get_all("Studio Page", filters=standard, pluck="name"):
-		if page not in pages:
-			print(f"Deleting orphan Studio Page {page}")
-			frappe.delete_doc("Studio Page", page, force=True, ignore_missing=True)
+	for page in frappe.get_all("Studio Page", filters=standard, fields=["name", "page_title"]):
+		if page.name not in pages:
+			print(f"Removing orphan Studio Page {page.page_title}")
+			frappe.delete_doc("Studio Page", page.name, force=True, ignore_missing=True)
 
 
 def get_exported_docnames() -> tuple[set[str], set[str]]:
