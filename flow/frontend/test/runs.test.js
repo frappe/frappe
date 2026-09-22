@@ -108,3 +108,27 @@ test("feedback lookups share the session scan and update when rows or runs chang
 	assert.equal(page.runForTurn("s", "turn:2").name, "R2");
 	assert.equal(page.runForTurn("s", "turn:7"), null);
 });
+
+test("a sub-agent's rows belong to its own thread, not to a run", async () => {
+	const { createPage } = await import("../src/page.js");
+	const page = createPage({ agents: [] });
+	const child = { subagent_id: "c1" };
+	const rows = [
+		started(1, "a"),
+		user(2),
+		{ ...started(3, "a-c1"), ...child },
+		{ ...user(4), ...child },
+		{ ...ended(5, "paused"), ...child },
+		{ ...started(6, "a-c2"), ...child },
+		{ ...ended(7), ...child },
+		ended(9),
+		started(10, "b"),
+		user(11),
+	];
+	page.onRows("s", rows, { replace: true });
+	page.onSession({ name: "s", runs: [{ name: "R1" }, { name: "R2" }] });
+	assert.equal(page.state.log.s.length, 5);
+	assert.equal(page.runForTurn("s", "turn:2").name, "R1");
+	assert.equal(page.runForTurn("s", "turn:4"), null);
+	assert.equal(page.runForTurn("s", "turn:11").name, "R2");
+});

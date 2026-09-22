@@ -33,8 +33,9 @@ export function createPage(boot, { refresh = () => {} } = {}) {
 	}
 
 	function onRows(sid, rows, { replace }) {
+		// a sub-agent's rows belong to its own thread, not to a run
 		const slim = rows
-			.filter((row) => typeof row.seq === "number")
+			.filter((row) => typeof row.seq === "number" && !row.subagent_id)
 			.map(({ type, seq, run_id, reason }) => ({ type, seq, run_id, reason }));
 		state.log[sid] = replace ? slim : [...(state.log[sid] ?? []), ...slim];
 	}
