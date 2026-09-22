@@ -21,7 +21,7 @@ Read [code_review.md](code_review.md) first and follow it in order: the checks b
 - Smallest correct change. Remove dead code and dead CSS you leave behind.
 - Desk UI: `frappe.utils.icon()`, `es-button`, `es-badge`, design tokens, gray accents.
 - Every user-facing string goes through `_()` or `__()`.
-- New behaviour and bug fixes come with a test that runs as a normal user, with `example.com` test data. Styling, copy and markup changes ship with a screenshot instead.
+- New behaviour and bug fixes come with a test that runs as a normal user, with `example.com` test data. Presentation-only changes ship with a screenshot instead; text or markup a caller depends on is behaviour and still needs a test.
 
 ## Never
 

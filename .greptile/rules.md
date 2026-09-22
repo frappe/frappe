@@ -32,8 +32,9 @@ unrelated actions.
   DocType, a missing permission check, a breaking change without `!` and a
   migration path.
 - New behaviour and bug fixes need a test that fails without the fix, run as a
-  normal user with `example.com` data. Do not ask for one on a styling, copy or
-  markup change; ask for a before and after screenshot.
+  normal user with `example.com` data. Do not ask for one on a presentation-only
+  change; ask for a before and after screenshot. Text or markup a caller or a
+  user depends on is behaviour, and still needs the test.
 - Leave formatting to pre-commit. Do not comment on style.
 - Business logic and validation belong on the server, in `validate`, `on_trash`
   or `on_update`, not in one whitelisted caller.
