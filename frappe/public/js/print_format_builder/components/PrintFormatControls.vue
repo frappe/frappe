@@ -1056,7 +1056,7 @@ function handle_slash_key(e) {
 }
 
 .pfb-tree-row.active {
-	background: var(--surface-gray-3);
+	background: var(--surface-gray-1);
 	color: var(--text-color);
 	font-weight: 500;
 }
