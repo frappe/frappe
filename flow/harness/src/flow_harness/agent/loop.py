@@ -95,6 +95,28 @@ AfterHook = Callable[[ToolCall, ToolResult], Any]
 NextSteering = Callable[[], UserMessage | None]
 
 
+@dataclass
+class TokenBudget:
+	"""What a run may spend, shared by a session and the sub-agents inside it.
+
+	Attributes:
+		limit: Ceiling on the running total.
+		spent: Fresh input and output tokens so far. Adapters report cache reads
+			within the input count, and providers discount them heavily, so they
+			are taken back out; cache creation stays in, since it is charged.
+	"""
+
+	limit: int
+	spent: int = 0
+
+	def add(self, usage: Usage) -> None:
+		self.spent += max(usage.input_tokens - usage.cache_read_tokens, 0) + usage.output_tokens
+
+	@property
+	def exhausted(self) -> bool:
+		return self.spent >= self.limit
+
+
 @dataclass(frozen=True)
 class LoopInputs:
 	"""Everything a run needs from its session, prepared once at admission.
@@ -129,6 +151,7 @@ class LoopInputs:
 	) = None
 	server_tools: dict[str, Tool] | None = None
 	extension_runtime: ExtensionRuntime | None = None
+	budget: TokenBudget | None = None
 
 
 _DENIED = json.dumps({"status": "denied", "message": "User denied this tool call."})
@@ -230,7 +253,7 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	}
 	ctx = _tool_context(inputs)
 
-	output_tokens = 0
+	budget = inputs.budget or TokenBudget(config.token_budget)
 	context = _ContextTracker(
 		usage_tokens=inputs.context_tokens,
 		usage_message_count=inputs.context_message_count,
@@ -242,9 +265,9 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 
 		async for event in _auto_compact(model, inputs, schemas, context):
 			if isinstance(event, Usage):
-				output_tokens += event.output_tokens
+				budget.add(event)
 			yield event
-		if output_tokens >= config.max_output_tokens:
+		if budget.exhausted:
 			yield RunEnded(reason="budget")
 			return
 
@@ -263,7 +286,7 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 			if isinstance(event, AssistantMessage):
 				assistant = event
 			elif isinstance(event, Usage):
-				output_tokens += event.output_tokens
+				budget.add(event)
 				if not event.standalone:
 					context.observe_usage(event, len(inputs.messages))
 					event = event.model_copy(update={"context_window": model.context_window})
@@ -302,7 +325,7 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 				yield RunEnded(reason="paused")
 				return
 
-		if output_tokens >= config.max_output_tokens:
+		if budget.exhausted:
 			yield RunEnded(reason="budget")
 			return
 

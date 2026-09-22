@@ -255,7 +255,7 @@ const END_NOTICES = {
 	aborted: "Interrupted by user",
 	denied: "Tool call denied by user",
 	max_turns: "Stopped — turn limit reached",
-	budget: "Stopped — output budget reached",
+	budget: "Stopped — token budget reached",
 	length: "Stopped — model hit its length limit",
 }
 
