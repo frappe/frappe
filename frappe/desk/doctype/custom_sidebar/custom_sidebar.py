@@ -599,6 +599,63 @@ def add_user_sidebar_item(module: str, user: str, item: dict) -> None:
 	doc.save()
 
 
+def layers_holding(
+	link_to: str, user: str | None = None, added_only: bool = False, not_labelled: str | None = None
+) -> list[frappe._dict]:
+	"""The layers holding a row that names this workspace, as `name` and `user`.
+
+	One query for however many layers there are, and it answers with the owner of each, which is
+	what the cache invalidation below needs. Asking `Sidebar Item` for parents and then asking
+	`Custom Sidebar` about those parents was two queries for one question.
+
+	`user` narrows it to one person's layers, `added_only` to rows that carry an item rather than
+	reference one, and `not_labelled` to rows whose label is out of date.
+	"""
+	item = frappe.qb.DocType("Sidebar Item")
+	layer = frappe.qb.DocType("Custom Sidebar")
+
+	query = (
+		frappe.qb.from_(item)
+		.join(layer)
+		.on(item.parent == layer.name)
+		.select(layer.name, layer.user)
+		.distinct()
+		.where(
+			(item.parenttype == "Custom Sidebar")
+			& (item.link_type == "Workspace")
+			& (item.link_to == link_to)
+		)
+	)
+	if user:
+		query = query.where(layer.user == user)
+	if added_only:
+		query = query.where(item.added == 1)
+	if not_labelled is not None:
+		# A row with no label at all is out of date too, and `<>` alone would not say so.
+		query = query.where((item.label != not_labelled) | item.label.isnull())
+
+	return query.run(as_dict=True)
+
+
+def forget_layers(layers: list[frappe._dict]) -> None:
+	"""Clear what a save or a delete of these layers would have cleared.
+
+	The writes below go through `frappe.db`, which touches no document and runs no hook, so the two
+	caches a `Custom Sidebar` keeps warm have to be dropped here: the document itself, which
+	`get_layers_for` reads through `get_cached_doc`, and the boot of whoever the layer belongs to.
+
+	This loops, and it has to: each user's boot is its own cache key. They are Redis deletes, not
+	queries, so the loop costs nothing that grows with the database.
+	"""
+	for layer in layers:
+		frappe.clear_document_cache("Custom Sidebar", layer.name)
+		if layer.user:
+			frappe.cache.hdel("bootinfo", layer.user)
+		else:
+			# The site's layer applies to everyone, so everyone's boot is stale.
+			frappe.cache.delete_key("bootinfo")
+
+
 def remove_workspace_rows(link_to: str, user: str | None = None) -> None:
 	"""Drop every row naming `link_to` as a workspace, from one user's layers or from all of them.
 
@@ -610,50 +667,68 @@ def remove_workspace_rows(link_to: str, user: str | None = None) -> None:
 	`user` narrows it to that user's own layers, which is what a page's owner needs. Left out,
 	every layer is cleaned, which is what a deleted page needs.
 
-	Each layer is saved rather than written to with `db`, so `on_trash`/`on_update` clear the boot
-	cache of whoever the layer belongs to.
+	Three statements, whatever the number of layers. This used to load and save each layer as a
+	document, which is fine for a private page, where only its owner holds a row, and not fine for
+	a shared one: every user who has ever arranged that module's sidebar holds a reference to it, so
+	deleting a workspace on a large site was a document read and a document write per user, inside
+	the delete. The rows are removed with `db.delete` instead and the caches are dropped by hand
+	(`forget_layers`), because nothing in a row removal needs `validate` to run.
+
+	It writes past permissions, as the document version did: this runs after a workspace is gone,
+	over every layer that named it, and somebody deleting a shared page they own cannot write the
+	arrangements of everyone who had put that page in their sidebar. Nothing user-supplied is
+	written -- rows naming one deleted document are removed, and nothing else is touched.
 	"""
-	rows = frappe.get_all(
+	layers = layers_holding(link_to, user)
+	if not layers:
+		return
+
+	names = [layer.name for layer in layers]
+	frappe.db.delete(
 		"Sidebar Item",
-		filters={
+		{
 			"parenttype": "Custom Sidebar",
 			"link_type": "Workspace",
 			"link_to": link_to,
+			"parent": ["in", names],
 		},
-		pluck="parent",
 	)
-	if not rows:
+	drop_layers_saying_nothing(names)
+	forget_layers(layers)
+
+
+def drop_layers_saying_nothing(names: list[str]) -> None:
+	"""Delete any of `names` left with no rows, no label and no icon.
+
+	An empty layer is not the same as an empty arrangement: one of these was never arranged, it just
+	lost the single row it was created for. Left behind it is read on every boot of whoever owns it,
+	which is a query to learn that nobody has an opinion.
+
+	Two statements rather than one delete per layer. The caller drops the caches.
+	"""
+	unopinionated = frappe.get_all(
+		"Custom Sidebar",
+		filters={
+			"name": ["in", names],
+			"label": ["in", ["", None]],
+			"header_icon": ["in", ["", None]],
+		},
+		pluck="name",
+	)
+	if not unopinionated:
 		return
 
-	filters = {"name": ["in", list(set(rows))]}
-	if user:
-		filters["user"] = user
-
-	for name in frappe.get_all("Custom Sidebar", filters=filters, pluck="name"):
-		doc = frappe.get_doc("Custom Sidebar", name)
-		doc.set(
-			"sidebar_items",
-			[
-				row
-				for row in doc.sidebar_items
-				if not (row.link_type == "Workspace" and row.link_to == link_to)
-			],
+	still_holding = set(
+		frappe.get_all(
+			"Sidebar Item",
+			filters={"parenttype": "Custom Sidebar", "parent": ["in", unopinionated]},
+			pluck="parent",
+			distinct=True,
 		)
-
-		# A layer with no rows, no label and no icon says nothing, and an empty layer is not the
-		# same as an empty arrangement: this one was never arranged, it just lost the single row it
-		# was created for. Left behind it is read on every boot of whoever owns it, which is a
-		# query to learn that nobody has an opinion.
-		if not doc.sidebar_items and not doc.label and not doc.header_icon:
-			frappe.delete_doc("Custom Sidebar", name, ignore_permissions=True, force=True)
-			continue
-
-		# ignore_permissions, and it has to be: this runs after a workspace is gone, over every
-		# layer that named it, which includes layers belonging to other people. Someone deleting a
-		# shared page they own cannot write the arrangements of everyone who had put that page in
-		# their sidebar, and those rows have to go all the same. Nothing user-supplied reaches the
-		# rows here; it removes rows naming one document and writes nothing else.
-		doc.save(ignore_permissions=True)
+	)
+	empty = [name for name in unopinionated if name not in still_holding]
+	if empty:
+		frappe.db.delete("Custom Sidebar", {"name": ["in", empty]})
 
 
 def relabel_workspace_rows(link_to: str, label: str) -> None:
@@ -665,31 +740,29 @@ def relabel_workspace_rows(link_to: str, label: str) -> None:
 
 	The rows named a private page in practice, since those are the added rows a page's own write
 	path creates.
+
+	One update, whatever the number of rows, for the reason `remove_workspace_rows` gives: this runs
+	inside a workspace save, and a rename must not cost a document write per layer. It writes past
+	permissions on the same terms, and the only value it writes is the page's own title.
 	"""
-	rows = frappe.get_all(
+	layers = layers_holding(link_to, added_only=True, not_labelled=label)
+	if not layers:
+		return
+
+	frappe.db.set_value(
 		"Sidebar Item",
-		filters={
+		{
 			"parenttype": "Custom Sidebar",
 			"link_type": "Workspace",
 			"link_to": link_to,
 			"added": 1,
-			"label": ["!=", label],
+			"parent": ["in", [layer.name for layer in layers]],
 		},
-		pluck="parent",
+		"label",
+		label,
+		update_modified=False,
 	)
-	if not rows:
-		return
-
-	for name in set(rows):
-		doc = frappe.get_doc("Custom Sidebar", name)
-		for row in doc.sidebar_items:
-			if row.added and row.link_type == "Workspace" and row.link_to == link_to:
-				row.label = label
-
-		# ignore_permissions, for the same reason as `remove_workspace_rows`: a rename has to reach
-		# every stored copy of the old name, wherever it was kept, and the person renaming the page
-		# is not the owner of all those layers. The only value written is the page's own title.
-		doc.save(ignore_permissions=True)
+	forget_layers(layers)
 
 
 def add_site_sidebar_item(module: str, item: dict) -> None:

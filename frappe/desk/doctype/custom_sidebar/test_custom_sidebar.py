@@ -9,6 +9,7 @@ from frappe.desk.doctype.custom_sidebar.custom_sidebar import (
 	get_layers_for,
 	get_site_sidebar_layer,
 	get_user_sidebar_layer,
+	remove_workspace_rows,
 	reset_site_sidebar,
 	reset_to_standard,
 	reset_user_sidebar,
@@ -1247,6 +1248,54 @@ class TestAPrivatePageWritesItsRows(CustomizationTestCase):
 		page.save(ignore_permissions=True)
 
 		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [(page.name, "Test Rows Renamed Page")])
+
+	def held_by(self, page, holders: int):
+		"""Put a row naming `page` in `holders` different users' layers."""
+		for i in range(holders):
+			email = f"test-sidebar-holder-{i}@example.com"
+			make_user(email, ["Desk User"])
+			self.addCleanup(frappe.delete_doc, "User", email, force=True, ignore_missing=True)
+			layer = frappe.new_doc("Custom Sidebar")
+			layer.module = MODULE
+			layer.user = email
+			layer.append(
+				"sidebar_items",
+				{
+					"added": 1,
+					"type": "Link",
+					"link_type": "Workspace",
+					"link_to": page.name,
+					"label": page.title,
+				},
+			)
+			layer.insert(ignore_permissions=True)
+
+	def test_deleting_a_page_costs_the_same_however_many_layers_hold_it(self):
+		"""A shared page is referenced by everyone who has arranged the module that lists it, so a
+		document read and a document write per layer made deleting one cost a round trip per user of
+		the site. The statements are set-based now, so the cost is the same for one layer and eight.
+
+		The number itself is not the claim, which is why the same bound is asserted twice rather
+		than written down once: what must hold is that it does not grow.
+		"""
+		one = self.make_page("Test Rows Held Once", for_user="", public=1)
+		self.held_by(one, 1)
+		with self.assertQueryCount(6):
+			remove_workspace_rows(one.name)
+
+		many = self.make_page("Test Rows Held Widely", for_user="", public=1)
+		self.held_by(many, 8)
+		with self.assertQueryCount(6):
+			remove_workspace_rows(many.name)
+
+		self.assertEqual(
+			frappe.get_all(
+				"Sidebar Item",
+				filters={"parenttype": "Custom Sidebar", "link_to": ["in", [one.name, many.name]]},
+				pluck="name",
+			),
+			[],
+		)
 
 	def test_it_can_be_deleted_on_a_developer_site(self):
 		"""A page nobody exported has no folder to remove, and asking for one is not free: the path
