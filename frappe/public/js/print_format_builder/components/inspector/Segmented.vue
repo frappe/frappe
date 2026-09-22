@@ -3,7 +3,8 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import { watch } from "vue";
+import { useDeskWidget } from "../../composables/useDeskWidget";
 
 const props = defineProps({
 	modelValue: { type: [String, Number, Boolean], default: undefined },
@@ -11,28 +12,24 @@ const props = defineProps({
 });
 const emit = defineEmits(["update:modelValue"]);
 
-const host = ref(null);
-let group = null;
+const { host, widget } = useDeskWidget(
+	(el) =>
+		frappe.ui
+			.tab_buttons({
+				options: props.options,
+				value: props.modelValue,
+				size: "sm",
+				on_change: (value) => emit("update:modelValue", value),
+			})
+			.appendTo(el)
+			.data("es-tab-buttons"),
+	[() => props.options]
+);
 
-function render() {
-	host.value.replaceChildren();
-	const $el = frappe.ui.tab_buttons({
-		options: props.options,
-		value: props.modelValue,
-		size: "sm",
-		on_change: (value) => emit("update:modelValue", value),
-	});
-	group = $el.data("es-tab-buttons");
-	$el.appendTo(host.value);
-}
-
-onMounted(render);
-onUnmounted(() => host.value?.replaceChildren());
-
-watch(() => props.options, render, { deep: true });
 watch(
 	() => props.modelValue,
 	(value) => {
+		const group = widget.value;
 		if (group && group.get_value() !== value) group.set_value(value, { silent: true });
 	}
 );
