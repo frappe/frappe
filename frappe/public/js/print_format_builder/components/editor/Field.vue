@@ -27,6 +27,7 @@
 		<!-- ── Preview mode: show actual doc values ─────────── -->
 		<template v-if="preview_doc">
 			<FieldPreview :df="df" />
+			<SectionRadiusHandle v-if="show_radius_handle" :target="df" prop="table_radius" />
 		</template>
 
 		<FieldChip v-else ref="chip" :df="df" :field_orientation="field_orientation" />
@@ -37,6 +38,7 @@
 import { computed, inject, ref } from "vue";
 import FieldPreview from "./FieldPreview.vue";
 import FieldChip from "./FieldChip.vue";
+import SectionRadiusHandle from "./SectionRadiusHandle.vue";
 import { field_uid } from "../../utils";
 import { useContextMenu } from "../../composables/useContextMenu";
 import { useFieldRoot } from "./useFieldRoot";
@@ -50,6 +52,14 @@ const is_selected = computed(
 	() => store.selected_field.value === props.df || store.selected_fields.value.includes(props.df)
 );
 const is_field_visible = computed(() => store.is_visible(props.df.visible_if));
+// a table draws its own frame, so it takes the same corner handle a section has
+const show_radius_handle = computed(
+	() =>
+		!!preview_doc.value &&
+		props.df.fieldtype === "Table" &&
+		is_selected.value &&
+		store.selected_fields.value.length <= 1
+);
 const { preview_root, preview_data_attr } = useFieldRoot(props, preview_doc);
 
 function select_field(e) {
