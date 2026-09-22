@@ -14,7 +14,7 @@ from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.permissions import check_doctype_permission
 from frappe.rate_limiter import rate_limit
-from frappe.utils import cint, dict_with_keys, now_datetime, strip_html
+from frappe.utils import cint, cstr, dict_with_keys, now_datetime, strip_html
 from frappe.utils.caching import redis_cache
 from frappe.utils.data import escape_html
 from frappe.website.doctype.web_form_request.web_form_request import (
@@ -1322,6 +1322,13 @@ def get_link_options(
 
 	link_options = frappe.get_all(doctype, filters, fields)
 
+	# the portal matches with `value.toLowerCase()`, which throws on an autoincrement name or
+	# a numeric title field. cstr, not str, so a missing title stays ""
+	for row in link_options:
+		row.value = cstr(row.value)
+		if show_title_field:
+			row.label = cstr(row.label)
+
 	if show_title_field:
 		if meta.translated_doctype:
 			# Translate the labels if "Translate Link Fields" is enabled
@@ -1334,7 +1341,7 @@ def get_link_options(
 			return [{"value": row.value, "label": _(row.value)} for row in link_options]
 
 		# Use the actual names as options without labels
-		return "\n".join([str(doc.value) for doc in link_options])
+		return "\n".join([doc.value for doc in link_options])
 
 
 def authorize_link_access(web_form, doctype, web_form_request_key=None):

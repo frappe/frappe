@@ -17,6 +17,10 @@ from frappe.website.doctype.web_form.web_form import (
 TARGET = "Test WF MultiSelect Target"
 ROW = "Test WF MultiSelect Row"
 PARENT = "Test WF MultiSelect Parent"
+NUMBERED = "Test WF MultiSelect Numbered"
+NUMBERED_ROW = "Test WF MultiSelect Numbered Row"
+UNTITLED = "Test WF MultiSelect Untitled"
+UNTITLED_ROW = "Test WF MultiSelect Untitled Row"
 
 
 class TestWebFormTableMultiSelect(IntegrationTestCase):
@@ -34,6 +38,32 @@ class TestWebFormTableMultiSelect(IntegrationTestCase):
 			permissions=[],
 			fields=[{"fieldname": "target", "fieldtype": "Link", "label": "Target", "options": TARGET}],
 		).insert(ignore_if_duplicate=True)
+		# integer names shown by title: the branch that ships raw JSON
+		new_doctype(
+			NUMBERED,
+			fields=[{"fieldname": "title", "fieldtype": "Data", "label": "Title"}],
+			autoname="autoincrement",
+			title_field="title",
+			show_title_field_in_link=1,
+		).insert(ignore_if_duplicate=True)
+		new_doctype(
+			NUMBERED_ROW,
+			istable=1,
+			permissions=[],
+			fields=[{"fieldname": "target", "fieldtype": "Link", "label": "Target", "options": NUMBERED}],
+		).insert(ignore_if_duplicate=True)
+		# integer names with no title field: the branch that ships a joined string
+		new_doctype(
+			UNTITLED,
+			fields=[{"fieldname": "note", "fieldtype": "Data", "label": "Note"}],
+			autoname="autoincrement",
+		).insert(ignore_if_duplicate=True)
+		new_doctype(
+			UNTITLED_ROW,
+			istable=1,
+			permissions=[],
+			fields=[{"fieldname": "target", "fieldtype": "Link", "label": "Target", "options": UNTITLED}],
+		).insert(ignore_if_duplicate=True)
 		new_doctype(
 			PARENT,
 			fields=[
@@ -44,16 +74,35 @@ class TestWebFormTableMultiSelect(IntegrationTestCase):
 					"label": "Targets",
 					"options": ROW,
 				},
+				{
+					"fieldname": "numbers",
+					"fieldtype": "Table MultiSelect",
+					"label": "Numbers",
+					"options": NUMBERED_ROW,
+				},
+				{
+					"fieldname": "untitled",
+					"fieldtype": "Table MultiSelect",
+					"label": "Untitled",
+					"options": UNTITLED_ROW,
+				},
 			],
 		).insert(ignore_if_duplicate=True)
 
 		for title in ("Alpha", "Beta", "Gamma"):
 			frappe.get_doc(doctype=TARGET, title=title).insert(ignore_if_duplicate=True)
 
+		cls.numbered_names = [
+			str(frappe.get_doc(doctype=NUMBERED, title=title).insert().name) for title in ("One", "Two")
+		]
+		cls.untitled_names = [
+			str(frappe.get_doc(doctype=UNTITLED, note=note).insert().name) for note in ("First", "Second")
+		]
+
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.rollback()
-		for doctype in (PARENT, ROW, TARGET):
+		for doctype in (PARENT, ROW, TARGET, NUMBERED_ROW, NUMBERED, UNTITLED_ROW, UNTITLED):
 			frappe.delete_doc("DocType", doctype, force=True)
 		super().tearDownClass()
 
@@ -140,7 +189,28 @@ class TestWebFormTableMultiSelect(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			self.submit(web_form, [])
 
-	def make_web_form(self, field_settings=None, **settings):
+	def test_link_options_are_strings_for_an_autoincrement_doctype(self):
+		"""The control matches with value.toLowerCase(), so an integer name throws on a keystroke."""
+		web_form = self.make_web_form(link_field="numbers", options=NUMBERED_ROW)
+		frappe.set_user("Guest")
+
+		options = self.link_options(web_form, fieldname="numbers", raw=True)
+
+		self.assertEqual(sorted(row["value"] for row in options), sorted(self.numbered_names))
+		for row in options:
+			self.assertIsInstance(row["value"], str)
+
+	def test_link_options_join_for_an_autoincrement_doctype_without_a_title_field(self):
+		"""Without a title field the options ship as one joined string, which integers break."""
+		web_form = self.make_web_form(link_field="untitled", options=UNTITLED_ROW)
+		frappe.set_user("Guest")
+
+		options = self.link_options(web_form, fieldname="untitled", raw=True)
+
+		# equality, not a subset: it pins the count, so an empty join cannot pass
+		self.assertEqual(sorted(options), sorted(self.untitled_names))
+
+	def make_web_form(self, field_settings=None, link_field="targets", options=ROW, **settings):
 		"""Unique names keep get_cached_doc from serving a stale form."""
 		suffix = frappe.generate_hash(length=8)
 		web_form = frappe.get_doc(
@@ -155,10 +225,10 @@ class TestWebFormTableMultiSelect(IntegrationTestCase):
 				"web_form_fields": [
 					{"fieldname": "title", "fieldtype": "Data", "label": "Title"},
 					{
-						"fieldname": "targets",
+						"fieldname": link_field,
 						"fieldtype": "Table MultiSelect",
-						"label": "Targets",
-						"options": ROW,
+						"label": link_field.title(),
+						"options": options,
 						**(field_settings or {}),
 					},
 				],
@@ -192,13 +262,15 @@ class TestWebFormTableMultiSelect(IntegrationTestCase):
 		clear_permissions_cache(doctype)
 		self.addCleanup(lambda: (reset_perms(doctype), clear_permissions_cache(doctype)))
 
-	def link_options(self, web_form, **kwargs):
+	def link_options(self, web_form, fieldname="targets", raw=False, **kwargs):
 		"""The options the portal control filters in the browser, as the page ships them."""
 		out = get_form_data(doctype=PARENT, web_form_name=web_form.name, **kwargs)
-		field = next(f for f in out.web_form.web_form_fields if f.fieldname == "targets")
+		field = next(f for f in out.web_form.web_form_fields if f.fieldname == fieldname)
 		options = field.fields[0]["link_options"]
 		if isinstance(options, str):
 			options = options.split("\n") if options[0] != "[" else json.loads(options)
+		if raw:
+			return options
 		return sorted(row["value"] if isinstance(row, dict) else row for row in options)
 
 	def submit(self, web_form, targets):
