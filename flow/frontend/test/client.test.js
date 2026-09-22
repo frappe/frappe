@@ -278,3 +278,12 @@ test("skills come from the session's agent, or the page's agent before a chat st
 		["flow.api.skills", { agent: "Support" }],
 	]);
 });
+
+test("a resume names the batch it answers, so a sub-agent's can be told apart", async () => {
+	const transport = fakeTransport({ "flow.api.resume": { run: "R1", status: "started" } });
+	const client = new FrappeClient({ boot, transport });
+	await client.resume("S1", 8, { c9: "Approve" });
+	assert.deepEqual(transport.calls, [
+		["flow.api.resume", { session: "S1", answers: { c9: "Approve" }, approval_seq: 8 }],
+	]);
+});
