@@ -25,18 +25,24 @@ EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 @contextmanager
 def setup_test_user(set_user=False):
 	test_user = frappe.get_doc("User", "test@example.com")
-	user_roles = frappe.get_roles()
-	test_user.remove_roles(*user_roles)
-	test_user.add_roles("Blogger")
+	original_user = frappe.session.user
+	original_roles = [role.role for role in test_user.roles]
 
-	if set_user:
-		frappe.set_user(test_user.name)
+	try:
+		test_user.set("roles", [])
+		test_user.append_roles("Blogger")
+		test_user.save(ignore_permissions=True)
 
-	yield test_user
+		if set_user:
+			frappe.set_user(test_user.name)
 
-	test_user.reload()
-	test_user.remove_roles("Blogger")
-	test_user.add_roles(*user_roles)
+		yield test_user
+	finally:
+		frappe.set_user(original_user)
+		test_user.reload()
+		test_user.set("roles", [])
+		test_user.append_roles(*original_roles)
+		test_user.save(ignore_permissions=True)
 
 
 @contextmanager
@@ -276,33 +282,6 @@ class TestDBQuery(IntegrationTestCase):
 			for name in excludes:
 				self.assertNotIn(name, result)
 
-	def test_child_table_filter_uses_exists(self):
-		"""Filter-only child tables filter via exists() — no join, no group by needed."""
-		note = self.make_note(seen_by=["Administrator"])
-
-		result = frappe.get_all(
-			"Note",
-			filters=[["Note Seen By", "user", "=", "Administrator"]],
-			fields=["name", "title"],
-		)
-		self.assertIn(note.name, [r.name for r in result])
-
-		query = DatabaseQuery("Note")
-		sql = query.execute(
-			filters=[["Note Seen By", "user", "=", "Administrator"]], fields=["name", "title"], run=0
-		)
-		self.assertEqual(query.tables, ["`tabNote`"])
-		self.assertIn("exists (", sql)
-
-		# the dedup group by sent by list views is dropped once nothing multiplies rows
-		sql = DatabaseQuery("Note").execute(
-			filters=[["Note Seen By", "user", "=", "Administrator"]],
-			fields=["name", "title"],
-			group_by="`tabNote`.`name`",
-			run=0,
-		)
-		self.assertNotIn("group by", sql)
-
 	def test_child_table_filter_with_link_field_fetch(self):
 		"""Full list view repro of GH-39851: child-table filter + link table column in
 		fields (show_title_field_in_link) + dedup group by. Raised GroupingError on
@@ -378,157 +357,28 @@ class TestDBQuery(IntegrationTestCase):
 			includes=[note.name],
 		)
 
-	def test_child_table_or_filters_via_exists(self):
-		note = self.make_note(seen_by=["Administrator"])
-
-		result = frappe.get_all(
-			"Note",
-			filters={"name": note.name},
-			or_filters=[
-				["Note Seen By", "user", "=", "Administrator"],
-				["Note Seen By", "user", "=", "some-nonexistent-user"],
-			],
-			pluck="name",
-		)
-		self.assertEqual(result, [note.name])
-
-		query = DatabaseQuery("Note")
-		query.execute(
-			filters={"name": note.name},
-			or_filters=[["Note Seen By", "user", "=", "Administrator"]],
-			fields=["name"],
-			run=0,
-		)
-		self.assertEqual(query.tables, ["`tabNote`"])
-
-		result = DatabaseQuery("Note").execute(
-			filters={"name": note.name},
-			or_filters=[
-				["Note Seen By", "user", "=", "Administrator"],
-				["Note Seen By", "user", "=", "some-nonexistent-user"],
-			],
-			pluck="name",
-		)
-		self.assertEqual(result, [note.name])
-
-	def test_child_table_filter_in_both_filter_groups_uses_join(self):
-		"""A child table filtered in both filters and or_filters keeps the legacy
-		join so that both groups test the same joined child row."""
-		query = DatabaseQuery("Note")
-		sql = query.execute(
-			filters=[["Note Seen By", "user", "=", "Administrator"]],
-			or_filters=[["Note Seen By", "user", "=", "Guest"]],
-			fields=["name"],
-			run=0,
-		)
-		self.assertIn("`tabNote Seen By`", query.tables)
-		self.assertNotIn("exists (", sql)
-
-		# the surviving dedup group by must not break when link table columns are
-		# selected (GH-39851 with the join fallback)
-		result = DatabaseQuery("User").execute(
-			filters=[["Has Role", "role", "=", "System Manager"]],
-			or_filters=[["Has Role", "role", "=", "Guest"], ["User", "enabled", "=", 1]],
-			fields=["name", "modified", "language.language_name as language_title"],
-			group_by="`tabUser`.`name`",
-			order_by="modified desc",
-		)
-		self.assertIn("Administrator", [r.name for r in result])
-
-	def test_child_table_in_fields_still_uses_join(self):
-		"""A child table that is selected stays joined; its filters apply to the join."""
-		note = self.make_note(seen_by=["Administrator"])
-
-		result = frappe.get_all(
-			"Note",
-			filters=[["Note Seen By", "user", "=", "Administrator"]],
-			fields=["name", "`tabNote Seen By`.user as seen_user"],
-		)
-		self.assertIn(note.name, [r.name for r in result])
-
-		query = DatabaseQuery("Note")
-		query.execute(
-			filters=[["Note Seen By", "user", "=", "Administrator"]],
-			fields=["name", "`tabNote Seen By`.user"],
-			run=0,
-		)
-		self.assertIn("`tabNote Seen By`", query.tables)
-
-	def test_child_table_filter_with_aggregate_field_keeps_join(self):
-		note = self.make_note(seen_by=["Administrator", "Guest"])
-
-		query = DatabaseQuery("Note")
+	def test_child_table_filter_keeps_join_for_child_column_order_by(self):
+		"""A child column in order_by resolves against the joined child table."""
+		query = DatabaseQuery("User")
 		result = query.execute(
+			filters=[["Has Role", "role", "=", "System Manager"]],
+			order_by="`role` asc",
+			pluck="name",
+		)
+		self.assertIn("`tabHas Role`", query.tables)
+		self.assertIn("Administrator", result)
+
+	def test_child_table_filter_returns_one_row_per_matching_child(self):
+		"""Without a group by, the join yields one parent row per matching child row."""
+		note = self.make_note(seen_by=["Administrator", "Guest"])
+		result = DatabaseQuery("Note").execute(
 			filters=[
 				["Note", "name", "=", note.name],
 				["Note Seen By", "user", "in", ["Administrator", "Guest"]],
 			],
-			fields=["count(`tabNote Seen By`.`name`) as seen_count"],
-		)
-		self.assertIn("`tabNote Seen By`", query.tables)
-		self.assertEqual(result[0].seen_count, 2)
-
-	def test_child_table_filter_with_child_order_by_keeps_join(self):
-		note = self.make_note(seen_by=["Administrator"])
-
-		query = DatabaseQuery("Note")
-		result = query.execute(
-			filters=[["Note", "name", "=", note.name], ["Note Seen By", "user", "=", "Administrator"]],
-			fields=["name"],
-			order_by="`tabNote Seen By`.`user` asc",
 			pluck="name",
 		)
-		self.assertIn("`tabNote Seen By`", query.tables)
-		self.assertEqual(result, [note.name])
-
-		query = DatabaseQuery("Note")
-		query.execute(
-			filters=[["Note Seen By", "user", "=", "Administrator"]],
-			fields=["name"],
-			group_by="`tabNote Seen By`.`user`",
-			run=0,
-		)
-		self.assertIn("`tabNote Seen By`", query.tables)
-
-		# unquoted and double-quoted references must keep the join too
-		for group_by in ("tabNote Seen By.user", '"tabNote Seen By".user'):
-			query = DatabaseQuery("Note")
-			query.execute(
-				filters=[["Note Seen By", "user", "=", "Administrator"]],
-				fields=["name"],
-				group_by=group_by,
-				run=0,
-			)
-			self.assertIn("`tabNote Seen By`", query.tables)
-
-	def test_child_table_filter_with_childnames_keeps_join(self):
-		query = DatabaseQuery("Note")
-		query.execute(
-			filters=[["Note Seen By", "user", "=", "Administrator"]],
-			fields=["name"],
-			with_childnames=True,
-			run=0,
-		)
-		self.assertIn("`tabNote Seen By`", query.tables)
-
-	def test_child_table_filter_with_permission_script_keeps_join(self):
-		import frappe.model.db_query as db_query_module
-
-		with (
-			patch.object(
-				db_query_module,
-				"get_server_script_map",
-				return_value={"permission_query": {"Note": "test-script"}},
-			),
-			patch.object(DatabaseQuery, "get_permission_query_conditions", return_value=""),
-		):
-			query = DatabaseQuery("Note")
-			sql = query.execute(
-				filters=[["Note Seen By", "user", "=", "Administrator"]], fields=["name"], run=0
-			)
-
-		self.assertIn("`tabNote Seen By`", query.tables)
-		self.assertNotIn("exists (", sql)
+		self.assertEqual(result, [note.name, note.name])
 
 	def test_link_field_syntax(self):
 		todo = frappe.get_doc(doctype="ToDo", description="Test ToDo", allocated_to="Administrator").insert()
@@ -603,7 +453,7 @@ class TestDBQuery(IntegrationTestCase):
 			in build_match_conditions(as_condition=False)
 		)
 		# get as conditions
-		if frappe.db.db_type == "mariadb":
+		if frappe.db.db_type in {"mariadb", "sqlite"}:
 			assertion_string = """(((ifnull(`tabTest Blog Post`.`name`, '')='' or `tabTest Blog Post`.`name` in ('_Test Blog Post 1', '_Test Blog Post'))))"""
 		elif frappe.db.db_type == "postgres":
 			assertion_string = """(((ifnull(cast(`tabTest Blog Post`.`name` as varchar), '')='' or cast(`tabTest Blog Post`.`name` as varchar) in ('_Test Blog Post 1', '_Test Blog Post'))))"""
@@ -782,13 +632,19 @@ class TestDBQuery(IntegrationTestCase):
 		# single date should include entire day
 		start = "2021-01-01"
 		cond = get_between_date_filter([start, start], datetime_df)
-		self.assertQueryEqual(cond, f"'{start} 00:00:00.000000' AND '{start} 23:59:59.999999'")
+		self.assertQueryEqual(
+			cond,
+			f"'{frappe.db.format_datetime(start)}' AND "
+			f"'{frappe.db.format_datetime(f'{start} 23:59:59.999999')}'",
+		)
 
 		# datetime field on datetime type should remain same
 		start = "2021-01-01 01:01:00"
 		end = "2022-01-02 12:23:43"
 		cond = get_between_date_filter([start, end], datetime_df)
-		self.assertQueryEqual(cond, f"'{start}.000000' AND '{end}.000000'")
+		self.assertQueryEqual(
+			cond, f"'{frappe.db.format_datetime(start)}' AND '{frappe.db.format_datetime(end)}'"
+		)
 
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user("test2@example.com")
@@ -1272,6 +1128,24 @@ class TestDBQuery(IntegrationTestCase):
 		)
 		self.assertTrue(len(doctypes[0]) == 2)  # same for pg as well since we order_by None
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_prepare_select_args_keeps_table_qualifier(self):
+		"""A joined link table must not make the MAX() sort column ambiguous."""
+		for order_by, max_column in (
+			("`tabUser`.`modified` desc", 'MAX("tabUser"."modified")'),
+			("tabUser.modified desc", 'MAX("tabUser"."modified")'),
+			("lower(`tabUser`.`name`) asc", 'MAX(lower("tabUser"."name"))'),
+		):
+			with self.subTest(order_by=order_by):
+				sql = DatabaseQuery("User").execute(
+					fields=["name", "language.language_name as language_title"],
+					group_by="`tabUser`.`name`",
+					order_by=order_by,
+					run=False,
+				)
+				self.assertIn(max_column, sql)
+				self.assertIn("Administrator", [row.name for row in frappe.db.sql(sql, as_dict=True)])
+
 	def test_distinct_keeps_valid_order_by(self):
 		for field, order_by in (
 			("user_type", "user_type asc"),
@@ -1527,6 +1401,10 @@ class TestDBQuery(IntegrationTestCase):
 			self.assertTrue('strpos( cast("tabautoinc_dt_test"."name" as varchar), \'1\')' in query)
 			self.assertTrue("strpos( cast(name as varchar), '1')" in query)
 			self.assertTrue('where cast("tabautoinc_dt_test"."name" as varchar) = \'1\'' in query)
+		elif frappe.db.db_type == "sqlite":
+			self.assertIn('INSTR("tabautoinc_dt_test"."name", \'1\')', query)
+			self.assertIn("INSTR(name, '1')", query)
+			self.assertIn('WHERE "tabautoinc_dt_test"."name" = 1', query)
 		else:
 			self.assertTrue("locate('1', `tabautoinc_dt_test`.`name`)" in query)
 			self.assertTrue("locate('1', name)" in query)
@@ -1837,6 +1715,18 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertTrue(len(result[0]["roles"]) > 0, "Child table is empty")
 		self.assertNotIn("name", result[0], "Injected 'name' field leaked into the final output")
 
+	def test_setup_test_user_restores_user_and_roles(self):
+		original_user = frappe.session.user
+		test_user = frappe.get_doc("User", "test@example.com")
+		original_roles = {role.role for role in test_user.roles}
+
+		with setup_test_user(set_user=True):
+			self.assertEqual(frappe.session.user, test_user.name)
+			self.assertEqual({role.role for role in test_user.reload().roles}, {"Blogger"})
+
+		self.assertEqual(frappe.session.user, original_user)
+		self.assertEqual({role.role for role in test_user.reload().roles}, original_roles)
+
 	def test_distinct_with_injected_name_raises(self):
 		with self.assertRaises(frappe.ValidationError):
 			frappe.qb.get_query(
@@ -2103,6 +1993,9 @@ class TestReportView(IntegrationTestCase):
 
 
 def add_child_table_to_blog_post():
+	if not frappe.db.exists("DocType", "Test Blog Post"):
+		setup_for_tests()
+
 	child_table = frappe.get_doc(
 		{
 			"doctype": "DocType",

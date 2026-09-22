@@ -3,6 +3,7 @@
  "allow_rename": 1,
  "creation": "2021-09-05 12:59:01.932327",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/guides/deployment/packages",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

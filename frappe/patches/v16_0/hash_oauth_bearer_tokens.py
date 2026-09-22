@@ -50,6 +50,19 @@ def execute():
 def delete_duplicate_refresh_tokens():
 	frappe.db.multisql(
 		{
+			"sqlite": """
+				DELETE FROM "tabOAuth Bearer Token"
+				WHERE name IN (
+					SELECT name FROM (
+						SELECT name, ROW_NUMBER() OVER (
+							PARTITION BY refresh_token ORDER BY creation DESC, name DESC
+						) AS row_num
+						FROM "tabOAuth Bearer Token"
+						WHERE refresh_token IS NOT NULL
+					) AS duplicate_tokens
+					WHERE row_num > 1
+				)
+			""",
 			"mariadb": """
 				DELETE FROM `tabOAuth Bearer Token`
 				WHERE name IN (

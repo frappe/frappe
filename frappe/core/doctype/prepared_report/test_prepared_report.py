@@ -2,11 +2,11 @@
 # License: MIT. See LICENSE
 import json
 import time
+import unittest
 from contextlib import contextmanager
 
 import frappe
 from frappe.desk.query_report import generate_report_result, get_report_doc
-from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase, timeout
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 
@@ -64,6 +64,10 @@ class TestPreparedReport(IntegrationTestCase):
 		self.assertEqual(len(prepared_data["result"]), len(generated_data["result"]))
 		self.assertEqual(len(prepared_data), len(generated_data))
 
+	@unittest.skipIf(
+		frappe.conf.db_type == "sqlite",
+		"This test needs a database sleep function, which SQLite does not provide.",
+	)
 	def test_start_status_and_kill_jobs(self):
 		if frappe.db.db_type == "postgres":
 			query = "select pg_sleep(5)"

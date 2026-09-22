@@ -5,6 +5,7 @@
  "creation": "2019-02-28 17:12:18.815830",
  "description": "Automatically Assign Documents to Users",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/assignment-rule",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

@@ -3,6 +3,7 @@
  "autoname": "hash",
  "creation": "2018-06-25 18:39:11.152960",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/prepared-report",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

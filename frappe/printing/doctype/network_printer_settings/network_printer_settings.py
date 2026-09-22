@@ -24,6 +24,7 @@ class NetworkPrinterSettings(Document):
 
 	@frappe.whitelist()
 	def get_printers_list(self):
+		self.check_permission("write")
 		printer_list = []
 		try:
 			import cups

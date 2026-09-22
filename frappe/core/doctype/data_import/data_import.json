@@ -4,6 +4,7 @@
  "autoname": "format:{reference_doctype} Import on {creation}",
  "creation": "2019-08-04 14:16:08.318714",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/data-import",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
@@ -258,6 +259,7 @@
   }
  ],
  "hide_toolbar": 1,
+ "icon": "import",
  "links": [],
  "modified": "2026-05-30 23:17:40.195392",
  "modified_by": "Administrator",

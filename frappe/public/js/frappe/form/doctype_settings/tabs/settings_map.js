@@ -82,10 +82,10 @@ function render_field($body, group, field) {
 	const $row = $('<div class="dts-setting"></div>').appendTo($body);
 	field.$row = $row; // referenced by apply_dependencies() to show/hide the field
 
-	const $text = $('<div class="dts-setting-text"></div>').appendTo($row);
-	$('<div class="dts-setting-label text-base-medium"></div>').text(field.label).appendTo($text);
+	const $text = $('<div class="min-w-0"></div>').appendTo($row);
+	$('<div class="text-base-medium text-ink-gray-8"></div>').text(field.label).appendTo($text);
 	if (field.description) {
-		$('<div class="dts-setting-description text-p-sm"></div>')
+		$('<div class="dts-setting-description text-p-sm text-ink-gray-5"></div>')
 			.text(field.description)
 			.appendTo($text);
 	}
@@ -159,7 +159,7 @@ function save(group, field, value, revert) {
 		.then(() => {
 			field.value = value;
 			group.doc[field.fieldname] = value;
-			frappe.show_alert({ message: __("{0} updated", [group.label]), indicator: "green" });
+			frappe.ui.toast({ message: __("{0} updated", [group.label]), type: "success" });
 		})
 		.catch(() => revert && revert());
 }

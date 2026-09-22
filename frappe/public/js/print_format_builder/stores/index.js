@@ -1,27 +1,32 @@
 import {
+	ZONE_KEYS,
 	clone_plain,
 	create_default_layout,
-	layout_nodes,
+	pluck,
 	serialize_layout,
 	typst_blockers_client,
 } from "../utils";
+import { fields, layout_nodes } from "../layout";
+import { useConditions } from "../composables/useConditions";
 import { useLayoutHistory } from "./useLayoutHistory";
 import { usePreviewDoc } from "../composables/usePreviewDoc";
 import { useSelection } from "../composables/useSelection";
 import { useLayoutMutations } from "../composables/useLayoutMutations";
 import { useClipboard } from "../composables/useClipboard";
 import { useSnippets } from "../composables/useSnippets";
-import { watch, ref, inject, computed, nextTick } from "vue";
+import { watch, ref, computed, nextTick } from "vue";
+import { useDraftSave } from "./useDraftSave";
+import { useVersions } from "./useVersions";
 
 export function getStore(print_format_name) {
 	// variables
 	let print_format = ref(null);
+	let viewing_version = ref(null);
 	let letterhead = ref(null);
 	let meta = ref(null);
 	let layout = ref(null);
 	let dirty = ref(false);
 	let needs_setup = ref(false);
-	let edit_letterhead = ref(false);
 	let scroll_target = ref(null);
 	let hovered_field = ref(null);
 	let hovered_section = ref(null);
@@ -43,7 +48,6 @@ export function getStore(print_format_name) {
 		select_section,
 		select_letterhead,
 		remove_field,
-		align_selected_fields,
 	} = selection;
 
 	// remove everything currently selected — field tombstones + spliced sections
@@ -62,15 +66,7 @@ export function getStore(print_format_name) {
 
 	// body fields flattened in layout order — shared by shift-range and marquee select
 	function ordered_body_fields() {
-		const out = [];
-		for (const section of layout.value?.sections || []) {
-			for (const column of section.columns || []) {
-				for (const field of column.fields || []) {
-					if (!field.remove) out.push(field);
-				}
-			}
-		}
-		return out;
+		return (layout.value?.sections || []).flatMap((section) => [...fields(section)]);
 	}
 	function select_field_range(target) {
 		const all = ordered_body_fields();
@@ -98,6 +94,7 @@ export function getStore(print_format_name) {
 		load_preview_doc,
 		persisted_preview_doc_name,
 	} = usePreviewDoc(print_format, print_format_name);
+	const { condition_state, is_visible } = useConditions(layout, preview_doc);
 
 	// methods
 	function fetch() {
@@ -122,22 +119,36 @@ export function getStore(print_format_name) {
 						: Promise.resolve(saved_layout);
 					layout_ready.then((resolved_layout) => {
 						const converted = is_classic && !!resolved_layout;
-						layout.value = resolved_layout || get_default_layout();
-						layout.value.sections = layout.value.sections.filter((s) => !s.remove);
-						layout.value.header = migrate_to_section(layout.value.header);
-						layout.value.footer = migrate_to_section(layout.value.footer);
-						edit_letterhead.value = false;
+						adopt_layout(resolved_layout);
 						selected_field.value = null;
 						selected_section.value = null;
 						selected_letterhead.value = false;
 						selected_lh_footer.value = false;
 
 						const lh_name = layout.value?.letter_head;
-						const load_lh = lh_name
-							? frappe.db
-									.get_doc("Letter Head", lh_name)
-									.then((doc) => (letterhead.value = doc))
-							: Promise.resolve((letterhead.value = null));
+						// mirrors the server's get_letterhead: a named letter head loads,
+						// "" is an explicit removal, and an absent key falls back to the
+						// system default — the canvas must show what the print will use
+						let load_lh;
+						if (lh_name) {
+							load_lh = frappe.db
+								.get_doc("Letter Head", lh_name)
+								.then((doc) => (letterhead.value = doc))
+								.catch(() => (letterhead.value = null));
+						} else if (lh_name === "") {
+							load_lh = Promise.resolve((letterhead.value = null));
+						} else {
+							load_lh = frappe.db
+								.get_value("Letter Head", { is_default: 1 }, "name")
+								.then((r) => {
+									const name = r?.message?.name;
+									if (!name) return (letterhead.value = null);
+									return frappe.db
+										.get_doc("Letter Head", name)
+										.then((doc) => (letterhead.value = doc));
+								})
+								.catch(() => (letterhead.value = null));
+						}
 
 						load_lh.then(() => {
 							reset_history();
@@ -185,7 +196,7 @@ export function getStore(print_format_name) {
 			});
 	}
 	function migrate_to_section(value) {
-		if (value && typeof value === "object" && value.columns) return value;
+		if (value && typeof value === "object" && value.columns) return pluck(value, ZONE_KEYS);
 		const old_html = typeof value === "string" && value.trim() ? value : null;
 		return {
 			columns: [
@@ -205,147 +216,64 @@ export function getStore(print_format_name) {
 			],
 		};
 	}
-	// count, not a flag — autosave and a manual save can overlap
-	let saving_count = ref(0);
-	let save_failed = ref(false);
-	let has_draft = ref(false);
-	let save_status = computed(() =>
-		save_failed.value
-			? "failed"
-			: saving_count.value > 0
-			? "saving"
-			: has_draft.value
-			? "draft"
-			: "saved"
-	);
-	// bumped by every apply/discard so a reply from an autosave that was already in
-	// flight can't put the draft back after it was cleared
-	let draft_epoch = 0;
-	function save_changes() {
-		frappe.dom.freeze(__("Applying…"));
-		saving_count.value++;
-		draft_epoch++;
-		applying = true;
+	const {
+		undo,
+		redo,
+		reset: reset_history,
+		pause: pause_history,
+		can_undo,
+		can_redo,
+	} = useLayoutHistory(layout, clear_selection);
 
-		// an autosave already in flight will move `modified` on; wait it out so this
-		// explicit save reads the fresh stamp instead of being rejected as stale
-		Promise.resolve(autosave_promise)
-			.catch(() => {})
-			.then(() => {
-				// the letterhead goes first so apply-time validation reads its live state
-				if (letterhead.value && letterhead.value._dirty) {
-					return frappe
-						.call("frappe.client.save", {
-							doc: letterhead.value,
-						})
-						.then((r) => (letterhead.value = r.message));
-				}
-			})
-			.then(() =>
-				frappe.call("frappe.printing.doctype.print_format.print_format.apply_draft", {
-					name: print_format_name,
-					data: get_preview_format_doc(),
-					modified: print_format.value.modified,
-				})
-			)
-			.then(() => fetch())
-			.then(() => {
-				autosave_stopped = false;
-				save_failed.value = false;
-				frappe.show_alert({ message: __("Applied"), indicator: "green" });
-			})
-			.catch(() => (save_failed.value = true))
-			.finally(() => {
-				applying = false;
-				saving_count.value--;
-				frappe.dom.unfreeze();
-			});
+	function clear_selection() {
+		selected_field.value = null;
+		selected_section.value = null;
 	}
+	const {
+		saving_count,
+		save_failed,
+		has_draft,
+		save_status,
+		call_format,
+		after_autosave,
+		replace_from_server,
+		save_changes,
+		save_letterhead,
+		autosave,
+	} = useDraftSave({
+		name: print_format_name,
+		print_format,
+		letterhead,
+		layout,
+		dirty,
+		viewing_version,
+		get_preview_format_doc,
+		fetch,
+		after_replace: () => history_panel.refresh_if_open(),
+	});
+	const history_panel = useVersions({
+		name: print_format_name,
+		print_format,
+		dirty,
+		viewing_version,
+		call_format,
+		after_autosave,
+		replace_from_server,
+		get_preview_format_doc,
+		adopt_layout,
+		pause_history,
+		clear_selection,
+	});
+	const { forget_version, exit_version, toggle_history, close_history, load_versions } =
+		history_panel;
 	function discard_draft() {
-		// freeze like save_changes does — an edit made while the round trip runs
-		// would be silently erased when fetch() replaces the layout
-		frappe.dom.freeze(__("Discarding…"));
-		draft_epoch++;
-		applying = true;
-		return Promise.resolve(autosave_promise)
-			.catch(() => {})
-			.then(() =>
-				frappe.call("frappe.printing.doctype.print_format.print_format.discard_draft", {
-					name: print_format_name,
-					modified: print_format.value.modified,
-				})
-			)
-			.then(() => fetch())
-			.then(() => {
-				// discarding is a deliberate reset, so it re-arms autosave the same
-				// way an apply does — otherwise edits after a failure stay in memory
-				autosave_stopped = false;
-				save_failed.value = false;
-				frappe.show_alert({ message: __("Draft discarded"), indicator: "green" });
-			})
-			.finally(() => {
-				applying = false;
-				frappe.dom.unfreeze();
-			});
+		forget_version();
+		return replace_from_server(
+			__("Discarding…"),
+			() => call_format("discard_draft", { modified: print_format.value.modified }),
+			__("Draft discarded")
+		);
 	}
-	// stops after a failure so the error dialog doesn't loop; a manual save re-arms it
-	let autosave_stopped = false;
-	// one autosave at a time — a second would carry the same `modified` as the one
-	// still in flight and be rejected as stale. An apply/discard moves the timestamp
-	// too, so a queued autosave waits for it rather than firing against the old one.
-	let autosave_inflight = false;
-	// the in-flight autosave, so an explicit save can wait for it to settle
-	let autosave_promise = null;
-	let applying = false;
-	function autosave_changes() {
-		if (!dirty.value || autosave_stopped) return;
-		if (applying || autosave_inflight || document.body.classList.contains("pfb-dragging")) {
-			autosave();
-			return;
-		}
-		autosave_inflight = true;
-		dirty.value = false;
-		saving_count.value++;
-		const epoch = draft_epoch;
-		autosave_promise = frappe
-			.call({
-				method: "frappe.printing.doctype.print_format.print_format.save_draft",
-				args: {
-					name: print_format_name,
-					data: get_preview_format_doc(),
-					modified: print_format.value.modified,
-				},
-			})
-			.then((r) => {
-				// sync only the stamp — the user may have kept editing mid-request
-				const was_dirty = dirty.value;
-				print_format.value.modified = r.message;
-				if (epoch !== draft_epoch) return;
-				has_draft.value = true;
-				if (!was_dirty) nextTick(() => (dirty.value = false));
-				if (letterhead.value && letterhead.value._dirty) {
-					return frappe
-						.call("frappe.client.save", { doc: letterhead.value })
-						.then((res) => {
-							letterhead.value.modified = res.message.modified;
-							letterhead.value._dirty = false;
-						});
-				}
-			})
-			.then(() => (save_failed.value = false))
-			.catch(() => {
-				// an apply landed first and moved the timestamp on — not a failure
-				if (epoch !== draft_epoch) return;
-				autosave_stopped = true;
-				dirty.value = true;
-				save_failed.value = true;
-			})
-			.always(() => {
-				autosave_inflight = false;
-				saving_count.value--;
-			});
-	}
-	const autosave = frappe.utils.debounce(autosave_changes, 3000);
 	function get_preview_format_doc() {
 		const snapshot = clone_plain(layout.value);
 		serialize_layout(snapshot);
@@ -388,15 +316,16 @@ export function getStore(print_format_name) {
 			}
 		});
 	}
-
-	const {
-		undo,
-		redo,
-		reset: reset_history,
-	} = useLayoutHistory(layout, () => {
-		selected_field.value = null;
-		selected_section.value = null;
-	});
+	function adopt_layout(resolved) {
+		// a corrupt format_data can parse to anything; the server normalises the same
+		// input to an empty layout rather than leaving the builder blank
+		const usable = resolved && typeof resolved === "object" && !Array.isArray(resolved);
+		layout.value = usable ? resolved : get_default_layout();
+		const sections = layout.value.sections;
+		layout.value.sections = Array.isArray(sections) ? sections.filter((s) => !s.remove) : [];
+		layout.value.header = migrate_to_section(layout.value.header);
+		layout.value.footer = migrate_to_section(layout.value.footer);
+	}
 
 	watch(
 		layout,
@@ -460,7 +389,7 @@ export function getStore(print_format_name) {
 		insert_section,
 		insert_field,
 	});
-	const { snippets, save_snippet, insert_snippet, delete_snippet } = useSnippets({
+	const { snippets, prompt_snippet, insert_snippet, delete_snippet } = useSnippets({
 		insert_section,
 		insert_field,
 		doc_type: computed(() => print_format.value?.doc_type),
@@ -475,7 +404,6 @@ export function getStore(print_format_name) {
 		has_typst_block,
 		dirty,
 		needs_setup,
-		edit_letterhead,
 		scroll_target,
 		hovered_field,
 		hovered_section,
@@ -484,7 +412,6 @@ export function getStore(print_format_name) {
 		selected_fields,
 		remove_selection,
 		remove_field,
-		align_selected_fields,
 		selected_section,
 		selected_sections,
 		selected_letterhead,
@@ -492,15 +419,36 @@ export function getStore(print_format_name) {
 		is_multi_select,
 		preview_doc,
 		preview_doc_name,
+		condition_state,
+		is_visible,
 		preview_values,
 		preview_child_values,
 		load_preview_doc,
 		persisted_preview_doc_name,
 		fetch,
-		save_changes,
-		save_status,
-		has_draft,
-		discard_draft,
+		draft: {
+			saving_count,
+			save_failed,
+			has_draft,
+			status: save_status,
+			save: save_changes,
+			discard: discard_draft,
+		},
+		versions: {
+			list: history_panel.versions,
+			viewing: viewing_version,
+			open: history_panel.show_history,
+			load: load_versions,
+			save: history_panel.save_version,
+			remove: history_panel.delete_version,
+			restore: history_panel.restore_version,
+			view: history_panel.view_version,
+			exit: exit_version,
+			toggle: toggle_history,
+			close: close_history,
+		},
+		can_undo,
+		can_redo,
 		get_preview_format_doc,
 		select_field,
 		set_selected,
@@ -511,7 +459,6 @@ export function getStore(print_format_name) {
 		select_section,
 		select_letterhead,
 		remove_section,
-		get_layout,
 		get_default_layout,
 		change_letterhead,
 		remove_letterhead,
@@ -524,32 +471,11 @@ export function getStore(print_format_name) {
 		duplicate_selection,
 		move_selection,
 		snippets,
-		save_snippet,
+		prompt_snippet,
 		insert_snippet,
 		delete_snippet,
 		paste_clipboard,
 		undo,
 		redo,
 	};
-}
-
-export function useStore() {
-	// inject store
-	let store = ref(inject("$store"));
-
-	// computed
-	let print_format = computed(() => {
-		return store.value.print_format;
-	});
-	let layout = computed(() => {
-		return store.value.layout;
-	});
-	let letterhead = computed(() => {
-		return store.value.letterhead;
-	});
-	let meta = computed(() => {
-		return store.value.meta;
-	});
-
-	return { print_format, layout, letterhead, meta, store };
 }

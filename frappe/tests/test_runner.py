@@ -1,6 +1,10 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
+import os
+import subprocess
+import sys
+import textwrap
 import threading
 import unittest
 from types import SimpleNamespace
@@ -55,3 +59,70 @@ class TestSourceWatch(unittest.TestCase):
 		with patch.object(threading, "Timer") as timer:
 			watch.dispatch(make_event())
 		self.assertEqual(timer.call_count, 0)
+
+
+class TestCloseInheritedFds(unittest.TestCase):
+	"""Which descriptors reach the next generation of the runner.
+
+	The call closes the descriptors of the whole process, so it runs in a child.
+	"""
+
+	def _run(self, body: str) -> str:
+		script = textwrap.dedent(body)
+		child = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, timeout=60)
+		self.assertEqual(child.returncode, 0, child.stderr)
+		return child.stdout.strip()
+
+	def test_an_open_file_is_closed(self):
+		output = self._run("""
+			import os
+			from frappe.runner import close_inherited_fds
+
+			fd = os.open(os.devnull, os.O_RDONLY)
+			close_inherited_fds()
+			try:
+				os.fstat(fd)
+				print("open")
+			except OSError:
+				print("closed")
+		""")
+		self.assertEqual(output, "closed")
+
+	def test_the_standard_streams_survive(self):
+		output = self._run("""
+			import os
+			from frappe.runner import close_inherited_fds
+
+			close_inherited_fds()
+			os.write(1, b"stdout\\n")
+			os.fstat(0)
+			os.fstat(2)
+		""")
+		self.assertEqual(output, "stdout")
+
+	def test_the_count_stays_flat_across_execs(self):
+		output = self._run("""
+			import os
+			import sys
+			from frappe.runner import close_inherited_fds
+
+			if not os.path.isdir("/proc/self/fd"):
+				print("skip")
+				raise SystemExit
+
+			generation = int(os.environ.get("GENERATION", "0"))
+			# An open() of python sets close-on-exec. The leak comes from the
+			# libraries that do not, so the descriptor here must outlive an exec.
+			fd = os.open(os.devnull, os.O_RDONLY)
+			os.set_inheritable(fd, True)
+			print(len(os.listdir("/proc/self/fd")), flush=True)
+			if generation < 2:
+				os.environ["GENERATION"] = str(generation + 1)
+				close_inherited_fds()
+				os.execv(sys.executable, sys.orig_argv)
+		""")
+		if output == "skip":
+			self.skipTest("no /proc on this platform")
+		counts = output.splitlines()
+		self.assertEqual(len(counts), 3, output)
+		self.assertEqual(len(set(counts)), 1, f"the count grew across the execs: {counts}")

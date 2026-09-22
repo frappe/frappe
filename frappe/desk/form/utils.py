@@ -10,7 +10,7 @@ import frappe.desk.form.meta
 from frappe import _
 from frappe.core.doctype.file.utils import extract_images_from_html
 from frappe.desk.form.document_follow import _follow_document
-from frappe.query_builder.functions import IfNull
+from frappe.query_builder.functions import Cast, IfNull
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.comment.comment import Comment
@@ -104,7 +104,22 @@ def get_next(
 
 	table = frappe.qb.DocType(doctype)
 	name_column = table.name
-	current_sort_value = frappe.db.get_value(doctype, value, sort_field)
+	current_sort_column = table[sort_field]
+	sort_field_meta = frappe.get_meta(doctype).get_field(sort_field)
+	if (
+		frappe.db.db_type == "sqlite"
+		and sort_field_meta
+		and sort_field_meta.fieldtype
+		in (
+			"Date",
+			"Datetime",
+			"Time",
+		)
+	):
+		# SQLite's type converters can normalize a stored date-only value to a datetime.
+		# Compare against the original text so the current row does not sort before itself.
+		current_sort_column = Cast(current_sort_column, "text")
+	current_sort_value = frappe.db.get_value(doctype, value, current_sort_column)
 	fallback = _sort_field_fallback(doctype, sort_field)
 	if fallback is not None:
 		sort_column = IfNull(table[sort_field], fallback)

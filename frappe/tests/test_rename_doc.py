@@ -38,6 +38,18 @@ def patch_db(endpoints: list[str] | None = None):
 
 
 class TestRenameSingleDocType(IntegrationTestCase):
+	def test_rename_single_document_is_rejected(self):
+		doctype = new_doctype("Test Single Rename Rejected", issingle=1).insert()
+
+		with self.assertRaisesRegex(frappe.ValidationError, "Single DocTypes cannot be renamed"):
+			frappe.rename_doc(doctype.name, doctype.name, f"{doctype.name} New", force=True)
+
+	def test_single_doctype_disables_allow_rename(self):
+		doctype = new_doctype("Test Single Rename Disabled", issingle=1, allow_rename=1).insert()
+
+		self.assertFalse(doctype.allow_rename)
+		self.assertFalse(frappe.db.get_value("DocType", doctype.name, "allow_rename"))
+
 	def test_rename_single_doctype(self):
 		old_name = "Test Single Rename Old"
 		new_name = "Test Single Rename New"

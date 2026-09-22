@@ -4,7 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.model.naming import parse_naming_series
+from frappe.model.naming import getseries, parse_naming_series
 from frappe.utils.data import evaluate_filters
 
 
@@ -44,28 +44,27 @@ class DocumentNamingRule(Document):
 		self.clear_doctype_map()
 
 	def validate_fields_in_conditions(self):
-		if self.has_value_changed("document_type"):
-			docfields = [x.fieldname for x in frappe.get_meta(self.document_type).fields]
-			for condition in self.conditions:
-				if condition.field not in docfields:
-					frappe.throw(
-						_("{0} is not a field of doctype {1}").format(
-							frappe.bold(condition.field), frappe.bold(self.document_type)
-						)
+		meta = frappe.get_meta(self.document_type)
+		for condition in self.conditions:
+			if not meta.has_field(condition.field):
+				frappe.throw(
+					_("{0} is not a field of doctype {1}").format(
+						frappe.bold(condition.field), frappe.bold(self.document_type)
 					)
+				)
 
 	def apply(self, doc):
 		"""
 		Apply naming rules for the given document. Will set `name` if the rule is matched.
+
+		Conditions are evaluated one at a time: Filters.optimize collapses repeated equalities on a
+		field into an `in`, which would read the rows as alternatives rather than requirements.
 		"""
-		if self.conditions:
-			if not evaluate_filters(
-				doc, [(self.document_type, d.field, d.condition, d.value) for d in self.conditions]
-			):
-				return
+		if not all(
+			evaluate_filters(doc, [(self.document_type, d.field, d.condition, d.value)])
+			for d in self.conditions
+		):
+			return
 
-		counter = frappe.db.get_value(self.doctype, self.name, "counter", for_update=True) or 0
-		naming_series = parse_naming_series(self.prefix, doc=doc)
-
-		doc.name = naming_series + ("%0" + str(self.prefix_digits) + "d") % (counter + 1)
-		frappe.db.set_value(self.doctype, self.name, "counter", counter + 1)
+		prefix = parse_naming_series(self.prefix, doc=doc)
+		doc.name = prefix + getseries(prefix, self.prefix_digits)

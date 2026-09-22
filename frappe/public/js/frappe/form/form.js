@@ -1942,7 +1942,16 @@ frappe.ui.form.Form = class FrappeForm {
 				if (docfield._original_label === undefined) {
 					docfield._original_label = docfield.label;
 				}
-				var label = __(docfield._original_label || "", null, docfield.parent);
+				// Strip a trailing placeholder like "(Company Currency)" before appending the
+				// resolved currency, so it isn't rendered twice (e.g. "Rate (Company Currency)
+				// (SAR)"). Matched on the untranslated label, and only against a *trailing*
+				// parenthetical that mentions "currency" -- so "Rate (ex-tax)", or "currency"
+				// mentioned anywhere but at the very end, are left untouched.
+				var base_label = (docfield._original_label || "").replace(
+					/\s*\([^)]*currency[^)]*\)\s*$/i,
+					""
+				);
+				var label = __(base_label, null, docfield.parent);
 				if (parentfield) {
 					grid_field_label_map[doctype + "-" + fname] =
 						label.trim() + " (" + currency + ")";
@@ -2391,26 +2400,29 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	set_link_field(doctype, new_doc, fieldname) {
-		let me = this;
-		frappe.get_meta(doctype).fields.forEach(function (df) {
-			const isLinkToParent = df.fieldtype === "Link" && df.options === me.doctype;
+		const fields = frappe.get_meta(doctype).fields;
+		const links_to_parent = (df) => df.fieldtype === "Link" && df.options === this.doctype;
 
-			if (fieldname) {
-				if (df.fieldname === fieldname && isLinkToParent) {
-					new_doc[df.fieldname] = me.doc.name;
-				}
-				if (df.fieldtype === "Table" && df.options && df.reqd) {
-					me.set_link_field(df.options, new_doc[df.fieldname][0]);
-				}
+		if (fieldname) {
+			if (fields.some((df) => df.fieldname === fieldname && links_to_parent(df))) {
+				new_doc[fieldname] = this.doc.name;
 				return;
 			}
 
-			if (isLinkToParent) {
-				new_doc[df.fieldname] = me.doc.name;
-			} else if (["Link", "Dynamic Link"].includes(df.fieldtype) && me.doc[df.fieldname]) {
-				new_doc[df.fieldname] = me.doc[df.fieldname];
+			// link is not on the parent, look for it in a mandatory child table
+			fields
+				.filter((df) => df.fieldtype === "Table" && df.options && df.reqd)
+				.forEach((df) => this.set_link_field(df.options, new_doc[df.fieldname][0]));
+			return;
+		}
+
+		fields.forEach((df) => {
+			if (links_to_parent(df)) {
+				new_doc[df.fieldname] = this.doc.name;
+			} else if (["Link", "Dynamic Link"].includes(df.fieldtype) && this.doc[df.fieldname]) {
+				new_doc[df.fieldname] = this.doc[df.fieldname];
 			} else if (df.fieldtype === "Table" && df.options && df.reqd) {
-				me.set_link_field(df.options, new_doc[df.fieldname][0]);
+				this.set_link_field(df.options, new_doc[df.fieldname][0]);
 			}
 		});
 	}

@@ -56,7 +56,8 @@ describe("useLiveDocinfo", () => {
 		live.dispose();
 		expect(socket.emitted.at(-1)).toEqual(["doc_unsubscribe", "Lead", "L-1"]);
 		expect(socket.listeners("docinfo_update")).toBe(0);
-		expect(socket.listeners("connect")).toBe(0);
+		// The one left is the socket module's own: it rejoins held rooms after a reconnect.
+		expect(socket.listeners("connect")).toBe(1);
 		expect(socket.listeners("disconnect")).toBe(0);
 	});
 
