@@ -9,6 +9,8 @@ from frappe.database import get_duckdb
 from frappe.database.duckdb.schema import DuckDBTable
 from frappe.model.document import Document
 
+SOURCE_DB_ALIAS = "source_db"
+
 
 class DuckDBSync(Document):
 	# begin: auto-generated types
@@ -166,16 +168,50 @@ def sync_using_pyarrow(conn, dt, duck_tb):
 			del arrow_table
 
 
+def as_dsn_value(value, quote):
+	"""Quote one connection string value, which escapes with a backslash.
+
+	The PostgreSQL scanner reads single quoted values and the MySQL scanner double quoted
+	ones. Either scanner passes the other character through untouched.
+	"""
+	escaped = str(value).replace("\\", "\\\\").replace(quote, f"\\{quote}")
+	return f"{quote}{escaped}{quote}"
+
+
+def as_sql_literal(value):
+	"""Quote one SQL string literal, which escapes by doubling the quote."""
+	escaped = str(value).replace("'", "''")
+	return f"'{escaped}'"
+
+
+def get_attach_query():
+	"""Attach the site database through the DuckDB scanner that matches its engine."""
+	is_postgres = frappe.db.db_type == "postgres"
+	settings = {
+		"user": frappe.conf.db_user or frappe.conf.db_name,
+		"password": frappe.conf.db_password,
+		"host": frappe.conf.db_host or "127.0.0.1",
+		"dbname" if is_postgres else "database": frappe.conf.db_name,
+		"port": frappe.conf.db_port or (5432 if is_postgres else 3306),
+	}
+	quote = "'" if is_postgres else '"'
+	dsn = " ".join(f"{key}={as_dsn_value(value, quote)}" for key, value in settings.items())
+
+	options = ["TYPE postgres" if is_postgres else "TYPE mysql"]
+	if is_postgres:
+		options.append(f"SCHEMA {as_sql_literal(frappe.db.db_schema)}")
+
+	return f"attach {as_sql_literal(dsn)} as {SOURCE_DB_ALIAS} ({', '.join(options)});"
+
+
 def sync_using_extension(conn, dt, duck_tb):
 	try:
 		conn.execute(f'delete from "{duck_tb.table_name}";').fetchall()
-		conn.sql(
-			f"attach 'user={frappe.conf.db_name} password={frappe.conf.db_password} host={frappe.conf.db_host} database={frappe.conf.db_name} port={frappe.conf.db_port}' as mariadb_db (TYPE mysql);"
-		)
+		conn.sql(get_attach_query())
 		columns = frappe.get_meta(dt).get_valid_columns()
 		# quotted fields
 		columns_sql = ", ".join([f'"{x}"' for x in columns])
-		query = f'insert into "{duck_tb.table_name}" ({columns_sql}) select {columns_sql} from mariadb_db."{duck_tb.table_name}";'
+		query = f'insert into "{duck_tb.table_name}" ({columns_sql}) select {columns_sql} from {SOURCE_DB_ALIAS}."{duck_tb.table_name}";'
 		conn.sql(query)
 	except Exception as e:
 		import re

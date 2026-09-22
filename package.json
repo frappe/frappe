@@ -4,6 +4,7 @@
     "build": "node esbuild",
     "production": "node esbuild --production",
     "watch": "node esbuild --watch",
+    "update-icons": "node esbuild/update_icons.js",
     "coverage:report": "npx nyc report --reporter=clover"
   },
   "repository": {
@@ -91,5 +92,8 @@
   "resolutions": {
     "esbuild-plugin-vue3/esbuild": "^0.28.0",
     "sortablejs": "^1.15.7"
+  },
+  "devDependencies": {
+    "lucide-static": "1.47.0"
   }
 }

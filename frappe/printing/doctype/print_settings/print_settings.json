@@ -3,6 +3,7 @@
  "creation": "2014-07-17 06:54:20.782907",
  "doctype": "DocType",
  "document_type": "System",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/print-settings",
  "engine": "InnoDB",
  "field_order": [
   "pdf_settings",

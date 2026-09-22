@@ -27,22 +27,6 @@
 		<!-- ── Preview mode: show actual doc values ─────────── -->
 		<template v-if="preview_doc">
 			<FieldPreview :df="df" />
-			<div class="field-preview-actions">
-				<div
-					class="drag-handle field-drag-handle"
-					v-html="frappe.utils.icon('grip', 'xs')"
-				></div>
-				<button
-					class="es-button"
-					data-size="xs"
-					data-variant="ghost"
-					data-theme="red"
-					data-icon-button="true"
-					:title="__('Remove field')"
-					@click.stop="store.remove_field(df)"
-					v-html="frappe.utils.icon('x', 'xs')"
-				></button>
-			</div>
 		</template>
 
 		<FieldChip v-else ref="chip" :df="df" :field_orientation="field_orientation" />
@@ -170,38 +154,6 @@ function on_context_menu(e) {
 	border: var(--pfb-ring);
 	border-radius: inherit;
 	pointer-events: none;
-}
-
-.field-preview-actions {
-	display: none;
-	position: absolute;
-	top: 2px;
-	right: 2px;
-	z-index: 2;
-	gap: 2px;
-	background: var(--fg-color);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	padding: 1px 2px;
-	align-items: center;
-	box-shadow: var(--shadow-xs);
-}
-
-.field--preview:hover .field-preview-actions,
-.field--preview.field--selected .field-preview-actions {
-	display: flex;
-}
-
-.field-preview-actions .field-drag-handle {
-	cursor: grab;
-	color: var(--gray-400);
-	display: flex;
-	align-items: center;
-	padding: 2px;
-}
-
-.field-preview-actions .field-drag-handle:hover {
-	color: var(--gray-600);
 }
 
 :deep(.typst-block-source) {

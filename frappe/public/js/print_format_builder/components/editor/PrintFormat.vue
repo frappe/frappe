@@ -11,7 +11,7 @@
 		<component :is="'style'" v-if="color_css">{{ color_css }}</component>
 		<component :is="'style'" v-if="user_css">{{ user_css }}</component>
 		<div v-if="!page_number_hidden" class="pfb-page-num" :style="page_number_style">
-			{{ __("1 of 2") }}
+			{{ __("1 of N") }}
 		</div>
 
 		<!-- One header area: the letterhead and the header fields zone read as a single

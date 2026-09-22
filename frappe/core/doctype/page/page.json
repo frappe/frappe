@@ -5,6 +5,7 @@
  "creation": "2012-12-20 17:16:49",
  "doctype": "DocType",
  "document_type": "System",
+ "documentation": "https://docs.frappe.io/framework/user/en/api/page",
  "engine": "InnoDB",
  "field_order": [
   "system_page",
@@ -115,7 +116,7 @@
    "options": "Has Role"
   }
  ],
- "icon": "fa fa-file",
+ "icon": "file",
  "idx": 1,
  "links": [],
  "modified": "2026-09-19 12:00:00.000000",
@@ -144,6 +145,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

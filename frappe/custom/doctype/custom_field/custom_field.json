@@ -5,6 +5,7 @@
  "description": "Adds a custom field to a DocType",
  "doctype": "DocType",
  "document_type": "Setup",
+ "documentation": "https://docs.frappe.io/framework/user/en/basics/doctypes/customize",
  "engine": "InnoDB",
  "field_order": [
   "is_system_generated",

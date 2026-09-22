@@ -72,6 +72,16 @@
     box-shadow: none;
 }
 
+/* ---- plain: a bubble with no arrow ----
+   For triggers where an arrow adds nothing but clutter: a run of same-sized
+   tiles whose labels all appear in the same place, where the bubble's own
+   position already says which tile it belongs to. The owner omits the arrow
+   node as well (see tooltip.js), so this only has to cover a bubble built
+   elsewhere. */
+.es-tooltip--plain .es-tooltip__arrow {
+    display: none;
+}
+
 /* ---- arrow: an 8x4 triangle on the edge facing the trigger ----
    Made from borders: a 4px transparent frame where only the side facing
    away from the bubble is filled, which reads as a triangle. --arrow-offset

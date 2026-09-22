@@ -4,6 +4,7 @@
  "autoname": "Prompt",
  "creation": "2013-01-23 19:54:43",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/desk/printing",
  "engine": "InnoDB",
  "field_order": [
   "print_format_for",
@@ -78,6 +79,7 @@
   },
   {
    "default": "No",
+   "description": "Ship as files in an app, tracked in git. Developer mode only; duplicate to edit.",
    "fieldname": "standard",
    "fieldtype": "Select",
    "in_filter": 1,
@@ -87,16 +89,15 @@
    "oldfieldtype": "Select",
    "options": "No\nYes",
    "reqd": 1,
-   "search_index": 1,
-   "description": "Ship as files in an app, tracked in git. Developer mode only; duplicate to edit."
+   "search_index": 1
   },
   {
    "default": "0",
+   "description": "Write the format by hand in HTML and Jinja.",
    "fieldname": "custom_format",
    "fieldtype": "Check",
    "label": "Custom Format",
-   "read_only_depends_on": "eval:doc.print_format_for===\"Report\";",
-   "description": "Write the format by hand in HTML and Jinja."
+   "read_only_depends_on": "eval:doc.print_format_for===\"Report\";"
   },
   {
    "depends_on": "eval:doc.custom_format || doc.print_format_for == \"Report\"",
@@ -114,10 +115,10 @@
   {
    "default": "0",
    "depends_on": "custom_format",
+   "description": "Send raw ESC/POS commands to a label or thermal printer.",
    "fieldname": "raw_printing",
    "fieldtype": "Check",
-   "label": "Raw Printing",
-   "description": "Send raw ESC/POS commands to a label or thermal printer."
+   "label": "Raw Printing"
   },
   {
    "depends_on": "eval:!doc.raw_printing",
@@ -146,24 +147,24 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:!doc.print_format_builder_beta",
    "fieldname": "align_labels_right",
    "fieldtype": "Check",
-   "label": "Align Labels to the Right",
-   "depends_on": "eval:!doc.print_format_builder_beta"
+   "label": "Align Labels to the Right"
   },
   {
    "default": "0",
+   "depends_on": "eval:!doc.print_format_builder_beta",
    "fieldname": "show_section_headings",
    "fieldtype": "Check",
-   "label": "Show Section Headings",
-   "depends_on": "eval:!doc.print_format_builder_beta"
+   "label": "Show Section Headings"
   },
   {
    "default": "0",
+   "depends_on": "eval:!doc.print_format_builder_beta",
    "fieldname": "line_breaks",
    "fieldtype": "Check",
-   "label": "Show Line Breaks after Sections",
-   "depends_on": "eval:!doc.print_format_builder_beta"
+   "label": "Show Line Breaks after Sections"
   },
   {
    "fieldname": "column_break_11",
@@ -253,10 +254,10 @@
   },
   {
    "default": "0",
+   "description": "Edit in the visual builder.",
    "fieldname": "print_format_builder_beta",
    "fieldtype": "Check",
-   "label": "Print Format Builder Beta",
-   "description": "Edit in the visual builder."
+   "label": "Print Format Builder Beta"
   },
   {
    "default": "15",
@@ -337,7 +338,7 @@
    "read_only": 1
   }
  ],
- "icon": "fa fa-print",
+ "icon": "printer",
  "idx": 1,
  "links": [],
  "modified": "2026-08-13 12:00:00.000000",
