@@ -328,6 +328,7 @@
 												),
 												'pfb-tree-hover':
 													store.hovered_node.value === field,
+												'pfb-tree-row--conditional': !!field.visible_if,
 											}"
 											@mouseenter="store.hovered_field.value = field"
 											@mouseleave="store.hovered_field.value = null"
@@ -352,6 +353,14 @@
 											<span class="pfb-tree-label">{{
 												field_label(field)
 											}}</span>
+											<span
+												v-if="field.visible_if"
+												class="pfb-tree-eye"
+												:title="
+													__('Shown only when: {0}', [field.visible_if])
+												"
+												v-html="frappe.utils.icon('eye', 'sm')"
+											></span>
 											<span
 												v-if="field_broken(field)"
 												class="pfb-tree-warn"
@@ -1046,10 +1055,26 @@ function handle_slash_key(e) {
 	outline: none;
 }
 
+.pfb-tree-row:hover {
+	background: var(--surface-gray-2);
+}
+
 .pfb-tree-row.active {
 	background: var(--surface-gray-3);
 	color: var(--text-color);
 	font-weight: 500;
+}
+
+/* a field behind a visibility condition prints only sometimes, so the row reads
+   as muted with the condition on its eye */
+.pfb-tree-row--conditional .pfb-tree-label {
+	color: var(--ink-gray-4);
+}
+
+.pfb-tree-eye {
+	display: inline-flex;
+	flex-shrink: 0;
+	--icon-stroke: var(--ink-gray-4);
 }
 
 .pfb-tree-chevron {
