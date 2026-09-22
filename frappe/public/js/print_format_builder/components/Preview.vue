@@ -12,7 +12,7 @@
 					{{ __("This document is a draft and cannot be printed.") }}
 				</div>
 				<div v-else-if="!preview_loaded" class="pfb-preview-empty">
-					<span class="pfb-preview-spinner" aria-hidden="true"></span>
+					<span class="es-spinner" aria-hidden="true"></span>
 					<span>{{ __("Generating preview…") }}</span>
 				</div>
 				<iframe
@@ -170,21 +170,6 @@ onUnmounted(() => {
 	border-radius: var(--radius-lg, 8px);
 	font-size: var(--text-sm);
 	color: var(--text-color);
-}
-
-.pfb-preview-spinner {
-	width: 20px;
-	height: 20px;
-	border: 2px solid var(--gray-300);
-	border-top-color: var(--gray-600);
-	border-radius: 50%;
-	animation: pfb-preview-spin 0.7s linear infinite;
-}
-
-@keyframes pfb-preview-spin {
-	to {
-		transform: rotate(360deg);
-	}
 }
 
 .pfb-preview-iframe {

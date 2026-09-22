@@ -1,61 +1,49 @@
 <template>
-	<div class="pfb-seg">
-		<button
-			v-for="opt in options"
-			:key="opt.value"
-			type="button"
-			:class="{ active: modelValue === opt.value }"
-			:title="opt.title || null"
-			@click="$emit('update:modelValue', opt.value)"
-		>
-			<span v-if="opt.icon" v-html="opt.icon"></span>
-			<template v-else>{{ opt.label }}</template>
-		</button>
-	</div>
+	<div ref="host" class="pfb-seg"></div>
 </template>
 
 <script setup>
-defineProps({
+import { onMounted, onUnmounted, ref, watch } from "vue";
+
+const props = defineProps({
 	modelValue: { type: [String, Number, Boolean], default: undefined },
 	options: { type: Array, required: true },
 });
-defineEmits(["update:modelValue"]);
+const emit = defineEmits(["update:modelValue"]);
+
+const host = ref(null);
+let group = null;
+
+function render() {
+	host.value.replaceChildren();
+	const $el = frappe.ui.tab_buttons({
+		options: props.options,
+		value: props.modelValue,
+		size: "sm",
+		on_change: (value) => emit("update:modelValue", value),
+	});
+	group = $el.data("es-tab-buttons");
+	$el.appendTo(host.value);
+}
+
+onMounted(render);
+onUnmounted(() => host.value?.replaceChildren());
+
+watch(() => props.options, render, { deep: true });
+watch(
+	() => props.modelValue,
+	(value) => {
+		if (group && group.get_value() !== value) group.set_value(value, { silent: true });
+	}
+);
 </script>
 
 <style scoped>
-.pfb-seg {
-	display: inline-flex;
-	background: var(--control-bg);
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius);
-	overflow: hidden;
+.pfb-seg :deep(.es-tab-buttons) {
 	width: 100%;
 }
-.pfb-seg button {
+
+.pfb-seg :deep(.es-pill) {
 	flex: 1;
-	padding: 5px 6px;
-	font-size: var(--text-tiny);
-	font-weight: var(--weight-medium);
-	border: none;
-	border-radius: 0;
-	background: transparent;
-	color: var(--text-muted);
-	cursor: pointer;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	line-height: 1;
-}
-.pfb-seg button:not(:first-child) {
-	border-left: 1px solid var(--border-color);
-}
-.pfb-seg button:hover {
-	background: var(--surface-gray-3);
-	color: var(--text-color);
-}
-.pfb-seg button.active {
-	background: var(--fg-color);
-	color: var(--text-color);
-	box-shadow: var(--shadow-xs);
 }
 </style>
