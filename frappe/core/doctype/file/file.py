@@ -7,7 +7,7 @@ import os
 import re
 import shutil
 import zipfile
-from urllib.parse import quote, unquote
+from urllib.parse import quote, unquote, urlparse, urlunparse
 
 import filetype
 
@@ -562,7 +562,8 @@ class File(Document):
 				exc=frappe.MandatoryError,
 			)
 		elif not self.file_name and self.file_url:
-			self.file_name = self.file_url.split("/")[-1].split("?")[0]
+			parsed_url = urlparse(self.file_url)
+			self.file_name = urlunparse(parsed_url._replace(params="", query="", fragment=""))
 		else:
 			self.file_name = re.sub(r"/", "", self.file_name)
 
