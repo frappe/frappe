@@ -51,4 +51,27 @@ context("List View", () => {
 				cy.get(".list-row-container:visible").should("contain", "Approved");
 			});
 	});
+
+	it("flips sort order icon and title", { scrollBehavior: false }, () => {
+		cy.go_to_list("ToDo");
+		cy.clear_filters();
+
+		// start from a known order, whatever the persisted list settings say
+		cy.window()
+			.its("cur_list.sort_selector")
+			.then((sort_selector) => sort_selector.set_value(sort_selector.sort_by, "desc"));
+
+		cy.get(".sort-selector .btn-order").as("order");
+		cy.get("@order").should("have.attr", "title", "descending");
+		cy.get("@order")
+			.find(".sort-order use")
+			.should("have.attr", "href", "#icon-sort-descending");
+
+		cy.get("@order").click();
+		cy.get("@order").should("have.attr", "data-value", "asc");
+		cy.get("@order").should("have.attr", "title", "ascending");
+		cy.get("@order")
+			.find(".sort-order use")
+			.should("have.attr", "href", "#icon-sort-ascending");
+	});
 });

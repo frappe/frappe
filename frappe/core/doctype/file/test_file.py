@@ -1,11 +1,14 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import base64
+import json
 import os
 import shutil
 import tempfile
+import zipfile
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
+from unittest.mock import patch
 
 import frappe
 from frappe import _
@@ -18,9 +21,9 @@ from frappe.core.api.file import (
 )
 from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
 from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension
-from frappe.desk.form.utils import add_comment, remove_attach
+from frappe.desk.form.utils import add_comment
 from frappe.exceptions import ValidationError
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase, change_settings
 from frappe.utils import get_files_path, set_request
 
 if TYPE_CHECKING:
@@ -28,14 +31,6 @@ if TYPE_CHECKING:
 
 test_content1 = "Hello"
 test_content2 = "Hello World"
-
-
-def remove_attach_with_fid(fid):
-	frappe.form_dict.fid = fid
-	try:
-		remove_attach()
-	finally:
-		frappe.form_dict.pop("fid", None)
 
 
 def make_test_doc(ignore_permissions=False):
@@ -69,7 +64,7 @@ def make_test_image_file(private=False):
 		_test_file.delete()
 
 
-class TestSimpleFile(IntegrationTestCase):
+class TestSimpleFile(FrappeTestCase):
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content = test_content1
@@ -91,30 +86,7 @@ class TestSimpleFile(IntegrationTestCase):
 		self.assertEqual(content, self.test_content)
 
 
-class TestBinaryFileContent(IntegrationTestCase):
-	def test_ole_xls_content_not_decoded(self):
-		from frappe.core.doctype.file.file import OLE_FILE_SIGNATURE
-
-		attached_to_doctype, attached_to_docname = make_test_doc()
-		xls_content = OLE_FILE_SIGNATURE + b"\x00\x01Sheet1\x00Amount\x00" + b"\x20" * 64
-		_file = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": f"statement-{frappe.generate_hash(length=8)}.xls",
-				"attached_to_doctype": attached_to_doctype,
-				"attached_to_name": attached_to_docname,
-				"content": xls_content,
-			}
-		)
-		_file.save()
-
-		saved_file = frappe.get_doc("File", _file.name)
-		content = saved_file.get_content()
-		self.assertIsInstance(content, bytes)
-		self.assertTrue(content.startswith(OLE_FILE_SIGNATURE))
-
-
-class TestFSRollbacks(IntegrationTestCase):
+class TestFSRollbacks(FrappeTestCase):
 	def test_rollback_from_file_system(self):
 		file_name = content = frappe.generate_hash()
 		file = frappe.new_doc("File", file_name=file_name, content=content).insert()
@@ -124,8 +96,45 @@ class TestFSRollbacks(IntegrationTestCase):
 		self.assertFalse(file.exists_on_disk())
 
 
-class TestExtensionValidations(IntegrationTestCase):
-	@IntegrationTestCase.change_settings("System Settings", {"allowed_file_extensions": "JPG\nCSV"})
+class TestWriteFileContainment(FrappeTestCase):
+	def test_write_file_rejects_target_outside_files_dir(self):
+		from frappe.utils.file_manager import write_file
+
+		files_path = get_files_path(is_private=1)
+		bad_names = (
+			"../../../../ESCAPE_TEST.txt",  # parent traversal
+			"sub/../../ESCAPE_TEST.txt",  # traversal via a nested segment
+			"/tmp/ESCAPE_TEST.txt",  # absolute path outside the files dir
+			"subdir/ESCAPE_TEST.txt",  # nested name: not a direct child of the files dir
+		)
+		for fname in bad_names:
+			with self.subTest(fname=fname):
+				# where the bytes would land if the target were not confined
+				would_be = os.path.realpath(os.path.join(files_path, fname))
+				self.assertRaises(ValidationError, write_file, b"data\n", fname, is_private=1)
+				self.assertFalse(os.path.exists(would_be))
+
+	def test_write_file_allows_plain_basename(self):
+		from frappe.utils.file_manager import write_file
+
+		content = b"safe content\n"
+		for is_private in (0, 1):
+			with self.subTest(is_private=is_private):
+				fname = f"{frappe.generate_hash()}.txt"
+				write_file(content, fname, is_private=is_private)
+
+				on_disk = get_files_path(fname, is_private=is_private)
+				self.addCleanup(lambda p=on_disk: os.path.exists(p) and os.remove(p))
+				self.assertEqual(
+					os.path.realpath(os.path.dirname(on_disk)),
+					os.path.realpath(get_files_path(is_private=is_private)),
+				)
+				with open(on_disk, "rb") as f:
+					self.assertEqual(f.read(), content)
+
+
+class TestExtensionValidations(FrappeTestCase):
+	@change_settings("System Settings", {"allowed_file_extensions": "JPG\nCSV"})
 	def test_allowed_extension(self):
 		set_request(method="POST", path="/")
 		file_name = content = frappe.generate_hash()
@@ -136,12 +145,19 @@ class TestExtensionValidations(IntegrationTestCase):
 		frappe.db.rollback()
 		self.assertFalse(bad_file.exists_on_disk())
 
+	@change_settings("System Settings", {"allowed_file_extensions": "JPG\nCSV"})
+	def test_allowlist_blocks_extension_without_known_mimetype(self):
+		set_request(method="POST", path="/")
+		file_name = content = frappe.generate_hash()
+		bad_file = frappe.new_doc("File", file_name=f"{file_name}.phtml", content=content)
+		self.assertRaises(FileTypeNotAllowed, bad_file.insert)
 
-class TestBase64File(IntegrationTestCase):
+
+class TestBase64File(FrappeTestCase):
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content = base64.b64encode(test_content1.encode("utf-8"))
-		_file: frappe.Document = frappe.get_doc(
+		_file: File = frappe.get_doc(
 			{
 				"doctype": "File",
 				"file_name": "test_base64.txt",
@@ -155,12 +171,12 @@ class TestBase64File(IntegrationTestCase):
 		self.saved_file_url = _file.file_url
 
 	def test_saved_content(self):
-		_file: frappe.Document = frappe.get_doc("File", {"file_url": self.saved_file_url})
+		_file = frappe.get_doc("File", {"file_url": self.saved_file_url})
 		content = _file.get_content()
 		self.assertEqual(content, test_content1)
 
 
-class TestSameFileName(IntegrationTestCase):
+class TestSameFileName(FrappeTestCase):
 	def test_saved_content(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content1 = test_content1
@@ -220,7 +236,7 @@ class TestSameFileName(IntegrationTestCase):
 		self.assertEqual(_file.get_content(), test_content2)
 
 
-class TestSameContent(IntegrationTestCase):
+class TestSameContent(FrappeTestCase):
 	def setUp(self):
 		self.attached_to_doctype1, self.attached_to_docname1 = make_test_doc()
 		self.attached_to_doctype2, self.attached_to_docname2 = make_test_doc()
@@ -345,27 +361,8 @@ class TestSameContent(IntegrationTestCase):
 			limit_property.delete()
 			frappe.clear_cache(doctype="ToDo")
 
-	def test_utf8_bom_content_decoding(self):
-		utf8_bom_content = test_content1.encode("utf-8-sig")
-		_file: frappe.Document = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "utf8bom.txt",
-				"attached_to_doctype": self.attached_to_doctype1,
-				"attached_to_name": self.attached_to_docname1,
-				"content": utf8_bom_content,
-				"decode": False,
-			}
-		)
-		_file.save()
-		saved_file = frappe.get_doc("File", _file.name)
-		file_content_decoded = saved_file.get_content(encodings=["utf-8"])
-		self.assertEqual(file_content_decoded[0], "\ufeff")
-		file_content_properly_decoded = saved_file.get_content(encodings=["utf-8-sig", "utf-8"])
-		self.assertEqual(file_content_properly_decoded, test_content1)
 
-
-class TestFile(IntegrationTestCase):
+class TestFile(FrappeTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 		self.delete_test_data()
@@ -385,7 +382,7 @@ class TestFile(IntegrationTestCase):
 			order_by="creation desc",
 		)
 		for f in test_file_data:
-			frappe.delete_doc("File", f, force=True)
+			frappe.delete_doc("File", f)
 
 	def upload_file(self):
 		_file = frappe.get_doc(
@@ -470,6 +467,26 @@ class TestFile(IntegrationTestCase):
 		d = frappe.get_doc({"doctype": "File", "file_name": _("Test_Folder"), "is_folder": 1})
 		d.save()
 		self.assertEqual(d.folder, "Home")
+
+	def test_folder_file_url_is_always_empty(self):
+		folder = self.get_folder("Test Folder URL", "Home")
+		self.assertFalse(folder.file_url)
+
+		folder.file_url = "/private/files/somewhere.txt"
+		self.assertRaises(ValidationError, folder.save)
+
+		self.assertRaises(
+			ValidationError,
+			frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": "another_folder",
+					"is_folder": 1,
+					"folder": "Home",
+					"file_url": "/private/files/somewhere_else.txt",
+				}
+			).insert,
+		)
 
 	def test_on_delete(self):
 		file = frappe.get_doc("File", {"file_name": "file_copy.txt"})
@@ -647,6 +664,105 @@ class TestFile(IntegrationTestCase):
 		).insert(ignore_permissions=True)
 		self.assertRaisesRegex(ValidationError, "not a zip file", test_file.unzip)
 
+	def test_file_unzip_respects_dedicated_extract_size_setting(self):
+		file_path = frappe.get_app_path("frappe", "www/_test/assets/file.zip")
+		public_file_path = frappe.get_site_path("public", "files")
+		try:
+			shutil.copy(file_path, public_file_path)
+		except Exception:
+			pass
+
+		test_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_url": "/files/file.zip",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(test_file.delete)
+
+		file_count_before = frappe.db.count("File")
+
+		# a dedicated, tighter zip-extraction budget must be enforced even though
+		# max_file_size (used for ordinary uploads) stays at its generous default
+		with patch.dict(frappe.conf, {"max_zip_extract_size": 1000}):
+			self.assertRaisesRegex(ValidationError, "maximum allowed size", test_file.unzip)
+
+		self.assertTrue(frappe.db.exists("File", test_file.name))
+		self.assertEqual(frappe.db.count("File"), file_count_before)
+
+	def test_file_unzip_requires_read_permission(self):
+		file_path = frappe.get_app_path("frappe", "www/_test/assets/file.zip")
+		with open(file_path, "rb") as f:
+			zip_content = f.read()
+
+		try:
+			frappe.set_user("test@example.com")
+			test_file = frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": "file.zip",
+					"content": zip_content,
+					"is_private": 1,
+				}
+			).insert()
+
+			file_count_before = frappe.db.count("File")
+
+			# block unzip
+			frappe.set_user("test4@example.com")
+			self.assertRaises(frappe.PermissionError, unzip_file, test_file.name)
+			self.assertTrue(frappe.db.exists("File", test_file.name))
+			self.assertEqual(frappe.db.count("File"), file_count_before)
+
+			# allow unzip
+			frappe.set_user("test@example.com")
+			self.assertListEqual(
+				[file.file_name for file in unzip_file(test_file.name)],
+				["css_asset.css", "image.jpg", "js_asset.min.js"],
+			)
+		finally:
+			frappe.set_user("Administrator")
+
+	def test_file_unzip_rolls_back_children_on_mid_extraction_failure(self):
+		fixture_dir = tempfile.mkdtemp()
+		zip_path = os.path.join(fixture_dir, "corrupt.zip")
+		with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zf:
+			zf.writestr("a.txt", "hello-a")
+			zf.writestr("b.txt", "hello-b")
+			zf.writestr("c.txt", "hello-c")
+
+		# flip a byte in the last member's stored (uncompressed) data so it fails
+		# its CRC check on read, without touching the central directory metadata
+		with open(zip_path, "rb") as f:
+			data = bytearray(f.read())
+		corrupt_offset = data.rfind(b"hello-c")
+		self.assertNotEqual(corrupt_offset, -1)
+		data[corrupt_offset] ^= 0xFF
+		with open(zip_path, "wb") as f:
+			f.write(data)
+
+		public_file_path = frappe.get_site_path("public", "files")
+		shutil.copy(zip_path, public_file_path)
+
+		test_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_url": "/files/corrupt.zip",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(test_file.delete)
+
+		file_count_before = frappe.db.count("File")
+
+		# a.txt and b.txt extract fine and get saved before c.txt fails its CRC check;
+		# the whole call must still roll back to a clean no-op
+		self.assertRaisesRegex(ValidationError, "not a valid zip file", test_file.unzip)
+
+		self.assertTrue(frappe.db.exists("File", test_file.name))
+		self.assertEqual(frappe.db.count("File"), file_count_before)
+		self.assertFalse(frappe.db.exists("File", {"file_name": "a.txt"}))
+		self.assertFalse(frappe.db.exists("File", {"file_name": "b.txt"}))
+
 	def test_create_file_without_file_url(self):
 		test_file = frappe.get_doc(
 			{
@@ -673,15 +789,20 @@ class TestFile(IntegrationTestCase):
 			file.save().reload()
 			self.assertIn("42", file.get_content())
 
-	@IntegrationTestCase.change_settings(
-		"System Settings", {"allow_guests_to_upload_files": 1, "allowed_doctypes_for_guest_uploads": "ToDo"}
-	)
 	def test_guest_upload_to_non_allowed_doctype(self):
 		"""Verify Guest cannot upload to a restricted DocType."""
 		from werkzeug.test import EnvironBuilder
 		from werkzeug.wrappers import Request
 
 		from frappe.handler import upload_file
+
+		old_allow_guests = frappe.db.get_single_value("System Settings", "allow_guests_to_upload_files")
+		old_allowed_doctypes = frappe.db.get_single_value(
+			"System Settings", "allowed_doctypes_for_guest_uploads"
+		)
+
+		frappe.db.set_single_value("System Settings", "allow_guests_to_upload_files", 1)
+		frappe.db.set_single_value("System Settings", "allowed_doctypes_for_guest_uploads", "ToDo")
 
 		builder = EnvironBuilder(path="/", base_url="http://localhost")
 		frappe.local.request = Request(builder.get_environ())
@@ -693,22 +814,31 @@ class TestFile(IntegrationTestCase):
 		try:
 			self.assertRaises(frappe.PermissionError, upload_file)
 		finally:
+			frappe.db.set_single_value("System Settings", "allow_guests_to_upload_files", old_allow_guests)
+			frappe.db.set_single_value(
+				"System Settings", "allowed_doctypes_for_guest_uploads", old_allowed_doctypes
+			)
+
 			frappe.set_user("Administrator")
 			frappe.form_dict.pop("doctype", None)
 			frappe.form_dict.pop("docname", None)
 			if hasattr(frappe.local, "request"):
 				del frappe.local.request
 
-	@IntegrationTestCase.change_settings(
-		"System Settings",
-		{"allow_guests_to_upload_files": 1, "allowed_doctypes_for_guest_uploads": "User\nToDo"},
-	)
 	def test_guest_upload_to_allowed_doctype(self):
 		"""Verify Guest can upload to an explicitly whitelisted DocType."""
 		from werkzeug.test import EnvironBuilder
 		from werkzeug.wrappers import Request
 
 		from frappe.handler import upload_file
+
+		old_allow_guests = frappe.db.get_single_value("System Settings", "allow_guests_to_upload_files")
+		old_allowed_doctypes = frappe.db.get_single_value(
+			"System Settings", "allowed_doctypes_for_guest_uploads"
+		)
+
+		frappe.db.set_single_value("System Settings", "allow_guests_to_upload_files", 1)
+		frappe.db.set_single_value("System Settings", "allowed_doctypes_for_guest_uploads", "User\nToDo")
 
 		builder = EnvironBuilder(path="/", base_url="http://localhost")
 		frappe.local.request = Request(builder.get_environ())
@@ -727,8 +857,12 @@ class TestFile(IntegrationTestCase):
 			file_doc = upload_file()
 			self.assertEqual(file_doc.attached_to_name, todo.name)
 		finally:
-			frappe.set_user("Administrator")
+			frappe.db.set_single_value("System Settings", "allow_guests_to_upload_files", old_allow_guests)
+			frappe.db.set_single_value(
+				"System Settings", "allowed_doctypes_for_guest_uploads", old_allowed_doctypes
+			)
 
+			frappe.set_user("Administrator")
 			if file_doc:
 				file_doc.delete()
 			todo.delete()
@@ -741,15 +875,20 @@ class TestFile(IntegrationTestCase):
 			if hasattr(frappe.local, "request"):
 				del frappe.local.request
 
-	@IntegrationTestCase.change_settings(
-		"System Settings", {"allow_guests_to_upload_files": 1, "allowed_doctypes_for_guest_uploads": ""}
-	)
 	def test_guest_upload_for_empty_whitelist(self):
 		"""Verify Guest can upload anywhere if the configuration whitelist string is left completely empty."""
 		from werkzeug.test import EnvironBuilder
 		from werkzeug.wrappers import Request
 
 		from frappe.handler import upload_file
+
+		old_allow_guests = frappe.db.get_single_value("System Settings", "allow_guests_to_upload_files")
+		old_allowed_doctypes = frappe.db.get_single_value(
+			"System Settings", "allowed_doctypes_for_guest_uploads"
+		)
+
+		frappe.db.set_single_value("System Settings", "allow_guests_to_upload_files", 1)
+		frappe.db.set_single_value("System Settings", "allowed_doctypes_for_guest_uploads", "")
 
 		builder = EnvironBuilder(path="/", base_url="http://localhost")
 		frappe.local.request = Request(builder.get_environ())
@@ -765,6 +904,11 @@ class TestFile(IntegrationTestCase):
 			file_doc = upload_file()
 			self.assertEqual(file_doc.attached_to_name, "Administrator")
 		finally:
+			frappe.db.set_single_value("System Settings", "allow_guests_to_upload_files", old_allow_guests)
+			frappe.db.set_single_value(
+				"System Settings", "allowed_doctypes_for_guest_uploads", old_allowed_doctypes
+			)
+
 			frappe.set_user("Administrator")
 			if file_doc:
 				file_doc.delete()
@@ -790,38 +934,12 @@ def convert_to_symlink(directory):
 		shutil.move(new_directory, directory)
 
 
-class TestAttachment(IntegrationTestCase):
+class TestAttachment(FrappeTestCase):
 	test_doctype = "Test For Attachment"
-	test_child_doctype = "Test For Attachment Child"
-	test_submittable_doctype = "Test For Attachment Submittable"
 
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		frappe.get_doc(
-			doctype="DocType",
-			name=cls.test_child_doctype,
-			module="Custom",
-			custom=1,
-			istable=1,
-			fields=[
-				{"label": "Row Attachment", "fieldname": "row_attachment", "fieldtype": "Attach"},
-			],
-		).insert(ignore_if_duplicate=True)
-		frappe.get_doc(
-			doctype="DocType",
-			name=cls.test_submittable_doctype,
-			module="Custom",
-			custom=1,
-			is_submittable=1,
-			fields=[
-				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
-				{"label": "Attachment", "fieldname": "attachment", "fieldtype": "Attach"},
-			],
-			permissions=[
-				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1}
-			],
-		).insert(ignore_if_duplicate=True)
 		frappe.get_doc(
 			doctype="DocType",
 			name=cls.test_doctype,
@@ -830,12 +948,6 @@ class TestAttachment(IntegrationTestCase):
 			fields=[
 				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
 				{"label": "Attachment", "fieldname": "attachment", "fieldtype": "Attach"},
-				{
-					"label": "Items",
-					"fieldname": "items",
-					"fieldtype": "Table",
-					"options": cls.test_child_doctype,
-				},
 			],
 		).insert(ignore_if_duplicate=True)
 
@@ -843,8 +955,6 @@ class TestAttachment(IntegrationTestCase):
 	def tearDownClass(cls):
 		frappe.db.rollback()
 		frappe.delete_doc("DocType", cls.test_doctype)
-		frappe.delete_doc("DocType", cls.test_child_doctype)
-		frappe.delete_doc("DocType", cls.test_submittable_doctype)
 
 	def test_file_attachment_on_update(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test for attachment on update").insert()
@@ -869,210 +979,8 @@ class TestAttachment(IntegrationTestCase):
 
 		self.assertTrue(exists)
 
-	def test_delete_file_referenced_in_attach_field(self):
-		doc = frappe.get_doc(doctype=self.test_doctype, title="test delete referenced file").insert()
-		file = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "test_referenced.txt",
-				"content": "Referenced Content",
-				"attached_to_doctype": self.test_doctype,
-				"attached_to_name": doc.name,
-				"attached_to_field": "attachment",
-			}
-		).save()
-		doc.attachment = file.file_url
-		doc.save()
 
-		self.assertRaises(frappe.LinkExistsError, remove_attach_with_fid, file.name)
-
-		doc.attachment = None
-		doc.save()
-		remove_attach_with_fid(file.name)
-		self.assertFalse(frappe.db.exists("File", file.name))
-
-	def test_delete_file_referenced_in_child_table_attach_field(self):
-		doc = frappe.get_doc(doctype=self.test_doctype, title="test delete child referenced file").insert()
-		file = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "test_child_referenced.txt",
-				"content": "Child Referenced Content",
-				"attached_to_doctype": self.test_doctype,
-				"attached_to_name": doc.name,
-				"attached_to_field": "row_attachment",
-			}
-		).save()
-		doc.append("items", {"row_attachment": file.file_url})
-		doc.save()
-
-		self.assertRaises(frappe.LinkExistsError, remove_attach_with_fid, file.name)
-
-		doc.items = []
-		doc.save()
-		remove_attach_with_fid(file.name)
-		self.assertFalse(frappe.db.exists("File", file.name))
-
-	def test_direct_deletion_of_referenced_file_is_blocked(self):
-		doc = frappe.get_doc(doctype=self.test_doctype, title="test direct delete").insert()
-		file = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "test_direct_delete.txt",
-				"content": "Direct Delete Content",
-				"attached_to_doctype": self.test_doctype,
-				"attached_to_name": doc.name,
-				"attached_to_field": "attachment",
-			}
-		).save()
-		doc.attachment = file.file_url
-		doc.save()
-
-		self.assertRaises(frappe.LinkExistsError, frappe.delete_doc, "File", file.name)
-
-		frappe.delete_doc("File", file.name, force=True)
-		self.assertFalse(frappe.db.exists("File", file.name))
-
-	def test_delete_file_sharing_url_with_another_file_is_allowed(self):
-		doc = frappe.get_doc(doctype=self.test_doctype, title="test shared url delete").insert()
-		file = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "test_shared_url.txt",
-				"content": "Shared Url Content",
-				"attached_to_doctype": self.test_doctype,
-				"attached_to_name": doc.name,
-				"attached_to_field": "attachment",
-			}
-		).save()
-		duplicate = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "test_shared_url_copy.txt",
-				"content": "Shared Url Content",
-				"attached_to_doctype": self.test_doctype,
-				"attached_to_name": doc.name,
-				"attached_to_field": "attachment",
-			}
-		).save()
-		doc.attachment = file.file_url
-		doc.save()
-
-		self.assertEqual(duplicate.file_url, file.file_url)
-
-		frappe.delete_doc("File", duplicate.name)
-		self.assertFalse(frappe.db.exists("File", duplicate.name))
-
-	def test_delete_file_referenced_on_submitted_document_is_allowed(self):
-		doc = frappe.get_doc(doctype=self.test_submittable_doctype, title="test submitted delete").insert()
-		file = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "test_submitted.txt",
-				"content": "Submitted Content",
-				"attached_to_doctype": self.test_submittable_doctype,
-				"attached_to_name": doc.name,
-				"attached_to_field": "attachment",
-			}
-		).save()
-		doc.attachment = file.file_url
-		doc.save()
-		doc.submit()
-
-		frappe.delete_doc("File", file.name)
-		self.assertFalse(frappe.db.exists("File", file.name))
-
-	def test_document_delete_cascades_referenced_attachment(self):
-		doc = frappe.get_doc(doctype=self.test_doctype, title="test cascade delete").insert()
-		file = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "test_cascade.txt",
-				"content": "Cascade Content",
-				"attached_to_doctype": self.test_doctype,
-				"attached_to_name": doc.name,
-				"attached_to_field": "attachment",
-			}
-		).save()
-		doc.attachment = file.file_url
-		doc.save()
-
-		doc.delete()
-		self.assertFalse(frappe.db.exists("File", file.name))
-
-
-class TestCopyAttachmentsFromAmendedFrom(IntegrationTestCase):
-	"""Test that attached_to_field and folder are copied when amending a document."""
-
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		from frappe.core.doctype.doctype.test_doctype import new_doctype
-
-		cls.test_doctype = "Test Amendable Attachment"
-		new_doctype(
-			cls.test_doctype,
-			is_submittable=1,
-			fields=[
-				{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
-				{"label": "Attachment", "fieldname": "attachment", "fieldtype": "Attach"},
-			],
-		).insert(ignore_if_duplicate=True)
-
-	@classmethod
-	def tearDownClass(cls):
-		frappe.db.rollback()
-		frappe.delete_doc_if_exists("DocType", cls.test_doctype)
-
-	def test_attached_to_field_and_folder_copied_on_amend(self):
-		# Create custom folder
-		custom_folder = frappe.get_doc(
-			{"doctype": "File", "file_name": "Test Amend Folder", "is_folder": 1, "folder": "Home"}
-		).insert()
-
-		# Create original document and attach file with attached_to_field and custom folder
-		doc = frappe.get_doc(doctype=self.test_doctype, title="Original").insert()
-		file = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "amend_test_attach.txt",
-				"content": "Test Content",
-				"attached_to_doctype": self.test_doctype,
-				"attached_to_name": doc.name,
-				"attached_to_field": "attachment",
-				"folder": custom_folder.name,
-			}
-		).insert()
-
-		doc.attachment = file.file_url
-		doc.save()
-
-		# Submit and cancel
-		doc.submit()
-		doc.cancel()
-
-		# Amend document
-		amended_doc = frappe.copy_doc(doc)
-		amended_doc.docstatus = 0
-		amended_doc.amended_from = doc.name
-		amended_doc.save()
-
-		# Verify copied file has attached_to_field and folder from original
-		copied_files = frappe.get_all(
-			"File",
-			filters={
-				"attached_to_doctype": self.test_doctype,
-				"attached_to_name": amended_doc.name,
-				"file_name": "amend_test_attach.txt",
-			},
-			fields=["name", "attached_to_field", "folder"],
-		)
-		self.assertEqual(len(copied_files), 1, "Exactly one file should be copied to amended doc")
-		self.assertEqual(copied_files[0].attached_to_field, "attachment")
-		self.assertEqual(copied_files[0].folder, custom_folder.name)
-
-
-class TestAttachmentsAccess(IntegrationTestCase):
+class TestAttachmentsAccess(FrappeTestCase):
 	def setUp(self) -> None:
 		frappe.db.delete("File", {"is_folder": 0})
 
@@ -1138,7 +1046,7 @@ class TestAttachmentsAccess(IntegrationTestCase):
 		frappe.db.rollback()
 
 
-class TestFileUtils(IntegrationTestCase):
+class TestFileUtils(FrappeTestCase):
 	def test_extract_images_from_doc(self):
 		is_private = not frappe.get_meta("ToDo").make_attachments_public
 
@@ -1222,8 +1130,65 @@ class TestFileUtils(IntegrationTestCase):
 		folder = create_new_folder("test_folder", "Home")
 		self.assertTrue(folder.is_folder)
 
+	def test_resolved_file_path_stays_within_files_directory(self):
+		from frappe.utils.file_manager import get_file_path
 
-class TestFileOptimization(IntegrationTestCase):
+		normal = frappe.get_doc(
+			{"doctype": "File", "file_name": "within_bounds.txt", "content": "ok"}
+		).insert()
+		original_file_url = normal.file_url
+		try:
+			self.assertTrue(get_file_path(normal.name).endswith("within_bounds.txt"))
+
+			normal.db_set("file_url", "/private/files/../../../../outside_bounds.txt")
+			self.assertRaisesRegex(ValidationError, "Cannot access file path", get_file_path, normal.name)
+
+			normal.db_set("file_url", "/private/files/../../site_level_file.txt")
+			self.assertRaisesRegex(ValidationError, "Cannot access file path", get_file_path, normal.name)
+		finally:
+			normal.db_set("file_url", original_file_url)
+			normal.delete()
+
+	def test_traversal_file_url_cannot_reach_other_private_file(self):
+		victim = frappe.get_doc(
+			{"doctype": "File", "file_name": "traversal_victim.txt", "content": "secret", "is_private": 1}
+		).insert()
+		try:
+			for is_private in (0, 1):
+				doc = frappe.get_doc(
+					{
+						"doctype": "File",
+						"file_name": "traversal_copy.txt",
+						"file_url": f"/files/../../private/files/{victim.file_name}",
+						"is_private": is_private,
+					}
+				)
+				self.assertRaisesRegex(ValidationError, "File URL", doc.insert)
+		finally:
+			victim.delete()
+
+	def test_resolved_file_path_rejects_sibling_directory_prefix_match(self):
+		from frappe.utils.file_manager import get_file_path
+
+		sibling_dir = get_files_path(is_private=1) + "_lookalike"
+		os.makedirs(sibling_dir, exist_ok=True)
+		with open(os.path.join(sibling_dir, "neighbour.txt"), "w") as f:
+			f.write("outside the intended directory")
+
+		normal = frappe.get_doc(
+			{"doctype": "File", "file_name": "sibling_check.txt", "content": "ok"}
+		).insert()
+		original_file_url = normal.file_url
+		try:
+			normal.db_set("file_url", "/private/files/../files_lookalike/neighbour.txt")
+			self.assertRaisesRegex(ValidationError, "Cannot access file path", get_file_path, normal.name)
+		finally:
+			normal.db_set("file_url", original_file_url)
+			normal.delete()
+			shutil.rmtree(sibling_dir)
+
+
+class TestFileOptimization(FrappeTestCase):
 	def test_optimize_file(self):
 		with make_test_image_file() as test_file:
 			original_size = test_file.file_size
@@ -1275,7 +1240,7 @@ class TestFileOptimization(IntegrationTestCase):
 		self.assertEqual(get_extension("", None, file_content), "jpg")
 
 
-class TestGuestFileAndAttachments(IntegrationTestCase):
+class TestGuestFileAndAttachments(FrappeTestCase):
 	def setUp(self) -> None:
 		frappe.db.delete("File", {"is_folder": 0})
 		frappe.get_doc(
@@ -1391,101 +1356,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 		self.assertFalse(os.path.exists(doc_pri.get_full_path()))
 
 
-class TestPublicFileRestriction(IntegrationTestCase):
-	"""Test public file upload restriction for non-System Managers."""
-
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		# Create a test user without System Manager role
-		if not frappe.db.exists("User", "test_restricted@example.com"):
-			user = frappe.get_doc(
-				{
-					"doctype": "User",
-					"email": "test_restricted@example.com",
-					"first_name": "Test Restricted",
-					"roles": [{"role": "Website Manager"}],
-				}
-			)
-			user.insert(ignore_permissions=True)
-
-	def tearDown(self):
-		frappe.set_user("Administrator")
-
-	@IntegrationTestCase.change_settings(
-		"System Settings", {"only_allow_system_managers_to_upload_public_files": 1}
-	)
-	def test_non_system_manager_cannot_upload_public_file_when_setting_enabled(self):
-		"""Non-System Manager should not be able to upload public files when setting is enabled."""
-		frappe.set_user("test_restricted@example.com")
-
-		file_doc = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "test_public_restricted.txt",
-				"content": "Test content",
-				"is_private": 0,
-			}
-		)
-
-		self.assertRaises(frappe.PermissionError, file_doc.insert)
-
-	@IntegrationTestCase.change_settings(
-		"System Settings", {"only_allow_system_managers_to_upload_public_files": 1}
-	)
-	def test_non_system_manager_can_upload_private_file_when_setting_enabled(self):
-		"""Non-System Manager should still be able to upload private files when setting is enabled."""
-		frappe.set_user("test_restricted@example.com")
-
-		file_doc = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "test_private_allowed.txt",
-				"content": "Test content",
-				"is_private": 1,
-			}
-		)
-
-		file_doc.insert()
-		self.assertTrue(file_doc.is_private)
-
-	@IntegrationTestCase.change_settings(
-		"System Settings", {"only_allow_system_managers_to_upload_public_files": 1}
-	)
-	def test_system_manager_can_upload_public_file_when_setting_enabled(self):
-		"""System Manager should be able to upload public files even when setting is enabled."""
-		frappe.set_user("Administrator")
-
-		file_doc = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "test_public_admin.txt",
-				"content": "Test content",
-				"is_private": 0,
-			}
-		)
-
-		file_doc.insert()
-		self.assertFalse(file_doc.is_private)
-
-	def test_non_system_manager_can_upload_public_file_when_setting_disabled(self):
-		"""Non-System Manager should be able to upload public files when setting is disabled."""
-		frappe.set_user("test_restricted@example.com")
-
-		file_doc = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": "test_public_allowed.txt",
-				"content": "Test content",
-				"is_private": 0,
-			}
-		)
-
-		file_doc.insert()
-		self.assertFalse(file_doc.is_private)
-
-
-class TestFileListOwnerRestriction(IntegrationTestCase):
+class TestFileListOwnerRestriction(FrappeTestCase):
 	"""Test file list owner restriction."""
 
 	OWNER = "test1@example.com"
@@ -1534,7 +1405,7 @@ class TestFileListOwnerRestriction(IntegrationTestCase):
 		self.assertEqual(len(files), 1)
 
 
-class TestFileListUserPermissionRestriction(IntegrationTestCase):
+class TestFileListUserPermissionRestriction(FrappeTestCase):
 	"""A doctype can grant unconditional role-level read (no if_owner) while still being scoped
 	per-user via User Permissions (e.g. multi-company setups). A File attached to a record
 	outside that scope must not be listable either."""

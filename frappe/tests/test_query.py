@@ -377,6 +377,15 @@ class TestQuery(FrappeTestCase):
 		# Format decendants result
 		descendants_result = list(itertools.chain.from_iterable(descendants_result))
 		self.assertListEqual(descendants_result, get_descendants_of("Test Tree DocType", "Parent 1"))
+		self.assertListEqual(
+			frappe.get_all(
+				"Test Tree DocType",
+				filters={"name": ("Descendants Of", "Parent 1")},
+				order_by="creation desc",
+				pluck="name",
+			),
+			get_descendants_of("Test Tree DocType", "Parent 1"),
+		)
 
 		ancestors_result = frappe.qb.get_query(
 			"Test Tree DocType",

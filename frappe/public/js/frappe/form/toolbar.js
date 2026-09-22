@@ -105,7 +105,12 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 	}
 	can_rename() {
-		return this.frm.perm[0].write && this.frm.meta.allow_rename && !this.frm.doc.__islocal;
+		return (
+			this.frm.perm[0].write &&
+			this.frm.meta.allow_rename &&
+			!this.frm.doc.__islocal &&
+			!this.frm.meta.issingle
+		);
 	}
 	show_unchanged_document_alert() {
 		frappe.show_alert({

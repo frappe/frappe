@@ -63,6 +63,22 @@ class TestSMTP(FrappeTestCase):
 			}
 			frappe.db.set_value("Email Account", email_account["name"], set_details)
 
+	def test_cached_default_does_not_shadow_specific_outgoing_account(self):
+		create_email_account(
+			email_id="notifications@example.com", password="password", enable_outgoing=1, default_outgoing=1
+		)
+		create_email_account(
+			email_id="support@example.com", password="password", enable_outgoing=1, append_to="ToDo"
+		)
+		frappe.local.outgoing_email_account = {}
+
+		self.assertEqual(EmailAccount.find_outgoing().email_id, "notifications@example.com")
+		self.assertEqual(
+			EmailAccount.find_outgoing(match_by_email="support@example.com").email_id, "support@example.com"
+		)
+		self.assertEqual(EmailAccount.find_outgoing(match_by_doctype="ToDo").email_id, "support@example.com")
+		self.assertEqual(EmailAccount.find_outgoing("support@example.com").email_id, "support@example.com")
+
 
 def create_email_account(email_id, password, enable_outgoing, default_outgoing=0, append_to=None):
 	email_dict = {

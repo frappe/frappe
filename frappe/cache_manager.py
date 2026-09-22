@@ -205,7 +205,12 @@ def build_table_count_cache():
 	table_rows = frappe.qb.Field("table_rows").as_("count")
 	information_schema = frappe.qb.Schema("information_schema")
 
-	data = (frappe.qb.from_(information_schema.tables).select(table_name, table_rows)).run(as_dict=True)
+	query = frappe.qb.from_(information_schema.tables).select(table_name, table_rows)
+	if frappe.db.db_type == "postgres":
+		query = query.where(frappe.qb.Field("schemaname") == frappe.conf.get("db_schema", "public"))
+	else:
+		query = query.where(information_schema.tables.table_schema == frappe.db.cur_db_name)
+	data = query.run(as_dict=True)
 	counts = {d.get("name").replace("tab", "", 1): d.get("count", None) for d in data}
 	frappe.cache.set_value("information_schema:counts", counts)
 
