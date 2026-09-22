@@ -73,6 +73,9 @@
         "tooltip": {
           "type": "object"
         },
+        "title-suffix": {
+          "type": "object"
+        },
         "actions": {
           "type": "object"
         }

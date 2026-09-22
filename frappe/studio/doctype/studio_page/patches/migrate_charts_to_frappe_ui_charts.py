@@ -65,13 +65,15 @@ def migrate_axis_chart(block, config):
 	block["componentName"] = component
 
 	x_axis = config.get("xAxis") or {}
-	names = [s["name"] for s in series]
+	names = [s["name"] for s in series if s.get("axis") != "y2"]
+	y2_names = [s["name"] for s in series if s.get("axis") == "y2"]
 	props = base_props(config)
 	props.update(
 		{
 			"data": config.get("data"),
 			"x": x_axis.get("key"),
 			"y": names[0] if len(names) == 1 else names,
+			"y2": y2_names[0] if len(y2_names) == 1 else y2_names,
 			"xAxis": compact({k: x_axis.get(k) for k in ("type", "timeGrain", "title", "echartOptions")}),
 			"yAxis": value_axis(config.get("yAxis")),
 			"y2Axis": value_axis(config.get("y2Axis")),
@@ -135,7 +137,6 @@ def series_style(series, default_mark):
 		{
 			"type": mark if mark != default_mark else None,
 			"color": series.get("color"),
-			"axis": series.get("axis") if series.get("axis") == "y2" else None,
 			"showDataLabels": series.get("showDataLabels"),
 			"stackName": series.get("stackName"),
 			"dashed": True if series.get("lineType") in ("dashed", "dotted") else None,

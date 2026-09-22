@@ -27,7 +27,20 @@
             }
           ]
         },
-        "series": {
+        "y2": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "splitBy": {
           "type": "string"
         },
         "maxSeries": {
@@ -52,13 +65,6 @@
                   "area"
                 ]
               },
-              "axis": {
-                "type": "string",
-                "enum": [
-                  "y",
-                  "y2"
-                ]
-              },
               "showDataLabels": {
                 "type": "boolean"
               },
@@ -74,6 +80,9 @@
               "smooth": {
                 "type": "boolean"
               },
+              "connectNulls": {
+                "type": "boolean"
+              },
               "echartOptions": {
                 "type": "object"
               }
@@ -82,6 +91,18 @@
           }
         },
         "showDataLabels": {
+          "type": "boolean"
+        },
+        "smooth": {
+          "type": "boolean"
+        },
+        "showDataPoints": {
+          "type": "boolean"
+        },
+        "dashed": {
+          "type": "boolean"
+        },
+        "connectNulls": {
           "type": "boolean"
         },
         "hiddenSeries": {
@@ -217,9 +238,6 @@
               "const": "normalized"
             }
           ]
-        },
-        "connectNulls": {
-          "type": "boolean"
         },
         "referenceLines": {
           "type": "array",

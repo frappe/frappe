@@ -20,7 +20,7 @@
         "size": {
           "type": "string"
         },
-        "series": {
+        "splitBy": {
           "type": "string"
         },
         "hiddenSeries": {
@@ -186,6 +186,9 @@
       "type": "object",
       "properties": {
         "tooltip": {
+          "type": "object"
+        },
+        "title-suffix": {
           "type": "object"
         },
         "actions": {

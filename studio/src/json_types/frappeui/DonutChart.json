@@ -20,7 +20,7 @@
         "maxSlices": {
           "type": "number"
         },
-        "hiddenSeries": {
+        "hiddenSlices": {
           "type": "array",
           "items": {
             "type": "string"
@@ -99,6 +99,9 @@
           "type": "object"
         },
         "tooltip": {
+          "type": "object"
+        },
+        "title-suffix": {
           "type": "object"
         },
         "actions": {
