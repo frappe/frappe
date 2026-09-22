@@ -94,15 +94,15 @@ Everything is gray unless the color MEANS something:
 
 ## Screen archetypes
 
-- **App shell**: Sidebar (14rem, `header` + grouped nav items with lucide
-  icons) beside a main column (`flex: "1"`, `flexDirection: "column"`); the
+- **App shell**: Sidebar (14rem; a `SidebarHeader` then `SidebarLabel` /
+  `SidebarItem` children with `lucide-*` icons) beside a main column (`flex: "1"`, `flexDirection: "column"`); the
   main column is header row + scrollable body. Never nest a second sidebar.
 - **List page**: header (title + primary Button) → List, or a Repeater of
   divider-separated rows: leading title `text-base` `ink-gray-8`, meta line
   `text-sm` `ink-gray-5`, trailing Badge/timestamp in a fixed-width right
   column.
 - **Dashboard**: centered `896px` column, `gap: "24px"`; a KPI strip of
-  NumberCharts separated by hairlines (not four boxed cards); charts below,
+  NumberCards separated by hairlines (not four boxed cards); charts below,
   each with a `text-lg` 600 heading.
 - **Form page**: ONE centered column `maxWidth: "576px"`, `gap: "16px"`; every
   field a FormControl WITH a `label` (placeholder is never the label); footer

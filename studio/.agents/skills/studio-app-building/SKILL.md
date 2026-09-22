@@ -73,8 +73,8 @@ workflows are not interchangeable.
   are already in scope; variables are refs.
 - A standard page uses a sibling `.ts` module with
   `export default function setup(context) { ... }`. Import Vue and Frappe UI
-  APIs explicitly. `context` supplies page resources, variables, `route`, and
-  `router`. Return every state value or handler used by bindings and events;
+  APIs explicitly. `context` supplies page resources, variables, `route`,
+  `router`, `call`, `toast` and `socket` (the app's socket.io connection). Return every state value or handler used by bindings and events;
   keep state in code rather than Studio variables. Never mix the two script
   forms.
 - Shared code for a standard app belongs under its Studio app folder and can

@@ -35,6 +35,8 @@
   `ListRow` template in its `default` component slot. That slot exposes `item`,
   `index`, and `value`; bind cells with `{{ item.<field> }}` and the row's
   `value` prop with `{{ value }}`.
+- Icons are plain `lucide-<name>` strings on any `icon`, `iconLeft` or `iconRight`
+  prop and on `Icon`; there is no `getIcon()` helper and no `FeatherIcon`.
 - Style values use espresso tokens — `var(--ink-…)` for text, `var(--surface-…)`
   for backgrounds, `var(--outline-…)` for borders — NEVER raw hex or rgb().
   Pick the exact step by ROLE from the design language.
