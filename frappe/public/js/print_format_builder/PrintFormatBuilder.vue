@@ -615,7 +615,7 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 	align-items: center;
 	gap: 8px;
 	padding: 0 16px;
-	height: 40px;
+	height: 44px;
 	border-bottom: 1px solid var(--border-color);
 	background: var(--fg-color);
 }
