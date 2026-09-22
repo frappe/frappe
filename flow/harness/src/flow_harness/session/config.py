@@ -59,7 +59,8 @@ class SessionConfig(BaseModel):
 		compact_threshold_tokens: Compact past this estimate; default derives from the window.
 		cwd: Current working directory.
 		max_turns: Maximum allowed turns.
-		max_output_tokens: Simple spend cap on output tokens.
+		token_budget: Spend cap on a run's fresh tokens, shared with the sub-agents
+			inside it. Cache reads are discounted by the providers, so they are left out.
 		stream: Consume the model as a token stream (vs a single response).
 	"""
 
@@ -95,7 +96,7 @@ class SessionConfig(BaseModel):
 	compact_threshold_tokens: int | None = Field(default=None, gt=0)
 	cwd: str = "."
 	max_turns: int = 500
-	max_output_tokens: int = 200_000
+	token_budget: int = Field(default=10_000_000, gt=0)
 	stream: bool = True
 
 	@model_validator(mode="after")
