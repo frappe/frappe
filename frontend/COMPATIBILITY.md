@@ -448,7 +448,8 @@ is declared. The app declares in one file beside its `hooks.py`:
 ## What an app styles with: `tailwind.preset.js`
 
 The desk builds one stylesheet from one Tailwind config, the framework's. An app adds
-theme leaves to it through one file, found where it sits:
+theme leaves to it through one file, found where it sits. Every app on the bench is read,
+whether or not it contributes a file or publishes a name:
 
 ```js
 // apps/crm/crm/frontend/tailwind.preset.js

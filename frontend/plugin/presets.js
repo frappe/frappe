@@ -2,7 +2,7 @@
 // and wraps every preset with `presets: []` so Tailwind's stock theme stays below frappe-ui's.
 
 import { existsSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import jiti from "jiti";
 import resolveConfig from "tailwindcss/resolveConfig.js";
 
@@ -28,13 +28,13 @@ export function frameworkTheme() {
 	return resolveConfig({ presets: [frameworkPreset()] }).theme;
 }
 
-/** `[{ app, preset }]` for every manifest app that ships a preset, checked and wrapped. */
-export function loadPresets(manifest, theme = frameworkTheme()) {
+/** `[{ app, preset }]` for every app on the bench that ships a preset, checked and wrapped. */
+export function loadPresets(sourceDirs, theme = frameworkTheme()) {
 	const loaded = [];
-	for (const { app, source_dir } of manifest) {
-		const path = presetPath(source_dir);
+	for (const sourceDir of sourceDirs) {
+		const path = presetPath(sourceDir);
 		if (!existsSync(path)) continue;
-		loaded.push({ app, preset: load(path) });
+		loaded.push({ app: basename(sourceDir), preset: load(path) });
 	}
 	return checkPresets(loaded, theme);
 }

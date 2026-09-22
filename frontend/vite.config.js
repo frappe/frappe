@@ -14,8 +14,8 @@ import { loadPresets } from "./plugin/presets.js";
 // Assembled by Python, which also enforces singletons before vite is spawned.
 const manifest = readManifest();
 const allSourceDirs = readAllSourceDirs();
-// Refuses a conflicting app preset here, once, before vite transforms anything.
-loadPresets(manifest);
+// Every app on the bench, not only contributors; refused here, once, before any transform.
+loadPresets(allSourceDirs);
 
 export default defineConfig(({ command }) => ({
 	// One asset root for the bench: `/assets/frappe/` is a symlink to `frappe/public/`.

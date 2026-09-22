@@ -5,15 +5,15 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import frappeUIPreset from "frappe-ui/tailwind";
 import { appContent } from "./plugin/content.js";
-import { readManifest } from "./plugin/manifest.js";
+import { readAllSourceDirs, readManifest } from "./plugin/manifest.js";
 import { loadPresets } from "./plugin/presets.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const manifest = readManifest();
 
-// Checked and wrapped by the loader; `vite.config.js` ran the same check first, so a refusal
-// prints there, once, before any transform.
-const appPresets = loadPresets(manifest).map(({ preset }) => preset);
+// Every app on the bench, contributing or not; `vite.config.js` ran the same check first, so
+// a refusal prints there, once, before any transform.
+const appPresets = loadPresets(readAllSourceDirs()).map(({ preset }) => preset);
 
 export default {
 	presets: [frappeUIPreset, ...appPresets],

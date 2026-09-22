@@ -119,16 +119,16 @@ describe("loading a preset from an app", () => {
     mkdirSync(join(root, name, "frontend"), { recursive: true });
     writeFileSync(join(root, "package.json"), JSON.stringify(type ? { type } : {}));
     writeFileSync(join(root, name, "frontend", "tailwind.preset.js"), source);
-    return { app: name, source_dir: join(root, name) };
+    return join(root, name);
   }
 
-  it("loads an export default preset under a \"type\": \"module\" repo, and skips an app with none", () => {
-    const manifest = [
+  it("loads an export default preset under a \"type\": \"module\" repo, from any app on the bench, and skips one with none", () => {
+    const sourceDirs = [
       app("crm", "module", 'export default { theme: { extend: { colors: { "crm-ink": "#111" } } } };'),
       app("hrms", undefined, 'export default { theme: { extend: { colors: { "hrms-ink": "#222" } } } };'),
-      { app: "erpnext", source_dir: join(bench, "erpnext", "erpnext") },
+      join(bench, "erpnext", "erpnext"),
     ];
-    const loaded = loadPresets(manifest, theme);
+    const loaded = loadPresets(sourceDirs, theme);
     expect(loaded.map(({ app }) => app)).toEqual(["crm", "hrms"]);
     expect(loaded[0].preset).toEqual({
       theme: { extend: { colors: { "crm-ink": "#111" } } },
