@@ -180,7 +180,7 @@ This JS has the page context in scope plus ordinary browser globals (`window`, `
   - read → `<source>.data` (list) or `<source>.doc` (single Document)
   Every `.submit(...)` returns a Promise — chain `.then(() => { ... })` to close a dialog, clear inputs, or toast after it lands.
 - `call('dotted.method.path', { arg: value })` — a frappe-ui helper for a ONE-OFF whitelisted server call not tied to a source; returns a Promise, e.g. `call('frappe.client.get_count', { doctype: 'Note' }).then((n) => { count.value = n })`. Do NOT use `createResource`/`createListResource` in inline JS — they are NOT in scope here; use an existing source or `call`.
-- `toast.success(msg)` / `toast.error(msg)`; icons are plain "lucide-<name>" strings; variables (refs — read/write via `.value`); `route`, `router`.
+- `toast.success(msg)` / `toast.error(msg)`; `socket` (the app's socket.io connection, for realtime events); icons are plain "lucide-<name>" strings; variables (refs — read/write via `.value`); `route`, `router`.
 CRUD example — a Dialog "Save" action that creates a Note via the `notes` source (NOT frappe.db), then clears + closes:
   "() => { notes.insert.submit({ title: newNoteTitle.value }).then(() => { newNoteTitle.value = ''; showNewNoteDialog.value = false }) }"
 """
