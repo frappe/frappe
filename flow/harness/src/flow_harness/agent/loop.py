@@ -151,6 +151,7 @@ class LoopInputs:
 	) = None
 	server_tools: dict[str, Tool] | None = None
 	extension_runtime: ExtensionRuntime | None = None
+	budget: TokenBudget | None = None
 
 
 _DENIED = json.dumps({"status": "denied", "message": "User denied this tool call."})
@@ -252,7 +253,7 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	}
 	ctx = _tool_context(inputs)
 
-	budget = TokenBudget(config.token_budget)
+	budget = inputs.budget or TokenBudget(config.token_budget)
 	context = _ContextTracker(
 		usage_tokens=inputs.context_tokens,
 		usage_message_count=inputs.context_message_count,

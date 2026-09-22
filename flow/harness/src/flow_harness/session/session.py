@@ -588,6 +588,7 @@ class Session:
 			run_subagent=self._subagent_runner.run,
 			server_tools=self.server_tools,
 			extension_runtime=self.extension_runtime,
+			budget=loop.TokenBudget(self.config.token_budget),
 		)
 
 	async def _store_tool_image(self, name: str, data: bytes) -> AttachmentContent:

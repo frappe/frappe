@@ -11,8 +11,8 @@ from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
 from flow_harness.agent.agent import Agent
-from flow_harness.agent.loop import HookDecision, LoopInputs
-from flow_harness.events import AssistantMessage, ToolCall
+from flow_harness.agent.loop import HookDecision, LoopInputs, TokenBudget
+from flow_harness.events import AssistantMessage, ToolCall, Usage
 from flow_harness.model import ProviderError
 from flow_harness.model.credentials import CredentialStore
 from flow_harness.model.mock import MockModel, _last_user
@@ -392,6 +392,27 @@ def test_a_child_takes_credentials_with_its_model_or_on_their_own(tmp_path):
 	assert selection(child(api_key="child-key")) == (None, "mock", None, "child-key", None)
 	assert selection(child(model="other")) == (None, "other", None, None, None)
 	assert child().reasoning_effort is None and child(reasoning_effort="low").reasoning_effort == "low"
+
+
+def test_a_child_spends_the_run_budget_its_parent_is_spending(tmp_path):
+	budget = TokenBudget(limit=100)
+	inputs = LoopInputs(
+		config=SessionConfig(cwd=str(tmp_path)),
+		messages=[],
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+		abort=asyncio.Event(),
+		model_name="mock",
+		budget=budget,
+	)
+	agent = SubagentConfig(name="a")
+	child = _child_inputs(inputs, Transcript("c1"), agent, lambda config: select_tools(config.tools))
+
+	assert child.budget is budget  # the same object, so siblings share one ceiling
+	# adapters report cache reads inside input_tokens, so they come back out
+	child.budget.add(Usage(input_tokens=50, output_tokens=10, cache_read_tokens=20))
+	assert budget.spent == 40 and not budget.exhausted
+	budget.add(Usage(input_tokens=1_060, cache_read_tokens=1_000))
+	assert budget.spent == 100 and budget.exhausted
 
 
 def test_config_checks_agent_names_and_redacts_their_keys():
