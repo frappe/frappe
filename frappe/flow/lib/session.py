@@ -124,6 +124,8 @@ class LogRecorder:
 	def record(self, rows: list[dict]) -> None:
 		for row in rows:
 			kind = row["type"]
+			if row.get("subagent_id") and kind != "usage":
+				continue  # a sub-agent's rows are its own thread; only what it spent counts here
 			if kind == "run_started":
 				self.start_run(row["run_id"])
 			elif kind == "user_message":

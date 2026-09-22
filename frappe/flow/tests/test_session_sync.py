@@ -9,7 +9,17 @@ from frappe.tests import IntegrationTestCase
 
 from flow.daemon.client import DaemonClient
 from flow.lib import session as sessions
-from flow.tests.test_fake_daemon import PENDING, TITLE, FakeDaemon, pause, resumed, row, turn
+from flow.tests.test_fake_daemon import (
+	PENDING,
+	TITLE,
+	FakeDaemon,
+	child_pause,
+	pause,
+	resumed,
+	row,
+	text,
+	turn,
+)
 
 
 class TestSync(IntegrationTestCase):
@@ -137,6 +147,40 @@ class TestSync(IntegrationTestCase):
 		self.assertFalse(run.approval_seq)
 		self.assertEqual(frappe.db.count("Flow Run", {"session": self.session.name}), 1)
 		self.assertEqual([m[0] for m in self.messages()], ["user", "assistant", "tool", "assistant"])
+
+	def test_a_sub_agents_rows_stay_out_of_the_run_and_only_its_usage_counts(self):
+		run = self.placeholder(message="look it up")
+		child = {"subagent_id": "c1"}
+		rows = [
+			*child_pause(1, "r1"),
+			row(10, "run_started", run_id="r1-c1b", **child),
+			row(11, "tool_result", tool_call_id="c9", name="delete", content="Deleted 1 ToDo", **child),
+			row(12, "assistant_message", content=text("Gone."), **child),
+			row(13, "usage", input_tokens=3, output_tokens=1, **child),
+			row(14, "run_ended", reason="done", **child),
+			row(15, "tool_result", tool_call_id="c1", name="subagent", content="Gone.\n\n[subagent_id: c1]"),
+			row(16, "assistant_message", content=text("Done.")),
+			row(17, "usage", input_tokens=20, output_tokens=2),
+			row(18, "run_ended", reason="done"),
+		]
+		self.sync(FakeDaemon(rows))
+		run.reload()
+		self.assertEqual(
+			(run.status, run.daemon_run_id, run.iterations, run.output), ("Completed", "r1", 2, "Done.")
+		)
+		self.assertFalse(run.questions)
+		self.assertEqual(frappe.db.count("Flow Run", {"session": self.session.name}), 1)
+		self.assertEqual(
+			[m[:2] for m in self.messages()],
+			[
+				("user", "look it up"),
+				("assistant", None),
+				("tool", "Gone.\n\n[subagent_id: c1]"),
+				("assistant", "Done."),
+			],
+		)
+		self.assertEqual(json.loads(run.usage)["input_tokens"], 33)
+		self.assertEqual(self.session.last_synced_seq, 18)
 
 	def test_a_pause_and_its_resume_in_one_sync_stay_one_run(self):
 		run = self.placeholder(message="delete it")
