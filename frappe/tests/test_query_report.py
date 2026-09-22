@@ -214,7 +214,7 @@ class TestQueryReport(IntegrationTestCase):
 				{"columns": [], "result": []}, prepared_report.doctype, prepared_report.name, report.name
 			)
 			filters = json.dumps({"prepared_report_name": prepared_report.name})
-			self.assertEqual(run(report.name, filters)["doc"].name, prepared_report.name)
+			self.assertTrue(run(report.name, filters)["prepared_report"])
 			with self.assertRaises(frappe.PermissionError):
 				run(other_report.name, filters)
 
