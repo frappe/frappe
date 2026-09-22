@@ -4,7 +4,7 @@
 import { dirname, join } from "node:path";
 import { isFileValue } from "./importMap.js";
 
-const SOURCE = "**/*.{vue,js,ts}";
+const SOURCE = "**/*.{vue,js,ts,jsx,tsx}";
 
 /** Each published file value's folder, rooted at its app's source dir; a package value adds nothing. */
 export function publishedFolders(manifest) {

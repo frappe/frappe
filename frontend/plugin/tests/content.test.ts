@@ -25,7 +25,7 @@ describe("the stylesheet's content list", () => {
       "/bench/apps/crm/crm/lib/cards",
     ]);
     expect(appContent(manifest)).toContain(
-      "/bench/apps/crm/crm/lib/**/*.{vue,js,ts}",
+      "/bench/apps/crm/crm/lib/**/*.{vue,js,ts,jsx,tsx}",
     );
   });
 
@@ -35,10 +35,10 @@ describe("the stylesheet's content list", () => {
 
   it("keeps every app's frontend/ and custom/ folders", () => {
     expect(appContent(manifest)).toContain(
-      "/bench/apps/crm/crm/**/frontend/**/*.{vue,js,ts}",
+      "/bench/apps/crm/crm/**/frontend/**/*.{vue,js,ts,jsx,tsx}",
     );
     expect(appContent(manifest)).toContain(
-      "/bench/apps/crm/crm/**/custom/**/*.{vue,js,ts}",
+      "/bench/apps/crm/crm/**/custom/**/*.{vue,js,ts,jsx,tsx}",
     );
   });
 
