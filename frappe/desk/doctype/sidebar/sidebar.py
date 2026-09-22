@@ -2067,26 +2067,45 @@ def filter_sidebar_items(items, perm_ctx, check_permission: bool = True):
 		if item.hidden:
 			entry["hidden"] = 1
 
-		# One cached read instead of three uncached ones. A missing report and a disabled report
-		# both end up with no `report` block, so neither needs its own check. `cache=True` stops
-		# the same report on ten sidebars costing ten round trips.
-		if item.link_type == "Report" and item.link_to:
-			report = frappe.db.get_value(
-				"Report",
-				item.link_to,
-				["report_type", "ref_doctype", "disabled"],
-				as_dict=True,
-				cache=True,
-			)
-			if report and not report.disabled:
-				entry["report"] = {
-					"report_type": report.report_type,
-					"ref_doctype": report.ref_doctype,
-				}
+		attach_report(entry, item.link_type, item.link_to)
 
 		filtered.append(entry)
 
 	return filtered
+
+
+def attach_report(entry: dict, link_type: str | None, link_to: str | None) -> dict:
+	"""Give a Report row the report facts the desk needs to build its route.
+
+	`frappe.ui.sidebar_item.get_route` cannot route a Report row without them: whether the report
+	is a query report decides between `query-report/<name>` and a report view on its ref doctype,
+	and a row with no `report` block gets no route at all, so it draws as a dead link.
+
+	Every row that reaches a sidebar goes through here, whether an app shipped it or a layer added
+	it. They arrive by different paths, `filter_sidebar_items` and `shape_added_item`, and a row a
+	user added is a link like any other once it is on screen.
+
+	One cached read instead of three uncached ones. A missing report and a disabled report both end
+	up with no `report` block, so neither needs its own check. `cache=True` stops the same report on
+	ten sidebars costing ten round trips.
+	"""
+	if link_type != "Report" or not link_to:
+		return entry
+
+	report = frappe.db.get_value(
+		"Report",
+		link_to,
+		["report_type", "ref_doctype", "disabled"],
+		as_dict=True,
+		cache=True,
+	)
+	if report and not report.disabled:
+		entry["report"] = {
+			"report_type": report.report_type,
+			"ref_doctype": report.ref_doctype,
+		}
+
+	return entry
 
 
 def allowed_added_item(item: dict, perm_ctx) -> bool:

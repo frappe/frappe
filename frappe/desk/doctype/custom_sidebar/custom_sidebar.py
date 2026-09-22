@@ -349,7 +349,14 @@ def overrides(row) -> dict:
 
 
 def shape_added_item(row) -> dict:
-	"""Return an added row in the shape the boot payload uses for a base item."""
+	"""Return an added row in the shape the boot payload uses for a base item.
+
+	"The shape a base item uses" includes the report facts a Report row carries, which is why
+	`attach_report` runs here too. Without it a report someone added to their own sidebar draws as
+	a link with no route, while the identical row shipped by an app works.
+	"""
+	from frappe.desk.doctype.sidebar.sidebar import attach_report
+
 	item = {field: row.get(field) for field in ADDED_ITEM_FIELDS}
 	item.update(
 		{
@@ -359,6 +366,7 @@ def shape_added_item(row) -> dict:
 			"added": 1,
 		}
 	)
+	attach_report(item, row.link_type, row.link_to)
 	return item
 
 
