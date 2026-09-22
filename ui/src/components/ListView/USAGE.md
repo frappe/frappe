@@ -234,13 +234,13 @@ the _compact wire_ shape — convert with the library's `serialize*` helpers, th
 your own whitelisted method:
 
 ```ts
-import { call } from "frappe-ui";
+import { runMethod } from "@framework/ui/api";
 import { serializeFilters } from "@framework/ui/Filter";
 import { serializeOrderBy } from "@framework/ui/SortBy";
 import { serializeColumns } from "@framework/ui/ColumnSettings";
 
 async function saveView(snap: ListViewSnapshot) {
-  await call("my_app.api.save_list_view", {
+  await runMethod("my_app.api.save_list_view", {
     doctype: props.doctype,
     filters: serializeFilters(snap.filters), // → [[fieldname, op, value], …]
     order_by: serializeOrderBy(snap.sort), // → "modified desc, name asc"
