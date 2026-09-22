@@ -9,6 +9,7 @@ for (const name of ["window", "document", "Document", "Element", "SVGElement", "
 	globalThis[name] = dom.window[name]
 }
 dom.window.HTMLElement.prototype.scrollIntoView = () => {}
+globalThis.requestAnimationFrame = (callback) => setTimeout(callback, 0)
 const { createApp, h, nextTick, reactive } = await import("vue")
 const { loadComponent } = await import("./helpers/components.js")
 const { applyEvent, initialConversation } = await import("../src/transcript.js")
@@ -21,6 +22,7 @@ const SettingsDialog = await loadComponent("SettingsDialog")
 const SettingsPage = await loadComponent("SettingsPage")
 const SubagentView = await loadComponent("SubagentView")
 const TranscriptDialog = await loadComponent("TranscriptDialog")
+const WorkspacePanel = await loadComponent("WorkspacePanel")
 
 function mount(t, component, props, flow) {
 	const el = document.createElement("div")
@@ -831,6 +833,47 @@ test("a sub-agent's tab draws the child's thread with the session's own rows", a
 	await nextTick()
 	assert.ok(view.querySelector("[data-turn-fold] button").textContent.includes("Worked")) // and the same turn fold
 	assert.ok(view.querySelector("[data-stub='AssistantText']"))
+})
+
+test("the workspace panel draws a sub-agent's tab itself and takes the host's menu, view and empty state", async (t) => {
+	const conversation = subagentConversation()
+	const workspace = reactive({
+		open: true, maximized: false, view: null, active: "c1",
+		tabs: [{ kind: "subagent", path: "c1", name: "Sub-agent: beans" }],
+	})
+	const flow = { options: {}, state: reactive({ sessionId: "s1", loading: false, conversation, workspace, prefs: {} }) }
+	const panel = {
+		render: () => h(WorkspacePanel, null, {
+			actions: () => h("button", { "data-host": "add" }, "+"),
+			view: ({ tab }) => h("div", { "data-host": "view" }, tab?.path ?? "no tab"),
+			empty: () => h("p", { "data-host": "empty" }, "Nothing open"),
+		}),
+	}
+	const { el } = mount(t, panel, {}, flow)
+	await nextTick()
+	assert.ok(el.querySelector("[role='tab']").textContent.includes("Sub-agent: beans"))
+	assert.ok(el.querySelector("[data-host='add']"))
+	assert.ok(el.textContent.includes("count")) // the child's task bubble: the panel draws the thread
+	assert.equal(el.querySelector("[data-host='view']"), null)
+
+	workspace.tabs.push({ kind: "editor", path: "beans.txt", name: "beans.txt" })
+	workspace.active = "beans.txt"
+	await nextTick()
+	assert.equal(el.querySelector("[data-host='view']").textContent, "beans.txt")
+	assert.ok(!el.textContent.includes("count")) // the thread left with its tab
+
+	workspace.tabs.splice(0)
+	workspace.active = null
+	workspace.view = "files" // a view with no tab yet stands in for one
+	await nextTick()
+	assert.equal(el.querySelector("[data-host='view']").textContent, "no tab")
+	assert.ok(el.querySelector("[role='tab']").textContent.includes("Files"))
+
+	workspace.view = null
+	await nextTick()
+	assert.equal(el.querySelector("[role='tab']"), null)
+	assert.equal(el.querySelector("[data-host='add']"), null)
+	assert.ok(el.querySelector("[data-host='empty']"))
 })
 
 test("a sub-agent's question shows in the composer, named after the sub-agent", async (t) => {

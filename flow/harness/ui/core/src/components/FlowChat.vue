@@ -6,7 +6,35 @@
 			<MessageList ref="list" />
 			<Composer ref="composer" />
 		</main>
-		<WorkspacePanel />
+		<WorkspacePanel>
+			<!-- the daemon's file views: the "+" menu, the editor and the picker -->
+			<template #actions>
+				<Dropdown class="flex-none" :options="addTabOptions">
+					<template #trigger>
+						<button class="flow-icon-btn" title="New tab">
+							<FeatherIcon name="plus" class="h-3.5 w-3.5" />
+						</button>
+					</template>
+				</Dropdown>
+			</template>
+			<template #view><EditorView /></template>
+			<template #empty>
+				<button
+					class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-sm text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
+					@click="store.showFilesView()"
+				>
+					<FeatherIcon name="folder" class="h-4 w-4 flex-none text-ink-gray-5" />
+					Files
+				</button>
+				<button
+					class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-sm text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
+					@click="store.showDiffView()"
+				>
+					<FeatherIcon name="columns" class="h-4 w-4 flex-none text-ink-gray-5" />
+					Diffs
+				</button>
+			</template>
+		</WorkspacePanel>
 
 		<!-- host for frappe-ui's imperative dialog.* stack (confirm/danger/prompt) -->
 		<Dialogs />
@@ -37,6 +65,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from "vue"
 import Dialogs from "frappe-ui/src/components/Dialogs.vue"
+import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import { useColorScheme } from "frappe-ui/src/composables/useColorScheme"
 import FeatherIcon from "./FeatherIcon.vue"
 
@@ -44,6 +73,7 @@ import { installShortcuts } from "../shortcuts.js"
 import { provideComposerHeight } from "../composerHeight.js"
 import ChatHeader from "./ChatHeader.vue"
 import Composer from "./Composer.vue"
+import EditorView from "./EditorView.vue"
 import MessageList from "./MessageList.vue"
 import SessionSidebar from "./SessionSidebar.vue"
 import SettingsAppearance from "./SettingsAppearance.vue"
@@ -72,6 +102,12 @@ const props = defineProps({
 
 provide("flow", props.store)
 useColorScheme() // restores the saved theme and applies data-theme
+
+// "+" menu: one entry per view the daemon's file system serves (browser, terminal later)
+const addTabOptions = [
+	{ label: "Files", icon: "lucide-folder", onClick: () => props.store.showFilesView() },
+	{ label: "Diffs", icon: "lucide-file-diff", onClick: () => props.store.showDiffView() },
+]
 
 const sidebarOpen = computed(() => props.store.state.sidebarOpen)
 const composer = ref(null)
