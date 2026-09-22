@@ -8,9 +8,6 @@
 		<div class="canvas-area">
 			<!-- Canvas toolbar: sample data picker, zoom, preview toggle -->
 			<div class="canvas-toolbar" v-if="!$store.needs_setup.value">
-				<div class="canvas-toolbar-left">
-					<span class="canvas-toolbar-eyebrow">{{ __("Data") }}</span>
-				</div>
 				<div class="canvas-toolbar-center">
 					<DeskControl
 						v-if="doc_picker_df"
@@ -249,7 +246,7 @@ const MARQUEE_THRESHOLD = 4;
 // controls that should start their own interaction, never a marquee
 const MARQUEE_IGNORE =
 	".field--preview, .field--chip, button, input, textarea, select, a, [contenteditable]," +
-	" .section-toolbar, .drag-handle, .col-width-handle, .field-preview-actions," +
+	" .section-toolbar, .drag-handle, .col-width-handle," +
 	" .section-preview-actions, .empty-drop-zone, .canvas-toolbar";
 
 function on_canvas_pointerdown(e) {
@@ -515,6 +512,7 @@ const doc_picker_df = computed(() => {
 		fieldtype: "Link",
 		options: meta.name,
 		placeholder: __("Pick a {0} to preview...", [__(meta.name)]),
+		with_link_btn: true,
 		get_query: () => ({ filters: printable_filters.value }),
 	};
 });
@@ -594,7 +592,6 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 /* In bulk mode the per-item action toolbars (remove) are
    just noise on top of every highlighted block — the bulk panel drives actions
    instead. Hide them everywhere at once from the one multi-select flag. */
-.builder-root.pfb-multi-select :deep(.field-preview-actions),
 .builder-root.pfb-multi-select :deep(.field-actions),
 .builder-root.pfb-multi-select :deep(.section-preview-actions),
 .builder-root.pfb-multi-select :deep(.section-toolbar-right) {
@@ -615,28 +612,16 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	padding: 0 16px;
-	height: 40px;
+	padding: 0 8px;
+	height: 44px;
 	border-bottom: 1px solid var(--border-color);
 	background: var(--fg-color);
-}
-
-.canvas-toolbar-left {
-	flex-shrink: 0;
-}
-
-.canvas-toolbar-eyebrow {
-	font-size: 9px;
-	font-weight: 700;
-	letter-spacing: 0.1em;
-	color: var(--text-muted);
-	white-space: nowrap;
 }
 
 .canvas-toolbar-center {
 	flex: 1;
 	min-width: 0;
-	max-width: 320px;
+	max-width: 250px;
 }
 
 .canvas-doc-picker :deep(.form-control) {
