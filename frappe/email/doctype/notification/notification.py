@@ -184,6 +184,11 @@ class Notification(Document):
 		if self.email_template and self.channel != "Email":
 			frappe.throw(_("Email Template can only be used with the Email channel"))
 
+		if self.email_template:
+			email_template = frappe.get_cached_doc("Email Template", self.email_template)
+			if not email_template.response_:
+				frappe.throw(_("Email Template {0} has no content to send").format(self.email_template))
+
 		self.validate_forbidden_document_types()
 		self.validate_condition()
 		self.validate_filters()
@@ -431,7 +436,6 @@ def get_context(context):
 	def send_notification_by_channel(self, doc, context):
 		"""Send notification based on the specified channel."""
 		try:
-			# Computed once so Email + bell (both possibly enabled) don't render it twice.
 			template_content = self.get_email_template_content(doc)
 
 			if self.channel == "Email":
@@ -459,12 +463,17 @@ def get_context(context):
 			return None
 
 		email_template = frappe.get_cached_doc("Email Template", self.email_template)
-		content = email_template.get_formatted_email(doc.as_dict(), sender=self.sender_email)
+		doc_dict = doc.as_dict()
+		if email_template.use_html:
+			doc_dict = email_template.inject_email_account(doc_dict, self.sender_email)
 
-		if not content.get("message"):
+		subject = frappe.render_template(email_template.subject, doc_dict, restrict_globals=True)
+		message = frappe.render_template(email_template.response_, doc_dict, restrict_globals=True)
+
+		if not message:
 			frappe.throw(_("Email Template {0} has no content to send").format(self.email_template))
 
-		return content
+		return {"subject": subject, "message": message}
 
 	def create_system_notification(self, doc, context, template_content=None):
 		def _render(template):
