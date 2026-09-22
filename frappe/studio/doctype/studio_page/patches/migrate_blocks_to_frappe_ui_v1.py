@@ -189,7 +189,7 @@ def migrate_badge(block, props):
 def migrate_dialog(block, props):
 	migrate_dialog_props(block)
 	props = block["componentProps"]
-	if isinstance(props.get("options"), str):
+	if isinstance(props.get("options"), str) or "disableOutsideClickToClose" in props:
 		return False
 	migrate_theme(props, {"yellow": "amber"})
 	icon = props.get("icon")

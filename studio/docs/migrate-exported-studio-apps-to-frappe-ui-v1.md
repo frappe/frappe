@@ -59,8 +59,9 @@ leaves to you, listed under [By hand](#by-hand).
   new props in the page script instead. See frappe-ui's charts docs.
 - Sidebars with dynamic `header` or `sections`: convert them to Sidebar child blocks manually.
   Dialogs with a dynamic `options` binding: move its fields to the flat props (`title`, `message`,
-  `size`, `icon`, `actions`). The script preserves these props and reports the affected blocks; in
-  the editor they show under **Deprecated** on the block.
+  `size`, `icon`, `actions`). Dialogs with both a `disableOutsideClickToClose` binding and a static
+  `dismissible`: keep one, as `dismissible` (the negation of the old binding). The script preserves
+  these props and reports the affected blocks; in the editor they show under **Deprecated**.
 - Coloured ink tokens (`text-ink-red-5`, `var(--ink-red-5)`) keep their names but v1 renders each
   step one shade lighter. The script does not touch them; adjust a step by hand where it matters.
 - Remaining calls to Studio's `getIcon(...)` helper in page scripts, event handlers or expressions:

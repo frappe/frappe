@@ -1,7 +1,10 @@
+import re
+
 import frappe
 
 OPTIONS_KEYS = ("title", "message", "size", "icon", "actions", "position", "paddingTop")
 
+BINDING = re.compile(r"^\s*\{\{(.*)\}\}\s*$", re.S)
 SLOT_RENAMES = {
 	"body-content": "default",
 	"body-title": "title",
@@ -77,10 +80,15 @@ def migrate_dialog_props(block):
 	if "body" in block.get("componentSlots", {}):
 		props.setdefault("bare", True)
 
-	# 3. `disableOutsideClickToClose` -> `dismissible` (inverted)
-	if "disableOutsideClickToClose" in props:
-		disabled = props.pop("disableOutsideClickToClose")
-		props.setdefault("dismissible", not disabled)
+	# 3. `disableOutsideClickToClose` -> `dismissible` (inverted). A binding is negated; if a
+	# static `dismissible` already sits beside it the two disagree, so the binding stays for review.
+	disabled = props.get("disableOutsideClickToClose")
+	if isinstance(disabled, str) and (match := BINDING.match(disabled)):
+		if "dismissible" not in props:
+			props["dismissible"] = f"{{{{ !({match.group(1).strip()}) }}}}"
+			props.pop("disableOutsideClickToClose")
+	elif "disableOutsideClickToClose" in props:
+		props.setdefault("dismissible", not props.pop("disableOutsideClickToClose"))
 
 	block["componentProps"] = props
 
