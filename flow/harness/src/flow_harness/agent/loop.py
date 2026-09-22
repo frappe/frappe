@@ -101,7 +101,7 @@ class LoopInputs:
 
 	``messages`` is the live provider-facing transcript the session's reducer
 	maintains; the loop only reads it. A child has its own config copy, but its
-	approval gate reads the session's live config through ``approval_config``.
+	approval gate reads the session's live approval mode through ``approval_config``.
 	"""
 
 	config: SessionConfig
@@ -560,7 +560,7 @@ async def _settle_call(
 		call = call.model_copy(update={"arguments": dict(verdict.arguments)})
 		rewritten = True
 
-	if _needs_confirmation(inputs.approval_config or inputs.config, call.name, tools):
+	if _needs_confirmation(inputs, call.name, tools):
 		prompt = await _confirmation_prompt(call, tools, inputs)
 		_raise_if_aborted(inputs.abort)
 		gated.append(PendingCall(id=call.id, name=call.name, args=call.args, prompt=prompt))
@@ -645,10 +645,11 @@ async def _confirmation_prompt(call: ToolCall, tools: dict[str, Tool], inputs: L
 	return f"Approve `{call.name}`?\n\n" + json.dumps(call.args, indent=2, default=str)
 
 
-def _needs_confirmation(config: SessionConfig, name: str, tools: dict[str, Tool]) -> bool:
-	if config.auto_approve:
+def _needs_confirmation(inputs: LoopInputs, name: str, tools: dict[str, Tool]) -> bool:
+	"""Approval mode is the session's live setting; the confirm list is the run's own."""
+	if (inputs.approval_config or inputs.config).auto_approve:
 		return False
-	if name in config.confirm_tools:
+	if name in inputs.config.confirm_tools:
 		return True
 	tool = tools.get(name)
 	return bool(tool and tool.requires_confirmation)
