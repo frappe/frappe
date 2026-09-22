@@ -29,7 +29,7 @@ from frappe.database.utils import (
 	is_query_type,
 )
 from frappe.exceptions import DoesNotExistError, ImplicitCommitError
-from frappe.monitor import get_trace_id
+from frappe.monitor import TRACE_ID_PATTERN, get_trace_id
 from frappe.query_builder import Case
 from frappe.query_builder.functions import Count
 from frappe.utils import CallbackManager, cint, get_datetime, get_table_name, getdate, now, sbool
@@ -223,7 +223,7 @@ class Database:
 
 		query, values = self._transform_query(query, values)
 
-		if trace_id := get_trace_id():
+		if (trace_id := get_trace_id()) and TRACE_ID_PATTERN.fullmatch(trace_id):
 			query += f" /* FRAPPE_TRACE_ID: {trace_id} */"
 
 		try:
@@ -1318,11 +1318,17 @@ class Database:
 		columns = frappe.cache.hget("table_columns", table)
 		if columns is None:
 			information_schema = frappe.qb.Schema("information_schema")
+			table_schema = (
+				frappe.conf.get("db_schema", "public") if self.db_type == "postgres" else self.cur_db_name
+			)
 
 			columns = (
 				frappe.qb.from_(information_schema.columns)
 				.select(information_schema.columns.column_name)
-				.where(information_schema.columns.table_name == table)
+				.where(
+					(information_schema.columns.table_name == table)
+					& (information_schema.columns.table_schema == table_schema)
+				)
 				.run(pluck=True)
 			)
 

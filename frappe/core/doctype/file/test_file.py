@@ -5,8 +5,10 @@ import json
 import os
 import shutil
 import tempfile
+import zipfile
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
+from unittest.mock import patch
 
 import frappe
 from frappe import _
@@ -94,6 +96,43 @@ class TestFSRollbacks(FrappeTestCase):
 		self.assertFalse(file.exists_on_disk())
 
 
+class TestWriteFileContainment(FrappeTestCase):
+	def test_write_file_rejects_target_outside_files_dir(self):
+		from frappe.utils.file_manager import write_file
+
+		files_path = get_files_path(is_private=1)
+		bad_names = (
+			"../../../../ESCAPE_TEST.txt",  # parent traversal
+			"sub/../../ESCAPE_TEST.txt",  # traversal via a nested segment
+			"/tmp/ESCAPE_TEST.txt",  # absolute path outside the files dir
+			"subdir/ESCAPE_TEST.txt",  # nested name: not a direct child of the files dir
+		)
+		for fname in bad_names:
+			with self.subTest(fname=fname):
+				# where the bytes would land if the target were not confined
+				would_be = os.path.realpath(os.path.join(files_path, fname))
+				self.assertRaises(ValidationError, write_file, b"data\n", fname, is_private=1)
+				self.assertFalse(os.path.exists(would_be))
+
+	def test_write_file_allows_plain_basename(self):
+		from frappe.utils.file_manager import write_file
+
+		content = b"safe content\n"
+		for is_private in (0, 1):
+			with self.subTest(is_private=is_private):
+				fname = f"{frappe.generate_hash()}.txt"
+				write_file(content, fname, is_private=is_private)
+
+				on_disk = get_files_path(fname, is_private=is_private)
+				self.addCleanup(lambda p=on_disk: os.path.exists(p) and os.remove(p))
+				self.assertEqual(
+					os.path.realpath(os.path.dirname(on_disk)),
+					os.path.realpath(get_files_path(is_private=is_private)),
+				)
+				with open(on_disk, "rb") as f:
+					self.assertEqual(f.read(), content)
+
+
 class TestExtensionValidations(FrappeTestCase):
 	@change_settings("System Settings", {"allowed_file_extensions": "JPG\nCSV"})
 	def test_allowed_extension(self):
@@ -105,6 +144,13 @@ class TestExtensionValidations(FrappeTestCase):
 		bad_file = frappe.new_doc("File", file_name=f"{file_name}.csv", content=content).insert()
 		frappe.db.rollback()
 		self.assertFalse(bad_file.exists_on_disk())
+
+	@change_settings("System Settings", {"allowed_file_extensions": "JPG\nCSV"})
+	def test_allowlist_blocks_extension_without_known_mimetype(self):
+		set_request(method="POST", path="/")
+		file_name = content = frappe.generate_hash()
+		bad_file = frappe.new_doc("File", file_name=f"{file_name}.phtml", content=content)
+		self.assertRaises(FileTypeNotAllowed, bad_file.insert)
 
 
 class TestBase64File(FrappeTestCase):
@@ -422,6 +468,26 @@ class TestFile(FrappeTestCase):
 		d.save()
 		self.assertEqual(d.folder, "Home")
 
+	def test_folder_file_url_is_always_empty(self):
+		folder = self.get_folder("Test Folder URL", "Home")
+		self.assertFalse(folder.file_url)
+
+		folder.file_url = "/private/files/somewhere.txt"
+		self.assertRaises(ValidationError, folder.save)
+
+		self.assertRaises(
+			ValidationError,
+			frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": "another_folder",
+					"is_folder": 1,
+					"folder": "Home",
+					"file_url": "/private/files/somewhere_else.txt",
+				}
+			).insert,
+		)
+
 	def test_on_delete(self):
 		file = frappe.get_doc("File", {"file_name": "file_copy.txt"})
 		file.delete()
@@ -597,6 +663,105 @@ class TestFile(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True)
 		self.assertRaisesRegex(ValidationError, "not a zip file", test_file.unzip)
+
+	def test_file_unzip_respects_dedicated_extract_size_setting(self):
+		file_path = frappe.get_app_path("frappe", "www/_test/assets/file.zip")
+		public_file_path = frappe.get_site_path("public", "files")
+		try:
+			shutil.copy(file_path, public_file_path)
+		except Exception:
+			pass
+
+		test_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_url": "/files/file.zip",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(test_file.delete)
+
+		file_count_before = frappe.db.count("File")
+
+		# a dedicated, tighter zip-extraction budget must be enforced even though
+		# max_file_size (used for ordinary uploads) stays at its generous default
+		with patch.dict(frappe.conf, {"max_zip_extract_size": 1000}):
+			self.assertRaisesRegex(ValidationError, "maximum allowed size", test_file.unzip)
+
+		self.assertTrue(frappe.db.exists("File", test_file.name))
+		self.assertEqual(frappe.db.count("File"), file_count_before)
+
+	def test_file_unzip_requires_read_permission(self):
+		file_path = frappe.get_app_path("frappe", "www/_test/assets/file.zip")
+		with open(file_path, "rb") as f:
+			zip_content = f.read()
+
+		try:
+			frappe.set_user("test@example.com")
+			test_file = frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": "file.zip",
+					"content": zip_content,
+					"is_private": 1,
+				}
+			).insert()
+
+			file_count_before = frappe.db.count("File")
+
+			# block unzip
+			frappe.set_user("test4@example.com")
+			self.assertRaises(frappe.PermissionError, unzip_file, test_file.name)
+			self.assertTrue(frappe.db.exists("File", test_file.name))
+			self.assertEqual(frappe.db.count("File"), file_count_before)
+
+			# allow unzip
+			frappe.set_user("test@example.com")
+			self.assertListEqual(
+				[file.file_name for file in unzip_file(test_file.name)],
+				["css_asset.css", "image.jpg", "js_asset.min.js"],
+			)
+		finally:
+			frappe.set_user("Administrator")
+
+	def test_file_unzip_rolls_back_children_on_mid_extraction_failure(self):
+		fixture_dir = tempfile.mkdtemp()
+		zip_path = os.path.join(fixture_dir, "corrupt.zip")
+		with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zf:
+			zf.writestr("a.txt", "hello-a")
+			zf.writestr("b.txt", "hello-b")
+			zf.writestr("c.txt", "hello-c")
+
+		# flip a byte in the last member's stored (uncompressed) data so it fails
+		# its CRC check on read, without touching the central directory metadata
+		with open(zip_path, "rb") as f:
+			data = bytearray(f.read())
+		corrupt_offset = data.rfind(b"hello-c")
+		self.assertNotEqual(corrupt_offset, -1)
+		data[corrupt_offset] ^= 0xFF
+		with open(zip_path, "wb") as f:
+			f.write(data)
+
+		public_file_path = frappe.get_site_path("public", "files")
+		shutil.copy(zip_path, public_file_path)
+
+		test_file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_url": "/files/corrupt.zip",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(test_file.delete)
+
+		file_count_before = frappe.db.count("File")
+
+		# a.txt and b.txt extract fine and get saved before c.txt fails its CRC check;
+		# the whole call must still roll back to a clean no-op
+		self.assertRaisesRegex(ValidationError, "not a valid zip file", test_file.unzip)
+
+		self.assertTrue(frappe.db.exists("File", test_file.name))
+		self.assertEqual(frappe.db.count("File"), file_count_before)
+		self.assertFalse(frappe.db.exists("File", {"file_name": "a.txt"}))
+		self.assertFalse(frappe.db.exists("File", {"file_name": "b.txt"}))
 
 	def test_create_file_without_file_url(self):
 		test_file = frappe.get_doc(
@@ -964,6 +1129,63 @@ class TestFileUtils(FrappeTestCase):
 	def test_create_new_folder(self):
 		folder = create_new_folder("test_folder", "Home")
 		self.assertTrue(folder.is_folder)
+
+	def test_resolved_file_path_stays_within_files_directory(self):
+		from frappe.utils.file_manager import get_file_path
+
+		normal = frappe.get_doc(
+			{"doctype": "File", "file_name": "within_bounds.txt", "content": "ok"}
+		).insert()
+		original_file_url = normal.file_url
+		try:
+			self.assertTrue(get_file_path(normal.name).endswith("within_bounds.txt"))
+
+			normal.db_set("file_url", "/private/files/../../../../outside_bounds.txt")
+			self.assertRaisesRegex(ValidationError, "Cannot access file path", get_file_path, normal.name)
+
+			normal.db_set("file_url", "/private/files/../../site_level_file.txt")
+			self.assertRaisesRegex(ValidationError, "Cannot access file path", get_file_path, normal.name)
+		finally:
+			normal.db_set("file_url", original_file_url)
+			normal.delete()
+
+	def test_traversal_file_url_cannot_reach_other_private_file(self):
+		victim = frappe.get_doc(
+			{"doctype": "File", "file_name": "traversal_victim.txt", "content": "secret", "is_private": 1}
+		).insert()
+		try:
+			for is_private in (0, 1):
+				doc = frappe.get_doc(
+					{
+						"doctype": "File",
+						"file_name": "traversal_copy.txt",
+						"file_url": f"/files/../../private/files/{victim.file_name}",
+						"is_private": is_private,
+					}
+				)
+				self.assertRaisesRegex(ValidationError, "File URL", doc.insert)
+		finally:
+			victim.delete()
+
+	def test_resolved_file_path_rejects_sibling_directory_prefix_match(self):
+		from frappe.utils.file_manager import get_file_path
+
+		sibling_dir = get_files_path(is_private=1) + "_lookalike"
+		os.makedirs(sibling_dir, exist_ok=True)
+		with open(os.path.join(sibling_dir, "neighbour.txt"), "w") as f:
+			f.write("outside the intended directory")
+
+		normal = frappe.get_doc(
+			{"doctype": "File", "file_name": "sibling_check.txt", "content": "ok"}
+		).insert()
+		original_file_url = normal.file_url
+		try:
+			normal.db_set("file_url", "/private/files/../files_lookalike/neighbour.txt")
+			self.assertRaisesRegex(ValidationError, "Cannot access file path", get_file_path, normal.name)
+		finally:
+			normal.db_set("file_url", original_file_url)
+			normal.delete()
+			shutil.rmtree(sibling_dir)
 
 
 class TestFileOptimization(FrappeTestCase):

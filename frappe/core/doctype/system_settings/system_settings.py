@@ -78,6 +78,7 @@ class SystemSettings(Document):
 		max_report_rows: DF.Int
 		max_signups_allowed_per_hour: DF.Int
 		minimum_password_score: DF.Literal["2", "3", "4"]
+		max_zip_extract_size: DF.Int
 		number_format: DF.Literal[
 			"#,###.##",
 			"#.###,##",

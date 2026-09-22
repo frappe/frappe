@@ -113,7 +113,7 @@ def get_default_path(apps=None):
 
 
 @frappe.whitelist()
-def set_app_as_default(app_name):
+def set_app_as_default(app_name: str):
 	if app_name not in frappe.get_installed_apps():
 		frappe.throw(_("App {} is not installed").format(frappe.bold(app_name)))
 
@@ -124,7 +124,7 @@ def set_app_as_default(app_name):
 
 
 @frappe.whitelist()
-def get_incomplete_setup_route(current_app, app_route):
+def get_incomplete_setup_route(current_app: str, app_route: str):
 	pending_apps = get_apps_with_incomplete_dependencies(current_app)
 
 	if not pending_apps:

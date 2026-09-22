@@ -992,13 +992,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		);
 
 		// add status field derived from docstatus, if status is not a standard field
-		let has_status_values = false;
-
-		if (this.data) {
-			has_status_values = frappe.get_indicator(this.data[0], this.doctype);
-		}
-
-		if (!frappe.meta.has_field(this.doctype, "status") && has_status_values) {
+		if (!frappe.meta.has_field(this.doctype, "status") && frappe.has_indicator(this.doctype)) {
 			doctype_fields = [
 				{
 					label: __("Status"),
@@ -1110,8 +1104,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			} else {
 				// if status is not in fields append status column derived from docstatus
 				if (
-					!this.fields.includes(["status", this.doctype]) &&
-					!frappe.meta.has_field(this.doctype, "status")
+					!frappe.meta.has_field(this.doctype, "status") &&
+					frappe.has_indicator(this.doctype)
 				) {
 					column = this.build_column(["docstatus", this.doctype]);
 				}
@@ -1229,6 +1223,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						if (!curr.column.docfield) return acc;
 
 						if (
+							curr.content &&
 							curr.column.docfield.fieldtype == "Link" &&
 							frappe.boot.link_title_doctypes.includes(curr.column.docfield.options)
 						) {

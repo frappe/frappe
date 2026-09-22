@@ -5,7 +5,9 @@ import time
 from contextlib import contextmanager
 
 import frappe
-from frappe.desk.query_report import generate_report_result, get_report_doc
+from frappe.core.doctype.prepared_report.prepared_report import convert_json_to_csv, create_json_gz_file
+from frappe.desk.form.load import get_attachments
+from frappe.desk.query_report import add_total_row, generate_report_result, get_report_doc
 from frappe.query_builder.utils import db_type_is
 from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils import FrappeTestCase, timeout
@@ -62,6 +64,35 @@ class TestPreparedReport(FrappeTestCase):
 		self.assertEqual(len(prepared_data["columns"]), len(generated_data["columns"]))
 		self.assertEqual(len(prepared_data["result"]), len(generated_data["result"]))
 		self.assertEqual(len(prepared_data), len(generated_data))
+
+	def test_csv_conversion_of_total_row(self):
+		columns = [
+			{"label": "Item Code", "fieldname": "item_code", "fieldtype": "Data", "width": 120},
+			{"label": "Amount", "fieldname": "amount", "fieldtype": "Currency", "width": 120},
+		]
+		result = add_total_row(
+			[
+				{"item_code": "LED Ceiling Fan", "amount": 38400.0},
+				{"item_code": "Table Lamp", "amount": 25600.0},
+			],
+			columns,
+		)
+		self.assertIsInstance(result[-1], list)
+
+		doc = self.create_prepared_report(commit=False)
+		create_json_gz_file({"result": result, "columns": columns}, doc.doctype, doc.name, doc.report_name)
+
+		convert_json_to_csv(doc.name)
+
+		csv_files = [f for f in get_attachments(doc.doctype, doc.name) if f.file_name.endswith(".csv")]
+		self.assertEqual(len(csv_files), 1)
+
+		content = frappe.get_doc("File", csv_files[0].name).get_content()
+		if isinstance(content, bytes):
+			content = content.decode("utf-8")
+		self.assertIn("LED Ceiling Fan", content)
+		self.assertIn("Total", content)
+		self.assertIn("64000.0", content)
 
 	@run_only_if(db_type_is.MARIADB)
 	def test_start_status_and_kill_jobs(self):

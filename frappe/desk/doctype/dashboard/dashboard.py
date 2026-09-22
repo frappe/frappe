@@ -85,7 +85,7 @@ def get_permission_query_conditions(user):
 
 
 @frappe.whitelist()
-def get_permitted_charts(dashboard_name):
+def get_permitted_charts(dashboard_name: str):
 	permitted_charts = []
 	dashboard = frappe.get_doc("Dashboard", dashboard_name)
 	for chart in dashboard.charts:
@@ -101,7 +101,7 @@ def get_permitted_charts(dashboard_name):
 
 
 @frappe.whitelist()
-def get_permitted_cards(dashboard_name):
+def get_permitted_cards(dashboard_name: str):
 	dashboard = frappe.get_doc("Dashboard", dashboard_name)
 	return [card for card in dashboard.cards if frappe.has_permission("Number Card", doc=card.card)]
 

@@ -31,7 +31,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			item: function (item, term) {
 				const d = this.get_item(item.value);
 				let target = "#";
-				if (d.route) {
+				if (is_external_url(d.route) || is_in_app_path(d.route)) {
+					target = first_route(d.route);
+				} else if (d.route) {
 					target = frappe.router.make_url(
 						frappe.router.convert_from_standard_route(
 							frappe.router.get_route_from_arguments(
@@ -69,6 +71,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				var txt = value.trim().replace(/\s\s+/g, " ");
 				var last_space = txt.lastIndexOf(" ");
 				me.global_results = [];
+				me._hook_search_seq = (me._hook_search_seq || 0) + 1;
 
 				me.options = [];
 
@@ -79,6 +82,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					me.add_defaults(txt);
 					me.options = me.options.concat(me.build_options(txt));
 					me.options = me.options.concat(me.global_results);
+					if (frappe.boot.has_awesomebar_search) {
+						me.fetch_hook_results(txt, me._hook_search_seq);
+					}
 				} else {
 					me.options = me.options.concat(
 						me.deduplicate(frappe.search.utils.get_recent_pages(txt || ""))
@@ -117,14 +123,14 @@ frappe.search.AwesomeBar = class AwesomeBar {
 
 			if (item.onclick) {
 				item.onclick(item.match);
+			} else if (is_external_url(item.route)) {
+				window.open(first_route(item.route), "_blank");
+			} else if (is_in_app_path(item.route)) {
+				navigate_in_app_path(first_route(item.route), o.originalEvent);
 			} else {
 				let event = o.originalEvent;
 				if (event.ctrlKey || event.metaKey) {
 					frappe.open_in_new_tab = true;
-				}
-				if (item.route[0].startsWith("https://")) {
-					window.open(item.route[0], "_blank");
-					return;
 				}
 				frappe.set_route(item.route);
 			}
@@ -264,6 +270,19 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		this.global_results = this.global_results.concat(global_results);
 	}
 
+	fetch_hook_results(txt, seq) {
+		frappe.call({
+			method: "frappe.desk.search.awesomebar_search",
+			args: { txt },
+			callback: (r) => {
+				if (seq !== this._hook_search_seq || !r.message?.length) return;
+				this.options = this.deduplicate(this.options.concat(r.message));
+				this.options.sort((a, b) => b.index - a.index);
+				this.awesomplete.list = this.options;
+			},
+		});
+	}
+
 	make_global_search(txt) {
 		// let search_text = $(this.awesomplete.ul).find('.search-text');
 
@@ -380,3 +399,42 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		}
 	}
 };
+
+function first_route(route) {
+	return Array.isArray(route) ? route[0] : route;
+}
+
+function is_external_url(route) {
+	const first = first_route(route);
+	return (
+		typeof first === "string" && (first.startsWith("https://") || first.startsWith("http://"))
+	);
+}
+
+function is_in_app_path(route) {
+	const first = first_route(route);
+	return typeof first === "string" && first.startsWith("/") && !first.startsWith("//");
+}
+
+function is_desk_path(path) {
+	const pathname = path.split(/[?#]/)[0];
+	return (
+		pathname === "/desk" ||
+		pathname.startsWith("/desk/") ||
+		pathname === "/app" ||
+		pathname.startsWith("/app/")
+	);
+}
+
+function navigate_in_app_path(path, event) {
+	if (is_desk_path(path)) {
+		if (event.ctrlKey || event.metaKey) {
+			frappe.open_in_new_tab = true;
+		}
+		frappe.set_route(path);
+	} else if (event.ctrlKey || event.metaKey) {
+		window.open(path, "_blank");
+	} else {
+		window.location.href = path;
+	}
+}

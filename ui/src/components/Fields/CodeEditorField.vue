@@ -83,7 +83,7 @@
 					v-show="previewOpen"
 					:modelValue="value"
 					:language="language"
-					class="mt-1 min-h-[4.5rem] rounded-md border border-surface-gray-2 p-3"
+					class="mt-1 min-h-[4.5rem] rounded-md border border-outline-gray-1 p-3"
 				/>
 			</div>
 		</div>
@@ -103,7 +103,7 @@
 			<CodePreview
 				:modelValue="value"
 				:language="language"
-				class="min-h-[4.5rem] rounded-md border border-surface-gray-2 p-3"
+				class="min-h-[4.5rem] rounded-md border border-outline-gray-1 p-3"
 			/>
 		</div>
 	</div>

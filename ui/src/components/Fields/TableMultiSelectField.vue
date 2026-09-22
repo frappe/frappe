@@ -22,6 +22,7 @@
 import { computed } from "vue";
 import { TableMultiSelect } from "../TableMultiSelect";
 import { useChildRowModel } from "../FormLayout/useChildRowModel";
+import { newRowValues } from "../FormLayout/newRowValues";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 
 const props = defineProps<FieldComponentProps>();
@@ -34,6 +35,12 @@ const targetDoctype = computed(() => linkField.value?.options ?? "");
 const value = useChildRowModel(
 	() => props.modelValue,
 	() => linkField.value?.fieldname ?? "",
-	emit
+	emit,
+	() => props.field.fieldname,
+	// A picked row is a new child row, so it starts out shaped like any other.
+	// `childFields` is the child's grid-column subset, not its whole form — a
+	// `Table MultiSelect` node carries no `childLayout` — so the seed narrows to
+	// those. Known limit, not a hole: it is the same subset the picker itself shows.
+	() => newRowValues(props.field.childFields ?? [])
 );
 </script>

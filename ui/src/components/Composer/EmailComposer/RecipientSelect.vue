@@ -1,5 +1,5 @@
+<!-- Wrapper div so flex-1 applies: MultiEmailInput puts attrs.class on its inner box. -->
 <template>
-	<!-- Wrapper div so flex-1 applies: MultiEmailInput puts attrs.class on its inner box. -->
 	<div class="w-full flex-1">
 		<MultiEmailInput
 			v-model="emails"

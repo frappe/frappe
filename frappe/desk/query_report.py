@@ -66,6 +66,32 @@ def get_report_doc(report_name):
 	return doc
 
 
+@frappe.whitelist()
+def get_print_format_data(print_format: str):
+	pf = frappe.db.get_value(
+		"Print Format",
+		{"name": print_format, "disabled": 0, "print_format_for": "Report"},
+		["report", "html", "css"],
+		as_dict=True,
+	)
+	if not pf:
+		frappe.throw(
+			_("{0} is not an enabled Print Format for a Report").format(frappe.bold(print_format)),
+			frappe.DoesNotExistError,
+		)
+
+	# get_report_doc enforces the referenced Report's own permission model before we hand out its print format
+	report = get_report_doc(pf.report)
+
+	if not frappe.has_permission(report.ref_doctype, "print"):
+		frappe.throw(
+			_("You don't have permission to print: {0}").format(_(report.ref_doctype)),
+			frappe.PermissionError,
+		)
+
+	return {"html": pf.html, "css": pf.css}
+
+
 def get_report_result(report, filters):
 	res = None
 
@@ -173,7 +199,7 @@ def normalize_result(result, columns):
 
 
 @frappe.whitelist()
-def get_script(report_name):
+def get_script(report_name: str):
 	report = get_report_doc(report_name)
 	module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
 
@@ -446,7 +472,7 @@ def _export_query(form_params, csv_params, populate_response=True):
 		)
 		return
 
-	format_fields(data)
+	format_fields(data, file_format_type)
 	xlsx_data, column_widths = build_xlsx_data(
 		data,
 		visible_idx,
@@ -488,7 +514,9 @@ def valid_report_name(report_name, suffix):
 	return False
 
 
-def format_fields(data: frappe._dict) -> None:
+def format_fields(data: frappe._dict, file_format_type: str | None = None) -> None:
+	stringify_dates = file_format_type != "Excel"
+
 	for i, col in enumerate(data.columns):
 		if col.get("fieldtype") == "Duration":
 			for row in data.result:
@@ -502,18 +530,24 @@ def format_fields(data: frappe._dict) -> None:
 				val = row.get(index) if isinstance(row, dict) else row[index]
 				if val:
 					row[index] = round(val, col.get("precision"))
-		elif col.get("fieldtype") == "Date":
+		elif col.get("fieldtype") == "Date" and stringify_dates:
 			for row in data.result:
 				index = col.get("fieldname") if isinstance(row, dict) else i
 				val = row.get(index) if isinstance(row, dict) else row[index]
 				if val:
 					row[index] = formatdate(val)
-		elif col.get("fieldtype") == "Datetime":
+		elif col.get("fieldtype") == "Datetime" and stringify_dates:
 			for row in data.result:
 				index = col.get("fieldname") if isinstance(row, dict) else i
 				val = row.get(index) if isinstance(row, dict) else row[index]
 				if val:
 					row[index] = format_datetime(val)
+		elif col.get("fieldtype") in ("Link", "Dynamic Link"):
+			for row in data.result:
+				index = col.get("fieldname") if isinstance(row, dict) else i
+				val = row.get(index) if isinstance(row, dict) else row[index]
+				if isinstance(val, str) and val.startswith("'") and val.endswith("'"):
+					row[index] = val[1:-1]
 
 
 def build_xlsx_data(
@@ -668,7 +702,7 @@ def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):
 
 
 @frappe.whitelist()
-def get_data_for_custom_field(doctype, field, names=None):
+def get_data_for_custom_field(doctype: str, field: str, names: str | list[str] | None = None):
 	if not frappe.has_permission(doctype, "read"):
 		frappe.throw(_("Not Permitted to read {0}").format(_(doctype)), frappe.PermissionError)
 
@@ -715,7 +749,7 @@ def get_data_for_custom_report(columns, result):
 
 
 @frappe.whitelist()
-def save_report(reference_report, report_name, columns, filters):
+def save_report(reference_report: str, report_name: str, columns: str, filters: str):
 	report_doc = get_report_doc(reference_report)
 
 	docname = frappe.db.exists(

@@ -10,7 +10,6 @@ from oauthlib.common import Request
 from oauthlib.openid import RequestValidator
 
 import frappe
-from frappe.auth import LoginManager
 from frappe.integrations.doctype.oauth_client.oauth_client import OAuthClient
 from frappe.utils.data import cstr, get_system_timezone, now_datetime
 
@@ -184,7 +183,17 @@ class OAuthWebRequestValidator(RequestValidator):
 	def validate_grant_type(self, client_id, grant_type, client, request, *args, **kwargs):
 		# Clients should only be allowed to use one type of grant.
 		# In this case, it must be "authorization_code" or "refresh_token"
-		return grant_type in ["authorization_code", "refresh_token", "password"]
+		return grant_type in ["authorization_code", "refresh_token"]
+
+	def validate_user(self, username, password, client, request, *args, **kwargs):
+		"""Resource Owner Password Credentials Grant is not supported.
+
+		oauthlib's ResourceOwnerPasswordCredentialsGrant handler calls this
+		unconditionally regardless of validate_grant_type, so this must
+		exist and reject cleanly rather than fall through to the base
+		RequestValidator's NotImplementedError.
+		"""
+		return False
 
 	def save_bearer_token(self, token, request, *args, **kwargs):
 		# Remember to associate it with request.scopes, request.user and
@@ -229,7 +238,11 @@ class OAuthWebRequestValidator(RequestValidator):
 	def validate_bearer_token(self, token, scopes, request):
 		# Remember to check expiration and scope membership
 		otoken = frappe.get_doc("OAuth Bearer Token", token)
-		is_token_valid = (now_datetime() < otoken.expiration_time) and otoken.status != "Revoked"
+		is_token_valid = (
+			now_datetime() < otoken.expiration_time
+			and otoken.status != "Revoked"
+			and frappe.db.exists("User", {"name": otoken.user, "enabled": 1})
+		)
 		client_scopes = frappe.db.get_value("OAuth Client", otoken.client, "scopes").split(
 			get_url_delimiter()
 		)
@@ -237,7 +250,10 @@ class OAuthWebRequestValidator(RequestValidator):
 		for scp in scopes:
 			are_scopes_valid = are_scopes_valid and True if scp in client_scopes else False
 
-		return is_token_valid and are_scopes_valid
+		if is_token_valid and are_scopes_valid:
+			request.user = otoken.user
+			return True
+		return False
 
 	# Token refresh request
 
@@ -352,7 +368,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		return self.finalize_id_token(id_token, token, token_handler, request)
 
 	def get_userinfo_claims(self, request):
-		user = frappe.get_doc("User", frappe.session.user)
+		user = frappe.get_doc("User", request.user)
 		return get_userinfo(user)
 
 	def validate_id_token(self, token, scopes, request):
@@ -478,21 +494,6 @@ class OAuthWebRequestValidator(RequestValidator):
 			return True
 
 		return False
-
-	def validate_user(self, username, password, client, request, *args, **kwargs):
-		"""Ensure the username and password is valid.
-
-		Method is used by:
-		- Resource Owner Password Credentials Grant
-		"""
-		login_manager = LoginManager()
-		login_manager.authenticate(username, password)
-
-		if login_manager.user == "Guest":
-			return False
-
-		request.user = login_manager.user
-		return True
 
 
 def calculate_at_hash(access_token, hash_alg):

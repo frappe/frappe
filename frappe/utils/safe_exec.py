@@ -455,12 +455,14 @@ def render_safe_globals():
 			full_name=frappe.local.session.data.full_name
 			if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
 			else "Guest",
-			request=getattr(frappe.local, "request", {}),
 			session=frappe._dict(
 				user=user,
 				csrf_token=frappe.local.session.data.csrf_token
 				if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
 				else "",
+			),
+			request=frappe._dict(
+				path=frappe.local.request.path if getattr(frappe.local, "request", None) else "",
 			),
 			make_get_request=make_safe_get_request,
 			socketio_port=frappe.conf.socketio_port,

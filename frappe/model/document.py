@@ -626,7 +626,6 @@ class Document(BaseDocument):
 		self._validate_data_fields()
 		self._validate_selects()
 		self._validate_non_negative()
-		self._validate_length()
 		self._fix_rating_value()
 		self._validate_code_fields()
 		self._sync_autoname_field()
@@ -634,18 +633,19 @@ class Document(BaseDocument):
 		self._sanitize_content()
 		self._save_passwords()
 		self.validate_workflow()
+		self._validate_length()
 
 		for d in self.get_all_children():
 			d._validate_data_fields()
 			d._validate_selects()
 			d._validate_non_negative()
-			d._validate_length()
 			d._fix_rating_value()
 			d._validate_code_fields()
 			d._sync_autoname_field()
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
 			d._save_passwords()
+			d._validate_length()
 		if self.is_new():
 			# don't set fields like _assign, _comments for new doc
 			for fieldname in optional_fields:
@@ -1108,7 +1108,7 @@ class Document(BaseDocument):
 		return self._cancel()
 
 	@frappe.whitelist()
-	def rename(self, name: str, merge=False, force=False, validate_rename=True):
+	def rename(self, name: str | int, merge: bool = False, force: bool = False, validate_rename: bool = True):
 		"""Rename the document to `name`. This transforms the current object."""
 		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
 
@@ -1458,10 +1458,10 @@ class Document(BaseDocument):
 	@frappe.whitelist()
 	def add_comment(
 		self,
-		comment_type="Comment",
-		text=None,
-		comment_email=None,
-		comment_by=None,
+		comment_type: str = "Comment",
+		text: str | None = None,
+		comment_email: str | None = None,
+		comment_by: str | None = None,
 	):
 		"""Add a comment to this document.
 

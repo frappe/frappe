@@ -39,6 +39,9 @@ class Workflow(Document):
 		self.create_custom_field_for_workflow_state()
 		self.update_default_workflow_status()
 
+	def on_trash(self):
+		frappe.clear_cache(doctype=self.document_type)
+
 	def create_custom_field_for_workflow_state(self):
 		frappe.clear_cache(doctype=self.document_type)
 		meta = frappe.get_meta(self.document_type)
@@ -119,7 +122,7 @@ class Workflow(Document):
 
 
 @frappe.whitelist()
-def get_workflow_state_count(doctype, workflow_state_field, states):
+def get_workflow_state_count(doctype: str, workflow_state_field: str, states: str | list[str]):
 	frappe.has_permission(doctype=doctype, ptype="read", throw=True)
 	states = frappe.parse_json(states)
 

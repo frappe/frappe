@@ -30,6 +30,8 @@ class NotificationLog(Document):
 		from_user: DF.Link | None
 		link: DF.SmallText | None
 		read: DF.Check
+		source_doctype: DF.Link | None
+		source_name: DF.DynamicLink | None
 		subject: DF.Text | None
 		title: DF.SmallText | None
 		type: DF.Link | None
@@ -155,6 +157,7 @@ def enqueue_create_notification(users: list[str] | str, doc: dict, dedupe_on: li
 		doc=doc,
 		users=users,
 		now=frappe.flags.in_test,
+		enqueue_after_commit=not frappe.flags.in_test,
 	)
 
 

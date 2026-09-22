@@ -32,7 +32,6 @@ class NotificationSettings(Document):
 		energy_points_system_notifications: DF.Check
 		seen: DF.Check
 		subscribed_documents: DF.TableMultiSelect[NotificationSubscribedDocument]
-		user: DF.Link | None
 
 	# end: auto-generated types
 	def on_update(self):
@@ -190,8 +189,8 @@ def has_permission(doc, ptype="read", user=None):
 
 
 @frappe.whitelist()
-def set_seen_value(value, user):
+def set_seen_value(value: int, user: str):
 	if frappe.flags.read_only:
 		return
 
-	frappe.db.set_value("Notification Settings", user, "seen", value, update_modified=False)
+	frappe.db.set_value("Notification Settings", frappe.session.user, "seen", value, update_modified=False)

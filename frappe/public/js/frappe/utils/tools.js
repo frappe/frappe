@@ -107,7 +107,7 @@ function sanitize_markdown_html(html) {
 
 frappe.markdown = function (txt) {
 	if (!frappe.md2html) {
-		frappe.md2html = new showdown.Converter();
+		frappe.md2html = new showdown.Converter({ tables: true });
 	}
 
 	while (txt.substr(0, 1) === "\n") {

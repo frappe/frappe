@@ -1,4 +1,5 @@
 import type { Component } from "vue";
+import type { UploadedFile } from "frappe-ui/editor";
 
 export interface ActivityTimelineProps {
   /** Rows in display order. Custom types render via the `#item-{type}` slot. */
@@ -13,9 +14,14 @@ export interface Pagination {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => void;
+  /**
+   * Rows the next page extends, which is where an inline `load_more` row sits.
+   * Defaults to email rows.
+   */
+  isPagedRow?: (activity: Activity | CustomActivity) => boolean;
   /** Load More affordance; omit for a default "Load more" button at the top. */
   loadMore?: {
-    /** Placement. "inline" injects a `load_more` row above the oldest email. */
+    /** Placement. "inline" injects a `load_more` row above the oldest paged row. */
     position?: "top" | "bottom" | "inline";
     /** Button copy; default "Load more" / "lucide-refresh-cw". */
     label?: string;
@@ -69,6 +75,7 @@ export type CommentActivity = BaseActivity<
   {
     name: string;
     content: string;
+    attachments?: EmailAttachment[];
   }
 >;
 
@@ -94,7 +101,10 @@ export type LogActivity = BaseActivity<
       | "workflow"
       | "info"
       | "view"
-      | "created";
+      | "created"
+      | "edited"
+      | "shared"
+      | "milestone";
     text: string;
     /** assignee on assignment logs; bolded alongside the actor (backend-supplied) */
     assignee?: string;
@@ -178,6 +188,10 @@ export interface EmailItemSlots {
 export interface CommentItemProps {
   comment: CommentActivity;
   editable?: boolean;
+  /** classes on the editor content; default "prose-sm max-w-none" */
+  editorClass?: string;
+  /** image upload handler passed through to the editor while editing */
+  uploadFunction?: (file: File) => Promise<UploadedFile>;
 }
 export interface CommentItemSlots {
   /** Replaces the row header (author, timestamp). */

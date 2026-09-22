@@ -54,6 +54,7 @@ no_value_fields = (
 	"Section Break",
 	"Column Break",
 	"Tab Break",
+	"Attachment Gallery",
 	"HTML",
 	"Table",
 	"Table MultiSelect",
@@ -68,6 +69,7 @@ display_fieldtypes = (
 	"Section Break",
 	"Column Break",
 	"Tab Break",
+	"Attachment Gallery",
 	"HTML",
 	"Button",
 	"Image",
@@ -224,7 +226,7 @@ def get_permitted_fields(
 	meta = frappe.get_meta(doctype)
 	valid_columns = meta.get_valid_columns()
 
-	if doctype in CORE_DOCTYPES:
+	if doctype in CORE_DOCTYPES and doctype != "User":
 		return valid_columns
 
 	# DocType has only fields of type Table (Table, Table MultiSelect)

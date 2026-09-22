@@ -36,7 +36,9 @@ from frappe.utils import (
 	get_timespan_date_range,
 	make_filter_tuple,
 )
-from frappe.utils.data import DateTimeLikeObject, get_datetime, getdate, sbool
+from frappe.utils.data import convert_type_for_between_filters, sbool
+
+_convert_type_for_between_filters = convert_type_for_between_filters  # bw compatibility
 
 
 @lru_cache(maxsize=128)
@@ -295,6 +297,7 @@ class DatabaseQuery:
 		self.ignore_ifnull = False
 		self.flags = frappe._dict()
 		self.reference_doctype = None
+		self.parent_doctype = None
 		self.permission_map = {}
 		self.shared = []
 		self._fetch_shared_documents = False
@@ -1344,9 +1347,10 @@ from {tables}
 
 			# add user permission only if role has read perm
 			elif role_permissions.get("read") or role_permissions.get("select"):
-				# get user permissions
-				user_permissions = frappe.permissions.get_user_permissions(self.user)
-				self.add_user_permissions(user_permissions)
+				if frappe.flags.get("ignore_user_permissions_for_doctype") != self.doctype:
+					# get user permissions
+					user_permissions = frappe.permissions.get_user_permissions(self.user)
+					self.add_user_permissions(user_permissions)
 
 			# Only when full read access is not present fetch shared docuemnts.
 			# This is done to avoid extra query.
@@ -1370,10 +1374,42 @@ from {tables}
 			if not only_if_shared and self.shared and conditions:
 				conditions = f"(({conditions}) or ({self.get_share_condition()}))"
 
+			if self.doctype_meta.istable and self.parent_doctype:
+				parent_condition = self.get_parent_row_permission_condition()
+				if parent_condition:
+					conditions += (" and " + parent_condition) if conditions else parent_condition
+
 			return conditions
 
 		else:
 			return self.match_filters
+
+	def get_parent_row_permission_condition(self) -> str:
+		"""Restrict child rows to parents the user has row-level (not just doctype-level) access to.
+
+		check_read_permission() only checks doctype-level read on parent_doctype; this folds
+		in the parent's own row-level conditions (User Permission/owner/share) as a subquery.
+		"""
+		if self.flags.ignore_permissions:
+			return ""
+
+		parent_meta = frappe.get_meta(self.parent_doctype)
+		if parent_meta.issingle:
+			return ""
+
+		parent_query = DatabaseQuery(self.parent_doctype, user=self.user)
+		# thread through reference_doctype: applicable_for-scoped User Permissions on the
+		# parent's own "name" field are matched against it (see build_match_conditions),
+		# and a bare DatabaseQuery() otherwise leaves it unset
+		parent_query.reference_doctype = self.reference_doctype
+		parent_condition = parent_query.build_match_conditions()
+		if not parent_condition:
+			return ""
+
+		return (
+			f"`tab{self.doctype}`.`parent` in "
+			f"(select `name` from `tab{self.parent_doctype}` where {parent_condition})"
+		)
 
 	def get_share_condition(self):
 		return (
@@ -1717,8 +1753,8 @@ def get_between_date_filter(value, df=None):
 
 	# if filter value is date but fieldtype is datetime:
 	if fieldtype == "Datetime":
-		from_date = _convert_type_for_between_filters(from_date, set_time=datetime.time())
-		to_date = _convert_type_for_between_filters(to_date, set_time=datetime.time(23, 59, 59, 999999))
+		from_date = convert_type_for_between_filters(from_date, set_time=datetime.time())
+		to_date = convert_type_for_between_filters(to_date, set_time=datetime.time(23, 59, 59, 999999))
 
 	# If filter value is already datetime, do nothing.
 	if fieldtype == "Datetime":
@@ -1727,23 +1763,6 @@ def get_between_date_filter(value, df=None):
 		cond = f"'{frappe.db.format_date(from_date)}' AND '{frappe.db.format_date(to_date)}'"
 
 	return cond
-
-
-def _convert_type_for_between_filters(
-	value: DateTimeLikeObject, set_time: datetime.time
-) -> datetime.datetime:
-	if isinstance(value, str):
-		if " " in value.strip():
-			value = get_datetime(value)
-		else:
-			value = getdate(value)
-
-	if isinstance(value, datetime.datetime):
-		return value
-	elif isinstance(value, datetime.date):
-		return datetime.datetime.combine(value, set_time)
-
-	return value
 
 
 def get_additional_filter_field(additional_filters_config, f, value):

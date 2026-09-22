@@ -32,6 +32,8 @@ export interface FieldMeta {
   childLayout?: FormLayoutSchema;
   /** Whether the field is mandatory. */
   reqd?: boolean;
+  /** Raw DocField default, carried verbatim; `newRowValues` resolves it. */
+  default?: string;
   /** Decimal places for numeric fields (Float/Currency/Percent); from meta. */
   precision?: number;
   /** Initial grid-column width in px for a child-table column; omit for flexible. */
@@ -40,6 +42,20 @@ export interface FieldMeta {
   placeholder?: string;
   /** Static visibility; `resolveLayout` may flip this from `dependsOn`. */
   hidden?: boolean;
+  /** Field-level permission level, carried through from the DocField. Read for
+   *  reporting only — on its own it does not mean the reader was denied. */
+  permlevel?: number;
+  /**
+   * Whether the permlevel gate actually denied this reader. The denial is
+   * expressed as a static `hidden` / `readOnly`, indistinguishable from a
+   * meta-hidden or meta-read-only field, so this flag is what marks the
+   * permission floor `resolveLayout` will not let an override lift.
+   *
+   * Only whoever applied the gate can set it — a `permlevel` alone is not a
+   * denial (a reader who has the level is left untouched), and a layout built
+   * without any gate has no floor to defend.
+   */
+  permDenied?: boolean;
   /** Static read-only; `resolveLayout` may flip this from `readOnlyDependsOn`. */
   readOnly?: boolean;
   /**
@@ -87,3 +103,42 @@ export const ParentDocKey: InjectionKey<Ref<Record<string, any>> | null> =
 /** Writes a field's live value into the doc on every change. Pure state sync. */
 export const UpdateKey: InjectionKey<(fieldname: string, value: any) => void> =
   Symbol("FormLayoutUpdate");
+
+/** Where a child row sits: its table's fieldname plus `name ?? __row_id`. */
+export interface RowAddress {
+  parentfield: string;
+  key: string;
+}
+
+export type RowChange = "add" | "remove";
+
+/**
+ * Carries a field's *commit* (blur for typed inputs, selection for pickers) and
+ * a child table's structural edits out to whoever owns events, so they are
+ * dispatched at the mutation site instead of diffed out of the document.
+ *
+ * The value travels even though the doc already holds it: a control that
+ * re-emits its value on commit (frappe-ui's `TextInput` binds `@input` and
+ * `@change` to the same handler) would otherwise leave an edit looking pending
+ * forever, and the next save would fire the handler a second time.
+ */
+export interface CommitChannel {
+  /** A live edit whose commit has not arrived yet; `flush` fires it on save. */
+  pending(fieldname: string, value: any, row?: RowAddress): void;
+  commit(fieldname: string, value: any, row?: RowAddress): void;
+  rowChanged(row: RowAddress, change: RowChange): void;
+}
+
+/** For a form whose document nothing scripts — a create dialog, a story. */
+export const NO_COMMIT: CommitChannel = {
+  pending: () => {},
+  commit: () => {},
+  rowChanged: () => {},
+};
+
+/**
+ * Provided by whoever owns the document's events, above the layout. Mandatory:
+ * a form with no provider silently drops every commit, so the absence is a
+ * DEV error and `NO_COMMIT` is how a form says it meant it.
+ */
+export const CommitKey: InjectionKey<CommitChannel> = Symbol("FormLayoutCommit");

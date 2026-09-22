@@ -104,4 +104,16 @@ context("MultiSelectDialog", () => {
 				}
 			});
 	});
+
+	it("scopes child rows to filtered parents", () => {
+		// search term that matches no parent Contact (child selection already enabled)
+		cy.get_open_dialog()
+			.get(`.frappe-control[data-fieldname="search_term"]`)
+			.find('input[data-fieldname="search_term"]')
+			.clear()
+			.type("NoSuchContactXYZ", { delay: 200 });
+
+		// no matching parent => child table must be empty, not every parent's rows
+		cy.get_open_dialog().get(".datatable .dt-scrollable .dt-row").should("not.exist");
+	});
 });

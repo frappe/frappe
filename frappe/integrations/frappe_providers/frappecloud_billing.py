@@ -1,3 +1,5 @@
+from typing import Any
+
 import requests
 
 import frappe
@@ -42,6 +44,8 @@ def get_headers():
 def current_site_info():
 	from frappe.utils import cint
 
+	frappe.only_for("System Manager")
+
 	cache_key = f"fc_current_site_info:{frappe.local.site}"
 	cached_data = frappe.cache().get_value(cache_key)
 	if cached_data:
@@ -67,7 +71,7 @@ def current_site_info():
 
 
 @frappe.whitelist()
-def api(method, data=None):
+def api(method: str, data: str | dict[str, Any] | None = None):
 	if data is None:
 		data = {}
 	request = requests.post(

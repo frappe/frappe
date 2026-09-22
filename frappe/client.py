@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 import json
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import frappe
 import frappe.model
@@ -26,18 +26,18 @@ Requests via FrappeClient are also handled here.
 
 @frappe.whitelist()
 def get_list(
-	doctype,
-	fields=None,
-	filters=None,
-	group_by=None,
-	order_by=None,
-	limit_start=None,
-	limit_page_length=20,
-	parent=None,
-	debug: bool = False,
-	as_dict: bool = True,
-	or_filters=None,
-	expand=None,
+	doctype: str,
+	fields: str | list[str | dict[str, Any]] | None = None,
+	filters: str | list | dict[str, Any] | None = None,
+	group_by: str | list[str] | None = None,
+	order_by: str | list[str] | None = None,
+	limit_start: int | str | None = None,
+	limit_page_length: int | str = 20,
+	parent: str | None = None,
+	debug: bool | int = False,
+	as_dict: bool | int = True,
+	or_filters: str | list[list] | dict[str, Any] | None = None,
+	expand: str | list[str] | None = None,
 ):
 	"""Returns a list of records by filters, fields, ordering and limit
 
@@ -79,7 +79,12 @@ def get_list(
 
 
 @frappe.whitelist()
-def get_count(doctype, filters=None, debug=False, cache=False):
+def get_count(
+	doctype: str,
+	filters: str | list | dict[str, Any] | None = None,
+	debug: int | bool = False,
+	cache: int | bool = False,
+):
 	from frappe.desk.reportview import get_count
 
 	frappe.form_dict.doctype = doctype
@@ -90,7 +95,12 @@ def get_count(doctype, filters=None, debug=False, cache=False):
 
 
 @frappe.whitelist()
-def get(doctype, name=None, filters=None, parent=None):
+def get(
+	doctype: str,
+	name: str | int | None = None,
+	filters: str | list | dict[str, Any] | None = None,
+	parent: str | None = None,
+):
 	"""Returns a document by name or filters
 
 	:param doctype: DocType of the document to be returned
@@ -113,8 +123,15 @@ def get(doctype, name=None, filters=None, parent=None):
 
 
 @frappe.whitelist()
-def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, parent=None):
-	"""Returns a value form a document
+def get_value(
+	doctype: str,
+	fieldname: str | list[str] | dict[str, Any],
+	filters: str | list | dict[str, Any] | None = None,
+	as_dict: int | bool = True,
+	debug: int | bool = False,
+	parent: str | None = None,
+):
+	"""Return a value from a document.
 
 	:param doctype: DocType to be queried
 	:param fieldname: Field to be returned (default `name`)
@@ -163,7 +180,7 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 
 
 @frappe.whitelist()
-def get_single_value(doctype, field):
+def get_single_value(doctype: str, field: str):
 	if not frappe.has_permission(doctype):
 		frappe.throw(_("No permission for {0}").format(_(doctype)), frappe.PermissionError)
 
@@ -171,7 +188,7 @@ def get_single_value(doctype, field):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def set_value(doctype, name, fieldname, value=None):
+def set_value(doctype: str, name: str | int, fieldname: str | dict[str, Any], value: Any | None = None):
 	"""Set a value using get_doc, group of values
 
 	:param doctype: DocType of the document
@@ -208,7 +225,7 @@ def set_value(doctype, name, fieldname, value=None):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def insert(doc=None):
+def insert(doc: str | dict[str, Any] | None = None):
 	"""Insert a document
 
 	:param doc: JSON or dict object to be inserted"""
@@ -219,7 +236,7 @@ def insert(doc=None):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def insert_many(docs=None):
+def insert_many(docs: str | list[dict[str, Any]] | None = None):
 	"""Insert multiple documents
 
 	:param docs: JSON or list of dict objects to be inserted in one request"""
@@ -233,7 +250,7 @@ def insert_many(docs=None):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def save(doc):
+def save(doc: str | dict[str, Any]):
 	"""Update (save) an existing document
 
 	:param doc: JSON or dict object with the properties of the document to be updated"""
@@ -247,7 +264,7 @@ def save(doc):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def rename_doc(doctype, old_name, new_name, merge=False):
+def rename_doc(doctype: str, old_name: str | int, new_name: str | int, merge: bool = False):
 	"""Rename document
 
 	:param doctype: DocType of the document to be renamed
@@ -258,7 +275,7 @@ def rename_doc(doctype, old_name, new_name, merge=False):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def submit(doc):
+def submit(doc: str | dict[str, Any]):
 	"""Submit a document
 
 	:param doc: JSON or dict object to be submitted remotely"""
@@ -272,7 +289,7 @@ def submit(doc):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def cancel(doctype, name):
+def cancel(doctype: str, name: str | int):
 	"""Cancel a document
 
 	:param doctype: DocType of the document to be cancelled
@@ -284,7 +301,7 @@ def cancel(doctype, name):
 
 
 @frappe.whitelist(methods=["DELETE", "POST"])
-def delete(doctype, name):
+def delete(doctype: str, name: str | int):
 	"""Delete a remote document
 
 	:param doctype: DocType of the document to be deleted
@@ -293,7 +310,7 @@ def delete(doctype, name):
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
-def bulk_update(docs):
+def bulk_update(docs: str):
 	"""Bulk update documents
 
 	:param docs: JSON list of documents to be updated remotely. Each document must have `docname` property"""
@@ -312,7 +329,7 @@ def bulk_update(docs):
 
 
 @frappe.whitelist()
-def has_permission(doctype: str, docname: str, perm_type: str = "read"):
+def has_permission(doctype: str, docname: str | int, perm_type: str = "read"):
 	"""Return a JSON with data whether the document has the requested permission.
 
 	:param doctype: DocType of the document to be checked
@@ -323,7 +340,7 @@ def has_permission(doctype: str, docname: str, perm_type: str = "read"):
 
 
 @frappe.whitelist()
-def get_doc_permissions(doctype: str, docname: str):
+def get_doc_permissions(doctype: str, docname: str | int):
 	"""Return an evaluated document permissions dict like `{"read":1, "write":1}`.
 
 	:param doctype: DocType of the document to be evaluated
@@ -334,7 +351,7 @@ def get_doc_permissions(doctype: str, docname: str):
 
 
 @frappe.whitelist()
-def get_password(doctype: str, name: str, fieldname: str):
+def get_password(doctype: str, name: str | int, fieldname: str):
 	"""Return a password type property. Only applicable for System Managers
 
 	:param doctype: DocType of the document that holds the password
@@ -377,14 +394,14 @@ def get_time_zone():
 
 @frappe.whitelist(methods=["POST", "PUT"])
 def attach_file(
-	filename=None,
-	filedata=None,
-	doctype=None,
-	docname=None,
-	folder=None,
-	decode_base64=False,
-	is_private=None,
-	docfield=None,
+	filename: str | None = None,
+	filedata: str | None = None,
+	doctype: str | None = None,
+	docname: str | int | None = None,
+	folder: str | None = None,
+	decode_base64: int | bool = False,
+	is_private: int | bool | None = None,
+	docfield: str | None = None,
 ):
 	"""Attach a file to Document
 
