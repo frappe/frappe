@@ -45,11 +45,20 @@ frappe.ui.SortSelector = class SortSelector {
 		}
 		if (this.sort_order !== sort_order) {
 			this.sort_order = sort_order;
-			const title = sort_order === "desc" ? __("ascending") : __("descending");
-			const icon_name = sort_order === "asc" ? "sort-ascending" : "sort-descending";
+			const SORT_TITLE_AND_ICON = {
+				desc: {
+					title: __("descending"),
+					icon: "sort-descending",
+				},
+				asc: {
+					title: __("ascending"),
+					icon: "sort-ascending",
+				},
+			};
+			const { title, icon } = SORT_TITLE_AND_ICON[sort_order];
 			$btn.attr("data-value", sort_order);
 			$btn.attr("title", title);
-			$icon.html(frappe.utils.icon(icon_name, "sm"));
+			$icon.html(frappe.utils.icon(icon, "sm"));
 		}
 	}
 	prepare_args() {

@@ -184,8 +184,8 @@ class Engine:
 			_value = ("",)
 
 		# Nested set
-		if _operator in OPERATOR_MAP["nested_set"]:
-			hierarchy = _operator
+		if _operator.casefold() in OPERATOR_MAP["nested_set"]:
+			hierarchy = _operator.casefold()
 			docname = _value
 
 			_df = frappe.get_meta(self.doctype).get_field(field)

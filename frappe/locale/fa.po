@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-09-14 04:19\n"
+"PO-Revision-Date: 2026-09-21 04:20\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -5618,7 +5618,7 @@ msgstr "پیکربندی ضبط کننده"
 
 #: frappe/public/js/print_format_builder/Field.vue:103
 msgid "Configure columns for {0}"
-msgstr "پیکربندی ستون‌ها برای {0}"
+msgstr ""
 
 #. Description of the 'Amended Documents' (Section Break) field in DocType
 #. 'Document Naming Settings'
@@ -33571,7 +33571,7 @@ msgstr "{0} نقشی مجاز برای {1} نیست"
 
 #: frappe/desk/query_report.py:79
 msgid "{0} is not an enabled Print Format for a Report"
-msgstr "{0} فرمت چاپ فعال برای گزارش نیست"
+msgstr "{0} قالب چاپ فعال برای گزارش نیست"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1463
 msgid "{0} is not equal to {1}"

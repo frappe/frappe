@@ -285,7 +285,7 @@
   },
   {
    "default": "1",
-   "depends_on": "eval:doc.naming_rule !== \"Autoincrement\"",
+   "depends_on": "eval:doc.naming_rule !== \"Autoincrement\" && !doc.issingle",
    "fieldname": "allow_rename",
    "fieldtype": "Check",
    "label": "Allow Rename",
@@ -793,7 +793,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2025-09-23 06:48:13.555017",
+ "modified": "2026-09-17 12:46:29.020996",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

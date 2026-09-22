@@ -256,9 +256,12 @@ frappe.ui.Tree = class {
 			return this.get_label(node);
 		}
 		if (node.title && node.title != node.label) {
-			return __(node.title) + ` <span class='text-muted'>(${node.label})</span>`;
+			return (
+				frappe.utils.escape_html(__(node.title)) +
+				` <span class='text-muted'>(${frappe.utils.escape_html(node.label)})</span>`
+			);
 		} else {
-			return __(node.title || node.label);
+			return frappe.utils.escape_html(__(node.title || node.label));
 		}
 	}
 
