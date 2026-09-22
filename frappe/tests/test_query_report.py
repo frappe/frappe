@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import datetime
+import json
 
 import frappe
 import frappe.utils
@@ -33,6 +34,68 @@ class TestQueryReport(FrappeTestCase):
 		names = [f"NONEXISTENT-{i:06d}" for i in range(6000)]
 		result = get_data_for_custom_field("ToDo", "description", names)
 		self.assertEqual(result, {})
+
+	def test_owner_opens_prepared_report_by_name_without_prepared_report_role(self):
+		from frappe.core.doctype.prepared_report.prepared_report import create_json_gz_file
+
+		frappe.set_user("Administrator")
+		owner, reader = (
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": email.split("@", 1)[0],
+					"send_welcome_email": 0,
+					"roles": [{"role": "Website Manager"}],
+				}
+			).insert()
+			for email in ("test_prepared_report_owner@example.com", "test_prepared_report_reader@example.com")
+		)
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Open ToDos " + frappe.generate_hash(length=6),
+				"report_type": "Query Report",
+				"query": "select name from tabToDo",
+				"prepared_report": 1,
+				"is_standard": "No",
+			}
+		).insert(ignore_permissions=True)
+		custom_report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "My Open ToDos " + frappe.generate_hash(length=6),
+				"report_type": "Custom Report",
+				"reference_report": report.name,
+				"prepared_report": 1,
+				"is_standard": "No",
+			}
+		).insert(ignore_permissions=True)
+		other_report = frappe.copy_doc(report)
+		other_report.report_name = "Closed ToDos " + frappe.generate_hash(length=6)
+		other_report.insert(ignore_permissions=True)
+
+		# the ready notification links a custom report's prepared report to its reference report
+		with self.set_user(owner.name):
+			prepared_report = frappe.get_doc(
+				{"doctype": "Prepared Report", "report_name": custom_report.name}
+			).insert(ignore_permissions=True)
+			create_json_gz_file(
+				{"columns": [], "result": []}, prepared_report.doctype, prepared_report.name, report.name
+			)
+			filters = json.dumps({"prepared_report_name": prepared_report.name})
+			self.assertEqual(run(report.name, filters)["doc"].name, prepared_report.name)
+			with self.assertRaises(frappe.PermissionError):
+				run(other_report.name, filters)
+
+		with self.set_user(reader.name), self.assertRaises(frappe.PermissionError):
+			run(report.name, filters)
+
+		custom_report.delete()
+		with self.set_user(owner.name), self.assertRaises(frappe.PermissionError):
+			run(report.name, filters)
 
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
