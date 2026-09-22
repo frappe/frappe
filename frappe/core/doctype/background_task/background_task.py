@@ -5,6 +5,7 @@ import time
 from collections.abc import Callable
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 PUBLISH_THROTTLE_SECONDS = 0.2
@@ -19,12 +20,16 @@ class BackgroundTask(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		allow_user_cancellation: DF.Check
+		allow_user_retry: DF.Check
 		arguments: DF.JSON | None
 		ended_at: DF.Datetime | None
+		exception: DF.LongText | None
+		is_mapreduce: DF.Check
+		job_id: DF.Data | None
+		method: DF.Data
 		on_failure_callback: DF.Data | None
 		on_success_callback: DF.Data | None
-		exception: DF.LongText | None
-		method: DF.Data
 		progress: DF.Percent
 		queue: DF.Data | None
 		ref_docname: DF.DynamicLink | None
@@ -35,7 +40,6 @@ class BackgroundTask(Document):
 		started_at: DF.Datetime | None
 		status: DF.Literal["Queued", "Running", "Completed", "Failed", "Cancelled"]
 		task_id: DF.Data
-		job_id: DF.Data | None
 		task_name: DF.Data
 		user: DF.Link
 	# end: auto-generated types
@@ -43,6 +47,14 @@ class BackgroundTask(Document):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self._last_published: float = 0.0
+
+	def before_insert(self):
+		if self.is_mapreduce:
+			if not self.ref_doctype or not self.ref_docname:
+				frappe.throw(_("MapReduce Job reference is mandatory for log running tasks"))
+
+			if self.ref_doctype != "MapReduce Job":
+				frappe.throw(_("Reference can only be made to MapReduce Job"))
 
 	def after_insert(self):
 		frappe.publish_realtime(
@@ -182,19 +194,24 @@ def stop_task(task_id: str):
 	if task.status not in ("Queued", "Running"):
 		raise frappe.InvalidStatusError(frappe._("Task is not queued or running"))
 
-	from rq.command import send_stop_job_command
-	from rq.job import Job, JobStatus
-
-	from frappe.utils.background_jobs import create_job_id, get_redis_conn
-
-	conn = get_redis_conn()
-	rq_job_id = create_job_id(task.job_id or task.task_id)
-	job = Job.fetch(rq_job_id, connection=conn)
-
-	if job.get_status(refresh=True) == JobStatus.STARTED:
-		send_stop_job_command(connection=conn, job_id=rq_job_id)
+	if frappe.db.get_value("Background Task", task_name, "is_mapreduce"):
+		ref_docname = frappe.db.get_value("Background Task", task_name, "ref_docname")
+		if frappe.db.get_value("MapReduce Job", ref_docname, "docstatus") == 1:
+			frappe.get_doc("MapReduce Job", ref_docname).cancel()
 	else:
-		job.cancel()
+		from rq.command import send_stop_job_command
+		from rq.job import Job, JobStatus
+
+		from frappe.utils.background_jobs import create_job_id, get_redis_conn
+
+		conn = get_redis_conn()
+		rq_job_id = create_job_id(task.job_id or task.task_id)
+		job = Job.fetch(rq_job_id, connection=conn)
+
+		if job.get_status(refresh=True) == JobStatus.STARTED:
+			send_stop_job_command(connection=conn, job_id=rq_job_id)
+		else:
+			job.cancel()
 
 	task.db_set("status", "Cancelled")
 	frappe.cache.delete_value(f"background_task:{task.task_id}")
