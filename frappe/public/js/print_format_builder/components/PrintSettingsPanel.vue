@@ -120,7 +120,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref, watch } from "vue";
+import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
 import ToggleRow from "./inspector/ToggleRow.vue";
 import InspectorSection from "./inspector/InspectorSection.vue";
@@ -195,6 +195,8 @@ watch(
 	},
 	{ flush: "post" }
 );
+onUnmounted(() => hint_tooltip?.destroy());
+
 function set_renderer(value) {
 	if (value !== "Typst" && has_typst_block.value) return;
 	print_format.value.pdf_generator = value === "Typst" ? "Typst" : "chrome";
