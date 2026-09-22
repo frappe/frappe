@@ -1349,6 +1349,10 @@ class TestAPrivatePageWritesItsRows(CustomizationTestCase):
 		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [])
 		self.assertEqual(self.rows(MODULE, USER), [])
 
+		# And the layers the page's own creation made, which now say nothing at all.
+		self.assertIsNone(get_customization(PRIVATE_MODULE, USER))
+		self.assertIsNone(get_customization(MODULE, USER))
+
 	def test_hiding_it_in_a_modules_sidebar_sticks(self):
 		"""The page is a guest there, so it may be sent away. Before the layers said which keys they
 		hid, the derived append read the gap as a page nothing named and put it straight back.

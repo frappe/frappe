@@ -338,7 +338,10 @@ class Workspace(Document, DeskViews):
 		):
 			return
 
-		remove_workspace_rows(self.name)
+		# Named by whoever owned it, this save or the last one, so a layer left holding nothing by a
+		# page moving module is tidied the same way a delete tidies it. With neither, the page is
+		# shared and its rows sit in layers people arranged by hand, which are theirs to keep.
+		remove_workspace_rows(self.name, previous.get("for_user") or self.for_user or None)
 		add_to_sidebar(self)
 
 	def export_workspace(self):
@@ -384,7 +387,10 @@ class Workspace(Document, DeskViews):
 		"""
 		from frappe.desk.doctype.custom_sidebar.custom_sidebar import remove_workspace_rows
 
-		remove_workspace_rows(self.name)
+		# Narrowed to the owner when there is one, because a private page's rows are only ever in
+		# their layers (`drop_private_workspaces`). It also says whose layers were touched, which is
+		# what lets the cleanup there tidy a layer this page's own creation had made.
+		remove_workspace_rows(self.name, self.for_user or None)
 
 	def delete_desktop_icon(self):
 		"""Remove the workspace's icon from the grid along with the workspace.

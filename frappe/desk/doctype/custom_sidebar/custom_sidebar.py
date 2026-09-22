@@ -678,6 +678,11 @@ def remove_workspace_rows(link_to: str, user: str | None = None) -> None:
 	over every layer that named it, and somebody deleting a shared page they own cannot write the
 	arrangements of everyone who had put that page in their sidebar. Nothing user-supplied is
 	written -- rows naming one deleted document are removed, and nothing else is touched.
+
+	Child rows rather than documents, which is what makes one statement enough: a `Sidebar Item` has
+	no controller and nothing hangs off it, so there is no lifecycle to skip. The layers themselves
+	are documents and are deleted as documents, which is why that only happens on the narrow path
+	below.
 	"""
 	layers = layers_holding(link_to, user)
 	if not layers:
@@ -693,7 +698,8 @@ def remove_workspace_rows(link_to: str, user: str | None = None) -> None:
 			"parent": ["in", names],
 		},
 	)
-	drop_layers_saying_nothing(names)
+	if user:
+		drop_layers_saying_nothing(names)
 	forget_layers(layers)
 
 
@@ -702,9 +708,15 @@ def drop_layers_saying_nothing(names: list[str]) -> None:
 
 	An empty layer is not the same as an empty arrangement: one of these was never arranged, it just
 	lost the single row it was created for. Left behind it is read on every boot of whoever owns it,
-	which is a query to learn that nobody has an opinion.
+	which is a read to learn that nobody has an opinion.
 
-	Two statements rather than one delete per layer. The caller drops the caches.
+	Only for one person's layers, which is why the caller asks for this only when it knows whose
+	rows it removed. The layers that exist because of a single page are the ones a page's own write
+	path created (`add_user_sidebar_item`), and those belong to its owner. A shared page's rows sit
+	in layers somebody arranged by hand, which hold more than that one row and do not empty.
+
+	The layers are deleted as documents, in one call with every name, because a `Custom Sidebar` is
+	a document: `on_trash` clears its owner's boot, and the deletion is recorded like any other.
 	"""
 	unopinionated = frappe.get_all(
 		"Custom Sidebar",
@@ -728,7 +740,8 @@ def drop_layers_saying_nothing(names: list[str]) -> None:
 	)
 	empty = [name for name in unopinionated if name not in still_holding]
 	if empty:
-		frappe.db.delete("Custom Sidebar", {"name": ["in", empty]})
+		# ignore_permissions for the reason the caller gives: this is cleanup after a page is gone.
+		frappe.delete_doc("Custom Sidebar", empty, ignore_permissions=True, force=True)
 
 
 def relabel_workspace_rows(link_to: str, label: str) -> None:
