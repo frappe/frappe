@@ -240,10 +240,15 @@ def singleton_refusal(app: str, package: str, declared: str, shipped: str | None
 	# npm reads `*` as "no prerelease"; an app that says "*" means any version the framework ships.
 	if declared == "*":
 		return None
+	not_a_range = (
+		f"{package}: `{declared}` is not a semver range; {app} needs a range that includes {shipped}"
+	)
+	if not isinstance(declared, str) or not declared:
+		return not_a_range
 	try:
 		satisfied = Version(shipped) in NpmSpec(declared)
 	except ValueError:
-		return f"{package}: `{declared}` is not a semver range; {app} needs a range that includes {shipped}"
+		return not_a_range
 	if satisfied:
 		return None
 	return f"{package}: the framework ships {shipped}; {app} needs {declared}"
