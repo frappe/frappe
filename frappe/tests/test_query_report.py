@@ -31,11 +31,20 @@ class TestQueryReport(FrappeTestCase):
 
 	def test_owner_opens_prepared_report_by_name_without_prepared_report_role(self):
 		from frappe.core.doctype.prepared_report.prepared_report import create_json_gz_file
-		from frappe.core.doctype.user_permission.test_user_permission import create_user
 
 		frappe.set_user("Administrator")
-		owner = create_user("test_prepared_report_owner@example.com", "Website Manager")
-		reader = create_user("test_prepared_report_reader@example.com", "Website Manager")
+		owner, reader = (
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": email.split("@", 1)[0],
+					"send_welcome_email": 0,
+					"roles": [{"role": "Website Manager"}],
+				}
+			).insert()
+			for email in ("test_prepared_report_owner@example.com", "test_prepared_report_reader@example.com")
+		)
 		report = frappe.get_doc(
 			{
 				"doctype": "Report",
