@@ -365,7 +365,13 @@ class DataExporter:
 		if self.template and not self.with_data:
 			return
 
-		frappe.permissions.can_export(self.parent_doctype, raise_exception=True)
+		filters = self.filters
+		if not frappe.permissions.can_export(self.parent_doctype):
+			frappe.permissions.can_export(self.parent_doctype, raise_exception=True, is_owner=True)
+			if isinstance(filters, dict):
+				filters = {**filters, "owner": frappe.session.user}
+			else:
+				filters = [*(filters or []), ["owner", "=", frappe.session.user]]
 
 		# sort nested set doctypes by `lft asc`
 		order_by = None
@@ -374,7 +380,7 @@ class DataExporter:
 			order_by = f"`tab{self.parent_doctype}`.`lft` asc"
 		# get permitted data only
 		self.data = frappe.get_list(
-			self.doctype, fields=["*"], filters=self.filters, limit_page_length=None, order_by=order_by
+			self.doctype, fields=["*"], filters=filters, limit_page_length=None, order_by=order_by
 		)
 
 		for doc in self.data:
