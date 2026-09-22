@@ -195,7 +195,7 @@ function select_parent_section() {
 .pfb-inspector {
 	width: 300px;
 	flex-shrink: 0;
-	height: calc(100vh - var(--pfb-chrome-offset, 95px));
+	height: 100%;
 	overflow-y: auto;
 	border-left: 1px solid var(--border-color);
 	background: var(--fg-color);

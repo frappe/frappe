@@ -852,7 +852,7 @@ function handle_slash_key(e) {
 .pfb-sidebar {
 	width: 260px;
 	flex-shrink: 0;
-	height: calc(100vh - var(--pfb-chrome-offset, 95px));
+	height: 100%;
 	display: flex;
 	flex-direction: column;
 	border-right: 1px solid var(--border-color);
