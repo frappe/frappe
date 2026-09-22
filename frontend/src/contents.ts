@@ -2,6 +2,7 @@
 // it. Fetched by the pages that show it, never by the rail, which arrives in boot.
 
 import { ref, watchEffect, type Ref } from "vue";
+import { runMethod } from "@framework/ui/api";
 
 export type ContentEntry = { doctype: string; slug: string; module: string };
 
@@ -12,14 +13,15 @@ export async function fetchContents(
 	app: string,
 	module?: string
 ): Promise<ContentEntry[]> {
-	const params = new URLSearchParams({ app });
-	if (module) params.set("module", module);
+	const args: { app: string; module?: string } = { app };
+	if (module) args.module = module;
 
-	const res = await fetch(
-		`/api/method/frappe.shell.doctypes.get_contents?${params}`
+	const response = await runMethod<ContentEntry[]>(
+		"frappe.shell.doctypes.get_contents",
+		args,
+		{ http: "GET" }
 	);
-	if (!res.ok) throw new Error(`Contents failed with ${res.status}`);
-	return (await res.json()).message ?? [];
+	return response.data;
 }
 
 /**
