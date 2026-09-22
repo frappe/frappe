@@ -144,7 +144,7 @@ def build_shell(frappe_app_path: str, production: bool = False):
 			"yarn install --production=false", cwd=frontend_path, env=get_node_env(), raise_err=True
 		)
 
-	for line in cost_report(manifest, frontend_path):
+	for line in cost_report(manifest, frontend_path, frappe.get_all_apps()):
 		click.echo(line)
 
 	# Build into a staging directory and swap it in on success: `emptyOutDir` would either take

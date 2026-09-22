@@ -2,6 +2,8 @@
 
 # Everything here runs with no site: `bench build` calls `frappe.init("")`, so apps come
 # from `get_all_apps()` and hooks from `get_hooks(app_name=)`.
+# That is `sites/apps.txt` as bench wrote it, never a scan of `apps/`: desk v1's esbuild scans
+# while its Python half reads the file, and the two halves disagree on a bench where it is stale.
 
 import json
 import os
@@ -325,10 +327,10 @@ def installed_size(package_dir: str) -> int:
 	return total
 
 
-def cost_report(manifest: list[dict], frontend: str) -> list[str]:
-	"""One line per app after install: the packages its declaration added and their size on disk."""
+def cost_report(manifest: list[dict], frontend: str, apps: list[str]) -> list[str]:
+	"""The apps the manifest read, then one line per app: the packages its declaration added and their size."""
 	dependencies = dict(read_package(os.path.join(frontend, "package.base.json")).get("dependencies", {}))
-	lines = []
+	lines = [f"apps: {', '.join(apps)}"]
 	for entry in manifest:
 		if entry["app"] == "frappe":
 			continue

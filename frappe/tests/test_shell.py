@@ -524,11 +524,21 @@ class TestCostReport(IntegrationTestCase):
 			{"app": "frappe", "runtime_deps": {"vue": "^3.5.13"}},
 			{"app": "crm", "runtime_deps": {"vue": "^3.5.13", "@vueuse/core": "^11.3.0"}},
 		]
-		self.assertEqual(cost_report(manifest, self.frontend), ["crm: no packages added"])
+		self.assertEqual(
+			cost_report(manifest, self.frontend, ["frappe", "crm"]),
+			["apps: frappe, crm", "crm: no packages added"],
+		)
+
+	def test_every_app_read_is_named_in_file_order_not_only_contributors(self):
+		manifest = [{"app": "frappe", "runtime_deps": {}}, {"app": "crm", "runtime_deps": {}}]
+		report = cost_report(manifest, self.frontend, ["frappe", "erpnext", "crm"])
+		self.assertEqual(report[0], "apps: frappe, erpnext, crm")
 
 	def test_an_added_package_is_named_with_its_installed_size(self):
 		manifest = [{"app": "erpnext", "runtime_deps": {"onscan.js": "^1.5.2", "vue": "^3.5.13"}}]
-		self.assertEqual(cost_report(manifest, self.frontend), ["erpnext: onscan.js 2.5 kB"])
+		self.assertEqual(
+			cost_report(manifest, self.frontend, ["erpnext"]), ["apps: erpnext", "erpnext: onscan.js 2.5 kB"]
+		)
 
 	def test_a_package_an_earlier_app_added_is_not_counted_twice(self):
 		manifest = [
@@ -536,12 +546,15 @@ class TestCostReport(IntegrationTestCase):
 			{"app": "crm", "runtime_deps": {"onscan.js": "^1.5.2"}},
 		]
 		self.assertEqual(
-			cost_report(manifest, self.frontend), ["erpnext: onscan.js 2.5 kB", "crm: no packages added"]
+			cost_report(manifest, self.frontend, ["erpnext", "crm"]),
+			["apps: erpnext, crm", "erpnext: onscan.js 2.5 kB", "crm: no packages added"],
 		)
 
 	def test_a_singleton_never_counts_as_added(self):
 		manifest = [{"app": "crm", "runtime_deps": {"frappe-ui": "1.0.0-beta.63"}}]
-		self.assertEqual(cost_report(manifest, self.frontend), ["crm: no packages added"])
+		self.assertEqual(
+			cost_report(manifest, self.frontend, ["crm"]), ["apps: crm", "crm: no packages added"]
+		)
 
 	def test_the_composed_file_holds_only_what_the_apps_add(self):
 		manifest = [
