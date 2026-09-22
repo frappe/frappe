@@ -127,12 +127,24 @@ frappe.views.Workspace = class Workspace {
 			return;
 		}
 
+		// `/desk/private` names the shell and no page in it, so it opens on the first page there
+		// and says so in the address bar. With nothing in it there is nothing to open, and the
+		// empty state is what the shell shows instead.
+		if (this.is_private_shell_route()) {
+			const first = this.first_private_page();
+			if (!first) return this.show_empty_private_shell();
+
+			frappe.route_flags.replace_route = true;
+			frappe.set_route("private", frappe.router.slug(first.title));
+			return;
+		}
+
 		let page = this.get_page_to_show();
 		if (this._page?.name === page.name) return; // already shown
 
 		if (!frappe.router.current_route[0]) {
 			frappe.route_flags.replace_route = true;
-			frappe.set_route(frappe.router.slug(page.public ? page.name : "private/" + page.name));
+			frappe.set_route(this.route_to(page));
 			return;
 		}
 
@@ -201,7 +213,71 @@ frappe.views.Workspace = class Workspace {
 		return { name: page, public: is_public };
 	}
 
+	// Where a page is, as a route. A public page is named by its name and a private one by its
+	// title, since the name of a private page carries its owner's email (see
+	// `router.private_workspace`).
+	route_to(page) {
+		const stored = this.workspaces.find((p) => p.name == page.name);
+		if (page.public) return frappe.router.slug(page.name);
+
+		return "private/" + frappe.router.slug(stored ? stored.title : page.name);
+	}
+
+	// Whether the route is the Private shell with no page named: `/desk/private`.
+	is_private_shell_route() {
+		const route = frappe.get_route();
+		return route[0] === "Workspaces" && route[1] === "private" && !route[2];
+	}
+
+	// This user's own pages, in the order the Private shell lists them. Read off the shell rather
+	// than filtered out of every workspace, so the sidebar and the page it opens on cannot
+	// disagree, and so a page the user arranged to the top is the one that opens.
+	own_private_pages() {
+		const items = frappe.boot.module_sidebars?.["Private"]?.items || [];
+		return items
+			.filter((item) => item.link_type === "Workspace" && item.link_to)
+			.map((item) => this.workspaces.find((page) => page.name === item.link_to))
+			.filter(Boolean);
+	}
+
+	first_private_page() {
+		return this.own_private_pages()[0] || null;
+	}
+
+	// The Private shell with nothing in it yet. Every other shell disappears when it is empty; this
+	// one is reached from the user menu, so it is here and says what it is for.
+	show_empty_private_shell() {
+		this._page = null;
+		this.remove_page_skeleton();
+		this.body.find("#editorjs").remove();
+		this.page.set_title(__("Private"));
+		frappe.breadcrumbs.add({ type: "Custom", label: __("Private"), route: "#" });
+
+		if (this.body.find(".private-shell-empty").length) return;
+
+		frappe.ui
+			.empty_state({
+				icon: "layout-grid",
+				title: __("No private workspaces yet"),
+				description: __("A private workspace is yours alone. Only you can see it."),
+				css_class: "private-shell-empty min-h-96",
+				actions: [
+					{
+						label: __("New Workspace"),
+						variant: "solid",
+						icon: "plus",
+						onclick: () => this.initialize_new_page(),
+					},
+				],
+			})
+			.appendTo(this.body.find(".editor-js-container"));
+	}
+
 	async show_page(page) {
+		// The Private shell's empty state, if it was drawn. Making the first private page leaves it
+		// on screen otherwise, above the page it just opened.
+		this.body.find(".private-shell-empty").remove();
+
 		if (!this.body.find("#editorjs")[0]) {
 			$(`
 				<div id="editorjs" class="desk-page page-main-content"></div>
@@ -1199,10 +1275,7 @@ frappe.views.Workspace = class Workspace {
 					// set up the edit-mode customization buttons or toggle the editor here,
 					// because the route change re-renders the workspace read-only.
 					this.create_page(new_page).then(() => {
-						let route = frappe.router.slug(
-							new_page.public ? new_page.name : "private/" + new_page.name
-						);
-						frappe.set_route(route);
+						frappe.set_route(this.route_to(new_page));
 					});
 				}
 			},
@@ -1242,7 +1315,13 @@ frappe.views.Workspace = class Workspace {
 						// because the rail lists the entries an app's `Dock` record
 						// names, and a new workspace reaches the shell through its module's
 						// sidebar instead.
-						const module = frappe.app.sidebar.module_for_workspace(new_page.name);
+						//
+						// A private page shows in the Private shell, which is its home whatever
+						// module it was filed under. The module says where else it appears, and
+						// landing there instead would move you out of the shell you were in.
+						const module = new_page.public
+							? frappe.app.sidebar.module_for_workspace(new_page.name)
+							: "Private";
 						if (module) {
 							frappe.app.sidebar.setup(module);
 						}

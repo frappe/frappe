@@ -13,6 +13,12 @@ const ENTITY_VIEW_ROUTES = {
 	"dashboard-view": "Dashboard",
 };
 
+// The shell that holds the pages a user made for themselves. It is the `Private` module's, and the
+// desk builds it from the viewer's own pages rather than from what the module holds, so two people
+// on `/desk/private` see two different sidebars. Named here as the client's copy of
+// `workspace.PRIVATE_MODULE`.
+const PRIVATE_SHELL = "Private";
+
 // How strongly a sidebar item's href claims the page at `path`. 0 means it does not.
 //
 // An item claims its own URL, and the URLs under it: `/desk/selling/item` claims
@@ -617,6 +623,19 @@ frappe.ui.Sidebar = class Sidebar {
 					group: "",
 					options: [
 						{
+							// The way into the Private shell, which is the one shell no rail and
+							// no module switcher leads to: it holds the pages this user made
+							// rather than a module's, so it belongs beside the rest of what is
+							// theirs. First in the menu, because it is a place you go to and the
+							// rows under it are things you do.
+							//
+							// A real link, so it can be opened in a new tab like any other.
+							name: "my-space",
+							label: __("My Space"),
+							icon: "user",
+							href: "/desk/private",
+						},
+						{
 							name: "settings",
 							label: __("Settings"),
 							icon: "settings",
@@ -1152,6 +1171,21 @@ frappe.ui.Sidebar = class Sidebar {
 	// One rule, and both directions use it: building a URL asks what to write, and arriving at
 	// one asks whether what is written can stay.
 	shell_for_route(route) {
+		// One of this user's own pages. It is the three answers below, with the Private shell in
+		// place of the map: a private page's own shell is the shell of the person who made it,
+		// whatever module it is filed under. The module only says where else the page appears, and
+		// clicking it there keeps you there, which is the second answer.
+		if (route[0] === "Workspaces" && route[1] === "private") {
+			const name = route[2];
+			const stated = frappe.router.current_shell;
+			if (stated && this.shell_lists_workspace(stated, name)) return stated;
+
+			const in_view = this.current_module;
+			if (in_view && this.shell_lists_workspace(in_view, name)) return in_view;
+
+			return frappe.boot.module_sidebars?.[PRIVATE_SHELL] ? PRIVATE_SHELL : null;
+		}
+
 		// A workspace route names a workspace rather than an entity, and which shell holds one is
 		// stored on the shell rather than resolved, so it is answered before the three below.
 		if (route[0] === "Workspaces" && route.length >= 2) {
@@ -1493,6 +1527,15 @@ frappe.ui.Sidebar = class Sidebar {
 	// `workspaces` is a module's list, so every shell under one module carries the same list and
 	// the first one answers. A workspace route selects a module's own shell, never a second one;
 	// naming a second shell is what a dock row is for.
+	// Whether `shell`'s sidebar holds a link to this workspace. A private page reaches a sidebar
+	// either through a stored row or derived on read, and both are items by the time they get here,
+	// so one test answers for both.
+	shell_lists_workspace(shell, name) {
+		if (!shell || !name) return false;
+
+		return this.get_modules_linking(name, "Workspace").includes(shell);
+	}
+
 	module_for_workspace(name) {
 		if (!name) return null;
 		const entry = Object.values(frappe.boot.module_sidebars || {}).find((sidebar) =>
