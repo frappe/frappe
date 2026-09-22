@@ -10,3 +10,11 @@
 	max-height: 260px;
 	overflow-y: auto;
 }
+
+/* Tooltip's only_on_overflow example: a fixed width, so the long label gets an ellipsis to reveal. */
+.explorer-truncate {
+	max-width: 160px;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
