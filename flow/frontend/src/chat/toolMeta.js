@@ -78,6 +78,8 @@ const TOOLS = {
 		stat: (result) => result.action ?? "",
 	},
 	load_skill: { icon: "book", label: "Loading Skill" },
+	// the flow server's own tool: its row opens the child's thread in the workspace panel
+	subagent: { icon: "bot", label: "Sub-agent" },
 };
 
 const ACTIONS = {

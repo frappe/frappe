@@ -176,6 +176,21 @@ test("each terminal run_ended is reported exactly once, replayed or re-fetched",
 	stream.close();
 });
 
+test("a sub-agent's run_ended is not a terminal event", async () => {
+	const socket = fakeSocket();
+	const terminals = [];
+	const stream = new SessionStream({
+		socket,
+		session: "s1",
+		since: 0,
+		fetchEntries: async () => ({ entries: [ended(3, { subagent_id: "c1" }), ended(4)] }),
+		onTerminal: (seq) => terminals.push(seq),
+	});
+	await collect(stream, 2);
+	assert.deepEqual(terminals, [4]);
+	stream.close();
+});
+
 test("a refused subscription ends the stream with an error, and releases the room once acked", async () => {
 	const socket = fakeSocket({ subscribed: false });
 	const stream = new SessionStream({

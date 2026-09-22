@@ -9,7 +9,7 @@ from frappe.tests import IntegrationTestCase
 
 from flow.daemon.client import DaemonClient, DaemonError
 from flow.flow.doctype.flow_agent.flow_agent import MAX_SKILLS
-from flow.tests.fake_daemon import FakeDaemon
+from flow.tests.test_fake_daemon import FakeDaemon
 from flow.tools.builtins import sync_builtin_tools
 
 
@@ -250,6 +250,15 @@ class TestFlowAgentSystemGenerated(IntegrationTestCase):
 		agent.append("skills", {"skill": _skill_row("Expense Approval")})
 		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change Skills"):
 			agent.save()
+		agent.reload()
+		agent.description = "Finds things."
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change Description"):
+			agent.save()
+		agent.reload()
+		other = frappe.get_doc(_agent(self.model_doc.name, title="Other Agent")).insert()
+		agent.append("sub_agents", {"agent": other.name})
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change Sub-agents"):
+			agent.save()
 
 	def test_enabled_and_model_stay_editable(self):
 		agent = self._agent()
@@ -300,19 +309,20 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 	def test_server_tools_are_selected_without_becoming_callback_tools(self):
 		self.agent_doc.append("tools", {"tool": "read_file"})
 		self.agent_doc.append("tools", {"tool": "grep"})
+		self.agent_doc.append("tools", {"tool": "subagent"})
 		self.agent_doc.save()
 
-		self.assertEqual(self.agent_doc.server_tools(), ["read_file", "grep"])
+		self.assertEqual(self.agent_doc.server_tools(), ["read_file", "grep", "subagent"])
 		self.assertEqual(self.names(), ["read", "execute"])
 		config = self.agent_doc.session_tool_config()
-		self.assertEqual(config["tools"], ["read_file", "grep"])
-		self.assertIn("APP SOURCE CODE", config["system_prompt"])
+		self.assertEqual(config["tools"], ["read_file", "grep", "subagent"])
+		self.assertIn("Use read_file, grep to inspect", config["system_prompt"])
 
 		frappe.db.set_value("Flow Tool", "grep", "enabled", 0)
-		self.assertEqual(self.agent_doc.server_tools(), ["read_file"])
+		self.assertEqual(self.agent_doc.server_tools(), ["read_file", "subagent"])
 		frappe.db.set_value("Flow Tool", "read_file", "enabled", 0)
 		config = self.agent_doc.session_tool_config()
-		self.assertEqual(config["tools"], [])
+		self.assertEqual(config["tools"], ["subagent"])
 		self.assertNotIn("APP SOURCE CODE", config["system_prompt"])
 
 	def test_server_extension_tools_travel_as_extension_tools(self):
@@ -355,6 +365,68 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 			self.agent_doc.append("tools", {"tool": "grep"})
 			self.agent_doc.save()
 		msgprint.assert_not_called()
+
+
+class TestFlowAgentSubAgents(IntegrationTestCase):
+	"""The agents an agent may hand a task to, as the flow server's `subagents` entries."""
+
+	def setUp(self):
+		sync_builtin_tools()
+		self.enterContext(patch("flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.model_doc = frappe.get_doc(_model()).insert()
+		self.child = frappe.get_doc(
+			_agent(
+				self.model_doc.name,
+				title="Lookup",
+				description="Finds past tickets.\nFast.",
+				max_iterations=3,
+				tools=[{"tool": "read"}, {"tool": "execute"}, {"tool": "read_file"}],
+			)
+		).insert()
+		self.agent_doc = frappe.get_doc(
+			_agent(self.model_doc.name, tools=[{"tool": "read"}], sub_agents=[{"agent": self.child.name}])
+		).insert()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_binding_a_sub_agent_attaches_the_tool_automatically(self):
+		self.assertEqual([row.tool for row in self.agent_doc.tools], ["read", "subagent"])
+
+	def test_a_sub_agent_runs_on_its_own_model_prompt_and_tools_and_calls_back_as_itself(self):
+		context = {"site": "s", "user": "u", "agent": self.agent_doc.name, "session": "S1"}
+		[config] = self.agent_doc.subagent_configs("S1", context)
+		self.assertEqual((config["name"], config["description"]), ("Lookup", "Finds past tickets. Fast."))
+		self.assertEqual(config["model"], "openai/gpt-4o-mini")
+		self.assertTrue(config["system_prompt"].startswith("Be terse."))
+		self.assertIn("APP SOURCE CODE", config["system_prompt"])
+		self.assertEqual((config["tools"], config["extension_tools"]), (["read_file"], []))
+		self.assertEqual([t["function"]["name"] for t in config["client_tools"]], ["read", "execute"])
+		self.assertEqual((config["confirm_tools"], config["max_turns"]), (["execute"], 3))
+		self.assertEqual(config["user_context"], {**context, "agent": "Lookup"})
+
+	def test_a_disabled_sub_agent_is_left_out(self):
+		self.child.db_set("enabled", 0)
+		self.assertEqual(self.agent_doc.subagent_configs("S1", {}), [])
+
+	def test_a_sub_agent_on_a_disabled_model_is_refused_by_name(self):
+		off = frappe.get_doc(_model(title="Off Model", enabled=0)).insert()
+		self.child.db_set("model", off.name)
+		with self.assertRaisesRegex(frappe.ValidationError, "Sub-agent Lookup runs on Flow Model"):
+			self.agent_doc.subagent_configs("S1", {})
+
+	def test_an_agent_cannot_be_its_own_sub_agent(self):
+		self.agent_doc.append("sub_agents", {"agent": self.agent_doc.name})
+		with self.assertRaisesRegex(frappe.ValidationError, "own sub-agent"):
+			self.agent_doc.save()
+
+	def test_changing_the_sub_agents_warns_that_existing_sessions_keep_theirs(self):
+		frappe.get_doc({"doctype": "Flow Session", "agent": self.agent_doc.name}).insert()
+		other = frappe.get_doc(_agent(self.model_doc.name, title="Other Agent")).insert()
+		with patch("frappe.msgprint") as msgprint:
+			self.agent_doc.append("sub_agents", {"agent": other.name})
+			self.agent_doc.save()
+		self.assertIn("Existing sessions", msgprint.call_args.args[0])
 
 
 class TestFlowAgentAttachmentSearch(IntegrationTestCase):

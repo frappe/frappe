@@ -143,6 +143,7 @@ _SKIP_BUILTINS = frozenset(
 		"execute",
 		"grep",
 		"read_file",
+		"subagent",
 		"search_knowledge",
 		"search_attachments",
 		"update_memory",

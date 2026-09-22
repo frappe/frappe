@@ -156,8 +156,12 @@ export class FrappeClient {
 		return this.transport.call("flow.api.run", { session: sid, message, attachments });
 	}
 
-	resume(sid, _seq, answers) {
-		return this.transport.call("flow.api.resume", { session: sid, answers });
+	resume(sid, seq, answers) {
+		return this.transport.call("flow.api.resume", {
+			session: sid,
+			answers,
+			approval_seq: seq,
+		});
 	}
 
 	abort(sid) {

@@ -247,7 +247,7 @@ def _start() -> None:
 		raise RuntimeError(f"a flow server already answers on {socket_path()}; stop it by hand")
 	env = {name: os.environ[name] for name in INHERITED_ENV if name in os.environ}
 	env["FLOW_TENANTS_FILE"] = str(tenants_file())
-	allowed = ["read_file", "grep"]
+	allowed = ["read_file", "grep", "subagent"]
 	for folder in _extension_folders(tenants):
 		for row in extension_tools([folder]):
 			if row["name"] not in allowed:

@@ -207,8 +207,14 @@ def _child_inputs(
 	agent: SubagentConfig,
 	compose_tools: Callable[[SessionConfig], dict[str, Tool]],
 ) -> loop.LoopInputs:
-	"""The run's inputs with the child's transcript, and the agent's prompt, tools and model where set."""
+	"""The run's inputs with the child's transcript, and what the agent sets of its own: prompt,
+	tools, model, client tools, confirm list, turn cap and callback context."""
 	config = inputs.config
+	overrides = {  # the session's values the agent replaces with its own
+		name: value
+		for name in ("client_tools", "confirm_tools", "max_turns", "user_context")
+		if (value := getattr(agent, name)) is not None
+	}
 	prompt = agent.system_prompt
 	if prompt is None and config.system_prompt is not None:
 		prompt = strip_tool_from_prompt(config.system_prompt, subagent.name)
@@ -216,11 +222,14 @@ def _child_inputs(
 	if own_model:
 		config = config.model_copy(update={"api_key": agent.api_key, "api_base": agent.api_base})
 	tools = inputs.server_tools or {}
-	if agent.tools is not None:
-		tools = compose_tools(config.model_copy(update={"tools": agent.tools}))
+	own_tools = {  # composed afresh when the agent picks its own builtin or extension tools
+		name: value for name in ("tools", "extension_tools") if (value := getattr(agent, name)) is not None
+	}
+	if own_tools:
+		tools = compose_tools(config.model_copy(update=own_tools))
 	return replace(
 		inputs,
-		config=config.model_copy(update={"system_prompt": prompt}),
+		config=config.model_copy(update={"system_prompt": prompt, **overrides}),
 		approval_config=inputs.approval_config or inputs.config,
 		messages=child.messages,
 		context_tokens=child.context_tokens,

@@ -7,7 +7,7 @@ const SUBSCRIBE_TIMEOUT = 15_000;
 // is lost; live events are then deduplicated by seq (durable) or revision (deltas). A
 // seq gap, a resync notice, a reconnect or a changed stream_id re-fetches the log since
 // the cursor. Live events pass through `present` (fetched rows arrive presented). Each
-// durable run_ended is reported once through `onTerminal`.
+// durable run_ended of the session's own turn is reported once through `onTerminal`.
 export class SessionStream {
 	constructor({
 		socket,
@@ -150,7 +150,7 @@ export class SessionStream {
 	}
 
 	terminal(event) {
-		if (event.type !== "run_ended" || this.synced.has(event.seq)) return;
+		if (event.type !== "run_ended" || event.subagent_id || this.synced.has(event.seq)) return;
 		this.synced.add(event.seq);
 		this.onTerminal?.(event.seq, event);
 	}

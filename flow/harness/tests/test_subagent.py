@@ -186,6 +186,165 @@ async def test_a_named_agent_runs_at_its_own_effort(tmp_path):
 	assert (parent.params["reasoning_effort"], child.params["reasoning_effort"]) == ("high", "low")
 
 
+def _schema(name):
+	return {
+		"type": "function",
+		"function": {"name": name, "description": name, "parameters": {"type": "object", "properties": {}}},
+	}
+
+
+async def test_a_named_agent_calls_its_own_client_tools_back_with_its_own_context(tmp_path, monkeypatch):
+	posted = []
+
+	class RecordingClient:
+		def __init__(self, *args, **kwargs):
+			pass
+
+		async def __aenter__(self):
+			return self
+
+		async def __aexit__(self, *args):
+			return None
+
+		async def post(self, url, *, json, headers):
+			posted.append(json)
+
+			class Response:
+				def raise_for_status(self):
+					pass
+
+				def json(self):
+					return {"content": "ticket 7: resolved", "is_error": False}
+
+			return Response()
+
+	monkeypatch.setattr("flow_harness.agent.client_tools.httpx.AsyncClient", RecordingClient)
+	lookup = SubagentConfig(
+		name="Lookup", client_tools=[_schema("find_ticket")], user_context={"agent": "Lookup"}
+	)
+	session, events = _session(
+		tmp_path,
+		client_tools=[_schema("check_mail")],
+		callback_url="https://client.invalid/tools",
+		user_context={"agent": "Flow"},
+		subagents=[lookup],
+	)
+	model = ScriptedModel(
+		{
+			"go": [
+				AssistantMessage(content=[_spawn("c1", "find it", agent="Lookup")]),
+				AssistantMessage(content="done"),
+			],
+			"find it": [
+				AssistantMessage(content=[ToolCall(id="c2", name="find_ticket", arguments={})]),
+				AssistantMessage(content="found"),
+			],
+		}
+	)
+
+	await _run(session, "go", model)
+
+	parent, child = model.requests[0], model.requests[1]
+	assert "check_mail" in [t["function"]["name"] for t in parent.tools]
+	names = [t["function"]["name"] for t in child.tools]
+	assert "find_ticket" in names and "check_mail" not in names
+	assert posted == [
+		{
+			"callback_type": "tool",
+			"session_id": session.id,
+			"tool": "find_ticket",
+			"args": {},
+			"user_context": {"agent": "Lookup"},
+			"mode": "execute",
+		}
+	]
+	assert _of(events, "tool_result", subagent="c1")[0]["content"] == "ticket 7: resolved"
+
+
+GREET_EXTENSION = """
+from flow_harness.tools import ToolResult, tool
+
+@tool
+async def greet(who: str = "world", *, ctx):
+    return ToolResult(content=f"hi {who}")
+
+def setup(flow):
+    flow.register_tool(greet)
+"""
+
+
+async def test_a_named_agent_picks_its_own_extension_tools(tmp_path):
+	extension = tmp_path / "extensions" / "greet.py"
+	extension.parent.mkdir()
+	extension.write_text(GREET_EXTENSION)
+	store = SessionStore(str(tmp_path / "data"), extension_paths=[str(extension)])
+	greeter = SubagentConfig(name="Greeter", extension_tools=["greet"])
+	session = store.create(
+		SessionConfig(cwd=str(tmp_path), tools=["read", "subagent"], extension_tools=[], subagents=[greeter])
+	)
+	model = ScriptedModel(
+		{
+			"go": [
+				AssistantMessage(content=[_spawn("c1", "greet", agent="Greeter")]),
+				AssistantMessage(content="done"),
+			],
+			"greet": [AssistantMessage(content="hi")],
+		}
+	)
+
+	await _run(session, "go", model)
+
+	parent, child = model.requests[0], model.requests[1]
+	assert [t["function"]["name"] for t in parent.tools] == ["read", "subagent"]
+	assert [t["function"]["name"] for t in child.tools] == ["read", "greet"]
+
+
+async def test_a_named_agents_confirm_list_gates_its_own_calls(tmp_path):
+	careful = SubagentConfig(name="Careful", confirm_tools=["read"])
+	session, events = _session(tmp_path, subagents=[careful])
+	model = ScriptedModel(
+		{
+			"go": [
+				AssistantMessage(content=[_spawn("c1", "look", agent="Careful")]),
+				AssistantMessage(content="done"),
+			],
+			"look": [AssistantMessage(content=[ToolCall(id="c2", name="read", arguments={"path": "x"})])],
+		}
+	)
+
+	handle = await session.run("go", model=model)
+	await _until(lambda: _of(events, "approval_required", subagent="c1"))
+
+	approval = _of(events, "approval_required", subagent="c1")[0]
+	assert [call["name"] for call in approval["calls"]] == ["read"]
+	assert not _of(events, "approval_required")  # the session's own list never named read
+	await session.resume({"c2": "Deny"}, approval_seq=approval["seq"])
+	assert handle.task is not None
+	await handle.task
+	assert _of(events, "run_ended", subagent="c1")[-1]["reason"] == "denied"
+
+
+async def test_a_named_agent_stops_at_its_own_turn_cap(tmp_path):
+	quick = SubagentConfig(name="Quick", max_turns=1)
+	session, events = _session(tmp_path, auto_approve=True, subagents=[quick])
+	model = ScriptedModel(
+		{
+			"go": [
+				AssistantMessage(content=[_spawn("c1", "count", agent="Quick")]),
+				AssistantMessage(content="done"),
+			],
+			"count": [AssistantMessage(content=[_bash("c2")]), AssistantMessage(content="counted")],
+		}
+	)
+
+	await _run(session, "go", model)
+
+	assert _of(events, "run_ended", subagent="c1")[0]["reason"] == "max_turns"
+	result = _of(events, "tool_result")[0]
+	assert result["is_error"] and "[sub-agent stopped: max_turns]" in result["content"]
+	assert _of(events, "run_ended")[-1]["reason"] == "done"
+
+
 async def test_an_unknown_agent_is_an_error_result(tmp_path):
 	session, events = _session(tmp_path, subagents=[SubagentConfig(name="Lookup")])
 	model = ScriptedModel(

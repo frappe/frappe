@@ -37,6 +37,11 @@
 				</template>
 			</Composer>
 		</main>
+		<WorkspacePanel>
+			<template #empty>
+				<p class="text-xs text-ink-gray-4">A sub-agent's thread opens here.</p>
+			</template>
+		</WorkspacePanel>
 		<Dialogs />
 		<ToastProvider />
 		<FlowSettings />
@@ -55,6 +60,7 @@ import MessageList from "@flow/ui-core/components/MessageList.vue";
 import ModelButton from "@flow/ui-core/components/ModelButton.vue";
 import SessionSidebar from "@flow/ui-core/components/SessionSidebar.vue";
 import TranscriptDialog from "@flow/ui-core/components/TranscriptDialog.vue";
+import WorkspacePanel from "@flow/ui-core/components/WorkspacePanel.vue";
 import { installShortcuts } from "@flow/ui-core/shortcuts.js";
 import { provideComposerHeight } from "@flow/ui-core/composerHeight.js";
 import { createFlowStore } from "@flow/ui-core/store.js";
@@ -109,7 +115,6 @@ const client = new FrappeClient({
 });
 const store = createFlowStore(client, {
 	requireCwd: false,
-	workspace: false, // the page mounts no workspace panel
 	storageKey: `flow.page.${props.boot.user?.name ?? "user"}`,
 	presentTool,
 	turnActions: FeedbackBar,

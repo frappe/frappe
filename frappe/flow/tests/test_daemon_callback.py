@@ -12,7 +12,7 @@ from flow.daemon.callback import callback, confirm_title
 from flow.daemon.client import DaemonClient
 from flow.lib.tool import tool
 from flow.memory import store as memory_store
-from flow.tests.fake_daemon import FakeDaemon, turn
+from flow.tests.test_fake_daemon import FakeDaemon, turn
 from flow.tools.builtins import sync_builtin_tools
 
 SECRET = "callback-secret"
@@ -96,16 +96,20 @@ class TestToolCallback(IntegrationTestCase):
 		frappe.get_doc(doc).insert()
 
 	def call(
-		self, name: str, args: dict | None = None, *, mode="execute", token=SECRET, session=None
+		self, name: str, args: dict | None = None, *, mode="execute", token=SECRET, session=None, agent=None
 	) -> dict:
-		"""What the daemon posts. Identity comes from the session, not user_context."""
+		"""What the daemon posts. Identity comes from the session, not user_context; `agent` is
+		what a sub-agent's context names."""
+		context = {"site": frappe.local.site, "user": "Administrator"}
+		if agent:
+			context["agent"] = agent
 		payload = {
 			"cmd": "flow.daemon.callback.callback",  # frappe's API layer adds this to the arguments
 			"callback_type": "tool",
 			"session_id": session or self.session.name,
 			"tool": name,
 			"args": args or {},
-			"user_context": {"site": frappe.local.site, "user": "Administrator"},
+			"user_context": context,
 			"mode": mode,
 		}
 		headers = {"X-Harness-Token": token} if token is not None else {}
@@ -214,6 +218,32 @@ class TestToolCallback(IntegrationTestCase):
 		self.assertEqual(
 			self.call("whoami"), {"content": "The session's agent is disabled.", "is_error": True}
 		)
+
+	def test_a_sub_agent_calls_back_with_its_own_tools_and_a_stranger_is_refused(self):
+		child = self.flow_agent("Callback Child", tools=[{"tool": "whoami"}])
+		stranger = self.flow_agent("Callback Stranger", tools=[{"tool": "whoami"}])
+		self.agent.append("sub_agents", {"agent": child})
+		self.agent.save()
+
+		self.assertEqual(self.call("whoami", agent=child), {"content": OWNER, "is_error": False})
+		self.assertEqual(
+			self.call("read", {"doctype": "ToDo"}, agent=child),
+			{"content": "Unknown tool read.", "is_error": True},
+		)
+		self.assertEqual(
+			self.call("whoami", agent=stranger),
+			{"content": f"{stranger} is not a sub-agent of {self.agent.name}.", "is_error": True},
+		)
+
+	def flow_agent(self, title: str, **fields) -> str:
+		doc = {
+			"doctype": "Flow Agent",
+			"title": title,
+			"model": self.agent.model,
+			"instructions": "x",
+			**fields,
+		}
+		return frappe.get_doc(doc).insert().name
 
 	def test_a_raising_script_tool_is_error_content_and_the_run_goes_on(self):
 		self.assertEqual(self.call("boom", {"reason": "kaboom"}), {"content": "kaboom", "is_error": True})

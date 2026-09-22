@@ -62,6 +62,26 @@ def resumed(seq, run_id):
 	]
 
 
+def child_pause(seq, run_id, message="look it up"):
+	"""A turn whose sub-agent stops at a confirmation-gated call while the turn runs on: nine rows from `seq`."""
+	child = {"subagent_id": "c1"}
+	return [
+		row(seq, "run_started", run_id=run_id),
+		row(seq + 1, "user_message", content=message),
+		row(
+			seq + 2,
+			"assistant_message",
+			content=[call("c1", "subagent", task="delete it", description="delete it")],
+		),
+		row(seq + 3, "run_started", run_id=f"{run_id}-c1", **child),
+		row(seq + 4, "user_message", content="delete it", **child),
+		row(seq + 5, "assistant_message", content=[call("c9", "delete", **PENDING["args"])], **child),
+		row(seq + 6, "usage", input_tokens=10, output_tokens=5, cost=0.5, **child),
+		row(seq + 7, "approval_required", calls=[PENDING], **child),
+		row(seq + 8, "run_ended", reason="paused", **child),
+	]
+
+
 class FakeDaemon:
 	def __init__(self, rows=(), *, running=False, title=TITLE, missing=False, broken=None, answer=turn):
 		self.rows = list(rows)

@@ -15,7 +15,7 @@ from flow.flow.doctype.flow_session.flow_session import FlowSession
 from flow.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
 from flow.memory import store as memory_store
 from flow.permissions import FLOW_USER_ROLE
-from flow.tests.fake_daemon import PENDING, TITLE, FakeDaemon, pause, turn
+from flow.tests.test_fake_daemon import PENDING, TITLE, FakeDaemon, pause, turn
 from flow.tools.builtins import sync_builtin_tools
 
 DELETE = "flow.flow.doctype.flow_session.flow_session._delete_server_session"
@@ -560,6 +560,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 					{"tool": "execute"},
 					{"tool": "read_file"},
 					{"tool": "grep"},
+					{"tool": "subagent"},
 				],
 				"enabled": 1,
 			}
@@ -603,6 +604,29 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		)
 		self.assertNotIn("callback_timeout", config)
 
+	def test_sub_agents_travel_with_their_own_callback_identity(self):
+		child = frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "Config Child",
+				"model": self.model.name,
+				"instructions": "Look it up.",
+				"tools": [{"tool": "read"}],
+				"enabled": 1,
+			}
+		).insert()
+		self.agent.append("sub_agents", {"agent": child.name})
+		self.agent.save()
+
+		config = self.config()
+		SessionConfig.model_validate(config)
+		[sub] = config["subagents"]
+		self.assertEqual(
+			(sub["name"], sub["system_prompt"], sub["max_turns"]), (child.name, "Look it up.", 50)
+		)
+		self.assertEqual([t["function"]["name"] for t in sub["client_tools"]], ["read"])
+		self.assertEqual(sub["user_context"], {**config["user_context"], "agent": child.name})
+
 	def test_the_agents_skills_are_indexed_after_its_instructions(self):
 		frappe.get_doc(
 			{
@@ -624,7 +648,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 
 	def test_sessions_get_read_only_server_tools_and_the_agents_schemas(self):
 		config = self.config()
-		self.assertEqual(config["tools"], ["read_file", "grep"])
+		self.assertEqual(config["tools"], ["read_file", "grep", "subagent"])
 		self.assertEqual(config["extension_tools"], [])
 		self.assertFalse(config["skills_enabled"])
 		self.assertEqual([tool["function"]["name"] for tool in config["client_tools"]], ["read", "execute"])
@@ -636,7 +660,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		frappe.db.set_value("Flow Tool", "read_file", "enabled", 0)
 		frappe.db.set_value("Flow Tool", "grep", "enabled", 0)
 		config = self.config()
-		self.assertEqual(config["tools"], [])
+		self.assertEqual(config["tools"], ["subagent"])
 		self.assertNotIn("APP SOURCE CODE", config["system_prompt"])
 
 	def test_an_empty_prompt_is_still_verbatim(self):

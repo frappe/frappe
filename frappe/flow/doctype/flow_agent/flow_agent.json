@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
+  "description",
   "enabled",
   "is_system_generated",
   "column_break_meta",
@@ -16,6 +17,8 @@
   "instructions",
   "section_break_tools",
   "tools",
+  "section_break_sub_agents",
+  "sub_agents",
   "section_break_skills",
   "skills",
   "section_break_knowledge",
@@ -29,6 +32,14 @@
    "label": "Title",
    "reqd": 1,
    "unique": 1
+  },
+  {
+   "description": "What this agent is for, shown to an agent that has it as a sub-agent.",
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "ignore_xss_filter": 1,
+   "label": "Description",
+   "read_only_depends_on": "eval:doc.is_system_generated"
   },
   {
    "default": "1",
@@ -96,6 +107,19 @@
    "read_only_depends_on": "eval:doc.is_system_generated"
   },
   {
+   "fieldname": "section_break_sub_agents",
+   "fieldtype": "Section Break",
+   "label": "Sub-agents"
+  },
+  {
+   "description": "Agents this one can hand a task to. Binding one attaches the subagent tool.",
+   "fieldname": "sub_agents",
+   "fieldtype": "Table MultiSelect",
+   "label": "Sub-agents",
+   "options": "Flow Agent Sub Agent",
+   "read_only_depends_on": "eval:doc.is_system_generated"
+  },
+  {
    "fieldname": "section_break_skills",
    "fieldtype": "Section Break",
    "label": "Skills"
@@ -124,7 +148,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-12 21:37:09.803489",
+ "modified": "2026-09-22 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Agent",

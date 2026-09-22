@@ -42,8 +42,10 @@ class FlowAgent(Document):
 			FlowAgentKnowledgeBase,
 		)
 		from flow.flow.doctype.flow_agent_skill.flow_agent_skill import FlowAgentSkill
+		from flow.flow.doctype.flow_agent_sub_agent.flow_agent_sub_agent import FlowAgentSubAgent
 		from flow.flow.doctype.flow_agent_tool.flow_agent_tool import FlowAgentTool
 
+		description: DF.SmallText | None
 		enabled: DF.Check
 		instructions: DF.LongText
 		is_system_generated: DF.Check
@@ -51,6 +53,7 @@ class FlowAgent(Document):
 		max_iterations: DF.Int
 		model: DF.Link
 		skills: DF.TableMultiSelect[FlowAgentSkill]
+		sub_agents: DF.TableMultiSelect[FlowAgentSubAgent]
 		title: DF.Data
 		tools: DF.TableMultiSelect[FlowAgentTool]
 	# end: auto-generated types
@@ -59,7 +62,10 @@ class FlowAgent(Document):
 		from flow.lib.session import warn_existing_sessions
 
 		before = self.get_doc_before_save()
-		if before and [row.tool for row in before.tools] != [row.tool for row in self.tools]:
+		if before and (
+			[row.tool for row in before.tools] != [row.tool for row in self.tools]
+			or [row.agent for row in before.sub_agents] != [row.agent for row in self.sub_agents]
+		):
 			warn_existing_sessions([self.name])
 
 	def on_trash(self):
@@ -71,11 +77,24 @@ class FlowAgent(Document):
 	def validate(self):
 		self._validate_max_iterations()
 		self._validate_skills()
+		self._validate_sub_agents()
 		self._ensure_knowledge_search_tool()
-		validate_immutable(self, ("instructions", "max_iterations", "tools", "knowledge_bases", "skills"))
-		# After the guard: attaching the tool is our side effect of the skills the caller set,
-		# so a refused edit names the skills the caller actually changed, not our tools row.
+		validate_immutable(
+			self,
+			(
+				"description",
+				"instructions",
+				"max_iterations",
+				"tools",
+				"knowledge_bases",
+				"skills",
+				"sub_agents",
+			),
+		)
+		# After the guard: attaching a tool is our side effect of the skills or sub-agents the caller
+		# set, so a refused edit names what the caller actually changed, not our tools row.
 		self._ensure_skill_tool()
+		self._ensure_subagent_tool()
 
 	def _validate_max_iterations(self):
 		if self.max_iterations is not None and self.max_iterations < 1:
@@ -87,6 +106,10 @@ class FlowAgent(Document):
 				_("An agent can bind at most {0} skills.").format(MAX_SKILLS),
 				title=_("Too Many Skills"),
 			)
+
+	def _validate_sub_agents(self):
+		if any(row.agent == self.name for row in self.sub_agents):
+			frappe.throw(_("An agent cannot be its own sub-agent."), title=_("Invalid Sub-agent"))
 
 	def _ensure_knowledge_search_tool(self):
 		"""A bound knowledge base is inert without the search tool. Keep them consistent
@@ -111,6 +134,17 @@ class FlowAgent(Document):
 			return
 		if frappe.db.exists("Flow Tool", SKILL_TOOL_SLUG):
 			self.append("tools", {"tool": SKILL_TOOL_SLUG})
+
+	def _ensure_subagent_tool(self):
+		"""A bound sub-agent is inert without the tool that runs it."""
+		from flow.tools.builtins import SUBAGENT_TOOL_SLUG
+
+		if not self.sub_agents:
+			return
+		if any(row.tool == SUBAGENT_TOOL_SLUG for row in self.tools):
+			return
+		if frappe.db.exists("Flow Tool", SUBAGENT_TOOL_SLUG):
+			self.append("tools", {"tool": SUBAGENT_TOOL_SLUG})
 
 	def client_tool_config(self, session: str | None = None) -> dict[str, list[Any]]:
 		"""The tools' schemas and which pause for approval. `session` binds attachment search."""
@@ -156,15 +190,45 @@ class FlowAgent(Document):
 
 		return [tool.name for tool in self._enabled_tool_docs() if tool.name in SERVER_TOOL_SLUGS]
 
+	def subagent_configs(self, session: str | None, user_context: dict[str, Any]) -> list[dict[str, Any]]:
+		"""The enabled sub-agents as flow server `subagents` entries: each on its own model, prompt
+		and tools, calling back as itself."""
+		from flow.lib.model import model_config
+
+		configs = []
+		for row in self.sub_agents:
+			child = frappe.get_doc("Flow Agent", row.agent)
+			if not child.enabled:
+				continue
+			if not frappe.db.get_value("Flow Model", child.model, "enabled"):
+				frappe.throw(
+					_("Sub-agent {0} runs on Flow Model {1}, which is disabled.").format(
+						child.name, child.model
+					),
+					title=_("Disabled Model"),
+				)
+			configs.append(
+				{
+					"name": child.name,
+					"description": _one_line(child.description),
+					**model_config(child.model),
+					**child.session_tool_config(session),
+					"max_turns": child.max_iterations or DEFAULT_MAX_ITERATIONS,
+					"user_context": {**user_context, "agent": child.name},
+				}
+			)
+		return configs
+
 	def session_tool_config(self, session: str | None = None) -> dict[str, Any]:
 		"""Complete tool configuration for one daemon session."""
 		from flow.daemon import lifecycle
+		from flow.tools.builtins import SOURCE_TOOL_SLUGS
 
 		server_tools = self.server_tools()
 		return {
 			"system_prompt": (self.instructions or "")
 			+ self.skill_index()
-			+ lifecycle.app_source_prompt(server_tools),
+			+ lifecycle.app_source_prompt([name for name in server_tools if name in SOURCE_TOOL_SLUGS]),
 			"tools": server_tools,
 			"extension_tools": self.extension_tools(),
 			**self.client_tool_config(session),

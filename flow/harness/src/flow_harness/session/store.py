@@ -210,6 +210,7 @@ class SessionStore:
 		requested.update(config.extension_tools or ())
 		for agent in config.subagents:
 			requested.update(agent.tools or ())
+			requested.update(agent.extension_tools or ())
 		blocked = sorted(requested - self.tool_allowlist)
 		if blocked:
 			raise PolicyError(f"tools not allowed by server policy: {', '.join(blocked)}")

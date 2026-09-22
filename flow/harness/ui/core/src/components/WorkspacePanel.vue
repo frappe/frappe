@@ -84,13 +84,8 @@
 						<FeatherIcon name="x" class="h-3 w-3" />
 					</button>
 				</div>
-				<Dropdown class="flex-none" :options="addTabOptions">
-					<template #trigger>
-						<button class="flow-icon-btn" title="New tab">
-							<FeatherIcon name="plus" class="h-3.5 w-3.5" />
-						</button>
-					</template>
-				</Dropdown>
+				<!-- the host's additions to the strip: its "+" menu of the views it serves -->
+				<slot name="actions" />
 			</div>
 			<button
 				class="flow-icon-btn my-1 flex-none self-center"
@@ -108,11 +103,11 @@
 			</button>
 		</div>
 
-		<!-- kind-specific body: a sub-agent's thread, or the editor -->
+		<!-- kind-specific body: a sub-agent's thread, or the host's view of any other tab -->
 		<SubagentView v-if="activeTab?.kind === 'subagent'" :id="activeTab.path" />
-		<EditorView v-else-if="viewActive" />
+		<slot v-else-if="viewActive" name="view" :tab="activeTab" />
 
-		<!-- nothing open and no view picked: the view picker (no tab strip, but the
+		<!-- nothing open and no view picked: the host's empty state (no tab strip, but the
 		     panel's window controls stay reachable) -->
 		<div v-else class="relative flex flex-1 flex-col items-center justify-center gap-3 px-6">
 			<span class="absolute right-1 top-1 flex">
@@ -127,31 +122,16 @@
 					<FeatherIcon name="sidebar" class="h-3.5 w-3.5 -scale-x-100" />
 				</button>
 			</span>
-			<button
-				class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-sm text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
-				@click="flow.showFilesView()"
-			>
-				<FeatherIcon name="folder" class="h-4 w-4 flex-none text-ink-gray-5" />
-				Files
-			</button>
-			<button
-				class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-sm text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
-				@click="flow.showDiffView()"
-			>
-				<FeatherIcon name="columns" class="h-4 w-4 flex-none text-ink-gray-5" />
-				Diffs
-			</button>
+			<slot name="empty" />
 		</div>
 	</aside>
 </template>
 
 <script setup>
 import { computed, inject, onMounted, ref } from "vue"
-import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import FeatherIcon from "./FeatherIcon.vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
-import EditorView from "./EditorView.vue"
 import SubagentView from "./SubagentView.vue"
 
 const flow = inject("flow")
@@ -169,12 +149,6 @@ const transientTab = computed(() =>
 // the panel stays mounted while closed so it can slide like the left sidebar
 const ready = ref(false)
 onMounted(() => requestAnimationFrame(() => (ready.value = true)))
-
-// "+" menu: one entry per tab kind the panel can host (browser, terminal later)
-const addTabOptions = [
-	{ label: "Files", icon: "lucide-folder", onClick: () => flow.showFilesView() },
-	{ label: "Diffs", icon: "lucide-file-diff", onClick: () => flow.showDiffView() },
-]
 
 function requestClose(tab) {
 	if (!tab.dirty) return flow.closeFile(tab.path)

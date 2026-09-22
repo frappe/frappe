@@ -31,6 +31,7 @@ class TestFlowSafeExecNamespace(IntegrationTestCase):
 		self.assertNotIn("search_attachments", g)
 		self.assertNotIn("read_file", g)
 		self.assertNotIn("grep", g)
+		self.assertNotIn("subagent", g)
 		self.assertNotIn("update_memory", g)
 
 

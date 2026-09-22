@@ -11,7 +11,7 @@ from flow.daemon.callback import tool_callback
 from flow.daemon.client import DaemonClient
 from flow.knowledge import Knowledge
 from flow.lib.agent import sync_agents
-from flow.tests.fake_daemon import FakeDaemon
+from flow.tests.test_fake_daemon import FakeDaemon
 from flow.tools.builtins import read, sync_builtin_tools
 
 MODEL = "Code Agent Model"
@@ -34,6 +34,24 @@ def hooked_agents() -> list[Agent]:
 	"""What an app's `flow_agents` entry returns."""
 	model = frappe.db.get_value("Flow Model", {"title": MODEL}, "name")
 	return [Agent(name="Hooked Helper", model=model, instructions="From the hook.", tools=[count_todos])]
+
+
+def conflicting_agents() -> list[Agent]:
+	"""A hooked agent named like another hooked agent's sub-agent."""
+	model = frappe.db.get_value("Flow Model", {"title": MODEL}, "name")
+	lookup = Agent(name="Hooked Lookup", model=model, instructions="The sub-agent.")
+	return [
+		Agent(name="Hooked Helper", model=model, instructions="From the hook.", sub_agents=[lookup]),
+		Agent(name="Hooked Lookup", model=model, instructions="Another agent."),
+	]
+
+
+def shared_agents() -> list[Agent]:
+	"""A sub-agent hooked on its own as well."""
+	model = frappe.db.get_value("Flow Model", {"title": MODEL}, "name")
+	lookup = Agent(name="Hooked Lookup", model=model, instructions="The sub-agent.")
+	helper = Agent(name="Hooked Helper", model=model, instructions="From the hook.", sub_agents=[lookup])
+	return [helper, lookup]
 
 
 class TestAgent(IntegrationTestCase):
@@ -174,6 +192,36 @@ class TestAgent(IntegrationTestCase):
 
 		self.assertFalse(frappe.db.exists("Flow Agent", "Hooked Helper"))
 
+	def test_sync_agents_refuses_a_sub_agent_named_like_another_hooked_agent(self):
+		get_hooks = frappe.get_hooks
+
+		def hooks(hook=None, *args, **kwargs):
+			if hook == "flow_agents":
+				return [f"{__name__}.conflicting_agents"]
+			return get_hooks(hook, *args, **kwargs)
+
+		with (
+			patch("frappe.get_hooks", side_effect=hooks),
+			self.assertRaisesRegex(frappe.ValidationError, "declared more than once"),
+		):
+			sync_agents()
+
+		self.assertFalse(frappe.db.exists("Flow Agent", "Hooked Helper"))
+
+	def test_sync_agents_accepts_a_sub_agent_hooked_on_its_own_too(self):
+		get_hooks = frappe.get_hooks
+
+		def hooks(hook=None, *args, **kwargs):
+			if hook == "flow_agents":
+				return [f"{__name__}.shared_agents"]
+			return get_hooks(hook, *args, **kwargs)
+
+		with patch("frappe.get_hooks", side_effect=hooks):
+			sync_agents()
+
+		doc = frappe.get_doc("Flow Agent", "Hooked Helper")
+		self.assertEqual([row.agent for row in doc.sub_agents], ["Hooked Lookup"])
+
 	def test_a_tool_slug_owned_by_another_definition_is_refused(self):
 		frappe.get_doc(
 			{
@@ -215,6 +263,23 @@ class TestAgent(IntegrationTestCase):
 		doc = frappe.get_doc("Flow Agent", agent.name)
 		self.assertEqual([row.knowledge_base for row in doc.knowledge_bases], [kb.name])
 		self.assertIn("search_knowledge", [row.tool for row in doc.tools])
+
+	def test_sub_agents_are_synced_first_and_bound(self):
+		lookup = Agent(
+			name="Todo Lookup",
+			model=self.model.name,
+			instructions="Find todos.",
+			description="finds todos",
+			tools=[count_todos],
+		)
+
+		agent = self.synced(sub_agents=[lookup])
+
+		doc = frappe.get_doc("Flow Agent", agent.name)
+		self.assertEqual([row.agent for row in doc.sub_agents], ["Todo Lookup"])
+		self.assertIn("subagent", [row.tool for row in doc.tools])
+		child = frappe.get_doc("Flow Agent", "Todo Lookup")
+		self.assertEqual((child.description, child.is_system_generated), ("finds todos", 1))
 
 	def test_new_session_and_run_go_through_the_flow_server(self):
 		agent = self.synced(auto_approve=True)

@@ -179,6 +179,18 @@ test("lookups report a count and open nothing", () => {
 	}
 });
 
+test("a sub-agent row keeps the core's own look and opens nothing", () => {
+	const presented = presentTool("subagent", {
+		task: "Count the beans",
+		description: "count beans",
+	});
+	assert.equal(presented.icon, "bot");
+	assert.equal(presented.label, "Sub-agent");
+	assert.equal(presented.subject, "count beans");
+	assert.equal(presented.expandable, false);
+	assert.equal(presented.resultComponent, undefined);
+});
+
 test("a custom tool always shows its output, unfolded", (t) => {
 	const presented = presentTool("send_email", { to: "a@b.c" }, json({ sent: true }));
 	assert.equal(presented.resultComponent, JsonView);
