@@ -905,11 +905,12 @@ export function codeRefLabel(ref) {
 }
 
 export function conversationTitle(conversation) {
-	const first = conversation.entries.find((e) => e.type === "user_message")
+	const first =
+		conversation.entries.find((e) => e.type === "user_message") ?? conversation.sending?.[0]?.entry
 	if (!first) return null
 	const raw = rawUserText(first)
-	const invocation = parseSkillInvocation(raw)
-	const titleText = invocation ? invocation.instructions || `/skill:${invocation.name}` : raw
+	const command = skillCommand(first) ?? normalizeSkillCommand(raw)
+	const titleText = command ? command.replace(/^\/skill:\S+\s*/, "") || command : raw
 	const line = titleText.split("\n")[0].trim() || userAttachments(first)[0]?.name || ""
 	return line.length > 80 ? line.slice(0, 77) + "…" : line || null
 }

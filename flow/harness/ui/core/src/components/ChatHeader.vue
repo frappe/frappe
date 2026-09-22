@@ -90,10 +90,9 @@ const cwd = computed(() => {
 })
 
 // no folder to show: fall back to the session's title, or "New chat"
-const title = computed(() => {
-	if (!flow.state.sessionId) return "New chat"
-	return flow.state.session?.title ?? conversationTitle(flow.state.conversation) ?? "New chat"
-})
+const title = computed(
+	() => flow.state.session?.title ?? conversationTitle(flow.state.conversation) ?? "New chat",
+)
 const cwdName = computed(() => (cwd.value ?? "").split("/").filter(Boolean).pop() ?? "")
 
 async function chooseFolder() {
