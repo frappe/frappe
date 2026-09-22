@@ -6,7 +6,7 @@ frappe.provide("frappe.ui");
 /**
  * @typedef {Object} TooltipOpts
  * @property {string} text The label. Rendered as text, never HTML.
- * @property {boolean} [when_truncated=false] Only show when the trigger's text is cut off (an ellipsis, a line clamp), and stay silent when it fits. Without `text`, the label is the trigger's own text, read at show time.
+ * @property {boolean} [only_on_overflow=false] Only show when the trigger's text is cut off (an ellipsis, a line clamp), and stay silent when it fits. Without `text`, the label is the trigger's own text, read at show time.
  * @property {string|string[]} [shortcut] Keyboard hint after the label, one <kbd> per key — pass the raw combo ("ctrl+b") and each key becomes its OS form (⌘B on Mac), or an array of already-formatted keys. Display only; binding stays the caller's job.
  * @property {"top"|"right"|"bottom"|"left"} [side="top"] Which side of the trigger the bubble prefers.
  * @property {"start"|"center"|"end"} [align="center"] How the bubble lines up along that side.
@@ -96,7 +96,7 @@ frappe.ui.Tooltip = class Tooltip {
 		}
 
 		this.text = opts.text || "";
-		this.when_truncated = !!opts.when_truncated;
+		this.only_on_overflow = !!opts.only_on_overflow;
 		this.shortcut = opts.shortcut || null;
 		this.side = validated(opts.side, SIDES, "side", "Tooltip") || "top";
 		this.align = validated(opts.align, ALIGNS, "align", "Tooltip") || "center";
@@ -139,7 +139,7 @@ frappe.ui.Tooltip = class Tooltip {
 	}
 
 	schedule(wait = this.delay) {
-		if (this.bubble || !(this.text || this.when_truncated)) return;
+		if (this.bubble || !(this.text || this.only_on_overflow)) return;
 		clearTimeout(this.show_timer);
 		this.show_timer = setTimeout(() => this.show(), wait);
 	}
@@ -149,9 +149,9 @@ frappe.ui.Tooltip = class Tooltip {
 		// Truncation is checked here, not when the tooltip is attached, because the answer keeps
 		// changing: the window resizes, a column is dragged, the label is renamed, the webfont
 		// swaps in. By now the layout is whatever it is on screen.
-		if (this.when_truncated && !is_truncated(this.trigger_el)) return;
+		if (this.only_on_overflow && !is_truncated(this.trigger_el)) return;
 		const text =
-			this.text || (this.when_truncated ? collapse(this.trigger_el.textContent) : "");
+			this.text || (this.only_on_overflow ? collapse(this.trigger_el.textContent) : "");
 		if (!text) return;
 
 		// evict whichever tooltip is showing now
@@ -247,7 +247,7 @@ frappe.ui.Tooltip = class Tooltip {
 	 * @param {string} selector
 	 * @param {TooltipOpts} opts
 	 * @returns {() => void}
-	 * @example frappe.ui.Tooltip.delegate(page.body, ".icon-title", { when_truncated: true });
+	 * @example frappe.ui.Tooltip.delegate(page.body, ".icon-title", { only_on_overflow: true });
 	 */
 	static delegate(root, selector, opts = {}) {
 		root = $(root)[0];

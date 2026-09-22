@@ -59,7 +59,7 @@ class DesktopPage {
 		// when it was actually cut. Delegated on the page body, which outlives every re-render in
 		// `make()`, so this is set up once.
 		frappe.ui.Tooltip.delegate(this.page.body, ".icon-title", {
-			when_truncated: true,
+			only_on_overflow: true,
 			side: "bottom",
 			delay: 150,
 		});
