@@ -1242,6 +1242,31 @@ class TestAPrivatePageWritesItsRows(CustomizationTestCase):
 		self.assertEqual(self.rows("Contacts", USER), [(page.name, page.title)])
 		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [(page.name, page.title)], "still at home")
 
+	def test_a_page_turning_private_leaves_no_row_behind(self):
+		"""It was shared a moment ago, so the site's layer holds a row for it and so does everyone
+		who had arranged the module that listed it. None of them may keep a row naming a page they
+		can no longer open, so the removal covers every layer and not only the new owner's.
+		"""
+		page = self.make_page("Test Rows Turning Private", for_user="", public=1)
+		add_to_sidebar(page)
+		self.held_by(page, 2)
+		self.assertTrue(self.rows(MODULE, None), "sanity: the site layer holds it while shared")
+
+		page.public = 0
+		page.for_user = USER
+		page.label = f"{page.title}-{USER}"
+		page.save(ignore_permissions=True)
+
+		everywhere = frappe.get_all(
+			"Sidebar Item",
+			filters={"parenttype": "Custom Sidebar", "link_to": page.name},
+			fields=["parent"],
+		)
+		holders = {
+			row.parent: frappe.db.get_value("Custom Sidebar", row.parent, "user") for row in everywhere
+		}
+		self.assertEqual(sorted(set(holders.values())), [USER], "only the new owner's layers name it now")
+
 	def test_renaming_it_renames_its_rows(self):
 		page = self.make_page("Test Rows Renaming Page")
 		page.title = "Test Rows Renamed Page"

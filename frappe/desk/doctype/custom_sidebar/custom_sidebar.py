@@ -656,16 +656,22 @@ def forget_layers(layers: list[frappe._dict]) -> None:
 			frappe.cache.delete_key("bootinfo")
 
 
-def remove_workspace_rows(link_to: str, user: str | None = None) -> None:
-	"""Drop every row naming `link_to` as a workspace, from one user's layers or from all of them.
+def remove_workspace_rows(link_to: str, owner: str | None = None) -> None:
+	"""Drop every row naming `link_to` as a workspace, from every layer that holds one.
 
 	What a row names can stop being the page it named: the page is deleted, it moves to another
 	module, or it stops being private and earns a stored link of its own instead. A row left behind
 	names nothing, and while resolution skips such a row (`apply_sidebar_row`), leaving it there
 	would put the page back in a module's sidebar if a page of that name ever came back.
 
-	`user` narrows it to that user's own layers, which is what a page's owner needs. Left out,
-	every layer is cleaned, which is what a deleted page needs.
+	Every layer, always. A page that has just become private was shared a moment ago, so its rows
+	are in the site's layer and in the layer of everyone who had arranged the module that listed it,
+	and none of those people may keep a row naming a page they can no longer open. Narrowing the
+	removal to one person left exactly those rows behind.
+
+	`owner` is who the page belongs to, when it belongs to anybody. It says nothing about which rows
+	go; it says whose emptied layers may go with them, which is the one part of this that costs a
+	document write apiece (`drop_layers_saying_nothing`).
 
 	Three statements, whatever the number of layers. This used to load and save each layer as a
 	document, which is fine for a private page, where only its owner holds a row, and not fine for
@@ -684,7 +690,7 @@ def remove_workspace_rows(link_to: str, user: str | None = None) -> None:
 	are documents and are deleted as documents, which is why that only happens on the narrow path
 	below.
 	"""
-	layers = layers_holding(link_to, user)
+	layers = layers_holding(link_to)
 	if not layers:
 		return
 
@@ -698,8 +704,8 @@ def remove_workspace_rows(link_to: str, user: str | None = None) -> None:
 			"parent": ["in", names],
 		},
 	)
-	if user:
-		drop_layers_saying_nothing(names)
+	if owner:
+		drop_layers_saying_nothing([layer.name for layer in layers if layer.user == owner])
 	forget_layers(layers)
 
 
@@ -710,10 +716,11 @@ def drop_layers_saying_nothing(names: list[str]) -> None:
 	lost the single row it was created for. Left behind it is read on every boot of whoever owns it,
 	which is a read to learn that nobody has an opinion.
 
-	Only for one person's layers, which is why the caller asks for this only when it knows whose
-	rows it removed. The layers that exist because of a single page are the ones a page's own write
-	path created (`add_user_sidebar_item`), and those belong to its owner. A shared page's rows sit
-	in layers somebody arranged by hand, which hold more than that one row and do not empty.
+	Only the owner's layers, which is what keeps this bounded: a page has one owner and at most two
+	layers of theirs name it. The layers that exist because of a single page are the ones a page's
+	own write path created (`add_user_sidebar_item`), and those are the owner's. A shared page's
+	rows sit in layers somebody arranged by hand, which hold more than that one row and do not
+	empty, so nothing is lost by leaving them alone.
 
 	The layers are deleted as documents, in one call with every name, because a `Custom Sidebar` is
 	a document: `on_trash` clears its owner's boot, and the deletion is recorded like any other.
