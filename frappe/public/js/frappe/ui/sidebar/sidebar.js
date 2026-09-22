@@ -881,7 +881,7 @@ frappe.ui.Sidebar = class Sidebar {
 			standard: true,
 			type: "Button",
 			class: "sidebar-notification hidden",
-			suffix: "<span class='notification-count hidden' aria-live='polite'></span>",
+			suffix: "<span class='notification-count es-badge hidden' data-variant='ghost' aria-live='polite'></span>",
 			onClick: () => frappe.ui.sidebar_panels.toggle("notifications"),
 		});
 		this.standard_items.push({

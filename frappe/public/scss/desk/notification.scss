@@ -26,22 +26,9 @@ $notification-dot-size: 8px;
 	display: none;
 }
 
-// The unread count is the only unread affordance a bell gets. Where the bell has a label (the
-// sidebar) it reads as a pill next to it; on icon-only bells (desktop navbar, dock) there
-// is no room for a number, so the same element is drawn as a dot on the icon's corner.
-.notification-count {
-	padding: 1px 7px;
-	// `--bg-gray-100` is defined nowhere, so this declaration was invalid and the pill drew no
-	// chip at all in either theme -- a bare number against the row. Surface-gray-2 is the fill
-	// the rest of the sidebar's chips use, and it tracks the theme.
-	background-color: var(--surface-gray-2);
-	color: var(--ink-gray-7);
-	font-size: var(--text-sm);
-	line-height: 1.2;
-	text-align: center;
-	border-radius: 10px;
-}
-
+// The unread count is the only unread affordance a bell gets. Bells show it as a ghost badge
+// (`.es-badge[data-variant="ghost"]`) next to the icon; the icon-only bell in desktop.html has
+// no room for a number, so there the same element is drawn as a dot on the icon's corner.
 .desktop-notification-icon {
 	position: relative;
 	// Same 28px box as the avatar sitting next to it. Both open their panel with
@@ -54,7 +41,13 @@ $notification-dot-size: 8px;
 	// line with the avatar.
 	@include flex(flex, center, center, row);
 
-	.notification-count {
+	// a ghost badge sits beside the bell with its number, so the box grows to fit it
+	&:has(.notification-count.es-badge:not(.hidden)) {
+		width: auto;
+		gap: var(--spacing);
+	}
+
+	.notification-count:not(.es-badge) {
 		position: absolute;
 		// inset by the 4px of breathing room the box adds around the 20px icon, so
 		// the dot still sits on the bell's corner rather than the button's
