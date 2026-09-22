@@ -58,7 +58,9 @@ leaves to you, listed under [By hand](#by-hand).
 - Charts the script reports as having a dynamic `config` (a `{{ }}` binding or a variable): build the
   new props in the page script instead. See frappe-ui's charts docs.
 - Sidebars with dynamic `header` or `sections`: convert them to Sidebar child blocks manually.
-  The script preserves these props and reports the affected blocks.
+  Dialogs with a dynamic `options` binding: move its fields to the flat props (`title`, `message`,
+  `size`, `icon`, `actions`). The script preserves these props and reports the affected blocks; in
+  the editor they show under **Deprecated** on the block.
 - Coloured ink tokens (`text-ink-red-5`, `var(--ink-red-5)`) keep their names but v1 renders each
   step one shade lighter. The script does not touch them; adjust a step by hand where it matters.
 - Remaining calls to Studio's `getIcon(...)` helper in page scripts, event handlers or expressions:
@@ -103,19 +105,19 @@ def main(app):
 
 def migrate_file(path) -> bool:
 	data = frappe.parse_json(frappe.read_file(path))
-	dynamic_sidebars = []
+	dynamic_props = []
 	dynamic_charts = []
 	for field in BLOCK_FIELDS:
 		if not data.get(field):
 			continue
 		location = f"{path}:{field}"
-		text = frappe_ui_v1.migrate_blocks_json(data[field], dynamic_sidebars, location)
+		text = frappe_ui_v1.migrate_blocks_json(data[field], dynamic_props, location)
 		text = charts.migrate_blocks_json(text, dynamic_charts, location)
 		text = get_icon.rewrite_get_icon_calls(text)
 		data[field] = frappe.parse_json(text)
 		report_get_icon_calls(text, location)
-	for location, component_id in dynamic_sidebars:
-		print(f"  {location}: Sidebar {component_id} has a dynamic header or sections: migrate by hand")
+	for location, component_id in dynamic_props:
+		print(f"  {location}: {component_id} has dynamic props v1 dropped: migrate them by hand")
 	for location, component_id in dynamic_charts:
 		print(f"  {location}: chart {component_id} has a dynamic `config`: migrate its props by hand")
 

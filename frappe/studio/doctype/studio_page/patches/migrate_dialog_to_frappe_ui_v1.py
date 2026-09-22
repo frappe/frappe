@@ -64,9 +64,11 @@ def migrate_dialog_blocks(blocks):
 def migrate_dialog_props(block):
 	props = block.get("componentProps") or {}
 
-	# 1. flatten the `options` blob into top-level props (existing top-level wins)
-	options = props.pop("options", None)
+	# 1. flatten the `options` blob into top-level props (existing top-level wins).
+	# A dynamic `options` binding stays put, so the editor lists it under Deprecated to copy from.
+	options = props.get("options")
 	if isinstance(options, dict):
+		props.pop("options")
 		for key in OPTIONS_KEYS:
 			if key in options and key not in props:
 				props[key] = options[key]

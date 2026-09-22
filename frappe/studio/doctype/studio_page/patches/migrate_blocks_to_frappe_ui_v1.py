@@ -39,7 +39,7 @@ def execute():
 
 	if skipped:
 		print(
-			"Sidebars with dynamic header or sections need a manual update to child blocks:\n"
+			"Blocks with dynamic props that need a manual update (Sidebar header/sections, Dialog options):\n"
 			+ "\n".join(f"  {doc}: {component_id}" for doc, component_id in sorted(set(skipped)))
 		)
 
@@ -189,6 +189,8 @@ def migrate_badge(block, props):
 def migrate_dialog(block, props):
 	migrate_dialog_props(block)
 	props = block["componentProps"]
+	if isinstance(props.get("options"), str):
+		return False
 	migrate_theme(props, {"yellow": "amber"})
 	icon = props.get("icon")
 	if isinstance(icon, dict):
