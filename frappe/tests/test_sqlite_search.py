@@ -18,7 +18,7 @@ from frappe.search.sqlite_search import (
 	index_docs_in_queue,
 )
 from frappe.tests import IntegrationTestCase
-from frappe.utils import now_datetime
+from frappe.utils import convert_utc_to_system_timezone, get_datetime, now_datetime
 from frappe.utils.synchronization import filelock
 >>>>>>> 1759057 (test(search): cover the build window and the vocabulary flag)
 
@@ -90,11 +90,7 @@ class TestBuildWindow(IntegrationTestCase):
 
 		note.title = "After Edit"
 		note.save()
-		self.search.queue_documents_changed_during_build(started_at)
-
-		# the catch-up queues, and the scheduled drain is what rewrites the row
-		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[BuildWindowSearch]):
-			index_docs_in_queue()
+		self.search.index_documents_changed_during_build(started_at)
 
 		self.assertEqual(self.indexed_title(note.name), "After Edit")
 
@@ -106,18 +102,43 @@ class TestBuildWindow(IntegrationTestCase):
 		self.assertEqual(self.indexed_title(note.name), "Deleted Mid Build")
 
 		frappe.delete_doc("Note", note.name)
-		self.search.queue_documents_changed_during_build(started_at)
+		self.search.index_documents_changed_during_build(started_at)
 
 		self.assertIsNone(self.indexed_title(note.name))
 
-	def test_a_continuation_keeps_the_original_start(self):
-		"""A fresh timestamp would skip everything edited between the two runs."""
-		progress = {"Note": {"started_at": "2020-06-15 12:00:00"}}
-		with patch.object(BuildWindowSearch, "_get_index_progress", return_value=progress):
-			carried = self.search._build_started_at(is_continuation=True)
+	def test_a_continuation_starts_from_the_interrupted_build(self):
+		"""A fresh build writes its progress into the temp database, not the live one."""
+		temp_path = self.search._get_db_path(is_temp=True)
+		self.addCleanup(lambda: os.path.exists(temp_path) and os.unlink(temp_path))
 
-		self.assertEqual((carried.year, carried.month), (2020, 6))
-		self.assertIsNone(carried.tzinfo, "naive, to compare with modified")
+		with patch.object(BuildWindowSearch, "_index_documents", side_effect=RuntimeError("killed")):
+			with self.assertRaises(RuntimeError):
+				self.search.build_index(batch_size=1)
+
+		interrupted = BuildWindowSearch()
+		interrupted.db_path = temp_path
+		stamps = [
+			row["started_at"] for row in interrupted._get_index_progress().values() if row.get("started_at")
+		]
+		self.assertTrue(stamps, "the interrupted build left no progress rows behind")
+		expected = convert_utc_to_system_timezone(get_datetime(min(stamps))).replace(tzinfo=None)
+
+		carried = []
+		with patch.object(
+			BuildWindowSearch,
+			"index_documents_changed_during_build",
+			lambda instance, started_at, **kwargs: carried.append(started_at),
+		):
+			BuildWindowSearch().build_index(is_continuation=True)
+
+		self.assertEqual(carried, [expected])
+
+	def test_the_index_reports_complete_without_the_vocabulary_pass(self):
+		"""_is_indexing_complete waits on the vocabulary flag, which the skipped pass never sets."""
+		self.search.build_index()
+
+		self.assertFalse(BuildWindowSearch.BUILD_VOCABULARY)
+		self.assertTrue(self.search._is_indexing_complete())
 
 	def test_the_vocabulary_pass_runs_only_when_it_is_turned_on(self):
 		with (
