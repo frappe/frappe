@@ -50,7 +50,7 @@ def migrate_block(block):
 	if "config" not in props:
 		return True
 	config = props.get("config")
-	if not isinstance(config, dict):
+	if not isinstance(config, dict) or config.get("$type") == "variable":
 		return False
 	block["componentProps"] = handler(block, config) or {}
 	return True

@@ -18,11 +18,12 @@ ICON_PROPS = ("icon", "iconLeft", "iconRight")
 
 
 def execute():
+	skipped = []
 	for page in frappe.get_all("Studio Page", fields=["name", "blocks", "draft_blocks"]):
 		updates = {}
 		for field in ("blocks", "draft_blocks"):
 			if page.get(field):
-				updated = migrate_blocks_json(page.get(field))
+				updated = migrate_blocks_json(page.get(field), skipped, f"{page.name}.{field}")
 				if updated != page.get(field):
 					updates[field] = updated
 		if updates:
@@ -30,17 +31,24 @@ def execute():
 
 	for component in frappe.get_all("Studio Component", fields=["name", "block"]):
 		if component.get("block"):
-			updated = migrate_blocks_json(component.block)
+			updated = migrate_blocks_json(component.block, skipped, f"{component.name}.block")
 			if updated != component.block:
 				frappe.db.set_value(
 					"Studio Component", component.name, "block", updated, update_modified=False
 				)
 
+	if skipped:
+		print(
+			"Sidebars with dynamic header or sections need a manual update to child blocks:\n"
+			+ "\n".join(f"  {doc}: {component_id}" for doc, component_id in sorted(set(skipped)))
+		)
 
-def migrate_blocks_json(value):
+
+def migrate_blocks_json(value, skipped=None, docname=None):
 	blocks = frappe.parse_json(value) if isinstance(value, str) else value
 	for block in walk_blocks(blocks):
-		migrate_block(block)
+		if not migrate_block(block) and skipped is not None:
+			skipped.append((docname, block.get("componentId")))
 		migrate_classes(block)
 	return frappe.as_json(blocks, indent=None)
 
@@ -48,9 +56,9 @@ def migrate_blocks_json(value):
 def migrate_block(block):
 	handler = HANDLERS.get(block.get("componentName"))
 	if not handler:
-		return
+		return True
 	block["componentProps"] = block.get("componentProps") or {}
-	handler(block, block["componentProps"])
+	return handler(block, block["componentProps"]) is not False
 
 
 def migrate_classes(block):
@@ -129,12 +137,12 @@ def migrate_menu_options(options):
 
 
 def migrate_input_size(props):
-	if props.get("size") in INPUT_SIZES:
+	if isinstance(props.get("size"), str) and props["size"] in INPUT_SIZES:
 		props["size"] = INPUT_SIZES[props["size"]]
 
 
 def migrate_theme(props, renames):
-	if props.get("theme") in renames:
+	if isinstance(props.get("theme"), str) and props["theme"] in renames:
 		props["theme"] = renames[props["theme"]]
 
 
@@ -145,6 +153,10 @@ def migrate_autocomplete(block, props):
 	for key in ("showFooter", "bodyClasses", "maxOptions"):
 		props.pop(key, None)
 	rename_slots(block, {"target": "trigger"})
+	if block["componentName"] == "MultiSelect":
+		migrate_multi_select(block, props)
+	else:
+		migrate_combobox(block, props)
 
 
 def migrate_form_control(block, props):
@@ -215,8 +227,9 @@ def migrate_tooltip(block, props):
 
 
 def migrate_menu(block, props):
-	placement = props.pop("placement", None)
-	if placement in MENU_ALIGN:
+	placement = props.get("placement")
+	if isinstance(placement, str) and placement in MENU_ALIGN:
+		props.pop("placement")
 		props.setdefault("align", MENU_ALIGN[placement])
 	migrate_menu_options(props.get("options"))
 
@@ -241,11 +254,13 @@ def migrate_tab_buttons(block, props):
 def migrate_tabs(block, props):
 	props.pop("as", None)
 	tabs = [tab for tab in props.get("tabs") or [] if isinstance(tab, dict)]
+	# v1 tabs already have values; their numeric selection must not be read as an old index.
+	legacy_tabs = any("value" not in tab for tab in tabs)
 	for tab in tabs:
 		tab.setdefault("value", tab.get("label"))
 		migrate_icons(tab)
 	index = props.get("modelValue")
-	if isinstance(index, int) and not isinstance(index, bool) and 0 <= index < len(tabs):
+	if legacy_tabs and isinstance(index, int) and not isinstance(index, bool) and 0 <= index < len(tabs):
 		props["modelValue"] = tabs[index]["value"]
 	rename_slots(
 		block,
@@ -338,6 +353,11 @@ def migrate_settings_dialog(block, props):
 
 
 def migrate_sidebar(block, props):
+	header, sections = props.get("header"), props.get("sections")
+	if header is not None and (not isinstance(header, dict) or header.get("$type") == "variable"):
+		return False
+	if sections is not None and not isinstance(sections, list):
+		return False
 	if "disableCollapse" in props:
 		props.setdefault("collapsible", not props.pop("disableCollapse"))
 	header = props.pop("header", None)

@@ -63,7 +63,7 @@ def exports_in_tempdir():
 
 
 class TestStudioPage(IntegrationTestCase):
-	def test_get_icon_calls_are_rewritten_to_lucide_classes(self):
+	def test_icon_bindings_are_rewritten_and_script_calls_are_reported(self):
 		from studio.studio.doctype.studio_page.patches import migrate_get_icon_calls
 
 		app = make_studio_app(app_name="get-icon-app", app_title="Get Icon App")
@@ -73,12 +73,15 @@ class TestStudioPage(IntegrationTestCase):
 			script="const icon = getIcon('check')",
 		)
 
-		migrate_get_icon_calls.execute()
+		with patch("builtins.print") as report:
+			migrate_get_icon_calls.execute()
 
 		page.reload()
-		self.assertEqual(page.script, "const icon = 'lucide-check'")
+		self.assertEqual(page.script, "const icon = getIcon('check')")
 		self.assertIn('"icon": "lucide-sprout"', page.blocks)
-		self.assertIn("() => 'lucide-plus'", page.blocks)
+		self.assertIn("() => getIcon('plus')", page.blocks)
+		self.assertIn("getIcon('check')", str(report.call_args_list))
+		self.assertIn("getIcon('plus')", str(report.call_args_list))
 
 	def test_block_parsing(self):
 		app = make_studio_app(app_name="serialization-" + frappe.generate_hash(length=10))

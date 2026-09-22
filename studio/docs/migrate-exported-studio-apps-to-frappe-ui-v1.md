@@ -16,10 +16,12 @@ The same three functions Studio's patches run on the database, in this order:
 | --- | --- |
 | `migrate_blocks_to_frappe_ui_v1` | Renamed components, props, slots and events; feather icon names to `lucide-*`; `rounded-md` style radius aliases to `rounded-5` |
 | `migrate_charts_to_frappe_ui_charts` | `AxisChart`, `DonutChart`, `NumberChart` `config` objects to frappe-ui/charts props |
-| `migrate_get_icon_calls` | `{{ getIcon('x') }}` bindings to `lucide-x`; other literal calls, in page scripts and event handlers, to `'lucide-x'` |
+| `migrate_get_icon_calls` | Complete literal prop bindings such as `{{ getIcon('x') }}` to `lucide-x`; reports remaining helper references for review |
 
-All three are idempotent, so the script can run over every file, migrated or not, as often as needed.
-Page scripts (`<page>.ts`) get the `getIcon` rewrite; nothing else in them is touched.
+Run this on files exported before the v1 upgrade and review the diff before importing them.
+Do not assume every old and new prop value can be distinguished automatically. In particular,
+Tabs that already define `value` keep their selection; check old numeric selections on those tabs
+by hand. Page scripts (`<page>.ts`) are scanned for `getIcon` references but are not rewritten.
 
 Do not redo these by hand from the frappe-ui migration guide. The guide describes Vue templates;
 these files are Studio's block JSON (`componentProps`, `componentSlots`, `classes`, `baseStyles`),
@@ -30,6 +32,7 @@ leaves to you, listed under [By hand](#by-hand).
 ## Steps
 
 1. Start from a clean tree in the app's repo, so the diff is only the migration.
+   Stop `bench watch-studio` while rewriting and reviewing the files.
 
 2. Save the script below as `migrate_exported_files.py` anywhere outside the repo and run it from
    the bench's `sites` directory:
@@ -39,12 +42,13 @@ leaves to you, listed under [By hand](#by-hand).
    ../env/bin/python /path/to/migrate_exported_files.py <app>
    ```
 
-   It prints each file it rewrote.
+   It prints each file it rewrote and identifies files and fields that need manual review.
+   Resolve those reports before importing the files. Reports may appear even when a file was unchanged.
 
 3. Check the result.
    - `git diff --stat` touches only `studio_page/*/*.{json,ts}` and `studio_components/*.json`.
-   - Load the files into a site with `bench --site <site> migrate` (or leave `bench watch-studio`
-     running), then open each page in the editor and at its route. Look for blank blocks and for
+   - Load the reviewed files into a site with `bench --site <site> migrate`, then open each page
+     in the editor and at its route. Look for blank blocks and for
      errors in the browser console.
 
 4. Commit the files in the app's repo.
@@ -53,10 +57,15 @@ leaves to you, listed under [By hand](#by-hand).
 
 - Charts the script reports as having a dynamic `config` (a `{{ }}` binding or a variable): build the
   new props in the page script instead. See frappe-ui's charts docs.
+- Sidebars with dynamic `header` or `sections`: convert them to Sidebar child blocks manually.
+  The script preserves these props and reports the affected blocks.
 - Coloured ink tokens (`text-ink-red-5`, `var(--ink-red-5)`) keep their names but v1 renders each
   step one shade lighter. The script does not touch them; adjust a step by hand where it matters.
-- A `getIcon(...)` call with a dynamic argument, which the script reports: `getIcon()` is removed,
-  so write the `"lucide-<name>"` string it would have returned.
+- Remaining calls to Studio's `getIcon(...)` helper in page scripts, event handlers or expressions:
+  replace literal calls such as `getIcon('search')` with `'lucide-search'`, and construct the
+  `"lucide-<name>"` string for dynamic arguments. The script only rewrites complete literal prop
+  bindings. It reports possible references, including methods, comments and string contents;
+  leave unrelated references such as a custom `helpers.getIcon()` method unchanged.
 - Anything else in a page script that calls a removed frappe-ui API needs the frappe-ui migration
   guide (`frappe-ui/docs/content/docs/migration.md`).
 - Custom Vue components in the app (`studio/<studio_app>/components/`) are ordinary frappe-ui code.
@@ -89,23 +98,26 @@ def main(app):
 		if migrate_file(path):
 			print(path)
 	for path in sorted(glob.glob(f"{folder}/*/studio_page/*/*.ts")):
-		if migrate_script(path):
-			print(path)
+		report_get_icon_calls(frappe.read_file(path), path)
 
 
 def migrate_file(path) -> bool:
 	data = frappe.parse_json(frappe.read_file(path))
+	dynamic_sidebars = []
 	dynamic_charts = []
 	for field in BLOCK_FIELDS:
 		if not data.get(field):
 			continue
-		text = frappe_ui_v1.migrate_blocks_json(data[field])
-		text = charts.migrate_blocks_json(text, dynamic_charts, path)
+		location = f"{path}:{field}"
+		text = frappe_ui_v1.migrate_blocks_json(data[field], dynamic_sidebars, location)
+		text = charts.migrate_blocks_json(text, dynamic_charts, location)
 		text = get_icon.rewrite_get_icon_calls(text)
 		data[field] = frappe.parse_json(text)
-		report_dynamic_get_icon_calls(text)
-	for _, component_id in dynamic_charts:
-		print(f"  chart {component_id} has a dynamic `config`: migrate its props by hand")
+		report_get_icon_calls(text, location)
+	for location, component_id in dynamic_sidebars:
+		print(f"  {location}: Sidebar {component_id} has a dynamic header or sections: migrate by hand")
+	for location, component_id in dynamic_charts:
+		print(f"  {location}: chart {component_id} has a dynamic `config`: migrate its props by hand")
 
 	# same layout as studio.export.write_document_file, so the diff is only the blocks
 	text = frappe.as_json(data) + "\n"
@@ -116,21 +128,11 @@ def migrate_file(path) -> bool:
 	return True
 
 
-def migrate_script(path) -> bool:
-	source = frappe.read_file(path)
-	text = get_icon.rewrite_get_icon_calls(source)
-	report_dynamic_get_icon_calls(text)
-	if text == source:
-		return False
-	with open(path, "w") as file:
-		file.write(text)
-	return True
+def report_get_icon_calls(text, location):
+	for call in get_icon.find_get_icon_calls(text):
+		print(f"  {location}: review {call}; replace calls to Studio's helper with lucide-* strings")
 
 
-def report_dynamic_get_icon_calls(text):
-	for call in get_icon.DYNAMIC_CALL.findall(text):
-		print(f"  {call} has a dynamic argument: write the lucide-* string by hand")
-
-
-main(sys.argv[1])
+if __name__ == "__main__":
+	main(sys.argv[1])
 ```
