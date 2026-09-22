@@ -35,7 +35,8 @@ watch(
 </script>
 
 <style scoped>
-:deep(.form-group) {
+:deep(.form-group),
+:deep(.form-group.frappe-control:last-child) {
 	margin-bottom: 0;
 }
 </style>
