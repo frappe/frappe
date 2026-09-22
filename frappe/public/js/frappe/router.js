@@ -209,15 +209,29 @@ frappe.router = {
 				if (!route[1]) return ["Workspaces", "private"];
 
 				const page = this.private_workspace(route[1]);
-				if (!page) {
-					frappe.msgprint(
-						__("Workspace <b>{0}</b> does not exist", [
-							frappe.utils.xss_sanitise(route[1]),
-						])
-					);
-					return ["Workspaces", "private"];
+				if (page) return ["Workspaces", "private", page.name];
+
+				// Not one of this user's pages, so `private` is being read the other way it can
+				// be: as the Private shell's own slug, with an ordinary route inside it.
+				// `/desk/private/query-report/General Ledger` is that report, shown in the
+				// sidebar of the person looking at it, the same as `/desk/accounts/query-report/
+				// General Ledger` is that report in Accounts.
+				//
+				// The shell is adopted here rather than in `take_shell_from`, which would have to
+				// strip the segment before knowing which of the two meanings it has, and would
+				// have turned `/desk/private/settings` into the public workspace called Settings.
+				// A page of this user's wins, which is why it is asked first.
+				if (this.route_names_something(route[1])) {
+					this.current_shell = "Private";
+					return await this.convert_to_standard_route(route.slice(1));
 				}
-				return ["Workspaces", "private", page.name];
+
+				frappe.msgprint(
+					__("Workspace <b>{0}</b> does not exist", [
+						frappe.utils.xss_sanitise(route[1]),
+					])
+				);
+				return ["Workspaces", "private"];
 			}
 
 			case "doctype":

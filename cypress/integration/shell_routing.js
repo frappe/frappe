@@ -131,6 +131,21 @@ describe("Desk URL shell segment", () => {
 			});
 	});
 
+	it("reads anything else after `private` as a route inside the Private shell", () => {
+		// The word has two meanings and the segment after it decides which: one of your own pages,
+		// or, failing that, the shell's own slug with an ordinary route behind it. Without the
+		// second, every such URL said "Workspace todo does not exist".
+		cy.visit("/desk/private/todo");
+		cy.location("pathname").should("eq", "/desk/private/todo");
+		cy.window().its("frappe.app.sidebar.current_module").should("eq", "Private");
+		cy.window().its("frappe.router.current_route").should("deep.eq", ["List", "ToDo", "List"]);
+
+		// A word that names nothing at all is still a private page that is not there.
+		cy.visit("/desk/private/no-such-page-of-mine");
+		cy.get_open_dialog().should("contain.text", "does not exist");
+		cy.hide_dialog();
+	});
+
 	it("spells an ampersand out rather than encoding it", () => {
 		// hrms names two shells with an `&`, since a module folder is an imported Python package
 		// and cannot hold one. `%26` in a path is not something anyone types or reads.
