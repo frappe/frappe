@@ -175,29 +175,23 @@ let renderer = computed(() =>
 let hint_icon = ref(null);
 let renderer_hint = computed(() => {
 	if (typst_blockers.value.length) {
-		const items = typst_blockers.value.map((b) => "• " + frappe.utils.escape_html(b));
-		return [__("Typst cannot render:"), ...items].join("<br>");
+		const items = typst_blockers.value.map((b) => "• " + b);
+		return [__("Typst cannot render:"), ...items].join("\n");
 	}
 	if (has_typst_block.value) {
 		return __("Chromium unavailable: this format uses a Typst block.");
 	}
 	return renderer.value === "Typst" ? __("Experimental") : "";
 });
+let hint_tooltip = null;
 watch(
 	[hint_icon, renderer_hint],
-	([el, title]) => {
-		if (!el) return;
-		$(el).tooltip("dispose");
-		if (title)
-			$(el).tooltip({
-				title,
-				html: true,
-				trigger: "hover",
-				placement: "top",
-				template:
-					'<div class="tooltip pfb-hint-tooltip" role="tooltip">' +
-					'<div class="arrow"></div><div class="tooltip-inner"></div></div>',
-			});
+	([el, text]) => {
+		hint_tooltip?.destroy();
+		hint_tooltip = null;
+		if (!el || !text) return;
+		frappe.ui.tooltip(el, { text, class: "pfb-renderer-hint" });
+		hint_tooltip = $(el).data("es-tooltip");
 	},
 	{ flush: "post" }
 );
