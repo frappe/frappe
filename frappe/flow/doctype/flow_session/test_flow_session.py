@@ -604,6 +604,29 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		)
 		self.assertNotIn("callback_timeout", config)
 
+	def test_sub_agents_travel_with_their_own_callback_identity(self):
+		child = frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "Config Child",
+				"model": self.model.name,
+				"instructions": "Look it up.",
+				"tools": [{"tool": "read"}],
+				"enabled": 1,
+			}
+		).insert()
+		self.agent.append("sub_agents", {"agent": child.name})
+		self.agent.save()
+
+		config = self.config()
+		SessionConfig.model_validate(config)
+		[sub] = config["subagents"]
+		self.assertEqual(
+			(sub["name"], sub["system_prompt"], sub["max_turns"]), (child.name, "Look it up.", 50)
+		)
+		self.assertEqual([t["function"]["name"] for t in sub["client_tools"]], ["read"])
+		self.assertEqual(sub["user_context"], {**config["user_context"], "agent": child.name})
+
 	def test_the_agents_skills_are_indexed_after_its_instructions(self):
 		frappe.get_doc(
 			{
