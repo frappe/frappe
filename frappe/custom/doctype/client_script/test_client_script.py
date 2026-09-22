@@ -1,6 +1,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import json
+import os
+import tempfile
+from unittest.mock import patch
+
 import frappe
+from frappe.custom.doctype.client_script import client_script
 from frappe.custom.doctype.client_script.client_script import get_client_scripts, reorder
 from frappe.desk.form.meta import get_meta
 from frappe.tests import IntegrationTestCase
@@ -158,3 +164,85 @@ class TestReorder(IntegrationTestCase):
 			reorder("Note", "Record", ["a-note-script", "no-such-script"])
 
 		self.assertEqual(run_order("a-note-script"), 0)
+
+
+class TestUnknownClassWarning(IntegrationTestCase):
+	def setUp(self):
+		frappe.clear_messages()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def save_with_class_list(self, script, class_list, name="styled-note-script"):
+		path = os.path.join(self.class_list_dir.name, "classes.json")
+		if class_list is None:
+			if os.path.exists(path):
+				os.remove(path)
+		else:
+			with open(path, "w") as file:
+				json.dump(class_list, file)
+		with patch.object(client_script, "class_list_path", return_value=path):
+			make_script(name, script=script).insert()
+		return [row["message"] for row in frappe.get_message_log()]
+
+	def test_names_only_the_class_with_no_rule(self):
+		script = "page.body.add({ html: '<div class=\"p-3 rounded-lg\">Late</div>' })"
+		messages = self.save_with_class_list(script, ["p-3"])
+
+		self.assertEqual(len(messages), 1)
+		self.assertIn("rounded-lg", messages[0])
+		self.assertNotIn("p-3", messages[0])
+
+	def test_reads_class_keys_and_class_list_calls_but_not_prose(self):
+		script = """
+			page.header.add({ props: { class: `mt-2 ${size}` } })
+			el.classList.add('hidden', 'pt-1')
+			page.toast('a read-only follow-up')
+		"""
+		messages = self.save_with_class_list(script, ["hidden"])
+
+		self.assertEqual(len(messages), 1)
+		self.assertIn("mt-2, pt-1", messages[0])
+		self.assertNotIn("read-only", messages[0])
+
+	def test_reads_an_escaped_attribute_and_an_arbitrary_value_whole(self):
+		script = 'page.body.add({ html: "<div class=\\"text-[#fff] p-3\\">" })'
+		messages = self.save_with_class_list(script, ["p-3"])
+
+		self.assertEqual(len(messages), 1)
+		self.assertIn("text-[#fff]", messages[0])
+
+	def test_is_silent_with_a_class_list_of_the_wrong_shape(self):
+		script = "page.body.add({ html: '<div class=\"rounded-lg\">Late</div>' })"
+		self.assertEqual(self.save_with_class_list(script, {"a": 1}, name="object-list-script"), [])
+		self.assertEqual(self.save_with_class_list(script, None, name="null-list-script"), [])
+
+	def test_stays_quiet_when_only_enabled_changes(self):
+		script = "page.body.add({ html: '<div class=\"rounded-lg\">Late</div>' })"
+		self.save_with_class_list(script, [])
+		frappe.clear_messages()
+		doc = frappe.get_doc("Client Script", "styled-note-script")
+		doc.enabled = 0
+		with patch.object(client_script, "read_class_list", return_value=set()):
+			doc.save()
+		self.assertEqual(frappe.get_message_log(), [])
+
+	def test_is_silent_without_a_class_list(self):
+		script = "page.body.add({ html: '<div class=\"rounded-lg\">Late</div>' })"
+		self.assertEqual(self.save_with_class_list(script, None), [])
+
+	def test_is_silent_for_a_form_view_script(self):
+		script = "frappe.ui.form.on('Note', { refresh(frm) { $('<div class=\"rounded-lg\">') } })"
+		with patch.object(client_script, "read_class_list", return_value=set()):
+			make_script("form-note-script", script=script, view="Form").insert()
+		self.assertEqual(frappe.get_message_log(), [])
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.class_list_dir = tempfile.TemporaryDirectory()
+
+	@classmethod
+	def tearDownClass(cls):
+		cls.class_list_dir.cleanup()
+		super().tearDownClass()
