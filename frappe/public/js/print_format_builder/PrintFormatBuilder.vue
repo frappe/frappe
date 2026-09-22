@@ -246,7 +246,7 @@ const MARQUEE_THRESHOLD = 4;
 // controls that should start their own interaction, never a marquee
 const MARQUEE_IGNORE =
 	".field--preview, .field--chip, button, input, textarea, select, a, [contenteditable]," +
-	" .section-toolbar, .drag-handle, .col-width-handle, .field-preview-actions," +
+	" .section-toolbar, .drag-handle, .col-width-handle," +
 	" .section-preview-actions, .empty-drop-zone, .canvas-toolbar";
 
 function on_canvas_pointerdown(e) {
@@ -593,7 +593,6 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 /* In bulk mode the per-item action toolbars (remove) are
    just noise on top of every highlighted block — the bulk panel drives actions
    instead. Hide them everywhere at once from the one multi-select flag. */
-.builder-root.pfb-multi-select :deep(.field-preview-actions),
 .builder-root.pfb-multi-select :deep(.field-actions),
 .builder-root.pfb-multi-select :deep(.section-preview-actions),
 .builder-root.pfb-multi-select :deep(.section-toolbar-right) {
