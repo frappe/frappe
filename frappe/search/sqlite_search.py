@@ -17,39 +17,7 @@ from bs4 import BeautifulSoup
 
 import frappe
 from frappe.model.document import Document
-<<<<<<< HEAD
-from frappe.utils import update_progress_bar
-=======
 from frappe.utils import convert_utc_to_system_timezone, get_datetime, now_datetime, update_progress_bar
-from frappe.utils.file_lock import LockTimeoutError
-from frappe.utils.synchronization import filelock
-
-SURROGATE_RE = re.compile(r"[\ud800-\udfff]")
-
-
-def strip_surrogates(value):
-	"""Repair or drop Unicode surrogate code points so a value can be encoded as UTF-8.
-
-	Inbound data (for example e-mail bodies that were mis-decoded from UTF-16) can
-	carry paired or lone surrogate code points inside Python ``str`` objects.
-	SQLite encodes bound parameters as strict UTF-8, which raises
-	``UnicodeEncodeError: ... surrogates not allowed`` for any surrogate code
-	point and aborts the whole ``cursor.executemany()`` call during indexing.
-
-	A round-trip through UTF-16 (with ``surrogatepass``) re-pairs valid surrogate
-	pairs into their real astral character (so a mis-encoded emoji survives), and
-	the following UTF-8 ``ignore`` pass drops any remaining lone surrogate.
-	Non-``str`` and surrogate-free values are returned unchanged.
-	"""
-	if not isinstance(value, str) or not SURROGATE_RE.search(value):
-		return value
-	return (
-		value.encode("utf-16-le", "surrogatepass")
-		.decode("utf-16-le", "surrogatepass")
-		.encode("utf-8", "ignore")
-		.decode("utf-8")
-	)
->>>>>>> 7938f48 (fix(search): catch up on writes made while a build ran)
 
 
 class WarningType(Enum):

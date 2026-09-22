@@ -7,15 +7,7 @@ from unittest.mock import patch
 import frappe
 from frappe.search.sqlite_search import SQLiteSearch, SQLiteSearchIndexMissingError
 from frappe.tests import IntegrationTestCase
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-from frappe.utils import now_datetime
-=======
 from frappe.utils import convert_utc_to_system_timezone, get_datetime, now_datetime
->>>>>>> 2b2c9e5 (test(search): drive a real continuation and the skipped vocabulary pass)
-from frappe.utils.synchronization import filelock
->>>>>>> 1759057 (test(search): cover the build window and the vocabulary flag)
 
 
 class TestSQLiteSearch(SQLiteSearch):
