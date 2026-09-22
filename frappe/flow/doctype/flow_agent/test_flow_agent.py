@@ -72,6 +72,11 @@ class TestFlowAgentDefaults(IntegrationTestCase):
 		with self.assertRaisesRegex(frappe.ValidationError, "Max Iterations"):
 			doc.insert()
 
+	def test_negative_token_budget_rejected(self):
+		doc = frappe.get_doc(_agent(self.model_doc.name, token_budget=-1))
+		with self.assertRaisesRegex(frappe.ValidationError, "Token Budget"):
+			doc.insert()
+
 	def test_link_to_unknown_model_rejected(self):
 		doc = frappe.get_doc(_agent("does-not-exist"))
 		with self.assertRaises(frappe.LinkValidationError):

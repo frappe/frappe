@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 	from flow.lib.tool import Tool
 
 DEFAULT_MAX_ITERATIONS = 50
+DEFAULT_TOKEN_BUDGET = 10_000_000
 
 # Skills bound to this agent; global ones add MAX_GLOBAL_SKILLS more. The index rides in
 # every session's prompt, so both caps together bound it however the skills are written.
@@ -55,6 +56,7 @@ class FlowAgent(Document):
 		skills: DF.TableMultiSelect[FlowAgentSkill]
 		sub_agents: DF.TableMultiSelect[FlowAgentSubAgent]
 		title: DF.Data
+		token_budget: DF.Int
 		tools: DF.TableMultiSelect[FlowAgentTool]
 	# end: auto-generated types
 
@@ -76,6 +78,7 @@ class FlowAgent(Document):
 
 	def validate(self):
 		self._validate_max_iterations()
+		self._validate_token_budget()
 		self._validate_skills()
 		self._validate_sub_agents()
 		self._ensure_knowledge_search_tool()
@@ -99,6 +102,10 @@ class FlowAgent(Document):
 	def _validate_max_iterations(self):
 		if self.max_iterations is not None and self.max_iterations < 1:
 			frappe.throw(_("Max Iterations must be at least 1."), title=_("Invalid Max Iterations"))
+
+	def _validate_token_budget(self):
+		if (self.token_budget or 0) < 0:
+			frappe.throw(_("Token Budget cannot be negative."), title=_("Invalid Token Budget"))
 
 	def _validate_skills(self):
 		if len(self.skills) > MAX_SKILLS:
