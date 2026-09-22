@@ -10,11 +10,12 @@ const DRAG_THRESHOLD = 4 // px before a mousedown becomes a drag
 const OUT_OF_FLOW_POSITIONS = ["absolute", "fixed"]
 
 // Out-of-flow blocks have no slot to reorder into, so they move freely instead.
-export function isMovable(block: Block): boolean {
+// `breakpoint` is the canvas being dragged in — position can differ per breakpoint.
+export function isMovable(block: Block, breakpoint?: string): boolean {
 	return (
 		!block.isRoot() &&
 		!block.isChildOfComponent &&
-		OUT_OF_FLOW_POSITIONS.includes(block.getStyle("position") as string)
+		OUT_OF_FLOW_POSITIONS.includes(block.getStyle("position", breakpoint) as string)
 	)
 }
 
@@ -29,7 +30,7 @@ export function startBlockMove(event: MouseEvent, block: Block, breakpoint?: str
 		`.__studio_component__[data-component-id="${block.componentId}"][data-breakpoint="${dragBreakpoint}"]`,
 	) as HTMLElement | null
 	if (!target || !canvasStore.activeCanvas) return
-	new BlockMoveSession(event, block, target).listen()
+	new BlockMoveSession(event, block, target, dragBreakpoint).listen()
 }
 
 class BlockMoveSession {
@@ -47,6 +48,7 @@ class BlockMoveSession {
 		event: MouseEvent,
 		private block: Block,
 		private target: HTMLElement,
+		private breakpoint: string,
 	) {
 		this.guides = setGuides(target, this.canvasStore.activeCanvas!.canvasProps)
 		this.startX = event.clientX
@@ -88,6 +90,8 @@ class BlockMoveSession {
 	private beginMove() {
 		this.started = true
 		this.canvasStore.isDragging = true
+		// setStyle writes to the active breakpoint, so it must be the one being dragged in
+		this.canvasStore.activeCanvas?.setActiveBreakpoint(this.breakpoint)
 		this.canvasStore.activeCanvas?.selectBlock(this.block, null)
 		this.canvasStore.preventClick = true
 		this.pauseId = this.canvasStore.activeCanvas?.history?.pause() || null

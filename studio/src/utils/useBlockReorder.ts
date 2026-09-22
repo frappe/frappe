@@ -19,11 +19,12 @@ const GHOST_OPACITY = 0.9
 const OUT_OF_FLOW_POSITIONS = ["absolute", "fixed"]
 
 // Out-of-flow blocks have no slot to reorder into; component-owned blocks are locked.
-export function isReorderable(block: Block): boolean {
+// `breakpoint` is the canvas being dragged in — position can differ per breakpoint.
+export function isReorderable(block: Block, breakpoint?: string): boolean {
 	return (
 		!block.isRoot() &&
 		!block.isChildOfComponent &&
-		!OUT_OF_FLOW_POSITIONS.includes(block.getStyle("position") as string) &&
+		!OUT_OF_FLOW_POSITIONS.includes(block.getStyle("position", breakpoint) as string) &&
 		Boolean(block.getParentBlock())
 	)
 }
@@ -43,7 +44,7 @@ export function startBlockReorder(event: MouseEvent, block: Block, breakpoint?: 
 		`.__studio_component__[data-component-id="${block.componentId}"][data-breakpoint="${dragBreakpoint}"]`,
 	) as HTMLElement | null
 	if (!sourceEl) return
-	new BlockReorderSession(event, block, sourceEl).listen()
+	new BlockReorderSession(event, block, sourceEl, dragBreakpoint).listen()
 }
 
 class BlockReorderSession {
@@ -65,6 +66,7 @@ class BlockReorderSession {
 		event: MouseEvent,
 		private block: Block,
 		private sourceEl: HTMLElement,
+		private breakpoint: string,
 	) {
 		this.resolver = new DropZoneResolver(block, (id) => this.canvasStore.activeCanvas?.findBlock(id) || null)
 		this.sourceRect = sourceEl.getBoundingClientRect()
@@ -109,7 +111,9 @@ class BlockReorderSession {
 		this.started = true
 		this.canvasStore.isDragging = true
 		// selecting on grab means point-drag doubles as selection; preventClick
-		// stops the trailing click from re-selecting whatever is under the pointer
+		// stops the trailing click from re-selecting whatever is under the pointer.
+		// The breakpoint follows the canvas being dragged in, as a click would.
+		this.canvasStore.activeCanvas?.setActiveBreakpoint(this.breakpoint)
 		this.canvasStore.activeCanvas?.selectBlock(this.block, null)
 		this.canvasStore.preventClick = true
 		this.pauseId = this.canvasStore.activeCanvas?.history?.pause() || null

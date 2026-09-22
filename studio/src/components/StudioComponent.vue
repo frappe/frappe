@@ -346,11 +346,16 @@ const handleMouseDown = (e: MouseEvent) => {
 	if (e.button !== 0 || store.mode !== "select") return
 	const block = getClickedComponent(e)
 	if (!block) return
-	const start = isReorderable(block) ? startBlockReorder : isMovable(block) ? startBlockMove : null
+	const breakpoint = getBlockInfo(e).breakpoint || props.breakpoint
+	const start = isReorderable(block, breakpoint)
+		? startBlockReorder
+		: isMovable(block, breakpoint)
+			? startBlockMove
+			: null
 	if (!start) return
 	// every ancestor block listens too; only the deepest one owns the drag
 	e.stopPropagation()
-	start(e, block, getBlockInfo(e).breakpoint || props.breakpoint)
+	start(e, block, breakpoint)
 }
 
 const handleClick = (e: MouseEvent) => {

@@ -12,6 +12,8 @@ import { getBlockInstance } from "@/utils/serializer"
 import getBlockTemplate from "@/utils/blockTemplate"
 import { registerGlobalComponents } from "@/globals"
 import useCanvasStore from "@/stores/canvasStore"
+import { isReorderable } from "@/utils/useBlockReorder"
+import { isMovable } from "@/utils/useBlockMove"
 import type { BlockOptions } from "@/types"
 
 const HISTORY_DEBOUNCE = 150
@@ -52,6 +54,22 @@ function buildTree() {
 					width: "80px",
 					height: "40px",
 				}),
+			]),
+			container("extras", { flexDirection: "column", gap: "8px", width: "100%", flexShrink: "0" }, [
+				{
+					componentId: "radios",
+					componentName: "RadioGroup",
+					componentProps: { modelValue: "a", orientation: "horizontal" },
+					children: [
+						{ componentId: "radio-a", componentName: "Radio", componentProps: { value: "a", label: "A" } },
+						{ componentId: "radio-b", componentName: "Radio", componentProps: { value: "b", label: "B" } },
+					],
+				} as BlockOptions,
+				// in flow on desktop, pinned on mobile
+				{
+					...leaf("mobile-pinned"),
+					mobileStyles: { position: "absolute", top: "0px", left: "0px" },
+				} as BlockOptions,
 			]),
 		],
 	)
@@ -139,7 +157,7 @@ describe("reordering blocks on the canvas by dragging", () => {
 		cy.get("#reorder-ghost").should("not.exist")
 		cy.get(blockSelector("A")).should("have.css", "visibility", "visible")
 		cy.then(() => {
-			expect(childIds("column")).to.deep.equal(["B", "C", "A", "empty", "row", "positioned"])
+			expect(childIds("column")).to.deep.equal(["B", "C", "A", "empty", "row", "positioned", "extras"])
 			expect([...canvas.selectedBlockIds]).to.deep.equal(["A"])
 		})
 		cy.wait(HISTORY_DEBOUNCE)
@@ -160,7 +178,7 @@ describe("reordering blocks on the canvas by dragging", () => {
 		release()
 		cy.then(() => {
 			expect(childIds("row")).to.deep.equal(["X", "A", "Y"])
-			expect(childIds("column")).to.deep.equal(["B", "C", "empty", "row", "positioned"])
+			expect(childIds("column")).to.deep.equal(["B", "C", "empty", "row", "positioned", "extras"])
 			expect(canvas.findBlock("A").getParentBlock().componentId).to.equal("row")
 		})
 	})
@@ -170,7 +188,7 @@ describe("reordering blocks on the canvas by dragging", () => {
 		release()
 		cy.then(() => {
 			expect(childIds("empty")).to.deep.equal(["B"])
-			expect(childIds("column")).to.deep.equal(["A", "C", "empty", "row", "positioned"])
+			expect(childIds("column")).to.deep.equal(["A", "C", "empty", "row", "positioned", "extras"])
 		})
 
 		// the (now apparently empty) parent is a no-op target, so its edge lands beside it
@@ -181,7 +199,7 @@ describe("reordering blocks on the canvas by dragging", () => {
 		release()
 		cy.then(() => {
 			expect(childIds("empty")).to.deep.equal([])
-			expect(childIds("column")).to.deep.equal(["A", "C", "B", "empty", "row", "positioned"])
+			expect(childIds("column")).to.deep.equal(["A", "C", "B", "empty", "row", "positioned", "extras"])
 		})
 	})
 
@@ -191,7 +209,9 @@ describe("reordering blocks on the canvas by dragging", () => {
 		cy.get("body").trigger("keydown", { key: "Escape", force: true })
 		cy.get("#reorder-ghost").should("not.exist")
 		release()
-		cy.then(() => expect(childIds("column")).to.deep.equal(["A", "B", "C", "empty", "row", "positioned"]))
+		cy.then(() =>
+			expect(childIds("column")).to.deep.equal(["A", "B", "C", "empty", "row", "positioned", "extras"]),
+		)
 	})
 
 	it("moves an absolutely positioned block freely instead of reordering it", () => {
@@ -212,11 +232,34 @@ describe("reordering blocks on the canvas by dragging", () => {
 		release()
 		cy.then(() => {
 			expect(childIds("positioned")).to.deep.equal(["pinned"])
-			expect(childIds("column")).to.deep.equal(["A", "B", "C", "empty", "row", "positioned"])
+			expect(childIds("column")).to.deep.equal(["A", "B", "C", "empty", "row", "positioned", "extras"])
 		})
 		cy.wait(HISTORY_DEBOUNCE)
 		cy.then(() => {
 			expect(canvas.history.undoStack.length).to.equal(undoEntries + 1)
+		})
+	})
+
+	it("picks the engine and the active breakpoint from the canvas being dragged in", () => {
+		cy.then(() => {
+			const block = canvas.findBlock("mobile-pinned")
+			expect(isReorderable(block, "desktop")).to.equal(true)
+			expect(isMovable(block, "desktop")).to.equal(false)
+			expect(isReorderable(block, "mobile")).to.equal(false)
+			expect(isMovable(block, "mobile")).to.equal(true)
+			// a stale active breakpoint must not leak into a drag on another canvas
+			canvas.setActiveBreakpoint("mobile")
+		})
+		startDrag("pinned", () => {
+			const { x, y } = center(document.querySelector(blockSelector("pinned"))!)
+			return { x: x + 40, y }
+		})
+		cy.then(() => expect(canvas.activeBreakpoint).to.equal("desktop"))
+		release()
+		cy.then(() => {
+			const pinned = canvas.findBlock("pinned")
+			expect(pinned.baseStyles.left).to.equal("50px")
+			expect(pinned.mobileStyles.left).to.equal(undefined)
 		})
 	})
 
@@ -231,7 +274,7 @@ describe("reordering blocks on the canvas by dragging", () => {
 		cy.get(blockSelector("B")).click({ force: true })
 		cy.then(() => {
 			expect([...canvas.selectedBlockIds]).to.deep.equal(["B"])
-			expect(childIds("column")).to.deep.equal(["A", "B", "C", "empty", "row", "positioned"])
+			expect(childIds("column")).to.deep.equal(["A", "B", "C", "empty", "row", "positioned", "extras"])
 		})
 	})
 })

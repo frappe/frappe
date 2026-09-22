@@ -170,7 +170,7 @@ const getStyleClasses = computed(() => {
 		classes.push("pointer-events-auto")
 		// Place the block on the top of the stack
 		classes.push("!z-[19]")
-		if (isMovable(props.block)) {
+		if (isMovable(props.block, props.breakpoint)) {
 			classes.push("cursor-grab")
 		}
 	}
@@ -201,7 +201,11 @@ const componentLabelClasses = computed(() => {
 const handleMouseDown = (ev: MouseEvent) => {
 	if (ev.button !== 0 || store.mode !== "select") return
 	if ((ev.target as HTMLElement).closest("button")) return
-	const start = isReorderable(props.block) ? startBlockReorder : isMovable(props.block) ? startBlockMove : null
+	const start = isReorderable(props.block, props.breakpoint)
+		? startBlockReorder
+		: isMovable(props.block, props.breakpoint)
+			? startBlockMove
+			: null
 	if (!start) return
 	ev.preventDefault()
 	ev.stopPropagation()
