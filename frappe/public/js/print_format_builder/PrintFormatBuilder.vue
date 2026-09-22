@@ -95,7 +95,6 @@
 		</div>
 		<FieldInspector v-if="!$store.needs_setup.value" />
 		<Preview v-if="show_preview" @close="show_preview = false" />
-		<ContextMenu />
 		<Teleport to="body">
 			<div
 				v-if="marquee"
@@ -117,7 +116,6 @@ import PrintFormatSetup from "./components/editor/PrintFormatSetup.vue";
 import Preview from "./components/Preview.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
-import ContextMenu from "./components/editor/ContextMenu.vue";
 import DeskControl from "./components/DeskControl.vue";
 import { getStore } from "./stores";
 import { field_uid } from "./utils";

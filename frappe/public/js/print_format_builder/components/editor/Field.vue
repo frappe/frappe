@@ -1,5 +1,6 @@
 <template>
 	<div
+		ref="root"
 		:class="[
 			preview_doc ? preview_root.classes : 'field field--chip',
 			{
@@ -18,7 +19,6 @@
 		:aria-label="df.label || df.fieldname"
 		tabindex="0"
 		@click.stop="select_field($event)"
-		@contextmenu="on_context_menu"
 		@mouseenter="store.hovered_field.value = df"
 		@mouseleave="store.hovered_field.value = null"
 		@keydown.enter.prevent="kbd_select($event)"
@@ -35,12 +35,11 @@
 </template>
 
 <script setup>
-import { computed, inject, ref } from "vue";
+import { computed, inject, onMounted, onUnmounted, ref } from "vue";
 import FieldPreview from "./FieldPreview.vue";
 import FieldChip from "./FieldChip.vue";
 import SectionRadiusHandle from "./SectionRadiusHandle.vue";
 import { field_uid } from "../../utils";
-import { useContextMenu } from "../../composables/useContextMenu";
 import { useFieldRoot } from "./useFieldRoot";
 
 const props = defineProps(["df", "field_orientation"]);
@@ -79,35 +78,52 @@ function kbd_select(e) {
 	store.select_field(props.df, !!(e.metaKey || e.ctrlKey));
 }
 
-const { open: open_context_menu } = useContextMenu();
-function on_context_menu(e) {
-	store.select_field(props.df);
-	open_context_menu(e, [
-		{ label: __("Copy"), icon: "copy", action: () => store.copy_field(props.df) },
-		{
-			label: __("Duplicate"),
-			icon: "copy-plus",
-			action: () => store.duplicate_field(props.df),
+const root = ref(null);
+let context_menu = null;
+// the section under this field binds its own menu, and the event bubbles there
+const menu_options = [
+	{ label: __("Copy"), icon: "copy", onclick: () => store.copy_field(props.df) },
+	{
+		label: __("Duplicate"),
+		icon: "copy-plus",
+		onclick: () => store.duplicate_field(props.df),
+	},
+	{
+		label: __("Save as snippet"),
+		icon: "bookmark-plus",
+		onclick: () => store.prompt_snippet(props.df, "Field"),
+	},
+	{
+		label: __("Paste"),
+		icon: "clipboard-paste",
+		condition: () => !!store.clipboard.value,
+		onclick: () => store.paste_clipboard(),
+	},
+	{
+		group: "",
+		hide_label: true,
+		options: [
+			{
+				label: __("Delete"),
+				icon: "trash",
+				theme: "red",
+				onclick: () => store.remove_field(props.df),
+			},
+		],
+	},
+];
+
+onMounted(() => {
+	context_menu = new frappe.ui.ContextMenu({
+		target: root.value,
+		options: menu_options,
+		on_open: (e) => {
+			e.stopPropagation();
+			store.select_field(props.df);
 		},
-		{
-			label: __("Save as snippet"),
-			icon: "bookmark-plus",
-			action: () => store.prompt_snippet(props.df, "Field"),
-		},
-		store.clipboard.value && {
-			label: __("Paste"),
-			icon: "clipboard-paste",
-			action: () => store.paste_clipboard(),
-		},
-		{ divider: true },
-		{
-			label: __("Delete"),
-			icon: "trash",
-			danger: true,
-			action: () => store.remove_field(props.df),
-		},
-	]);
-}
+	});
+});
+onUnmounted(() => context_menu?.destroy());
 </script>
 
 <style scoped>
