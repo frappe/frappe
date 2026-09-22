@@ -7,6 +7,7 @@ import {
 	fill_new_web_form,
 	open_get_fields,
 	seed_web_form,
+	wait_for_desk,
 	web_form_fields,
 } from "../support/web_form";
 
@@ -29,6 +30,7 @@ const OFFERED = [
 // a Web Form is named after its scrubbed title, so passing the route as the title keeps
 // the name and the route the same and the desk URL predictable
 function seed_source_web_form(fields = [], doc_type = SOURCE_DOCTYPE, route = SOURCE_ROUTE) {
+	wait_for_desk();
 	cy.remove_doc("Web Form", route, true);
 	return cy.insert_doc(
 		"Web Form",

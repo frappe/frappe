@@ -44,8 +44,17 @@ export function web_form_fields() {
 		.then((frm) => frm.doc.web_form_fields || []);
 }
 
+// `remove_doc` and `insert_doc` need `frappe.csrf_token` from whatever page the previous
+// test left behind, which may still be mid-navigation.
+export function wait_for_desk() {
+	cy.window().should((win) =>
+		expect(win.frappe?.csrf_token, "desk is loaded").to.be.a("string")
+	);
+}
+
 export function seed_web_form(fields = SEEDED_FIELDS, overrides = {}) {
 	const route = overrides.route || ROUTE;
+	wait_for_desk();
 	cy.remove_doc("Web Form", route, true);
 	return cy.insert_doc(
 		"Web Form",
@@ -78,6 +87,7 @@ export function open_get_fields(route = ROUTE) {
 // an unsaved form, filled in through the UI and given fields by Get Fields. It saves under
 // the route slugged from its title, so that is the name to clear first.
 export function fill_new_web_form(title) {
+	wait_for_desk();
 	cy.remove_doc("Web Form", title.toLowerCase().replace(/ /g, "-"), true);
 	cy.visit("/desk/web-form/new");
 

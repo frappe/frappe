@@ -60,11 +60,11 @@ context("Web Form Builder", () => {
 		cy.get(`${CANVAS} .tab-header`).should("not.exist");
 		cy.get(`${CANVAS} .sidebar-container .new-tab-btn`).should("be.visible").click();
 
-		cy.get(".tab-header .tabs .tab").should("have.length", 2);
-		cy.get(".tab-header .tabs .tab:last").should("contain.text", "Page 2");
+		cy.get(`${CANVAS} .tab-header .tabs .tab`).should("have.length", 2);
+		cy.get(`${CANVAS} .tab-header .tabs .tab:last`).should("contain.text", "Page 2");
 
 		// a page needs a field, or get_updated_fields() prunes its empty section away
-		cy.get(".tab-content.active .section-columns-container:first .column:first")
+		cy.get(`${CANVAS} .tab-content.active .section-columns-container:first .column:first`)
 			.find(".empty-column .add-field-btn")
 			.click();
 		cy.get(".combo-box-options:visible .search-box > input").type("content{enter}");
@@ -144,8 +144,8 @@ context("Web Form Builder", () => {
 		open_builder();
 
 		// one Page Break row, but two pages — page one is implicit
-		cy.get(".tab-header .tabs .tab").should("have.length", 2);
-		cy.get(".tab-header .tabs .tab:first").should("contain.text", "Page 1");
+		cy.get(`${CANVAS} .tab-header .tabs .tab`).should("have.length", 2);
+		cy.get(`${CANVAS} .tab-header .tabs .tab:first`).should("contain.text", "Page 1");
 		cy.get(`${CANVAS} .tab-content.active [data-fieldname='title']`).should("exist");
 		cy.get(`${CANVAS} .tab-content.active [data-fieldname='content']`).should("not.exist");
 	});
@@ -160,7 +160,7 @@ context("Web Form Builder", () => {
 	it("Writes the pages back without inventing a Page Break for page one", () => {
 		open_builder();
 
-		cy.get(".tab-content.active .form-section-container:first")
+		cy.get(`${CANVAS} .tab-content.active .form-section-container:first`)
 			.find("div[title='Double click to edit label']:first")
 			.dblclick()
 			.type("{selectall}Contact Details");
@@ -295,7 +295,9 @@ context("Web Form Builder", () => {
 
 		cy.get(PAGE).findByRole("tab", { name: "Settings" }).click();
 
-		cy.get(`${PAGE} .form-footer`).should("be.visible");
+		// `be.visible` reads the scroll position, it does not scroll, and the footer sits
+		// below the Settings tab
+		cy.get(`${PAGE} .form-footer`).scrollIntoView().should("be.visible");
 		cy.window()
 			.its("cur_frm")
 			.should((frm) => expect(frm.form_wrapper.hasClass("mb-1")).to.be.false);
