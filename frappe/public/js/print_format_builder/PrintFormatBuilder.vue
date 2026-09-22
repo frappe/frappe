@@ -623,7 +623,7 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 .canvas-toolbar-center {
 	flex: 1;
 	min-width: 0;
-	max-width: 320px;
+	max-width: 280px;
 }
 
 .canvas-doc-picker :deep(.form-control) {
