@@ -1,6 +1,7 @@
 # The desk v2 shell: routing, the prefix contract, and the two guards.
 
 import errno
+import json
 import os
 import re
 import shutil
@@ -16,9 +17,14 @@ from frappe.shell.doctypes import clear_doctype_owners
 from frappe.shell.install import PrefixCollisionError, before_app_install
 from frappe.shell.manifest import (
 	FRAMEWORK_NAMES,
+	DeclarationError,
 	ImportMapConflict,
 	SingletonConflict,
+	app_deps,
+	app_runtime_deps,
 	assemble,
+	compose_package_json,
+	cost_report,
 	enforce_import_map,
 	enforce_singletons,
 	import_map_problems,
@@ -368,6 +374,107 @@ class TestSingletonEnforcement(IntegrationTestCase):
 		)
 
 
+class TestAppDeclaration(IntegrationTestCase):
+	"""An app declares its desk v2 packages in `<app>/<app>/desk.package.json`, `dependencies` only."""
+
+	def setUp(self):
+		self.repo = tempfile.mkdtemp(prefix="crm")
+		self.source_dir = os.path.join(self.repo, "crm")
+		os.makedirs(self.source_dir)
+		self.addCleanup(shutil.rmtree, self.repo)
+
+	def declare(self, content: dict):
+		with open(os.path.join(self.source_dir, "desk.package.json"), "w") as f:
+			json.dump(content, f)
+
+	def test_dependencies_are_read_from_the_declaration_file(self):
+		self.declare({"dependencies": {"vue": "^3.5.13", "@frappe/crm-ui": "^1.2.0"}})
+		with patch.object(frappe, "get_app_path", return_value=self.source_dir):
+			self.assertEqual(app_runtime_deps("crm"), {"vue": "^3.5.13", "@frappe/crm-ui": "^1.2.0"})
+			self.assertEqual(app_deps("crm"), {"vue": "^3.5.13", "@frappe/crm-ui": "^1.2.0"})
+
+	def test_the_repo_root_package_json_is_not_read(self):
+		with open(os.path.join(self.repo, "package.json"), "w") as f:
+			json.dump({"dependencies": {"onscan.js": "^1.5.2"}}, f)
+		with patch.object(frappe, "get_app_path", return_value=self.source_dir):
+			self.assertEqual(app_runtime_deps("crm"), {})
+
+	def test_no_file_means_no_packages(self):
+		with patch.object(frappe, "get_app_path", return_value=self.source_dir):
+			self.assertEqual(app_deps("crm"), {})
+			self.assertEqual(app_runtime_deps("crm"), {})
+
+	def test_any_other_key_is_refused_naming_the_app_and_the_key(self):
+		self.declare({"dependencies": {}, "devDependencies": {"vitest": "^4"}, "scripts": {}})
+		with patch.object(frappe, "get_app_path", return_value=self.source_dir):
+			with self.assertRaises(DeclarationError) as caught:
+				app_runtime_deps("crm")
+		message = str(caught.exception)
+		self.assertTrue(message.startswith("crm declares `devDependencies`, `scripts` in "))
+		self.assertIn("desk.package.json holds `dependencies` and nothing else", message)
+
+	def test_the_framework_reads_its_base_file_with_dev_dependencies(self):
+		self.assertIn("vite", app_deps("frappe"))
+		self.assertNotIn("vite", app_runtime_deps("frappe"))
+
+	def test_the_import_map_refusal_names_the_declaration_file(self):
+		entry = {
+			"app": "crm",
+			"source_dir": self.source_dir,
+			"runtime_deps": {},
+			"import_map": {"crm/ui": "x"},
+		}
+		(problem,) = import_map_problems(entry)
+		self.assertIn("desk.package.json does not declare under dependencies", problem)
+
+
+class TestCostReport(IntegrationTestCase):
+	"""One line per app after install: what its declaration added to the tree and what it weighs."""
+
+	def setUp(self):
+		self.frontend = tempfile.mkdtemp(prefix="frontend")
+		self.addCleanup(shutil.rmtree, self.frontend)
+		with open(os.path.join(self.frontend, "package.base.json"), "w") as f:
+			json.dump({"dependencies": {"vue": "^3.5.13", "@vueuse/core": "^11.3.0"}}, f)
+		os.makedirs(os.path.join(self.frontend, "node_modules", "onscan.js"))
+		with open(os.path.join(self.frontend, "node_modules", "onscan.js", "index.js"), "w") as f:
+			f.write("x" * 2500)
+
+	def test_an_app_that_adds_nothing_says_so(self):
+		manifest = [
+			{"app": "frappe", "runtime_deps": {"vue": "^3.5.13"}},
+			{"app": "crm", "runtime_deps": {"vue": "^3.5.13", "@vueuse/core": "^11.3.0"}},
+		]
+		self.assertEqual(cost_report(manifest, self.frontend), ["crm: no packages added"])
+
+	def test_an_added_package_is_named_with_its_installed_size(self):
+		manifest = [{"app": "erpnext", "runtime_deps": {"onscan.js": "^1.5.2", "vue": "^3.5.13"}}]
+		self.assertEqual(cost_report(manifest, self.frontend), ["erpnext: onscan.js 2.5 kB"])
+
+	def test_a_package_an_earlier_app_added_is_not_counted_twice(self):
+		manifest = [
+			{"app": "erpnext", "runtime_deps": {"onscan.js": "^1.5.2"}},
+			{"app": "crm", "runtime_deps": {"onscan.js": "^1.5.2"}},
+		]
+		self.assertEqual(
+			cost_report(manifest, self.frontend), ["erpnext: onscan.js 2.5 kB", "crm: no packages added"]
+		)
+
+	def test_a_singleton_never_counts_as_added(self):
+		manifest = [{"app": "crm", "runtime_deps": {"frappe-ui": "1.0.0-beta.63"}}]
+		self.assertEqual(cost_report(manifest, self.frontend), ["crm: no packages added"])
+
+	def test_the_composed_file_holds_only_what_the_apps_add(self):
+		manifest = [
+			{"app": "frappe", "runtime_deps": {}},
+			{"app": "erpnext", "runtime_deps": {"onscan.js": "^1.5.2", "vue": "^9.0.0"}},
+		]
+		compose_package_json(manifest, self.frontend)
+		with open(os.path.join(self.frontend, "package.json")) as f:
+			composed = json.load(f)["dependencies"]
+		self.assertEqual(composed, {"vue": "^3.5.13", "@vueuse/core": "^11.3.0", "onscan.js": "^1.5.2"})
+
+
 class TestImportMapEnforcement(IntegrationTestCase):
 	"""A published name is a promise to script authors, checked before vite starts."""
 
@@ -421,7 +528,7 @@ class TestImportMapEnforcement(IntegrationTestCase):
 	def test_an_undeclared_package_is_refused(self):
 		(problem,) = import_map_problems(self.entry({"crm/ui": "@frappe/crm-ui"}, runtime_deps={}))
 		self.assertTrue(problem.startswith("crm publishes `crm/ui` from `@frappe/crm-ui`, which "))
-		self.assertTrue(problem.endswith("package.json does not declare under dependencies"))
+		self.assertTrue(problem.endswith("desk.package.json does not declare under dependencies"))
 
 	def test_a_file_outside_the_source_dir_is_refused(self):
 		(problem,) = import_map_problems(self.entry({"crm/lib": "../../frontend/lib/index.js"}))

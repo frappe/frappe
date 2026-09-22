@@ -392,7 +392,7 @@ single stored script. The name is the app's promise to script authors, not the p
 What the build checks, before vite starts, naming the app, the key and the value:
 
 - the name starts with `<app>/`, and is not one of the framework's four;
-- a package value is declared under `dependencies` in the app's `package.json`;
+- a package value is declared under `dependencies` in the app's `desk.package.json`;
 - a file value resolves inside the app's source dir, and exists.
 
 What the promise does **not** cover, in the same voice as the rest of this document:
@@ -412,6 +412,38 @@ What the promise does **not** cover, in the same voice as the rest of this docum
 - **What is behind the name moves on the app's cadence**, exactly as the framework's
   four move on theirs. `page` being unchanged does not mean `crm/ui` still exports what
   it did.
+
+## What an app declares: `desk.package.json`
+
+An app's desk v2 code is built from the framework's tree, and that tree holds only what
+is declared. The app declares in one file beside its `hooks.py`:
+
+```json
+// apps/crm/crm/desk.package.json
+{
+	"dependencies": {
+		"vue": "^3.5.13",
+		"@frappe/crm-ui": "^1.2.0"
+	}
+}
+```
+
+- **One key.** The file holds `dependencies` and nothing else. Any other key fails the
+  build before vite starts, naming the app, the key and the file.
+- **No file, no packages.** An app that declares nothing can import nothing but what its
+  contributed files reach through `@shell`.
+- **Install follows the declaration, not the import graph.** Everything the file declares
+  is installed, whether or not a contributed file imports it. The build prints one line
+  per app after install, naming the packages the app added and the size of each
+  package's own folder, or `no packages added`. Dependencies yarn hoists beside it are
+  not counted. A package nobody imports is the author's own act, and the line names it.
+- **The repo root `package.json` is not read.** It serves the app's other bundles, such as
+  a standalone SPA or a desk v1 build, on their own pins. Nothing declared there reaches
+  the desk v2 tree, and nothing declared here reaches those.
+- **A shared library is declared, never moved.** `vue`, `vue-router`, `frappe-ui`,
+  `@framework/ui`, `reka-ui` and `dompurify` come from the framework's `package.base.json`
+  at the framework's pin. An app declares the one it imports so the resolver admits the
+  import; it cannot change the version.
 
 ## Asking what a host has
 

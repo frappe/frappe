@@ -8,7 +8,8 @@
     "build": "vite build",
     "test": "vitest",
     "test:run": "vitest run",
-    "lint": "cd .. && eslint --config frontend/eslint.config.js frontend/src ui/src"
+    "lint": "cd .. && eslint --config frontend/eslint.config.js frontend/src ui/src",
+    "base-lock": "./base-lock.sh"
   },
   "dependencies": {
     "@framework/ui": "link:../ui",
