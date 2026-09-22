@@ -14,6 +14,7 @@ export default function importMap(manifest) {
 	}
 	const published = publishedTargets(manifest);
 	const names = Object.keys(published);
+	const styling = publishedStyling(manifest);
 	let base = "/";
 	let building = false;
 	let logger = console;
@@ -46,7 +47,7 @@ export default function importMap(manifest) {
 		},
 		generateBundle(_options, bundle) {
 			// Every published chunk's stylesheets join every cold load, so the author sees the cost.
-			for (const line of sizeReport(publishedChunks(bundle, names), bundle))
+			for (const line of sizeReport(publishedChunks(bundle, names), bundle, styling))
 				logger.info(line);
 		},
 		transformIndexHtml: {
@@ -76,6 +77,17 @@ export function publishedTargets(manifest) {
 		}
 	}
 	return targets;
+}
+
+/** Who styles each name: the build scans a file and the framework's own sources; a package ships its CSS. */
+export function publishedStyling(manifest) {
+	const styling = {};
+	for (const { app, import_map } of manifest) {
+		for (const [name, value] of Object.entries(import_map ?? {})) {
+			styling[name] = app === "frappe" || isFileValue(value) ? "scanned" : "yours";
+		}
+	}
+	return styling;
 }
 
 /** The manifest's rule: a `.` or `/` prefix is a file, anything else a declared package. */
@@ -131,8 +143,8 @@ export function stylesheetTags(chunks, bundle, base, html = "") {
 		}));
 }
 
-/** One line per published name: its own chunk, and the CSS it reaches. */
-export function sizeReport(chunks, bundle) {
+/** One line per published name: its own chunk, the CSS it reaches, and who styles it. */
+export function sizeReport(chunks, bundle, styling = {}) {
 	return Object.entries(chunks).map(([name, chunk]) => {
 		const css = reachableCss({ [name]: chunk }, bundle).reduce(
 			(total, file) => total + (bundle[file]?.source?.length ?? 0),
@@ -140,7 +152,8 @@ export function sizeReport(chunks, bundle) {
 		);
 		return (
 			`published ${name.padEnd(24)} ${kilobytes(chunk.code?.length ?? 0)} js` +
-			(css ? ` + ${kilobytes(css)} css` : "")
+			(css ? ` + ${kilobytes(css)} css` : "") +
+			(styling[name] ? ` [styles: ${styling[name]}]` : "")
 		);
 	});
 }
