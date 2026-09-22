@@ -18,7 +18,8 @@ _CONFIRM_STR_LIMIT = 120
 _ERROR_LIMIT = 300
 _LIFECYCLE_BY_DOCSTATUS = {0: "submit", 1: "cancel", 2: "amend"}
 SOURCE_TOOL_SLUGS = frozenset({"read_file", "grep"})
-SERVER_TOOL_SLUGS = frozenset({"read_file", "grep", "subagent"})
+SUBAGENT_TOOL_SLUG = "subagent"
+SERVER_TOOL_SLUGS = SOURCE_TOOL_SLUGS | {SUBAGENT_TOOL_SLUG}
 
 
 def _server_only_tool() -> None:
