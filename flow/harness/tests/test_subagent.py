@@ -261,6 +261,44 @@ async def test_a_named_agent_calls_its_own_client_tools_back_with_its_own_contex
 	assert _of(events, "tool_result", subagent="c1")[0]["content"] == "ticket 7: resolved"
 
 
+GREET_EXTENSION = """
+from flow_harness.tools import ToolResult, tool
+
+@tool
+async def greet(who: str = "world", *, ctx):
+    return ToolResult(content=f"hi {who}")
+
+def setup(flow):
+    flow.register_tool(greet)
+"""
+
+
+async def test_a_named_agent_picks_its_own_extension_tools(tmp_path):
+	extension = tmp_path / "extensions" / "greet.py"
+	extension.parent.mkdir()
+	extension.write_text(GREET_EXTENSION)
+	store = SessionStore(str(tmp_path / "data"), extension_paths=[str(extension)])
+	greeter = SubagentConfig(name="Greeter", extension_tools=["greet"])
+	session = store.create(
+		SessionConfig(cwd=str(tmp_path), tools=["read", "subagent"], extension_tools=[], subagents=[greeter])
+	)
+	model = ScriptedModel(
+		{
+			"go": [
+				AssistantMessage(content=[_spawn("c1", "greet", agent="Greeter")]),
+				AssistantMessage(content="done"),
+			],
+			"greet": [AssistantMessage(content="hi")],
+		}
+	)
+
+	await _run(session, "go", model)
+
+	parent, child = model.requests[0], model.requests[1]
+	assert [t["function"]["name"] for t in parent.tools] == ["read", "subagent"]
+	assert [t["function"]["name"] for t in child.tools] == ["read", "greet"]
+
+
 async def test_a_named_agents_confirm_list_gates_its_own_calls(tmp_path):
 	careful = SubagentConfig(name="Careful", confirm_tools=["read"])
 	session, events = _session(tmp_path, subagents=[careful])

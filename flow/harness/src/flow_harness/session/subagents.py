@@ -222,8 +222,11 @@ def _child_inputs(
 	if own_model:
 		config = config.model_copy(update={"api_key": agent.api_key, "api_base": agent.api_base})
 	tools = inputs.server_tools or {}
-	if agent.tools is not None:
-		tools = compose_tools(config.model_copy(update={"tools": agent.tools}))
+	own_tools = {  # composed afresh when the agent picks its own builtin or extension tools
+		name: value for name in ("tools", "extension_tools") if (value := getattr(agent, name)) is not None
+	}
+	if own_tools:
+		tools = compose_tools(config.model_copy(update=own_tools))
 	return replace(
 		inputs,
 		config=config.model_copy(update={"system_prompt": prompt, **overrides}),

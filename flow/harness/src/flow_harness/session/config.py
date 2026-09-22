@@ -131,6 +131,7 @@ class SubagentConfig(BaseModel):
 		reasoning_effort: How hard the model should think.
 		system_prompt: Verbatim system prompt.
 		tools: Built-in and bundled tools, by name; `subagent` is never one of them.
+		extension_tools: Extension tools available to the child; None means the session's.
 		client_tools: Schemas registered by a client, for the child.
 		confirm_tools: Extra tools that pause for approval inside the child.
 		max_turns: Maximum allowed turns for the child.
@@ -147,6 +148,7 @@ class SubagentConfig(BaseModel):
 	reasoning_effort: ReasoningEffort | None = None
 	system_prompt: str | None = None
 	tools: list[str] | None = None
+	extension_tools: list[str] | None = None
 	client_tools: list[dict] | None = None
 	confirm_tools: list[str] | None = None
 	max_turns: int | None = Field(default=None, ge=1)
