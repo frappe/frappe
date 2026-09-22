@@ -189,9 +189,9 @@ body {
 }
 
 // freeze backdrop text — lives here, not in desk/global, so portal pages
-// (web forms) get the backdrop too
+// (web forms) get the backdrop too. No z-index: the .modal-backdrop (1040) on
+// the element keeps it under dialogs. Desk raises it in desk/global.scss.
 #freeze {
-	z-index: 2000;
 	bottom: 0;
 	opacity: 0;
 	background-color: var(--bg-color);

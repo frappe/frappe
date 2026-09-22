@@ -533,6 +533,11 @@ kbd {
 	}
 }
 
+// the rest of #freeze is in common/global.scss; desk keeps it above dialogs
+#freeze {
+	z-index: 2000;
+}
+
 .msg-box {
 	padding: var(--padding-xl) var(--padding-md);
 	text-align: center;
