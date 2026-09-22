@@ -43,35 +43,17 @@
 						@click="$store.redo()"
 						v-html="frappe.utils.icon('redo-2', 'sm')"
 					></button>
-					<div ref="zoom_ref" class="canvas-zoom-control select-group-btn">
-						<button
-							type="button"
-							class="es-button canvas-zoom-trigger"
-							data-variant="subtle"
-							data-size="sm"
-							:title="__('Zoom')"
-							:aria-expanded="zoom_open"
-							@click="zoom_open = !zoom_open"
-						>
-							<span class="es-button__label">{{ canvas_zoom }}%</span>
-							<span v-html="frappe.utils.icon('chevron-down', 'xs')"></span>
-						</button>
-						<ul
-							v-if="zoom_open"
-							class="dropdown-menu dropdown-menu-right show canvas-zoom-menu"
-						>
-							<li v-for="z in ZOOM_LEVELS" :key="z">
-								<a class="dropdown-item" href="#" @click.prevent="set_zoom(z)">
-									<span>{{ z }}%</span>
-									<span
-										class="tick-icon"
-										:class="{ selected: z === canvas_zoom }"
-										v-html="frappe.utils.icon('check', 'xs')"
-									></span>
-								</a>
-							</li>
-						</ul>
-					</div>
+					<button
+						ref="zoom_ref"
+						type="button"
+						class="es-button canvas-zoom-trigger"
+						data-variant="subtle"
+						data-size="sm"
+						:title="__('Zoom')"
+					>
+						<span class="es-button__label">{{ canvas_zoom }}%</span>
+						<span v-html="frappe.utils.icon('chevron-down', 'xs')"></span>
+					</button>
 				</div>
 			</div>
 			<div v-if="$store.versions.viewing.value" class="pfb-viewing-banner">
@@ -150,8 +132,25 @@ const ZOOM_LEVELS = [50, 60, 70, 80, 90, 100, 125, 150];
 let show_preview = ref(false);
 let no_records = ref(false);
 let canvas_zoom = ref(nearest_zoom(parseInt(localStorage.getItem(ZOOM_KEY)) || 100));
-let zoom_open = ref(false);
 let zoom_ref = ref(null);
+let zoom_dropdown = null;
+
+watch(zoom_ref, (el) => {
+	zoom_dropdown?.destroy();
+	zoom_dropdown = null;
+	if (!el) return;
+	frappe.ui.dropdown({
+		trigger: el,
+		align: "end",
+		options: () =>
+			ZOOM_LEVELS.map((z) => ({
+				label: `${z}%`,
+				selected: z === canvas_zoom.value,
+				onclick: () => set_zoom(z),
+			})),
+	});
+	zoom_dropdown = $(el).data("es-dropdown");
+});
 
 const $store = getStore(props.print_format_name);
 
@@ -472,7 +471,6 @@ function nearest_zoom(value) {
 
 function set_zoom(value) {
 	canvas_zoom.value = value;
-	zoom_open.value = false;
 	localStorage.setItem(ZOOM_KEY, value);
 }
 
@@ -488,12 +486,6 @@ function zoom_out() {
 
 function reset_zoom() {
 	set_zoom(100);
-}
-
-function close_zoom_on_outside(e) {
-	if (zoom_open.value && zoom_ref.value && !zoom_ref.value.contains(e.target)) {
-		zoom_open.value = false;
-	}
 }
 
 const is_printable_docstatus = (docstatus) =>
@@ -552,7 +544,6 @@ function warn_before_unload(e) {
 
 onMounted(() => {
 	document.addEventListener("keydown", handle_keydown);
-	document.addEventListener("pointerdown", close_zoom_on_outside);
 	window.addEventListener("beforeunload", warn_before_unload);
 
 	$store.fetch().then(() => {
@@ -569,7 +560,7 @@ onMounted(() => {
 
 onUnmounted(() => {
 	document.removeEventListener("keydown", handle_keydown);
-	document.removeEventListener("pointerdown", close_zoom_on_outside);
+	zoom_dropdown?.destroy();
 	window.removeEventListener("beforeunload", warn_before_unload);
 	window.removeEventListener("pointermove", on_canvas_pointermove);
 	window.removeEventListener("pointerup", on_canvas_pointerup);
@@ -645,28 +636,7 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 	gap: 6px;
 }
 
-/* ── Zoom control ────────────────────────────────────────── */
-.canvas-zoom-control {
-	position: relative;
-}
-
 .canvas-zoom-trigger {
-	font-variant-numeric: tabular-nums;
-}
-
-.canvas-zoom-menu {
-	position: absolute;
-	top: calc(100% + 4px);
-	right: 0;
-	left: auto;
-	min-width: 96px;
-}
-
-.canvas-zoom-menu .dropdown-item {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 12px;
 	font-variant-numeric: tabular-nums;
 }
 
