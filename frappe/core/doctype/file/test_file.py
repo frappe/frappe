@@ -1149,6 +1149,24 @@ class TestFileUtils(FrappeTestCase):
 			normal.db_set("file_url", original_file_url)
 			normal.delete()
 
+	def test_traversal_file_url_cannot_reach_other_private_file(self):
+		victim = frappe.get_doc(
+			{"doctype": "File", "file_name": "traversal_victim.txt", "content": "secret", "is_private": 1}
+		).insert()
+		try:
+			for is_private in (0, 1):
+				doc = frappe.get_doc(
+					{
+						"doctype": "File",
+						"file_name": "traversal_copy.txt",
+						"file_url": f"/files/../../private/files/{victim.file_name}",
+						"is_private": is_private,
+					}
+				)
+				self.assertRaisesRegex(ValidationError, "File URL", doc.insert)
+		finally:
+			victim.delete()
+
 	def test_resolved_file_path_rejects_sibling_directory_prefix_match(self):
 		from frappe.utils.file_manager import get_file_path
 
