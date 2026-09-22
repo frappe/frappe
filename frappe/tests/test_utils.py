@@ -1434,19 +1434,87 @@ class TestTypingValidations(FrappeTestCase):
 		report.toggle_disable(current_value)
 
 
+<<<<<<< HEAD
 class TestTBSanitization(FrappeTestCase):
 	def test_traceback_sanitzation(self):
+=======
+		lax_types = frappe.whitelist(force_types=False)(func)
+		lax_types(1)  # should run without error
+
+		forced_types = frappe.whitelist(force_types=True)(func)
+		with self.assertRaises(frappe.FrappeTypeError):
+			forced_types(1)
+
+		@frappe.whitelist(force_types=True)
+		def func(a: int, b=None, **kwargs):
+			pass
+
+		with self.assertRaises(frappe.FrappeTypeError):
+			func(1)
+
+		@frappe.whitelist(force_types=True)
+		def func(a: int, b: int | None = None, **kwargs):
+			pass
+
+		func(1)  # should run without error
+
+	def test_whitelisted_http_methods_are_stored_as_tuple(self):
+		def default_methods():
+			pass
+
+		def list_methods():
+			pass
+
+		def tuple_methods():
+			pass
+
+		def string_method():
+			pass
+
+		default_methods = frappe.whitelist()(default_methods)
+		list_methods = frappe.whitelist(methods=["GET", "POST"])(list_methods)
+		tuple_methods = frappe.whitelist(methods=("PUT", "DELETE"))(tuple_methods)
+		string_method = frappe.whitelist(methods="GET")(string_method)
+
+		self.assertEqual(
+			frappe.allowed_http_methods_for_whitelisted_func[default_methods],
+			("GET", "POST", "PUT", "DELETE", "QUERY"),
+		)
+		self.assertEqual(
+			frappe.allowed_http_methods_for_whitelisted_func[list_methods], ("GET", "POST", "QUERY")
+		)
+		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[tuple_methods], ("PUT", "DELETE"))
+		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[string_method], ("GET", "QUERY"))
+
+
+class TestTBSanitization(IntegrationTestCase):
+	def test_traceback_sanitization(self):
+		handle = io.BufferedWriter(io.BytesIO())
+>>>>>>> a4814e5 (fix(log): Hide sensitive info from getting logged)
 		try:
 			password = frappe.generate_hash()
 			args = {"password": "42", "pwd": password, "safe": "safe_value"}
 			args = frappe._dict({"password": "42", "pwd": password, "safe": "safe_value"})  # noqa: F841
 			raise Exception
 		except Exception:
+<<<<<<< HEAD
 			traceback = frappe.get_traceback(with_context=True)
 			self.assertNotIn(password, traceback)
 			self.assertIn("********", traceback)
 			self.assertIn("password =", traceback)
 			self.assertIn("safe_value", traceback)
+=======
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
+		finally:
+			handle.close()
+
+		self.assertNotIn("424242", traceback)
+		self.assertNotIn("cannot pickle", traceback)
+		self.assertIn("********", traceback)
+		self.assertIn("password =", traceback)
+		self.assertIn("safe_value", traceback)
+>>>>>>> a4814e5 (fix(log): Hide sensitive info from getting logged)
 
 	def test_sanitization_catches_keys_not_matching_blocklist_exactly(self):
 		try:
@@ -1454,7 +1522,8 @@ class TestTBSanitization(FrappeTestCase):
 			config = frappe._dict({"stripe_secret_key": "sk_live_should_not_leak", "other": "val"})  # noqa: F841
 			raise Exception
 		except Exception:
-			traceback = frappe.get_traceback(with_context=True)
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
 
 		self.assertNotIn("super-secret-value", traceback)
 		self.assertNotIn("sk_live_should_not_leak", traceback)
@@ -1465,8 +1534,10 @@ class TestTBSanitization(FrappeTestCase):
 			PASSWORD = "should_be_masked_now"  # noqa: F841
 			raise Exception
 		except Exception:
-			traceback = frappe.get_traceback(with_context=True)
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
 
+		self.assertIn("Traceback with variables", traceback)  # with_context genuinely activated
 		self.assertNotIn("should_be_masked_now", traceback)
 
 	def test_sanitization_masks_session_id(self):
@@ -1474,8 +1545,10 @@ class TestTBSanitization(FrappeTestCase):
 			sid = "super-secret-session-id"  # noqa: F841
 			raise Exception
 		except Exception:
-			traceback = frappe.get_traceback(with_context=True)
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
 
+		self.assertIn("Traceback with variables", traceback)  # with_context genuinely activated
 		self.assertNotIn("super-secret-session-id", traceback)
 
 	def test_sanitization_exact_match_rule_does_not_over_match(self):
@@ -1484,7 +1557,8 @@ class TestTBSanitization(FrappeTestCase):
 			consider = "should_be_visible"  # noqa: F841
 			raise Exception
 		except Exception:
-			traceback = frappe.get_traceback(with_context=True)
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
 
 		self.assertIn("should_be_visible", traceback)
 
