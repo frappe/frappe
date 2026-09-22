@@ -2546,7 +2546,12 @@ class TestPrivateShell(IntegrationTestCase):
 		theirs = self.make_page("Test Private Shell Theirs", for_user="Administrator")
 
 		self.assertEqual(self.links(), [mine.name])
-		self.assertEqual(self.links("Administrator"), [theirs.name])
+
+		# Containment, not equality: Administrator's own shell holds whatever else this bench has
+		# left them. What this asserts is which of the two pages each person sees.
+		theirs_links = self.links("Administrator")
+		self.assertIn(theirs.name, theirs_links)
+		self.assertNotIn(mine.name, theirs_links)
 
 	def test_a_shared_page_in_the_private_module_stays_out(self):
 		"""One saved before the rule below existed. It renders per viewer here, so a page everybody

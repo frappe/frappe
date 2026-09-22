@@ -23,6 +23,7 @@ from frappe.desk.doctype.sidebar.test_sidebar import (
 	no_developer_mode,
 	sidebarless_module,
 )
+from frappe.desk.doctype.workspace.workspace import PRIVATE_MODULE, ensure_module
 from frappe.tests import IntegrationTestCase
 
 # Any module the dock can take you to will do, since these tests are about the layers rather than
@@ -1144,3 +1145,86 @@ class TestAnAddedItemIsStillPermissionChecked(CustomizationTestCase):
 
 		frappe.set_user(MANAGER)
 		self.assertIn("https://example.com", [item["url"] for item in self.items()])
+
+
+class TestAPrivatePageWritesItsRows(CustomizationTestCase):
+	"""Making a private page says, in stored rows, which sidebars list it.
+
+	It used to say nothing: the page was appended to its owner's sidebars derived on read, so
+	nothing stored held it and the owner could neither arrange it nor hide it from the module it
+	was filed under. Two rows now do: one in their `Private` layer, which is the page's home, and
+	one in the layer of the module it is a guest in.
+	"""
+
+	def setUp(self):
+		super().setUp()
+		frappe.set_user("Administrator")
+		ensure_module(PRIVATE_MODULE)
+		self.addCleanup(self.wipe, PRIVATE_MODULE)
+
+	def make_page(self, title, module=MODULE, for_user=USER, public=0):
+		doc = frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": title,
+				"label": f"{title}-{for_user}" if for_user else title,
+				"module": module,
+				"public": public,
+				"for_user": for_user or "",
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Workspace", doc.name, force=True, ignore_missing=True)
+		return doc
+
+	def rows(self, module, user):
+		layer = get_customization(module, user)
+		return [(row.link_to, row.label) for row in layer.sidebar_items] if layer else []
+
+	def test_a_new_page_lands_in_the_private_layer_and_its_modules(self):
+		page = self.make_page("Test Rows New Page")
+
+		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [(page.name, page.title)])
+		self.assertEqual(self.rows(MODULE, USER), [(page.name, page.title)])
+
+	def test_a_page_of_the_private_module_gets_one_row(self):
+		"""It is only at home. There is no second sidebar for it to be a guest in."""
+		page = self.make_page("Test Rows Private Module Page", module=PRIVATE_MODULE)
+
+		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [(page.name, page.title)])
+
+	def test_nothing_is_written_to_the_site_layer(self):
+		self.make_page("Test Rows Site Layer Page")
+
+		self.assertEqual(self.rows(MODULE, None), [])
+		self.assertEqual(self.rows(PRIVATE_MODULE, None), [])
+
+	def test_a_shared_page_still_goes_to_the_site_layer(self):
+		page = self.make_page("Test Rows Shared Page", for_user="", public=1)
+
+		self.assertEqual(self.rows(MODULE, USER), [])
+		self.assertIn(page.name, [link for link, _label in self.rows(MODULE, None)])
+
+	def test_moving_it_to_another_module_moves_its_row(self):
+		page = self.make_page("Test Rows Moving Page")
+		page.module = "Contacts"
+		page.save(ignore_permissions=True)
+		self.addCleanup(self.wipe, "Contacts")
+
+		self.assertEqual(self.rows(MODULE, USER), [])
+		self.assertEqual(self.rows("Contacts", USER), [(page.name, page.title)])
+		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [(page.name, page.title)], "still at home")
+
+	def test_renaming_it_renames_its_rows(self):
+		page = self.make_page("Test Rows Renaming Page")
+		page.title = "Test Rows Renamed Page"
+		page.save(ignore_permissions=True)
+
+		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [(page.name, "Test Rows Renamed Page")])
+
+	def test_deleting_it_takes_its_rows_out(self):
+		page = self.make_page("Test Rows Deleting Page")
+		frappe.delete_doc("Workspace", page.name, force=True)
+
+		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [])
+		self.assertEqual(self.rows(MODULE, USER), [])

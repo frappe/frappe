@@ -584,6 +584,38 @@ def remove_workspace_rows(link_to: str, user: str | None = None) -> None:
 		doc.save(ignore_permissions=True)
 
 
+def relabel_workspace_rows(link_to: str, label: str) -> None:
+	"""Rename the rows that name this workspace, wherever they are.
+
+	A row that carries an item rather than a reference to one stores what the item is called, so
+	a page's rows keep its old title until somebody says otherwise. A reference row stores a label
+	only when a layer overrode it, and that override is a name somebody chose and is left alone.
+
+	The rows named a private page in practice, since those are the added rows a page's own write
+	path creates.
+	"""
+	rows = frappe.get_all(
+		"Sidebar Item",
+		filters={
+			"parenttype": "Custom Sidebar",
+			"link_type": "Workspace",
+			"link_to": link_to,
+			"added": 1,
+			"label": ["!=", label],
+		},
+		pluck="parent",
+	)
+	if not rows:
+		return
+
+	for name in set(rows):
+		doc = frappe.get_doc("Custom Sidebar", name)
+		for row in doc.sidebar_items:
+			if row.added and row.link_type == "Workspace" and row.link_to == link_to:
+				row.label = label
+		doc.save(ignore_permissions=True)
+
+
 def add_site_sidebar_item(module: str, item: dict) -> None:
 	"""Append one item to the site-wide layer, leaving the rest unchanged.
 
