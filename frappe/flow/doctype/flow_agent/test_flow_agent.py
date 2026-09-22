@@ -300,19 +300,20 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 	def test_server_tools_are_selected_without_becoming_callback_tools(self):
 		self.agent_doc.append("tools", {"tool": "read_file"})
 		self.agent_doc.append("tools", {"tool": "grep"})
+		self.agent_doc.append("tools", {"tool": "subagent"})
 		self.agent_doc.save()
 
-		self.assertEqual(self.agent_doc.server_tools(), ["read_file", "grep"])
+		self.assertEqual(self.agent_doc.server_tools(), ["read_file", "grep", "subagent"])
 		self.assertEqual(self.names(), ["read", "execute"])
 		config = self.agent_doc.session_tool_config()
-		self.assertEqual(config["tools"], ["read_file", "grep"])
-		self.assertIn("APP SOURCE CODE", config["system_prompt"])
+		self.assertEqual(config["tools"], ["read_file", "grep", "subagent"])
+		self.assertIn("Use read_file, grep to inspect", config["system_prompt"])
 
 		frappe.db.set_value("Flow Tool", "grep", "enabled", 0)
-		self.assertEqual(self.agent_doc.server_tools(), ["read_file"])
+		self.assertEqual(self.agent_doc.server_tools(), ["read_file", "subagent"])
 		frappe.db.set_value("Flow Tool", "read_file", "enabled", 0)
 		config = self.agent_doc.session_tool_config()
-		self.assertEqual(config["tools"], [])
+		self.assertEqual(config["tools"], ["subagent"])
 		self.assertNotIn("APP SOURCE CODE", config["system_prompt"])
 
 	def test_server_extension_tools_travel_as_extension_tools(self):

@@ -173,7 +173,7 @@ class TestDaemonLifecycle(UnitTestCase):
 			{
 				"PATH": "/usr/bin",
 				"FLOW_TENANTS_FILE": str(self.state / "tenants.json"),
-				"FLOW_POLICY": '{"tool_allowlist": ["read_file", "grep"]}',
+				"FLOW_POLICY": '{"tool_allowlist": ["read_file", "grep", "subagent"]}',
 				"FLOW_REDIS_URL": "redis://q",
 			},
 		)
@@ -203,7 +203,8 @@ class TestDaemonLifecycle(UnitTestCase):
 		command, kwargs = popen.call_args.args[0], popen.call_args.kwargs
 		self.assertNotIn("--extension", command)  # each site's folder comes from its tenants entry
 		self.assertEqual(  # the same tool in two sites is allowed once
-			kwargs["env"]["FLOW_POLICY"], '{"tool_allowlist": ["read_file", "grep", "helpdesk_ticket"]}'
+			kwargs["env"]["FLOW_POLICY"],
+			'{"tool_allowlist": ["read_file", "grep", "subagent", "helpdesk_ticket"]}',
 		)
 
 	def test_extension_tools_runs_the_harness_listing(self):

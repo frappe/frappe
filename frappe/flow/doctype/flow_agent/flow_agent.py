@@ -159,12 +159,13 @@ class FlowAgent(Document):
 	def session_tool_config(self, session: str | None = None) -> dict[str, Any]:
 		"""Complete tool configuration for one daemon session."""
 		from flow.daemon import lifecycle
+		from flow.tools.builtins import SOURCE_TOOL_SLUGS
 
 		server_tools = self.server_tools()
 		return {
 			"system_prompt": (self.instructions or "")
 			+ self.skill_index()
-			+ lifecycle.app_source_prompt(server_tools),
+			+ lifecycle.app_source_prompt([name for name in server_tools if name in SOURCE_TOOL_SLUGS]),
 			"tools": server_tools,
 			"extension_tools": self.extension_tools(),
 			**self.client_tool_config(session),

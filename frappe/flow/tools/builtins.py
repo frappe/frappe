@@ -17,7 +17,8 @@ LAYOUT_FIELDTYPES = frozenset({"Section Break", "Column Break", "Tab Break", "HT
 _CONFIRM_STR_LIMIT = 120
 _ERROR_LIMIT = 300
 _LIFECYCLE_BY_DOCSTATUS = {0: "submit", 1: "cancel", 2: "amend"}
-SERVER_TOOL_SLUGS = frozenset({"read_file", "grep"})
+SOURCE_TOOL_SLUGS = frozenset({"read_file", "grep"})
+SERVER_TOOL_SLUGS = frozenset({"read_file", "grep", "subagent"})
 
 
 def _server_only_tool() -> None:
@@ -33,6 +34,12 @@ def read_file(path: str, offset: int | None = None, limit: int | None = None) ->
 @tool
 def grep(pattern: str, path: str = ".") -> str:
 	"""Search installed app source files for a regular-expression pattern."""
+	_server_only_tool()
+
+
+@tool
+def subagent(task: str, description: str, agent: str | None = None, subagent_id: str | None = None) -> str:
+	"""Hand a self-contained task to a sub-agent with a fresh context and get back only its final answer."""
 	_server_only_tool()
 
 
@@ -534,6 +541,7 @@ BUILTIN_TOOLS: list[Tool] = [
 	read,
 	read_file,
 	grep,
+	subagent,
 	search_knowledge,
 	search_attachments,
 	update_memory,

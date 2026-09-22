@@ -560,6 +560,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 					{"tool": "execute"},
 					{"tool": "read_file"},
 					{"tool": "grep"},
+					{"tool": "subagent"},
 				],
 				"enabled": 1,
 			}
@@ -624,7 +625,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 
 	def test_sessions_get_read_only_server_tools_and_the_agents_schemas(self):
 		config = self.config()
-		self.assertEqual(config["tools"], ["read_file", "grep"])
+		self.assertEqual(config["tools"], ["read_file", "grep", "subagent"])
 		self.assertEqual(config["extension_tools"], [])
 		self.assertFalse(config["skills_enabled"])
 		self.assertEqual([tool["function"]["name"] for tool in config["client_tools"]], ["read", "execute"])
@@ -636,7 +637,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		frappe.db.set_value("Flow Tool", "read_file", "enabled", 0)
 		frappe.db.set_value("Flow Tool", "grep", "enabled", 0)
 		config = self.config()
-		self.assertEqual(config["tools"], [])
+		self.assertEqual(config["tools"], ["subagent"])
 		self.assertNotIn("APP SOURCE CODE", config["system_prompt"])
 
 	def test_an_empty_prompt_is_still_verbatim(self):
