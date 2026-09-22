@@ -1,12 +1,15 @@
 # Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import contextlib
 import contextvars
+import os
+import sys
 import threading
 from unittest.mock import MagicMock, patch
 
 import frappe
-from frappe.concurrency_limiter import concurrent_limit
+from frappe.concurrency_limiter import _default_limit, concurrent_limit, web_tier_concurrency
 from frappe.exceptions import ServiceUnavailableError
 from frappe.tests import IntegrationTestCase
 
@@ -159,5 +162,67 @@ class TestConcurrentLimit(IntegrationTestCase):
 		finally:
 			del frappe.local.request
 			_cleanup(fn)
+
+		self.assertEqual(calls, [True])
+
+
+class TestWebTierConcurrency(IntegrationTestCase):
+	@contextlib.contextmanager
+	def _server(self, argv, server_software="gunicorn/23.0.0"):
+		"""Run the body as if this process were a gunicorn worker started with *argv*."""
+		env = {"SERVER_SOFTWARE": server_software} if server_software else {}
+		web_tier_concurrency.cache_clear()
+		try:
+			with patch.object(sys, "argv", argv), patch.dict(os.environ, env, clear=False):
+				if not server_software:
+					os.environ.pop("SERVER_SOFTWARE", None)
+				yield
+		finally:
+			web_tier_concurrency.cache_clear()
+
+	def test_no_limit_without_a_worker_pool(self):
+		"""The development server starts a thread per request, so there is no pool to protect."""
+		with self._server(["bench", "serve"], server_software=None):
+			self.assertIsNone(web_tier_concurrency())
+			self.assertIsNone(_default_limit())
+
+	def test_reads_workers_and_threads_from_the_gunicorn_command_line(self):
+		"""Workers are forked, so sys.argv in a worker is the master's command line."""
+		with self._server(["gunicorn", "-w", "3", "--threads", "4", "frappe.app:application"]):
+			self.assertEqual(web_tier_concurrency(), 12)
+			self.assertEqual(_default_limit(), 6)
+
+	def test_reads_the_flag_equals_value_form(self):
+		with self._server(["gunicorn", "--workers=2", "--threads=2", "frappe.app:application"]):
+			self.assertEqual(web_tier_concurrency(), 4)
+
+	def test_threads_default_to_one(self):
+		with self._server(["gunicorn", "-w", "5", "frappe.app:application"]):
+			self.assertEqual(web_tier_concurrency(), 5)
+			self.assertEqual(_default_limit(), 2)
+
+	def test_limit_is_at_least_one(self):
+		with self._server(["gunicorn", "-w", "1", "frappe.app:application"]):
+			self.assertEqual(_default_limit(), 1)
+
+	def test_unparseable_flag_falls_back_to_one(self):
+		with self._server(["gunicorn", "-w", "auto", "frappe.app:application"]):
+			self.assertEqual(web_tier_concurrency(), 1)
+
+	def test_pool_is_skipped_when_there_is_no_limit(self):
+		"""A request on the development server must not touch the semaphore."""
+		calls = []
+
+		@concurrent_limit()
+		def fn():
+			calls.append(True)
+
+		try:
+			frappe.local.request = frappe._dict()
+			with self._server(["bench", "serve"], server_software=None):
+				with patch.object(frappe.cache, "lpop", side_effect=AssertionError("semaphore used")):
+					fn()
+		finally:
+			del frappe.local.request
 
 		self.assertEqual(calls, [True])

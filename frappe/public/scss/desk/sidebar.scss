@@ -227,7 +227,10 @@
 			.standard-items-sections {
 				.dropdown-notifications {
 					.notifications-list {
+						// sidebar is width: 0; overflow: hidden here - go fixed so the panel isn't clipped
+						position: fixed;
 						left: 0;
+						width: 100vw;
 					}
 				}
 			}

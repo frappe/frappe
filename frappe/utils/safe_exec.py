@@ -466,6 +466,9 @@ def render_safe_globals():
 				if getattr(frappe.local, "session", None) and getattr(frappe.local.session, "data", None)
 				else "",
 			),
+			request=frappe._dict(
+				path=frappe.local.request.path if getattr(frappe.local, "request", None) else "",
+			),
 			make_get_request=make_safe_get_request,
 			socketio_port=frappe.conf.socketio_port,
 			sanitize_html=frappe.utils.sanitize_html,
@@ -558,7 +561,6 @@ def exec_safe_globals():
 			render_template=frappe.render_template,
 			enqueue=safe_enqueue,
 			is_job_queued=is_job_queued,
-			request=getattr(frappe.local, "request", {}),
 		)
 	)
 	out.frappe.db.update(

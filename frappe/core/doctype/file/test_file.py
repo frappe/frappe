@@ -118,6 +118,43 @@ class TestFSRollbacks(IntegrationTestCase):
 		self.assertFalse(file.exists_on_disk())
 
 
+class TestWriteFileContainment(IntegrationTestCase):
+	def test_write_file_rejects_target_outside_files_dir(self):
+		from frappe.utils.file_manager import write_file
+
+		files_path = get_files_path(is_private=1)
+		bad_names = (
+			"../../../../ESCAPE_TEST.txt",  # parent traversal
+			"sub/../../ESCAPE_TEST.txt",  # traversal via a nested segment
+			"/tmp/ESCAPE_TEST.txt",  # absolute path outside the files dir
+			"subdir/ESCAPE_TEST.txt",  # nested name: not a direct child of the files dir
+		)
+		for fname in bad_names:
+			with self.subTest(fname=fname):
+				# where the bytes would land if the target were not confined
+				would_be = os.path.realpath(os.path.join(files_path, fname))
+				self.assertRaises(ValidationError, write_file, b"data\n", fname, is_private=1)
+				self.assertFalse(os.path.exists(would_be))
+
+	def test_write_file_allows_plain_basename(self):
+		from frappe.utils.file_manager import write_file
+
+		content = b"safe content\n"
+		for is_private in (0, 1):
+			with self.subTest(is_private=is_private):
+				fname = f"{frappe.generate_hash()}.txt"
+				write_file(content, fname, is_private=is_private)
+
+				on_disk = get_files_path(fname, is_private=is_private)
+				self.addCleanup(lambda p=on_disk: os.path.exists(p) and os.remove(p))
+				self.assertEqual(
+					os.path.realpath(os.path.dirname(on_disk)),
+					os.path.realpath(get_files_path(is_private=is_private)),
+				)
+				with open(on_disk, "rb") as f:
+					self.assertEqual(f.read(), content)
+
+
 class TestExtensionValidations(IntegrationTestCase):
 	@IntegrationTestCase.change_settings("System Settings", {"allowed_file_extensions": "JPG\nCSV"})
 	def test_allowed_extension(self):
@@ -129,6 +166,13 @@ class TestExtensionValidations(IntegrationTestCase):
 		bad_file = frappe.new_doc("File", file_name=f"{file_name}.csv", content=content).insert()
 		frappe.db.rollback()
 		self.assertFalse(bad_file.exists_on_disk())
+
+	@IntegrationTestCase.change_settings("System Settings", {"allowed_file_extensions": "JPG\nCSV"})
+	def test_allowlist_blocks_extension_without_known_mimetype(self):
+		set_request(method="POST", path="/")
+		file_name = content = frappe.generate_hash()
+		bad_file = frappe.new_doc("File", file_name=f"{file_name}.phtml", content=content)
+		self.assertRaises(FileTypeNotAllowed, bad_file.insert)
 
 
 class TestBase64File(IntegrationTestCase):
@@ -464,6 +508,26 @@ class TestFile(IntegrationTestCase):
 		d = frappe.get_doc({"doctype": "File", "file_name": _("Test_Folder"), "is_folder": 1})
 		d.save()
 		self.assertEqual(d.folder, "Home")
+
+	def test_folder_file_url_is_always_empty(self):
+		folder = self.get_folder("Test Folder URL", "Home")
+		self.assertFalse(folder.file_url)
+
+		folder.file_url = "/private/files/somewhere.txt"
+		self.assertRaises(ValidationError, folder.save)
+
+		self.assertRaises(
+			ValidationError,
+			frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": "another_folder",
+					"is_folder": 1,
+					"folder": "Home",
+					"file_url": "/private/files/somewhere_else.txt",
+				}
+			).insert,
+		)
 
 	def test_on_delete(self):
 		file = frappe.get_doc("File", {"file_name": "file_copy.txt"})
@@ -1080,6 +1144,63 @@ class TestFileUtils(IntegrationTestCase):
 		folder = create_new_folder("test_folder", "Home")
 		self.assertTrue(folder.is_folder)
 
+	def test_resolved_file_path_stays_within_files_directory(self):
+		from frappe.utils.file_manager import get_file_path
+
+		normal = frappe.get_doc(
+			{"doctype": "File", "file_name": "within_bounds.txt", "content": "ok"}
+		).insert()
+		original_file_url = normal.file_url
+		try:
+			self.assertTrue(get_file_path(normal.name).endswith("within_bounds.txt"))
+
+			normal.db_set("file_url", "/private/files/../../../../outside_bounds.txt")
+			self.assertRaisesRegex(ValidationError, "Cannot access file path", get_file_path, normal.name)
+
+			normal.db_set("file_url", "/private/files/../../site_level_file.txt")
+			self.assertRaisesRegex(ValidationError, "Cannot access file path", get_file_path, normal.name)
+		finally:
+			normal.db_set("file_url", original_file_url)
+			normal.delete()
+
+	def test_traversal_file_url_cannot_reach_other_private_file(self):
+		victim = frappe.get_doc(
+			{"doctype": "File", "file_name": "traversal_victim.txt", "content": "secret", "is_private": 1}
+		).insert()
+		try:
+			for is_private in (0, 1):
+				doc = frappe.get_doc(
+					{
+						"doctype": "File",
+						"file_name": "traversal_copy.txt",
+						"file_url": f"/files/../../private/files/{victim.file_name}",
+						"is_private": is_private,
+					}
+				)
+				self.assertRaisesRegex(ValidationError, "File URL", doc.insert)
+		finally:
+			victim.delete()
+
+	def test_resolved_file_path_rejects_sibling_directory_prefix_match(self):
+		from frappe.utils.file_manager import get_file_path
+
+		sibling_dir = get_files_path(is_private=1) + "_lookalike"
+		os.makedirs(sibling_dir, exist_ok=True)
+		with open(os.path.join(sibling_dir, "neighbour.txt"), "w") as f:
+			f.write("outside the intended directory")
+
+		normal = frappe.get_doc(
+			{"doctype": "File", "file_name": "sibling_check.txt", "content": "ok"}
+		).insert()
+		original_file_url = normal.file_url
+		try:
+			normal.db_set("file_url", "/private/files/../files_lookalike/neighbour.txt")
+			self.assertRaisesRegex(ValidationError, "Cannot access file path", get_file_path, normal.name)
+		finally:
+			normal.db_set("file_url", original_file_url)
+			normal.delete()
+			shutil.rmtree(sibling_dir)
+
 
 class TestFileOptimization(IntegrationTestCase):
 	def test_optimize_file(self):
@@ -1341,3 +1462,144 @@ class TestPublicFileRestriction(IntegrationTestCase):
 
 		file_doc.insert()
 		self.assertFalse(file_doc.is_private)
+
+
+class TestFileListOwnerRestriction(IntegrationTestCase):
+	"""Test file list owner restriction."""
+
+	OWNER = "test1@example.com"
+	OTHER = "test2@example.com"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		other_user = frappe.get_doc("User", self.OTHER)
+		if not any(r.role == "Blogger" for r in other_user.roles):
+			other_user.append("roles", {"role": "Blogger"})
+			other_user.save(ignore_permissions=True)
+
+		frappe.set_user(self.OWNER)
+		self.pddr = frappe.get_doc({"doctype": "Personal Data Download Request", "user": self.OWNER}).insert(
+			ignore_permissions=True
+		)
+		self.file = frappe.new_doc(
+			"File",
+			file_name="secret_export.json",
+			attached_to_doctype="Personal Data Download Request",
+			attached_to_name=self.pddr.name,
+			content="secret data",
+			is_private=1,
+		).insert(ignore_permissions=True)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_other_user_file_count_excludes_owner_restricted_file(self):
+		frappe.set_user(self.OTHER)
+		files = frappe.get_list("File", filters={"name": self.file.name})
+		self.assertEqual(len(files), 0)
+
+	def test_owner_file_count_includes_owner_restricted_file(self):
+		frappe.set_user(self.OWNER)
+		files = frappe.get_list("File", filters={"name": self.file.name})
+		self.assertEqual(len(files), 1)
+
+	def test_shared_but_not_owned_document_still_shows_its_file(self):
+		frappe.set_user("Administrator")
+		frappe.share.add_docshare("Personal Data Download Request", self.pddr.name, self.OTHER, read=1)
+
+		frappe.set_user(self.OTHER)
+		files = frappe.get_list("File", filters={"name": self.file.name})
+		self.assertEqual(len(files), 1)
+
+
+class TestFileListUserPermissionRestriction(IntegrationTestCase):
+	"""A doctype can grant unconditional role-level read (no if_owner) while still being scoped
+	per-user via User Permissions (e.g. multi-company setups). A File attached to a record
+	outside that scope must not be listable either."""
+
+	RESTRICTED = "test1@example.com"
+	OTHER = "test2@example.com"
+	DOCTYPE = "Test User Perm Attachment"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.get_doc(
+			doctype="DocType",
+			name=cls.DOCTYPE,
+			module="Custom",
+			custom=1,
+			fields=[
+				{"label": "Linked Role", "fieldname": "linked_role", "fieldtype": "Link", "options": "Role"}
+			],
+			permissions=[{"role": "All", "read": 1, "create": 1}],
+		).insert(ignore_if_duplicate=True)
+
+	@classmethod
+	def tearDownClass(cls):
+		super().tearDownClass()
+		frappe.delete_doc("DocType", cls.DOCTYPE, force=True, ignore_permissions=True)
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		for user in (self.RESTRICTED, self.OTHER):
+			user_doc = frappe.get_doc("User", user)
+			if not any(r.role == "Blogger" for r in user_doc.roles):
+				user_doc.append("roles", {"role": "Blogger"})
+				user_doc.save(ignore_permissions=True)
+
+		frappe.get_doc(
+			{
+				"doctype": "User Permission",
+				"user": self.RESTRICTED,
+				"allow": "Role",
+				"for_value": "Blogger",
+			}
+		).insert(ignore_permissions=True)
+
+		self.permitted_record = frappe.get_doc({"doctype": self.DOCTYPE, "linked_role": "Blogger"}).insert(
+			ignore_permissions=True
+		)
+		self.out_of_scope_record = frappe.get_doc(
+			{"doctype": self.DOCTYPE, "linked_role": "Website Manager"}
+		).insert(ignore_permissions=True)
+
+		self.permitted_file = frappe.new_doc(
+			"File",
+			file_name="permitted.txt",
+			attached_to_doctype=self.DOCTYPE,
+			attached_to_name=self.permitted_record.name,
+			content="in scope",
+			is_private=1,
+		).insert(ignore_permissions=True)
+		self.out_of_scope_file = frappe.new_doc(
+			"File",
+			file_name="out_of_scope.txt",
+			attached_to_doctype=self.DOCTYPE,
+			attached_to_name=self.out_of_scope_record.name,
+			content="out of scope",
+			is_private=1,
+		).insert(ignore_permissions=True)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_restricted_user_excludes_out_of_scope_file(self):
+		frappe.set_user(self.RESTRICTED)
+		files = frappe.get_list("File", filters={"name": self.out_of_scope_file.name})
+		self.assertEqual(len(files), 0)
+
+	def test_restricted_user_includes_permitted_file(self):
+		frappe.set_user(self.RESTRICTED)
+		files = frappe.get_list("File", filters={"name": self.permitted_file.name})
+		self.assertEqual(len(files), 1)
+
+	def test_unrestricted_user_sees_both_files(self):
+		frappe.set_user(self.OTHER)
+		files = frappe.get_list(
+			"File",
+			filters={"name": ["in", [self.permitted_file.name, self.out_of_scope_file.name]]},
+		)
+		self.assertEqual(len(files), 2)
