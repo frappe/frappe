@@ -1436,8 +1436,8 @@ from {tables}
 			if not r.name:
 				continue
 
-			# perf: Avoid parsing _comments, they can be huge and this is just a "UX feature"
-			r._comment_count = comments.count('"comment"') if comments else 0
+			# perf: Avoid parsing _comments, this is just a "UX feature"
+			r._comment_count = comments.count('"name"') if comments else 0
 
 	def update_user_settings(self):
 		# update user settings if new search

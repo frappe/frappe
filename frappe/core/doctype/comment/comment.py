@@ -213,46 +213,22 @@ def get_document_comments(
 
 
 def update_comment_in_doc(doc):
-	"""Updates `_comments` (JSON) property in parent Document.
-	Creates a column `_comments` if property does not exist.
+	"""Record `doc` in the parent's `_comments`, a JSON list of `{"name": ...}` that only
+	feeds the list view comment count.
 
 	Only user created Communication or Comment of type Comment are saved.
-
-	`_comments` format
-
-	        {
-	                "comment": [String],
-	                "by": [user],
-	                "name": [Comment Document name]
-	        }"""
+	"""
 
 	# only comments get updates, not likes, assignments etc.
 	if doc.doctype == "Comment" and doc.comment_type != "Comment":
 		return
 
-	def get_truncated(content):
-		# the cache only feeds the list view comment count, so a stub is enough
-		return content[:5]
-
 	if doc.reference_doctype and doc.reference_name and doc.content:
 		_comments = get_comments_from_parent(doc)
+		if any(c.get("name") == doc.name for c in _comments):
+			return
 
-		updated = False
-		for c in _comments:
-			if c.get("name") == doc.name:
-				c["comment"] = get_truncated(doc.content)
-				updated = True
-
-		if not updated:
-			_comments.append(
-				{
-					"comment": get_truncated(doc.content),
-					# "comment_email" for Comment and "sender" for Communication
-					"by": getattr(doc, "comment_email", None) or getattr(doc, "sender", None) or doc.owner,
-					"name": doc.name,
-				}
-			)
-
+		_comments.append({"name": doc.name})
 		update_comments_in_parent(doc.reference_doctype, doc.reference_name, _comments)
 
 
@@ -314,11 +290,14 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 	):
 		return
 
+	# entries written before this carried the comment text; drop everything but the name
+	_comments = [{"name": c["name"]} for c in _comments[-100:] if c.get("name")]
+
 	try:
 		# use sql, so that we do not mess with the timestamp
 		frappe.db.sql(
 			f"""update `tab{reference_doctype}` set `_comments`=%s where name=%s""",  # nosec
-			(json.dumps(_comments[-100:]), reference_name),
+			(json.dumps(_comments), reference_name),
 		)
 
 	except Exception as e:
