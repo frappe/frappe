@@ -60,12 +60,11 @@ describe("Desk URL shell segment", () => {
 		});
 	});
 
-	it("keeps `private` reserved, even once a Private shell exists", () => {
-		// `/desk/private/<workspace>` names a user's own workspace and always has. A `Private`
-		// module with a sidebar of its own would land on the same segment, and reading it as a
-		// shell would turn `/desk/private/settings` into the public workspace of that name. The
-		// shell is added here because frappe alone ships none, and the guard is what is under
-		// test, not whether this site happens to trip it.
+	it("never strips a leading `private` as a shell prefix", () => {
+		// `private` means two things, told apart by position: the Private shell in position 0 and
+		// one of this user's own pages in position 1. So it is kept out of the table a prefix is
+		// read from. Left in, `/desk/private/settings` would stop being somebody's own page called
+		// Settings and become the public workspace of that name.
 		cy.window().then((win) => {
 			const router = win.frappe.router;
 			const shells = win.frappe.boot.module_sidebars;
@@ -82,6 +81,54 @@ describe("Desk URL shell segment", () => {
 			else delete shells["Private"];
 			router.setup_shell_routes();
 		});
+	});
+
+	// The desk's own slug rule, which is what the old URLs were built with.
+	const win_slug = (name) => name.toLowerCase().replace(/ /g, "-");
+
+	it("opens a private page in the Private shell, and keeps it in a module that lists it", () => {
+		// The page is made here rather than assumed, because a fresh site has none, and it is the
+		// grammar that is under test: `/desk/private/<title>` is the page in its own shell, and
+		// `/desk/<module>/private/<title>` is the same page in a sidebar it appears in.
+		// Owned by whoever is logged in: a private page belongs to its owner, and nobody may make
+		// one for somebody else.
+		cy.window()
+			.then((win) => {
+				const user = win.frappe.session.user;
+				// The module behind the `Build` shell, which is named after it on some sites and
+				// not on others (`Build Tools` on a frappe-only site).
+				const module = win.frappe.boot.module_sidebars["Build"].module;
+				return { user, module };
+			})
+			.then(({ user, module }) => {
+				const name = `Cypress Private Page-${user}`;
+				cy.call("frappe.client.insert", {
+					doc: {
+						doctype: "Workspace",
+						title: "Cypress Private Page",
+						label: name,
+						module,
+						public: 0,
+						for_user: user,
+						content: "[]",
+					},
+				});
+
+				cy.visit("/desk/private");
+				cy.location("pathname").should("eq", "/desk/private/cypress-private-page");
+				cy.window().its("frappe.app.sidebar.current_module").should("eq", "Private");
+
+				// The old spelling carries the owner's email. It still resolves, and the address
+				// bar is corrected to the title.
+				cy.visit(`/desk/private/${win_slug(name)}`);
+				cy.location("pathname").should("eq", "/desk/private/cypress-private-page");
+
+				cy.visit("/desk/build/private/cypress-private-page");
+				cy.location("pathname").should("eq", "/desk/build/private/cypress-private-page");
+				cy.window().its("frappe.app.sidebar.current_module").should("eq", "Build");
+
+				cy.call("frappe.client.delete", { doctype: "Workspace", name });
+			});
 	});
 
 	it("spells an ampersand out rather than encoding it", () => {
