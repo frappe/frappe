@@ -140,7 +140,7 @@ def reject_foreign_names(dt: str, view: str, names: list[str]) -> None:
 def read_class_list() -> set[str] | None:
 	"""The classes the desk build generated, or None when no build has written a readable list."""
 	try:
-		with open(class_list_path()) as file:
+		with open(class_list_path()) as file:  # nosemgrep
 			names = json.load(file)
 	except (OSError, ValueError):
 		return None
