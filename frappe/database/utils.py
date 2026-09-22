@@ -276,8 +276,9 @@ def drop_index_if_exists(table: str, index: str):
 		return
 
 	try:
-		if frappe.db.db_type == "postgres":
-			# Postgres drops indexes with DROP INDEX, not ALTER TABLE ... DROP INDEX
+		if frappe.db.db_type in ("postgres", "sqlite"):
+			# Both drop an index with DROP INDEX. Neither accepts ALTER TABLE ... DROP INDEX,
+			# and SQLite reports the attempt as a syntax error the caller below only logs.
 			safe_index = index.replace('"', '""')
 			frappe.db.sql_ddl(f'DROP INDEX IF EXISTS "{safe_index}"')
 		else:
