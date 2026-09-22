@@ -545,6 +545,28 @@ export default {
   order. Two plugins registering one variant name give the later app's variant with no
   error.
 
+## Which apps the build reads: `sites/apps.txt`
+
+The build takes its app list from `sites/apps.txt`, `frappe` first and then the file's
+order, and never scans `apps/`. `bench get-app`, `bench remove-app` and
+`bench setup requirements` rewrite the file from the folders, so after a bench command the
+file is current. If you clone or remove an app by hand, run `bench setup requirements`
+before `bench build`.
+
+The build prints the list it read on one line, before the per-app cost lines:
+
+```
+apps: frappe, crm, erpnext
+```
+
+That line is where to look when an app you expect is missing from the bundle. An app
+listed in the file whose folder is gone fails the build, naming the app.
+
+Desk v1's build scans `apps/` for its list and falls back to the file only when the scan
+throws. Its Python half reads the file. On a bench where the file is stale the two halves
+disagree, and the scan is a second source of truth for one fact. Desk v2 keeps the one
+source, so a stale file is a bench matter, not something the build repairs or checks.
+
 ## Asking what a host has
 
 `page` carries **no version number**, and will not get one. A version number invites

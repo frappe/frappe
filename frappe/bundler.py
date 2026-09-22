@@ -134,7 +134,7 @@ def build_shell(frappe_app_path: str, production: bool = False):
 		return
 
 	# Raises `SingletonConflict`, naming the package, the shipped version and the app's range.
-	manifest, deps_changed = write_manifest(frontend_path)
+	manifest, apps, deps_changed = write_manifest(frontend_path)
 	lock_refreshed = refresh_lockfile(frontend_path)
 
 	# Install when the tree is missing or the composed dependency set changed. `--production=false`
@@ -144,7 +144,7 @@ def build_shell(frappe_app_path: str, production: bool = False):
 			"yarn install --production=false", cwd=frontend_path, env=get_node_env(), raise_err=True
 		)
 
-	for line in cost_report(manifest, frontend_path):
+	for line in cost_report(manifest, frontend_path, apps):
 		click.echo(line)
 
 	# Build into a staging directory and swap it in on success: `emptyOutDir` would either take
