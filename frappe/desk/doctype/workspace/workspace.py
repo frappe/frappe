@@ -132,6 +132,38 @@ class Workspace(Document, DeskViews):
 
 		self.validate_duplicate_widget_labels()
 		self.validate_shared_page_has_a_module()
+		self.validate_private_page_is_yours()
+
+	def validate_private_page_is_yours(self):
+		"""A private page belongs to the person named in `for_user`, and only they may write one.
+
+		A Workspace Manager may write anyone's, which is what the manager dialog does and what
+		`new_page` and `update_page` have always allowed. This says the same thing in the model,
+		because those are endpoints and a document API call reaches neither: anyone holding
+		`Desk User` could insert a Workspace naming somebody else in `for_user`, and the page then
+		wrote a row into that person's own sidebar (`add_private_to_sidebar`), which is one user
+		changing another user's navigation.
+
+		System writes are left alone. An install, a migration, a patch or a fixture import is the
+		site building itself rather than a user acting, and they run as Administrator in any case.
+		"""
+		if self.public or not self.for_user:
+			return
+
+		if self.for_user == frappe.session.user or is_workspace_manager():
+			return
+
+		if any(
+			frappe.flags.get(flag)
+			for flag in ("in_install", "in_migrate", "in_patch", "in_import", "in_fixtures")
+		):
+			return
+
+		frappe.throw(
+			_("You can only create a private workspace for yourself."),
+			frappe.PermissionError,
+			title=_("Not your workspace"),
+		)
 
 	def validate_shared_page_has_a_module(self):
 		"""Refuse a shared page in the `Private` module.

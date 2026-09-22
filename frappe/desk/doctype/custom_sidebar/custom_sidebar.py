@@ -587,9 +587,12 @@ def add_user_sidebar_item(module: str, user: str, item: dict) -> None:
 		return
 
 	doc.append("sidebar_items", {**item, "added": 1})
-	# ignore_permissions: making the page is what earned this row, and the arrangement is
-	# re-filtered by permissions on every boot whatever is stored here.
-	doc.save(ignore_permissions=True)
+	# Saved under the caller's own permissions, which already say exactly who may write a layer:
+	# your own, or anyone's if you curate navigation for everyone (`has_permission`). A page's
+	# owner writing their own layer passes it, and so does a Workspace Manager making a page for
+	# somebody else. Nobody else can reach here, because `Workspace.validate_private_page_is_yours`
+	# refuses the page itself.
+	doc.save()
 
 
 def remove_workspace_rows(link_to: str, user: str | None = None) -> None:
@@ -641,6 +644,11 @@ def remove_workspace_rows(link_to: str, user: str | None = None) -> None:
 			frappe.delete_doc("Custom Sidebar", name, ignore_permissions=True, force=True)
 			continue
 
+		# ignore_permissions, and it has to be: this runs after a workspace is gone, over every
+		# layer that named it, which includes layers belonging to other people. Someone deleting a
+		# shared page they own cannot write the arrangements of everyone who had put that page in
+		# their sidebar, and those rows have to go all the same. Nothing user-supplied reaches the
+		# rows here; it removes rows naming one document and writes nothing else.
 		doc.save(ignore_permissions=True)
 
 
@@ -673,6 +681,10 @@ def relabel_workspace_rows(link_to: str, label: str) -> None:
 		for row in doc.sidebar_items:
 			if row.added and row.link_type == "Workspace" and row.link_to == link_to:
 				row.label = label
+
+		# ignore_permissions, for the same reason as `remove_workspace_rows`: a rename has to reach
+		# every stored copy of the old name, wherever it was kept, and the person renaming the page
+		# is not the owner of all those layers. The only value written is the page's own title.
 		doc.save(ignore_permissions=True)
 
 

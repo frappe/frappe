@@ -33,6 +33,7 @@ from frappe.tests import IntegrationTestCase
 MODULE = "Users"
 USER = "test-sidebar-custom@example.com"
 MANAGER = "test-sidebar-manager@example.com"
+OTHER = "test-sidebar-other@example.com"
 
 
 def make_user(email: str, roles: list[str]):
@@ -1163,7 +1164,7 @@ class TestAPrivatePageWritesItsRows(CustomizationTestCase):
 		ensure_module(PRIVATE_MODULE)
 		self.addCleanup(self.wipe, PRIVATE_MODULE)
 
-	def make_page(self, title, module=MODULE, for_user=USER, public=0):
+	def make_page(self, title, module=MODULE, for_user=USER, public=0, ignore_permissions=True):
 		doc = frappe.get_doc(
 			{
 				"doctype": "Workspace",
@@ -1174,7 +1175,7 @@ class TestAPrivatePageWritesItsRows(CustomizationTestCase):
 				"for_user": for_user or "",
 				"content": "[]",
 			}
-		).insert(ignore_permissions=True)
+		).insert(ignore_permissions=ignore_permissions)
 		self.addCleanup(frappe.delete_doc, "Workspace", doc.name, force=True, ignore_missing=True)
 		return doc
 
@@ -1241,6 +1242,39 @@ class TestAPrivatePageWritesItsRows(CustomizationTestCase):
 			frappe.delete_doc("Workspace", page.name, force=True)
 
 		self.assertFalse(frappe.db.exists("Workspace", page.name))
+
+	def test_nobody_can_make_a_page_for_somebody_else(self):
+		"""A private page belongs to one person, and making one writes rows into that person's own
+		layer. Left unchecked, anyone holding `Desk User` could insert a Workspace naming somebody
+		else in `for_user` through the generic API and put a row in their sidebar.
+
+		The endpoints said so already (`new_page`, `update_page`); the model says it now, because a
+		document API call reaches neither.
+		"""
+		make_user(OTHER, ["Desk User"])
+		self.addCleanup(frappe.delete_doc, "User", OTHER, force=True, ignore_missing=True)
+
+		self.as_user()
+		with self.assertRaises(frappe.PermissionError):
+			# Through the permission system, as the document API goes: `ignore_permissions` is
+			# what a trusted caller passes, and the point here is an untrusted one.
+			self.make_page("Test Rows Somebody Elses Page", for_user=OTHER, ignore_permissions=False)
+
+		frappe.set_user("Administrator")
+		self.assertEqual(self.rows(PRIVATE_MODULE, OTHER), [])
+
+	def test_a_workspace_manager_may_make_one_for_somebody_else(self):
+		"""Which is what the manager dialog does, and what the endpoints have always allowed."""
+		make_user(OTHER, ["Desk User"])
+		self.addCleanup(frappe.delete_doc, "User", OTHER, force=True, ignore_missing=True)
+		make_user(MANAGER, ["System Manager", "Workspace Manager"])
+		self.addCleanup(frappe.delete_doc, "User", MANAGER, force=True, ignore_missing=True)
+
+		frappe.set_user(MANAGER)
+		page = self.make_page("Test Rows Managed Page", for_user=OTHER, ignore_permissions=False)
+
+		frappe.set_user("Administrator")
+		self.assertEqual(self.rows(PRIVATE_MODULE, OTHER), [(page.name, page.title)])
 
 	def test_deleting_it_takes_its_rows_out(self):
 		page = self.make_page("Test Rows Deleting Page")
