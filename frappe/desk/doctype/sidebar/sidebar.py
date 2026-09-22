@@ -38,6 +38,7 @@ from itertools import chain, count
 import frappe
 from frappe import _
 from frappe.app_state import get_disabled_modules
+from frappe.database.utils import drop_index_if_exists
 from frappe.desk.desk_views import DeskViews
 from frappe.desk.doctype.navigation_item.navigation_item import validate_item_keys
 from frappe.desk.utils import is_item_allowed
@@ -718,8 +719,15 @@ def on_doctype_update():
 	and a `NULL` is distinct from every other `NULL` to a unique index. `blank_the_empty_address`
 	is what keeps that true for a row saved from the form, which sends `""` rather than nothing.
 	"""
+	# The name is this table's own. SQLite holds index names for the whole database file rather
+	# than per table, and `add_unique` skips a name that already exists, so a name two doctypes
+	# share leaves the second one with no index at all. `Rail` carries its own name for the same
+	# reason; the drop clears the shared name from sites that took it before this one did.
+	drop_index_if_exists("tabSidebar", "unique_layer_address")
 	frappe.db.add_unique(
-		"Sidebar", ("link_doctype", "link_to", "user", "standard"), constraint_name="unique_layer_address"
+		"Sidebar",
+		("link_doctype", "link_to", "user", "standard"),
+		constraint_name="unique_sidebar_address",
 	)
 
 
