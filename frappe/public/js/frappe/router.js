@@ -222,7 +222,7 @@ frappe.router = {
 				// have turned `/desk/private/settings` into the public workspace called Settings.
 				// A page of this user's wins, which is why it is asked first.
 				if (this.route_names_something(route[1])) {
-					this.current_shell = "Private";
+					this.current_shell = frappe.ui.PRIVATE_SHELL;
 					return await this.convert_to_standard_route(route.slice(1));
 				}
 

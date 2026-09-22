@@ -70,10 +70,6 @@ const RESET_TO_STANDARD = "frappe.desk.doctype.custom_sidebar.custom_sidebar.res
 // option offered here that the column cannot hold would be dropped on save.
 const LINK_TYPES = ["DocType", "Page", "Report", "Workspace", "Dashboard", "URL"];
 
-// The shell holding the pages a user made for themselves, which is the one shell arranged for one
-// person. The client's copy of `workspace.PRIVATE_MODULE`.
-const PRIVATE_SHELL = "Private";
-
 frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEditor {
 	get layers() {
 		// Spread first, so the app's layer keeps its place at the end of the switch: after the
@@ -98,7 +94,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	}
 
 	is_private_shell() {
-		return this.module === PRIVATE_SHELL;
+		return this.module === frappe.ui.PRIVATE_SHELL;
 	}
 
 	// The app this sidebar is exported into, which is what its layer is called after. Both a

@@ -233,7 +233,7 @@ frappe.views.Workspace = class Workspace {
 	// than filtered out of every workspace, so the sidebar and the page it opens on cannot
 	// disagree, and so a page the user arranged to the top is the one that opens.
 	own_private_pages() {
-		const items = frappe.boot.module_sidebars?.["Private"]?.items || [];
+		const items = frappe.boot.module_sidebars?.[frappe.ui.PRIVATE_SHELL]?.items || [];
 		return items
 			.filter((item) => item.link_type === "Workspace" && item.link_to)
 			.map((item) => this.workspaces.find((page) => page.name === item.link_to))
@@ -1338,7 +1338,7 @@ frappe.views.Workspace = class Workspace {
 						// landing there instead would move you out of the shell you were in.
 						const module = new_page.public
 							? frappe.app.sidebar.module_for_workspace(new_page.name)
-							: "Private";
+							: frappe.ui.PRIVATE_SHELL;
 						if (module) {
 							frappe.app.sidebar.setup(module);
 						}

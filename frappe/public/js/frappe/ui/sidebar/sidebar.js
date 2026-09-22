@@ -15,9 +15,13 @@ const ENTITY_VIEW_ROUTES = {
 
 // The shell that holds the pages a user made for themselves. It is the `Private` module's, and the
 // desk builds it from the viewer's own pages rather than from what the module holds, so two people
-// on `/desk/private` see two different sidebars. Named here as the client's copy of
-// `workspace.PRIVATE_MODULE`.
-const PRIVATE_SHELL = "Private";
+// on `/desk/private` see two different sidebars.
+//
+// On the namespace rather than in this file, because the router, the workspace view and the
+// arrangement editor all name it too, and it has to keep matching `workspace.PRIVATE_MODULE` on
+// the server. Four copies of a string is four places to miss the day the module is renamed.
+frappe.provide("frappe.ui");
+frappe.ui.PRIVATE_SHELL = "Private";
 
 // How strongly a sidebar item's href claims the page at `path`. 0 means it does not.
 //
@@ -1183,7 +1187,9 @@ frappe.ui.Sidebar = class Sidebar {
 			const in_view = this.current_module;
 			if (in_view && this.shell_lists_workspace(in_view, name)) return in_view;
 
-			return frappe.boot.module_sidebars?.[PRIVATE_SHELL] ? PRIVATE_SHELL : null;
+			return frappe.boot.module_sidebars?.[frappe.ui.PRIVATE_SHELL]
+				? frappe.ui.PRIVATE_SHELL
+				: null;
 		}
 
 		// A workspace route names a workspace rather than an entity, and which shell holds one is
