@@ -84,6 +84,47 @@ class PrintViewTest(IntegrationTestCase):
 		self.assertNotIn('onerror="alert(1)"', html)
 		self.assertIn("&#34;", html)
 
+	def test_print_format_builder_beta_escapes_barcode_field(self):
+		"""Beta print formats (macros/*.html) render Barcode fields through a
+		dedicated macro; without it, the value falls back to the unescaped
+		Data.html macro and injects raw markup into the print HTML."""
+		from frappe.utils.weasyprint import get_html
+
+		doctype = new_doctype(
+			fields=[{"label": "Barcode Field", "fieldname": "barcode_field", "fieldtype": "Barcode"}]
+		).insert()
+		print_format = frappe.get_doc(
+			doctype="Print Format",
+			name=frappe.generate_hash(length=10),
+			doc_type=doctype.name,
+			print_format_builder_beta=1,
+			format_data=frappe.as_json(
+				{
+					"sections": [
+						{
+							"columns": [
+								{
+									"fields": [
+										{
+											"fieldname": "barcode_field",
+											"fieldtype": "Barcode",
+											"label": "Barcode Field",
+											"options": "",
+										}
+									]
+								}
+							],
+						}
+					]
+				}
+			),
+		).insert()
+
+		evil = frappe.get_doc(doctype=doctype.name, barcode_field='1234"><script>alert(1)</script>').insert()
+		html = get_html(doctype=doctype.name, name=evil.name, print_format=print_format.name)
+		self.assertNotIn("<script>alert(1)</script>", html)
+		self.assertIn("&lt;script&gt;", html)
+
 	def test_print_error(self):
 		"""Print failures shouldn't generate PDF with failure message but instead escalate the error"""
 		doctype = new_doctype(is_submittable=1).insert()

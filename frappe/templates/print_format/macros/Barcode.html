@@ -1,0 +1,11 @@
+{% extends "templates/print_format/macros/Data.html" %}
+
+{%- block value -%}
+<div class="value">
+    {%- if value.startswith("<svg") -%}
+    {{ value }}
+    {%- else -%}
+    <svg data-barcode-value="{{ value|e }}" height="80" data-options='{{ df.options|e }}'></svg>
+    {%- endif -%}
+</div>
+{%- endblock -%}
