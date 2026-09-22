@@ -168,7 +168,7 @@ function delete_tab_message(tab) {
 				</div>
 			</template>
 		</draggable>
-		<div class="tab-actions" :hidden="store.read_only || store.is_layout_form">
+		<div class="tab-actions" :hidden="!store.can_edit_layout">
 			<button
 				class="new-tab-btn btn btn-xs"
 				:class="{ 'no-tabs': !has_tabs }"
@@ -207,7 +207,7 @@ function delete_tab_message(tab) {
 					/>
 				</template>
 			</draggable>
-			<div class="empty-tab" :hidden="store.read_only || store.is_layout_form">
+			<div class="empty-tab" :hidden="!store.can_edit_layout">
 				<div v-if="has_tabs">{{ store.tab_text.drop_hint }}</div>
 				<div v-if="has_tabs">{{ __("OR") }}</div>
 				<button class="btn btn-default btn-sm" @click="add_new_section">

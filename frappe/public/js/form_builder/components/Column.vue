@@ -36,13 +36,10 @@
 				/>
 			</template>
 		</draggable>
-		<div class="empty-column" :hidden="store.read_only || store.is_layout_form">
+		<div class="empty-column" :hidden="!store.can_edit_layout">
 			<AddFieldButton :column="column" />
 		</div>
-		<div
-			v-if="column.fields.length && !store.is_layout_form && !store.read_only"
-			class="add-new-field-btn"
-		>
+		<div v-if="column.fields.length && store.can_edit_layout" class="add-new-field-btn">
 			<AddFieldButton :field="column.fields[column.fields.length - 1]" :column="column" />
 		</div>
 	</div>

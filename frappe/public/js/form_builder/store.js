@@ -76,9 +76,9 @@ export const useStore = defineStore("form-builder-store", () => {
 		return form.value.layout.tabs.find((tab) => tab.df.name == form.value.active_tab);
 	});
 
-	// keyboard shortcuts mutate the layout directly, so they need the same gate
-	// as the buttons the canvas hides. `read_only`, not `force_read_only`: the
-	// preview toggle flips only the former, and a preview is not editable either
+	// dragging is gated on `read_only` alone, because a layout form may reorder what it may
+	// not restructure. `read_only`, not `force_read_only`: the preview toggle flips only the
+	// former, and a preview is not editable either
 	const can_edit_layout = computed(() => !read_only.value && !is_layout_form.value);
 
 	const active_element = useActiveElement();

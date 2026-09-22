@@ -34,11 +34,7 @@
 						v-html="frappe.utils.icon(collapsed ? 'down' : 'up-line', 'sm')"
 					></div>
 				</div>
-				<Dropdown
-					v-if="!store.read_only && !store.is_layout_form"
-					:options="options"
-					@click.stop
-				/>
+				<Dropdown v-if="store.can_edit_layout" :options="options" @click.stop />
 			</div>
 			<div v-if="section.df.description" class="section-description">
 				{{ section.df.description }}
