@@ -17,9 +17,6 @@ const BLANK_TEMPLATE = "blank_template";
 const ALL_RECORDS = "all";
 const FIVE_RECORDS = "5_records";
 const SECONDS_PATTERN = /^\d+$/;
-const CHECK_TRUE = ["t", "true", "y", "yes"];
-const CHECK_FALSE = ["f", "false", "n", "no"];
-const CHECK_VALUES = ["0", "1", ...CHECK_TRUE, ...CHECK_FALSE];
 const NUMERIC_FIELDTYPES = ["Int", "Float", "Currency", "Percent"];
 const DATA_FORMATS = { Email: "email", Phone: "phone", Name: "name", URL: "url" };
 const DEFERRED_FIELDTYPES = ["Date", "Datetime", "Time", "Duration", "Check"];
@@ -47,12 +44,7 @@ const VALUE_FORMATTERS = {
 	},
 	Time: (val) => to_system_time(val),
 	Int: (val) => cint(val),
-	Check: (val) => {
-		const word = cstr(val).trim().toLowerCase();
-		if (CHECK_TRUE.includes(word)) return 1;
-		if (CHECK_FALSE.includes(word)) return 0;
-		return cint(val);
-	},
+	Check: (val) => cint(frappe.utils.string_to_boolean(cstr(val))),
 	Float: (val) => flt(val),
 	Currency: (val) => flt(val),
 	Percent: (val) => flt(val),
@@ -274,12 +266,11 @@ export default class GridImport {
 					]),
 				},
 				{ fieldtype: "Section Break", label: __("Fields"), collapsible: 1 },
+				{ fieldtype: "HTML", fieldname: "select_buttons" },
 				{
 					fieldtype: "MultiCheck",
 					fieldname: "fields",
 					columns: 2,
-					select_all: true,
-					select_mandatory: true,
 					sort_options: false,
 					options: this.get_field_options(),
 					on_change: () => this.set_footer(),
@@ -287,6 +278,26 @@ export default class GridImport {
 			],
 		});
 		this.setup_form.make();
+		this.make_select_buttons();
+	}
+
+	make_select_buttons() {
+		const control = this.setup_form.fields_dict.fields;
+		const button = (label, onclick) => frappe.ui.button({ label, size: "sm", onclick });
+		$('<div class="flex items-center gap-2"></div>')
+			.append(
+				button(__("Select All"), () => control.select_all()),
+				button(__("Select Mandatory"), () => this.select_mandatory()),
+				button(__("Unselect All"), () => control.select_all(true))
+			)
+			.appendTo(this.setup_form.fields_dict.select_buttons.$wrapper);
+	}
+
+	select_mandatory() {
+		const control = this.setup_form.fields_dict.fields;
+		control.selected_options = control.options.filter((o) => o.danger).map((o) => o.value);
+		control.select_options(control.selected_options);
+		this.set_footer();
 	}
 
 	get_field_options(selected = []) {
@@ -585,7 +596,7 @@ export default class GridImport {
 		const panel = picker && $(picker.$datepicker).get(0);
 		if (!panel) return;
 
-		const follower = follow_input(panel, control.$input[0], 4);
+		const follower = follow_input(panel, control.$input[0], 4, () => picker.hide());
 		add_unpin(control, () => follower.stop());
 		const call = (hook, args) => typeof hook === "function" && hook.apply(picker, args);
 		const original_show = picker.opts.onShow;
@@ -608,7 +619,9 @@ export default class GridImport {
 
 		const host = document.createElement("div");
 		host.className = "awesomplete grid-import-dropdown-host";
-		const follower = follow_input(list, control.$input[0], 2);
+		const follower = follow_input(list, control.$input[0], 2, () =>
+			control.awesomplete?.close()
+		);
 		add_unpin(control, () => {
 			follower.stop();
 			control.awesomplete?.close?.();
@@ -1302,20 +1315,11 @@ export default class GridImport {
 		const duplicated = Object.entries(columns_by_field).filter(
 			([, columns]) => columns.length > 1
 		);
-		if (!duplicated.length) return [];
-
-		const label_of = Object.fromEntries(
-			this.get_docfields().map((df) => [
-				df.fieldname,
-				__(df.label || df.fieldname, null, df.parent),
-			])
-		);
-
 		const warnings = [];
 		duplicated.forEach(([fieldname, columns]) => {
 			const message = __("Columns {0} map to {1}. Only one column can fill a field.", [
 				columns.map((i) => i + 1).join(", "),
-				label_of[fieldname] || fieldname,
+				this.get_field_label(fieldname),
 			]);
 			columns.forEach((i) => warnings.push({ blocking: true, col: i, message }));
 		});
@@ -1388,7 +1392,10 @@ export default class GridImport {
 			return __('"{0}" is not a valid number.', [value]);
 		}
 
-		if (df.fieldtype === "Check" && !CHECK_VALUES.includes(value.toLowerCase())) {
+		if (
+			df.fieldtype === "Check" &&
+			typeof frappe.utils.string_to_boolean(value) !== "boolean"
+		) {
 			return __('"{0}" is not valid. Use {1}', [value, "0, 1, Yes, No"]);
 		}
 
@@ -1582,18 +1589,26 @@ const picker_api = (control) => {
 	};
 };
 
-const follow_input = (panel, input, offset) => {
-	const reposition = () =>
-		place(panel, input.getBoundingClientRect(), "bottom", "start", offset);
+const follow_input = (panel, input, offset, close) => {
+	let anchor;
+	const reposition = () => {
+		anchor = input.getBoundingClientRect();
+		place(panel, anchor, "bottom", "start", offset);
+	};
+	const close_if_moved = (event) => {
+		if (panel.contains(event.target)) return;
+		const { top, left } = input.getBoundingClientRect();
+		if (top !== anchor.top || left !== anchor.left) close();
+	};
 	return {
 		start() {
 			reposition();
 			window.addEventListener("resize", reposition);
-			document.addEventListener("scroll", reposition, { capture: true, passive: true });
+			document.addEventListener("scroll", close_if_moved, { capture: true, passive: true });
 		},
 		stop() {
 			window.removeEventListener("resize", reposition);
-			document.removeEventListener("scroll", reposition, { capture: true });
+			document.removeEventListener("scroll", close_if_moved, { capture: true });
 		},
 	};
 };
