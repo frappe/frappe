@@ -8,11 +8,6 @@ from oauthlib.common import Request
 from oauthlib.openid import RequestValidator
 
 import frappe
-<<<<<<< HEAD
-from frappe.auth import LoginManager
-=======
-from frappe.integrations.doctype.oauth_bearer_token.oauth_bearer_token import get_oauth_token_hash
->>>>>>> 51d08b4 (fix(oauth): disable Resource Owner Password Credentials Grant)
 from frappe.integrations.doctype.oauth_client.oauth_client import OAuthClient
 from frappe.utils.data import cstr, get_system_timezone, now_datetime
 
