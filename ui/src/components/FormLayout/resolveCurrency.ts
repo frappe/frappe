@@ -1,10 +1,10 @@
 /**
  * Currency-code resolution for `FormLayout`'s `Currency` fields, mirroring Frappe
  * desk's `frappe.meta.get_field_currency`. The cross-record read goes through an
- * overridable `getDocValue` seam (built-in reader below).
+ * overridable `getDocValue` seam (built-in reader below, over the v2 list route).
  */
-import { shallowRef } from "vue";
-import { createResource, getCachedResource } from "frappe-ui";
+import { ref, shallowRef, type Ref } from "vue";
+import { listDocuments } from "../../api";
 import { pickSiblingValue } from "./pickSiblingValue";
 import type { RecordContext } from "./pickSiblingValue";
 
@@ -26,18 +26,11 @@ export interface CurrencyResolveContext extends RecordContext {
 
 // --- Built-in runtime reader -------------------------------------------------
 
-/** Cache namespace for the resources frappe-ui keys by doctype/name/field. */
-const CACHE_NS = "FormLayout:field_currency";
+/** One field of one record, keyed by doctype, name and field; the oldest goes past the cap. */
+const values = new Map<string, Ref<string | null | undefined>>();
+const MAX_VALUES = 500;
 
-/**
- * Built-in reader, backed by frappe-ui's resource cache. Returns `undefined`
- * until the fetch lands (and always when there's no `window`); the reactive
- * `.data` re-runs the calling computed.
- *
- * The `getCachedResource` lookup matters: re-`createResource`-ing with the same
- * `cache` key while `auto` is set would `reload()` on every computed re-run (a
- * fetch storm), so the resource is created once and reused.
- */
+/** Built-in reader over the v2 list route; `undefined` until the read lands, never with no `window`. */
 function builtinGetDocValue(
   doctype: string,
   name: string,
@@ -45,17 +38,38 @@ function builtinGetDocValue(
 ): string | null | undefined {
   if (typeof window === "undefined") return undefined;
 
-  const cacheKey = [CACHE_NS, doctype, name, field];
-  const resource =
-    getCachedResource(cacheKey) ??
-    createResource({
-      url: "frappe.client.get_value",
-      params: { doctype, filters: name, fieldname: field },
-      cache: cacheKey,
-      auto: true,
-    });
-  // `frappe.client.get_value` returns `{ [field]: value }`; `.data` is reactive.
-  return resource.data?.[field] ?? undefined;
+  const key = [doctype, name, field].join("\u0000");
+  let value = values.get(key);
+  // One ref per key: the calling computed re-runs when it lands, and a fresh read each
+  // re-run would be a fetch storm.
+  if (!value) {
+    value = ref<string | null | undefined>(undefined);
+    values.set(key, value);
+    if (values.size > MAX_VALUES)
+      values.delete(values.keys().next().value as string);
+    // A failed read answers `null` and stays: forgetting it would retry on every re-run.
+    readDocValue(doctype, name, field).then(
+      (result) => (value.value = result),
+      () => (value.value = null)
+    );
+  }
+  return value.value;
+}
+
+/** `GET /document/<doctype>?fields=[field]&filters={name}`: one field, permission-checked. */
+function readDocValue(
+  doctype: string,
+  name: string,
+  field: string
+): Promise<string | null> {
+  return listDocuments(doctype, {
+    fields: [field],
+    filters: { name },
+    limit: 1,
+  }).then(({ data }) => {
+    const value = data[0]?.[field];
+    return value == null ? null : String(value);
+  });
 }
 
 /** App/test override for the cross-record reader; mirrors `setFormatDefaults`. */
@@ -66,9 +80,10 @@ export function setDocValueReader(reader: DocValueReader | null): void {
   override.value = reader;
 }
 
-/** Restore the built-in `frappe.client.get_value` reader (test isolation). */
+/** Restore the built-in reader and forget its reads (test isolation). */
 export function resetDocValueReader(): void {
   override.value = null;
+  values.clear();
 }
 
 /** The active cross-record reader: the override if set, else the built-in. */
