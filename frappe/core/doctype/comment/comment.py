@@ -294,10 +294,8 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 	_comments = [{"name": c["name"]} for c in _comments[-100:] if c.get("name")]
 
 	try:
-		# use sql, so that we do not mess with the timestamp
-		frappe.db.sql(
-			f"""update `tab{reference_doctype}` set `_comments`=%s where name=%s""",  # nosec
-			(json.dumps(_comments), reference_name),
+		frappe.db.set_value(
+			reference_doctype, reference_name, "_comments", json.dumps(_comments), update_modified=False
 		)
 
 	except Exception as e:
