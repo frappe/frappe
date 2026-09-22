@@ -4,12 +4,39 @@ import { deleteDocument } from "@framework/ui/api";
 import type { HeaderItem, QuickAction, RecordPageApi } from "@/recordPage";
 import { routeFor } from "@/router/routeFor";
 
-export function quickActionBuiltins(perms: Record<string, any>, tagged = false): QuickAction[] {
+export function quickActionBuiltins(
+  perms: Record<string, any>,
+  tagged = false,
+  follow?: FollowState,
+): QuickAction[] {
   const actions: QuickAction[] = [];
-  if (perms.print) actions.push({ name: "print", label: "Print", icon: "lucide-printer", run: print });
-  actions.push({ name: "copy_link", label: "Copy link", icon: "lucide-link", run: copyLink });
+  if (perms.print)
+    actions.push({
+      name: "print",
+      label: "Print",
+      icon: "lucide-printer",
+      run: print,
+    });
+  actions.push({
+    name: "copy_link",
+    label: "Copy link",
+    icon: "lucide-link",
+    run: copyLink,
+  });
+  if (follow)
+    actions.push({
+      name: "follow",
+      ...followWording(follow),
+      run: follow.toggle,
+    });
   // Only while the record has no tag: a tagged record has the chips' own "+" instead.
-  if (perms.write && !tagged) actions.push({ name: "tags", label: "Tags", icon: "lucide-tag", tagging: true });
+  if (perms.write && !tagged)
+    actions.push({
+      name: "tags",
+      label: "Tags",
+      icon: "lucide-tag",
+      tagging: true,
+    });
   return actions;
 }
 
@@ -19,14 +46,26 @@ export interface FavouriteState {
   toggle: (page: RecordPageApi) => any;
 }
 
+/** The reader's follow, absent while the gate is shut: neither row nor quick action then. */
+export interface FollowState {
+  following: boolean;
+  toggle: (page: RecordPageApi) => any;
+}
+
+function followWording({ following }: FollowState) {
+  return following
+    ? { label: "Unfollow", icon: "lucide-bell-off" }
+    : { label: "Follow", icon: "lucide-bell" };
+}
+
 /**
  * The header's `⋯` rows: no `display`, so the projection files them under the menu.
- * Three bands by `group`: the favourite, the record's copies, then Delete.
+ * Three bands by `group`: the reader's own toggles, the record's copies, then Delete.
  */
 export function headerMenuBuiltins(
   perms: Record<string, any>,
   favourite: FavouriteState,
-  options: { single?: boolean } = {}
+  options: { single?: boolean; follow?: FollowState } = {},
 ): HeaderItem[] {
   const items: HeaderItem[] = [
     {
@@ -37,18 +76,48 @@ export function headerMenuBuiltins(
         ? { label: "Remove from favourites", icon: "lucide-star-off" }
         : { label: "Add to favourites", icon: "lucide-star" }),
     },
-    { name: "copy_url", label: "Copy record URL", icon: "lucide-link", group: "copies", run: copyLink },
-    { name: "copy_id", label: "Copy record ID", icon: "lucide-hash", group: "copies", run: copyId },
   ];
+  if (options.follow)
+    items.push({
+      name: "follow_row",
+      group: "favourite_band",
+      run: options.follow.toggle,
+      ...followWording(options.follow),
+    });
+  items.push(
+    {
+      name: "copy_url",
+      label: "Copy record URL",
+      icon: "lucide-link",
+      group: "copies",
+      run: copyLink,
+    },
+    {
+      name: "copy_id",
+      label: "Copy record ID",
+      icon: "lucide-hash",
+      group: "copies",
+      run: copyId,
+    },
+  );
   // Deleting a single wipes its settings row and the page reloads it with defaults.
   if (perms.delete && !options.single)
-    items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", run: remove });
+    items.push({
+      name: "delete",
+      label: "Delete",
+      icon: "lucide-trash-2",
+      group: "danger",
+      run: remove,
+    });
   return items;
 }
 
 // Desk v1's print view; the new shell has no print page of its own yet.
 function print(page: RecordPageApi) {
-  const query = new URLSearchParams({ doctype: page.doctype, name: page.docname });
+  const query = new URLSearchParams({
+    doctype: page.doctype,
+    name: page.docname,
+  });
   window.open(`/printview?${query}`, "_blank");
 }
 
@@ -62,7 +131,8 @@ async function copyId(page: RecordPageApi) {
 }
 
 async function copy(page: RecordPageApi, text: string, confirmation: string) {
-  if (!navigator.clipboard) return page.toast.error("Copying needs a secure connection");
+  if (!navigator.clipboard)
+    return page.toast.error("Copying needs a secure connection");
   await navigator.clipboard.writeText(text);
   page.toast.success(confirmation);
 }

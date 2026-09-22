@@ -100,7 +100,14 @@ import {
 } from "vue";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
 import { toast } from "frappe-ui";
-import { addFavourite, isApiError, removeFavourite } from "@framework/ui/api";
+import {
+	addFavourite,
+	addFollow,
+	isApiError,
+	removeFavourite,
+	removeFollow,
+	type Envelope,
+} from "@framework/ui/api";
 import { FormLayout } from "@framework/ui/components/FormLayout";
 import { CommitKey, LinkTitlesKey } from "@framework/ui/components/Fields/types";
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
@@ -133,6 +140,7 @@ import { fetchMeta } from "./record/metaSource";
 import { PANEL_BUILTINS } from "./record/panel/builtins";
 import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
 import { favouritesOf, hasFavourited } from "./record/favourites";
+import { canFollow, declinedMessage } from "./record/follow";
 import { useLiveDocinfo } from "./record/liveDocinfo";
 import { useLiveClientScripts } from "./record/liveClientScripts";
 import { personOf, type DocInfo } from "./record/panel/context";
@@ -197,6 +205,13 @@ const dirty = computed(() => JSON.stringify(doc.value) !== JSON.stringify(saved.
 // Off the sidecar, like the people rows: a favourite is never part of the draft.
 const favourites = computed(() => favouritesOf(docinfo.value, boot.session.user.name));
 const favourited = computed(() => hasFavourited(docinfo.value, boot.session.user.name));
+const following = computed(() => Boolean(docinfo.value?.follows));
+// Absent while the gate is shut, so the built-ins seed no follow at all.
+const follow = computed(() =>
+	canFollow(meta.value, boot.session)
+		? { following: following.value, toggle: toggleFollow }
+		: undefined,
+);
 
 const header = computed(() => {
 	actionsVersion.value;
@@ -239,7 +254,7 @@ const disclosure = useDisclosure(
 	() =>
 		(controller.value?.panelSections.visible() ?? [])
 			.filter((item) => item.label)
-			.map((item) => ({ name: item.name, opened: item.opened !== false }))
+			.map((item) => ({ name: item.name, opened: item.opened !== false })),
 );
 
 const tabMemory = computed(() => formTabMemory(boot.session.user.name, doctype.value ?? ""));
@@ -291,30 +306,53 @@ function headerBuiltins(): HeaderItem[] {
 		...headerMenuBuiltins(
 			docinfo.value?.permissions ?? {},
 			{ favourited: favourited.value, toggle: toggleFavourite },
-			{ single }
-		)
+			{ single, follow: follow.value },
+		),
 	);
 	return items;
 }
 
 // A failure toasts here: `runAction` would otherwise reload over the draft. Clicks queue, so
 // each one reads the state the one before it left and two quick clicks toggle twice.
-let favouriteTurn: Promise<void> = Promise.resolve();
+let toggleTurn: Promise<void> = Promise.resolve();
 
-function toggleFavourite(page: RecordPageApi) {
-	favouriteTurn = favouriteTurn.then(async () => {
+function toggleOnSidecar(
+	page: RecordPageApi,
+	write: () => Promise<Envelope<Partial<DocInfo>>>,
+	after?: (answer: Envelope<Partial<DocInfo>>) => void,
+) {
+	toggleTurn = toggleTurn.then(async () => {
 		// A turn that outlived its record would read the next record's state; it does nothing.
 		if (page.doctype !== doctype.value || page.docname !== docname.value) return;
 		const current = whileOnRecord();
-		const write = favourited.value ? removeFavourite : addFavourite;
 		try {
-			const { data } = await write(page.doctype, page.docname);
-			if (current()) docinfo.value = mergePart(docinfo.value, data);
+			const answer = await write();
+			if (!current()) return;
+			docinfo.value = mergePart(docinfo.value, answer.data);
+			after?.(answer);
 		} catch (e) {
 			toast.error(errorMessage(e));
 		}
 	});
-	return favouriteTurn;
+	return toggleTurn;
+}
+
+function toggleFavourite(page: RecordPageApi) {
+	return toggleOnSidecar(page, () =>
+		(favourited.value ? removeFavourite : addFavourite)(page.doctype, page.docname),
+	);
+}
+
+// The server declines a follow without failing, and says why beside the data.
+function toggleFollow(page: RecordPageApi) {
+	return toggleOnSidecar(
+		page,
+		() => (following.value ? removeFollow : addFollow)(page.doctype, page.docname),
+		(answer) => {
+			const message = declinedMessage(answer);
+			if (message) toast.error(message);
+		},
+	);
 }
 
 // Marks the record on show; the check is false once another load or a navigation replaced it.
@@ -426,7 +464,11 @@ async function load() {
 	});
 	created.header.provideBuiltins(headerBuiltins);
 	created.quickActions.provideBuiltins(() =>
-		quickActionBuiltins(docinfo.value?.permissions ?? {}, tagsOf(docinfo.value).length > 0)
+		quickActionBuiltins(
+			docinfo.value?.permissions ?? {},
+			tagsOf(docinfo.value).length > 0,
+			follow.value,
+		),
 	);
 	created.panelSections.provideBuiltins(panelBuiltins);
 	created.form.provideBuiltins(() => formItems(detailsForm.value));
@@ -532,16 +574,16 @@ async function landOn(fieldname: string, cursor: boolean) {
 	const tab = identifyTabs(form.value).find((one) =>
 		one.sections.some((section) =>
 			section.columns.some((column) =>
-				column.fields.some((field) => field.fieldname === fieldname)
-			)
-		)
+				column.fields.some((field) => field.fieldname === fieldname),
+			),
+		),
 	);
 	if (tab) formTab.value = tab.identity;
 	// The strip mounts a tab's panel a frame after the model moves, so the cell is polled for.
 	for (let frame = 0; frame < 10; frame++) {
 		await nextTick();
 		const cell = formRoot.value?.querySelector<HTMLElement>(
-			`.field[data-fieldname="${fieldname}"]`
+			`.field[data-fieldname="${fieldname}"]`,
 		);
 		if (cell) {
 			cell.scrollIntoView({ block: "center" });
@@ -553,7 +595,7 @@ async function landOn(fieldname: string, cursor: boolean) {
 	}
 	if (import.meta.env.DEV)
 		console.warn(
-			`[record-page] page.fields.focus("${fieldname}") — not on the form; the reader was not moved.`
+			`[record-page] page.fields.focus("${fieldname}") — not on the form; the reader was not moved.`,
 		);
 }
 
@@ -576,7 +618,7 @@ onBeforeRouteLeave(confirmLeave);
 onBeforeRouteUpdate((to, from) =>
 	to.params.doctype === from.params.doctype && to.params.name === from.params.name
 		? true
-		: confirmLeave()
+		: confirmLeave(),
 );
 
 function onBeforeUnload(event: BeforeUnloadEvent) {

@@ -4,70 +4,86 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, ref } from "vue";
 
 // The pickers are stubbed to their trigger: `pick` stands in for a selection made inside.
-const stub = vi.hoisted(() => ({ nextPick: [] as string[] | string, nextQuery: "" }));
+const stub = vi.hoisted(() => ({
+  nextPick: [] as string[] | string,
+  nextQuery: "",
+}));
 
 // The wrapper's writes, each answering with the part it names.
 const api = vi.hoisted(() => {
-	const answer = (part: string, value: unknown) =>
-		vi.fn(async () => ({ data: { [part]: value, users: { "cy@example.com": { full_name: "Cy" } } } }));
-	return {
-		addAssignment: answer("assignments", [{ user: "cy@example.com" }]),
-		removeAssignment: answer("assignments", []),
-		addShare: answer("shares", [{ user: "cy@example.com", read: 1, write: 1 }]),
-		removeShare: answer("shares", []),
-		addTag: vi.fn(async () => ({ data: { tags: ["urgent", "later"] } })),
-		removeTag: vi.fn(async () => ({ data: { tags: [] } })),
-		addFollow: vi.fn(async () => ({ data: { follows: true } })),
-		removeFollow: vi.fn(async () => ({ data: { follows: false } })),
-	};
+  const answer = (part: string, value: unknown) =>
+    vi.fn(async () => ({
+      data: { [part]: value, users: { "cy@example.com": { full_name: "Cy" } } },
+    }));
+  return {
+    addAssignment: answer("assignments", [{ user: "cy@example.com" }]),
+    removeAssignment: answer("assignments", []),
+    addShare: answer("shares", [{ user: "cy@example.com", read: 1, write: 1 }]),
+    removeShare: answer("shares", []),
+    addTag: vi.fn(async () => ({ data: { tags: ["urgent", "later"] } })),
+    removeTag: vi.fn(async () => ({ data: { tags: [] } })),
+  };
 });
 
 vi.mock("@framework/ui/api", () => api);
 
 vi.mock("frappe-ui", () => {
-	const Picker = defineComponent({
-		emits: ["update:modelValue", "update:query", "update:open"],
-		setup(_, { slots, emit }) {
-			return () =>
-				h("div", { "data-picker": "" }, [
-					slots.trigger?.({ open: false }),
-					h("button", {
-						"data-pick": "",
-						onClick: () => {
-							emit("update:query", stub.nextQuery);
-							emit("update:modelValue", stub.nextPick);
-						},
-					}),
-					slots.footer?.({}),
-				]);
-		},
-	});
-	const Plain = (tag: string) =>
-		defineComponent({ setup: (_, { slots }) => () => h(tag, slots.default?.()) });
-	return {
-		MultiSelect: Picker,
-		Combobox: Picker,
-		Avatar: defineComponent({
-			props: ["label"],
-			setup: (props) => () => h("span", { "data-avatar": props.label }),
-		}),
-		Tooltip: Plain("span"),
-		TooltipProvider: Plain("div"),
-		Dropdown: defineComponent({
-			props: ["options"],
-			setup: (props, { slots }) => () =>
-				h("div", { "data-dropdown": "" }, [
-					slots.default?.(),
-					...props.options.map((option: any) =>
-						h("button", { "data-menu-row": option.label, onClick: option.onClick })
-					),
-				]),
-		}),
-		Button: defineComponent({
-			props: ["label"],
-			setup: (props, { slots }) => () => h("button", slots.default?.() ?? props.label),
-		}),
-	};
+  const Picker = defineComponent({
+    emits: ["update:modelValue", "update:query", "update:open"],
+    setup(_, { slots, emit }) {
+      return () =>
+        h("div", { "data-picker": "" }, [
+          slots.trigger?.({ open: false }),
+          h("button", {
+            "data-pick": "",
+            onClick: () => {
+              emit("update:query", stub.nextQuery);
+              emit("update:modelValue", stub.nextPick);
+            },
+          }),
+          slots.footer?.({}),
+        ]);
+    },
+  });
+  const Plain = (tag: string) =>
+    defineComponent({
+      setup:
+        (_, { slots }) =>
+        () =>
+          h(tag, slots.default?.()),
+    });
+  return {
+    MultiSelect: Picker,
+    Combobox: Picker,
+    Avatar: defineComponent({
+      props: ["label"],
+      setup: (props) => () => h("span", { "data-avatar": props.label }),
+    }),
+    Tooltip: Plain("span"),
+    TooltipProvider: Plain("div"),
+    Dropdown: defineComponent({
+      props: ["options"],
+      setup:
+        (props, { slots }) =>
+        () =>
+          h("div", { "data-dropdown": "" }, [
+            slots.default?.(),
+            ...props.options.map((option: any) =>
+              h("button", {
+                "data-menu-row": option.label,
+                onClick: option.onClick,
+              }),
+            ),
+          ]),
+    }),
+    Button: defineComponent({
+      props: ["label"],
+      setup:
+        (props, { slots }) =>
+        () =>
+          h("button", slots.default?.() ?? props.label),
+    }),
+  };
 });
 
 import { PanelContextKey, type DocInfo } from "../context";
@@ -83,263 +99,294 @@ const mounted: ReturnType<typeof createApp>[] = [];
 const quickActions: any[] = [];
 
 afterEach(() => {
-	for (const app of mounted.splice(0)) app.unmount();
-	document.body.innerHTML = "";
-	stub.nextPick = [];
-	stub.nextQuery = "";
-	quickActions.splice(0);
-	vi.clearAllMocks();
+  for (const app of mounted.splice(0)) app.unmount();
+  document.body.innerHTML = "";
+  stub.nextPick = [];
+  stub.nextQuery = "";
+  quickActions.splice(0);
+  vi.clearAllMocks();
 });
 
-function setup(info: DocInfo, component: any = RecordPeople, props: Record<string, any> = {}) {
-	const page = {
-		call: vi.fn(async () => null),
-		toast: { error: vi.fn() },
-		dialog: { open: vi.fn(async () => null) },
-	};
-	const docinfo = ref<DocInfo | null>(info);
-	const reloadDocinfo = vi.fn(async () => {});
-	let onRecord = true;
-	const context = {
-		doctype: "CRM Deal",
-		docname: "D-1",
-		doc: ref({}),
-		meta: ref(null),
-		docinfo,
-		controller: { page, quickActions: { visible: () => quickActions } } as any,
-		run: vi.fn(),
-		reloadDocinfo,
-		whileOnRecord: () => () => onRecord,
-	};
-	const root = document.createElement("div");
-	document.body.appendChild(root);
-	const app = createApp(defineComponent({ render: () => h(component, props) }));
-	app.provide(PanelContextKey, context);
-	app.mount(root);
-	mounted.push(app);
-	return { root, page, reloadDocinfo, docinfo, context, leaveRecord: () => (onRecord = false) };
+function setup(
+  info: DocInfo,
+  component: any = RecordPeople,
+  props: Record<string, any> = {},
+) {
+  const page = {
+    call: vi.fn(async () => null),
+    toast: { error: vi.fn() },
+    dialog: { open: vi.fn(async () => null) },
+  };
+  const docinfo = ref<DocInfo | null>(info);
+  const reloadDocinfo = vi.fn(async () => {});
+  let onRecord = true;
+  const context = {
+    doctype: "CRM Deal",
+    docname: "D-1",
+    doc: ref({}),
+    meta: ref(null),
+    docinfo,
+    controller: { page, quickActions: { visible: () => quickActions } } as any,
+    run: vi.fn(),
+    reloadDocinfo,
+    whileOnRecord: () => () => onRecord,
+  };
+  const root = document.createElement("div");
+  document.body.appendChild(root);
+  const app = createApp(defineComponent({ render: () => h(component, props) }));
+  app.provide(PanelContextKey, context);
+  app.mount(root);
+  mounted.push(app);
+  return {
+    root,
+    page,
+    reloadDocinfo,
+    docinfo,
+    context,
+    leaveRecord: () => (onRecord = false),
+  };
 }
 
 const info = (permissions: Record<string, 0 | 1>): DocInfo => ({
-	assignments: [{ user: "ann@example.com" }],
-	shares: [{ user: "bob@example.com", read: 1 }],
-	tags: ["urgent"],
-	users: { "ann@example.com": { full_name: "Ann" }, "bob@example.com": { full_name: "Bob" } },
-	permissions,
+  assignments: [{ user: "ann@example.com" }],
+  shares: [{ user: "bob@example.com", read: 1 }],
+  tags: ["urgent"],
+  users: {
+    "ann@example.com": { full_name: "Ann" },
+    "bob@example.com": { full_name: "Bob" },
+  },
+  permissions,
 });
 
 async function pick(root: HTMLElement, values: string[] | string, query = "") {
-	stub.nextPick = values;
-	stub.nextQuery = query;
-	root.querySelector<HTMLElement>("[data-pick]")!.click();
-	await nextTick();
+  stub.nextPick = values;
+  stub.nextQuery = query;
+  root.querySelector<HTMLElement>("[data-pick]")!.click();
+  await nextTick();
 }
 
 describe("the gate", () => {
-	it("edits assignees and shares with the write and share rights", () => {
-		const { root } = setup(info({ write: 1, share: 1 }));
-		expect(root.querySelector("[data-assign]")).not.toBeNull();
-		expect(root.querySelector("[data-share]")).not.toBeNull();
-	});
+  it("edits assignees and shares with the write and share rights", () => {
+    const { root } = setup(info({ write: 1, share: 1 }));
+    expect(root.querySelector("[data-assign]")).not.toBeNull();
+    expect(root.querySelector("[data-share]")).not.toBeNull();
+  });
 
-	it("reads the rows without them, and still names the people", () => {
-		const { root } = setup(info({ read: 1 }));
-		expect(root.querySelector("[data-assign]")).toBeNull();
-		expect(root.querySelector("[data-share]")).toBeNull();
-		expect(root.textContent).toContain("Ann");
-		expect(root.textContent).toContain("Bob");
-	});
+  it("reads the rows without them, and still names the people", () => {
+    const { root } = setup(info({ read: 1 }));
+    expect(root.querySelector("[data-assign]")).toBeNull();
+    expect(root.querySelector("[data-share]")).toBeNull();
+    expect(root.textContent).toContain("Ann");
+    expect(root.textContent).toContain("Bob");
+  });
 
-	it("says so when nobody is assigned or shared", () => {
-		const { root } = setup({ permissions: { read: 1 } });
-		expect(root.textContent).toContain("Not assigned");
-		expect(root.textContent).toContain("Not shared");
-	});
+  it("says so when nobody is assigned or shared", () => {
+    const { root } = setup({ permissions: { read: 1 } });
+    expect(root.textContent).toContain("Not assigned");
+    expect(root.textContent).toContain("Not shared");
+  });
 });
 
 describe("assigning", () => {
-	it("adds who the pick added, drops who it dropped, and takes the answer as the row", async () => {
-		const { root, docinfo, reloadDocinfo } = setup(info({ write: 1 }));
-		await pick(root, ["cy@example.com"]);
-		await vi.waitFor(() => expect(api.removeAssignment).toHaveBeenCalledTimes(1));
-		expect(api.addAssignment).toHaveBeenCalledWith("CRM Deal", "D-1", { user: "cy@example.com" });
-		expect(api.removeAssignment).toHaveBeenCalledWith("CRM Deal", "D-1", "ann@example.com");
-		await vi.waitFor(() => expect(docinfo.value?.assignments).toEqual([]));
-		expect(docinfo.value?.users).toMatchObject({
-			"ann@example.com": { full_name: "Ann" },
-			"cy@example.com": { full_name: "Cy" },
-		});
-		expect(docinfo.value?.shares).toEqual(info({}).shares);
-		expect(reloadDocinfo).not.toHaveBeenCalled();
-	});
+  it("adds who the pick added, drops who it dropped, and takes the answer as the row", async () => {
+    const { root, docinfo, reloadDocinfo } = setup(info({ write: 1 }));
+    await pick(root, ["cy@example.com"]);
+    await vi.waitFor(() =>
+      expect(api.removeAssignment).toHaveBeenCalledTimes(1),
+    );
+    expect(api.addAssignment).toHaveBeenCalledWith("CRM Deal", "D-1", {
+      user: "cy@example.com",
+    });
+    expect(api.removeAssignment).toHaveBeenCalledWith(
+      "CRM Deal",
+      "D-1",
+      "ann@example.com",
+    );
+    await vi.waitFor(() => expect(docinfo.value?.assignments).toEqual([]));
+    expect(docinfo.value?.users).toMatchObject({
+      "ann@example.com": { full_name: "Ann" },
+      "cy@example.com": { full_name: "Cy" },
+    });
+    expect(docinfo.value?.shares).toEqual(info({}).shares);
+    expect(reloadDocinfo).not.toHaveBeenCalled();
+  });
 
-	it("drops an answer that landed after the page moved to another record", async () => {
-		const { root, docinfo, leaveRecord } = setup(info({ write: 1 }));
-		leaveRecord();
-		await pick(root, ["ann@example.com", "cy@example.com"]);
-		await vi.waitFor(() => expect(api.addAssignment).toHaveBeenCalledTimes(1));
-		expect(docinfo.value?.assignments).toEqual([{ user: "ann@example.com" }]);
-	});
+  it("drops an answer that landed after the page moved to another record", async () => {
+    const { root, docinfo, leaveRecord } = setup(info({ write: 1 }));
+    leaveRecord();
+    await pick(root, ["ann@example.com", "cy@example.com"]);
+    await vi.waitFor(() => expect(api.addAssignment).toHaveBeenCalledTimes(1));
+    expect(docinfo.value?.assignments).toEqual([{ user: "ann@example.com" }]);
+  });
 
-	it("toasts a refused write and leaves the sidecar alone", async () => {
-		const { root, page, docinfo } = setup(info({ write: 1 }));
-		api.addAssignment.mockRejectedValueOnce({ messages: ["Not permitted"] });
-		await pick(root, ["ann@example.com", "cy@example.com"]);
-		await vi.waitFor(() => expect(page.toast.error).toHaveBeenCalledWith("Not permitted"));
-		expect(docinfo.value?.assignments).toEqual([{ user: "ann@example.com" }]);
-	});
+  it("toasts a refused write and leaves the sidecar alone", async () => {
+    const { root, page, docinfo } = setup(info({ write: 1 }));
+    api.addAssignment.mockRejectedValueOnce({ messages: ["Not permitted"] });
+    await pick(root, ["ann@example.com", "cy@example.com"]);
+    await vi.waitFor(() =>
+      expect(page.toast.error).toHaveBeenCalledWith("Not permitted"),
+    );
+    expect(docinfo.value?.assignments).toEqual([{ user: "ann@example.com" }]);
+  });
 });
 
 describe("sharing", () => {
-	it("opens the share dialog on the page's own stack, handed the live context", async () => {
-		const { root, page, docinfo } = setup(info({ share: 1 }));
-		root.querySelector<HTMLElement>("[data-share]")!.click();
-		expect(page.dialog.open).toHaveBeenCalledTimes(1);
-		const [component, props, options] = page.dialog.open.mock.calls[0] as any[];
-		expect(component).toBeTruthy();
-		expect(props.context.docinfo).toBe(docinfo);
-		expect(options).toEqual({ title: "Share this record" });
-	});
-});
-
-describe("following", () => {
-	it("offers to follow, and takes the server's answer as the state", async () => {
-		const { root, docinfo } = setup(info({ read: 1 }));
-		const button = root.querySelector<HTMLElement>("[data-follow]")!;
-		expect(button.textContent).toBe("Follow");
-		expect(button.getAttribute("aria-pressed")).toBe("false");
-		button.click();
-		await vi.waitFor(() => expect(docinfo.value?.follows).toBe(true));
-		expect(api.addFollow).toHaveBeenCalledWith("CRM Deal", "D-1");
-		await nextTick();
-		expect(button.textContent).toBe("Following");
-		expect(button.getAttribute("aria-pressed")).toBe("true");
-	});
-
-	it("shows what the server said when it declined the follow", async () => {
-		const { root, page } = setup(info({ read: 1 }));
-		api.addFollow.mockResolvedValueOnce({
-			data: { follows: false },
-			messages: [{ message: "Can't follow since changes are not tracked." }],
-		});
-		root.querySelector<HTMLElement>("[data-follow]")!.click();
-		await vi.waitFor(() =>
-			expect(page.toast.error).toHaveBeenCalledWith("Can't follow since changes are not tracked.")
-		);
-	});
-
-	it("says nothing when a declined follow carried no message", async () => {
-		const { root, page } = setup(info({ read: 1 }));
-		api.addFollow.mockResolvedValueOnce({ data: { follows: false } });
-		root.querySelector<HTMLElement>("[data-follow]")!.click();
-		await vi.waitFor(() => expect(api.addFollow).toHaveBeenCalledTimes(1));
-		expect(page.toast.error).not.toHaveBeenCalled();
-	});
-
-	it("unfollows from the pressed button", async () => {
-		const { root, docinfo } = setup({ ...info({ read: 1 }), follows: true });
-		root.querySelector<HTMLElement>("[data-follow]")!.click();
-		await vi.waitFor(() => expect(docinfo.value?.follows).toBe(false));
-		expect(api.removeFollow).toHaveBeenCalledWith("CRM Deal", "D-1");
-	});
+  it("opens the share dialog on the page's own stack, handed the live context", async () => {
+    const { root, page, docinfo } = setup(info({ share: 1 }));
+    root.querySelector<HTMLElement>("[data-share]")!.click();
+    expect(page.dialog.open).toHaveBeenCalledTimes(1);
+    const [component, props, options] = page.dialog.open.mock.calls[0] as any[];
+    expect(component).toBeTruthy();
+    expect(props.context.docinfo).toBe(docinfo);
+    expect(options).toEqual({ title: "Share this record" });
+  });
 });
 
 describe("the share dialog", () => {
-	// The dialog acts on the panel's context, so the assertions read the host's page.
-	function open(info: DocInfo) {
-		const host = setup(info);
-		const { root } = setup(info, ShareDialog, { context: host.context, close: vi.fn() });
-		return { root, page: host.page, context: host.context, docinfo: host.docinfo };
-	}
+  // The dialog acts on the panel's context, so the assertions read the host's page.
+  function open(info: DocInfo) {
+    const host = setup(info);
+    const { root } = setup(info, ShareDialog, {
+      context: host.context,
+      close: vi.fn(),
+    });
+    return {
+      root,
+      page: host.page,
+      context: host.context,
+      docinfo: host.docinfo,
+    };
+  }
 
-	it("shares with read and write on a pick, and shows the answer", async () => {
-		const { root, docinfo } = open(info({ share: 1 }));
-		await pick(root, "cy@example.com");
-		await vi.waitFor(() => expect(docinfo.value?.shares).toEqual([{ user: "cy@example.com", read: 1, write: 1 }]));
-		expect(api.addShare).toHaveBeenCalledWith("CRM Deal", "D-1", {
-			user: "cy@example.com",
-			read: 1,
-			write: 1,
-		});
-	});
+  it("shares with read and write on a pick, and shows the answer", async () => {
+    const { root, docinfo } = open(info({ share: 1 }));
+    await pick(root, "cy@example.com");
+    await vi.waitFor(() =>
+      expect(docinfo.value?.shares).toEqual([
+        { user: "cy@example.com", read: 1, write: 1 },
+      ]),
+    );
+    expect(api.addShare).toHaveBeenCalledWith("CRM Deal", "D-1", {
+      user: "cy@example.com",
+      read: 1,
+      write: 1,
+    });
+  });
 
-	it("stops a share for a person and for everyone", async () => {
-		const shared = info({ share: 1 });
-		shared.shares = [{ user: "bob@example.com", read: 1, write: 1 }, { user: "everyone", read: 1 }];
-		const { root } = open(shared);
-		expect(root.textContent).toContain("Can edit");
-		root.querySelector<HTMLElement>("[aria-label='Stop sharing with Bob']")!.click();
-		root.querySelector<HTMLElement>("[aria-label='Stop sharing with Everyone']")!.click();
-		await vi.waitFor(() => expect(api.removeShare).toHaveBeenCalledTimes(2));
-		expect(api.removeShare).toHaveBeenCalledWith("CRM Deal", "D-1", "bob@example.com");
-		expect(api.removeShare).toHaveBeenCalledWith("CRM Deal", "D-1", "everyone");
-	});
+  it("stops a share for a person and for everyone", async () => {
+    const shared = info({ share: 1 });
+    shared.shares = [
+      { user: "bob@example.com", read: 1, write: 1 },
+      { user: "everyone", read: 1 },
+    ];
+    const { root } = open(shared);
+    expect(root.textContent).toContain("Can edit");
+    root
+      .querySelector<HTMLElement>("[aria-label='Stop sharing with Bob']")!
+      .click();
+    root
+      .querySelector<HTMLElement>("[aria-label='Stop sharing with Everyone']")!
+      .click();
+    await vi.waitFor(() => expect(api.removeShare).toHaveBeenCalledTimes(2));
+    expect(api.removeShare).toHaveBeenCalledWith(
+      "CRM Deal",
+      "D-1",
+      "bob@example.com",
+    );
+    expect(api.removeShare).toHaveBeenCalledWith("CRM Deal", "D-1", "everyone");
+  });
 
-	it("follows the live sidecar, and says so when nobody is left", async () => {
-		const { root, docinfo } = open(info({ share: 1 }));
-		expect(root.querySelectorAll("[data-shared-with]")).toHaveLength(1);
-		docinfo.value = { ...docinfo.value, shares: [] };
-		await nextTick();
-		expect(root.querySelectorAll("[data-shared-with]")).toHaveLength(0);
-		expect(root.textContent).toContain("not shared with anyone");
-	});
+  it("follows the live sidecar, and says so when nobody is left", async () => {
+    const { root, docinfo } = open(info({ share: 1 }));
+    expect(root.querySelectorAll("[data-shared-with]")).toHaveLength(1);
+    docinfo.value = { ...docinfo.value, shares: [] };
+    await nextTick();
+    expect(root.querySelectorAll("[data-shared-with]")).toHaveLength(0);
+    expect(root.textContent).toContain("not shared with anyone");
+  });
 });
 
 describe("the avatar stack", () => {
-	it("shows three and counts the rest", () => {
-		const people = ["a", "b", "c", "d", "e"].map((id) => ({ id, name: id }));
-		const { root } = setup({}, PeopleAvatars, { people, placeholder: "Nobody" });
-		expect(root.querySelectorAll("[data-avatar]")).toHaveLength(3);
-		expect(root.textContent).toContain("+2");
-	});
+  it("shows three and counts the rest", () => {
+    const people = ["a", "b", "c", "d", "e"].map((id) => ({ id, name: id }));
+    const { root } = setup({}, PeopleAvatars, {
+      people,
+      placeholder: "Nobody",
+    });
+    expect(root.querySelectorAll("[data-avatar]")).toHaveLength(3);
+    expect(root.textContent).toContain("+2");
+  });
 });
 
 describe("tags", () => {
-	it("draws no row until the record has a tag; the first comes from the quick action", async () => {
-		const bare = setup({ permissions: { write: 1 } }, RecordIdentity);
-		expect(bare.root.querySelector("[data-tags]")).toBeNull();
+  it("draws no row until the record has a tag; the first comes from the quick action", async () => {
+    const bare = setup({ permissions: { write: 1 } }, RecordIdentity);
+    expect(bare.root.querySelector("[data-tags]")).toBeNull();
 
-		quickActions.push({ name: "tags", label: "Tags", icon: "lucide-tag", tagging: true });
-		const { root, docinfo } = setup({ permissions: { write: 1 } }, QuickActions);
-		await vi.waitFor(() => expect(root.textContent).toContain("Tags"));
-		await pick(root, ["first"], "first");
-		await vi.waitFor(() => expect(docinfo.value?.tags).toEqual(["urgent", "later"]));
-		expect(api.addTag).toHaveBeenCalledWith("CRM Deal", "D-1", "first");
-	});
+    quickActions.push({
+      name: "tags",
+      label: "Tags",
+      icon: "lucide-tag",
+      tagging: true,
+    });
+    const { root, docinfo } = setup(
+      { permissions: { write: 1 } },
+      QuickActions,
+    );
+    await vi.waitFor(() => expect(root.textContent).toContain("Tags"));
+    await pick(root, ["first"], "first");
+    await vi.waitFor(() =>
+      expect(docinfo.value?.tags).toEqual(["urgent", "later"]),
+    );
+    expect(api.addTag).toHaveBeenCalledWith("CRM Deal", "D-1", "first");
+  });
 
-	it("draws the chips read-only for a reader who may not write", () => {
-		const tagged = setup(info({ read: 1 }), RecordIdentity);
-		expect(tagged.root.textContent).toContain("urgent");
-		expect(tagged.root.querySelector("[data-add-tag]")).toBeNull();
-		expect(tagged.root.querySelector("[aria-label='Remove urgent']")).toBeNull();
-	});
+  it("draws the chips read-only for a reader who may not write", () => {
+    const tagged = setup(info({ read: 1 }), RecordIdentity);
+    expect(tagged.root.textContent).toContain("urgent");
+    expect(tagged.root.querySelector("[data-add-tag]")).toBeNull();
+    expect(
+      tagged.root.querySelector("[aria-label='Remove urgent']"),
+    ).toBeNull();
+  });
 
-	it("removes a tag from its chip and adds one the picker created", async () => {
-		const { root, docinfo } = setup({ ...info({ write: 1 }), tags: ["urgent", "old"] }, RecordIdentity);
-		api.removeTag.mockResolvedValueOnce({ data: { tags: ["old"] } });
-		root.querySelector<HTMLElement>("[aria-label='Remove urgent']")!.click();
-		await vi.waitFor(() => expect(docinfo.value?.tags).toEqual(["old"]));
-		expect(api.removeTag).toHaveBeenCalledWith("CRM Deal", "D-1", "urgent");
-		expect(docinfo.value?.users).toMatchObject({ "ann@example.com": { full_name: "Ann" } });
+  it("removes a tag from its chip and adds one the picker created", async () => {
+    const { root, docinfo } = setup(
+      { ...info({ write: 1 }), tags: ["urgent", "old"] },
+      RecordIdentity,
+    );
+    api.removeTag.mockResolvedValueOnce({ data: { tags: ["old"] } });
+    root.querySelector<HTMLElement>("[aria-label='Remove urgent']")!.click();
+    await vi.waitFor(() => expect(docinfo.value?.tags).toEqual(["old"]));
+    expect(api.removeTag).toHaveBeenCalledWith("CRM Deal", "D-1", "urgent");
+    expect(docinfo.value?.users).toMatchObject({
+      "ann@example.com": { full_name: "Ann" },
+    });
 
-		api.addTag.mockResolvedValueOnce({ data: { tags: ["old", "later"] } });
-		await pick(root, ["old"], "later");
-		root.querySelector<HTMLElement>("[data-create-tag]")!.click();
-		await vi.waitFor(() => expect(docinfo.value?.tags).toEqual(["old", "later"]));
-		expect(api.addTag).toHaveBeenCalledWith("CRM Deal", "D-1", "later");
-	});
+    api.addTag.mockResolvedValueOnce({ data: { tags: ["old", "later"] } });
+    await pick(root, ["old"], "later");
+    root.querySelector<HTMLElement>("[data-create-tag]")!.click();
+    await vi.waitFor(() =>
+      expect(docinfo.value?.tags).toEqual(["old", "later"]),
+    );
+    expect(api.addTag).toHaveBeenCalledWith("CRM Deal", "D-1", "later");
+  });
 });
 
 describe("mergePart", () => {
-	it("replaces the named part, keeps the rest, and joins the users", () => {
-		const before = info({ read: 1 });
-		const after = mergePart(before, {
-			favourites: [{ user: "cy@example.com" }],
-			users: { "cy@example.com": { full_name: "Cy" } },
-		});
-		expect(after.favourites).toEqual([{ user: "cy@example.com" }]);
-		expect(after.tags).toEqual(["urgent"]);
-		expect(Object.keys(after.users!)).toEqual(["ann@example.com", "bob@example.com", "cy@example.com"]);
-		expect(mergePart(null, { follows: true }).follows).toBe(true);
-	});
+  it("replaces the named part, keeps the rest, and joins the users", () => {
+    const before = info({ read: 1 });
+    const after = mergePart(before, {
+      favourites: [{ user: "cy@example.com" }],
+      users: { "cy@example.com": { full_name: "Cy" } },
+    });
+    expect(after.favourites).toEqual([{ user: "cy@example.com" }]);
+    expect(after.tags).toEqual(["urgent"]);
+    expect(Object.keys(after.users!)).toEqual([
+      "ann@example.com",
+      "bob@example.com",
+      "cy@example.com",
+    ]);
+    expect(mergePart(null, { follows: true }).follows).toBe(true);
+  });
 });

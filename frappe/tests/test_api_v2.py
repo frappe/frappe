@@ -1570,6 +1570,18 @@ class TestSessionAPIV2(FrappeAPITestCase):
 		self.assertTrue(data["timezone"])
 		self.assertIsInstance(data["defaults"], dict)
 
+	def test_session_carries_the_follow_setting_v2(self):
+		before = frappe.db.get_value("User", "Administrator", "document_follow_notify")
+		frappe.db.set_value("User", "Administrator", "document_follow_notify", 1)
+		frappe.db.commit()  # nosemgrep
+		try:
+			response = self.get(self.session_path(), {"sid": self.sid})
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertIs(response.json["data"]["user"]["document_follow_notify"], True)
+		finally:
+			frappe.db.set_value("User", "Administrator", "document_follow_notify", before)
+			frappe.db.commit()  # nosemgrep
+
 	def test_session_serves_a_guest_v2(self):
 		response = self.get(self.session_path(), {"sid": "Guest"})
 		self.assertEqual(response.status_code, 200, response.json)
