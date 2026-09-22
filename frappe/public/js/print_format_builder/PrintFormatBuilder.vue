@@ -582,14 +582,13 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 
 <style scoped>
 .builder-root {
-	/* navbar + page head height */
-	--pfb-chrome-offset: 95px;
 	/* single source of truth for every selection/hover ring on the canvas —
 	   change these two and fields, sections, and layer-hover all update */
 	--pfb-accent: var(--blue-400);
 	--pfb-ring: 2px solid var(--pfb-accent);
 	display: flex;
 	width: 100%;
+	height: 100%;
 }
 
 /* In bulk mode the per-item action toolbars (remove) are
@@ -607,7 +606,7 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 	min-width: 0;
 	display: flex;
 	flex-direction: column;
-	height: calc(100vh - var(--pfb-chrome-offset));
+	height: 100%;
 }
 
 /* ── Canvas toolbar ──────────────────────────────────────── */
