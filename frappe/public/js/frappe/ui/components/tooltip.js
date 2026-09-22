@@ -6,6 +6,7 @@ frappe.provide("frappe.ui");
 /**
  * @typedef {Object} TooltipOpts
  * @property {string} text The label. Rendered as text, never HTML.
+ * @property {boolean} [when_truncated=false] Only show when the trigger's text is cut off (an ellipsis, a line clamp), and stay silent when it fits. Without `text`, the label is the trigger's own text, read at show time.
  * @property {string|string[]} [shortcut] Keyboard hint after the label, one <kbd> per key — pass the raw combo ("ctrl+b") and each key becomes its OS form (⌘B on Mac), or an array of already-formatted keys. Display only; binding stays the caller's job.
  * @property {"top"|"right"|"bottom"|"left"} [side="top"] Which side of the trigger the bubble prefers.
  * @property {"start"|"center"|"end"} [align="center"] How the bubble lines up along that side.
@@ -33,6 +34,31 @@ const EXIT_MS = 100; // keep in sync with es-tooltip-out in tooltip.css
 const TEXT_ALIGNS = ["start", "center"];
 
 let id_counter = 0;
+
+/**
+ * Does this element clip its text? `nowrap` clips sideways (the classic ellipsis), a line clamp
+ * clips downward, and anything else can only clip at a fixed height, so both are checked.
+ *
+ * scrollWidth and clientWidth are integers, so at fractional zoom a box that fits can report a
+ * 1px difference; the 1px of slack absorbs that. An inline element cannot clip at all
+ * (`overflow: hidden` does nothing on one), so it always reads as "fits".
+ */
+function is_truncated(el) {
+	// a hidden element reports zeroes for everything; it has no answer yet
+	if (el.offsetWidth === 0 && el.offsetHeight === 0) return false;
+	const style = getComputedStyle(el);
+	let axis = "both";
+	if (style.whiteSpace === "nowrap" || style.whiteSpace === "pre") axis = "x";
+	else if (style.webkitLineClamp && style.webkitLineClamp !== "none") axis = "y";
+	const x = axis !== "y" && el.scrollWidth - el.clientWidth > 1;
+	const y = axis !== "x" && el.scrollHeight - el.clientHeight > 1;
+	return x || y;
+}
+
+/** Collapse the runs of whitespace that indented markup leaves behind. */
+function collapse(text) {
+	return (text || "").replace(/\s+/g, " ").trim();
+}
 
 /**
  * The small dark bubble that names a control on hover or keyboard focus —
@@ -70,6 +96,7 @@ frappe.ui.Tooltip = class Tooltip {
 		}
 
 		this.text = opts.text || "";
+		this.when_truncated = !!opts.when_truncated;
 		this.shortcut = opts.shortcut || null;
 		this.side = validated(opts.side, SIDES, "side", "Tooltip") || "top";
 		this.align = validated(opts.align, ALIGNS, "align", "Tooltip") || "center";
@@ -111,14 +138,21 @@ frappe.ui.Tooltip = class Tooltip {
 		this.trigger_el.addEventListener("keydown", this.ondown);
 	}
 
-	schedule(wait) {
-		if (this.bubble || !this.text) return;
+	schedule(wait = this.delay) {
+		if (this.bubble || !(this.text || this.when_truncated)) return;
 		clearTimeout(this.show_timer);
 		this.show_timer = setTimeout(() => this.show(), wait);
 	}
 
 	show() {
-		if (this.bubble || !this.text || !this.trigger_el.isConnected) return;
+		if (this.bubble || !this.trigger_el.isConnected) return;
+		// Truncation is checked here, not when the tooltip is attached, because the answer keeps
+		// changing: the window resizes, a column is dragged, the label is renamed, the webfont
+		// swaps in. By now the layout is whatever it is on screen.
+		if (this.when_truncated && !is_truncated(this.trigger_el)) return;
+		const text =
+			this.text || (this.when_truncated ? collapse(this.trigger_el.textContent) : "");
+		if (!text) return;
 
 		// evict whichever tooltip is showing now
 		if (visible && visible !== this) visible.hide();
@@ -131,7 +165,7 @@ frappe.ui.Tooltip = class Tooltip {
 		bubble.className = classes.join(" ");
 		bubble.setAttribute("role", "tooltip");
 		bubble.id = `es-tooltip-${++id_counter}`;
-		bubble.textContent = this.text; // text, never HTML (set_text edits this node)
+		bubble.textContent = text; // text, never HTML (set_text edits this node)
 
 		if (this.shortcut) {
 			const hint = document.createElement("span");
@@ -202,6 +236,72 @@ frappe.ui.Tooltip = class Tooltip {
 		this.trigger_el.removeEventListener("blur", this.onblur);
 		this.trigger_el.removeEventListener("pointerdown", this.ondown);
 		this.trigger_el.removeEventListener("keydown", this.ondown);
+	}
+
+	/**
+	 * Tooltips for every element matching `selector` inside `root`, with one set of listeners no
+	 * matter how many match. For grids and long lists: it costs nothing per item, covers items
+	 * rendered later, and only the element under the pointer ever gets a Tooltip, which is thrown
+	 * away when the pointer leaves. Returns a function that stops it.
+	 * @param {Element|JQuery} root
+	 * @param {string} selector
+	 * @param {TooltipOpts} opts
+	 * @returns {() => void}
+	 * @example frappe.ui.Tooltip.delegate(page.body, ".icon-title", { when_truncated: true });
+	 */
+	static delegate(root, selector, opts = {}) {
+		root = $(root)[0];
+		let current = null;
+
+		const release = () => {
+			current?.destroy();
+			current = null;
+		};
+
+		const claim = (el, from_keyboard) => {
+			if (current?.trigger_el === el) return;
+			release();
+			current = new Tooltip(el, opts);
+			// The enter or focus event that brought us here is already gone, so start the
+			// tooltip by hand. `onenter` keeps the shorter wait right after another tooltip
+			// closed. From here its own listeners take over (leave, blur, Escape, press).
+			if (from_keyboard) current.schedule(0);
+			else current.onenter();
+		};
+
+		const match = (e) => {
+			const hit = e.target?.closest?.(selector);
+			return hit && root.contains(hit) ? hit : null;
+		};
+
+		// pointerover and pointerout bubble (pointerenter and pointerleave do not), which is
+		// what makes one listener on the root enough
+		const onover = (e) => {
+			const hit = match(e);
+			if (hit) claim(hit, false);
+			else if (current && !current.trigger_el.contains(e.target)) release();
+		};
+		const onout = (e) => {
+			if (current && !current.trigger_el.contains(e.relatedTarget)) release();
+		};
+		// keyboard focus only: a click also focuses, and a tooltip on every click is noise
+		const onfocus = (e) => {
+			const hit = match(e);
+			if (hit?.matches(":focus-visible")) claim(hit, true);
+		};
+
+		root.addEventListener("pointerover", onover);
+		root.addEventListener("pointerout", onout);
+		root.addEventListener("focusin", onfocus);
+		root.addEventListener("focusout", release);
+
+		return () => {
+			release();
+			root.removeEventListener("pointerover", onover);
+			root.removeEventListener("pointerout", onout);
+			root.removeEventListener("focusin", onfocus);
+			root.removeEventListener("focusout", release);
+		};
 	}
 };
 

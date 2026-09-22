@@ -55,6 +55,14 @@ class DesktopPage {
 		// re-running setup would stack another modal + handler and open duplicate
 		// dialogs on Ctrl+K. Keep this flag out of `make()` so it survives navigation.
 		this.awesomebar_setup = false;
+		// An app's title is cut to one line with an ellipsis; name it in full on hover, but only
+		// when it was actually cut. Delegated on the page body, which outlives every re-render in
+		// `make()`, so this is set up once.
+		frappe.ui.Tooltip.delegate(this.page.body, ".icon-title", {
+			when_truncated: true,
+			side: "bottom",
+			delay: 150,
+		});
 	}
 	update() {
 		this.make();
@@ -110,8 +118,6 @@ class DesktopPage {
 			};
 			this.add_icon($grid, icon_data, app.route);
 		});
-
-		$('[data-toggle="tooltip"]').tooltip({ placement: "bottom" });
 	}
 	add_icon($grid, icon_data, route) {
 		const $icon = $(frappe.render_template("desktop_icon", { icon: icon_data }));
