@@ -8,20 +8,17 @@
 		<div class="canvas-area">
 			<!-- Canvas toolbar: sample data picker, zoom, preview toggle -->
 			<div class="canvas-toolbar" v-if="!$store.needs_setup.value">
-				<div class="canvas-toolbar-left">
-					<span class="canvas-toolbar-eyebrow">{{ __("Data") }}</span>
-					<div class="canvas-toolbar-picker">
-						<DeskControl
-							v-if="doc_picker_df"
-							class="canvas-doc-picker"
-							:df="doc_picker_df"
-							:model-value="$store.preview_doc_name.value || ''"
-							@update:model-value="(name) => $store.load_preview_doc(name || null)"
-						/>
-						<span v-if="no_records" class="canvas-toolbar-hint">
-							{{ __("No records to preview yet") }}
-						</span>
-					</div>
+				<div class="canvas-toolbar-picker">
+					<DeskControl
+						v-if="doc_picker_df"
+						class="canvas-doc-picker"
+						:df="doc_picker_df"
+						:model-value="$store.preview_doc_name.value || ''"
+						@update:model-value="(name) => $store.load_preview_doc(name || null)"
+					/>
+					<span v-if="no_records" class="canvas-toolbar-hint">
+						{{ __("No records to preview yet") }}
+					</span>
 				</div>
 				<div class="canvas-toolbar-right">
 					<button
@@ -616,31 +613,18 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 	flex-shrink: 0;
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	gap: 12px;
 	padding: 0 16px;
-	height: 40px;
+	height: 44px;
 	border-bottom: 1px solid var(--border-color);
 	background: var(--fg-color);
-}
-
-.canvas-toolbar-left {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	min-width: 0;
-}
-
-.canvas-toolbar-eyebrow {
-	font-size: var(--text-sm);
-	color: var(--text-muted);
-	white-space: nowrap;
 }
 
 .canvas-toolbar-picker {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	width: 280px;
+	width: 224px;
 	min-width: 0;
 }
 
