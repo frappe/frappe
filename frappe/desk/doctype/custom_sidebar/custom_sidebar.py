@@ -624,6 +624,15 @@ def remove_workspace_rows(link_to: str, user: str | None = None) -> None:
 				if not (row.link_type == "Workspace" and row.link_to == link_to)
 			],
 		)
+
+		# A layer with no rows, no label and no icon says nothing, and an empty layer is not the
+		# same as an empty arrangement: this one was never arranged, it just lost the single row it
+		# was created for. Left behind it is read on every boot of whoever owns it, which is a
+		# query to learn that nobody has an opinion.
+		if not doc.sidebar_items and not doc.label and not doc.header_icon:
+			frappe.delete_doc("Custom Sidebar", name, ignore_permissions=True, force=True)
+			continue
+
 		doc.save(ignore_permissions=True)
 
 

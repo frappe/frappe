@@ -18,6 +18,7 @@ from frappe.desk.doctype.custom_sidebar.custom_sidebar import (
 from frappe.desk.doctype.sidebar.sidebar import item_key, resolve_sidebar, unlinked_key
 from frappe.desk.doctype.sidebar.test_sidebar import (
 	delete_page,
+	developer_mode,
 	make_page,
 	make_report,
 	no_developer_mode,
@@ -1228,6 +1229,18 @@ class TestAPrivatePageWritesItsRows(CustomizationTestCase):
 		page.save(ignore_permissions=True)
 
 		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [(page.name, "Test Rows Renamed Page")])
+
+	def test_it_can_be_deleted_on_a_developer_site(self):
+		"""A page nobody exported has no folder to remove, and asking for one is not free: the path
+		of a module the site owns cannot be resolved unless that module names a package. Deleting a
+		private page used to fail with "Package must be set for custom Module Private".
+		"""
+		page = self.make_page("Test Rows Developer Delete Page", module=PRIVATE_MODULE)
+
+		with developer_mode():
+			frappe.delete_doc("Workspace", page.name, force=True)
+
+		self.assertFalse(frappe.db.exists("Workspace", page.name))
 
 	def test_deleting_it_takes_its_rows_out(self):
 		page = self.make_page("Test Rows Deleting Page")

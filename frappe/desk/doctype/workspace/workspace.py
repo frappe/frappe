@@ -252,7 +252,7 @@ class Workspace(Document, DeskViews):
 		if disable_saving_as_public():
 			return
 
-		if frappe.conf.developer_mode and self.public:
+		if self.can_export():
 			self.export_workspace()
 
 			if self.has_value_changed("title") or self.has_value_changed("module"):
@@ -311,10 +311,25 @@ class Workspace(Document, DeskViews):
 
 	def export_workspace(self):
 		"""Export a standard workspace to its module's files (developer mode only)."""
-		# `self.module` guards the export: it drives the on-disk path (`get_module_path`), so a
-		# standard workspace with no module would crash inside `export_to_files`.
-		if frappe.conf.developer_mode and self.standard and self.module:
+		if self.can_export():
 			export_to_files(record_list=[["Workspace", self.name]], record_module=self.module)
+
+	def can_export(self):
+		"""Whether this page is one the developer's site keeps in an app's files.
+
+		Only a standard page is exported, and only in developer mode, and only when it has a module
+		to be exported under: the module drives the on-disk path (`get_module_path`), so a standard
+		page without one would crash inside `export_to_files`.
+
+		Asked before removing a folder as well as before writing one, because the same three things
+		decide whether there is a file at all. A page that was never written
+		to a file has no folder to remove, and asking for one is not free: resolving the path of a
+		module the site owns throws unless that module names a package. So on a developer's site,
+		deleting a page somebody made for themselves failed with "Package must be set for custom
+		Module Private", which is a sentence about exporting app content said to someone deleting
+		their own workspace.
+		"""
+		return bool(frappe.conf.developer_mode and self.standard and self.module)
 
 	def before_export(self, doc):
 		if doc.title != doc.label and doc.label == doc.name:
@@ -363,7 +378,7 @@ class Workspace(Document, DeskViews):
 		# first, because `delete_folder` resolves the module to a path and throws for a missing
 		# module, which made a page whose module had been deleted impossible to delete. There is
 		# no folder to remove for such a page either.
-		if self.module and frappe.conf.developer_mode and frappe.db.exists("Module Def", self.module):
+		if self.can_export() and frappe.db.exists("Module Def", self.module):
 			delete_folder(self.module, "Workspace", self.title)
 
 	@staticmethod
