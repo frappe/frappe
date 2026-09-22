@@ -84,12 +84,7 @@ class PrintViewTest(IntegrationTestCase):
 		self.assertNotIn('onerror="alert(1)"', html)
 		self.assertIn("&#34;", html)
 
-	def test_print_format_builder_beta_escapes_barcode_field(self):
-		"""Beta print formats (macros/*.html) render Barcode fields through a
-		dedicated macro; without it, the value falls back to the unescaped
-		Data.html macro and injects raw markup into the print HTML."""
-		from frappe.utils.weasyprint import get_html
-
+	def _make_barcode_beta_print_format(self):
 		doctype = new_doctype(
 			fields=[{"label": "Barcode Field", "fieldname": "barcode_field", "fieldtype": "Barcode"}]
 		).insert()
@@ -119,11 +114,35 @@ class PrintViewTest(IntegrationTestCase):
 				}
 			),
 		).insert()
+		return doctype, print_format
+
+	def test_print_format_builder_beta_escapes_barcode_field(self):
+		"""Beta print formats (macros/*.html) render Barcode fields through a
+		dedicated macro; without it, the value falls back to the unescaped
+		Data.html macro and injects raw markup into the print HTML."""
+		from frappe.utils.weasyprint import get_html
+
+		doctype, print_format = self._make_barcode_beta_print_format()
 
 		evil = frappe.get_doc(doctype=doctype.name, barcode_field='1234"><script>alert(1)</script>').insert()
 		html = get_html(doctype=doctype.name, name=evil.name, print_format=print_format.name)
 		self.assertNotIn("<script>alert(1)</script>", html)
 		self.assertIn("&lt;script&gt;", html)
+
+	def test_print_format_builder_beta_sanitizes_raw_svg_barcode(self):
+		"""Barcode fields skip HTML sanitization on save (they may legitimately
+		hold raw SVG), so the beta renderer's SVG passthrough branch must
+		sanitize the value itself rather than emit it verbatim."""
+		from frappe.utils.weasyprint import get_html
+
+		doctype, print_format = self._make_barcode_beta_print_format()
+
+		evil = frappe.get_doc(
+			doctype=doctype.name, barcode_field='<svg onload="alert(1)"><circle r="1"/></svg>'
+		).insert()
+		html = get_html(doctype=doctype.name, name=evil.name, print_format=print_format.name)
+		self.assertNotIn("onload", html)
+		self.assertIn("<circle", html)
 
 	def test_print_error(self):
 		"""Print failures shouldn't generate PDF with failure message but instead escalate the error"""

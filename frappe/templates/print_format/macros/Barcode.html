@@ -3,7 +3,7 @@
 {%- block value -%}
 <div class="value">
     {%- if value.startswith("<svg") -%}
-    {{ value }}
+    {{ frappe.sanitize_html(value, always_sanitize=True) }}
     {%- else -%}
     <svg data-barcode-value="{{ value|e }}" height="80" data-options='{{ df.options|e }}'></svg>
     {%- endif -%}
