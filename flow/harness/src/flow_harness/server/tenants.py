@@ -27,6 +27,8 @@ class Tenant:
 			replacing FLOW_CALLBACK_HOSTS for this site. None inherits it; an
 			empty list refuses callbacks.
 		data_dir: This site's own partition directory; None means `data_dir/tenants/<site>`.
+		extensions: Extension files or directories loaded for this site alone, on top of
+			the daemon's own; one that does not exist yet is skipped.
 	"""
 
 	site: str
@@ -35,6 +37,7 @@ class Tenant:
 	callback_hosts: tuple[str, ...] | None = None
 	ignore_hidden_files: bool = False
 	data_dir: str | None = None
+	extensions: tuple[str, ...] = ()
 
 
 def load_tenants(path: str) -> list[Tenant]:
@@ -66,7 +69,8 @@ def _parse_entry(site: str, entry: object) -> Tenant:
 	unknown = sorted(
 		str(key)
 		for key in entry
-		if key not in ("token", "allowed_roots", "ignore_hidden_files", "callback_hosts", "data_dir")
+		if key
+		not in ("token", "allowed_roots", "ignore_hidden_files", "callback_hosts", "data_dir", "extensions")
 	)
 	if unknown:
 		raise ValueError(f"site {site!r}: unknown keys: {', '.join(unknown)}")
@@ -97,6 +101,13 @@ def _parse_entry(site: str, entry: object) -> Tenant:
 	data_dir = entry.get("data_dir")
 	if data_dir is not None and (not isinstance(data_dir, str) or not os.path.isabs(data_dir)):
 		raise ValueError(f"site {site!r}: data_dir must be an absolute path")
+	extensions = entry.get("extensions", [])
+	bad_extensions = f"site {site!r}: extensions must be a list of absolute paths"
+	if not isinstance(extensions, list):
+		raise ValueError(bad_extensions)
+	paths = tuple(path for path in extensions if isinstance(path, str) and os.path.isabs(path))
+	if len(paths) != len(extensions):
+		raise ValueError(bad_extensions)
 	return Tenant(
 		site=site,
 		token=token,
@@ -104,4 +115,5 @@ def _parse_entry(site: str, entry: object) -> Tenant:
 		ignore_hidden_files=ignore_hidden_files,
 		callback_hosts=parsed,
 		data_dir=data_dir,
+		extensions=paths,
 	)

@@ -9,6 +9,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+import click
 import frappe
 from frappe.tests import UnitTestCase
 
@@ -73,6 +74,7 @@ class TestDaemonLifecycle(UnitTestCase):
 				"ignore_hidden_files": True,
 				"callback_hosts": [lifecycle.callback_host()],
 				"data_dir": str(self.partition),
+				"extensions": [str(self.partition / "extensions")],
 			},
 		)
 		self.assertEqual((self.state / "tenants.json").stat().st_mode & 0o777, 0o600)
@@ -179,10 +181,69 @@ class TestDaemonLifecycle(UnitTestCase):
 		self.assertEqual(kwargs["umask"], 0o077)
 		self.assertEqual(lifecycle.pid_file().read_text(), "4242")
 
+	def test_start_allows_the_tools_of_every_sites_extensions_folder(self):
+		self.install_flow_bin()
+		lifecycle.provision_site()
+		folder = self.partition / "extensions"
+		folder.mkdir(parents=True)
+		other = self.partition.parent / "other" / "extensions"
+		other.mkdir(parents=True)
+		lifecycle._edit_tenants(
+			lambda tenants: tenants.__setitem__("other", {"extensions": [str(other), "/nowhere"]})
+		)
+		rows = [{"name": "helpdesk_ticket", "description": "Fetch a ticket.", "extension": "helpdesk"}]
+		with (
+			patch.object(lifecycle, "healthy", side_effect=[False, True]),
+			patch.object(lifecycle, "extension_tools", return_value=rows) as listing,
+			patch.object(subprocess, "Popen", return_value=FakeProcess()) as popen,
+		):
+			lifecycle.start()
+		# one listing per folder that exists, like the daemon loads them
+		self.assertCountEqual([c.args[0] for c in listing.call_args_list], [[folder], [other]])
+		command, kwargs = popen.call_args.args[0], popen.call_args.kwargs
+		self.assertNotIn("--extension", command)  # each site's folder comes from its tenants entry
+		self.assertEqual(  # the same tool in two sites is allowed once
+			kwargs["env"]["FLOW_POLICY"], '{"tool_allowlist": ["read_file", "grep", "helpdesk_ticket"]}'
+		)
+
+	def test_extension_tools_runs_the_harness_listing(self):
+		listed = subprocess.CompletedProcess([], 0, stdout='{"tools": [{"name": "hello"}]}', stderr="")
+		with patch.object(subprocess, "run", return_value=listed) as run:
+			self.assertEqual(lifecycle.extension_tools([Path("/ext")]), [{"name": "hello"}])
+		self.assertEqual(run.call_args.args[0], [str(self.flow_bin), "extension-tools", "/ext"])
+		self.assertEqual(lifecycle.extension_tools([]), [])
+
+		failed = subprocess.CompletedProcess([], 1, stdout="", stderr="boom")
+		with (
+			patch.object(subprocess, "run", return_value=failed),
+			patch.object(click, "secho") as secho,
+			self.assertRaisesRegex(RuntimeError, "extension-tools failed"),
+		):
+			lifecycle.extension_tools([Path("/ext")])
+		self.assertEqual(secho.call_args.args[0], "boom")
+
+	def test_migrate_warns_when_the_tool_sync_fails(self):
+		with (
+			patch.object(lifecycle, "restart"),
+			patch.object(lifecycle, "sync_server_tools", side_effect=RuntimeError("no listing")),
+			patch.object(click, "secho") as secho,
+		):
+			lifecycle.after_migrate()
+		self.assertIn("no listing", secho.call_args_list[0].args[0])
+
 	def test_start_refuses_without_a_provisioned_site(self):
 		self.install_flow_bin()
 		with self.assertRaisesRegex(RuntimeError, "no site is provisioned"):
 			lifecycle.start()
+
+	def test_ensure_running_reports_whether_it_started_the_daemon(self):
+		with patch.object(lifecycle, "_restart") as restart:
+			with patch.object(lifecycle, "healthy", return_value=True):
+				self.assertFalse(lifecycle.ensure_running())
+			restart.assert_not_called()
+			with patch.object(lifecycle, "healthy", return_value=False):
+				self.assertTrue(lifecycle.ensure_running())
+			restart.assert_called_once()
 
 	def test_ensure_running_checks_health_inside_the_global_lock(self):
 		events = []

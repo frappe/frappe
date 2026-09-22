@@ -213,7 +213,7 @@ export const SPECS = {
 				name: "type",
 				label: "Type",
 				type: "select",
-				options: ["Imported", "Script"],
+				options: ["Imported", "Script", "Server"],
 				locked: (doc) => system(doc) || saved(doc),
 			},
 			enabled,

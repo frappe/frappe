@@ -136,7 +136,7 @@ class FlowAgent(Document):
 
 		resolved: list[Tool] = []
 		for tool_doc in self._enabled_tool_docs():
-			if tool_doc.name in SERVER_TOOL_SLUGS:
+			if tool_doc.name in SERVER_TOOL_SLUGS or tool_doc.type == "Server":
 				continue
 			if tool_doc.name == KNOWLEDGE_SEARCH_SLUG:
 				resolved.append(bind_search_knowledge([kb.knowledge_base for kb in self.knowledge_bases]))
@@ -166,8 +166,13 @@ class FlowAgent(Document):
 			+ self.skill_index()
 			+ lifecycle.app_source_prompt(server_tools),
 			"tools": server_tools,
+			"extension_tools": self.extension_tools(),
 			**self.client_tool_config(session),
 		}
+
+	def extension_tools(self) -> list[str]:
+		"""Enabled flow server extension tools selected for this agent."""
+		return [tool.name for tool in self._enabled_tool_docs() if tool.type == "Server"]
 
 	def _enabled_tool_docs(self):
 		for row in self.tools:

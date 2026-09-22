@@ -4,6 +4,7 @@
 """Keeps the flow server provisioned for every site and running.
 
 Bench-wide state: <bench>/sites/flow-server/. Each site's sessions: <site>/private/flow/.
+Extensions an admin adds by hand: <site>/private/flow/extensions/, loaded for that site at start.
 Runtime files: <bench>/flow-server/. Logs: the bench's logs directory.
 """
 
@@ -28,8 +29,10 @@ from frappe.utils import get_bench_path
 from frappe.utils.synchronization import filelock
 
 from flow.daemon.client import DaemonClient, DaemonError
+from flow.flow.doctype.flow_tool.flow_tool import sync_server_tools
 
 START_TIMEOUT = 30
+EXTENSIONS_DIR = "extensions"
 STOP_TIMEOUT = 5
 LOCK = "flow_server"
 # The daemon inherits only these names: no bench credentials or stray FLOW_* switches.
@@ -57,12 +60,14 @@ INHERITED_ENV = (
 def after_install() -> None:
 	provision_site()
 	_run_or_warn(ensure_running)
+	_run_or_warn(sync_server_tools)
 
 
 def after_migrate() -> None:
-	"""Restarts so `bench update` ships new daemon code."""
+	"""Restarts so `bench update` ships new daemon code, then mirrors its extension tools."""
 	provision_site()
 	_run_or_warn(restart)
+	_run_or_warn(sync_server_tools)
 
 
 def keep_alive() -> None:
@@ -72,7 +77,7 @@ def keep_alive() -> None:
 	ensure_running()
 
 
-def _run_or_warn(step: Callable[[], None]) -> None:
+def _run_or_warn(step: Callable[[], object]) -> None:
 	"""A daemon that cannot come up must not fail the install or migrate."""
 	try:
 		step()
@@ -94,6 +99,7 @@ def provision_site() -> None:
 		"ignore_hidden_files": True,
 		"callback_hosts": [callback_host()],
 		"data_dir": str(site_data_dir()),
+		"extensions": [str(site_extensions_dir())],
 	}
 	_edit_tenants(lambda tenants: tenants.__setitem__(frappe.local.site, entry))
 	reload_tenants(frappe.conf.flow_server_secret)
@@ -127,6 +133,11 @@ def reload_tenants(token: str) -> bool:
 def session_root() -> Path:
 	"""The site's public files folder, which sessions use as their cwd."""
 	return Path(frappe.get_site_path("public", "files")).resolve()
+
+
+def site_extensions_dir() -> Path:
+	"""Extensions an admin adds over SSH; the daemon loads the folder for this site at start."""
+	return site_data_dir() / EXTENSIONS_DIR
 
 
 def site_data_dir() -> Path:
@@ -196,10 +207,13 @@ def _edit_tenants(change: Callable[[dict], object]) -> dict:
 # --- daemon lifecycle ---------------------------------------------------
 
 
-def ensure_running() -> None:
+def ensure_running() -> bool:
+	"""Start a daemon that is not answering; True when this call started it."""
 	with filelock(LOCK, is_global=True):
-		if not healthy():
-			_restart()
+		if healthy():
+			return False
+		_restart()
+		return True
 
 
 def restart() -> None:
@@ -226,13 +240,19 @@ def _restart() -> None:
 def _start() -> None:
 	if not _flow_bin().exists():
 		raise RuntimeError("flow server is missing from the bench environment; reinstall the Flow app")
-	if not _read_tenants():
+	tenants = _read_tenants()
+	if not tenants:
 		raise RuntimeError("no site is provisioned yet; run `bench flow-server setup`")
 	if healthy():
 		raise RuntimeError(f"a flow server already answers on {socket_path()}; stop it by hand")
 	env = {name: os.environ[name] for name in INHERITED_ENV if name in os.environ}
 	env["FLOW_TENANTS_FILE"] = str(tenants_file())
-	env["FLOW_POLICY"] = json.dumps({"tool_allowlist": ["read_file", "grep"]})
+	allowed = ["read_file", "grep"]
+	for folder in _extension_folders(tenants):
+		for row in extension_tools([folder]):
+			if row["name"] not in allowed:
+				allowed.append(row["name"])
+	env["FLOW_POLICY"] = json.dumps({"tool_allowlist": allowed})
 	if redis_url := _redis_url():
 		env["FLOW_REDIS_URL"] = redis_url
 	command = [
@@ -323,6 +343,30 @@ def _redis_url() -> str | None:
 	socketio process also reads, so one bus serves every site's relay."""
 	conf = frappe.get_common_site_config()
 	return conf.flow_redis_url or conf.redis_queue
+
+
+def extension_tools(folders: list[Path]) -> list[dict]:
+	"""The tools the daemon would load from `folders`, listed by the harness without serving."""
+	if not folders:
+		return []
+	proc = subprocess.run(
+		[str(_flow_bin()), "extension-tools", *map(str, folders)], capture_output=True, text=True
+	)
+	if proc.stderr.strip():
+		click.secho(proc.stderr.strip(), fg="yellow")
+	if proc.returncode != 0:
+		raise RuntimeError("flow extension-tools failed; see the messages above")
+	return json.loads(proc.stdout)["tools"]
+
+
+def _extension_folders(tenants: dict) -> list[Path]:
+	"""Every site's extensions folder that exists."""
+	folders = []
+	for entry in tenants.values():
+		for path in entry.get("extensions", ()):
+			if Path(path).is_dir():
+				folders.append(Path(path))
+	return folders
 
 
 def _read_tenants() -> dict:

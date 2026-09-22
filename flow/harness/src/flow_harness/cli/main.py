@@ -99,6 +99,8 @@ def main() -> None:
 
 	p_logout = sub.add_parser("logout", help="remove a saved provider credential")
 	p_logout.add_argument("provider")
+	p_tools = sub.add_parser("extension-tools", help="list the tools the given extensions register, as JSON")
+	p_tools.add_argument("path", nargs="+", metavar="PATH", help="an extension file or directory")
 
 	args = parser.parse_args(_with_default_command(sys.argv[1:], set(sub.choices)))
 	try:
@@ -116,6 +118,8 @@ def main() -> None:
 			_providers()
 		elif args.cmd == "logout":
 			_logout(args)
+		elif args.cmd == "extension-tools":
+			_extension_tools(args)
 	except (AuthError, CredentialStoreError, DaemonError) as e:
 		print(f"flow: {e}", file=sys.stderr)
 		raise SystemExit(1) from None
@@ -140,9 +144,33 @@ def _add_extension_options(parser: argparse.ArgumentParser) -> None:
 	)
 
 
-def _report_extension_diagnostics(store) -> None:
+def _extension_tools(args) -> None:
+	"""What `flow serve -e PATH...` would load, for a client that builds its allowlist and
+	tool picker before the daemon starts: one row per tool, load problems on stderr."""
+	import contextlib
+	import json
+	from pathlib import Path
+
+	from flow_harness.extensions import ExtensionRuntime
+
+	runtime = ExtensionRuntime()
+	with contextlib.redirect_stdout(sys.stderr):  # an extension's own prints must not break the JSON
+		runtime.load(global_dir=None, extra_paths=[Path(p) for p in args.path], include_global_dir=False)
+	_report_extension_diagnostics(runtime)
+	rows = [
+		{
+			"name": name,
+			"description": tool.prompt_snippet or tool.description,
+			"extension": runtime.tool_sources[name],
+		}
+		for name, tool in runtime.tools.items()
+	]
+	print(json.dumps({"tools": rows}))
+
+
+def _report_extension_diagnostics(runtime) -> None:
 	"""Extension load problems are non-fatal; stderr is the only place a CLI user sees them."""
-	for diagnostic in store.extension_runtime.diagnostics:
+	for diagnostic in runtime.diagnostics:
 		location = diagnostic.path or diagnostic.extension
 		suffix = f" ({location})" if location else ""
 		print(f"flow: extension {diagnostic.severity}: {diagnostic.message}{suffix}", file=sys.stderr)
@@ -265,7 +293,7 @@ def _serve(args) -> None:
 		tool_allowlist=policy.tool_allowlist,
 		callback_hosts=policy.callback_hosts,
 	)
-	_report_extension_diagnostics(store)
+	_report_extension_diagnostics(store.extension_runtime)
 	app = create_app(
 		store,
 		auth_token=auth_token,
@@ -329,7 +357,7 @@ def _web(args) -> None:
 		extension_paths=args.extension,
 		extensions_enabled=not args.no_extensions,
 	)
-	_report_extension_diagnostics(store)
+	_report_extension_diagnostics(store.extension_runtime)
 	app = create_app(
 		store,
 		auth_token=auth_token,

@@ -6,7 +6,7 @@ Extensions are trusted code. They run inside the daemon process with the daemon'
 
 ## Where extensions live
 
-The daemon loads `~/.flow/extensions/` plus any explicit `-e/--extension PATH` (repeatable). `--no-extensions` drops the global directory and keeps the explicit paths; the deployed profile skips the global directory too, so an operator opts in per path.
+The daemon loads `~/.flow/extensions/` plus any explicit `-e/--extension PATH` (repeatable). `--no-extensions` drops the global directory and keeps the explicit paths; the deployed profile skips the global directory too, so an operator opts in per path. A daemon serving many sites also loads each site's own `extensions` paths from the tenants file into that site's partition alone (see [api.md](api.md)), so one site's tools and hooks never reach another.
 
 An extension is either a single `.py` file, or a directory holding `extension.py`. Names starting with `.` or `_` are skipped when a directory is scanned. The extension's name is the file stem or the directory name, and the first of a duplicate name wins — the rest are ignored with a diagnostic.
 
@@ -116,6 +116,10 @@ Tools run on the daemon's event loop, which a blocking call stalls for every ses
 ## Diagnostics
 
 A load failure is never fatal to the daemon. Failures — a bad import, a missing or async `setup`, a duplicate name, a handler that raised — are collected as diagnostics and reported by `GET /sessions/{id}/extensions`, which also lists each extension's tools and hook subscriptions. A repeated runtime failure is recorded once per distinct message, since hooks run on every tool call. The CLI prints load diagnostics to stderr at startup.
+
+## Listing tools
+
+`flow extension-tools PATH...` loads the given extension files or directories the way `flow serve -e` would, prints one JSON row per registered tool (`name`, `description`, `extension`) on stdout, and reports load problems on stderr, along with anything an extension prints while it loads, so stdout stays valid JSON. A client that fronts the daemon uses it to learn the tool names before the daemon starts, for example to build a `tool_allowlist` and a tool picker.
 
 ## Examples
 

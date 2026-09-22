@@ -315,6 +315,28 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 		self.assertEqual(config["tools"], [])
 		self.assertNotIn("APP SOURCE CODE", config["system_prompt"])
 
+	def test_server_extension_tools_travel_as_extension_tools(self):
+		frappe.get_doc(
+			{
+				"doctype": "Flow Tool",
+				"title": "Helpdesk Ticket",
+				"slug": "helpdesk_ticket",
+				"type": "Server",
+				"description": "Fetch a ticket.",
+				"is_system_generated": 1,
+			}
+		).insert()
+		self.agent_doc.append("tools", {"tool": "helpdesk_ticket"})
+		self.agent_doc.save()
+
+		config = self.agent_doc.session_tool_config()
+		self.assertEqual(config["extension_tools"], ["helpdesk_ticket"])
+		self.assertEqual(config["tools"], [])
+		self.assertEqual(self.names(), ["read", "execute"])
+
+		frappe.db.set_value("Flow Tool", "helpdesk_ticket", "enabled", 0)
+		self.assertEqual(self.agent_doc.session_tool_config()["extension_tools"], [])
+
 	def test_changing_the_tool_list_warns_that_existing_sessions_keep_theirs(self):
 		frappe.get_doc({"doctype": "Flow Session", "agent": self.agent_doc.name}).insert()
 		with patch("frappe.msgprint") as msgprint:

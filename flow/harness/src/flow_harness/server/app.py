@@ -115,6 +115,7 @@ def create_app(
 			tenant.callback_hosts,
 			ignore_hidden_files=tenant.ignore_hidden_files,
 			data_dir=tenant.data_dir,
+			extensions=tenant.extensions,
 		)
 
 	# one isolated store per site; a request only ever sees its own site's store
@@ -129,7 +130,7 @@ def create_app(
 
 	def refresh_tenants(force: bool = False) -> str | None:
 		"""Re-read the tenants file if it changed; `force` re-reads either way. A site
-		whose fences or data_dir changed, or that is gone, loses its partition. Returns the error
+		whose fences, data_dir or extensions changed, or that is gone, loses its partition. Returns the error
 		if the file cannot be read, leaving the last good list in place."""
 		nonlocal tenants, tenants_mtime
 		if tenants_file is None:
@@ -153,6 +154,7 @@ def create_app(
 				or new.ignore_hidden_files != old.ignore_hidden_files
 				or new.callback_hosts != old.callback_hosts
 				or new.data_dir != old.data_dir
+				or new.extensions != old.extensions
 			):
 				session_store_by_tenant.pop(old.site, None)  # rebuilt on next match, if any
 		tenants = fresh

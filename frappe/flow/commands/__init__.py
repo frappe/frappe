@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from collections.abc import Callable
+
 import click
 import frappe
 
@@ -13,20 +15,11 @@ def flow_server():
 @flow_server.command("setup")
 def setup():
 	"""Provision every site that has Flow and start the daemon."""
-	from frappe.utils import get_sites
-
 	from flow.daemon import lifecycle
 
-	for site in get_sites():
-		frappe.init(site)
-		try:
-			frappe.connect()
-			if "flow" in frappe.get_installed_apps():
-				lifecycle.provision_site()
-				click.echo(f"provisioned {site}")
-		finally:
-			frappe.destroy()
+	_run_on_every_flow_site(_provision)
 	lifecycle.restart()
+	_run_on_every_flow_site(_sync_tools)
 	click.secho(lifecycle.status(), fg="green")
 
 
@@ -35,7 +28,10 @@ def start():
 	"""Start the daemon unless it already answers."""
 	from flow.daemon import lifecycle
 
-	lifecycle.ensure_running()
+	if lifecycle.ensure_running():
+		_run_on_every_flow_site(_sync_tools)
+	else:
+		click.echo("already running; `bench flow-server restart` loads new extensions")
 	click.secho(lifecycle.status(), fg="green")
 
 
@@ -54,6 +50,7 @@ def restart():
 	from flow.daemon import lifecycle
 
 	lifecycle.restart()
+	_run_on_every_flow_site(_sync_tools)
 	click.secho(lifecycle.status(), fg="green")
 
 
@@ -63,6 +60,35 @@ def status():
 	from flow.daemon import lifecycle
 
 	click.echo(lifecycle.status())
+
+
+def _run_on_every_flow_site(step: Callable[[str], None]) -> None:
+	"""Run `step` connected to every site that has Flow installed."""
+	from frappe.utils import get_sites
+
+	for site in get_sites():
+		frappe.init(site)
+		try:
+			frappe.connect()
+			if "flow" in frappe.get_installed_apps():
+				step(site)
+		finally:
+			frappe.destroy()
+
+
+def _provision(site: str) -> None:
+	from flow.daemon import lifecycle
+
+	lifecycle.provision_site()
+	click.echo(f"provisioned {site}")
+
+
+def _sync_tools(_site: str) -> None:
+	"""Mirror the daemon's extension tools as Flow Tool rows on this site."""
+	from flow.flow.doctype.flow_tool.flow_tool import sync_server_tools
+
+	sync_server_tools()
+	frappe.db.commit()
 
 
 commands = [flow_server]

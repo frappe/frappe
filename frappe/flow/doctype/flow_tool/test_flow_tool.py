@@ -1,11 +1,17 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # See license.txt
 
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any
 from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
+
+from flow.daemon import lifecycle
+from flow.flow.doctype.flow_tool.flow_tool import sync_server_tools
+from flow.tools.builtins import sync_builtin_tools
 
 EXTRA_TEST_RECORD_DEPENDENCIES = []
 IGNORE_TEST_RECORD_DEPENDENCIES = []
@@ -38,6 +44,13 @@ def _script(**overrides: Any) -> dict:
 	return doc
 
 
+def _server(**overrides: Any) -> dict:
+	doc = _module(slug="helpdesk_ticket", title="Helpdesk Ticket", type="Server", import_path=None)
+	doc["is_system_generated"] = 1
+	doc.update(overrides)
+	return doc
+
+
 class IntegrationTestFlowTool(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
@@ -51,6 +64,16 @@ class IntegrationTestFlowTool(IntegrationTestCase):
 		doc = frappe.get_doc(_script()).insert()
 		self.assertEqual(doc.name, "script_weather")
 		self.assertEqual(doc.type, "Script")
+
+	def test_server_tool_carries_no_code_here(self):
+		doc = frappe.get_doc(_server()).insert()
+		self.assertEqual(doc.type, "Server")
+		with self.assertRaisesRegex(frappe.ValidationError, "no code here"):
+			frappe.get_doc(_server(slug="server_with_code", code=VALID_SCRIPT_CODE)).insert()
+
+	def test_a_server_tool_cannot_be_created_by_hand(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "add an extension instead"):
+			frappe.get_doc(_server(is_system_generated=0)).insert()
 
 	def test_slug_must_be_snake_case(self):
 		for bad in ("bad-slug", "1starts_with_digit", "bad slug", "has.dot", "HasCaps"):
@@ -202,3 +225,75 @@ class TestFlowToolSessionWarning(IntegrationTestCase):
 			self.tool.save()
 
 		msgprint.assert_not_called()
+
+
+def _listed(name: str, description: str, extension: str = "helpdesk") -> dict:
+	return {"name": name, "description": description, "extension": extension}
+
+
+class TestSyncServerTools(IntegrationTestCase):
+	"""Server rows mirror the tools listed from this site's extensions folder."""
+
+	def setUp(self):
+		sync_builtin_tools()
+		folder = TemporaryDirectory()
+		self.addCleanup(folder.cleanup)
+		self.enterContext(patch.object(lifecycle, "site_extensions_dir", return_value=Path(folder.name)))
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def sync(self, *rows: dict) -> None:
+		with patch.object(lifecycle, "extension_tools", return_value=list(rows)):
+			sync_server_tools()
+
+	def test_rows_are_added_and_refreshed_from_the_listing(self):
+		self.sync(_listed("helpdesk_ticket", "Fetch a ticket."))
+		tool = frappe.get_doc("Flow Tool", "helpdesk_ticket")
+		self.assertEqual(
+			(tool.type, tool.description, tool.is_system_generated), ("Server", "Fetch a ticket.", 1)
+		)
+
+		self.sync(_listed("helpdesk_ticket", "Fetch a ticket and its thread."))
+		self.assertEqual(
+			frappe.db.get_value("Flow Tool", "helpdesk_ticket", "description"),
+			"Fetch a ticket and its thread.",
+		)
+
+	def test_a_tool_gone_from_the_listing_loses_its_row_and_its_agent_rows(self):
+		self.sync(_listed("helpdesk_ticket", "Fetch a ticket."))
+		model = frappe.get_doc(
+			{"doctype": "Flow Model", "title": "Sync Model", "model_id": "openai/gpt-4o-mini", "enabled": 1}
+		).insert()
+		agent = frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "Sync Agent",
+				"model": model.name,
+				"instructions": "Be terse.",
+				"tools": [{"tool": "helpdesk_ticket"}],
+			}
+		).insert()
+
+		self.sync()
+		self.assertFalse(frappe.db.exists("Flow Tool", "helpdesk_ticket"))
+		self.assertEqual(frappe.get_all("Flow Agent Tool", {"parent": agent.name}), [])
+
+	def test_an_extension_tool_named_like_an_app_tool_is_skipped(self):
+		with patch("frappe.log_error") as log_error:
+			self.sync(_listed("read", "An override.", "override"))
+		self.assertEqual(frappe.db.get_value("Flow Tool", "read", "type"), "Imported")
+		log_error.assert_called_once()
+
+	def test_an_extension_tool_whose_name_is_not_a_slug_is_skipped(self):
+		with patch("frappe.log_error") as log_error:
+			self.sync(_listed("readTicket", "Fetch a ticket."))
+		self.assertFalse(frappe.db.exists("Flow Tool", "readTicket"))
+		log_error.assert_called_once()
+
+	def test_the_desk_cannot_delete_a_server_row_but_the_app_can(self):
+		self.sync(_listed("helpdesk_ticket", "Fetch a ticket."))
+		with self.assertRaisesRegex(frappe.ValidationError, "Cannot delete system-generated"):
+			frappe.delete_doc("Flow Tool", "helpdesk_ticket")
+		frappe.delete_doc("Flow Tool", "helpdesk_ticket", ignore_permissions=True)
+		self.assertFalse(frappe.db.exists("Flow Tool", "helpdesk_ticket"))
