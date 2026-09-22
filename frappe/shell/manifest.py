@@ -21,7 +21,16 @@ MANIFEST_FILENAME = "manifest.json"
 FRAMEWORK_NAMES = ("vue", "vue-router", "frappe-ui", "@framework/ui")
 
 
+#: What an app's desk v2 declaration holds; every other key is refused before vite starts.
+DECLARATION_FILENAME = "desk.package.json"
+DECLARATION_KEYS = ("dependencies",)
+
+
 class SingletonConflict(Exception):
+	pass
+
+
+class DeclarationError(Exception):
 	pass
 
 
@@ -55,23 +64,40 @@ def read_package(path: str) -> dict:
 		return json.load(f)
 
 
-def package_json_path(app: str, source_dir: str) -> str:
+def declaration_path(app: str, source_dir: str) -> str:
 	# frappe's own declaration is `frontend/package.base.json`; `frappe/package.json` is desk v1's
-	# esbuild stack, a different bundle with different pins.
+	# esbuild stack, a different bundle with different pins. An app's repo root file serves its own.
 	if app == "frappe":
 		return os.path.join(frontend_dir(), "package.base.json")
-	return os.path.normpath(os.path.join(source_dir, "..", "package.json"))
+	return os.path.join(source_dir, DECLARATION_FILENAME)
+
+
+def read_declaration(app: str, source_dir: str) -> dict:
+	"""The app's desk v2 declaration: `dependencies` only; no file means no packages."""
+	path = declaration_path(app, source_dir)
+	declared = read_package(path)
+	if app == "frappe":
+		return declared
+
+	if refused := sorted(set(declared) - set(DECLARATION_KEYS)):
+		named = ", ".join(f"`{key}`" for key in refused)
+		raise DeclarationError(
+			f"{app} declares {named} in {bench_relative(path)}. "
+			f"{DECLARATION_FILENAME} holds `dependencies` and nothing else; "
+			"the repo root package.json serves the app's other bundles and is not read."
+		)
+	return declared
 
 
 def app_deps(app: str) -> dict[str, str]:
 	"""The app's own declared dependencies, dev included."""
-	package = read_package(package_json_path(app, frappe.get_app_path(app)))
+	package = read_declaration(app, frappe.get_app_path(app))
 	return {**package.get("dependencies", {}), **package.get("devDependencies", {})}
 
 
 def app_runtime_deps(app: str) -> dict[str, str]:
 	"""Only what contributed source can import: `dependencies`, never `devDependencies`."""
-	return read_package(package_json_path(app, frappe.get_app_path(app))).get("dependencies", {})
+	return read_declaration(app, frappe.get_app_path(app)).get("dependencies", {})
 
 
 def app_import_map(app: str) -> dict[str, str]:
@@ -148,7 +174,7 @@ def import_map_problems(entry: dict) -> list[str]:
 			if package_name(value) not in entry["runtime_deps"]:
 				problems.append(
 					f"{app} publishes `{name}` from `{value}`, which "
-					f"{bench_relative(package_json_path(app, source_dir))} does not declare under dependencies"
+					f"{bench_relative(declaration_path(app, source_dir))} does not declare under dependencies"
 				)
 			continue
 
@@ -195,8 +221,17 @@ def enforce_singletons(manifest: list[dict]):
 			"The desk shell builds one module graph, which admits one version of each "
 			"shared library. These are declared at conflicting versions:\n"
 			+ "\n".join(conflicts)
-			+ "\n\nAlign the ranges in the apps' package.json files and build again."
+			+ f"\n\nAlign the ranges in the apps' {DECLARATION_FILENAME} files and build again."
 		)
+
+
+def added_packages(entry: dict, base_dependencies: dict) -> dict[str, str]:
+	"""What one app's declaration adds to the tree; a singleton or a base package adds nothing."""
+	return {
+		package: declared
+		for package, declared in entry["runtime_deps"].items()
+		if package not in SINGLETONS and package not in base_dependencies
+	}
 
 
 def compose_package_json(manifest: list[dict], frontend: str) -> bool:
@@ -208,10 +243,7 @@ def compose_package_json(manifest: list[dict], frontend: str) -> bool:
 	for entry in manifest:
 		if entry["app"] == "frappe":
 			continue
-		for package, declared in entry["runtime_deps"].items():
-			if package in SINGLETONS or package in dependencies:
-				continue
-			dependencies[package] = declared
+		dependencies.update(added_packages(entry, dependencies))
 
 	composed = {
 		**base,
@@ -230,8 +262,35 @@ def compose_package_json(manifest: list[dict], frontend: str) -> bool:
 	return changed
 
 
-def write(frontend: str | None = None) -> bool:
-	"""Assemble, enforce, write the manifest; returns whether the dependency set changed."""
+def installed_size(package_dir: str) -> int:
+	total = 0
+	for root, _dirs, files in os.walk(package_dir):
+		total += sum(os.lstat(os.path.join(root, name)).st_size for name in files)
+	return total
+
+
+def cost_report(manifest: list[dict], frontend: str) -> list[str]:
+	"""One line per app after install: the packages its declaration added and their size on disk."""
+	dependencies = dict(read_package(os.path.join(frontend, "package.base.json")).get("dependencies", {}))
+	lines = []
+	for entry in manifest:
+		if entry["app"] == "frappe":
+			continue
+		added = added_packages(entry, dependencies)
+		dependencies.update(added)
+		if not added:
+			lines.append(f"{entry['app']}: no packages added")
+			continue
+		sized = ", ".join(
+			f"{package} {installed_size(os.path.join(frontend, 'node_modules', package)) / 1000:.1f} kB"
+			for package in added
+		)
+		lines.append(f"{entry['app']}: {sized}")
+	return lines
+
+
+def write(frontend: str | None = None) -> tuple[list[dict], bool]:
+	"""Assemble, enforce, write the manifest; returns it, and whether the dependency set changed."""
 	frontend = frontend or frontend_dir()
 	manifest = assemble()
 	enforce_singletons(manifest)
@@ -249,4 +308,4 @@ def write(frontend: str | None = None) -> bool:
 			indent="\t",
 		)
 
-	return compose_package_json(manifest, frontend)
+	return manifest, compose_package_json(manifest, frontend)

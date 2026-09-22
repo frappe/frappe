@@ -124,6 +124,7 @@ def bundle(
 
 def build_shell(frappe_app_path: str, production: bool = False):
 	"""Assemble the manifest and run the framework's one vite build; `--app X` is accepted and ignored."""
+	from frappe.shell.manifest import cost_report
 	from frappe.shell.manifest import write as write_manifest
 
 	frontend_path = os.path.join(frappe_app_path, "frontend")
@@ -133,14 +134,18 @@ def build_shell(frappe_app_path: str, production: bool = False):
 		return
 
 	# Raises `SingletonConflict`, naming both apps and both ranges.
-	deps_changed = write_manifest(frontend_path)
+	manifest, deps_changed = write_manifest(frontend_path)
+	lock_refreshed = refresh_lockfile(frontend_path)
 
 	# Install when the tree is missing or the composed dependency set changed. `--production=false`
 	# because yarn v1 skips devDependencies under NODE_ENV=production, and vite is one.
-	if not os.path.exists(os.path.join(frontend_path, "node_modules")) or deps_changed:
+	if not os.path.exists(os.path.join(frontend_path, "node_modules")) or deps_changed or lock_refreshed:
 		frappe.commands.popen(
 			"yarn install --production=false", cwd=frontend_path, env=get_node_env(), raise_err=True
 		)
+
+	for line in cost_report(manifest, frontend_path):
+		click.echo(line)
 
 	# Build into a staging directory and swap it in on success: `emptyOutDir` would either take
 	# the running site's assets down on a failed build or leak every previous build.
@@ -159,6 +164,17 @@ def build_shell(frappe_app_path: str, production: bool = False):
 		raise RuntimeError("The shell build produced no index.html; leaving the existing assets in place.")
 
 	swap_shell_assets(staging, published)
+
+
+def refresh_lockfile(frontend_path: str) -> bool:
+	"""Copy the committed base lock into place when the generated one is absent or older than it."""
+	# The generated lock grows only what the apps add; a newer base carries the framework's new pins.
+	base = os.path.join(frontend_path, "yarn.lock.base")
+	lockfile = os.path.join(frontend_path, "yarn.lock")
+	if os.path.exists(lockfile) and os.path.getmtime(lockfile) >= os.path.getmtime(base):
+		return False
+	shutil.copyfile(base, lockfile)
+	return True
 
 
 def swap_shell_assets(staging: str, published: str):
