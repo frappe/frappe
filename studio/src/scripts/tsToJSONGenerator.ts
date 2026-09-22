@@ -24,6 +24,25 @@ const configMap: Record<string, any> = {
 		destFolder: "src/json_types/frappeui",
 		tsconfigPath: "node_modules/frappe-ui/tsconfig.base.json",
 		skipFolders: ["stories", "shared"],
+		// not registered as studio blocks (see constants.js)
+		skipComponents: [
+			"Accordion",
+			"BottomSheet",
+			"DesktopShell",
+			"FloatingWindow",
+			"HoverCard",
+			"ItemListRow",
+			"KeyboardShortcut",
+			"KeyboardShortcutsDialog",
+			"Menu",
+			"MobileNav",
+			"MobileShell",
+			"MultiEmailInput",
+			"PageHeader",
+			"ScrollArea",
+			"ThemeSwitcher",
+			"Toast",
+		],
 		// component-per-folder layout: scan for `types.ts`, key by folder name
 		folderScan: true,
 	},
@@ -38,7 +57,21 @@ const configMap: Record<string, any> = {
 		skipFolders: ["stories", "tests"],
 		// ComposerEditor is the private editing core shared by Email/CommentComposer —
 		// it exports Props (for the composers to extend) but is not a studio block.
-		skipComponents: ["ComposerEditor"],
+		skipComponents: [
+			"ComposerEditor",
+			// not registered as studio blocks (see constants.js)
+			"DataImport",
+			"GettingStartedBanner",
+			"HelpCenter",
+			"HelpModal",
+			"IntermediateStepModal",
+			"InviteUser",
+			"LogItem",
+			"OnboardingSteps",
+			"SignupBanner",
+			"TrialBanner",
+			"VersionItem",
+		],
 		perComponent: true,
 	},
 	studio: {

@@ -34,9 +34,11 @@ function tsToJSON(
 	const outputDirPath = path.resolve(root, destFolder)
 	const tsconfigPath = tsconfig ? path.resolve(root, tsconfig) : ""
 
-	const typeFiles = perComponent
-		? findComponentTypeFiles(inputDirPath, skipFolders, skipComponents)
-		: findTypeFiles(inputDirPath, folderScan, skipFolders)
+	const typeFiles = (
+		perComponent
+			? findComponentTypeFiles(inputDirPath, skipFolders)
+			: findTypeFiles(inputDirPath, folderScan, skipFolders)
+	).filter((t) => !skipComponents?.includes(t.componentName))
 
 	let config = {
 		skipTypeCheck: true,
@@ -112,12 +114,8 @@ function findTypeFiles(dir: string, folderScan: boolean, skipFolders: string[] |
 // is picked up too when present. The type usually lives in a sibling `types.ts`, but
 // grouped widgets (e.g. Composer's EmailComposer/CommentComposer subfolders) declare
 // theirs in an ancestor barrel `types.ts` — that declaring file is the schema-generation
-// entry (`filePath`). `skipComponents` excludes private cores that aren't studio blocks.
-function findComponentTypeFiles(
-	dir: string,
-	skipFolders: string[] | null = null,
-	skipComponents: string[] | null = null,
-): TypeFile[] {
+// entry (`filePath`).
+function findComponentTypeFiles(dir: string, skipFolders: string[] | null = null): TypeFile[] {
 	const typeFiles: TypeFile[] = []
 
 	function scanDirectory(currentDir: string) {
@@ -127,7 +125,6 @@ function findComponentTypeFiles(
 			.map((i) => path.basename(i.name, ".vue"))
 
 		for (const componentName of vueFiles) {
-			if (skipComponents && skipComponents.includes(componentName)) continue
 			const typesFile = findComponentTypesFile(currentDir, componentName, dir)
 			if (!typesFile) continue
 			typeFiles.push({
