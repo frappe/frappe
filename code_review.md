@@ -102,7 +102,8 @@ Check these first. Ask for the missing piece before reading the code.
 
 ### Tests
 
-- New behaviour and bug fixes ship with a test that fails without the fix. A test that only checks nothing raised, or asserts on generated SQL, proves nothing.
+- New behaviour and bug fixes ship with a test that fails without the fix, where a test can prove the fix. A test that only checks nothing raised, or asserts on generated SQL, proves nothing.
+- Ask for a test only when one would catch the regression. Styling, copy and markup changes — spacing, colour, an icon, a label — are exempt: a test that pins pixels, class names or wording breaks on the next design change and proves nothing. Ask for a before and after screenshot instead.
 - Test through public interfaces as a real user, not Administrator. Permission tests use `get_list`, not `get_all`. Fixtures use `example.com`.
 - Flaky tests are fixed, not disabled. Changed behaviour updates the existing tests.
 
