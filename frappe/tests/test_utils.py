@@ -1543,18 +1543,36 @@ class TestTypingValidations(IntegrationTestCase):
 
 
 class TestTBSanitization(IntegrationTestCase):
+<<<<<<< HEAD
 	def test_traceback_sanitzation(self):
+=======
+	def test_traceback_sanitization(self):
+		handle = io.BufferedWriter(io.BytesIO())
+>>>>>>> a4814e5 (fix(log): Hide sensitive info from getting logged)
 		try:
 			password = "424242"  # noqa: F841
 			args = {"password": "424242", "pwd": "424242", "safe": "safe_value"}
 			args = frappe._dict({"password": "424242", "pwd": "424242", "safe": "safe_value"})  # noqa: F841
 			raise Exception
 		except Exception:
+<<<<<<< HEAD
 			traceback = frappe.get_traceback(with_context=True)
 			self.assertNotIn("424242", traceback)
 			self.assertIn("********", traceback)
 			self.assertIn("password =", traceback)
 			self.assertIn("safe_value", traceback)
+=======
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
+		finally:
+			handle.close()
+
+		self.assertNotIn("424242", traceback)
+		self.assertNotIn("cannot pickle", traceback)
+		self.assertIn("********", traceback)
+		self.assertIn("password =", traceback)
+		self.assertIn("safe_value", traceback)
+>>>>>>> a4814e5 (fix(log): Hide sensitive info from getting logged)
 
 	def test_sanitization_catches_keys_not_matching_blocklist_exactly(self):
 		try:
@@ -1562,7 +1580,8 @@ class TestTBSanitization(IntegrationTestCase):
 			config = frappe._dict({"stripe_secret_key": "sk_live_should_not_leak", "other": "val"})  # noqa: F841
 			raise Exception
 		except Exception:
-			traceback = frappe.get_traceback(with_context=True)
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
 
 		self.assertNotIn("super-secret-value", traceback)
 		self.assertNotIn("sk_live_should_not_leak", traceback)
@@ -1573,8 +1592,10 @@ class TestTBSanitization(IntegrationTestCase):
 			PASSWORD = "should_be_masked_now"  # noqa: F841
 			raise Exception
 		except Exception:
-			traceback = frappe.get_traceback(with_context=True)
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
 
+		self.assertIn("Traceback with variables", traceback)  # with_context genuinely activated
 		self.assertNotIn("should_be_masked_now", traceback)
 
 	def test_sanitization_masks_session_id(self):
@@ -1582,8 +1603,10 @@ class TestTBSanitization(IntegrationTestCase):
 			sid = "super-secret-session-id"  # noqa: F841
 			raise Exception
 		except Exception:
-			traceback = frappe.get_traceback(with_context=True)
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
 
+		self.assertIn("Traceback with variables", traceback)  # with_context genuinely activated
 		self.assertNotIn("super-secret-session-id", traceback)
 
 	def test_sanitization_exact_match_rule_does_not_over_match(self):
@@ -1592,7 +1615,8 @@ class TestTBSanitization(IntegrationTestCase):
 			consider = "should_be_visible"  # noqa: F841
 			raise Exception
 		except Exception:
-			traceback = frappe.get_traceback(with_context=True)
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
 
 		self.assertIn("should_be_visible", traceback)
 
