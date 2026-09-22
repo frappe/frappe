@@ -133,7 +133,7 @@ def build_shell(frappe_app_path: str, production: bool = False):
 	if not os.path.exists(os.path.join(frontend_path, "package.base.json")):
 		return
 
-	# Raises `SingletonConflict`, naming both apps and both ranges.
+	# Raises `SingletonConflict`, naming the package, the shipped version and the app's range.
 	manifest, deps_changed = write_manifest(frontend_path)
 	lock_refreshed = refresh_lockfile(frontend_path)
 

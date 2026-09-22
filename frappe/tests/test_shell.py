@@ -28,6 +28,7 @@ from frappe.shell.manifest import (
 	enforce_import_map,
 	enforce_singletons,
 	import_map_problems,
+	shipped_versions,
 )
 from frappe.shell.registry import (
 	clear_prefix_registry,
@@ -337,31 +338,87 @@ class TestReservedRouteGuard(IntegrationTestCase):
 
 
 class TestSingletonEnforcement(IntegrationTestCase):
-	"""One module graph admits one version of each shared library."""
+	"""One module graph admits one version of each shared library: the one the framework ships."""
 
-	def test_conflicting_ranges_fail_the_build_naming_both_apps(self):
-		manifest = [
-			{"app": "frappe", "deps": {"vue": "^3.5.13", "frappe-ui": "1.0.0-beta.24"}},
-			{"app": "gameplan", "deps": {"vue": "^3.5.13", "frappe-ui": "1.0.0-beta.50"}},
-		]
+	PINNED: ClassVar[dict[str, str]] = {
+		"vue": "^3.5.13",
+		"vue-router": "^4.5.0",
+		"frappe-ui": "1.0.0-beta.63",
+		"@framework/ui": "link:../ui",
+	}
+	LOCKFILE = (
+		'frappe-ui@1.0.0-beta.63:\n  version "1.0.0-beta.63"\n  resolved "https://x/frappe-ui.tgz"\n\n'
+		'"@framework/ui@link:../ui":\n  version "0.0.0"\n  uid ""\n\n'
+		'vue@^3.5.13, vue@^3.5.20:\n  version "3.5.41"\n  resolved "https://x/vue.tgz"\n\n'
+		'vue-router@^4.0.0:\n  version "4.0.0"\n  resolved "https://x/vue-router-4.0.0.tgz"\n\n'
+		'vue-router@^4.5.0:\n  version "4.6.4"\n  resolved "https://x/vue-router.tgz"\n'
+	)
 
+	def setUp(self):
+		self.frontend = tempfile.mkdtemp(prefix="frontend")
+		self.addCleanup(shutil.rmtree, self.frontend)
+		with open(os.path.join(self.frontend, "package.base.json"), "w") as f:
+			json.dump({"dependencies": self.PINNED}, f)
+		with open(os.path.join(self.frontend, "yarn.lock.base"), "w") as f:
+			f.write(self.LOCKFILE)
+
+	def enforce(self, app: str, deps: dict):
+		enforce_singletons([{"app": "frappe", "deps": {}}, {"app": app, "deps": deps}], self.frontend)
+
+	def refusal(self, app: str, deps: dict) -> str:
 		with self.assertRaises(SingletonConflict) as caught:
-			enforce_singletons(manifest)
+			self.enforce(app, deps)
+		return str(caught.exception)
 
-		message = str(caught.exception)
-		self.assertIn("frappe-ui", message)
-		self.assertIn("beta.24", message)
-		self.assertIn("beta.50", message)
-		self.assertIn("gameplan", message)
-		# `vue` agrees, so it must not be reported.
+	def test_the_shipped_version_is_the_lockfile_resolution_for_the_base_range(self):
+		"""Not the range floor, and not the first block that names the package."""
+		self.assertEqual(
+			shipped_versions(self.frontend),
+			{"frappe-ui": "1.0.0-beta.63", "vue": "3.5.41", "vue-router": "4.6.4"},
+		)
+
+	def test_a_missing_base_lockfile_is_named(self):
+		os.remove(os.path.join(self.frontend, "yarn.lock.base"))
+		with self.assertRaises(SingletonConflict) as caught:
+			self.enforce("crm", {"vue": "*"})
+		self.assertIn("yarn.lock.base is missing", str(caught.exception))
+
+	def test_a_range_that_includes_the_shipped_version_passes(self):
+		self.enforce("crm", {"vue": "^3.5.13", "vue-router": ">=4.5", "frappe-ui": "1.0.0-beta.63"})
+
+	def test_a_range_that_excludes_it_is_refused_naming_both_sides(self):
+		message = self.refusal("gameplan", {"vue": "^3.5.13", "frappe-ui": ">=1.0.0-beta.70"})
+		self.assertIn("frappe-ui: the framework ships 1.0.0-beta.63; gameplan needs >=1.0.0-beta.70", message)
+		self.assertIn("Keep frappe-ui current", message)
+		# `vue` is satisfied, so it must not be reported.
 		self.assertNotIn("  vue:", message)
 
-	def test_agreement_passes(self):
-		enforce_singletons(
-			[
-				{"app": "frappe", "deps": {"vue": "^3.5.13"}},
-				{"app": "crm", "deps": {"vue": "^3.5.13", "date-fns": "^4.1.0"}},
-			]
+	def test_a_prerelease_floor_admits_a_later_prerelease(self):
+		self.enforce("crm", {"frappe-ui": ">=1.0.0-beta.60"})
+		self.enforce("crm", {"frappe-ui": "^1.0.0-beta.60"})
+
+	def test_a_release_floor_excludes_a_prerelease_as_npm_does(self):
+		self.assertIn(
+			"frappe-ui: the framework ships 1.0.0-beta.63", self.refusal("crm", {"frappe-ui": ">=1.0.0"})
+		)
+
+	def test_framework_ui_is_declared_as_any_version(self):
+		self.enforce("crm", {"@framework/ui": "*"})
+		message = self.refusal("crm", {"@framework/ui": "^1.0.0"})
+		self.assertIn(
+			"@framework/ui: ships with the framework and has no version to pin; crm needs ^1.0.0", message
+		)
+
+	def test_a_range_that_does_not_parse_is_refused_as_not_a_range(self):
+		message = self.refusal("crm", {"frappe-ui": "latest"})
+		self.assertIn(
+			"frappe-ui: `latest` is not a semver range; crm needs a range that includes 1.0.0-beta.63",
+			message,
+		)
+
+	def test_a_singleton_missing_from_the_lockfile_is_refused(self):
+		self.assertIn(
+			"reka-ui: the base lockfile has no entry; crm needs *", self.refusal("crm", {"reka-ui": "*"})
 		)
 
 	def test_a_non_singleton_may_differ_freely(self):
@@ -370,8 +427,30 @@ class TestSingletonEnforcement(IntegrationTestCase):
 			[
 				{"app": "crm", "deps": {"date-fns": "^4.1.0"}},
 				{"app": "gameplan", "deps": {"date-fns": "^2.0.0"}},
-			]
+			],
+			self.frontend,
 		)
+
+	def test_the_ranges_come_from_the_declaration_file(self):
+		repo = tempfile.mkdtemp(prefix="gameplan")
+		self.addCleanup(shutil.rmtree, repo)
+		source_dir = os.path.join(repo, "gameplan")
+		pages = os.path.join(source_dir, "gameplan", "frontend", "pages")
+		os.makedirs(pages)
+		with open(os.path.join(source_dir, "desk.package.json"), "w") as f:
+			json.dump({"dependencies": {"frappe-ui": ">=1.0.0-beta.70"}}, f)
+		with open(os.path.join(pages, "home.js"), "w") as f:
+			f.write("export default {}")
+
+		with (
+			patch.object(frappe, "get_all_apps", return_value=["frappe", "gameplan"]),
+			patch.object(frappe, "get_app_path", side_effect=lambda app: source_dir),
+			patch.object(frappe, "get_hooks", return_value={}),
+			patch("frappe.shell.manifest.declared_prefix", return_value="gameplan"),
+		):
+			with self.assertRaises(SingletonConflict) as caught:
+				enforce_singletons(assemble(), self.frontend)
+		self.assertIn("gameplan needs >=1.0.0-beta.70", str(caught.exception))
 
 
 class TestAppDeclaration(IntegrationTestCase):
