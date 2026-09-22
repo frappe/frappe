@@ -563,7 +563,8 @@ class File(Document):
 			)
 		elif not self.file_name and self.file_url:
 			parsed_url = urlparse(self.file_url)
-			self.file_name = urlunparse(parsed_url._replace(params="", query="", fragment=""))
+			file_name = urlunparse(parsed_url._replace(params="", query="", fragment=""))
+			self.file_name = file_name[: frappe.db.VARCHAR_LEN]
 		else:
 			self.file_name = re.sub(r"/", "", self.file_name)
 
