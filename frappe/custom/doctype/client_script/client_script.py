@@ -1,5 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import json
+import os
+import re
+
 import frappe
 from frappe import _
 from frappe.app_state import is_module_disabled
@@ -9,6 +13,14 @@ RECORD_PAGE_VIEWS = ("Record",)
 CLIENT_SCRIPT_CHANGED = "client_script_changed"
 # `run_order` is a sort key, not a unique one; `creation` breaks the ties.
 RECORD_SCRIPT_ORDER = "run_order asc, creation asc"
+CLASS_LIST = ("assets", "frappe", "frontend", "classes.json")
+# Only text handed to `class` is read as class names; prose is not.
+CLASS_CONTEXTS = (
+	re.compile(r"""\bclass(?:Name)?\s*=\s*\\?(["'])(?P<text>.*?)\\?\1""", re.S),
+	re.compile(r"""\bclass(?:Name)?\s*:\s*(["'`])(?P<text>.*?)\1""", re.S),
+	re.compile(r"\bclassList\.(?:add|remove|toggle|replace)\((?P<text>[^)]*)\)"),
+)
+CLASS_WORD = re.compile(r"[!-]?[A-Za-z](?:[\w:./%-]|\[[^\]\s]*\])*")
 
 
 class ClientScript(Document):
@@ -30,9 +42,31 @@ class ClientScript(Document):
 		view: DF.Literal["List", "Form", "Record"]
 	# end: auto-generated types
 
+	def validate(self):
+		self.warn_on_unknown_classes()
+
 	def on_update(self):
 		frappe.clear_cache(doctype=self.dt)
 		self.notify_record_pages()
+
+	def warn_on_unknown_classes(self):
+		"""Name every class the script uses that the desk stylesheet has no rule for; never block."""
+		if self.view not in RECORD_PAGE_VIEWS or not self.script:
+			return
+		if not (self.is_new() or self.has_value_changed("script")):
+			return
+		known = read_class_list()
+		if known is None:
+			return
+		unknown = sorted(set(class_words(self.script)) - known)
+		if unknown:
+			frappe.msgprint(
+				_(
+					"These classes have no style in the desk, so they will not change how the page looks: {0}. Use classes from the desk palette."
+				).format(", ".join(unknown)),
+				title=_("Classes with no style"),
+				indicator="orange",
+			)
 
 	def on_trash(self):
 		frappe.clear_cache(doctype=self.dt)
@@ -101,3 +135,28 @@ def reject_foreign_names(dt: str, view: str, names: list[str]) -> None:
 	unknown = sorted(set(names) - known)
 	if unknown:
 		frappe.throw(_("Not Client Scripts of {0}: {1}").format(dt, ", ".join(unknown)))
+
+
+def read_class_list() -> set[str] | None:
+	"""The classes the desk build generated, or None when no build has written a readable list."""
+	try:
+		with open(class_list_path()) as file:  # nosemgrep
+			names = json.load(file)
+	except (OSError, ValueError):
+		return None
+	if not isinstance(names, list):
+		return None
+	return {name for name in names if isinstance(name, str)}
+
+
+def class_list_path() -> str:
+	return os.path.join(frappe.local.sites_path, *CLASS_LIST)
+
+
+def class_words(script: str) -> list[str]:
+	"""Utility-shaped words (a hyphen or a variant colon) where the script names classes."""
+	words = []
+	for context in CLASS_CONTEXTS:
+		for match in context.finditer(script):
+			words += [w for w in CLASS_WORD.findall(match.group("text")) if "-" in w or ":" in w]
+	return words

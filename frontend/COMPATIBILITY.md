@@ -483,8 +483,9 @@ invent.
 - **A class typed into a Client Script gets no rule.** The stylesheet is built from
   files on disk, and a script is a row in a table. The palette below is the set a
   script can rely on. The build writes every class it generated to
-  `sites/assets/frappe/frontend/classes.json`, so the server can say which class has no
-  rule. Nothing generates a class on demand.
+  `sites/assets/frappe/frontend/classes.json`, and saving a `Client Script` warns with
+  every class in it that has no rule. The warning never blocks the save, and it is silent
+  on a bench that has not run the build. Nothing generates a class on demand.
 
 ## The palette: the classes a stored script can rely on
 
