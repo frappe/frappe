@@ -470,11 +470,13 @@ class SQLiteSearch(ABC):
 				processed_doctypes += 1
 
 			# Check if all doctypes are indexed before building vocabulary
-			if self.BUILD_VOCABULARY and not self._is_vocabulary_built_needed():
-				self._update_progress("All documents indexed, building vocabulary", 80, 100, absolute=True)
+			if not self._is_vocabulary_built_needed():
+				if self.BUILD_VOCABULARY:
+					self._update_progress(
+						"All documents indexed, building vocabulary", 80, 100, absolute=True
+					)
+					self._build_vocabulary_incremental()
 
-				# Build vocabulary incrementally
-				self._build_vocabulary_incremental()
 				self._mark_vocabulary_built()
 
 			# Final atomic replacement if this was a fresh build
