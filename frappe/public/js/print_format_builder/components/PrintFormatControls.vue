@@ -1100,9 +1100,15 @@ function handle_slash_key(e) {
 	color: var(--text-on-orange, #b95000);
 }
 
-.pfb-tree-children {
-	/* the website builder indents a level by 24px */
-	margin-left: 24px;
+/* a row runs the full width of the panel, so a level of nesting is padding
+   inside the row, not a margin that would shorten its hover pill */
+.pfb-tree-children > .pfb-tree-row,
+.pfb-tree-children > .pfb-tree-node > .pfb-tree-row {
+	padding-left: 32px;
+}
+
+.pfb-tree-children .pfb-tree-children > .pfb-tree-row {
+	padding-left: 56px;
 }
 
 /* an empty column keeps a drop target only while something is being dragged;
@@ -1113,8 +1119,8 @@ body.pfb-dragging .pfb-tree-fields {
 
 /* single-column sections have no Column row, so their fields sit directly
    under the section instead of indenting past a row that isn't there */
-.pfb-tree-fields--flush {
-	margin-left: 0;
+.pfb-tree-children .pfb-tree-children.pfb-tree-fields--flush > .pfb-tree-row {
+	padding-left: 32px;
 }
 
 /* ── Empty state ─────────────────────────────────────────── */
