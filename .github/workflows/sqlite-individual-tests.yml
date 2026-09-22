@@ -9,13 +9,34 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
+  # Do not change this as GITHUB_TOKEN is being used by roulette
   contents: read
 
 env:
   SHARD_COUNT: 4
 
 jobs:
+  checkrun:
+    name: Plan Tests
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.check-build.outputs.build }}
+    steps:
+      - name: Clone
+        uses: actions/checkout@v7
+      - name: Check if unit tests should be run
+        id: check-build
+        run: |
+          python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
+        env:
+          TYPE: "server"
+          PR_NUMBER: ${{ github.event.number }}
+          REPO_NAME: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   discover:
+    needs: checkrun
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -105,6 +126,8 @@ jobs:
           exit "$status"
 
   http-integration:
+    needs: checkrun
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     # Run the HTTP contract separately with required service(s)
