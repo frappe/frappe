@@ -71,6 +71,7 @@
   "no_copy",
   "set_only_once",
   "remember_last_selected_value",
+  "ignore_versioning",
   "column_break_38",
   "mandatory_depends_on",
   "read_only_depends_on",
@@ -181,7 +182,7 @@
    "depends_on": "eval:doc.fieldtype !== 'Attachment Gallery'",
    "fieldname": "in_standard_filter",
    "fieldtype": "Check",
-   "label": "In List Filter"
+   "label": "In Standard Filter"
   },
   {
    "default": "0",
@@ -409,6 +410,13 @@
    "oldfieldtype": "Check",
    "print_width": "50px",
    "width": "50px"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: (parent.track_changes || parent.istable) && !doc.is_virtual",
+   "fieldname": "ignore_versioning",
+   "fieldtype": "Check",
+   "label": "Ignore Versioning"
   },
   {
    "default": "0",
@@ -690,7 +698,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-07-15 19:53:20.478827",
+ "modified": "2026-09-20 10:18:33.114207",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",

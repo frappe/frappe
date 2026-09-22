@@ -1,9 +1,27 @@
-import { computed, onMounted, onUnmounted, reactive, ref, type Ref } from "vue";
+import {
+  computed,
+  onMounted,
+  onUnmounted,
+  reactive,
+  ref,
+  watch,
+  type Ref,
+} from "vue";
 import { getDocumentPart } from "../../api";
-import { getSocketInstance, subscribeToDoc } from "../../socket";
-import type { Activity, CustomActivity, Pagination, UserInfo } from "./types";
+import type {
+  Activity,
+  CustomActivity,
+  Pagination,
+  PendingActivity,
+  VisibleTypes,
+} from "./types";
 import { compareActivities, dropDuplicateKeys } from "./grouping";
-import { getAssignee, stripHtml } from "./utils";
+import {
+  createLiveUpdates,
+  type Subscribe,
+  type Unsubscribe,
+} from "./liveUpdates";
+import { stripHtml } from "./utils";
 
 interface FeedPage {
   activities: Activity[];
@@ -12,23 +30,122 @@ interface FeedPage {
   next_milestone_start?: number;
 }
 
-// One store per cache key for the session, so reopening a doc is instant and
-// paging state survives cached remounts.
+// One store per cache key: reopening a doc is instant, paging state survives remounts.
 interface TimelineStore {
   data: Ref<Activity[]>;
   loading: Ref<boolean>;
   error: Ref<unknown>;
+  /** whether the first page has ever landed */
+  fetched: Ref<boolean>;
   load: () => Promise<void>;
-  // "older rows remain" per paged source, plus the backend-reported offset of
-  // the next milestone page
+  // "older rows remain" per paged source, plus the next milestone page's offset
   hasMoreEmails: Ref<boolean>;
   hasMoreMilestones: Ref<boolean>;
   milestoneStart: Ref<number>;
+  /** one refetch however many callers ask; resolves when it lands */
+  refresh: () => Promise<void>;
+  subscribe: Subscribe;
 }
 const stores = new Map<string, TimelineStore>();
 
-/** e.g. ["email", "comment", { version: ["status", "priority"] }] */
-export type VisibleTypes = Array<Activity["type"] | { version: string[] }>;
+// Rows shown before the server confirmed them, keyed by document so every filtered
+// view of it shows them. `key` never changes; `confirmedKey` is what the row waits for.
+type PendingRow = (Activity | CustomActivity) & {
+  key: string;
+  confirmedKey?: string;
+};
+const pendingActivities = ref<Record<string, PendingRow[]>>({});
+
+// All a retired pending row leaves behind: the key it rendered under, per document.
+const adoptedKeys = ref<Record<string, Record<string, string>>>({});
+
+const docKey = (doctype: string, docname: string) => `${doctype}:${docname}`;
+
+const PENDING_KEY = "pending:";
+const isUnresolved = (row: PendingRow) =>
+  !row.confirmedKey && row.key.startsWith(PENDING_KEY);
+
+/** What a row says, for matching one the server echoed back under a key we don't know yet. */
+const rowText = (activity: Activity | CustomActivity) => {
+  const content = (activity.data as { content?: unknown } | null)?.content;
+  if (typeof content !== "string") return undefined;
+  const text = stripHtml(content).replace(/\s+/g, " ").trim();
+  return text && JSON.stringify([activity.type, text]);
+};
+
+/**
+ * Shows a row in the feed before the server has confirmed it. The row carries
+ * `pending`, so the timeline renders it muted.
+ */
+export function addPendingActivity(
+  doctype: string,
+  docname: string,
+  activity: Omit<Activity | CustomActivity, "key"> & { key?: string }
+): PendingActivity {
+  const doc = docKey(doctype, docname);
+  const key = activity.key ?? `${PENDING_KEY}${crypto.randomUUID()}`;
+
+  const setRows = (next: (rows: PendingRow[]) => PendingRow[]) => {
+    pendingActivities.value = {
+      ...pendingActivities.value,
+      [doc]: next(pendingActivities.value[doc] ?? []),
+    };
+  };
+
+  setRows((rows) => [
+    ...rows,
+    { ...activity, key, pending: true } as PendingRow,
+  ]);
+
+  return {
+    resolve: (confirmedKey: string) =>
+      setRows((rows) =>
+        rows.map((r) => (r.key === key ? { ...r, confirmedKey } : r))
+      ),
+    drop: () => setRows((rows) => rows.filter((r) => r.key !== key)),
+  };
+}
+
+/**
+ * Drops pending rows the server echoed back, keeping the key each rendered under so the
+ * real row adopts it. Vue then patches that node rather than remounting it, which would
+ * rebuild the email iframe at its collapsed height and jump.
+ */
+function retirePendingRows(doctype: string, docname: string, feed: Activity[]) {
+  const doc = docKey(doctype, docname);
+  const rows = pendingActivities.value[doc];
+  if (!rows?.length) return;
+
+  const confirmedKeys = new Set(feed.map((a) => a.key));
+  // The socket can deliver the real row before the request answers, so a row with no key
+  // yet is matched on its text. An identical older row can swallow it, costing one fetch.
+  const keyByText = new Map<string, string>();
+  if (rows.some(isUnresolved))
+    for (const a of feed) {
+      const text = rowText(a);
+      if (text) keyByText.set(text, a.key);
+    }
+
+  const adopted: Record<string, string> = {};
+  const waiting = rows.filter((row) => {
+    const real =
+      row.confirmedKey ??
+      (isUnresolved(row) ? keyByText.get(rowText(row) ?? "") : row.key);
+    if (!real || !confirmedKeys.has(real)) return true;
+    adopted[real] = row.key;
+    return false;
+  });
+  if (waiting.length === rows.length) return;
+
+  pendingActivities.value = { ...pendingActivities.value, [doc]: waiting };
+  adoptedKeys.value = {
+    ...adoptedKeys.value,
+    [doc]: { ...adoptedKeys.value[doc], ...adopted },
+  };
+}
+
+// one save can fire several doc_updates: wait a moment, then fetch once
+const REFRESH_DEBOUNCE_MS = 300;
 
 // filters are part of the cache identity
 const timelineCacheKey = (
@@ -47,49 +164,101 @@ function getTimelineStore(
   const existing = stores.get(cacheKey);
   if (existing) return existing;
 
+  const visibleTypeNames = visibleTypes?.flatMap((t) =>
+    typeof t === "string" ? [t] : Object.keys(t)
+  );
+
   const data = ref<Activity[]>([]);
   const loading = ref(false);
   const error = ref<unknown>(null);
+  const fetched = ref(false);
   const hasMoreEmails = ref(true);
   const hasMoreMilestones = ref(false);
   const milestoneStart = ref(0);
 
   // On reload (e.g. a doc_update), re-append the older pages the user has already loaded.
-  const load = async () => {
+  let inFlight: Promise<void> | undefined;
+  const load = () => {
+    if (inFlight) return inFlight;
     loading.value = true;
-    try {
-      // filtered server-side so pagination math stays correct
-      const { data: page } = await getDocumentPart<FeedPage>(doctype, docname, "activity", {
-        types: visibleTypes,
-      });
-      const newActivityKeys = new Set(page.activities.map((a) => a.key));
-      const paginatedOlderRows = data.value.filter(
-        (a) => isPagedRow(a) && !newActivityKeys.has(a.key)
-      );
-      data.value = [...page.activities, ...paginatedOlderRows];
-      hasMoreEmails.value = !!page.has_more_emails;
-      // This response only carries the first milestone page. Once the user has paged past it
-      // the rows above are kept, so page one's flag and offset are stale.
-      if (milestoneStart.value === 0) {
-        hasMoreMilestones.value = !!page.has_more_milestones;
-        milestoneStart.value = page.next_milestone_start ?? 0;
+    inFlight = (async () => {
+      try {
+        // filtered server-side so pagination math stays correct
+        const { data: page } = await getDocumentPart<FeedPage>(doctype, docname, "activity", {
+          types: visibleTypes,
+        });
+        const newActivityKeys = new Set(page.activities.map((a) => a.key));
+        const paginatedOlderRows = data.value.filter(
+          (a) => isPagedRow(a) && !newActivityKeys.has(a.key)
+        );
+        data.value = [...page.activities, ...paginatedOlderRows];
+        hasMoreEmails.value = !!page.has_more_emails;
+        // This response only carries the first milestone page. Once the user has paged past it
+        // the rows above are kept, so page one's flag and offset are stale.
+        if (milestoneStart.value === 0) {
+          hasMoreMilestones.value = !!page.has_more_milestones;
+          milestoneStart.value = page.next_milestone_start ?? 0;
+        }
+        error.value = null;
+        fetched.value = true;
+      } catch (failure) {
+        error.value = failure;
+      } finally {
+        loading.value = false;
+        inFlight = undefined;
       }
-      error.value = null;
-    } catch (failure) {
-      error.value = failure;
-    } finally {
-      loading.value = false;
+    })();
+    return inFlight;
+  };
+
+  // sync: the feed and the rows drawn from it must not disagree for a render.
+  watch(data, (feed) => retirePendingRows(doctype, docname, feed), {
+    flush: "sync",
+  });
+
+  // Every trigger in the window joins the same fetch, so one save costs one request.
+  let pendingRefresh: Promise<void> | undefined;
+  let changedSinceFetch = false;
+  const refresh = (): Promise<void> => {
+    if (pendingRefresh) {
+      changedSinceFetch = true;
+      return pendingRefresh;
     }
+    pendingRefresh = (async () => {
+      do {
+        await new Promise((done) => setTimeout(done, REFRESH_DEBOUNCE_MS));
+        // a fetch already running was sent before the change, so it may miss it
+        if (inFlight) await inFlight.catch(() => {});
+        // the window is closed, so everything in it is covered by the fetch below
+        changedSinceFetch = false;
+        await load();
+        // a change that landed mid-fetch is not in what came back: go again
+      } while (changedSinceFetch);
+    })()
+      .catch(() => {})
+      .finally(() => {
+        pendingRefresh = undefined;
+      });
+    return pendingRefresh;
   };
 
   const store: TimelineStore = {
     data,
     loading,
     error,
+    fetched,
     load,
     hasMoreEmails,
     hasMoreMilestones,
     milestoneStart,
+    refresh,
+    subscribe: createLiveUpdates(
+      doctype,
+      docname,
+      { data, fetched },
+      visibleTypeNames,
+      refresh
+    ),
   };
   stores.set(cacheKey, store);
   void load();
@@ -101,27 +270,37 @@ export function useActivityTimeline(
   docname: string,
   visibleTypes?: VisibleTypes
 ) {
-  const visibleTypeNames = visibleTypes?.flatMap((t) =>
-    typeof t === "string" ? [t] : Object.keys(t)
-  );
-
   const store = getTimelineStore(doctype, docname, visibleTypes);
 
-  subscribeToLiveUpdates(doctype, docname, store, visibleTypeNames);
+  // the store is shared, so one socket serves every consumer of it
+  let unsubscribe: Unsubscribe | undefined;
+  onMounted(() => {
+    unsubscribe = store.subscribe();
+  });
+  onUnmounted(() => {
+    unsubscribe?.();
+    unsubscribe = undefined;
+  });
 
-  // deduped + sorted, but ungrouped: the component folds version runs at render
-  // time, after the consumer's own filtering/merging
+  // deduped + sorted but ungrouped; the component folds version runs at render time
   const activities = computed<Array<Activity | CustomActivity>>(() => {
-    const uniqueActivities = dropDuplicateKeys(store.data.value);
-    uniqueActivities.sort(compareActivities);
-    return uniqueActivities;
+    const confirmed = dropDuplicateKeys(store.data.value);
+    const doc = docKey(doctype, docname);
+    const adopted = adoptedKeys.value[doc];
+    const shown = adopted
+      ? confirmed.map((a) =>
+          adopted[a.key] ? { ...a, key: adopted[a.key] } : a
+        )
+      : confirmed;
+    const waiting = pendingActivities.value[doc] ?? [];
+    return [...shown, ...waiting].sort(compareActivities);
   });
 
   return {
     activities,
     loading: computed<boolean>(() => store.loading.value),
     error: computed<unknown>(() => store.error.value),
-    reload: () => store.load(),
+    reload: () => store.refresh(),
     paginate: createHistoryPagination(doctype, docname, store),
   };
 }
@@ -214,169 +393,4 @@ function createHistoryPagination(
       icon: "lucide-chevrons-up",
     },
   });
-}
-
-function subscribeToLiveUpdates(
-  doctype: string,
-  docname: string,
-  store: TimelineStore,
-  visibleTypes: string[] | undefined
-) {
-  const socket = getSocketInstance();
-  if (!socket) return;
-
-  // The socket payload has no avatar — reuse a resolved author from the feed, else fall back.
-  const resolveAuthor = (email: string | undefined, fallback: UserInfo) => {
-    if (!email) return fallback;
-    const known = store.data.value.find((a) => a.author?.email === email)?.author;
-    return known ?? fallback;
-  };
-
-  const onUpdate = (payload: unknown) => {
-    const { doc, key, action } = payload as {
-      doc: Record<string, unknown>;
-      key: string;
-      action: "add" | "update" | "delete";
-    };
-    if (doc.reference_doctype !== doctype || doc.reference_name !== docname)
-      return;
-
-    const activity = normalizeLiveActivity(key, doc, resolveAuthor);
-    if (!activity) return;
-    // mirror the server-side visibleTypes filter
-    if (visibleTypes && !visibleTypes.includes(activity.type)) return;
-
-    const current = store.data.value;
-    if (action === "add") {
-      store.data.value = [...current, activity];
-    } else if (action === "delete") {
-      store.data.value = current.filter((a) => a.key !== activity.key);
-    } else {
-      store.data.value = current.map((a) =>
-        a.key === activity.key ? activity : a
-      );
-    }
-  };
-
-  const onDocUpdate = (payload: unknown) => {
-    const { doctype: dt, name } = payload as { doctype: string; name: string };
-    if (dt !== doctype || name !== docname) return;
-    void store.load();
-  };
-  let release = () => {};
-  onMounted(() => {
-    release = subscribeToDoc(socket, doctype, docname);
-    socket.on("docinfo_update", onUpdate); // live communications, comments, likes, assignments, attachments
-    socket.on("doc_update", onDocUpdate); // field changes
-  });
-  onUnmounted(() => {
-    release();
-    socket.off("docinfo_update", onUpdate);
-    socket.off("doc_update", onDocUpdate);
-  });
-}
-
-// (assignee bolding is backend-supplied, so live assignment rows bold only the actor.)
-function normalizeLiveActivity(
-  key: string,
-  doc: Record<string, unknown>,
-  resolveAuthor: (email: string | undefined, fallback: UserInfo) => UserInfo
-): Activity | null {
-  const timestamp = String(doc.creation);
-  const actorEmail = (doc.comment_email as string) || (doc.owner as string);
-  const author = resolveAuthor(actorEmail, {
-    email: actorEmail,
-    fullname: (doc.comment_by as string) || actorEmail,
-  });
-  const name = doc.name as string;
-
-  switch (key) {
-    case "comments":
-      return {
-        type: "comment",
-        key: `comment:${name}`,
-        timestamp,
-        author,
-        data: { name, content: doc.content as string },
-      };
-
-    case "like_logs":
-      return {
-        type: "log",
-        key: `log:${name}`,
-        timestamp,
-        author,
-        data: {
-          name,
-          subtype: "like",
-          text: `${author.fullname} liked`,
-        },
-      };
-
-    case "assignment_logs": {
-      const isCompleted = doc.comment_type === "Assignment Completed";
-      const text = stripHtml(String(doc.content ?? ""));
-      // mirror the backend so the assignee bolds on live rows too (not just the actor)
-      const assignee = getAssignee(text, String(doc.comment_type ?? ""));
-      return {
-        type: "log",
-        key: `log:${name}`,
-        timestamp,
-        author,
-        data: {
-          name,
-          subtype: isCompleted ? "assignment_completed" : "assigned",
-          text,
-          // additive, like the backend: only present when an assignee was found
-          ...(assignee ? { assignee } : {}),
-        },
-      };
-    }
-
-    case "attachment_logs": {
-      const isRemoved = doc.comment_type === "Attachment Removed";
-      const content = String(doc.content ?? "");
-      const href = content.match(/href=['"]([^'"]+)['"]/);
-      const fileUrl = !isRemoved && href ? href[1] : undefined;
-      return {
-        type: "attachment_log",
-        key: `attachment:${name}`,
-        timestamp,
-        author,
-        data: {
-          name,
-          action: isRemoved ? "removed" : "added",
-          fileName: stripHtml(content),
-          // private files live under /private/… — stabler than the `fa-lock` icon
-          isPrivate: fileUrl?.startsWith("/private/") ?? false,
-          ...(fileUrl ? { fileUrl } : {}),
-        },
-      };
-    }
-
-    case "communications":
-      return {
-        type: "email",
-        key: `email:${name}`,
-        timestamp: String(doc.communication_date || doc.creation),
-        author: resolveAuthor(doc.sender as string, {
-          email: doc.sender as string,
-          fullname: (doc.sender_full_name || doc.sender) as string,
-        }),
-        data: {
-          name,
-          subject: doc.subject as string,
-          sender: doc.sender as string,
-          to: doc.recipients as string,
-          cc: doc.cc as string,
-          bcc: doc.bcc as string,
-          content: doc.content as string,
-          deliveryStatus: doc.delivery_status as string,
-          attachments: [],
-        },
-      };
-
-    default:
-      return null;
-  }
 }

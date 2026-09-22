@@ -3,6 +3,7 @@
  "autoname": "hash",
  "creation": "2021-05-24 21:35:59.104776",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/guides/integration/webhooks",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

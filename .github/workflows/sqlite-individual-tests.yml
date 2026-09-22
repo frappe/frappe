@@ -1,6 +1,7 @@
 name: SQLite Individual
 
 on:
+  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -8,13 +9,34 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
+  # Do not change this as GITHUB_TOKEN is being used by roulette
   contents: read
 
 env:
   SHARD_COUNT: 4
 
 jobs:
+  checkrun:
+    name: Plan Tests
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.check-build.outputs.build }}
+    steps:
+      - name: Clone
+        uses: actions/checkout@v7
+      - name: Check if unit tests should be run
+        id: check-build
+        run: |
+          python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
+        env:
+          TYPE: "server"
+          PR_NUMBER: ${{ github.event.number }}
+          REPO_NAME: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   discover:
+    needs: checkrun
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -23,7 +45,7 @@ jobs:
       - uses: actions/checkout@v7
       - id: set-tests
         run: |
-          tests=$(find . -path '*/doctype/*/test_*.py' | xargs grep -l 'def test_' | awk '{
+          tests=$(find frappe -type f -name 'test_*.py' -print0 | xargs -0 grep -l 'def test_' | awk '{
               gsub(/^\.\//, "", $0)
               gsub(/\.py$/, "", $0)
               gsub(/\//, ".", $0)
@@ -44,6 +66,7 @@ jobs:
       NODE_ENV: production
       ALL_TESTS: ${{ needs.discover.outputs.tests }}
       SHARD_INDEX: ${{ matrix.shard }}
+      FRAPPE_TEST_SMTP_SERVER: 0
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.discover.outputs.matrix) }}
@@ -61,6 +84,28 @@ jobs:
           disable-socketio: true
           # SQLite permits only one writer. Tests run serially in this job, hence disabling workers that can write queued setup jobs.
           disable-workers: true
+          enable-server-scripts: false
+      - name: Save pristine SQLite site
+        shell: bash
+        run: |
+          site_db=$(find sites/test_site/db -maxdepth 1 -type f -name '*.db' -print -quit)
+          if [ -z "$site_db" ]; then
+            echo "SQLite database file was not found"
+            exit 1
+          fi
+
+          python - "$site_db" "$RUNNER_TEMP/pristine.db" <<'PY'
+          import sqlite3
+          import sys
+
+          with sqlite3.connect(sys.argv[1]) as source, sqlite3.connect(sys.argv[2]) as target:
+              source.backup(target)
+          PY
+
+          cp -a sites/test_site "$RUNNER_TEMP/pristine-site"
+          cp "$RUNNER_TEMP/pristine.db" "$RUNNER_TEMP/pristine-site/db/$(basename "$site_db")"
+          rm -f "$RUNNER_TEMP/pristine-site/db/$(basename "$site_db")-wal"
+          rm -f "$RUNNER_TEMP/pristine-site/db/$(basename "$site_db")-shm"
       - name: Run Tests
         shell: bash
         run: |
@@ -69,6 +114,11 @@ jobs:
 
           status=0
           while IFS= read -r test; do
+            # MariaDB's individual-test workflow gives every module a fresh site. Restore the
+            # SQLite site too, so committed database rows and files cannot leak between modules.
+            rsync --archive --delete "$RUNNER_TEMP/pristine-site/" sites/test_site/
+            bench --site test_site clear-cache
+
             echo "Running $test"
             bench --site test_site run-tests --app frappe --module "$test" || status=1
           done < shard_tests.txt
@@ -76,6 +126,8 @@ jobs:
           exit "$status"
 
   http-integration:
+    needs: checkrun
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     # Run the HTTP contract separately with required service(s)
@@ -93,6 +145,7 @@ jobs:
           db-root-password: db_root
           disable-socketio: true
           disable-workers: true
+          enable-server-scripts: true
       - name: Wait for web server
         shell: bash
         run: |

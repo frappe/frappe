@@ -1,3 +1,5 @@
+const FULL_HEIGHT_PAGE_CLASS = "full-height-page";
+
 frappe.pages["print-format-builder"].on_page_load = function (wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
@@ -5,6 +7,8 @@ frappe.pages["print-format-builder"].on_page_load = function (wrapper) {
 		single_column: true,
 		hide_sidebar: true,
 	});
+
+	$(wrapper).on("hide", () => document.body.classList.remove(FULL_HEIGHT_PAGE_CLASS));
 
 	// hot reload in development
 	if (frappe.boot.developer_mode) {
@@ -14,6 +18,7 @@ frappe.pages["print-format-builder"].on_page_load = function (wrapper) {
 };
 
 frappe.pages["print-format-builder"].on_page_show = function (wrapper) {
+	document.body.classList.add(FULL_HEIGHT_PAGE_CLASS);
 	load_print_format_builder(wrapper);
 };
 

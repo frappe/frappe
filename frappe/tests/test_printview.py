@@ -1,23 +1,56 @@
+from unittest.mock import patch
+
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.tests import IntegrationTestCase
 from frappe.www.printview import get_html_and_style
 
+EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
+
 
 class PrintViewTest(IntegrationTestCase):
-	def test_print_view_without_errors(self):
-		user = frappe.get_last_doc("User")
+	def test_print_preview_displays_link_titles(self):
+		from frappe.www.printpreview import get_context
 
-		messages_before = frappe.get_message_log()
-		ret = get_html_and_style(doc=user.as_json(), print_format="Standard", no_letterhead=1)
-		messages_after = frappe.get_message_log()
+		doc, links = self._make_linked_print_doc()
+		custom_format = frappe.get_doc(
+			doctype="Print Format",
+			name=frappe.generate_hash(),
+			doc_type=doc.doctype,
+			custom_format=1,
+			html="""
+				{{ doc.get_formatted('reference') }}
+				{{ doc.entries[0].get_formatted('reference', doc) }}
+			""",
+		).insert()
+		for print_format in ("Standard", custom_format.name):
+			with self.subTest(print_format=print_format):
+				params = frappe._dict(doctype=doc.doctype, name=doc.name, print_format=print_format)
+				with self.set_user("test@example.com"), patch.object(frappe.local, "form_dict", params):
+					context = frappe._dict()
+					get_context(context)
+				self._assert_print_link_titles(context.body, doc, links)
 
-		if len(messages_after) > len(messages_before):
-			new_messages = messages_after[len(messages_before) :]
-			self.fail("Print view showing error/warnings: \n" + "\n".join(str(msg) for msg in new_messages))
+	def test_builder_preview_displays_link_titles(self):
+		from frappe.utils.print_format_generator import (
+			download_builder_preview_pdf,
+			render_builder_preview,
+		)
+		from frappe.www.printview import resolve_print_format
 
-		# html should exist
-		self.assertTrue(bool(ret["html"]))
+		doc, links = self._make_linked_print_doc()
+		print_format, _ = resolve_print_format("Standard", doc.meta)
+		print_format.pdf_generator = "chrome"
+		with self.set_user("test@example.com"):
+			html = render_builder_preview(print_format.as_dict(), doc.doctype, doc.name)
+			self._assert_print_link_titles(html, doc, links)
+			with (
+				patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"pdf") as render_pdf,
+				patch.object(frappe.local, "response", frappe._dict()),
+			):
+				download_builder_preview_pdf(print_format.as_dict(), doc.doctype, doc.name)
+				self.assertEqual(frappe.local.response.filecontent, b"pdf")
+			self._assert_print_link_titles(render_pdf.call_args.kwargs["html"], doc, links)
 
 	def _make_attachment_fields_doctype(self):
 		return new_doctype(
@@ -84,6 +117,31 @@ class PrintViewTest(IntegrationTestCase):
 		self.assertNotIn('onerror="alert(1)"', html)
 		self.assertIn("&#34;", html)
 
+	def test_absolute_value_print_format_prints_positive_numbers(self):
+		"""Print Format's "Show Absolute Values" should flip negative Currency/Int
+		fields positive at render time."""
+		doctype = new_doctype(
+			fields=[
+				{"label": "Amount", "fieldname": "amount", "fieldtype": "Currency"},
+				{"label": "Qty", "fieldname": "qty", "fieldtype": "Int"},
+			]
+		).insert()
+		doc = frappe.get_doc(doctype=doctype.name, amount=-543.21, qty=-9).insert()
+
+		print_format = frappe.get_doc(
+			doctype="Print Format",
+			name=frappe.generate_hash(length=10),
+			doc_type=doctype.name,
+			print_format_builder_beta=1,
+			absolute_value=1,
+		).insert()
+		html = get_html_and_style(doc=doc.as_json(), print_format=print_format.name, no_letterhead=1)["html"]
+		self.assertIn("543.21", html)
+		self.assertNotIn("-543.21", html)
+		# ">-9<" (not the bare "-9") — CSS custom properties like var(--gray-900)
+		# would otherwise false-positive the substring check
+		self.assertNotIn(">-9<", html)
+
 	def test_print_error(self):
 		"""Print failures shouldn't generate PDF with failure message but instead escalate the error"""
 		doctype = new_doctype(is_submittable=1).insert()
@@ -148,3 +206,43 @@ class PrintViewTest(IntegrationTestCase):
 		# without a doctype default it still degrades to the built-in format
 		drop_default()
 		self.assertIsNone(get_print_format_doc("None", frappe.get_meta("Note")))
+
+	def _make_linked_print_doc(self):
+		linked_doctype = new_doctype(title_field="some_fieldname", show_title_field_in_link=1).insert()
+		link_field = {
+			"fieldname": "reference",
+			"label": "Reference",
+			"fieldtype": "Link",
+			"options": linked_doctype.name,
+			"in_list_view": 1,
+		}
+		child_doctype = new_doctype(istable=1, fields=[link_field]).insert()
+		doctype = new_doctype(
+			fields=[
+				link_field,
+				{
+					"fieldname": "entries",
+					"label": "Entries",
+					"fieldtype": "Table",
+					"options": child_doctype.name,
+				},
+			]
+		).insert()
+		links = [
+			frappe.get_doc(doctype=linked_doctype.name, some_fieldname=title).insert()
+			for title in ("Parent Link Title", "Child Link Title")
+		]
+		doc = frappe.get_doc(
+			doctype=doctype.name,
+			reference=links[0].name,
+			entries=[{"reference": links[1].name}],
+		).insert()
+		return doc, links
+
+	def _assert_print_link_titles(self, html, doc, links):
+		for link in links:
+			self.assertIn(link.some_fieldname, html)
+			self.assertNotIn(link.name, html)
+		stored_doc = frappe.get_doc(doc.doctype, doc.name)
+		self.assertEqual(stored_doc.reference, links[0].name)
+		self.assertEqual(stored_doc.entries[0].reference, links[1].name)

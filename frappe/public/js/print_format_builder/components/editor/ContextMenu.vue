@@ -114,7 +114,7 @@ onBeforeUnmount(disarm);
 }
 
 .pfb-context-item:hover {
-	background: var(--gray-100);
+	background: var(--surface-gray-2);
 }
 
 .pfb-context-item.is-danger {

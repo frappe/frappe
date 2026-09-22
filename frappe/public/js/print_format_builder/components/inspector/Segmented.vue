@@ -50,7 +50,7 @@ defineEmits(["update:modelValue"]);
 	border-left: 1px solid var(--border-color);
 }
 .pfb-seg button:hover {
-	background: var(--gray-200);
+	background: var(--surface-gray-3);
 	color: var(--text-color);
 }
 .pfb-seg button.active {

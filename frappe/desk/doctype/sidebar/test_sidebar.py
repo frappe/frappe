@@ -11,18 +11,26 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	ARRANGED_ITEM_FIELDS,
 	COMPUTED_BASE_CACHE_KEY,
 	MODULE_CONTENT_DOCTYPES,
+	ROUTABLE_ENTITY_KINDS,
 	SYSTEM_WRITE_FLAGS,
+	UNROUTABLE_IN_A_TITLE,
+	ShellIndex,
 	Sidebar,
+	build_canonical_shells,
 	clear_computed_base_cache,
 	filter_sidebar_items,
 	get_app_sidebar_layer,
 	get_computed_base,
 	get_module_shell,
 	get_sidebar,
+	home_shell,
 	item_key,
 	mark_as_standard,
 	reset_app_sidebar,
+	routable_entities,
+	routable_title,
 	save_app_sidebar,
+	shell_slug,
 	unmark_as_standard,
 )
 from frappe.tests import IntegrationTestCase
@@ -681,6 +689,453 @@ class TestSidebarIsNamedByItsTitle(IntegrationTestCase):
 			frappe.get_doc("Sidebar", "Build").exported_file_path(),
 			os.path.join(frappe.get_module_path("Build"), "sidebar", "build", "build.json"),
 		)
+
+
+class TestSidebarTitleIsRoutable(IntegrationTestCase):
+	"""A sidebar's name is a segment of the desk URL, so it has to survive being one.
+
+	`/desk/stock/item` names the Stock shell and the Item list. The name reaches the URL through
+	`frappe.router.slug`, which only lowercases and turns spaces into dashes, so anything else in
+	the title lands in the path as it was written.
+
+	The rule is only about characters a path cannot carry. It says nothing about the module: a
+	module may still own several sidebars, and the second one is a shell with a URL of its own.
+	"""
+
+	MODULE = "Test Sidebar Routing Module"
+	SECOND = "Test Sidebar Second Shell"
+
+	def setUp(self):
+		with no_developer_mode():
+			frappe.get_doc(
+				{"doctype": "Module Def", "module_name": self.MODULE, "app_name": "frappe"}
+			).insert()
+
+	def tearDown(self):
+		for name in frappe.get_all("Sidebar", filters={"module": self.MODULE}, pluck="name"):
+			frappe.delete_doc("Sidebar", name, force=True, ignore_permissions=True)
+		with no_developer_mode():
+			frappe.delete_doc("Module Def", self.MODULE, force=True, ignore_missing=True)
+
+	def test_a_title_the_url_cannot_carry_is_refused(self):
+		"""One case per character, because each breaks the path differently: `/` ends the segment,
+		`?` and `#` end the path, `%` opens an escape, and `\\` is a separator to some servers.
+		"""
+		for title in ("Pay/Benefits", "Why?", "100% Club", "A#B", "C\\D"):
+			with self.subTest(title=title):
+				# postgres aborts the transaction on a failed statement, so recover to a savepoint
+				frappe.db.savepoint("unroutable_title")
+				with self.assertRaises(frappe.ValidationError):
+					make_sidebar(self.MODULE, title=title)
+				frappe.db.rollback(save_point="unroutable_title")
+
+	def test_an_ampersand_is_allowed_because_the_slug_spells_it_out(self):
+		"""hrms named two shells with an `&` on purpose, since a module folder is a Python package
+		and cannot hold one. `&` is legal in a path, so the name stands and the slug is what
+		turns it into `shift-and-attendance`.
+		"""
+		self.assertEqual(make_sidebar(self.MODULE, title="Shift & Attendance").name, "Shift & Attendance")
+
+	def test_a_title_in_another_script_is_allowed(self):
+		"""Non-ASCII percent-encodes, round-trips, and a browser shows it as it was written.
+		Refusing it would say a shell can only be named in English.
+		"""
+		self.assertEqual(make_sidebar(self.MODULE, title="कर्मचारी").name, "कर्मचारी")
+
+	def test_a_second_shell_under_one_module_keeps_its_own_name(self):
+		"""The rule is about the URL, not the module.
+
+		This is here to catch a tightening that would tie the title back to its module. That would
+		read as tidier, and it would delete the second shell, since two sidebars cannot share a
+		title. A second shell now has a URL of its own, which is the reason to keep it.
+		"""
+		own = make_sidebar(self.MODULE)
+		second = make_sidebar(self.MODULE, title=self.SECOND)
+
+		self.assertEqual(second.module, own.module)
+		self.assertEqual(own.name, self.MODULE)
+		self.assertEqual(second.name, self.SECOND)
+
+	def test_a_title_that_slugs_like_another_shell_is_refused(self):
+		"""The desk keys shells by slug, and the second one written wins. Two titles that differ
+		only in case, the spelling of `&` or their spacing reach it as one segment, and one of
+		them would have no URL at all.
+		"""
+		make_sidebar(self.MODULE, title="Pay & Benefits")
+
+		for title in ("Pay and Benefits", "pay & benefits", "Pay  &  Benefits"):
+			with self.subTest(title=title):
+				frappe.db.savepoint("colliding_title")
+				with self.assertRaises(frappe.ValidationError):
+					make_sidebar(self.MODULE, title=title)
+				frappe.db.rollback(save_point="colliding_title")
+
+	def test_a_title_that_slugs_like_a_bare_module_is_refused(self):
+		"""A module with no sidebar document still gets a computed shell under its own name, and
+		that name is a segment too.
+
+		Spelled with `&` against a module spelled with `and`, so the titles are different strings
+		and `validate_title_is_its_own` -- which refuses another module's exact name -- has
+		nothing to say. Only the slug catches it.
+		"""
+		bare = "Test Sidebar Bare and Module"
+		with no_developer_mode():
+			frappe.get_doc({"doctype": "Module Def", "module_name": bare, "app_name": "frappe"}).insert()
+		self.addCleanup(self.drop_module, bare)
+
+		with self.assertRaises(frappe.ValidationError):
+			make_sidebar(self.MODULE, title="Test Sidebar Bare & Module")
+
+	def test_a_sidebar_may_slug_like_its_own_module(self):
+		"""hrms titles the sidebar of module `Shift and Attendance` as `Shift & Attendance`. Both
+		slug to one segment, and that is fine: a module whose sidebar has a document gets no
+		computed shell of its own, so only one of the two is ever a shell.
+		"""
+		title = self.MODULE.replace(" ", " & ", 1)
+		module = self.MODULE.replace(" ", " and ", 1)
+		with no_developer_mode():
+			frappe.get_doc({"doctype": "Module Def", "module_name": module, "app_name": "frappe"}).insert()
+		self.addCleanup(self.drop_module, module)
+
+		self.assertEqual(make_sidebar(module, title=title).name, title)
+
+	def test_renaming_a_sidebar_to_its_own_slug_is_allowed(self):
+		"""Changing only the case or the spacing of a title leaves its segment where it was, and
+		it must not collide with itself.
+		"""
+		doc = make_sidebar(self.MODULE, title=self.SECOND)
+		doc.title = self.SECOND.lower()
+		with developer_mode():
+			doc.save(ignore_permissions=True)
+
+	def test_an_old_title_is_repaired_rather_than_refused(self):
+		"""What the v16 conversion does with a title from before the rule. The characters a path
+		cannot carry become spaces, so the author's words survive, and a title that still takes
+		another shell's URL falls back to the module.
+		"""
+		self.assertEqual(routable_title("Pay/Benefits", self.MODULE), "Pay Benefits")
+		self.assertEqual(routable_title("100% Club?", self.MODULE), "100 Club")
+
+		make_sidebar(self.MODULE, title="Taken Title")
+		self.assertEqual(routable_title("Taken/Title", self.MODULE), self.MODULE)
+
+	def test_an_old_title_is_numbered_when_the_module_name_is_taken_too(self):
+		"""Another module's sidebar can already answer to this module's slug, as `Shift and
+		Attendance` does for a module `Shift & Attendance`. Handing back the module's name then
+		would only have `insert` refuse it and abort the migrate, so it is numbered instead.
+		"""
+		taken = {shell_slug("Taken Title"), shell_slug(self.MODULE)}
+		with patch(
+			"frappe.desk.doctype.sidebar.sidebar.shell_holding_slug",
+			side_effect=lambda title, **kwargs: "Other" if shell_slug(title) in taken else None,
+		):
+			self.assertEqual(routable_title("Taken/Title", self.MODULE), f"{self.MODULE} 2")
+
+			taken.add(shell_slug(f"{self.MODULE} 2"))
+			self.assertEqual(routable_title("Taken/Title", self.MODULE), f"{self.MODULE} 3")
+
+	@staticmethod
+	def drop_module(module):
+		for name in frappe.get_all("Sidebar", filters={"module": module}, pluck="name"):
+			frappe.delete_doc("Sidebar", name, force=True, ignore_permissions=True)
+		with no_developer_mode():
+			frappe.delete_doc("Module Def", module, force=True, ignore_missing=True)
+
+	def test_the_sidebars_frappe_ships_all_survive_a_url(self):
+		for name in frappe.get_all("Sidebar", filters={"standard": 1, "app": "frappe"}, pluck="name"):
+			with self.subTest(name=name):
+				self.assertEqual([c for c in UNROUTABLE_IN_A_TITLE if c in name], [])
+
+
+def shell_payload(spec: dict) -> dict:
+	"""A `bootinfo.module_sidebars` payload from a compact spelling, for the ladder's tests.
+
+	Each shell is given as `{"module": ..., "workspaces": [...], "lists": [(kind, entity), ...]}`,
+	and everything the ladder does not read is left out. Building the payload by hand rather than
+	from documents is what lets one test say one thing: the ladder's order is the subject, and
+	real sidebars would drag permissions, customizations and computed bases into it.
+	"""
+	return {
+		shell: {
+			"module": shell_spec.get("module", shell),
+			"workspaces": shell_spec.get("workspaces", []),
+			"computed": shell_spec.get("computed", 0),
+			"items": [{"link_type": kind, "link_to": entity} for kind, entity in shell_spec.get("lists", [])],
+		}
+		for shell, shell_spec in spec.items()
+	}
+
+
+class TestCanonicalShell(IntegrationTestCase):
+	"""Where an entity opens when nothing else states a shell.
+
+	This is the desk's resolution ladder minus its two per-browser inputs, so what is left can be
+	worked out on the server and reads the same on every device. The tests below are the ladder's
+	steps, one each, in the order they run.
+	"""
+
+	def test_the_entitys_own_module_answers_when_its_shell_lists_it(self):
+		index = shell_payload({"Stock": {"lists": [("DocType", "Item")]}, "Selling": {}})
+
+		self.assertEqual(ShellIndex(index).resolve("DocType", "Item", "Stock"), "Stock")
+
+	def test_a_shell_listing_the_entity_beats_a_module_that_does_not(self):
+		"""The step that must not be dropped.
+
+		It reads as redundant beside the last one, since a module usually has a shell of its own,
+		and removing it moved a hundred entities on an erpnext and hrms site. `Appraisal` is the
+		shape of it: its module is `HR`, `HR` has a shell, and hrms split its navigation out so
+		`Performance` is what lists it. Without this step every such entity lands back in the
+		module the split exists to empty.
+		"""
+		index = shell_payload({"HR": {}, "Performance": {"lists": [("DocType", "Appraisal")]}})
+
+		self.assertEqual(ShellIndex(index).resolve("DocType", "Appraisal", "HR"), "Performance")
+
+	def test_a_computed_sidebar_keeps_its_module_s_entities_anyway(self):
+		"""Not listing something only says something when someone chose what the sidebar lists.
+
+		A computed sidebar lists what its module holds, capped at a display limit, so an entity
+		missing from one was not left out. Reading that as a decision hands the entity to whichever
+		other shell happens to link it. This is the case for every module a customer adds, since
+		nobody shipped a sidebar for it, and a site whose apps all ship one has no computed shells
+		at all -- which is why leaving this out looks harmless.
+		"""
+		index = shell_payload(
+			{
+				"Widgets": {"computed": 1},
+				"Selling": {"lists": [("DocType", "Widget")]},
+			}
+		)
+
+		self.assertEqual(ShellIndex(index).resolve("DocType", "Widget", "Widgets"), "Widgets")
+
+	def test_a_shipped_sidebar_that_omits_the_entity_gives_it_away(self):
+		"""The other half. An app wrote this sidebar and left the entity out, so that is a
+		decision, and a shell that does list it wins.
+		"""
+		index = shell_payload(
+			{
+				"Widgets": {"computed": 0},
+				"Selling": {"lists": [("DocType", "Widget")]},
+			}
+		)
+
+		self.assertEqual(ShellIndex(index).resolve("DocType", "Widget", "Widgets"), "Selling")
+
+	def test_the_module_answers_last_when_no_shell_lists_the_entity(self):
+		index = shell_payload({"Stock": {}, "Selling": {"lists": [("DocType", "Customer")]}})
+
+		self.assertEqual(ShellIndex(index).resolve("DocType", "Warehouse", "Stock"), "Stock")
+
+	def test_an_heir_that_lists_the_entity_answers_for_a_code_only_module(self):
+		"""`Core` ships no navigation and declares where it went. The heir that lists the entity
+		wins over the first heir declared, which is how `User` reaches `Users` rather than
+		`System`.
+		"""
+		index = shell_payload({"System": {}, "Build": {}, "Users": {"lists": [("DocType", "User")]}})
+
+		self.assertEqual(ShellIndex(index).resolve("DocType", "User", "Core"), "Users")
+
+	def test_the_first_heir_takes_what_none_of_them_lists(self):
+		"""`Core`'s heirs are declared `System, Build, Data, Users, Email`, and `System` leads on
+		purpose: it is the internals shell, so an unplaced `Core` doctype lands there rather than
+		turning the developer-tooling sidebar into the dumping ground.
+		"""
+		index = shell_payload({"Build": {}, "System": {}, "Users": {}})
+
+		self.assertEqual(ShellIndex(index).resolve("DocType", "Tag Link", "Core"), "System")
+
+	def test_a_module_with_no_shell_and_no_heirs_answers_nothing(self):
+		index = shell_payload({"Stock": {}})
+
+		self.assertIsNone(ShellIndex(index).resolve("DocType", "Widget", "Some Vanished Module"))
+
+	def test_a_renamed_shell_still_answers_for_its_module(self):
+		"""A sidebar's name and its module are two different things, so the module is found
+		through the column the shell stores it in, not by assuming the two agree.
+		"""
+		index = shell_payload(
+			{"Quality": {"module": "Quality Management", "lists": [("DocType", "Quality Goal")]}}
+		)
+
+		self.assertEqual(
+			ShellIndex(index).resolve("DocType", "Quality Goal", "Quality Management"), "Quality"
+		)
+
+	def test_a_name_shared_across_kinds_resolves_apart(self):
+		"""Entity names are not unique across kinds. On an erpnext and hrms site `Attendance` is
+		both a DocType in `HR` and a Dashboard in `Shift & Attendance`, and `Project`, `Selling`
+		and `Stock` each name both a Dashboard and a doctype. A flat map answers one of each pair
+		wrong, whichever order it was built in.
+		"""
+		index = ShellIndex(
+			shell_payload(
+				{
+					"HR": {"lists": [("DocType", "Attendance")]},
+					"Shift & Attendance": {"lists": [("Dashboard", "Attendance")]},
+				}
+			)
+		)
+
+		self.assertEqual(index.resolve("DocType", "Attendance", "HR"), "HR")
+		self.assertEqual(index.resolve("Dashboard", "Attendance", "HR"), "Shift & Attendance")
+
+	def test_a_workspace_belongs_to_the_shell_that_lists_it(self):
+		"""Workspaces skip the ladder. Which shell a workspace belongs to is stored on the shell,
+		so there is nothing to resolve.
+		"""
+		index = ShellIndex(shell_payload({"Stock": {"workspaces": ["Stock", "Warehousing"]}}))
+
+		self.assertEqual(dict(index.workspace_owners()), {"Stock": "Stock", "Warehousing": "Stock"})
+
+
+class TestCanonicalShellPayload(IntegrationTestCase):
+	"""The whole map, against the site as it stands."""
+
+	@staticmethod
+	def build(with_home=False):
+		from frappe.boot import build_entity_module_map, get_module_sidebars
+		from frappe.desk.desk_views import DeskViews
+
+		desk_views = DeskViews()
+		desk_views.build_entities()
+		sidebars = get_module_sidebars()
+		canonical, home = build_canonical_shells(sidebars, build_entity_module_map(sidebars), desk_views)
+		if with_home:
+			return canonical, home, routable_entities(desk_views)
+		return canonical
+
+	def assert_total(self):
+		"""Everything the user can reach is in the map. Compared against what they can reach
+		rather than read off the map itself, because the map leaves out what it could not place,
+		so checking its own values for a missing shell finds nothing by construction.
+		"""
+		canonical, home, reachable = self.build(with_home=True)
+
+		self.assertTrue(reachable["DocType"], "the user can read nothing, so this test proves nothing")
+		for kind, entities in reachable.items():
+			self.assertEqual(sorted(set(entities) - set(canonical[kind])), [], kind)
+		return canonical, home
+
+	def test_every_doctype_the_user_can_read_lands_somewhere(self):
+		"""The ladder has to be total. A doctype with no shell has no prefix to put in its URL,
+		so it would be the one route shaped differently from every other.
+		"""
+		self.assert_total()
+
+	def test_a_user_with_most_modules_blocked_still_lands_everywhere(self):
+		"""The case the map used to miss. Administrator sees every module, so every step of the
+		ladder has a shell to answer with, and the map was complete for the user it was built
+		and tested as. A user who may see one module can still read doctypes from all the others,
+		and before the last two steps those opened with no sidebar. On erpnext.site it was 135
+		of 151 doctypes for a Selling-only user.
+		"""
+		from frappe.boot import get_module_sidebars
+
+		frappe.set_user("Administrator")
+		kept = next(iter(get_module_sidebars()))
+		blocked = [m for m in frappe.get_all("Module Def", pluck="name") if m != kept]
+		email = user_with_roles("test-sidebar-one-module@example.com", ["System Manager"])
+		user = frappe.get_doc("User", email)
+		user.set("block_modules", [{"module": module} for module in blocked])
+		user.save(ignore_permissions=True)
+		self.enterContext(self.set_user(email))
+
+		shells = set(get_module_sidebars())
+		canonical, home = self.assert_total()
+
+		self.assertIn(home, shells)
+		named = {shell for found in canonical.values() for shell in found.values()}
+		self.assertEqual(named - shells, set())
+
+	def test_workspaces_are_not_in_the_shipped_map(self):
+		"""The desk answers a workspace from `module_sidebars[shell].workspaces`, which it already
+		has. A second copy in the map is payload nothing reads, and two copies of one fact can
+		disagree. `home_shell` still needs the answer, and gets it without shipping it.
+		"""
+		self.assertEqual(sorted(self.build()), sorted(ROUTABLE_ENTITY_KINDS))
+		self.assertNotIn("Workspace", self.build())
+
+	def test_every_shell_named_is_one_the_user_can_see(self):
+		"""The map is built from an already-filtered payload, so it can only name a shell this
+		user has. A name outside it would be a shell the desk cannot render.
+		"""
+		from frappe.boot import get_module_sidebars
+
+		shells = set(get_module_sidebars())
+		named = {shell for found in self.build().values() for shell in found.values()}
+
+		self.assertEqual(named - shells, set())
+
+	def test_home_is_where_most_of_the_work_is(self):
+		"""Not the shell that sorts first. For a user whose shells are `Custom Workspaces` and
+		`Selling`, the first is a place to keep their own pages, and Selling is where they work.
+		"""
+		sidebars = {"Custom Workspaces": {}, "Selling": {}}
+		canonical = {"DocType": {"Customer": "Selling", "Quotation": "Selling", "Note": "Custom Workspaces"}}
+		workspaces = {"Mine": "Custom Workspaces", "Other": "Custom Workspaces"}
+
+		self.assertEqual(home_shell(sidebars, canonical, workspaces, default_workspace=None), "Selling")
+
+	def test_home_ties_go_to_the_earlier_shell(self):
+		self.assertEqual(home_shell({"A": {}, "B": {}}, {"DocType": {}}, {}), "A")
+
+	def test_home_is_the_shell_of_the_users_default_workspace(self):
+		"""What the user asked for beats where the ladder put the most of their work. The desk
+		used to settle this for itself, off `boot.user.default_workspace`; it reads the answer
+		as `boot.home_shell` now, so this is the only place the choice is honoured.
+		"""
+		sidebars = {"Custom Workspaces": {}, "Selling": {}}
+		canonical = {"DocType": {"Customer": "Selling", "Quotation": "Selling"}}
+
+		self.assertEqual(
+			home_shell(sidebars, canonical, {"Mine": "Custom Workspaces"}, default_workspace="Mine"),
+			"Custom Workspaces",
+		)
+
+	def test_a_default_workspace_the_user_cannot_see_is_ignored(self):
+		"""A workspace absent from the map is one this user cannot reach, so landing them on it
+		would land them on nothing. The count decides instead, as it does for a user who set no
+		default at all.
+		"""
+		sidebars = {"Custom Workspaces": {}, "Selling": {}}
+		canonical = {"DocType": {"Customer": "Selling"}}
+
+		self.assertEqual(home_shell(sidebars, canonical, {}, default_workspace="Gone"), "Selling")
+
+	def test_the_boot_hands_over_the_default_it_already_loaded(self):
+		"""`get_user` reads the default workspace before `load_desktop_data` runs, and the boot
+		passes that value on rather than reading it again. Checked through the boot itself,
+		because the wiring between the two is the part that can break.
+
+		The workspace is picked from a shell the count would not choose, so the answer can only
+		come from the default.
+		"""
+		from frappe.boot import load_desktop_data
+
+		without = frappe._dict(user=frappe._dict(default_workspace=None))
+		load_desktop_data(without)
+
+		# Read through the same index the boot uses, since a workspace two shells list belongs to
+		# the first of them and not to whichever this loop happens to meet.
+		owners = ShellIndex(without.module_sidebars).workspace_owners()
+		elsewhere = next(((ws, shell) for ws, shell in owners if shell != without.home_shell), None)
+		if not elsewhere:
+			self.skipTest("every workspace on this site sits in the home shell")
+
+		workspace, shell = elsewhere
+		chosen = frappe._dict(user=frappe._dict(default_workspace={"name": workspace}))
+		load_desktop_data(chosen)
+
+		self.assertEqual(chosen.home_shell, shell)
+
+	def test_child_tables_are_absent(self):
+		"""A child table is never routed to, so carrying one would only make the payload bigger."""
+		canonical = self.build()
+		tables = frappe.get_all("DocType", filters={"istable": 1}, pluck="name", limit=200)
+
+		self.assertEqual([name for name in tables if name in canonical["DocType"]], [])
 
 
 class TestSidebarStandard(IntegrationTestCase):

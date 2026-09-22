@@ -74,17 +74,23 @@ class TestDocument(IntegrationTestCase):
 		return d
 
 	def test_submittable_insert(self):
-		dt = frappe.get_doc(
-			{
-				"doctype": "DocType",
-				"module": "Core",
-				"name": "Test Submittable Doctype",
-				"custom": 1,
-				"is_submittable": 1,
-				"fields": [{"label": "Field", "fieldname": "test_field", "fieldtype": "Data"}],
-				"permissions": [{"role": "System Manager", "read": 1, "write": 1, "submit": 1, "cancel": 1}],
-			}
-		).insert(ignore_if_duplicate=True)
+		doctype_name = "Test Document Submittable"
+		if frappe.db.exists("DocType", doctype_name):
+			dt = frappe.get_doc("DocType", doctype_name)
+		else:
+			dt = frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"module": "Core",
+					"name": doctype_name,
+					"custom": 1,
+					"is_submittable": 1,
+					"fields": [{"label": "Field", "fieldname": "test_field", "fieldtype": "Data"}],
+					"permissions": [
+						{"role": "System Manager", "read": 1, "write": 1, "submit": 1, "cancel": 1}
+					],
+				}
+			).insert()
 
 		d = frappe.get_doc({"doctype": dt.name, "test_field": "test"}).insert()
 		return d
@@ -282,6 +288,47 @@ class TestDocument(IntegrationTestCase):
 		d = self.test_insert()
 		d.sender = "abcde" * 100 + "@user.com"
 		self.assertRaises(frappe.CharacterLengthExceededError, d.save)
+
+	def test_varchar_length_after_sanitization(self):
+		unclosed_tag = "<strong>"
+		value = "X" * (140 - len(unclosed_tag)) + unclosed_tag
+
+		with self.set_user("test@example.com"):
+			doc = frappe.new_doc("Note")
+			doc.title = value
+
+			with self.assertRaises(frappe.CharacterLengthExceededError):
+				doc._validate()
+
+		self.assertGreater(len(doc.title), 140)
+
+	def test_oversized_varchar_sanitized_within_limit(self):
+		value = "X" * 130 + "<script>1</script>"
+		self.assertGreater(len(value), 140)
+
+		with self.set_user("test@example.com"):
+			doc = frappe.new_doc("Note")
+			doc.title = value
+			doc._validate()
+
+		self.assertEqual(doc.title, "X" * 130)
+
+	def test_child_varchar_length_after_sanitization(self):
+		unclosed_tag = "<strong>"
+		value = "X" * (140 - len(unclosed_tag)) + unclosed_tag
+
+		with self.set_user("test@example.com"):
+			doc = frappe.new_doc("Workspace")
+			doc.update(
+				{"label": "Test Workspace", "module": "Core", "title": "Test Workspace", "type": "Workspace"}
+			)
+			doc.name = "Test Workspace"
+			doc.append("shortcuts", {"type": "URL", "label": value})
+
+			with self.assertRaises(frappe.CharacterLengthExceededError):
+				doc._validate()
+
+		self.assertGreater(len(doc.shortcuts[0].label), 140)
 
 	def test_xss_filter(self):
 		d = self.test_insert()
@@ -622,7 +669,12 @@ class TestDocument(IntegrationTestCase):
 		# savepoint is for postgres: the failed insert aborts the transaction, so nothing
 		# after this test could read or write without it.
 		frappe.db.savepoint("test_ignore_if_duplicate")
-		with self.assertRaises((frappe.UniqueValidationError, frappe.DuplicateEntryError)):
+		expected_error = (
+			frappe.DuplicateEntryError
+			if frappe.db.db_type == "sqlite"
+			else (frappe.UniqueValidationError, frappe.DuplicateEntryError)
+		)
+		with self.assertRaises(expected_error):
 			frappe.get_doc(doctype="Role", role_name="_Test Duplicate Role").insert()
 		frappe.db.rollback(save_point="test_ignore_if_duplicate")
 

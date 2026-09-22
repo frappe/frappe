@@ -19,6 +19,45 @@ base_template_path = "www/printview.html"
 
 from frappe.www.printview import validate_print_permission
 
+MULTI_PDF_ASYNC_RATE_LIMIT = 10
+MULTI_PDF_ASYNC_RATE_WINDOW = 60
+
+
+def get_max_bulk_print_docs() -> int:
+	"""Return the maximum documents allowed in one bulk PDF export."""
+	return (
+		frappe.cint(frappe.db.get_single_value("Print Settings", "max_bulk_print_docs"))
+		or frappe.cint(frappe.conf.get("max_bulk_print_docs"))
+		or 100
+	)
+
+
+def get_max_concurrent_bulk_exports() -> int:
+	"""Return the maximum concurrent bulk PDF exports allowed per user."""
+	return (
+		frappe.cint(frappe.db.get_single_value("Print Settings", "max_concurrent_bulk_exports"))
+		or frappe.cint(frappe.conf.get("max_concurrent_bulk_exports"))
+		or 5
+	)
+
+
+def _enforce_multi_pdf_async_rate_limit():
+	cache_key = frappe.cache.make_key(f"rl:multi_pdf_async:{frappe.session.user}")
+	# NX makes initialisation atomic: concurrent first requests can't reset each other's count
+	frappe.cache.set(cache_key, 0, nx=True, ex=MULTI_PDF_ASYNC_RATE_WINDOW)
+
+	if frappe.cache.incrby(cache_key, 1) > MULTI_PDF_ASYNC_RATE_LIMIT:
+		frappe.throw(
+			_("You hit the rate limit because of too many requests. Please try after sometime."),
+			frappe.RateLimitExceededError,
+		)
+
+
+def _get_multi_pdf_doc_count(doctype: str | dict[str, list[str]], name: str | list[str]) -> int:
+	if isinstance(doctype, dict):
+		return sum([len(doctype[dt]) for dt in doctype])
+	return len(frappe.parse_json(name))
+
 
 @frappe.whitelist()
 def download_multi_pdf(
@@ -34,6 +73,10 @@ def download_multi_pdf(
 	"""
 	if not (frappe.get_cached_value("User", frappe.session.user, "bulk_actions")):
 		frappe.throw(_("You are not allowed to perform bulk actions."), frappe.PermissionError)
+
+	max_docs = get_max_bulk_print_docs()
+	if _get_multi_pdf_doc_count(doctype, name) > max_docs:
+		frappe.throw(_("Cannot generate PDF for more than {0} documents at a time").format(max_docs))
 
 	return _download_multi_pdf(doctype, name, format, no_letterhead, letterhead, options)
 
@@ -53,24 +96,42 @@ def download_multi_pdf_async(
 	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
 		frappe.throw(_("You are not allowed to perform bulk actions"), frappe.PermissionError)
 
-	task_id = str(uuid.uuid4())
-	if isinstance(doctype, dict):
-		doc_count = sum([len(doctype[dt]) for dt in doctype])
-	else:
-		doc_count = len(frappe.parse_json(name))
+	_enforce_multi_pdf_async_rate_limit()
 
-	frappe.enqueue(
-		_download_multi_pdf,
-		doctype=doctype,
-		name=name,
-		task_id=task_id,
-		format=format,
-		no_letterhead=no_letterhead,
-		letterhead=letterhead,
-		options=options,
-		queue="long" if doc_count > 20 else "short",
-		at_front_when_starved=True,
-	)
+	doc_count = _get_multi_pdf_doc_count(doctype, name)
+	max_docs = get_max_bulk_print_docs()
+	if doc_count > max_docs:
+		frappe.throw(_("Cannot generate PDF for more than {0} documents at a time").format(max_docs))
+
+	task_id = str(uuid.uuid4())
+
+	job = None
+	for slot in range(get_max_concurrent_bulk_exports()):
+		job = frappe.enqueue(
+			_download_multi_pdf,
+			doctype=doctype,
+			name=name,
+			task_id=task_id,
+			format=format,
+			no_letterhead=no_letterhead,
+			letterhead=letterhead,
+			options=options,
+			queue="long" if doc_count > 20 else "short",
+			at_front_when_starved=True,
+			job_id=f"multi_pdf_async:{frappe.session.user}:{slot}",
+			deduplicate=True,
+		)
+		if job is not None:
+			break
+
+	if job is None:
+		frappe.throw(
+			_(
+				"You already have the maximum number of bulk PDF exports in progress. Please wait for one to finish."
+			),
+			frappe.RateLimitExceededError,
+		)
+
 	frappe.local.response["http_status_code"] = http.HTTPStatus.CREATED
 	return {"task_id": task_id}
 

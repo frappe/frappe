@@ -5,9 +5,11 @@
 		:data-section-uid="field_uid(section)"
 		v-show="!preview_doc || has_visible_fields"
 		:class="{
-			'section-container--condition-hidden': preview_doc && !is_section_visible,
+			'section-container--condition-hidden':
+				preview_doc && (!is_section_visible || !has_content),
 			'pfb-section-active': is_selected,
 			'pfb-layer-hover': store.hovered_node.value === section,
+			'section--preview': !!preview_doc,
 		}"
 		@click.stop="select_section"
 		@contextmenu="on_context_menu"
@@ -20,12 +22,7 @@
 				class="drag-handle section-drag-handle"
 				v-html="frappe.utils.icon('grip', 'xs')"
 			></div>
-			<SectionActions
-				:section="section"
-				size="xs"
-				@snippet="save_as_snippet"
-				@remove="remove_section"
-			/>
+			<SectionActions :section="section" size="xs" @remove="remove_section" />
 		</div>
 		<div
 			class="print-format-section"
@@ -64,7 +61,6 @@
 						v-if="!is_header"
 						:section="section"
 						size="sm"
-						@snippet="save_as_snippet"
 						@remove="remove_section"
 					/>
 				</div>
@@ -143,7 +139,7 @@
 		<div v-if="show_spacing_handles" class="pfb-section-chrome" :style="section_chrome_style">
 			<SectionSpacingHandles :section="section" type="margin" />
 			<SectionSpacingHandles :section="section" type="padding" />
-			<SectionRadiusHandle :section="section" />
+			<SectionRadiusHandle :target="section" />
 		</div>
 		<div class="page-break-indicator" v-if="section.page_break">
 			<span>— {{ __("Page Break") }} —</span>
@@ -169,10 +165,10 @@ import SectionSpacingHandles from "./SectionSpacingHandles.vue";
 import SectionRadiusHandle from "./SectionRadiusHandle.vue";
 import { computed, inject } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
+import { always_has_content } from "../../fieldtypes";
 import {
 	DRAG_OPTIONS,
 	JUSTIFY_CLASSES,
-	evaluate_visible_if,
 	parse_inline_style,
 	setDragging,
 	field_uid,
@@ -204,9 +200,7 @@ let section_chrome_style = computed(() => {
 	};
 });
 let preview_doc = computed(() => store.preview_doc.value);
-let is_section_visible = computed(() =>
-	evaluate_visible_if(props.section.visible_if, preview_doc.value)
-);
+let is_section_visible = computed(() => store.is_visible(props.section.visible_if));
 
 let is_grid = computed(() => !!props.section.field_borders);
 
@@ -233,6 +227,7 @@ let columns_gap_style = computed(() => {
 });
 
 let handle_offset = computed(() => {
+	if (is_grid.value) return "-4px";
 	if (preview_doc.value) return `${-((props.section.gap ?? 20) / 2 + 4)}px`;
 	const gap = props.section.columns.length > 1 && props.section.gap ? props.section.gap : 0;
 	return `${-(gap + 12.5)}px`;
@@ -258,10 +253,24 @@ function start_col_width_resize(e, i) {
 	start_column_resize(handle, "col-width-handle--active", on_move);
 }
 
+function field_has_content(f) {
+	if (f.remove) return false;
+	const doc = preview_doc.value;
+	if (!doc) return true;
+	if (always_has_content(f)) return true;
+	if (f.fieldtype === "Repeater") return !!(f.source && doc[f.source]?.length);
+	if (f.fieldtype === "Table") return !!(doc[f.fieldname]?.length && f.table_columns?.length);
+	return !!doc[f.fieldname];
+}
 let has_visible_fields = computed(
 	() =>
 		!props.section.label ||
 		props.section.columns.some((col) => col.fields.some((f) => !f.remove))
+);
+let has_content = computed(
+	() =>
+		!props.section.label ||
+		props.section.columns.some((col) => col.fields.some(field_has_content))
 );
 
 let section_inline_style = computed(() => {
@@ -276,6 +285,7 @@ let section_inline_style = computed(() => {
 	// border wrap the padded box. Non-grid sections keep real padding.
 	if (is_grid.value) {
 		style["--pfb-cell-pad"] = `${props.section.cell_padding ?? 8}px`;
+		if (props.section.border_color) style["--pfb-grid-border"] = props.section.border_color;
 		const pad = props.section.padding;
 		if (pad) {
 			style["--pfb-pad-top"] = `${pad.top || 0}px`;
@@ -349,7 +359,7 @@ function on_context_menu(e) {
 		!props.is_header && {
 			label: __("Save as snippet"),
 			icon: "bookmark-plus",
-			action: save_as_snippet,
+			action: () => store.prompt_snippet(props.section, "Section"),
 		},
 		store.clipboard.value && {
 			label: __("Paste"),
@@ -364,30 +374,6 @@ function on_context_menu(e) {
 			action: remove_section,
 		},
 	]);
-}
-
-function save_as_snippet() {
-	frappe.prompt(
-		{
-			label: __("Snippet name"),
-			fieldname: "name",
-			fieldtype: "Data",
-			reqd: 1,
-			default: props.section.label || "",
-		},
-		({ name }) => {
-			store.save_snippet(name, props.section, "Section").then(
-				() =>
-					frappe.show_alert(
-						{ message: __("Section saved as snippet"), indicator: "green" },
-						3
-					),
-				() => {}
-			);
-		},
-		__("Save Section as Snippet"),
-		__("Save")
-	);
 }
 
 function remove_column(index) {
@@ -607,7 +593,7 @@ function remove_column(index) {
 	color: var(--text-muted);
 	font-size: var(--text-xs);
 	pointer-events: none;
-	background: var(--gray-50);
+	background: var(--surface-gray-1);
 	transition: border-color 0.15s, background 0.15s;
 }
 
@@ -649,7 +635,7 @@ function remove_column(index) {
 
 /* ── Section preview actions pill (only visible in clean-preview, hidden in edit) ── */
 .section-preview-actions {
-	display: none; /* shown via .pfb-clean-preview :deep() override */
+	display: none;
 	position: absolute;
 	bottom: calc(100% + 2px);
 	right: 4px;
@@ -727,5 +713,46 @@ function remove_column(index) {
 }
 .section--grid-columns :deep(.field--chip) {
 	border-bottom: none;
+}
+
+/* ── Preview with a live record: editor chrome off, spacing matches the PDF ── */
+.section--preview .section-toolbar {
+	display: none;
+}
+
+.section--preview .print-format-section:not(.section--grid) {
+	border: 1px solid transparent;
+	border-radius: var(--radius);
+	overflow: visible;
+	transition: border-color 0.1s;
+}
+
+.print-format-section-container.section--preview {
+	margin-bottom: 0;
+}
+
+.section--preview .section-columns {
+	padding: 0;
+}
+
+.section--preview .drag-container {
+	min-height: 0;
+}
+
+.section--preview .drag-container:not(.section--grid *) {
+	gap: 0;
+}
+
+.section--preview .section-preview-actions {
+	display: flex;
+}
+
+.section--preview:hover .section-preview-actions,
+.section--preview.pfb-section-active .section-preview-actions {
+	opacity: 1;
+}
+
+.section--preview .section-title-display {
+	display: block;
 }
 </style>
