@@ -119,9 +119,6 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 		this.$select_buttons.find(".select-all").on("click", () => {
 			this.select_all();
 		});
-		this.$select_buttons.find(".select-mandatory").on("click", () => {
-			this.select_mandatory();
-		});
 		this.$select_buttons.find(".deselect-all").on("click", () => {
 			this.select_all(true);
 		});
@@ -138,12 +135,6 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 				this.selected_options.push(option.value);
 			}
 		});
-		this.df.on_change && this.df.on_change();
-	}
-
-	select_mandatory() {
-		this.selected_options = this.options.filter((o) => o.danger).map((o) => o.value);
-		this.select_options(this.selected_options);
 		this.df.on_change && this.df.on_change();
 	}
 
@@ -196,17 +187,11 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 	}
 
 	get_select_buttons() {
-		const select_mandatory_button = this.df.select_mandatory
-			? `<button class="btn btn-xs btn-default select-mandatory">${__(
-					"Select Mandatory"
-			  )}</button>`
-			: "";
 		return $(`
 		<div class="bulk-select-options">
 			<button class="btn btn-xs btn-default select-all">
 				${__("Select All")}
 			</button>
-			${select_mandatory_button}
 			<button class="btn btn-xs btn-default deselect-all">
 				${__("Unselect All")}
 			</button>
