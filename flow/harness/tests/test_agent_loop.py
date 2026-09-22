@@ -953,6 +953,22 @@ async def test_threshold_compaction_folds_before_the_next_model_call(tmp_path):
 	assert [m.model_dump() for m in reloaded.transcript.messages] == [m.model_dump() for m in msgs]
 
 
+async def test_a_pause_keeps_its_budget_and_a_new_turn_starts_one(tmp_path):
+	session, events = _session(tmp_path, confirm_tools=["read"])
+	mock = MockModel(replies=[_read_call(), AssistantMessage(content="done")])
+
+	await _run(session, "read", model=mock)
+	assert _of(events, "run_ended")[0]["reason"] == "paused"
+	paused = session._budget
+	assert paused.spent > 0
+
+	await _resume(session, {"c1": "Approve"}, model=mock)
+	assert session._budget is paused  # approving did not hand the run a fresh ceiling
+
+	await _run(session, "again", model=MockModel(replies=[AssistantMessage(content="ok")]))
+	assert session._budget is not paused
+
+
 async def test_auto_compaction_counts_toward_run_budget(tmp_path):
 	session, events = _session(tmp_path, compact_threshold_tokens=100, token_budget=5)
 	await _run(session, BIG, model=MockModel(replies=[AssistantMessage(content="first answer")]))

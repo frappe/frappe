@@ -228,6 +228,7 @@ class Session:
 		)
 		self.transcript = Transcript.replay(log)
 		self.abort_signal = asyncio.Event()
+		self._budget = loop.TokenBudget(config.token_budget)
 		self._operation_lock = asyncio.Lock()
 		self._task: asyncio.Task[None] | None = None
 		self._title_task: asyncio.Task[None] | None = None
@@ -316,6 +317,7 @@ class Session:
 				return RunHandle(status="steered", from_seq=self.log.latest_seq)
 			user_message, _ = self._user_message(message, attachment_ids or [])
 			should_title = self._should_title()
+			self._budget = loop.TokenBudget(self.config.token_budget)
 			inputs = self._loop_inputs(model, before_tool_call, after_tool_call)
 			handle = self._start_operation(loop.run(user_message, inputs))
 			if should_title:
@@ -588,7 +590,7 @@ class Session:
 			run_subagent=self._subagent_runner.run,
 			server_tools=self.server_tools,
 			extension_runtime=self.extension_runtime,
-			budget=loop.TokenBudget(self.config.token_budget),
+			budget=self._budget,
 		)
 
 	async def _store_tool_image(self, name: str, data: bytes) -> AttachmentContent:
