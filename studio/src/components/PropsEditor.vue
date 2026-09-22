@@ -6,9 +6,15 @@
 				<button class="cursor-pointer underline" @click="openComponentEditor">component editor</button>
 			</span>
 		</EmptyState>
-		<EmptyState v-else :message="`${block?.getBlockDescription()} has no editable properties`" />
+		<EmptyState
+			v-else
+			:message="`${block?.getBlockDescription()} ${block?.isUnregisteredComponent() ? 'is missing' : 'has no editable properties'}`"
+		/>
 	</template>
-	<div v-else class="mt-3 flex flex-col gap-3">
+	<div
+		v-if="!isObjectEmpty(componentProps) || block?.isUnregisteredComponent()"
+		class="mt-3 flex flex-col gap-3"
+	>
 		<div
 			v-for="(config, propName) in filteredComponentProps"
 			:key="propName"

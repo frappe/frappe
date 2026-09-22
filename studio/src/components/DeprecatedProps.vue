@@ -9,10 +9,10 @@
 			/>
 			<div class="flex min-w-0 flex-1 items-center justify-between">
 				<div class="flex items-center gap-1.5 text-xs leading-5 text-ink-gray-5">
-					Deprecated
+					{{ isUnregistered ? "Saved props" : "Deprecated" }}
 					<Badge :label="`${deprecatedProps.length}`" size="sm" />
 				</div>
-				<Tooltip :text="`${block.componentName} no longer accepts these props`">
+				<Tooltip :text="tooltip">
 					<button
 						type="button"
 						class="text-xs text-ink-gray-5 hover:text-ink-gray-8"
@@ -80,8 +80,16 @@ const props = defineProps<{ block: Block; propConfigs: ComponentProps }>()
 
 const showDeprecatedProps = ref(false)
 
+const isUnregistered = computed(() => props.block.isUnregisteredComponent())
+const tooltip = computed(() =>
+	isUnregistered.value
+		? `${props.block.componentName} is missing; copy these props into its replacement`
+		: `${props.block.componentName} no longer accepts these props`,
+)
+
 const deprecatedProps = computed(() => {
-	if (isObjectEmpty(props.propConfigs)) return []
+	// no configs usually means the schema hasn't loaded, not that every prop is stale
+	if (isObjectEmpty(props.propConfigs) && !isUnregistered.value) return []
 
 	const stored = props.block.componentProps || {}
 	return Object.keys(stored)
