@@ -335,8 +335,6 @@ class SQLiteSearch(ABC):
 		if not self.is_search_enabled():
 			return
 
-		started_at = self._build_started_at(is_continuation)
-
 		# Use temporary database path for atomic replacement (only for new index builds)
 		temp_db_path = None
 		original_db_path = self.db_path
@@ -385,6 +383,7 @@ class SQLiteSearch(ABC):
 
 			# Get current progress
 			progress = self._get_index_progress()
+			started_at = self._build_started_at(is_continuation, progress)
 
 			# Check if indexing is already complete
 			if self._is_indexing_complete():
@@ -498,19 +497,20 @@ class SQLiteSearch(ABC):
 
 		self.queue_documents_changed_during_build(started_at)
 
-	def _build_started_at(self, is_continuation: bool):
+	def _build_started_at(self, is_continuation: bool, progress: dict):
 		"""When this build began, carried across a resumed one.
 
 		A continuation skips the rows the earlier run already indexed, so a document edited
 		between the two runs falls outside a fresh timestamp and would never be caught up. The
 		progress rows survive the interruption and record the original start, in UTC.
+
+		Takes the progress the caller has already read, which is what makes this correct: a fresh
+		build writes those rows into the temporary database, so reading them before that path is
+		chosen finds nothing and silently falls back to now.
 		"""
 		if is_continuation:
-			stamps = [
-				row["started_at"] for row in self._get_index_progress().values() if row.get("started_at")
-			]
+			stamps = [row["started_at"] for row in progress.values() if row.get("started_at")]
 			if stamps:
-				# naive, to compare with modified the same way now_datetime() does
 				return convert_utc_to_system_timezone(get_datetime(min(stamps))).replace(tzinfo=None)
 
 		return now_datetime()
