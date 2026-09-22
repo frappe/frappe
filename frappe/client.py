@@ -415,7 +415,7 @@ def attach_file(
 	:param docfield: file to attach to (optional)"""
 
 	doc = frappe.get_doc(doctype, docname)
-	doc.check_permission()
+	doc.check_permission("write")
 
 	file = frappe.get_doc(
 		{
