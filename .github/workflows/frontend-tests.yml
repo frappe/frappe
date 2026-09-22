@@ -51,5 +51,9 @@ jobs:
       - name: Install
         run: yarn --cwd frontend install --frozen-lockfile
 
+      # The API v2 check: no v1 address and no frappe-ui fetch primitive in the desk.
+      - name: Lint
+        run: yarn --cwd frontend lint
+
       - name: Run unit tests
         run: yarn --cwd frontend test:run

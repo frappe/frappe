@@ -2,7 +2,7 @@
 
 import "@/index.css";
 import { createApp, h } from "vue";
-import { FrappeUI, frappeRequest, setConfig } from "frappe-ui";
+import { FrappeUI } from "frappe-ui";
 import { provideSession } from "@framework/ui/composables/useSession";
 // the types module, not the subsystem barrel: the shell must not load the dialog to boot
 import { UploadLimitsKey } from "@framework/ui/components/FileUpload/types";
@@ -20,8 +20,6 @@ import AppShell from "@/shell/AppShell.vue";
 import { createSocket } from "@/shell/socket";
 import Unauthorized from "@/shell/Unauthorized.vue";
 import BootError from "@/shell/BootError.vue";
-
-setConfig("resourceFetcher", frappeRequest);
 
 async function start() {
 	// Nothing renders before boot: the user, the timezone and the CSRF token are in it.

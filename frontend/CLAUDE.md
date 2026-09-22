@@ -20,6 +20,18 @@ is `Dropdown`, a profile picture is `Avatar`). Nothing generic lives in `fronten
 if a new piece could serve another app, build it in `@framework/ui` (or raise it for
 frappe-ui), and keep only the desk's use of it here.
 
+## Server calls go through `@framework/ui/api` — read `../ui/CLAUDE.md`
+
+Every request the shell sends goes through the wrapper in `../ui/src/api/`, which sends to
+`/api/v2` only. The rule, with the literals and imports it bans, is stated once in
+[`../ui/CLAUDE.md`](../ui/CLAUDE.md), so the two cannot drift apart. `eslint.config.js`
+here enforces it over `src/` and `../ui/src/`, script and template alike, and the
+Frontend workflow runs it before the tests:
+
+```bash
+yarn --cwd frontend lint
+```
+
 ## Comments and field descriptions — read `../AGENTS.md`
 
 [`../AGENTS.md`](../AGENTS.md) carries the comment rule for all desk v2 work: a comment
@@ -41,6 +53,7 @@ So the suite does not run until you make one:
 ```bash
 cp frontend/package.base.json frontend/package.json
 yarn --cwd frontend install --frozen-lockfile
+yarn --cwd frontend lint
 yarn --cwd frontend test:run
 ```
 

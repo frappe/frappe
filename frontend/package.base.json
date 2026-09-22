@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "lint": "cd .. && eslint --config frontend/eslint.config.js frontend/src ui/src"
   },
   "dependencies": {
     "@framework/ui": "link:../ui",
@@ -20,13 +21,17 @@
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
+    "@typescript-eslint/parser": "^8.70.1",
     "@vitejs/plugin-vue": "^6.0.5",
     "autoprefixer": "^10.4.20",
+    "eslint": "^10.11.0",
+    "eslint-plugin-vue": "^10.11.0",
     "happy-dom": "^20.9.0",
     "postcss": "^8.4.5",
     "tailwindcss": "^3.4.15",
     "vite": "8.1.5",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.4",
+    "vue-eslint-parser": "^10.4.1"
   },
   "resolutions": {
     "vite": "8.1.5"

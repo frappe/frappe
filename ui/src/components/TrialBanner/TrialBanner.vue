@@ -23,9 +23,10 @@
 	</Button>
 </template>
 <script setup lang="ts">
-import { Button, createResource } from "frappe-ui";
+import { Button } from "frappe-ui";
 import { LightningIcon } from "frappe-ui/icons";
 import { ref, computed } from "vue";
+import { runMethod } from "../../api";
 import type { SiteInfo, TrialBannerProps } from "./types";
 
 const props = withDefaults(defineProps<TrialBannerProps>(), {
@@ -46,17 +47,20 @@ const trialTitle = computed(() => {
 
 const trialMessage = "Upgrade to a paid plan for uninterrupted services";
 
-createResource({
-	url: "frappe.integrations.frappe_providers.frappecloud_billing.current_site_info",
-	cache: "current_site_info_data",
-	auto: true,
-	onSuccess: (data: SiteInfo) => {
+// `null` off Frappe Cloud, 403 below System Manager, or any other failure: no banner.
+runMethod<SiteInfo | null>(
+	"frappe.integrations.frappe_providers.frappecloud_billing.current_site_info",
+	{},
+	{ http: "GET" }
+)
+	.then(({ data }) => {
+		if (!data) return;
 		trialEndDays.value = calculateTrialEndDays(data.trial_end_date);
 		baseEndpoint.value = data.base_url;
 		siteName.value = data.site_name;
 		showBanner.value = data.plan.is_trial_plan && trialEndDays.value > 0;
-	},
-});
+	})
+	.catch(() => {});
 
 function calculateTrialEndDays(trialEndDate: string | undefined) {
 	if (!trialEndDate) return 0;

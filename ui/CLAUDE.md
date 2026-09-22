@@ -39,11 +39,13 @@ lazy.
 ## Server calls go through `@framework/ui/api`
 
 Every request goes through the wrapper in `src/api/`, which sends to `/api/v2` only and
-returns the response envelope (`data` plus the keys beside it). New code never imports
-frappe-ui's fetch primitives (`call`, `createResource*`, `useCall`, `useList`, `useDoc`,
-`useFileUpload`); the callers that still do move onto the wrapper region by region on
-the API v2 map. The rule and its reasons are
-[ADR 0010](./docs/adr/0010-server-calls-go-through-one-v2-wrapper.md).
+returns the response envelope (`data` plus the keys beside it). No file imports
+frappe-ui's fetch primitives (`call`, `createResource`, `createListResource`,
+`createDocumentResource`, `useCall`, `useList`, `useDoc`, `useNewDoc`, `useDoctype`),
+and no literal starts with `/api/method`, `/api/resource` or `/api/v1`. The lint in
+`../frontend/eslint.config.js` fails CI on either; run it with `yarn --cwd frontend lint`
+after the install in [`../frontend/CLAUDE.md`](../frontend/CLAUDE.md). The rule and its
+reasons are [ADR 0010](./docs/adr/0010-server-calls-go-through-one-v2-wrapper.md).
 
 ## Formatting
 

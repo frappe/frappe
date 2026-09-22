@@ -1,12 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-// Stub frappe-ui so the module imports cleanly in vitest's node env (the
-// built-in reader is never reached here — `window` is undefined, so
-// `builtinGetDocValue` returns undefined without touching frappe-ui).
-vi.mock("frappe-ui", () => ({
-  createResource: vi.fn(),
-  getCachedResource: vi.fn(() => null),
+// The built-in reader's one read. By default it never lands, so a resolution test
+// that reaches the built-in reader sees "nothing yet" and falls back.
+vi.mock("../../../api", () => ({
+  listDocuments: vi.fn(() => new Promise(() => {})),
 }));
+import { listDocuments } from "../../../api";
+
+/** Lets the read's two `.then` hops run. */
+const flush = () => new Promise((resolve) => setTimeout(resolve));
 
 import {
   resolveFieldCurrency,
@@ -15,7 +17,10 @@ import {
   getDocValueReader,
 } from "../resolveCurrency";
 
-afterEach(() => resetDocValueReader());
+afterEach(() => {
+  resetDocValueReader();
+  vi.clearAllMocks();
+});
 
 describe("resolveFieldCurrency", () => {
   // 1. No options → site default.
@@ -160,8 +165,8 @@ describe("resolveFieldCurrency", () => {
     ).toBe("CHF");
   });
 
-  it("falls back to the default when the reader yields nothing (built-in, headless)", () => {
-    // No override + no `window` → built-in reader returns undefined → fallback.
+  it("falls back to the default while the built-in reader has nothing yet", () => {
+    // No override → built-in reader, whose read has not landed → fallback.
     expect(
       resolveFieldCurrency("Company:company:default_currency", {
         doc: { company: "Acme" },
@@ -189,5 +194,56 @@ describe("doc-value reader seam", () => {
     expect(getDocValueReader()).toBe(stub);
     resetDocValueReader();
     expect(getDocValueReader()).toBe(builtin);
+  });
+
+  it("reads one field through the v2 list route once, then shares the value", async () => {
+    let settle: (envelope: {
+      data: Record<string, unknown>[];
+    }) => void = () => {};
+    vi.mocked(listDocuments).mockReturnValueOnce(
+      new Promise((resolve) => (settle = resolve)) as never
+    );
+    const read = getDocValueReader();
+
+    expect(read("Company", "Acme", "default_currency")).toBeUndefined();
+    expect(read("Company", "Acme", "default_currency")).toBeUndefined();
+    expect(listDocuments).toHaveBeenCalledTimes(1);
+    expect(listDocuments).toHaveBeenCalledWith("Company", {
+      fields: ["default_currency"],
+      filters: { name: "Acme" },
+      limit: 1,
+    });
+
+    settle({ data: [{ default_currency: "EUR" }] });
+    await flush();
+    expect(read("Company", "Acme", "default_currency")).toBe("EUR");
+    expect(listDocuments).toHaveBeenCalledTimes(1);
+  });
+
+  it("forgets the oldest read past the cap", () => {
+    const read = getDocValueReader();
+    for (let i = 0; i <= 500; i++) read("Company", `C${i}`, "default_currency");
+    expect(listDocuments).toHaveBeenCalledTimes(501);
+    read("Company", "C0", "default_currency");
+    expect(listDocuments).toHaveBeenCalledTimes(502);
+    read("Company", "C2", "default_currency");
+    expect(listDocuments).toHaveBeenCalledTimes(502);
+  });
+
+  it("answers null after a failed read and does not read again", async () => {
+    vi.mocked(listDocuments).mockRejectedValueOnce(new Error("403"));
+    const read = getDocValueReader();
+    read("Company", "Secret", "default_currency");
+    await flush();
+    expect(read("Company", "Secret", "default_currency")).toBeNull();
+    expect(listDocuments).toHaveBeenCalledTimes(1);
+  });
+
+  it("answers null for a record the route does not return", async () => {
+    vi.mocked(listDocuments).mockResolvedValueOnce({ data: [] } as never);
+    const read = getDocValueReader();
+    read("Company", "Gone", "default_currency");
+    await flush();
+    expect(read("Company", "Gone", "default_currency")).toBeNull();
   });
 });
