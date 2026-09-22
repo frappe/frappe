@@ -101,6 +101,15 @@ export const SPECS = {
 		fields: [
 			{ name: "title", label: "Title", type: "text", required: true, locked: saved },
 			enabled,
+			{
+				name: "description",
+				label: "Description",
+				type: "textarea",
+				rows: 2,
+				description:
+					"What this agent is for, read by an agent that has it as a sub-agent.",
+				locked: system,
+			},
 			{ name: "model", label: "Model", type: "link", link: "Flow Model", required: true },
 			{
 				name: "max_iterations",
@@ -124,6 +133,15 @@ export const SPECS = {
 				type: "multilink",
 				link: "Flow Tool",
 				child: "tool",
+				locked: system,
+			},
+			{
+				name: "sub_agents",
+				label: "Sub-agents",
+				type: "multilink",
+				link: "Flow Agent",
+				child: "agent",
+				description: "Agents this one can hand a task to.",
 				locked: system,
 			},
 			{
