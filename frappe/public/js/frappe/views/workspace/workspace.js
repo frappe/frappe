@@ -766,6 +766,14 @@ frappe.views.Workspace = class Workspace {
 		const actions = [
 			{ label: __("Back"), icon: "chevron-left", click: () => panel.refresh() },
 		];
+		// Another user's private workspace is left out: the desk only routes to your own.
+		if (page.public || page.for_user === frappe.session.user) {
+			actions.push({
+				label: __("Visit"),
+				icon: "external-link",
+				click: () => this.visit_workspace_from_manager(page),
+			});
+		}
 		if (!settings.standard) {
 			actions.push({
 				label: __("Delete"),
@@ -789,6 +797,15 @@ frappe.views.Workspace = class Workspace {
 			actions,
 			fields: this.workspace_manager_fields(settings, this.manager_modules),
 		});
+	}
+
+	visit_workspace_from_manager(page) {
+		this.workspace_manager.hide();
+		if (page.public) {
+			frappe.set_route("desk", frappe.router.slug(page.name));
+		} else {
+			frappe.set_route("desk", "private", frappe.router.slug(page.name));
+		}
 	}
 
 	// Rebuild the rail after a change that can move a workspace between modules, and land on the
