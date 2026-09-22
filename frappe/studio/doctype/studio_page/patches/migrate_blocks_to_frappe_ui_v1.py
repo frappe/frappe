@@ -5,27 +5,6 @@ import frappe
 from studio.studio.doctype.studio_page.patches.migrate_dialog_to_frappe_ui_v1 import migrate_dialog_props
 from studio.utils import walk_blocks
 
-# Single-pass: the ink scale shift is not idempotent (ink-red-5 is valid before and after).
-
-INK_FAMILIES = (
-	"red",
-	"green",
-	"blue",
-	"amber",
-	"violet",
-	"yellow",
-	"orange",
-	"teal",
-	"cyan",
-	"purple",
-	"pink",
-)
-INK_SHIFT = {
-	f"ink-{family}-{step}": f"ink-{family}-{step - 1}" for family in INK_FAMILIES for step in range(2, 11)
-}
-# only as a utility class or CSS variable (text-ink-red-5, var(--ink-red-5)), never a bare mention in prose
-_INK_RE = re.compile(r"(?<=-)(" + "|".join(sorted(INK_SHIFT, key=len, reverse=True)) + r")(?![A-Za-z0-9-])")
-
 RADIUS_SIDES = ("t", "r", "b", "l", "tl", "tr", "br", "bl", "s", "e", "ss", "se", "es", "ee")
 RADIUS_STEPS = {"sm": "1", "md": "5", "lg": "6", "xl": "7", "2xl": "8"}
 _RADIUS_RE = re.compile(
@@ -63,8 +42,7 @@ def migrate_blocks_json(value):
 	for block in walk_blocks(blocks):
 		migrate_block(block)
 		migrate_classes(block)
-	text = frappe.as_json(blocks, indent=None)
-	return _INK_RE.sub(lambda match: INK_SHIFT[match.group(1)], text)
+	return frappe.as_json(blocks, indent=None)
 
 
 def migrate_block(block):
