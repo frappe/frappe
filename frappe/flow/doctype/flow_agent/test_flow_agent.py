@@ -9,7 +9,7 @@ from frappe.tests import IntegrationTestCase
 
 from flow.daemon.client import DaemonClient, DaemonError
 from flow.flow.doctype.flow_agent.flow_agent import MAX_SKILLS
-from flow.tests.fake_daemon import FakeDaemon
+from flow.tests.test_fake_daemon import FakeDaemon
 from flow.tools.builtins import sync_builtin_tools
 
 

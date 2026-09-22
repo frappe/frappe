@@ -10,7 +10,7 @@ from frappe.tests import IntegrationTestCase
 from flow import triggers
 from flow.daemon.client import DaemonClient
 from flow.permissions import FLOW_USER_ROLE
-from flow.tests.fake_daemon import FakeDaemon
+from flow.tests.test_fake_daemon import FakeDaemon
 from flow.tools.builtins import sync_builtin_tools
 
 

@@ -14,7 +14,7 @@ from flow.daemon.client import DaemonClient
 from flow.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
 from flow.memory import store as memory_store
 from flow.permissions import FLOW_USER_ROLE
-from flow.tests.fake_daemon import FakeDaemon, pause
+from flow.tests.test_fake_daemon import FakeDaemon, pause
 from flow.tests.test_live_server import LiveServerCase
 from flow.tools.builtins import sync_builtin_tools
 

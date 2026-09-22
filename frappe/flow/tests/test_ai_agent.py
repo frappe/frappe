@@ -11,7 +11,7 @@ from flow.daemon.callback import tool_callback
 from flow.daemon.client import DaemonClient
 from flow.knowledge import Knowledge
 from flow.lib.agent import sync_agents
-from flow.tests.fake_daemon import FakeDaemon
+from flow.tests.test_fake_daemon import FakeDaemon
 from flow.tools.builtins import read, sync_builtin_tools
 
 MODEL = "Code Agent Model"

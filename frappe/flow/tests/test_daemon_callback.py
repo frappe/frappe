@@ -12,7 +12,7 @@ from flow.daemon.callback import callback, confirm_title
 from flow.daemon.client import DaemonClient
 from flow.lib.tool import tool
 from flow.memory import store as memory_store
-from flow.tests.fake_daemon import FakeDaemon, turn
+from flow.tests.test_fake_daemon import FakeDaemon, turn
 from flow.tools.builtins import sync_builtin_tools
 
 SECRET = "callback-secret"

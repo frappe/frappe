@@ -15,7 +15,7 @@ from flow.flow.doctype.flow_session.flow_session import FlowSession
 from flow.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
 from flow.memory import store as memory_store
 from flow.permissions import FLOW_USER_ROLE
-from flow.tests.fake_daemon import PENDING, TITLE, FakeDaemon, pause, turn
+from flow.tests.test_fake_daemon import PENDING, TITLE, FakeDaemon, pause, turn
 from flow.tools.builtins import sync_builtin_tools
 
 DELETE = "flow.flow.doctype.flow_session.flow_session._delete_server_session"

@@ -9,7 +9,7 @@ from frappe.tests import IntegrationTestCase
 
 from flow.daemon.client import DaemonClient
 from flow.lib import session as sessions
-from flow.tests.fake_daemon import PENDING, TITLE, FakeDaemon, pause, resumed, row, turn
+from flow.tests.test_fake_daemon import PENDING, TITLE, FakeDaemon, pause, resumed, row, turn
 
 
 class TestSync(IntegrationTestCase):
