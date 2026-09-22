@@ -131,6 +131,24 @@ class Workspace(Document, DeskViews):
 				shortcut.report_ref_doctype = frappe.get_value("Report", shortcut.link_to, "ref_doctype")
 
 		self.validate_duplicate_widget_labels()
+		self.validate_shared_page_has_a_module()
+
+	def validate_shared_page_has_a_module(self):
+		"""Refuse a shared page in the `Private` module.
+
+		`Private` is not a place on the site, it is each user's own shell, and the desk draws that
+		shell from the pages its viewer owns. A shared page in it would either show in everybody's
+		private shell, which is a personal space that is not personal, or in nobody's, which is a
+		page nothing lists. Neither is what the person saving it meant.
+
+		Pages a site already had are left alone: they stay reachable by their own URL and are listed
+		in no private shell, and this only asks for a module the next time somebody saves one.
+		"""
+		if self.public and self.module == PRIVATE_MODULE:
+			frappe.throw(
+				_("A shared workspace needs a module other than {0}.").format(_(PRIVATE_MODULE)),
+				title=_("Pick a module"),
+			)
 
 	@staticmethod
 	def get_widget_label_counts(doc, parentfield) -> Counter:

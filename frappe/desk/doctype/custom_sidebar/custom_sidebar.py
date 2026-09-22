@@ -100,17 +100,23 @@ class CustomSidebar(Document):
 			)
 
 	def drop_private_workspaces(self):
-		"""Drop rows naming a private workspace from any layer, the site's and a user's alike.
+		"""Drop rows naming someone else's private workspace, or any private one from the site's
+		layer.
 
-		A private page's link is derived on read (`sidebar.get_private_workspaces`), and the
-		derived row is appended to the arrangement the client is shown, so it comes back on the
-		next save. Storing it would put a row per private page in the document the whole site
-		shares, or, in the owner's own layer, a second copy of a link that is already derived
-		from the workspace and that points nowhere once the page is deleted.
+		A row naming a private page belongs in one place only: the layer of the user who owns it.
+		There it is what makes the page's place in the sidebar a stored fact, so the owner can
+		arrange it, rename it and hide it from a module's sidebar. Anywhere else it is a row about
+		a page its reader cannot open, and in the site's layer it also puts a row per private page
+		into the document the whole site shares, where an admin tidying up finds other users'
+		pages.
+
+		A page with no row of its own still reaches its owner's sidebar, derived on read from the
+		workspace itself (`sidebar.get_private_workspaces`). That is what every page made before
+		rows were written relies on, and it is why a row dropped here loses nothing.
 
 		This is enforced here rather than in the endpoints, because every write is a way in: the
-		two save endpoints, `add_site_sidebar_item`, the form and the API. It also clears rows a
-		site stored before the derivation existed, on the next save of that layer.
+		two save endpoints, `add_user_sidebar_item`, `add_site_sidebar_item`, the form and the
+		API. It also clears rows a site stored in the wrong layer, on the next save of that layer.
 
 		A public workspace is untouched: its link is stored, and arranging or hiding it is what
 		the layers are for.
@@ -120,7 +126,11 @@ class CustomSidebar(Document):
 			return
 
 		private = set(
-			frappe.get_all("Workspace", filters={"name": ["in", list(named)], "public": 0}, pluck="name")
+			frappe.get_all(
+				"Workspace",
+				filters={"name": ["in", list(named)], "public": 0, "for_user": ["!=", self.user or ""]},
+				pluck="name",
+			)
 		)
 		if private:
 			self.set(
@@ -277,8 +287,19 @@ def resolve_arrangement(
 
 
 def merge_layers(items: list[dict], layers: list["CustomSidebar"]) -> list[dict]:
-	"""Return the arrangement as it renders. An item left hidden by every layer is removed, rather
-	than rendered as hidden the way the dock renders one."""
+	"""Return the arrangement as it renders, for a caller that does not need the hidden keys."""
+	return merged_arrangement(items, layers)[0]
+
+
+def merged_arrangement(items: list[dict], layers: list["CustomSidebar"]) -> tuple[list[dict], set[str]]:
+	"""Return the arrangement as it renders, and the keys the layers hid.
+
+	An item left hidden by every layer is removed, rather than rendered as hidden the way the
+	dock renders one. Which keys those were is still worth knowing, because a hidden item is a
+	decision and a later step can undo it by accident: a private page hidden here is left out of
+	the list, so the derived append no longer finds it and adds it straight back. The append is
+	given these keys and skips them (`sidebar.append_derived_items`).
+	"""
 	resolved, hidden = resolve_arrangement(items, layers)
 
 	kept = []
@@ -293,7 +314,7 @@ def merge_layers(items: list[dict], layers: list["CustomSidebar"]) -> list[dict]
 		item.pop("hidden", None)
 		kept.append(item)
 
-	return kept
+	return kept, {key for key, is_hidden in hidden.items() if is_hidden}
 
 
 def apply_sidebar_row(row, item: dict | None) -> dict | None:
@@ -488,6 +509,79 @@ def reset_to_standard(module: str):
 		frappe.delete_doc("Custom Sidebar", name, ignore_permissions=True, force=True)
 
 	return module_payload()
+
+
+def add_user_sidebar_item(module: str, user: str, item: dict) -> None:
+	"""Append one item to `user`'s own layer, leaving the rest unchanged.
+
+	The per-user mirror of `add_site_sidebar_item`, and the whole reason it is per user: the only
+	rows written this way are the links to a user's own private pages, which belong in that user's
+	layer and nowhere else (`drop_private_workspaces`).
+
+	A user with no layer for this module gets one holding just this row. That is a layer of
+	additions and nothing else, which the merge reads as appends rather than as an arrangement, so
+	the row lands at the end of the sidebar and nothing else in it moves
+	(`frappe/desk/layers.py`).
+
+	An item already present is skipped, so the caller does not have to check.
+	"""
+	existing = get_customization(module, user)
+	doc = (
+		frappe.get_doc("Custom Sidebar", existing.name)
+		if existing
+		else frappe.new_doc("Custom Sidebar").update({"module": module, "user": user})
+	)
+
+	if any(item_key(row) == item_key(item) for row in doc.sidebar_items):
+		return
+
+	doc.append("sidebar_items", {**item, "added": 1})
+	# ignore_permissions: making the page is what earned this row, and the arrangement is
+	# re-filtered by permissions on every boot whatever is stored here.
+	doc.save(ignore_permissions=True)
+
+
+def remove_workspace_rows(link_to: str, user: str | None = None) -> None:
+	"""Drop every row naming `link_to` as a workspace, from one user's layers or from all of them.
+
+	What a row names can stop being the page it named: the page is deleted, it moves to another
+	module, or it stops being private and earns a stored link of its own instead. A row left behind
+	names nothing, and while resolution skips such a row (`apply_sidebar_row`), leaving it there
+	would put the page back in a module's sidebar if a page of that name ever came back.
+
+	`user` narrows it to that user's own layers, which is what a page's owner needs. Left out,
+	every layer is cleaned, which is what a deleted page needs.
+
+	Each layer is saved rather than written to with `db`, so `on_trash`/`on_update` clear the boot
+	cache of whoever the layer belongs to.
+	"""
+	rows = frappe.get_all(
+		"Sidebar Item",
+		filters={
+			"parenttype": "Custom Sidebar",
+			"link_type": "Workspace",
+			"link_to": link_to,
+		},
+		pluck="parent",
+	)
+	if not rows:
+		return
+
+	filters = {"name": ["in", list(set(rows))]}
+	if user:
+		filters["user"] = user
+
+	for name in frappe.get_all("Custom Sidebar", filters=filters, pluck="name"):
+		doc = frappe.get_doc("Custom Sidebar", name)
+		doc.set(
+			"sidebar_items",
+			[
+				row
+				for row in doc.sidebar_items
+				if not (row.link_type == "Workspace" and row.link_to == link_to)
+			],
+		)
+		doc.save(ignore_permissions=True)
 
 
 def add_site_sidebar_item(module: str, item: dict) -> None:

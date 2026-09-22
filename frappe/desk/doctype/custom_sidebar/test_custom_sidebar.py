@@ -542,14 +542,16 @@ class TestUserRowsAreTheUsers(CustomizationTestCase):
 		self.assertTrue(frappe.db.exists("Custom Sidebar", {"user": ""}))
 
 
-class TestNoLayerHoldsAPrivatePage(CustomizationTestCase):
-	"""A private workspace's link is derived on read, so no layer ever stores one.
+class TestOnlyTheOwnersLayerHoldsAPrivatePage(CustomizationTestCase):
+	"""A row naming a private page belongs in its owner's own layer, and nowhere else.
 
-	The derivation is appended to the arrangement the client is shown, so the client sends it back
-	on the next save. Stored, the site layer would fill up with one row per private page of whoever
-	last curated it, which is the pollution D3 removes, and the owner's own layer would hold a second
-	copy of a link already derived from the workspace.
+	There it is what makes the page's place a stored fact, so the owner can arrange it and hide it
+	from a module's sidebar. In the site's layer it would fill the document the whole site shares
+	with one row per private page of whoever last curated it, and an admin tidying up would find
+	other people's pages in it.
 
+	A page with no row of its own still reaches its owner, derived on read from the workspace, so
+	a row dropped here loses nothing.
 	"""
 
 	def make_workspace(self, title, public, for_user=""):
@@ -588,11 +590,18 @@ class TestNoLayerHoldsAPrivatePage(CustomizationTestCase):
 
 		self.assertEqual(self.stored_links(), [public.name])
 
-	def test_the_owners_own_layer_drops_it_too(self):
-		"""Their own page, but still not their own row: it is derived from the workspace, and a stored
-		copy would outlive the page it names.
-		"""
+	def test_the_owners_own_layer_keeps_their_own_page(self):
+		"""Their own page in their own layer is the one place such a row belongs."""
 		private = self.make_workspace("Test Own Layer Private Page", public=0, for_user=USER)
+
+		self.as_user()
+		save_sidebar_customization(MODULE, json.dumps([self.row_for(private)]))
+
+		self.assertEqual(self.stored_links(USER), [private.name])
+
+	def test_a_users_layer_drops_somebody_elses_page(self):
+		"""A row about a page its reader cannot open says nothing, whichever user's layer it is in."""
+		private = self.make_workspace("Test Other Owner Private Page", public=0, for_user="Administrator")
 
 		self.as_user()
 		save_sidebar_customization(MODULE, json.dumps([self.row_for(private)]))
