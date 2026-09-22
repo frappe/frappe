@@ -48,6 +48,26 @@ describe("an app's Tailwind preset", () => {
     );
   });
 
+  it("refuses a framework leaf whose key holds a dot, such as spacing 0.5", () => {
+    expect(
+      refusal([{ app: "erpnext", preset: { theme: { extend: { spacing: { "0.5": "3px" } } } } }]),
+    ).toContain(
+      `erpnext sets \`spacing.0.5\`, which the framework defines as ${JSON.stringify(theme.spacing["0.5"])}`,
+    );
+  });
+
+  it("names a whole scale the framework holds as an object, not by dumping it", () => {
+    expect(
+      refusal([{ app: "crm", preset: { theme: { extend: { colors: () => ({}) } } } }]),
+    ).toContain("crm sets `colors`, which the framework defines as an object");
+  });
+
+  it("refuses a preset that is not an object", () => {
+    expect(refusal([{ app: "crm", preset: (() => ({})) as any }])).toContain(
+      "crm exports function; a preset is an object",
+    );
+  });
+
   it("refuses one leaf two apps write with different values, naming each", () => {
     expect(
       refusal([

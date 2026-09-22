@@ -462,9 +462,8 @@ export default {
 };
 ```
 
-- **`export default`.** The file is loaded as an ES module whether or not the app's repo
-  root `package.json` says `"type": "module"`. `module.exports` fails to load under one
-  that does.
+- **`export default`.** The file loads the same way whether or not the app's repo root
+  `package.json` says `"type": "module"`.
 - **Two keys.** The file holds `theme` and `plugins` and nothing else. `content`,
   `safelist`, `darkMode`, `prefix`, `corePlugins`, `presets` and every other key fail
   the build, naming the app and the key. Nobody gets a safelist.

@@ -12,8 +12,7 @@ const HEADER =
 	"The desk shell builds one stylesheet, which admits one value for each theme key. These presets conflict:";
 const FOOTER = "Change the presets and build again.";
 
-// jiti, not `createRequire`: an app's preset says `export default`, and its repo root may or
-// may not say `"type": "module"`.
+// jiti: an app preset is `export default` under a root that may or may not say `"type": "module"`.
 const load = jiti(import.meta.url, { interopDefault: true });
 
 export function presetPath(sourceDir) {
@@ -44,6 +43,10 @@ export function checkPresets(loaded, theme) {
 	const problems = [];
 	const writers = new Map();
 	for (const { app, preset } of loaded) {
+		if (!preset || typeof preset !== "object") {
+			problems.push(`${app} exports ${typeof preset}; a preset is an object`);
+			continue;
+		}
 		for (const key of Object.keys(preset)) {
 			if (!PRESET_KEYS.includes(key)) {
 				problems.push(
@@ -62,19 +65,22 @@ export function checkPresets(loaded, theme) {
 			const framework = lookup(theme, path);
 			if (framework !== undefined) {
 				problems.push(
-					`${app} sets \`${path}\`, which the framework defines as ${show(framework)}`
+					`${app} sets \`${path.join(".")}\`, which the framework defines as ${show(
+						framework
+					)}`
 				);
 			}
-			if (!writers.has(path)) writers.set(path, []);
-			writers.get(path).push({ app, value });
+			const key = JSON.stringify(path);
+			if (!writers.has(key)) writers.set(key, []);
+			writers.get(key).push({ app, value });
 		}
 	}
-	for (const [path, apps] of writers) {
+	for (const [key, apps] of writers) {
 		if (apps.length < 2) continue;
 		const values = new Set(apps.map(({ value }) => show(value)));
 		if (values.size === 1 && typeof apps[0].value !== "function") continue;
 		const wants = apps.map(({ app, value }) => `${app} wants ${show(value)}`).join(", ");
-		problems.push(`${path}: ${wants}`);
+		problems.push(`${JSON.parse(key).join(".")}: ${wants}`);
 	}
 	if (problems.length) {
 		throw new Error(
@@ -87,21 +93,26 @@ export function checkPresets(loaded, theme) {
 function* leaves(node, prefix = []) {
 	for (const [key, value] of Object.entries(node)) {
 		const path = [...prefix, key];
-		if (value && typeof value === "object" && !Array.isArray(value))
-			yield* leaves(value, path);
-		else yield [path.join("."), value];
+		if (isPlainObject(value)) yield* leaves(value, path);
+		else yield [path, value];
 	}
 }
 
 function lookup(theme, path) {
 	let node = theme;
-	for (const key of path.split(".")) {
+	for (const key of path) {
 		if (!node || typeof node !== "object") return undefined;
 		node = node[key];
 	}
 	return node;
 }
 
+function isPlainObject(value) {
+	return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 function show(value) {
-	return typeof value === "function" ? "a function" : JSON.stringify(value);
+	if (typeof value === "function") return "a function";
+	if (isPlainObject(value)) return "an object";
+	return JSON.stringify(value);
 }
