@@ -63,6 +63,23 @@ def exports_in_tempdir():
 
 
 class TestStudioPage(IntegrationTestCase):
+	def test_get_icon_calls_are_rewritten_to_lucide_classes(self):
+		from studio.studio.doctype.studio_page.patches import migrate_get_icon_calls
+
+		app = make_studio_app(app_name="get-icon-app", app_title="Get Icon App")
+		page = make_studio_page(
+			app.name,
+			blocks='[{"componentProps": {"icon": "{{ getIcon(\'sprout\') }}", "onClick": "() => getIcon(\'plus\')"}}]',
+			script="const icon = getIcon('check')",
+		)
+
+		migrate_get_icon_calls.execute()
+
+		page.reload()
+		self.assertEqual(page.script, "const icon = 'lucide-check'")
+		self.assertIn('"icon": "lucide-sprout"', page.blocks)
+		self.assertIn("() => 'lucide-plus'", page.blocks)
+
 	def test_block_parsing(self):
 		app = make_studio_app(app_name="serialization-" + frappe.generate_hash(length=10))
 		blocks = [{"componentName": "div", "children": [{"componentName": "span"}]}]
