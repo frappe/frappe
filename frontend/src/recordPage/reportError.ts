@@ -58,7 +58,7 @@ export function reportCustomizationError(
       stack: stackOf(error).slice(0, STACK_LIMIT),
       record: context.record ?? "",
       route: context.route ?? currentRoute(),
-    });
+    }, { nullable: true });
     void Promise.resolve(sent).catch(() => {});
   } catch {
     // An error channel that can itself error is a loop.

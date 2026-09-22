@@ -1,11 +1,11 @@
-import { ApiError, readEnvelope, type Envelope } from "./envelope";
+import { ApiError, readEnvelope, type Envelope, type ReadOptions } from "./envelope";
 
 const BASE = "/api/v2";
 
 export type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 export type Query = Record<string, unknown>;
 
-export interface RequestOptions {
+export interface RequestOptions extends Pick<ReadOptions, "nullable"> {
   query?: Query;
   body?: unknown;
   signal?: AbortSignal;
@@ -35,7 +35,7 @@ export function requestHeaders({ json = true } = {}): Record<string, string> {
 export async function request<T>(
   method: HttpMethod,
   path: string,
-  { query, body, signal }: RequestOptions = {}
+  { query, body, signal, nullable }: RequestOptions = {}
 ): Promise<Envelope<T>> {
   let response: Response;
   try {
@@ -49,7 +49,10 @@ export async function request<T>(
     if ((error as { name?: string })?.name === "AbortError") throw error;
     throw new ApiError({ type: "NetworkError", message: String(error) }, 0);
   }
-  return readEnvelope<T>(await parseBody(response), response.status);
+  return readEnvelope<T>(await parseBody(response), response.status, {
+    source: `${method} ${path}`,
+    nullable,
+  });
 }
 
 // The server reads a query flag with `bool()`, so the string "false" must not reach it.

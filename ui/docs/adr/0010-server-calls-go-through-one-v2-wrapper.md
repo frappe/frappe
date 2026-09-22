@@ -31,7 +31,11 @@ transport later touches this folder only.
   models no grammar; a new server grammar changes no call site.
 - **One error class.** The first entry of the server's `errors` list becomes an
   `ApiError` with `type`, `title`, `exception`, `indicator` and the HTTP status. A
-  failed response with no JSON body is an `HTTPError`.
+  failed response with no JSON body is an `HTTPError`, and a 200 whose body has no `data`
+  is a `MissingData`, since the server writes `data` only when the endpoint returned a
+  value. A caller of `runMethod` or `runDocumentMethod` whose function returns nothing
+  says `nullable`, and `data` is then `null`; `logout` and a non-final upload part are
+  nullable inside the wrapper.
 
 ## The surface
 

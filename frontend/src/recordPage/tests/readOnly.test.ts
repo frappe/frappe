@@ -307,7 +307,7 @@ describe("the refusal reports on the tombstone channel", () => {
       }).toThrow();
     });
 
-    expect(mockedCall).toHaveBeenCalledWith(REPORT_METHOD, expect.anything());
+    expect(mockedCall).toHaveBeenCalledWith(REPORT_METHOD, expect.anything(), { nullable: true });
     const payload = (mockedCall as any).mock.calls[0][1];
     expect(payload.source).toBe("client-script:products");
     expect(payload.event).toBe("readonly:page.meta");
@@ -343,7 +343,7 @@ describe("the refusal reports on the tombstone channel", () => {
       page.meta.fields[0].hidden = 1;
     }).toThrow();
 
-    expect(mockedCall).toHaveBeenCalledWith(REPORT_METHOD, expect.anything());
+    expect(mockedCall).toHaveBeenCalledWith(REPORT_METHOD, expect.anything(), { nullable: true });
     expect((mockedToast as any).error).not.toHaveBeenCalled();
   });
 });

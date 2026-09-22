@@ -130,20 +130,20 @@ export function useNotifications(
       n.read = 1; // optimistic
       if (unread.value > 0) unread.value -= 1;
     }
-    await runMethod(`${METHOD}.mark_as_read`, { docname: name });
+    await runMethod(`${METHOD}.mark_as_read`, { docname: name }, { nullable: true });
     void refreshUnreadCount();
   }
 
   async function markAllAsRead() {
     list.rows.value.forEach((n) => (n.read = 1)); // optimistic
     unread.value = 0;
-    await runMethod(`${METHOD}.mark_all_as_read`);
+    await runMethod(`${METHOD}.mark_all_as_read`, {}, { nullable: true });
     void refreshUnreadCount();
   }
 
   /** tell the backend the bell indicator was seen (clears the unseen dot) */
   function markSeen() {
-    runMethod(`${METHOD}.trigger_indicator_hide`).catch(() => {});
+    runMethod(`${METHOD}.trigger_indicator_hide`, {}, { nullable: true }).catch(() => {});
   }
 
   function reload() {

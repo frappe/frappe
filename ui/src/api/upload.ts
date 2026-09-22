@@ -97,7 +97,7 @@ export async function downloadFile(
     if ((error as { name?: string })?.name === "AbortError") throw error;
     throw new ApiError({ type: "NetworkError", message: String(error) }, 0);
   }
-  if (!response.ok) throw await failure(response);
+  if (!response.ok) throw await failure(response, url);
   return response.blob();
 }
 
@@ -106,21 +106,21 @@ function attachmentsPath(doctype: string, name: string, fileName?: string): stri
   return fileName === undefined ? base : `${base}/${encodeURIComponent(fileName)}`;
 }
 
-async function failure(response: Response): Promise<ApiError> {
+async function failure(response: Response, url: string): Promise<ApiError> {
   const text = await response.text().catch(() => "");
+  const source = `GET ${url}`;
   try {
-    readEnvelope(text ? JSON.parse(text) : null, response.status);
+    readEnvelope(text ? JSON.parse(text) : null, response.status, { source });
   } catch (error) {
     if (error instanceof ApiError) return error;
   }
   return new ApiError(
-    { type: "HTTPError", message: `Request failed with status ${response.status}` },
+    { type: "HTTPError", message: `${source} failed with status ${response.status}` },
     response.status
   );
 }
 
-// Every part goes to the same route and only the last one answers with a body; the ones
-// before it carry a null `data`.
+// Every part goes to the same route and only the last one answers with `data`.
 async function uploadTo<T>(
   path: string,
   file: File,
@@ -197,7 +197,7 @@ function sendChunk<T>(path: string, chunk: ChunkRequest): Promise<Envelope<T> | 
       if (xhr.readyState !== XMLHttpRequest.DONE) return;
       done();
       try {
-        const envelope = readChunkResponse<T>(xhr);
+        const envelope = readChunkResponse<T>(xhr, path, chunk.last);
         resolve(chunk.last ? envelope : null);
       } catch (error) {
         reject(error);
@@ -222,7 +222,7 @@ function formOf({ blob, fileName, fields }: ChunkRequest): FormData {
   return form;
 }
 
-function readChunkResponse<T>(xhr: XMLHttpRequest): Envelope<T> {
+function readChunkResponse<T>(xhr: XMLHttpRequest, path: string, last: boolean): Envelope<T> {
   if (xhr.status === 413) {
     throw new ApiError({ type: "FileTooLarge", message: "File size exceeds the maximum allowed limit." }, 413);
   }
@@ -232,5 +232,5 @@ function readChunkResponse<T>(xhr: XMLHttpRequest): Envelope<T> {
   } catch {
     body = null;
   }
-  return readEnvelope<T>(body, xhr.status || 0);
+  return readEnvelope<T>(body, xhr.status || 0, { source: `POST ${path}`, nullable: !last });
 }
