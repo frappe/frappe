@@ -13,6 +13,8 @@ import frappe
 import frappe.exceptions
 from frappe.core.doctype.user.user import (
 	User,
+	bulk_add_roles,
+	bulk_remove_roles,
 	handle_password_test_fail,
 	reset_password,
 	rewrite_owner_fields,
@@ -668,42 +670,80 @@ class TestUser(IntegrationTestCase):
 			"The reset password link has been expired",
 		)
 
-	def test_bulk_add_roles_single_append(self):
-		from frappe.core.doctype.user.user import bulk_add_roles
+	def test_bulk_add_roles(self):
+		"""Roles are appended across the selection without disturbing existing ones."""
+		with (
+			test_user(roles=["Blogger"]) as first,
+			test_user(roles=["Website Manager"]) as second,
+		):
+			bulk_add_roles([first.name, second.name], ["_Test Role 4", "Blogger"])
 
-		for role_name in ["Accounts User", "Accounts Manager"]:
-			frappe.get_doc({"doctype": "Role", "role_name": role_name}).insert(
-				ignore_permissions=True, ignore_if_duplicate=True
+			first.reload()
+			second.reload()
+
+			self.assertCountEqual([d.role for d in first.roles], ["Blogger", "_Test Role 4"])
+			self.assertCountEqual(
+				[d.role for d in second.roles], ["Website Manager", "_Test Role 4", "Blogger"]
 			)
 
-		with test_user(roles=["Accounts User"]) as user:
-			bulk_add_roles([user.name], ["Accounts Manager"])
+	def test_bulk_remove_roles(self):
+		"""Roles are stripped across the selection, leaving other roles intact."""
+		with (
+			test_user(roles=["Blogger", "Website Manager"]) as first,
+			test_user(roles=["Blogger"]) as second,
+		):
+			bulk_remove_roles([first.name, second.name], ["Blogger", "_Test Role 4"])
 
-			user.reload()
-			current_roles = [d.role for d in user.roles]
+			first.reload()
+			second.reload()
 
-			self.assertIn("Accounts User", current_roles)
-			self.assertIn("Accounts Manager", current_roles)
-			self.assertEqual(len(current_roles), 2)
+			self.assertCountEqual([d.role for d in first.roles], ["Website Manager"])
+			self.assertCountEqual([d.role for d in second.roles], [])
 
-	def test_bulk_add_roles_multiple_append(self):
-		from frappe.core.doctype.user.user import bulk_add_roles
+			bulk_remove_roles([], ["Website Manager"])
+			bulk_remove_roles([first.name], [])
 
-		for role_name in ["Accounts User", "Accounts Manager", "System Manager"]:
-			frappe.get_doc({"doctype": "Role", "role_name": role_name}).insert(
-				ignore_permissions=True, ignore_if_duplicate=True
-			)
+			first.reload()
+			self.assertCountEqual([d.role for d in first.roles], ["Website Manager"])
 
-		with test_user(roles=["Accounts User"]) as user:
-			bulk_add_roles([user.name], ["Accounts Manager", "System Manager"])
+	def test_bulk_role_endpoints_enqueue_large_batches(self):
+		"""Over 20 users, each endpoint defers to its own background job."""
+		users = [f"bulk{i}@example.com" for i in range(21)]
 
-			user.reload()
-			current_roles = [d.role for d in user.roles]
+		with patch.object(frappe, "enqueue") as mocked_enqueue:
+			bulk_add_roles(users, ["Blogger"])
 
-			self.assertIn("Accounts User", current_roles)
-			self.assertIn("Accounts Manager", current_roles)
-			self.assertIn("System Manager", current_roles)
-			self.assertEqual(len(current_roles), 3)
+		mocked_enqueue.assert_called_once()
+		self.assertEqual(mocked_enqueue.call_args.args[0], "frappe.core.doctype.user.user._assign_roles")
+
+		with patch.object(frappe, "enqueue") as mocked_enqueue:
+			bulk_remove_roles(users, ["Blogger"])
+
+		mocked_enqueue.assert_called_once()
+		self.assertEqual(mocked_enqueue.call_args.args[0], "frappe.core.doctype.user.user._unassign_roles")
+
+	def test_bulk_role_args_are_validated(self):
+		"""Parsed arguments must be lists of plain strings, within the batch cap."""
+		with self.assertRaises(frappe.ValidationError):
+			bulk_add_roles([{"name": ["!=", ""]}], ["Blogger"])
+
+		with self.assertRaises(frappe.ValidationError):
+			bulk_add_roles(["someone@example.com"], [{"role": ["!=", ""]}])
+
+		with self.assertRaises(frappe.ValidationError):
+			bulk_add_roles([f"u{i}@example.com" for i in range(501)], ["Blogger"])
+
+		with self.assertRaises(frappe.ValidationError):
+			bulk_remove_roles([f"u{i}@example.com" for i in range(501)], ["Blogger"])
+
+	def test_bulk_role_endpoints_require_write_permission(self):
+		with test_user(roles=["Blogger"]) as actor, test_user(roles=["Blogger"]) as target:
+			with self.set_user(actor.name):
+				with self.assertRaises(frappe.PermissionError):
+					bulk_add_roles([target.name], ["Website Manager"])
+
+				with self.assertRaises(frappe.PermissionError):
+					bulk_remove_roles([target.name], ["Blogger"])
 
 
 class TestImpersonation(FrappeAPITestCase):

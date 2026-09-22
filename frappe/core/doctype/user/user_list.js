@@ -6,42 +6,7 @@ frappe.listview_settings["User"] = {
 	filters: [["enabled", "=", 1]],
 	onload(listview) {
 		this.set_default_app_options(listview);
-
-		listview.page.add_actions_menu_item(__("Add Roles"), () => {
-			const selected_users = listview.get_checked_items(true);
-			if (!selected_users.length) {
-				frappe.msgprint(__("Please select at least one user."));
-				return;
-			}
-
-			const dialog = new frappe.ui.Dialog({
-				title: __("Add Roles"),
-				fields: [
-					{
-						fieldtype: "TableMultiSelect",
-						fieldname: "roles",
-						label: __("Roles"),
-						reqd: 1,
-						options: "Has Role",
-					},
-				],
-				primary_action_label: __("Add"),
-				primary_action(values) {
-					if (!values.roles?.length) return;
-					const roles = values.roles.map((r) => r.role).filter(Boolean);
-					frappe.call({
-						method: "frappe.core.doctype.user.user.bulk_add_roles",
-						args: { users: selected_users, roles: roles },
-						freeze: true,
-						callback() {
-							dialog.hide();
-							listview.refresh();
-						},
-					});
-				},
-			});
-			dialog.show();
-		});
+		this.add_bulk_role_actions(listview);
 	},
 	prepare_data: function (data) {
 		data["user_for_avatar"] = data["name"];
@@ -52,6 +17,71 @@ frappe.listview_settings["User"] = {
 		} else {
 			return [__("Disabled"), "gray", "enabled,=,0"];
 		}
+	},
+	add_bulk_role_actions(listview) {
+		const open_role_dialog = ({ title, get_action_label, method, destructive }) => {
+			const users = listview.get_checked_items(true);
+			if (!users.length) {
+				frappe.msgprint(__("Select records to update roles"));
+				return;
+			}
+
+			const dialog = new frappe.ui.Dialog({
+				title: title,
+				fields: [
+					{
+						fieldtype: "TableMultiSelect",
+						fieldname: "roles",
+						label: __("Roles"),
+						reqd: 1,
+						options: "Has Role",
+					},
+				],
+				primary_action_label: get_action_label(users.length),
+				primary_action(values) {
+					const roles = (values.roles || []).map((r) => r.role).filter(Boolean);
+					if (!roles.length) return;
+
+					dialog.disable_primary_action();
+					frappe.call({
+						method: method,
+						args: { users, roles },
+						freeze: true,
+						callback() {
+							dialog.hide();
+							listview.clear_checked_items();
+							listview.refresh();
+						},
+						error() {
+							dialog.enable_primary_action();
+						},
+					});
+				},
+			});
+
+			if (destructive) {
+				dialog.get_primary_btn().attr("data-theme", "red");
+			}
+
+			dialog.show();
+		};
+
+		listview.page.add_actions_menu_item(__("Add Roles"), () =>
+			open_role_dialog({
+				title: __("Add Roles"),
+				get_action_label: (count) => __("Add to {0} Users", [count]),
+				method: "frappe.core.doctype.user.user.bulk_add_roles",
+			})
+		);
+
+		listview.page.add_actions_menu_item(__("Remove Roles"), () =>
+			open_role_dialog({
+				title: __("Remove Roles"),
+				get_action_label: (count) => __("Remove from {0} Users", [count]),
+				method: "frappe.core.doctype.user.user.bulk_remove_roles",
+				destructive: true,
+			})
+		);
 	},
 	set_default_app_options(listview) {
 		const default_app_field = frappe.meta.get_docfield("User", "default_app");
