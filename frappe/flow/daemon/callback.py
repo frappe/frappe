@@ -44,13 +44,19 @@ def tool_callback(
 	session = frappe.db.get_value("Flow Session", session_id, ["owner", "agent"], as_dict=True)
 	if not session:
 		return _error(_("Unknown session {0}.").format(session_id))
+	# a sub-agent's call names it; it must be one of the session agent's sub-agents
+	agent = (user_context or {}).get("agent") or session.agent
+	if agent != session.agent and not frappe.db.exists(
+		"Flow Agent Sub Agent", {"parent": session.agent, "agent": agent}
+	):
+		return _error(_("{0} is not a sub-agent of {1}.").format(agent, session.agent))
 	if not frappe.db.get_value("User", session.owner, "enabled"):
 		return _error(_("The session's owner is disabled."))
 	user = frappe.session.user
 	frappe.set_user(session.owner)
 	frappe.db.savepoint(SAVEPOINT)
 	try:
-		return _dispatch(session_id, session.agent, tool, args or {}, mode)
+		return _dispatch(session_id, agent, tool, args or {}, mode)
 	except Exception as exc:
 		frappe.db.rollback(save_point=SAVEPOINT)
 		return _error(str(exc).strip() or type(exc).__name__)
