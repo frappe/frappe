@@ -6,7 +6,7 @@ vi.mock("@/router/routeFor", () => ({ routeFor: (doctype: string) => ({ name: "l
 const { deleteDocument } = vi.hoisted(() => ({ deleteDocument: vi.fn(async () => ({ data: "ok" })) }));
 vi.mock("@framework/ui/api", () => ({ deleteDocument }));
 
-import { headerMenuBuiltins, quickActionBuiltins, type FavouriteState } from "../builtinActions";
+import { headerMenuBuiltins, quickActionBuiltins, type FavouriteState, type FollowState } from "../builtinActions";
 
 const names = (perms: Record<string, any>, tagged = false) =>
   quickActionBuiltins(perms, tagged).map((a) => a.name);
@@ -64,6 +64,31 @@ describe("quickActionBuiltins", () => {
     expect(remove).toMatchObject({ label: "Remove from favourites", icon: "lucide-star-off" });
     remove.run!(page);
     expect(toggle).toHaveBeenCalledWith(page);
+  });
+
+  it("seeds follow in both places only when handed a state, worded for what it does next", () => {
+    const toggle = vi.fn();
+    const page = fakePage(null);
+    const off: FollowState = { following: false, toggle };
+    const quick = quickActionBuiltins({ write: 1 }, false, off);
+    expect(quick.map((a) => a.name)).toEqual(["copy_link", "follow", "tags"]);
+    expect(quick[1]).toMatchObject({ label: "Follow", icon: "lucide-bell" });
+    const rows = headerMenuBuiltins({ delete: 1 }, off as any, { follow: off });
+    expect(rows.map((item) => [item.name, item.group])).toEqual([
+      ["favourite_row", "favourite_band"],
+      ["follow_row", "favourite_band"],
+      ["copy_url", "copies"],
+      ["copy_id", "copies"],
+      ["delete", "danger"],
+    ]);
+    expect(rows[1]).toMatchObject({ label: "Follow", icon: "lucide-bell" });
+    rows[1].run!(page);
+    expect(toggle).toHaveBeenCalledWith(page);
+
+    const on: FollowState = { following: true, toggle };
+    const unfollow = { label: "Unfollow", icon: "lucide-bell-off" };
+    expect(quickActionBuiltins({}, false, on)[1]).toMatchObject(unfollow);
+    expect(headerMenuBuiltins({}, off as any, { follow: on })[1]).toMatchObject(unfollow);
   });
 
   it("copies the record's name and says so", async () => {

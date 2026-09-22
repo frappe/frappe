@@ -83,6 +83,7 @@ export interface SessionUser {
   full_name: string;
   email: string;
   user_image: string | null;
+  document_follow_notify: boolean;
 }
 
 /** The signed-in person and the site settings a client renders for them. */

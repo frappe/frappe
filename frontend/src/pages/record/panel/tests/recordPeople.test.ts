@@ -17,8 +17,6 @@ const api = vi.hoisted(() => {
 		removeShare: answer("shares", []),
 		addTag: vi.fn(async () => ({ data: { tags: ["urgent", "later"] } })),
 		removeTag: vi.fn(async () => ({ data: { tags: [] } })),
-		addFollow: vi.fn(async () => ({ data: { follows: true } })),
-		removeFollow: vi.fn(async () => ({ data: { follows: false } })),
 	};
 });
 
@@ -199,48 +197,6 @@ describe("sharing", () => {
 		expect(component).toBeTruthy();
 		expect(props.context.docinfo).toBe(docinfo);
 		expect(options).toEqual({ title: "Share this record" });
-	});
-});
-
-describe("following", () => {
-	it("offers to follow, and takes the server's answer as the state", async () => {
-		const { root, docinfo } = setup(info({ read: 1 }));
-		const button = root.querySelector<HTMLElement>("[data-follow]")!;
-		expect(button.textContent).toBe("Follow");
-		expect(button.getAttribute("aria-pressed")).toBe("false");
-		button.click();
-		await vi.waitFor(() => expect(docinfo.value?.follows).toBe(true));
-		expect(api.addFollow).toHaveBeenCalledWith("CRM Deal", "D-1");
-		await nextTick();
-		expect(button.textContent).toBe("Following");
-		expect(button.getAttribute("aria-pressed")).toBe("true");
-	});
-
-	it("shows what the server said when it declined the follow", async () => {
-		const { root, page } = setup(info({ read: 1 }));
-		api.addFollow.mockResolvedValueOnce({
-			data: { follows: false },
-			messages: [{ message: "Can't follow since changes are not tracked." }],
-		});
-		root.querySelector<HTMLElement>("[data-follow]")!.click();
-		await vi.waitFor(() =>
-			expect(page.toast.error).toHaveBeenCalledWith("Can't follow since changes are not tracked.")
-		);
-	});
-
-	it("says nothing when a declined follow carried no message", async () => {
-		const { root, page } = setup(info({ read: 1 }));
-		api.addFollow.mockResolvedValueOnce({ data: { follows: false } });
-		root.querySelector<HTMLElement>("[data-follow]")!.click();
-		await vi.waitFor(() => expect(api.addFollow).toHaveBeenCalledTimes(1));
-		expect(page.toast.error).not.toHaveBeenCalled();
-	});
-
-	it("unfollows from the pressed button", async () => {
-		const { root, docinfo } = setup({ ...info({ read: 1 }), follows: true });
-		root.querySelector<HTMLElement>("[data-follow]")!.click();
-		await vi.waitFor(() => expect(docinfo.value?.follows).toBe(false));
-		expect(api.removeFollow).toHaveBeenCalledWith("CRM Deal", "D-1");
 	});
 });
 

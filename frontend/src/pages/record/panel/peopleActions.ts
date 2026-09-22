@@ -1,11 +1,9 @@
 // The writes the people editors make; each answer replaces one part of `docinfo` in place.
 import {
 	addAssignment,
-	addFollow,
 	addShare,
 	addTag,
 	removeAssignment,
-	removeFollow,
 	removeShare,
 	removeTag,
 	type Envelope,
@@ -26,18 +24,9 @@ export function peopleActions(context: PanelContext) {
 			const answer = await write();
 			// An answer that outlived its record would paint the old rows onto the new one.
 			if (current()) docinfo.value = mergePart(docinfo.value, answer.data);
-			return answer;
 		} catch (caught) {
 			page.toast.error(errorMessage(caught));
 		}
-	}
-
-	// The server declines a follow without failing, and says why beside the data.
-	async function follow() {
-		const answer = await send(() => addFollow(doctype, docname));
-		if (!answer || answer.data.follows) return;
-		const message = messageOf(answer);
-		if (message) page.toast.error(message);
 	}
 
 	return {
@@ -47,15 +36,7 @@ export function peopleActions(context: PanelContext) {
 		unshare: (user: string) => send(() => removeShare(doctype, docname, user)),
 		addTag: (tag: string) => send(() => addTag(doctype, docname, tag)),
 		removeTag: (tag: string) => send(() => removeTag(doctype, docname, tag)),
-		follow,
-		unfollow: () => send(() => removeFollow(doctype, docname)),
 	};
-}
-
-/** The first message a v2 answer carries beside its data. */
-function messageOf(answer: Envelope<unknown>): string | undefined {
-	const [first] = (answer.messages as { message?: string }[] | undefined) ?? [];
-	return first?.message;
 }
 
 export type PeopleActions = ReturnType<typeof peopleActions>;

@@ -233,6 +233,7 @@ The generated page seeds these items, in this order:
 | `favourite` | left | The star, after the crumbs: toggles the reader's favourite, and lists everyone who favourited the record on hover. A favourite is a `Favourite` row, read off `docinfo`; it is not desk v1's like and posts nothing on the timeline. |
 | `save` | right | The Save button. Disabled by the host while nothing has changed. Pinned: it spends a slot and is never demoted. |
 | `favourite_row` | right | The star's row in `⋯`: *Add to favourites* or *Remove from favourites*, whichever the star would do next. Hiding the star keeps this row, and the other way round. |
+| `follow_row` | right | The reader's follow, in the star's band: *Follow* or *Unfollow*, whichever comes next. Seeded only when the doctype tracks changes and the reader's *Document follow* setting is on; the `follow` quick action goes with it. |
 | `copy_url` | right | A row in `⋯`: copies the record's address, as the `copy_link` quick action does. |
 | `copy_id` | right | A row in `⋯`: copies the record's name. |
 | `delete` | right | A row in `⋯`, in a band of its own, only with the delete right. Confirms, deletes, and leaves for the list. |
@@ -393,7 +394,7 @@ them under the names the Form Layout stores:
 | Name | What it is |
 | --- | --- |
 | `identity` | The title, subtitle, image and tags. The image tile draws when the doctype names an `image_field`; with write, a click uploads into that field, and the header's Save carries it like any edit. A field fetched from a linked record links there instead. |
-| `quick_actions` | `page.quickActions`, as buttons; as icons when the panel is collapsed to a strip. The framework seeds `print`, `copy_link` and `tags` there: `print` with the right, `tags` with write and only while the record has none. The row names its buttons from the left while the width lasts, then shows icons, then folds the rest into a `⋯` menu. A script hides or reorders them by name. |
+| `quick_actions` | `page.quickActions`, as buttons; as icons when the panel is collapsed to a strip. The framework seeds `print`, `copy_link`, `follow` and `tags` there: `print` with the right, `follow` under the same gate as `follow_row`, `tags` with write and only while the record has none. The row names its buttons from the left while the width lasts, then shows icons, then folds the rest into a `⋯` menu. A script hides or reorders them by name. |
 | `people` | Who the record is assigned to, and who it is shared with. |
 
 A doctype with no Side Panel row shows the three built-ins and nothing else. The panel never

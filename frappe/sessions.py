@@ -207,6 +207,7 @@ def get_session_info() -> dict:
 			"full_name": user.full_name,
 			"email": user.email,
 			"user_image": user.user_image,
+			"document_follow_notify": bool(user.document_follow_notify),
 		},
 		"roles": frappe.get_roles(),
 		"lang": frappe.local.lang or "en",
