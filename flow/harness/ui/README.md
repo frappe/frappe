@@ -73,6 +73,14 @@ panel). `MessageList` has an `empty` slot for the host's own empty state, and a
 `conversation` prop to draw a thread other than the session's (the workspace panel
 draws a sub-agent's this way).
 
+`WorkspacePanel` is a shell as well: the tab strip, the window controls and a
+sub-agent's thread are shared, and three slots take the host's own views. `actions`
+sits at the end of the tab strip (the harness passes its "+" menu of Files and Diffs),
+`view` draws any tab that is not a sub-agent's, scoped with the `tab` (`null` while
+a Files or Diffs view has no file open; the harness passes `EditorView`), and `empty`
+fills the panel when nothing is open. A host that only shows sub-agent threads passes an
+`empty` state and nothing else.
+
 `Composer` also has a `toolbar` slot: the pickers after the attach button. It
 defaults to `ModelButton`, and is scoped with `openPalette(view)` so a host's own
 pickers can sit beside it:
