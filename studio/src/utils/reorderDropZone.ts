@@ -1,5 +1,5 @@
 // Ported from Builder, modified later
-import type Block from "@/utils/block"
+import Block from "@/utils/block"
 import { getLayoutDirection } from "@/utils/dropGeometry"
 
 const BLOCK_SELECTOR = ".__studio_component__"
@@ -120,6 +120,7 @@ export class DropZoneResolver {
 	}
 
 	private zoneFor(parent: Block, slotName: string | null, breakpoint: string): DropZone | null {
+		if (!this.accepts(parent)) return null
 		const parentEl = this.getBlockEl(parent, breakpoint)
 		if (!parentEl) return null
 		const blocks = slotName ? parent.getSlotContent(slotName) || [] : parent.children
@@ -133,6 +134,13 @@ export class DropZoneResolver {
 			(element) => element.dataset.componentId !== this.dragged.componentId && hasSize(element),
 		)
 		return { parent, slotName, layoutEl, siblingEls }
+	}
+
+	// Non-standalone family parts (a Radio, a SettingsNavItem) crash outside
+	// their family root, so they only get zones under one — as the panel drop does.
+	private accepts(parent: Block): boolean {
+		const component = Block.getComponents()?.[this.dragged.componentName]
+		return !component || parent.canAddChild(component)
 	}
 
 	private getBlockEl(block: Block, breakpoint: string): HTMLElement | null {

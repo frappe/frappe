@@ -240,6 +240,24 @@ describe("reordering blocks on the canvas by dragging", () => {
 		})
 	})
 
+	it("keeps family parts inside their family root", () => {
+		startDrag("radio-a", () => center(document.querySelector(blockSelector("B"))!))
+		cy.then(() => expect(useCanvasStore().reorderTarget.active).to.equal(false))
+		release()
+		cy.then(() => {
+			expect(childIds("radios")).to.deep.equal(["radio-a", "radio-b"])
+			expect(childIds("column")).to.deep.equal(["A", "B", "C", "empty", "row", "positioned", "extras"])
+		})
+
+		// reordering among siblings under the family root still works
+		startDrag("radio-a", () => {
+			const rect = rectOf("radio-b")
+			return { x: rect.right - 4, y: rect.top + rect.height / 2 }
+		})
+		release()
+		cy.then(() => expect(childIds("radios")).to.deep.equal(["radio-b", "radio-a"]))
+	})
+
 	it("picks the engine and the active breakpoint from the canvas being dragged in", () => {
 		cy.then(() => {
 			const block = canvas.findBlock("mobile-pinned")
