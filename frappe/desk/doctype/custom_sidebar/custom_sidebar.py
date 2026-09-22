@@ -393,29 +393,72 @@ def layer_arrangement(module: str, user: str | None) -> list[dict]:
 	A curator given a filtered screen would drop the site's rows for everything they personally
 	cannot see on the next save, since this editor writes the whole arrangement.
 
-	Private workspaces are absent, as they are from every stored arrangement: they are derived
-	after the merge, and `drop_private_workspaces` removes any that were stored.
+	A user arranging their own layer is also shown the private pages they made, including the ones
+	no row names yet, marked as rows of theirs. That is what turns a page made before rows were
+	written into a stored one: this editor saves the whole arrangement, so the first save says
+	where the page is instead of leaving it to the derivation. The site's layer is shown none of
+	them, because it may hold none (`drop_private_workspaces`).
 	"""
-	from frappe.desk.doctype.sidebar.sidebar import filter_sidebar_items, get_module_base
+	from frappe.desk.doctype.sidebar.sidebar import PRIVATE_MODULE, filter_sidebar_items, get_module_base
 
 	check_module(module)
 
-	base = get_module_base(module)
-	# `is_item_allowed` is a method on `DeskViews`, so the check needs an instance: one throwaway
-	# `Workspace`, the same as `SidebarContext` builds for the boot.
-	items = filter_sidebar_items(base.rows, frappe.new_doc("Workspace"), check_permission=bool(user))
+	perm_ctx = frappe.new_doc("Workspace")
+	# The Private shell is drawn from the pages this user made rather than from what the module
+	# holds, and what it holds is public, so the base has nothing to say about it. See
+	# `sidebar.resolve_private_sidebar`.
+	if module == PRIVATE_MODULE:
+		items = []
+	else:
+		base = get_module_base(module)
+		# `is_item_allowed` is a method on `DeskViews`, so the check needs an instance: one
+		# throwaway `Workspace`, the same as `SidebarContext` builds for the boot.
+		items = filter_sidebar_items(base.rows, perm_ctx, check_permission=bool(user))
+
 	resolved, hidden = resolve_arrangement(items, get_layers(module, user))
 
 	own = get_customization(module, user)
 	own_added = {item_key(row) for row in own.sidebar_items if row.added} if own else set()
 
-	return [
+	arrangement = [
 		{
 			**item,
 			"hidden": int(hidden.get(item_key(item), 0)),
 			"added": int(item_key(item) in own_added),
 		}
 		for item in resolved
+	]
+
+	return arrangement + unstored_private_items(module, user, arrangement, perm_ctx)
+
+
+def unstored_private_items(module: str, user: str | None, arrangement: list[dict], perm_ctx) -> list[dict]:
+	"""The user's private pages this layer does not name yet, shaped as rows of their own.
+
+	They are marked `added`, because that is what they become: saving the arrangement stores them,
+	and from then on the page's place is a stored fact rather than something derived after the
+	merge.
+	"""
+	from frappe.desk.doctype.sidebar.sidebar import (
+		PRIVATE_MODULE,
+		all_private_rows,
+		filter_sidebar_items,
+		get_private_workspaces,
+	)
+
+	if not user:
+		return []
+
+	by_module = get_private_workspaces(user)
+	rows = all_private_rows(by_module) if module == PRIVATE_MODULE else by_module.get(module)
+	if not rows:
+		return []
+
+	seen = {item_key(item) for item in arrangement}
+	return [
+		{**item, "hidden": 0, "added": 1}
+		for item in filter_sidebar_items(rows, perm_ctx)
+		if item_key(item) not in seen
 	]
 
 

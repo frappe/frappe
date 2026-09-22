@@ -232,6 +232,19 @@ class Workspace(Document, DeskViews):
 		else:
 			frappe.cache.delete_key("bootinfo")
 
+	def after_insert(self):
+		"""Give a new private page its rows.
+
+		Only a private one. A shared page's link is written by the path that created it, which is
+		the path that knows whether it wanted one: the page a new module opens on, for instance,
+		is listed by the module's own sidebar and needs no row of its own.
+
+		A private page has no such path. It is made from the desk, from a script, or by a test, and
+		wherever it comes from it belongs in its owner's sidebars.
+		"""
+		if not self.public:
+			add_to_sidebar(self)
+
 	def on_update(self):
 		self.resettle_sidebar_rows()
 		self.relabel_sidebar_rows()

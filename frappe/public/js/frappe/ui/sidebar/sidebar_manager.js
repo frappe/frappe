@@ -70,15 +70,35 @@ const RESET_TO_STANDARD = "frappe.desk.doctype.custom_sidebar.custom_sidebar.res
 // option offered here that the column cannot hold would be dropped on save.
 const LINK_TYPES = ["DocType", "Page", "Report", "Workspace", "Dashboard", "URL"];
 
+// The shell holding the pages a user made for themselves, which is the one shell arranged for one
+// person. The client's copy of `workspace.PRIVATE_MODULE`.
+const PRIVATE_SHELL = "Private";
+
 frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEditor {
 	get layers() {
 		// Spread first, so the app's layer keeps its place at the end of the switch: after the
 		// two circles of people, because it is wider than either -- it goes wherever the app
 		// goes rather than everywhere on this site.
-		return {
+		const layers = {
 			...SIDEBAR_LAYERS,
 			app: { ...SIDEBAR_LAYERS.app, label: () => __("For {0}", [this.app_of_sidebar()]) },
 		};
+
+		// The Private shell holds the pages this user made, so the only circle of people it has
+		// is one person. A layer for everyone would arrange every user's own pages at once, which
+		// is not something anybody could mean, and the app's layer writes a document an app
+		// ships, which this shell is not drawn from at all.
+		if (this.is_private_shell()) {
+			for (const name of ["site", "app"]) {
+				layers[name] = { ...layers[name], condition: () => false };
+			}
+		}
+
+		return layers;
+	}
+
+	is_private_shell() {
+		return this.module === PRIVATE_SHELL;
 	}
 
 	// The app this sidebar is exported into, which is what its layer is called after. Both a
@@ -340,8 +360,9 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 					options: "link_type",
 					depends_on: 'eval:doc.kind == "Link" && doc.link_type != "URL"',
 					mandatory_depends_on: 'eval:doc.kind == "Link" && doc.link_type != "URL"',
-					// A private page's link is derived from the page itself and no layer may
-					// store one (`drop_private_workspaces`), so it cannot be offered.
+					// Only shared workspaces are offered. A private page is already in the
+					// list, put there by the page itself, and one belonging to somebody else is
+					// a page this user cannot open (`drop_private_workspaces`).
 					get_query: () =>
 						dialog.get_value("link_type") === "Workspace"
 							? { filters: { public: 1 } }
@@ -454,10 +475,22 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		return this.layer === "app" && !this.is_own_add(key);
 	}
 
+	// A private page cannot be taken out of the Private shell. That shell is where every page its
+	// owner made appears, so a row removed here would come back on the next boot, derived from the
+	// page itself: the removal would look like it worked and then undo itself. The page can still
+	// be reordered and relabelled here, hidden from the sidebar of the module it is a guest in,
+	// and deleted outright from the page itself.
+	is_pinned(key) {
+		return this.is_private_shell() && this.entries.get(key)?.link_type === "Workspace";
+	}
+
 	// After the eye, so the destructive control is not the first one under the cursor.
 	list_item(key) {
 		const $el = super.list_item(key);
 		if (this.can_remove(key)) $el.append(this.remove_button(key));
+		// A pinned row keeps the handle and loses both controls: it is arranged here and taken off
+		// nowhere.
+		if (this.is_pinned(key)) $el.find(".ws-item-remove, .ws-item-eye").remove();
 
 		return $el;
 	}

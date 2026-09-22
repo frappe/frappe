@@ -23,7 +23,7 @@ from frappe.desk.doctype.sidebar.test_sidebar import (
 	no_developer_mode,
 	sidebarless_module,
 )
-from frappe.desk.doctype.workspace.workspace import PRIVATE_MODULE, ensure_module
+from frappe.desk.doctype.workspace.workspace import PRIVATE_MODULE, add_to_sidebar, ensure_module
 from frappe.tests import IntegrationTestCase
 
 # Any module the dock can take you to will do, since these tests are about the layers rather than
@@ -1200,7 +1200,14 @@ class TestAPrivatePageWritesItsRows(CustomizationTestCase):
 		self.assertEqual(self.rows(PRIVATE_MODULE, None), [])
 
 	def test_a_shared_page_still_goes_to_the_site_layer(self):
+		"""The other half of the rule. A shared page's row is written by the path that created it,
+		rather than on insert, because that path knows whether it wanted one at all: the page a new
+		module opens on is listed by the module's own sidebar already.
+		"""
 		page = self.make_page("Test Rows Shared Page", for_user="", public=1)
+		self.assertEqual(self.rows(MODULE, None), [], "nothing on insert")
+
+		add_to_sidebar(page)
 
 		self.assertEqual(self.rows(MODULE, USER), [])
 		self.assertIn(page.name, [link for link, _label in self.rows(MODULE, None)])
@@ -1228,3 +1235,28 @@ class TestAPrivatePageWritesItsRows(CustomizationTestCase):
 
 		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [])
 		self.assertEqual(self.rows(MODULE, USER), [])
+
+	def test_hiding_it_in_a_modules_sidebar_sticks(self):
+		"""The page is a guest there, so it may be sent away. Before the layers said which keys they
+		hid, the derived append read the gap as a page nothing named and put it straight back.
+		"""
+		page = self.make_page("Test Rows Hiding Page")
+
+		self.as_user()
+		rows = get_user_sidebar_layer(MODULE)
+		save_sidebar_customization(
+			MODULE,
+			json.dumps([{**row, "hidden": 1 if row["link_to"] == page.name else 0} for row in rows]),
+		)
+
+		self.assertNotIn(page.name, [item.get("link_to") for item in self.items(MODULE)])
+
+	def test_it_cannot_be_hidden_from_its_own_shell(self):
+		"""The Private shell is where every page its owner made appears, so a row left out comes
+		back derived from the page itself."""
+		page = self.make_page("Test Rows Pinned Page", module=PRIVATE_MODULE)
+
+		self.as_user()
+		save_sidebar_customization(PRIVATE_MODULE, json.dumps([]))
+
+		self.assertIn(page.name, [item.get("link_to") for item in self.items(PRIVATE_MODULE)])
