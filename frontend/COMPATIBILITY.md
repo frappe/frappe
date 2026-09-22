@@ -402,6 +402,13 @@ What the promise does **not** cover, in the same voice as the rest of this docum
 - **A published chunk's stylesheets load with the shell**, on every cold load, whether or
   not a script imports the name. The build prints the size per published name so the
   cost is visible; publish a small entry, not a whole app.
+- **The build styles what it has source for.** A published **file** is scanned wherever
+  it sits in the app, its own folder included, so the classes it writes have rules in
+  the desk stylesheet. A published **package** is not scanned: it ships its own compiled
+  CSS and imports it, the way `frappe-ui` does. The build line says which:
+  `[styles: scanned]` for a file, `[styles: yours]` for a package. The framework's own
+  four names print `scanned`, because their sources are already in the content list.
+  `public/` is never scanned, because compiled output is not a source of class names.
 - **What is behind the name moves on the app's cadence**, exactly as the framework's
   four move on theirs. `page` being unchanged does not mean `crm/ui` still exports what
   it did.
@@ -473,3 +480,25 @@ invent.
   Nothing rewrites it for you.
 - **None of this is a security boundary.** Error isolation is not sandboxing, and
   anything a script hides is hidden from the eye, not from the server.
+- **A class typed into a Client Script gets no rule.** The stylesheet is built from
+  files on disk, and a script is a row in a table. The palette below is the set a
+  script can rely on. The build writes every class it generated to
+  `sites/assets/frappe/frontend/classes.json`, so the server can say which class has no
+  rule. Nothing generates a class on demand.
+
+## The palette: the classes a stored script can rely on
+
+`frontend/palette.txt` lists these names as plain text, and the build scans it like any
+other file, so every one of them has a rule in the desk stylesheet whether or not a desk
+component uses it. It is the framework's own file: no app adds to it, and it is not a
+Tailwind `safelist`. Steps are 4px each; colour steps follow frappe-ui's scale.
+
+| Group | Classes |
+| --- | --- |
+| Spacing: padding, margin and gap, in 4px steps | `p-0` `p-1` `p-2` `p-3` `p-4` `p-5` `p-6` `p-8` `px-0` `px-1` `px-2` `px-3` `px-4` `px-5` `px-6` `px-8` `py-0` `py-1` `py-2` `py-3` `py-4` `py-5` `py-6` `py-8` `pt-0` `pt-1` `pt-2` `pt-3` `pt-4` `pt-5` `pt-6` `pt-8` `pb-0` `pb-1` `pb-2` `pb-3` `pb-4` `pb-5` `pb-6` `pb-8` `pl-0` `pl-1` `pl-2` `pl-3` `pl-4` `pl-5` `pl-6` `pl-8` `pr-0` `pr-1` `pr-2` `pr-3` `pr-4` `pr-5` `pr-6` `pr-8` `m-0` `m-1` `m-2` `m-3` `m-4` `m-5` `m-6` `m-8` `mx-0` `mx-1` `mx-2` `mx-3` `mx-4` `mx-5` `mx-6` `mx-8` `my-0` `my-1` `my-2` `my-3` `my-4` `my-5` `my-6` `my-8` `mt-0` `mt-1` `mt-2` `mt-3` `mt-4` `mt-5` `mt-6` `mt-8` `mb-0` `mb-1` `mb-2` `mb-3` `mb-4` `mb-5` `mb-6` `mb-8` `ml-0` `ml-1` `ml-2` `ml-3` `ml-4` `ml-5` `ml-6` `ml-8` `mr-0` `mr-1` `mr-2` `mr-3` `mr-4` `mr-5` `mr-6` `mr-8` `gap-0` `gap-1` `gap-2` `gap-3` `gap-4` `gap-5` `gap-6` `gap-8` |
+| Radius | `rounded-0` `rounded-1` `rounded-2` `rounded-3` `rounded-4` `rounded-5` `rounded-6` `rounded-7` `rounded-8` `rounded-9` `rounded-full` `rounded-none` |
+| Backgrounds | `bg-surface-gray-1` `bg-surface-gray-2` `bg-surface-gray-3` `bg-surface-gray-4` `bg-surface-gray-5` `bg-surface-blue-1` `bg-surface-blue-2` `bg-surface-blue-3` `bg-surface-blue-4` `bg-surface-blue-5` `bg-surface-green-1` `bg-surface-green-2` `bg-surface-green-3` `bg-surface-green-4` `bg-surface-green-5` `bg-surface-orange-1` `bg-surface-orange-2` `bg-surface-orange-3` `bg-surface-orange-4` `bg-surface-orange-5` `bg-surface-red-1` `bg-surface-red-2` `bg-surface-red-3` `bg-surface-red-4` `bg-surface-red-5` |
+| Text colours | `text-ink-gray-4` `text-ink-gray-5` `text-ink-gray-6` `text-ink-gray-7` `text-ink-gray-8` `text-ink-gray-9` `text-ink-blue-4` `text-ink-blue-5` `text-ink-blue-6` `text-ink-blue-7` `text-ink-blue-8` `text-ink-blue-9` `text-ink-green-4` `text-ink-green-5` `text-ink-green-6` `text-ink-green-7` `text-ink-green-8` `text-ink-green-9` `text-ink-orange-4` `text-ink-orange-5` `text-ink-orange-6` `text-ink-orange-7` `text-ink-orange-8` `text-ink-orange-9` `text-ink-red-4` `text-ink-red-5` `text-ink-red-6` `text-ink-red-7` `text-ink-red-8` `text-ink-red-9` |
+| Borders | `border` `border-t` `border-b` `border-outline-gray-1` `border-outline-gray-2` `border-outline-gray-3` `border-outline-blue-1` `border-outline-blue-2` `border-outline-blue-3` `border-outline-green-1` `border-outline-green-2` `border-outline-green-3` `border-outline-orange-1` `border-outline-orange-2` `border-outline-orange-3` `border-outline-red-1` `border-outline-red-2` `border-outline-red-3` |
+| Text | `text-2xs` `text-xs` `text-sm` `text-base` `text-md` `text-lg` `text-xl` `text-2xl` `text-3xl` `font-medium` `font-semibold` `font-bold` `text-left` `text-center` `text-right` `truncate` `italic` `underline` |
+| Layout | `flex` `inline-flex` `flex-col` `flex-row` `flex-wrap` `flex-1` `shrink-0` `grow` `items-start` `items-center` `items-end` `items-stretch` `justify-start` `justify-center` `justify-end` `justify-between` `self-start` `self-center` `self-end` `grid` `grid-cols-1` `grid-cols-2` `grid-cols-3` `grid-cols-4` `col-span-2` `col-span-3` `col-span-4` `block` `inline-block` `hidden` `w-full` `h-full` `min-w-0` `overflow-hidden` `overflow-auto` |

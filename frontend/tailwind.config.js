@@ -6,6 +6,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import frappeUIPreset from "frappe-ui/tailwind";
+import { appContent } from "./plugin/content.js";
 
 const require = createRequire(import.meta.url);
 const here = dirname(fileURLToPath(import.meta.url));
@@ -25,14 +26,13 @@ export default {
 	presets: [frappeUIPreset, ...appPresets],
 	content: [
 		join(here, "index.html"),
+		// The class names a stored Client Script may rely on; no file on disk carries a script's text.
+		join(here, "palette.txt"),
 		join(here, "src/**/*.{vue,js,ts,jsx,tsx}"),
 		join(here, "../ui/src/**/*.{vue,js,ts,jsx,tsx}"),
 		join(here, "node_modules/frappe-ui/src/**/*.{vue,js,ts,jsx,tsx}"),
 		join(here, "node_modules/frappe-ui/frappe/**/*.{vue,js,ts,jsx,tsx}"),
-		...manifest.flatMap(({ source_dir }) => [
-			join(source_dir, "**/frontend/**/*.{vue,js,ts}"),
-			join(source_dir, "**/custom/**/*.{vue,js,ts}"),
-		]),
+		...appContent(manifest),
 	],
 	theme: { extend: {} },
 	plugins: [],

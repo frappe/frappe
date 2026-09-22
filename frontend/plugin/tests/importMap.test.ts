@@ -6,6 +6,7 @@ import importMap, {
   importMapTag,
   isFileValue,
   publishedChunks,
+  publishedStyling,
   publishedTargets,
   sizeReport,
   stylesheetTags,
@@ -139,7 +140,10 @@ describe("the published import map", () => {
     }).generateBundle({}, bundle);
     expect(lines).toHaveLength(PUBLISHED.length);
     expect(lines.at(-1)).toBe(
-      `published ${"crm/lib".padEnd(24)} 2.00 kB js + 1.50 kB css`,
+      `published ${"crm/lib".padEnd(24)} 2.00 kB js + 1.50 kB css [styles: scanned]`,
+    );
+    expect(lines.at(-2)).toBe(
+      `published ${"crm/ui".padEnd(24)} 2.00 kB js + 1.50 kB css [styles: yours]`,
     );
     expect(
       sizeReport(
@@ -147,6 +151,17 @@ describe("the published import map", () => {
         bundleWith(["vue"]),
       ),
     ).toEqual([`published ${"vue".padEnd(24)} 0.00 kB js`]);
+  });
+
+  it("says who styles each name: the build scans a file, a package ships its own CSS", () => {
+    expect(publishedStyling(manifest)).toEqual({
+      vue: "scanned",
+      "vue-router": "scanned",
+      "frappe-ui": "scanned",
+      "@framework/ui": "scanned",
+      "crm/ui": "yours",
+      "crm/lib": "scanned",
+    });
   });
 
   it("points each name at its emitted chunk under the build's base", () => {
