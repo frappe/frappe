@@ -108,6 +108,9 @@ class TestBuildWindow(IntegrationTestCase):
 
 	def test_a_continuation_starts_from_the_interrupted_build(self):
 		"""A fresh build writes its progress into the temp database, not the live one."""
+		note = frappe.get_doc(doctype="Note", title="Interrupted Build", content="body").insert()
+		self.addCleanup(frappe.delete_doc, "Note", note.name, force=True)
+
 		temp_path = self.search._get_db_path(is_temp=True)
 		self.addCleanup(lambda: os.path.exists(temp_path) and os.unlink(temp_path))
 
