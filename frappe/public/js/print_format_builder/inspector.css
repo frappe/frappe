@@ -440,3 +440,8 @@ body.pfb-col-resizing * {
 	cursor: col-resize !important;
 	user-select: none;
 }
+
+/* the renderer hint lists blockers, and a centred list is hard to scan */
+.pfb-hint-tooltip .tooltip-inner {
+	text-align: left;
+}

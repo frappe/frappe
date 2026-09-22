@@ -188,7 +188,16 @@ watch(
 	([el, title]) => {
 		if (!el) return;
 		$(el).tooltip("dispose");
-		if (title) $(el).tooltip({ title, html: true, trigger: "hover", placement: "top" });
+		if (title)
+			$(el).tooltip({
+				title,
+				html: true,
+				trigger: "hover",
+				placement: "top",
+				template:
+					'<div class="tooltip pfb-hint-tooltip" role="tooltip">' +
+					'<div class="arrow"></div><div class="tooltip-inner"></div></div>',
+			});
 	},
 	{ flush: "post" }
 );
