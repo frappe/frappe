@@ -409,6 +409,12 @@ class TestFlowAgentSubAgents(IntegrationTestCase):
 		self.child.db_set("enabled", 0)
 		self.assertEqual(self.agent_doc.subagent_configs("S1", {}), [])
 
+	def test_a_sub_agent_on_a_disabled_model_is_refused_by_name(self):
+		off = frappe.get_doc(_model(title="Off Model", enabled=0)).insert()
+		self.child.db_set("model", off.name)
+		with self.assertRaisesRegex(frappe.ValidationError, "Sub-agent Lookup runs on Flow Model"):
+			self.agent_doc.subagent_configs("S1", {})
+
 	def test_an_agent_cannot_be_its_own_sub_agent(self):
 		self.agent_doc.append("sub_agents", {"agent": self.agent_doc.name})
 		with self.assertRaisesRegex(frappe.ValidationError, "own sub-agent"):

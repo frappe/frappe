@@ -200,6 +200,13 @@ class FlowAgent(Document):
 			child = frappe.get_doc("Flow Agent", row.agent)
 			if not child.enabled:
 				continue
+			if not frappe.db.get_value("Flow Model", child.model, "enabled"):
+				frappe.throw(
+					_("Sub-agent {0} runs on Flow Model {1}, which is disabled.").format(
+						child.name, child.model
+					),
+					title=_("Disabled Model"),
+				)
 			configs.append(
 				{
 					"name": child.name,
