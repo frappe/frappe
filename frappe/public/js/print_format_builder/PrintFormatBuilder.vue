@@ -8,7 +8,7 @@
 		<div class="canvas-area">
 			<!-- Canvas toolbar: sample data picker, zoom, preview toggle -->
 			<div class="canvas-toolbar" v-if="!$store.needs_setup.value">
-				<div class="canvas-toolbar-picker">
+				<div class="canvas-toolbar-center">
 					<DeskControl
 						v-if="doc_picker_df"
 						class="canvas-doc-picker"
@@ -613,24 +613,17 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 	flex-shrink: 0;
 	display: flex;
 	align-items: center;
-	gap: 12px;
+	gap: 8px;
 	padding: 0 16px;
-	height: 44px;
+	height: 40px;
 	border-bottom: 1px solid var(--border-color);
 	background: var(--fg-color);
 }
 
-.canvas-toolbar-picker {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	width: 224px;
-	min-width: 0;
-}
-
-.canvas-doc-picker {
+.canvas-toolbar-center {
 	flex: 1;
 	min-width: 0;
+	max-width: 320px;
 }
 
 .canvas-doc-picker :deep(.form-control) {
