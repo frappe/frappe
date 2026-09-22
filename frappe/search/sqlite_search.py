@@ -123,10 +123,9 @@ class SQLiteSearch(ABC):
 	"""
 
 	BUILD_VOCABULARY = True
-	"""Whether to build the vocabulary that backs spelling correction in search().
+	"""Whether to build the vocabulary behind spelling correction in search().
 
-	It is a second pass over everything indexed, long enough on a large table to outweigh the
-	indexing itself. Set False where search() is not used and its corrections are not wanted.
+	A second pass over everything indexed. Turn it off where search() is never called.
 	"""
 
 	@staticmethod
@@ -507,13 +506,9 @@ class SQLiteSearch(ABC):
 	def _build_started_at(self, is_continuation: bool, progress: dict):
 		"""When this build began, carried across a resumed one.
 
-		A continuation skips the rows the earlier run already indexed, so a document edited
-		between the two runs falls outside a fresh timestamp and would never be caught up. The
-		progress rows survive the interruption and record the original start, in UTC.
-
-		Takes the progress the caller has already read, which is what makes this correct: a fresh
-		build writes those rows into the temporary database, so reading them before that path is
-		chosen finds nothing and silently falls back to now.
+		A continuation skips what the earlier run indexed, so a fresh timestamp would miss every
+		edit between the two runs. Takes the caller's progress, in UTC: a fresh build writes those
+		rows into the temporary database.
 		"""
 		if is_continuation:
 			stamps = [row["started_at"] for row in progress.values() if row.get("started_at")]
@@ -525,16 +520,9 @@ class SQLiteSearch(ABC):
 	def index_documents_changed_during_build(self, started_at, batch_size=1000):
 		"""Index documents saved while the build was running.
 
-		A build reads each document once, and update_doc_index returns as soon as index_exists()
-		is false, which it is for the whole of a build. A document saved after its row was read
-		therefore carries stale text in the finished index.
-
-		Indexed here rather than queued, because the queue drains thirty rows every five minutes
-		and a build slow enough to need catching up on leaves far more than that behind.
-
-		Filters on `modified` rather than the doctype config's mapped modified field: that mapping
-		exists for recency scoring and may point at an immutable column such as creation, which
-		would not move when a document is edited.
+		update_doc_index is inert for the whole of a build, so a document saved after its row was
+		read carries stale text. Indexed here rather than queued, which drains thirty rows every
+		five minutes. Filters on the real `modified`: the config's mapped field may be immutable.
 		"""
 		if not self.index_exists():
 			return
@@ -578,12 +566,9 @@ class SQLiteSearch(ABC):
 	def remove_documents_deleted_during_build(self, doctype, started_at):
 		"""Drop documents deleted while the build was running.
 
-		delete_doc_index also skips an index it considers absent, so a row the build copied can
-		belong to a document that is gone by the time the index goes live.
-
-		Reads Deleted Document, which is the only record left of a deletion once it has happened.
-		A delete_permanently=True deletion writes no such row, so it cannot be found here and the
-		indexed record can remain in the search index until the next full build.
+		delete_doc_index is inert during a build, so the index can hold rows for documents already
+		gone. Reads Deleted Document; a delete_permanently=True deletion writes no such row, so its
+		indexed record can remain until the next full build.
 		"""
 		deleted = frappe.get_all(
 			"Deleted Document",
