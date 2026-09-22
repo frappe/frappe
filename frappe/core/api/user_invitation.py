@@ -120,10 +120,7 @@ def resend_invitation(
 		# message is not specific enough for security
 		frappe.throw(title=_("Error"), msg=_("Invitation not found"))
 
-	if invitation.status != "Pending":
-		frappe.throw(title=_("Error"), msg=_("Only pending invitations can be resent"))
-
-	invitation.send_invitation_mail()
+	invitation.resend_invite()
 
 
 @frappe.whitelist(methods=["GET"])

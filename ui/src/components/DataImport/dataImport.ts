@@ -1,6 +1,32 @@
-import { call, toast } from "frappe-ui";
-import { apiUrl, downloadFile } from "../../api";
+import { reactive } from "vue";
+import { toast } from "frappe-ui";
+import { apiUrl, downloadFile, getMeta, runDocumentMethod } from "../../api";
 import type { DataImportStatus } from "./types";
+
+type DoctypeDoc = { name: string; fields: any[] } & Record<string, unknown>;
+
+/** The doctype's meta and every child table's, as one flat list the steps read by `name`. */
+export const fetchDoctypeBundle = async (doctype: string): Promise<DoctypeDoc[]> => {
+  const { data, children } = await getMeta<DoctypeDoc>(doctype, { include: "children" });
+  return [data, ...((children as DoctypeDoc[] | undefined) ?? [])];
+};
+
+/** The bundle as a reloadable holder; the steps read `fields.data.docs`. */
+export const useDoctypeBundle = () => {
+  const bundle = reactive({
+    data: null as { docs: DoctypeDoc[] } | null,
+    loading: false,
+    reload: async ({ doctype }: { doctype: string }) => {
+      bundle.loading = true;
+      try {
+        bundle.data = { docs: await fetchDoctypeBundle(doctype) };
+      } finally {
+        bundle.loading = false;
+      }
+    },
+  });
+  return bundle;
+};
 
 export const getBadgeColor = (status: DataImportStatus) => {
   const colorMap = {
@@ -49,17 +75,18 @@ export const getPreviewData = (
   file: string | undefined,
   sheet: string | undefined,
 ) => {
-  return call(
-    "frappe.core.doctype.data_import.data_import.get_preview_from_template",
-    {
-      data_import: importName,
-      import_file: file,
-      google_sheets_url: sheet,
-    },
-  ).catch((error: any) => {
-    toast.error(error.messages?.[0] || error);
-    console.error("Error fetching preview data:", error);
-  });
+  return runDocumentMethod(
+    "Data Import",
+    importName,
+    "get_preview_from_template",
+    { import_file: file, google_sheets_url: sheet },
+    { http: "GET" },
+  )
+    .then(({ data }) => data)
+    .catch((error: any) => {
+      toast.error(error?.message || String(error));
+      console.error("Error fetching preview data:", error);
+    });
 };
 
 

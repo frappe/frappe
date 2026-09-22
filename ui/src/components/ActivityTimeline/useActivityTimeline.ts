@@ -1,14 +1,24 @@
-import { createResource } from "frappe-ui";
 import { computed, onMounted, onUnmounted, reactive, ref, type Ref } from "vue";
-import { getSocketInstance } from "../../socket";
+import { getDocumentPart } from "../../api";
+import { getSocketInstance, subscribeToDoc } from "../../socket";
 import type { Activity, CustomActivity, Pagination, UserInfo } from "./types";
 import { compareActivities, dropDuplicateKeys } from "./grouping";
 import { getAssignee, stripHtml } from "./utils";
 
+interface FeedPage {
+  activities: Activity[];
+  has_more_emails?: boolean;
+  has_more_milestones?: boolean;
+  next_milestone_start?: number;
+}
+
 // One store per cache key for the session, so reopening a doc is instant and
 // paging state survives cached remounts.
 interface TimelineStore {
-  resource: ReturnType<typeof createResource>;
+  data: Ref<Activity[]>;
+  loading: Ref<boolean>;
+  error: Ref<unknown>;
+  load: () => Promise<void>;
   // "older rows remain" per paged source, plus the backend-reported offset of
   // the next milestone page
   hasMoreEmails: Ref<boolean>;
@@ -37,52 +47,52 @@ function getTimelineStore(
   const existing = stores.get(cacheKey);
   if (existing) return existing;
 
+  const data = ref<Activity[]>([]);
+  const loading = ref(false);
+  const error = ref<unknown>(null);
   const hasMoreEmails = ref(true);
   const hasMoreMilestones = ref(false);
   const milestoneStart = ref(0);
 
-  const resource: ReturnType<typeof createResource> = createResource({
-    url: "frappe.desk.form.activity.get_activity_timeline",
-    // filtered server-side so pagination math stays correct
-    params: { doctype, name: docname, visible_types: visibleTypes },
-    cache: `activities:${cacheKey}`,
-    auto: true,
-    // transform sets resource.data; onSuccess still sees the raw response, so the
-    // has_more_* flags are read there (not from transform's output). On reload
-    // (e.g. a doc_update), re-append the older pages the user has already loaded.
-    transform: (res: { activities: Activity[] }) => {
-      const oldActivities = (resource.data as Activity[] | undefined) ?? [];
-
-      const newActivities = res.activities;
-      const newActivityKeys = new Set(newActivities.map((a) => a.key));
-
-      const paginatedOlderRows = oldActivities.filter(
+  // On reload (e.g. a doc_update), re-append the older pages the user has already loaded.
+  const load = async () => {
+    loading.value = true;
+    try {
+      // filtered server-side so pagination math stays correct
+      const { data: page } = await getDocumentPart<FeedPage>(doctype, docname, "activity", {
+        types: visibleTypes,
+      });
+      const newActivityKeys = new Set(page.activities.map((a) => a.key));
+      const paginatedOlderRows = data.value.filter(
         (a) => isPagedRow(a) && !newActivityKeys.has(a.key)
       );
-      return [...newActivities, ...paginatedOlderRows];
-    },
-    onSuccess: (res: {
-      has_more_emails?: boolean;
-      has_more_milestones?: boolean;
-      next_milestone_start?: number;
-    }) => {
-      hasMoreEmails.value = !!res.has_more_emails;
+      data.value = [...page.activities, ...paginatedOlderRows];
+      hasMoreEmails.value = !!page.has_more_emails;
       // This response only carries the first milestone page. Once the user has paged past it
-      // the transform above keeps those older rows, so page one's flag and offset are stale.
+      // the rows above are kept, so page one's flag and offset are stale.
       if (milestoneStart.value === 0) {
-        hasMoreMilestones.value = !!res.has_more_milestones;
-        milestoneStart.value = res.next_milestone_start ?? 0;
+        hasMoreMilestones.value = !!page.has_more_milestones;
+        milestoneStart.value = page.next_milestone_start ?? 0;
       }
-    },
-  });
+      error.value = null;
+    } catch (failure) {
+      error.value = failure;
+    } finally {
+      loading.value = false;
+    }
+  };
 
   const store: TimelineStore = {
-    resource,
+    data,
+    loading,
+    error,
+    load,
     hasMoreEmails,
     hasMoreMilestones,
     milestoneStart,
   };
   stores.set(cacheKey, store);
+  void load();
   return store;
 }
 
@@ -96,23 +106,22 @@ export function useActivityTimeline(
   );
 
   const store = getTimelineStore(doctype, docname, visibleTypes);
-  const { resource } = store;
 
-  subscribeToLiveUpdates(doctype, docname, resource, visibleTypeNames);
+  subscribeToLiveUpdates(doctype, docname, store, visibleTypeNames);
 
   // deduped + sorted, but ungrouped: the component folds version runs at render
   // time, after the consumer's own filtering/merging
   const activities = computed<Array<Activity | CustomActivity>>(() => {
-    const fetched = (resource.data as Activity[] | undefined) ?? [];
-    const uniqueActivities = dropDuplicateKeys(fetched);
+    const uniqueActivities = dropDuplicateKeys(store.data.value);
     uniqueActivities.sort(compareActivities);
     return uniqueActivities;
   });
 
   return {
     activities,
-    loading: computed<boolean>(() => resource.loading),
-    reload: () => resource.reload(),
+    loading: computed<boolean>(() => store.loading.value),
+    error: computed<unknown>(() => store.error.value),
+    reload: () => store.load(),
     paginate: createHistoryPagination(doctype, docname, store),
   };
 }
@@ -132,55 +141,61 @@ function createHistoryPagination(
   docname: string,
   store: TimelineStore
 ): Pagination {
-  const { resource } = store;
   const append = (activities: Activity[]) => {
-    const loaded = (resource.data as Activity[] | undefined) ?? [];
-    resource.data = [...loaded, ...activities];
+    store.data.value = [...store.data.value, ...activities];
   };
 
-  const olderEmails = createResource({
-    url: "frappe.desk.form.activity.get_more_email_activities",
-    auto: false,
-    onSuccess: (res: { activities: Activity[]; has_more_emails?: boolean }) => {
-      append(res.activities);
-      store.hasMoreEmails.value = !!res.has_more_emails;
-    },
-  });
+  const fetchingEmails = ref(false);
+  const fetchingMilestones = ref(false);
 
-  const olderMilestones = createResource({
-    url: "frappe.desk.form.activity.get_more_milestone_activities",
-    auto: false,
-    onSuccess: (res: {
-      activities: Activity[];
-      has_more_milestones?: boolean;
-      next_milestone_start?: number;
-    }) => {
-      append(res.activities);
-      store.hasMoreMilestones.value = !!res.has_more_milestones;
+  const olderEmails = async (start: number) => {
+    fetchingEmails.value = true;
+    try {
+      const { data: page } = await getDocumentPart<FeedPage>(doctype, docname, "activity", {
+        stream: "emails",
+        start,
+      });
+      append(page.activities);
+      store.hasMoreEmails.value = !!page.has_more_emails;
+    } catch (failure) {
+      store.error.value = failure;
+    } finally {
+      fetchingEmails.value = false;
+    }
+  };
+
+  const olderMilestones = async (start: number) => {
+    fetchingMilestones.value = true;
+    try {
+      const { data: page } = await getDocumentPart<FeedPage>(doctype, docname, "activity", {
+        stream: "milestones",
+        start,
+      });
+      append(page.activities);
+      store.hasMoreMilestones.value = !!page.has_more_milestones;
       // backend-supplied: a milestone on a field the user cannot read is counted but not
       // returned, so an offset counted from the rendered rows would skip the rows behind it
       store.milestoneStart.value =
-        res.next_milestone_start ?? store.milestoneStart.value;
-    },
-  });
+        page.next_milestone_start ?? store.milestoneStart.value;
+    } catch (failure) {
+      store.error.value = failure;
+    } finally {
+      fetchingMilestones.value = false;
+    }
+  };
 
-  const isFetching = () => olderEmails.loading || olderMilestones.loading;
+  const isFetching = () => fetchingEmails.value || fetchingMilestones.value;
 
   // One control, both sources: a row is older history whichever source it came from.
   const fetchNextPage = () => {
     if (isFetching()) return;
     if (store.hasMoreEmails.value) {
-      const loaded = (resource.data as Activity[] | undefined) ?? [];
       // count-based offset: emails are only appended, so the loaded count is the next start
-      const emailsLoaded = loaded.filter((a) => a.type === "email").length;
-      olderEmails.submit({ doctype, name: docname, start: emailsLoaded });
+      const emailsLoaded = store.data.value.filter((a) => a.type === "email").length;
+      void olderEmails(emailsLoaded);
     }
     if (store.hasMoreMilestones.value) {
-      olderMilestones.submit({
-        doctype,
-        name: docname,
-        start: store.milestoneStart.value,
-      });
+      void olderMilestones(store.milestoneStart.value);
     }
   };
 
@@ -204,7 +219,7 @@ function createHistoryPagination(
 function subscribeToLiveUpdates(
   doctype: string,
   docname: string,
-  resource: ReturnType<typeof createResource>,
+  store: TimelineStore,
   visibleTypes: string[] | undefined
 ) {
   const socket = getSocketInstance();
@@ -213,9 +228,7 @@ function subscribeToLiveUpdates(
   // The socket payload has no avatar — reuse a resolved author from the feed, else fall back.
   const resolveAuthor = (email: string | undefined, fallback: UserInfo) => {
     if (!email) return fallback;
-    const known = ((resource.data as Activity[] | undefined) ?? []).find(
-      (a) => a.author?.email === email
-    )?.author;
+    const known = store.data.value.find((a) => a.author?.email === email)?.author;
     return known ?? fallback;
   };
 
@@ -233,13 +246,13 @@ function subscribeToLiveUpdates(
     // mirror the server-side visibleTypes filter
     if (visibleTypes && !visibleTypes.includes(activity.type)) return;
 
-    const current = (resource.data as Activity[] | undefined) ?? [];
+    const current = store.data.value;
     if (action === "add") {
-      resource.data = [...current, activity];
+      store.data.value = [...current, activity];
     } else if (action === "delete") {
-      resource.data = current.filter((a) => a.key !== activity.key);
+      store.data.value = current.filter((a) => a.key !== activity.key);
     } else {
-      resource.data = current.map((a) =>
+      store.data.value = current.map((a) =>
         a.key === activity.key ? activity : a
       );
     }
@@ -248,15 +261,16 @@ function subscribeToLiveUpdates(
   const onDocUpdate = (payload: unknown) => {
     const { doctype: dt, name } = payload as { doctype: string; name: string };
     if (dt !== doctype || name !== docname) return;
-    resource.reload();
+    void store.load();
   };
+  let release = () => {};
   onMounted(() => {
-    socket.emit("doc_subscribe", doctype, docname); // subscribes to doc updates for this doctype:docname
-    socket.on("docinfo_update", onUpdate); // subscribes to live communications, comments, likes, assignments, attachments
-    socket.on("doc_update", onDocUpdate); // subscribes to field changes
+    release = subscribeToDoc(socket, doctype, docname);
+    socket.on("docinfo_update", onUpdate); // live communications, comments, likes, assignments, attachments
+    socket.on("doc_update", onDocUpdate); // field changes
   });
   onUnmounted(() => {
-    socket.emit("doc_unsubscribe", doctype, docname);
+    release();
     socket.off("docinfo_update", onUpdate);
     socket.off("doc_update", onDocUpdate);
   });

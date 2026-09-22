@@ -1,4 +1,4 @@
-import { call, createResource } from "frappe-ui";
+import { runMethod } from "../../api";
 import { useStorage } from "@vueuse/core";
 import { computed, reactive } from "vue";
 import { minimize, showHelpModal } from "./help";
@@ -42,15 +42,14 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
   );
 
   if (!onboardingSteps.value.length && !isOnboardingStepsCompleted.value) {
-    createResource({
-      url: "frappe.onboarding.get_onboarding_status",
-      cache: "onboarding_status",
-      auto: true,
-      onSuccess: (data: Record<string, StoredStep[]>) => {
+    runMethod<Record<string, StoredStep[]>>("frappe.onboarding.get_onboarding_status", {}, {
+      http: "GET",
+    })
+      .then(({ data }) => {
         onboardingStatus.value[userId] = data;
         syncStatus();
-      },
-    });
+      })
+      .catch((failure) => console.error("Could not read the onboarding status:", failure));
   }
 
   const stepsCompleted = computed(
@@ -140,9 +139,9 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
   }
 
   function updateUserOnboardingStatus(steps: StoredStep[]) {
-    call("frappe.onboarding.update_user_onboarding_status", {
+    runMethod("frappe.onboarding.update_user_onboarding_status", {
       steps: JSON.stringify(steps),
-      appName,
+      app: appName,
     });
   }
 

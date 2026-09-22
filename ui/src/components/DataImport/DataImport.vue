@@ -62,8 +62,9 @@
 <script setup lang="ts">
 import { computed, nextTick, reactive, ref, watch } from "vue";
 import type { DataImportProps, DataImport, DataImports } from "./types";
-import { Breadcrumbs, createResource } from "frappe-ui";
+import { Breadcrumbs } from "frappe-ui";
 import { createDocument, updateDocument } from "../../api";
+import { useDoctypeBundle } from "./dataImport";
 import { usePagedList } from "../../composables/usePagedList";
 import { useRoute } from "vue-router";
 import type { RouteLocationRaw } from "vue-router";
@@ -138,16 +139,7 @@ const dataImports: DataImports = reactive({
 	},
 });
 
-const fields = createResource({
-	url: "frappe.desk.form.load.getdoctype",
-	makeParams: (values: { doctype: string }) => {
-		return {
-			doctype: values.doctype,
-			with_parent: 1,
-		};
-	},
-	auto: false,
-});
+const fields = useDoctypeBundle();
 
 const updateData = () => {
 	data.value = dataImports.data?.find((di: DataImport) => di.name === props.importName) || null;

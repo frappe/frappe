@@ -5,6 +5,7 @@ import {
   createDocument,
   deleteDocument,
   getDocument,
+  getDocumentPart,
   getMeta,
   listDocuments,
   runDocumentMethod,
@@ -222,6 +223,32 @@ describe("methods and meta", () => {
       method: "POST",
       body: { reason: "done" },
     });
+  });
+
+  it("runs a document method as a GET with query arguments when asked", async () => {
+    respond({ data: { columns: [] } });
+    await runDocumentMethod(
+      "Data Import", "DI-1", "get_preview_from_template", { import_file: "/f.csv" }, { http: "GET" }
+    );
+    expect(lastCall()).toMatchObject({
+      url: "/api/v2/document/Data%20Import/DI-1/method/get_preview_from_template?import_file=%2Ff.csv",
+      method: "GET",
+      body: undefined,
+    });
+  });
+
+  it("reads a part beside the document with its query encoded", async () => {
+    respond({ data: { activities: [], has_more_emails: false } });
+    const { data } = await getDocumentPart<{ activities: unknown[] }>("ToDo", "T-1", "activity", {
+      types: ["email", { version: ["status"] }],
+    });
+    expect(data.activities).toEqual([]);
+    expect(lastCall()).toMatchObject({
+      url: `/api/v2/document/ToDo/T-1/activity?types=${encodeURIComponent('["email",{"version":["status"]}]')}`,
+      method: "GET",
+    });
+    await getDocumentPart("ToDo", "T-1", "activity", { stream: "emails", start: 20 });
+    expect(lastCall().url).toBe("/api/v2/document/ToDo/T-1/activity?stream=emails&start=20");
   });
 
   it("reads meta, with children when asked", async () => {

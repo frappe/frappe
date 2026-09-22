@@ -115,12 +115,12 @@ export interface InviteStore {
   /** Fetch user suggestions for the email field, matched by `query`. */
   searchUsers: (query: string) => void;
   /**
-   * Trigger the lazy initial fetch (roles, pending, already-invited). Idempotent —
+   * Trigger the lazy initial fetch of the pending list. Idempotent —
    * runs once per controller; the `InviteUser` panel calls it on mount. Composable-only
    * hosts (no panel) should call it themselves once they want the data.
    */
   load: () => void;
-  /** Re-fetch roles, the pending list, and the already-invited set the email field excludes. */
+  /** Re-fetch the pending list. */
   reload: () => void;
 }
 
