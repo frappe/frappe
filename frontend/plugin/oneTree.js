@@ -5,6 +5,7 @@ import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { isFileValue } from "./importMap.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const requireFromFrameworkTree = createRequire(join(here, "..", "package.json"));
@@ -21,6 +22,9 @@ export default function oneTree(manifest) {
 		source_dir,
 		declared: new Set(Object.keys(runtime_deps ?? {})),
 	}));
+	const frameworkFiles = frameworkPublishedFiles(manifest);
+
+	const insideAnApp = (importer) => apps.some((entry) => importer.startsWith(entry.source_dir));
 
 	return {
 		name: "frappe-one-tree",
@@ -31,6 +35,10 @@ export default function oneTree(manifest) {
 			if (source.startsWith(".") || source.startsWith("/") || source.startsWith("\0"))
 				return;
 			if (source.includes(":")) return;
+			// `frappe/i18n` is the same line in a stored script and in app source; the shell's
+			// own tree and `@framework/ui` are not app source and keep their own imports.
+			if (Object.hasOwn(frameworkFiles, source) && insideAnApp(importer))
+				return frameworkFiles[source];
 
 			const owner = apps.find(
 				(entry) => entry.app !== "frappe" && importer.startsWith(entry.source_dir)
@@ -51,6 +59,17 @@ export default function oneTree(manifest) {
 			}
 		},
 	};
+}
+
+/** The framework's scoped published names, `frappe/<alias>`, each rooted at its source dir. */
+export function frameworkPublishedFiles(manifest) {
+	const frappe = manifest.find((entry) => entry.app === "frappe");
+	const files = {};
+	for (const [name, value] of Object.entries(frappe?.import_map ?? {})) {
+		if (name.startsWith("frappe/") && isFileValue(value))
+			files[name] = join(frappe.source_dir, value);
+	}
+	return files;
 }
 
 export function outOfLinkedPackage(source, importer, linked = LINKED_UI, real = REAL_UI) {

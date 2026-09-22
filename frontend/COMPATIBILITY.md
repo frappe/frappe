@@ -368,8 +368,9 @@ not because it earns its keep. Two rules bound it:
 ## What an app publishes: the `import_map` hook
 
 A stored script imports by bare name, and the document's import map says what those
-names are. The framework publishes four: `vue`, `vue-router`, `frappe-ui` and
-`@framework/ui`. An app publishes its own with one hook:
+names are. The framework publishes four bare names, `vue`, `vue-router`, `frappe-ui` and
+`@framework/ui`, and one name of its own by the rule below, `frappe/i18n`. An app
+publishes its own with one hook:
 
 ```python
 # apps/crm/crm/hooks.py
@@ -407,11 +408,48 @@ What the promise does **not** cover, in the same voice as the rest of this docum
   the desk stylesheet. A published **package** is not scanned: it ships its own compiled
   CSS and imports it, the way `frappe-ui` does. The build line says which:
   `[styles: scanned]` for a file, `[styles: yours]` for a package. The framework's own
-  four names print `scanned`, because their sources are already in the content list.
+  names print `scanned`, because their sources are already in the content list.
   `public/` is never scanned, because compiled output is not a source of class names.
 - **What is behind the name moves on the app's cadence**, exactly as the framework's
   four move on theirs. `page` being unchanged does not mean `crm/ui` still exports what
   it did.
+
+## What a script says to a reader: `frappe/i18n`
+
+The framework publishes `frappe/i18n` from a file of its own source, by the same
+`<app>/<alias>` rule an app follows. A stored script and a contributed or published file
+write the same import line, and no declaration is needed for it. It exports two
+functions and nothing else:
+
+```js
+import { __, __n } from "frappe/i18n"
+
+__("Deal {0} loaded", [page.docname])           // text, replacements?, context?
+__n("{0} open task", "{0} open tasks", n, [n])  // singular, plural, count, replacements?, context?
+```
+
+`__(text, replacements?, context?)` is desk v1's function with desk v1's shape. It looks
+up `text:context` first, then `text`, and returns the text itself when neither has a
+translation. `{0}`, `{1}` in the result fill from `replacements` by position; a
+placeholder with no value stays as written.
+
+`__n(singular, plural, count, replacements?, context?)` reserves the name for plural
+catalogs the framework does not have. Until it does, it picks the English form by
+`count === 1`, looks that form up like `__` does, and fills replacements the same way.
+
+What the promise does **not** cover:
+
+- **A published file's strings are extracted; a stored script's are not.** The POT walk
+  reads `__("...")` in every `.js`, `.ts` and `.vue` file of an app's source, so a
+  published file's strings reach the app's catalog. A stored Client Script is a site's
+  own row and is never walked: a site translates its strings through `Translation` rows,
+  which merge into the same language set the shell fetches. `__n`'s two forms are not
+  extracted either; one `Translation` row per form covers them.
+- **The first paint can be English.** Messages are fetched apart from boot and never
+  awaited. A template that calls `__` re-renders when they land; a string a script copied
+  into a variable in `onLoad` does not.
+- **There is no global.** No `window.__`; the import is the only door, for a published
+  file and a stored script alike.
 
 ## What an app declares: `desk.package.json`
 

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { LINKED_UI, REAL_UI, outOfLinkedPackage } from "../oneTree.js";
+import oneTree, {
+  LINKED_UI,
+  REAL_UI,
+  frameworkPublishedFiles,
+  outOfLinkedPackage,
+} from "../oneTree.js";
 
 const importer = `${LINKED_UI}/src/components/Phone/utils.ts`;
 
@@ -26,6 +31,54 @@ describe("a relative import that climbs out of the linked ui package", () => {
   it("returns nothing for a file the tree does not have, so vite reports the miss", () => {
     expect(
       outOfLinkedPackage("../../../../frappe/geo/missing.json", importer),
+    ).toBeUndefined();
+  });
+});
+
+describe("a framework name published from a file", () => {
+  const manifest = [
+    {
+      app: "frappe",
+      source_dir: "/bench/apps/frappe/frappe",
+      import_map: { vue: "vue", "frappe/i18n": "./frontend/i18n.js" },
+    },
+    { app: "crm", source_dir: "/bench/apps/crm/crm", runtime_deps: {} },
+  ];
+  const plugin = oneTree(manifest) as any;
+
+  it("lists only the scoped file values", () => {
+    expect(frameworkPublishedFiles(manifest)).toEqual({
+      "frappe/i18n": "/bench/apps/frappe/frappe/frontend/i18n.js",
+    });
+  });
+
+  it("resolves from an app's source without a declaration", () => {
+    expect(
+      plugin.resolveId(
+        "frappe/i18n",
+        "/bench/apps/crm/crm/frontend/lib/index.js",
+      ),
+    ).toBe("/bench/apps/frappe/frappe/frontend/i18n.js");
+  });
+
+  it("resolves from the framework's own contributed source", () => {
+    expect(
+      plugin.resolveId(
+        "frappe/i18n",
+        "/bench/apps/frappe/frappe/core/doctype/user/frontend/record.js",
+      ),
+    ).toBe("/bench/apps/frappe/frappe/frontend/i18n.js");
+  });
+
+  it("does not reach an importer outside every app's source, such as ui/", () => {
+    expect(
+      plugin.resolveId("frappe/i18n", `${REAL_UI}/src/components/x.ts`),
+    ).toBeUndefined();
+  });
+
+  it("still leaves an undeclared bare name to vite", () => {
+    expect(
+      plugin.resolveId("vue", "/bench/apps/crm/crm/frontend/lib/index.js"),
     ).toBeUndefined();
   });
 });

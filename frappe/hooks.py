@@ -23,6 +23,7 @@ import_map = {
 	"vue-router": "vue-router",
 	"frappe-ui": "frappe-ui",
 	"@framework/ui": "@framework/ui",
+	"frappe/i18n": "./frontend/i18n.js",
 }
 
 app_email = "developers@frappe.io"

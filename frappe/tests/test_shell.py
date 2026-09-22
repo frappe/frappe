@@ -493,10 +493,27 @@ class TestImportMapEnforcement(IntegrationTestCase):
 			"import_map": import_map,
 		}
 
-	def test_the_framework_publishes_its_four_bare_names(self):
+	def test_the_framework_publishes_its_four_bare_names_and_i18n(self):
 		frappe_entry = next(entry for entry in assemble() if entry["app"] == "frappe")
-		self.assertEqual(frappe_entry["import_map"], {name: name for name in FRAMEWORK_NAMES})
+		bare = {
+			name: value
+			for name, value in frappe_entry["import_map"].items()
+			if not name.startswith("frappe/")
+		}
+		self.assertEqual(bare, {name: name for name in FRAMEWORK_NAMES})
+		self.assertEqual(frappe_entry["import_map"]["frappe/i18n"], "./frontend/i18n.js")
 		self.assertEqual(import_map_problems(frappe_entry), [])
+
+	def test_the_framework_publishes_a_scoped_name_by_the_app_rule(self):
+		# A fifth framework name is not a bare name: `frappe/` passes the same rule as `crm/`.
+		self.assertNotIn("frappe/i18n", FRAMEWORK_NAMES)
+		entry = {
+			"app": "frappe",
+			"source_dir": self.source_dir,
+			"runtime_deps": {},
+			"import_map": {"frappe/i18n": "./frontend/lib/index.js"},
+		}
+		self.assertEqual(import_map_problems(entry), [])
 
 	def test_a_declared_package_and_a_file_of_the_apps_own_source_pass(self):
 		entry = self.entry({"crm/ui": "@frappe/crm-ui", "crm/lib": "./frontend/lib/index.js"})
