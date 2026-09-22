@@ -120,7 +120,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref, watch } from "vue";
+import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
 import ToggleRow from "./inspector/ToggleRow.vue";
 import InspectorSection from "./inspector/InspectorSection.vue";
@@ -175,23 +175,28 @@ let renderer = computed(() =>
 let hint_icon = ref(null);
 let renderer_hint = computed(() => {
 	if (typst_blockers.value.length) {
-		const items = typst_blockers.value.map((b) => "• " + frappe.utils.escape_html(b));
-		return [__("Typst needs these fixed:"), ...items].join("<br>");
+		const items = typst_blockers.value.map((b) => "• " + b);
+		return [__("Typst cannot render:"), ...items].join("\n");
 	}
 	if (has_typst_block.value) {
 		return __("Chromium unavailable: this format uses a Typst block.");
 	}
 	return renderer.value === "Typst" ? __("Experimental") : "";
 });
+let hint_tooltip = null;
 watch(
 	[hint_icon, renderer_hint],
-	([el, title]) => {
-		if (!el) return;
-		$(el).tooltip("dispose");
-		if (title) $(el).tooltip({ title, html: true, trigger: "hover", placement: "top" });
+	([el, text]) => {
+		hint_tooltip?.destroy();
+		hint_tooltip = null;
+		if (!el || !text) return;
+		frappe.ui.tooltip(el, { text, text_align: "start" });
+		hint_tooltip = $(el).data("es-tooltip");
 	},
 	{ flush: "post" }
 );
+onUnmounted(() => hint_tooltip?.destroy());
+
 function set_renderer(value) {
 	if (value !== "Typst" && has_typst_block.value) return;
 	print_format.value.pdf_generator = value === "Typst" ? "Typst" : "chrome";

@@ -43,8 +43,16 @@
     text-align: center;
     /* even out the lines when the text wraps */
     text-wrap: balance;
+    /* a label may carry its own line breaks */
+    white-space: pre-line;
     pointer-events: none;
     user-select: none;
+}
+
+/* ---- a label that lists things reads from one left edge ---- */
+.es-tooltip--text-start {
+    text-align: left;
+    text-wrap: initial;
 }
 
 /* ---- keyboard hint: one <kbd> per key after the label ----

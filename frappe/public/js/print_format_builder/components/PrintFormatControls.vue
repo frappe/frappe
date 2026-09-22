@@ -328,6 +328,7 @@
 												),
 												'pfb-tree-hover':
 													store.hovered_node.value === field,
+												'pfb-tree-row--conditional': !!field.visible_if,
 											}"
 											@mouseenter="store.hovered_field.value = field"
 											@mouseleave="store.hovered_field.value = null"
@@ -352,6 +353,14 @@
 											<span class="pfb-tree-label">{{
 												field_label(field)
 											}}</span>
+											<span
+												v-if="field.visible_if"
+												class="pfb-tree-eye"
+												:title="
+													__('Shown only when: {0}', [field.visible_if])
+												"
+												v-html="frappe.utils.icon('eye', 'sm')"
+											></span>
 											<span
 												v-if="field_broken(field)"
 												class="pfb-tree-warn"
@@ -1026,13 +1035,10 @@ function handle_slash_key(e) {
 	user-select: none;
 }
 
-.pfb-tree-row.pfb-tree-hover {
-	outline: 1px solid var(--pfb-accent);
-	outline-offset: -1px;
-}
-
 /* hovering a section or a column rings its whole subtree, the way the website
    builder's layers do; a field has no subtree, so it rings its own row */
+.pfb-tree-row.pfb-tree-hover,
+.pfb-tree-row.active,
 .pfb-tree-node:has(> .pfb-tree-row:hover),
 .pfb-tree-children > .pfb-tree-row:hover {
 	outline: 1px solid var(--pfb-accent);
@@ -1040,16 +1046,21 @@ function handle_slash_key(e) {
 	border-radius: var(--radius);
 }
 
-/* a section row also carries the canvas-hover ring; inside the subtree ring that
-   second outline reads as a rule under the section's own label */
+/* inside the subtree ring, the section row's own ring reads as a rule under its label */
 .pfb-tree-node:has(> .pfb-tree-row:hover) > .pfb-tree-row.pfb-tree-hover {
 	outline: none;
 }
 
 .pfb-tree-row.active {
-	background: var(--surface-gray-3);
-	color: var(--text-color);
 	font-weight: 500;
+}
+
+.pfb-tree-row.active .pfb-tree-label {
+	color: var(--ink-gray-9);
+}
+
+.pfb-tree-row--conditional .pfb-tree-label {
+	color: var(--ink-gray-4);
 }
 
 .pfb-tree-chevron {
@@ -1094,25 +1105,39 @@ function handle_slash_key(e) {
 	white-space: nowrap;
 }
 
-.pfb-tree-warn {
+.pfb-tree-warn,
+.pfb-tree-eye {
 	display: inline-flex;
 	flex-shrink: 0;
+}
+
+.pfb-tree-warn {
 	color: var(--text-on-orange, #b95000);
 }
 
-.pfb-tree-children {
-	/* the website builder indents a level by 24px */
-	margin-left: 24px;
+.pfb-tree-eye {
+	--icon-stroke: var(--ink-gray-4);
 }
 
-.pfb-tree-fields {
+/* a level of nesting is padding inside the row, so the row still spans the panel */
+.pfb-tree-children > .pfb-tree-row,
+.pfb-tree-children > .pfb-tree-node > .pfb-tree-row {
+	padding-left: 32px;
+}
+
+.pfb-tree-children .pfb-tree-children > .pfb-tree-row {
+	padding-left: 56px;
+}
+
+/* an empty column is a drop target only while a drag is running */
+body.pfb-dragging .pfb-tree-fields {
 	min-height: 8px;
 }
 
 /* single-column sections have no Column row, so their fields sit directly
    under the section instead of indenting past a row that isn't there */
-.pfb-tree-fields--flush {
-	margin-left: 0;
+.pfb-tree-children .pfb-tree-children.pfb-tree-fields--flush > .pfb-tree-row {
+	padding-left: 32px;
 }
 
 /* ── Empty state ─────────────────────────────────────────── */

@@ -139,7 +139,7 @@
 		<div v-if="show_spacing_handles" class="pfb-section-chrome" :style="section_chrome_style">
 			<SectionSpacingHandles :section="section" type="margin" />
 			<SectionSpacingHandles :section="section" type="padding" />
-			<SectionRadiusHandle :section="section" />
+			<SectionRadiusHandle :target="section" />
 		</div>
 		<div class="page-break-indicator" v-if="section.page_break">
 			<span>— {{ __("Page Break") }} —</span>
