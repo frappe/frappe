@@ -1,32 +1,9 @@
+import frappe
 from frappe.model.base_document import BaseDocument
 from frappe.tests.utils import FrappeTestCase
 
 
-<<<<<<< HEAD
 class TestBaseDocument(FrappeTestCase):
-=======
-class TestExtensionA(BaseDocument):
-	def extension_method_a(self):
-		return "method_a"
-
-
-class TestExtensionB(BaseDocument):
-	def extension_method_b(self):
-		return "method_b"
-
-
-class TestToDoExtension(BaseDocument):
-	"""Extension class that overrides ToDo's validate method"""
-
-	def validate(self):
-		# Add our custom logic
-		self.custom_validation_called = True
-
-	def extension_method(self):
-		return "extension_method_called"
-
-
-class TestBaseDocument(IntegrationTestCase):
 	def test_sanitize_content_skips_json_fieldtype(self):
 		"""JSON-fieldtype values must survive _sanitize_content untouched, even when
 		they contain HTML-like substrings, while ordinary text fields on the same
@@ -57,7 +34,6 @@ class TestBaseDocument(IntegrationTestCase):
 		# Text field: sanitized, onclick attribute stripped
 		self.assertNotIn("onclick", doc.description)
 
->>>>>>> 524f31727e (test: add regression test for json sanity)
 	def test_docstatus(self):
 		doc = BaseDocument({"docstatus": 0, "doctype": "ToDo"})
 		self.assertTrue(doc.docstatus.is_draft())
