@@ -9,6 +9,7 @@ frappe.provide("frappe.ui");
  * @property {string|string[]} [shortcut] Keyboard hint after the label, one <kbd> per key — pass the raw combo ("ctrl+b") and each key becomes its OS form (⌘B on Mac), or an array of already-formatted keys. Display only; binding stays the caller's job.
  * @property {"top"|"right"|"bottom"|"left"} [side="top"] Which side of the trigger the bubble prefers.
  * @property {"start"|"center"|"end"} [align="center"] How the bubble lines up along that side.
+ * @property {"start"|"center"} [text_align="center"] How the label sits inside the bubble. A label that lists things reads better from one left edge; newlines in the text are kept either way.
  * @property {number} [delay=500] Hover delay in ms before showing. Focus always shows immediately.
  * @property {number} [offset=4] Gap between trigger and bubble, in px. The 4px arrow fills it, tip touching the trigger (frappe-ui's side-offset).
  * @property {string} [class] Extra class(es) on the bubble, for a variant — "es-tooltip--plain" drops the arrow. Styling only; the bubble always keeps `es-tooltip`.
@@ -28,6 +29,8 @@ let last_hidden_at = 0;
 let visible = null;
 
 const EXIT_MS = 100; // keep in sync with es-tooltip-out in tooltip.css
+
+const TEXT_ALIGNS = ["start", "center"];
 
 let id_counter = 0;
 
@@ -70,6 +73,8 @@ frappe.ui.Tooltip = class Tooltip {
 		this.shortcut = opts.shortcut || null;
 		this.side = validated(opts.side, SIDES, "side", "Tooltip") || "top";
 		this.align = validated(opts.align, ALIGNS, "align", "Tooltip") || "center";
+		this.text_align =
+			validated(opts.text_align, TEXT_ALIGNS, "text_align", "Tooltip") || "center";
 		this.delay = opts.delay == null ? 500 : opts.delay;
 		this.offset = opts.offset == null ? 4 : opts.offset;
 		// A variant class, not a replacement: `es-tooltip` is what the stylesheet and the
@@ -120,7 +125,10 @@ frappe.ui.Tooltip = class Tooltip {
 		visible = this;
 
 		const bubble = document.createElement("div");
-		bubble.className = this.extra_class ? `es-tooltip ${this.extra_class}` : "es-tooltip";
+		const classes = ["es-tooltip"];
+		if (this.text_align === "start") classes.push("es-tooltip--text-start");
+		if (this.extra_class) classes.push(this.extra_class);
+		bubble.className = classes.join(" ");
 		bubble.setAttribute("role", "tooltip");
 		bubble.id = `es-tooltip-${++id_counter}`;
 		bubble.textContent = this.text; // text, never HTML (set_text edits this node)

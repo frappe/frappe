@@ -470,6 +470,16 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 						},
 					],
 				},
+				{
+					title: __("A list of reasons"),
+					items: [
+						{
+							__trigger: __("List"),
+							text: "Typst cannot render:\n• Custom CSS in the Style box\n• HTML block",
+							text_align: "start",
+						},
+					],
+				},
 			],
 		},
 		Popover: {

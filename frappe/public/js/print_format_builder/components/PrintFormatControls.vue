@@ -1035,13 +1035,10 @@ function handle_slash_key(e) {
 	user-select: none;
 }
 
-.pfb-tree-row.pfb-tree-hover {
-	outline: 1px solid var(--pfb-accent);
-	outline-offset: -1px;
-}
-
 /* hovering a section or a column rings its whole subtree, the way the website
    builder's layers do; a field has no subtree, so it rings its own row */
+.pfb-tree-row.pfb-tree-hover,
+.pfb-tree-row.active,
 .pfb-tree-node:has(> .pfb-tree-row:hover),
 .pfb-tree-children > .pfb-tree-row:hover {
 	outline: 1px solid var(--pfb-accent);
@@ -1049,37 +1046,21 @@ function handle_slash_key(e) {
 	border-radius: var(--radius);
 }
 
-/* a section row also carries the canvas-hover ring; inside the subtree ring that
-   second outline reads as a rule under the section's own label */
+/* inside the subtree ring, the section row's own ring reads as a rule under its label */
 .pfb-tree-node:has(> .pfb-tree-row:hover) > .pfb-tree-row.pfb-tree-hover {
 	outline: none;
 }
 
-/* selection is a ring, not a fill: it has to stay readable once the pointer has
-   left the row */
 .pfb-tree-row.active {
-	color: var(--text-color);
 	font-weight: 500;
-	outline: 1px solid var(--pfb-accent);
-	outline-offset: -1px;
 }
 
-/* the selected label steps up in contrast, the way the website builder brightens
-   the layer it is on */
 .pfb-tree-row.active .pfb-tree-label {
 	color: var(--ink-gray-9);
 }
 
-/* a field behind a visibility condition prints only sometimes, so the row reads
-   as muted with the condition on its eye */
 .pfb-tree-row--conditional .pfb-tree-label {
 	color: var(--ink-gray-4);
-}
-
-.pfb-tree-eye {
-	display: inline-flex;
-	flex-shrink: 0;
-	--icon-stroke: var(--ink-gray-4);
 }
 
 .pfb-tree-chevron {
@@ -1124,14 +1105,21 @@ function handle_slash_key(e) {
 	white-space: nowrap;
 }
 
-.pfb-tree-warn {
+.pfb-tree-warn,
+.pfb-tree-eye {
 	display: inline-flex;
 	flex-shrink: 0;
+}
+
+.pfb-tree-warn {
 	color: var(--text-on-orange, #b95000);
 }
 
-/* a row runs the full width of the panel, so a level of nesting is padding
-   inside the row, not a margin that would shorten its hover pill */
+.pfb-tree-eye {
+	--icon-stroke: var(--ink-gray-4);
+}
+
+/* a level of nesting is padding inside the row, so the row still spans the panel */
 .pfb-tree-children > .pfb-tree-row,
 .pfb-tree-children > .pfb-tree-node > .pfb-tree-row {
 	padding-left: 32px;
@@ -1141,8 +1129,7 @@ function handle_slash_key(e) {
 	padding-left: 56px;
 }
 
-/* an empty column keeps a drop target only while something is being dragged;
-   idle, that strip reads as dead space under the section's own row */
+/* an empty column is a drop target only while a drag is running */
 body.pfb-dragging .pfb-tree-fields {
 	min-height: 8px;
 }

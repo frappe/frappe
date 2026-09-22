@@ -190,7 +190,7 @@ watch(
 		hint_tooltip?.destroy();
 		hint_tooltip = null;
 		if (!el || !text) return;
-		frappe.ui.tooltip(el, { text, class: "pfb-renderer-hint" });
+		frappe.ui.tooltip(el, { text, text_align: "start" });
 		hint_tooltip = $(el).data("es-tooltip");
 	},
 	{ flush: "post" }

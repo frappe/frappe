@@ -441,9 +441,3 @@ body.pfb-col-resizing * {
 	user-select: none;
 }
 
-/* the renderer hint lists blockers, and a centred list is hard to scan */
-.es-tooltip.pfb-renderer-hint {
-	text-align: left;
-	text-wrap: initial;
-	white-space: pre-line;
-}
