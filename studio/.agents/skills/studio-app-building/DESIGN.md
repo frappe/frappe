@@ -7,6 +7,10 @@ the Tailwind/Vue original lives in the frappe-ui skill
 (`frappe-ui/skills/frappe-ui/DESIGN.md`, `TOKENS.md`). When unsure how something
 should look, copy a shipping Frappe app; don't invent.
 
+A screenshot, mockup or design file from the user is the layout: build what it
+shows and use this document only for the tokens and components that express it.
+The archetypes below are defaults for pages nobody has designed yet.
+
 ## Principles
 
 1. **Gray first.** Ink-gray text on `var(--surface-base)`; color appears only
@@ -94,17 +98,21 @@ Everything is gray unless the color MEANS something:
 
 ## Screen archetypes
 
+Defaults for the common screens. A page that fits none of them follows the
+principles above instead; the widths are starting points, not limits.
+
 - **App shell**: Sidebar (14rem; a `SidebarHeader` then `SidebarLabel` /
   `SidebarItem` children with `lucide-*` icons) beside a main column (`flex: "1"`, `flexDirection: "column"`); the
-  main column is header row + scrollable body. Never nest a second sidebar.
+  main column is header row + scrollable body. Don't nest a second sidebar
+  unless the app's navigation has two real levels.
 - **List page**: header (title + primary Button) → List, or a Repeater of
   divider-separated rows: leading title `text-base` `ink-gray-8`, meta line
   `text-sm` `ink-gray-5`, trailing Badge/timestamp in a fixed-width right
   column.
-- **Dashboard**: centered `896px` column, `gap: "24px"`; a KPI strip of
+- **Dashboard**: centered column, `896px` unless the content needs more, `gap: "24px"`; a KPI strip of
   NumberCards separated by hairlines (not four boxed cards); charts below,
   each with a `text-lg` 600 heading.
-- **Form page**: ONE centered column `maxWidth: "576px"`, `gap: "16px"`; every
+- **Form page**: ONE centered column, `maxWidth: "576px"` by default, `gap: "16px"`; every
   field a FormControl WITH a `label` (placeholder is never the label); footer
   actions right-aligned `gap: "8px"` — ghost/subtle Cancel, then solid Save.
 - **Detail + meta panel**: content column (`flex: "1"`) plus a right panel
