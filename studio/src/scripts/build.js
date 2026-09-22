@@ -336,10 +336,17 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath, icons = [
 	console.log(`Vite build completed for ${appName}`)
 }
 
-function getAppTailwindConfig(icons) {
-	const config = loadTailwindConfig(path.resolve(__dirname, "../../tailwind.config.js"))
-	const safelist = config.safelist.filter((entry) => typeof entry === "string")
-	return { ...config, safelist: [...safelist, ...icons] }
+function getAppTailwindConfig(appIconClasses) {
+	const editorConfig = loadTailwindConfig(path.resolve(__dirname, "../../tailwind.config.js"))
+
+	// The editor needs every icon for its picker. App builds replace that rule
+	// with the app's icon classes to avoid shipping CSS for the entire icon set.
+	const sharedSafelist = editorConfig.safelist.filter((entry) => entry.pattern?.source !== "^lucide-")
+
+	return {
+		...editorConfig,
+		safelist: [...sharedSafelist, ...appIconClasses],
+	}
 }
 
 function deleteRendererFile(rendererPath) {
