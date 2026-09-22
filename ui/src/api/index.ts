@@ -181,11 +181,23 @@ export interface MethodOptions extends CallOptions {
   nullable?: boolean;
 }
 
+export type NullableMethodOptions = MethodOptions & { nullable: true };
+
+export function runMethod<T = unknown>(
+  method: string,
+  args: Args | undefined,
+  options: NullableMethodOptions
+): Promise<Envelope<T | null>>;
+export function runMethod<T = unknown>(
+  method: string,
+  args?: Args,
+  options?: MethodOptions
+): Promise<Envelope<T>>;
 export function runMethod<T = unknown>(
   method: string,
   args: Args = {},
   { http = "POST", signal, nullable }: MethodOptions = {}
-): Promise<Envelope<T>> {
+): Promise<Envelope<T | null>> {
   const path = `/method/${segment(method)}`;
   if (http === "GET") return request<T>("GET", path, { query: args, signal, nullable });
   return request<T>("POST", path, { body: args, signal, nullable });
@@ -195,9 +207,23 @@ export function runDocumentMethod<T = unknown>(
   doctype: string,
   name: string,
   method: string,
+  args: Args | undefined,
+  options: NullableMethodOptions
+): Promise<Envelope<T | null>>;
+export function runDocumentMethod<T = unknown>(
+  doctype: string,
+  name: string,
+  method: string,
+  args?: Args,
+  options?: MethodOptions
+): Promise<Envelope<T>>;
+export function runDocumentMethod<T = unknown>(
+  doctype: string,
+  name: string,
+  method: string,
   args: Args = {},
   { http = "POST", signal, nullable }: MethodOptions = {}
-): Promise<Envelope<T>> {
+): Promise<Envelope<T | null>> {
   const path = `${documentPath(doctype, name)}/method/${segment(method)}`;
   if (http === "GET") return request<T>("GET", path, { query: args, signal, nullable });
   return request<T>("POST", path, { body: args, signal, nullable });
