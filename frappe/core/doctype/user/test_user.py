@@ -673,26 +673,26 @@ class TestUser(IntegrationTestCase):
 	def test_bulk_add_roles(self):
 		"""Roles are appended across the selection without disturbing existing ones."""
 		with (
-			test_user(roles=["Blogger"]) as first,
+			test_user(roles=["_Test Role"]) as first,
 			test_user(roles=["Website Manager"]) as second,
 		):
-			bulk_add_roles([first.name, second.name], ["_Test Role 4", "Blogger"])
+			bulk_add_roles([first.name, second.name], ["_Test Role 4", "_Test Role"])
 
 			first.reload()
 			second.reload()
 
-			self.assertCountEqual([d.role for d in first.roles], ["Blogger", "_Test Role 4"])
+			self.assertCountEqual([d.role for d in first.roles], ["_Test Role", "_Test Role 4"])
 			self.assertCountEqual(
-				[d.role for d in second.roles], ["Website Manager", "_Test Role 4", "Blogger"]
+				[d.role for d in second.roles], ["Website Manager", "_Test Role 4", "_Test Role"]
 			)
 
 	def test_bulk_remove_roles(self):
 		"""Roles are stripped across the selection, leaving other roles intact."""
 		with (
-			test_user(roles=["Blogger", "Website Manager"]) as first,
-			test_user(roles=["Blogger"]) as second,
+			test_user(roles=["_Test Role", "Website Manager"]) as first,
+			test_user(roles=["_Test Role"]) as second,
 		):
-			bulk_remove_roles([first.name, second.name], ["Blogger", "_Test Role 4"])
+			bulk_remove_roles([first.name, second.name], ["_Test Role", "_Test Role 4"])
 
 			first.reload()
 			second.reload()
@@ -737,13 +737,13 @@ class TestUser(IntegrationTestCase):
 			bulk_remove_roles([f"u{i}@example.com" for i in range(501)], ["Blogger"])
 
 	def test_bulk_role_endpoints_require_write_permission(self):
-		with test_user(roles=["Blogger"]) as actor, test_user(roles=["Blogger"]) as target:
+		with test_user(roles=["_Test Role 4"]) as actor, test_user(roles=["_Test Role 4"]) as target:
 			with self.set_user(actor.name):
 				with self.assertRaises(frappe.PermissionError):
 					bulk_add_roles([target.name], ["Website Manager"])
 
 				with self.assertRaises(frappe.PermissionError):
-					bulk_remove_roles([target.name], ["Blogger"])
+					bulk_remove_roles([target.name], ["_Test Role 4"])
 
 
 class TestImpersonation(FrappeAPITestCase):
