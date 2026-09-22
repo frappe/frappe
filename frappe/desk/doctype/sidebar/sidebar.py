@@ -1147,6 +1147,11 @@ OVERFLOW_KEY = "_dropped_doctypes"
 # The icon a module gets in the dock when it specifies none.
 DEFAULT_HEADER_ICON = "hammer"
 
+# The Private shell's own icon. It is one person's shell rather than a module of things, so it is
+# marked with a person rather than with whatever the `Private` module happens to hold. A layer of
+# the owner's may still replace it.
+PRIVATE_HEADER_ICON = "user"
+
 
 def get_module_contents(modules: list[str]) -> dict[str, dict[str, list]]:
 	"""Return what each of `modules` holds, using five queries for the whole set, one per entity.
@@ -1672,7 +1677,7 @@ def resolve_private_sidebar(
 	items = append_derived_items(items, all_private_rows(context.private_rows), context.perm_ctx)
 
 	label = base.title or shell
-	header_icon = base.header_icon
+	header_icon = PRIVATE_HEADER_ICON
 	for layer in layers:
 		if layer.label:
 			label = layer.label

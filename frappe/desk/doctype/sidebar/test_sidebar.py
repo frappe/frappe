@@ -10,6 +10,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	ARRANGED_ITEM_FIELDS,
 	COMPUTED_BASE_CACHE_KEY,
 	MODULE_CONTENT_DOCTYPES,
+	PRIVATE_HEADER_ICON,
 	ROUTABLE_ENTITY_KINDS,
 	SYSTEM_WRITE_FLAGS,
 	UNROUTABLE_IN_A_TITLE,
@@ -2585,6 +2586,13 @@ class TestPrivateShell(IntegrationTestCase):
 					"content": "[]",
 				}
 			).insert(ignore_permissions=True)
+
+	def test_it_is_marked_with_a_person(self):
+		"""Every other shell is marked with what its module holds. This one holds one person's
+		pages, so it says so."""
+		self.make_page("Test Private Shell Icon Page")
+
+		self.assertEqual(self.shell().header_icon, PRIVATE_HEADER_ICON)
 
 	def test_it_survives_with_nothing_in_it(self):
 		"""Every other shell disappears when nothing in it is navigable. This one is reached from
