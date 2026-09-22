@@ -445,6 +445,50 @@ is declared. The app declares in one file beside its `hooks.py`:
   at the framework's pin. An app declares the one it imports so the resolver admits the
   import; it cannot change the version.
 
+## What an app styles with: `tailwind.preset.js`
+
+The desk builds one stylesheet from one Tailwind config, the framework's. An app adds
+theme leaves to it through one file, found where it sits. Every app on the bench is read,
+whether or not it contributes a file or publishes a name:
+
+```js
+// apps/crm/crm/frontend/tailwind.preset.js
+export default {
+	theme: {
+		extend: {
+			colors: { "crm-ink": "#1f2937" },
+		},
+	},
+	plugins: [],
+};
+```
+
+- **`export default`.** The file loads the same way whether or not the app's repo root
+  `package.json` says `"type": "module"`.
+- **Two keys.** The file holds `theme` and `plugins` and nothing else. `content`,
+  `safelist`, `darkMode`, `prefix`, `corePlugins`, `presets` and every other key fail
+  the build, naming the app and the key. Nobody gets a safelist.
+- **Under `theme.extend` only.** A plain `theme.colors` replaces the whole scale, the
+  framework's included, and is refused. A leaf under `extend` is added.
+- **A leaf has one writer, and the framework is one of the parties.** A leaf the
+  framework theme already defines, `colors.gray.100` or `spacing.4`, cannot be set by an
+  app; the refusal shows the framework's value. Two apps writing one leaf with different
+  values are refused, naming each app and its value. Two apps writing one leaf with an
+  equal value pass, as do different leaves under one parent.
+- **Refused once, before anything is built.** The check runs while the vite config loads,
+  so the message prints once, at the top, and no transform runs:
+
+  ```
+  The desk shell builds one stylesheet, which admits one value for each theme key. These presets conflict:
+    colors.brand: crm wants "#a00000", erpnext wants "#0000b0"
+
+  Change the presets and build again.
+  ```
+
+- **Plugin and variant names are not checked.** Plugins concatenate in `sites/apps.txt`
+  order. Two plugins registering one variant name give the later app's variant with no
+  error.
+
 ## Asking what a host has
 
 `page` carries **no version number**, and will not get one. A version number invites
