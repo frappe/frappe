@@ -155,9 +155,13 @@ def run(session: str, message: str, attachments: list[str] | str | None = None) 
 
 
 @frappe.whitelist()
-def resume(session: str, answers: dict[str, Any] | str) -> dict[str, Any]:
-	"""Answer the paused run's approval batch, keyed by tool call id."""
-	run = _load_session(session, "write").resume(_parse_answers(answers))
+def resume(
+	session: str, answers: dict[str, Any] | str, approval_seq: int | str | None = None
+) -> dict[str, Any]:
+	"""Answer the paused run's approval batch, keyed by tool call id, or a sub-agent's batch
+	named by `approval_seq`."""
+	doc = _load_session(session, "write")
+	run = doc.resume(_parse_answers(answers), approval_seq=cint(approval_seq) or None)
 	return {"run": run.name, "status": "started"}
 
 

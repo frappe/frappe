@@ -14,7 +14,7 @@ from flow.daemon.client import DaemonClient
 from flow.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
 from flow.memory import store as memory_store
 from flow.permissions import FLOW_USER_ROLE
-from flow.tests.test_fake_daemon import FakeDaemon, pause
+from flow.tests.test_fake_daemon import FakeDaemon, child_pause, pause
 from flow.tests.test_live_server import LiveServerCase
 from flow.tools.builtins import sync_builtin_tools
 
@@ -487,6 +487,18 @@ class TestSessionEndpoints(ApiCase):
 		self.assertEqual(self.daemon.calls[-1], ("resume", name, {"c9": "Approve"}, 4))
 		self.assertEqual(self.run_status(run), "Running")
 		self.assertEqual(api.sync_session(name)["runs"][0]["status"], "Completed")
+
+	def test_resume_answers_a_sub_agents_batch_while_the_run_keeps_running(self):
+		self.daemon.answer = child_pause
+		name = self.create()
+		run = api.run(name, "look it up")["run"]
+		self.daemon.running = True  # the turn goes on while its sub-agent waits
+		self.assertEqual(api.sync_session(name)["runs"][0]["status"], "Running")
+		self.assertEqual(
+			api.resume(name, '{"c9": "Approve"}', approval_seq="8"), {"run": run, "status": "started"}
+		)
+		self.assertEqual(self.daemon.calls[-1], ("resume", name, {"c9": "Approve"}, 8))
+		self.assertEqual(self.run_status(run), "Running")
 
 	def test_abort_cancel_and_entries_pass_through(self):
 		name = self.create()

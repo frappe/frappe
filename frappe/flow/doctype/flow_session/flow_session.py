@@ -197,14 +197,16 @@ class FlowSession(Document):
 			self.save(ignore_permissions=True)
 		return run
 
-	def resume(self, answers: dict[str, Any]) -> FlowRun:
-		"""Answer the paused run's approval batch, keyed by tool call id."""
+	def resume(self, answers: dict[str, Any], approval_seq: int | None = None) -> FlowRun:
+		"""Answer the paused run's approval batch, keyed by tool call id; `approval_seq` names
+		a sub-agent's batch instead, which the run kept running through."""
 		self._assert_can_run()
 		self.sync()
-		run = self._paused_run()
+		run = self._paused_run(approval_seq)
 		with flow_server() as client:
-			client.resume(self.name, answers, approval_seq=run.approval_seq)
-		run.db_set({"status": "Running", "questions": None, "approval_seq": 0})
+			client.resume(self.name, answers, approval_seq=approval_seq or run.approval_seq)
+		if run.status == "Paused":
+			run.db_set({"status": "Running", "questions": None, "approval_seq": 0})
 		return run
 
 	def abort(self) -> str:
@@ -311,10 +313,15 @@ class FlowSession(Document):
 			)
 		return frappe.get_doc("Flow Run", name)
 
-	def _paused_run(self) -> FlowRun:
+	def _paused_run(self, approval_seq: int | None = None) -> FlowRun:
+		"""The Paused run, or the Running one when `approval_seq` names a sub-agent's batch."""
 		name = frappe.db.get_value(
 			"Flow Run", {"session": self.name, "status": "Paused"}, "name", order_by="creation desc"
 		)
+		if not name and approval_seq:
+			name = frappe.db.get_value(
+				"Flow Run", {"session": self.name, "status": "Running"}, "name", order_by="creation desc"
+			)
 		if not name:
 			frappe.throw(_("This session has no paused run."), title=_("Nothing to Resume"))
 		return frappe.get_doc("Flow Run", name)
