@@ -754,9 +754,12 @@ def new_page(new_page: dict):
 
 	# A workspace no longer owns a sidebar; its module does. So instead of seeding a
 	# self-referencing item on the workspace, add a link to it in the module's sidebar, which is
-	# where it is navigated from. A private workspace's link is derived rather than written; see
-	# `add_to_sidebar` for that branch.
-	add_to_sidebar(doc)
+	# where it is navigated from.
+	#
+	# Shared pages only: a private one wrote its rows in `after_insert`, wherever it was made from,
+	# and asking again here reads its owner's layers a second time to find the rows already there.
+	if doc.public:
+		add_to_sidebar(doc)
 
 	return workspace_payload()
 
