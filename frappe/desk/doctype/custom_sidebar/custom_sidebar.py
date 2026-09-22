@@ -119,19 +119,23 @@ class CustomSidebar(Document):
 		API. It also clears rows a site stored in the wrong layer, on the next save of that layer.
 
 		A public workspace is untouched: its link is stored, and arranging or hiding it is what
-		the layers are for.
+		the layers are for. So is a page with no owner at all: `get_workspaces` shows one to
+		everybody, so it is a shared page in all but the column, and a layer may hold it.
 		"""
 		named = {row.link_to for row in self.sidebar_items if row.link_type == "Workspace" and row.link_to}
 		if not named:
 			return
 
-		private = set(
-			frappe.get_all(
-				"Workspace",
-				filters={"name": ["in", list(named)], "public": 0, "for_user": ["!=", self.user or ""]},
-				pluck="name",
-			)
+		# Owned pages only, named rather than excluded. A `!=` filter is wrapped in `ifnull(col, '')`,
+		# so on the site layer, whose `user` is the empty string, `for_user != ''` matched nothing
+		# and an unowned page was kept there while every owned one was dropped -- the rule stated
+		# one way and behaving another.
+		owners = frappe.get_all(
+			"Workspace",
+			filters={"name": ["in", list(named)], "public": 0, "for_user": ["is", "set"]},
+			fields=["name", "for_user"],
 		)
+		private = {row.name for row in owners if row.for_user != self.user}
 		if private:
 			self.set(
 				"sidebar_items",

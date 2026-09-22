@@ -611,6 +611,23 @@ class TestOnlyTheOwnersLayerHoldsAPrivatePage(CustomizationTestCase):
 
 		self.assertEqual(self.stored_links(USER), [])
 
+	def test_a_page_with_no_owner_may_be_stored_anywhere(self):
+		"""`public = 0` with no `for_user` is a page `get_workspaces` shows to everybody, so it is
+		shared in all but the column and a layer may hold it.
+
+		It is the case the filter used to answer by accident: `!=` is wrapped in `ifnull(col, '')`,
+		so the site layer, whose `user` is the empty string, kept an unowned page and dropped every
+		owned one, which is the rule upside down on one side.
+		"""
+		unowned = self.make_workspace("Test Unowned Private Page", public=0)
+
+		save_site_sidebar(MODULE, json.dumps([self.row_for(unowned)]))
+		self.assertEqual(self.stored_links(), [unowned.name])
+
+		self.as_user()
+		save_sidebar_customization(MODULE, json.dumps([self.row_for(unowned)]))
+		self.assertEqual(self.stored_links(USER), [unowned.name])
+
 	def test_a_page_that_turns_private_takes_its_stored_row_out_on_the_next_save(self):
 		"""What retires the rows a site stored before the derivation existed: every write runs the
 		rule, so the next save of that layer removes them.
