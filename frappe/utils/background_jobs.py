@@ -898,6 +898,23 @@ def cancel_mapreduce_job(document_type: str, document_name: str):
 	for j in jobs:
 		frappe.get_doc("MapReduce Job", j.name).cancel()
 
+	# stop running background task
+	if jobs:
+		if tasks := frappe.db.get_all(
+			"Background Task",
+			filters={
+				"status": ["in", ["Queued", "Running"]],
+				"ref_doctype": "MapReduce Job",
+				"ref_docname": ["in", [j.name for j in jobs]],
+			},
+			fields="task_id",
+			pluck="task_id",
+		):
+			from frappe.core.doctype.background_task.background_task import stop_task
+
+			for t in tasks:
+				stop_task(task_id=t)
+
 
 def remove_mapreduce_job(document_type: str, document_name: str):
 	jobs = frappe.db.get_all(

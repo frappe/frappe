@@ -62,6 +62,22 @@ class MapReduceJob(Document):
 		):
 			qb.update(mrt).set(mrt.status, "Canceled").where(mrt.name.isin(to_cancel)).run()
 
+	@staticmethod
+	def clear_old_logs(days=30):
+		from frappe.query_builder import Interval
+		from frappe.query_builder.functions import Now
+
+		mapreduce = frappe.qb.DocType("MapReduce Job")
+		to_delete = (
+			frappe.qb.from_(mapreduce)
+			.select(mapreduce.name)
+			.where(mapreduce.modified < (Now() - Interval(days=days)))
+		).run(as_dict=True, pluck="name")
+		for x in to_delete:
+			if frappe.db.get_value("MapReduce Job", x, "docstatus") == 1:
+				frappe.get_doc("MapReduce Job", x).cancel()
+			frappe.delete_doc("MapReduce Job", x)
+
 
 def create_tasks(job: str):
 	doc = frappe.get_doc("MapReduce Job", job)
