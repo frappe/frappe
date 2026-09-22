@@ -569,14 +569,15 @@ class TestOAuth20(FrappeRequestTestCase):
 			other_client.delete(force=True)
 			frappe.db.commit()
 
-	def test_resource_owner_password_credentials_grant(self):
+	def test_resource_owner_password_credentials_grant_is_rejected(self):
 		client = frappe.get_doc("OAuth Client", self.client_id)
 		client.grant_type = "Authorization Code"
 		client.response_type = "Code"
 		client.save()
 		frappe.db.commit()
 
-		# Request for bearer token
+		# Resource Owner Password Credentials Grant is not supported: validate_user
+		# always rejects, so no token is issued even with valid client credentials.
 		token_response = self.post(
 			"/api/method/frappe.integrations.oauth2.get_token",
 			data={
@@ -589,13 +590,8 @@ class TestOAuth20(FrappeRequestTestCase):
 			headers=self.get_client_auth_headers(),
 		)
 
-		# Parse bearer token json
-		bearer_token = token_response.json
-
-		# Check token for valid response
-		self.assertTrue(
-			check_valid_openid_response(access_token=bearer_token.get("access_token"), client=self)
-		)
+		self.assertEqual(token_response.status_code, 400)
+		self.assertEqual(token_response.json.get("error"), "invalid_grant")
 
 	@requires_test_service(TestService.WEB_SERVER)
 	def test_login_using_implicit_token(self):
