@@ -53,4 +53,24 @@ describe("readEnvelope", () => {
       expect.objectContaining({ type: "InvalidResponse" })
     );
   });
+
+  it("throws a MissingData error for a 200 body with no data key", () => {
+    expect(() => readEnvelope({ permissions: { read: 1 } }, 200)).toThrow(
+      expect.objectContaining({ type: "MissingData", status: 200 })
+    );
+  });
+
+  it("fills a null data for a nullable route and keeps the keys beside it", () => {
+    const envelope = readEnvelope({ docs: [] }, 200, { nullable: true });
+    expect(envelope).toEqual({ docs: [], data: null });
+  });
+
+  it("names the request in the errors it makes itself", () => {
+    const source = "GET /document/ToDo/T-1";
+    expect(() => readEnvelope({}, 200, { source })).toThrow(`${source} answered 200 with no data`);
+    expect(() => readEnvelope(null, 502, { source })).toThrow(`${source} failed with status 502`);
+    expect(() => readEnvelope("x", 200, { source })).toThrow(
+      `${source} did not answer with a JSON object`
+    );
+  });
 });

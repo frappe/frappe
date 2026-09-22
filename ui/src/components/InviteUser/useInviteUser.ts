@@ -186,7 +186,7 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
   async function resend(name: string): Promise<void> {
     resendingName.value = name;
     try {
-      await runDocumentMethod(DOCTYPE, name, "resend_invite");
+      await runDocumentMethod(DOCTYPE, name, "resend_invite", {}, { nullable: true });
       resendError.value = null;
     } catch (failure) {
       resendError.value = failure;

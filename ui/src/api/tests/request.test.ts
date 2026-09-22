@@ -95,6 +95,19 @@ describe("request", () => {
     });
   });
 
+  it("rejects a 200 with no data, naming the request, unless the route is nullable", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({}));
+    await expect(request("GET", "/document/ToDo/T-1")).rejects.toThrow(
+      expect.objectContaining({
+        type: "MissingData",
+        message: "GET /document/ToDo/T-1 answered 200 with no data",
+      })
+    );
+    fetchMock.mockResolvedValue(jsonResponse({}));
+    const envelope = await request("POST", "/method/logout", { nullable: true });
+    expect(envelope.data).toBeNull();
+  });
+
   it("rejects with an HTTPError when the failure body is not JSON", async () => {
     fetchMock.mockResolvedValue(new Response("<html>Bad Gateway</html>", { status: 502 }));
     await expect(request("GET", "/method/ping")).rejects.toMatchObject({

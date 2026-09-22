@@ -62,8 +62,9 @@ describe("getSession", () => {
 
 describe("logout", () => {
   it("posts to the logout method", async () => {
-    respond({ message: "Logged out" });
-    await logout();
+    respond({});
+    const { data } = await logout();
+    expect(data).toBeNull();
     expect(lastCall()).toMatchObject({ url: "/api/v2/method/logout", method: "POST" });
   });
 });

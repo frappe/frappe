@@ -206,6 +206,27 @@ describe("methods and meta", () => {
     });
   });
 
+  it("hands back a null data only when the caller says the function returns nothing", async () => {
+    respond({});
+    const method = "frappe.desk.notifications.mark_all_as_read";
+    await expect(runMethod(method)).rejects.toThrow(
+      expect.objectContaining({
+        type: "MissingData",
+        message: `POST /method/${method} answered 200 with no data`,
+      })
+    );
+    respond({});
+    const { data } = await runMethod(method, {}, { nullable: true });
+    expect(data).toBeNull();
+  });
+
+  it("refuses a document read whose body carries no data", async () => {
+    respond({});
+    await expect(getDocument("ToDo", "T-1")).rejects.toThrow(
+      expect.objectContaining({ type: "MissingData" })
+    );
+  });
+
   it("runs a dotted method as a GET with the arguments in the query when asked", async () => {
     respond({ data: [] });
     await runMethod("frappe.desk.search.search_link", { doctype: "User" }, { http: "GET" });
@@ -216,8 +237,15 @@ describe("methods and meta", () => {
   });
 
   it("runs a document method on the document's method route", async () => {
-    respond({ data: null });
-    await runDocumentMethod("ToDo", "T-1", "close", { reason: "done" });
+    respond({ docs: [{ name: "T-1" }] });
+    const { data } = await runDocumentMethod(
+      "ToDo",
+      "T-1",
+      "close",
+      { reason: "done" },
+      { nullable: true }
+    );
+    expect(data).toBeNull();
     expect(lastCall()).toMatchObject({
       url: "/api/v2/document/ToDo/T-1/method/close",
       method: "POST",

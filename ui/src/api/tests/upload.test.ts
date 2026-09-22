@@ -67,13 +67,23 @@ describe("uploadFile", () => {
     FakeXHR.respond = (index) =>
       index === 2
         ? { status: 200, body: { data: { name: "big", file_url: "/files/big.bin" } } }
-        : { status: 200, body: { data: null } };
+        : { status: 200, body: {} };
     const file = new File(["0123456789"], "big.bin");
     const { data } = await uploadFile(file, {}, { chunkSize: 4 });
     expect(data.file_url).toBe("/files/big.bin");
     expect(FakeXHR.sent.map((s) => s.form.get("chunk_byte_offset"))).toEqual(["0", "4", "8"]);
     expect(FakeXHR.sent[0].form.get("total_chunk_count")).toBe("3");
     expect(FakeXHR.sent[0].form.get("total_file_size")).toBe("10");
+  });
+
+  it("refuses a last part that answers with no data, naming the route", async () => {
+    FakeXHR.respond = () => ({ status: 200, body: {} });
+    await expect(uploadFile(new File(["x"], "a.txt"), {})).rejects.toThrow(
+      expect.objectContaining({
+        type: "MissingData",
+        message: "POST /document/File answered 200 with no data",
+      })
+    );
   });
 
   it("drops a field with no value rather than sending the word undefined", async () => {

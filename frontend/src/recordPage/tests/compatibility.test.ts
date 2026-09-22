@@ -98,7 +98,7 @@ describe("removals", () => {
 
     expect(() => page.dialog.prompt()).toThrow();
 
-    expect(call).toHaveBeenCalledWith(REPORT_METHOD, expect.anything());
+    expect(call).toHaveBeenCalledWith(REPORT_METHOD, expect.anything(), { nullable: true });
     expect(call.mock.calls[0][1].event).toBe("removed:dialog.prompt");
     expect(toast.error).toHaveBeenCalledWith(
       expect.stringContaining("removed in 0.3.0"),
@@ -112,7 +112,7 @@ describe("removals", () => {
 
     expect(() => page.dialog.prompt()).toThrow();
 
-    expect(call).toHaveBeenCalledWith(REPORT_METHOD, expect.anything());
+    expect(call).toHaveBeenCalledWith(REPORT_METHOD, expect.anything(), { nullable: true });
     expect(toast.error).not.toHaveBeenCalled();
   });
 

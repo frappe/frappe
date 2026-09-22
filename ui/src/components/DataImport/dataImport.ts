@@ -80,7 +80,7 @@ export const getPreviewData = (
     importName,
     "get_preview_from_template",
     { import_file: file, google_sheets_url: sheet },
-    { http: "GET" },
+    { http: "GET", nullable: true },
   )
     .then(({ data }) => data)
     .catch((error: any) => {

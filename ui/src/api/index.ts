@@ -177,16 +177,18 @@ export function copyDocument<T extends DocumentRecord = DocumentRecord>(
 export interface MethodOptions extends CallOptions {
   /** `GET` for a read the browser may cache; the default `POST` for everything else. */
   http?: "GET" | "POST";
+  /** The function returns nothing, so `data` is `null`. */
+  nullable?: boolean;
 }
 
 export function runMethod<T = unknown>(
   method: string,
   args: Args = {},
-  { http = "POST", signal }: MethodOptions = {}
+  { http = "POST", signal, nullable }: MethodOptions = {}
 ): Promise<Envelope<T>> {
   const path = `/method/${segment(method)}`;
-  if (http === "GET") return request<T>("GET", path, { query: args, signal });
-  return request<T>("POST", path, { body: args, signal });
+  if (http === "GET") return request<T>("GET", path, { query: args, signal, nullable });
+  return request<T>("POST", path, { body: args, signal, nullable });
 }
 
 export function runDocumentMethod<T = unknown>(
@@ -194,11 +196,11 @@ export function runDocumentMethod<T = unknown>(
   name: string,
   method: string,
   args: Args = {},
-  { http = "POST", signal }: MethodOptions = {}
+  { http = "POST", signal, nullable }: MethodOptions = {}
 ): Promise<Envelope<T>> {
   const path = `${documentPath(doctype, name)}/method/${segment(method)}`;
-  if (http === "GET") return request<T>("GET", path, { query: args, signal });
-  return request<T>("POST", path, { body: args, signal });
+  if (http === "GET") return request<T>("GET", path, { query: args, signal, nullable });
+  return request<T>("POST", path, { body: args, signal, nullable });
 }
 
 /** A read beside the document, `GET /document/<doctype>/<name>/<part>`, such as `activity`. */
@@ -230,8 +232,8 @@ export function getSession({ signal }: CallOptions = {}): Promise<Envelope<Sessi
   return request<Session>("GET", "/session", { signal });
 }
 
-export function logout({ signal }: CallOptions = {}): Promise<Envelope<unknown>> {
-  return request<unknown>("POST", "/method/logout", { signal });
+export function logout({ signal }: CallOptions = {}): Promise<Envelope<null>> {
+  return request<null>("POST", "/method/logout", { signal, nullable: true });
 }
 
 /** Cached server-side for a year: `version` is the only thing that invalidates it. */
