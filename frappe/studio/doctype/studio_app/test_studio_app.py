@@ -190,6 +190,77 @@ class TestStudioAppBuilder(FrappeTestCase):
 			self.assertIn("Alert", builder.components)
 			self.assertIn("Badge", builder.components)
 
+	def test_collects_icons_from_pages_scripts_and_components(self):
+		app = make_studio_app(app_title="Icon App", app_name="icon-app")
+		component = frappe.get_doc(
+			{
+				"doctype": "Studio Component",
+				"component_name": "IconWidget",
+				"block": json.dumps({"componentName": "Button", "componentProps": {"icon": "lucide-star"}}),
+			}
+		).insert()
+		blocks = json.dumps(
+			[
+				{
+					"componentName": "Button",
+					"componentProps": {"iconLeft": "lucide-plus", "class": "hover:lucide-arrow-up-right"},
+					"children": [
+						{"componentName": component.name, "isStudioComponent": True, "children": []}
+					],
+				}
+			]
+		)
+		make_studio_page(
+			app.name, blocks=blocks, script="const icon = ok ? 'lucide-check' : 'lucide-x'", published=1
+		)
+
+		builder = StudioAppBuilder(app.name, is_standard=False)
+		builder.get_app_components()
+		self.assertEqual(
+			builder.icons, {"lucide-plus", "lucide-arrow-up-right", "lucide-star", "lucide-check", "lucide-x"}
+		)
+
+	def test_collects_icons_from_files(self):
+		app_name = "icon-file-app"
+		page_data = {
+			"blocks": [
+				{
+					"componentName": "Button",
+					"componentProps": {"icon": "lucide-house"},
+					"children": [{"componentName": "FileWidget", "isStudioComponent": True, "children": []}],
+				}
+			]
+		}
+		comp_data = {
+			"name": "FileWidget",
+			"block": {"componentName": "Icon", "componentProps": {"icon": "lucide-bell"}},
+		}
+
+		with mock_studio_app_files(
+			app_name, pages={"page": page_data}, components={"file_widget": comp_data}
+		) as studio_folder:
+			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="studio")
+			with patch("studio.build.get_studio_folder", return_value=studio_folder):
+				builder.get_app_components_from_files()
+
+		self.assertEqual(builder.icons, {"lucide-house", "lucide-bell"})
+
+	def test_passes_only_the_used_icons_to_the_build(self):
+		builder = StudioAppBuilder("icon-cli-app", is_standard=False)
+		builder.components = {"Button"}
+		builder.icons = {"lucide-x", "lucide-check"}
+
+		with patch("studio.build.subprocess.run") as run, patch("studio.build.os.makedirs"):
+			run.return_value.returncode = 0
+			builder._run_vite_build()
+		self.assertIn(" --icons lucide-check,lucide-x", run.call_args.args[0])
+
+		builder.icons = set()
+		with patch("studio.build.subprocess.run") as run, patch("studio.build.os.makedirs"):
+			run.return_value.returncode = 0
+			builder._run_vite_build()
+		self.assertNotIn("--icons", run.call_args.args[0])
+
 	def test_build_paths_for_standard_app(self):
 		app_name = "standard-app"
 		builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="studio")
@@ -230,6 +301,7 @@ def make_studio_page(studio_app, **kwargs):
 			"page_title": kwargs.get("page_title", "Test Page"),
 			"route": kwargs.get("route", "/test-page"),
 			"blocks": kwargs.get("blocks", "[]"),
+			"script": kwargs.get("script"),
 			"published": kwargs.get("published", 1),
 			"allow_guest": kwargs.get("allow_guest", 0),
 		}
