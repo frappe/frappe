@@ -414,6 +414,24 @@ What the promise does **not** cover, in the same voice as the rest of this docum
   four move on theirs. `page` being unchanged does not mean `crm/ui` still exports what
   it did.
 
+## What you commit to when you contribute
+
+A file you contribute or a name you publish is built from the framework's tree. It runs
+on the framework's version of the six shared libraries, `vue`, `vue-router`, `frappe-ui`,
+`@framework/ui`, `reka-ui` and `dompurify`, and on no other. Declare the ones you import
+in your desk declaration file with a range that includes the version the framework ships,
+which is the resolved version in `frappe/frontend/yarn.lock.base`, not the floor of its
+range. `@framework/ui` has no version; declare it as `"*"`. If your range excludes the
+shipped version, the build is refused before vite starts and the message names both sides:
+
+```
+frappe-ui: the framework ships 1.0.0-beta.63; gameplan needs >=1.0.0-beta.70
+```
+
+You cannot move the framework's pin from your app. A newer release arrives when the
+framework takes it. Your app's own frontend, if it has one, is a separate bundle with its
+own tree and is not affected.
+
 ## What a script says to a reader: `frappe/i18n`
 
 The framework publishes `frappe/i18n` from a file of its own source, by the same

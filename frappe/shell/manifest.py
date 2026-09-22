@@ -5,6 +5,9 @@
 
 import json
 import os
+import re
+
+from semantic_version import NpmSpec, Version
 
 import frappe
 from frappe.utils import get_bench_path
@@ -15,6 +18,8 @@ from .registry import declared_prefix
 SINGLETONS = ("vue", "vue-router", "frappe-ui", "@framework/ui", "reka-ui", "dompurify")
 
 MANIFEST_FILENAME = "manifest.json"
+BASE_LOCKFILE = "yarn.lock.base"
+BUMP_MAP = 'the map "Keep frappe-ui current" (frappe/frappe#42719)'
 
 
 #: What a stored Client Script imports by bare name; the one exemption from the `<app>/<alias>` rule.
@@ -199,30 +204,81 @@ def enforce_import_map(manifest: list[dict]):
 		raise ImportMapConflict("\n" + "\n".join(f"  {problem}" for problem in problems))
 
 
-def enforce_singletons(manifest: list[dict]):
-	"""Fail the build when two apps in the bundle disagree on a shared library."""
+def enforce_singletons(manifest: list[dict], frontend: str | None = None):
+	"""Fail the build when an app's range for a shared library excludes the version the framework ships."""
 	# Before vite starts, and not `resolve.dedupe`, which silently picks a winner.
-	claims: dict[str, list[tuple[str, str]]] = {}
-
+	shipped = shipped_versions(frontend or frontend_dir())
+	refusals = []
 	for entry in manifest:
+		if entry["app"] == "frappe":
+			continue
 		for package in SINGLETONS:
-			if declared := entry["deps"].get(package):
-				claims.setdefault(package, []).append((entry["app"], declared))
+			declared = entry["deps"].get(package)
+			if declared and (
+				refusal := singleton_refusal(entry["app"], package, declared, shipped.get(package))
+			):
+				refusals.append(refusal)
 
-	conflicts = []
-	for package, declarations in claims.items():
-		ranges = {declared for _app, declared in declarations}
-		if len(ranges) > 1:
-			named = ", ".join(f"{app} wants {declared}" for app, declared in sorted(declarations))
-			conflicts.append(f"  {package}: {named}")
-
-	if conflicts:
+	if refusals:
 		raise SingletonConflict(
 			"The desk shell builds one module graph, which admits one version of each "
-			"shared library. These are declared at conflicting versions:\n"
-			+ "\n".join(conflicts)
-			+ f"\n\nAlign the ranges in the apps' {DECLARATION_FILENAME} files and build again."
+			"shared library. The framework pins these in frappe/frontend/package.base.json, "
+			"and an app's range must include that pin:\n\n"
+			+ "\n".join(f"  {refusal}" for refusal in refusals)
+			+ f"\n\nAn app cannot move a pin. The framework takes a newer release on {BUMP_MAP}. "
+			"Until then, write against the version the framework ships, or wait."
 		)
+
+
+def singleton_refusal(app: str, package: str, declared: str, shipped: str | None) -> str | None:
+	if package == "@framework/ui":
+		if declared == "*":
+			return None
+		return f"{package}: ships with the framework and has no version to pin; {app} needs {declared}"
+	if shipped is None:
+		return f"{package}: the base lockfile has no entry; {app} needs {declared}"
+	# npm reads `*` as "no prerelease"; an app that says "*" means any version the framework ships.
+	if declared == "*":
+		return None
+	not_a_range = (
+		f"{package}: `{declared}` is not a semver range; {app} needs a range that includes {shipped}"
+	)
+	if not isinstance(declared, str) or not declared:
+		return not_a_range
+	try:
+		satisfied = Version(shipped) in NpmSpec(declared)
+	except ValueError:
+		return not_a_range
+	if satisfied:
+		return None
+	return f"{package}: the framework ships {shipped}; {app} needs {declared}"
+
+
+def shipped_versions(frontend: str) -> dict[str, str]:
+	"""Each singleton's resolved version in the base lockfile, from the block for the base file's own range."""
+	path = os.path.join(frontend, BASE_LOCKFILE)
+	if not os.path.exists(path):
+		raise SingletonConflict(
+			f"{bench_relative(path)} is missing; run frontend/base-lock.sh and commit it."
+		)
+	# Bench-internal paths; never request-derived.
+	with open(path) as f:  # nosemgrep
+		lockfile = f.read()
+	pinned = read_package(os.path.join(frontend, "package.base.json")).get("dependencies", {})
+
+	versions = {}
+	for package in SINGLETONS:
+		if package not in pinned:
+			continue
+		for block in re.finditer(
+			rf'^(?P<header>"?{re.escape(package)}@[^\n]*):\n  version "(?P<version>[^"]+)"\n  resolved ',
+			lockfile,
+			re.MULTILINE,
+		):
+			specs = [spec.strip('"') for spec in block["header"].split(", ")]
+			if f"{package}@{pinned[package]}" in specs:
+				versions[package] = block["version"]
+	return versions
 
 
 def added_packages(entry: dict, base_dependencies: dict) -> dict[str, str]:
@@ -293,7 +349,7 @@ def write(frontend: str | None = None) -> tuple[list[dict], bool]:
 	"""Assemble, enforce, write the manifest; returns it, and whether the dependency set changed."""
 	frontend = frontend or frontend_dir()
 	manifest = assemble()
-	enforce_singletons(manifest)
+	enforce_singletons(manifest, frontend)
 	enforce_import_map(manifest)
 
 	# `source_dirs` is every app, not just contributors: a `custom/` folder may name a doctype
