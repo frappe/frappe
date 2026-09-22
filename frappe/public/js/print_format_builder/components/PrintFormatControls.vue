@@ -1105,7 +1105,9 @@ function handle_slash_key(e) {
 	margin-left: 24px;
 }
 
-.pfb-tree-fields {
+/* an empty column keeps a drop target only while something is being dragged;
+   idle, that strip reads as dead space under the section's own row */
+body.pfb-dragging .pfb-tree-fields {
 	min-height: 8px;
 }
 
