@@ -82,15 +82,23 @@ def migrate_dialog_props(block):
 
 	# 3. `disableOutsideClickToClose` -> `dismissible` (inverted). A binding is negated; if a
 	# static `dismissible` already sits beside it the two disagree, so the binding stays for review.
-	disabled = props.get("disableOutsideClickToClose")
-	if isinstance(disabled, str) and (match := BINDING.match(disabled)):
-		if "dismissible" not in props:
-			props["dismissible"] = f"{{{{ !({match.group(1).strip()}) }}}}"
+	if "disableOutsideClickToClose" in props:
+		expression = bound_expression(props["disableOutsideClickToClose"])
+		if expression is None:
+			props.setdefault("dismissible", not props.pop("disableOutsideClickToClose"))
+		elif "dismissible" not in props:
+			props["dismissible"] = f"{{{{ !({expression}) }}}}"
 			props.pop("disableOutsideClickToClose")
-	elif "disableOutsideClickToClose" in props:
-		props.setdefault("dismissible", not props.pop("disableOutsideClickToClose"))
 
 	block["componentProps"] = props
+
+
+def bound_expression(value):
+	"""The expression inside a `{{ }}` or variable binding; None for a static value."""
+	if isinstance(value, dict) and value.get("$type") == "variable":
+		return value.get("name")
+	if isinstance(value, str) and (match := BINDING.match(value)):
+		return match.group(1).strip()
 
 
 def rename_dialog_slots(block):
