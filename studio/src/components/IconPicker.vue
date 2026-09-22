@@ -7,16 +7,16 @@
 				:class="VARIANT_CLASSES[variant]"
 				@click="isOpen = !isOpen"
 			>
-				<span v-if="icon" :class="[icon, 'size-4 shrink-0']" aria-hidden="true" />
+				<span v-if="modelValue" :class="[modelValue, 'size-4 shrink-0']" aria-hidden="true" />
 				<span
 					class="min-w-0 flex-1 truncate"
-					:class="{ 'text-ink-gray-4': !icon }"
-					:title="icon ? iconLabel(icon) : undefined"
+					:class="{ 'text-ink-gray-4': !modelValue }"
+					:title="modelValue ? iconLabel(modelValue) : undefined"
 				>
-					{{ icon ? iconLabel(icon) : "Select icon" }}
+					{{ modelValue ? iconLabel(modelValue) : "Select icon" }}
 				</span>
 				<span
-					v-if="icon"
+					v-if="modelValue"
 					class="lucide-x size-3 shrink-0 text-ink-gray-5 hover:text-ink-gray-8"
 					title="Clear"
 					@click.stop="select('')"
@@ -36,7 +36,7 @@
 						:key="option"
 						type="button"
 						class="flex size-8 items-center justify-center rounded-4 text-ink-gray-7 hover:bg-surface-gray-2"
-						:class="{ 'bg-surface-gray-3 text-ink-gray-9': option === icon }"
+						:class="{ 'bg-surface-gray-3 text-ink-gray-9': option === modelValue }"
 						:title="iconLabel(option)"
 						@click="select(option)"
 					>
@@ -51,7 +51,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import { Popover, TextInput } from "frappe-ui"
-import { getIcon } from "@/utils/globalUtils"
 
 const MAX_RESULTS = 240
 
@@ -65,11 +64,6 @@ const props = withDefaults(defineProps<{ modelValue?: string; variant?: keyof ty
 	variant: "subtle",
 })
 
-// older saved values wrap the name in the removed sprite helper: {{ getIcon('name') }}
-const icon = computed(() => {
-	const legacyName = props.modelValue?.match(/getIcon\(['"]([^'"]+)['"]\)/)?.[1]
-	return legacyName ? getIcon(legacyName) : props.modelValue
-})
 const emit = defineEmits<{ "update:modelValue": [value: string] }>()
 
 const isOpen = ref(false)
