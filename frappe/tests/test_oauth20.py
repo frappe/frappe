@@ -332,48 +332,7 @@ class TestOAuth20(FrappeRequestTestCase):
 			check_valid_openid_response(access_token=bearer_token.get("access_token"), client=self)
 		)
 
-<<<<<<< HEAD
-	def test_resource_owner_password_credentials_grant(self):
-=======
-	def test_client_cannot_revoke_another_clients_token(self):
-		other_client = frappe.copy_doc(self.oauth_client)
-		other_client.name = "other_test_client_id"
-		other_client.app_name = "_Test Other OAuth Client"
-		other_client.client_secret = "other_test_client_secret"
-		other_client.insert()
-
-		access_token = frappe.generate_hash()
-		other_token = frappe.get_doc(
-			{
-				"doctype": "OAuth Bearer Token",
-				"access_token": access_token,
-				"client": other_client.name,
-				"expires_in": 3600,
-				"scopes": self.scope,
-				"status": "Active",
-				"user": "test@example.com",
-			}
-		).insert(ignore_permissions=True)
-
-		# The HTTP request runs in another thread and only sees committed fixtures.
-		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
-
-		try:
-			revoke_token_response = self.post(
-				"/api/method/frappe.integrations.oauth2.revoke_token",
-				headers=self.get_client_auth_headers(),
-				data={"token": access_token},
-			)
-
-			self.assertEqual(revoke_token_response.status_code, 200)
-			self.assertEqual(frappe.db.get_value("OAuth Bearer Token", other_token.name, "status"), "Active")
-		finally:
-			other_token.delete(force=True)
-			other_client.delete(force=True)
-			frappe.db.commit()
-
 	def test_resource_owner_password_credentials_grant_is_rejected(self):
->>>>>>> 51d08b4 (fix(oauth): disable Resource Owner Password Credentials Grant)
 		client = frappe.get_doc("OAuth Client", self.client_id)
 		client.grant_type = "Authorization Code"
 		client.response_type = "Code"
