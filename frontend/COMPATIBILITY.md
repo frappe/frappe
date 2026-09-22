@@ -417,7 +417,9 @@ What the promise does **not** cover, in the same voice as the rest of this docum
 ## What a script says to a reader: `frappe/i18n`
 
 The framework publishes `frappe/i18n` from a file of its own source, by the same
-`<app>/<alias>` rule an app follows. It exports two functions and nothing else:
+`<app>/<alias>` rule an app follows. A stored script and a contributed or published file
+write the same import line, and no declaration is needed for it. It exports two
+functions and nothing else:
 
 ```js
 import { __, __n } from "frappe/i18n"
