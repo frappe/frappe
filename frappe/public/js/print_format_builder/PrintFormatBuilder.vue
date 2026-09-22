@@ -1,6 +1,7 @@
 <template>
 	<div
 		v-if="shouldRender"
+		ref="root_el"
 		class="builder-root"
 		:class="{ 'pfb-multi-select': $store.is_multi_select.value }"
 	>
@@ -550,7 +551,22 @@ function warn_before_unload(e) {
 		e.preventDefault();
 }
 
+const root_el = ref(null);
+
+function measure_chrome_offset() {
+	const el = root_el.value;
+	if (el)
+		el.style.setProperty(
+			"--pfb-chrome-offset",
+			`${Math.round(el.getBoundingClientRect().top)}px`
+		);
+}
+
+watch(root_el, measure_chrome_offset);
+
 onMounted(() => {
+	measure_chrome_offset();
+	window.addEventListener("resize", measure_chrome_offset);
 	document.addEventListener("keydown", handle_keydown);
 	document.addEventListener("pointerdown", close_zoom_on_outside);
 	window.addEventListener("beforeunload", warn_before_unload);
@@ -568,6 +584,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+	window.removeEventListener("resize", measure_chrome_offset);
 	document.removeEventListener("keydown", handle_keydown);
 	document.removeEventListener("pointerdown", close_zoom_on_outside);
 	window.removeEventListener("beforeunload", warn_before_unload);
@@ -580,7 +597,7 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 
 <style scoped>
 .builder-root {
-	/* navbar + page head height */
+	/* measured on mount: the desk chrome above the builder is not a fixed height */
 	--pfb-chrome-offset: 95px;
 	/* single source of truth for every selection/hover ring on the canvas —
 	   change these two and fields, sections, and layer-hover all update */
