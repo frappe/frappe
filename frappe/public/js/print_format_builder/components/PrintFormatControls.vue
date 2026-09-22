@@ -1055,10 +1055,13 @@ function handle_slash_key(e) {
 	outline: none;
 }
 
+/* selection is a ring, not a fill: it has to stay readable once the pointer has
+   left the row */
 .pfb-tree-row.active {
-	background: var(--surface-gray-1);
 	color: var(--text-color);
 	font-weight: 500;
+	outline: 1px solid var(--pfb-accent);
+	outline-offset: -1px;
 }
 
 /* a field behind a visibility condition prints only sometimes, so the row reads
