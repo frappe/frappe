@@ -156,6 +156,31 @@
                       },
                       "content": {
                         "type": "string"
+                      },
+                      "attachments": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "file_url": {
+                              "type": "string"
+                            },
+                            "is_private": {
+                              "type": "number",
+                              "enum": [
+                                0,
+                                1
+                              ]
+                            },
+                            "file_name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "file_url"
+                          ],
+                          "additionalProperties": false
+                        }
                       }
                     },
                     "required": [
@@ -298,7 +323,10 @@
                           "workflow",
                           "info",
                           "view",
-                          "created"
+                          "created",
+                          "edited",
+                          "shared",
+                          "milestone"
                         ]
                       },
                       "text": {
@@ -718,6 +746,9 @@
               "type": "boolean"
             },
             "fetchNextPage": {
+              "type": "object"
+            },
+            "isPagedRow": {
               "type": "object"
             },
             "loadMore": {

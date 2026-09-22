@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "SankeyChartProps": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "vertical": {
+          "type": "boolean"
+        },
+        "nodeAlign": {
+          "type": "string",
+          "enum": [
+            "left",
+            "right",
+            "justify"
+          ]
+        },
+        "format": {
+          "type": "object"
+        },
+        "palette": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "sequential",
+                "categorical",
+                "diverging"
+              ]
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "echartOptions": {
+          "type": "object"
+        },
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": "string"
+        },
+        "dir": {
+          "type": "string",
+          "enum": [
+            "ltr",
+            "rtl"
+          ]
+        },
+        "loading": {
+          "type": "boolean"
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "data",
+        "source",
+        "target",
+        "value"
+      ]
+    },
+    "SankeyChartSlots": {
+      "type": "object",
+      "properties": {
+        "tooltip": {
+          "type": "object"
+        },
+        "title-suffix": {
+          "type": "object"
+        },
+        "actions": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

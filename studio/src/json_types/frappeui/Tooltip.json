@@ -11,7 +11,7 @@
         "hoverDelay": {
           "type": "number"
         },
-        "placement": {
+        "side": {
           "type": "string",
           "enum": [
             "top",
@@ -20,60 +20,17 @@
             "left"
           ]
         },
-        "arrowClass": {
-          "anyOf": [
-            {
-              "type": "boolean",
-              "const": false
-            },
-            {
-              "type": "null"
-            },
-            {
-              "type": "string"
-            },
-            {
-              "type": "object"
-            },
-            {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/alias-1208222371-13911-14013-1208222371-0-57898"
-              }
-            }
-          ]
+        "offset": {
+          "type": "number"
+        },
+        "bare": {
+          "type": "boolean"
         },
         "disabled": {
           "type": "boolean"
         }
       },
       "additionalProperties": false
-    },
-    "alias-1208222371-13911-14013-1208222371-0-57898": {
-      "anyOf": [
-        {
-          "type": "boolean",
-          "const": false
-        },
-        {
-          "type": "null"
-        },
-        {
-          "not": {}
-        },
-        {
-          "type": "string"
-        },
-        {
-          "type": "object"
-        },
-        {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/alias-1208222371-13911-14013-1208222371-0-57898"
-          }
-        }
-      ]
     }
   }
 }

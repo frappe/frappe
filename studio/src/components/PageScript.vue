@@ -13,25 +13,17 @@
 			<span class="lucide-file size-3.5 shrink-0 text-ink-gray-5" />
 			<span class="truncate text-sm text-ink-gray-8">
 				{{ activePage?.page_title }}
-				<span v-if="dirty" class="text-ink-amber-6">•</span>
+				<span v-if="dirty" class="text-ink-amber-5">•</span>
 			</span>
 		</template>
 		<template #actions>
-			<Popover placement="bottom-end" :offset="6">
-				<template #target="{ togglePopover }">
-					<Button
-						size="xs"
-						variant="ghost"
-						icon="lucide-help-circle"
-						title="How to write page scripts"
-						@click="togglePopover"
-					/>
+			<Popover side="bottom" align="end" :offset="6" bare>
+				<template #trigger>
+					<Button size="xs" variant="ghost" icon="lucide-circle-help" title="How to write page scripts" />
 				</template>
-				<template #body>
-					<div class="max-w-sm rounded border border-outline-gray-2 bg-surface-base p-3 shadow-lg">
-						<PageScriptHelp />
-					</div>
-				</template>
+				<div class="max-w-sm rounded-4 border border-outline-gray-2 bg-surface-base p-3 shadow-lg">
+					<PageScriptHelp />
+				</div>
 			</Popover>
 			<Button size="xs" variant="solid" :loading="saving" :disabled="!dirty" @click="saveScript">Save</Button>
 			<Button

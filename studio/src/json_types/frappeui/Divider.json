@@ -12,7 +12,7 @@
             "vertical"
           ]
         },
-        "position": {
+        "align": {
           "type": "string",
           "enum": [
             "start",
@@ -25,6 +25,7 @@
         },
         "action": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "label": {
               "type": "string"
@@ -32,17 +33,85 @@
             "onClick": {
               "type": "object"
             },
-            "handler": {
-              "type": "object"
+            "theme": {
+              "type": "string",
+              "enum": [
+                "gray",
+                "blue",
+                "green",
+                "red"
+              ]
+            },
+            "size": {
+              "type": "string",
+              "enum": [
+                "xs",
+                "sm",
+                "md",
+                "lg"
+              ]
+            },
+            "variant": {
+              "type": "string",
+              "enum": [
+                "solid",
+                "subtle",
+                "outline",
+                "ghost"
+              ]
+            },
+            "icon": {
+              "type": [
+                "string"
+              ]
+            },
+            "iconLeft": {
+              "type": [
+                "string"
+              ]
+            },
+            "iconRight": {
+              "type": [
+                "string"
+              ]
+            },
+            "tooltip": {
+              "type": "string"
             },
             "loading": {
               "type": "boolean"
+            },
+            "loadingText": {
+              "type": "string"
+            },
+            "disabled": {
+              "type": "boolean"
+            },
+            "route": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object"
+                }
+              ]
+            },
+            "href": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "button",
+                "submit",
+                "reset"
+              ]
             }
           },
           "required": [
             "label"
-          ],
-          "additionalProperties": false
+          ]
         }
       },
       "additionalProperties": false

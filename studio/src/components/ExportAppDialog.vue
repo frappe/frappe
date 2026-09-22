@@ -1,5 +1,5 @@
 <template>
-	<Dialog v-model="showDialog" title="Export Settings" size="xl">
+	<Dialog v-model:open="showDialog" title="Export Settings" size="xl">
 		<template #default>
 			<AppExportSettings
 				v-model:enableExport="enableExport"

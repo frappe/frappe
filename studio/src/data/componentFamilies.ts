@@ -2,7 +2,9 @@ import { defineAsyncComponent } from "vue"
 import type { FrappeUIComponents } from "@/types"
 
 import LucideAppWindowMac from "~icons/lucide/app-window-mac"
+import LucideCircleDot from "~icons/lucide/circle-dot"
 import LucideArrowUpDown from "~icons/lucide/arrow-up-down"
+import LucideCreditCard from "~icons/lucide/credit-card"
 import LucideColumns3 from "~icons/lucide/columns-3"
 import LucideFrame from "~icons/lucide/frame"
 import LucideList from "~icons/lucide/list"
@@ -10,6 +12,7 @@ import LucidePanelLeftClose from "~icons/lucide/panel-left-close"
 import LucideRows3 from "~icons/lucide/rows-3"
 import LucideSettings from "~icons/lucide/settings"
 import LucideSidebar from "~icons/lucide/sidebar"
+import LucideSquareMenu from "~icons/lucide/square-menu"
 import LucideTag from "~icons/lucide/tag"
 
 // Component families: the primary (isGroup) drops a whole working tree via its block template
@@ -238,5 +241,55 @@ export const COMPONENT_FAMILIES: FrappeUIComponents = {
 		title: "Sidebar Collapse Toggle",
 		icon: LucidePanelLeftClose,
 		group: "Sidebar",
+	},
+	SidebarCard: {
+		name: "SidebarCard",
+		title: "Sidebar Card",
+		icon: LucideCreditCard,
+		group: "Sidebar",
+		initialState: {
+			title: "Your trial ends soon!",
+			description: "Upgrade to keep enjoying features.",
+			action: { label: "Upgrade now", onClick: "() => {}" },
+		},
+	},
+	// SidebarRail family (sits beside Sidebar in the app shell, not inside it)
+	SidebarRail: {
+		name: "SidebarRail",
+		title: "Sidebar Rail",
+		icon: LucideSquareMenu,
+		isGroup: true,
+		blockTemplate: "sidebar-rail",
+	},
+	SidebarRailItem: {
+		name: "SidebarRailItem",
+		title: "Sidebar Rail Item",
+		icon: LucideSquareMenu,
+		group: "SidebarRail",
+		initialState: {
+			label: "Item",
+			icon: "lucide-circle-dashed",
+			variant: "ghost",
+		},
+	},
+	// RadioGroup family
+	RadioGroup: {
+		name: "RadioGroup",
+		title: "Radio Group",
+		icon: LucideCircleDot,
+		isGroup: true,
+		blockTemplate: "radio-group",
+	},
+	// Radio throws without the RadioGroup context
+	Radio: {
+		name: "Radio",
+		title: "Radio",
+		icon: LucideCircleDot,
+		group: "RadioGroup",
+		isStandalone: false,
+		initialState: {
+			value: "option",
+			label: "Option",
+		},
 	},
 }

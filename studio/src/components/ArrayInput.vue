@@ -2,7 +2,7 @@
 	<div class="flex h-full w-full flex-col gap-3">
 		<InputLabel
 			v-if="label"
-			:class="[required ? `after:text-ink-red-7 after:content-['_*']` : '']"
+			:class="[required ? `after:text-ink-red-6 after:content-['_*']` : '']"
 			class="mb-1"
 		>
 			{{ label }}
@@ -52,25 +52,14 @@
 			<div
 				v-for="(item, index) in items"
 				:key="index"
-				class="group/item relative flex flex-col gap-1.5 rounded-md border p-3"
+				class="group/item relative flex flex-col gap-1.5 rounded-5 border p-3"
 			>
 				<div
 					v-for="(fieldSchema, fieldKey) in itemTypes"
 					:key="fieldKey"
-					class="flex w-full flex-row items-center gap-1"
+					class="flex w-full flex-row items-center"
 				>
-					<template v-if="fieldKey === 'icon'">
-						<InputLabel class="text-xs">{{ fieldKey }}</InputLabel>
-						<IconPicker
-							:modelValue="getUnwrappedIconValue(item[fieldKey])"
-							@update:modelValue="
-								(val) => updateItemField(index, fieldKey as string, `{{ getIcon('${val}') }}`)
-							"
-							class="w-full bg-surface-base"
-						/>
-					</template>
 					<InlineInput
-						v-else
 						:label="fieldKey"
 						:type="fieldSchema.inputType"
 						:modelValue="item[fieldKey]"
@@ -82,13 +71,13 @@
 					title="Remove"
 					class="absolute right-0 top-0 hidden -translate-y-1/2 translate-x-1/2 cursor-pointer rounded-full border border-outline-gray-2 bg-surface-base p-0.5 hover:bg-surface-gray-1 group-hover/item:block"
 				>
-					<FeatherIcon name="x" @click="removeItem(index)" class="size-3 rounded-full" />
+					<span @click="removeItem(index)" class="lucide-x size-3 rounded-full" />
 				</div>
 			</div>
 		</template>
 		<EmptyState v-else :message="emptyMessage || 'No items added'" />
 
-		<Button variant="outline" class="w-full" icon-left="plus" @click="addItem">
+		<Button variant="outline" class="w-full" icon-left="lucide-plus" @click="addItem">
 			{{ addLabel || "Add" }}
 		</Button>
 	</div>
@@ -96,8 +85,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { Button, FeatherIcon } from "frappe-ui"
-import { IconPicker } from "frappe-ui/icons"
+import { Button } from "frappe-ui"
 import Input from "@/components/Input.vue"
 import InputLabel from "@/components/InputLabel.vue"
 import InlineInput from "@/components/InlineInput.vue"
@@ -119,13 +107,6 @@ const emit = defineEmits(["update:modelValue", "add", "remove", "move"])
 const items = computed(() => {
 	return Array.isArray(props.modelValue) ? props.modelValue : []
 })
-
-const getUnwrappedIconValue = (value: string | undefined) => {
-	if (!value) return ""
-	// Match both {{ getIcon('name') }} and getIcon('name') formats
-	const match = value.match(/(?:\{\s*)?(?:getIcon|useIcon)\(['"]([^'"]+)['"]\)(?:\s*\})?/)
-	return match ? match[1] : value
-}
 
 const updateItemField = (index: number, key: string, value: any) => {
 	const newItems = [...items.value]

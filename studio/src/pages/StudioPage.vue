@@ -37,7 +37,7 @@
 								{{ store.activePage?.page_title }}
 							</a>
 							<template v-for="(fragment, index) in canvasStore.fragmentStack" :key="fragment.fragmentId">
-								<FeatherIcon name="chevron-right" class="h-3 w-3" />
+								<span class="lucide-chevron-right h-3 w-3" />
 								<a
 									v-if="index < canvasStore.fragmentStack.length - 1"
 									class="flex cursor-pointer items-center gap-1.5"
@@ -69,7 +69,7 @@
 								@click.prevent="store.studioLayout.rightPanelActiveTab = 'Interface'"
 							></Button>
 							<Button variant="subtle" class="text-xs" @click="canvasStore.exitFragmentMode">
-								<template #prefix><FeatherIcon name="chevron-left" class="!h-3 !w-3" /></template>
+								<template #prefix><span class="lucide-chevron-left !h-3 !w-3" /></template>
 								{{ parentFragmentName }}
 							</Button>
 							<Button variant="solid" class="text-xs" :loading="savingFragment" @click="saveFragmentMode">
@@ -176,7 +176,7 @@
 import { onActivated, watchEffect, watch, ref, onDeactivated, toRef, nextTick, computed } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
-import { usePageMeta, Dialog, FeatherIcon, Button } from "frappe-ui"
+import { usePageMeta, Dialog, Button } from "frappe-ui"
 import type { CompletionContext } from "@codemirror/autocomplete"
 
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"

@@ -32,7 +32,7 @@
 				}"
 				@mousedown.stop="handleMargin($event, Position.Top)"
 			/>
-			<div class="m-auto text-sm text-ink-yellow-10" v-show="updating">
+			<div class="m-auto text-sm text-ink-yellow-9" v-show="updating">
 				{{ blockStyles.marginTop || "auto" }}
 			</div>
 		</div>
@@ -60,7 +60,7 @@
 				}"
 				@mousedown.stop="handleMargin($event, Position.Bottom)"
 			/>
-			<div class="m-auto text-sm text-ink-yellow-10" v-show="updating">
+			<div class="m-auto text-sm text-ink-yellow-9" v-show="updating">
 				{{ blockStyles.marginBottom || "auto" }}
 			</div>
 		</div>
@@ -88,7 +88,7 @@
 				}"
 				@mousedown.stop="handleMargin($event, Position.Left)"
 			/>
-			<div class="m-auto text-sm text-ink-yellow-10" v-show="updating">
+			<div class="m-auto text-sm text-ink-yellow-9" v-show="updating">
 				{{ blockStyles.marginLeft || "auto" }}
 			</div>
 		</div>
@@ -116,7 +116,7 @@
 				}"
 				@mousedown.stop="handleMargin($event, Position.Right)"
 			/>
-			<div class="m-auto text-sm text-ink-yellow-10" v-show="updating">
+			<div class="m-auto text-sm text-ink-yellow-9" v-show="updating">
 				{{ blockStyles.marginRight || "auto" }}
 			</div>
 		</div>

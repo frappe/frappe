@@ -8,32 +8,203 @@
         "title": {
           "type": "string"
         },
+        "description": {
+          "type": "string"
+        },
         "theme": {
           "type": "string",
           "enum": [
-            "yellow",
+            "gray",
             "blue",
-            "red",
-            "green"
+            "green",
+            "amber",
+            "red"
           ]
         },
-        "variant": {
-          "type": "string",
-          "enum": [
-            "subtle",
-            "outline"
+        "icon": {
+          "type": [
+            "boolean",
+            "string"
           ]
         },
-        "description": {
-          "type": "string"
+        "primaryAction": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "onClick": {
+              "type": "object"
+            },
+            "theme": {
+              "type": "string",
+              "enum": [
+                "gray",
+                "blue",
+                "green",
+                "red"
+              ]
+            },
+            "size": {
+              "type": "string",
+              "enum": [
+                "xs",
+                "sm",
+                "md",
+                "lg"
+              ]
+            },
+            "variant": {
+              "type": "string",
+              "enum": [
+                "solid",
+                "subtle",
+                "outline",
+                "ghost"
+              ]
+            },
+            "label": {
+              "type": "string"
+            },
+            "icon": {
+              "type": [
+                "string"
+              ]
+            },
+            "iconLeft": {
+              "type": [
+                "string"
+              ]
+            },
+            "iconRight": {
+              "type": [
+                "string"
+              ]
+            },
+            "tooltip": {
+              "type": "string"
+            },
+            "loading": {
+              "type": "boolean"
+            },
+            "loadingText": {
+              "type": "string"
+            },
+            "disabled": {
+              "type": "boolean"
+            },
+            "route": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object"
+                }
+              ]
+            },
+            "href": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "button",
+                "submit",
+                "reset"
+              ]
+            }
+          }
+        },
+        "secondaryAction": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "onClick": {
+              "type": "object"
+            },
+            "theme": {
+              "type": "string",
+              "enum": [
+                "gray",
+                "blue",
+                "green",
+                "red"
+              ]
+            },
+            "size": {
+              "type": "string",
+              "enum": [
+                "xs",
+                "sm",
+                "md",
+                "lg"
+              ]
+            },
+            "variant": {
+              "type": "string",
+              "enum": [
+                "solid",
+                "subtle",
+                "outline",
+                "ghost"
+              ]
+            },
+            "label": {
+              "type": "string"
+            },
+            "icon": {
+              "type": [
+                "string"
+              ]
+            },
+            "iconLeft": {
+              "type": [
+                "string"
+              ]
+            },
+            "iconRight": {
+              "type": [
+                "string"
+              ]
+            },
+            "tooltip": {
+              "type": "string"
+            },
+            "loading": {
+              "type": "boolean"
+            },
+            "loadingText": {
+              "type": "string"
+            },
+            "disabled": {
+              "type": "boolean"
+            },
+            "route": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object"
+                }
+              ]
+            },
+            "href": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "button",
+                "submit",
+                "reset"
+              ]
+            }
+          }
         },
         "dismissible": {
           "type": "boolean"
         }
       },
-      "required": [
-        "title"
-      ],
       "additionalProperties": false
     }
   }

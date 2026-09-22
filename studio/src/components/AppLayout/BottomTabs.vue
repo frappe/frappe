@@ -10,7 +10,7 @@
 				class="flex flex-col items-center px-4 py-2 text-ink-gray-5 hover:text-ink-gray-7"
 				:class="[$router.currentRoute.value.path === tab.route ? 'text-ink-gray-7' : '']"
 			>
-				<FeatherIcon :name="tab.icon" class="h-6 w-6" />
+				<Icon :icon="tab.icon" class="h-6 w-6" />
 				<span class="mt-1 text-xs">{{ tab.label }}</span>
 			</router-link>
 		</div>
@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { FeatherIcon } from "frappe-ui"
+import { Icon } from "frappe-ui"
 import type { BottomTabsProps } from "@/types/studio_components/BottomTabs"
 
 defineProps<{ tabs: BottomTabsProps }>()

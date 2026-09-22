@@ -21,6 +21,18 @@
               "dependsOn": {
                 "type": "string"
               },
+              "override": {
+                "type": "object",
+                "properties": {
+                  "hidden": {
+                    "type": "boolean"
+                  },
+                  "label": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
               "sections": {
                 "type": "array",
                 "items": {
@@ -99,6 +111,21 @@
                                   },
                                   "additionalProperties": false
                                 },
+                                "override": {
+                                  "type": "object",
+                                  "properties": {
+                                    "hidden": {
+                                      "type": "boolean"
+                                    },
+                                    "readOnly": {
+                                      "type": "boolean"
+                                    },
+                                    "reqd": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
                                 "fieldname": {
                                   "type": "string"
                                 },
@@ -118,14 +145,17 @@
                                 "childFields": {
                                   "type": "array",
                                   "items": {
-                                    "$ref": "#/definitions/alias-1952944880-1677-2006-1952944880-0-4216"
+                                    "$ref": "#/definitions/alias-1952944880-2597-3003-1952944880-0-7083"
                                   }
                                 },
                                 "childLayout": {
-                                  "$ref": "#/definitions/alias-1952944880-3588-3627-1952944880-0-4216"
+                                  "$ref": "#/definitions/alias-1952944880-6455-6494-1952944880-0-7083"
                                 },
                                 "reqd": {
                                   "type": "boolean"
+                                },
+                                "default": {
+                                  "type": "string"
                                 },
                                 "precision": {
                                   "type": "number"
@@ -140,6 +170,12 @@
                                   "type": "string"
                                 },
                                 "hidden": {
+                                  "type": "boolean"
+                                },
+                                "permlevel": {
+                                  "type": "number"
+                                },
+                                "permDenied": {
                                   "type": "boolean"
                                 },
                                 "readOnly": {
@@ -160,6 +196,37 @@
                                 "fieldtype"
                               ]
                             }
+                          },
+                          "parts": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                },
+                                "component": {
+                                  "type": "string"
+                                },
+                                "props": {
+                                  "type": "object"
+                                },
+                                "before": {
+                                  "type": "string"
+                                },
+                                "after": {
+                                  "type": "string"
+                                }
+                              },
+                              "additionalProperties": false,
+                              "required": [
+                                "component",
+                                "name"
+                              ]
+                            }
                           }
                         },
                         "required": [
@@ -167,6 +234,28 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "part": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "component": {
+                          "type": "string"
+                        },
+                        "props": {
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "component"
+                      ],
+                      "additionalProperties": false
                     }
                   },
                   "required": [
@@ -188,7 +277,7 @@
       ],
       "additionalProperties": false
     },
-    "alias-1952944880-1677-2006-1952944880-0-4216": {
+    "alias-1952944880-2597-3003-1952944880-0-7083": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -221,6 +310,21 @@
           },
           "additionalProperties": false
         },
+        "override": {
+          "type": "object",
+          "properties": {
+            "hidden": {
+              "type": "boolean"
+            },
+            "readOnly": {
+              "type": "boolean"
+            },
+            "reqd": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
         "fieldname": {
           "type": "string"
         },
@@ -240,14 +344,17 @@
         "childFields": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/alias-1952944880-1677-2006-1952944880-0-4216"
+            "$ref": "#/definitions/alias-1952944880-2597-3003-1952944880-0-7083"
           }
         },
         "childLayout": {
-          "$ref": "#/definitions/alias-1952944880-3588-3627-1952944880-0-4216"
+          "$ref": "#/definitions/alias-1952944880-6455-6494-1952944880-0-7083"
         },
         "reqd": {
           "type": "boolean"
+        },
+        "default": {
+          "type": "string"
         },
         "precision": {
           "type": "number"
@@ -262,6 +369,12 @@
           "type": "string"
         },
         "hidden": {
+          "type": "boolean"
+        },
+        "permlevel": {
+          "type": "number"
+        },
+        "permDenied": {
           "type": "boolean"
         },
         "readOnly": {
@@ -282,7 +395,7 @@
         "fieldtype"
       ]
     },
-    "alias-1952944880-3588-3627-1952944880-0-4216": {
+    "alias-1952944880-6455-6494-1952944880-0-7083": {
       "type": "array",
       "items": {
         "type": "object",
@@ -298,6 +411,18 @@
           },
           "dependsOn": {
             "type": "string"
+          },
+          "override": {
+            "type": "object",
+            "properties": {
+              "hidden": {
+                "type": "boolean"
+              },
+              "label": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
           },
           "sections": {
             "type": "array",
@@ -377,6 +502,21 @@
                               },
                               "additionalProperties": false
                             },
+                            "override": {
+                              "type": "object",
+                              "properties": {
+                                "hidden": {
+                                  "type": "boolean"
+                                },
+                                "readOnly": {
+                                  "type": "boolean"
+                                },
+                                "reqd": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "additionalProperties": false
+                            },
                             "fieldname": {
                               "type": "string"
                             },
@@ -396,14 +536,17 @@
                             "childFields": {
                               "type": "array",
                               "items": {
-                                "$ref": "#/definitions/alias-1952944880-1677-2006-1952944880-0-4216"
+                                "$ref": "#/definitions/alias-1952944880-2597-3003-1952944880-0-7083"
                               }
                             },
                             "childLayout": {
-                              "$ref": "#/definitions/alias-1952944880-3588-3627-1952944880-0-4216"
+                              "$ref": "#/definitions/alias-1952944880-6455-6494-1952944880-0-7083"
                             },
                             "reqd": {
                               "type": "boolean"
+                            },
+                            "default": {
+                              "type": "string"
                             },
                             "precision": {
                               "type": "number"
@@ -418,6 +561,12 @@
                               "type": "string"
                             },
                             "hidden": {
+                              "type": "boolean"
+                            },
+                            "permlevel": {
+                              "type": "number"
+                            },
+                            "permDenied": {
                               "type": "boolean"
                             },
                             "readOnly": {
@@ -438,6 +587,37 @@
                             "fieldtype"
                           ]
                         }
+                      },
+                      "parts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "label": {
+                              "type": "string"
+                            },
+                            "component": {
+                              "type": "string"
+                            },
+                            "props": {
+                              "type": "object"
+                            },
+                            "before": {
+                              "type": "string"
+                            },
+                            "after": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false,
+                          "required": [
+                            "component",
+                            "name"
+                          ]
+                        }
                       }
                     },
                     "required": [
@@ -445,6 +625,28 @@
                     ],
                     "additionalProperties": false
                   }
+                },
+                "part": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "component": {
+                      "type": "string"
+                    },
+                    "props": {
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "component"
+                  ],
+                  "additionalProperties": false
                 }
               },
               "required": [

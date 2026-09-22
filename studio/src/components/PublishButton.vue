@@ -20,7 +20,7 @@
 				{
 					group: 'Revert',
 					hideLabel: true,
-					items: [
+					options: [
 						{
 							label: 'Revert Changes',
 							icon: LucideRotateCcw,
@@ -33,7 +33,7 @@
 				{
 					group: 'Publish',
 					hideLabel: true,
-					items: [
+					options: [
 						{
 							label: 'Publish App',
 							icon: LucideGlobe,
@@ -47,7 +47,7 @@
 				{
 					group: 'Unpublish',
 					hideLabel: true,
-					items: [
+					options: [
 						{
 							label: 'Unpublish Page',
 							icon: LucideCircleDashed,
@@ -63,13 +63,12 @@
 				},
 			]"
 			size="sm"
-			placement="right"
+			align="end"
 		>
-			<template v-slot="{ open }">
+			<template #default>
 				<Button
 					size="sm"
 					variant="solid"
-					@click="open"
 					:disabled="disabled || publishingPage || publishingApp"
 					icon="lucide-chevron-down"
 					class="!w-6 justify-start rounded-bl-none rounded-tl-none border-0 pr-0 text-xs"

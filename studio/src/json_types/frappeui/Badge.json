@@ -13,8 +13,7 @@
             "green",
             "amber",
             "red",
-            "violet",
-            "orange"
+            "violet"
           ]
         },
         "size": {
@@ -35,17 +34,9 @@
           ]
         },
         "label": {
-          "anyOf": [
-            {
-              "type": "object",
-              "additionalProperties": false
-            },
-            {
-              "type": "string"
-            },
-            {
-              "type": "number"
-            }
+          "type": [
+            "string",
+            "number"
           ]
         }
       },

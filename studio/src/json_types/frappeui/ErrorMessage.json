@@ -11,8 +11,28 @@
               "type": "string"
             },
             {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
               "type": "object",
+              "additionalProperties": false,
               "properties": {
+                "messages": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
                 "name": {
                   "type": "string"
                 },
@@ -24,10 +44,9 @@
                 }
               },
               "required": [
-                "name",
-                "message"
-              ],
-              "additionalProperties": false
+                "message",
+                "name"
+              ]
             }
           ]
         }

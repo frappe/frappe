@@ -52,7 +52,7 @@
 
 <script setup lang="ts">
 import Block from "@/utils/block"
-import { computed, onMounted, ref, useAttrs, inject, type ComputedRef, h } from "vue"
+import { computed, onMounted, ref, useAttrs, inject, type ComputedRef, h, getCurrentInstance } from "vue"
 import type { ComponentPublicInstance } from "vue"
 import { createResource } from "frappe-ui"
 import { getComponentRoot, isObjectEmpty } from "@/utils/helpers"
@@ -81,10 +81,18 @@ const componentName = computed(() => {
 	let name = props.block.componentName
 	if (window.is_preview && props.block.isCustomVueComponent) {
 		name = customVueComponentsRegistry.value[name]
-		if (!name) return h(MissingComponent, { componentName: props.block.componentName })
+	}
+	// the published app stays as it was: end users never see the banner
+	if (window.is_preview && (!name || isUnregistered(name))) {
+		return h(MissingComponent, { componentName: props.block.componentName })
 	}
 	return name
 })
+
+// e.g. a frappe-ui component that a later version removed: Vue would render it as an empty unknown element
+const registeredComponents = getCurrentInstance()?.appContext.components ?? {}
+const isUnregistered = (name: unknown) =>
+	typeof name === "string" && /^[A-Z]/.test(name) && !(name in registeredComponents)
 
 const componentRef = ref<ComponentPublicInstance | null>(null)
 

@@ -1,5 +1,5 @@
 <template>
-	<div v-if="error" class="border-ink-red-6 flex flex-col gap-2 border p-2 text-ink-red-6" ref="componentRef">
+	<div v-if="error" class="border-ink-red-5 flex flex-col gap-2 border p-2 text-ink-red-5" ref="componentRef">
 		<p class="text-sm-semibold">An error occurred while rendering {{ block.componentName }}:</p>
 		<pre class="text-xs">{{ error }}</pre>
 	</div>
@@ -100,7 +100,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, useAttrs, inject, ComputedRef, onErrorCaptured, h } from "vue"
+import {
+	computed,
+	ref,
+	watch,
+	useAttrs,
+	inject,
+	ComputedRef,
+	onErrorCaptured,
+	h,
+	getCurrentInstance,
+} from "vue"
 import type { ComponentPublicInstance } from "vue"
 import { useEventListener } from "@vueuse/core"
 import StudioComponentWrapper from "@/components/StudioComponentWrapper.vue"
@@ -183,10 +193,15 @@ const componentName = computed(() => {
 
 	if (props.block.isCustomVueComponent) {
 		name = customVueComponentsRegistry.value[name]
-		if (!name) return h(MissingComponent, { componentName: props.block.componentName })
 	}
+	if (!name || isUnregistered(name)) return h(MissingComponent, { componentName: props.block.componentName })
 	return name
 })
+
+// e.g. a frappe-ui component that a later version removed: Vue would render it as an empty unknown element
+const registeredComponents = getCurrentInstance()?.appContext.components ?? {}
+const isUnregistered = (name: unknown) =>
+	typeof name === "string" && /^[A-Z]/.test(name) && !(name in registeredComponents)
 
 const slotScope = inject<ComputedRef<SlotScope> | null>("slotScope", null)
 const componentContext = inject<ComputedRef | null>("componentContext", null)

@@ -14,6 +14,8 @@ interface ComponentTypes {
 }
 const componentTypes = jsonTypes as ComponentTypes
 
+const ICON_PROPS = ["icon", "iconLeft", "iconRight"]
+
 const componentFolders: Record<string, string> = {
 	DateTimePicker: "DatePicker",
 	DateRangePicker: "DatePicker",
@@ -177,7 +179,11 @@ const frappeUIModules: Record<string, string> = import.meta.glob(
 	[
 		"../../node_modules/frappe-ui/src/components/**/*.vue",
 		"../../node_modules/frappe-ui/src/molecules/**/*.vue",
+		"../../node_modules/frappe-ui/experimental/**/*.vue",
+		"../../node_modules/frappe-ui/src/charts/*.vue",
+		"!**/experimental/Charts/**",
 		"!**/*.story.vue",
+		"!**/stories/**",
 	],
 	{ query: "?raw", eager: true, import: "default" },
 )
@@ -393,6 +399,10 @@ function resolveProperty(
 		} else if (propName === "color") {
 			inputType = "color"
 		}
+	}
+
+	if (ICON_PROPS.includes(propName) && type !== "boolean") {
+		inputType = "icon"
 	}
 
 	return { type: type as string, inputType, options }

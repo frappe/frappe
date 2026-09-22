@@ -12,6 +12,8 @@ import threading
 import traceback
 
 import frappe
+from filelock import FileLock, Timeout
+from frappe.utils.synchronization import LOCKS_DIR
 
 from studio.sync_json import get_studio_folders, sync_file
 
@@ -115,6 +117,12 @@ class StudioSyncHandler(FileSystemEventHandler):
 		# own connection. Connecting per flush also avoids holding one open while idle.
 		try:
 			frappe.init(self.site)
+			if is_migrating():
+				# The schema is half migrated and migrate holds row locks; an import now would
+				# fail and lose the edit. The debounce timer retries until migrate is done.
+				frappe.destroy()
+				self.requeue(paths)
+				return
 			frappe.connect()
 		except Exception:
 			# The DB was briefly unreachable. Put the batch back and let the debounce timer
@@ -146,3 +154,12 @@ class StudioSyncHandler(FileSystemEventHandler):
 			# A half-written or malformed file must not take the watcher down with it.
 			frappe.db.rollback()
 			print(f"[watch-studio] failed to sync {path}\n{frappe.get_traceback()}")
+
+
+def is_migrating() -> bool:
+	"""True while `bench migrate` holds its lock. The lock file outlives the migrate, so try the lock."""
+	try:
+		with FileLock(frappe.get_site_path(LOCKS_DIR, "bench_migrate.lock"), timeout=0):
+			return False
+	except Timeout:
+		return True

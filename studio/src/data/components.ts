@@ -1,5 +1,11 @@
 import { defineAsyncComponent } from "vue"
-import { FRAPPE_UI_COMPONENTS, FRAPPE_UI_MOLECULES, FRAMEWORK_UI_COMPONENTS } from "@/utils/constants"
+import {
+	FRAPPE_UI_COMPONENTS,
+	FRAPPE_UI_MOLECULES,
+	FRAPPE_UI_EXPERIMENTAL_COMPONENTS,
+	FRAPPE_UI_CHARTS,
+	FRAMEWORK_UI_COMPONENTS,
+} from "@/utils/constants"
 import { COMPONENT_FAMILIES } from "@/data/componentFamilies"
 
 import type { FrappeUIComponents, FrappeUIComponent } from "@/types"
@@ -15,18 +21,18 @@ import LucideClock from "~icons/lucide/clock"
 import LucideCalendarCheck from "~icons/lucide/calendar-check"
 import LucideCalendarClock from "~icons/lucide/calendar-clock"
 import LucideCalendarSearch from "~icons/lucide/calendar-search"
-import LucideCalendarDays from "~icons/lucide/calendar-days"
 import LucideAppWindowMac from "~icons/lucide/app-window-mac"
 import LucideMinus from "~icons/lucide/minus"
 import LucideChevronDown from "~icons/lucide/chevron-down"
 import LucideCircleX from "~icons/lucide/circle-x"
-import LucideFeather from "~icons/lucide/feather"
 import LucideFileUp from "~icons/lucide/file-up"
 import LucideBookType from "~icons/lucide/book-type"
 import LucideTag from "~icons/lucide/tag"
+import LucideSmile from "~icons/lucide/smile"
 import LucideListCheck from "~icons/lucide/list-check"
 import LucideEllipsis from "~icons/lucide/ellipsis"
 import LucideStar from "~icons/lucide/star"
+import LucideKeyRound from "~icons/lucide/key-round"
 import LucideMousePointer2 from "~icons/lucide/mouse-pointer-2"
 import LucideToggleLeft from "~icons/lucide/toggle-left"
 import LucideArrowRightLeft from "~icons/lucide/arrow-right-left"
@@ -43,9 +49,15 @@ import LucideImage from "~icons/lucide/image"
 import LucideList from "~icons/lucide/list"
 import LucideLink from "~icons/lucide/link"
 import LucideType from "~icons/lucide/type"
-import LucideDollarSign from "~icons/lucide/dollar-sign"
 import LucideChartLine from "~icons/lucide/chart-line"
 import LucideChartPie from "~icons/lucide/chart-pie"
+import LucideChartColumn from "~icons/lucide/chart-column"
+import LucideChartArea from "~icons/lucide/chart-area"
+import LucideChartScatter from "~icons/lucide/chart-scatter"
+import LucideFunnel from "~icons/lucide/funnel"
+import LucideGrid3x3 from "~icons/lucide/grid-3-x-3"
+import LucideWorkflow from "~icons/lucide/workflow"
+import LucideHash from "~icons/lucide/hash"
 import LucideListFilter from "~icons/lucide/list-filter"
 import LucideSquareMousePointer from "~icons/lucide/square-mouse-pointer"
 import LucideTimer from "~icons/lucide/timer"
@@ -89,7 +101,7 @@ export const COMPONENTS: FrappeUIComponents = {
 		initialState: {
 			title: "This user is inactive",
 			description: "Please enable the user to allow login access.",
-			theme: "yellow",
+			theme: "amber",
 		},
 	},
 	Avatar: {
@@ -146,17 +158,8 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: LucideCircleCheck,
 		initialState: {
 			label: "Enable feature",
-			padding: true,
-			checked: true,
-		},
-	},
-	CodeEditor: {
-		name: "CodeEditor",
-		title: "Code Editor",
-		icon: LucideCode,
-		initialState: {
-			modelValue: "console.log('Hello, world!')",
-			language: "javascript",
+			padded: true,
+			modelValue: true,
 		},
 	},
 	ContextMenu: {
@@ -336,14 +339,6 @@ export const COMPONENTS: FrappeUIComponents = {
 			placeholder: "Select Date Range",
 		},
 	},
-	MonthPicker: {
-		name: "MonthPicker",
-		title: "Month Picker",
-		icon: LucideCalendarDays,
-		initialState: {
-			placeholder: "Select Month",
-		},
-	},
 	Dialog: {
 		name: "Dialog",
 		title: "Dialog",
@@ -411,15 +406,6 @@ export const COMPONENTS: FrappeUIComponents = {
 			message: "Transaction failed due to insufficient balance",
 		},
 	},
-	FeatherIcon: {
-		name: "FeatherIcon",
-		title: "FeatherIcon",
-		icon: LucideFeather,
-		initialState: {
-			name: "activity",
-			class: "h-6 w-6",
-		},
-	},
 	FileUploader: {
 		name: "FileUploader",
 		title: "File Uploader",
@@ -446,9 +432,18 @@ export const COMPONENTS: FrappeUIComponents = {
 				required: false,
 				type: Array,
 				default: () => ["John Doe", "Jane Doe"],
-				condition: (state: Record<string, any>) => state.type === "select" || state.type === "autocomplete",
+				condition: (state: Record<string, any>) => state.type === "select" || state.type === "combobox",
 			},
 			disabled: { type: Boolean },
+		},
+	},
+	Icon: {
+		name: "Icon",
+		title: "Icon",
+		icon: LucideSmile,
+		initialState: {
+			icon: "lucide-smile",
+			class: "size-5",
 		},
 	},
 	FormLabel: {
@@ -527,6 +522,15 @@ export const COMPONENTS: FrappeUIComponents = {
 					value: "grape",
 				},
 			],
+		},
+	},
+	Password: {
+		name: "Password",
+		title: "Password",
+		icon: LucideKeyRound,
+		initialState: {
+			label: "Password",
+			placeholder: "Enter your password",
 		},
 	},
 	Popover: {
@@ -628,8 +632,11 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Tabs",
 		icon: LucideArrowRightLeft,
 		initialState: {
-			as: "div",
-			tabs: [{ label: "Github" }, { label: "Twitter" }, { label: "Linkedin" }],
+			tabs: [
+				{ label: "Github", value: "github" },
+				{ label: "Twitter", value: "twitter" },
+				{ label: "Linkedin", value: "linkedin" },
+			],
 		},
 		expandArrayProps: true,
 	},
@@ -672,7 +679,7 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: LucideEdit,
 		initialState: {
 			modelValue: "Type something...",
-			editorClass: "prose-sm max-w-none min-h-[4rem] border rounded-b-lg border-t-0 p-2",
+			editorClass: "prose-sm max-w-none min-h-[4rem] border rounded-b-6 border-t-0 p-2",
 			editable: true,
 			fixedMenu: true,
 			bubbleMenu: true,
@@ -709,51 +716,48 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Tree",
 		icon: LucideListTree,
 		initialState: {
-			options: {
-				showIndentationGuides: true,
-				rowHeight: "25px",
-				indentWidth: "15px",
-			},
 			nodeKey: "name",
-			node: {
-				name: "guest",
-				label: "Guest",
-				children: [
-					{
-						name: "downloads",
-						label: "Downloads",
-						children: [
-							{
-								name: "download.zip",
-								label: "download.zip",
-								children: [
-									{
-										name: "image.png",
-										label: "image.png",
-										children: [],
-									},
-								],
-							},
-						],
-					},
-					{
-						name: "documents",
-						label: "Documents",
-						children: [
-							{
-								name: "somefile.txt",
-								label: "somefile.txt",
-								children: [],
-							},
-							{
-								name: "somefile.pdf",
-								label: "somefile.pdf",
-								children: [],
-							},
-						],
-					},
-				],
-			},
+			nodes: [
+				{
+					name: "guest",
+					label: "Guest",
+					children: [
+						{
+							name: "downloads",
+							label: "Downloads",
+							children: [
+								{
+									name: "download.zip",
+									label: "download.zip",
+									children: [
+										{
+											name: "image.png",
+											label: "image.png",
+											children: [],
+										},
+									],
+								},
+							],
+						},
+						{
+							name: "documents",
+							label: "Documents",
+							children: [
+								{
+									name: "somefile.txt",
+									label: "somefile.txt",
+									children: [],
+								},
+								{
+									name: "somefile.pdf",
+									label: "somefile.pdf",
+									children: [],
+								},
+							],
+						},
+					],
+				},
+			],
 		},
 	},
 	// Studio Components
@@ -793,138 +797,66 @@ export const COMPONENTS: FrappeUIComponents = {
 		},
 	},
 	// charts
-	NumberChart: {
-		name: "NumberChart",
-		title: "Number Chart",
-		icon: LucideDollarSign,
-		initialState: {
-			config: {
-				title: "Total Sales",
-				value: 123456,
-				prefix: "$",
-				delta: 10,
-				deltaSuffix: "% MoM",
-				negativeIsBetter: false,
-			},
-		},
+	// frappe-ui/charts: fill their parent, so the templates give the block a height
+	BarChart: {
+		name: "BarChart",
+		title: "Bar Chart",
+		icon: LucideChartColumn,
+		blockTemplate: "bar-chart",
 	},
-	AxisChart: {
-		name: "AxisChart",
-		title: "Axis Chart",
+	LineChart: {
+		name: "LineChart",
+		title: "Line Chart",
 		icon: LucideChartLine,
-		initialState: {
-			config: {
-				data: [
-					{
-						month: "2021-01-01",
-						sales: 200,
-					},
-					{
-						month: "2021-02-01",
-						sales: 300,
-					},
-					{
-						month: "2021-03-01",
-						sales: 250,
-					},
-					{
-						month: "2021-04-01",
-						sales: 350,
-					},
-					{
-						month: "2021-05-01",
-						sales: 400,
-					},
-					{
-						month: "2021-06-01",
-						sales: 300,
-					},
-				],
-				title: "Monthly Sales",
-				subtitle: "Sales data for first half of the year",
-				xAxis: {
-					key: "month",
-					type: "time",
-					title: "Month",
-					timeGrain: "month",
-				},
-				yAxis: {
-					title: "Amount ($)",
-					echartOptions: {
-						min: 0,
-						max: 800,
-					},
-				},
-				series: [
-					{
-						name: "sales",
-						type: "bar",
-					},
-				],
-			},
-		},
+		blockTemplate: "line-chart",
+	},
+	AreaChart: {
+		name: "AreaChart",
+		title: "Area Chart",
+		icon: LucideChartArea,
+		blockTemplate: "area-chart",
 	},
 	DonutChart: {
 		name: "DonutChart",
 		title: "Donut Chart",
 		icon: LucideChartPie,
+		blockTemplate: "donut-chart",
+	},
+	FunnelChart: {
+		name: "FunnelChart",
+		title: "Funnel Chart",
+		icon: LucideFunnel,
+		blockTemplate: "funnel-chart",
+	},
+	HeatmapChart: {
+		name: "HeatmapChart",
+		title: "Heatmap Chart",
+		icon: LucideGrid3x3,
+		blockTemplate: "heatmap-chart",
+	},
+	ScatterChart: {
+		name: "ScatterChart",
+		title: "Scatter Chart",
+		icon: LucideChartScatter,
+		blockTemplate: "scatter-chart",
+	},
+	SankeyChart: {
+		name: "SankeyChart",
+		title: "Sankey Chart",
+		icon: LucideWorkflow,
+		blockTemplate: "sankey-chart",
+	},
+	NumberCard: {
+		name: "NumberCard",
+		title: "Number Card",
+		icon: LucideHash,
 		initialState: {
-			config: {
-				data: [
-					{
-						product: "Apple Watch",
-						sales: 400,
-					},
-					{
-						product: "Services",
-						sales: 400,
-					},
-					{
-						product: "iMac",
-						sales: 350,
-					},
-					{
-						product: "Accessories",
-						sales: 350,
-					},
-					{
-						product: "iPad",
-						sales: 300,
-					},
-					{
-						product: "AirPods",
-						sales: 300,
-					},
-					{
-						product: "Apple TV",
-						sales: 300,
-					},
-					{
-						product: "Others",
-						sales: 300,
-					},
-					{
-						product: "Macbook",
-						sales: 250,
-					},
-					{
-						product: "Beats",
-						sales: 250,
-					},
-					{
-						product: "iPhone",
-						sales: 200,
-					},
-					{
-						product: "HomePod",
-						sales: 200,
-					},
-				],
-				title: "Product Sales Distribution",
-				subtitle: "Sales distribution across products",
-				categoryColumn: "product",
-				valueColumn: "sales",
-			},
+			title: "Total Sales",
+			value: 123456,
+			prefix: "$",
+			delta: 10,
+			deltaSuffix: "%",
+			deltaCaption: "vs last month",
 		},
 	},
 	// @framework/ui components
@@ -1181,7 +1113,18 @@ Object.values(COMPONENTS).forEach((component: FrappeUIComponent) => {
 })
 
 function isFrappeUIComponent(name: string) {
-	return FRAPPE_UI_COMPONENTS.includes(name) || FRAPPE_UI_MOLECULES.includes(name)
+	return (
+		FRAPPE_UI_COMPONENTS.includes(name) ||
+		FRAPPE_UI_MOLECULES.includes(name) ||
+		FRAPPE_UI_EXPERIMENTAL_COMPONENTS.includes(name) ||
+		FRAPPE_UI_CHARTS.includes(name)
+	)
+}
+
+// frappe-ui/experimental carries no stability promise: these are on their way out
+// and the panel marks them as deprecated.
+function isDeprecatedComponent(name: string) {
+	return FRAPPE_UI_EXPERIMENTAL_COMPONENTS.includes(name)
 }
 
 function isFrameworkUIComponent(name: string) {
@@ -1229,10 +1172,10 @@ export default {
 	names: Object.keys(COMPONENTS),
 	getProxyComponent,
 	isFrappeUIComponent,
+	isDeprecatedComponent,
 	isFrameworkUIComponent,
 	isFrameworkUIAvailable,
 	getComponentGroups,
 	getParts,
 	get,
 }
-

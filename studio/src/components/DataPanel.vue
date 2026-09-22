@@ -10,7 +10,7 @@
 					<div class="-ml-[0.9rem] flex items-center gap-1 overflow-hidden">
 						<ObjectBrowser :object="resource" :name="resource_name" />
 						<Tooltip v-if="!resource" text="No matching document found for the current filters">
-							<span class="lucide-alert-circle h-[14px] w-[14px] cursor-pointer text-ink-amber-6" />
+							<span class="lucide-alert-circle h-[14px] w-[14px] cursor-pointer text-ink-amber-5" />
 						</Tooltip>
 					</div>
 					<ItemActions
@@ -24,7 +24,7 @@
 			<EmptyState v-else message="No resources added" />
 
 			<div class="mt-2 flex flex-col" v-if="store.activePage">
-				<Button icon-left="plus" @click="showResourceDialog = true">Add Data Source</Button>
+				<Button icon-left="lucide-plus" @click="showResourceDialog = true">Add Data Source</Button>
 				<ResourceDialog
 					v-model:showDialog="showResourceDialog"
 					:resource="existingResource"
@@ -49,10 +49,10 @@
 						class="-ml-[0.9rem] overflow-hidden"
 					/>
 					<div v-else class="flex flex-row justify-between font-mono text-xs">
-						<div class="font-semibold text-ink-pink-8">{{ variable_name }}</div>
+						<div class="font-semibold text-ink-pink-7">{{ variable_name }}</div>
 						<template v-if="value !== ''">
 							<div class="text-ink-gray-5">&nbsp;=&nbsp;</div>
-							<div class="text-ink-violet-8">{{ value }}</div>
+							<div class="text-ink-violet-7">{{ value }}</div>
 						</template>
 					</div>
 					<ItemActions
@@ -66,9 +66,9 @@
 			<EmptyState v-else message="No variables added" />
 
 			<div class="mt-2 flex flex-col" v-if="store.activePage">
-				<Button icon-left="plus" @click="showVariableDialog = true">Add Variable</Button>
+				<Button icon-left="lucide-plus" @click="showVariableDialog = true">Add Variable</Button>
 				<Dialog
-					v-model="showVariableDialog"
+					v-model:open="showVariableDialog"
 					:title="variableRef?.name ? 'Edit Variable' : 'Add Variable'"
 					@after-leave="
 						() =>
@@ -95,7 +95,7 @@
 								v-model="variableRef.variable_type"
 								:required="true"
 								default="String"
-								@change="() => setInitialValue()"
+								@update:modelValue="() => setInitialValue()"
 							/>
 							<Code
 								v-if="variableRef.variable_type === 'Object'"

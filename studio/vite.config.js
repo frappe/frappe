@@ -8,6 +8,8 @@ import sharedDependencyResolver from "./vite/sharedDependencyResolver"
 import studioFolderWatcher from "./vite/studioFolderWatcher"
 import studioRootAlias from "./vite/studioRootAlias"
 import frameworkUIAlias from "./vite/frameworkUIAlias"
+import frameworkUICodeEditorShim from "./vite/frameworkUICodeEditorShim"
+import lucideStaticAlias from "./vite/lucideStaticAlias"
 
 const viteDevServerPort = getViteDevServerPort()
 const appsDir = path.resolve(__dirname, "../../")
@@ -35,7 +37,9 @@ const isStudioAppTsconfig = (file) =>
 // https://vitejs.dev/config/
 export default defineConfig(async () => {
 	// Only pull in @framework/ui's vite plugin + source aliases when it exists.
-	const frameworkUIPlugins = frameworkUIAvailable ? [(await import("@framework/ui/vite")).default()] : []
+	const frameworkUIPlugins = frameworkUIAvailable
+		? [(await import("@framework/ui/vite")).default(), frameworkUICodeEditorShim(appsDir, __dirname)]
+		: []
 	// When absent, alias @framework/ui/* to a stub so the dev server can resolve the
 	// (dead-branch) imports in globals.ts. Production builds DCE them; the dev server
 	// doesn't, so without this it errors "Failed to resolve import @framework/ui/...".
@@ -73,6 +77,10 @@ export default defineConfig(async () => {
 				frappeProxy: true,
 				lucideIcons: true,
 				buildConfig: false,
+				// Avoid the plugin's incompatible esbuild adapter on Vite 8.
+				// Vite's pre-bundler already handles frappe-ui's missing optional peers
+				// with an error that loadLanguage catches and adds an install hint to.
+				codeLanguages: false,
 				jinjaBootData: false,
 			}),
 			...frameworkUIPlugins,
@@ -82,7 +90,21 @@ export default defineConfig(async () => {
 			studioFolderWatcher(appsDir),
 		],
 		resolve: {
-			alias: [...frameworkUIAliases, { find: "@", replacement: path.resolve(__dirname, "src") }],
+			alias: [
+				...frameworkUIAliases,
+				lucideStaticAlias(__dirname),
+				{ find: "@", replacement: path.resolve(__dirname, "src") },
+			],
+			// frappe-ui's code editor rejects extensions built from a second copy of these
+			// (e.g. a language package resolved from a linked frappe-ui checkout).
+			dedupe: [
+				"@codemirror/state",
+				"@codemirror/view",
+				"@codemirror/language",
+				"@lezer/common",
+				"@lezer/highlight",
+				"@lezer/lr",
+			],
 		},
 		build: {
 			rolldownOptions: {
@@ -107,10 +129,8 @@ export default defineConfig(async () => {
 			include: [
 				// CommonJS dep reached through the now-unbundled frappe-ui (tailwind/colorPalette.js)
 				"tailwindcss/colors",
-				"feather-icons",
 				"engine.io-client",
 				"highlight.js/lib/core",
-				"interactjs",
 				"debug",
 			],
 		},
