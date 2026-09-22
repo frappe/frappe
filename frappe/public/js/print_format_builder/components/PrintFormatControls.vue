@@ -1055,10 +1055,6 @@ function handle_slash_key(e) {
 	outline: none;
 }
 
-.pfb-tree-row:hover {
-	background: var(--surface-gray-2);
-}
-
 .pfb-tree-row.active {
 	background: var(--surface-gray-3);
 	color: var(--text-color);
