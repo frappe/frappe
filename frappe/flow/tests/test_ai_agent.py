@@ -36,6 +36,24 @@ def hooked_agents() -> list[Agent]:
 	return [Agent(name="Hooked Helper", model=model, instructions="From the hook.", tools=[count_todos])]
 
 
+def conflicting_agents() -> list[Agent]:
+	"""A hooked agent named like another hooked agent's sub-agent."""
+	model = frappe.db.get_value("Flow Model", {"title": MODEL}, "name")
+	lookup = Agent(name="Hooked Lookup", model=model, instructions="The sub-agent.")
+	return [
+		Agent(name="Hooked Helper", model=model, instructions="From the hook.", sub_agents=[lookup]),
+		Agent(name="Hooked Lookup", model=model, instructions="Another agent."),
+	]
+
+
+def shared_agents() -> list[Agent]:
+	"""A sub-agent hooked on its own as well."""
+	model = frappe.db.get_value("Flow Model", {"title": MODEL}, "name")
+	lookup = Agent(name="Hooked Lookup", model=model, instructions="The sub-agent.")
+	helper = Agent(name="Hooked Helper", model=model, instructions="From the hook.", sub_agents=[lookup])
+	return [helper, lookup]
+
+
 class TestAgent(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
@@ -173,6 +191,36 @@ class TestAgent(IntegrationTestCase):
 			sync_agents()
 
 		self.assertFalse(frappe.db.exists("Flow Agent", "Hooked Helper"))
+
+	def test_sync_agents_refuses_a_sub_agent_named_like_another_hooked_agent(self):
+		get_hooks = frappe.get_hooks
+
+		def hooks(hook=None, *args, **kwargs):
+			if hook == "flow_agents":
+				return [f"{__name__}.conflicting_agents"]
+			return get_hooks(hook, *args, **kwargs)
+
+		with (
+			patch("frappe.get_hooks", side_effect=hooks),
+			self.assertRaisesRegex(frappe.ValidationError, "declared more than once"),
+		):
+			sync_agents()
+
+		self.assertFalse(frappe.db.exists("Flow Agent", "Hooked Helper"))
+
+	def test_sync_agents_accepts_a_sub_agent_hooked_on_its_own_too(self):
+		get_hooks = frappe.get_hooks
+
+		def hooks(hook=None, *args, **kwargs):
+			if hook == "flow_agents":
+				return [f"{__name__}.shared_agents"]
+			return get_hooks(hook, *args, **kwargs)
+
+		with patch("frappe.get_hooks", side_effect=hooks):
+			sync_agents()
+
+		doc = frappe.get_doc("Flow Agent", "Hooked Helper")
+		self.assertEqual([row.agent for row in doc.sub_agents], ["Hooked Lookup"])
 
 	def test_a_tool_slug_owned_by_another_definition_is_refused(self):
 		frappe.get_doc(

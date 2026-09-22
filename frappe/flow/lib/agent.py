@@ -12,6 +12,8 @@ import frappe
 from frappe import _
 
 if TYPE_CHECKING:
+	from collections.abc import Iterator
+
 	from flow.flow.doctype.flow_run.flow_run import FlowRun
 	from flow.flow.doctype.flow_session.flow_session import FlowSession
 	from flow.knowledge import Knowledge
@@ -23,17 +25,26 @@ DEFAULT_MAX_ITERATIONS = 50
 def sync_agents(_app: str | None = None) -> None:
 	"""Write every agent the installed apps declare through the `flow_agents` hook, whose
 	entries name functions returning a list of Agents. Runs after migrate and app installs."""
-	agents: dict[str, Agent] = {}
+	hooked: list[Agent] = []
 	for path in frappe.get_hooks("flow_agents"):
-		for agent in frappe.get_attr(path)():
-			if agent.name in agents:
+		hooked.extend(frappe.get_attr(path)())
+	declared: dict[str, Agent] = {}
+	for agent in hooked:
+		for item in _with_sub_agents(agent):
+			if declared.setdefault(item.name, item) is not item:  # one definition may be listed twice
 				frappe.throw(
-					_("Flow Agent {0} is declared more than once.").format(agent.name),
+					_("Flow Agent {0} is declared more than once.").format(item.name),
 					title=_("Agent Conflict"),
 				)
-			agents[agent.name] = agent
-	for agent in agents.values():
+	for agent in hooked:
 		agent.sync()
+
+
+def _with_sub_agents(agent: Agent) -> Iterator[Agent]:
+	"""`agent`, then every sub-agent below it."""
+	yield agent
+	for child in agent.sub_agents:
+		yield from _with_sub_agents(child)
 
 
 class Agent:
