@@ -20,6 +20,7 @@ onMounted(() => {
 		df: { ...props.df, change: () => emit("update:modelValue", control.get_value() || "") },
 		render_input: true,
 		only_input: true,
+		with_link_btn: !!props.df.with_link_btn,
 	});
 	control.set_value(props.modelValue || "");
 });

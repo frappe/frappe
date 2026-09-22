@@ -8,9 +8,6 @@
 		<div class="canvas-area">
 			<!-- Canvas toolbar: sample data picker, zoom, preview toggle -->
 			<div class="canvas-toolbar" v-if="!$store.needs_setup.value">
-				<div class="canvas-toolbar-left">
-					<span class="canvas-toolbar-eyebrow">{{ __("Data") }}</span>
-				</div>
 				<div class="canvas-toolbar-center">
 					<DeskControl
 						v-if="doc_picker_df"
@@ -515,6 +512,7 @@ const doc_picker_df = computed(() => {
 		fieldtype: "Link",
 		options: meta.name,
 		placeholder: __("Pick a {0} to preview...", [__(meta.name)]),
+		with_link_btn: true,
 		get_query: () => ({ filters: printable_filters.value }),
 	};
 });
@@ -612,6 +610,7 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 
 /* ── Canvas toolbar ──────────────────────────────────────── */
 .canvas-toolbar {
+	position: relative;
 	flex-shrink: 0;
 	display: flex;
 	align-items: center;
@@ -622,22 +621,20 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 	background: var(--fg-color);
 }
 
-.canvas-toolbar-left {
-	flex-shrink: 0;
-}
-
-.canvas-toolbar-eyebrow {
-	font-size: 9px;
-	font-weight: 700;
-	letter-spacing: 0.1em;
-	color: var(--text-muted);
-	white-space: nowrap;
-}
-
 .canvas-toolbar-center {
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 320px;
+	max-width: 40%;
+}
+
+.canvas-doc-picker {
 	flex: 1;
 	min-width: 0;
-	max-width: 320px;
 }
 
 .canvas-doc-picker :deep(.form-control) {
