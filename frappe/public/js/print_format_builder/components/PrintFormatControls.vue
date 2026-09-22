@@ -1064,6 +1064,12 @@ function handle_slash_key(e) {
 	outline-offset: -1px;
 }
 
+/* the selected label steps up in contrast, the way the website builder brightens
+   the layer it is on */
+.pfb-tree-row.active .pfb-tree-label {
+	color: var(--ink-gray-9);
+}
+
 /* a field behind a visibility condition prints only sometimes, so the row reads
    as muted with the condition on its eye */
 .pfb-tree-row--conditional .pfb-tree-label {
