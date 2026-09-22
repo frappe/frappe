@@ -502,7 +502,7 @@ class SQLiteSearch(ABC):
 			if temp_db_path:
 				self.db_path = original_db_path
 
-		self.queue_documents_changed_during_build(started_at)
+		self.index_documents_changed_during_build(started_at)
 
 	def _build_started_at(self, is_continuation: bool, progress: dict):
 		"""When this build began, carried across a resumed one.
@@ -522,12 +522,15 @@ class SQLiteSearch(ABC):
 
 		return now_datetime()
 
-	def queue_documents_changed_during_build(self, started_at):
-		"""Queue documents saved while the build was running.
+	def index_documents_changed_during_build(self, started_at, batch_size=1000):
+		"""Index documents saved while the build was running.
 
 		A build reads each document once, and update_doc_index returns as soon as index_exists()
 		is false, which it is for the whole of a build. A document saved after its row was read
 		therefore carries stale text in the finished index.
+
+		Indexed here rather than queued, because the queue drains thirty rows every five minutes
+		and a build slow enough to need catching up on leaves far more than that behind.
 
 		Filters on `modified` rather than the doctype config's mapped modified field: that mapping
 		exists for recency scoring and may point at an immutable column such as creation, which
@@ -539,11 +542,38 @@ class SQLiteSearch(ABC):
 		for doctype, config in self.doc_configs.items():
 			filters = dict(config.get("filters") or {})
 			filters["modified"] = (">=", started_at)
+			names = frappe.get_all(doctype, filters=filters, pluck="name")
 
-			for name in frappe.get_all(doctype, filters=filters, pluck="name"):
-				self.index_doc(doctype, name)
+			for start in range(0, len(names), batch_size):
+				self.index_documents_by_name(doctype, names[start : start + batch_size])
 
 			self.remove_documents_deleted_during_build(doctype, started_at)
+
+	def index_documents_by_name(self, doctype, names: list[str]):
+		"""Read and index one batch of named documents, the way a build batch is read."""
+		if not names:
+			return
+
+		config = self.doc_configs[doctype]
+		fields = list(config["fields"])
+		for required in ("name", "modified"):
+			if required not in fields:
+				fields.append(required)
+
+		docs = frappe.qb.get_query(doctype, fields=fields, filters={"name": ("in", names)}).run(as_dict=True)
+
+		documents = []
+		for doc in docs:
+			doc.doctype = doctype
+			if config["modified_field"] != "modified":
+				doc.modified = getattr(doc, config["modified_field"], None) or doc.modified
+
+			document = self.prepare_document(doc)
+			if document:
+				documents.append(document)
+
+		if documents:
+			self._index_documents(documents)
 
 	def remove_documents_deleted_during_build(self, doctype, started_at):
 		"""Drop documents deleted while the build was running.
