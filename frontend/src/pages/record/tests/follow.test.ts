@@ -20,7 +20,7 @@ describe("declinedMessage", () => {
       data: { follows: false },
       messages: [{ message: "Can't follow since changes are not tracked." }],
     };
-    expect(declinedMessage(answer)).toBe(
+    expect(declinedMessage(answer, true)).toBe(
       "Can't follow since changes are not tracked.",
     );
   });

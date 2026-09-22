@@ -12,10 +12,8 @@ export function canFollow(
 }
 
 /** Why the server declined a follow: it answers 200 with the state and says so beside the data. */
-export function declinedMessage(
-  answer: Envelope<{ follows?: boolean }>,
-): string | undefined {
-  if (answer.data.follows) return;
-  const [first] = (answer.messages as { message?: string }[] | undefined) ?? [];
-  return first?.message;
+export function declinedMessage(answer: Envelope<{ follows?: boolean }>, adding: boolean): string | undefined {
+	if (!adding || answer.data.follows) return;
+	const [first] = (answer.messages as { message?: string }[] | undefined) ?? [];
+	return first?.message;
 }

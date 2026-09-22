@@ -210,7 +210,7 @@ const following = computed(() => Boolean(docinfo.value?.follows));
 const follow = computed(() =>
 	canFollow(meta.value, boot.session)
 		? { following: following.value, toggle: toggleFollow }
-		: undefined,
+		: undefined
 );
 
 const header = computed(() => {
@@ -254,7 +254,7 @@ const disclosure = useDisclosure(
 	() =>
 		(controller.value?.panelSections.visible() ?? [])
 			.filter((item) => item.label)
-			.map((item) => ({ name: item.name, opened: item.opened !== false })),
+			.map((item) => ({ name: item.name, opened: item.opened !== false }))
 );
 
 const tabMemory = computed(() => formTabMemory(boot.session.user.name, doctype.value ?? ""));
@@ -306,8 +306,8 @@ function headerBuiltins(): HeaderItem[] {
 		...headerMenuBuiltins(
 			docinfo.value?.permissions ?? {},
 			{ favourited: favourited.value, toggle: toggleFavourite },
-			{ single, follow: follow.value },
-		),
+			{ single, follow: follow.value }
+		)
 	);
 	return items;
 }
@@ -319,7 +319,7 @@ let toggleTurn: Promise<void> = Promise.resolve();
 function toggleOnSidecar(
 	page: RecordPageApi,
 	write: () => Promise<Envelope<Partial<DocInfo>>>,
-	after?: (answer: Envelope<Partial<DocInfo>>) => void,
+	after?: (answer: Envelope<Partial<DocInfo>>) => void
 ) {
 	toggleTurn = toggleTurn.then(async () => {
 		// A turn that outlived its record would read the next record's state; it does nothing.
@@ -339,19 +339,23 @@ function toggleOnSidecar(
 
 function toggleFavourite(page: RecordPageApi) {
 	return toggleOnSidecar(page, () =>
-		(favourited.value ? removeFavourite : addFavourite)(page.doctype, page.docname),
+		(favourited.value ? removeFavourite : addFavourite)(page.doctype, page.docname)
 	);
 }
 
 // The server declines a follow without failing, and says why beside the data.
 function toggleFollow(page: RecordPageApi) {
+	let adding = false;
 	return toggleOnSidecar(
 		page,
-		() => (following.value ? removeFollow : addFollow)(page.doctype, page.docname),
-		(answer) => {
-			const message = declinedMessage(answer);
-			if (message) toast.error(message);
+		() => {
+			adding = !following.value;
+			return (adding ? addFollow : removeFollow)(page.doctype, page.docname);
 		},
+		(answer) => {
+			const message = declinedMessage(answer, adding);
+			if (message) toast.error(message);
+		}
 	);
 }
 
@@ -467,8 +471,8 @@ async function load() {
 		quickActionBuiltins(
 			docinfo.value?.permissions ?? {},
 			tagsOf(docinfo.value).length > 0,
-			follow.value,
-		),
+			follow.value
+		)
 	);
 	created.panelSections.provideBuiltins(panelBuiltins);
 	created.form.provideBuiltins(() => formItems(detailsForm.value));
@@ -574,16 +578,16 @@ async function landOn(fieldname: string, cursor: boolean) {
 	const tab = identifyTabs(form.value).find((one) =>
 		one.sections.some((section) =>
 			section.columns.some((column) =>
-				column.fields.some((field) => field.fieldname === fieldname),
-			),
-		),
+				column.fields.some((field) => field.fieldname === fieldname)
+			)
+		)
 	);
 	if (tab) formTab.value = tab.identity;
 	// The strip mounts a tab's panel a frame after the model moves, so the cell is polled for.
 	for (let frame = 0; frame < 10; frame++) {
 		await nextTick();
 		const cell = formRoot.value?.querySelector<HTMLElement>(
-			`.field[data-fieldname="${fieldname}"]`,
+			`.field[data-fieldname="${fieldname}"]`
 		);
 		if (cell) {
 			cell.scrollIntoView({ block: "center" });
@@ -595,7 +599,7 @@ async function landOn(fieldname: string, cursor: boolean) {
 	}
 	if (import.meta.env.DEV)
 		console.warn(
-			`[record-page] page.fields.focus("${fieldname}") — not on the form; the reader was not moved.`,
+			`[record-page] page.fields.focus("${fieldname}") — not on the form; the reader was not moved.`
 		);
 }
 
@@ -618,7 +622,7 @@ onBeforeRouteLeave(confirmLeave);
 onBeforeRouteUpdate((to, from) =>
 	to.params.doctype === from.params.doctype && to.params.name === from.params.name
 		? true
-		: confirmLeave(),
+		: confirmLeave()
 );
 
 function onBeforeUnload(event: BeforeUnloadEvent) {

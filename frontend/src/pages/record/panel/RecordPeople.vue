@@ -56,7 +56,7 @@ function openShare() {
 	page.dialog.open(
 		markRaw(ShareDialog),
 		{ context: markRaw(context) },
-		{ title: "Share this record" },
+		{ title: "Share this record" }
 	);
 }
 </script>

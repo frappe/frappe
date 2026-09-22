@@ -1578,6 +1578,10 @@ class TestSessionAPIV2(FrappeAPITestCase):
 			response = self.get(self.session_path(), {"sid": self.sid})
 			self.assertEqual(response.status_code, 200, response.json)
 			self.assertIs(response.json["data"]["user"]["document_follow_notify"], True)
+			frappe.db.set_value("User", "Administrator", "document_follow_notify", 0)
+			frappe.db.commit()  # nosemgrep
+			response = self.get(self.session_path(), {"sid": self.sid})
+			self.assertIs(response.json["data"]["user"]["document_follow_notify"], False)
 		finally:
 			frappe.db.set_value("User", "Administrator", "document_follow_notify", before)
 			frappe.db.commit()  # nosemgrep
