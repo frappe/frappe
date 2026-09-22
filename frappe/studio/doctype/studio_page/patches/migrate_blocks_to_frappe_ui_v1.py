@@ -23,9 +23,8 @@ INK_FAMILIES = (
 INK_SHIFT = {
 	f"ink-{family}-{step}": f"ink-{family}-{step - 1}" for family in INK_FAMILIES for step in range(2, 11)
 }
-_INK_RE = re.compile(
-	r"(?<![A-Za-z0-9])(" + "|".join(sorted(INK_SHIFT, key=len, reverse=True)) + r")(?![A-Za-z0-9-])"
-)
+# only as a utility class or CSS variable (text-ink-red-5, var(--ink-red-5)), never a bare mention in prose
+_INK_RE = re.compile(r"(?<=-)(" + "|".join(sorted(INK_SHIFT, key=len, reverse=True)) + r")(?![A-Za-z0-9-])")
 
 RADIUS_SIDES = ("t", "r", "b", "l", "tl", "tr", "br", "bl", "s", "e", "ss", "se", "es", "ee")
 RADIUS_STEPS = {"sm": "1", "md": "5", "lg": "6", "xl": "7", "2xl": "8"}
