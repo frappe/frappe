@@ -216,6 +216,23 @@ class TestAgent(IntegrationTestCase):
 		self.assertEqual([row.knowledge_base for row in doc.knowledge_bases], [kb.name])
 		self.assertIn("search_knowledge", [row.tool for row in doc.tools])
 
+	def test_sub_agents_are_synced_first_and_bound(self):
+		lookup = Agent(
+			name="Todo Lookup",
+			model=self.model.name,
+			instructions="Find todos.",
+			description="finds todos",
+			tools=[count_todos],
+		)
+
+		agent = self.synced(sub_agents=[lookup])
+
+		doc = frappe.get_doc("Flow Agent", agent.name)
+		self.assertEqual([row.agent for row in doc.sub_agents], ["Todo Lookup"])
+		self.assertIn("subagent", [row.tool for row in doc.tools])
+		child = frappe.get_doc("Flow Agent", "Todo Lookup")
+		self.assertEqual((child.description, child.is_system_generated), ("finds todos", 1))
+
 	def test_new_session_and_run_go_through_the_flow_server(self):
 		agent = self.synced(auto_approve=True)
 

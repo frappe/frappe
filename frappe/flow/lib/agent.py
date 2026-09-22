@@ -44,6 +44,7 @@ class Agent:
 	Flow does that for the agents listed under the `flow_agents` hook. The desk can enable or
 	disable them and switch the agent's model, nothing else. Tools must be module-level
 	functions in an installed app, since the flow server calls them back by import path.
+	`sub_agents` are Agents this one may hand a task to; they are synced before it.
 	"""
 
 	def __init__(
@@ -52,8 +53,10 @@ class Agent:
 		name: str,
 		model: str,
 		instructions: str,
+		description: str = "",
 		tools: list[Tool] | None = None,
 		knowledge: Knowledge | list[Knowledge] | None = None,
+		sub_agents: list[Agent] | None = None,
 		max_iterations: int = DEFAULT_MAX_ITERATIONS,
 		auto_approve: bool = False,
 	):
@@ -62,14 +65,18 @@ class Agent:
 		self.name = name
 		self.model = model
 		self.instructions = instructions
+		self.description = description
 		self.tools = list(tools or [])
 		self.knowledge = list(knowledge or [])
+		self.sub_agents = list(sub_agents or [])
 		self.max_iterations = max_iterations
 		self.auto_approve = auto_approve
 
 	def sync(self) -> None:
 		"""Write this definition to the site. The model is set only when the doc is created,
 		or when its model is gone: switching it otherwise is the site's choice."""
+		for child in self.sub_agents:
+			child.sync()
 		if frappe.db.exists("Flow Agent", self.name):
 			doc = frappe.get_doc("Flow Agent", self.name)
 			if not doc.is_system_generated:
@@ -81,11 +88,13 @@ class Agent:
 				doc.model = self.model
 		else:
 			doc = frappe.get_doc({"doctype": "Flow Agent", "title": self.name, "model": self.model})
+		doc.description = self.description
 		doc.instructions = self.instructions
 		doc.max_iterations = self.max_iterations
 		doc.is_system_generated = 1
 		doc.set("tools", [{"tool": _ensure_tool(tool)} for tool in self.tools])
 		doc.set("knowledge_bases", [{"knowledge_base": kb.name} for kb in self.knowledge])
+		doc.set("sub_agents", [{"agent": child.name} for child in self.sub_agents])
 		doc.save(ignore_permissions=True)
 
 	def new_session(self, *, title: str | None = None) -> FlowSession:
