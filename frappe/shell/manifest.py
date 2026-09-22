@@ -2,7 +2,8 @@
 
 # Everything here runs with no site: `bench build` calls `frappe.init("")`, so apps come
 # from `get_all_apps()` and hooks from `get_hooks(app_name=)`.
-# That is `sites/apps.txt` as bench wrote it, never a scan of `apps/`: desk v1's esbuild scans
+
+# The app list is `sites/apps.txt` as bench wrote it, never a scan of `apps/`: desk v1's esbuild scans
 # while its Python half reads the file, and the two halves disagree on a bench where it is stale.
 
 import json
@@ -118,11 +119,11 @@ def frontend_dir() -> str:
 	return os.path.join(frappe.get_app_source_path("frappe"), "frontend")
 
 
-def assemble() -> list[dict]:
+def assemble(apps: list[str] | None = None) -> list[dict]:
 	"""The manifest in `sites/apps.txt` order: frappe, plus every app that contributes source."""
 	manifest = []
 
-	for app in frappe.get_all_apps():
+	for app in apps if apps is not None else frappe.get_all_apps():
 		try:
 			source_dir = frappe.get_app_path(app)
 		except Exception as e:
@@ -347,10 +348,11 @@ def cost_report(manifest: list[dict], frontend: str, apps: list[str]) -> list[st
 	return lines
 
 
-def write(frontend: str | None = None) -> tuple[list[dict], bool]:
-	"""Assemble, enforce, write the manifest; returns it, and whether the dependency set changed."""
+def write(frontend: str | None = None) -> tuple[list[dict], list[str], bool]:
+	"""Assemble, enforce, write the manifest; returns it, the apps read, and whether the deps changed."""
 	frontend = frontend or frontend_dir()
-	manifest = assemble()
+	apps = frappe.get_all_apps()
+	manifest = assemble(apps)
 	enforce_singletons(manifest, frontend)
 	enforce_import_map(manifest)
 
@@ -360,10 +362,10 @@ def write(frontend: str | None = None) -> tuple[list[dict], bool]:
 		json.dump(
 			{
 				"apps": manifest,
-				"source_dirs": [frappe.get_app_path(app) for app in frappe.get_all_apps()],
+				"source_dirs": [frappe.get_app_path(app) for app in apps],
 			},
 			f,
 			indent="\t",
 		)
 
-	return manifest, compose_package_json(manifest, frontend)
+	return manifest, apps, compose_package_json(manifest, frontend)

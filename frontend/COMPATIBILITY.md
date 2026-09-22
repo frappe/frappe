@@ -547,10 +547,11 @@ export default {
 
 ## Which apps the build reads: `sites/apps.txt`
 
-The build takes its app list from `sites/apps.txt`, in the file's order, and never scans
-`apps/`. Bench writes that file from its own folder scan and runs the build after it, so
-on any bench command the file is current when the build reads it. If you clone or remove
-an app by hand, run `bench setup requirements`, which syncs the file, before `bench build`.
+The build takes its app list from `sites/apps.txt`, `frappe` first and then the file's
+order, and never scans `apps/`. `bench get-app`, `bench remove-app` and
+`bench setup requirements` rewrite the file from the folders, so after a bench command the
+file is current. If you clone or remove an app by hand, run `bench setup requirements`
+before `bench build`.
 
 The build prints the list it read on one line, before the per-app cost lines:
 
