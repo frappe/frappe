@@ -1,3 +1,6 @@
+// the page title is the last breadcrumb
+const TITLE = ".navbar-breadcrumbs:visible li:last-child";
+
 context("Data Control", () => {
 	before(() => {
 		cy.login();
@@ -50,7 +53,7 @@ context("Data Control", () => {
 
 		//Checking the URL for the new form of the doctype
 		cy.location("pathname").should("contains", "/test-data-control/new-test-data-control");
-		cy.get(".title-text-form").should("have.text", "New Test Data Control");
+		cy.get(TITLE).should("have.text", "New Test Data Control");
 		cy.get('.frappe-control[data-fieldname="name1"]')
 			.find("label")
 			.should("have.class", "reqd");
