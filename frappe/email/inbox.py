@@ -38,6 +38,18 @@ def get_email_accounts(user=None):
 
 
 @frappe.whitelist()
+def get_outgoing_senders() -> dict:
+	"""The session user's outgoing addresses and the address of the default outgoing account."""
+	senders = frappe.get_all(
+		"User Email",
+		filters={"parent": frappe.session.user, "enable_outgoing": 1, "email_id": ("is", "set")},
+		pluck="email_id",
+		order_by="idx",
+	)
+	return {"senders": list(dict.fromkeys(senders)), "default": _default_outgoing_email()}
+
+
+@frappe.whitelist()
 def create_email_flag_queue(names: str | list, action: str):
 	"""create email flag queue to mark email either as read or unread"""
 
@@ -132,3 +144,12 @@ def link_communication_to_document(doc, reference_doctype, reference_name, ignor
 		doc.reference_name = reference_name
 		doc.status = "Linked"
 		doc.save(ignore_permissions=True)
+
+
+def _default_outgoing_email() -> str | None:
+	from frappe.email.doctype.email_account.email_account import EmailAccount
+
+	# find_default_outgoing falls back to a dummy account when emails are muted; that sends nothing.
+	account = EmailAccount.find_one_by_filters(enable_outgoing=1, default_outgoing=1)
+	account = account or EmailAccount.find_from_config()
+	return account.email_id if account else None
