@@ -254,9 +254,9 @@
   },
   {
    "default": "0",
-   "description": "Edit in the visual builder.",
    "fieldname": "print_format_builder_beta",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Print Format Builder"
   },
   {
