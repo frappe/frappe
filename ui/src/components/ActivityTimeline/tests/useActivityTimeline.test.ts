@@ -355,6 +355,58 @@ describe("the prefetched read", () => {
     expect(api.getDocumentPart).toHaveBeenCalledTimes(2);
   });
 
+  it("re-reads an idle store from an earlier visit before resolving, keeping its older rows", async () => {
+    const name = freshDoc();
+    serve({
+      newest: { activities: [c(2), c(3)], next: "c2" },
+      c2: { activities: [c(1)], next: null },
+    });
+    const visit = mountTimeline(name);
+    await vi.waitFor(() => expect(visit.timeline.paginate.hasNextPage).toBe(true));
+    await visit.timeline.paginate.fetchNextPage();
+    mounted.splice(0).forEach((app) => app.unmount());
+
+    let answer!: (page: Page) => void;
+    serve({ newest: new Promise<Page>((done) => (answer = done)) });
+    let landed = false;
+    const prefetch = prefetchActivityTimeline("ToDo", name).then(() => (landed = true));
+    await nextTick();
+    expect(landed).toBe(false);
+    expect(activityTimelineRows("ToDo", name).map((a) => a.key)).toEqual(["comment:1", "comment:2", "comment:3"]);
+
+    answer({ activities: [c(3), c(4)], next: "c3" });
+    await prefetch;
+    const rows = ["comment:1", "comment:2", "comment:3", "comment:4"];
+    expect(activityTimelineRows("ToDo", name).map((a) => a.key)).toEqual(rows);
+    expect(api.getDocumentPart).toHaveBeenCalledTimes(3);
+  });
+
+  it("the re-read of an idle store is the first mount's page, not read again", async () => {
+    const name = freshDoc();
+    serve(newest("comment:1"));
+    const visit = mountTimeline(name);
+    await vi.waitFor(() => expect(keys(visit.timeline)).toEqual(["comment:1"]));
+    mounted.splice(0).forEach((app) => app.unmount());
+
+    serve(newest("comment:2"));
+    await prefetchActivityTimeline("ToDo", name);
+    vi.useFakeTimers();
+    const again = mountTimeline(name);
+    await vi.advanceTimersByTimeAsync(400);
+    expect(keys(again.timeline)).toEqual(["comment:2"]);
+    expect(api.getDocumentPart).toHaveBeenCalledTimes(2);
+  });
+
+  it("resolves at once for a store a mounted body keeps live", async () => {
+    const name = freshDoc();
+    serve(newest("comment:1"));
+    const visit = mountTimeline(name);
+    await vi.waitFor(() => expect(keys(visit.timeline)).toEqual(["comment:1"]));
+
+    await prefetchActivityTimeline("ToDo", name);
+    expect(api.getDocumentPart).toHaveBeenCalledTimes(1);
+  });
+
   it("answers rows and a reload before any component mounts", async () => {
     const name = freshDoc();
     expect(activityTimelineRows("ToDo", name)).toEqual([]);

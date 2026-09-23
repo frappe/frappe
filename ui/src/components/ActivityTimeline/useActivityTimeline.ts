@@ -40,9 +40,10 @@ export function prefetchActivityTimeline(
   visibleTypes?: VisibleTypes
 ): Promise<void> {
   const store = getTimelineStore(doctype, docname, visibleTypes);
-  // Rows already held may have missed the socket; a read started now has not.
-  store.prefetched.value = !store.fetched.value;
-  return store.fetched.value ? Promise.resolve() : store.load();
+  // A mounted store's socket kept its rows current; an idle one's may have missed changes, so it re-reads.
+  const live = store.fetched.value && store.mounted > 0;
+  store.prefetched.value = !live;
+  return live ? Promise.resolve() : store.load();
 }
 
 /** The first paint is over: a mount after it catches up, as any late mount does. */

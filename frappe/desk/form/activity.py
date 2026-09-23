@@ -161,7 +161,7 @@ def get_edit_msg(modified_by: str, fullname: str):
 
 def get_email_activities(doc: "Document", user_info: dict, page: ActivityPage) -> list[dict]:
 	def read(date: tuple[str, str] | None, limit: int | None = None) -> list:
-		return _get_communications(doc.doctype, doc.name, limit=limit, date=date)
+		return _get_communications(doc.doctype, doc.name, limit=limit, date=date, by_timestamp=True)
 
 	communications = page.trim(
 		read(page.before_condition, page.fetch_size),

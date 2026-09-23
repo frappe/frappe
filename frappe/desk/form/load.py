@@ -345,8 +345,8 @@ def get_comments(doctype: str, name: str, comment_type: str | list[str] = "Comme
 	return comments
 
 
-def _get_communications(doctype, name, start=0, limit=20, date=None):
-	communications = get_communication_data(doctype, name, start, limit, date=date)
+def _get_communications(doctype, name, start=0, limit=20, date=None, by_timestamp=False):
+	communications = get_communication_data(doctype, name, start, limit, date=date, by_timestamp=by_timestamp)
 	for c in communications:
 		if c.communication_type in ("Communication", "Automated Message"):
 			c.attachments = json.dumps(
@@ -362,12 +362,28 @@ def _get_communications(doctype, name, start=0, limit=20, date=None):
 
 # The only operators a `date` condition may write into the query text.
 COMPARISONS = {"<": "<", "<=": "<=", "=": "="}
+# An email's time in the activity feed, which falls back to creation when it has no date.
+EMAIL_TIMESTAMP = "COALESCE(C.communication_date, C.creation)"
 
 
 def get_communication_data(
-	doctype, name, start=0, limit=20, after=None, fields=None, group_by=None, as_dict=True, date=None
+	doctype,
+	name,
+	start=0,
+	limit=20,
+	after=None,
+	fields=None,
+	group_by=None,
+	as_dict=True,
+	date=None,
+	by_timestamp=False,
 ):
-	"""Return list of communications for a given document."""
+	"""Return list of communications for a given document.
+
+	`by_timestamp` filters and orders on `EMAIL_TIMESTAMP` instead of the nullable `communication_date`."""
+	timestamp = EMAIL_TIMESTAMP if by_timestamp else "C.communication_date"
+	link_order = timestamp if by_timestamp else "`tabCommunication Link`.communication_date"
+	outer_order = "COALESCE(communication_date, creation)" if by_timestamp else "communication_date"
 	if not fields:
 		fields = """
 			C.name, C.communication_type, C.communication_medium,
@@ -387,7 +403,7 @@ def get_communication_data(
 
 	if date:
 		conditions += f"""
-			AND C.communication_date {COMPARISONS[date[0]]} %(date)s
+			AND {timestamp} {COMPARISONS[date[0]]} %(date)s
 		"""
 
 	part_limit = "" if limit is None else "LIMIT %(cte_limit)s"
@@ -405,7 +421,7 @@ def get_communication_data(
 		WHERE C.communication_type IN ('Communication', 'Automated Message')
 		AND (C.reference_doctype = %(doctype)s AND C.reference_name = %(name)s)
 		{conditions}
-		ORDER BY C.communication_date DESC
+		ORDER BY {timestamp} DESC
 		{part_limit}
 	"""
 
@@ -417,7 +433,7 @@ def get_communication_data(
 		WHERE C.communication_type IN ('Communication', 'Automated Message')
 		AND `tabCommunication Link`.link_doctype = %(doctype)s AND `tabCommunication Link`.link_name = %(name)s
 		{conditions}
-		ORDER BY `tabCommunication Link`.communication_date DESC
+		ORDER BY {link_order} DESC
 		{part_limit}
 	"""
 
@@ -428,7 +444,7 @@ def get_communication_data(
 			SELECT * FROM ({part2})
 		) AS combined
 		{group_by or ""}
-		ORDER BY communication_date DESC
+		ORDER BY {outer_order} DESC
 		{page_limit}"""
 
 	query = f"""
@@ -440,7 +456,7 @@ def get_communication_data(
 			SELECT * FROM part2
 		) AS combined
 		{group_by or ""}
-		ORDER BY communication_date DESC
+		ORDER BY {outer_order} DESC
 		{page_limit}
 		"""
 

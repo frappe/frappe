@@ -148,7 +148,12 @@ import RecordHeader from "./record/RecordHeader.vue";
 import RecordTabs from "./record/tabs/RecordTabs.vue";
 import { TAB_STRIP_CLASSES, recordTabBuiltins } from "./record/tabs/recordTabs";
 import { useRecordTabs } from "./record/tabs/useRecordTabs";
-import { RecordFeeds, RecordFeedsKey, withFeedRead } from "./record/feed/recordFeeds";
+import {
+	activityPointer,
+	RecordFeeds,
+	RecordFeedsKey,
+	withFeedRead,
+} from "./record/feed/recordFeeds";
 import PageDialogs from "./record/dialogs/PageDialogs.vue";
 import { formTabMemory } from "./record/formTabMemory";
 import { fetchMeta } from "./record/metaSource";
@@ -711,4 +716,9 @@ onUnmounted(() => {
 });
 
 watch([doctype, docname], load, { immediate: true });
+// The page's own `?tab=` replace keeps the key, so only a new pointer on the same record moves the reader.
+watch(
+	() => activityPointer(route.query),
+	() => feeds.followPointer(doctype.value ?? "", docname.value, route.query)
+);
 </script>

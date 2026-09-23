@@ -53,6 +53,7 @@ export const RecordFeedsKey: InjectionKey<RecordFeeds> = Symbol("record-feeds");
 export class RecordFeeds {
 	private readonly timeline = shallowRef<ActivityTimelineHandle | null>(null);
 	private opened = "";
+	private pointed = "";
 
 	constructor(private readonly options: RecordFeedsOptions) {}
 
@@ -78,10 +79,20 @@ export class RecordFeeds {
 
 	/** `?activity=<key>` as a record opens; a reload of the same record reads none. */
 	pointerOnOpen(doctype: string, docname: string, query: LocationQuery): string {
-		const record = JSON.stringify([doctype, docname]);
+		const record = recordId(doctype, docname);
 		const opening = record !== this.opened;
 		this.opened = record;
-		return opening ? activityPointer(query) : "";
+		this.pointed = activityPointer(query);
+		return opening ? this.pointed : "";
+	}
+
+	/** A new `?activity=` on the record already open lands as a cold load's does; an unchanged key does nothing. */
+	followPointer(doctype: string, docname: string, query: LocationQuery) {
+		const pointer = activityPointer(query);
+		if (recordId(doctype, docname) !== this.opened || pointer === this.pointed) return;
+		this.pointed = pointer;
+		const controller = this.options.controller();
+		if (pointer && controller) controller.page.activity.scrollTo(pointer);
 	}
 
 	/** A pointer names its own tab, so Activity comes forward over any `?tab=` before the strip paints. */
@@ -180,6 +191,10 @@ export function endPrefetchFeed(doctype: string, docname: string) {
 export function activityPointer(query: LocationQuery): string {
 	const key = query.activity;
 	return typeof key === "string" ? key : "";
+}
+
+function recordId(doctype: string, docname: string) {
+	return JSON.stringify([doctype, docname]);
 }
 
 // A pointer names its own tab, and an address with no `?tab=` opens the first one, Activity.

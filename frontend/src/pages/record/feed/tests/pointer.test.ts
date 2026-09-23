@@ -109,6 +109,35 @@ describe("?activity=<key>", () => {
 		expect(feeds.pointerOnOpen("CRM Deal", "D-1", query)).toBe("");
 		expect(feeds.pointerOnOpen("CRM Deal", "D-2", query)).toBe("comment:c2");
 	});
+
+	it("lands on a new key on the same record as a cold load does", async () => {
+		const { route, tabs, feeds, open } = makePage({ tab: "files" });
+		const { handle, scrollToRow } = fakeTimeline([["comment:c3"], ["comment:c2"]]);
+		feeds.attach(handle);
+		await open();
+
+		route.query = { tab: "files", activity: "comment:c2" };
+		feeds.followPointer("CRM Deal", "CRM-DEAL-1", route.query as any);
+
+		await vi.waitFor(() => expect(scrollToRow).toHaveLastReturnedWith(true));
+		expect(scrollToRow).toHaveBeenLastCalledWith("comment:c2");
+		expect(tabs.shown.value).toBe("activity");
+		expect(route.query).toEqual({ tab: "activity", activity: "comment:c2" });
+	});
+
+	it("does nothing for the page's own ?tab= replace, the same key, or another record's", async () => {
+		const { feeds, open } = makePage({ activity: "comment:c3" });
+		const { handle, scrollToRow } = fakeTimeline([["comment:c3"]]);
+		feeds.attach(handle);
+		await open();
+		await vi.waitFor(() => expect(scrollToRow).toHaveBeenCalledTimes(1));
+
+		feeds.followPointer("CRM Deal", "CRM-DEAL-1", { tab: "files", activity: "comment:c3" });
+		feeds.followPointer("CRM Deal", "CRM-DEAL-2", { activity: "comment:c9" });
+		await settle();
+
+		expect(scrollToRow).toHaveBeenCalledTimes(1);
+	});
 });
 
 describe("page.activity.scrollTo onto a hidden Activity tab", () => {

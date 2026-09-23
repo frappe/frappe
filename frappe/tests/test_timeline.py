@@ -3,7 +3,7 @@
 import operator
 
 import frappe
-from frappe.desk.form.activity import parse_visible_types, readable_permlevels
+from frappe.desk.form.activity import get_activity_timeline, parse_visible_types, readable_permlevels
 from frappe.desk.form.activity_page import MAX_PAGE_SIZE, ActivityPage
 from frappe.tests.utils import FrappeTestCase
 
@@ -153,3 +153,46 @@ def read(source: list[dict], page: ActivityPage) -> list[dict]:
 
 
 COMPARE = {"<": operator.lt, "<=": operator.le}
+
+
+class TestEmailActivities(FrappeTestCase):
+	def test_an_email_with_no_date_is_walked_once_at_its_creation(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "emails"}).insert()
+		sent = [add_email(todo, f"2026-01-0{day} 10:00:00") for day in range(1, 6)]
+		undated = add_email(todo, "2026-01-02 10:00:00")
+		frappe.db.set_value(
+			"Communication",
+			undated,
+			{"communication_date": None, "creation": "2026-01-03 12:00:00"},
+			update_modified=False,
+		)
+
+		walked, before = [], None
+		for _page in range(10):
+			built = get_activity_timeline("ToDo", todo.name, ["email"], limit=2, before=before)
+			walked += keys(built["activities"])
+			if not (before := built["next"]):
+				break
+
+		self.assertCountEqual(walked, [f"email:{name}" for name in [*sent, undated]])
+		self.assertEqual(len(walked), len(set(walked)))
+
+
+def add_email(todo, communication_date: str) -> str:
+	return (
+		frappe.get_doc(
+			{
+				"doctype": "Communication",
+				"communication_type": "Communication",
+				"communication_medium": "Email",
+				"sent_or_received": "Received",
+				"subject": f"sent {communication_date}",
+				"sender": "someone@example.com",
+				"communication_date": communication_date,
+				"reference_doctype": "ToDo",
+				"reference_name": todo.name,
+			}
+		)
+		.insert(ignore_permissions=True)
+		.name
+	)
