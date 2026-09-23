@@ -1640,11 +1640,7 @@ class TestArgumentTypingValidations(FrappeTestCase):
 			test_doctypes("a")
 
 
-<<<<<<< HEAD
 class TestChangeLog(FrappeTestCase):
-=======
-
-class TestChangeLog(IntegrationTestCase):
 	def test_parse_latest_non_beta_release_skips_invalid_tags(self):
 		from semantic_version import Version
 
@@ -1667,7 +1663,6 @@ class TestChangeLog(IntegrationTestCase):
 		)
 		self.assertIsNone(parse_latest_non_beta_release([{"tag_name": "vv16.29.0"}], current_version))
 
->>>>>>> 9fd04f2 (fix(utils): skip invalid GitHub release tags)
 	def test_get_remote_url(self):
 		self.assertIsInstance(get_source_url("frappe"), str)
 
