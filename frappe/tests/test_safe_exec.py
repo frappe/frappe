@@ -6,7 +6,13 @@ import frappe.integrations.utils
 import frappe.utils.safe_exec as safe_exec_utils
 from frappe.tests import IntegrationTestCase
 from frappe.utils.jinja import get_jenv, render_template
-from frappe.utils.safe_exec import SafeDoc, ServerScriptNotEnabled, get_safe_globals, safe_exec
+from frappe.utils.safe_exec import (
+	SAFE_EXEC_CONFIG_KEY,
+	SafeDoc,
+	ServerScriptNotEnabled,
+	get_safe_globals,
+	safe_exec,
+)
 
 
 class TestSafeExec(IntegrationTestCase):
@@ -17,6 +23,43 @@ class TestSafeExec(IntegrationTestCase):
 
 	def test_import_fails(self):
 		self.assertRaises(ImportError, safe_exec, "import os")
+
+	def test_enable_safe_exec_restores_existing_setting_after_error(self):
+		with (
+			patch("frappe.get_common_site_config", return_value={SAFE_EXEC_CONFIG_KEY: 1}),
+			patch("frappe.installer.update_site_config") as update_config,
+			self.assertRaisesRegex(RuntimeError, "test error"),
+			self.enable_safe_exec(),
+		):
+			raise RuntimeError("test error")
+
+		self.assertEqual(
+			[call.args[:2] for call in update_config.call_args_list],
+			[(SAFE_EXEC_CONFIG_KEY, 1), (SAFE_EXEC_CONFIG_KEY, 1)],
+		)
+
+	def test_enable_safe_exec_removes_setting_that_was_originally_absent(self):
+		missing = object()
+		previous_local_value = frappe.local.conf.get(SAFE_EXEC_CONFIG_KEY, missing)
+		frappe.local.conf[SAFE_EXEC_CONFIG_KEY] = 1
+		try:
+			with (
+				patch("frappe.get_common_site_config", return_value={}),
+				patch("frappe.installer.update_site_config") as update_config,
+				self.enable_safe_exec(),
+			):
+				pass
+
+			self.assertEqual(
+				[call.args[:2] for call in update_config.call_args_list],
+				[(SAFE_EXEC_CONFIG_KEY, 1), (SAFE_EXEC_CONFIG_KEY, "None")],
+			)
+			self.assertNotIn(SAFE_EXEC_CONFIG_KEY, frappe.local.conf)
+		finally:
+			if previous_local_value is missing:
+				frappe.local.conf.pop(SAFE_EXEC_CONFIG_KEY, None)
+			else:
+				frappe.local.conf[SAFE_EXEC_CONFIG_KEY] = previous_local_value
 
 	def test_internal_attributes(self):
 		self.assertRaises(SyntaxError, safe_exec, "().__class__.__call__")
@@ -416,7 +459,8 @@ class TestSafeDoc(IntegrationTestCase):
 
 class TestNoSafeExec(IntegrationTestCase):
 	def test_safe_exec_disabled_by_default(self):
-		self.assertRaises(ServerScriptNotEnabled, safe_exec, "pass")
+		with patch("frappe.get_common_site_config", return_value={}):
+			self.assertRaises(ServerScriptNotEnabled, safe_exec, "pass")
 
 
 class TestJinjaGlobals(IntegrationTestCase):

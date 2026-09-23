@@ -2,6 +2,7 @@
  "actions": [],
  "creation": "2019-01-09 16:39:23.746535",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/document-follow",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

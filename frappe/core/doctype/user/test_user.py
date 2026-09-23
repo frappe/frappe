@@ -3,6 +3,7 @@
 import json
 import time
 from contextlib import contextmanager
+from types import SimpleNamespace
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
@@ -14,6 +15,7 @@ from frappe.core.doctype.user.user import (
 	User,
 	handle_password_test_fail,
 	reset_password,
+	rewrite_owner_fields,
 	sign_up,
 	test_password_strength,
 	update_password,
@@ -27,7 +29,7 @@ from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import toggle_test_mode
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import get_url
+from frappe.utils import add_to_date, get_url, now_datetime
 from frappe.utils.data import orjson_dumps
 from frappe.www.login import sanitize_redirect
 
@@ -292,9 +294,11 @@ class TestUser(IntegrationTestCase):
 		url = get_url()
 		data = {"cmd": "frappe.core.doctype.user.user.reset_password", "user": "test@test.com"}
 
-		# Clear rate limit tracker to start fresh
-		key = f"rl:{data['cmd']}:{data['user']}"
-		frappe.cache.delete(key)
+		# Password reset is limited by the request IP, not the submitted user.
+		# Clear all identities for this endpoint instead of guessing the IP key.
+		counter_prefix = f"rl:{data['cmd']}:"
+		frappe.cache.delete_keys(counter_prefix)
+		self.addCleanup(frappe.cache.delete_keys, counter_prefix)
 
 		c = FrappeClient(url)
 		res1 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
@@ -320,6 +324,112 @@ class TestUser(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("Notification Settings", new_name))
 
 		frappe.delete_doc("User", new_name)
+
+	def test_user_rename_defers_the_owner_sweep(self):
+		old_name = "test_user_rename_owner@example.com"
+		new_name = "test_user_rename_owner_new@example.com"
+		user = frappe.get_doc(
+			{"doctype": "User", "email": old_name, "first_name": "_Test", "send_welcome_email": 0}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "owned by a renamed user"}).insert()
+		frappe.db.set_value(
+			"ToDo", todo.name, {"owner": old_name, "modified_by": old_name}, update_modified=False
+		)
+
+		with patch("frappe.enqueue") as enqueue:
+			frappe.rename_doc("User", user.name, new_name)
+
+		enqueue.assert_any_call(
+			"frappe.core.doctype.user.user.rewrite_owner_fields",
+			old_name=old_name,
+			new_name=new_name,
+			commit=True,
+			queue="long",
+			timeout=36000,
+			enqueue_after_commit=True,
+		)
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "owner"), old_name)
+
+		rewrite_owner_fields(old_name, new_name)
+
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "owner"), new_name)
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "modified_by"), new_name)
+
+	def test_owner_sweep_leaves_rows_of_a_new_user_at_the_old_name(self):
+		old_name = "test_user_rename_reused@example.com"
+		new_name = "test_user_rename_reused_new@example.com"
+		frappe.get_doc(
+			{"doctype": "User", "email": old_name, "first_name": "_Test", "send_welcome_email": 0}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+		taken_at = frappe.db.get_value("User", old_name, "creation")
+
+		before = frappe.get_doc({"doctype": "ToDo", "description": "written before the rename"}).insert()
+		after = frappe.get_doc({"doctype": "ToDo", "description": "written by the new holder"}).insert()
+		for todo, written_at in (
+			(before, add_to_date(taken_at, minutes=-1)),
+			(after, add_to_date(taken_at, minutes=1)),
+		):
+			frappe.db.set_value(
+				"ToDo",
+				todo.name,
+				{"owner": old_name, "modified_by": old_name, "creation": written_at, "modified": written_at},
+				update_modified=False,
+			)
+
+		rewrite_owner_fields(old_name, new_name)
+
+		self.assertEqual(
+			frappe.db.get_value("ToDo", before.name, ["owner", "modified_by"]), (new_name, new_name)
+		)
+		self.assertEqual(
+			frappe.db.get_value("ToDo", after.name, ["owner", "modified_by"]), (old_name, old_name)
+		)
+
+	def test_user_rename_and_delete_blocked_while_owner_sweep_is_pending(self):
+		freed = "test_user_rename_pending_freed@example.com"
+		renamed = "test_user_rename_pending@example.com"
+		other = "test_user_rename_pending_other@example.com"
+		for email in (freed, renamed, other):
+			frappe.get_doc(
+				{"doctype": "User", "email": email, "first_name": "_Test", "send_welcome_email": 0}
+			).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		unrelated = "test_user_rename_pending_unrelated@example.com"
+		frappe.get_doc(
+			{"doctype": "User", "email": unrelated, "first_name": "_Test", "send_welcome_email": 0}
+		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		def pending_job(method, old_name, new_name):
+			return SimpleNamespace(
+				kwargs={
+					"site": frappe.local.site,
+					"method": method,
+					"kwargs": {"old_name": old_name, "new_name": new_name},
+				}
+			)
+
+		pending_jobs = [
+			pending_job("frappe.core.doctype.user.user.rewrite_owner_fields", freed, renamed),
+			pending_job("frappe.utils.global_search.rebuild_for_doctype", unrelated, unrelated),
+		]
+		with (
+			patch("frappe.core.doctype.user.user.get_queue", return_value=SimpleNamespace(jobs=pending_jobs)),
+			patch("frappe.core.doctype.user.user.get_running_jobs_in_queue", return_value=[]),
+		):
+			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
+				frappe.rename_doc("User", renamed, "test_user_rename_pending_new@example.com")
+
+			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
+				frappe.rename_doc("User", other, renamed, merge=True)
+
+			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
+				frappe.rename_doc("User", freed, "test_user_rename_pending_freed_new@example.com")
+
+			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
+				frappe.delete_doc("User", freed)
+
+			frappe.rename_doc("User", unrelated, "test_user_rename_pending_unrelated_new@example.com")
 
 	def test_user_rename_updates_private_workspace(self):
 		old_name = "test_user_rename_ws@example.com"
@@ -562,10 +672,11 @@ class TestUser(IntegrationTestCase):
 class TestImpersonation(FrappeAPITestCase):
 	def test_impersonation(self):
 		with test_user(roles=["System Manager"], commit=True) as user:
-			self.post(
+			response = self.post(
 				self.method("frappe.core.doctype.user.user.impersonate"),
 				{"user": user.name, "reason": "test", "sid": self.sid},
 			)
+			self.assertEqual(response.status_code, 200)
 			resp = self.get(self.method("frappe.auth.get_logged_user"))
 			self.assertEqual(resp.json["message"], user.name)
 

@@ -1392,7 +1392,10 @@ class Database:
 			columns = (
 				frappe.qb.from_(information_schema.columns)
 				.select(information_schema.columns.column_name)
-				.where(information_schema.columns.table_name == table)
+				.where(
+					(information_schema.columns.table_name == table)
+					& (information_schema.columns.table_schema == self.cur_db_name)
+				)
 				.run(pluck=True)
 			)
 

@@ -13,14 +13,16 @@
 </template>
 
 <script setup>
-import { computed, inject, ref, watchEffect } from "vue";
+import { computed, inject, ref, watch, watchEffect } from "vue";
 import { useDoctypeFields } from "../../composables/useDoctypeFields";
 
 const props = defineProps(["df"]);
 const store = inject("$store");
 
 let value = ref("");
-let placeholder = computed(() => props.df.link_path || __("No linked field set"));
+let placeholder = computed(() =>
+	store.preview_doc.value ? "" : props.df.link_path || __("No linked field set")
+);
 
 let link_options = computed(() => {
 	const link_fieldname = (props.df.link_path || "").split(".")[0];
@@ -36,6 +38,10 @@ let is_image = computed(() => {
 
 const cache = {};
 let pending_key = null;
+watch(
+	() => store.preview_doc.value?.name,
+	() => Object.keys(cache).forEach((k) => delete cache[k])
+);
 
 watchEffect(() => {
 	value.value = "";

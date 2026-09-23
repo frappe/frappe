@@ -1942,7 +1942,16 @@ frappe.ui.form.Form = class FrappeForm {
 				if (docfield._original_label === undefined) {
 					docfield._original_label = docfield.label;
 				}
-				var label = __(docfield._original_label || "", null, docfield.parent);
+				// Strip a trailing placeholder like "(Company Currency)" before appending the
+				// resolved currency, so it isn't rendered twice (e.g. "Rate (Company Currency)
+				// (SAR)"). Matched on the untranslated label, and only against a *trailing*
+				// parenthetical that mentions "currency" -- so "Rate (ex-tax)", or "currency"
+				// mentioned anywhere but at the very end, are left untouched.
+				var base_label = (docfield._original_label || "").replace(
+					/\s*\([^)]*currency[^)]*\)\s*$/i,
+					""
+				);
+				var label = __(base_label, null, docfield.parent);
 				if (parentfield) {
 					grid_field_label_map[doctype + "-" + fname] =
 						label.trim() + " (" + currency + ")";

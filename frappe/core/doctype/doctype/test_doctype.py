@@ -116,8 +116,9 @@ class TestDocType(IntegrationTestCase):
 		doc2.name = "two"
 
 		doc1.insert()
+		frappe.db.savepoint("before_duplicate_insert")
 		self.assertRaises(frappe.UniqueValidationError, doc2.insert)
-		frappe.db.rollback()
+		frappe.db.rollback(save_point="before_duplicate_insert")
 
 		dt.fields[0].unique = 0
 		dt.save()

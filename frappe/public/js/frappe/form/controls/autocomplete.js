@@ -209,7 +209,12 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 			args.query = get_query;
 		} else {
 			// get_query by function
-			var q = get_query((this.frm && this.frm.doc) || this.doc, this.doctype, this.docname);
+			var q = get_query(
+				(this.frm && this.frm.doc) || this.doc,
+				this.doctype,
+				this.docname,
+				this.frm
+			);
 
 			if (typeof q === "string") {
 				// returns a string

@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+import re
 import typing
 from typing import Any
 from urllib.parse import quote
@@ -141,6 +142,9 @@ def get_docinfo(
 	frappe.response["docinfo"] = docinfo
 
 
+ATTACHMENT_FIELDNAME_RE = re.compile(r"data-fieldname=['\"]([^'\"]*)['\"]")
+
+
 def add_comments(doc, docinfo):
 	# divide comments into separate lists
 	docinfo.comments = []
@@ -157,6 +161,8 @@ def add_comments(doc, docinfo):
 		fields=["name", "creation", "content", "owner", "comment_type", "published"],
 	)
 
+	restricted_fieldnames = None
+
 	for c in comments:
 		match c.comment_type:
 			case "Comment":
@@ -167,6 +173,11 @@ def add_comments(doc, docinfo):
 			case "Assignment Completed" | "Assigned":
 				docinfo.assignment_logs.append(c)
 			case "Attachment" | "Attachment Removed":
+				if restricted_fieldnames is None:
+					restricted_fieldnames = get_permlevel_restricted_fieldnames(doc.doctype)
+				m = ATTACHMENT_FIELDNAME_RE.search(c.content or "")
+				if m and m.group(1) in restricted_fieldnames:
+					continue
 				docinfo.attachment_logs.append(c)
 			case "Info" | "Edit" | "Label":
 				docinfo.info_logs.append(c)

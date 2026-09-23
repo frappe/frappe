@@ -5,6 +5,7 @@
  "creation": "2022-01-10 17:29:51.672911",
  "description": "Represents a User in the system.",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions",
  "engine": "InnoDB",
  "field_order": [
   "user_details_tab",
@@ -62,6 +63,8 @@
   "timeline",
   "dashboard",
   "show_absolute_datetime_in_timeline",
+  "report_settings_section",
+  "report_split_view",
   "change_password",
   "new_password",
   "logout_all_sessions",
@@ -838,6 +841,19 @@
    "label": "Show absolute datetime in timeline"
   },
   {
+   "collapsible": 1,
+   "fieldname": "report_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Report Settings"
+  },
+  {
+   "default": "1",
+   "description": "Open linked documents in a side panel instead of navigating away from the report.",
+   "fieldname": "report_split_view",
+   "fieldtype": "Check",
+   "label": "Split view in reports"
+  },
+  {
    "fieldname": "sessions_tab",
    "fieldtype": "Tab Break",
    "label": "Sessions"
@@ -857,7 +873,7 @@
    "label": "Show navigation buttons"
   }
  ],
- "icon": "fa fa-user",
+ "icon": "user-round",
  "idx": 413,
  "image_field": "user_image",
  "links": [
@@ -908,7 +924,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-08-16 20:30:00.000000",
+ "modified": "2026-09-16 20:30:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

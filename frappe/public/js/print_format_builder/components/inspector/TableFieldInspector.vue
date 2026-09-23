@@ -11,21 +11,13 @@
 				@update:show="(v) => (selected_field.show_label = v)"
 			/>
 			<!-- Style: one look = one (table_style, table_bordered) pair -->
-			<div class="pfb-insp-row">
-				<span class="pfb-insp-label">{{ __("Style") }}</span>
-				<select
-					class="pfb-insp-select"
-					:value="table_look ?? ''"
-					@change="set_table_look($event.target.value)"
-				>
-					<option v-if="table_look === null" value="" disabled hidden>
-						{{ __("Custom") }}
-					</option>
-					<option v-for="o in table_look_opts" :key="o.value" :value="o.value">
-						{{ o.label }}
-					</option>
-				</select>
-			</div>
+			<DropdownRow
+				:label="__('Style')"
+				:model-value="table_look ?? ''"
+				:options="table_look_opts"
+				:placeholder="table_look === null ? __('Custom') : ''"
+				@update:model-value="set_table_look"
+			/>
 			<SegmentedRow
 				:label="__('Header')"
 				:model-value="table_header"
@@ -221,18 +213,14 @@
 										@update:model-value="(v) => (col.merge_direction = v)"
 									/>
 								</div>
-								<div class="pfb-col-cond">
-									<label class="pfb-insp-label">{{
-										__("Show column when")
-									}}</label>
-									<input
-										class="pfb-insp-input"
-										type="text"
-										:placeholder="__('e.g. doc.apply_discount')"
-										:value="col.column_condition || ''"
-										@input="col.column_condition = $event.target.value"
-									/>
-								</div>
+								<TextRow
+									class="pfb-col-cond"
+									stacked
+									:label="__('Show column when')"
+									:placeholder="__('e.g. doc.apply_discount')"
+									:model-value="col.column_condition || ''"
+									@update:model-value="(v) => (col.column_condition = v)"
+								/>
 							</div>
 						</div>
 					</template>
@@ -261,21 +249,20 @@
 		</InspectorSection>
 
 		<InspectorSection :label="__('Visibility')" :padded="false">
-			<VisibilitySection v-model="selected_field.visible_if" :previewDoc="preview_doc" />
-			<div class="pfb-row-cond">
-				<label class="pfb-insp-label">{{ __("Show row when") }}</label>
-				<input
-					class="pfb-insp-input"
-					type="text"
-					:placeholder="__('e.g. row.qty > 0')"
-					:value="selected_field.row_condition || ''"
-					@input="selected_field.row_condition = $event.target.value"
-				/>
+			<VisibilitySection v-model="selected_field.visible_if" />
+			<TextRow
+				class="pfb-row-cond"
+				stacked
+				:label="__('Show row when')"
+				:placeholder="__('e.g. row.qty > 0')"
+				:model-value="selected_field.row_condition || ''"
+				@update:model-value="(v) => (selected_field.row_condition = v)"
+			>
 				<p class="pfb-insp-hint text-muted">
 					{{ __("Leave blank to show every row. Reference the row with") }}
 					<code>row.fieldname</code>.
 				</p>
-			</div>
+			</TextRow>
 		</InspectorSection>
 	</div>
 </template>
@@ -285,6 +272,8 @@ import { computed, ref, watch } from "vue";
 import draggable from "vuedraggable";
 import Autocomplete from "../../../vue-components/Autocomplete.vue";
 import LabelField from "./LabelField.vue";
+import DropdownRow from "./DropdownRow.vue";
+import TextRow from "./TextRow.vue";
 import SegmentedRow from "./SegmentedRow.vue";
 import InspectorSection from "./InspectorSection.vue";
 import StepperRow from "./StepperRow.vue";
@@ -293,8 +282,10 @@ import StyleSection from "./StyleSection.vue";
 import ColorField from "./ColorField.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import { useSelectedField } from "./useSelectedField";
+import { is_merge_image } from "../../fieldtypes";
+import { clamp_column_width } from "../../utils";
 
-const { selected_field, preview_doc, set_field_prop } = useSelectedField();
+const { selected_field, set_field_prop } = useSelectedField();
 
 let table_style = computed(() => selected_field.value?.table_style ?? "lined");
 let table_bordered = computed(() => selected_field.value?.table_bordered ?? true);
@@ -311,15 +302,8 @@ let has_lines = computed(
 		table_header.value === "plain"
 );
 
-function set_cell_padding(v) {
-	if (v === null) delete selected_field.value.table_cell_padding;
-	else selected_field.value.table_cell_padding = v;
-}
-
-function set_table_radius(v) {
-	if (v === null) delete selected_field.value.table_radius;
-	else selected_field.value.table_radius = v;
-}
+const set_cell_padding = (v) => set_field_prop("table_cell_padding", v);
+const set_table_radius = (v) => set_field_prop("table_radius", v);
 
 const LOOKS = {
 	grid: { style: "lined", bordered: true },
@@ -345,10 +329,8 @@ let table_look = computed(
 
 function set_table_look(look) {
 	const { style, bordered } = LOOKS[look];
-	if (style === "lined") delete selected_field.value.table_style;
-	else selected_field.value.table_style = style;
-	if (bordered) delete selected_field.value.table_bordered;
-	else selected_field.value.table_bordered = bordered;
+	set_field_prop("table_style", style, "lined");
+	set_field_prop("table_bordered", bordered, true);
 }
 
 let child_value_fields = computed(() => {
@@ -406,12 +388,10 @@ function remove_table_column(idx) {
 watch(selected_field, () => (expanded_col.value = null));
 
 function set_width(col, value) {
-	col.width = Math.max(5, Math.min(100, parseInt(value) || 10));
+	col.width = clamp_column_width(value);
 }
 
 let expanded_col = ref(null);
-
-const IMAGE_COL_FIELDTYPES = new Set(["Attach Image", "Attach"]);
 
 const merge_style_opts = [
 	{ value: "primary", label: __("Primary") },
@@ -439,7 +419,7 @@ function merge_field_opts(col) {
 }
 
 function is_image_merge(mf) {
-	return IMAGE_COL_FIELDTYPES.has(mf.fieldtype);
+	return is_merge_image(mf);
 }
 
 function ensure_merged(col) {
@@ -522,17 +502,11 @@ function set_image_size(col, value) {
 }
 
 .pfb-col-cond {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
 	padding: 8px 14px 10px;
 	border-top: 1px solid var(--gray-100);
 }
 
 .pfb-row-cond {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
 	padding: 0 14px 12px;
 }
 </style>

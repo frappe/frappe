@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import frappe
 from frappe.core.doctype.error_log.error_log import flush_error_logs, get_queued_error_log_count
 from frappe.deferred_insert import deferred_insert, queue_prefix, save_to_db
@@ -6,6 +8,10 @@ from frappe.utils.logging import log_exists
 
 
 class TestDeferredInsert(IntegrationTestCase):
+	def tearDown(self):
+		frappe.cache.delete_value(f"{queue_prefix}Route History")
+		super().tearDown()
+
 	def test_deferred_insert(self):
 		route_history = {"route": frappe.generate_hash(), "user": "Administrator"}
 		deferred_insert("Route History", [route_history])
@@ -33,3 +39,21 @@ class TestDeferredInsert(IntegrationTestCase):
 		self.assertEqual(frappe.cache.llen(f"{queue_prefix}Route History"), 1)
 
 		save_to_db(doctype="Route History")
+
+	def test_transient_database_failure_requeues_uncommitted_records(self):
+		records = [
+			{"route": f"retry-{index}-{frappe.generate_hash()}", "user": "Administrator"}
+			for index in range(2)
+		]
+		deferred_insert("Route History", records)
+
+		with (
+			patch("frappe.deferred_insert.insert_record", side_effect=[True, frappe.QueryDeadlockError()]),
+			self.assertRaises(frappe.QueryDeadlockError),
+		):
+			save_to_db(doctype="Route History")
+
+		self.assertEqual(frappe.cache.llen(f"{queue_prefix}Route History"), 1)
+		save_to_db(doctype="Route History")
+		for record in records:
+			self.assertTrue(frappe.db.exists("Route History", record))

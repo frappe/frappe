@@ -208,6 +208,8 @@ def get_rendered_template(
 			frappe.TemplateNotFoundError,
 		)
 
+	doc.flags.absolute_value = print_format.absolute_value
+
 	template = None
 	if hook_func := frappe.get_hooks("get_print_format_template"):
 		template = frappe.call(hook_func[-1], jenv=jenv, print_format=print_format)

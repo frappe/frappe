@@ -241,10 +241,11 @@ def _target_date(rule, today):
 
 
 def _due_names(rule, target) -> list[str]:
-	# `between` on the whole day covers Date and Datetime fields alike.
+	# Date bounds, not datetime strings: SQLite compares Date columns as text, and the
+	# query engine widens date bounds to the whole day for Datetime fields.
 	filters = [
 		*_normalize_filters(frappe.parse_json(rule.filters) if rule.filters else None),
-		[rule.date_field, "between", [f"{target} 00:00:00", f"{target} 23:59:59"]],
+		[rule.date_field, "between", [target, target]],
 	]
 	names = frappe.get_all(rule.document_type, filters=filters, pluck="name")
 	return _condition_filtered(rule, names)

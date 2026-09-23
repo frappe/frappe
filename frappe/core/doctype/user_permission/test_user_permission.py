@@ -4,6 +4,7 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user_permission.user_permission import (
 	add_user_permissions,
+	get_user_permission_list,
 	remove_applicable,
 )
 from frappe.permissions import add_permission, has_user_permission
@@ -71,6 +72,25 @@ class TestUserPermission(IntegrationTestCase):
 		param = get_params(user, "User", user.name)
 		is_created = add_user_permissions(param)
 		self.assertEqual(is_created, 1)
+
+	def test_get_user_permission_list(self):
+		"""get_user_permission_list returns joined rows for `allow`, searched and paged."""
+		user = create_user("test_user_perm1@example.com")
+		add_user_permissions(get_params(user, "User", user.name))
+
+		rows = get_user_permission_list("User", page_length=1000)
+		row = next((r for r in rows if r.get("user") == user.name), None)
+		self.assertIsNotNone(row, "created permission should be returned")
+		self.assertEqual(row.get("for_value"), user.name)
+		self.assertIn("full_name", row)
+		self.assertTrue(row.get("apply_to_all_doctypes"))
+
+		searched = get_user_permission_list("User", txt="test_user_perm1")
+		self.assertTrue(all(r["user"] == user.name for r in searched))
+		self.assertTrue(searched)
+
+		self.assertEqual(len(get_user_permission_list("User", page_length=1)), 1)
+		self.assertFalse(get_user_permission_list("User", txt="no-such-user-xyz"))
 
 	def test_for_apply_to_all_on_update_from_apply_all(self):
 		user = create_user("test_bulk_creation_update@example.com")

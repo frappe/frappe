@@ -165,6 +165,9 @@ def get():
 		bootinfo["metadata_version"] = reset_metadata_version()
 
 	bootinfo.notes = get_unseen_notes()
+	bootinfo.notification_unread_count = frappe.db.count(
+		"Notification Log", {"read": 0, "for_user": frappe.session.user}
+	)
 	bootinfo.assets_json = get_assets_json()
 	bootinfo.ui_islands = get_ui_islands()
 	bootinfo.read_only = bool(frappe.flags.read_only)
@@ -223,8 +226,10 @@ class Session:
 		session_end: str | None = None,
 		audit_user: str | None = None,
 	):
+		request = getattr(frappe.local, "request", None)
 		self.sid = cstr(
-			frappe.form_dict.pop("sid", None) or unquote(frappe.request.cookies.get("sid", "Guest"))
+			frappe.form_dict.pop("sid", None)
+			or unquote(request.cookies.get("sid", "Guest") if request is not None else "Guest")
 		)
 		assert isinstance(self.sid, str), "sid must be a string after cstr normalization"
 		self.user = user

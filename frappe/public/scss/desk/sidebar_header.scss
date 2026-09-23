@@ -44,19 +44,24 @@
 		background: var(--surface-elevation-2);
 	}
 
-	// The app's logo, or the letter tile desktop_icon() builds for whatever has no logo of its own.
-	// Both bring their own colour, so nothing is drawn behind them.
+	// The app's logo, or the letter tile desktop_icon() builds for whatever has no logo of its own,
+	// on a chip of its own so a bare line glyph reads as a mark rather than as a stray icon.
+	//
+	// `--surface-gray-3`, not the raw `--gray-500` this was: a palette token is one flat colour in
+	// both themes, and a mid-grey chip that sat quietly on a dark sidebar was a heavy slab on a
+	// light one. This inverts with the theme and stays a step off whichever surface it lands on --
+	// the panel's #f8f8f8 or the dock's own tray, since both wear `.shell-header`.
 	.header-logo {
 		flex: 0 0 auto;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		background-color: var(--surface-gray-3);
 		// `size-7 rounded-[6px]`
 		width: 28px;
 		height: 28px;
 		border-radius: 6px;
 		overflow: hidden;
-		background: transparent;
 
 		img {
 			width: 100%;
@@ -82,9 +87,14 @@
 		min-width: 0;
 	}
 
-	// `text-base-medium text-ink-gray-8` in a `leading-none` line
+	// `text-base-medium text-ink-gray-8`, spelled out rather than leant on: the shared
+	// .header-title below sets a 1.2 line and takes its tracking from the page, and the token is
+	// 1.15 on 0.015em.
 	.header-title {
 		font-size: var(--text-md);
+		line-height: 1.15;
+		font-weight: var(--font-weight-medium);
+		letter-spacing: 0.015em;
 		color: var(--ink-gray-8);
 		// the shared .header-title carries a 2px nudge for the logo-less header this replaced
 		margin-left: 0;
@@ -95,7 +105,9 @@
 	// Worn only by the rail's user button now, where the email sits under the name.
 	.header-subtitle {
 		color: var(--ink-gray-6);
-		line-height: 1;
+		line-height: 1.15;
+		font-weight: var(--font-weight-regular);
+		letter-spacing: 0.02em;
 		margin-top: 2px;
 	}
 

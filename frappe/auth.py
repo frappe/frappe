@@ -155,18 +155,18 @@ class LoginManager:
 		frappe.clear_cache(user=frappe.form_dict.get("usr"))
 		user, pwd = get_cached_user_pass()
 		self.authenticate(user=user, pwd=pwd)
-		if self.force_user_to_reset_password():
-			doc = frappe.get_doc("User", self.user)
-			frappe.local.response["redirect_to"] = doc._reset_password(
-				send_email=False, password_expired=True
-			)
-			frappe.local.response["message"] = "Password Reset"
-			return False
 
 		if should_run_2fa(self.user):
 			authenticate_for_2factor(self.user)
 			if not confirm_otp_token(self):
 				return False
+
+		if self.force_user_to_reset_password():
+			doc = frappe.get_doc("User", self.user)
+			doc._reset_password(send_email=True, password_expired=True)
+			frappe.local.response["message"] = "Password Reset"
+			return False
+
 		frappe.form_dict.pop("pwd", None)
 		self.post_login()
 
@@ -417,12 +417,13 @@ class CookieManager:
 		max_age=None,
 		deduplicate=False,
 	):
-		if not secure and hasattr(frappe.local, "request"):
-			secure = frappe.local.request.scheme == "https"
+		request = getattr(frappe.local, "request", None)
+		if not secure and request is not None:
+			secure = request.scheme == "https"
 		if (
 			deduplicate
 			and not (expires or max_age)
-			and (request := getattr(frappe.local, "request", None))
+			and request is not None
 			and unquote(request.cookies.get(key, "")) == value
 		):
 			return
@@ -481,9 +482,8 @@ def validate_ip_address(user):
 	Certain methods called from our socketio backend need direct access, and so the IP is not
 	checked for those
 	"""
-	if hasattr(frappe.local, "request") and frappe.local.request.path.startswith(
-		"/api/method/frappe.realtime."
-	):
+	request = getattr(frappe.local, "request", None)
+	if request is not None and request.path.startswith("/api/method/frappe.realtime."):
 		return True
 
 	user_info = frappe.get_cached_doc("User", user)

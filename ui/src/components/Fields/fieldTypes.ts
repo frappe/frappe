@@ -82,8 +82,7 @@ for (const t of ["Small Text", "Text", "Long Text"]) {
 
 // Code-family types share one CodeEditorField (CodeMirror 6 writer + sanitized
 // preview), with the language derived from the fieldtype/options. Loaded lazily:
-// CodeMirror is heavy, and it's the only field pulling `CodeEditor`/`CodePreview`
-// from `frappe-ui/experimental`
+// CodeMirror is heavy, and it's the only field pulling `frappe-ui/code-editor`.
 const CodeEditorField = defineAsyncComponent(() => import("./CodeEditorField.vue"));
 
 for (const t of ["Code", "JSON", "Markdown Editor", "HTML Editor"]) {

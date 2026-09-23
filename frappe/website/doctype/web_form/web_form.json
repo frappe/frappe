@@ -4,6 +4,7 @@
  "creation": "2014-09-01 14:08:48.624556",
  "doctype": "DocType",
  "document_type": "Document",
+ "documentation": "https://docs.frappe.io/framework/user/en/web-form",
  "engine": "InnoDB",
  "field_order": [
   "form_tab",
