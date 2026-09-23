@@ -1,42 +1,37 @@
 <!-- The built-in `email` writer: the header and editor, loaded on first open, over the record's draft. -->
 <template>
 	<div class="flex min-h-0 flex-1 flex-col" data-email-writer>
-		<!-- The composer takes no `disabled`; a disabled fieldset greys out its Send button. -->
-		<fieldset
+		<EmailComposer
+			ref="composer"
+			v-model="content"
+			v-model:from="from"
+			v-model:to="to"
+			v-model:cc="cc"
+			v-model:bcc="bcc"
+			v-model:subject="subject"
+			class="min-h-0 flex-1"
+			:placeholder="__('Write an email…')"
+			:submitLabel="__('Send')"
+			:uploadFunction="upload"
+			:submitting="sent"
 			:disabled="choice.blocked"
-			class="m-0 flex min-h-0 min-w-0 flex-1 flex-col border-0 p-0"
+			:showFrom="choice.senders.length > 1"
+			:senders="senders"
+			:searchRecipients="searchRecipients"
+			showSubject
+			fill
+			@submit="send"
+			@remove-attachment="forget"
 		>
-			<EmailComposer
-				ref="composer"
-				v-model="content"
-				v-model:from="from"
-				v-model:to="to"
-				v-model:cc="cc"
-				v-model:bcc="bcc"
-				v-model:subject="subject"
-				class="min-h-0 flex-1"
-				:placeholder="__('Write an email…')"
-				:submitLabel="__('Send')"
-				:uploadFunction="upload"
-				:submitting="sent"
-				:showFrom="choice.senders.length > 1"
-				:senders="senders"
-				:searchRecipients="searchRecipients"
-				showSubject
-				fill
-				@submit="send"
-				@remove-attachment="forget"
-			>
-				<template #actions="{ addAttachment }">
-					<AttachmentSeed :files="seed" :add="addAttachment" />
-				</template>
-				<template v-if="choice.blocked" #footer>
-					<p class="px-3 pb-2 text-sm text-ink-gray-6" data-email-no-sender>
-						{{ __("No outgoing email account") }}
-					</p>
-				</template>
-			</EmailComposer>
-		</fieldset>
+			<template #actions="{ addAttachment }">
+				<AttachmentSeed :files="seed" :add="addAttachment" />
+			</template>
+			<template v-if="choice.blocked" #footer>
+				<p class="px-3 pb-2 text-sm text-ink-gray-6" data-email-no-sender>
+					{{ __("No outgoing email account") }}
+				</p>
+			</template>
+		</EmailComposer>
 	</div>
 </template>
 
@@ -49,6 +44,7 @@ import { __ } from "@/i18n";
 import { RecordFeedsKey } from "../feed/recordFeeds";
 import AttachmentSeed from "./AttachmentSeed";
 import { postEmail } from "./emailPost";
+import { freshEmail } from "./emailSeed";
 import { chooseSender, loadSenders, searchRecipients, type SenderChoice } from "./emailSenders";
 import { useEmailDraft } from "./useEmailDraft";
 
@@ -62,6 +58,7 @@ const feeds = inject(RecordFeedsKey, null);
 const { from, to, cc, bcc, subject, content, seed, upload, forget, draft } = useEmailDraft(
 	props.controller.page.doctype,
 	props.controller.page.docname,
+	() => freshEmail(props.controller.page),
 	recordTransport()
 );
 const composer = ref<{ focus: () => void } | null>(null);

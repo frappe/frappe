@@ -38,13 +38,12 @@ describe("prefillEmail", () => {
 });
 
 describe("replyFill", () => {
-	it("Reply answers the sender alone and threads the email", () => {
+	it("Reply answers the sender alone", () => {
 		expect(replyFill(EMAIL, ME, false)).toEqual({
 			to: ["bob@example.com"],
 			cc: [],
 			bcc: [],
 			subject: "Re: Quote",
-			inReplyTo: "COMM-1",
 		});
 	});
 
@@ -54,7 +53,6 @@ describe("replyFill", () => {
 			cc: ["carl@example.com", "dee@example.com"],
 			bcc: ["eve@example.com"],
 			subject: "Re: Quote",
-			inReplyTo: "COMM-1",
 		});
 	});
 
@@ -65,6 +63,45 @@ describe("replyFill", () => {
 			to: ["bob@example.com"],
 			cc: ["dee@example.com"],
 			bcc: ["eve@example.com"],
+		});
+	});
+
+	describe("with named addresses, as a stored email carries them", () => {
+		const named = {
+			...EMAIL,
+			sender: "Bob Stone <bob@example.com>",
+			to: '"Ann, Sales" <Ann@Example.com>,  Carl <carl@example.com> ',
+			cc: "Dee <dee@example.com>",
+			bcc: "Eve <eve@example.com>",
+		};
+		const sent = {
+			...named,
+			sender: "Ann <ann@example.com>",
+			to: "Bob Stone <bob@example.com>, Carl <carl@example.com>",
+			cc: '"Ann, Sales" <ANN@example.com>, Dee <dee@example.com>',
+		};
+
+		it("Reply to a received email answers the bare sender", () => {
+			expect(replyFill(named, ME, false)).toMatchObject({ to: ["bob@example.com"], cc: [] });
+		});
+
+		it("Reply all to a received email copies bare addresses, without the user", () => {
+			expect(replyFill(named, ME, true)).toMatchObject({
+				to: ["bob@example.com"],
+				cc: ["carl@example.com", "dee@example.com"],
+				bcc: ["eve@example.com"],
+			});
+		});
+
+		it("Reply to a sent email answers its recipients, not the user", () => {
+			expect(replyFill(sent, ME, false).to).toEqual(["bob@example.com", "carl@example.com"]);
+		});
+
+		it("Reply all to a sent email copies Cc without the user", () => {
+			expect(replyFill(sent, ME, true)).toMatchObject({
+				to: ["bob@example.com", "carl@example.com"],
+				cc: ["dee@example.com"],
+			});
 		});
 	});
 
@@ -85,6 +122,12 @@ describe("the draft's addresses", () => {
 			"c@example.com",
 		]);
 		expect(asEmailDraft({ to: "a@example.com", cc: undefined }).cc).toEqual([]);
+	});
+
+	it("reads a named address as the bare one, a comma in a quoted name kept whole", () => {
+		const text = ' "Doe, Jo" < jo@example.com >, Bob <bob@example.com>,bob@example.com ';
+		expect(addressList(text)).toEqual(["jo@example.com", "bob@example.com"]);
+		expect(asEmailDraft({ cc: ["Dee <dee@example.com>"] }).cc).toEqual(["dee@example.com"]);
 	});
 
 	it("merges a failed draft before a newer one, the newer keeping its headers", () => {

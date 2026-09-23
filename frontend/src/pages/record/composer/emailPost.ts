@@ -3,6 +3,7 @@ import { addPendingActivity, type UserInfo } from "@framework/ui/ActivityTimelin
 import { runMethod } from "@framework/ui/api";
 import { errorMessage, type RecordPageController } from "@/recordPage";
 import {
+	activeWriter,
 	clearComposerDraft,
 	closeComposer,
 	composerState,
@@ -27,7 +28,8 @@ export async function postEmail(
 ) {
 	const { doctype, docname } = controller.page;
 	clearComposerDraft(doctype, docname, EMAIL_WRITER);
-	closeComposer();
+	// A send that waited on the senders may find the reader on another record's writer.
+	if (activeWriter(doctype, docname)) closeComposer();
 	const pending = addPendingActivity(doctype, docname, pendingRow(author, draft));
 	let key: string;
 	try {

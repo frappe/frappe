@@ -76,10 +76,20 @@ export function mergeEmailDrafts(failed: EmailDraft, current: EmailDraft): Email
 	};
 }
 
-/** A list of plain addresses from a comma-separated string or a list; blanks and repeats go. */
+/** Bare addresses from a comma-separated string or a list; `Name <address>` reads as the address. */
 export function addressList(value: unknown): string[] {
-	const parts = Array.isArray(value) ? value : typeof value === "string" ? value.split(",") : [];
-	return distinct(parts.filter((part) => typeof part === "string").map((part) => part.trim()));
+	const parts = Array.isArray(value) ? value : typeof value === "string" ? splitAddresses(value) : [];
+	return distinct(parts.filter((part) => typeof part === "string").map(bareAddress));
+}
+
+// A comma inside a quoted name or angle brackets does not end the address.
+function splitAddresses(text: string) {
+	return text.match(/(?:"[^"]*"|<[^>]*>|[^,])+/g) ?? [];
+}
+
+function bareAddress(address: string) {
+	const angled = /<([^>]*)>\s*$/.exec(address);
+	return (angled ? angled[1] : address).trim();
 }
 
 function distinct(addresses: string[]) {

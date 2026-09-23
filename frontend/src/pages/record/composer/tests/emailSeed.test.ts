@@ -124,6 +124,14 @@ describe("a reply", () => {
 		});
 	});
 
+	it("threads an email just sent, whose row carries the key but no name", () => {
+		const page = fakePage();
+		const sent = { ...EMAIL.data, name: "", sender: ME, to: "bob@example.com" };
+		activityTimelineRows.mockReturnValue([{ ...EMAIL, key: "email:COMM-7", data: sent }]);
+		open(page, { replyTo: "email:COMM-7" });
+		expect(stored(page)).toMatchObject({ to: ["bob@example.com"], inReplyTo: "COMM-7" });
+	});
+
 	it("still threads an email the reader has not loaded", () => {
 		const page = fakePage();
 		open(page, { replyTo: "email:COMM-9" });

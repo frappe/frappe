@@ -39,13 +39,18 @@ export function openEmail(
 	}
 }
 
+/** What a plain open of the email writer on this record starts with. */
+export function freshEmail(page: RecordPageApi | undefined): EmailDraft {
+	const prefill = page ? prefillEmail(page.meta, page.doc, titleOf(page)) : {};
+	return { ...emptyEmailDraft(), ...prefill };
+}
+
 function newDraft(
 	page: RecordPageApi | undefined,
 	reply: Partial<EmailDraft> | undefined,
 	draft: Record<string, unknown>
 ): EmailDraft {
-	const prefill = page ? prefillEmail(page.meta, page.doc, titleOf(page)) : {};
-	return { ...emptyEmailDraft(), ...prefill, ...reply, ...emailFields(draft) };
+	return { ...freshEmail(page), ...reply, ...emailFields(draft) };
 }
 
 // Bcc changes only for a Reply all, the one reply that fills it.
@@ -56,6 +61,7 @@ function readdress(doctype: string, docname: string, reply: Partial<EmailDraft>,
 	replaceComposerDraft(doctype, docname, EMAIL_WRITER, next);
 }
 
+// The thread comes from the key, since a row the writer just sent has no name in its data.
 // An email the reader has not loaded still threads the reply; the headers stay as they were.
 function replyFor(
 	page: RecordPageApi | undefined,
@@ -63,9 +69,10 @@ function replyFor(
 	draft: Record<string, unknown>
 ): Partial<EmailDraft> | undefined {
 	if (typeof draft.replyTo !== "string") return undefined;
+	const inReplyTo = draft.replyTo.replace(/^email:/, "");
 	const email = page && loadedEmail(page, draft.replyTo);
-	if (!email) return { inReplyTo: draft.replyTo.replace(/^email:/, "") };
-	return replyFill(email, userEmail, draft.replyAll === true);
+	if (!email) return { inReplyTo };
+	return { ...replyFill(email, userEmail, draft.replyAll === true), inReplyTo };
 }
 
 function loadedEmail(page: RecordPageApi, key: string): EmailData | undefined {

@@ -3,7 +3,7 @@ import type { EmailActivity } from "@framework/ui/ActivityTimeline";
 import { __ } from "@/i18n";
 import { addressList, type EmailDraft } from "./emailDraft";
 
-type ReplyFields = Pick<EmailDraft, "to" | "cc" | "bcc" | "subject" | "inReplyTo">;
+type ReplyFields = Pick<EmailDraft, "to" | "cc" | "bcc" | "subject">;
 
 /** `Re: <title>`, and To from the record's first email field when it holds a value. */
 export function prefillEmail(
@@ -23,16 +23,16 @@ export function prefillEmail(
 
 /** Desk v1's reply: to the sender, or to the recipients of the user's own email; `all` adds Cc. */
 export function replyFill(email: EmailActivity["data"], user: string, all: boolean): ReplyFields {
-	const mine = same(email.sender, user);
+	const sender = addressList(email.sender);
+	const mine = same(sender[0], user);
 	const recipients = addressList(email.to);
-	const to = mine ? recipients : addressList(email.sender);
+	const to = mine ? recipients : sender;
 	const others = [...(mine ? [] : recipients), ...addressList(email.cc)];
 	return {
 		to,
 		cc: all ? others.filter((one) => !same(one, user) && !to.some((t) => same(t, one))) : [],
 		bcc: all ? addressList(email.bcc) : [],
 		subject: replySubject(email.subject ?? ""),
-		inReplyTo: email.name,
 	};
 }
 

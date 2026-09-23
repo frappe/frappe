@@ -51,6 +51,7 @@ vi.mock("@framework/ui/Composer", async () => {
 				senders: Array,
 				submitting: Boolean,
 				fill: Boolean,
+				disabled: Boolean,
 				searchRecipients: Function,
 				uploadFunction: Function,
 			},
@@ -91,7 +92,13 @@ vi.mock("@framework/ui/ActivityTimeline", async (importOriginal) => ({
 
 import { ComposerSurface } from "@/recordPage/composer";
 import type { TabItem } from "@/recordPage/types";
-import { closeComposer, composerDraft, openComposer, saveComposerDraft } from "@/shell/composer";
+import {
+	activeWriter,
+	closeComposer,
+	composerDraft,
+	openComposer,
+	saveComposerDraft,
+} from "@/shell/composer";
 import { RecordFeeds, RecordFeedsKey } from "../../feed/recordFeeds";
 import { composerBuiltins, composerHost } from "../composerHost";
 import { asEmailDraft } from "../emailDraft";
@@ -133,6 +140,18 @@ function answers(
 	});
 }
 
+// The senders answer waits for `release`, as a slow lookup does.
+function heldSenders(senders: { senders: string[]; default: string | null }) {
+	let release = () => {};
+	const held = new Promise<void>((resolve) => (release = resolve));
+	runMethod.mockImplementation(async (method: string) => {
+		if (method === SENDERS) return held.then(() => ({ data: senders }));
+		if (method === MAKE) return { data: { name: "COMM-5" } };
+		throw new Error(`unexpected ${method}`);
+	});
+	return () => release();
+}
+
 function fakeController(perms: Record<string, number> = { email: 1 }) {
 	const docname = `LEAD-${++record}`;
 	const composer = new ComposerSurface(composerHost("Lead", docname));
@@ -142,6 +161,11 @@ function fakeController(perms: Record<string, number> = { email: 1 }) {
 		docname,
 		composer,
 		perms,
+		meta: {
+			title_field: "lead_name",
+			fields: [{ fieldname: "email_id", fieldtype: "Data", options: "Email" }],
+		},
+		doc: { lead_name: "Acme", email_id: "lead@example.com" },
 		toast: { error: vi.fn(), success: vi.fn() },
 	};
 	return { page, composer, firePost: vi.fn(async () => {}) } as any;
@@ -154,6 +178,10 @@ async function mountEmail(
 ) {
 	saveComposerDraft("Lead", controller.page.docname, "email", draft);
 	openComposer("Lead", controller.page.docname, "email");
+	return mountBand(controller, feeds);
+}
+
+async function mountBand(controller: any, feeds = recordFeeds().feeds) {
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const app = createApp({
@@ -189,16 +217,14 @@ function editor(root: HTMLElement) {
 	return element.__vueParentComponent.proxy;
 }
 
-const fieldset = (root: HTMLElement) => root.querySelector("fieldset") as HTMLFieldSetElement;
-
 describe("the sender", () => {
 	it("draws a From row with two senders, the user's own address picked", async () => {
 		answers({ senders: ["sales@example.com", USER.email], default: null });
-		const { root } = await mountEmail();
+		await mountEmail();
 		expect(composerStub.lastProps.showFrom).toBe(true);
 		expect(composerStub.lastProps.from).toBe(USER.email);
 		expect(composerStub.lastProps.showSubject).toBe(true);
-		expect(fieldset(root).disabled).toBe(false);
+		expect(composerStub.lastProps.disabled).toBe(false);
 	});
 
 	it("draws no From row with one sender, and sends as it", async () => {
@@ -217,7 +243,7 @@ describe("the sender", () => {
 		const { root } = await mountEmail();
 		expect(composerStub.lastProps.showFrom).toBe(false);
 		expect(root.querySelector("[data-email-no-sender]")).toBeNull();
-		expect(fieldset(root).disabled).toBe(false);
+		expect(composerStub.lastProps.disabled).toBe(false);
 	});
 
 	it("says there is no outgoing account and disables the send with none at all", async () => {
@@ -226,20 +252,28 @@ describe("the sender", () => {
 		expect(root.querySelector("[data-email-no-sender]")?.textContent).toContain(
 			"No outgoing email account"
 		);
-		expect(fieldset(root).disabled).toBe(true);
+		expect(composerStub.lastProps.disabled).toBe(true);
 		editor(root).$emit("submit", { body: "<p>Hi</p>", attachments: [] });
 		await flush();
 		expect(runMethod.mock.calls.some(([method]) => method === MAKE)).toBe(false);
 	});
 
-	it("asks for the senders once, when the writer first opens", async () => {
+	it("asks for the senders once, when the writer first opens, not with the pill", async () => {
 		answers({ senders: [USER.email], default: null });
 		const controller = fakeController();
-		expect(runMethod).not.toHaveBeenCalled();
-		await mountEmail(controller);
-		closeComposer();
-		await mountEmail(controller);
-		expect(runMethod.mock.calls.filter(([method]) => method === SENDERS)).toHaveLength(1);
+		const { root } = await mountBand(controller);
+		const asked = () => runMethod.mock.calls.filter(([method]) => method === SENDERS).length;
+		expect(root.querySelector("[data-composer-pill]")).not.toBeNull();
+		expect(asked()).toBe(0);
+		controller.composer.open("email");
+		await flush();
+		expect(root.querySelector("[data-email-writer]")).not.toBeNull();
+		expect(asked()).toBe(1);
+		controller.composer.close();
+		await flush();
+		controller.composer.open("email");
+		await flush();
+		expect(asked()).toBe(1);
 	});
 });
 
@@ -263,6 +297,63 @@ describe("sending an email", () => {
 		expect(pending.resolve).toHaveBeenCalledWith("email:COMM-5");
 		expect(controller.firePost).toHaveBeenCalledWith("email:COMM-5");
 		expect(root.querySelector("[data-composer-card]")).toBeNull();
+	});
+
+	it("sends once, as the looked-up sender, when both submits came before the lookup", async () => {
+		const release = heldSenders({ senders: ["sales@example.com"], default: null });
+		const { root } = await mountEmail(undefined, asEmailDraft({ to: "bob@example.com" }));
+		editor(root).$emit("submit", { body: "<p>Hi</p>", attachments: [] });
+		editor(root).$emit("submit", { body: "<p>Hi</p>", attachments: [] });
+		await flush();
+		expect(composerStub.lastProps.submitting).toBe(true);
+		expect(runMethod.mock.calls.some(([method]) => method === MAKE)).toBe(false);
+		release();
+		await flush();
+		const makes = runMethod.mock.calls.filter(([method]) => method === MAKE);
+		expect(makes).toHaveLength(1);
+		expect(makes[0][1].sender).toBe("sales@example.com");
+	});
+
+	it("leaves open a writer the reader opened on another record while the send waited", async () => {
+		const release = heldSenders({ senders: [USER.email], default: null });
+		const { root } = await mountEmail(undefined, asEmailDraft({ to: "bob@example.com" }));
+		editor(root).$emit("submit", { body: "<p>Hi</p>", attachments: [] });
+		openComposer("Lead", "LEAD-ELSEWHERE", "email");
+		release();
+		await flush();
+		expect(runMethod.mock.calls.filter(([method]) => method === MAKE)).toHaveLength(1);
+		expect(activeWriter("Lead", "LEAD-ELSEWHERE")).toBe("email");
+	});
+
+	it("Discard leaves what a fresh open shows, the chosen sender kept", async () => {
+		answers({ senders: ["sales@example.com", USER.email], default: null });
+		const draft = asEmailDraft({
+			from: "sales@example.com",
+			to: "bob@example.com",
+			cc: "carl@example.com",
+			bcc: "eve@example.com",
+			subject: "Re: Quote",
+			content: "<p>Hi</p>",
+			inReplyTo: "COMM-1",
+		});
+		const { root, controller } = await mountEmail(undefined, draft);
+		editor(root).$emit("update:modelValue", "");
+		await flush();
+		expect(composerStub.lastProps).toMatchObject({
+			from: "sales@example.com",
+			to: [{ email: "lead@example.com" }],
+			cc: [],
+			bcc: [],
+			subject: "Re: Acme",
+		});
+		expect(composerDraft("Lead", controller.page.docname, "email")).toEqual(
+			asEmailDraft({
+				from: "sales@example.com",
+				to: "lead@example.com",
+				subject: "Re: Acme",
+				content: "<p></p>",
+			})
+		);
 	});
 
 	it("saves what the reader types into the record's draft", async () => {
@@ -292,11 +383,14 @@ describe("sending an email", () => {
 });
 
 describe("the pill", () => {
-	it("hands the email writer to the pill only with the email right", async () => {
-		const shown = (controller: any) =>
-			controller.composer.visible().some((item: any) => item.name === "email");
-		expect(shown(fakeController({ email: 1 }))).toBe(true);
-		expect(shown(fakeController({ email: 0 }))).toBe(false);
+	it("shows Reply only with the email right", async () => {
+		const reply = async (perms: Record<string, number>) => {
+			const { root } = await mountBand(fakeController(perms));
+			expect(root.querySelector("[data-composer-pill]")).not.toBeNull();
+			return root.querySelector("[data-composer-reply]");
+		};
+		expect(await reply({ email: 1 })).not.toBeNull();
+		expect(await reply({ email: 0 })).toBeNull();
 	});
 });
 

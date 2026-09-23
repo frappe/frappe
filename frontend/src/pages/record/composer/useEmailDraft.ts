@@ -16,8 +16,13 @@ type UploadOptions = {
 	onProgress?: (progress: MediaUploadProgress) => void;
 };
 
-/** `transport` hangs each upload, inline media too, on the record; without it they hang on nothing. */
-export function useEmailDraft(doctype: string, docname: string, transport?: UploadTransport) {
+/** `fresh` is what Discard leaves; `transport` hangs each upload on the record, else on nothing. */
+export function useEmailDraft(
+	doctype: string,
+	docname: string,
+	fresh: () => EmailDraft,
+	transport?: UploadTransport
+) {
 	const stored = readEmailDraft(doctype, docname);
 	const from = ref(stored.from);
 	const to = ref(asRecipients(stored.to));
@@ -43,9 +48,14 @@ export function useEmailDraft(doctype: string, docname: string, transport?: Uplo
 		return media;
 	}
 
-	// Discard clears the headers too, so the draft no longer answers an email.
+	// Discard leaves what a plain open of the writer shows; the chosen sender stays.
 	function reset() {
 		resets++;
+		const start = fresh();
+		to.value = asRecipients(start.to);
+		cc.value = asRecipients(start.cc);
+		bcc.value = asRecipients(start.bcc);
+		subject.value = start.subject;
 		inReplyTo = "";
 		attachments.value = [];
 		content.value = EMPTY_BODY;
