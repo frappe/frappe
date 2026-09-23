@@ -21,6 +21,58 @@ frappe.ui.form.Controller = class FormController {
 	}
 };
 
+/**
+ * The trail for a document: its list, the DocType Layout in force, and the document itself.
+ *
+ * Shared by the form view and the print view, because both already hold a `frm`. The print
+ * view's is a plain object rather than a `Form`, so this reads only `doctype`, `doc`, `meta`
+ * and `doctype_layout`.
+ *
+ * The document is the last crumb and carries no link. The print view, which is a page past the
+ * form, puts one back on it.
+ *
+ * @param {Object} frm
+ * @returns {Array<Object>} espresso breadcrumb items
+ */
+frappe.ui.form.get_breadcrumbs = function (frm) {
+	const items = [];
+	const slug = frappe.router.slug(frm.doctype);
+
+	// a single has no list, and a user who cannot manage users cannot open the User list
+	const hide_list =
+		frm.meta.issingle || (frm.doctype === "User" && !frappe.user.has_role("System Manager"));
+
+	if (!hide_list) {
+		// a tree doctype's list opens in whichever view the reader last used
+		const route = frm.meta.is_tree
+			? `${slug}/view/${frappe.model.user_settings[frm.doctype]?.last_view || "Tree"}`
+			: slug;
+		items.push({
+			label: __(frm.doctype),
+			// the layout crumb below filters the list, so the list crumb has to undo that
+			href: `/desk/${route}${frm.doctype_layout ? "?reset_filters=1" : ""}`,
+		});
+	}
+
+	if (frm.doctype_layout) {
+		const filters = frappe.utils.parse_layout_condition_to_filters(
+			frm.doctype_layout.condition
+		);
+		filters._layout = frm.doctype_layout.name;
+		items.push({
+			label: __(frm.doctype_layout.title || frm.doctype_layout.name),
+			href: `/desk/${slug}?${new URLSearchParams(filters)}`,
+		});
+	}
+
+	let title = frappe.model.get_doc_title(frm.doc);
+	title = __(title) || __(frm.doc.name);
+	if (frappe.utils.is_html(title)) title = strip_html(title);
+	items.push({ label: title });
+
+	return items;
+};
+
 frappe.ui.form.Form = class FrappeForm {
 	constructor(doctype, parent, in_form, doctype_layout_name) {
 		this.docname = "";
@@ -596,8 +648,6 @@ frappe.ui.form.Form = class FrappeForm {
 			frappe.after_ajax(function () {
 				me.trigger_link_fields();
 			});
-
-			frappe.breadcrumbs.add(me.meta.module, me.doctype);
 		});
 
 		// update seen
@@ -877,11 +927,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.viewers.refresh();
 
 		this.dashboard.refresh();
-		const _crumb = this.page.legacy_breadcrumbs;
-		if (_crumb) {
-			_crumb.layout_name = this.doctype_layout?.name || null;
-		}
-		this.page.render_breadcrumbs();
+		this.page.set_breadcrumbs(frappe.ui.form.get_breadcrumbs(this));
 
 		this.show_submit_message();
 		this.clear_custom_buttons();
