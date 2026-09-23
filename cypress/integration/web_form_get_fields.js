@@ -27,6 +27,21 @@ const OFFERED = [
 	"roles",
 ];
 
+// every offered field, so the picker opens all-ticked, laid out the way an author would:
+// a break the picker never adds, and two fields in an order the DocType does not have
+const AUTHOR_LAYOUT = [
+	{ fieldname: "kind", fieldtype: "Select", label: "Kind" },
+	{ fieldname: "title", fieldtype: "Data", label: "Title" },
+	// no fieldname, the way the Form Builder writes a break
+	{ fieldtype: "Section Break", label: "Author Section" },
+	{ fieldname: "alpha_note", fieldtype: "Data", label: "Alpha Note" },
+	{ fieldname: "bare_note", fieldtype: "Data", label: "Bare Note" },
+	{ fieldname: "bracket_note", fieldtype: "Data", label: "Bracket Note" },
+	{ fieldname: "scripted_note", fieldtype: "Data", label: "Scripted Note" },
+	{ fieldname: "flagged", fieldtype: "Check", label: "Flagged" },
+	{ fieldname: "roles", fieldtype: "Table MultiSelect", label: "Roles", options: "Has Role" },
+];
+
 // a Web Form is named after its scrubbed title, so passing the route as the title keeps
 // the name and the route the same and the desk URL predictable
 function seed_source_web_form(fields = [], doc_type = SOURCE_DOCTYPE, route = SOURCE_ROUTE) {
@@ -314,6 +329,23 @@ context("Web Form Get Fields", () => {
 
 		// not scroll_to_field: the update lands the author on the canvas it just rebuilt
 		cy.get(CANVAS).should("be.visible");
+	});
+
+	it("Leaves the layout alone when an Update adds nothing", () => {
+		open_picker_on(AUTHOR_LAYOUT);
+
+		// the form carries every offered field, so the picker opens with the whole list
+		// ticked. Update takes no new field, so it asks for nothing and rebuilds nothing.
+		picker().find(":checkbox:not(:checked)").should("not.exist");
+		cy.click_modal_primary_button("Update");
+
+		web_form_fields().should((fields) => {
+			// a break carries no fieldname, so it is named by its type. Comparing the whole
+			// table this way covers the order, the break and where the break sits in one go:
+			// a rebuild would answer with OFFERED plus the doctype's own `more_tab` page.
+			const layout = (rows) => rows.map((d) => d.fieldname || d.fieldtype);
+			expect(layout(fields), "the rows the author left").to.deep.eq(layout(AUTHOR_LAYOUT));
+		});
 	});
 
 	it("Opens on page 1 instead of leaving it blank", () => {

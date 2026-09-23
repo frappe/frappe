@@ -432,8 +432,8 @@ frappe.ui.form.on("Web Form Field", {
 });
 
 // one list of the doctype's fields (no breaks), rows already on the form pre-ticked.
-// Update adds what was ticked and removes the rows that were unticked. With everything
-// ticked, it rebuilds the table in doctype order, breaks included.
+// Update adds what was ticked and removes the rows that were unticked. Ticking everything
+// takes the doctype's own layout too, breaks included, as long as there is something to add.
 class GetFieldsDialog {
 	constructor(frm, fields) {
 		this.frm = frm;
@@ -551,14 +551,13 @@ class GetFieldsDialog {
 		const [first_added] = this.get_new_fields(selected);
 
 		// checkbox state, not a Select All flag: Select All then one untick stays additive.
-		// Taking the whole doctype is the one Update that asks for the doctype's layout too.
-		//
-		// Known limitation: tick count is read as intent, so a form that already carries every
-		// doctype field opens all-ticked, and Update rebuilds even though nothing was changed.
-		// That discards breaks made in the builder, which carry no fieldname and so are never
-		// in `existing_rows`. Accepted for now: recover by reloading without saving.
+		// Taking the whole doctype is the one Update that asks for the doctype's layout too,
+		// but only when it actually takes fields the form does not have: a form that already
+		// carries every doctype field opens all-ticked, and an Update that adds nothing asked
+		// for nothing. Rebuilding it would discard the breaks made in the builder, which carry
+		// no fieldname and so are never in `existing_rows`.
 		const all_ticked = selected.length === this.dialog.get_field("fields").options.length;
-		all_ticked ? this.rebuild_layout(selected) : this.add_and_remove(selected);
+		all_ticked && first_added ? this.rebuild_layout(selected) : this.add_and_remove(selected);
 
 		this.frm.refresh_field("web_form_fields");
 
