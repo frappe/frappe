@@ -56,9 +56,17 @@ context("Web Form Builder", () => {
 		seed_web_form(SINGLE_PAGE_FIELDS);
 		open_builder();
 
-		// like DocType, a single page has no header; page 2 is added from the sidebar
-		cy.get(`${CANVAS} .tab-header`).should("not.exist");
-		cy.get(`${CANVAS} .sidebar-container .new-tab-btn`).should("be.visible").click();
+		// the strip names the page the author is on even before there is a second one
+		cy.get(`${CANVAS} .tab-header .tabs .tab`)
+			.should("have.length", 1)
+			.and("contain.text", "Page 1");
+		// page 1 is implicit, so it has no row to delete and no button offering to
+		cy.get(`${CANVAS} .tab-header .tab:first`)
+			.realHover()
+			.find(".remove-tab-btn")
+			.should("not.exist");
+
+		cy.get(`${CANVAS} .tab-header .tab-actions .new-tab-btn`).should("be.visible").click();
 
 		cy.get(`${CANVAS} .tab-header .tabs .tab`).should("have.length", 2);
 		cy.get(`${CANVAS} .tab-header .tabs .tab:last`).should("contain.text", "Page 2");

@@ -20,6 +20,11 @@ whenever(Backspace, (value) => {
 const dragged = ref(false);
 const selected = computed(() => store.selected(store.current_tab.df.name));
 const has_tabs = computed(() => store.form.layout.tabs.length > 1);
+// a Web Form names the page the author is on from page 1; a DocType only grows a strip
+// once it has two tabs
+const has_tab_strip = computed(() => has_tabs.value || store.is_web_form);
+// page 1 is implicit, so a form with one page has no Page Break row to delete
+const can_remove_tab = computed(() => !store.is_web_form || has_tabs.value);
 store.form.active_tab = store.form.layout.tabs[0].df.name;
 
 function activate_tab(tab) {
@@ -126,9 +131,8 @@ function delete_tab_message(tab) {
 </script>
 
 <template>
-	<div class="tab-header" v-if="store.form.layout.tabs.length > 1">
+	<div class="tab-header" v-if="has_tab_strip">
 		<draggable
-			v-show="has_tabs"
 			class="tabs"
 			v-model="store.form.layout.tabs"
 			group="tabs"
@@ -157,7 +161,7 @@ function delete_tab_message(tab) {
 						v-model="element.df.label"
 					/>
 					<button
-						v-if="!store.is_layout_form"
+						v-if="!store.is_layout_form && can_remove_tab"
 						class="remove-tab-btn btn btn-xs"
 						:title="store.tab_text.remove_title"
 						@click.stop="remove_tab(element, $event)"
@@ -170,14 +174,12 @@ function delete_tab_message(tab) {
 		</draggable>
 		<div class="tab-actions" :hidden="!store.can_edit_layout">
 			<button
-				class="new-tab-btn btn btn-xs"
-				:class="{ 'no-tabs': !has_tabs }"
+				class="new-tab-btn btn btn-xs flex items-center gap-1"
 				:title="store.tab_text.add_title"
 				@click="add_new_tab"
 			>
-				<div class="add-btn-text">
-					{{ store.tab_text.add }}
-				</div>
+				<span v-html="frappe.utils.icon('plus', 'xs')"></span>
+				{{ store.tab_text.add }}
 			</button>
 		</div>
 	</div>
@@ -221,7 +223,6 @@ function delete_tab_message(tab) {
 <style lang="scss" scoped>
 .tab-header {
 	display: flex;
-	justify-content: space-between;
 	min-height: 42px;
 	align-items: center;
 	background-color: var(--fg-color);
@@ -232,32 +233,32 @@ function delete_tab_message(tab) {
 
 	.tabs {
 		display: flex;
-		flex: 1;
+		// only as wide as the tabs, so the add button sits beside the last one and the
+		// strip scrolls only once it runs out of room
+		flex: 0 1 auto;
 		overflow-x: auto;
-		width: 0px;
+		min-width: 0;
 	}
 
 	.tab-actions {
 		margin-right: 20px;
+		flex: none;
 
+		// reads as one more tab, not a button: no fill, only the text colour lifts
 		.btn {
-			background-color: var(--control-bg);
-			padding: 2px;
-			margin-left: 4px;
+			background-color: transparent;
 			box-shadow: none;
+			color: var(--text-muted);
+			// the plus follows the text colour in both themes
+			--icon-stroke: currentColor;
 
-			.add-btn-text {
-				padding: 4px 8px;
+			&:hover,
+			&:focus,
+			&:active {
+				background-color: transparent;
+				box-shadow: none;
+				color: var(--text-color);
 			}
-
-			&:hover {
-				background-color: var(--btn-default-hover-bg);
-			}
-		}
-
-		.no-tabs {
-			opacity: 1;
-			margin-left: 15px;
 		}
 	}
 

@@ -40,9 +40,15 @@ function resize(e) {
 	<div class="sidebar-container" :style="{ width: `${sidebar_width}px` }">
 		<FieldProperties v-if="store.form.selected_field" />
 		<div class="default-state" v-else>
+			<!-- only a DocType needs this: a Web Form's page strip is on screen from page 1,
+			     and carries its own Add Page button -->
 			<div
 				class="actions"
-				v-if="store.form.layout.tabs.length == 1 && store.can_edit_layout"
+				v-if="
+					!store.is_web_form &&
+					store.form.layout.tabs.length == 1 &&
+					store.can_edit_layout
+				"
 			>
 				<button
 					class="new-tab-btn btn btn-default btn-xs"
