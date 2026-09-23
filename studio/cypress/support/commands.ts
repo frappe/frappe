@@ -23,24 +23,15 @@ Cypress.Commands.overwrite("request", (originalFn, options: any) => {
 	return originalFn({ ...options, headers: { ...siteHeader(), ...options.headers } })
 })
 
+// Unlike frappe's, this logs in on every call: component specs can't use cy.session, and
+// Cypress clears the session cookie between tests
 Cypress.Commands.add("login", (email?: string, password?: string) => {
-	email = email || "Administrator"
 	return cy.env(["adminPassword"]).then(({ adminPassword }) => {
-		password = password || adminPassword
-		cy.session(
-			[Cypress.expose("site"), email, password],
-			() => {
-				cy.request({ url: "/api/method/login", method: "POST", body: { usr: email, pwd: password } })
-			},
-			{
-				// a restored session whose cookie no longer authenticates would make every call a 403
-				validate() {
-					cy.request({ url: "/api/method/frappe.auth.get_logged_user", failOnStatusCode: false })
-						.its("status")
-						.should("eq", 200)
-				},
-			},
-		)
+		cy.request({
+			url: "/api/method/login",
+			method: "POST",
+			body: { usr: email || "Administrator", pwd: password || adminPassword },
+		})
 		// the app's own fetches go through the proxy too
 		cy.intercept("/api/**", (request) => {
 			Object.assign(request.headers, siteHeader())
