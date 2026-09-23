@@ -1,7 +1,4 @@
-<!--
-  The open writer: docked in its record's band, or floating over the shell so it outlives the page.
-  One instance moves between the two places; docking and floating never draw it anew.
--->
+<!-- The open writer, docked in its record's band or floating over the shell across pages. -->
 <template>
 	<div ref="shellSlot" class="contents" data-composer-slot />
 	<Teleport v-if="target && writer" :to="target">
