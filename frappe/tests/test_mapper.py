@@ -45,14 +45,21 @@ class TestMapper(IntegrationTestCase):
 	def test_get_mapped_doc_accepts_dict_parent(self):
 		from frappe.model.mapper import get_mapped_doc
 
-		note = frappe.get_doc({"doctype": "Note", "title": "Mapper Source Note for Parent"}).insert()
-		parent = frappe.new_doc("Note").as_dict()
+		with self.set_user("test@example.com"):
+			note = frappe.get_doc({"doctype": "Note", "title": "Mapper Source Note for Parent"}).insert()
+			parent = frappe.new_doc("Contact").as_dict()
 
-		doc = get_mapped_doc(
-			"Note",
-			note.name,
-			{"Note": {"doctype": "Note Seen By", "on_parent": parent, "field_map": {"owner": "user"}}},
-		)
+			doc = get_mapped_doc(
+				"Note",
+				note.name,
+				{
+					"Note": {
+						"doctype": "Contact Email",
+						"on_parent": parent,
+						"field_map": {"owner": "email_id"},
+					}
+				},
+			)
 
-		self.assertEqual(doc.doctype, "Note")
-		self.assertEqual(doc.seen_by[0].user, note.owner)
+		self.assertEqual(doc.doctype, "Contact")
+		self.assertEqual(doc.email_ids[0].email_id, "test@example.com")
