@@ -1,16 +1,23 @@
 const FULL_HEIGHT_PAGE_CLASS = "full-height-page";
 
 // the builder wants the canvas width, and the sidebar folds to its icon rail, so it
-// arrives folded and is put back the way it was found on the way out
+// arrives folded and is put back the way it was found on the way out. `on_page_show`
+// runs again for every format opened without leaving the page, so the state is read
+// once and kept until the matching hide.
+let folded_sidebar = false;
 let restore_sidebar = false;
 
 function collapse_sidebar() {
 	const sidebar = frappe.app?.sidebar;
-	restore_sidebar = !!sidebar?.sidebar_expanded;
+	if (!sidebar || folded_sidebar) return;
+	folded_sidebar = true;
+	restore_sidebar = !!sidebar.sidebar_expanded;
 	if (restore_sidebar) sidebar.close();
 }
 
 function restore_sidebar_state() {
+	if (!folded_sidebar) return;
+	folded_sidebar = false;
 	if (!restore_sidebar) return;
 	restore_sidebar = false;
 	frappe.app?.sidebar?.open();
