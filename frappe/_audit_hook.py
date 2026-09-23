@@ -87,7 +87,7 @@ def setup_audit_hook() -> None:
 	verify = ssl.get_default_verify_paths()
 	read_paths += (verify.cafile, verify.capath, verify.openssl_cafile, verify.openssl_capath)
 
-	read_paths += map(shutil.which, ("wkhtmltopdf", "chromium", "node", "yarn"))
+	read_paths += (shutil.which(binary) for binary in ("wkhtmltopdf", "chromium", "node", "yarn"))
 
 	read_paths += (path for path in mimetypes.knownfiles if os.path.isfile(path))
 
@@ -243,6 +243,8 @@ def handle_violation(event: str, path: str) -> None:
 				f"Unsafe {event} on {path!r} (resolved to {os.path.realpath(path)!r}), "
 				f"mode={mode.value}, site={getattr(frappe.local, 'site', None)}"
 			)
+		except OSError:
+			pass
 		finally:
 			_recursion_guard.is_active = False
 
