@@ -29,7 +29,14 @@ export function useRecordTabs({ route, router, controller, formTab }: RecordTabs
     if (next) void controller()?.fireEvent("onFormTabChange");
   });
 
-  return { host, entries, shown };
+  // The page engine's tab members, as the page hands them to `createRecordPage`.
+  const pageHost = {
+    activeTab: () => host.active(),
+    activateTab: (name: string) => void host.activate(name),
+    activeFormTab: () => host.formTab(formTab()),
+  };
+
+  return { host, entries, shown, pageHost };
 }
 
 /** Calls `moved` when the shown tab changes within one page: never on a page's first tab. */

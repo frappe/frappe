@@ -21,6 +21,7 @@ export function recordTabBuiltins(): TabItem[] {
 export class RecordTabsHost {
   // The reader's tab, set at once by a move: the router settles a tick later, and the strip must not paint the old tab.
   private readonly wanted: Ref<string>;
+  private focusClaim = "";
 
   constructor(
     private readonly route: RouteLocationNormalizedLoaded,
@@ -46,9 +47,17 @@ export class RecordTabsHost {
 
   /** A `replace`: the open tab is view state, not a step in the reader's history. An arrow, so a template can pass it bare. */
   activate = (name: string) => {
+    this.focusClaim = "";
     this.wanted.value = name;
     const to = { query: { ...this.route.query, tab: name }, hash: this.route.hash };
-    return this.router.replace(to).catch(() => {});
+    return this.router.replace(to).catch((error) => console.error(error));
+  };
+
+  /** True once after `page.fields.focus` moved the reader to this tab, since that path places focus itself. */
+  claimsFocus = (name: string) => {
+    const claimed = this.focusClaim === name;
+    this.focusClaim = "";
+    return claimed;
   };
 
   /** Holds the painted tab when the address names none on the strip, so a later reorder never moves the reader. */
@@ -73,7 +82,9 @@ export class RecordTabsHost {
       warn(`page.fields.focus("${fieldname}") — the Details tab is hidden, so the reader was not moved.`);
       return false;
     }
-    await this.activate(DETAILS_TAB);
+    const moved = this.activate(DETAILS_TAB);
+    this.focusClaim = DETAILS_TAB;
+    await moved;
     return true;
   }
 

@@ -1,6 +1,6 @@
 // The strip over the tab bodies: a skeleton until the first replay, a body that stays mounted after its first visit, and its focus.
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick, reactive, shallowRef } from "vue";
+import { createApp, defineComponent, h, nextTick, reactive } from "vue";
 
 const strips: unknown[] = [];
 
@@ -53,8 +53,9 @@ async function mount(
   active: string,
   ready = true,
   onSelect?: (name: string) => unknown,
+  claimsFocus?: (name: string) => boolean,
 ) {
-  const state = reactive({ tabs, active, ready, page });
+  const state = reactive({ tabs, active, ready, page, claimsFocus });
   const selected: string[] = [];
   const root = document.createElement("div");
   document.body.appendChild(root);
@@ -246,5 +247,39 @@ describe("focus", () => {
     await frame();
 
     expect(document.activeElement).toBe(input);
+  });
+
+  it("leaves focus on an input outside the column when a script moves the reader", async () => {
+    const { root, state } = await mount(FOUR, "details");
+    root.querySelector<HTMLInputElement>("[data-field]")!.focus();
+    state.active = "activity";
+    await nextTick();
+    const outside = document.createElement("input");
+    document.body.appendChild(outside);
+    outside.focus();
+
+    state.active = "details";
+    await nextTick();
+    await frame();
+
+    expect(document.activeElement).toBe(outside);
+  });
+
+  it("leaves focus alone when the page placed it on the move", async () => {
+    const claimed: string[] = [];
+    const claimsFocus = (name: string) => (claimed.push(name), true);
+    const { root, state } = await mount(FOUR, "details", true, undefined, claimsFocus);
+    const input = root.querySelector<HTMLInputElement>("[data-field]")!;
+    input.focus();
+    state.active = "activity";
+    await nextTick();
+    input.blur();
+
+    state.active = "details";
+    await nextTick();
+    await frame();
+
+    expect(claimed).toEqual(["activity", "details"]);
+    expect(document.activeElement).toBe(document.body);
   });
 });

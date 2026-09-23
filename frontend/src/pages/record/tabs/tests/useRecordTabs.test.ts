@@ -53,8 +53,7 @@ function makePage(query: Record<string, string> = {}) {
       meta: ref(null),
       perms: () => ({}),
       isDirty: () => false,
-      activeTab: () => tabs.host.active(),
-      activateTab: (name) => void tabs.host.activate(name),
+      ...tabs.pageHost,
       save: async () => {},
       reload: async () => {},
       router,
@@ -246,5 +245,19 @@ describe("the tab events", () => {
     await settle();
 
     expect(fired).toBe(0);
+  });
+
+  it("reads `page.form.tabs.active` as the form's tab on Details and as nothing elsewhere", async () => {
+    const page = makePage({ tab: "details" });
+    await page.open();
+    page.formTab.value = "lead_details";
+    await settle();
+    const formTabs = page.controller.value!.page.form.tabs;
+    expect(formTabs.active).toBe("lead_details");
+
+    await page.tabs.host.activate("activity");
+    await settle();
+
+    expect(formTabs.active).toBe("");
   });
 });

@@ -2,23 +2,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { effectScope, nextTick, reactive, ref, shallowRef, type EffectScope } from "vue";
 
-vi.mock("frappe-ui", () => ({
-  call: vi.fn(),
-  toast: { success: vi.fn(), error: vi.fn() },
-  createResource: () => ({ data: null, loading: false, fetch() {}, reload() {} }),
-  frappeRequest: vi.fn(),
-}));
-vi.mock("@framework/ui/api", () => ({
-  runMethod: vi.fn(async () => ({ data: null })),
-  getMeta: vi.fn(async () => ({ data: null })),
-}));
-
-import { createRecordPage, type RecordPageController } from "@/recordPage/createRecordPage";
-import { registerRecordPage, resetRegistry } from "@/recordPage/registry";
 import { Surface } from "@/recordPage/surface";
 import { TAB_ITEM_KEYS, type TabItem } from "@/recordPage/types";
 import { recordTabBuiltins, RecordTabsHost } from "../recordTabs";
-import { useRecordTabs, watchShownTab } from "../useRecordTabs";
+import { watchShownTab } from "../useRecordTabs";
 
 /** A route and a router whose `replace` lands on the next tick, as vue-router's does. */
 function makeAddress(query: Record<string, string> = {}, hash = "") {
@@ -43,13 +30,15 @@ let warnings: string[];
 let scope: EffectScope;
 
 beforeEach(() => {
-  resetRegistry();
   warnings = [];
   scope = effectScope();
   vi.spyOn(console, "warn").mockImplementation((message: string) => warnings.push(message));
 });
 
-afterEach(() => scope.stop());
+afterEach(() => {
+  scope.stop();
+  vi.restoreAllMocks();
+});
 
 describe("the built-ins", () => {
   it("seeds four tabs in order, Activity first", () => {
@@ -137,11 +126,16 @@ describe("moving the reader", () => {
     expect(route.query.tab).toBe("files");
   });
 
-  it("swallows a refused navigation", async () => {
+  it("logs a navigation a guard refuses by throwing, and keeps the reader's tab", async () => {
     const { host, router } = makeHost();
-    router.replace.mockRejectedValueOnce(new Error("aborted"));
+    const failure = new Error("guard threw");
+    router.replace.mockRejectedValueOnce(failure);
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
 
-    await expect(host.activate("files")).resolves.toBeUndefined();
+    await host.activate("files");
+
+    expect(errors).toHaveBeenCalledWith(failure);
+    expect(host.active()).toBe("files");
   });
 
   it("shows the new tab before the router settles", () => {
@@ -149,6 +143,7 @@ describe("moving the reader", () => {
 
     void host.activate("files");
 
+    expect(host.shown()).toBe("files");
     expect(host.active()).toBe("files");
   });
 
@@ -170,6 +165,24 @@ describe("a field focus", () => {
 
     expect(host.active()).toBe("details");
     expect(router.replace).toHaveBeenCalledTimes(1);
+  });
+
+  it("claims focus for Details once, so the strip leaves focus to the field's own landing", async () => {
+    const { host } = makeHost({ tab: "files" });
+
+    await host.showDetails("amount");
+
+    expect(host.claimsFocus("details")).toBe(true);
+    expect(host.claimsFocus("details")).toBe(false);
+  });
+
+  it("drops the claim when another move comes first", async () => {
+    const { host } = makeHost({ tab: "files" });
+    void host.showDetails("amount");
+
+    void host.activate("emails");
+
+    expect(host.claimsFocus("details")).toBe(false);
   });
 
   it("leaves the address alone when the reader is already on Details", async () => {

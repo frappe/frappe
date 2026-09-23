@@ -216,7 +216,8 @@ What `page` is _for_ is a small, closed vocabulary:
   and rebuilt is a first paint again: returning to the details tab restores where the reader
   was without announcing it, because that move is the *record* strip's and `onTabChange`
   has already reported it. A script that wants the tab on load reads `page.form.tabs.active`
-  in `onRefresh` — which is what "state lives on `page`" is for.
+  in `onRefresh` while the reader is on Details — which is what "state lives on `page`" is
+  for.
 - **One rule for a handler's arguments: its key decides them.** A top-level key gets
   `(page)`; one nested under a table gets `(page, row)`, except `onRemove`, whose
   row is gone. The row is an address, not a payload — `page.rows('products')`

@@ -52,6 +52,7 @@
 						:active="shownTab"
 						:ready="controller.ready.value"
 						:page="controller.page"
+						:claimsFocus="tabsHost.claimsFocus"
 						@select="tabsHost.activate"
 					>
 						<template #details>
@@ -144,9 +145,9 @@ import { routeFor } from "@/router/routeFor";
 import BodyColumns from "./record/body/BodyColumns.vue";
 import FrameBands from "./record/FrameBands.vue";
 import RecordHeader from "./record/RecordHeader.vue";
-import RecordTabs from "./record/RecordTabs.vue";
-import { recordTabBuiltins } from "./record/recordTabs";
-import { useRecordTabs } from "./record/useRecordTabs";
+import RecordTabs from "./record/tabs/RecordTabs.vue";
+import { recordTabBuiltins } from "./record/tabs/recordTabs";
+import { useRecordTabs } from "./record/tabs/useRecordTabs";
 import PageDialogs from "./record/dialogs/PageDialogs.vue";
 import { formTabMemory } from "./record/formTabMemory";
 import { fetchMeta } from "./record/metaSource";
@@ -274,6 +275,7 @@ const {
 	host: tabsHost,
 	entries: tabEntries,
 	shown: shownTab,
+	pageHost: tabsPageHost,
 } = useRecordTabs({
 	route,
 	router,
@@ -478,10 +480,8 @@ async function load() {
 		meta,
 		perms: () => docinfo.value?.permissions ?? {},
 		isDirty: () => dirty.value,
-		activeTab: () => tabsHost.active(),
-		activateTab: (name) => void tabsHost.activate(name),
+		...tabsPageHost,
 		formLayout: () => detailsForm.value,
-		activeFormTab: () => tabsHost.formTab(activeFormTab.value),
 		activateFormTab: (identity) => void (formTab.value = identity),
 		discloseSection: disclosure.disclose,
 		focusField: (fieldname, cursor) => void focusOnDetails(fieldname, cursor),

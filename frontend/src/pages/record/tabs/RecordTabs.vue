@@ -13,8 +13,10 @@
 			v-else-if="stripTabs.length"
 			ref="stripRoot"
 			class="shrink-0 px-[--page-gutter]"
-			@pointerdown="strip.pointer = true"
-			@click="strip.pointer = false"
+			@pointerdown="pointerPressed = true"
+			@pointercancel="pointerPressed = false"
+			@pointerleave="pointerPressed = false"
+			@click="pointerPressed = false"
 		>
 			<Tabs
 				:modelValue="active"
@@ -57,6 +59,8 @@ const props = defineProps<{
 	active: string;
 	ready: boolean;
 	page: RecordPageApi;
+	/** True once when the page placed focus itself on the move to this tab. */
+	claimsFocus?: (name: string) => boolean;
 }>();
 
 const emit = defineEmits<{ select: [name: string] }>();
@@ -64,8 +68,7 @@ const emit = defineEmits<{ select: [name: string] }>();
 const visited = reactive(new Set<string>());
 const focused = new Map<string, HTMLElement>();
 const stripRoot = ref<HTMLElement | null>(null);
-// Whether the next move comes from a click on the strip.
-const strip = { pointer: false };
+let pointerPressed = false;
 
 // `iconLeft`: frappe-ui draws a tab with `icon` and a label as an icon alone.
 const stripTabs = computed(() =>
@@ -82,7 +85,7 @@ watch(
 	([page, name], previous) => {
 		if (page !== previous?.[0]) forgetBodies();
 		if (name) visited.add(name);
-		if (previous?.[1] !== undefined && name) returnFocus(name);
+		if (previous?.[1] !== undefined && name) returnFocus(name, previous[1]);
 	},
 	{ immediate: true }
 );
@@ -92,14 +95,22 @@ function forgetBodies() {
 	focused.clear();
 }
 
-// Arrow keys on the strip keep focus there; a click or a script's move puts it back in the body.
-function returnFocus(name: string) {
-	const fromKeyboard = !strip.pointer && !!stripRoot.value?.contains(document.activeElement);
-	strip.pointer = false;
-	if (fromKeyboard) return;
+// Arrow keys on the strip keep focus there; focus elsewhere on the page stays where the reader put it.
+function returnFocus(name: string, left: string) {
+	const pointer = pointerPressed;
+	pointerPressed = false;
+	if (props.claimsFocus?.(name) || !mayTakeFocus(pointer, left)) return;
 	requestAnimationFrame(() => {
 		const target = focused.get(name);
 		if (target?.isConnected && name === props.active) target.focus({ preventScroll: true });
 	});
+}
+
+function mayTakeFocus(pointer: boolean, left: string) {
+	const current = document.activeElement;
+	if (pointer) return true;
+	if (stripRoot.value?.contains(current)) return false;
+	if (!current || current === document.body) return true;
+	return current.closest("[data-record-tab]")?.getAttribute("data-record-tab") === left;
 }
 </script>
