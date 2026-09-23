@@ -598,12 +598,10 @@ async function runAction(action: QuickAction | HeaderItem) {
 	}
 }
 
-/** The host's half of `page.fields.focus`: Details, then the field's tab, the scroll and the cursor. */
 async function focusOnDetails(fieldname: string, cursor: boolean) {
 	if (await tabsHost.showDetails(fieldname)) await landOn(fieldname, cursor);
 }
 
-/** The field's form tab, then the scroll, then the cursor. */
 async function landOn(fieldname: string, cursor: boolean) {
 	const tab = identifyTabs(form.value).find((one) =>
 		one.sections.some((section) =>

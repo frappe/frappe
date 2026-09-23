@@ -7,7 +7,7 @@ import { __ } from "@/i18n";
 
 export const DETAILS_TAB = "details";
 
-/** Every doctype's strip, in order; a script hides what its doctype does not need. */
+/** No doctype condition: a script hides what its doctype does not need. */
 export function recordTabBuiltins(): TabItem[] {
   return [
     { name: "activity", label: __("Activity"), icon: "lucide-activity" },
@@ -17,7 +17,6 @@ export function recordTabBuiltins(): TabItem[] {
   ];
 }
 
-/** Which record tab shows, and the `?tab=` that keeps it across a reload. */
 export class RecordTabsHost {
   // The reader's tab, set at once by a move: the router settles a tick later, and the strip must not paint the old tab.
   private readonly wanted: Ref<string>;
@@ -40,7 +39,7 @@ export class RecordTabsHost {
     return this.pick(this.tabs()?.visibleInReplay() ?? []);
   }
 
-  /** The tab the strip paints, from committed state alone. */
+  /** Committed state only: a read during a replay would stop tracking the commit. */
   shown(): string {
     return this.pick(this.tabs()?.visible() ?? []);
   }
@@ -65,12 +64,11 @@ export class RecordTabsHost {
     if (shown && !this.onStrip(this.wanted.value)) this.wanted.value = shown;
   }
 
-  /** A new page follows the address alone. */
   reset() {
     this.wanted.value = queryTab(this.route.query.tab);
   }
 
-  /** The form strip's tab while the reader is on Details, else `""`: the reader is not in the form. */
+  /** `""` off Details: the reader is not in the form. */
   formTab(identity: string) {
     return this.active() === DETAILS_TAB ? identity : "";
   }
@@ -88,7 +86,6 @@ export class RecordTabsHost {
     return true;
   }
 
-  /** A script hid the tab the reader was on, so the strip moved them, or has nothing left to show. */
   warnIfHidden(previous: string, next: string) {
     if (!this.onStrip(previous) || this.tabs()?.visible().some((tab) => tab.name === previous)) return;
     const outcome = next ? "they moved to the first visible tab" : "no tab is left to show";

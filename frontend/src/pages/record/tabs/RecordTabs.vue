@@ -59,7 +59,7 @@ const props = defineProps<{
 	active: string;
 	ready: boolean;
 	page: RecordPageApi;
-	/** True once when the page placed focus itself on the move to this tab. */
+	/** The page placed focus itself on this move, so the strip must not return it. */
 	claimsFocus?: (name: string) => boolean;
 }>();
 

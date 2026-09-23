@@ -137,7 +137,6 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 			.map((entry) => entry.item);
 	}
 
-	/** The visible items as the replay in flight would render them, read the way `has` reads. */
 	visibleInReplay(): Item[] {
 		return this.fold(this.pending ?? this.ops)
 			.filter((entry) => !entry.hidden)

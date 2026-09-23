@@ -8,7 +8,6 @@ export interface RecordTabsOptions {
   route: RouteLocationNormalizedLoaded;
   router: Router;
   controller: () => RecordPageController | null;
-  /** The tab the Details form reports it is on. */
   formTab: () => string;
 }
 
@@ -29,7 +28,6 @@ export function useRecordTabs({ route, router, controller, formTab }: RecordTabs
     if (next) void controller()?.fireEvent("onFormTabChange");
   });
 
-  // The page engine's tab members, as the page hands them to `createRecordPage`.
   const pageHost = {
     activeTab: () => host.active(),
     activateTab: (name: string) => void host.activate(name),
@@ -39,7 +37,7 @@ export function useRecordTabs({ route, router, controller, formTab }: RecordTabs
   return { host, entries, shown, pageHost };
 }
 
-/** Calls `moved` when the shown tab changes within one page: never on a page's first tab. */
+/** Never on a page's first tab: a first paint is not a change. */
 export function watchShownTab(
   page: () => unknown,
   shown: () => string,
