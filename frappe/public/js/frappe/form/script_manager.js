@@ -76,6 +76,12 @@ frappe.ui.form.trigger = function (doctype, fieldname) {
 	cur_frm.script_manager.trigger(fieldname, doctype);
 };
 
+frappe.ui.form.set_controller = function (doctype, ControllerClass) {
+	if (cur_frm && cur_frm.doctype === doctype) {
+		cur_frm.script_manager.make(ControllerClass);
+	}
+};
+
 frappe.ui.form.ScriptManager = class ScriptManager {
 	constructor(opts) {
 		$.extend(this, opts);
