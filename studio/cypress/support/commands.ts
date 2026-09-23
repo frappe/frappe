@@ -8,7 +8,7 @@ declare global {
 			login(email?: string, password?: string): Chainable<void>
 			call(method: string, args?: object): Chainable<any>
 			get_doc(doctype: string, name: string): Chainable<any>
-			insert_doc(doctype: string, args: object): Chainable<any>
+			insert_doc(doctype: string, args: object, ignore_duplicate?: boolean): Chainable<any>
 			update_doc(doctype: string, docname: string, args: object): Chainable<any>
 			remove_doc(doctype: string, name: string, ignore_missing?: boolean): Chainable<any>
 		}
@@ -53,11 +53,16 @@ Cypress.Commands.add("get_doc", (doctype: string, name: string) => {
 	})
 })
 
-Cypress.Commands.add("insert_doc", (doctype: string, args: object) => {
+Cypress.Commands.add("insert_doc", (doctype: string, args: object, ignore_duplicate?: boolean) => {
 	return cy
-		.request({ url: `/api/resource/${doctype}`, method: "POST", body: { doctype, ...args } })
+		.request({
+			url: `/api/resource/${doctype}`,
+			method: "POST",
+			body: { doctype, ...args },
+			failOnStatusCode: !ignore_duplicate,
+		})
 		.then((response) => {
-			expect(response.status).eq(200)
+			expect(response.status).to.be.oneOf(ignore_duplicate ? [200, 409] : [200])
 			return response.body.data
 		})
 })

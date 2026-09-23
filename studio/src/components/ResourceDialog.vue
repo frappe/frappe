@@ -114,7 +114,7 @@
 									}
 								}
 							"
-							:options="sortFields.data"
+							:options="sortFields.data || []"
 							class="w-full"
 						/>
 						<FormControl
@@ -162,7 +162,7 @@
 						label="Whitelisted Methods"
 						type="multiselect"
 						v-model="newResource.whitelisted_methods"
-						:options="whitelistedMethods.data"
+						:options="whitelistedMethods.data || []"
 					/>
 				</template>
 

@@ -40,9 +40,8 @@ describe("data source editor", () => {
 		cy.intercept("/api/method/studio.api.get_doctype_fields*").as("getDocTypeFields")
 		cy.intercept("/api/method/studio.api.get_sort_fields*").as("getSortFields")
 		cy.intercept("/api/method/studio.api.get_whitelisted_methods*").as("getWhitelistedMethods")
-		// a fresh app per test; deleting it also deletes the previous test's page
-		cy.remove_doc("Studio App", APP_NAME, true)
-		cy.insert_doc("Studio App", { app_name: APP_NAME, app_title: "Cypress Data Sources" })
+		// pages stay until after(): a data source from an earlier test may still refetch its page
+		cy.insert_doc("Studio App", { app_name: APP_NAME, app_title: "Cypress Data Sources" }, true)
 		cy.insert_doc("Studio Page", { studio_app: APP_NAME }).then((createdPage) => {
 			page = createdPage
 			saveUserList("users", ["email", "full_name"])
@@ -85,7 +84,7 @@ describe("data source editor", () => {
 			field("Data Source Name").type("admin")
 			chooseOption("Type", "Document")
 			chooseDocType("User")
-			cy.get("[role='dialog']").contains("label", "Dynamically fetch document using filters").click()
+			cy.get("[role='dialog']").contains("Dynamically fetch document using filters").click()
 			submit("Add")
 			cy.contains("Please set Filters").should("be.visible")
 		})
@@ -164,9 +163,10 @@ describe("data source editor", () => {
 		})
 	})
 
+	// these data sources aren't fetched (auto 0): the server rejects a query for fields the doctype no longer has
 	describe("fields removed from the doctype", () => {
 		it("warns about the missing field and keeps it out of the summary", () => {
-			saveUserList("staleUsers", ["email", "deleted_field", "full_name"])
+			saveUserList("staleUsers", ["email", "deleted_field", "full_name"], 0)
 			openDataSource("staleUsers")
 
 			cy.contains("deleted_field is no longer a field on User.").should("be.visible")
@@ -178,13 +178,13 @@ describe("data source editor", () => {
 		})
 
 		it("pluralises the warning for several missing fields", () => {
-			saveUserList("staleUsers", ["email", "deleted_field", "another_deleted_field"])
+			saveUserList("staleUsers", ["email", "deleted_field", "another_deleted_field"], 0)
 			openDataSource("staleUsers")
 			cy.contains("deleted_field, another_deleted_field are no longer fields on User.").should("be.visible")
 		})
 
 		it("removes missing fields and saves only the valid ones", () => {
-			saveUserList("staleUsers", ["email", "deleted_field", "full_name"])
+			saveUserList("staleUsers", ["email", "deleted_field", "full_name"], 0)
 			openDataSource("staleUsers")
 			cy.get("[role='dialog']").contains("button", "Remove").click()
 			cy.contains("no longer a field").should("not.exist")
@@ -207,8 +207,9 @@ describe("data source editor", () => {
 		})
 	}
 
-	function saveUserList(resource_name: string, fields: string[]) {
+	function saveUserList(resource_name: string, fields: string[], auto = 1) {
 		saveDataSource({
+			auto,
 			resource_name,
 			resource_type: "Document List",
 			document_type: "User",
@@ -262,7 +263,9 @@ const field = (label: string) =>
 		.then((id) => cy.get(`[id="${id}"]`))
 const chooseOption = (label: string, option: string) => {
 	field(label).click()
-	cy.get("[role='option']").contains(option).click()
+	cy.get("[role='option']")
+		.contains(new RegExp(`^${option}$`))
+		.click()
 }
 const chooseDocType = (doctype: string) => {
 	field("Document Type").type(doctype)
