@@ -1,5 +1,9 @@
 import type { Ref } from "vue";
-import { getSocketInstance, subscribeToDoc } from "../../socket";
+import {
+  getSocketInstance,
+  subscribeToDoc,
+  type RealtimeSocket,
+} from "../../socket";
 import type { Activity, UserInfo } from "./types";
 import { getAssignee, stripHtml } from "./utils";
 
@@ -12,9 +16,6 @@ export interface LiveFeed {
 export type Unsubscribe = () => void;
 export type Subscribe = () => Unsubscribe;
 
-// realtime is off, so there is nothing to join and nothing to leave
-const noLiveUpdates: Subscribe = () => () => {};
-
 /** Returns subscribe(): the first caller wires the socket, the last unwires it. */
 export function createLiveUpdates(
   doctype: string,
@@ -23,9 +24,6 @@ export function createLiveUpdates(
   visibleTypes: string[] | undefined,
   refresh: () => Promise<void>
 ): Subscribe {
-  const socket = getSocketInstance();
-  if (!socket) return noLiveUpdates;
-
   // The payload has no avatar, so reuse an author already resolved in the feed.
   const resolveAuthor = (email: string | undefined, fallback: UserInfo) => {
     if (!email) return fallback;
@@ -88,11 +86,17 @@ export function createLiveUpdates(
 
   let subscribers = 0;
   let leaveRoom: (() => void) | undefined;
+  // Read at the first mount, not here: a prefetch builds the store outside any setup.
+  let socket: RealtimeSocket | null | undefined;
 
   return function subscribe() {
+    if (socket === undefined) socket = getSocketInstance() ?? null;
+    // realtime is off, so there is nothing to join and nothing to leave
+    if (!socket) return () => {};
+    const live = socket;
     if (++subscribers === 1) {
-      leaveRoom = subscribeToDoc(socket, doctype, docname);
-      for (const event in handlers) socket.on(event, handlers[event]);
+      leaveRoom = subscribeToDoc(live, doctype, docname);
+      for (const event in handlers) live.on(event, handlers[event]);
       // nobody was listening while this was closed, so the feed may have moved
       if (feed.fetched.value) refresh();
     }
@@ -104,7 +108,7 @@ export function createLiveUpdates(
       if (--subscribers > 0) return;
       leaveRoom?.();
       leaveRoom = undefined;
-      for (const event in handlers) socket.off(event, handlers[event]);
+      for (const event in handlers) live.off(event, handlers[event]);
     };
   };
 }
