@@ -44,6 +44,7 @@ export default defineConfig({
 			"plugin/tests/*.test.ts",
 			"../ui/src/api/tests/*.test.ts",
 			"../ui/src/components/ActivityTimeline/tests/*.test.ts",
+			"../ui/src/experimental/List/tests/useVirtualRows.test.ts",
 		],
 		server: {
 			deps: {
