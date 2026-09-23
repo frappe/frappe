@@ -21,7 +21,7 @@ async function mount(openAtBottom = true, ready = true) {
 	const paginate = reactive({
 		hasNextPage: true,
 		isFetchingNextPage: false,
-		fetchNextPage: vi.fn(async () => {}),
+		fetchNextPage: vi.fn(() => new Promise<void>(() => {})),
 	});
 	const root = document.createElement("div");
 	document.body.appendChild(root);
@@ -36,7 +36,9 @@ async function mount(openAtBottom = true, ready = true) {
 	app.mount(root);
 	apps.push(app);
 	await nextTick();
-	const scroller = root.querySelector<HTMLElement>("[data-record-feed] > .overflow-y-auto")!;
+	const scroller = root.querySelector<HTMLElement>(
+		"[data-record-feed] [data-reka-scroll-area-viewport]"
+	)!;
 	return { root, state, paginate, scroller, geometry: fake(scroller) };
 }
 
@@ -113,6 +115,29 @@ describe("RecordFeed", () => {
 		expect(paginate.fetchNextPage).toHaveBeenCalledTimes(2);
 	});
 
+	it("reads the next older page at once when one lands with no rows near the top", async () => {
+		const { paginate, scroller, geometry } = await mount();
+		Object.assign(geometry, { scrollHeight: 3000, clientHeight: 500 });
+		const reads = storeReads(paginate, 2);
+
+		scrollTo(scroller, geometry, 100);
+		await settle();
+
+		expect(reads.started).toBe(2);
+	});
+
+	it("waits for a scroll when the reader has moved away before the page lands", async () => {
+		const { paginate, scroller, geometry } = await mount();
+		Object.assign(geometry, { scrollHeight: 3000, clientHeight: 500 });
+		const reads = storeReads(paginate, 2);
+
+		scrollTo(scroller, geometry, 100);
+		geometry.scrollTop = 1500;
+		await settle();
+
+		expect(reads.started).toBe(1);
+	});
+
 	it("never pages from a hidden tab, which has no height", async () => {
 		const { paginate, scroller, geometry } = await mount();
 		geometry.scrollHeight = 3000;
@@ -122,3 +147,32 @@ describe("RecordFeed", () => {
 		expect(paginate.fetchNextPage).not.toHaveBeenCalled();
 	});
 });
+
+// The store's shape: calls share one read, which clears only after `isFetchingNextPage` drops.
+interface Pages {
+	hasNextPage: boolean;
+	isFetchingNextPage: boolean;
+	fetchNextPage: () => Promise<void>;
+}
+
+function storeReads(paginate: Pages, last: number) {
+	const reads = { started: 0 };
+	let inFlight: Promise<void> | undefined;
+	paginate.fetchNextPage = () => {
+		if (inFlight) return inFlight;
+		reads.started++;
+		paginate.isFetchingNextPage = true;
+		inFlight = landEmpty().finally(() => (inFlight = undefined));
+		return inFlight;
+	};
+	async function landEmpty() {
+		await Promise.resolve();
+		paginate.isFetchingNextPage = false;
+		if (reads.started === last) paginate.hasNextPage = false;
+	}
+	return reads;
+}
+
+async function settle() {
+	for (let tick = 0; tick < 10; tick++) await nextTick();
+}

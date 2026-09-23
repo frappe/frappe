@@ -1,9 +1,10 @@
 <!-- The scroller a feed tab fills: a centred column, both edge fades and the jump button.
      With `paginate`, older rows load as the reader nears the top, and the view holds still. -->
 <template>
-	<div class="relative h-full min-h-0" data-record-feed>
+	<!-- `flex-1` fills the tab body's column; the absolute scroller adds no height of its own. -->
+	<div class="relative min-h-0 flex-1" data-record-feed>
 		<!-- `isolate` keeps the timeline's own z-indices under the fades. -->
-		<div ref="scroller" class="isolate h-full overflow-y-auto px-6 pb-8 pt-4">
+		<ScrollArea ref="area" class="absolute inset-0 isolate" viewportClass="px-6 pb-8 pt-4">
 			<!-- Hidden for the one frame between drawing the rows and landing at the bottom. -->
 			<div
 				ref="content"
@@ -20,7 +21,7 @@
 				</div>
 				<slot />
 			</div>
-		</div>
+		</ScrollArea>
 
 		<div
 			class="pointer-events-none absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-surface-base to-transparent transition-opacity"
@@ -51,9 +52,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useEventListener, useResizeObserver } from "@vueuse/core";
-import { Button, Tooltip } from "frappe-ui";
+import { Button, ScrollArea, Tooltip } from "frappe-ui";
 import { __ } from "@/i18n";
 import type { FeedPages } from "./recordFeeds";
 import { useScrollEdges } from "./useScrollEdges";
@@ -70,7 +71,8 @@ const props = withDefaults(
 	{ paginate: undefined, error: undefined, ready: true, openAtBottom: false }
 );
 
-const scroller = ref<HTMLElement | null>(null);
+const area = ref<InstanceType<typeof ScrollArea> | null>(null);
+const scroller = computed(() => area.value?.viewportElement ?? null);
 const content = ref<HTMLElement | null>(null);
 const { atTop, atBottom, overflowing, pastHalf, measure } = useScrollEdges(scroller);
 
@@ -114,7 +116,6 @@ function holdUntilLanded(fetching: boolean | undefined) {
 	if (fetching) return;
 	held = null;
 	measure();
-	pageIfNearTop();
 }
 
 function onScroll() {
@@ -138,10 +139,12 @@ function pageIfNearTop() {
 	if (element.scrollTop <= element.clientHeight) void readOlder(pages);
 }
 
+// A page can land with no rows and a cursor that moved on, so the next one is read without a scroll.
 async function readOlder(pages: FeedPages) {
 	const before = props.error;
 	await pages.fetchNextPage();
 	if (props.error && props.error !== before) stalled.value = true;
+	else await nextTick().then(pageIfNearTop);
 }
 
 function retry() {

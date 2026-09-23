@@ -79,6 +79,10 @@ function body(root: HTMLElement, name: string) {
   return root.querySelector<HTMLElement>(`[data-record-tab="${name}"]`);
 }
 
+function viewport(root: HTMLElement, name: string) {
+  return body(root, name)!.querySelector<HTMLElement>("[data-reka-scroll-area-viewport]")!;
+}
+
 function frame() {
   return new Promise((resolve) => requestAnimationFrame(resolve));
 }
@@ -151,6 +155,22 @@ describe("the bodies", () => {
     expect(body(root, "details")!.style.display).toBe("none");
     expect(root.querySelector("[data-details]")).toBe(form);
     expect(body(root, "activity")!.style.display).toBe("");
+  });
+
+  it("scrolls each body in its own viewport, which keeps its place across a switch", async () => {
+    const { root, state } = await mount(FOUR, "details");
+    const details = viewport(root, "details");
+    details.scrollTop = 300;
+
+    state.active = "activity";
+    await nextTick();
+    viewport(root, "activity").scrollTop = 40;
+    state.active = "details";
+    await nextTick();
+
+    expect(viewport(root, "details")).toBe(details);
+    expect(details.scrollTop).toBe(300);
+    expect(viewport(root, "activity").scrollTop).toBe(40);
   });
 
   it("keeps the body of a tab a script hides", async () => {

@@ -28,11 +28,13 @@
 			/>
 		</div>
 
-		<div
+		<!-- The viewport's content is a column at least its height, so a feed can fill it and scroll itself. -->
+		<ScrollArea
 			v-for="entry in mounted"
 			v-show="entry.item.name === active"
 			:key="entry.item.name"
-			class="min-h-0 flex-1 overflow-y-auto"
+			class="min-h-0 flex-1"
+			:viewportClass="BODY_VIEWPORT"
 			:data-record-tab="entry.item.name"
 			@focusin="focused.set(entry.item.name, $event.target as HTMLElement)"
 		>
@@ -45,13 +47,13 @@
 			<p v-else class="py-10 text-center text-base text-ink-gray-5">
 				{{ __("Nothing here yet.") }}
 			</p>
-		</div>
+		</ScrollArea>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
-import { Skeleton, Tabs } from "frappe-ui";
+import { ScrollArea, Skeleton, Tabs } from "frappe-ui";
 import type { ResolvedItem } from "@/recordPage/surface";
 import type { RecordPageApi, TabItem } from "@/recordPage/types";
 import { __ } from "@/i18n";
@@ -67,6 +69,9 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{ select: [name: string] }>();
+
+// `> div` is the content wrapper reka's viewport draws round the slot.
+const BODY_VIEWPORT = "[&>div]:flex [&>div]:min-h-full [&>div]:flex-col";
 
 const visited = reactive(new Set<string>());
 const focused = new Map<string, HTMLElement>();
