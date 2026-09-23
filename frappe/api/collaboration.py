@@ -4,6 +4,7 @@
 `PATCH .../comments/<name>` edits. Each answers with the refreshed part in the read's shape.
 """
 
+import html
 import re
 
 import frappe
@@ -19,12 +20,14 @@ from frappe.model.document import Document
 from frappe.utils import cint, get_fullname
 
 EVERYONE = "everyone"
+MAX_ATTACHMENTS = 10
+INLINE_MEDIA = re.compile(r'<(?:img|video|source)\b[^>]*?\ssrc\s*=\s*["\']([^"\']+)["\']')
 
 
 def add(doctype: str, name: str, part: str) -> dict:
 	"""Add to `part` from the request body; answers with the refreshed part, and a comment's `added` name."""
 	doc = load(doctype, name, part)
-	added = ADD[part](doc, read_body(part))
+	added = ADD[part](doc, read_body(part, adding=True))
 	response = refreshed(doc, part)
 	if added:
 		response["added"] = added
@@ -63,16 +66,30 @@ def load(doctype: str, name: str, part: str) -> Document:
 	return doc
 
 
-def read_body(part: str) -> dict:
+def read_body(part: str, adding: bool = False) -> dict:
 	body = frappe.form_dict
 	for key in REQUIRED_BODY[part]:
 		value = body.get(key)
+		if adding and attachment_only(part, key, body):
+			continue
 		if not isinstance(value, str) or not value.strip():
 			raise InvalidRequestError(_("'{0}' must be a non-empty string").format(key))
 	for key in OPTIONAL_BODY.get(part, ()):
 		if key in body:
 			check_optional(key, body[key])
 	return body
+
+
+def attachment_only(part: str, key: str, body: dict) -> bool:
+	"""Whether a new comment may leave `content` empty because it carries attachments."""
+	attachments, content = body.get("attachments"), body.get(key, "")
+	on_comment_content = part == "comments" and key == "content"
+	return (
+		on_comment_content
+		and isinstance(content, str)
+		and isinstance(attachments, list)
+		and bool(attachments)
+	)
 
 
 def check_optional(key: str, value) -> None:
@@ -147,20 +164,38 @@ def remove_follow(doc: Document, key: None) -> None:
 
 
 def add_a_comment(doc: Document, body: dict) -> str:
-	files = files_to_link(doc, body.get("attachments") or [])
-	comment = add_comment(doc.doctype, doc.name, body["content"], frappe.session.user, get_fullname())
+	files = files_to_link(body.get("attachments") or [])
+	comment = add_comment(
+		doc.doctype, doc.name, body.get("content") or "", frappe.session.user, get_fullname()
+	)
 	for file in files:
 		file.attached_to_doctype = "Comment"
 		file.attached_to_name = comment.name
 		file.save(ignore_permissions=True)
 	# after the attachments are linked, so they are no longer unattached and stay on the Comment
-	attach_inline_images(doc, comment.content)
+	attach_inline_media(doc, comment.content)
 	return comment.name
 
 
-def attach_inline_images(doc: Document, content: str) -> None:
+def files_to_link(names: list[str]) -> list[Document]:
+	"""The caller's own unattached Files; any other name is refused."""
+	if len(names) > MAX_ATTACHMENTS:
+		raise InvalidRequestError(_("A comment takes at most {0} attachments").format(MAX_ATTACHMENTS))
+	names = list(dict.fromkeys(names))
+	fields = ["name", "owner", "attached_to_doctype", "is_folder"]
+	rows = frappe.get_all("File", filters={"name": ("in", names)}, fields=fields) if names else []
+	if len(rows) != len(names) or not all(linkable(row) for row in rows):
+		raise frappe.PermissionError(_("Only your own unattached files can be added to a comment"))
+	return [frappe.get_doc("File", row.name) for row in rows]
+
+
+def linkable(file: dict) -> bool:
+	return file.owner == frappe.session.user and not file.attached_to_doctype and not file.is_folder
+
+
+def attach_inline_media(doc: Document, content: str) -> None:
 	"""Attach the caller's unattached Files shown inline in `content` to `doc`, as desk comments do."""
-	urls = list(set(re.findall(r'<img[^>]*?\ssrc\s*=\s*["\']([^"\']+)["\']', content or "")))
+	urls = list({html.unescape(url) for url in INLINE_MEDIA.findall(content or "")})
 	if not urls:
 		return
 	filters = {
@@ -172,19 +207,6 @@ def attach_inline_images(doc: Document, content: str) -> None:
 		file = frappe.get_doc("File", name)
 		file.attached_to_doctype, file.attached_to_name = doc.doctype, doc.name
 		file.save(ignore_permissions=True)
-
-
-def files_to_link(doc: Document, names: list[str]) -> list[Document]:
-	"""The caller's own unattached Files; any other name is refused."""
-	names = list(dict.fromkeys(names))
-	files = [frappe.get_doc("File", name) for name in names if frappe.db.exists("File", name)]
-	if len(files) != len(names) or not all(linkable(file) for file in files):
-		raise frappe.PermissionError(_("Only your own unattached files can be added to a comment"))
-	return files
-
-
-def linkable(file: Document) -> bool:
-	return file.owner == frappe.session.user and not file.attached_to_doctype
 
 
 def remove_comment(doc: Document, name: str) -> None:

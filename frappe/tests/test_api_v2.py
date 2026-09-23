@@ -1520,6 +1520,17 @@ class TestCollaborationWritesV2(FrappeAPITestCase):
 		frappe.db.rollback()
 		self.assertEqual(self.attached_to(file), ("Comment", response.json["data"]["added"]))
 
+	def test_comment_attaches_its_inline_videos_to_the_record(self):
+		todo = self.todo_with_cleanup()
+		plain, nested = self.make_file(self.TEST_USER), self.make_file(self.TEST_USER)
+		urls = [frappe.db.get_value("File", file, "file_url") for file in (plain, nested)]
+		content = f'<video src="{urls[0]}"></video><video><source src="{urls[1]}"></video>'
+		response = self.add(self.part("comments", name=todo.name), {"content": content})
+		self.assertEqual(response.status_code, 200, response.json)
+		frappe.db.rollback()
+		self.assertEqual(self.attached_to(plain), ("ToDo", todo.name))
+		self.assertEqual(self.attached_to(nested), ("ToDo", todo.name))
+
 	def post_inline(self, todo, files: list[str], attachments: list[str] | None = None):
 		"""Post a comment showing `files` as inline images."""
 		urls = [frappe.db.get_value("File", file, "file_url") for file in files]
@@ -1552,6 +1563,34 @@ class TestCollaborationWritesV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 417)
 		self.assertEqual(response.json["errors"][0]["type"], "InvalidRequestError")
 
+	def test_comment_with_only_attachments_is_accepted(self):
+		todo = self.todo_with_cleanup()
+		file = self.make_file(self.TEST_USER)
+		response = self.add(self.part("comments", name=todo.name), {"content": "", "attachments": [file]})
+		self.assertEqual(response.status_code, 200, response.json)
+		frappe.db.rollback()
+		self.assertEqual(self.attached_to(file), ("Comment", response.json["data"]["added"]))
+
+	def test_comment_with_no_content_and_no_attachments_is_refused(self):
+		with suppress_stdout():
+			response = self.add(self.part("comments"), {"content": " ", "attachments": []})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "InvalidRequestError")
+
+	def test_comment_with_a_folder_is_refused(self):
+		todo = self.todo_with_cleanup()
+		self.assert_refused(todo, self.make_file(self.TEST_USER, is_folder=True))
+
+	def test_comment_with_too_many_attachments_is_refused(self):
+		todo = self.todo_with_cleanup()
+		names = [f"file-{index}" for index in range(11)]
+		with suppress_stdout():
+			response = self.add(
+				self.part("comments", name=todo.name), {"content": "hi", "attachments": names}
+			)
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "InvalidRequestError")
+
 	def assert_refused(self, todo, file: str):
 		response = self.add(
 			self.part("comments", name=todo.name), {"content": "see file", "attachments": [file]}
@@ -1568,13 +1607,17 @@ class TestCollaborationWritesV2(FrappeAPITestCase):
 		self.addCleanup(self.drop_todo, todo.name)
 		return todo
 
-	def make_file(self, owner: str, attached_to: str | None = None) -> str:
+	def make_file(self, owner: str, attached_to: str | None = None, is_folder: bool = False) -> str:
 		"""A committed private File owned by `owner`, attached to the ToDo `attached_to` if given."""
 		file = frappe.get_doc(
 			{
 				"doctype": "File",
-				"file_name": f"{frappe.generate_hash(length=8)}.txt",
-				"content": "hello",
+				"file_name": f"{frappe.generate_hash(length=8)}"
+				if is_folder
+				else f"{frappe.generate_hash(length=8)}.txt",
+				"content": None if is_folder else "hello",
+				"is_folder": int(is_folder),
+				"folder": "Home" if is_folder else None,
 				"is_private": 1,
 				"attached_to_doctype": "ToDo" if attached_to else None,
 				"attached_to_name": attached_to,
