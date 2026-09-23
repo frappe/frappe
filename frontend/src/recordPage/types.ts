@@ -179,8 +179,8 @@ export interface SurfaceVerbs<Item extends SurfaceItem = SurfaceItem> {
 export interface TabsApi extends SurfaceVerbs<TabItem> {
   readonly active: string;
   /**
-   * Moves the reader to a tab on this strip. Resolved at the call, never queued,
-   * and `active` still reads the old tab on the next line: read it in the next handler.
+   * Moves the reader to a tab on this strip. Resolved at the call, never queued;
+   * `active` reads the new tab at once, or after the commit when called in a replay.
    */
   activate(name: string): void;
 }

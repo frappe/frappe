@@ -27,6 +27,11 @@ export default {
 }
 ```
 
+`onTabChange` and `onFormTabChange` receive `page` only and fire on a change between two
+shown tabs; the handler reads `page.tabs.active` or `page.form.tabs.active`. A script's
+`activate` during the first load opens the page on that tab and fires no `onTabChange`,
+because no tab was shown before it.
+
 **Every place on the page is a list, every list takes a component item, and `before` /
 `after` names a neighbour.** There is no vocabulary of places on top of that: no zone or
 slot words say where a thing goes, a neighbour does. The frame, the header row, the panel
@@ -557,7 +562,8 @@ the tab the reader is on as an **identity**, or `''` when the reader is not in t
 an identity is safe to store, because a Form Layout is named when it is saved and a
 relabelled tab keeps its address. `activate(name)` moves the reader, on the record strip's
 terms: resolved at the call, delivered when the replay commits, and a hidden, unknown or
-other-strip name warns in a development build and moves nobody. The handler for a change
+other-strip name warns in a development build and moves nobody. Unlike `page.tabs`,
+`active` reads the old tab until the form has drawn the move. The handler for a change
 on this strip is `onFormTabChange`. The record's own strip, activity to details, is
 `page.tabs` and is not this one.
 
