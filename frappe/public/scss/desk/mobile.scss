@@ -74,6 +74,11 @@ body {
 		display: none;
 	}
 
+	// the crumbs the separator would sit between are gone, so it has nothing to separate
+	.navbar-breadcrumbs.mobile-no-divider li + li::before {
+		content: none;
+	}
+
 	.sidebar .form-group {
 		margin-bottom: 0px;
 	}
