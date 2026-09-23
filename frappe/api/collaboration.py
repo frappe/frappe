@@ -171,7 +171,7 @@ def add_a_comment(doc: Document, body: dict) -> str:
 	for file in files:
 		file.attached_to_doctype = "Comment"
 		file.attached_to_name = comment.name
-		file.save(ignore_permissions=True)
+		file.save()
 	# after the attachments are linked, so they are no longer unattached and stay on the Comment
 	attach_inline_media(doc, comment.content)
 	return comment.name
@@ -206,7 +206,7 @@ def attach_inline_media(doc: Document, content: str) -> None:
 	for name in frappe.get_all("File", filters=filters, pluck="name"):
 		file = frappe.get_doc("File", name)
 		file.attached_to_doctype, file.attached_to_name = doc.doctype, doc.name
-		file.save(ignore_permissions=True)
+		file.save()
 
 
 def remove_comment(doc: Document, name: str) -> None:
