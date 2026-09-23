@@ -64,8 +64,8 @@ def get_log_db() -> LogDatabase:
 	"""Return the log database handle, connecting on first use.
 
 	The handle is cached on `frappe.local` so a request or job that logs repeatedly
-	reuses one connection, and is released by :func:`close_log_db` when that request
-	or job ends.
+	reuses one connection, and the connection queues its own closure for the end of
+	whatever context opened it.
 
 	This is a second, independent connection -- it does not replace `frappe.db`, and
 	callers are responsible for committing their own writes on it.
@@ -76,15 +76,41 @@ def get_log_db() -> LogDatabase:
 		log_db = LogDatabase()
 		log_db.connect()
 		frappe.local.log_db = log_db
+		_enqueue_connection_closure()
 
 	return log_db
 
 
-def close_log_db():
-	"""Close the log database connection if this request/job opened one.
+def _enqueue_connection_closure():
+	"""Arrange for :func:`close_log_db` to run at the end of the current context.
 
-	Registered on the `after_request` and `after_job` hooks. A no-op when nothing was
-	logged, which is the common case.
+	Registering here rather than through the `after_request` / `after_job` hooks means the
+	cleanup is queued only by the code path that actually opened a connection -- most
+	requests never log anything and so never queue it. It also makes a reopen self-healing:
+	a connection opened *after* cleanup has already run -- `commit_after_response`
+	callbacks log their own failures, well past `after_request` -- queues a fresh closure,
+	and `frappe.app.get_after_response_callbacks` drains callbacks added by other callbacks.
+
+	The three contexts mirror `frappe.email.smtp.SMTPServer._enqueue_connection_closure`,
+	which solves the same problem for pooled SMTP connections.
+	"""
+	if frappe.request and hasattr(frappe.request, "after_response"):
+		frappe.request.after_response.add(close_log_db)
+	elif frappe.job:
+		frappe.job.after_job.add(close_log_db)
+	elif not frappe.in_test:
+		# A console, a patch or a `bench execute`: `frappe.destroy` closes `frappe.db` but
+		# knows nothing about this connection, so fall back to interpreter shutdown.
+		import atexit
+
+		atexit.register(close_log_db)
+
+
+def close_log_db():
+	"""Close the log database connection if this context opened one.
+
+	Queued by :func:`_enqueue_connection_closure`. Safe to call more than once, and a no-op
+	when nothing was logged.
 	"""
 	log_db = getattr(frappe.local, "log_db", None)
 

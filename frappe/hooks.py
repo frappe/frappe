@@ -503,7 +503,6 @@ before_request = [
 
 after_request = [
 	"frappe.monitor.stop",
-	"frappe.utils.logging.close_log_db",
 ]
 
 # Background Job Hooks
@@ -524,7 +523,6 @@ after_job = [
 	"frappe.recorder.dump",
 	"frappe.monitor.stop",
 	"frappe.utils.file_lock.release_document_locks",
-	"frappe.utils.logging.close_log_db",
 ]
 
 extend_bootinfo = [
