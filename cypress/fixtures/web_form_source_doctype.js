@@ -7,6 +7,8 @@ export default {
 	doctype: "DocType",
 	engine: "InnoDB",
 	fields: [
+		// a DocType opens with a Tab Break; a rebuild has to drop it, or page 1 comes out blank
+		{ fieldname: "details_tab", fieldtype: "Tab Break", label: "Details" },
 		{ fieldname: "title", fieldtype: "Data", label: "Title", reqd: 1 },
 		{ fieldname: "kind", fieldtype: "Select", label: "Kind", options: "Alpha\nBeta" },
 		// the condition is kept only when `kind` is ticked in the same update
@@ -43,6 +45,8 @@ export default {
 		{ fieldname: "secret_note", fieldtype: "Data", label: "Secret Note", hidden: 1 },
 		// a fieldtype no Web Form renders, so the picker can only offer to remove it
 		{ fieldname: "run_action", fieldtype: "Button", label: "Run Action" },
+		// a tab past the first one is a real page boundary, so a rebuild keeps it
+		{ fieldname: "more_tab", fieldtype: "Tab Break", label: "More" },
 		// only reaches the picker with the fieldtype spelled the way the DocType spells it
 		{
 			fieldname: "roles",

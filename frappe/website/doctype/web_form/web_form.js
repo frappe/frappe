@@ -651,7 +651,16 @@ class GetFieldsDialog {
 		const stale_rows = this.existing_rows.filter(
 			(d) => this.stale_fieldnames.has(d.fieldname) && selected.includes(d.fieldname)
 		);
-		return [...rows, ...stale_rows];
+		return [...this.drop_empty_leading_pages(rows), ...stale_rows];
+	}
+
+	// page 1 is implicit, so opening with a Page Break (as a DocType opening with a Tab
+	// Break does) leaves page 1 blank and pushes every field onto page 2
+	drop_empty_leading_pages(rows) {
+		const first_field = rows.findIndex((d) => !is_layout_field(d));
+		// a Page Break past the first field divides the fields around it, so it stays
+		const leading = first_field === -1 ? rows.length : first_field;
+		return rows.filter((d, i) => i >= leading || d.fieldtype !== "Page Break");
 	}
 
 	add_row(df, fieldnames) {

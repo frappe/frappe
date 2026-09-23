@@ -62,6 +62,11 @@ function check_only(fieldnames) {
 	);
 }
 
+// a break carries a fieldname too, so the rows the author fills in are told apart by type
+function is_input_row(row) {
+	return !["Section Break", "Column Break", "Page Break"].includes(row.fieldtype);
+}
+
 function row_for(fields, fieldname) {
 	return fields.find((d) => d.fieldname === fieldname);
 }
@@ -303,12 +308,29 @@ context("Web Form Get Fields", () => {
 		cy.click_modal_primary_button("Update");
 
 		web_form_fields().should((fields) => {
-			const placed = fields.filter((d) => d.fieldname).map((d) => d.fieldname);
+			const placed = fields.filter(is_input_row).map((d) => d.fieldname);
 			expect(placed).to.deep.eq(OFFERED);
 		});
 
 		// not scroll_to_field: the update lands the author on the canvas it just rebuilt
 		cy.get(CANVAS).should("be.visible");
+	});
+
+	it("Opens on page 1 instead of leaving it blank", () => {
+		open_picker_on();
+
+		picker().find('[data-action="select_all"]').click();
+		cy.click_modal_primary_button("Update");
+
+		web_form_fields().should((fields) => {
+			// page 1 is implicit, so the DocType's opening tab has no row to become
+			expect(fields[0].fieldtype, "the form does not open on a page break").to.not.eq(
+				"Page Break"
+			);
+			// the tab further down still divides the fields around it
+			const pages = fields.filter((d) => d.fieldtype === "Page Break");
+			expect(pages.map((d) => d.fieldname)).to.deep.eq(["more_tab"]);
+		});
 	});
 
 	it("Keeps the fields already on the form when it appends", () => {
