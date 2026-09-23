@@ -105,14 +105,17 @@ def delete_session(sid=None, user=None, reason="Session Expired", *, sid_hash=No
 	"""
 	from frappe.core.doctype.activity_log.feed import logout_feed
 
-	sid_hash = sid_hash or hash_sid(sid)
-
 	if frappe.flags.read_only:
 		# This isn't manually initiated logout, most likely user's cookies were expired in such case
 		# we should just ignore it till database is back up again.
 		return
 
-	if sid_hash and not user:
+	sid_hash = sid_hash or hash_sid(sid)
+	if not sid_hash:
+		# nothing to delete
+		return
+
+	if not user:
 		table = frappe.qb.DocType("Sessions")
 		user_details = (
 			frappe.qb.from_(table).where(table.sid == sid_hash).select(table.user).run(as_dict=True)
