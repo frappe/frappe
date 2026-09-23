@@ -183,9 +183,7 @@ frappe.ui.Notifications = class Notifications {
 
 	mark_all_as_read(e) {
 		e.stopImmediatePropagation();
-		this.body.find(".unread").removeClass("unread");
-		frappe.call("frappe.desk.doctype.notification_log.notification_log.mark_all_as_read");
-		this.tabs.notifications?.update_count_badge(0);
+		this.tabs.notifications?.mark_all_as_read();
 	}
 };
 
@@ -313,6 +311,13 @@ class NotificationsView extends BaseNotificationsView {
 			.catch(() => {
 				notification_log.read = 0;
 			});
+	}
+
+	mark_all_as_read() {
+		this.dropdown_items.forEach((notification_log) => (notification_log.read = 1));
+		this.container.find(".unread").removeClass("unread");
+		frappe.call("frappe.desk.doctype.notification_log.notification_log.mark_all_as_read");
+		this.update_count_badge(0);
 	}
 
 	insert_into_dropdown() {
