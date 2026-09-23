@@ -180,6 +180,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
 import { useScroll } from "@vueuse/core";
+import { Extension } from "@tiptap/core";
 import { Button, Spinner, toast } from "frappe-ui";
 import LucideFile from "~icons/lucide/file";
 import LucideFileArchive from "~icons/lucide/file-archive";
@@ -280,6 +281,12 @@ const extensions = [
 		mention: { items: () => mentionItems.value },
 	}),
 	...(props.extensions ?? []),
+	// Lowest priority, so an open suggestion menu takes Esc first; 0 would read as the default.
+	Extension.create({
+		name: "composerDiscard",
+		priority: 1,
+		addKeyboardShortcuts: () => ({ Escape: discardFromBody }),
+	}),
 ];
 
 const body = defineModel<string>("body", { default: "" });
@@ -455,9 +462,16 @@ function submit() {
 	emit("submit", { body: buildMessage(), attachments: attachments.value });
 }
 
-// An editor popup (mention list, etc.) that handled Esc marks it via preventDefault.
+// Esc outside the body. ProseMirror marks every Esc in the body handled, so those arrive
+// at `discardFromBody` instead, and only when no editor menu took them.
 function onEscape(event: KeyboardEvent) {
 	if (!event.defaultPrevented && !props.submitting) reset();
+}
+
+function discardFromBody() {
+	if (props.submitting) return false;
+	reset();
+	return true;
 }
 
 function reset() {
