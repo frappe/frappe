@@ -297,7 +297,6 @@ const whitelistedMethods = createResource({
 
 const sortFields = createResource({
 	url: "studio.api.get_sort_fields",
-	cache: ["sortFields", newResource.value.document_type],
 	makeParams,
 })
 

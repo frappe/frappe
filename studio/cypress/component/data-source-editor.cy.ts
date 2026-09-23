@@ -11,7 +11,7 @@ import useStudioStore from "@/stores/studioStore"
 import useCodeStore from "@/stores/codeStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 
-const APP_NAME = `cypress-data-sources-${Date.now()}`
+const APP_NAME = "cypress-data-sources"
 
 // Neither comes from the editor: the popovers' ResizeObserver loop, and the Document Type Link's
 // debounced search landing between tests, after that test's session is gone
@@ -27,13 +27,11 @@ describe("data source editor", () => {
 			"uncaught:exception",
 			(error) => !IGNORED_ERRORS.some((message) => error.message.includes(message)),
 		)
-		cy.login()
-		cy.insert_doc("Studio App", { app_name: APP_NAME, app_title: "Cypress Data Sources" })
 	})
 
 	after(() => {
 		cy.login()
-		cy.remove_doc("Studio App", APP_NAME)
+		cy.remove_doc("Studio App", APP_NAME, true)
 	})
 
 	beforeEach(() => {
@@ -42,6 +40,9 @@ describe("data source editor", () => {
 		cy.intercept("/api/method/studio.api.get_doctype_fields*").as("getDocTypeFields")
 		cy.intercept("/api/method/studio.api.get_sort_fields*").as("getSortFields")
 		cy.intercept("/api/method/studio.api.get_whitelisted_methods*").as("getWhitelistedMethods")
+		// a fresh app per test; deleting it also deletes the previous test's page
+		cy.remove_doc("Studio App", APP_NAME, true)
+		cy.insert_doc("Studio App", { app_name: APP_NAME, app_title: "Cypress Data Sources" })
 		cy.insert_doc("Studio Page", { studio_app: APP_NAME }).then((createdPage) => {
 			page = createdPage
 			saveUserList("users", ["email", "full_name"])
@@ -218,8 +219,11 @@ describe("data source editor", () => {
 	}
 
 	function mountDataPanel() {
-		useStudioStore().activePage = page
-		cy.wrap(useCodeStore().setPageResources(page, true))
+		// after the test's queued saves, so the panel loads the data sources they added
+		cy.then(() => {
+			useStudioStore().activePage = page
+			return useCodeStore().setPageResources(page, true)
+		})
 		cy.mount(DataPanel, { global: { plugins: [pinia, resourcesPlugin] } })
 	}
 
@@ -262,7 +266,10 @@ const chooseOption = (label: string, option: string) => {
 }
 const chooseDocType = (doctype: string) => {
 	field("Document Type").type(doctype)
-	cy.contains("[role='option']", new RegExp(`^\\s*${doctype}\\s*$`)).click()
+	// the option's label, not its description (the doctype's module)
+	cy.get("[role='option']")
+		.contains(new RegExp(`^${doctype}$`))
+		.click()
 	cy.wait("@getDocTypeFields")
 }
 const option = (label: string) => cy.get("[role='option']").contains(label).closest("[role='option']")

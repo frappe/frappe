@@ -152,19 +152,18 @@ describe("data source fetching", () => {
 				resource_type: "API Resource",
 				url: "/api/method/frappe.client.get_count",
 				method: "POST",
-				params: JSON.stringify({ doctype: "User", filters: { name: "{{ userId }}" } }),
+				// only top-level params are evaluated
+				params: JSON.stringify({ doctype: "{{ doctypeName }}", filters: { name: "Administrator" } }),
 				auto: true,
 			} as Resource
 
-			cy.wrap(loadPage([resource], [variable("userId", "String", '"Administrator"')])).then(
-				(codeStore: any) => {
-					requestBody("@getCount").should("deep.equal", {
-						doctype: "User",
-						filters: { name: "Administrator" },
-					})
-					cy.wrap(codeStore.resources).its("userCount.data").should("equal", 1)
-				},
-			)
+			cy.wrap(loadPage([resource], [variable("doctypeName", "String", '"User"')])).then((codeStore: any) => {
+				requestBody("@getCount").should("deep.equal", {
+					doctype: "User",
+					filters: { name: "Administrator" },
+				})
+				cy.wrap(codeStore.resources).its("userCount.data").should("equal", 1)
+			})
 		})
 	})
 
