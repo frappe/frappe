@@ -28,7 +28,7 @@ def walk_blocks(blocks):
 		yield block
 		stack.extend(block.get("children") or [])
 		for slot in (block.get("componentSlots") or {}).values():
-			content = slot.get("slotContent")
+			content = slot.get("slotContent") if isinstance(slot, dict) else None
 			if isinstance(content, list):
 				stack.extend(content)
 

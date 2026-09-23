@@ -237,6 +237,12 @@ class Block implements BlockOptions {
 		return this.originalElement === "div" || this.originalElement === "header" || this.componentName === "FitContainer" || this.componentName === "Container";
 	}
 
+	// a library component studio no longer registers, e.g. one a frappe-ui release removed
+	isUnregisteredComponent() {
+		if (this.isContainer() || this.isStudioComponent || this.isCustomVueComponent) return false
+		return Boolean(Block.components) && !Block.components?.[this.componentName]
+	}
+
 	getParentBlock(): Block | null {
 		return this.parentBlock || null;
 	}

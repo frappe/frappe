@@ -1,7 +1,7 @@
 import fs from "fs"
 import path from "path"
-import { CompletedConfig, createFormatter, createParser, createProgram, SchemaGenerator } from "ts-json-schema-generator"
-import { SVGElementParser, VueComponentParser, RouteLocationParser, HTMLElementParser, FunctionTypeParser, SlotsParser } from "./customParser.js"
+import { ChainNodeParser, CompletedConfig, createFormatter, createParser, createProgram, RootlessError, SchemaGenerator } from "ts-json-schema-generator"
+import { SVGElementParser, VueComponentParser, RouteLocationParser, HTMLElementParser, FunctionTypeParser, SlotsParser, RuntimePropsParser } from "./customParser.js"
 
 interface TypeFile {
 	filePath: string
@@ -34,9 +34,11 @@ function tsToJSON(
 	const outputDirPath = path.resolve(root, destFolder)
 	const tsconfigPath = tsconfig ? path.resolve(root, tsconfig) : ""
 
-	const typeFiles = perComponent
-		? findComponentTypeFiles(inputDirPath, skipFolders, skipComponents)
-		: findTypeFiles(inputDirPath, folderScan, skipFolders)
+	const typeFiles = (
+		perComponent
+			? findComponentTypeFiles(inputDirPath, skipFolders)
+			: findTypeFiles(inputDirPath, folderScan, skipFolders)
+	).filter((t) => !skipComponents?.includes(t.componentName))
 
 	let config = {
 		skipTypeCheck: true,
@@ -61,21 +63,8 @@ function tsToJSON(
 			continue
 		}
 
-		config["type"] = `${componentName}Props`
-		try {
-			generateSchema(config, componentName, outputDirPath)
-			console.log(`Generated types for ${componentName} saved to ${componentName}.json`)
+		if (generateFolderSchema(config, componentName, outputDirPath)) {
 			written.push(componentName)
-		} catch (error) {
-			console.warn(`Failed to generate schema for ${componentName}Props, trying wildcard type`)
-			config["type"] = "*"
-			try {
-				generateSchema(config, componentName, outputDirPath)
-				console.log(`Generated types for ${componentName} saved to ${componentName}.json`)
-				written.push(componentName)
-			} catch (error) {
-				console.error(`Failed to generate schema for ${componentName}:`, error)
-			}
 		}
 	}
 
@@ -125,12 +114,8 @@ function findTypeFiles(dir: string, folderScan: boolean, skipFolders: string[] |
 // is picked up too when present. The type usually lives in a sibling `types.ts`, but
 // grouped widgets (e.g. Composer's EmailComposer/CommentComposer subfolders) declare
 // theirs in an ancestor barrel `types.ts` — that declaring file is the schema-generation
-// entry (`filePath`). `skipComponents` excludes private cores that aren't studio blocks.
-function findComponentTypeFiles(
-	dir: string,
-	skipFolders: string[] | null = null,
-	skipComponents: string[] | null = null,
-): TypeFile[] {
+// entry (`filePath`).
+function findComponentTypeFiles(dir: string, skipFolders: string[] | null = null): TypeFile[] {
 	const typeFiles: TypeFile[] = []
 
 	function scanDirectory(currentDir: string) {
@@ -140,7 +125,6 @@ function findComponentTypeFiles(
 			.map((i) => path.basename(i.name, ".vue"))
 
 		for (const componentName of vueFiles) {
-			if (skipComponents && skipComponents.includes(componentName)) continue
 			const typesFile = findComponentTypesFile(currentDir, componentName, dir)
 			if (!typesFile) continue
 			typeFiles.push({
@@ -187,9 +171,35 @@ function exportsType(source: string, typeName: string): boolean {
 	return new RegExp(`export\\s+(?:interface|type)\\s+${typeName}\\b`).test(source)
 }
 
-function generateSchema(config: CompletedConfig, componentName: string, outputDirPath: string) {
-	const schema = buildSchema(config)
-	writeSchema(schema, componentName, outputDirPath)
+// Try `<Component>Props`, then `<Component>PublicProps` (e.g. Calendar) stored under the
+// `<Component>Props` key the editor reads, then the wildcard type as a last resort.
+function generateFolderSchema(config: CompletedConfig, componentName: string, outputDirPath: string): boolean {
+	const propsName = `${componentName}Props`
+	const publicPropsName = `${componentName}PublicProps`
+	for (const typeName of [propsName, publicPropsName, "*"]) {
+		config["type"] = typeName
+		try {
+			let schema = buildSchema(config)
+			if (typeName === publicPropsName) schema = renameDefinition(schema, publicPropsName, propsName)
+			writeSchema(schema, componentName, outputDirPath)
+			console.log(`Generated types for ${componentName} saved to ${componentName}.json`)
+			return true
+		} catch (error) {
+			if (typeName === "*") {
+				console.error(`Failed to generate schema for ${componentName}:`, errorMessage(error))
+			} else if (!(error instanceof RootlessError)) {
+				console.warn(`Failed to generate schema for ${typeName}: ${errorMessage(error)}`)
+			} else if (typeName === publicPropsName) {
+				console.warn(`No ${propsName} found, trying wildcard type`)
+			}
+		}
+	}
+	return false
+}
+
+function renameDefinition(schema: any, from: string, to: string) {
+	const { [from]: definition, ...rest } = schema.definitions
+	return { ...schema, $ref: `#/definitions/${to}`, definitions: { [to]: definition, ...rest } }
 }
 
 // Emit one `<Component>.json` holding both `<Component>Props` and (when present)
@@ -238,6 +248,7 @@ function buildSchema(config: CompletedConfig) {
 		prs.addNodeParser(new HTMLElementParser())
 		prs.addNodeParser(new FunctionTypeParser())
 		prs.addNodeParser(new SlotsParser())
+		prs.addNodeParser(new RuntimePropsParser(program.getTypeChecker(), prs as ChainNodeParser))
 	})
 	const formatter = createFormatter(config)
 	const generator = new SchemaGenerator(program, parser, formatter, config)

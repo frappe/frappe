@@ -12,15 +12,15 @@
 				:emitOnChange="true"
 				:completions="completions"
 			/>
-			<div v-else class="flex flex-col items-center rounded-lg border border-outline-elevation-2 p-4">
+			<div v-else class="flex flex-col items-center rounded-6 border border-outline-elevation-2 p-4">
 				<span v-if="description" class="px-2 py-1 text-center text-sm leading-5 text-ink-gray-4">
 					{{ description }}
 				</span>
 				<button
-					class="flex cursor-pointer items-center rounded p-1 text-ink-gray-6 hover:bg-surface-gray-4"
+					class="flex cursor-pointer items-center rounded-4 p-1 text-ink-gray-6 hover:bg-surface-gray-4"
 					@click="handleAdd"
 				>
-					<FeatherIcon name="plus" class="h-3 w-3" />
+					<span class="lucide-plus h-3 w-3" />
 					<span class="ml-1 text-sm">Add Script</span>
 				</button>
 			</div>
@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { Button, FeatherIcon } from "frappe-ui"
+import { Button } from "frappe-ui"
 import Code from "@/components/Code.vue"
 import type { CompletionContext } from "@codemirror/autocomplete"
 

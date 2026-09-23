@@ -185,7 +185,7 @@ const componentLabelClasses = computed(() => {
 			? "bg-surface-purple-6 text-ink-base"
 			: "bg-surface-blue-6 text-ink-base"
 	} else {
-		return props.block.isStudioComponent ? "text-ink-purple-6" : "text-ink-blue-6"
+		return props.block.isStudioComponent ? "text-ink-purple-5" : "text-ink-blue-5"
 	}
 })
 

@@ -1,7 +1,7 @@
 <template>
 	<div class="flex flex-col gap-1.5">
 		<FormInputLabel v-if="label">{{ label }}</FormInputLabel>
-		<div class="rounded-lg border border-outline-elevation-2 bg-surface-base">
+		<div class="rounded-6 border border-outline-elevation-2 bg-surface-base">
 			<div class="min-w-[400px] p-2">
 				<div
 					v-if="filters.length"
@@ -81,7 +81,7 @@
 						<template #trigger>
 							<Button class="!text-ink-gray-5" variant="ghost" label="Add filter">
 								<template #prefix>
-									<FeatherIcon name="plus" class="h-4" />
+									<span class="lucide-plus h-4" />
 								</template>
 							</Button>
 						</template>
@@ -100,9 +100,9 @@
 </template>
 
 <script setup lang="ts">
-import { Combobox, FeatherIcon, FormControl, Button } from "frappe-ui"
+import { Combobox, FormControl, Button } from "frappe-ui"
 import { computed, h, ref, watch } from "vue"
-import { Link } from "frappe-ui/frappe"
+import Link from "@framework/ui/components/Link/Link.vue"
 
 import FormInputLabel from "@/components/FormInputLabel.vue"
 import MultiLinkInput from "@/components/MultiLinkInput.vue"

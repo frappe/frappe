@@ -17,8 +17,28 @@
               "type": "string"
             },
             {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
               "type": "object",
+              "additionalProperties": false,
               "properties": {
+                "messages": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
                 "name": {
                   "type": "string"
                 },
@@ -27,15 +47,8 @@
                 },
                 "stack": {
                   "type": "string"
-                },
-                "messages": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
                 }
               },
-              "additionalProperties": false,
               "required": [
                 "message",
                 "name"
@@ -69,29 +82,16 @@
         "offset": {
           "type": "number"
         },
-        "placement": {
-          "type": "string",
-          "enum": [
-            "top-start",
-            "top-end",
-            "bottom-start",
-            "bottom-end",
-            "right-start",
-            "right-end",
-            "left-start",
-            "left-end"
-          ]
-        },
         "format": {
           "type": "string"
         },
         "size": {
           "type": "string",
           "enum": [
+            "xs",
             "sm",
             "md",
-            "lg",
-            "xl"
+            "lg"
           ]
         },
         "variant": {
@@ -117,9 +117,6 @@
         "typeable": {
           "type": "boolean"
         },
-        "readonly": {
-          "type": "boolean"
-        },
         "disabled": {
           "type": "boolean"
         },
@@ -127,9 +124,6 @@
           "type": "boolean"
         },
         "keepOpen": {
-          "type": "boolean"
-        },
-        "autoClose": {
           "type": "boolean"
         },
         "min": {
@@ -140,31 +134,6 @@
         },
         "isDateUnavailable": {
           "type": "object"
-        },
-        "allowCustom": {
-          "type": "boolean"
-        },
-        "inputClass": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            {
-              "type": "object",
-              "additionalProperties": {
-                "type": "boolean"
-              }
-            }
-          ]
-        },
-        "value": {
-          "type": "string"
         },
         "modelValue": {
           "type": "string"

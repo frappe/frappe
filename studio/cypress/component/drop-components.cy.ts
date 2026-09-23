@@ -4,7 +4,6 @@ import { setActivePinia } from "pinia"
 import { createRouter, createMemoryHistory } from "vue-router"
 // @ts-ignore
 import { resourcesPlugin } from "frappe-ui"
-import { spritePlugin } from "frappe-ui/icons"
 
 import StudioCanvas from "@/components/StudioCanvas.vue"
 import Block from "@/utils/block"
@@ -15,25 +14,16 @@ import { registerGlobalComponents } from "@/globals"
 import useCanvasStore from "@/stores/canvasStore"
 import type { FrappeUIComponent } from "@/types"
 
-const DATA_DEPENDENT = [
-	"ListView",
-	"Link",
-	"Filter",
-	"Calendar",
-	"NumberChart",
-	"AxisChart",
-	"DonutChart",
-	"Repeater",
-]
+// These fetch a doctype from the server: the rejected request fails whichever test is
+// running when it lands. Every other component renders from its initialState or
+// blockTemplate, charts and ListView included.
+const DATA_DEPENDENT = ["Link", "Filter", "QuickFilter", "ListViewShell"]
 const FLOATING = ["Dialog", "Tooltip", "ContextMenu"]
 // These need fixes in frappe-ui before they can render or select reliably in isolation.
 const KNOWN_COMPONENT_FAILURES = [
-	"CodeEditor",
 	"MultiSelect",
-	"Slider",
 	"TableMultiSelect",
 	"SortBy",
-	"QuickFilter",
 	"ColumnSettings",
 	"FileUploadDialog",
 	"UploadTray",
@@ -42,10 +32,8 @@ const KNOWN_COMPONENT_FAILURES = [
 	"ListHeader",
 	"ListHeaderCell",
 	"ListHeaderCellSort",
-	"ListViewShell",
 	"SettingsDialog",
-	"Sidebar",
-	"SidebarLabel",
+	// roots a Tooltip, so the data-component-id never reaches its button
 ]
 const SKIP = new Set([...DATA_DEPENDENT, ...FLOATING, ...KNOWN_COMPONENT_FAILURES])
 
@@ -78,7 +66,7 @@ describe("dropping frappe-ui components on the canvas", () => {
 		cy.mount(StudioCanvas as any, {
 			props: { componentTree: rootBlock },
 			global: {
-				plugins: [pinia, router, resourcesPlugin, spritePlugin, { install: registerGlobalComponents }],
+				plugins: [pinia, router, resourcesPlugin, { install: registerGlobalComponents }],
 			},
 		}).then(({ wrapper }) => {
 			canvas = wrapper.vm
@@ -107,9 +95,11 @@ describe("dropping frappe-ui components on the canvas", () => {
 			cy.then(() => {
 				cy.get(`[data-component-id="${block.componentId}"]`)
 					.should("exist")
-					// (b) clicking the element selects the block
+					// (b) clicking the element selects the block. Near the corner, not the
+					// center: a family template's child can fill the middle (SidebarRail),
+					// leaving only the parent's own padding to click.
 					.first()
-					.click({ force: true })
+					.click(3, 3, { force: true })
 			})
 
 			cy.then(() => {

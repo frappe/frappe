@@ -17,6 +17,7 @@
 		:modelValue="selected"
 		:options="options"
 		:loading="resource.loading && !resource.data"
+		:filterable="false"
 		:placeholder="placeholder ?? `Search ${(field.options ?? '').toLowerCase()}`"
 		variant="subtle"
 		emptyText="No results found"

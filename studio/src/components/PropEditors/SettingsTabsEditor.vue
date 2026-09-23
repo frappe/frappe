@@ -40,11 +40,11 @@
 				/>
 			</div>
 
-			<Button variant="outline" class="w-full" icon-left="plus" @click="addTab">Add Tab</Button>
+			<Button variant="outline" class="w-full" icon-left="lucide-plus" @click="addTab">Add Tab</Button>
 		</div>
 
 		<!-- nav items and panels drifted (hand-edited values); pairing is by `value` -->
-		<div v-if="mismatch.length" class="flex items-center gap-1.5 text-xs text-ink-amber-6">
+		<div v-if="mismatch.length" class="flex items-center gap-1.5 text-xs text-ink-amber-5">
 			<span class="size-[5px] flex-none rounded-full bg-surface-amber-3"></span>
 			{{ mismatch.join(" · ") }}
 		</div>

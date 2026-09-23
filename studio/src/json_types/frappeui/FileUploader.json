@@ -18,101 +18,26 @@
             }
           ]
         },
-        "uploadArgs": {
-          "type": "object",
-          "properties": {
-            "private": {
-              "type": "boolean"
-            },
-            "is_private": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "number",
-                  "const": 0
-                },
-                {
-                  "type": "number",
-                  "const": 1
-                },
-                {
-                  "type": "string",
-                  "const": "0"
-                },
-                {
-                  "type": "string",
-                  "const": "1"
-                }
-              ]
-            },
-            "folder": {
-              "type": "string"
-            },
-            "file_url": {
-              "type": "string"
-            },
-            "doctype": {
-              "type": "string"
-            },
-            "docname": {
-              "type": "string"
-            },
-            "fieldname": {
-              "type": "string"
-            },
-            "method": {
-              "type": "string"
-            },
-            "type": {
-              "type": "string"
-            },
-            "upload_endpoint": {
-              "type": "string"
-            },
-            "optimize": {
-              "type": "boolean"
-            },
-            "max_width": {
-              "type": "number"
-            },
-            "max_height": {
-              "type": "number"
-            },
-            "params": {
-              "type": "object"
-            },
-            "signal": {
-              "type": "object",
-              "properties": {
-                "aborted": {
-                  "type": "boolean"
-                },
-                "onabort": {
-                  "anyOf": [
-                    {
-                      "type": "object"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "reason": {}
-              },
-              "required": [
-                "aborted",
-                "onabort",
-                "reason"
-              ],
-              "additionalProperties": false
-            },
-            "onProgress": {
-              "type": "object"
-            }
-          },
-          "additionalProperties": false
+        "private": {
+          "type": "boolean"
+        },
+        "folder": {
+          "type": "string"
+        },
+        "doctype": {
+          "type": "string"
+        },
+        "docname": {
+          "type": "string"
+        },
+        "fieldname": {
+          "type": "string"
+        },
+        "uploadEndpoint": {
+          "type": "string"
+        },
+        "optimize": {
+          "type": "boolean"
         },
         "validateFile": {
           "type": "object"

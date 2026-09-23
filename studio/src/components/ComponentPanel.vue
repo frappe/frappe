@@ -14,7 +14,10 @@
 				"
 			/>
 			<OptionToggle
-				:options="[{ label: 'Standard' }, { label: 'Custom' }]"
+				:options="[
+					{ label: 'Standard', value: 'Standard' },
+					{ label: 'Custom', value: 'Custom' },
+				]"
 				:modelValue="activeTab"
 				@update:modelValue="
 					(tab) => (store.studioLayout.leftPanelComponentTab = tab as leftPanelComponentTabOptions)
@@ -33,7 +36,7 @@
 				>
 					<template #title-suffix v-if="section.label === 'Framework UI'">
 						<Tooltip text="Experimental — these components are still under development">
-							<LucideFlaskConical class="h-3.5 w-3.5 text-ink-amber-6" />
+							<LucideFlaskConical class="h-3.5 w-3.5 text-ink-amber-5" />
 						</Tooltip>
 					</template>
 					<!-- Component family tile -->
@@ -41,6 +44,7 @@
 						<template v-for="(component, index) in section.tiles" :key="component.name">
 							<ComponentTile
 								:component="component"
+								:deprecated="components.isDeprecatedComponent(component.name)"
 								:stacked="!isSearching && component.isGroup"
 								:expanded="!isSearching && expandedFamily === component.name"
 								@click="onTileClick(component)"
@@ -49,7 +53,7 @@
 							<!-- component family tray -->
 							<div
 								v-if="index === section.trayAfter"
-								class="relative col-span-full mt-1 rounded-xl bg-surface-gray-1 p-2.5"
+								class="relative col-span-full mt-1 rounded-7 bg-surface-gray-1 p-2.5"
 							>
 								<span
 									class="absolute -top-1.5 h-3 w-3 -translate-x-1/2 rotate-45 rounded-[2px] bg-surface-gray-1"
@@ -60,6 +64,7 @@
 										v-for="(part, partIndex) in expandedParts"
 										:key="part.name"
 										:component="part"
+										:deprecated="components.isDeprecatedComponent(part.name)"
 										:compact-label="isLastTrayRow(partIndex)"
 										inverted
 									/>
@@ -78,7 +83,7 @@
 						v-for="component in customVueComponents"
 						:key="component.component_name"
 						:data-vue-component-name="component.component_name"
-						class="user-component group/vue-component flex cursor-grab select-none items-center justify-between rounded p-1 hover:bg-surface-gray-1"
+						class="user-component group/vue-component flex cursor-grab select-none items-center justify-between rounded-4 p-1 hover:bg-surface-gray-1"
 						:class="{
 							'border border-outline-gray-4': store.selectedVueComponent === component.component_name,
 						}"
@@ -88,7 +93,7 @@
 					>
 						<div class="flex items-center gap-2 text-ink-gray-7">
 							<div
-								class="flex h-6 w-6 items-center justify-center rounded bg-surface-green-1 text-ink-green-6"
+								class="flex h-6 w-6 items-center justify-center rounded-4 bg-surface-green-1 text-ink-green-5"
 							>
 								<LucideCode class="h-3 w-3" />
 							</div>
@@ -98,10 +103,10 @@
 							<Dropdown :options="getVueComponentMenu(component)" trigger="click">
 								<template v-slot="{ open }">
 									<button
-										class="flex cursor-pointer items-center rounded-sm p-1 text-ink-gray-6 hover:bg-surface-gray-4"
+										class="flex cursor-pointer items-center rounded-1 p-1 text-ink-gray-6 hover:bg-surface-gray-4"
 										:class="open ? 'active-item' : ''"
 									>
-										<FeatherIcon name="more-horizontal" class="h-3 w-3" />
+										<span class="lucide-ellipsis h-3 w-3" />
 									</button>
 								</template>
 							</Dropdown>
@@ -116,7 +121,7 @@
 					<div
 						v-for="component in componentList"
 						:key="component.component_id"
-						class="group/component user-component flex cursor-grab select-none items-center justify-between rounded p-1 hover:bg-surface-gray-1"
+						class="group/component user-component flex cursor-grab select-none items-center justify-between rounded-4 p-1 hover:bg-surface-gray-1"
 						:class="{
 							'border border-outline-gray-4':
 								componentEditorStore.selectedComponent === component.component_id,
@@ -127,7 +132,7 @@
 					>
 						<div class="flex items-center gap-2 text-ink-gray-7">
 							<div
-								class="flex h-6 w-6 items-center justify-center rounded bg-surface-purple-1 text-ink-purple-7"
+								class="flex h-6 w-6 items-center justify-center rounded-4 bg-surface-purple-1 text-ink-purple-6"
 							>
 								<LucideBox class="h-3 w-3" />
 							</div>
@@ -139,17 +144,17 @@
 							<Dropdown :options="getComponentMenu(component)" trigger="click">
 								<template v-slot="{ open }">
 									<button
-										class="flex cursor-pointer items-center rounded-sm p-1 text-ink-gray-6 hover:bg-surface-gray-4"
+										class="flex cursor-pointer items-center rounded-1 p-1 text-ink-gray-6 hover:bg-surface-gray-4"
 										:class="open ? 'active-item' : ''"
 									>
-										<FeatherIcon name="more-horizontal" class="h-3 w-3" />
+										<span class="lucide-ellipsis h-3 w-3" />
 									</button>
 								</template>
 							</Dropdown>
 						</div>
 					</div>
 				</div>
-				<Button icon-left="plus" class="mt-3" @click="createComponent">Create Component</Button>
+				<Button icon-left="lucide-plus" class="mt-3" @click="createComponent">Create Component</Button>
 			</CollapsibleSection>
 		</template>
 	</div>
@@ -158,7 +163,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick } from "vue"
 import { useEventListener } from "@vueuse/core"
-import { Dropdown, FeatherIcon, Tooltip, Button } from "frappe-ui"
+import { Dropdown, Tooltip, Button } from "frappe-ui"
 import LucideFlaskConical from "~icons/lucide/flask-conical"
 import OptionToggle from "@/components/OptionToggle.vue"
 import Input from "@/components/Input.vue"

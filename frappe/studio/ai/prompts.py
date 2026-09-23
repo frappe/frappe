@@ -7,14 +7,13 @@ LAYOUT:
 TEXT & DISPLAY:
 - TextBlock: {text: "string", tag: "p|h1|h2|h3|h4|h5|h6|span", fontSize: "text-2xs(11px)|text-xs(12px)|text-sm(13px)|text-base(14px)|text-md(15px)|text-lg(16px)|text-xl(17px)|text-2xl(18px)|text-3xl(20px)|text-4xl(24px)|text-5xl(26px)|text-6xl(28px)|text-7xl(32px)|text-8xl(40px)|text-9xl(44px)|text-10xl(48px)|text-11xl(52px)|text-12xl(56px)|text-p-xs|text-p-sm|text-p-base|text-p-md|text-p-lg|text-p-xl"}
   # LINE-HEIGHT — pick the right family: use text-p-* for ANY paragraph / body copy / description / caption / multi-line sentence (relaxed line-height, more readable). Use plain text-* ONLY for headings and short UI labels (tight line-height). Default to text-p-* whenever the text is a sentence — e.g. a body paragraph → text-p-sm, NOT text-sm.
-- Badge: {variant: "subtle|solid|outline", theme: "green|red|orange|blue|gray", size: "sm|md|lg", label: "string"} # slots: prefix, suffix
+- Badge: {variant: "subtle|solid|outline", theme: "gray|blue|green|amber|red|violet", size: "sm|md|lg", label: "string"} # slots: prefix, suffix
 - Pill: {label: "string", variant: "default|outline|underline", size: "sm|md", icon: "lucide-icon-name", iconLeft: "lucide-icon-name", iconRight: "lucide-icon-name"} # slots: prefix, suffix
 - Avatar: {shape: "circle|square", size: "xs|sm|md|lg|xl|2xl|3xl", label: "initials", image: "url" (publicly accessible)}
 - Progress: {value: 0-100, size: "sm|md|lg", label: "string"}
 - Spinner: {size: "xs|sm|md|lg", theme: "gray|red"}
-- Alert: {title: "string", description: "string", theme: "yellow|red|green|blue"} # slots: icon, description, footer
+- Alert: {title: "string", description: "string", theme: "gray(DEFAULT)|blue|green|amber|red", dismissible: false} # slots: prefix, title, description, actions
 - ErrorMessage: {message: "string"}
-- FeatherIcon: {name: "feather-icon-name", class: "h-5 w-5"} # (icons from https://feathericons.com/)
 - ImageView: {image: "url", size: "xs|sm|md|lg|xl"}
 - Divider: (no props)
 - Tooltip: {text: "string"}
@@ -31,24 +30,25 @@ INPUTS:
 - TimePicker: {modelValue: "string", label: "string", placeholder: "string"}
 - DateTimePicker: {modelValue: "string", label: "string", placeholder: "string"} # slots: prefix, suffix, actions
 - MultiSelect: {modelValue: [], label: "string", placeholder: "string", options: [{label: "string", value: "string"}]} # slots: prefix, suffix, summary, empty, footer
+- Password: {modelValue: "string", label: "string", placeholder: "string"}
+- RadioGroup: {modelValue: "value of the selected Radio", label: "string", orientation: "vertical(DEFAULT)|horizontal", padded: false, size: "xs|sm(DEFAULT)|md"} — compose its default-slot children ("c") from Radio {value: "string", label: "string", description: "string", disabled: false}; a Radio outside a RadioGroup throws
 - Rating: {modelValue: 0, max: 5, label: "string", disabled: false}
 - Slider: {modelValue: [number] (single thumb) | [number, number] (range), min: 0, max: 100, step: 1, label: "string", size: "sm|md"}
 - FileUploader: {label: "string", fileTypes: "['image/*']"}
 - TextEditor: {modelValue: "string", editable: true, fixedMenu: true}
-- CodeEditor: {modelValue: "string", language: "javascript|python|json|html|css|sql|markdown|yaml|xml", label: "string", placeholder: "string"}
 - Duration: {modelValue: number (total seconds), label: "string", placeholder: "string", format: "short(DEFAULT)|long|colon"}
 - FormLabel: {label: "string"} (only for inputs that lack a built-in label prop, e.g. TextEditor; most inputs above already take label directly — prefer that)
 
 ACTIONS:
-- Button: {label: "string", variant: "solid|subtle|outline|ghost", size: "sm|md|lg|xl|2xl", theme: "gray (DEFAULT — omit unless red/green/blue is semantically required)", icon: "lucide-icon-name", iconLeft: "lucide-icon-name", iconRight: "lucide-icon-name"}
+- Button: {label: "string", variant: "solid|subtle|outline|ghost", size: "xs|sm|md|lg", theme: "gray (DEFAULT — omit unless red/green/blue is semantically required)", icon: "lucide-icon-name", iconLeft: "lucide-icon-name", iconRight: "lucide-icon-name"}
 - Dropdown: {options: [{label: "string", icon: "lucide-icon-name", onClick: "function"}] OR grouped [{group: "string", options: [{label, icon}]}], button: {label: "string"}}
 - ContextMenu: {options: [{label: "string", icon: "lucide-icon-name", onClick: "function"}] OR grouped [{group: "string", options: [{label, icon}]}]}
   # A right-click menu — put the target surface as child content in the default slot; the menu opens on right-click of that area.
-# For buttons and dropdowns, icons must be lucide-* strings from https://lucide.dev/icons (e.g. lucide-plus, lucide-edit, etc.)
+# For buttons and dropdowns, icons must be lucide-* strings from https://lucide.dev/icons (e.g. lucide-plus, lucide-pencil, etc.)
 # HANDLER PROPS (onClick inside Dialog actions, Dropdown/ContextMenu options, etc.) must be an function string — "() => { counter.value = 0 }" — NOT a bare statement. The component calls it directly, so a plain "counter.value = 0" string throws "onClick is not a function". Variables are refs (write via .value); data sources and route/router are in scope. (This differs from a block's `events`, which ARE bare statements.)
 
 OVERLAYS:
-- Dialog: {modelValue: false, title: "string", message: "string", size: "xs|sm|md|lg(DEFAULT)|xl|2xl|3xl|4xl|5xl|6xl|7xl", icon: "lucide-icon-name", position: "center(DEFAULT)|top", dismissible: true, showCloseButton: true, bare: false, actions: [{label: "string", variant: "solid|subtle|outline|ghost", theme: "gray (DEFAULT — omit unless red/green/blue is semantically required; Example: red for destructive actions)", onClick: "function"}]}
+- Dialog: {modelValue: false, title: "string", message: "string", size: "xs|sm|md|lg(DEFAULT)|xl|2xl|3xl|4xl|5xl|6xl|7xl", icon: "lucide-icon-name", theme: "gray(DEFAULT)|blue|green|amber|red" (tints the icon), position: "center(DEFAULT)|top", dismissible: true, showCloseButton: true, bare: false, actions: [{label: "string", variant: "solid|subtle|outline|ghost", theme: "gray (DEFAULT — omit unless red/green/blue is semantically required; Example: red for destructive actions)", onClick: "function"}]}
   # modelValue is the open/visibility state (v-model) — keep it false so the dialog starts hidden; it is opened via interaction wired separately.
   # An action's onClick is an function string (see HANDLER PROPS above), e.g. a Reset action → "() => { counter.value = 0; showResetDialog.value = false }". To close the dialog, set its modelValue variable false.
   # Dialog body content goes in the block's default slot, NOT in a prop. title/message/icon/actions render the built-in header + footer chrome around those children.
@@ -56,19 +56,30 @@ OVERLAYS:
 
 NAVIGATION:
 - Breadcrumbs: {items: [{label: "string", route: "string"}]}
-- Tabs: {tabs: [{label: "string"}]} # slots: tab-item, tab-panel
-- TabButtons: {options: [{label: "string", value: "string"}], modelValue: "string", type: "subtle|ghost|underline|browser-tab", size: "sm|md"}
-- Sidebar: {header: {title: "string", subtitle: "string"}, sections: [{label: "string", items: [{label: "string", icon: "{{ getIcon('icon-name') }}", to: "string"}]}]} # slots: header, header-logo, sidebar-item, footer-items
-  # icon-name must be a valid kebab-case lucide icon from https://lucide.dev/icons
+- Tabs: {tabs: [{label: "string", value: "string"}], modelValue: "value of the active tab"} # slots: tab-prefix, tab-label, tab-suffix, tab-panel
+- TabButtons: {options: [{label: "string", value: "string"}], modelValue: "string", variant: "subtle|ghost|underline|browser-tab", size: "sm|md"}
+- Sidebar: {collapsible: true} — a bare frame; compose its default-slot children ("c") from SidebarHeader {title: "string", subtitle: "string", menuItems: [{label, icon, onClick}]}, SidebarLabel {label: "string"}, SidebarItem {label: "string", icon: "lucide-icon-name", route: "string", active: false} and SidebarCard {title: "string", description: "string", theme: "gray(DEFAULT)|blue|green|amber|red", dismissible: false, action: {label: "string", onClick: "function"}} (a promo/notice card for the sidebar footer)
+- SidebarRail: {} — a bare 50px icon column that sits BESIDE a Sidebar (not inside it); compose its default-slot children ("c") from SidebarRailItem {label: "string" (tooltip), icon: "lucide-icon-name", variant: "subtle(DEFAULT)|ghost", route: "string", href: "string", active: false, badge: number, badgeStyle: "count|dot"}; use ghost + icon for shortcuts (Search, Notifications) and subtle with initials/Avatar children for workspaces; wrap the middle items in a flex-1 column container to push the rest to the bottom
+  # icon must be a valid lucide-* string from https://lucide.dev/icons
 
 DATA DISPLAY:
-- ListView: {columns: [{label: "string", key: "string", width: number}], rows: [{key: value}], rowKey: "string"}
-- NumberChart: {config: {title: "string", value: number, prefix: "string", delta: number}} # slots: title, subtitle, delta
-- AxisChart: {config: {data: [{xKey: val, yKey: val}], xAxis: {key: "dataFieldName", type: "category|time"}, yAxis: {title: "string"}, series: [{name: "dataFieldName" (should match data field key, not label), type: "bar|line"}]}}
-- DonutChart: {config: {data: [{cat: val, val: number}], categoryColumn: "string", valueColumn: "string"}}
+- List: {columns: ["minmax(0, 1fr)", "8rem", ...], rowHeight: 56} # List family: c contains ListHeader and ListRows; columns are CSS grid track sizes, one per cell
+- ListHeader: c contains one ListHeaderCell per column; each cell contains a TextBlock label
+- ListRows: {items: "{{ <source>.data }}", rowKey: "name"} # slots: default (scoped row template; ONE ListRow)
+  # In slots.default, ListRow has props {"value":"{{ value }}"} and one ListCell child per column. Row bindings use {{ item.<field> }}; the default slot exposes item, index, and value. Put labels/content inside each ListCell, not in ListRows props.
+- ListRow: c contains ListCell blocks, one per column
+- ListCell: c contains the cell content (TextBlock, Badge, Button, etc.)
+- NumberCard: {title: "string", value: number, prefix: "string", suffix: "string", delta: number, deltaSuffix: "string", deltaCaption: "string", negativeIsBetter: false} — a KPI tile; draws its own card
+- BarChart / LineChart / AreaChart: {title: "string", data: [{month: "Jan", sales: 200}], x: "month" (category/time column), y: "sales" | ["sales", "target"] (value column(s), one series each), stacked: false, seriesConfig: {sales: {label: "string", type: "bar|line|area"}}} — one seriesConfig type overrides the chart's mark (a BarChart with one "line" series is a combo chart); BarChart also takes horizontal: true
+- DonutChart: {title: "string", data: [{product: "Laptops", sales: 400}], category: "product", value: "sales"}
+- FunnelChart: {title: "string", data: [{stage: "Leads", count: 1200}], category: "stage", value: "count"}
+- HeatmapChart: {title: "string", data: [{day: "Mon", slot: "Morning", orders: 12}], x: "day", y: "slot", value: "orders"}
+- ScatterChart: {title: "string", data: [{price: 10, units: 420}], x: "price", y: "units"}
+- SankeyChart: {title: "string", data: [{source: "Search", target: "Landing", visits: 500}], source: "source", target: "target", value: "visits"}
+  # Charts (not NumberCard) fill their parent: ALWAYS give the chart block a height in style, e.g. {height: "300px", width: "100%"}, or it renders 0px tall. Bind data to {{ <data_source>.data }}; x/y/category/value name columns of those rows.
 - Filter: {doctype: "string", filters: {}}
 - Link: {doctype: "string"}
-- Tree: {nodeKey: "string", node: {name: "string", label: "string", children: []}} # slots: label, icon, node
+- Tree: {nodeKey: "string", nodes: [{name: "string", label: "string", children: []}], guides: "connectors|lines|none"} # slots: item, item-label
 - Repeater: {data: array — bind to {{ <data_source>.data }}, dataKey: "field that uniquely identifies a row, usually 'name'", emptyStateMessage: "string"}
   # Repeats its child block(s) once per item in `data`. Build ONE row template as the child — do NOT duplicate the child per record. Inside the repeater, bind child props to the CURRENT ROW via {{ dataItem.<field> }} (and dataIndex for the 0-based index). e.g. a TextBlock showing each row's title → bind prop "text" to dataItem.title.
 - Calendar: {config: {defaultMode: "Month"}, events: []}
@@ -123,7 +134,7 @@ BLOCK_SCHEMA = """BLOCK SCHEMA (each block is a JSON object with these optional 
 - "visibility": "expr"          — render the block only when a {{ }} expression is truthy, e.g. "{{ todos.data.length > 0 }}"
 - "c": [ ]                       — children list (array of block objects). These are the block's DEFAULT-slot content (e.g. a Dialog's body, a ContextMenu's target surface).
 - "slots": { }                  — NAMED slots only, for components that expose them: {"<slotName>": [ ...child block objects... ]} (each value is a block list in THIS same schema — a slot holds blocks only, so use a TextBlock for a plain label). Default content goes in "c" — use "slots" only for a component's named slots. On an EXISTING block, fill a named slot with set_slot(component_id, slot_name, blocks) and drop a wrong one with remove_slot(component_id, slot_name).
-  NAMED SLOTS RULE: use ONLY a component's real slot names — the ones listed after `# slots:` in its catalog entry below. NEVER invent a slot name (e.g. Sidebar's footer is called "footer-items", not "footer"); content placed in a slot the component doesn't declare silently does not render. If a component shows no `# slots:`, treat it as having none — use its props or default-slot "c".
+  NAMED SLOTS RULE: use ONLY a component's real slot names — the ones listed after `# slots:` in its catalog entry below. NEVER invent a slot name (e.g. Dialog's footer is called "actions", not "footer"); content placed in a slot the component doesn't declare silently does not render. If a component shows no `# slots:`, treat it as having none — use its props or default-slot "c".
 
 ROOT BLOCK — the page root is:
 {"name":"div","originalElement":"body","label":"body","style":{"display":"flex","flexDirection":"column","flexShrink":0,"width":"inherit","overflowX":"hidden","height":"100%"},"c":[ ... ]}
@@ -136,18 +147,20 @@ LAYOUT CONTAINERS (CRITICAL — originalElement is required or children won't re
 """
 
 BUILD_RULES = """BUILDING BLOCKS RULES:
-- ALWAYS use a frappe-ui/catalog component (Sidebar, Button, Badge, ListView, FormControl, Tabs, Dialog, …) before hand-building the same thing from container/div/TextBlock + styles.
+- ALWAYS use a frappe-ui/catalog component (Sidebar, Button, Badge, List, FormControl, Tabs, Dialog, …) before hand-building the same thing from container/div/TextBlock + styles.
+- For tabular records, build the List family as a tree: List → ListHeader with ListHeaderCell children, then ListRows with one ListRow in slots.default and ListCell children. Do not use List as a single block with rows/columns objects.
+  Example: {"name":"List","props":{"columns":["minmax(0, 1fr)","8rem"]},"c":[{"name":"ListHeader","c":[{"name":"ListHeaderCell","c":[{"name":"TextBlock","props":{"text":"Title"}}]},{"name":"ListHeaderCell","c":[{"name":"TextBlock","props":{"text":"Status"}}]}]},{"name":"ListRows","props":{"items":"{{ tasks.data }}","rowKey":"name"},"slots":{"default":[{"name":"ListRow","props":{"value":"{{ value }}"},"c":[{"name":"ListCell","c":[{"name":"TextBlock","props":{"text":"{{ item.title }}"}}]},{"name":"ListCell","c":[{"name":"Badge","props":{"label":"{{ item.status }}"}}]}]}]}}]}
 - style keys are camelCase CSS property names (backgroundColor, borderRadius, …).
 - Do NOT include "id" or "parentBlock" — Studio assigns ids automatically.
 - Keep props to only what the request needs.
-- WRAP SIBLINGS IN A SPACING CONTAINER. Whenever a parent holds MORE THAN ONE block — a Dialog body, a slot, a card, a form — put them inside a single `container` with {"display":"flex","flexDirection":"column","gap":"..."} (e.g. gap 12–16px for a form, 8px for tight groups) rather than dropping the blocks in as bare siblings. Bare siblings have no gap and render cramped. A row of items → the same but flexDirection "row".
+- WRAP SIBLINGS IN A SPACING CONTAINER for ordinary layout. Whenever a parent holds MORE THAN ONE unrelated block — a Dialog body, a card, a form — put them inside a single `container` with {"display":"flex","flexDirection":"column","gap":"..."} (e.g. gap 12–16px for a form, 8px for tight groups). A row of items → the same but flexDirection "row". Keep List family parts as direct children in their required structure.
 """
 
 
 # Plain string (not an f-string) so `{{ }}` binding tokens survive; interpolated into
 # SYSTEM_PROMPT so one-shot generation can bake live-data bindings into props.
 BINDING_CONTRACT = """DATA BINDING — when the page shows live data or a variable, a block prop's VALUE is a `{{ }}` expression (bound at render):
-- list of records → a Repeater with props {"data":"{{ <source>.data }}","dataKey":"name"} whose ONE row-template child uses {{ dataItem.<field> }} in its props; or a ListView with props {"rows":"{{ <source>.data }}"} + columns.
+- list of records → a Repeater with props {"data":"{{ <source>.data }}","dataKey":"name"} whose ONE row-template child uses {{ dataItem.<field> }} in its props; or the List family with ListRows props {"items":"{{ <source>.data }}","rowKey":"name"} and ONE ListRow in slots.default whose cells use {{ item.<field> }}.
 - a single Document's field → {{ <source>.doc.<field> }}; a count → {{ <source>.data.length }}.
 - a variable (read-only display) → {{ <variable> }} (e.g. a TextBlock with props {"text":"{{ counter }}"}).
 - an INPUT whose value should SYNC with a variable two-way (v-model) → props {"modelValue":{"$type":"variable","name":"<variable>"}} — an object, NOT a {{ }} string. Typing updates the variable and vice-versa; use this for TextInput/FormControl/Select/Checkbox/Switch/etc.
@@ -167,7 +180,7 @@ This JS has the page context in scope plus ordinary browser globals (`window`, `
   - read → `<source>.data` (list) or `<source>.doc` (single Document)
   Every `.submit(...)` returns a Promise — chain `.then(() => { ... })` to close a dialog, clear inputs, or toast after it lands.
 - `call('dotted.method.path', { arg: value })` — a frappe-ui helper for a ONE-OFF whitelisted server call not tied to a source; returns a Promise, e.g. `call('frappe.client.get_count', { doctype: 'Note' }).then((n) => { count.value = n })`. Do NOT use `createResource`/`createListResource` in inline JS — they are NOT in scope here; use an existing source or `call`.
-- `toast.success(msg)` / `toast.error(msg)`; `getIcon(name)`; variables (refs — read/write via `.value`); `route`, `router`.
+- `toast.success(msg)` / `toast.error(msg)`; `socket` (the app's socket.io connection, for realtime events); icons are plain "lucide-<name>" strings; variables (refs — read/write via `.value`); `route`, `router`.
 CRUD example — a Dialog "Save" action that creates a Note via the `notes` source (NOT frappe.db), then clears + closes:
   "() => { notes.insert.submit({ title: newNoteTitle.value }).then(() => { newNoteTitle.value = ''; showNewNoteDialog.value = false }) }"
 """
@@ -208,7 +221,7 @@ Build a data-driven view — BACKEND FIRST, then layout:
   2. Create the data layer FIRST — add_data_source (+ local state, see State & logic below). Call get_page_state first to reuse an existing source/variable instead of duplicating. Keep filters concrete, e.g. open ToDos → {"status":"Open"}.
   3. Build the layout binding to it, with the bindings baked into props. The columns/fields you show ARE the data source's fields[] — never bind a field the source didn't fetch.
      - list with a custom row → a Repeater, props {"data":"{{ <source>.data }}","dataKey":"name"}, with ONE child row-template whose props use {{ dataItem.<field> }} (dataItem = current row, dataIndex = its 0-based index). Build ONE template — it repeats automatically; never one child per record.
-     - tabular list → a ListView with its columns set and props {"rows":"{{ <source>.data }}"}.
+     - tabular list → the List family: List columns are CSS grid tracks; ListHeader has labeled ListHeaderCell children; ListRows binds {"items":"{{ <source>.data }}","rowKey":"name"} and has ONE ListRow in slots.default, with ListCell children bound to {{ item.<field> }}.
      - single value / count → a block prop bound to {{ <source>.doc.<field> }} or {{ <source>.data.length }}.
      - a variable → the display block's prop bound to {{ <variable> }} (e.g. a TextBlock with props {"text":"{{ counter }}"}).
 
@@ -291,7 +304,7 @@ For add_block, pass the new block under "block" using the BLOCK SCHEMA below (na
 {BUILD_RULES}
 
 # Reproducing an attached screenshot / design
-When the user attaches an image (a screenshot or design mock), treat it as the source of truth for the LAYOUT. Read it top-to-bottom and map each region to the closest catalog component (top bar → Sidebar/Breadcrumbs, cards → container, lists/tables → ListView/Repeater, forms → FormControl/Input, stats → NumberChart, etc.). Match the structure, spacing, alignment, and hierarchy; approximate its colors with espresso tokens (never hardcode hex). Because the page is built from the brief you pass to generate_page, that BRIEF must encode what you see — the section order, each section's components and real copy, the palette, and the type scale. Don't add extra elements/components that do not exist in the screenshot. Do not invent data sources; bind only to ones that already exist.
+When the user attaches an image (a screenshot or design mock), treat it as the source of truth for the LAYOUT. Read it top-to-bottom and map each region to the closest catalog component (top bar → Sidebar/Breadcrumbs, cards → container, lists/tables → List family/Repeater, forms → FormControl/Input, stats → NumberCard, charts → BarChart/LineChart/DonutChart, etc.). Match the structure, spacing, alignment, and hierarchy; approximate its colors with espresso tokens (never hardcode hex). Because the page is built from the brief you pass to generate_page, that BRIEF must encode what you see — the section order, each section's components and real copy, the palette, and the type scale. Don't add extra elements/components that do not exist in the screenshot. Do not invent data sources; bind only to ones that already exist.
 
 {data_and_code_wiring}
 

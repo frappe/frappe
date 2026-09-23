@@ -12,7 +12,7 @@
 		/>
 
 		<!-- the tree drifted from `columns` (hand-edited header/rows) -->
-		<div v-if="mismatch.length" class="flex items-center gap-1.5 text-xs text-ink-amber-6">
+		<div v-if="mismatch.length" class="flex items-center gap-1.5 text-xs text-ink-amber-5">
 			<span class="size-[5px] flex-none rounded-full bg-surface-amber-5"></span>
 			{{ mismatch.join(" · ") }}
 		</div>

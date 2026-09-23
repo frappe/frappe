@@ -1,5 +1,5 @@
-import type { BlockOptions, BlockStyleMap, Slot } from "@/types";
-import type { TextBlockProps } from "@/types/studio_components/TextBlock";
+import type { BlockOptions, BlockStyleMap, Slot } from "@/types"
+import type { TextBlockProps } from "@/types/studio_components/TextBlock"
 
 export const familyTemplates = {
 	list: listTemplate,
@@ -12,7 +12,71 @@ export const familyTemplates = {
 	"settings-dialog": settingsDialogTemplate,
 	sidebar: sidebarTemplate,
 	"sidebar-label": sidebarLabelTemplate,
-} satisfies Record<string, () => BlockOptions>;
+	"sidebar-rail": sidebarRailTemplate,
+	"radio-group": radioGroupTemplate,
+	"bar-chart": () =>
+		chartTemplate("BarChart", { title: "Monthly Sales", data: MONTHLY_SALES, x: "month", y: ["sales", "target"] }),
+	"line-chart": () =>
+		chartTemplate("LineChart", { title: "Revenue", data: MONTHLY_SALES, x: "month", y: ["sales", "expenses"] }),
+	"area-chart": () => chartTemplate("AreaChart", { title: "Sales", data: MONTHLY_SALES, x: "month", y: "sales" }),
+	"donut-chart": () =>
+		chartTemplate("DonutChart", {
+			title: "Sales by Product",
+			data: PRODUCT_SALES,
+			category: "product",
+			value: "sales",
+		}),
+	"funnel-chart": () =>
+		chartTemplate("FunnelChart", {
+			title: "Sales Pipeline",
+			data: [
+				{ stage: "Leads", count: 1200 },
+				{ stage: "Qualified", count: 640 },
+				{ stage: "Proposal", count: 310 },
+				{ stage: "Won", count: 120 },
+			],
+			category: "stage",
+			value: "count",
+		}),
+	"heatmap-chart": () =>
+		chartTemplate("HeatmapChart", {
+			title: "Orders by Day",
+			data: ["Mon", "Tue", "Wed", "Thu", "Fri"].flatMap((day, i) =>
+				["Morning", "Afternoon", "Evening"].map((slot, j) => ({ day, slot, orders: 10 + ((i + 1) * (j + 2) * 7) % 40 })),
+			),
+			x: "day",
+			y: "slot",
+			value: "orders",
+		}),
+	"scatter-chart": () =>
+		chartTemplate("ScatterChart", {
+			title: "Price vs Units Sold",
+			data: [
+				{ price: 10, units: 420 },
+				{ price: 15, units: 380 },
+				{ price: 20, units: 310 },
+				{ price: 25, units: 290 },
+				{ price: 30, units: 210 },
+				{ price: 40, units: 150 },
+				{ price: 50, units: 90 },
+			],
+			x: "price",
+			y: "units",
+		}),
+	"sankey-chart": () =>
+		chartTemplate("SankeyChart", {
+			title: "Traffic Flow",
+			data: [
+				{ source: "Search", target: "Landing", visits: 500 },
+				{ source: "Social", target: "Landing", visits: 300 },
+				{ source: "Landing", target: "Signup", visits: 320 },
+				{ source: "Landing", target: "Bounce", visits: 480 },
+			],
+			source: "source",
+			target: "target",
+			value: "visits",
+		}),
+} satisfies Record<string, () => BlockOptions>
 
 const MEMBERS = [
 	{ name: "Rosa Diaz", email: "rosa@example.com", role: "Admin", since: "2021-06" },
@@ -20,7 +84,7 @@ const MEMBERS = [
 	{ name: "Amy Santiago", email: "amy@example.com", role: "Admin", since: "2020-11" },
 	{ name: "Terry Jeffords", email: "terry@example.com", role: "Member", since: "2023-03" },
 	{ name: "Raymond Holt", email: "holt@example.com", role: "Guest", since: "2024-08" },
-];
+]
 
 function listTemplate(): BlockOptions {
 	return {
@@ -55,11 +119,7 @@ function listTemplate(): BlockOptions {
 						children: [
 							memberCell(),
 							listCell("{{ item.role }}", { color: "var(--ink-gray-7)" }),
-							listCell(
-								"{{ item.since }}",
-								{ color: "var(--ink-gray-6)" },
-								{ justifyContent: "flex-end" }
-							),
+							listCell("{{ item.since }}", { color: "var(--ink-gray-6)" }, { justifyContent: "flex-end" }),
 							{
 								componentName: "ListCell",
 								baseStyles: { justifyContent: "flex-end" } as BlockStyleMap,
@@ -75,7 +135,7 @@ function listTemplate(): BlockOptions {
 				]),
 			},
 		],
-	};
+	}
 }
 
 // Avatar with the member's name and email stacked beside it.
@@ -108,7 +168,7 @@ function memberCell(): BlockOptions {
 				],
 			},
 		],
-	};
+	}
 }
 
 // A minimal two-tab settings dialog
@@ -117,8 +177,8 @@ function settingsDialogTemplate(): BlockOptions {
 		componentName: "SettingsDialog",
 		blockName: "Settings Dialog",
 		componentProps: {
-			modelValue: false,
-			shortcut: false,
+			open: false,
+			keyboardShortcut: false,
 			unmountOnHide: false,
 			// active tab
 			tab: "profile",
@@ -152,7 +212,7 @@ function settingsDialogTemplate(): BlockOptions {
 				],
 			},
 		],
-	};
+	}
 }
 
 function sidebarTemplate(): BlockOptions {
@@ -199,7 +259,7 @@ function sidebarTemplate(): BlockOptions {
 				children: [{ componentName: "SidebarCollapseToggle" }],
 			},
 		],
-	};
+	}
 }
 
 // --- Standalone part templates ------------------------------------------
@@ -209,14 +269,14 @@ function sidebarTemplate(): BlockOptions {
 // banner guides the fix-up.
 
 function listRowTemplate(): BlockOptions {
-	return { componentName: "ListRow", children: [listCell("—"), listCell("—")] };
+	return { componentName: "ListRow", children: [listCell("—"), listCell("—")] }
 }
 
 function listHeaderTemplate(): BlockOptions {
 	return {
 		componentName: "ListHeader",
 		children: [listHeaderCell("Column 1"), listHeaderCell("Column 2")],
-	};
+	}
 }
 
 // Sample items + a row template in a real slot (scoped item/index/value) — the same
@@ -238,44 +298,121 @@ function listRowsTemplate(): BlockOptions {
 				children: [listCell("{{ item.title }}"), listCell("{{ item.status }}")],
 			},
 		]),
-	};
+	}
 }
 
 function listCellTemplate(): BlockOptions {
-	return listCell("Cell");
+	return listCell("Cell")
 }
 
 function listHeaderCellTemplate(): BlockOptions {
-	return listHeaderCell("Label");
+	return listHeaderCell("Label")
 }
 
 function listHeaderCellSortTemplate(): BlockOptions {
-	return { componentName: "ListHeaderCellSort", children: [textBlock("Label")] };
+	return { componentName: "ListHeaderCellSort", children: [textBlock("Label")] }
 }
 
 // A bare SidebarLabel paints nothing — its text lives in the default slot.
 function sidebarLabelTemplate(): BlockOptions {
-	return sidebarLabel("Label");
+	return sidebarLabel("Label")
 }
 
 function sidebarLabel(text: string): BlockOptions {
-	return { componentName: "SidebarLabel", children: [textBlock(text)] };
+	return { componentName: "SidebarLabel", children: [textBlock(text)] }
+}
+
+function sidebarRailTemplate(): BlockOptions {
+	return {
+		componentName: "SidebarRail",
+		blockName: "SidebarRail",
+		children: [
+			railItem("Home", { icon: "lucide-house" }),
+			{
+				componentName: "container",
+				originalElement: "div",
+				baseStyles: {
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "center",
+					gap: "12px",
+					flex: "1",
+					width: "100%",
+					paddingTop: "12px",
+				} as BlockStyleMap,
+				children: [workspaceRailItem("Design", "DE", true), workspaceRailItem("Engineering", "EN")],
+			},
+			railItem("Search", { icon: "lucide-search" }),
+			railItem("Notifications", { icon: "lucide-bell", badge: 5 }),
+		],
+	}
+}
+
+function railItem(label: string, props: Record<string, unknown>): BlockOptions {
+	return { componentName: "SidebarRailItem", componentProps: { label, variant: "ghost", ...props } }
+}
+
+// subtle items show initials (or an image/avatar) in the default slot
+function workspaceRailItem(label: string, initials: string, active = false): BlockOptions {
+	return {
+		componentName: "SidebarRailItem",
+		componentProps: { label, active },
+		children: [textBlock(initials, { color: "var(--ink-gray-5)", fontWeight: "500" }, "text-2xs")],
+	}
+}
+
+const MONTHLY_SALES = [
+	{ month: "Jan", sales: 200, target: 250, expenses: 150 },
+	{ month: "Feb", sales: 300, target: 260, expenses: 180 },
+	{ month: "Mar", sales: 250, target: 270, expenses: 170 },
+	{ month: "Apr", sales: 350, target: 280, expenses: 210 },
+	{ month: "May", sales: 400, target: 300, expenses: 220 },
+	{ month: "Jun", sales: 380, target: 320, expenses: 230 },
+]
+
+const PRODUCT_SALES = [
+	{ product: "Laptops", sales: 400 },
+	{ product: "Phones", sales: 350 },
+	{ product: "Tablets", sales: 200 },
+	{ product: "Accessories", sales: 150 },
+]
+
+// charts fill their parent, so the block carries the height
+function chartTemplate(componentName: string, componentProps: Record<string, unknown>): BlockOptions {
+	return {
+		componentName,
+		componentProps,
+		baseStyles: { width: "100%", height: "300px" } as BlockStyleMap,
+	}
+}
+
+function radioGroupTemplate(): BlockOptions {
+	return {
+		componentName: "RadioGroup",
+		blockName: "RadioGroup",
+		componentProps: { label: "Choose a plan", modelValue: "free" },
+		children: [radio("free", "Free"), radio("pro", "Pro"), radio("enterprise", "Enterprise")],
+	}
+}
+
+function radio(value: string, label: string): BlockOptions {
+	return { componentName: "Radio", componentProps: { value, label } }
 }
 
 function sidebarItem(label: string, icon: string): BlockOptions {
-	return { componentName: "SidebarItem", componentProps: { label, icon } };
+	return { componentName: "SidebarItem", componentProps: { label, icon } }
 }
 
 export function listHeaderCell(label: string, styles: BlockStyleMap = {}): BlockOptions {
-	return { componentName: "ListHeaderCell", baseStyles: styles, children: [textBlock(label)] };
+	return { componentName: "ListHeaderCell", baseStyles: styles, children: [textBlock(label)] }
 }
 
 export function listCell(
 	text: string,
 	textStyles: BlockStyleMap = {},
-	cellStyles: BlockStyleMap = {}
+	cellStyles: BlockStyleMap = {},
 ): BlockOptions {
-	return { componentName: "ListCell", baseStyles: cellStyles, children: [textBlock(text, textStyles)] };
+	return { componentName: "ListCell", baseStyles: cellStyles, children: [textBlock(text, textStyles)] }
 }
 
 export function navItem(value: string, label: string): BlockOptions {
@@ -285,7 +422,7 @@ export function navItem(value: string, label: string): BlockOptions {
 		blockName: tabBlockName(label, "NavItem"),
 		componentProps: { value },
 		children: [textBlock(label)],
-	};
+	}
 }
 
 // "User settings" -> "UserSettingsNavItem" — friendly layer names for tab pairs
@@ -294,15 +431,15 @@ export function tabBlockName(label: string, suffix: "NavItem" | "Panel") {
 		.split(/[^a-zA-Z0-9]+/)
 		.filter(Boolean)
 		.map((word) => word[0].toUpperCase() + word.slice(1))
-		.join("");
-	return pascal ? pascal + suffix : suffix;
+		.join("")
+	return pascal ? pascal + suffix : suffix
 }
 
 export function settingsPanel(
 	value: string,
 	title: string,
 	description: string,
-	rows: BlockOptions[]
+	rows: BlockOptions[],
 ): BlockOptions {
 	return {
 		componentName: "SettingsPanel",
@@ -318,7 +455,7 @@ export function settingsPanel(
 				children: rows,
 			},
 		],
-	};
+	}
 }
 
 function settingsRow(title: string, description: string, control: BlockOptions): BlockOptions {
@@ -326,25 +463,25 @@ function settingsRow(title: string, description: string, control: BlockOptions):
 		componentName: "SettingsRow",
 		componentProps: { title, description },
 		children: [control],
-	};
+	}
 }
 
 function textBlock(
 	text: string,
 	styles: BlockStyleMap = {},
-	fontSize?: TextBlockProps["fontSize"]
+	fontSize?: TextBlockProps["fontSize"],
 ): BlockOptions {
 	return {
 		componentName: "TextBlock",
 		baseStyles: styles,
 		componentProps: { text, tag: "span", ...(fontSize && { fontSize }) },
-	};
+	}
 }
 
 // Wrap blocks as a component's default-slot content to access slot scope
 function withDefaultSlot(content: BlockOptions[]): Record<string, Slot> {
-	content.forEach((block) => (block.parentSlotName = "default"));
+	content.forEach((block) => (block.parentSlotName = "default"))
 	return {
 		default: { slotName: "default", slotContent: content },
-	} as unknown as Record<string, Slot>;
+	} as unknown as Record<string, Slot>
 }

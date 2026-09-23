@@ -7,15 +7,15 @@
 					:key="resource_name"
 					class="group/item flex flex-row items-center justify-between"
 				>
-					<div class="-ml-[0.9rem] flex items-center gap-1 overflow-hidden">
-						<ObjectBrowser :object="resource" :name="resource_name" />
+					<div class="-ml-[0.9rem] flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
+						<ObjectBrowser :object="resource" :name="resource_name" class="min-w-0 flex-1" />
 						<Tooltip v-if="!resource" text="No matching document found for the current filters">
-							<span class="lucide-alert-circle h-[14px] w-[14px] cursor-pointer text-ink-amber-6" />
+							<span class="lucide-alert-circle h-[14px] w-[14px] cursor-pointer text-ink-amber-5" />
 						</Tooltip>
 					</div>
 					<ItemActions
 						class="-mt-1 self-start"
-						:menuOptions="getResourceMenu(resource, resource_name)"
+						:menuOptions="getResourceMenu(resource_name)"
 						@edit="openResource(resource_name)"
 					/>
 				</div>
@@ -24,7 +24,7 @@
 			<EmptyState v-else message="No resources added" />
 
 			<div class="mt-2 flex flex-col" v-if="store.activePage">
-				<Button icon-left="plus" @click="showResourceDialog = true">Add Data Source</Button>
+				<Button icon-left="lucide-plus" @click="showResourceDialog = true">Add Data Source</Button>
 				<ResourceDialog
 					v-model:showDialog="showResourceDialog"
 					:resource="existingResource"
@@ -46,13 +46,13 @@
 						v-if="typeof value === 'object'"
 						:object="value"
 						:name="variable_name"
-						class="-ml-[0.9rem] overflow-hidden"
+						class="-ml-[0.9rem] min-w-0 flex-1 overflow-hidden"
 					/>
 					<div v-else class="flex flex-row justify-between font-mono text-xs">
-						<div class="font-semibold text-ink-pink-8">{{ variable_name }}</div>
+						<div class="font-semibold text-ink-pink-7">{{ variable_name }}</div>
 						<template v-if="value !== ''">
 							<div class="text-ink-gray-5">&nbsp;=&nbsp;</div>
-							<div class="text-ink-violet-8">{{ value }}</div>
+							<div class="text-ink-violet-7">{{ value }}</div>
 						</template>
 					</div>
 					<ItemActions
@@ -66,9 +66,9 @@
 			<EmptyState v-else message="No variables added" />
 
 			<div class="mt-2 flex flex-col" v-if="store.activePage">
-				<Button icon-left="plus" @click="showVariableDialog = true">Add Variable</Button>
+				<Button icon-left="lucide-plus" @click="showVariableDialog = true">Add Variable</Button>
 				<Dialog
-					v-model="showVariableDialog"
+					v-model:open="showVariableDialog"
 					:title="variableRef?.name ? 'Edit Variable' : 'Add Variable'"
 					@after-leave="
 						() =>
@@ -95,7 +95,7 @@
 								v-model="variableRef.variable_type"
 								:required="true"
 								default="String"
-								@change="() => setInitialValue()"
+								@update:modelValue="() => setInitialValue()"
 							/>
 							<Code
 								v-if="variableRef.variable_type === 'Object'"
@@ -154,6 +154,7 @@ import { studioVariables } from "@/data/studioVariables"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
 import type { Resource } from "@/types/Studio/StudioResource"
 import { toast } from "frappe-ui"
+import { copyDataSource } from "@/utils/blockCopyPaste"
 
 /**
  * Insert resource into DB
@@ -253,7 +254,7 @@ const getStoredResource = async (resource_name: string) => {
 	return studioPageResources.data[0]
 }
 
-const getResourceMenu = (resource: Resource, resource_name: string) => {
+const getResourceMenu = (resource_name: string) => {
 	return [
 		{
 			label: "Delete",
@@ -262,11 +263,9 @@ const getResourceMenu = (resource: Resource, resource_name: string) => {
 			onClick: () => deleteResource(resource_name),
 		},
 		{
-			label: "Copy Object",
+			label: "Copy",
 			icon: "lucide-copy",
-			onClick: () => {
-				copyToClipboard(resource)
-			},
+			onClick: () => copyDataSource(getStoredResource(resource_name), resource_name),
 		},
 	]
 }

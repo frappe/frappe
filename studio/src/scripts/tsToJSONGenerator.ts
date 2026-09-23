@@ -10,17 +10,39 @@ type SourceFolder = string | { path: string; folderScan?: boolean; perComponent?
 const configMap: Record<string, any> = {
 	frappeui: {
 		srcFolders: [
-			"../node_modules/frappe-ui/src/components",
-			"../node_modules/frappe-ui/frappe",
+			"node_modules/frappe-ui/src/components",
+			{ path: "node_modules/frappe-ui/experimental", skipFolders: ["SpriteIcons", "Charts", "stories"] },
+			{
+				path: "node_modules/frappe-ui/src/charts",
+				perComponent: true,
+				skipFolders: ["components", "core", "docs", "stories"],
+			},
 			// molecules (List family): several components per folder, keyed off the .vue
 			// files whose `<Component>Props` is exported from the folder's types.ts
-			{ path: "../node_modules/frappe-ui/src/molecules", perComponent: true, skipFolders: ["stories"] },
+			{ path: "node_modules/frappe-ui/src/molecules", perComponent: true, skipFolders: ["stories"] },
 		],
 		destFolder: "src/json_types/frappeui",
-		tsconfigPath: "../node_modules/frappe-ui/tsconfig.base.json",
-		// Filter and Link now ship from @framework/ui (see the frameworkui config),
-		// so skip the frappe-ui/frappe versions to avoid duplicate json_types exports.
-		skipFolders: ["drive", "Filter", "Link"],
+		tsconfigPath: "node_modules/frappe-ui/tsconfig.base.json",
+		skipFolders: ["stories", "shared"],
+		// not registered as studio blocks (see constants.js)
+		skipComponents: [
+			"Accordion",
+			"BottomSheet",
+			"DesktopShell",
+			"FloatingWindow",
+			"HoverCard",
+			"ItemListRow",
+			"KeyboardShortcut",
+			"KeyboardShortcutsDialog",
+			"Menu",
+			"MobileNav",
+			"MobileShell",
+			"MultiEmailInput",
+			"PageHeader",
+			"ScrollArea",
+			"ThemeSwitcher",
+			"Toast",
+		],
 		// component-per-folder layout: scan for `types.ts`, key by folder name
 		folderScan: true,
 	},
@@ -31,11 +53,25 @@ const configMap: Record<string, any> = {
 	frameworkui: {
 		srcFolders: ["../../frappe/ui/src/components"],
 		destFolder: "src/json_types/frameworkui",
-		tsconfigPath: "../node_modules/frappe-ui/tsconfig.base.json",
+		tsconfigPath: "node_modules/frappe-ui/tsconfig.base.json",
 		skipFolders: ["stories", "tests"],
 		// ComposerEditor is the private editing core shared by Email/CommentComposer —
 		// it exports Props (for the composers to extend) but is not a studio block.
-		skipComponents: ["ComposerEditor"],
+		skipComponents: [
+			"ComposerEditor",
+			// not registered as studio blocks (see constants.js)
+			"DataImport",
+			"GettingStartedBanner",
+			"HelpCenter",
+			"HelpModal",
+			"IntermediateStepModal",
+			"InviteUser",
+			"LogItem",
+			"OnboardingSteps",
+			"SignupBanner",
+			"TrialBanner",
+			"VersionItem",
+		],
 		perComponent: true,
 	},
 	studio: {

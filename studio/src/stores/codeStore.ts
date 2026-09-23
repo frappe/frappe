@@ -10,6 +10,7 @@ import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
 import { loadPageScriptModule, setPageScriptHotUpdateHandler } from "@/data/studioPageScripts"
 import * as globalUtils from "@/utils/globalUtils"
+import { useSocket } from "@/socket"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
 import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
 import { isFunctionExpression, toOptionalChaining, getTopLevelBindings } from "@/utils/parseCode"
@@ -497,6 +498,7 @@ const useCodeStore = defineStore("codeStore", () => {
 			...resources.value,
 			...pageScriptTemplateBindings.value,
 			...globalUtils,
+			socket: useSocket(),
 			route: unref(routeObject.value),
 			router: routerObject.value,
 		}
@@ -511,6 +513,7 @@ const useCodeStore = defineStore("codeStore", () => {
 			...currentResourceProxies(),
 			...pageScriptBindings.value,
 			...globalUtils,
+			socket: useSocket(),
 			route: currentRoute,
 			router: routerObject.value,
 		}

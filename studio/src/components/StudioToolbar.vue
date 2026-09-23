@@ -8,7 +8,7 @@
 					{
 						group: 'Studio',
 						hideLabel: true,
-						items: [
+						options: [
 							{
 								label: 'Back to Dashboard',
 								icon: 'lucide-arrow-left',
@@ -26,7 +26,7 @@
 							},
 							{
 								label: 'Studio Settings',
-								icon: 'sliders',
+								icon: 'lucide-sliders-vertical',
 								onClick: () => (store.showStudioSettingsDialog = true),
 							},
 							{
@@ -40,14 +40,17 @@
 					{
 						group: 'More',
 						hideLabel: true,
-						items: [{ label: 'Logout', icon: 'lucide-log-out', onClick: () => session.logout() }],
+						options: [{ label: 'Logout', icon: 'lucide-log-out', onClick: () => session.logout() }],
 					},
 				]"
 			>
 				<template v-slot="{ open }">
 					<div class="flex cursor-pointer items-center gap-1">
 						<StudioLogo class="h-7 w-7"></StudioLogo>
-						<FeatherIcon :name="open ? 'chevron-up' : 'chevron-down'" class="h-4 w-4 text-ink-gray-6" />
+						<span
+							:class="open ? 'lucide-chevron-up' : 'lucide-chevron-down'"
+							class="h-4 w-4 text-ink-gray-6"
+						/>
 					</div>
 				</template>
 			</Dropdown>
@@ -55,7 +58,7 @@
 			<div class="flex gap-2">
 				<Tooltip
 					:text="mode.description"
-					:hoverDelay="0.6"
+					:hoverDelay="600"
 					v-for="mode in [
 						{ mode: 'select', icon: 'lucide-mouse-pointer', description: 'Select (v)' },
 						{ mode: 'container', icon: 'lucide-square', description: 'Container (c)' },
@@ -73,18 +76,13 @@
 		</div>
 
 		<div>
-			<Popover
-				v-model:open="store.showPageOptions"
-				transition="default"
-				placement="bottom"
-				popoverClass="!mt-[20px]"
-			>
-				<template #target="{ togglePopover, isOpen }">
+			<Popover v-model:open="store.showPageOptions" side="bottom" align="center" :offset="20" bare>
+				<template #trigger>
 					<div class="flex cursor-pointer items-center gap-2 p-2">
 						<div class="flex h-6 items-center text-base text-ink-gray-7" v-if="!store.activePage">
 							Loading...
 						</div>
-						<div @click="togglePopover" v-else class="flex items-center gap-1">
+						<div v-else class="flex items-center gap-1">
 							<span class="max-w-48 truncate text-base text-ink-gray-7">
 								{{ store?.activePage?.page_title || "My Page" }}
 							</span>
@@ -96,27 +94,26 @@
 								v-if="!store.areRouteVariablesSet"
 								text="Set route variable values here to preview page data"
 							>
-								<FeatherIcon name="alert-circle" class="h-[14px] w-[14px] text-ink-amber-6" />
+								<span class="lucide-circle-alert h-[14px] w-[14px] text-ink-amber-5" />
 							</Tooltip>
 						</div>
-						<FeatherIcon
-							name="external-link"
+						<span
 							v-if="store.activePage && store.activePage.published"
-							class="h-[14px] w-[14px] !text-ink-gray-6 dark:!text-ink-gray-1"
-							@click="store.openPageInBrowser(store.activeApp!, store.activePage)"
-						></FeatherIcon>
+							class="lucide-external-link h-[14px] w-[14px] !text-ink-gray-6 dark:!text-ink-gray-1"
+							@click.stop="store.openPageInBrowser(store.activeApp!, store.activePage)"
+						/>
 					</div>
 				</template>
-				<template #body="{ isOpen }">
+				<template #default="{ open }">
 					<div
-						class="flex w-96 flex-col gap-3 rounded bg-surface-base p-4 shadow-lg"
+						class="flex w-96 flex-col gap-3 rounded-4 bg-surface-base p-4 shadow-lg"
 						v-if="store.activePage && store.activeApp"
 					>
 						<PageOptions
 							v-if="store.activePage"
 							:page="store.activePage"
 							:app="store.activeApp"
-							:isOpen="isOpen"
+							:isOpen="open"
 						></PageOptions>
 					</div>
 				</template>
@@ -126,7 +123,7 @@
 		<div class="absolute right-3 flex items-center gap-2">
 			<Tooltip
 				:text="store.activeApp?.is_standard ? 'App Export is enabled' : 'App Export Settings'"
-				:hoverDelay="0.6"
+				:hoverDelay="600"
 				v-if="canExportApp"
 			>
 				<Button
@@ -157,7 +154,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { Tooltip, Popover, Dropdown, FeatherIcon, Button } from "frappe-ui"
+import { Tooltip, Popover, Dropdown, Button } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 

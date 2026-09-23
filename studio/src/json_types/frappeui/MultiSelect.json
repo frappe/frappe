@@ -17,8 +17,28 @@
               "type": "string"
             },
             {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
               "type": "object",
+              "additionalProperties": false,
               "properties": {
+                "messages": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
                 "name": {
                   "type": "string"
                 },
@@ -27,15 +47,8 @@
                 },
                 "stack": {
                   "type": "string"
-                },
-                "messages": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
                 }
               },
-              "additionalProperties": false,
               "required": [
                 "message",
                 "name"
@@ -52,7 +65,10 @@
         "modelValue": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": [
+              "string",
+              "number"
+            ]
           }
         },
         "options": {
@@ -66,7 +82,10 @@
                     "type": "string"
                   },
                   "value": {
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   },
                   "icon": {
                     "type": [
@@ -84,19 +103,6 @@
                   },
                   "slots": {
                     "type": "object"
-                  },
-                  "slotName": {
-                    "type": "string"
-                  },
-                  "render": {
-                    "anyOf": [
-                      {
-                        "type": "object"
-                      },
-                      {
-                        "type": "object"
-                      }
-                    ]
                   }
                 },
                 "required": [
@@ -128,7 +134,10 @@
                           "type": "string"
                         },
                         "value": {
-                          "type": "string"
+                          "type": [
+                            "string",
+                            "number"
+                          ]
                         },
                         "icon": {
                           "type": [
@@ -146,19 +155,6 @@
                         },
                         "slots": {
                           "type": "object"
-                        },
-                        "slotName": {
-                          "type": "string"
-                        },
-                        "render": {
-                          "anyOf": [
-                            {
-                              "type": "object"
-                            },
-                            {
-                              "type": "object"
-                            }
-                          ]
                         }
                       },
                       "required": [
@@ -188,10 +184,10 @@
         "size": {
           "type": "string",
           "enum": [
+            "xs",
             "sm",
             "md",
-            "lg",
-            "xl"
+            "lg"
           ]
         },
         "placeholder": {
@@ -203,10 +199,16 @@
         "open": {
           "type": "boolean"
         },
+        "query": {
+          "type": "string"
+        },
         "hideSearch": {
           "type": "boolean"
         },
         "loading": {
+          "type": "boolean"
+        },
+        "filterable": {
           "type": "boolean"
         },
         "emptyText": {
@@ -236,9 +238,6 @@
           "type": [
             "string"
           ]
-        },
-        "compareFn": {
-          "type": "object"
         }
       },
       "additionalProperties": false

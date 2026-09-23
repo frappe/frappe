@@ -1,7 +1,7 @@
 <template>
 	<!-- prettier-ignore -->
 	<div
-		class="flex"
+		class="flex min-w-0"
 		:class="[type === 'textarea' ? 'flex-col gap-1.5' : 'flex-row items-center justify-between', attrs.class]"
 		:style="(attrs.style as StyleValue)"
 	>
@@ -9,25 +9,20 @@
 			:description="label"
 			:class="[
 				enableSlider ? 'cursor-ns-resize' : '',
-				required ? `after:text-ink-red-7 after:content-['_*']` : '',
+				required ? `after:text-ink-red-6 after:content-['_*']` : '',
 			]"
 			@mousedown="handleMouseDown"
 		>
 			{{ label }}
 
-			<Popover trigger="hover" v-if="description" placement="top">
-				<template #target>
-					<FeatherIcon name="info" class="ml-1 h-[12px] w-[12px] text-ink-gray-4" />
-				</template>
-				<template #body>
+			<Tooltip v-if="description" side="top">
+				<span class="lucide-info ml-1 h-[12px] w-[12px] text-ink-gray-4" />
+				<template #content>
 					<slot name="body">
-						<div
-							class="w-fit max-w-52 rounded bg-surface-gray-9 px-2 py-1 text-center text-xs text-ink-base shadow-xl"
-							v-html="description"
-						></div>
+						<div class="max-w-52 text-center" v-html="description"></div>
 					</slot>
 				</template>
-			</Popover>
+			</Tooltip>
 		</InputLabel>
 		<Autocomplete
 			v-if="type === 'autocomplete'"
@@ -47,6 +42,12 @@
 			:disabled="disabled"
 			v-bind="attrsWithoutClassAndStyle"
 		/>
+		<IconPicker
+			v-else-if="type === 'icon'"
+			:modelValue="modelValue"
+			@update:modelValue="handleChange"
+			class="w-full"
+		/>
 		<Input
 			v-else
 			:type="inputType"
@@ -62,13 +63,14 @@
 
 <script setup lang="ts">
 import { isNumber } from "@tiptap/vue-3"
-import { Popover, FeatherIcon } from "frappe-ui"
+import { Tooltip } from "frappe-ui"
 import { computed, StyleValue, useAttrs } from "vue"
 import { isDynamicValue } from "@/utils/code"
 import { extractNumberAndUnit, normalizeValueWithUnits } from "@/utils/helpers"
 import Input from "@/components/Input.vue"
 import Autocomplete from "@/components/Autocomplete.vue"
 import ColorInput from "@/components/ColorInput.vue"
+import IconPicker from "@/components/IconPicker.vue"
 import InputLabel from "@/components/InputLabel.vue"
 
 const props = withDefaults(

@@ -1,7 +1,10 @@
+import re
+
 import frappe
 
 OPTIONS_KEYS = ("title", "message", "size", "icon", "actions", "position", "paddingTop")
 
+BINDING = re.compile(r"^\s*\{\{(.*)\}\}\s*$", re.S)
 SLOT_RENAMES = {
 	"body-content": "default",
 	"body-title": "title",
@@ -64,9 +67,11 @@ def migrate_dialog_blocks(blocks):
 def migrate_dialog_props(block):
 	props = block.get("componentProps") or {}
 
-	# 1. flatten the `options` blob into top-level props (existing top-level wins)
-	options = props.pop("options", None)
+	# 1. flatten the `options` blob into top-level props (existing top-level wins).
+	# A dynamic `options` binding stays put, so the editor lists it under Deprecated to copy from.
+	options = props.get("options")
 	if isinstance(options, dict):
+		props.pop("options")
 		for key in OPTIONS_KEYS:
 			if key in options and key not in props:
 				props[key] = options[key]
@@ -75,12 +80,25 @@ def migrate_dialog_props(block):
 	if "body" in block.get("componentSlots", {}):
 		props.setdefault("bare", True)
 
-	# 3. `disableOutsideClickToClose` -> `dismissible` (inverted)
+	# 3. `disableOutsideClickToClose` -> `dismissible` (inverted). A binding is negated; if a
+	# static `dismissible` already sits beside it the two disagree, so the binding stays for review.
 	if "disableOutsideClickToClose" in props:
-		disabled = props.pop("disableOutsideClickToClose")
-		props.setdefault("dismissible", not disabled)
+		expression = bound_expression(props["disableOutsideClickToClose"])
+		if expression is None:
+			props.setdefault("dismissible", not props.pop("disableOutsideClickToClose"))
+		elif "dismissible" not in props:
+			props["dismissible"] = f"{{{{ !({expression}) }}}}"
+			props.pop("disableOutsideClickToClose")
 
 	block["componentProps"] = props
+
+
+def bound_expression(value):
+	"""The expression inside a `{{ }}` or variable binding; None for a static value."""
+	if isinstance(value, dict) and value.get("$type") == "variable":
+		return value.get("name")
+	if isinstance(value, str) and (match := BINDING.match(value)):
+		return match.group(1).strip()
 
 
 def rename_dialog_slots(block):
