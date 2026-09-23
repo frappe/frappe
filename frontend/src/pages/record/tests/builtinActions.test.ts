@@ -108,6 +108,16 @@ describe("quickActionBuiltins", () => {
     expect(open).toHaveBeenCalledWith("comment");
   });
 
+  it("seeds email after comment only with the right, opening the email writer", () => {
+    expect(names({ print: 1 })).toEqual(["comment", "print", "copy_link"]);
+    expect(names({ email: 1, print: 1 })).toEqual(["comment", "email", "print", "copy_link"]);
+    const open = vi.fn();
+    const email = quickActionBuiltins({ email: 1 })[1];
+    expect(email).toMatchObject({ name: "email", label: "Email", icon: "lucide-mail" });
+    email.run!({ composer: { open } } as any);
+    expect(open).toHaveBeenCalledWith("email");
+  });
+
   it("seeds tags with write, only while the record has none", () => {
     expect(names({ write: 1 })).toEqual(["comment", "copy_link", "tags"]);
     expect(names({ write: 1 }, true)).toEqual(["comment", "copy_link"]);

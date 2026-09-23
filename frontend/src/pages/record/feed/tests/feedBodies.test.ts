@@ -82,6 +82,7 @@ function setup(docinfo: DocInfo | null = null, own: { activity?: FeedItem[]; fil
 		page,
 		activity: { visible: () => own.activity ?? [], shownTypes: () => shownTypes.value },
 		files: { visible: () => own.files ?? [] },
+		composer: { visible: () => [] },
 	} as any;
 	const feeds = new RecordFeeds({
 		docinfo: ref(docinfo),

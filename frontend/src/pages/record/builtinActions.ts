@@ -13,6 +13,7 @@ export function quickActionBuiltins(
   const actions: QuickAction[] = [
     { name: "comment", label: "Comment", icon: "lucide-message-square", run: openComment },
   ];
+  if (perms.email) actions.push({ name: "email", label: "Email", icon: "lucide-mail", run: openEmail });
   if (perms.print) actions.push({ name: "print", label: "Print", icon: "lucide-printer", run: print });
   actions.push({ name: "copy_link", label: "Copy link", icon: "lucide-link", run: copyLink });
   if (follow) actions.push({ name: "follow", ...followWording(follow), run: follow.toggle });
@@ -75,6 +76,10 @@ export function headerMenuBuiltins(
 
 function openComment(page: RecordPageApi) {
   page.composer.open("comment");
+}
+
+function openEmail(page: RecordPageApi) {
+  page.composer.open("email");
 }
 
 // Desk v1's print view; the new shell has no print page of its own yet.

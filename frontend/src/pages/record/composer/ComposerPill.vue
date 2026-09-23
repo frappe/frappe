@@ -1,4 +1,4 @@
-<!-- The collapsed band: the comment control, and the `+` menu of what the strip's tabs create. -->
+<!-- The collapsed band: the comment control, Reply, and the `+` menu of what the tabs create. -->
 <template>
 	<div
 		class="pointer-events-auto flex items-center gap-1 rounded-6 bg-surface-elevation-2 py-1.5 pl-2 pr-1.5 shadow-md"
@@ -19,9 +19,25 @@
 			<span class="truncate">{{ __("Add a comment…") }}</span>
 		</button>
 
+		<Button
+			v-if="email"
+			icon="lucide-reply"
+			variant="ghost"
+			class="shrink-0"
+			:class="{ 'ml-auto': !comment }"
+			:label="__('Reply')"
+			:tooltip="__('Reply')"
+			data-composer-reply
+			@click="emit('open', email.name)"
+		/>
+
 		<Dropdown v-if="creates.length" :options="creates" side="top" align="end">
 			<!-- The trigger must own a box: Tooltip drops the attrs the menu anchors on. -->
-			<div class="flex shrink-0" :class="{ 'ml-auto': !comment }" data-composer-create>
+			<div
+				class="flex shrink-0"
+				:class="{ 'ml-auto': !comment && !email }"
+				data-composer-create
+			>
 				<Tooltip :text="__('Add to this record')" placement="top">
 					<Button icon="lucide-plus" variant="ghost" :label="__('Add to this record')" />
 				</Tooltip>
@@ -40,6 +56,8 @@ import type { CreateOption } from "./createMenu";
 defineProps<{
 	/** The `comment` writer while it is on the list. */
 	comment?: WriterItem;
+	/** The `email` writer while it is on the list. */
+	email?: WriterItem;
 	creates: CreateOption[];
 	user: SessionUser;
 }>();
