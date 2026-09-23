@@ -997,10 +997,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.$no_result.html(this.get_no_result_message());
 		this.setup_new_doc_event();
 
-		// Gate on the DocType meta first. attachment_queue_review_loader ships in
-		// form.bundle.js and answers this from the already-loaded meta, so the
-		// check costs no request and the review module stays lazy — it is only
-		// fetched for doctypes that can actually show the banner.
+		// Load the review module only for doctypes that support the Upload First banner.
 		frappe.attachment_queue_review_loader
 			?.is_upload_first_enabled?.(this.doctype)
 			?.then((enabled) => {
@@ -1009,7 +1006,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				}
 
 				frappe.require("/assets/frappe/js/frappe/attachment_queue_review.js").then(() => {
-					frappe.attachment_queue_review?.setup_list_banner?.(this);
+					frappe.attachment_queue_list_action?.setup(this);
 				});
 			});
 	}

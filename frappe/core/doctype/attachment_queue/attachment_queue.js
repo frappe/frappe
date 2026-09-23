@@ -3,10 +3,7 @@ frappe.provide("frappe.attachment_queue");
 frappe.attachment_queue.reviewable_statuses = ["Ready for Review", "Failed"];
 
 frappe.attachment_queue.start_review = function (frm) {
-	// The review module is lazy-loaded only when a review is started.
-	// attachment_queue_review_loader owns that load (via frappe.require), so this
-	// shares the framework's asset cache with the feature's other two call sites
-	// — the form loader and list_view.js — instead of fetching the script again.
+	// Lazy-load the review module through the shared loader.
 	return frappe.attachment_queue_review_loader
 		.load()
 		.then(() => {

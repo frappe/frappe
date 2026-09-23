@@ -9,7 +9,6 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 			options.title ||
 			(this.doctype ? __("Documents - {0}", [__(this.doctype)]) : __("Documents"));
 		this.sort_by = "creation desc";
-		this.active_status = "Pending";
 		this.page_size = 25;
 		this.list = null;
 		this.selected_row = null;
@@ -22,11 +21,8 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 			size: "extra-large",
 			fields: [{ fieldname: "body", fieldtype: "HTML" }],
 		});
-		// "Start Review" is contextual to the previewed row and lives on the
-		// preview pane's own level row, so the dialog's footer stays hidden
-		// rather than reserving a full-width band for a single button.
-		this.dialog.footer.hide();
-		this.dialog.$wrapper.on("shown.bs.modal", () => {
+
+		this.dialog.$wrapper.on("show.bs.modal", () => {
 			this._apply_modal_styles();
 			if (!this.list) {
 				frappe.require("embedded_list.bundle.js").then(() => {
@@ -39,9 +35,6 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 			}
 		});
 
-		// Hiding is what ends a review session. The dialog keeps its DOM between visits, so
-		// without this the next open comes up on the previous review's PDF — with a Start
-		// Review button still armed with a row that may have been reviewed since.
 		this.dialog.$wrapper.on("hidden.bs.modal", () => this._end_session());
 	}
 
@@ -64,7 +57,6 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 		this.dialog.modal_body.css({
 			flex: "1 1 auto",
 			overflow: "hidden",
-			"background-color": "var(--bg-light)",
 			padding: "0",
 		});
 		this.dialog
@@ -80,8 +72,6 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 		this.$list_pane = $('<div class="aq-list-pane"></div>').appendTo(this.$split_screen);
 		this.$preview_pane = $('<div class="aq-preview-pane"></div>').appendTo(this.$split_screen);
 
-		// Preview swaps only the content area; the action row below it is built
-		// once so the button keeps its identity and the pane height never jumps.
 		this.$preview_content = $('<div class="aq-preview-content"></div>').appendTo(
 			this.$preview_pane
 		);
@@ -93,8 +83,7 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 			onclick: () => this._start_review(this.selected_row),
 		});
 
-		// Same `level` / `level-left` / `level-right` shape as the list pane's
-		// `.list-paging-area`, so both panes end on a single shared baseline.
+		// Uses the same layout as the list pane so both panes share one baseline.
 		$(`
 			<div class="aq-preview-footer level">
 				<div class="level-left"></div>
@@ -106,27 +95,17 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 			.append(this.$start_review_btn);
 	}
 
-	/**
-	 * frappe.ui.EmbeddedList only exists once embedded_list.bundle.js has
-	 * loaded, which happens when the modal is first opened — so the subclass is
-	 * declared on first use and cached, rather than at script-eval time.
-	 */
+	// EmbeddedList is available only after the modal opens, so create and cache the subclass on first use.
 	_get_list_class() {
 		if (frappe.ui.AttachmentQueueEmbeddedList) {
 			return frappe.ui.AttachmentQueueEmbeddedList;
 		}
 
-		const EmbeddedList = frappe.ui.EmbeddedList;
-
 		frappe.ui.AttachmentQueueEmbeddedList = class AttachmentQueueEmbeddedList extends (
-			EmbeddedList
+			frappe.ui.EmbeddedList
 		) {
-			// EmbeddedList has no pagination hook — no page-size selector and no
-			// "N of M" footer — so the paging area replaces the default
-			// "Load More" strip wholesale.
+			// EmbeddedList has no pagination, so this replaces the default "Load More" area.
 			render_load_more() {
-				this.$result.find(".embedded-list-more").remove();
-
 				const total_count = (this.data || []).length;
 				const rendered_count = Math.min(this.rendered_count || 0, total_count);
 
@@ -153,12 +132,8 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 							on_change: (val) => {
 								this.page_size = val;
 								this.modal.page_size = val;
-								this.rendered_count = 0;
-								// render() rebuilds every <tr>, which drops the
-								// imperatively-applied .active-row class, and unlike
-								// _apply_filter() it does not fire after_render().
-								// Call the hook here so the selection highlight,
-								// count and filter label are restored.
+								// render() rebuilds the rows, so we call after_render()
+								// to restore the selection, count and filter label.
 								this.render();
 								this.after_render();
 							},
@@ -167,17 +142,15 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 					}
 				}
 
-				// Update count text
 				$paging_area.find(".list-count").text(`${rendered_count} of ${total_count}`);
 
-				// Add/remove "Load More" button
 				$paging_area.find(".btn-more").remove();
 				if (rendered_count < total_count) {
-					const $more_btn = $(`
-						<button class="btn btn-default btn-sm btn-more" type="button">
-							${__("Load More")}
-						</button>
-					`);
+					const $more_btn = frappe.ui.button({
+						label: __("Load More"),
+						attrs: { "data-action": "load-more" },
+					});
+					$more_btn.addClass("btn-more");
 					$more_btn.on("click", (e) => {
 						e.preventDefault();
 						this.render_more();
@@ -192,11 +165,7 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 				this.modal._update_active_row();
 			}
 
-			// Fade the old rows out while the new ones load, instead of the base
-			// class's blank-and-spinner. before_render()/after_render() can't do
-			// this — both run *after* get_data() resolves — but super.refresh()
-			// does all its DOM setup synchronously before returning its promise,
-			// so restyling right after the call still lands before the fetch does.
+			// Fade the old rows while loading; refresh() sets up the DOM before fetching new data.
 			refresh() {
 				const is_initial = !(this.data && this.data.length > 0);
 				const refreshed = super.refresh();
@@ -217,23 +186,25 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 		return frappe.ui.AttachmentQueueEmbeddedList;
 	}
 
-	/**
-	 * Initializes the EmbeddedList subclass. The custom TabButton pagination and
-	 * the fade-on-refresh are declared as real overrides on that subclass; the
-	 * columns, filters and row-click wiring below are plain configuration.
-	 */
+	// Sets up the EmbeddedList subclass with custom pagination and refresh behavior.
 	_setup_list() {
 		this.$list_wrapper = $('<div class="aq-list-wrapper"></div>').appendTo(this.$list_pane);
 
 		const AttachmentQueueEmbeddedList = this._get_list_class();
+		const STATUS_THEME = {
+			"Ready for Review": "blue",
+			Queued: "blue",
+			Completed: "green",
+			Processing: "amber",
+			Failed: "red",
+		};
 
 		this.list = new AttachmentQueueEmbeddedList({
 			wrapper: this.$list_wrapper,
 			modal: this,
 			doctype: "Attachment Queue",
-			title: "",
 			page_size: this.page_size,
-			fields: ["name", "status", "source_file", "document_type", "creation"],
+			fields: ["name", "status", "source_file", "creation"],
 			filters: { document_type: this.doctype, status: "Ready for Review" },
 			order_by: this.sort_by,
 			on_row_click: (row) => this._toggle_row_selection(row),
@@ -251,21 +222,11 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 				{
 					label: __("Status"),
 					fieldname: "status",
+					// Shortened to fit the narrow column and translated from the raw Select values.
 					render: (row) => {
-						// Shortened because the column is narrow; translated because
-						// these are the raw Select values straight off the row.
 						const short =
 							row.status === "Ready for Review" ? __("Review") : __(row.status);
-						const theme =
-							row.status === "Ready for Review" || row.status === "Queued"
-								? "blue"
-								: row.status === "Completed"
-								? "green"
-								: row.status === "Processing"
-								? "orange"
-								: row.status === "Failed"
-								? "red"
-								: "gray";
+						const theme = STATUS_THEME[row.status] || "gray";
 						return frappe.ui.badge.html({ label: short, theme });
 					},
 				},
@@ -279,23 +240,22 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 
 		this.list.render_load_more();
 
-		this._setup_native_toolbar();
+		this._setup_native_toolbar().catch((error) => {
+			console.error("Failed to set up Attachment Queue toolbar", error);
+		});
 	}
 
 	_toggle_row_selection(row) {
 		if (this.selected_row && this.selected_row.name === row.name) {
 			this.selected_row = null;
-			this._update_active_row();
 			this._clear_preview();
 		} else {
 			this.selected_row = row;
-			this._update_active_row();
 			this._render_preview(row);
 		}
+		this._update_active_row();
 	}
 
-	// The selection and the preview are per-visit state, so hiding the dialog and turning
-	// down a row that is no longer reviewable both end the session the same way.
 	_end_session() {
 		this.selected_row = null;
 		this._update_active_row();
@@ -344,7 +304,6 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 
 		this.$start_review_btn.prop("disabled", false);
 
-		// Body
 		const $body = $('<div class="aq-preview-body"></div>').appendTo(this.$preview_content);
 
 		const escaped_url = frappe.utils.escape_html(file_url);
@@ -353,7 +312,7 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 		if (preview_type === "pdf") {
 			$body.html(`<iframe src="${escaped_url}" title="${escaped_name}"></iframe>`);
 		} else if (preview_type === "image") {
-			$body.html(`<img src="${escaped_url}" alt="${escaped_name}" loading="lazy">`);
+			$body.html(`<img src="${escaped_url}" alt="${escaped_name}">`);
 		} else {
 			const $unsupported = frappe.ui.empty_state({
 				icon: "file-text",
@@ -384,26 +343,27 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 			context = await frappe.attachment_queue_review.fetch_context(queue_name);
 		} catch (e) {
 			console.error("Failed to fetch document review context", e);
+			frappe.show_alert({
+				message: __(
+					"Could not load review details. Opening the Attachment Queue record instead."
+				),
+				indicator: "orange",
+			});
 		}
 
-		// `row` is a snapshot from the last list fetch, so it can still claim "Ready for
-		// Review" long after someone reviewed it. The context just fetched is the authority,
-		// and this is the same check the Attachment Queue form's Start Review makes.
+		// The list row may be outdated, so use the latest context to check if it's still reviewable.
 		const statuses = frappe.attachment_queue_review.reviewable_statuses;
 		if (context && !statuses.includes(context.status)) {
 			frappe.msgprint(__("Only documents that are ready for review can be reviewed."));
-			// Left open on purpose: the row went out from under the reviewer, so show them
-			// what the list holds now rather than routing them anywhere.
+			// The row is no longer available for review, so keep the dialog open and show the updated list.
 			this._end_session();
-			this.list?.refresh();
+			this.list.refresh();
 			return;
 		}
 
 		this.dialog.hide();
 
 		if (context && context.document_type) {
-			// Same routing the Attachment Queue form's "Start Review" performs,
-			// so both entry points stay in step.
 			frappe.attachment_queue_review.route_to_new_document(context);
 			return;
 		}
@@ -423,10 +383,8 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 	}
 
 	async _setup_native_toolbar() {
-		await frappe.model.with_doctype("Attachment Queue");
-
 		const $header = this.list.$header;
-		$header.show().empty().html(`
+		$header.show().html(`
 			<div class="embedded-list-header-left">
 				<input type="text" class="form-control form-control-sm embedded-list-search" data-action="search" placeholder="${__(
 					"Search"
@@ -439,16 +397,13 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 
 		const $actions_wrap = $header.find(".filter-section");
 
-		// 1. Status Filter (using native frappe.ui.Dropdown from Component Explorer, size sm)
 		this.$status_trigger = frappe.ui.button({
 			label: __("Review Pending"),
-			size: "sm",
-			variant: "subtle",
 			icon_right: "chevron-down",
 		});
 		$actions_wrap.append(this.$status_trigger);
 
-		this.status_dropdown = new frappe.ui.Dropdown({
+		new frappe.ui.Dropdown({
 			trigger: this.$status_trigger,
 			options: [
 				{
@@ -466,11 +421,8 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 			],
 		});
 
-		// 2. Sort Selector (using native frappe.ui.Dropdown from Component Explorer, size sm)
 		this.$sort_trigger = frappe.ui.button({
 			label: __("Newest First"),
-			size: "sm",
-			variant: "subtle",
 			icon: "arrow-down-wide-narrow",
 			icon_right: "chevron-down",
 		});
@@ -514,16 +466,12 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 	}
 
 	_set_sort(sort_by, label, icon) {
-		this.sort_by = sort_by;
 		this.list.order_by = sort_by;
 		frappe.ui.button.dress(this.$sort_trigger, { label, icon, icon_right: "chevron-down" });
 		this.list.refresh();
 	}
 
-	// The trigger label is a plain status name — the record total is already
-	// shown by the "N of M" count in the paging area.
 	_set_status_filter(status, label) {
-		this.active_status = status;
 		const filters = { document_type: this.doctype };
 		if (status === "Pending") filters.status = "Ready for Review";
 		if (status === "Completed") filters.status = "Completed";

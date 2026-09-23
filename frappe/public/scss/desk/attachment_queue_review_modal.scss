@@ -1,9 +1,5 @@
-// Styles for the split-screen Attachment Queue review dialog.
-// Behaviour lives in frappe/public/js/frappe/attachment_queue_review_modal.js.
-// Imported last in desk/index.scss (after embedded_list.scss) so the pane-local
-// overrides below keep winning equal-specificity ties against the base
-// embedded-list rules by source order. Keep it last — moving this import above
-// embedded_list would silently flip those ties.
+// Styles for the Attachment Queue review dialog.
+// Imported after embedded_list.scss so local overrides take precedence.
 
 // ── Modal Header & Split Screen Spacing ──
 .aq-split-screen {
@@ -65,8 +61,7 @@
 		overflow: visible;
 	}
 
-	// Not the list-view `.filter-section` — that one is only ever styled under
-	// `.page-form`, which the dialog has no ancestor of.
+	// Embedded list filter controls.
 	.filter-section {
 		display: inline-flex;
 		align-items: center;
@@ -93,9 +88,7 @@
 		display: block;
 	}
 
-	// The selected row keeps its own background even while hovered. The `:hover`
-	// variant is what out-ranks embedded_list.scss's `tbody tr:hover`; the plain
-	// selector covers the row the rest of the time.
+	// Keep the selected-row background while hovered; higher specificity overrides the base list rule.
 	table.embedded-list-table tbody tr.active-row,
 	table.embedded-list-table tbody tr.active-row:hover {
 		background-color: var(--control-bg, #ebf1f6);
@@ -116,10 +109,7 @@
 		align-items: center;
 	}
 
-	// ── Pagination Area (Level Left / Right) ──
-	// Reuses the list-view paging markup, but none of list.scss's paging rules
-	// reach inside the dialog — they all require a `.frappe-list`,
-	// `.layout-main-list` or `.file-view` ancestor.
+	// ── Pagination ──
 	.list-paging-area {
 		display: flex;
 		justify-content: space-between;
@@ -134,8 +124,7 @@
 			align-items: center;
 		}
 
-		// Espresso's own rules for these are single-class (or class +
-		// attribute) selectors, so these three-class selectors out-rank them.
+		// Override Espresso's default tab styles.
 		.es-tab-buttons {
 			border-radius: 6px;
 			padding: 1.5px;
@@ -193,8 +182,7 @@
 	height: 100%;
 }
 
-// Content area swapped by _clear_preview/_render_preview; the action row below
-// it is permanent, so selecting a row never changes the pane's geometry.
+// Swapped preview content; the footer remains fixed.
 .aq-preview-content {
 	flex: 1;
 	min-height: 0;
@@ -202,7 +190,6 @@
 	flex-direction: column;
 }
 
-// Matches the height `.list-paging-area` occupies in the list pane.
 .aq-preview-footer {
 	flex-shrink: 0;
 	min-height: 34px;
@@ -220,8 +207,6 @@
 	background-color: var(--subtle-fg, #f8f9fa);
 	overflow: hidden;
 
-	// No bottom radius: the action row, not the iframe, now meets the pane's
-	// rounded bottom edge.
 	iframe {
 		width: 100%;
 		height: 100%;

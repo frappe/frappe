@@ -24,6 +24,10 @@ frappe.attachment_queue_review_loader.load = function () {
 			if (!frappe.attachment_queue_review?.refresh_form) {
 				throw new Error("Attachment Queue Review module failed to load.");
 			}
+		})
+		.catch((error) => {
+			frappe.attachment_queue_review_loader.loading = null;
+			throw error;
 		});
 
 	return frappe.attachment_queue_review_loader.loading;
@@ -50,11 +54,6 @@ frappe.attachment_queue_review_loader.has_pending_context = function (frm) {
 	return false;
 };
 
-// Answered from the DocType meta the form/list view has already loaded, so this
-// costs no request. Mirrors the server predicate is_upload_first_workflow_doctype
-// (flag set, not a child table), which stays the authority for every write.
-// Async only because this gate is awaited/then-ed by its call sites, including
-// list_view.js.
 frappe.attachment_queue_review_loader.is_upload_first_enabled = async function (doctype) {
 	if (!doctype || doctype === "Attachment Queue") {
 		return false;
@@ -65,33 +64,39 @@ frappe.attachment_queue_review_loader.is_upload_first_enabled = async function (
 	return !!meta && !!cint(meta.enable_upload_first_workflow) && !cint(meta.istable);
 };
 
-// Single owner of the review lifecycle on a form. Runs on every form refresh
-// (via the "*" handler below) and decides whether the review module is needed,
-// then always hands off to one refresh_form() call.
+// Handles the review flow on form refresh and decides when to load and refresh it.
 frappe.attachment_queue_review_loader.setup_form = async function (frm) {
-	if (frappe.attachment_queue_review_loader.has_pending_context(frm)) {
-		await frappe.attachment_queue_review_loader.load();
-	} else if (
-		frm?.is_new?.() &&
-		!frm.in_dialog &&
-		frm.page &&
-		(await frappe.attachment_queue_review_loader.is_upload_first_enabled(frm.doctype))
-	) {
-		await frappe.attachment_queue_review_loader.load();
-	} else if (!frappe.attachment_queue_review?.refresh_form) {
+	try {
+		if (frappe.attachment_queue_review_loader.has_pending_context(frm)) {
+			await frappe.attachment_queue_review_loader.load();
+		} else if (
+			frm.is_new() &&
+			frm.page &&
+			(await frappe.attachment_queue_review_loader.is_upload_first_enabled(frm.doctype))
+		) {
+			await frappe.attachment_queue_review_loader.load();
+		} else if (!frappe.attachment_queue_review?.refresh_form) {
+			return;
+		}
+	} catch (error) {
+		frappe.msgprint("Attachment Queue Review: failed to load", error);
+		frappe.show_alert({
+			message: __(
+				"Could not load the document review feature. Please refresh the page and try again."
+			),
+			indicator: "red",
+		});
 		return;
 	}
-
 	frappe.attachment_queue_review.refresh_form(frm);
 };
 
 frappe.ui.form.on("*", {
 	refresh(frm) {
-		frappe.attachment_queue_review_loader.setup_form(frm);
+		frappe.attachment_queue_review_loader.setup_form(frm).catch((error) => {
+			console.error("Attachment Queue Review: setup failed", error);
+		});
 	},
-	// Written on every save, including to null. That is what bounds its lifetime:
-	// a save that fails leaves its value behind, and the next save on this form
-	// overwrites it before after_save can read it.
 	before_save(frm) {
 		frm.__attachment_queue_pending_link =
 			frappe.attachment_queue_review?.get_pending_link?.(frm) || null;
