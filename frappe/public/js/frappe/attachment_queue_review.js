@@ -7,18 +7,16 @@ frappe.attachment_queue_review.min_preview_width = 320;
 
 frappe.attachment_queue_review.max_preview_width_ratio = 0.6;
 frappe.attachment_queue_review.reviewable_statuses = ["Ready for Review", "Failed"];
-// The one status a client-held context can be trusted on: a row only ever reaches
-// "Completed" by being linked, and nothing moves it out again. The transient statuses are
-// deliberately not read this way - the panel's copy lags the worker, so treating a stale
-// "Queued" as unlinkable would drop the link on a save taken mid-extraction.
+
+// Completed means the queue row has been linked to a document
 frappe.attachment_queue_review.is_review_completed = function (context) {
 	return context?.status === "Completed";
 };
-// Extraction is in flight in exactly these two states; anything else is terminal for
-// the watcher's purposes. Held as one list because four call sites used to inline it.
+
+// Extraction is still running in these states.
 frappe.attachment_queue_review.extraction_pending_statuses = ["Queued", "Processing"];
-// How long extraction may run before the panel says so. Nothing stops at this mark -
-// it only reports slowness; the watcher carries on polling at the same interval.
+
+// Time before showing that extraction is taking longer than expected.
 frappe.attachment_queue_review.extraction_slow_threshold = 90000;
 frappe.attachment_queue_review.extraction_poll_interval = 3000;
 frappe.attachment_queue_review.image_extensions = [
@@ -109,9 +107,7 @@ frappe.attachment_queue_review.fetch_context = function (attachment_queue) {
 		.then((r) => r.message || null);
 };
 
-// frappe.utils covers reading query params (get_query_params) but the framework
-// has no setter, so these two own the write side for the whole feature. Both
-// skip a no-op replaceState, which only some of the former call sites did.
+// Set and clear query parameters without calling replaceState when nothing changes.
 frappe.attachment_queue_review.set_query_param = function (name, value) {
 	const url = new URL(window.location.href);
 	if (url.searchParams.get(name) === String(value)) {
@@ -132,11 +128,7 @@ frappe.attachment_queue_review.clear_query_param = function (name) {
 	window.history.replaceState(window.history.state, "", url.toString());
 };
 
-// Single owner of "open a new document for this queue context": load the target
-// doctype's meta, create the unsaved doc, hand the context over in memory, route
-// to it, then stamp ?attachment_queue= so hydrate_context can recover after a
-// reload. Three call sites carried their own copy of this block - the two below
-// and attachment_queue_review_modal.js's _start_review.
+// Opens a new document and preserves the queue context in memory and the URL.
 frappe.attachment_queue_review.route_to_new_document = function (context) {
 	if (frappe.attachment_queue_review.is_review_completed(context)) {
 		frappe.msgprint(__("This document has already been reviewed."));
@@ -161,17 +153,11 @@ frappe.attachment_queue_review.route_to_new_document = function (context) {
 frappe.attachment_queue_review.setup_upload_first = async function (frm) {
 	frappe.attachment_queue_review.remove_upload_first(frm);
 
-	if (
-		!frm?.is_new?.() ||
-		frm.in_dialog ||
-		!frm.page ||
-		frappe.attachment_queue_review.get_context(frm)
-	) {
+	if (!frm?.is_new?.() || !frm.page || frappe.attachment_queue_review.get_context(frm)) {
 		return;
 	}
 
-	// The loader owns this gate - it ships in form.bundle.js, so it is always
-	// present, and list_view.js already calls the same copy.
+	// Check whether Upload First is enabled for this DocType.
 	const enabled = await frappe.attachment_queue_review_loader.is_upload_first_enabled(
 		frm.doctype
 	);
@@ -180,7 +166,6 @@ frappe.attachment_queue_review.setup_upload_first = async function (frm) {
 	}
 
 	const $page = frm.page.wrapper.find(".page-body");
-	$page.find(".attachment-queue-upload-first").remove();
 
 	const $banner = $(`
 		<div class="attachment-queue-upload-first">
@@ -206,10 +191,10 @@ frappe.attachment_queue_review.setup_upload_first = async function (frm) {
 };
 
 frappe.attachment_queue_review.remove_upload_first = function (frm) {
-	frm?.attachment_queue_upload_first_banner?.remove();
+	frm.attachment_queue_upload_first_banner?.remove();
 	frm.attachment_queue_upload_first_banner = null;
-	frm?.$wrapper?.find(".attachment-queue-upload-first").remove();
-	frm?.page?.wrapper?.find(".attachment-queue-upload-first").remove();
+	frm.$wrapper?.find(".attachment-queue-upload-first").remove();
+	frm.page?.wrapper?.find(".attachment-queue-upload-first").remove();
 };
 
 frappe.attachment_queue_review.open_upload_first_dialog = async function (frm) {
@@ -218,9 +203,7 @@ frappe.attachment_queue_review.open_upload_first_dialog = async function (frm) {
 	new frappe.ui.FileUploader({
 		allow_multiple: false,
 		allow_web_link: false,
-		// Only what the preview pane below can actually render — the reviewer keys the
-		// document in from that preview, so accepting a format it cannot show (TIFF,
-		// which no browser previews) would strand the upload at review time.
+
 		restrictions: {
 			allowed_file_types: [".pdf", ...frappe.attachment_queue_review.image_extensions],
 		},
@@ -237,10 +220,7 @@ frappe.attachment_queue_review.open_upload_first_dialog = async function (frm) {
 };
 
 frappe.attachment_queue_review.create_upload_first_queue = async function (frm, file_name) {
-	// No freeze: creating the row and opening the form are both quick, and extraction
-	// is not waited on at all - the row carries the source file from the moment it
-	// exists, so the review page and its preview can come up straight away and
-	// mount() picks the extraction up from there.
+	// Open the review immediately and let mount() track extraction in the background.
 	try {
 		const r = await frappe.call({
 			method: "frappe.core.doctype.attachment_queue.attachment_queue.create_upload_first_queue",
@@ -258,10 +238,6 @@ frappe.attachment_queue_review.create_upload_first_queue = async function (frm, 
 
 		await frappe.attachment_queue_review.route_to_new_document(context);
 	} catch (error) {
-		// frappe.call reports HTTP-level failures itself, but a request that never gets
-		// a response (connection dropped mid-upload) matches none of its statusCode
-		// handlers - without this nothing would be said at all, and the rejection would
-		// escape unhandled through FileUploader's on_success.
 		if (!error?.status) {
 			frappe.msgprint({
 				title: __("Upload Failed"),
@@ -279,7 +255,7 @@ frappe.attachment_queue_review.is_extraction_pending = function (status) {
 	return frappe.attachment_queue_review.extraction_pending_statuses.includes(status);
 };
 
-// `on_slow` fires at most once, when the threshold passes on a still-pending row.
+// Reports slow extraction once when the threshold is reached.
 frappe.attachment_queue_review.wait_for_extraction = async function (context, options = {}) {
 	const { on_slow, signal } = options;
 
@@ -300,8 +276,7 @@ frappe.attachment_queue_review.wait_for_extraction = async function (context, op
 		return latest_context;
 	};
 
-	// Single owner of teardown, so the timer, the interval and both listeners are
-	// released on every settle path — resolve *and* reject.
+	// Clean up all timers and listeners when the wait ends.
 	const cleanup = () => {
 		clearTimeout(timeout);
 		clearInterval(fallback_interval);
@@ -331,9 +306,7 @@ frappe.attachment_queue_review.wait_for_extraction = async function (context, op
 			timeout = setTimeout(() => {
 				if (is_resolving) return;
 
-				// Re-read before flagging. Both the realtime listener and this timer
-				// race the worker, and a row that finished while we waited must not
-				// be reported as still running.
+				// Re-check the status to avoid reporting slow extraction after it has finished.
 				fetch_context()
 					.then((ctx) => {
 						if (is_resolving) return;
@@ -345,8 +318,7 @@ frappe.attachment_queue_review.wait_for_extraction = async function (context, op
 						resolve(ctx);
 					})
 					.catch(() => {
-						// No fresh status to go on — "still running" is still the honest
-						// read, and the poll below carries on either way.
+						// If the status check fails, report the last known state and keep polling.
 						on_slow?.(latest_context);
 					});
 			}, frappe.attachment_queue_review.extraction_slow_threshold);
@@ -369,12 +341,8 @@ frappe.attachment_queue_review.wait_for_extraction = async function (context, op
 				if (is_resolving) return;
 				if (
 					data.task_id === context.task_id &&
-					// `task_update` is Background Task's event and carries Background
-					// Task's status vocabulary, not the queue row's. The two overlap
-					// only on "Failed", which is why matching the queue's names here
-					// left the success path dead. "Cancelled" is terminal too: the
-					// worker is gone, so without it the watch would poll a row that is
-					// never going to move again.
+					// task_update uses Background Task statuses, so fetch the queue context
+					// after a terminal task status instead of using the event status directly.
 					["Completed", "Failed", "Cancelled"].includes(data.status)
 				) {
 					is_resolving = true;
@@ -384,7 +352,6 @@ frappe.attachment_queue_review.wait_for_extraction = async function (context, op
 
 			frappe.realtime.on("task_update", listener);
 
-			// Immediate state fetch to close the fast-completion race condition
 			fetch_context()
 				.then((ctx) => {
 					if (is_resolving) return;
@@ -400,13 +367,13 @@ frappe.attachment_queue_review.wait_for_extraction = async function (context, op
 	}
 };
 
-// Keeps one panel in step with one queue row's extraction.
+// Keeps the panel in sync with the queue row's extraction status.
 frappe.attachment_queue_review.watch_extraction = function (frm, context) {
 	if (!frappe.attachment_queue_review.is_extraction_pending(context.status)) {
 		return;
 	}
 
-	// mount() runs on every form refresh; one watcher per queue row is enough.
+	// Prevent multiple extraction watchers for the same queue row.
 	if (frm.attachment_queue_review_watch?.queue_name === context.queue_name) {
 		return;
 	}
@@ -421,8 +388,7 @@ frappe.attachment_queue_review.watch_extraction = function (frm, context) {
 		indicator: "blue",
 	});
 
-	// A settle that lands after the panel was torn down, or after a second watcher
-	// took over, must not draw over whatever replaced it.
+	// Ignore results from watchers that are no longer active.
 	const is_current = () =>
 		frm.attachment_queue_review_watch?.controller === controller &&
 		!!frm.attachment_queue_review_panel?.length;
@@ -445,7 +411,7 @@ frappe.attachment_queue_review.watch_extraction = function (frm, context) {
 			},
 		})
 		.then((settled_context) => {
-			// null means the watch was aborted, so there is nothing to report.
+			// Ignore the result when the watcher was aborted.
 			if (!settled_context || !is_current()) return;
 
 			frm.attachment_queue_review_watch = null;
@@ -478,28 +444,18 @@ frappe.attachment_queue_review.get_context = function (frm) {
 	return frm.doc?.__attachment_queue_review_context || null;
 };
 
-// Single writer, so the two places that update a live review - hydrate_context and
-// link_after_save - cannot disagree about where the context lives. Per-document on
-// purpose: the loader's has_pending_context reads the same property to decide
-// whether to load this module at all.
+// Store review context on the document so to use the same property.
 frappe.attachment_queue_review.set_context = function (frm, context) {
 	if (frm.doc) {
 		frm.doc.__attachment_queue_review_context = context;
 	}
 };
 
-// Neither obvious carrier survives a save: frappe.model.sync replaces frm.doc for
-// a new document, and rename_notify re-routes to the saved name, which drops
-// ?attachment_queue= from the URL. frm itself survives both, so before_save copies
-// the context onto it and link_after_save reads it back from there.
 frappe.attachment_queue_review.get_pending_link = function (frm) {
 	const context = frappe.attachment_queue_review.get_context(frm);
 
 	if (context?.queue_name && context.document_type) {
-		// created_document, not the status: a save taken mid-extraction claims the row
-		// without ending it, so the row is still Queued or Processing while already having
-		// produced its document. link_after_save writes it into the context, and like the
-		// status it only ever moves one way - empty to set.
+		// Use created_document because the queue status may still be Queued or Processing after a document is saved.
 		if (
 			context.created_document ||
 			frappe.attachment_queue_review.is_review_completed(context)
@@ -538,12 +494,7 @@ frappe.attachment_queue_review.hydrate_context = async function (frm) {
 			frappe.attachment_queue_review_loader.surviving_queue_name = null;
 			context = await frappe.attachment_queue_review.fetch_context(queueName);
 
-			// This fetch races the link: the refresh that follows a save starts it, and
-			// link_after_save can finish while it is still in flight. Clearing
-			// ?attachment_queue= is how the link ends the review, so a fetch that comes
-			// back to find it gone is answering for a review that is already over —
-			// re-establishing it here would re-stamp the param and let the submit's
-			// before_save arm a second link against a row the server has marked Completed.
+			// Don't restore context if the review ended while the extraction was in progress.
 			if (from_query_param && !frappe.utils.get_query_params().attachment_queue) {
 				return;
 			}
@@ -554,9 +505,7 @@ frappe.attachment_queue_review.hydrate_context = async function (frm) {
 		return;
 	}
 
-	// A finished review is not revived from a URL or a stale pending_context, on the
-	// document it produced included: that document owns the source file now, and
-	// Frappe's own attachment preview is the way back to it.
+	// Don't revive a completed review from stale URL or pending context.
 	if (frappe.attachment_queue_review.is_review_completed(context)) {
 		frappe.attachment_queue_review.clear_query_param("attachment_queue");
 		return;
@@ -590,9 +539,7 @@ frappe.attachment_queue_review.mount = function (frm) {
 	$std.addClass("attachment-queue-review-layout");
 	frappe.attachment_queue_review.apply_saved_width($std);
 
-	// The stored handle can outlive its DOM node  a layout rebuilt underneath the
-	// panel leaves a detached element behind, and updating a detached node draws
-	// nothing at all. Treat that as "never built" and put a fresh panel in.
+	// Rebuild the panel if the stored element is no longer attached to the DOM.
 	const $panel = frm.attachment_queue_review_panel;
 	if (!$panel?.length || !$panel.get(0).isConnected) {
 		$panel?.remove();
@@ -605,15 +552,10 @@ frappe.attachment_queue_review.mount = function (frm) {
 		frm.attachment_queue_review_built_source = null;
 	}
 
-	// Which document this panel belongs to. frm is shared by every document of the
-	// doctype, so this is the only way a route change can tell "still the same
-	// review" from "a different one" - frm.docname has not been switched over yet
-	// at the point clear_switched_panels() below runs.
+	// Remember which document owns the panel so route changes can detect stale panels.
 	frm.attachment_queue_review_panel_docname = frm.docname;
 
-	// Before the render calls, not after: starting the watch is what clears the slow
-	// and unreachable flags from a previous one, and update_status reads them. Its
-	// callbacks only ever fire a microtask later, by which time the panel is drawn.
+	// Start the watcher first so it resets stale state before the panel is rendered.
 	frappe.attachment_queue_review.watch_extraction(frm, context);
 	frappe.attachment_queue_review.build_panel(frm, context);
 	frappe.attachment_queue_review.update_status(frm, context);
@@ -632,9 +574,7 @@ frappe.attachment_queue_review.teardown = function (frm) {
 	frm.attachment_queue_review_panel_docname = null;
 };
 
-// FormFactory keeps one form and one .std-form-layout per doctype and reuses them
-// for every document of it, so the panel - and the <iframe> that has already
-// downloaded a PDF - stay in the page's DOM when the routed document changes.
+// If switching the panels it should be loaded fresh
 
 frappe.attachment_queue_review.clear_switched_panels = function () {
 	const route = frappe.get_route() || [];
@@ -648,8 +588,6 @@ frappe.attachment_queue_review.clear_switched_panels = function () {
 			return;
 		}
 
-		// The save's reroute from the local name to the saved one counts as a switch
-		// like any other: the review ends with the link, so the panel goes with it.
 		const panel_docname = frm.attachment_queue_review_panel_docname;
 		if (frm.doctype !== route[1] || panel_docname === route[2]) {
 			return;
@@ -659,18 +597,15 @@ frappe.attachment_queue_review.clear_switched_panels = function () {
 	});
 };
 
+// Clear the page when it is changed in browser
 $(document)
 	.off("page-change.attachment-queue-review")
 	.on("page-change.attachment-queue-review", () =>
 		frappe.attachment_queue_review.clear_switched_panels()
 	);
 
-// Builds the panel shell exactly once per source file. Everything that changes
-// while a review is open - extraction status, extracted data, the active tab, which
-// debug sections are expanded - is applied to this DOM by the helpers below, never
-// by rebuilding it. That is what keeps the preview stable: re-creating the <iframe>
-// restarts the PDF download and throws away the reader's page and scroll position,
-// which is what used to happen on every form refresh, tab switch and section toggle.
+// Build the panel once per source file and update its contents without rebuilding
+// the iframe, so the PDF preview keeps its page and scroll position.
 frappe.attachment_queue_review.build_panel = function (frm, context) {
 	const source_file_url = context.source_file_url || context.source_file || "";
 	if (frm.attachment_queue_review_built_source === source_file_url) {
@@ -689,8 +624,7 @@ frappe.attachment_queue_review.build_panel = function (frm, context) {
 					</li>
 		`
 		: "";
-	// Body left empty on purpose - update_extraction_tab owns its contents, so the
-	// extracted text and JSON can be refreshed without touching the preview beside it.
+	// Kept empty so update_extraction_tab can refresh its contents without rebuilding the preview.
 	const debug_tab_panel = dev_mode
 		? `
 				<section class="attachment-queue-review-tab-panel" data-panel="extraction">
@@ -729,18 +663,16 @@ ${debug_tab_panel}
 
 	frappe.attachment_queue_review.bind_panel_events(frm);
 	frappe.attachment_queue_review.bind_resizer(frm);
-	// Restores the tab the reviewer was on if this is a rebuild rather than a first
-	// build, and corrects a stored "extraction" tab that developer mode no longer offers.
+
+	// Restore the previous tab, or fall back if the extraction tab is unavailable.
 	frappe.attachment_queue_review.set_active_tab(
 		frm,
 		frm.attachment_queue_review_active_tab || "preview"
 	);
 };
 
-// Bound once per built panel, and delegated, so they keep working across the
-// update_* helpers replacing inner content. They read the live context off frm
-// instead of closing over the one that was current at build time - extraction
-// finishing replaces it.
+// Bound once per panel and delegated so they keep working when inner content is updated.
+// They use the current context from frm instead of the context captured at build time.
 frappe.attachment_queue_review.bind_panel_events = function (frm) {
 	const $panel = frm.attachment_queue_review_panel;
 
@@ -770,17 +702,14 @@ frappe.attachment_queue_review.bind_panel_events = function (frm) {
 	);
 };
 
-// Class toggles only. The stylesheet already hides inactive panels
-// (.attachment-queue-review-tab-panel, and &.active), so switching tabs needs no
-// re-render — and must not do one, or the PDF would reload on every switch.
+// Only toggle classes to switch tabs without re-rendering, so the PDF preview keeps its state.
 frappe.attachment_queue_review.set_active_tab = function (frm, tab) {
 	const $panel = frm.attachment_queue_review_panel;
 	if (!$panel?.length) {
 		return;
 	}
 
-	// Falls back to the preview when the requested panel does not exist, which is
-	// the case for the debug tab outside developer mode.
+	// Fall back to Preview if the requested tab is unavailable.
 	const active = $panel.find(`.attachment-queue-review-tab-panel[data-panel="${tab}"]`).length
 		? tab
 		: "preview";
@@ -798,8 +727,7 @@ frappe.attachment_queue_review.get_open_sections = function (frm) {
 	return frm.attachment_queue_review_open_sections || { text: true, json: false };
 };
 
-// Same class-only rule as the tabs: collapsing a debug section must not rebuild
-// the panel that the preview lives in.
+// Toggle classes only, so collapsing a section (JSON & text) does not rebuild the panel or reload the preview.
 frappe.attachment_queue_review.toggle_section = function (frm, section) {
 	if (!section) {
 		return;
@@ -819,11 +747,7 @@ frappe.attachment_queue_review.toggle_section = function (frm, section) {
 		.html(frappe.utils.icon(is_open ? "es-line-down" : "chevron-right", "sm", "mb-1"));
 };
 
-// Owns the one piece of extraction state that has to persist in the panel: an
-// alert for the outcomes a reviewer must not miss. Extraction merely being in
-// progress is not reported here at all — watch_extraction toasts that once and
-// lets it fade, so the panel carries no running-state chrome and the preview
-// keeps the full pane.
+// Shows only important extraction outcomes.
 frappe.attachment_queue_review.update_status = function (frm, context) {
 	const $panel = frm.attachment_queue_review_panel;
 	if (!$panel?.length) {
@@ -851,9 +775,7 @@ frappe.attachment_queue_review.update_status = function (frm, context) {
 	$panel.find(".attachment-queue-review-alert").html(alert_html);
 };
 
-// Rebuilds only the debug tab's contents, the one part of the panel that extraction
-// actually changes. Unconditional: the preview and its <iframe> live in a different
-// tab panel, so redrawing this one costs nothing that matters.
+// Rebuild only the debug tab contents, leaving the preview and its iframe untouched.
 frappe.attachment_queue_review.update_extraction_tab = function (frm, context) {
 	const $sections = frm.attachment_queue_review_panel?.find(".attachment-queue-review-sections");
 	if (!$sections?.length) {
@@ -893,6 +815,7 @@ frappe.attachment_queue_review.update_extraction_tab = function (frm, context) {
 	`);
 };
 
+// Build the collapsible section markup with its current open/closed state.
 frappe.attachment_queue_review.get_section_markup = function ({
 	label,
 	section,
@@ -914,8 +837,15 @@ frappe.attachment_queue_review.get_section_markup = function ({
 };
 
 frappe.attachment_queue_review.apply_saved_width = function ($layout) {
-	// Through set_preview_width, so the stored value is written in the same unit and
-	// through the same clamp as a drag — one writer for the track, not two.
+	// Pass shared limits to CSS and keep the max viewport-relative.
+	$layout.css({
+		"--attachment-queue-review-min-width": `${frappe.attachment_queue_review.min_preview_width}px`,
+		"--attachment-queue-review-max-width": `${
+			frappe.attachment_queue_review.max_preview_width_ratio * 100
+		}vw`,
+	});
+
+	// Use set_preview_width so saved widths follow the same limits as drag resizing.
 	frappe.attachment_queue_review.set_preview_width(
 		$layout,
 		frappe.attachment_queue_review.get_stored_preview_width()
@@ -923,10 +853,7 @@ frappe.attachment_queue_review.apply_saved_width = function ($layout) {
 };
 
 frappe.attachment_queue_review.bind_resizer = function (frm) {
-	// Espresso tooltip instead of a native `title`, matching the tooltips used
-	// elsewhere in desk. The handle survives for as long as the panel does, so this
-	// runs once per build — but a rebuild does replace it, and the previous instance
-	// must be destroyed or its bubble (which lives on <body>) outlives its trigger.
+	// Use a Frappe tooltip for the resize handle and destroy the old one before rebuilding.
 	frm.attachment_queue_review_resizer_tooltip?.destroy();
 	frm.attachment_queue_review_resizer_tooltip = new frappe.ui.Tooltip(
 		frm.attachment_queue_review_panel.find(".attachment-queue-review-resizer"),
@@ -952,14 +879,10 @@ frappe.attachment_queue_review.bind_resizer = function (frm) {
 				frm.attachment_queue_review_panel.addClass("attachment-queue-review-resizing-pdf");
 			}
 
-			// One width update per animation frame (~16ms at 60Hz) — the display
-			// cannot show more than that. Created per drag so the throttle window
-			// never carries over from a previous drag.
 			let is_resizing = true;
 			let has_moved = false;
 			const throttled_resize = frappe.utils.throttle(function (move_event) {
-				// frappe.utils.throttle has no cancel(), so a trailing call can land
-				// after mouseup has already persisted the width; ignore it.
+				// Ignore trailing throttle calls that run after mouseup has saved the final width.
 				if (!is_resizing) {
 					return;
 				}
@@ -974,9 +897,7 @@ frappe.attachment_queue_review.bind_resizer = function (frm) {
 				.on("mouseup.attachment-queue-review-resizer", function (up_event) {
 					is_resizing = false;
 					if (has_moved) {
-						// Apply the release position un-throttled, so the width that
-						// gets persisted is the one actually under the cursor even if
-						// the last frame was throttled away.
+						// Apply the final cursor position directly so the saved width matches where the user released.
 						frappe.attachment_queue_review.resize_preview($layout, up_event);
 					}
 
@@ -999,12 +920,12 @@ frappe.attachment_queue_review.resize_preview = function ($layout, event) {
 		return;
 	}
 
-	// The panel starts at the layout's left edge, so the cursor's offset from it is the
-	// width the reviewer is asking for - in pixels, which is now also the unit the track
-	// is expressed in. No division by the layout's width: that is the moving basis this
-	// stopped depending on.
+	// Calculate the preview width from the cursor position, including RTL layouts.
 	const layout_rect = layout.getBoundingClientRect();
-	frappe.attachment_queue_review.set_preview_width($layout, event.clientX - layout_rect.left);
+	const width = frappe.utils.is_rtl()
+		? layout_rect.right - event.clientX
+		: event.clientX - layout_rect.left;
+	frappe.attachment_queue_review.set_preview_width($layout, width);
 };
 
 frappe.attachment_queue_review.set_preview_width = function ($layout, width) {
@@ -1078,8 +999,6 @@ frappe.attachment_queue_review.get_preview_markup = function (file_url, file_nam
 		return `<img class="attachment-queue-review-preview-image" src="${escaped_url}" alt="${escaped_name}">`;
 	}
 
-	// `href` actions survive the markup-string form (an onclick could not), and
-	// the component applies target/rel and refuses code-running schemes itself.
 	return frappe.ui.empty_state.html({
 		icon: "file-text",
 		title: __("Preview Not Available"),
@@ -1108,18 +1027,12 @@ frappe.attachment_queue_review.get_preview_type = function (file_url) {
 	return "unsupported";
 };
 
-// Single source of truth for turning a stored `source_file` into a URL that is
-// safe to use as an iframe/img src. `source_file` is an Attach value, so it is
-// normally "/files/x.pdf" or "/private/files/x.pdf?fid=...", but relative values
-// are normalized too. Also used by attachment_queue_review_modal.js.
+// Normalize source_file into a safe preview URL for iframe/img src.
 frappe.attachment_queue_review.get_preview_url = function (file_url) {
 	if (!file_url) {
 		return "";
 	}
 
-	// Deliberately broader than frappe.utils.is_url (which is http/https only):
-	// this also matches protocol-relative URLs, so a real "#fragment" on a web
-	// URL is left alone while a "#" inside a file path is escaped below.
 	const is_web_url = /^(https?:)?\/\//i.test(file_url);
 
 	if (!is_web_url && !file_url.startsWith("/")) {
@@ -1146,8 +1059,7 @@ frappe.attachment_queue_review.get_file_name = function (file_url) {
 
 frappe.attachment_queue_review.link_after_save = function (frm) {
 	const context = frappe.attachment_queue_review.get_context(frm);
-	// Consumed, not just read: after_save and on_submit both land here for a
-	// submit, and only the first one should link.
+	// Consume the link once, since both after_save and on_submit can call this.
 	const pending = frm.__attachment_queue_pending_link;
 	frm.__attachment_queue_pending_link = null;
 
@@ -1155,8 +1067,6 @@ frappe.attachment_queue_review.link_after_save = function (frm) {
 		return Promise.resolve();
 	}
 
-	// A queue row only ever produces its own target doctype, so a mismatch means
-	// this form is not the document the review was started for.
 	if (pending.document_type !== frm.doctype) {
 		return Promise.resolve();
 	}
@@ -1172,9 +1082,7 @@ frappe.attachment_queue_review.link_after_save = function (frm) {
 		callback(r) {
 			const updated_context = {
 				...(context || {}),
-				// The row's own status, not an assumed "Completed": a link taken
-				// mid-extraction leaves the row Queued or Processing, and claiming
-				// otherwise would take the panel down below.
+				// Use the row's actual status because linking can happen while extraction is still running.
 				status: r.message?.status || context?.status,
 				created_document: frm.doc.name,
 			};
@@ -1183,14 +1091,9 @@ frappe.attachment_queue_review.link_after_save = function (frm) {
 
 			frappe.attachment_queue_review.clear_query_param("attachment_queue");
 
-			// The source file hangs off this document now, so the sidebar can show it
-			// whether or not extraction has finished.
+			// The source file is linked to this document, so the sidebar can show it immediately.
 			frm.sidebar?.reload_docinfo?.();
 
-			// A link taken mid-extraction is not that row. The extracted text has not
-			// arrived yet and this panel is the only place it is ever shown, so the
-			// watcher mount() started carries the row to Completed and the refresh
-			// after that is what takes the panel down.
 			if (frappe.attachment_queue_review.is_review_completed(updated_context)) {
 				frappe.attachment_queue_review.teardown(frm);
 			}
@@ -1199,46 +1102,6 @@ frappe.attachment_queue_review.link_after_save = function (frm) {
 			frm.doc.__attachment_queue_linked = 0;
 		},
 	});
-};
-
-frappe.attachment_queue_review.setup_list_banner = async function (listview) {
-	if (!listview?.doctype || !listview?.$page) {
-		return;
-	}
-
-	// list_view.js calls this from after_render(), which fires on every refresh —
-	// filter, sort, load-more, realtime update. Without this guard two overlapping
-	// refreshes each remove the banner and then each add one back.
-	if (listview.attachment_queue_banner_pending) {
-		return;
-	}
-	listview.attachment_queue_banner_pending = true;
-
-	try {
-		const enabled = await frappe.attachment_queue_review_loader.is_upload_first_enabled(
-			listview.doctype
-		);
-		if (!enabled) {
-			return;
-		}
-
-		listview.$page.find(".attachment-queue-ready-banner").remove();
-
-		// Inject the primary "Review Pending" button that opens the modal.
-		await frappe.attachment_queue_list_action?.setup(listview);
-	} finally {
-		listview.attachment_queue_banner_pending = false;
-	}
-};
-
-frappe.attachment_queue_review.get_ready_for_review_count = function (doctype) {
-	return frappe
-		.call({
-			method: "frappe.core.doctype.attachment_queue.attachment_queue.get_ready_for_review_count",
-			args: { document_type: doctype },
-		})
-		.then((r) => cint(r.message) || 0)
-		.catch(() => 0);
 };
 
 frappe.attachment_queue_review.refresh_form = async function (frm) {
