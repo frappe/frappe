@@ -384,16 +384,17 @@ def log_table(doctype: str):
 
 
 def run_log_query(query, **kwargs):
-	"""Render a Query Builder query and execute it on the log database.
+	"""Execute a Query Builder query on the log database.
 
-	`walk()` returns the SQL and its parameters without executing anything -- the same
-	pattern `frappe.desk.reportview.get_count` uses -- so the statement goes to the log
-	connection rather than to whatever `frappe.db` happens to be.
+	`Database.sql` walks a Query Builder object itself, so the query arrives with its values
+	bound rather than inlined -- the same preparation `QueryBuilder.run` performs, except
+	`run` is wired to `frappe.local.db` and so would send this to the primary database.
+	Naming the connection here is what keeps log queries on `logs.db`.
 
-	The named placeholders `walk()` emits are translated to sqlite3's own named style by
+	The named placeholders the walk emits are translated to sqlite3's own named style by
 	`SQLiteDatabase.execute_query`, so nothing has to be adapted here.
 	"""
-	return get_log_db().sql(*query.walk(), **kwargs)
+	return get_log_db().sql(query, **kwargs)
 
 
 def is_log_doctype(doctype: str) -> bool:
@@ -461,7 +462,16 @@ def _build_log_query(doctype: str, filters=None):
 		if operation is None:
 			frappe.throw(frappe._("Unsupported filter operator for log DocTypes: {0}").format(f.operator))
 
-		query = query.where(operation(table[f.fieldname], f.value))
+		# A filter key is caller-supplied and arrives unsanitised, exactly like a `fields`
+		# entry -- see :data:`_FIELD_REF_PATTERN`. It is rejected rather than dropped: a
+		# dropped filter silently widens the result set, and `delete_logs` builds its DELETE
+		# from this same function, where a dropped predicate would clear the whole table.
+		field = _FIELD_REF_PATTERN.match(f.fieldname)
+
+		if not field:
+			frappe.throw(frappe._("Invalid filter field for log DocTypes: {0}").format(f.fieldname))
+
+		query = query.where(operation(table[field.group("field")], f.value))
 
 	return query
 

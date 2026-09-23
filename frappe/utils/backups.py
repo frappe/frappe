@@ -125,8 +125,23 @@ class BackupGenerator:
 		"""Set self.backup_includes, self.backup_excludes based on include_doctypes, exclude_doctypes"""
 		self._set_existing_tables()
 
-		self.backup_includes = _get_tables(self.include_doctypes.strip().split(","), self._existing_tables)
+		requested_includes = [d.strip() for d in self.include_doctypes.split(",") if d.strip()]
+
+		self.backup_includes = _get_tables(requested_includes, self._existing_tables)
 		self.backup_excludes = _get_tables(self.exclude_doctypes.strip().split(","), self._existing_tables)
+
+		if requested_includes and not self.backup_includes:
+			# Every requested DocType is stored in the site's log database, which is
+			# deliberately outside the scope of a site backup. Leaving the list empty would
+			# read as "no subset was asked for" at `self.partial` below, and the generator
+			# would quietly dump the entire primary database instead of the requested subset.
+			frappe.throw(
+				_(
+					"Backup requested only for DocType(s) held in the log database: {0}. "
+					"Log DocTypes are not included in site backups, so there is nothing to back up."
+				).format(", ".join(requested_includes)),
+				exc=frappe.ValidationError,
+			)
 
 		self.set_backup_tables_from_config()
 		self.partial = (self.backup_includes or self.backup_excludes) and not self.ignore_conf

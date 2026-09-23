@@ -58,9 +58,11 @@ class ErrorLog(LogDocument):
 
 	@staticmethod
 	def clear_old_logs(days=30):
+		db = get_log_db()
 		qb, table = log_table("Error Log")
-		run_log_query(qb.from_(table).where(table.creation < _cutoff(days)).delete())
-		get_log_db().commit()
+
+		db.sql(qb.from_(table).where(table.creation < _cutoff(days)).delete())
+		db.commit()
 
 
 @frappe.whitelist()
@@ -70,9 +72,11 @@ def clear_error_logs():
 
 	# `frappe.db.truncate` would target the primary database, where Error Log no longer has a
 	# table. A DELETE on the log connection is the equivalent operation here.
+	db = get_log_db()
 	qb, table = log_table("Error Log")
-	run_log_query(qb.from_(table).delete())
-	get_log_db().commit()
+
+	db.sql(qb.from_(table).delete())
+	db.commit()
 
 
 @frappe.whitelist()
