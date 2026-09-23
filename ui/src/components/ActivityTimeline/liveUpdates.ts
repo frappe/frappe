@@ -87,12 +87,12 @@ export function createLiveUpdates(
 
   let subscribers = 0;
   let leaveRoom: (() => void) | undefined;
-  // Read at the first mount, not here: a prefetch builds the store outside any setup.
-  let socket: RealtimeSocket | null | undefined;
+  // Read at mount, not here: a prefetch builds the store outside any setup. A missing
+  // socket is not kept, since realtime may start after the first mount.
+  let socket: RealtimeSocket | undefined;
 
   return function subscribe() {
-    if (socket === undefined) socket = getSocketInstance() ?? null;
-    // realtime is off, so there is nothing to join and nothing to leave
+    socket ??= getSocketInstance();
     if (!socket) return () => {};
     const live = socket;
     if (++subscribers === 1) {

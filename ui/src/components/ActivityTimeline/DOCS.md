@@ -284,8 +284,9 @@ Returns:
 
 `prefetchActivityTimeline(doctype, docname, visibleTypes?)` starts the newest-page read
 before any component mounts and resolves once that page is in; a later `useActivityTimeline`
-with the same arguments uses it, and its first mount reads nothing more. A store lives for
-the session. Mounting beside a consumer already mounted on it reads nothing; the first mount
+with the same arguments uses it, and its first mount reads nothing more. A store outlives
+its components: the twenty most recently used stores with no component mounted are kept,
+and an older one is freed. Mounting beside a consumer already mounted on it reads nothing; the first mount
 after every consumer left re-reads the newest page, since the socket was closed in between.
 `endActivityPrefetch(doctype, docname, visibleTypes?)` says the first paint is over: a first
 mount after it re-reads too, since nothing listened between the prefetch and that mount.
@@ -358,7 +359,8 @@ it needs the create endpoint to return the new document's name. The row keeps th
 it was drawn in: its first key stays on it as `renderKey`, which the component uses as the
 v-for key. When the server row arrives (a `docinfo_update` add or a re-read), it takes the
 row's place under the same `renderKey`: no flicker, no duplicate, no remount. If the socket
-row arrives before the create answers, the pending row is matched on its text instead. If
+row arrives before the create answers, the pending row is matched on its text, against
+rows that arrived after it was added. If
 your endpoint returns no name, `drop()` on success and let the refetch bring the row in.
 
 Only call `resolve` on a response that confirms the write: the resolved row stays on screen
@@ -595,3 +597,13 @@ endpoint, a store, static data — build the `Array<Activity | CustomActivity>` 
 pass it straight to the component. You lose the built-in caching, realtime, and
 paging, but everything about rendering (types, slots, empty/loading states) works the
 same. Supply your own `paginate` object if you need "Load more".
+
+## Changed
+
+- `Pagination.isPagedRow`, `loadMore.position: "inline"` and the composable's default
+  `loadMore` are gone. The feed is one list under one cursor, so the control sits at the top
+  (or the bottom), and a host that loads on scroll calls `fetchNextPage()` itself.
+- A resolved pending row stops looking muted when `resolve` is called, before its server
+  row arrives.
+- `compareActivities(a, b)` is exported: the server's order, the timestamp string and then
+  the key, each compared by code unit. Sort merged rows with it so they match the pages.

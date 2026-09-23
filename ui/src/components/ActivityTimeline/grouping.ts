@@ -16,14 +16,17 @@ export function dropDuplicateKeys(activities: Activity[]): Activity[] {
   );
 }
 
+/** The server's order: the timestamp string, then the key, compared by code unit. */
 export function compareActivities(
   a: Pick<Activity, "timestamp" | "key">,
   b: Pick<Activity, "timestamp" | "key">
 ): number {
-  return (
-    timeValue(a.timestamp) - timeValue(b.timestamp) ||
-    a.key.localeCompare(b.key)
-  );
+  return compareText(a.timestamp, b.timestamp) || compareText(a.key, b.key);
+}
+
+// Date.parse drops microseconds and localeCompare folds case; the server does neither.
+function compareText(a = "", b = ""): number {
+  return a < b ? -1 : a > b ? 1 : 0;
 }
 
 // Frappe timestamps use a space separator; Date.parse needs 'T' for reliable parsing.
@@ -172,7 +175,7 @@ export function summarizeVersions(
   if (changes.length === 0) return null;
 
   // net changes list oldest-first by each field's latest hop (first-seen order otherwise)
-  changes.sort((a, b) => timeValue(a.timestamp) - timeValue(b.timestamp));
+  changes.sort((a, b) => compareText(a.timestamp, b.timestamp));
 
   // key off the first row so Vue reuses the item (keeps expanded state); timestamp from last
   const first = versions[0];

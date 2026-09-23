@@ -11,12 +11,11 @@ const socket = vi.hoisted(() => {
     handlers[event]?.delete(handler);
   const emit = (event: string, payload: unknown) =>
     handlers[event]?.forEach((handler) => handler(payload));
-  return { instance: { on, off }, emit };
+  return { instance: { on, off }, emit, ready: true };
 });
-// Through the frontend's link: from inside ui/, frappe-ui resolves nowhere.
-vi.mock("../../../../../frontend/node_modules/@framework/ui/src/api", () => ({ getDocumentPart: api.getDocumentPart }));
-vi.mock("../../../../../frontend/node_modules/@framework/ui/src/socket", () => ({
-  getSocketInstance: () => socket.instance,
+vi.mock("../../../api", () => ({ getDocumentPart: api.getDocumentPart }));
+vi.mock("../../../socket", () => ({
+  getSocketInstance: () => (socket.ready ? socket.instance : undefined),
   subscribeToDoc: () => () => {},
 }));
 
@@ -26,9 +25,9 @@ import {
   prefetchActivityTimeline,
   reloadActivityTimeline,
   useActivityTimeline,
-} from "../../../../../frontend/node_modules/@framework/ui/src/components/ActivityTimeline/useActivityTimeline";
-import { addPendingActivity } from "../../../../../frontend/node_modules/@framework/ui/src/components/ActivityTimeline/pendingRows";
-import ActivityTimeline from "../../../../../frontend/node_modules/@framework/ui/src/components/ActivityTimeline/ActivityTimeline.vue";
+} from "../useActivityTimeline";
+import { addPendingActivity } from "../pendingRows";
+import ActivityTimeline from "../ActivityTimeline.vue";
 
 let docCounter = 0;
 /** A fresh document per test: the composable keeps one store per document for the session. */
@@ -40,15 +39,33 @@ function row(type: Activity["type"], key: string, timestamp: string, data = {}):
   return { type, key, timestamp, author: { email: "a@x.com", fullname: "A" }, data } as Activity;
 }
 
+const c = (n: number) => row("comment", `comment:${n}`, `2026-01-0${n}`);
+
 type Page = { activities: Activity[]; next: string | null };
 
 /** Answers each read by its `before` cursor; the newest page sits under "newest". */
-function serve(pages: Record<string, Page>) {
+function serve(pages: Record<string, Page | Promise<Page>>) {
   api.getDocumentPart.mockImplementation(async (_dt, _name, _part, params) => {
     const page = pages[params.before ?? "newest"];
     if (!page) throw new Error(`no page for ${params.before}`);
-    return { data: page };
+    return { data: await page };
   });
+}
+
+/** A comment the socket publishes, as `docinfo_update` carries it. */
+function socketComment(docname: string, name: string, text: string, creation = "2026-01-05 10:00:02") {
+  return {
+    key: "comments",
+    action: "add",
+    doc: {
+      name,
+      reference_doctype: "ToDo",
+      reference_name: docname,
+      content: `<p>${text}</p>`,
+      creation,
+      owner: "a@x.com",
+    },
+  };
 }
 
 const keys = (timeline: ReturnType<typeof useActivityTimeline>) =>
@@ -72,12 +89,14 @@ function mountTimeline(name: string, types?: Parameters<typeof useActivityTimeli
 }
 
 beforeEach(() => {
+  socket.ready = true;
   api.getDocumentPart.mockReset();
   serve({ newest: { activities: [], next: null } });
 });
 
 afterEach(() => {
   mounted.splice(0).forEach((app) => app.unmount());
+  vi.useRealTimers();
 });
 
 describe("useActivityTimeline paging", () => {
@@ -136,7 +155,6 @@ describe("useActivityTimeline paging", () => {
 
   it("reload re-reads the newest page and keeps the older rows and the cursor", async () => {
     const name = freshDoc();
-    const c = (n: number) => row("comment", `comment:${n}`, `2026-01-0${n}`);
     serve({
       newest: { activities: [c(3), c(4)], next: "c3" },
       c3: { activities: [c(1), c(2)], next: "c1" },
@@ -175,7 +193,6 @@ describe("useActivityTimeline paging", () => {
 
   it("drops the held rows and takes the new cursor when a reload does not reach them", async () => {
     const name = freshDoc();
-    const c = (n: number) => row("comment", `comment:${n}`, `2026-01-0${n}`);
     serve({ newest: { activities: [c(2), c(3)], next: "c2" } });
     const timeline = useActivityTimeline("ToDo", name);
     await vi.waitFor(() => expect(timeline.paginate.hasNextPage).toBe(true));
@@ -231,6 +248,76 @@ describe("useActivityTimeline paging", () => {
     expect(timeline.activities.value).toEqual([]);
     expect(timeline.paginate.hasNextPage).toBe(false);
   });
+
+  it("keeps a row the socket added after the server built the refreshed page", async () => {
+    for (const next of [null, "c1"]) {
+      const name = freshDoc();
+      serve({ newest: { activities: [c(1), c(2)], next } });
+      const { timeline } = mountTimeline(name);
+      await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
+
+      socket.emit("docinfo_update", socketComment(name, "C3", "late"));
+      await timeline.reload();
+      expect(keys(timeline)).toEqual(["comment:1", "comment:2", "comment:C3"]);
+    }
+  });
+
+  it("does not join the held rows through a live row when more than a page arrived", async () => {
+    const name = freshDoc();
+    serve({ newest: { activities: [c(2), c(3)], next: "c2" } });
+    const { timeline } = mountTimeline(name);
+    await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
+    socket.emit("docinfo_update", socketComment(name, "C9", "live", "2026-01-09"));
+
+    // comment:4 was never published and sits between the held rows and the new page
+    const live = row("comment", "comment:C9", "2026-01-09");
+    serve({
+      newest: { activities: [c(5), c(6), live], next: "c5" },
+      c5: { activities: [c(3), c(4)], next: "c3" },
+    });
+    await timeline.reload();
+    expect(keys(timeline)).toEqual(["comment:5", "comment:6", "comment:C9"]);
+
+    await timeline.paginate.fetchNextPage();
+    expect(api.getDocumentPart.mock.lastCall?.[3]).toMatchObject({ before: "c5" });
+    expect(keys(timeline)).toEqual(["comment:3", "comment:4", "comment:5", "comment:6", "comment:C9"]);
+  });
+
+  it("drops an older page that lands after a refresh moved the cursor", async () => {
+    const name = freshDoc();
+    let answer!: (page: Page) => void;
+    serve({
+      newest: { activities: [c(5), c(6)], next: "c5" },
+      c5: new Promise<Page>((done) => (answer = done)),
+    });
+    const timeline = useActivityTimeline("ToDo", name);
+    await vi.waitFor(() => expect(timeline.paginate.hasNextPage).toBe(true));
+    const older = timeline.paginate.fetchNextPage();
+
+    serve({ newest: { activities: [c(8), c(9)], next: "c8" } });
+    await timeline.reload();
+    answer({ activities: [c(3), c(4)], next: "c3" });
+    await older;
+    expect(keys(timeline)).toEqual(["comment:8", "comment:9"]);
+
+    serve({ c8: { activities: [c(7)], next: null } });
+    await timeline.paginate.fetchNextPage();
+    expect(api.getDocumentPart.mock.lastCall?.[3]).toMatchObject({ before: "c8" });
+  });
+
+  it("clears the error once an older page reads", async () => {
+    const name = freshDoc();
+    serve({ newest: { activities: [c(2)], next: "c2" } });
+    const timeline = useActivityTimeline("ToDo", name);
+    await vi.waitFor(() => expect(timeline.paginate.hasNextPage).toBe(true));
+    await timeline.paginate.fetchNextPage();
+    expect(timeline.error.value).toBeInstanceOf(Error);
+
+    serve({ c2: { activities: [c(1)], next: null } });
+    await timeline.paginate.fetchNextPage();
+    expect(timeline.error.value).toBeNull();
+    expect(keys(timeline)).toEqual(["comment:1", "comment:2"]);
+  });
 });
 
 describe("the prefetched read", () => {
@@ -243,8 +330,9 @@ describe("the prefetched read", () => {
     serve(newest("comment:1"));
     await prefetchActivityTimeline("ToDo", name);
 
+    vi.useFakeTimers();
     const first = mountTimeline(name);
-    await new Promise((done) => setTimeout(done, 400));
+    await vi.advanceTimersByTimeAsync(400);
     expect(api.getDocumentPart).toHaveBeenCalledTimes(1);
     expect(keys(first.timeline)).toEqual(["comment:1"]);
 
@@ -287,18 +375,6 @@ describe("pending rows", () => {
     timestamp: "2026-01-05 10:00:00",
     author: { email: "a@x.com", fullname: "A" },
     data: { name: "", content: `<p>${text}</p>` },
-  });
-  const socketComment = (docname: string, name: string, text: string) => ({
-    key: "comments",
-    action: "add",
-    doc: {
-      name,
-      reference_doctype: "ToDo",
-      reference_name: docname,
-      content: `<p>${text}</p>`,
-      creation: "2026-01-05 10:00:02",
-      owner: "a@x.com",
-    },
   });
 
   it("swaps to the server key on resolve, and the socket add that follows changes nothing", async () => {
@@ -345,12 +421,67 @@ describe("pending rows", () => {
     expect(timeline.activities.value[0]).toMatchObject({ key: "comment:C2", renderKey: draftKey });
   });
 
+  it("does not match a new pending row to an older row with the same text", async () => {
+    const name = freshDoc();
+    const old = row("comment", "comment:OLD", "2026-01-01", { name: "OLD", content: "<p>ok</p>" });
+    serve({ newest: { activities: [old], next: null } });
+    const { timeline } = mountTimeline(name);
+    await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
+
+    addPendingActivity("ToDo", name, comment("ok"));
+    const draftKey = timeline.activities.value[1].key;
+    socket.emit("docinfo_update", socketComment(name, "HI", "hi"));
+    expect(timeline.activities.value.find((a) => a.key === draftKey)?.pending).toBe(true);
+    expect(timeline.activities.value[0]).not.toHaveProperty("renderKey");
+
+    socket.emit("docinfo_update", socketComment(name, "NEW", "ok", "2026-01-05 10:00:03"));
+    expect(timeline.activities.value.map((a) => a.key)).toEqual(["comment:OLD", "comment:HI", "comment:NEW"]);
+    expect(timeline.activities.value[2]).toMatchObject({ renderKey: draftKey });
+  });
+
   it("keeps a pending comment out of the emails view", async () => {
     const name = freshDoc();
     const emails = useActivityTimeline("ToDo", name, ["email"]);
     await vi.waitFor(() => expect(emails.loading.value).toBe(false));
     addPendingActivity("ToDo", name, comment("not an email"));
     expect(emails.activities.value).toEqual([]);
+  });
+});
+
+describe("idle stores", () => {
+  it("frees the least recently used idle store past twenty, never a mounted one", async () => {
+    const kept = freshDoc();
+    serve({ newest: { activities: [c(1)], next: null } });
+    const { timeline } = mountTimeline(kept);
+    await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
+
+    const evicted = freshDoc();
+    serve({ newest: { activities: [row("comment", "comment:C1", "2026-01-05", { content: "<p>hi</p>" })], next: null } });
+    await reloadActivityTimeline("ToDo", evicted);
+    const draft = { type: "comment" as const, timestamp: "2026-01-05", data: { name: "", content: "<p>hi</p>" } };
+    addPendingActivity("ToDo", evicted, draft).resolve("comment:C1");
+    expect(activityTimelineRows("ToDo", evicted)[0]).toHaveProperty("renderKey");
+
+    for (let i = 0; i < 20; i++) await reloadActivityTimeline("ToDo", freshDoc());
+    expect(activityTimelineRows("ToDo", kept).map((a) => a.key)).toEqual(["comment:1"]);
+    expect(activityTimelineRows("ToDo", evicted)).toEqual([]);
+
+    await reloadActivityTimeline("ToDo", evicted);
+    expect(activityTimelineRows("ToDo", evicted)[0]).not.toHaveProperty("renderKey");
+  });
+
+  it("goes live on a later mount when realtime was not ready at the first", async () => {
+    const name = freshDoc();
+    socket.ready = false;
+    const first = mountTimeline(name);
+    await vi.waitFor(() => expect(first.timeline.loading.value).toBe(false));
+    mounted.splice(0).forEach((app) => app.unmount());
+
+    socket.ready = true;
+    const { timeline } = mountTimeline(name);
+    await timeline.reload();
+    socket.emit("docinfo_update", socketComment(name, "C1", "now live"));
+    expect(keys(timeline)).toEqual(["comment:C1"]);
   });
 });
 

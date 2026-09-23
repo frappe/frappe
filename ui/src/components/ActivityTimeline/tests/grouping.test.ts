@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { drawnKey, groupActivities } from "../grouping";
+import { compareActivities, drawnKey, groupActivities } from "../grouping";
+import * as entry from "../index";
 import type { Activity, VersionActivity } from "../types";
 
 const at = (min: number) => `2026-01-01 10:${String(min).padStart(2, "0")}:00`;
@@ -79,5 +80,22 @@ describe("drawnKey", () => {
     expect(drawnKey(feed, "v3")).toBe("v3");
     expect(drawnKey(feed, "c6")).toBe("c6");
     expect(drawnKey(feed, "gone")).toBe("gone");
+  });
+});
+
+describe("compareActivities", () => {
+  const at = (timestamp: string, key: string) => ({ timestamp, key });
+
+  it("orders as the server does: the timestamp string to the microsecond, then the key by code unit", () => {
+    const later = at("2026-01-01 10:00:00.000002", "a");
+    const earlier = at("2026-01-01 10:00:00.000001", "b");
+    expect(compareActivities(later, earlier)).toBeGreaterThan(0);
+    const t = "2026-01-01 10:00:00";
+    expect(compareActivities(at(t, "comment:B"), at(t, "comment:a"))).toBeLessThan(0);
+    expect(compareActivities(at(t, "comment:a"), at(t, "comment:a"))).toBe(0);
+  });
+
+  it("is exported from the package entry", () => {
+    expect(entry.compareActivities).toBe(compareActivities);
   });
 });

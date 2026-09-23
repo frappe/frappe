@@ -13,6 +13,7 @@ export {
   useActivityTimeline,
 } from "./useActivityTimeline";
 export { addPendingActivity } from "./pendingRows";
+export { compareActivities } from "./grouping";
 export type {
   Activity,
   ActivityTimelineProps,
