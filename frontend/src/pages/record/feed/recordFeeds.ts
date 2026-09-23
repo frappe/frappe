@@ -2,7 +2,12 @@
 import { nextTick, shallowRef, type InjectionKey, type Ref } from "vue";
 import type { LocationQuery } from "vue-router";
 import { until } from "@vueuse/core";
-import { prefetchActivityTimeline, type VisibleTypes } from "@framework/ui/ActivityTimeline";
+import {
+	activityTimelineRows,
+	prefetchActivityTimeline,
+	reloadActivityTimeline,
+	type VisibleTypes,
+} from "@framework/ui/ActivityTimeline";
 import { removeAttachment, type AttachmentsPart } from "@framework/ui/api";
 import type { ActivityRow, FileRow, RecordPageController } from "@/recordPage";
 import type { DocInfo } from "../panel/context";
@@ -52,18 +57,18 @@ export class RecordFeeds {
 
 	/** The host members `createRecordPage` takes. */
 	readonly pageHost = {
-		activityRows: (): ActivityRow[] => this.timeline.value?.activities.value ?? [],
+		activityRows: (): ActivityRow[] => this.timeline.value?.activities.value ?? this.storedRows(),
 		scrollToActivity: (key: string) => this.scrollToActivity(key),
-		reloadActivity: () => this.timeline.value?.reload() ?? Promise.resolve(),
+		reloadActivity: () => this.timeline.value?.reload() ?? this.rereadStore(),
 		fileRows: () => this.fileRows(),
 		reloadFiles: () => this.options.reloadParts(),
 	};
 
-	/** Opens Activity, then pages older until the row is drawn; false if the list ended first. */
-	async scrollToActivity(key: string): Promise<boolean> {
+	/** Opens Activity, then pages older until the row is drawn; false if the list ended first, null if a script hid the tab. */
+	async scrollToActivity(key: string): Promise<boolean | null> {
 		const current = this.options.whileOnRecord();
 		const what = `page.activity.scrollTo("${key}") — the Activity tab`;
-		if (!(await this.options.showTab(ACTIVITY_TAB, what))) return false;
+		if (!(await this.options.showTab(ACTIVITY_TAB, what))) return null;
 		const timeline = await until(this.timeline).toBeTruthy({ timeout: DRAW_TIMEOUT_MS });
 		return timeline ? pageUntilDrawn(timeline, key, current) : false;
 	}
@@ -115,17 +120,36 @@ export class RecordFeeds {
 		this.keepFiles(data, current);
 	}
 
+	// Before the Activity body mounts, the store a prefetch filled answers for it.
+	private storedRows(): ActivityRow[] {
+		const read = this.activityRead();
+		return read ? (activityTimelineRows(...read) as ActivityRow[]) : [];
+	}
+
+	private rereadStore(): Promise<void> {
+		const read = this.activityRead();
+		return read ? reloadActivityTimeline(...read) : Promise.resolve();
+	}
+
+	/** The read the Activity body makes: this record, in the types a script chose. */
+	private activityRead() {
+		const controller = this.options.controller();
+		if (!controller) return null;
+		const { doctype, docname } = controller.page;
+		return [doctype, docname, controller.activity.shownTypes() ?? undefined] as const;
+	}
+
 	private keepFiles({ attachments, users }: AttachmentsPart, current: () => boolean) {
 		if (!current()) return;
 		this.options.docinfo.value = mergePart(this.options.docinfo.value, { attachments, users });
 	}
 }
 
-/** Starts the feed read beside the record read when the address opens a feed tab. */
-export function prefetchFeed(doctype: string, docname: string, query: LocationQuery) {
+/** Starts the feed read beside the record read when the address opens a feed tab; resolves once the Activity page is in. */
+export function prefetchFeed(doctype: string, docname: string, query: LocationQuery): Promise<void> {
 	const tab = addressedTab(query);
-	if (tab === ACTIVITY_TAB) prefetchActivityTimeline(doctype, docname);
-	else if (tab === EMAILS_TAB) prefetchActivityTimeline(doctype, docname, EMAIL_TYPES);
+	if (tab === EMAILS_TAB) void prefetchActivityTimeline(doctype, docname, EMAIL_TYPES);
+	return tab === ACTIVITY_TAB ? prefetchActivityTimeline(doctype, docname) : Promise.resolve();
 }
 
 /** `?activity=<key>`, or `""`. */

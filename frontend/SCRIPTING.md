@@ -730,6 +730,10 @@ newest 50 rows first and loads older pages as the reader scrolls up, so `items` 
 the reader goes. A comment, email or attachment another session adds arrives on its own,
 and a field change refreshes the newest page.
 
+The first `onRefresh` sees the newest page when the address opens the Activity tab; when it
+opens another tab, Emails included, the rows are read as Activity first shows, so that
+`onRefresh` sees none.
+
 A script's rows are rebuilt on every replay, like any surface's, and survive `reload()`,
 which reads the server's rows again and leaves the script's alone.
 

@@ -21,7 +21,10 @@ vi.mock("../../../../../frontend/node_modules/@framework/ui/src/socket", () => (
 }));
 
 import {
+  activityTimelineRows,
   addPendingActivity,
+  prefetchActivityTimeline,
+  reloadActivityTimeline,
   useActivityTimeline,
 } from "../../../../../frontend/node_modules/@framework/ui/src/components/ActivityTimeline/useActivityTimeline";
 import ActivityTimeline from "../../../../../frontend/node_modules/@framework/ui/src/components/ActivityTimeline/ActivityTimeline.vue";
@@ -193,6 +196,42 @@ describe("useActivityTimeline paging", () => {
     expect(timeline.error.value).toBeInstanceOf(Error);
     expect(timeline.activities.value).toEqual([]);
     expect(timeline.paginate.hasNextPage).toBe(false);
+  });
+});
+
+describe("the prefetched read", () => {
+  const newest = (key: string) => ({
+    newest: { activities: [row("comment", key, "2026-01-01")], next: null },
+  });
+
+  it("is the first mount's page; a mount after every consumer left catches up", async () => {
+    const name = freshDoc();
+    serve(newest("comment:1"));
+    await prefetchActivityTimeline("ToDo", name);
+
+    const first = mountTimeline(name);
+    await new Promise((done) => setTimeout(done, 400));
+    expect(api.getDocumentPart).toHaveBeenCalledTimes(1);
+    expect(keys(first.timeline)).toEqual(["comment:1"]);
+
+    mounted.splice(0).forEach((app) => app.unmount());
+    serve(newest("comment:2"));
+    const again = mountTimeline(name);
+    await vi.waitFor(() => expect(keys(again.timeline)).toEqual(["comment:2"]));
+    expect(api.getDocumentPart).toHaveBeenCalledTimes(2);
+  });
+
+  it("answers rows and a reload before any component mounts", async () => {
+    const name = freshDoc();
+    expect(activityTimelineRows("ToDo", name)).toEqual([]);
+    serve(newest("comment:1"));
+    await reloadActivityTimeline("ToDo", name);
+    expect(activityTimelineRows("ToDo", name).map((a) => a.key)).toEqual(["comment:1"]);
+
+    serve(newest("comment:2"));
+    await reloadActivityTimeline("ToDo", name);
+    expect(activityTimelineRows("ToDo", name).map((a) => a.key)).toEqual(["comment:2"]);
+    expect(api.getDocumentPart).toHaveBeenCalledTimes(2);
   });
 });
 

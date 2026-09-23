@@ -37,6 +37,8 @@ interface TimelineStore {
   error: Ref<unknown>;
   /** whether the newest page has ever landed */
   fetched: Ref<boolean>;
+  /** the newest page was read for a mount still to come, so that mount needs no catch-up */
+  prefetched: Ref<boolean>;
   next: Ref<string | null>;
   fetchingOlder: Ref<boolean>;
   load: () => Promise<void>;
@@ -89,13 +91,38 @@ export function useActivityTimeline(
   };
 }
 
-/** Starts the newest-page read before any component mounts; a later mount reuses it. */
+/** Starts the newest-page read before any component mounts; resolves once that page is in. */
 export function prefetchActivityTimeline(
   doctype: string,
   docname: string,
   visibleTypes?: VisibleTypes
-) {
-  getTimelineStore(doctype, docname, visibleTypes);
+): Promise<void> {
+  const store = getTimelineStore(doctype, docname, visibleTypes);
+  // Rows already held may have missed the socket; a read started now has not.
+  store.prefetched.value = !store.fetched.value;
+  return store.fetched.value ? Promise.resolve() : store.load();
+}
+
+/** The rows a store holds, pending ones included, with no component mounted; none if no read began. */
+export function activityTimelineRows(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+): Array<Activity | CustomActivity> {
+  const store = stores.get(storeKey(doctype, docname, visibleTypes));
+  return store ? shownRows(store, typeNames(visibleTypes)) : [];
+}
+
+/** Re-reads the newest page with no component mounted; with no store yet, it starts the first read. */
+export function reloadActivityTimeline(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+): Promise<void> {
+  const store = stores.get(storeKey(doctype, docname, visibleTypes));
+  return store
+    ? store.refresh()
+    : prefetchActivityTimeline(doctype, docname, visibleTypes);
 }
 
 /**
@@ -133,9 +160,7 @@ function getTimelineStore(
   docname: string,
   visibleTypes?: VisibleTypes
 ): TimelineStore {
-  // filters are part of the cache identity
-  const types = visibleTypes ? JSON.stringify(visibleTypes) : "*";
-  const cacheKey = `${docKey(doctype, docname)}:${types}`;
+  const cacheKey = storeKey(doctype, docname, visibleTypes);
   let store = stores.get(cacheKey);
   if (!store) {
     store = createTimelineStore(doctype, docname, visibleTypes);
@@ -143,6 +168,12 @@ function getTimelineStore(
     void store.load();
   }
   return store;
+}
+
+// filters are part of the cache identity
+function storeKey(doctype: string, docname: string, visibleTypes?: VisibleTypes) {
+  const types = visibleTypes ? JSON.stringify(visibleTypes) : "*";
+  return `${docKey(doctype, docname)}:${types}`;
 }
 
 function createTimelineStore(
@@ -153,6 +184,7 @@ function createTimelineStore(
   const doc = docKey(doctype, docname);
   const data = ref<Activity[]>([]);
   const fetched = ref(false);
+  const prefetched = ref(false);
   const next = ref<string | null>(null);
   const loading = ref(false);
   const error = ref<unknown>(null);
@@ -219,7 +251,7 @@ function createTimelineStore(
   const subscribe = createLiveUpdates(
     doctype,
     docname,
-    { data, fetched },
+    { data, fetched, prefetched },
     typeNames(visibleTypes),
     refresh
   );
@@ -229,6 +261,7 @@ function createTimelineStore(
     loading,
     error,
     fetched,
+    prefetched,
     next,
     fetchingOlder,
     load,
@@ -298,16 +331,21 @@ function subscribeWhileMounted(store: TimelineStore) {
 
 // deduped + sorted but ungrouped; the component folds version runs at render time
 function shownActivities(store: TimelineStore, types: string[] | undefined) {
-  return computed<Array<Activity | CustomActivity>>(() => {
-    const adopted = adoptedKeys.value[store.doc] ?? {};
-    const confirmed = dropDuplicateKeys(store.data.value).map((a) =>
-      adopted[a.key] ? { ...a, renderKey: adopted[a.key] } : a
-    );
-    const waiting = (pendingActivities.value[store.doc] ?? []).filter(
-      (row) => !types || types.includes(row.type)
-    );
-    return [...confirmed, ...waiting].sort(compareActivities);
-  });
+  return computed(() => shownRows(store, types));
+}
+
+function shownRows(
+  store: TimelineStore,
+  types: string[] | undefined
+): Array<Activity | CustomActivity> {
+  const adopted = adoptedKeys.value[store.doc] ?? {};
+  const confirmed = dropDuplicateKeys(store.data.value).map((a) =>
+    adopted[a.key] ? { ...a, renderKey: adopted[a.key] } : a
+  );
+  const waiting = (pendingActivities.value[store.doc] ?? []).filter(
+    (row) => !types || types.includes(row.type)
+  );
+  return [...confirmed, ...waiting].sort(compareActivities);
 }
 
 function typeNames(visibleTypes?: VisibleTypes): string[] | undefined {

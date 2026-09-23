@@ -463,7 +463,7 @@ async function load() {
 		fallback: "none",
 		overrides: () => controller.value?.fields.resolve() ?? {},
 	});
-	prefetchFeed(target.doctype, target.name, route.query);
+	const feedRead = prefetchFeed(target.doctype, target.name, route.query);
 	try {
 		const [loaded, metadata] = await Promise.all([
 			loadRecord(target.doctype, target.name),
@@ -519,8 +519,9 @@ async function load() {
 	controller.value = created;
 	feeds.showPointedTab(pointer);
 
-	// The first replay must see both layouts, or a script's act on a tab or section is dropped as unknown.
-	await Promise.all([details.settled(), panel.settled()]);
+	// The first replay must see both layouts, or a script's act on a tab or section is dropped as unknown,
+	// and the Activity rows when their read began beside the record's.
+	await Promise.all([details.settled(), panel.settled(), feedRead]);
 	if (mine !== generation) return;
 	await created.refresh();
 	if (mine !== generation) return;

@@ -1,8 +1,9 @@
 // `?activity=<key>`: read once as the record opens, it brings Activity forward over any `?tab=` and lands on the row.
+// A scroll onto an Activity tab a script hid warns once.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { effectScope, nextTick, reactive, ref, shallowRef, type EffectScope } from "vue";
 import { createRecordPage, type RecordPageController } from "@/recordPage/createRecordPage";
-import { resetRegistry } from "@/recordPage/registry";
+import { registerRecordPage, resetRegistry } from "@/recordPage/registry";
 import { recordTabBuiltins } from "../../tabs/recordTabs";
 import { useRecordTabs } from "../../tabs/useRecordTabs";
 import { RecordFeeds } from "../recordFeeds";
@@ -107,5 +108,25 @@ describe("?activity=<key>", () => {
 		expect(feeds.pointerOnOpen("CRM Deal", "D-1", query)).toBe("comment:c2");
 		expect(feeds.pointerOnOpen("CRM Deal", "D-1", query)).toBe("");
 		expect(feeds.pointerOnOpen("CRM Deal", "D-2", query)).toBe("comment:c2");
+	});
+});
+
+describe("page.activity.scrollTo onto a hidden Activity tab", () => {
+	it("warns once, naming the hidden tab", async () => {
+		registerRecordPage("CRM Deal", {
+			onRefresh: (page) => {
+				page.tabs.hide("activity");
+				page.activity.scrollTo("comment:c1");
+			},
+		});
+		const { open } = makePage({});
+
+		await open();
+		await settle();
+
+		const warnings = vi.mocked(console.warn).mock.calls.map(([message]) => String(message));
+		expect(warnings).toEqual([
+			`[record-page] page.activity.scrollTo("comment:c1") — the Activity tab is hidden, so the reader was not moved.`,
+		]);
 	});
 });

@@ -6,8 +6,10 @@ export { default as CommentItem } from "./CommentItem.vue";
 export { default as LogItem } from "./LogItem.vue";
 export { default as VersionItem } from "./VersionItem.vue";
 export {
+  activityTimelineRows,
   addPendingActivity,
   prefetchActivityTimeline,
+  reloadActivityTimeline,
   useActivityTimeline,
 } from "./useActivityTimeline";
 export type {

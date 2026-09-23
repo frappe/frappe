@@ -11,6 +11,7 @@ import { getAssignee, stripHtml } from "./utils";
 export interface LiveFeed {
   data: Ref<Activity[]>;
   fetched: Ref<boolean>;
+  prefetched: Ref<boolean>;
 }
 
 export type Unsubscribe = () => void;
@@ -97,8 +98,9 @@ export function createLiveUpdates(
     if (++subscribers === 1) {
       leaveRoom = subscribeToDoc(live, doctype, docname);
       for (const event in handlers) live.on(event, handlers[event]);
-      // nobody was listening while this was closed, so the feed may have moved
-      if (feed.fetched.value) refresh();
+      // Nobody listened while this was closed, so the feed may have moved; a prefetch has just read it.
+      if (feed.fetched.value && !feed.prefetched.value) refresh();
+      feed.prefetched.value = false;
     }
 
     let stopped = false;

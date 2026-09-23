@@ -76,7 +76,9 @@ const NEW = { ...OLD, name: "F-2", file_name: "photo.png", is_private: 0 as cons
 
 function setup(docinfo: DocInfo | null = null, own: { activity?: FeedItem[]; files?: FeedItem[] } = {}) {
 	const shownTypes = ref<string[] | null>(null);
+	const page = { doctype: "CRM Deal", docname: "D-1", dialog: { confirm: vi.fn(async () => true) } } as any;
 	const controller = {
+		page,
 		activity: { visible: () => own.activity ?? [], shownTypes: () => shownTypes.value },
 		files: { visible: () => own.files ?? [] },
 	} as any;
@@ -87,7 +89,6 @@ function setup(docinfo: DocInfo | null = null, own: { activity?: FeedItem[]; fil
 		reloadParts: async () => {},
 		whileOnRecord: () => () => true,
 	});
-	const page = { doctype: "CRM Deal", docname: "D-1", dialog: { confirm: vi.fn(async () => true) } } as any;
 	return { feeds, page, shownTypes };
 }
 

@@ -283,10 +283,14 @@ Returns:
 | `paginate`   | `Pagination` — reads older pages by cursor; bind it to the component only if you want pagination                       |
 
 `prefetchActivityTimeline(doctype, docname, visibleTypes?)` starts the newest-page read
-before any component mounts; a later `useActivityTimeline` with the same arguments uses it.
-A store lives for the session. Mounting beside a consumer already mounted on it reads
-nothing; the first mount after every consumer left re-reads the newest page, since the
-socket was closed in between.
+before any component mounts and resolves once that page is in; a later `useActivityTimeline`
+with the same arguments uses it, and its first mount reads nothing more. A store lives for
+the session. Mounting beside a consumer already mounted on it reads nothing; the first mount
+after every consumer left re-reads the newest page, since the socket was closed in between.
+
+With no component mounted, `activityTimelineRows(doctype, docname, visibleTypes?)` returns
+the rows a store holds (none if no read began), and `reloadActivityTimeline(...)` re-reads
+its newest page, or starts the first read.
 
 **Realtime.** While mounted it subscribes to the doc's socket room and patches the feed
 live. Two server events drive it:
@@ -310,7 +314,7 @@ Three things happen for you:
 - **Reconnects heal.** A room is server-side state on a socket id and Redis pub/sub buffers
   nothing, so after a drop you are in no room and the gap is lost silently. On `connect`
   after a `disconnect` it rejoins every held room and fires one catch-up refetch. Same on
-  mounting onto an already-fetched store.
+  mounting onto an already-fetched store, unless a prefetch read it for that mount.
 
 > Reconnect healing only runs if socket.io actually reconnects: check your app's
 > `reconnectionAttempts`, since a low value means it gives up after a short outage and

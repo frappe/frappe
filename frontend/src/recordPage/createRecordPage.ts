@@ -128,8 +128,8 @@ export interface RecordPageHost {
   sourcesReady?: () => Promise<void>;
   /** The rows the Activity tab has loaded, oldest first, pending ones included. */
   activityRows: () => ActivityRow[];
-  /** Opens the Activity tab and scrolls to the row, paging older until drawn; false if the list ended first. */
-  scrollToActivity: (key: string) => Promise<boolean>;
+  /** Opens the Activity tab and scrolls to the row, paging older until drawn; false if the list ended first, null if the host warned why not. */
+  scrollToActivity: (key: string) => Promise<boolean | null>;
   reloadActivity: () => Promise<void>;
   /** The record read's `attachments` part, oldest first. */
   fileRows: () => FileRow[];

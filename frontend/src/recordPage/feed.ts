@@ -16,7 +16,7 @@ import type {
 
 export interface ActivityHost {
   rows: () => ActivityRow[];
-  scrollTo: (key: string) => Promise<boolean>;
+  scrollTo: (key: string) => Promise<boolean | null>;
   reload: () => Promise<void>;
 }
 
@@ -145,7 +145,7 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
 
   private async deliverScroll(key: string) {
     try {
-      if (!(await this.host.scrollTo(key))) this.warn("scrollTo", key, "the list ended without it");
+      if ((await this.host.scrollTo(key)) === false) this.warn("scrollTo", key, "the list ended without it");
     } catch (error) {
       console.error(`[record-page] page.activity.scrollTo("${key}") — the host threw`, error);
     }
