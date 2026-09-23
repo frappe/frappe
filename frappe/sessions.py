@@ -403,8 +403,6 @@ class Session:
 	def get_session_data_from_cache(self):
 		session_data = frappe.cache.hget("session", self.sid_hash)
 		if session_data:
-			session_data = frappe._dict(session_data)
-
 			# set user for correct timezone
 			self.time_diff = frappe.utils.time_diff_in_seconds(
 				frappe.utils.now(), session_data.get("last_updated")
