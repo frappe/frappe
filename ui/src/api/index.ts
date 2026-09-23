@@ -417,10 +417,21 @@ export function removeFollow(doctype: string, name: string, options?: CallOption
   );
 }
 
-export function addComment(doctype: string, name: string, content: string, options?: CallOptions) {
-  return addPart<PartResponse<"comments", Comment[]>>(
-    doctype, name, "comments", { content }, options
-  );
+export interface AddCommentOptions extends CallOptions {
+  /** Names of the caller's unattached Files; the server links them to the new comment. */
+  attachments?: string[];
+}
+
+/** The comments part, and `added`: the name of the comment this call wrote. */
+export type AddedComment = PartResponse<"comments", Comment[]> & { added?: string };
+
+export function addComment(
+  doctype: string,
+  name: string,
+  content: string,
+  { attachments, signal }: AddCommentOptions = {}
+) {
+  return addPart<AddedComment>(doctype, name, "comments", { content, attachments }, { signal });
 }
 
 export function updateComment(

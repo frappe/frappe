@@ -140,6 +140,13 @@ describe("comments", () => {
     await removeComment("ToDo", "T-1", "c1");
     expect(lastCall()).toMatchObject({ url: `${RECORD}/comments/c1`, method: "DELETE" });
   });
+
+  it("sends the attachments and reads the added comment's name", async () => {
+    respond({ data: { comments: [], added: "c2" } });
+    const answer = await addComment("ToDo", "T-1", "see files", { attachments: ["f1", "f2"] });
+    expect(lastCall().body).toEqual({ content: "see files", attachments: ["f1", "f2"] });
+    expect(answer.data.added).toBe("c2");
+  });
 });
 
 describe("the path", () => {

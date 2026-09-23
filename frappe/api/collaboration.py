@@ -20,10 +20,13 @@ EVERYONE = "everyone"
 
 
 def add(doctype: str, name: str, part: str) -> dict:
-	"""Add to `part` of the document from the request body; answers with the refreshed part."""
+	"""Add to `part` from the request body; answers with the refreshed part, and a comment's `added` name."""
 	doc = load(doctype, name, part)
-	ADD[part](doc, read_body(part))
-	return refreshed(doc, part)
+	added = ADD[part](doc, read_body(part))
+	response = refreshed(doc, part)
+	if added:
+		response["added"] = added
+	return response
 
 
 def remove(doctype: str, name: str, part: str, key: str | None = None) -> dict:
@@ -65,9 +68,17 @@ def read_body(part: str) -> dict:
 		if not isinstance(value, str) or not value.strip():
 			raise InvalidRequestError(_("'{0}' must be a non-empty string").format(key))
 	for key in OPTIONAL_BODY.get(part, ()):
-		if key in body and not isinstance(body[key], str):
-			raise InvalidRequestError(_("'{0}' must be a string").format(key))
+		if key in body:
+			check_optional(key, body[key])
 	return body
+
+
+def check_optional(key: str, value) -> None:
+	if key not in LIST_KEYS:
+		if not isinstance(value, str):
+			raise InvalidRequestError(_("'{0}' must be a string").format(key))
+	elif not isinstance(value, list) or not all(isinstance(item, str) and item for item in value):
+		raise InvalidRequestError(_("'{0}' must be a list of names").format(key))
 
 
 def refreshed(doc: Document, part: str) -> dict:
@@ -133,8 +144,27 @@ def remove_follow(doc: Document, key: None) -> None:
 	unfollow_document(doc.doctype, doc.name)
 
 
-def add_a_comment(doc: Document, body: dict) -> None:
-	add_comment(doc.doctype, doc.name, body["content"], frappe.session.user, get_fullname())
+def add_a_comment(doc: Document, body: dict) -> str:
+	files = files_to_link(doc, body.get("attachments") or [])
+	comment = add_comment(doc.doctype, doc.name, body["content"], frappe.session.user, get_fullname())
+	for file in files:
+		file.attached_to_doctype = "Comment"
+		file.attached_to_name = comment.name
+		file.save(ignore_permissions=True)
+	return comment.name
+
+
+def files_to_link(doc: Document, names: list[str]) -> list[Document]:
+	"""The caller's own unattached Files; any other name is refused."""
+	names = list(dict.fromkeys(names))
+	files = [frappe.get_doc("File", name) for name in names if frappe.db.exists("File", name)]
+	if len(files) != len(names) or not all(linkable(file) for file in files):
+		raise frappe.PermissionError(_("Only your own unattached files can be added to a comment"))
+	return files
+
+
+def linkable(file: Document) -> bool:
+	return file.owner == frappe.session.user and not file.attached_to_doctype
 
 
 def remove_comment(doc: Document, name: str) -> None:
@@ -160,7 +190,8 @@ PART_RIGHT = {
 	"comments": "read",
 }
 KEYLESS_PARTS = ("favourites", "follows")
-OPTIONAL_BODY = {"assignments": ("description", "priority", "date")}
+OPTIONAL_BODY = {"assignments": ("description", "priority", "date"), "comments": ("attachments",)}
+LIST_KEYS = ("attachments",)
 REQUIRED_BODY = {
 	"assignments": ("user",),
 	"shares": ("user",),

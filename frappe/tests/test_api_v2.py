@@ -1491,6 +1491,88 @@ class TestCollaborationWritesV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 403, response.json)
 		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
 
+	def test_comment_with_attachments_links_the_files(self):
+		todo = self.todo_with_cleanup()
+		files = [self.make_file(self.TEST_USER), self.make_file(self.TEST_USER)]
+		response = self.add(
+			self.part("comments", name=todo.name), {"content": "see files", "attachments": files}
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		added = response.json["data"]["added"]
+		self.assertIn(added, [row["name"] for row in response.json["data"]["comments"]])
+		frappe.db.rollback()
+		for file in files:
+			attached = frappe.db.get_value("File", file, ["attached_to_doctype", "attached_to_name"])
+			self.assertEqual(attached, ("Comment", added))
+
+	def test_comment_with_a_file_of_the_same_record_is_refused(self):
+		todo = self.todo_with_cleanup()
+		self.assert_refused(todo, self.make_file(self.TEST_USER, attached_to=todo.name))
+
+	def test_comment_with_a_file_of_another_user_is_refused(self):
+		todo = self.todo_with_cleanup()
+		self.assert_refused(todo, self.make_file(self.PEER))
+
+	def test_comment_with_a_file_of_another_record_is_refused(self):
+		elsewhere = self.todo_with_cleanup()
+		file = self.make_file(self.TEST_USER, attached_to=elsewhere.name)
+		self.assert_refused(self.todo_with_cleanup(), file)
+
+	def test_comment_with_a_missing_file_is_refused(self):
+		self.assert_refused(self.todo_with_cleanup(), "no-such-file")
+
+	def test_comment_attachments_must_be_a_list_of_names(self):
+		with suppress_stdout():
+			response = self.add(self.part("comments"), {"content": "hi", "attachments": "a-file"})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "InvalidRequestError")
+
+	def assert_refused(self, todo, file: str):
+		response = self.add(
+			self.part("comments", name=todo.name), {"content": "see file", "attachments": [file]}
+		)
+		self.assertEqual(response.status_code, 403, response.json)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+		frappe.db.rollback()
+		written = {"reference_doctype": "ToDo", "reference_name": todo.name, "comment_type": "Comment"}
+		self.assertFalse(frappe.db.exists("Comment", written))
+
+	def todo_with_cleanup(self):
+		todo = self.make_todo()
+		frappe.db.commit()  # nosemgrep
+		self.addCleanup(self.drop_todo, todo.name)
+		return todo
+
+	def make_file(self, owner: str, attached_to: str | None = None) -> str:
+		"""A committed private File owned by `owner`, attached to the ToDo `attached_to` if given."""
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"{frappe.generate_hash(length=8)}.txt",
+				"content": "hello",
+				"is_private": 1,
+				"attached_to_doctype": "ToDo" if attached_to else None,
+				"attached_to_name": attached_to,
+			}
+		).insert(ignore_permissions=True)
+		frappe.db.set_value("File", file.name, "owner", owner, update_modified=False)
+		frappe.db.commit()  # nosemgrep
+		self.addCleanup(self.drop_file, file.name)
+		return file.name
+
+	def drop_file(self, name: str):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		frappe.delete_doc_if_exists("File", name, force=True)
+		frappe.db.commit()  # nosemgrep
+
+	def drop_todo(self, name: str):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		frappe.db.delete("Comment", {"reference_doctype": "ToDo", "reference_name": name})
+		frappe.delete_doc_if_exists("ToDo", name, force=True)
+		frappe.db.commit()  # nosemgrep
+
 	def test_comment_of_another_user_cannot_be_removed(self):
 		with suppress_stdout():
 			response = self.remove(self.part("comments", self.admin_comment))
@@ -1890,6 +1972,32 @@ class TestActivityAPIV2(FrappeAPITestCase):
 		self.assertEqual(set(data), {"activities", "next"})
 		self.assertIn("comment", {row["type"] for row in data["activities"]})
 		self.assertIsNone(data["next"])
+
+	def test_comment_rows_carry_their_attachments(self):
+		comment = self.todo.add_comment("Comment", "with a file")
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"{frappe.generate_hash(length=8)}.txt",
+				"content": "hello",
+				"is_private": 1,
+				"attached_to_doctype": "Comment",
+				"attached_to_name": comment.name,
+			}
+		).insert()
+		frappe.db.commit()  # nosemgrep
+		self.addCleanup(self.drop_comment, comment.name, file.name)
+		page = self.read_page(self.todo, self.sid, {"types": json.dumps(["comment"])})
+		row = next(row for row in page["activities"] if row["key"] == f"comment:{comment.name}")
+		expected = {"file_url": file.file_url, "file_name": file.file_name, "is_private": 1}
+		self.assertEqual(row["data"]["attachments"], [expected])
+
+	def drop_comment(self, comment: str, file: str):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		frappe.delete_doc_if_exists("File", file, force=True)
+		frappe.delete_doc_if_exists("Comment", comment, force=True)
+		frappe.db.commit()  # nosemgrep
 
 	def test_types_limits_the_feed(self):
 		response = self.activity({"types": ["email"]})
