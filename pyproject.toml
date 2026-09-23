@@ -29,6 +29,7 @@ dependencies = [
     "PyYAML~=6.0.3",
     "RestrictedPython~=8.1",
     "WeasyPrint==68.0",
+    "typst~=0.15.0",
     "pydyf==0.12.1",
     "Werkzeug==3.1.6",
     "Whoosh~=2.7.4",
