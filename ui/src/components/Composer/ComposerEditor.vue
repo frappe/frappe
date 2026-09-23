@@ -23,7 +23,8 @@
 					<EditorTableMenu />
 
 					<div
-						class="composer-body flex max-h-[50vh] min-h-0 flex-1 flex-col overflow-y-auto px-2.5 pb-2.5"
+						class="composer-body flex min-h-0 flex-1 flex-col overflow-y-auto px-2.5 pb-2.5"
+						:class="{ 'max-h-[50vh]': !fill }"
 					>
 						<EditorContent
 							class="prose-sm max-w-full flex-1 pb-8 pt-4 [&_p.reply-to-content]:hidden"

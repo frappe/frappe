@@ -7,6 +7,7 @@
 		:extensions="extensions"
 		:max-attachments="maxAttachments"
 		:submitting="submitting"
+		:fill="fill"
 		:mentions="mentions"
 		v-model:body="body"
 		@submit="emit('submit', $event)"

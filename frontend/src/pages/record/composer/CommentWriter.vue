@@ -1,7 +1,6 @@
 <!-- The built-in `comment` writer: the editor, loaded on first open, over the record's draft. -->
 <template>
-	<!-- The card sets the height, so the editor's own 50vh cap would strand its lower part. -->
-	<div class="flex min-h-0 flex-1 flex-col [&_.composer-body]:!max-h-none" data-comment-writer>
+	<div class="flex min-h-0 flex-1 flex-col" data-comment-writer>
 		<CommentComposer
 			ref="composer"
 			v-model="content"
@@ -10,6 +9,7 @@
 			:submitLabel="__('Comment')"
 			:uploadFunction="upload"
 			:submitting="sent"
+			fill
 			@submit="send"
 			@remove-attachment="forget"
 		>

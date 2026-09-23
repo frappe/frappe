@@ -7,6 +7,7 @@
 		:extensions="extensions"
 		:max-attachments="maxAttachments"
 		:submitting="submitting"
+		:fill="fill"
 		v-model:body="body"
 		v-model:quoted="quoted"
 		@submit="handleSubmit"
