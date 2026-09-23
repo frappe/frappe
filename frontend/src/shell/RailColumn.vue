@@ -27,7 +27,7 @@
 		<!-- Stretched over `SidebarRail`'s own padding, so the scrollbar sits on the rail's edge. -->
 		<ScrollArea class="-mx-[11px] min-h-0 flex-1 self-stretch" viewportClass="px-[11px]">
 			<nav class="flex flex-col items-center gap-3" :aria-label="appTitle">
-				<!-- `SidebarRailItem`'s `Tooltip` drops attributes, so the test hooks sit on a wrapper. -->
+				<!-- `SidebarRailItem` puts attributes on its link, so the test hooks sit on a wrapper. -->
 				<div
 					v-for="cell in cells"
 					:key="cell.key"
@@ -36,7 +36,7 @@
 				>
 					<SidebarRailItem
 						v-if="'to' in cell"
-						:to="cell.to"
+						:route="cell.to"
 						:label="cell.label"
 						:active="cell.key === current"
 					>
@@ -44,8 +44,8 @@
 						<span v-else class="text-sm font-medium">{{ cell.label.charAt(0) }}</span>
 					</SidebarRailItem>
 
-					<!-- Off this prefix: a full document load, so an `<a>` with `SidebarRailItem`'s classes,
-					     which has no anchor form of its own. Never current: `current` is a route. -->
+					<!-- Off this prefix: a full document load, so an `<a>` with `SidebarRailItem`'s classes.
+					     Never current: `current` is a route. -->
 					<Tooltip v-else :text="cell.label" side="right">
 						<a
 							:href="cell.href"

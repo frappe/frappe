@@ -25,19 +25,19 @@
 	</SidebarSection>
 
 	<template v-else>
-		<!-- A destination in this prefix. -->
-		<SidebarItem
+		<!-- A destination in this prefix. `SidebarItem` puts attributes on its link,
+		     so the hooks sit on a wrapper. -->
+		<div
 			v-if="destination && 'to' in destination"
-			:to="destination.to"
-			:label="label"
-			:active="isCurrent"
 			:data-key="item.key"
 			:data-sidebar="destination.sidebar"
 		>
-			<template #prefix><Icon :name="iconOf(item)" /></template>
-		</SidebarItem>
+			<SidebarItem :route="destination.to" :label="label" :active="isCurrent">
+				<template #prefix><Icon :name="iconOf(item)" /></template>
+			</SidebarItem>
+		</div>
 
-		<!-- Outside this prefix: a full document load, so an `<a>`, which `SidebarItem` has no form for. -->
+		<!-- Outside this prefix: a full document load, so an `<a>`. -->
 		<div v-else-if="destination && 'href' in destination" :data-key="item.key" :class="ROW">
 			<a :href="destination.href" :class="ROW_TARGET">
 				<span class="grid shrink-0 place-items-center">
@@ -91,7 +91,7 @@ import { iconOf, labelOf, renderingOf } from "@/navigation/registry";
 import Icon from "@/icons/Icon.vue";
 import type { ItemContext } from "@/navigation/types";
 
-// `SidebarItem`'s own classes, for the two rows it has no form for. Neither is ever current.
+// `SidebarItem`'s own classes, for the two rows drawn by hand. Neither is ever current.
 const ROW = "flex h-7 items-center rounded-4 text-ink-gray-6 transition hover:bg-surface-gray-2";
 const ROW_TARGET =
 	"flex h-full min-w-0 flex-1 items-center rounded-4 pl-2 text-left focus-visible:ring-0 focus-visible:focus-ring";
