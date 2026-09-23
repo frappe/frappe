@@ -215,7 +215,13 @@ describe("Desk URL shell segment", () => {
 				cy.window().then((win) => cy.stub(win, "open").as("new_tab"));
 				cy.window().then((win) => win.frappe.set_route("private"));
 
-				cy.get("@new_tab").should("have.been.calledWith", "https://frappe.io/", "_blank");
+				// `noopener` included: the tab must not keep a handle on the signed-in desk.
+				cy.get("@new_tab").should(
+					"have.been.calledWith",
+					"https://frappe.io/",
+					"_blank",
+					"noopener"
+				);
 				cy.location("pathname").should("eq", "/desk/private");
 				cy.get(".private-shell-empty").should("exist");
 

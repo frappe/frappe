@@ -1258,6 +1258,10 @@ frappe.ui.Sidebar = class Sidebar {
 	// desk is opened the way the app switcher opens one (`sidebar_header`): in a tab of its own,
 	// with the desk left where it was.
 	//
+	// `noopener`, because the new tab would otherwise keep a handle on this one through
+	// `window.opener` and could point the signed-in desk at a page of its own choosing. An anchor
+	// with `target="_blank"` is isolated by the browser already; `window.open` is not.
+	//
 	// Returns whether the desk itself went anywhere, which is false for both a shell with no
 	// landing and one whose landing left the desk. A caller that has to draw the pane can then draw
 	// something rather than leave it blank.
@@ -1266,7 +1270,7 @@ frappe.ui.Sidebar = class Sidebar {
 		if (!route) return false;
 
 		if (!route.startsWith("/desk/")) {
-			window.open(route, "_blank");
+			window.open(route, "_blank", "noopener");
 			return false;
 		}
 
