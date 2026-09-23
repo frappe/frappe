@@ -37,10 +37,11 @@ def capture_doc(doc, action):
 		if not age or age > 15:
 			return
 
+		app = frappe.local.module_app.get(frappe.scrub(doc.meta.module), "frappe")
 		if doc.get("__islocal") or not doc.get("name"):
-			capture("document_created", "frappe", properties={"doctype": doc.doctype, "action": "Insert"})
+			capture("document_created", app, properties={"doctype": doc.doctype, "action": "Insert"})
 		else:
-			capture("document_modified", "frappe", properties={"doctype": doc.doctype, "action": action})
+			capture("document_modified", app, properties={"doctype": doc.doctype, "action": action})
 
 
 @site_cache(ttl=60 * 60 * 12)

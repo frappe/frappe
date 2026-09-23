@@ -2,6 +2,7 @@
 import { computed, ref, shallowRef, toValue } from "vue";
 import type { ComputedRef, MaybeRefOrGetter } from "vue";
 import { searchDocuments } from "../api";
+import { toLinkOption } from "../components/Link/linkOption";
 
 export interface LinkSearchOption {
   label: string;
@@ -39,11 +40,7 @@ export function useLinkSearch(
         limit,
       });
       if (mine !== generation) return;
-      data.value = found.map((row) => ({
-        label: row.label || row.value,
-        value: row.value,
-        description: row.description,
-      }));
+      data.value = found.map(toLinkOption);
       error.value = null;
     } catch (failure) {
       if (mine === generation) error.value = failure;

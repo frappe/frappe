@@ -1,5 +1,5 @@
-// Maps a Frappe FormLayout fieldtype to a CodeMirror language key for the
-// CodeEditor primitive (published from `frappe-ui/experimental`). This is
+// Maps a Frappe FormLayout fieldtype to a CodeMirror language key for
+// `loadLanguage` from `frappe-ui/code-editor`. This is
 // FormLayout-specific glue — it understands Frappe fieldtypes and the Ace mode
 // stored in `field.options` — so it lives here with the field wrapper rather than
 // in the framework-agnostic editor primitive.

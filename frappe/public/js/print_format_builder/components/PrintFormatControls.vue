@@ -61,13 +61,16 @@
 				</draggable>
 			</div>
 
-			<div v-if="!field_groups.length" class="pfb-empty">
-				{{
+			<EmptyState
+				v-if="!field_groups.length"
+				icon="search"
+				:title="search_text ? __('No fields match') : __('No printable fields')"
+				:description="
 					search_text
-						? __("No fields match your search.")
-						: __("This document type has no printable fields.")
-				}}
-			</div>
+						? __('Try a different word.')
+						: __('This document type has no fields to print.')
+				"
+			/>
 		</div>
 
 		<!-- ── Blocks ─────────────────────────────────────────── -->
@@ -203,9 +206,12 @@
 
 		<!-- ── Layers ─────────────────────────────────────────── -->
 		<div v-else-if="activeTab === 'layers'" class="pfb-tab-body pfb-tree" role="tree">
-			<div v-if="!layout" class="pfb-empty">
-				{{ __("No sections yet. Add sections to the canvas.") }}
-			</div>
+			<EmptyState
+				v-if="!layout"
+				icon="rows-3"
+				:title="__('No sections yet')"
+				:description="__('Add a section to the canvas to see it here.')"
+			/>
 			<draggable
 				v-else
 				v-model="tree_sections"
@@ -380,9 +386,12 @@
 					</div>
 				</template>
 			</draggable>
-			<div v-if="layout && !layout.sections.length" class="pfb-empty">
-				{{ __("No sections yet. Add sections to the canvas.") }}
-			</div>
+			<EmptyState
+				v-if="layout && !layout.sections.length"
+				icon="rows-3"
+				:title="__('No sections yet')"
+				:description="__('Add a section to the canvas to see it here.')"
+			/>
 		</div>
 	</div>
 </template>
@@ -400,6 +409,7 @@ import {
 	FIELD_PLUCK_KEYS,
 } from "../utils";
 import BlockCard from "./BlockCard.vue";
+import EmptyState from "./EmptyState.vue";
 import { column_of, zone_of, zones } from "../layout";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
 
@@ -1138,18 +1148,6 @@ body.pfb-dragging .pfb-tree-fields {
    under the section instead of indenting past a row that isn't there */
 .pfb-tree-children .pfb-tree-children.pfb-tree-fields--flush > .pfb-tree-row {
 	padding-left: 32px;
-}
-
-/* ── Empty state ─────────────────────────────────────────── */
-.pfb-empty {
-	color: var(--text-muted);
-	font-size: var(--text-sm);
-	text-align: center;
-	padding: 16px;
-}
-
-.pfb-fields-tab .pfb-empty {
-	padding: 24px 16px;
 }
 
 .pfb-field-group {
