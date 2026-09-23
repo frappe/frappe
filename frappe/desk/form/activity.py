@@ -86,7 +86,7 @@ def get_activity_timeline(
 	activities = [
 		*(get_creation_activity(doc, user_info) if show("log") else []),
 		*(get_edit_activity(doc, user_info) if show("log") else []),
-		*(get_email_activities(doc, user_info, page) if show("email") else []),
+		*(get_email_activities(doc, page) if show("email") else []),
 		*(get_comment_and_log_activities(doc, user_info, page, comment_types) if comment_types else []),
 		*(get_view_activities(doc, user_info, page) if show("log") else []),
 		*(get_milestone_activities(doc, user_info, page) if show("log") else []),
@@ -185,7 +185,7 @@ def get_edit_msg(modified_by: str, fullname: str):
 	return _("{0} last edited this document").format(fullname)
 
 
-def get_email_activities(doc: "Document", user_info: dict, page: ActivityPage) -> list[dict]:
+def get_email_activities(doc: "Document", page: ActivityPage) -> list[dict]:
 	def read(date: tuple[str, str] | None, limit: int | None = None) -> list:
 		return add_email_attachments(get_emails(doc.doctype, doc.name, limit, date))
 
@@ -194,8 +194,24 @@ def get_email_activities(doc: "Document", user_info: dict, page: ActivityPage) -
 		lambda c: str(c.communication_date or c.creation),
 		lambda timestamp: read(("=", timestamp)),
 	)
-	frappe.utils.add_user_info({c.sender for c in communications if c.sender}, user_info)
-	return build_email_activities(communications, user_info)
+	return build_email_activities(communications, read_senders(communications))
+
+
+def read_senders(communications) -> dict[str, tuple]:
+	"""Each sender as `(display name, bare address, User row or None)`, in one User query."""
+	addresses = {c.sender: frappe.utils.parse_addr(c.sender) for c in communications if c.sender}
+	if not addresses:
+		return {}
+	users = frappe.get_all(
+		"User",
+		filters={"email": ("in", [address for _name, address in addresses.values()])},
+		fields=["email", "full_name", "user_image"],
+	)
+	by_address = {user.email.lower(): user for user in users}
+	return {
+		sender: (name, address, by_address.get((address or "").lower()))
+		for sender, (name, address) in addresses.items()
+	}
 
 
 def get_emails(doctype: str, name: str | int, limit: int | None, date: tuple[str, str] | None) -> list:
@@ -240,20 +256,15 @@ def read_emails(query, communication, doctype: str, limit: int | None, date: tup
 	return query.orderby(timestamp, order=Order.desc).limit(limit).run(as_dict=True)
 
 
-def build_email_activities(communications, user_info: dict) -> list[dict]:
+def build_email_activities(communications, senders: dict[str, tuple]) -> list[dict]:
 	out = []
 	for c in communications:
-		info = user_info.get(c.sender) or {}
 		out.append(
 			{
 				"type": "email",
 				"key": f"email:{c.name}",
 				"timestamp": str(c.communication_date or c.creation),
-				"author": {
-					"email": c.sender,
-					"fullname": c.sender_full_name or info.get("fullname") or c.sender,
-					"image": info.get("image"),
-				},
+				"author": email_author(c, senders),
 				"data": {
 					"name": c.name,
 					"subject": c.subject,
@@ -268,6 +279,16 @@ def build_email_activities(communications, user_info: dict) -> list[dict]:
 			}
 		)
 	return out
+
+
+def email_author(communication, senders: dict[str, tuple]) -> dict:
+	name, address, user = senders.get(communication.sender) or (None, communication.sender, None)
+	user = user or {}
+	return {
+		"email": address,
+		"fullname": user.get("full_name") or communication.sender_full_name or name or address,
+		"image": user.get("user_image"),
+	}
 
 
 def parse_email_attachments(attachments) -> list[dict]:
