@@ -12,6 +12,10 @@ DESKTOP_ICONS = "Desktop Icons"
 
 
 class DesktopSettings(Document):
+	# v16 controllers do not inherit a `_DOCTYPE_NAME` default (that came with the excluded
+	# static-controller-import refactor), so declare it here for the boot helpers below.
+	_DOCTYPE_NAME = "Desktop Settings"
+
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
