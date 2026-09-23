@@ -137,6 +137,67 @@ class TestAuth(IntegrationTestCase):
 		with self.assertRaises(Exception):
 			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
 
+<<<<<<< HEAD
+=======
+	def test_forced_password_reset_does_not_leak_reset_key(self):
+		from frappe.auth import LoginManager
+		from frappe.utils import add_days, set_request, today
+
+		self.set_system_settings("force_user_to_reset_password", 1)
+		self.addCleanup(self.set_system_settings, "force_user_to_reset_password", 0)
+
+		frappe.db.set_value("User", self.test_user_email, "last_password_reset_date", add_days(today(), -2))
+		frappe.db.commit()
+
+		set_request(method="POST", path="/api/method/login")
+		frappe.form_dict.usr = self.test_user_email
+		frappe.form_dict.pwd = self.test_user_password
+		frappe.local.response = frappe._dict()
+		frappe.local.request_ip = "127.0.0.68"
+		self.addCleanup(frappe.form_dict.clear)
+
+		emails_before = frappe.db.count("Email Queue")
+
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+
+		self.assertEqual(frappe.local.response.get("message"), "Password Reset")
+		self.assertNotIn("redirect_to", frappe.local.response)
+		self.assertGreater(frappe.db.count("Email Queue"), emails_before)
+
+	def test_forced_password_reset_waits_for_2fa(self):
+		from frappe.auth import LoginManager
+		from frappe.utils import add_days, set_request, today
+
+		system_settings = frappe.get_doc("System Settings")
+		system_settings.enable_two_factor_auth = 1
+		system_settings.two_factor_method = "OTP App"
+		system_settings.flags.ignore_mandatory = True
+		system_settings.save(ignore_permissions=True)
+		self.addCleanup(self.set_system_settings, "enable_two_factor_auth", 0)
+
+		self.set_system_settings("force_user_to_reset_password", 1)
+		self.addCleanup(self.set_system_settings, "force_user_to_reset_password", 0)
+
+		frappe.db.set_value("User", self.test_user_email, "last_password_reset_date", add_days(today(), -2))
+		frappe.db.commit()
+
+		set_request(method="POST", path="/api/method/login")
+		frappe.form_dict.usr = self.test_user_email
+		frappe.form_dict.pwd = self.test_user_password
+		frappe.local.response = frappe._dict()
+		frappe.local.request_ip = "127.0.0.69"
+		self.addCleanup(frappe.form_dict.clear)
+
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+
+		self.assertIn("tmp_id", frappe.local.response)
+		self.assertNotEqual(frappe.local.response.get("message"), "Password Reset")
+		self.assertNotIn("redirect_to", frappe.local.response)
+
+	@requires_test_service(TestService.WEB_SERVER)
+>>>>>>> 85ebfc8 (test(auth): add regression tests for new changes)
 	def test_login_with_email_link(self):
 		user = self.test_user_email
 
