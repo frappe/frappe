@@ -156,7 +156,7 @@ import RecordHeader from "./record/RecordHeader.vue";
 import RecordTabs from "./record/tabs/RecordTabs.vue";
 import RecordComposer from "./record/composer/RecordComposer.vue";
 import { composerBuiltins, composerHost } from "./record/composer/composerHost";
-import { TAB_STRIP_CLASSES, recordTabBuiltins } from "./record/tabs/recordTabs";
+import { FILES_TAB, TAB_STRIP_CLASSES, recordTabBuiltins } from "./record/tabs/recordTabs";
 import { useRecordTabs } from "./record/tabs/useRecordTabs";
 import {
 	activityPointer,
@@ -547,7 +547,8 @@ async function openRecord({ mine, target, pointer, details, panel, feedRead }: O
 		quickActionBuiltins(
 			docinfo.value?.permissions ?? {},
 			tagsOf(docinfo.value).length > 0,
-			follow.value
+			follow.value,
+			stripTabs.value.find((tab) => tab.name === FILES_TAB)?.create
 		)
 	);
 	created.tabs.provideBuiltins(() =>

@@ -2,18 +2,21 @@
 // the panel, the `⋯` menu's rows in the header. Each is an ordinary item a script hides or reorders by name.
 import { deleteDocument } from "@framework/ui/api";
 import type { HeaderItem, QuickAction, RecordPageApi } from "@/recordPage";
+import type { TabCreateAction } from "@/recordPage/types";
 import { routeFor } from "@/router/routeFor";
 
 export function quickActionBuiltins(
   perms: Record<string, any>,
   tagged = false,
-  follow?: FollowState
+  follow?: FollowState,
+  attach?: TabCreateAction
 ): QuickAction[] {
-  // No right gates it: a comment needs only read.
-  const actions: QuickAction[] = [
-    { name: "comment", label: "Comment", icon: "lucide-message-square", run: openComment },
-  ];
+  const actions: QuickAction[] = [];
   if (perms.email) actions.push({ name: "email", label: "Email", icon: "lucide-mail", run: openEmail });
+  // No right gates it: a comment needs only read.
+  actions.push({ name: "comment", label: "Comment", icon: "lucide-message-square", run: openComment });
+  // The Files tab's own `+` entry, so it goes when that entry goes: no write right, or the tab hidden.
+  if (attach) actions.push({ name: "attach", label: "Attach", icon: "lucide-paperclip", run: attach.run });
   if (perms.print) actions.push({ name: "print", label: "Print", icon: "lucide-printer", run: print });
   actions.push({ name: "copy_link", label: "Copy link", icon: "lucide-link", run: copyLink });
   if (follow) actions.push({ name: "follow", ...followWording(follow), run: follow.toggle });
