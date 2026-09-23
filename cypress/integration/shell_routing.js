@@ -187,6 +187,44 @@ describe("Desk URL shell segment", () => {
 			});
 	});
 
+	it("opens a landing that leaves the desk in a tab, and draws the pane", () => {
+		// `module_landing_route` hands back whatever a `URL` row points at, because the desktop's
+		// icons render it as an href. Handed to the router it would be read as desk path segments,
+		// so it is opened the way the app switcher opens one, and the pane gets the empty state
+		// rather than nothing at all.
+		cy.window()
+			.its("frappe.session.user")
+			.then((user) => {
+				cy.call(
+					"frappe.desk.doctype.custom_sidebar.custom_sidebar.save_sidebar_customization",
+					{
+						module: "Private",
+						items: JSON.stringify([
+							{
+								added: 1,
+								type: "Link",
+								link_type: "URL",
+								url: "https://frappe.io/",
+								label: "Frappe",
+							},
+						]),
+					}
+				);
+				cy.reload();
+
+				cy.window().then((win) => cy.stub(win, "open").as("new_tab"));
+				cy.window().then((win) => win.frappe.set_route("private"));
+
+				cy.get("@new_tab").should("have.been.calledWith", "https://frappe.io/", "_blank");
+				cy.location("pathname").should("eq", "/desk/private");
+				cy.get(".private-shell-empty").should("exist");
+
+				cy.call("frappe.desk.doctype.custom_sidebar.custom_sidebar.reset_user_sidebar", {
+					module: "Private",
+				});
+			});
+	});
+
 	it("reads anything else after `private` as a route inside the Private shell", () => {
 		// The word has two meanings and the segment after it decides which: one of your own pages,
 		// or, failing that, the shell's own slug with an ordinary route behind it. Without the

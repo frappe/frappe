@@ -1246,9 +1246,33 @@ frappe.ui.Sidebar = class Sidebar {
 		if (!sidebar) return;
 
 		this.select_module(module);
+		this.open_landing(module);
+	}
 
-		let route = this.module_landing_route(module);
-		if (route) frappe.set_route(route);
+	// Follow a shell to where it opens, which is not always a desk route: the first item may be a
+	// `URL` row, and `module_landing_route` hands that back as the address its author wrote, so the
+	// desktop's icons and the dock's rows can render it as an href.
+	//
+	// Handed to `set_route`, such an address is read as desk path segments, and
+	// `https://example.com` becomes `/desk/https%3A//example.com`. So an address that leaves the
+	// desk is opened the way the app switcher opens one (`sidebar_header`): in a tab of its own,
+	// with the desk left where it was.
+	//
+	// Returns whether the desk itself went anywhere, which is false for both a shell with no
+	// landing and one whose landing left the desk. A caller that has to draw the pane can then draw
+	// something rather than leave it blank.
+	open_landing(module, { replace = false } = {}) {
+		const route = this.module_landing_route(module);
+		if (!route) return false;
+
+		if (!route.startsWith("/desk/")) {
+			window.open(route, "_blank");
+			return false;
+		}
+
+		if (replace) frappe.route_flags.replace_route = true;
+		frappe.set_route(route);
+		return true;
 	}
 
 	// Navigate to a workspace by name, and show it inside a shell that lists it.

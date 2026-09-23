@@ -129,14 +129,15 @@ frappe.views.Workspace = class Workspace {
 
 		// `/desk/private` names the shell and nothing in it, so it opens where the shell opens: on
 		// the first item that leads anywhere, by the rule every other shell follows. That is a page
-		// of this user's most of the time, and whatever they put above it when it is not. With
-		// nothing to open, the empty state is what the shell shows instead.
+		// of this user's most of the time, and whatever they put above it when it is not.
+		//
+		// The empty state is for when the desk itself goes nowhere: a shell holding nothing, and one
+		// whose first item leaves the desk, which opens in a tab of its own and leaves this pane to
+		// be drawn.
 		if (this.is_private_shell_route()) {
-			const landing = this.sidebar.module_landing_route(frappe.ui.PRIVATE_SHELL);
-			if (!landing) return this.show_empty_private_shell();
-
-			frappe.route_flags.replace_route = true;
-			frappe.set_route(landing);
+			if (!this.sidebar.open_landing(frappe.ui.PRIVATE_SHELL, { replace: true })) {
+				return this.show_empty_private_shell();
+			}
 			return;
 		}
 
