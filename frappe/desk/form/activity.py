@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+import operator
 import re
 from json import JSONDecodeError
 
@@ -12,13 +13,15 @@ from frappe.core.doctype.comment.comment import get_document_comments
 from frappe.desk.form.activity_page import PAGE_SIZE, ActivityPage
 from frappe.desk.form.load import (
 	COMMENT_FIELDS,
-	_get_communications,
+	add_email_attachments,
 	divide_comments,
 	get_milestones,
 	get_versions,
 	get_view_logs,
 )
 from frappe.model.document import Document
+from frappe.query_builder import Order
+from frappe.query_builder.functions import Coalesce
 
 # The Comment types each activity type draws, so a page's limit counts only rows it can show.
 COMMENT_TYPES = {
@@ -36,6 +39,29 @@ COMMENT_TYPES = {
 		"Workflow",
 	],
 }
+
+EMAIL_TYPES = ("Communication", "Automated Message")
+EMAIL_FIELDS = (
+	"name",
+	"communication_type",
+	"communication_medium",
+	"communication_date",
+	"content",
+	"sender",
+	"sender_full_name",
+	"cc",
+	"bcc",
+	"creation",
+	"subject",
+	"delivery_status",
+	"_liked_by",
+	"reference_doctype",
+	"reference_name",
+	"read_by_recipient",
+	"recipients",
+)
+# How a page's `(operator, timestamp)` date condition compares an email's time.
+COMPARISONS = {"<": operator.lt, "<=": operator.le, "=": operator.eq}
 
 
 @frappe.whitelist()
@@ -161,7 +187,7 @@ def get_edit_msg(modified_by: str, fullname: str):
 
 def get_email_activities(doc: "Document", user_info: dict, page: ActivityPage) -> list[dict]:
 	def read(date: tuple[str, str] | None, limit: int | None = None) -> list:
-		return _get_communications(doc.doctype, doc.name, limit=limit, date=date, by_timestamp=True)
+		return add_email_attachments(get_emails(doc.doctype, doc.name, limit, date))
 
 	communications = page.trim(
 		read(page.before_condition, page.fetch_size),
@@ -170,6 +196,48 @@ def get_email_activities(doc: "Document", user_info: dict, page: ActivityPage) -
 	)
 	frappe.utils.add_user_info({c.sender for c in communications if c.sender}, user_info)
 	return build_email_activities(communications, user_info)
+
+
+def get_emails(doctype: str, name: str | int, limit: int | None, date: tuple[str, str] | None) -> list:
+	"""The newest `limit` emails on a document, sent to it or linked to it, newest first.
+
+	An email's time is its `communication_date`, or its `creation` when it has none."""
+	communication = frappe.qb.DocType("Communication")
+	link = frappe.qb.DocType("Communication Link")
+	sent_to = frappe.qb.from_(communication).where(
+		(communication.reference_doctype == doctype) & (communication.reference_name == str(name))
+	)
+	linked_to = (
+		frappe.qb.from_(communication)
+		.inner_join(link)
+		.on(link.parent == communication.name)
+		.where((link.link_doctype == doctype) & (link.link_name == str(name)))
+	)
+
+	emails = {}
+	for query in (sent_to, linked_to):
+		for email in read_emails(query, communication, doctype, limit, date):
+			emails[email.name] = email
+	newest_first = sorted(emails.values(), key=lambda c: c.communication_date or c.creation, reverse=True)
+	return newest_first[:limit]
+
+
+def read_emails(query, communication, doctype: str, limit: int | None, date: tuple[str, str] | None) -> list:
+	timestamp = Coalesce(communication.communication_date, communication.creation)
+	query = query.select(*(communication[field] for field in EMAIL_FIELDS)).where(
+		communication.communication_type.isin(EMAIL_TYPES)
+	)
+	if doctype == "User":
+		query = query.where(
+			~(
+				(communication.reference_doctype == "User")
+				& (communication.communication_type == "Communication")
+			)
+		)
+	if date:
+		comparison, value = date
+		query = query.where(COMPARISONS[comparison](timestamp, value))
+	return query.orderby(timestamp, order=Order.desc).limit(limit).run(as_dict=True)
 
 
 def build_email_activities(communications, user_info: dict) -> list[dict]:

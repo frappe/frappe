@@ -345,8 +345,11 @@ def get_comments(doctype: str, name: str, comment_type: str | list[str] = "Comme
 	return comments
 
 
-def _get_communications(doctype, name, start=0, limit=20, date=None, by_timestamp=False):
-	communications = get_communication_data(doctype, name, start, limit, date=date, by_timestamp=by_timestamp)
+def _get_communications(doctype, name, start=0, limit=20):
+	return add_email_attachments(get_communication_data(doctype, name, start, limit))
+
+
+def add_email_attachments(communications: list) -> list:
 	for c in communications:
 		if c.communication_type in ("Communication", "Automated Message"):
 			c.attachments = json.dumps(
@@ -360,30 +363,10 @@ def _get_communications(doctype, name, start=0, limit=20, date=None, by_timestam
 	return communications
 
 
-# The only operators a `date` condition may write into the query text.
-COMPARISONS = {"<": "<", "<=": "<=", "=": "="}
-# An email's time in the activity feed, which falls back to creation when it has no date.
-EMAIL_TIMESTAMP = "COALESCE(C.communication_date, C.creation)"
-
-
 def get_communication_data(
-	doctype,
-	name,
-	start=0,
-	limit=20,
-	after=None,
-	fields=None,
-	group_by=None,
-	as_dict=True,
-	date=None,
-	by_timestamp=False,
+	doctype, name, start=0, limit=20, after=None, fields=None, group_by=None, as_dict=True
 ):
-	"""Return list of communications for a given document.
-
-	`by_timestamp` filters and orders on `EMAIL_TIMESTAMP` instead of the nullable `communication_date`."""
-	timestamp = EMAIL_TIMESTAMP if by_timestamp else "C.communication_date"
-	link_order = timestamp if by_timestamp else "`tabCommunication Link`.communication_date"
-	outer_order = "COALESCE(communication_date, creation)" if by_timestamp else "communication_date"
+	"""Return list of communications for a given document."""
 	if not fields:
 		fields = """
 			C.name, C.communication_type, C.communication_medium,
@@ -401,14 +384,6 @@ def get_communication_data(
 			AND C.communication_date > {after}
 		"""
 
-	if date:
-		conditions += f"""
-			AND {timestamp} {COMPARISONS[date[0]]} %(date)s
-		"""
-
-	part_limit = "" if limit is None else "LIMIT %(cte_limit)s"
-	page_limit = "" if limit is None else "LIMIT %(limit)s OFFSET %(start)s"
-
 	if doctype == "User":
 		conditions += """
 			AND NOT (C.reference_doctype='User' AND C.communication_type='Communication')
@@ -421,8 +396,8 @@ def get_communication_data(
 		WHERE C.communication_type IN ('Communication', 'Automated Message')
 		AND (C.reference_doctype = %(doctype)s AND C.reference_name = %(name)s)
 		{conditions}
-		ORDER BY {timestamp} DESC
-		{part_limit}
+		ORDER BY C.communication_date DESC
+		LIMIT %(cte_limit)s
 	"""
 
 	# communications linked in Timeline Links
@@ -433,8 +408,8 @@ def get_communication_data(
 		WHERE C.communication_type IN ('Communication', 'Automated Message')
 		AND `tabCommunication Link`.link_doctype = %(doctype)s AND `tabCommunication Link`.link_name = %(name)s
 		{conditions}
-		ORDER BY {link_order} DESC
-		{part_limit}
+		ORDER BY `tabCommunication Link`.communication_date DESC
+		LIMIT %(cte_limit)s
 	"""
 
 	sqlite_query = f"""
@@ -444,8 +419,9 @@ def get_communication_data(
 			SELECT * FROM ({part2})
 		) AS combined
 		{group_by or ""}
-		ORDER BY {outer_order} DESC
-		{page_limit}"""
+		ORDER BY communication_date DESC
+		LIMIT %(limit)s
+		OFFSET %(start)s"""
 
 	query = f"""
 		WITH part1 AS ({part1}), part2 AS ({part2})
@@ -456,8 +432,9 @@ def get_communication_data(
 			SELECT * FROM part2
 		) AS combined
 		{group_by or ""}
-		ORDER BY {outer_order} DESC
-		{page_limit}
+		ORDER BY communication_date DESC
+		LIMIT %(limit)s
+		OFFSET %(start)s
 		"""
 
 	return frappe.db.multisql(
@@ -470,8 +447,7 @@ def get_communication_data(
 			name=str(name),
 			start=frappe.utils.cint(start),
 			limit=limit,
-			cte_limit=(limit or 0) + start,
-			date=date and date[1],
+			cte_limit=limit + start,
 		),
 		as_dict=as_dict,
 	)
