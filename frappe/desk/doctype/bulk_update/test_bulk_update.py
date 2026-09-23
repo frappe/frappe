@@ -167,4 +167,3 @@ class TestBulkUpdate(IntegrationTestCase):
 				frappe.delete_doc("ToDo", name)
 			# bulk_update can commit, so its durable fixtures need durable cleanup.
 			frappe.db.commit()  # nosemgrep
-			frappe.db.commit()
