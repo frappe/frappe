@@ -7,6 +7,7 @@ import {
 	EMAIL_WRITER,
 	emailFields,
 	emptyEmailDraft,
+	isFreshEmailDraft,
 	readEmailDraft,
 	type EmailDraft,
 } from "./emailDraft";
@@ -31,18 +32,28 @@ export function openEmail(
 	const page = context?.page();
 	const reader = page?.doctype === doctype && page.docname === docname ? page : undefined;
 	const reply = replyFor(reader, context?.userEmail ?? "", draft);
-	if (!composerDraft(doctype, docname, EMAIL_WRITER))
-		openComposer(doctype, docname, EMAIL_WRITER, newDraft(reader, reply, draft));
-	else {
-		if (reply) readdress(doctype, docname, reply, draft.replyAll === true);
-		openComposer(doctype, docname, EMAIL_WRITER);
-	}
+	if (!composerDraft(doctype, docname, EMAIL_WRITER)) seed(doctype, docname, reader, reply, draft);
+	else if (reply) readdress(doctype, docname, reply, draft.replyAll === true);
+	openComposer(doctype, docname, EMAIL_WRITER);
 }
 
 /** What a plain open of the email writer on this record starts with. */
 export function freshEmail(page: RecordPageApi | undefined): EmailDraft {
 	const prefill = page ? prefillEmail(page.meta, page.doc, titleOf(page)) : {};
 	return { ...emptyEmailDraft(), ...prefill };
+}
+
+// A fresh draft is left out of the store, as the writer leaves it; an untouched writer may be open.
+function seed(
+	doctype: string,
+	docname: string,
+	page: RecordPageApi | undefined,
+	reply: Partial<EmailDraft> | undefined,
+	draft: Record<string, unknown>
+) {
+	const next = newDraft(page, reply, draft);
+	if (next.from || !isFreshEmailDraft(next, freshEmail(page)))
+		replaceComposerDraft(doctype, docname, EMAIL_WRITER, next);
 }
 
 function newDraft(

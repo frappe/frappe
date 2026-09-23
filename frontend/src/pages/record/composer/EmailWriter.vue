@@ -89,6 +89,8 @@ async function settleSenders() {
 async function send(payload: EmailPayload) {
 	if (sent.value) return;
 	sent.value = true;
+	// Taken before the wait, so nothing done to the writer meanwhile changes what goes.
+	const headers = draft();
 	await ready;
 	if (choice.value.blocked) {
 		sent.value = false;
@@ -101,7 +103,8 @@ async function send(payload: EmailPayload) {
 		image: props.user.user_image ?? undefined,
 	};
 	void postEmail(props.controller, author, {
-		...draft(),
+		...headers,
+		from: from.value,
 		content: payload.body,
 		attachments: [...payload.attachments],
 	});

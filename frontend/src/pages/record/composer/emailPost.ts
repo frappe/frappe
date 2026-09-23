@@ -28,8 +28,8 @@ export async function postEmail(
 ) {
 	const { doctype, docname } = controller.page;
 	clearComposerDraft(doctype, docname, EMAIL_WRITER);
-	// A send that waited on the senders may find the reader on another record's writer.
-	if (activeWriter(doctype, docname)) closeComposer();
+	// A send that waited on the senders may find the reader in another writer, here or elsewhere.
+	if (activeWriter(doctype, docname) === EMAIL_WRITER) closeComposer();
 	const pending = addPendingActivity(doctype, docname, pendingRow(author, draft));
 	let key: string;
 	try {

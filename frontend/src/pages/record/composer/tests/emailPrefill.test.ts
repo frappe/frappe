@@ -130,6 +130,26 @@ describe("the draft's addresses", () => {
 		expect(asEmailDraft({ cc: ["Dee <dee@example.com>"] }).cc).toEqual(["dee@example.com"]);
 	});
 
+	it("ends an address at a newline too", () => {
+		expect(addressList("a@example.com\nb@example.com")).toEqual([
+			"a@example.com",
+			"b@example.com",
+		]);
+		expect(addressList('"Doe\nJo" <jo@example.com>')).toEqual(["jo@example.com"]);
+	});
+
+	it("drops a part with no address in it, as an unclosed quote leaves", () => {
+		expect(addressList('"Smith, John <j@example.com>')).toEqual(["j@example.com"]);
+		expect(addressList("undisclosed-recipients, b@example.com")).toEqual(["b@example.com"]);
+	});
+
+	it("reads an address after an unclosed bracket", () => {
+		expect(addressList("<a@example.com, b@example.com")).toEqual([
+			"a@example.com",
+			"b@example.com",
+		]);
+	});
+
 	it("merges a failed draft before a newer one, the newer keeping its headers", () => {
 		const failed = asEmailDraft({
 			to: ["a@example.com"],

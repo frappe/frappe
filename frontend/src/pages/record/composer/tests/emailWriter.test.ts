@@ -346,14 +346,51 @@ describe("sending an email", () => {
 			bcc: [],
 			subject: "Re: Acme",
 		});
-		expect(composerDraft("Lead", controller.page.docname, "email")).toEqual(
-			asEmailDraft({
-				from: "sales@example.com",
-				to: "lead@example.com",
-				subject: "Re: Acme",
-				content: "<p></p>",
-			})
-		);
+		expect(composerDraft("Lead", controller.page.docname, "email")).toBeUndefined();
+	});
+
+	it("sends what was written when Discard came while the send waited on the lookup", async () => {
+		const release = heldSenders({ senders: ["sales@example.com"], default: null });
+		const draft = asEmailDraft({ to: "bob@example.com", subject: "Re: Quote", inReplyTo: "COMM-1" });
+		const { root } = await mountEmail(undefined, draft);
+		editor(root).$emit("submit", { body: "<p>Hi</p>", attachments: [] });
+		editor(root).$emit("update:modelValue", "");
+		release();
+		await flush();
+		const makes = runMethod.mock.calls.filter(([method]) => method === MAKE);
+		expect(makes).toHaveLength(1);
+		expect(makes[0][1]).toMatchObject({
+			recipients: "bob@example.com",
+			subject: "Re: Quote",
+			in_reply_to: "COMM-1",
+			sender: "sales@example.com",
+			content: "<p>Hi</p>",
+		});
+	});
+
+	it("takes a script's draft on the next open after a Discard", async () => {
+		answers({ senders: [USER.email], default: null });
+		const draft = asEmailDraft({ to: "bob@example.com", content: "<p>Hi</p>" });
+		const { root, controller } = await mountEmail(undefined, draft);
+		editor(root).$emit("update:modelValue", "");
+		await flush();
+		controller.composer.close();
+		await flush();
+		controller.composer.open("email", { draft: { subject: "From a script" } });
+		await flush();
+		expect(composerStub.lastProps.subject).toBe("From a script");
+	});
+
+	it("keeps a written draft over a script's on the next open", async () => {
+		answers({ senders: [USER.email], default: null });
+		const { root, controller } = await mountEmail();
+		editor(root).$emit("update:subject", "Mine");
+		await flush();
+		controller.composer.close();
+		await flush();
+		controller.composer.open("email", { draft: { subject: "From a script" } });
+		await flush();
+		expect(composerStub.lastProps.subject).toBe("Mine");
 	});
 
 	it("saves what the reader types into the record's draft", async () => {

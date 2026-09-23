@@ -44,6 +44,7 @@ export default defineConfig({
 			"plugin/tests/*.test.ts",
 			"../ui/src/api/tests/*.test.ts",
 			"../ui/src/components/ActivityTimeline/tests/*.test.ts",
+			"../ui/src/components/Composer/tests/*.test.ts",
 			"../ui/src/components/Link/tests/*.test.ts",
 			"../ui/src/composables/tests/useLinkSearch.test.ts",
 			"../ui/src/experimental/List/tests/*.test.ts",

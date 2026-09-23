@@ -3,8 +3,8 @@ import { ref, watch } from "vue";
 import type { Recipient, UploadedFile } from "@framework/ui/Composer";
 import type { UploadTransport } from "@framework/ui/FileUpload";
 import type { MediaUploadProgress, UploadedMedia } from "frappe-ui/editor";
-import { saveComposerDraft } from "@/shell/composer";
-import { EMAIL_WRITER, readEmailDraft, type EmailDraft } from "./emailDraft";
+import { clearComposerDraft, composerDraft, saveComposerDraft } from "@/shell/composer";
+import { EMAIL_WRITER, isFreshEmailDraft, readEmailDraft, type EmailDraft } from "./emailDraft";
 import { uploadCommentFile } from "./commentUpload";
 import { asAttachment } from "./useCommentDraft";
 
@@ -23,7 +23,9 @@ export function useEmailDraft(
 	fresh: () => EmailDraft,
 	transport?: UploadTransport
 ) {
-	const stored = readEmailDraft(doctype, docname);
+	const stored = composerDraft(doctype, docname, EMAIL_WRITER)
+		? readEmailDraft(doctype, docname)
+		: fresh();
 	const from = ref(stored.from);
 	const to = ref(asRecipients(stored.to));
 	const cc = ref(asRecipients(stored.cc));
@@ -78,8 +80,11 @@ export function useEmailDraft(
 		};
 	}
 
+	// An untouched writer keeps nothing, so the next open, a script's included, starts fresh.
 	function save() {
-		saveComposerDraft(doctype, docname, EMAIL_WRITER, draft());
+		const current = draft();
+		if (isFreshEmailDraft(current, fresh())) clearComposerDraft(doctype, docname, EMAIL_WRITER);
+		else saveComposerDraft(doctype, docname, EMAIL_WRITER, current);
 	}
 
 	return { from, to, cc, bcc, subject, content, seed, upload, forget, draft };

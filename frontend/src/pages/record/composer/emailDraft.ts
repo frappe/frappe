@@ -56,6 +56,19 @@ export function isBlankEmailDraft({ content, attachments }: EmailDraft) {
 	return isBlankDraft({ content, attachments });
 }
 
+/** A blank body under the headers a fresh open gives; the sender does not count. */
+export function isFreshEmailDraft(draft: EmailDraft, fresh: EmailDraft) {
+	const same = (key: "to" | "cc" | "bcc") => draft[key].join() === fresh[key].join();
+	return (
+		isBlankEmailDraft(draft) &&
+		draft.subject === fresh.subject &&
+		draft.inReplyTo === fresh.inReplyTo &&
+		same("to") &&
+		same("cc") &&
+		same("bcc")
+	);
+}
+
 /** The failed post's body first, then the newer draft's; the newer draft keeps its own headers. */
 export function mergeEmailDrafts(failed: EmailDraft, current: EmailDraft): EmailDraft {
 	const names = new Set(failed.attachments.map((file) => file.name));
@@ -76,19 +89,21 @@ export function mergeEmailDrafts(failed: EmailDraft, current: EmailDraft): Email
 	};
 }
 
-/** Bare addresses from a comma-separated string or a list; `Name <address>` reads as the address. */
+/** Bare addresses from a list or a delimited string; `Name <address>` reads as the address. */
 export function addressList(value: unknown): string[] {
 	const parts = Array.isArray(value) ? value : typeof value === "string" ? splitAddresses(value) : [];
-	return distinct(parts.filter((part) => typeof part === "string").map(bareAddress));
+	const strings = parts.filter((part): part is string => typeof part === "string");
+	return distinct(strings.map(bareAddress).filter((address) => address.includes("@")));
 }
 
-// A comma inside a quoted name or angle brackets does not end the address.
+// A comma or a newline ends an address, except inside a quoted name or angle brackets.
 function splitAddresses(text: string) {
-	return text.match(/(?:"[^"]*"|<[^>]*>|[^,])+/g) ?? [];
+	return text.match(/(?:"[^"\n]*"|<[^>\n]*>|[^,\n])+/g) ?? [];
 }
 
+// An unclosed bracket still marks the address.
 function bareAddress(address: string) {
-	const angled = /<([^>]*)>\s*$/.exec(address);
+	const angled = /<([^<>]*)>?\s*$/.exec(address);
 	return (angled ? angled[1] : address).trim();
 }
 

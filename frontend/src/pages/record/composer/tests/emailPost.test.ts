@@ -81,6 +81,16 @@ describe("postEmail", () => {
 		});
 	});
 
+	it("leaves open a comment writer the reader moved to on the same record", () => {
+		const controller = fakeController();
+		const { docname } = controller.page;
+		openComposer("Lead", docname, "comment");
+		runMethod.mockReturnValue(new Promise(() => {}));
+		void postEmail(controller, AUTHOR, DRAFT);
+		expect(activeWriter("Lead", docname)).toBe("comment");
+		expect(addPendingActivity).toHaveBeenCalled();
+	});
+
 	it("sends every field make takes, and lets the server pick a missing sender", async () => {
 		const controller = fakeController();
 		runMethod.mockResolvedValue({ data: { name: "COMM-2" } });

@@ -18,6 +18,7 @@ import {
 } from "@/shell/composer";
 import { composerBuiltins, composerHost } from "../composerHost";
 import { asEmailDraft } from "../emailDraft";
+import { freshEmail } from "../emailSeed";
 
 const ME = "ann@example.com";
 const META = {
@@ -64,13 +65,27 @@ beforeEach(() => {
 });
 
 describe("a new email", () => {
-	it("opens on the record's title and address", () => {
+	it("opens on the record's title and address, and keeps nothing for an untouched open", () => {
 		const page = fakePage();
 		open(page);
 		expect(activeWriter("Lead", page.docname)).toBe("email");
-		expect(stored(page)).toEqual(
+		expect(stored(page)).toBeUndefined();
+		expect(freshEmail(page)).toEqual(
 			asEmailDraft({ subject: "Re: Acme", to: ["lead@example.com"] })
 		);
+	});
+
+	it("takes a script's draft after an untouched open", () => {
+		const page = fakePage();
+		open(page);
+		open(page, { subject: "Script's" });
+		expect(stored(page)).toMatchObject({ subject: "Script's", to: ["lead@example.com"] });
+	});
+
+	it("keeps a script's sender, though it alone leaves the draft fresh", () => {
+		const page = fakePage();
+		open(page, { from: "sales@example.com" });
+		expect(stored(page)).toMatchObject({ from: "sales@example.com", subject: "Re: Acme" });
 	});
 
 	it("takes a script's draft over the prefill, addresses as a string or a list", () => {
@@ -94,8 +109,7 @@ describe("a new email", () => {
 	it("uses the record's name when it has no title", () => {
 		const page = fakePage();
 		page.doc = {};
-		open(page);
-		expect(stored(page)!.subject).toBe(`Re: ${page.docname}`);
+		expect(freshEmail(page).subject).toBe(`Re: ${page.docname}`);
 	});
 });
 
