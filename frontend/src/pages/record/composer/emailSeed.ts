@@ -97,7 +97,8 @@ function loadedEmail(page: RecordPageApi, key: string): EmailData | undefined {
 	return row?.data as EmailData | undefined;
 }
 
-function titleOf(page: RecordPageApi) {
+/** The record's title as the header shows it: the title field, else the name. */
+export function titleOf(page: RecordPageApi) {
 	const field = page.meta?.title_field;
 	return String((field && page.doc[field]) || page.docname);
 }

@@ -1,4 +1,4 @@
-// The collapsed pill's Reply: drawn only while the `email` writer is handed in, and it opens that writer.
+// The collapsed pill: Reply leads while the `email` writer is handed in, else the comment control.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, type Component } from "vue";
 
@@ -19,7 +19,7 @@ vi.mock("frappe-ui", async () => {
 import ComposerPill from "../ComposerPill.vue";
 
 const USER = { name: "ann@example.com", full_name: "Ann" };
-const COMMENT = { name: "comment", label: "Comment" };
+const COMMENT = { name: "comment", label: "Comment", icon: "lucide-message-square" };
 const EMAIL = { name: "email", label: "Email" };
 
 const apps: ReturnType<typeof createApp>[] = [];
@@ -38,6 +38,7 @@ async function mountPill(props: Record<string, unknown>) {
 			h(ComposerPill as Component, {
 				creates: [],
 				user: USER,
+				title: "Acme",
 				...props,
 				onOpen: (name: string) => opened.push(name),
 			}),
@@ -48,25 +49,52 @@ async function mountPill(props: Record<string, unknown>) {
 	return { root, opened };
 }
 
-const replyButton = (root: HTMLElement) => root.querySelector<HTMLElement>("[data-composer-reply]");
+const replyControl = (root: HTMLElement) =>
+	root.querySelector<HTMLElement>("[data-composer-reply]");
+const commentControl = (root: HTMLElement) =>
+	root.querySelector<HTMLElement>("[data-composer-comment]");
 
-describe("the pill's Reply", () => {
-	it("is absent without the email writer", async () => {
-		const { root } = await mountPill({ comment: COMMENT });
-		expect(replyButton(root)).toBeNull();
-		expect(root.querySelector("[data-composer-comment]")).not.toBeNull();
+describe("the pill", () => {
+	it("leads with Reply to the record and keeps Comment as an icon button", async () => {
+		const { root, opened } = await mountPill({ comment: COMMENT, email: EMAIL });
+		const reply = replyControl(root)!;
+		expect(reply.tagName).toBe("BUTTON");
+		expect(reply.textContent).toContain("Reply to Acme");
+		expect(reply.querySelector("i")).not.toBeNull();
+		const comment = commentControl(root)!;
+		expect(comment.getAttribute("icon")).toBe("lucide-message-square");
+		expect(comment.getAttribute("tooltip")).toBe("Add a comment");
+		expect(comment.textContent).toBe("Add a comment");
+		reply.click();
+		comment.click();
+		expect(opened).toEqual(["email", "comment"]);
 	});
 
-	it("opens the email writer, named Reply", async () => {
-		const { root, opened } = await mountPill({ comment: COMMENT, email: EMAIL });
-		const reply = replyButton(root)!;
-		expect(reply.textContent).toBe("Reply");
-		reply.click();
+	it("leads with the comment control without the email writer", async () => {
+		const { root, opened } = await mountPill({ comment: COMMENT });
+		expect(replyControl(root)).toBeNull();
+		const comment = commentControl(root)!;
+		expect(comment.textContent).toContain("Add a comment…");
+		expect(comment.querySelector("i")).not.toBeNull();
+		comment.click();
+		expect(opened).toEqual(["comment"]);
+	});
+
+	it("draws no Comment button when the comment writer is hidden", async () => {
+		const { root, opened } = await mountPill({ email: EMAIL });
+		expect(commentControl(root)).toBeNull();
+		replyControl(root)!.click();
 		expect(opened).toEqual(["email"]);
 	});
 
-	it("takes the free space when the comment control is hidden", async () => {
-		const { root } = await mountPill({ email: EMAIL });
-		expect(replyButton(root)!.classList.contains("ml-auto")).toBe(true);
+	it("sizes the Comment and `+` buttons alike, and pushes `+` right when alone", async () => {
+		const creates = [{ label: "Log a call", onClick: () => {} }];
+		const full = (await mountPill({ comment: COMMENT, email: EMAIL, creates })).root;
+		const plus = full.querySelector("[data-composer-create] button")!;
+		expect(plus.getAttribute("size")).toBe(commentControl(full)!.getAttribute("size"));
+		const pushed = (root: HTMLElement) =>
+			root.querySelector("[data-composer-create]")!.classList.contains("ml-auto");
+		expect(pushed(full)).toBe(false);
+		expect(pushed((await mountPill({ creates })).root)).toBe(true);
 	});
 });

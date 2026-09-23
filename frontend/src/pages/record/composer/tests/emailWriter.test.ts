@@ -429,6 +429,12 @@ describe("the pill", () => {
 		expect(await reply({ email: 1 })).not.toBeNull();
 		expect(await reply({ email: 0 })).toBeNull();
 	});
+
+	it("names Reply after the record's title field", async () => {
+		const { root } = await mountBand(fakeController());
+		const reply = root.querySelector("[data-composer-reply]")!;
+		expect(reply.textContent).toContain("Reply to Acme");
+	});
 });
 
 describe("uploads", () => {

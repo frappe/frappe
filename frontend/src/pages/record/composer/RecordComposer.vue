@@ -38,6 +38,7 @@
 				:email="email"
 				:creates="creates"
 				:user="user"
+				:title="title"
 				@open="page.composer.open($event)"
 			/>
 		</div>
@@ -54,6 +55,7 @@ import { activeWriter, draftRevision } from "@/shell/composer";
 import { RecordFeedsKey } from "../feed/recordFeeds";
 import { COMMENT_WRITER } from "./commentDraft";
 import { EMAIL_WRITER } from "./emailDraft";
+import { titleOf } from "./emailSeed";
 import ComposerCard from "./ComposerCard.vue";
 import ComposerPill from "./ComposerPill.vue";
 import CommentWriter from "./CommentWriter.vue";
@@ -89,6 +91,7 @@ const emailRevision = computed(() =>
 	draftRevision(page.value.doctype, page.value.docname, EMAIL_WRITER)
 );
 const creates = computed(() => createOptions(props.tabs, page.value));
+const title = computed(() => titleOf(page.value));
 const onComposerTab = computed(() => {
 	const tab = props.tabs.find((item) => item.name === props.active);
 	return Boolean(tab && isComposerTab(tab));
