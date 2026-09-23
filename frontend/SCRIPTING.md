@@ -849,8 +849,10 @@ export default {
 
 The band at the foot of the Activity and Emails tabs, and of a script's tab whose item says
 `composer: true`. It is not drawn on Files or Details. Collapsed it is a pill; open, it
-shows one **writer**. `page.composer` is the list of writers, and speaks the eight verbs
-and three acts: `open(name, { draft })`, `close()` and `active`.
+shows one **writer** in a card. The card is **docked** in the band, or **floating** over the
+page; a floating card stays open as the reader moves to another page, and names its record
+in its title. `page.composer` is the list of writers, and speaks the eight verbs and four
+acts: `open(name, { draft, window })`, `close()`, `active` and `window`.
 
 ### An item
 
@@ -873,14 +875,24 @@ reopens with the draft.
 
 ### The acts
 
-`open(name, { draft })` opens a writer. If the reader is not on a tab that draws the band,
-it moves them to Activity first, or to the first such tab when Activity is hidden. An
+`open(name, { draft, window })` opens a writer. If the reader is not on a tab that draws the
+band, it moves them to Activity first, or to the first such tab when Activity is hidden. An
 unknown or hidden writer, or a strip with no such tab, warns in a development build and
 opens nothing. `draft` seeds the writer's draft; a draft already in memory for this record
-wins. On `activate`'s terms: called in a replay, it is delivered when the replay commits.
+wins. `window`, `'docked'` or `'floating'`, places the card for this open only; left out,
+the card opens where the reader last put it. On `activate`'s terms: called in a replay, it
+is delivered when the replay commits, with its `window`.
+
+One card is open at a time. Opening a writer on another record takes the card; the first
+record's draft stays in memory.
 
 `close()` collapses the band; the draft stays in memory for the session. `active` is the
 open writer's name, or `''`.
+
+`window` reads `'docked'` or `'floating'`: where this record's card is while its writer is
+open, and otherwise where the next open will put it. Setting it keeps the value as the
+reader's own choice, as the card's dock and float button does, and moves the card if this
+record's writer is open. Any other value warns in a development build and changes nothing.
 
 `onPost(page, { name })` fires after the server answers a `comment` post, with the new
 row's key, `comment:<name>`. It does not fire for a script's writer, which knows when it

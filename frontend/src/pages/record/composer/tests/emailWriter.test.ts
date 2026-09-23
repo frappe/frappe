@@ -98,8 +98,10 @@ import {
 	closeComposer,
 	composerDraft,
 	openComposer,
+	rememberWindow,
 	saveComposerDraft,
 } from "@/shell/composer";
+import ComposerWindow from "@/shell/ComposerWindow.vue";
 import { RecordFeeds, RecordFeedsKey } from "../../feed/recordFeeds";
 import { composerBuiltins, composerHost } from "../composerHost";
 import { asEmailDraft } from "../emailDraft";
@@ -124,6 +126,7 @@ beforeEach(() => {
 	vi.clearAllMocks();
 	resetSenders();
 	closeComposer();
+	rememberWindow("docked");
 });
 afterEach(() => {
 	for (const app of apps.splice(0)) app.unmount();
@@ -192,8 +195,10 @@ async function mountBand(controller: any, feeds = recordFeeds().feeds) {
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const app = createApp({
-		render: () =>
+		render: () => [
 			h(RecordComposer as Component, { controller, tabs: [ACTIVITY], active: "activity", user: USER }),
+			h(ComposerWindow as Component, { user: USER }),
+		],
 	});
 	app.provide(RecordFeedsKey, feeds);
 	app.mount(root);

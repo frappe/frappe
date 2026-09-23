@@ -10,7 +10,8 @@ vi.mock("@framework/ui/api", async (importOriginal) => ({
 }));
 
 import { ComposerSurface } from "@/recordPage/composer";
-import { closeComposer, composerDraft } from "@/shell/composer";
+import { closeComposer, composerDraft, rememberWindow } from "@/shell/composer";
+import ComposerWindow from "@/shell/ComposerWindow.vue";
 import { RecordFeeds, RecordFeedsKey } from "../../feed/recordFeeds";
 import { composerBuiltins, composerHost } from "../composerHost";
 import { resetSenders } from "../emailSenders";
@@ -47,6 +48,7 @@ beforeEach(() => {
 	vi.clearAllMocks();
 	resetSenders();
 	closeComposer();
+	rememberWindow("docked");
 });
 afterEach(() => {
 	for (const app of apps.splice(0)) app.unmount();
@@ -89,13 +91,15 @@ async function mountBand() {
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const app = createApp({
-		render: () =>
+		render: () => [
 			h(RecordComposer as Component, {
 				controller,
 				tabs: [{ name: "activity", label: "Activity" }],
 				active: "activity",
 				user: USER,
 			}),
+			h(ComposerWindow as Component, { user: USER }),
+		],
 	});
 	app.provide(RecordFeedsKey, feeds);
 	app.mount(root);

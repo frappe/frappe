@@ -231,9 +231,14 @@ export interface WriterItem extends SurfaceItem {
 
 export const WRITER_ITEM_KEYS: readonly string[] = ["name", "label", "icon", "component", "props"];
 
+/** Where the open writer's card sits: in the band at the foot of the tab, or floating over the page. */
+export type ComposerWindow = "docked" | "floating";
+
 export interface ComposerOpenOptions {
   /** Seeds the writer's draft; a draft already in memory wins. */
   draft?: Record<string, unknown>;
+  /** Places the card for this open only; unset, the reader's own choice does. */
+  window?: ComposerWindow;
 }
 
 /** The writers the band at the foot of a composer tab offers, and the one open in it. */
@@ -243,6 +248,8 @@ export interface PageComposer extends SurfaceVerbs<WriterItem> {
   close(): void;
   /** The open writer's name, or `''`. */
   readonly active: string;
+  /** The open card's place, else the reader's own choice; setting it keeps the choice. */
+  window: ComposerWindow;
 }
 
 /** The panel surface also opens and shuts a section for the reader. */

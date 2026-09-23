@@ -2,7 +2,15 @@
 // acts that open and close one. The host draws the band and keeps the drafts.
 import { Surface } from "./surface";
 import { WRITER_ITEM_KEYS } from "./types";
-import type { ComposerOpenOptions, PageComposer, TabItem, WriterItem } from "./types";
+import type {
+  ComposerOpenOptions,
+  ComposerWindow,
+  PageComposer,
+  TabItem,
+  WriterItem,
+} from "./types";
+
+const WINDOWS: readonly ComposerWindow[] = ["docked", "floating"];
 
 /** The built-in tabs that draw the band; a script's tab joins them with `composer: true`. */
 export const COMPOSER_TABS = ["activity", "emails"];
@@ -25,6 +33,10 @@ export interface ComposerHost {
   openWriter(name: string, options: ComposerOpenOptions): void;
   closeWriter(): void;
   activeWriter(): string;
+  /** The open card's place while this record's writer is open, else the reader's own choice. */
+  windowState(): ComposerWindow;
+  /** Keeps the reader's choice, and moves the card when this record's writer is open. */
+  setWindow(window: ComposerWindow): void;
 }
 
 export class ComposerSurface extends Surface<WriterItem> implements PageComposer {
@@ -36,6 +48,18 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
 
   get active() {
     return this.host.activeWriter();
+  }
+
+  get window(): ComposerWindow {
+    return this.host.windowState();
+  }
+
+  set window(value: ComposerWindow) {
+    if (WINDOWS.includes(value)) this.host.setWindow(value);
+    else if (import.meta.env.DEV)
+      console.warn(
+        `[record-page] page.composer.window = ${JSON.stringify(value)} — it takes "docked" or "floating"; nothing changed.`
+      );
   }
 
   /** Called in a replay, the open waits for `releaseOpen`, as `activity.scrollTo` waits. */

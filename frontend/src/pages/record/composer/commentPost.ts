@@ -1,13 +1,15 @@
 // The comment writer's send: a pending row at once, the server's key on it after, the draft back on a failure.
 import { addPendingActivity, type UserInfo } from "@framework/ui/ActivityTimeline";
 import { addComment, type Comment } from "@framework/ui/api";
-import { errorMessage, type RecordPageController } from "@/recordPage";
+import { errorMessage } from "@/recordPage";
 import {
 	clearComposerDraft,
 	closeComposer,
 	composerState,
 	openComposer,
 	replaceComposerDraft,
+	type ComposerWindow,
+	type WriterContext,
 } from "@/shell/composer";
 import {
 	COMMENT_WRITER,
@@ -19,11 +21,13 @@ import {
 
 /** Collapses and clears at once; the answer names the row, and a failure puts everything back. */
 export async function postComment(
-	controller: RecordPageController,
+	context: WriterContext,
 	author: UserInfo,
 	draft: CommentDraft
 ) {
-	const { doctype, docname } = controller.page;
+	const { doctype, docname } = context;
+	// A failed post reopens the writer where it was, floating over another page too.
+	const window = composerState.window;
 	clearComposerDraft(doctype, docname, COMMENT_WRITER);
 	closeComposer();
 	const pending = addPendingActivity(doctype, docname, pendingRow(author, draft));
@@ -32,11 +36,11 @@ export async function postComment(
 		key = await send(doctype, docname, draft, pending);
 	} catch (error) {
 		pending.drop();
-		restore(controller, draft);
-		controller.page.toast.error(errorMessage(error));
+		restore(context, draft, window);
+		context.toast.error(errorMessage(error));
 		return;
 	}
-	if (key) await controller.firePost(key);
+	if (key) await context.firePost?.(key);
 }
 
 async function send(
@@ -75,17 +79,17 @@ function creationOf(comments: Comment[], name: string) {
 }
 
 // A newer draft in the open writer keeps its text after the failed one; the writer redraws both.
-function restore(controller: RecordPageController, failed: CommentDraft) {
-	const { doctype, docname } = controller.page;
+function restore(context: WriterContext, failed: CommentDraft, window: ComposerWindow) {
+	const { doctype, docname } = context;
 	const current = readCommentDraft(doctype, docname);
 	const draft = isBlankDraft(current) ? { ...failed } : mergeDrafts(failed, current);
 	replaceComposerDraft(doctype, docname, COMMENT_WRITER, draft);
-	reopen(doctype, docname);
+	reopen(doctype, docname, window);
 }
 
 // A composer the reader opened on another record since keeps the store.
-function reopen(doctype: string, docname: string) {
+function reopen(doctype: string, docname: string, window: ComposerWindow) {
 	const elsewhere =
 		composerState.active && (composerState.doctype !== doctype || composerState.name !== docname);
-	if (!elsewhere) openComposer(doctype, docname, COMMENT_WRITER);
+	if (!elsewhere) openComposer(doctype, docname, COMMENT_WRITER, undefined, window);
 }

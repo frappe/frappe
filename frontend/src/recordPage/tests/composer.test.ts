@@ -11,6 +11,10 @@ vi.mock("@framework/ui/api", () => ({
   runMethod: vi.fn(async () => ({ data: null })),
 }));
 
+import { resetSession, setSession } from "@framework/ui/composables/useSession";
+import type { Session } from "@framework/ui/api";
+import { composerHost } from "@/pages/record/composer/composerHost";
+import { closeComposer, composerState, openComposer, preferredWindow } from "@/shell/composer";
 import { isComposerTab } from "../composer";
 import { withRegisteringSource } from "../context";
 import { createRecordPage, RECORD_PAGE_EVENTS, type RecordPageHost } from "../createRecordPage";
@@ -38,8 +42,8 @@ const COMMENT: WriterItem = {
   icon: "lucide-message-square",
 };
 
-/** The host's composer half, recorded, not performed. */
-function makePage(start = "details") {
+/** The host's composer half, recorded, not performed, unless `composer` is the record page's own. */
+function makePage(start = "details", composer: Partial<RecordPageHost> = {}) {
   const current = ref(start);
   const writer = ref("");
   const opened: [string, unknown][] = [];
@@ -71,6 +75,7 @@ function makePage(start = "details") {
     },
     closeWriter: () => void (writer.value = ""),
     activeWriter: () => writer.value,
+    ...composer,
   };
   const controller = createRecordPage(host);
   controller.tabs.provideBuiltins(() => TABS);
@@ -277,5 +282,89 @@ describe("a tab that draws the band", () => {
     expect(isComposerTab({ name: "emails", label: "" })).toBe(true);
     expect(isComposerTab({ name: "files", label: "" })).toBe(false);
     expect(isComposerTab({ name: "calls", label: "", composer: true })).toBe(true);
+  });
+});
+
+describe("window", () => {
+  let user = 0;
+
+  beforeEach(() => {
+    closeComposer();
+    const session = { user: { name: `reader-${++user}` }, roles: [], lang: "en", timezone: "UTC" };
+    setSession({ ...session, defaults: {} } as unknown as Session);
+  });
+
+  afterEach(() => {
+    resetSession();
+    localStorage.clear();
+  });
+
+  /** A page on the record page's own composer host, over the one store. */
+  function onStore(docname = "CRM-DEAL-1") {
+    return makePage("activity", composerHost("CRM Deal", docname)).page;
+  }
+
+  it("reads the reader's choice while no writer is open on this record", () => {
+    const page = onStore();
+    expect(page.composer.window).toBe("docked");
+
+    page.composer.window = "floating";
+    expect(page.composer.window).toBe("floating");
+    expect(preferredWindow()).toBe("floating");
+  });
+
+  it("reads the open card's place while this record's writer is open", () => {
+    const page = onStore();
+    page.composer.open("comment", { window: "floating" });
+
+    expect(page.composer.active).toBe("comment");
+    expect(page.composer.window).toBe("floating");
+    expect(preferredWindow()).toBe("docked");
+  });
+
+  it("moves the open card and keeps the choice", () => {
+    const page = onStore();
+    page.composer.open("comment");
+    page.composer.window = "floating";
+
+    expect(composerState.window).toBe("floating");
+    expect(preferredWindow()).toBe("floating");
+  });
+
+  it("keeps the choice without moving another record's open card", () => {
+    const page = onStore();
+    openComposer("CRM Deal", "CRM-DEAL-2", "comment", undefined, "docked");
+    page.composer.window = "floating";
+
+    expect(composerState).toMatchObject({ name: "CRM-DEAL-2", window: "docked" });
+    expect(preferredWindow()).toBe("floating");
+    expect(page.composer.window).toBe("floating");
+  });
+
+  it("warns and changes nothing for a value other than the two", () => {
+    const page = onStore();
+    page.composer.open("comment");
+    (page.composer as { window: string }).window = "minimized";
+
+    expect(page.composer.window).toBe("docked");
+    expect(preferredWindow()).toBe("docked");
+    expect(warnings.join("\n")).toContain('page.composer.window = "minimized"');
+  });
+
+  it("hands an open's window to the host with the draft", () => {
+    const { page, opened } = makePage();
+    page.composer.open("comment", { draft: { content: "hi" }, window: "floating" });
+
+    expect(opened).toEqual([["comment", { draft: { content: "hi" }, window: "floating" }]]);
+  });
+
+  it("keeps an open's window when the open waits for a replay", async () => {
+    const { controller, opened } = makePage();
+    registerRecordPage("CRM Deal", {
+      onRefresh: (page) => page.composer.open("comment", { window: "floating" }),
+    });
+    await controller.refresh();
+
+    expect(opened).toEqual([["comment", { window: "floating" }]]);
   });
 });

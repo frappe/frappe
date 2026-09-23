@@ -38,34 +38,33 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
+import { computed, defineAsyncComponent, ref, watch } from "vue";
 import type { SessionUser } from "@framework/ui/api";
 import type { EmailPayload } from "@framework/ui/Composer";
-import type { RecordPageController } from "@/recordPage";
 import { __ } from "@/i18n";
-import { RecordFeedsKey } from "../feed/recordFeeds";
+import type { WriterContext } from "@/shell/composer";
 import AttachmentSeed from "./AttachmentSeed";
 import { postEmail } from "./emailPost";
 import { freshEmail } from "./emailSeed";
 import { chooseSender, loadSenders, searchRecipients, type SenderChoice } from "./emailSenders";
 import { useEmailDraft } from "./useEmailDraft";
+import { recordUploads } from "./writerContext";
 
 const EmailComposer = defineAsyncComponent(() =>
 	import("@framework/ui/Composer").then((module) => module.EmailComposer)
 );
 
-const props = defineProps<{ controller: RecordPageController; user: SessionUser }>();
+const props = defineProps<{ context: WriterContext; user: SessionUser }>();
 
-const feeds = inject(RecordFeedsKey, null);
 const { from, to, cc, bcc, subject, content, quoted, seed, upload, forget, discard, draft } =
 	useEmailDraft(
-		props.controller.page.doctype,
-		props.controller.page.docname,
-		() => freshEmail(props.controller.page),
-		recordTransport()
+		props.context.doctype,
+		props.context.docname,
+		() => freshEmail(props.context.page),
+		recordUploads(props.context)
 	);
 const composer = ref<{ focus: () => void } | null>(null);
-// A writer posts once; the band closes it, and a reopen draws a new one.
+// A writer posts once; the post closes it, and a reopen draws a new one.
 const sent = ref(false);
 // Until the senders are read, nothing is blocked and the draft's own sender stands.
 const choice = ref<SenderChoice>({ senders: [], from: from.value, blocked: false });
@@ -73,12 +72,6 @@ const ready = settleSenders();
 const senders = computed(() => choice.value.senders.map((email) => ({ email })));
 
 watch(composer, (editor) => editor?.focus());
-
-// As in desk v1, a reader who may write the record attaches onto it, and the Files tab shows it.
-function recordTransport() {
-	const { doctype, docname, perms } = props.controller.page;
-	return perms.write && feeds ? feeds.uploadTransport(doctype, docname) : undefined;
-}
 
 async function settleSenders() {
 	try {
@@ -107,6 +100,6 @@ async function send(payload: EmailPayload) {
 	};
 	// The editor's body carries the quote; the draft keeps them apart for a failure to restore.
 	const outgoing = { ...headers, from: from.value, attachments: [...payload.attachments] };
-	void postEmail(props.controller, author, outgoing, payload.body);
+	void postEmail(props.context, author, outgoing, payload.body);
 }
 </script>

@@ -54,6 +54,7 @@ export type {
   ActivityRow,
   BodyItem,
   ComposerOpenOptions,
+  ComposerWindow,
   FeedItem,
   FileRow,
   FormItem,

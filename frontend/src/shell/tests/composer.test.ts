@@ -1,22 +1,60 @@
 // The composer store: one open writer across records, and drafts kept per record and writer.
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { isProxy } from "vue";
+import { resetSession, setSession } from "@framework/ui/composables/useSession";
+import type { Session } from "@framework/ui/api";
 import {
 	activeWriter,
 	clearComposerDraft,
 	closeComposer,
+	composerDock,
 	composerDraft,
+	composerPerms,
+	composerRecord,
 	composerState,
+	composerTitle,
 	openComposer,
+	preferredWindow,
+	registerComposerDock,
+	registerComposerRecord,
+	rememberWindow,
 	saveComposerDraft,
+	setComposerWindow,
+	type WriterContext,
 } from "../composer";
 
 let record = 0;
 let name = "";
+let user = "";
 
 beforeEach(() => {
 	closeComposer();
 	name = `NOTE-${++record}`;
+	// A user per test: the remembered window outlives a test in the store as well as in storage.
+	user = `reader-${record}@example.com`;
+	signIn(user);
 });
+
+afterEach(() => {
+	resetSession();
+	localStorage.clear();
+});
+
+function signIn(name: string) {
+	const session = { user: { name }, roles: [], lang: "en", timezone: "UTC", defaults: {} };
+	setSession(session as unknown as Session);
+}
+
+function context(docname: string, extra: Partial<WriterContext> = {}): WriterContext {
+	return {
+		doctype: "Note",
+		docname,
+		title: `Title of ${docname}`,
+		perms: { write: 1 },
+		toast: { error: () => {} },
+		...extra,
+	};
+}
 
 describe("composer store", () => {
 	it("opens docked on one record and reads blank on any other", () => {
@@ -78,5 +116,133 @@ describe("composer store", () => {
 	it("never mixes up a name that holds the separator", () => {
 		saveComposerDraft("Note", "a:b", "comment", { content: "x" });
 		expect(composerDraft("Note:a", "b", "comment")).toBeUndefined();
+	});
+});
+
+describe("the window", () => {
+	it("opens docked for a reader who never chose", () => {
+		openComposer("Note", name, "comment");
+		expect(preferredWindow()).toBe("docked");
+		expect(composerState.window).toBe("docked");
+	});
+
+	it("opens where the reader last put it, kept per user", () => {
+		setComposerWindow("floating", { remember: true });
+		expect(localStorage.getItem(`desk:composer-window:${user}`)).toBe("floating");
+		openComposer("Note", name, "comment");
+		expect(composerState.window).toBe("floating");
+
+		signIn(`${user}-other`);
+		expect(preferredWindow()).toBe("docked");
+		openComposer("Note", name, "comment");
+		expect(composerState.window).toBe("docked");
+	});
+
+	it("reads the choice from storage on a fresh session", () => {
+		localStorage.setItem(`desk:composer-window:${user}`, "floating");
+		expect(preferredWindow()).toBe("floating");
+		localStorage.setItem(`desk:composer-window:${user}-b`, "sideways");
+		expect(preferredWindow(`${user}-b`)).toBe("docked");
+	});
+
+	it("takes an open's window for that open only", () => {
+		openComposer("Note", name, "comment", undefined, "floating");
+		expect(composerState.window).toBe("floating");
+		expect(preferredWindow()).toBe("docked");
+		expect(localStorage.getItem(`desk:composer-window:${user}`)).toBeNull();
+
+		openComposer("Note", name, "comment");
+		expect(composerState.window).toBe("docked");
+	});
+
+	it("moves the open card without keeping the choice unless asked", () => {
+		openComposer("Note", name, "comment");
+		setComposerWindow("floating");
+		expect(composerState.window).toBe("floating");
+		expect(preferredWindow()).toBe("docked");
+	});
+
+	it("keeps a choice without moving the open card", () => {
+		openComposer("Note", name, "comment");
+		rememberWindow("floating");
+		expect(composerState.window).toBe("docked");
+		expect(preferredWindow()).toBe("floating");
+	});
+
+	it("gives a second record's open the window and keeps the first record's draft", () => {
+		openComposer("Note", name, "comment", undefined, "floating");
+		saveComposerDraft("Note", name, "comment", { content: "first" });
+		openComposer("Note", `${name}-B`, "comment", undefined, "floating");
+
+		expect(composerState).toMatchObject({ name: `${name}-B`, window: "floating" });
+		expect(composerTitle()).toBe(`${name}-B`);
+		expect(composerDraft("Note", name, "comment")).toEqual({ content: "first" });
+	});
+});
+
+describe("the record's band and context", () => {
+	it("gives the dock of the record the store is on, and none for another", () => {
+		const band = document.createElement("div");
+		const other = document.createElement("div");
+		const unregister = registerComposerDock("Note", name, band);
+		const unregisterOther = registerComposerDock("Note", `${name}-B`, other);
+
+		openComposer("Note", name, "comment");
+		expect(composerDock()).toBe(band);
+		openComposer("Note", `${name}-C`, "comment");
+		expect(composerDock()).toBeNull();
+
+		unregisterOther();
+		unregister();
+		openComposer("Note", name, "comment");
+		expect(composerDock()).toBeNull();
+	});
+
+	it("keeps a remount's dock when the old band unregisters after it", () => {
+		const before = document.createElement("div");
+		const after = document.createElement("div");
+		const unregisterBefore = registerComposerDock("Note", name, before);
+		const unregisterAfter = registerComposerDock("Note", name, after);
+		unregisterBefore();
+
+		openComposer("Note", name, "comment");
+		expect(composerDock()).toBe(after);
+		unregisterAfter();
+	});
+
+	it("gives the context of the record the store is on, and keeps its title and perms at open", () => {
+		const page = context(name);
+		const unregister = registerComposerRecord("Note", name, page);
+		openComposer("Note", name, "comment");
+
+		expect(composerRecord()).toBe(page);
+		expect(composerTitle()).toBe(`Title of ${name}`);
+		expect(composerPerms()).toEqual({ write: 1 });
+
+		unregister();
+		expect(composerRecord()).toBeNull();
+		expect(composerTitle()).toBe(`Title of ${name}`);
+		expect(composerPerms()).toEqual({ write: 1 });
+	});
+
+	it("titles an open with the docname until the page registers", () => {
+		openComposer("Note", name, "comment");
+		expect(composerTitle()).toBe(name);
+
+		const unregister = registerComposerRecord("Note", name, context(name));
+		expect(composerTitle()).toBe(`Title of ${name}`);
+		unregister();
+	});
+
+	it("never makes a registered context reactive", () => {
+		const firePost = async () => {};
+		const page = context(name, { firePost });
+		const unregister = registerComposerRecord("Note", name, page);
+		openComposer("Note", name, "comment");
+
+		expect(composerRecord()).toBe(page);
+		expect(isProxy(composerRecord())).toBe(false);
+		expect(composerRecord()?.firePost).toBe(firePost);
+		unregister();
 	});
 });

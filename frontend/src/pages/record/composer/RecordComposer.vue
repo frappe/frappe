@@ -1,4 +1,4 @@
-<!-- The composer band at the foot of a tab that has one: the pill, or the open writer docked. -->
+<!-- The composer band at the foot of a tab that has one: the pill, and the place the shell docks the open writer. -->
 <template>
 	<div
 		v-if="shown"
@@ -7,33 +7,9 @@
 		data-record-composer
 	>
 		<div class="mx-auto w-full max-w-3xl">
-			<ComposerCard
-				v-if="writer"
-				:key="recordKey"
-				:writer="writer"
-				:user="user.name"
-				@collapse="page.composer.close()"
-			>
-				<component
-					:is="writer.component"
-					v-if="writer.component"
-					v-bind="{ ...writer.props, page, close }"
-				/>
-				<CommentWriter
-					v-else-if="writer.name === COMMENT_WRITER"
-					:key="commentRevision"
-					:controller="controller"
-					:user="user"
-				/>
-				<EmailWriter
-					v-else-if="writer.name === EMAIL_WRITER"
-					:key="emailRevision"
-					:controller="controller"
-					:user="user"
-				/>
-			</ComposerCard>
+			<div ref="dock" data-composer-dock />
 			<ComposerPill
-				v-else
+				v-if="!docked"
 				:comment="comment"
 				:email="email"
 				:creates="creates"
@@ -46,21 +22,24 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onUnmounted, ref, watchEffect } from "vue";
+import { computed, inject, onUnmounted, ref, watch, watchEffect } from "vue";
 import { useElementSize } from "@vueuse/core";
 import type { SessionUser } from "@framework/ui/api";
 import { isComposerTab, type RecordPageController } from "@/recordPage";
 import type { TabItem } from "@/recordPage/types";
-import { activeWriter, draftRevision } from "@/shell/composer";
+import {
+	activeWriter,
+	composerState,
+	registerComposerDock,
+	registerComposerRecord,
+} from "@/shell/composer";
 import { RecordFeedsKey } from "../feed/recordFeeds";
 import { COMMENT_WRITER } from "./commentDraft";
 import { EMAIL_WRITER } from "./emailDraft";
 import { titleOf } from "./emailSeed";
-import ComposerCard from "./ComposerCard.vue";
 import ComposerPill from "./ComposerPill.vue";
-import CommentWriter from "./CommentWriter.vue";
-import EmailWriter from "./EmailWriter.vue";
 import { createOptions } from "./createMenu";
+import type { RecordWriterContext } from "./writerContext";
 
 const props = defineProps<{
 	controller: RecordPageController;
@@ -72,10 +51,10 @@ const props = defineProps<{
 
 const feeds = inject(RecordFeedsKey, null);
 const band = ref<HTMLElement | null>(null);
+const dock = ref<HTMLElement | null>(null);
 const { height } = useElementSize(band, undefined, { box: "border-box" });
 
 const page = computed(() => props.controller.page);
-const recordKey = computed(() => JSON.stringify([page.value.doctype, page.value.docname]));
 const writers = computed(() => props.controller.composer.visible());
 const comment = computed(() => writers.value.find((item) => item.name === COMMENT_WRITER));
 const email = computed(() => writers.value.find((item) => item.name === EMAIL_WRITER));
@@ -83,13 +62,8 @@ const writer = computed(() => {
 	const open = activeWriter(page.value.doctype, page.value.docname);
 	return open ? writers.value.find((item) => item.name === open) : undefined;
 });
-// A draft set from outside the writer, as a failed post does, draws in a fresh editor.
-const commentRevision = computed(() =>
-	draftRevision(page.value.doctype, page.value.docname, COMMENT_WRITER)
-);
-const emailRevision = computed(() =>
-	draftRevision(page.value.doctype, page.value.docname, EMAIL_WRITER)
-);
+// The pill stays while this record's writer floats.
+const docked = computed(() => Boolean(writer.value) && composerState.window === "docked");
 const creates = computed(() => createOptions(props.tabs, page.value));
 const title = computed(() => titleOf(page.value));
 const onComposerTab = computed(() => {
@@ -105,8 +79,41 @@ const shown = computed(
 watchEffect(() => measured(shown.value ? height.value : 0));
 onUnmounted(() => measured(0));
 
-function close() {
-	page.value.composer.close();
+// Offered while the band is shown, so docking moves the open writer in without drawing it anew.
+watch([dock, page], ([element, { doctype, docname }], _old, onCleanup) => {
+	if (element) onCleanup(registerComposerDock(doctype, docname, element));
+});
+
+watch(
+	() => props.controller,
+	(controller, _old, onCleanup) => {
+		const { doctype, docname } = controller.page;
+		onCleanup(registerComposerRecord(doctype, docname, recordContext(controller)));
+	},
+	{ immediate: true }
+);
+
+function recordContext(controller: RecordPageController): RecordWriterContext {
+	const { page } = controller;
+	return {
+		doctype: page.doctype,
+		docname: page.docname,
+		get title() {
+			return titleOf(page);
+		},
+		get perms() {
+			return page.perms ?? {};
+		},
+		get writers() {
+			return controller.composer.visible();
+		},
+		page,
+		toast: page.toast,
+		firePost: (key) => controller.firePost(key),
+		uploadTransport: feeds
+			? () => feeds.uploadTransport(page.doctype, page.docname)
+			: undefined,
+	};
 }
 
 function measured(pixels: number) {
