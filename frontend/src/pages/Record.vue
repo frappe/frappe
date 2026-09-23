@@ -148,6 +148,12 @@ import RecordHeader from "./record/RecordHeader.vue";
 import RecordTabs from "./record/tabs/RecordTabs.vue";
 import { TAB_STRIP_CLASSES, recordTabBuiltins } from "./record/tabs/recordTabs";
 import { useRecordTabs } from "./record/tabs/useRecordTabs";
+import {
+	activityPointer,
+	RecordFeeds,
+	RecordFeedsKey,
+	withFeedRead,
+} from "./record/feed/recordFeeds";
 import PageDialogs from "./record/dialogs/PageDialogs.vue";
 import { formTabMemory } from "./record/formTabMemory";
 import { fetchMeta } from "./record/metaSource";
@@ -285,6 +291,15 @@ const {
 
 const tabMemory = computed(() => formTabMemory(boot.session.user.name, doctype.value ?? ""));
 
+const feeds = new RecordFeeds({
+	docinfo,
+	controller: () => controller.value,
+	showTab: (name, what) => tabsHost.show(name, what),
+	reloadParts: reloadDocinfo,
+	whileOnRecord,
+});
+provide(RecordFeedsKey, feeds);
+
 // The record's realtime room, joined per load; the panel's rows follow another tab's assign or comment.
 const live = useLiveDocinfo({ socket: getSocketInstance(), docinfo, reload: reloadDocinfo });
 useLiveClientScripts({
@@ -418,6 +433,7 @@ async function load() {
 	const mine = ++generation;
 	docinfoRead++;
 	const target = { doctype: doctype.value, name: docname.value };
+	const pointer = feeds.pointerOnOpen(target.doctype, target.name, route.query);
 	error.value = "";
 	live.follow(target.doctype, target.name);
 
@@ -452,6 +468,22 @@ async function load() {
 		fallback: "none",
 		overrides: () => controller.value?.fields.resolve() ?? {},
 	});
+	await withFeedRead(target.doctype, target.name, route.query, (feedRead) =>
+		openRecord({ mine, target, pointer, details, panel, feedRead })
+	);
+}
+
+interface OpenRecord {
+	mine: number;
+	target: { doctype: string; name: string };
+	pointer: string;
+	details: UseFormLayout;
+	panel: UseFormLayout;
+	feedRead: Promise<void>;
+}
+
+/** The record read, then the page's first paint; a newer load cuts it short at any wait. */
+async function openRecord({ mine, target, pointer, details, panel, feedRead }: OpenRecord) {
 	try {
 		const [loaded, metadata] = await Promise.all([
 			loadRecord(target.doctype, target.name),
@@ -481,6 +513,7 @@ async function load() {
 		perms: () => docinfo.value?.permissions ?? {},
 		isDirty: () => dirty.value,
 		...tabsPageHost,
+		...feeds.pageHost,
 		formLayout: () => detailsForm.value,
 		activateFormTab: (identity) => void (formTab.value = identity),
 		discloseSection: disclosure.disclose,
@@ -504,13 +537,18 @@ async function load() {
 	panelLayout.value = panel;
 	detailsLayout.value = details;
 	controller.value = created;
+	feeds.showPointedTab(pointer);
 
-	// The first replay must see both layouts, or a script's act on a tab or section is dropped as unknown.
-	await Promise.all([details.settled(), panel.settled()]);
+	// The first replay must see both layouts, or a script's act on a tab or section is dropped as unknown,
+	// and the Activity rows when their read began beside the record's.
+	await Promise.all([details.settled(), panel.settled(), feedRead]);
 	if (mine !== generation) return;
 	await created.refresh();
 	if (mine !== generation) return;
 	actionsVersion.value++;
+	if (pointer) created.page.activity.scrollTo(pointer);
+	// The shown tab's body has mounted by now; a feed body that mounts later reads what it missed.
+	await nextTick();
 }
 
 // One request per record at a time; a request the previous record left in flight is not joined.
@@ -678,4 +716,9 @@ onUnmounted(() => {
 });
 
 watch([doctype, docname], load, { immediate: true });
+// The page's own `?tab=` replace keeps the key, so only a new pointer on the same record moves the reader.
+watch(
+	() => activityPointer(route.query),
+	() => feeds.followPointer(doctype.value ?? "", docname.value, route.query)
+);
 </script>

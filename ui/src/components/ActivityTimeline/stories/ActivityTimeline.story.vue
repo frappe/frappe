@@ -169,16 +169,17 @@ const activities = computed<Array<Activity | CustomActivity>>(() =>
 	empty.value || loading.value ? [] : fixtures
 );
 
-// a mock of the paginate controller useActivityTimeline() returns — no-op verbs
+// a mock of the paginate controller useActivityTimeline() returns; a fetch never adds rows
 const paginate = reactive<Pagination>({
 	hasNextPage: true,
 	isFetchingNextPage: false,
-	fetchNextPage: () => log("fetchNextPage"),
-	loadMore: {
-		position: "inline",
-		label: "Show previous conversations",
-		icon: "lucide-chevrons-up",
+	fetchNextPage: async () => {
+		log("fetchNextPage");
+		paginate.isFetchingNextPage = true;
+		await new Promise((done) => setTimeout(done, 1500));
+		paginate.isFetchingNextPage = false;
 	},
+	loadMore: { label: "Show previous activity", icon: "lucide-chevrons-up" },
 });
 
 // custom-type rows carry `unknown` data — narrow it for the demo slot

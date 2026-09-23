@@ -32,30 +32,39 @@
 			v-for="entry in mounted"
 			v-show="entry.item.name === active"
 			:key="entry.item.name"
-			class="min-h-0 flex-1 overflow-y-auto"
+			class="flex min-h-0 flex-1 flex-col"
 			:data-record-tab="entry.item.name"
 			@focusin="focused.set(entry.item.name, $event.target as HTMLElement)"
 		>
+			<!-- A body that scrolls itself: a second viewport round it would be a focus stop that never scrolls. -->
 			<component
 				:is="entry.item.component"
-				v-if="entry.item.component"
+				v-if="scrollsItself(entry.item.component)"
 				v-bind="{ ...entry.item.props, page }"
 			/>
-			<slot v-else-if="entry.item.name === DETAILS_TAB" name="details" />
-			<p v-else class="py-10 text-center text-base text-ink-gray-5">
-				{{ __("Nothing here yet.") }}
-			</p>
+			<!-- The viewport's content is a column at least its height, so a feed can fill it and scroll itself. -->
+			<ScrollArea v-else class="min-h-0 flex-1" :viewportClass="BODY_VIEWPORT">
+				<component
+					:is="entry.item.component"
+					v-if="entry.item.component"
+					v-bind="{ ...entry.item.props, page }"
+				/>
+				<slot v-else-if="entry.item.name === DETAILS_TAB" name="details" />
+				<p v-else class="py-10 text-center text-base text-ink-gray-5">
+					{{ __("Nothing here yet.") }}
+				</p>
+			</ScrollArea>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
-import { Skeleton, Tabs } from "frappe-ui";
+import { ScrollArea, Skeleton, Tabs } from "frappe-ui";
 import type { ResolvedItem } from "@/recordPage/surface";
 import type { RecordPageApi, TabItem } from "@/recordPage/types";
 import { __ } from "@/i18n";
-import { DETAILS_TAB, TAB_STRIP_CLASSES } from "./recordTabs";
+import { DETAILS_TAB, scrollsItself, TAB_STRIP_CLASSES } from "./recordTabs";
 
 const props = defineProps<{
 	tabs: ResolvedItem<TabItem>[];
@@ -67,6 +76,9 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{ select: [name: string] }>();
+
+// `> div` is the content wrapper reka's viewport draws round the slot.
+const BODY_VIEWPORT = "[&>div]:flex [&>div]:min-h-full [&>div]:flex-col";
 
 const visited = reactive(new Set<string>());
 const focused = new Map<string, HTMLElement>();

@@ -1,6 +1,11 @@
 <template>
-	<!-- column-reverse scroller: opens pinned to the newest row natively; needs a bounded height -->
-	<div ref="rootEl" class="activity-timeline flex flex-col-reverse overflow-y-auto">
+	<!-- column-reverse scroller: opens pinned to the newest row natively; needs a bounded height.
+	     With `scrolls` off, an ancestor scrolls it. -->
+	<div
+		ref="rootEl"
+		class="activity-timeline flex flex-col-reverse"
+		:class="{ 'overflow-y-auto': scrolls }"
+	>
 		<!-- min-h-full keeps short feeds at the top; shrink-0 keeps the overflow -->
 		<div class="min-h-full shrink-0">
 			<!-- spinner only on first load; cached data stays visible during revalidation -->
@@ -15,17 +20,25 @@
 					</div>
 				</slot>
 			</template>
-			<div v-else class="activities flex flex-col gap-2 mt-2" :tabindex="0">
-				<!-- LoadMore for Pagination -->
+			<!-- a tab stop only when the timeline scrolls, for arrow-key scrolling -->
+			<div
+				v-else
+				class="activities flex flex-col gap-2 mt-2"
+				:tabindex="scrolls ? 0 : undefined"
+			>
+				<!-- older rows prepend here, at the oldest end -->
+				<div v-if="isFetching" class="flex w-full justify-center py-2">
+					<LoadingIndicator class="size-4 text-ink-gray-5" />
+				</div>
 				<div
-					v-if="showLoadMoreButton && !loadMoreAtBottom"
+					v-else-if="showLoadMoreButton && !loadMoreAtBottom"
 					class="mb-1 flex w-full justify-center"
 				>
 					<LoadMore />
 				</div>
 				<div
 					v-for="(activity, i) in displayActivities"
-					:key="getKey(activity, i)"
+					:key="activity.renderKey ?? getKey(activity, i)"
 					:id="getKey(activity, i)"
 					class="activity"
 				>
@@ -34,20 +47,12 @@
 						<!-- gutter column: vertical connector line + icon/avatar -->
 						<div
 							class="relative flex justify-center after:absolute after:start-[calc(50%-0.5px)] after:z-0 after:border-s after:border-outline-elevation-2"
-							:class="
-								activity.type === 'load_more'
-									? 'after:-top-2 after:h-[calc(100%+1rem)]'
-									: [
-											i != displayActivities.length - 1 && 'after:h-full',
-											isOneLinerActivity(activity)
-												? 'after:top-6'
-												: 'after:top-3',
-									  ]
-							"
+							:class="[
+								i != displayActivities.length - 1 && 'after:h-full',
+								isOneLinerActivity(activity) ? 'after:top-6' : 'after:top-3',
+							]"
 						>
-							<!-- load_more has no gutter icon — the connector line passes straight through -->
 							<div
-								v-if="activity.type !== 'load_more'"
 								class="relative z-10 flex items-center justify-center self-start bg-surface-base"
 								:class="[
 									isAvatarActivity(activity) ? 'h-10' : 'h-6 w-6 rounded-full',
@@ -67,14 +72,7 @@
 							]"
 							:data-type="activity.type"
 						>
-							<!-- Load More in activity -->
-							<div
-								v-if="activity.type === 'load_more'"
-								class="flex w-full justify-center"
-							>
-								<LoadMore />
-							</div>
-							<slot v-else :name="`item-${activity.type}`" :activity="activity">
+							<slot :name="`item-${activity.type}`" :activity="activity">
 								<!-- default slot: full per-row override, exposes the row as { item } -->
 								<slot :item="activity">
 									<EmailItem
@@ -119,7 +117,7 @@ import { computed, h, ref, useSlots } from "vue";
 import CommentItem from "./CommentItem.vue";
 import EmailItem from "./EmailItem.vue";
 import DotIcon from "./DotIcon.vue";
-import { groupActivities } from "./grouping";
+import { drawnKey, groupActivities } from "./grouping";
 import LoadMoreButton from "./LoadMoreButton.vue";
 import LogItem from "./LogItem.vue";
 import type { Activity, ActivityTimelineProps, CustomActivity } from "./types";
@@ -127,6 +125,7 @@ import VersionItem from "./VersionItem.vue";
 
 const props = withDefaults(defineProps<ActivityTimelineProps>(), {
 	loading: false,
+	scrolls: true,
 });
 
 defineSlots<
@@ -149,34 +148,15 @@ const rootEl = ref<HTMLElement | null>(null);
 const slots = useSlots();
 
 const isFetching = computed(() => !!props.paginate?.isFetchingNextPage);
+const showLoadMoreButton = computed(() => !!props.paginate?.hasNextPage);
 
-// "inline" injects a load_more row above the oldest paged row; top/bottom show a standalone button.
-const isInline = computed(() => props.paginate?.loadMore?.position === "inline");
-const showLoadMoreButton = computed(() => !!props.paginate?.hasNextPage && !isInline.value);
-
-// Which rows the next page extends. Emails by default, so a paginate without one behaves as before.
-const isPagedRow = computed(
-	() => props.paginate?.isPagedRow ?? ((a: Activity | CustomActivity) => a.type === "email")
+// grouped here, over the final rendered feed — a visible row between two saves
+// splits the fold, so summaries never reorder against comments/calls
+const displayActivities = computed<Array<Activity | CustomActivity>>(() =>
+	groupActivities(props.activities as Activity[])
 );
 
-// Rows to render: the feed, plus an in-feed load_more row above the oldest paged row.
-const displayActivities = computed<Array<Activity | CustomActivity>>(() => {
-	// grouped here, over the final rendered feed — a visible row between two saves
-	// splits the fold, so summaries never reorder against comments/calls
-	const list = groupActivities(props.activities as Activity[]);
-	if (!isInline.value || !props.paginate?.hasNextPage) return list;
-	const idx = list.findIndex(isPagedRow.value);
-	if (idx === -1) return list;
-	const loadMore: CustomActivity = {
-		type: "load_more",
-		key: "load-more",
-		timestamp: list[idx].timestamp,
-		data: null,
-	};
-	return [...list.slice(0, idx), loadMore, ...list.slice(idx)];
-});
-
-// can be rendered at up to three sites (top / in-feed row / bottom) that differ only in wrapper.
+// rendered at the top or the bottom; the two differ only in wrapper
 const LoadMore = () =>
 	slots.load_more
 		? slots.load_more({ loading: isFetching.value, loadMore })
@@ -211,9 +191,9 @@ function getKey(activity: Activity | CustomActivity, index: number): string {
 	);
 }
 
-// Deep-link affordance: scroll a row (by its key/id) into view and flash it.
+// Deep-link affordance: scroll a row (by its key/id), or the run it folded into, into view and flash it.
 function scrollToRow(key: string): boolean {
-	const row = rootEl.value?.querySelector<HTMLElement>(`[id="${CSS.escape(key)}"]`);
+	const row = rowElement(key) ?? rowElement(drawnKey(props.activities as Activity[], key));
 	if (!row) return false;
 	row.scrollIntoView({ block: "center" });
 	row.classList.remove("timeline-row-flash");
@@ -224,6 +204,10 @@ function scrollToRow(key: string): boolean {
 		once: true,
 	});
 	return true;
+}
+
+function rowElement(key: string) {
+	return rootEl.value?.querySelector<HTMLElement>(`[id="${CSS.escape(key)}"]`) ?? null;
 }
 
 defineExpose({ scrollToRow, scrollToLatest });

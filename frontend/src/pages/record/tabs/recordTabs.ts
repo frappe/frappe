@@ -1,9 +1,13 @@
 // The record's tab strip, host side: the four built-ins, the tab the address names, and its moves.
-import { ref, watch, type Ref } from "vue";
+import { markRaw, ref, watch, type Component, type Ref } from "vue";
 import type { LocationQueryValue, RouteLocationNormalizedLoaded, Router } from "vue-router";
 import type { Surface } from "@/recordPage/surface";
 import type { TabItem } from "@/recordPage/types";
 import { __ } from "@/i18n";
+import ActivityTab from "../feed/ActivityTab.vue";
+import FilesTab from "../feed/FilesTab.vue";
+import TimelineFeed from "../feed/TimelineFeed.vue";
+import { EMAIL_TYPES } from "../feed/recordFeeds";
 
 export const DETAILS_TAB = "details";
 
@@ -14,11 +18,34 @@ export const TAB_STRIP_CLASSES =
 /** No doctype condition: a script hides what its doctype does not need. */
 export function recordTabBuiltins(): TabItem[] {
   return [
-    { name: "activity", label: __("Activity"), icon: "lucide-activity" },
-    { name: "emails", label: __("Emails"), icon: "lucide-mail" },
-    { name: "files", label: __("Files"), icon: "lucide-paperclip" },
+    {
+      name: "activity",
+      label: __("Activity"),
+      icon: "lucide-activity",
+      component: markRaw(ActivityTab),
+    },
+    {
+      name: "emails",
+      label: __("Emails"),
+      icon: "lucide-mail",
+      component: markRaw(TimelineFeed),
+      props: { types: EMAIL_TYPES, empty: { icon: "lucide-mail", label: __("No emails yet") } },
+    },
+    { name: "files", label: __("Files"), icon: "lucide-paperclip", component: markRaw(FilesTab) },
     { name: DETAILS_TAB, label: __("Details"), icon: "lucide-table-properties" },
   ];
+}
+
+declare module "vue" {
+  interface ComponentCustomOptions {
+    /** The tab body scrolls itself, so the strip draws it in a plain column, not in a second scroller. */
+    scrollsItself?: boolean;
+  }
+}
+
+/** A body set with `defineOptions({ scrollsItself: true })`. */
+export function scrollsItself(component: Component | undefined): boolean {
+  return Boolean((component as { scrollsItself?: boolean } | undefined)?.scrollsItself);
 }
 
 export class RecordTabsHost {
@@ -78,14 +105,19 @@ export class RecordTabsHost {
   }
 
   /** `page.fields.focus` lands on the form, so Details comes forward first; false when a script hid it. */
-  async showDetails(fieldname: string): Promise<boolean> {
-    if (this.shown() === DETAILS_TAB) return true;
-    if (!this.tabs()?.visible().some((tab) => tab.name === DETAILS_TAB)) {
-      warn(`page.fields.focus("${fieldname}") — the Details tab is hidden, so the reader was not moved.`);
+  showDetails(fieldname: string): Promise<boolean> {
+    return this.show(DETAILS_TAB, `page.fields.focus("${fieldname}") — the Details tab`);
+  }
+
+  /** A move that lands inside a tab brings it forward and places the reader itself; false when a script hid it. */
+  async show(name: string, what: string): Promise<boolean> {
+    if (this.shown() === name) return true;
+    if (!this.tabs()?.visible().some((tab) => tab.name === name)) {
+      warn(`${what} is hidden, so the reader was not moved.`);
       return false;
     }
-    const moved = this.activate(DETAILS_TAB);
-    this.focusClaim = DETAILS_TAB;
+    const moved = this.activate(name);
+    this.focusClaim = name;
     await moved;
     return true;
   }

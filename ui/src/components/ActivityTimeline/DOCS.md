@@ -3,7 +3,7 @@
 A controlled, slot-driven timeline that renders a document's activity feed — emails,
 comments, assignment/attachment/workflow logs, and folded version history — as a single
 vertical thread. The component only renders; the `useActivityTimeline` composable owns
-fetching, caching, realtime updates, and email pagination.
+fetching, caching, realtime updates, and paging older rows.
 
 ## The mental model
 
@@ -56,11 +56,11 @@ gives the timeline the bounded height its scroller needs — see
 
 | Property      | Details                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Props**     | `activities: Array<Activity \| CustomActivity>` (required), `loading?: boolean`, `paginate?: Pagination`                                                                                                                                                                                                                                                                                                                         |
+| **Props**     | `activities: Array<Activity \| CustomActivity>` (required), `loading?: boolean`, `paginate?: Pagination`, `scrolls?: boolean`                                                                                                                                                                                                                                                                                                     |
 | **Loading**   | First-load spinner shows only while `loading` **and** `activities` is empty; cached rows stay visible during revalidation                                                                                                                                                                                                                                                                                                        |
 | **Empty**     | Renders a built-in "No activity found" state when `activities` is empty and not loading; replace it via the `#empty` slot                                                                                                                                                                                                                                                                                                        |
-| **Scrolling** | The component is its own scroll container (`column-reverse`): give it a bounded height — wrap it in `TimelineContainer`, or `flex-1 min-h-0` by hand — and it opens anchored at the newest row, stays pinned as content grows, and keeps the viewport still when older pages prepend — all natively, no scroll scripting. Unbounded, an ancestor scrolls it like any block and none of that works. DOM order stays chronological |
-| **Exposes**   | `scrollToRow(key: string): boolean` — scrolls the row with that key into view and flashes it (deep links); returns `false` if the key isn't rendered. `scrollToLatest()` — jumps to the newest row (no flash); works in both scroll modes, so page-scroll layouts can call it on mount to open at the bottom                                                                                                                     |
+| **Scrolling** | The component is its own scroll container (`column-reverse`): give it a bounded height — wrap it in `TimelineContainer`, or `flex-1 min-h-0` by hand — and it opens anchored at the newest row, stays pinned as content grows, and keeps the viewport still when older pages prepend — all natively, no scroll scripting. Unbounded, an ancestor scrolls it like any block and none of that works. DOM order stays chronological. Inside a scroller of your own, pass `:scrolls="false"`: the timeline drops its overflow and its tab stop, so keyboard focus lands once, on your scroller |
+| **Exposes**   | `scrollToRow(key: string): boolean` — scrolls the row with that key into view and highlights it for two seconds (deep links); a version row folded into a run scrolls to the run; returns `false` if the key isn't rendered. `scrollToLatest()` — jumps to the newest row (no flash); works in both scroll modes, so page-scroll layouts can call it on mount to open at the bottom                                                                                                                     |
 
 ### Height and scrolling
 
@@ -204,37 +204,39 @@ returns the document's own activities, so you merge yours in yourself — see
 
 ## Pagination
 
-Emails and milestones page in oldest-direction on demand; the remaining sources arrive whole
-on the first load. `paginate` is the same object the composable returns; pass it through and
-the component wires the "Load more" control for you. One control advances both paged sources.
+The feed is one list over every type, read newest first in pages the server sizes (50).
+The first read takes the newest page; each older page is read with the cursor (`before`)
+the previous page returned, and its rows are prepended. The list has ended when the server
+returns no cursor, or an older page adds no row and returns the cursor it was read with. `paginate` is the same object the composable returns; pass it through and the
+component draws the control for you.
 
-| Property             | Details                                                                               |
-| -------------------- | ------------------------------------------------------------------------------------- |
-| `hasNextPage`        | `boolean` — whether older paged rows remain                                           |
-| `isFetchingNextPage` | `boolean` — a page is in flight                                                       |
-| `fetchNextPage()`    | Load and append the next older page                                                   |
-| `isPagedRow?`        | `(activity) => boolean` — rows the next page extends; defaults to email rows          |
-| `loadMore?`          | Affordance config — `position` (`"top"` \| `"bottom"` \| `"inline"`), `label`, `icon` |
+| Property             | Details                                                                  |
+| -------------------- | ------------------------------------------------------------------------ |
+| `hasNextPage`        | `boolean` — whether older rows remain                                    |
+| `isFetchingNextPage` | `boolean` — an older page is in flight                                   |
+| `fetchNextPage()`    | Reads the next older page and prepends it; concurrent calls share a read |
+| `loadMore?`          | Control config — `position` (`"top"` \| `"bottom"`), `label`, `icon`     |
 
-`position: "inline"` injects a `load_more` row directly above the oldest row `isPagedRow`
-matches; `top` / `bottom` render a standalone button. Omit `loadMore` for a default top button.
+While `isFetchingNextPage` is true the component draws one loading row at the top, the
+oldest end. Otherwise, when `hasNextPage` is true, it draws a "Load more" button at the top,
+or at the bottom with `position: "bottom"`. A host that loads older rows on scroll calls
+`fetchNextPage()` itself. A failed read sets the composable's `error` and leaves
+`hasNextPage` as it was, so a loop that pages until it finds a row must also stop on `error`.
 
-The control is configured through the `paginate.loadMore` object you pass. The composable
-bakes in a default (`{ position: "inline", label: "Show previous activity", icon:
-"lucide-chevrons-up" }`); override it by spreading the returned `paginate`:
+Override the button copy by spreading the returned `paginate`:
 
 ```vue
 <ActivityTimeline
   :activities="activities"
   :paginate="{
     ...paginate,
-    loadMore: { ...paginate.loadMore, position: 'bottom' },
+    loadMore: { label: 'Show previous activity', icon: 'lucide-chevrons-up' },
   }"
 />
 ```
 
-To replace the control entirely (at every position it renders), use the `#load_more` slot
-— scoped with `{ loading, loadMore }`:
+To replace the button entirely, use the `#load_more` slot — scoped with
+`{ loading, loadMore }`:
 
 ```vue
 <ActivityTimeline :activities="activities" :paginate="paginate">
@@ -254,9 +256,10 @@ To replace the control entirely (at every position it renders), use the `#load_m
 | `docname`       | `string`                                                                                                             |
 | `visibleTypes?` | `VisibleTypes` = `Array<Activity["type"] \| { version: string[] }>` — only these activity types; omit for everything |
 
-**Filtering.** `visibleTypes` is applied **server-side** (it reaches
-`get_activity_timeline`): pagination runs over the merged feed, so client-side filtering
-would break page math and ship rows that are never shown. Realtime-spliced rows pass
+**Filtering.** `visibleTypes` is applied **server-side** (it reaches the `activity` read as
+`types`): the cursor walks only the rows this view shows, so client-side filtering would
+leave pages short and ship rows that are never shown. Each filter has its own store and
+cursor, so an Emails view (`["email"]`) never shares a page with the full feed. Realtime-spliced rows pass
 through the same filter for feed consistency. An entry may be a type name, or
 `{ version: [...fieldnames] }` to narrow version rows to those fields — the allowlist
 means _only these fields_, so doc-level version rows (submit/cancel) drop too. Child-table
@@ -276,16 +279,29 @@ Returns:
 | ------------ | --------------------------------------------------------------------------------------------------------------------- |
 | `activities` | `ComputedRef` — deduped, sorted, and grouped rows ready for the component                                             |
 | `loading`    | `ComputedRef<boolean>`                                                                                                |
-| `reload()`   | Refetch the feed; coalesced, so N callers in the same moment cost one request. Returns a promise                       |
-| `paginate`   | `Pagination` — "Load more" controller for emails and milestones; bind it to the component only if you want pagination |
+| `reload()`   | Re-read the newest page; older rows already loaded stay when the page reaches them. When more than a page arrived since the last read, the held rows go and paging resumes from the new page's cursor. Coalesced, so N callers in the same moment cost one request. Returns a promise |
+| `paginate`   | `Pagination` — reads older pages by cursor; bind it to the component only if you want pagination                       |
+
+`prefetchActivityTimeline(doctype, docname, visibleTypes?)` starts the newest-page read
+before any component mounts and resolves once that page is in; a later `useActivityTimeline`
+with the same arguments uses it, and its first mount reads nothing more. A store outlives
+its components: the twenty most recently used stores with no component mounted are kept,
+and an older one is freed. Mounting beside a consumer already mounted on it reads nothing; the first mount
+after every consumer left re-reads the newest page, since the socket was closed in between.
+`endActivityPrefetch(doctype, docname, visibleTypes?)` says the first paint is over: a first
+mount after it re-reads too, since nothing listened between the prefetch and that mount.
+
+With no component mounted, `activityTimelineRows(doctype, docname, visibleTypes?)` returns
+the rows a store holds (none if no read began), and `reloadActivityTimeline(...)` re-reads
+its newest page, or starts the first read.
 
 **Realtime.** While mounted it subscribes to the doc's socket room and patches the feed
 live. Two server events drive it:
 
 | Event            | Carries                     | What happens                               |
 | ---------------- | --------------------------- | ------------------------------------------ |
-| `docinfo_update` | the whole row (`as_dict()`) | spliced into the feed, no request          |
-| `doc_update`     | `{doctype, name, modified}` | too thin to splice, so: a coalesced refetch |
+| `docinfo_update` | the whole row (`as_dict()`) | spliced into the feed, no request; an add for a key already in the feed is ignored |
+| `doc_update`     | `{doctype, name, modified}` | too thin to splice, so: a coalesced re-read of the newest page |
 
 Comments, likes, assignments, attachments and emails arrive whole via `docinfo_update`
 (published by Comment and Communication). Everything else (a status change, an SLA field,
@@ -301,7 +317,7 @@ Three things happen for you:
 - **Reconnects heal.** A room is server-side state on a socket id and Redis pub/sub buffers
   nothing, so after a drop you are in no room and the gap is lost silently. On `connect`
   after a `disconnect` it rejoins every held room and fires one catch-up refetch. Same on
-  mounting onto an already-fetched store.
+  mounting onto an already-fetched store, unless a prefetch read it for that mount.
 
 > Reconnect healing only runs if socket.io actually reconnects: check your app's
 > `reconnectionAttempts`, since a low value means it gives up after a short outage and
@@ -335,16 +351,20 @@ onError: () => {
 ```
 
 `addPendingActivity(doctype, docname, activity)` takes any `Activity` or `CustomActivity`
-minus `key`, and returns `{ resolve(key), drop() }`.
+minus `key`, and returns `{ resolve(key, timestamp?), drop() }`. The row is keyed
+`pending:<uuid>` and shows only in views whose `visibleTypes` include its type.
 
-The pending row lives until a fetched row with the same `key` arrives, then vanishes in the
-same tick the real one appears: no flicker, no duplicate. `resolve` swaps the throwaway key
-(`pending:<uuid>`) for the one the server row will carry, so it needs the create endpoint to
-return the new document's name. If yours doesn't, `drop()` on success and let the refetch
-bring the row in.
+`resolve` swaps the row to the key and timestamp the server gave it and clears `pending`, so
+it needs the create endpoint to return the new document's name. The row keeps the DOM node
+it was drawn in: its first key stays on it as `renderKey`, which the component uses as the
+v-for key. When the server row arrives (a `docinfo_update` add or a re-read), it takes the
+row's place under the same `renderKey`: no flicker, no duplicate, no remount. If the socket
+row arrives before the create answers, the pending row is matched on its text, against
+rows that arrived after it was added. If
+your endpoint returns no name, `drop()` on success and let the refetch bring the row in.
 
-Only call `resolve` on a response that confirms the write: if no matching row ever arrives,
-the pending one stays on screen.
+Only call `resolve` on a response that confirms the write: the resolved row stays on screen
+until a read brings its server row.
 
 **Rendering.** Pending rows carry `pending: true` and render muted and non-interactive.
 Anything keyed by document name (reactions, separately-fetched attachments) has nothing to
@@ -574,6 +594,16 @@ function onSave(activity, content: string) {
 
 The composable is optional. If your activities come from somewhere else — a different
 endpoint, a store, static data — build the `Array<Activity | CustomActivity>` yourself and
-pass it straight to the component. You lose the built-in caching, realtime, and email
-pagination, but everything about rendering (types, slots, empty/loading states) works the
+pass it straight to the component. You lose the built-in caching, realtime, and
+paging, but everything about rendering (types, slots, empty/loading states) works the
 same. Supply your own `paginate` object if you need "Load more".
+
+## Changed
+
+- `Pagination.isPagedRow`, `loadMore.position: "inline"` and the composable's default
+  `loadMore` are gone. The feed is one list under one cursor, so the control sits at the top
+  (or the bottom), and a host that loads on scroll calls `fetchNextPage()` itself.
+- A resolved pending row stops looking muted when `resolve` is called, before its server
+  row arrives.
+- `compareActivities(a, b)` is exported: the server's order, the timestamp string and then
+  the key, each compared by code unit. Sort merged rows with it so they match the pages.

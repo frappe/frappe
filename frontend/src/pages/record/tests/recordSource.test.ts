@@ -27,6 +27,16 @@ const ENVELOPE = {
 	follows: true,
 	users: { "ann@example.com": { full_name: "Ann", user_image: "/ann.png" } },
 	link_titles: { "CRM Lead::L-1": "Lead One" },
+	attachments: [
+		{
+			name: "F-1",
+			file_name: "brief.pdf",
+			file_url: "/private/files/brief.pdf",
+			is_private: 1,
+			creation: "2026-09-18 09:00:00",
+			owner: "ann@example.com",
+		},
+	],
 	seen: ["ann@example.com"],
 };
 
@@ -52,6 +62,7 @@ describe("loadRecord", () => {
 			"follows",
 			"users",
 			"link_titles",
+			"attachments",
 			"seen",
 		]);
 		expect(loaded.document).toEqual(ENVELOPE.data);
@@ -63,6 +74,7 @@ describe("loadRecord", () => {
 			favourites: ENVELOPE.favourites,
 			follows: true,
 			users: ENVELOPE.users,
+			attachments: ENVELOPE.attachments,
 		});
 		expect(loaded.linkTitles).toEqual(ENVELOPE.link_titles);
 	});
@@ -83,7 +95,9 @@ describe("loadParts", () => {
 		const include = lastCall().url.searchParams.get("include")!.split(",");
 		expect(include).not.toContain("seen");
 		expect(include).toContain("shares");
+		expect(include).toContain("attachments");
 		expect(parts.tags).toEqual(["urgent"]);
+		expect(parts.attachments).toEqual(ENVELOPE.attachments);
 		expect(parts.follows).toBe(true);
 		expect(parts).not.toHaveProperty("document");
 	});

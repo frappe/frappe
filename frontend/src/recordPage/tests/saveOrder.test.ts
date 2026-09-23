@@ -37,6 +37,11 @@ function makeHost(overrides: Partial<RecordPageHost> = {}) {
     save: async () => void order.push("write"),
     reload: async () => {},
     router: {} as any,
+    activityRows: () => [],
+    scrollToActivity: async () => true,
+    reloadActivity: async () => {},
+    fileRows: () => [],
+    reloadFiles: async () => {},
     ...overrides,
   };
   return { host, order, doc };

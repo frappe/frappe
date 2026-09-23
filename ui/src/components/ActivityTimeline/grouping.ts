@@ -16,14 +16,21 @@ export function dropDuplicateKeys(activities: Activity[]): Activity[] {
   );
 }
 
+/** The server's order by timestamp then key, by code unit; a row with no timestamp sorts newest. */
 export function compareActivities(
   a: Pick<Activity, "timestamp" | "key">,
   b: Pick<Activity, "timestamp" | "key">
 ): number {
-  return (
-    timeValue(a.timestamp) - timeValue(b.timestamp) ||
-    a.key.localeCompare(b.key)
-  );
+  if (!a.timestamp || !b.timestamp) {
+    if (a.timestamp || b.timestamp) return a.timestamp ? -1 : 1;
+    return compareText(a.key, b.key);
+  }
+  return compareText(a.timestamp, b.timestamp) || compareText(a.key, b.key);
+}
+
+// Date.parse drops microseconds and localeCompare folds case; the server does neither.
+function compareText(a = "", b = ""): number {
+  return a < b ? -1 : a > b ? 1 : 0;
 }
 
 // Frappe timestamps use a space separator; Date.parse needs 'T' for reliable parsing.
@@ -57,29 +64,40 @@ export function groupActivities(activities: Activity[]): Activity[] {
 
 // Fold consecutive same-author version rows ≤15m apart; any other row splits the run.
 export function groupVersionActivities(activities: Activity[]): Activity[] {
-  const out: Activity[] = [];
-  let run: VersionActivity[] = [];
-  const flush = () => {
-    if (!run.length) return;
-    const summary = summarizeVersions(run);
-    if (summary) out.push(summary);
-    run = [];
-  };
+  return versionRuns(activities).flatMap((run) =>
+    run[0].type === "version"
+      ? summarizeVersions(run as VersionActivity[]) ?? []
+      : run
+  );
+}
+
+/** The key a row is drawn under: a version row folded into a run draws as the run's first row. */
+export function drawnKey(activities: Activity[], key: string): string {
+  const run = versionRuns(activities).find((one) =>
+    one.some((a) => a.key === key)
+  );
+  return run?.[0].key ?? key;
+}
+
+// Every row alone, except consecutive version rows that fold together.
+function versionRuns(activities: Activity[]): Activity[][] {
+  const runs: Activity[][] = [];
   for (const a of activities) {
-    const last = run[run.length - 1];
-    if (
-      a.type === "version" &&
-      (!last || (last.author?.email === a.author?.email && withinGap(last, a)))
-    ) {
-      run.push(a);
-      continue;
-    }
-    flush();
-    if (a.type === "version") run.push(a);
-    else out.push(a);
+    const run = runs[runs.length - 1];
+    const last = run?.[run.length - 1];
+    if (last && foldsAfter(last, a)) run.push(a);
+    else runs.push([a]);
   }
-  flush();
-  return out;
+  return runs;
+}
+
+function foldsAfter(last: Activity, next: Activity): boolean {
+  return (
+    last.type === "version" &&
+    next.type === "version" &&
+    last.author?.email === next.author?.email &&
+    withinGap(last, next)
+  );
 }
 
 function groupActivityByOwner<T extends Activity>(
@@ -161,7 +179,7 @@ export function summarizeVersions(
   if (changes.length === 0) return null;
 
   // net changes list oldest-first by each field's latest hop (first-seen order otherwise)
-  changes.sort((a, b) => timeValue(a.timestamp) - timeValue(b.timestamp));
+  changes.sort((a, b) => compareText(a.timestamp, b.timestamp));
 
   // key off the first row so Vue reuses the item (keeps expanded state); timestamp from last
   const first = versions[0];

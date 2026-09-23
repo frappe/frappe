@@ -15,7 +15,7 @@ export interface ResolvedItem<Item extends SurfaceItem = SurfaceItem> {
 
 type Op<Item extends SurfaceItem> =
 	| { verb: "add"; source: string; item: Item; position?: Position }
-	| { verb: "hide" | "show"; source: string; name: string }
+	| { verb: "hide" | "show" | "remove"; source: string; name: string }
 	| { verb: "update"; source: string; name: string; patch: Partial<Item> }
 	| { verb: "move"; source: string; name: string; position: Position }
 	| { verb: "order"; source: string; names: string[] }
@@ -35,7 +35,7 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 	// Where a replay's ops accumulate until it commits. Non-null only inside a
 	// replay; ops recorded anywhere else render immediately.
 	private pending: Op<Item>[] | null = null;
-	private replaying = 0;
+	protected replaying = 0;
 	private builtins: () => Item[] = () => [];
 
 	/** Without a vocabulary every key is kept. */
@@ -75,6 +75,11 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 
 	order(names: string[]) {
 		this.record({ verb: "order", source: runningSource(), names });
+	}
+
+	// For a surface whose API names it; `has` answers false once it runs.
+	protected remove(name: string) {
+		this.record({ verb: "remove", source: runningSource(), name });
 	}
 
 	// An op in source order like `hide`, not a reset: items a later source adds are untouched.
@@ -193,6 +198,7 @@ function apply<Item extends SurfaceItem>(items: ResolvedItem<Item>[], op: Op<Ite
 	if (op.verb === "clear") return clear(items);
 	const found = items.find((entry) => entry.item.name === op.name);
 	if (!found) return;
+	if (op.verb === "remove") return void items.splice(items.indexOf(found), 1);
 	if (op.verb === "hide") found.hidden = true;
 	if (op.verb === "show") found.hidden = false;
 	if (op.verb === "update") Object.assign(found.item, op.patch);

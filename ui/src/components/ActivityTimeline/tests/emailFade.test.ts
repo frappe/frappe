@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { bottomFade } from "../utils";
+// Through the frontend's link: from inside ui/, frappe-ui resolves nowhere.
+import { bottomFade } from "../../../../../frontend/node_modules/@framework/ui/src/components/ActivityTimeline/utils";
 
 // Geometry below is measured from a real clipped email (3598px of content in
 // the 500px box) rather than invented, so the end-of-scroll case is exact.

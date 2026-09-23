@@ -57,6 +57,11 @@ function makePage(query: Record<string, string> = {}) {
       save: async () => {},
       reload: async () => {},
       router,
+      activityRows: () => [],
+      scrollToActivity: async () => false,
+      reloadActivity: async () => {},
+      fileRows: () => [],
+      reloadFiles: async () => {},
     });
     controller.value.tabs.provideBuiltins(recordTabBuiltins);
     return controller.value.refresh().then(settle);

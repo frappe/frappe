@@ -2,24 +2,66 @@
 # License: MIT. See LICENSE
 
 import json
+import operator
 import re
 from json import JSONDecodeError
 
 import frappe
 import frappe.utils
 from frappe import _
+from frappe.core.doctype.comment.comment import get_document_comments
+from frappe.desk.form.activity_page import PAGE_SIZE, ActivityPage
 from frappe.desk.form.load import (
-	_get_communications,
-	add_comments,
+	COMMENT_FIELDS,
+	add_email_attachments,
+	divide_comments,
 	get_milestones,
 	get_versions,
 	get_view_logs,
 )
 from frappe.model.document import Document
+from frappe.query_builder import Order
+from frappe.query_builder.functions import Coalesce
 
-# Emails and milestones are paged newest-first; the remaining sources load in full.
-EMAIL_PAGE_SIZE = 20
-MILESTONE_PAGE_SIZE = 20
+# The Comment types each activity type draws, so a page's limit counts only rows it can show.
+COMMENT_TYPES = {
+	"comment": ["Comment"],
+	"attachment_log": ["Attachment", "Attachment Removed"],
+	"log": [
+		"Shared",
+		"Unshared",
+		"Assigned",
+		"Assignment Completed",
+		"Info",
+		"Edit",
+		"Label",
+		"Like",
+		"Workflow",
+	],
+}
+
+EMAIL_TYPES = ("Communication", "Automated Message")
+EMAIL_FIELDS = (
+	"name",
+	"communication_type",
+	"communication_medium",
+	"communication_date",
+	"content",
+	"sender",
+	"sender_full_name",
+	"cc",
+	"bcc",
+	"creation",
+	"subject",
+	"delivery_status",
+	"_liked_by",
+	"reference_doctype",
+	"reference_name",
+	"read_by_recipient",
+	"recipients",
+)
+# How a page's `(operator, timestamp)` date condition compares an email's time.
+COMPARISONS = {"<": operator.lt, "<=": operator.le, "=": operator.eq}
 
 
 @frappe.whitelist()
@@ -27,40 +69,32 @@ def get_activity_timeline(
 	doctype: str,
 	name: str | int,
 	visible_types: list[str | dict[str, list[str]]] | str | None = None,
+	limit: int | str = PAGE_SIZE,
+	before: str | None = None,
 ) -> dict:
-	"""`visible_types` limits sources server-side so pagination math stays correct."""
+	"""The newest `limit` rows of the merged feed older than the `before` cursor, oldest first."""
 	doc = frappe.get_lazy_doc(doctype, name, check_permission=True)
 	user_info: dict = {}  # cache user lookups
+	page = ActivityPage(before, frappe.utils.cint(limit) or PAGE_SIZE)
 
 	visible, version_fields = parse_visible_types(visible_types)
 
 	def show(*types: str) -> bool:
 		return visible is None or not visible.isdisjoint(types)
 
-	emails, has_more_emails = get_email_activities(doc, user_info) if show("email") else ([], False)
-	milestones, has_more_milestones, next_milestone_start = (
-		get_milestone_activities(doc, user_info) if show("log") else ([], False, 0)
-	)
+	comment_types = [t for kind, types in COMMENT_TYPES.items() if show(kind) for t in types]
 	activities = [
 		*(get_creation_activity(doc, user_info) if show("log") else []),
 		*(get_edit_activity(doc, user_info) if show("log") else []),
-		*emails,
-		*(get_comment_and_log_activities(doc, user_info) if show("comment", "log", "attachment_log") else []),
-		*(get_view_activities(doc, user_info) if show("log") else []),
-		*milestones,
-		*(get_version_activities(doc, user_info, version_fields) if show("version") else []),
+		*(get_email_activities(doc, user_info, page) if show("email") else []),
+		*(get_comment_and_log_activities(doc, user_info, page, comment_types) if comment_types else []),
+		*(get_view_activities(doc, user_info, page) if show("log") else []),
+		*(get_milestone_activities(doc, user_info, page) if show("log") else []),
+		*(get_version_activities(doc, user_info, page, version_fields) if show("version") else []),
 	]
 	if visible is not None:
-		# comment/log/attachment_log share one fetcher; drop the leftover types here
 		activities = [a for a in activities if a["type"] in visible]
-
-	activities.sort(key=lambda a: (a.get("timestamp") or "", a["key"]))
-	return {
-		"activities": activities,
-		"has_more_emails": has_more_emails,
-		"has_more_milestones": has_more_milestones,
-		"next_milestone_start": next_milestone_start,
-	}
+	return page.build(activities)
 
 
 def parse_visible_types(visible_types) -> tuple[set[str] | None, list[str] | None]:
@@ -95,32 +129,6 @@ def parse_visible_types(visible_types) -> tuple[set[str] | None, list[str] | Non
 		else:
 			frappe.throw(_("visible_types entries must be strings or {type: [fields]} maps"))
 	return types, version_fields
-
-
-@frappe.whitelist()
-def get_more_email_activities(doctype: str, name: str | int, start: int) -> dict:
-	doc = frappe.get_lazy_doc(doctype, name, check_permission=True)
-	user_info: dict = {}
-
-	emails, has_more_emails = get_email_activities(doc, user_info, start=frappe.utils.cint(start))
-	emails.sort(key=lambda a: (a.get("timestamp") or "", a["key"]))
-	return {"activities": emails, "has_more_emails": has_more_emails}
-
-
-@frappe.whitelist()
-def get_more_milestone_activities(doctype: str, name: str | int, start: int) -> dict:
-	doc = frappe.get_lazy_doc(doctype, name, check_permission=True)
-	user_info: dict = {}
-
-	milestones, has_more, next_start = get_milestone_activities(
-		doc, user_info, start=frappe.utils.cint(start)
-	)
-	milestones.sort(key=lambda a: (a.get("timestamp") or "", a["key"]))
-	return {
-		"activities": milestones,
-		"has_more_milestones": has_more,
-		"next_milestone_start": next_start,
-	}
 
 
 def get_creation_activity(doc: "Document", user_info: dict) -> list[dict]:
@@ -177,14 +185,59 @@ def get_edit_msg(modified_by: str, fullname: str):
 	return _("{0} last edited this document").format(fullname)
 
 
-def get_email_activities(doc: "Document", user_info: dict, start: int = 0) -> tuple[list[dict], bool]:
-	# Fetch PAGE_SIZE+1 (DESC); the extra oldest row signals "more exist".
-	communications = _get_communications(doc.doctype, doc.name, start=start, limit=EMAIL_PAGE_SIZE + 1)
-	has_more = len(communications) > EMAIL_PAGE_SIZE
-	if has_more:
-		communications = communications[:EMAIL_PAGE_SIZE]
+def get_email_activities(doc: "Document", user_info: dict, page: ActivityPage) -> list[dict]:
+	def read(date: tuple[str, str] | None, limit: int | None = None) -> list:
+		return add_email_attachments(get_emails(doc.doctype, doc.name, limit, date))
+
+	communications = page.trim(
+		read(page.before_condition, page.fetch_size),
+		lambda c: str(c.communication_date or c.creation),
+		lambda timestamp: read(("=", timestamp)),
+	)
 	frappe.utils.add_user_info({c.sender for c in communications if c.sender}, user_info)
-	return build_email_activities(communications, user_info), has_more
+	return build_email_activities(communications, user_info)
+
+
+def get_emails(doctype: str, name: str | int, limit: int | None, date: tuple[str, str] | None) -> list:
+	"""The newest `limit` emails on a document, sent to it or linked to it, newest first.
+
+	An email's time is its `communication_date`, or its `creation` when it has none."""
+	communication = frappe.qb.DocType("Communication")
+	link = frappe.qb.DocType("Communication Link")
+	sent_to = frappe.qb.from_(communication).where(
+		(communication.reference_doctype == doctype) & (communication.reference_name == str(name))
+	)
+	linked_to = (
+		frappe.qb.from_(communication)
+		.inner_join(link)
+		.on(link.parent == communication.name)
+		.where((link.link_doctype == doctype) & (link.link_name == str(name)))
+	)
+
+	emails = {}
+	for query in (sent_to, linked_to):
+		for email in read_emails(query, communication, doctype, limit, date):
+			emails[email.name] = email
+	newest_first = sorted(emails.values(), key=lambda c: c.communication_date or c.creation, reverse=True)
+	return newest_first[:limit]
+
+
+def read_emails(query, communication, doctype: str, limit: int | None, date: tuple[str, str] | None) -> list:
+	timestamp = Coalesce(communication.communication_date, communication.creation)
+	query = query.select(*(communication[field] for field in EMAIL_FIELDS)).where(
+		communication.communication_type.isin(EMAIL_TYPES)
+	)
+	if doctype == "User":
+		query = query.where(
+			~(
+				(communication.reference_doctype == "User")
+				& (communication.communication_type == "Communication")
+			)
+		)
+	if date:
+		comparison, value = date
+		query = query.where(COMPARISONS[comparison](timestamp, value))
+	return query.orderby(timestamp, order=Order.desc).limit(limit).run(as_dict=True)
 
 
 def build_email_activities(communications, user_info: dict) -> list[dict]:
@@ -237,9 +290,27 @@ def parse_email_attachments(attachments) -> list[dict]:
 	return out
 
 
-def get_comment_and_log_activities(doc: "Document", user_info: dict) -> list[dict]:
+def get_comment_and_log_activities(
+	doc: "Document", user_info: dict, page: ActivityPage, comment_types: list[str]
+) -> list[dict]:
+	def read(filters: list, limit: int | None = None) -> list:
+		return get_document_comments(
+			doc.doctype,
+			doc.name,
+			fields=COMMENT_FIELDS,
+			comment_types=comment_types,
+			extra_filters=filters,
+			limit=limit,
+			order_by="creation desc",
+		)
+
+	comments = page.trim(
+		read(page.filters(), page.fetch_size),
+		lambda c: str(c.creation),
+		lambda timestamp: read([["creation", "=", timestamp]]),
+	)
 	comment_log_data = frappe._dict()
-	add_comments(doc, comment_log_data)
+	divide_comments(doc, comment_log_data, comments)
 
 	all_rows = (
 		comment_log_data.comments
@@ -425,8 +496,12 @@ def add_activity_record(c, author: dict, subtype: str, text: str, assignee: str 
 	}
 
 
-def get_view_activities(doc: "Document", user_info: dict) -> list[dict]:
-	views = get_view_logs(doc)
+def get_view_activities(doc: "Document", user_info: dict, page: ActivityPage) -> list[dict]:
+	views = page.trim(
+		get_view_logs(doc, page.filters(), page.fetch_size),
+		lambda v: str(v.creation),
+		lambda timestamp: get_view_logs(doc, [["creation", "=", timestamp]]),
+	)
 	frappe.utils.add_user_info({v.owner for v in views if v.owner}, user_info)
 
 	out = []
@@ -448,17 +523,16 @@ def get_view_activities(doc: "Document", user_info: dict) -> list[dict]:
 	return out
 
 
-def get_milestone_activities(
-	doc: "Document", user_info: dict, start: int = 0
-) -> tuple[list[dict], bool, int]:
-	# Fetch PAGE_SIZE+1 (DESC); the extra oldest row signals "more exist".
-	milestones = get_milestones(doc.doctype, doc.name, start=start, limit=MILESTONE_PAGE_SIZE + 1)
-	has_more = len(milestones) > MILESTONE_PAGE_SIZE
-	if has_more:
-		milestones = milestones[:MILESTONE_PAGE_SIZE]
-	next_start = start + len(milestones)
+def get_milestone_activities(doc: "Document", user_info: dict, page: ActivityPage) -> list[dict]:
+	milestones = page.trim(
+		get_milestones(doc.doctype, doc.name, limit=page.fetch_size, filters=page.filters()),
+		lambda m: str(m.creation),
+		lambda timestamp: get_milestones(
+			doc.doctype, doc.name, limit=None, filters=[["creation", "=", timestamp]]
+		),
+	)
 	if not milestones:
-		return [], False, next_start
+		return []
 
 	# A milestone names a field and its value, so it needs the same read check as a version.
 	permitted = readable_permlevels(doc.meta)
@@ -486,9 +560,7 @@ def get_milestone_activities(
 				},
 			}
 		)
-	# next_start counts rows read, not rows returned: a field the user cannot read drops a row here,
-	# so an offset the client derived from what it rendered would skip the rows behind it.
-	return out, has_more, next_start
+	return out
 
 
 # Fieldtypes shown as "updated {field}" instead of a from → to diff.
@@ -505,9 +577,13 @@ LONG_TEXT_FIELDTYPES = {
 
 
 def get_version_activities(
-	doc: "Document", user_info: dict, allowed_fields: list[str] | None = None
+	doc: "Document", user_info: dict, page: ActivityPage, allowed_fields: list[str] | None = None
 ) -> list[dict]:
-	versions = get_versions(doc)
+	versions = page.trim(
+		get_versions(doc, page.filters(), page.fetch_size),
+		lambda v: str(v.creation),
+		lambda timestamp: get_versions(doc, [["creation", "=", timestamp]], limit=None),
+	)
 	if not versions:
 		return []
 

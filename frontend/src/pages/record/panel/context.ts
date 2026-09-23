@@ -1,6 +1,6 @@
 // What the frame hands its built-in sections, so each one is a component like a script's.
 import type { InjectionKey, Ref } from "vue";
-import type { QuickAction, RecordPageController } from "@/recordPage";
+import type { FileRow, QuickAction, RecordPageController } from "@/recordPage";
 
 /** The parts the record read returns beside the document, as the panel reads them. */
 export interface DocInfo {
@@ -12,6 +12,7 @@ export interface DocInfo {
 	follows?: boolean;
 	users?: Record<string, { full_name?: string; user_image?: string }>;
 	permissions?: Record<string, any>;
+	attachments?: FileRow[];
 }
 
 export interface PanelContext {

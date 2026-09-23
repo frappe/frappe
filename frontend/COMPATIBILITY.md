@@ -52,6 +52,13 @@ What `page` is _for_ is a small, closed vocabulary:
   not reading or navigation. `fields` is one overlay over every place a field is drawn:
   the same patch reaches the Details form and the Side Panel layout, which is why an
   insert beside a field lives on `form` and not here.
+- **Two lists ordered by time, `activity` and `files`.** They are `Surface`s, but speak
+  only `add`, `remove` and `has`, and read their rows through a read-only `items`. Time
+  orders them, so there is no `move`, `order` or position on `add`. `activity` adds three
+  acts: `scrollTo(key)`, on `activate`'s terms, `reload()` and `types(list)`. `files` adds
+  `reload()`. **A server row's `name` is the server's key** (`comment:<name>`,
+  `email:<name>`, `version:<version>-<index>`), and on `files` the File's name; that key is
+  what `scrollTo` and a `?activity=` link take, so it is safe to store in a script.
 - **Two tab surfaces, and they are not interchangeable.** `page.tabs` means the **record**
   strip — activity, emails, files, details — and always will; `page.form.tabs` means the
   Form Layout strip *inside* details, a child of `page.form` because everything about the
@@ -66,8 +73,8 @@ What `page` is _for_ is a small, closed vocabulary:
   be nameless. It no longer can be. The strip had a top-level name before it was placed
   under `form`; that spelling is gone, with no alias, because it never reached a release.
   `onFormTabChange` keeps its name: it names the event, not the surface.
-- **`activate(name)` moves the reader; it and the panel's `open`/`close` are the only verbs
-  that act rather than arrange.** Both tab surfaces carry `activate`, each addressing its
+- **`activate(name)` moves the reader; it, `fields.focus`, `activity.scrollTo` and the
+  panel's `open`/`close` are the only verbs that act rather than arrange.** Both tab surfaces carry `activate`, each addressing its
   own strip and no other — `page.tabs.activate('emails')`,
   `page.form.tabs.activate('shipping')`. It is a **verb and not a writable `active`** on
   purpose: `active` is *derived* from what the strip can currently show, so a script that

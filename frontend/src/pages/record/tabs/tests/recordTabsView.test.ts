@@ -1,6 +1,7 @@
 // The strip over the tab bodies: a skeleton until the first replay, a body that stays mounted after its first visit, and its focus.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, reactive } from "vue";
+import { ScrollArea } from "frappe-ui";
 
 const strips: unknown[] = [];
 
@@ -26,13 +27,19 @@ vi.mock("frappe-ui", async (importOriginal) => ({
 import RecordTabs from "../RecordTabs.vue";
 import type { ResolvedItem } from "@/recordPage/surface";
 import type { TabItem } from "@/recordPage/types";
-import { recordTabBuiltins, RecordTabsHost } from "../recordTabs";
+import { recordTabBuiltins, RecordTabsHost, scrollsItself } from "../recordTabs";
 import { Surface } from "@/recordPage/surface";
 import { TAB_ITEM_KEYS } from "@/recordPage/types";
 
 const Audit = defineComponent({
   props: { page: Object, limit: Number },
   setup: (props) => () => h("p", { "data-audit": "" }, `${props.page?.docname}:${props.limit}`),
+});
+
+// A feed body: it draws its own scroller, as the Activity and Emails bodies do.
+const Feed = defineComponent({
+  scrollsItself: true,
+  setup: () => () => h(ScrollArea, null, () => h("button", { "data-feed-row": "" })),
 });
 
 const page = { doctype: "CRM Deal", docname: "D-1" } as any;
@@ -77,6 +84,10 @@ const FOUR = [entry("activity"), entry("emails"), entry("files"), entry("details
 
 function body(root: HTMLElement, name: string) {
   return root.querySelector<HTMLElement>(`[data-record-tab="${name}"]`);
+}
+
+function viewport(root: HTMLElement, name: string) {
+  return body(root, name)!.querySelector<HTMLElement>("[data-reka-scroll-area-viewport]")!;
 }
 
 function frame() {
@@ -153,6 +164,22 @@ describe("the bodies", () => {
     expect(body(root, "activity")!.style.display).toBe("");
   });
 
+  it("scrolls each body in its own viewport, which keeps its place across a switch", async () => {
+    const { root, state } = await mount(FOUR, "details");
+    const details = viewport(root, "details");
+    details.scrollTop = 300;
+
+    state.active = "activity";
+    await nextTick();
+    viewport(root, "activity").scrollTop = 40;
+    state.active = "details";
+    await nextTick();
+
+    expect(viewport(root, "details")).toBe(details);
+    expect(details.scrollTop).toBe(300);
+    expect(viewport(root, "activity").scrollTop).toBe(40);
+  });
+
   it("keeps the body of a tab a script hides", async () => {
     const { root, state } = await mount(FOUR, "files");
 
@@ -164,7 +191,7 @@ describe("the bodies", () => {
     expect(body(root, "files")!.style.display).toBe("none");
   });
 
-  it("draws Details from the host's slot and an empty state for the other built-ins", async () => {
+  it("draws Details from the host's slot and an empty state for a tab with no component", async () => {
     const { root, state } = await mount(FOUR, "details");
 
     expect(body(root, "details")!.querySelector("[data-details]")).not.toBeNull();
@@ -197,6 +224,56 @@ describe("the bodies", () => {
 
     expect(body(root, "details")).toBeNull();
     expect(body(root, "activity")).not.toBeNull();
+  });
+});
+
+describe("a body that scrolls itself", () => {
+  const FEEDS = [entry("activity", { component: Feed }), entry("files", { component: Feed }), entry("details")];
+
+  function viewports(root: HTMLElement, name: string) {
+    return [...body(root, name)!.querySelectorAll("[data-reka-scroll-area-viewport]")].filter(
+      (viewport) => viewport.getAttribute("tabindex") === "0",
+    );
+  }
+
+  it("has one scroll viewport a reader can tab to, its own", async () => {
+    const { root, state } = await mount(FEEDS, "activity");
+    state.active = "files";
+    await nextTick();
+
+    expect(viewports(root, "activity")).toHaveLength(1);
+    expect(body(root, "activity")!.hasAttribute("data-reka-scroll-area-viewport")).toBe(false);
+    expect(viewports(root, "files")).toHaveLength(1);
+    expect(body(root, "files")!.hasAttribute("data-reka-scroll-area-viewport")).toBe(false);
+  });
+
+  it("leaves Details in the strip's scroll area", async () => {
+    const { root, state } = await mount(FEEDS, "details");
+    state.active = "files";
+    await nextTick();
+
+    expect(viewport(root, "details")).not.toBeNull();
+  });
+
+  it("marks the Activity, Emails and Files bodies", () => {
+    const marked = recordTabBuiltins().filter((tab) => scrollsItself(tab.component));
+    expect(marked.map((tab) => tab.name)).toEqual(["activity", "emails", "files"]);
+  });
+
+  it("gets focus back on the row the reader left", async () => {
+    const { root, state } = await mount(FEEDS, "activity");
+    const row = root.querySelector<HTMLElement>("[data-feed-row]")!;
+    row.focus();
+
+    state.active = "details";
+    await nextTick();
+    row.blur();
+    state.active = "activity";
+    await nextTick();
+    await frame();
+
+    expect(document.activeElement).toBe(row);
+    expect(body(root, "activity")!.style.display).toBe("");
   });
 });
 

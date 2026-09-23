@@ -2,6 +2,10 @@
 // item schemas the four surfaces accept.
 import type { Component } from "vue";
 import type { Router } from "vue-router";
+import type {
+  BaseActivity,
+  VisibleTypes,
+} from "@framework/ui/components/ActivityTimeline/types";
 import type { FieldAccess } from "@framework/ui/composables/useDocPermissions";
 
 /** Where an added or moved item lands; absent or unknown anchors append. */
@@ -151,6 +155,67 @@ export const BODY_ITEM_KEYS: readonly string[] = [
   "maxWidth",
   "collapsible",
 ];
+
+/** A script's own row in the feed or the files list; its timestamp places it among the server's rows. */
+export interface FeedItem extends SurfaceItem {
+  /** `YYYY-MM-DD HH:mm:ss`, as the server writes one. */
+  timestamp: string;
+  component: Component;
+  props?: Record<string, any>;
+}
+
+export const FEED_ITEM_KEYS: readonly string[] = ["name", "timestamp", "component", "props"];
+
+/** One row the Activity tab has loaded, as the activity store holds it. */
+export type ActivityRow = BaseActivity<string, unknown>;
+
+/** A server row as `page.activity.items` hands it: the row's `key` is its `name`. */
+export interface ActivityItem {
+  name: string;
+  type: string;
+  timestamp?: string;
+  author?: ActivityRow["author"];
+  data: unknown;
+  /** Posted, and not yet answered by the server. */
+  pending?: boolean;
+}
+
+/** One row of the record read's `attachments` part; `name` is the File's name. */
+export interface FileRow {
+  name: string;
+  file_name: string;
+  file_url: string;
+  file_type?: string;
+  file_size?: number;
+  is_private: 0 | 1;
+  attached_to_field?: string | null;
+  folder?: string;
+  creation: string;
+  owner: string;
+}
+
+/** A list time orders: the server's rows read-only, a script's own rows added between them. */
+export interface PageFeedList<Row> {
+  /** Oldest first, a script's rows included; read-only. */
+  readonly items: ReadonlyArray<Row | FeedItem>;
+  add(item: FeedItem | FeedItem[]): void;
+  /** Takes out a script's own row; a server row stays. */
+  remove(name: string): void;
+  /** True for a loaded server row and for a script's own row. */
+  has(name: string): boolean;
+  /** Reads the server's rows again; a script's rows stay. */
+  reload(): Promise<void>;
+}
+
+/** The Activity tab's list. */
+export interface PageActivity extends PageFeedList<ActivityItem> {
+  /** Opens the Activity tab and scrolls to the row, loading older rows until it is found. */
+  scrollTo(key: string): void;
+  /** The types the Activity tab shows, as `ActivityTimeline` names them; unset shows every type. */
+  types(list: VisibleTypes): void;
+}
+
+export type PageFiles = PageFeedList<FileRow>;
 
 /** The panel surface also opens and shuts a section for the reader. */
 export interface PanelSectionsApi extends SurfaceVerbs<PanelSectionItem> {
@@ -468,6 +533,10 @@ export interface RecordPageApi {
   fields: PageFields;
   /** The Details form: the layout's sections and a script's parts as one list, and its tab strip. */
   form: PageForm;
+  /** The Activity tab's rows, oldest first. */
+  activity: PageActivity;
+  /** The record's attachments, oldest first. */
+  files: PageFiles;
   /** The child table's rows as handles, in array order; a non-table fieldname answers empty. */
   rows(parentfield: string): PageRow[];
   save(): Promise<void>;
@@ -479,7 +548,7 @@ export interface RecordPageApi {
   router: Router;
 }
 
-export type { FieldAccess };
+export type { FieldAccess, VisibleTypes };
 
 /**
  * A top-level key receives `(page)`; one nested under a child table receives

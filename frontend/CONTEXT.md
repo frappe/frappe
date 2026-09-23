@@ -173,6 +173,8 @@ verb set `add`, `hide`, `show`, `update`, `move`, `has`, `order`, `clear`. Two o
 `Surface`s: they override properties rather than arrange items, and speak a strict subset
 with no `add`, `move` or `order`. `form.tabs` is the strip inside the form, a child of
 the `form` surface, so everything about the Details form sits under one object.
+Two more, `activity` and `files`, are `Surface`s ordered by time: they hold a script's own
+rows, read the server's through `items`, and speak `add`, `remove` and `has` only.
 _Avoid_: sections (`panelSections` and `Section` both already claim the word), a
 top-level name for the form's strip.
 

@@ -685,3 +685,161 @@ export default {
   },
 }
 ```
+
+## The record tabs: `page.tabs`
+
+The strip above the record's body: Activity, Emails, Files, Details and a script's own tabs.
+It speaks the eight verbs, `active` and `activate(name)`.
+
+### An item
+
+| Key | What it does |
+| --- | --- |
+| `name` | The address every verb uses. |
+| `label` | The text on the strip. |
+| `icon` | `lucide-<name>`, drawn before the label. |
+| `component` | Draws the tab's body. It receives `{ ...props, page }`. |
+| `props` | Bound onto `component`. |
+| `create` | `{ label, icon, run }`: an entry in the composer's `+` menu while the tab is on the strip. |
+
+The page draws a tab's body inside a scroller. A component that draws its own scroller sets
+`defineOptions({ scrollsItself: true })`, or `scrollsItself: true` on the component object,
+and the tab body adds none.
+
+## The feed: `page.activity`
+
+The Activity tab is **one list, ordered by time**. The server's rows and a script's own
+rows sit in it together, oldest first, and a script's row takes its place by its
+`timestamp`. Since time orders the list there are no position words: `move` and `order`
+warn and do nothing, and `add` takes no `before` or `after`.
+
+The surface speaks `add`, `remove` and `has`, reads its rows through `items`, and has three
+acts: `scrollTo(key)`, `reload()` and `types(list)`.
+
+### An item
+
+A script's row:
+
+| Key | What it does |
+| --- | --- |
+| `name` | The address. It must not be a server row's key; that `add` warns and drops the row. |
+| `timestamp` | Where the row sits, written as the server writes one: `2026-09-23 10:15:00`, in the site's time zone. Required, and `update` cannot clear it. `add` and `update` rewrite an ISO `2026-09-23T10:15:00` that way, and move a time with a `Z` or an offset to the site's time zone, so `new Date().toISOString()` lands where it should. Without the site's time zone such a row is dropped, with a warning that prints in production too. |
+| `component` | Draws the row, with `props` and a `page` prop. Required. |
+| `props` | Bound onto `component`. |
+| any other key | Not read: dropped on `add`, and a development build warns once. |
+
+A server row, as `items` hands it back:
+
+| Key | What it holds |
+| --- | --- |
+| `name` | The row's key: `comment:<name>`, `email:<name>`, `version:<version>-<index>`, `attachment:<name>`, `log:<name>`, and so on. The same key a link or `scrollTo` uses. |
+| `type` | `comment`, `email`, `version`, `attachment_log` or `log`. |
+| `timestamp` | When it happened. |
+| `author` | `{ email, fullname, image }`. |
+| `data` | The row's own content, by type. |
+| `pending` | `true` on a row posted from this page that the server has not answered yet. |
+
+`items` is read-only; a write throws and names `add` as the verb to use. `has(name)`
+answers `true` for a loaded server row and for a script's row. `remove(name)` takes out a
+script's row; a server row stays, with a development warning.
+
+### The built-ins
+
+The built-ins are the rows the tab has loaded, not the whole history. The tab reads the
+newest 50 rows first and loads older pages as the reader scrolls up, so `items` grows as
+the reader goes. A comment, email or attachment another session adds arrives on its own,
+and a field change refreshes the newest page.
+
+The first `onRefresh` sees the newest page when the address opens the Activity tab; when it
+opens another tab, Emails included, the rows are read as Activity first shows, so that
+`onRefresh` sees none. When the address opens the Activity tab, the page's
+first paint and first `onRefresh` wait for the newest activity page, a read that starts
+with the record read.
+
+A script's rows are rebuilt on every replay, like any surface's, and survive `reload()`,
+which reads the server's rows again and leaves the script's alone.
+
+The Emails tab shows the same rows narrowed to emails. It has no surface of its own.
+
+### The acts
+
+`scrollTo(key)` opens the Activity tab, scrolls to the row and highlights it for two
+seconds. A row older than the loaded ones is found by loading older pages until it
+appears. A field change folded into a run of changes scrolls to the run. If the list ends
+without the row, or a script's body replaced the tab's feed, a development build warns
+naming the key, and the reader stays where they are. On `activate`'s terms: called in a replay, it is delivered
+when the replay commits, and only the last call in a replay counts.
+
+`types(list)` sets the types the Activity tab shows, in `ActivityTimeline`'s spelling:
+`['comment', 'email']`, or `{ version: ['status'] }` for changes to named fields only. It
+is set by the replay like any op, so a replay that does not call it shows every type
+again.
+
+`reload()` reads the server's rows again and resolves when they are in.
+
+A link can point at a row: `…/deal/CRM-DEAL-0001?activity=comment:abc123` opens the
+Activity tab, scrolls to that comment and highlights it, as `scrollTo` does.
+
+### The script this design was judged by
+
+```js
+export default {
+  onRefresh(page) {
+    // scroll to a named activity; pages older rows until it is found
+    const last = page.activity.items.filter((a) => a.type === 'comment').at(-1)
+    if (last) page.activity.scrollTo(last.name)     // 'comment:abc123'
+
+    // a script's own row, ordered by its timestamp among the server rows
+    page.activity.add({
+      name: 'call:17',
+      timestamp: '2026-09-23 10:15:00',
+      component: CallRow,
+      props: { id: 17 },
+    })
+
+    console.log(page.files.items.map((f) => f.name))
+  },
+}
+```
+
+## The files: `page.files`
+
+The Files tab is a smaller list of the same kind: the record's attachments, oldest first,
+and a script's own rows placed among them by `timestamp`. It speaks `add`, `remove` and
+`has`, reads through `items`, and has one act, `reload()`. There is no `scrollTo` and no
+`types`.
+
+### An item
+
+A script's row takes the same keys as a row of `page.activity`: `name`, `timestamp`,
+`component` and `props`.
+
+An attachment, as `items` hands it back:
+
+| Key | What it holds |
+| --- | --- |
+| `name` | The File's name. |
+| `file_name`, `file_url` | What the reader sees, and where it downloads from. |
+| `file_type`, `file_size` | The extension and the size in bytes. |
+| `is_private` | `1` for a private file. |
+| `attached_to_field` | The field the file was uploaded into, or empty for a plain attachment. |
+| `creation`, `owner` | When and by whom it was attached; `creation` orders the list. |
+
+`items` is read-only. `remove(name)` takes out a script's row, never an attachment: the
+tab's own upload button and remove control are drawn only with write.
+
+### The built-ins
+
+The attachments are the record read's `attachments` part. The tab's upload button and a
+remove control replace that part from the server's answer, and an upload from another
+session arrives on its own. `reload()` reads the part again; a script's rows stay.
+
+### The script this design was judged by
+
+```js
+export default {
+  onRefresh(page) {
+    console.log(page.files.items.map((f) => f.name))
+  },
+}
+```

@@ -30,6 +30,8 @@ export default defineConfig({
 		},
 		// `@framework/ui` is linked in as raw source and must resolve its imports in this tree.
 		preserveSymlinks: true,
+		// A `ui/` test imports `ui/` by its real path, where no `node_modules` lies above it.
+		dedupe: ["vue", "frappe-ui"],
 	},
 	// No postcss: `tailwind.config.js` reads `manifest.json` at module scope, and a frappe-ui
 	// `<style>` block would reach it through `vite:css`. An empty object overrides, not merges.
@@ -41,6 +43,7 @@ export default defineConfig({
 			"src/**/tests/*.test.ts",
 			"plugin/tests/*.test.ts",
 			"../ui/src/api/tests/*.test.ts",
+			"../ui/src/components/ActivityTimeline/tests/*.test.ts",
 		],
 		server: {
 			deps: {
