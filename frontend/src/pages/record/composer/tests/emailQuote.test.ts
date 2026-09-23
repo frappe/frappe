@@ -1,4 +1,5 @@
 // A reply's quote in the real editor: drawn under the body, sent once, gone on Discard, back after a failure.
+// Emptying the body and the quote by hand is not a Discard.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, type Component } from "vue";
 
@@ -205,4 +206,28 @@ describe("a reply's quote", () => {
 			expect(composerDraft("Lead", page.docname, "email")).toBeUndefined();
 		}
 	);
+
+	it("goes on select-all and Delete, which keep the reply's headers", async () => {
+		const { root, page } = await mountBand();
+		await reply(root, page, true);
+		type(root, "Thanks");
+		await settle();
+		const quote = root.querySelector<HTMLElement>("details > div")!;
+		quote.focus();
+		const keys = { bubbles: true, cancelable: true };
+		quote.dispatchEvent(new KeyboardEvent("keydown", { key: "a", ctrlKey: true, ...keys }));
+		quote.dispatchEvent(new KeyboardEvent("keydown", { key: "Delete", ...keys }));
+		await settle();
+		expect(quoteText(root)).toBeUndefined();
+		expect(inputs(root)).toContain("Re: Quote");
+		expect(root.querySelector("[data-email-writer]")!.textContent).toContain("carl@example.com");
+		expect(composerDraft("Lead", page.docname, "email")).toMatchObject({
+			to: ["bob@example.com"],
+			cc: expect.arrayContaining(["carl@example.com", "dan@example.com"]),
+			subject: "Re: Quote",
+			inReplyTo: "COMM-1",
+			content: "",
+			quoted: "",
+		});
+	});
 });

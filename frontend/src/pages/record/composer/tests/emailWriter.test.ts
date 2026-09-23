@@ -62,6 +62,7 @@ vi.mock("@framework/ui/Composer", async () => {
 				"update:subject",
 				"submit",
 				"remove-attachment",
+				"discard",
 			],
 			setup(props, { slots, expose }) {
 				composerStub.lastProps = props;
@@ -169,6 +170,12 @@ function fakeController(perms: Record<string, number> = { email: 1 }) {
 		toast: { error: vi.fn(), success: vi.fn() },
 	};
 	return { page, composer, firePost: vi.fn(async () => {}) } as any;
+}
+
+// The editor empties its body before it says Discard.
+function discard(root: HTMLElement) {
+	editor(root).$emit("update:modelValue", "");
+	editor(root).$emit("discard");
 }
 
 async function mountEmail(
@@ -337,7 +344,7 @@ describe("sending an email", () => {
 			inReplyTo: "COMM-1",
 		});
 		const { root, controller } = await mountEmail(undefined, draft);
-		editor(root).$emit("update:modelValue", "");
+		discard(root);
 		await flush();
 		expect(composerStub.lastProps).toMatchObject({
 			from: "sales@example.com",
@@ -349,12 +356,35 @@ describe("sending an email", () => {
 		expect(composerDraft("Lead", controller.page.docname, "email")).toBeUndefined();
 	});
 
+	it("keeps the headers and the reply's thread when the body is emptied", async () => {
+		answers({ senders: [USER.email], default: null });
+		const draft = asEmailDraft({
+			to: "bob@example.com",
+			cc: "carl@example.com",
+			subject: "Re: Quote",
+			content: "<p>Hi</p>",
+			inReplyTo: "COMM-1",
+		});
+		const { root, controller } = await mountEmail(undefined, draft);
+		editor(root).$emit("update:modelValue", "");
+		await flush();
+		expect(composerStub.lastProps).toMatchObject({
+			to: [{ email: "bob@example.com" }],
+			cc: [{ email: "carl@example.com" }],
+			subject: "Re: Quote",
+		});
+		expect(composerDraft("Lead", controller.page.docname, "email")).toMatchObject({
+			inReplyTo: "COMM-1",
+			content: "",
+		});
+	});
+
 	it("sends what was written when Discard came while the send waited on the lookup", async () => {
 		const release = heldSenders({ senders: ["sales@example.com"], default: null });
 		const draft = asEmailDraft({ to: "bob@example.com", subject: "Re: Quote", inReplyTo: "COMM-1" });
 		const { root } = await mountEmail(undefined, draft);
 		editor(root).$emit("submit", { body: "<p>Hi</p>", attachments: [] });
-		editor(root).$emit("update:modelValue", "");
+		discard(root);
 		release();
 		await flush();
 		const makes = runMethod.mock.calls.filter(([method]) => method === MAKE);
@@ -372,7 +402,7 @@ describe("sending an email", () => {
 		answers({ senders: [USER.email], default: null });
 		const draft = asEmailDraft({ to: "bob@example.com", content: "<p>Hi</p>" });
 		const { root, controller } = await mountEmail(undefined, draft);
-		editor(root).$emit("update:modelValue", "");
+		discard(root);
 		await flush();
 		controller.composer.close();
 		await flush();

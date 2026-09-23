@@ -8,7 +8,6 @@ import { EMAIL_WRITER, isFreshEmailDraft, readEmailDraft, type EmailDraft } from
 import { uploadCommentFile } from "./commentUpload";
 import { asAttachment } from "./useCommentDraft";
 
-// The editor writes an empty string only on reset, so the model starts from an empty paragraph.
 const EMPTY_BODY = "<p></p>";
 
 type UploadOptions = {
@@ -36,24 +35,23 @@ export function useEmailDraft(
 	const attachments = ref<UploadedFile[]>([...stored.attachments]);
 	const seed = [...stored.attachments];
 	let inReplyTo = stored.inReplyTo;
-	let resets = 0;
+	let discards = 0;
 
 	watch([from, to, cc, bcc, subject, content, quoted, attachments], save, { deep: true });
-	watch(content, (next) => next === "" && reset(), { flush: "sync" });
 
 	// The editor passes options for inline media; the attach button calls with the file alone.
 	async function upload(file: File, options?: UploadOptions): Promise<UploadedMedia> {
-		const started = resets;
+		const started = discards;
 		const media = await uploadCommentFile(file, options, transport);
-		// A reset during the upload dropped the file from the editor, so the draft drops it too.
-		if (!options && started === resets)
+		// A Discard during the upload dropped the file from the editor, so the draft drops it too.
+		if (!options && started === discards)
 			attachments.value = [...attachments.value, asAttachment(media)];
 		return media;
 	}
 
 	// Discard leaves what a plain open of the writer shows; the chosen sender stays.
-	function reset() {
-		resets++;
+	function discard() {
+		discards++;
 		const start = fresh();
 		to.value = asRecipients(start.to);
 		cc.value = asRecipients(start.cc);
@@ -90,7 +88,7 @@ export function useEmailDraft(
 		else saveComposerDraft(doctype, docname, EMAIL_WRITER, current);
 	}
 
-	return { from, to, cc, bcc, subject, content, quoted, seed, upload, forget, draft };
+	return { from, to, cc, bcc, subject, content, quoted, seed, upload, forget, discard, draft };
 }
 
 function asRecipients(list: string[]): Recipient[] {

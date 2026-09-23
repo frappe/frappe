@@ -12,6 +12,7 @@
 			fill
 			@submit="send"
 			@remove-attachment="forget"
+			@discard="discard"
 		>
 			<template #actions="{ addAttachment }">
 				<AttachmentSeed :files="seed" :add="addAttachment" />
@@ -36,7 +37,7 @@ const CommentComposer = defineAsyncComponent(() =>
 
 const props = defineProps<{ controller: RecordPageController; user: SessionUser }>();
 
-const { content, seed, upload, forget } = useCommentDraft(
+const { content, seed, upload, forget, discard } = useCommentDraft(
 	props.controller.page.doctype,
 	props.controller.page.docname
 );

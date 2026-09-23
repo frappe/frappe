@@ -1,4 +1,4 @@
-// The comment writer's draft: what a reset clears, and an upload that lands after one.
+// The comment writer's draft: what a Discard clears, and an upload that lands after one.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { effectScope, nextTick } from "vue";
 
@@ -50,12 +50,12 @@ describe("the comment draft", () => {
 		]);
 	});
 
-	it("keeps a file out of the draft when a reset came while it uploaded", async () => {
+	it("keeps a file out of the draft when a Discard came while it uploaded", async () => {
 		const docname = `NOTE-${++record}`;
 		const draft = draftOn(docname);
 		const finish = uploadLater();
 		const uploaded = draft.upload(new File(["x"], "brief.pdf"));
-		draft.content.value = "";
+		draft.discard();
 		finish();
 		await uploaded;
 		await nextTick();
@@ -63,17 +63,27 @@ describe("the comment draft", () => {
 		expect(composerDraft("Note", docname, "comment")?.attachments).toEqual([]);
 	});
 
-	it("clears the files of a draft with no text on a reset, and can reset again", async () => {
+	it("clears the files of a draft with no text on a Discard, and can discard again", async () => {
 		const docname = `NOTE-${++record}`;
 		openComposer("Note", docname, "comment", { content: "", attachments: [FILE] });
 		const draft = draftOn(docname);
 		expect(draft.content.value).toBe("<p></p>");
-		draft.content.value = "";
+		draft.discard();
 		await nextTick();
 		expect(composerDraft("Note", docname, "comment")).toEqual({
 			content: "<p></p>",
 			attachments: [],
 		});
 		expect(draft.content.value).toBe("<p></p>");
+	});
+
+	it("keeps the files when the body is emptied", async () => {
+		const docname = `NOTE-${++record}`;
+		openComposer("Note", docname, "comment", { content: "<p>Hi</p>", attachments: [FILE] });
+		const draft = draftOn(docname);
+		draft.content.value = "";
+		await nextTick();
+		expect(draft.attachments.value).toEqual([FILE]);
+		expect(composerDraft("Note", docname, "comment")).toEqual({ content: "", attachments: [FILE] });
 	});
 });

@@ -23,6 +23,7 @@
 			fill
 			@submit="send"
 			@remove-attachment="forget"
+			@discard="discard"
 		>
 			<template #actions="{ addAttachment }">
 				<AttachmentSeed :files="seed" :add="addAttachment" />
@@ -56,12 +57,13 @@ const EmailComposer = defineAsyncComponent(() =>
 const props = defineProps<{ controller: RecordPageController; user: SessionUser }>();
 
 const feeds = inject(RecordFeedsKey, null);
-const { from, to, cc, bcc, subject, content, quoted, seed, upload, forget, draft } = useEmailDraft(
-	props.controller.page.doctype,
-	props.controller.page.docname,
-	() => freshEmail(props.controller.page),
-	recordTransport()
-);
+const { from, to, cc, bcc, subject, content, quoted, seed, upload, forget, discard, draft } =
+	useEmailDraft(
+		props.controller.page.doctype,
+		props.controller.page.docname,
+		() => freshEmail(props.controller.page),
+		recordTransport()
+	);
 const composer = ref<{ focus: () => void } | null>(null);
 // A writer posts once; the band closes it, and a reopen draws a new one.
 const sent = ref(false);

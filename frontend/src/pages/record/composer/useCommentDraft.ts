@@ -6,7 +6,6 @@ import { saveComposerDraft } from "@/shell/composer";
 import { COMMENT_WRITER, readCommentDraft } from "./commentDraft";
 import { uploadCommentFile } from "./commentUpload";
 
-// The editor writes an empty string only on reset, so the model starts from an empty paragraph.
 const EMPTY_BODY = "<p></p>";
 
 type UploadOptions = {
@@ -19,23 +18,22 @@ export function useCommentDraft(doctype: string, docname: string) {
 	const content = ref(stored.content || EMPTY_BODY);
 	const attachments = ref<UploadedFile[]>([...stored.attachments]);
 	const seed = [...stored.attachments];
-	let resets = 0;
+	let discards = 0;
 
 	watch([content, attachments], save, { deep: true });
-	watch(content, (next) => next === "" && reset(), { flush: "sync" });
 
 	// The editor passes options for inline media; the attach button calls with the file alone.
 	async function upload(file: File, options?: UploadOptions): Promise<UploadedMedia> {
-		const started = resets;
+		const started = discards;
 		const media = await uploadCommentFile(file, options);
-		// A reset during the upload dropped the file from the editor, so the draft drops it too.
-		if (!options && started === resets)
+		// A Discard during the upload dropped the file from the editor, so the draft drops it too.
+		if (!options && started === discards)
 			attachments.value = [...attachments.value, asAttachment(media)];
 		return media;
 	}
 
-	function reset() {
-		resets++;
+	function discard() {
+		discards++;
 		attachments.value = [];
 		content.value = EMPTY_BODY;
 	}
@@ -51,7 +49,7 @@ export function useCommentDraft(doctype: string, docname: string) {
 		});
 	}
 
-	return { content, attachments, seed, upload, forget };
+	return { content, attachments, seed, upload, forget, discard };
 }
 
 export function asAttachment(media: UploadedMedia): UploadedFile {
