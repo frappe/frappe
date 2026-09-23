@@ -167,41 +167,6 @@
 					</template>
 				</draggable>
 			</template>
-
-			<div class="pfb-group-label">
-				{{ __("Field template") }}
-				<a
-					:href="'/app/print-format-field-template'"
-					target="_blank"
-					class="pfb-manage-link text-muted"
-				>
-					{{ __("Manage") }}
-				</a>
-			</div>
-			<div class="pfb-group-desc">
-				{{ __("Make a custom field with HTML or Jinja") }}
-			</div>
-			<draggable
-				v-if="print_templates_list.length"
-				:list="print_templates_list"
-				:group="{ name: 'fields', pull: 'clone', put: false }"
-				:sort="false"
-				:clone="clone_field"
-				item-key="fieldname"
-				v-bind="DRAG_OPTIONS"
-				@start="setDragging(true)"
-				@end="setDragging(false)"
-			>
-				<template #item="{ element }">
-					<BlockCard
-						icon="code"
-						:name="element.display_label"
-						:desc="element.field_label || __('Custom block')"
-						:title="element.fieldname"
-						@click="add_to_layout(element)"
-					/>
-				</template>
-			</draggable>
 		</div>
 
 		<!-- ── Layers ─────────────────────────────────────────── -->
@@ -416,7 +381,6 @@ import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "
 // state
 let search_text = ref("");
 let search_input = ref(null);
-let raw_templates = ref([]);
 
 // ── tab definitions ───────────────────────────────────────
 const TAB_STORE_KEY = "pfb_active_tab";
@@ -769,34 +733,6 @@ let field_groups = computed(() => {
 	return groups.filter((g) => g.fields.length);
 });
 
-// ── library tab ───────────────────────────────────────────
-function fetch_templates() {
-	const doctype = meta.value?.name;
-	if (!doctype) return;
-	Promise.all([
-		frappe.db.get_list("Print Format Field Template", {
-			fields: ["name", "template", "field"],
-			filters: { document_type: doctype },
-			limit: 100,
-		}),
-		frappe.db.get_list("Print Format Field Template", {
-			fields: ["name", "template", "field"],
-			filters: { document_type: ["is", "not set"] },
-			limit: 100,
-		}),
-	])
-		.then(([specific, generic]) => {
-			raw_templates.value = [...(specific || []), ...(generic || [])];
-		})
-		.catch(() => {
-			raw_templates.value = [];
-		});
-}
-
-function enter_tab(tab) {
-	if (tab === "library") fetch_templates();
-}
-
 // the indicator is the moving bar under the active tab; espresso's tabs.css
 // reads its offset and width from these two custom properties
 let tablist = ref(null);
@@ -812,39 +748,13 @@ function move_indicator() {
 
 watch(activeTab, (tab) => {
 	localStorage.setItem(TAB_STORE_KEY, tab);
-	enter_tab(tab);
 	nextTick(move_indicator);
-});
-
-let print_templates_list = computed(() => {
-	const templates = raw_templates.value;
-	return templates.map((template) => {
-		let df;
-		let field_label = null;
-		if (template.field) {
-			df = frappe.meta.get_docfield(meta.value.name, template.field);
-			field_label = df ? __(df.label, null, df.parent) : template.field;
-		} else {
-			df = { label: template.name, fieldname: frappe.scrub(template.name) };
-		}
-		return {
-			name: template.name,
-			display_label: template.name,
-			fieldname: (df?.fieldname || frappe.scrub(template.name)) + "_template",
-			fieldtype: "Field Template",
-			field_template: template.name,
-			field_label,
-		};
-	});
 });
 
 // ── computed: misc ─────────────────────────────────────────
 // ── lifecycle ──────────────────────────────────────────────
 onMounted(() => {
 	document.addEventListener("keydown", handle_slash_key);
-
-	// the watcher only fires on change, so a restored tab needs its setup run here
-	enter_tab(activeTab.value);
 	nextTick(move_indicator);
 });
 
@@ -1019,13 +929,6 @@ function handle_slash_key(e) {
 	padding: 2px 6px;
 	white-space: nowrap;
 	flex-shrink: 0;
-}
-
-.pfb-manage-link {
-	font-size: var(--text-tiny);
-	font-weight: 400;
-	text-transform: none;
-	letter-spacing: 0;
 }
 
 /* ── Outline tab (tree) ──────────────────────────────────── */
