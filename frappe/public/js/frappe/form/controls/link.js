@@ -816,7 +816,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				var q = get_query(
 					(this.frm && this.frm.doc) || this.doc,
 					this.doctype,
-					this.docname
+					this.docname,
+					this.frm
 				);
 
 				if (typeof q === "string") {
