@@ -4,15 +4,18 @@
 	<div class="flex h-full min-h-0 flex-col" data-record-tabs>
 		<div
 			v-if="!ready"
-			class="flex shrink-0 items-center gap-5 border-b px-[--page-gutter] py-2"
+			class="shrink-0 border-b border-outline-gray-1 px-[--page-gutter] py-2"
 			data-record-tabs-skeleton
 		>
-			<Skeleton v-for="n in 4" :key="n" class="h-4 w-16 rounded-4" />
+			<div class="flex h-7 items-center gap-5">
+				<Skeleton v-for="n in 4" :key="n" class="h-4 w-16 rounded-4" />
+			</div>
 		</div>
 		<div
 			v-else-if="stripTabs.length"
 			ref="stripRoot"
-			class="shrink-0 px-[--page-gutter]"
+			class="shrink-0"
+			:class="TAB_STRIP_CLASSES"
 			@pointerdown="pointerPressed = true"
 			@pointercancel="pointerPressed = false"
 			@pointerleave="pointerPressed = false"
@@ -52,7 +55,7 @@ import { Skeleton, Tabs } from "frappe-ui";
 import type { ResolvedItem } from "@/recordPage/surface";
 import type { RecordPageApi, TabItem } from "@/recordPage/types";
 import { __ } from "@/i18n";
-import { DETAILS_TAB } from "./recordTabs";
+import { DETAILS_TAB, TAB_STRIP_CLASSES } from "./recordTabs";
 
 const props = defineProps<{
 	tabs: ResolvedItem<TabItem>[];

@@ -146,7 +146,7 @@ import BodyColumns from "./record/body/BodyColumns.vue";
 import FrameBands from "./record/FrameBands.vue";
 import RecordHeader from "./record/RecordHeader.vue";
 import RecordTabs from "./record/tabs/RecordTabs.vue";
-import { recordTabBuiltins } from "./record/tabs/recordTabs";
+import { TAB_STRIP_CLASSES, recordTabBuiltins } from "./record/tabs/recordTabs";
 import { useRecordTabs } from "./record/tabs/useRecordTabs";
 import PageDialogs from "./record/dialogs/PageDialogs.vue";
 import { formTabMemory } from "./record/formTabMemory";
@@ -196,7 +196,7 @@ const activeFormTab = ref("");
 const formClasses = [
 	"!rounded-none !border-0",
 	"[&_[role='tablist']]:sticky [&_[role='tablist']]:top-0 [&_[role='tablist']]:z-10 [&_[role='tablist']]:bg-surface-base",
-	"[&_[role='tablist']]:gap-5 [&_[role='tablist']]:px-[--page-gutter] [&_[role='tablist']]:py-2 [&_[role='tab']]:rounded-4",
+	TAB_STRIP_CLASSES,
 	"[&_.sections]:mx-auto [&_.sections]:my-0 [&_.sections]:w-full [&_.sections]:max-w-3xl [&_.sections]:px-[--page-gutter] [&_.sections]:py-6",
 	"[&_.section-header]:!px-0 [&_.section-body]:!px-0",
 ];

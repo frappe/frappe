@@ -7,6 +7,10 @@ import { __ } from "@/i18n";
 
 export const DETAILS_TAB = "details";
 
+/** Shared with the Details form's strip, so the two strips keep one height and one tab shape. */
+export const TAB_STRIP_CLASSES =
+  "[&_[role='tablist']]:gap-5 [&_[role='tablist']]:px-[--page-gutter] [&_[role='tablist']]:py-2 [&_[role='tab']]:rounded-4";
+
 /** No doctype condition: a script hides what its doctype does not need. */
 export function recordTabBuiltins(): TabItem[] {
   return [
