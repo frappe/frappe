@@ -55,10 +55,6 @@ function open_picker_on(fields = []) {
 	return open_get_fields(SOURCE_ROUTE);
 }
 
-function set_update_type(label) {
-	picker().find('[data-fieldname="update_type"] select').select(label);
-}
-
 function check_only(fieldnames) {
 	picker().find('[data-action="unselect_all"]').click();
 	fieldnames.forEach((fieldname) =>
@@ -169,28 +165,6 @@ context("Web Form Get Fields", () => {
 			.find(".label-area[data-unit='flagged'] .multicheck-warning-icon")
 			.should("have.attr", "data-original-title")
 			.and("eq", "Depends on: eval:doc.kind == 'Beta'");
-	});
-
-	it("Describes what each update type does", () => {
-		open_picker_on();
-
-		// nothing to lose on an empty form, so the destructive rebuild is the default
-		picker()
-			.find('[data-fieldname="update_type"] .help-box')
-			.should("contain.text", "doctype order");
-
-		set_update_type("Fields Only");
-		picker()
-			.find('[data-fieldname="update_type"] .help-box')
-			.should("contain.text", "appended");
-	});
-
-	it("Defaults to appending once the form has fields of its own", () => {
-		open_picker_on([{ fieldname: "kind", fieldtype: "Select", label: "Kind" }]);
-
-		picker()
-			.find('[data-fieldname="update_type"] select')
-			.should("have.value", "add_and_remove");
 	});
 
 	it("Filters the list without resizing it", () => {
@@ -340,7 +314,8 @@ context("Web Form Get Fields", () => {
 	it("Keeps the fields already on the form when it appends", () => {
 		open_picker_on([{ fieldname: "kind", fieldtype: "Select", label: "Custom Kind Label" }]);
 
-		picker().find('[data-action="select_all"]').click();
+		// short of the whole list, or the update would rebuild the layout instead
+		check_only(["kind", "alpha_note"]);
 		cy.click_modal_primary_button("Update");
 
 		web_form_fields().should((fields) => {
@@ -348,7 +323,7 @@ context("Web Form Get Fields", () => {
 			expect(row_for(fields, "kind").label).to.eq("Custom Kind Label");
 			// and appending leaves it where it was
 			expect(fields[0].fieldname).to.eq("kind");
-			expect(fields.map((d) => d.fieldname)).to.include("title");
+			expect(fields.map((d) => d.fieldname)).to.include("alpha_note");
 		});
 	});
 
@@ -443,8 +418,6 @@ context("Web Form Get Fields", () => {
 	it("Keeps a field left over from the previous DocType at the end of a rebuild", () => {
 		open_picker_on_leftover_rows(seed_note_and_open);
 
-		// a form that already has rows defaults to Fields Only
-		set_update_type("Fields with Layout");
 		// everything selected rebuilds in doctype order, and `title` is in no order at all
 		picker().find('[data-action="select_all"]').click();
 		cy.click_modal_primary_button("Update");

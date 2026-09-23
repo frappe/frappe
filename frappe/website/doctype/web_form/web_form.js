@@ -431,8 +431,9 @@ frappe.ui.form.on("Web Form Field", {
 	},
 });
 
-// Both modes add the ticked fields and remove the unticked rows. Fields Only keeps the
-// layout the form has; Fields with Layout reorders into doctype order, breaks included.
+// one list of the doctype's fields (no breaks), rows already on the form pre-ticked.
+// Update adds what was ticked and removes the rows that were unticked. With everything
+// ticked, it rebuilds the table in doctype order, breaks included.
 class GetFieldsDialog {
 	constructor(frm, fields) {
 		this.frm = frm;
@@ -465,21 +466,6 @@ class GetFieldsDialog {
 		this.dialog = new frappe.ui.Dialog({
 			title: __("Get Fields from {0}", [this.frm.doc.doc_type]),
 			fields: [
-				{
-					fieldname: "update_type",
-					fieldtype: "Select",
-					label: __("Update Type"),
-					options: [
-						{ value: "add_and_remove", label: __("Fields Only") },
-						{ value: "rebuild_layout", label: __("Fields with Layout") },
-					],
-					// rebuilding is destructive, so it is only the default with nothing to lose
-					default: this.frm.doc.web_form_fields?.length
-						? "add_and_remove"
-						: "rebuild_layout",
-					change: () => this.describe_update_type(),
-				},
-				{ fieldtype: "Section Break" },
 				// a sibling of the MultiCheck, which scrolls and would clip the search focus ring
 				{ fieldtype: "HTML", fieldname: "picker_header" },
 				{
@@ -498,8 +484,6 @@ class GetFieldsDialog {
 			},
 		});
 		this.make_header();
-		// the default is applied by now, so there is a value to describe
-		this.describe_update_type();
 		// not on_page_show: that runs on shown.bs.modal, by which time the dialog already
 		// takes clicks, so it would re-tick what Unselect All just cleared.
 		// Only on a form without fields, or it would re-tick fields removed on purpose.
@@ -507,16 +491,6 @@ class GetFieldsDialog {
 		// Dialog takes no wrapper class, so the scroll cap goes on after construction
 		this.dialog.get_field("fields").$wrapper.addClass("max-h-80 overflow-y-auto");
 		this.dialog.show();
-	}
-
-	describe_update_type() {
-		this.dialog.set_df_property(
-			"update_type",
-			"description",
-			this.dialog.get_value("update_type") === "rebuild_layout"
-				? __("Ticked fields are laid out in doctype order, with sections and pages")
-				: __("Ticked fields are appended, and the current layout is kept")
-		);
 	}
 
 	make_header() {
@@ -571,11 +545,16 @@ class GetFieldsDialog {
 
 	update() {
 		const selected = this.dialog.get_value("fields");
-		if (this.dialog.get_value("update_type") === "rebuild_layout") {
-			this.rebuild_layout(selected);
-		} else {
-			this.add_and_remove(selected);
-		}
+
+		// checkbox state, not a Select All flag: Select All then one untick stays additive.
+		// Taking the whole doctype is the one Update that asks for the doctype's layout too.
+		//
+		// Known limitation: tick count is read as intent, so a form that already carries every
+		// doctype field opens all-ticked, and Update rebuilds even though nothing was changed.
+		// That discards breaks made in the builder, which carry no fieldname and so are never
+		// in `existing_rows`. Accepted for now: recover by reloading without saving.
+		const all_ticked = selected.length === this.dialog.get_field("fields").options.length;
+		all_ticked ? this.rebuild_layout(selected) : this.add_and_remove(selected);
 
 		this.frm.refresh_field("web_form_fields");
 		refresh_form_builder(this.frm);
