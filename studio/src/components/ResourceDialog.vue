@@ -304,7 +304,7 @@ const sortFields = createResource({
 watch(
 	() => newResource.value?.document_type,
 	(doctype) => {
-		if (!doctype) return
+		if (!doctype || doctype === doctypeFields.params?.doctype) return
 		doctypeFields.fetch()
 		whitelistedMethods.fetch()
 		sortFields.fetch()
@@ -313,7 +313,7 @@ watch(
 
 function makeParams() {
 	return {
-		doctype: props.resource?.document_type || newResource.value.document_type,
+		doctype: newResource.value.document_type || props.resource?.document_type,
 	}
 }
 
