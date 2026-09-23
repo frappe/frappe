@@ -17,7 +17,7 @@ export const TAB_STRIP_CLASSES =
 
 export const FILES_TAB = "files";
 
-/** Given only with the `write` right: it opens the Files tab's upload dialog. */
+/** Given only with the `write` right: it opens the record's upload dialog on the tab shown. */
 export interface RecordTabOptions {
   requestUpload?: () => void;
 }
@@ -53,11 +53,7 @@ function attachAFile(requestUpload: () => void): TabCreateAction {
   return {
     label: __("Attach a file"),
     icon: "lucide-paperclip",
-    // A move held by a replay, or refused, asks for nothing: the dialog must not open later.
-    run: (page) => {
-      page.tabs.activate(FILES_TAB);
-      if (page.tabs.active === FILES_TAB) requestUpload();
-    },
+    run: () => requestUpload(),
   };
 }
 

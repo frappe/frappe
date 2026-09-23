@@ -102,6 +102,7 @@
 		<FrameBands v-if="controller" :bands="frame.after" :page="controller.page" />
 
 		<PageDialogs v-if="controller" :controller="controller" />
+		<RecordUploadDialog v-if="controller" :page="controller.page" />
 	</PageFrame>
 </template>
 
@@ -156,7 +157,7 @@ import RecordHeader from "./record/RecordHeader.vue";
 import RecordTabs from "./record/tabs/RecordTabs.vue";
 import RecordComposer from "./record/composer/RecordComposer.vue";
 import { composerBuiltins, composerHost } from "./record/composer/composerHost";
-import { TAB_STRIP_CLASSES, recordTabBuiltins } from "./record/tabs/recordTabs";
+import { FILES_TAB, TAB_STRIP_CLASSES, recordTabBuiltins } from "./record/tabs/recordTabs";
 import { useRecordTabs } from "./record/tabs/useRecordTabs";
 import {
 	activityPointer,
@@ -165,6 +166,7 @@ import {
 	withFeedRead,
 } from "./record/feed/recordFeeds";
 import PageDialogs from "./record/dialogs/PageDialogs.vue";
+import RecordUploadDialog from "./record/feed/RecordUploadDialog.vue";
 import { formTabMemory } from "./record/formTabMemory";
 import { fetchMeta } from "./record/metaSource";
 import { PANEL_BUILTINS } from "./record/panel/builtins";
@@ -529,7 +531,10 @@ async function openRecord({ mine, target, pointer, details, panel, feedRead }: O
 		isDirty: () => dirty.value,
 		...tabsPageHost,
 		...feeds.pageHost,
-		...composerHost(target.doctype, target.name),
+		...composerHost(target.doctype, target.name, {
+			page: () => controller.value?.page,
+			userEmail: boot.session.user.email,
+		}),
 		formLayout: () => detailsForm.value,
 		activateFormTab: (identity) => void (formTab.value = identity),
 		discloseSection: disclosure.disclose,
@@ -544,7 +549,8 @@ async function openRecord({ mine, target, pointer, details, panel, feedRead }: O
 		quickActionBuiltins(
 			docinfo.value?.permissions ?? {},
 			tagsOf(docinfo.value).length > 0,
-			follow.value
+			follow.value,
+			stripTabs.value.find((tab) => tab.name === FILES_TAB)?.create
 		)
 	);
 	created.tabs.provideBuiltins(() =>
@@ -554,7 +560,7 @@ async function openRecord({ mine, target, pointer, details, panel, feedRead }: O
 				: undefined,
 		})
 	);
-	created.composer.provideBuiltins(composerBuiltins);
+	created.composer.provideBuiltins(() => composerBuiltins(docinfo.value?.permissions ?? {}));
 	created.panelSections.provideBuiltins(panelBuiltins);
 	created.form.provideBuiltins(() => formItems(detailsForm.value));
 	panelLayout.value = panel;

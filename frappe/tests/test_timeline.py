@@ -1,11 +1,18 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import operator
+from unittest.mock import patch
 
 import frappe
-from frappe.desk.form.activity import get_activity_timeline, parse_visible_types, readable_permlevels
+from frappe.desk.form.activity import (
+	get_activity_timeline,
+	parse_visible_types,
+	read_senders,
+	readable_permlevels,
+)
 from frappe.desk.form.activity_page import MAX_PAGE_SIZE, ActivityPage
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import get_formatted_email
 
 
 class TestParseVisibleTypes(FrappeTestCase):
@@ -192,6 +199,78 @@ class TestEmailActivities(FrappeTestCase):
 		self.assertCountEqual(walked, [f"email:{name}" for name in same_instant])
 
 
+class TestEmailAuthors(FrappeTestCase):
+	def setUp(self):
+		frappe.db.savepoint("email_authors")
+		self.addCleanup(lambda: frappe.db.rollback(save_point="email_authors"))
+		self.addCleanup(frappe.set_user, "Administrator")
+
+	def test_a_sent_email_from_administrator_has_the_picture(self):
+		frappe.db.set_value("User", "Administrator", "user_image", "/files/administrator.png")
+		todo = new_todo()
+		add_email(todo, "2026-01-01 10:00:00", sender=get_formatted_email("Administrator"), sent=True)
+
+		self.assertEqual(
+			email_authors(todo),
+			[
+				{
+					"email": "admin@example.com",
+					"fullname": "Administrator",
+					"image": "/files/administrator.png",
+				}
+			],
+		)
+
+	def test_a_sent_email_from_a_user_has_the_picture(self):
+		user = new_user("timeline.sender@example.com", "Tina Sender", "/files/tina.png")
+		frappe.set_user(user)
+		todo = new_todo()
+		add_email(todo, "2026-01-01 10:00:00", sender="Tina Sender <Timeline.Sender@example.com>", sent=True)
+
+		self.assertEqual(
+			email_authors(todo),
+			[{"email": "Timeline.Sender@example.com", "fullname": "Tina Sender", "image": "/files/tina.png"}],
+		)
+
+	def test_the_user_lookup_asks_for_lowercase_addresses(self):
+		emails = [frappe._dict(sender="Tina Sender <Timeline.Sender@Example.com>")]
+		with patch.object(frappe, "get_all", wraps=frappe.get_all) as get_all:
+			read_senders(emails)
+
+		self.assertEqual(
+			get_all.call_args.kwargs["filters"], {"email": ("in", ["timeline.sender@example.com"])}
+		)
+
+	def test_a_received_email_from_a_user_keeps_the_name_it_carried(self):
+		new_user("timeline.sender@example.com", "Tina Sender", "/files/tina.png")
+		todo = new_todo()
+		add_email(todo, "2026-01-01 10:00:00", sender="Sales Desk <timeline.sender@example.com>")
+
+		self.assertEqual(
+			email_authors(todo),
+			[{"email": "timeline.sender@example.com", "fullname": "Sales Desk", "image": "/files/tina.png"}],
+		)
+
+	def test_a_received_email_from_an_unknown_address_keeps_its_name(self):
+		todo = new_todo()
+		add_email(todo, "2026-01-01 10:00:00", sender="Pat Customer <pat@unknown.example.com>")
+
+		self.assertEqual(
+			email_authors(todo),
+			[{"email": "pat@unknown.example.com", "fullname": "Pat Customer", "image": None}],
+		)
+
+
+def email_authors(todo) -> list[dict]:
+	return [a["author"] for a in get_activity_timeline("ToDo", todo.name, ["email"])["activities"]]
+
+
+def new_user(email: str, full_name: str, image: str) -> str:
+	first_name, last_name = full_name.split()
+	user = {"doctype": "User", "email": email, "first_name": first_name, "last_name": last_name}
+	return frappe.get_doc({**user, "user_image": image, "send_welcome_email": 0}).insert().name
+
+
 def new_todo():
 	return frappe.get_doc({"doctype": "ToDo", "description": "emails"}).insert()
 
@@ -207,15 +286,19 @@ def walk_emails(todo, limit: int) -> list[str]:
 	raise AssertionError(f"the cursor never reached the end: {walked}")
 
 
-def add_email(reference, communication_date: str, linked_to=None) -> str:
+def add_email(
+	reference, communication_date: str, linked_to=None, sender="someone@example.com", sent=False
+) -> str:
+	"""A saved email; a `Name <address>` sender is stored as is, as a sent email stores it."""
 	email = frappe.get_doc(
 		{
 			"doctype": "Communication",
 			"communication_type": "Communication",
 			"communication_medium": "Email",
-			"sent_or_received": "Received",
+			"sent_or_received": "Sent" if sent else "Received",
 			"subject": f"sent {communication_date}",
-			"sender": "someone@example.com",
+			"sender": sender,
+			"sender_full_name": frappe.utils.parse_addr(sender)[0],
 			"communication_date": communication_date,
 			"reference_doctype": "ToDo",
 			"reference_name": reference.name,

@@ -5,7 +5,7 @@ import {
   type RealtimeSocket,
 } from "../../socket";
 import type { Activity, UserInfo } from "./types";
-import { getAssignee, stripHtml } from "./utils";
+import { emailAddress, getAssignee, stripHtml } from "./utils";
 
 /** The slice of the timeline store the socket reads and writes. */
 export interface LiveFeed {
@@ -28,7 +28,10 @@ export function createLiveUpdates(
   // The payload has no avatar, so reuse an author already resolved in the feed.
   const resolveAuthor = (email: string | undefined, fallback: UserInfo) => {
     if (!email) return fallback;
-    const known = feed.data.value.find((a) => a.author?.email === email)?.author;
+    const address = email.toLowerCase();
+    const known = feed.data.value.find(
+      (a) => a.author?.email?.toLowerCase() === address
+    )?.author;
     return known ?? fallback;
   };
 
@@ -191,14 +194,15 @@ function normalizeLiveActivity(
       };
     }
 
-    case "communications":
+    case "communications": {
+      const sender = doc.sender ? emailAddress(doc.sender as string) : undefined;
       return {
         type: "email",
         key: `email:${name}`,
         timestamp: String(doc.communication_date || doc.creation),
-        author: resolveAuthor(doc.sender as string, {
-          email: doc.sender as string,
-          fullname: (doc.sender_full_name || doc.sender) as string,
+        author: resolveAuthor(sender, {
+          email: sender,
+          fullname: (doc.sender_full_name || sender) as string,
         }),
         data: {
           name,
@@ -212,6 +216,7 @@ function normalizeLiveActivity(
           attachments: [],
         },
       };
+    }
 
     default:
       return null;

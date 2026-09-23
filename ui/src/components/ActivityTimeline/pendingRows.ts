@@ -12,8 +12,10 @@ type PendingRow = (Activity | CustomActivity) & {
 };
 const pendingActivities = ref<Record<string, PendingRow[]>>({});
 
-// All a retired pending row leaves behind: server key to render key, per document.
-const adoptedKeys = ref<Record<string, Record<string, string>>>({});
+// All a retired pending row leaves behind, by server key, per document. The picture fills
+// in for a confirmed row by the same author that has none: a live row only knows the feed's.
+type AdoptedRow = { renderKey: string; email?: string; image?: string };
+const adoptedRows = ref<Record<string, Record<string, AdoptedRow>>>({});
 
 type TrackedFeed = { doc: string; data: Ref<Activity[]> };
 const trackedFeeds = new Set<TrackedFeed>();
@@ -66,14 +68,26 @@ export function withPendingRows(
   confirmed: Activity[],
   types: string[] | undefined
 ): Array<Activity | CustomActivity> {
-  const adopted = adoptedKeys.value[doc] ?? {};
+  const adopted = adoptedRows.value[doc] ?? {};
   const drawn = confirmed.map((a) =>
-    adopted[a.key] ? { ...a, renderKey: adopted[a.key] } : a
+    adopted[a.key] ? drawAdopted(a, adopted[a.key]) : a
   );
   const waiting = (pendingActivities.value[doc] ?? []).filter(
     (row) => !types || types.includes(row.type)
   );
   return [...drawn, ...waiting];
+}
+
+function drawAdopted(row: Activity, adopted: AdoptedRow): Activity {
+  const drawn = { ...row, renderKey: adopted.renderKey };
+  if (adopted.image && !row.author?.image && sameAuthor(row, adopted))
+    drawn.author = { ...row.author, image: adopted.image };
+  return drawn;
+}
+
+function sameAuthor(row: Activity, adopted: AdoptedRow) {
+  const email = row.author?.email?.toLowerCase();
+  return !!email && email === adopted.email?.toLowerCase();
 }
 
 function resolvePendingRow(
@@ -111,9 +125,9 @@ function untrackFeed(feed: TrackedFeed, scope: EffectScope) {
   scope.stop();
   trackedFeeds.delete(feed);
   if ([...trackedFeeds].some((f) => f.doc === feed.doc)) return;
-  const adopted = { ...adoptedKeys.value };
+  const adopted = { ...adoptedRows.value };
   delete adopted[feed.doc];
-  adoptedKeys.value = adopted;
+  adoptedRows.value = adopted;
 }
 
 function newestHeld(doc: string): Position | undefined {
@@ -135,14 +149,15 @@ function retirePendingRows(doc: string, feed: Activity[]) {
 
 function adoptEchoedRows(doc: string, echoed: Map<PendingRow, string>) {
   setPendingRows(doc, (rows) => rows.filter((row) => !echoed.has(row)));
-  const adopted: Record<string, string> = {};
+  const adopted: Record<string, AdoptedRow> = {};
   for (const [row, key] of echoed) {
-    adopted[key] = row.renderKey;
+    const { email, image } = row.author ?? {};
+    adopted[key] = { renderKey: row.renderKey, email, image };
     newestHeldAtAdd.delete(row.renderKey);
   }
-  adoptedKeys.value = {
-    ...adoptedKeys.value,
-    [doc]: { ...adoptedKeys.value[doc], ...adopted },
+  adoptedRows.value = {
+    ...adoptedRows.value,
+    [doc]: { ...adoptedRows.value[doc], ...adopted },
   };
 }
 

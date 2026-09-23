@@ -7,6 +7,7 @@ const { deleteDocument } = vi.hoisted(() => ({ deleteDocument: vi.fn(async () =>
 vi.mock("@framework/ui/api", () => ({ deleteDocument }));
 
 import { headerMenuBuiltins, quickActionBuiltins, type FavouriteState, type FollowState } from "../builtinActions";
+import { FILES_TAB, recordTabBuiltins } from "../tabs/recordTabs";
 
 const names = (perms: Record<string, any>, tagged = false) =>
   quickActionBuiltins(perms, tagged).map((a) => a.name);
@@ -100,12 +101,40 @@ describe("quickActionBuiltins", () => {
     expect(page.toast.success).toHaveBeenCalledWith("ID copied");
   });
 
-  it("leads with comment on every record, opening the comment writer", () => {
+  it("leads with comment on a record the reader cannot email, opening the comment writer", () => {
     const open = vi.fn();
     const comment = quickActionBuiltins({})[0];
     expect(comment).toMatchObject({ name: "comment", label: "Comment", icon: "lucide-message-square" });
     comment.run!({ composer: { open } } as any);
     expect(open).toHaveBeenCalledWith("comment");
+  });
+
+  it("leads with email only with the right, opening the email writer", () => {
+    expect(names({ print: 1 })).toEqual(["comment", "print", "copy_link"]);
+    expect(names({ email: 1, print: 1 })).toEqual(["email", "comment", "print", "copy_link"]);
+    const open = vi.fn();
+    const email = quickActionBuiltins({ email: 1 })[0];
+    expect(email).toMatchObject({ name: "email", label: "Email", icon: "lucide-mail" });
+    email.run!({ composer: { open } } as any);
+    expect(open).toHaveBeenCalledWith("email");
+  });
+
+  it("seeds attach after comment only with the Files tab's upload, which asks for it on the tab shown", () => {
+    const requestUpload = vi.fn();
+    const filesCreate = (upload?: () => void) =>
+      recordTabBuiltins({ requestUpload: upload }).find((tab) => tab.name === FILES_TAB)!.create;
+    const actions = quickActionBuiltins({ email: 1, print: 1 }, true, undefined, filesCreate(requestUpload));
+    expect(actions.map((a) => a.name)).toEqual(["email", "comment", "attach", "print", "copy_link"]);
+    const without = quickActionBuiltins({ email: 1, print: 1 }, true, undefined, filesCreate());
+    expect(without.map((a) => a.name)).toEqual(["email", "comment", "print", "copy_link"]);
+
+    const attach = actions[2];
+    expect(attach).toMatchObject({ label: "Attach", icon: "lucide-paperclip" });
+    const tabs = { active: "activity", activate: vi.fn() };
+    attach.run!({ tabs } as any);
+    expect(tabs.activate).not.toHaveBeenCalled();
+    expect(tabs.active).toBe("activity");
+    expect(requestUpload).toHaveBeenCalledOnce();
   });
 
   it("seeds tags with write, only while the record has none", () => {

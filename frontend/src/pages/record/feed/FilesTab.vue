@@ -9,7 +9,7 @@
 				iconLeft="lucide-upload"
 				:label="__('Upload')"
 				data-file-upload
-				@click="open"
+				@click="feeds.requestUpload()"
 			/>
 		</div>
 
@@ -71,22 +71,12 @@
 			<span class="lucide-paperclip size-7 text-ink-gray-4" aria-hidden="true" />
 			<span class="text-lg font-medium text-ink-gray-8">{{ __("No files yet") }}</span>
 		</div>
-
-		<FileUploadDialog
-			v-if="dialogMounted"
-			v-model:open="dialogOpen"
-			multiple
-			:attachTo="{ doctype: page.doctype, docname: page.docname }"
-			:transport="transport"
-			@uploading="onUploading"
-		/>
 	</RecordFeed>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref, watch } from "vue";
+import { computed, inject } from "vue";
 import { Button, toast } from "frappe-ui";
-import { FileUploadDialog } from "@framework/ui/FileUpload";
 import TimeAgo from "@framework/ui/components/ActivityTimeline/TimeAgo.vue";
 import { errorMessage, type FileRow, type RecordPageApi } from "@/recordPage";
 import { __, __n } from "@/i18n";
@@ -100,7 +90,6 @@ defineOptions({ scrollsItself: true });
 const props = defineProps<{ page: RecordPageApi }>();
 
 const feeds = inject(RecordFeedsKey)!;
-const transport = feeds.uploadTransport(props.page.doctype, props.page.docname);
 
 const docinfo = computed(() => feeds.docinfo());
 const canWrite = computed(() => Boolean(docinfo.value?.permissions?.write));
@@ -111,34 +100,6 @@ const countLabel = computed(() => {
 	const count = feeds.fileRows().length;
 	return __n("{0} file", "{0} files", count, [count]);
 });
-
-// Mounted apart from open: the tray closes the dialog on Upload while the files still go up.
-const dialogMounted = ref(false);
-const dialogOpen = ref(false);
-const busy = ref(false);
-
-watch(dialogOpen, (opened) => {
-	if (!opened && !busy.value) dialogMounted.value = false;
-});
-
-// Immediate: the request usually comes before this tab's first visit mounts it.
-watch(feeds.uploadRequested, takeUploadRequest, { immediate: true });
-
-function open() {
-	dialogMounted.value = true;
-	dialogOpen.value = true;
-}
-
-function takeUploadRequest(requested: boolean) {
-	if (!requested) return;
-	feeds.uploadRequested.value = false;
-	if (canWrite.value) open();
-}
-
-function onUploading(uploading: boolean) {
-	busy.value = uploading;
-	if (!uploading && !dialogOpen.value) dialogMounted.value = false;
-}
 
 async function remove(row: FileRow) {
 	const confirmed = await props.page.dialog.confirm({

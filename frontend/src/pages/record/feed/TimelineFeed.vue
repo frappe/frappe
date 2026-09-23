@@ -23,6 +23,28 @@
 					<span class="text-md font-medium text-ink-gray-8">{{ empty.label }}</span>
 				</div>
 			</template>
+			<template v-if="canReply" #item-email="{ activity }">
+				<EmailItem :email="activity">
+					<template v-if="!activity.pending" #actions>
+						<Button
+							icon="lucide-reply"
+							variant="ghost"
+							:label="__('Reply')"
+							:tooltip="__('Reply')"
+							data-email-reply
+							@click="reply(activity.key)"
+						/>
+						<Button
+							icon="lucide-reply-all"
+							variant="ghost"
+							:label="__('Reply all')"
+							:tooltip="__('Reply all')"
+							data-email-reply-all
+							@click="reply(activity.key, true)"
+						/>
+					</template>
+				</EmailItem>
+			</template>
 			<template #item-script="{ activity }">
 				<component
 					:is="scriptItem(activity).component"
@@ -35,14 +57,18 @@
 
 <script setup lang="ts">
 import { computed, inject, onUnmounted, ref } from "vue";
+import { Button } from "frappe-ui";
 import {
 	ActivityTimeline,
 	compareActivities,
+	EmailItem,
 	useActivityTimeline,
 	type CustomActivity,
 	type VisibleTypes,
 } from "@framework/ui/ActivityTimeline";
 import type { ActivityRow, FeedItem, RecordPageApi } from "@/recordPage";
+import { __ } from "@/i18n";
+import { EMAIL_WRITER } from "../composer/emailDraft";
 import RecordFeed from "./RecordFeed.vue";
 import { RecordFeedsKey } from "./recordFeeds";
 
@@ -68,6 +94,12 @@ const loaded = computed(() => activities.value as ActivityRow[]);
 
 const rows = computed(() => (props.main ? withScriptRows(loaded.value) : loaded.value));
 
+// The email writer is listed only with the email right, so its presence is the gate.
+const canReply = computed(() => {
+	const writers = feeds.controller()?.composer.visible() ?? [];
+	return writers.some((writer) => writer.name === EMAIL_WRITER);
+});
+
 if (props.main) {
 	const release = feeds.attach({
 		activities: loaded,
@@ -91,6 +123,11 @@ function withScriptRows(server: ActivityRow[]): Array<ActivityRow | CustomActivi
 			data: item,
 		}));
 	return own.length ? [...server, ...own].sort(compareActivities) : server;
+}
+
+function reply(key: string, all = false) {
+	const draft = all ? { replyTo: key, replyAll: true } : { replyTo: key };
+	props.page.composer.open(EMAIL_WRITER, { draft });
 }
 
 function scriptItem(activity: { data: unknown }) {

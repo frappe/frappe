@@ -82,6 +82,7 @@ function setup(docinfo: DocInfo | null = null, own: { activity?: FeedItem[]; fil
 		page,
 		activity: { visible: () => own.activity ?? [], shownTypes: () => shownTypes.value },
 		files: { visible: () => own.files ?? [] },
+		composer: { visible: () => [] },
 	} as any;
 	const feeds = new RecordFeeds({
 		docinfo: ref(docinfo),
@@ -210,57 +211,24 @@ describe("the Files tab", () => {
 		expect(fetchMock.mock.calls[0][1]?.method).toBe("DELETE");
 	});
 
-	it("gives the `+` menu an Attach a file only with an upload to ask for", () => {
+	it("gives the `+` menu an Attach a file that asks for an upload without leaving the tab", () => {
 		expect(recordTabBuiltins().find((tab) => tab.name === "files")!.create).toBeUndefined();
 		const requestUpload = vi.fn();
 		const create = recordTabBuiltins({ requestUpload }).find((tab) => tab.name === "files")!.create!;
 		expect(create).toMatchObject({ label: "Attach a file", icon: "lucide-paperclip" });
 		const page = { tabs: { active: "activity", activate: vi.fn() } } as any;
-		page.tabs.activate.mockImplementation((name: string) => (page.tabs.active = name));
 		create.run(page);
-		expect(page.tabs.activate).toHaveBeenCalledWith("files");
+		expect(page.tabs.activate).not.toHaveBeenCalled();
 		expect(requestUpload).toHaveBeenCalledTimes(1);
 	});
 
-	it("asks for no upload when the move to Files did not take effect", () => {
-		const requestUpload = vi.fn();
-		const tabs = recordTabBuiltins({ requestUpload });
-		const create = tabs.find((tab) => tab.name === "files")!.create!;
-		const page = { tabs: { active: "activity", activate: vi.fn() } } as any;
-		create.run(page);
-		expect(page.tabs.activate).toHaveBeenCalledWith("files");
-		expect(requestUpload).not.toHaveBeenCalled();
-	});
-
-	it("opens the upload dialog for a request made before the tab mounted, once", async () => {
+	it("asks for the upload from its own Upload button", async () => {
 		const { feeds, page } = setup({ attachments: [OLD], permissions: { write: 1 } });
-		feeds.requestUpload();
 
-		await mountTab("files", feeds, page);
+		const { root } = await mountTab("files", feeds, page);
+		root.querySelector<HTMLElement>("[data-file-upload]")!.click();
 
-		await vi.waitFor(() => expect(document.querySelector("[role='dialog']")).not.toBeNull());
-		expect(feeds.uploadRequested.value).toBe(false);
-	});
-
-	it("opens the upload dialog for a request made while the tab is mounted", async () => {
-		const { feeds, page } = setup({ attachments: [OLD], permissions: { write: 1 } });
-		await mountTab("files", feeds, page);
-		expect(document.querySelector("[role='dialog']")).toBeNull();
-
-		feeds.requestUpload();
-
-		await vi.waitFor(() => expect(document.querySelector("[role='dialog']")).not.toBeNull());
-	});
-
-	it("takes a request without opening anything for a reader who may not write", async () => {
-		const { feeds, page } = setup({ attachments: [OLD], permissions: { read: 1 } });
-		feeds.requestUpload();
-
-		await mountTab("files", feeds, page);
-		await nextTick();
-
-		expect(document.querySelector("[role='dialog']")).toBeNull();
-		expect(feeds.uploadRequested.value).toBe(false);
+		expect(feeds.uploadRequested.value).toBe(true);
 	});
 
 	it("uploads onto the record and keeps the part the attach route answers with", async () => {

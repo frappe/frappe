@@ -6,6 +6,7 @@
 			:extensions="extensions"
 			:placeholder="placeholder"
 			:upload-function="uploadFunction"
+			:editable="!disabled"
 		>
 			<template #default>
 				<div
@@ -20,7 +21,8 @@
 				>
 					<slot name="top" />
 
-					<EditorTableMenu />
+					<!-- tiptap runs menu commands on a read-only editor, so a disabled one draws no menus. -->
+					<EditorTableMenu v-if="!disabled" />
 
 					<div
 						class="composer-body flex min-h-0 flex-1 flex-col overflow-y-auto px-2.5 pb-2.5"
@@ -48,7 +50,7 @@
 							</summary>
 							<div
 								ref="quotedContentRef"
-								contenteditable="true"
+								:contenteditable="!disabled"
 								class="prose mx-1 my-2 !max-w-full border-s-4 border-outline-gray-2 ps-4 text-sm focus:outline-none"
 								@input="onQuotedInput"
 							/>
@@ -102,7 +104,9 @@
 										aria-label="Attach file"
 										class="shrink-0"
 										:loading="isUploading"
-										:disabled="attachments.length >= maxAttachments"
+										:disabled="
+											disabled || attachments.length >= maxAttachments
+										"
 										@click="attachInput?.click()"
 									/>
 									<input
@@ -115,13 +119,15 @@
 										name="actions"
 										v-bind="{ addAttachment, setUploading }"
 									/>
-									<!-- Same divider the menu uses between its own sections. -->
-									<span
-										v-if="uploadFunction || $slots.actions"
-										class="mx-1 h-5 w-px shrink-0 bg-surface-gray-3"
-										aria-hidden="true"
-									/>
-									<EditorFixedMenu :items="emailToolbar" button-size="sm" />
+									<template v-if="!disabled">
+										<!-- Same divider the menu uses between its own sections. -->
+										<span
+											v-if="uploadFunction || $slots.actions"
+											class="mx-1 h-5 w-px shrink-0 bg-surface-gray-3"
+											aria-hidden="true"
+										/>
+										<EditorFixedMenu :items="emailToolbar" button-size="sm" />
+									</template>
 								</div>
 								<div
 									v-show="!toolbarArrived.left"
@@ -147,7 +153,11 @@
 								/>
 							</div>
 							<div class="flex shrink-0 items-center gap-2">
-								<Button v-if="!isEmpty" label="Discard" @click="reset" />
+								<Button
+									v-if="!isEmpty && !submitting"
+									label="Discard"
+									@click="discard"
+								/>
 								<!-- The spinner trails the label; Button's own `loading` would lead it. -->
 								<Button
 									variant="solid"
@@ -170,6 +180,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
 import { useScroll } from "@vueuse/core";
+import { Extension } from "@tiptap/core";
 import { Button, Spinner, toast } from "frappe-ui";
 import LucideFile from "~icons/lucide/file";
 import LucideFileArchive from "~icons/lucide/file-archive";
@@ -246,6 +257,8 @@ const emit = defineEmits<{
 	"remove-attachment": [file: UploadedFile];
 	/** Host runs the send and calls `reset()` itself when done. */
 	submit: [payload: CoreSubmitPayload];
+	/** The reader's Discard or Esc, after the reset; a host's own `reset()` does not fire it. */
+	discard: [];
 }>();
 
 const editorRef = ref<InstanceType<typeof Editor> | null>(null);
@@ -270,6 +283,12 @@ const extensions = [
 		mention: { items: () => mentionItems.value },
 	}),
 	...(props.extensions ?? []),
+	// Lowest priority, so an open suggestion menu takes Esc first; 0 would read as the default.
+	Extension.create({
+		name: "composerDiscard",
+		priority: 1,
+		addKeyboardShortcuts: () => ({ Escape: discardFromBody }),
+	}),
 ];
 
 const body = defineModel<string>("body", { default: "" });
@@ -417,7 +436,10 @@ function removeAttachment(file: UploadedFile) {
 
 // Sendable = body or attachment (a quoted reply alone isn't); never mid-upload.
 const isDisabled = computed(
-	() => (isContentEmpty(body.value) && !attachments.value.length) || isUploading.value
+	() =>
+		props.disabled ||
+		(isContentEmpty(body.value) && !attachments.value.length) ||
+		isUploading.value
 );
 
 const isEmpty = computed(
@@ -442,9 +464,21 @@ function submit() {
 	emit("submit", { body: buildMessage(), attachments: attachments.value });
 }
 
-// An editor popup (mention list, etc.) that handled Esc marks it via preventDefault.
+// Esc outside the body. ProseMirror marks every Esc in the body handled, so those arrive
+// at `discardFromBody` instead, and only when no editor menu took them.
 function onEscape(event: KeyboardEvent) {
-	if (!event.defaultPrevented) reset();
+	if (!event.defaultPrevented && !props.submitting) discard();
+}
+
+function discardFromBody() {
+	if (props.submitting) return false;
+	discard();
+	return true;
+}
+
+function discard() {
+	reset();
+	emit("discard");
 }
 
 function reset() {
