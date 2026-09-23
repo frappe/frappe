@@ -168,16 +168,13 @@ def add_a_comment(doc: Document, body: dict) -> str:
 	comment = add_comment(
 		doc.doctype, doc.name, body.get("content") or "", frappe.session.user, get_fullname()
 	)
-	for file in files:
-		file.attached_to_doctype = "Comment"
-		file.attached_to_name = comment.name
-		file.save()
+	attach_files(files, "Comment", comment.name)
 	# after the attachments are linked, so they are no longer unattached and stay on the Comment
 	attach_inline_media(doc, comment.content)
 	return comment.name
 
 
-def files_to_link(names: list[str]) -> list[Document]:
+def files_to_link(names: list[str]) -> list[str]:
 	"""The caller's own unattached Files; any other name is refused."""
 	if len(names) > MAX_ATTACHMENTS:
 		raise InvalidRequestError(_("A comment takes at most {0} attachments").format(MAX_ATTACHMENTS))
@@ -186,7 +183,7 @@ def files_to_link(names: list[str]) -> list[Document]:
 	rows = frappe.get_all("File", filters={"name": ("in", names)}, fields=fields) if names else []
 	if len(rows) != len(names) or not all(linkable(row) for row in rows):
 		raise frappe.PermissionError(_("Only your own unattached files can be added to a comment"))
-	return [frappe.get_doc("File", row.name) for row in rows]
+	return names
 
 
 def linkable(file: dict) -> bool:
@@ -203,10 +200,14 @@ def attach_inline_media(doc: Document, content: str) -> None:
 		"owner": frappe.session.user,
 		"attached_to_doctype": ("is", "not set"),
 	}
-	for name in frappe.get_all("File", filters=filters, pluck="name"):
-		file = frappe.get_doc("File", name)
-		file.attached_to_doctype, file.attached_to_name = doc.doctype, doc.name
-		file.save()
+	attach_files(frappe.get_all("File", filters=filters, pluck="name"), doc.doctype, doc.name)
+
+
+def attach_files(names: list[str], doctype: str, name: str) -> None:
+	"""Attach the Files `names` to `doctype` `name` in one write; the caller has checked them."""
+	if names:
+		values = {"attached_to_doctype": doctype, "attached_to_name": name}
+		frappe.db.set_value("File", {"name": ("in", names)}, values)
 
 
 def remove_comment(doc: Document, name: str) -> None:
