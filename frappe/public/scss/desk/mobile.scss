@@ -65,32 +65,12 @@ body {
 	}
 
 	.navbar-breadcrumbs {
-		display: inline-block;
 		max-width: 200px;
 		width: 100%;
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-
-		@media (max-width: 480px) {
-			li > a {
-				// width: 100px;
-			}
-		}
 	}
 
-	.navbar-breadcrumbs > li,
-	.navbar-breadcrumbs > li > a {
-		display: inline-block;
-		vertical-align: middle;
-	}
-
-	.navbar-breadcrumbs > li > a:before {
-		// .breadcrumb-divider-left();
-	}
-
-	// select all except last 2
-	.navbar-breadcrumbs li:not(:nth-last-child(-n + 1)) {
+	// only the last crumb, which is the page title, fits on a phone
+	.navbar-breadcrumbs li:not(:last-child) {
 		display: none;
 	}
 
@@ -139,7 +119,7 @@ body {
 @media (max-width: 767px) {
 	body[data-route^="Form"] {
 		.page-title {
-			.title-text {
+			.es-breadcrumbs li:last-child .es-breadcrumbs__item {
 				@include get_textstyle("lg", "regular");
 			}
 
@@ -334,7 +314,7 @@ body {
 				.page-indicator-pill {
 					margin-left: 5px;
 				}
-				.mobile-no-divider li a {
+				.mobile-no-divider .es-breadcrumbs__item {
 					line-height: 20px;
 				}
 			}
@@ -354,7 +334,7 @@ body {
 
 @media (max-width: 412px) {
 	body[data-route^="Form"] {
-		.page-title .title-text {
+		.page-title .es-breadcrumbs li:last-child .es-breadcrumbs__label {
 			max-width: 28vw;
 		}
 	}

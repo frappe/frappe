@@ -776,32 +776,16 @@ frappe.ui.form.Form = class FrappeForm {
 		let el = this.page.page_actions[0];
 		const rect = el.getBoundingClientRect();
 		let is_outside = cint(rect.right) > cint(document.documentElement.clientWidth);
+		if (!is_outside) return;
 
-		if (is_outside) {
-			// check if the default actions are outside of the screen
-			const overflow = Math.max(0, rect.right - document.documentElement.clientWidth);
+		// the page actions have been pushed off screen, so give the trail only the width that is
+		// left. The last crumb is the document title and truncates on its own from there.
+		const overflow = Math.max(0, rect.right - document.documentElement.clientWidth);
+		if (!overflow) return;
 
-			if (!overflow) return;
-			let max_breadcrumb_width = Math.max(
-				290,
-				this.page.$title_area.find("ul").width() - overflow
-			);
-
-			this.page.$title_area.parent().css("max-width", `${max_breadcrumb_width}px`);
-			let breadcrumb = this.page.$title_area.find("ul li.ellipsis");
-
-			if (cint(breadcrumb[0]?.clientWidth) <= 30) {
-				// if workspce sodebar is not visible
-				$(breadcrumb[0]).hide();
-				if (cint(breadcrumb[1]?.clientWidth) <= 30) {
-					// if doctype sodebar is not visible
-					$(breadcrumb[1]).hide();
-
-					// add elipsis to the name/title breadcrumb
-					this.page.$title_area.find(".title-text-form").parent().addClass("ellipsis");
-				}
-			}
-		}
+		const $nav = this.page.$title_area.find(".navbar-breadcrumbs");
+		const max_breadcrumb_width = Math.max(290, $nav.width() - overflow);
+		this.page.$title_area.parent().css("max-width", `${max_breadcrumb_width}px`);
 	}
 
 	focus_on_first_input() {
@@ -893,12 +877,11 @@ frappe.ui.form.Form = class FrappeForm {
 		this.viewers.refresh();
 
 		this.dashboard.refresh();
-		const _route_key = frappe.breadcrumbs.current_page();
-		const _crumb = frappe.breadcrumbs.all[_route_key];
+		const _crumb = this.page.legacy_breadcrumbs;
 		if (_crumb) {
 			_crumb.layout_name = this.doctype_layout?.name || null;
 		}
-		frappe.breadcrumbs.update();
+		this.page.render_breadcrumbs();
 
 		this.show_submit_message();
 		this.clear_custom_buttons();

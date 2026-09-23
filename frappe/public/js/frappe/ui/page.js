@@ -989,6 +989,49 @@ frappe.ui.Page = class Page {
 		return this.$title_area;
 	}
 
+	/**
+	 * The trail in this page's head. The last item is the page itself, so it carries no `href`.
+	 *
+	 * Each page owns its own items and its own markup. A view can only change the trail of the
+	 * page it was handed, which is why an off-screen form cannot touch the one on screen.
+	 *
+	 * @param {Array<Object>} items espresso breadcrumb items: `label`, `href`, `onclick`,
+	 *   `prefix`, `suffix`, `title`
+	 */
+	set_breadcrumbs(items) {
+		this.breadcrumbs = items || [];
+		this.legacy_breadcrumbs = null;
+		this.render_breadcrumbs();
+	}
+
+	/**
+	 * Hold a `frappe.breadcrumbs.add()` payload for this page. It is resolved on every paint
+	 * rather than at call time, because the old API let a caller add the crumb before the doc it
+	 * names had finished loading.
+	 *
+	 * @param {Object} source
+	 */
+	set_legacy_breadcrumbs(source) {
+		this.legacy_breadcrumbs = source;
+		this.render_breadcrumbs();
+	}
+
+	/** @returns {Array<Object>} */
+	get_breadcrumbs() {
+		if (this.legacy_breadcrumbs) return frappe.breadcrumbs.resolve(this.legacy_breadcrumbs);
+		return this.breadcrumbs || [];
+	}
+
+	render_breadcrumbs() {
+		const $nav = this.$title_area?.find(".navbar-breadcrumbs");
+		if (!$nav?.length) return;
+
+		const css_class = ["navbar-breadcrumbs", frappe.is_mobile() ? "mobile-no-divider" : ""]
+			.filter(Boolean)
+			.join(" ");
+		$nav.replaceWith(frappe.ui.breadcrumbs({ items: this.get_breadcrumbs(), css_class }));
+	}
+
 	set_title(title, icon = null, strip = true, tab_title = "", tooltip_label = "") {
 		if (!title) title = "";
 		if (strip) {
@@ -996,17 +1039,20 @@ frappe.ui.Page = class Page {
 		}
 		this.title = title;
 		frappe.utils.set_title(tab_title || title);
-		if (icon) {
-			title = `${frappe.utils.icon(icon)} ${title}`;
-		}
 
-		let title_wrapper = this.$title_area.find(".title-text");
-		title_wrapper.html(title);
-		title_wrapper.attr("title", __(tooltip_label) || this.title);
+		// the title is the last crumb, so there is only ever one node naming the page
+		const items = (this.breadcrumbs || []).slice();
+		const last = { ...(items.pop() || {}) };
+		last.label = title;
+		last.title = __(tooltip_label) || title;
+		// the page is where the reader already is; a link back to it is noise
+		delete last.href;
+		delete last.onclick;
+		if (icon) last.prefix = icon;
+		items.push(last);
 
-		if (tooltip_label) {
-			title_wrapper.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
-		}
+		this.breadcrumbs = items;
+		this.render_breadcrumbs();
 	}
 
 	set_title_sub(txt) {
