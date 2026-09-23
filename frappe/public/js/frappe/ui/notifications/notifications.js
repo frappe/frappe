@@ -314,10 +314,13 @@ class NotificationsView extends BaseNotificationsView {
 	}
 
 	mark_all_as_read() {
-		this.dropdown_items.forEach((notification_log) => (notification_log.read = 1));
-		this.container.find(".unread").removeClass("unread");
-		frappe.call("frappe.desk.doctype.notification_log.notification_log.mark_all_as_read");
-		this.update_count_badge(0);
+		frappe
+			.call("frappe.desk.doctype.notification_log.notification_log.mark_all_as_read")
+			.then(() => {
+				this.dropdown_items.forEach((notification_log) => (notification_log.read = 1));
+				this.container.find(".unread").removeClass("unread");
+				this.update_count_badge(0);
+			});
 	}
 
 	insert_into_dropdown() {
