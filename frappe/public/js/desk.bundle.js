@@ -7,6 +7,15 @@ import "./frappe/format.js";
 import "./frappe/form/formatters.js";
 import "./frappe/dom.js";
 import "./frappe/ui/messages.js";
+
+import "./frappe/ui/components/button.js";
+import "./frappe/ui/components/dropdown.js";
+import "./frappe/ui/components/context_menu.js";
+import "./frappe/ui/components/tooltip.js";
+import "./frappe/ui/components/tabs.js";
+import "./frappe/ui/components/tab_buttons.js";
+import "./frappe/ui/components/empty_state.js";
+
 import "./frappe/ui/keyboard.js";
 import "./frappe/ui/colors.js";
 import "./frappe/ui/sidebar/sidebar_header.js";

@@ -1,0 +1,34 @@
+body.full-height-page {
+	.main-section {
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		padding-bottom: 0 !important;
+	}
+
+	#body,
+	.page-container,
+	.page-body,
+	.page-wrapper {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-height: 0;
+	}
+
+	.page-head {
+		flex: none;
+	}
+
+	.page-content {
+		flex: 1;
+		min-height: 0;
+	}
+
+	.layout-main,
+	.layout-main-section-wrapper,
+	.layout-main-section {
+		height: 100%;
+		min-height: 0;
+	}
+}

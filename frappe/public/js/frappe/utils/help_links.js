@@ -83,3 +83,6 @@ frappe.help.help_links["print-format-builder"] = [
 		url: "https://docs.erpnext.com/docs/user/manual/en/print-format-builder",
 	},
 ];
+
+frappe.help.help_links["print-format-builder-beta"] =
+	frappe.help.help_links["print-format-builder"];

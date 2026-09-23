@@ -145,6 +145,8 @@ class Browser:
 		# open header and footer pages
 		self._open_header_footer_pages()
 
+		self._inject_page_no_script(soup)
+
 		# get tags to pass to header template.
 		head = soup.find("head").contents
 		styles = soup.find_all("style")
@@ -183,6 +185,14 @@ class Browser:
 		for html_id in ["header-html", "footer-html"]:
 			for tag in soup.find_all(id=html_id):
 				tag.extract()
+
+	def _inject_page_no_script(self, soup):
+		"""Make clone_and_update available to the header and footer pages, which take
+		their <head> contents from the body document."""
+		path = frappe.get_app_path("frappe", "utils", "pdf_generator", "update_page_no.js")
+		tag = soup.new_tag("script")
+		tag.append(soup.new_string(frappe.read_file(path)))
+		soup.head.append(tag)
 
 	def try_async_header_footer_pdf(self):
 		if self.header_page and not self.is_header_dynamic:
@@ -306,8 +316,10 @@ class Browser:
 		footer_with_bottom_margin = 0
 		footer_height = 0
 
+		header_owns_top_margin = bool(options.get("header-includes-top-margin"))
+
 		if self.header_page:
-			header_with_top_margin = self.header_height + margin_top
+			header_with_top_margin = self.header_height + (0 if header_owns_top_margin else margin_top)
 			header_spacing = options.get("header-spacing", 0)
 			header_with_spacing_top_margin = header_with_top_margin + header_spacing
 			self.header_page.options["paperHeight"] = (
@@ -319,16 +331,18 @@ class Browser:
 		margin_top = convert_uom(margin_top, "px", "in", only_number=True)
 
 		if self.header_page:
-			self.header_page.options["marginTop"] = margin_top
+			self.header_page.options["marginTop"] = 0 if header_owns_top_margin else margin_top
 		else:
 			self.body_page.options["marginTop"] = margin_top
 
 		if self.footer_page:
 			footer_height = self.footer_height
+			footer_with_bottom_margin = footer_height + margin_bottom
 			self.footer_page.options["paperHeight"] = (
-				convert_uom(footer_height, "px", "in", only_number=True) if footer_height else 0
+				convert_uom(footer_with_bottom_margin, "px", "in", only_number=True)
+				if footer_with_bottom_margin
+				else 0
 			)
-			footer_with_bottom_margin = self.footer_height + margin_bottom
 
 		margin_bottom = convert_uom(margin_bottom, "px", "in", only_number=True)
 

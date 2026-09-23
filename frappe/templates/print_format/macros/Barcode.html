@@ -1,0 +1,14 @@
+{%- set bval = value if (value and not df.get('custom')) else (doc.get(df.barcode_field) if df.barcode_field else df.barcode_value) -%}
+{%- if bval or df.get('_qr_data_uri') -%}
+<div class="field print-barcode{% if df.align %} field-align-{{ df.align }}{% endif %}"{% if df.custom_style %} style="{{ df.custom_style|e }}"{% endif %} {{ field_attributes(df) }}>
+	{%- if df.barcode_format == 'QR' -%}
+	{%- if df.get('_qr_data_uri') -%}
+	<img src="{{ df._qr_data_uri }}" alt="QR" style="{% if df.width %}width: {{ df.width|e }};{% else %}width: 35mm;{% endif %}">
+	{%- endif -%}
+	{%- elif bval is string and bval.startswith('<svg') -%}
+	<div style="display: inline-block;{% if df.width %} width: {{ df.width|e }};{% endif %}">{{ bval }}</div>
+	{%- else -%}
+	<div style="display: inline-block;{% if df.width %} width: {{ df.width|e }};{% endif %}"><svg data-barcode-value="{{ bval|e }}" data-options='{{ df.get("_barcode_options") or "{}" }}'></svg></div>
+	{%- endif -%}
+</div>
+{%- endif -%}

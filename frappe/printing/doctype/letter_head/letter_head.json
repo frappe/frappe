@@ -20,6 +20,7 @@
   "align",
   "header_section",
   "content",
+  "custom_css",
   "footer_section",
   "footer",
   "footer_image_section",
@@ -196,6 +197,13 @@
    "fieldtype": "HTML",
    "label": "Instructions",
    "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.source === 'HTML'",
+   "fieldname": "custom_css",
+   "fieldtype": "Code",
+   "label": "Custom CSS",
+   "options": "CSS"
   }
  ],
  "icon": "fa fa-font",
@@ -203,7 +211,7 @@
  "links": [],
  "make_attachments_public": 1,
  "max_attachments": 3,
- "modified": "2026-02-25 14:37:57.061516",
+ "modified": "2026-09-23 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",
