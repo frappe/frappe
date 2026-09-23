@@ -547,6 +547,8 @@ class GetFieldsDialog {
 
 	update() {
 		const selected = this.dialog.get_value("fields");
+		// read before the rows move: the first new field is where the user is sent afterwards
+		const [first_added] = this.get_new_fields(selected);
 
 		// checkbox state, not a Select All flag: Select All then one untick stays additive.
 		// Taking the whole doctype is the one Update that asks for the doctype's layout too.
@@ -559,11 +561,23 @@ class GetFieldsDialog {
 		all_ticked ? this.rebuild_layout(selected) : this.add_and_remove(selected);
 
 		this.frm.refresh_field("web_form_fields");
-		refresh_form_builder(this.frm);
 
 		// not scroll_to_field: its highlight glow wraps the whole builder tab
 		get_builder_tab(this.frm)?.set_active();
 		this.dialog.hide();
+
+		// the canvas is rebuilt from the rows, so the new field exists only after the fetch
+		refresh_form_builder(this.frm)?.then(() =>
+			reveal_in_form_builder(this.frm, first_added?.fieldname)
+		);
+	}
+
+	// in DocType order: insert_row places each one against the rows already on the form
+	get_new_fields(selected) {
+		return this.fields.filter(
+			(df) =>
+				selected.includes(df.fieldname) && !this.existing_fieldnames.includes(df.fieldname)
+		);
 	}
 
 	add_and_remove(selected) {
@@ -572,12 +586,43 @@ class GetFieldsDialog {
 		// clear_doc also renumbers idx, which filtering the array would not
 		removed.forEach((d) => frappe.model.clear_doc(d.doctype, d.name));
 		// ticked rows are kept as they are, so edits made on them survive
-		selected
-			.filter((fieldname) => !this.existing_fieldnames.includes(fieldname))
-			.forEach((fieldname) => this.add_row(this.fields_by_name[fieldname], selected));
+		this.get_new_fields(selected).forEach((df) => this.insert_row(df, selected));
 
 		// clear_doc does not dirty the form, and refresh_form_builder would reset __unsaved
 		removed.length && this.frm.dirty();
+	}
+
+	insert_row(df, fieldnames) {
+		const at = this.get_insert_index(df);
+		this.add_row(df, fieldnames);
+		const rows = this.frm.doc.web_form_fields;
+
+		// add_child appended it, so only a row that belongs further up has to move
+		if (at < rows.length - 1) {
+			rows.splice(at, 0, rows.pop());
+			rows.forEach((d, i) => (d.idx = i + 1));
+		}
+	}
+
+	// a new field sits where the DocType would put it, relative to the fields the form
+	// already has. Breaks are never consulted, so the form's own layout is left alone.
+	get_insert_index(df) {
+		const rows = this.frm.doc.web_form_fields;
+		const position = this.fields.indexOf(df);
+		const row_index = (fieldname) => rows.findIndex((d) => d.fieldname === fieldname);
+
+		// the nearest DocType field before it that the form carries: sit just after that row
+		for (let i = position - 1; i >= 0; i--) {
+			const at = row_index(this.fields[i].fieldname);
+			if (at !== -1) return at + 1;
+		}
+		// nothing before it, so sit just before the nearest one after it. That keeps a new
+		// opening field inside the section the form opens with, not above it.
+		for (let i = position + 1; i < this.fields.length; i++) {
+			const at = row_index(this.fields[i].fieldname);
+			if (at !== -1) return at;
+		}
+		return rows.length;
 	}
 
 	rebuild_layout(selected) {
@@ -737,7 +782,47 @@ function flush_form_builder(frm) {
 }
 
 function refresh_form_builder(frm) {
-	get_form_builder(frm)?.store.fetch();
+	// fetch() is async, and the canvas only holds the new rows once it settles
+	return get_form_builder(frm)?.store.fetch();
+}
+
+// a Page Break is a builder tab, so on a multi-page form a newly added field can land on a
+// page the user is not looking at. Open that page and put the field in front of them.
+function reveal_in_form_builder(frm, fieldname) {
+	const store = get_form_builder(frm)?.store;
+	if (!store || !fieldname) return;
+
+	const found = find_builder_field(store, fieldname);
+	if (!found) return;
+
+	store.activate_tab(found.tab);
+	// activate_tab selects the page itself; the field just added is the better target
+	store.form.selected_field = found.field.df;
+	scroll_to_builder_field(fieldname);
+}
+
+function find_builder_field(store, fieldname) {
+	for (const tab of store.form.layout?.tabs || []) {
+		for (const section of tab.sections || []) {
+			for (const column of section.columns || []) {
+				const field = column.fields?.find((f) => f.df.fieldname === fieldname);
+				if (field) return { tab, field };
+			}
+		}
+	}
+}
+
+// scoped to the canvas: a Web Form's own fields carry the same fieldnames as the rows it edits
+function scroll_to_builder_field(fieldname, attempts = 10) {
+	const field = $(`.form-builder-container [data-fieldname="${fieldname}"]`).closest(
+		".field"
+	)[0];
+	// switching pages re-renders the canvas, so the field may not be mounted yet
+	if (!field) {
+		attempts && setTimeout(() => scroll_to_builder_field(fieldname, attempts - 1), 50);
+		return;
+	}
+	field.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 // `frm.sidebar` only exists while the user keeps Form Sidebar on, the way add_web_link guards it
