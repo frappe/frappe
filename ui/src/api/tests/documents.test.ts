@@ -266,7 +266,7 @@ describe("methods and meta", () => {
   });
 
   it("reads a part beside the document with its query encoded", async () => {
-    respond({ data: { activities: [], has_more_emails: false } });
+    respond({ data: { activities: [], next: null } });
     const { data } = await getDocumentPart<{ activities: unknown[] }>("ToDo", "T-1", "activity", {
       types: ["email", { version: ["status"] }],
     });
@@ -275,8 +275,8 @@ describe("methods and meta", () => {
       url: `/api/v2/document/ToDo/T-1/activity?types=${encodeURIComponent('["email",{"version":["status"]}]')}`,
       method: "GET",
     });
-    await getDocumentPart("ToDo", "T-1", "activity", { stream: "emails", start: 20 });
-    expect(lastCall().url).toBe("/api/v2/document/ToDo/T-1/activity?stream=emails&start=20");
+    await getDocumentPart("ToDo", "T-1", "activity", { limit: 50, before: "c1" });
+    expect(lastCall().url).toBe("/api/v2/document/ToDo/T-1/activity?limit=50&before=c1");
   });
 
   it("reads meta, with children when asked", async () => {

@@ -49,6 +49,8 @@ export function createLiveUpdates(
 
     const current = feed.data.value;
     if (action === "add") {
+      // the row may already be here, from a refresh or a resolved pending row
+      if (current.some((a) => a.key === activity.key)) return;
       feed.data.value = [...current, activity];
     } else if (action === "delete") {
       feed.data.value = current.filter((a) => a.key !== activity.key);

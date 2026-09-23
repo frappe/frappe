@@ -5,7 +5,11 @@ export { default as EmailItem } from "./EmailItem.vue";
 export { default as CommentItem } from "./CommentItem.vue";
 export { default as LogItem } from "./LogItem.vue";
 export { default as VersionItem } from "./VersionItem.vue";
-export { addPendingActivity, useActivityTimeline } from "./useActivityTimeline";
+export {
+  addPendingActivity,
+  prefetchActivityTimeline,
+  useActivityTimeline,
+} from "./useActivityTimeline";
 export type {
   Activity,
   ActivityTimelineProps,

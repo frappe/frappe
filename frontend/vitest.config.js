@@ -41,6 +41,7 @@ export default defineConfig({
 			"src/**/tests/*.test.ts",
 			"plugin/tests/*.test.ts",
 			"../ui/src/api/tests/*.test.ts",
+			"../ui/src/components/ActivityTimeline/tests/*.test.ts",
 		],
 		server: {
 			deps: {

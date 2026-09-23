@@ -11,7 +11,6 @@ import { getDocumentPart } from "../../api";
 import type {
   Activity,
   CustomActivity,
-  Pagination,
   PendingActivity,
   VisibleTypes,
 } from "./types";
@@ -23,55 +22,81 @@ import {
 } from "./liveUpdates";
 import { stripHtml } from "./utils";
 
-interface FeedPage {
+interface ActivityPage {
+  /** oldest first */
   activities: Activity[];
-  has_more_emails?: boolean;
-  has_more_milestones?: boolean;
-  next_milestone_start?: number;
+  /** cursor for the older page; null once the list has ended */
+  next: string | null;
 }
 
-// One store per cache key: reopening a doc is instant, paging state survives remounts.
+// One store per cache key: reopening a doc is instant, loaded pages survive remounts.
 interface TimelineStore {
+  doc: string;
   data: Ref<Activity[]>;
   loading: Ref<boolean>;
   error: Ref<unknown>;
-  /** whether the first page has ever landed */
+  /** whether the newest page has ever landed */
   fetched: Ref<boolean>;
+  next: Ref<string | null>;
+  fetchingOlder: Ref<boolean>;
   load: () => Promise<void>;
-  // "older rows remain" per paged source, plus the next milestone page's offset
-  hasMoreEmails: Ref<boolean>;
-  hasMoreMilestones: Ref<boolean>;
-  milestoneStart: Ref<number>;
+  loadOlder: () => Promise<void>;
   /** one refetch however many callers ask; resolves when it lands */
   refresh: () => Promise<void>;
   subscribe: Subscribe;
 }
 const stores = new Map<string, TimelineStore>();
 
-// Rows shown before the server confirmed them, keyed by document so every filtered
-// view of it shows them. `key` never changes; `confirmedKey` is what the row waits for.
+const PAGE_SIZE = 50;
+
+// Unconfirmed rows per document. `renderKey` is the key a row was first drawn under;
+// the server row adopts it, so Vue patches the node instead of remounting it.
 type PendingRow = (Activity | CustomActivity) & {
   key: string;
-  confirmedKey?: string;
+  renderKey: string;
 };
 const pendingActivities = ref<Record<string, PendingRow[]>>({});
 
-// All a retired pending row leaves behind: the key it rendered under, per document.
+// All a retired pending row leaves behind: server key to render key, per document.
 const adoptedKeys = ref<Record<string, Record<string, string>>>({});
 
 const docKey = (doctype: string, docname: string) => `${doctype}:${docname}`;
 
 const PENDING_KEY = "pending:";
-const isUnresolved = (row: PendingRow) =>
-  !row.confirmedKey && row.key.startsWith(PENDING_KEY);
+const isUnresolved = (row: PendingRow) => row.key.startsWith(PENDING_KEY);
 
-/** What a row says, for matching one the server echoed back under a key we don't know yet. */
-const rowText = (activity: Activity | CustomActivity) => {
-  const content = (activity.data as { content?: unknown } | null)?.content;
-  if (typeof content !== "string") return undefined;
-  const text = stripHtml(content).replace(/\s+/g, " ").trim();
-  return text && JSON.stringify([activity.type, text]);
-};
+export function useActivityTimeline(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+) {
+  const store = getTimelineStore(doctype, docname, visibleTypes);
+  subscribeWhileMounted(store);
+
+  return {
+    activities: shownActivities(store, typeNames(visibleTypes)),
+    loading: computed<boolean>(() => store.loading.value),
+    error: computed<unknown>(() => store.error.value),
+    reload: () => store.refresh(),
+    // reactive() so the refs unwrap when read through the `paginate` prop
+    paginate: reactive({
+      hasNextPage: computed(
+        () => store.fetched.value && store.next.value !== null
+      ),
+      isFetchingNextPage: computed(() => store.fetchingOlder.value),
+      fetchNextPage: store.loadOlder,
+    }),
+  };
+}
+
+/** Starts the newest-page read before any component mounts; a later mount reuses it. */
+export function prefetchActivityTimeline(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+) {
+  getTimelineStore(doctype, docname, visibleTypes);
+}
 
 /**
  * Shows a row in the feed before the server has confirmed it. The row carries
@@ -83,122 +108,78 @@ export function addPendingActivity(
   activity: Omit<Activity | CustomActivity, "key"> & { key?: string }
 ): PendingActivity {
   const doc = docKey(doctype, docname);
-  const key = activity.key ?? `${PENDING_KEY}${crypto.randomUUID()}`;
+  const renderKey = activity.key ?? `${PENDING_KEY}${crypto.randomUUID()}`;
+  const row = { ...activity, key: renderKey, renderKey, pending: true };
+  setPendingRows(doc, (rows) => [...rows, row as PendingRow]);
 
-  const setRows = (next: (rows: PendingRow[]) => PendingRow[]) => {
-    pendingActivities.value = {
-      ...pendingActivities.value,
-      [doc]: next(pendingActivities.value[doc] ?? []),
-    };
+  const resolve = (key: string, timestamp?: string) => {
+    const confirmed = { key, pending: false, ...(timestamp ? { timestamp } : {}) };
+    setPendingRows(doc, (rows) =>
+      rows.map((r) =>
+        r.renderKey === renderKey ? { ...r, ...confirmed } : r
+      )
+    );
+    retireEverywhere(doc);
   };
-
-  setRows((rows) => [
-    ...rows,
-    { ...activity, key, pending: true } as PendingRow,
-  ]);
-
-  return {
-    resolve: (confirmedKey: string) =>
-      setRows((rows) =>
-        rows.map((r) => (r.key === key ? { ...r, confirmedKey } : r))
-      ),
-    drop: () => setRows((rows) => rows.filter((r) => r.key !== key)),
-  };
+  const drop = () =>
+    setPendingRows(doc, (rows) =>
+      rows.filter((r) => r.renderKey !== renderKey)
+    );
+  return { resolve, drop };
 }
-
-/**
- * Drops pending rows the server echoed back, keeping the key each rendered under so the
- * real row adopts it. Vue then patches that node rather than remounting it, which would
- * rebuild the email iframe at its collapsed height and jump.
- */
-function retirePendingRows(doctype: string, docname: string, feed: Activity[]) {
-  const doc = docKey(doctype, docname);
-  const rows = pendingActivities.value[doc];
-  if (!rows?.length) return;
-
-  const confirmedKeys = new Set(feed.map((a) => a.key));
-  // The socket can deliver the real row before the request answers, so a row with no key
-  // yet is matched on its text. An identical older row can swallow it, costing one fetch.
-  const keyByText = new Map<string, string>();
-  if (rows.some(isUnresolved))
-    for (const a of feed) {
-      const text = rowText(a);
-      if (text) keyByText.set(text, a.key);
-    }
-
-  const adopted: Record<string, string> = {};
-  const waiting = rows.filter((row) => {
-    const real =
-      row.confirmedKey ??
-      (isUnresolved(row) ? keyByText.get(rowText(row) ?? "") : row.key);
-    if (!real || !confirmedKeys.has(real)) return true;
-    adopted[real] = row.key;
-    return false;
-  });
-  if (waiting.length === rows.length) return;
-
-  pendingActivities.value = { ...pendingActivities.value, [doc]: waiting };
-  adoptedKeys.value = {
-    ...adoptedKeys.value,
-    [doc]: { ...adoptedKeys.value[doc], ...adopted },
-  };
-}
-
-// one save can fire several doc_updates: wait a moment, then fetch once
-const REFRESH_DEBOUNCE_MS = 300;
-
-// filters are part of the cache identity
-const timelineCacheKey = (
-  doctype: string,
-  docname: string,
-  visibleTypes?: VisibleTypes
-) =>
-  `${doctype}:${docname}:${visibleTypes ? JSON.stringify(visibleTypes) : "*"}`;
 
 function getTimelineStore(
   doctype: string,
   docname: string,
   visibleTypes?: VisibleTypes
 ): TimelineStore {
-  const cacheKey = timelineCacheKey(doctype, docname, visibleTypes);
-  const existing = stores.get(cacheKey);
-  if (existing) return existing;
+  // filters are part of the cache identity
+  const types = visibleTypes ? JSON.stringify(visibleTypes) : "*";
+  const cacheKey = `${docKey(doctype, docname)}:${types}`;
+  let store = stores.get(cacheKey);
+  if (!store) {
+    store = createTimelineStore(doctype, docname, visibleTypes);
+    stores.set(cacheKey, store);
+    void store.load();
+  }
+  return store;
+}
 
-  const visibleTypeNames = visibleTypes?.flatMap((t) =>
-    typeof t === "string" ? [t] : Object.keys(t)
-  );
-
+function createTimelineStore(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+): TimelineStore {
+  const doc = docKey(doctype, docname);
   const data = ref<Activity[]>([]);
+  const fetched = ref(false);
+  const next = ref<string | null>(null);
   const loading = ref(false);
   const error = ref<unknown>(null);
-  const fetched = ref(false);
-  const hasMoreEmails = ref(true);
-  const hasMoreMilestones = ref(false);
-  const milestoneStart = ref(0);
+  const fetchingOlder = ref(false);
 
-  // On reload (e.g. a doc_update), re-append the older pages the user has already loaded.
+  // filtered server-side so the cursor walks only the rows this view shows
+  const readPage = async (before?: string) => {
+    const params = { types: visibleTypes, limit: PAGE_SIZE, before };
+    const response = await getDocumentPart<ActivityPage>(
+      doctype,
+      docname,
+      "activity",
+      params
+    );
+    return response.data;
+  };
+
   let inFlight: Promise<void> | undefined;
   const load = () => {
     if (inFlight) return inFlight;
     loading.value = true;
     inFlight = (async () => {
       try {
-        // filtered server-side so pagination math stays correct
-        const { data: page } = await getDocumentPart<FeedPage>(doctype, docname, "activity", {
-          types: visibleTypes,
-        });
-        const newActivityKeys = new Set(page.activities.map((a) => a.key));
-        const paginatedOlderRows = data.value.filter(
-          (a) => isPagedRow(a) && !newActivityKeys.has(a.key)
-        );
-        data.value = [...page.activities, ...paginatedOlderRows];
-        hasMoreEmails.value = !!page.has_more_emails;
-        // This response only carries the first milestone page. Once the user has paged past it
-        // the rows above are kept, so page one's flag and offset are stale.
-        if (milestoneStart.value === 0) {
-          hasMoreMilestones.value = !!page.has_more_milestones;
-          milestoneStart.value = page.next_milestone_start ?? 0;
-        }
+        const page = await readPage();
+        data.value = mergeNewestPage(data.value, page);
+        // the loaded rows run unbroken down to the held cursor, so a reload keeps it
+        if (!fetched.value || page.next === null) next.value = page.next;
         error.value = null;
         fetched.value = true;
       } catch (failure) {
@@ -211,15 +192,76 @@ function getTimelineStore(
     return inFlight;
   };
 
-  // sync: the feed and the rows drawn from it must not disagree for a render.
-  watch(data, (feed) => retirePendingRows(doctype, docname, feed), {
-    flush: "sync",
-  });
+  let olderInFlight: Promise<void> | undefined;
+  const loadOlder = () => {
+    if (olderInFlight) return olderInFlight;
+    if (next.value === null) return Promise.resolve();
+    fetchingOlder.value = true;
+    olderInFlight = readPage(next.value)
+      .then((page) => {
+        data.value = prependOlder(data.value, page.activities);
+        next.value = page.next;
+      })
+      .catch((failure) => {
+        error.value = failure;
+      })
+      .finally(() => {
+        fetchingOlder.value = false;
+        olderInFlight = undefined;
+      });
+    return olderInFlight;
+  };
 
-  // Every trigger in the window joins the same fetch, so one save costs one request.
+  // sync: the feed and the rows drawn from it must not disagree for a render.
+  watch(data, (feed) => retirePendingRows(doc, feed), { flush: "sync" });
+
+  const refresh = debouncedRefresh(load, () => inFlight);
+  const subscribe = createLiveUpdates(
+    doctype,
+    docname,
+    { data, fetched },
+    typeNames(visibleTypes),
+    refresh
+  );
+  return {
+    doc,
+    data,
+    loading,
+    error,
+    fetched,
+    next,
+    fetchingOlder,
+    load,
+    loadOlder,
+    refresh,
+    subscribe,
+  };
+}
+
+/** Loaded rows older than the page stay; inside its span the server's answer wins. */
+function mergeNewestPage(current: Activity[], page: ActivityPage): Activity[] {
+  const oldest = page.activities[0];
+  if (!oldest || page.next === null) return page.activities;
+  const older = current.filter((a) => compareActivities(a, oldest) < 0);
+  return [...older, ...page.activities];
+}
+
+function prependOlder(current: Activity[], older: Activity[]): Activity[] {
+  const known = new Set(current.map((a) => a.key));
+  return [...older.filter((a) => !known.has(a.key)), ...current];
+}
+
+// one save can fire several doc_updates: wait a moment, then fetch once
+const REFRESH_DEBOUNCE_MS = 300;
+
+// Every trigger in the window joins the same fetch, so one save costs one request.
+function debouncedRefresh(
+  load: () => Promise<void>,
+  running: () => Promise<void> | undefined
+): () => Promise<void> {
   let pendingRefresh: Promise<void> | undefined;
   let changedSinceFetch = false;
-  const refresh = (): Promise<void> => {
+  return () => {
     if (pendingRefresh) {
       changedSinceFetch = true;
       return pendingRefresh;
@@ -228,8 +270,7 @@ function getTimelineStore(
       do {
         await new Promise((done) => setTimeout(done, REFRESH_DEBOUNCE_MS));
         // a fetch already running was sent before the change, so it may miss it
-        if (inFlight) await inFlight.catch(() => {});
-        // the window is closed, so everything in it is covered by the fetch below
+        await running()?.catch(() => {});
         changedSinceFetch = false;
         await load();
         // a change that landed mid-fetch is not in what came back: go again
@@ -241,38 +282,10 @@ function getTimelineStore(
       });
     return pendingRefresh;
   };
-
-  const store: TimelineStore = {
-    data,
-    loading,
-    error,
-    fetched,
-    load,
-    hasMoreEmails,
-    hasMoreMilestones,
-    milestoneStart,
-    refresh,
-    subscribe: createLiveUpdates(
-      doctype,
-      docname,
-      { data, fetched },
-      visibleTypeNames,
-      refresh
-    ),
-  };
-  stores.set(cacheKey, store);
-  void load();
-  return store;
 }
 
-export function useActivityTimeline(
-  doctype: string,
-  docname: string,
-  visibleTypes?: VisibleTypes
-) {
-  const store = getTimelineStore(doctype, docname, visibleTypes);
-
-  // the store is shared, so one socket serves every consumer of it
+// the store is shared, so one socket serves every consumer of it
+function subscribeWhileMounted(store: TimelineStore) {
   let unsubscribe: Unsubscribe | undefined;
   onMounted(() => {
     unsubscribe = store.subscribe();
@@ -281,116 +294,83 @@ export function useActivityTimeline(
     unsubscribe?.();
     unsubscribe = undefined;
   });
-
-  // deduped + sorted but ungrouped; the component folds version runs at render time
-  const activities = computed<Array<Activity | CustomActivity>>(() => {
-    const confirmed = dropDuplicateKeys(store.data.value);
-    const doc = docKey(doctype, docname);
-    const adopted = adoptedKeys.value[doc];
-    const shown = adopted
-      ? confirmed.map((a) =>
-          adopted[a.key] ? { ...a, key: adopted[a.key] } : a
-        )
-      : confirmed;
-    const waiting = pendingActivities.value[doc] ?? [];
-    return [...shown, ...waiting].sort(compareActivities);
-  });
-
-  return {
-    activities,
-    loading: computed<boolean>(() => store.loading.value),
-    error: computed<unknown>(() => store.error.value),
-    reload: () => store.refresh(),
-    paginate: createHistoryPagination(doctype, docname, store),
-  };
 }
 
-// The two paged sources; everything else in the feed arrives whole on the first load.
-function isPagedRow(activity: Activity | CustomActivity): boolean {
-  if (activity.type === "email") return true;
-  if (activity.type !== "log") return false;
-  return (
-    (activity.data as { subtype?: string } | null)?.subtype === "milestone"
+// deduped + sorted but ungrouped; the component folds version runs at render time
+function shownActivities(store: TimelineStore, types: string[] | undefined) {
+  return computed<Array<Activity | CustomActivity>>(() => {
+    const adopted = adoptedKeys.value[store.doc] ?? {};
+    const confirmed = dropDuplicateKeys(store.data.value).map((a) =>
+      adopted[a.key] ? { ...a, renderKey: adopted[a.key] } : a
+    );
+    const waiting = (pendingActivities.value[store.doc] ?? []).filter(
+      (row) => !types || types.includes(row.type)
+    );
+    return [...confirmed, ...waiting].sort(compareActivities);
+  });
+}
+
+function typeNames(visibleTypes?: VisibleTypes): string[] | undefined {
+  return visibleTypes?.flatMap((t) =>
+    typeof t === "string" ? [t] : Object.keys(t)
   );
 }
 
-// History paging: fetch the next older page of each paged source and append; activities re-sorts.
-function createHistoryPagination(
-  doctype: string,
-  docname: string,
-  store: TimelineStore
-): Pagination {
-  const append = (activities: Activity[]) => {
-    store.data.value = [...store.data.value, ...activities];
+function setPendingRows(
+  doc: string,
+  change: (rows: PendingRow[]) => PendingRow[]
+) {
+  pendingActivities.value = {
+    ...pendingActivities.value,
+    [doc]: change(pendingActivities.value[doc] ?? []),
   };
+}
 
-  const fetchingEmails = ref(false);
-  const fetchingMilestones = ref(false);
+// a resolved row may already be in a feed: the socket can beat the request's answer
+function retireEverywhere(doc: string) {
+  for (const store of stores.values())
+    if (store.doc === doc) retirePendingRows(doc, store.data.value);
+}
 
-  const olderEmails = async (start: number) => {
-    fetchingEmails.value = true;
-    try {
-      const { data: page } = await getDocumentPart<FeedPage>(doctype, docname, "activity", {
-        stream: "emails",
-        start,
-      });
-      append(page.activities);
-      store.hasMoreEmails.value = !!page.has_more_emails;
-    } catch (failure) {
-      store.error.value = failure;
-    } finally {
-      fetchingEmails.value = false;
-    }
-  };
+/** Drops pending rows the server echoed back, keeping the key each rendered under. */
+function retirePendingRows(doc: string, feed: Activity[]) {
+  const rows = pendingActivities.value[doc];
+  if (!rows?.length) return;
 
-  const olderMilestones = async (start: number) => {
-    fetchingMilestones.value = true;
-    try {
-      const { data: page } = await getDocumentPart<FeedPage>(doctype, docname, "activity", {
-        stream: "milestones",
-        start,
-      });
-      append(page.activities);
-      store.hasMoreMilestones.value = !!page.has_more_milestones;
-      // backend-supplied: a milestone on a field the user cannot read is counted but not
-      // returned, so an offset counted from the rendered rows would skip the rows behind it
-      store.milestoneStart.value =
-        page.next_milestone_start ?? store.milestoneStart.value;
-    } catch (failure) {
-      store.error.value = failure;
-    } finally {
-      fetchingMilestones.value = false;
-    }
-  };
-
-  const isFetching = () => fetchingEmails.value || fetchingMilestones.value;
-
-  // One control, both sources: a row is older history whichever source it came from.
-  const fetchNextPage = () => {
-    if (isFetching()) return;
-    if (store.hasMoreEmails.value) {
-      // count-based offset: emails are only appended, so the loaded count is the next start
-      const emailsLoaded = store.data.value.filter((a) => a.type === "email").length;
-      void olderEmails(emailsLoaded);
-    }
-    if (store.hasMoreMilestones.value) {
-      void olderMilestones(store.milestoneStart.value);
-    }
-  };
-
-  // reactive() so the refs unwrap when read through the `paginate` prop.
-  return reactive({
-    hasNextPage: computed(
-      () => store.hasMoreEmails.value || store.hasMoreMilestones.value
-    ),
-    isFetchingNextPage: computed(() => isFetching()),
-    fetchNextPage,
-    isPagedRow,
-    // in-feed row above the oldest paged row; the copy lives here, not in the component
-    loadMore: {
-      position: "inline" as const,
-      label: "Show previous activity",
-      icon: "lucide-chevrons-up",
-    },
+  const serverKeys = new Set(feed.map((a) => a.key));
+  const keyByText = rows.some(isUnresolved) ? keysByText(feed) : undefined;
+  const adopted: Record<string, string> = {};
+  const waiting = rows.filter((row) => {
+    const real = isUnresolved(row)
+      ? keyByText?.get(rowText(row) ?? "")
+      : row.key;
+    if (!real || !serverKeys.has(real)) return true;
+    adopted[real] = row.renderKey;
+    return false;
   });
+  if (waiting.length === rows.length) return;
+
+  pendingActivities.value = { ...pendingActivities.value, [doc]: waiting };
+  adoptedKeys.value = {
+    ...adoptedKeys.value,
+    [doc]: { ...adoptedKeys.value[doc], ...adopted },
+  };
+}
+
+// A row with no key yet is matched on its text. An identical older row can swallow it.
+function keysByText(feed: Activity[]): Map<string, string> {
+  const keys = new Map<string, string>();
+  for (const a of feed) {
+    const text = rowText(a);
+    if (text) keys.set(text, a.key);
+  }
+  return keys;
+}
+
+/** What a row says, for matching one the server echoed back under a key we don't know yet. */
+function rowText(activity: Activity | CustomActivity) {
+  const content = (activity.data as { content?: unknown } | null)?.content;
+  if (typeof content !== "string") return undefined;
+  const text = stripHtml(content).replace(/\s+/g, " ").trim();
+  return text && JSON.stringify([activity.type, text]);
 }
