@@ -243,9 +243,18 @@ def parse_latest_non_beta_release(response: list, current_version: Version) -> l
 
 	Return a json object pertaining to the latest non-beta release
 	"""
-	version_list = [
-		release.get("tag_name").strip("v") for release in response if not release.get("prerelease")
-	]
+	version_list = []
+	for release in response:
+		tag = release.get("tag_name")
+		if release.get("prerelease") or not isinstance(tag, str):
+			continue
+
+		version = tag.removeprefix("v")
+		try:
+			Version(version)
+		except ValueError:
+			continue
+		version_list.append(version)
 
 	def prioritize_minor_update(v: str) -> Version:
 		target = Version(v)
