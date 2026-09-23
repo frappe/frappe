@@ -8,6 +8,7 @@
 		:max-attachments="maxAttachments"
 		:submitting="submitting"
 		:fill="fill"
+		:disabled="disabled"
 		v-model:body="body"
 		v-model:quoted="quoted"
 		@submit="handleSubmit"

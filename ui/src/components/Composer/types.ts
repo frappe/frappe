@@ -47,6 +47,8 @@ interface BaseComposerProps {
   submitting?: boolean;
   /** The host sets the height: the body fills it, with no 50vh cap. */
   fill?: boolean;
+  /** Nothing can be written or sent: the body is read-only, attach and submit are off. */
+  disabled?: boolean;
 }
 
 export interface ComposerEditorProps extends BaseComposerProps {

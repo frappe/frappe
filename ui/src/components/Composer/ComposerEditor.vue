@@ -6,6 +6,7 @@
 			:extensions="extensions"
 			:placeholder="placeholder"
 			:upload-function="uploadFunction"
+			:editable="!disabled"
 		>
 			<template #default>
 				<div
@@ -102,7 +103,9 @@
 										aria-label="Attach file"
 										class="shrink-0"
 										:loading="isUploading"
-										:disabled="attachments.length >= maxAttachments"
+										:disabled="
+											disabled || attachments.length >= maxAttachments
+										"
 										@click="attachInput?.click()"
 									/>
 									<input
@@ -417,7 +420,10 @@ function removeAttachment(file: UploadedFile) {
 
 // Sendable = body or attachment (a quoted reply alone isn't); never mid-upload.
 const isDisabled = computed(
-	() => (isContentEmpty(body.value) && !attachments.value.length) || isUploading.value
+	() =>
+		props.disabled ||
+		(isContentEmpty(body.value) && !attachments.value.length) ||
+		isUploading.value
 );
 
 const isEmpty = computed(
