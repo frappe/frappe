@@ -224,7 +224,13 @@ frappe.ui.form.PrintView = class {
 	}
 
 	set_breadcrumbs() {
-		frappe.breadcrumbs.add(this.frm.meta.module, this.frm.doctype);
+		const items = frappe.ui.form.get_breadcrumbs(this.frm);
+		// the form is one page back from here, so the document stays a way to reach it
+		items[items.length - 1].href = `/desk/${frappe.router.slug(
+			this.frm.doctype
+		)}/${encodeURIComponent(this.frm.docname)}`;
+		items.push({ label: __("Print") });
+		this.page.set_breadcrumbs(items);
 	}
 
 	setup_additional_settings() {
