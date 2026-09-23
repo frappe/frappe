@@ -439,6 +439,27 @@ describe("pending rows", () => {
     expect(timeline.activities.value[2]).toMatchObject({ renderKey: draftKey });
   });
 
+  it("does not match a pending row to a same-text row an older page brings later", async () => {
+    const name = freshDoc();
+    const old = row("comment", "comment:OLD", "2026-01-01", { name: "OLD", content: "<p>ok</p>" });
+    serve({
+      newest: { activities: [c(5)], next: "c1" },
+      c1: { activities: [old], next: null },
+    });
+    const { timeline } = mountTimeline(name);
+    await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
+
+    addPendingActivity("ToDo", name, comment("ok"));
+    const draftKey = timeline.activities.value[1].key;
+    await timeline.paginate.fetchNextPage();
+    expect(timeline.activities.value.find((a) => a.key === draftKey)?.pending).toBe(true);
+    expect(timeline.activities.value[0]).not.toHaveProperty("renderKey");
+
+    socket.emit("docinfo_update", socketComment(name, "NEW", "ok", "2026-01-05 10:00:03"));
+    expect(keys(timeline)).toEqual(["comment:OLD", "comment:5", "comment:NEW"]);
+    expect(timeline.activities.value[2]).toMatchObject({ renderKey: draftKey });
+  });
+
   it("keeps a pending comment out of the emails view", async () => {
     const name = freshDoc();
     const emails = useActivityTimeline("ToDo", name, ["email"]);

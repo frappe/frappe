@@ -16,8 +16,7 @@ export function dropDuplicateKeys(activities: Activity[]): Activity[] {
   );
 }
 
-/** The server's order: the timestamp string, then the key, compared by code unit.
- *  A row with no timestamp yet (a pending row) sorts after every timestamped row, as the newest. */
+/** The server's order by timestamp then key, by code unit; a row with no timestamp sorts newest. */
 export function compareActivities(
   a: Pick<Activity, "timestamp" | "key">,
   b: Pick<Activity, "timestamp" | "key">

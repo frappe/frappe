@@ -19,6 +19,8 @@ vi.mock("@framework/ui/api", () => ({
   getMeta: vi.fn(async () => ({ data: null })),
 }));
 
+import { resetSession, setSession } from "@framework/ui/composables/useSession";
+import type { Session } from "@framework/ui/api";
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { registerRecordPage, resetRegistry } from "../registry";
 import type { ActivityRow } from "../types";
@@ -91,7 +93,27 @@ beforeEach(() => {
   vi.spyOn(console, "warn").mockImplementation((message: string) => void warnings.push(message));
 });
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+  resetSession();
+});
+
+/** The site's time zone, as boot hands it to the shell. */
+function siteZone(timezone: string) {
+  const user = {
+    name: "a@example.com",
+    full_name: "A",
+    email: "a@example.com",
+    user_image: null,
+    document_follow_notify: false,
+  };
+  const session: Session = { user, roles: [], lang: "en", timezone, defaults: {} };
+  setSession(session);
+}
+
+const own = (items: readonly { name: string; timestamp?: string }[]) =>
+  items.filter((item) => item.name.startsWith("a:")).map((item) => item.timestamp);
 
 describe("the list a script reads", () => {
   it("hands each server row back under its key, oldest first", () => {
@@ -198,19 +220,32 @@ describe("what a script adds and removes", () => {
     expect(warnings).toEqual([]);
   });
 
-  it("drops a zone from a script's timestamp and warns, since server times are site-local", () => {
+  it("moves a zoned timestamp to the site's clock, since server times are site-local", () => {
+    siteZone("Asia/Kolkata");
     const { page } = makePage();
 
-    page.activity.add({ name: "a:1", timestamp: "2026-09-23T10:15:00.5Z", component: CallRow });
+    page.activity.add({ name: "a:1", timestamp: "2026-09-23T04:45:00.5Z", component: CallRow });
     page.activity.add({ name: "a:2", timestamp: "2026-09-23 10:16:00+05:30", component: CallRow });
+    page.activity.add({ name: "a:3", timestamp: "2026-09-23T20:00:00-0100", component: CallRow });
 
-    expect(page.activity.items.filter((item) => item.name.startsWith("a:")).map((item) => item.timestamp)).toEqual([
+    expect(own(page.activity.items)).toEqual([
       "2026-09-23 10:15:00.5",
       "2026-09-23 10:16:00",
+      "2026-09-24 02:30:00",
     ]);
+    expect(names(page.activity.items).slice(2, 5)).toEqual(["a:1", "a:2", "comment:c2"]);
+    expect(warnings).toEqual([]);
+  });
+
+  it("refuses a zoned timestamp when the site's zone is unknown, and says so in production too", () => {
+    vi.stubEnv("DEV", false);
+    const { page } = makePage();
+
+    page.activity.add({ name: "a:1", timestamp: "2026-09-23T10:15:00Z", component: CallRow });
+
+    expect(page.activity.has("a:1")).toBe(false);
     expect(warnings).toEqual([
-      `[record-page] page.activity.add("a:1") — server times are site-local, so the zone "Z" was dropped.`,
-      `[record-page] page.activity.add("a:2") — server times are site-local, so the zone "+05:30" was dropped.`,
+      `[record-page] page.activity.add("a:1") — "2026-09-23T10:15:00Z" could not be read on the site's clock; pass site-local time, as "2026-09-23 10:15:00"; dropped.`,
     ]);
   });
 
@@ -242,6 +277,29 @@ describe("what a script adds and removes", () => {
 
     expect(names(page.activity.items)[0]).toBe("comment:c1");
     expect(warnings[0]).toContain("time orders this list");
+  });
+
+  it("holds an update to the rules of an add: the time rewritten, a cleared time refused", () => {
+    siteZone("Asia/Kolkata");
+    const { page } = makePage();
+    const activity = page.activity as unknown as { update(name: string, patch: object): void };
+    page.activity.add({ name: "a:1", timestamp: "2026-09-23 12:00:00", component: CallRow });
+
+    activity.update("a:1", { timestamp: "2026-09-23T08:15:00" });
+    expect(own(page.activity.items)).toEqual(["2026-09-23 08:15:00"]);
+    activity.update("a:1", { timestamp: "2026-09-23T04:45:00Z" });
+    expect(own(page.activity.items)).toEqual(["2026-09-23 10:15:00"]);
+
+    activity.update("a:1", { timestamp: "" });
+    activity.update("a:1", { timestamp: undefined, props: { id: 2 } });
+    activity.update("comment:c1", { timestamp: "2026-09-23 12:00:00" });
+    expect(own(page.activity.items)).toEqual(["2026-09-23 10:15:00"]);
+    expect(names(page.activity.items)[0]).toBe("comment:c1");
+    expect(warnings).toEqual([
+      `[record-page] page.activity.update("a:1") — a row needs a timestamp to take its place; dropped.`,
+      `[record-page] page.activity.update("a:1") — a row needs a timestamp to take its place; dropped.`,
+      `[record-page] page.activity.update("comment:c1") — that name is a server row's; dropped.`,
+    ]);
   });
 
   it("keeps a script's row through a reload of the server's rows", async () => {

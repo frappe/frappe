@@ -2,6 +2,7 @@
 // read from the host, a script's own rows kept on the surface so they outlive a reload.
 import { ref } from "vue";
 import { compareActivities } from "@framework/ui/ActivityTimeline";
+import { currentSession } from "@framework/ui/composables/useSession";
 import { readOnly } from "./readOnly";
 import { Surface } from "./surface";
 import { FEED_ITEM_KEYS } from "./types";
@@ -47,10 +48,15 @@ abstract class FeedSurface<Row extends Timed> extends Surface<FeedItem> {
   }
 
   add(item: FeedItem | FeedItem[]) {
-    const rows = (Array.isArray(item) ? item : [item])
-      .filter((one) => this.canAdd(one))
-      .map((one) => this.inServerTime(one));
+    const rows = (Array.isArray(item) ? item : [item]).flatMap(
+      (one) => this.checked("add", one.name, one, true) ?? []
+    );
     if (rows.length) super.add(rows);
+  }
+
+  update(name: string, patch: Partial<FeedItem>) {
+    const checked = this.checked("update", name, patch, false);
+    if (checked) super.update(name, checked);
   }
 
   remove(name: string) {
@@ -71,28 +77,38 @@ abstract class FeedSurface<Row extends Timed> extends Surface<FeedItem> {
     this.warn("order", names.join(", "), "time orders this list; nothing was moved");
   }
 
-  private canAdd(item: FeedItem) {
-    if (!item.component) return this.refuse(item, "a row needs a component");
-    if (!item.timestamp) return this.refuse(item, "a row needs a timestamp to take its place");
-    if (this.isServerRow(item.name)) return this.refuse(item, "that name is a server row's");
-    return true;
+  // What `add` and `update` both hold a row to; an `update` checks only the keys it sets.
+  private checked<Fields extends Partial<FeedItem>>(
+    verb: string,
+    name: string,
+    fields: Fields,
+    whole: boolean
+  ) {
+    const clears = (key: keyof FeedItem) => (whole || key in fields) && !fields[key];
+    if (clears("component")) return this.refuse(verb, name, "a row needs a component");
+    if (clears("timestamp")) return this.refuse(verb, name, "a row needs a timestamp to take its place");
+    if (this.isServerRow(name)) return this.refuse(verb, name, "that name is a server row's");
+    return this.inServerTime(verb, name, fields);
   }
 
   // Rows sort by their timestamp's text, so a script's row is written as the server writes one.
-  private inServerTime(item: FeedItem): FeedItem {
-    const [, date, time, zone] = SCRIPT_TIME.exec(String(item.timestamp)) ?? [];
-    if (!date) return item;
-    if (zone) this.warn("add", item.name, `server times are site-local, so the zone "${zone}" was dropped`);
-    return { ...item, timestamp: `${date} ${time}` };
+  private inServerTime<Fields extends Partial<FeedItem>>(verb: string, name: string, fields: Fields) {
+    const [, date, time, zone] = SCRIPT_TIME.exec(String(fields.timestamp)) ?? [];
+    if (!date) return fields;
+    const timestamp = zone ? onSiteClock(date, time, zone) : `${date} ${time}`;
+    if (timestamp) return { ...fields, timestamp };
+    // In production too: a row placed hours off is worse than a missing one.
+    console.warn(
+      `[record-page] page.${this.surface}.${verb}("${name}") — "${fields.timestamp}" could not be read on the site's clock; pass site-local time, as "2026-09-23 10:15:00"; dropped.`
+    );
   }
 
   private isServerRow(name: string) {
     return this.serverItems().some((row) => row.name === name);
   }
 
-  private refuse(item: FeedItem, because: string) {
-    this.warn("add", item.name, `${because}; dropped`);
-    return false;
+  private refuse(verb: string, name: string, because: string): undefined {
+    this.warn(verb, name, `${because}; dropped`);
   }
 
   protected warn(verb: string, name: string, because: string) {
@@ -198,6 +214,37 @@ type Timed = { name: string; timestamp?: string; creation?: string };
 
 // `2026-09-23T10:15:00.5+05:30`: the date, the time, and a zone the server never writes.
 const SCRIPT_TIME = /^(\d{4}-\d{2}-\d{2})[T ]([\d:.]+)(Z|[+-]\d{2}(?::?\d{2})?)?$/;
+
+// The same instant in the site's time zone, which the session carries; undefined without one.
+function onSiteClock(date: string, time: string, zone: string): string | undefined {
+  const siteZone = currentSession()?.timezone;
+  const [whole, fraction] = time.split(".");
+  const instant = new Date(`${date}T${whole}${isoOffset(zone)}`);
+  if (!siteZone || Number.isNaN(instant.getTime())) return undefined;
+  const at = Object.fromEntries(siteClock(siteZone).formatToParts(instant).map((p) => [p.type, p.value]));
+  const seconds = fraction ? `${at.second}.${fraction}` : at.second;
+  return `${at.year}-${at.month}-${at.day} ${at.hour}:${at.minute}:${seconds}`;
+}
+
+// `Date` reads `Z` and `+05:30`, not `+0530` or `+05`.
+function isoOffset(zone: string) {
+  if (zone === "Z") return zone;
+  const digits = zone.slice(1).replace(":", "");
+  return `${zone[0]}${digits.slice(0, 2)}:${digits.slice(2) || "00"}`;
+}
+
+function siteClock(timeZone: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
 
 // As the timeline draws its rows; a file row's time is its `creation`.
 function byTime(a: Timed, b: Timed) {

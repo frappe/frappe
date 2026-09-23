@@ -28,26 +28,22 @@
 			/>
 		</div>
 
-		<template v-for="entry in mounted" :key="entry.item.name">
+		<div
+			v-for="entry in mounted"
+			v-show="entry.item.name === active"
+			:key="entry.item.name"
+			class="flex min-h-0 flex-1 flex-col"
+			:data-record-tab="entry.item.name"
+			@focusin="focused.set(entry.item.name, $event.target as HTMLElement)"
+		>
 			<!-- A body that scrolls itself: a second viewport round it would be a focus stop that never scrolls. -->
-			<div
+			<component
+				:is="entry.item.component"
 				v-if="scrollsItself(entry.item.component)"
-				v-show="entry.item.name === active"
-				class="flex min-h-0 flex-1 flex-col"
-				:data-record-tab="entry.item.name"
-				@focusin="focused.set(entry.item.name, $event.target as HTMLElement)"
-			>
-				<component :is="entry.item.component" v-bind="{ ...entry.item.props, page }" />
-			</div>
+				v-bind="{ ...entry.item.props, page }"
+			/>
 			<!-- The viewport's content is a column at least its height, so a feed can fill it and scroll itself. -->
-			<ScrollArea
-				v-else
-				v-show="entry.item.name === active"
-				class="min-h-0 flex-1"
-				:viewportClass="BODY_VIEWPORT"
-				:data-record-tab="entry.item.name"
-				@focusin="focused.set(entry.item.name, $event.target as HTMLElement)"
-			>
+			<ScrollArea v-else class="min-h-0 flex-1" :viewportClass="BODY_VIEWPORT">
 				<component
 					:is="entry.item.component"
 					v-if="entry.item.component"
@@ -58,7 +54,7 @@
 					{{ __("Nothing here yet.") }}
 				</p>
 			</ScrollArea>
-		</template>
+		</div>
 	</div>
 </template>
 

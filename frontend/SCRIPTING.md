@@ -686,6 +686,25 @@ export default {
 }
 ```
 
+## The record tabs: `page.tabs`
+
+The strip above the record's body: Activity, Emails, Files, Details and a script's own tabs.
+It speaks the eight verbs, `active` and `activate(name)`.
+
+### An item
+
+| Key | What it does |
+| --- | --- |
+| `name` | The address every verb uses. |
+| `label` | The text on the strip. |
+| `icon` | `lucide-<name>`, drawn before the label. |
+| `component` | Draws the tab's body. It receives `{ ...props, page }`. |
+| `props` | Bound onto `component`. |
+| `create` | `{ label, icon, run }`: an entry in the composer's `+` menu while the tab is on the strip. |
+
+The page draws a tab's body inside a scroller. A component that draws its own scroller sets
+`defineOptions({ scrollsItself: true })`, and the tab body adds none.
+
 ## The feed: `page.activity`
 
 The Activity tab is **one list, ordered by time**. The server's rows and a script's own
@@ -703,7 +722,7 @@ A script's row:
 | Key | What it does |
 | --- | --- |
 | `name` | The address. It must not be a server row's key; that `add` warns and drops the row. |
-| `timestamp` | Where the row sits, written as the server writes one: `2026-09-23 10:15:00`. Required. `add` rewrites an ISO `2026-09-23T10:15:00` that way; a `Z` or an offset is dropped, with a development warning, since server times are site-local. |
+| `timestamp` | Where the row sits, written as the server writes one: `2026-09-23 10:15:00`, in the site's time zone. Required, and `update` cannot clear it. `add` and `update` rewrite an ISO `2026-09-23T10:15:00` that way, and move a time with a `Z` or an offset to the site's time zone, so `new Date().toISOString()` lands where it should. Without the site's time zone such a row is dropped, with a warning that prints in production too. |
 | `component` | Draws the row, with `props` and a `page` prop. Required. |
 | `props` | Bound onto `component`. |
 | any other key | Not read: dropped on `add`, and a development build warns once. |

@@ -1,6 +1,7 @@
 // Rows shown before the server confirms them, per document, and the keys they drew under.
 import { effectScope, ref, watch, type EffectScope, type Ref } from "vue";
 import type { Activity, CustomActivity, PendingActivity } from "./types";
+import { compareActivities } from "./grouping";
 import { stripHtml } from "./utils";
 
 // `renderKey` is the key a row was first drawn under; the server row adopts it,
@@ -17,8 +18,10 @@ const adoptedKeys = ref<Record<string, Record<string, string>>>({});
 type TrackedFeed = { doc: string; data: Ref<Activity[]> };
 const trackedFeeds = new Set<TrackedFeed>();
 
-// Keys the feeds held when an unresolved row was added, by render key; none can be its echo.
-const keysHeldAtAdd = new Map<string, Set<string>>();
+// The newest row the feeds held when an unresolved row was added, by render key;
+// its echo can only sort after it.
+type Position = Pick<Activity, "timestamp" | "key">;
+const newestHeldAtAdd = new Map<string, Position>();
 
 const PENDING_KEY = "pending:";
 const isUnresolved = (row: PendingRow) => row.key.startsWith(PENDING_KEY);
@@ -34,7 +37,8 @@ export function addPendingActivity(
 ): PendingActivity {
   const doc = docKey(doctype, docname);
   const renderKey = activity.key ?? `${PENDING_KEY}${crypto.randomUUID()}`;
-  if (renderKey.startsWith(PENDING_KEY)) keysHeldAtAdd.set(renderKey, heldKeys(doc));
+  const newest = renderKey.startsWith(PENDING_KEY) && newestHeld(doc);
+  if (newest) newestHeldAtAdd.set(renderKey, newest);
   const row = { ...activity, key: renderKey, renderKey, pending: true };
   setPendingRows(doc, (rows) => [...rows, row as PendingRow]);
   return {
@@ -79,7 +83,7 @@ function resolvePendingRow(
   timestamp?: string
 ) {
   const confirmed = { key, pending: false, ...(timestamp ? { timestamp } : {}) };
-  keysHeldAtAdd.delete(renderKey);
+  newestHeldAtAdd.delete(renderKey);
   setPendingRows(doc, (rows) =>
     rows.map((r) => (r.renderKey === renderKey ? { ...r, ...confirmed } : r))
   );
@@ -89,7 +93,7 @@ function resolvePendingRow(
 }
 
 function dropPendingRow(doc: string, renderKey: string) {
-  keysHeldAtAdd.delete(renderKey);
+  newestHeldAtAdd.delete(renderKey);
   setPendingRows(doc, (rows) => rows.filter((r) => r.renderKey !== renderKey));
 }
 
@@ -112,11 +116,13 @@ function untrackFeed(feed: TrackedFeed, scope: EffectScope) {
   adoptedKeys.value = adopted;
 }
 
-function heldKeys(doc: string): Set<string> {
-  const held = new Set<string>();
+function newestHeld(doc: string): Position | undefined {
+  let newest: Position | undefined;
   for (const feed of trackedFeeds)
-    if (feed.doc === doc) feed.data.value.forEach((a) => held.add(a.key));
-  return held;
+    if (feed.doc === doc)
+      for (const a of feed.data.value)
+        if (!newest || compareActivities(a, newest) > 0) newest = a;
+  return newest;
 }
 
 /** Drops pending rows the server echoed back, keeping the key each rendered under. */
@@ -131,7 +137,7 @@ function adoptEchoedRows(doc: string, echoed: Map<PendingRow, string>) {
   const adopted: Record<string, string> = {};
   for (const [row, key] of echoed) {
     adopted[key] = row.renderKey;
-    keysHeldAtAdd.delete(row.renderKey);
+    newestHeldAtAdd.delete(row.renderKey);
   }
   adoptedKeys.value = {
     ...adoptedKeys.value,
@@ -151,25 +157,29 @@ function echoedKeys(rows: PendingRow[], feed: Activity[]) {
   return echoed;
 }
 
-// A row with no key yet is matched on its text, among rows that came after it and are unclaimed.
+// A row with no key yet is matched on its text, among unclaimed rows that sort after
+// the newest row held when it was added.
 function matchByText(
   row: PendingRow,
-  texts: Array<[string, string]>,
+  texts: Array<[Activity, string]>,
   claimed: Map<PendingRow, string>
 ): string | undefined {
   const text = rowText(row);
   if (!text) return undefined;
-  const before = keysHeldAtAdd.get(row.renderKey);
+  const mark = newestHeldAtAdd.get(row.renderKey);
   const taken = new Set(claimed.values());
   return texts.find(
-    ([key, t]) => t === text && !before?.has(key) && !taken.has(key)
-  )?.[0];
+    ([a, t]) =>
+      t === text &&
+      !taken.has(a.key) &&
+      (!mark || compareActivities(a, mark) > 0)
+  )?.[0].key;
 }
 
-function feedTexts(feed: Activity[]): Array<[string, string]> {
+function feedTexts(feed: Activity[]): Array<[Activity, string]> {
   return feed.flatMap((a) => {
     const text = rowText(a);
-    return text ? [[a.key, text] as [string, string]] : [];
+    return text ? [[a, text] as [Activity, string]] : [];
   });
 }
 
