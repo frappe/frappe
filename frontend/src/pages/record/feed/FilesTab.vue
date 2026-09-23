@@ -1,10 +1,11 @@
 <!-- The Files tab: the record's attachments and a script's rows, oldest first, with an
-     upload button, and a delete control per file for a reader who may write. -->
+     upload button and a delete control per file for a reader who may write. -->
 <template>
 	<RecordFeed>
 		<div class="flex items-center justify-between gap-3">
 			<span class="text-base font-medium text-ink-gray-8">{{ countLabel }}</span>
 			<Button
+				v-if="canWrite"
 				iconLeft="lucide-upload"
 				:label="__('Upload')"
 				data-file-upload

@@ -1898,12 +1898,7 @@ class TestActivityAPIV2(FrappeAPITestCase):
 
 	def test_the_cursor_walks_every_row_once_for_a_reader(self):
 		user = "api-activity-reader@example.com"
-		frappe.set_user("Administrator")
-		if not frappe.db.exists("User", user):
-			frappe.get_doc(
-				{"doctype": "User", "email": user, "first_name": "Reader", "send_welcome_email": 0}
-			).insert()
-		todo = frappe.get_doc({"doctype": "ToDo", "description": "paged", "allocated_to": user}).insert()
+		todo = self.make_reader_todo(user)
 		for i in range(4):
 			todo.add_comment("Comment", f"remark {i}")
 			todo.description = f"paged {i}"
@@ -1914,20 +1909,51 @@ class TestActivityAPIV2(FrappeAPITestCase):
 			whole = self.read_page(todo, sid, {"limit": 500})
 			self.assertIsNone(whole["next"])
 			self.assertIn("version", {row["type"] for row in whole["activities"]})
-
-			walked, before = [], None
-			while True:
-				page = self.read_page(todo, sid, {"limit": 3, "before": before})
-				walked = page["activities"] + walked
-				if not (before := page["next"]):
-					break
+			walked = self.walk(todo, sid, {"limit": 3})
 			self.assertEqual([r["key"] for r in walked], [r["key"] for r in whole["activities"]])
 		finally:
-			frappe.db.rollback()
-			frappe.set_user("Administrator")
-			frappe.delete_doc_if_exists("ToDo", todo.name, force=True)
-			frappe.delete_doc_if_exists("User", user, force=True)
-			frappe.db.commit()  # nosemgrep
+			self.drop_reader_todo(user, todo)
+
+	def test_more_rows_in_one_instant_than_the_limit_are_walked_once(self):
+		user = "api-activity-reader@example.com"
+		todo = self.make_reader_todo(user)
+		comments = [todo.add_comment("Comment", f"same instant {i}") for i in range(3)]
+		for comment in comments:
+			frappe.db.set_value(
+				"Comment", comment.name, "creation", "2026-01-01 10:00:00", update_modified=False
+			)
+		frappe.db.commit()  # nosemgrep
+		try:
+			walked = self.walk(todo, self.sid_for(user), {"types": json.dumps(["comment"]), "limit": 2})
+			self.assertEqual(
+				sorted(row["key"] for row in walked), sorted(f"comment:{c.name}" for c in comments)
+			)
+		finally:
+			self.drop_reader_todo(user, todo)
+
+	def make_reader_todo(self, user: str):
+		frappe.set_user("Administrator")
+		if not frappe.db.exists("User", user):
+			frappe.get_doc(
+				{"doctype": "User", "email": user, "first_name": "Reader", "send_welcome_email": 0}
+			).insert()
+		return frappe.get_doc({"doctype": "ToDo", "description": "paged", "allocated_to": user}).insert()
+
+	def drop_reader_todo(self, user: str, todo) -> None:
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		frappe.delete_doc_if_exists("ToDo", todo.name, force=True)
+		frappe.delete_doc_if_exists("User", user, force=True)
+		frappe.db.commit()  # nosemgrep
+
+	def walk(self, todo, sid: str, params: dict) -> list[dict]:
+		walked, before = [], None
+		for _page in range(20):
+			page = self.read_page(todo, sid, {**params, "before": before})
+			walked = page["activities"] + walked
+			if not (before := page["next"]):
+				return walked
+		self.fail(f"the cursor never reached the end: {before}")
 
 	def read_page(self, todo, sid: str, params: dict) -> dict:
 		params = {key: value for key, value in params.items() if value is not None}
@@ -1937,6 +1963,10 @@ class TestActivityAPIV2(FrappeAPITestCase):
 
 	def test_a_malformed_cursor_is_refused(self):
 		response = self.activity({"before": "yesterday"})
+		self.assertEqual(response.status_code, 417, response.json)
+
+	def test_a_cursor_whose_timestamp_is_not_a_date_is_refused(self):
+		response = self.activity({"before": "yesterday|comment:x"})
 		self.assertEqual(response.status_code, 417, response.json)
 
 	def test_a_document_the_user_cannot_read_is_refused(self):

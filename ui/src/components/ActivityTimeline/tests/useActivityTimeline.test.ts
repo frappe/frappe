@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick, type App } from "vue";
+import { createApp, defineComponent, h, nextTick, ref, type App } from "vue";
 import type { Activity } from "../types";
 
 const api = vi.hoisted(() => ({ getDocumentPart: vi.fn() }));
@@ -22,11 +22,12 @@ vi.mock("../../../../../frontend/node_modules/@framework/ui/src/socket", () => (
 
 import {
   activityTimelineRows,
-  addPendingActivity,
+  endActivityPrefetch,
   prefetchActivityTimeline,
   reloadActivityTimeline,
   useActivityTimeline,
 } from "../../../../../frontend/node_modules/@framework/ui/src/components/ActivityTimeline/useActivityTimeline";
+import { addPendingActivity } from "../../../../../frontend/node_modules/@framework/ui/src/components/ActivityTimeline/pendingRows";
 import ActivityTimeline from "../../../../../frontend/node_modules/@framework/ui/src/components/ActivityTimeline/ActivityTimeline.vue";
 
 let docCounter = 0;
@@ -80,7 +81,7 @@ afterEach(() => {
 });
 
 describe("useActivityTimeline paging", () => {
-  it("reads the newest page with the visible types and a limit of 50", async () => {
+  it("reads the newest page with the visible types and the server's page size", async () => {
     const name = freshDoc();
     serve({
       newest: {
@@ -89,11 +90,10 @@ describe("useActivityTimeline paging", () => {
       },
     });
     const timeline = useActivityTimeline("ToDo", name, ["comment", "email"]);
-    expect(api.getDocumentPart).toHaveBeenCalledWith("ToDo", name, "activity", {
+    expect(api.getDocumentPart.mock.calls[0][3]).toStrictEqual({
       types: ["comment", "email"],
-      limit: 50,
+      before: undefined,
     });
-    expect(api.getDocumentPart.mock.calls[0][3].before).toBeUndefined();
     await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
     expect(keys(timeline)).toEqual(["comment:1", "email:1"]);
     expect(timeline.paginate.hasNextPage).toBe(true);
@@ -118,7 +118,7 @@ describe("useActivityTimeline paging", () => {
 
     const olderReads = api.getDocumentPart.mock.calls.filter(([, , , p]) => p.before);
     expect(olderReads).toHaveLength(1);
-    expect(olderReads[0][3]).toMatchObject({ before: "c1", limit: 50 });
+    expect(olderReads[0][3]).toStrictEqual({ types: undefined, before: "c1" });
     expect(keys(timeline)).toEqual(["email:1", "comment:2"]);
     expect(timeline.paginate.isFetchingNextPage).toBe(false);
     expect(timeline.paginate.hasNextPage).toBe(false);
@@ -158,6 +158,41 @@ describe("useActivityTimeline paging", () => {
     expect(timeline.paginate.hasNextPage).toBe(false);
   });
 
+  it("ends the list when an older page adds nothing and hands back its own cursor", async () => {
+    const name = freshDoc();
+    serve({
+      newest: { activities: [row("comment", "comment:2", "2026-01-02")], next: "stuck" },
+      stuck: { activities: [row("comment", "comment:2", "2026-01-02")], next: "stuck" },
+    });
+    const timeline = useActivityTimeline("ToDo", name);
+    await vi.waitFor(() => expect(timeline.paginate.hasNextPage).toBe(true));
+
+    await timeline.paginate.fetchNextPage();
+    expect(timeline.paginate.hasNextPage).toBe(false);
+    await timeline.paginate.fetchNextPage();
+    expect(api.getDocumentPart).toHaveBeenCalledTimes(2);
+  });
+
+  it("drops the held rows and takes the new cursor when a reload does not reach them", async () => {
+    const name = freshDoc();
+    const c = (n: number) => row("comment", `comment:${n}`, `2026-01-0${n}`);
+    serve({ newest: { activities: [c(2), c(3)], next: "c2" } });
+    const timeline = useActivityTimeline("ToDo", name);
+    await vi.waitFor(() => expect(timeline.paginate.hasNextPage).toBe(true));
+
+    // more than a page arrived since the last read: comment:4 sits between the two pages
+    serve({
+      newest: { activities: [c(5), c(6)], next: "c5" },
+      c5: { activities: [c(3), c(4)], next: "c3" },
+    });
+    await timeline.reload();
+    expect(keys(timeline)).toEqual(["comment:5", "comment:6"]);
+
+    await timeline.paginate.fetchNextPage();
+    expect(api.getDocumentPart.mock.lastCall?.[3]).toMatchObject({ before: "c5" });
+    expect(keys(timeline)).toEqual(["comment:3", "comment:4", "comment:5", "comment:6"]);
+  });
+
   it("gives the emails view its own store and cursor", async () => {
     const name = freshDoc();
     api.getDocumentPart.mockImplementation(async (_dt, _name, _part, params) => ({
@@ -172,7 +207,6 @@ describe("useActivityTimeline paging", () => {
     expect(api.getDocumentPart).toHaveBeenCalledTimes(2);
     expect(api.getDocumentPart).toHaveBeenCalledWith("ToDo", name, "activity", {
       types: ["email"],
-      limit: 50,
     });
     expect(keys(all)).toEqual(["comment:1"]);
     expect(keys(emails)).toEqual(["email:1"]);
@@ -218,6 +252,18 @@ describe("the prefetched read", () => {
     serve(newest("comment:2"));
     const again = mountTimeline(name);
     await vi.waitFor(() => expect(keys(again.timeline)).toEqual(["comment:2"]));
+    expect(api.getDocumentPart).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not outlive the first paint: a mount after it catches up", async () => {
+    const name = freshDoc();
+    serve(newest("comment:1"));
+    await prefetchActivityTimeline("ToDo", name);
+    endActivityPrefetch("ToDo", name);
+
+    serve(newest("comment:2"));
+    const late = mountTimeline(name);
+    await vi.waitFor(() => expect(keys(late.timeline)).toEqual(["comment:2"]));
     expect(api.getDocumentPart).toHaveBeenCalledTimes(2);
   });
 
@@ -324,5 +370,27 @@ describe("ActivityTimeline", () => {
     expect(feed.firstElementChild?.classList.contains("activity")).toBe(false);
     expect(feed.firstElementChild?.querySelector("svg")).not.toBeNull();
     expect(feed.querySelectorAll("button")).toHaveLength(0);
+  });
+
+  it("scrolls to the run a folded version row draws in", async () => {
+    const change = (key: string, at: string) =>
+      row("version", key, at, { fieldname: "status", type: "diff", prefix: "changed status", from: "a", to: "b" });
+    const timeline = ref<any>(null);
+    const el = document.createElement("div");
+    const app = createApp(() =>
+      h(ActivityTimeline, {
+        ref: timeline,
+        activities: [change("version:V1-0", "2026-01-01 10:00:00"), change("version:V2-0", "2026-01-01 10:05:00")],
+      })
+    );
+    app.mount(el);
+    mounted.push(app);
+    await nextTick();
+    const exposed = timeline.value;
+    Element.prototype.scrollIntoView ??= () => {};
+
+    expect(exposed.scrollToRow("version:V2-0")).toBe(true);
+    expect(el.querySelector('[id="version:V1-0"]')!.classList.contains("timeline-row-flash")).toBe(true);
+    expect(exposed.scrollToRow("comment:gone")).toBe(false);
   });
 });

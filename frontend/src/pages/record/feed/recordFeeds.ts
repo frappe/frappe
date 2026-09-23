@@ -4,6 +4,7 @@ import type { LocationQuery } from "vue-router";
 import { until } from "@vueuse/core";
 import {
 	activityTimelineRows,
+	endActivityPrefetch,
 	prefetchActivityTimeline,
 	reloadActivityTimeline,
 	type VisibleTypes,
@@ -64,13 +65,15 @@ export class RecordFeeds {
 		reloadFiles: () => this.options.reloadParts(),
 	};
 
-	/** Opens Activity, then pages older until the row is drawn; false if the list ended first, null if a script hid the tab. */
+	/** Opens Activity, then pages older until the row is drawn; false if the list ended first, null if the tab is hidden or drew no feed. */
 	async scrollToActivity(key: string): Promise<boolean | null> {
 		const current = this.options.whileOnRecord();
 		const what = `page.activity.scrollTo("${key}") — the Activity tab`;
 		if (!(await this.options.showTab(ACTIVITY_TAB, what))) return null;
 		const timeline = await until(this.timeline).toBeTruthy({ timeout: DRAW_TIMEOUT_MS });
-		return timeline ? pageUntilDrawn(timeline, key, current) : false;
+		if (timeline) return pageUntilDrawn(timeline, key, current);
+		warn(`${what} drew no activity feed, so the reader was not moved.`);
+		return null;
 	}
 
 	/** `?activity=<key>` as a record opens; a reload of the same record reads none. */
@@ -152,6 +155,12 @@ export function prefetchFeed(doctype: string, docname: string, query: LocationQu
 	return tab === ACTIVITY_TAB ? prefetchActivityTimeline(doctype, docname) : Promise.resolve();
 }
 
+/** After the first paint: a feed body that mounts later catches up on what the eager read missed. */
+export function endPrefetchFeed(doctype: string, docname: string) {
+	endActivityPrefetch(doctype, docname);
+	endActivityPrefetch(doctype, docname, EMAIL_TYPES);
+}
+
 /** `?activity=<key>`, or `""`. */
 export function activityPointer(query: LocationQuery): string {
 	const key = query.activity;
@@ -182,7 +191,11 @@ async function readOlderPage(timeline: ActivityTimelineHandle) {
 	return !timeline.error.value || timeline.error.value === before;
 }
 
-// Loaded and still not drawn: folded into a run of changes, so no older page will draw it.
+// Loaded and still not drawn: netted out of a run, so no older page will draw it.
 function isLoaded(timeline: ActivityTimelineHandle, key: string) {
 	return timeline.activities.value.some((row) => row.key === key);
+}
+
+function warn(message: string) {
+	if (import.meta.env.DEV) console.warn(`[record-page] ${message}`);
 }

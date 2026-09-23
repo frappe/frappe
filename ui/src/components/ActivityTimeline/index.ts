@@ -7,11 +7,12 @@ export { default as LogItem } from "./LogItem.vue";
 export { default as VersionItem } from "./VersionItem.vue";
 export {
   activityTimelineRows,
-  addPendingActivity,
+  endActivityPrefetch,
   prefetchActivityTimeline,
   reloadActivityTimeline,
   useActivityTimeline,
 } from "./useActivityTimeline";
+export { addPendingActivity } from "./pendingRows";
 export type {
   Activity,
   ActivityTimelineProps,

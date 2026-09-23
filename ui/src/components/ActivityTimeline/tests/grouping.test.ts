@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { groupActivities } from "../grouping";
+import { drawnKey, groupActivities } from "../grouping";
 import type { Activity, VersionActivity } from "../types";
 
 const at = (min: number) => `2026-01-01 10:${String(min).padStart(2, "0")}:00`;
@@ -68,5 +68,16 @@ describe("groupVersionActivities", () => {
     expect(out).toHaveLength(1);
     const data = (out[0] as VersionActivity).data;
     expect(data.type === "diff" && data.to).toBe("A");
+  });
+});
+
+describe("drawnKey", () => {
+  it("names the run a folded version row draws in, and leaves any other row alone", () => {
+    const feed = [version("v1", 0, "Open", "Hold"), version("v2", 5, "Hold", "Closed"), comment(6), version("v3", 7, "Closed", "Open")];
+    expect(drawnKey(feed, "v2")).toBe("v1");
+    expect(drawnKey(feed, "v1")).toBe("v1");
+    expect(drawnKey(feed, "v3")).toBe("v3");
+    expect(drawnKey(feed, "c6")).toBe("c6");
+    expect(drawnKey(feed, "gone")).toBe("gone");
   });
 });

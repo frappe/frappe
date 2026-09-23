@@ -743,8 +743,9 @@ The Emails tab shows the same rows narrowed to emails. It has no surface of its 
 
 `scrollTo(key)` opens the Activity tab, scrolls to the row and highlights it for two
 seconds. A row older than the loaded ones is found by loading older pages until it
-appears. If the list ends without it, a development build warns naming the key, and the
-reader stays where they are. On `activate`'s terms: called in a replay, it is delivered
+appears. A field change folded into a run of changes scrolls to the run. If the list ends
+without the row, or a script's body replaced the tab's feed, a development build warns
+naming the key, and the reader stays where they are. On `activate`'s terms: called in a replay, it is delivered
 when the replay commits, and only the last call in a replay counts.
 
 `types(list)` sets the types the Activity tab shows, in `ActivityTimeline`'s spelling:
@@ -803,7 +804,7 @@ An attachment, as `items` hands it back:
 | `creation`, `owner` | When and by whom it was attached; `creation` orders the list. |
 
 `items` is read-only. `remove(name)` takes out a script's row, never an attachment: the
-tab's own remove control detaches a file, drawn only with write.
+tab's own upload button and remove control are drawn only with write.
 
 ### The built-ins
 

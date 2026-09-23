@@ -145,10 +145,16 @@ def get_docinfo(
 
 
 ATTACHMENT_FIELDNAME_RE = re.compile(r"data-fieldname=['\"]([^'\"]*)['\"]")
+COMMENT_FIELDS = ["name", "creation", "content", "owner", "comment_type", "published"]
 
 
-def add_comments(doc, docinfo, comment_types: list[str] | None = None, **query):
-	# divide comments into separate lists
+def add_comments(doc, docinfo):
+	comments = get_document_comments(doc.doctype, doc.name, fields=COMMENT_FIELDS)
+	divide_comments(doc, docinfo, comments)
+	return comments
+
+
+def divide_comments(doc, docinfo, comments: list) -> None:
 	docinfo.comments = []
 	docinfo.shared = []
 	docinfo.assignment_logs = []
@@ -156,14 +162,6 @@ def add_comments(doc, docinfo, comment_types: list[str] | None = None, **query):
 	docinfo.info_logs = []
 	docinfo.like_logs = []
 	docinfo.workflow_logs = []
-
-	comments = get_document_comments(
-		doc.doctype,
-		doc.name,
-		fields=["name", "creation", "content", "owner", "comment_type", "published"],
-		comment_types=comment_types,
-		**query,
-	)
 
 	restricted_fieldnames = None
 
@@ -189,8 +187,6 @@ def add_comments(doc, docinfo, comment_types: list[str] | None = None, **query):
 				docinfo.like_logs.append(c)
 			case "Workflow":
 				docinfo.workflow_logs.append(c)
-
-	return comments
 
 
 def get_milestones(doctype, name, start=0, limit=20, filters=None):
@@ -349,8 +345,8 @@ def get_comments(doctype: str, name: str, comment_type: str | list[str] = "Comme
 	return comments
 
 
-def _get_communications(doctype, name, start=0, limit=20, before=None):
-	communications = get_communication_data(doctype, name, start, limit, before=before)
+def _get_communications(doctype, name, start=0, limit=20, date=None):
+	communications = get_communication_data(doctype, name, start, limit, date=date)
 	for c in communications:
 		if c.communication_type in ("Communication", "Automated Message"):
 			c.attachments = json.dumps(
@@ -364,8 +360,12 @@ def _get_communications(doctype, name, start=0, limit=20, before=None):
 	return communications
 
 
+# The only operators a `date` condition may write into the query text.
+COMPARISONS = {"<": "<", "<=": "<=", "=": "="}
+
+
 def get_communication_data(
-	doctype, name, start=0, limit=20, after=None, fields=None, group_by=None, as_dict=True, before=None
+	doctype, name, start=0, limit=20, after=None, fields=None, group_by=None, as_dict=True, date=None
 ):
 	"""Return list of communications for a given document."""
 	if not fields:
@@ -385,10 +385,13 @@ def get_communication_data(
 			AND C.communication_date > {after}
 		"""
 
-	if before:
-		conditions += """
-			AND C.communication_date <= %(before)s
+	if date:
+		conditions += f"""
+			AND C.communication_date {COMPARISONS[date[0]]} %(date)s
 		"""
+
+	part_limit = "" if limit is None else "LIMIT %(cte_limit)s"
+	page_limit = "" if limit is None else "LIMIT %(limit)s OFFSET %(start)s"
 
 	if doctype == "User":
 		conditions += """
@@ -403,7 +406,7 @@ def get_communication_data(
 		AND (C.reference_doctype = %(doctype)s AND C.reference_name = %(name)s)
 		{conditions}
 		ORDER BY C.communication_date DESC
-		LIMIT %(cte_limit)s
+		{part_limit}
 	"""
 
 	# communications linked in Timeline Links
@@ -415,7 +418,7 @@ def get_communication_data(
 		AND `tabCommunication Link`.link_doctype = %(doctype)s AND `tabCommunication Link`.link_name = %(name)s
 		{conditions}
 		ORDER BY `tabCommunication Link`.communication_date DESC
-		LIMIT %(cte_limit)s
+		{part_limit}
 	"""
 
 	sqlite_query = f"""
@@ -426,8 +429,7 @@ def get_communication_data(
 		) AS combined
 		{group_by or ""}
 		ORDER BY communication_date DESC
-		LIMIT %(limit)s
-		OFFSET %(start)s"""
+		{page_limit}"""
 
 	query = f"""
 		WITH part1 AS ({part1}), part2 AS ({part2})
@@ -439,8 +441,7 @@ def get_communication_data(
 		) AS combined
 		{group_by or ""}
 		ORDER BY communication_date DESC
-		LIMIT %(limit)s
-		OFFSET %(start)s
+		{page_limit}
 		"""
 
 	return frappe.db.multisql(
@@ -453,8 +454,8 @@ def get_communication_data(
 			name=str(name),
 			start=frappe.utils.cint(start),
 			limit=limit,
-			cte_limit=limit + start,
-			before=before,
+			cte_limit=(limit or 0) + start,
+			date=date and date[1],
 		),
 		as_dict=as_dict,
 	)

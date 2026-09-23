@@ -11,9 +11,9 @@ import TimelineFeed from "./TimelineFeed.vue";
 
 defineProps<{ page: RecordPageApi }>();
 
-const feeds = inject(RecordFeedsKey, null);
+const feeds = inject(RecordFeedsKey)!;
 
 // The read is bound to its types, so a new list draws a new feed.
-const types = computed(() => feeds?.controller()?.activity.shownTypes() ?? undefined);
+const types = computed(() => feeds.controller()?.activity.shownTypes() ?? undefined);
 const typesKey = computed(() => JSON.stringify(types.value ?? "*"));
 </script>

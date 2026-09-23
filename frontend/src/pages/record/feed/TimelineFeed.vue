@@ -53,7 +53,7 @@ const props = defineProps<{
 	empty?: { icon: string; label: string };
 }>();
 
-const feeds = inject(RecordFeedsKey, null);
+const feeds = inject(RecordFeedsKey)!;
 const timeline = ref<InstanceType<typeof ActivityTimeline> | null>(null);
 const { activities, loading, error, reload, paginate } = useActivityTimeline(
 	props.page.doctype,
@@ -64,7 +64,7 @@ const loaded = computed(() => activities.value as ActivityRow[]);
 
 const rows = computed(() => (props.main ? withScriptRows(loaded.value) : loaded.value));
 
-if (props.main && feeds) {
+if (props.main) {
 	const release = feeds.attach({
 		activities: loaded,
 		loading,
@@ -78,7 +78,7 @@ if (props.main && feeds) {
 
 function withScriptRows(server: ActivityRow[]): Array<ActivityRow | CustomActivity> {
 	const taken = new Set(server.map((row) => row.key));
-	const own = (feeds?.controller()?.activity.visible() ?? [])
+	const own = (feeds.controller()?.activity.visible() ?? [])
 		.filter((item) => !taken.has(item.name))
 		.map((item) => ({
 			type: "script",

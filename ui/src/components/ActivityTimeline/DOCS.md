@@ -60,7 +60,7 @@ gives the timeline the bounded height its scroller needs — see
 | **Loading**   | First-load spinner shows only while `loading` **and** `activities` is empty; cached rows stay visible during revalidation                                                                                                                                                                                                                                                                                                        |
 | **Empty**     | Renders a built-in "No activity found" state when `activities` is empty and not loading; replace it via the `#empty` slot                                                                                                                                                                                                                                                                                                        |
 | **Scrolling** | The component is its own scroll container (`column-reverse`): give it a bounded height — wrap it in `TimelineContainer`, or `flex-1 min-h-0` by hand — and it opens anchored at the newest row, stays pinned as content grows, and keeps the viewport still when older pages prepend — all natively, no scroll scripting. Unbounded, an ancestor scrolls it like any block and none of that works. DOM order stays chronological |
-| **Exposes**   | `scrollToRow(key: string): boolean` — scrolls the row with that key into view and highlights it for two seconds (deep links); returns `false` if the key isn't rendered. `scrollToLatest()` — jumps to the newest row (no flash); works in both scroll modes, so page-scroll layouts can call it on mount to open at the bottom                                                                                                                     |
+| **Exposes**   | `scrollToRow(key: string): boolean` — scrolls the row with that key into view and highlights it for two seconds (deep links); a version row folded into a run scrolls to the run; returns `false` if the key isn't rendered. `scrollToLatest()` — jumps to the newest row (no flash); works in both scroll modes, so page-scroll layouts can call it on mount to open at the bottom                                                                                                                     |
 
 ### Height and scrolling
 
@@ -204,10 +204,10 @@ returns the document's own activities, so you merge yours in yourself — see
 
 ## Pagination
 
-The feed is one list over every type, read newest first in pages of 50. The first read
-takes the newest page; each older page is read with the cursor (`before`) the previous
-page returned, and its rows are prepended. The list has ended when the server returns no
-cursor. `paginate` is the same object the composable returns; pass it through and the
+The feed is one list over every type, read newest first in pages the server sizes (50).
+The first read takes the newest page; each older page is read with the cursor (`before`)
+the previous page returned, and its rows are prepended. The list has ended when the server
+returns no cursor, or an older page adds no row and returns the cursor it was read with. `paginate` is the same object the composable returns; pass it through and the
 component draws the control for you.
 
 | Property             | Details                                                                  |
@@ -279,7 +279,7 @@ Returns:
 | ------------ | --------------------------------------------------------------------------------------------------------------------- |
 | `activities` | `ComputedRef` — deduped, sorted, and grouped rows ready for the component                                             |
 | `loading`    | `ComputedRef<boolean>`                                                                                                |
-| `reload()`   | Re-read the newest page; older rows already loaded stay. Coalesced, so N callers in the same moment cost one request. Returns a promise |
+| `reload()`   | Re-read the newest page; older rows already loaded stay when the page reaches them. When more than a page arrived since the last read, the held rows go and paging resumes from the new page's cursor. Coalesced, so N callers in the same moment cost one request. Returns a promise |
 | `paginate`   | `Pagination` — reads older pages by cursor; bind it to the component only if you want pagination                       |
 
 `prefetchActivityTimeline(doctype, docname, visibleTypes?)` starts the newest-page read
@@ -287,6 +287,8 @@ before any component mounts and resolves once that page is in; a later `useActiv
 with the same arguments uses it, and its first mount reads nothing more. A store lives for
 the session. Mounting beside a consumer already mounted on it reads nothing; the first mount
 after every consumer left re-reads the newest page, since the socket was closed in between.
+`endActivityPrefetch(doctype, docname, visibleTypes?)` says the first paint is over: a first
+mount after it re-reads too, since nothing listened between the prefetch and that mount.
 
 With no component mounted, `activityTimelineRows(doctype, docname, visibleTypes?)` returns
 the rows a store holds (none if no read began), and `reloadActivityTimeline(...)` re-reads

@@ -8,10 +8,12 @@ from json import JSONDecodeError
 import frappe
 import frappe.utils
 from frappe import _
+from frappe.core.doctype.comment.comment import get_document_comments
 from frappe.desk.form.activity_page import PAGE_SIZE, ActivityPage
 from frappe.desk.form.load import (
+	COMMENT_FIELDS,
 	_get_communications,
-	add_comments,
+	divide_comments,
 	get_milestones,
 	get_versions,
 	get_view_logs,
@@ -47,7 +49,7 @@ def get_activity_timeline(
 	"""The newest `limit` rows of the merged feed older than the `before` cursor, oldest first."""
 	doc = frappe.get_lazy_doc(doctype, name, check_permission=True)
 	user_info: dict = {}  # cache user lookups
-	page = ActivityPage(before, max(frappe.utils.cint(limit) or PAGE_SIZE, 1))
+	page = ActivityPage(before, frappe.utils.cint(limit) or PAGE_SIZE)
 
 	visible, version_fields = parse_visible_types(visible_types)
 
@@ -158,10 +160,14 @@ def get_edit_msg(modified_by: str, fullname: str):
 
 
 def get_email_activities(doc: "Document", user_info: dict, page: ActivityPage) -> list[dict]:
-	communications = _get_communications(
-		doc.doctype, doc.name, limit=page.fetch_size, before=page.before_timestamp
+	def read(date: tuple[str, str] | None, limit: int | None = None) -> list:
+		return _get_communications(doc.doctype, doc.name, limit=limit, date=date)
+
+	communications = page.trim(
+		read(page.before_condition, page.fetch_size),
+		lambda c: str(c.communication_date or c.creation),
+		lambda timestamp: read(("=", timestamp)),
 	)
-	communications = page.trim(communications, lambda c: str(c.communication_date or c.creation))
 	frappe.utils.add_user_info({c.sender for c in communications if c.sender}, user_info)
 	return build_email_activities(communications, user_info)
 
@@ -219,18 +225,24 @@ def parse_email_attachments(attachments) -> list[dict]:
 def get_comment_and_log_activities(
 	doc: "Document", user_info: dict, page: ActivityPage, comment_types: list[str]
 ) -> list[dict]:
-	comment_log_data = frappe._dict()
-	comments = add_comments(
-		doc,
-		comment_log_data,
-		comment_types=comment_types,
-		extra_filters=page.filters(),
-		limit=page.fetch_size,
-		order_by="creation desc",
+	def read(filters: list, limit: int | None = None) -> list:
+		return get_document_comments(
+			doc.doctype,
+			doc.name,
+			fields=COMMENT_FIELDS,
+			comment_types=comment_types,
+			extra_filters=filters,
+			limit=limit,
+			order_by="creation desc",
+		)
+
+	comments = page.trim(
+		read(page.filters(), page.fetch_size),
+		lambda c: str(c.creation),
+		lambda timestamp: read([["creation", "=", timestamp]]),
 	)
-	kept = {c.name for c in page.trim(comments, lambda c: str(c.creation))}
-	for bucket, rows in comment_log_data.items():
-		comment_log_data[bucket] = [c for c in rows if c.name in kept]
+	comment_log_data = frappe._dict()
+	divide_comments(doc, comment_log_data, comments)
 
 	all_rows = (
 		comment_log_data.comments
@@ -417,7 +429,11 @@ def add_activity_record(c, author: dict, subtype: str, text: str, assignee: str 
 
 
 def get_view_activities(doc: "Document", user_info: dict, page: ActivityPage) -> list[dict]:
-	views = page.trim(get_view_logs(doc, page.filters(), page.fetch_size), lambda v: str(v.creation))
+	views = page.trim(
+		get_view_logs(doc, page.filters(), page.fetch_size),
+		lambda v: str(v.creation),
+		lambda timestamp: get_view_logs(doc, [["creation", "=", timestamp]]),
+	)
 	frappe.utils.add_user_info({v.owner for v in views if v.owner}, user_info)
 
 	out = []
@@ -440,8 +456,13 @@ def get_view_activities(doc: "Document", user_info: dict, page: ActivityPage) ->
 
 
 def get_milestone_activities(doc: "Document", user_info: dict, page: ActivityPage) -> list[dict]:
-	milestones = get_milestones(doc.doctype, doc.name, limit=page.fetch_size, filters=page.filters())
-	milestones = page.trim(milestones, lambda m: str(m.creation))
+	milestones = page.trim(
+		get_milestones(doc.doctype, doc.name, limit=page.fetch_size, filters=page.filters()),
+		lambda m: str(m.creation),
+		lambda timestamp: get_milestones(
+			doc.doctype, doc.name, limit=None, filters=[["creation", "=", timestamp]]
+		),
+	)
 	if not milestones:
 		return []
 
@@ -490,7 +511,11 @@ LONG_TEXT_FIELDTYPES = {
 def get_version_activities(
 	doc: "Document", user_info: dict, page: ActivityPage, allowed_fields: list[str] | None = None
 ) -> list[dict]:
-	versions = page.trim(get_versions(doc, page.filters(), page.fetch_size), lambda v: str(v.creation))
+	versions = page.trim(
+		get_versions(doc, page.filters(), page.fetch_size),
+		lambda v: str(v.creation),
+		lambda timestamp: get_versions(doc, [["creation", "=", timestamp]], limit=None),
+	)
 	if not versions:
 		return []
 

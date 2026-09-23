@@ -180,12 +180,20 @@ describe("the Files tab", () => {
 		expect(drawn.indexOf("call 1")).toBeLessThan(drawn.indexOf("photo.png"));
 	});
 
-	it("draws no delete control for a reader who may not write", async () => {
+	it("draws no upload button and no delete control for a reader who may not write", async () => {
 		const { feeds, page } = setup({ attachments: [OLD], permissions: { read: 1 } });
 
 		const { root } = await mountTab("files", feeds, page);
 
 		expect(root.querySelector("[data-file-remove]")).toBeNull();
+		expect(root.querySelector("[data-file-upload]")).toBeNull();
+	});
+
+	it("draws the upload button for a reader who may write", async () => {
+		const { feeds, page } = setup({ attachments: [OLD], permissions: { write: 1 } });
+
+		const { root } = await mountTab("files", feeds, page);
+
 		expect(root.querySelector("[data-file-upload]")).not.toBeNull();
 	});
 

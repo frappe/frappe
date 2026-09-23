@@ -3,8 +3,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick, ref } from "vue";
 import type { RecordPageController } from "@/recordPage";
 import type { DocInfo } from "../../panel/context";
-import { RecordFeeds, prefetchFeed } from "../recordFeeds";
+import { endActivityPrefetch } from "@framework/ui/ActivityTimeline";
+import { RecordFeeds, endPrefetchFeed, prefetchFeed } from "../recordFeeds";
 import { fakeTimeline } from "./fakeTimeline";
+
+vi.mock("@framework/ui/ActivityTimeline", async (importOriginal) => {
+	const actual = (await importOriginal()) as Record<string, (...args: unknown[]) => unknown>;
+	return { ...actual, endActivityPrefetch: vi.fn(actual.endActivityPrefetch) };
+});
 
 const fetchMock = vi.fn<typeof fetch>();
 
@@ -63,7 +69,7 @@ describe("scrollToActivity", () => {
 		expect(paginate.hasNextPage).toBe(true);
 	});
 
-	it("stops without paging when the row is loaded but folded into a run", async () => {
+	it("stops without paging when the row is loaded but netted out of a run", async () => {
 		const { feeds } = makeFeeds();
 		const { handle, paginate } = fakeTimeline(PAGES, { folded: ["comment:c3"] });
 		feeds.attach(handle);
@@ -94,6 +100,24 @@ describe("scrollToActivity", () => {
 
 		expect(await feeds.scrollToActivity("comment:c3")).toBe(null);
 		expect(scrollToRow).not.toHaveBeenCalled();
+	});
+
+	it("answers null, with its own warning naming the key, when the Activity body never draws", async () => {
+		vi.useFakeTimers();
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		try {
+			const { feeds } = makeFeeds();
+			const moved = feeds.scrollToActivity("comment:c1");
+			await vi.advanceTimersByTimeAsync(2000);
+
+			expect(await moved).toBe(null);
+			expect(warn).toHaveBeenCalledTimes(1);
+			expect(warn.mock.calls[0][0]).toContain('page.activity.scrollTo("comment:c1")');
+			expect(warn.mock.calls[0][0]).toContain("drew no activity feed");
+		} finally {
+			warn.mockRestore();
+			vi.useRealTimers();
+		}
 	});
 
 	it("gives up once the page has moved to another record", async () => {
@@ -167,7 +191,15 @@ describe("the eager read", () => {
 		const [read] = activityReads();
 		expect(read.pathname).toBe("/api/v2/document/CRM%20Deal/EAGER-1/activity");
 		expect(read.searchParams.get("types")).toBeNull();
-		expect(read.searchParams.get("limit")).toBe("50");
+		expect(read.searchParams.get("limit")).toBeNull();
+	});
+
+	it("ends both reads' first-paint pass together", () => {
+		endPrefetchFeed("CRM Deal", "EAGER-5");
+		expect(vi.mocked(endActivityPrefetch).mock.calls).toEqual([
+			["CRM Deal", "EAGER-5"],
+			["CRM Deal", "EAGER-5", ["email"]],
+		]);
 	});
 
 	it("starts the email read for the Emails tab", () => {

@@ -107,7 +107,7 @@ import { computed, h, ref, useSlots } from "vue";
 import CommentItem from "./CommentItem.vue";
 import EmailItem from "./EmailItem.vue";
 import DotIcon from "./DotIcon.vue";
-import { groupActivities } from "./grouping";
+import { drawnKey, groupActivities } from "./grouping";
 import LoadMoreButton from "./LoadMoreButton.vue";
 import LogItem from "./LogItem.vue";
 import type { Activity, ActivityTimelineProps, CustomActivity } from "./types";
@@ -180,9 +180,9 @@ function getKey(activity: Activity | CustomActivity, index: number): string {
 	);
 }
 
-// Deep-link affordance: scroll a row (by its key/id) into view and flash it.
+// Deep-link affordance: scroll a row (by its key/id), or the run it folded into, into view and flash it.
 function scrollToRow(key: string): boolean {
-	const row = rootEl.value?.querySelector<HTMLElement>(`[id="${CSS.escape(key)}"]`);
+	const row = rowElement(key) ?? rowElement(drawnKey(props.activities as Activity[], key));
 	if (!row) return false;
 	row.scrollIntoView({ block: "center" });
 	row.classList.remove("timeline-row-flash");
@@ -193,6 +193,10 @@ function scrollToRow(key: string): boolean {
 		once: true,
 	});
 	return true;
+}
+
+function rowElement(key: string) {
+	return rootEl.value?.querySelector<HTMLElement>(`[id="${CSS.escape(key)}"]`) ?? null;
 }
 
 defineExpose({ scrollToRow, scrollToLatest });
