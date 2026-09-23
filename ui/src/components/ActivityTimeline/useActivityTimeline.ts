@@ -43,7 +43,11 @@ export function prefetchActivityTimeline(
   // A mounted store's socket kept its rows current; an idle one's may have missed changes, so it re-reads.
   const live = store.fetched.value && store.mounted > 0;
   store.prefetched.value = !live;
-  return live ? Promise.resolve() : store.load();
+  if (live) return Promise.resolve();
+  // load() resolves even on failure, so a failed read must not leave the flag claiming a catch-up refresh is unneeded.
+  return store.load().then(() => {
+    if (store.error.value) store.prefetched.value = false;
+  });
 }
 
 /** The first paint is over: a mount after it catches up, as any late mount does. */

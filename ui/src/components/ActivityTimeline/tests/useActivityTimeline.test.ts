@@ -407,6 +407,24 @@ describe("the prefetched read", () => {
     expect(api.getDocumentPart).toHaveBeenCalledTimes(1);
   });
 
+  it("clears the flag when a re-read fails, so a mount still catches up", async () => {
+    const name = freshDoc();
+    serve(newest("comment:1"));
+    const visit = mountTimeline(name);
+    await vi.waitFor(() => expect(keys(visit.timeline)).toEqual(["comment:1"]));
+    mounted.splice(0).forEach((app) => app.unmount());
+
+    api.getDocumentPart.mockRejectedValueOnce(new Error("no"));
+    await prefetchActivityTimeline("ToDo", name);
+
+    vi.useFakeTimers();
+    serve(newest("comment:2"));
+    const late = mountTimeline(name);
+    await vi.advanceTimersByTimeAsync(400);
+    expect(keys(late.timeline)).toEqual(["comment:2"]);
+    expect(api.getDocumentPart).toHaveBeenCalledTimes(3);
+  });
+
   it("answers rows and a reload before any component mounts", async () => {
     const name = freshDoc();
     expect(activityTimelineRows("ToDo", name)).toEqual([]);
