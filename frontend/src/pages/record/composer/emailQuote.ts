@@ -26,7 +26,7 @@ export function quoteEmail(email: EmailActivity["data"], timestamp?: string): st
 // A row just sent has no time until the feed's echo brings it.
 function attribution(sender: string, timestamp?: string) {
 	if (!timestamp) return __("{0} wrote:", [sender]);
-	const date = dayjsLocal(timestamp).format("Do MMMM YYYY, hh:mm A");
+	const date = dayjsLocal(timestamp).format("LLL");
 	return __("On {0}, {1} wrote:", [date, sender]);
 }
 

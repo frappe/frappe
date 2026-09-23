@@ -38,7 +38,7 @@ const EMAIL = {
 		content: "<p>Hi</p>",
 	},
 };
-const WROTE = "On 20th September 2026, 10:00 AM, bob@example.com wrote:";
+const WROTE = "On September 20, 2026 10:00 AM, bob@example.com wrote:";
 
 const apps: ReturnType<typeof createApp>[] = [];
 let record = 0;

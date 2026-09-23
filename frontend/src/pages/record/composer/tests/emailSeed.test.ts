@@ -9,6 +9,8 @@ vi.mock("@framework/ui/ActivityTimeline", async (importOriginal) => ({
 	activityTimelineRows,
 }));
 
+import german from "dayjs/esm/locale/de";
+import { dayjs } from "frappe-ui";
 import {
 	activeWriter,
 	closeComposer,
@@ -158,7 +160,7 @@ describe("a reply", () => {
 });
 
 describe("the quote under a reply", () => {
-	const ON = "On 20th September 2026, 10:00 AM, bob@example.com wrote:";
+	const ON = "On September 20, 2026 10:00 AM, bob@example.com wrote:";
 	const loaded = (data: Record<string, unknown> = {}) => ({
 		...EMAIL,
 		name: EMAIL.key,
@@ -177,6 +179,17 @@ describe("the quote under a reply", () => {
 		activityTimelineRows.mockReturnValue([{ ...EMAIL, timestamp: "2026-09-20 10:00:00" }]);
 		open(page, { replyTo: "email:COMM-1", replyAll: true });
 		expect(stored(page)!.quoted).toBe(`<p>${ON}</p><p>Hi</p>`);
+	});
+
+	it("writes the date in the reader's locale", () => {
+		const page = fakePage([loaded()]);
+		dayjs.locale(german);
+		try {
+			open(page, { replyTo: "email:COMM-1" });
+		} finally {
+			dayjs.locale("en");
+		}
+		expect(stored(page)!.quoted).toContain("On 20. September 2026 10:00, bob@example.com wrote:");
 	});
 
 	it("names only the sender of an email just sent, which has no time yet", () => {
