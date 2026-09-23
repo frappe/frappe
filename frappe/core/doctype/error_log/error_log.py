@@ -41,27 +41,6 @@ class ErrorLog(LogDocument):
 		trace_id: DF.Data | None
 	# end: auto-generated types
 
-	# `frappe.model.virtual_doctype.validate_controller` compares each required method against
-	# `controller.mro()[1]` -- here `LogDocument` -- so inheriting them reads as "not
-	# overridden" and warns, even though they do override `Document`. Declaring them keeps the
-	# check satisfied; the behaviour is entirely LogDocument's.
-	#
-	# The signatures mirror the parent's: `Document.insert` calls
-	# `db_insert(ignore_if_duplicate=...)`, so narrowing these to `(self)` would raise
-	# TypeError on every insert.
-
-	def db_insert(self, *args, **kwargs):
-		return super().db_insert(*args, **kwargs)
-
-	def db_update(self, *args, **kwargs):
-		return super().db_update(*args, **kwargs)
-
-	def load_from_db(self):
-		return super().load_from_db()
-
-	def delete(self, *args, **kwargs):
-		return super().delete(*args, **kwargs)
-
 	def validate(self):
 		self.method = str(self.method)
 		self.error = str(self.error)

@@ -4,6 +4,7 @@ from typing import Protocol, runtime_checkable
 import frappe
 from frappe import _
 from frappe.model.base_document import get_controller
+from frappe.model.document import Document
 
 
 @runtime_checkable
@@ -79,12 +80,22 @@ def validate_controller(doctype: str) -> None:
 				title=_("Incomplete Virtual Doctype Implementation"),
 			)
 
+	# What counts as "overridden" is measured against `Document`, not against the controller's
+	# immediate parent. A controller is free to inherit the contract from an intermediate base
+	# that implements it for a whole family of doctypes -- a log-database base, an API-backed
+	# base -- and that base's implementation is a real override even though the controller
+	# itself declares nothing. Comparing with `controller.mro()[1]` saw only one level up, so
+	# any such controller looked unimplemented and had to restate every method just to silence
+	# the warning.
+	#
+	# `getattr` resolves each name through `Document`'s own MRO, so `load_from_db` and `delete`
+	# come from `Document` while `db_insert` and `db_update` come from `BaseDocument`; either
+	# way it is the default the controller must replace.
 	expected_instance_methods = ["db_insert", "db_update", "load_from_db", "delete"]
-	parent_class = controller.mro()[1]
 	for m in expected_instance_methods:
 		method = getattr(controller, m, None)
-		original_method = getattr(parent_class, m, None)
-		if method == original_method:
+		default_method = getattr(Document, m, None)
+		if method is default_method:
 			frappe.msgprint(
 				_("Virtual DocType {} requires overriding an instance method called {} found {}").format(
 					frappe.bold(doctype), frappe.bold(m), frappe.bold(_as_str(method))
