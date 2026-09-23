@@ -15,7 +15,13 @@ import { isComposerTab } from "../composer";
 import { withRegisteringSource } from "../context";
 import { createRecordPage, RECORD_PAGE_EVENTS, type RecordPageHost } from "../createRecordPage";
 import { registerRecordPage, resetRegistry } from "../registry";
-import { TAB_ITEM_KEYS, type TabItem, type WriterItem } from "../types";
+import {
+  TAB_ITEM_KEYS,
+  type PostedRow,
+  type RecordPageApi,
+  type TabItem,
+  type WriterItem,
+} from "../types";
 
 const Body = { render: () => null };
 
@@ -238,6 +244,18 @@ describe("onPost", () => {
       ["first", { name: "comment:c9" }],
       ["second", { name: "comment:c9" }],
     ]);
+  });
+
+  it("takes a handler that types its argument as the posted row", async () => {
+    const { controller } = makePage();
+    const keys: string[] = [];
+    await withRegisteringSource("typed", async () =>
+      registerRecordPage("CRM Deal", {
+        onPost: (_page: RecordPageApi, post: PostedRow) => void keys.push(post.name),
+      })
+    );
+    await controller.firePost("comment:c10");
+    expect(keys).toEqual(["comment:c10"]);
   });
 
   it("is an event, so a script that handles it is not warned about", () => {

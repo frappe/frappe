@@ -580,11 +580,21 @@ export interface RecordPageApi {
 
 export type { FieldAccess, VisibleTypes };
 
+/** What `onPost` receives: the key of the row the built-in writer posted. */
+export interface PostedRow {
+  name: string;
+}
+
 /**
  * A top-level key receives `(page)`, and `onPost` `(page, { name })`; one nested under a
  * child table receives `(page, row)`, except `onRemove`, whose row is gone.
  */
-export type Handler = (page: RecordPageApi, row?: PageRow) => any;
+export type Handler = HandlerMethod["handle"];
+
+// A method's parameters check both ways, so a handler may type the argument its event passes.
+interface HandlerMethod {
+  handle(page: RecordPageApi, row?: PageRow | PostedRow): any;
+}
 
 /** What an author writes: event handlers, plus a block nested under a child table's fieldname. */
 export type AuthoredHandlers = Record<

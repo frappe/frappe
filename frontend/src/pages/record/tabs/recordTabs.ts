@@ -53,9 +53,10 @@ function attachAFile(requestUpload: () => void): TabCreateAction {
   return {
     label: __("Attach a file"),
     icon: "lucide-paperclip",
+    // A move held by a replay, or refused, asks for nothing: the dialog must not open later.
     run: (page) => {
       page.tabs.activate(FILES_TAB);
-      requestUpload();
+      if (page.tabs.active === FILES_TAB) requestUpload();
     },
   };
 }

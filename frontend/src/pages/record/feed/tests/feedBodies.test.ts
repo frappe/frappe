@@ -215,10 +215,21 @@ describe("the Files tab", () => {
 		const requestUpload = vi.fn();
 		const create = recordTabBuiltins({ requestUpload }).find((tab) => tab.name === "files")!.create!;
 		expect(create).toMatchObject({ label: "Attach a file", icon: "lucide-paperclip" });
-		const page = { tabs: { activate: vi.fn() } } as any;
+		const page = { tabs: { active: "activity", activate: vi.fn() } } as any;
+		page.tabs.activate.mockImplementation((name: string) => (page.tabs.active = name));
 		create.run(page);
 		expect(page.tabs.activate).toHaveBeenCalledWith("files");
 		expect(requestUpload).toHaveBeenCalledTimes(1);
+	});
+
+	it("asks for no upload when the move to Files did not take effect", () => {
+		const requestUpload = vi.fn();
+		const tabs = recordTabBuiltins({ requestUpload });
+		const create = tabs.find((tab) => tab.name === "files")!.create!;
+		const page = { tabs: { active: "activity", activate: vi.fn() } } as any;
+		create.run(page);
+		expect(page.tabs.activate).toHaveBeenCalledWith("files");
+		expect(requestUpload).not.toHaveBeenCalled();
 	});
 
 	it("opens the upload dialog for a request made before the tab mounted, once", async () => {

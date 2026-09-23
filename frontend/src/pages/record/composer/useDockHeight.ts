@@ -32,6 +32,8 @@ export function useDockHeight(user: string) {
 
 /** Dragging up grows the card; it never outgrows most of the window, nor shrinks past the editor. */
 export function clampDockHeight(height: number, windowHeight = window.innerHeight) {
+	// A hand-edited or corrupt stored value reads back as NaN.
+	if (!Number.isFinite(height)) height = DEFAULT_DOCK_HEIGHT;
 	const ceiling = Math.max(Math.floor(windowHeight * MAX_WINDOW_SHARE), MIN_DOCK_HEIGHT);
 	return Math.min(Math.max(Math.round(height), MIN_DOCK_HEIGHT), ceiling);
 }

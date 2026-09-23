@@ -307,6 +307,21 @@ describe("sending a comment", () => {
 		expect(root.querySelector("[data-composer-card]")).not.toBeNull();
 		expect(composerStub.lastProps.modelValue).toBe("<p>Done</p>");
 	});
+
+	it("redraws a reopened writer with the failed text before the newer one", async () => {
+		let fail: (error: Error) => void = () => {};
+		addComment.mockReturnValue(new Promise((_, reject) => (fail = reject)));
+		const controller = fakeController();
+		openComposer("Note", controller.page.docname, "comment");
+		const { root } = await mountBand([ACTIVITY], "activity", controller);
+		composerInstance(root).$emit("submit", { body: "<p>First</p>", attachments: [] });
+		openComposer("Note", controller.page.docname, "comment");
+		await flush();
+		composerInstance(root).$emit("update:modelValue", "<p>Second</p>");
+		fail(new Error("Offline"));
+		await flush();
+		expect(composerStub.lastProps.modelValue).toBe("<p>First</p><p>Second</p>");
+	});
 });
 
 // The stub's own instance, reached through its element, so a test emits as the editor would.

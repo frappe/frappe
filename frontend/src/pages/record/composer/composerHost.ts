@@ -3,7 +3,7 @@ import type { ComposerHost } from "@/recordPage";
 import type { WriterItem } from "@/recordPage/types";
 import { __ } from "@/i18n";
 import { activeWriter, closeComposer, openComposer } from "@/shell/composer";
-import { COMMENT_WRITER } from "./commentPost";
+import { COMMENT_WRITER } from "./commentDraft";
 
 export function composerHost(doctype: string, docname: string): ComposerHost {
 	return {

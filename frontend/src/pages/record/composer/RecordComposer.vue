@@ -21,6 +21,7 @@
 				/>
 				<CommentWriter
 					v-else-if="writer.name === COMMENT_WRITER"
+					:key="commentRevision"
 					:controller="controller"
 					:user="user"
 				/>
@@ -42,9 +43,9 @@ import { useElementSize } from "@vueuse/core";
 import type { SessionUser } from "@framework/ui/api";
 import { isComposerTab, type RecordPageController } from "@/recordPage";
 import type { TabItem } from "@/recordPage/types";
-import { activeWriter } from "@/shell/composer";
+import { activeWriter, draftRevision } from "@/shell/composer";
 import { RecordFeedsKey } from "../feed/recordFeeds";
-import { COMMENT_WRITER } from "./commentPost";
+import { COMMENT_WRITER } from "./commentDraft";
 import ComposerCard from "./ComposerCard.vue";
 import ComposerPill from "./ComposerPill.vue";
 import CommentWriter from "./CommentWriter.vue";
@@ -70,6 +71,10 @@ const writer = computed(() => {
 	const open = activeWriter(page.value.doctype, page.value.docname);
 	return open ? writers.value.find((item) => item.name === open) : undefined;
 });
+// A draft set from outside the writer, as a failed post does, draws in a fresh editor.
+const commentRevision = computed(() =>
+	draftRevision(page.value.doctype, page.value.docname, COMMENT_WRITER)
+);
 const creates = computed(() => createOptions(props.tabs, page.value));
 const onComposerTab = computed(() => {
 	const tab = props.tabs.find((item) => item.name === props.active);

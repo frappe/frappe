@@ -12,6 +12,7 @@ const state = reactive({
 	window: "docked" as ComposerWindow,
 });
 const drafts = reactive(new Map<string, ComposerDraft>());
+const revisions = reactive(new Map<string, number>());
 
 export const composerState = readonly(state);
 
@@ -47,6 +48,22 @@ export function saveComposerDraft(
 	draft: ComposerDraft
 ) {
 	drafts.set(draftKey(doctype, name, writer), draft);
+}
+
+/** Sets a draft from outside its writer; a writer keyed on `draftRevision` redraws with it. */
+export function replaceComposerDraft(
+	doctype: string,
+	name: string,
+	writer: string,
+	draft: ComposerDraft
+) {
+	const key = draftKey(doctype, name, writer);
+	drafts.set(key, draft);
+	revisions.set(key, (revisions.get(key) ?? 0) + 1);
+}
+
+export function draftRevision(doctype: string, name: string, writer: string): number {
+	return revisions.get(draftKey(doctype, name, writer)) ?? 0;
 }
 
 export function clearComposerDraft(doctype: string, name: string, writer: string) {

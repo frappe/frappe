@@ -38,6 +38,7 @@ import type {
   PageRow,
   PanelSectionItem,
   PanelSectionsApi,
+  PostedRow,
   QuickAction,
   RecordPageApi,
   TabItem,
@@ -593,13 +594,13 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     return dispatch("onPost", { name: key });
   }
 
-  async function dispatch(event: string, detail?: PageRow | { name: string }) {
+  async function dispatch(event: string, detail?: PageRow | PostedRow) {
     for (const { source, handlers } of registrationsFor(host.doctype)) {
       const handler = handlers[event];
       if (!handler) continue;
       await withRunningSource(source, async () => {
         try {
-          await handler(page, detail as PageRow);
+          await handler(page, detail);
         } catch (error) {
           // `beforeSave` rethrows to abort the save and is not reported: the user
           // is looking straight at a failed save, and a working veto is not an error.

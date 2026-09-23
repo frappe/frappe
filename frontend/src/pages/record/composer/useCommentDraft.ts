@@ -2,9 +2,12 @@
 import { ref, watch } from "vue";
 import type { UploadedFile } from "@framework/ui/Composer";
 import type { MediaUploadProgress, UploadedMedia } from "frappe-ui/editor";
-import { composerDraft, saveComposerDraft } from "@/shell/composer";
-import { COMMENT_WRITER, type CommentDraft } from "./commentPost";
+import { saveComposerDraft } from "@/shell/composer";
+import { COMMENT_WRITER, readCommentDraft } from "./commentDraft";
 import { uploadCommentFile } from "./commentUpload";
+
+// The editor writes an empty string only on reset, so the model starts from an empty paragraph.
+const EMPTY_BODY = "<p></p>";
 
 type UploadOptions = {
 	signal?: AbortSignal;
@@ -12,20 +15,29 @@ type UploadOptions = {
 };
 
 export function useCommentDraft(doctype: string, docname: string) {
-	const stored = readDraft(doctype, docname);
-	const content = ref(stored.content);
+	const stored = readCommentDraft(doctype, docname);
+	const content = ref(stored.content || EMPTY_BODY);
 	const attachments = ref<UploadedFile[]>([...stored.attachments]);
 	const seed = [...stored.attachments];
+	let resets = 0;
 
 	watch([content, attachments], save, { deep: true });
-	// Only the editor's reset writes an empty string; an emptied editor holds `<p></p>`.
-	watch(content, (next) => next === "" && (attachments.value = []));
+	watch(content, (next) => next === "" && reset(), { flush: "sync" });
 
 	// The editor passes options for inline media; the attach button calls with the file alone.
 	async function upload(file: File, options?: UploadOptions): Promise<UploadedMedia> {
+		const started = resets;
 		const media = await uploadCommentFile(file, options);
-		if (!options) attachments.value = [...attachments.value, asAttachment(media)];
+		// A reset during the upload dropped the file from the editor, so the draft drops it too.
+		if (!options && started === resets)
+			attachments.value = [...attachments.value, asAttachment(media)];
 		return media;
+	}
+
+	function reset() {
+		resets++;
+		attachments.value = [];
+		content.value = EMPTY_BODY;
 	}
 
 	function forget(file: UploadedFile) {
@@ -40,14 +52,6 @@ export function useCommentDraft(doctype: string, docname: string) {
 	}
 
 	return { content, attachments, seed, upload, forget };
-}
-
-function readDraft(doctype: string, docname: string): CommentDraft {
-	const draft = composerDraft(doctype, docname, COMMENT_WRITER) ?? {};
-	return {
-		content: typeof draft.content === "string" ? draft.content : "",
-		attachments: Array.isArray(draft.attachments) ? (draft.attachments as UploadedFile[]) : [],
-	};
 }
 
 function asAttachment(media: UploadedMedia): UploadedFile {

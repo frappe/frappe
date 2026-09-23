@@ -45,4 +45,9 @@ describe("the docked height", () => {
 		expect(clampDockHeight(5000, 1000)).toBe(720);
 		expect(clampDockHeight(5000, 100)).toBe(MIN_DOCK_HEIGHT);
 	});
+
+	it("falls back to the default height for a stored value that is not a number", () => {
+		localStorage.setItem("desk:composer-height:ann@example.com", "tall");
+		expect(dock("ann@example.com").height.value).toBe(DEFAULT_DOCK_HEIGHT);
+	});
 });

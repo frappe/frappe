@@ -16,6 +16,7 @@ import {
 	activeWriter,
 	closeComposer,
 	composerDraft,
+	draftRevision,
 	openComposer,
 	saveComposerDraft,
 } from "@/shell/composer";
@@ -104,6 +105,15 @@ describe("postComment", () => {
 		expect(pending.drop).not.toHaveBeenCalled();
 	});
 
+	it("leaves the row for the feed to retire when the answer names no comment", async () => {
+		const controller = fakeController();
+		addComment.mockResolvedValue({ data: { comments: [] } });
+		await postComment(controller, AUTHOR, DRAFT);
+		expect(pending.drop).not.toHaveBeenCalled();
+		expect(pending.resolve).not.toHaveBeenCalled();
+		expect(controller.firePost).not.toHaveBeenCalled();
+	});
+
 	it("takes the row back, restores the draft, reopens and says why on a failure", async () => {
 		const controller = fakeController();
 		opened(controller);
@@ -115,6 +125,42 @@ describe("postComment", () => {
 		expect(composerDraft("Note", controller.page.docname, "comment")).toEqual(DRAFT);
 		expect(activeWriter("Note", controller.page.docname)).toBe("comment");
 		expect(controller.page.toast.error).toHaveBeenCalledWith("Not permitted");
+	});
+
+	it("puts the failed draft before a newer one in the open writer, and redraws it", async () => {
+		const controller = fakeController();
+		const { docname } = controller.page;
+		const other = { ...FILE, name: "F-10", file_url: "/private/files/other.pdf" };
+		let fail: (error: Error) => void = () => {};
+		addComment.mockReturnValue(new Promise((_, reject) => (fail = reject)));
+		const sent = postComment(controller, AUTHOR, DRAFT);
+		opened(controller);
+		saveComposerDraft("Note", docname, "comment", {
+			content: "<p>Also this</p>",
+			attachments: [other, FILE],
+		});
+		const revision = draftRevision("Note", docname, "comment");
+		fail(new Error("Offline"));
+		await sent;
+		expect(composerDraft("Note", docname, "comment")).toEqual({
+			content: "<p>Looks good</p><p>Also this</p>",
+			attachments: [FILE, other],
+		});
+		expect(draftRevision("Note", docname, "comment")).toBe(revision + 1);
+		expect(activeWriter("Note", docname)).toBe("comment");
+	});
+
+	it("restores the failed draft alone over an empty writer", async () => {
+		const controller = fakeController();
+		const { docname } = controller.page;
+		let fail: (error: Error) => void = () => {};
+		addComment.mockReturnValue(new Promise((_, reject) => (fail = reject)));
+		const sent = postComment(controller, AUTHOR, DRAFT);
+		openComposer("Note", docname, "comment");
+		saveComposerDraft("Note", docname, "comment", { content: "<p></p>", attachments: [] });
+		fail(new Error("Offline"));
+		await sent;
+		expect(composerDraft("Note", docname, "comment")).toEqual(DRAFT);
 	});
 
 	it("leaves a composer the reader opened on another record since", async () => {
