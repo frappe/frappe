@@ -13,6 +13,7 @@
 		v-model:body="body"
 		@submit="emit('submit', $event)"
 		@remove-attachment="emit('remove-attachment', $event)"
+		@discard="emit('discard')"
 	>
 		<template v-if="$slots.actions" #actions="actionProps">
 			<slot name="actions" v-bind="actionProps" />

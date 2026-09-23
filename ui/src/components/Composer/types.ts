@@ -69,6 +69,8 @@ interface BaseComposerEmits<Payload> {
   submit: [payload: Payload];
   /** Only on explicit chip removal (so the host can delete server-side). */
   "remove-attachment": [file: UploadedFile];
+  /** The reader's Discard or Esc; a host's own `reset()` does not fire it. */
+  discard: [];
 }
 
 // --- EmailComposer ----------------------------------------------------------

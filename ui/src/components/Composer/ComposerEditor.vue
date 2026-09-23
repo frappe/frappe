@@ -156,7 +156,7 @@
 								<Button
 									v-if="!isEmpty && !submitting"
 									label="Discard"
-									@click="reset"
+									@click="discard"
 								/>
 								<!-- The spinner trails the label; Button's own `loading` would lead it. -->
 								<Button
@@ -257,6 +257,8 @@ const emit = defineEmits<{
 	"remove-attachment": [file: UploadedFile];
 	/** Host runs the send and calls `reset()` itself when done. */
 	submit: [payload: CoreSubmitPayload];
+	/** The reader's Discard or Esc, after the reset; a host's own `reset()` does not fire it. */
+	discard: [];
 }>();
 
 const editorRef = ref<InstanceType<typeof Editor> | null>(null);
@@ -465,13 +467,18 @@ function submit() {
 // Esc outside the body. ProseMirror marks every Esc in the body handled, so those arrive
 // at `discardFromBody` instead, and only when no editor menu took them.
 function onEscape(event: KeyboardEvent) {
-	if (!event.defaultPrevented && !props.submitting) reset();
+	if (!event.defaultPrevented && !props.submitting) discard();
 }
 
 function discardFromBody() {
 	if (props.submitting) return false;
-	reset();
+	discard();
 	return true;
+}
+
+function discard() {
+	reset();
+	emit("discard");
 }
 
 function reset() {

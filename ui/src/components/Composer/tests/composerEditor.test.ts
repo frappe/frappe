@@ -1,5 +1,5 @@
 // A disabled editor offers no formatting menu and no editable quote; a sending one no Discard.
-// Esc in the body discards unless an editor menu takes it.
+// Esc in the body discards unless an editor menu takes it; only Discard and Esc say so.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref } from "vue";
 import ComposerEditor from "../ComposerEditor.vue";
@@ -18,6 +18,7 @@ async function mountEditor(disabled: boolean, submitting = false) {
   const body = ref("<p>Hello</p>");
   const editor = ref<InstanceType<typeof ComposerEditor> | null>(null);
   const uploadFunction = vi.fn(async () => ({ file_url: "/files/a.png" }));
+  const onDiscard = vi.fn();
   const root = document.createElement("div");
   document.body.appendChild(root);
   const app = createApp({
@@ -30,13 +31,15 @@ async function mountEditor(disabled: boolean, submitting = false) {
         uploadFunction,
         disabled,
         submitting,
+        onDiscard,
       }),
   });
   app.mount(root);
   apps.push(app);
   for (let i = 0; i < 5; i++) await new Promise((resolve) => setTimeout(resolve));
   await nextTick();
-  return { root, body, uploadFunction, tiptap: editor.value!.editor! };
+  const tiptap = editor.value!.editor!;
+  return { root, body, uploadFunction, onDiscard, editor: editor.value!, tiptap };
 }
 
 // ProseMirror claims an Esc by its keyCode, which happy-dom leaves at 0 unless given.
@@ -100,10 +103,11 @@ describe("a sending composer editor", () => {
 
 describe("Esc in the body of a composer editor", () => {
   it("discards the draft when no menu is open", async () => {
-    const { body, tiptap } = await mountEditor(false);
+    const { body, tiptap, onDiscard } = await mountEditor(false);
     pressEscape(tiptap.view.dom);
     await nextTick();
     expect(body.value).toBe("");
+    expect(onDiscard).toHaveBeenCalledOnce();
   });
 
   it("closes an open slash menu and keeps the text", async () => {
@@ -118,5 +122,36 @@ describe("Esc in the body of a composer editor", () => {
     await nextTick();
     expect(slashMenu.getState(tiptap.state).active).toBe(false);
     expect(body.value).toBe("<p>Hello /</p>");
+  });
+});
+
+describe("the discard event", () => {
+  it("fires on the Discard button", async () => {
+    const { root, body, onDiscard } = await mountEditor(false);
+    const buttons = [...root.querySelectorAll("button")];
+    buttons.find((one) => one.textContent?.trim() === "Discard")!.click();
+    await nextTick();
+    expect([body.value, onDiscard.mock.calls.length]).toEqual(["", 1]);
+  });
+
+  it("does not fire on a host's reset", async () => {
+    const { body, editor, onDiscard } = await mountEditor(false);
+    editor.reset();
+    await nextTick();
+    expect(body.value).toBe("");
+    expect(onDiscard).not.toHaveBeenCalled();
+  });
+
+  it("does not fire when select-all and Delete empty the body and the quote", async () => {
+    const { root, body, onDiscard } = await mountEditor(false);
+    const quote = root.querySelector<HTMLElement>("details > div")!;
+    quote.focus();
+    const keys = { bubbles: true, cancelable: true };
+    quote.dispatchEvent(new KeyboardEvent("keydown", { key: "a", ctrlKey: true, ...keys }));
+    quote.dispatchEvent(new KeyboardEvent("keydown", { key: "Delete", ...keys }));
+    await nextTick();
+    expect(body.value).toBe("");
+    expect(root.querySelector("details")).toBeNull();
+    expect(onDiscard).not.toHaveBeenCalled();
   });
 });
