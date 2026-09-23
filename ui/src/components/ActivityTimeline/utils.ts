@@ -153,6 +153,12 @@ export function useDataTheme(): Ref<string> {
   return dataTheme;
 }
 
+/** The bare address in a `Full Name <address>` sender. */
+export function emailAddress(sender: string): string {
+  const bracketed = sender.match(/<([^>]+)>/);
+  return (bracketed ? bracketed[1] : sender).trim();
+}
+
 /** Split a comma-separated recipients string, respecting quoted display names. */
 export function splitRecipients(
   field: string | string[],

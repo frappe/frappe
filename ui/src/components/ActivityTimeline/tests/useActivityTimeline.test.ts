@@ -68,6 +68,22 @@ function socketComment(docname: string, name: string, text: string, creation = "
   };
 }
 
+/** An email the socket publishes; a sent one names its sender as `Full Name <address>`. */
+function socketEmail(docname: string, name: string, text: string, sender = "A <a@x.com>") {
+  return {
+    key: "communications",
+    action: "add",
+    doc: {
+      name,
+      reference_doctype: "ToDo",
+      reference_name: docname,
+      content: `<p>${text}</p>`,
+      sender,
+      creation: "2026-01-05 10:00:02",
+    },
+  };
+}
+
 const keys = (timeline: ReturnType<typeof useActivityTimeline>) =>
   timeline.activities.value.map((a) => a.key);
 
@@ -544,12 +560,64 @@ describe("pending rows", () => {
     expect(timeline.activities.value[1]).toMatchObject({ renderKey: draftKey });
   });
 
+  describe("a sent email's picture", () => {
+    const email = (text: string) => ({
+      type: "email" as const,
+      timestamp: "2026-01-05 10:00:00",
+      author: { email: "a@x.com", fullname: "A", image: "/a.png" },
+      data: { name: "", sender: "a@x.com", content: `<p>${text}</p>`, attachments: [] },
+    });
+
+    it("stays when the socket's echo, with no picture, retires the pending row", async () => {
+      const name = freshDoc();
+      const { timeline } = mountTimeline(name);
+      await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
+
+      addPendingActivity("ToDo", name, email("hello"));
+      socket.emit("docinfo_update", socketEmail(name, "E1", "hello"));
+
+      expect(timeline.activities.value).toMatchObject([
+        { key: "email:E1", author: { email: "a@x.com", image: "/a.png" } },
+      ]);
+      expect(timeline.activities.value[0].pending).toBeFalsy();
+    });
+
+    it("stays when a resolved row is confirmed by a read with no picture", async () => {
+      const name = freshDoc();
+      const { timeline } = mountTimeline(name);
+      await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
+
+      addPendingActivity("ToDo", name, email("hello")).resolve("email:E1");
+      const confirmed = row("email", "email:E1", "2026-01-05 10:00:02", { content: "<p>hello</p>" });
+      serve({ newest: { activities: [confirmed], next: null } });
+      await reloadActivityTimeline("ToDo", name);
+
+      expect(timeline.activities.value).toMatchObject([
+        { key: "email:E1", author: { email: "a@x.com", image: "/a.png" } },
+      ]);
+    });
+  });
+
   it("keeps a pending comment out of the emails view", async () => {
     const name = freshDoc();
     const emails = useActivityTimeline("ToDo", name, ["email"]);
     await vi.waitFor(() => expect(emails.loading.value).toBe(false));
     addPendingActivity("ToDo", name, comment("not an email"));
     expect(emails.activities.value).toEqual([]);
+  });
+});
+
+describe("live rows", () => {
+  it("give a sent email the picture of an author the feed holds under its bare address", async () => {
+    const name = freshDoc();
+    const author = { email: "A@X.com", fullname: "A", image: "/a.png" };
+    serve({ newest: { activities: [{ ...c(1), author }], next: null } });
+    const { timeline } = mountTimeline(name);
+    await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
+
+    socket.emit("docinfo_update", socketEmail(name, "E1", "hello", "A <a@x.com>"));
+
+    expect(timeline.activities.value[1]).toMatchObject({ key: "email:E1", author });
   });
 });
 
