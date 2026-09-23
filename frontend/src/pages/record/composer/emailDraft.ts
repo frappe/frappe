@@ -16,6 +16,8 @@ export type EmailDraft = {
 	attachments: UploadedFile[];
 	/** The Communication this answers, `""` if none. */
 	inReplyTo: string;
+	/** The answered email as the editor quotes it under the body, `""` if none. */
+	quoted: string;
 };
 
 export function readEmailDraft(doctype: string, docname: string): EmailDraft {
@@ -30,7 +32,7 @@ export function asEmailDraft(raw: Record<string, unknown>): EmailDraft {
 /** Only the keys `raw` carries, each normalised; the rest of a draft is left alone. */
 export function emailFields(raw: Record<string, unknown>): Partial<EmailDraft> {
 	const fields: Partial<EmailDraft> = {};
-	for (const key of ["from", "subject", "content", "inReplyTo"] as const)
+	for (const key of ["from", "subject", "content", "inReplyTo", "quoted"] as const)
 		if (typeof raw[key] === "string") fields[key] = raw[key] as string;
 	for (const key of ["to", "cc", "bcc"] as const)
 		if (raw[key] !== undefined) fields[key] = addressList(raw[key]);
@@ -48,6 +50,7 @@ export function emptyEmailDraft(): EmailDraft {
 		content: "",
 		attachments: [],
 		inReplyTo: "",
+		quoted: "",
 	};
 }
 
@@ -63,6 +66,7 @@ export function isFreshEmailDraft(draft: EmailDraft, fresh: EmailDraft) {
 		isBlankEmailDraft(draft) &&
 		draft.subject === fresh.subject &&
 		draft.inReplyTo === fresh.inReplyTo &&
+		draft.quoted === fresh.quoted &&
 		same("to") &&
 		same("cc") &&
 		same("bcc")
@@ -72,6 +76,7 @@ export function isFreshEmailDraft(draft: EmailDraft, fresh: EmailDraft) {
 /** The failed post's body first, then the newer draft's; the newer draft keeps its own headers. */
 export function mergeEmailDrafts(failed: EmailDraft, current: EmailDraft): EmailDraft {
 	const names = new Set(failed.attachments.map((file) => file.name));
+	const thread = current.inReplyTo ? current : failed;
 	return {
 		from: current.from || failed.from,
 		to: distinct([...failed.to, ...current.to]),
@@ -85,7 +90,8 @@ export function mergeEmailDrafts(failed: EmailDraft, current: EmailDraft): Email
 			...failed.attachments,
 			...current.attachments.filter((file) => !names.has(file.name)),
 		],
-		inReplyTo: current.inReplyTo || failed.inReplyTo,
+		inReplyTo: thread.inReplyTo,
+		quoted: thread.quoted,
 	};
 }
 

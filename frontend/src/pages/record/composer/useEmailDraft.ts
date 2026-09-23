@@ -1,4 +1,4 @@
-// The email writer's draft: the headers, body and attachments, saved into the store as they change.
+// The email writer's draft: the headers, body, quote and attachments, saved into the store as they change.
 import { ref, watch } from "vue";
 import type { Recipient, UploadedFile } from "@framework/ui/Composer";
 import type { UploadTransport } from "@framework/ui/FileUpload";
@@ -32,12 +32,13 @@ export function useEmailDraft(
 	const bcc = ref(asRecipients(stored.bcc));
 	const subject = ref(stored.subject);
 	const content = ref(stored.content || EMPTY_BODY);
+	const quoted = ref<string | null>(stored.quoted || null);
 	const attachments = ref<UploadedFile[]>([...stored.attachments]);
 	const seed = [...stored.attachments];
 	let inReplyTo = stored.inReplyTo;
 	let resets = 0;
 
-	watch([from, to, cc, bcc, subject, content, attachments], save, { deep: true });
+	watch([from, to, cc, bcc, subject, content, quoted, attachments], save, { deep: true });
 	watch(content, (next) => next === "" && reset(), { flush: "sync" });
 
 	// The editor passes options for inline media; the attach button calls with the file alone.
@@ -59,6 +60,7 @@ export function useEmailDraft(
 		bcc.value = asRecipients(start.bcc);
 		subject.value = start.subject;
 		inReplyTo = "";
+		quoted.value = start.quoted || null;
 		attachments.value = [];
 		content.value = EMPTY_BODY;
 	}
@@ -77,6 +79,7 @@ export function useEmailDraft(
 			content: content.value,
 			attachments: attachments.value,
 			inReplyTo,
+			quoted: quoted.value ?? "",
 		};
 	}
 
@@ -87,7 +90,7 @@ export function useEmailDraft(
 		else saveComposerDraft(doctype, docname, EMAIL_WRITER, current);
 	}
 
-	return { from, to, cc, bcc, subject, content, seed, upload, forget, draft };
+	return { from, to, cc, bcc, subject, content, quoted, seed, upload, forget, draft };
 }
 
 function asRecipients(list: string[]): Recipient[] {

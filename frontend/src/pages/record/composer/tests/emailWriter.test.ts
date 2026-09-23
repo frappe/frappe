@@ -410,6 +410,7 @@ describe("sending an email", () => {
 			throw new Error("Rejected");
 		});
 		const { root, controller } = await mountEmail(undefined, asEmailDraft({ subject: "Kept" }));
+		editor(root).$emit("update:modelValue", "<p>Hi</p>");
 		editor(root).$emit("submit", { body: "<p>Hi</p>", attachments: [] });
 		await flush();
 		expect(pending.drop).toHaveBeenCalled();

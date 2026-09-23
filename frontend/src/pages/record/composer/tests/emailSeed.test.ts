@@ -157,6 +157,76 @@ describe("a reply", () => {
 	});
 });
 
+describe("the quote under a reply", () => {
+	const ON = "On 20th September 2026, 10:00 AM, bob@example.com wrote:";
+	const loaded = (data: Record<string, unknown> = {}) => ({
+		...EMAIL,
+		name: EMAIL.key,
+		timestamp: "2026-09-20 10:00:00",
+		data: { ...EMAIL.data, ...data },
+	});
+
+	it("quotes the email Reply answers as desk v1 does, an On … wrote: line over its text", () => {
+		const page = fakePage([loaded({ content: "<p>One</p><div>Two</div>" })]);
+		open(page, { replyTo: "email:COMM-1" });
+		expect(stored(page)!.quoted).toBe(`<p>${ON}</p><p>One<br>Two</p>`);
+	});
+
+	it("quotes on Reply all too, from an email only the Emails tab holds", () => {
+		const page = fakePage();
+		activityTimelineRows.mockReturnValue([{ ...EMAIL, timestamp: "2026-09-20 10:00:00" }]);
+		open(page, { replyTo: "email:COMM-1", replyAll: true });
+		expect(stored(page)!.quoted).toBe(`<p>${ON}</p><p>Hi</p>`);
+	});
+
+	it("names only the sender of an email just sent, which has no time yet", () => {
+		const page = fakePage();
+		activityTimelineRows.mockReturnValue([EMAIL]);
+		open(page, { replyTo: "email:COMM-1" });
+		expect(stored(page)!.quoted).toBe("<p>bob@example.com wrote:</p><p>Hi</p>");
+	});
+
+	it("clips the text at desk v1's 20 KiB", () => {
+		const page = fakePage([loaded({ content: `<p>${"a".repeat(30000)}</p>` })]);
+		open(page, { replyTo: "email:COMM-1" });
+		expect(stored(page)!.quoted).toBe(`<p>${ON}</p><p>${"a".repeat(20 * 1024)}</p>`);
+	});
+
+	it("keeps the email's markup out, as text", () => {
+		const html =
+			`<style>p{color:red}</style><p><b>Bold</b> <img src="x" onerror="alert(1)">` +
+			`<script>alert(2)</script>&lt;i&gt;</p>`;
+		const page = fakePage([loaded({ content: html })]);
+		open(page, { replyTo: "email:COMM-1" });
+		expect(stored(page)!.quoted).toBe(`<p>${ON}</p><p>Bold &lt;i&gt;</p>`);
+	});
+
+	it("is not there on a plain open, or for an email the reader has not loaded", () => {
+		const page = fakePage([loaded()]);
+		open(page, { subject: "From a script" });
+		expect(stored(page)!.quoted).toBe("");
+		const other = fakePage();
+		open(other, { replyTo: "email:COMM-9" });
+		expect(stored(other)!.quoted).toBe("");
+	});
+
+	it("is replaced by a reply over a draft in memory, and dropped for one not loaded", () => {
+		const page = fakePage([
+			loaded(),
+			{ ...loaded({ content: "<p>Later</p>" }), name: "email:COMM-2" },
+		]);
+		const draft = asEmailDraft({ content: "<p>Kept</p>", quoted: "<p>Old quote</p>" });
+		saveComposerDraft("Lead", page.docname, "email", draft);
+		open(page, { replyTo: "email:COMM-2" });
+		expect(stored(page)).toMatchObject({
+			content: "<p>Kept</p>",
+			quoted: `<p>${ON}</p><p>Later</p>`,
+		});
+		open(page, { replyTo: "email:COMM-9" });
+		expect(stored(page)).toMatchObject({ content: "<p>Kept</p>", quoted: "" });
+	});
+});
+
 describe("a reply over a draft in memory", () => {
 	const body = { content: "<p>Kept</p>", attachments: [{ name: "F-1" }] };
 

@@ -62,7 +62,7 @@ describe("postEmail", () => {
 		openComposer("Lead", docname, "email");
 		saveComposerDraft("Lead", docname, "email", DRAFT);
 		runMethod.mockReturnValue(new Promise(() => {}));
-		void postEmail(controller, AUTHOR, DRAFT);
+		void postEmail(controller, AUTHOR, DRAFT, DRAFT.content);
 		expect(activeWriter("Lead", docname)).toBe("");
 		expect(composerDraft("Lead", docname, "email")).toBeUndefined();
 		expect(addPendingActivity).toHaveBeenCalledWith("Lead", docname, {
@@ -86,7 +86,7 @@ describe("postEmail", () => {
 		const { docname } = controller.page;
 		openComposer("Lead", docname, "comment");
 		runMethod.mockReturnValue(new Promise(() => {}));
-		void postEmail(controller, AUTHOR, DRAFT);
+		void postEmail(controller, AUTHOR, DRAFT, DRAFT.content);
 		expect(activeWriter("Lead", docname)).toBe("comment");
 		expect(addPendingActivity).toHaveBeenCalled();
 	});
@@ -94,7 +94,7 @@ describe("postEmail", () => {
 	it("sends every field make takes, and lets the server pick a missing sender", async () => {
 		const controller = fakeController();
 		runMethod.mockResolvedValue({ data: { name: "COMM-2" } });
-		await postEmail(controller, AUTHOR, DRAFT);
+		await postEmail(controller, AUTHOR, DRAFT, DRAFT.content);
 		expect(runMethod).toHaveBeenCalledWith("frappe.core.doctype.communication.email.make", {
 			doctype: "Lead",
 			name: controller.page.docname,
@@ -109,17 +109,29 @@ describe("postEmail", () => {
 			attachments: ["F-9"],
 			in_reply_to: "COMM-1",
 		});
-		await postEmail(controller, AUTHOR, { ...DRAFT, from: "", inReplyTo: "" });
+		await postEmail(controller, AUTHOR, { ...DRAFT, from: "", inReplyTo: "" }, DRAFT.content);
 		const args = runMethod.mock.calls[1][1];
 		expect(args.sender).toBeUndefined();
 		expect(args.in_reply_to).toBeUndefined();
 		expect((addPendingActivity.mock.calls[1][2] as any).data.sender).toBe("ann@example.com");
 	});
 
+	it("sends and shows the quoted message, and restores the body and quote apart", async () => {
+		const controller = fakeController();
+		const { docname } = controller.page;
+		const draft = { ...DRAFT, quoted: "<p>On it, bob wrote:</p><p>Hi</p>" };
+		const message = `<p>Attached</p><p class="reply-to-content"></p><blockquote>${draft.quoted}</blockquote>`;
+		runMethod.mockRejectedValue(new Error("Offline"));
+		await postEmail(controller, AUTHOR, draft, message);
+		expect(runMethod.mock.calls[0][1].content).toBe(message);
+		expect((addPendingActivity.mock.calls[0][2] as any).data.content).toBe(message);
+		expect(composerDraft("Lead", docname, "email")).toEqual(draft);
+	});
+
 	it("gives the row its server key, with no time, then fires onPost with the key", async () => {
 		const controller = fakeController();
 		runMethod.mockResolvedValue({ data: { name: "COMM-2", emails_not_sent_to: "" } });
-		await postEmail(controller, AUTHOR, DRAFT);
+		await postEmail(controller, AUTHOR, DRAFT, DRAFT.content);
 		expect(pending.resolve).toHaveBeenCalledWith("email:COMM-2");
 		expect(controller.firePost).toHaveBeenCalledWith("email:COMM-2");
 		expect(pending.drop).not.toHaveBeenCalled();
@@ -129,7 +141,7 @@ describe("postEmail", () => {
 		const controller = fakeController();
 		const { docname } = controller.page;
 		runMethod.mockRejectedValue(new Error("No outgoing account"));
-		await postEmail(controller, AUTHOR, DRAFT);
+		await postEmail(controller, AUTHOR, DRAFT, DRAFT.content);
 		expect(pending.drop).toHaveBeenCalled();
 		expect(controller.firePost).not.toHaveBeenCalled();
 		expect(composerDraft("Lead", docname, "email")).toEqual(DRAFT);
@@ -142,7 +154,7 @@ describe("postEmail", () => {
 		const { docname } = controller.page;
 		let fail: (error: Error) => void = () => {};
 		runMethod.mockReturnValue(new Promise((_, reject) => (fail = reject)));
-		const sent = postEmail(controller, AUTHOR, DRAFT);
+		const sent = postEmail(controller, AUTHOR, DRAFT, DRAFT.content);
 		openComposer("Lead", docname, "email");
 		const newer = asEmailDraft({ subject: "Other", content: "<p>Later</p>", to: "eve@example.com" });
 		saveComposerDraft("Lead", docname, "email", newer);
@@ -163,7 +175,7 @@ describe("postEmail", () => {
 		const { docname } = controller.page;
 		let fail: (error: Error) => void = () => {};
 		runMethod.mockReturnValue(new Promise((_, reject) => (fail = reject)));
-		const sent = postEmail(controller, AUTHOR, DRAFT);
+		const sent = postEmail(controller, AUTHOR, DRAFT, DRAFT.content);
 		openComposer("Lead", docname, "email", asEmailDraft({ subject: "Re: Lead", content: "<p></p>" }));
 		fail(new Error("Offline"));
 		await sent;

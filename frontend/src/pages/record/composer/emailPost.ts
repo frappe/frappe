@@ -20,20 +20,21 @@ import {
 
 const MAKE = "frappe.core.doctype.communication.email.make";
 
-/** Collapses and clears at once; the answer names the row, and a failure puts everything back. */
+/** `message` is what goes, the body with any quote under it; a failure puts `draft` back. */
 export async function postEmail(
 	controller: RecordPageController,
 	author: UserInfo,
-	draft: EmailDraft
+	draft: EmailDraft,
+	message: string
 ) {
 	const { doctype, docname } = controller.page;
 	clearComposerDraft(doctype, docname, EMAIL_WRITER);
 	// A send that waited on the senders may find the reader in another writer, here or elsewhere.
 	if (activeWriter(doctype, docname) === EMAIL_WRITER) closeComposer();
-	const pending = addPendingActivity(doctype, docname, pendingRow(author, draft));
+	const pending = addPendingActivity(doctype, docname, pendingRow(author, draft, message));
 	let key: string;
 	try {
-		const args = makeArgs(doctype, docname, author, draft);
+		const args = makeArgs(doctype, docname, author, draft, message);
 		const { data } = await runMethod<{ name: string }>(MAKE, args);
 		key = `email:${data.name}`;
 	} catch (error) {
@@ -47,11 +48,17 @@ export async function postEmail(
 	await controller.firePost(key);
 }
 
-function makeArgs(doctype: string, docname: string, author: UserInfo, draft: EmailDraft) {
+function makeArgs(
+	doctype: string,
+	docname: string,
+	author: UserInfo,
+	draft: EmailDraft,
+	message: string
+) {
 	return {
 		doctype,
 		name: docname,
-		content: draft.content,
+		content: message,
 		subject: draft.subject,
 		recipients: draft.to.join(", "),
 		cc: draft.cc.join(", "),
@@ -64,7 +71,7 @@ function makeArgs(doctype: string, docname: string, author: UserInfo, draft: Ema
 	};
 }
 
-function pendingRow(author: UserInfo, draft: EmailDraft) {
+function pendingRow(author: UserInfo, draft: EmailDraft, message: string) {
 	const attachments = draft.attachments.map(({ file_url, file_name }) => ({
 		file_url,
 		file_name,
@@ -80,7 +87,7 @@ function pendingRow(author: UserInfo, draft: EmailDraft) {
 			to: draft.to.join(", "),
 			cc: draft.cc.join(", "),
 			bcc: draft.bcc.join(", "),
-			content: draft.content,
+			content: message,
 			attachments,
 		},
 	};

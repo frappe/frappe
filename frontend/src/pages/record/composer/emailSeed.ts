@@ -12,8 +12,9 @@ import {
 	type EmailDraft,
 } from "./emailDraft";
 import { prefillEmail, replyFill } from "./emailPrefill";
+import { quoteEmail } from "./emailQuote";
 
-type EmailData = EmailActivity["data"];
+type LoadedEmail = { data: EmailActivity["data"]; timestamp?: string };
 
 /** What the seed reads from the page, which the host builds after the composer's host half. */
 export interface EmailSeedContext {
@@ -22,7 +23,7 @@ export interface EmailSeedContext {
 	userEmail: string;
 }
 
-/** A draft in memory wins, except that a `replyTo` re-addresses it; the body stays. */
+/** A draft in memory wins, except that a `replyTo` re-addresses and re-quotes it; the body stays. */
 export function openEmail(
 	doctype: string,
 	docname: string,
@@ -73,7 +74,7 @@ function readdress(doctype: string, docname: string, reply: Partial<EmailDraft>,
 }
 
 // The thread comes from the key, since a row the writer just sent has no name in its data.
-// An email the reader has not loaded still threads the reply; the headers stay as they were.
+// An email the reader has not loaded still threads the reply, unquoted; the headers stay as they were.
 function replyFor(
 	page: RecordPageApi | undefined,
 	userEmail: string,
@@ -82,19 +83,23 @@ function replyFor(
 	if (typeof draft.replyTo !== "string") return undefined;
 	const inReplyTo = draft.replyTo.replace(/^email:/, "");
 	const email = page && loadedEmail(page, draft.replyTo);
-	if (!email) return { inReplyTo };
-	return { ...replyFill(email, userEmail, draft.replyAll === true), inReplyTo };
+	if (!email) return { inReplyTo, quoted: "" };
+	return {
+		...replyFill(email.data, userEmail, draft.replyAll === true),
+		inReplyTo,
+		quoted: quoteEmail(email.data, email.timestamp),
+	};
 }
 
-function loadedEmail(page: RecordPageApi, key: string): EmailData | undefined {
-	const item = page.activity.items.find(
-		(one): one is ActivityItem => one.name === key && "type" in one && one.type === "email"
-	);
-	if (item) return item.data as EmailData;
-	const row = activityTimelineRows(page.doctype, page.docname, EMAIL_TYPES).find(
-		(one) => one.key === key && one.type === "email"
-	);
-	return row?.data as EmailData | undefined;
+function loadedEmail(page: RecordPageApi, key: string): LoadedEmail | undefined {
+	const item =
+		page.activity.items.find(
+			(one): one is ActivityItem => one.name === key && "type" in one && one.type === "email"
+		) ??
+		activityTimelineRows(page.doctype, page.docname, EMAIL_TYPES).find(
+			(one) => one.key === key && one.type === "email"
+		);
+	return item as LoadedEmail | undefined;
 }
 
 /** The record's title as the header shows it: the title field, else the name. */

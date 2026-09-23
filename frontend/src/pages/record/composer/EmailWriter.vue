@@ -9,6 +9,7 @@
 			v-model:cc="cc"
 			v-model:bcc="bcc"
 			v-model:subject="subject"
+			v-model:quoted="quoted"
 			class="min-h-0 flex-1"
 			:placeholder="__('Write an email…')"
 			:submitLabel="__('Send')"
@@ -55,7 +56,7 @@ const EmailComposer = defineAsyncComponent(() =>
 const props = defineProps<{ controller: RecordPageController; user: SessionUser }>();
 
 const feeds = inject(RecordFeedsKey, null);
-const { from, to, cc, bcc, subject, content, seed, upload, forget, draft } = useEmailDraft(
+const { from, to, cc, bcc, subject, content, quoted, seed, upload, forget, draft } = useEmailDraft(
 	props.controller.page.doctype,
 	props.controller.page.docname,
 	() => freshEmail(props.controller.page),
@@ -102,11 +103,8 @@ async function send(payload: EmailPayload) {
 		fullname: props.user.full_name,
 		image: props.user.user_image ?? undefined,
 	};
-	void postEmail(props.controller, author, {
-		...headers,
-		from: from.value,
-		content: payload.body,
-		attachments: [...payload.attachments],
-	});
+	// The editor's body carries the quote; the draft keeps them apart for a failure to restore.
+	const outgoing = { ...headers, from: from.value, attachments: [...payload.attachments] };
+	void postEmail(props.controller, author, outgoing, payload.body);
 }
 </script>

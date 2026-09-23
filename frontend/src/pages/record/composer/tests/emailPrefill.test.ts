@@ -1,6 +1,6 @@
 // What a new email starts with: the record's subject and address, and a reply's headers as desk v1 fills them.
 import { describe, expect, it } from "vitest";
-import { addressList, asEmailDraft, mergeEmailDrafts } from "../emailDraft";
+import { addressList, asEmailDraft, isFreshEmailDraft, mergeEmailDrafts } from "../emailDraft";
 import { prefillEmail, replyFill } from "../emailPrefill";
 
 const META = {
@@ -168,5 +168,18 @@ describe("the draft's addresses", () => {
 			content: "<p>First</p><p>Second</p>",
 			inReplyTo: "COMM-1",
 		});
+	});
+
+	it("merges the quote with the thread it answers", () => {
+		const failed = asEmailDraft({ inReplyTo: "COMM-1", quoted: "<p>First</p>" });
+		expect(mergeEmailDrafts(failed, asEmailDraft({})).quoted).toBe("<p>First</p>");
+		const current = asEmailDraft({ inReplyTo: "COMM-2" });
+		expect(mergeEmailDrafts(failed, current)).toMatchObject({ inReplyTo: "COMM-2", quoted: "" });
+	});
+
+	it("counts a quote as more than a fresh open", () => {
+		const fresh = asEmailDraft({ subject: "Re: Acme" });
+		expect(isFreshEmailDraft(fresh, fresh)).toBe(true);
+		expect(isFreshEmailDraft({ ...fresh, quoted: "<p>Hi</p>" }, fresh)).toBe(false);
 	});
 });
