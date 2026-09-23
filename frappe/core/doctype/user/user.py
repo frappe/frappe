@@ -1686,7 +1686,7 @@ def bulk_add_roles(users: str | list, roles: str | list) -> None:
 			"frappe.core.doctype.user.user._assign_roles",
 			users=users,
 			roles=roles,
-			queue="default",
+			queue="long",
 			enqueue_after_commit=True,
 		)
 		frappe.msgprint(
@@ -1718,7 +1718,7 @@ def bulk_remove_roles(users: str | list, roles: str | list) -> None:
 			"frappe.core.doctype.user.user._unassign_roles",
 			users=users,
 			roles=roles,
-			queue="default",
+			queue="long",
 			enqueue_after_commit=True,
 		)
 		frappe.msgprint(
