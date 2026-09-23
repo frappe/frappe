@@ -56,6 +56,8 @@
 <script setup lang="ts">
 import { Button, Dialog } from "frappe-ui";
 import { computed, ref, watch } from "vue";
+import LucideDownload from "~icons/lucide/download";
+import LucidePaperclip from "~icons/lucide/paperclip";
 
 const props = withDefaults(
 	defineProps<{
