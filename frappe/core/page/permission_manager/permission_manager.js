@@ -6,8 +6,6 @@ frappe.pages["permission-manager"].on_page_load = (wrapper) => {
 		single_column: true,
 	});
 
-	frappe.breadcrumbs.add("Setup");
-
 	$("<div class='perm-engine' style='min-height: 200px; padding: 15px;'></div>").appendTo(
 		page.main
 	);

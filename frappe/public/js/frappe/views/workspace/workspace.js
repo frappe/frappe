@@ -216,11 +216,7 @@ frappe.views.Workspace = class Workspace {
 			const me = this;
 			// private workspaces are stored as `${title}-${for_user}`; show just the title
 			let header_dropdown = `${__(this._page.title)}`;
-			frappe.breadcrumbs.add({
-				type: "Custom",
-				label: header_dropdown,
-				route: "#",
-			});
+			this.page.set_breadcrumbs([{ label: header_dropdown }]);
 			if (!this.add_workspace_controls) {
 				this.workspace_actions_button = this.page.add_action_icon("ellipsis", "", "");
 

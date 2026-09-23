@@ -100,17 +100,10 @@ frappe.views.Page = class Page {
 				frappe.dom.eval(this.pagedoc.__script || this.pagedoc.script);
 				frappe.dom.set_style(this.pagedoc.style || "");
 			}
-
-			// set breadcrumbs
-			frappe.breadcrumbs.add(this.pagedoc.module || null);
 		}
 
 		this.trigger_page_event("on_page_load");
-		frappe.breadcrumbs.add({
-			type: "Custom",
-			label: __(this.pagedoc.title),
-			route: frappe.get_route_str(),
-		});
+		this.wrapper.page?.set_breadcrumbs([{ label: __(this.pagedoc.title) }]);
 
 		// set events
 		$(this.wrapper).on("show", function () {
@@ -189,9 +182,7 @@ frappe.views.Page = class Page {
 	/**
 	 * The page head, from what the island reported.
 	 *
-	 * The title goes to the last breadcrumb and to the browser tab, not to
-	 * `page.set_title`: that writes into the `.title-text` crumb, which the next
-	 * `breadcrumbs.update()` overwrites.
+	 * The title is the last breadcrumb, and also names the browser tab.
 	 *
 	 * An action is `{ label, icon? }` plus either an `onClick` or an `href`. An
 	 * `href` leads out of desk, so desk opens it in a new tab. A desk menu row is
@@ -200,14 +191,10 @@ frappe.views.Page = class Page {
 	 */
 	set_island_chrome() {
 		const label = this.island_title || __(this.pagedoc.title) || this.pagedoc.name;
-		frappe.breadcrumbs.add({
-			type: "Custom",
-			label: label,
-			route: frappe.get_route_str(),
-		});
+		const page = this.wrapper.page;
+		page.set_breadcrumbs([{ label: label }]);
 		frappe.utils.set_title(label);
 
-		const page = this.wrapper.page;
 		page.clear_menu();
 		this.island_actions.forEach((action) => {
 			const click = action.href ? () => window.open(action.href, "_blank") : action.onClick;

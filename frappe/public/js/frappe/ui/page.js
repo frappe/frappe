@@ -1000,26 +1000,7 @@ frappe.ui.Page = class Page {
 	 */
 	set_breadcrumbs(items) {
 		this.breadcrumbs = items || [];
-		this.legacy_breadcrumbs = null;
 		this.render_breadcrumbs();
-	}
-
-	/**
-	 * Hold a `frappe.breadcrumbs.add()` payload for this page. It is resolved on every paint
-	 * rather than at call time, because the old API let a caller add the crumb before the doc it
-	 * names had finished loading.
-	 *
-	 * @param {Object} source
-	 */
-	set_legacy_breadcrumbs(source) {
-		this.legacy_breadcrumbs = source;
-		this.render_breadcrumbs();
-	}
-
-	/** @returns {Array<Object>} */
-	get_breadcrumbs() {
-		if (this.legacy_breadcrumbs) return frappe.breadcrumbs.resolve(this.legacy_breadcrumbs);
-		return this.breadcrumbs || [];
 	}
 
 	render_breadcrumbs() {
@@ -1029,7 +1010,7 @@ frappe.ui.Page = class Page {
 		const css_class = ["navbar-breadcrumbs", frappe.is_mobile() ? "mobile-no-divider" : ""]
 			.filter(Boolean)
 			.join(" ");
-		$nav.replaceWith(frappe.ui.breadcrumbs({ items: this.get_breadcrumbs(), css_class }));
+		$nav.replaceWith(frappe.ui.breadcrumbs({ items: this.breadcrumbs || [], css_class }));
 	}
 
 	set_title(title, icon = null, strip = true, tab_title = "", tooltip_label = "") {

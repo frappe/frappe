@@ -806,12 +806,26 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 	}
 
+	get_breadcrumbs() {
+		if (!this.breadcrumb_layout) return super.get_breadcrumbs();
+
+		const layout = (frappe.boot.doctype_layouts || []).find(
+			(l) => l.name === this.breadcrumb_layout
+		);
+		return [
+			{
+				label: __(this.doctype),
+				// the layout filters this list, so going back up has to drop those filters
+				href: `/desk/${frappe.router.slug(this.doctype)}?reset_filters=1`,
+			},
+			{ label: __(layout?.title || this.breadcrumb_layout) },
+		];
+	}
+
 	_set_breadcrumb_layout(layout_name) {
-		const crumb = this.page.legacy_breadcrumbs;
-		if (crumb && (crumb.layout_name || null) !== layout_name) {
-			crumb.layout_name = layout_name;
-			this.page.render_breadcrumbs();
-		}
+		if ((this.breadcrumb_layout || null) === layout_name) return;
+		this.breadcrumb_layout = layout_name;
+		this.set_breadcrumbs();
 	}
 
 	parse_filters_from_settings() {
