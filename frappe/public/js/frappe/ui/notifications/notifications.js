@@ -300,14 +300,18 @@ class NotificationsView extends BaseNotificationsView {
 		}
 	}
 
-	mark_as_read(docname, $el) {
+	mark_as_read(notification_log, $el) {
+		notification_log.read = 1;
 		frappe
 			.call("frappe.desk.doctype.notification_log.notification_log.mark_as_read", {
-				docname: docname,
+				docname: notification_log.name,
 			})
 			.then(() => {
 				$el.removeClass("unread");
 				this.update_count_badge(Math.max(this.unread_count - 1, 0));
+			})
+			.catch(() => {
+				notification_log.read = 0;
 			});
 	}
 
@@ -352,10 +356,7 @@ class NotificationsView extends BaseNotificationsView {
 			</a>`);
 
 		item_html.on("click", () => {
-			if (!notification_log.read) {
-				notification_log.read = 1;
-				this.mark_as_read(notification_log.name, item_html);
-			}
+			!notification_log.read && this.mark_as_read(notification_log, item_html);
 			this.notifications_icon.trigger("click");
 		});
 
