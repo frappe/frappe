@@ -16,6 +16,7 @@ import {
 	activeWriter,
 	closeComposer,
 	composerDraft,
+	composerKept,
 	composerState,
 	draftRevision,
 	openComposer,
@@ -240,5 +241,19 @@ describe("postComment", () => {
 		await sent;
 		expect(activeWriter("Note", "ELSEWHERE")).toBe("comment");
 		expect(composerDraft("Note", context.docname, "comment")).toEqual(DRAFT);
+	});
+
+	it("keeps its record's title and permissions for the draft when the reader moved on", async () => {
+		const context = Object.assign(fakeContext(), { title: "Quarterly plan", perms: { write: 1 } });
+		opened(context);
+		pages.pop()?.();
+		let fail: (error: Error) => void = () => {};
+		addComment.mockReturnValue(new Promise((_, reject) => (fail = reject)));
+		const sent = postComment(context, AUTHOR, DRAFT);
+		openComposer("Note", "ELSEWHERE", "comment");
+		fail(new Error("Offline"));
+		await sent;
+		openComposer("Note", context.docname, "comment");
+		expect(composerKept()).toMatchObject({ title: "Quarterly plan", perms: { write: 1 } });
 	});
 });

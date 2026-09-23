@@ -8,6 +8,7 @@ import {
 	closeComposer,
 	composerRecordFor,
 	composerState,
+	keepComposerRecord,
 	openComposer,
 	replaceComposerDraft,
 	type ComposerWindow,
@@ -101,6 +102,7 @@ function pendingRow(author: UserInfo, draft: EmailDraft, message: string) {
 // A newer draft in the open writer keeps its text after the failed one; the writer redraws both.
 function restore(context: WriterContext, failed: EmailDraft, placement: ComposerWindow) {
 	const { doctype, docname } = context;
+	keepComposerRecord(context);
 	const current = readEmailDraft(doctype, docname);
 	const draft = isBlankEmailDraft(current) ? { ...failed } : mergeEmailDrafts(failed, current);
 	replaceComposerDraft(doctype, docname, EMAIL_WRITER, draft);

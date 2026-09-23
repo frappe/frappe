@@ -14,6 +14,7 @@ import {
 	composerRecordFor,
 	composerState,
 	composerUser,
+	keepComposerRecord,
 	openComposer,
 	preferredWindow,
 	registerComposerDock,
@@ -252,12 +253,14 @@ describe("the record's band and context", () => {
 		expect(composerKept().title).toBe("Final title");
 	});
 
-	it("keeps what it had of a record through a reopen away from it", () => {
-		const unregister = registerComposerRecord("Note", name, context(name, { perms: { email: 1 } }));
+	it("takes a record's facts back from a context its writer held, for a reopen away from it", () => {
+		const held = context(name, { perms: { email: 1 } });
+		const unregister = registerComposerRecord("Note", name, held);
 		openComposer("Note", name, "email");
 		unregister();
 		closeComposer();
 		openComposer("Note", `${name}-B`, "comment");
+		keepComposerRecord(held);
 		openComposer("Note", name, "email");
 		expect(composerKept()).toEqual({ title: `Title of ${name}`, perms: { email: 1 } });
 	});
@@ -300,6 +303,17 @@ describe("the record's band and context", () => {
 
 		openComposer("Note", `${name}-B`, "comment");
 		clearComposerDraft("Note", name, "email");
+		openComposer("Note", name, "comment");
+		expect(composerKept().title).toBe(name);
+	});
+
+	it("forgets the record it leaves when an open takes the window elsewhere", () => {
+		const unregister = registerComposerRecord("Note", name, context(name));
+		openComposer("Note", name, "comment");
+		unregister();
+		expect(composerKept().title).toBe(`Title of ${name}`);
+
+		openComposer("Note", `${name}-B`, "comment");
 		openComposer("Note", name, "comment");
 		expect(composerKept().title).toBe(name);
 	});

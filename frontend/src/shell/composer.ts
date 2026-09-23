@@ -55,7 +55,14 @@ export function openComposer(
 	if (seed && !drafts.has(key)) drafts.set(key, { ...seed });
 	const context = composerRecordFor(doctype, name);
 	if (context) keep(doctype, name, context);
+	const left = { doctype: state.doctype, name: state.name };
 	Object.assign(state, { doctype, name, active: writer, window: placement ?? preferredWindow() });
+	if (left.doctype !== doctype || left.name !== name) forget(left.doctype, left.name);
+}
+
+/** Keeps a record's title, permissions and writers from a context its writer still holds. */
+export function keepComposerRecord(context: WriterContext) {
+	keep(context.doctype, context.docname, context);
 }
 
 /** Collapses the band; the record's drafts stay. */

@@ -7,6 +7,7 @@ import {
 	closeComposer,
 	composerRecordFor,
 	composerState,
+	keepComposerRecord,
 	openComposer,
 	replaceComposerDraft,
 	type ComposerWindow,
@@ -83,6 +84,7 @@ function creationOf(comments: Comment[], name: string) {
 // A newer draft in the open writer keeps its text after the failed one; the writer redraws both.
 function restore(context: WriterContext, failed: CommentDraft, placement: ComposerWindow) {
 	const { doctype, docname } = context;
+	keepComposerRecord(context);
 	const current = readCommentDraft(doctype, docname);
 	const draft = isBlankDraft(current) ? { ...failed } : mergeDrafts(failed, current);
 	replaceComposerDraft(doctype, docname, COMMENT_WRITER, draft);
