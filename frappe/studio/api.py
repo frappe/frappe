@@ -6,7 +6,7 @@ from typing import Literal
 
 import frappe
 from frappe import _
-from frappe.model import display_fieldtypes, no_value_fields, std_fields, table_fields
+from frappe.model import child_table_fields, display_fieldtypes, no_value_fields, std_fields, table_fields
 from frappe.utils import sbool
 
 from studio.constants import STANDARD_COMPONENT_NAMES
@@ -22,16 +22,19 @@ def get_doctype_fields(doctype: str, with_standard_fields: bool = False) -> list
 	]
 	standard_fields = [frappe._dict(fieldname="name", fieldtype="Data", label="ID")]
 	if sbool(with_standard_fields):
-		standard_fields += get_meta_fields()
+		standard_fields += get_meta_fields(doctype)
 
 	existing_fieldnames = {field.fieldname for field in fields}
 	fields += [field for field in standard_fields if field.fieldname not in existing_fieldnames]
 	return fields
 
 
-def get_meta_fields() -> list[frappe._dict]:
-	meta_fieldnames = ("owner", "creation", "modified", "modified_by")
-	return [frappe._dict(field) for field in std_fields if field["fieldname"] in meta_fieldnames]
+def get_meta_fields(doctype: str) -> list[frappe._dict]:
+	"""Standard columns every document table has, plus parent columns for child tables"""
+	fields = [frappe._dict(field) for field in std_fields if field["fieldname"] != "name"]
+	if frappe.get_meta(doctype).istable:
+		fields += [frappe._dict(fieldname=fieldname, fieldtype="Data") for fieldname in child_table_fields]
+	return fields
 
 
 @frappe.whitelist()
