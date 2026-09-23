@@ -432,7 +432,7 @@ const requiredFields = computed(() => {
 })
 
 function areRequiredFieldsFilled() {
-	const missingFields = Object.keys(requiredFields.value).filter((field) => !newResource.value[field])
+	const missingFields = Object.keys(requiredFields.value).filter((field) => isEmpty(newResource.value[field]))
 	if (missingFields.length) {
 		errorMessage.value = `Please set ${missingFields.map((field) => requiredFields.value[field]).join(", ")}`
 		return false
@@ -440,6 +440,11 @@ function areRequiredFieldsFilled() {
 		errorMessage.value = ""
 		return true
 	}
+}
+
+// fields and filters are an empty [] / {} when nothing is set
+function isEmpty(value: unknown) {
+	return typeof value === "object" ? isObjectEmpty(value) : !value
 }
 
 function reset() {

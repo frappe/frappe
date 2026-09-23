@@ -71,12 +71,28 @@ describe("data source editor", () => {
 			cy.contains("Please set URL").should("be.visible")
 		})
 
+		it("asks for fields on a Document List", () => {
+			openNewDataSource()
+			field("Data Source Name").type("admins")
+			chooseDocType("User")
+			submit("Add")
+			cy.contains("Please set Fields").should("be.visible")
+		})
+
+		it("asks for filters on a Document fetched using filters", () => {
+			openNewDataSource()
+			field("Data Source Name").type("admin")
+			chooseOption("Type", "Document")
+			chooseDocType("User")
+			cy.get("[role='dialog']").contains("label", "Dynamically fetch document using filters").click()
+			submit("Add")
+			cy.contains("Please set Filters").should("be.visible")
+		})
+
 		it("saves a new Document List to the page", () => {
 			openNewDataSource()
 			field("Data Source Name").type("admins")
-			field("Document Type").type("User")
-			cy.contains("[role='option']", /^\s*User\s*$/).click()
-			cy.wait("@getDocTypeFields")
+			chooseDocType("User")
 			field("Fields").click()
 			option("email").click()
 			cy.get("body").type("{esc}")
@@ -243,6 +259,11 @@ const field = (label: string) =>
 const chooseOption = (label: string, option: string) => {
 	field(label).click()
 	cy.get("[role='option']").contains(option).click()
+}
+const chooseDocType = (doctype: string) => {
+	field("Document Type").type(doctype)
+	cy.contains("[role='option']", new RegExp(`^\\s*${doctype}\\s*$`)).click()
+	cy.wait("@getDocTypeFields")
 }
 const option = (label: string) => cy.get("[role='option']").contains(label).closest("[role='option']")
 const submit = (label: "Add" | "Save") =>
