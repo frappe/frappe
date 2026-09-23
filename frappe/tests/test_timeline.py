@@ -1,9 +1,15 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import operator
+from unittest.mock import patch
 
 import frappe
-from frappe.desk.form.activity import get_activity_timeline, parse_visible_types, readable_permlevels
+from frappe.desk.form.activity import (
+	get_activity_timeline,
+	parse_visible_types,
+	read_senders,
+	readable_permlevels,
+)
 from frappe.desk.form.activity_page import MAX_PAGE_SIZE, ActivityPage
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_formatted_email
@@ -224,6 +230,25 @@ class TestEmailAuthors(FrappeTestCase):
 		self.assertEqual(
 			email_authors(todo),
 			[{"email": "Timeline.Sender@example.com", "fullname": "Tina Sender", "image": "/files/tina.png"}],
+		)
+
+	def test_the_user_lookup_asks_for_lowercase_addresses(self):
+		emails = [frappe._dict(sender="Tina Sender <Timeline.Sender@Example.com>")]
+		with patch.object(frappe, "get_all", wraps=frappe.get_all) as get_all:
+			read_senders(emails)
+
+		self.assertEqual(
+			get_all.call_args.kwargs["filters"], {"email": ("in", ["timeline.sender@example.com"])}
+		)
+
+	def test_a_received_email_from_a_user_keeps_the_name_it_carried(self):
+		new_user("timeline.sender@example.com", "Tina Sender", "/files/tina.png")
+		todo = new_todo()
+		add_email(todo, "2026-01-01 10:00:00", sender="Sales Desk <timeline.sender@example.com>")
+
+		self.assertEqual(
+			email_authors(todo),
+			[{"email": "timeline.sender@example.com", "fullname": "Sales Desk", "image": "/files/tina.png"}],
 		)
 
 	def test_a_received_email_from_an_unknown_address_keeps_its_name(self):

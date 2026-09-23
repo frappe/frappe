@@ -200,11 +200,13 @@ def get_email_activities(doc: "Document", page: ActivityPage) -> list[dict]:
 def read_senders(communications) -> dict[str, tuple]:
 	"""Each sender as `(display name, bare address, User row or None)`, in one User query."""
 	addresses = {c.sender: frappe.utils.parse_addr(c.sender) for c in communications if c.sender}
-	if not addresses:
+	lowercase = {address.lower() for _name, address in addresses.values() if address}
+	if not lowercase:
 		return {}
+	# User.email is stored lowercase; Postgres and SQLite compare case-sensitively.
 	users = frappe.get_all(
 		"User",
-		filters={"email": ("in", [address for _name, address in addresses.values()])},
+		filters={"email": ("in", sorted(lowercase))},
 		fields=["email", "full_name", "user_image"],
 	)
 	by_address = {user.email.lower(): user for user in users}
@@ -286,7 +288,7 @@ def email_author(communication, senders: dict[str, tuple]) -> dict:
 	user = user or {}
 	return {
 		"email": address,
-		"fullname": user.get("full_name") or communication.sender_full_name or name or address,
+		"fullname": communication.sender_full_name or user.get("full_name") or name or address,
 		"image": user.get("user_image"),
 	}
 
