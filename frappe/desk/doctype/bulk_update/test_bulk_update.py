@@ -149,6 +149,7 @@ class TestBulkUpdate(IntegrationTestCase):
 =======
 			# bulk_update can commit, so its durable fixtures need durable cleanup.
 			frappe.db.commit()  # nosemgrep
+<<<<<<< HEAD
 			frappe.db.commit()
 <<<<<<< HEAD
 
@@ -237,3 +238,5 @@ class TestBulkUpdate(IntegrationTestCase):
 >>>>>>> ea1172b (fix(user): prevent destructive overwrite in bulk role update)
 =======
 >>>>>>> ea5475c (refactor(user): pivot to standalone bulk role assignment action)
+=======
+>>>>>>> 52da45d (chore(merge-err): remove redundant comment)
