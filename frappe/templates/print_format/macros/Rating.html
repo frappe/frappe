@@ -11,11 +11,14 @@
 {% endmacro %}
 
 {%- block value -%}
+{#- Rating values are stored as a 0-1 fraction; df.options holds the star count -#}
+{%- set total = df.options | int or 5 -%}
+{%- set filled = [((value or 0) * total + 0.5) | int, total] | min -%}
 <div class="value">
-    {%- for i in range(value) -%}
+    {%- for i in range(filled) -%}
     {{ star(true) }}
     {%- endfor -%}
-    {%- for i in range(5 - value) -%}
+    {%- for i in range(total - filled) -%}
     {{ star() }}
     {%- endfor -%}
 </div>

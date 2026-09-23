@@ -160,3 +160,19 @@
 	font-size: var(--text-md);
 	margin-bottom: var(--margin-md);
 }
+
+.print-format-builder-deprecation {
+	display: flex;
+	align-items: center;
+	gap: var(--margin-sm);
+	padding: var(--padding-sm) var(--padding-md);
+	margin-bottom: var(--margin-md);
+	border: 1px solid var(--dark-border-color);
+	border-radius: var(--border-radius);
+	background: var(--bg-color);
+}
+
+.print-format-builder-deprecation-text {
+	flex: 1;
+	color: var(--text-muted);
+}

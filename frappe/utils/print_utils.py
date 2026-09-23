@@ -11,6 +11,48 @@ EXECUTABLE_PATHS = {
 	"windows": ["chrome-win", "headless_shell.exe"],
 }
 
+GENERATOR_ENGINES = ("chrome", "Typst", "WeasyPrint")
+
+
+def _print_format_doc_or_none(print_format: str | None):
+	"""The Print Format doc, or None for an empty, "Standard" or deleted name so a
+	notification referencing a removed format still sends with the Standard render."""
+	if not print_format or print_format == "Standard":
+		return None
+	try:
+		return frappe.get_cached_doc("Print Format", print_format)
+	except frappe.DoesNotExistError:
+		frappe.clear_last_message()
+		return None
+
+
+def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -> str:
+	"""Pick the PDF engine for a render.
+
+	A builder format keeps its Typst or WeasyPrint choice and otherwise pins itself to
+	Chrome. Everything else honours an explicit choice, then the format's own setting."""
+	from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+
+	if print_format and uses_beta_renderer(print_format):
+		stored = print_format.get("pdf_generator")
+		if stored in ("Typst", "WeasyPrint"):
+			return stored
+		return "chrome"
+	if pdf_generator is not None:
+		return pdf_generator
+	return (print_format and print_format.get("pdf_generator")) or "wkhtmltopdf"
+
+
+def renders_through_generator(print_format) -> bool:
+	"""Whether the doc must be rendered by PrintFormatGenerator instead of the HTML pipeline."""
+	from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+
+	return bool(
+		print_format
+		and uses_beta_renderer(print_format)
+		and resolve_pdf_generator(print_format) in GENERATOR_ENGINES
+	)
+
 
 def get_print(
 	doctype=None,
@@ -42,17 +84,17 @@ def get_print(
 	"""
 	import copy
 
+	from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
 	from frappe.utils.pdf import get_pdf
+	from frappe.utils.print_format_generator import restore_print_context, set_print_context
 	from frappe.website.serve import get_response_without_exception_handling
 
 	local = frappe.local
+	pf_doc = _print_format_doc_or_none(print_format)
 	if "pdf_generator" not in local.form_dict:
-		# if arg is passed, use that, else get setting from print format
-		if pdf_generator is None:
-			pdf_generator = (
-				frappe.get_cached_value("Print Format", print_format, "pdf_generator") or "wkhtmltopdf"
-			)
-		local.form_dict.pdf_generator = pdf_generator
+		local.form_dict.pdf_generator = resolve_pdf_generator(pf_doc, pdf_generator)
+	elif uses_beta_renderer(pf_doc) and local.form_dict.pdf_generator not in GENERATOR_ENGINES:
+		local.form_dict.pdf_generator = resolve_pdf_generator(pf_doc)
 
 	original_form_dict = copy.deepcopy(local.form_dict)
 	try:
@@ -77,32 +119,42 @@ def get_print(
 		return html
 
 	if local.form_dict.pdf_generator != "wkhtmltopdf":
-		hook_func = frappe.get_hooks("pdf_generator")
-		for hook in hook_func:
-			"""
-			check pdf_generator value in your hook function.
-			if it matches run and return pdf else return None
-			"""
-			pdf = frappe.call(
-				hook,
-				print_format=print_format,
-				html=html,
-				options=pdf_options,
-				output=output,
-				pdf_generator=local.form_dict.pdf_generator,
-			)
-			# if hook returns a value, assume it was the correct pdf_generator and return it
-			if pdf:
-				if output and isinstance(pdf, bytes):
-					from io import BytesIO
+		previous = set_print_context(
+			doctype=doctype,
+			name=name,
+			doc=doc,
+			letterhead=letterhead,
+			no_letterhead=no_letterhead,
+			generator=None,
+		)
+		try:
+			for hook in frappe.get_hooks("pdf_generator"):
+				"""
+				check pdf_generator value in your hook function.
+				if it matches run and return pdf else return None
+				"""
+				pdf = frappe.call(
+					hook,
+					print_format=print_format,
+					html=html,
+					options=pdf_options,
+					output=output,
+					pdf_generator=local.form_dict.pdf_generator,
+				)
+				# if hook returns a value, assume it was the correct pdf_generator and return it
+				if pdf:
+					if output and isinstance(pdf, bytes):
+						from io import BytesIO
 
-					from pypdf import PdfReader
+						from pypdf import PdfReader
 
-					reader = PdfReader(BytesIO(pdf))
-					for page in reader.pages:
-						output.add_page(page)
-					return output
-				return pdf
+						reader = PdfReader(BytesIO(pdf))
+						for page in reader.pages:
+							output.add_page(page)
+						return output
+					return pdf
+		finally:
+			restore_print_context(previous)
 
 	for hook in frappe.get_hooks("on_print_pdf"):
 		frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
@@ -145,32 +197,34 @@ def attach_print(
 
 	frappe.local.flags.ignore_print_permissions = True
 
-	is_weasyprint_print_format = False
-	if print_format and print_format != "Standard":
-		print_format_doc = frappe.get_cached_doc("Print Format", print_format)
-		is_weasyprint_print_format = print_format_doc.get("print_format_builder_beta")
+	pf_doc = _print_format_doc_or_none(print_format)
 
-	with print_language(lang or frappe.local.lang):
-		content = ""
-		if cint(print_settings.send_print_as_pdf):
-			ext = ".pdf"
-			if html:
-				content = get_pdf(html, options={"password": password} if password else None)
-			elif is_weasyprint_print_format:
-				from frappe.utils.weasyprint import PrintFormatGenerator
+	try:
+		with print_language(lang or frappe.local.lang):
+			content = ""
+			if cint(print_settings.send_print_as_pdf):
+				ext = ".pdf"
+				if html:
+					content = get_pdf(html, options={"password": password} if password else None)
+				elif renders_through_generator(pf_doc):
+					from frappe.utils.print_format_generator import PrintFormatGenerator
+					from frappe.www.printview import validate_print_for_docstatus
 
-				doc_obj = doc or frappe.get_cached_doc(doctype, name)
-				letterhead_name = letterhead if print_letterhead else None
-				generator = PrintFormatGenerator(print_format, doc_obj, letterhead_name)
-				content = generator.render_pdf()
+					doc_obj = doc or frappe.get_cached_doc(doctype, name)
+					validate_print_for_docstatus(doc_obj)
+					letterhead_name = letterhead if print_letterhead else None
+					generator = PrintFormatGenerator(
+						pf_doc, doc_obj, letterhead_name, no_letterhead=not print_letterhead
+					)
+					content = generator.render_pdf(password=password)
+				else:
+					kwargs["as_pdf"] = True
+					content = get_print(doctype, name, **kwargs)
 			else:
-				kwargs["as_pdf"] = True
-				content = get_print(doctype, name, **kwargs)
-		else:
-			ext = ".html"
-			content = html or scrub_urls(get_print(doctype, name, **kwargs)).encode("utf-8")
-
-	frappe.local.flags.ignore_print_permissions = False
+				ext = ".html"
+				content = html or scrub_urls(get_print(doctype, name, **kwargs)).encode("utf-8")
+	finally:
+		frappe.local.flags.ignore_print_permissions = False
 
 	if not file_name:
 		file_name = name

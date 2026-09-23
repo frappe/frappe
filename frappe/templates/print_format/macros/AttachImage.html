@@ -2,6 +2,6 @@
 
 {%- block value -%}
 <div class="value">
-    <img class="w-100" src="{{ value }}" alt="{{ _(df.label) }}">
+    <img src="{{ value|e }}" alt="{{ _(df.label)|e }}" style="max-width: 100%;{% if df.width %} width: {{ df.width|e }};{% else %} width: 100%;{% endif %}">
 </div>
 {%- endblock -%}

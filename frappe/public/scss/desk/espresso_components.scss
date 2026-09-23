@@ -1,0 +1,1749 @@
+:root {
+	--white: #ffffff;
+	--spacing: 0.25rem;
+	--radius: 8px;
+	--radius-3: 6px;
+	--radius-sm: 4px;
+	--radius-md: 10px;
+	--radius-lg: 12px;
+	--radius-full: 9999px;
+	--font-weight-regular: var(--weight-regular);
+	--font-weight-medium: var(--weight-medium);
+	--text-p-sm: 13px;
+	--elevation-sm: inset 0px 0.25px 1.5px 0px #ffffff29, 0px 0px 1px 0px #00000033,
+		0px 1px 3px 0px #00000024;
+	--elevation-base: inset 0px 0.25px 1.5px 0px #ffffff29, 0px 0px 1.5px 0px #00000029,
+		0px 2px 5px 0px #00000024;
+	--elevation-xl: inset 0px 0.25px 1.5px 0px #ffffff29, 0px 0px 1px 0px #00000033,
+		0px 0px 10px 2px #0000000a, 0px 24px 30px -8px #0000001a;
+	--elevation-2xl: inset 0px 0.25px 2px 0px #ffffff29, 0px 0px 1.5px 0px #00000040,
+		0px 0px 10px 2px #00000008, 0px 44px 52px -10px #0000001a;
+	--focus-outline-default: 2px solid #c9c9c9e5;
+	--focus-outline-red: 2px solid #fa9c9de5;
+	--ink-base: var(--white);
+	--ink-amber-8: var(--amber-700);
+	--ink-blue-8: var(--blue-700);
+	--ink-green-8: var(--green-700);
+	--ink-red-5: var(--red-400);
+	--ink-red-6: var(--red-500);
+	--ink-red-8: var(--red-700);
+	--ink-violet-8: var(--violet-700);
+	--outline-amber-3: var(--amber-300);
+	--outline-blue-3: var(--blue-300);
+	--outline-green-3: var(--green-300);
+	--outline-violet-3: var(--violet-300);
+	--outline-elevation-2: var(--gray-200);
+	--surface-base: var(--white);
+	--surface-elevation-2: var(--white);
+	--surface-elevation-3: var(--white);
+	--surface-alpha-gray-2: #0000000b;
+	--surface-gray-8: var(--gray-700);
+	--surface-gray-9: var(--gray-800);
+	--surface-gray-10: var(--gray-900);
+	--surface-blue-5: var(--blue-400);
+	--surface-blue-7: var(--blue-600);
+	--surface-green-5: var(--green-400);
+	--surface-green-7: var(--green-600);
+	--surface-amber-7: var(--amber-600);
+	--surface-red-8: var(--red-700);
+	--surface-red-9: var(--red-800);
+	--surface-violet-2: var(--violet-100);
+	--surface-violet-7: var(--violet-600);
+}
+
+[data-theme="dark"] {
+	--focus-outline-default: 3px solid #464646cc;
+	--focus-outline-red: 3px solid #751819cc;
+	--ink-base: #171717;
+	--ink-amber-8: var(--amber-200);
+	--ink-blue-8: var(--blue-200);
+	--ink-green-8: var(--green-200);
+	--ink-red-5: var(--red-500);
+	--ink-red-6: var(--red-400);
+	--ink-red-8: var(--red-200);
+	--ink-violet-8: var(--violet-200);
+	--outline-amber-3: var(--amber-700);
+	--outline-blue-3: var(--blue-700);
+	--outline-green-3: var(--green-700);
+	--outline-violet-3: var(--violet-700);
+	--outline-elevation-2: var(--gray-600);
+	--surface-base: #171717;
+	--surface-elevation-2: var(--gray-800);
+	--surface-elevation-3: var(--gray-600);
+	--surface-alpha-gray-2: #ffffff14;
+	--surface-gray-8: var(--gray-200);
+	--surface-gray-9: var(--gray-100);
+	--surface-gray-10: var(--gray-50);
+	--surface-blue-5: var(--blue-600);
+	--surface-blue-7: var(--blue-400);
+	--surface-green-5: var(--green-600);
+	--surface-green-7: var(--green-400);
+	--surface-amber-7: var(--amber-400);
+	--surface-red-8: var(--red-300);
+	--surface-red-9: var(--red-200);
+	--surface-violet-2: var(--violet-900);
+	--surface-violet-7: var(--violet-400);
+}
+
+/* Espresso Badge — framework-neutral component, plain CSS. Styled via .es-badge
+ * + data-attributes (data-variant / data-size / data-theme), binding only to
+ * espresso color/radius/spacing tokens. Source of truth in Framework; frappe-ui
+ * apps import this and wrap it in @layer components for Tailwind override.
+ * Unlayered here (Frappe/Bootstrap is unlayered; a layer would lose to it). */
+
+.es-badge {
+	/* default theme = gray (gray is the exception: solid bg is -10, text is
+     ink-base / ink-gray-6 instead of the -1 / -8 scale) */
+	--c-solid-bg: var(--surface-gray-10);
+	--c-solid-fg: var(--ink-base);
+	--c-fill: var(--surface-gray-2);
+	--c-line: var(--outline-gray-2);
+	--c-fg: var(--ink-gray-6);
+
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--spacing);
+	/* 1 step (gap-1) */
+	width: fit-content;
+	flex-shrink: 0;
+	user-select: none;
+	white-space: nowrap;
+	overflow: clip;
+	border: 1px solid transparent;
+	border-radius: var(--radius-full, 9999px);
+	font-weight: var(--font-weight-regular, 420);
+
+	/* default size = md */
+	height: calc(var(--spacing) * 5);
+	padding-inline: calc(var(--spacing) * 1.5);
+	font-size: 0.75rem;
+	line-height: 1;
+
+	/* default variant = subtle */
+	background: var(--c-fill);
+	color: var(--c-fg);
+}
+
+/* ---- sizes (override the md default) ---- */
+.es-badge[data-size="sm"] {
+	height: calc(var(--spacing) * 4);
+	padding-inline: calc(var(--spacing) * 1.5);
+}
+
+.es-badge[data-size="lg"] {
+	height: calc(var(--spacing) * 6);
+	padding-inline: calc(var(--spacing) * 2);
+	font-size: 0.8125rem;
+	letter-spacing: 0.02em;
+}
+
+/* ---- themes (override the gray default — the unrolled @each) ---- */
+.es-badge[data-theme="blue"] {
+	--c-solid-bg: var(--surface-blue-7);
+	--c-solid-fg: var(--ink-blue-1);
+	--c-fill: var(--surface-blue-2);
+	--c-line: var(--outline-blue-3);
+	--c-fg: var(--ink-blue-8);
+}
+
+.es-badge[data-theme="green"] {
+	--c-solid-bg: var(--surface-green-7);
+	--c-solid-fg: var(--ink-green-1);
+	--c-fill: var(--surface-green-2);
+	--c-line: var(--outline-green-3);
+	--c-fg: var(--ink-green-8);
+}
+
+.es-badge[data-theme="amber"] {
+	--c-solid-bg: var(--surface-amber-7);
+	--c-solid-fg: var(--ink-amber-1);
+	--c-fill: var(--surface-amber-2);
+	--c-line: var(--outline-amber-3);
+	--c-fg: var(--ink-amber-8);
+}
+
+.es-badge[data-theme="red"] {
+	--c-solid-bg: var(--surface-red-7);
+	--c-solid-fg: var(--ink-red-1);
+	--c-fill: var(--surface-red-2);
+	--c-line: var(--outline-red-3);
+	--c-fg: var(--ink-red-8);
+}
+
+.es-badge[data-theme="violet"] {
+	--c-solid-bg: var(--surface-violet-7);
+	--c-solid-fg: var(--ink-violet-1);
+	--c-fill: var(--surface-violet-2);
+	--c-line: var(--outline-violet-3);
+	--c-fg: var(--ink-violet-8);
+}
+
+/* ---- variants (override the subtle default) ----
+ * outline/ghost must reset the subtle background the base applies. */
+.es-badge[data-variant="solid"] {
+	background: var(--c-solid-bg);
+	color: var(--c-solid-fg);
+}
+
+.es-badge[data-variant="outline"] {
+	background: transparent;
+	color: var(--c-fg);
+	border-color: var(--c-line);
+}
+
+.es-badge[data-variant="ghost"] {
+	background: transparent;
+	color: var(--c-fg);
+}
+
+/* ---- icons ----
+ * One rule covers both framework idioms: React passes icons as direct <svg>
+ * children; Vue wraps prefix/suffix slots in
+ * .es-badge__affix (like the frappe-ui badge). Sizing lives here, not per app.
+ * Icon size follows the badge size; the md default applies when size is absent. */
+.es-badge > svg {
+	pointer-events: none;
+}
+
+.es-badge > svg,
+.es-badge__affix {
+	flex-shrink: 0;
+	width: calc(var(--spacing) * 2.5);
+	height: calc(var(--spacing) * 2.5);
+}
+
+.es-badge__affix {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/* slot icons size to the affix, whatever size class they carry themselves */
+.es-badge__affix > svg {
+	width: 100%;
+	height: 100%;
+}
+
+.es-badge[data-size="lg"] > svg,
+.es-badge[data-size="lg"] .es-badge__affix {
+	width: calc(var(--spacing) * 3);
+	height: calc(var(--spacing) * 3);
+}
+
+/* Frappe-only: legacy indicator color names → Espresso badge themes, so .es-badge
+ * is a drop-in for indicator-pill even when the color comes from arbitrary
+ * (incl. third-party) get_indicator defs. Kept OUT of the shared badge.css — that
+ * stays the clean 6 themes; these aliases are a Framework compat layer. Each just
+ * remaps the badge's local --c-* vars to the mapped theme's tokens.
+ *
+ *   orange / yellow      -> amber
+ *   purple / pink        -> violet
+ *   cyan / light-blue    -> blue
+ *   grey / darkgrey      -> gray  (badge default; here for completeness) */
+
+.es-badge[data-theme="orange"],
+.es-badge[data-theme="yellow"] {
+	--c-solid-bg: var(--surface-amber-7);
+	--c-solid-fg: var(--ink-amber-1);
+	--c-fill: var(--surface-amber-2);
+	--c-line: var(--outline-amber-3);
+	--c-fg: var(--ink-amber-8);
+}
+
+.es-badge[data-theme="purple"],
+.es-badge[data-theme="pink"] {
+	--c-solid-bg: var(--surface-violet-7);
+	--c-solid-fg: var(--ink-violet-1);
+	--c-fill: var(--surface-violet-2);
+	--c-line: var(--outline-violet-3);
+	--c-fg: var(--ink-violet-8);
+}
+
+.es-badge[data-theme="cyan"],
+.es-badge[data-theme="light-blue"] {
+	--c-solid-bg: var(--surface-blue-7);
+	--c-solid-fg: var(--ink-blue-1);
+	--c-fill: var(--surface-blue-2);
+	--c-line: var(--outline-blue-3);
+	--c-fg: var(--ink-blue-8);
+}
+
+.es-badge[data-theme="grey"],
+.es-badge[data-theme="darkgrey"] {
+	--c-solid-bg: var(--surface-gray-10);
+	--c-solid-fg: var(--ink-base);
+	--c-fill: var(--surface-gray-2);
+	--c-line: var(--outline-gray-2);
+	--c-fg: var(--ink-gray-6);
+}
+
+/* Espresso Button — framework-neutral component styles.
+ *
+ * Pure CSS. No SCSS, no Tailwind utilities. Styled entirely through the
+ * `.es-button` class + data-attributes, binding only to the semantic token
+ * custom properties in tokens/espresso-*.css. Consumed verbatim by the plain
+ * HTML page, the React app, and the Vue app — each framework's only job is to
+ * render <button class="es-button"> and set the data-attributes.
+ *
+ * Scope per the design-system decision: themes gray + red, variants
+ * solid | subtle | outline | ghost, sizes xs | sm | md | lg.
+ *
+ * Attributes (all optional):
+ *   data-variant   solid | subtle | outline | ghost   (default: subtle)
+ *   data-size      xs | sm | md | lg                         (default: sm)
+ *   data-theme     gray | red                                (default: gray)
+ *   data-icon-button="true"   square, no inline padding
+ *   aria-busy="true"          loading: blocks interaction without the disabled dimming
+ *   aria-invalid="true"       red focus ring + red border
+ *
+ * DEFAULTS live on the base `.es-button` rule (variant=subtle, size=sm,
+ * theme=gray) so a bare <button class="es-button"> renders correctly; the
+ * data-* selectors only OVERRIDE when present.
+ *
+ * Lives in @layer components so a consumer's Tailwind utility (later `utilities`
+ * layer) overrides without !important.
+ *
+ * Dimensions use spacing-scale steps via `--spacing` (the 0.25rem unit
+ * h-7 / px-2 derive from), which comes from the espresso tokens.
+ */
+
+.es-button {
+	/* default theme = gray. Local vars are the "unrolled @each": the theme
+         selector remaps them, every variant rule reads only these. */
+	--bt-solid-bg: var(--surface-gray-10);
+	--bt-solid-bg-hover: var(--surface-gray-9);
+	--bt-solid-bg-active: var(--surface-gray-8);
+	--bt-solid-fg: var(--ink-base);
+	--bt-fill-bg: var(--surface-gray-2);
+	--bt-fill-bg-hover: var(--surface-gray-3);
+	--bt-fill-bg-active: var(--surface-gray-4);
+	--bt-fg: var(--ink-gray-8);
+	--bt-border: var(--outline-gray-2);
+	--bt-border-hover: var(--outline-gray-3);
+	--bt-outline-bg-active: var(--surface-gray-4);
+	--bt-disabled-bg: var(--surface-gray-2);
+	--bt-disabled-fg: var(--ink-gray-4);
+	--bt-disabled-border: var(--outline-gray-2);
+	--bt-focus: var(--focus-outline-default);
+
+	/* default size = sm */
+	--es-bt-h: calc(var(--spacing) * 7);
+	--es-bt-icon: calc(var(--spacing) * 4);
+
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: calc(var(--spacing) * 2);
+	flex-shrink: 0;
+	white-space: nowrap;
+	user-select: none;
+	cursor: pointer;
+	height: var(--es-bt-h);
+	padding-inline: calc(var(--spacing) * 2);
+	border: 1px solid transparent;
+	border-radius: var(--radius);
+	font-size: var(--text-base);
+	font-weight: var(--font-weight-regular);
+	line-height: 1;
+	outline: none;
+	transition: background-color 120ms, border-color 120ms, color 120ms;
+
+	/* default variant = subtle */
+	background: var(--bt-fill-bg);
+	color: var(--bt-fg);
+}
+
+/* the class is element-neutral: links dressed as buttons (empty-state links,
+   attachment preview actions) must not pick up anchor underlines */
+a.es-button,
+a.es-button:hover,
+a.es-button:focus {
+	text-decoration: none;
+}
+
+/* subtle is the default; scope hover/active to default-or-explicit subtle so
+       they don't leak onto the other variants. */
+.es-button:not([data-variant]):hover,
+.es-button[data-variant="subtle"]:hover {
+	background: var(--bt-fill-bg-hover);
+}
+
+.es-button:not([data-variant]):active,
+.es-button[data-variant="subtle"]:active {
+	background: var(--bt-fill-bg-active);
+}
+
+/* ---- theme: red (overrides the gray default) ---- */
+.es-button[data-theme="red"] {
+	--bt-solid-bg: var(--surface-red-7);
+	--bt-solid-bg-hover: var(--surface-red-8);
+	--bt-solid-bg-active: var(--surface-red-9);
+	--bt-solid-fg: var(--ink-red-1);
+	--bt-fill-bg: var(--surface-red-2);
+	--bt-fill-bg-hover: var(--surface-red-3);
+	--bt-fill-bg-active: var(--surface-red-4);
+	--bt-fg: var(--ink-red-8);
+	--bt-border: var(--outline-red-1);
+	--bt-border-hover: var(--outline-red-3);
+	--bt-outline-bg-active: var(--surface-red-3);
+	--bt-disabled-bg: var(--surface-red-2);
+	--bt-disabled-fg: var(--ink-red-5);
+	--bt-disabled-border: var(--outline-red-1);
+	--bt-focus: var(--focus-outline-red);
+}
+
+/* ---- sizes (override the sm default) ---- */
+.es-button[data-size="xs"] {
+	--es-bt-h: calc(var(--spacing) * 6);
+	--es-bt-icon: calc(var(--spacing) * 3.5);
+	padding-inline: calc(var(--spacing) * 1.5);
+	font-size: var(--text-xs);
+	border-radius: var(--radius-3);
+}
+
+.es-button[data-size="md"] {
+	--es-bt-h: calc(var(--spacing) * 8);
+	--es-bt-icon: calc(var(--spacing) * 4.5);
+	padding-inline: calc(var(--spacing) * 2.5);
+	font-weight: var(--font-weight-medium);
+}
+
+.es-button[data-size="lg"] {
+	--es-bt-h: calc(var(--spacing) * 10);
+	--es-bt-icon: calc(var(--spacing) * 5);
+	padding-inline: calc(var(--spacing) * 3);
+	font-size: var(--text-xl);
+	font-weight: var(--font-weight-medium);
+	border-radius: var(--radius-md);
+}
+
+/* ---- variants (override the subtle default) ---- */
+.es-button[data-variant="solid"] {
+	background: var(--bt-solid-bg);
+	color: var(--bt-solid-fg);
+}
+
+.es-button[data-variant="solid"]:hover {
+	background: var(--bt-solid-bg-hover);
+}
+
+.es-button[data-variant="solid"]:active {
+	background: var(--bt-solid-bg-active);
+}
+
+.es-button[data-variant="outline"] {
+	background: var(--surface-base);
+	color: var(--bt-fg);
+	border-color: var(--bt-border);
+}
+
+.es-button[data-variant="outline"]:hover {
+	border-color: var(--bt-border-hover);
+}
+
+.es-button[data-variant="outline"]:active {
+	border-color: var(--bt-border-hover);
+	background: var(--bt-outline-bg-active);
+}
+
+.es-button[data-variant="ghost"] {
+	background: transparent;
+	color: var(--bt-fg);
+}
+
+.es-button[data-variant="ghost"]:hover {
+	background: var(--bt-fill-bg-hover);
+}
+
+.es-button[data-variant="ghost"]:active {
+	background: var(--bt-fill-bg-active);
+}
+
+/* ---- icon button (square, no inline padding) ---- */
+.es-button[data-icon-button="true"] {
+	padding-inline: 0;
+	width: var(--es-bt-h);
+}
+
+/* ---- focus ring (neutral --focus-outline-* tokens) ---- */
+.es-button:focus-visible {
+	outline: var(--bt-focus);
+	outline-offset: 0;
+}
+
+/* ---- aria-invalid: red border + red focus ring ---- */
+.es-button[aria-invalid="true"] {
+	border-color: var(--outline-red-3);
+}
+
+.es-button[aria-invalid="true"]:focus-visible {
+	outline: var(--focus-outline-red);
+}
+
+/* ---- disabled (after variants so it wins; pointer-events:none blocks hover).
+       Default covers solid + subtle; ghost clear the bg; outline keeps a
+       border. ---- */
+.es-button:disabled {
+	cursor: not-allowed;
+	pointer-events: none;
+	background: var(--bt-disabled-bg);
+	color: var(--bt-disabled-fg);
+	border-color: transparent;
+}
+
+.es-button[data-variant="outline"]:disabled {
+	border-color: var(--bt-disabled-border);
+}
+
+.es-button[data-variant="ghost"]:disabled {
+	background: transparent;
+}
+
+/* ---- loading: block interaction without the disabled dimming. Styled off
+       aria-busy so the visual and accessibility states cannot drift. ---- */
+.es-button[aria-busy="true"] {
+	pointer-events: none;
+}
+
+.es-button:not([aria-busy="true"]) > .es-spinner,
+.es-button:not([aria-busy="true"]) > .es-button__loading-label {
+	display: none;
+}
+
+/* while busy, the spinner replaces the icons — always, with or without a
+   loading label (otherwise spinner and icon show side by side) */
+.es-button[aria-busy="true"] > svg {
+	display: none;
+}
+
+/* and a loading label, when present, replaces the normal label */
+.es-button[aria-busy="true"]:has(> .es-button__loading-label) > .es-button__label {
+	display: none;
+}
+
+/* ---- icons + spinner (painted by components/spinner.css): size follows
+       the button size ---- */
+.es-button > svg,
+.es-button > .es-spinner {
+	pointer-events: none;
+	flex-shrink: 0;
+	width: var(--es-bt-icon);
+	height: var(--es-bt-icon);
+}
+/* ---- legacy compat shims (remove in v17 with the bootstrap button CSS) ----
+   External desk apps poke bootstrap-era classes onto held dialog-button
+   references (found by the selector gate): india_compliance adds .disabled
+   to guard double submits, erpnext adds .btn-danger for destructive
+   primaries. Map both onto the es contract so the behavior survives until
+   those call sites migrate. */
+.es-button.disabled {
+	pointer-events: none;
+	background: var(--bt-disabled-bg);
+	color: var(--bt-disabled-fg);
+	border-color: var(--bt-disabled-border);
+}
+
+.es-button.btn-danger {
+	--bt-bg: var(--surface-red-5);
+	--bt-fg: var(--ink-white);
+	--bt-hover-bg: var(--surface-red-6);
+	--bt-active-bg: var(--surface-red-7);
+}
+
+/* Espresso Spinner — comet-arc loading indicator.
+ *
+ * Pure CSS on an empty element used as a paint surface (span, svg, div).
+ * Color comes from currentColor; size from the consumer (a width/height
+ * class, inline style, or a parent component like .es-button) over the
+ * 16px default below. Ring thickness and inset stay proportional via
+ * %-based defaults.
+ *
+ * Attributes (optional):
+ *   data-track="true"   faint full-circle track behind the arc
+ *
+ * Standalone use should add role="status" and an aria-label; inside
+ * aria-busy components (e.g. .es-button) keep it aria-hidden instead.
+ *
+ * Baseline: Chrome 111+, Safari 16.4+, Firefox 128+ (@property, trig
+ * functions in calc, color-mix). */
+
+/* Registered so the angle interpolates in animation. The animation spins
+   the GRADIENT angle, not the element: rotating the element rasterizes
+   the circle once and any sub-device-pixel offset in that raster orbits
+   visibly (wobble at 16px/18px on 2x displays). With a static element the
+   circle is re-painted antialiased around a fixed center every frame —
+   wobble is geometrically impossible. */
+@property --es-spinner-angle {
+	syntax: "<angle>";
+	inherits: false;
+	initial-value: 0deg;
+}
+
+.es-spinner {
+	display: inline-block;
+	flex-shrink: 0;
+	/* default box; any width/height from the consumer overrides */
+	width: 16px;
+	height: 16px;
+
+	/* Two rulers, one thickness: a percentage resolves against the paint
+       radius in the mask gradient but against the paint box in the cap
+       gradient, so the mask value is 2× the cap value. Anchored to the md
+       spec: 16px box − 2×1.2px inset = 13.6px paint box; 2px ring =
+       14.7% of 13.6px = 29.4% of the 6.8px radius. */
+	--es-spinner-thickness: 14.7%;
+	--es-spinner-mask-thickness: 29.4%;
+	--es-spinner-inset: 7.5%;
+	--es-spinner-paint-size: calc(100% - 2 * var(--es-spinner-inset));
+	--es-spinner-track-color: transparent;
+
+	/* the spinning comet arc over an optional faint track —
+       layer 1: a round dot capping the solid head (rounded end); it orbits
+                the arc centerline radius (50% − t/2) at the animated angle
+       layer 2: a conic gradient fading from transparent (gap + tail) to
+                solid, rotated by the same animated angle
+       layer 3: a full circle, transparent unless data-track is set */
+	background-image: radial-gradient(
+			calc(var(--es-spinner-thickness) / 2) calc(var(--es-spinner-thickness) / 2) at
+				calc(50% + (50% - var(--es-spinner-thickness) / 2) * sin(var(--es-spinner-angle)))
+				calc(50% - (50% - var(--es-spinner-thickness) / 2) * cos(var(--es-spinner-angle))),
+			currentColor 92%,
+			transparent
+		),
+		conic-gradient(
+			from var(--es-spinner-angle),
+			transparent 32%,
+			currentColor 92%,
+			currentColor 100%
+		),
+		linear-gradient(var(--es-spinner-track-color), var(--es-spinner-track-color));
+	background-size: var(--es-spinner-paint-size) var(--es-spinner-paint-size);
+	background-position: center;
+	background-repeat: no-repeat;
+
+	/* clip everything painted above into a ring of the configured thickness.
+       The outer transparent stop bounds the ring circle (the corners of the
+       square mask image sit beyond `farthest-side` and would show otherwise);
+       the half-pixel fade is for antialiasing. */
+	-webkit-mask: radial-gradient(
+			farthest-side,
+			transparent calc(100% - var(--es-spinner-mask-thickness)),
+			#000 calc(100% - var(--es-spinner-mask-thickness)),
+			#000 calc(100% - 0.5px),
+			transparent 100%
+		)
+		center / var(--es-spinner-paint-size) var(--es-spinner-paint-size) no-repeat;
+	mask: radial-gradient(
+			farthest-side,
+			transparent calc(100% - var(--es-spinner-mask-thickness)),
+			#000 calc(100% - var(--es-spinner-mask-thickness)),
+			#000 calc(100% - 0.5px),
+			transparent 100%
+		)
+		center / var(--es-spinner-paint-size) var(--es-spinner-paint-size) no-repeat;
+
+	/* spins the gradient angle — the element itself never moves */
+	animation: es-spinner-rotate 0.7s linear infinite;
+}
+
+/* faint full-circle track behind the arc */
+.es-spinner[data-track="true"] {
+	--es-spinner-track-color: color-mix(in srgb, currentColor 15%, transparent);
+}
+
+@keyframes es-spinner-rotate {
+	to {
+		--es-spinner-angle: 360deg;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.es-spinner {
+		animation-duration: 1.6s;
+	}
+}
+
+/* Espresso Menu — the floating panel shared by Dropdown and ContextMenu.
+ *
+ * Framework-neutral: the class + data-attribute contract below is everything.
+ * The data-attribute names (data-state, data-highlighted, data-disabled) are
+ * the ones radix/reka emit, so React and Vue apps get this styling from their
+ * menu primitives as-is; classic frappe gets them from frappe.ui.Dropdown.
+ *
+ *   <div class="es-menu" role="menu" data-state="open" data-motion="animated"
+ *        data-side="bottom" data-align="start">
+ *     <div class="es-menu__group" role="group">
+ *       <div class="es-menu__group-label">Group</div>
+ *       <button class="es-menu__item" role="menuitem">
+ *         <svg>...</svg>                        (icon, optional)
+ *         <img class="es-menu__image">          (image mark, optional)
+ *         <span class="es-menu__icon-space"></span>  (aligns iconless rows)
+ *         <span class="es-menu__label">La<span class="es-menu__mnemonic">b</span>el
+ *           <span class="es-menu__description">optional line</span>
+ *         </span>
+ *         <span class="es-menu__shortcut"><kbd>⌘</kbd><kbd>D</kbd></span>
+ *         <svg class="es-menu__chevron">...</svg>    (submenu rows)
+ *       </button>
+ *     </div>
+ *     <div class="es-menu__empty">No options</div>
+ *   </div>
+ *
+ * Item attributes:
+ *   data-highlighted          the keyboard/pointer-active row
+ *   data-state="checked"      app-marked current choice (visual only)
+ *   data-state="open"         submenu row whose panel is open
+ *   data-disabled / disabled  inert row
+ *   data-theme="red"          destructive row
+ *
+ * Panel attributes:
+ *   data-state="open|closed"          drives enter/exit animation
+ *   data-motion="animated|instant"    pointer opens animate, keyboard opens don't
+ *   data-side / data-align            where the panel sits; sets the scale origin
+ *
+ * Rows are links or buttons; no hover styling on purpose — the highlight
+ * follows data-highlighted so pointer and keyboard can't mark two rows at
+ * once (same as radix/reka). Row height comes from padding + line-height
+ * only, never a fixed height. */
+
+.es-menu {
+	/* the owner (frappe.ui.Dropdown / a portal) sets top/left inline */
+	position: fixed;
+	/* above bootstrap modals (1050) so menus inside dialogs work */
+	z-index: 1060;
+	min-width: calc(var(--spacing) * 40);
+	/* the owner sets max-height inline when the viewport is short */
+	overflow-x: hidden;
+	overflow-y: auto;
+	background: var(--surface-elevation-2);
+	border-radius: var(--radius-lg);
+	/* faint 1px ring under the elevation shadow */
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), var(--elevation-2xl);
+	outline: none;
+}
+
+/* ---- groups ---- */
+.es-menu__group {
+	padding: calc(var(--spacing) * 1.5);
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--spacing) * 0.5);
+}
+
+.es-menu__group + .es-menu__group {
+	border-top: 1px solid var(--outline-elevation-2);
+}
+
+.es-menu__group-label {
+	padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 1.5);
+	font-size: var(--text-sm);
+	line-height: calc(var(--spacing) * 4);
+	font-weight: var(--font-weight-medium);
+	color: var(--ink-gray-4);
+}
+
+/* ---- rows ---- */
+.es-menu__item {
+	display: flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 2);
+	width: 100%;
+	padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+	border-radius: var(--radius);
+	font-size: var(--text-base);
+	line-height: calc(var(--spacing) * 4);
+	color: var(--ink-gray-7);
+	text-align: start;
+	text-decoration: none;
+	cursor: pointer;
+	user-select: none;
+	outline: none;
+
+	/* button rows: strip the native button look */
+	border: 0;
+	background: transparent;
+}
+
+.es-menu__item:hover {
+	/* links: no underline; the highlight background comes from
+       data-highlighted below, not :hover (see the note up top) */
+	text-decoration: none;
+	color: var(--ink-gray-7);
+}
+
+.es-menu__item[data-highlighted] {
+	background: var(--surface-alpha-gray-2);
+}
+
+/* submenu row whose panel is open stays lit */
+.es-menu__item[data-state="open"] {
+	background: var(--surface-gray-2);
+}
+
+/* the app-marked current choice */
+.es-menu__item[data-state="checked"] {
+	background: var(--surface-gray-3);
+	color: var(--ink-gray-8);
+}
+
+.es-menu__item[data-state="checked"][data-highlighted] {
+	background: var(--surface-gray-4);
+}
+
+/* ---- red (destructive) rows ---- */
+.es-menu__item[data-theme="red"] {
+	color: var(--ink-red-6);
+}
+
+.es-menu__item[data-theme="red"]:hover {
+	color: var(--ink-red-6);
+}
+
+.es-menu__item[data-theme="red"][data-highlighted] {
+	background: var(--surface-red-3);
+}
+
+/* ---- disabled rows ---- */
+.es-menu__item[data-disabled],
+.es-menu__item:disabled {
+	color: var(--ink-gray-4);
+	cursor: not-allowed;
+	pointer-events: none;
+	background: transparent;
+}
+
+/* ---- icons ---- */
+.es-menu__item > svg,
+.es-menu__icon-space {
+	width: calc(var(--spacing) * 4);
+	height: calc(var(--spacing) * 4);
+	flex-shrink: 0;
+}
+
+.es-menu__item > svg {
+	color: var(--ink-gray-6);
+}
+
+.es-menu__item[data-theme="red"] > svg {
+	color: var(--ink-red-6);
+}
+
+.es-menu__item[data-disabled] > svg,
+.es-menu__item:disabled > svg {
+	color: var(--ink-gray-4);
+}
+
+/* an image mark where no lucide icon will do — an app's logo, say. Same box as
+   an icon, so a menu mixing the two keeps one label column. */
+.es-menu__image {
+	width: calc(var(--spacing) * 4);
+	height: calc(var(--spacing) * 4);
+	flex-shrink: 0;
+	object-fit: contain;
+	border-radius: var(--radius-sm);
+}
+
+/* ---- label + optional description ---- */
+.es-menu__label {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.es-menu__description {
+	display: block;
+	font-size: var(--text-p-sm, var(--text-sm));
+	line-height: 1.5;
+	color: var(--ink-gray-5);
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* ---- Alt-key mnemonics ----
+   Each row has one letter of its label wrapped in .es-menu__mnemonic. It's
+   only underlined while Alt is held (the panel gets data-alt then), matching
+   frappe's Alt+letter menu shortcuts. Alt+that letter activates the row. */
+.es-menu[data-alt] .es-menu__mnemonic {
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+/* ---- keyboard shortcut hint: one <kbd> per key ----
+   Both bootstrap and desk/global.scss style bare kbd (dark background,
+   fixed height, padding) and load after this file — the two-class selector
+   out-specifies them. */
+.es-menu__shortcut {
+	display: flex;
+	align-items: center;
+	gap: 1px;
+	margin-inline-start: auto;
+}
+
+.es-menu__shortcut kbd {
+	padding: 0;
+	height: auto;
+	background: transparent;
+	border-radius: 0;
+	font-family: inherit;
+	font-size: var(--text-xs);
+	line-height: calc(var(--spacing) * 4);
+	letter-spacing: normal;
+	color: var(--ink-gray-6);
+	/** Box Shadow comes from Desk's stylesheet - overriding */
+	box-shadow: none;
+}
+
+/* mobile layouts have no keyboard — the combo hints are noise there
+   (the bindings themselves stay active for attached keyboards) */
+@media (max-width: 767.98px) {
+	.es-menu__shortcut {
+		display: none;
+	}
+}
+
+/* ---- submenu chevron ---- */
+.es-menu__chevron {
+	margin-inline-start: auto;
+	color: var(--ink-gray-6);
+}
+
+/* rows with a shortcut AND a submenu: the shortcut already pushed right,
+   the chevron just follows the gap */
+.es-menu__shortcut + .es-menu__chevron {
+	margin-inline-start: 0;
+}
+
+[dir="rtl"] .es-menu__chevron {
+	transform: scaleX(-1);
+}
+
+/* ---- empty state ---- */
+.es-menu__empty {
+	padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+	font-size: var(--text-base);
+	color: var(--ink-gray-5);
+}
+
+/* ---- loading state (async options/submenu, swapped out by fill()) ---- */
+.es-menu__loading {
+	display: flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 2);
+	padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+	font-size: var(--text-base);
+	color: var(--ink-gray-5);
+}
+
+.es-menu__loading > .es-spinner {
+	width: calc(var(--spacing) * 3.5);
+	height: calc(var(--spacing) * 3.5);
+}
+
+/* ---- motion: scale in from the trigger corner (per the frappe-ui spec:
+   enter 180ms / exit 140ms, keyboard opens skip the scale and only get a
+   short fade that masks the position-settle frame) ---- */
+.es-menu[data-motion="animated"][data-state="open"] {
+	animation: es-menu-in 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.es-menu[data-motion="instant"][data-state="open"] {
+	animation: es-menu-fade-in 80ms linear;
+}
+
+.es-menu[data-state="closed"] {
+	animation: es-menu-out 140ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+	pointer-events: none;
+}
+
+@keyframes es-menu-in {
+	from {
+		opacity: 0;
+		transform: scale(0.97) translateY(2px);
+	}
+}
+
+@keyframes es-menu-fade-in {
+	from {
+		opacity: 0;
+	}
+}
+
+@keyframes es-menu-out {
+	to {
+		opacity: 0;
+		transform: scale(0.97) translateY(2px);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.es-menu {
+		animation-duration: 0ms !important;
+	}
+}
+
+/* scale origin = the edge touching the trigger */
+.es-menu[data-side="bottom"] {
+	transform-origin: top center;
+}
+
+.es-menu[data-side="bottom"][data-align="start"] {
+	transform-origin: top left;
+}
+
+.es-menu[data-side="bottom"][data-align="end"] {
+	transform-origin: top right;
+}
+
+.es-menu[data-side="top"] {
+	transform-origin: bottom center;
+}
+
+.es-menu[data-side="top"][data-align="start"] {
+	transform-origin: bottom left;
+}
+
+.es-menu[data-side="top"][data-align="end"] {
+	transform-origin: bottom right;
+}
+
+.es-menu[data-side="right"] {
+	transform-origin: left center;
+}
+
+.es-menu[data-side="right"][data-align="start"] {
+	transform-origin: left top;
+}
+
+.es-menu[data-side="right"][data-align="end"] {
+	transform-origin: left bottom;
+}
+
+.es-menu[data-side="left"] {
+	transform-origin: right center;
+}
+
+.es-menu[data-side="left"][data-align="start"] {
+	transform-origin: right top;
+}
+
+.es-menu[data-side="left"][data-align="end"] {
+	transform-origin: right bottom;
+}
+
+/* Espresso Tooltip — the small dark bubble that names a control on hover.
+ *
+ * Framework-neutral: the class + data-attribute contract below is everything.
+ * The attribute names (data-state, data-side, data-align) are the ones
+ * radix/reka emit, so React and Vue apps get this styling from their tooltip
+ * primitives as-is; classic frappe gets them from frappe.ui.tooltip().
+ *
+ *   <div class="es-tooltip" role="tooltip" data-state="open"
+ *        data-side="top" data-align="center">
+ *     Label text
+ *     <span class="es-tooltip__arrow"></span>
+ *   </div>
+ *
+ * Panel attributes:
+ *   data-state="open|closed"    drives enter/exit animation
+ *   data-side / data-align      which side of the trigger it landed on
+ *
+ * The owner sets top/left inline (fixed viewport coordinates, panel appended
+ * to <body> — same rules as .es-menu, see position.js). The arrow's position
+ * along the edge comes from --arrow-offset, which the owner sets so the
+ * arrow keeps pointing at the trigger even when the bubble was nudged to
+ * stay on screen.
+ *
+ * pointer-events: none on purpose — a tooltip must never catch the pointer,
+ * or it would flicker (bubble appears under the cursor, "hover leaves" the
+ * trigger, bubble hides, hover returns, ...). It's a label, not a surface. */
+
+.es-tooltip {
+	/* the owner (frappe.ui.tooltip / a portal) sets top/left inline */
+	position: fixed;
+	/* don't depend on the host page having a border-box reset */
+	box-sizing: border-box;
+	/* above menus (1060) — a row's tooltip must not hide under its own menu */
+	z-index: 1070;
+	max-width: calc(var(--spacing) * 60);
+	padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
+	background: var(--surface-gray-10);
+	color: var(--ink-base);
+	border-radius: var(--radius);
+	box-shadow: var(--elevation-xl);
+	font-size: var(--text-xs);
+	line-height: calc(var(--spacing) * 4);
+	text-align: center;
+	/* even out the lines when the text wraps */
+	text-wrap: balance;
+	/* a label may carry its own line breaks */
+	white-space: pre-line;
+	pointer-events: none;
+	user-select: none;
+}
+
+/* ---- a label that lists things reads from one left edge ---- */
+.es-tooltip--text-start {
+	text-align: left;
+	text-wrap: initial;
+}
+
+/* ---- keyboard hint: one <kbd> per key after the label ----
+   Bootstrap and desk/global.scss both style bare kbd (dark chip, padding,
+   box-shadow) and load after this file — the two-class selector
+   out-specifies them, same trick as the menu shortcuts. */
+.es-tooltip .es-tooltip__shortcut {
+	display: inline-flex;
+	align-items: center;
+	gap: 1px;
+	margin-inline-start: calc(var(--spacing) * 1.5);
+	vertical-align: bottom;
+}
+
+.es-tooltip kbd {
+	padding: 0;
+	height: auto;
+	background: transparent;
+	border-radius: 0;
+	font-family: inherit;
+	font-size: var(--text-xs);
+	line-height: calc(var(--spacing) * 4);
+	letter-spacing: normal;
+	color: var(--ink-gray-4);
+	box-shadow: none;
+}
+
+/* ---- plain: a bubble with no arrow ----
+   For triggers where an arrow adds nothing but clutter: a run of same-sized
+   tiles whose labels all appear in the same place, where the bubble's own
+   position already says which tile it belongs to. The owner omits the arrow
+   node as well (see tooltip.js), so this only has to cover a bubble built
+   elsewhere. */
+.es-tooltip--plain .es-tooltip__arrow {
+	display: none;
+}
+
+/* ---- arrow: an 8x4 triangle on the edge facing the trigger ----
+   Made from borders: a 4px transparent frame where only the side facing
+   away from the bubble is filled, which reads as a triangle. --arrow-offset
+   is the distance from the panel's left (top/bottom sides) or top (left/
+   right sides) edge to the arrow's center. */
+.es-tooltip__arrow {
+	position: absolute;
+	width: 0;
+	height: 0;
+	border: 4px solid transparent;
+}
+
+.es-tooltip[data-side="top"] .es-tooltip__arrow {
+	top: 100%;
+	left: var(--arrow-offset, 50%);
+	margin-left: -4px;
+	border-top-color: var(--surface-gray-10);
+	border-bottom-width: 0;
+}
+
+.es-tooltip[data-side="bottom"] .es-tooltip__arrow {
+	bottom: 100%;
+	left: var(--arrow-offset, 50%);
+	margin-left: -4px;
+	border-bottom-color: var(--surface-gray-10);
+	border-top-width: 0;
+}
+
+.es-tooltip[data-side="left"] .es-tooltip__arrow {
+	left: 100%;
+	top: var(--arrow-offset, 50%);
+	margin-top: -4px;
+	border-left-color: var(--surface-gray-10);
+	border-right-width: 0;
+}
+
+.es-tooltip[data-side="right"] .es-tooltip__arrow {
+	right: 100%;
+	top: var(--arrow-offset, 50%);
+	margin-top: -4px;
+	border-right-color: var(--surface-gray-10);
+	border-left-width: 0;
+}
+
+/* ---- motion (enter = fade-in-0 zoom-in-95 +
+   slide-in-from-<trigger side>-2, i.e. the bubble starts near the trigger
+   at 95% scale and settles out; exit = fade-out-0 zoom-out-95, no slide).
+   The zoom grows out of the arrow, not the bubble's center — the arrow
+   marks where the trigger is, so that's where the bubble should come
+   from. --arrow-offset (set by the owner) doubles as the origin. ---- */
+.es-tooltip[data-state="open"] {
+	animation: es-tooltip-in 150ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.es-tooltip[data-state="closed"] {
+	animation: es-tooltip-out 100ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.es-tooltip[data-side="top"] {
+	--slide-from: translateY(8px);
+	transform-origin: var(--arrow-offset, 50%) 100%;
+}
+
+.es-tooltip[data-side="bottom"] {
+	--slide-from: translateY(-8px);
+	transform-origin: var(--arrow-offset, 50%) 0%;
+}
+
+.es-tooltip[data-side="left"] {
+	--slide-from: translateX(8px);
+	transform-origin: 100% var(--arrow-offset, 50%);
+}
+
+.es-tooltip[data-side="right"] {
+	--slide-from: translateX(-8px);
+	transform-origin: 0% var(--arrow-offset, 50%);
+}
+
+@keyframes es-tooltip-in {
+	from {
+		opacity: 0;
+		transform: var(--slide-from, none) scale(0.95);
+	}
+}
+
+@keyframes es-tooltip-out {
+	to {
+		opacity: 0;
+		transform: scale(0.95);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.es-tooltip {
+		animation-duration: 0ms !important;
+	}
+}
+
+/* Espresso Tabs — an underline tab bar with panels. For switching between
+ * views of the same thing; for picking a value use Pills (es-pills).
+ *
+ * Framework-neutral: the class + data-attribute contract below is
+ * everything. data-state="active|inactive" and data-orientation are what
+ * radix/reka tab primitives emit, so React and Vue apps get this styling
+ * as-is; classic frappe gets the markup from frappe.ui.tabs.
+ *
+ *   <div class="es-tabs" data-orientation="horizontal">
+ *     <div class="es-tabs__list" role="tablist">
+ *       <button class="es-tabs__tab" role="tab" data-state="active"
+ *               aria-selected="true">Details</button>
+ *       <button class="es-tabs__tab" role="tab" data-state="inactive"
+ *               aria-selected="false">Settings</button>
+ *       <span class="es-tabs__indicator"></span>
+ *     </div>
+ *     <div class="es-tabs__panel" role="tabpanel" data-state="active">...</div>
+ *     <div class="es-tabs__panel" role="tabpanel" data-state="inactive">...</div>
+ *   </div>
+ *
+ * The indicator is the moving 2px bar under the active tab. Its position
+ * comes from two custom properties the owner sets on it — and reka's
+ * TabsIndicator publishes the same numbers under its own names, which are
+ * wired in as fallbacks, so frappe-ui apps get the slide animation with
+ * zero extra code:
+ *   --es-tabs-indicator-x     offset to the active tab (px)
+ *   --es-tabs-indicator-w     width of the active tab (px)
+ * Without JS (static markup) there is no bar — the active tab still reads
+ * clearly from its ink color. */
+
+.es-tabs {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.es-tabs[data-orientation="vertical"] {
+	flex-direction: row;
+}
+
+/* ---- the tab bar (paddings/gaps straight from frappe-ui's Tabs.vue:
+   list = p-1 gap-5, horizontal adds px-5, vertical adds py-3; horizontal
+   triggers carry py-2.5, vertical ones px-2.5 and NO vertical padding —
+   row rhythm in a vertical bar comes from the list's gap) ---- */
+.es-tabs__list {
+	position: relative;
+	display: flex;
+	gap: calc(var(--spacing) * 5);
+	padding: calc(var(--spacing) * 1) calc(var(--spacing) * 5);
+	border-bottom: 1px solid var(--outline-gray-1);
+	/* many tabs on a narrow screen: the bar scrolls, the page doesn't */
+	overflow-x: auto;
+	overflow-y: hidden;
+}
+
+.es-tabs[data-orientation="vertical"] > .es-tabs__list {
+	flex-direction: column;
+	padding: calc(var(--spacing) * 3) calc(var(--spacing) * 1);
+	border-bottom: 0;
+	border-inline-end: 1px solid var(--outline-gray-1);
+	overflow: visible;
+}
+
+/* ---- tabs ---- */
+.es-tabs__tab {
+	display: flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 1.5);
+	padding: calc(var(--spacing) * 2.5) 0;
+	border: 0;
+	background: transparent;
+	font-size: var(--text-base);
+	line-height: calc(var(--spacing) * 4);
+	color: var(--ink-gray-5);
+	white-space: nowrap;
+	cursor: pointer;
+	user-select: none;
+	transition: color 300ms ease-in-out;
+}
+
+.es-tabs[data-orientation="vertical"] .es-tabs__tab {
+	padding: 0 calc(var(--spacing) * 2.5);
+	/* every row hugs the left edge: full width so short labels don't
+       shrink-wrap, and explicit start-alignment so no button default can
+       center the icon+label group (buttons center text by default) */
+	width: 100%;
+	justify-content: flex-start;
+	text-align: start;
+}
+
+.es-tabs__tab:hover {
+	color: var(--ink-gray-9);
+}
+
+.es-tabs__tab[data-state="active"] {
+	color: var(--ink-gray-9);
+}
+
+.es-tabs__tab:disabled,
+.es-tabs__tab[data-disabled] {
+	color: var(--ink-gray-4);
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+.es-tabs__tab:focus-visible {
+	outline: var(--focus-outline-default, 2px solid var(--outline-gray-3));
+	outline-offset: -2px;
+	border-radius: var(--radius-sm);
+}
+
+.es-tabs__tab > svg,
+.es-tabs__tab > img,
+.es-tabs__tab > .icon {
+	width: calc(var(--spacing) * 4);
+	height: calc(var(--spacing) * 4);
+	flex-shrink: 0;
+	margin: 0;
+}
+
+/* ---- the sliding indicator ---- */
+.es-tabs__indicator {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	height: 2px;
+	border-radius: var(--radius-full);
+	background: var(--surface-gray-10);
+	width: var(--es-tabs-indicator-w, var(--reka-tabs-indicator-size, 0px));
+	/* the 1px downward shift is frappe-ui's trick: the bar straddles the
+       list's bottom border, and the list clips it, so it reads as a thin
+       line sitting ON the rail instead of a 2px block above it */
+	transform: translateX(var(--es-tabs-indicator-x, var(--reka-tabs-indicator-position, 0px)))
+		translateY(1px);
+	transition: transform 300ms cubic-bezier(0.23, 1, 0.32, 1),
+		width 300ms cubic-bezier(0.23, 1, 0.32, 1);
+	pointer-events: none;
+}
+
+.es-tabs[data-orientation="vertical"] .es-tabs__indicator {
+	left: auto;
+	bottom: auto;
+	top: 0;
+	inset-inline-end: 0;
+	width: 2px;
+	height: var(--es-tabs-indicator-w, var(--reka-tabs-indicator-size, 0px));
+	transform: translateY(var(--es-tabs-indicator-x, var(--reka-tabs-indicator-position, 0px)));
+	transition: transform 300ms cubic-bezier(0.23, 1, 0.32, 1),
+		height 300ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.es-tabs__tab,
+	.es-tabs__indicator {
+		transition: none;
+	}
+}
+
+/* ---- panels ---- */
+.es-tabs__panel {
+	padding-top: calc(var(--spacing) * 2);
+	outline: none;
+	min-width: 0;
+}
+
+.es-tabs[data-orientation="vertical"] > .es-tabs__panel {
+	padding-top: 0;
+	padding-inline-start: calc(var(--spacing) * 2);
+	flex: 1 1 auto;
+}
+
+.es-tabs__panel[data-state="inactive"] {
+	display: none;
+}
+
+/* Espresso Tab Buttons — a segmented single-select where exactly one
+ * button is pressed (frappe-ui's TabButtons), built from Pills. For
+ * choices, not navigation: page-size selectors, calendar day/week/month,
+ * view toggles. No panels — that's what Tabs (es-tabs) are for.
+ *
+ * Two classes, mirroring frappe-ui's split:
+ *   .es-pill         the unitary piece (frappe-ui's Pill) — styled entirely
+ *                    by its own data-attributes, so it also works standalone
+ *   .es-tab-buttons  the group: the rail behind the pills, the gaps, the
+ *                    orientation
+ *
+ *   <div class="es-tab-buttons" role="radiogroup" data-type="subtle">
+ *     <button class="es-pill" role="radio" aria-checked="true"
+ *             data-state="active">Day</button>
+ *     <button class="es-pill" role="radio" aria-checked="false"
+ *             data-state="inactive">Week</button>
+ *   </div>
+ *
+ * Group attributes:
+ *   data-type="subtle|ghost|underline|browser-tab"   subtle is the default
+ *   data-size="sm|md"                                sm is the default
+ *   data-orientation="vertical"
+ *   data-direction="right"      which edge vertical browser-tabs attach to
+ *
+ * Pill attributes (data-state="active|inactive" is what frappe-ui's Pill
+ * emits, so Vue apps get this styling from their component as-is):
+ *   data-state="active|inactive"
+ *   data-variant="outline|underline|browser-tab"     none = default look
+ *   data-size="md"                                   none = sm
+ *   data-active-style="subtle"                       none = raised
+ *   data-icon-only                                   square, label is aria-only
+ *   data-tab-base="default|left|right"               browser-tab edge shape
+ *
+ * Sizing comes from padding + line-height only, never a fixed height. */
+
+/* ================= the pill ================= */
+
+.es-pill {
+	display: inline-flex;
+	box-sizing: border-box;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	gap: calc(var(--spacing) * 2);
+	padding: 5px calc(var(--spacing) * 2);
+	border: 0;
+	background: transparent;
+	border-radius: 7px;
+	font-size: var(--text-sm);
+	line-height: calc(var(--spacing) * 4);
+	color: var(--ink-gray-5);
+	white-space: nowrap;
+	user-select: none;
+	cursor: pointer;
+	text-decoration: none;
+	transition: background-color 150ms ease-out, color 150ms ease-out, box-shadow 150ms ease-out,
+		border-color 150ms ease-out;
+}
+
+.es-pill[data-size="md"] {
+	padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2.5);
+	border-radius: 9px;
+}
+
+.es-pill[data-state="active"] {
+	color: var(--ink-gray-8);
+}
+
+.es-pill:disabled,
+.es-pill[data-disabled] {
+	opacity: 0.6;
+	pointer-events: none;
+}
+
+.es-pill:focus-visible {
+	outline: var(--focus-outline-default, 2px solid var(--outline-gray-3));
+	outline-offset: 0;
+}
+
+/* icons: 16px at sm, 18px at md (Pill.vue size-4 / size-[18px]) */
+.es-pill > svg,
+.es-pill > img,
+.es-pill > .icon {
+	width: calc(var(--spacing) * 4);
+	height: calc(var(--spacing) * 4);
+	flex-shrink: 0;
+	margin: 0;
+}
+
+.es-pill[data-size="md"] > svg,
+.es-pill[data-size="md"] > img,
+.es-pill[data-size="md"] > .icon {
+	width: 18px;
+	height: 18px;
+}
+
+/* icon-only pills are square (Pill.vue: p-[5px]), label goes aria-only */
+.es-pill[data-icon-only] {
+	gap: calc(var(--spacing) * 1.5);
+	padding: 5px;
+}
+
+.es-pill[data-size="md"][data-icon-only] {
+	padding: calc(var(--spacing) * 1.5);
+}
+
+/* ---- default look: quiet, raised when pressed ---- */
+.es-pill:not([data-variant]):hover {
+	/* Pill.vue: hover:bg-surface-gray-3/80 — the token at 80% opacity */
+	background: color-mix(in srgb, var(--surface-gray-3) 80%, transparent);
+	color: var(--ink-gray-7);
+}
+
+.es-pill:not([data-variant])[data-state="active"] {
+	background: var(--surface-elevation-3);
+	box-shadow: var(--elevation-base);
+	color: var(--ink-gray-8);
+}
+
+/* on a ghost group there is no rail to rise out of — the pressed pill
+   just tints (Pill's activeStyle="subtle") */
+.es-pill[data-active-style="subtle"][data-state="active"] {
+	background: var(--surface-gray-2);
+	box-shadow: none;
+}
+
+/* ---- outline look ---- */
+.es-pill[data-variant="outline"] {
+	border: 1px solid var(--outline-gray-1);
+}
+
+.es-pill[data-variant="outline"]:hover {
+	background: var(--surface-gray-2);
+	color: var(--ink-gray-7);
+}
+
+.es-pill[data-variant="outline"][data-state="active"] {
+	border-color: transparent;
+	background: var(--surface-base);
+	box-shadow: var(--elevation-sm);
+}
+
+/* ---- underline look: reads like a tab, works like a radio ---- */
+.es-pill[data-variant="underline"] {
+	position: relative;
+	border-radius: 0;
+	padding: 6px 0;
+	/* an invisible slot on the rail edge, so activating doesn't shift text */
+	border-bottom: 1px solid transparent;
+}
+
+.es-pill[data-variant="underline"][data-size="md"] {
+	padding: 7px 0;
+}
+
+.es-pill[data-variant="underline"]:hover {
+	color: var(--ink-gray-7);
+}
+
+.es-pill[data-variant="underline"][data-state="active"] {
+	font-weight: var(--font-weight-medium);
+	color: var(--ink-gray-8);
+}
+
+/* the indicator overlays the group's rail segment so it reads as a darker
+   stretch of the same line, not a separate bar floating beside the label */
+.es-pill[data-variant="underline"][data-state="active"]::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: -1px;
+	height: 1px;
+	background: var(--ink-gray-8);
+}
+
+/* vertical underline pills: the rail (and indicator) sit on the end edge */
+[data-orientation="vertical"] .es-pill[data-variant="underline"] {
+	padding: 6px calc(var(--spacing) * 2) 6px 0;
+	border-bottom: 0;
+	border-inline-end: 1px solid transparent;
+}
+
+[data-orientation="vertical"] .es-pill[data-variant="underline"][data-size="md"] {
+	padding: 7px calc(var(--spacing) * 2) 7px 0;
+}
+
+[data-orientation="vertical"] .es-pill[data-variant="underline"][data-state="active"]::after {
+	left: auto;
+	right: -2px;
+	bottom: calc(var(--spacing) * 1.5);
+	top: calc(var(--spacing) * 1.5);
+	width: 1px;
+	height: auto;
+}
+
+/* ---- browser-tab look ---- */
+.es-pill[data-variant="browser-tab"] {
+	border: 1px solid transparent;
+}
+
+.es-pill[data-variant="browser-tab"]:hover {
+	background: var(--surface-gray-2);
+	color: var(--ink-gray-7);
+}
+
+/* the active tab "punches through" the rail: a background-colored strip
+   extends a few pixels past the rail line so the tab visibly continues
+   into the area below instead of terminating at the rail (which the eye
+   reads as a closed corner). Border one step darker than the rail so the
+   tab reads as a distinct raised shape; no drop shadow — it would paint
+   below the rail and re-close the edge this opens. */
+.es-pill[data-variant="browser-tab"][data-state="active"] {
+	position: relative;
+	background: var(--surface-base);
+	border-color: var(--outline-gray-2);
+}
+
+.es-pill[data-variant="browser-tab"][data-state="active"]::after {
+	content: "";
+	position: absolute;
+	background: var(--surface-base);
+}
+
+/* top-attached (horizontal groups) */
+.es-pill[data-variant="browser-tab"][data-tab-base="default"] {
+	border-radius: 7px 7px 0 0;
+}
+
+.es-pill[data-variant="browser-tab"][data-tab-base="default"][data-size="md"] {
+	border-radius: 9px 9px 0 0;
+}
+
+/* the rail-side edge stays 1px wide but transparent — zeroing its WIDTH
+   (border-bottom: 0) resets the color to currentColor, and on deselect
+   the border-color transition would animate that near-black back to
+   transparent: a dark line flashing under the tab you just left */
+.es-pill[data-variant="browser-tab"][data-tab-base="default"][data-state="active"] {
+	border-bottom-color: transparent;
+}
+
+.es-pill[data-variant="browser-tab"][data-tab-base="default"][data-state="active"]::after {
+	left: -1px;
+	right: -1px;
+	bottom: -3px;
+	height: 3px;
+}
+
+/* side-attached (vertical groups; base = the edge touching the rail) */
+.es-pill[data-variant="browser-tab"][data-tab-base="left"] {
+	border-radius: 0 7px 7px 0;
+}
+
+.es-pill[data-variant="browser-tab"][data-tab-base="left"][data-state="active"] {
+	border-left-color: transparent;
+}
+
+.es-pill[data-variant="browser-tab"][data-tab-base="left"][data-state="active"]::after {
+	left: -3px;
+	top: -1px;
+	bottom: -1px;
+	width: 3px;
+}
+
+.es-pill[data-variant="browser-tab"][data-tab-base="right"] {
+	border-radius: 7px 0 0 7px;
+}
+
+.es-pill[data-variant="browser-tab"][data-tab-base="right"][data-state="active"] {
+	border-right-color: transparent;
+}
+
+.es-pill[data-variant="browser-tab"][data-tab-base="right"][data-state="active"]::after {
+	right: -3px;
+	top: -1px;
+	bottom: -1px;
+	width: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.es-pill {
+		transition: none;
+	}
+}
+
+/* ================= the group ================= */
+
+.es-tab-buttons {
+	display: inline-flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 1);
+	/* the 1px frame that shows the rail around the raised pill */
+	padding: 1px;
+	background: var(--surface-gray-2);
+	/* rail radius = pill radius + the 1px frame */
+	border-radius: 8px;
+}
+
+.es-tab-buttons[data-size="md"] {
+	gap: calc(var(--spacing) * 1.5);
+	border-radius: 10px;
+}
+
+.es-tab-buttons[data-type="ghost"] {
+	background: transparent;
+}
+
+.es-tab-buttons[data-type="underline"] {
+	padding: 0;
+	gap: calc(var(--spacing) * 6);
+	background: transparent;
+	border-radius: 0;
+	border-bottom: 1px solid var(--outline-gray-1);
+}
+
+.es-tab-buttons[data-type="browser-tab"] {
+	padding: 0;
+	gap: calc(var(--spacing) * 1);
+	background: transparent;
+	border-radius: 0;
+	border-bottom: 1px solid var(--outline-gray-1);
+}
+
+/* ---- vertical groups ---- */
+.es-tab-buttons[data-orientation="vertical"] {
+	flex-direction: column;
+}
+
+/* every pill hugs the start edge and spans the column, like vertical tabs */
+.es-tab-buttons[data-orientation="vertical"] .es-pill {
+	width: 100%;
+	justify-content: flex-start;
+	text-align: start;
+}
+
+.es-tab-buttons[data-orientation="vertical"][data-type="underline"] {
+	border-bottom: 0;
+	border-inline-end: 1px solid var(--outline-gray-1);
+	gap: calc(var(--spacing) * 1.5);
+}
+
+.es-tab-buttons[data-orientation="vertical"][data-type="browser-tab"] {
+	border-bottom: 0;
+	border-inline-start: 1px solid var(--outline-gray-1);
+}
+
+.es-tab-buttons[data-orientation="vertical"][data-type="browser-tab"][data-direction="right"] {
+	border-inline-start: 0;
+	border-inline-end: 1px solid var(--outline-gray-1);
+}

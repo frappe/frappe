@@ -18,6 +18,7 @@ class LetterHead(Document):
 
 		align: DF.Literal["Left", "Right", "Center"]
 		content: DF.HTMLEditor | None
+		custom_css: DF.Code | None
 		disabled: DF.Check
 		footer: DF.HTMLEditor | None
 		footer_align: DF.Literal["Left", "Right", "Center"]

@@ -2,6 +2,6 @@
 
 {%- block value -%}
 <div class="value">
-    <a href="{{ value }}">{{ value.rsplit('/', 1)[1] }}</a>
+    <a href="{{ value|e }}">{{ value.rsplit('/', 1)[1]|e }}</a>
 </div>
 {%- endblock -%}

@@ -14,7 +14,7 @@ frappe.provide("frappe.ui");
  * @property {number} [offset=4] Gap between trigger and menu, in px.
  * @property {string} [empty_text] Shown when no items are visible.
  * @property {function} [on_open]
- * @property {function} [on_close] Called with the reason: "activate" | "escape" | "outside" | "tab" | "owner".
+ * @property {function} [on_close] Called with the reason: "activate" | "escape" | "outside" | "tab" | "navigate" | "owner".
  */
 
 // TODO: switch/checkbox rows (frappe-ui DropdownSwitchOption) — needs the
