@@ -638,6 +638,12 @@ frappe.ui.Sidebar = class Sidebar {
 							label: __("My Space"),
 							icon: "user",
 							href: "/desk/private",
+							// Off until somebody turns it on. A person who has never made a page
+							// of their own has nothing behind this row, and a first-time user
+							// reading a four-row menu should not have to work out what a space of
+							// theirs is. The shell is reachable at `/desk/private` either way, so
+							// the switch decides whether the menu offers it, not whether it exists.
+							condition: () => !!frappe.boot.desk_settings.show_my_space,
 						},
 						{
 							name: "settings",
