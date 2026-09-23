@@ -57,21 +57,47 @@
 
 				<!-- Document List -->
 				<template v-if="newResource.resource_type === 'Document List' && newResource.document_type">
-					<FormControl
-						label="Fields"
-						:required="true"
-						type="multiselect"
-						:placeholder="`Select fields from ${newResource.document_type}`"
-						v-model="newResource.fields"
-						:options="doctypeFields.data"
-					>
-						<template #summary="{ selectedOptions, summary }">
-							<template v-if="selectedOptions.length">
-								{{ selectedOptions.map((o: SelectOption) => o.label).join(", ") }}
+					<div class="flex flex-col gap-1.5">
+						<FormControl
+							label="Fields"
+							:required="true"
+							type="multiselect"
+							:placeholder="`Select fields from ${newResource.document_type}`"
+							v-model="newResource.fields"
+							:options="fieldOptions"
+						>
+							<template #summary="{ selectedOptions, summary }">
+								<template v-if="selectedOptions.length">
+									{{
+										selectedOptions
+											.filter((o: SelectOption) => !invalidFields.has(o.value))
+											.map((o: SelectOption) => o.label)
+											.join(", ")
+									}}
+								</template>
+								<template v-else>{{ summary }}</template>
 							</template>
-							<template v-else>{{ summary }}</template>
-						</template>
-					</FormControl>
+							<template #item-label="{ item }">
+								<span :class="['truncate', invalidFields.has(item.value) && 'text-ink-gray-4 line-through']">
+									{{ item.label }}
+								</span>
+							</template>
+							<template #item-suffix="{ item }">
+								<Badge v-if="invalidFields.has(item.value)" theme="amber" size="sm" variant="ghost">
+									Missing Field
+								</Badge>
+							</template>
+						</FormControl>
+						<div v-if="invalidFields.size" class="flex items-center gap-1.5 text-p-sm text-ink-amber-7">
+							<span class="lucide-triangle-alert size-3.5 shrink-0" />
+							<span class="text-p-sm">
+								<span class="font-medium">{{ [...invalidFields].join(", ") }}</span>
+								{{ invalidFields.size === 1 ? "is no longer a field" : "are no longer fields" }} on
+								{{ newResource.document_type }}.
+								<button type="button" class="ml-1 underline" @click="removeInvalidFields">Remove</button>
+							</span>
+						</div>
+					</div>
 					<Filters label="Filters" v-model="newResource.filters" :docfields="filterFields" />
 					<div class="flex w-full flex-row gap-2">
 						<FormControl
@@ -195,7 +221,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import { createResource, Dialog, FormControl, Checkbox, ErrorMessage, Button } from "frappe-ui"
+import { createResource, Dialog, FormControl, Checkbox, ErrorMessage, Button, Badge } from "frappe-ui"
 import Link from "@framework/ui/components/Link/Link.vue"
 import ScriptSection from "@/components/ScriptSection.vue"
 import Filters from "@/components/Filters.vue"
@@ -296,6 +322,23 @@ const doctypeFields = createResource({
 		})
 	},
 })
+
+// selected fields that no longer exist on the doctype, kept as options so they can still be removed
+const invalidFields = computed(() => {
+	const available = new Set((doctypeFields.data || []).map((option: SelectOption) => option.value))
+	return new Set((newResource.value.fields || []).filter((fieldname: string) => !available.has(fieldname)))
+})
+
+function removeInvalidFields() {
+	newResource.value.fields = newResource.value.fields?.filter(
+		(fieldname: string) => !invalidFields.value.has(fieldname),
+	)
+}
+
+const fieldOptions = computed<SelectOption[]>(() => [
+	...(doctypeFields.data || []),
+	...[...invalidFields.value].map((fieldname) => ({ label: fieldname, value: fieldname })),
+])
 
 const whitelistedMethods = createResource({
 	url: "studio.api.get_whitelisted_methods",
