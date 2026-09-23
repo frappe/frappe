@@ -242,7 +242,7 @@
    "fieldname": "print_format_builder",
    "fieldtype": "Check",
    "hidden": 1,
-   "label": "Print Format Builder"
+   "label": "Print Format Builder (Classic)"
   },
   {
    "default": "0",
@@ -257,7 +257,7 @@
    "description": "Edit in the visual builder.",
    "fieldname": "print_format_builder_beta",
    "fieldtype": "Check",
-   "label": "Print Format Builder Beta"
+   "label": "Print Format Builder"
   },
   {
    "default": "15",
@@ -341,7 +341,7 @@
  "icon": "printer",
  "idx": 1,
  "links": [],
- "modified": "2026-08-13 12:00:00.000000",
+ "modified": "2026-09-23 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
