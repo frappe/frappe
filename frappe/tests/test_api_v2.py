@@ -1505,6 +1505,31 @@ class TestCollaborationWritesV2(FrappeAPITestCase):
 			attached = frappe.db.get_value("File", file, ["attached_to_doctype", "attached_to_name"])
 			self.assertEqual(attached, ("Comment", added))
 
+	def test_comment_attaches_its_inline_images_to_the_record(self):
+		todo = self.todo_with_cleanup()
+		mine, peers = self.make_file(self.TEST_USER), self.make_file(self.PEER)
+		self.assertEqual(self.post_inline(todo, [mine, peers]).status_code, 200)
+		frappe.db.rollback()
+		self.assertEqual(self.attached_to(mine), ("ToDo", todo.name))
+		self.assertEqual(self.attached_to(peers), (None, None))
+
+	def test_inline_image_also_in_attachments_goes_to_the_comment(self):
+		todo = self.todo_with_cleanup()
+		file = self.make_file(self.TEST_USER)
+		response = self.post_inline(todo, [file], attachments=[file])
+		frappe.db.rollback()
+		self.assertEqual(self.attached_to(file), ("Comment", response.json["data"]["added"]))
+
+	def post_inline(self, todo, files: list[str], attachments: list[str] | None = None):
+		"""Post a comment showing `files` as inline images."""
+		urls = [frappe.db.get_value("File", file, "file_url") for file in files]
+		content = "".join(f'<p><img src="{url}"></p>' for url in [*urls, "https://example.com/x.png"])
+		body = {"content": content, "attachments": attachments or []}
+		return self.add(self.part("comments", name=todo.name), body)
+
+	def attached_to(self, file: str) -> tuple:
+		return frappe.db.get_value("File", file, ["attached_to_doctype", "attached_to_name"])
+
 	def test_comment_with_a_file_of_the_same_record_is_refused(self):
 		todo = self.todo_with_cleanup()
 		self.assert_refused(todo, self.make_file(self.TEST_USER, attached_to=todo.name))

@@ -4,6 +4,8 @@
 `PATCH .../comments/<name>` edits. Each answers with the refreshed part in the read's shape.
 """
 
+import re
+
 import frappe
 import frappe.share
 from frappe import _
@@ -151,7 +153,25 @@ def add_a_comment(doc: Document, body: dict) -> str:
 		file.attached_to_doctype = "Comment"
 		file.attached_to_name = comment.name
 		file.save(ignore_permissions=True)
+	# after the attachments are linked, so they are no longer unattached and stay on the Comment
+	attach_inline_images(doc, comment.content)
 	return comment.name
+
+
+def attach_inline_images(doc: Document, content: str) -> None:
+	"""Attach the caller's unattached Files shown inline in `content` to `doc`, as desk comments do."""
+	urls = list(set(re.findall(r'<img[^>]*?\ssrc\s*=\s*["\']([^"\']+)["\']', content or "")))
+	if not urls:
+		return
+	filters = {
+		"file_url": ("in", urls),
+		"owner": frappe.session.user,
+		"attached_to_doctype": ("is", "not set"),
+	}
+	for name in frappe.get_all("File", filters=filters, pluck="name"):
+		file = frappe.get_doc("File", name)
+		file.attached_to_doctype, file.attached_to_name = doc.doctype, doc.name
+		file.save(ignore_permissions=True)
 
 
 def files_to_link(doc: Document, names: list[str]) -> list[Document]:
