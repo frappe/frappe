@@ -936,6 +936,11 @@ body.grid-col-resizing {
 	display: none;
 }
 
+.grid-import-file-pane .file-preview-container .file-preview-outline {
+	border-color: var(--border-color);
+	border-radius: var(--radius);
+}
+
 .grid-import-upload-pane {
 	height: 100%;
 	display: flex;
@@ -1033,20 +1038,6 @@ body.grid-col-resizing {
 	padding-bottom: 0;
 }
 
-.grid-import-dropdown-host {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 0;
-	height: 0;
-	z-index: 1060;
-
-	> ul {
-		position: fixed;
-		min-width: 0;
-	}
-}
-
 .grid-import-card {
 	flex: 1 1 auto;
 	min-height: 0;
@@ -1086,7 +1077,6 @@ body.grid-col-resizing {
 .grid-import-footer-message {
 	align-self: center;
 	max-width: 60ch;
-	color: var(--ink-red-6);
 
 	span {
 		overflow: hidden;
@@ -1107,6 +1097,14 @@ body.grid-col-resizing {
 
 	table {
 		margin-bottom: 0;
+		border-collapse: separate;
+		border-spacing: 0;
+	}
+
+	th,
+	td {
+		border-top-width: 0;
+		border-left-width: 0;
 	}
 }
 
@@ -1128,6 +1126,10 @@ body.grid-col-resizing {
 	white-space: nowrap;
 	text-align: right;
 	vertical-align: middle;
+	position: sticky;
+	right: 0;
+	z-index: 1;
+	background-color: var(--fg-color);
 
 	.es-button {
 		min-width: calc(var(--spacing) * 18);
@@ -1138,21 +1140,21 @@ body.grid-col-resizing {
 	opacity: 0.5;
 }
 
+.grid-import-preview-table thead th {
+	vertical-align: top;
+}
+
 .grid-import-preview-table th[data-col] {
-	position: relative;
 	min-width: calc(var(--spacing) * 45);
-	padding-left: calc(var(--spacing) * 5);
-	vertical-align: middle;
 	font-weight: var(--font-weight-semibold);
 
 	&::before {
 		content: "";
-		position: absolute;
-		left: calc(var(--spacing) * 2);
-		top: 50%;
+		display: inline-block;
+		vertical-align: middle;
 		width: calc(var(--spacing) * 1.5);
 		height: calc(var(--spacing) * 1.5);
-		transform: translateY(-50%);
+		margin-inline-end: calc(var(--spacing) * 2);
 		border-radius: 50%;
 		background: var(--surface-gray-3);
 	}
@@ -1171,97 +1173,27 @@ body.grid-col-resizing {
 	color: var(--ink-gray-6);
 }
 
-.grid-import-mapping-row td[data-col] {
-	.frappe-control {
-		margin-bottom: 0;
-	}
-
-	.form-control {
-		height: auto;
-		padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
-		border: none;
-		border-radius: var(--radius-sm);
-		background: var(--surface-gray-2);
-		box-shadow: none;
-		font-weight: var(--font-weight-semibold);
-	}
-}
-
-.grid-import-preview-table td.has-error {
-	box-shadow: inset 0 0 0 1px var(--outline-red-4);
-}
-
-.grid-import-preview-table td.grid-import-editable-cell {
-	padding: 0;
-	cursor: pointer;
-	vertical-align: middle;
-}
-
-.grid-import-preview-table .grid-import-editable-cell .frappe-control {
-	position: relative;
+.grid-import-preview-table td[data-col] .frappe-control {
 	margin-bottom: 0;
-
-	.help-box {
-		display: none;
-	}
-
-	.select-icon {
-		position: absolute;
-		top: calc(var(--spacing) * 0.75);
-		right: calc(var(--spacing) * 3);
-		pointer-events: none;
-	}
-}
-
-.grid-import-preview-table .grid-import-editable-cell .form-control {
-	width: 100%;
-	height: auto;
-	padding: calc(var(--spacing) * 1) calc(var(--spacing) * 7) calc(var(--spacing) * 1)
-		calc(var(--spacing) * 2);
-	border: none;
-	background: transparent;
-	box-shadow: none;
-	cursor: pointer;
-}
-
-.grid-import-preview-table .grid-import-mapping-row td[data-col] .frappe-control.has-error input,
-.grid-import-preview-table td.grid-import-editable-cell .frappe-control.has-error input {
-	border: none;
-
-	&:focus {
-		box-shadow: none;
-	}
 }
 
 .grid-import-preview-table tbody td {
 	height: var(--grid-import-row-height);
 }
 
-.grid-import-preview-table tbody tr[data-row] td:not(.grid-import-editable-cell) {
+.grid-import-preview-table tr[data-row] {
+	--control-bg: var(--neutral);
+
+	.form-control {
+		border: 1px solid var(--border-color);
+	}
+
+	.has-error .form-control {
+		border-color: var(--error-border);
+	}
+}
+
+.grid-import-preview-table tbody tr[data-row] td {
 	padding: 0 calc(var(--spacing) * 2);
 	vertical-align: middle;
-}
-
-.grid-import-preview-table td.grid-import-pending-cell {
-	cursor: pointer;
-	padding: 0 calc(var(--spacing) * 2);
-	line-height: var(--grid-import-row-height);
-}
-
-.grid-import-preview-table .grid-import-editable-cell .checkbox {
-	margin-bottom: 0;
-
-	label {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		min-height: var(--grid-import-row-height);
-		margin-bottom: 0;
-		padding-top: 0;
-	}
-
-	.input-area {
-		display: flex;
-		align-items: center;
-	}
 }
