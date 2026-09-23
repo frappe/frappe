@@ -8,7 +8,13 @@ import frappe
 from frappe import _
 from frappe.core.doctype.data_import.importer import Row, get_df_for_column_header, get_item_at_index
 from frappe.model import get_permitted_fields, no_value_fields, table_fields
-from frappe.utils import cstr, get_user_date_format, get_user_time_format, strip_html
+from frappe.utils import (
+	cstr,
+	get_user_date_format,
+	get_user_time_format,
+	strip_html,
+	validate_phone_number_with_country_code,
+)
 from frappe.utils.caching import request_cache
 from frappe.utils.csvutils import get_csv_content_from_google_sheets, read_csv_content
 from frappe.utils.dateutils import dateformats
@@ -159,7 +165,23 @@ class GridImportRow(Row):
 	def validate_value(self, value, col):
 		if col.df.fieldtype == "Duration" and value.isdigit():
 			return value
+		if col.df.fieldtype == "Phone" and not self.is_valid_phone(value, col.df):
+			return
 		return super().validate_value(value, col)
+
+	def is_valid_phone(self, value, df):
+		try:
+			validate_phone_number_with_country_code(value, _(df.label))
+		except frappe.InvalidPhoneNumberError as e:
+			frappe.clear_last_message()
+			message = (
+				str(e)
+				if value.startswith("+")
+				else _('"{0}" needs a country code, like {1}.').format(value, "+91-9876543210")
+			)
+			self.warnings.append({"row": self.row_number, "message": message})
+			return False
+		return True
 
 	def get_date(self, value, column):
 		parsed = parse_datetime(value, (column.date_format, "%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))

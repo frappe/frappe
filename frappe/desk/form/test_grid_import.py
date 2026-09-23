@@ -192,6 +192,23 @@ class TestGridImport(IntegrationTestCase):
 		row.validate_value("an hour", duration_col)
 		self.assertEqual(len(row.warnings), 1)
 
+	def test_grid_row_checks_phone_fields_the_way_a_save_does(self):
+		row = GridImportRow(0, [], "Contact", frappe._dict(columns=[]), import_type=None)
+		phone_col = frappe._dict(df=frappe._dict(fieldtype="Phone", label="Mobile"), column_number=1)
+		frappe.clear_messages()
+
+		self.assertEqual(row.validate_value("+91-9876543210", phone_col), "+91-9876543210")
+		self.assertEqual(row.warnings, [])
+
+		for value in ("9876543210", "+91-123", "call-me"):
+			self.assertIsNone(row.validate_value(value, phone_col))
+		self.assertEqual(len(row.warnings), 3)
+		self.assertEqual(
+			row.warnings[0]["message"], '"9876543210" needs a country code, like +91-9876543210.'
+		)
+		self.assertNotIn("country code", row.warnings[1]["message"])
+		self.assertEqual(frappe.get_message_log(), [])
+
 	def test_google_sheet_url_must_point_at_google_sheets(self):
 		for url in (
 			"http://docs.google.com/spreadsheets/d/abc/edit",
