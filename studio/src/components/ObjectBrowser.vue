@@ -13,11 +13,11 @@
 		<!-- object properties -->
 		<div v-if="!name || isExpanded('root')" class="ml-4">
 			<div v-for="(value, key) in object" :key="key">
-				<div class="group/key my-[7px] flex cursor-pointer items-start gap-0.5" @click="toggleExpanded(key)">
+				<div class="group/key my-[7px] flex cursor-pointer items-center gap-0.5" @click="toggleExpanded(key)">
 					<span
 						v-if="isObject(value)"
 						:class="isExpanded(key) ? 'lucide-chevron-down' : 'lucide-chevron-right'"
-						class="-ml-0.5 h-3 w-3"
+						class="h-3 w-3"
 					/>
 					<span class="text-ink-pink-7">{{ key }}:</span>
 					<span
@@ -33,7 +33,7 @@
 					<IconButton
 						:icon="LucideCopy"
 						label="Copy object path"
-						class="invisible ml-auto px-2 hover:visible group-hover/key:visible"
+						class="invisible ml-1 shrink-0 hover:visible group-hover/key:visible"
 						size="sm"
 						:hoverDelay="1"
 						@click.prevent="copyToClipboard('{{ ' + getObjectPath(key) + ' }}')"

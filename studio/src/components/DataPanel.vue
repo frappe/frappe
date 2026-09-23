@@ -7,8 +7,8 @@
 					:key="resource_name"
 					class="group/item flex flex-row items-center justify-between"
 				>
-					<div class="-ml-[0.9rem] flex items-center gap-1 overflow-hidden">
-						<ObjectBrowser :object="resource" :name="resource_name" />
+					<div class="-ml-[0.9rem] flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
+						<ObjectBrowser :object="resource" :name="resource_name" class="min-w-0 flex-1" />
 						<Tooltip v-if="!resource" text="No matching document found for the current filters">
 							<span class="lucide-alert-circle h-[14px] w-[14px] cursor-pointer text-ink-amber-5" />
 						</Tooltip>
@@ -46,7 +46,7 @@
 						v-if="typeof value === 'object'"
 						:object="value"
 						:name="variable_name"
-						class="-ml-[0.9rem] overflow-hidden"
+						class="-ml-[0.9rem] min-w-0 flex-1 overflow-hidden"
 					/>
 					<div v-else class="flex flex-row justify-between font-mono text-xs">
 						<div class="font-semibold text-ink-pink-7">{{ variable_name }}</div>
