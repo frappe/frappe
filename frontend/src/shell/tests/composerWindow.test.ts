@@ -1,7 +1,7 @@
 // The shell's composer window: one writer moving between its record's band and the floating window,
 // and what it does away from its record.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick, ref, type Component } from "vue";
+import { createApp, defineComponent, h, nextTick, reactive, ref, type Component } from "vue";
 
 const composerStub = vi.hoisted(() => ({ mounts: 0, lastProps: null as any }));
 const { addComment, pending, addPendingActivity } = vi.hoisted(() => {
@@ -59,17 +59,20 @@ vi.mock("@framework/ui/ActivityTimeline", async (importOriginal) => ({
 }));
 
 import { toast } from "frappe-ui";
+import { resetSession, setSession } from "@framework/ui/composables/useSession";
+import type { Session } from "@framework/ui/api";
 import { ComposerSurface } from "@/recordPage/composer";
 import type { TabItem } from "@/recordPage/types";
 import { composerBuiltins, composerHost } from "@/pages/record/composer/composerHost";
 import RecordComposer from "@/pages/record/composer/RecordComposer.vue";
+import { openWriterContext } from "@/pages/record/composer/writerContext";
 import {
 	closeComposer,
 	composerDraft,
 	openComposer,
 	preferredWindow,
-	rememberWindow,
 	saveComposerDraft,
+	setComposerWindow,
 } from "../composer";
 import ComposerWindow from "../ComposerWindow.vue";
 
@@ -91,17 +94,20 @@ let record = 0;
 
 beforeEach(() => {
 	vi.clearAllMocks();
+	const session = { user: { name: USER.name }, roles: [], lang: "en", defaults: {} };
+	setSession(session as unknown as Session);
 	composerStub.mounts = 0;
 	closeComposer();
-	rememberWindow("docked");
+	setComposerWindow("docked", { remember: true });
 	localStorage.clear();
 });
 afterEach(() => {
 	for (const app of apps.splice(0)) app.unmount();
 	document.body.innerHTML = "";
+	resetSession();
 });
 
-function fakeController(title = "") {
+function fakeController(title = "", perms: Record<string, number> = {}) {
 	const docname = `NOTE-${++record}`;
 	const composer = new ComposerSurface(composerHost("Note", docname));
 	composer.provideBuiltins(composerBuiltins);
@@ -109,9 +115,9 @@ function fakeController(title = "") {
 		doctype: "Note",
 		docname,
 		composer,
-		perms: {},
+		perms,
 		meta: { title_field: "title" },
-		doc: { title },
+		doc: reactive({ title }),
 		toast: { error: vi.fn(), success: vi.fn() },
 	};
 	return { page, composer, firePost: vi.fn(async () => {}) } as any;
@@ -237,6 +243,17 @@ describe("docking and floating", () => {
 	});
 });
 
+describe("the title", () => {
+	it("follows the record's title while its page is open", async () => {
+		const { controller } = await mountShell(fakeController("Quarterly plan"));
+		controller.composer.open("comment");
+		await flush();
+		controller.page.doc.title = "Yearly plan";
+		await flush();
+		expect(title()).toBe("Comment · Yearly plan");
+	});
+});
+
 describe("one window at a time", () => {
 	it("gives the window to a second record's open, retitled, and keeps the first draft", async () => {
 		const { controller } = await mountShell(fakeController("Quarterly plan"));
@@ -255,8 +272,8 @@ describe("one window at a time", () => {
 });
 
 describe("away from the record", () => {
-	async function floatedAway() {
-		const shell = await mountShell();
+	async function floatedAway(controller = fakeController()) {
+		const shell = await mountShell(controller);
 		shell.controller.composer.open("comment", { window: "floating" });
 		await flush();
 		shell.band.value = false;
@@ -272,6 +289,17 @@ describe("away from the record", () => {
 		expect(toast.error).toHaveBeenCalledWith("Not permitted");
 		expect(controller.page.toast.error).not.toHaveBeenCalled();
 		expect(composerStub.lastProps.modelValue).toBe("<p>Done</p>");
+	});
+
+	it("reopens a failed post titled after its record, with the record's rights kept", async () => {
+		addComment.mockRejectedValue(new Error("Offline"));
+		await floatedAway(fakeController("Quarterly plan", { write: 1 }));
+		editorInstance().$emit("submit", { body: "<p>Done</p>", attachments: [] });
+		await flush();
+		expect(inBand(panel())).toBe(false);
+		expect(title()).toBe("Comment · Quarterly plan");
+		expect(openWriterContext().perms).toEqual({ write: 1 });
+		expect(composerStub.lastProps.uploadFunction).toBeTypeOf("function");
 	});
 
 	it("fires no onPost for a post that goes", async () => {

@@ -41,7 +41,7 @@
 						class="truncate text-base font-medium text-ink-gray-8"
 						data-composer-title
 					>
-						{{ `${writer.label} · ${composerTitle()}` }}
+						{{ `${writer.label} · ${context.title}` }}
 					</span>
 					<div class="ml-auto flex shrink-0">
 						<Tooltip v-if="docked" :text="__('Pop out')">
@@ -114,17 +114,19 @@ import {
 	closeComposer,
 	composerDock,
 	composerState,
-	composerTitle,
+	composerUser,
 	draftRevision,
 	setComposerWindow,
 	type ComposerWindow,
 } from "./composer";
 
-const props = defineProps<{ user: SessionUser }>();
+defineProps<{ user: SessionUser }>();
 
 const shellSlot = ref<HTMLElement | null>(null);
-const dock = useDockHeight(props.user.name);
-const floatKey = computed(() => `desk:composer-float:${props.user.name}`);
+// The store's user, so every key the composer keeps belongs to one reader.
+const reader = composerUser();
+const dock = useDockHeight(reader);
+const floatKey = `desk:composer-float:${reader}`;
 
 const docked = computed(() => composerState.window === "docked");
 const target = computed(() => (docked.value ? composerDock() : shellSlot.value));
@@ -160,18 +162,22 @@ watch(() => (target.value && writer.value ? recordKey.value : ""), storeWindow, 
 function storeWindow(shown: string) {
 	if (!shown) return;
 	const kept = storedFloat();
-	if (kept?.rect)
-		localStorage.setItem(
-			floatKey.value,
-			JSON.stringify({ ...kept, mode: composerState.window })
-		);
-	// With no rectangle the window starts from `v-model`; a partial entry would break it.
-	else localStorage.removeItem(floatKey.value);
+	try {
+		if (kept?.rect)
+			localStorage.setItem(
+				floatKey,
+				JSON.stringify({ ...kept, mode: composerState.window })
+			);
+		// With no rectangle the window starts from `v-model`; a partial entry would break it.
+		else localStorage.removeItem(floatKey);
+	} catch {
+		// Storage can be full or refused; the window then takes its stored place.
+	}
 }
 
 function storedFloat() {
 	try {
-		return JSON.parse(localStorage.getItem(floatKey.value) ?? "null");
+		return JSON.parse(localStorage.getItem(floatKey) ?? "null");
 	} catch {
 		return null;
 	}

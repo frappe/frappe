@@ -35,7 +35,7 @@ export interface ComposerHost {
   activeWriter(): string;
   /** The open card's place while this record's writer is open, else the reader's own choice. */
   windowState(): ComposerWindow;
-  /** Keeps the reader's choice, and moves the card when this record's writer is open. */
+  /** Moves the open card of this record's writer; the reader's own choice stays. */
   setWindow(window: ComposerWindow): void;
 }
 
@@ -55,11 +55,9 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
   }
 
   set window(value: ComposerWindow) {
-    if (WINDOWS.includes(value)) this.host.setWindow(value);
-    else if (import.meta.env.DEV)
-      console.warn(
-        `[record-page] page.composer.window = ${JSON.stringify(value)} — it takes "docked" or "floating"; nothing changed.`
-      );
+    if (!WINDOWS.includes(value)) this.refuseWindow(value, 'it takes "docked" or "floating"');
+    else if (!this.active) this.refuseWindow(value, "no writer of this record is open");
+    else this.host.setWindow(value);
   }
 
   /** Called in a replay, the open waits for `releaseOpen`, as `activity.scrollTo` waits. */
@@ -95,6 +93,13 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
     } catch (error) {
       console.error(`[record-page] page.composer.open("${name}") — the host threw`, error);
     }
+  }
+
+  private refuseWindow(value: string, because: string) {
+    if (import.meta.env.DEV)
+      console.warn(
+        `[record-page] page.composer.window = ${JSON.stringify(value)} — ${because}; nothing changed.`
+      );
   }
 
   private refuse(name: string, because: string) {

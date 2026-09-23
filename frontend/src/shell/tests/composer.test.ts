@@ -9,15 +9,15 @@ import {
 	closeComposer,
 	composerDock,
 	composerDraft,
-	composerPerms,
+	composerKept,
 	composerRecord,
+	composerRecordFor,
 	composerState,
-	composerTitle,
+	composerUser,
 	openComposer,
 	preferredWindow,
 	registerComposerDock,
 	registerComposerRecord,
-	rememberWindow,
 	saveComposerDraft,
 	setComposerWindow,
 	type WriterContext,
@@ -162,11 +162,10 @@ describe("the window", () => {
 		expect(preferredWindow()).toBe("docked");
 	});
 
-	it("keeps a choice without moving the open card", () => {
-		openComposer("Note", name, "comment");
-		rememberWindow("floating");
-		expect(composerState.window).toBe("docked");
-		expect(preferredWindow()).toBe("floating");
+	it("keeps every choice under the session's user", () => {
+		expect(composerUser()).toBe(user);
+		setComposerWindow("floating", { remember: true });
+		expect(preferredWindow(user)).toBe("floating");
 	});
 
 	it("gives a second record's open the window and keeps the first record's draft", () => {
@@ -175,7 +174,7 @@ describe("the window", () => {
 		openComposer("Note", `${name}-B`, "comment", undefined, "floating");
 
 		expect(composerState).toMatchObject({ name: `${name}-B`, window: "floating" });
-		expect(composerTitle()).toBe(`${name}-B`);
+		expect(composerKept().title).toBe(`${name}-B`);
 		expect(composerDraft("Note", name, "comment")).toEqual({ content: "first" });
 	});
 });
@@ -210,27 +209,43 @@ describe("the record's band and context", () => {
 		unregisterAfter();
 	});
 
-	it("gives the context of the record the store is on, and keeps its title and perms at open", () => {
+	it("gives the context of the record the store is on, and keeps its title and perms after", () => {
 		const page = context(name);
 		const unregister = registerComposerRecord("Note", name, page);
 		openComposer("Note", name, "comment");
-
 		expect(composerRecord()).toBe(page);
-		expect(composerTitle()).toBe(`Title of ${name}`);
-		expect(composerPerms()).toEqual({ write: 1 });
+		expect(composerRecordFor("Note", name)).toBe(page);
 
 		unregister();
 		expect(composerRecord()).toBeNull();
-		expect(composerTitle()).toBe(`Title of ${name}`);
-		expect(composerPerms()).toEqual({ write: 1 });
+		expect(composerRecordFor("Note", name)).toBeNull();
+		expect(composerKept()).toEqual({ title: `Title of ${name}`, perms: { write: 1 } });
+	});
+
+	it("keeps the title the page last showed when it goes", () => {
+		const page = { ...context(name), title: "Draft title" };
+		const unregister = registerComposerRecord("Note", name, page);
+		openComposer("Note", name, "comment");
+		page.title = "Final title";
+		unregister();
+		expect(composerKept().title).toBe("Final title");
+	});
+
+	it("keeps what it had of a record through a reopen away from it", () => {
+		registerComposerRecord("Note", name, context(name, { perms: { email: 1 } }))();
+		openComposer("Note", name, "email");
+		closeComposer();
+		openComposer("Note", `${name}-B`, "comment");
+		openComposer("Note", name, "email");
+		expect(composerKept()).toEqual({ title: `Title of ${name}`, perms: { email: 1 } });
 	});
 
 	it("titles an open with the docname until the page registers", () => {
 		openComposer("Note", name, "comment");
-		expect(composerTitle()).toBe(name);
+		expect(composerKept()).toEqual({ title: name, perms: {} });
 
 		const unregister = registerComposerRecord("Note", name, context(name));
-		expect(composerTitle()).toBe(`Title of ${name}`);
+		expect(composerKept().title).toBe(`Title of ${name}`);
 		unregister();
 	});
 

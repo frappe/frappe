@@ -5,6 +5,7 @@ import { errorMessage } from "@/recordPage";
 import {
 	clearComposerDraft,
 	closeComposer,
+	composerRecordFor,
 	composerState,
 	openComposer,
 	replaceComposerDraft,
@@ -40,7 +41,8 @@ export async function postComment(
 		context.toast.error(errorMessage(error));
 		return;
 	}
-	if (key) await context.firePost?.(key);
+	// `onPost` is the record page's, so it fires only if that page is up when the answer comes.
+	if (key) await composerRecordFor(doctype, docname)?.firePost?.(key);
 }
 
 async function send(

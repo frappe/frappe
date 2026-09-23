@@ -890,13 +890,15 @@ record's draft stays in memory.
 open writer's name, or `''`.
 
 `window` reads `'docked'` or `'floating'`: where this record's card is while its writer is
-open, and otherwise where the next open will put it. Setting it keeps the value as the
-reader's own choice, as the card's dock and float button does, and moves the card if this
-record's writer is open. Any other value warns in a development build and changes nothing.
+open, and otherwise where the next open will put it. Setting it moves this record's open
+card for now; the reader's own choice, which only the card's dock and float button keeps,
+stays as it was. With no writer of this record open, or any other value, it warns in a
+development build and changes nothing.
 
 `onPost(page, { name })` fires after the server answers a `comment` post, with the new
 row's key, `comment:<name>`. It does not fire for a script's writer, which knows when it
-posted.
+posted, nor when the answer comes while the record's page is not open, as for a floating
+card sent from another page.
 
 ### The script this design was judged by
 

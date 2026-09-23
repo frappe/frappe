@@ -1,5 +1,5 @@
 // The comment send: a pending row at once, the server's key and time on it, and the draft back on a failure.
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { addComment, pending, addPendingActivity } = vi.hoisted(() => {
 	const pending = { resolve: vi.fn(), drop: vi.fn() };
@@ -20,6 +20,7 @@ import {
 	draftRevision,
 	openComposer,
 	preferredWindow,
+	registerComposerRecord,
 	saveComposerDraft,
 } from "@/shell/composer";
 import { postComment } from "../commentPost";
@@ -38,10 +39,11 @@ const FILE = {
 const DRAFT = { content: "<p>Looks good</p>", attachments: [FILE] };
 
 let record = 0;
+const pages: (() => void)[] = [];
 
-function fakeContext() {
-	const docname = `NOTE-${++record}`;
-	return {
+// A context the record's page registers, as it does while it is mounted.
+function fakeContext(docname = `NOTE-${++record}`) {
+	const context = {
 		doctype: "Note",
 		docname,
 		title: docname,
@@ -49,6 +51,8 @@ function fakeContext() {
 		toast: { error: vi.fn(), success: vi.fn() },
 		firePost: vi.fn(async () => {}),
 	};
+	pages.push(registerComposerRecord("Note", docname, context));
+	return context;
 }
 
 function opened(context: ReturnType<typeof fakeContext>) {
@@ -59,6 +63,9 @@ function opened(context: ReturnType<typeof fakeContext>) {
 beforeEach(() => {
 	vi.clearAllMocks();
 	closeComposer();
+});
+afterEach(() => {
+	for (const unregister of pages.splice(0)) unregister();
 });
 
 describe("postComment", () => {
@@ -109,9 +116,34 @@ describe("postComment", () => {
 
 	it("resolves the row for a writer away from its record, which has no onPost", async () => {
 		const { firePost: _none, ...away } = fakeContext();
+		pages.pop()?.();
 		addComment.mockResolvedValue({ data: { comments: [], added: "C-3" } });
 		await postComment(away, AUTHOR, DRAFT);
 		expect(pending.resolve).toHaveBeenCalledWith("comment:C-3", undefined);
+	});
+
+	it("fires no onPost when the record's page goes before the answer", async () => {
+		const context = fakeContext();
+		let answer: (value: unknown) => void = () => {};
+		addComment.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+		const sent = postComment(context, AUTHOR, DRAFT);
+		pages.pop()?.();
+		answer({ data: { comments: [], added: "C-4" } });
+		await sent;
+		expect(pending.resolve).toHaveBeenCalledWith("comment:C-4", undefined);
+		expect(context.firePost).not.toHaveBeenCalled();
+	});
+
+	it("fires the page's onPost when the page is back before the answer", async () => {
+		const { firePost: _none, ...away } = fakeContext();
+		pages.pop()?.();
+		let answer: (value: unknown) => void = () => {};
+		addComment.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+		const sent = postComment(away, AUTHOR, DRAFT);
+		const back = fakeContext(away.docname);
+		answer({ data: { comments: [], added: "C-5" } });
+		await sent;
+		expect(back.firePost).toHaveBeenCalledWith("comment:C-5");
 	});
 
 	it("leaves the row for the feed to retire when the answer names no comment", async () => {

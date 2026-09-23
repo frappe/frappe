@@ -1,7 +1,9 @@
 // The one composer across records: the record and writer it is open on, and every draft of the session.
-import { markRaw, reactive, readonly, shallowReactive, shallowRef } from "vue";
+import { markRaw, reactive, readonly, shallowReactive } from "vue";
 import { currentSession } from "@framework/ui/composables/useSession";
+import type { UploadTransport } from "@framework/ui/FileUpload";
 import type { ComposerWindow, RecordPageApi } from "@/recordPage";
+import type { WriterItem } from "@/recordPage/types";
 
 export type { ComposerWindow };
 /** A writer's unsent state; the comment writer keeps `{ content, attachments }`. */
@@ -16,33 +18,33 @@ export interface WriterContext {
 	/** The live record page's `page`, for a scripted writer's component; absent away from the record. */
 	page?: RecordPageApi;
 	toast: { error(message: string): void; success?(message: string): void };
+	/** The record page's writers, a script's among them; absent away from the record. */
+	writers?: WriterItem[];
 	/** Fires the record page's `onPost`; absent away from the record. */
 	firePost?(key: string): Promise<void>;
 	/** The record page's upload transport; away from the record the writer builds a plain one. */
-	uploadTransport?(): unknown;
+	uploadTransport?(): UploadTransport;
 }
+
+/** A record's title and permissions as its page last showed them. */
+export type KeptRecord = Pick<WriterContext, "title" | "perms">;
 
 const state = reactive({
 	doctype: "",
 	name: "",
 	active: "",
 	window: "docked" as ComposerWindow,
-	/** The record's title as it was at open, for the window away from its record. */
-	title: "",
 });
-const keptPerms = shallowRef<Record<string, any>>({});
 const drafts = reactive(new Map<string, ComposerDraft>());
 const revisions = reactive(new Map<string, number>());
 const remembered = reactive(new Map<string, ComposerWindow>());
 const docks = shallowReactive(new Map<string, HTMLElement>());
 const records = shallowReactive(new Map<string, WriterContext>());
+const kept = shallowReactive(new Map<string, KeptRecord>());
 
 export const composerState = readonly(state);
 
-/**
- * Takes the store for this record's writer; a draft already in memory wins over `seed`.
- * `window` places the card for this open only; unset, the reader's remembered state does.
- */
+/** Opens this record's writer; a draft in memory wins over `seed`, `window` over the remembered state. */
 export function openComposer(
 	doctype: string,
 	name: string,
@@ -52,15 +54,9 @@ export function openComposer(
 ) {
 	const key = draftKey(doctype, name, writer);
 	if (seed && !drafts.has(key)) drafts.set(key, { ...seed });
-	const context = records.get(recordKey(doctype, name));
-	Object.assign(state, {
-		doctype,
-		name,
-		active: writer,
-		window: window ?? preferredWindow(),
-		title: context?.title || name,
-	});
-	keptPerms.value = context?.perms ?? {};
+	const context = composerRecordFor(doctype, name);
+	if (context) keep(doctype, name, context);
+	Object.assign(state, { doctype, name, active: writer, window: window ?? preferredWindow() });
 }
 
 /** Collapses the band; the record's drafts stay. */
@@ -73,18 +69,18 @@ export function activeWriter(doctype: string, name: string): string {
 	return state.doctype === doctype && state.name === name ? state.active : "";
 }
 
-/** The record's title as it was when the writer opened, or the docname. */
-export function composerTitle(): string {
-	return state.title;
+/** The store's record as its page last showed it, for the window away from it; the docname before. */
+export function composerKept(): KeptRecord {
+	return kept.get(recordKey(state.doctype, state.name)) ?? { title: state.name, perms: {} };
 }
 
-/** The record's permissions as they were when the writer opened. */
-export function composerPerms(): Record<string, any> {
-	return keptPerms.value;
+/** The reader the composer's stored choices belong to. */
+export function composerUser(): string {
+	return currentSession()?.user.name ?? "";
 }
 
 /** The reader's own choice of window, kept per user; an `open` option never changes it. */
-export function preferredWindow(user = sessionUser()): ComposerWindow {
+export function preferredWindow(user = composerUser()): ComposerWindow {
 	return remembered.get(user) ?? storedWindow(user);
 }
 
@@ -94,11 +90,8 @@ export function setComposerWindow(
 	{ remember = false }: { remember?: boolean } = {}
 ) {
 	state.window = window;
-	if (remember) rememberWindow(window);
-}
-
-/** Keeps the choice for the next open without moving a card that is open. */
-export function rememberWindow(window: ComposerWindow, user = sessionUser()) {
+	if (!remember) return;
+	const user = composerUser();
 	remembered.set(user, window);
 	try {
 		localStorage.setItem(windowStorageKey(user), window);
@@ -119,19 +112,23 @@ export function composerDock(): HTMLElement | null {
 
 /** The record page's context for its writers, while that page is mounted. */
 export function registerComposerRecord(doctype: string, name: string, context: WriterContext) {
-	const key = recordKey(doctype, name);
-	const unregister = register(records, key, markRaw(context));
-	// An open that came before the page registered kept the docname; the title is known now.
-	if (recordKey(state.doctype, state.name) === key) {
-		state.title = context.title || name;
-		keptPerms.value = context.perms;
-	}
-	return unregister;
+	keep(doctype, name, context);
+	const unregister = register(records, recordKey(doctype, name), markRaw(context));
+	return () => {
+		// The page's last title and permissions stay for a window that outlives it.
+		if (composerRecordFor(doctype, name) === context) keep(doctype, name, context);
+		unregister();
+	};
 }
 
 /** The context of the record the store is on, or null away from that record. */
 export function composerRecord(): WriterContext | null {
-	return records.get(recordKey(state.doctype, state.name)) ?? null;
+	return composerRecordFor(state.doctype, state.name);
+}
+
+/** The context of this record's page while it is mounted, or null. */
+export function composerRecordFor(doctype: string, name: string): WriterContext | null {
+	return records.get(recordKey(doctype, name)) ?? null;
 }
 
 export function composerDraft(
@@ -179,6 +176,10 @@ function register<T>(map: Map<string, T>, key: string, value: T) {
 	};
 }
 
+function keep(doctype: string, name: string, context: WriterContext) {
+	kept.set(recordKey(doctype, name), { title: context.title || name, perms: context.perms });
+}
+
 function storedWindow(user: string): ComposerWindow {
 	try {
 		return localStorage.getItem(windowStorageKey(user)) === "floating" ? "floating" : "docked";
@@ -189,10 +190,6 @@ function storedWindow(user: string): ComposerWindow {
 
 function windowStorageKey(user: string) {
 	return `desk:composer-window:${user}`;
-}
-
-function sessionUser() {
-	return currentSession()?.user.name ?? "";
 }
 
 function recordKey(doctype: string, name: string) {

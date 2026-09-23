@@ -248,7 +248,7 @@ export interface PageComposer extends SurfaceVerbs<WriterItem> {
   close(): void;
   /** The open writer's name, or `''`. */
   readonly active: string;
-  /** The open card's place, else the reader's own choice; setting it keeps the choice. */
+  /** The open card's place, else the reader's own choice; setting it moves an open card only. */
   window: ComposerWindow;
 }
 

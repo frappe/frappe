@@ -32,6 +32,7 @@ import {
 	composerState,
 	registerComposerDock,
 	registerComposerRecord,
+	type WriterContext,
 } from "@/shell/composer";
 import { RecordFeedsKey } from "../feed/recordFeeds";
 import { COMMENT_WRITER } from "./commentDraft";
@@ -39,7 +40,6 @@ import { EMAIL_WRITER } from "./emailDraft";
 import { titleOf } from "./emailSeed";
 import ComposerPill from "./ComposerPill.vue";
 import { createOptions } from "./createMenu";
-import type { RecordWriterContext } from "./writerContext";
 
 const props = defineProps<{
 	controller: RecordPageController;
@@ -93,7 +93,7 @@ watch(
 	{ immediate: true }
 );
 
-function recordContext(controller: RecordPageController): RecordWriterContext {
+function recordContext(controller: RecordPageController): WriterContext {
 	const { page } = controller;
 	return {
 		doctype: page.doctype,

@@ -14,7 +14,13 @@ vi.mock("@framework/ui/api", () => ({
 import { resetSession, setSession } from "@framework/ui/composables/useSession";
 import type { Session } from "@framework/ui/api";
 import { composerHost } from "@/pages/record/composer/composerHost";
-import { closeComposer, composerState, openComposer, preferredWindow } from "@/shell/composer";
+import {
+  closeComposer,
+  composerState,
+  openComposer,
+  preferredWindow,
+  setComposerWindow,
+} from "@/shell/composer";
 import { isComposerTab } from "../composer";
 import { withRegisteringSource } from "../context";
 import { createRecordPage, RECORD_PAGE_EVENTS, type RecordPageHost } from "../createRecordPage";
@@ -308,9 +314,19 @@ describe("window", () => {
     const page = onStore();
     expect(page.composer.window).toBe("docked");
 
-    page.composer.window = "floating";
+    setComposerWindow("floating", { remember: true });
     expect(page.composer.window).toBe("floating");
-    expect(preferredWindow()).toBe("floating");
+  });
+
+  it("warns and changes nothing while no writer is open on this record", () => {
+    const page = onStore();
+    page.composer.window = "floating";
+
+    expect(page.composer.window).toBe("docked");
+    expect(preferredWindow()).toBe("docked");
+    expect(warnings.join("\n")).toContain(
+      'page.composer.window = "floating" — no writer of this record is open'
+    );
   });
 
   it("reads the open card's place while this record's writer is open", () => {
@@ -322,23 +338,24 @@ describe("window", () => {
     expect(preferredWindow()).toBe("docked");
   });
 
-  it("moves the open card and keeps the choice", () => {
+  it("moves the open card and leaves the reader's choice", () => {
     const page = onStore();
     page.composer.open("comment");
     page.composer.window = "floating";
 
     expect(composerState.window).toBe("floating");
-    expect(preferredWindow()).toBe("floating");
+    expect(page.composer.window).toBe("floating");
+    expect(preferredWindow()).toBe("docked");
   });
 
-  it("keeps the choice without moving another record's open card", () => {
+  it("leaves another record's open card and the reader's choice alone", () => {
     const page = onStore();
     openComposer("CRM Deal", "CRM-DEAL-2", "comment", undefined, "docked");
     page.composer.window = "floating";
 
     expect(composerState).toMatchObject({ name: "CRM-DEAL-2", window: "docked" });
-    expect(preferredWindow()).toBe("floating");
-    expect(page.composer.window).toBe("floating");
+    expect(preferredWindow()).toBe("docked");
+    expect(warnings.join("\n")).toContain("no writer of this record is open");
   });
 
   it("warns and changes nothing for a value other than the two", () => {

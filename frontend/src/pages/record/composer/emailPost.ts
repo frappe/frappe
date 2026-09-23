@@ -6,6 +6,7 @@ import {
 	activeWriter,
 	clearComposerDraft,
 	closeComposer,
+	composerRecordFor,
 	composerState,
 	openComposer,
 	replaceComposerDraft,
@@ -22,16 +23,15 @@ import {
 
 const MAKE = "frappe.core.doctype.communication.email.make";
 
-/** `message` is what goes, the body with any quote under it; a failure puts `draft` back. */
+/** `message` is what goes, the body with any quote under it; a failure puts `draft` back in `window`. */
 export async function postEmail(
 	context: WriterContext,
 	author: UserInfo,
 	draft: EmailDraft,
-	message: string
+	message: string,
+	window: ComposerWindow
 ) {
 	const { doctype, docname } = context;
-	// A failed post reopens the writer where it was, floating over another page too.
-	const window = composerState.window;
 	clearComposerDraft(doctype, docname, EMAIL_WRITER);
 	// A send that waited on the senders may find the reader in another writer, here or elsewhere.
 	if (activeWriter(doctype, docname) === EMAIL_WRITER) closeComposer();
@@ -49,7 +49,8 @@ export async function postEmail(
 	}
 	// `make` sends no time: the row keeps none until the feed's echo of the email retires it.
 	pending.resolve(key);
-	await context.firePost?.(key);
+	// `onPost` is the record page's, so it fires only if that page is up when the answer comes.
+	await composerRecordFor(doctype, docname)?.firePost?.(key);
 }
 
 function makeArgs(

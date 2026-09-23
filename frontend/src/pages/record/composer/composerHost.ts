@@ -8,7 +8,6 @@ import {
 	composerState,
 	openComposer,
 	preferredWindow,
-	rememberWindow,
 	setComposerWindow,
 } from "@/shell/composer";
 import { COMMENT_WRITER } from "./commentDraft";
@@ -33,7 +32,6 @@ export function composerHost(
 		windowState: () =>
 			activeWriter(doctype, docname) ? composerState.window : preferredWindow(),
 		setWindow: (window) => {
-			rememberWindow(window);
 			if (activeWriter(doctype, docname)) setComposerWindow(window);
 		},
 	};

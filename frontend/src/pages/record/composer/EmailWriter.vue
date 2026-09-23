@@ -42,7 +42,7 @@ import { computed, defineAsyncComponent, ref, watch } from "vue";
 import type { SessionUser } from "@framework/ui/api";
 import type { EmailPayload } from "@framework/ui/Composer";
 import { __ } from "@/i18n";
-import type { WriterContext } from "@/shell/composer";
+import { composerState, type WriterContext } from "@/shell/composer";
 import AttachmentSeed from "./AttachmentSeed";
 import { postEmail } from "./emailPost";
 import { freshEmail } from "./emailSeed";
@@ -61,7 +61,7 @@ const { from, to, cc, bcc, subject, content, quoted, seed, upload, forget, disca
 		props.context.doctype,
 		props.context.docname,
 		() => freshEmail(props.context.page),
-		recordUploads(props.context)
+		() => recordUploads(props.context)
 	);
 const composer = ref<{ focus: () => void } | null>(null);
 // A writer posts once; the post closes it, and a reopen draws a new one.
@@ -87,6 +87,7 @@ async function send(payload: EmailPayload) {
 	sent.value = true;
 	// Taken before the wait, so nothing done to the writer meanwhile changes what goes.
 	const headers = draft();
+	const window = composerState.window;
 	await ready;
 	if (choice.value.blocked) {
 		sent.value = false;
@@ -100,6 +101,6 @@ async function send(payload: EmailPayload) {
 	};
 	// The editor's body carries the quote; the draft keeps them apart for a failure to restore.
 	const outgoing = { ...headers, from: from.value, attachments: [...payload.attachments] };
-	void postEmail(props.context, author, outgoing, payload.body);
+	void postEmail(props.context, author, outgoing, payload.body, window);
 }
 </script>

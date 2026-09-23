@@ -90,8 +90,8 @@ import {
 	closeComposer,
 	composerDraft,
 	openComposer,
-	rememberWindow,
 	saveComposerDraft,
+	setComposerWindow,
 } from "@/shell/composer";
 import ComposerWindow from "@/shell/ComposerWindow.vue";
 import { composerBuiltins, composerHost } from "../composerHost";
@@ -126,7 +126,7 @@ let record = 0;
 beforeEach(() => {
 	vi.clearAllMocks();
 	closeComposer();
-	rememberWindow("docked");
+	setComposerWindow("docked", { remember: true });
 });
 afterEach(() => {
 	for (const app of apps.splice(0)) app.unmount();

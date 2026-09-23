@@ -15,12 +15,12 @@ type UploadOptions = {
 	onProgress?: (progress: MediaUploadProgress) => void;
 };
 
-/** `fresh` is what Discard leaves; `transport` hangs each upload on the record, else on nothing. */
+/** `fresh` is what Discard leaves; `transport`, asked at each upload, hangs it on the record, else on nothing. */
 export function useEmailDraft(
 	doctype: string,
 	docname: string,
 	fresh: () => EmailDraft,
-	transport?: UploadTransport
+	transport: () => UploadTransport | undefined = () => undefined
 ) {
 	const stored = composerDraft(doctype, docname, EMAIL_WRITER)
 		? readEmailDraft(doctype, docname)
@@ -42,7 +42,7 @@ export function useEmailDraft(
 	// The editor passes options for inline media; the attach button calls with the file alone.
 	async function upload(file: File, options?: UploadOptions): Promise<UploadedMedia> {
 		const started = discards;
-		const media = await uploadCommentFile(file, options, transport);
+		const media = await uploadCommentFile(file, options, transport());
 		// A Discard during the upload dropped the file from the editor, so the draft drops it too.
 		if (!options && started === discards)
 			attachments.value = [...attachments.value, asAttachment(media)];

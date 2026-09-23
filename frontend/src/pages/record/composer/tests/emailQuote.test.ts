@@ -10,7 +10,7 @@ vi.mock("@framework/ui/api", async (importOriginal) => ({
 }));
 
 import { ComposerSurface } from "@/recordPage/composer";
-import { closeComposer, composerDraft, rememberWindow } from "@/shell/composer";
+import { closeComposer, composerDraft, setComposerWindow } from "@/shell/composer";
 import ComposerWindow from "@/shell/ComposerWindow.vue";
 import { RecordFeeds, RecordFeedsKey } from "../../feed/recordFeeds";
 import { composerBuiltins, composerHost } from "../composerHost";
@@ -48,7 +48,7 @@ beforeEach(() => {
 	vi.clearAllMocks();
 	resetSenders();
 	closeComposer();
-	rememberWindow("docked");
+	setComposerWindow("docked", { remember: true });
 });
 afterEach(() => {
 	for (const app of apps.splice(0)) app.unmount();
