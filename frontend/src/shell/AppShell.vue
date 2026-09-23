@@ -44,6 +44,9 @@
 			@close="customize.close()"
 		/>
 
+		<!-- The open writer, here so a floating one outlives the page it was opened on. -->
+		<ComposerWindow :user="boot.session.user" />
+
 		<ToastProvider />
 		<!-- frappe-ui's imperative dialog stack; `page.dialog.confirm` and `danger` render here. -->
 		<Dialogs />
@@ -65,6 +68,7 @@ import {
 } from "@/navigation/current";
 import { recallSidebar, rememberSidebar } from "@/navigation/sidebarMemory";
 import { sectionMemory } from "@/navigation/sectionMemory";
+import ComposerWindow from "./ComposerWindow.vue";
 import CustomizeSidebarDialog, { type CustomizeTarget } from "./CustomizeSidebarDialog.vue";
 import RailColumn from "./RailColumn.vue";
 import SidebarPanel from "./SidebarPanel.vue";

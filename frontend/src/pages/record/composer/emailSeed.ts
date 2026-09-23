@@ -1,7 +1,12 @@
 // How the email writer opens: a new draft from the record or the email it answers, a stored one re-addressed.
 import { activityTimelineRows, type EmailActivity } from "@framework/ui/ActivityTimeline";
 import type { ActivityItem, RecordPageApi } from "@/recordPage";
-import { composerDraft, openComposer, replaceComposerDraft } from "@/shell/composer";
+import {
+	composerDraft,
+	openComposer,
+	replaceComposerDraft,
+	type ComposerWindow,
+} from "@/shell/composer";
 import { EMAIL_TYPES } from "../feed/recordFeeds";
 import {
 	EMAIL_WRITER,
@@ -28,14 +33,15 @@ export function openEmail(
 	doctype: string,
 	docname: string,
 	context: EmailSeedContext | undefined,
-	draft: Record<string, unknown> = {}
+	draft: Record<string, unknown> = {},
+	placement?: ComposerWindow
 ) {
 	const page = context?.page();
 	const reader = page?.doctype === doctype && page.docname === docname ? page : undefined;
 	const reply = replyFor(reader, context?.userEmail ?? "", draft);
 	if (!composerDraft(doctype, docname, EMAIL_WRITER)) seed(doctype, docname, reader, reply, draft);
 	else if (reply) readdress(doctype, docname, reply, draft.replyAll === true);
-	openComposer(doctype, docname, EMAIL_WRITER);
+	openComposer(doctype, docname, EMAIL_WRITER, undefined, placement);
 }
 
 /** What a plain open of the email writer on this record starts with. */

@@ -144,6 +144,8 @@ export interface RecordPageHost {
   closeWriter?: ComposerHost["closeWriter"];
   /** The open writer's name, or `''`. */
   activeWriter?: ComposerHost["activeWriter"];
+  windowState?: ComposerHost["windowState"];
+  setWindow?: ComposerHost["setWindow"];
 }
 
 export interface RecordPageController {
@@ -218,6 +220,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     openWriter: (name, options) => openWriter(name, options),
     closeWriter: () => host.closeWriter?.(),
     activeWriter: () => host.activeWriter?.() ?? "",
+    windowState: () => host.windowState?.() ?? "docked",
+    setWindow: (window) => host.setWindow?.(window),
   });
   const rows = createRows({
     doc: () => host.doc.value,

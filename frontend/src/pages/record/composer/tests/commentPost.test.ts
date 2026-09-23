@@ -1,5 +1,5 @@
 // The comment send: a pending row at once, the server's key and time on it, and the draft back on a failure.
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { addComment, pending, addPendingActivity } = vi.hoisted(() => {
 	const pending = { resolve: vi.fn(), drop: vi.fn() };
@@ -16,8 +16,12 @@ import {
 	activeWriter,
 	closeComposer,
 	composerDraft,
+	composerKept,
+	composerState,
 	draftRevision,
 	openComposer,
+	preferredWindow,
+	registerComposerRecord,
 	saveComposerDraft,
 } from "@/shell/composer";
 import { postComment } from "../commentPost";
@@ -36,38 +40,44 @@ const FILE = {
 const DRAFT = { content: "<p>Looks good</p>", attachments: [FILE] };
 
 let record = 0;
+const pages: (() => void)[] = [];
 
-function fakeController() {
-	const docname = `NOTE-${++record}`;
-	return {
-		page: {
-			doctype: "Note",
-			docname,
-			toast: { error: vi.fn(), success: vi.fn() },
-		},
+// A context the record's page registers, as it does while it is mounted.
+function fakeContext(docname = `NOTE-${++record}`) {
+	const context = {
+		doctype: "Note",
+		docname,
+		title: docname,
+		perms: {},
+		toast: { error: vi.fn(), success: vi.fn() },
 		firePost: vi.fn(async () => {}),
-	} as any;
+	};
+	pages.push(registerComposerRecord("Note", docname, context));
+	return context;
 }
 
-function opened(controller: any) {
-	openComposer("Note", controller.page.docname, "comment");
-	saveComposerDraft("Note", controller.page.docname, "comment", DRAFT);
+function opened(context: ReturnType<typeof fakeContext>) {
+	openComposer("Note", context.docname, "comment");
+	saveComposerDraft("Note", context.docname, "comment", DRAFT);
 }
 
 beforeEach(() => {
 	vi.clearAllMocks();
 	closeComposer();
 });
+afterEach(() => {
+	for (const unregister of pages.splice(0)) unregister();
+});
 
 describe("postComment", () => {
 	it("collapses, clears the draft and adds a pending row in the reader's name before the answer", async () => {
-		const controller = fakeController();
-		opened(controller);
+		const context = fakeContext();
+		opened(context);
 		addComment.mockReturnValue(new Promise(() => {}));
-		void postComment(controller, AUTHOR, DRAFT);
-		expect(activeWriter("Note", controller.page.docname)).toBe("");
-		expect(composerDraft("Note", controller.page.docname, "comment")).toBeUndefined();
-		expect(addPendingActivity).toHaveBeenCalledWith("Note", controller.page.docname, {
+		void postComment(context, AUTHOR, DRAFT);
+		expect(activeWriter("Note", context.docname)).toBe("");
+		expect(composerDraft("Note", context.docname, "comment")).toBeUndefined();
+		expect(addPendingActivity).toHaveBeenCalledWith("Note", context.docname, {
 			type: "comment",
 			author: AUTHOR,
 			data: {
@@ -83,13 +93,13 @@ describe("postComment", () => {
 			},
 		});
 		expect(addPendingActivity.mock.calls[0][2]).not.toHaveProperty("timestamp");
-		expect(addComment).toHaveBeenCalledWith("Note", controller.page.docname, DRAFT.content, {
+		expect(addComment).toHaveBeenCalledWith("Note", context.docname, DRAFT.content, {
 			attachments: ["F-9"],
 		});
 	});
 
 	it("gives the row its server key and time, then fires onPost with the key", async () => {
-		const controller = fakeController();
+		const context = fakeContext();
 		addComment.mockResolvedValue({
 			data: {
 				comments: [
@@ -99,42 +109,84 @@ describe("postComment", () => {
 				added: "C-2",
 			},
 		});
-		await postComment(controller, AUTHOR, DRAFT);
+		await postComment(context, AUTHOR, DRAFT);
 		expect(pending.resolve).toHaveBeenCalledWith("comment:C-2", "2026-09-23 12:00:00");
-		expect(controller.firePost).toHaveBeenCalledWith("comment:C-2");
+		expect(context.firePost).toHaveBeenCalledWith("comment:C-2");
 		expect(pending.drop).not.toHaveBeenCalled();
+	});
+
+	it("resolves the row for a writer away from its record, which has no onPost", async () => {
+		const { firePost: _none, ...away } = fakeContext();
+		pages.pop()?.();
+		addComment.mockResolvedValue({ data: { comments: [], added: "C-3" } });
+		await postComment(away, AUTHOR, DRAFT);
+		expect(pending.resolve).toHaveBeenCalledWith("comment:C-3", undefined);
+	});
+
+	it("fires no onPost when the record's page goes before the answer", async () => {
+		const context = fakeContext();
+		let answer: (value: unknown) => void = () => {};
+		addComment.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+		const sent = postComment(context, AUTHOR, DRAFT);
+		pages.pop()?.();
+		answer({ data: { comments: [], added: "C-4" } });
+		await sent;
+		expect(pending.resolve).toHaveBeenCalledWith("comment:C-4", undefined);
+		expect(context.firePost).not.toHaveBeenCalled();
+	});
+
+	it("fires the page's onPost when the page is back before the answer", async () => {
+		const { firePost: _none, ...away } = fakeContext();
+		pages.pop()?.();
+		let answer: (value: unknown) => void = () => {};
+		addComment.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+		const sent = postComment(away, AUTHOR, DRAFT);
+		const back = fakeContext(away.docname);
+		answer({ data: { comments: [], added: "C-5" } });
+		await sent;
+		expect(back.firePost).toHaveBeenCalledWith("comment:C-5");
 	});
 
 	it("leaves the row for the feed to retire when the answer names no comment", async () => {
-		const controller = fakeController();
+		const context = fakeContext();
 		addComment.mockResolvedValue({ data: { comments: [] } });
-		await postComment(controller, AUTHOR, DRAFT);
+		await postComment(context, AUTHOR, DRAFT);
 		expect(pending.drop).not.toHaveBeenCalled();
 		expect(pending.resolve).not.toHaveBeenCalled();
-		expect(controller.firePost).not.toHaveBeenCalled();
+		expect(context.firePost).not.toHaveBeenCalled();
 	});
 
 	it("takes the row back, restores the draft, reopens and says why on a failure", async () => {
-		const controller = fakeController();
-		opened(controller);
+		const context = fakeContext();
+		opened(context);
 		addComment.mockRejectedValue(new Error("Not permitted"));
-		await postComment(controller, AUTHOR, DRAFT);
+		await postComment(context, AUTHOR, DRAFT);
 		expect(pending.drop).toHaveBeenCalled();
 		expect(pending.resolve).not.toHaveBeenCalled();
-		expect(controller.firePost).not.toHaveBeenCalled();
-		expect(composerDraft("Note", controller.page.docname, "comment")).toEqual(DRAFT);
-		expect(activeWriter("Note", controller.page.docname)).toBe("comment");
-		expect(controller.page.toast.error).toHaveBeenCalledWith("Not permitted");
+		expect(context.firePost).not.toHaveBeenCalled();
+		expect(composerDraft("Note", context.docname, "comment")).toEqual(DRAFT);
+		expect(activeWriter("Note", context.docname)).toBe("comment");
+		expect(context.toast.error).toHaveBeenCalledWith("Not permitted");
+	});
+
+	it("reopens a floating writer floating, the reader's own choice untouched", async () => {
+		const context = fakeContext();
+		openComposer("Note", context.docname, "comment", undefined, "floating");
+		addComment.mockRejectedValue(new Error("Offline"));
+		await postComment(context, AUTHOR, DRAFT);
+		expect(activeWriter("Note", context.docname)).toBe("comment");
+		expect(composerState.window).toBe("floating");
+		expect(preferredWindow()).toBe("docked");
 	});
 
 	it("puts the failed draft before a newer one in the open writer, and redraws it", async () => {
-		const controller = fakeController();
-		const { docname } = controller.page;
+		const context = fakeContext();
+		const { docname } = context;
 		const other = { ...FILE, name: "F-10", file_url: "/private/files/other.pdf" };
 		let fail: (error: Error) => void = () => {};
 		addComment.mockReturnValue(new Promise((_, reject) => (fail = reject)));
-		const sent = postComment(controller, AUTHOR, DRAFT);
-		opened(controller);
+		const sent = postComment(context, AUTHOR, DRAFT);
+		opened(context);
 		saveComposerDraft("Note", docname, "comment", {
 			content: "<p>Also this</p>",
 			attachments: [other, FILE],
@@ -151,11 +203,11 @@ describe("postComment", () => {
 	});
 
 	it("keeps a newer draft the reader collapsed, after the failed one", async () => {
-		const controller = fakeController();
-		const { docname } = controller.page;
+		const context = fakeContext();
+		const { docname } = context;
 		let fail: (error: Error) => void = () => {};
 		addComment.mockReturnValue(new Promise((_, reject) => (fail = reject)));
-		const sent = postComment(controller, AUTHOR, DRAFT);
+		const sent = postComment(context, AUTHOR, DRAFT);
 		saveComposerDraft("Note", docname, "comment", { content: "<p>Later</p>", attachments: [] });
 		closeComposer();
 		fail(new Error("Offline"));
@@ -167,11 +219,11 @@ describe("postComment", () => {
 	});
 
 	it("restores the failed draft alone over an empty writer", async () => {
-		const controller = fakeController();
-		const { docname } = controller.page;
+		const context = fakeContext();
+		const { docname } = context;
 		let fail: (error: Error) => void = () => {};
 		addComment.mockReturnValue(new Promise((_, reject) => (fail = reject)));
-		const sent = postComment(controller, AUTHOR, DRAFT);
+		const sent = postComment(context, AUTHOR, DRAFT);
 		openComposer("Note", docname, "comment");
 		saveComposerDraft("Note", docname, "comment", { content: "<p></p>", attachments: [] });
 		fail(new Error("Offline"));
@@ -180,14 +232,28 @@ describe("postComment", () => {
 	});
 
 	it("leaves a composer the reader opened on another record since", async () => {
-		const controller = fakeController();
+		const context = fakeContext();
 		let fail: (error: Error) => void = () => {};
 		addComment.mockReturnValue(new Promise((_, reject) => (fail = reject)));
-		const sent = postComment(controller, AUTHOR, DRAFT);
+		const sent = postComment(context, AUTHOR, DRAFT);
 		openComposer("Note", "ELSEWHERE", "comment");
 		fail(new Error("Offline"));
 		await sent;
 		expect(activeWriter("Note", "ELSEWHERE")).toBe("comment");
-		expect(composerDraft("Note", controller.page.docname, "comment")).toEqual(DRAFT);
+		expect(composerDraft("Note", context.docname, "comment")).toEqual(DRAFT);
+	});
+
+	it("keeps its record's title and permissions for the draft when the reader moved on", async () => {
+		const context = Object.assign(fakeContext(), { title: "Quarterly plan", perms: { write: 1 } });
+		opened(context);
+		pages.pop()?.();
+		let fail: (error: Error) => void = () => {};
+		addComment.mockReturnValue(new Promise((_, reject) => (fail = reject)));
+		const sent = postComment(context, AUTHOR, DRAFT);
+		openComposer("Note", "ELSEWHERE", "comment");
+		fail(new Error("Offline"));
+		await sent;
+		openComposer("Note", context.docname, "comment");
+		expect(composerKept()).toMatchObject({ title: "Quarterly plan", perms: { write: 1 } });
 	});
 });

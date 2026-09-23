@@ -2,7 +2,14 @@
 import type { ComposerHost } from "@/recordPage";
 import type { WriterItem } from "@/recordPage/types";
 import { __ } from "@/i18n";
-import { activeWriter, closeComposer, openComposer } from "@/shell/composer";
+import {
+	activeWriter,
+	closeComposer,
+	composerState,
+	openComposer,
+	preferredWindow,
+	setComposerWindow,
+} from "@/shell/composer";
 import { COMMENT_WRITER } from "./commentDraft";
 import { EMAIL_WRITER } from "./emailDraft";
 import { openEmail, type EmailSeedContext } from "./emailSeed";
@@ -14,13 +21,19 @@ export function composerHost(
 ): ComposerHost {
 	return {
 		openWriter: (name, options) => {
-			if (name === EMAIL_WRITER) openEmail(doctype, docname, email, options.draft);
-			else openComposer(doctype, docname, name, options.draft);
+			if (name === EMAIL_WRITER)
+				openEmail(doctype, docname, email, options.draft, options.window);
+			else openComposer(doctype, docname, name, options.draft, options.window);
 		},
 		closeWriter: () => {
 			if (activeWriter(doctype, docname)) closeComposer();
 		},
 		activeWriter: () => activeWriter(doctype, docname),
+		windowState: () =>
+			activeWriter(doctype, docname) ? composerState.window : preferredWindow(),
+		setWindow: (placement) => {
+			if (activeWriter(doctype, docname)) setComposerWindow(placement);
+		},
 	};
 }
 

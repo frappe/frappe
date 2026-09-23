@@ -97,14 +97,18 @@ import {
 	activeWriter,
 	closeComposer,
 	composerDraft,
+	composerState,
 	openComposer,
 	saveComposerDraft,
+	setComposerWindow,
 } from "@/shell/composer";
+import ComposerWindow from "@/shell/ComposerWindow.vue";
 import { RecordFeeds, RecordFeedsKey } from "../../feed/recordFeeds";
 import { composerBuiltins, composerHost } from "../composerHost";
 import { asEmailDraft } from "../emailDraft";
 import { resetSenders } from "../emailSenders";
 import RecordComposer from "../RecordComposer.vue";
+import { RecordPageStub } from "./recordPageStub";
 
 const USER = {
 	name: "ann@example.com",
@@ -124,6 +128,7 @@ beforeEach(() => {
 	vi.clearAllMocks();
 	resetSenders();
 	closeComposer();
+	setComposerWindow("docked", { remember: true });
 });
 afterEach(() => {
 	for (const app of apps.splice(0)) app.unmount();
@@ -188,18 +193,40 @@ async function mountEmail(
 	return mountBand(controller, feeds);
 }
 
+// Hiding the page stands for the reader leaving the record.
 async function mountBand(controller: any, feeds = recordFeeds().feeds) {
+	const onRecord = ref(true);
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const app = createApp({
-		render: () =>
-			h(RecordComposer as Component, { controller, tabs: [ACTIVITY], active: "activity", user: USER }),
+		render: () => [
+			onRecord.value
+				? h(RecordPageStub, { controller }, () =>
+						h(RecordComposer as Component, {
+							controller,
+							tabs: [ACTIVITY],
+							active: "activity",
+							user: USER,
+						})
+				  )
+				: null,
+			h(ComposerWindow as Component, { user: USER }),
+		],
 	});
 	app.provide(RecordFeedsKey, feeds);
 	app.mount(root);
 	apps.push(app);
 	await flush();
-	return { root, controller };
+	return { root, controller, onRecord };
+}
+
+async function floatedAway(controller: any, feeds = recordFeeds().feeds) {
+	const shell = await mountBand(controller, feeds);
+	controller.composer.open("email", { window: "floating" });
+	await flush();
+	shell.onRecord.value = false;
+	await flush();
+	return shell;
 }
 
 function recordFeeds() {
@@ -450,6 +477,42 @@ describe("sending an email", () => {
 	});
 });
 
+describe("away from the record", () => {
+	it("reopens a failed send floating, as the email writer, titled after its record", async () => {
+		answers({ senders: [USER.email], default: null }, async () => {
+			throw new Error("Rejected");
+		});
+		await floatedAway(fakeController());
+		editor(document.body).$emit("submit", { body: "<p>Hi</p>", attachments: [] });
+		await flush();
+		expect(composerState.window).toBe("floating");
+		expect(document.querySelector("[data-email-writer]")).not.toBeNull();
+		expect(document.querySelector("[data-composer-title]")?.textContent?.trim()).toBe(
+			"Email · Acme"
+		);
+	});
+
+});
+
+describe("a failed send", () => {
+	it("reopens where the card was when it went, not where it moved while the send waited", async () => {
+		let release = () => {};
+		const held = new Promise<void>((resolve) => (release = resolve));
+		const senders = { senders: [USER.email], default: null };
+		runMethod.mockImplementation(async (method: string) => {
+			if (method === SENDERS) return held.then(() => ({ data: senders }));
+			throw new Error("Rejected");
+		});
+		const { root, controller } = await mountEmail();
+		editor(root).$emit("submit", { body: "<p>Hi</p>", attachments: [] });
+		controller.composer.window = "floating";
+		release();
+		await flush();
+		expect(activeWriter("Lead", controller.page.docname)).toBe("email");
+		expect(composerState.window).toBe("docked");
+	});
+});
+
 describe("the pill", () => {
 	it("shows Reply only with the email right", async () => {
 		const reply = async (perms: Record<string, number>) => {
@@ -516,6 +579,37 @@ describe("uploads", () => {
 		expect(composerDraft("Lead", controller.page.docname, "email")?.attachments).toEqual([
 			expect.objectContaining({ name: ROW.name, file_url: ROW.file_url }),
 		]);
+	});
+
+	it("hang on the record once its page is gone, and the gone page's Files tab is left alone", async () => {
+		answers({ senders: [USER.email], default: null });
+		attachFile.mockResolvedValue({ data: { attachments: [ROW], file: ROW.name } });
+		const { feeds, docinfo } = recordFeeds();
+		const controller = fakeController({ email: 1, write: 1 });
+		await floatedAway(controller, feeds);
+
+		await composerStub.lastProps.uploadFunction(FILE);
+
+		const [doctype, docname, file] = attachFile.mock.calls[0];
+		expect([doctype, docname, file]).toEqual(["Lead", controller.page.docname, FILE]);
+		expect(docinfo.value.attachments).toEqual([]);
+	});
+
+	it("hang on the record in a writer a failed send reopened away from it", async () => {
+		answers({ senders: [USER.email], default: null }, async () => {
+			throw new Error("Rejected");
+		});
+		attachFile.mockResolvedValue({ data: { attachments: [ROW], file: ROW.name } });
+		const controller = fakeController({ email: 1, write: 1 });
+		await floatedAway(controller);
+		editor(document.body).$emit("submit", { body: "<p>Hi</p>", attachments: [] });
+		await flush();
+		expect(document.querySelector("[data-email-writer]")).not.toBeNull();
+
+		await composerStub.lastProps.uploadFunction(FILE);
+
+		const [doctype, docname, file] = attachFile.mock.calls[0];
+		expect([doctype, docname, file]).toEqual(["Lead", controller.page.docname, FILE]);
 	});
 
 	it("hang on nothing without the write right, and the Files tab is left alone", async () => {

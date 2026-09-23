@@ -86,9 +86,17 @@ vi.mock("@framework/ui/ActivityTimeline", async (importOriginal) => ({
 
 import { ComposerSurface } from "@/recordPage/composer";
 import type { TabItem } from "@/recordPage/types";
-import { closeComposer, composerDraft, openComposer, saveComposerDraft } from "@/shell/composer";
+import {
+	closeComposer,
+	composerDraft,
+	openComposer,
+	saveComposerDraft,
+	setComposerWindow,
+} from "@/shell/composer";
+import ComposerWindow from "@/shell/ComposerWindow.vue";
 import { composerBuiltins, composerHost } from "../composerHost";
 import RecordComposer from "../RecordComposer.vue";
+import { RecordPageStub } from "./recordPageStub";
 
 const USER = {
 	name: "ann@example.com",
@@ -119,6 +127,7 @@ let record = 0;
 beforeEach(() => {
 	vi.clearAllMocks();
 	closeComposer();
+	setComposerWindow("docked", { remember: true });
 });
 afterEach(() => {
 	for (const app of apps.splice(0)) app.unmount();
@@ -142,7 +151,12 @@ async function mountBand(tabs: TabItem[], active: string, controller = fakeContr
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const app = createApp({
-		render: () => h(RecordComposer as Component, { controller, tabs, active, user: USER }),
+		render: () => [
+			h(RecordPageStub, { controller }, () =>
+				h(RecordComposer as Component, { controller, tabs, active, user: USER })
+			),
+			h(ComposerWindow as Component, { user: USER }),
+		],
 	});
 	app.mount(root);
 	apps.push(app);

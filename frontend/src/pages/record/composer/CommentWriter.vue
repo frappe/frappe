@@ -25,7 +25,7 @@
 import { defineAsyncComponent, ref, watch } from "vue";
 import type { SessionUser } from "@framework/ui/api";
 import type { CommentPayload } from "@framework/ui/Composer";
-import type { RecordPageController } from "@/recordPage";
+import type { WriterContext } from "@/shell/composer";
 import { __ } from "@/i18n";
 import AttachmentSeed from "./AttachmentSeed";
 import { postComment } from "./commentPost";
@@ -35,14 +35,14 @@ const CommentComposer = defineAsyncComponent(() =>
 	import("@framework/ui/Composer").then((module) => module.CommentComposer)
 );
 
-const props = defineProps<{ controller: RecordPageController; user: SessionUser }>();
+const props = defineProps<{ context: WriterContext; user: SessionUser }>();
 
 const { content, seed, upload, forget, discard } = useCommentDraft(
-	props.controller.page.doctype,
-	props.controller.page.docname
+	props.context.doctype,
+	props.context.docname
 );
 const composer = ref<{ focus: () => void } | null>(null);
-// A writer posts once; the band closes it, and a reopen draws a new one.
+// A writer posts once; the post closes it, and a reopen draws a new one.
 const sent = ref(false);
 
 watch(composer, (editor) => editor?.focus());
@@ -56,7 +56,7 @@ function send(payload: CommentPayload) {
 		fullname: props.user.full_name,
 		image: props.user.user_image ?? undefined,
 	};
-	void postComment(props.controller, author, {
+	void postComment(props.context, author, {
 		content: payload.body,
 		attachments: [...payload.attachments],
 	});

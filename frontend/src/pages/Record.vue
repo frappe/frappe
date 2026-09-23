@@ -157,6 +157,7 @@ import RecordHeader from "./record/RecordHeader.vue";
 import RecordTabs from "./record/tabs/RecordTabs.vue";
 import RecordComposer from "./record/composer/RecordComposer.vue";
 import { composerBuiltins, composerHost } from "./record/composer/composerHost";
+import { useComposerRecord } from "./record/composer/writerContext";
 import { FILES_TAB, TAB_STRIP_CLASSES, recordTabBuiltins } from "./record/tabs/recordTabs";
 import { useRecordTabs } from "./record/tabs/useRecordTabs";
 import {
@@ -316,6 +317,8 @@ const feeds = new RecordFeeds({
 	whileOnRecord,
 });
 provide(RecordFeedsKey, feeds);
+// Held for the page's life, so a script hiding the band leaves the writers their record.
+useComposerRecord(() => controller.value, feeds);
 
 // The record's realtime room, joined per load; the panel's rows follow another tab's assign or comment.
 const live = useLiveDocinfo({ socket: getSocketInstance(), docinfo, reload: reloadDocinfo });
