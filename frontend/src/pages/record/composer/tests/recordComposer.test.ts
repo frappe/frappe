@@ -292,6 +292,19 @@ describe("sending a comment", () => {
 		expect(root.querySelector("[data-composer-card]")).toBeNull();
 	});
 
+	it("posts once when the editor submits twice before the writer closes", async () => {
+		addComment.mockResolvedValue({ data: { comments: [], added: "C-8" } });
+		const controller = fakeController();
+		openComposer("Note", controller.page.docname, "comment");
+		const { root } = await mountBand([ACTIVITY], "activity", controller);
+		const editor = composerInstance(root);
+		editor.$emit("submit", { body: "<p>Once</p>", attachments: [] });
+		editor.$emit("submit", { body: "<p>Once</p>", attachments: [] });
+		await flush();
+		expect(addComment).toHaveBeenCalledTimes(1);
+		expect(addPendingActivity).toHaveBeenCalledTimes(1);
+	});
+
 	it("drops the row and reopens with the draft when the post fails", async () => {
 		addComment.mockRejectedValue(new Error("Not permitted"));
 		const controller = fakeController();

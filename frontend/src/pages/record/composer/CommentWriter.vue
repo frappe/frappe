@@ -9,6 +9,7 @@
 			:placeholder="__('Write a comment…')"
 			:submitLabel="__('Comment')"
 			:uploadFunction="upload"
+			:submitting="sent"
 			@submit="send"
 			@remove-attachment="forget"
 		>
@@ -40,10 +41,14 @@ const { content, seed, upload, forget } = useCommentDraft(
 	props.controller.page.docname
 );
 const composer = ref<{ focus: () => void } | null>(null);
+// A writer posts once; the band closes it, and a reopen draws a new one.
+const sent = ref(false);
 
 watch(composer, (editor) => editor?.focus());
 
 function send(payload: CommentPayload) {
+	if (sent.value) return;
+	sent.value = true;
 	const author = {
 		name: props.user.name,
 		email: props.user.email,
