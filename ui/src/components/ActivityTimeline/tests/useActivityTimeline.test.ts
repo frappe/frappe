@@ -582,6 +582,29 @@ describe("pending rows", () => {
       expect(timeline.activities.value[0].pending).toBeFalsy();
     });
 
+    it("stays when From is the user's own address, in any case", async () => {
+      const name = freshDoc();
+      const { timeline } = mountTimeline(name);
+      await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
+
+      addPendingActivity("ToDo", name, email("hello"));
+      socket.emit("docinfo_update", socketEmail(name, "E1", "hello", "A <A@X.com>"));
+
+      expect(timeline.activities.value[0].author).toMatchObject({ image: "/a.png" });
+    });
+
+    it("is not carried to a row sent from another address", async () => {
+      const name = freshDoc();
+      const { timeline } = mountTimeline(name);
+      await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
+
+      addPendingActivity("ToDo", name, email("hello"));
+      socket.emit("docinfo_update", socketEmail(name, "E1", "hello", "Sales <sales@x.com>"));
+
+      expect(timeline.activities.value).toMatchObject([{ key: "email:E1", author: { email: "sales@x.com" } }]);
+      expect(timeline.activities.value[0].author?.image).toBeUndefined();
+    });
+
     it("stays when a resolved row is confirmed by a read with no picture", async () => {
       const name = freshDoc();
       const { timeline } = mountTimeline(name);
