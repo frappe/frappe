@@ -98,4 +98,12 @@ describe("compareActivities", () => {
   it("is exported from the package entry", () => {
     expect(entry.compareActivities).toBe(compareActivities);
   });
+
+  it("sorts a row with no timestamp yet after every timestamped row, as the newest", () => {
+    const timed = at("2026-01-01 10:00:00", "comment:c1");
+    const pending = { timestamp: undefined, key: "pending:1" };
+    expect(compareActivities(pending, timed)).toBeGreaterThan(0);
+    expect(compareActivities(timed, pending)).toBeLessThan(0);
+    expect(compareActivities(pending, { timestamp: undefined, key: "pending:0" })).toBeGreaterThan(0);
+  });
 });

@@ -95,6 +95,8 @@ import { filesInTimeOrder, isImage, isScriptRow } from "./files";
 import RecordFeed from "./RecordFeed.vue";
 import { RecordFeedsKey } from "./recordFeeds";
 
+defineOptions({ scrollsItself: true });
+
 const props = defineProps<{ page: RecordPageApi }>();
 
 const feeds = inject(RecordFeedsKey)!;

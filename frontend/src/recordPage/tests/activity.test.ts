@@ -107,12 +107,11 @@ describe("the list a script reads", () => {
     expect(names(page.activity.items)).toEqual(["comment:c1", "version:v1-0", "comment:c2"]);
   });
 
-  it("marks a row the server has not answered yet", () => {
+  it("marks a row the server has not answered yet, and sorts it last, as the newest", () => {
     const { page, rows } = makePage();
     rows.value.push({ type: "comment", key: "pending:7", pending: true, data: {} });
 
-    const pending = page.activity.items.find((item) => item.name === "pending:7");
-    expect(pending).toMatchObject({ pending: true });
+    expect(page.activity.items.at(-1)).toMatchObject({ name: "pending:7", pending: true });
   });
 
   it("places a script's row by its timestamp among the server's rows", () => {

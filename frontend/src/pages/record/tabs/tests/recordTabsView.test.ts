@@ -228,7 +228,7 @@ describe("the bodies", () => {
 });
 
 describe("a body that scrolls itself", () => {
-  const FEEDS = [entry("activity", { component: Feed }), entry("files"), entry("details")];
+  const FEEDS = [entry("activity", { component: Feed }), entry("files", { component: Feed }), entry("details")];
 
   function viewports(root: HTMLElement, name: string) {
     return [...body(root, name)!.querySelectorAll("[data-reka-scroll-area-viewport]")].filter(
@@ -237,24 +237,27 @@ describe("a body that scrolls itself", () => {
   }
 
   it("has one scroll viewport a reader can tab to, its own", async () => {
-    const { root } = await mount(FEEDS, "activity");
+    const { root, state } = await mount(FEEDS, "activity");
+    state.active = "files";
+    await nextTick();
 
     expect(viewports(root, "activity")).toHaveLength(1);
     expect(body(root, "activity")!.hasAttribute("data-reka-scroll-area-viewport")).toBe(false);
+    expect(viewports(root, "files")).toHaveLength(1);
+    expect(body(root, "files")!.hasAttribute("data-reka-scroll-area-viewport")).toBe(false);
   });
 
-  it("leaves Details and every other body in the strip's scroll area", async () => {
+  it("leaves Details in the strip's scroll area", async () => {
     const { root, state } = await mount(FEEDS, "details");
     state.active = "files";
     await nextTick();
 
     expect(viewport(root, "details")).not.toBeNull();
-    expect(viewport(root, "files")).not.toBeNull();
   });
 
-  it("marks the Activity and Emails bodies, and not Files", () => {
+  it("marks the Activity, Emails and Files bodies", () => {
     const marked = recordTabBuiltins().filter((tab) => scrollsItself(tab.component));
-    expect(marked.map((tab) => tab.name)).toEqual(["activity", "emails"]);
+    expect(marked.map((tab) => tab.name)).toEqual(["activity", "emails", "files"]);
   });
 
   it("gets focus back on the row the reader left", async () => {

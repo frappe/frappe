@@ -16,11 +16,16 @@ export function dropDuplicateKeys(activities: Activity[]): Activity[] {
   );
 }
 
-/** The server's order: the timestamp string, then the key, compared by code unit. */
+/** The server's order: the timestamp string, then the key, compared by code unit.
+ *  A row with no timestamp yet (a pending row) sorts after every timestamped row, as the newest. */
 export function compareActivities(
   a: Pick<Activity, "timestamp" | "key">,
   b: Pick<Activity, "timestamp" | "key">
 ): number {
+  if (!a.timestamp || !b.timestamp) {
+    if (a.timestamp || b.timestamp) return a.timestamp ? -1 : 1;
+    return compareText(a.key, b.key);
+  }
   return compareText(a.timestamp, b.timestamp) || compareText(a.key, b.key);
 }
 
