@@ -164,7 +164,7 @@ describe("the bodies", () => {
     expect(body(root, "files")!.style.display).toBe("none");
   });
 
-  it("draws Details from the host's slot and an empty state for the other built-ins", async () => {
+  it("draws Details from the host's slot and an empty state for a tab with no component", async () => {
     const { root, state } = await mount(FOUR, "details");
 
     expect(body(root, "details")!.querySelector("[data-details]")).not.toBeNull();

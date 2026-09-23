@@ -12,6 +12,7 @@ export const RECORD_PARTS = [
 	"follows",
 	"users",
 	"link_titles",
+	"attachments",
 ] as const;
 
 export interface LoadedRecord {
@@ -52,6 +53,7 @@ async function read(doctype: string, name: string, include: readonly string[]): 
 			favourites: envelope.favourites as DocInfo["favourites"],
 			follows: envelope.follows as DocInfo["follows"],
 			users: envelope.users as DocInfo["users"],
+			attachments: envelope.attachments as DocInfo["attachments"],
 		},
 		linkTitles: (envelope.link_titles ?? {}) as Record<string, string>,
 	};
