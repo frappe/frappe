@@ -47,10 +47,13 @@ export type {
   HeaderProjection,
 } from "./headerRenderings";
 export { formItems, joinForm } from "./formJoin";
+export { COMPOSER_TABS, isComposerTab } from "./composer";
+export type { ComposerHost, ComposerSurface } from "./composer";
 export type {
   ActivityItem,
   ActivityRow,
   BodyItem,
+  ComposerOpenOptions,
   FeedItem,
   FileRow,
   FormItem,
@@ -60,9 +63,11 @@ export type {
   PageForm,
   PanelSectionsApi,
   PageActivity,
+  PageComposer,
   PageFiles,
   QuickAction,
   RecordPageApi,
+  WriterItem,
 } from "./types";
 
 export { useFormLayout, resetFormLayouts } from "./formLayoutSource/useFormLayout";

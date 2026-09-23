@@ -5,6 +5,7 @@ import type { Router } from "vue-router";
 import { toast } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
 import { createCommitChannel, type RecordCommitChannel } from "./commitChannel";
+import { ComposerSurface, composerTab, type ComposerHost } from "./composer";
 import { withRunningSource } from "./context";
 import { createPageDialogs, type PageDialogEntry } from "./dialog";
 import type { Decorator } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
@@ -32,7 +33,9 @@ import { Surface } from "./surface";
 import { PANEL_SECTION_KEYS, QUICK_ACTION_KEYS, TAB_ITEM_KEYS } from "./types";
 import type {
   ActivityRow,
+  ComposerOpenOptions,
   FileRow,
+  PageRow,
   PanelSectionItem,
   PanelSectionsApi,
   QuickAction,
@@ -58,6 +61,7 @@ export const RECORD_PAGE_EVENTS = [
   "afterSave",
   "onTabChange",
   "onFormTabChange",
+  "onPost",
 ];
 
 // Each refusal names the verb that does support what the write was reaching for.
@@ -134,6 +138,11 @@ export interface RecordPageHost {
   /** The record read's `attachments` part, oldest first. */
   fileRows: () => FileRow[];
   reloadFiles: () => Promise<void>;
+  /** Opens a writer in the band; the engine has already moved the reader to a tab that draws it. */
+  openWriter?: ComposerHost["openWriter"];
+  closeWriter?: ComposerHost["closeWriter"];
+  /** The open writer's name, or `''`. */
+  activeWriter?: ComposerHost["activeWriter"];
 }
 
 export interface RecordPageController {
@@ -152,12 +161,16 @@ export interface RecordPageController {
   activity: ActivitySurface;
   /** A script's rows for the Files tab. */
   files: FilesSurface;
+  /** The composer's writers; the host provides the built-in `comment`. */
+  composer: ComposerSurface;
   /** What the host provides as `CommitKey`: a field's commit fires its handler through it. */
   commits: RecordCommitChannel;
   /** The replay: clears every surface, then runs every source's `refresh` in run order. */
   refresh: () => Promise<void>;
   /** `row` addresses the child row a dotted event happened to; see `Handler`. */
   fireEvent: (event: string, row?: RowAddress) => Promise<void>;
+  /** Fires `onPost` with the posted row's key, once the server has answered the built-in writer. */
+  firePost: (key: string) => Promise<void>;
   /** True once the first replay has run — before it, surfaces are only built-ins. */
   ready: Ref<boolean>;
   /** True while a replay is staging; a host announcing a settled strip waits for it to go false. */
@@ -200,6 +213,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     rows: () => host.fileRows(),
     reload: () => host.reloadFiles(),
   });
+  const composer = new ComposerSurface({
+    openWriter: (name, options) => openWriter(name, options),
+    closeWriter: () => host.closeWriter?.(),
+    activeWriter: () => host.activeWriter?.() ?? "",
+  });
   const rows = createRows({
     doc: () => host.doc.value,
     fields: () => host.meta.value?.fields,
@@ -219,6 +237,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     formTabs,
     activity,
     files,
+    composer,
   ];
 
   Object.defineProperty(tabs, "active", { get: () => host.activeTab() });
@@ -300,6 +319,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     form,
     activity,
     files,
+    composer,
     rows: rows.rows,
     save: () => save(),
     reload: () => host.reload(),
@@ -338,6 +358,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
         releaseDisclosures();
         releaseFocus();
         activity.releaseScroll();
+        composer.releaseOpen();
       }
     }
     ready.value = true;
@@ -547,15 +568,38 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     );
   }
 
+  /** `page.composer.open`'s host half: the reader first moves to a tab that draws the band. */
+  function openWriter(name: string, options: ComposerOpenOptions) {
+    const tab = composerTab(tabs.visible(), host.activeTab());
+    if (!tab) return warnOpen(name, "no tab on the strip draws the composer");
+    if (!host.openWriter) return warnOpen(name, "this host draws no composer");
+    if (tab !== host.activeTab()) activate("tabs", tab);
+    host.openWriter(name, options);
+  }
+
+  function warnOpen(name: string, because: string) {
+    if (!import.meta.env.DEV) return;
+    console.warn(
+      `[record-page] page.composer.open("${name}") — ${because}; nothing was opened.`,
+    );
+  }
+
   async function fireEvent(event: string, row?: RowAddress) {
     // One handle for the whole dispatch, and the same object `page.rows()` hands back.
-    const handle = row ? rows.handle(row) : undefined;
+    await dispatch(event, row ? rows.handle(row) : undefined);
+  }
+
+  function firePost(key: string) {
+    return dispatch("onPost", { name: key });
+  }
+
+  async function dispatch(event: string, detail?: PageRow | { name: string }) {
     for (const { source, handlers } of registrationsFor(host.doctype)) {
       const handler = handlers[event];
       if (!handler) continue;
       await withRunningSource(source, async () => {
         try {
-          await handler(page, handle);
+          await handler(page, detail as PageRow);
         } catch (error) {
           // `beforeSave` rethrows to abort the save and is not reported: the user
           // is looking straight at a failed save, and a working veto is not an error.
@@ -643,9 +687,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     form,
     activity,
     files,
+    composer,
     commits,
     refresh,
     fireEvent,
+    firePost,
     ready,
     isReplaying,
     dialogs: dialogs.entries,

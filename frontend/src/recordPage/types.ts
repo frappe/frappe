@@ -82,6 +82,8 @@ export interface TabItem extends SurfaceItem {
   props?: Record<string, any>;
   /** Joins the composer's `+` menu while this tab is on the strip. */
   create?: TabCreateAction;
+  /** Draws the composer band at the foot of this tab, as Activity and Emails do. */
+  composer?: boolean;
 }
 
 export const TAB_ITEM_KEYS: readonly string[] = [
@@ -91,6 +93,7 @@ export const TAB_ITEM_KEYS: readonly string[] = [
   "component",
   "props",
   "create",
+  "composer",
 ];
 
 /** One item of the panel's single list; a `label` gives it a header, a layout name renders its fields. */
@@ -216,6 +219,31 @@ export interface PageActivity extends PageFeedList<ActivityItem> {
 }
 
 export type PageFiles = PageFeedList<FileRow>;
+
+/** One writer of the composer: the built-in `comment`, or a script's own. */
+export interface WriterItem extends SurfaceItem {
+  label: string;
+  icon?: string;
+  /** Draws the writer's body; it receives `{ ...props, page, close }` and posts on its own. */
+  component?: Component;
+  props?: Record<string, any>;
+}
+
+export const WRITER_ITEM_KEYS: readonly string[] = ["name", "label", "icon", "component", "props"];
+
+export interface ComposerOpenOptions {
+  /** Seeds the writer's draft; a draft already in memory wins. */
+  draft?: Record<string, unknown>;
+}
+
+/** The writers the band at the foot of a composer tab offers, and the one open in it. */
+export interface PageComposer extends SurfaceVerbs<WriterItem> {
+  /** Moves the reader to a tab that draws the band, then opens the writer; held in a replay. */
+  open(name: string, options?: ComposerOpenOptions): void;
+  close(): void;
+  /** The open writer's name, or `''`. */
+  readonly active: string;
+}
 
 /** The panel surface also opens and shuts a section for the reader. */
 export interface PanelSectionsApi extends SurfaceVerbs<PanelSectionItem> {
@@ -537,6 +565,8 @@ export interface RecordPageApi {
   activity: PageActivity;
   /** The record's attachments, oldest first. */
   files: PageFiles;
+  /** The writers of the band at the foot of the Activity and Emails tabs. */
+  composer: PageComposer;
   /** The child table's rows as handles, in array order; a non-table fieldname answers empty. */
   rows(parentfield: string): PageRow[];
   save(): Promise<void>;
@@ -551,8 +581,8 @@ export interface RecordPageApi {
 export type { FieldAccess, VisibleTypes };
 
 /**
- * A top-level key receives `(page)`; one nested under a child table receives
- * `(page, row)`, except `onRemove`, whose row is gone.
+ * A top-level key receives `(page)`, and `onPost` `(page, { name })`; one nested under a
+ * child table receives `(page, row)`, except `onRemove`, whose row is gone.
  */
 export type Handler = (page: RecordPageApi, row?: PageRow) => any;
 
