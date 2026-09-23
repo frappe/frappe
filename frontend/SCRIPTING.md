@@ -703,7 +703,8 @@ It speaks the eight verbs, `active` and `activate(name)`.
 | `create` | `{ label, icon, run }`: an entry in the composer's `+` menu while the tab is on the strip. |
 
 The page draws a tab's body inside a scroller. A component that draws its own scroller sets
-`defineOptions({ scrollsItself: true })`, and the tab body adds none.
+`defineOptions({ scrollsItself: true })`, or `scrollsItself: true` on the component object,
+and the tab body adds none.
 
 ## The feed: `page.activity`
 

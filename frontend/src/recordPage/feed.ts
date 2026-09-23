@@ -1,6 +1,7 @@
 // The two lists time orders, `page.activity` and `page.files`: the server's rows
 // read from the host, a script's own rows kept on the surface so they outlive a reload.
 import { ref } from "vue";
+import { dayjs } from "frappe-ui";
 import { compareActivities } from "@framework/ui/ActivityTimeline";
 import { currentSession } from "@framework/ui/composables/useSession";
 import { readOnly } from "./readOnly";
@@ -221,9 +222,8 @@ function onSiteClock(date: string, time: string, zone: string): string | undefin
   const [whole, fraction] = time.split(".");
   const instant = new Date(`${date}T${whole}${isoOffset(zone)}`);
   if (!siteZone || Number.isNaN(instant.getTime())) return undefined;
-  const at = Object.fromEntries(siteClock(siteZone).formatToParts(instant).map((p) => [p.type, p.value]));
-  const seconds = fraction ? `${at.second}.${fraction}` : at.second;
-  return `${at.year}-${at.month}-${at.day} ${at.hour}:${at.minute}:${seconds}`;
+  const clock = dayjs(instant).tz(siteZone).format("YYYY-MM-DD HH:mm:ss");
+  return fraction ? `${clock}.${fraction}` : clock;
 }
 
 // `Date` reads `Z` and `+05:30`, not `+0530` or `+05`.
@@ -231,19 +231,6 @@ function isoOffset(zone: string) {
   if (zone === "Z") return zone;
   const digits = zone.slice(1).replace(":", "");
   return `${zone[0]}${digits.slice(0, 2)}:${digits.slice(2) || "00"}`;
-}
-
-function siteClock(timeZone: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    hourCycle: "h23",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
 }
 
 // As the timeline draws its rows; a file row's time is its `creation`.

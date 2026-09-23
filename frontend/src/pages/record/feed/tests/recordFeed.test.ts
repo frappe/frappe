@@ -92,6 +92,11 @@ describe("RecordFeed", () => {
 		expect(area.classList).toContain("h-full");
 	});
 
+	it("turns off the browser's scroll anchoring on the scroller", async () => {
+		const { scroller } = await mount();
+		expect(scroller.classList).toContain("[overflow-anchor:none]");
+	});
+
 	it("opens at the bottom once the first rows are drawn", async () => {
 		const { state, geometry } = await mount(true, false);
 		Object.assign(geometry, { scrollHeight: 3000, clientHeight: 500 });

@@ -3,7 +3,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ref, watch } from "vue";
 
-vi.mock("frappe-ui", () => ({
+// dayjs stays real: a zoned timestamp moves to the site clock through it.
+vi.mock("frappe-ui", async (importActual) => ({
+  dayjs: ((await importActual()) as typeof import("frappe-ui")).dayjs,
   call: vi.fn(),
   toast: { success: vi.fn(), error: vi.fn() },
   createResource: () => ({

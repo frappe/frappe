@@ -460,6 +460,20 @@ describe("pending rows", () => {
     expect(timeline.activities.value[2]).toMatchObject({ renderKey: draftKey });
   });
 
+  it("matches a comment echo that sorts before a future-dated email the feed held", async () => {
+    const name = freshDoc();
+    const email = row("email", "email:FUTURE", "2027-01-01 09:00:00", { name: "FUTURE", content: "<p>ok</p>" });
+    serve({ newest: { activities: [c(1), email], next: null } });
+    const { timeline } = mountTimeline(name);
+    await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
+
+    addPendingActivity("ToDo", name, comment("ok"));
+    const draftKey = timeline.activities.value.find((a) => a.pending)!.key;
+    socket.emit("docinfo_update", socketComment(name, "NEW", "ok", "2026-01-05 10:00:03"));
+    expect(keys(timeline)).toEqual(["comment:1", "comment:NEW", "email:FUTURE"]);
+    expect(timeline.activities.value[1]).toMatchObject({ renderKey: draftKey });
+  });
+
   it("keeps a pending comment out of the emails view", async () => {
     const name = freshDoc();
     const emails = useActivityTimeline("ToDo", name, ["email"]);

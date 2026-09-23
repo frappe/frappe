@@ -18,8 +18,8 @@ const adoptedKeys = ref<Record<string, Record<string, string>>>({});
 type TrackedFeed = { doc: string; data: Ref<Activity[]> };
 const trackedFeeds = new Set<TrackedFeed>();
 
-// The newest row the feeds held when an unresolved row was added, by render key;
-// its echo can only sort after it.
+// The newest non-email row the feeds held when an unresolved row was added, by render
+// key; its echo can only sort after it. An email's time is the sender's clock.
 type Position = Pick<Activity, "timestamp" | "key">;
 const newestHeldAtAdd = new Map<string, Position>();
 
@@ -121,7 +121,8 @@ function newestHeld(doc: string): Position | undefined {
   for (const feed of trackedFeeds)
     if (feed.doc === doc)
       for (const a of feed.data.value)
-        if (!newest || compareActivities(a, newest) > 0) newest = a;
+        if (a.type !== "email" && (!newest || compareActivities(a, newest) > 0))
+          newest = a;
   return newest;
 }
 

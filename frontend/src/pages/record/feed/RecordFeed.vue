@@ -6,7 +6,12 @@
 		<!-- The scroll area's root sets an inline `position: relative`, so a wrapper holds the sizing.
 		     `isolate` keeps the timeline's own z-indices under the fades. -->
 		<div class="absolute inset-0 isolate">
-			<ScrollArea ref="area" class="h-full" viewportClass="px-6 pb-8 pt-4">
+			<!-- No scroll anchoring: every scroll the feed does not set is the reader's. -->
+			<ScrollArea
+				ref="area"
+				class="h-full"
+				viewportClass="px-6 pb-8 pt-4 [overflow-anchor:none]"
+			>
 				<!-- Hidden for the one frame between drawing the rows and landing at the bottom. -->
 				<div
 					ref="content"
