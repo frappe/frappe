@@ -1655,6 +1655,7 @@ def clear_session(sid_hash: str):
 	if owned:
 		delete_session(sid_hash=owned[0], reason="Force Logged out by the user", user=frappe.session.user)
 		frappe.toast(_("Successfully signed out"))
+<<<<<<< HEAD
 >>>>>>> ea5475c (refactor(user): pivot to standalone bulk role assignment action)
 	for session in sessions_data:
 		if sha256_hash(session) == sid_hash:
@@ -1663,6 +1664,8 @@ def clear_session(sid_hash: str):
 			return
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> f34e6e4 (chore(merge-conflict): weird merge conflict brought some weird issues)
 
 
 @frappe.whitelist(methods=["POST"])
