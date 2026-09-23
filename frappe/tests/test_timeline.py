@@ -157,7 +157,7 @@ COMPARE = {"<": operator.lt, "<=": operator.le}
 
 class TestEmailActivities(FrappeTestCase):
 	def test_an_email_with_no_date_is_walked_once_at_its_creation(self):
-		todo = frappe.get_doc({"doctype": "ToDo", "description": "emails"}).insert()
+		todo = new_todo()
 		sent = [add_email(todo, f"2026-01-0{day} 10:00:00") for day in range(1, 6)]
 		undated = add_email(todo, "2026-01-02 10:00:00")
 		frappe.db.set_value(
@@ -167,32 +167,60 @@ class TestEmailActivities(FrappeTestCase):
 			update_modified=False,
 		)
 
-		walked, before = [], None
-		for _page in range(10):
-			built = get_activity_timeline("ToDo", todo.name, ["email"], limit=2, before=before)
-			walked += keys(built["activities"])
-			if not (before := built["next"]):
-				break
+		walked = walk_emails(todo, limit=2)
 
 		self.assertCountEqual(walked, [f"email:{name}" for name in [*sent, undated]])
-		self.assertEqual(len(walked), len(set(walked)))
+
+	def test_an_email_linked_to_the_record_is_read_once(self):
+		todo, elsewhere = new_todo(), new_todo()
+		sent = add_email(todo, "2026-01-01 10:00:00")
+		linked = add_email(elsewhere, "2026-01-02 10:00:00", linked_to=todo)
+		sent_and_linked = add_email(todo, "2026-01-03 10:00:00", linked_to=todo)
+		oldest_first = [f"email:{name}" for name in (sent, linked, sent_and_linked)]
+
+		read = get_activity_timeline("ToDo", todo.name, ["email"])
+
+		self.assertEqual(keys(read["activities"]), oldest_first)
+		self.assertEqual(walk_emails(todo, limit=1), oldest_first[::-1])
+
+	def test_emails_sharing_one_instant_are_walked_once(self):
+		todo = new_todo()
+		same_instant = [add_email(todo, "2026-01-01 10:00:00") for _email in range(3)]
+
+		walked = walk_emails(todo, limit=2)
+
+		self.assertCountEqual(walked, [f"email:{name}" for name in same_instant])
 
 
-def add_email(todo, communication_date: str) -> str:
-	return (
-		frappe.get_doc(
-			{
-				"doctype": "Communication",
-				"communication_type": "Communication",
-				"communication_medium": "Email",
-				"sent_or_received": "Received",
-				"subject": f"sent {communication_date}",
-				"sender": "someone@example.com",
-				"communication_date": communication_date,
-				"reference_doctype": "ToDo",
-				"reference_name": todo.name,
-			}
-		)
-		.insert(ignore_permissions=True)
-		.name
+def new_todo():
+	return frappe.get_doc({"doctype": "ToDo", "description": "emails"}).insert()
+
+
+def walk_emails(todo, limit: int) -> list[str]:
+	"""The email keys of every page of the ToDo's feed, newest first."""
+	walked, before = [], None
+	for _page in range(20):
+		built = get_activity_timeline("ToDo", todo.name, ["email"], limit=limit, before=before)
+		walked += reversed(keys(built["activities"]))
+		if not (before := built["next"]):
+			return walked
+	raise AssertionError(f"the cursor never reached the end: {walked}")
+
+
+def add_email(reference, communication_date: str, linked_to=None) -> str:
+	email = frappe.get_doc(
+		{
+			"doctype": "Communication",
+			"communication_type": "Communication",
+			"communication_medium": "Email",
+			"sent_or_received": "Received",
+			"subject": f"sent {communication_date}",
+			"sender": "someone@example.com",
+			"communication_date": communication_date,
+			"reference_doctype": "ToDo",
+			"reference_name": reference.name,
+		}
 	)
+	if linked_to:
+		email.add_link("ToDo", linked_to.name)
+	return email.insert(ignore_permissions=True).name
