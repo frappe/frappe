@@ -1626,11 +1626,6 @@ def clear_session(sid_hash: str):
 	if owned:
 		delete_session(sid_hash=owned[0], reason="Force Logged out by the user", user=frappe.session.user)
 		frappe.toast(_("Successfully signed out"))
-	for session in sessions_data:
-		if sha256_hash(session) == sid_hash:
-			delete_session(sid=session, reason="Force Logged out by the user", user=frappe.session.user)
-			frappe.toast(_("Successfully signed out"))
-			return
 
 
 @frappe.whitelist(methods=["POST"])
