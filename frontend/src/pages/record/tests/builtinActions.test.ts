@@ -119,7 +119,7 @@ describe("quickActionBuiltins", () => {
     expect(open).toHaveBeenCalledWith("email");
   });
 
-  it("seeds attach after comment only with the Files tab's upload, which only write gives", () => {
+  it("seeds attach after comment only with the Files tab's upload, which asks for it on the tab shown", () => {
     const requestUpload = vi.fn();
     const filesCreate = (upload?: () => void) =>
       recordTabBuiltins({ requestUpload: upload }).find((tab) => tab.name === FILES_TAB)!.create;
@@ -130,9 +130,10 @@ describe("quickActionBuiltins", () => {
 
     const attach = actions[2];
     expect(attach).toMatchObject({ label: "Attach", icon: "lucide-paperclip" });
-    const tabs = { active: "activity", activate: vi.fn((name: string) => (tabs.active = name)) };
+    const tabs = { active: "activity", activate: vi.fn() };
     attach.run!({ tabs } as any);
-    expect(tabs.activate).toHaveBeenCalledWith(FILES_TAB);
+    expect(tabs.activate).not.toHaveBeenCalled();
+    expect(tabs.active).toBe("activity");
     expect(requestUpload).toHaveBeenCalledOnce();
   });
 

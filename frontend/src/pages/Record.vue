@@ -102,6 +102,7 @@
 		<FrameBands v-if="controller" :bands="frame.after" :page="controller.page" />
 
 		<PageDialogs v-if="controller" :controller="controller" />
+		<RecordUploadDialog v-if="controller" :page="controller.page" />
 	</PageFrame>
 </template>
 
@@ -165,6 +166,7 @@ import {
 	withFeedRead,
 } from "./record/feed/recordFeeds";
 import PageDialogs from "./record/dialogs/PageDialogs.vue";
+import RecordUploadDialog from "./record/feed/RecordUploadDialog.vue";
 import { formTabMemory } from "./record/formTabMemory";
 import { fetchMeta } from "./record/metaSource";
 import { PANEL_BUILTINS } from "./record/panel/builtins";

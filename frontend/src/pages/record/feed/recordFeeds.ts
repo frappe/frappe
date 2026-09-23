@@ -53,7 +53,7 @@ export const RecordFeedsKey: InjectionKey<RecordFeeds> = Symbol("record-feeds");
 export class RecordFeeds {
 	/** The composer band's height over the tab's foot, `0` while none is drawn. */
 	readonly composerBand = shallowRef(0);
-	/** Set by the Files tab's `create`; the Files body opens its upload dialog and clears it. */
+	/** Set by any upload request; the record's upload dialog opens and clears it. */
 	readonly uploadRequested = shallowRef(false);
 	private readonly timeline = shallowRef<ActivityTimelineHandle | null>(null);
 	private opened = "";
@@ -126,7 +126,7 @@ export class RecordFeeds {
 		return [...rows].sort(byTime);
 	}
 
-	/** Asks the Files body, mounted now or later, to open its upload dialog. */
+	/** Opens the record's upload dialog over whichever tab is shown. */
 	requestUpload() {
 		this.uploadRequested.value = true;
 	}
