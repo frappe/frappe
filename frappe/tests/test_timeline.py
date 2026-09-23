@@ -120,6 +120,10 @@ class TestActivityPage(FrappeTestCase):
 	def test_a_cursor_whose_timestamp_is_not_a_date_is_rejected(self):
 		self.assertRaises(frappe.ValidationError, ActivityPage, "yesterday|log:a", 2)
 
+	def test_a_cursor_with_a_timezone_is_rejected(self):
+		for cursor in ("2026-01-01 00:00:00+05:30|log:a", "2026-01-01T00:00:00Z|log:a"):
+			self.assertRaises(frappe.ValidationError, ActivityPage, cursor, 2)
+
 	def test_the_limit_is_capped(self):
 		self.assertEqual(ActivityPage(None, 500).limit, MAX_PAGE_SIZE)
 

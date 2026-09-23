@@ -1931,6 +1931,88 @@ class TestActivityAPIV2(FrappeAPITestCase):
 		finally:
 			self.drop_reader_todo(user, todo)
 
+	def test_emails_page_across_two_pages(self):
+		user = "api-activity-reader@example.com"
+		todo = self.make_reader_todo(user)
+		emails = [self.make_email(todo, f"2026-01-0{day} 10:00:00") for day in range(1, 4)]
+		frappe.db.commit()  # nosemgrep
+		try:
+			sid, params = self.sid_for(user), {"types": json.dumps(["email"]), "limit": 2}
+			newest = self.read_page(todo, sid, params)
+			older = self.read_page(todo, sid, {**params, "before": newest["next"]})
+			self.assertEqual(row_keys(newest), [f"email:{e.name}" for e in emails[1:]])
+			self.assertEqual(row_keys(older), [f"email:{emails[0].name}"])
+			self.assertIsNone(older["next"])
+		finally:
+			self.drop_reader_todo(user, todo)
+
+	def test_one_version_splits_across_two_pages(self):
+		user = "api-activity-reader@example.com"
+		todo = self.make_reader_todo(user)
+		todo.update({"description": "split", "priority": "High", "date": "2026-02-01"})
+		todo.save(ignore_version=False)
+		frappe.db.commit()  # nosemgrep
+		try:
+			sid, params = self.sid_for(user), {"types": json.dumps(["version"]), "limit": 2}
+			newest = self.read_page(todo, sid, params)
+			older = self.read_page(todo, sid, {**params, "before": newest["next"]})
+			whole = self.read_page(todo, sid, {**params, "limit": 500})
+			version = frappe.db.get_value("Version", {"ref_doctype": "ToDo", "docname": todo.name})
+			self.assertEqual(row_keys(older) + row_keys(newest), row_keys(whole))
+			self.assertEqual({key.rpartition("-")[0] for key in row_keys(whole)}, {f"version:{version}"})
+			self.assertEqual(len(row_keys(newest)), 2)
+			self.assertIsNone(older["next"])
+		finally:
+			self.drop_reader_todo(user, todo)
+
+	def test_milestones_page_with_the_cursor(self):
+		user = "api-activity-reader@example.com"
+		todo = self.make_reader_todo(user)
+		values = ("Open", "Closed", "Cancelled")
+		milestones = [
+			self.make_milestone(todo, value, f"2026-01-0{i} 10:00:00") for i, value in enumerate(values, 1)
+		]
+		frappe.db.commit()  # nosemgrep
+		try:
+			sid, params = self.sid_for(user), {"types": json.dumps(["log"])}
+			whole = row_keys(self.read_page(todo, sid, {**params, "limit": 500}))
+			walked = row_keys({"activities": self.walk(todo, sid, {**params, "limit": 2})})
+			self.assertEqual(walked, whole)
+			self.assertEqual(
+				[k for k in walked if k.startswith("milestone:")], [f"milestone:{m}" for m in milestones]
+			)
+		finally:
+			self.drop_reader_todo(user, todo)
+
+	def make_email(self, todo, when: str):
+		return frappe.get_doc(
+			{
+				"doctype": "Communication",
+				"communication_type": "Communication",
+				"communication_medium": "Email",
+				"sent_or_received": "Received",
+				"sender": "api-activity-sender@example.com",
+				"subject": when,
+				"content": "mail",
+				"communication_date": when,
+				"reference_doctype": "ToDo",
+				"reference_name": todo.name,
+			}
+		).insert(ignore_permissions=True)
+
+	def make_milestone(self, todo, value: str, when: str) -> str:
+		milestone = frappe.get_doc(
+			{
+				"doctype": "Milestone",
+				"reference_type": "ToDo",
+				"reference_name": todo.name,
+				"track_field": "status",
+				"value": value,
+			}
+		).insert(ignore_permissions=True)
+		frappe.db.set_value("Milestone", milestone.name, "creation", when, update_modified=False)
+		return milestone.name
+
 	def make_reader_todo(self, user: str):
 		frappe.set_user("Administrator")
 		if not frappe.db.exists("User", user):
@@ -1940,8 +2022,15 @@ class TestActivityAPIV2(FrappeAPITestCase):
 		return frappe.get_doc({"doctype": "ToDo", "description": "paged", "allocated_to": user}).insert()
 
 	def drop_reader_todo(self, user: str, todo) -> None:
+		"""Deleting the ToDo drops its Versions and Comments, but not its emails or milestones."""
 		frappe.db.rollback()
 		frappe.set_user("Administrator")
+		emails = frappe.get_all(
+			"Communication", {"reference_doctype": "ToDo", "reference_name": todo.name}, pluck="name"
+		)
+		frappe.db.delete("Communication Link", {"parent": ("in", emails)})
+		frappe.db.delete("Communication", {"name": ("in", emails)})
+		frappe.db.delete("Milestone", {"reference_type": "ToDo", "reference_name": todo.name})
 		frappe.delete_doc_if_exists("ToDo", todo.name, force=True)
 		frappe.delete_doc_if_exists("User", user, force=True)
 		frappe.db.commit()  # nosemgrep
@@ -1967,6 +2056,10 @@ class TestActivityAPIV2(FrappeAPITestCase):
 
 	def test_a_cursor_whose_timestamp_is_not_a_date_is_refused(self):
 		response = self.activity({"before": "yesterday|comment:x"})
+		self.assertEqual(response.status_code, 417, response.json)
+
+	def test_a_cursor_with_a_timezone_is_refused(self):
+		response = self.activity({"before": "2026-01-01 00:00:00+05:30|comment:x"})
 		self.assertEqual(response.status_code, 417, response.json)
 
 	def test_a_document_the_user_cannot_read_is_refused(self):
@@ -2000,6 +2093,10 @@ class TestActivityAPIV2(FrappeAPITestCase):
 			return frappe.session.sid
 		finally:
 			frappe.local.request = original_request
+
+
+def row_keys(page: dict) -> list[str]:
+	return [row["key"] for row in page["activities"]]
 
 
 class TestDocumentMethodRoutesV2(FrappeAPITestCase):

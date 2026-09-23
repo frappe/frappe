@@ -76,10 +76,12 @@ def parse_cursor(cursor: str | None) -> Position | None:
 
 
 def read_timestamp(timestamp: str):
+	"""A naive datetime like the stored ones; an offset cannot be compared with them."""
 	try:
-		return get_datetime(timestamp)
+		at = get_datetime(timestamp)
 	except (ValueError, OverflowError):
 		return None
+	return None if at.tzinfo else at
 
 
 def format_cursor(at: Position | None) -> str | None:
