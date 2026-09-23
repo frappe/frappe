@@ -179,8 +179,8 @@ export interface SurfaceVerbs<Item extends SurfaceItem = SurfaceItem> {
 export interface TabsApi extends SurfaceVerbs<TabItem> {
   readonly active: string;
   /**
-   * Moves the reader to a tab on this strip. Resolved at the call, never queued,
-   * and `active` still reads the old tab on the next line: read it in the next handler.
+   * Moves the reader to a tab on this strip. Resolved at the call, never queued;
+   * `active` reads the new tab at once, or after the commit when called in a replay.
    */
   activate(name: string): void;
 }
@@ -286,7 +286,7 @@ export interface PageFormTabs {
   get(identity: string): PageFormTab | null;
   /** The identity of the tab the reader is on, or `''` outside the form; not a name. */
   readonly active: string;
-  /** Moves the reader to a tab of the form, on `TabsApi.activate`'s terms. */
+  /** Moves the reader to a tab of the form, on `TabsApi.activate`'s terms except `active`, which updates once the form has moved. */
   activate(identity: string): void;
   /** Hides every tab present at the call; a later `show(identity)` brings one back. */
   clear(): void;

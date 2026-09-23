@@ -47,17 +47,28 @@
 				:user="boot.session.user.name"
 			>
 				<template #form>
-					<div ref="formRoot" data-record-form>
-						<FormLayout
-							v-if="form.length"
-							v-model:doc="doc"
-							:layout="form"
-							:tab="formTab"
-							:class="formClasses"
-							@update:tab="chooseFormTab"
-							@update:activeTab="activeFormTab = $event"
-						/>
-					</div>
+					<RecordTabs
+						:tabs="tabEntries"
+						:active="shownTab"
+						:ready="controller.ready.value"
+						:page="controller.page"
+						:claimsFocus="tabsHost.claimsFocus"
+						@select="tabsHost.activate"
+					>
+						<template #details>
+							<div ref="formRoot" data-record-form>
+								<FormLayout
+									v-if="form.length"
+									v-model:doc="doc"
+									:layout="form"
+									:tab="formTab"
+									:class="formClasses"
+									@update:tab="chooseFormTab"
+									@update:activeTab="activeFormTab = $event"
+								/>
+							</div>
+						</template>
+					</RecordTabs>
 				</template>
 
 				<template #panel="{ collapsed }">
@@ -134,6 +145,9 @@ import { routeFor } from "@/router/routeFor";
 import BodyColumns from "./record/body/BodyColumns.vue";
 import FrameBands from "./record/FrameBands.vue";
 import RecordHeader from "./record/RecordHeader.vue";
+import RecordTabs from "./record/tabs/RecordTabs.vue";
+import { TAB_STRIP_CLASSES, recordTabBuiltins } from "./record/tabs/recordTabs";
+import { useRecordTabs } from "./record/tabs/useRecordTabs";
 import PageDialogs from "./record/dialogs/PageDialogs.vue";
 import { formTabMemory } from "./record/formTabMemory";
 import { fetchMeta } from "./record/metaSource";
@@ -182,7 +196,7 @@ const activeFormTab = ref("");
 const formClasses = [
 	"!rounded-none !border-0",
 	"[&_[role='tablist']]:sticky [&_[role='tablist']]:top-0 [&_[role='tablist']]:z-10 [&_[role='tablist']]:bg-surface-base",
-	"[&_[role='tablist']]:gap-5 [&_[role='tablist']]:px-[--page-gutter] [&_[role='tablist']]:py-2 [&_[role='tab']]:rounded-4",
+	TAB_STRIP_CLASSES,
 	"[&_.sections]:mx-auto [&_.sections]:my-0 [&_.sections]:w-full [&_.sections]:max-w-3xl [&_.sections]:px-[--page-gutter] [&_.sections]:py-6",
 	"[&_.section-header]:!px-0 [&_.section-body]:!px-0",
 ];
@@ -256,6 +270,18 @@ const disclosure = useDisclosure(
 			.filter((item) => item.label)
 			.map((item) => ({ name: item.name, opened: item.opened !== false }))
 );
+
+const {
+	host: tabsHost,
+	entries: tabEntries,
+	shown: shownTab,
+	pageHost: tabsPageHost,
+} = useRecordTabs({
+	route,
+	router,
+	controller: () => controller.value,
+	formTab: () => activeFormTab.value,
+});
 
 const tabMemory = computed(() => formTabMemory(boot.session.user.name, doctype.value ?? ""));
 
@@ -407,6 +433,7 @@ async function load() {
 	detailsLayout.value = null;
 	disclosure.reset();
 	formTab.value = tabMemory.value.recall();
+	activeFormTab.value = "";
 
 	// Both layouts need only the doctype, so their fetches ride beside the record read and the meta.
 	// Against the saved document, so a keystroke cannot switch a layout under the reader.
@@ -453,14 +480,11 @@ async function load() {
 		meta,
 		perms: () => docinfo.value?.permissions ?? {},
 		isDirty: () => dirty.value,
-		// No tab strip on this page, so activation is a no-op.
-		activeTab: () => "",
-		activateTab: () => {},
+		...tabsPageHost,
 		formLayout: () => detailsForm.value,
-		activeFormTab: () => activeFormTab.value,
 		activateFormTab: (identity) => void (formTab.value = identity),
 		discloseSection: disclosure.disclose,
-		focusField: (fieldname, cursor) => void landOn(fieldname, cursor),
+		focusField: (fieldname, cursor) => void focusOnDetails(fieldname, cursor),
 		save: write,
 		reload: load,
 		router,
@@ -474,6 +498,7 @@ async function load() {
 			follow.value
 		)
 	);
+	created.tabs.provideBuiltins(recordTabBuiltins);
 	created.panelSections.provideBuiltins(panelBuiltins);
 	created.form.provideBuiltins(() => formItems(detailsForm.value));
 	panelLayout.value = panel;
@@ -573,7 +598,10 @@ async function runAction(action: QuickAction | HeaderItem) {
 	}
 }
 
-/** The host's half of `page.fields.focus`: the field's tab, then the scroll, then the cursor. */
+async function focusOnDetails(fieldname: string, cursor: boolean) {
+	if (await tabsHost.showDetails(fieldname)) await landOn(fieldname, cursor);
+}
+
 async function landOn(fieldname: string, cursor: boolean) {
 	const tab = identifyTabs(form.value).find((one) =>
 		one.sections.some((section) =>

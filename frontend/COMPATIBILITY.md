@@ -83,10 +83,12 @@ What `page` is _for_ is a small, closed vocabulary:
   strip before it settles is a miss, and warns like one.
 
   Two things follow from *moving the reader* that reading `active` never had to worry
-  about. A **hit is not synchronous**: the move goes through the host's own navigation,
-  so `active` on the next line still reads the tab you left — read it in the next
-  handler. And a move **fires the strip's change event**, since `onTabChange` and
-  `onFormTabChange` fire on any cause; `activate` is the first verb that lets a handler
+  about. On `page.tabs`, `active` on the next line reads the new tab, except inside a
+  replay, where the move waits for the commit. On `page.form.tabs` a **hit is not
+  synchronous**: the move goes through the form's own navigation, so `active` on the
+  next line still reads the tab you left — read it in the next handler. And a move
+  **fires the strip's change event**, since `onTabChange` and `onFormTabChange` fire on
+  any cause once the page has painted; `activate` is the first verb that lets a handler
   cause the event it is handling, so activating from inside one is yours to make
   terminate.
 - **The whole header row is one flat list.** A `header` item carries `zone`: `'left'`
@@ -214,7 +216,8 @@ What `page` is _for_ is a small, closed vocabulary:
   and rebuilt is a first paint again: returning to the details tab restores where the reader
   was without announcing it, because that move is the *record* strip's and `onTabChange`
   has already reported it. A script that wants the tab on load reads `page.form.tabs.active`
-  in `onRefresh` — which is what "state lives on `page`" is for.
+  in `onRefresh` while the reader is on Details — which is what "state lives on `page`" is
+  for.
 - **One rule for a handler's arguments: its key decides them.** A top-level key gets
   `(page)`; one nested under a table gets `(page, row)`, except `onRemove`, whose
   row is gone. The row is an address, not a payload — `page.rows('products')`

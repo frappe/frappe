@@ -137,6 +137,12 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 			.map((entry) => entry.item);
 	}
 
+	visibleInReplay(): Item[] {
+		return this.fold(this.pending ?? this.ops)
+			.filter((entry) => !entry.hidden)
+			.map((entry) => entry.item);
+	}
+
 	private record(op: Op<Item>) {
 		(this.pending ?? this.ops).push(op);
 	}
