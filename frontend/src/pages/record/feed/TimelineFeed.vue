@@ -37,14 +37,16 @@
 import { computed, inject, onUnmounted, ref } from "vue";
 import {
 	ActivityTimeline,
+	compareActivities,
 	useActivityTimeline,
 	type CustomActivity,
 	type VisibleTypes,
 } from "@framework/ui/ActivityTimeline";
-import { compareActivities } from "@framework/ui/components/ActivityTimeline/grouping";
 import type { ActivityRow, FeedItem, RecordPageApi } from "@/recordPage";
 import RecordFeed from "./RecordFeed.vue";
 import { RecordFeedsKey } from "./recordFeeds";
+
+defineOptions({ scrollsItself: true });
 
 const props = defineProps<{
 	page: RecordPageApi;

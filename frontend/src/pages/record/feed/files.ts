@@ -1,4 +1,5 @@
 // The Files tab's rows and its upload: time orders the record's attachments and a script's rows.
+import { compareActivities } from "@framework/ui/ActivityTimeline";
 import { attachFile, type AttachmentsPart, type UploadFields } from "@framework/ui/api";
 import type { UploadArgs, UploadTransport } from "@framework/ui/FileUpload";
 import type { FeedItem, FileRow } from "@/recordPage";
@@ -25,7 +26,12 @@ export function attachTransport(
 export function filesInTimeOrder(server: FileRow[], own: FeedItem[]): FilesListRow[] {
 	const taken = new Set(server.map((row) => row.name));
 	const rows = [...server, ...own.filter((item) => !taken.has(item.name))];
-	return rows.sort((a, b) => timeOf(a).localeCompare(timeOf(b)) || a.name.localeCompare(b.name));
+	return rows.sort(byTime);
+}
+
+/** As `page.files.items` orders them: the time's text, then the name. */
+export function byTime(a: FileRow | FeedItem, b: FileRow | FeedItem) {
+	return compareActivities(timed(a), timed(b));
 }
 
 export function isScriptRow(row: FilesListRow): row is FeedItem {
@@ -46,6 +52,6 @@ function uploadFields(args: UploadArgs): UploadFields {
 	};
 }
 
-function timeOf(row: FilesListRow) {
-	return String("timestamp" in row ? row.timestamp : row.creation).replace("T", " ");
+function timed(row: FilesListRow) {
+	return { timestamp: "timestamp" in row ? row.timestamp : row.creation, key: row.name };
 }

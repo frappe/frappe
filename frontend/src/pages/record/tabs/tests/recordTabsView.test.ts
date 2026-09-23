@@ -1,6 +1,7 @@
 // The strip over the tab bodies: a skeleton until the first replay, a body that stays mounted after its first visit, and its focus.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, reactive } from "vue";
+import { ScrollArea } from "frappe-ui";
 
 const strips: unknown[] = [];
 
@@ -26,13 +27,19 @@ vi.mock("frappe-ui", async (importOriginal) => ({
 import RecordTabs from "../RecordTabs.vue";
 import type { ResolvedItem } from "@/recordPage/surface";
 import type { TabItem } from "@/recordPage/types";
-import { recordTabBuiltins, RecordTabsHost } from "../recordTabs";
+import { recordTabBuiltins, RecordTabsHost, scrollsItself } from "../recordTabs";
 import { Surface } from "@/recordPage/surface";
 import { TAB_ITEM_KEYS } from "@/recordPage/types";
 
 const Audit = defineComponent({
   props: { page: Object, limit: Number },
   setup: (props) => () => h("p", { "data-audit": "" }, `${props.page?.docname}:${props.limit}`),
+});
+
+// A feed body: it draws its own scroller, as the Activity and Emails bodies do.
+const Feed = defineComponent({
+  scrollsItself: true,
+  setup: () => () => h(ScrollArea, null, () => h("button", { "data-feed-row": "" })),
 });
 
 const page = { doctype: "CRM Deal", docname: "D-1" } as any;
@@ -217,6 +224,53 @@ describe("the bodies", () => {
 
     expect(body(root, "details")).toBeNull();
     expect(body(root, "activity")).not.toBeNull();
+  });
+});
+
+describe("a body that scrolls itself", () => {
+  const FEEDS = [entry("activity", { component: Feed }), entry("files"), entry("details")];
+
+  function viewports(root: HTMLElement, name: string) {
+    return [...body(root, name)!.querySelectorAll("[data-reka-scroll-area-viewport]")].filter(
+      (viewport) => viewport.getAttribute("tabindex") === "0",
+    );
+  }
+
+  it("has one scroll viewport a reader can tab to, its own", async () => {
+    const { root } = await mount(FEEDS, "activity");
+
+    expect(viewports(root, "activity")).toHaveLength(1);
+    expect(body(root, "activity")!.hasAttribute("data-reka-scroll-area-viewport")).toBe(false);
+  });
+
+  it("leaves Details and every other body in the strip's scroll area", async () => {
+    const { root, state } = await mount(FEEDS, "details");
+    state.active = "files";
+    await nextTick();
+
+    expect(viewport(root, "details")).not.toBeNull();
+    expect(viewport(root, "files")).not.toBeNull();
+  });
+
+  it("marks the Activity and Emails bodies, and not Files", () => {
+    const marked = recordTabBuiltins().filter((tab) => scrollsItself(tab.component));
+    expect(marked.map((tab) => tab.name)).toEqual(["activity", "emails"]);
+  });
+
+  it("gets focus back on the row the reader left", async () => {
+    const { root, state } = await mount(FEEDS, "activity");
+    const row = root.querySelector<HTMLElement>("[data-feed-row]")!;
+    row.focus();
+
+    state.active = "details";
+    await nextTick();
+    row.blur();
+    state.active = "activity";
+    await nextTick();
+    await frame();
+
+    expect(document.activeElement).toBe(row);
+    expect(body(root, "activity")!.style.display).toBe("");
   });
 });
 

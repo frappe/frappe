@@ -703,7 +703,7 @@ A script's row:
 | Key | What it does |
 | --- | --- |
 | `name` | The address. It must not be a server row's key; that `add` warns and drops the row. |
-| `timestamp` | Where the row sits, written as the server writes one: `2026-09-23 10:15:00`. Required. |
+| `timestamp` | Where the row sits, written as the server writes one: `2026-09-23 10:15:00`. Required. `add` rewrites an ISO `2026-09-23T10:15:00` that way; a `Z` or an offset is dropped, with a development warning, since server times are site-local. |
 | `component` | Draws the row, with `props` and a `page` prop. Required. |
 | `props` | Bound onto `component`. |
 | any other key | Not read: dropped on `add`, and a development build warns once. |
@@ -732,7 +732,9 @@ and a field change refreshes the newest page.
 
 The first `onRefresh` sees the newest page when the address opens the Activity tab; when it
 opens another tab, Emails included, the rows are read as Activity first shows, so that
-`onRefresh` sees none.
+`onRefresh` sees none. When the address opens the Activity tab, the page's
+first paint and first `onRefresh` wait for the newest activity page, a read that starts
+with the record read.
 
 A script's rows are rebuilt on every replay, like any surface's, and survive `reload()`,
 which reads the server's rows again and leaves the script's alone.

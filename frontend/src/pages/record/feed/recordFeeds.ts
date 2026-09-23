@@ -13,7 +13,7 @@ import { removeAttachment, type AttachmentsPart } from "@framework/ui/api";
 import type { ActivityRow, FileRow, RecordPageController } from "@/recordPage";
 import type { DocInfo } from "../panel/context";
 import { mergePart } from "../panel/peopleActions";
-import { attachTransport } from "./files";
+import { attachTransport, byTime } from "./files";
 
 export const ACTIVITY_TAB = "activity";
 export const EMAILS_TAB = "emails";
@@ -108,7 +108,7 @@ export class RecordFeeds {
 	/** The record read's `attachments` part, oldest first. */
 	fileRows(): FileRow[] {
 		const rows = this.options.docinfo.value?.attachments ?? [];
-		return [...rows].sort((a, b) => String(a.creation).localeCompare(String(b.creation)));
+		return [...rows].sort(byTime);
 	}
 
 	/** Uploads onto the record; each answer replaces the part, unless the page has moved on. */
@@ -145,6 +145,21 @@ export class RecordFeeds {
 	private keepFiles({ attachments, users }: AttachmentsPart, current: () => boolean) {
 		if (!current()) return;
 		this.options.docinfo.value = mergePart(this.options.docinfo.value, { attachments, users });
+	}
+}
+
+/** Runs a record's open with the feed read started beside it; the first-paint pass ends however the open ends. */
+export async function withFeedRead(
+	doctype: string,
+	docname: string,
+	query: LocationQuery,
+	open: (feedRead: Promise<void>) => Promise<void>
+) {
+	const feedRead = prefetchFeed(doctype, docname, query);
+	try {
+		await open(feedRead);
+	} finally {
+		endPrefetchFeed(doctype, docname);
 	}
 }
 

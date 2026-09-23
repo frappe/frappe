@@ -102,6 +102,15 @@ describe("page.files", () => {
     expect(controller.files.resolve().map((entry) => entry.item.name)).toEqual(["drive-link"]);
   });
 
+  it("writes an ISO timestamp as the server writes one before placing the row", () => {
+    const { page } = makePage();
+
+    page.files.add({ name: "drive-link", timestamp: "2026-09-21T12:00:00", component: LinkRow });
+
+    expect(names(page.files.items)).toEqual(["f-quote", "drive-link", "f-logo"]);
+    expect(page.files.items[1].timestamp).toBe("2026-09-21 12:00:00");
+  });
+
   it("removes a script's own row, and leaves an attachment where it is", () => {
     const { page } = makePage();
     page.files.add({ name: "drive-link", timestamp: "2026-09-21 12:00:00", component: LinkRow });

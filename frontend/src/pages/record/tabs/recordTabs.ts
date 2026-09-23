@@ -1,5 +1,5 @@
 // The record's tab strip, host side: the four built-ins, the tab the address names, and its moves.
-import { markRaw, ref, watch, type Ref } from "vue";
+import { markRaw, ref, watch, type Component, type Ref } from "vue";
 import type { LocationQueryValue, RouteLocationNormalizedLoaded, Router } from "vue-router";
 import type { Surface } from "@/recordPage/surface";
 import type { TabItem } from "@/recordPage/types";
@@ -34,6 +34,18 @@ export function recordTabBuiltins(): TabItem[] {
     { name: "files", label: __("Files"), icon: "lucide-paperclip", component: markRaw(FilesTab) },
     { name: DETAILS_TAB, label: __("Details"), icon: "lucide-table-properties" },
   ];
+}
+
+declare module "vue" {
+  interface ComponentCustomOptions {
+    /** The tab body scrolls itself, so the strip draws it in a plain column, not in a second scroller. */
+    scrollsItself?: boolean;
+  }
+}
+
+/** A body set with `defineOptions({ scrollsItself: true })`. */
+export function scrollsItself(component: Component | undefined): boolean {
+  return Boolean((component as { scrollsItself?: boolean } | undefined)?.scrollsItself);
 }
 
 export class RecordTabsHost {

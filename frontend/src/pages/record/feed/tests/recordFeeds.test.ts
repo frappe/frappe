@@ -4,7 +4,7 @@ import { nextTick, ref } from "vue";
 import type { RecordPageController } from "@/recordPage";
 import type { DocInfo } from "../../panel/context";
 import { endActivityPrefetch } from "@framework/ui/ActivityTimeline";
-import { RecordFeeds, endPrefetchFeed, prefetchFeed } from "../recordFeeds";
+import { RecordFeeds, endPrefetchFeed, prefetchFeed, withFeedRead } from "../recordFeeds";
 import { fakeTimeline } from "./fakeTimeline";
 
 vi.mock("@framework/ui/ActivityTimeline", async (importOriginal) => {
@@ -202,6 +202,32 @@ describe("the eager read", () => {
 		]);
 	});
 
+	it("ends the first-paint pass once the open is over, and not before", async () => {
+		vi.mocked(endActivityPrefetch).mockClear();
+		let endedDuringOpen = true;
+
+		await withFeedRead("CRM Deal", "EAGER-6", {}, async (feedRead) => {
+			await feedRead;
+			endedDuringOpen = vi.mocked(endActivityPrefetch).mock.calls.length > 0;
+		});
+
+		expect(endedDuringOpen).toBe(false);
+		expect(vi.mocked(endActivityPrefetch)).toHaveBeenCalledWith("CRM Deal", "EAGER-6");
+	});
+
+	it("ends it for an open a newer load cut short, or one that threw", async () => {
+		vi.mocked(endActivityPrefetch).mockClear();
+
+		await withFeedRead("CRM Deal", "EAGER-7", {}, async () => {});
+		const failed = withFeedRead("CRM Deal", "EAGER-8", {}, async () => {
+			throw new Error("record gone");
+		});
+
+		await expect(failed).rejects.toThrow("record gone");
+		const ended = vi.mocked(endActivityPrefetch).mock.calls.map(([, docname]) => docname);
+		expect(ended).toEqual(["EAGER-7", "EAGER-7", "EAGER-8", "EAGER-8"]);
+	});
+
 	it("starts the email read for the Emails tab", () => {
 		prefetchFeed("CRM Deal", "EAGER-2", { tab: "emails" });
 		expect(JSON.parse(activityReads()[0].searchParams.get("types")!)).toEqual(["email"]);
@@ -223,6 +249,14 @@ describe("the files part", () => {
 	it("hands the rows oldest first", () => {
 		const { feeds } = makeFeeds({ attachments: [NEW, OLD] });
 		expect(feeds.pageHost.fileRows().map((file) => file.name)).toEqual(["F-1", "F-2"]);
+	});
+
+	it("orders rows in the same millisecond by the time's text, then the name by code unit", () => {
+		const late = { ...OLD, name: "file-a", creation: "2026-09-01 10:00:00.500900" };
+		const early = { ...OLD, name: "file-z", creation: "2026-09-01 10:00:00.500100" };
+		const tie = { ...OLD, name: "file-B", creation: "2026-09-01 10:00:00.500900" };
+		const { feeds } = makeFeeds({ attachments: [late, early, tie] });
+		expect(feeds.pageHost.fileRows().map((file) => file.name)).toEqual(["file-z", "file-B", "file-a"]);
 	});
 
 	it("replaces the part from the delete's answer", async () => {

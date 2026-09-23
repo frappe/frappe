@@ -148,12 +148,7 @@ import RecordHeader from "./record/RecordHeader.vue";
 import RecordTabs from "./record/tabs/RecordTabs.vue";
 import { TAB_STRIP_CLASSES, recordTabBuiltins } from "./record/tabs/recordTabs";
 import { useRecordTabs } from "./record/tabs/useRecordTabs";
-import {
-	RecordFeeds,
-	RecordFeedsKey,
-	endPrefetchFeed,
-	prefetchFeed,
-} from "./record/feed/recordFeeds";
+import { RecordFeeds, RecordFeedsKey, withFeedRead } from "./record/feed/recordFeeds";
 import PageDialogs from "./record/dialogs/PageDialogs.vue";
 import { formTabMemory } from "./record/formTabMemory";
 import { fetchMeta } from "./record/metaSource";
@@ -468,7 +463,22 @@ async function load() {
 		fallback: "none",
 		overrides: () => controller.value?.fields.resolve() ?? {},
 	});
-	const feedRead = prefetchFeed(target.doctype, target.name, route.query);
+	await withFeedRead(target.doctype, target.name, route.query, (feedRead) =>
+		openRecord({ mine, target, pointer, details, panel, feedRead })
+	);
+}
+
+interface OpenRecord {
+	mine: number;
+	target: { doctype: string; name: string };
+	pointer: string;
+	details: UseFormLayout;
+	panel: UseFormLayout;
+	feedRead: Promise<void>;
+}
+
+/** The record read, then the page's first paint; a newer load cuts it short at any wait. */
+async function openRecord({ mine, target, pointer, details, panel, feedRead }: OpenRecord) {
 	try {
 		const [loaded, metadata] = await Promise.all([
 			loadRecord(target.doctype, target.name),
@@ -534,7 +544,6 @@ async function load() {
 	if (pointer) created.page.activity.scrollTo(pointer);
 	// The shown tab's body has mounted by now; a feed body that mounts later reads what it missed.
 	await nextTick();
-	endPrefetchFeed(target.doctype, target.name);
 }
 
 // One request per record at a time; a request the previous record left in flight is not joined.

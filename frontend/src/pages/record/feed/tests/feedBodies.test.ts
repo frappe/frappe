@@ -48,6 +48,7 @@ vi.mock("@framework/ui/api", async (importOriginal) => ({
 
 import { attachFile } from "@framework/ui/api";
 import type { FeedItem } from "@/recordPage";
+import { createRecordPage, type RecordPageController } from "@/recordPage/createRecordPage";
 import type { DocInfo } from "../../panel/context";
 import { recordTabBuiltins } from "../../tabs/recordTabs";
 import { RecordFeeds, RecordFeedsKey } from "../recordFeeds";
@@ -226,5 +227,68 @@ describe("the Files tab", () => {
 			{ is_private: 1, folder: "Home/Attachments", optimize: undefined, max_width: undefined, max_height: undefined },
 		]);
 		expect(feeds.pageHost.fileRows().map((row) => row.name)).toEqual(["F-1", "F-2"]);
+	});
+});
+
+describe("the order a script reads", () => {
+	/** A real page over the feeds host, so `items` comes from the engine, not from the test. */
+	function realPage(docinfo: DocInfo | null) {
+		let controller: RecordPageController | null = null;
+		const feeds = new RecordFeeds({
+			docinfo: ref(docinfo),
+			controller: () => controller,
+			showTab: async () => true,
+			reloadParts: async () => {},
+			whileOnRecord: () => () => true,
+		});
+		controller = createRecordPage({
+			doctype: "CRM Deal",
+			docname: "D-1",
+			doc: ref({}),
+			saved: ref({}),
+			meta: ref(null),
+			perms: () => ({}),
+			isDirty: () => false,
+			activeTab: () => "activity",
+			activateTab: () => {},
+			...feeds.pageHost,
+			save: async () => {},
+			reload: async () => {},
+			router: {} as any,
+		});
+		return { feeds, page: controller.page };
+	}
+
+	it("is the order the Activity tab draws, for rows in the same millisecond", async () => {
+		// As the store holds them: the time's text, then the key.
+		timeline.rows.value = [
+			{ type: "comment", key: "comment:b", timestamp: "2026-09-20 10:00:00.123400", data: {} },
+			{ type: "comment", key: "comment:a", timestamp: "2026-09-20 10:00:00.123900", data: {} },
+		];
+		const { feeds, page } = realPage(null);
+		page.activity.add({ name: "call:1", timestamp: "2026-09-20T10:00:00.123500", component: CallRow });
+
+		const { root } = await mountTab("activity", feeds, page);
+
+		expect(keys(root)).toEqual(["comment:b", "call:1", "comment:a"]);
+		expect(page.activity.items.map((item) => item.name)).toEqual(keys(root));
+	});
+
+	it("is the order the Files tab draws, for rows in the same millisecond", async () => {
+		const at = "2026-09-01 10:00:00.500000";
+		const attachments = [
+			{ ...OLD, name: "file-a", creation: at },
+			{ ...OLD, name: "file-B", creation: at },
+		];
+		const { feeds, page } = realPage({ attachments });
+		page.files.add({ name: "file-C", timestamp: at, component: CallRow, props: { id: 3 } });
+
+		const { root } = await mountTab("files", feeds, page);
+
+		const drawn = [...root.querySelectorAll("[data-file-row], [data-call]")].map(
+			(row) => row.getAttribute("data-file-row") ?? "file-C"
+		);
+		expect(drawn).toEqual(["file-B", "file-C", "file-a"]);
+		expect(page.files.items.map((item) => item.name)).toEqual(drawn);
 	});
 });

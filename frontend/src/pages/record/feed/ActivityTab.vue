@@ -9,6 +9,8 @@ import type { RecordPageApi } from "@/recordPage";
 import { RecordFeedsKey } from "./recordFeeds";
 import TimelineFeed from "./TimelineFeed.vue";
 
+defineOptions({ scrollsItself: true });
+
 defineProps<{ page: RecordPageApi }>();
 
 const feeds = inject(RecordFeedsKey)!;

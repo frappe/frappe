@@ -111,7 +111,8 @@ describe("the list a script reads", () => {
     const { page, rows } = makePage();
     rows.value.push({ type: "comment", key: "pending:7", pending: true, data: {} });
 
-    expect(page.activity.items.at(-1)).toMatchObject({ name: "pending:7", pending: true });
+    const pending = page.activity.items.find((item) => item.name === "pending:7");
+    expect(pending).toMatchObject({ pending: true });
   });
 
   it("places a script's row by its timestamp among the server's rows", () => {
@@ -138,6 +139,16 @@ describe("the list a script reads", () => {
     page.activity.add({ name: "a:1", timestamp: "2026-09-23 10:00:00", component: CallRow });
 
     expect(names(page.activity.items).slice(1, 3)).toEqual(["a:1", "version:v1-0"]);
+  });
+
+  it("orders rows in the same millisecond by the time's text, then the name by code unit", () => {
+    const { page, rows } = makePage();
+    const at = "2026-09-23 10:00:00.123";
+    rows.value.push({ ...ROWS[0], key: "comment:a", timestamp: `${at}900` });
+    rows.value.push({ ...ROWS[0], key: "comment:Z", timestamp: `${at}900` });
+    page.activity.add({ name: "call:1", timestamp: `${at}400`, component: CallRow });
+
+    expect(names(page.activity.items).slice(2, 5)).toEqual(["call:1", "comment:Z", "comment:a"]);
   });
 
   it("refuses a write to the list, naming the verb that adds a row", () => {
@@ -177,6 +188,31 @@ describe("what a script adds and removes", () => {
     expect(page.activity.has("timeless")).toBe(false);
     expect(warnings[0]).toContain("a row needs a component");
     expect(warnings[1]).toContain("a row needs a timestamp");
+  });
+
+  it("writes an ISO timestamp as the server writes one, so it sorts among the server's rows", () => {
+    const { page } = makePage();
+
+    page.activity.add({ name: "call:17", timestamp: "2026-09-23T10:15:00", component: CallRow });
+
+    expect(page.activity.items[2]).toMatchObject({ name: "call:17", timestamp: "2026-09-23 10:15:00" });
+    expect(warnings).toEqual([]);
+  });
+
+  it("drops a zone from a script's timestamp and warns, since server times are site-local", () => {
+    const { page } = makePage();
+
+    page.activity.add({ name: "a:1", timestamp: "2026-09-23T10:15:00.5Z", component: CallRow });
+    page.activity.add({ name: "a:2", timestamp: "2026-09-23 10:16:00+05:30", component: CallRow });
+
+    expect(page.activity.items.filter((item) => item.name.startsWith("a:")).map((item) => item.timestamp)).toEqual([
+      "2026-09-23 10:15:00.5",
+      "2026-09-23 10:16:00",
+    ]);
+    expect(warnings).toEqual([
+      `[record-page] page.activity.add("a:1") — server times are site-local, so the zone "Z" was dropped.`,
+      `[record-page] page.activity.add("a:2") — server times are site-local, so the zone "+05:30" was dropped.`,
+    ]);
   });
 
   it("refuses a row under a server row's key", () => {

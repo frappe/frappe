@@ -1,6 +1,7 @@
 // The two lists time orders, `page.activity` and `page.files`: the server's rows
 // read from the host, a script's own rows kept on the surface so they outlive a reload.
 import { ref } from "vue";
+import { compareActivities } from "@framework/ui/ActivityTimeline";
 import { readOnly } from "./readOnly";
 import { Surface } from "./surface";
 import { FEED_ITEM_KEYS } from "./types";
@@ -46,7 +47,9 @@ abstract class FeedSurface<Row extends Timed> extends Surface<FeedItem> {
   }
 
   add(item: FeedItem | FeedItem[]) {
-    const rows = (Array.isArray(item) ? item : [item]).filter((one) => this.canAdd(one));
+    const rows = (Array.isArray(item) ? item : [item])
+      .filter((one) => this.canAdd(one))
+      .map((one) => this.inServerTime(one));
     if (rows.length) super.add(rows);
   }
 
@@ -73,6 +76,14 @@ abstract class FeedSurface<Row extends Timed> extends Surface<FeedItem> {
     if (!item.timestamp) return this.refuse(item, "a row needs a timestamp to take its place");
     if (this.isServerRow(item.name)) return this.refuse(item, "that name is a server row's");
     return true;
+  }
+
+  // Rows sort by their timestamp's text, so a script's row is written as the server writes one.
+  private inServerTime(item: FeedItem): FeedItem {
+    const [, date, time, zone] = SCRIPT_TIME.exec(String(item.timestamp)) ?? [];
+    if (!date) return item;
+    if (zone) this.warn("add", item.name, `server times are site-local, so the zone "${zone}" was dropped`);
+    return { ...item, timestamp: `${date} ${time}` };
   }
 
   private isServerRow(name: string) {
@@ -185,15 +196,14 @@ function activityItem(row: ActivityRow): ActivityItem {
 
 type Timed = { name: string; timestamp?: string; creation?: string };
 
-// `(timestamp, name)`, as the server sorts; a row with no time yet is the newest.
+// `2026-09-23T10:15:00.5+05:30`: the date, the time, and a zone the server never writes.
+const SCRIPT_TIME = /^(\d{4}-\d{2}-\d{2})[T ]([\d:.]+)(Z|[+-]\d{2}(?::?\d{2})?)?$/;
+
+// As the timeline draws its rows; a file row's time is its `creation`.
 function byTime(a: Timed, b: Timed) {
-  const first = timeOf(a);
-  const second = timeOf(b);
-  if (first !== second) return first < second ? -1 : 1;
-  return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+  return compareActivities(timed(a), timed(b));
 }
 
-function timeOf(item: Timed): string {
-  const at = item.timestamp ?? item.creation;
-  return at ? String(at).replace("T", " ") : "\uffff";
+function timed(item: Timed) {
+  return { timestamp: item.timestamp ?? item.creation, key: item.name };
 }
