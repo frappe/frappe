@@ -54,7 +54,7 @@ export function useCommentDraft(doctype: string, docname: string) {
 	return { content, attachments, seed, upload, forget };
 }
 
-function asAttachment(media: UploadedMedia): UploadedFile {
+export function asAttachment(media: UploadedMedia): UploadedFile {
 	return {
 		name: media.name ?? media.file_url,
 		file_name: media.file_name ?? "",

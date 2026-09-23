@@ -25,10 +25,17 @@
 					:controller="controller"
 					:user="user"
 				/>
+				<EmailWriter
+					v-else-if="writer.name === EMAIL_WRITER"
+					:key="emailRevision"
+					:controller="controller"
+					:user="user"
+				/>
 			</ComposerCard>
 			<ComposerPill
 				v-else
 				:comment="comment"
+				:email="email"
 				:creates="creates"
 				:user="user"
 				@open="page.composer.open($event)"
@@ -46,9 +53,11 @@ import type { TabItem } from "@/recordPage/types";
 import { activeWriter, draftRevision } from "@/shell/composer";
 import { RecordFeedsKey } from "../feed/recordFeeds";
 import { COMMENT_WRITER } from "./commentDraft";
+import { EMAIL_WRITER } from "./emailDraft";
 import ComposerCard from "./ComposerCard.vue";
 import ComposerPill from "./ComposerPill.vue";
 import CommentWriter from "./CommentWriter.vue";
+import EmailWriter from "./EmailWriter.vue";
 import { createOptions } from "./createMenu";
 
 const props = defineProps<{
@@ -67,6 +76,7 @@ const page = computed(() => props.controller.page);
 const recordKey = computed(() => JSON.stringify([page.value.doctype, page.value.docname]));
 const writers = computed(() => props.controller.composer.visible());
 const comment = computed(() => writers.value.find((item) => item.name === COMMENT_WRITER));
+const email = computed(() => writers.value.find((item) => item.name === EMAIL_WRITER));
 const writer = computed(() => {
 	const open = activeWriter(page.value.doctype, page.value.docname);
 	return open ? writers.value.find((item) => item.name === open) : undefined;
@@ -75,13 +85,18 @@ const writer = computed(() => {
 const commentRevision = computed(() =>
 	draftRevision(page.value.doctype, page.value.docname, COMMENT_WRITER)
 );
+const emailRevision = computed(() =>
+	draftRevision(page.value.doctype, page.value.docname, EMAIL_WRITER)
+);
 const creates = computed(() => createOptions(props.tabs, page.value));
 const onComposerTab = computed(() => {
 	const tab = props.tabs.find((item) => item.name === props.active);
 	return Boolean(tab && isComposerTab(tab));
 });
 const shown = computed(
-	() => onComposerTab.value && Boolean(writer.value || comment.value || creates.value.length)
+	() =>
+		onComposerTab.value &&
+		Boolean(writer.value || comment.value || email.value || creates.value.length)
 );
 
 watchEffect(() => measured(shown.value ? height.value : 0));

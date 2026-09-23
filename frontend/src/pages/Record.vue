@@ -529,7 +529,10 @@ async function openRecord({ mine, target, pointer, details, panel, feedRead }: O
 		isDirty: () => dirty.value,
 		...tabsPageHost,
 		...feeds.pageHost,
-		...composerHost(target.doctype, target.name),
+		...composerHost(target.doctype, target.name, {
+			page: () => controller.value?.page,
+			userEmail: boot.session.user.email,
+		}),
 		formLayout: () => detailsForm.value,
 		activateFormTab: (identity) => void (formTab.value = identity),
 		discloseSection: disclosure.disclose,
@@ -554,7 +557,7 @@ async function openRecord({ mine, target, pointer, details, panel, feedRead }: O
 				: undefined,
 		})
 	);
-	created.composer.provideBuiltins(composerBuiltins);
+	created.composer.provideBuiltins(() => composerBuiltins(docinfo.value?.permissions ?? {}));
 	created.panelSections.provideBuiltins(panelBuiltins);
 	created.form.provideBuiltins(() => formItems(detailsForm.value));
 	panelLayout.value = panel;
