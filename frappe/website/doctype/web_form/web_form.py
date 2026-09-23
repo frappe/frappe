@@ -1241,11 +1241,8 @@ def get_in_list_view_fields(doctype, web_form_name=None, web_form_request_key=No
 def get_table_multiselect_fields(
 	child_doctype, web_form_name=None, web_form_request_key=None, docname=None, allow_read_on_all=False
 ):
-	"""Return the child table's Link docfield, with its options, for the portal control.
-
-	Not get_in_list_view_fields(): it drops non-list-view fields and turns Link into
-	Autocomplete, but the control needs the raw Link. The options ship with the page the
-	way a Table field's do, so the portal never searches from the browser.
+	"""Not get_in_list_view_fields(): it drops non-list-view fields and turns Link into
+	Autocomplete, but the control needs the raw Link.
 	"""
 	try:
 		meta = frappe.get_meta(child_doctype)
