@@ -1937,12 +1937,16 @@ class TestActivityAPIV2(FrappeAPITestCase):
 		emails = [self.make_email(todo, f"2026-01-0{day} 10:00:00") for day in range(1, 4)]
 		frappe.db.commit()  # nosemgrep
 		try:
-			sid, params = self.sid_for(user), {"types": json.dumps(["email"]), "limit": 2}
-			newest = self.read_page(todo, sid, params)
-			older = self.read_page(todo, sid, {**params, "before": newest["next"]})
-			self.assertEqual(row_keys(newest), [f"email:{e.name}" for e in emails[1:]])
-			self.assertEqual(row_keys(older), [f"email:{emails[0].name}"])
-			self.assertIsNone(older["next"])
+			# An enabled Notification can mail on the ToDo's save, so the feed may hold other emails too.
+			sid, params = self.sid_for(user), {"types": json.dumps(["email"])}
+			whole = self.read_page(todo, sid, {**params, "limit": 500})
+			newest = self.read_page(todo, sid, {**params, "limit": 2})
+			walked = row_keys({"activities": self.walk(todo, sid, {**params, "limit": 2})})
+			ours = [f"email:{e.name}" for e in emails]
+			self.assertIsNone(whole["next"])
+			self.assertIsNotNone(newest["next"])
+			self.assertEqual(walked, row_keys(whole))
+			self.assertEqual([key for key in walked if key in ours], ours)
 		finally:
 			self.drop_reader_todo(user, todo)
 
