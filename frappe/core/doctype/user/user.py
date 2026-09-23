@@ -22,7 +22,7 @@ from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document, get_controller
 from frappe.query_builder import DocType, Table
 from frappe.rate_limiter import rate_limit
-from frappe.sessions import clear_sessions
+from frappe.sessions import clear_sessions, hash_sid
 from frappe.utils import (
 	cint,
 	escape_html,
@@ -166,22 +166,24 @@ class User(Document):
 			.where(sessions.user == self.name)
 		).run(as_dict=True)
 
-		def mask(sid: str):
-			return sid[:4] + "*" * 10
+		def mask(sid_hash: str):
+			return sid_hash[:4] + "*" * 10
+
+		# `sessions.sid` is the stored hash, so compare against the hash of the current sid
+		current_sid_hash = hash_sid(frappe.session.sid)
 
 		session_docs = []
 		for session in sessions_data:
 			data = frappe.parse_json(session.sessiondata)
-			sid_hash = sha256_hash(session.sid)
 			session_docs.append(
 				{
-					"name": sid_hash,
-					"id": mask(sid_hash),
+					"name": session.sid,
+					"id": mask(session.sid),
 					"owner": session.user,
 					"modified_by": session.user,
 					"ip_address": data.session_ip,
 					"last_updated": data.last_updated,
-					"is_current": session.sid == frappe.session.sid,
+					"is_current": session.sid == current_sid_hash,
 					"session_created": data.creation,
 					"user_agent": data.user_agent,
 				}
@@ -1610,12 +1612,13 @@ def clear_session(sid_hash: str):
 	from frappe.sessions import delete_session
 
 	sessions = frappe.qb.DocType("Sessions")
-	sessions_data = (
-		frappe.qb.from_(sessions).select(sessions.sid).where(sessions.user == frappe.session.user)
+	owned = (
+		frappe.qb.from_(sessions)
+		.select(sessions.sid)
+		.where(sessions.user == frappe.session.user)
+		.where(sessions.sid == sid_hash)
 	).run(pluck=True)
 
-	for session in sessions_data:
-		if sha256_hash(session) == sid_hash:
-			delete_session(sid=session, reason="Force Logged out by the user", user=frappe.session.user)
-			frappe.toast(_("Successfully signed out"))
-			return
+	if owned:
+		delete_session(sid_hash=owned[0], reason="Force Logged out by the user", user=frappe.session.user)
+		frappe.toast(_("Successfully signed out"))

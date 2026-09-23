@@ -1,12 +1,8 @@
 import frappe
 from frappe.model.naming import make_autoname
-from frappe.utils import sha256_hash
+from frappe.utils import is_sha256_hash, sha256_hash
 
 BATCH_SIZE = 1000
-
-
-def is_sha256_hash(value: str) -> bool:
-	return len(value) == 64 and all(character in "0123456789abcdef" for character in value.lower())
 
 
 def hash_token(token: str | None) -> str | None:
