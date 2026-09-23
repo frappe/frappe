@@ -1,7 +1,9 @@
 import json
 
 import frappe
+from frappe import _
 from frappe.client import set_value
+from frappe.permissions import is_system_user
 
 
 def get_email_accounts(user=None):
@@ -40,6 +42,9 @@ def get_email_accounts(user=None):
 @frappe.whitelist()
 def get_outgoing_senders() -> dict:
 	"""The session user's outgoing addresses and the address of the default outgoing account."""
+	if not is_system_user():
+		frappe.throw(_("Only desk users can send email."), frappe.PermissionError)
+
 	senders = frappe.get_all(
 		"User Email",
 		filters={"parent": frappe.session.user, "enable_outgoing": 1, "email_id": ("is", "set")},
@@ -149,7 +154,6 @@ def link_communication_to_document(doc, reference_doctype, reference_name, ignor
 def _default_outgoing_email() -> str | None:
 	from frappe.email.doctype.email_account.email_account import EmailAccount
 
-	# find_default_outgoing falls back to a dummy account when emails are muted; that sends nothing.
-	account = EmailAccount.find_one_by_filters(enable_outgoing=1, default_outgoing=1)
-	account = account or EmailAccount.find_from_config()
-	return account.email_id if account else None
+	# Not find_default_outgoing: it returns a placeholder account when emails are muted.
+	email_id = frappe.db.get_value("Email Account", {"enable_outgoing": 1, "default_outgoing": 1}, "email_id")
+	return email_id or EmailAccount.get_account_details_from_site_config().get("email_id")
