@@ -2,13 +2,37 @@
 # License: MIT. See LICENSE
 
 import json
+import re
+from datetime import datetime
 
 import frappe
 import frappe.utils
 from frappe import _
 from frappe.model.document import Document
+from frappe.printing.layout import iter_fields, iter_nodes, iter_zones
 from frappe.utils.jinja import validate_template
-from frappe.utils.weasyprint import download_pdf, get_html
+from frappe.utils.print_format_generator import download_pdf, get_html
+
+BUILDER_DRAFT_FIELDS = (
+	"format_data",
+	"font",
+	"font_size",
+	"page_number",
+	"show_label_colon",
+	"margin_top",
+	"margin_bottom",
+	"margin_left",
+	"margin_right",
+	"label_color",
+	"value_color",
+	"css",
+	"classic_format_data",
+	"print_format_builder",
+	"print_format_builder_beta",
+	"pdf_generator",
+)
+
+STORED_RENDERERS = ("Typst", "WeasyPrint")
 
 
 class PrintFormat(Document):
@@ -22,15 +46,18 @@ class PrintFormat(Document):
 
 		absolute_value: DF.Check
 		align_labels_right: DF.Check
+		classic_format_data: DF.Code | None
 		css: DF.Code | None
 		custom_format: DF.Check
 		default_print_language: DF.Link | None
 		disabled: DF.Check
 		doc_type: DF.Link | None
+		draft_data: DF.Code | None
 		font: DF.Data | None
 		font_size: DF.Int
 		format_data: DF.Code | None
 		html: DF.Code | None
+		label_color: DF.Color | None
 		line_breaks: DF.Check
 		margin_bottom: DF.Float
 		margin_left: DF.Float
@@ -40,8 +67,7 @@ class PrintFormat(Document):
 		page_number: DF.Literal[
 			"Hide", "Top Left", "Top Center", "Top Right", "Bottom Left", "Bottom Center", "Bottom Right"
 		]
-		pdf_generator: DF.Literal["wkhtmltopdf", "chrome"]
-		preview_image: DF.AttachImage | None
+		pdf_generator: DF.Literal["wkhtmltopdf", "chrome", "Typst", "WeasyPrint"]
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check
 		print_format_for: DF.Literal["DocType", "Report"]
@@ -49,15 +75,21 @@ class PrintFormat(Document):
 		raw_commands: DF.Code | None
 		raw_printing: DF.Check
 		report: DF.Link | None
+		show_label_colon: DF.Check
 		show_section_headings: DF.Check
 		standard: DF.Literal["No", "Yes"]
+		value_color: DF.Color | None
 	# end: auto-generated types
 
 	def onload(self):
 		templates = frappe.get_all(
 			"Print Format Field Template",
 			fields=["template", "field", "name"],
-			filters={"document_type": self.doc_type},
+			or_filters=[
+				["document_type", "=", self.doc_type],
+				["document_type", "is", "not set"],
+			],
+			order_by="document_type desc",
 		)
 		self.set_onload("print_templates", templates)
 
@@ -65,6 +97,13 @@ class PrintFormat(Document):
 		if self.print_format_for == "Report":
 			self.custom_format = 1
 			self.standard = "No"
+
+		if (
+			self.print_format_builder_beta
+			and not self.custom_format
+			and self.pdf_generator not in STORED_RENDERERS
+		):
+			self.pdf_generator = "chrome"
 
 	def get_html(self, docname, letterhead=None):
 		return get_html(self.doc_type, docname, self.name, letterhead)
@@ -104,6 +143,20 @@ class PrintFormat(Document):
 		if self.print_format_for == "Report" and not self.report:
 			frappe.throw(_("{0} is required").format(frappe.bold(_("Report"))), frappe.MandatoryError)
 
+		self.validate_colors()
+		self.validate_conditions()
+		self.validate_no_classic_layout()
+		self.validate_weasyprint_choice()
+		self.validate_typst_renderer()
+
+	def validate_no_classic_layout(self):
+		"""A builder format cannot carry a classic list layout; conversion is explicit."""
+		from frappe.printing.doctype.print_format.classic_converter import is_classic_layout
+		from frappe.utils.print_format_generator import classic_layout_message
+
+		if self.print_format_builder_beta and is_classic_layout(self.format_data):
+			frappe.throw(classic_layout_message())
+
 	def extract_images(self):
 		from frappe.core.doctype.file.utils import extract_images_from_html
 
@@ -117,6 +170,128 @@ class PrintFormat(Document):
 					df["options"] = extract_images_from_html(self, df["options"])
 			self.format_data = json.dumps(data)
 
+	def validate_weasyprint_choice(self):
+		"""WeasyPrint is deprecated: a new format cannot start on it."""
+		if self.pdf_generator != "WeasyPrint" or not self.is_new():
+			return
+		if frappe.flags.in_migrate or frappe.flags.in_install:
+			return
+		frappe.throw(
+			_("WeasyPrint is deprecated and cannot be selected for a new format. Use Chrome instead."),
+			title=_("Renderer unavailable"),
+		)
+
+	def validate_typst_renderer(self):
+		"""Refuse to save a Typst-flagged format that Typst cannot render — the
+		blockers name exactly what to remove, at edit time instead of print time."""
+		from frappe.utils.typst_emitter import has_typst_blocks, typst_blockers
+
+		try:
+			layout = frappe.parse_json(self.format_data) if self.format_data else {}
+		except Exception:
+			layout = {}
+		if not isinstance(layout, dict):
+			layout = {}
+
+		if self.pdf_generator != "Typst":
+			if has_typst_blocks(layout):
+				frappe.throw(
+					_("This format uses a Typst block, so its PDF Renderer must be Typst."),
+					title=_("Typst block requires the Typst renderer"),
+				)
+			return
+		blockers = typst_blockers(self, layout)
+		if blockers:
+			frappe.throw(
+				_("This format cannot use the Typst renderer: {0}").format(", ".join(blockers)),
+				title=_("Typst renderer unavailable"),
+			)
+		self._validate_typst_block_markup(layout)
+
+	def _validate_typst_block_markup(self, layout):
+		"""Compile each raw Typst block on save so a typo fails here, with the
+		block named, instead of breaking every print later."""
+		from frappe.utils.jinja import get_jenv
+		from frappe.utils.typst_emitter import (
+			compile_typst_source,
+			has_jinja,
+			has_typst_blocks,
+			render_typst_template,
+		)
+
+		if not has_typst_blocks(layout):
+			return
+		try:
+			import typst
+		except ImportError:
+			return
+		sample_doc = None
+		sample_loaded = False
+		for where, df in iter_nodes(layout):
+			markup = (df.get("typst") or "").strip() if df.get("fieldtype") == "Typst" else ""
+			if not markup:
+				continue
+			if has_jinja(markup):
+				if not sample_loaded:
+					sample_doc = self._typst_sample_doc()
+					sample_loaded = True
+				try:
+					if sample_doc is None:
+						get_jenv().parse(markup)
+						continue
+					markup = render_typst_template(markup, {"doc": sample_doc})
+				except Exception as e:
+					frappe.throw(
+						_("The Typst block in {0} has a template error: {1}").format(where, str(e)[:300]),
+						title=_("Invalid Typst markup"),
+					)
+			try:
+				compile_typst_source(markup)
+			except Exception as e:
+				frappe.throw(
+					_("The Typst block in {0} does not compile: {1}").format(where, str(e)[:300]),
+					title=_("Invalid Typst markup"),
+				)
+
+	def _typst_sample_doc(self):
+		if not self.doc_type:
+			return None
+		if frappe.get_meta(self.doc_type).issingle:
+			return frappe.get_doc(self.doc_type)
+		name = frappe.db.get_value(self.doc_type, {}, "name", order_by="modified desc")
+		return frappe.get_doc(self.doc_type, name) if name else None
+
+	def validate_conditions(self):
+		"""Reject a layout whose visibility conditions cannot compile.
+
+		A condition that fails at render time is treated as "show", so a typo is
+		invisible unless it is caught here."""
+		try:
+			layout = frappe.parse_json(self.format_data) if self.format_data else None
+		except Exception:
+			return
+		if not isinstance(layout, dict):
+			return
+
+		for where, condition in _iter_conditions(layout):
+			try:
+				compile(condition, "<condition>", "eval")
+			except SyntaxError as e:
+				frappe.throw(
+					_("{0} is not a valid condition: {1}").format(frappe.bold(where), e.msg),
+					title=_("Invalid Condition"),
+				)
+
+	def validate_colors(self):
+		for fieldname in ("label_color", "value_color"):
+			value = self.get(fieldname)
+			if value and not re.fullmatch(r"#[0-9a-fA-F]{6}", value):
+				frappe.throw(
+					_("{0} must be a hex color code like #1a5fb4").format(
+						frappe.bold(self.meta.get_translated_label(fieldname))
+					)
+				)
+
 	def on_update(self):
 		if hasattr(self, "old_doc_type") and self.old_doc_type:
 			frappe.clear_cache(doctype=self.old_doc_type)
@@ -124,30 +299,6 @@ class PrintFormat(Document):
 			frappe.clear_cache(doctype=self.doc_type)
 
 		self.export_doc()
-		self.enqueue_preview_generation()
-
-	def enqueue_preview_generation(self):
-		"""Refresh the preview image in the background so saving the format isn't blocked by
-		the (slow) Chromium render. Deduplicated so rapid saves don't pile up renders."""
-		if (
-			frappe.flags.in_import
-			or frappe.flags.in_migrate
-			or frappe.flags.in_install
-			or frappe.flags.in_patch
-			or frappe.in_test
-		):
-			return
-		if self.print_format_for != "DocType" or not self.doc_type:
-			return
-
-		frappe.enqueue(
-			generate_preview,
-			queue="short",
-			enqueue_after_commit=True,
-			job_id=f"print_format_preview::{self.name}",
-			deduplicate=True,
-			name=self.name,
-		)
 
 	def after_rename(self, old: str, new: str, *args, **kwargs):
 		if self.doc_type:
@@ -174,6 +325,277 @@ class PrintFormat(Document):
 	def on_trash(self):
 		if self.doc_type:
 			frappe.clear_cache(doctype=self.doc_type)
+
+
+def _iter_conditions(layout):
+	"""Yield (label, expression) for every condition in a beta layout."""
+	for where, zone in iter_zones(layout):
+		yield from _condition(zone, where, "visible_if")
+		for df in iter_fields(zone):
+			label = df.get("label") or df.get("fieldname") or _("Field")
+			yield from _condition(df, label, "visible_if")
+			yield from _condition(df, label, "row_condition")
+			table_columns = df.get("table_columns")
+			for col in table_columns if isinstance(table_columns, list) else []:
+				if isinstance(col, dict):
+					yield from _condition(col, col.get("label") or label, "column_condition")
+
+
+def _condition(holder, label, key):
+	"""Yield (label, expression) only when the value is actually an expression."""
+	condition = holder.get(key)
+	if isinstance(condition, str) and condition.strip():
+		yield label, condition
+
+
+@frappe.whitelist()
+def create_custom_format(
+	doctype: str, name: str | int, based_on: str = "Standard", beta: str | int | bool = True
+):
+	if not frappe.parse_json(beta):
+		frappe.throw(_("The classic builder can no longer create formats"))
+
+	from frappe.printing.doctype.print_format.classic_converter import (
+		convert_print_format,
+		is_classic_layout,
+	)
+
+	doc = frappe.new_doc("Print Format")
+	doc.doc_type = doctype
+	doc.name = name
+	doc.print_format_builder_beta = 1
+	if based_on and based_on != "Standard":
+		source = frappe.get_doc("Print Format", based_on)
+		source.check_permission("read")
+		doc.format_data = source.format_data
+		if is_classic_layout(doc.format_data):
+			convert_print_format(doc)
+	else:
+		from frappe.printing.doctype.print_format.classic_converter import create_default_layout
+
+		doc.format_data = frappe.as_json(create_default_layout(frappe.get_meta(doctype)))
+	doc.insert()
+	return doc
+
+
+def _classic_conversion_values(doc) -> dict:
+	from frappe.printing.doctype.print_format.classic_converter import NUMERIC_DEFAULT_FIELDS
+
+	return {
+		"format_data": doc.format_data,
+		"classic_format_data": doc.classic_format_data,
+		"print_format_builder": doc.print_format_builder,
+		"print_format_builder_beta": doc.print_format_builder_beta,
+		"pdf_generator": doc.pdf_generator,
+		"page_number": doc.page_number,
+		**{f: doc.get(f) for f in NUMERIC_DEFAULT_FIELDS},
+	}
+
+
+def _persist_conversion(doc):
+	"""Standard formats are file-backed: write the row without exporting, so the
+	app's fixture stays classic and a later sync can restore it."""
+	if doc.standard == "Yes":
+		frappe.db.set_value("Print Format", doc.name, _classic_conversion_values(doc), update_modified=False)
+		frappe.clear_cache(doctype=doc.doc_type)
+	else:
+		doc.save()
+
+
+@frappe.whitelist()
+def convert_to_builder(name: str):
+	"""Rewrite a classic format's layout for the new builder, keeping the original
+	in `classic_format_data`."""
+	from frappe.printing.doctype.print_format.classic_converter import convert_print_format
+
+	_require_str(name=name)
+	doc = frappe.get_doc("Print Format", name)
+	doc.check_permission("write")
+	if doc.standard == "Yes" and not frappe.conf.developer_mode:
+		frappe.throw(_("Standard print formats can only be converted in developer mode"))
+	dropped = convert_print_format(doc)
+	if dropped is None:
+		frappe.throw(_("{0} is not a classic print format").format(frappe.bold(name)))
+	_persist_conversion(doc)
+	return {"dropped": dropped}
+
+
+@frappe.whitelist()
+def restore_classic_layout(name: str):
+	"""Undo `convert_to_builder` from the `classic_format_data` backup."""
+	from frappe.printing.doctype.print_format.classic_converter import restore_classic_format
+
+	_require_str(name=name)
+	doc = frappe.get_doc("Print Format", name)
+	doc.check_permission("write")
+	if not restore_classic_format(doc):
+		frappe.throw(_("{0} has no classic layout to restore").format(frappe.bold(name)))
+	_persist_conversion(doc)
+
+
+def _draft_payload(data: str | dict | None) -> dict:
+	"""Keep only the fields the builder is allowed to hold in a draft."""
+	data = frappe.parse_json(data) if data else {}
+	if not isinstance(data, dict):
+		frappe.throw(_("Draft data must be an object"))
+	return {key: value for key, value in data.items() if key in BUILDER_DRAFT_FIELDS}
+
+
+def _writable_format(name: str, modified: str | datetime):
+	"""The format, refusing the write if the caller's copy is behind the database."""
+	doc = frappe.get_doc("Print Format", name)
+	doc.check_permission("write")
+	current = frappe.db.get_value("Print Format", name, "modified", for_update=True)
+	if frappe.utils.cstr(current) != frappe.utils.cstr(modified):
+		frappe.throw(
+			_("{0} has changed since you opened it. Refresh to get the latest version.").format(
+				frappe.bold(name)
+			),
+			frappe.TimestampMismatchError,
+		)
+	return doc
+
+
+@frappe.whitelist()
+def save_draft(name: str, data: str | dict, modified: str | datetime):
+	"""Store the builder's in-progress changes without touching what prints."""
+	doc = _writable_format(name, modified)
+	payload = _draft_payload(data)
+	_check_draft(doc, payload)
+	doc.db_set("draft_data", frappe.as_json(payload))
+	return doc.modified
+
+
+def _check_draft(doc, payload):
+	"""The cheap validations, so a bad colour or condition is reported while editing."""
+	for field, value in payload.items():
+		doc.set(field, value)
+	doc.validate_colors()
+	doc.validate_conditions()
+
+
+@frappe.whitelist()
+def apply_draft(name: str, modified: str | datetime, data: str | dict | None = None):
+	"""Copy the draft onto the fields that print, then clear it."""
+	doc = _writable_format(name, modified)
+	for field, value in _draft_payload(data if data is not None else doc.draft_data).items():
+		doc.set(field, value)
+	doc.draft_data = None
+	doc.save()
+	_record_version(doc, "Save & Apply", {field: doc.get(field) for field in BUILDER_DRAFT_FIELDS})
+	return doc.as_dict()
+
+
+VERSION_KEY = "print_format_version"
+
+
+def _record_version(doc, snapshot_type: str, fields: dict, label: str | None = None):
+	comment = _("saved version {0}").format(frappe.bold(label)) if label else _("applied the builder draft")
+	frappe.get_doc(
+		{
+			"doctype": "Version",
+			"ref_doctype": doc.doctype,
+			"docname": doc.name,
+			"data": frappe.as_json(
+				{
+					"comment": comment,
+					VERSION_KEY: {"type": snapshot_type, "label": label, "fields": fields},
+				},
+				indent=None,
+			),
+		}
+	).insert(ignore_permissions=True)
+
+
+@frappe.whitelist()
+def save_version(name: str, label: str, data: str | dict, modified: str | datetime):
+	"""Keep a named copy of the builder draft that can be restored later."""
+	_require_str(name=name, label=label)
+	doc = _writable_format(name, modified)
+	label = label.strip()
+	if not label:
+		frappe.throw(_("Give the version a name"))
+	_record_version(doc, "Manual", _draft_payload(data), label)
+
+
+def _require_str(**values):
+	for key, value in values.items():
+		if not isinstance(value, str):
+			frappe.throw(_("{0} must be text").format(key), frappe.ValidationError)
+
+
+@frappe.whitelist()
+def delete_version(name: str, version: str):
+	"""Remove a recorded version; the format itself is untouched."""
+	_require_str(name=name, version=version)
+	frappe.has_permission("Print Format", "write", doc=name, throw=True)
+	_version_snapshot(name, version)
+	frappe.delete_doc("Version", version, ignore_permissions=True)
+
+
+@frappe.whitelist()
+def get_versions(name: str):
+	"""Versions recorded by the builder, newest first."""
+	_require_str(name=name)
+	frappe.has_permission("Print Format", "read", doc=name, throw=True)
+	out = []
+	for row in frappe.get_all(
+		"Version",
+		filters={
+			"ref_doctype": "Print Format",
+			"docname": name,
+			"data": ("like", f'%"{VERSION_KEY}"%'),
+		},
+		fields=["name", "owner", "creation", "data"],
+		order_by="creation desc",
+		limit_page_length=50,
+	):
+		snapshot = (frappe.parse_json(row.data) or {}).get(VERSION_KEY)
+		if snapshot:
+			out.append(
+				{
+					"name": row.name,
+					"owner": row.owner,
+					"creation": row.creation,
+					"type": snapshot.get("type"),
+					"label": snapshot.get("label"),
+				}
+			)
+	return out
+
+
+@frappe.whitelist()
+def get_version_fields(name: str, version: str):
+	"""The builder fields a recorded version holds, for previewing it."""
+	_require_str(name=name, version=version)
+	frappe.has_permission("Print Format", "read", doc=name, throw=True)
+	return _version_snapshot(name, version).get("fields")
+
+
+def _version_snapshot(name: str, version: str) -> dict:
+	row = frappe.db.get_value("Version", version, ["docname", "data"], as_dict=True)
+	snapshot = row and row.docname == name and (frappe.parse_json(row.data) or {}).get(VERSION_KEY)
+	if not snapshot:
+		frappe.throw(_("This version does not belong to {0}").format(frappe.bold(name)))
+	return snapshot
+
+
+@frappe.whitelist()
+def restore_version(name: str, version: str, modified: str | datetime):
+	"""Load a recorded version into the draft; what prints waits for Save & Apply."""
+	_require_str(name=name, version=version)
+	doc = _writable_format(name, modified)
+	snapshot = _version_snapshot(name, version)
+	doc.db_set("draft_data", frappe.as_json(_draft_payload(snapshot.get("fields"))))
+	return doc.modified
+
+
+@frappe.whitelist()
+def discard_draft(name: str, modified: str | datetime):
+	"""Throw away the draft; what prints is untouched either way."""
+	doc = _writable_format(name, modified)
+	doc.db_set("draft_data", None)
+	return doc.modified
 
 
 @frappe.whitelist()
@@ -205,58 +627,8 @@ def make_default(name: str):
 
 
 def printable_sample(doctype: str) -> str | None:
-	"""Most recent document the user can read AND print. Submittable doctypes only
-	reliably print submitted docs (draft/cancelled hit the printview guards), so
-	restrict to those; otherwise any latest doc works."""
+	"""Most recent document the user can read and print; submittable doctypes only
+	reliably print submitted docs, so restrict to those."""
 	filters = {"docstatus": 1} if frappe.get_meta(doctype).is_submittable else {}
 	sample = frappe.get_list(doctype, filters=filters, limit=1, order_by="modified desc", pluck="name")
 	return sample[0] if sample else None
-
-
-def generate_preview(name: str) -> str | None:
-	"""Render this format against a sample document, screenshot the HTML via the
-	bundled Chromium, and store the result in the format's `preview_image` field.
-
-	Uses `db_set` rather than `save` so it works for standard formats too (whose
-	`validate` blocks saving) and skips the full validation cycle. Returns the new
-	image URL, or None when there's no printable sample to render against."""
-	doc = frappe.get_doc("Print Format", name)
-
-	sample_name = printable_sample(doc.doc_type)
-	if not sample_name:
-		return
-
-	from frappe.utils.file_manager import save_file
-	from frappe.utils.preview import get_preview_from_html
-
-	try:
-		html = frappe.get_print(doc.doc_type, sample_name, name)
-		# 850px ≈ 8.3in at 96dpi — matches the print sheet width so margin:auto
-		# centers correctly and the screenshot captures the full page width.
-		image = get_preview_from_html(html, format="webp", width=850)
-	except Exception:
-		frappe.local.message_log = []
-		frappe.log_error(f"Print format preview generation failed: {name}")
-		return None
-
-	# Drop the previous preview file (if any) before storing the fresh one.
-	# Use ignore_permissions=True because the file may have been generated by a different
-	# user and the current caller might not own it — but only delete files that are
-	# actually attached to this Print Format to prevent preview_image from being used
-	# to delete arbitrary File records.
-	if doc.preview_image:
-		old = frappe.db.get_value(
-			"File",
-			{"file_url": doc.preview_image, "attached_to_doctype": "Print Format", "attached_to_name": name},
-			"name",
-		)
-		if old:
-			frappe.delete_doc("File", old, ignore_permissions=True, delete_permanently=True)
-
-	fname = f"pf-preview-{frappe.generate_hash(length=10)}.webp"
-	file = save_file(fname, image, "Print Format", name, is_private=1)
-	# Don't bump `modified` — generating a preview isn't a content edit. Otherwise the
-	# background refresh would stale-date an open form and break its next save with a
-	# timestamp mismatch.
-	doc.db_set("preview_image", file.file_url, update_modified=False)
-	return file.file_url
