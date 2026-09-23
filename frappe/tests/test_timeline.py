@@ -109,7 +109,7 @@ class TestActivityPage(FrappeTestCase):
 		source += [row("2026-01-06 00:00:00", "log:f"), row("2026-01-04 00:00:00", "log:0")]
 		pages = walk(source, limit=2)
 		self.assertEqual(sorted(key for page in pages for key in page), sorted(keys(source)))
-		self.assertEqual(sum(map(len, pages)), len(source))
+		self.assertEqual(sum(len(page) for page in pages), len(source))
 
 	def test_a_malformed_cursor_is_rejected(self):
 		self.assertRaises(frappe.ValidationError, ActivityPage, "2026-01-01", 2)

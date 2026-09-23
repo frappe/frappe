@@ -48,7 +48,7 @@ class ActivityPage:
 		return kept
 
 	def build(self, activities: list[dict]) -> dict:
-		rows = sorted(filter(self.holds, activities), key=position, reverse=True)
+		rows = sorted((a for a in activities if self.holds(a)), key=position, reverse=True)
 		next_position = self.floor
 		if len(rows) > self.limit:
 			rows = rows[: self.limit]
