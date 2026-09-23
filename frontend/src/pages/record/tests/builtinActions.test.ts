@@ -33,8 +33,8 @@ beforeEach(() => {
 
 describe("quickActionBuiltins", () => {
   it("seeds copy_link always and print only with the right; delete is the header's", () => {
-    expect(names({})).toEqual(["copy_link"]);
-    expect(names({ print: 1, delete: 1 })).toEqual(["print", "copy_link"]);
+    expect(names({})).toEqual(["comment", "copy_link"]);
+    expect(names({ print: 1, delete: 1 })).toEqual(["comment", "print", "copy_link"]);
     expect(menu({}).map((item) => item.name)).toEqual(["favourite_row", "copy_url", "copy_id"]);
     const remove = menuRow({ delete: 1 }, "delete");
     expect(remove).toMatchObject({ name: "delete", label: "Delete", group: "danger" });
@@ -71,8 +71,8 @@ describe("quickActionBuiltins", () => {
     const page = fakePage(null);
     const off: FollowState = { following: false, toggle };
     const quick = quickActionBuiltins({ write: 1 }, false, off);
-    expect(quick.map((a) => a.name)).toEqual(["copy_link", "follow", "tags"]);
-    expect(quick[1]).toMatchObject({ label: "Follow", icon: "lucide-bell" });
+    expect(quick.map((a) => a.name)).toEqual(["comment", "copy_link", "follow", "tags"]);
+    expect(quick[2]).toMatchObject({ label: "Follow", icon: "lucide-bell" });
     const rows = headerMenuBuiltins({ delete: 1 }, off as any, { follow: off });
     expect(rows.map((item) => [item.name, item.group])).toEqual([
       ["favourite_row", "favourite_band"],
@@ -87,7 +87,7 @@ describe("quickActionBuiltins", () => {
 
     const on: FollowState = { following: true, toggle };
     const unfollow = { label: "Unfollow", icon: "lucide-bell-off" };
-    expect(quickActionBuiltins({}, false, on)[1]).toMatchObject(unfollow);
+    expect(quickActionBuiltins({}, false, on)[2]).toMatchObject(unfollow);
     expect(headerMenuBuiltins({}, off as any, { follow: on })[1]).toMatchObject(unfollow);
   });
 
@@ -100,10 +100,18 @@ describe("quickActionBuiltins", () => {
     expect(page.toast.success).toHaveBeenCalledWith("ID copied");
   });
 
+  it("leads with comment on every record, opening the comment writer", () => {
+    const open = vi.fn();
+    const comment = quickActionBuiltins({})[0];
+    expect(comment).toMatchObject({ name: "comment", label: "Comment", icon: "lucide-message-square" });
+    comment.run!({ composer: { open } } as any);
+    expect(open).toHaveBeenCalledWith("comment");
+  });
+
   it("seeds tags with write, only while the record has none", () => {
-    expect(names({ write: 1 })).toEqual(["copy_link", "tags"]);
-    expect(names({ write: 1 }, true)).toEqual(["copy_link"]);
-    expect(names({}, false)).toEqual(["copy_link"]);
+    expect(names({ write: 1 })).toEqual(["comment", "copy_link", "tags"]);
+    expect(names({ write: 1 }, true)).toEqual(["comment", "copy_link"]);
+    expect(names({}, false)).toEqual(["comment", "copy_link"]);
     expect(quickActionBuiltins({ write: 1 }).at(-1)).toMatchObject({ tagging: true });
   });
 
@@ -124,13 +132,13 @@ describe("quickActionBuiltins", () => {
   it("refuses to copy without a clipboard, and keeps the page", async () => {
     vi.spyOn(navigator, "clipboard", "get").mockReturnValue(undefined as any);
     const page = fakePage(null);
-    await quickActionBuiltins({})[0].run!(page);
+    await quickActionBuiltins({})[1].run!(page);
     expect(page.toast.error).toHaveBeenCalledWith("Copying needs a secure connection");
   });
 
   it("opens desk v1's print view for the record", () => {
     const open = vi.spyOn(window, "open").mockReturnValue(null);
-    quickActionBuiltins({ print: 1 })[0].run!(fakePage(null));
+    quickActionBuiltins({ print: 1 })[1].run!(fakePage(null));
     expect(open).toHaveBeenCalledWith("/printview?doctype=CRM+Deal&name=CRM-DEAL-1", "_blank");
   });
 
@@ -138,7 +146,7 @@ describe("quickActionBuiltins", () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     vi.spyOn(navigator, "clipboard", "get").mockReturnValue({ writeText } as any);
     const page = fakePage(null);
-    await quickActionBuiltins({})[0].run!(page);
+    await quickActionBuiltins({})[1].run!(page);
     expect(writeText).toHaveBeenCalledWith(window.location.href);
     expect(page.toast.success).toHaveBeenCalledWith("Link copied");
   });

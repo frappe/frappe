@@ -210,6 +210,48 @@ describe("the Files tab", () => {
 		expect(fetchMock.mock.calls[0][1]?.method).toBe("DELETE");
 	});
 
+	it("gives the `+` menu an Attach a file only with an upload to ask for", () => {
+		expect(recordTabBuiltins().find((tab) => tab.name === "files")!.create).toBeUndefined();
+		const requestUpload = vi.fn();
+		const create = recordTabBuiltins({ requestUpload }).find((tab) => tab.name === "files")!.create!;
+		expect(create).toMatchObject({ label: "Attach a file", icon: "lucide-paperclip" });
+		const page = { tabs: { activate: vi.fn() } } as any;
+		create.run(page);
+		expect(page.tabs.activate).toHaveBeenCalledWith("files");
+		expect(requestUpload).toHaveBeenCalledTimes(1);
+	});
+
+	it("opens the upload dialog for a request made before the tab mounted, once", async () => {
+		const { feeds, page } = setup({ attachments: [OLD], permissions: { write: 1 } });
+		feeds.requestUpload();
+
+		await mountTab("files", feeds, page);
+
+		await vi.waitFor(() => expect(document.querySelector("[role='dialog']")).not.toBeNull());
+		expect(feeds.uploadRequested.value).toBe(false);
+	});
+
+	it("opens the upload dialog for a request made while the tab is mounted", async () => {
+		const { feeds, page } = setup({ attachments: [OLD], permissions: { write: 1 } });
+		await mountTab("files", feeds, page);
+		expect(document.querySelector("[role='dialog']")).toBeNull();
+
+		feeds.requestUpload();
+
+		await vi.waitFor(() => expect(document.querySelector("[role='dialog']")).not.toBeNull());
+	});
+
+	it("takes a request without opening anything for a reader who may not write", async () => {
+		const { feeds, page } = setup({ attachments: [OLD], permissions: { read: 1 } });
+		feeds.requestUpload();
+
+		await mountTab("files", feeds, page);
+		await nextTick();
+
+		expect(document.querySelector("[role='dialog']")).toBeNull();
+		expect(feeds.uploadRequested.value).toBe(false);
+	});
+
 	it("uploads onto the record and keeps the part the attach route answers with", async () => {
 		const { feeds } = setup({ attachments: [OLD] });
 		vi.mocked(attachFile).mockResolvedValue({ data: { attachments: [OLD, NEW], file: "F-2" } } as any);

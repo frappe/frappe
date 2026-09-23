@@ -121,9 +121,18 @@ watch(dialogOpen, (opened) => {
 	if (!opened && !busy.value) dialogMounted.value = false;
 });
 
+// Immediate: the request usually comes before this tab's first visit mounts it.
+watch(feeds.uploadRequested, takeUploadRequest, { immediate: true });
+
 function open() {
 	dialogMounted.value = true;
 	dialogOpen.value = true;
+}
+
+function takeUploadRequest(requested: boolean) {
+	if (!requested) return;
+	feeds.uploadRequested.value = false;
+	if (canWrite.value) open();
 }
 
 function onUploading(uploading: boolean) {

@@ -27,6 +27,13 @@
 						/>
 					</div>
 					<slot />
+					<!-- The composer band floats over the foot, so the newest row scrolls clear of it. -->
+					<div
+						v-if="band"
+						class="shrink-0"
+						:style="{ height: `${band}px` }"
+						aria-hidden="true"
+					/>
 				</div>
 			</ScrollArea>
 		</div>
@@ -40,7 +47,11 @@
 			:class="atBottom ? 'opacity-0' : 'opacity-100'"
 		/>
 
-		<div v-if="overflowing" class="pointer-events-none absolute inset-x-0 bottom-4 z-10 px-6">
+		<div
+			v-if="overflowing"
+			class="pointer-events-none absolute inset-x-0 bottom-4 z-10 px-6"
+			:style="band ? { bottom: `${band + 8}px` } : undefined"
+		>
 			<div class="relative mx-auto w-full max-w-3xl">
 				<div class="absolute bottom-0 right-0">
 					<Tooltip :text="jumpLabel" placement="top">
@@ -60,11 +71,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
 import { useEventListener, useResizeObserver } from "@vueuse/core";
 import { Button, ScrollArea, Tooltip } from "frappe-ui";
 import { __ } from "@/i18n";
-import type { FeedPages } from "./recordFeeds";
+import { RecordFeedsKey, type FeedPages } from "./recordFeeds";
 import { useScrollEdges } from "./useScrollEdges";
 
 const props = withDefaults(
@@ -78,6 +89,10 @@ const props = withDefaults(
 	}>(),
 	{ paginate: undefined, error: undefined, ready: true, openAtBottom: false }
 );
+
+const feeds = inject(RecordFeedsKey, null);
+// The band sits 16px off the foot; the spacer and the jump button clear both.
+const band = computed(() => (feeds?.composerBand.value ? feeds.composerBand.value + 16 : 0));
 
 const area = ref<InstanceType<typeof ScrollArea> | null>(null);
 const scroller = computed(() => area.value?.viewportElement ?? null);

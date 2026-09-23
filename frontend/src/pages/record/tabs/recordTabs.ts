@@ -2,7 +2,7 @@
 import { markRaw, ref, watch, type Component, type Ref } from "vue";
 import type { LocationQueryValue, RouteLocationNormalizedLoaded, Router } from "vue-router";
 import type { Surface } from "@/recordPage/surface";
-import type { TabItem } from "@/recordPage/types";
+import type { TabCreateAction, TabItem } from "@/recordPage/types";
 import { __ } from "@/i18n";
 import ActivityTab from "../feed/ActivityTab.vue";
 import FilesTab from "../feed/FilesTab.vue";
@@ -15,8 +15,15 @@ export const DETAILS_TAB = "details";
 export const TAB_STRIP_CLASSES =
   "[&_[role='tablist']]:gap-5 [&_[role='tablist']]:px-[--page-gutter] [&_[role='tablist']]:py-2 [&_[role='tab']]:rounded-4";
 
+export const FILES_TAB = "files";
+
+/** Given only with the `write` right: it opens the Files tab's upload dialog. */
+export interface RecordTabOptions {
+  requestUpload?: () => void;
+}
+
 /** No doctype condition: a script hides what its doctype does not need. */
-export function recordTabBuiltins(): TabItem[] {
+export function recordTabBuiltins({ requestUpload }: RecordTabOptions = {}): TabItem[] {
   return [
     {
       name: "activity",
@@ -31,9 +38,26 @@ export function recordTabBuiltins(): TabItem[] {
       component: markRaw(TimelineFeed),
       props: { types: EMAIL_TYPES, empty: { icon: "lucide-mail", label: __("No emails yet") } },
     },
-    { name: "files", label: __("Files"), icon: "lucide-paperclip", component: markRaw(FilesTab) },
+    {
+      name: FILES_TAB,
+      label: __("Files"),
+      icon: "lucide-paperclip",
+      component: markRaw(FilesTab),
+      ...(requestUpload && { create: attachAFile(requestUpload) }),
+    },
     { name: DETAILS_TAB, label: __("Details"), icon: "lucide-table-properties" },
   ];
+}
+
+function attachAFile(requestUpload: () => void): TabCreateAction {
+  return {
+    label: __("Attach a file"),
+    icon: "lucide-paperclip",
+    run: (page) => {
+      page.tabs.activate(FILES_TAB);
+      requestUpload();
+    },
+  };
 }
 
 declare module "vue" {

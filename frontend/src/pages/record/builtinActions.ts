@@ -9,7 +9,10 @@ export function quickActionBuiltins(
   tagged = false,
   follow?: FollowState
 ): QuickAction[] {
-  const actions: QuickAction[] = [];
+  // No right gates it: a comment needs only read.
+  const actions: QuickAction[] = [
+    { name: "comment", label: "Comment", icon: "lucide-message-square", run: openComment },
+  ];
   if (perms.print) actions.push({ name: "print", label: "Print", icon: "lucide-printer", run: print });
   actions.push({ name: "copy_link", label: "Copy link", icon: "lucide-link", run: copyLink });
   if (follow) actions.push({ name: "follow", ...followWording(follow), run: follow.toggle });
@@ -68,6 +71,10 @@ export function headerMenuBuiltins(
   if (perms.delete && !options.single)
     items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", run: remove });
   return items;
+}
+
+function openComment(page: RecordPageApi) {
+  page.composer.open("comment");
 }
 
 // Desk v1's print view; the new shell has no print page of its own yet.
