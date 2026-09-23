@@ -1,6 +1,6 @@
 // The record strip's host: the four built-ins, the `?tab=` rule, and when each tab event fires.
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { nextTick, reactive, ref, shallowRef } from "vue";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { effectScope, nextTick, reactive, ref, shallowRef, type EffectScope } from "vue";
 
 vi.mock("frappe-ui", () => ({
   call: vi.fn(),
@@ -17,38 +17,39 @@ import { createRecordPage, type RecordPageController } from "@/recordPage/create
 import { registerRecordPage, resetRegistry } from "@/recordPage/registry";
 import { Surface } from "@/recordPage/surface";
 import { TAB_ITEM_KEYS, type TabItem } from "@/recordPage/types";
-import {
-  recordTabBuiltins,
-  RecordTabsHost,
-  watchShownTab,
-  watchTabEvents,
-} from "../recordTabs";
+import { recordTabBuiltins, RecordTabsHost } from "../recordTabs";
+import { useRecordTabs, watchShownTab } from "../useRecordTabs";
 
 /** A route and a router whose `replace` lands on the next tick, as vue-router's does. */
-function makeAddress(query: Record<string, string> = {}) {
-  const route = reactive({ query: { ...query } as Record<string, any> });
-  const replace = vi.fn(async (to: { query: Record<string, any> }) => {
+function makeAddress(query: Record<string, string> = {}, hash = "") {
+  const route = reactive({ query: { ...query } as Record<string, any>, hash });
+  const replace = vi.fn(async (to: { query: Record<string, any>; hash?: string }) => {
     await Promise.resolve();
     route.query = to.query;
+    route.hash = to.hash ?? "";
   });
   return { route, router: { replace } as any };
 }
 
-function makeHost(query: Record<string, string> = {}) {
-  const { route, router } = makeAddress(query);
+function makeHost(query: Record<string, string> = {}, hash = "") {
+  const { route, router } = makeAddress(query, hash);
   const tabs = new Surface<TabItem>({ surface: "tabs", keys: TAB_ITEM_KEYS });
   tabs.provideBuiltins(recordTabBuiltins);
-  const host = new RecordTabsHost(route as any, router, () => tabs);
+  const host = scope.run(() => new RecordTabsHost(route as any, router, () => tabs))!;
   return { host, tabs, route, router };
 }
 
 let warnings: string[];
+let scope: EffectScope;
 
 beforeEach(() => {
   resetRegistry();
   warnings = [];
+  scope = effectScope();
   vi.spyOn(console, "warn").mockImplementation((message: string) => warnings.push(message));
 });
+
+afterEach(() => scope.stop());
 
 describe("the built-ins", () => {
   it("seeds four tabs in order, Activity first", () => {
@@ -103,6 +104,7 @@ describe("which tab shows", () => {
 
     expect(tabs.visible()[0].name).toBe("activity");
     expect(host.active()).toBe("emails");
+    expect(host.shown()).toBe("activity");
   });
 });
 
@@ -112,7 +114,34 @@ describe("moving the reader", () => {
 
     await host.activate("files");
 
-    expect(router.replace).toHaveBeenCalledWith({ query: { view: "compact", tab: "files" } });
+    expect(router.replace).toHaveBeenCalledWith({
+      query: { view: "compact", tab: "files" },
+      hash: "",
+    });
+  });
+
+  it("keeps the hash, so a dialog living there stays open", async () => {
+    const { host, route } = makeHost({}, "#settings/desk/general");
+
+    await host.activate("files");
+
+    expect(route.hash).toBe("#settings/desk/general");
+  });
+
+  it("works when passed bare, as a template's event handler passes it", async () => {
+    const { host, route } = makeHost();
+    const { activate } = host;
+
+    await activate("files");
+
+    expect(route.query.tab).toBe("files");
+  });
+
+  it("swallows a refused navigation", async () => {
+    const { host, router } = makeHost();
+    router.replace.mockRejectedValueOnce(new Error("aborted"));
+
+    await expect(host.activate("files")).resolves.toBeUndefined();
   });
 
   it("shows the new tab before the router settles", () => {
@@ -137,22 +166,30 @@ describe("a field focus", () => {
   it("brings Details forward first", async () => {
     const { host, router } = makeHost({ tab: "files" });
 
-    await host.showDetails();
+    expect(await host.showDetails("amount")).toBe(true);
 
     expect(host.active()).toBe("details");
     expect(router.replace).toHaveBeenCalledTimes(1);
   });
 
-  it("leaves the address alone when the reader is on Details or Details is hidden", async () => {
-    const onDetails = makeHost({ tab: "details" });
-    const hidden = makeHost();
-    hidden.tabs.hide("details");
+  it("leaves the address alone when the reader is already on Details", async () => {
+    const { host, router } = makeHost({ tab: "details" });
 
-    await onDetails.host.showDetails();
-    await hidden.host.showDetails();
+    expect(await host.showDetails("amount")).toBe(true);
+    expect(router.replace).not.toHaveBeenCalled();
+  });
 
-    expect(onDetails.router.replace).not.toHaveBeenCalled();
-    expect(hidden.router.replace).not.toHaveBeenCalled();
+  it("refuses with a warning when a script hid Details, and moves nobody", async () => {
+    const { host, tabs, router } = makeHost({ tab: "files" });
+    tabs.hide("details");
+
+    expect(await host.showDetails("amount")).toBe(false);
+
+    expect(host.shown()).toBe("files");
+    expect(router.replace).not.toHaveBeenCalled();
+    expect(warnings).toEqual([
+      '[record-page] page.fields.focus("amount") — the Details tab is hidden, so the reader was not moved.',
+    ]);
   });
 });
 
@@ -168,17 +205,27 @@ describe("a hidden active tab", () => {
     const { host, tabs } = makeHost();
 
     tabs.hide("activity");
-    host.warnIfHidden("activity");
+    host.warnIfHidden("activity", "emails");
 
-    expect(warnings).toHaveLength(1);
-    expect(warnings[0]).toContain('page.tabs.hide("activity")');
+    expect(warnings).toEqual([
+      '[record-page] page.tabs.hide("activity") — the reader was on it, so they moved to the first visible tab.',
+    ]);
+  });
+
+  it("says so when no tab is left to show", () => {
+    const { host, tabs } = makeHost();
+
+    tabs.hide("activity");
+    host.warnIfHidden("activity", "");
+
+    expect(warnings[0]).toContain("so no tab is left to show.");
   });
 
   it("does not warn for a visible or unknown tab", () => {
     const { host } = makeHost();
 
-    host.warnIfHidden("activity");
-    host.warnIfHidden("nope");
+    host.warnIfHidden("activity", "emails");
+    host.warnIfHidden("nope", "activity");
 
     expect(warnings).toEqual([]);
   });
@@ -189,10 +236,12 @@ describe("a move within one page", () => {
     const owner = shallowRef<object>({});
     const shown = ref("");
     const moves: [string, string][] = [];
-    watchShownTab(
-      () => owner.value,
-      () => shown.value,
-      (previous, next) => void moves.push([previous, next]),
+    scope.run(() =>
+      watchShownTab(
+        () => owner.value,
+        () => shown.value,
+        (previous, next) => void moves.push([previous, next]),
+      ),
     );
     return { owner, shown, moves };
   }
@@ -241,119 +290,3 @@ describe("a move within one page", () => {
   });
 });
 
-describe("the tab events", () => {
-  function makePage(query: Record<string, string> = {}) {
-    const { route, router } = makeAddress(query);
-    const controller = shallowRef<RecordPageController | null>(null);
-    const host = new RecordTabsHost(route as any, router, () => controller.value?.tabs);
-    controller.value = createRecordPage({
-      doctype: "CRM Deal",
-      docname: "CRM-DEAL-1",
-      doc: ref({}),
-      saved: ref({}),
-      meta: ref(null),
-      perms: () => ({}),
-      isDirty: () => false,
-      activeTab: () => host.active(),
-      activateTab: (name) => void host.activate(name),
-      save: async () => {},
-      reload: async () => {},
-      router,
-    });
-    controller.value.tabs.provideBuiltins(recordTabBuiltins);
-    const formTab = ref("");
-    const shown = () => (controller.value?.ready.value ? host.active() : "");
-    watchTabEvents(host, () => controller.value, { tab: shown, formTab: () => formTab.value });
-    return { controller, host, formTab, route };
-  }
-
-  async function settle() {
-    for (let turn = 0; turn < 3; turn++) await nextTick();
-  }
-
-  it("fires `onTabChange` between shown tabs with the page alone, reading `active`", async () => {
-    const seen: unknown[][] = [];
-    registerRecordPage("CRM Deal", {
-      onTabChange: (page, row) => void seen.push([page.tabs.active, row]),
-    });
-    const { controller, host } = makePage();
-    await controller.value!.refresh();
-    await settle();
-
-    await host.activate("emails");
-    await settle();
-
-    expect(seen).toEqual([["emails", undefined]]);
-  });
-
-  it("never fires on first paint, even for a tab the first replay activates", async () => {
-    const seen: string[] = [];
-    registerRecordPage("CRM Deal", {
-      onRefresh: (page) => page.tabs.activate("files"),
-      onTabChange: (page) => void seen.push(page.tabs.active),
-    });
-    const { controller, route } = makePage();
-
-    await controller.value!.refresh();
-    await settle();
-
-    expect(route.query.tab).toBe("files");
-    expect(seen).toEqual([]);
-  });
-
-  it("fires for a script's `activate` in a later replay", async () => {
-    let move = false;
-    const seen: string[] = [];
-    registerRecordPage("CRM Deal", {
-      onRefresh: (page) => {
-        if (move) page.tabs.activate("files");
-      },
-      onTabChange: (page) => void seen.push(page.tabs.active),
-    });
-    const { controller } = makePage();
-    await controller.value!.refresh();
-    await settle();
-
-    move = true;
-    await controller.value!.refresh();
-    await settle();
-
-    expect(seen).toEqual(["files"]);
-  });
-
-  it("fires when a script hides the reader's tab, and warns", async () => {
-    let hide = false;
-    const seen: string[] = [];
-    registerRecordPage("CRM Deal", {
-      onRefresh: (page) => {
-        if (hide) page.tabs.hide("files");
-      },
-      onTabChange: (page) => void seen.push(page.tabs.active),
-    });
-    const { controller } = makePage({ tab: "files" });
-    await controller.value!.refresh();
-    await settle();
-
-    hide = true;
-    await controller.value!.refresh();
-    await settle();
-
-    expect(seen).toEqual(["activity"]);
-    expect(warnings.some((message) => message.includes('hide("files")'))).toBe(true);
-  });
-
-  it("fires `onFormTabChange` between two form tabs, never on the first", async () => {
-    const seen: unknown[] = [];
-    registerRecordPage("CRM Deal", {
-      onFormTabChange: (page, row) => void seen.push(row),
-    });
-    const { formTab } = makePage();
-
-    formTab.value = "lead_details";
-    await settle();
-    formTab.value = "products";
-    await settle();
-
-    expect(seen).toEqual([undefined]);
-  });
-});

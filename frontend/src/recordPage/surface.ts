@@ -100,13 +100,6 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 		return this.fold(this.pending ?? this.ops).find((entry) => entry.item.name === name)?.item;
 	}
 
-	// Host side, reading the way `has` reads: the visible items as the replay in flight would render them.
-	showing(): Item[] {
-		return this.fold(this.pending ?? this.ops)
-			.filter((entry) => !entry.hidden)
-			.map((entry) => entry.item);
-	}
-
 	// Host side, below: not part of what a script may call.
 
 	provideBuiltins(get: () => Item[]) {
@@ -140,6 +133,13 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 
 	visible(): Item[] {
 		return this.resolve()
+			.filter((entry) => !entry.hidden)
+			.map((entry) => entry.item);
+	}
+
+	/** The visible items as the replay in flight would render them, read the way `has` reads. */
+	visibleInReplay(): Item[] {
+		return this.fold(this.pending ?? this.ops)
 			.filter((entry) => !entry.hidden)
 			.map((entry) => entry.item);
 	}

@@ -286,7 +286,7 @@ export interface PageFormTabs {
   get(identity: string): PageFormTab | null;
   /** The identity of the tab the reader is on, or `''` outside the form; not a name. */
   readonly active: string;
-  /** Moves the reader to a tab of the form, on `TabsApi.activate`'s terms. */
+  /** Moves the reader to a tab of the form, on `TabsApi.activate`'s terms except `active`, which updates once the form has moved. */
   activate(identity: string): void;
   /** Hides every tab present at the call; a later `show(identity)` brings one back. */
   clear(): void;

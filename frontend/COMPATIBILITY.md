@@ -86,8 +86,9 @@ What `page` is _for_ is a small, closed vocabulary:
   about. On `page.tabs`, `active` on the next line reads the new tab, except inside a
   replay, where the move waits for the commit. On `page.form.tabs` a **hit is not
   synchronous**: the move goes through the form's own navigation, so `active` on the
-  next line still reads the tab you left — read it in the next handler. And a move **fires the strip's change event**, since `onTabChange` and
-  `onFormTabChange` fire on any cause; `activate` is the first verb that lets a handler
+  next line still reads the tab you left — read it in the next handler. And a move
+  **fires the strip's change event**, since `onTabChange` and `onFormTabChange` fire on
+  any cause once the page has painted; `activate` is the first verb that lets a handler
   cause the event it is handling, so activating from inside one is yours to make
   terminate.
 - **The whole header row is one flat list.** A `header` item carries `zone`: `'left'`

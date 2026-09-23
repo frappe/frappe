@@ -145,7 +145,8 @@ import BodyColumns from "./record/body/BodyColumns.vue";
 import FrameBands from "./record/FrameBands.vue";
 import RecordHeader from "./record/RecordHeader.vue";
 import RecordTabs from "./record/RecordTabs.vue";
-import { recordTabBuiltins, RecordTabsHost, watchTabEvents } from "./record/recordTabs";
+import { recordTabBuiltins } from "./record/recordTabs";
+import { useRecordTabs } from "./record/useRecordTabs";
 import PageDialogs from "./record/dialogs/PageDialogs.vue";
 import { formTabMemory } from "./record/formTabMemory";
 import { fetchMeta } from "./record/metaSource";
@@ -269,13 +270,14 @@ const disclosure = useDisclosure(
 			.map((item) => ({ name: item.name, opened: item.opened !== false }))
 );
 
-const tabsHost = new RecordTabsHost(route, router, () => controller.value?.tabs);
-const tabEntries = computed(() => controller.value?.tabs.resolve() ?? []);
-// Nothing until the first replay commits, so a script's `hide` never flashes on the strip.
-const shownTab = computed(() => (controller.value?.ready.value ? tabsHost.active() : ""));
-
-watchTabEvents(tabsHost, () => controller.value, {
-	tab: () => shownTab.value,
+const {
+	host: tabsHost,
+	entries: tabEntries,
+	shown: shownTab,
+} = useRecordTabs({
+	route,
+	router,
+	controller: () => controller.value,
 	formTab: () => activeFormTab.value,
 });
 
@@ -598,8 +600,7 @@ async function runAction(action: QuickAction | HeaderItem) {
 
 /** The host's half of `page.fields.focus`: Details, then the field's tab, the scroll and the cursor. */
 async function focusOnDetails(fieldname: string, cursor: boolean) {
-	await tabsHost.showDetails();
-	await landOn(fieldname, cursor);
+	if (await tabsHost.showDetails(fieldname)) await landOn(fieldname, cursor);
 }
 
 /** The field's form tab, then the scroll, then the cursor. */

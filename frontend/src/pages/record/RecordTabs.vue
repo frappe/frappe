@@ -7,19 +7,21 @@
 			class="flex shrink-0 items-center gap-5 border-b px-[--page-gutter] py-2"
 			data-record-tabs-skeleton
 		>
-			<div
-				v-for="n in 4"
-				:key="n"
-				class="h-4 w-16 animate-pulse rounded-4 bg-surface-gray-2"
+			<Skeleton v-for="n in 4" :key="n" class="h-4 w-16 rounded-4" />
+		</div>
+		<div
+			v-else-if="stripTabs.length"
+			ref="stripRoot"
+			class="shrink-0 px-[--page-gutter]"
+			@pointerdown="strip.pointer = true"
+			@click="strip.pointer = false"
+		>
+			<Tabs
+				:modelValue="active"
+				:tabs="stripTabs"
+				@update:modelValue="emit('select', String($event))"
 			/>
 		</div>
-		<Tabs
-			v-else-if="strip.length"
-			class="shrink-0 px-[--page-gutter]"
-			:modelValue="active"
-			:tabs="strip"
-			@update:modelValue="emit('select', String($event))"
-		/>
 
 		<div
 			v-for="entry in mounted"
@@ -27,6 +29,7 @@
 			:key="entry.item.name"
 			class="min-h-0 flex-1 overflow-y-auto"
 			:data-record-tab="entry.item.name"
+			@focusin="focused.set(entry.item.name, $event.target as HTMLElement)"
 		>
 			<component
 				:is="entry.item.component"
@@ -42,8 +45,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, watch } from "vue";
-import { Tabs } from "frappe-ui";
+import { computed, reactive, ref, watch } from "vue";
+import { Skeleton, Tabs } from "frappe-ui";
 import type { ResolvedItem } from "@/recordPage/surface";
 import type { RecordPageApi, TabItem } from "@/recordPage/types";
 import { __ } from "@/i18n";
@@ -59,9 +62,13 @@ const props = defineProps<{
 const emit = defineEmits<{ select: [name: string] }>();
 
 const visited = reactive(new Set<string>());
+const focused = new Map<string, HTMLElement>();
+const stripRoot = ref<HTMLElement | null>(null);
+// Whether the next move comes from a click on the strip.
+const strip = { pointer: false };
 
 // `iconLeft`: frappe-ui draws a tab with `icon` and a label as an icon alone.
-const strip = computed(() =>
+const stripTabs = computed(() =>
 	props.tabs
 		.filter((entry) => !entry.hidden)
 		.map(({ item }) => ({ value: item.name, label: item.label, iconLeft: item.icon }))
@@ -71,8 +78,28 @@ const strip = computed(() =>
 const mounted = computed(() => props.tabs.filter((entry) => visited.has(entry.item.name)));
 
 watch(
-	() => props.active,
-	(name) => name && visited.add(name),
+	[() => props.page, () => props.active],
+	([page, name], previous) => {
+		if (page !== previous?.[0]) forgetBodies();
+		if (name) visited.add(name);
+		if (previous?.[1] !== undefined && name) returnFocus(name);
+	},
 	{ immediate: true }
 );
+
+function forgetBodies() {
+	visited.clear();
+	focused.clear();
+}
+
+// Arrow keys on the strip keep focus there; a click or a script's move puts it back in the body.
+function returnFocus(name: string) {
+	const fromKeyboard = !strip.pointer && !!stripRoot.value?.contains(document.activeElement);
+	strip.pointer = false;
+	if (fromKeyboard) return;
+	requestAnimationFrame(() => {
+		const target = focused.get(name);
+		if (target?.isConnected && name === props.active) target.focus({ preventScroll: true });
+	});
+}
 </script>

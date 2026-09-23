@@ -1,7 +1,6 @@
 // The record's tab strip, host side: the four built-ins, the tab the address names, and its moves.
 import { ref, watch, type Ref } from "vue";
 import type { LocationQueryValue, RouteLocationNormalizedLoaded, Router } from "vue-router";
-import type { RecordPageController } from "@/recordPage/createRecordPage";
 import type { Surface } from "@/recordPage/surface";
 import type { TabItem } from "@/recordPage/types";
 import { __ } from "@/i18n";
@@ -20,7 +19,7 @@ export function recordTabBuiltins(): TabItem[] {
 
 /** Which record tab shows, and the `?tab=` that keeps it across a reload. */
 export class RecordTabsHost {
-  // Moves with `activate` at once: the router settles a tick later, and the strip must not paint the old tab first.
+  // The reader's tab, set at once by a move: the router settles a tick later, and the strip must not paint the old tab.
   private readonly wanted: Ref<string>;
 
   constructor(
@@ -35,18 +34,31 @@ export class RecordTabsHost {
     );
   }
 
-  /** The address's tab while it is visible, else the first visible tab, else `""`. */
+  /** `page.tabs.active`, read over the replay in flight so the first handler sees the tab the strip will paint. */
   active(): string {
-    const tabs = this.tabs();
-    if (!tabs) return "";
-    if (this.wanted.value && tabs.isVisible(this.wanted.value)) return this.wanted.value;
-    return tabs.showing()[0]?.name ?? "";
+    return this.pick(this.tabs()?.visibleInReplay() ?? []);
   }
 
-  /** A `replace`: the open tab is view state, not a step in the reader's history. */
-  activate(name: string) {
+  /** The tab the strip paints, from committed state alone. */
+  shown(): string {
+    return this.pick(this.tabs()?.visible() ?? []);
+  }
+
+  /** A `replace`: the open tab is view state, not a step in the reader's history. An arrow, so a template can pass it bare. */
+  activate = (name: string) => {
     this.wanted.value = name;
-    return this.router.replace({ query: { ...this.route.query, tab: name } });
+    const to = { query: { ...this.route.query, tab: name }, hash: this.route.hash };
+    return this.router.replace(to).catch(() => {});
+  };
+
+  /** Holds the painted tab when the address names none on the strip, so a later reorder never moves the reader. */
+  remember(shown: string) {
+    if (shown && !this.onStrip(this.wanted.value)) this.wanted.value = shown;
+  }
+
+  /** A new page follows the address alone. */
+  reset() {
+    this.wanted.value = queryTab(this.route.query.tab);
   }
 
   /** The form strip's tab while the reader is on Details, else `""`: the reader is not in the form. */
@@ -54,46 +66,36 @@ export class RecordTabsHost {
     return this.active() === DETAILS_TAB ? identity : "";
   }
 
-  /** `page.fields.focus` lands on the form, so Details comes forward first when it is on the strip. */
-  async showDetails() {
-    if (this.active() !== DETAILS_TAB && this.tabs()?.isVisible(DETAILS_TAB))
-      await this.activate(DETAILS_TAB);
+  /** `page.fields.focus` lands on the form, so Details comes forward first; false when a script hid it. */
+  async showDetails(fieldname: string): Promise<boolean> {
+    if (this.shown() === DETAILS_TAB) return true;
+    if (!this.tabs()?.visible().some((tab) => tab.name === DETAILS_TAB)) {
+      warn(`page.fields.focus("${fieldname}") — the Details tab is hidden, so the reader was not moved.`);
+      return false;
+    }
+    await this.activate(DETAILS_TAB);
+    return true;
   }
 
-  /** A script hid the tab the reader was on, so the strip moved them. */
-  warnIfHidden(name: string) {
-    const tabs = this.tabs();
-    if (!import.meta.env.DEV || !tabs?.has(name) || tabs.isVisible(name)) return;
-    console.warn(
-      `[record-page] page.tabs.hide("${name}") — the reader was on it, so they moved to the first visible tab.`,
-    );
+  /** A script hid the tab the reader was on, so the strip moved them, or has nothing left to show. */
+  warnIfHidden(previous: string, next: string) {
+    if (!this.onStrip(previous) || this.tabs()?.visible().some((tab) => tab.name === previous)) return;
+    const outcome = next ? "they moved to the first visible tab" : "no tab is left to show";
+    warn(`page.tabs.hide("${previous}") — the reader was on it, so ${outcome}.`);
+  }
+
+  private pick(visible: TabItem[]) {
+    const wanted = this.wanted.value;
+    return visible.some((tab) => tab.name === wanted) ? wanted : (visible[0]?.name ?? "");
+  }
+
+  private onStrip(name: string) {
+    return !!name && !!this.tabs()?.resolve().some((entry) => entry.item.name === name);
   }
 }
 
-/** `onTabChange` and `onFormTabChange`, each fired when its strip moves between two shown tabs. */
-export function watchTabEvents(
-  host: RecordTabsHost,
-  controller: () => RecordPageController | null,
-  shown: { tab: () => string; formTab: () => string },
-) {
-  watchShownTab(controller, shown.tab, (previous, next) => {
-    host.warnIfHidden(previous);
-    if (next) void controller()?.fireEvent("onTabChange");
-  });
-  watchShownTab(controller, shown.formTab, (_, next) => {
-    if (next) void controller()?.fireEvent("onFormTabChange");
-  });
-}
-
-/** Calls `moved` when the shown tab changes within one page: never on a page's first tab. */
-export function watchShownTab(
-  page: () => unknown,
-  shown: () => string,
-  moved: (previous: string, next: string) => void,
-) {
-  watch([page, shown] as const, ([owner, next], [previousOwner, previous]) => {
-    if (owner === previousOwner && previous && next !== previous) moved(previous, next);
-  });
+function warn(message: string) {
+  if (import.meta.env.DEV) console.warn(`[record-page] ${message}`);
 }
 
 function queryTab(value: LocationQueryValue | LocationQueryValue[] | undefined) {
