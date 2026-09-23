@@ -48,13 +48,19 @@ export type {
 } from "./headerRenderings";
 export { formItems, joinForm } from "./formJoin";
 export type {
+  ActivityItem,
+  ActivityRow,
   BodyItem,
+  FeedItem,
+  FileRow,
   FormItem,
   FrameItem,
   HeaderItem,
   PanelSectionItem,
   PageForm,
   PanelSectionsApi,
+  PageActivity,
+  PageFiles,
   QuickAction,
   RecordPageApi,
 } from "./types";

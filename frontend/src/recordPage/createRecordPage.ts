@@ -14,6 +14,7 @@ import type {
 } from "@framework/ui/components/FormLayout/types";
 import { holdsChildRows } from "@framework/ui/components/Fields/rowIdentity";
 import type { RowAddress } from "@framework/ui/components/Fields/types";
+import { ActivitySurface, FilesSurface } from "./feed";
 import { FieldsSurface, LAYOUT_BREAKS } from "./fields";
 import { FormSurface } from "./form";
 import { FormTabsSurface } from "./formTabs";
@@ -30,6 +31,8 @@ import { createRows, warnRowIssue } from "./rows";
 import { Surface } from "./surface";
 import { PANEL_SECTION_KEYS, QUICK_ACTION_KEYS, TAB_ITEM_KEYS } from "./types";
 import type {
+  ActivityRow,
+  FileRow,
   PanelSectionItem,
   PanelSectionsApi,
   QuickAction,
@@ -123,6 +126,14 @@ export interface RecordPageHost {
   childFields?: (doctype: string) => RawMetaField[] | undefined;
   /** Resolves when sources that register after mount (Client Scripts) are in. */
   sourcesReady?: () => Promise<void>;
+  /** The rows the Activity tab has loaded, oldest first, pending ones included. */
+  activityRows: () => ActivityRow[];
+  /** Opens the Activity tab and scrolls to the row, paging older until drawn; false if the list ended first. */
+  scrollToActivity: (key: string) => Promise<boolean>;
+  reloadActivity: () => Promise<void>;
+  /** The record read's `attachments` part, oldest first. */
+  fileRows: () => FileRow[];
+  reloadFiles: () => Promise<void>;
 }
 
 export interface RecordPageController {
@@ -137,6 +148,10 @@ export interface RecordPageController {
   fields: FieldsSurface;
   /** The Details form's list; its `tabs` overlay is fed to the same layout source. */
   form: FormSurface;
+  /** A script's rows for the Activity tab, and the types it shows. */
+  activity: ActivitySurface;
+  /** A script's rows for the Files tab. */
+  files: FilesSurface;
   /** What the host provides as `CommitKey`: a field's commit fires its handler through it. */
   commits: RecordCommitChannel;
   /** The replay: clears every surface, then runs every source's `refresh` in run order. */
@@ -176,6 +191,15 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     doc: () => host.doc.value,
   });
   const form = new FormSurface({ fields: () => host.meta.value?.fields }, formTabs);
+  const activity = new ActivitySurface({
+    rows: () => host.activityRows(),
+    scrollTo: (key) => host.scrollToActivity(key),
+    reload: () => host.reloadActivity(),
+  });
+  const files = new FilesSurface({
+    rows: () => host.fileRows(),
+    reload: () => host.reloadFiles(),
+  });
   const rows = createRows({
     doc: () => host.doc.value,
     fields: () => host.meta.value?.fields,
@@ -193,6 +217,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     fields,
     form,
     formTabs,
+    activity,
+    files,
   ];
 
   Object.defineProperty(tabs, "active", { get: () => host.activeTab() });
@@ -272,6 +298,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     panelSections: panelSections as unknown as PanelSectionsApi,
     fields,
     form,
+    activity,
+    files,
     rows: rows.rows,
     save: () => save(),
     reload: () => host.reload(),
@@ -309,6 +337,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
         releaseActivations();
         releaseDisclosures();
         releaseFocus();
+        activity.releaseScroll();
       }
     }
     ready.value = true;
@@ -612,6 +641,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     panelSections,
     fields,
     form,
+    activity,
+    files,
     commits,
     refresh,
     fireEvent,
