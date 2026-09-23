@@ -328,3 +328,18 @@ describe("registry run order", () => {
 		resetRegistry();
 	});
 });
+
+describe("showing: the visible items as the replay in flight would render them", () => {
+	it("reads the staged ops while a replay runs, and the committed ones after", () => {
+		const surface = new Surface();
+		surface.provideBuiltins(() => [{ name: "activity" }, { name: "emails" }]);
+
+		surface.beginReplay();
+		surface.hide("activity");
+		expect(surface.showing().map((item) => item.name)).toEqual(["emails"]);
+		expect(surface.visible().map((item) => item.name)).toEqual(["activity", "emails"]);
+
+		surface.commitReplay();
+		expect(surface.showing().map((item) => item.name)).toEqual(["emails"]);
+	});
+});

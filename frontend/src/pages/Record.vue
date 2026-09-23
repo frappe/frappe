@@ -47,17 +47,27 @@
 				:user="boot.session.user.name"
 			>
 				<template #form>
-					<div ref="formRoot" data-record-form>
-						<FormLayout
-							v-if="form.length"
-							v-model:doc="doc"
-							:layout="form"
-							:tab="formTab"
-							:class="formClasses"
-							@update:tab="chooseFormTab"
-							@update:activeTab="activeFormTab = $event"
-						/>
-					</div>
+					<RecordTabs
+						:tabs="tabEntries"
+						:active="shownTab"
+						:ready="controller.ready.value"
+						:page="controller.page"
+						@select="tabsHost.activate"
+					>
+						<template #details>
+							<div ref="formRoot" data-record-form>
+								<FormLayout
+									v-if="form.length"
+									v-model:doc="doc"
+									:layout="form"
+									:tab="formTab"
+									:class="formClasses"
+									@update:tab="chooseFormTab"
+									@update:activeTab="activeFormTab = $event"
+								/>
+							</div>
+						</template>
+					</RecordTabs>
 				</template>
 
 				<template #panel="{ collapsed }">
@@ -134,6 +144,8 @@ import { routeFor } from "@/router/routeFor";
 import BodyColumns from "./record/body/BodyColumns.vue";
 import FrameBands from "./record/FrameBands.vue";
 import RecordHeader from "./record/RecordHeader.vue";
+import RecordTabs from "./record/RecordTabs.vue";
+import { recordTabBuiltins, RecordTabsHost, watchTabEvents } from "./record/recordTabs";
 import PageDialogs from "./record/dialogs/PageDialogs.vue";
 import { formTabMemory } from "./record/formTabMemory";
 import { fetchMeta } from "./record/metaSource";
@@ -256,6 +268,16 @@ const disclosure = useDisclosure(
 			.filter((item) => item.label)
 			.map((item) => ({ name: item.name, opened: item.opened !== false }))
 );
+
+const tabsHost = new RecordTabsHost(route, router, () => controller.value?.tabs);
+const tabEntries = computed(() => controller.value?.tabs.resolve() ?? []);
+// Nothing until the first replay commits, so a script's `hide` never flashes on the strip.
+const shownTab = computed(() => (controller.value?.ready.value ? tabsHost.active() : ""));
+
+watchTabEvents(tabsHost, () => controller.value, {
+	tab: () => shownTab.value,
+	formTab: () => activeFormTab.value,
+});
 
 const tabMemory = computed(() => formTabMemory(boot.session.user.name, doctype.value ?? ""));
 
@@ -407,6 +429,7 @@ async function load() {
 	detailsLayout.value = null;
 	disclosure.reset();
 	formTab.value = tabMemory.value.recall();
+	activeFormTab.value = "";
 
 	// Both layouts need only the doctype, so their fetches ride beside the record read and the meta.
 	// Against the saved document, so a keystroke cannot switch a layout under the reader.
@@ -453,14 +476,13 @@ async function load() {
 		meta,
 		perms: () => docinfo.value?.permissions ?? {},
 		isDirty: () => dirty.value,
-		// No tab strip on this page, so activation is a no-op.
-		activeTab: () => "",
-		activateTab: () => {},
+		activeTab: () => tabsHost.active(),
+		activateTab: (name) => void tabsHost.activate(name),
 		formLayout: () => detailsForm.value,
-		activeFormTab: () => activeFormTab.value,
+		activeFormTab: () => tabsHost.formTab(activeFormTab.value),
 		activateFormTab: (identity) => void (formTab.value = identity),
 		discloseSection: disclosure.disclose,
-		focusField: (fieldname, cursor) => void landOn(fieldname, cursor),
+		focusField: (fieldname, cursor) => void focusOnDetails(fieldname, cursor),
 		save: write,
 		reload: load,
 		router,
@@ -474,6 +496,7 @@ async function load() {
 			follow.value
 		)
 	);
+	created.tabs.provideBuiltins(recordTabBuiltins);
 	created.panelSections.provideBuiltins(panelBuiltins);
 	created.form.provideBuiltins(() => formItems(detailsForm.value));
 	panelLayout.value = panel;
@@ -573,7 +596,13 @@ async function runAction(action: QuickAction | HeaderItem) {
 	}
 }
 
-/** The host's half of `page.fields.focus`: the field's tab, then the scroll, then the cursor. */
+/** The host's half of `page.fields.focus`: Details, then the field's tab, the scroll and the cursor. */
+async function focusOnDetails(fieldname: string, cursor: boolean) {
+	await tabsHost.showDetails();
+	await landOn(fieldname, cursor);
+}
+
+/** The field's form tab, then the scroll, then the cursor. */
 async function landOn(fieldname: string, cursor: boolean) {
 	const tab = identifyTabs(form.value).find((one) =>
 		one.sections.some((section) =>
