@@ -1034,8 +1034,7 @@ frappe.ui.Page = class Page {
 		if (icon) last.prefix = icon;
 		items.push(last);
 
-		this.breadcrumbs = items;
-		this.render_breadcrumbs();
+		this.set_breadcrumbs(items);
 	}
 
 	set_title_sub(txt) {
