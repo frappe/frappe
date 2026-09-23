@@ -1,14 +1,32 @@
 const FULL_HEIGHT_PAGE_CLASS = "full-height-page";
 
+// the builder wants the canvas width, and the sidebar folds to its icon rail, so it
+// arrives folded and is put back the way it was found on the way out
+let restore_sidebar = false;
+
+function collapse_sidebar() {
+	const sidebar = frappe.app?.sidebar;
+	restore_sidebar = !!sidebar?.sidebar_expanded;
+	if (restore_sidebar) sidebar.close();
+}
+
+function restore_sidebar_state() {
+	if (!restore_sidebar) return;
+	restore_sidebar = false;
+	frappe.app?.sidebar?.open();
+}
+
 frappe.pages["print-format-builder"].on_page_load = function (wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __("Print Format Builder"),
 		single_column: true,
-		hide_sidebar: true,
 	});
 
-	$(wrapper).on("hide", () => document.body.classList.remove(FULL_HEIGHT_PAGE_CLASS));
+	$(wrapper).on("hide", () => {
+		document.body.classList.remove(FULL_HEIGHT_PAGE_CLASS);
+		restore_sidebar_state();
+	});
 
 	// hot reload in development
 	if (frappe.boot.developer_mode) {
@@ -19,6 +37,7 @@ frappe.pages["print-format-builder"].on_page_load = function (wrapper) {
 
 frappe.pages["print-format-builder"].on_page_show = function (wrapper) {
 	document.body.classList.add(FULL_HEIGHT_PAGE_CLASS);
+	collapse_sidebar();
 	load_print_format_builder(wrapper);
 };
 
