@@ -43,6 +43,22 @@ def capture(event, app, **kwargs):
 		pulse_capture(event, app=app, **kwargs)
 
 
+<<<<<<< HEAD
+=======
+def capture_doc(doc, action):
+	with suppress(Exception):
+		age = site_age()
+		if not age or age > 15:
+			return
+
+		app = frappe.local.module_app.get(frappe.scrub(doc.meta.module), "frappe")
+		if doc.get("__islocal") or not doc.get("name"):
+			capture("document_created", app, properties={"doctype": doc.doctype, "action": "Insert"})
+		else:
+			capture("document_modified", app, properties={"doctype": doc.doctype, "action": action})
+
+
+>>>>>>> 3a87d65 (fix(telemetry): attribute document events to the doctype's app (#43226))
 @site_cache(ttl=60 * 60 * 12)
 def site_age():
 	try:
