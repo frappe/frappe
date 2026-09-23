@@ -1,13 +1,28 @@
 // The feed scroller: it opens at the bottom, pages older rows near the top, and holds the view while they land.
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, reactive } from "vue";
 import RecordFeed from "../RecordFeed.vue";
 
 const apps: ReturnType<typeof createApp>[] = [];
+const resizeCallbacks: Array<() => void> = [];
+const ROW = 100;
 
+// happy-dom never reports a resize, so the test says when the content grew.
+class FakeResizeObserver {
+	constructor(callback: () => void) {
+		resizeCallbacks.push(callback);
+	}
+	observe() {}
+	unobserve() {}
+	disconnect() {}
+}
+
+beforeEach(() => vi.stubGlobal("ResizeObserver", FakeResizeObserver));
 afterEach(() => {
 	for (const app of apps.splice(0)) app.unmount();
 	document.body.innerHTML = "";
+	resizeCallbacks.length = 0;
+	vi.unstubAllGlobals();
 });
 
 interface Geometry {
@@ -17,7 +32,7 @@ interface Geometry {
 }
 
 async function mount(openAtBottom = true, ready = true) {
-	const state = reactive({ ready, error: null as unknown });
+	const state = reactive({ ready, error: null as unknown, rows: 0 });
 	const paginate = reactive({
 		hasNextPage: true,
 		isFetchingNextPage: false,
@@ -30,7 +45,7 @@ async function mount(openAtBottom = true, ready = true) {
 			h(
 				RecordFeed,
 				{ paginate, error: state.error, ready: state.ready, openAtBottom },
-				() => h("p", "rows")
+				() => Array.from({ length: state.rows }, () => h("p", { "data-row": "" }, "row"))
 			),
 	});
 	app.mount(root);
@@ -42,10 +57,11 @@ async function mount(openAtBottom = true, ready = true) {
 	return { root, state, paginate, scroller, geometry: fake(scroller) };
 }
 
-// happy-dom lays nothing out, so the scroller's measurements are stated.
+// happy-dom lays nothing out, so the scroller's measurements are stated; each drawn row adds `ROW`.
 function fake(element: HTMLElement): Geometry {
 	const geometry = { scrollTop: 0, scrollHeight: 0, clientHeight: 0 };
-	Object.defineProperty(element, "scrollHeight", { get: () => geometry.scrollHeight });
+	const drawn = () => element.querySelectorAll("[data-row]").length * ROW;
+	Object.defineProperty(element, "scrollHeight", { get: () => geometry.scrollHeight + drawn() });
 	Object.defineProperty(element, "clientHeight", { get: () => geometry.clientHeight });
 	Object.defineProperty(element, "scrollTop", {
 		get: () => geometry.scrollTop,
@@ -57,6 +73,10 @@ function fake(element: HTMLElement): Geometry {
 function scrollTo(scroller: HTMLElement, geometry: Geometry, top: number) {
 	geometry.scrollTop = top;
 	scroller.dispatchEvent(new Event("scroll"));
+}
+
+function resize() {
+	for (const callback of resizeCallbacks) callback();
 }
 
 describe("RecordFeed", () => {
@@ -94,17 +114,90 @@ describe("RecordFeed", () => {
 	});
 
 	it("holds the reader's view while the older page lands above it", async () => {
-		const { paginate, scroller, geometry } = await mount();
+		const { state, paginate, scroller, geometry } = await mount();
 		Object.assign(geometry, { scrollHeight: 3000, clientHeight: 500 });
 		scrollTo(scroller, geometry, 400);
 
 		paginate.isFetchingNextPage = true;
 		await nextTick();
-		geometry.scrollHeight = 4200;
+		state.rows = 12;
 		paginate.isFetchingNextPage = false;
 		await nextTick();
 
 		expect(geometry.scrollTop).toBe(1600);
+	});
+
+	it("keeps the reader where they scrolled to while the older page was read", async () => {
+		const { state, paginate, scroller, geometry } = await mount();
+		Object.assign(geometry, { scrollHeight: 3000, clientHeight: 500 });
+		scrollTo(scroller, geometry, 400);
+		paginate.isFetchingNextPage = true;
+		await nextTick();
+
+		scrollTo(scroller, geometry, 250);
+		state.rows = 12;
+		paginate.isFetchingNextPage = false;
+		await nextTick();
+
+		expect(geometry.scrollTop).toBe(1450);
+	});
+
+	it("counts a scroll whose event has not fired yet when the older page lands", async () => {
+		const { state, paginate, scroller, geometry } = await mount();
+		Object.assign(geometry, { scrollHeight: 3000, clientHeight: 500 });
+		scrollTo(scroller, geometry, 400);
+		paginate.isFetchingNextPage = true;
+		await nextTick();
+
+		geometry.scrollTop = 250;
+		state.rows = 12;
+		paginate.isFetchingNextPage = false;
+		await nextTick();
+
+		expect(geometry.scrollTop).toBe(1450);
+	});
+
+	it("does not undo the reader's scroll when a row resizes during the read", async () => {
+		const { paginate, scroller, geometry } = await mount();
+		Object.assign(geometry, { scrollHeight: 3000, clientHeight: 500 });
+		scrollTo(scroller, geometry, 400);
+		paginate.isFetchingNextPage = true;
+		await nextTick();
+
+		scrollTo(scroller, geometry, 250);
+		resize();
+
+		expect(geometry.scrollTop).toBe(250);
+	});
+
+	it("follows content that grows after landing, when the landing scroll reports late", async () => {
+		const { state, scroller, geometry } = await mount(true, false);
+		Object.assign(geometry, { scrollHeight: 3000, clientHeight: 500 });
+		state.ready = true;
+		await nextTick();
+
+		geometry.scrollHeight = 4000;
+		scroller.dispatchEvent(new Event("scroll"));
+		resize();
+
+		expect(geometry.scrollTop).toBe(4000);
+	});
+
+	it("lets go of the bottom when the reader scrolls up, and takes it back at the bottom", async () => {
+		const { state, scroller, geometry } = await mount(true, false);
+		Object.assign(geometry, { scrollHeight: 3000, clientHeight: 500 });
+		state.ready = true;
+		await nextTick();
+
+		scrollTo(scroller, geometry, 2000);
+		geometry.scrollHeight = 4000;
+		resize();
+		expect(geometry.scrollTop).toBe(2000);
+
+		scrollTo(scroller, geometry, 3500);
+		geometry.scrollHeight = 4400;
+		resize();
+		expect(geometry.scrollTop).toBe(4400);
 	});
 
 	it("stops paging on scroll after a failed read, and offers a retry", async () => {

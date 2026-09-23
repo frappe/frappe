@@ -8,6 +8,8 @@ export interface ActivityTimelineProps {
   loading?: boolean;
   /** Enables Load More; same object useActivityTimeline returns. */
   paginate?: Pagination;
+  /** Default true. False when an ancestor scrolls the feed: no overflow and no tab stop of its own. */
+  scrolls?: boolean;
 }
 
 export interface Pagination {

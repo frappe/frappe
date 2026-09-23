@@ -83,6 +83,8 @@ const landed = ref(!props.openAtBottom);
 const stalled = ref(false);
 // At the bottom, a row that grows the feed keeps the newest row in view.
 let pinned = false;
+// The last scroll top seen or set; only a move up from it is the reader leaving the bottom.
+let lastTop = 0;
 // Distance from the bottom while an older page lands above the reader.
 let held: number | null = null;
 
@@ -109,9 +111,11 @@ function land(ready: boolean) {
 	pageIfNearTop();
 }
 
-function holdFrom(fetching: boolean | undefined) {
+// Taken when the read starts, on each scroll during it, and in the pre-flush just before
+// its rows are drawn, so the hold keeps where the reader is now.
+function holdFrom() {
 	const element = scroller.value;
-	if (fetching && element && held === null) held = element.scrollHeight - element.scrollTop;
+	if (element) held = element.scrollHeight - element.scrollTop;
 }
 
 function holdUntilLanded(fetching: boolean | undefined) {
@@ -122,7 +126,11 @@ function holdUntilLanded(fetching: boolean | undefined) {
 }
 
 function onScroll() {
-	pinned = props.openAtBottom && landed.value && atBottom.value;
+	const top = scroller.value?.scrollTop ?? 0;
+	const stays = atBottom.value || (pinned && top >= lastTop);
+	pinned = props.openAtBottom && landed.value && stays;
+	lastTop = top;
+	if (held !== null) holdFrom();
 	pageIfNearTop();
 }
 
@@ -157,12 +165,17 @@ function retry() {
 
 function hold() {
 	const element = scroller.value;
-	if (element && held !== null) element.scrollTop = element.scrollHeight - held;
+	if (element && held !== null) setTop(element, element.scrollHeight - held);
 }
 
 function toBottom() {
 	const element = scroller.value;
-	if (element) element.scrollTop = element.scrollHeight;
+	if (element) setTop(element, element.scrollHeight);
+}
+
+function setTop(element: HTMLElement, top: number) {
+	element.scrollTop = top;
+	lastTop = element.scrollTop;
 }
 
 function jump() {

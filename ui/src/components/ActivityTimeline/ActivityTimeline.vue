@@ -1,6 +1,11 @@
 <template>
-	<!-- column-reverse scroller: opens pinned to the newest row natively; needs a bounded height -->
-	<div ref="rootEl" class="activity-timeline flex flex-col-reverse overflow-y-auto">
+	<!-- column-reverse scroller: opens pinned to the newest row natively; needs a bounded height.
+	     With `scrolls` off, an ancestor scrolls it. -->
+	<div
+		ref="rootEl"
+		class="activity-timeline flex flex-col-reverse"
+		:class="{ 'overflow-y-auto': scrolls }"
+	>
 		<!-- min-h-full keeps short feeds at the top; shrink-0 keeps the overflow -->
 		<div class="min-h-full shrink-0">
 			<!-- spinner only on first load; cached data stays visible during revalidation -->
@@ -15,7 +20,12 @@
 					</div>
 				</slot>
 			</template>
-			<div v-else class="activities flex flex-col gap-2 mt-2" :tabindex="0">
+			<!-- a tab stop only when the timeline scrolls, for arrow-key scrolling -->
+			<div
+				v-else
+				class="activities flex flex-col gap-2 mt-2"
+				:tabindex="scrolls ? 0 : undefined"
+			>
 				<!-- older rows prepend here, at the oldest end -->
 				<div v-if="isFetching" class="flex w-full justify-center py-2">
 					<LoadingIndicator class="size-4 text-ink-gray-5" />
@@ -115,6 +125,7 @@ import VersionItem from "./VersionItem.vue";
 
 const props = withDefaults(defineProps<ActivityTimelineProps>(), {
 	loading: false,
+	scrolls: true,
 });
 
 defineSlots<

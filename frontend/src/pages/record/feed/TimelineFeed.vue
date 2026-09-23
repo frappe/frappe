@@ -7,10 +7,10 @@
 		:ready="activities.length > 0 || !loading"
 		openAtBottom
 	>
-		<!-- The feed is the one scroller, so the timeline's own scrolling is turned off. -->
+		<!-- The feed is the one scroller and the one tab stop. -->
 		<ActivityTimeline
 			ref="timeline"
-			class="!overflow-visible"
+			:scrolls="false"
 			:activities="rows"
 			:loading="loading"
 			:paginate="paginate"
