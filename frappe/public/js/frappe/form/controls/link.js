@@ -391,9 +391,12 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	 * @returns {boolean} - True if input matches the label, value, or description.
 	 */
 	input_matches_item(input, item) {
-		const item_label = (this.get_translated(item.label || item.value) || "").toLowerCase();
-		const item_description = (item.description || "").toLowerCase();
-		return input && (item_label.includes(input) || item_description.includes(input));
+		return (
+			input &&
+			[this.get_translated(item.label ?? item.value), item.value, item.description].some(
+				(value) => cstr(value).toLowerCase().includes(input)
+			)
+		);
 	}
 
 	/**
