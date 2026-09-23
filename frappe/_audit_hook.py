@@ -7,18 +7,34 @@ import logging
 import mimetypes
 import os
 import shutil
+import ssl
 import sys
 import tempfile
 import threading
+import zoneinfo
 from enum import Enum
 
 import frappe
 
-_recursion_guard = threading.local()
-
 WATCHED_EVENTS = frozenset(
-	("open", "os.mkdir", "os.rename", "os.remove", "os.rmdir", "os.symlink", "os.link", "os.truncate")
+	(
+		"open",
+		"os.mkdir",
+		"os.rename",
+		"os.remove",
+		"os.rmdir",
+		"os.symlink",
+		"os.link",
+		"os.truncate",
+		"shutil.rmtree",
+	)
 )
+
+TWO_PATH_EVENTS = frozenset(("os.rename", "os.symlink", "os.link"))
+
+WRITE_FLAGS = os.O_WRONLY | os.O_RDWR | os.O_APPEND | os.O_CREAT | os.O_TRUNC
+
+MAX_REPORTED = 1024
 
 
 class AuditHookMode(Enum):
@@ -27,23 +43,25 @@ class AuditHookMode(Enum):
 	BLOCK = "block"
 
 
-trusted_roots: tuple[str, ...] = ()
-untrusted_roots: tuple[str, ...] = ()
-
-
 mode = AuditHookMode.OFF
+read_roots: tuple[str, ...] = ()
+write_roots: tuple[str, ...] = ()
+config_owners: frozenset[str] = frozenset()
+
+_recursion_guard = threading.local()
+_reported: set[tuple[str, str]] = set()
 
 
 def setup_audit_hook() -> None:
-	"""Register the hook if `FRAPPE_AUDIT_HOOK_MODE` asks for it.
+	"""Register the hook unless `FRAPPE_AUDIT_HOOK_MODE` is "off".
 
 	Audit hooks can not be removed once added, so OFF installs nothing at all instead of
 	installing a hook that returns early on every file access in the process.
 	"""
-	global mode, trusted_roots, untrusted_roots
+	global mode, read_roots, write_roots, config_owners
 
 	try:
-		requested_mode = AuditHookMode(os.environ.get("FRAPPE_AUDIT_HOOK_MODE", "off").strip().lower())
+		requested_mode = AuditHookMode(os.environ.get("FRAPPE_AUDIT_HOOK_MODE", "log").strip().lower())
 	except ValueError:
 		return
 
@@ -54,56 +72,79 @@ def setup_audit_hook() -> None:
 
 	bench_path = os.path.realpath(get_bench_path())
 	mode = requested_mode
-	trusted_paths = [
+
+	read_paths = [
 		os.path.join(bench_path, "apps"),
-		os.path.join(bench_path, "logs"),
-		os.path.realpath(sys.prefix),
-		os.path.realpath(sys.base_prefix),
-		os.path.realpath("/dev/null"),
-		os.path.realpath("/dev/urandom"),
-		os.path.realpath("/dev/zero"),
+		sys.prefix,
+		sys.base_prefix,
+		"/dev/urandom",
+		"/dev/zero",
+		"/etc/fonts",
+		"/usr/share/fonts",
+		*zoneinfo.TZPATH,
 	]
 
-	for binary in ("wkhtmltopdf", "chromium", "node", "yarn"):
-		if bin_path := shutil.which(binary):
-			trusted_paths.append(os.path.realpath(bin_path))
+	verify = ssl.get_default_verify_paths()
+	read_paths += (verify.cafile, verify.capath, verify.openssl_cafile, verify.openssl_capath)
 
-	for mime_path in getattr(mimetypes, "knownfiles", []):
-		if os.path.isfile(mime_path):
-			trusted_paths.append(os.path.realpath(mime_path))
+	read_paths += map(shutil.which, ("wkhtmltopdf", "chromium", "node", "yarn"))
 
-	trusted_roots = tuple(trusted_paths)
+	read_paths += (path for path in mimetypes.knownfiles if os.path.isfile(path))
 
-	untrusted_roots = (
-		os.path.realpath(tempfile.gettempdir()),
-		os.path.realpath("/tmp"),
-		os.path.realpath("/var/tmp"),
+	read_roots = _resolve(read_paths)
+	write_roots = _resolve(
+		(
+			tempfile.gettempdir(),
+			"/tmp",
+			"/var/tmp",
+			os.path.join(bench_path, "logs"),
+			"/dev/null",
+		)
 	)
+
+	frappe_dir = os.path.dirname(frappe.__file__)
+	config_owners = frozenset(
+		(
+			os.path.join(frappe_dir, "config.py"),
+			os.path.join(frappe_dir, "installer.py"),
+			os.path.join(frappe_dir, "utils", "backups.py"),
+		)
+	)
+
 	sys.addaudithook(frappe_security_audit_hook)
+
+
+def _resolve(paths) -> tuple[str, ...]:
+	return tuple(dict.fromkeys(os.path.realpath(path) for path in paths if path))
 
 
 def start() -> None:
 	"""Scope the hook to the current site. Called from `before_request` and `before_job`."""
-
 	if mode == AuditHookMode.OFF or not getattr(frappe.local, "site_path", None):
 		return
-	# Bench-level files shared by every site. Enumerated rather than allowing all of
-	# sites/, which would let one site read another's site_config.json.
+
 	sites_path = os.path.realpath(frappe.local.sites_path)
-	trusted = (
-		*trusted_roots,
+	site_path = os.path.realpath(frappe.local.site_path)
+
+	read = (
+		*read_roots,
 		os.path.join(sites_path, "assets"),
-		os.path.join(sites_path, "common_site_config.json"),
 		os.path.join(sites_path, "apps.txt"),
 		os.path.join(sites_path, "apps.json"),
 	)
-	site_path = os.path.realpath(frappe.get_site_path())
-	untrusted = [*untrusted_roots, site_path]
 
+	write = [*write_roots, site_path]
 	if backup_path := frappe.local.conf.get("backup_path"):
-		untrusted.append(os.path.realpath(os.path.join(site_path, backup_path)))
+		write.append(os.path.realpath(os.path.join(site_path, backup_path)))
 
-	frappe.local.audit_roots = {"trusted": trusted, "untrusted": tuple(untrusted)}
+	config_files = frozenset(
+		(
+			os.path.realpath(os.path.join(site_path, "site_config.json")),
+			os.path.realpath(os.path.join(sites_path, "common_site_config.json")),
+		)
+	)
+
+	frappe.local.audit_roots = {"read": read, "write": tuple(write), "config": config_files}
 
 
 def stop() -> None:
@@ -121,37 +162,63 @@ def frappe_security_audit_hook(event: str, args: tuple) -> None:
 	if roots is None:
 		return
 
-	paths = args[:2] if event in ("os.rename", "os.symlink", "os.link") else args[:1]
+	if event == "open":
+		mode_arg, flags = args[1], args[2]
+		is_write = bool(flags & WRITE_FLAGS) or bool(mode_arg and any(c in mode_arg for c in "wxa+"))
+		paths = args[:1]
+	else:
+		is_write = True
+		paths = args[:2] if event in TWO_PATH_EVENTS else args[:1]
 
 	for arg in paths:
 		if not isinstance(arg, str | bytes | os.PathLike):
 			continue
 
 		path = os.fsdecode(arg)
-		if not is_allowed_path(path, roots):
+
+		if not os.path.isabs(path) and _is_rmtree_internal(sys._getframe(1)):
+			continue
+
+		if not is_allowed_path(path, roots, is_write):
 			handle_violation(event, path)
 
 
-def is_allowed_path(path: str, roots: dict[str, tuple[str, ...]]) -> bool:
-	"""Resolve the path only when the cheap lexical check is inconclusive.
+def _is_rmtree_internal(frame) -> bool:
+	return frame.f_code.co_filename == shutil.__file__ and frame.f_code.co_name.startswith("_rmtree")
 
-	Almost every access is an already normalised absolute path (the interpreter importing
-	modules, mostly) and never reaches `realpath`, which costs a syscall per component.
-	"""
 
+def is_allowed_path(path: str, roots: dict, is_write: bool) -> bool:
+	"""Resolve the path and check it against the roots for this kind of access."""
 	# compile() and ast.parse() use synthetic names like <unknown>, <serverscript> and
 	# <safe_eval>, which linecache then tries to open. Not filesystem paths.
 	if path.startswith("<") and path.endswith(">"):
 		return True
 
-	# Code directories are not writable through the web, so a symlink planted there already
-	# implies code execution. Skipping realpath() keeps the hot path free of syscalls
-	if path.startswith(os.sep) and ".." not in path:
-		if is_inside(path, roots["trusted"]):
-			return True
-
 	resolved = os.path.realpath(path)
-	return is_inside(resolved, roots["trusted"]) or is_inside(resolved, roots["untrusted"])
+
+	if resolved in roots["config"]:
+		return called_from_config_owner()
+
+	if is_inside(resolved, roots["write"]):
+		return True
+
+	return not is_write and is_inside(resolved, roots["read"])
+
+
+def called_from_config_owner() -> bool:
+	"""Whether one of `config_owners` is the one opening the file.
+
+	open() reaches them through helpers like get_file_json, so walk a few frames up instead of
+	indexing one. Bounded, so an unrelated frame deep in the stack can't vouch for the call.
+	"""
+	frame = sys._getframe(1)
+	for _ in range(8):
+		if frame is None:
+			return False
+		if frame.f_code.co_filename in config_owners:
+			return True
+		frame = frame.f_back
+	return False
 
 
 def is_inside(path: str, roots: tuple[str, ...]) -> bool:
@@ -160,18 +227,24 @@ def is_inside(path: str, roots: tuple[str, ...]) -> bool:
 
 
 def handle_violation(event: str, path: str) -> None:
-	_recursion_guard.is_active = True
-	try:
-		logger = frappe.logger("security")
-		if logger.level > logging.WARNING:
-			logger.setLevel(logging.WARNING)
+	key = (event, path)
+	if key not in _reported:
+		_recursion_guard.is_active = True
+		try:
+			if len(_reported) >= MAX_REPORTED:
+				_reported.clear()
+			_reported.add(key)
 
-		logger.warning(
-			f"Unsafe {event} on {path!r} (resolved to {os.path.realpath(path)!r}), "
-			f"mode={mode.value}, site={getattr(frappe.local, 'site', None)}"
-		)
-	finally:
-		_recursion_guard.is_active = False
+			logger = frappe.logger("security")
+			if logger.level > logging.WARNING:
+				logger.setLevel(logging.WARNING)
+
+			logger.warning(
+				f"Unsafe {event} on {path!r} (resolved to {os.path.realpath(path)!r}), "
+				f"mode={mode.value}, site={getattr(frappe.local, 'site', None)}"
+			)
+		finally:
+			_recursion_guard.is_active = False
 
 	if mode == AuditHookMode.BLOCK:
 		raise PermissionError(f"Path blocked by Frappe audit hook: {path}")
