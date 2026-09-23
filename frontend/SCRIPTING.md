@@ -880,7 +880,9 @@ band, it moves them to Activity first, or to the first such tab when Activity is
 unknown or hidden writer, or a strip with no such tab, warns in a development build and
 opens nothing. `draft` seeds the writer's draft; a draft already in memory for this record
 wins. `window`, `'docked'` or `'floating'`, places the card for this open only; left out,
-the card opens where the reader last put it. On `activate`'s terms: called in a replay, it
+the card opens where the reader last put it. Any other `window` warns in a development build
+and is dropped, so the writer still opens where the reader last put it. On `activate`'s
+terms: called in a replay, it
 is delivered when the replay commits, with its `window`.
 
 One card is open at a time. Opening a writer on another record takes the card; the first

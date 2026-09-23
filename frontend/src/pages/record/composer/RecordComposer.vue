@@ -1,4 +1,7 @@
-<!-- The composer band at the foot of a tab that has one: the pill, and the place the shell docks the open writer. -->
+<!--
+  The composer band at the foot of a tab that has one: the pill, and the place the shell docks
+  the open writer.
+-->
 <template>
 	<div
 		v-if="shown"
@@ -27,13 +30,7 @@ import { useElementSize } from "@vueuse/core";
 import type { SessionUser } from "@framework/ui/api";
 import { isComposerTab, type RecordPageController } from "@/recordPage";
 import type { TabItem } from "@/recordPage/types";
-import {
-	activeWriter,
-	composerState,
-	registerComposerDock,
-	registerComposerRecord,
-	type WriterContext,
-} from "@/shell/composer";
+import { activeWriter, composerState, registerComposerDock } from "@/shell/composer";
 import { RecordFeedsKey } from "../feed/recordFeeds";
 import { COMMENT_WRITER } from "./commentDraft";
 import { EMAIL_WRITER } from "./emailDraft";
@@ -83,38 +80,6 @@ onUnmounted(() => measured(0));
 watch([dock, page], ([element, { doctype, docname }], _old, onCleanup) => {
 	if (element) onCleanup(registerComposerDock(doctype, docname, element));
 });
-
-watch(
-	() => props.controller,
-	(controller, _old, onCleanup) => {
-		const { doctype, docname } = controller.page;
-		onCleanup(registerComposerRecord(doctype, docname, recordContext(controller)));
-	},
-	{ immediate: true }
-);
-
-function recordContext(controller: RecordPageController): WriterContext {
-	const { page } = controller;
-	return {
-		doctype: page.doctype,
-		docname: page.docname,
-		get title() {
-			return titleOf(page);
-		},
-		get perms() {
-			return page.perms ?? {};
-		},
-		get writers() {
-			return controller.composer.visible();
-		},
-		page,
-		toast: page.toast,
-		firePost: (key) => controller.firePost(key),
-		uploadTransport: feeds
-			? () => feeds.uploadTransport(page.doctype, page.docname)
-			: undefined,
-	};
-}
 
 function measured(pixels: number) {
 	if (feeds) feeds.composerBand.value = pixels;

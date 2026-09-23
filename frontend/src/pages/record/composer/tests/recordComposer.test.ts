@@ -96,6 +96,7 @@ import {
 import ComposerWindow from "@/shell/ComposerWindow.vue";
 import { composerBuiltins, composerHost } from "../composerHost";
 import RecordComposer from "../RecordComposer.vue";
+import { RecordPageStub } from "./recordPageStub";
 
 const USER = {
 	name: "ann@example.com",
@@ -151,7 +152,9 @@ async function mountBand(tabs: TabItem[], active: string, controller = fakeContr
 	document.body.appendChild(root);
 	const app = createApp({
 		render: () => [
-			h(RecordComposer as Component, { controller, tabs, active, user: USER }),
+			h(RecordPageStub, { controller }, () =>
+				h(RecordComposer as Component, { controller, tabs, active, user: USER })
+			),
 			h(ComposerWindow as Component, { user: USER }),
 		],
 	});

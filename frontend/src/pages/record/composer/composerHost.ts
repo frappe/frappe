@@ -31,8 +31,8 @@ export function composerHost(
 		activeWriter: () => activeWriter(doctype, docname),
 		windowState: () =>
 			activeWriter(doctype, docname) ? composerState.window : preferredWindow(),
-		setWindow: (window) => {
-			if (activeWriter(doctype, docname)) setComposerWindow(window);
+		setWindow: (placement) => {
+			if (activeWriter(doctype, docname)) setComposerWindow(placement);
 		},
 	};
 }

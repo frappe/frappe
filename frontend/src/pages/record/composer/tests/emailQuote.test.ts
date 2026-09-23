@@ -16,6 +16,7 @@ import { RecordFeeds, RecordFeedsKey } from "../../feed/recordFeeds";
 import { composerBuiltins, composerHost } from "../composerHost";
 import { resetSenders } from "../emailSenders";
 import RecordComposer from "../RecordComposer.vue";
+import { RecordPageStub } from "./recordPageStub";
 
 const USER = {
 	name: "ann@example.com",
@@ -92,12 +93,14 @@ async function mountBand() {
 	document.body.appendChild(root);
 	const app = createApp({
 		render: () => [
-			h(RecordComposer as Component, {
-				controller,
-				tabs: [{ name: "activity", label: "Activity" }],
-				active: "activity",
-				user: USER,
-			}),
+			h(RecordPageStub, { controller }, () =>
+				h(RecordComposer as Component, {
+					controller,
+					tabs: [{ name: "activity", label: "Activity" }],
+					active: "activity",
+					user: USER,
+				})
+			),
 			h(ComposerWindow as Component, { user: USER }),
 		],
 	});

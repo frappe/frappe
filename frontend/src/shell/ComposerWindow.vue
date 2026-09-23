@@ -166,7 +166,7 @@ function storeWindow(shown: string) {
 		if (kept?.rect)
 			localStorage.setItem(
 				floatKey,
-				JSON.stringify({ ...kept, mode: composerState.window })
+				JSON.stringify({ rect: onScreen(kept.rect), mode: composerState.window })
 			);
 		// With no rectangle the window starts from `v-model`; a partial entry would break it.
 		else localStorage.removeItem(floatKey);
@@ -183,10 +183,26 @@ function storedFloat() {
 	}
 }
 
+// A browser window that shrank since the rectangle was kept would mount the card off screen.
+function onScreen(rect: { x: number; y: number; width: number; height: number }) {
+	const width = Math.min(rect.width, innerWidth);
+	const height = Math.min(rect.height, innerHeight);
+	return {
+		x: clamp(rect.x, 0, innerWidth - width),
+		y: clamp(rect.y, 0, innerHeight - height),
+		width,
+		height,
+	};
+}
+
+function clamp(value: number, min: number, max: number) {
+	return Math.min(Math.max(value, min), Math.max(max, min));
+}
+
 // `float` pulls a kept rectangle back inside a window that has shrunk since.
-function place(window: ComposerWindow, float?: () => void) {
+function place(placement: ComposerWindow, float?: () => void) {
 	float?.();
-	setComposerWindow(window, { remember: true });
+	setComposerWindow(placement, { remember: true });
 }
 
 function resize(event: PointerEvent) {

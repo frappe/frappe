@@ -23,13 +23,13 @@ import {
 
 const MAKE = "frappe.core.doctype.communication.email.make";
 
-/** `message` is what goes, the body with any quote under it; a failure puts `draft` back in `window`. */
+/** `message` goes, the body with any quote under it; a failure reopens `draft` in `placement`. */
 export async function postEmail(
 	context: WriterContext,
 	author: UserInfo,
 	draft: EmailDraft,
 	message: string,
-	window: ComposerWindow
+	placement: ComposerWindow
 ) {
 	const { doctype, docname } = context;
 	clearComposerDraft(doctype, docname, EMAIL_WRITER);
@@ -43,7 +43,7 @@ export async function postEmail(
 		key = `email:${data.name}`;
 	} catch (error) {
 		pending.drop();
-		restore(context, draft, window);
+		restore(context, draft, placement);
 		context.toast.error(errorMessage(error));
 		return;
 	}
@@ -99,17 +99,17 @@ function pendingRow(author: UserInfo, draft: EmailDraft, message: string) {
 }
 
 // A newer draft in the open writer keeps its text after the failed one; the writer redraws both.
-function restore(context: WriterContext, failed: EmailDraft, window: ComposerWindow) {
+function restore(context: WriterContext, failed: EmailDraft, placement: ComposerWindow) {
 	const { doctype, docname } = context;
 	const current = readEmailDraft(doctype, docname);
 	const draft = isBlankEmailDraft(current) ? { ...failed } : mergeEmailDrafts(failed, current);
 	replaceComposerDraft(doctype, docname, EMAIL_WRITER, draft);
-	reopen(doctype, docname, window);
+	reopen(doctype, docname, placement);
 }
 
 // A composer the reader opened on another record since keeps the store.
-function reopen(doctype: string, docname: string, window: ComposerWindow) {
+function reopen(doctype: string, docname: string, placement: ComposerWindow) {
 	const elsewhere =
 		composerState.active && (composerState.doctype !== doctype || composerState.name !== docname);
-	if (!elsewhere) openComposer(doctype, docname, EMAIL_WRITER, undefined, window);
+	if (!elsewhere) openComposer(doctype, docname, EMAIL_WRITER, undefined, placement);
 }

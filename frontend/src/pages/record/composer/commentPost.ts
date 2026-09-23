@@ -28,7 +28,7 @@ export async function postComment(
 ) {
 	const { doctype, docname } = context;
 	// A failed post reopens the writer where it was, floating over another page too.
-	const window = composerState.window;
+	const placement = composerState.window;
 	clearComposerDraft(doctype, docname, COMMENT_WRITER);
 	closeComposer();
 	const pending = addPendingActivity(doctype, docname, pendingRow(author, draft));
@@ -37,7 +37,7 @@ export async function postComment(
 		key = await send(doctype, docname, draft, pending);
 	} catch (error) {
 		pending.drop();
-		restore(context, draft, window);
+		restore(context, draft, placement);
 		context.toast.error(errorMessage(error));
 		return;
 	}
@@ -81,17 +81,17 @@ function creationOf(comments: Comment[], name: string) {
 }
 
 // A newer draft in the open writer keeps its text after the failed one; the writer redraws both.
-function restore(context: WriterContext, failed: CommentDraft, window: ComposerWindow) {
+function restore(context: WriterContext, failed: CommentDraft, placement: ComposerWindow) {
 	const { doctype, docname } = context;
 	const current = readCommentDraft(doctype, docname);
 	const draft = isBlankDraft(current) ? { ...failed } : mergeDrafts(failed, current);
 	replaceComposerDraft(doctype, docname, COMMENT_WRITER, draft);
-	reopen(doctype, docname, window);
+	reopen(doctype, docname, placement);
 }
 
 // A composer the reader opened on another record since keeps the store.
-function reopen(doctype: string, docname: string, window: ComposerWindow) {
+function reopen(doctype: string, docname: string, placement: ComposerWindow) {
 	const elsewhere =
 		composerState.active && (composerState.doctype !== doctype || composerState.name !== docname);
-	if (!elsewhere) openComposer(doctype, docname, COMMENT_WRITER, undefined, window);
+	if (!elsewhere) openComposer(doctype, docname, COMMENT_WRITER, undefined, placement);
 }

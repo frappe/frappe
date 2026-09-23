@@ -87,7 +87,7 @@ async function send(payload: EmailPayload) {
 	sent.value = true;
 	// Taken before the wait, so nothing done to the writer meanwhile changes what goes.
 	const headers = draft();
-	const window = composerState.window;
+	const placement = composerState.window;
 	await ready;
 	if (choice.value.blocked) {
 		sent.value = false;
@@ -101,6 +101,6 @@ async function send(payload: EmailPayload) {
 	};
 	// The editor's body carries the quote; the draft keeps them apart for a failure to restore.
 	const outgoing = { ...headers, from: from.value, attachments: [...payload.attachments] };
-	void postEmail(props.context, author, outgoing, payload.body, window);
+	void postEmail(props.context, author, outgoing, payload.body, placement);
 }
 </script>

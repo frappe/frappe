@@ -34,14 +34,14 @@ export function openEmail(
 	docname: string,
 	context: EmailSeedContext | undefined,
 	draft: Record<string, unknown> = {},
-	window?: ComposerWindow
+	placement?: ComposerWindow
 ) {
 	const page = context?.page();
 	const reader = page?.doctype === doctype && page.docname === docname ? page : undefined;
 	const reply = replyFor(reader, context?.userEmail ?? "", draft);
 	if (!composerDraft(doctype, docname, EMAIL_WRITER)) seed(doctype, docname, reader, reply, draft);
 	else if (reply) readdress(doctype, docname, reply, draft.replyAll === true);
-	openComposer(doctype, docname, EMAIL_WRITER, undefined, window);
+	openComposer(doctype, docname, EMAIL_WRITER, undefined, placement);
 }
 
 /** What a plain open of the email writer on this record starts with. */

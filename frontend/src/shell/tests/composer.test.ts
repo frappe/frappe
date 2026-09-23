@@ -1,5 +1,5 @@
 // The composer store: one open writer across records, and drafts kept per record and writer.
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { isProxy } from "vue";
 import { resetSession, setSession } from "@framework/ui/composables/useSession";
 import type { Session } from "@framework/ui/api";
@@ -36,6 +36,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+	vi.unstubAllGlobals();
 	resetSession();
 	localStorage.clear();
 });
@@ -162,6 +163,26 @@ describe("the window", () => {
 		expect(preferredWindow()).toBe("docked");
 	});
 
+	it("reads the choice from storage alone, so a cleared entry reads as the default", () => {
+		setComposerWindow("floating", { remember: true });
+		localStorage.removeItem(`desk:composer-window:${user}`);
+		expect(preferredWindow()).toBe("docked");
+	});
+
+	it("takes the default when storage refuses the choice, and still moves the open card", () => {
+		const refusing = {
+			getItem: () => null,
+			setItem: () => {
+				throw new Error("QuotaExceededError");
+			},
+		};
+		vi.stubGlobal("localStorage", refusing);
+		openComposer("Note", name, "comment");
+		setComposerWindow("floating", { remember: true });
+		expect(composerState.window).toBe("floating");
+		expect(preferredWindow()).toBe("docked");
+	});
+
 	it("keeps every choice under the session's user", () => {
 		expect(composerUser()).toBe(user);
 		setComposerWindow("floating", { remember: true });
@@ -232,8 +253,9 @@ describe("the record's band and context", () => {
 	});
 
 	it("keeps what it had of a record through a reopen away from it", () => {
-		registerComposerRecord("Note", name, context(name, { perms: { email: 1 } }))();
+		const unregister = registerComposerRecord("Note", name, context(name, { perms: { email: 1 } }));
 		openComposer("Note", name, "email");
+		unregister();
 		closeComposer();
 		openComposer("Note", `${name}-B`, "comment");
 		openComposer("Note", name, "email");
@@ -247,6 +269,47 @@ describe("the record's band and context", () => {
 		const unregister = registerComposerRecord("Note", name, context(name));
 		expect(composerKept().title).toBe(`Title of ${name}`);
 		unregister();
+	});
+
+	it("keeps the page's plain writers without their component or props", () => {
+		const writers = [
+			{ name: "comment", label: "Note", icon: "lucide-sticky-note", props: { size: 1 } },
+			{ name: "poll", label: "Poll", component: { render: () => null } },
+		];
+		const unregister = registerComposerRecord("Note", name, context(name, { writers }));
+		openComposer("Note", name, "comment");
+		unregister();
+		expect(composerKept().writers).toEqual([
+			{ name: "comment", label: "Note", icon: "lucide-sticky-note" },
+		]);
+	});
+
+	it("forgets a record whose page goes while the store is elsewhere and no draft waits", () => {
+		registerComposerRecord("Note", name, context(name))();
+		openComposer("Note", name, "comment");
+		expect(composerKept().title).toBe(name);
+	});
+
+	it("keeps a record whose page goes while a draft waits, and forgets it with the last", () => {
+		saveComposerDraft("Note", name, "comment", { content: "half" });
+		saveComposerDraft("Note", name, "email", { subject: "half" });
+		registerComposerRecord("Note", name, context(name))();
+		clearComposerDraft("Note", name, "comment");
+		openComposer("Note", name, "comment");
+		expect(composerKept().title).toBe(`Title of ${name}`);
+
+		openComposer("Note", `${name}-B`, "comment");
+		clearComposerDraft("Note", name, "email");
+		openComposer("Note", name, "comment");
+		expect(composerKept().title).toBe(name);
+	});
+
+	it("keeps the record the store is on when its page goes and its draft clears", () => {
+		const unregister = registerComposerRecord("Note", name, context(name));
+		openComposer("Note", name, "comment");
+		unregister();
+		clearComposerDraft("Note", name, "comment");
+		expect(composerKept().title).toBe(`Title of ${name}`);
 	});
 
 	it("never makes a registered context reactive", () => {

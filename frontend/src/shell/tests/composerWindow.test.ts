@@ -65,10 +65,13 @@ import { ComposerSurface } from "@/recordPage/composer";
 import type { TabItem } from "@/recordPage/types";
 import { composerBuiltins, composerHost } from "@/pages/record/composer/composerHost";
 import RecordComposer from "@/pages/record/composer/RecordComposer.vue";
+import { DEFAULT_DOCK_HEIGHT } from "@/pages/record/composer/useDockHeight";
+import { RecordPageStub } from "@/pages/record/composer/tests/recordPageStub";
 import { openWriterContext } from "@/pages/record/composer/writerContext";
 import {
 	closeComposer,
 	composerDraft,
+	composerRecord,
 	openComposer,
 	preferredWindow,
 	saveComposerDraft,
@@ -123,21 +126,27 @@ function fakeController(title = "", perms: Record<string, number> = {}) {
 	return { page, composer, firePost: vi.fn(async () => {}) } as any;
 }
 
-// The band stands for its record's page: hiding it is the reader leaving the record.
+// Hiding the page is the reader leaving the record; hiding the band alone is a script hiding
+// its column.
 async function mountShell(controller = fakeController()) {
+	const onRecord = ref(true);
 	const band = ref(true);
 	const active = ref("activity");
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const app = createApp({
 		render: () => [
-			band.value
-				? h(RecordComposer as Component, {
-						controller,
-						tabs: TABS,
-						active: active.value,
-						user: USER,
-				  })
+			onRecord.value
+				? h(RecordPageStub, { controller }, () =>
+						band.value
+							? h(RecordComposer as Component, {
+									controller,
+									tabs: TABS,
+									active: active.value,
+									user: USER,
+							  })
+							: null
+				  )
 				: null,
 			h(ComposerWindow as Component, { user: USER }),
 		],
@@ -145,7 +154,7 @@ async function mountShell(controller = fakeController()) {
 	app.mount(root);
 	apps.push(app);
 	await flush();
-	return { root, controller, band, active };
+	return { root, controller, onRecord, band, active };
 }
 
 async function flush() {
@@ -193,13 +202,13 @@ describe("docking and floating", () => {
 	});
 
 	it("keeps the floating window when the reader leaves the record, with no dock control", async () => {
-		const { controller, band } = await mountShell(fakeController("Quarterly plan"));
+		const { controller, onRecord } = await mountShell(fakeController("Quarterly plan"));
 		controller.composer.open("comment", { window: "floating" });
 		await flush();
 		const drawn = editor();
 		expect(document.querySelector("[data-composer-dock-button]")).not.toBeNull();
 
-		band.value = false;
+		onRecord.value = false;
 		await flush();
 		expect(editor()).toBe(drawn);
 		expect(composerStub.mounts).toBe(1);
@@ -243,6 +252,83 @@ describe("docking and floating", () => {
 	});
 });
 
+describe("where the floating card mounts", () => {
+	it("pulls a stored rectangle back on screen before it mounts", async () => {
+		const rect = { x: innerWidth + 400, y: innerHeight + 300, width: 500, height: 400 };
+		localStorage.setItem(FLOAT_KEY, JSON.stringify({ mode: "floating", rect }));
+		const { controller } = await mountShell();
+		controller.composer.open("comment", { window: "floating" });
+		await flush();
+		expect(panel()?.style.left).toBe(`${innerWidth - 500}px`);
+		expect(panel()?.style.top).toBe(`${innerHeight - 400}px`);
+	});
+
+	it("shrinks a stored rectangle wider or taller than the screen to fit it", async () => {
+		const rect = { x: -40, y: 10, width: innerWidth + 200, height: innerHeight + 100 };
+		localStorage.setItem(FLOAT_KEY, JSON.stringify({ mode: "floating", rect }));
+		const { controller } = await mountShell();
+		controller.composer.open("comment", { window: "floating" });
+		await flush();
+		expect(panel()?.style.left).toBe("0px");
+		expect(panel()?.style.top).toBe("0px");
+		expect(panel()?.style.width).toBe(`${innerWidth}px`);
+		expect(panel()?.style.height).toBe(`${innerHeight}px`);
+	});
+});
+
+describe("the docked height", () => {
+	it("sizes the card from the dock height while docked, and not while floating", async () => {
+		const rect = { x: 10, y: 20, width: 500, height: 400 };
+		localStorage.setItem(FLOAT_KEY, JSON.stringify({ mode: "docked", rect }));
+		const { controller } = await mountShell();
+		controller.composer.open("comment");
+		await flush();
+		expect(panel()?.style.height).toBe(`${DEFAULT_DOCK_HEIGHT}px`);
+		expect(document.querySelector("[data-composer-handle]")).not.toBeNull();
+
+		await click("[data-composer-float]");
+		expect(panel()?.style.height).toBe("400px");
+		expect(document.querySelector("[data-composer-handle]")).toBeNull();
+	});
+
+	it("starts a drag from the card's drawn height", async () => {
+		const { controller } = await mountShell();
+		controller.composer.open("comment");
+		await flush();
+		Object.defineProperty(panel(), "offsetHeight", { configurable: true, value: 250 });
+		const handle = document.querySelector<HTMLElement>("[data-composer-handle]")!;
+		const pointer = (type: string, clientY: number) =>
+			handle.dispatchEvent(new PointerEvent(type, { clientY, pointerId: 1, bubbles: true }));
+
+		pointer("pointerdown", 500);
+		pointer("pointermove", 400);
+		pointer("pointerup", 400);
+		await flush();
+		expect(panel()?.style.height).toBe("350px");
+	});
+});
+
+describe("a script hiding the band", () => {
+	it("leaves the writer its live record: onPost, no dock control, the live title", async () => {
+		addComment.mockResolvedValue({ data: { comments: [], added: "C-9" } });
+		const { controller, band } = await mountShell(fakeController("Quarterly plan"));
+		controller.composer.open("comment", { window: "floating" });
+		await flush();
+
+		band.value = false;
+		await flush();
+		expect(composerRecord()?.page).toBe(controller.page);
+		expect(document.querySelector("[data-composer-dock-button]")).toBeNull();
+		controller.page.doc.title = "Yearly plan";
+		await flush();
+		expect(title()).toBe("Comment · Yearly plan");
+
+		editorInstance().$emit("submit", { body: "<p>Done</p>", attachments: [] });
+		await flush();
+		expect(controller.firePost).toHaveBeenCalledWith("comment:C-9");
+	});
+});
+
 describe("the title", () => {
 	it("follows the record's title while its page is open", async () => {
 		const { controller } = await mountShell(fakeController("Quarterly plan"));
@@ -276,7 +362,7 @@ describe("away from the record", () => {
 		const shell = await mountShell(controller);
 		shell.controller.composer.open("comment", { window: "floating" });
 		await flush();
-		shell.band.value = false;
+		shell.onRecord.value = false;
 		await flush();
 		return shell;
 	}
@@ -299,7 +385,13 @@ describe("away from the record", () => {
 		expect(inBand(panel())).toBe(false);
 		expect(title()).toBe("Comment · Quarterly plan");
 		expect(openWriterContext().perms).toEqual({ write: 1 });
-		expect(composerStub.lastProps.uploadFunction).toBeTypeOf("function");
+	});
+
+	it("keeps a script's label on a built-in writer", async () => {
+		const controller = fakeController("Quarterly plan");
+		controller.composer.update("comment", { label: "Note" });
+		await floatedAway(controller);
+		expect(title()).toBe("Note · Quarterly plan");
 	});
 
 	it("fires no onPost for a post that goes", async () => {
@@ -319,16 +411,16 @@ describe("away from the record", () => {
 		});
 		const controller = fakeController();
 		controller.composer.add({ name: "poll", label: "Poll", component: Poll });
-		const { band } = await mountShell(controller);
+		const { onRecord } = await mountShell(controller);
 		controller.composer.open("poll", { window: "floating" });
 		await flush();
 		expect(document.querySelector("[data-poll]")?.textContent).toBe(controller.page.docname);
 
-		band.value = false;
+		onRecord.value = false;
 		await flush();
 		expect(panel()).toBeNull();
 
-		band.value = true;
+		onRecord.value = true;
 		await flush();
 		expect(document.querySelector("[data-poll]")).not.toBeNull();
 	});

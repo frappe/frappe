@@ -63,8 +63,9 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
   /** Called in a replay, the open waits for `releaseOpen`, as `activity.scrollTo` waits. */
   open(name: string, options: ComposerOpenOptions = {}) {
     if (!this.canOpen(name)) return;
-    if (this.replaying) this.heldOpen = { name, options };
-    else this.deliver(name, options);
+    const checked = this.checkWindow(name, options);
+    if (this.replaying) this.heldOpen = { name, options: checked };
+    else this.deliver(name, checked);
   }
 
   close() {
@@ -93,6 +94,18 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
     } catch (error) {
       console.error(`[record-page] page.composer.open("${name}") — the host threw`, error);
     }
+  }
+
+  // A bad `window` is dropped, so the open takes the reader's own choice.
+  private checkWindow(name: string, options: ComposerOpenOptions): ComposerOpenOptions {
+    if (options.window === undefined || WINDOWS.includes(options.window)) return options;
+    const given = JSON.stringify(options.window);
+    if (import.meta.env.DEV)
+      console.warn(
+        `[record-page] page.composer.open("${name}", { window: ${given} }) — it takes "docked"` +
+          ` or "floating"; the reader's own choice applies.`
+      );
+    return { ...options, window: undefined };
   }
 
   private refuseWindow(value: string, because: string) {

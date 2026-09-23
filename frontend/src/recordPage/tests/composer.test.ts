@@ -27,6 +27,7 @@ import { createRecordPage, RECORD_PAGE_EVENTS, type RecordPageHost } from "../cr
 import { registerRecordPage, resetRegistry } from "../registry";
 import {
   TAB_ITEM_KEYS,
+  type ComposerWindow,
   type PostedRow,
   type RecordPageApi,
   type TabItem,
@@ -373,6 +374,18 @@ describe("window", () => {
     page.composer.open("comment", { draft: { content: "hi" }, window: "floating" });
 
     expect(opened).toEqual([["comment", { draft: { content: "hi" }, window: "floating" }]]);
+  });
+
+  it("warns and drops an open's window other than the two, so the reader's choice applies", () => {
+    setComposerWindow("floating", { remember: true });
+    const page = onStore();
+    page.composer.open("comment", { window: "sideways" as ComposerWindow });
+
+    expect(page.composer.active).toBe("comment");
+    expect(composerState.window).toBe("floating");
+    expect(warnings.join("\n")).toContain(
+      'page.composer.open("comment", { window: "sideways" }) — it takes "docked" or "floating"'
+    );
   });
 
   it("keeps an open's window when the open waits for a replay", async () => {
