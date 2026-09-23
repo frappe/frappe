@@ -251,4 +251,15 @@ frappe.patches.v16_0.backfill_notification_log_title_description
 frappe.patches.v16_0.backfill_notification_email_type_preferences
 frappe.patches.v16_0.backfill_notification_log_app
 frappe.patches.v16_0.seed_sms_settings_allowed_roles
+<<<<<<< HEAD
 frappe.patches.v15_0.set_snapshot_report_frequency_to_weekly
+=======
+execute:frappe.db.set_single_value("Website Settings", "max_signups_per_minute", 500)
+frappe.patches.v16_0.backfill_social_login_key_trust_flags
+frappe.patches.v16_0.seed_naming_rule_series
+frappe.patches.v16_0.backfill_print_settings_bulk_export_limits
+frappe.patches.v16_0.hash_session_ids
+
+
+[post_fixture_sync]
+>>>>>>> 31e780f (fix: store hashed session ids (#43201))

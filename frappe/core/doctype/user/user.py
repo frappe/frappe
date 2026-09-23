@@ -22,7 +22,12 @@ from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.rate_limiter import rate_limit
+<<<<<<< HEAD
 from frappe.sessions import clear_sessions
+=======
+from frappe.sessions import clear_sessions, hash_sid
+from frappe.twofactor import should_run_2fa
+>>>>>>> 31e780f (fix: store hashed session ids (#43201))
 from frappe.utils import (
 	cint,
 	escape_html,
@@ -143,6 +148,46 @@ class User(Document):
 	# end: auto-generated types
 	__new_password = None
 
+<<<<<<< HEAD
+=======
+	@cached_property
+	def active_sessions(self):
+		sessions = frappe.qb.DocType("Sessions")
+		if self.name != frappe.session.user:
+			# sec: only allow users to see their sessions.
+			return []
+
+		sessions_data = (
+			frappe.qb.from_(sessions)
+			.select(sessions.user, sessions.sessiondata, sessions.sid)
+			.where(sessions.user == self.name)
+		).run(as_dict=True)
+
+		def mask(sid_hash: str):
+			return sid_hash[:4] + "*" * 10
+
+		# `sessions.sid` is the stored hash, so compare against the hash of the current sid
+		current_sid_hash = hash_sid(frappe.session.sid)
+
+		session_docs = []
+		for session in sessions_data:
+			data = frappe.parse_json(session.sessiondata)
+			session_docs.append(
+				{
+					"name": session.sid,
+					"id": mask(session.sid),
+					"owner": session.user,
+					"modified_by": session.user,
+					"ip_address": data.session_ip,
+					"last_updated": data.last_updated,
+					"is_current": session.sid == current_sid_hash,
+					"session_created": data.creation,
+					"user_agent": data.user_agent,
+				}
+			)
+		return session_docs
+
+>>>>>>> 31e780f (fix: store hashed session ids (#43201))
 	def __setup__(self):
 		# because it is handled separately
 		self.flags.ignore_save_passwords = ["new_password"]
@@ -1467,3 +1512,24 @@ def impersonate(user: str, reason: str):
 			content=email_message,
 		)
 	frappe.local.login_manager.impersonate(user)
+<<<<<<< HEAD
+=======
+
+
+@frappe.whitelist()
+@rate_limit(limit=10, seconds=60 * 60, methods="POST")
+def clear_session(sid_hash: str):
+	from frappe.sessions import delete_session
+
+	sessions = frappe.qb.DocType("Sessions")
+	owned = (
+		frappe.qb.from_(sessions)
+		.select(sessions.sid)
+		.where(sessions.user == frappe.session.user)
+		.where(sessions.sid == sid_hash)
+	).run(pluck=True)
+
+	if owned:
+		delete_session(sid_hash=owned[0], reason="Force Logged out by the user", user=frappe.session.user)
+		frappe.toast(_("Successfully signed out"))
+>>>>>>> 31e780f (fix: store hashed session ids (#43201))
