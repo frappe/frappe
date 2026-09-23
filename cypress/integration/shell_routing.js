@@ -131,6 +131,62 @@ describe("Desk URL shell segment", () => {
 			});
 	});
 
+	it("opens the Private shell on the first item of its sidebar, page or not", () => {
+		// The shell opens where every other shell opens: on the first item that leads anywhere.
+		// Usually that is one of your own pages, and when something has been put above it, it is
+		// that instead.
+		cy.window()
+			.its("frappe.session.user")
+			.then((user) => {
+				const name = `Cypress Landing Page-${user}`;
+				cy.call("frappe.client.insert", {
+					doc: {
+						doctype: "Workspace",
+						title: "Cypress Landing Page",
+						label: name,
+						module: "Private",
+						public: 0,
+						for_user: user,
+						content: "[]",
+					},
+				});
+
+				// Arranged the way the editor arranges it: a link of their own above the page.
+				cy.call(
+					"frappe.desk.doctype.custom_sidebar.custom_sidebar.save_sidebar_customization",
+					{
+						module: "Private",
+						items: JSON.stringify([
+							{
+								added: 1,
+								type: "Link",
+								link_type: "DocType",
+								link_to: "ToDo",
+								label: "My ToDos",
+							},
+							{
+								added: 1,
+								type: "Link",
+								link_type: "Workspace",
+								link_to: name,
+								label: "Cypress Landing Page",
+							},
+						]),
+					}
+				);
+				cy.reload();
+
+				cy.visit("/desk/private");
+				cy.location("pathname").should("eq", "/desk/private/todo");
+				cy.window().its("frappe.app.sidebar.current_module").should("eq", "Private");
+
+				cy.call("frappe.desk.doctype.custom_sidebar.custom_sidebar.reset_user_sidebar", {
+					module: "Private",
+				});
+				cy.call("frappe.client.delete", { doctype: "Workspace", name });
+			});
+	});
+
 	it("reads anything else after `private` as a route inside the Private shell", () => {
 		// The word has two meanings and the segment after it decides which: one of your own pages,
 		// or, failing that, the shell's own slug with an ordinary route behind it. Without the

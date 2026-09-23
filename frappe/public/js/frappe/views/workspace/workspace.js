@@ -127,15 +127,16 @@ frappe.views.Workspace = class Workspace {
 			return;
 		}
 
-		// `/desk/private` names the shell and no page in it, so it opens on the first page there
-		// and says so in the address bar. With nothing in it there is nothing to open, and the
-		// empty state is what the shell shows instead.
+		// `/desk/private` names the shell and nothing in it, so it opens where the shell opens: on
+		// the first item that leads anywhere, by the rule every other shell follows. That is a page
+		// of this user's most of the time, and whatever they put above it when it is not. With
+		// nothing to open, the empty state is what the shell shows instead.
 		if (this.is_private_shell_route()) {
-			const first = this.first_private_page();
-			if (!first) return this.show_empty_private_shell();
+			const landing = this.sidebar.module_landing_route(frappe.ui.PRIVATE_SHELL);
+			if (!landing) return this.show_empty_private_shell();
 
 			frappe.route_flags.replace_route = true;
-			frappe.set_route("private", frappe.router.slug(first.title));
+			frappe.set_route(landing);
 			return;
 		}
 
@@ -227,21 +228,6 @@ frappe.views.Workspace = class Workspace {
 	is_private_shell_route() {
 		const route = frappe.get_route();
 		return route[0] === "Workspaces" && route[1] === "private" && !route[2];
-	}
-
-	// This user's own pages, in the order the Private shell lists them. Read off the shell rather
-	// than filtered out of every workspace, so the sidebar and the page it opens on cannot
-	// disagree, and so a page the user arranged to the top is the one that opens.
-	own_private_pages() {
-		const items = frappe.boot.module_sidebars?.[frappe.ui.PRIVATE_SHELL]?.items || [];
-		return items
-			.filter((item) => item.link_type === "Workspace" && item.link_to)
-			.map((item) => this.workspaces.find((page) => page.name === item.link_to))
-			.filter(Boolean);
-	}
-
-	first_private_page() {
-		return this.own_private_pages()[0] || null;
 	}
 
 	// The Private shell with nothing in it yet. Every other shell disappears when it is empty; this
