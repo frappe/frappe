@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, ClassVar
 import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import flt
+from frappe.utils.logging import count_logs, delete_logs
 
 if TYPE_CHECKING:
 	from frappe.printing.doctype.print_format.print_format import PrintFormat
@@ -220,10 +221,10 @@ class TestPrintFormatHardening(IntegrationTestCase):
 		self.make(self.layout({**self.DATA, "visible_if": "   "}))
 
 	def test_runtime_condition_failure_shows_field_and_logs(self):
-		before = frappe.db.count("Error Log")
+		before = count_logs("Error Log")
 		html = self.render(self.layout({**self.DATA, "label": "PROBE", "visible_if": "doc.nope.nope"}))
 		self.assertIn("PROBE", html)
-		self.assertGreater(frappe.db.count("Error Log"), before)
+		self.assertGreater(count_logs("Error Log"), before)
 
 	def test_malformed_table_columns_do_not_crash(self):
 		table = {"label": "T", "fieldname": "roles", "fieldtype": "Table", "options": "Has Role"}
@@ -239,7 +240,7 @@ class TestPrintFormatHardening(IntegrationTestCase):
 				self.assertIn("PROBE", html)
 
 	def test_failing_row_condition_logs_once_not_once_per_row(self):
-		frappe.db.delete("Error Log")
+		delete_logs("Error Log")
 		self.render(
 			self.layout(
 				{
@@ -255,7 +256,7 @@ class TestPrintFormatHardening(IntegrationTestCase):
 			)
 		)
 		self.assertGreater(frappe.db.count("Has Role", {"parent": "Administrator"}), 1)
-		self.assertEqual(frappe.db.count("Error Log"), 1)
+		self.assertEqual(count_logs("Error Log"), 1)
 
 	def test_labels_are_escaped(self):
 		payload = "<script>alert(1)</script>"

@@ -21,15 +21,19 @@ import frappe
 from frappe.database.sqlite.database import SQLiteDatabase
 from frappe.model.document import Document
 
-# `creation desc`, "`tabError Log`.`creation` desc", `creation` -- the shapes the
-# list view and `frappe.get_all` actually send. Anything else is ignored rather
-# than guessed at.
-_ORDER_BY_PATTERN = re.compile(
+# An optionally table-qualified column, with an optional sort direction: `creation desc`,
+# "`tabError Log`.`creation` desc", `creation` -- the shapes the list view and
+# `frappe.get_all` actually send. Anything else is ignored rather than guessed at.
+#
+# This is also the only validation standing between a caller-supplied field name and the
+# query: both virtual-DocType dispatchers (`frappe.model.db_query` and
+# `frappe.model.qb_query`) hand off to the controller *before* they sanitise fields, and
+# the query builder does not escape a field name's quote characters. Keep the `\w+` -- it
+# is what stops a crafted `fields` entry from adding SQL of its own.
+_FIELD_REF_PATTERN = re.compile(
 	r"^\s*(?:[`\"]?tab[^`\"]+[`\"]?\.)?[`\"]?(?P<field>\w+)[`\"]?(?:\s+(?P<direction>asc|desc))?\s*$",
 	flags=re.IGNORECASE,
 )
-
-_NAMED_PARAMETER_PATTERN = re.compile(r"%\((?P<name>\w+)\)s")
 
 #: Basename of the log database, stored as `<site>/logs/<LOG_DB_NAME>.db`.
 LOG_DB_NAME = "logs"
@@ -214,6 +218,8 @@ class LogDocument(Document):
 		filters=None,
 		fields=None,
 		order_by=None,
+		group_by=None,
+		as_list=False,
 		start=None,
 		offset=None,
 		limit_start=None,
@@ -233,8 +239,13 @@ class LogDocument(Document):
 		query = _build_log_query(doctype, filters)
 		table = query._from[0]
 
-		fields = _select_fields(fields)
-		query = query.select(*(table[f] for f in fields))
+		query = query.select(*_select_terms(table, fields))
+
+		# Dashboard charts aggregate over a log DocType -- `{"COUNT": "*"}` grouped by
+		# `creation` -- so grouping has to survive the trip through this controller. Without
+		# it the chart receives ungrouped rows and misreads them as its (date, value) pairs.
+		if group_by and (grouping := _FIELD_REF_PATTERN.match(str(group_by))):
+			query = query.groupby(table[grouping.group("field")])
 
 		if order_by and (ordering := _parse_order_by(table, order_by)):
 			query = query.orderby(ordering[0], order=ordering[1])
@@ -250,7 +261,8 @@ class LogDocument(Document):
 		if start_at := frappe.utils.cint(_first_given(start, offset, limit_start) or 0):
 			query = query.offset(start_at)
 
-		return run_log_query(query, as_dict=True)
+		# `as_list` callers index rows positionally, so they must not get dicts back.
+		return run_log_query(query, as_dict=not as_list)
 
 	@staticmethod
 	def get_count(doctype: str, filters=None, **kwargs) -> int:
@@ -348,61 +360,59 @@ def log_table(doctype: str):
 def run_log_query(query, **kwargs):
 	"""Render a Query Builder query and execute it on the log database.
 
-	`walk()` returns SQL containing named Frappe placeholders and a parameter mapping,
-	without executing anything -- the same pattern `frappe.desk.reportview.get_count`
-	uses -- so the statement can be handed to the log database rather than to whatever
-	`frappe.db` happens to be. The placeholders are converted to positional `%s` first;
-	see :func:`_as_positional_params`.
+	`walk()` returns the SQL and its parameters without executing anything -- the same
+	pattern `frappe.desk.reportview.get_count` uses -- so the statement goes to the log
+	connection rather than to whatever `frappe.db` happens to be.
 
-	The resulting values are then handled by SQLiteDatabase.sql(), which converts
-	Frappe's `%s` placeholders to SQLite's `?` placeholders and performs normal
-	parameter binding.
+	The named placeholders `walk()` emits are translated to sqlite3's own named style by
+	`SQLiteDatabase.execute_query`, so nothing has to be adapted here.
 	"""
-	sql, params = query.walk()
-	sql, values = _as_positional_params(sql, params)
-
-	return get_log_db().sql(sql, values, **kwargs)
+	return get_log_db().sql(*query.walk(), **kwargs)
 
 
-def _as_positional_params(sql: str, params):
-	"""Convert named Query Builder parameters to positional parameters.
+def is_log_doctype(doctype: str) -> bool:
+	"""Return True if `doctype` keeps its rows in the log database.
 
-	Query Builder's `walk()` produces SQL with named placeholders plus a mapping:
-
-		('INSERT INTO "tabError Log" ("name","error") VALUES (%(param1)s,%(param2)s)',
-		 {"param1": "EL-1", "param2": "boom"})
-
-	`SQLiteDatabase.execute_query` only binds parameters natively when it is handed a
-	sequence -- it rewrites `%s` to sqlite3's `?` and passes the values to the driver.
-	Given a dict it instead quotes each value and interpolates it into the statement,
-	which binds nothing and mutates the caller's dict. So the placeholders are rewritten
-	to `%s` here and the values collected into a tuple.
-
-	The values are taken verbatim: `walk()` stores the raw Python value, not a quoted SQL
-	literal, so unwrapping quotes here would silently mangle any log message that happens
-	to begin and end with one -- `'NoneType' object has no attribute 'name'` being the
-	obvious example.
-
-	The values are collected according to placeholder order in the SQL rather than
-	dictionary order.
+	Code that would otherwise reach for `frappe.db` -- the backup generator, the log
+	retention command -- uses this to tell a log DocType apart from an ordinary one,
+	because a log DocType owns no table in the site's primary database.
 	"""
-	if not isinstance(params, dict):
-		return sql, params
+	from frappe.model.base_document import get_controller
 
-	values = []
+	try:
+		return issubclass(get_controller(doctype), LogDocument)
+	except Exception:
+		# An unknown or uninstalled DocType has no controller, and so is not a log DocType.
+		return False
 
-	def replace_parameter(match):
-		name = match.group("name")
 
-		if name not in params:
-			raise frappe.ValidationError(frappe._("Missing query parameter: {0}").format(name))
+def count_logs(doctype: str, filters=None) -> int:
+	"""Return how many rows of `doctype` match `filters`.
 
-		values.append(params[name])
-		return "%s"
+	The log database's answer to `frappe.db.count`, which cannot serve a log DocType:
+	it builds its query straight from `frappe.qb`, bypassing the virtual-DocType
+	dispatch that `frappe.get_all` goes through.
+	"""
+	return LogDocument.get_count(doctype, filters)
 
-	sql = _NAMED_PARAMETER_PATTERN.sub(replace_parameter, sql)
 
-	return sql, tuple(values)
+def log_exists(doctype: str, filters=None) -> str | None:
+	"""Return the name of one row of `doctype` matching `filters`, or None.
+
+	The log database's answer to `frappe.db.exists`.
+	"""
+	rows = LogDocument.get_list(doctype, filters=filters, fields=["name"], page_length=1)
+
+	return rows[0]["name"] if rows else None
+
+
+def delete_logs(doctype: str, filters=None) -> None:
+	"""Delete every row of `doctype` matching `filters` and commit the log connection.
+
+	The log database's answer to `frappe.db.delete`. Passing no filters clears the table.
+	"""
+	run_log_query(_build_log_query(doctype, filters).delete())
+	get_log_db().commit()
 
 
 def _build_log_query(doctype: str, filters=None):
@@ -430,31 +440,94 @@ def _build_log_query(doctype: str, filters=None):
 	return query
 
 
-def _select_fields(fields) -> list[str]:
-	"""Normalise the `fields` argument to a plain list of column names."""
+def _select_terms(table, fields) -> list:
+	"""Turn the `fields` argument into query-builder select terms.
+
+	Handles the two spellings `frappe.get_all` accepts: a plain column name, and an
+	aggregate written as a dict (`{"COUNT": "*"}`). Entries that match neither are dropped
+	rather than guessed at -- see :data:`_FIELD_REF_PATTERN` for why unrecognised strings
+	must never reach the query. Dropping everything falls back to `name`, so a caller still
+	gets rows rather than a syntax error.
+	"""
 	if not fields:
-		return ["name"]
+		return [table.name]
 
 	if isinstance(fields, str):
 		fields = [fields]
 
-	names = []
+	terms = []
 
 	for field in fields:
-		if not isinstance(field, str):
+		if isinstance(field, dict):
+			if term := _aggregate_term(table, field):
+				terms.append(term)
+
+		elif isinstance(field, str) and (match := _FIELD_REF_PATTERN.match(field)):
+			terms.append(table[match.group("field")])
+
+	return terms or [table.name]
+
+
+def _aggregate_term(table, field: dict):
+	"""Return a select term for an aggregate field like `{"COUNT": "*"}` or `{"SUM": "qty"}`.
+
+	The dict spelling is what `frappe.get_all` documents for SQL functions (see
+	`FUNCTION_MAPPING` in `frappe.database.query`); supported here are the aggregates a log
+	DocType has a use for. Anything else returns None and is dropped by :func:`_select_terms`.
+	"""
+	from frappe.query_builder.functions import Avg, Count, Max, Min, Sum
+
+	supported = {"COUNT": Count, "SUM": Sum, "AVG": Avg, "MIN": Min, "MAX": Max}
+
+	for name, argument in field.items():
+		function = supported.get(str(name).upper())
+
+		if function is None:
 			continue
 
-		if match := _ORDER_BY_PATTERN.match(field):
-			names.append(match.group("field"))
+		if argument == "*":
+			return function("*")
 
-	return names or ["name"]
+		if isinstance(argument, str) and (match := _FIELD_REF_PATTERN.match(argument)):
+			column = match.group("field")
+
+			# `{"SUM": "1"}` is how a chart with no value field asks for a plain row count:
+			# the argument is a literal, not a column, and `table["1"]` would be nonsense.
+			if not column.isdigit():
+				return function(table[column])
+
+		number = _as_number(argument)
+
+		return function(argument if number is None else number)
+
+	return None
+
+
+def _as_number(value):
+	"""Return `value` as an `int` or `float` if it is one, else None.
+
+	A numeric argument has to reach the query as a number: `SUM("1")` would make SQLite
+	sum a string literal, where `SUM(1)` counts rows, which is what the caller meant.
+	"""
+	if isinstance(value, bool):
+		return None
+
+	if isinstance(value, int | float):
+		return value
+
+	try:
+		number = float(value)
+	except (TypeError, ValueError):
+		return None
+
+	return int(number) if number.is_integer() else number
 
 
 def _parse_order_by(table, order_by: str):
 	"""Return `(Field, Order)` for a simple `field [asc|desc]` clause, or None."""
 	from pypika import Order
 
-	match = _ORDER_BY_PATTERN.match(order_by)
+	match = _FIELD_REF_PATTERN.match(order_by)
 
 	if not match:
 		return None

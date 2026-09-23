@@ -85,10 +85,20 @@ def log_error(
 		fingerprint=fingerprint,
 	)
 
-	if frappe.flags.read_only or defer_insert:
-		error_log.deferred_insert()
-	else:
-		error_log.insert(ignore_permissions=True)
+	try:
+		if frappe.flags.read_only or defer_insert:
+			error_log.deferred_insert()
+		else:
+			error_log.insert(ignore_permissions=True)
+	except Exception:
+		# Recording an error must not raise a second one into the caller. `log_error` is
+		# reached from exception handlers all over the framework, so anything that escapes
+		# here turns a handled error into an unhandled one, in code that has nothing to do
+		# with logging. The log database makes that a live possibility: every process on
+		# the site shares one SQLite file, and a write can time out waiting for the lock.
+		# Fall back to the file log, which has no such contention.
+		frappe.logger().error(f"Failed to write Error Log: {title}", exc_info=True)
+		return None
 
 	# Capture exception data if telemetry is enabled
 	if os.getenv("FRAPPE_SENTRY_DSN"):

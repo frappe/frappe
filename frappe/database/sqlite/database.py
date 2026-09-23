@@ -14,7 +14,8 @@ from frappe.database.sqlite.schema import SQLiteTable
 from frappe.database.utils import convert_backtick_identifiers
 from frappe.utils import get_table_name
 
-_PARAM_COMP = re.compile(r"%\([\w]*\)s")
+# Frappe's named placeholder, e.g. `%(param1)s`, as emitted by the query builder.
+_PARAM_COMP = re.compile(r"%\((\w+)\)s")
 IMPLICIT_COMMIT_QUERY_TYPES = frozenset(("start", "alter", "drop", "create", "truncate"))
 
 
@@ -469,19 +470,20 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		raise NotImplementedError("SQLite does not support getting row size directly.")
 
 	def execute_query(self, query, values=None):
-		query = query.replace("%s", "?")
-		try:
-			if isinstance(values, dict):
-				for k, v in values.items():
-					if isinstance(v, str) and "'" in v:
-						values[k] = self.escape(v)
-					else:
-						values[k] = f"'{v}'"
-				query = query % values
-		except TypeError:
-			pass
+		"""Adapt Frappe's placeholder style to sqlite3's and execute.
 
-		return self._cursor.execute(query, values or ())
+		MySQLdb and psycopg2 both understand `%s` and `%(name)s` directly; sqlite3 understands
+		neither, so the rewrite happens here -- the same place the backend already translated
+		`%s`. Both forms end up bound by the driver rather than pasted into the statement.
+
+		Named parameters come from the query builder (`QueryBuilder.walk()`), so this is what
+		makes a built query run on SQLite at all.
+		"""
+		if isinstance(values, dict) and _PARAM_COMP.search(query):
+			# `%(param1)s` -> `:param1`, sqlite3's own named style.
+			return self._cursor.execute(_PARAM_COMP.sub(r":\1", query), values)
+
+		return self._cursor.execute(query.replace("%s", "?"), values or ())
 
 	def log_query(self, query, query_type, values, debug):
 		# sqlite3 cursors expose no equivalent of the executed statement, so the
