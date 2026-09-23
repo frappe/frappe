@@ -3,7 +3,6 @@ import { addPendingActivity, type UserInfo } from "@framework/ui/ActivityTimelin
 import { addComment, type Comment } from "@framework/ui/api";
 import { errorMessage, type RecordPageController } from "@/recordPage";
 import {
-	activeWriter,
 	clearComposerDraft,
 	closeComposer,
 	composerState,
@@ -79,8 +78,7 @@ function creationOf(comments: Comment[], name: string) {
 function restore(controller: RecordPageController, failed: CommentDraft) {
 	const { doctype, docname } = controller.page;
 	const current = readCommentDraft(doctype, docname);
-	const writing = activeWriter(doctype, docname) === COMMENT_WRITER && !isBlankDraft(current);
-	const draft = writing ? mergeDrafts(failed, current) : { ...failed };
+	const draft = isBlankDraft(current) ? { ...failed } : mergeDrafts(failed, current);
 	replaceComposerDraft(doctype, docname, COMMENT_WRITER, draft);
 	reopen(doctype, docname);
 }

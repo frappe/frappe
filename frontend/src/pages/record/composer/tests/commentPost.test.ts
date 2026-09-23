@@ -150,6 +150,22 @@ describe("postComment", () => {
 		expect(activeWriter("Note", docname)).toBe("comment");
 	});
 
+	it("keeps a newer draft the reader collapsed, after the failed one", async () => {
+		const controller = fakeController();
+		const { docname } = controller.page;
+		let fail: (error: Error) => void = () => {};
+		addComment.mockReturnValue(new Promise((_, reject) => (fail = reject)));
+		const sent = postComment(controller, AUTHOR, DRAFT);
+		saveComposerDraft("Note", docname, "comment", { content: "<p>Later</p>", attachments: [] });
+		closeComposer();
+		fail(new Error("Offline"));
+		await sent;
+		expect(composerDraft("Note", docname, "comment")).toEqual({
+			content: "<p>Looks good</p><p>Later</p>",
+			attachments: [FILE],
+		});
+	});
+
 	it("restores the failed draft alone over an empty writer", async () => {
 		const controller = fakeController();
 		const { docname } = controller.page;
