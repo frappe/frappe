@@ -489,7 +489,10 @@ class GetFieldsDialog {
 		// Only on a form without fields, or it would re-tick fields removed on purpose.
 		!this.existing_rows.length && this.select_mandatory();
 		// Dialog takes no wrapper class, so the scroll cap goes on after construction
-		this.dialog.get_field("fields").$wrapper.addClass("max-h-80 overflow-y-auto");
+		const $fields = this.dialog.get_field("fields").$wrapper;
+		$fields.addClass("max-h-80 overflow-y-auto");
+		// MultiCheck sets padding: 1em inline, which indents the list past the search box
+		$fields.find(".checkbox-options").css("padding", 0);
 		this.dialog.show();
 	}
 
@@ -503,8 +506,7 @@ class GetFieldsDialog {
 					class="form-control input-xs"
 				>
 			</div>
-			<h6 class="form-section-heading uppercase">${__("Select Fields To Update")}</h6>
-			<div class="mb-3">
+			<div class="flex flex-wrap gap-2 mt-3 mb-3">
 				<button class="btn btn-default btn-xs" data-action="select_all">${__("Select All")}</button>
 				<button class="btn btn-default btn-xs" data-action="select_mandatory">
 					${__("Select Mandatory")}
