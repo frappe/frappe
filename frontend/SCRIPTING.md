@@ -11,8 +11,8 @@ region not listed here is not yet addressable.
 
 A record-page script is a `Client Script` row with `view = Record` and `dt` set to the
 doctype. Its body is an ES module whose default export is an object of handlers, keyed by
-event (`onRefresh`, `beforeSave`, `afterSave`, `onTabChange`, `onFormTabChange`) or by a
-fieldname. Every handler receives `page`.
+event (`onRefresh`, `beforeSave`, `afterSave`, `onTabChange`, `onFormTabChange`, `onPost`)
+or by a fieldname. Every handler receives `page`.
 
 `onRefresh` is a **replay**: the surfaces are cleared and rebuilt from the host's
 built-ins on every pass, so a conditional customization is a plain `if` over `page.doc`,
@@ -701,6 +701,7 @@ It speaks the eight verbs, `active` and `activate(name)`.
 | `component` | Draws the tab's body. It receives `{ ...props, page }`. |
 | `props` | Bound onto `component`. |
 | `create` | `{ label, icon, run }`: an entry in the composer's `+` menu while the tab is on the strip. |
+| `composer` | `true` draws the composer band at the foot of the tab, as on Activity and Emails. |
 
 The page draws a tab's body inside a scroller. A component that draws its own scroller sets
 `defineOptions({ scrollsItself: true })`, or `scrollsItself: true` on the component object,
@@ -840,6 +841,61 @@ session arrives on its own. `reload()` reads the part again; a script's rows sta
 export default {
   onRefresh(page) {
     console.log(page.files.items.map((f) => f.name))
+  },
+}
+```
+
+## The composer: `page.composer`
+
+The band at the foot of the Activity and Emails tabs, and of a script's tab whose item says
+`composer: true`. It is not drawn on Files or Details. Collapsed it is a pill; open, it
+shows one **writer**. `page.composer` is the list of writers, and speaks the eight verbs
+and three acts: `open(name, { draft })`, `close()` and `active`.
+
+### An item
+
+| Key | What it does |
+| --- | --- |
+| `name` | The address `open` takes. |
+| `label` | The writer's name in the band. |
+| `icon` | `lucide-<name>`. |
+| `component` | Draws the writer's body. It receives `{ ...props, page, close }`. |
+| `props` | Bound onto `component`. |
+
+A script's writer owns its post: it calls the server, adds its own row with
+`page.activity.add`, and calls `close()`.
+
+### The built-ins
+
+`comment`, which posts a comment with its attachments. The row shows in the feed at once and
+takes its server key when the server answers; on an error the row goes and the writer
+reopens with the draft.
+
+### The acts
+
+`open(name, { draft })` opens a writer. If the reader is not on a tab that draws the band,
+it moves them to Activity first, or to the first such tab when Activity is hidden. An
+unknown or hidden writer, or a strip with no such tab, warns in a development build and
+opens nothing. `draft` seeds the writer's draft; a draft already in memory for this record
+wins. On `activate`'s terms: called in a replay, it is delivered when the replay commits.
+
+`close()` collapses the band; the draft stays in memory for the session. `active` is the
+open writer's name, or `''`.
+
+`onPost(page, { name })` fires after the server answers a `comment` post, with the new
+row's key, `comment:<name>`. It does not fire for a script's writer, which knows when it
+posted.
+
+### The script this design was judged by
+
+```js
+export default {
+  onRefresh(page) {
+    page.composer.add({ name: 'call', label: 'Log a call', icon: 'lucide-phone', component: CallWriter })
+    if (page.doc.status === 'Lost') page.composer.open('comment', { draft: { content: 'Why lost: ' } })
+  },
+  onPost(page, { name }) {
+    page.activity.scrollTo(name)
   },
 }
 ```

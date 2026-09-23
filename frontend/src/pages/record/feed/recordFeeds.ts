@@ -51,6 +51,10 @@ export interface RecordFeedsOptions {
 export const RecordFeedsKey: InjectionKey<RecordFeeds> = Symbol("record-feeds");
 
 export class RecordFeeds {
+	/** The composer band's height over the tab's foot, `0` while none is drawn. */
+	readonly composerBand = shallowRef(0);
+	/** Set by the Files tab's `create`; the Files body opens its upload dialog and clears it. */
+	readonly uploadRequested = shallowRef(false);
 	private readonly timeline = shallowRef<ActivityTimelineHandle | null>(null);
 	private opened = "";
 	private pointed = "";
@@ -120,6 +124,11 @@ export class RecordFeeds {
 	fileRows(): FileRow[] {
 		const rows = this.options.docinfo.value?.attachments ?? [];
 		return [...rows].sort(byTime);
+	}
+
+	/** Asks the Files body, mounted now or later, to open its upload dialog. */
+	requestUpload() {
+		this.uploadRequested.value = true;
 	}
 
 	/** Uploads onto the record; each answer replaces the part, unless the page has moved on. */

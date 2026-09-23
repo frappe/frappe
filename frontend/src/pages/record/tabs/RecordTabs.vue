@@ -1,7 +1,7 @@
-<!-- The record's tab strip over one tab body. A body stays mounted, hidden, after its first
-     visit, and scrolls on its own, so scroll and focus survive a switch on every tab. -->
+<!-- The record's tab strip over one tab body, and the composer band over the body's foot. A body stays
+     mounted, hidden, after its first visit, and scrolls on its own, so scroll and focus survive a switch. -->
 <template>
-	<div class="flex h-full min-h-0 flex-col" data-record-tabs>
+	<div class="relative flex h-full min-h-0 flex-col" data-record-tabs>
 		<div
 			v-if="!ready"
 			class="shrink-0 border-b border-outline-gray-1 px-[--page-gutter] py-2"
@@ -53,17 +53,26 @@
 				<p v-else class="py-10 text-center text-base text-ink-gray-5">
 					{{ __("Nothing here yet.") }}
 				</p>
+				<div
+					v-if="band"
+					class="shrink-0"
+					:style="{ height: `${band}px` }"
+					aria-hidden="true"
+				/>
 			</ScrollArea>
 		</div>
+
+		<slot name="composer" />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from "vue";
+import { computed, inject, reactive, ref, watch } from "vue";
 import { ScrollArea, Skeleton, Tabs } from "frappe-ui";
 import type { ResolvedItem } from "@/recordPage/surface";
 import type { RecordPageApi, TabItem } from "@/recordPage/types";
 import { __ } from "@/i18n";
+import { RecordFeedsKey } from "../feed/recordFeeds";
 import { DETAILS_TAB, scrollsItself, TAB_STRIP_CLASSES } from "./recordTabs";
 
 const props = defineProps<{
@@ -79,6 +88,10 @@ const emit = defineEmits<{ select: [name: string] }>();
 
 // `> div` is the content wrapper reka's viewport draws round the slot.
 const BODY_VIEWPORT = "[&>div]:flex [&>div]:min-h-full [&>div]:flex-col";
+
+const feeds = inject(RecordFeedsKey, null);
+// A scripted body under the band ends with room for it, as a feed does; 16px is the band's lift.
+const band = computed(() => (feeds?.composerBand.value ? feeds.composerBand.value + 16 : 0));
 
 const visited = reactive(new Set<string>());
 const focused = new Map<string, HTMLElement>();

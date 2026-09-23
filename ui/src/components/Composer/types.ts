@@ -45,6 +45,8 @@ interface BaseComposerProps {
   maxAttachments?: number;
   /** Host is performing the send: the submit button shows a spinner and ignores clicks. */
   submitting?: boolean;
+  /** The host sets the height: the body fills it, with no 50vh cap. */
+  fill?: boolean;
 }
 
 export interface ComposerEditorProps extends BaseComposerProps {

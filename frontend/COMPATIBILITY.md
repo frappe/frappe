@@ -186,7 +186,7 @@ What `page` is _for_ is a small, closed vocabulary:
   to its left. It is ordered and demoted by the fitting rule with no exception, and the
   host alone decides that it is disabled while nothing has changed.
 - **A closed event list** — `onRefresh`, `beforeSave`, `afterSave`, `onTabChange`,
-  `onFormTabChange`, `<fieldname>`, and a child table's own family, written **nested under
+  `onFormTabChange`, `onPost`, `<fieldname>`, and a child table's own family, written **nested under
   the table's fieldname**: a handler per child field, plus `onAdd` and `onRemove`.
 
   ```js

@@ -1,7 +1,8 @@
 // The feed scroller: it opens at the bottom, pages older rows near the top, and holds the view while they land.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick, reactive } from "vue";
+import { createApp, h, nextTick, reactive, shallowRef } from "vue";
 import RecordFeed from "../RecordFeed.vue";
+import { RecordFeedsKey } from "../recordFeeds";
 
 const apps: ReturnType<typeof createApp>[] = [];
 const resizeCallbacks: Array<() => void> = [];
@@ -286,3 +287,26 @@ function storeReads(paginate: Pages, last: number) {
 async function settle() {
 	for (let tick = 0; tick < 10; tick++) await nextTick();
 }
+
+describe("under the composer band", () => {
+	it("ends with room for the band while it is drawn, so the newest row clears it", async () => {
+		const composerBand = shallowRef(0);
+		const root = document.createElement("div");
+		document.body.appendChild(root);
+		const app = createApp({ render: () => h(RecordFeed, null, () => h("p", { "data-row": "" }, "row")) });
+		app.provide(RecordFeedsKey, { composerBand } as any);
+		app.mount(root);
+		apps.push(app);
+		const spacer = () => root.querySelector<HTMLElement>("[data-row] ~ [aria-hidden='true']");
+		await nextTick();
+		expect(spacer()).toBeNull();
+
+		composerBand.value = 120;
+		await nextTick();
+		expect(spacer()!.style.height).toBe("136px");
+
+		composerBand.value = 0;
+		await nextTick();
+		expect(spacer()).toBeNull();
+	});
+});

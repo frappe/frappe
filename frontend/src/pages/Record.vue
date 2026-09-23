@@ -68,6 +68,14 @@
 								/>
 							</div>
 						</template>
+						<template #composer>
+							<RecordComposer
+								:controller="controller"
+								:tabs="stripTabs"
+								:active="shownTab"
+								:user="boot.session.user"
+							/>
+						</template>
 					</RecordTabs>
 				</template>
 
@@ -146,6 +154,8 @@ import BodyColumns from "./record/body/BodyColumns.vue";
 import FrameBands from "./record/FrameBands.vue";
 import RecordHeader from "./record/RecordHeader.vue";
 import RecordTabs from "./record/tabs/RecordTabs.vue";
+import RecordComposer from "./record/composer/RecordComposer.vue";
+import { composerBuiltins, composerHost } from "./record/composer/composerHost";
 import { TAB_STRIP_CLASSES, recordTabBuiltins } from "./record/tabs/recordTabs";
 import { useRecordTabs } from "./record/tabs/useRecordTabs";
 import {
@@ -288,6 +298,11 @@ const {
 	controller: () => controller.value,
 	formTab: () => activeFormTab.value,
 });
+
+// What the composer band reads: the strip's tabs as drawn, in strip order.
+const stripTabs = computed(() =>
+	tabEntries.value.filter((entry) => !entry.hidden).map((entry) => entry.item)
+);
 
 const tabMemory = computed(() => formTabMemory(boot.session.user.name, doctype.value ?? ""));
 
@@ -514,6 +529,7 @@ async function openRecord({ mine, target, pointer, details, panel, feedRead }: O
 		isDirty: () => dirty.value,
 		...tabsPageHost,
 		...feeds.pageHost,
+		...composerHost(target.doctype, target.name),
 		formLayout: () => detailsForm.value,
 		activateFormTab: (identity) => void (formTab.value = identity),
 		discloseSection: disclosure.disclose,
@@ -531,7 +547,14 @@ async function openRecord({ mine, target, pointer, details, panel, feedRead }: O
 			follow.value
 		)
 	);
-	created.tabs.provideBuiltins(recordTabBuiltins);
+	created.tabs.provideBuiltins(() =>
+		recordTabBuiltins({
+			requestUpload: docinfo.value?.permissions?.write
+				? () => feeds.requestUpload()
+				: undefined,
+		})
+	);
+	created.composer.provideBuiltins(composerBuiltins);
 	created.panelSections.provideBuiltins(panelBuiltins);
 	created.form.provideBuiltins(() => formItems(detailsForm.value));
 	panelLayout.value = panel;
