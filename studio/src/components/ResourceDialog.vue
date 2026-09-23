@@ -264,6 +264,76 @@ const emptyResource: Resource = {
 }
 
 const newResource = ref<Resource>({ ...emptyResource })
+
+// doctype metadata
+const filterFields = ref<DocTypeField[]>([])
+
+const doctypeFields = createResource({
+	url: "studio.api.get_doctype_fields",
+	makeParams: () => ({ ...makeParams(), with_standard_fields: true }),
+	transform: (data: DocTypeField[]) => {
+		filterFields.value = data
+		return data.map((field) => {
+			return {
+				label: field.fieldname,
+				value: field.fieldname,
+			}
+		})
+	},
+})
+
+const whitelistedMethods = createResource({
+	url: "studio.api.get_whitelisted_methods",
+	makeParams,
+	transform: (data: string[]) => {
+		return data.map((method) => {
+			return {
+				label: method,
+				value: method,
+			}
+		})
+	},
+})
+
+const sortFields = createResource({
+	url: "studio.api.get_sort_fields",
+	cache: ["sortFields", newResource.value.document_type],
+	makeParams,
+})
+
+watch(
+	() => newResource.value?.document_type,
+	(doctype) => {
+		if (!doctype) return
+		doctypeFields.fetch()
+		whitelistedMethods.fetch()
+		sortFields.fetch()
+	},
+)
+
+function makeParams() {
+	return {
+		doctype: props.resource?.document_type || newResource.value.document_type,
+	}
+}
+
+// selected fields that no longer exist on the doctype, kept as options so they can still be removed
+const invalidFields = computed(() => {
+	const available = new Set((doctypeFields.data || []).map((option: SelectOption) => option.value))
+	return new Set((newResource.value.fields || []).filter((fieldname: string) => !available.has(fieldname)))
+})
+
+const fieldOptions = computed<SelectOption[]>(() => [
+	...(doctypeFields.data || []),
+	...[...invalidFields.value].map((fieldname) => ({ label: fieldname, value: fieldname })),
+])
+
+function removeInvalidFields() {
+	newResource.value.fields = newResource.value.fields?.filter(
+		(fieldname: string) => !invalidFields.value.has(fieldname),
+	)
+}
+
 watch(
 	() => props.resource,
 	async () => {
@@ -307,63 +377,20 @@ function getParsedFilters(filters: string | object | undefined) {
 	return filters
 }
 
-const filterFields = ref<DocTypeField[]>([])
+// script boilerplates
+watch(
+	() => newResource.value?.resource_type,
+	(resource_type, oldResourceType) => {
+		if (!resource_type) return
+		const currentValue = newResource.value.transform
+		if (currentValue == null || currentValue == undefined) return
 
-const doctypeFields = createResource({
-	url: "studio.api.get_doctype_fields",
-	makeParams: () => ({ ...makeParams(), with_standard_fields: true }),
-	transform: (data: DocTypeField[]) => {
-		filterFields.value = data
-		return data.map((field) => {
-			return {
-				label: field.fieldname,
-				value: field.fieldname,
-			}
-		})
+		const oldBoilerplate = oldResourceType ? getTransformFnBoilerplate(oldResourceType as ResourceType) : null
+		if (!currentValue || currentValue === oldBoilerplate) {
+			newResource.value.transform = getTransformFnBoilerplate(resource_type as ResourceType)
+		}
 	},
-})
-
-// selected fields that no longer exist on the doctype, kept as options so they can still be removed
-const invalidFields = computed(() => {
-	const available = new Set((doctypeFields.data || []).map((option: SelectOption) => option.value))
-	return new Set((newResource.value.fields || []).filter((fieldname: string) => !available.has(fieldname)))
-})
-
-function removeInvalidFields() {
-	newResource.value.fields = newResource.value.fields?.filter(
-		(fieldname: string) => !invalidFields.value.has(fieldname),
-	)
-}
-
-const fieldOptions = computed<SelectOption[]>(() => [
-	...(doctypeFields.data || []),
-	...[...invalidFields.value].map((fieldname) => ({ label: fieldname, value: fieldname })),
-])
-
-const whitelistedMethods = createResource({
-	url: "studio.api.get_whitelisted_methods",
-	makeParams,
-	transform: (data: string[]) => {
-		return data.map((method) => {
-			return {
-				label: method,
-				value: method,
-			}
-		})
-	},
-})
-
-const sortFields = createResource({
-	url: "studio.api.get_sort_fields",
-	cache: ["sortFields", newResource.value.document_type],
-	makeParams,
-})
-
-function makeParams() {
-	return {
-		doctype: props.resource?.document_type || newResource.value.document_type,
-	}
-}
+)
 
 function getTransformFnBoilerplate(resource_type: ResourceType) {
 	if (resource_type == "Document") {
@@ -381,29 +408,8 @@ function getFnBoilerplate(event: "success" | "error") {
 	}
 }
 
-watch(
-	() => newResource.value?.document_type,
-	(doctype) => {
-		if (!doctype) return
-		doctypeFields.fetch()
-		whitelistedMethods.fetch()
-		sortFields.fetch()
-	},
-)
-
-watch(
-	() => newResource.value?.resource_type,
-	(resource_type, oldResourceType) => {
-		if (!resource_type) return
-		const currentValue = newResource.value.transform
-		if (currentValue == null || currentValue == undefined) return
-
-		const oldBoilerplate = oldResourceType ? getTransformFnBoilerplate(oldResourceType as ResourceType) : null
-		if (!currentValue || currentValue === oldBoilerplate) {
-			newResource.value.transform = getTransformFnBoilerplate(resource_type as ResourceType)
-		}
-	},
-)
+// validation
+const errorMessage = ref("")
 
 const requiredFields = computed(() => {
 	const reqd: Record<string, string> = { resource_name: "Data Source Name" }
@@ -425,8 +431,7 @@ const requiredFields = computed(() => {
 	return reqd
 })
 
-const errorMessage = ref("")
-const areRequiredFieldsFilled = () => {
+function areRequiredFieldsFilled() {
 	const missingFields = Object.keys(requiredFields.value).filter((field) => !newResource.value[field])
 	if (missingFields.length) {
 		errorMessage.value = `Please set ${missingFields.map((field) => requiredFields.value[field]).join(", ")}`
@@ -437,7 +442,7 @@ const areRequiredFieldsFilled = () => {
 	}
 }
 
-const reset = () => {
+function reset() {
 	newResource.value = { ...emptyResource }
 	errorMessage.value = ""
 }

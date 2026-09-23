@@ -6,6 +6,7 @@ import { resourcesPlugin } from "frappe-ui"
 
 import "@/setupFrappeUIResource"
 import DataPanel from "@/components/DataPanel.vue"
+import ResourceDialog from "@/components/ResourceDialog.vue"
 import useStudioStore from "@/stores/studioStore"
 import useCodeStore from "@/stores/codeStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
@@ -122,6 +123,17 @@ describe("data source editor", () => {
 			field("Fields").should("contain.text", "email, full_name")
 			field("Limit").should("have.value", "5")
 			cy.contains("no longer a field").should("not.exist")
+		})
+
+		it("opens when mounted with a data source already set", () => {
+			savedDataSource("users").then((resource) => {
+				cy.mount(ResourceDialog, {
+					props: { showDialog: true, resource: { ...resource, resource_id: resource.name } },
+					global: { plugins: [pinia, resourcesPlugin] },
+				})
+			})
+			field("Data Source Name").should("have.value", "users")
+			field("Fields").should("contain.text", "email, full_name")
 		})
 
 		it("saves edits back to the page", () => {
