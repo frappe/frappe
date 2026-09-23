@@ -60,6 +60,18 @@ function scrollTo(scroller: HTMLElement, geometry: Geometry, top: number) {
 }
 
 describe("RecordFeed", () => {
+	// The scroll area's root sets an inline `position: relative`, which beats a positioning class.
+	it("sizes the scroller from a wrapper, not from the scroll area's root", async () => {
+		const { root } = await mount();
+		const area = root.querySelector<HTMLElement>('[data-record-feed] [data-slot="scroll-area"]')!;
+
+		expect(area.parentElement!.classList).toContain("absolute");
+		expect(area.parentElement!.classList).toContain("inset-0");
+		const positions = ["absolute", "fixed", "sticky"];
+		expect([...area.classList].filter((name) => positions.includes(name))).toEqual([]);
+		expect(area.classList).toContain("h-full");
+	});
+
 	it("opens at the bottom once the first rows are drawn", async () => {
 		const { state, geometry } = await mount(true, false);
 		Object.assign(geometry, { scrollHeight: 3000, clientHeight: 500 });

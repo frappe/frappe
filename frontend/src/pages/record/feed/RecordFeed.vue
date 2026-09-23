@@ -3,25 +3,28 @@
 <template>
 	<!-- `flex-1` fills the tab body's column; the absolute scroller adds no height of its own. -->
 	<div class="relative min-h-0 flex-1" data-record-feed>
-		<!-- `isolate` keeps the timeline's own z-indices under the fades. -->
-		<ScrollArea ref="area" class="absolute inset-0 isolate" viewportClass="px-6 pb-8 pt-4">
-			<!-- Hidden for the one frame between drawing the rows and landing at the bottom. -->
-			<div
-				ref="content"
-				class="mx-auto flex w-full max-w-3xl flex-col gap-5"
-				:class="{ invisible: ready && !landed }"
-			>
-				<div v-if="stalled" class="flex justify-center">
-					<Button
-						variant="ghost"
-						iconLeft="lucide-refresh-cw"
-						:label="__('Load older')"
-						@click="retry"
-					/>
+		<!-- The scroll area's root sets an inline `position: relative`, so a wrapper holds the sizing.
+		     `isolate` keeps the timeline's own z-indices under the fades. -->
+		<div class="absolute inset-0 isolate">
+			<ScrollArea ref="area" class="h-full" viewportClass="px-6 pb-8 pt-4">
+				<!-- Hidden for the one frame between drawing the rows and landing at the bottom. -->
+				<div
+					ref="content"
+					class="mx-auto flex w-full max-w-3xl flex-col gap-5"
+					:class="{ invisible: ready && !landed }"
+				>
+					<div v-if="stalled" class="flex justify-center">
+						<Button
+							variant="ghost"
+							iconLeft="lucide-refresh-cw"
+							:label="__('Load older')"
+							@click="retry"
+						/>
+					</div>
+					<slot />
 				</div>
-				<slot />
-			</div>
-		</ScrollArea>
+			</ScrollArea>
+		</div>
 
 		<div
 			class="pointer-events-none absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-surface-base to-transparent transition-opacity"
