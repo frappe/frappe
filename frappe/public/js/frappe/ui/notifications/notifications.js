@@ -424,6 +424,7 @@ class NotificationsView extends BaseNotificationsView {
 
 	update_count_badge(count) {
 		this.unread_count = count;
+		frappe.boot.notification_unread_count = count;
 		// the unread count is the only unread affordance any bell gets -- update it wherever a bell
 		// lives (sidebar, dock, desktop navbar). Re-queried each call so it also covers
 		// bells created after this view (the dock).
