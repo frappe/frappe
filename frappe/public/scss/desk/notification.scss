@@ -3,9 +3,6 @@
 	height: $h;
 }
 
-// A notification row's unread dot is centred on the row's avatar, so the two
-// sizes are declared together -- changing one without the other would knock the
-// dot off centre.
 $notification-avatar-size: 36px;
 $notification-dot-size: 8px;
 
@@ -31,14 +28,7 @@ $notification-dot-size: 8px;
 // no room for a number, so there the same element is drawn as a dot on the icon's corner.
 .desktop-notification-icon {
 	position: relative;
-	// Same 28px box as the avatar sitting next to it. Both open their panel with
-	// the same 4px offset off the trigger's bottom edge, so matching the boxes is
-	// what lines the notification popover up with the profile menu -- rather than
-	// hand-tuning an offset that would drift if the header ever changed.
 	@include size(28px, 28px);
-	// `flex`, not `inline-flex`: an inline-level button sits on its wrapper's text
-	// baseline, which adds a descender's worth of slack and drops it a pixel out of
-	// line with the avatar.
 	@include flex(flex, center, center, row);
 
 	// a ghost badge sits beside the bell with its number, so the box grows to fit it
@@ -49,8 +39,6 @@ $notification-dot-size: 8px;
 
 	.notification-count:not(.es-badge) {
 		position: absolute;
-		// inset by the 4px of breathing room the box adds around the 20px icon, so
-		// the dot still sits on the bell's corner rather than the button's
 		top: 4px;
 		right: 4px;
 		width: 8px;
@@ -98,9 +86,6 @@ $notification-dot-size: 8px;
 
 	.notifications-list {
 		@include flex(flex, null, null, column);
-		// fixed, not max-height: the popover must stay the same size across tabs
-		// (e.g. Events has far fewer rows than All) instead of shrinking to fit
-		// whichever tab's content is currently shown.
 		height: min(500px, calc(100vh - var(--navbar-height) - 32px));
 
 		.notification-list-body {
@@ -138,13 +123,6 @@ $notification-dot-size: 8px;
 	margin: 2px 0px;
 	gap: 8px;
 
-	// Unread marker on the left. Purely an indicator -- rows are not individually
-	// dismissible, so it has no hover or pressed state. The box is kept on read
-	// rows too, so every row's avatar starts at the same x.
-	//
-	// Pinned to the top and nudged down onto the avatar's midline, rather than
-	// centred on the row: the avatar sits at the top, so a row-centred dot slides
-	// further out of line the more the message wraps.
 	&::before {
 		content: "";
 		flex-shrink: 0;
@@ -160,9 +138,6 @@ $notification-dot-size: 8px;
 			background: var(--ink-gray-9);
 		}
 
-		// Unread rows read a step heavier than the ones already seen -- "medium" is
-		// the weight below semibold on the Espresso scale, so this stays a nudge
-		// rather than a shout. The timestamp opts back out below.
 		.message {
 			@include get_textstyle("base", "medium");
 			color: var(--ink-gray-8);
@@ -187,7 +162,6 @@ $notification-dot-size: 8px;
 
 	.notification-timestamp {
 		margin-top: 2px;
-		// nested inside .message, so it opts out of the unread row's heavier weight
 		@include get_textstyle("xs", "regular");
 		color: var(--ink-gray-5);
 	}
@@ -201,7 +175,6 @@ $notification-dot-size: 8px;
 	}
 }
 
-// Events are grouped under a collapsible section header, mirroring the calendar tile rows.
 .event-group {
 	.event-group-header {
 		@include flex(flex, null, center, row);
@@ -211,7 +184,6 @@ $notification-dot-size: 8px;
 		cursor: pointer;
 		user-select: none;
 
-		// .icon ships `margin: 0 auto`, which would push the row apart inside this flex header
 		.event-group-chevron {
 			@include size(16px, 16px);
 			margin: 0;
@@ -245,7 +217,6 @@ $notification-dot-size: 8px;
 	gap: 10px;
 	align-items: flex-start;
 
-	// Calendar-tile date chip: month above, day below.
 	.event-date {
 		flex-shrink: 0;
 		@include size(44px, 44px);
@@ -382,8 +353,6 @@ $notification-dot-size: 8px;
 		margin-left: 5px;
 	}
 
-	// Popover: .es-popover already caps itself at the viewport width; this just
-	// keeps the list from insisting on 360px inside it.
 	.es-popover.notifications-popover {
 		width: calc(100vw - 16px);
 	}

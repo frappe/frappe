@@ -109,11 +109,10 @@ Consequences, all of them load-bearing:
   `contributions/*`) are 2-space with **single** quotes; most of `recordPage/**` is
   2-space with **double** quotes; a handful (`surface.ts`, `context.ts`, `iconClasses.ts`
   and their tests) are tabs.
-- **Do not run `npx prettier --write` over a `.ts` file here.** Prettier is not
-  *declared* by this workspace, but it is *installed*: `frappe-ui` depends on
-  `prettier@^3.3.2`, which `frontend/yarn.lock.base` resolves to **3.9.6**. So `npx prettier`
-  quietly runs that local binary — a whole major ahead of the **2.7.1** pre-commit
-  enforces, and never reached by the hook anyway, since its `types_or` excludes
+- **Do not run `npx prettier --write` over a `.ts` file here.** Prettier is neither
+  declared nor installed by this workspace (`frappe-ui` stopped depending on it in
+  1.0.0-rc.1), so `npx prettier` downloads the newest 3.x — a whole major ahead of the
+  **2.7.1** pre-commit enforces, and never reached by the hook anyway, since its `types_or` excludes
   TypeScript. With `.editorconfig` not covering `.ts` either, it rewrites the file to its
   own defaults: a one-line change becomes a whole-file diff that CI never asked for.
   `ui/CLAUDE.md`'s blanket "always run prettier on changed files" is written for that

@@ -256,7 +256,7 @@ const { arrivedState: toolbarArrived } = useScroll(toolbarScroller);
 
 const mentionItems = computed(() =>
 	(props.mentions ?? []).map((option) => ({
-		id: option.value,
+		value: option.value,
 		label: option.label,
 	}))
 );

@@ -417,4 +417,23 @@ context("Control Link", () => {
 			]);
 		});
 	});
+
+	it("passes the form to a get_query function", () => {
+		cy.get("@todos").then((todos) => {
+			cy.visit(`/desk/todo/${todos[0]}`);
+			cy.window().its("cur_frm.doc.name").should("eq", todos[0]);
+
+			cy.window().then((win) => {
+				const frm = win.cur_frm;
+				let query_frm;
+				frm.set_query("assigned_by", (doc, cdt, cdn, form) => {
+					query_frm = form;
+					return {};
+				});
+
+				frm.fields_dict.assigned_by.get_search_args("");
+				expect(query_frm).to.equal(frm);
+			});
+		});
+	});
 });

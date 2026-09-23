@@ -43,6 +43,17 @@ describe("useLinkSearch", () => {
     expect(search.loading.value).toBe(false);
   });
 
+  it("leaves the record's name out of a titled option's description", async () => {
+    api.searchDocuments.mockResolvedValueOnce({
+      data: [{ value: "62e34b24e4", label: "tabPartner", description: "62e34b24e4, frappe.io" }],
+    });
+    const search = useLinkSearch("Contact");
+    await search.search("");
+    expect(search.data.value).toEqual([
+      { value: "62e34b24e4", label: "tabPartner", description: "frappe.io" },
+    ]);
+  });
+
   it("lets the last answer win over an earlier one that lands late", async () => {
     const first = deferred();
     const second = deferred();
