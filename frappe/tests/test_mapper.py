@@ -41,3 +41,18 @@ class TestMapper(IntegrationTestCase):
 
 		self.assertEqual(doc.doctype, "Note")
 		self.assertEqual(doc.title, note.title)
+
+	def test_get_mapped_doc_accepts_dict_parent(self):
+		from frappe.model.mapper import get_mapped_doc
+
+		note = frappe.get_doc({"doctype": "Note", "title": "Mapper Source Note for Parent"}).insert()
+		parent = frappe.new_doc("Note").as_dict()
+
+		doc = get_mapped_doc(
+			"Note",
+			note.name,
+			{"Note": {"doctype": "Note Seen By", "on_parent": parent, "field_map": {"owner": "user"}}},
+		)
+
+		self.assertEqual(doc.doctype, "Note")
+		self.assertEqual(doc.seen_by[0].user, note.owner)
