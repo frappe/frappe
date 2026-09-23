@@ -10,8 +10,6 @@ import useStudioStore from "@/stores/studioStore"
 import useCodeStore from "@/stores/codeStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 
-// User fields a saved data source still selects after they were removed from the doctype
-const REMOVED_FIELDS = ["deleted_field", "another_deleted_field"]
 const APP_NAME = `cypress-data-sources-${Date.now()}`
 
 // Neither comes from the editor: the popovers' ResizeObserver loop, and the Document Type Link's
@@ -43,7 +41,18 @@ describe("data source editor", () => {
 		cy.intercept("/api/method/studio.api.get_doctype_fields*").as("getDocTypeFields")
 		cy.intercept("/api/method/studio.api.get_sort_fields*").as("getSortFields")
 		cy.intercept("/api/method/studio.api.get_whitelisted_methods*").as("getWhitelistedMethods")
-		createPage().then((createdPage) => (page = createdPage))
+		cy.insert_doc("Studio Page", { studio_app: APP_NAME }).then((createdPage) => {
+			page = createdPage
+			saveUserList("users", ["email", "full_name"])
+			// a Document data source for a doctype with known whitelisted methods
+			saveDataSource({
+				resource_name: "currentPage",
+				resource_type: "Document",
+				document_type: "Studio Page",
+				document_name: page.name,
+				whitelisted_methods: JSON.stringify(["publish"]),
+			})
+		})
 	})
 
 	describe("adding", () => {
@@ -128,22 +137,25 @@ describe("data source editor", () => {
 
 	describe("fields removed from the doctype", () => {
 		it("warns about the missing field and keeps it out of the summary", () => {
+			saveUserList("staleUsers", ["email", "deleted_field", "full_name"])
 			openDataSource("staleUsers")
 
-			cy.contains(`${REMOVED_FIELDS[0]} is no longer a field on User.`).should("be.visible")
-			field("Fields").should("contain.text", "email, full_name").and("not.contain.text", REMOVED_FIELDS[0])
+			cy.contains("deleted_field is no longer a field on User.").should("be.visible")
+			field("Fields").should("contain.text", "email, full_name").and("not.contain.text", "deleted_field")
 
 			field("Fields").click()
-			option(REMOVED_FIELDS[0]).should("contain.text", "Missing Field")
+			option("deleted_field").should("contain.text", "Missing Field")
 			option("email").should("not.contain.text", "Missing Field")
 		})
 
 		it("pluralises the warning for several missing fields", () => {
-			openDataSource("veryStaleUsers")
-			cy.contains(`${REMOVED_FIELDS.join(", ")} are no longer fields on User.`).should("be.visible")
+			saveUserList("staleUsers", ["email", "deleted_field", "another_deleted_field"])
+			openDataSource("staleUsers")
+			cy.contains("deleted_field, another_deleted_field are no longer fields on User.").should("be.visible")
 		})
 
 		it("removes missing fields and saves only the valid ones", () => {
+			saveUserList("staleUsers", ["email", "deleted_field", "full_name"])
 			openDataSource("staleUsers")
 			cy.get("[role='dialog']").contains("button", "Remove").click()
 			cy.contains("no longer a field").should("not.exist")
@@ -152,6 +164,30 @@ describe("data source editor", () => {
 			savedFields("staleUsers").should("deep.equal", ["email", "full_name"])
 		})
 	})
+
+	// saved straight to the site, bypassing the editor, like a data source saved before its fields were removed
+	function saveDataSource(resource: Record<string, any>) {
+		cy.call("frappe.client.insert", {
+			doc: {
+				doctype: "Studio Page Resource",
+				parent: page.name,
+				parenttype: "Studio Page",
+				parentfield: "resources",
+				...resource,
+			},
+		})
+	}
+
+	function saveUserList(resource_name: string, fields: string[]) {
+		saveDataSource({
+			resource_name,
+			resource_type: "Document List",
+			document_type: "User",
+			fields: JSON.stringify(fields),
+			filters: JSON.stringify({ name: "Administrator" }),
+			limit: 5,
+		})
+	}
 
 	function mountDataPanel() {
 		useStudioStore().activePage = page
@@ -184,43 +220,6 @@ describe("data source editor", () => {
 		return savedDataSource(resourceName).then((resource) => JSON.parse(resource.fields))
 	}
 })
-
-function createPage() {
-	const userList = (resource_name: string, fields: string[]) => ({
-		resource_name,
-		resource_type: "Document List",
-		document_type: "User",
-		fields: JSON.stringify(fields),
-		filters: JSON.stringify({ name: "Administrator" }),
-		limit: 5,
-	})
-	return cy
-		.insert_doc("Studio Page", {
-			studio_app: APP_NAME,
-			resources: [
-				userList("users", ["email", "full_name"]),
-				userList("staleUsers", ["email", REMOVED_FIELDS[0], "full_name"]),
-				userList("veryStaleUsers", ["email", ...REMOVED_FIELDS]),
-			],
-		})
-		.then((createdPage) => addCurrentPageDataSource(createdPage))
-}
-
-// a Document data source on the page itself, for a doctype with known whitelisted methods
-function addCurrentPageDataSource(createdPage: StudioPage) {
-	return cy.update_doc("Studio Page", createdPage.name, {
-		resources: [
-			...(createdPage as any).resources,
-			{
-				resource_name: "currentPage",
-				resource_type: "Document",
-				document_type: "Studio Page",
-				document_name: createdPage.name,
-				whitelisted_methods: JSON.stringify(["publish"]),
-			},
-		],
-	})
-}
 
 // the input/trigger a FormControl label points at
 const field = (label: string) =>
