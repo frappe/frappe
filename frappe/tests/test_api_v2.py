@@ -1851,7 +1851,7 @@ class TestFileRoutesV2(FrappeAPITestCase):
 
 
 class TestActivityAPIV2(FrappeAPITestCase):
-	"""`GET /document/<doctype>/<name>/activity`: the feed's first page and one stream's next page."""
+	"""`GET /document/<doctype>/<name>/activity`: one page of the merged feed behind a cursor."""
 
 	version = "v2"
 
@@ -1883,33 +1883,60 @@ class TestActivityAPIV2(FrappeAPITestCase):
 			self.resource("ToDo", self.todo.name, "activity"), {"sid": self.sid, **(params or {})}
 		)
 
-	def test_first_page_carries_the_feed_and_its_paging_flags(self):
+	def test_a_page_carries_the_feed_and_its_cursor(self):
 		response = self.activity()
 		self.assertEqual(response.status_code, 200, response.json)
 		data = response.json["data"]
-		self.assertEqual(
-			set(data), {"activities", "has_more_emails", "has_more_milestones", "next_milestone_start"}
-		)
+		self.assertEqual(set(data), {"activities", "next"})
 		self.assertIn("comment", {row["type"] for row in data["activities"]})
+		self.assertIsNone(data["next"])
 
 	def test_types_limits_the_feed(self):
 		response = self.activity({"types": ["email"]})
 		self.assertEqual(response.status_code, 200, response.json)
 		self.assertEqual([row["type"] for row in response.json["data"]["activities"]], [])
 
-	def test_a_stream_page_carries_only_that_stream(self):
-		response = self.activity({"stream": "emails", "start": 0})
-		self.assertEqual(response.status_code, 200, response.json)
-		self.assertEqual(set(response.json["data"]), {"activities", "has_more_emails"})
+	def test_the_cursor_walks_every_row_once_for_a_reader(self):
+		user = "api-activity-reader@example.com"
+		frappe.set_user("Administrator")
+		if not frappe.db.exists("User", user):
+			frappe.get_doc(
+				{"doctype": "User", "email": user, "first_name": "Reader", "send_welcome_email": 0}
+			).insert()
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "paged", "allocated_to": user}).insert()
+		for i in range(4):
+			todo.add_comment("Comment", f"remark {i}")
+			todo.description = f"paged {i}"
+			todo.save(ignore_version=False)
+		frappe.db.commit()  # nosemgrep
+		try:
+			sid = self.sid_for(user)
+			whole = self.read_page(todo, sid, {"limit": 500})
+			self.assertIsNone(whole["next"])
+			self.assertIn("version", {row["type"] for row in whole["activities"]})
 
-		response = self.activity({"stream": "milestones", "start": 0})
-		self.assertEqual(response.status_code, 200, response.json)
-		self.assertEqual(
-			set(response.json["data"]), {"activities", "has_more_milestones", "next_milestone_start"}
-		)
+			walked, before = [], None
+			while True:
+				page = self.read_page(todo, sid, {"limit": 3, "before": before})
+				walked = page["activities"] + walked
+				if not (before := page["next"]):
+					break
+			self.assertEqual([r["key"] for r in walked], [r["key"] for r in whole["activities"]])
+		finally:
+			frappe.db.rollback()
+			frappe.set_user("Administrator")
+			frappe.delete_doc_if_exists("ToDo", todo.name, force=True)
+			frappe.delete_doc_if_exists("User", user, force=True)
+			frappe.db.commit()  # nosemgrep
 
-	def test_an_unknown_stream_is_refused(self):
-		response = self.activity({"stream": "likes"})
+	def read_page(self, todo, sid: str, params: dict) -> dict:
+		params = {key: value for key, value in params.items() if value is not None}
+		response = self.get(self.resource("ToDo", todo.name, "activity"), {"sid": sid, **params})
+		self.assertEqual(response.status_code, 200, response.json)
+		return response.json["data"]
+
+	def test_a_malformed_cursor_is_refused(self):
+		response = self.activity({"before": "yesterday"})
 		self.assertEqual(response.status_code, 417, response.json)
 
 	def test_a_document_the_user_cannot_read_is_refused(self):

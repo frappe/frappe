@@ -147,7 +147,7 @@ def get_docinfo(
 ATTACHMENT_FIELDNAME_RE = re.compile(r"data-fieldname=['\"]([^'\"]*)['\"]")
 
 
-def add_comments(doc, docinfo):
+def add_comments(doc, docinfo, comment_types: list[str] | None = None, **query):
 	# divide comments into separate lists
 	docinfo.comments = []
 	docinfo.shared = []
@@ -161,6 +161,8 @@ def add_comments(doc, docinfo):
 		doc.doctype,
 		doc.name,
 		fields=["name", "creation", "content", "owner", "comment_type", "published"],
+		comment_types=comment_types,
+		**query,
 	)
 
 	restricted_fieldnames = None
@@ -191,13 +193,12 @@ def add_comments(doc, docinfo):
 	return comments
 
 
-def get_milestones(doctype, name, start=0, limit=20):
-	# Newest first and paged: a long-lived document accumulates these without end. The page runs
-	# larger than the one on versions because a milestone row is four short columns, not a JSON diff.
+def get_milestones(doctype, name, start=0, limit=20, filters=None):
+	# Newest first and paged: a long-lived document accumulates these without end.
 	return frappe.get_all(
 		"Milestone",
 		fields=["name", "creation", "owner", "track_field", "value"],
-		filters=dict(reference_type=doctype, reference_name=str(name)),
+		filters=[["reference_type", "=", doctype], ["reference_name", "=", str(name)], *(filters or [])],
 		limit_start=start,
 		limit=limit,
 		order_by="creation desc",
@@ -292,7 +293,7 @@ def get_filtered_attachments(dt: str, dn: str | int, filters: str):
 	)
 
 
-def get_versions(doc: "Document") -> list[dict]:
+def get_versions(doc: "Document", filters=None, limit=10) -> list[dict]:
 	if not doc.meta.track_changes:
 		return []
 
@@ -300,9 +301,9 @@ def get_versions(doc: "Document") -> list[dict]:
 
 	versions = frappe.get_all(
 		"Version",
-		filters=dict(ref_doctype=doc.doctype, docname=str(doc.name)),
+		filters=[["ref_doctype", "=", doc.doctype], ["docname", "=", str(doc.name)], *(filters or [])],
 		fields=["name", "owner", "creation", "data"],
-		limit=10,
+		limit=limit,
 		order_by="creation desc",
 	)
 	return mask_version_data(versions, doc.doctype)
@@ -348,8 +349,8 @@ def get_comments(doctype: str, name: str, comment_type: str | list[str] = "Comme
 	return comments
 
 
-def _get_communications(doctype, name, start=0, limit=20):
-	communications = get_communication_data(doctype, name, start, limit)
+def _get_communications(doctype, name, start=0, limit=20, before=None):
+	communications = get_communication_data(doctype, name, start, limit, before=before)
 	for c in communications:
 		if c.communication_type in ("Communication", "Automated Message"):
 			c.attachments = json.dumps(
@@ -364,7 +365,7 @@ def _get_communications(doctype, name, start=0, limit=20):
 
 
 def get_communication_data(
-	doctype, name, start=0, limit=20, after=None, fields=None, group_by=None, as_dict=True
+	doctype, name, start=0, limit=20, after=None, fields=None, group_by=None, as_dict=True, before=None
 ):
 	"""Return list of communications for a given document."""
 	if not fields:
@@ -382,6 +383,11 @@ def get_communication_data(
 		# find after a particular date
 		conditions += f"""
 			AND C.communication_date > {after}
+		"""
+
+	if before:
+		conditions += """
+			AND C.communication_date <= %(before)s
 		"""
 
 	if doctype == "User":
@@ -448,6 +454,7 @@ def get_communication_data(
 			start=frappe.utils.cint(start),
 			limit=limit,
 			cte_limit=limit + start,
+			before=before,
 		),
 		as_dict=as_dict,
 	)
@@ -471,19 +478,21 @@ def run_onload(doc):
 	doc.run_method("onload")
 
 
-def get_view_logs(doc: "Document") -> list[dict]:
+def get_view_logs(doc: "Document", filters=None, limit=None) -> list[dict]:
 	"""get and return the latest view logs if available"""
 	if not doc.meta.track_views:
 		return []
 
 	return frappe.get_all(
 		"View Log",
-		filters={
-			"reference_doctype": doc.doctype,
-			"reference_name": str(doc.name),
-		},
+		filters=[
+			["reference_doctype", "=", doc.doctype],
+			["reference_name", "=", str(doc.name)],
+			*(filters or []),
+		],
 		fields=["name", "creation", "owner"],
 		order_by="creation desc",
+		limit=limit,
 	)
 
 
