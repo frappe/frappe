@@ -440,13 +440,25 @@ class TestSessionIdHashing(FrappeAPITestCase):
 		payload = frappe.cache.hget("session", hash_sid(sid))
 		self.assertNotIn("sid", payload, "the cached session must not carry the raw sid")
 
-	def test_raw_cookie_resumes_the_session(self):
-		sid = self.sid
+	def request_with_cookie(self, sid):
+		"""Put a request carrying `sid` on this thread, restored when the test ends."""
+		from frappe.utils import set_request
+
+		original_request = getattr(frappe.local, "request", None)
+		if original_request is not None:
+			self.addCleanup(setattr, frappe.local, "request", original_request)
+		else:
+			self.addCleanup(delattr, frappe.local, "request")
+
+		set_request(path="/")
 		frappe.local.request.cookies = {"sid": sid}
-		frappe.form_dict = frappe._dict()
+
+	def test_raw_cookie_resumes_the_session(self):
+		self.request_with_cookie(self.sid)
 		self.assertEqual(Session(user=None, resume=True).user, "Administrator")
 
 	def test_sid_hash_follows_sid(self):
+		self.request_with_cookie(self.sid)
 		session = Session(user=None, resume=True)
 		session.sid = "a" * 32
 		self.assertEqual(session.sid_hash, sha256_hash("a" * 32))
