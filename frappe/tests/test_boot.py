@@ -275,6 +275,8 @@ class TestPermissionQueries(IntegrationTestCase):
 			script="""conditions = f"(`tabReport`.is_standard = 'Yes' or `tabReport`.owner = '{frappe.session.user}')"
 				""",
 		).insert()
+		# the rollback drops the script but not the cached map that points to it
+		self.addCleanup(frappe.client_cache.delete_value, "server_script_map")
 
 		# Create a ToDo custom report with test user
 		frappe.set_user("test@example.com")
