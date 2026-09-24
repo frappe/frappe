@@ -40,12 +40,13 @@ def _get_fixed_csv_delimiter(custom_delimiters, delimiter_options) -> str | None
 
 
 def _parse_number(value: str, number_format: NumberFormat) -> float | None:
-	"""Read a plain number first, because the exporter writes 1234.56 whatever the number format is."""
+	"""Return None if the value is not a number, or if it reads differently as a plain number
+	(how the exporter writes it) and in the user's number format, like 1.234 in #.###,##."""
 	value = value.strip()
 	try:
-		return float(value)
+		plain = float(value)
 	except ValueError:
-		pass
+		plain = None
 
 	group = re.escape(number_format.thousands_separator)
 	decimal = re.escape(number_format.decimal_separator)
@@ -53,13 +54,17 @@ def _parse_number(value: str, number_format: NumberFormat) -> float | None:
 	integer = rf"\d+|[1-9]\d{{0,2}}(?:{group}\d{{2,3}})*{group}\d{{3}}" if group else r"\d+"
 	fraction = rf"(?:{decimal}\d+)?" if decimal else ""
 	if not re.fullmatch(rf"[+-]?(?:{integer}){fraction}", value):
-		return None
+		return plain
 
 	if group:
 		value = value.replace(number_format.thousands_separator, "")
 	if decimal:
 		value = value.replace(number_format.decimal_separator, ".")
-	return float(value)
+	formatted = float(value)
+
+	if plain is not None and plain != formatted:
+		return None
+	return formatted
 
 
 class Importer:
@@ -1484,14 +1489,17 @@ class Row:
 			number_format = get_number_format()
 			number = _parse_number(value, number_format)
 			if number is None:
+				example = (
+					f"1234{number_format.decimal_separator}56" if number_format.decimal_separator else "1234"
+				)
 				self.warnings.append(
 					{
 						"row": self.row_number,
 						"col": col.column_number,
 						"field": df_as_json(df),
-						"message": _('"{0}" is not a valid number. Use {1}').format(
-							frappe.bold(escape_html(value)), frappe.bold(number_format.string)
-						),
+						"message": _(
+							'"{0}" is not a valid number, or could mean two numbers. Write it like {1}'
+						).format(frappe.bold(escape_html(value)), frappe.bold(example)),
 					}
 				)
 				return

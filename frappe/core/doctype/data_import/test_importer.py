@@ -620,15 +620,23 @@ class TestImporter(IntegrationTestCase):
 
 	def test_parse_number_follows_number_format(self):
 		cases = {
-			"#.###,##": {"19,18": 19.18, "1.234,56": 1234.56, "19.18": 19.18, "abc": None},
+			"#.###,##": {
+				"19,18": 19.18,
+				"1.234,56": 1234.56,
+				"19.18": 19.18,
+				"0.125": 0.125,
+				"1.234": None,
+				"abc": None,
+			},
 			"#,###.##": {
 				"1,234.56": 1234.56,
 				"12,34,567.89": 1234567.89,
+				"1.234": 1.234,
 				"19,18": None,
 				"0,125": None,
 				"1.234,56": None,
 			},
-			"#.###": {"1.234.567": 1234567.0, "1,5": None},
+			"#.###": {"1.234.567": 1234567.0, "1.234": None, "1,5": None},
 		}
 		for number_format, values in cases.items():
 			for value, expected in values.items():
