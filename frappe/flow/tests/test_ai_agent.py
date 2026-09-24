@@ -10,7 +10,7 @@ from flow import Agent, tool
 from flow.daemon.callback import tool_callback
 from flow.daemon.client import DaemonClient
 from flow.knowledge import Knowledge
-from flow.lib.agent import sync_agents
+from flow.lib.agent import sync_agents, sync_tools
 from flow.tests.test_fake_daemon import FakeDaemon
 from flow.tools.builtins import read, sync_builtin_tools
 
@@ -221,6 +221,25 @@ class TestAgent(IntegrationTestCase):
 
 		doc = frappe.get_doc("Flow Agent", "Hooked Helper")
 		self.assertEqual([row.agent for row in doc.sub_agents], ["Hooked Lookup"])
+
+	def test_sync_tools_writes_every_hooked_tool_for_desk_agents_to_attach(self):
+		get_hooks = frappe.get_hooks
+
+		def hooks(hook=None, *args, **kwargs):
+			if hook == "flow_tools":
+				return [f"{__name__}.close_todo"]
+			return get_hooks(hook, *args, **kwargs)
+
+		with patch("frappe.get_hooks", side_effect=hooks):
+			sync_tools()
+
+		doc = frappe.get_doc("Flow Tool", "close_todo")
+		self.assertEqual(
+			(doc.type, doc.import_path, doc.requires_confirmation, doc.is_system_generated),
+			("Imported", f"{__name__}.close_todo", 1, 1),
+		)
+		agent = {"title": "Desk Agent", "model": self.model.name, "instructions": "Mine to edit."}
+		frappe.get_doc({"doctype": "Flow Agent", **agent, "tools": [{"tool": "close_todo"}]}).insert()
 
 	def test_a_tool_slug_owned_by_another_definition_is_refused(self):
 		frappe.get_doc(
