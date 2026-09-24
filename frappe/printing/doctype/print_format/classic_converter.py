@@ -265,18 +265,20 @@ def convert_print_format(doc):
 		format_data = backup["format_data"]
 		fields = backup["fields"]
 	else:
-		if not doc.format_data:
-			return
 		try:
-			format_data = json.loads(doc.format_data)
+			format_data = json.loads(doc.format_data) if doc.format_data else []
 		except ValueError:
 			return
 		fields = {f: doc.get(f) for f in CONVERTED_FIELDS}
 	if not isinstance(format_data, list):
 		return
 
-	layout, dropped = convert_classic_to_beta(format_data, frappe.get_meta(doc.doc_type), doc)
-	repair_layout(layout)
+	meta = frappe.get_meta(doc.doc_type)
+	if format_data:
+		layout, dropped = convert_classic_to_beta(format_data, meta, doc)
+		repair_layout(layout)
+	else:
+		layout, dropped = create_default_layout(meta), []
 	doc.classic_format_data = json.dumps({"format_data": format_data, "fields": fields}, indent=1)
 	doc.format_data = json.dumps(layout, indent=1)
 	doc.print_format_builder = 0

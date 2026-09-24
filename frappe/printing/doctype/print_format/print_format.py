@@ -428,7 +428,7 @@ def create_custom_format(
 		source = frappe.get_doc("Print Format", based_on)
 		source.check_permission("read")
 		doc.format_data = source.format_data
-		if is_classic_layout(doc.format_data):
+		if not doc.format_data or is_classic_layout(doc.format_data):
 			convert_print_format(doc)
 	else:
 		from frappe.printing.doctype.print_format.classic_converter import create_default_layout
