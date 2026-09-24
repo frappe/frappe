@@ -64,7 +64,9 @@ export function useFieldFormat(props, store, preview_doc) {
 			...(df.table_header_bg && df.table_header !== "plain"
 				? { "--pfb-header-bg": df.table_header_bg }
 				: {}),
-			...(df.table_min_height ? { minHeight: df.table_min_height + "px" } : {}),
+			...(df.table_min_height
+				? { height: df.table_min_height + "px", "--pfb-foot-height": "100%" }
+				: {}),
 		};
 	}
 

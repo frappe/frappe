@@ -1081,7 +1081,23 @@ class TypstEmitter:
 		else:
 			cells = []
 		cells += [f"[{cell}]" for cell in body_cells]
-		return self._block_label(df) + "#table(" + ", ".join(parts) + ",\n" + ",\n".join(cells) + ")"
+		table = "table(" + ", ".join(parts) + ",\n" + ",\n".join(cells) + ")"
+		return self._block_label(df) + self._min_height(df, table)
+
+	@staticmethod
+	def _min_height(df, table: str) -> str:
+		"""A minimum height leaves space below the last row, as on the HTML surfaces."""
+		min_height = pt(df.get("table_min_height"))
+		if not min_height:
+			return "#" + table
+		return (
+			"#layout(size => {\n"
+			f"let tbl = {table}\n"
+			"let h = measure(tbl, width: size.width).height\n"
+			"tbl\n"
+			f"if h < {min_height}pt {{ v({min_height}pt - h) }}\n"
+			"})"
+		)
 
 	def _block_label(self, df) -> str:
 		if not df.get("label") or (df.get("show_label") or "show") == "hide":
