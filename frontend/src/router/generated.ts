@@ -1,13 +1,11 @@
 // The routes every app gets with no declaration. Path is identity, query is context.
 
-const Home = () => import("@/pages/Home.vue");
-const List = () => import("@/pages/List.vue");
-const Record = () => import("@/pages/Record.vue");
-const Module = () => import("@/pages/Module.vue");
-const MainPage = () => import("@/pages/MainPage.vue");
+import MainPage from "@/pages/MainPage.vue";
+import { standardPages } from "./standardPages";
 
-/** The page each main address opens when no app declared one in its place. */
-export const standardPages = { list: List, record: Record };
+const Home = () => import("@/pages/Home.vue");
+const Module = () => import("@/pages/Module.vue");
+const { list: List, record: Record } = standardPages;
 
 export function generatedRoutes(modular: boolean) {
 	// Two tables, one set of names, so `routeFor` never branches on shape. The shape is

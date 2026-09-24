@@ -8,12 +8,15 @@ import type { Boot } from "@/boot";
 import { registerContributions } from "@/contributions/registry";
 import type { ReplacementContribution } from "@/contributions/types";
 import { createShellRouter } from "@/router";
+import { clearLoadedPages, loadedPage, mainPageFor, preloadMainPage } from "@/router/mainPage";
 import { registerShell, routeFor, urlFor } from "@/router/routeFor";
 
 const setups = vi.hoisted(() => ({ count: 0, attrs: [] as object[] }));
 // Set by a test: the standard record page's leave and update guards refuse the navigation.
 const guard = vi.hoisted(() => ({ block: false }));
 const fake = vi.hoisted(() => ({ replacements: [] as ReplacementContribution[] }));
+// Set by a test: how many more times the flaky page fails to load before it loads.
+const flaky = vi.hoisted(() => ({ failures: 0 }));
 
 const DeclaredPage = defineComponent({
 	props: { doctype: String, name: String },
@@ -27,6 +30,13 @@ const DeclaredPage = defineComponent({
 				"data-name": props.name,
 			});
 	},
+});
+
+const salesInvoicePage = vi.fn(async () => DeclaredPage);
+const singleListPage = vi.fn(async () => DeclaredPage);
+const flakyPage = vi.fn(async () => {
+	if (flaky.failures-- > 0) throw new Error("the page failed to load once");
+	return DeclaredPage;
 });
 
 function declared(
@@ -73,6 +83,7 @@ const addresses = new Addresses({
 		"Purchase Invoice": ["purchase-invoice", "accounts"],
 		"Accounts Settings": ["accounts-settings", "accounts"],
 		"Journal Entry": ["journal-entry", "accounts"],
+		"Payment Entry": ["payment-entry", "accounts"],
 	},
 	modules: { accounts: "Accounts" },
 	singles: ["Accounts Settings"],
@@ -91,12 +102,13 @@ let warn: ReturnType<typeof vi.spyOn>;
 
 beforeAll(async () => {
 	fake.replacements = [
-		declared("Sales Invoice", "record"),
+		declared("Sales Invoice", "record", salesInvoicePage),
 		declared("Sales Invoice", "list"),
-		declared("Accounts Settings", "list"),
+		declared("Accounts Settings", "list", singleListPage),
 		declared("Journal Entry", "record", async () => {
 			throw new Error("the page failed to load");
 		}),
+		declared("Payment Entry", "record", flakyPage),
 	];
 	await registerContributions(["frappe", "erpnext"]);
 });
@@ -105,6 +117,9 @@ beforeEach(() => {
 	setups.count = 0;
 	setups.attrs = [];
 	guard.block = false;
+	flaky.failures = 0;
+	for (const page of [salesInvoicePage, singleListPage, flakyPage]) page.mockClear();
+	clearLoadedPages();
 	warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 });
 
@@ -239,6 +254,54 @@ describe.each([
 		expect(shown(root)).toEqual({ page: "record" });
 	});
 
+	it.each([
+		["a standard record", "/purchase-invoice/PI-001", { page: "record" }],
+		["a standard list", "/purchase-invoice", { page: "list" }],
+		[
+			"a declared page",
+			"/sales-invoice/SI-001",
+			{ page: "declared", doctype: "Sales Invoice", name: "SI-001" },
+		],
+	])("shows %s one tick after the navigation, as it loaded first", async (_, path, page) => {
+		const { root, router } = await mount(modular, "/");
+		await router.push(`${prefix}${path}`);
+		await nextTick();
+
+		expect(shown(root)).toEqual(page);
+	});
+
+	it("loads the declared page once, for the canonical address", async () => {
+		const { root, router } = await mount(modular, `${prefix}/Sales Invoice/SI-001`);
+
+		expect(router.currentRoute.value.path).toBe(`${prefix}/sales-invoice/SI-001`);
+		expect(shown(root)).toEqual({ page: "declared", doctype: "Sales Invoice", name: "SI-001" });
+		expect(salesInvoicePage).toHaveBeenCalledOnce();
+	});
+
+	it("never loads the list page declared for a single", async () => {
+		const { root, router } = await mount(modular, `${prefix}/accounts-settings`);
+
+		expect(router.currentRoute.value.name).toBe("record");
+		expect(shown(root)).toEqual({ page: "record" });
+		expect(singleListPage).not.toHaveBeenCalled();
+	});
+
+	it("opens the declared page on the next try after it failed to load", async () => {
+		const { root, router } = await mount(modular, `${prefix}/purchase-invoice/PI-001`);
+		const error = vi.spyOn(console, "error").mockImplementation(() => {});
+		flaky.failures = 1;
+
+		await expect(router.push(`${prefix}/payment-entry/PE-001`)).rejects.toThrow(
+			"the page failed to load once"
+		);
+		error.mockRestore();
+		await router.push(`${prefix}/payment-entry/PE-001`);
+		await settle();
+
+		expect(shown(root)).toEqual({ page: "declared", doctype: "Payment Entry", name: "PE-001" });
+		expect(flakyPage).toHaveBeenCalledTimes(2);
+	});
+
 	it("builds the second address with standard only when the page is replaced", async () => {
 		await mount(modular, "/");
 		const base = `/apps/erpnext${prefix}`;
@@ -283,5 +346,17 @@ describe("a list page declared for a single", () => {
 		expect(router.currentRoute.value.name).toBe("record");
 		expect(router.currentRoute.value.params.name).toBe("Accounts Settings");
 		expect(shown(root)).toEqual({ page: "record" });
+	});
+});
+
+describe("a page rendered before its preload", () => {
+	it("still lets the preload load the page", async () => {
+		const route = { name: "record", params: { doctype: "sales-invoice", name: "SI-001" } };
+		const loader = mainPageFor(route, addresses)!.loader;
+		loadedPage(loader);
+		await preloadMainPage(route, addresses);
+
+		expect(salesInvoicePage).toHaveBeenCalledOnce();
+		expect(loadedPage(loader)).toBe(DeclaredPage);
 	});
 });
