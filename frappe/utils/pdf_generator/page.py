@@ -3,6 +3,7 @@ import time
 import urllib
 
 import frappe
+from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.utils.pdf import get_host_url
 
 """
@@ -123,6 +124,7 @@ class Page:
 		bench_sites = os.path.abspath(os.path.join(frappe.utils.get_bench_path(), "sites"))
 		asset_path = os.path.abspath(os.path.join(bench_sites, "assets"))
 		site_public_root = os.path.realpath(frappe.utils.get_site_path("public"))
+		site_private_files_root = os.path.realpath(frappe.utils.get_site_path("private/files"))
 
 		def on_request_paused_event(future, response):
 			"""Callback for when a request is paused (intercepted)."""
@@ -131,13 +133,29 @@ class Page:
 				data["request_id"] = params["requestId"]
 				url = params["request"]["url"]
 
-				if url.startswith(get_host_url()):
-					path = url.replace(get_host_url(), "").split("?v", 1)[0]
-					clean_path = urllib.parse.unquote(path)
+				if isinstance(url, str) and url.startswith(get_host_url()):
+					parsed = urllib.parse.urlparse(url)
+					clean_path = urllib.parse.unquote(parsed.path).lstrip("/")
+					query_params = urllib.parse.parse_qs(parsed.query)
 
 					if clean_path.startswith("assets/"):
 						final_system_path = os.path.abspath(os.path.join(bench_sites, clean_path))
 						is_safe = os.path.commonpath([final_system_path, asset_path]) == asset_path
+					elif clean_path.startswith("private/files/"):
+						can_read = False
+						if frappe.session.user == "Administrator":
+							can_read = True
+						elif frappe.session.user != "Guest":
+							fid: str | None = query_params.get("fid", [None])[0]
+							if find_file_by_url("/" + clean_path, name=fid):
+								can_read = True
+
+						file_path = clean_path.removeprefix("private/files/")
+						final_system_path = os.path.realpath(os.path.join(site_private_files_root, file_path))
+						is_safe = can_read and (
+							os.path.commonpath([final_system_path, site_private_files_root])
+							== site_private_files_root
+						)
 					else:
 						# Covers files/, builder_assets/, etc... under public root.
 						final_system_path = os.path.realpath(os.path.join(site_public_root, clean_path))
@@ -149,7 +167,7 @@ class Page:
 						content = frappe.read_file(final_system_path, as_base64=True)
 						response_headers = []
 						# write logic to handle all file types as required
-						if path.endswith(".svg"):
+						if clean_path.endswith(".svg"):
 							response_headers.append({"name": "Content-Type", "value": "image/svg+xml"})
 						if content:
 							self.session.send(
@@ -163,7 +181,7 @@ class Page:
 								return_future=True,
 							)
 							return
-					elif path:
+					elif clean_path:
 						self.session.send(
 							"Fetch.failRequest",
 							{"requestId": data["request_id"], "errorReason": "AccessDenied"},
@@ -171,7 +189,7 @@ class Page:
 						)
 						frappe.log_error(
 							title="Attempted Unauthorized File Access in PDF Generator",
-							message=f"Blocked access to: {path} \nResolved Path to: {final_system_path}",
+							message=f"Blocked access to: {clean_path} \nResolved Path to: {final_system_path}",
 						)
 						return
 				self.session.send(
