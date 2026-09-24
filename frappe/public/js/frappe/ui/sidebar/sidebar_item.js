@@ -64,11 +64,16 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false, shell = nu
 
 		path = frappe.utils.generate_route(args);
 	} else if (item.link_type == "Workspace") {
-		let workspaces = frappe.workspaces[frappe.router.slug(item.link_to)];
-		if (workspaces && workspaces.public) {
+		let workspace = frappe.workspaces[frappe.router.slug(item.link_to)];
+		if (workspace && workspace.public) {
 			path = "/desk/" + frappe.router.slug(item.link_to);
 		} else {
-			path = "/desk/private/" + frappe.router.slug(item.link_to);
+			// A private page is spelled by its title. Its name carries the owner's email, and only
+			// the owner can open the page, so the email named something the reader already was.
+			// The title is read off the workspace rather than the item's label, which a
+			// customization may have changed.
+			const title = workspace ? workspace.title : item.link_to;
+			path = "/desk/private/" + frappe.router.slug(title);
 		}
 
 		if (item.route) {
