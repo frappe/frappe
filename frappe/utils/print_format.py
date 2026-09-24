@@ -23,6 +23,45 @@ standard_format = "templates/print_formats/standard.html"
 
 from frappe.www.printview import validate_print_permission
 
+MULTI_PDF_ASYNC_RATE_LIMIT = 10
+MULTI_PDF_ASYNC_RATE_WINDOW = 60
+
+
+def get_max_bulk_print_docs() -> int:
+	"""Return the maximum documents allowed in one bulk PDF export."""
+	return (
+		frappe.cint(frappe.db.get_single_value("Print Settings", "max_bulk_print_docs"))
+		or frappe.cint(frappe.conf.get("max_bulk_print_docs"))
+		or 100
+	)
+
+
+def get_max_concurrent_bulk_exports() -> int:
+	"""Return the maximum concurrent bulk PDF exports allowed per user."""
+	return (
+		frappe.cint(frappe.db.get_single_value("Print Settings", "max_concurrent_bulk_exports"))
+		or frappe.cint(frappe.conf.get("max_concurrent_bulk_exports"))
+		or 5
+	)
+
+
+def _enforce_multi_pdf_async_rate_limit():
+	cache_key = frappe.cache.make_key(f"rl:multi_pdf_async:{frappe.session.user}")
+	# nosemgrep: frappe-semgrep-rules.rules.frappe-cache-breaks-multitenancy
+	frappe.cache.set(cache_key, 0, nx=True, ex=MULTI_PDF_ASYNC_RATE_WINDOW)
+
+	if frappe.cache.incrby(cache_key, 1) > MULTI_PDF_ASYNC_RATE_LIMIT:
+		frappe.throw(
+			_("You hit the rate limit because of too many requests. Please try after sometime."),
+			frappe.RateLimitExceededError,
+		)
+
+
+def _get_multi_pdf_doc_count(doctype: str | dict[str, list[str]], name: str | list[str]) -> int:
+	if isinstance(doctype, dict):
+		return sum([len(doctype[dt]) for dt in doctype])
+	return len(frappe.parse_json(name))
+
 
 @frappe.whitelist()
 def download_multi_pdf(
@@ -36,6 +75,10 @@ def download_multi_pdf(
 	"""
 	Calls _download_multi_pdf with the given parameters and returns the response
 	"""
+	max_docs = get_max_bulk_print_docs()
+	if _get_multi_pdf_doc_count(doctype, name) > max_docs:
+		frappe.throw(_("Cannot generate PDF for more than {0} documents at a time").format(max_docs))
+
 	return _download_multi_pdf(doctype, name, format, no_letterhead, letterhead, options)
 
 
@@ -51,24 +94,42 @@ def download_multi_pdf_async(
 	"""
 	Calls _download_multi_pdf with the given parameters in a background job, returns task ID
 	"""
-	task_id = str(uuid.uuid4())
-	if isinstance(doctype, dict):
-		doc_count = sum([len(doctype[dt]) for dt in doctype])
-	else:
-		doc_count = len(json.loads(name))
+	_enforce_multi_pdf_async_rate_limit()
 
-	frappe.enqueue(
-		_download_multi_pdf,
-		doctype=doctype,
-		name=name,
-		task_id=task_id,
-		format=format,
-		no_letterhead=no_letterhead,
-		letterhead=letterhead,
-		options=options,
-		queue="long" if doc_count > 20 else "short",
-		at_front_when_starved=True,
-	)
+	doc_count = _get_multi_pdf_doc_count(doctype, name)
+	max_docs = get_max_bulk_print_docs()
+	if doc_count > max_docs:
+		frappe.throw(_("Cannot generate PDF for more than {0} documents at a time").format(max_docs))
+
+	task_id = str(uuid.uuid4())
+
+	job = None
+	for slot in range(get_max_concurrent_bulk_exports()):
+		job = frappe.enqueue(
+			_download_multi_pdf,
+			doctype=doctype,
+			name=name,
+			task_id=task_id,
+			format=format,
+			no_letterhead=no_letterhead,
+			letterhead=letterhead,
+			options=options,
+			queue="long" if doc_count > 20 else "short",
+			at_front_when_starved=True,
+			job_id=f"multi_pdf_async:{frappe.session.user}:{slot}",
+			deduplicate=True,
+		)
+		if job is not None:
+			break
+
+	if job is None:
+		frappe.throw(
+			_(
+				"You already have the maximum number of bulk PDF exports in progress. Please wait for one to finish."
+			),
+			frappe.RateLimitExceededError,
+		)
+
 	frappe.local.response["http_status_code"] = http.HTTPStatus.CREATED
 	return {"task_id": task_id}
 
@@ -121,6 +182,46 @@ def _download_multi_pdf(
 	if isinstance(options, str):
 		options = json.loads(options)
 
+	if (options or {}).get("password") and format:
+		if frappe.db.get_value("Print Format", format, "pdf_generator") == "Typst":
+			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
+
+	def print_into_writer(print_doctype, print_name):
+		from frappe.utils.print_utils import _print_format_doc_or_none, renders_through_generator
+
+		pf_doc = _print_format_doc_or_none(format)
+		if not renders_through_generator(pf_doc):
+			return frappe.get_print(
+				print_doctype,
+				print_name,
+				format,
+				as_pdf=True,
+				output=pdf_writer,
+				no_letterhead=no_letterhead,
+				letterhead=letterhead,
+				pdf_options=options,
+			)
+
+		from pypdf import PdfReader
+
+		from frappe.printing.doctype.print_format.classic_converter import uses_legacy_weasyprint
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.www.printview import set_link_titles, validate_print
+
+		doc = frappe.get_doc(print_doctype, print_name)
+		validate_print(doc)
+		if uses_legacy_weasyprint(pf_doc):
+			from frappe.utils.weasyprint import legacy_generator
+
+			pdf = legacy_generator(pf_doc, doc, letterhead).render_pdf()
+		else:
+			set_link_titles(doc)
+			generator = PrintFormatGenerator(pf_doc, doc, letterhead, no_letterhead=no_letterhead)
+			pdf = generator.render_pdf()
+		for page in PdfReader(BytesIO(pdf)).pages:
+			pdf_writer.add_page(page)
+		return pdf_writer
+
 	if not isinstance(doctype, dict):
 		result = json.loads(name)
 		total_docs = len(result)
@@ -129,17 +230,13 @@ def _download_multi_pdf(
 		# Concatenating pdf files
 		for idx, ss in enumerate(result):
 			try:
-				pdf_writer = frappe.get_print(
-					doctype,
-					ss,
-					format,
-					as_pdf=True,
-					output=pdf_writer,
-					no_letterhead=no_letterhead,
-					letterhead=letterhead,
-					pdf_options=options,
-				)
+				pdf_writer = print_into_writer(doctype, ss)
 			except Exception:
+				frappe.log_error(
+					title="Error in Multi PDF download",
+					reference_doctype=doctype,
+					reference_name=ss,
+				)
 				if task_id:
 					frappe.publish_realtime(task_id=task_id, message={"message": "Failed"})
 
@@ -166,16 +263,7 @@ def _download_multi_pdf(
 			filename += f"{doctype_name}_"
 			for doc_name in doctype[doctype_name]:
 				try:
-					pdf_writer = frappe.get_print(
-						doctype_name,
-						doc_name,
-						format,
-						as_pdf=True,
-						output=pdf_writer,
-						no_letterhead=no_letterhead,
-						letterhead=letterhead,
-						pdf_options=options,
-					)
+					pdf_writer = print_into_writer(doctype_name, doc_name)
 				except Exception:
 					if task_id:
 						frappe.publish_realtime(task_id=task_id, message="Failed")
@@ -199,6 +287,9 @@ def _download_multi_pdf(
 					)
 		if task_id is None:
 			frappe.local.response.filename = f"{name}.pdf"
+
+	if password := (options or {}).get("password"):
+		pdf_writer.encrypt(password)
 
 	with BytesIO() as merged_pdf:
 		pdf_writer.write(merged_pdf)
@@ -225,6 +316,7 @@ def _download_multi_pdf(
 from frappe.deprecation_dumpster import read_multi_pdf
 
 
+# nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
 @frappe.whitelist(allow_guest=True)
 @frappe.concurrent_limit()
 def download_pdf(
@@ -235,7 +327,7 @@ def download_pdf(
 	no_letterhead: bool | int = 0,
 	language: str | None = None,
 	letterhead: str | None = None,
-	pdf_generator: Literal["wkhtmltopdf", "chrome"] | None = None,
+	pdf_generator: Literal["wkhtmltopdf", "chrome", "Typst", "WeasyPrint"] | None = None,
 ):
 	if pdf_generator is None:
 		pdf_generator = "wkhtmltopdf"

@@ -5,39 +5,41 @@ frappe.pages["print-format-builder"].on_page_load = function (wrapper) {
 
 frappe.pages["print-format-builder"].on_page_show = function (wrapper) {
 	var route = frappe.get_route();
-	if (route.length > 1) {
-		frappe.model.with_doc("Print Format", route[1], function () {
-			frappe.print_format_builder.print_format = frappe.get_doc("Print Format", route[1]);
-			frappe.print_format_builder.refresh();
-		});
-	} else if (frappe.route_options) {
-		if (frappe.route_options.make_new) {
-			let { doctype, name, based_on, beta } = frappe.route_options;
-			frappe.route_options = null;
-			frappe.print_format_builder.setup_new_print_format(doctype, name, based_on, beta);
-		} else {
-			frappe.print_format_builder.print_format = frappe.route_options.doc;
-			frappe.route_options = null;
-			frappe.print_format_builder.refresh();
-		}
+	if (route.length < 2) {
+		frappe.set_route("List", "Print Format");
+		return;
 	}
+	frappe.model.with_doc("Print Format", route[1], function () {
+		if (frappe.get_route()[1] !== route[1]) return;
+		const print_format = frappe.get_doc("Print Format", route[1]);
+		if (print_format?.__onload?.renders_from_file) {
+			frappe.msgprint(
+				__("{0} is rendered from an HTML file and cannot be edited in the builder.", [
+					route[1].bold(),
+				])
+			);
+			frappe.set_route("Form", "Print Format", route[1]);
+			return;
+		}
+		frappe.print_format_builder.print_format = print_format;
+		frappe.print_format_builder.refresh();
+	});
 };
 
 frappe.PrintFormatBuilder = class PrintFormatBuilder {
 	constructor(parent) {
 		this.parent = parent;
 		this.make();
-		this.refresh();
 	}
 	refresh() {
 		this.custom_html_count = 0;
 		if (!this.print_format) {
-			this.show_start();
-		} else {
-			this.page.set_title(this.print_format.name);
-			this.page.sidebar.toggle(true);
-			this.setup_print_format();
+			frappe.set_route("List", "Print Format");
+			return;
 		}
+		this.page.set_title(this.print_format.name);
+		this.page.sidebar.toggle(true);
+		this.setup_print_format();
 	}
 	make() {
 		this.page = frappe.ui.make_app_page({
@@ -62,97 +64,6 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 		// $(this.page.sidebar).css({"position": 'fixed'});
 		// $(this.page.main).parent().css({"margin-left": '16.67%'});
 	}
-	show_start() {
-		this.page.main.html(frappe.render_template("print_format_builder_start", {}));
-		this.page.clear_actions();
-		this.page.set_title(__("Print Format Builder"));
-		this.page.sidebar.toggle(false);
-		this.start_edit_print_format();
-		this.start_new_print_format();
-	}
-	start_edit_print_format() {
-		// print format control
-		var me = this;
-		this.print_format_input = frappe.ui.form.make_control({
-			parent: this.page.main.find(".print-format-selector"),
-			df: {
-				fieldtype: "Link",
-				options: "Print Format",
-				filters: {
-					print_format_builder: 1,
-				},
-				label: __("Select Print Format to Edit"),
-				only_select: true,
-			},
-			render_input: true,
-		});
-
-		// create a new print format.
-		this.page.main.find(".btn-edit-print-format").on("click", function () {
-			var name = me.print_format_input.get_value();
-			if (!name) return;
-			frappe.model.with_doc("Print Format", name, function (doc) {
-				frappe.set_route("print-format-builder", name);
-			});
-		});
-	}
-	start_new_print_format() {
-		var me = this;
-		this.doctype_input = frappe.ui.form.make_control({
-			parent: this.page.main.find(".doctype-selector"),
-			df: {
-				fieldtype: "Link",
-				options: "DocType",
-				filters: {
-					istable: 0,
-					issingle: 0,
-				},
-				label: __("Select a DocType to make a new format"),
-			},
-			render_input: true,
-		});
-
-		this.name_input = frappe.ui.form.make_control({
-			parent: this.page.main.find(".name-selector"),
-			df: {
-				fieldtype: "Data",
-				label: __("Name of the new Print Format"),
-			},
-			render_input: true,
-		});
-
-		this.page.main.find(".btn-new-print-format").on("click", function () {
-			var doctype = me.doctype_input.get_value(),
-				name = me.name_input.get_value();
-			if (!(doctype && name)) {
-				frappe.msgprint(__("Both DocType and Name required"));
-				return;
-			}
-			me.setup_new_print_format(doctype, name);
-		});
-	}
-	setup_new_print_format(doctype, name, based_on, beta) {
-		frappe.call({
-			method: "frappe.printing.page.print_format_builder.print_format_builder.create_custom_format",
-			args: {
-				doctype: doctype,
-				name: name,
-				based_on: based_on,
-				beta: Boolean(beta),
-			},
-			callback: (r) => {
-				if (r.message) {
-					let print_format = r.message;
-					if (print_format.print_format_builder_beta) {
-						frappe.set_route("print-format-builder-beta", print_format.name);
-					} else {
-						this.print_format = print_format;
-						this.refresh();
-					}
-				}
-			},
-		});
-	}
 	setup_print_format() {
 		var me = this;
 		frappe.model.with_doctype(this.print_format.doc_type, function (doctype) {
@@ -163,14 +74,6 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 				me.save_print_format();
 			});
 			me.page.clear_menu();
-			me.page.add_menu_item(
-				__("Start new Format"),
-				function () {
-					me.print_format = null;
-					me.refresh();
-				},
-				true
-			);
 			me.page.clear_inner_toolbar();
 			me.page.add_inner_button(__("Edit Properties"), function () {
 				frappe.set_route("Form", "Print Format", me.print_format.name);
@@ -192,8 +95,34 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 			label: __("Custom HTML"),
 		};
 	}
+	render_deprecation_banner() {
+		const convertible =
+			this.print_format.print_format_builder && !this.print_format.custom_format;
+		$(`
+			<div class="form-message orange print-format-builder-deprecation">
+				<span class="print-format-builder-deprecation-text">${
+					convertible
+						? __(
+								"The classic builder will be removed in version 17. Convert this format to the new builder to keep editing it."
+						  )
+						: __("The classic builder will be removed in version 17.")
+				}</span>
+				${
+					convertible
+						? `<button class="es-button" data-variant="outline" data-size="sm">
+					<span class="es-button__label">${__("Convert to new builder")}</span>
+				</button>`
+						: ""
+				}
+			</div>
+		`)
+			.appendTo(this.page.main)
+			.find("button")
+			.on("click", () => frappe.printing.convert_to_builder(this.print_format));
+	}
 	render_layout() {
 		this.page.main.empty();
+		this.render_deprecation_banner();
 		this.prepare_data();
 		$(
 			frappe.render_template("print_format_builder_layout", {

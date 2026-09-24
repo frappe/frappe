@@ -291,7 +291,7 @@ function get_files_to_build(files) {
 }
 
 function build_files({ files, outdir }) {
-	let build_plugins = [vue(), html_plugin, build_cleanup_plugin, vue_style_plugin];
+	let build_plugins = [vue(), html_plugin, vue_style_plugin, build_cleanup_plugin];
 	return esbuild.build(get_build_options(files, outdir, build_plugins));
 }
 

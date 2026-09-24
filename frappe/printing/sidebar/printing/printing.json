@@ -64,7 +64,7 @@
    "is_default_module": 0,
    "keep_closed": 0,
    "label": "Print Format Builder",
-   "link_to": "print-format-builder",
+   "link_to": "print-format-builder-beta",
    "link_type": "Page",
    "open_in_new_tab": 1,
    "show_arrow": 0,
@@ -88,7 +88,7 @@
   }
  ],
  "merged_from": "[\"Printing\"]",
- "modified": "2026-08-12 16:08:08.689902",
+ "modified": "2026-09-24 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Printing",

@@ -1,3 +1,4 @@
+{%- if legacy -%}
 <style>
 	{% include "templates/print_format/print_format_font.css" %}
 
@@ -22,3 +23,13 @@
 	{{ frappe.render_template(letterhead.footer, {'doc': doc}) }}
 	{%- endif -%}
 </footer>
+{%- else -%}
+<style>
+	{% include "templates/print_format/print_format_font.css" %}
+</style>
+<footer>
+	{%- if letterhead -%}
+	{{ frappe.render_template(letterhead.footer, {'doc': doc}) }}
+	{%- endif -%}
+</footer>
+{%- endif -%}

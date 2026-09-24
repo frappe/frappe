@@ -3,3 +3,13 @@
 @import "./common/global.scss";
 @import "./common/icons.scss";
 @import "~bootstrap/scss/bootstrap";
+
+// global.scss sets html, body { height: 100% } for the desk; in paged media
+// that makes body a full-page-height box that overflows the page content area
+// (page height minus margins) and emits a trailing blank PDF page.
+@media print {
+	html,
+	body {
+		height: auto;
+	}
+}
