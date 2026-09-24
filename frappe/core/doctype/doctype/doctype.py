@@ -524,6 +524,12 @@ class DocType(Document):
 			if d.unique:
 				d.search_index = 0
 
+			# no-value fieldtypes have no column, so these column-only properties don't apply
+			if d.fieldtype in no_value_fields:
+				d.unique = 0
+				d.search_index = 0
+				d.not_nullable = 0
+
 	def get_permission_log_options(self, event=None):
 		if self.custom and event != "after_delete":
 			return {
