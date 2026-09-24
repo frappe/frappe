@@ -941,7 +941,7 @@ class TestImage(IntegrationTestCase):
 		self.assertLess(len(optimized_content), len(duplicated_content))
 		reader = PdfReader(io.BytesIO(optimized_content))
 		self.assertEqual(len(reader.pages), 4)
-		self.assertEqual(list(reader.pages[0].images)[0].image.size, (800, 800))
+		self.assertEqual(next(iter(reader.pages[0].images)).image.size, (800, 800))
 
 	def test_optimize_pdf_skips_oversized_image(self):
 		from pypdf import PdfReader, PdfWriter

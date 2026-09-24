@@ -27,7 +27,7 @@ from frappe.utils.jinja_globals import bundled_asset, is_rtl
 if TYPE_CHECKING:
 	import cssutils
 	from bs4 import BeautifulSoup
-	from pypdf import PdfWriter
+	from pypdf import PdfReader, PdfWriter
 
 PDF_CONTENT_ERRORS = [
 	"ContentNotFoundError",
@@ -579,7 +579,7 @@ def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600) -> byte
 				if image.width > max_dim or image.height > max_dim:
 					image.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
 				img_file.replace(image, quality=quality, optimize=True)
-			page.compress_content_streams() # This is CPU intensive!
+			page.compress_content_streams()  # This is CPU intensive!
 
 		writer.compress_identical_objects(remove_duplicates=True, remove_unreferenced=True)
 
@@ -587,7 +587,15 @@ def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600) -> byte
 		writer.write(output)
 		optimized_content = output.getvalue()
 		return optimized_content if len(optimized_content) < len(content) else content
-	except (PyPdfError, UnidentifiedImageError, Image.DecompressionBombError, OSError, ValueError, EOFError, zlib.error) as e:
+	except (
+		PyPdfError,
+		UnidentifiedImageError,
+		Image.DecompressionBombError,
+		OSError,
+		ValueError,
+		EOFError,
+		zlib.error,
+	) as e:
 		frappe.msgprint(_("Failed to optimize PDF: {0}").format(str(e)))
 		return content
 	except Exception:
