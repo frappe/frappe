@@ -17,7 +17,9 @@
  *     </div>
  *   </div>
  *
- * Modifier: .es-bar-list__row--clickable  the row acts as a button. */
+ * Modifiers:
+ *   .es-bar-list__row--clickable  the row acts as a button
+ *   .es-bar-list--hover-values    end labels appear only on row hover */
 
 .es-bar-list__plot {
     position: relative;
@@ -79,6 +81,16 @@
     color: var(--ink-gray-5);
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
+    transition: opacity 120ms ease;
+}
+
+.es-bar-list--hover-values .es-bar-list__value {
+    opacity: 0;
+}
+
+.es-bar-list--hover-values .es-bar-list__row:hover .es-bar-list__value,
+.es-bar-list--hover-values .es-bar-list__row:focus-visible .es-bar-list__value {
+    opacity: 1;
 }
 
 .es-bar-list__axis {

@@ -7,18 +7,29 @@ frappe.provide("frappe.ui");
  *
  *   frappe.ui.bar_list({
  *     items: [{ label, value, formatted? }],
- *     max, format, color, on_click,
+ *     max, format, color, on_click, values_on_hover,
  *   }) -> jQuery
  *
- * format(value) is used for the end labels and the axis ticks. */
-frappe.ui.bar_list = function ({ items = [], max, format, color, on_click } = {}) {
+ * format(value) is used for the end labels and the axis ticks. values_on_hover
+ * hides each end label until its row is hovered. */
+frappe.ui.bar_list = function ({
+	items = [],
+	max,
+	format,
+	color,
+	on_click,
+	values_on_hover,
+} = {}) {
 	format = format || ((v) => String(v));
 	const values = items.map((it) => flt(it.value));
 	const data_max = max != null ? max : Math.max.apply(null, values.concat([0]));
 	const { nice_max, ticks } = axis_ticks(data_max, 6);
 	const at = (v) => (nice_max ? (flt(v) / nice_max) * 100 : 0) + "%";
 
-	const $root = $('<div class="es-bar-list">');
+	const $root = $('<div class="es-bar-list">').toggleClass(
+		"es-bar-list--hover-values",
+		!!values_on_hover
+	);
 	const $plot = $('<div class="es-bar-list__plot">').appendTo($root);
 
 	ticks.forEach((t) => {
@@ -39,7 +50,10 @@ frappe.ui.bar_list = function ({ items = [], max, format, color, on_click } = {}
 					}
 				});
 		}
-		$('<div class="es-bar-list__label">').text(it.label).attr("title", it.label).appendTo($row);
+		$('<div class="es-bar-list__label">')
+			.text(it.label)
+			.attr("title", it.label)
+			.appendTo($row);
 		const $bar = $('<div class="es-bar-list__bar">').css("width", at(it.value));
 		if (color) $bar.css("background-color", color);
 		$bar.appendTo($row);
