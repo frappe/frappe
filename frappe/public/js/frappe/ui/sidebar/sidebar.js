@@ -623,16 +623,18 @@ frappe.ui.Sidebar = class Sidebar {
 	// element. Shared by the sidebar's user button and the dock's avatar so both open
 	// the same menu. What a site adds in Navbar Settings is not here; that hangs off the sidebar
 	// header's menu, see SidebarHeader.navbar_items. `button` is the element that gets the
-	// active-state class while the menu is open.
-	create_user_menu({ parent, button }) {
+	// active-state class while the menu is open. `side` and `align` place the menu against it.
+	create_user_menu({ parent, button, side = "top", align = "start" }) {
 		const me = this;
 		const $btn = button;
 		const $container = parent;
 
 		new frappe.ui.Dropdown({
 			trigger: $container,
-			// The button sits at the foot of the sidebar, so the menu goes up from it.
-			side: "top",
+			// Both triggers sit at the foot of their column: the sidebar's opens the menu up from
+			// it, the dock's out to its right, over the sidebar.
+			side,
+			align,
 			options: [
 				{
 					group: "",

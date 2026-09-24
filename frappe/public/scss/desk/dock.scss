@@ -17,21 +17,18 @@
 	--dock-tile: 40px;
 	--dock-width: 56px;
 
-	// The tray's surface, and the ink that has to read on it.
-	//
-	// `--surface-gray-4` rather than the raw `--gray-500` this started as. A palette token is one
-	// flat colour in both themes, and a mid-grey that looked like a floating panel over a dark page
-	// was mud over a white one. The surface scale inverts: this is #424242 in dark, which is the
-	// colour the tray already was, and #e2e2e2 in light, which is the same relationship to a white
-	// page. The inks invert with it, so one declaration each serves both.
-	--dock-bg: var(--surface-gray-4);
+	// The tray's surface, and the ink that has to read on it. The sidebar's own surface, pinned or
+	// floating, so the dock reads as part of the same shell; floating, its shadow is what sets it
+	// apart from the sidebar it slides over. The inks invert with the theme, so one declaration
+	// each serves both.
+	--dock-bg: var(--desk-sidebar-bg);
 	--dock-ink: var(--ink-gray-7);
 	--dock-ink-strong: var(--ink-gray-9);
 
 	// A tile's own fills, and the rule under the app mark. These are the one thing the token scales
 	// cannot express, because "a step forward" is not the same direction in both themes: on a light
 	// tray it is darker and on a dark tray it is lighter, and no single `--surface-gray-N` is on the
-	// near side of `--surface-gray-4` in both. So they are overlays, stated per theme, the way
+	// near side of the tray's surface in both. So they are overlays, stated per theme, the way
 	// `--desk-sidebar-bg` is in sidebar.scss.
 	--dock-tile-hover: rgba(0, 0, 0, 0.07);
 	--dock-tile-active: rgba(0, 0, 0, 0.12);
@@ -198,14 +195,16 @@
 	cursor: pointer;
 	transition: background-color 0.15s ease, color 0.15s ease;
 
+	// A step larger than the pinned column's (below): the floating tray is a separate object over the
+	// page, and nothing beside it sets a scale for its glyphs to match.
 	svg,
 	img {
-		width: 24px;
-		height: 24px;
+		width: 26px;
+		height: 26px;
 	}
 
 	// A sprite icon that moves (the factory's smoke) plays only while its tile is hovered, and may
-	// draw past its 24px box into the tile's padding. Custom properties are the one thing that
+	// draw past its box into the tile's padding. Custom properties are the one thing that
 	// reaches inside a `<use>`, so the tile hands the icon these instead of a selector.
 	svg {
 		overflow: visible;
@@ -262,9 +261,8 @@ body.dock-open .dock {
 // flex row, so the sidebar and the page start after it instead of under it. It runs the window's
 // full height with its tiles from the top, the way the sidebar beside it does, and gives up what
 // only a floating object needs: the slide, the rounded ends and the shadow. It takes the sidebar's
-// surface and edge too, so the two read as one shell split by a rule.
+// edge too, so the two read as one shell split by a rule.
 body.dock-pinned .dock {
-	background: var(--desk-sidebar-bg);
 	position: relative;
 	top: auto;
 	left: auto;
@@ -277,6 +275,47 @@ body.dock-pinned .dock {
 	border-radius: 0;
 	box-shadow: none;
 	border-right: 1px solid var(--outline-gray-1);
+
+	// Beside the sidebar, the glyphs come down a step toward its rows' icons.
+	.dock-item svg,
+	.dock-item img {
+		width: 24px;
+		height: 24px;
+	}
+}
+
+// The user's avatar, at the foot of the column: the items above it take the free height. Only a
+// pinned dock shows it (see Dock.setup_user_menu), and the sidebar gives up its own user button for
+// as long as it does.
+.dock-user {
+	display: none;
+	flex: 0 0 auto;
+	justify-content: center;
+	width: 100%;
+
+	body.dock-pinned & {
+		display: flex;
+	}
+}
+
+// The avatar fills the tile's middle at its own size, rather than the size a tile's glyph is held
+// to. Written under `body.dock-pinned`, the only place it shows, to outweigh the pinned glyph rule.
+body.dock-pinned .dock .dock-user-button {
+	.avatar,
+	img {
+		width: 28px;
+		height: 28px;
+	}
+
+	&.user-menu-active {
+		background: var(--dock-tile-hover);
+	}
+}
+
+@include media-breakpoint-up(md) {
+	body.dock-pinned.dock-active .body-sidebar .dropdown-navbar-user {
+		display: none;
+	}
 }
 
 // A pinned dock already shows the module's icon as its active tile, right beside the sidebar

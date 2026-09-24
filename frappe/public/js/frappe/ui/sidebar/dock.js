@@ -81,6 +81,11 @@ frappe.ui.Dock = class Dock {
 				</a>
 			</div>
 			<div class="dock-items"></div>
+			<div class="dock-user">
+				<button class="dock-item dock-user-button" aria-label="${__("User Menu")}">
+					${frappe.avatar(frappe.session.user, "avatar-medium")}
+				</button>
+			</div>
 		</div>`);
 
 		let $container = $(".body-sidebar-container");
@@ -100,6 +105,7 @@ frappe.ui.Dock = class Dock {
 		// takes the dock down on the way out.
 		this.$header.on("click", () => this.close());
 
+		this.setup_user_menu();
 		this.setup_reveal();
 		this.setup_shortcut();
 		this.apply_open_state();
@@ -111,6 +117,30 @@ frappe.ui.Dock = class Dock {
 		this.pinned = pinned;
 		$("body").toggleClass("dock-pinned", pinned);
 		pinned ? this.open() : this.close();
+	}
+
+	// The user's avatar, at the foot of a pinned dock. It opens the menu the sidebar's user button
+	// opens, and the sidebar drops that button while the dock is pinned (see dock.scss). A floating
+	// dock hides it: a menu with Settings and Logout in it cannot live behind a push at the edge,
+	// so there the sidebar keeps its own.
+	setup_user_menu() {
+		const $user = this.$dock.find(".dock-user");
+		// The avatar names itself with `title`, which would put the browser's own tooltip on top
+		// of the one below a second later.
+		$user.find("[title]").removeAttr("title");
+		this.sidebar.create_user_menu({
+			parent: $user,
+			button: $user.find(".dock-user-button"),
+			side: "right",
+			align: "end",
+		});
+		new frappe.ui.Tooltip($user.find(".dock-user-button")[0], {
+			text: frappe.session.user_fullname,
+			side: "right",
+			delay: 0,
+			offset: 10,
+			class: "es-tooltip--plain",
+		});
 	}
 
 	// Whether this device has anything that can hover, and so anything that can push into the
