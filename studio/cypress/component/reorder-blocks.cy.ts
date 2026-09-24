@@ -46,15 +46,22 @@ function buildTree() {
 				leaf("X", { width: "200px", height: "100%" }),
 				leaf("Y", { width: "200px", height: "100%" }),
 			]),
-			container("positioned", { position: "relative", height: "160px", width: "100%", flexShrink: "0" }, [
-				container("pinned", {
-					position: "absolute",
-					top: "10px",
-					left: "10px",
-					width: "80px",
-					height: "40px",
-				}),
-			]),
+			// an absolute child sits to the RIGHT of the in-flow one, so it would form
+			// its own cross-axis line if it were measured
+			container(
+				"positioned",
+				{ position: "relative", flexDirection: "column", height: "160px", width: "100%", flexShrink: "0" },
+				[
+					container("pinned", {
+						position: "absolute",
+						top: "10px",
+						left: "200px",
+						width: "80px",
+						height: "40px",
+					}),
+					leaf("anchored", { width: "120px" }),
+				],
+			),
 			container("extras", { flexDirection: "column", gap: "8px", width: "100%", flexShrink: "0" }, [
 				{
 					componentId: "radios",
@@ -239,13 +246,13 @@ describe("reordering blocks on the canvas by dragging", () => {
 		cy.get("#reorder-ghost").should("not.exist")
 		cy.then(() => {
 			const pinned = canvas.findBlock("pinned")
-			expect(pinned.getStyle("left")).to.equal("110px")
+			expect(pinned.getStyle("left")).to.equal("300px")
 			expect(pinned.getStyle("top")).to.equal("60px")
 			expect([...canvas.selectedBlockIds]).to.deep.equal(["pinned"])
 		})
 		release()
 		cy.then(() => {
-			expect(childIds("positioned")).to.deep.equal(["pinned"])
+			expect(childIds("positioned")).to.deep.equal(["pinned", "anchored"])
 			expect(childIds("column")).to.deep.equal(["A", "B", "C", "empty", "row", "positioned", "extras"])
 		})
 		cy.wait(HISTORY_DEBOUNCE)
@@ -290,7 +297,7 @@ describe("reordering blocks on the canvas by dragging", () => {
 		release()
 		cy.then(() => {
 			const pinned = canvas.findBlock("pinned")
-			expect(pinned.baseStyles.left).to.equal("50px")
+			expect(pinned.baseStyles.left).to.equal("240px")
 			expect(pinned.mobileStyles.left).to.equal(undefined)
 		})
 	})
@@ -327,6 +334,15 @@ describe("reordering blocks on the canvas by dragging", () => {
 			expect(canvas.findBlock("C").parentSlotName).to.equal(undefined)
 			expect(childIds("column")).to.deep.equal(["C", "A", "B", "empty", "row", "positioned", "extras"])
 		})
+	})
+
+	it("ignores absolutely positioned siblings when measuring the drop slot", () => {
+		startDrag("C", () => {
+			const rect = rectOf("anchored")
+			return { x: rect.left + rect.width / 2, y: rect.bottom + 20 }
+		})
+		release()
+		cy.then(() => expect(childIds("positioned")).to.deep.equal(["pinned", "anchored", "C"]))
 	})
 
 	it("does not start a drag on a plain click", () => {

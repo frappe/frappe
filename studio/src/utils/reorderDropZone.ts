@@ -163,8 +163,10 @@ export class DropZoneResolver {
 		// components may render their children inside a wrapper, so measure the
 		// element that actually lays them out
 		const layoutEl = elements[0]?.parentElement || this.emptySlotEl(scope, parent, slotName) || scope
+		// out-of-flow siblings occupy no slot, so they must not shape the geometry
 		const siblingEls = elements.filter(
-			(element) => element.dataset.componentId !== this.dragged.componentId && hasSize(element),
+			(element) =>
+				element.dataset.componentId !== this.dragged.componentId && hasSize(element) && inFlow(element),
 		)
 		return { parent, slotName, layoutEl, siblingEls }
 	}
@@ -201,6 +203,10 @@ function rootOf(block: Block): Block {
 	let root = block
 	while (root.getParentBlock()) root = root.getParentBlock() as Block
 	return root
+}
+
+function inFlow(element: HTMLElement): boolean {
+	return !["absolute", "fixed"].includes(getComputedStyle(element).position)
 }
 
 function hasSize(element: HTMLElement): boolean {
