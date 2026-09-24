@@ -313,11 +313,20 @@ frappe.printing.convert_to_builder = function (doc) {
 	}
 	frappe.confirm(
 		__(
-			"The layout of {0} will be rewritten for the new builder. The original layout is kept as a backup you can restore from the Print Format form. Fields the converter cannot map are dropped. Continue?",
+			"The layout of {0} will be rewritten for the new builder. The original layout is kept as a backup you can restore from the Print Format form. Continue?",
 			[doc.name.bold()]
 		),
 		() => {
-			frappe.xcall(method + "convert_to_builder", { name: doc.name }).then(() => {
+			frappe.xcall(method + "convert_to_builder", { name: doc.name }).then((r) => {
+				if (r.dropped?.length) {
+					frappe.show_alert({
+						message: __("Left out fields no longer on {0}: {1}", [
+							__(doc.doc_type),
+							r.dropped.join(", "),
+						]),
+						indicator: "orange",
+					});
+				}
 				frappe.model.clear_doc("Print Format", doc.name);
 				frappe.set_route("print-format-builder-beta", doc.name);
 			});
