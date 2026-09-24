@@ -121,6 +121,7 @@ context("Child Table Data Import", () => {
 		dialog().find(".grid-import-skip-all").click({ force: true });
 		primary("Next");
 		primary("Apply");
+		cy.contains("1 added, 1 skipped, save to apply").should("exist");
 
 		cy.get("@rowsBefore").then((rows_before) => {
 			phone_rows().should("have.length", rows_before + 1);
@@ -152,7 +153,7 @@ context("Child Table Data Import", () => {
 			dialog().find(".grid-import-skip-all").click({ force: true });
 			primary("Next");
 			primary("Apply");
-			cy.contains("0 added, 1 updated, 2 skipped, save to apply").should("exist");
+			cy.contains("1 updated, 2 skipped, save to apply").should("exist");
 
 			cy.get("@rowsBefore").then((rows_before) => {
 				phone_rows().should("have.length", rows_before);
@@ -184,7 +185,7 @@ context("Child Table Data Import", () => {
 					.and("not.contain", "note");
 				dialog().find("td.has-error").should("not.exist");
 				primary("Apply");
-				cy.contains("0 added, 0 updated, 0 skipped, save to apply").should("exist");
+				cy.contains("0 updated, 0 skipped, save to apply").should("exist");
 			});
 	});
 
@@ -193,6 +194,7 @@ context("Child Table Data Import", () => {
 			open_import("Insert or Update Records");
 			upload([`${id},9876500020,0`, ",9876500021,0"], `ID,${HEADER}`);
 			primary("Apply");
+			cy.contains("1 added, 1 updated, 0 skipped, save to apply").should("exist");
 
 			cy.get("@rowsBefore").then((rows_before) => {
 				phone_rows().should("have.length", rows_before + 1);
@@ -314,62 +316,69 @@ context("Child Table Data Import", () => {
 		});
 	});
 
-	it("keeps skipped rows and column mapping when paging", () => {
+	it("skips a row when its checkbox is ticked and restores it when unticked", () => {
 		open_import();
-		upload(Array.from({ length: 60 }, (_, i) => `98765${2000 + i},maybe`));
+		upload(["9876502000,maybe", "9876502001,maybe"]);
 
-		dialog().find("tr[data-row]").first().invoke("attr", "data-row").as("rowNumber");
-		cy.get("@rowNumber").then((row) => {
-			dialog()
-				.find(`tr[data-row=${row}] .grid-import-skip-cell button`)
-				.click({ force: true });
-			hint().should("contain", "59 need fixing");
-			dialog().find(`tr[data-row=${row}]`).should("have.class", "grid-import-skipped-row");
-
-			dialog()
-				.find(".grid-import-mapping-row td[data-col=1] input")
-				.clear({ force: true })
-				.type("Don't Import", { force: true })
-				.blur();
-			dialog().find("th[data-col=1]").should("have.attr", "data-mapped", "0");
-
-			dialog().find(".last-page").click({ force: true });
-			dialog().find(".first-page").click({ force: true });
-
-			dialog().find(`tr[data-row=${row}]`).should("have.class", "grid-import-skipped-row");
-			dialog().find("th[data-col=1]").should("have.attr", "data-mapped", "0");
-			dialog()
-				.find(".grid-import-mapping-row td[data-col=1] input")
-				.should("have.value", "Don't Import");
-		});
+		const skip = () => dialog().find("tr[data-row=2] .grid-import-skip-cell input");
+		skip().check({ force: true });
+		hint().should("contain", "1 needs fixing");
+		dialog().find("tr[data-row=2]").should("have.class", "grid-import-skipped-row");
+		skip().uncheck({ force: true });
+		hint().should("contain", "2 need fixing");
+		dialog().find("tr[data-row=2]").should("not.have.class", "grid-import-skipped-row");
 	});
 
-	it("pager buttons stop at the first and last page", () => {
+	it("shows up to 50 rows that need fixing", () => {
 		open_import();
-		upload(Array.from({ length: 100 }, (_, i) => `98765${3000 + i},maybe`));
-
-		const page_box = () => dialog().find(".current-page-number");
-		dialog().find(".total-page-number").should("contain", "2");
-		dialog().find(".last-page").click({ force: true });
-		page_box().should("have.value", "2");
-		page_box().should(($i) => expect($i[0].scrollWidth).to.be.at.most($i[0].clientWidth));
-		dialog().find(".next-page").click({ force: true });
-		page_box().should("have.value", "2");
-		dialog().find(".prev-page").click({ force: true });
-		page_box().should("have.value", "1");
-		dialog().find(".prev-page").click({ force: true });
-		page_box().should("have.value", "1");
-		dialog().find("tr[data-row]").should("have.length", 50);
-	});
-
-	it("pages Fix Issues when more than 50 rows need fixing", () => {
-		const bad_rows = Array.from({ length: 60 }, (_, i) => `98765${1000 + i},maybe`);
-		open_import();
-		upload(bad_rows);
+		upload(Array.from({ length: 50 }, (_, i) => `98765${1000 + i},maybe`));
 
 		dialog().find(".grid-import-preview-table tr[data-row]").should("have.length", 50);
-		dialog().find(".grid-import-preview-foot .grid-pagination").should("be.visible");
-		hint().should("contain", "60 need fixing");
+		hint().should("contain", "50 need fixing");
+		dialog().find(".grid-import-preview-alert .es-alert").should("not.exist");
+	});
+
+	it("skips to Preview when more than 50 rows need fixing", () => {
+		open_import();
+		upload([
+			"9876501100,0",
+			"9876501101,0",
+			...Array.from({ length: 60 }, (_, i) => `98765${1200 + i},maybe`),
+		]);
+
+		dialog()
+			.find(".grid-import-preview-alert .es-alert")
+			.should("contain", "Too Many Errors")
+			.and("contain", "60 of 62 uploaded rows need fixing");
+		dialog().find(".grid-import-preview-table").should("not.be.visible");
+		dialog().find(".grid-import-skip-all").should("not.be.visible");
+
+		primary("Skip Invalid and Continue");
+		active_step().should("contain", "Preview");
+		hint().should("contain", "2 of 62 rows ready to import");
+		dialog().find(".grid-import-skip-cell").should("not.exist");
+	});
+
+	it("shows only the rows with errors after a column is remapped", () => {
+		const map_second_column = (search) => {
+			dialog()
+				.find('.grid-import-mapping-row td[data-col="1"] input')
+				.clear({ force: true })
+				.type(search, { force: true });
+			cy.get(".awesomplete ul:visible li").first().click({ force: true });
+		};
+
+		open_import();
+		upload(["call-me,yes", "9876501300,maybe", "9876501301,1"], "Number (phone),Flag");
+		dialog().find("tr[data-row]").should("have.length", 1);
+
+		map_second_column("is_primary_phone");
+		dialog().find('tr[data-row="3"] td[data-col="1"].has-error').should("exist");
+		dialog().find("tr[data-row]").should("have.length", 2);
+
+		map_second_column("Don't Import");
+		dialog().find('tr[data-row="3"]').should("not.exist");
+		dialog().find("tr[data-row]").should("have.length", 1);
 	});
 
 	const restrict_is_primary_phone = () =>

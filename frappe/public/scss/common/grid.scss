@@ -1046,19 +1046,6 @@ body.grid-col-resizing {
 	margin-top: calc(var(--spacing) * 2);
 }
 
-.grid-import-preview-foot {
-	flex: 0 0 auto;
-	display: flex;
-	justify-content: center;
-	padding-top: calc(var(--spacing) * 2);
-
-	.grid-pagination {
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: calc(var(--spacing) * 1);
-	}
-}
-
 .grid-import-preview-head-actions {
 	display: flex;
 	align-items: center;
@@ -1124,16 +1111,12 @@ body.grid-col-resizing {
 .grid-import-skip-cell {
 	width: 1%;
 	white-space: nowrap;
-	text-align: right;
+	text-align: center;
 	vertical-align: middle;
 	position: sticky;
 	right: 0;
 	z-index: 1;
 	background-color: var(--fg-color);
-
-	.es-button {
-		min-width: calc(var(--spacing) * 18);
-	}
 }
 
 .grid-import-skipped-row td:not(.grid-import-skip-cell) {
@@ -1142,11 +1125,12 @@ body.grid-col-resizing {
 
 .grid-import-preview-table thead th {
 	vertical-align: top;
+	font-weight: var(--font-weight-semibold);
+	color: var(--ink-gray-8);
 }
 
 .grid-import-preview-table th[data-col] {
 	min-width: calc(var(--spacing) * 45);
-	font-weight: var(--font-weight-semibold);
 
 	&::before {
 		content: "";
@@ -1168,8 +1152,7 @@ body.grid-col-resizing {
 	}
 }
 
-.grid-import-preview-table td[data-mapped="0"],
-.grid-import-preview-table th[data-mapped="0"] {
+.grid-import-preview-table td[data-mapped="0"] {
 	color: var(--ink-gray-6);
 }
 

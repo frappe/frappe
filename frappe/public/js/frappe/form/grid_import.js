@@ -1,8 +1,6 @@
 // Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-import GridPagination from "./grid_pagination";
-
 const MAX_ROWS = 5000;
 const MAX_TEMPLATE_ROWS = 10000;
 const FILE_TYPES = [".csv", ".xlsx", ".xls"];
@@ -21,7 +19,7 @@ const PARSED_FIELDTYPES = ["Date", "Datetime", "Time", "Duration", ...NUMERIC_FI
 const DATA_FORMATS = { Email: "email", Phone: "phone", Name: "name", URL: "url" };
 const DIALOG_SIZE = "extra-large";
 const PREVIEW_ROWS = 10;
-const FIX_PAGE_LENGTH = 50;
+const MAX_FIX_ROWS = 50;
 
 const TAB_SETUP = 0;
 const TAB_UPLOAD = 1;
@@ -121,7 +119,6 @@ export default class GridImport {
 			skipped_rows: new Set(),
 			google_sheets_url: "",
 			library_file_url: "",
-			fix_page: 1,
 		};
 
 		this.panels = {
@@ -446,42 +443,14 @@ export default class GridImport {
 				? issues.has(row) || skipped || !issues.size
 				: !issues.has(row) && !skipped;
 		});
-		const page = fixing ? this.paged(picked) : picked.slice(0, PREVIEW_ROWS);
+		const shown = picked.slice(0, fixing ? MAX_FIX_ROWS : PREVIEW_ROWS);
 		return {
 			headers: this.state.headers,
 			columns,
-			rows: page.map((index) => this.state.rows[index]),
-			row_numbers: page.map((index) => this.state.row_numbers[index]),
-			total_rows: picked.length,
+			rows: shown.map((index) => this.state.rows[index]),
+			row_numbers: shown.map((index) => this.state.row_numbers[index]),
 			mapping: fixing,
 		};
-	}
-
-	make_pagination($table, view) {
-		if (!view.mapping || view.total_rows <= FIX_PAGE_LENGTH) return;
-		this.pagination = new GridPagination({
-			wrapper: $table,
-			grid: {
-				data: new Array(view.total_rows),
-				meta: { grid_page_length: FIX_PAGE_LENGTH },
-				render_result_rows: () => {
-					this.state.fix_page = this.pagination.page_index;
-					this.build_preview(true);
-				},
-				scroll_to_top: () => $table.find(".grid-import-preview-table").scrollTop(0),
-			},
-		});
-		this.pagination.page_index = this.state.fix_page;
-		this.pagination.render_pagination();
-		const digits = String(this.state.fix_page).length;
-		this.pagination.$page_number.css("width", `${(digits + 1) * 8}px`);
-	}
-
-	paged(rows) {
-		const pages = Math.ceil(rows.length / FIX_PAGE_LENGTH) || 1;
-		this.state.fix_page = Math.min(this.state.fix_page, pages);
-		const start = (this.state.fix_page - 1) * FIX_PAGE_LENGTH;
-		return rows.slice(start, start + FIX_PAGE_LENGTH);
 	}
 
 	build_preview(keep_skipped_rows = false) {
@@ -502,10 +471,14 @@ export default class GridImport {
 		$table.html(this.get_preview_html(view));
 		$table.find(".grid-import-refresh-sheet").on("click", () => this.refresh_google_sheet());
 		$table.find(".grid-import-skip-all").on("click", () => this.skip_issue_rows());
+		$table.find(".grid-import-skip-cell input").on("change", (e) => {
+			const row = cint($(e.target).closest("tr").data("row"));
+			this.state.skipped_rows[e.target.checked ? "add" : "delete"](row);
+			this.refresh_preview({ revalidate: [] });
+		});
 		$table.on("click", ".grid-import-preview-row.has-note", (e) =>
 			this.show_message(e.currentTarget.title)
 		);
-		this.make_pagination($table, view);
 		$table.parentsUntil($panel).addBack().addClass("grid-import-fill");
 		const options = this.mapping_options();
 		this.building_preview = true;
@@ -522,10 +495,9 @@ export default class GridImport {
 						max_items: Infinity,
 						options,
 						change: () => {
-							if (!this.building_preview) {
-								this.state.column_overrides[i] = control.get_value();
-							}
-							this.refresh_preview();
+							if (this.building_preview) return;
+							this.state.column_overrides[i] = control.get_value();
+							this.refresh_preview().then(() => this.sync_issue_rows());
 						},
 					},
 					parent: $table.find(`.grid-import-mapping-row td[data-col="${i}"]`).get(0),
@@ -542,6 +514,17 @@ export default class GridImport {
 			this.building_preview = false;
 			return this.refresh_preview({ revalidate: [] });
 		});
+	}
+
+	sync_issue_rows() {
+		const shown = this.preview_form
+			.get_field("table")
+			.$wrapper.find("tr[data-row]")
+			.map((_, tr) => cint(tr.dataset.row))
+			.get();
+		if (this.step_view().row_numbers.join() !== shown.join()) {
+			this.build_preview(true);
+		}
 	}
 
 	show_warning(row, col) {
@@ -583,36 +566,23 @@ export default class GridImport {
 		return control;
 	}
 
-	render_skip_buttons($table, warnings) {
-		const rows_with_warnings = new Set();
+	sync_skipped_rows($table, warnings) {
 		const notes_by_row = {};
 		warnings.forEach((w) => {
-			if (w.row === undefined) return;
-			rows_with_warnings.add(cint(w.row));
-			if (w.col === undefined) (notes_by_row[cint(w.row)] ??= []).push(w.message);
+			if (w.row !== undefined && w.col === undefined) {
+				(notes_by_row[cint(w.row)] ??= []).push(w.message);
+			}
 		});
 		$table.find("tr[data-row]").each((_, tr) => {
 			const row = cint(tr.dataset.row);
 			const skipped = this.state.skipped_rows.has(row);
 			const notes = notes_by_row[row];
-			const $cell = $(tr).find(".grid-import-skip-cell").empty();
 			$(tr).toggleClass("grid-import-skipped-row", skipped);
+			$(tr).find(".grid-import-skip-cell input").prop("checked", skipped);
 			$(tr)
 				.find(".grid-import-preview-row")
 				.toggleClass("has-note", Boolean(notes))
 				.attr("title", notes ? notes.join("\n") : null);
-			if (!skipped && !rows_with_warnings.has(row)) return;
-
-			frappe.ui
-				.button({
-					label: skipped ? __("Undo") : __("Skip"),
-					size: "sm",
-					onclick: () => {
-						this.state.skipped_rows[skipped ? "delete" : "add"](row);
-						this.refresh_preview({ revalidate: [] });
-					},
-				})
-				.appendTo($cell);
 		});
 	}
 
@@ -636,7 +606,7 @@ export default class GridImport {
 		});
 
 		const $table = this.preview_form.get_field("table").$wrapper;
-		this.render_skip_buttons($table, warnings);
+		this.sync_skipped_rows($table, warnings);
 		this.sync_column_errors($table, warnings);
 		const index_of_row = new Map(this.state.row_numbers.map((number, r) => [number, r]));
 
@@ -734,11 +704,15 @@ export default class GridImport {
 
 	skip_issue_rows() {
 		this.get_issue_rows().forEach((row) => this.state.skipped_rows.add(row));
-		this.refresh_preview({ revalidate: [] });
+		return this.refresh_preview({ revalidate: [] });
 	}
 
 	get_issue_rows() {
 		return this.rows_matching((w) => w.blocking);
+	}
+
+	has_too_many_issues() {
+		return !this.has_mapping_issues() && this.get_issue_rows().size > MAX_FIX_ROWS;
 	}
 
 	rows_matching(predicate) {
@@ -760,8 +734,29 @@ export default class GridImport {
 		}
 		this.set_step_disabled(TAB_PREVIEW, blocked);
 		const $table = this.preview_form.get_field("table").$wrapper;
+		const too_many = this.has_too_many_issues();
 		$table.find(".grid-import-preview-hint").text(this.preview_hint($table));
+		$table
+			.find(".grid-import-preview-alert")
+			.html(too_many ? this.too_many_issues_alert() : "");
+		$table
+			.find(
+				".grid-import-preview-head > span, .grid-import-skip-all, .grid-import-preview-hint, .grid-import-preview-table"
+			)
+			.toggleClass("hide", too_many);
 		this.refresh_skip_all($table.find(".grid-import-skip-all"));
+	}
+
+	too_many_issues_alert() {
+		return frappe.ui.alert.html({
+			title: __("Too Many Errors"),
+			description: __(
+				"{0} of {1} uploaded rows need fixing. Correct the file and upload it again, or skip the invalid rows to continue.",
+				[this.get_issue_rows().size, this.state.rows.length]
+			),
+			theme: "red",
+			css_class: "mb-2",
+		});
 	}
 
 	refresh_skip_all($button) {
@@ -911,6 +906,15 @@ export default class GridImport {
 			return;
 		}
 
+		if (active === TAB_FIX && this.has_too_many_issues()) {
+			this.set_action(
+				__("Skip Invalid and Continue"),
+				() => this.skip_issue_rows().then(() => this.tabs.set_active(TAB_PREVIEW)),
+				{ solid: true }
+			);
+			return;
+		}
+
 		if (active === TAB_FIX) {
 			this.set_action(__("Next"), () => this.tabs.set_active(TAB_PREVIEW), { solid: true });
 			this.dialog.get_primary_btn().prop("disabled", this.has_issues());
@@ -1052,7 +1056,7 @@ export default class GridImport {
 		});
 	}
 
-	get_preview_html({ headers, rows, row_numbers, columns, mapping, total_rows }) {
+	get_preview_html({ headers, rows, row_numbers, columns, mapping }) {
 		const escape = frappe.utils.escape_html;
 
 		const head = columns.map((i) => {
@@ -1071,12 +1075,18 @@ export default class GridImport {
 			</tr>
 		`
 			: "";
+		const skip_cell = (row_number) =>
+			mapping
+				? `<td class="grid-import-skip-cell">
+					<input type="checkbox" aria-label="${escape(__("Skip row {0}", [row_number]))}">
+				</td>`
+				: "";
 		const body = rows.map(
 			(row, r) => `
 				<tr data-row="${cint(row_numbers[r])}">
 					<td class="grid-import-preview-row">${cint(row_numbers[r])}</td>
 					${columns.map((i) => `<td data-col="${i}" data-mapped="0">${escape(cstr(row[i]))}</td>`).join("")}
-					<td class="grid-import-skip-cell"></td>
+					${skip_cell(cint(row_numbers[r]))}
 				</tr>
 			`
 		);
@@ -1111,6 +1121,7 @@ export default class GridImport {
 					}
 				</div>
 			</div>
+			<div class="grid-import-preview-alert"></div>
 			<div class="grid-import-preview-hint text-muted small"></div>
 			<div class="grid-import-preview-table">
 				<table class="table table-bordered">
@@ -1118,27 +1129,20 @@ export default class GridImport {
 						<tr>
 							<th class="grid-import-preview-row">${__("Row")}</th>
 							${head.join("")}
-							<th class="grid-import-skip-cell"></th>
+							${mapping ? `<th class="grid-import-skip-cell">${__("Skip")}</th>` : ""}
 						</tr>
 					</thead>
 					<tbody>${mapping_row}${body.join("")}</tbody>
 				</table>
 			</div>
-			${
-				mapping && total_rows > FIX_PAGE_LENGTH
-					? '<div class="grid-import-preview-foot"><div class="grid-pagination"></div></div>'
-					: ""
-			}
 		`;
 	}
 
 	column_title(header, i, mapping) {
 		const fieldname = this.state.column_map[i];
-		if (!mapping && fieldname) {
-			return { label: this.get_field_label(fieldname), fieldname };
-		}
+		if (!mapping && fieldname) return { label: this.get_field_label(fieldname) };
 		const [, label, suffix] = cstr(header).match(TEMPLATE_HEADER) || [null, cstr(header)];
-		return { label, fieldname: suffix };
+		return { label, fieldname: mapping && suffix };
 	}
 
 	get_mapped_fields(column_map) {
@@ -1395,14 +1399,7 @@ export default class GridImport {
 		});
 
 		this.grid.frm.refresh_field(this.grid.df.fieldname);
-		frappe.ui.toast({
-			message: __("{0} added, {1} updated, {2} skipped, save to apply", [
-				counts.insert,
-				counts.update,
-				counts.skip,
-			]),
-			type: "success",
-		});
+		frappe.ui.toast({ message: apply_summary(import_type, counts), type: "success" });
 
 		this.grid.frm.dirty();
 	}
@@ -1415,6 +1412,16 @@ function to_seconds(value) {
 
 	const part = (unit) => cint((text.match(new RegExp(`(\\d+)${unit}`)) || [])[1]);
 	return frappe.utils.duration_to_seconds(part("d"), part("h"), part("m"), part("s"));
+}
+
+function apply_summary(import_type, { insert, update, skip }) {
+	if (import_type === INSERT) {
+		return __("{0} added, {1} skipped, save to apply", [insert, skip]);
+	}
+	if (import_type === UPDATE) {
+		return __("{0} updated, {1} skipped, save to apply", [update, skip]);
+	}
+	return __("{0} added, {1} updated, {2} skipped, save to apply", [insert, update, skip]);
 }
 
 function mark_invalid(control, warning) {
