@@ -134,3 +134,33 @@ class TestChromePDFLocalResourceInterceptor(UnitTestCase):
 		self.assertIn("Fetch.continueRequest", sent)
 		self.assertNotIn("Fetch.fulfillRequest", sent)
 		self.assertNotIn("Fetch.failRequest", sent)
+
+
+class TestChromePDFElementHeight(UnitTestCase):
+	def setUp(self):
+		self.session = MagicMock()
+		self.page = _make_page(self.session)
+		self.page.is_print_designer = False
+
+	def test_measures_wrapper_with_ceil(self):
+		with patch.object(Page, "evaluate", return_value={"result": {"value": 114}}) as evaluate:
+			self.assertEqual(self.page.get_element_height(), 114)
+
+		js = evaluate.call_args.args[0]
+		self.assertIn("querySelector('.wrapper')", js)
+		self.assertIn("getBoundingClientRect().height", js)
+		self.assertIn("Math.ceil", js)
+		self.assertNotIn("Math.round", js)
+
+	def test_falls_back_to_box_model(self):
+		responses = {
+			"DOM.getDocument": ({"root": {"nodeId": 1}}, None),
+			"DOM.querySelector": ({"nodeId": 2}, None),
+			"DOM.getBoxModel": ({"model": {"height": 113}}, None),
+		}
+		self.session.send.side_effect = lambda method, *a: responses.get(method, (None, None))
+
+		with patch.object(Page, "evaluate", side_effect=RuntimeError("boom")):
+			self.assertEqual(self.page.get_element_height(), 113)
+
+		self.assertIn("DOM.disable", [c.args[0] for c in self.session.send.call_args_list])
