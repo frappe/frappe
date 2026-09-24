@@ -1,5 +1,4 @@
-// The standard list and record pages each have a second address, `/view/list` and `/record`,
-// and a saved view lives under the list kind, under both route shapes.
+// Router tests for the standard pages' second addresses, on flat and modular apps.
 import { describe, expect, it, vi } from "vitest";
 
 import { Addresses } from "@/addresses";
