@@ -67,9 +67,7 @@ const { meta, loading } = useDoctypeMeta(props.doctype);
 
 // Unknown only while no host set is bound and the first meta read is in flight; a failed read
 // falls back to the Name default.
-const fieldsPending = computed(
-	() => fields.value === undefined && !meta.value && loading.value
-);
+const fieldsPending = computed(() => fields.value === undefined && !meta.value && loading.value);
 
 // Default surfaced fields from Meta until the host/user customizes (`fields`
 // bound). Mutating in customize mode promotes the default into the model.
