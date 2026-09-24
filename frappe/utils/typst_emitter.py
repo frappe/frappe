@@ -281,10 +281,37 @@ def ensure_typst_fonts(family: str | None):
 	"""Fetch the format's Google Font as TTFs into the site's font cache.
 
 	Best-effort: offline or unknown families log once and Typst falls back to
-	its bundled font instead of failing the print."""
+	its bundled font instead of failing the print. Only a font the format asks
+	for is fetched here; the default is queued, so no print waits on it."""
+	if family and family != "Default":
+		return fetch_typst_font(family)
+	if _font_cache_path(DEFAULT_FONT):
+		return
+	try:
+		frappe.enqueue(
+			"frappe.utils.typst_emitter.fetch_typst_font",
+			family=DEFAULT_FONT,
+			job_id=f"typst-font-{DEFAULT_FONT}",
+			deduplicate=True,
+		)
+	except Exception:
+		pass
+
+
+def _font_cache_path(family: str) -> str | None:
+	"""The cache directory for a family once it holds something."""
 	import os
 
-	family = font_family(family)
+	safe_family = re.sub(r"[^A-Za-z0-9 _-]", "", family).replace(" ", "_")
+	if not safe_family:
+		return None
+	path = os.path.join(frappe.get_site_path("private", "files", "typst_fonts"), safe_family)
+	return path if os.path.isdir(path) and os.listdir(path) else None
+
+
+def fetch_typst_font(family: str):
+	import os
+
 	safe_family = re.sub(r"[^A-Za-z0-9 _-]", "", family).replace(" ", "_")
 	if not safe_family:
 		return
