@@ -137,10 +137,7 @@ export class FormTabsSurface extends StagedOverlay<Op> implements PageFormTabs {
     return this.identified().find((tab) => tab.identity === identity);
   }
 
-  /**
-   * The strip as it stands: `depends_on` against the doc, then the ops over the
-   * replay or hold in flight, so a source reading back its own work is told about it.
-   */
+  /** The strip as it stands: `depends_on` against the doc, then the staged or drawn ops. */
   private resolved(ops = this.currentOps) {
     const overrides = this.fold(ops);
     const doc = this.host.doc();

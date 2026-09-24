@@ -230,7 +230,8 @@ The host clearing **every** surface and re-running **every** source in run order
 what makes conditional customization a plain `if` with no `else`. Ops stage while a replay
 or a **hold** is open, and whichever closes last publishes them in one flush. The first
 replay has a time limit: when it runs out, the page paints without the source still running,
-whose ops land when the replay commits.
+whose ops land when the replay commits. When the page's permissions are what is late, no
+replay is open yet, so the early paint shows the built-ins only.
 _Avoid_: re-render, refresh (`page.refresh()`, the `onRefresh` event and the replay are
 three names for one operation — prefer "replay" for the mechanism).
 

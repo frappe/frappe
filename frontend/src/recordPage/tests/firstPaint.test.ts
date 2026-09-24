@@ -26,11 +26,8 @@ vi.mock("@framework/ui/api", async () => {
 });
 
 import { clientScriptWait, loadClientScripts, resetClientScripts } from "../clientScripts";
-import {
-  createRecordPage,
-  FIRST_PAINT_LIMIT_MS,
-  type RecordPageHost,
-} from "../createRecordPage";
+import { createRecordPage, type RecordPageHost } from "../createRecordPage";
+import { FIRST_PAINT_LIMIT_MS } from "../paintGate";
 import { withRegisteringSource } from "../context";
 import { registerRecordPage, resetRegistry } from "../registry";
 import type { AuthoredHandlers, RecordPageApi } from "../types";
@@ -221,6 +218,44 @@ describe("the first paint's time limit", () => {
     expect(controller.ready.value).toBe(true);
     expect(drawn(controller)).toEqual(["one"]);
     expect(warnings[0]).toContain("without waiting for late;");
+  });
+
+  it("names the running source when a save started by an earlier source ends after it", async () => {
+    const log: string[] = [];
+    const guardStarted = gate();
+    const bStarted = gate();
+    await register("A", {
+      onRefresh: async (page: RecordPageApi) => {
+        page.quickActions.add(action("a-op"));
+        void page.save();
+        await guardStarted.opened;
+        log.push("A done");
+      },
+    });
+    await register("B", {
+      onRefresh: async (page: RecordPageApi) => {
+        log.push("B start");
+        page.quickActions.add(action("b-partial"));
+        bStarted.open();
+        await never();
+      },
+    });
+    await register("guard", {
+      beforeSave: async () => {
+        log.push("guard start");
+        guardStarted.open();
+        await bStarted.opened;
+        log.push("guard end");
+      },
+    });
+    const controller = makePage({ isDirty: () => true });
+
+    void controller.refresh();
+    await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS);
+
+    expect(log).toEqual(["guard start", "A done", "B start", "guard end"]);
+    expect(warnings[0]).toContain("without waiting for B;");
+    expect(drawn(controller)).toEqual(["a-op"]);
   });
 
   it("shows the finished sources' feed types in the early paint, and the late one's after", async () => {

@@ -1,11 +1,10 @@
 // Builds the curated `page` and the controller that fires events into it. Handlers
 // run serially, each in its own try/catch; only a `beforeSave` throw aborts anything.
-import { computed, ref, type ComputedRef, type Ref } from "vue";
+import type { ComputedRef, Ref } from "vue";
 import type { Router } from "vue-router";
 import { toast } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
 import { createCommitChannel, type RecordCommitChannel } from "./commitChannel";
-import { clientScriptWait } from "./clientScripts";
 import { ComposerSurface, composerTab, type ComposerHost } from "./composer";
 import { withRunningSource } from "./context";
 import { createPageDialogs, type PageDialogEntry } from "./dialog";
@@ -30,6 +29,7 @@ import { readOnly, type ReadOnlyAdvice } from "./readOnly";
 import { registrationsFor, type Registration } from "./registry";
 import { reportCustomizationError } from "./reportError";
 import { createRows, warnRowIssue } from "./rows";
+import { createPaintGate } from "./paintGate";
 import { NOT_DRAWN, type Staging } from "./staging";
 import { Surface } from "./surface";
 import { PANEL_SECTION_KEYS, QUICK_ACTION_KEYS, TAB_ITEM_KEYS } from "./types";
@@ -49,9 +49,6 @@ import type {
 
 /** The name a `beforeSave` veto rejects under, so a host keeps the draft instead of reloading. */
 export const SAVE_VETO = "SaveVeto";
-
-/** How long the first paint waits for the page's scripts before it goes ahead without a late one. */
-export const FIRST_PAINT_LIMIT_MS = 500;
 
 /** A veto keeps the script's message; a non-Error throw is wrapped so it can carry the name. */
 function asVeto(error: unknown): Error {
@@ -218,6 +215,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     rows: () => host.activityRows(),
     scrollTo: (key) => host.scrollToActivity(key),
     reload: () => host.reloadActivity(),
+    isStaging: () => gate.isStaging(),
   });
   const files = new FilesSurface({
     rows: () => host.fileRows(),
@@ -229,7 +227,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     activeWriter: () => host.activeWriter?.() ?? "",
     windowState: () => host.windowState?.() ?? "docked",
     setWindow: (window) => host.setWindow?.(window),
-  });
+  }, () => gate.isStaging());
   const rows = createRows({
     doc: () => host.doc.value,
     fields: () => host.meta.value?.fields,
@@ -256,19 +254,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     get: () => host.activeFormTab?.() ?? "",
   });
 
-  const ready = ref(false);
   let vocabularyChecked = false;
-  const replaying = ref(0);
-  const isReplaying = computed(() => replaying.value > 0);
-  let holding = 0;
-  let replayed = false;
-  // What this page's replay is running or waiting on, for the warning when the first paint goes ahead.
-  let replaySource: string | null = null;
-  let awaiting: "permissions" | "sources" | null = null;
-  let firstPaintLimit: ReturnType<typeof setTimeout> | undefined;
-  let left = false;
-  // True while the first paint's acts land: the page then reads as drawn, not staging.
-  let early = false;
 
   // Resolved at the call, delivered on commit: until then the host still renders the
   // last replay's strip, and a move onto a tab not yet on it shows the fallback for a tick.
@@ -302,7 +288,20 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     dispatch: (event, row) => fireEvent(event, row),
   });
 
-  const dialogs = createPageDialogs({ isReplaying: () => isReplaying.value, hold });
+  const gate = createPaintGate({
+    doctype: host.doctype,
+    docname: host.docname,
+    surfaces,
+    sourcesReady: host.sourcesReady,
+    permissionsReady: () => permissions.ready(),
+    runRefresh: (ran) => dispatch("onRefresh", undefined, ran),
+    warnUnknownHandlers: () => warnUnknownHandlers(),
+    releaseActs: (drawnOnly) => releaseHeldActs(drawnOnly),
+    closeDialogs: () => dialogs.closeAll(),
+  });
+  const { hold, isStaging } = gate;
+
+  const dialogs = createPageDialogs({ isReplaying: () => gate.isReplaying.value, hold });
 
   const capabilities: RecordPageApi = {
     doctype: host.doctype,
@@ -343,7 +342,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     rows: rows.rows,
     save: () => save(),
     reload: () => host.reload(),
-    refresh: () => refresh(),
+    refresh: () => gate.refresh(),
     toast: {
       success: (message) => toast.success(message),
       error: (message) => toast.error(message),
@@ -357,131 +356,12 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   // With an empty removals list this hands the same object straight back.
   const page = withRemovals(capabilities);
 
-  async function refresh() {
-    if (left) return;
-    if (!ready.value && !firstPaintLimit)
-      firstPaintLimit = setTimeout(paintWithoutLate, FIRST_PAINT_LIMIT_MS);
-    try {
-      await replay();
-    } finally {
-      awaiting = null;
-      replayed = true;
-      settleReady();
-    }
-  }
-
-  async function replay() {
-    const everything = Promise.all([host.sourcesReady?.(), permissions.ready()]);
-    // Raced, so a late rejection of `everything` is already handled when the second pass awaits it.
-    await waitFor("permissions", Promise.race([permissions.ready(), everything]));
-    openReplay();
-    try {
-      await runSources(everything);
-    } finally {
-      // In `finally` so a throwing handler cannot leave the page staged for good.
-      closeReplay();
-    }
-  }
-
-  /** The sources already registered run while the Client Script tier loads; it runs last anyway. */
-  async function runSources(everything: Promise<unknown>) {
-    const ran = new Set<Registration>();
-    await dispatch("onRefresh", undefined, ran);
-    await waitFor("sources", everything);
-    warnUnknownHandlers();
-    await dispatch("onRefresh", undefined, ran);
-  }
-
-  async function waitFor(what: typeof awaiting, promise: Promise<unknown>) {
-    awaiting = what;
-    await promise;
-    awaiting = null;
-  }
-
-  function openReplay() {
-    // Counted, not a boolean: a script's own `page.refresh()` re-enters this.
-    replaying.value += 1;
-    // Staged, not cleared: clearing here and re-adding a microtask later tears the
-    // rendered strip down between the two, and the reader's place in it with them.
-    for (const surface of surfaces) surface.beginReplay();
-  }
-
-  function closeReplay() {
-    for (const surface of surfaces) surface.commit();
-    replaying.value -= 1;
-    // After the commit, so the strip the reader lands on is the one on screen.
-    releaseActs();
-  }
-
-  /** The skeletons lift once a replay has ended and nothing stages; a hold may close last. */
-  function settleReady() {
-    if (!replayed || isStaging()) return;
-    clearTimeout(firstPaintLimit);
-    ready.value = true;
-  }
-
-  /** The first replay ran out of time: draw every finished source, lift the skeletons, name the late one. */
-  function paintWithoutLate() {
-    if (ready.value || left) return;
-    const late = replaySource ?? lateWait();
-    for (const surface of surfaces) surface.publishStaged(replaySource ?? undefined);
-    releaseEarlyActs();
-    ready.value = true;
-    console.warn(
-      `[record-page] ${host.doctype} ${host.docname} painted after ${FIRST_PAINT_LIMIT_MS} ms without waiting for ${late}; its changes land when it finishes.`,
-    );
-  }
-
-  /** Each act held so far lands if the early paint drew its target, and is dropped if not. */
-  function releaseEarlyActs() {
-    early = true;
-    try {
-      releaseHeldActs();
-    } finally {
-      early = false;
-    }
-  }
-
-  function lateWait() {
-    if (awaiting === "permissions") return "the page's permissions";
-    return clientScriptWait(host.doctype) ?? "the page's scripts";
-  }
-
-  /** One paint for the work's ops, and its acts delivered after it. */
-  async function hold<T>(work: () => Promise<T> | T): Promise<T> {
-    holding += 1;
-    for (const surface of surfaces) surface.beginHold();
-    try {
-      return await work();
-    } finally {
-      for (const surface of surfaces) surface.commit();
-      holding -= 1;
-      releaseActs();
-      settleReady();
-    }
-  }
-
-  function leave() {
-    left = true;
-    clearTimeout(firstPaintLimit);
-    dialogs.closeAll();
-  }
-
-  function isStaging() {
-    return !early && (isReplaying.value || holding > 0);
-  }
-
-  /** Delivers the acts a replay or a hold kept back, once the last of them has committed. */
-  function releaseActs() {
-    if (!isStaging()) releaseHeldActs();
-  }
-
-  function releaseHeldActs() {
-    releaseActivations();
-    releaseDisclosures();
-    releaseFocus();
-    activity.releaseScroll(early);
-    composer.releaseOpen(early);
+  function releaseHeldActs(drawnOnly: boolean) {
+    releaseActivations(drawnOnly);
+    releaseDisclosures(drawnOnly);
+    releaseFocus(drawnOnly);
+    activity.releaseScroll(drawnOnly);
+    composer.releaseOpen(drawnOnly);
   }
 
   // One sequence at a time: a second `page.save()` mid-flight joins it, so no handler fires twice.
@@ -511,11 +391,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     else deliverFocus(fieldname);
   }
 
-  function releaseFocus() {
+  function releaseFocus(drawnOnly: boolean) {
     const held = heldFocus;
     heldFocus = null;
     if (!held) return;
-    if (early && !fields.isDrawn(held)) warnFocus(held, NOT_DRAWN);
+    if (drawnOnly && !fields.isDrawn(held)) warnFocus(held, NOT_DRAWN);
     else if (canFocus(held, "it left the form before the replay settled")) deliverFocus(held);
   }
 
@@ -553,11 +433,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     );
   }
 
-  function releaseDisclosures() {
+  function releaseDisclosures(drawnOnly: boolean) {
     const held = [...heldDisclosures];
     heldDisclosures.clear();
     for (const [name, open] of held) {
-      if (early && !panelSections.isDrawn(name)) warnDisclose(name, open, NOT_DRAWN);
+      if (drawnOnly && !panelSections.isDrawn(name)) warnDisclose(name, open, NOT_DRAWN);
       // Re-read, as a held activation is: a later source can hide or relabel the section.
       else if (canDisclose(name, open, "it left the panel before the replay settled"))
         deliverDisclosure(name, open);
@@ -613,11 +493,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     );
   }
 
-  function releaseActivations() {
+  function releaseActivations(drawnOnly: boolean) {
     const held = [...heldActivations];
     heldActivations.clear();
     for (const [strip, name] of held) {
-      if (early && !surfaceFor(strip).isDrawn(name)) warnActivate(strip, name, NOT_DRAWN);
+      if (drawnOnly && !surfaceFor(strip).isDrawn(name)) warnActivate(strip, name, NOT_DRAWN);
       // Re-read, not replayed: a later source can hide the tab an earlier one
       // activated, and delivering that move would land the reader on the fallback.
       else if (!surfaceFor(strip).isVisible(name))
@@ -728,10 +608,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       const { source, handlers } = registration;
       const handler = handlers[event];
       if (!handler) continue;
-      const previous = replaySource;
-      // Only the replay's own pass names its source; a save a replay handler starts does not.
-      if (ran) replaySource = source;
-      await withRunningSource(source, async () => {
+      const run = () => withRunningSource(source, async () => {
         try {
           await handler(page, detail);
         } catch (error) {
@@ -751,7 +628,9 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
             record: host.docname,
           });
         }
-      }).finally(() => (replaySource = previous));
+      });
+      // Only the replay's own pass names its source; a save a replay handler starts does not.
+      await (ran ? gate.asReplaySource(source, run) : run());
     }
   }
 
@@ -823,14 +702,14 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     files,
     composer,
     commits,
-    refresh,
+    refresh: gate.refresh,
     fireEvent,
     firePost,
     hold,
-    ready,
-    isReplaying,
+    ready: gate.ready,
+    isReplaying: gate.isReplaying,
     dialogs: dialogs.entries,
-    leave,
+    leave: gate.leave,
   };
 }
 

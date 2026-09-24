@@ -43,7 +43,11 @@ export interface ComposerHost {
 export class ComposerSurface extends Surface<WriterItem> implements PageComposer {
   private heldOpen: { name: string; options: ComposerOpenOptions } | null = null;
 
-  constructor(private readonly host: ComposerHost) {
+  constructor(
+    private readonly host: ComposerHost,
+    /** The page's rule for whether an act waits for a commit; nothing stages outside a page. */
+    private readonly isStaging: () => boolean = () => false,
+  ) {
     super({ surface: "composer", keys: WRITER_ITEM_KEYS });
   }
 
@@ -65,7 +69,7 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
   open(name: string, options: ComposerOpenOptions = {}) {
     if (!this.canOpen(name)) return;
     const checked = this.checkWindow(name, options);
-    if (this.staging) this.heldOpen = { name, options: checked };
+    if (this.isStaging()) this.heldOpen = { name, options: checked };
     else this.deliver(name, checked);
   }
 

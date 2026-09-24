@@ -79,7 +79,9 @@ import { ApiError } from "@framework/ui/api";
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { loadClientScripts } from "@/recordPage";
-import { FIRST_PAINT_LIMIT_MS } from "@/recordPage/createRecordPage";
+import { FIRST_PAINT_LIMIT_MS } from "@/recordPage/paintGate";
+import { withRegisteringSource } from "@/recordPage/context";
+import { registerRecordPage, resetRegistry } from "@/recordPage/registry";
 import { createShellRouter } from "@/router";
 import { RecordFeeds } from "../feed/recordFeeds";
 import { loadRecord } from "../recordSource";
@@ -188,7 +190,9 @@ describe("before the first replay commits", () => {
 
     const body = root.querySelector("[data-record-body-skeleton]")!;
     expect(skeletons(body as HTMLElement, "data-record-tabs-skeleton")).toBe(4);
-    expect(body.querySelector("[data-form-skeleton]")).not.toBeNull();
+    const form = body.querySelector("[data-form-skeleton]")!;
+    expect(form.querySelectorAll(".fui-skeleton")).toHaveLength(16);
+    expect(form.querySelector(".grid")!.className).toContain("sm:grid-cols-2");
     expect(skeletons(body as HTMLElement, "data-record-panel-skeleton")).toBeGreaterThan(0);
     expect(body.querySelector<HTMLElement>('[data-body-column="panel"]')!.style.width).toBe(
       "380px",
@@ -306,5 +310,49 @@ describe("when the record read fails", () => {
     expect(root.textContent).toContain(text);
     expect(root.querySelector("[data-record-header-skeleton]")).toBeNull();
     expect(root.querySelector("[data-record-body-skeleton]")).toBeNull();
+  });
+});
+
+describe("a header or quick action's run paints once", () => {
+  afterEach(() => resetRegistry());
+
+  function labels(root: HTMLElement) {
+    return [...root.querySelectorAll("button")].map((button) => button.textContent!.trim());
+  }
+
+  it("draws what run adds on both sides of an await together, when run finishes", async () => {
+    let root!: HTMLElement;
+    let midway: string[] = [];
+    let finish = () => {};
+    const finished = new Promise<void>((resolve) => (finish = resolve));
+    await withRegisteringSource("paint-once", async () =>
+      registerRecordPage("Note", {
+        onRefresh: (page) =>
+          page.quickActions.add({
+            name: "twice",
+            label: "Add twice",
+            run: async (page) => {
+              page.quickActions.add({ name: "a", label: "A" });
+              await nextTick();
+              await Promise.resolve();
+              midway = labels(root);
+              page.quickActions.add({ name: "b", label: "B" });
+              finish();
+            },
+          }),
+      }),
+    );
+    root = await open();
+    load.answerRecord();
+    await settleLayouts();
+
+    [...root.querySelectorAll("button")].find((one) => one.textContent!.trim() === "Add twice")!.click();
+    await finished;
+    await settle();
+
+    expect(midway).toContain("Add twice");
+    expect(midway).not.toContain("A");
+    expect(midway).not.toContain("B");
+    expect(labels(root)).toEqual(expect.arrayContaining(["Add twice", "A", "B"]));
   });
 });

@@ -324,6 +324,50 @@ describe("page.dialog.confirm and danger", () => {
     expect(controller.quickActions.visible().map((one) => one.name)).toEqual(["a", "b"]);
   });
 
+  type Run = () => Promise<void>;
+  it.each([
+    [
+      "an action's onClick",
+      (run: Run) => ({ actions: [{ label: "Go", onClick: run }] }),
+      (args: any) => args.actions[0].onClick({}),
+    ],
+    ["onCancel", (run: Run) => ({ onCancel: run }), (args: any) => args.onCancel()],
+  ])("draws %s's ops once it finishes, not verb by verb", async (_, options, fire) => {
+    confirmSpy.mockImplementation(() => ({ close: vi.fn() }));
+    const controller = createRecordPage(makeHost());
+    const drawnDuring: string[][] = [];
+    controller.page.dialog.confirm(
+      options(async () => {
+        controller.page.quickActions.add({ name: "a", label: "A" });
+        await Promise.resolve();
+        drawnDuring.push(controller.quickActions.visible().map((one) => one.name));
+        controller.page.quickActions.add({ name: "b", label: "B" });
+      }),
+    );
+
+    await fire(confirmSpy.mock.calls[0][0]);
+
+    expect(drawnDuring).toEqual([[]]);
+    expect(controller.quickActions.visible().map((one) => one.name)).toEqual(["a", "b"]);
+  });
+
+  it("resolves null and reports when onCancel rejects", async () => {
+    confirmSpy.mockImplementation(() => ({ close: vi.fn() }));
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { page } = createRecordPage(makeHost());
+    const failure = new Error("cancel failed");
+    const promise = page.dialog.confirm({ onCancel: () => Promise.reject(failure) });
+
+    await confirmSpy.mock.calls[0][0].onCancel();
+
+    expect(await promise).toBeNull();
+    expect(error).toHaveBeenCalledWith(
+      expect.stringContaining("page.dialog.confirm onCancel threw"),
+      failure,
+    );
+    error.mockRestore();
+  });
+
   it("dismisses a native dialog and resolves null when the page goes away", async () => {
     const handle = { close: vi.fn() };
     confirmSpy.mockImplementation(() => handle);

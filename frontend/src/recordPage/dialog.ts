@@ -183,6 +183,7 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
   ): Promise<true | null> {
     if (detached) return refused(verb) as Promise<null>;
     warnOnReplay(verb);
+    const source = runningSource();
     const options = pick(
       verb,
       args,
@@ -221,8 +222,16 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
           settle(true);
         },
         onCancel: async () => {
-          await host.hold(() => args.onCancel?.());
-          settle(null);
+          try {
+            await host.hold(() => args.onCancel?.());
+          } catch (exception) {
+            console.error(
+              `[record-page] ${source} page.dialog.${verb} onCancel threw`,
+              exception,
+            );
+          } finally {
+            settle(null);
+          }
         },
       } as any);
     });

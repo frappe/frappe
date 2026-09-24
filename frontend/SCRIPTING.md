@@ -34,6 +34,14 @@ shown tabs; the handler reads `page.tabs.active` or `page.form.tabs.active`. A s
 `activate` during the first load opens the page on that tab and fires no `onTabChange`,
 because no tab was shown before it.
 
+Every handler other than `onRefresh` runs in a **hold** and paints once, when it finishes:
+a field handler, `onTabChange`, `onPost`, `beforeSave`, `afterSave`, a header or quick
+action's `run` and a dialog's callbacks show all their changes together at the end. A
+handler that must show progress while it runs uses `page.toast.success` or
+`page.toast.error`. The first paint waits at most 500 ms for the page's scripts. After
+that the page paints without the script still running, the console names it, and its
+changes land when it finishes.
+
 **Every place on the page is a list, every list takes a component item, and `before` /
 `after` names a neighbour.** There is no vocabulary of places on top of that: no zone or
 slot words say where a thing goes, a neighbour does. The frame, the header row, the panel
@@ -452,7 +460,7 @@ export default {
 ### Opening and shutting
 
 `open(name)` and `close(name)` are in-page acts on a section that has a header, on
-`activate`'s terms: resolved at the call, delivered when the replay commits, and a miss
+`activate`'s terms: resolved at the call, delivered when the replay or hold commits, and a miss
 warns in a development build and does nothing. A hidden section is a miss, since `show()`
 is the verb that reveals one. A script's act is the page's, not the reader's: the reader's
 own clicks are remembered per doctype in their browser, and a click outranks the act until the
@@ -563,7 +571,7 @@ Two members are the strip's own, since a strip has a reader standing on it. `act
 the tab the reader is on as an **identity**, or `''` when the reader is not in the form;
 an identity is safe to store, because a Form Layout is named when it is saved and a
 relabelled tab keeps its address. `activate(name)` moves the reader, on the record strip's
-terms: resolved at the call, delivered when the replay commits, and a hidden, unknown or
+terms: resolved at the call, delivered when the replay or hold commits, and a hidden, unknown or
 other-strip name warns in a development build and moves nobody. Unlike `page.tabs`,
 `active` reads the old tab until the form has drawn the move. The handler for a change
 on this strip is `onFormTabChange`. The record's own strip, Details to Files, is
@@ -623,8 +631,8 @@ field as it resolves now, post-override and post-`depends_on`, and is read-only.
 `focus` switches the form to the field's tab, scrolls to it and puts the cursor in its
 control. A read-only field gets the tab and the scroll and no cursor. An unknown or a
 hidden field warns in a development build and moves nobody, since `show()` is the verb
-that reveals one. On `activate`'s terms: resolved at the call, and inside a replay
-delivered when the replay commits. The panel's own expand of a long row uses it.
+that reveals one. On `activate`'s terms: resolved at the call, and inside a replay or a hold
+delivered when the replay or hold commits. The panel's own expand of a long row uses it.
 
 ### Saving: `page.save()`
 
@@ -806,8 +814,8 @@ The Emails tab shows the same rows narrowed to emails. It has no surface of its 
 seconds. A row older than the loaded ones is found by loading older pages until it
 appears. A field change folded into a run of changes scrolls to the run. If the list ends
 without the row, or a script's body replaced the tab's feed, a development build warns
-naming the key, and the reader stays where they are. On `activate`'s terms: called in a replay, it is delivered
-when the replay commits, and only the last call in a replay counts.
+naming the key, and the reader stays where they are. On `activate`'s terms: called in a replay or a hold, it is delivered
+when the replay or hold commits, and only the last call in it counts.
 
 `types(list)` sets the types the Activity tab shows, in `ActivityTimeline`'s spelling:
 `['comment', 'email']`, or `{ version: ['status'] }` for changes to named fields only. It
@@ -920,8 +928,8 @@ opens nothing. `draft` seeds the writer's draft; a draft already in memory for t
 wins. `window`, `'docked'` or `'floating'`, places the card for this open only; left out,
 the card opens where the reader last put it. Any other `window` warns in a development build
 and is dropped, so the writer still opens where the reader last put it. On `activate`'s
-terms: called in a replay, it
-is delivered when the replay commits, with its `window`.
+terms: called in a replay or a hold, it
+is delivered when the replay or hold commits, with its `window`.
 
 One card is open at a time. Opening a writer on another record takes the card; the first
 record's draft stays in memory.

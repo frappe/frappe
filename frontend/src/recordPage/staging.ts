@@ -17,7 +17,6 @@ export abstract class StagedOverlay<Op extends { source: string }> implements St
   private pending: Op[] | null = null;
   private depth = 0;
 
-  /** `drawn` is the reactive list the host renders from. */
   constructor(private readonly drawn: Op[]) {}
 
   /** A replay rebuilds from built-ins, so it empties the buffer even inside a hold. */
@@ -48,7 +47,6 @@ export abstract class StagedOverlay<Op extends { source: string }> implements St
     if (this.pending) this.publish(this.pending.filter((op) => op.source !== except));
   }
 
-  /** What the host renders: committed ops only. */
   protected get drawnOps(): Op[] {
     return this.drawn;
   }
@@ -58,7 +56,7 @@ export abstract class StagedOverlay<Op extends { source: string }> implements St
     return this.pending ?? this.drawn;
   }
 
-  /** True while a replay or a hold is open; acts wait for the commit. */
+  /** True while a replay or a hold is open. */
   protected get staging() {
     return this.depth > 0;
   }

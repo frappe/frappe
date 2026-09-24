@@ -23,6 +23,8 @@ export interface ActivityHost {
   rows: () => ActivityRow[];
   scrollTo: (key: string) => Promise<boolean | null>;
   reload: () => Promise<void>;
+  /** The page's rule for whether an act waits for a commit. */
+  isStaging: () => boolean;
 }
 
 export interface FilesHost {
@@ -106,7 +108,6 @@ abstract class FeedSurface<Row extends Timed> extends Surface<FeedItem> {
     );
   }
 
-  /** A script's row the buffer holds and the page has not drawn yet. */
   protected isUndrawn(name: string) {
     return super.has(name) && !this.isDrawn(name);
   }
@@ -137,7 +138,7 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
 
   /** Called in a replay or a hold, the move waits for `releaseScroll`, once the page on screen is its own. */
   scrollTo(key: string) {
-    if (this.staging) this.heldScroll = key;
+    if (this.host.isStaging()) this.heldScroll = key;
     else void this.deliverScroll(key);
   }
 
