@@ -142,15 +142,13 @@ async function invalidateAssetsCache(paths) {
 		console.warn("[island] cannot reach redis_cache to invalidate assets_json");
 	} finally {
 		// Close the client. Vite exits on its own, unlike esbuild.js, which
-		// calls process.exit().
+		// calls process.exit(). A failed connect leaves the client open but
+		// not ready, where a QUIT never settles.
 		try {
-			await client?.quit();
+			if (client?.isReady) await client.quit();
+			else if (client?.isOpen) await client.disconnect();
 		} catch {
-			try {
-				await client?.disconnect();
-			} catch {
-				// never connected
-			}
+			// already closed
 		}
 	}
 }
