@@ -1106,21 +1106,22 @@ class TypstEmitter:
 		else:
 			cells = []
 		cells += [f"[{cell}]" for cell in body_cells]
-		table = "table(" + ", ".join(parts) + ",\n" + ",\n".join(cells) + ")"
-		return self._block_label(df) + self._min_height(df, table)
+		table = "table(" + ", ".join(parts) + ",\n" + ",\n".join(cells)
+		return self._block_label(df) + self._min_height(df, table, len(columns), stroke == rule)
 
 	@staticmethod
-	def _min_height(df, table: str) -> str:
-		"""A minimum height leaves space below the last row, as on the HTML surfaces."""
+	def _min_height(df, table: str, ncols: int, bordered: bool) -> str:
+		"""A minimum height leaves space below the last row inside the frame, as the
+		HTML foot cap does: the slack becomes one empty cell spanning every column."""
 		min_height = pt(df.get("table_min_height"))
 		if not min_height:
-			return "#" + table
+			return "#" + table + ")"
+		cap = f"table.cell(colspan: {ncols}, inset: 0pt{'' if bordered else ', stroke: none'})[#v({min_height}pt - h)]"
 		return (
 			"#layout(size => {\n"
-			f"let tbl = {table}\n"
+			f"let tbl = {table})\n"
 			"let h = measure(tbl, width: size.width).height\n"
-			"tbl\n"
-			f"if h < {min_height}pt {{ v({min_height}pt - h) }}\n"
+			f"if h < {min_height}pt {{ {table},\n{cap}) }} else {{ tbl }}\n"
 			"})"
 		)
 
