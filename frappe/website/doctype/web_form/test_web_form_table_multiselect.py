@@ -137,11 +137,19 @@ class TestWebFormTableMultiSelect(IntegrationTestCase):
 		self.assertTrue(has_link_option(fields, TARGET))
 		self.assertFalse(has_link_option(fields, "User"))
 
-	def test_guest_gets_link_options_on_a_public_form(self):
+	def test_portal_page_ships_the_child_link_docfield(self):
+		"""The page render builds its own fields, apart from get_form_data."""
 		web_form = self.make_web_form()
 		frappe.set_user("Guest")
+		frappe.local.path = f"{web_form.route}/new"
+		frappe.local.form_dict = frappe._dict(is_new=1)
 
-		self.assertLessEqual({"Alpha", "Beta", "Gamma"}, set(self.link_options(web_form)))
+		context = frappe._dict()
+		web_form.get_context(context)
+
+		field = next(f for f in context.web_form_doc.web_form_fields if f.fieldname == "targets")
+		self.assertEqual([df["fieldtype"] for df in field.fields], ["Link"])
+		self.assertLessEqual({"Alpha", "Beta", "Gamma"}, set(field.fields[0]["link_options"].split("\n")))
 
 	def test_key_required_form_needs_guest_read_on_the_link_doctype(self):
 		"""The options are built with permissions ignored, so the form is the only allowlist."""
