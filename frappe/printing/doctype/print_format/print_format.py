@@ -428,13 +428,19 @@ def create_custom_format(
 	doc.doc_type = doctype
 	doc.name = name
 	doc.print_format_builder_beta = 1
+	source = None
 	if based_on and based_on != "Standard":
 		source = frappe.get_doc("Print Format", based_on)
 		source.check_permission("read")
 		if renders_from_file(source):
-			frappe.throw(
-				_("{0} is rendered from an HTML file and cannot be converted").format(frappe.bold(based_on))
+			frappe.msgprint(
+				_("{0} is rendered from an HTML file, so this format starts from the standard layout").format(
+					source.name
+				),
+				alert=True,
 			)
+			source = None
+	if source:
 		doc.format_data = source.format_data
 		if not doc.format_data or is_classic_layout(doc.format_data):
 			convert_print_format(doc)
