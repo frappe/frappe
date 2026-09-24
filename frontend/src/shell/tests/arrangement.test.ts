@@ -432,4 +432,36 @@ describe("the dialog", () => {
     expect(button(host, "Save").disabled).toBe(true);
     expect(runMethod).toHaveBeenCalledTimes(1);
   });
+
+  it("leaves Save open after a failed save, and a retry sends again", async () => {
+    const editing = await editor([item("a")]);
+    const navigation = { rail: [item("a")], sidebars: {} };
+    runMethod.mockRejectedValueOnce(new Error("nope")).mockResolvedValue({ data: navigation });
+
+    await editing.click("Save");
+    expect(editing.host.textContent).toContain("Could not save this list: nope");
+    expect(editing.rowKeys()).toEqual(["a"]);
+    expect(button(editing.host, "Save").disabled).toBe(false);
+
+    await editing.click("Save");
+    expect(runMethod).toHaveBeenCalledTimes(3);
+    expect(editing.saved).toEqual([navigation]);
+    expect(editing.host.textContent).not.toContain("Could not save this list");
+  });
+
+  it("clears a failed save's error once a Reset goes through", async () => {
+    const editing = await editor([item("a")]);
+    runMethod
+      .mockRejectedValueOnce(new Error("nope"))
+      .mockResolvedValueOnce({ data: { rail: [], sidebars: {} } })
+      .mockResolvedValueOnce({ data: [item("b")] });
+
+    await editing.click("Save");
+    expect(editing.host.textContent).toContain("Could not save this list");
+
+    await editing.click("Reset");
+    await flush();
+    expect(editing.host.textContent).not.toContain("Could not save this list");
+    expect(editing.rowKeys()).toEqual(["b"]);
+  });
 });
