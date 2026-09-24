@@ -912,7 +912,8 @@ function sync_form_sidebar(frm) {
 	}
 
 	const on_builder_tab = frm.get_active_tab()?.df?.fieldname === "form_builder_tab";
-	frm.page.sidebar.toggleClass("hide-sidebar", on_builder_tab || frm.is_new());
+	// is_new() is undefined on a saved doc, and toggleClass flips on an undefined state
+	frm.page.sidebar.toggleClass("hide-sidebar", on_builder_tab || Boolean(frm.is_new()));
 }
 
 // the builder is a singleton, so it can still point at the Web Form the user just left
