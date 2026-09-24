@@ -1,8 +1,48 @@
 frappe.provide("frappe.ui.sidebar_item");
 
+// Put the shell in front of a desk path, so a link in a sidebar names the shell it sits in.
+//
+// Without this the rendered href says `/desk/todo` while the URL it leads to says
+// `/desk/build/todo`, and `is_route_in_sidebar` compares the two by string, so nothing is ever
+// highlighted. It also means clicking the link arrives already correct, instead of arriving bare
+// and being rewritten a moment later.
+//
+// A `URL` item is left alone: it points wherever its author said, which need not be the desk at
+// all. So is anything that is not a desk path.
+//
+// The rule has to be the one `write_shell_into_url` uses, character for character, because the
+// highlight is a string comparison between this href and the URL. That includes not saying the
+// shell twice: `/desk/build` is the Build workspace and its shell is Build, so the prefix would
+// add a segment and no information.
+function in_shell(path, shell) {
+	if (!shell || !path || !path.startsWith("/desk/")) return path;
+
+	// The query string is not part of what the shell goes in front of, and leaving it in would
+	// make `/desk/build?x=1` look unlike `/desk/build` and take a prefix it should not.
+	const [route, rest] = split_query(path.slice("/desk/".length));
+	const slug = frappe.router.shell_slug(shell);
+	if (route === slug || route.startsWith(slug + "/")) return path;
+
+	// A shell whose slug is also a doctype cannot go in front: the router reads that segment as
+	// the doctype, so the rest of the path becomes a document name. `write_shell_into_url` leaves
+	// these URLs bare for the same reason.
+	if (frappe.router.segment_kind(slug) === "doctype") return path;
+
+	return "/desk/" + slug + "/" + route + rest;
+}
+
+function split_query(path) {
+	const at = path.search(/[?#]/);
+	return at === -1 ? [path, ""] : [path.slice(0, at), path.slice(at)];
+}
+
 // Resolve a sidebar item (from `bootinfo.module_sidebars`) to a navigable route.
 // Shared by the rendered sidebar links and the header workspace switcher.
-frappe.ui.sidebar_item.get_route = function (item, edit_mode = false) {
+//
+// `shell` is the sidebar the item belongs to, and the caller says which: an item on screen belongs
+// to the sidebar showing it, while `module_landing_route` asks about a module that is not the one
+// on screen. Left out, the route carries no shell and the desk writes one in on arrival.
+frappe.ui.sidebar_item.get_route = function (item, edit_mode = false, shell = null) {
 	let path;
 	if (item.type !== "Link") return path;
 
@@ -24,11 +64,16 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false) {
 
 		path = frappe.utils.generate_route(args);
 	} else if (item.link_type == "Workspace") {
-		let workspaces = frappe.workspaces[frappe.router.slug(item.link_to)];
-		if (workspaces && workspaces.public) {
+		let workspace = frappe.workspaces[frappe.router.slug(item.link_to)];
+		if (workspace && workspace.public) {
 			path = "/desk/" + frappe.router.slug(item.link_to);
 		} else {
-			path = "/desk/private/" + frappe.router.slug(item.link_to);
+			// A private page is spelled by its title. Its name carries the owner's email, and only
+			// the owner can open the page, so the email named something the reader already was.
+			// The title is read off the workspace rather than the item's label, which a
+			// customization may have changed.
+			const title = workspace ? workspace.title : item.link_to;
+			path = "/desk/private/" + frappe.router.slug(title);
 		}
 
 		if (item.route) {
@@ -78,12 +123,12 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false) {
 			);
 			if (layout_info) {
 				const doctype_slug = frappe.router.slug(item.link_to);
-				path = `/app/${doctype_slug}?layout=${encodeURIComponent(layout_info.name)}`;
+				path = `/desk/${doctype_slug}?layout=${encodeURIComponent(layout_info.name)}`;
 			}
 		}
 	}
 
-	return path;
+	return in_shell(path, shell);
 };
 
 frappe.ui.sidebar_item.TypeLink = class SidebarItem {
@@ -103,7 +148,7 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		this.make();
 	}
 	get_path() {
-		return frappe.ui.sidebar_item.get_route(this.item);
+		return frappe.ui.sidebar_item.get_route(this.item, false, this.current_module);
 	}
 
 	prepare() {}
@@ -115,13 +160,17 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		this.set_suffix();
 		// `parent` is only set on items find_nested_items() actually nested; a row can carry
 		// `child` without one (a Section Break, or a child with no section above it).
-		if (!this.item.icon && !(this.item.child && this.item.parent?.indent)) {
+		// Items nested under an indented section draw no icon, even one they set themselves.
+		// The item's own icon is left alone so the sidebar editor still sees and saves it.
+		const hide_icon = !!(this.item.child && this.item.parent?.indent);
+		if (!this.item.icon && !hide_icon) {
 			this.item.icon = "list";
 		}
 		this.wrapper = $(
 			frappe.render_template("sidebar_item", {
 				item: this.item,
 				path: this.path,
+				hide_icon,
 			})
 		);
 		$(this.container).append(this.wrapper);
@@ -211,16 +260,14 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		const me = this;
 		this.old_state;
 		$(document).on("sidebar-expand", function (event, expand) {
+			// A heading keeps its row in the rail and loses only its text (see sidebar.scss), so
+			// groups stay apart by the gap they had rather than by a rule drawn for the occasion.
 			if (expand.sidebar_expand) {
-				$(me.wrapper.find(".section-break")).removeClass("hidden");
-				$(me.wrapper.find(".divider")).addClass("hidden");
 				if (me.old_state) {
 					me.collapsed = me.old_state;
 					me.toggle();
 				}
 			} else {
-				$(me.wrapper.find(".section-break")).addClass("hidden");
-				$(me.wrapper.find(".divider")).removeClass("hidden");
 				me.old_state = me.collapsed;
 				me.open();
 				if (me.item.indent) {

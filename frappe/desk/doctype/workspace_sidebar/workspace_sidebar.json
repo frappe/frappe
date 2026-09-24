@@ -5,6 +5,7 @@
  "creation": "2025-08-12 12:06:45.016314",
  "deprecated": 1,
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/desk/workspace",
  "engine": "InnoDB",
  "field_order": [
   "title",

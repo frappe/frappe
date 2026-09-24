@@ -8,47 +8,79 @@
 		<div class="canvas-area">
 			<!-- Canvas toolbar: sample data picker, zoom, preview toggle -->
 			<div class="canvas-toolbar" v-if="!$store.needs_setup.value">
-				<div class="canvas-toolbar-left">
-					<span class="canvas-toolbar-eyebrow">{{ __("Data") }}</span>
-				</div>
 				<div class="canvas-toolbar-center">
-					<div ref="doc_picker_ref" class="canvas-doc-picker"></div>
+					<DeskControl
+						v-if="doc_picker_df"
+						class="canvas-doc-picker"
+						:df="doc_picker_df"
+						:model-value="$store.preview_doc_name.value || ''"
+						@update:model-value="(name) => $store.load_preview_doc(name || null)"
+					/>
+					<span v-if="no_records" class="canvas-toolbar-hint">
+						{{ __("No records to preview yet") }}
+					</span>
 				</div>
 				<div class="canvas-toolbar-right">
-					<div ref="zoom_ref" class="canvas-zoom-control select-group-btn">
-						<button
-							type="button"
-							class="es-button canvas-zoom-trigger"
-							data-variant="subtle"
-							data-size="sm"
-							:title="__('Zoom')"
-							:aria-expanded="zoom_open"
-							@click="zoom_open = !zoom_open"
-						>
-							<span class="es-button__label">{{ canvas_zoom }}%</span>
-							<span v-html="frappe.utils.icon('chevron-down', 'xs')"></span>
-						</button>
-						<ul
-							v-if="zoom_open"
-							class="dropdown-menu dropdown-menu-right show canvas-zoom-menu"
-						>
-							<li v-for="z in ZOOM_LEVELS" :key="z">
-								<a class="dropdown-item" href="#" @click.prevent="set_zoom(z)">
-									<span>{{ z }}%</span>
-									<span
-										class="tick-icon"
-										:class="{ selected: z === canvas_zoom }"
-										v-html="frappe.utils.icon('check', 'xs')"
-									></span>
-								</a>
-							</li>
-						</ul>
-					</div>
+					<button
+						type="button"
+						class="es-button"
+						data-variant="ghost"
+						data-size="sm"
+						data-icon-button="true"
+						:title="__('Undo')"
+						:disabled="!$store.can_undo.value"
+						@click="$store.undo()"
+						v-html="frappe.utils.icon('undo-2', 'sm')"
+					></button>
+					<button
+						type="button"
+						class="es-button"
+						data-variant="ghost"
+						data-size="sm"
+						data-icon-button="true"
+						:title="__('Redo')"
+						:disabled="!$store.can_redo.value"
+						@click="$store.redo()"
+						v-html="frappe.utils.icon('redo-2', 'sm')"
+					></button>
+					<button
+						ref="zoom_ref"
+						type="button"
+						class="es-button canvas-zoom-trigger"
+						data-variant="subtle"
+						data-size="sm"
+						:title="__('Zoom')"
+					>
+						<span class="es-button__label">{{ canvas_zoom }}%</span>
+						<span v-html="frappe.utils.icon('chevron-down', 'xs')"></span>
+					</button>
 				</div>
+			</div>
+			<div v-if="$store.versions.viewing.value" class="pfb-viewing-banner">
+				<span v-html="frappe.utils.icon('rotate-ccw-clock', 'sm')"></span>
+				<span>
+					{{
+						__("Viewing {0} ({1}). Editing is off.", [
+							$store.versions.viewing.value.label,
+							$store.versions.viewing.value.when,
+						])
+					}}
+				</span>
+				<button
+					class="es-button pfb-viewing-restore"
+					data-variant="subtle"
+					data-size="sm"
+					@click="restore_viewed"
+				>
+					{{ __("Restore this version") }}
+				</button>
 			</div>
 			<div
 				class="print-format-container"
-				:class="{ 'pfb-marquee-dragging': marquee_dragging }"
+				:class="{
+					'pfb-marquee-dragging': marquee_dragging,
+					'pfb-viewing': $store.versions.viewing.value,
+				}"
 				:style="{ '--pfb-zoom': canvas_zoom / 100 }"
 				@click="clear_selection"
 				@pointerdown="on_canvas_pointerdown"
@@ -63,8 +95,6 @@
 		</div>
 		<FieldInspector v-if="!$store.needs_setup.value" />
 		<Preview v-if="show_preview" @close="show_preview = false" />
-		<CompareView v-if="show_compare" @close="show_compare = false" />
-		<ContextMenu />
 		<Teleport to="body">
 			<div
 				v-if="marquee"
@@ -84,13 +114,13 @@
 import PrintFormat from "./components/editor/PrintFormat.vue";
 import PrintFormatSetup from "./components/editor/PrintFormatSetup.vue";
 import Preview from "./components/Preview.vue";
-import CompareView from "./components/CompareView.vue";
 import PrintFormatControls from "./components/PrintFormatControls.vue";
 import FieldInspector from "./components/inspector/FieldInspector.vue";
-import ContextMenu from "./components/editor/ContextMenu.vue";
+import DeskControl from "./components/DeskControl.vue";
 import { getStore } from "./stores";
 import { field_uid } from "./utils";
-import { computed, ref, onMounted, onUnmounted, provide, nextTick, watch } from "vue";
+import { section_of } from "./layout";
+import { computed, ref, onMounted, onUnmounted, provide, watch } from "vue";
 
 const props = defineProps(["print_format_name"]);
 
@@ -98,31 +128,55 @@ const ZOOM_KEY = "pfb_canvas_zoom";
 const ZOOM_LEVELS = [50, 60, 70, 80, 90, 100, 125, 150];
 
 let show_preview = ref(false);
-let show_compare = ref(false);
-let doc_picker_ref = ref(null);
-let doc_picker_ctrl = ref(null);
+let no_records = ref(false);
 let canvas_zoom = ref(nearest_zoom(parseInt(localStorage.getItem(ZOOM_KEY)) || 100));
-let zoom_open = ref(false);
 let zoom_ref = ref(null);
+let zoom_dropdown = null;
 
-let $store = computed(() => {
-	return getStore(props.print_format_name);
+watch(zoom_ref, (el) => {
+	zoom_dropdown?.destroy();
+	zoom_dropdown = null;
+	if (!el) return;
+	frappe.ui.dropdown({
+		trigger: el,
+		align: "end",
+		options: () =>
+			ZOOM_LEVELS.map((z) => ({
+				label: `${z}%`,
+				selected: z === canvas_zoom.value,
+				onclick: () => set_zoom(z),
+			})),
+	});
+	zoom_dropdown = $(el).data("es-dropdown");
 });
+
+const $store = getStore(props.print_format_name);
 
 let shouldRender = computed(() => {
-	return Boolean(
-		$store.value.print_format.value && $store.value.meta.value && $store.value.layout.value
-	);
+	return Boolean($store.print_format.value && $store.meta.value && $store.layout.value);
 });
 
-provide("$store", $store.value);
+provide("$store", $store);
 
 function toggle_preview() {
 	show_preview.value = !show_preview.value;
 }
 
-function show_changes() {
-	show_compare.value = true;
+function toggle_history() {
+	$store.versions.toggle();
+}
+
+watch(
+	[() => $store.selected_field.value, () => $store.selected_section.value],
+	([field, section]) => {
+		if ((field || section) && $store.versions.open.value) $store.versions.close();
+	}
+);
+
+function restore_viewed() {
+	const v = $store.versions.viewing.value;
+	if (v.published) $store.draft.discard();
+	else $store.versions.restore(v.name);
 }
 
 const SETTINGS_DOCTYPE = "Print Settings";
@@ -169,10 +223,10 @@ function clear_selection() {
 		suppress_next_click = false;
 		return;
 	}
-	$store.value.selected_field.value = null;
-	$store.value.selected_section.value = null;
-	$store.value.selected_letterhead.value = false;
-	$store.value.selected_lh_footer.value = false;
+	$store.selected_field.value = null;
+	$store.selected_section.value = null;
+	$store.selected_letterhead.value = false;
+	$store.selected_lh_footer.value = false;
 }
 
 // ── Marquee (rubber-band) selection ──────────────────────────
@@ -189,7 +243,7 @@ const MARQUEE_THRESHOLD = 4;
 // controls that should start their own interaction, never a marquee
 const MARQUEE_IGNORE =
 	".field--preview, .field--chip, button, input, textarea, select, a, [contenteditable]," +
-	" .section-toolbar, .drag-handle, .col-width-handle, .field-preview-actions," +
+	" .section-toolbar, .drag-handle, .col-width-handle," +
 	" .section-preview-actions, .empty-drop-zone, .canvas-toolbar";
 
 function on_canvas_pointerdown(e) {
@@ -198,8 +252,8 @@ function on_canvas_pointerdown(e) {
 	marquee_dragging.value = true; // suppresses text selection while dragging
 	const additive = e.shiftKey || e.metaKey || e.ctrlKey;
 	marquee_base = {
-		fields: additive ? $store.value.selected_fields.value.slice() : [],
-		sections: additive ? $store.value.selected_sections.value.slice() : [],
+		fields: additive ? $store.selected_fields.value.slice() : [],
+		sections: additive ? $store.selected_sections.value.slice() : [],
 	};
 	const el_of = (uid) =>
 		document.querySelector(`[data-field-uid="${uid}"], [data-section-uid="${uid}"]`);
@@ -208,8 +262,8 @@ function on_canvas_pointerdown(e) {
 		return el ? { [key]: obj, el, r: el.getBoundingClientRect() } : null;
 	};
 	marquee_targets = {
-		sections: ($store.value.layout.value?.sections || []).map(target("s")).filter(Boolean),
-		fields: $store.value.ordered_body_fields().map(target("df")).filter(Boolean),
+		sections: ($store.layout.value?.sections || []).map(target("s")).filter(Boolean),
+		fields: $store.ordered_body_fields().map(target("df")).filter(Boolean),
 	};
 	window.addEventListener("pointermove", on_canvas_pointermove);
 	window.addEventListener("pointerup", on_canvas_pointerup);
@@ -247,7 +301,7 @@ function update_marquee_selection() {
 
 	const fields = dedupe([...marquee_base.fields, ...looseFields]);
 	const sections = dedupe([...marquee_base.sections, ...enclosed.map((x) => x.s)]);
-	$store.value.set_selection({ fields, sections });
+	$store.set_selection({ fields, sections });
 }
 
 function on_canvas_pointerup() {
@@ -260,16 +314,16 @@ function on_canvas_pointerup() {
 }
 
 function on_start_default() {
-	const src = $store.value.layout.value;
+	const src = $store.layout.value;
 	// Drop empty columns, then sections that have no columns left
 	const sections = (src.sections || [])
 		.map((s) => ({ ...s, columns: s.columns.filter((c) => c.fields.length > 0) }))
 		.filter((s) => s.columns.length > 0);
 	const layout = { ...src, sections };
-	$store.value.layout.value = layout;
-	$store.value.print_format.value.format_data = JSON.stringify(layout);
-	$store.value.dirty.value = true;
-	$store.value.needs_setup.value = false;
+	$store.layout.value = layout;
+	$store.print_format.value.format_data = JSON.stringify(layout);
+	$store.dirty.value = true;
+	$store.needs_setup.value = false;
 }
 
 function on_start_blank() {
@@ -278,10 +332,10 @@ function on_start_blank() {
 		header: { columns: [{ label: "", fields: [] }] },
 		footer: { columns: [{ label: "", fields: [] }] },
 	};
-	$store.value.layout.value = blank;
-	$store.value.print_format.value.format_data = JSON.stringify(blank);
-	$store.value.dirty.value = true;
-	$store.value.needs_setup.value = false;
+	$store.layout.value = blank;
+	$store.print_format.value.format_data = JSON.stringify(blank);
+	$store.dirty.value = true;
+	$store.needs_setup.value = false;
 }
 
 function is_typing_context() {
@@ -295,15 +349,15 @@ function is_typing_context() {
 }
 
 function handle_keydown(e) {
-	if (show_preview.value || show_compare.value) return;
+	if (show_preview.value || $store.versions.viewing.value) return;
 	// Zoom shortcuts: Ctrl+= / Ctrl+- / Ctrl+0
 	if (e.ctrlKey || e.metaKey) {
 		if (e.key === "z" || e.key === "Z" || e.key === "y") {
 			// rich text editors and dialogs keep their own undo
 			if (is_typing_context()) return;
 			e.preventDefault();
-			if (e.key === "y" || e.shiftKey) $store.value.redo();
-			else $store.value.undo();
+			if (e.key === "y" || e.shiftKey) $store.redo();
+			else $store.undo();
 			return;
 		}
 		if (e.key === "c" || e.key === "C" || e.key === "v" || e.key === "V") {
@@ -313,22 +367,21 @@ function handle_keydown(e) {
 				// Let native copy work when text is highlighted or nothing in the
 				// canvas is selected
 				if (String(window.getSelection() || "")) return;
-				if (!$store.value.selected_field.value && !$store.value.selected_section.value)
-					return;
+				if (!$store.selected_field.value && !$store.selected_section.value) return;
 				e.preventDefault();
-				$store.value.copy_selection();
+				$store.copy_selection();
 			} else {
-				if (!$store.value.clipboard.value) return;
+				if (!$store.clipboard.value) return;
 				e.preventDefault();
-				$store.value.paste_clipboard();
+				$store.paste_clipboard();
 			}
 			return;
 		}
 		if (e.key === "d" || e.key === "D") {
 			if (is_typing_context()) return;
-			if (!$store.value.selected_field.value && !$store.value.selected_section.value) return;
+			if (!$store.selected_field.value && !$store.selected_section.value) return;
 			e.preventDefault();
-			$store.value.duplicate_selection();
+			$store.duplicate_selection();
 			return;
 		}
 		if (e.key === "=" || e.key === "+") {
@@ -350,31 +403,31 @@ function handle_keydown(e) {
 
 	if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
 		if (is_typing_context()) return;
-		if (!$store.value.selected_field.value && !$store.value.selected_section.value) return;
+		if (!$store.selected_field.value && !$store.selected_section.value) return;
 		e.preventDefault();
-		$store.value.move_selection(e.key === "ArrowUp" ? -1 : 1);
+		$store.move_selection(e.key === "ArrowUp" ? -1 : 1);
 		return;
 	}
 
 	if (e.key === "Delete" || e.key === "Backspace") {
 		// Never hijack delete/backspace from text editing contexts
 		if (is_typing_context()) return;
-		const sf = $store.value.selected_field.value;
-		const ss = $store.value.selected_section.value;
-		if ($store.value.is_multi_select.value) {
-			$store.value.remove_selection();
+		const sf = $store.selected_field.value;
+		const ss = $store.selected_section.value;
+		if ($store.is_multi_select.value) {
+			$store.remove_selection();
 			e.preventDefault();
 		} else if (sf) {
 			sf.remove = true;
-			$store.value.selected_field.value = null;
+			$store.selected_field.value = null;
 			e.preventDefault();
 		} else if (ss) {
 			// Header/footer zones aren't in layout.sections, so they can't be deleted
-			const sections = $store.value.layout.value?.sections || [];
+			const sections = $store.layout.value?.sections || [];
 			const idx = sections.indexOf(ss);
 			if (idx !== -1) {
 				sections.splice(idx, 1);
-				$store.value.selected_section.value = null;
+				$store.selected_section.value = null;
 				e.preventDefault();
 			}
 		}
@@ -389,34 +442,21 @@ function handle_keydown(e) {
 	);
 	if (dialog_open) return;
 
-	const sf = $store.value.selected_field.value;
-	const ss = $store.value.selected_section.value;
+	const sf = $store.selected_field.value;
+	const ss = $store.selected_section.value;
 
 	if (sf) {
-		// Navigate up: field → parent section
-		const lv = $store.value.layout.value;
-		const all_sections = [lv?.header, ...(lv?.sections || []), lv?.footer].filter(Boolean);
-		let parent = null;
-		for (const sec of all_sections) {
-			for (const col of sec.columns || []) {
-				if (col.fields?.includes(sf)) {
-					parent = sec;
-					break;
-				}
-			}
-			if (parent) break;
-		}
-		$store.value.selected_field.value = null;
-		$store.value.selected_section.value = parent || null;
+		$store.selected_field.value = null;
+		$store.selected_section.value = section_of($store.layout.value, sf);
 		e.stopPropagation();
 	} else if (ss) {
 		// Navigate up: section → canvas (clear all)
-		$store.value.selected_section.value = null;
+		$store.selected_section.value = null;
 		e.stopPropagation();
-	} else if ($store.value.selected_letterhead.value || $store.value.selected_lh_footer.value) {
+	} else if ($store.selected_letterhead.value || $store.selected_lh_footer.value) {
 		// letter head zones have no parent — Escape just deselects them
-		$store.value.selected_letterhead.value = false;
-		$store.value.selected_lh_footer.value = false;
+		$store.selected_letterhead.value = false;
+		$store.selected_lh_footer.value = false;
 		e.stopPropagation();
 	}
 }
@@ -429,7 +469,6 @@ function nearest_zoom(value) {
 
 function set_zoom(value) {
 	canvas_zoom.value = value;
-	zoom_open.value = false;
 	localStorage.setItem(ZOOM_KEY, value);
 }
 
@@ -447,119 +486,101 @@ function reset_zoom() {
 	set_zoom(100);
 }
 
-function close_zoom_on_outside(e) {
-	if (zoom_open.value && zoom_ref.value && !zoom_ref.value.contains(e.target)) {
-		zoom_open.value = false;
-	}
-}
-
-function init_doc_picker() {
-	if (!doc_picker_ref.value) return;
-	const meta = $store.value.meta.value;
-	// draft/cancelled documents can't be printed unless Print Settings allows it, so
-	// keep them out of the picker unless that's turned on
-	const is_printable_docstatus = (docstatus) =>
-		frappe.model.can_print_docstatus(meta?.name, docstatus);
-	const printable_filters = meta?.is_submittable
+const is_printable_docstatus = (docstatus) =>
+	frappe.model.can_print_docstatus($store.meta.value?.name, docstatus);
+const printable_filters = computed(() => {
+	const meta = $store.meta.value;
+	return meta?.is_submittable
 		? { docstatus: ["in", [0, 1, 2].filter(is_printable_docstatus)] }
 		: {};
-	doc_picker_ctrl.value = frappe.ui.form.make_control({
-		parent: doc_picker_ref.value,
-		df: {
-			fieldname: "preview_doc",
-			fieldtype: "Link",
-			options: meta?.name,
-			placeholder: __("Pick a {0} to preview...", [__(meta?.name || "document")]),
-			get_query: () => ({ filters: printable_filters }),
-			change: () => {
-				const name = doc_picker_ctrl.value.get_value();
-				$store.value.load_preview_doc(name || null);
-			},
-		},
-		render_input: true,
-	});
-	doc_picker_ref.value.querySelector(".control-label")?.remove();
-	doc_picker_ref.value.querySelector(".form-group")?.style.setProperty("margin", "0");
-
-	const select = (name) => {
-		doc_picker_ctrl.value?.set_value(name);
-		$store.value.load_preview_doc(name);
+});
+const doc_picker_df = computed(() => {
+	const meta = $store.meta.value;
+	if (!meta || $store.needs_setup.value) return null;
+	return {
+		fieldname: "preview_doc",
+		fieldtype: "Link",
+		options: meta.name,
+		placeholder: __("Pick a {0} to preview...", [__(meta.name)]),
+		with_link_btn: true,
+		get_query: () => ({ filters: printable_filters.value }),
 	};
-	// Prefer the record chosen last time (persisted across refresh); otherwise
-	// auto-select the most recent printable record so the preview is ready immediately.
-	const saved = $store.value.persisted_preview_doc_name();
+});
+
+function pick_initial_doc() {
+	const st = $store;
+	const meta = st.meta.value;
+	const saved = st.persisted_preview_doc_name();
 	const auto_select = () =>
 		frappe.db
 			.get_list(meta?.name, {
-				filters: printable_filters,
+				filters: printable_filters.value,
 				limit: 1,
 				fields: ["name"],
 				order_by: "creation desc",
 			})
-			.then((rows) => rows?.length && select(rows[0].name));
-	if (saved) {
-		frappe.db
-			.get_value(meta?.name, saved, ["name", "docstatus"])
-			.then((r) =>
-				r?.message?.name && is_printable_docstatus(r.message.docstatus)
-					? select(saved)
-					: auto_select()
+			.then((rows) =>
+				rows?.length ? st.load_preview_doc(rows[0].name) : (no_records.value = true)
 			);
-	} else {
-		auto_select();
-	}
+	if (!saved) return auto_select();
+	frappe.db
+		.get_value(meta?.name, saved, ["name", "docstatus"])
+		.then((r) =>
+			r?.message?.name && is_printable_docstatus(r.message.docstatus)
+				? st.load_preview_doc(saved)
+				: auto_select()
+		);
 }
 
-watch(
-	() => $store.value.needs_setup.value,
-	(needs_setup) => {
-		if (!needs_setup && !doc_picker_ctrl.value) nextTick(init_doc_picker);
-	}
-);
+watch(doc_picker_df, (df, was) => df && !was && pick_initial_doc());
+
+function warn_before_unload(e) {
+	const st = $store;
+	if (st.dirty.value || st.draft.saving_count.value > 0 || st.draft.save_failed.value)
+		e.preventDefault();
+}
 
 onMounted(() => {
 	document.addEventListener("keydown", handle_keydown);
-	document.addEventListener("pointerdown", close_zoom_on_outside);
+	window.addEventListener("beforeunload", warn_before_unload);
 
-	$store.value.fetch().then(() => {
-		if ($store.value.print_format.value?.custom_format) {
+	$store.fetch().then(() => {
+		if ($store.print_format.value?.custom_format) {
 			frappe.set_route("Form", "Print Format", props.print_format_name);
 			return;
 		}
-		if (!$store.value.layout.value) {
-			$store.value.layout.value = $store.value.get_default_layout();
-			$store.value.save_changes();
+		if (!$store.layout.value) {
+			$store.layout.value = $store.get_default_layout();
+			$store.draft.save();
 		}
-		nextTick(init_doc_picker);
 	});
 });
 
 onUnmounted(() => {
 	document.removeEventListener("keydown", handle_keydown);
-	document.removeEventListener("pointerdown", close_zoom_on_outside);
+	zoom_dropdown?.destroy();
+	window.removeEventListener("beforeunload", warn_before_unload);
 	window.removeEventListener("pointermove", on_canvas_pointermove);
 	window.removeEventListener("pointerup", on_canvas_pointerup);
 });
 
-defineExpose({ toggle_preview, show_changes, open_print_settings, show_preview, $store });
+defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview, $store });
 </script>
 
 <style scoped>
 .builder-root {
-	/* navbar + page head height */
-	--pfb-chrome-offset: 95px;
 	/* single source of truth for every selection/hover ring on the canvas —
 	   change these two and fields, sections, and layer-hover all update */
 	--pfb-accent: var(--blue-400);
 	--pfb-ring: 2px solid var(--pfb-accent);
 	display: flex;
 	width: 100%;
+	height: 100%;
 }
 
 /* In bulk mode the per-item action toolbars (remove) are
    just noise on top of every highlighted block — the bulk panel drives actions
    instead. Hide them everywhere at once from the one multi-select flag. */
-.builder-root.pfb-multi-select :deep(.field-preview-actions),
 .builder-root.pfb-multi-select :deep(.field-actions),
 .builder-root.pfb-multi-select :deep(.section-preview-actions),
 .builder-root.pfb-multi-select :deep(.section-toolbar-right) {
@@ -571,7 +592,7 @@ defineExpose({ toggle_preview, show_changes, open_print_settings, show_preview, 
 	min-width: 0;
 	display: flex;
 	flex-direction: column;
-	height: calc(100vh - var(--pfb-chrome-offset));
+	height: 100%;
 }
 
 /* ── Canvas toolbar ──────────────────────────────────────── */
@@ -580,32 +601,16 @@ defineExpose({ toggle_preview, show_changes, open_print_settings, show_preview, 
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	padding: 0 16px;
-	height: 40px;
+	padding: 0 8px;
+	height: 44px;
 	border-bottom: 1px solid var(--border-color);
 	background: var(--fg-color);
-}
-
-.canvas-toolbar-left {
-	flex-shrink: 0;
-}
-
-.canvas-toolbar-eyebrow {
-	font-size: 9px;
-	font-weight: 700;
-	letter-spacing: 0.1em;
-	color: var(--text-muted);
-	white-space: nowrap;
 }
 
 .canvas-toolbar-center {
 	flex: 1;
 	min-width: 0;
-	max-width: 320px;
-}
-
-.canvas-doc-picker :deep(.form-group) {
-	margin: 0;
+	max-width: 250px;
 }
 
 .canvas-doc-picker :deep(.form-control) {
@@ -613,6 +618,12 @@ defineExpose({ toggle_preview, show_changes, open_print_settings, show_preview, 
 	height: 28px;
 	padding: 2px 8px;
 	border-radius: var(--radius);
+}
+
+.canvas-toolbar-hint {
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+	white-space: nowrap;
 }
 
 .canvas-toolbar-right {
@@ -623,32 +634,29 @@ defineExpose({ toggle_preview, show_changes, open_print_settings, show_preview, 
 	gap: 6px;
 }
 
-/* ── Zoom control ────────────────────────────────────────── */
-.canvas-zoom-control {
-	position: relative;
-}
-
 .canvas-zoom-trigger {
 	font-variant-numeric: tabular-nums;
 }
 
-.canvas-zoom-menu {
-	position: absolute;
-	top: calc(100% + 4px);
-	right: 0;
-	left: auto;
-	min-width: 96px;
-}
-
-.canvas-zoom-menu .dropdown-item {
+/* ── Canvas scroll area ──────────────────────────────────── */
+.pfb-viewing-banner {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	gap: 12px;
-	font-variant-numeric: tabular-nums;
+	gap: 8px;
+	padding: 6px 12px;
+	font-size: var(--text-sm);
+	background: var(--surface-amber-2);
+	color: var(--ink-amber-8);
 }
 
-/* ── Canvas scroll area ──────────────────────────────────── */
+.pfb-viewing-restore {
+	margin-left: auto;
+}
+
+.print-format-container.pfb-viewing {
+	pointer-events: none;
+}
+
 .print-format-container {
 	flex: 1;
 	overflow-y: auto;
@@ -671,7 +679,7 @@ defineExpose({ toggle_preview, show_changes, open_print_settings, show_preview, 
 	position: fixed;
 	z-index: 1040;
 	border: 1px solid var(--blue-400);
-	background: rgba(97, 175, 239, 0.12);
+	background: color-mix(in srgb, var(--blue-400) 12%, transparent);
 	border-radius: 2px;
 	pointer-events: none;
 }

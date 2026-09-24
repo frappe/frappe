@@ -1,10 +1,9 @@
 <template>
 	<div
-		class="print-format-main print-format"
+		class="print-format-main"
 		data-theme="light"
 		:style="rootStyles"
 		:class="{
-			'pfb-clean-preview': !!store.preview_doc.value,
 			'print-format-doc': !!store.preview_doc.value,
 			'show-label-colon': !!print_format.show_label_colon,
 		}"
@@ -12,7 +11,7 @@
 		<component :is="'style'" v-if="color_css">{{ color_css }}</component>
 		<component :is="'style'" v-if="user_css">{{ user_css }}</component>
 		<div v-if="!page_number_hidden" class="pfb-page-num" :style="page_number_style">
-			{{ __("1 of 2") }}
+			{{ __("1 of N") }}
 		</div>
 
 		<!-- One header area: the letterhead and the header fields zone read as a single
@@ -83,10 +82,10 @@ import LetterHeadZoneEditor from "../letterhead/LetterHeadZoneEditor.vue";
 import PrintFormatSection from "./PrintFormatSection.vue";
 import SectionInsert from "./SectionInsert.vue";
 import { DRAG_OPTIONS, setDragging, field_uid } from "../../utils";
-import { useStore } from "../../stores";
 import { computed, inject, watch, nextTick, onMounted, onUnmounted, ref } from "vue";
 
-let { layout, letterhead, print_format } = useStore();
+let store = inject("$store");
+let { layout, letterhead, print_format } = store;
 
 // one definition of "the header holds no fields" — the tree and the canvas
 // both key off it, so a deleted field (kept in the DOM as a tombstone) can't
@@ -95,16 +94,14 @@ let header_is_empty = computed(
 	() =>
 		!(layout.value.header?.columns || []).some((c) => (c.fields || []).some((f) => !f.remove))
 );
-let store = inject("$store");
 let header_selected = computed(() => store.selected_sections.value.includes(layout.value.header));
 
-const PAGE_SIZES_MM = { A4: [210, 297], Letter: [216, 279.4] };
-let page_size = ref("A4");
+let page_mm = ref([210, 297]);
 
 onMounted(() => {
-	frappe.db.get_single_value("Print Settings", "pdf_page_size").then((v) => {
-		if (v && PAGE_SIZES_MM[v]) page_size.value = v;
-	});
+	frappe
+		.call("frappe.utils.print_format_generator.get_page_size_mm")
+		.then((r) => r.message && (page_mm.value = r.message));
 });
 
 const CUSTOM_CSS_ID = "pfb-letterhead-custom-css";
@@ -122,7 +119,7 @@ watch(
 			el.id = CUSTOM_CSS_ID;
 			document.head.appendChild(el);
 		}
-		el.textContent = css;
+		el.textContent = scope_css(css, ".print-format-main");
 	},
 	{ immediate: true, deep: true }
 );
@@ -137,11 +134,8 @@ watch(
 			// scrolls to its own node so the exact row lands on screen, not just
 			// the section it lives in
 			if (target.columns) {
-				const els = document.querySelectorAll("[data-pfb-section]");
-				const idx = layout.value.sections.indexOf(target);
-				if (idx >= 0 && els[idx]) {
-					els[idx].scrollIntoView({ behavior: "smooth", block: "start" });
-				}
+				const el = document.querySelector(`[data-section-uid="${field_uid(target)}"]`);
+				el?.scrollIntoView({ behavior: "smooth", block: "start" });
 			} else {
 				const el = document.querySelector(`[data-field-uid="${field_uid(target)}"]`);
 				el?.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -184,7 +178,7 @@ let rootStyles = computed(() => {
 		margin_left = 0,
 		margin_right = 0,
 	} = print_format.value;
-	const [page_w, page_h] = PAGE_SIZES_MM[page_size.value] || PAGE_SIZES_MM.A4;
+	const [page_w, page_h] = page_mm.value;
 	return {
 		padding: `${margin_top}mm ${margin_right}mm ${margin_bottom}mm ${margin_left}mm`,
 		width: `${page_w}mm`,
@@ -255,10 +249,11 @@ let color_css = computed(() => {
 	return css;
 });
 
-let page_number_hidden = computed(() => print_format.value.page_number.includes("Hide"));
+let page_number = computed(() => print_format.value.page_number || "Hide");
+let page_number_hidden = computed(() => page_number.value.includes("Hide"));
 
 let page_number_style = computed(() => {
-	const pn = print_format.value.page_number;
+	const pn = page_number.value;
 	const { margin_top, margin_bottom, margin_left, margin_right } = print_format.value;
 	const style = { position: "absolute" };
 	if (pn.includes("Top")) {
@@ -313,7 +308,7 @@ let page_number_style = computed(() => {
 	padding: 2rem 1rem;
 	border: 1px dashed var(--gray-300);
 	border-radius: var(--radius);
-	background: var(--gray-50);
+	background: var(--surface-gray-1);
 	color: var(--text-muted);
 	cursor: pointer;
 	transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
@@ -321,7 +316,7 @@ let page_number_style = computed(() => {
 
 .body-empty:hover {
 	border-color: var(--gray-500);
-	background: var(--gray-100);
+	background: var(--surface-gray-2);
 	color: var(--text-color);
 }
 
@@ -333,7 +328,7 @@ let page_number_style = computed(() => {
 	height: 28px;
 	margin-bottom: 2px;
 	border-radius: 50%;
-	background: var(--gray-200);
+	background: var(--surface-gray-3);
 	color: var(--gray-700);
 }
 
@@ -353,60 +348,5 @@ let page_number_style = computed(() => {
 
 .section-with-insert:hover :deep(.section-insert) {
 	opacity: 1;
-}
-
-/* ── Clean preview mode (when live data is loaded) ───────── */
-
-/* Hide all editor chrome */
-.pfb-clean-preview :deep(.section-toolbar),
-.pfb-clean-preview :deep(.configure-columns-btn) {
-	display: none;
-}
-
-/* Default section skin in clean-preview — grid sections style themselves */
-.pfb-clean-preview :deep(.print-format-section:not(.section--grid)) {
-	border: 1px solid transparent;
-	border-radius: var(--radius);
-	overflow: visible;
-	transition: border-color 0.1s;
-}
-
-/* section hover/selection rings live in one place — PrintFormatSection.vue */
-
-.pfb-clean-preview :deep(.print-format-section-container) {
-	margin-bottom: 0;
-}
-
-/* Field selection chrome lives in Field.vue and is outline-only */
-
-/* Section columns: no vertical padding in preview (matches PDF) */
-.pfb-clean-preview :deep(.section-columns) {
-	padding: 0;
-}
-
-/* Remove drag container min-height gaps; grid sections keep their own gap */
-.pfb-clean-preview :deep(.drag-container) {
-	min-height: 0;
-}
-
-/* Field spacing comes from the shared .field + .field margin, like the PDF */
-.pfb-clean-preview :deep(.drag-container:not(.section--grid *)) {
-	gap: 0;
-}
-
-/* Section drag handle in clean-preview: show on hover */
-.pfb-clean-preview :deep(.section-preview-actions) {
-	display: flex;
-}
-
-.pfb-clean-preview :deep(.print-format-section-container:hover .section-preview-actions),
-.pfb-clean-preview
-	:deep(.print-format-section-container.pfb-section-active .section-preview-actions) {
-	opacity: 1;
-}
-
-/* Section title: typography/border come from the shared .section-label rules */
-.pfb-clean-preview :deep(.section-title-display) {
-	display: block;
 }
 </style>

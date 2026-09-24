@@ -7,6 +7,7 @@
  "description": "DocType is a Table / Form in the application.",
  "doctype": "DocType",
  "document_type": "Document",
+ "documentation": "https://docs.frappe.io/framework/user/en/basics/doctypes",
  "engine": "InnoDB",
  "field_order": [
   "form_builder_tab",
@@ -376,7 +377,7 @@
   },
   {
    "fieldname": "icon",
-   "fieldtype": "Data",
+   "fieldtype": "Icon",
    "label": "Icon"
   },
   {
@@ -756,7 +757,7 @@
   }
  ],
  "grid_page_length": 50,
- "icon": "fa fa-bolt",
+ "icon": "database",
  "idx": 6,
  "index_web_pages_for_search": 1,
  "links": [
@@ -831,7 +832,7 @@
    "link_fieldname": "document_type"
   }
  ],
- "modified": "2026-09-17 12:46:29.020996",
+ "modified": "2026-09-21 13:57:58.884093",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

@@ -4,16 +4,15 @@ import datetime
 import hashlib
 import hmac
 import re
-from urllib.parse import unquote_plus, urljoin, urlparse
+from urllib.parse import unquote_plus, urljoin
 
 from oauthlib.common import Request
 from oauthlib.openid import RequestValidator
 
 import frappe
-from frappe.auth import LoginManager
 from frappe.integrations.doctype.oauth_bearer_token.oauth_bearer_token import get_oauth_token_hash
 from frappe.integrations.doctype.oauth_client.oauth_client import OAuthClient
-from frappe.utils.data import cstr, get_system_timezone, now_datetime
+from frappe.utils.data import cstr, get_system_timezone, get_url, now_datetime
 
 
 class OAuthWebRequestValidator(RequestValidator):
@@ -224,7 +223,17 @@ class OAuthWebRequestValidator(RequestValidator):
 	def validate_grant_type(self, client_id, grant_type, client, request, *args, **kwargs):
 		# Clients should only be allowed to use one type of grant.
 		# In this case, it must be "authorization_code" or "refresh_token"
-		return grant_type in ["authorization_code", "refresh_token", "password"]
+		return grant_type in ["authorization_code", "refresh_token"]
+
+	def validate_user(self, username, password, client, request, *args, **kwargs):
+		"""Resource Owner Password Credentials Grant is not supported.
+
+		oauthlib's ResourceOwnerPasswordCredentialsGrant handler calls this
+		unconditionally regardless of validate_grant_type, so this must
+		exist and reject cleanly rather than fall through to the base
+		RequestValidator's NotImplementedError.
+		"""
+		return False
 
 	def save_bearer_token(self, token, request, *args, **kwargs):
 		# Remember to associate it with request.scopes, request.user and
@@ -563,21 +572,6 @@ class OAuthWebRequestValidator(RequestValidator):
 
 		return False
 
-	def validate_user(self, username, password, client, request, *args, **kwargs):
-		"""Ensure the username and password is valid.
-
-		Method is used by:
-		- Resource Owner Password Credentials Grant
-		"""
-		login_manager = LoginManager()
-		login_manager.authenticate(username, password)
-
-		if login_manager.user == "Guest":
-			return False
-
-		request.user = login_manager.user
-		return True
-
 
 def calculate_at_hash(access_token, hash_alg):
 	"""Helper method for calculating an access token
@@ -661,6 +655,4 @@ def generate_json_error_response(e):
 
 
 def get_server_url():
-	request_url = urlparse(frappe.request.url)
-	request_url = f"{request_url.scheme}://{request_url.netloc}"
-	return frappe.get_value("Social Login Key", "frappe", "base_url") or request_url
+	return frappe.get_value("Social Login Key", "frappe", "base_url") or get_url()

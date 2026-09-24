@@ -2,6 +2,7 @@
  "actions": [],
  "creation": "2016-12-29 12:59:48.638970",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/how-to-restore-deleted-documents-in-erpnext",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
@@ -58,6 +59,7 @@
    "read_only": 1
   }
  ],
+ "icon": "shredder",
  "in_create": 1,
  "links": [],
  "modified": "2025-02-20 19:22:00.734438",

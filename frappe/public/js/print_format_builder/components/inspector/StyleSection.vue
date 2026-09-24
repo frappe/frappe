@@ -22,7 +22,7 @@ defineEmits(["update:modelValue"]);
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
-	padding: 4px 14px 12px;
+	padding: 4px 16px 16px;
 }
 
 .pfb-style-label {

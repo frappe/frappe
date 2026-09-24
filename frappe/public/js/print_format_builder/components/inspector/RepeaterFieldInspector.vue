@@ -96,9 +96,8 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, inject, ref } from "vue";
 import draggable from "vuedraggable";
-import { useStore } from "../../stores";
 import SelectRow from "./SelectRow.vue";
 import LabelField from "./LabelField.vue";
 import TemplateInput from "./TemplateInput.vue";
@@ -111,7 +110,7 @@ import { align_opts } from "./align_opts";
 import { useSelectedField } from "./useSelectedField";
 import { table_field_opts, value_field_opts } from "../../utils";
 
-let { meta } = useStore();
+let { meta } = inject("$store");
 const { selected_field } = useSelectedField();
 
 let repeater_source_opts = computed(() => table_field_opts(meta.value?.fields));

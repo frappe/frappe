@@ -4,6 +4,7 @@
  "autoname": "field:print_style_name",
  "creation": "2017-08-17 01:25:56.910716",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/print-style",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

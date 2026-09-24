@@ -26,7 +26,11 @@
 			</div>
 			<div class="form-group">
 				<label class="control-label">{{ __("Letter Head") }}</label>
-				<div ref="lh_host"></div>
+				<DeskControl
+					:df="letterhead_df"
+					:model-value="letterhead?.name || ''"
+					@update:model-value="set_letterhead"
+				/>
 			</div>
 		</InspectorSection>
 
@@ -41,18 +45,23 @@
 				/>
 			</div>
 			<div class="form-group">
-				<label class="control-label">{{ __("Font Size (pt)") }}</label>
+				<label class="control-label">{{ __("Font Size (px)") }}</label>
 				<input
 					type="number"
 					class="form-control form-control-sm"
 					placeholder="12, 13, 14"
 					:value="print_format.font_size"
-					@change="(e) => (print_format.font_size = parseFloat(e.target.value))"
+					@change="(e) => (print_format.font_size = parseFloat(e.target.value) || 14)"
 				/>
 			</div>
 			<div class="form-group" v-for="c in color_settings" :key="c.fieldname">
 				<label class="control-label">{{ c.label }}</label>
-				<div :ref="(el) => (color_hosts[c.fieldname] = el)"></div>
+				<ColorInput
+					:fieldname="c.fieldname"
+					:model-value="print_format[c.fieldname] || ''"
+					:placeholder="c.label"
+					@update:model-value="(v) => (print_format[c.fieldname] = v || null)"
+				/>
 			</div>
 			<div class="form-group">
 				<ToggleRow
@@ -111,15 +120,15 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
+import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import Autocomplete from "../../vue-components/Autocomplete.vue";
 import ToggleRow from "./inspector/ToggleRow.vue";
 import InspectorSection from "./inspector/InspectorSection.vue";
-import { mountColorControl } from "./inspector/useColorControl";
-import { useStore } from "../stores";
+import ColorInput from "./inspector/ColorInput.vue";
+import DeskControl from "./DeskControl.vue";
 
 let store = inject("$store");
-let { print_format, letterhead } = useStore();
+let { print_format, letterhead } = store;
 let { typst_blockers, has_typst_block } = store;
 
 // ── custom css ─────────────────────────────────────────────
@@ -166,22 +175,28 @@ let renderer = computed(() =>
 let hint_icon = ref(null);
 let renderer_hint = computed(() => {
 	if (typst_blockers.value.length) {
-		return __("Typst unavailable: {0}", [typst_blockers.value.join(", ")]);
+		const items = typst_blockers.value.map((b) => "• " + b);
+		return [__("Typst cannot render:"), ...items].join("\n");
 	}
 	if (has_typst_block.value) {
 		return __("Chromium unavailable: this format uses a Typst block.");
 	}
 	return renderer.value === "Typst" ? __("Experimental") : "";
 });
+let hint_tooltip = null;
 watch(
 	[hint_icon, renderer_hint],
-	([el, title]) => {
-		if (!el) return;
-		$(el).tooltip("dispose");
-		if (title) $(el).tooltip({ title, trigger: "hover", placement: "top" });
+	([el, text]) => {
+		hint_tooltip?.destroy();
+		hint_tooltip = null;
+		if (!el || !text) return;
+		frappe.ui.tooltip(el, { text, text_align: "start" });
+		hint_tooltip = $(el).data("es-tooltip");
 	},
 	{ flush: "post" }
 );
+onUnmounted(() => hint_tooltip?.destroy());
+
 function set_renderer(value) {
 	if (value !== "Typst" && has_typst_block.value) return;
 	print_format.value.pdf_generator = value === "Typst" ? "Typst" : "chrome";
@@ -209,9 +224,7 @@ let page_number_positions = computed(() => [
 ]);
 
 function update_margin(fieldname, value) {
-	value = parseFloat(value);
-	if (value < 0) value = 0;
-	print_format.value[fieldname] = value;
+	print_format.value[fieldname] = Math.max(0, parseFloat(value) || 0);
 }
 
 // ── colors ─────────────────────────────────────────────────
@@ -219,61 +232,18 @@ const color_settings = [
 	{ fieldname: "label_color", label: __("Label Color") },
 	{ fieldname: "value_color", label: __("Value Color") },
 ];
-let color_hosts = ref({});
-let color_controls = {};
-
-function mount_color_controls() {
-	for (const c of color_settings) {
-		const host = color_hosts.value[c.fieldname];
-		if (!host) continue;
-		color_controls[c.fieldname] = mountColorControl(host, {
-			value: print_format.value[c.fieldname] || "",
-			placeholder: c.label,
-			fieldname: c.fieldname,
-			onChange(value) {
-				const v = value || null;
-				if ((print_format.value[c.fieldname] ?? null) !== v) {
-					print_format.value[c.fieldname] = v;
-				}
-			},
-		});
-	}
+const letterhead_df = {
+	fieldname: "letter_head",
+	fieldtype: "Link",
+	options: "Letter Head",
+	placeholder: __("No letter head"),
+};
+function set_letterhead(name) {
+	if (name === (letterhead.value?.name || "")) return;
+	name ? store.change_letterhead(name) : store.remove_letterhead();
 }
-
-// ── letter head ────────────────────────────────────────────
-let lh_host = ref(null);
-let lh_ctrl = null;
-
-function mount_letterhead_control() {
-	if (!lh_host.value) return;
-	lh_ctrl = frappe.ui.form.make_control({
-		parent: lh_host.value,
-		df: {
-			fieldname: "letter_head",
-			fieldtype: "Link",
-			options: "Letter Head",
-			placeholder: __("No letter head"),
-			change: () => {
-				const name = lh_ctrl.get_value() || "";
-				if (name === (letterhead.value?.name || "")) return;
-				name ? store.change_letterhead(name) : store.remove_letterhead();
-			},
-		},
-		render_input: true,
-	});
-	lh_ctrl.set_value(letterhead.value?.name || "");
-	lh_host.value.querySelector(".control-label")?.remove();
-	lh_host.value.querySelector(".form-group")?.style.setProperty("margin", "0");
-}
-
-watch(
-	() => letterhead.value?.name,
-	(name) => lh_ctrl?.set_value(name || "")
-);
 
 onMounted(() => {
-	nextTick(mount_color_controls);
-	nextTick(mount_letterhead_control);
 	let method = "frappe.printing.page.print_format_builder.print_format_builder.get_google_fonts";
 	frappe.call(method).then((r) => {
 		google_fonts.value = r.message || [];

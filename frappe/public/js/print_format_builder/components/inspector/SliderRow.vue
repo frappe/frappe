@@ -1,6 +1,5 @@
 <template>
-	<div class="pfb-insp-row pfb-insp-row--col">
-		<span class="pfb-insp-label">{{ label }}</span>
+	<InspectorRow :label="label" stacked>
 		<input
 			class="pfb-size-slider"
 			type="range"
@@ -9,10 +8,13 @@
 			:value="modelValue"
 			@input="$emit('update:modelValue', Number($event.target.value))"
 		/>
-	</div>
+		<slot />
+	</InspectorRow>
 </template>
 
 <script setup>
+import InspectorRow from "./InspectorRow.vue";
+
 defineProps({
 	label: { type: String, required: true },
 	modelValue: { type: Number, default: 0 },

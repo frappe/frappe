@@ -213,6 +213,8 @@ class TestReportview(IntegrationTestCase):
 		)
 
 		frappe.db.delete("Email Queue")
+		user_email = frappe.get_cached_value("User", frappe.session.user, "email")
+		frappe.db.delete("Email Unsubscribe", {"email": user_email})
 		export_query()
 		email_queue = frappe.get_all("Email Queue")
 

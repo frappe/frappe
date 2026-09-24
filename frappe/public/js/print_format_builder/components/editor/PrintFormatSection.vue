@@ -1,16 +1,18 @@
 <template>
 	<div
+		ref="root"
 		class="print-format-section-container"
 		data-pfb-section
 		:data-section-uid="field_uid(section)"
 		v-show="!preview_doc || has_visible_fields"
 		:class="{
-			'section-container--condition-hidden': preview_doc && !is_section_visible,
+			'section-container--condition-hidden':
+				preview_doc && (!is_section_visible || !has_content),
 			'pfb-section-active': is_selected,
 			'pfb-layer-hover': store.hovered_node.value === section,
+			'section--preview': !!preview_doc,
 		}"
 		@click.stop="select_section"
-		@contextmenu="on_context_menu"
 		@mouseenter="store.hovered_section.value = section"
 		@mouseleave="store.hovered_section.value = null"
 	>
@@ -137,7 +139,7 @@
 		<div v-if="show_spacing_handles" class="pfb-section-chrome" :style="section_chrome_style">
 			<SectionSpacingHandles :section="section" type="margin" />
 			<SectionSpacingHandles :section="section" type="padding" />
-			<SectionRadiusHandle :section="section" />
+			<SectionRadiusHandle :target="section" />
 		</div>
 		<div class="page-break-indicator" v-if="section.page_break">
 			<span>— {{ __("Page Break") }} —</span>
@@ -161,17 +163,16 @@ import Field from "./Field.vue";
 import SectionActions from "./SectionActions.vue";
 import SectionSpacingHandles from "./SectionSpacingHandles.vue";
 import SectionRadiusHandle from "./SectionRadiusHandle.vue";
-import { computed, inject } from "vue";
+import { computed, inject, onMounted, onUnmounted, ref } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
+import { always_has_content } from "../../fieldtypes";
 import {
 	DRAG_OPTIONS,
 	JUSTIFY_CLASSES,
-	evaluate_visible_if,
 	parse_inline_style,
 	setDragging,
 	field_uid,
 } from "../../utils";
-import { useContextMenu } from "../../composables/useContextMenu";
 
 const props = defineProps(["section", "is_header", "zone"]);
 
@@ -198,9 +199,7 @@ let section_chrome_style = computed(() => {
 	};
 });
 let preview_doc = computed(() => store.preview_doc.value);
-let is_section_visible = computed(() =>
-	evaluate_visible_if(props.section.visible_if, preview_doc.value)
-);
+let is_section_visible = computed(() => store.is_visible(props.section.visible_if));
 
 let is_grid = computed(() => !!props.section.field_borders);
 
@@ -227,6 +226,7 @@ let columns_gap_style = computed(() => {
 });
 
 let handle_offset = computed(() => {
+	if (is_grid.value) return "-4px";
 	if (preview_doc.value) return `${-((props.section.gap ?? 20) / 2 + 4)}px`;
 	const gap = props.section.columns.length > 1 && props.section.gap ? props.section.gap : 0;
 	return `${-(gap + 12.5)}px`;
@@ -252,10 +252,24 @@ function start_col_width_resize(e, i) {
 	start_column_resize(handle, "col-width-handle--active", on_move);
 }
 
+function field_has_content(f) {
+	if (f.remove) return false;
+	const doc = preview_doc.value;
+	if (!doc) return true;
+	if (always_has_content(f)) return true;
+	if (f.fieldtype === "Repeater") return !!(f.source && doc[f.source]?.length);
+	if (f.fieldtype === "Table") return !!(doc[f.fieldname]?.length && f.table_columns?.length);
+	return !!doc[f.fieldname];
+}
 let has_visible_fields = computed(
 	() =>
 		!props.section.label ||
 		props.section.columns.some((col) => col.fields.some((f) => !f.remove))
+);
+let has_content = computed(
+	() =>
+		!props.section.label ||
+		props.section.columns.some((col) => col.fields.some(field_has_content))
 );
 
 let section_inline_style = computed(() => {
@@ -326,40 +340,58 @@ function remove_section() {
 	store.remove_section(props.section);
 }
 
-const { open: open_context_menu } = useContextMenu();
+const root = ref(null);
+let context_menu = null;
+const body_section = () => !props.is_header;
+const menu_options = [
+	{
+		label: __("Copy section"),
+		icon: "copy",
+		condition: body_section,
+		onclick: () => store.copy_section(props.section),
+	},
+	{
+		label: __("Duplicate section"),
+		icon: "copy-plus",
+		condition: body_section,
+		onclick: () => store.duplicate_section(props.section),
+	},
+	{
+		label: __("Save as snippet"),
+		icon: "bookmark-plus",
+		condition: body_section,
+		onclick: () => store.prompt_snippet(props.section, "Section"),
+	},
+	{
+		label: __("Paste"),
+		icon: "clipboard-paste",
+		condition: () => !!store.clipboard.value,
+		onclick: () => store.paste_clipboard(),
+	},
+	{
+		group: "",
+		hide_label: true,
+		options: [
+			{
+				label: __("Delete section"),
+				icon: "trash",
+				theme: "red",
+				condition: body_section,
+				onclick: () => remove_section(),
+			},
+		],
+	},
+];
 
-function on_context_menu(e) {
-	select_section();
-	open_context_menu(e, [
-		!props.is_header && {
-			label: __("Copy section"),
-			icon: "copy",
-			action: () => store.copy_section(props.section),
-		},
-		!props.is_header && {
-			label: __("Duplicate section"),
-			icon: "copy-plus",
-			action: () => store.duplicate_section(props.section),
-		},
-		!props.is_header && {
-			label: __("Save as snippet"),
-			icon: "bookmark-plus",
-			action: () => store.prompt_snippet(props.section, "Section"),
-		},
-		store.clipboard.value && {
-			label: __("Paste"),
-			icon: "clipboard-paste",
-			action: () => store.paste_clipboard(),
-		},
-		!props.is_header && { divider: true },
-		!props.is_header && {
-			label: __("Delete section"),
-			icon: "trash",
-			danger: true,
-			action: remove_section,
-		},
-	]);
-}
+onMounted(() => {
+	context_menu = new frappe.ui.ContextMenu({
+		target: root.value,
+		options: menu_options,
+		empty_text: __("Nothing to paste"),
+		on_open: () => select_section(),
+	});
+});
+onUnmounted(() => context_menu?.destroy());
 
 function remove_column(index) {
 	if (props.section.columns.length <= 1) return;
@@ -578,7 +610,7 @@ function remove_column(index) {
 	color: var(--text-muted);
 	font-size: var(--text-xs);
 	pointer-events: none;
-	background: var(--gray-50);
+	background: var(--surface-gray-1);
 	transition: border-color 0.15s, background 0.15s;
 }
 
@@ -620,7 +652,7 @@ function remove_column(index) {
 
 /* ── Section preview actions pill (only visible in clean-preview, hidden in edit) ── */
 .section-preview-actions {
-	display: none; /* shown via .pfb-clean-preview :deep() override */
+	display: none;
 	position: absolute;
 	bottom: calc(100% + 2px);
 	right: 4px;
@@ -698,5 +730,46 @@ function remove_column(index) {
 }
 .section--grid-columns :deep(.field--chip) {
 	border-bottom: none;
+}
+
+/* ── Preview with a live record: editor chrome off, spacing matches the PDF ── */
+.section--preview .section-toolbar {
+	display: none;
+}
+
+.section--preview .print-format-section:not(.section--grid) {
+	border: 1px solid transparent;
+	border-radius: var(--radius);
+	overflow: visible;
+	transition: border-color 0.1s;
+}
+
+.print-format-section-container.section--preview {
+	margin-bottom: 0;
+}
+
+.section--preview .section-columns {
+	padding: 0;
+}
+
+.section--preview .drag-container {
+	min-height: 0;
+}
+
+.section--preview .drag-container:not(.section--grid *) {
+	gap: 0;
+}
+
+.section--preview .section-preview-actions {
+	display: flex;
+}
+
+.section--preview:hover .section-preview-actions,
+.section--preview.pfb-section-active .section-preview-actions {
+	opacity: 1;
+}
+
+.section--preview .section-title-display {
+	display: block;
 }
 </style>

@@ -4,6 +4,7 @@
 import email.utils
 import functools
 import imaplib
+import inspect
 import time
 from datetime import datetime, timedelta
 from poplib import error_proto
@@ -30,20 +31,23 @@ class SentEmailInInbox(Exception):
 
 def cache_email_account(cache_name):
 	def decorator_cache_email_account(func):
+		signature = inspect.signature(func)
+
 		@functools.wraps(func)
 		def wrapper_cache_email_account(*args, **kwargs):
 			if not hasattr(frappe.local, cache_name):
 				setattr(frappe.local, cache_name, {})
 
 			cached_accounts = getattr(frappe.local, cache_name)
-			match_by = [*list(kwargs.values()), "default"]
-			matched_accounts = list(filter(None, [cached_accounts.get(key) for key in match_by]))
-			if matched_accounts:
-				return matched_accounts[0]
+			lookup = signature.bind(*args, **kwargs).arguments
+			match_by = (lookup.get("match_by_email"), lookup.get("match_by_doctype"))
+			if account := cached_accounts.get(match_by):
+				return account
 
-			matched_accounts = func(*args, **kwargs)
-			cached_accounts.update(matched_accounts or {})
-			return matched_accounts and next(iter(matched_accounts.values()))
+			account = func(*args, **kwargs)
+			if account:
+				cached_accounts[match_by] = account
+			return account
 
 		return wrapper_cache_email_account
 
@@ -87,7 +91,7 @@ class EmailAccount(Document):
 		default_outgoing: DF.Check
 		domain: DF.Link | None
 		dsn_notify_type: DF.Literal[
-			"SUCCESS", "FAILURE", "DELAY", "SUCCESS,FAILURE", "SUCCESS,FAILURE,DELAY", "NEVER"
+			"", "SUCCESS", "FAILURE", "DELAY", "SUCCESS,FAILURE", "SUCCESS,FAILURE,DELAY", "NEVER"
 		]
 		email_account_name: DF.Data | None
 		email_id: DF.Data
@@ -514,16 +518,16 @@ class EmailAccount(Document):
 			match_by_email = parse_addr(match_by_email)[1]
 			doc = cls.find_one_by_filters(enable_outgoing=1, email_id=match_by_email)
 			if doc:
-				return {match_by_email: doc}
+				return doc
 
 		if match_by_doctype:
 			doc = cls.find_one_by_filters(enable_outgoing=1, enable_incoming=1, append_to=match_by_doctype)
 			if doc:
-				return {match_by_doctype: doc}
+				return doc
 
 		doc = cls.find_default_outgoing()
 		if doc:
-			return {"default": doc}
+			return doc
 
 		if _raise_error:
 			frappe.throw(
@@ -717,8 +721,24 @@ class EmailAccount(Document):
 					frappe.db.rollback()
 				else:
 					frappe.db.commit()
-			else:
-				frappe.db.commit()
+
+				# leave the folder behind this mail so the next pull retries it
+				continue
+
+			if mail.imap_folder:
+				sync_from_uid = cint(mail.uid) + 1
+				frappe.db.set_value(
+					"IMAP Folder",
+					{
+						"parent": self.name,
+						"folder_name": mail.imap_folder,
+						"sync_from_uid": ("<", sync_from_uid),
+					},
+					"sync_from_uid",
+					sync_from_uid,
+					update_modified=False,
+				)
+			frappe.db.commit()
 
 		if exceptions:
 			raise Exception(frappe.as_json(exceptions))
@@ -727,7 +747,7 @@ class EmailAccount(Document):
 		"""retrive and return inbound mails."""
 		mails = []
 
-		def process_mail(messages, append_to=None):
+		def process_mail(messages, append_to=None, imap_folder=None):
 			for index, message in enumerate(messages.get("latest_messages", [])):
 				uid = messages["uid_list"][index] if messages.get("uid_list") else None
 				seen_status = messages.get("seen_status", {}).get(uid)
@@ -740,6 +760,7 @@ class EmailAccount(Document):
 							frappe.safe_decode(uid),
 							seen_status,
 							append_to,
+							imap_folder,
 						)
 					)
 
@@ -760,8 +781,10 @@ class EmailAccount(Document):
 					for folder in self.imap_folder:
 						if email_server.select_imap_folder(folder.folder_name):
 							email_server.settings["uid_validity"] = folder.uidvalidity
+							email_server.settings["sync_from_uid"] = folder.sync_from_uid
+							email_server.settings["email_sync_rule"] = self.build_email_sync_rule(folder)
 							messages = email_server.get_messages(folder=f'"{folder.folder_name}"') or {}
-							process_mail(messages, folder.append_to)
+							process_mail(messages, folder.append_to, folder.folder_name)
 				else:
 					# process the pop3 account
 					messages = email_server.get_messages() or {}
@@ -854,11 +877,14 @@ class EmailAccount(Document):
 	def after_rename(self, old, new, merge=False):
 		frappe.db.set_value("Email Account", new, "email_account_name", new)
 
-	def build_email_sync_rule(self):
+	def build_email_sync_rule(self, folder=None):
 		if not self.use_imap:
 			return "UNSEEN"
 
 		if self.email_sync_option == "ALL":
+			if folder and folder.sync_from_uid:
+				return f"UID {folder.sync_from_uid}:*"
+
 			max_uid = get_max_email_uid(self.name)
 			last_uid = max_uid + int(self.initial_sync_count or 100) if max_uid == 1 else "*"
 			return f"UID {max_uid}:{last_uid}"

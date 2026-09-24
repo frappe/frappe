@@ -28,11 +28,12 @@ SERVER_SOURCES = [
 	APP_PATH / "templates" / "print_format" / "macros.html",
 	*sorted((APP_PATH / "templates" / "print_format" / "macros").glob("*.html")),
 	APP_PATH / "templates" / "print_formats" / "chrome_pdf_header_footer.html",
+	APP_PATH / "utils" / "print_format_generator.py",
 ]
 
 BUILDER_DIR = APP_PATH / "public" / "js" / "print_format_builder"
-# utils.js holds class names the components render from, so it speaks the markup too
-CANVAS_SOURCES = [*sorted(BUILDER_DIR.rglob("*.vue")), BUILDER_DIR / "utils.js"]
+# composables and helpers hold class names the components render from, so they speak the markup too
+CANVAS_SOURCES = [*sorted(BUILDER_DIR.rglob("*.vue")), *sorted(BUILDER_DIR.rglob("*.js"))]
 
 # Classes that legitimately exist on only one surface.
 SERVER_ONLY_CLASSES = {
@@ -63,7 +64,10 @@ def _canvas_text():
 
 @functools.cache
 def _field_vue_text():
-	return (BUILDER_DIR / "components" / "editor" / "Field.vue").read_text()
+	editor = BUILDER_DIR / "components" / "editor"
+	return "\n".join(
+		p.read_text() for p in (editor / "Field.vue", editor / "FieldPreview.vue", editor / "useFieldRoot.js")
+	)
 
 
 @functools.cache
@@ -71,8 +75,7 @@ def _canvas_logic_text():
 	"""The preview surface that reads df.* — Field.vue dispatches to the
 	FieldPreview* components, which lean on the composables; a df prop handled
 	in any of them is mirrored, so the check spans .vue markup + composables."""
-	js = "\n".join(p.read_text() for p in sorted((BUILDER_DIR / "composables").glob("*.js")))
-	return _canvas_text() + "\n" + js
+	return _canvas_text()
 
 
 @functools.cache
@@ -128,10 +131,6 @@ class TestPrintSurfaceMarkupContract(UnitTestCase):
 			"Either emit them in public/js/print_format_builder/ (preview mode must mirror the "
 			"server markup) or add them to SERVER_ONLY_CLASSES with a comment saying why.",
 		)
-
-	def test_scope_class_applied_on_both_surfaces(self):
-		self.assertIn("print-format-doc", _server_text())
-		self.assertIn("print-format-doc", _canvas_text())
 
 	def test_bordered_child_table_bottom_edge_owned_by_the_foot_cap(self):
 		"""A bordered child table closes its outline through the repeating

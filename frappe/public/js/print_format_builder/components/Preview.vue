@@ -1,6 +1,6 @@
 <template>
 	<Teleport to="body">
-		<div class="pfb-preview-backdrop" @click.self="$emit('close')">
+		<div class="pfb-overlay" @click.self="$emit('close')">
 			<div class="pfb-preview-modal">
 				<div v-if="!docname" class="pfb-preview-empty">
 					{{ __("Pick a record in the toolbar above to preview it.") }}
@@ -12,7 +12,7 @@
 					{{ __("This document is a draft and cannot be printed.") }}
 				</div>
 				<div v-else-if="!preview_loaded" class="pfb-preview-empty">
-					<span class="pfb-preview-spinner" aria-hidden="true"></span>
+					<span class="es-spinner" aria-hidden="true"></span>
 					<span>{{ __("Generating preview…") }}</span>
 				</div>
 				<iframe
@@ -27,12 +27,12 @@
 </template>
 
 <script setup>
-import { useStore } from "../stores";
-import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { ref, computed, inject, onMounted, onUnmounted, watch } from "vue";
 
 const emit = defineEmits(["close"]);
 
-let { print_format, layout, store } = useStore();
+let store = inject("$store");
+let { print_format, layout, letterhead } = store;
 
 let preview_loaded = ref(false);
 let iframe = ref(null);
@@ -40,14 +40,14 @@ let pdf_url = ref(null);
 let render_seq = 0;
 let render_abort = null;
 
-let docname = computed(() => store.value.preview_doc_name);
+let docname = computed(() => store.preview_doc_name.value);
 let doctype = computed(() => print_format.value.doc_type);
 
 // draft/cancelled documents aren't printable unless Print Settings allows it (see
 // printview.validate_print_for_docstatus) — asking the server for a preview would
 // only bounce back a permission error, so skip the round trip and say so directly.
 let preview_doc_docstatus = computed(() =>
-	store.value.preview_doc?.name === docname.value ? store.value.preview_doc?.docstatus : null
+	store.preview_doc.value?.name === docname.value ? store.preview_doc.value?.docstatus : null
 );
 let unprintable_reason = computed(() => {
 	const docstatus = preview_doc_docstatus.value;
@@ -71,12 +71,12 @@ async function render() {
 	}
 	preview_loaded.value = false;
 	const params = {
-		print_format: store.value.get_preview_format_doc(),
+		print_format: store.get_preview_format_doc(),
 		doctype: doctype.value,
 		name: docname.value,
 	};
-	if (store.value.letterhead) {
-		params.letterhead = store.value.letterhead.name;
+	if (letterhead.value) {
+		params.letterhead = letterhead.value.name;
 	}
 	try {
 		const res = await fetch(
@@ -121,7 +121,11 @@ function set_pdf_url(next) {
 }
 
 // docstatus arrives async and can resolve after docname already triggered a render
-watch([docname, () => store.value.preview_doc?.docstatus], render, { flush: "post" });
+watch([docname, () => store.preview_doc.value?.docstatus], render, { flush: "post" });
+watch([() => letterhead.value?.name, layout, print_format], frappe.utils.debounce(render, 600), {
+	deep: true,
+	flush: "post",
+});
 
 function on_keydown(e) {
 	if (e.key !== "Escape") return;
@@ -142,17 +146,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.pfb-preview-backdrop {
-	position: fixed;
-	inset: 0;
-	z-index: 1035;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 24px;
-	background: rgba(0, 0, 0, 0.6);
-}
-
 .pfb-preview-modal {
 	position: relative;
 	display: flex;
@@ -177,21 +170,6 @@ onUnmounted(() => {
 	border-radius: var(--radius-lg, 8px);
 	font-size: var(--text-sm);
 	color: var(--text-color);
-}
-
-.pfb-preview-spinner {
-	width: 20px;
-	height: 20px;
-	border: 2px solid var(--gray-300);
-	border-top-color: var(--gray-600);
-	border-radius: 50%;
-	animation: pfb-preview-spin 0.7s linear infinite;
-}
-
-@keyframes pfb-preview-spin {
-	to {
-		transform: rotate(360deg);
-	}
 }
 
 .pfb-preview-iframe {

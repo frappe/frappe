@@ -219,7 +219,7 @@ function remove(i) {
 	overflow-y: auto;
 }
 .pfb-tpl-menu .dropdown-item.highlighted {
-	background: var(--gray-100);
+	background: var(--surface-gray-2);
 }
 .pfb-tpl-row {
 	width: 100%;

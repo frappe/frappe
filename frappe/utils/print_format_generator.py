@@ -6,6 +6,8 @@ from typing import ClassVar
 
 import frappe
 from frappe import _
+from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
+from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones
 from frappe.utils.data import cint
 from frappe.utils.jinja_globals import is_rtl
 
@@ -96,6 +98,9 @@ def get_qr_code(value: str) -> str:
 	"""Return a QR code for `value` as an SVG data URI (used by Barcode print elements)."""
 	import base64
 	import io
+
+	if not isinstance(value, str) or len(value) > 2000:
+		frappe.throw(_("Barcode value must be text under 2000 characters"), frappe.ValidationError)
 
 	from pyqrcode import create as qrcreate
 
@@ -247,6 +252,51 @@ def get_html(
 	return generator.get_html_preview(action_banner=action_banner, trigger_print=trigger_print)
 
 
+def page_size_mm(print_settings) -> tuple[float, float]:
+	"""Paper size in mm from Print Settings, the same table Chromium and Typst use."""
+	from frappe.utils.data import flt
+	from frappe.utils.pdf_generator.browser import PageSize
+
+	size = print_settings.get("pdf_page_size")
+	if size == "Custom":
+		return (
+			flt(print_settings.get("pdf_page_width")) or 210,
+			flt(print_settings.get("pdf_page_height")) or 297,
+		)
+	known = PageSize.page_sizes.get(size)
+	return tuple(known) if known else (210, 297)
+
+
+@frappe.whitelist()
+def get_page_size_mm():
+	"""Paper size the builder canvas should draw, in mm."""
+	return page_size_mm(frappe.get_cached_doc("Print Settings"))
+
+
+MAX_CONDITIONS = 200
+
+
+@frappe.whitelist()
+def check_conditions(doctype: str, name: str, conditions: list[str] | str):
+	"""Evaluate visibility conditions against a document the way the print does.
+	Returns {condition: {"visible": bool} | {"error": str}}; at most MAX_CONDITIONS
+	distinct expressions are evaluated per call."""
+	conditions = frappe.parse_json(conditions) if isinstance(conditions, str) else conditions
+	if not all(isinstance(v, str) for v in (doctype, name)) or not isinstance(conditions, list):
+		frappe.throw(_("Invalid arguments"), frappe.ValidationError)
+	conditions = list(dict.fromkeys(c for c in conditions if c.strip() and len(c) <= 2000))[:MAX_CONDITIONS]
+	doc = frappe.get_doc(doctype, name)
+	doc.check_permission("read")
+	eval_locals = {"doc": doc, "print_settings": frappe.get_cached_doc("Print Settings")}
+	out = {}
+	for condition in conditions:
+		try:
+			out[condition] = {"visible": bool(frappe.safe_eval(condition, None, eval_locals))}
+		except Exception as e:
+			out[condition] = {"error": str(e)[:200]}
+	return out
+
+
 class PrintFormatGenerator:
 	"""Generate a PDF of a Document using Chromium-based rendering."""
 
@@ -324,9 +374,9 @@ class PrintFormatGenerator:
 		from frappe.www.printview import run_before_print
 
 		run_before_print(self.doc, self.print_settings.as_dict())
+		self.doc.flags.absolute_value = self.print_format.absolute_value
 
-		page_width_map = {"A4": 210, "Letter": 216}
-		page_width = page_width_map.get(self.print_settings.pdf_page_size) or 210
+		page_width = page_size_mm(self.print_settings)[0]
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
 		style_name = self.style or self.print_settings.print_style
 		print_style = (
@@ -345,6 +395,7 @@ class PrintFormatGenerator:
 				"body_width": body_width,
 				"lang": frappe.local.lang,
 				"layout_direction": "rtl" if is_rtl() else "ltr",
+				"content_fieldtypes": CONTENT_FIELDTYPES,
 			}
 		)
 
@@ -551,7 +602,10 @@ class PrintFormatGenerator:
 		else:
 			# Letterhead + layout content → inline (once only, no repeat).
 			self.context.chrome_layout_header = self._render_overlay("header", with_page_no=False) or ""
-			self.context.chrome_layout_footer = self._render_overlay("footer", with_page_no=False) or ""
+			footer_once = self._render_overlay("footer", with_page_no=False)
+			self.context.chrome_layout_footer = (
+				f'<div class="print-footer-once">{footer_once}</div>' if footer_once else ""
+			)
 			# Page numbers → minimal overlay so they still repeat on every page.
 			page_no_header = self._render_page_no_overlay("header")
 			page_no_footer = self._render_page_no_overlay("footer")
@@ -619,16 +673,19 @@ class PrintFormatGenerator:
 				'<div class="letter-head">' + frappe.render_template(letterhead_html, ctx) + "</div>"
 			)
 		if layout_template:
+			zone_class = "document-header-content" if is_header else "document-footer-content"
 			if isinstance(layout_template, str):
 				# layout_template is persisted header/footer HTML from the stored Print Format document.
 				zone_html = frappe.render_template(
 					layout_template, ctx
 				)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+				if zone_html:
+					zone_html = f'<div class="{zone_class}">{zone_html}</div>'
 			else:
-				# Section object — render using the same logic as print_format.html
-				zone_html = self._render_zone_section(layout_template, ctx["doc"])
+				# Section object — same markup the HTML page emits, wrapper class included
+				zone_html = self._render_zone_section(layout_template, ctx["doc"], zone_class)
 			if zone_html:
-				body_parts.append('<div class="document-header-content">' + zone_html + "</div>")
+				body_parts.append(zone_html)
 		if not is_header and page_no_html:
 			body_parts.append(page_no_html)
 
@@ -637,59 +694,23 @@ class PrintFormatGenerator:
 		parts.extend(body_parts)
 		return "\n".join(parts) or None
 
-	_ZONE_SECTION_TEMPLATE = """\
-{%- set justify_classes = {'space-between': 'row-col-space-between', 'space-evenly': 'row-col-space-evenly', 'center': 'row-col-center', 'right-end': 'row-col-right-end'} -%}
-{%- set ns = namespace(has_fields=false) -%}
-{%- for col in section.columns -%}{%- for df in col.get('fields', []) -%}{%- set ns.has_fields = true -%}{%- endfor -%}{%- endfor -%}
-{%- if ns.has_fields -%}
-{%- set col_gap = (section.gap if section.gap is defined and section.gap is not none else 20)|string + 'px' -%}
-<div class="section section-columns row {{ justify_classes.get(section.get('justify'), '') }}" style="gap:{{ col_gap }}">
-{%- for column in section.columns %}
-<div class="column col"{% if column.get('width') %} style="flex: {{ column.get('width')|float }} 1 0%"{% endif %}>
-{%- for df in column.get('fields', []) -%}
-{%- if not df.get('_hidden') -%}
-{%- if df.fieldtype == 'HTML' and df.html -%}
-<div class="custom-html">{{ frappe.render_template(df.html, {'doc': doc}) }}</div>
-{%- elif df.fieldtype == 'Spacer' -%}
-<div style="height:{{ (df.height|int|string + 'px') if df.get('height') else '1em' }}"></div>
-{%- elif df.fieldtype == 'Divider' -%}
-<hr style="border-top:1px solid #e5e7eb;margin:4px 0"/>
-{%- elif df.fieldtype == 'Image' -%}
-{%- set _src = df.image_url or doc.get(df.fieldname) -%}
-{%- if _src -%}
-<div{% if df.align and df.align != 'left' %} style="text-align:{{ df.align }}"{% endif %}>
-<img src="{{ _src }}" style="max-width:100%;{% if df.width %}width:{{ df.width|e }};{% endif %}">
-</div>
-{%- endif -%}
-{%- elif df.fieldtype == 'Barcode' -%}
-{%- if df.get('_qr_data_uri') -%}
-<div{% if df.align and df.align != 'left' %} style="text-align:{{ df.align }}"{% endif %}>
-<img src="{{ df._qr_data_uri }}" style="{% if df.width %}width:{{ df.width|e }};{% else %}width:35mm;{% endif %}">
-</div>
-{%- endif -%}
-{%- else -%}
-{%- set _raw = doc.get(df.fieldname) -%}
-{%- if _raw is not none and _raw != '' -%}
-<div class="field-render">
-{%- if df.show_label != 'hide' %}<div class="label">{{ _(df.label or df.fieldname) }}</div>{%- endif -%}
-<div class="value">{{ doc.get_formatted(df.fieldname) }}</div>
-</div>
-{%- endif -%}
-{%- endif -%}
-{%- endif -%}
-{%- endfor -%}
-</div>
-{%- endfor %}
-</div>
-{%- endif -%}
-"""
+	_ZONE_SECTION_TEMPLATE = (
+		'{%- import "templates/print_format/macros.html" as macros -%}'
+		"{{ macros.render_zone(section, doc, zone_class) }}"
+	)
 
-	def _render_zone_section(self, section: dict, doc) -> str:
+	def _render_zone_section(self, section: dict, doc, zone_class: str = "") -> str:
 		"""Render a header/footer zone section dict to HTML for the Chrome overlay."""
+		eval_locals = {"doc": doc, "print_settings": self.print_settings}
+		for column in section.get("columns", []):
+			for df in column.get("fields", []):
+				if "renderer" not in df:
+					self._prepare_field(df, section, eval_locals)
 		# _ZONE_SECTION_TEMPLATE is a hardcoded class-level string constant, not user input.
-		return frappe.render_template(
-			self._ZONE_SECTION_TEMPLATE, {"section": section, "doc": doc}
-		)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+		html = frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+			self._ZONE_SECTION_TEMPLATE, {"section": section, "doc": doc, "zone_class": zone_class}
+		)
+		return html.strip()
 
 	def _page_number_html(self, position: str) -> str:
 		align = self._ALIGN_MAP.get(position, "center")
@@ -772,16 +793,9 @@ class PrintFormatGenerator:
 			layout[zone] = clean_zone(layout.get(zone))
 		return layout
 
-	def layout_columns(self, layout):
-		for section in layout.get("sections", []):
-			yield from section.get("columns", [])
-		for zone in ("header", "footer"):
-			zone_layout = layout.get(zone)
-			if isinstance(zone_layout, dict):
-				yield from zone_layout.get("columns", [])
-
 	@staticmethod
-	def has_field_access(doc, meta, fieldname) -> bool:
+	def has_field_access(doc, meta, fieldname, source_fieldname=None) -> bool:
+		fieldname = source_fieldname or fieldname
 		if not fieldname:
 			return True
 		df = meta.get_field(fieldname)
@@ -795,11 +809,11 @@ class PrintFormatGenerator:
 		The layout is authored against the doctype, not the reader, so a format may
 		reference permlevel-restricted fields that this user must not see."""
 		meta = self.doc.meta
-		for column in self.layout_columns(layout):
+		for column in iter_layout_columns(layout):
 			fields = [
 				df
 				for df in column.get("fields", [])
-				if self.has_field_access(self.doc, meta, df.get("fieldname"))
+				if self.has_field_access(self.doc, meta, df.get("fieldname"), df.get("source_fieldname"))
 			]
 			column["fields"] = fields
 			for df in fields:
@@ -845,7 +859,7 @@ class PrintFormatGenerator:
 		from frappe.www.printview import column_has_value
 
 		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
-		for column in self.layout_columns(layout):
+		for column in iter_layout_columns(layout):
 			for df in column.get("fields", []):
 				if df.get("fieldtype") != "Table" or not df.get("table_columns"):
 					continue
@@ -914,18 +928,9 @@ class PrintFormatGenerator:
 				section["_hidden"] = not self.eval_condition(
 					section["visible_if"], eval_locals, f"section {section.get('label') or ''}"
 				)
-			for column in section["columns"]:
-				for df in column["fields"]:
-					self._prepare_field(df, section, eval_locals)
-
-		# Also process header/footer zones if they are section objects
-		for zone_key in ("header", "footer"):
-			zone = layout.get(zone_key)
-			if isinstance(zone, dict) and "columns" in zone:
-				for column in zone.get("columns", []):
-					for df in column.get("fields", []):
-						self._prepare_field(df, zone, eval_locals)
-
+		for _where, zone in iter_zones(layout):
+			for df in iter_fields(zone):
+				self._prepare_field(df, zone, eval_locals)
 		return layout
 
 	def filter_conditional_rows(self, df):
