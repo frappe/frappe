@@ -22,7 +22,7 @@
 					<option value="Typst" :disabled="typst_blockers.length > 0">
 						{{ __("Typst (fast)") }}
 					</option>
-					<option value="WeasyPrint" :disabled="weasyprint_disabled">
+					<option v-if="renderer === 'WeasyPrint'" value="WeasyPrint" disabled>
 						{{ __("WeasyPrint") }}
 					</option>
 				</select>
@@ -189,11 +189,6 @@ let renderer = computed(() => {
 });
 let deprecation_notice = computed(() => DEPRECATION_NOTICES[renderer.value] || null);
 let hint_icon = ref(null);
-let weasyprint_disabled = computed(
-	() =>
-		has_typst_block.value ||
-		(legacy_blockers.value.length > 0 && renderer.value !== "WeasyPrint")
-);
 const bullet_list = (title, items) => [title, ...items.map((b) => "• " + b)].join("\n");
 let renderer_hint = computed(() => {
 	const parts = [];
@@ -202,7 +197,7 @@ let renderer_hint = computed(() => {
 		parts.push(__("Chromium unavailable: this format uses a Typst block."));
 	if (typst_blockers.value.length)
 		parts.push(bullet_list(__("Typst cannot render:"), typst_blockers.value));
-	if (legacy_blockers.value.length)
+	if (renderer.value === "WeasyPrint" && legacy_blockers.value.length)
 		parts.push(bullet_list(__("WeasyPrint cannot render:"), legacy_blockers.value));
 	if (!parts.length && renderer.value === "Typst") parts.push(__("Experimental"));
 	return parts.join("\n\n");
@@ -223,7 +218,7 @@ onUnmounted(() => hint_tooltip?.destroy());
 
 function set_renderer(value) {
 	if (value !== "Typst" && has_typst_block.value) return;
-	print_format.value.pdf_generator = ["Typst", "WeasyPrint"].includes(value) ? value : "chrome";
+	print_format.value.pdf_generator = value === "Typst" ? "Typst" : "chrome";
 }
 let font_options = computed(() => [
 	{ label: __("Default"), value: "" },
