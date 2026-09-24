@@ -752,6 +752,9 @@ frappe.ui.form.PrintView = class {
 			if (this.additional_settings && Object.keys(this.additional_settings).length) {
 				params.append("settings", JSON.stringify(this.additional_settings));
 			}
+			if (this.lang_code) {
+				params.append("_lang", this.lang_code);
+			}
 			let w = window.open(
 				`/api/method/frappe.utils.print_format_generator.download_pdf?${params}`
 			);
