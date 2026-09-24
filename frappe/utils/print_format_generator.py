@@ -21,9 +21,8 @@ def render_jinja_template(template: str, doctype: str, docname: str) -> str:
 	# template is rendered inside frappe's SandboxedEnvironment (Jinja2 sandbox).
 	# The caller must hold the "print" permission on the document before reaching this line.
 	try:
-		return frappe.render_template(
-			template, {"doc": doc}
-		)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+		return frappe.render_template(template, {"doc": doc})
 	except Exception as e:
 		# fail with 417 instead of 500 so the canvas can degrade inline
 		# rather than the client popping the error-report dialog
@@ -468,22 +467,18 @@ class PrintFormatGenerator:
 		return self.get_main_html()
 
 	def get_main_html(self):
-		self.context.css = frappe.render_template(
-			"templates/print_format/print_format.css", self.context
-		)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
-		return frappe.render_template(
-			"templates/print_format/print_format.html", self.context
-		)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+		self.context.css = frappe.render_template("templates/print_format/print_format.css", self.context)
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+		return frappe.render_template("templates/print_format/print_format.html", self.context)
 
 	def get_header_footer_html(self):
 		header_html = footer_html = None
 		if self.letterhead:
-			header_html = frappe.render_template(
-				"templates/print_format/print_header.html", self.context
-			)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
-			footer_html = frappe.render_template(
-				"templates/print_format/print_footer.html", self.context
-			)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+			header_html = frappe.render_template("templates/print_format/print_header.html", self.context)
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+			footer_html = frappe.render_template("templates/print_format/print_footer.html", self.context)
 		return header_html, footer_html
 
 	# ----- PDF (Chrome) --------------------------------------------------
@@ -666,9 +661,8 @@ class PrintFormatGenerator:
 				f" padding-bottom: {int(pf.margin_bottom or 0)}mm; padding-left: {int(pf.margin_left or 0)}mm;"
 				f" padding-right: {int(pf.margin_right or 0)}mm; }}"
 			)
-		font_css = frappe.render_template(
-			"templates/print_format/print_format_font.css", self.context
-		)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+		font_css = frappe.render_template("templates/print_format/print_format_font.css", self.context)
 		return f"<style>{font_css}\n@media print {{ {rule} }}</style>\n<{kind}>{inner}</{kind}>"
 
 	def _build_html_for_chrome(self):
@@ -771,8 +765,9 @@ class PrintFormatGenerator:
 		if letterhead_html:
 			body_parts.append(
 				'<div class="letter-head">'
+				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 				+ frappe.render_template(letterhead_html, ctx)
-				+ "</div>"  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+				+ "</div>"
 			)
 		if layout_template:
 			zone_class = "document-header-content" if is_header else "document-footer-content"
@@ -800,7 +795,8 @@ class PrintFormatGenerator:
 				if "renderer" not in df:
 					self._prepare_field(df, section, eval_locals)
 		# _ZONE_SECTION_TEMPLATE is a hardcoded class-level string constant, not user input.
-		html = frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+		html = frappe.render_template(
 			self._ZONE_SECTION_TEMPLATE, {"section": section, "doc": doc, "zone_class": zone_class}
 		)
 		return html.strip()
@@ -1111,7 +1107,6 @@ class PrintFormatGenerator:
 		for key in (*self._TOP_POSITIONS, *self._BOTTOM_POSITIONS):
 			text = layout.get("text_" + key)
 			if text and "{{" in text:
-				layout["text_" + key] = frappe.render_template(
-					text, self.context
-				)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+				layout["text_" + key] = frappe.render_template(text, self.context)
 		return layout
