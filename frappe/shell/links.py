@@ -15,7 +15,11 @@ def canonical_path(doctype: str, name: str | None = None) -> str:
 	app = get_doctype_owners().get(doctype, "frappe")
 	prefix = declared_prefix(app)
 
-	address = get_address_table()["doctypes"].get(doctype)
+	table = get_address_table()
+	address = table["doctypes"].get(doctype)
+	if not address and doctype in table.get("unaddressed", ()):
+		# Its slug opens another DocType; spelled by name, the link reaches not-found instead.
+		address = (doctype, "")
 	# A doctype not yet in the table still gets a link: the cache lags a new DocType until the version resets.
 	slug, module = address if address else (frappe.scrub(doctype).replace("_", "-"), "")
 

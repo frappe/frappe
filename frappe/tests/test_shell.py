@@ -1120,7 +1120,21 @@ class TestSharedSlugs(IntegrationTestCase):
 
 				self.assertEqual(table["doctypes"][older][0], "test-shared-slug")
 				self.assertNotIn(later, table["doctypes"])
+				self.assertEqual(table["unaddressed"], [later])
 				self.assertIn(f"DocType {later} has no address", warnings)
+
+	def test_a_link_to_the_later_doctype_never_opens_the_older_one(self):
+		from frappe.cache_manager import reset_metadata_version
+		from frappe.shell.links import canonical_path
+
+		older, later = "Test Shared Slug", "Test_Shared Slug"
+		for name in (older, later):
+			self.insert(new_doctype(name, issingle=1).as_dict())
+		self.created_in_order("DocType", older, later)
+		reset_metadata_version()
+
+		self.assertEqual(canonical_path(older, "X"), "/apps/desk/test-shared-slug/X")
+		self.assertEqual(canonical_path(later, "X"), "/apps/desk/Test_Shared%20Slug/X")
 
 	def test_the_older_module_keeps_a_shared_slug(self):
 		pair = ("Test Shared Module", "Test_Shared Module")
