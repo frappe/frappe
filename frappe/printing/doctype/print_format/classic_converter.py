@@ -174,6 +174,8 @@ def convert_classic_to_beta(format_data, meta, print_format=None) -> tuple[dict,
 	layout["sections"] = [
 		section for section in layout["sections"] if any(column["fields"] for column in section["columns"])
 	]
+	if not layout["sections"]:
+		layout["sections"] = create_default_layout(meta)["sections"]
 
 	for section in layout["sections"][1:]:
 		section["margin"] = {"top": CONVERTED_SECTION_GAP_PX, "right": 0, "bottom": 0, "left": 0}
