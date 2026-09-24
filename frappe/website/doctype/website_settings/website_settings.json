@@ -36,7 +36,6 @@
   "top_bar",
   "top_bar_items",
   "hide_login",
-  "navbar_search",
   "show_language_picker",
   "navbar_template_section",
   "navbar_template",
@@ -157,12 +156,6 @@
    "fieldname": "top_bar",
    "fieldtype": "Section Break",
    "label": "Navbar"
-  },
-  {
-   "default": "0",
-   "fieldname": "navbar_search",
-   "fieldtype": "Check",
-   "label": "Include Search in Top Bar"
   },
   {
    "fieldname": "top_bar_items",
@@ -483,7 +476,11 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2024-03-23 16:04:03.999928",
+=======
+ "modified": "2026-09-24 21:24:48.001117",
+>>>>>>> f5b77b1 (fix(website): remove navbar search setting)
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",
