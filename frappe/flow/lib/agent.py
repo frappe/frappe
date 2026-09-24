@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 	from flow.knowledge import Knowledge
 	from flow.lib.tool import Tool
 
-DEFAULT_MAX_ITERATIONS = 50
+DEFAULT_MAX_ITERATIONS = 100
 
 
 def sync_agents(_app: str | None = None) -> None:

@@ -72,7 +72,7 @@
    "reqd": 1
   },
   {
-   "default": "50",
+   "default": "100",
    "description": "Maximum number of think → tool → think loops before the run gives up.",
    "fieldname": "max_iterations",
    "fieldtype": "Int",

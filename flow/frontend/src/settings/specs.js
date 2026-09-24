@@ -577,7 +577,7 @@ export function newDoc(spec) {
 		else doc[field.name] = "";
 	}
 	if (spec.doctype === "Flow Agent") {
-		doc.max_iterations = 50;
+		doc.max_iterations = 100;
 		doc.token_budget = 10000000;
 	}
 	return doc;
