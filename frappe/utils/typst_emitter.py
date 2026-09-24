@@ -27,6 +27,7 @@ PX_TO_PT = 0.75
 #: the hairline stroke and muted ink every surface shares
 HAIRLINE = '0.6pt + rgb("#e5e7eb")'
 MUTED = "#6b7280"
+DEFAULT_FONT = "Inter"
 
 
 def pt(px, default=0.0) -> float:
@@ -269,6 +270,11 @@ def compile_typst_source(source: str) -> bytes:
 		return typst.compile(path, root=tmp, font_paths=typst_font_paths())
 
 
+def font_family(font: str | None) -> str:
+	"""The family the print renders in — `print_format_font.css` falls back to Inter."""
+	return font if font and font != "Default" else DEFAULT_FONT
+
+
 def ensure_typst_fonts(family: str | None):
 	"""Fetch the format's Google Font as TTFs into the site's font cache.
 
@@ -276,8 +282,7 @@ def ensure_typst_fonts(family: str | None):
 	its bundled font instead of failing the print."""
 	import os
 
-	if not family or family == "Default":
-		return
+	family = font_family(family)
 	safe_family = re.sub(r"[^A-Za-z0-9 _-]", "", family).replace(" ", "_")
 	if not safe_family:
 		return
@@ -596,8 +601,7 @@ class TypstEmitter:
 		pf = self.print_format
 		size_pt = pt(pf.font_size, 14)
 		args = [f"size: {size_pt}pt"]
-		if pf.get("font") and pf.font != "Default":
-			args.append(f'font: ({q(pf.font)}, "Libertinus Serif")')
+		args.append(f'font: ({q(font_family(pf.get("font")))}, "Libertinus Serif")')
 		value_color = safe_color(pf.get("value_color"))
 		if value_color:
 			args.append(f'fill: rgb("{value_color}")')
