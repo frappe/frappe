@@ -55,7 +55,9 @@ class FlowTool(Document):
 			warn_existing_sessions(agents)
 
 	def on_trash(self):
-		block_delete(self, always=self.type != "Server")
+		from flow.tools.builtins import BUILTIN_TOOLS
+
+		block_delete(self, always=self.name in {tool.name for tool in BUILTIN_TOOLS})
 
 	def before_rename(self, old: str, _new: str, _merge: bool = False) -> None:
 		block_rename(self, old)

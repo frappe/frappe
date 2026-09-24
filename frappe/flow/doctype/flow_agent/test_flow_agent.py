@@ -8,6 +8,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from flow import ToolContext
+from flow.assistant.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
 from flow.daemon.client import DaemonClient, DaemonError
 from flow.flow.doctype.flow_agent.flow_agent import MAX_SKILLS
 from flow.tests.test_fake_daemon import FakeDaemon
@@ -229,10 +230,15 @@ class TestFlowAgentSystemGenerated(IntegrationTestCase):
 		with self.assertRaisesRegex(frappe.ValidationError, "Cannot delete system-generated"):
 			frappe.delete_doc("Flow Agent", agent.name)
 
-	def test_delete_blocked_even_with_ignore_permissions(self):
+	def test_the_owning_app_can_delete(self):
 		agent = self._agent()
+		frappe.delete_doc("Flow Agent", agent.name, ignore_permissions=True)
+		self.assertFalse(frappe.db.exists("Flow Agent", agent.name))
+
+	def test_the_builtin_assistant_is_blocked_even_with_ignore_permissions(self):
+		sync_builtin_assistant(self.model_doc.name)
 		with self.assertRaisesRegex(frappe.ValidationError, "Cannot delete system-generated"):
-			frappe.delete_doc("Flow Agent", agent.name, ignore_permissions=True)
+			frappe.delete_doc("Flow Agent", ASSISTANT_AGENT_TITLE, ignore_permissions=True)
 
 	def test_cannot_rename(self):
 		agent = self._agent()

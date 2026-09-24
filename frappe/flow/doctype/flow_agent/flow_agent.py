@@ -71,7 +71,9 @@ class FlowAgent(Document):
 			warn_existing_sessions([self.name])
 
 	def on_trash(self):
-		block_delete(self, always=True)
+		from flow.assistant.assistant import ASSISTANT_AGENT_TITLE
+
+		block_delete(self, always=self.name == ASSISTANT_AGENT_TITLE)
 
 	def before_rename(self, old: str, _new: str, _merge: bool = False) -> None:
 		block_rename(self, old)

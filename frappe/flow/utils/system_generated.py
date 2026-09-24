@@ -56,8 +56,8 @@ def _table_links(doc, fieldname: str) -> tuple[list, list]:
 
 
 def block_delete(doc, always: bool = False) -> None:
-	"""Call from on_trash. `always=True` blocks even the owning app — for rows Flow
-	itself ships (builtin agent/tools) that must never disappear."""
+	"""Call from on_trash. The owning app deletes with ignore_permissions, e.g. in a patch
+	after a rename; `always=True` blocks even that, for Flow's own builtin agent and tools."""
 	if doc.is_system_generated and (always or not doc.flags.ignore_permissions):
 		frappe.throw(
 			_("Cannot delete system-generated {0} {1}.").format(_(doc.doctype), doc.name),
