@@ -249,9 +249,9 @@ class PrintFormatGenerator:
 			zone = unwrap_zone(layout.get(key))
 			if isinstance(zone, dict):
 				self.set_field_renderers({"sections": [zone]})
-				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 				zone = (
 					"{% raw %}"
+					# nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 					+ frappe.render_template(f"{TEMPLATE_DIR}/zone.html", {"zone": zone, "doc": self.doc})
 					+ "{% endraw %}"
 				)
