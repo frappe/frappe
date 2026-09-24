@@ -149,7 +149,7 @@ def cast_client_values(document: "Document"):
 				continue
 			try:
 				row.set(df.fieldname, cast(df.fieldtype, value))
-			except frappe.ValidationError:
+			except (frappe.ValidationError, ValueError):
 				pass
 
 
