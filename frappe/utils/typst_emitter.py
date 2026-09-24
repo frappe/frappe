@@ -27,6 +27,9 @@ PX_TO_PT = 0.75
 #: the hairline stroke and muted ink every surface shares
 HAIRLINE = '0.6pt + rgb("#e5e7eb")'
 MUTED = "#6b7280"
+DEFAULT_FONT = "Inter"
+SHRINK_JUSTIFY = ("center", "right-end", "space-between", "space-evenly")
+FULL_WIDTH_FIELDTYPES = ("Divider",)
 
 
 def pt(px, default=0.0) -> float:
@@ -269,15 +272,46 @@ def compile_typst_source(source: str) -> bytes:
 		return typst.compile(path, root=tmp, font_paths=typst_font_paths())
 
 
+def font_family(font: str | None) -> str:
+	"""The family the print renders in — `print_format_font.css` falls back to Inter."""
+	return font if font and font != "Default" else DEFAULT_FONT
+
+
 def ensure_typst_fonts(family: str | None):
 	"""Fetch the format's Google Font as TTFs into the site's font cache.
 
 	Best-effort: offline or unknown families log once and Typst falls back to
-	its bundled font instead of failing the print."""
+	its bundled font instead of failing the print. Only a font the format asks
+	for is fetched here; the default is queued, so no print waits on it."""
+	if family and family != "Default":
+		return fetch_typst_font(family)
+	if _font_cache_path(DEFAULT_FONT):
+		return
+	try:
+		frappe.enqueue(
+			"frappe.utils.typst_emitter.fetch_typst_font",
+			family=DEFAULT_FONT,
+			job_id=f"typst-font-{DEFAULT_FONT}",
+			deduplicate=True,
+		)
+	except Exception:
+		frappe.log_error(title=f"Typst font fetch could not be queued: {DEFAULT_FONT}")
+
+
+def _font_cache_path(family: str) -> str | None:
+	"""The cache directory for a family once it holds something."""
 	import os
 
-	if not family or family == "Default":
-		return
+	safe_family = re.sub(r"[^A-Za-z0-9 _-]", "", family).replace(" ", "_")
+	if not safe_family:
+		return None
+	path = os.path.join(frappe.get_site_path("private", "files", "typst_fonts"), safe_family)
+	return path if os.path.isdir(path) and os.listdir(path) else None
+
+
+def fetch_typst_font(family: str):
+	import os
+
 	safe_family = re.sub(r"[^A-Za-z0-9 _-]", "", family).replace(" ", "_")
 	if not safe_family:
 		return
@@ -393,6 +427,11 @@ def safe_color(value, default=None):
 	return default
 
 
+def hairline(color=None) -> str:
+	color = safe_color(color)
+	return f'0.6pt + rgb("{color}")' if color else HAIRLINE
+
+
 def muted_text(text, color=MUTED) -> str:
 	return f'#text(size: 0.85em, fill: rgb("{color}"), {q(text)})'
 
@@ -411,14 +450,36 @@ def _fr_widths(columns) -> list[str]:
 	return widths
 
 
+def _list_markers(value: str) -> str:
+	"""Numbers `<ol>` items and bullets `<ul>` ones, the way the browser draws them.
+
+	Innermost lists are marked first so a nested list does not take its items
+	from the list around it."""
+
+	def mark(match):
+		body = match.group(2)
+		if match.group(1).lower() == "ol":
+			items = re.split(r"<li[^>]*>", body, flags=re.I)[1:]
+			return "\n" + "".join(f"<x-li>{i}. {item}" for i, item in enumerate(items, 1))
+		return "\n" + re.sub(r"<li[^>]*>", "<x-li>\u2022 ", body, flags=re.I)
+
+	pattern = re.compile(r"<(ol|ul)[^>]*>((?:(?!<[ou]l[^>]*>).)*?)</\1>", re.I | re.S)
+	while True:
+		value, count = pattern.subn(mark, value)
+		if not count:
+			break
+	return value
+
+
 def _text_value(html_ish: str) -> str:
 	"""Formatted values may carry markup (Text Editor, address_display); keep the
 	line structure, drop the tags."""
 	value = str(html_ish or "")
 	if "<" not in value:
 		return value
-	value = re.sub(r"<br\s*/?>", "\n", value, flags=re.I)
-	value = re.sub(r"</(p|div|tr|li|h[1-6])>", "\n", value, flags=re.I)
+	value = _list_markers(value)
+	value = re.sub(r"<br\s*/?>[ \t]*\n?", "\n", value, flags=re.I)
+	value = re.sub(r"</(p|div|tr|li|h[1-6])>[ \t]*\n?", "\n", value, flags=re.I)
 	value = frappe.utils.strip_html(value)
 	return unescape_html(value).strip()
 
@@ -581,8 +642,7 @@ class TypstEmitter:
 		pf = self.print_format
 		size_pt = pt(pf.font_size, 14)
 		args = [f"size: {size_pt}pt"]
-		if pf.get("font") and pf.font != "Default":
-			args.append(f'font: ({q(pf.font)}, "Libertinus Serif")')
+		args.append(f'font: ({q(font_family(pf.get("font")))}, "Libertinus Serif")')
 		value_color = safe_color(pf.get("value_color"))
 		if value_color:
 			args.append(f'fill: rgb("{value_color}")')
@@ -596,7 +656,8 @@ class TypstEmitter:
 		columns = [c for c in section.get("columns") or [] if isinstance(c, dict)]
 		if not columns:
 			return ""
-		rendered_columns = [self._column(section, c) for c in columns]
+		shrink = section.get("justify") in SHRINK_JUSTIFY
+		rendered_columns = [self._column(section, c, shrink=shrink) for c in columns]
 		if not any(rendered_columns):
 			return ""
 
@@ -623,7 +684,7 @@ class TypstEmitter:
 	def _section_block_args(self, section) -> list[str]:
 		args = ["width: 100%"]
 		if section.get("field_borders"):
-			args.append(f"stroke: {HAIRLINE}")
+			args.append(f"stroke: {hairline(section.get('border_color'))}")
 			args.append("radius: 4pt")
 			pad = frappe.utils.flt(section.get("cell_padding"), 0) or 8
 			args.append(f"inset: {pt(pad)}pt")
@@ -689,7 +750,8 @@ class TypstEmitter:
 			gutter = pad
 			divided = [cells[0]]
 			for cell in cells[1:]:
-				divided.append(f"grid.cell(stroke: (left: {HAIRLINE}), inset: (left: {pad}pt))" + cell)
+				rule = hairline(section.get("border_color"))
+				divided.append(f"grid.cell(stroke: (left: {rule}), inset: (left: {pad}pt))" + cell)
 			return (
 				f"#grid(columns: ({', '.join(widths)}), column-gutter: {gutter}pt, align: top,\n"
 				+ ",\n".join(divided)
@@ -701,21 +763,43 @@ class TypstEmitter:
 			+ ")"
 		)
 
-	def _column(self, section, column) -> str:
-		parts = [self._field(section, df) for df in column.get("fields") or []]
-		parts = [p for p in parts if p]
+	def _column(self, section, column, shrink=False) -> str:
+		rendered = [(df, self._field(section, df)) for df in column.get("fields") or []]
+		rendered = [(df, body) for df, body in rendered if body]
+		parts = [body for _, body in rendered]
 		if not parts:
 			return ""
 		if section.get("field_borders") and section.get("grid_borders") != "columns" and len(parts) > 1:
 			pad = pt(section.get("cell_padding"), 8)
 			ruled = [
-				f"#block(width: 100%, stroke: (bottom: {HAIRLINE}), inset: (bottom: {pad}pt))[{p}]"
+				f"#block(width: 100%, stroke: (bottom: {hairline(section.get('border_color'))}), inset: (bottom: {pad}pt))[{p}]"
 				for p in parts[:-1]
 			] + [parts[-1]]
-			return f"#stack(spacing: {pad}pt,\n" + ",\n".join(f"[{p}]" for p in ruled) + ")"
-		if len(parts) == 1:
-			return parts[0]
-		return "#stack(spacing: 8pt,\n" + ",\n".join(f"[{p}]" for p in parts) + ")"
+			body = f"#stack(spacing: {pad}pt,\n" + ",\n".join(f"[{p}]" for p in ruled) + ")"
+		elif len(parts) == 1:
+			body = parts[0]
+		else:
+			body = "#stack(spacing: 8pt,\n" + ",\n".join(f"[{p}]" for p in parts) + ")"
+		return self._shrink_to_content(rendered, body) if shrink else body
+
+	@staticmethod
+	def _shrink_to_content(rendered, body: str) -> str:
+		"""A column that a justify pushes around must not be widened by the blocks
+		that ask for the full width — measure the rest and hold the column to it."""
+		natural = [b for df, b in rendered if df.get("fieldtype") not in FULL_WIDTH_FIELDTYPES]
+		if not natural or len(natural) == len(rendered):
+			return body
+		ruler = (
+			natural[0]
+			if len(natural) == 1
+			else "#stack(spacing: 8pt,\n" + ",\n".join(f"[{p}]" for p in natural) + ")"
+		)
+		return (
+			"#layout(size => {\n"
+			f"let w = measure([{ruler}], width: size.width).width\n"
+			f"block(width: w)[{body}]\n"
+			"})"
+		)
 
 	# ── fields ──────────────────────────────────────────────────
 
@@ -847,7 +931,7 @@ class TypstEmitter:
 			if align in ("right",):
 				body = f"#grid(columns: (1fr, auto), column-gutter: {gap_pt}pt, [{label}], [#align(right)[{value_text}]])"
 			else:
-				body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
+				body = f"#grid(columns: (auto, auto), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
 			return self._text_props(df, body)
 		spacing = gap_effect if gap_effect is not None else 4
 		parts = [f"[{label}]"] if label else []
@@ -1037,10 +1121,11 @@ class TypstEmitter:
 		header_bg = None if header_mode == "plain" else safe_color(df.get("table_header_bg")) or "#f3f4f6"
 		# full grid when explicitly bordered or table_style is bordered; otherwise
 		# lined — horizontal rules between rows, matching the child-table classes
+		rule = hairline(df.get("table_border_color"))
 		if df.get("table_bordered") is not False or df.get("table_style") == "bordered":
-			stroke = HAIRLINE
+			stroke = rule
 		else:
-			stroke = f"(_, y) => if y > 0 {{ (top: {HAIRLINE}) }}"
+			stroke = f"(_, y) => if y > 0 {{ (top: {rule}) }}"
 
 		parts = [
 			f"columns: ({', '.join(widths)})",
@@ -1055,7 +1140,24 @@ class TypstEmitter:
 		else:
 			cells = []
 		cells += [f"[{cell}]" for cell in body_cells]
-		return self._block_label(df) + "#table(" + ", ".join(parts) + ",\n" + ",\n".join(cells) + ")"
+		table = "table(" + ", ".join(parts) + ",\n" + ",\n".join(cells)
+		return self._block_label(df) + self._min_height(df, table, len(columns), stroke == rule)
+
+	@staticmethod
+	def _min_height(df, table: str, ncols: int, bordered: bool) -> str:
+		"""A minimum height leaves space below the last row inside the frame, as the
+		HTML foot cap does: the slack becomes one empty cell spanning every column."""
+		min_height = pt(df.get("table_min_height"))
+		if not min_height:
+			return "#" + table + ")"
+		cap = f"table.cell(colspan: {ncols}, inset: 0pt{'' if bordered else ', stroke: none'})[#v({min_height}pt - h)]"
+		return (
+			"#layout(size => {\n"
+			f"let tbl = {table})\n"
+			"let h = measure(tbl, width: size.width).height\n"
+			f"if h < {min_height}pt {{ {table},\n{cap}) }} else {{ tbl }}\n"
+			"})"
+		)
 
 	def _block_label(self, df) -> str:
 		if not df.get("label") or (df.get("show_label") or "show") == "hide":
