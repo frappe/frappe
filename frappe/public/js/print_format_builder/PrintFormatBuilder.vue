@@ -511,6 +511,16 @@ const doc_picker_df = computed(() => {
 function pick_initial_doc() {
 	const st = $store;
 	const meta = st.meta.value;
+	if (!frappe.perm.has_perm(meta?.name, 0, "read")) {
+		no_records.value = true;
+		frappe.show_alert({
+			message: __("You cannot read {0} documents, so there is nothing to preview", [
+				__(meta?.name),
+			]),
+			indicator: "orange",
+		});
+		return;
+	}
 	const saved = st.persisted_preview_doc_name();
 	const auto_select = () =>
 		frappe.db
