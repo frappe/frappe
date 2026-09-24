@@ -317,16 +317,7 @@ frappe.printing.convert_to_builder = function (doc) {
 			[doc.name.bold()]
 		),
 		() => {
-			frappe.xcall(method + "convert_to_builder", { name: doc.name }).then((r) => {
-				if (r.dropped?.length) {
-					frappe.show_alert({
-						message: __("Left out fields no longer on {0}: {1}", [
-							__(doc.doc_type),
-							r.dropped.join(", "),
-						]),
-						indicator: "orange",
-					});
-				}
+			frappe.xcall(method + "convert_to_builder", { name: doc.name }).then(() => {
 				frappe.model.clear_doc("Print Format", doc.name);
 				frappe.set_route("print-format-builder-beta", doc.name);
 			});
