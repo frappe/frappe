@@ -102,6 +102,7 @@ function load_print_format_builder(wrapper, force = false) {
 
 function mount_print_format_builder(wrapper, $parent, print_format) {
 	frappe.require("print_format_builder.bundle.js").then(() => {
+		if (frappe.get_route()[1] !== print_format) return;
 		frappe.print_format_builder = new frappe.ui.PrintFormatBuilder({
 			wrapper: $parent,
 			page: wrapper.page,
