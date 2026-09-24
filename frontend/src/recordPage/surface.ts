@@ -3,7 +3,7 @@
 import { markRaw, reactive } from "vue";
 import { runningSource } from "./context";
 import { ensureIcons } from "./iconClasses";
-import { StagedOps } from "./staging";
+import { StagedOverlay } from "./staging";
 import type { Position, SurfaceItem, SurfaceVerbs } from "./types";
 
 export interface ResolvedItem<Item extends SurfaceItem = SurfaceItem> {
@@ -30,13 +30,17 @@ export interface Vocabulary {
 	keys: readonly string[];
 }
 
-export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceVerbs<Item> {
-	private staged = new StagedOps<Op<Item>>(reactive([]));
+export class Surface<Item extends SurfaceItem = SurfaceItem>
+	extends StagedOverlay<Op<Item>>
+	implements SurfaceVerbs<Item>
+{
 	private saidKeys = new Set<string>();
 	private builtins: () => Item[] = () => [];
 
 	/** Without a vocabulary every key is kept. */
-	constructor(private readonly vocabulary?: Vocabulary) {}
+	constructor(private readonly vocabulary?: Vocabulary) {
+		super(reactive([]));
+	}
 
 	// A block splices as a unit at the anchor: the first item takes the caller's
 	// position and each one after it follows the one before.
@@ -87,19 +91,19 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 	// Resolves over the replay or hold in flight: a source that calls `add('x')` and then
 	// `has('x')` in its own handler is told about its own work.
 	has(name: string) {
-		return this.fold(this.staged.current).some((entry) => entry.item.name === name);
+		return this.fold(this.currentOps).some((entry) => entry.item.name === name);
 	}
 
 	// Host side, reading the way `has` reads: `activate` asks this to tell a hidden tab from an absent one.
 	isVisible(name: string) {
-		return this.fold(this.staged.current).some(
+		return this.fold(this.currentOps).some(
 			(entry) => entry.item.name === name && !entry.hidden,
 		);
 	}
 
-	// Host side, reading the way `has` reads: the item as the replay in flight would render it.
+	// Host side, reading the way `has` reads: the item as the replay or hold in flight would render it.
 	find(name: string): Item | undefined {
-		return this.fold(this.staged.current).find((entry) => entry.item.name === name)?.item;
+		return this.fold(this.currentOps).find((entry) => entry.item.name === name)?.item;
 	}
 
 	// Host side, below: not part of what a script may call.
@@ -108,32 +112,9 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 		this.builtins = get;
 	}
 
-	/** Opens a replay: ops stage until the last open replay or hold commits. */
-	beginReplay() {
-		this.staged.beginReplay();
-	}
-
-	/** Opens a hold: one handler's ops stage over what is drawn and publish together. */
-	beginHold() {
-		this.staged.beginHold();
-	}
-
-	commitReplay() {
-		this.closeStaging();
-	}
-
-	commitHold() {
-		this.closeStaging();
-	}
-
-	/** Draws what has staged so far, less one source's ops, and keeps staging. */
-	publishStaged(except?: string) {
-		this.staged.publishStaged(except);
-	}
-
 	/** The rendered arrangement: committed ops only, never a replay or hold in flight. */
 	resolve(): ResolvedItem<Item>[] {
-		return this.fold(this.staged.committed);
+		return this.fold(this.drawnOps);
 	}
 
 	visible(): Item[] {
@@ -142,24 +123,15 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 			.map((entry) => entry.item);
 	}
 
+	/** Whether the item shows in what is drawn, a replay or hold in flight left out. */
+	isDrawn(name: string) {
+		return this.visible().some((item) => item.name === name);
+	}
+
 	visibleInReplay(): Item[] {
-		return this.fold(this.staged.current)
+		return this.fold(this.currentOps)
 			.filter((entry) => !entry.hidden)
 			.map((entry) => entry.item);
-	}
-
-	/** True while a replay or a hold is open; acts wait for the commit. */
-	protected get staging() {
-		return this.staged.isStaging;
-	}
-
-	/** True when this closed the last open replay or hold, which publishes. */
-	protected closeStaging() {
-		return this.staged.commit();
-	}
-
-	private record(op: Op<Item>) {
-		this.staged.record(op);
 	}
 
 	// `has`, `find` and a later `update` must not see a dropped key.

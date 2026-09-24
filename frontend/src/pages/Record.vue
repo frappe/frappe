@@ -205,7 +205,6 @@ const docinfo = ref<DocInfo | null>(null);
 const linkTitles = ref<Record<string, string>>({});
 const error = ref("");
 const controller = shallowRef<RecordPageController | null>(null);
-// The frame and the body wait for the first replay's commit; the skeletons hold their place.
 const painted = computed(() => (controller.value?.ready.value ? controller.value : null));
 // The doctype's Side Panel layout, or nothing: the panel never falls back to the Details layout.
 const panelLayout = shallowRef<UseFormLayout | null>(null);
@@ -334,6 +333,7 @@ useLiveClientScripts({
 	doctype,
 	dirty: () => dirty.value,
 	ready: () => controller.value?.ready.value ?? false,
+	replaying: () => controller.value?.isReplaying.value ?? false,
 	refresh: () => controller.value?.refresh(),
 });
 

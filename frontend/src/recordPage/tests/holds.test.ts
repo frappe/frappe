@@ -70,16 +70,20 @@ function action(name: string) {
   return { name, label: name, run: () => {} };
 }
 
-/** How many times the drawn quick actions changed, counted by a sync effect over `resolve()`. */
+/** How many times each drawn overlay changed, counted by a sync effect over its `resolve()`. */
 function countPaints(controller: ReturnType<typeof makePage>["controller"]) {
-  const paints = { count: -1 };
-  watchEffect(
-    () => {
-      controller.quickActions.resolve();
-      paints.count += 1;
-    },
-    { flush: "sync" },
-  );
+  const paints = { count: -1, fields: -1, formTabs: -1 };
+  const count = (key: keyof typeof paints, read: () => unknown) =>
+    watchEffect(
+      () => {
+        read();
+        paints[key] += 1;
+      },
+      { flush: "sync" },
+    );
+  count("count", () => controller.quickActions.resolve());
+  count("fields", () => controller.fields.resolve());
+  count("formTabs", () => controller.form.tabs.resolve());
   return paints;
 }
 
@@ -205,10 +209,14 @@ describe("a hold and a replay that overlap", () => {
   it("publish once, when the hold that outlives the replay ends", async () => {
     const pause = gate();
     await register("deal", {
-      onRefresh: (page: RecordPageApi) => page.quickActions.add(action("replayed")),
+      onRefresh: (page: RecordPageApi) => {
+        page.quickActions.add(action("replayed"));
+        page.fields.hide("rate");
+      },
       qty: async (page: RecordPageApi) => {
         await pause.opened;
         page.quickActions.add(action("held"));
+        page.form.tabs.hide("notes");
       },
     });
     const { controller } = makePage();
@@ -217,11 +225,11 @@ describe("a hold and a replay that overlap", () => {
 
     const firing = controller.fireEvent("qty");
     await controller.refresh();
-    expect(paints.count).toBe(0);
+    expect(paints).toEqual({ count: 0, fields: 0, formTabs: 0 });
     pause.open();
     await firing;
 
-    expect(paints.count).toBe(1);
+    expect(paints).toEqual({ count: 1, fields: 1, formTabs: 1 });
     expect(drawn(controller)).toEqual(["replayed", "held"]);
   });
 
@@ -231,9 +239,15 @@ describe("a hold and a replay that overlap", () => {
     await register("deal", {
       onRefresh: async (page: RecordPageApi) => {
         page.quickActions.add(action("replayed"));
-        if (++replays > 1) await pause.opened;
+        if (++replays > 1) {
+          page.fields.hide("rate");
+          await pause.opened;
+        }
       },
-      qty: (page: RecordPageApi) => page.quickActions.add(action("held")),
+      qty: (page: RecordPageApi) => {
+        page.quickActions.add(action("held"));
+        page.form.tabs.hide("notes");
+      },
     });
     const { controller } = makePage();
     await controller.refresh();
@@ -242,11 +256,11 @@ describe("a hold and a replay that overlap", () => {
     const replaying = controller.refresh();
     await vi.waitFor(() => expect(replays).toBe(2));
     await controller.fireEvent("qty");
-    expect(paints.count).toBe(0);
+    expect(paints).toEqual({ count: 0, fields: 0, formTabs: 0 });
     pause.open();
     await replaying;
 
-    expect(paints.count).toBe(1);
+    expect(paints).toEqual({ count: 1, fields: 1, formTabs: 1 });
     expect(drawn(controller)).toEqual(["replayed", "held"]);
   });
 });

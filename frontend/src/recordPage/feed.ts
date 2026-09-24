@@ -4,8 +4,10 @@ import { ref } from "vue";
 import { dayjs } from "frappe-ui";
 import { compareActivities } from "@framework/ui/ActivityTimeline";
 import { currentSession } from "@framework/ui/composables/useSession";
+import { runningSource } from "./context";
 import { readOnly } from "./readOnly";
-import { Surface } from "./surface";
+import { NOT_DRAWN } from "./staging";
+import { BUILTIN, Surface } from "./surface";
 import { FEED_ITEM_KEYS } from "./types";
 import type {
   ActivityItem,
@@ -104,6 +106,11 @@ abstract class FeedSurface<Row extends Timed> extends Surface<FeedItem> {
     );
   }
 
+  /** A script's row the buffer holds and the page has not drawn yet. */
+  protected isUndrawn(name: string) {
+    return super.has(name) && !this.isDrawn(name);
+  }
+
   private isServerRow(name: string) {
     return this.serverItems().some((row) => row.name === name);
   }
@@ -119,8 +126,8 @@ abstract class FeedSurface<Row extends Timed> extends Surface<FeedItem> {
 }
 
 export class ActivitySurface extends FeedSurface<ActivityItem> implements PageActivity {
-  // A replay's `types` waits for the commit, as its ops do.
-  private stagedTypes: VisibleTypes | null = null;
+  // `types` stages with its source, as an op does; the first entry is what the buffer starts from.
+  private stagedTypes: { source: string; list: VisibleTypes | null }[] = [];
   private shown = ref<VisibleTypes | null>(null);
   private heldScroll: string | null = null;
 
@@ -139,7 +146,7 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
   }
 
   types(list: VisibleTypes) {
-    if (this.staging) this.stagedTypes = [...list];
+    if (this.staging) this.stagedTypes.push({ source: runningSource(), list: [...list] });
     else this.showTypes([...list]);
   }
 
@@ -150,27 +157,36 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
     return this.shown.value;
   }
 
-  releaseScroll() {
+  /** `drawnOnly` at the first paint that went ahead: a row of a script's not drawn yet is dropped. */
+  releaseScroll(drawnOnly = false) {
     const key = this.heldScroll;
     this.heldScroll = null;
-    if (key) void this.deliverScroll(key);
+    if (!key) return;
+    if (drawnOnly && this.isUndrawn(key))
+      this.warn("scrollTo", key, `${NOT_DRAWN}; the reader was not moved`);
+    else void this.deliverScroll(key);
   }
 
   beginReplay() {
-    this.stagedTypes = null;
+    this.stagedTypes = [{ source: BUILTIN, list: null }];
     super.beginReplay();
   }
 
   // A hold starts from the types on screen, as its ops start from the drawn list.
   beginHold() {
-    if (!this.staging) this.stagedTypes = this.shown.value;
+    if (!this.staging) this.stagedTypes = [{ source: BUILTIN, list: this.shown.value }];
     super.beginHold();
   }
 
-  protected closeStaging() {
-    const last = super.closeStaging();
-    if (last) this.showTypes(this.stagedTypes);
+  commit() {
+    const last = super.commit();
+    if (last) this.showTypes(this.typesWithout());
     return last;
+  }
+
+  publishStaged(except?: string) {
+    super.publishStaged(except);
+    if (this.staging) this.showTypes(this.typesWithout(except));
   }
 
   protected serverItems(): ActivityItem[] {
@@ -183,6 +199,10 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
     } catch (error) {
       console.error(`[record-page] page.activity.scrollTo("${key}") — the host threw`, error);
     }
+  }
+
+  private typesWithout(except?: string) {
+    return this.stagedTypes.findLast((write) => write.source !== except)?.list ?? null;
   }
 
   // Same list, same value: a new array would make the host read the feed again.

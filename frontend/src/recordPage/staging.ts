@@ -2,30 +2,23 @@
 // the last of them commits.
 import { toRaw } from "vue";
 
-export class StagedOps<Op extends { source: string }> {
+/** Why a held act is dropped when the first paint goes ahead without its target. */
+export const NOT_DRAWN = "the first paint went ahead without it";
+
+/** What the page opens, closes and publishes on every overlay a replay or a hold stages. */
+export interface Staging {
+  beginReplay(): void;
+  beginHold(): void;
+  commit(): void;
+  publishStaged(except?: string): void;
+}
+
+export abstract class StagedOverlay<Op extends { source: string }> implements Staging {
   private pending: Op[] | null = null;
   private depth = 0;
 
   /** `drawn` is the reactive list the host renders from. */
   constructor(private readonly drawn: Op[]) {}
-
-  /** What the host renders: committed ops only. */
-  get committed(): Op[] {
-    return this.drawn;
-  }
-
-  /** What a script reads back: the buffer while one is open. */
-  get current(): Op[] {
-    return this.pending ?? this.drawn;
-  }
-
-  get isStaging() {
-    return this.depth > 0;
-  }
-
-  record(op: Op) {
-    this.current.push(op);
-  }
 
   /** A replay rebuilds from built-ins, so it empties the buffer even inside a hold. */
   beginReplay() {
@@ -53,6 +46,25 @@ export class StagedOps<Op extends { source: string }> {
   /** Draws the buffer as it stands, less one source's ops, and keeps staging. */
   publishStaged(except?: string) {
     if (this.pending) this.publish(this.pending.filter((op) => op.source !== except));
+  }
+
+  /** What the host renders: committed ops only. */
+  protected get drawnOps(): Op[] {
+    return this.drawn;
+  }
+
+  /** What a script reads back: the buffer while one is open. */
+  protected get currentOps(): Op[] {
+    return this.pending ?? this.drawn;
+  }
+
+  /** True while a replay or a hold is open; acts wait for the commit. */
+  protected get staging() {
+    return this.depth > 0;
+  }
+
+  protected record(op: Op) {
+    this.currentOps.push(op);
   }
 
   private publish(staged: Op[]) {

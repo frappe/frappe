@@ -10,7 +10,7 @@ import { runningSource } from "./context";
 import { withAccess } from "./formLayoutSource/fieldAccess";
 import { applyFieldPatch, type FieldPatch } from "./formLayoutSource/fieldPatch";
 import { readOnly, type ReadOnlyAdvice } from "./readOnly";
-import { StagedOps } from "./staging";
+import { StagedOverlay } from "./staging";
 import type { PageField, PageFieldPatch, PageFields } from "./types";
 
 const SNAPSHOT_IS_READ_ONLY: ReadOnlyAdvice = {
@@ -84,17 +84,15 @@ type Op =
   | { verb: "hide" | "show"; source: string; fieldname: string }
   | { verb: "update"; source: string; fieldname: string; patch: FieldPatch };
 
-export class FieldsSurface implements PageFields {
-  // Reactive so the host's layout re-joins on a replay. Shallow: a deep proxy would
-  // hand `v-bind` a Proxy of whatever a script put in `props`, breaking a class instance.
-  // Staged until the replay or hold commits, so a script-hidden field does not flash
-  // into view for a tick on every save.
-  private staged = new StagedOps<Op>(shallowReactive([]));
-
+export class FieldsSurface extends StagedOverlay<Op> implements PageFields {
   /** Installed by `createRecordPage`, which holds the replay state a focus waits on. */
   declare focus: (fieldname: string) => void;
 
-  constructor(private host: FieldsSurfaceHost) {}
+  // Shallow: a deep proxy would hand `v-bind` a Proxy of whatever a script put in
+  // `props`, breaking a class instance.
+  constructor(private host: FieldsSurfaceHost) {
+    super(shallowReactive([]));
+  }
 
   hide(fieldname: string) {
     this.record({ verb: "hide", source: runningSource(), fieldname });
@@ -127,51 +125,34 @@ export class FieldsSurface implements PageFields {
       this.warnIfAbsent(fieldname, "get");
       return null;
     }
-    // The same calls the join makes, in the same order, so the reader cannot drift from the renderer.
-    const node = mapField(
-      withAccess(raw, (field) => this.host.fieldAccess(field.fieldname)),
-      {},
-      this.host.decorate,
-    );
     // Over the replay or hold in flight when there is one, as `Surface.has` reads: a
     // source reading back its own work is told about it, not about what is drawn.
-    const patched = applyFieldPatch(node, this.fold(this.staged.current)[fieldname]);
-    const resolved = resolveFieldConditionals(patched, this.host.doc());
+    const resolved = this.resolveField(raw, this.currentOps);
     return readOnly(snapshot(resolved), SNAPSHOT_IS_READ_ONLY);
   }
 
   // Host side, below: not part of what a script may call.
 
-  /** Opens a replay: ops from here are staged. Counted, so a nested `page.refresh()` re-enters. */
-  beginReplay() {
-    this.staged.beginReplay();
-  }
-
-  /** Opens a hold: ops stage over what is drawn until the last open replay or hold commits. */
-  beginHold() {
-    this.staged.beginHold();
-  }
-
-  commitReplay() {
-    this.staged.commit();
-  }
-
-  commitHold() {
-    this.staged.commit();
-  }
-
-  /** Draws what has staged so far, less one source's ops, and keeps staging. */
-  publishStaged(except?: string) {
-    this.staged.publishStaged(except);
+  /** Whether the field shows in what is drawn, a replay or hold in flight left out. */
+  isDrawn(fieldname: string) {
+    const raw = this.raw(fieldname);
+    return !!raw && !this.resolveField(raw, this.drawnOps).hidden;
   }
 
   /** The applied overlay: committed ops only, never a replay or hold in flight. */
   resolve(): Record<string, FieldPatch> {
-    return this.fold(this.staged.committed);
+    return this.fold(this.drawnOps);
   }
 
-  private record(op: Op) {
-    this.staged.record(op);
+  // The same calls the join makes, in the same order, so the reader cannot drift from the renderer.
+  private resolveField(raw: RawMetaField, ops: Op[]) {
+    const node = mapField(
+      withAccess(raw, (field) => this.host.fieldAccess(field.fieldname)),
+      {},
+      this.host.decorate,
+    );
+    const patched = applyFieldPatch(node, this.fold(ops)[raw.fieldname]);
+    return resolveFieldConditionals(patched, this.host.doc());
   }
 
   /**

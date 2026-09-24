@@ -30,7 +30,6 @@ const builds = new Map<string, number>();
 const writable = ref(false);
 // How often each doctype's stored scripts changed on the server since this tab opened.
 const changes = reactive(new Map<string, number>());
-// What each doctype's tier is waiting on while it builds.
 const waits = new Map<string, string>();
 
 export const canWriteClientScripts = readonly(writable);

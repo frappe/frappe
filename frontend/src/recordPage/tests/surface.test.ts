@@ -83,7 +83,7 @@ describe("surface verbs", () => {
 		surface.add({ name: "convert" });
 		surface.hide("email");
 		surface.beginReplay();
-		surface.commitReplay();
+		surface.commit();
 		expect(names(surface)).toEqual(["email"]);
 	});
 
@@ -155,7 +155,7 @@ describe("staged replay", () => {
 		surface.beginReplay();
 		await nextTick(); // where the old `reset()` flushed a strip of built-ins alone
 		surface.add({ name: "convert" });
-		surface.commitReplay();
+		surface.commit();
 		await nextTick();
 		stop();
 
@@ -169,7 +169,7 @@ describe("staged replay", () => {
 		surface.add({ name: "convert" });
 		surface.beginReplay();
 		surface.add({ name: "dial" });
-		surface.commitReplay();
+		surface.commit();
 		expect(names(surface)).toEqual(["email", "dial"]);
 	});
 
@@ -177,7 +177,7 @@ describe("staged replay", () => {
 		const surface = new Surface();
 		builtins(surface, "email");
 		surface.beginReplay();
-		surface.commitReplay();
+		surface.commit();
 		// A `run` handler, an `onTabChange`, a quick-action callback.
 		surface.add({ name: "dial" });
 		expect(names(surface)).toEqual(["email", "dial"]);
@@ -205,10 +205,10 @@ describe("staged replay", () => {
 		// A script calling `page.refresh()` from its own `refresh` handler.
 		surface.beginReplay();
 		surface.add({ name: "dial" });
-		surface.commitReplay();
+		surface.commit();
 		expect(names(surface)).toEqual(["email"]);
 		surface.add({ name: "print" });
-		surface.commitReplay();
+		surface.commit();
 		expect(names(surface)).toEqual(["email", "dial", "print"]);
 	});
 
@@ -216,7 +216,7 @@ describe("staged replay", () => {
 		const surface = new Surface();
 		builtins(surface, "email");
 		surface.add({ name: "convert" });
-		surface.commitReplay();
+		surface.commit();
 		expect(names(surface)).toEqual(["email", "convert"]);
 	});
 });
@@ -287,7 +287,7 @@ describe("a key the engine does not read", () => {
 		surface.add({ name: "x", label: "X" });
 		surface.update("x", { label: "Z", variant: "ghost" });
 		expect(surface.find("x")).toEqual({ name: "x", label: "Z" });
-		surface.commitReplay();
+		surface.commit();
 		expect(surface.find("x")).toEqual({ name: "x", label: "Z" });
 		expect(warn.mock.calls.map((call) => call[0])).toEqual([
 			"[record-page] tabs.add('y'): key 'variant' is not one the engine reads — dropped.",
@@ -339,7 +339,7 @@ describe("visibleInReplay: the visible items as the replay in flight would rende
 		expect(surface.visibleInReplay().map((item) => item.name)).toEqual(["emails"]);
 		expect(surface.visible().map((item) => item.name)).toEqual(["activity", "emails"]);
 
-		surface.commitReplay();
+		surface.commit();
 		expect(surface.visibleInReplay().map((item) => item.name)).toEqual(["emails"]);
 	});
 });

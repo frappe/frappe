@@ -30,6 +30,7 @@ import { readOnly, type ReadOnlyAdvice } from "./readOnly";
 import { registrationsFor, type Registration } from "./registry";
 import { reportCustomizationError } from "./reportError";
 import { createRows, warnRowIssue } from "./rows";
+import { NOT_DRAWN, type Staging } from "./staging";
 import { Surface } from "./surface";
 import { PANEL_SECTION_KEYS, QUICK_ACTION_KEYS, TAB_ITEM_KEYS } from "./types";
 import type {
@@ -235,14 +236,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     childFields: host.childFields,
     dispatch: (event, row) => fireEvent(event, row),
   });
-  // Every overlay a replay or a hold stages; `fields` and `formTabs` are not `Surface`s but stage here.
-  const surfaces: {
-    beginReplay: () => void;
-    commitReplay: () => void;
-    beginHold: () => void;
-    commitHold: () => void;
-    publishStaged: (except?: string) => void;
-  }[] = [
+  const surfaces: Staging[] = [
     quickActions,
     frame,
     body,
@@ -267,11 +261,14 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   const replaying = ref(0);
   const isReplaying = computed(() => replaying.value > 0);
   let holding = 0;
-  // What this page is running or waiting on, for the warning when the first paint goes ahead.
-  let speaking: string | null = null;
+  let replayed = false;
+  // What this page's replay is running or waiting on, for the warning when the first paint goes ahead.
+  let replaySource: string | null = null;
   let awaiting: "permissions" | "sources" | null = null;
   let firstPaintLimit: ReturnType<typeof setTimeout> | undefined;
   let left = false;
+  // True while the first paint's acts land: the page then reads as drawn, not staging.
+  let early = false;
 
   // Resolved at the call, delivered on commit: until then the host still renders the
   // last replay's strip, and a move onto a tab not yet on it shows the fallback for a tick.
@@ -361,36 +358,64 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   const page = withRemovals(capabilities);
 
   async function refresh() {
+    if (left) return;
     if (!ready.value && !firstPaintLimit)
       firstPaintLimit = setTimeout(paintWithoutLate, FIRST_PAINT_LIMIT_MS);
+    try {
+      await replay();
+    } finally {
+      awaiting = null;
+      replayed = true;
+      settleReady();
+    }
+  }
+
+  async function replay() {
     const everything = Promise.all([host.sourcesReady?.(), permissions.ready()]);
-    awaiting = "permissions";
     // Raced, so a late rejection of `everything` is already handled when the second pass awaits it.
-    await Promise.race([permissions.ready(), everything]);
+    await waitFor("permissions", Promise.race([permissions.ready(), everything]));
+    openReplay();
+    try {
+      await runSources(everything);
+    } finally {
+      // In `finally` so a throwing handler cannot leave the page staged for good.
+      closeReplay();
+    }
+  }
+
+  /** The sources already registered run while the Client Script tier loads; it runs last anyway. */
+  async function runSources(everything: Promise<unknown>) {
+    const ran = new Set<Registration>();
+    await dispatch("onRefresh", undefined, ran);
+    await waitFor("sources", everything);
+    warnUnknownHandlers();
+    await dispatch("onRefresh", undefined, ran);
+  }
+
+  async function waitFor(what: typeof awaiting, promise: Promise<unknown>) {
+    awaiting = what;
+    await promise;
     awaiting = null;
+  }
+
+  function openReplay() {
     // Counted, not a boolean: a script's own `page.refresh()` re-enters this.
     replaying.value += 1;
     // Staged, not cleared: clearing here and re-adding a microtask later tears the
     // rendered strip down between the two, and the reader's place in it with them.
     for (const surface of surfaces) surface.beginReplay();
-    try {
-      // The sources already registered run while the Client Script tier loads; it runs last anyway.
-      const ran = new Set<Registration>();
-      await dispatch("onRefresh", undefined, ran);
-      awaiting = "sources";
-      await everything;
-      awaiting = null;
-      warnUnknownHandlers();
-      await dispatch("onRefresh", undefined, ran);
-    } finally {
-      // In `finally` so a throwing handler cannot leave the page staged for good.
-      for (const surface of surfaces) surface.commitReplay();
-      replaying.value -= 1;
-      // After the commit, so the strip the reader lands on is the one on screen;
-      // inside the `finally`, so a throwing handler cannot strand a decided move.
-      releaseActs();
-    }
-    if (isReplaying.value) return;
+  }
+
+  function closeReplay() {
+    for (const surface of surfaces) surface.commit();
+    replaying.value -= 1;
+    // After the commit, so the strip the reader lands on is the one on screen.
+    releaseActs();
+  }
+
+  /** The skeletons lift once a replay has ended and nothing stages; a hold may close last. */
+  function settleReady() {
+    if (!replayed || isStaging()) return;
     clearTimeout(firstPaintLimit);
     ready.value = true;
   }
@@ -398,12 +423,23 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   /** The first replay ran out of time: draw every finished source, lift the skeletons, name the late one. */
   function paintWithoutLate() {
     if (ready.value || left) return;
-    const late = speaking ?? lateWait();
-    for (const surface of surfaces) surface.publishStaged(speaking ?? undefined);
+    const late = replaySource ?? lateWait();
+    for (const surface of surfaces) surface.publishStaged(replaySource ?? undefined);
+    releaseEarlyActs();
     ready.value = true;
     console.warn(
       `[record-page] ${host.doctype} ${host.docname} painted after ${FIRST_PAINT_LIMIT_MS} ms without waiting for ${late}; its changes land when it finishes.`,
     );
+  }
+
+  /** Each act held so far lands if the early paint drew its target, and is dropped if not. */
+  function releaseEarlyActs() {
+    early = true;
+    try {
+      releaseHeldActs();
+    } finally {
+      early = false;
+    }
   }
 
   function lateWait() {
@@ -418,9 +454,10 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     try {
       return await work();
     } finally {
-      for (const surface of surfaces) surface.commitHold();
+      for (const surface of surfaces) surface.commit();
       holding -= 1;
       releaseActs();
+      settleReady();
     }
   }
 
@@ -431,17 +468,20 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   }
 
   function isStaging() {
-    return isReplaying.value || holding > 0;
+    return !early && (isReplaying.value || holding > 0);
   }
 
   /** Delivers the acts a replay or a hold kept back, once the last of them has committed. */
   function releaseActs() {
-    if (isStaging()) return;
+    if (!isStaging()) releaseHeldActs();
+  }
+
+  function releaseHeldActs() {
     releaseActivations();
     releaseDisclosures();
     releaseFocus();
-    activity.releaseScroll();
-    composer.releaseOpen();
+    activity.releaseScroll(early);
+    composer.releaseOpen(early);
   }
 
   // One sequence at a time: a second `page.save()` mid-flight joins it, so no handler fires twice.
@@ -474,8 +514,9 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   function releaseFocus() {
     const held = heldFocus;
     heldFocus = null;
-    if (held && canFocus(held, "it left the form before the replay settled"))
-      deliverFocus(held);
+    if (!held) return;
+    if (early && !fields.isDrawn(held)) warnFocus(held, NOT_DRAWN);
+    else if (canFocus(held, "it left the form before the replay settled")) deliverFocus(held);
   }
 
   function canFocus(fieldname: string, gone = "no such field") {
@@ -516,9 +557,10 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     const held = [...heldDisclosures];
     heldDisclosures.clear();
     for (const [name, open] of held) {
+      if (early && !panelSections.isDrawn(name)) warnDisclose(name, open, NOT_DRAWN);
       // Re-read, as a held activation is: a later source can hide or relabel the section.
-      if (!canDisclose(name, open, "it left the panel before the replay settled")) continue;
-      deliverDisclosure(name, open);
+      else if (canDisclose(name, open, "it left the panel before the replay settled"))
+        deliverDisclosure(name, open);
     }
   }
 
@@ -575,13 +617,12 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     const held = [...heldActivations];
     heldActivations.clear();
     for (const [strip, name] of held) {
+      if (early && !surfaceFor(strip).isDrawn(name)) warnActivate(strip, name, NOT_DRAWN);
       // Re-read, not replayed: a later source can hide the tab an earlier one
       // activated, and delivering that move would land the reader on the fallback.
-      if (!surfaceFor(strip).isVisible(name)) {
+      else if (!surfaceFor(strip).isVisible(name))
         warnActivate(strip, name, "it left the strip before the replay settled");
-        continue;
-      }
-      move(strip, name);
+      else move(strip, name);
     }
   }
 
@@ -664,7 +705,6 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     );
   }
 
-  // Every event but `onRefresh` holds: one paint for all of its handlers, when the last one ends.
   async function fireEvent(event: string, row?: RowAddress) {
     // One handle for the whole dispatch, and the same object `page.rows()` hands back.
     const detail = row ? rows.handle(row) : undefined;
@@ -688,8 +728,9 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       const { source, handlers } = registration;
       const handler = handlers[event];
       if (!handler) continue;
-      const previous = speaking;
-      speaking = source;
+      const previous = replaySource;
+      // Only the replay's own pass names its source; a save a replay handler starts does not.
+      if (ran) replaySource = source;
       await withRunningSource(source, async () => {
         try {
           await handler(page, detail);
@@ -710,7 +751,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
             record: host.docname,
           });
         }
-      }).finally(() => (speaking = previous));
+      }).finally(() => (replaySource = previous));
     }
   }
 

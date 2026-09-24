@@ -79,6 +79,7 @@ import { ApiError } from "@framework/ui/api";
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { loadClientScripts } from "@/recordPage";
+import { FIRST_PAINT_LIMIT_MS } from "@/recordPage/createRecordPage";
 import { createShellRouter } from "@/router";
 import { RecordFeeds } from "../feed/recordFeeds";
 import { loadRecord } from "../recordSource";
@@ -105,6 +106,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   for (const app of apps.splice(0)) app.unmount();
   document.body.innerHTML = "";
   vi.unstubAllGlobals();
@@ -113,7 +115,8 @@ afterEach(() => {
 async function settle() {
   for (let turn = 0; turn < 10; turn++) {
     await nextTick();
-    await new Promise((resolve) => setTimeout(resolve));
+    if (vi.isFakeTimers()) await vi.advanceTimersByTimeAsync(0);
+    else await new Promise((resolve) => setTimeout(resolve));
   }
 }
 
@@ -138,6 +141,17 @@ async function settleLayouts() {
   load.layouts["Details"].loading.value = false;
   load.layouts["Side Panel"].loading.value = false;
   await settle();
+}
+
+function answerActivity(row: object) {
+  const answer = (url: string) =>
+    url.includes("/api/v2/document/Note/N-1/activity")
+      ? { data: { activities: [row], next: null } }
+      : { data: null };
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string) => new Response(JSON.stringify(answer(String(url))), { status: 200 })),
+  );
 }
 
 function skeletons(root: HTMLElement, hook: string) {
@@ -194,11 +208,14 @@ describe("before the first replay commits", () => {
   });
 
   it("keeps both skeletons while the Client Scripts load, and lifts them on the commit", async () => {
+    // Fake timers, so the first-paint limit cannot lift the skeletons on a slow run.
+    vi.useFakeTimers();
     let answerScripts = () => {};
     load.scripts = new Promise<void>((resolve) => (answerScripts = resolve));
     const root = await open();
     load.answerRecord();
     await settleLayouts();
+    await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS - 1);
 
     expect(root.querySelector("[data-record-header-skeleton]")).not.toBeNull();
     expect(root.querySelector("[data-record-body-skeleton]")).not.toBeNull();
@@ -242,6 +259,7 @@ describe("an address that opens a feed", () => {
 
 describe("once the page has painted", () => {
   it("opens on the Activity tab a pointer names, and scrolls to the row", async () => {
+    answerActivity({ type: "log", key: "x", data: { name: "x", subtype: "info", text: "Row x" } });
     const scroll = vi.spyOn(RecordFeeds.prototype, "scrollToActivity");
     const root = await open("/note/N-1?activity=x");
     load.answerRecord();
@@ -251,6 +269,7 @@ describe("once the page has painted", () => {
     expect(activity!.style.display).toBe("");
     expect(root.querySelector('[data-record-tab="details"]')).toBeNull();
     expect(scroll).toHaveBeenCalledWith("x");
+    expect(activity!.querySelector('.activity[id="x"]')!.textContent).toContain("Row x");
     scroll.mockRestore();
   });
 

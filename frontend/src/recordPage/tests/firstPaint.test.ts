@@ -70,6 +70,14 @@ function action(name: string) {
 const drawn = (controller: ReturnType<typeof makePage>) =>
   controller.quickActions.visible().map((one) => one.name);
 
+function gate() {
+  let open!: () => void;
+  const opened = new Promise<void>((resolve) => (open = resolve));
+  return { opened, open };
+}
+
+const never = () => new Promise<void>(() => {});
+
 let warnings: string[];
 
 beforeEach(() => {
@@ -192,5 +200,245 @@ describe("the first paint's time limit", () => {
     finish();
     await refreshing;
     expect(drawn(controller)).toEqual(["run-2"]);
+  });
+
+  it("leaves out the replay's own late source, not the `beforeSave` its save is waiting on", async () => {
+    await register("early", {
+      onRefresh: (page: RecordPageApi) => page.quickActions.add(action("one")),
+    });
+    await register("late", {
+      onRefresh: async (page: RecordPageApi) => {
+        page.quickActions.add(action("partial"));
+        await page.save();
+      },
+    });
+    await register("guard", { beforeSave: never });
+    const controller = makePage({ isDirty: () => true });
+
+    void controller.refresh();
+    await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS);
+
+    expect(controller.ready.value).toBe(true);
+    expect(drawn(controller)).toEqual(["one"]);
+    expect(warnings[0]).toContain("without waiting for late;");
+  });
+
+  it("shows the finished sources' feed types in the early paint, and the late one's after", async () => {
+    const slow = gate();
+    await register("early", {
+      onRefresh: (page: RecordPageApi) => page.activity.types(["comment"]),
+    });
+    await register("slow", {
+      onRefresh: async (page: RecordPageApi) => {
+        page.activity.types(["email"]);
+        await slow.opened;
+      },
+    });
+    const controller = makePage();
+
+    const refreshing = controller.refresh();
+    await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS);
+    expect(controller.activity.shownTypes()).toEqual(["comment"]);
+
+    slow.open();
+    await refreshing;
+    expect(controller.activity.shownTypes()).toEqual(["email"]);
+  });
+
+  it("arms no clock and runs nothing when the page was already left", async () => {
+    const onRefresh = vi.fn();
+    await register("early", { onRefresh });
+    const controller = makePage();
+    controller.leave();
+
+    await controller.refresh();
+
+    expect(vi.getTimerCount()).toBe(0);
+    expect(onRefresh).not.toHaveBeenCalled();
+  });
+
+  it("lifts the skeletons at once when the scripts fail to load, and warns nothing", async () => {
+    const controller = makePage({ sourcesReady: () => Promise.reject(new Error("offline")) });
+
+    await expect(controller.refresh()).rejects.toThrow("offline");
+
+    expect(controller.ready.value).toBe(true);
+    await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS * 2);
+    expect(warnings).toEqual([]);
+  });
+});
+
+describe("ready", () => {
+  it("waits for a save a replay handler started, when its hold closes last", async () => {
+    const started = gate();
+    const guard = gate();
+    await register("saver", {
+      onRefresh: async (page: RecordPageApi) => {
+        page.quickActions.add(action("replayed"));
+        void page.save();
+        await started.opened;
+      },
+    });
+    await register("guard", {
+      beforeSave: async () => {
+        started.open();
+        await guard.opened;
+      },
+    });
+    const controller = makePage({ isDirty: () => true });
+
+    await controller.refresh();
+    expect(controller.ready.value).toBe(false);
+    expect(drawn(controller)).toEqual([]);
+
+    guard.open();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(controller.ready.value).toBe(true);
+    expect(drawn(controller)).toEqual(["replayed"]);
+  });
+
+  it("stays false through a nested `page.refresh()` until the outer replay ends", async () => {
+    const outer = gate();
+    let runs = 0;
+    let readyAfterInner: boolean | undefined;
+    const controller = makePage();
+    await register("nested", {
+      onRefresh: async (page: RecordPageApi) => {
+        if (++runs > 1) return;
+        await page.refresh();
+        readyAfterInner = controller.ready.value;
+        await outer.opened;
+      },
+    });
+
+    const refreshing = controller.refresh();
+    await vi.waitFor(() => expect(readyAfterInner).toBe(false));
+    expect(controller.ready.value).toBe(false);
+
+    outer.open();
+    await refreshing;
+    expect(controller.ready.value).toBe(true);
+  });
+
+  it("runs a source that registers between the two passes once, in order", async () => {
+    const listArrives = gate();
+    const order: string[] = [];
+    let answerList!: () => void;
+    const list = new Promise<void>((resolve) => (answerList = resolve));
+    await register("file", {
+      onRefresh: async () => {
+        order.push("file");
+        await listArrives.opened;
+      },
+    });
+    const controller = makePage({ sourcesReady: () => list });
+
+    const refreshing = controller.refresh();
+    await vi.waitFor(() => expect(order).toEqual(["file"]));
+    await register("client-script:late", { onRefresh: () => void order.push("client") });
+    answerList();
+    listArrives.open();
+    await refreshing;
+
+    expect(order).toEqual(["file", "client"]);
+  });
+});
+
+describe("acts held at the early paint", () => {
+  const RECORD_TABS = [
+    { name: "details", label: "Details" },
+    { name: "activity", label: "Activity" },
+  ];
+
+  function makeActingPage() {
+    const moved: { tab: string; drawn: string[] }[] = [];
+    const focused: string[] = [];
+    const scrolled: string[] = [];
+    const opened: string[] = [];
+    const controller = makePage({
+      meta: ref({ fields: [{ fieldname: "qty", fieldtype: "Int" }] }),
+      activateTab: (tab) =>
+        void moved.push({ tab, drawn: controller.tabs.visible().map((one) => one.name) }),
+      focusField: (fieldname) => void focused.push(fieldname),
+      scrollToActivity: async (key) => Boolean(scrolled.push(key)),
+      openWriter: (name) => void opened.push(name),
+    });
+    controller.tabs.provideBuiltins(() => RECORD_TABS as any[]);
+    return { controller, moved, focused, scrolled, opened };
+  }
+
+  const tab = (name: string) => ({ name, label: name, component: {} }) as any;
+
+  it("delivers a finished source's tab move and focus, and drops an open of a section not drawn", async () => {
+    const slow = gate();
+    await register("early", {
+      onRefresh: (page: RecordPageApi) => {
+        page.tabs.add(tab("custom"));
+        page.tabs.activate("custom");
+        page.fields.focus("qty");
+      },
+    });
+    await register("slow", {
+      onRefresh: async (page: RecordPageApi) => {
+        page.panelSections.add({ name: "late", label: "Late" } as any);
+        page.panelSections.open("late");
+        await slow.opened;
+      },
+    });
+    const { controller, moved, focused } = makeActingPage();
+
+    const refreshing = controller.refresh();
+    await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS);
+
+    expect(moved).toEqual([{ tab: "custom", drawn: ["details", "activity", "custom"] }]);
+    expect(focused).toEqual(["qty"]);
+    expect(warnings.some((one) => one.includes('open("late")') && one.includes("first paint"))).toBe(
+      true,
+    );
+
+    slow.open();
+    await refreshing;
+    expect(moved).toHaveLength(1);
+    expect(focused).toEqual(["qty"]);
+  });
+
+  it("delivers a finished source's feed scroll and composer open", async () => {
+    await register("early", {
+      onRefresh: (page: RecordPageApi) => {
+        page.activity.add({ name: "mine", timestamp: "2026-09-24 10:00:00", component: {} } as any);
+        page.activity.scrollTo("mine");
+        page.composer.add({ name: "call", label: "Log a call", component: {} } as any);
+        page.composer.open("call");
+      },
+    });
+    await register("slow", { onRefresh: never });
+    const { controller, moved, scrolled, opened } = makeActingPage();
+
+    void controller.refresh();
+    await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS);
+
+    expect(scrolled).toEqual(["mine"]);
+    expect(opened).toEqual(["call"]);
+    expect(moved.map((one) => one.tab)).toEqual(["activity"]);
+  });
+
+  it("keeps a move asked for after the early paint until the final commit", async () => {
+    const slow = gate();
+    await register("slow", {
+      onRefresh: async (page: RecordPageApi) => {
+        await slow.opened;
+        page.tabs.add(tab("later"));
+        page.tabs.activate("later");
+      },
+    });
+    const { controller, moved } = makeActingPage();
+
+    const refreshing = controller.refresh();
+    await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS);
+    expect(moved).toEqual([]);
+
+    slow.open();
+    await refreshing;
+    expect(moved).toEqual([{ tab: "later", drawn: ["details", "activity", "later"] }]);
   });
 });
