@@ -88,7 +88,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 		$(`
 			<div class="form-message orange print-format-builder-deprecation">
 				<span class="print-format-builder-deprecation-text">${__(
-					"This format uses the classic builder, which is going away in version 17. It keeps printing as it is, but to make further changes convert it to the new builder."
+					"The classic builder will be removed in version 17. Convert this format to the new builder to keep editing it."
 				)}</span>
 				<button class="es-button" data-variant="outline" data-size="sm">
 					<span class="es-button__label">${__("Convert to new builder")}</span>

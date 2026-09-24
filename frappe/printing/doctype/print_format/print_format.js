@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 
 const CLASSIC_BUILDER_NOTICE = __(
-	"This format uses the classic builder, which is going away in version 17. It keeps printing as it is, but to make further changes convert it to the new builder."
+	"The classic builder will be removed in version 17. Convert this format to the new builder to keep editing it."
 );
 const is_classic_format = (doc) => doc.print_format_builder && !doc.print_format_builder_beta;
 
