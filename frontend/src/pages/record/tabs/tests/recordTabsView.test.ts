@@ -80,7 +80,7 @@ async function mount(
   return { root, state, selected };
 }
 
-const FOUR = [entry("activity"), entry("emails"), entry("files"), entry("details")];
+const FOUR = [entry("details"), entry("activity"), entry("emails"), entry("files")];
 
 function body(root: HTMLElement, name: string) {
   return root.querySelector<HTMLElement>(`[data-record-tab="${name}"]`);
@@ -183,7 +183,7 @@ describe("the bodies", () => {
   it("keeps the body of a tab a script hides", async () => {
     const { root, state } = await mount(FOUR, "files");
 
-    state.tabs = [entry("activity"), entry("emails"), entry("files", {}, true), entry("details")];
+    state.tabs = [entry("details"), entry("activity"), entry("emails"), entry("files", {}, true)];
     state.active = "activity";
     await nextTick();
 
