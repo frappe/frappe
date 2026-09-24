@@ -115,6 +115,8 @@
    "description": "Original user input that started the run.",
    "fieldname": "input",
    "fieldtype": "Long Text",
+   "hidden": 1,
+   "ignore_xss_filter": 1,
    "label": "Input",
    "read_only": 1
   },
@@ -122,6 +124,8 @@
    "description": "Final assistant message when the run completes.",
    "fieldname": "output",
    "fieldtype": "Long Text",
+   "hidden": 1,
+   "ignore_xss_filter": 1,
    "label": "Output",
    "read_only": 1
   },
@@ -177,6 +181,8 @@
   {
    "fieldname": "error",
    "fieldtype": "Long Text",
+   "hidden": 1,
+   "ignore_xss_filter": 1,
    "label": "Error",
    "read_only": 1
   },
@@ -205,7 +211,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-09-10 20:00:00",
+ "modified": "2026-09-24 20:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Run",

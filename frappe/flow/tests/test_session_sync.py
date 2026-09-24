@@ -114,6 +114,20 @@ class TestSync(IntegrationTestCase):
 			daemon.calls, [("get_session", self.session.name), ("entries", self.session.name, 0, "all")]
 		)
 
+	def test_text_that_looks_like_html_is_recorded_as_written(self):
+		code = 'File "<frozen runpy>", line 198\nif qty > 0 and a & b:'
+		run = self.placeholder(message=code)
+		rows = [
+			row(1, "run_started", run_id="r1"),
+			row(2, "user_message", content=code),
+			row(3, "assistant_message", content=text(code)),
+			row(4, "run_ended", reason="done"),
+		]
+		self.sync(FakeDaemon(rows))
+		run.reload()
+		self.assertEqual((run.input, run.output), (code, code))
+		self.assertEqual([m.content for m in self.session.messages], [code, code])
+
 	def test_a_sync_reads_only_what_is_new(self):
 		self.placeholder()
 		daemon = self.sync(FakeDaemon(turn(1, "r1")))
