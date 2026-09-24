@@ -712,6 +712,80 @@ test("an opened thought stays open as it merges into a tool group and the run en
 	assert.ok(panel())
 })
 
+// A finished thread scrolled to its bottom. jsdom has no layout, so the list's scroll
+// geometry is faked (scrollTop clamps like a browser's) and resizes are reported by hand.
+async function bottomedList(t) {
+	const observers = []
+	globalThis.ResizeObserver = class {
+		constructor(callback) {
+			this.callback = callback
+			this.targets = new Set()
+			observers.push(this)
+		}
+		observe(target) {
+			this.targets.add(target)
+		}
+		disconnect() {
+			this.targets.clear()
+		}
+	}
+	t.after(() => delete globalThis.ResizeObserver)
+	const conversation = reactive(initialConversation())
+	applyEvent(conversation, { type: "user_message", seq: 1, ts: 10, content: "wait what" })
+	applyEvent(conversation, { type: "assistant_message", seq: 2, ts: 11, content: [{ type: "text", text: "Context." }], stop_reason: "stop" })
+	const flow = { options: {}, state: reactive({ sessionId: "s1", loading: false, conversation }) }
+	const { el } = mount(t, MessageList, {}, flow)
+	await nextTick()
+	const thread = el.querySelector(".flow-thread")
+	const list = thread.parentElement
+	const box = { height: 2165, top: 0 }
+	Object.defineProperty(list, "clientHeight", { get: () => 816 })
+	Object.defineProperty(list, "scrollHeight", { get: () => box.height })
+	Object.defineProperty(list, "scrollTop", {
+		get: () => box.top,
+		set: (value) => (box.top = Math.max(0, Math.min(value, box.height - 816))),
+	})
+	const scrolled = () => list.dispatchEvent(new window.Event("scroll"))
+	const resize = (...targets) => {
+		for (const observer of observers) {
+			const entries = targets.filter((target) => observer.targets.has(target)).map((target) => ({ target }))
+			if (entries.length) observer.callback(entries)
+		}
+	}
+	list.scrollTop = box.height
+	scrolled()
+	return { el, list, thread, box, scrolled, resize }
+}
+
+test("a view on the bottom stays there when a panel or the window resizes the list", async (t) => {
+	const { el, list, thread, box, scrolled, resize } = await bottomedList(t)
+
+	// a panel opens: the text re-wraps taller and the browser keeps the visible lines in place
+	box.height = 2325
+	list.scrollTop += 107
+	resize(list, thread)
+	scrolled()
+	assert.equal(list.scrollTop, 2325 - 816)
+
+	// a slight widening: the browser moves the view up with the lines it keeps in place
+	box.height = 2245
+	list.scrollTop -= 54
+	resize(list, thread)
+	scrolled()
+	await nextTick()
+	assert.equal(list.scrollTop, 2245 - 816)
+	assert.equal(el.querySelector("button[title='Scroll to bottom']"), null)
+})
+
+test("a resize leaves a view that an opened row pushed off the bottom where it is", async (t) => {
+	const { list, thread, box, resize } = await bottomedList(t)
+	box.height = 2400 // a row opened below the view
+	resize(thread)
+	box.height = 2480 // then a panel opens
+	resize(list, thread)
+	assert.equal(list.scrollTop, 2165 - 816)
+})
+
 test("the Default preset locks the core tools and takes bundled and extension picks", async (t) => {
 	const { createFlowStore } = await import("../src/store.js")
 	const SettingsPresets = await loadComponent("SettingsPresets")
