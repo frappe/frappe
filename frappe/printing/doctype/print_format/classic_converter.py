@@ -48,6 +48,12 @@ def uses_beta_renderer(print_format) -> bool:
 	return print_format.get("standard") != "Yes" or bool(print_format.get("format_data"))
 
 
+def uses_legacy_weasyprint(print_format) -> bool:
+	"""A builder format still stored on WeasyPrint renders through the frozen v16
+	generator and templates until it is switched to Chrome or Typst."""
+	return uses_beta_renderer(print_format) and print_format.get("pdf_generator") == "WeasyPrint"
+
+
 def convert_classic_to_beta(format_data, meta, print_format=None) -> tuple[dict, list]:
 	"""Convert a classic print-format-builder layout (flat JSON array) to the
 	beta builder's nested layout object.

@@ -11,6 +11,10 @@ import frappe
 from frappe import _, cstr, get_module_path
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
+from frappe.printing.doctype.print_format.classic_converter import (
+	uses_beta_renderer,
+	uses_legacy_weasyprint,
+)
 from frappe.utils import cint, escape_html, strip_html
 from frappe.utils.jinja_globals import is_rtl
 
@@ -71,6 +75,9 @@ def get_context(context) -> PrintContext:
 	meta = frappe.get_meta(doc.doctype)
 
 	print_format, standalone = resolve_print_format(None, meta)
+	legacy_weasyprint = uses_legacy_weasyprint(print_format)
+	if legacy_weasyprint:
+		standalone = False
 
 	print_format_name = getattr(print_format, "name", "Standard")
 	pdf_generator = frappe.form_dict.get(
@@ -92,7 +99,17 @@ def get_context(context) -> PrintContext:
 		"pdf_generator": pdf_generator,
 	}
 
-	if standalone:
+	if legacy_weasyprint:
+		from frappe.utils.weasyprint import get_html
+
+		body = get_html(
+			doctype=frappe.form_dict.doctype,
+			name=frappe.form_dict.name,
+			print_format=print_format,
+			letterhead=letterhead,
+		)
+		body += trigger_print_script
+	elif standalone:
 		from frappe.utils.print_format_generator import get_html
 
 		body = get_html(
@@ -154,8 +171,6 @@ def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" 
 def resolve_print_format(print_format_name: "str | None", meta: "Meta") -> tuple["PrintFormat | None", bool]:
 	"""Resolve a print format name to its document and whether it renders through
 	the builder renderer."""
-	from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
-
 	print_format = get_print_format_doc(print_format_name, meta=meta)
 	return print_format, uses_beta_renderer(print_format)
 
@@ -380,7 +395,14 @@ def get_html_and_style(
 	print_format, is_beta = resolve_print_format(print_format, document.meta)
 	set_link_titles(document)
 
-	if is_beta:
+	if uses_legacy_weasyprint(print_format):
+		from frappe.utils.weasyprint import legacy_generator
+
+		validate_print(document)
+		html = legacy_generator(print_format, document, letterhead).get_html_preview()
+		if cint(trigger_print):
+			html += trigger_print_script
+	elif is_beta:
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 
 		validate_print(document)

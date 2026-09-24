@@ -3,6 +3,7 @@ no_cache = 1
 
 def get_context(context):
 	import frappe
+	from frappe.printing.doctype.print_format.classic_converter import uses_legacy_weasyprint
 	from frappe.utils.jinja_globals import is_rtl
 	from frappe.www.printview import (
 		get_print_style,
@@ -19,7 +20,11 @@ def get_context(context):
 	doc = frappe.get_doc(doctype, docname)
 	pf, is_beta = resolve_print_format(frappe.form_dict.print_format, doc.meta)
 
-	if is_beta:
+	if uses_legacy_weasyprint(pf):
+		from frappe.utils.weasyprint import get_html
+
+		context.body = get_html(doctype, docname, pf, letterhead)
+	elif is_beta:
 		from frappe.utils.print_format_generator import get_html
 
 		context.body = get_html(doctype, docname, pf, letterhead, settings=settings)

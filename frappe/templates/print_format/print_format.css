@@ -7,7 +7,7 @@
 {% endmacro %}
 
 @page {
-{%- if for_weasyprint %}
+{%- if print_settings.pdf_page_size == 'Custom' %}
 	size: {{ page_width }}mm {{ page_height }}mm;
 {%- else %}
 	size: {{ print_settings.pdf_page_size or 'A4' }} portrait;
@@ -16,10 +16,6 @@
 	margin-bottom: {{ print_format.margin_bottom | int }}mm;
 	margin-left: {{ print_format.margin_left | int }}mm;
 	margin-right: {{ print_format.margin_right | int }}mm;
-{%- if for_weasyprint %}
-	padding-top: {{ (header_height or 0) + 8 }}px;
-	padding-bottom: {{ (footer_height or 0) + 8 }}px;
-{%- endif %}
 {%- if not for_chrome %}
 	{%- set page_number_position = print_format.page_number.lower().replace(' ', '_') %}
 	{%- if page_number_position in ['top_left', 'top_center', 'top_right', 'bottom_left', 'bottom_center', 'bottom_right'] %}

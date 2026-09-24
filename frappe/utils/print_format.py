@@ -204,14 +204,20 @@ def _download_multi_pdf(
 
 		from pypdf import PdfReader
 
+		from frappe.printing.doctype.print_format.classic_converter import uses_legacy_weasyprint
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 		from frappe.www.printview import set_link_titles, validate_print
 
 		doc = frappe.get_doc(print_doctype, print_name)
 		validate_print(doc)
-		set_link_titles(doc)
-		generator = PrintFormatGenerator(pf_doc, doc, letterhead, no_letterhead=no_letterhead)
-		pdf = generator.render_pdf()
+		if uses_legacy_weasyprint(pf_doc):
+			from frappe.utils.weasyprint import legacy_generator
+
+			pdf = legacy_generator(pf_doc, doc, letterhead).render_pdf()
+		else:
+			set_link_titles(doc)
+			generator = PrintFormatGenerator(pf_doc, doc, letterhead, no_letterhead=no_letterhead)
+			pdf = generator.render_pdf()
 		for page in PdfReader(BytesIO(pdf)).pages:
 			pdf_writer.add_page(page)
 		return pdf_writer
@@ -281,6 +287,9 @@ def _download_multi_pdf(
 					)
 		if task_id is None:
 			frappe.local.response.filename = f"{name}.pdf"
+
+	if password := (options or {}).get("password"):
+		pdf_writer.encrypt(password)
 
 	with BytesIO() as merged_pdf:
 		pdf_writer.write(merged_pdf)

@@ -6,6 +6,7 @@ from typing import ClassVar
 
 import frappe
 from frappe import _
+from frappe.printing.doctype.print_format.classic_converter import uses_legacy_weasyprint
 from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
 from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones
 from frappe.utils.data import cint
@@ -49,8 +50,13 @@ def download_pdf(
 		return download_jinja_pdf(
 			doctype, name, format=print_format.name if print_format else None, letterhead=letterhead
 		)
-	generator = PrintFormatGenerator(print_format, doc, letterhead, settings=frappe.parse_json(settings))
-	pdf = generator.render_pdf()
+	if uses_legacy_weasyprint(print_format):
+		from frappe.utils.weasyprint import legacy_generator
+
+		pdf = legacy_generator(print_format, doc, letterhead).render_pdf()
+	else:
+		generator = PrintFormatGenerator(print_format, doc, letterhead, settings=frappe.parse_json(settings))
+		pdf = generator.render_pdf()
 
 	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
 	frappe.local.response.filecontent = pdf
@@ -224,6 +230,10 @@ def _builder_preview_generator(
 	doc = frappe.get_doc(doctype, name)
 	validate_print(doc)
 
+	if uses_legacy_weasyprint(pf):
+		from frappe.utils.weasyprint import legacy_generator
+
+		return legacy_generator(pf, doc, letterhead)
 	return PrintFormatGenerator(pf, doc, letterhead, settings=frappe.parse_json(settings))
 
 
@@ -624,47 +634,6 @@ class PrintFormatGenerator:
 			# carry raw Typst markup (Typst blocks)
 			return typst.compile(path, root=tmp, font_paths=typst_font_paths())
 
-	# ----- PDF (WeasyPrint) ---------------------------------------------
-
-	def page_size_mm(self) -> tuple[float, float]:
-		return page_size_mm(self.print_settings)
-
-	def build_html_for_weasyprint(self, header_height=0, footer_height=0):
-		"""Body HTML for the WeasyPrint engine: the page box keeps room for the header
-		and footer, which the engine overlays on every page from `weasyprint_zone_html`."""
-		self.context.for_chrome = False
-		self.context.for_weasyprint = True
-		self.context.repeat_frame = False
-		self.context.header_height = header_height
-		self.context.footer_height = footer_height
-		self.context.chrome_layout_header = ""
-		self.context.chrome_layout_footer = ""
-		self.context.header = ""
-		self.context.footer = ""
-		return self.get_main_html()
-
-	def weasyprint_zone_html(self, kind: str) -> str:
-		"""Letter head and layout zone for `kind` ('header'/'footer') as a fixed block."""
-		inner = self._render_overlay(kind, with_page_no=False)
-		if not inner:
-			return ""
-		pf = self.print_format
-		if kind == "header":
-			rule = (
-				f"header {{ position: fixed; top: 0; left: 0; width: {int(self.context.body_width)}mm;"
-				f" padding-top: {int(pf.margin_top or 0)}mm; padding-left: {int(pf.margin_left or 0)}mm;"
-				f" padding-right: {int(pf.margin_right or 0)}mm; }}"
-			)
-		else:
-			rule = (
-				f"footer {{ position: fixed; bottom: 0; left: 0; width: 100%;"
-				f" padding-bottom: {int(pf.margin_bottom or 0)}mm; padding-left: {int(pf.margin_left or 0)}mm;"
-				f" padding-right: {int(pf.margin_right or 0)}mm; }}"
-			)
-		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
-		font_css = frappe.render_template("templates/print_format/print_format_font.css", self.context)
-		return f"<style>{font_css}\n@media print {{ {rule} }}</style>\n<{kind}>{inner}</{kind}>"
-
 	def _build_html_for_chrome(self):
 		"""Build the body HTML for the Chrome PDF pipeline.
 
@@ -681,8 +650,6 @@ class PrintFormatGenerator:
 		self.context.for_chrome = True
 		self._header_absorbs_top_margin = False
 		self.context.repeat_frame = False
-		self.context.header_height = 0
-		self.context.footer_height = 0
 
 		repeat = self.print_settings.repeat_header_footer
 

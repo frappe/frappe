@@ -295,7 +295,6 @@ class TestPrintFormatHardening(IntegrationTestCase):
 		html = generator.get_html_preview()
 		self.assertIn("HEADER Administrator", html)
 		self.assertIn("FOOTER-TEXT", html)
-		self.assertIn("HEADER Administrator", generator.weasyprint_zone_html("header"))
 
 
 class TestClassicConverter(IntegrationTestCase):
@@ -1022,7 +1021,15 @@ class TestWeasyPrintEngine(IntegrationTestCase):
 			resolve_pdf_generator(frappe._dict(pdf_generator="chrome"), "wkhtmltopdf"), "wkhtmltopdf"
 		)
 
+	def patch_legacy_render(self):
+		from frappe.utils import weasyprint_legacy
+
+		return patch.object(
+			weasyprint_legacy.PrintFormatGenerator, "render_pdf", autospec=True, return_value=b"%PDF-probe"
+		)
+
 	def test_weasyprint_hook(self):
+		from frappe.utils import weasyprint_legacy
 		from frappe.utils.weasyprint import get_weasyprint_pdf
 
 		doc = self.make_beta("WeasyPrint")
@@ -1032,20 +1039,91 @@ class TestWeasyPrintEngine(IntegrationTestCase):
 		pdf = frappe.get_print("User", "Administrator", print_format=doc.name, as_pdf=True, no_letterhead=1)
 		self.assertTrue(pdf.startswith(b"%PDF"))
 
-		with patch("frappe.utils.weasyprint.render_weasyprint", return_value=b"%PDF-probe") as render:
+		with self.patch_legacy_render() as render:
 			frappe.local.form_dict = frappe._dict()
 			frappe.get_print("User", "Administrator", print_format=doc.name, as_pdf=True, no_letterhead=1)
 		generator = render.call_args.args[0]
+		self.assertIsInstance(generator, weasyprint_legacy.PrintFormatGenerator)
 		self.assertEqual(generator.print_format.name, doc.name)
-		self.assertIn("WP-HEADER Administrator", generator.weasyprint_zone_html("header"))
-		self.assertIn("WP-HEADER Administrator", generator.get_html_preview())
+		header, footer = generator.get_header_footer_html()
+		self.assertIn("<header>", header)
+		self.assertIn("WP-HEADER Administrator", header)
+		self.assertIsNone(footer)
+		html = generator.get_html_preview()
+		self.assertIn("WP-HEADER Administrator", html)
+		self.assertIn('<div class="section-columns row">', html)
+		self.assertNotIn("print-format-doc", html)
+
+	def test_legacy_html_paths_match_v16(self):
+		from frappe.utils.weasyprint import get_html
+		from frappe.www.printpreview import get_context as preview_context
+		from frappe.www.printview import get_context, get_html_and_style, trigger_print_script
+
+		doc = self.make_beta("WeasyPrint")
+		expected = get_html("User", "Administrator", doc.name)
+		self.assertIn("WP-HEADER Administrator", expected)
+
+		frappe.local.form_dict = frappe._dict(doctype="User", name="Administrator", format=doc.name)
+		context = get_context(frappe._dict())
+		self.assertEqual(context["body"], expected + trigger_print_script)
+		self.assertFalse(context["standalone"])
+		self.assertTrue(context["print_style"])
+
+		frappe.local.form_dict = frappe._dict()
+		out = get_html_and_style(doc="User", name="Administrator", print_format=doc.name)
+		self.assertEqual(out["html"], expected)
+
+		frappe.local.form_dict = frappe._dict(doctype="User", name="Administrator", print_format=doc.name)
+		context = frappe._dict()
+		preview_context(context)
+		self.assertEqual(context.body, expected)
+
+	def test_legacy_unwraps_zone_header(self):
+		from frappe.utils.print_format_generator import zone_from_html
+		from frappe.utils.weasyprint import get_html
+
+		doc = self.make_beta("WeasyPrint")
+		layout = frappe.parse_json(doc.format_data)
+		self.assertIsInstance(layout["header"], str)
+		expected = get_html("User", "Administrator", doc.name)
+
+		layout["header"] = zone_from_html(layout["header"])
+		layout["footer"] = {"columns": []}
+		doc.db_set("format_data", frappe.as_json(layout), update_modified=False)
+		frappe.clear_document_cache("Print Format", doc.name)
+		self.assertEqual(get_html("User", "Administrator", doc.name), expected)
+
+		layout["header"]["columns"][0]["fields"].append(
+			{"label": "Email", "fieldname": "email", "fieldtype": "Data"}
+		)
+		doc.db_set("format_data", frappe.as_json(layout), update_modified=False)
+		frappe.clear_document_cache("Print Format", doc.name)
+		html = get_html("User", "Administrator", doc.name)
+		self.assertIn("WP-HEADER Administrator", html)
+		self.assertIn("admin@example.com", html)
+		self.assertNotIn("{% raw %}", html)
+
+	def test_chrome_format_does_not_use_legacy(self):
+		from frappe.printing.doctype.print_format.classic_converter import uses_legacy_weasyprint
+		from frappe.www.printview import get_html_and_style
+
+		doc = self.make_beta()
+		self.assertEqual(doc.pdf_generator, "chrome")
+		self.assertFalse(uses_legacy_weasyprint(doc))
+		frappe.local.form_dict = frappe._dict()
+		with patch("frappe.utils.weasyprint.legacy_generator") as legacy:
+			html = frappe.get_print("User", "Administrator", print_format=doc.name, no_letterhead=1)
+			out = get_html_and_style(doc="User", name="Administrator", print_format=doc.name)
+		legacy.assert_not_called()
+		self.assertIn("print-format-doc", html)
+		self.assertIn("print-format-doc", out["html"])
 
 	def test_attach_print_weasyprint_from_background_job(self):
 		doc = self.make_beta("WeasyPrint")
 		frappe.local.form_dict = frappe._dict()
 		with (
 			self.change_settings("Print Settings", send_print_as_pdf=1),
-			patch("frappe.utils.weasyprint.render_weasyprint", return_value=b"%PDF-probe") as render,
+			self.patch_legacy_render() as render,
 			patch("frappe.utils.pdf.get_pdf") as wkhtmltopdf,
 		):
 			out = frappe.attach_print("User", "Administrator", print_format=doc.name)
@@ -1072,13 +1150,16 @@ class TestWeasyPrintEngine(IntegrationTestCase):
 		)
 		pdf = frappe.local.response.filecontent
 		self.assertTrue(pdf.startswith(b"%PDF"))
-		self.assertEqual(len(PdfReader(BytesIO(pdf)).pages), 1)
+		reader = PdfReader(BytesIO(pdf))
+		self.assertTrue(reader.is_encrypted)
+		self.assertTrue(reader.decrypt("secret"))
+		self.assertEqual(len(reader.pages), 1)
 
 	def test_get_print_context_is_cleaned_up(self):
 		from frappe.utils.print_format_generator import get_print_context
 
 		doc = self.make_beta("WeasyPrint")
 		frappe.local.form_dict = frappe._dict()
-		with patch("frappe.utils.weasyprint.render_weasyprint", return_value=b"%PDF-probe"):
+		with self.patch_legacy_render():
 			frappe.get_print("User", "Administrator", print_format=doc.name, as_pdf=True, no_letterhead=1)
 		self.assertIsNone(get_print_context())
