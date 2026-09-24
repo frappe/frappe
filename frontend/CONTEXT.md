@@ -124,7 +124,7 @@ _Avoid_: customization (that is the *effect*; a contribution is the delivery), p
 extension (see below).
 
 **Kind**:
-Which of the four contributions a file is — and a kind **is a path**, not a declaration.
+Which of the five contributions a file is — and a kind **is a path**, not a declaration.
 Only ever this. A navigation item's axis is its **type**, and `Record` appears in both lists:
 
 | path | kind |
@@ -133,6 +133,13 @@ Only ever this. A navigation item's axis is its **type**, and `Record` appears i
 | `<module>/doctype/<scrubbed>/frontend/list.js` | list, owning app |
 | `<module>/custom/<scrubbed>/record.js` | `custom` — a **foreign** doctype |
 | `<module>/frontend/pages/<slug>.js` | a standalone page |
+| `<module>/doctype/<scrubbed>/frontend/pages.json` | replacement, owning app |
+| `<module>/doctype/<scrubbed>/frontend/pages/<name>.js` | replacement, owning app |
+| `<module>/custom/<scrubbed>/pages.json` | replacement, **foreign** doctype |
+| `<module>/custom/<scrubbed>/pages/<name>.js` | replacement, **foreign** doctype |
+
+`frontend/<name>.js` beside `pages/<name>.js`, and `custom/<x>/<name>.js`, are reserved
+handler files: warned about and ignored for now.
 
 **Owning app**:
 The app a contribution's doctype belongs to. Structural, needing no registry lookup: a

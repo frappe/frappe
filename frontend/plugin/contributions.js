@@ -1,40 +1,13 @@
 // Synthesises `virtual:frappe/contributions` from the Python manifest, since a raw glob would
 // sweep every app on the bench and lose the app name. Everything falls out of the path.
 
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { basename, join } from "node:path";
+import { directories, files, isFile } from "./folders.js";
+import { STANDARD_PAGES, clashes, declaredPages } from "./replacements.js";
 
 const VIRTUAL_ID = "virtual:frappe/contributions";
 const RESOLVED_ID = "\0" + VIRTUAL_ID;
-const STANDARD_PAGES = ["record", "list"];
-
-function directories(path) {
-	try {
-		return readdirSync(path, { withFileTypes: true })
-			.filter((entry) => entry.isDirectory())
-			.map((entry) => entry.name);
-	} catch {
-		return [];
-	}
-}
-
-function files(path, extension = ".js") {
-	try {
-		return readdirSync(path, { withFileTypes: true })
-			.filter((entry) => entry.isFile() && entry.name.endsWith(extension))
-			.map((entry) => entry.name);
-	} catch {
-		return [];
-	}
-}
-
-function isFile(path) {
-	try {
-		return statSync(path).isFile();
-	} catch {
-		return false;
-	}
-}
 
 /**
  * `crm_deal` -> `CRM Deal`, read from the doctype's own JSON: title-casing the folder
@@ -96,7 +69,9 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 				// A replaced standard page: <module>/doctype/<scrubbed>/frontend/pages.json
 				const frontend = join(doctypeRoot, scrubbed, "frontend");
 				const declarer = { app, doctype: unscrub(scrubbed), foreign: false };
-				replacements.push(...declaredPages(frontend, declarer, warnings));
+				const owned = declaredPages(frontend, declarer);
+				replacements.push(...owned.found);
+				warnings.push(...owned.warnings);
 			}
 
 			// A foreign doctype: <module>/custom/<scrubbed>/{record.js,pages.json}
@@ -108,7 +83,9 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 					doctypes.push({ kind: "custom", app, doctype: unscrub(scrubbed), file });
 
 				const declarer = { app, doctype: unscrub(scrubbed), foreign: true };
-				replacements.push(...declaredPages(folder, declarer, warnings));
+				const custom = declaredPages(folder, declarer);
+				replacements.push(...custom.found);
+				warnings.push(...custom.warnings);
 			}
 
 			// A new page: <module>/frontend/pages/<slug>.js. The `frontend/` segment is load-bearing:
@@ -142,94 +119,6 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 
 	warnings.push(...clashes(replacements));
 	return { doctypes, pages, itemTypes, replacements, warnings };
-}
-
-/** The pages a folder's `pages.json` names from the `pages/` folder beside it. */
-function declaredPages(folder, declarer, warnings) {
-	const pagesRoot = join(folder, "pages");
-	const pageNames = files(pagesRoot).map((file) => basename(file, ".js"));
-	warnings.push(...handlerFileWarnings(folder, pageNames, declarer.foreign));
-
-	const path = join(folder, "pages.json");
-	const declaration = readDeclaration(path, warnings);
-	const found = [];
-	for (const [key, page] of Object.entries(declaration)) {
-		const problem = declarationProblem(key, page, pageNames);
-		if (problem) {
-			warnings.push(`[frappe] ${path}: ${problem}; that key is ignored.`);
-			continue;
-		}
-		found.push({ ...declarer, key, page, file: join(pagesRoot, `${page}.js`) });
-	}
-	return found;
-}
-
-/** A `.js` file beside `pages/` is a page's reserved handler file or, under `custom/`, a stray. */
-function handlerFileWarnings(folder, pageNames, foreign) {
-	const warnings = [];
-	for (const handler of files(folder)) {
-		const name = basename(handler, ".js");
-		if (STANDARD_PAGES.includes(name)) continue;
-
-		const file = join(folder, handler);
-		if (pageNames.includes(name)) {
-			warnings.push(
-				`[frappe] ${file} is reserved for the handlers of pages/${handler}; it is ignored.`
-			);
-		} else if (foreign) {
-			warnings.push(`[frappe] ${file} has no pages/${handler} beside it; it is ignored.`);
-		}
-	}
-	return warnings;
-}
-
-/** A `pages.json` as an object; `{}` if absent or unreadable. */
-function readDeclaration(path, warnings) {
-	if (!isFile(path)) return {};
-
-	let declaration;
-	try {
-		declaration = JSON.parse(readFileSync(path, "utf-8"));
-	} catch {
-		warnings.push(`[frappe] ${path} is not valid JSON; the whole file is ignored.`);
-		return {};
-	}
-	if (declaration === null || typeof declaration !== "object" || Array.isArray(declaration)) {
-		warnings.push(`[frappe] ${path} is not a JSON object; the whole file is ignored.`);
-		return {};
-	}
-	return declaration;
-}
-
-function declarationProblem(key, page, pageNames) {
-	if (!STANDARD_PAGES.includes(key))
-		return `unknown key ${JSON.stringify(key)}, only "record" and "list" are read`;
-	if (typeof page !== "string") return `"${key}" is not a page name`;
-	if (STANDARD_PAGES.includes(page))
-		return `"${key}" names "${page}", a name reserved for the standard pages`;
-	if (!pageNames.includes(page))
-		return `"${key}" names "${page}", but there is no pages/${page}.js`;
-	return null;
-}
-
-/** One warning per doctype and key that more than one app replaces. */
-function clashes(replacements) {
-	const byTarget = new Map();
-	for (const entry of replacements) {
-		const target = `${entry.doctype}'s ${entry.key} page`;
-		byTarget.set(target, [...(byTarget.get(target) ?? []), entry]);
-	}
-
-	const warnings = [];
-	for (const [target, entries] of byTarget) {
-		if (new Set(entries.map((entry) => entry.app)).size < 2) continue;
-		const who = entries.map((entry) => `${entry.app} (${entry.file})`).join(", ");
-		warnings.push(
-			`[frappe] ${target} is replaced by more than one app: ${who}. The owner's comes first, ` +
-				`then custom/ ones in the site's app order, and the last one wins at runtime.`
-		);
-	}
-	return warnings;
 }
 
 /** A record's real name, read from its own JSON. `null` if there is no readable one. */

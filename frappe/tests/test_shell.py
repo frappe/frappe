@@ -1249,6 +1249,20 @@ class TestReplacementPageContributions(IntegrationTestCase):
 
 				self.assertIn("helpdesk", self.assembled_apps(source_dir))
 
+	def test_pages_json_alone_gets_a_manifest_entry(self):
+		for folder in (("doctype", "hd_ticket", "frontend"), ("custom", "contact")):
+			with self.subTest(folder="/".join(folder)):
+				source_dir = tempfile.mkdtemp(prefix="helpdesk")
+				self.addCleanup(shutil.rmtree, source_dir)
+				declared = os.path.join(source_dir, "helpdesk", *folder)
+				os.makedirs(declared)
+				self.assertNotIn("helpdesk", self.assembled_apps(source_dir))
+
+				with open(os.path.join(declared, "pages.json"), "w") as f:
+					json.dump({"record": "agent"}, f)
+
+				self.assertIn("helpdesk", self.assembled_apps(source_dir))
+
 
 class TestShellAssetSwap(IntegrationTestCase):
 	"""The swap must survive a filesystem that refuses to rename the published directory."""

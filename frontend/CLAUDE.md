@@ -156,7 +156,7 @@ mysteriously fails to resolve, look at that map before anything else.
 
 ## Where a contribution lives
 
-Five paths, and nothing is parsed from file *contents* — app, module, doctype and kind all
+Nine paths, and nothing is parsed from file *contents* — app, module, doctype and kind all
 fall out of the path. Enumerated in both languages, in `frappe/shell/manifest.py` and
 `frontend/plugin/contributions.js`:
 
@@ -164,12 +164,18 @@ fall out of the path. Enumerated in both languages, in `frappe/shell/manifest.py
 | --- | --- |
 | `<app>/<module>/doctype/<scrubbed>/frontend/record.js` | record page, owning app |
 | `<app>/<module>/doctype/<scrubbed>/frontend/list.js` | list, owning app |
+| `<app>/<module>/doctype/<scrubbed>/frontend/pages.json` | which page replaces the record or list, owning app |
+| `<app>/<module>/doctype/<scrubbed>/frontend/pages/<name>.js` | a replacement page, owning app |
 | `<app>/<module>/custom/<scrubbed>/record.js` | record page, *foreign* doctype |
+| `<app>/<module>/custom/<scrubbed>/pages.json` | which page replaces the record or list, *foreign* doctype |
+| `<app>/<module>/custom/<scrubbed>/pages/<name>.js` | a replacement page, *foreign* doctype |
 | `<app>/<module>/frontend/pages/<slug>.js` | a standalone page |
 | `<app>/<module>/navigation_item_type/<scrubbed>/frontend/item.js` | a navigation item kind |
 
 - **The `frontend/` segment in the page path is load-bearing** — `<module>/page/` is desk
   v1's Page doctype and `templates/pages/` is website templates.
+- **`frontend/<name>.js` beside `pages/<name>.js`, and `custom/<x>/<name>.js`, are reserved
+  handler files.** The build warns about them and ignores them for now.
 - **The doctype name is read from the doctype's own JSON**, not title-cased from the
   folder: `crm_deal` → `CRM Deal`, not `Crm Deal`. Names are indexed from *every* app on
   the bench, not just contributing ones, because a `custom/` folder can name a doctype

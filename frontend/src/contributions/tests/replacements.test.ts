@@ -54,12 +54,12 @@ describe('replacementFor', () => {
     expect(error).not.toHaveBeenCalled()
   })
 
-  it('gives the last owner in the site order the key', async () => {
+  it('gives the last custom/ app in the site order the key', async () => {
     const replacementFor = await resolve(
-      [page('crm', 'Lead', 'record'), page('helpdesk', 'Lead', 'record')],
-      ['frappe', 'helpdesk', 'crm'],
+      [page('hrms', 'Lead', 'record', true), page('helpdesk', 'Lead', 'record', true)],
+      ['frappe', 'helpdesk', 'hrms'],
     )
-    expect(replacementFor('Lead', 'record')?.app).toBe('crm')
+    expect(replacementFor('Lead', 'record')?.app).toBe('hrms')
   })
 
   it('lets a custom/ app beat the owner, whatever the site order', async () => {
