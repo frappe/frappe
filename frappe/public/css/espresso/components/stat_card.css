@@ -1,0 +1,121 @@
+/* Espresso Stat Card — a lightweight KPI card: label, big value, and an optional
+ * trend delta or caption. Not backed by a Number Card doc (frappe.ui.stat_card).
+ *
+ *   <div class="es-stat-card">
+ *     <div class="es-stat-card__head">
+ *       <span class="es-stat-card__dot"></span>
+ *       <span class="es-stat-card__label">Net sales</span>
+ *     </div>
+ *     <div class="es-stat-card__value">₹1,20,000</div>
+ *     <div class="es-stat-card__caption es-stat-card__delta" data-tone="positive">
+ *       ↗ 12% <span class="es-stat-card__delta-suffix">since last year</span>
+ *     </div>
+ *   </div>
+ *
+ * Wrap a row of cards in .es-stat-card-grid for an equal-height, wrapping grid.
+ * Modifiers:
+ *   .es-stat-card--clickable        whole card acts as a button
+ *   .es-stat-card__delta[data-tone]  positive (green) | negative (red) | neutral */
+
+.es-stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 1.5);
+    padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+    border: 1px solid var(--outline-gray-1);
+    border-radius: var(--radius-lg);
+    background: var(--surface-base);
+}
+
+/* Equal-height, wrapping grid. Content is top-packed, so cards that share the
+ * label + value shape line their captions up; put any extra element (a progress
+ * bar) after the caption so it hangs below without shifting it. */
+.es-stat-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: calc(var(--spacing) * 4);
+    align-items: stretch;
+}
+
+/* Single-column stack (frappe.ui.stat_cards layout:"stack"). */
+.es-stat-card-stack {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 4);
+}
+
+.es-stat-card--clickable {
+    cursor: pointer;
+    transition: border-color 150ms ease;
+}
+
+.es-stat-card--clickable:hover {
+    border-color: var(--outline-gray-3);
+}
+
+.es-stat-card--clickable:focus-visible {
+    outline: var(--focus-outline-default);
+    outline-offset: 2px;
+}
+
+.es-stat-card__head {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 1.5);
+}
+
+.es-stat-card__dot {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+}
+
+.es-stat-card__label {
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-regular);
+    color: var(--ink-gray-5);
+}
+
+.es-stat-card__value {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.35;
+    letter-spacing: 0.01em;
+    color: var(--ink-gray-8);
+}
+
+.es-stat-card__caption {
+    font-size: var(--text-sm);
+    color: var(--ink-gray-5);
+}
+
+.es-stat-card__delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-weight: var(--font-weight-medium);
+}
+
+/* Desk's global .icon has margin:0 auto; as a flex child that auto margin eats
+ * the free space and shoves the arrow away from the number. Pin it to 0. */
+.es-stat-card__delta .icon {
+    margin: 0;
+}
+
+.es-stat-card__delta[data-tone="positive"] {
+    color: var(--ink-green-6);
+}
+
+.es-stat-card__delta[data-tone="negative"] {
+    color: var(--ink-red-6);
+}
+
+.es-stat-card__delta[data-tone="neutral"] {
+    color: var(--ink-gray-5);
+}
+
+.es-stat-card__delta-suffix {
+    font-weight: var(--font-weight-regular);
+    color: var(--ink-gray-5);
+}
