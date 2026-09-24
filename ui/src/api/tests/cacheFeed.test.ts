@@ -1,10 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import * as cache from "../../cache";
 import { RECORD_PARTS, clearDataCache, readCachedDocument, readCachedList } from "../../cache";
 import {
   addAssignment,
   addTag,
   copyDocument,
+  countDocuments,
   createDocument,
   deleteDocument,
   getDocument,
@@ -21,7 +22,10 @@ vi.mock("../../cache", async (importOriginal) => {
     feedDocsDocument: vi.fn(actual.feedDocsDocument),
     feedDocumentWrite: vi.fn(actual.feedDocumentWrite),
     feedListRead: vi.fn(actual.feedListRead),
+    feedReadError: vi.fn(actual.feedReadError),
     feedRecordRead: vi.fn(actual.feedRecordRead),
+    settleTicket: vi.fn(actual.settleTicket),
+    takeTicket: vi.fn(actual.takeTicket),
   };
 });
 
@@ -238,6 +242,47 @@ describe("failures", () => {
     expect(cache.feedDocumentWrite).not.toHaveBeenCalled();
     expect(cache.feedListRead).not.toHaveBeenCalled();
     expect(cached("T-1")!.doc.modified).toBe(OLD);
+  });
+});
+
+describe("tickets", () => {
+  const byNumber = (first: number, second: number) => first - second;
+
+  function expectEachSettledOnceAfterItsFeeds() {
+    const taken = vi.mocked(cache.takeTicket).mock.results.map((result) => result.value as number);
+    const settle = vi.mocked(cache.settleTicket).mock;
+    expect(settle.calls.map(([ticket]) => ticket).sort(byNumber)).toEqual(taken.sort(byNumber));
+    const feeds = [
+      cache.feedRecordRead,
+      cache.feedListRead,
+      cache.feedDocumentWrite,
+      cache.feedDocsDocument,
+      cache.feedReadError,
+    ] as unknown as Mock[];
+    for (const { mock } of feeds) {
+      mock.calls.forEach(([ticket], index) => {
+        const settledAt = settle.invocationCallOrder[settle.calls.findIndex(([t]) => t === ticket)];
+        expect(settledAt).toBeGreaterThan(mock.invocationCallOrder[index]);
+      });
+    }
+  }
+
+  it("settles each ticket once, after its reply or failure is fed", async () => {
+    await readRecord("T-1", OLD);
+    await readList(["T-1"]);
+    respond({ data: { name: "T-1", modified: NEW } });
+    await updateDocument("ToDo", "T-1", { name: "T-1", modified: OLD });
+    respond({ data: null, docs: [{ doctype: "ToDo", name: "T-1", modified: NEW }] });
+    await runDocumentMethod("ToDo", "T-1", "close");
+    respond({ errors: [{ type: "DoesNotExistError" }] }, 404);
+    await expect(getDocument("ToDo", "T-1")).rejects.toMatchObject({ status: 404 });
+    respond({ errors: [{ type: "ValidationError" }] }, 417);
+    await expect(deleteDocument("ToDo", "T-1")).rejects.toThrow();
+    fetchMock.mockRejectedValueOnce(new TypeError("offline"));
+    await expect(countDocuments("ToDo")).rejects.toThrow();
+    expect(cache.takeTicket).toHaveBeenCalledTimes(7);
+    expect(cache.feedReadError).toHaveBeenCalledTimes(1);
+    expectEachSettledOnceAfterItsFeeds();
   });
 });
 

@@ -1,4 +1,4 @@
-import { clearDataCache, feedDocsDocument, takeTicket } from "../cache";
+import { clearDataCache, feedDocsDocument, settleTicket, takeTicket } from "../cache";
 import type { DocumentRecord } from "./index";
 import { ApiError, readEnvelope, type Envelope, type ReadOptions } from "./envelope";
 
@@ -11,7 +11,7 @@ export interface RequestOptions extends Pick<ReadOptions, "nullable"> {
   query?: Query;
   body?: unknown;
   signal?: AbortSignal;
-  /** The cache ticket the caller took at send time; one is taken here when absent. */
+  /** The cache ticket the caller took at send time and settles; absent, the call takes its own. */
   ticket?: number;
 }
 
@@ -39,7 +39,34 @@ export function requestHeaders({ json = true } = {}): Record<string, string> {
 export async function request<T>(
   method: HttpMethod,
   path: string,
-  { query, body, signal, nullable, ticket = takeTicket() }: RequestOptions = {}
+  options: RequestOptions = {}
+): Promise<Envelope<T>> {
+  if (options.ticket !== undefined) return send<T>(method, path, options, options.ticket);
+  const ticket = takeTicket();
+  try {
+    return await send<T>(method, path, options, ticket);
+  } finally {
+    feedSafely(() => settleTicket(ticket));
+  }
+}
+
+/** A cache fault empties the cache and surfaces on its own, so the request still answers. */
+export function feedSafely(feed: () => void): void {
+  try {
+    feed();
+  } catch (error) {
+    clearDataCache();
+    queueMicrotask(() => {
+      throw error;
+    });
+  }
+}
+
+async function send<T>(
+  method: HttpMethod,
+  path: string,
+  { query, body, signal, nullable }: RequestOptions,
+  ticket: number
 ): Promise<Envelope<T>> {
   let response: Response;
   try {
@@ -59,18 +86,6 @@ export async function request<T>(
   });
   feedSafely(() => feedDocs(ticket, envelope));
   return envelope;
-}
-
-/** A cache fault empties the cache and surfaces on its own, so the request still answers. */
-export function feedSafely(feed: () => void): void {
-  try {
-    feed();
-  } catch (error) {
-    clearDataCache();
-    queueMicrotask(() => {
-      throw error;
-    });
-  }
 }
 
 /** A document method returns its documents under `docs` whether or not it saved them. */

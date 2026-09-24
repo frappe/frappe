@@ -11,7 +11,7 @@ import {
   takeTicket,
 } from "../cache";
 import { fed, fedAfter, feedPartReply, includeNames, withModified } from "./feed";
-import { feedSafely, request, type Query } from "./request";
+import { request, type Query } from "./request";
 import { ApiError, type Envelope } from "./envelope";
 
 export {
@@ -112,13 +112,12 @@ export function getDocument<T extends DocumentRecord = DocumentRecord>(
   const ticket = takeTicket();
   const options = { query: { include: joinInclude(include) }, signal, ticket };
   const sending = request<T>("GET", documentPath(doctype, name), options);
-  const reading = fedAfter(ticket, sending, (_, envelope) =>
-    feedRecordRead(ticket, doctype, envelope, includeNames(include))
+  return fedAfter(
+    ticket,
+    sending,
+    (_, envelope) => feedRecordRead(ticket, doctype, envelope, includeNames(include)),
+    (error) => feedReadError(ticket, doctype, name, error)
   );
-  return reading.catch((error: unknown) => {
-    feedSafely(() => feedReadError(ticket, doctype, name, error));
-    throw error;
-  });
 }
 
 export function listDocuments<T = DocumentRecord>(

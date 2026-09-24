@@ -4,14 +4,12 @@ import type { DocumentRecord, Envelope, ListEnvelope, ListQuery } from "../api";
 import { DataCache } from "./dataCache";
 import type { DocumentEntry, ListEntry } from "./entries";
 import { listCacheKey } from "./listKey";
-import { RowsMemo } from "./rowsMemo";
 
 export type { DocumentEntry, ListEntry } from "./entries";
 export { RECORD_PARTS } from "./entries";
 export { listCacheKey } from "./listKey";
 
 const cache = new DataCache();
-const rowsMemo = new RowsMemo();
 // The maps are plain and this counter moves once per feed, so a sync watcher sees a whole reply.
 const version = shallowRef(0);
 
@@ -29,23 +27,21 @@ export function readCachedList(doctype: string, query: ListQuery): ListEntry | u
 /** The list's rows, each read from its document entry, in list order; frozen. */
 export function readCachedRows(doctype: string, query: ListQuery): DocumentRecord[] | undefined {
   track();
-  const key = listCacheKey(doctype, query);
-  const list = cache.list(key);
-  if (!list) {
-    rowsMemo.forget(key);
-    return undefined;
-  }
-  return rowsMemo.rows(list, list.names.map((name) => cache.document(doctype, name)));
+  return cache.rows(listCacheKey(doctype, query));
 }
 
 export function clearDataCache(): void {
   feed(() => cache.clear());
-  rowsMemo.clear();
 }
 
 /** Taken when a request is sent, not when its reply lands. */
 export function takeTicket(): number {
   return cache.takeTicket();
+}
+
+/** Once per ticket, after the request's reply or failure has been fed. */
+export function settleTicket(ticket: number): void {
+  cache.settleTicket(ticket);
 }
 
 export function feedRecordRead(

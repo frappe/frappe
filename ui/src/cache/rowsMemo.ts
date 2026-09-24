@@ -20,6 +20,10 @@ export class RowsMemo {
     return rows;
   }
 
+  get size(): number {
+    return this.held.size;
+  }
+
   forget(key: string): void {
     this.held.delete(key);
   }

@@ -1,6 +1,11 @@
 // Orders replies by the time their request was sent, per document and per list.
 // A ticket is taken at send time; the counter never restarts, so a sealed document stays sealed.
 
+export interface LiveEntries {
+  hasDocument(key: string): boolean;
+  hasList(key: string): boolean;
+}
+
 export class WriteGate {
   private counter = 0;
   private floor = 0;
@@ -8,9 +13,34 @@ export class WriteGate {
   private sealed = new Set<string>();
   private landed = new Map<string, number>();
   private listed = new Map<string, number>();
+  // Taken in ticket order, so the first is the oldest.
+  private inFlight = new Set<number>();
+  private retiringDocuments = new Set<string>();
+  private retiringLists = new Set<string>();
+
+  constructor(private live: LiveEntries) {}
 
   next(): number {
-    return ++this.counter;
+    this.inFlight.add(++this.counter);
+    return this.counter;
+  }
+
+  /** The request sent at `ticket` answered or failed, and its reply has been fed. */
+  settle(ticket: number): void {
+    this.inFlight.delete(ticket);
+    for (const key of this.retiringDocuments) this.retireDocument(key);
+    for (const key of this.retiringLists) this.retireList(key);
+  }
+
+  documentLeft(key: string): void {
+    this.landed.delete(key);
+    this.retiringDocuments.add(key);
+    this.retireDocument(key);
+  }
+
+  listLeft(key: string): void {
+    this.retiringLists.add(key);
+    this.retireList(key);
   }
 
   /** False for a request sent before the last clear. */
@@ -27,6 +57,7 @@ export class WriteGate {
     if (!this.admitRead(key, ticket)) return false;
     this.applied.set(key, ticket);
     this.sealed.delete(key);
+    this.retiringDocuments.add(key);
     return true;
   }
 
@@ -41,6 +72,7 @@ export class WriteGate {
   seal(key: string): void {
     this.applied.set(key, ++this.counter);
     this.sealed.add(key);
+    this.retiringDocuments.add(key);
   }
 
   isSealed(key: string): boolean {
@@ -68,5 +100,38 @@ export class WriteGate {
     this.sealed.clear();
     this.landed.clear();
     this.listed.clear();
+    this.retiringDocuments.clear();
+    this.retiringLists.clear();
+  }
+
+  /** For tests: how many keys each record holds. */
+  sizes() {
+    const { applied, sealed, landed, listed } = this;
+    return { applied: applied.size, sealed: sealed.size, landed: landed.size, listed: listed.size };
+  }
+
+  private retireDocument(key: string): void {
+    if (this.live.hasDocument(key)) {
+      this.retiringDocuments.delete(key);
+    } else if (this.refusesNothing(this.applied.get(key))) {
+      this.applied.delete(key);
+      this.sealed.delete(key);
+      this.retiringDocuments.delete(key);
+    }
+  }
+
+  private retireList(key: string): void {
+    if (this.live.hasList(key)) {
+      this.retiringLists.delete(key);
+    } else if (this.refusesNothing(this.listed.get(key))) {
+      this.listed.delete(key);
+      this.retiringLists.delete(key);
+    }
+  }
+
+  /** A recorded ticket refuses only replies sent before it. */
+  private refusesNothing(recorded = 0): boolean {
+    const oldest = this.inFlight.values().next().value;
+    return oldest === undefined || recorded < oldest;
   }
 }

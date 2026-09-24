@@ -16,6 +16,7 @@ import {
 } from "./entries";
 import { isFeedableQuery, listCacheKey } from "./listKey";
 import { NameCounts } from "./nameCounts";
+import { RowsMemo } from "./rowsMemo";
 import { WriteGate } from "./writeGate";
 
 const COMPLETE_LIMIT = 50;
@@ -28,7 +29,11 @@ export class DataCache {
   // Least recently read first.
   private readRecords = new Set<string>();
   private readLists = new Set<string>();
-  private gate = new WriteGate();
+  private gate = new WriteGate({
+    hasDocument: (key) => this.documents.has(key),
+    hasList: (key) => this.lists.has(key),
+  });
+  private memo = new RowsMemo();
   private changeCount = 0;
 
   /** Grows on every change to an entry, so a caller can tell whether a feed changed anything. */
@@ -44,8 +49,19 @@ export class DataCache {
     return this.lists.get(key);
   }
 
+  /** The list's rows, each read from its document entry, in list order; frozen. */
+  rows(key: string): DocumentRecord[] | undefined {
+    const list = this.lists.get(key);
+    if (!list) return undefined;
+    return this.memo.rows(list, list.names.map((name) => this.document(list.doctype, name)));
+  }
+
   takeTicket(): number {
     return this.gate.next();
+  }
+
+  settleTicket(ticket: number): void {
+    this.gate.settle(ticket);
   }
 
   /** The entry is complete once it holds every record part; a narrower read is no visit. */
@@ -158,6 +174,13 @@ export class DataCache {
     this.readRecords.clear();
     this.readLists.clear();
     this.gate.clear();
+    this.memo.clear();
+  }
+
+  /** For tests: how many keys the entries, the gate and the rows memo hold. */
+  sizes() {
+    const entries = { documents: this.documents.size, lists: this.lists.size };
+    return { ...entries, ...this.gate.sizes(), memo: this.memo.size };
   }
 
   /** Whether the list keeps naming the row's document. */
@@ -198,7 +221,10 @@ export class DataCache {
   }
 
   private dropDocument(key: string) {
-    if (this.documents.delete(key)) this.changeCount++;
+    if (this.documents.delete(key)) {
+      this.changeCount++;
+      this.gate.documentLeft(key);
+    }
     this.readRecords.delete(key);
   }
 
@@ -215,6 +241,8 @@ export class DataCache {
     if (!list) return undefined;
     this.lists.delete(key);
     this.named.remove(list.doctype, list.names);
+    this.gate.listLeft(key);
+    this.memo.forget(key);
     this.changeCount++;
     return list;
   }

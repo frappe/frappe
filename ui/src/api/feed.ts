@@ -1,5 +1,5 @@
 // How a wrapper call feeds the data cache: a ticket when it is sent, the reply once it lands.
-import { feedPartWrite, takeTicket } from "../cache";
+import { feedPartWrite, settleTicket, takeTicket } from "../cache";
 import { isFeedableQuery } from "../cache/listKey";
 import type { Envelope } from "./envelope";
 import type { ListQuery } from "./index";
@@ -18,14 +18,23 @@ export function fed<T>(
   return fedAfter(ticket, request<T>(method, path, { ...options, ticket }), feed);
 }
 
+/** Settles the ticket once the reply, or the failure, has been fed. */
 export async function fedAfter<T>(
   ticket: number,
   sending: Promise<Envelope<T>>,
-  feed: Feed<T>
+  feed: Feed<T>,
+  failed?: (error: unknown) => void
 ): Promise<Envelope<T>> {
-  const envelope = await sending;
-  feedSafely(() => feed(ticket, envelope));
-  return envelope;
+  try {
+    const envelope = await sending;
+    feedSafely(() => feed(ticket, envelope));
+    return envelope;
+  } catch (error) {
+    if (failed) feedSafely(() => failed(error));
+    throw error;
+  } finally {
+    feedSafely(() => settleTicket(ticket));
+  }
 }
 
 /** A part write answers with the refreshed part under its own key. */
