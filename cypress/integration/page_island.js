@@ -4,8 +4,8 @@
 //
 // The page under test is never inserted as a row. `getpage` is intercepted with
 // the document a Frappe UI page returns, and the island is an ESM blob, so this
-// spec covers desk's branch and neither the registry nor a real bundle. The
-// registry, which turns a Page row into an island name, has its own tests in
+// spec covers desk's branch and neither the registry nor a real bundle. Which
+// island a Page names is tested in the Page's own suite, and the registry in
 // frappe/tests/test_island.py.
 
 const PAGE = "cypress-island-page";
@@ -64,7 +64,7 @@ function register_island(win, { build = true } = {}) {
 		);
 		win.frappe.boot.assets_json[`${ISLAND}.island.js`] = url;
 	}
-	win.frappe.boot.ui_islands = { ...win.frappe.boot.ui_islands, [ISLAND]: ISLAND };
+	win.frappe.boot.ui_islands = [...(win.frappe.boot.ui_islands || []), ISLAND];
 }
 
 context("Frappe UI page", () => {

@@ -80,6 +80,10 @@ export function readAssetsJson(assetsJsonPath) {
  * behind. This leaves the keys of other apps and of the legacy pipeline
  * untouched.
  *
+ * A key another build already owns is an error. An island's name is its key, so
+ * two builds writing one key are two islands claiming one name, and whichever
+ * ran last would draw for both.
+ *
  * @param {Object} paths        from `benchPaths`
  * @param {Object<string,string>} relMap  asset key → path relative to the app's
  *                                        island output directory
@@ -98,6 +102,14 @@ export async function writeIslandAssets(paths, relMap) {
 			path.posix.join(ownPrefix, rel.split(path.sep).join("/")),
 		])
 	);
+
+	const taken = Object.keys(written).filter((key) => key in kept);
+	if (taken.length)
+		throw new Error(
+			"island: a build elsewhere on this bench already registers " +
+				taken.map((key) => `"${key}" (${kept[key]})`).join(", ") +
+				".\nAn island name is one bench-wide namespace. Rename the entry."
+		);
 
 	await fs.promises.mkdir(path.dirname(paths.assetsJsonPath), {
 		recursive: true,
@@ -130,15 +142,13 @@ async function invalidateAssetsCache(paths) {
 		console.warn("[island] cannot reach redis_cache to invalidate assets_json");
 	} finally {
 		// Close the client. Vite exits on its own, unlike esbuild.js, which
-		// calls process.exit().
+		// calls process.exit(). A failed connect leaves the client open but
+		// not ready, where a QUIT never settles.
 		try {
-			await client?.quit();
+			if (client?.isReady) await client.quit();
+			else if (client?.isOpen) await client.disconnect();
 		} catch {
-			try {
-				await client?.disconnect();
-			} catch {
-				// never connected
-			}
+			// already closed
 		}
 	}
 }

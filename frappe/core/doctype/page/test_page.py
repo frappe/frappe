@@ -71,11 +71,59 @@ class TestPage(IntegrationTestCase):
 	def test_a_frappe_ui_page_tells_desk_which_island_draws_it(self):
 		page = self.make_page(type="Frappe UI")
 
-		# Derived where the desk assets are, so an export never carries it: the
-		# name encodes the app, and a committed copy of it would go stale.
-		self.assertNotIn("island", page.as_dict())
+		# Derived only when desk assets load, so an unloaded page has none.
+		self.assertIsNone(page.as_dict()["island"])
 		page.load_assets()
 		self.assertEqual(page.as_dict()["island"], f"frappe.page.{page.name}")
+
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_the_derived_name_is_never_stored(self):
+		page = self.make_page(type="Frappe UI")
+
+		page.load_assets()
+		page.save()
+
+		self.assertIsNone(frappe.db.get_value("Page", page.name, "island"))
+
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_a_page_may_name_an_island_the_app_built(self):
+		with self.an_island("frappe.dashboard"):
+			# It has no source folder of its own, so it need not be Standard.
+			page = self.make_page(type="Frappe UI", standard="No", island="frappe.dashboard")
+
+			self.assertEqual(page.get_island_name(), "frappe.dashboard")
+			page.load_assets()
+			self.assertEqual(page.as_dict()["island"], "frappe.dashboard")
+
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_an_island_this_site_does_not_have_throws(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.make_page(type="Frappe UI", standard="No", island="frappe.nosuchisland")
+
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_a_page_that_names_an_island_is_not_scaffolded(self):
+		# The app's component is written and built already. A starter here would
+		# be a second component for one route, drawn by neither.
+		with self.an_island("frappe.dashboard"):
+			page = self.make_page(type="Frappe UI", island="frappe.dashboard")
+
+		folder = page.get_folder_path()
+		base = frappe.scrub(page.name)
+		self.assertFalse(os.path.exists(os.path.join(folder, f"{base}.island.js")))
+		self.assertFalse(os.path.exists(os.path.join(folder, f"{base}.vue")))
+
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_a_frappe_ui_page_that_names_no_island_has_to_be_standard(self):
+		# Its Vue source lives in the app's page folder, and a non-standard page
+		# has no folder to live in.
+		with self.assertRaises(frappe.ValidationError):
+			self.make_page(type="Frappe UI", standard="No")
 
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
@@ -114,7 +162,8 @@ class TestPage(IntegrationTestCase):
 	def make_page(self, **values):
 		"""A standard Page, written to disk and removed when the case ends."""
 		page = frappe.new_doc(
-			"Page", page_name=frappe.generate_hash(), module="Core", standard="Yes", **values
+			"Page",
+			**{"page_name": frappe.generate_hash(), "module": "Core", "standard": "Yes", **values},
 		).insert()
 
 		def remove():
@@ -129,3 +178,10 @@ class TestPage(IntegrationTestCase):
 
 		self.addCleanup(remove)
 		return page
+
+	def an_island(self, name):
+		"""One built island on the site, as an app's build would leave it."""
+		return patch(
+			"frappe.utils.island.get_assets_json",
+			return_value={f"{name}.island.js": f"/assets/frappe/dist/island/{name}.js"},
+		)

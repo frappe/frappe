@@ -75,17 +75,14 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false, shell = nu
 			const title = workspace ? workspace.title : item.link_to;
 			path = "/desk/private/" + frappe.router.slug(title);
 		}
-
-		if (item.route) {
-			path = item.route;
-		}
 	} else if (item.link_type === "URL") {
 		path = item.url;
-	} else if (item.link_type == "Page" && item.route_options) {
+	} else if (item.link_type == "Page") {
 		path = frappe.utils.generate_route({
 			type: item.link_type,
 			name: item.link_to,
-			route_options: JSON.parse(item.route_options),
+			route: item.route ? `${item.link_to}/${item.route}` : undefined,
+			route_options: item.route_options ? JSON.parse(item.route_options) : undefined,
 		});
 	} else {
 		let args = {

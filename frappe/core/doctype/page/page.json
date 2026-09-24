@@ -13,6 +13,7 @@
   "page_name",
   "title",
   "type",
+  "island",
   "icon",
   "column_break0",
   "module",
@@ -57,6 +58,13 @@
    "in_standard_filter": 1,
    "label": "Type",
    "options": "\nFrappe UI"
+  },
+  {
+   "depends_on": "eval:doc.type == 'Frappe UI'",
+   "description": "An island the app builds, by the name its build registers. Leave it empty and the island is built from this page's folder.",
+   "fieldname": "island",
+   "fieldtype": "Data",
+   "label": "Island"
   },
   {
    "fieldname": "icon",
@@ -111,7 +119,7 @@
  "icon": "file",
  "idx": 1,
  "links": [],
- "modified": "2026-09-08 12:00:00.000000",
+ "modified": "2026-09-19 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Page",
