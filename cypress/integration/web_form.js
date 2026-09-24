@@ -252,6 +252,28 @@ context("Web Form", () => {
 		cy.get(".web-list-table tbody tr:nth-child(1)").should("not.exist");
 	});
 
+	it("Load Defaults of Fields Without Fieldname", () => {
+		set_web_form_fields_without_fieldname([
+			{ fieldtype: "Currency", label: "Course Fee", default: "750", read_only: 1 },
+			{ fieldtype: "Currency", label: "Tax Amount", default: "135", read_only: 1 },
+			{ fieldtype: "Phone", label: "Mobile No", default: "+91-9823341234" },
+		]);
+
+		cy.visit("/note/new");
+		cy.contains(".frappe-control", "Course Fee")
+			.find(".control-value")
+			.should("contain", "750.00");
+		cy.contains(".frappe-control", "Tax Amount")
+			.find(".control-value")
+			.should("contain", "135.00");
+		cy.contains(".frappe-control", "Mobile No").within(() => {
+			cy.get(".selected-phone .country").should("have.text", "+91");
+			cy.get("input").should("have.value", "9823341234");
+		});
+
+		set_web_form_fields_without_fieldname([]);
+	});
+
 	it("Navigate and Submit a WebForm", () => {
 		cy.visit("/update-profile");
 
@@ -282,3 +304,20 @@ context("Web Form", () => {
 		});
 	});
 });
+<<<<<<< HEAD
+=======
+
+function set_web_form_fields_without_fieldname(fields) {
+	cy.get_doc("Web Form", "note").then(({ data }) => {
+		data.web_form_fields = [...data.web_form_fields.filter((df) => df.fieldname), ...fields];
+		cy.call("frappe.client.save", { doc: data });
+	});
+}
+
+function set_web_form_field_default(fieldname, value) {
+	cy.get_doc("Web Form", "note").then(({ data }) => {
+		const field = data.web_form_fields.find((df) => df.fieldname === fieldname);
+		cy.set_value("Web Form Field", field.name, { default: value });
+	});
+}
+>>>>>>> e71bec4 (test(web_form): defaults on phone fields and fields without fieldname)
