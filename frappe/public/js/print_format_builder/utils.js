@@ -183,7 +183,8 @@ export function create_default_layout(meta, print_format) {
 	};
 
 	let section = null,
-		column = null;
+		column = null,
+		skip = false;
 
 	function set_column(df) {
 		if (!section) {
@@ -226,10 +227,15 @@ export function create_default_layout(meta, print_format) {
 			continue;
 		}
 
-		if (df.fieldtype === "Section Break") {
-			set_section(df);
-		} else if (df.fieldtype === "Tab Break") {
-			set_section();
+		if (df.fieldtype === "Section Break" || df.fieldtype === "Tab Break") {
+			skip = !!df.print_hide;
+			if (skip) {
+				section = column = null;
+			} else {
+				set_section(df.fieldtype === "Section Break" ? df : undefined);
+			}
+		} else if (skip) {
+			continue;
 		} else if (df.fieldtype === "Column Break") {
 			set_column(df);
 		} else if (df.label && is_printable_docfield(df)) {
