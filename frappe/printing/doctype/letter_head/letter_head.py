@@ -144,6 +144,7 @@ class LetterHead(Document):
 				{"name": ["!=", self.name], "letter_head_for": self.letter_head_for},
 				"is_default",
 				0,
+				update_modified=False,
 			)
 
 			set_default("letter_head", self.name)
