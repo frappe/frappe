@@ -1,5 +1,5 @@
-// The record page while it loads: header and body skeletons until the record arrives, the
-// Details form's until the first replay, and the panel sections' while the Side Panel layout loads.
+// The record page while it loads: header and body skeletons until the first replay commits, and
+// the panel sections' while the Side Panel layout loads.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick } from "vue";
 import { RouterView } from "vue-router";
@@ -9,6 +9,7 @@ const load = vi.hoisted(() => ({
   // Set by a test: the record read fails with it.
   failure: null as unknown,
   layouts: {} as Record<string, { loading: { value: boolean }; layout: { value: unknown[] } }>,
+  scripts: Promise.resolve(),
 }));
 
 vi.mock("@/shell/PageFrame.vue", async () => {
@@ -45,7 +46,7 @@ vi.mock("@/recordPage", async (importOriginal) => {
   const { computed, ref, watch } = await import("vue");
   return {
     ...original,
-    loadClientScripts: vi.fn(async () => {}),
+    loadClientScripts: vi.fn(() => load.scripts),
     // One fake per layout type, flipped by the test: `loading` until it is told otherwise.
     useFormLayout: ({ type }: { type: string }) => {
       const state = { loading: ref(true), layout: ref<unknown[]>([]) };
@@ -77,7 +78,10 @@ vi.mock("@/shell/NotFound.vue", () => ({ default: { render: () => null } }));
 import { ApiError } from "@framework/ui/api";
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
+import { loadClientScripts } from "@/recordPage";
 import { createShellRouter } from "@/router";
+import { RecordFeeds } from "../feed/recordFeeds";
+import { loadRecord } from "../recordSource";
 import { registerShell } from "@/router/routeFor";
 
 const boot = {
@@ -90,8 +94,10 @@ const addresses = new Addresses({ doctypes: { Note: ["note", "desk"] }, modules:
 const apps: ReturnType<typeof createApp>[] = [];
 
 beforeEach(() => {
+  vi.clearAllMocks();
   load.layouts = {};
   load.failure = null;
+  load.scripts = Promise.resolve();
   vi.stubGlobal(
     "fetch",
     vi.fn(async () => new Response(JSON.stringify({ data: null }), { status: 200 })),
@@ -128,11 +134,24 @@ async function open(address = "/note/N-1") {
   return root;
 }
 
+async function settleLayouts() {
+  load.layouts["Details"].loading.value = false;
+  load.layouts["Side Panel"].loading.value = false;
+  await settle();
+}
+
 function skeletons(root: HTMLElement, hook: string) {
   return root.querySelectorAll(`[${hook}] .fui-skeleton`).length;
 }
 
-describe("before the record arrives", () => {
+describe("before the first replay commits", () => {
+  it("asks for the Client Scripts before the record read answers", async () => {
+    await open();
+
+    expect(loadRecord).toHaveBeenCalledOnce();
+    expect(loadClientScripts).toHaveBeenCalledWith("Note");
+  });
+
   it("draws the header row's skeleton in place of the crumbs, star, menu and Save", async () => {
     const root = await open();
 
@@ -141,6 +160,10 @@ describe("before the record arrives", () => {
 
     load.answerRecord();
     await settle();
+
+    expect(skeletons(root, "data-record-header-skeleton")).toBe(5);
+
+    await settleLayouts();
 
     expect(root.querySelector("[data-record-header-skeleton]")).toBeNull();
     expect(root.querySelector("[data-crumbs]")).not.toBeNull();
@@ -160,14 +183,38 @@ describe("before the record arrives", () => {
     load.answerRecord();
     await settle();
 
+    expect(root.querySelector("[data-record-body-skeleton]")).not.toBeNull();
+    expect(root.querySelector("[data-record-tabs]")).toBeNull();
+
+    await settleLayouts();
+
     expect(root.querySelector("[data-record-body-skeleton]")).toBeNull();
     expect(root.querySelector("[data-record-panel-skeleton]")).toBeNull();
     expect(root.querySelector("[data-record-panel]")).not.toBeNull();
   });
+
+  it("keeps both skeletons while the Client Scripts load, and lifts them on the commit", async () => {
+    let answerScripts = () => {};
+    load.scripts = new Promise<void>((resolve) => (answerScripts = resolve));
+    const root = await open();
+    load.answerRecord();
+    await settleLayouts();
+
+    expect(root.querySelector("[data-record-header-skeleton]")).not.toBeNull();
+    expect(root.querySelector("[data-record-body-skeleton]")).not.toBeNull();
+
+    answerScripts();
+    await settle();
+
+    expect(root.querySelector("[data-record-header-skeleton]")).toBeNull();
+    expect(root.querySelector("[data-record-body-skeleton]")).toBeNull();
+    expect(root.querySelector("[data-crumbs]")).not.toBeNull();
+    expect(root.querySelector("[data-record-tabs]")).not.toBeNull();
+  });
 });
 
 describe("an address that opens a feed", () => {
-  it.each(["?tab=activity", "?tab=emails", "?activity=x"])(
+  it.each(["?tab=activity", "?tab=emails", "?activity=x", "?tab=files&activity=x"])(
     "draws the feed's skeleton under the strip for %s, before and after the record arrives",
     async (query) => {
       const root = await open(`/note/N-1${query}`);
@@ -179,32 +226,42 @@ describe("an address that opens a feed", () => {
       load.answerRecord();
       await settle();
 
-      const late = root.querySelectorAll("[data-record-tabs] [data-feed-skeleton] .fui-skeleton");
+      const late = root.querySelectorAll("[data-record-body-skeleton] [data-feed-skeleton] .fui-skeleton");
       expect(late.length).toBeGreaterThan(0);
       expect(root.querySelector("[data-form-skeleton]")).toBeNull();
     },
   );
+
+  it.each(["?tab=files", "?tab=details"])("draws the form's skeleton for %s", async (query) => {
+    const root = await open(`/note/N-1${query}`);
+
+    expect(root.querySelector("[data-record-body-skeleton] [data-form-skeleton]")).not.toBeNull();
+    expect(root.querySelector("[data-feed-skeleton]")).toBeNull();
+  });
 });
 
-describe("once the record arrives", () => {
-  it("keeps the Details form skeleton under the strip until the first replay", async () => {
-    const root = await open();
+describe("once the page has painted", () => {
+  it("opens on the Activity tab a pointer names, and scrolls to the row", async () => {
+    const scroll = vi.spyOn(RecordFeeds.prototype, "scrollToActivity");
+    const root = await open("/note/N-1?activity=x");
     load.answerRecord();
-    await settle();
+    await settleLayouts();
 
-    expect(root.querySelector("[data-record-tabs] [data-form-skeleton]")).not.toBeNull();
-
-    load.layouts["Details"].loading.value = false;
-    load.layouts["Side Panel"].loading.value = false;
-    await settle();
-
-    expect(root.querySelector("[data-record-tabs-skeleton]")).toBeNull();
-    expect(root.querySelector("[data-form-skeleton]")).toBeNull();
+    const activity = root.querySelector<HTMLElement>('[data-record-tab="activity"]');
+    expect(activity!.style.display).toBe("");
+    expect(root.querySelector('[data-record-tab="details"]')).toBeNull();
+    expect(scroll).toHaveBeenCalledWith("x");
+    scroll.mockRestore();
   });
 
-  it("draws the panel sections skeleton while the Side Panel layout loads", async () => {
+  it("draws the panel sections skeleton while the Side Panel layout reloads", async () => {
     const root = await open();
     load.answerRecord();
+    await settleLayouts();
+
+    expect(root.querySelector("[data-panel-sections-skeleton]")).toBeNull();
+
+    load.layouts["Side Panel"].loading.value = true;
     await settle();
 
     expect(skeletons(root, "data-panel-sections-skeleton")).toBeGreaterThan(0);
@@ -212,7 +269,6 @@ describe("once the record arrives", () => {
     load.layouts["Side Panel"].loading.value = false;
     await settle();
 
-    // No Side Panel layout: zero sections for good, and no skeleton standing in for them.
     expect(root.querySelector("[data-panel-sections-skeleton]")).toBeNull();
     expect(root.querySelector("[data-record-panel]")).not.toBeNull();
   });

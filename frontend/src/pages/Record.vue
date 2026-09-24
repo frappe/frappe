@@ -4,19 +4,19 @@
 -->
 <template>
 	<PageFrame :scroll="false">
-		<template v-if="controller" #aboveHeader>
-			<FrameBands :bands="frame.before" :page="controller.page" />
+		<template v-if="painted" #aboveHeader>
+			<FrameBands :bands="frame.before" :page="painted.page" />
 		</template>
 
 		<!-- No slot when a script emptied or hid the row: the frame then draws no row at all. -->
 		<template
-			v-if="doctype && frame.header && (!controller || !isEmptyHeader(header))"
+			v-if="doctype && frame.header && (!painted || !isEmptyHeader(header))"
 			#header
 		>
 			<RecordHeader
-				v-if="controller"
+				v-if="painted"
 				:projection="header"
-				:page="controller.page"
+				:page="painted.page"
 				:dirty="dirty"
 				:saving="saving"
 				:favourites="favourites"
@@ -34,7 +34,7 @@
 			No doctype is served at <code>{{ route.params.doctype }}</code> under this prefix.
 		</p>
 
-		<FrameBands v-else-if="controller" :bands="frame.between" :page="controller.page" />
+		<FrameBands v-else-if="painted" :bands="frame.between" :page="painted.page" />
 
 		<template v-if="doctype && frame.body">
 			<p v-if="error" class="py-5 text-sm text-ink-red-4" :class="pageGutter">
@@ -42,17 +42,16 @@
 			</p>
 
 			<BodyColumns
-				v-else-if="controller"
+				v-else-if="painted"
 				:items="bodyItems"
-				:page="controller.page"
+				:page="painted.page"
 				:user="boot.session.user.name"
 			>
 				<template #form>
 					<RecordTabs
 						:tabs="tabEntries"
 						:active="shownTab"
-						:ready="controller.ready.value"
-						:page="controller.page"
+						:page="painted.page"
 						:claimsFocus="tabsHost.claimsFocus"
 						@select="tabsHost.activate"
 					>
@@ -71,7 +70,7 @@
 						</template>
 						<template #composer>
 							<RecordComposer
-								:controller="controller"
+								:controller="painted"
 								:tabs="stripTabs"
 								:active="shownTab"
 								:user="boot.session.user"
@@ -85,7 +84,7 @@
 						v-model:doc="doc"
 						:doctype="doctype"
 						:docname="docname"
-						:controller="controller"
+						:controller="painted"
 						:meta="meta"
 						:docinfo="docinfo"
 						:sections="sections"
@@ -103,7 +102,7 @@
 			<BodySkeleton v-else :user="boot.session.user.name" />
 		</template>
 
-		<FrameBands v-if="controller" :bands="frame.after" :page="controller.page" />
+		<FrameBands v-if="painted" :bands="frame.after" :page="painted.page" />
 
 		<PageDialogs v-if="controller" :controller="controller" />
 		<RecordUploadDialog v-if="controller" :page="controller.page" />
@@ -206,6 +205,8 @@ const docinfo = ref<DocInfo | null>(null);
 const linkTitles = ref<Record<string, string>>({});
 const error = ref("");
 const controller = shallowRef<RecordPageController | null>(null);
+// The frame and the body wait for the first replay's commit; the skeletons hold their place.
+const painted = computed(() => (controller.value?.ready.value ? controller.value : null));
 // The doctype's Side Panel layout, or nothing: the panel never falls back to the Details layout.
 const panelLayout = shallowRef<UseFormLayout | null>(null);
 const detailsLayout = shallowRef<UseFormLayout | null>(null);
@@ -478,7 +479,8 @@ async function load() {
 	formTab.value = tabMemory.value.recall();
 	activeFormTab.value = "";
 
-	// Both layouts need only the doctype, so their fetches ride beside the record read and the meta.
+	// Scripts and layouts need only the doctype, so they ride beside the record read and meta.
+	void loadClientScripts(target.doctype);
 	// Against the saved document, so a keystroke cannot switch a layout under the reader.
 	const details = useFormLayout({
 		doctype: target.doctype,
@@ -665,8 +667,9 @@ async function runSave() {
 // A failing action would otherwise leave the draft mutated with no error, so it reloads;
 // a save the reader vetoed or must resolve keeps the draft, as the built-in Save does.
 async function runAction(action: QuickAction | HeaderItem) {
+	const current = controller.value!;
 	try {
-		await action.run?.(controller.value!.page);
+		await current.hold(() => action.run?.(current.page));
 	} catch (e) {
 		const name = (e as Error)?.name;
 		if (name === SAVE_CONFLICT) return;

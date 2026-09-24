@@ -60,11 +60,11 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
     else this.host.setWindow(value);
   }
 
-  /** Called in a replay, the open waits for `releaseOpen`, as `activity.scrollTo` waits. */
+  /** Called in a replay or a hold, the open waits for `releaseOpen`, as `activity.scrollTo` waits. */
   open(name: string, options: ComposerOpenOptions = {}) {
     if (!this.canOpen(name)) return;
     const checked = this.checkWindow(name, options);
-    if (this.replaying) this.heldOpen = { name, options: checked };
+    if (this.staging) this.heldOpen = { name, options: checked };
     else this.deliver(name, checked);
   }
 

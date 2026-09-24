@@ -62,7 +62,7 @@ import type { PageDialogEntry } from "@/recordPage/dialog";
 import type { PageDialogFormOptions } from "@/recordPage/types";
 
 function makeEntry(form: PageDialogFormOptions) {
-  const entry: PageDialogEntry & { settled: any[] } = {
+  const entry: PageDialogEntry & { settled: any[]; holding: number } = {
     id: 1,
     source: "page-script:deal-hello",
     kind: "form",
@@ -75,6 +75,15 @@ function makeEntry(form: PageDialogFormOptions) {
       if (!entry.settled.length) entry.settled.push(result);
     },
     dismiss: vi.fn(),
+    holding: 0,
+    hold: async (work) => {
+      entry.holding += 1;
+      try {
+        return await work();
+      } finally {
+        entry.holding -= 1;
+      }
+    },
   };
   return entry;
 }
@@ -133,8 +142,11 @@ describe("the form host", () => {
     error.mockRestore();
   });
 
-  it("resolves with the field values on a clean submit", async () => {
-    const onSubmit = vi.fn();
+  it("resolves with the field values on a clean submit, held", async () => {
+    let heldDuringSubmit = 0;
+    const onSubmit = vi.fn(() => {
+      heldDuringSubmit = entry.holding;
+    });
     const entry = makeEntry({
       fields: FIELDS,
       defaults: { note: "hi" },
@@ -145,6 +157,7 @@ describe("the form host", () => {
     await click(root, "Submit");
 
     expect(onSubmit).toHaveBeenCalledWith({ note: "hi" });
+    expect(heldDuringSubmit).toBe(1);
     expect(entry.settled).toEqual([{ note: "hi" }]);
   });
 

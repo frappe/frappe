@@ -128,9 +128,9 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
     super("activity");
   }
 
-  /** Called in a replay, the move waits for `releaseScroll`, once the page on screen is this replay's. */
+  /** Called in a replay or a hold, the move waits for `releaseScroll`, once the page on screen is its own. */
   scrollTo(key: string) {
-    if (this.replaying) this.heldScroll = key;
+    if (this.staging) this.heldScroll = key;
     else void this.deliverScroll(key);
   }
 
@@ -139,7 +139,7 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
   }
 
   types(list: VisibleTypes) {
-    if (this.replaying) this.stagedTypes = [...list];
+    if (this.staging) this.stagedTypes = [...list];
     else this.showTypes([...list]);
   }
 
@@ -161,10 +161,16 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
     super.beginReplay();
   }
 
-  commitReplay() {
-    const outermost = this.replaying === 1;
-    super.commitReplay();
-    if (outermost) this.showTypes(this.stagedTypes);
+  // A hold starts from the types on screen, as its ops start from the drawn list.
+  beginHold() {
+    if (!this.staging) this.stagedTypes = this.shown.value;
+    super.beginHold();
+  }
+
+  protected closeStaging() {
+    const last = super.closeStaging();
+    if (last) this.showTypes(this.stagedTypes);
+    return last;
   }
 
   protected serverItems(): ActivityItem[] {

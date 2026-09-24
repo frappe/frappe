@@ -3,6 +3,7 @@
 import { markRaw, reactive } from "vue";
 import { runningSource } from "./context";
 import { ensureIcons } from "./iconClasses";
+import { StagedOps } from "./staging";
 import type { Position, SurfaceItem, SurfaceVerbs } from "./types";
 
 export interface ResolvedItem<Item extends SurfaceItem = SurfaceItem> {
@@ -30,12 +31,8 @@ export interface Vocabulary {
 }
 
 export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceVerbs<Item> {
-	private ops: Op<Item>[] = reactive([]);
+	private staged = new StagedOps<Op<Item>>(reactive([]));
 	private saidKeys = new Set<string>();
-	// Where a replay's ops accumulate until it commits. Non-null only inside a
-	// replay; ops recorded anywhere else render immediately.
-	private pending: Op<Item>[] | null = null;
-	protected replaying = 0;
 	private builtins: () => Item[] = () => [];
 
 	/** Without a vocabulary every key is kept. */
@@ -87,22 +84,22 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 		this.record({ verb: "clear", source: runningSource() });
 	}
 
-	// Resolves over the replay in flight: a source that calls `add('x')` and then
-	// `has('x')` in its own `refresh` handler is told about its own work.
+	// Resolves over the replay or hold in flight: a source that calls `add('x')` and then
+	// `has('x')` in its own handler is told about its own work.
 	has(name: string) {
-		return this.fold(this.pending ?? this.ops).some((entry) => entry.item.name === name);
+		return this.fold(this.staged.current).some((entry) => entry.item.name === name);
 	}
 
 	// Host side, reading the way `has` reads: `activate` asks this to tell a hidden tab from an absent one.
 	isVisible(name: string) {
-		return this.fold(this.pending ?? this.ops).some(
+		return this.fold(this.staged.current).some(
 			(entry) => entry.item.name === name && !entry.hidden,
 		);
 	}
 
 	// Host side, reading the way `has` reads: the item as the replay in flight would render it.
 	find(name: string): Item | undefined {
-		return this.fold(this.pending ?? this.ops).find((entry) => entry.item.name === name)?.item;
+		return this.fold(this.staged.current).find((entry) => entry.item.name === name)?.item;
 	}
 
 	// Host side, below: not part of what a script may call.
@@ -111,29 +108,32 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 		this.builtins = get;
 	}
 
-	/**
-	 * Opens a replay: ops are staged until the matching commit, and a replay
-	 * rebuilds from built-ins alone. Only the outermost commit publishes.
-	 */
+	/** Opens a replay: ops stage until the last open replay or hold commits. */
 	beginReplay() {
-		this.pending = [];
-		this.replaying += 1;
+		this.staged.beginReplay();
 	}
 
-	/** Close a replay: the outermost one publishes the staged ops in one flush. */
+	/** Opens a hold: one handler's ops stage over what is drawn and publish together. */
+	beginHold() {
+		this.staged.beginHold();
+	}
+
 	commitReplay() {
-		if (this.replaying === 0) return;
-		this.replaying -= 1;
-		if (this.replaying > 0) return;
-		const staged = this.pending ?? [];
-		this.pending = null;
-		// One splice, not a clear and a refill: `ops` is reactive, and the host must never render the replay's middle.
-		this.ops.splice(0, this.ops.length, ...staged);
+		this.closeStaging();
 	}
 
-	/** The rendered arrangement: committed ops only, never a replay in flight. */
+	commitHold() {
+		this.closeStaging();
+	}
+
+	/** Draws what has staged so far, less one source's ops, and keeps staging. */
+	publishStaged(except?: string) {
+		this.staged.publishStaged(except);
+	}
+
+	/** The rendered arrangement: committed ops only, never a replay or hold in flight. */
 	resolve(): ResolvedItem<Item>[] {
-		return this.fold(this.ops);
+		return this.fold(this.staged.committed);
 	}
 
 	visible(): Item[] {
@@ -143,13 +143,23 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 	}
 
 	visibleInReplay(): Item[] {
-		return this.fold(this.pending ?? this.ops)
+		return this.fold(this.staged.current)
 			.filter((entry) => !entry.hidden)
 			.map((entry) => entry.item);
 	}
 
+	/** True while a replay or a hold is open; acts wait for the commit. */
+	protected get staging() {
+		return this.staged.isStaging;
+	}
+
+	/** True when this closed the last open replay or hold, which publishes. */
+	protected closeStaging() {
+		return this.staged.commit();
+	}
+
 	private record(op: Op<Item>) {
-		(this.pending ?? this.ops).push(op);
+		this.staged.record(op);
 	}
 
 	// `has`, `find` and a later `update` must not see a dropped key.

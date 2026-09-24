@@ -30,6 +30,8 @@ const builds = new Map<string, number>();
 const writable = ref(false);
 // How often each doctype's stored scripts changed on the server since this tab opened.
 const changes = reactive(new Map<string, number>());
+// What each doctype's tier is waiting on while it builds.
+const waits = new Map<string, string>();
 
 export const canWriteClientScripts = readonly(writable);
 
@@ -61,6 +63,11 @@ export function toastScriptError(key: string, message: string) {
   toast.error(message);
 }
 
+/** What the doctype's tier is still fetching or evaluating, or null once it is in. */
+export function clientScriptWait(doctype: string): string | null {
+  return waits.get(doctype) ?? null;
+}
+
 /** Resolves when the doctype's tier has registered; one fetch per doctype. */
 export function loadClientScripts(doctype: string): Promise<void> {
   const loading = tiers.get(doctype) ?? buildTier(doctype);
@@ -79,6 +86,7 @@ export function resetClientScripts() {
   tiers.clear();
   changes.clear();
   builds.clear();
+  waits.clear();
   toasted.clear();
   notified.clear();
   resetCustomizationErrorReports();
@@ -90,6 +98,7 @@ async function buildTier(doctype: string) {
   builds.set(doctype, build);
   clearTier(doctype);
 
+  waits.set(doctype, `the Client Script list for ${doctype}`);
   const response = await fetchScripts(doctype);
   if (builds.get(doctype) !== build) return;
   // Only an answer the server actually gave: a failed fetch must not read as
@@ -97,8 +106,10 @@ async function buildTier(doctype: string) {
   if (response) writable.value = response.can_write;
   for (const row of response?.scripts ?? []) {
     if (builds.get(doctype) !== build) return;
+    waits.set(doctype, `${sourceName(row.name)} to load`);
     await addScript(doctype, row, response!.can_write);
   }
+  if (builds.get(doctype) === build) waits.delete(doctype);
 }
 
 /** Null when the tier could not be fetched — distinct from an empty tier. */

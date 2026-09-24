@@ -31,6 +31,8 @@ export interface PageDialogEntry {
   settle: (result?: any) => void;
   /** Takes the dialog off the stack — the host calls it after the leave transition. */
   dismiss: () => void;
+  /** Runs one of the author's callbacks so its ops paint once, when it finishes. */
+  hold: PageDialogHost["hold"];
   /** Set by the host component so navigating away still runs the author's `onCancel`. */
   onDismissed?: () => void;
 }
@@ -38,6 +40,8 @@ export interface PageDialogEntry {
 export interface PageDialogHost {
   /** True while a replay is running; a dialog opened from `refresh` re-opens on every replay. */
   isReplaying: () => boolean;
+  /** Runs a dialog's script callback so its ops paint once, when it finishes. */
+  hold: <T>(work: () => Promise<T> | T) => Promise<T>;
 }
 
 export interface PageDialogs {
@@ -166,6 +170,7 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
         ...build(),
         settle,
         dismiss,
+        hold: host.hold,
       };
       entries.value = [...entries.value, entry];
     });
@@ -205,17 +210,18 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
           onClick: async (control: any) => {
             // An action with no `onClick` is frappe-ui's plain dismiss button;
             // answering `true` for it would read as a confirmation.
-            if (!action.onClick) return settle(null);
-            await action.onClick(controlFor(control));
+            const onClick = action.onClick;
+            if (!onClick) return settle(null);
+            await host.hold(() => onClick(controlFor(control)));
             settle(true);
           },
         })),
         onConfirm: async (control: any) => {
-          await args.onConfirm?.(controlFor(control));
+          await host.hold(() => args.onConfirm?.(controlFor(control)));
           settle(true);
         },
-        onCancel: () => {
-          args.onCancel?.();
+        onCancel: async () => {
+          await host.hold(() => args.onCancel?.());
           settle(null);
         },
       } as any);
