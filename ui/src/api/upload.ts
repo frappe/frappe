@@ -2,8 +2,10 @@
  * Uploads and downloads: multipart on the v2 document routes, with progress and cancel.
  * A file larger than the chunk size goes in parts, and only the last part answers with it.
  */
+import { takeTicket } from "../cache";
 import { ApiError, readEnvelope, type Envelope } from "./envelope";
-import { apiUrl, request, requestHeaders } from "./request";
+import { fed, fedAfter, feedPartReply } from "./feed";
+import { apiUrl, requestHeaders } from "./request";
 import type { Users } from "./index";
 
 /** The server's own default; a desk that knows the site's `file_chunk_size` passes that. */
@@ -69,7 +71,10 @@ export function attachFile(
   fields: UploadFields = {},
   options: UploadOptions = {}
 ): Promise<Envelope<AttachmentsPart>> {
-  return uploadTo<AttachmentsPart>(attachmentsPath(doctype, name), file, fields, options);
+  const ticket = takeTicket();
+  const path = attachmentsPath(doctype, name);
+  const uploading = uploadTo<AttachmentsPart>(path, file, fields, options);
+  return fedAfter(ticket, uploading, feedPartReply(doctype, name, "attachments"));
 }
 
 /** Delete an attached file; answers with the refreshed `attachments` part. */
@@ -79,7 +84,9 @@ export function removeAttachment(
   fileName: string,
   { signal }: { signal?: AbortSignal } = {}
 ): Promise<Envelope<AttachmentsPart>> {
-  return request<AttachmentsPart>("DELETE", attachmentsPath(doctype, name, fileName), { signal });
+  const path = attachmentsPath(doctype, name, fileName);
+  const feed = feedPartReply(doctype, name, "attachments");
+  return fed<AttachmentsPart>("DELETE", path, { signal }, feed);
 }
 
 /**

@@ -36,6 +36,8 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
+const NAME_AND_MODIFIED = `fields=${encodeURIComponent('["name","modified"]')}`;
+
 describe("getDocument", () => {
   it("reads the document alone", async () => {
     respond({ data: { name: "T-1" } });
@@ -82,7 +84,7 @@ describe("listDocuments and countDocuments", () => {
   it("carries no count keys when include did not ask for one", async () => {
     respond({ data: [], has_next_page: false });
     const envelope = await listDocuments("ToDo", { limit: 20 });
-    expect(lastCall().url).toBe("/api/v2/document/ToDo?limit=20");
+    expect(lastCall().url).toBe(`/api/v2/document/ToDo?limit=20&${NAME_AND_MODIFIED}`);
     expect("count" in envelope).toBe(false);
     expect("count_capped" in envelope).toBe(false);
   });
@@ -90,11 +92,15 @@ describe("listDocuments and countDocuments", () => {
   it("asks for the count as an include, from an array or a string", async () => {
     respond({ data: [{ name: "T-1" }], has_next_page: true, count: 41, count_capped: false });
     const envelope = await listDocuments("ToDo", { limit: 1 }, { include: ["count"] });
-    expect(lastCall().url).toBe("/api/v2/document/ToDo?limit=1&include=count");
+    expect(lastCall().url).toBe(
+      `/api/v2/document/ToDo?limit=1&${NAME_AND_MODIFIED}&include=count`
+    );
     expect(envelope.count).toBe(41);
     expect(envelope.count_capped).toBe(false);
     await listDocuments("ToDo", {}, { include: "count,permissions" });
-    expect(lastCall().url).toBe("/api/v2/document/ToDo?include=count%2Cpermissions");
+    expect(lastCall().url).toBe(
+      `/api/v2/document/ToDo?${NAME_AND_MODIFIED}&include=count%2Cpermissions`
+    );
   });
 
   it("passes a null count through when the server gave up counting", async () => {

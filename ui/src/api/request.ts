@@ -1,3 +1,5 @@
+import { clearDataCache, feedDocsDocument, settleTicket, takeTicket } from "../cache";
+import type { DocumentRecord } from "./index";
 import { ApiError, readEnvelope, type Envelope, type ReadOptions } from "./envelope";
 
 const BASE = "/api/v2";
@@ -9,6 +11,8 @@ export interface RequestOptions extends Pick<ReadOptions, "nullable"> {
   query?: Query;
   body?: unknown;
   signal?: AbortSignal;
+  /** The cache ticket the caller took at send time and settles; absent, the call takes its own. */
+  ticket?: number;
 }
 
 export function apiUrl(path: string, query?: Query): string {
@@ -35,7 +39,34 @@ export function requestHeaders({ json = true } = {}): Record<string, string> {
 export async function request<T>(
   method: HttpMethod,
   path: string,
-  { query, body, signal, nullable }: RequestOptions = {}
+  options: RequestOptions = {}
+): Promise<Envelope<T>> {
+  if (options.ticket !== undefined) return send<T>(method, path, options, options.ticket);
+  const ticket = takeTicket();
+  try {
+    return await send<T>(method, path, options, ticket);
+  } finally {
+    feedSafely(() => settleTicket(ticket));
+  }
+}
+
+/** A cache fault empties the cache and surfaces on its own, so the request still answers. */
+export function feedSafely(feed: () => void): void {
+  try {
+    feed();
+  } catch (error) {
+    clearDataCache();
+    queueMicrotask(() => {
+      throw error;
+    });
+  }
+}
+
+async function send<T>(
+  method: HttpMethod,
+  path: string,
+  { query, body, signal, nullable }: RequestOptions,
+  ticket: number
 ): Promise<Envelope<T>> {
   let response: Response;
   try {
@@ -49,10 +80,20 @@ export async function request<T>(
     if ((error as { name?: string })?.name === "AbortError") throw error;
     throw new ApiError({ type: "NetworkError", message: String(error) }, 0);
   }
-  return readEnvelope<T>(await parseBody(response), response.status, {
+  const envelope = readEnvelope<T>(await parseBody(response), response.status, {
     source: `${method} ${path}`,
     nullable,
   });
+  feedSafely(() => feedDocs(ticket, envelope));
+  return envelope;
+}
+
+/** A document method returns its documents under `docs` whether or not it saved them. */
+function feedDocs(ticket: number, envelope: Envelope<unknown>) {
+  if (!Array.isArray(envelope.docs)) return;
+  for (const doc of envelope.docs as DocumentRecord[]) {
+    if (typeof doc?.doctype === "string") feedDocsDocument(ticket, doc.doctype, doc);
+  }
 }
 
 // The server reads a query flag with `bool()`, so the string "false" must not reach it.

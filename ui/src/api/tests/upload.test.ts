@@ -1,4 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  RECORD_PARTS,
+  clearDataCache,
+  feedRecordRead,
+  readCachedDocument,
+  takeTicket,
+} from "../../cache";
 import { attachFile, downloadFile, removeAttachment, uploadFile } from "../index";
 
 class FakeXHR {
@@ -138,6 +145,29 @@ describe("removeAttachment", () => {
     expect(String(url)).toBe("/api/v2/document/ToDo/TODO-1/attachments/file-9");
     expect(init?.method).toBe("DELETE");
     expect(data.attachments).toEqual([]);
+  });
+});
+
+describe("an attachment write", () => {
+  const row = { name: "file-9", file_name: "a.txt", file_url: "/files/a.txt" };
+  const cachedAttachments = () => readCachedDocument("ToDo", "TODO-1")!.parts.attachments;
+
+  beforeEach(() => {
+    clearDataCache();
+    const parts = Object.fromEntries(RECORD_PARTS.map((part) => [part, []]));
+    const record = { data: { name: "TODO-1", modified: "2026-09-01 10:00:00" }, ...parts };
+    feedRecordRead(takeTicket(), "ToDo", record, RECORD_PARTS);
+  });
+
+  it("feeds the refreshed part to the cache on attach and on remove", async () => {
+    const attached = { data: { file: "file-9", attachments: [row] } };
+    FakeXHR.respond = () => ({ status: 200, body: attached });
+    await attachFile("ToDo", "TODO-1", new File(["x"], "a.txt"));
+    expect(cachedAttachments()).toEqual([row]);
+    const removed = JSON.stringify({ data: { attachments: [] } });
+    fetchMock.mockImplementation(async () => new Response(removed));
+    await removeAttachment("ToDo", "TODO-1", "file-9");
+    expect(cachedAttachments()).toEqual([]);
   });
 });
 

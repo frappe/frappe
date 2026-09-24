@@ -23,6 +23,15 @@ export {
   useSession,
 } from "./composables/useSession";
 export type { UseSession } from "./composables/useSession";
+export {
+  clearDataCache,
+  listCacheKey,
+  readCachedDocument,
+  readCachedList,
+  readCachedRows,
+  RECORD_PARTS,
+} from "./cache";
+export type { DocumentEntry, ListEntry } from "./cache";
 export * from "./utils";
 export * from "./components/Grid";
 export * from "./components/Phone";

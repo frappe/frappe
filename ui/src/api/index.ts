@@ -2,6 +2,15 @@
  * The one place the desk talks to the server: every request goes to
  * `/api/v2`, and a later change of transport touches this folder only.
  */
+import {
+  feedDelete,
+  feedDocumentWrite,
+  feedListRead,
+  feedReadError,
+  feedRecordRead,
+  takeTicket,
+} from "../cache";
+import { fed, fedAfter, feedPartReply, includeNames, withModified } from "./feed";
 import { request, type Query } from "./request";
 import { ApiError, type Envelope } from "./envelope";
 
@@ -100,10 +109,15 @@ export function getDocument<T extends DocumentRecord = DocumentRecord>(
   name: string,
   { include, signal }: IncludeOptions = {}
 ): Promise<Envelope<T>> {
-  return request<T>("GET", documentPath(doctype, name), {
-    query: { include: joinInclude(include) },
-    signal,
-  });
+  const ticket = takeTicket();
+  const options = { query: { include: joinInclude(include) }, signal, ticket };
+  const sending = request<T>("GET", documentPath(doctype, name), options);
+  return fedAfter(
+    ticket,
+    sending,
+    (_, envelope) => feedRecordRead(ticket, doctype, envelope, includeNames(include)),
+    (error) => feedReadError(ticket, doctype, name, error)
+  );
 }
 
 export function listDocuments<T = DocumentRecord>(
@@ -111,10 +125,10 @@ export function listDocuments<T = DocumentRecord>(
   query: ListQuery = {},
   { include, signal }: IncludeOptions = {}
 ): Promise<ListEnvelope<T>> {
-  return request<T[]>("GET", `/document/${segment(doctype)}`, {
-    query: { ...query, include: joinInclude(include) },
-    signal,
-  }) as Promise<ListEnvelope<T>>;
+  const options = { query: { ...withModified(query), include: joinInclude(include) }, signal };
+  return fed<T[]>("GET", `/document/${segment(doctype)}`, options, (ticket, envelope) =>
+    feedListRead(ticket, doctype, query, envelope as ListEnvelope<DocumentRecord>)
+  ) as Promise<ListEnvelope<T>>;
 }
 
 export function countDocuments(
@@ -138,7 +152,10 @@ export function createDocument<T extends DocumentRecord = DocumentRecord>(
   doc: Partial<T>,
   { signal }: CallOptions = {}
 ): Promise<Envelope<T>> {
-  return request<T>("POST", `/document/${segment(doctype)}`, { body: doc, signal });
+  const path = `/document/${segment(doctype)}`;
+  return fed<T>("POST", path, { body: doc, signal }, (ticket, envelope) =>
+    feedDocumentWrite(ticket, doctype, envelope.data)
+  );
 }
 
 /** Save the whole document; without `modified` the server cannot refuse a save over someone else's. */
@@ -156,7 +173,10 @@ export function updateDocument<T extends DocumentRecord = DocumentRecord>(
       )
     );
   }
-  return request<T>("PATCH", documentPath(doctype, name), { body: doc, signal });
+  const path = documentPath(doctype, name);
+  return fed<T>("PATCH", path, { body: doc, signal }, (ticket, envelope) =>
+    feedDocumentWrite(ticket, doctype, envelope.data)
+  );
 }
 
 export function deleteDocument(
@@ -164,7 +184,9 @@ export function deleteDocument(
   name: string,
   { signal }: CallOptions = {}
 ): Promise<Envelope<"ok">> {
-  return request<"ok">("DELETE", documentPath(doctype, name), { signal });
+  return fed<"ok">("DELETE", documentPath(doctype, name), { signal }, (ticket) =>
+    feedDelete(ticket, doctype, name)
+  );
 }
 
 export function copyDocument<T extends DocumentRecord = DocumentRecord>(
@@ -332,7 +354,8 @@ export function addPart<T>(
   body?: unknown,
   { signal }: CallOptions = {}
 ): Promise<Envelope<T>> {
-  return request<T>("POST", partPath(doctype, name, part), { body, signal });
+  const path = partPath(doctype, name, part);
+  return fed<T>("POST", path, { body, signal }, feedPartReply(doctype, name, part));
 }
 
 export function removePart<T>(
@@ -342,7 +365,8 @@ export function removePart<T>(
   key?: string,
   { signal }: CallOptions = {}
 ): Promise<Envelope<T>> {
-  return request<T>("DELETE", partPath(doctype, name, part, key), { signal });
+  const path = partPath(doctype, name, part, key);
+  return fed<T>("DELETE", path, { signal }, feedPartReply(doctype, name, part));
 }
 
 export function updatePart<T>(
@@ -353,7 +377,8 @@ export function updatePart<T>(
   body: unknown,
   { signal }: CallOptions = {}
 ): Promise<Envelope<T>> {
-  return request<T>("PATCH", partPath(doctype, name, part, key), { body, signal });
+  const path = partPath(doctype, name, part, key);
+  return fed<T>("PATCH", path, { body, signal }, feedPartReply(doctype, name, part));
 }
 
 export function addAssignment(
