@@ -117,8 +117,12 @@ function entryFor(doctype: string): Entry {
 		dropped: false,
 	};
 	entries.set(doctype, entry);
-	if (existing) entry.queue = existing.queue.then(() => load(entry, doctype));
-	else load(entry, doctype);
+	if (existing) {
+		entry.queue = existing.queue.then(() => {
+			carryPending(existing, entry);
+			return load(entry, doctype);
+		});
+	} else load(entry, doctype);
 	return entry;
 }
 
@@ -161,6 +165,13 @@ function restore(entry: Entry, patch: ListSettings, marks: Entry["resets"]) {
 		if ((entry.resets[key] ?? 0) === (marks[key] ?? 0)) Object.assign(kept, { [key]: patch[key] });
 	}
 	entry.pending = { ...kept, ...entry.pending };
+}
+
+/** A failed write lands in the dropped entry, which may have no holder left to flush it. */
+function carryPending(from: Entry, to: Entry) {
+	if (!from.pending) return;
+	restore(to, from.pending, {});
+	from.pending = null;
 }
 
 async function send(method: string, args: Record<string, unknown>): Promise<unknown> {

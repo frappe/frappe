@@ -194,6 +194,25 @@ describe("dropping", () => {
 		expect(open.stored.value).toEqual({ sort: [] });
 	});
 
+	it("hands a write that failed after the drop to the next caller", async () => {
+		const open = useListSettings("Lead");
+		await settle();
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		fake.runMethod.mockRejectedValueOnce(new Error("down"));
+		open.save({ columns: [{ fieldname: "title" }] });
+		dropListSettings("Lead");
+		const next = useListSettings("Lead");
+		await settle();
+		expect(next.has("user", "columns")).toBe(true);
+		await next.flush();
+		expect(fake.runMethod).toHaveBeenLastCalledWith(`${API}.save`, {
+			...ADDRESS,
+			scope: "user",
+			settings: { columns: [{ fieldname: "title" }] },
+		});
+		warn.mockRestore();
+	});
+
 	it("keeps every other doctype's rows", async () => {
 		useListSettings("Lead");
 		useListSettings("Deal");
