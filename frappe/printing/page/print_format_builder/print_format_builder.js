@@ -76,6 +76,7 @@ function load_print_format_builder(wrapper) {
 	if (current?.has_unsaved_changes?.() && route[1] !== leaving_to) {
 		if (current.print_format === route[1]) return;
 		if (leaving) {
+			leaving.target = route[1];
 			leaving.restored = true;
 			frappe.route_flags.replace_route = true;
 			frappe.set_route("print-format-builder", current.print_format);
