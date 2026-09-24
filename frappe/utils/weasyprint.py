@@ -72,7 +72,8 @@ def legacy_generator_from_print_context(print_format) -> PrintFormatGenerator | 
 	doc = ctx.get("doc")
 	if not isinstance(doc, Document):
 		doc = frappe.get_doc(ctx.doctype, ctx.name)
-	return legacy_generator(pf, doc, ctx.get("letterhead"))
+	letterhead = None if frappe.utils.cint(ctx.get("no_letterhead")) else ctx.get("letterhead")
+	return legacy_generator(pf, doc, letterhead)
 
 
 def get_weasyprint_pdf(print_format, html, options, output, pdf_generator=None):
