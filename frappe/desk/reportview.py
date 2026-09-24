@@ -243,6 +243,13 @@ def get_currency_normalized_fieldname(doctype: str, fieldname: str) -> str:
 	if base_df.permlevel and base_df.permlevel not in meta.get_permlevel_access(parenttype=doctype):
 		return fieldname
 
+	# A `report_hide` field is meant to be kept out of Report View entirely. On branches where
+	# the aggregate column is built as a plain SQL string (rather than a dict), it still goes
+	# through the normal per-field validation and would get silently dropped from the query
+	# while `order_by` keeps referencing it -- so don't substitute in a hidden field either.
+	if base_df.report_hide:
+		return fieldname
+
 	return base_fieldname
 
 
