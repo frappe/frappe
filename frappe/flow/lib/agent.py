@@ -1,7 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-"""Flow Agents defined in code."""
+"""Flow Agents and tools defined in code."""
 
 from __future__ import annotations
 
@@ -45,6 +45,13 @@ def _with_sub_agents(agent: Agent) -> Iterator[Agent]:
 	yield agent
 	for child in agent.sub_agents:
 		yield from _with_sub_agents(child)
+
+
+def sync_tools(_app: str | None = None) -> None:
+	"""Write each `@tool` the installed apps list under the `flow_tools` hook as a locked Imported
+	Flow Tool, for any agent to attach. Runs after migrate and app installs."""
+	for path in frappe.get_hooks("flow_tools"):
+		_ensure_tool(frappe.get_attr(path))
 
 
 class Agent:

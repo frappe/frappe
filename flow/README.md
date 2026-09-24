@@ -75,6 +75,13 @@ def agents():
 flow_agents = ["myapp.ai.agents"]
 ```
 
+### Share a tool with agents made in the desk
+
+```python
+# hooks.py
+flow_tools = ["myapp.ai.get_open_todos"]
+```
+
 ### Persist a conversation
 
 ```python
