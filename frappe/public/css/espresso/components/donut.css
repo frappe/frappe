@@ -1,0 +1,143 @@
+/* Espresso Donut — a ring of gently rounded, gapped segments with a value in the
+ * middle and a dotted legend below (frappe.ui.donut). Hovering a segment pops it
+ * out, fades the rest, swaps the centre and shows a tooltip. Self-contained; the
+ * host needs no chart library.
+ *
+ *   <div class="es-donut">
+ *     <div class="es-donut__chart">
+ *       <svg class="es-donut__svg">…<path class="es-donut__seg"/>…</svg>
+ *       <div class="es-donut__center">
+ *         <div class="es-donut__value">55%</div>
+ *         <div class="es-donut__label">used</div>
+ *       </div>
+ *       <div class="es-donut__tip">…</div>
+ *     </div>
+ *     <div class="es-donut__legend">
+ *       <div class="es-donut__legend-row">
+ *         <span class="es-donut__dot"></span>
+ *         <span class="es-donut__legend-label">Overdue</span>
+ *         <span class="es-donut__legend-pct">35%</span>
+ *       </div>
+ *     </div>
+ *   </div> */
+
+.es-donut {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--spacing) * 4);
+}
+
+.es-donut__chart {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.es-donut__svg {
+    width: 100%;
+    height: 100%;
+}
+
+.es-donut__seg {
+    transition: opacity 150ms ease;
+}
+
+.es-donut__seg.is-dim {
+    opacity: 0.75;
+}
+
+.es-donut__tip {
+    position: absolute;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+    padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+    white-space: nowrap;
+    font-size: var(--text-sm);
+    background: var(--surface-elevation-2);
+    border: 1px solid var(--outline-elevation-2);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--elevation-xl);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+}
+
+.es-donut__tip.is-visible {
+    opacity: 1;
+}
+
+.es-donut__tip-label {
+    margin-right: calc(var(--spacing) * 3);
+    color: var(--ink-gray-7);
+}
+
+.es-donut__tip b {
+    font-weight: var(--font-weight-semibold);
+    color: var(--ink-gray-8);
+}
+
+.es-donut__center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    text-align: center;
+}
+
+.es-donut__value {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--ink-gray-8);
+    line-height: 1.2;
+}
+
+.es-donut__label {
+    margin-top: 2px;
+    font-size: var(--text-sm);
+    color: var(--ink-gray-5);
+}
+
+.es-donut__legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: calc(var(--spacing) * 1);
+}
+
+.es-donut__legend-row {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 1.5);
+    padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
+    border-radius: var(--radius-md);
+    transition: background-color 150ms ease;
+}
+
+.es-donut__legend-row.is-active {
+    background: var(--surface-gray-2);
+}
+
+/* The inset edge keeps near-background swatches (an "available" track) visible. */
+.es-donut__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    box-shadow: inset 0 0 0 1px var(--outline-gray-3);
+    flex-shrink: 0;
+}
+
+.es-donut__legend-label {
+    font-size: var(--text-sm);
+    color: var(--ink-gray-7);
+}
+
+.es-donut__legend-pct {
+    font-size: var(--text-sm);
+    color: var(--ink-gray-5);
+    font-variant-numeric: tabular-nums;
+}
