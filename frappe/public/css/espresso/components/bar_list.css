@@ -1,0 +1,98 @@
+/* Espresso Bar List — a horizontal labeled bar chart (frappe.ui.bar_list): one
+ * row per item (label · proportional bar · end value) over a shared value axis
+ * with dashed gridlines and ticks. Fills the gap left by frappe-charts, which has
+ * no horizontal bar type. Self-contained; the host needs no chart CSS.
+ *
+ *   <div class="es-bar-list">
+ *     <div class="es-bar-list__plot">
+ *       <div class="es-bar-list__gridline" style="left:50%"></div>
+ *       <div class="es-bar-list__rows">
+ *         <div class="es-bar-list__row">
+ *           <div class="es-bar-list__label">1–30 days</div>
+ *           <div class="es-bar-list__bar" style="width:40%"></div>
+ *           <div class="es-bar-list__value" style="left:40%">₹160K</div>
+ *         </div>
+ *       </div>
+ *       <div class="es-bar-list__axis"><div class="es-bar-list__tick" style="left:50%">₹300K</div></div>
+ *     </div>
+ *   </div>
+ *
+ * Modifier: .es-bar-list__row--clickable  the row acts as a button. */
+
+.es-bar-list__plot {
+    position: relative;
+    /* left gutter holds the labels; right gutter lets the end value overflow the last bar */
+    margin: 4px 48px 0 110px;
+    --es-bl-axis-h: 22px;
+}
+
+.es-bar-list__gridline {
+    position: absolute;
+    top: 0;
+    bottom: var(--es-bl-axis-h);
+    width: 0;
+    border-left: 1px dashed var(--outline-gray-2);
+}
+
+.es-bar-list__rows {
+    position: relative;
+}
+
+.es-bar-list__row {
+    position: relative;
+    height: 30px;
+}
+
+.es-bar-list__row--clickable {
+    cursor: pointer;
+}
+
+.es-bar-list__label {
+    position: absolute;
+    right: calc(100% + 10px);
+    top: 0;
+    width: 96px;
+    line-height: 30px;
+    text-align: right;
+    font-size: var(--text-sm);
+    color: var(--ink-gray-5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.es-bar-list__bar {
+    position: absolute;
+    left: 0;
+    top: 8px;
+    height: 14px;
+    border-radius: 2px;
+    background: var(--surface-gray-7);
+}
+
+.es-bar-list__value {
+    position: absolute;
+    top: 0;
+    margin-left: 8px;
+    line-height: 30px;
+    font-size: var(--text-sm);
+    color: var(--ink-gray-5);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.es-bar-list__axis {
+    position: relative;
+    height: var(--es-bl-axis-h);
+    margin-top: 6px;
+}
+
+.es-bar-list__tick {
+    position: absolute;
+    top: 4px;
+    transform: translateX(-50%);
+    font-size: var(--text-xs);
+    color: var(--ink-gray-5);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
