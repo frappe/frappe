@@ -1,4 +1,11 @@
 import { computed, nextTick, ref } from "vue";
+import { zone_fields } from "../components/letterhead/zone_fields";
+
+const LETTERHEAD_EDITED_FIELDS = [
+	...Object.values(zone_fields("header")),
+	...Object.values(zone_fields("footer")),
+	"custom_css",
+];
 
 export function call_format(name, method, args = {}) {
 	return frappe.call("frappe.printing.doctype.print_format.print_format." + method, {
@@ -90,11 +97,36 @@ export function useDraftSave({
 			.finally(() => saving_count.value--);
 	}
 	// the letterhead goes first so apply-time validation reads its live state
+	let letterhead_push = Promise.resolve();
+	function push_letterhead() {
+		// one at a time — the manual save and the autosave can both ask, and the
+		// second would carry the timestamp the first is about to move
+		const run = () => {
+			const ours = Object.fromEntries(
+				LETTERHEAD_EDITED_FIELDS.map((key) => [key, letterhead.value[key]])
+			);
+			return frappe
+				.call({
+					method: "frappe.client.save",
+					args: { doc: letterhead.value },
+					silent: true,
+				})
+				.catch((xhr) => {
+					if (xhr?.responseJSON?.exc_type !== "TimestampMismatchError") throw xhr;
+					return frappe.db
+						.get_doc("Letter Head", letterhead.value.name)
+						.then((fresh) => {
+							letterhead.value = Object.assign(fresh, ours, { _dirty: true });
+							return frappe.call("frappe.client.save", { doc: letterhead.value });
+						});
+				});
+		};
+		letterhead_push = letterhead_push.then(run, run);
+		return letterhead_push;
+	}
 	function save_letterhead() {
 		if (!letterhead.value?._dirty) return Promise.resolve();
-		return frappe
-			.call("frappe.client.save", { doc: letterhead.value })
-			.then((r) => (letterhead.value = r.message));
+		return push_letterhead().then((r) => (letterhead.value = r.message));
 	}
 	function server_message(xhr) {
 		let r = xhr?.responseJSON;
@@ -182,12 +214,10 @@ export function useDraftSave({
 				has_draft.value = true;
 				if (!was_dirty) nextTick(() => (dirty.value = false));
 				if (letterhead.value && letterhead.value._dirty) {
-					return frappe
-						.call("frappe.client.save", { doc: letterhead.value })
-						.then((res) => {
-							letterhead.value.modified = res.message.modified;
-							letterhead.value._dirty = false;
-						});
+					return push_letterhead().then((res) => {
+						letterhead.value.modified = res.message.modified;
+						letterhead.value._dirty = false;
+					});
 				}
 			})
 			.then(() => {
