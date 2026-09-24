@@ -11,10 +11,12 @@ import frappe
 from frappe import _
 from frappe.app_state import clear_cache_after_maintenance
 from frappe.core.doctype.version.version import get_diff
+from frappe.locale import get_number_format
 from frappe.model import no_value_fields
 from frappe.utils import cint, cstr, duration_to_seconds, flt, update_progress_bar
 from frappe.utils.csvutils import get_csv_content_from_google_sheets, read_csv_content
 from frappe.utils.data import escape_html
+from frappe.utils.number_format import NumberFormat
 from frappe.utils.xlsxutils import (
 	read_xls_file_from_attached_file,
 	read_xlsx_file_from_attached_file,
@@ -35,6 +37,29 @@ def _get_fixed_csv_delimiter(custom_delimiters, delimiter_options) -> str | None
 		return None
 	options = delimiter_options.strip()
 	return options if len(options) == 1 else None
+
+
+def _parse_number(value: str, number_format: NumberFormat) -> float | None:
+	"""Read a plain number first, because the exporter writes 1234.56 whatever the number format is."""
+	value = value.strip()
+	try:
+		return float(value)
+	except ValueError:
+		pass
+
+	group = re.escape(number_format.thousands_separator)
+	decimal = re.escape(number_format.decimal_separator)
+	# 2-digit middle groups keep Indian grouping (12,34,567) working in every format, as flt() does
+	integer = rf"\d+|[1-9]\d{{0,2}}(?:{group}\d{{2,3}})*{group}\d{{3}}" if group else r"\d+"
+	fraction = rf"(?:{decimal}\d+)?" if decimal else ""
+	if not re.fullmatch(rf"[+-]?(?:{integer}){fraction}", value):
+		return None
+
+	if group:
+		value = value.replace(number_format.thousands_separator, "")
+	if decimal:
+		value = value.replace(number_format.decimal_separator, ".")
+	return float(value)
 
 
 class Importer:
@@ -1455,6 +1480,22 @@ class Row:
 						),
 					}
 				)
+		elif df.fieldtype in ("Int", "Float", "Currency", "Percent") and isinstance(value, str):
+			number_format = get_number_format()
+			number = _parse_number(value, number_format)
+			if number is None:
+				self.warnings.append(
+					{
+						"row": self.row_number,
+						"col": col.column_number,
+						"field": df_as_json(df),
+						"message": _('"{0}" is not a valid number. Use {1}').format(
+							frappe.bold(escape_html(value)), frappe.bold(number_format.string)
+						),
+					}
+				)
+				return
+			value = number
 
 		return value
 

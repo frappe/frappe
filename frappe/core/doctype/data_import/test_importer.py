@@ -12,13 +12,15 @@ from frappe.core.doctype.data_import.importer import (
 	Column,
 	Importer,
 	_get_tree_node_key,
+	_parse_number,
 	build_fields_dict_for_column_matching,
 	get_tree_alias_fieldname,
 	uses_tree_alias_references,
 )
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import db_type_is, unimplemented_for
-from frappe.utils import cint, format_duration, getdate
+from frappe.utils import cint, flt, format_duration, getdate
+from frappe.utils.number_format import NumberFormat
 
 doctype_name = "DocType for Import"
 SAMPLE_IMPORT_DOC_NAMES = ("Test", "Test 2", "Test 3")
@@ -615,6 +617,54 @@ class TestImporter(IntegrationTestCase):
 		_register_data_import_cleanup(self, data_import)
 
 		return data_import
+
+	def test_parse_number_follows_number_format(self):
+		cases = {
+			"#.###,##": {"19,18": 19.18, "1.234,56": 1234.56, "19.18": 19.18, "abc": None},
+			"#,###.##": {
+				"1,234.56": 1234.56,
+				"12,34,567.89": 1234567.89,
+				"19,18": None,
+				"0,125": None,
+				"1.234,56": None,
+			},
+			"#.###": {"1.234.567": 1234567.0, "1,5": None},
+		}
+		for number_format, values in cases.items():
+			for value, expected in values.items():
+				with self.subTest(number_format=number_format, value=value):
+					self.assertEqual(_parse_number(value, NumberFormat.from_string(number_format)), expected)
+
+	def start_currency_import(self, number_format, value):
+		self.addCleanup(frappe.db.set_default, "number_format", frappe.db.get_default("number_format"))
+		frappe.db.set_default("number_format", number_format)
+
+		import_file = frappe.get_doc(
+			doctype="File",
+			content=f'Currency Name,Smallest Currency Fraction Value\n_Test Number Format,"{value}"\n',
+			file_name="data_import_number_format.csv",
+			is_private=1,
+		)
+		import_file.save(ignore_permissions=True)
+		_register_file_cleanup(self, import_file)
+		self.addCleanup(_delete_doctype_records, "Currency", ["_Test Number Format"])
+
+		data_import = self.get_importer("Currency", import_file)
+		data_import.start_import()
+		data_import.reload()
+		return data_import
+
+	def test_import_reads_numbers_in_user_number_format(self):
+		with self.set_user("test@example.com"):
+			self.start_currency_import("#.###,##", "19,18")
+		value = frappe.db.get_value("Currency", "_Test Number Format", "smallest_currency_fraction_value")
+		self.assertEqual(flt(value), 19.18)
+
+	def test_import_blocks_numbers_in_other_format(self):
+		with self.set_user("test@example.com"):
+			data_import = self.start_currency_import("#,###.##", "19,18")
+		self.assertIn("is not a valid number", data_import.template_warnings)
+		self.assertFalse(frappe.db.exists("Currency", "_Test Number Format"))
 
 
 def create_doctype_if_not_exists(doctype_name, force=False):
