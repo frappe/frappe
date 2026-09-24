@@ -134,16 +134,11 @@ export const useStore = defineStore("form-builder-store", () => {
 		return form.value.layout.tabs.findIndex((tab) => tab.df.name === form.value.active_tab);
 	}
 
-	// restore the previously active tab by index if it still exists
+	// restore the previously active tab by index if it still exists, else the first tab.
+	// a null or -1 index reads as undefined, so it falls through too
 	function restore_active_tab(previous_index) {
 		let tabs = form.value.layout.tabs;
-		if (previous_index !== null && previous_index >= 0 && previous_index < tabs.length) {
-			form.value.active_tab = tabs[previous_index].df.name;
-		} else if (tabs.length > 0) {
-			form.value.active_tab = tabs[0].df.name;
-		} else {
-			form.value.active_tab = null;
-		}
+		form.value.active_tab = (tabs[previous_index] ?? tabs[0])?.df.name ?? null;
 	}
 
 	// deferred to nextTick so it lands after FormBuilder.vue's layout watcher sets dirty

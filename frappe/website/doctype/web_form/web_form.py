@@ -1303,7 +1303,24 @@ def get_link_options(
 	docname=None,
 ):
 	web_form: WebForm = frappe.get_cached_doc("Web Form", web_form_name)
-	authorize_link_access(web_form, doctype, web_form_request_key)
+
+	if web_form.login_required and frappe.session.user == "Guest":
+		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)
+	if getattr(web_form, "key_required", False):
+		get_web_form_request(
+			web_form.name,
+			web_form_request_key,
+			required=True,
+			allow_used=True,
+		)
+
+	ensure_guest_key_link_doctype_allowed(web_form, doctype)
+
+	if not web_form.published or not has_link_option(web_form.web_form_fields, doctype):
+		frappe.throw(
+			_("You don't have permission to access the {0} DocType.").format(doctype),
+			frappe.PermissionError,
+		)
 
 	link_options, filters = [], {}
 	if web_form.login_required and not allow_read_on_all_link_options:
@@ -1339,30 +1356,6 @@ def get_link_options(
 
 		# Use the actual names as options without labels
 		return "\n".join([doc.value for doc in link_options])
-
-
-def authorize_link_access(web_form, doctype, web_form_request_key=None):
-	"""Raise PermissionError unless this form may list records of `doctype`.
-
-	Callers query with permissions ignored, so this is the only gate.
-	"""
-	if web_form.login_required and frappe.session.user == "Guest":
-		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)
-	if getattr(web_form, "key_required", False):
-		get_web_form_request(
-			web_form.name,
-			web_form_request_key,
-			required=True,
-			allow_used=True,
-		)
-
-	ensure_guest_key_link_doctype_allowed(web_form, doctype)
-
-	if not web_form.published or not has_link_option(web_form.web_form_fields, doctype):
-		frappe.throw(
-			_("You don't have permission to access the {0} DocType.").format(doctype),
-			frappe.PermissionError,
-		)
 
 
 @redis_cache(ttl=60 * 60)

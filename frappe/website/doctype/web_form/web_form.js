@@ -916,23 +916,18 @@ function render_form_builder(frm) {
 		.finally(() => (frm._web_form_builder_loading = false));
 }
 
+// hidden on the builder tab and on an unsaved doc, which has no sidebar content. the sidebar
+// reappears on save, so this runs on every refresh, not only on a tab change.
 // hide with Desk's `hide-sidebar` class, never an inline display: inline outranks the class and
 // would survive the sidebar's refresh after save. the main column needs no width override, it
 // has `flex-grow: 1` and fills the row once the sidebar is gone
-function toggle_form_sidebar(frm, show) {
+function sync_form_sidebar(frm) {
 	if (!frm.page?.sidebar || frm.page.hide_sidebar || !frappe.boot.desk_settings?.form_sidebar) {
 		return;
 	}
 
-	// an unsaved doc has no sidebar content
-	let visible = show && !frm.is_new();
-
-	frm.page.sidebar.toggleClass("hide-sidebar", !visible);
-}
-
-// the sidebar reappears on save, so re-sync on every refresh, not only on a tab change
-function sync_form_sidebar(frm) {
-	toggle_form_sidebar(frm, frm.get_active_tab()?.df?.fieldname !== "form_builder_tab");
+	const on_builder_tab = frm.get_active_tab()?.df?.fieldname === "form_builder_tab";
+	frm.page.sidebar.toggleClass("hide-sidebar", on_builder_tab || frm.is_new());
 }
 
 // the builder is a singleton, so it can still point at the Web Form the user just left
