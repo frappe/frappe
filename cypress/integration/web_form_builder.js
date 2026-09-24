@@ -159,13 +159,15 @@ context("Web Form Builder", () => {
 	});
 
 	it("Does not dirty the form by rendering", () => {
+		seed_web_form();
 		open_builder();
 
 		// the rebuild on mount trips the change watcher, but must not mark the record edited
 		cy.get('[data-testid="page-status"]').should("not.contain.text", "Not Saved");
 	});
 
-	it("Writes the pages back without inventing a Page Break for page one", () => {
+	it("Writes the pages and a section label back without a Page Break for page one", () => {
+		seed_web_form();
 		open_builder();
 
 		cy.get(`${CANVAS} .tab-content.active .form-section-container:first`)
@@ -179,13 +181,8 @@ context("Web Form Builder", () => {
 			const page_breaks = fields.filter((f) => f.fieldtype === "Page Break");
 			expect(page_breaks.length, "page break rows for two pages").to.eq(1);
 			expect(page_breaks[0].label, "page break label").to.be.oneOf([null, ""]);
-		});
-	});
 
-	it("Keeps a section label through a save", () => {
-		open_builder();
-
-		web_form_fields().then((fields) => {
+			// and the section label edited above survives the save
 			const section = fields.find((f) => f.fieldtype === "Section Break" && f.label);
 			expect(section, "labelled section break row").to.exist;
 			expect(section.label).to.eq("Contact Details");
@@ -287,6 +284,24 @@ context("Web Form Builder", () => {
 		cy.get(".combo-box-options:visible").should("exist");
 	});
 
+	it("Locks the canvas on a standard Web Form outside developer mode", () => {
+		// edit-profile ships with Frappe as a standard form, and CI runs without developer mode
+		open_builder("edit-profile");
+
+		// the premise: the canvas rendered fields, so the checks below are not vacuous
+		cy.get(`${CANVAS} .tab-content.active .field`).should("have.length.greaterThan", 0);
+
+		// no field can be added
+		cy.get(`${CANVAS} .add-new-field-btn`).should("not.exist");
+
+		// and a label cannot be renamed: the double click opens no input. A field's label, as
+		// the lock hides an unlabelled section's
+		cy.get(`${CANVAS} .tab-content.active .field`)
+			.find("div[title='Double click to edit label']:first")
+			.dblclick();
+		cy.get(`${CANVAS} input.input-text`).should("not.exist");
+	});
+
 	it("Steps the desk chrome aside on the builder tab", () => {
 		seed_web_form();
 		open_builder();
@@ -328,6 +343,21 @@ context("Web Form Builder", () => {
 
 		// and the rule is still a rule, not a permanent hide
 		cy.get(PAGE).findByRole("tab", { name: "Settings" }).click();
+		cy.get(`${PAGE} .layout-side-section`).should("be.visible");
+	});
+
+	it("Shows the sidebar after a save on the Settings tab", () => {
+		seed_web_form();
+		cy.visit(`/desk/web-form/${ROUTE}`);
+		cy.get(PAGE).findByRole("tab", { name: "Settings" }).click();
+		cy.get(`${PAGE} .layout-side-section`).should("be.visible");
+
+		// any change will do, and this one sits in the always-open Access Control section
+		cy.get(`${PAGE} input[data-fieldname="anonymous"]`).check({ force: true });
+		cy.click_doc_primary_button("Save");
+		cy.get('[data-testid="page-status"]').should("not.contain.text", "Not Saved");
+
+		// a saved doc's is_new() is undefined, which toggleClass reads as "flip", not "show"
 		cy.get(`${PAGE} .layout-side-section`).should("be.visible");
 	});
 

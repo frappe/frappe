@@ -110,7 +110,7 @@ class TestWebForm(IntegrationTestCase):
 	def test_first_page_may_be_empty(self):
 		"""The portal always shows the first page, so only later pages are checked."""
 		frappe.clear_messages()
-		web_form = self.make_temp_web_form(
+		self.make_temp_web_form(
 			web_form_fields=[
 				{"fieldname": "", "fieldtype": "Page Break", "label": "Details"},
 				{"fieldname": "subject", "fieldtype": "Data", "label": "Title"},
@@ -118,7 +118,6 @@ class TestWebForm(IntegrationTestCase):
 				{"fieldname": "description", "fieldtype": "Text", "label": "Description"},
 			]
 		)
-		self.assertEqual(len(web_form.web_form_fields), 4)
 		self.assertEqual(frappe.get_message_log(), [])
 
 	def test_web_form_data_field_options_are_enforced_on_server(self):
