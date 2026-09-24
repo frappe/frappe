@@ -8,6 +8,7 @@ import type { Boot } from "@/boot";
 import { registerContributions } from "@/contributions/registry";
 import type { ReplacementContribution } from "@/contributions/types";
 import { createShellRouter } from "@/router";
+import { failedPage } from "@/router/failedPage";
 import { clearLoadedPages, loadedPage, mainPageFor, preloadMainPage } from "@/router/mainPage";
 import { registerShell, routeFor, urlFor } from "@/router/routeFor";
 
@@ -118,6 +119,7 @@ beforeEach(() => {
 	setups.attrs = [];
 	guard.block = false;
 	flaky.failures = 0;
+	failedPage.value = null;
 	for (const page of [salesInvoicePage, singleListPage, flakyPage]) page.mockClear();
 	clearLoadedPages();
 	warn = vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -300,6 +302,33 @@ describe.each([
 
 		expect(shown(root)).toEqual({ page: "declared", doctype: "Payment Entry", name: "PE-001" });
 		expect(flakyPage).toHaveBeenCalledTimes(2);
+	});
+
+	it("records the address of a declared page that fails on the first navigation", async () => {
+		const router = createShellRouter(boot(modular), addresses);
+		const error = vi.spyOn(console, "error").mockImplementation(() => {});
+
+		await expect(router.push(`${prefix}/journal-entry/JE-001`)).rejects.toThrow(
+			"the page failed to load"
+		);
+		expect(error).toHaveBeenCalledWith(
+			expect.objectContaining({ message: "the page failed to load" })
+		);
+		error.mockRestore();
+
+		expect(failedPage.value).toBe(`/apps/erpnext${prefix}/journal-entry/JE-001`);
+	});
+
+	it("forgets the failed address once another navigation lands", async () => {
+		const router = createShellRouter(boot(modular), addresses);
+		const error = vi.spyOn(console, "error").mockImplementation(() => {});
+
+		await router.push(`${prefix}/journal-entry/JE-001`).catch(() => {});
+		error.mockRestore();
+		await router.push(`${prefix}/purchase-invoice/PI-001`);
+
+		expect(failedPage.value).toBeNull();
+		expect(router.currentRoute.value.params.name).toBe("PI-001");
 	});
 
 	it("builds the second address with standard only when the page is replaced", async () => {
