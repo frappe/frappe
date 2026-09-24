@@ -642,11 +642,12 @@ class TypstEmitter:
 
 		block_args = self._section_block_args(section)
 		if section.get("keep_together"):
+			args = ", ".join(block_args)
 			out = (
 				"#layout(size => {\n"
 				f"let body = [{body}]\n"
-				"let h = measure(body, width: size.width).height\n"
-				f"block({', '.join(block_args)}, breakable: h > size.height, body)\n"
+				f"let h = measure(block({args}, breakable: false, body), width: size.width).height\n"
+				f"block({args}, breakable: h > size.height, body)\n"
 				"})"
 			)
 		else:
