@@ -418,6 +418,7 @@ def create_custom_format(
 	from frappe.printing.doctype.print_format.classic_converter import (
 		convert_print_format,
 		is_classic_layout,
+		renders_from_file,
 	)
 
 	doc = frappe.new_doc("Print Format")
@@ -427,6 +428,10 @@ def create_custom_format(
 	if based_on and based_on != "Standard":
 		source = frappe.get_doc("Print Format", based_on)
 		source.check_permission("read")
+		if renders_from_file(source):
+			frappe.throw(
+				_("{0} is rendered from an HTML file and cannot be converted").format(frappe.bold(based_on))
+			)
 		doc.format_data = source.format_data
 		if not doc.format_data or is_classic_layout(doc.format_data):
 			convert_print_format(doc)
@@ -466,11 +471,13 @@ def _persist_conversion(doc):
 def convert_to_builder(name: str):
 	"""Rewrite a classic format's layout for the new builder, keeping the original
 	in `classic_format_data`."""
-	from frappe.printing.doctype.print_format.classic_converter import convert_print_format
+	from frappe.printing.doctype.print_format.classic_converter import convert_print_format, renders_from_file
 
 	_require_str(name=name)
 	doc = frappe.get_doc("Print Format", name)
 	doc.check_permission("write")
+	if renders_from_file(doc):
+		frappe.throw(_("{0} is rendered from an HTML file and cannot be converted").format(frappe.bold(name)))
 	if doc.standard == "Yes" and not frappe.conf.developer_mode:
 		frappe.throw(_("Standard print formats can only be converted in developer mode"))
 	dropped = convert_print_format(doc)
