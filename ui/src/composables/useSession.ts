@@ -3,6 +3,7 @@ import { computed, hasInjectionContext, inject, ref, shallowRef } from "vue";
 import type { App, ComputedRef, InjectionKey, Ref } from "vue";
 import { getSession } from "../api";
 import type { Session } from "../api";
+import { clearDataCache } from "../cache";
 
 /**
  * `provideSession` always provides the module's own ref, so a host that provides its own ref
@@ -42,6 +43,7 @@ export function useSession(): UseSession {
 export function setSession(session: Session): void {
   // Bumping the generation drops a fetch already in flight, which would land on top of this.
   generation++;
+  clearOnUserChange(store.value, session);
   store.value = session;
   loading.value = false;
   error.value = null;
@@ -65,6 +67,7 @@ export function resetSession(): void {
   loading.value = false;
   error.value = null;
   started = false;
+  clearDataCache();
 }
 
 // An answer that lands after a reset or a later reload is dropped rather than published.
@@ -75,6 +78,7 @@ async function fetchSession(target: Ref<Session | null> = store): Promise<void> 
   try {
     const envelope = await getSession();
     if (mine !== generation) return;
+    clearOnUserChange(target.value, envelope.data);
     target.value = envelope.data;
     error.value = null;
   } catch (failure) {
@@ -85,4 +89,9 @@ async function fetchSession(target: Ref<Session | null> = store): Promise<void> 
   } finally {
     if (mine === generation) loading.value = false;
   }
+}
+
+/** The cached documents and lists were read with the previous user's permissions. */
+function clearOnUserChange(previous: Session | null, next: Session) {
+  if (previous && previous.user.name !== next.user.name) clearDataCache();
 }
