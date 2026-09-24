@@ -39,7 +39,6 @@
   "top_bar",
   "top_bar_items",
   "hide_login",
-  "navbar_search",
   "show_language_picker",
   "navbar_template_section",
   "navbar_template",
@@ -160,12 +159,6 @@
    "fieldname": "top_bar",
    "fieldtype": "Section Break",
    "label": "Navbar"
-  },
-  {
-   "default": "0",
-   "fieldname": "navbar_search",
-   "fieldtype": "Check",
-   "label": "Include Search in Top Bar"
   },
   {
    "fieldname": "top_bar_items",
@@ -494,7 +487,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-08-03 19:38:17.441996",
+ "modified": "2026-09-24 21:24:48.001117",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",
