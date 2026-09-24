@@ -6,6 +6,7 @@ const FULL_HEIGHT_PAGE_CLASS = "full-height-page";
 // once and kept until the matching hide.
 let folded_sidebar = false;
 let leaving_to = null;
+let leaving = null;
 let restore_sidebar = false;
 
 function collapse_sidebar() {
@@ -74,14 +75,26 @@ function load_print_format_builder(wrapper) {
 	const current = frappe.print_format_builder;
 	if (current?.has_unsaved_changes?.() && route[1] !== leaving_to) {
 		if (current.print_format === route[1]) return;
-		const target = route[1];
+		if (leaving) {
+			leaving.restored = true;
+			frappe.route_flags.replace_route = true;
+			frappe.set_route("print-format-builder", current.print_format);
+			return;
+		}
+		leaving = { target: route[1], restored: false };
 		current.flush().then(
 			() => {
+				const { target, restored } = leaving;
+				leaving = null;
 				leaving_to = target;
-				load_print_format_builder(wrapper);
+				restored
+					? frappe.set_route("print-format-builder", target)
+					: load_print_format_builder(wrapper);
 			},
 			() => {
-				history.back();
+				const { target, restored } = leaving;
+				leaving = null;
+				if (!restored) history.back();
 				current.warn_unsaved(() => {
 					leaving_to = target;
 					frappe.set_route("print-format-builder", target);
@@ -90,6 +103,7 @@ function load_print_format_builder(wrapper) {
 		);
 		return;
 	}
+	leaving = null;
 	leaving_to = null;
 	current?.destroy?.();
 	$parent.empty();
