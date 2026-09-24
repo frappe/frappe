@@ -94,8 +94,10 @@ class PrintFormat(Document):
 		)
 		self.set_onload("print_templates", templates)
 		from frappe.printing.doctype.print_format.classic_converter import renders_from_file
+		from frappe.utils.print_utils import resolve_pdf_generator
 
 		self.set_onload("renders_from_file", renders_from_file(self))
+		self.set_onload("pdf_generator", resolve_pdf_generator(self))
 
 	def before_save(self):
 		if self.print_format_for == "Report":
