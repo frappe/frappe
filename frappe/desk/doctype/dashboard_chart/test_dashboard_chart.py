@@ -90,7 +90,9 @@ class TestDashboardChart(IntegrationTestCase):
 		if frappe.db.exists("Dashboard Chart", "Test Empty Dashboard Chart"):
 			frappe.delete_doc("Dashboard Chart", "Test Empty Dashboard Chart")
 
-		get_log_db().delete("Error Log")
+		log_db = get_log_db()
+		log_db.delete("Error Log")
+		log_db.commit()
 
 		frappe.get_doc(
 			doctype="Dashboard Chart",
@@ -138,7 +140,9 @@ class TestDashboardChart(IntegrationTestCase):
 		if frappe.db.exists("Dashboard Chart", "Test Empty Dashboard Chart 2"):
 			frappe.delete_doc("Dashboard Chart", "Test Empty Dashboard Chart 2")
 
-		get_log_db().delete("Error Log")
+		log_db = get_log_db()
+		log_db.delete("Error Log")
+		log_db.commit()
 
 		# create one data point
 		frappe.get_doc(doctype="Error Log", creation="2018-06-01 00:00:00").insert()

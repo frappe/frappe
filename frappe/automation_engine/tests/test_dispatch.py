@@ -122,7 +122,9 @@ class TestDispatch(IntegrationTestCase):
 	def test_no_refusal_log_for_unautomated_doctype_at_max_depth(self):
 		# A deep automation context must not log a depth refusal for unrelated saves
 		# (doctypes that have no automations of their own).
-		get_log_db().delete("Error Log", {"method": "Automation Flow depth limit reached"})
+		log_db = get_log_db()
+		log_db.delete("Error Log", {"method": "Automation Flow depth limit reached"})
+		log_db.commit()
 		self.assertEqual(get_automations_for("User"), [])
 		original_depth = frappe.flags.get("automation_depth")
 		frappe.flags.automation_depth = 3

@@ -236,7 +236,9 @@ class TestPrintFormatHardening(IntegrationTestCase):
 				self.assertIn("PROBE", html)
 
 	def test_failing_row_condition_logs_once_not_once_per_row(self):
-		get_log_db().delete("Error Log")
+		log_db = get_log_db()
+		log_db.delete("Error Log")
+		log_db.commit()
 		self.render(
 			self.layout(
 				{
