@@ -774,7 +774,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			frappe.route_options = null;
 
 			if (this.filters.length > 0) {
-				return this.filter_area
+				route_promise = this.filter_area
 					.clear(false)
 					.then(() => this.filter_area.set(this.filters));
 			}
