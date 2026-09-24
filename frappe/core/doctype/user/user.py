@@ -52,6 +52,7 @@ desk_properties = (
 	"timeline",
 	"dashboard",
 	"report_split_view",
+	"show_my_space",
 )
 
 
@@ -136,6 +137,7 @@ class User(Document):
 		send_me_a_copy: DF.Check
 		send_welcome_email: DF.Check
 		show_absolute_datetime_in_timeline: DF.Check
+		show_my_space: DF.Check
 		simultaneous_sessions: DF.Int
 		social_logins: DF.Table[UserSocialLogin]
 		thread_notify: DF.Check
