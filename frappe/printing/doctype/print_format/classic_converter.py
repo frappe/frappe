@@ -10,7 +10,6 @@ from frappe.utils import cint, flt
 ASSUMED_BODY_WIDTH_PX = 750
 DEFAULT_COLUMN_WIDTH_PCT = 10
 MAX_DEFAULT_TABLE_COLUMNS = 8
-LONG_TEXT_FIELDTYPES = ("Text", "Small Text", "Long Text", "Text Editor")
 # classic wrapped text and table blocks in `padding: 10px 0px`; the beta renderer
 # has no such default, so converted sections carry the gap explicitly
 CONVERTED_SECTION_GAP_PX = 10
@@ -235,10 +234,12 @@ def convert_table_columns(df, meta_df, dropped) -> list:
 			and not cint(child_df.print_hide)
 		]
 		if len(child_fields) > MAX_DEFAULT_TABLE_COLUMNS:
-			# a wide child table prints its list-view columns, as its list does,
-			# plus the text it carries (a description is never in a list view)
+			# a wide child table keeps what its author marked essential: the list-view
+			# and mandatory columns, plus the rich-text description
 			child_fields = [
-				df for df in child_fields if cint(df.in_list_view) or df.fieldtype in LONG_TEXT_FIELDTYPES
+				df
+				for df in child_fields
+				if cint(df.in_list_view) or cint(df.reqd) or df.fieldtype == "Text Editor"
 			] or child_fields
 		for child_df in child_fields:
 			columns.append(
