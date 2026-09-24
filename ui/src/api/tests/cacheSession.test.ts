@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { clearDataCache, readCachedDocument } from "../../cache";
+import { RECORD_PARTS, clearDataCache, readCachedDocument } from "../../cache";
 import { resetSession, setSession, useSession } from "../../composables/useSession";
 import { getDocument, type Session } from "../index";
 
@@ -16,8 +16,9 @@ function as(name: string) {
 }
 
 async function readRecord(name: string) {
-  respond({ data: { name, modified: OLD }, permissions: {} });
-  await getDocument("ToDo", name, { include: ["permissions"] });
+  const parts = Object.fromEntries(RECORD_PARTS.map((part) => [part, []]));
+  respond({ data: { name, modified: OLD }, ...parts });
+  await getDocument("ToDo", name, { include: RECORD_PARTS });
 }
 
 function cached(name: string) {

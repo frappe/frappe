@@ -29,6 +29,7 @@ export {
   readCachedDocument,
   readCachedList,
   readCachedRows,
+  RECORD_PARTS,
 } from "./cache";
 export type { DocumentEntry, ListEntry } from "./cache";
 export * from "./utils";

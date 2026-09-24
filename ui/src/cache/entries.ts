@@ -1,5 +1,18 @@
 // The frozen entries the cache holds, and how a reply's values become part of one.
-import type { DocumentRecord } from "../api";
+import type { DocumentRecord, ListEnvelope } from "../api";
+
+/** The parts beside the document; an entry holding all of them is complete. */
+export const RECORD_PARTS = [
+  "permissions",
+  "assignments",
+  "shares",
+  "tags",
+  "favourites",
+  "follows",
+  "users",
+  "link_titles",
+  "attachments",
+] as const;
 
 export interface DocumentEntry {
   readonly doctype: string;
@@ -45,6 +58,36 @@ export function documentEntry(
 ): DocumentEntry {
   const name = String(doc.name);
   return Object.freeze({ doctype, name, doc, complete, parts: Object.freeze(parts) });
+}
+
+export function holdsEveryPart(parts: Readonly<Record<string, unknown>>): boolean {
+  return RECORD_PARTS.every((part) => part in parts);
+}
+
+export function listEntry(
+  key: string,
+  doctype: string,
+  names: string[],
+  envelope: ListEnvelope<DocumentRecord>,
+  previous: ListEntry | undefined
+): ListEntry {
+  const counted = "count" in envelope;
+  return Object.freeze({
+    key,
+    doctype,
+    names: Object.freeze(names),
+    hasNextPage: Boolean(envelope.has_next_page),
+    count: counted ? (envelope.count ?? null) : previous?.count,
+    countCapped: counted ? Boolean(envelope.count_capped) : (previous?.countCapped ?? false),
+  });
+}
+
+/** A capped count is a floor, not a total, so a delete leaves it as it is. */
+export function withoutName(list: ListEntry, name: string): ListEntry {
+  const lowered = typeof list.count === "number" && !list.countCapped;
+  const count = lowered ? list.count! - 1 : list.count;
+  const names = Object.freeze(list.names.filter((listed) => listed !== name));
+  return Object.freeze({ ...list, names, count });
 }
 
 /** Above zero when `row` is newer; a doc with no `modified` is older than any row. */

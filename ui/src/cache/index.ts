@@ -1,35 +1,46 @@
 // The shared data cache: the API wrapper feeds it, and pages read documents and lists from it.
+import { shallowRef } from "vue";
 import type { DocumentRecord, Envelope, ListEnvelope, ListQuery } from "../api";
 import { DataCache } from "./dataCache";
 import type { DocumentEntry, ListEntry } from "./entries";
 import { listCacheKey } from "./listKey";
+import { RowsMemo } from "./rowsMemo";
 
 export type { DocumentEntry, ListEntry } from "./entries";
+export { RECORD_PARTS } from "./entries";
 export { listCacheKey } from "./listKey";
 
 const cache = new DataCache();
+const rowsMemo = new RowsMemo();
+// The maps are plain and this counter moves once per feed, so a sync watcher sees a whole reply.
+const version = shallowRef(0);
 
 /** Reactive: a `computed` over it re-runs when the entry changes. */
 export function readCachedDocument(doctype: string, name: string): DocumentEntry | undefined {
+  track();
   return cache.document(doctype, name);
 }
 
 export function readCachedList(doctype: string, query: ListQuery): ListEntry | undefined {
+  track();
   return cache.list(listCacheKey(doctype, query));
 }
 
-/** The list's rows, each read from its document entry, in list order. */
+/** The list's rows, each read from its document entry, in list order; frozen. */
 export function readCachedRows(doctype: string, query: ListQuery): DocumentRecord[] | undefined {
-  const list = readCachedList(doctype, query);
-  if (!list) return undefined;
-  return list.names.flatMap((name) => {
-    const entry = cache.document(doctype, name);
-    return entry ? [entry.doc as DocumentRecord] : [];
-  });
+  track();
+  const key = listCacheKey(doctype, query);
+  const list = cache.list(key);
+  if (!list) {
+    rowsMemo.forget(key);
+    return undefined;
+  }
+  return rowsMemo.rows(list, list.names.map((name) => cache.document(doctype, name)));
 }
 
 export function clearDataCache(): void {
-  cache.clear();
+  feed(() => cache.clear());
+  rowsMemo.clear();
 }
 
 /** Taken when a request is sent, not when its reply lands. */
@@ -43,7 +54,7 @@ export function feedRecordRead(
   envelope: Envelope<DocumentRecord>,
   include: readonly string[]
 ): void {
-  cache.recordRead(ticket, doctype, envelope, include);
+  feed(() => cache.recordRead(ticket, doctype, envelope, include));
 }
 
 export function feedListRead(
@@ -52,21 +63,21 @@ export function feedListRead(
   query: ListQuery,
   envelope: ListEnvelope<DocumentRecord>
 ): void {
-  cache.listRead(ticket, doctype, query, envelope);
+  feed(() => cache.listRead(ticket, doctype, query, envelope));
 }
 
 /** A save or a create. */
 export function feedDocumentWrite(ticket: number, doctype: string, doc: DocumentRecord): void {
-  cache.documentWrite(ticket, doctype, doc);
+  feed(() => cache.documentWrite(ticket, doctype, doc));
 }
 
 /** One document of a reply's `docs`, which a method may send back unsaved. */
 export function feedDocsDocument(ticket: number, doctype: string, doc: DocumentRecord): void {
-  cache.docsWrite(ticket, doctype, doc);
+  feed(() => cache.docsWrite(ticket, doctype, doc));
 }
 
-export function feedDelete(doctype: string, name: string): void {
-  cache.delete(doctype, name);
+export function feedDelete(ticket: number, doctype: string, name: string): void {
+  feed(() => cache.delete(ticket, doctype, name));
 }
 
 /** A part write's reply: the refreshed part. */
@@ -77,10 +88,23 @@ export function feedPartWrite(
   part: string,
   value: unknown
 ): void {
-  cache.partWrite(ticket, doctype, name, part, value);
+  feed(() => cache.partWrite(ticket, doctype, name, part, value));
 }
 
 /** A 403 or 404 on a record read. */
-export function feedReadError(doctype: string, name: string, error: unknown): void {
-  cache.readError(doctype, name, error);
+export function feedReadError(ticket: number, doctype: string, name: string, error: unknown): void {
+  feed(() => cache.readError(ticket, doctype, name, error));
+}
+
+function track(): number {
+  return version.value;
+}
+
+function feed(apply: () => void): void {
+  const before = cache.changes;
+  try {
+    apply();
+  } finally {
+    if (cache.changes !== before) version.value++;
+  }
 }

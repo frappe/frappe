@@ -11,7 +11,7 @@ import {
   readCachedRows,
   takeTicket,
 } from "../index";
-import { DOCTYPE, NEW, OLD, PERMISSIONS, doc, readList, readRecord } from "./helpers";
+import { DOCTYPE, MIDDLE, NEW, OLD, PERMISSIONS, doc, readList, readRecord } from "./helpers";
 
 const query = { fields: ["name", "title"] };
 
@@ -46,9 +46,25 @@ describe("a reader", () => {
     expect(changed).toHaveBeenCalledTimes(1);
     readRecord(doc("A", NEW, { title: "read" }));
     expect(changed).toHaveBeenCalledTimes(2);
-    feedDelete(DOCTYPE, "A");
+    feedDelete(takeTicket(), DOCTYPE, "A");
     expect(changed).toHaveBeenCalledTimes(3);
     stop();
+  });
+
+  it("sees one sync change per list reply, and none for a reply that changes nothing", () => {
+    readList(query, [doc("A", OLD), doc("B", OLD)]);
+    const older = takeTicket();
+    const [rows, record] = [vi.fn(), vi.fn()];
+    const stops = [
+      watch(() => readCachedRows(DOCTYPE, query), rows, { flush: "sync" }),
+      watch(() => readCachedDocument(DOCTYPE, "A"), record, { flush: "sync" }),
+    ];
+    readList(query, [doc("A", NEW), doc("B", NEW), doc("C", NEW)]);
+    expect([rows.mock.calls.length, record.mock.calls.length]).toEqual([1, 1]);
+    readList(query, [doc("A", MIDDLE), doc("B", MIDDLE)], {}, older);
+    readList({ fields: ["name"] }, [doc("Z", OLD)]);
+    expect([rows.mock.calls.length, record.mock.calls.length]).toEqual([1, 1]);
+    stops.forEach((stop) => stop());
   });
 });
 

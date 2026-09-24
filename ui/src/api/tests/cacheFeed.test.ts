@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as cache from "../../cache";
-import { clearDataCache, readCachedDocument, readCachedList } from "../../cache";
+import { RECORD_PARTS, clearDataCache, readCachedDocument, readCachedList } from "../../cache";
 import {
   addAssignment,
   addTag,
@@ -30,6 +30,8 @@ const MIDDLE = "2026-09-02 10:00:00.000000";
 const NEW = "2026-09-03 10:00:00.000000";
 const LIST = { fields: ["name", "status"], filters: { status: "Open" } };
 
+const ALL_PARTS = Object.fromEntries(RECORD_PARTS.map((part) => [part, []]));
+
 const fetchMock = vi.fn<typeof fetch>();
 
 function respond(body: unknown, status = 200) {
@@ -37,10 +39,10 @@ function respond(body: unknown, status = 200) {
 }
 
 /** The next request waits until the returned function answers it. */
-function respondLater(): (body: unknown) => void {
+function respondLater(): (body: unknown, status?: number) => void {
   let answer!: (response: Response) => void;
   fetchMock.mockImplementationOnce(() => new Promise((resolve) => (answer = resolve)));
-  return (body) => answer(new Response(JSON.stringify(body)));
+  return (body, status = 200) => answer(new Response(JSON.stringify(body), { status }));
 }
 
 function sentQuery(): URLSearchParams {
@@ -51,13 +53,11 @@ function cached(name: string) {
   return readCachedDocument("ToDo", name);
 }
 
-async function readRecord(
-  name: string,
-  modified: string,
-  parts: Record<string, unknown> = { permissions: {} }
-) {
-  respond({ data: { name, modified, status: "Open" }, ...parts });
-  await getDocument("ToDo", name, { include: Object.keys(parts) });
+/** Asks for every record part; `parts` overrides some of their values. */
+async function readRecord(name: string, modified: string, parts: Record<string, unknown> = {}) {
+  const sent = { ...ALL_PARTS, ...parts };
+  respond({ data: { name, modified, status: "Open" }, ...sent });
+  await getDocument("ToDo", name, { include: Object.keys(sent) });
 }
 
 async function readList(names: string[], count?: number) {
@@ -77,9 +77,10 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("reads", () => {
   it("getDocument feeds a complete entry with the parts it asked for", async () => {
-    const body = { data: { name: "T-1", modified: OLD }, tags: ["a"], seen: true };
+    const body = { data: { name: "T-1", modified: OLD }, ...ALL_PARTS, tags: ["a"], seen: true };
     respond(body);
-    const envelope = await getDocument("ToDo", "T-1", { include: "tags, seen" });
+    const include = [...RECORD_PARTS, "seen"].join(", ");
+    const envelope = await getDocument("ToDo", "T-1", { include });
     expect(envelope).toEqual(body);
     expect(Object.isFrozen(envelope.data)).toBe(false);
     expect(cached("T-1")).toMatchObject({ complete: true, parts: { tags: ["a"] } });
@@ -216,6 +217,15 @@ describe("failures", () => {
     respond({ errors: [{ type: "DoesNotExistError" }] }, status);
     await expect(getDocument("ToDo", "T-1")).rejects.toMatchObject({ status });
     expect(cached("T-1")).toBeUndefined();
+  });
+
+  it("a 404 answered after a newer read landed leaves the entry", async () => {
+    const answerFirst = respondLater();
+    const first = getDocument("ToDo", "T-1");
+    await readRecord("T-1", NEW);
+    answerFirst({ errors: [{ type: "DoesNotExistError" }] }, 404);
+    await expect(first).rejects.toMatchObject({ status: 404 });
+    expect(cached("T-1")!.doc.modified).toBe(NEW);
   });
 
   it("a failed request feeds nothing", async () => {

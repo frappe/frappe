@@ -34,7 +34,7 @@ describe("the write gate", () => {
 
   it("keeps a record read sent before a delete dropped after the delete lands", () => {
     const readTicket = takeTicket();
-    feedDelete(DOCTYPE, "A");
+    feedDelete(takeTicket(), DOCTYPE, "A");
     readRecord(doc("A", NEW), PERMISSIONS, readTicket);
     readList(query, [doc("A", NEW), doc("B", NEW)], PERMISSIONS, readTicket);
     expect(readCachedDocument(DOCTYPE, "A")).toBeUndefined();
@@ -43,11 +43,25 @@ describe("the write gate", () => {
 
   it("seals a deleted document against a read sent while the delete was in flight", () => {
     const readTicket = takeTicket();
-    feedDelete(DOCTYPE, "A");
+    feedDelete(takeTicket(), DOCTYPE, "A");
     readRecord(doc("A", NEW), PERMISSIONS, readTicket);
     expect(readCachedDocument(DOCTYPE, "A")).toBeUndefined();
     readRecord(doc("A", NEW));
     expect(readCachedDocument(DOCTYPE, "A")!.complete).toBe(true);
+  });
+
+  it("leaves a document made again by a write sent after the delete", () => {
+    const deleteTicket = takeTicket();
+    feedDocumentWrite(takeTicket(), DOCTYPE, doc("A", NEW, { title: "again" }));
+    feedDelete(deleteTicket, DOCTYPE, "A");
+    expect(readCachedDocument(DOCTYPE, "A")!.doc.title).toBe("again");
+    expect(readCachedList(DOCTYPE, query)!.names).toEqual(["A", "B"]);
+  });
+
+  it("removes a document written before the delete was sent", () => {
+    feedDocumentWrite(takeTicket(), DOCTYPE, doc("A", NEW));
+    feedDelete(takeTicket(), DOCTYPE, "A");
+    expect(readCachedDocument(DOCTYPE, "A")).toBeUndefined();
   });
 
   it("drops a write sent before a write already applied", () => {
@@ -67,7 +81,7 @@ describe("the write gate", () => {
   it("keeps a refused row's name in the list, unless the document was deleted", () => {
     const listTicket = takeTicket();
     feedDocumentWrite(takeTicket(), DOCTYPE, doc("Z", NEW));
-    feedDelete(DOCTYPE, "B");
+    feedDelete(takeTicket(), DOCTYPE, "B");
     readList(query, [doc("A", NEW), doc("B", NEW), doc("Z", NEW)], {}, listTicket);
     expect(readCachedList(DOCTYPE, query)!.names).toEqual(["A", "Z"]);
   });

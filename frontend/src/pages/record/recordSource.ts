@@ -1,19 +1,9 @@
 // The record page's three server calls: the load, the re-read of the parts, and the save.
+import { RECORD_PARTS } from "@framework/ui/cache";
 import { getDocument, updateDocument } from "@framework/ui/api";
 import type { DocInfo } from "./panel/context";
 
-/** The parts the page reads beside the document; `seen` is added on the load alone. */
-export const RECORD_PARTS = [
-	"permissions",
-	"assignments",
-	"shares",
-	"tags",
-	"favourites",
-	"follows",
-	"users",
-	"link_titles",
-	"attachments",
-] as const;
+export { RECORD_PARTS };
 
 export interface LoadedRecord {
 	document: Record<string, any>;

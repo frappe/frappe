@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { clearDataCache, feedRecordRead, readCachedDocument, takeTicket } from "../../cache";
+import {
+  RECORD_PARTS,
+  clearDataCache,
+  feedRecordRead,
+  readCachedDocument,
+  takeTicket,
+} from "../../cache";
 import { attachFile, downloadFile, removeAttachment, uploadFile } from "../index";
 
 class FakeXHR {
@@ -148,8 +154,9 @@ describe("an attachment write", () => {
 
   beforeEach(() => {
     clearDataCache();
-    const record = { data: { name: "TODO-1", modified: "2026-09-01 10:00:00" }, attachments: [] };
-    feedRecordRead(takeTicket(), "ToDo", record, ["attachments"]);
+    const parts = Object.fromEntries(RECORD_PARTS.map((part) => [part, []]));
+    const record = { data: { name: "TODO-1", modified: "2026-09-01 10:00:00" }, ...parts };
+    feedRecordRead(takeTicket(), "ToDo", record, RECORD_PARTS);
   });
 
   it("feeds the refreshed part to the cache on attach and on remove", async () => {

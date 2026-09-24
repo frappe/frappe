@@ -8,8 +8,9 @@ import {
   feedListRead,
   feedReadError,
   feedRecordRead,
+  takeTicket,
 } from "../cache";
-import { fed, feedPartReply, includeNames, withModified } from "./feed";
+import { fed, fedAfter, feedPartReply, includeNames, withModified } from "./feed";
 import { feedSafely, request, type Query } from "./request";
 import { ApiError, type Envelope } from "./envelope";
 
@@ -108,12 +109,14 @@ export function getDocument<T extends DocumentRecord = DocumentRecord>(
   name: string,
   { include, signal }: IncludeOptions = {}
 ): Promise<Envelope<T>> {
-  const options = { query: { include: joinInclude(include) }, signal };
-  const reading = fed<T>("GET", documentPath(doctype, name), options, (ticket, envelope) =>
+  const ticket = takeTicket();
+  const options = { query: { include: joinInclude(include) }, signal, ticket };
+  const sending = request<T>("GET", documentPath(doctype, name), options);
+  const reading = fedAfter(ticket, sending, (_, envelope) =>
     feedRecordRead(ticket, doctype, envelope, includeNames(include))
   );
   return reading.catch((error: unknown) => {
-    feedSafely(() => feedReadError(doctype, name, error));
+    feedSafely(() => feedReadError(ticket, doctype, name, error));
     throw error;
   });
 }
@@ -182,8 +185,8 @@ export function deleteDocument(
   name: string,
   { signal }: CallOptions = {}
 ): Promise<Envelope<"ok">> {
-  return fed<"ok">("DELETE", documentPath(doctype, name), { signal }, () =>
-    feedDelete(doctype, name)
+  return fed<"ok">("DELETE", documentPath(doctype, name), { signal }, (ticket) =>
+    feedDelete(ticket, doctype, name)
   );
 }
 

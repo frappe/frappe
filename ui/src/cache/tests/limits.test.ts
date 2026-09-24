@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { clearDataCache, feedDelete, readCachedDocument, readCachedList } from "../index";
-import { DOCTYPE, OLD, doc, readList, readRecord } from "./helpers";
+import {
+  clearDataCache,
+  feedDelete,
+  readCachedDocument,
+  readCachedList,
+  takeTicket,
+} from "../index";
+import { DOCTYPE, OLD, doc, readList, readRecord, readSomeParts } from "./helpers";
 
 const listQuery = (index: number) => ({ filters: { owner: `user${index}` } });
 
@@ -27,9 +33,27 @@ describe("the 50 complete entries", () => {
 
   it("do not count a record read that asks for no parts as a use", () => {
     readRecords(1, 50);
-    readRecord(doc("R1", OLD), {});
+    readSomeParts(doc("R1", OLD), {});
     readRecords(51, 51);
     expect(readCachedDocument(DOCTYPE, "R1")).toBeUndefined();
+  });
+
+  it("do not count a read of some parts as a use", () => {
+    readRecords(1, 50);
+    readSomeParts(doc("R1", OLD), { tags: ["x"] });
+    readRecords(51, 51);
+    expect(readCachedDocument(DOCTYPE, "R1")).toBeUndefined();
+  });
+
+  it("count a read that completes a partial entry as a use", () => {
+    readList(listQuery(0), [doc("R1", OLD)]);
+    readRecords(2, 51);
+    readSomeParts(doc("R1", OLD), { tags: [] });
+    expect(readCachedDocument(DOCTYPE, "R1")!.complete).toBe(false);
+    readRecord(doc("R1", OLD));
+    readRecords(52, 52);
+    expect(readCachedDocument(DOCTYPE, "R1")!.complete).toBe(true);
+    expect(readCachedDocument(DOCTYPE, "R2")).toBeUndefined();
   });
 
   it("keep a dropped entry as partial, without parts, while a list names it", () => {
@@ -86,7 +110,7 @@ describe("how many lists name a document", () => {
     readList(first, [doc("B", OLD), doc("D", OLD)]);
     expect(held("A", "B", "C", "D")).toEqual(["B", "C", "D"]);
     readList({ ...first, start: 2 }, [doc("E", OLD)]);
-    feedDelete(DOCTYPE, "D");
+    feedDelete(takeTicket(), DOCTYPE, "D");
     expect(readCachedList(DOCTYPE, first)!.names).toEqual(["B", "E"]);
     for (let index = 3; index <= 21; index++) readList(listQuery(index), []);
     expect(readCachedList(DOCTYPE, second)).toBeUndefined();

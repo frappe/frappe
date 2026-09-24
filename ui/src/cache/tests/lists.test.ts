@@ -7,6 +7,7 @@ import {
   readCachedDocument,
   readCachedList,
   readCachedRows,
+  takeTicket,
 } from "../index";
 import { DOCTYPE, NEW, OLD, doc, readList, readRecord } from "./helpers";
 
@@ -86,12 +87,25 @@ describe("a list read", () => {
   });
 });
 
+describe("a list reply sent before the one the list holds", () => {
+  it("leaves the names and counts, and still updates the documents held", () => {
+    const older = takeTicket();
+    readList(query, rows("A", "B"), { count: 2 });
+    const reply = [doc("A", NEW, { title: "fresh" }), doc("C", NEW)];
+    readList(query, reply, { count: 9, has_next_page: true }, older);
+    const list = readCachedList(DOCTYPE, query)!;
+    expect(list).toMatchObject({ names: ["A", "B"], count: 2, hasNextPage: false });
+    expect(readCachedDocument(DOCTYPE, "A")!.doc.title).toBe("fresh");
+    expect(readCachedDocument(DOCTYPE, "C")).toBeUndefined();
+  });
+});
+
 describe("a delete", () => {
   it("removes the name from every list and lowers a numeric count", () => {
     const other = { fields: ["name"] };
     readList(query, rows("A", "B"), { count: 2 });
     readList(other, rows("B", "C"), { count: null });
-    feedDelete(DOCTYPE, "B");
+    feedDelete(takeTicket(), DOCTYPE, "B");
     expect(readCachedDocument(DOCTYPE, "B")).toBeUndefined();
     expect(readCachedList(DOCTYPE, query)).toMatchObject({ names: ["A"], count: 1 });
     expect(readCachedList(DOCTYPE, other)).toMatchObject({ names: ["C"], count: null });
@@ -99,13 +113,13 @@ describe("a delete", () => {
 
   it("leaves a capped count alone", () => {
     readList(query, rows("A", "B"), { count: 1000, count_capped: true });
-    feedDelete(DOCTYPE, "B");
+    feedDelete(takeTicket(), DOCTYPE, "B");
     expect(readCachedList(DOCTYPE, query)).toMatchObject({ names: ["A"], count: 1000 });
   });
 
   it("leaves a list that does not name it alone", () => {
     readList(query, rows("A"), { count: 1 });
-    feedDelete(DOCTYPE, "B");
+    feedDelete(takeTicket(), DOCTYPE, "B");
     expect(readCachedList(DOCTYPE, query)).toMatchObject({ names: ["A"], count: 1 });
   });
 });
@@ -113,22 +127,30 @@ describe("a delete", () => {
 describe("a read error", () => {
   it.each([403, 404])("%i removes the document entry and leaves lists alone", (status) => {
     readList(query, rows("A", "B"));
-    feedReadError(DOCTYPE, "A", new ApiError({ type: "PermissionError" }, status));
+    feedReadError(takeTicket(), DOCTYPE, "A", new ApiError({ type: "PermissionError" }, status));
     expect(readCachedDocument(DOCTYPE, "A")).toBeUndefined();
     expect(readCachedList(DOCTYPE, query)!.names).toEqual(["A", "B"]);
     expect(readCachedRows(DOCTYPE, query)!.map((row) => row.name)).toEqual(["B"]);
   });
 
+  it("sent before a reply the entry holds leaves the entry", () => {
+    const readTicket = takeTicket();
+    readList(query, rows("A"));
+    feedReadError(readTicket, DOCTYPE, "A", new ApiError({ type: "DoesNotExistError" }, 404));
+    expect(readCachedDocument(DOCTYPE, "A")).toBeDefined();
+  });
+
   it("removes an entry held under the name in another case", () => {
     readRecord(doc("Task-A", OLD));
-    feedReadError(DOCTYPE, "task-a", new ApiError({ type: "DoesNotExistError" }, 404));
+    const error = new ApiError({ type: "DoesNotExistError" }, 404);
+    feedReadError(takeTicket(), DOCTYPE, "task-a", error);
     expect(readCachedDocument(DOCTYPE, "Task-A")).toBeUndefined();
   });
 
   it("of another kind keeps the entry", () => {
     readRecord(doc("A", OLD));
-    feedReadError(DOCTYPE, "A", new ApiError({ type: "HTTPError" }, 500));
-    feedReadError(DOCTYPE, "A", new TypeError("offline"));
+    feedReadError(takeTicket(), DOCTYPE, "A", new ApiError({ type: "HTTPError" }, 500));
+    feedReadError(takeTicket(), DOCTYPE, "A", new TypeError("offline"));
     expect(readCachedDocument(DOCTYPE, "A")).toBeDefined();
   });
 });
