@@ -1,7 +1,7 @@
 // The in-page counters for the return-visit walk: skeletons added, and field and row paints.
 
 export const MARKERS = {
-	skeleton: [
+	skeletons: [
 		".fui-skeleton",
 		".animate-pulse",
 		"[data-tile-skeleton]",
@@ -18,7 +18,7 @@ export const MARKERS = {
 		"[data-customize-skeleton]",
 		'[role="status"]:has(.fui-skeleton)',
 		'[data-slot="list-row"]:has(.fui-skeleton)',
-	].join(", "),
+	],
 	// Placeholder rows and header cells arrive as a set; the set is one skeleton.
 	skeletonMember: '[data-list-header-skeleton], [data-slot="list-row"]',
 	row: 'a[data-slot="list-row"][href]',
@@ -28,26 +28,14 @@ export const MARKERS = {
 
 // Runs in the page before any app code; serialized, so it may not close over anything.
 export function installCounters(markers) {
+	const skeletonSelector = markers.skeletons.join(", ");
+	const paintable = [markers.row, markers.field, markers.title].join(", ");
 	const painted = new WeakMap();
 	const pending = new Set();
-	const walk = {
-		recordPath: "",
-		reset(recordPath) {
-			Object.assign(walk, { recordPath, skeletons: 0, fields: {}, rows: {} });
-			walk.stepStart = walk.lastChange = performance.now();
-		},
-		read: () => ({
-			skeletons: walk.skeletons,
-			fields: walk.fields,
-			rows: walk.rows,
-			quietMs: performance.now() - walk.lastChange,
-			changedAtMs: walk.lastChange - walk.stepStart,
-		}),
-	};
-	walk.reset("");
-	walk.stepStart = 0;
+	let countedSkeletons = new WeakSet();
+	let frame = 0;
+	const walk = createWalk();
 	window.__walk = walk;
-	const paintable = [markers.row, markers.field, markers.title].join(", ");
 
 	new MutationObserver(onMutations).observe(document, {
 		childList: true,
@@ -58,29 +46,51 @@ export function installCounters(markers) {
 	});
 	hookValueSetters();
 
+	function createWalk() {
+		const state = {
+			reset(recordPath) {
+				flush();
+				countedSkeletons = new WeakSet();
+				Object.assign(state, {
+					recordPath,
+					skeletons: 0,
+					skeletonMarkers: {},
+					fields: {},
+					rows: {},
+				});
+				state.stepStart = state.lastChange = performance.now();
+			},
+			quietMs: () => performance.now() - state.lastChange,
+			read: () => readStep(state),
+		};
+		state.reset("");
+		state.stepStart = 0;
+		return state;
+	}
+
+	function readStep(state) {
+		flush();
+		return {
+			skeletons: state.skeletons,
+			skeletonMarkers: state.skeletonMarkers,
+			fields: state.fields,
+			rows: state.rows,
+			quietMs: state.quietMs(),
+			changedAtMs: state.lastChange - state.stepStart,
+		};
+	}
+
 	function onMutations(records) {
 		walk.lastChange = performance.now();
-		const skeletons = new Set();
 		for (const record of records) {
 			if (record.type === "attributes") {
-				if (turnedSkeleton(record)) skeletons.add(record.target);
+				if (turnedSkeleton(record)) countSkeleton(record.target, record.target);
 				continue;
 			}
 			touch(record.target);
-			for (const node of record.addedNodes)
-				if (node.nodeType === 1) collectAdded(node, skeletons);
+			for (const node of record.addedNodes) if (node.nodeType === 1) collectAdded(node);
 		}
-		walk.skeletons += skeletons.size;
-		flush();
-	}
-
-	function collectAdded(element, skeletons) {
-		for (const skeleton of within(element, markers.skeleton)) {
-			if (skeleton.parentElement?.closest(markers.skeleton)) continue;
-			const member = skeleton.matches(markers.skeletonMember);
-			skeletons.add(member ? skeleton.parentElement : skeleton);
-		}
-		for (const target of within(element, paintable)) pending.add(target);
+		scheduleFlush();
 	}
 
 	function turnedSkeleton({ target, oldValue }) {
@@ -88,8 +98,16 @@ export function installCounters(markers) {
 		return (
 			pulsing &&
 			!oldValue?.includes("animate-pulse") &&
-			!target.parentElement?.closest(markers.skeleton)
+			!target.parentElement?.closest(skeletonSelector)
 		);
+	}
+
+	function countSkeleton(root, matched) {
+		if (countedSkeletons.has(root)) return;
+		countedSkeletons.add(root);
+		const marker = markers.skeletons.find((selector) => matched.matches(selector));
+		walk.skeletons += 1;
+		walk.skeletonMarkers[marker] = (walk.skeletonMarkers[marker] ?? 0) + 1;
 	}
 
 	function touch(node) {
@@ -98,7 +116,30 @@ export function installCounters(markers) {
 		if (target) pending.add(target);
 	}
 
+	function collectAdded(element) {
+		for (const skeleton of within(element, skeletonSelector)) {
+			if (skeleton.parentElement?.closest(skeletonSelector)) continue;
+			const member = skeleton.matches(markers.skeletonMember);
+			countSkeleton((member && skeleton.parentElement) || skeleton, skeleton);
+		}
+		for (const target of within(element, paintable)) pending.add(target);
+	}
+
+	function within(element, selector) {
+		return [
+			...(element.matches(selector) ? [element] : []),
+			...element.querySelectorAll(selector),
+		];
+	}
+
+	// A paint is what a frame draws, so an element filled in the frame it was added paints once.
+	function scheduleFlush() {
+		if (!frame) frame = requestAnimationFrame(flush);
+	}
+
 	function flush() {
+		cancelAnimationFrame(frame);
+		frame = 0;
 		for (const element of pending) {
 			const key = keyOf(element);
 			const text = visibleText(element);
@@ -121,26 +162,20 @@ export function installCounters(markers) {
 	}
 
 	function visibleText(element) {
-		const controls = [...element.querySelectorAll("input, textarea")];
+		const controls = [...element.querySelectorAll("input, textarea, select")];
 		const values = controls.map((control) =>
 			control.type === "checkbox" ? String(control.checked) : control.value
 		);
 		return [element.textContent.replace(/\s+/g, " ").trim(), ...values].join("|");
 	}
 
-	function within(element, selector) {
-		return [
-			...(element.matches(selector) ? [element] : []),
-			...element.querySelectorAll(selector),
-		];
-	}
-
-	// Vue writes an input's value as a property, which no MutationObserver sees.
+	// Vue writes a control's value as a property, which no MutationObserver sees.
 	function hookValueSetters() {
 		const hooks = [
 			[HTMLInputElement.prototype, "value"],
 			[HTMLInputElement.prototype, "checked"],
 			[HTMLTextAreaElement.prototype, "value"],
+			[HTMLSelectElement.prototype, "value"],
 		];
 		for (const [prototype, property] of hooks) {
 			const descriptor = Object.getOwnPropertyDescriptor(prototype, property);
@@ -150,7 +185,7 @@ export function installCounters(markers) {
 					descriptor.set.call(this, value);
 					walk.lastChange = performance.now();
 					touch(this);
-					queueMicrotask(flush);
+					scheduleFlush();
 				},
 			});
 		}

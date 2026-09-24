@@ -1,0 +1,11 @@
+{
+  "name": "frappe-desk-walks",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "walk": "node returnVisit.js"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}
