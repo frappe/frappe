@@ -51,7 +51,11 @@ def get_transitions(
 
 	doc.check_permission("read")
 
-	workflow = workflow or get_workflow(doc.doctype)
+	if not workflow:
+		if not get_workflow_name(doc.doctype):
+			return []
+		workflow = get_workflow(doc.doctype)
+
 	current_state = doc.get(workflow.workflow_state_field)
 
 	if not current_state:

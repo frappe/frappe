@@ -8,7 +8,7 @@ frappe.workflow = {
 	workflows: {},
 	avoid_status_override: {},
 	setup: function (doctype) {
-		var wf = frappe.get_list("Workflow", { document_type: doctype });
+		var wf = frappe.get_list("Workflow", { document_type: doctype, is_active: 1 });
 		if (wf.length) {
 			frappe.workflow.workflows[doctype] = wf[0];
 			frappe.workflow.state_fields[doctype] = wf[0].workflow_state_field;
