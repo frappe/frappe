@@ -47,7 +47,9 @@ function resolve_island(name) {
 	// assets.json is bench-wide. The registry is the part of it this site has.
 	const js = frappe.boot?.ui_islands?.includes(name) && assets_json[name + ISLAND_JS_SUFFIX];
 	if (!js) {
-		throw new Error(`Island "${name}" is not on this site. Build the app that ships it.`);
+		throw new Error(
+			__('Island "{0}" is not on this site. Build the app that ships it.', [name])
+		);
 	}
 
 	return { js, css: assets_json[name + ISLAND_CSS_SUFFIX] || null };
