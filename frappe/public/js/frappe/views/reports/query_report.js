@@ -1524,6 +1524,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				width: parseInt(column.width) || null,
 				editable: column.editable ?? false,
 				compareValue: compareFn,
+				sortValue: frappe.report_utils.get_link_sort_value(column),
 				format: (value, row, column, data, filter) => {
 					if (this.report_settings.formatter) {
 						return this.report_settings.formatter(

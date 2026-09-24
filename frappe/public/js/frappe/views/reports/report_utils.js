@@ -160,6 +160,12 @@ frappe.report_utils = {
 			}, {});
 	},
 
+	get_link_sort_value(df) {
+		// datatable sorts on cell.content, but Link cells may display the linked title
+		if (df.fieldtype !== "Link") return null;
+		return (cell) => frappe.utils.get_link_title(df.options, cell.content) || cell.content;
+	},
+
 	get_result_of_fn(fn, values) {
 		const get_result = {
 			Minimum: (values) => values.reduce((min, val) => Math.min(min, val), values[0]),
