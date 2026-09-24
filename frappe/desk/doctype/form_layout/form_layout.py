@@ -19,6 +19,15 @@ class FormLayout(Document):
 		self.name_layout()
 		self.validate_names_are_not_fields()
 
+	def on_update(self):
+		publish_doctype_update(self.dt)
+		previous = self.get_doc_before_save()
+		if previous and previous.dt != self.dt:
+			publish_doctype_update(previous.dt)
+
+	def on_trash(self):
+		publish_doctype_update(self.dt)
+
 	def validate_names_are_not_fields(self):
 		"""Refuse a tab or section named like a data field; a script addresses both by one name."""
 		if not self.layout:
@@ -100,6 +109,11 @@ def save_form_layout(dt: str, type: str, layout: str, name: str | None = None, c
 	doc.update({"dt": dt, "type": type, "layout": layout, "condition": condition})
 	doc.save()
 	return doc.name
+
+
+def publish_doctype_update(dt: str) -> None:
+	"""Tell open desks that `dt`'s layouts changed, so the next visit fetches them again."""
+	frappe.publish_realtime("doctype_update", {"doctype": dt}, after_commit=True)
 
 
 def validate_target(dt: str, type: str) -> None:
