@@ -21,6 +21,58 @@ frappe.ui.form.Controller = class FormController {
 	}
 };
 
+/**
+ * The trail for a document: its list, the DocType Layout in force, and the document itself.
+ *
+ * Shared by the form view and the print view, because both already hold a `frm`. The print
+ * view's is a plain object rather than a `Form`, so this reads only `doctype`, `doc`, `meta`
+ * and `doctype_layout`.
+ *
+ * The document is the last crumb and carries no link. The print view, which is a page past the
+ * form, puts one back on it.
+ *
+ * @param {Object} frm
+ * @returns {Array<Object>} espresso breadcrumb items
+ */
+frappe.ui.form.get_breadcrumbs = function (frm) {
+	const items = [];
+	const slug = frappe.router.slug(frm.doctype);
+
+	// a single has no list, and a user who cannot manage users cannot open the User list
+	const hide_list =
+		frm.meta.issingle || (frm.doctype === "User" && !frappe.user.has_role("System Manager"));
+
+	if (!hide_list) {
+		// a tree doctype's list opens in whichever view the reader last used
+		const route = frm.meta.is_tree
+			? `${slug}/view/${frappe.model.user_settings[frm.doctype]?.last_view || "Tree"}`
+			: slug;
+		items.push({
+			label: __(frm.doctype),
+			// the layout crumb below filters the list, so the list crumb has to undo that
+			href: `/desk/${route}${frm.doctype_layout ? "?reset_filters=1" : ""}`,
+		});
+	}
+
+	if (frm.doctype_layout) {
+		const filters = frappe.utils.parse_layout_condition_to_filters(
+			frm.doctype_layout.condition
+		);
+		filters._layout = frm.doctype_layout.name;
+		items.push({
+			label: __(frm.doctype_layout.title || frm.doctype_layout.name),
+			href: `/desk/${slug}?${new URLSearchParams(filters)}`,
+		});
+	}
+
+	let title = frappe.model.get_doc_title(frm.doc);
+	title = __(title) || __(frm.doc.name);
+	if (frappe.utils.is_html(title)) title = strip_html(title);
+	items.push({ label: title });
+
+	return items;
+};
+
 frappe.ui.form.Form = class FrappeForm {
 	constructor(doctype, parent, in_form, doctype_layout_name) {
 		this.docname = "";
@@ -596,8 +648,6 @@ frappe.ui.form.Form = class FrappeForm {
 			frappe.after_ajax(function () {
 				me.trigger_link_fields();
 			});
-
-			frappe.breadcrumbs.add(me.meta.module, me.doctype);
 		});
 
 		// update seen
@@ -776,32 +826,16 @@ frappe.ui.form.Form = class FrappeForm {
 		let el = this.page.page_actions[0];
 		const rect = el.getBoundingClientRect();
 		let is_outside = cint(rect.right) > cint(document.documentElement.clientWidth);
+		if (!is_outside) return;
 
-		if (is_outside) {
-			// check if the default actions are outside of the screen
-			const overflow = Math.max(0, rect.right - document.documentElement.clientWidth);
+		// the page actions have been pushed off screen, so give the trail only the width that is
+		// left. The last crumb is the document title and truncates on its own from there.
+		const overflow = Math.max(0, rect.right - document.documentElement.clientWidth);
+		if (!overflow) return;
 
-			if (!overflow) return;
-			let max_breadcrumb_width = Math.max(
-				290,
-				this.page.$title_area.find("ul").width() - overflow
-			);
-
-			this.page.$title_area.parent().css("max-width", `${max_breadcrumb_width}px`);
-			let breadcrumb = this.page.$title_area.find("ul li.ellipsis");
-
-			if (cint(breadcrumb[0]?.clientWidth) <= 30) {
-				// if workspce sodebar is not visible
-				$(breadcrumb[0]).hide();
-				if (cint(breadcrumb[1]?.clientWidth) <= 30) {
-					// if doctype sodebar is not visible
-					$(breadcrumb[1]).hide();
-
-					// add elipsis to the name/title breadcrumb
-					this.page.$title_area.find(".title-text-form").parent().addClass("ellipsis");
-				}
-			}
-		}
+		const $nav = this.page.$title_area.find(".navbar-breadcrumbs");
+		const max_breadcrumb_width = Math.max(290, $nav.width() - overflow);
+		this.page.$title_area.parent().css("max-width", `${max_breadcrumb_width}px`);
 	}
 
 	focus_on_first_input() {
@@ -893,12 +927,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.viewers.refresh();
 
 		this.dashboard.refresh();
-		const _route_key = frappe.breadcrumbs.current_page();
-		const _crumb = frappe.breadcrumbs.all[_route_key];
-		if (_crumb) {
-			_crumb.layout_name = this.doctype_layout?.name || null;
-		}
-		frappe.breadcrumbs.update();
+		this.page.set_breadcrumbs(frappe.ui.form.get_breadcrumbs(this));
 
 		this.show_submit_message();
 		this.clear_custom_buttons();

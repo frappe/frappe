@@ -989,6 +989,30 @@ frappe.ui.Page = class Page {
 		return this.$title_area;
 	}
 
+	/**
+	 * The trail in this page's head. The last item is the page itself, so it carries no `href`.
+	 *
+	 * Each page owns its own items and its own markup. A view can only change the trail of the
+	 * page it was handed, which is why an off-screen form cannot touch the one on screen.
+	 *
+	 * @param {Array<Object>} items espresso breadcrumb items: `label`, `href`, `onclick`,
+	 *   `prefix`, `suffix`, `title`
+	 */
+	set_breadcrumbs(items) {
+		this.breadcrumbs = items || [];
+		this.render_breadcrumbs();
+	}
+
+	render_breadcrumbs() {
+		const $nav = this.$title_area?.find(".navbar-breadcrumbs");
+		if (!$nav?.length) return;
+
+		const css_class = ["navbar-breadcrumbs", frappe.is_mobile() ? "mobile-no-divider" : ""]
+			.filter(Boolean)
+			.join(" ");
+		$nav.replaceWith(frappe.ui.breadcrumbs({ items: this.breadcrumbs || [], css_class }));
+	}
+
 	set_title(title, icon = null, strip = true, tab_title = "", tooltip_label = "") {
 		if (!title) title = "";
 		if (strip) {
@@ -996,17 +1020,19 @@ frappe.ui.Page = class Page {
 		}
 		this.title = title;
 		frappe.utils.set_title(tab_title || title);
-		if (icon) {
-			title = `${frappe.utils.icon(icon)} ${title}`;
-		}
 
-		let title_wrapper = this.$title_area.find(".title-text");
-		title_wrapper.html(title);
-		title_wrapper.attr("title", __(tooltip_label) || this.title);
+		// the title is the last crumb, so there is only ever one node naming the page
+		const items = (this.breadcrumbs || []).slice();
+		const last = { ...(items.pop() || {}) };
+		last.label = title;
+		last.title = __(tooltip_label) || title;
+		// the page is where the reader already is; a link back to it is noise
+		delete last.href;
+		delete last.onclick;
+		if (icon) last.prefix = icon;
+		items.push(last);
 
-		if (tooltip_label) {
-			title_wrapper.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
-		}
+		this.set_breadcrumbs(items);
 	}
 
 	set_title_sub(txt) {

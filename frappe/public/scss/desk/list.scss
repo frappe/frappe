@@ -891,9 +891,7 @@ input.list-header-checkbox {
 }
 
 @media screen and (max-width: 375px) {
-	.navbar-breadcrumbs li:last-child > a {
+	.navbar-breadcrumbs li:last-child .es-breadcrumbs__label {
 		max-width: 105px;
-		overflow: hidden;
-		text-overflow: ellipsis;
 	}
 }

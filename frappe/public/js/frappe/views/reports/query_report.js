@@ -1637,12 +1637,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		});
 	}
 
-	set_breadcrumbs() {
-		if (!this.report_doc || !this.report_doc.ref_doctype) return;
-		const ref_doctype = frappe.get_meta(this.report_doc.ref_doctype);
-		frappe.breadcrumbs.add(ref_doctype.module);
-	}
-
 	make_access_log(method, file_format) {
 		frappe.call("frappe.core.doctype.access_log.access_log.make_access_log", {
 			doctype: this.doctype || "",

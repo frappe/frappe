@@ -1,3 +1,6 @@
+// the page title is the last breadcrumb
+const TITLE = ".navbar-breadcrumbs:visible li:last-child";
+
 context("Attach Control", () => {
 	before(() => {
 		cy.login();
@@ -225,7 +228,7 @@ context("Attach Control with Failed Document Save", () => {
 		cy.fill_field("text_field", "Random value", "Text Editor").wait(500);
 		cy.findByRole("button", { name: "Save" }).click().wait(500);
 
-		cy.get(".title-text-form").then(($value) => {
+		cy.get(TITLE).then(($value) => {
 			docname = $value.text();
 		});
 	});

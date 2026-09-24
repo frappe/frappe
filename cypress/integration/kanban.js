@@ -1,3 +1,6 @@
+// the page title is the last breadcrumb
+const TITLE = ".navbar-breadcrumbs:visible li:last-child";
+
 context("Kanban Board", () => {
 	const TODO_KANBAN_URL = "/desk/todo/view/kanban/ToDo Kanban";
 
@@ -39,7 +42,7 @@ context("Kanban Board", () => {
 		}).then((r) => {
 			if (r.message?.name) {
 				cy.visit(TODO_KANBAN_URL);
-				cy.get(".title-text").should("contain", "ToDo Kanban");
+				cy.get(TITLE).should("contain", "ToDo Kanban");
 				return;
 			}
 
@@ -55,7 +58,7 @@ context("Kanban Board", () => {
 			cy.fill_field("field_name", "Status", "Select");
 			cy.click_modal_primary_button("Save");
 
-			cy.get(".title-text").should("contain", "ToDo Kanban");
+			cy.get(TITLE).should("contain", "ToDo Kanban");
 		});
 	});
 
@@ -66,7 +69,7 @@ context("Kanban Board", () => {
 		cy.contains(".es-menu__item", "Kanban View").trigger("pointerenter");
 		cy.contains(".es-menu__item", "ToDo Kanban").click();
 
-		cy.get(".title-text").should("contain", "ToDo Kanban");
+		cy.get(TITLE).should("contain", "ToDo Kanban");
 		cy.window()
 			.its("cur_list")
 			.then((list) => {
