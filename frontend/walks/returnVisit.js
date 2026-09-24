@@ -9,25 +9,11 @@
 // unset runs both). Exits 0 when every return step passes on every network, 1 otherwise.
 
 import { writeFileSync } from "node:fs";
-import { chromium, request as requestApi } from "playwright";
+import { chromium } from "playwright";
 import { MARKERS, installCounters } from "./paintCounters.js";
+import { BASE_URL, NETWORKS, logIn, setUp } from "./setup.js";
 
-const BASE_URL = process.env.BASE_URL || "http://localhost:8000";
 const QUIET_MS = 500;
-const KILOBITS = 1000 / 8;
-
-const NETWORKS = {
-	normal: { capMs: 15000, conditions: null },
-	slow: {
-		capMs: 120000,
-		conditions: {
-			offline: false,
-			latency: 400,
-			downloadThroughput: 400 * KILOBITS,
-			uploadThroughput: 400 * KILOBITS,
-		},
-	},
-};
 
 const RETURN_STEPS = [
 	"back-to-list",
@@ -39,91 +25,15 @@ const RETURN_STEPS = [
 const COLUMNS = ["step", "skel", "maxField", "maxRow", "rows", "fields", "ms", "pass", "over one"];
 
 async function main() {
-	const jsonPath = argumentAfter("--json");
-	const names = networkNames();
-	const target = await resolveTarget();
+	const { jsonPath, networks, target } = await setUp();
 	const runs = [];
-	for (const name of names) {
+	for (const name of networks) {
 		const run = await new ReturnVisitWalk(target, name).run();
 		printRun(run);
 		runs.push(run);
 	}
 	if (jsonPath) writeFileSync(jsonPath, JSON.stringify({ target, runs }, null, 2));
 	process.exit(runs.every((run) => run.passed) ? 0 : 1);
-}
-
-function argumentAfter(flag) {
-	const index = process.argv.indexOf(flag);
-	return index === -1 ? null : process.argv[index + 1];
-}
-
-function networkNames() {
-	const name = process.env.NETWORK;
-	if (!name) return Object.keys(NETWORKS);
-	if (!NETWORKS[name])
-		throw new Error(`Unknown NETWORK "${name}"; use ${Object.keys(NETWORKS).join(" or ")}`);
-	return [name];
-}
-
-async function resolveTarget() {
-	const request = await requestApi.newContext();
-	try {
-		await logIn(request);
-		const desk = await deskBoot(request);
-		const doctype =
-			process.env.DOCTYPE || (await firstWithRows(request, navigationDoctypes(desk)));
-		return { doctype, listPath: listPathOf(desk, doctype) };
-	} finally {
-		await request.dispose();
-	}
-}
-
-async function logIn(request) {
-	const response = await request.post(`${BASE_URL}/api/method/login`, {
-		form: { usr: process.env.USR || "Administrator", pwd: process.env.PWD_FRAPPE || "admin" },
-	});
-	if (!response.ok()) throw new Error(`Login failed with ${response.status()}`);
-}
-
-async function deskBoot(request) {
-	const index = await getMethod(request, "frappe.shell.boot.get_boot", { path: "/apps" });
-	const desk = index.apps.find((entry) => entry.app === "frappe");
-	const boot = await getMethod(request, "frappe.shell.boot.get_boot", { path: desk.route });
-	const addresses = await getMethod(request, "frappe.shell.doctypes.get_addresses", {
-		v: boot.metadata_version,
-	});
-	const { modular } = boot.prefixes[desk.prefix];
-	return { route: desk.route, modular, navigation: boot.navigation, addresses };
-}
-
-async function getMethod(request, method, params) {
-	const response = await request.get(`${BASE_URL}/api/v2/method/${method}`, { params });
-	if (!response.ok()) throw new Error(`${method} failed with ${response.status()}`);
-	return (await response.json()).data;
-}
-
-function navigationDoctypes({ navigation, addresses }) {
-	const items = [navigation.rail, ...Object.values(navigation.sidebars ?? {})].flat();
-	return items
-		.filter((item) => item.item_type === "DocType")
-		.map((item) => item.link_to)
-		.filter((doctype) => addresses.doctypes[doctype] && !addresses.singles?.includes(doctype));
-}
-
-async function firstWithRows(request, doctypes) {
-	for (const doctype of doctypes) {
-		const url = `${BASE_URL}/api/v2/document/${encodeURIComponent(doctype)}`;
-		const response = await request.get(url, { params: { limit: 1 } });
-		if (response.ok() && (await response.json()).data.length) return doctype;
-	}
-	throw new Error("No doctype in the navigation has rows; set DOCTYPE.");
-}
-
-function listPathOf(desk, doctype) {
-	const address = desk.addresses.doctypes[doctype];
-	if (!address) throw new Error(`DOCTYPE ${doctype} has no desk address`);
-	const [slug, moduleSlug] = address;
-	return [desk.route, desk.modular && moduleSlug, slug].filter(Boolean).join("/");
 }
 
 class ReturnVisitWalk {
@@ -150,7 +60,8 @@ class ReturnVisitWalk {
 			await browser.close();
 		}
 		const passed = this.steps.every((step) => step.pass !== false);
-		return { network: this.network, recordVia: this.recordVia, steps: this.steps, passed };
+		const { network, listVia, recordVia, steps } = this;
+		return { network, listVia, recordVia, steps, passed };
 	}
 
 	trackRequests() {
@@ -184,7 +95,8 @@ class ReturnVisitWalk {
 		await this.step("record-first", () => row.click());
 		await this.step("back-to-list", () => this.page.goBack({ waitUntil: "commit" }));
 		await this.step("forward-to-record", () => this.page.goForward({ waitUntil: "commit" }));
-		await this.step("list-via-sidebar", () => this.sidebarLink(listPath).click());
+		const listLink = await this.listLink(listPath);
+		await this.step("list-via-sidebar", () => listLink.click());
 		const link = await this.returnLink();
 		await this.step("record-via-sidebar", () => link.click());
 	}
@@ -220,6 +132,15 @@ class ReturnVisitWalk {
 
 	sidebarLink(path) {
 		return this.page.locator(`[data-key] a[href=${JSON.stringify(path)}]`).first();
+	}
+
+	async listLink(path) {
+		const sidebar = this.sidebarLink(path);
+		const crumb = this.page.locator(`[data-crumbs] a[href=${JSON.stringify(path)}]`).first();
+		this.listVia = (await sidebar.isVisible()) ? "sidebar" : "crumb";
+		if (this.listVia === "sidebar") return sidebar;
+		if (await crumb.isVisible()) return crumb;
+		throw new Error(`No sidebar or breadcrumb link to the ${this.target.doctype} list`);
 	}
 
 	async returnLink() {
@@ -266,7 +187,8 @@ function paintSummary(paints) {
 }
 
 function printRun(run) {
-	console.log(`\n${run.network} network, record reached from the ${run.recordVia}`);
+	const via = `list reached from the ${run.listVia}, record from the ${run.recordVia}`;
+	console.log(`\n${run.network} network, ${via}`);
 	printLine(COLUMNS);
 	for (const step of run.steps) {
 		printLine(tableCells(step));
