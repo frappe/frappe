@@ -90,14 +90,17 @@ def log_error(
 			error_log.deferred_insert()
 		else:
 			error_log.insert(ignore_permissions=True)
-	except (frappe.QueryDeadlockError, frappe.QueryTimeoutError):
-		# Only contention is tolerated here. Recording an error must not raise a second one
-		# into a caller that has nothing to do with logging, and the log database is a single
-		# SQLite file shared by every process on the site, so a write can lose a race for it.
+	except Exception:
+		# `log_error` must never raise. It is called from exception handlers throughout the
+		# framework -- `frappe.email.doctype.email_queue` calls it mid-send, `notification`
+		# calls it while dispatching -- so anything that escapes here turns a handled error
+		# into an unhandled one and aborts work that has nothing to do with logging.
 		#
-		# Everything else -- a schema mismatch, a bad field, a programming error -- is a real
-		# defect in the logging path and propagates, rather than being hidden behind a log
-		# line nobody reads.
+		# Narrowing this to contention was tried and reverted: it broke email sending, where
+		# a failed log write after a successful send stopped the remaining mails.
+		#
+		# The failure is not hidden. `exc_info=True` records the full traceback in the site's
+		# log file, which is the one sink that cannot itself be unavailable.
 		frappe.logger().error(f"Failed to write Error Log: {title}", exc_info=True)
 		return None
 
