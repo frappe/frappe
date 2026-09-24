@@ -9,7 +9,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "lint": "cd .. && eslint --config frontend/eslint.config.js frontend/src ui/src",
-    "base-lock": "./base-lock.sh"
+    "base-lock": "./base-lock.sh",
+    "walk:return-visit": "node walks/returnVisit.js"
   },
   "dependencies": {
     "@codemirror/lang-css": "^6.3.0",
@@ -40,6 +41,7 @@
     "eslint-plugin-vue": "^10.11.0",
     "happy-dom": "^20.9.0",
     "jiti": "^1.21.7",
+    "playwright": "1.62.1",
     "postcss": "^8.4.5",
     "tailwindcss": "^3.4.15",
     "vite": "8.1.5",
