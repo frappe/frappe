@@ -1,5 +1,6 @@
 import type { createResource } from "frappe-ui";
 import { getSocketInstance, subscribeToDoc } from "../../socket";
+import { hasUnresolvedRowOfType } from "./pendingRows";
 import type { Activity, UserInfo } from "./types";
 import { getAssignee, stripHtml } from "./utils";
 
@@ -43,6 +44,16 @@ export function createLiveUpdates(
     // mirror the server-side visibleTypes filter
     if (visibleTypes && !visibleTypes.includes(activity.type)) return;
 
+    // A row of a type still in flight cannot be told apart from the one being waited for, and
+    // drawing both is a visible duplicate. The refetch below brings it in a moment later.
+    if (
+      action === "add" &&
+      hasUnresolvedRowOfType(doctype, docname, activity.type)
+    ) {
+      refresh();
+      return;
+    }
+
     const current = (resource.data as Activity[] | undefined) ?? [];
     if (action === "add") {
       resource.data = [...current, activity];
@@ -56,8 +67,8 @@ export function createLiveUpdates(
   };
 
   const onDocUpdate = (payload: unknown) => {
-    const { doctype: dt, name } = payload as { doctype: string; name: string };
-    if (dt !== doctype || name !== docname) return;
+    const updated = payload as { doctype: string; name: string };
+    if (updated.doctype !== doctype || updated.name !== docname) return;
     refresh();
   };
 
