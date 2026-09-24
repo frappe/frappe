@@ -30,7 +30,6 @@ MUTED = "#6b7280"
 DEFAULT_FONT = "Inter"
 SHRINK_JUSTIFY = ("center", "right-end", "space-between", "space-evenly")
 FULL_WIDTH_FIELDTYPES = ("Divider",)
-INNERMOST_LIST = re.compile(r"<(ol|ul)[^>]*>((?:(?!<(?:ol|ul)[^>]*>).)*?)</\1>", re.I | re.S)
 
 
 def pt(px, default=0.0) -> float:
@@ -427,20 +426,22 @@ def _fr_widths(columns) -> list[str]:
 def _list_markers(value: str) -> str:
 	"""Numbers `<ol>` items and bullets `<ul>` ones, the way the browser draws them.
 
-	A list holding no other list is marked first, so a sublist of either kind is
-	already out of the way before the list around it counts its own items."""
+	Innermost lists are marked first so a nested list does not take its items
+	from the list around it."""
 
 	def mark(match):
-		inner = match.group(2)
-		if match.group(1).lower() == "ul":
-			return "\n" + re.sub(r"<li[^>]*>", "<x-li>\u2022 ", inner, flags=re.I)
-		items = re.split(r"<li[^>]*>", inner, flags=re.I)[1:]
-		return "\n" + "".join(f"<x-li>{i}. {item}" for i, item in enumerate(items, 1))
+		body = match.group(2)
+		if match.group(1).lower() == "ol":
+			items = re.split(r"<li[^>]*>", body, flags=re.I)[1:]
+			return "\n" + "".join(f"<x-li>{i}. {item}" for i, item in enumerate(items, 1))
+		return "\n" + re.sub(r"<li[^>]*>", "<x-li>\u2022 ", body, flags=re.I)
 
+	pattern = re.compile(r"<(ol|ul)[^>]*>((?:(?!<[ou]l[^>]*>).)*?)</\1>", re.I | re.S)
 	while True:
-		value, count = INNERMOST_LIST.subn(mark, value)
+		value, count = pattern.subn(mark, value)
 		if not count:
-			return value
+			break
+	return value
 
 
 def _text_value(html_ish: str) -> str:
