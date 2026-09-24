@@ -523,12 +523,38 @@ def pdf_has_signature(content: bytes) -> bool:
 		return True
 
 
+def _pdf_has_oversized_image(reader: "PdfReader", max_pixels: int) -> bool:
+	"""Check declared image XObject dimensions without decoding any pixel data.
+
+	Iterating page.images (pypdf) decodes every embedded image eagerly, before
+	any dimension check on the decoded result can run. That lets a small PDF
+	containing one enormously-declared but highly compressed image (a classic
+	decompression bomb) exhaust request-worker memory. /Width and /Height are
+	stored directly on the XObject dictionary and can be read for free.
+	"""
+	for page in reader.pages:
+		try:
+			xobjects = page["/Resources"]["/XObject"]
+		except KeyError:
+			continue
+		for xobj in xobjects.values():
+			xobj = xobj.get_object()
+			if xobj.get("/Subtype") != "/Image":
+				continue
+			width = int(xobj.get("/Width", 0))
+			height = int(xobj.get("/Height", 0))
+			if width * height > max_pixels:
+				return True
+	return False
+
+
 def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600) -> bytes:
 	"""Recompress embedded raster images and compress content streams to shrink a PDF.
 
 	Only benefits image-heavy PDFs (e.g. scanned documents); text/vector-only PDFs
 	won't shrink meaningfully. Falls back to the original content if optimization
-	fails, doesn't actually reduce the size, or if the PDF is digitally signed.
+	fails, doesn't actually reduce the size, if the PDF is digitally signed, or if
+	it contains an image large enough to risk exhausting memory on decode.
 	"""
 	from io import BytesIO
 
@@ -540,6 +566,9 @@ def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600) -> byte
 
 	try:
 		reader = PdfReader(BytesIO(content))
+		if _pdf_has_oversized_image(reader, Image.MAX_IMAGE_PIXELS):
+			return content
+
 		writer = PdfWriter(clone_from=reader)
 
 		for page in writer.pages:

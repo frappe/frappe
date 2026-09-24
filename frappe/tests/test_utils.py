@@ -901,6 +901,19 @@ class TestImage(IntegrationTestCase):
 		images = list(reader.pages[0].images)
 		self.assertEqual(len(images), 1)
 
+	def test_optimize_pdf_skips_oversized_image(self):
+		from frappe.utils.pdf import optimize_pdf
+
+		# declared 12000x12000 (144M pixels) exceeds Pillow's own decompression-bomb
+		# threshold; must be rejected before any pixel decode is attempted, since
+		# iterating page.images would otherwise decode it eagerly regardless
+		huge_image = Image.new("RGB", (12000, 12000), (10, 90, 200))
+		buf = io.BytesIO()
+		huge_image.save(buf, format="PDF", resolution=100.0)
+		oversized_pdf = buf.getvalue()
+
+		self.assertEqual(optimize_pdf(oversized_pdf), oversized_pdf)
+
 	def test_optimize_pdf_falls_back_on_failure(self):
 		from frappe.utils.pdf import optimize_pdf
 
