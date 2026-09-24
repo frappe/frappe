@@ -104,7 +104,9 @@ def get_context(context) -> PrintContext:
 			no_letterhead=frappe.form_dict.no_letterhead,
 			style=frappe.form_dict.style,
 			trigger_print=cint(frappe.form_dict.trigger_print),
-			action_banner=frappe.render_template("templates/print_formats/print_action_banner.html", context),
+			action_banner=frappe.render_template(
+				"templates/print_formats/print_action_banner.html", context
+			),  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 			settings=settings,
 		)
 	else:

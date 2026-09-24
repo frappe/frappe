@@ -76,7 +76,7 @@ frappe.ui.form.on("Print Format", {
 					frm.trigger("convert_to_builder");
 				});
 			}
-			if (frm.doc.classic_format_data) {
+			if (frm.doc.classic_format_data && can_convert) {
 				frm.add_custom_button(__("Restore classic layout"), function () {
 					frappe.confirm(
 						__(
