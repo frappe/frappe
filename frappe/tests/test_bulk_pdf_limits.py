@@ -63,6 +63,21 @@ class TestBulkPdfLimits(IntegrationTestCase):
 			{"pdf_page_size": "Custom", "pdf_page_height": "100mm", "pdf_page_width": "50mm"},
 		)
 
+	def test_bulk_pdf_tells_the_requester_when_a_permission_check_fails(self):
+		import json
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		frappe.set_user("Guest")
+		self.addCleanup(frappe.set_user, "Administrator")
+		with patch("frappe.publish_realtime") as publish:
+			with self.assertRaises(frappe.PermissionError):
+				_download_multi_pdf("User", json.dumps(["Administrator"]), None, task_id="bulk-test")
+		publish.assert_called_once()
+		self.assertEqual(publish.call_args.args[0], "task_complete:bulk-test")
+		self.assertIn("error", publish.call_args.kwargs["message"])
+		self.assertEqual(publish.call_args.kwargs["user"], "Guest")
+
 	def test_document_count_setting_is_honoured(self):
 		frappe.db.set_single_value("Print Settings", "max_bulk_print_docs", 3)
 		self.assertEqual(get_max_bulk_print_docs(), 3)
