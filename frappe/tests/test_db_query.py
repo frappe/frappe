@@ -1474,7 +1474,7 @@ class TestReportView(FrappeTestCase):
 		frappe.get_doc(
 			doctype=doctype.name, party="A", currency="USD", amount=5, base_amount=400
 		).insert()
-		self.addCleanup(lambda: frappe.db.delete(doctype.name))
+		self.addCleanup(lambda: frappe.db.delete(doctype.name, {"party": "A"}))
 
 		frappe.local.request = frappe._dict()
 		frappe.local.request.method = "POST"
@@ -1499,6 +1499,69 @@ class TestReportView(FrappeTestCase):
 		# raw `amount` (10 + 5 = 15) would silently mix USD and the company's default
 		# currency; the aggregated total must come from `base_amount` (800 + 400) instead.
 		self.assertEqual(response["values"][0][1], 1200)
+
+	def test_reportview_group_by_skips_higher_permlevel_base_field(self):
+		# Group By's aggregate column is built as a raw SQL expression, so it bypasses the
+		# usual field-permission checks. Substituting in a base_<fieldname> counterpart must
+		# not leak its value to a user who isn't allowed to read that field's permlevel.
+		doctype = new_doctype(
+			"Test Multi Currency GroupBy Permlevel",
+			fields=[
+				{"label": "Party", "fieldname": "party", "fieldtype": "Data"},
+				{"label": "Currency", "fieldname": "currency", "fieldtype": "Link", "options": "Currency"},
+				{
+					"label": "Amount",
+					"fieldname": "amount",
+					"fieldtype": "Currency",
+					"options": "currency",
+				},
+				{
+					"label": "Amount (Company Currency)",
+					"fieldname": "base_amount",
+					"fieldtype": "Currency",
+					"permlevel": 1,
+				},
+			],
+			permissions=[
+				{"role": "System Manager", "read": 1},
+				{"role": "Blogger", "read": 1},
+				{"role": "System Manager", "permlevel": 1, "read": 1},
+			],
+		).insert()
+		self.addCleanup(lambda: frappe.delete_doc("DocType", doctype.name, force=True))
+
+		frappe.get_doc(
+			doctype=doctype.name, party="A", currency="USD", amount=10, base_amount=800
+		).insert()
+		frappe.get_doc(
+			doctype=doctype.name, party="A", currency="USD", amount=5, base_amount=400
+		).insert()
+		self.addCleanup(lambda: frappe.db.delete(doctype.name, {"party": "A"}))
+
+		with setup_test_user(set_user=True):
+			frappe.local.request = frappe._dict()
+			frappe.local.request.method = "POST"
+			frappe.local.form_dict = frappe._dict(
+				{
+					"doctype": doctype.name,
+					"fields": f'["`tab{doctype.name}`.`party` as party"]',
+					"filters": "[]",
+					"order_by": "_aggregate_column desc",
+					"start": 0,
+					"page_length": 20,
+					"view": "Report",
+					"with_comment_count": 0,
+					"group_by": "party",
+					"aggregate_on_field": "amount",
+					"aggregate_on_doctype": doctype.name,
+					"aggregate_function": "sum",
+				}
+			)
+			response = execute_cmd("frappe.desk.reportview.get")
+
+		# the Blogger role can't read base_amount (permlevel 1), so Group By must fall back
+		# to summing the raw `amount` (10 + 5 = 15) instead of leaking base_amount's total.
+		self.assertEqual(response["values"][0][1], 15)
 
 	def test_reportview_get_permlevel_system_users(self):
 		with setup_patched_blog_post(), setup_test_user(set_user=True):
