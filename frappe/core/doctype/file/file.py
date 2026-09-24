@@ -1043,12 +1043,12 @@ class File(Document):
 			self.is_private = cint(self.file_url.startswith("/private"))
 
 	def validate_file_url_matches_record(self):
-		"""Ensure file_url actually resolves back to this File record."""
-		if not self.file_url or not self.name:
+		"""Ensure file_url actually resolves back to an existing File record with this name."""
+		if not self.file_url:
 			return
 
-		actual_file_url = frappe.db.get_value("File", self.name, "file_url")
-		if actual_file_url is not None and actual_file_url != self.file_url:
+		actual_file_url = frappe.db.get_value("File", self.name, "file_url") if self.name else None
+		if actual_file_url != self.file_url:
 			frappe.throw(_("The File URL does not belong to this File record"), frappe.PermissionError)
 
 	@frappe.whitelist()

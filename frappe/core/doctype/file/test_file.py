@@ -1959,7 +1959,9 @@ class TestFileOptimization(IntegrationTestCase):
 		with make_test_image_file() as test_file:
 			test_file.validate_file_url_matches_record()
 
-	def test_validate_file_url_matches_record_allows_unclaimed_url(self):
+	def test_validate_file_url_matches_record_rejects_missing_name(self):
+		"""A doc with no name at all must not bypass the check by short-circuiting on it -
+		optimize_file never legitimately runs against a document with no backing record."""
 		doc = frappe.get_doc(
 			{
 				"doctype": "File",
@@ -1968,7 +1970,30 @@ class TestFileOptimization(IntegrationTestCase):
 				"is_private": 1,
 			}
 		)
-		doc.validate_file_url_matches_record()
+		self.assertIsNone(doc.name)
+		self.assertRaises(frappe.PermissionError, doc.validate_file_url_matches_record)
+
+	def test_optimize_file_rejects_doc_with_no_name(self):
+		"""A crafted doc with owner set to the caller but name omitted must not bypass the
+		guard: permission checks upstream may still pass (falling back to create-level
+		permission), so this method must fail closed rather than skip validation."""
+		with make_test_image_file(private=True) as target:
+			original_content = target.get_content()
+
+			crafted = frappe.get_doc(
+				{
+					"doctype": "File",
+					"owner": frappe.session.user,
+					"file_name": target.file_name,
+					"file_url": target.file_url,
+					"is_private": 1,
+					"file_size": target.file_size,
+				}
+			)
+			self.assertIsNone(crafted.name)
+
+			self.assertRaises(frappe.PermissionError, crafted.optimize_file)
+			self.assertEqual(target.get_content(), original_content)
 
 	def test_validate_file_url_matches_record_allows_url_shared_by_multiple_files(self):
 		"""Two File records may legitimately share one file_url (see create_attachment_copy);
