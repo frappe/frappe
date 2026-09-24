@@ -39,7 +39,7 @@ from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import add_to_date, execute_in_shell, get_bench_path, get_bench_relative_path, now
 from frappe.utils.backups import BackupGenerator, fetch_latest_backups
-from frappe.utils.logging import log_exists
+from frappe.utils.logging import get_log_db
 from frappe.utils.scheduler import enable_scheduler, is_scheduler_inactive
 
 _result: Result | None = None
@@ -794,7 +794,7 @@ class TestBackups(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 		frappe.db.commit()
 
-		self.assertIsNone(log_exists("Error Log", {"name": d.name}))
+		self.assertFalse(get_log_db().exists("Error Log", d.name))
 		tables_after = frappe.db.get_tables(cached=False)
 		self.assertEqual(set(tables_before), set(tables_after))
 

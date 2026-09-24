@@ -7,7 +7,7 @@ import frappe
 from frappe.core.doctype.log_settings.log_settings import _supports_log_clearing, run_log_clean_up
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, now_datetime
-from frappe.utils.logging import count_logs
+from frappe.utils.logging import get_log_db
 
 
 class TestLogSettings(IntegrationTestCase):
@@ -38,7 +38,7 @@ class TestLogSettings(IntegrationTestCase):
 	def test_delete_logs(self):
 		# make sure test data is present
 		activity_log_count = frappe.db.count("Activity Log", {"creation": ("<=", self.datetime.past)})
-		error_log_count = count_logs("Error Log", {"creation": ("<=", self.datetime.past)})
+		error_log_count = get_log_db().count("Error Log", {"creation": ("<=", self.datetime.past)})
 		email_queue_count = frappe.db.count("Email Queue", {"creation": ("<=", self.datetime.past)})
 
 		self.assertNotEqual(activity_log_count, 0)
@@ -50,7 +50,7 @@ class TestLogSettings(IntegrationTestCase):
 
 		# test if logs are deleted
 		activity_log_count = frappe.db.count("Activity Log", {"creation": ("<", self.datetime.past)})
-		error_log_count = count_logs("Error Log", {"creation": ("<", self.datetime.past)})
+		error_log_count = get_log_db().count("Error Log", {"creation": ("<", self.datetime.past)})
 		email_queue_count = frappe.db.count("Email Queue", {"creation": ("<", self.datetime.past)})
 
 		self.assertEqual(activity_log_count, 0)

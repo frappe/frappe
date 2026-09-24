@@ -12,7 +12,7 @@ from frappe.desk.doctype.dashboard_chart.dashboard_chart import get
 from frappe.tests import IntegrationTestCase
 from frappe.utils import formatdate, get_last_day, getdate, now_datetime
 from frappe.utils.dateutils import get_period, get_period_ending
-from frappe.utils.logging import delete_logs
+from frappe.utils.logging import get_log_db
 
 
 class TestDashboardChart(IntegrationTestCase):
@@ -90,7 +90,7 @@ class TestDashboardChart(IntegrationTestCase):
 		if frappe.db.exists("Dashboard Chart", "Test Empty Dashboard Chart"):
 			frappe.delete_doc("Dashboard Chart", "Test Empty Dashboard Chart")
 
-		delete_logs("Error Log")
+		get_log_db().delete("Error Log")
 
 		frappe.get_doc(
 			doctype="Dashboard Chart",
@@ -138,7 +138,7 @@ class TestDashboardChart(IntegrationTestCase):
 		if frappe.db.exists("Dashboard Chart", "Test Empty Dashboard Chart 2"):
 			frappe.delete_doc("Dashboard Chart", "Test Empty Dashboard Chart 2")
 
-		delete_logs("Error Log")
+		get_log_db().delete("Error Log")
 
 		# create one data point
 		frappe.get_doc(doctype="Error Log", creation="2018-06-01 00:00:00").insert()

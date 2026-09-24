@@ -228,6 +228,15 @@ OPERATOR_MAPPING = {
 
 
 class Engine:
+	def __init__(self, db=None):
+		"""Build queries for `db`, defaulting to the site's primary connection.
+
+		A `Database` instance that is not `frappe.local.db` -- a replica, or the log
+		database -- needs its own dialect and its own `db_type` checks, otherwise it builds
+		MariaDB SQL and hands it to SQLite.
+		"""
+		self.db = db
+
 	def get_query(
 		self,
 		table: str | Table,
@@ -264,8 +273,9 @@ class Engine:
 			validate_filters: DEPRECATED. Will be removed in future versions.
 		"""
 
-		qb = frappe.local.qb
-		db_type = frappe.local.db.db_type
+		db = self.db or frappe.local.db
+		qb = db.qb
+		db_type = db.db_type
 
 		self.is_mariadb = db_type == "mariadb"
 		self.is_postgres = db_type == "postgres"

@@ -10,6 +10,7 @@ import traceback
 import warnings
 from collections.abc import Iterable, Sequence
 from contextlib import contextmanager, suppress
+from functools import cached_property
 from time import time
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -142,6 +143,24 @@ class Database:
 
 		# self.db_type: str
 		# self.last_query (lazy) attribute of last sql query executed
+
+	@cached_property
+	def qb(self):
+		"""Query builder for *this* connection's dialect.
+
+		`frappe.qb` is bound to the site's primary database, so any code that builds a query
+		with it and runs it elsewhere emits the wrong dialect. Reading the dialect off the
+		connection keeps the two in step.
+		"""
+		from frappe.query_builder.utils import get_query_builder
+
+		return get_query_builder(self.db_type)
+
+	def get_query(self, *args, **kwargs) -> Query:
+		"""Build a query against this connection. Mirrors `frappe.qb.get_query`."""
+		from frappe.database.query import Engine
+
+		return Engine(db=self).get_query(*args, **kwargs)
 
 	def setup_type_map(self):
 		pass
@@ -669,17 +688,23 @@ class Database:
 
 		if isinstance(filters, list):
 			if filters := list(f for f in filters if f is not None):
-				out = frappe.qb.get_query(
-					table=doctype,
-					fields=fieldname,
-					filters=filters,
-					order_by=order_by,
-					distinct=distinct,
-					limit=limit,
-					for_update=for_update,
-					skip_locked=skip_locked,
-					wait=True,
-				).run(debug=debug, run=run, as_dict=as_dict, pluck=pluck)
+				out = self.sql(
+					self.get_query(
+						table=doctype,
+						fields=fieldname,
+						filters=filters,
+						order_by=order_by,
+						distinct=distinct,
+						limit=limit,
+						for_update=for_update,
+						skip_locked=skip_locked,
+						wait=True,
+					),
+					debug=debug,
+					run=run,
+					as_dict=as_dict,
+					pluck=pluck,
+				)
 			else:
 				out = {}
 		else:
@@ -687,7 +712,7 @@ class Database:
 				try:
 					if order_by:
 						order_by = "creation" if order_by == DefaultOrderBy else order_by
-					query = frappe.qb.get_query(
+					query = self.get_query(
 						table=doctype,
 						filters=filters,
 						order_by=order_by,
@@ -700,7 +725,7 @@ class Database:
 					)
 					if isinstance(fieldname, str) and fieldname == "*":
 						as_dict = True
-					out = query.run(as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck)
+					out = self.sql(query, as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck)
 
 				except Exception as e:
 					if ignore and (
@@ -777,7 +802,7 @@ class Database:
 				return [list(map(values.get, fields))]
 
 		else:
-			r = frappe.qb.get_query(
+			r = self.get_query(
 				"Singles",
 				filters={"field": ("in", tuple(fields)), "doctype": doctype},
 				fields=["field", "value"],
@@ -815,7 +840,7 @@ class Database:
 		        # Get coulmn and value of the single doctype Accounts Settings
 		        account_settings = frappe.db.get_singles_dict("Accounts Settings")
 		"""
-		queried_result = frappe.qb.get_query(
+		queried_result = self.get_query(
 			"Singles",
 			filters={"doctype": doctype},
 			fields=["field", "value"],
@@ -896,7 +921,7 @@ class Database:
 		)
 
 		singles_data = ((doctype, key, sbool(value)) for key, value in to_update.items())
-		frappe.qb.into("Singles").columns("doctype", "field", "value").insert(*singles_data).run(debug=debug)
+		self.qb.into("Singles").columns("doctype", "field", "value").insert(*singles_data).run(debug=debug)
 		frappe.clear_document_cache(doctype, doctype)
 
 	def get_single_value(
@@ -924,7 +949,7 @@ class Database:
 		if cache and not for_update and run and fieldname in self.value_cache[doctype]:
 			return self.value_cache[doctype][fieldname]
 
-		val = frappe.qb.get_query(
+		val = self.get_query(
 			table="Singles",
 			filters={"doctype": doctype, "field": fieldname},
 			fields="value",
@@ -1007,7 +1032,7 @@ class Database:
 			field, val, modified=modified, modified_by=modified_by, update_modified=update_modified
 		)
 
-		query = frappe.qb.get_query(
+		query = self.get_query(
 			table=dt,
 			filters=dn,
 			update=True,
@@ -1022,7 +1047,7 @@ class Database:
 		for column, value in to_update.items():
 			query = query.set(column, value)
 
-		query.run(debug=debug)
+		self.sql(query, debug=debug)
 
 	def bulk_update(
 		self,
@@ -1080,9 +1105,12 @@ class Database:
 			doc_chunk = dict(itertools.islice(iterator, chunk_size))
 			self._build_and_run_bulk_update_query(doctype, doc_chunk, modified_dict, debug)
 
-	@staticmethod
 	def _build_and_run_bulk_update_query(
-		doctype: str, doc_updates: dict, modified_dict: dict | None = None, debug: bool = False
+		self,
+		doctype: str,
+		doc_updates: dict,
+		modified_dict: dict | None = None,
+		debug: bool = False,
 	):
 		"""
 		:param doctype: DocType to update
@@ -1132,8 +1160,8 @@ class Database:
 		if not doc_updates:
 			return
 
-		dt = frappe.qb.DocType(doctype)
-		update_query = frappe.qb.update(dt)
+		dt = self.qb.DocType(doctype)
+		update_query = self.qb.update(dt)
 
 		conditions = {}
 		docnames = list(doc_updates.keys())
@@ -1156,7 +1184,7 @@ class Database:
 			for column, value in modified_dict.items():
 				update_query = update_query.set(dt[column], value)
 
-		update_query.where(dt.name.isin(docnames)).run(debug=debug)
+		self.sql(update_query.where(dt.name.isin(docnames)), debug=debug)
 
 	def set_global(self, key, val, user="__global"):
 		"""Save a global key value. Global values will be automatically set if they match fieldname."""
@@ -1327,12 +1355,10 @@ class Database:
 		if cache and not filters and cache_key in self.value_cache[dt]:
 			return self.value_cache[dt][cache_key]
 
-		count = frappe.qb.get_query(
-			table=dt,
-			filters=filters,
-			fields=Count("*"),
-			distinct=distinct,
-		).run(debug=debug)[0][0]
+		count = self.sql(
+			self.get_query(table=dt, filters=filters, fields=Count("*"), distinct=distinct),
+			debug=debug,
+		)[0][0]
 
 		if not filters and cache:
 			self.value_cache[dt][cache_key] = count
@@ -1373,10 +1399,10 @@ class Database:
 
 		from frappe.utils import now_datetime
 
-		dt = frappe.qb.DocType(doctype)
+		dt = self.qb.DocType(doctype)
 
 		return (
-			frappe.qb.from_(dt)
+			self.qb.from_(dt)
 			.select(Count(dt.name))
 			.where(dt.creation >= now_datetime() - relativedelta(minutes=minutes))
 			.run()[0][0]
@@ -1387,10 +1413,10 @@ class Database:
 		key = f"table_columns::{table}"
 		columns = frappe.client_cache.get_value(key)
 		if columns is None:
-			information_schema = frappe.qb.Schema("information_schema")
+			information_schema = self.qb.Schema("information_schema")
 
 			columns = (
-				frappe.qb.from_(information_schema.columns)
+				self.qb.from_(information_schema.columns)
 				.select(information_schema.columns.column_name)
 				.where(
 					(information_schema.columns.table_name == table)
@@ -1479,14 +1505,12 @@ class Database:
 		Doctype name can be passed directly, it will be pre-pended with `tab`.
 		"""
 		filters = filters or kwargs.get("conditions")
-		query = frappe.qb.get_query(
-			table=doctype,
-			filters=filters,
-			delete=True,
-		)
+		query = self.get_query(table=doctype, filters=filters, delete=True)
+
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug
-		return query.run(**kwargs)
+
+		return self.sql(query, **kwargs)
 
 	def truncate(self, doctype: str):
 		"""Truncate a table in the database. This runs a DDL command `TRUNCATE TABLE`.
@@ -1555,20 +1579,22 @@ class Database:
 		:param fields: list of fields
 		:params values: iterable of values
 		"""
-		table = frappe.qb.DocType(doctype)
+		table = self.qb.DocType(doctype)
 
-		query = frappe.qb.into(table).columns(fields)
+		query = self.qb.into(table).columns(fields)
 
 		if ignore_duplicates:
-			# Pypika does not have same api for ignoring duplicates
-			if frappe.conf.db_type in ("mariadb", "sqlite"):
+			# Pypika does not have same api for ignoring duplicates. The dialect is read off
+			# this connection rather than `frappe.conf`, which only describes the site's
+			# primary database.
+			if self.db_type in ("mariadb", "sqlite"):
 				query = query.ignore()
-			elif frappe.conf.db_type == "postgres":
+			elif self.db_type == "postgres":
 				query = query.on_conflict().do_nothing()
 
 		value_iterator = iter(values)
 		while value_chunk := tuple(itertools.islice(value_iterator, chunk_size)):
-			query.insert(*value_chunk).run()
+			self.sql(query.insert(*value_chunk))
 
 	def advisory_lock(self, key, *, timeout=10):
 		"""Hold a session-level advisory lock for the duration of the `with` block. Postgres uses
@@ -1625,9 +1651,9 @@ class Database:
 		raise NotImplementedError
 
 	def get_routines(self):
-		information_schema = frappe.qb.Schema("information_schema")
+		information_schema = self.qb.Schema("information_schema")
 		return (
-			frappe.qb.from_(information_schema.routines)
+			self.qb.from_(information_schema.routines)
 			.select(information_schema.routines.routine_name)
 			.where(
 				(information_schema.routines.routine_type.isin(["FUNCTION", "PROCEDURE"]))

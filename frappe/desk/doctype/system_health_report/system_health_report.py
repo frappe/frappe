@@ -287,17 +287,18 @@ class SystemHealthReport(Document):
 		from pypika import Order
 
 		from frappe.query_builder.functions import Count
-		from frappe.utils.logging import log_table, run_log_query
+		from frappe.utils.logging import get_log_db, log_table
 
 		threshold = add_to_date(None, days=-1, as_datetime=True)
 
 		qb, table = log_table("Error Log")
 		recent = qb.from_(table).where(table.creation > threshold).where(table.modified > threshold)
 
-		count = run_log_query(recent.select(Count("*")))
+		db = get_log_db()
+		count = db.sql(recent.select(Count("*")))
 		self.total_errors = cint(count[0][0]) if count else 0
 
-		top_errors = run_log_query(
+		top_errors = db.sql(
 			recent.groupby(table.method)
 			.orderby(Count("*"), order=Order.desc)
 			.select(table.method.as_("title"), Count("*").as_("occurrences"))

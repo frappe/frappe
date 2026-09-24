@@ -5,7 +5,7 @@ import frappe
 from frappe.query_builder.functions import Count, Date, Max, Min
 from frappe.utils import add_days, cint, now
 from frappe.utils.caching import http_cache
-from frappe.utils.logging import LogDocument, get_log_db, log_table, run_log_query
+from frappe.utils.logging import LogDocument, get_log_db, log_table
 
 
 def _cutoff(days: int) -> str:
@@ -112,7 +112,9 @@ def get_fingerprint_stats(fingerprint: str) -> dict:
 	# execute against `frappe.db`, which no longer holds these rows.
 	qb, table = log_table("Error Log")
 
-	summary = run_log_query(
+	db = get_log_db()
+
+	summary = db.sql(
 		qb.from_(table)
 		.where(table.fingerprint == fingerprint)
 		.select(
@@ -123,7 +125,7 @@ def get_fingerprint_stats(fingerprint: str) -> dict:
 		as_dict=True,
 	)[0]
 
-	timeline = run_log_query(
+	timeline = db.sql(
 		qb.from_(table)
 		.where(table.fingerprint == fingerprint)
 		.where(table.creation >= _cutoff(30))
