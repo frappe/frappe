@@ -219,6 +219,13 @@ def get_currency_normalized_fieldname(doctype: str, fieldname: str) -> str:
 	Apps commonly store the same value already converted to the company's default currency in
 	a sibling `base_<fieldname>` field (e.g. `base_grand_total`). When one exists, aggregate on
 	it instead so the total is both numerically correct and in a single, consistent currency.
+
+	Note: if a group spans documents from companies with different default currencies (e.g.
+	grouping Sales Invoices from a multi-currency, multi-company site by Customer), the
+	`base_*` values themselves are each in their own document's company currency, so summing
+	across companies can still mix currencies. Fully solving that needs a live, per-row
+	exchange-rate conversion, which is out of scope here -- this only fixes the common,
+	single-company-per-group case.
 	"""
 	meta = frappe.get_meta(doctype)
 	df = meta.get_field(fieldname)
@@ -226,10 +233,17 @@ def get_currency_normalized_fieldname(doctype: str, fieldname: str) -> str:
 		return fieldname
 
 	base_fieldname = f"base_{fieldname}"
-	if meta.has_field(base_fieldname):
-		return base_fieldname
+	base_df = meta.get_field(base_fieldname)
+	if not base_df:
+		return fieldname
 
-	return fieldname
+	# Aggregate columns skip the usual field-permission checks (they're built as a raw SQL
+	# expression, not a plain fieldname), so don't substitute in a field at a permission level
+	# the current user can't read -- that would let Group By leak it indirectly.
+	if base_df.permlevel and base_df.permlevel not in meta.get_permlevel_access(parenttype=doctype):
+		return fieldname
+
+	return base_fieldname
 
 
 def raise_invalid_field(fieldname):
