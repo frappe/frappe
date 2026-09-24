@@ -1303,8 +1303,13 @@ export default class GridRow {
 						}, 100);
 					} else {
 						const next_idx = this.doc.idx;
+						const next_row = this.grid.grid_rows[next_idx];
+						if (!next_row) {
+							return;
+						}
+
 						field.parse_validate_and_set_in_model(field.get_input_value()).then(() => {
-							this.grid.grid_rows[next_idx].toggle_editable_row();
+							next_row.toggle_editable_row();
 							this.grid.set_focus_on_row(next_idx);
 						});
 						return false;
