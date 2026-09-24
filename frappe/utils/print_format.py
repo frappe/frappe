@@ -184,6 +184,9 @@ def _download_multi_pdf(
 
 	from pypdf import PdfWriter
 
+	if format:
+		language = frappe.db.get_value("Print Format", format, "default_print_language") or language
+
 	pdf_writer = PdfWriter()
 
 	options = frappe.parse_json(options)
