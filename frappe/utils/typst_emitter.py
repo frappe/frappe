@@ -295,7 +295,7 @@ def ensure_typst_fonts(family: str | None):
 			deduplicate=True,
 		)
 	except Exception:
-		pass
+		frappe.log_error(title=f"Typst font fetch could not be queued: {DEFAULT_FONT}")
 
 
 def _font_cache_path(family: str) -> str | None:
