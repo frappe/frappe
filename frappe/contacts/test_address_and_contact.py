@@ -2,8 +2,9 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.contacts.address_and_contact import remove_link
+from frappe.contacts.address_and_contact import get_permission_query_conditions, has_permission, remove_link
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+from frappe.permissions import add_user_permission, remove_user_permission
 from frappe.tests import IntegrationTestCase
 
 PRIMARY_FIELDS = {
@@ -111,3 +112,107 @@ class TestRemoveLink(IntegrationTestCase):
 	def test_rejects_other_doctypes(self):
 		with self.assertRaises(frappe.ValidationError):
 			remove_link("ToDo", self.document.name, self.document.doctype, self.document.name)
+
+
+class TestContactAddressPartyPermission(IntegrationTestCase):
+	"""Contact/Address access follows the party (Customer/Supplier/Company/Sales
+	Partner) each record is linked to via the `links` Dynamic Link child table."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.customer_a = cls.make_customer("_Test Customer A")
+		cls.customer_b = cls.make_customer("_Test Customer B")
+
+		cls.scoped_user = "test_scoped_user@example.com"
+		if not frappe.db.exists("User", cls.scoped_user):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": cls.scoped_user,
+					"first_name": "Scoped",
+					"send_welcome_email": 0,
+					"roles": [{"role": "Sales User"}],
+				}
+			).insert(ignore_permissions=True)
+
+		add_user_permission("Customer", cls.customer_a.name, cls.scoped_user)
+		cls.addClassCleanup(remove_user_permission, "Customer", cls.customer_a.name, cls.scoped_user)
+
+	@staticmethod
+	def make_customer(customer_name):
+		if frappe.db.exists("Customer", customer_name):
+			return frappe.get_doc("Customer", customer_name)
+		return frappe.get_doc(
+			{"doctype": "Customer", "customer_name": customer_name, "customer_group": "Individual"}
+		).insert(ignore_permissions=True)
+
+	def make_contact(self, customer):
+		return frappe.get_doc(
+			{
+				"doctype": "Contact",
+				"first_name": f"_Test Contact for {customer.name}",
+				"links": [{"link_doctype": "Customer", "link_name": customer.name}],
+			}
+		).insert(ignore_permissions=True)
+
+	def test_has_permission_follows_linked_party(self):
+		contact_b = self.make_contact(self.customer_b)
+		contact_a = self.make_contact(self.customer_a)
+
+		self.assertFalse(has_permission(contact_b, "read", self.scoped_user))
+		self.assertTrue(has_permission(contact_a, "read", self.scoped_user))
+
+	def test_query_conditions_follow_linked_party(self):
+		contact_b = self.make_contact(self.customer_b)
+		contact_a = self.make_contact(self.customer_a)
+
+		conditions = get_permission_query_conditions("Contact", self.scoped_user)
+		names = frappe.db.sql_list(
+			f"select name from `tabContact` where name in %(names)s and {conditions}",
+			{"names": [contact_b.name, contact_a.name]},
+		)
+
+		self.assertIn(contact_a.name, names)
+		self.assertNotIn(contact_b.name, names)
+
+	def test_user_without_user_permission_sees_every_party(self):
+		contact_b = self.make_contact(self.customer_b)
+		contact_a = self.make_contact(self.customer_a)
+
+		plain_user = "test_plain_user@example.com"
+		if not frappe.db.exists("User", plain_user):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": plain_user,
+					"first_name": "Plain",
+					"send_welcome_email": 0,
+					"roles": [{"role": "Sales User"}],
+				}
+			).insert(ignore_permissions=True)
+
+		self.assertTrue(has_permission(contact_b, "read", plain_user))
+		self.assertTrue(has_permission(contact_a, "read", plain_user))
+
+		conditions = get_permission_query_conditions("Contact", plain_user)
+		names = frappe.db.sql_list(
+			f"select name from `tabContact` where name in %(names)s and {conditions}",
+			{"names": [contact_b.name, contact_a.name]},
+		)
+		self.assertIn(contact_a.name, names)
+		self.assertIn(contact_b.name, names)
+
+	def test_contact_without_party_link_is_always_visible(self):
+		unlinked_contact = frappe.get_doc(
+			{"doctype": "Contact", "first_name": "_Test Unlinked Contact"}
+		).insert(ignore_permissions=True)
+
+		self.assertTrue(has_permission(unlinked_contact, "read", self.scoped_user))
+
+		conditions = get_permission_query_conditions("Contact", self.scoped_user)
+		names = frappe.db.sql_list(
+			f"select name from `tabContact` where name = %(name)s and {conditions}",
+			{"name": unlinked_contact.name},
+		)
+		self.assertIn(unlinked_contact.name, names)

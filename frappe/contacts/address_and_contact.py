@@ -68,75 +68,72 @@ def get_primary_link_fields(meta, doctype: str) -> list:
 	]
 
 
+PARTY_DOCTYPES = ("Customer", "Supplier", "Company", "Sales Partner")
+
+
+def get_party_links(doc) -> list[tuple[str, str]]:
+	"""Party (Customer/Supplier/Company/Sales Partner) links stored on the `links` Dynamic Link child table."""
+	return [
+		(link.link_doctype, link.link_name)
+		for link in doc.get("links") or []
+		if link.link_doctype in PARTY_DOCTYPES and link.link_name
+	]
+
+
 def has_permission(doc, ptype, user):
-	links = get_permitted_and_not_permitted_links(doc.doctype)
-	if not links.get("not_permitted_links"):
-		# optimization: don't determine permissions based on link fields
+	party_links = get_party_links(doc)
+	if not party_links:
+		# nothing to restrict by
 		return True
 
-	# True if any one is True or all are empty
-	names = []
-	for df in links.get("permitted_links") + links.get("not_permitted_links"):
-		doctype = df.options
-		name = doc.get(df.fieldname)
-		names.append(name)
-
-		if name and frappe.has_permission(doctype, ptype, doc=name):
-			return True
-
-	if not any(names):
-		return True
-	return False
+	# permitted if the user has ptype permission on at least one linked party
+	return any(
+		frappe.has_permission(link_doctype, ptype, doc=link_name, user=user)
+		for link_doctype, link_name in party_links
+	)
 
 
 def get_permission_query_conditions_for_contact(user):
-	return get_permission_query_conditions("Contact")
+	return get_permission_query_conditions("Contact", user)
 
 
 def get_permission_query_conditions_for_address(user):
-	return get_permission_query_conditions("Address")
+	return get_permission_query_conditions("Address", user)
 
 
-def get_permission_query_conditions(doctype):
-	links = get_permitted_and_not_permitted_links(doctype)
-
-	if not links.get("not_permitted_links"):
-		# when everything is permitted, don't add additional condition
+def get_permission_query_conditions(doctype, user=None):
+	user = user or frappe.session.user
+	if user == "Administrator":
 		return ""
 
-	elif not links.get("permitted_links"):
-		# when everything is not permitted
-		conditions = [
-			f"ifnull(`tab{doctype}`.`{df.fieldname}`, '')=''" for df in links.get("not_permitted_links")
-		]
-
-		return "( " + " and ".join(conditions) + " )"
-
-	else:
-		conditions = [
-			f"ifnull(`tab{doctype}`.`{df.fieldname}`, '')!=''" for df in links.get("permitted_links")
-		]
-
-		return "( " + " or ".join(conditions) + " )"
-
-
-def get_permitted_and_not_permitted_links(doctype):
-	permitted_links = []
-	not_permitted_links = []
-
-	meta = frappe.get_meta(doctype)
-	allowed_doctypes = frappe.permissions.get_doctypes_with_read()
-
-	for df in meta.get_link_fields():
-		if df.options not in ("Customer", "Supplier", "Company", "Sales Partner"):
+	party_conditions = []
+	for party_doctype in PARTY_DOCTYPES:
+		if not frappe.has_permission(party_doctype, "read", user=user):
 			continue
 
-		if df.options in allowed_doctypes:
-			permitted_links.append(df)
-		else:
-			not_permitted_links.append(df)
+		permitted_names = frappe.get_list(party_doctype, pluck="name", user=user)
+		if not permitted_names:
+			continue
 
-	return {"permitted_links": permitted_links, "not_permitted_links": not_permitted_links}
+		escaped_names = ", ".join(frappe.db.escape(name) for name in permitted_names)
+		party_conditions.append(
+			f"""exists(
+				select 1 from `tabDynamic Link` dl
+				where dl.parent = `tab{doctype}`.name
+					and dl.parenttype = {frappe.db.escape(doctype)}
+					and dl.link_doctype = {frappe.db.escape(party_doctype)}
+					and dl.link_name in ({escaped_names})
+			)"""
+		)
+
+	no_party_condition = f"""not exists(
+		select 1 from `tabDynamic Link` dl
+		where dl.parent = `tab{doctype}`.name
+			and dl.parenttype = {frappe.db.escape(doctype)}
+			and dl.link_doctype in ({", ".join(frappe.db.escape(d) for d in PARTY_DOCTYPES)})
+	)"""
+
+	return "(" + " or ".join([no_party_condition, *party_conditions]) + ")"
 
 
 def delete_contact_and_address(doctype: str, docname: str) -> None:
