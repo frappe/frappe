@@ -35,6 +35,28 @@ class PrintViewTest(IntegrationTestCase):
 		# cancelled doc can't be printed by default
 		self.assertRaises(frappe.PermissionError, frappe.attach_print, doc.doctype, doc.name)
 
+	def test_preview_from_form_values_sees_native_types(self):
+		doctype = new_doctype(
+			fields=[
+				{"fieldname": "some_date", "fieldtype": "Date", "label": "Some Date"},
+				{"fieldname": "some_time", "fieldtype": "Time", "label": "Some Time"},
+			]
+		).insert()
+		doc = frappe.get_doc(doctype=doctype.name, some_date="2026-01-31", some_time="10:30:00").insert()
+		pf = frappe.get_doc(
+			doctype="Print Format",
+			name=frappe.generate_hash(length=10),
+			doc_type=doctype.name,
+			custom_format=1,
+			print_format_type="Jinja",
+			html="date:{{ doc.some_date is string }} time:{{ doc.some_time is string }}",
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", pf.name, force=True)
+
+		html = get_html_and_style(doc=doc.as_json(), print_format=pf.name, no_letterhead=1)["html"]
+		self.assertIn("date:False", html)
+		self.assertIn("time:False", html)
+
 	def _beta_format(self, doctype, **kwargs):
 		pf = frappe.get_doc(
 			doctype="Print Format",
