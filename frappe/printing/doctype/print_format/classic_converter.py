@@ -481,15 +481,11 @@ def get_beta_layout(print_format: str) -> dict:
 	doc = frappe.get_doc("Print Format", print_format)
 	doc.check_permission("write")
 
-	not_classic = frappe._("{0} is not a classic print format").format(print_format)
-	if doc.custom_format or doc.raw_printing or not doc.format_data:
-		frappe.throw(not_classic)
-	try:
-		format_data = json.loads(doc.format_data)
-	except ValueError:
-		frappe.throw(not_classic)
-	if not isinstance(format_data, list):
-		frappe.throw(not_classic)
-
-	layout, dropped = convert_classic_to_beta(format_data, frappe.get_meta(doc.doc_type), doc)
-	return {"layout": layout, "dropped": dropped, "classic_format_data": doc.format_data}
+	dropped = convert_print_format(doc)
+	if dropped is None:
+		frappe.throw(frappe._("{0} is not a classic print format").format(print_format))
+	return {
+		"layout": json.loads(doc.format_data),
+		"dropped": dropped,
+		"classic_format_data": doc.classic_format_data,
+	}
