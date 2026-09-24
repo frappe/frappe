@@ -4,6 +4,7 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user_permission.user_permission import (
 	add_user_permissions,
+	get_applicable_for_doctype_list,
 	get_user_permission_list,
 	remove_applicable,
 )
@@ -91,6 +92,17 @@ class TestUserPermission(IntegrationTestCase):
 
 		self.assertEqual(len(get_user_permission_list("User", page_length=1)), 1)
 		self.assertFalse(get_user_permission_list("User", txt="no-such-user-xyz"))
+
+	def test_get_applicable_for_doctype_list(self):
+		def applicable_for(start, page_len):
+			return get_applicable_for_doctype_list(
+				"DocType", "", "name", start, page_len, {"doctype": "User"}
+			)
+
+		with self.set_user("test@example.com"):
+			applicable = applicable_for(0, 1000)
+			self.assertEqual(len(applicable), len({doctype for (doctype,) in applicable}))
+			self.assertEqual(applicable_for(5, 5), applicable[5:10])
 
 	def test_for_apply_to_all_on_update_from_apply_all(self):
 		user = create_user("test_bulk_creation_update@example.com")

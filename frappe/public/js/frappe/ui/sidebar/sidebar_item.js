@@ -23,6 +23,11 @@ function in_shell(path, shell) {
 	const slug = frappe.router.shell_slug(shell);
 	if (route === slug || route.startsWith(slug + "/")) return path;
 
+	// A shell whose slug is also a doctype cannot go in front: the router reads that segment as
+	// the doctype, so the rest of the path becomes a document name. `write_shell_into_url` leaves
+	// these URLs bare for the same reason.
+	if (frappe.router.segment_kind(slug) === "doctype") return path;
+
 	return "/desk/" + slug + "/" + route + rest;
 }
 
@@ -59,11 +64,16 @@ frappe.ui.sidebar_item.get_route = function (item, edit_mode = false, shell = nu
 
 		path = frappe.utils.generate_route(args);
 	} else if (item.link_type == "Workspace") {
-		let workspaces = frappe.workspaces[frappe.router.slug(item.link_to)];
-		if (workspaces && workspaces.public) {
+		let workspace = frappe.workspaces[frappe.router.slug(item.link_to)];
+		if (workspace && workspace.public) {
 			path = "/desk/" + frappe.router.slug(item.link_to);
 		} else {
-			path = "/desk/private/" + frappe.router.slug(item.link_to);
+			// A private page is spelled by its title. Its name carries the owner's email, and only
+			// the owner can open the page, so the email named something the reader already was.
+			// The title is read off the workspace rather than the item's label, which a
+			// customization may have changed.
+			const title = workspace ? workspace.title : item.link_to;
+			path = "/desk/private/" + frappe.router.slug(title);
 		}
 
 		if (item.route) {

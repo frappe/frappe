@@ -849,6 +849,11 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 			if isinstance(link_fieldnames, str):
 				link_fieldnames = [link_fieldnames]
 			or_filters = [[linked_doctype, fieldname, "=", name] for fieldname in link_fieldnames]
+			or_filters += [
+				[child_link["child_doctype"], fieldname, "=", name]
+				for child_link in link_context.get("child_links", [])
+				for fieldname in child_link["fieldname"]
+			]
 			# dynamic link_context
 			if doctype_fieldname := link_context.get("doctype_fieldname"):
 				filters.append([linked_doctype, doctype_fieldname, "=", doctype])
@@ -866,6 +871,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 				filters=filters,
 				or_filters=or_filters,
 				fields=["name"],
+				distinct=True,
 				order_by=None,
 			)
 		)
@@ -1016,6 +1022,8 @@ def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 			if "child_links" not in ret[parent]:
 				ret[parent]["child_links"] = [dict(ret[parent])]
 			ret[parent]["child_links"].append(child_link)
+		elif parent in ret:
+			ret[parent].setdefault("child_links", []).append(child_link)
 		else:
 			ret[parent] = child_link
 		ret.pop(options, None)

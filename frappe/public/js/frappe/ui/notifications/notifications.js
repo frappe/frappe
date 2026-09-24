@@ -64,8 +64,6 @@ frappe.ui.Notifications = class Notifications {
 
 		this.popover = new frappe.ui.Popover({
 			trigger: this.wrapper.find(".desktop-notification-icon"),
-			// the same element every time, so the fetched list and the selected tab
-			// survive a close/open round trip
 			content: () => this.$list[0],
 			css_class: "notifications-popover",
 			side: "bottom",
@@ -77,7 +75,6 @@ frappe.ui.Notifications = class Notifications {
 		$(document).on("page-change", () => this.close_panel());
 	}
 
-	/** Fanned out to the views so neither of them has to know how it was opened. */
 	on_open() {
 		Object.keys(this.tabs).forEach((tab_name) => this.tabs[tab_name].on_open());
 	}
@@ -162,8 +159,6 @@ frappe.ui.Notifications = class Notifications {
 
 		this.categories.forEach((category) => this.make_tab_view(category));
 
-		// es-tab-buttons owns the segmented look, the radio-group semantics and the
-		// arrow-key navigation, so none of that is reimplemented here.
 		frappe.ui
 			.tab_buttons({
 				label: __("Notification categories"),
@@ -188,9 +183,7 @@ frappe.ui.Notifications = class Notifications {
 
 	mark_all_as_read(e) {
 		e.stopImmediatePropagation();
-		this.body.find(".unread").removeClass("unread");
-		frappe.call("frappe.desk.doctype.notification_log.notification_log.mark_all_as_read");
-		this.tabs.notifications?.update_count_badge(0);
+		this.tabs.notifications?.mark_all_as_read();
 	}
 };
 
@@ -224,8 +217,6 @@ frappe.ui.notifications = {
 	},
 };
 
-// Both panels fill the same amount of the body, so their empty and loading
-// states are built from one place and given the same min-height.
 const NULL_STATE_CLASS = "min-h-80";
 
 function get_null_state_html(icon, title, description) {
@@ -262,7 +253,6 @@ class BaseNotificationsView {
 		this.container.hide();
 	}
 
-	/** Called every time the panel opens, whichever host it lives in. */
 	on_open() {}
 }
 
@@ -308,6 +298,31 @@ class NotificationsView extends BaseNotificationsView {
 		}
 	}
 
+	mark_as_read(notification_log, $el) {
+		notification_log.read = 1;
+		frappe
+			.call("frappe.desk.doctype.notification_log.notification_log.mark_as_read", {
+				docname: notification_log.name,
+			})
+			.then(() => {
+				$el.removeClass("unread");
+				this.update_count_badge(Math.max(this.unread_count - 1, 0));
+			})
+			.catch(() => {
+				notification_log.read = 0;
+			});
+	}
+
+	mark_all_as_read() {
+		frappe
+			.call("frappe.desk.doctype.notification_log.notification_log.mark_all_as_read")
+			.then(() => {
+				this.dropdown_items.forEach((notification_log) => (notification_log.read = 1));
+				this.container.find(".unread").removeClass("unread");
+				this.update_count_badge(0);
+			});
+	}
+
 	insert_into_dropdown() {
 		let new_item = this.dropdown_items[0];
 		let new_item_html = this.get_dropdown_item_html(new_item);
@@ -338,8 +353,6 @@ class NotificationsView extends BaseNotificationsView {
 		let user = notification_log.from_user;
 		let user_avatar = frappe.avatar(user, "avatar-medium user-avatar");
 
-		// Unread is indicated but not individually dismissible -- the only way to
-		// clear it is "Mark all as read" in the header.
 		let item_html = $(`<a class="recent-item notification-item ${read_class}"
 				href="${doc_link}"
 				data-name="${notification_log.name}"
@@ -351,6 +364,7 @@ class NotificationsView extends BaseNotificationsView {
 			</a>`);
 
 		item_html.on("click", () => {
+			!notification_log.read && this.mark_as_read(notification_log, item_html);
 			this.notifications_icon.trigger("click");
 		});
 
@@ -418,6 +432,7 @@ class NotificationsView extends BaseNotificationsView {
 
 	update_count_badge(count) {
 		this.unread_count = count;
+		frappe.boot.notification_unread_count = count;
 		// the unread count is the only unread affordance any bell gets -- update it wherever a bell
 		// lives (sidebar, dock, desktop navbar). Re-queried each call so it also covers
 		// bells created after this view (the dock).
@@ -472,7 +487,6 @@ class NotificationsView extends BaseNotificationsView {
 		}
 
 		this.toggle_seen(true);
-		// opening the panel counts as seeing what's in it -- let the other sessions know
 		if (this.settings?.seen == 0) {
 			this.settings.seen = 1;
 			frappe.call(

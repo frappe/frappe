@@ -13,6 +13,16 @@ const ENTITY_VIEW_ROUTES = {
 	"dashboard-view": "Dashboard",
 };
 
+// The shell that holds the pages a user made for themselves. It is the `Private` module's, and the
+// desk builds it from the viewer's own pages rather than from what the module holds, so two people
+// on `/desk/private` see two different sidebars.
+//
+// On the namespace rather than in this file, because the router, the workspace view and the
+// arrangement editor all name it too, and it has to keep matching `workspace.PRIVATE_MODULE` on
+// the server. Four copies of a string is four places to miss the day the module is renamed.
+frappe.provide("frappe.ui");
+frappe.ui.PRIVATE_SHELL = "Private";
+
 // How strongly a sidebar item's href claims the page at `path`. 0 means it does not.
 //
 // An item claims its own URL, and the URLs under it: `/desk/selling/item` claims
@@ -617,6 +627,25 @@ frappe.ui.Sidebar = class Sidebar {
 					group: "",
 					options: [
 						{
+							// The way into the Private shell, which is the one shell no rail and
+							// no module switcher leads to: it holds the pages this user made
+							// rather than a module's, so it belongs beside the rest of what is
+							// theirs. First in the menu, because it is a place you go to and the
+							// rows under it are things you do.
+							//
+							// A real link, so it can be opened in a new tab like any other.
+							name: "my-space",
+							label: __("My Space"),
+							icon: "user",
+							href: "/desk/private",
+							// Off until somebody turns it on. A person who has never made a page
+							// of their own has nothing behind this row, and a first-time user
+							// reading a four-row menu should not have to work out what a space of
+							// theirs is. The shell is reachable at `/desk/private` either way, so
+							// the switch decides whether the menu offers it, not whether it exists.
+							condition: () => !!frappe.boot.desk_settings.show_my_space,
+						},
+						{
 							name: "settings",
 							label: __("Settings"),
 							icon: "settings",
@@ -1152,6 +1181,23 @@ frappe.ui.Sidebar = class Sidebar {
 	// One rule, and both directions use it: building a URL asks what to write, and arriving at
 	// one asks whether what is written can stay.
 	shell_for_route(route) {
+		// One of this user's own pages. It is the three answers below, with the Private shell in
+		// place of the map: a private page's own shell is the shell of the person who made it,
+		// whatever module it is filed under. The module only says where else the page appears, and
+		// clicking it there keeps you there, which is the second answer.
+		if (route[0] === "Workspaces" && route[1] === "private") {
+			const name = route[2];
+			const stated = frappe.router.current_shell;
+			if (stated && this.shell_lists_workspace(stated, name)) return stated;
+
+			const in_view = this.current_module;
+			if (in_view && this.shell_lists_workspace(in_view, name)) return in_view;
+
+			return frappe.boot.module_sidebars?.[frappe.ui.PRIVATE_SHELL]
+				? frappe.ui.PRIVATE_SHELL
+				: null;
+		}
+
 		// A workspace route names a workspace rather than an entity, and which shell holds one is
 		// stored on the shell rather than resolved, so it is answered before the three below.
 		if (route[0] === "Workspaces" && route.length >= 2) {
@@ -1200,9 +1246,37 @@ frappe.ui.Sidebar = class Sidebar {
 		if (!sidebar) return;
 
 		this.select_module(module);
+		this.open_landing(module);
+	}
 
-		let route = this.module_landing_route(module);
-		if (route) frappe.set_route(route);
+	// Follow a shell to where it opens, which is not always a desk route: the first item may be a
+	// `URL` row, and `module_landing_route` hands that back as the address its author wrote, so the
+	// desktop's icons and the dock's rows can render it as an href.
+	//
+	// Handed to `set_route`, such an address is read as desk path segments, and
+	// `https://example.com` becomes `/desk/https%3A//example.com`. So an address that leaves the
+	// desk is opened the way the app switcher opens one (`sidebar_header`): in a tab of its own,
+	// with the desk left where it was.
+	//
+	// `noopener`, because the new tab would otherwise keep a handle on this one through
+	// `window.opener` and could point the signed-in desk at a page of its own choosing. An anchor
+	// with `target="_blank"` is isolated by the browser already; `window.open` is not.
+	//
+	// Returns whether the desk itself went anywhere, which is false for both a shell with no
+	// landing and one whose landing left the desk. A caller that has to draw the pane can then draw
+	// something rather than leave it blank.
+	open_landing(module, { replace = false } = {}) {
+		const route = this.module_landing_route(module);
+		if (!route) return false;
+
+		if (!route.startsWith("/desk/")) {
+			window.open(route, "_blank", "noopener");
+			return false;
+		}
+
+		if (replace) frappe.route_flags.replace_route = true;
+		frappe.set_route(route);
+		return true;
 	}
 
 	// Navigate to a workspace by name, and show it inside a shell that lists it.
@@ -1493,6 +1567,15 @@ frappe.ui.Sidebar = class Sidebar {
 	// `workspaces` is a module's list, so every shell under one module carries the same list and
 	// the first one answers. A workspace route selects a module's own shell, never a second one;
 	// naming a second shell is what a dock row is for.
+	// Whether `shell`'s sidebar holds a link to this workspace. A private page reaches a sidebar
+	// either through a stored row or derived on read, and both are items by the time they get here,
+	// so one test answers for both.
+	shell_lists_workspace(shell, name) {
+		if (!shell || !name) return false;
+
+		return this.get_modules_linking(name, "Workspace").includes(shell);
+	}
+
 	module_for_workspace(name) {
 		if (!name) return null;
 		const entry = Object.values(frappe.boot.module_sidebars || {}).find((sidebar) =>

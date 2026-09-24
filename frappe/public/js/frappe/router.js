@@ -133,12 +133,17 @@ frappe.router = {
 			this.shell_routes[this.shell_slug(shell)] = shell;
 		}
 
-		// `private` is a segment the desk already spends: `/desk/private/<workspace>` names a
-		// user's own workspace. There is a `Private` module with a shell of its own, so its slug
-		// lands on the same segment, and reading that segment as a shell would turn
-		// `/desk/private/settings` from someone's private workspace into the public one of that
-		// name. The reserved word wins, and the `Private` shell is reached the way it always
-		// was.
+		// `private` is the Private shell's slug and also the word that marks one of this user's
+		// own pages, and the two meanings are told apart by position: `/desk/private/<page>` is
+		// that page in the Private shell, and `/desk/accounts/private/<page>` is the same page in
+		// the Accounts shell.
+		//
+		// So it is taken out of the table a shell prefix is read from. Left in, a leading `private`
+		// would be stripped as a shell whenever the segment after it named anything the desk can
+		// route to on its own, and `/desk/private/settings` would stop being somebody's own page
+		// called Settings and become the public workspace of that name. The private branch of
+		// `convert_to_standard_route` reads the segment instead, and the Private shell is what a
+		// route through it resolves to (`sidebar.shell_for_route`).
 		delete this.shell_routes["private"];
 	},
 
@@ -167,6 +172,7 @@ frappe.router = {
 
 		this.current_sub_path = sub_path;
 		this.current_route = await this.parse();
+		this.respell_private_workspace();
 		this.write_shell_into_url();
 
 		this.set_history(sub_path);
@@ -198,16 +204,34 @@ frappe.router = {
 				return ["Workspaces", frappe.workspaces[route[0]].name];
 
 			case "private": {
-				let private_workspace = route[1] && frappe.router.slug(`${route[1]}`);
-				if (!frappe.workspaces[private_workspace]) {
-					frappe.msgprint(
-						__("Workspace <b>{0}</b> does not exist", [
-							frappe.utils.xss_sanitise(route[1]),
-						])
-					);
-					return ["Workspaces"];
+				// `/desk/private` on its own is the Private shell with no page named. The desk
+				// opens the first page in it, or draws its empty state when there is none.
+				if (!route[1]) return ["Workspaces", "private"];
+
+				const page = this.private_workspace(route[1]);
+				if (page) return ["Workspaces", "private", page.name];
+
+				// Not one of this user's pages, so `private` is being read the other way it can
+				// be: as the Private shell's own slug, with an ordinary route inside it.
+				// `/desk/private/query-report/General Ledger` is that report, shown in the
+				// sidebar of the person looking at it, the same as `/desk/accounts/query-report/
+				// General Ledger` is that report in Accounts.
+				//
+				// The shell is adopted here rather than in `take_shell_from`, which would have to
+				// strip the segment before knowing which of the two meanings it has, and would
+				// have turned `/desk/private/settings` into the public workspace called Settings.
+				// A page of this user's wins, which is why it is asked first.
+				if (this.route_names_something(route[1])) {
+					this.current_shell = frappe.ui.PRIVATE_SHELL;
+					return await this.convert_to_standard_route(route.slice(1));
 				}
-				return ["Workspaces", "private", frappe.workspaces[private_workspace].name];
+
+				frappe.msgprint(
+					__("Workspace <b>{0}</b> does not exist", [
+						frappe.utils.xss_sanitise(route[1]),
+					])
+				);
+				return ["Workspaces", "private"];
 			}
 
 			case "doctype":
@@ -256,6 +280,55 @@ frappe.router = {
 		if (frappe.views?.[frappe.utils.to_title_case(segment) + "Factory"]) return "view";
 
 		return null;
+	},
+
+	// One of this user's own private pages, named by the segment that follows `private` in a URL.
+	//
+	// A page is spelled by its title: `/desk/private/stonks`. Only its owner can open it, so the
+	// owner's email that `Workspace.name` carries (`<title>-<user>`) named something the reader
+	// already was, and it is left out. Two of your own pages cannot share a title, since the name
+	// is built from it and names are unique, so a title identifies one page.
+	//
+	// The old spelling, the full name, still resolves: it is in bookmarks and in links the desk
+	// wrote before this. `respell_private_workspace` then corrects the address bar.
+	private_workspace(segment) {
+		const slug = this.slug(`${segment}`);
+		const own = (frappe.boot.allowed_workspaces || []).filter(
+			(page) => !page.public && page.for_user === frappe.session.user
+		);
+
+		return (
+			own.find((page) => this.slug(page.title) === slug) ||
+			own.find((page) => this.slug(page.name) === slug) ||
+			null
+		);
+	},
+
+	// Put the title in the address bar where an old URL named the page by its full name.
+	//
+	// Only the page segment is touched. The shell in front of it, if any, is somebody's statement
+	// about which sidebar they were in and is left exactly as it arrived, so this and
+	// `write_shell_into_url` cannot argue about the same segment.
+	respell_private_workspace() {
+		const route = this.current_route;
+		if (!(route?.[0] === "Workspaces" && route[1] === "private" && route[2])) return;
+
+		const page = frappe.workspaces[this.slug(route[2])];
+		if (!page) return;
+
+		const segments = this.strip_prefix(window.location.pathname).split("/");
+		const at = segments.indexOf("private") + 1;
+		if (!at || segments.length <= at) return;
+
+		const spelling = encodeURIComponent(this.slug(page.title));
+		if (segments[at] === spelling) return;
+
+		segments[at] = spelling;
+		history.replaceState(
+			history.state,
+			"",
+			"/desk/" + segments.join("/") + window.location.search + window.location.hash
+		);
 	},
 
 	doctype_route_exist(route) {
@@ -806,9 +879,10 @@ frappe.router = {
 		// and hrms -- and the ones that are not, such as `Invoicing` under Accounts, are exactly
 		// the ones where the shell is worth saying.
 		//
-		// It falls out of the same rule for the reserved segment: `/desk/private/<workspace>`
-		// under the `Private` shell already begins with `private`, so it is left alone too,
-		// while a private workspace belonging to some other module still gets that module.
+		// The Private shell falls out of the same rule: its slug is `private` and a route to one
+		// of your own pages already begins with that word, so `/desk/private/stonks` is left
+		// alone. The same page reached from a module's sidebar has that module's slug in front of
+		// it, `/desk/accounts/private/stonks`, which is the shell being worth saying.
 		//
 		// "Left alone" means no segment is added, not that the URL is kept. A stale shell has
 		// already been dropped from `rest` above, and it still has to leave the address bar:

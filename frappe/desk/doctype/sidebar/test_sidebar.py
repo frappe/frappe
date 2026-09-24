@@ -10,6 +10,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	ARRANGED_ITEM_FIELDS,
 	COMPUTED_BASE_CACHE_KEY,
 	MODULE_CONTENT_DOCTYPES,
+	PRIVATE_HEADER_ICON,
 	ROUTABLE_ENTITY_KINDS,
 	SYSTEM_WRITE_FLAGS,
 	UNROUTABLE_IN_A_TITLE,
@@ -25,12 +26,14 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	item_key,
 	mark_as_standard,
 	reset_app_sidebar,
+	resolve_sidebar,
 	routable_entities,
 	routable_title,
 	save_app_sidebar,
 	shell_slug,
 	unmark_as_standard,
 )
+from frappe.desk.doctype.workspace.workspace import PRIVATE_MODULE, ensure_module
 from frappe.tests import IntegrationTestCase
 
 MODULE = "Test Sidebar Module"
@@ -2477,3 +2480,135 @@ class TestAppSidebarLayer(IntegrationTestCase):
 			):
 				with self.assertRaises(frappe.ValidationError):
 					call()
+
+
+class TestPrivateShell(IntegrationTestCase):
+	"""The `Private` shell is one user's own pages, and nothing else.
+
+	Every other shell is a module: the same items for everyone who can see it, arranged by the app,
+	then the site, then the user. This one is a person. Its contents are the pages the viewer made,
+	whatever module each was filed under, so two people standing on `/desk/private` see two
+	different sidebars and neither can arrange the other's.
+	"""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		ensure_module(PRIVATE_MODULE)
+		self.user = user_with_roles("test-private-shell@example.com", ["System Manager"])
+		self.addCleanup(frappe.set_user, "Administrator")
+
+	def make_page(self, title, module=PRIVATE_MODULE, for_user=None, public=0):
+		for_user = self.user if for_user is None and not public else for_user
+		doc = frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": title,
+				"label": f"{title}-{for_user}" if for_user else title,
+				"module": module,
+				"public": public,
+				"for_user": for_user or "",
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Workspace", doc.name, force=True, ignore_missing=True)
+		# Registered after the delete, so it runs before it: cleanups are undone last-first, and a
+		# test that switched user cannot delete a page it does not own.
+		self.addCleanup(frappe.set_user, "Administrator")
+		return doc
+
+	def shell(self, user=None):
+		"""The shell as that user sees it.
+
+		The session is switched, not just the argument: the pages a resolution adds come from
+		`get_workspaces`, which answers for whoever is logged in.
+		"""
+		user = user or self.user
+		frappe.set_user(user)
+		frappe.clear_cache(user=user)
+		return resolve_sidebar(PRIVATE_MODULE, user)
+
+	def links(self, user=None):
+		return [item["link_to"] for item in self.shell(user).items]
+
+	def test_it_holds_the_pages_this_user_made(self):
+		page = self.make_page("Test Private Shell Page")
+
+		self.assertEqual(self.links(), [page.name])
+
+	def test_a_page_filed_under_another_module_is_in_it_too(self):
+		"""A module says where else a page appears. It cannot say whether the page is in the shell
+		of the person who made it, which is the one place every private page is."""
+		elsewhere = self.make_page("Test Private Shell Elsewhere", module="Users")
+
+		self.assertIn(elsewhere.name, self.links())
+
+	def test_somebody_elses_page_is_not(self):
+		mine = self.make_page("Test Private Shell Mine")
+		theirs = self.make_page("Test Private Shell Theirs", for_user="Administrator")
+
+		self.assertEqual(self.links(), [mine.name])
+
+		# Containment, not equality: Administrator's own shell holds whatever else this bench has
+		# left them. What this asserts is which of the two pages each person sees.
+		theirs_links = self.links("Administrator")
+		self.assertIn(theirs.name, theirs_links)
+		self.assertNotIn(mine.name, theirs_links)
+
+	def test_a_shared_page_in_the_private_module_stays_out(self):
+		"""One saved before the rule below existed. It renders per viewer here, so a page everybody
+		can see has no audience in it."""
+		shared = frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": "Test Private Shell Shared",
+				"label": "Test Private Shell Shared",
+				"module": PRIVATE_MODULE,
+				"public": 1,
+				"content": "[]",
+			}
+		)
+		shared.flags.ignore_validate = True
+		shared.insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Workspace", shared.name, force=True, ignore_missing=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		self.assertNotIn(shared.name, self.links())
+
+	def test_saving_a_shared_page_in_the_private_module_is_refused(self):
+		with self.assertRaises(frappe.ValidationError):
+			frappe.get_doc(
+				{
+					"doctype": "Workspace",
+					"title": "Test Private Shell Refused",
+					"label": "Test Private Shell Refused",
+					"module": PRIVATE_MODULE,
+					"public": 1,
+					"content": "[]",
+				}
+			).insert(ignore_permissions=True)
+
+	def test_it_is_marked_with_a_person(self):
+		"""Every other shell is marked with what its module holds. This one holds one person's
+		pages, so it says so."""
+		self.make_page("Test Private Shell Icon Page")
+
+		self.assertEqual(self.shell().header_icon, PRIVATE_HEADER_ICON)
+
+	def test_it_survives_with_nothing_in_it(self):
+		"""Every other shell disappears when nothing in it is navigable. This one is reached from
+		the user menu, so it has to be there before there is anything in it."""
+		resolved = self.shell()
+
+		self.assertIsNotNone(resolved)
+		self.assertEqual(resolved.items, [])
+
+	def test_a_blocked_module_does_not_hide_your_own_page(self):
+		"""Blocking a module hides a product's navigation. A page you made yourself is not that,
+		and it used to disappear from your own shell with no way to get it back."""
+		page = self.make_page("Test Private Shell Blocked", module="Users")
+		user = frappe.get_doc("User", self.user)
+		user.append("block_modules", {"module": "Users"})
+		user.save(ignore_permissions=True)
+		frappe.clear_cache(user=self.user)
+
+		self.assertIn(page.name, self.links())

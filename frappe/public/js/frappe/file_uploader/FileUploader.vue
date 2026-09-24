@@ -207,10 +207,10 @@
 				/>
 			</div>
 			<div
-				class="flex align-items-center justify-content-end"
+				class="flex align-items-center justify-content-end mt-3"
 				v-if="show_upload_button && currently_uploading === -1"
 			>
-				<button class="btn btn-primary btn-sm margin-right" @click="() => upload_files()">
+				<button class="btn btn-primary btn-sm" @click="() => upload_files()">
 					<span v-if="files.length === 1">
 						{{ __("Upload file") }}
 					</span>
