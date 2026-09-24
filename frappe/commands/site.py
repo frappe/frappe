@@ -765,10 +765,9 @@ def disable_user(context: CliCtxObj, email):
 
 @click.command("migrate")
 @click.option("--skip-failing", is_flag=True, help="Skip patches that fail to run")
-@click.option("--skip-search-index", is_flag=True, help="Skip search indexing for web documents")
 @click.option("--skip-fixtures", is_flag=True, help="Skip loading fixtures")
 @pass_context
-def migrate(context: CliCtxObj, skip_failing=False, skip_search_index=False, skip_fixtures=False):
+def migrate(context: CliCtxObj, skip_failing=False, skip_fixtures=False):
 	"Run patches, sync schema and rebuild files/translations"
 
 	from frappe.migrate import SiteMigration
@@ -776,9 +775,7 @@ def migrate(context: CliCtxObj, skip_failing=False, skip_search_index=False, ski
 	for site in context.sites:
 		click.secho(f"Migrating {site}", fg="green")
 		try:
-			SiteMigration(
-				skip_failing=skip_failing, skip_search_index=skip_search_index, skip_fixtures=skip_fixtures
-			).run(site=site)
+			SiteMigration(skip_failing=skip_failing, skip_fixtures=skip_fixtures).run(site=site)
 		finally:
 			print()
 	if not context.sites:
@@ -1446,25 +1443,6 @@ def start_ngrok(context: CliCtxObj, bind_tls, use_default_authtoken):
 		ngrok.kill()
 
 
-@click.command("build-search-index")
-@pass_context
-def build_search_index(context):
-	"""Rebuild search index used by global search."""
-	from frappe.search.website_search import build_index_for_all_routes
-
-	site = get_site(context)
-	if not site:
-		raise SiteNotSpecifiedError
-
-	print(f"Building search index for {site}")
-	frappe.init(site)
-	frappe.connect()
-	try:
-		build_index_for_all_routes()
-	finally:
-		frappe.destroy()
-
-
 @click.command("clear-log-table")
 @click.option("--doctype", required=True, type=str, help="Log DocType")
 @click.option("--days", type=int, help="Keep records for days")
@@ -1792,7 +1770,6 @@ commands = [
 	stop_recording,
 	add_to_hosts,
 	start_ngrok,
-	build_search_index,
 	partial_restore,
 	trim_tables,
 	trim_database,
