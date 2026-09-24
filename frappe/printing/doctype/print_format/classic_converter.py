@@ -16,6 +16,12 @@ CONVERTED_SECTION_GAP_PX = 10
 MARGIN_FIELDS = ("margin_top", "margin_bottom", "margin_left", "margin_right")
 NUMERIC_DEFAULT_FIELDS = ("font_size", *MARGIN_FIELDS)
 CONVERTED_FIELDS = ("pdf_generator", "page_number", *NUMERIC_DEFAULT_FIELDS)
+CONVERSION_VALUE_FIELDS = (
+	"classic_format_data",
+	"print_format_builder",
+	"print_format_builder_beta",
+	*CONVERTED_FIELDS,
+)
 
 DEFAULT_PRINT_HEADING = (
 	'{%- set heading = doc.get("select_print_heading") or doc.get("print_heading") or doc.doctype -%}'
@@ -322,6 +328,10 @@ def convert_print_format(doc):
 	return dropped
 
 
+def conversion_values(doc) -> dict:
+	return {f: doc.get(f) for f in CONVERSION_VALUE_FIELDS}
+
+
 def parse_classic_backup(classic_format_data) -> dict | None:
 	"""The `{"format_data": [...], "fields": {...}}` backup `convert_print_format` writes."""
 	if not classic_format_data:
@@ -487,5 +497,5 @@ def get_beta_layout(print_format: str) -> dict:
 	return {
 		"layout": json.loads(doc.format_data),
 		"dropped": dropped,
-		"classic_format_data": doc.classic_format_data,
+		"values": conversion_values(doc),
 	}
