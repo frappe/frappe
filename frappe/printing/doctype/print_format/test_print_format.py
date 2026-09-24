@@ -217,9 +217,10 @@ class TestPrintFormatHardening(IntegrationTestCase):
 		self.make(self.layout({**self.DATA, "visible_if": "   "}))
 
 	def test_runtime_condition_failure_shows_field_and_logs(self):
-		# Scoped to this error: the log database is shared with every other process on the
-		# site, so a global count also moves for reasons that have nothing to do with us.
-		condition_errors = {"method": ("like", "Print format condition failed%")}
+		# Matched exactly on this print format's own failure title. The log database is
+		# shared with every other process on the site, so neither a global count nor a
+		# prefix match is stable here.
+		condition_errors = {"method": f"Print format condition failed: {self.NAME}"}
 		before = get_log_db().count("Error Log", condition_errors)
 		html = self.render(self.layout({**self.DATA, "label": "PROBE", "visible_if": "doc.nope.nope"}))
 		self.assertIn("PROBE", html)
@@ -239,10 +240,9 @@ class TestPrintFormatHardening(IntegrationTestCase):
 				self.assertIn("PROBE", html)
 
 	def test_failing_row_condition_logs_once_not_once_per_row(self):
-		# Scoped to this error, and counted as a delta: the log database is shared with
-		# every other process on the site, so this test neither owns it nor can rely on a
-		# global count staying still.
-		condition_errors = {"method": ("like", "Print format condition failed%")}
+		# Matched exactly on this print format's own failure title, and counted as a delta:
+		# the log database is shared with every other process on the site.
+		condition_errors = {"method": f"Print format condition failed: {self.NAME}"}
 		before = get_log_db().count("Error Log", condition_errors)
 		self.render(
 			self.layout(
