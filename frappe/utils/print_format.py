@@ -184,8 +184,7 @@ def _download_multi_pdf(
 
 	from pypdf import PdfWriter
 
-	if format:
-		language = frappe.db.get_value("Print Format", format, "default_print_language") or language
+	format_language = format and frappe.db.get_value("Print Format", format, "default_print_language")
 
 	pdf_writer = PdfWriter()
 
@@ -197,10 +196,18 @@ def _download_multi_pdf(
 		if frappe.db.get_value("Print Format", format, "pdf_generator") == "Typst":
 			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
 
+	def document_language(print_doctype, print_name):
+		"""The print page's precedence: the document's own language, then the
+		format's default, then the language the print was requested in."""
+		doc_language = None
+		if frappe.get_meta(print_doctype).has_field("language"):
+			doc_language = frappe.db.get_value(print_doctype, print_name, "language")
+		return doc_language or format_language or language
+
 	def print_into_writer(print_doctype, print_name):
 		"""Route one document into the shared writer — builder formats through the
 		generator (which dispatches Typst), everything else through get_print."""
-		with print_language(language):
+		with print_language(document_language(print_doctype, print_name)):
 			from frappe.printing.doctype.print_format.classic_converter import (
 				get_default_print_format,
 				uses_beta_renderer,
