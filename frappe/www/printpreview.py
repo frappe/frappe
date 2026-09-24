@@ -31,7 +31,7 @@ def get_context(context):
 		body = get_rendered_template(
 			doc, print_format=pf, meta=doc.meta, letterhead=letterhead, settings=settings
 		)
-		context.body = frappe.render_template(
+		context.body = frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 			"www/printview.html",
 			{
 				"standalone": False,

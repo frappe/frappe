@@ -669,7 +669,10 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertRaises(frappe.ValidationError, restore_classic_layout, self.FORMAT_NAME)
 
 	def test_standard_format_converts_only_in_developer_mode(self):
-		from frappe.printing.doctype.print_format.print_format import convert_to_builder
+		from frappe.printing.doctype.print_format.print_format import (
+			convert_to_builder,
+			restore_classic_layout,
+		)
 
 		doc = self.make_classic_format()
 		doc.db_set("standard", "Yes")
@@ -679,6 +682,14 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertRaises(frappe.ValidationError, convert_to_builder, self.FORMAT_NAME)
 		self.assertEqual(
 			frappe.db.get_value("Print Format", self.FORMAT_NAME, "print_format_builder_beta"), 0
+		)
+
+		frappe.conf.developer_mode = 1
+		convert_to_builder(self.FORMAT_NAME)
+		frappe.conf.developer_mode = 0
+		self.assertRaises(frappe.ValidationError, restore_classic_layout, self.FORMAT_NAME)
+		self.assertEqual(
+			frappe.db.get_value("Print Format", self.FORMAT_NAME, "print_format_builder_beta"), 1
 		)
 
 	def test_hybrid_format_is_refused(self):

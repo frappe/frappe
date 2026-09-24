@@ -428,6 +428,8 @@ def restore_classic_layout(name: str):
 	_require_str(name=name)
 	doc = frappe.get_doc("Print Format", name)
 	doc.check_permission("write")
+	if doc.standard == "Yes" and not frappe.conf.developer_mode:
+		frappe.throw(_("Standard print formats can only be restored in developer mode"))
 	if not restore_classic_format(doc):
 		frappe.throw(_("{0} has no classic layout to restore").format(frappe.bold(name)))
 	_persist_conversion(doc)

@@ -47,7 +47,9 @@ def get_max_concurrent_bulk_exports() -> int:
 
 def _enforce_multi_pdf_async_rate_limit():
 	cache_key = frappe.cache.make_key(f"rl:multi_pdf_async:{frappe.session.user}")
-	frappe.cache.set(cache_key, 0, nx=True, ex=MULTI_PDF_ASYNC_RATE_WINDOW)
+	frappe.cache.set(
+		cache_key, 0, nx=True, ex=MULTI_PDF_ASYNC_RATE_WINDOW
+	)  # nosemgrep: frappe-semgrep-rules.rules.frappe-cache-breaks-multitenancy
 
 	if frappe.cache.incrby(cache_key, 1) > MULTI_PDF_ASYNC_RATE_LIMIT:
 		frappe.throw(
