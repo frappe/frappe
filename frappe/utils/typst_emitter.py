@@ -29,7 +29,7 @@ HAIRLINE = '0.6pt + rgb("#e5e7eb")'
 MUTED = "#6b7280"
 DEFAULT_FONT = "Inter"
 SHRINK_JUSTIFY = ("center", "right-end", "space-between", "space-evenly")
-FULL_WIDTH_FIELDTYPES = ("Divider", "Table", "Repeater")
+FULL_WIDTH_FIELDTYPES = ("Divider",)
 
 
 def pt(px, default=0.0) -> float:
@@ -424,17 +424,25 @@ def _fr_widths(columns) -> list[str]:
 
 
 def _list_markers(value: str) -> str:
-	"""Numbers `<ol>` items and bullets `<ul>` ones, the way the browser draws them."""
+	"""Numbers `<ol>` items and bullets `<ul>` ones, the way the browser draws them.
+
+	Innermost lists are marked first so a nested list does not take its items
+	from the list around it."""
 
 	def ordered(match):
 		items = re.split(r"<li[^>]*>", match.group(1), flags=re.I)[1:]
-		return "".join(f"<li>{i}. {item}" for i, item in enumerate(items, 1))
+		return "\n" + "".join(f"<x-li>{i}. {item}" for i, item in enumerate(items, 1))
 
 	def unordered(match):
-		return re.sub(r"<li[^>]*>", "<li>\u2022 ", match.group(1), flags=re.I)
+		return "\n" + re.sub(r"<li[^>]*>", "<x-li>\u2022 ", match.group(1), flags=re.I)
 
-	value = re.sub(r"<ol[^>]*>(.*?)</ol>", ordered, value, flags=re.I | re.S)
-	return re.sub(r"<ul[^>]*>(.*?)</ul>", unordered, value, flags=re.I | re.S)
+	for tag, marker in (("ol", ordered), ("ul", unordered)):
+		pattern = re.compile(rf"<{tag}[^>]*>((?:(?!<{tag}[^>]*>).)*?)</{tag}>", re.I | re.S)
+		while True:
+			value, count = pattern.subn(marker, value)
+			if not count:
+				break
+	return value
 
 
 def _text_value(html_ish: str) -> str:
@@ -741,8 +749,8 @@ class TypstEmitter:
 				f"#block(width: 100%, stroke: (bottom: {hairline(section.get('border_color'))}), inset: (bottom: {pad}pt))[{p}]"
 				for p in parts[:-1]
 			] + [parts[-1]]
-			return f"#stack(spacing: {pad}pt,\n" + ",\n".join(f"[{p}]" for p in ruled) + ")"
-		if len(parts) == 1:
+			body = f"#stack(spacing: {pad}pt,\n" + ",\n".join(f"[{p}]" for p in ruled) + ")"
+		elif len(parts) == 1:
 			body = parts[0]
 		else:
 			body = "#stack(spacing: 8pt,\n" + ",\n".join(f"[{p}]" for p in parts) + ")"
