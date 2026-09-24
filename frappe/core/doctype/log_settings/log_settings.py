@@ -147,7 +147,7 @@ def get_log_doctypes(doctype: str, txt: str, searchfield: str, start: int, page_
 
 	supported_doctypes = [(d,) for d in doctypes if _supports_log_clearing(d)]
 
-	return supported_doctypes[start:page_len]
+	return supported_doctypes[start : start + page_len]
 
 
 def clear_log_table(doctype, days=90):

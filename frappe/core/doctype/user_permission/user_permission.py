@@ -182,9 +182,9 @@ def get_applicable_for_doctype_list(
 	if txt:
 		linked_doctypes = [d for d in linked_doctypes if txt.lower() in d.lower()]
 
-	linked_doctypes.sort()
+	linked_doctypes = sorted(set(linked_doctypes))
 
-	return [[doctype] for doctype in linked_doctypes[start:page_len]]
+	return [[doctype] for doctype in linked_doctypes[start : start + page_len]]
 
 
 def get_permitted_documents(doctype):
