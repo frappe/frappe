@@ -23,6 +23,36 @@ class TestBulkPdfLimits(IntegrationTestCase):
 	def _pacing_key(self):
 		return frappe.cache.make_key(f"rl:multi_pdf_async:{frappe.session.user}")
 
+	def test_bulk_pdf_uses_the_formats_default_print_language(self):
+		import json
+
+		from pypdf import PdfWriter
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		pf = frappe.get_doc(
+			doctype="Print Format",
+			name=frappe.generate_hash(length=10),
+			doc_type="User",
+			custom_format=1,
+			print_format_type="Jinja",
+			html="{{ doc.name }}",
+			default_print_language="de",
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", pf.name, force=True)
+		seen = []
+
+		def fake_get_print(*args, **kwargs):
+			seen.append(frappe.local.lang)
+			kwargs["output"].add_blank_page(width=72, height=72)
+			return kwargs["output"]
+
+		with patch("frappe.get_print", side_effect=fake_get_print):
+			_download_multi_pdf("User", json.dumps(["Administrator"]), pf.name)
+
+		self.assertEqual(seen, ["de"])
+		self.assertEqual(frappe.local.lang, "en")
+
 	def test_document_count_setting_is_honoured(self):
 		frappe.db.set_single_value("Print Settings", "max_bulk_print_docs", 3)
 		self.assertEqual(get_max_bulk_print_docs(), 3)
