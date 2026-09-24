@@ -43,6 +43,7 @@ export default defineConfig({
 			"src/**/tests/*.test.ts",
 			"plugin/tests/*.test.ts",
 			"../ui/src/api/tests/*.test.ts",
+			"../ui/src/cache/tests/*.test.ts",
 			"../ui/src/components/ActivityTimeline/tests/*.test.ts",
 			"../ui/src/components/Composer/tests/*.test.ts",
 			"../ui/src/components/Link/tests/*.test.ts",
