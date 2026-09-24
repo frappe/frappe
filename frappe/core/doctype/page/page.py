@@ -172,9 +172,8 @@ class Page(Document):
 		for key in ("script", "style", "content"):
 			d[key] = self.get(key)
 
-		# What `load_assets` derived, which for a page that names no island is a
-		# name rather than a stored value. Desk reads `island` either way, and a
-		# save writes back only the field.
+		# `load_assets` fills `_island`, derived when the field is empty, so a
+		# save never stores the derived name.
 		if self.get("_island"):
 			d["island"] = self._island
 

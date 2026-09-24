@@ -88,9 +88,6 @@ class CustomSidebar(Document):
 		check_module(self.module)
 
 	def validate_item_routes(self):
-		"""A row this layer added carries a route of its own, so it is checked here too. A
-		reference row carries one as well, since a route is part of what names the item it
-		refers to (`LINKED_IDENTITY_FIELDS`), and it is copied from that item."""
 		for item in self.sidebar_items:
 			validate_item_route(item)
 

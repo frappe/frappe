@@ -71,8 +71,7 @@ class TestPage(IntegrationTestCase):
 	def test_a_frappe_ui_page_tells_desk_which_island_draws_it(self):
 		page = self.make_page(type="Frappe UI")
 
-		# Derived where the desk assets are, so an export never carries it: the
-		# name encodes the app, and a committed copy of it would go stale.
+		# Derived only when desk assets load, so an unloaded page has none.
 		self.assertIsNone(page.as_dict()["island"])
 		page.load_assets()
 		self.assertEqual(page.as_dict()["island"], f"frappe.page.{page.name}")

@@ -1,6 +1,6 @@
 # assets.json is the island registry
 
-An island is code an app exposes: a name, and props that select the content. `insights.dashboard` draws any dashboard. A **placement** is any host that names an island and passes props — a desk `Page`, a workspace block, a form, or `<Island>` in another app's frontend. An island cannot rely on its host, so it works when the host ignores `title` and `actions`, and it takes its content from props, never from a desk route.
+An island is code an app exposes: a name, and props that select the content. `insights.dashboard` draws any dashboard. A **host** is anything that names an island and passes props — a desk `Page`, a workspace block, a form, or `<Island>` in another app's frontend. An island cannot rely on its host, so it works when the host ignores `title` and `actions`, and it takes its content from props, never from a desk route.
 
 That model has one name for two registrations: the `ui_islands` hook named the island, and the build's asset key named the bundle. The hook was a rename between them.
 
@@ -12,11 +12,11 @@ The build registers the island. An island's name is its asset key without `.isla
 
 Filtering is not a gate. An island's bundle is a public static file, and what it draws is protected by the app's own API. The hook never gated anything either.
 
-Two builds writing one key is an error `writeIslandAssets` reports, because two islands claiming one name is two placements drawing the wrong thing, and whichever built last would win silently.
+Two builds writing one key is an error `writeIslandAssets` reports, because two islands claiming one name is two hosts drawing the wrong thing, and whichever built last would win silently.
 
 A `Page` of type "Frappe UI" names an island the app built, in an `island` field. Empty still means the island framework builds from the page's folder. So the app's own components reach a desk route, which 0013 said had "outgrown the scaffold", and the page keeps what the page type gives it: the mount, the unmount, the route race, `route` and `query` as props, and a head drawn from what the island reports. `Page.get_island_name` derives the name when the field is empty, `load_assets` hands it to desk, and no save stores it.
 
-The cost is that a name is now a Vite entry name. A rename breaks every placement that names it, including the workspace files of apps that never build.
+The cost is that a name is now a Vite entry name. A rename breaks every host that names it, including the workspace files of apps that never build.
 
 ## Rejected: the hook stays, and a page names a hook entry
 

@@ -1168,12 +1168,7 @@ class TestAnAddedItemIsStillPermissionChecked(CustomizationTestCase):
 
 
 class TestPageRouteIsPartOfTheIdentity(CustomizationTestCase):
-	"""Two items linking one page and naming different routes are two items to a layer.
-
-	erpnext's Accounts sidebar holds two of them, both linking `insights-dashboard`. Sharing an
-	identity dropped the second from the boot payload, and would make a layer's row about one of
-	them apply to the other.
-	"""
+	"""Two items linking one page and naming different routes are two items to a layer."""
 
 	MODULE = "Test Page Route Module"
 

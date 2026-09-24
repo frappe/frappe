@@ -85,10 +85,8 @@ SIDEBAR_ITEM_FIELDS = (
 # overrides for exactly that reason, and stores no filters, which is what makes filters stable
 # enough to identify by.
 #
-# `route` is one of them for the same reason as `filters`: a Page item's route is the part of the
-# address the page owns, so two items linking one page and naming different routes are two
-# destinations. It is last because `item_key` appends it only when it is set, which is what keeps
-# every key written before the column existed byte for byte what it was.
+# `route` tells apart two items linking one page, as `filters` does for one doctype. It is last
+# because `item_key` appends it only when set, which keeps every older key unchanged.
 LINKED_IDENTITY_FIELDS = ("type", "link_type", "link_to", "url", "filters", "route")
 
 # Flags that mean the system is installing app content, not that a user is editing.
@@ -957,19 +955,8 @@ def is_linked(item) -> bool:
 
 
 def validate_item_route(item) -> None:
-	"""Refuse a `route` that is not a path inside the page.
-
-	`route` is the part of the address the page owns, appended to the page's own route, so an
-	item linking `insights-dashboard` with a route of `payroll` opens
-	`/desk/insights-dashboard/payroll`. Anything that can address something outside the page --
-	a scheme, a leading slash, a `..` segment -- would point the item away from the page it
-	links while still reading as part of it. A query or a fragment are refused for the opposite
-	reason: they are not part of the path at all, and `route_options` is where an item states
-	query parameters.
-
-	Only a Page item has anything below its link to name, so a route anywhere else is refused
-	rather than ignored: every other link type has one route per `link_to`.
-	"""
+	"""Refuse a `route` that is not a relative path inside a Page. A query belongs in
+	`route_options`."""
 	item.route = (item.get("route") or "").strip() or None
 	route = item.route
 	if not route:
@@ -983,13 +970,8 @@ def validate_item_route(item) -> None:
 			title=_("Route Not Allowed"),
 		)
 
-	if (
-		route.startswith("/")
-		or ":" in route.split("/")[0]
-		or ".." in route.split("/")
-		or "?" in route
-		or "#" in route
-	):
+	segments = route.split("/")
+	if route.startswith("/") or ":" in segments[0] or ".." in segments or "?" in route or "#" in route:
 		frappe.throw(
 			_("{0} is not a path inside a page. Give a relative path, with no query or fragment.").format(
 				frappe.bold(route)
@@ -1019,10 +1001,6 @@ def item_key(item) -> str:
 	This function only reads columns the rows already carry, so importing the same JSON twice
 	produces the same identities. Standard child rows are hash-named and recreated on every
 	import, which is why a customization can never point at a row's `name`.
-
-	A linked row's key gains a segment for its `route` only when it has one, so an item that
-	names no route keeps the key it had before the column existed and the `Custom Sidebar` rows
-	pointing at it on customer sites still find it.
 	"""
 	if is_linked(item):
 		*columns, route = (item.get(field) or "" for field in LINKED_IDENTITY_FIELDS)
