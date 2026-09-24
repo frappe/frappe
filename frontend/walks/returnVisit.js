@@ -1,12 +1,5 @@
-// Return-visit walk: list, record, Back, Forward, then list and record again from the sidebar,
-// counting skeletons and field and row paints per step on a normal and a throttled network.
-//
-//   yarn --cwd frontend/walks install && yarn --cwd frontend/walks playwright install chromium
-//   yarn --cwd frontend/walks walk [--json <path>]
-//
-// Env: BASE_URL (default http://localhost:8000), USR (Administrator), PWD_FRAPPE (admin),
-// DOCTYPE (default: the first rail or sidebar doctype with rows), NETWORK (normal | slow;
-// unset runs both). Exits 0 when every return step passes on every network, 1 otherwise.
+// Return-visit walk: counts skeletons and field and row paints on each step of a return visit.
+// How to run it: see README.md.
 
 import { writeFileSync } from "node:fs";
 import { chromium } from "playwright";
@@ -130,27 +123,35 @@ class ReturnVisitWalk {
 		return false;
 	}
 
-	sidebarLink(path) {
-		return this.page.locator(`[data-key] a[href=${JSON.stringify(path)}]`).first();
-	}
-
 	async listLink(path) {
-		const sidebar = this.sidebarLink(path);
-		const crumb = this.page.locator(`[data-crumbs] a[href=${JSON.stringify(path)}]`).first();
-		this.listVia = (await sidebar.isVisible()) ? "sidebar" : "crumb";
-		if (this.listVia === "sidebar") return sidebar;
-		if (await crumb.isVisible()) return crumb;
-		throw new Error(`No sidebar or breadcrumb link to the ${this.target.doctype} list`);
+		const crumb = this.link("[data-crumbs] a", path);
+		const found = await this.firstVisible({ ...this.navigationLinks(path), crumb });
+		const { doctype } = this.target;
+		if (!found) throw new Error(`No rail, sidebar or breadcrumb link to the ${doctype} list`);
+		this.listVia = found.via;
+		return found.locator;
 	}
 
 	async returnLink() {
-		const sidebar = this.sidebarLink(this.recordPath);
-		this.recordVia = (await sidebar.count()) ? "sidebar" : "row";
-		return this.recordVia === "sidebar" ? sidebar : this.rowLink(this.recordPath);
+		const found = await this.firstVisible(this.navigationLinks(this.recordPath));
+		this.recordVia = found?.via ?? "row";
+		return found?.locator ?? this.link(MARKERS.row, this.recordPath);
 	}
 
-	rowLink(path) {
-		return this.page.locator(`${MARKERS.row}[href=${JSON.stringify(path)}]`).first();
+	link(selector, path) {
+		return this.page.locator(`${selector}[href=${JSON.stringify(path)}]`).first();
+	}
+
+	navigationLinks(path) {
+		const sidebar = this.link(`[data-slot="sidebar"] [data-key] a`, path);
+		const rail = this.link(`[data-slot="sidebar-rail"] [data-key] a`, path);
+		return { sidebar, rail };
+	}
+
+	async firstVisible(candidates) {
+		for (const [via, locator] of Object.entries(candidates))
+			if (await locator.isVisible()) return { via, locator };
+		return null;
 	}
 }
 
