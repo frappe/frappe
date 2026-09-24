@@ -246,6 +246,27 @@ body.dock-open .dock {
 	transform: translate(0, -50%);
 }
 
+// Pinned (the `dock_mode` preference): the same tray set down as the leftmost column of the body's
+// flex row, so the sidebar and the page start after it instead of under it. It runs the window's
+// full height with its tiles from the top, the way the sidebar beside it does, and gives up what
+// only a floating object needs: the slide, the rounded ends and the shadow. It takes the sidebar's
+// surface and edge too, so the two read as one shell split by a rule.
+body.dock-pinned .dock {
+	background: var(--desk-sidebar-bg);
+	position: relative;
+	top: auto;
+	left: auto;
+	transform: none;
+	transition: none;
+	flex: 0 0 auto;
+	height: 100vh; // fallback for engines without dvh
+	height: 100dvh;
+	max-height: none;
+	border-radius: 0;
+	box-shadow: none;
+	border-right: 1px solid var(--outline-gray-1);
+}
+
 // The slide is the whole of the dock's arrival, so with motion turned down it simply is or is not
 // there. Both states stay reachable: the transform is what changes, not the class that drives it.
 @media (prefers-reduced-motion: reduce) {

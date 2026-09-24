@@ -36,6 +36,7 @@ frappe.ui.show_user_settings = async function (default_tab) {
 			"form_navigation_buttons",
 			"report_split_view",
 			"show_my_space",
+			"dock_mode",
 		]);
 		user_data = {
 			first_name: boot_user.first_name,
@@ -131,6 +132,18 @@ function _bind_switch_autosave(panel, fieldnames) {
 		const ctrl = panel.fieldgroup.fields_dict[fn];
 		if (!ctrl || !ctrl.$input) return;
 		ctrl.$input.on("change", () => _save_user(fn, ctrl.get_value()));
+	});
+}
+
+// The dock is already on screen behind the dialog, so it moves as soon as the switch does.
+function _bind_dock_mode(panel) {
+	const ctrl = panel.fieldgroup.fields_dict.dock_mode;
+	ctrl?.$wrapper.addClass("settings-inline-control");
+	ctrl?.$input?.on("change", () => {
+		const mode = ctrl.get_value();
+		_save_user("dock_mode", mode);
+		frappe.boot.desk_settings.dock_mode = mode;
+		frappe.app.sidebar?.dock?.set_pinned(mode !== "Floating");
 	});
 }
 
@@ -458,6 +471,19 @@ function _preferences_tab(user_data) {
 				default: user_data.show_my_space,
 			},
 			{
+				fieldtype: "Select",
+				fieldname: "dock_mode",
+				label: __("Dock"),
+				description: __(
+					"Pinned sits beside the sidebar. Floating slides in from the left edge."
+				),
+				options: [
+					{ label: __("Pinned"), value: "Pinned" },
+					{ label: __("Floating"), value: "Floating" },
+				],
+				default: user_data.dock_mode,
+			},
+			{
 				fieldtype: "Switch",
 				fieldname: "mute_sounds",
 				label: __("Mute sounds"),
@@ -474,6 +500,7 @@ function _preferences_tab(user_data) {
 				"show_my_space",
 				"mute_sounds",
 			]);
+			_bind_dock_mode(panel);
 
 			panel.body.append(_section_heading(__("Locale")));
 
