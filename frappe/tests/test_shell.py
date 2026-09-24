@@ -12,8 +12,10 @@ from unittest.mock import patch
 
 import frappe
 from frappe.bundler import swap_shell_assets
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.shell import SHELL_ROOT
-from frappe.shell.doctypes import clear_doctype_owners
+from frappe.shell.address_clash import page_files
+from frappe.shell.doctypes import build_address_table, clear_doctype_owners
 from frappe.shell.install import PrefixCollisionError, before_app_install
 from frappe.shell.manifest import (
 	FRAMEWORK_NAMES,
@@ -898,7 +900,11 @@ class TestShellBoot(IntegrationTestCase):
 		"""A Module Def created from the UI is in no modules.txt, and must not fall to the `frappe` floor."""
 		from frappe.shell.doctypes import get_doctype_owners
 
-		with a_second_app() as (owner, _):
+		with (
+			a_second_app() as (owner, _),
+			# The invented app has no source dir, so it has no pages for the DocType to be checked against.
+			patch("frappe.shell.address_clash.page_files", return_value={}),
+		):
 			# `custom=1` keeps this off the disk: `on_update` would otherwise rewrite the owning app's modules.txt.
 			module = frappe.get_doc(
 				doctype="Module Def",
@@ -1022,6 +1028,14 @@ class TestModularAddresses(IntegrationTestCase):
 		with hooks_declaring("app_modular", {"frappe": True}):
 			self.assertEqual(canonical_path("User"), "/apps/desk/core/user")
 
+	def test_the_manifest_carries_the_shape(self):
+		def frappe_entry():
+			return next(entry for entry in assemble() if entry["app"] == "frappe")
+
+		self.assertFalse(frappe_entry()["modular"])
+		with hooks_declaring("app_modular", {"frappe": True}):
+			self.assertTrue(frappe_entry()["modular"])
+
 	def test_the_canonical_address_is_the_owners_prefix(self):
 		"""A link built outside a session picks the owner's prefix and never redirects."""
 		from frappe.utils import get_url_to_form
@@ -1074,6 +1088,87 @@ class TestModularAddresses(IntegrationTestCase):
 		frappe.set_user("Guest")
 		self.addCleanup(frappe.set_user, "Administrator")
 		self.assertFalse(contents_for_app("frappe", "core"))
+
+
+class TestSharedSlugs(IntegrationTestCase):
+	"""Two DocTypes or two modules with one slug: the one created first keeps the address."""
+
+	def insert(self, doc: dict):
+		self.addCleanup(frappe.delete_doc, doc["doctype"], doc["name"], force=True, ignore_missing=True)
+		# Only app code can bring two rows with one slug, and install and migrate only warn about it.
+		with patch.dict(frappe.flags, {"in_migrate": True}):
+			frappe.get_doc(doc).insert()
+
+	def created_in_order(self, doctype: str, older: str, later: str):
+		frappe.db.set_value(doctype, older, "creation", "2000-01-01", update_modified=False)
+		frappe.db.set_value(doctype, later, "creation", "2000-01-02", update_modified=False)
+
+	def built_with_warnings(self) -> tuple[dict, str]:
+		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
+			table = build_address_table()
+		return table, "\n".join(logged.output)
+
+	def test_the_older_doctype_keeps_a_shared_slug(self):
+		pair = ("Test Shared Slug", "Test_Shared Slug")
+		for name in pair:
+			self.insert(new_doctype(name, issingle=1).as_dict())
+
+		for older, later in (pair, pair[::-1]):
+			with self.subTest(older=older):
+				self.created_in_order("DocType", older, later)
+				table, warnings = self.built_with_warnings()
+
+				self.assertEqual(table["doctypes"][older][0], "test-shared-slug")
+				self.assertNotIn(later, table["doctypes"])
+				self.assertIn(f"DocType {later} has no address", warnings)
+
+	def test_the_older_module_keeps_a_shared_slug(self):
+		pair = ("Test Shared Module", "Test_Shared Module")
+		for index, module in enumerate([*pair, "Test Lonely Module"]):
+			self.insert({"doctype": "Module Def", "name": module, "module_name": module, "custom": 1})
+			if module in pair:
+				self.insert(
+					new_doctype(f"Test Shared Module Kind {index}", issingle=1, module=module).as_dict()
+				)
+
+		for older, later in (pair, pair[::-1]):
+			with self.subTest(older=older):
+				self.created_in_order("Module Def", older, later)
+				table, warnings = self.built_with_warnings()
+
+				self.assertEqual(table["modules"]["test-shared-module"], older)
+				self.assertIn(f"Module Def {later} has no address", warnings)
+				# A module no DocType sits in opens nothing, so it is not offered.
+				self.assertNotIn("test-lonely-module", table["modules"])
+
+
+class TestPageFiles(IntegrationTestCase):
+	"""The pages a DocType or a module is checked against, read from disk by the app's shape."""
+
+	def test_an_apps_pages_count_only_against_its_own_shape(self):
+		source_dir = tempfile.mkdtemp(prefix=SECOND_APP)
+		self.addCleanup(shutil.rmtree, source_dir)
+		pages = os.path.join(source_dir, "probe_module", "frontend", "pages")
+		os.makedirs(pages)
+		page = os.path.join(pages, "board.js")
+		with open(page, "w") as f:
+			f.write("export default {}\n")
+
+		real_path = frappe.get_app_path
+		with (
+			a_second_app() as (app, _),
+			patch.object(
+				frappe,
+				"get_app_path",
+				side_effect=lambda name, *rest: source_dir if name == app else real_path(name, *rest),
+			),
+		):
+			self.assertEqual(page_files(modular=False).get("board"), page)
+			self.assertNotIn("board", page_files(modular=True))
+
+			with hooks_declaring("app_modular", {app: True}):
+				self.assertEqual(page_files(modular=True).get("board"), page)
+				self.assertNotIn("board", page_files(modular=False))
 
 
 class TestNoHandBuiltDoctypeUrls(IntegrationTestCase):

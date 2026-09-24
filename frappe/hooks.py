@@ -272,7 +272,13 @@ doc_events = {
 		"on_update": "frappe.integrations.doctype.google_contacts.google_contacts.update_contacts_to_google_contacts",
 	},
 	"DocType": {
+		"validate": "frappe.shell.address_clash.validate_address",
+		"before_rename": "frappe.shell.address_clash.validate_renamed_address",
 		"on_update": "frappe.cache_manager.build_domain_restricted_doctype_cache",
+	},
+	"Module Def": {
+		"validate": "frappe.shell.address_clash.validate_address",
+		"before_rename": "frappe.shell.address_clash.validate_renamed_address",
 	},
 	"Page": {
 		"on_update": "frappe.cache_manager.build_domain_restricted_page_cache",
