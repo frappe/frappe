@@ -7,13 +7,15 @@ from typing import Annotated, Literal
 from frappe.tests import UnitTestCase
 from pydantic import BaseModel, Field, ValidationError
 
-from flow.lib.tool import Tool, build_schema, tool
+from flow.lib.tool import Tool, ToolContext, build_schema, tool
+
+CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
 
 
 class TestToolDecorator(UnitTestCase):
 	def test_bare_decorator_uses_name_and_docstring(self):
 		@tool
-		def get_weather(city: str) -> str:
+		def get_weather(city: str, *, ctx: ToolContext) -> str:
 			"""Return the current weather for a city."""
 			return f"sunny in {city}"
 
@@ -23,7 +25,7 @@ class TestToolDecorator(UnitTestCase):
 
 	def test_parameterized_decorator_overrides_name_and_description(self):
 		@tool(name="weather", description="Look up weather.")
-		def get_weather(city: str) -> str:
+		def get_weather(city: str, *, ctx: ToolContext) -> str:
 			"""ignored docstring"""
 			return f"sunny in {city}"
 
@@ -32,32 +34,32 @@ class TestToolDecorator(UnitTestCase):
 
 	def test_calling_tool_invokes_wrapped_function(self):
 		@tool
-		def add(a: int, b: int) -> int:
+		def add(a: int, b: int, *, ctx: ToolContext) -> int:
 			"""Add two integers."""
 			return a + b
 
-		self.assertEqual(add(a=2, b=3), 5)
+		self.assertEqual(add(a=2, b=3, ctx=CTX), 5)
 
 	def test_call_validates_and_coerces_types(self):
 		@tool
-		def add(a: int, b: int) -> int:
+		def add(a: int, b: int, *, ctx: ToolContext) -> int:
 			"""Add two integers."""
 			return a + b
 
-		self.assertEqual(add(a="2", b="3"), 5)
+		self.assertEqual(add(a="2", b="3", ctx=CTX), 5)
 
 	def test_call_rejects_invalid_arguments(self):
 		@tool
-		def add(a: int, b: int) -> int:
+		def add(a: int, b: int, *, ctx: ToolContext) -> int:
 			"""Add two integers."""
 			return a + b
 
 		with self.assertRaises(ValidationError):
-			add(a="not a number", b=3)
+			add(a="not a number", b=3, ctx=CTX)
 
 	def test_to_dict_returns_function_envelope(self):
 		@tool
-		def ping() -> str:
+		def ping(*, ctx: ToolContext) -> str:
 			"""Ping."""
 			return "pong"
 
@@ -66,6 +68,22 @@ class TestToolDecorator(UnitTestCase):
 		self.assertEqual(schema["function"]["name"], "ping")
 		self.assertEqual(schema["function"]["description"], "Ping.")
 		self.assertIn("parameters", schema["function"])
+
+	def test_context_is_not_in_the_model_schema(self):
+		@tool
+		def identify(value: str, *, ctx: ToolContext) -> tuple[str, str]:
+			return value, ctx.session_id
+
+		self.assertEqual(identify.parameters["properties"], {"value": {"type": "string"}})
+		self.assertEqual(identify(value="ok", ctx=CTX), ("ok", "test"))
+
+	def test_a_tool_without_context_is_refused_when_defined(self):
+		with self.assertRaisesRegex(TypeError, r"Tool ping must take `\*, ctx: ToolContext`"):
+
+			@tool
+			def ping() -> str:
+				"""Ping."""
+				return "pong"
 
 
 class TestSchemaPrimitives(UnitTestCase):

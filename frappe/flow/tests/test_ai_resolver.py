@@ -8,7 +8,7 @@ import frappe
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
 from flow.lib.resolver import schema_from_code
-from flow.lib.tool import Tool, tool
+from flow.lib.tool import Tool, ToolContext, tool
 
 
 class TestSchemaFromCode(UnitTestCase):
@@ -93,16 +93,17 @@ class TestSchemaFromCode(UnitTestCase):
 
 
 @tool
-def _sample_weather(city: str) -> str:
+def _sample_weather(city: str, *, ctx: ToolContext) -> str:
 	"""Sample weather tool."""
 	return f"sunny in {city}"
 
 
-def _plain_callable(city: str, days: int = 1) -> str:
+def _plain_callable(city: str, days: int = 1, *, ctx: ToolContext) -> str:
 	return city
 
 
 SCRIPT_CODE = "def main(city: str):\n\treturn f'sunny in {city}'\n"
+CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
 
 
 def _module_doc(**overrides: Any) -> dict:
@@ -149,7 +150,7 @@ class TestResolveTool(IntegrationTestCase):
 		self.assertEqual(runtime.name, "weather")
 		self.assertEqual(runtime.description, "Look up the weather.")
 		self.assertEqual(runtime.parameters, _sample_weather.parameters)
-		self.assertEqual(runtime(city="Paris"), "sunny in Paris")
+		self.assertEqual(runtime(city="Paris", ctx=CTX), "sunny in Paris")
 
 	def test_module_plain_callable_schema_from_hints(self):
 		doc = frappe.get_doc(_module_doc()).insert()
@@ -178,11 +179,11 @@ class TestResolveTool(IntegrationTestCase):
 
 		self.assertEqual(runtime.name, "script_weather")
 		self.assertEqual(runtime.parameters["properties"], {"city": {"type": "string"}})
-		self.assertEqual(runtime(city="Paris"), "sunny in Paris")
+		self.assertEqual(runtime(city="Paris", ctx=CTX), "sunny in Paris")
 
 	def test_script_tool_with_no_args_executes(self):
 		doc = frappe.get_doc(
 			_script_doc(slug="ping", title="Ping", code="def main():\n\treturn 'pong'\n")
 		).insert()
 		runtime = doc.to_tool()
-		self.assertEqual(runtime(), "pong")
+		self.assertEqual(runtime(ctx=CTX), "pong")

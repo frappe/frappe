@@ -12,6 +12,8 @@ from typing import TYPE_CHECKING, Any
 import frappe
 from frappe import _
 
+from flow.lib.tool import ToolContext
+
 if TYPE_CHECKING:
 	from flow.lib.tool import Tool
 
@@ -107,7 +109,8 @@ def _dispatch(session_id: str, agent: str, name: str, args: dict, mode: str) -> 
 		return _error(_("Unknown tool {0}.").format(name))
 	if mode == "confirm":
 		return {"prompt": confirm_prompt(tool, args)}
-	return {"content": _text(tool(**args)), "is_error": False}
+	ctx = ToolContext(session_id=session_id, agent=agent, user=frappe.session.user)
+	return {"content": _text(tool(**args, ctx=ctx)), "is_error": False}
 
 
 def _error(message: str) -> dict:

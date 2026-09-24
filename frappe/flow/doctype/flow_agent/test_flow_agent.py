@@ -7,10 +7,13 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
+from flow import ToolContext
 from flow.daemon.client import DaemonClient, DaemonError
 from flow.flow.doctype.flow_agent.flow_agent import MAX_SKILLS
 from flow.tests.test_fake_daemon import FakeDaemon
 from flow.tools.builtins import sync_builtin_tools
+
+CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
 
 
 def _model(**overrides: Any) -> dict:
@@ -111,20 +114,20 @@ class TestFlowAgentKnowledgeSearch(IntegrationTestCase):
 	def test_search_uses_agent_configured_kbs(self):
 		tool = self._search_tool([self.kb.name])
 		with patch("flow.knowledge.retriever.retrieve", return_value=[]) as mock:
-			tool(query="hello")
+			tool(query="hello", ctx=CTX)
 		mock.assert_called_once_with("hello", kbs=[self.kb.name])
 
 	def test_llm_supplied_kbs_are_rejected(self):
 		tool = self._search_tool([self.kb.name])
 		with patch("flow.knowledge.retriever.retrieve", return_value=[]) as mock:
 			with self.assertRaises(Exception):
-				tool(query="hello", kbs=["Some Other KB"])
+				tool(query="hello", kbs=["Some Other KB"], ctx=CTX)
 		mock.assert_not_called()
 
 	def test_search_without_configured_kbs_fails_closed(self):
 		tool = self._search_tool([])
 		with self.assertRaises(frappe.ValidationError):
-			tool(query="hello")
+			tool(query="hello", ctx=CTX)
 
 	def test_search_tool_auto_added_when_kb_bound_without_it(self):
 		agent = frappe.get_doc(
@@ -462,13 +465,13 @@ class TestFlowAgentAttachmentSearch(IntegrationTestCase):
 		self.assertEqual(set(tool.parameters["properties"]), {"query"})
 		hit = {"attachment": file_doc.name, "content": "EXCERPT", "score": 0.5}
 		with patch("flow.knowledge.retriever.retrieve_attachments", return_value=[hit]) as retrieve:
-			hits = tool(query="refund")
+			hits = tool(query="refund", ctx=CTX)
 		retrieve.assert_called_once_with("refund", session=session.name)
 		self.assertEqual(hits, [{"file": "old.txt", "content": "EXCERPT", "score": 0.5}])
 
 	def test_search_without_a_session_finds_nothing(self):
 		with patch("flow.knowledge.retriever.retrieve_attachments") as retrieve:
-			self.assertEqual(self._search_tool()(query="refund"), [])
+			self.assertEqual(self._search_tool()(query="refund", ctx=CTX), [])
 		retrieve.assert_not_called()
 
 
@@ -631,13 +634,13 @@ class TestFlowAgentLoadSkill(IntegrationTestCase):
 		self._bind("Expense Approval")
 		tool = self._tool()
 		self.assertEqual(set(tool.parameters["properties"]), {"name"})
-		self.assertEqual(tool(name="Expense Approval"), "Body of Expense Approval.")
+		self.assertEqual(tool(name="Expense Approval", ctx=CTX), "Body of Expense Approval.")
 
 	def test_a_global_skill_is_loadable_by_an_agent_carrying_the_builtin(self):
 		_skill_row("House Style", is_global=1)
 		self.agent.append("tools", {"tool": "load_skill"})
 		self.agent.save()
-		self.assertEqual(self._tool()(name="House Style"), "Body of House Style.")
+		self.assertEqual(self._tool()(name="House Style", ctx=CTX), "Body of House Style.")
 
 	def test_another_agents_skill_is_refused_and_the_available_ones_are_named(self):
 		_skill_row("Mine")
@@ -645,14 +648,14 @@ class TestFlowAgentLoadSkill(IntegrationTestCase):
 		self._bind("Mine")
 		self.agent.reload()
 		with self.assertRaisesRegex(frappe.ValidationError, "No skill named Theirs. Available: Mine"):
-			self._tool()(name="Theirs")
+			self._tool()(name="Theirs", ctx=CTX)
 
 	def test_a_disabled_skill_cannot_be_loaded(self):
 		_skill_row("Retired", enabled=0)
 		_skill_row("Live")
 		self._bind("Retired", "Live")
 		with self.assertRaisesRegex(frappe.ValidationError, "No skill named Retired"):
-			self._tool()(name="Retired")
+			self._tool()(name="Retired", ctx=CTX)
 
 	def test_the_builtin_assistant_carries_the_tool_and_loads_a_global_skill(self):
 		from flow.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
@@ -661,7 +664,7 @@ class TestFlowAgentLoadSkill(IntegrationTestCase):
 		assistant = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
 		self.assertIn("load_skill", [row.tool for row in assistant.tools])
 		_skill_row("House Style", is_global=1)
-		self.assertEqual(self._tool(assistant)(name="House Style"), "Body of House Style.")
+		self.assertEqual(self._tool(assistant)(name="House Style", ctx=CTX), "Body of House Style.")
 
 	def test_the_tool_travels_to_the_server_with_the_agents_schemas(self):
 		_skill_row("House Style")
@@ -673,4 +676,4 @@ class TestFlowAgentLoadSkill(IntegrationTestCase):
 		from flow.tools.builtins import bind_load_skill
 
 		with self.assertRaisesRegex(frappe.ValidationError, "Skills are not configured"):
-			bind_load_skill(None)(name="House Style")
+			bind_load_skill(None)(name="House Style", ctx=CTX)

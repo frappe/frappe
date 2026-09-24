@@ -38,10 +38,10 @@ Flow also ships as a Python framework for building agents in code.
 
 ```python
 import frappe
-from flow import tool
+from flow import ToolContext, tool
 
 @tool
-def get_open_todos(allocated_to: str) -> list[dict]:
+def get_open_todos(allocated_to: str, *, ctx: ToolContext) -> list[dict]:
 	"""List open ToDo items for a user."""
 	return frappe.get_list(
 		"ToDo",

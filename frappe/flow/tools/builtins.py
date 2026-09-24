@@ -9,7 +9,7 @@ from typing import Any, Literal
 import frappe
 from frappe import _
 
-from flow.lib.tool import Tool, tool
+from flow.lib.tool import Tool, ToolContext, tool
 from flow.utils.safe_exec import safe_exec
 
 MAX_READ_LIMIT = 200
@@ -27,19 +27,26 @@ def _server_only_tool() -> None:
 
 
 @tool
-def read_file(path: str, offset: int | None = None, limit: int | None = None) -> str:
+def read_file(path: str, offset: int | None = None, limit: int | None = None, *, ctx: ToolContext) -> str:
 	"""Read a text or image file from the source of an app installed on this site."""
 	_server_only_tool()
 
 
 @tool
-def grep(pattern: str, path: str = ".") -> str:
+def grep(pattern: str, path: str = ".", *, ctx: ToolContext) -> str:
 	"""Search installed app source files for a regular-expression pattern."""
 	_server_only_tool()
 
 
 @tool
-def subagent(task: str, description: str, agent: str | None = None, subagent_id: str | None = None) -> str:
+def subagent(
+	task: str,
+	description: str,
+	agent: str | None = None,
+	subagent_id: str | None = None,
+	*,
+	ctx: ToolContext,
+) -> str:
 	"""Hand a self-contained task to a sub-agent with a fresh context and get back only its final answer."""
 	_server_only_tool()
 
@@ -58,7 +65,9 @@ def _summarize_values(values: dict) -> str:
 
 
 @tool
-def find_doctypes(search: str | None = None, module: str | None = None, limit: int = 40) -> list[dict]:
+def find_doctypes(
+	search: str | None = None, module: str | None = None, limit: int = 40, *, ctx: ToolContext
+) -> list[dict]:
 	"""Find exact DocType names before describe/read — never guess names.
 
 	Search by keyword (substring of the name) and/or filter by module. Returns a list
@@ -75,7 +84,7 @@ def find_doctypes(search: str | None = None, module: str | None = None, limit: i
 
 
 @tool
-def describe(doctype: str, name: str | None = None) -> dict[str, Any]:
+def describe(doctype: str, name: str | None = None, *, ctx: ToolContext) -> dict[str, Any]:
 	"""Inspect a DocType's fields and your permissions. Pass `name` to also get a record's available actions."""
 	if not frappe.has_permission(doctype, "read"):
 		raise PermissionError(f"No permission to read {doctype}")
@@ -112,6 +121,8 @@ def read(
 	fields: list[str] | None = None,
 	limit: int = 20,
 	order_by: str | None = None,
+	*,
+	ctx: ToolContext,
 ) -> list[dict]:
 	"""Read records from a DocType, honouring the user's permissions.
 
@@ -142,7 +153,7 @@ def bind_search_knowledge(kbs: list[str]) -> Tool:
 	knowledge bases come from the agent's config and cannot be chosen or widened. The
 	registered builtin binds an empty list, so an unbound call fails closed in `retrieve`."""
 
-	def search_knowledge(query: str) -> list[dict[str, Any]]:
+	def search_knowledge(query: str, *, ctx: ToolContext) -> list[dict[str, Any]]:
 		from flow.knowledge.retriever import retrieve
 
 		return retrieve(query, kbs=kbs)
@@ -180,7 +191,7 @@ most relevant chunks, each with its text, similarity score and file name."""
 def bind_search_attachments(session: str | None) -> Tool:
 	"""A `search_attachments` tool scoped to one session. Unbound (None), it finds nothing."""
 
-	def search_attachments(query: str) -> list[dict[str, Any]]:
+	def search_attachments(query: str, *, ctx: ToolContext) -> list[dict[str, Any]]:
 		from flow.knowledge.retriever import retrieve_attachments
 
 		if not session:
@@ -222,7 +233,11 @@ def bind_update_memory(agent: str | None, session: str | None = None) -> Tool:
 	"""An `update_memory` tool bound to `agent` and `session`. Unbound (None), it refuses."""
 
 	def update_memory(
-		content: str, scope: Literal["agent", "user"], memory_id: str | None = None
+		content: str,
+		scope: Literal["agent", "user"],
+		memory_id: str | None = None,
+		*,
+		ctx: ToolContext,
 	) -> dict[str, Any]:
 		from flow.memory.memory import save_memory
 
@@ -248,7 +263,7 @@ starting the task, and treat what you get back as authoritative for it."""
 def bind_load_skill(agent: str | None) -> Tool:
 	"""A `load_skill` tool scoped to `agent`'s skills. Unbound (None), it refuses."""
 
-	def load_skill(name: str) -> str:
+	def load_skill(name: str, *, ctx: ToolContext) -> str:
 		if not agent:
 			frappe.throw(_("Skills are not configured for this agent."), title=_("Skill Unavailable"))
 		available = {row.name for row in frappe.get_doc("Flow Agent", agent).visible_skills()}
@@ -271,7 +286,7 @@ load_skill = bind_load_skill(None)
 		f"{args.get('description') or _('Run Python code')}:\n\n{args.get('code', '')}"
 	),
 )
-def execute(code: str, description: str) -> Any:
+def execute(code: str, description: str, *, ctx: ToolContext) -> Any:
 	"""Run Python in a permission-respecting sandbox for computation, emails, or multi-record work.
 
 	`description` is one short, plain-English sentence stating what this code does, for a
@@ -307,7 +322,7 @@ def execute(code: str, description: str) -> Any:
 
 	The user approves each call before it runs.
 	"""
-	exec_globals, _locals = safe_exec(code, script_filename="ai_execute")
+	exec_globals, _locals = safe_exec(code, script_filename="ai_execute", tool_context=ctx)
 	return exec_globals.get("result")
 
 
@@ -411,7 +426,7 @@ def _apply_action(doctype: str, name: str, action: str, args: dict[str, Any]) ->
 		)
 	),
 )
-def create(doctype: str, records: list[dict[str, Any]]) -> dict[str, Any]:
+def create(doctype: str, records: list[dict[str, Any]], *, ctx: ToolContext) -> dict[str, Any]:
 	"""Create one or more records. `records` is a list of field-value dicts, each validated and inserted."""
 	if not frappe.has_permission(doctype, "create"):
 		raise PermissionError(f"No permission to create {doctype}")
@@ -444,7 +459,7 @@ def create(doctype: str, records: list[dict[str, Any]]) -> dict[str, Any]:
 		)
 	),
 )
-def update(doctype: str, names: list[str], values: dict[str, Any]) -> dict[str, Any]:
+def update(doctype: str, names: list[str], values: dict[str, Any], *, ctx: ToolContext) -> dict[str, Any]:
 	"""Apply the same field values to one or more existing records. Runs full validation per record."""
 	updated: list[str] = []
 	failures: list[dict[str, Any]] = []
@@ -475,7 +490,7 @@ def update(doctype: str, names: list[str], values: dict[str, Any]) -> dict[str, 
 		)
 	),
 )
-def delete(doctype: str, names: list[str]) -> dict[str, Any]:
+def delete(doctype: str, names: list[str], *, ctx: ToolContext) -> dict[str, Any]:
 	"""Delete one or more records. Fails per record if another record links to it."""
 	deleted: list[str] = []
 	failures: list[dict[str, Any]] = []
@@ -510,6 +525,8 @@ def run_action(
 	names: list[str],
 	action: str,
 	args: dict[str, Any] | None = None,
+	*,
+	ctx: ToolContext,
 ) -> dict[str, Any]:
 	"""Run a document action found via describe: submit, cancel, amend, rename, a workflow transition, or a whitelisted method."""
 	args = args or {}

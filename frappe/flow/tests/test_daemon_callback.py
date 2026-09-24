@@ -10,7 +10,7 @@ from frappe.utils import set_request
 
 from flow.daemon.callback import callback, confirm_title
 from flow.daemon.client import DaemonClient
-from flow.lib.tool import tool
+from flow.lib.tool import ToolContext, tool
 from flow.memory import store as memory_store
 from flow.tests.test_fake_daemon import FakeDaemon, turn
 from flow.tools.builtins import sync_builtin_tools
@@ -22,16 +22,22 @@ BOOM = "def main(reason: str) -> str:\n\traise ValueError(reason)\n"
 
 
 @tool
-def whoami() -> str:
+def whoami(*, ctx: ToolContext) -> str:
 	"""The user this tool runs as."""
 	return frappe.session.user
 
 
 @tool
-def insert_then_fail() -> None:
+def insert_then_fail(*, ctx: ToolContext) -> None:
 	"""Inserts a ToDo, then raises."""
 	frappe.get_doc({"doctype": "ToDo", "description": "callback-rollback"}).insert(ignore_permissions=True)
 	raise ValueError("after insert")
+
+
+@tool
+def callback_context(*, ctx: ToolContext) -> dict:
+	"""Return the trusted identity Flow supplied for this callback."""
+	return {"session": ctx.session_id, "agent": ctx.agent, "user": ctx.user}
 
 
 class TestToolCallback(IntegrationTestCase):
@@ -47,7 +53,7 @@ class TestToolCallback(IntegrationTestCase):
 			frappe.get_doc(
 				{"doctype": "User", "email": OWNER, "first_name": "Callback", "send_welcome_email": 0}
 			).insert(ignore_permissions=True)
-		for slug in ("whoami", "insert_then_fail"):
+		for slug in ("whoami", "insert_then_fail", "callback_context"):
 			self.flow_tool(slug, type="Imported", import_path=f"{MODULE}.{slug}")
 		self.flow_tool("boom", type="Script", code=BOOM)
 		model = frappe.get_doc(
@@ -66,6 +72,7 @@ class TestToolCallback(IntegrationTestCase):
 			"search_attachments",
 			"whoami",
 			"insert_then_fail",
+			"callback_context",
 			"boom",
 		)
 		self.agent = frappe.get_doc(
@@ -143,6 +150,14 @@ class TestToolCallback(IntegrationTestCase):
 	def test_tools_run_as_the_sessions_owner_never_as_user_context(self):
 		self.assertEqual(self.call("whoami"), {"content": OWNER, "is_error": False})
 		self.assertEqual(frappe.session.user, "Administrator")
+
+	def test_a_tool_can_receive_trusted_callback_context(self):
+		result = self.call("callback_context")
+		self.assertFalse(result["is_error"])
+		self.assertEqual(
+			json.loads(result["content"]),
+			{"session": self.session.name, "agent": self.agent.name, "user": OWNER},
+		)
 
 	def test_terminal_callback_synchronizes_once_and_duplicate_delivery_is_safe(self):
 		run = frappe.get_doc(

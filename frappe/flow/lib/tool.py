@@ -20,6 +20,16 @@ _PRIMITIVE_SCHEMAS: dict[type, dict[str, str]] = {
 	bool: {"type": "boolean"},
 	bytes: {"type": "string"},
 }
+_SKIP = {"ctx", "self", "cls"}
+
+
+@dataclass(kw_only=True)
+class ToolContext:
+	"""Trusted context Flow injects into an imported tool, never exposed to the model."""
+
+	session_id: str
+	agent: str
+	user: str
 
 
 @dataclass
@@ -32,6 +42,8 @@ class Tool:
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None
 
 	def __post_init__(self) -> None:
+		if "ctx" not in inspect.signature(self.func).parameters:
+			raise TypeError(f"Tool {self.name} must take `*, ctx: ToolContext`.")
 		self._validated = validate_call(config=ConfigDict(arbitrary_types_allowed=True))(self.func)
 
 	def __call__(self, **kwargs: Any) -> Any:
@@ -79,9 +91,7 @@ def build_schema(func: Callable[..., Any]) -> dict[str, Any]:
 	required: list[str] = []
 
 	for param_name, param in sig.parameters.items():
-		if param.kind in (param.VAR_POSITIONAL, param.VAR_KEYWORD):
-			continue
-		if param_name in ("self", "cls"):
+		if param_name in _SKIP or param.kind in (param.VAR_POSITIONAL, param.VAR_KEYWORD):
 			continue
 
 		hint = hints.get(param_name, Any)

@@ -13,7 +13,8 @@ from __future__ import annotations
 
 import json
 import mimetypes
-from typing import Any
+from functools import partial
+from typing import TYPE_CHECKING, Any
 
 import frappe
 import RestrictedPython.Guards
@@ -41,6 +42,9 @@ from frappe.utils.safe_exec import (
 )
 from RestrictedPython import safe_globals
 
+if TYPE_CHECKING:
+	from flow.lib.tool import ToolContext
+
 
 def safe_exec(
 	script: str,
@@ -48,8 +52,9 @@ def safe_exec(
 	_locals: dict | None = None,
 	*,
 	script_filename: str | None = None,
+	tool_context: ToolContext | None = None,
 ):
-	exec_globals = get_flow_safe_globals()
+	exec_globals = get_flow_safe_globals(tool_context=tool_context)
 	if _globals:
 		exec_globals.update(_globals)
 
@@ -152,15 +157,15 @@ _SKIP_BUILTINS = frozenset(
 )
 
 
-def _flow_builtins() -> dict[str, Any]:
+def _flow_builtins(tool_context: ToolContext | None = None) -> dict[str, Any]:
 	"""The permission-checked builtins, callable as plain functions inside the sandbox.
 	`execute` and the bound tools are left out."""
 	from flow.tools.builtins import BUILTIN_TOOLS
 
-	return {t.name: t.func for t in BUILTIN_TOOLS if t.name not in _SKIP_BUILTINS}
+	return {t.name: partial(t.func, ctx=tool_context) for t in BUILTIN_TOOLS if t.name not in _SKIP_BUILTINS}
 
 
-def get_flow_safe_globals() -> NamespaceDict:
+def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> NamespaceDict:
 	user = frappe.session.user
 
 	out = NamespaceDict(
@@ -209,7 +214,7 @@ def get_flow_safe_globals() -> NamespaceDict:
 	)
 
 	out.frappe.update(SAFE_EXCEPTIONS)
-	out.update(_flow_builtins())
+	out.update(_flow_builtins(tool_context))
 
 	out.update(safe_globals)
 	out._write_ = _write

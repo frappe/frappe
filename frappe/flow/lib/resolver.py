@@ -10,7 +10,7 @@ import frappe
 from frappe import _
 from frappe.utils.safe_exec import safe_exec
 
-from flow.lib.tool import Tool, build_schema
+from flow.lib.tool import Tool, ToolContext, build_schema
 
 if TYPE_CHECKING:
 	from flow.flow.doctype.flow_tool.flow_tool import FlowTool
@@ -81,7 +81,7 @@ def _build_tool(doc: FlowTool, parameters: dict[str, Any], func: Any, *, confirm
 def _make_script_runner(code: str, slug: str, *, restrict_commit_rollback: bool = False):
 	"""Build a callable that runs a Script tool's `main` in the server-script sandbox."""
 
-	def run(**kwargs: Any) -> Any:
+	def run(*, ctx: ToolContext, **kwargs: Any) -> Any:
 		injected: dict[str, Any] = {}
 		call_parts: list[str] = []
 		for i, (name, value) in enumerate(kwargs.items()):

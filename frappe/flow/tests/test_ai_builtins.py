@@ -4,6 +4,7 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 
+from flow import ToolContext
 from flow.tools.builtins import (
 	BUILTIN_TOOLS,
 	create,
@@ -16,30 +17,32 @@ from flow.tools.builtins import (
 	update,
 )
 
+CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
+
 
 class TestFindDoctypes(IntegrationTestCase):
 	def test_search_matches_by_keyword(self):
-		names = {r["name"] for r in find_doctypes(search="ToDo")}
+		names = {r["name"] for r in find_doctypes(search="ToDo", ctx=CTX)}
 		self.assertIn("ToDo", names)
 
 	def test_filters_by_module(self):
-		rows = find_doctypes(module="Core", limit=200)
+		rows = find_doctypes(module="Core", limit=200, ctx=CTX)
 		self.assertTrue(rows)
 		self.assertTrue(all(r["module"] == "Core" for r in rows))
 
 	def test_excludes_child_tables(self):
-		names = {r["name"] for r in find_doctypes(search="Role", limit=200)}
+		names = {r["name"] for r in find_doctypes(search="Role", limit=200, ctx=CTX)}
 		self.assertIn("Role", names)
 		self.assertNotIn("Has Role", names)  # a child table that also matches "Role"
 
 	def test_includes_single_doctypes(self):
-		names = {r["name"] for r in find_doctypes(search="System Settings", limit=200)}
+		names = {r["name"] for r in find_doctypes(search="System Settings", limit=200, ctx=CTX)}
 		self.assertIn("System Settings", names)  # a single DocType
 
 	def test_respects_read_permission(self):
 		frappe.set_user("Guest")
 		try:
-			names = {r["name"] for r in find_doctypes(search="User", limit=200)}
+			names = {r["name"] for r in find_doctypes(search="User", limit=200, ctx=CTX)}
 			self.assertNotIn("User", names)
 		finally:
 			frappe.set_user("Administrator")
@@ -47,7 +50,7 @@ class TestFindDoctypes(IntegrationTestCase):
 
 class TestDescribe(IntegrationTestCase):
 	def test_returns_fields_and_permissions(self):
-		result = describe(doctype="ToDo")
+		result = describe(doctype="ToDo", ctx=CTX)
 
 		self.assertEqual(result["doctype"], "ToDo")
 		fieldnames = {f["fieldname"] for f in result["fields"]}
@@ -55,7 +58,7 @@ class TestDescribe(IntegrationTestCase):
 		self.assertEqual(set(result["permissions"]), {"read", "write", "create", "delete"})
 
 	def test_excludes_layout_fields(self):
-		result = describe(doctype="ToDo")
+		result = describe(doctype="ToDo", ctx=CTX)
 		types = {f["type"] for f in result["fields"]}
 		self.assertNotIn("Section Break", types)
 		self.assertNotIn("Column Break", types)
@@ -64,7 +67,7 @@ class TestDescribe(IntegrationTestCase):
 		frappe.set_user("Guest")
 		try:
 			with self.assertRaises(PermissionError):
-				describe(doctype="User")
+				describe(doctype="User", ctx=CTX)
 		finally:
 			frappe.set_user("Administrator")
 
@@ -76,17 +79,22 @@ class TestRead(IntegrationTestCase):
 	def test_reads_matching_records(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "ai builtin read probe"}).insert()
 
-		rows = read(doctype="ToDo", filters={"description": "ai builtin read probe"})
+		rows = read(doctype="ToDo", filters={"description": "ai builtin read probe"}, ctx=CTX)
 
 		self.assertEqual([r["name"] for r in rows], [todo.name])
 
 	def test_limit_is_capped(self):
-		rows = read(doctype="DocType", limit=10_000)
+		rows = read(doctype="DocType", limit=10_000, ctx=CTX)
 		self.assertLessEqual(len(rows), 200)
 
 	def test_returns_requested_fields(self):
 		frappe.get_doc({"doctype": "ToDo", "description": "fields probe"}).insert()
-		rows = read(doctype="ToDo", filters={"description": "fields probe"}, fields=["name", "description"])
+		rows = read(
+			doctype="ToDo",
+			filters={"description": "fields probe"},
+			fields=["name", "description"],
+			ctx=CTX,
+		)
 		self.assertEqual(rows[0]["description"], "fields probe")
 
 
@@ -100,18 +108,18 @@ class TestExecute(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def test_returns_result_variable(self):
-		self.assertEqual(execute(code="result = 1 + 1", description="Add two numbers"), 2)
+		self.assertEqual(execute(code="result = 1 + 1", description="Add two numbers", ctx=CTX), 2)
 
 	def test_no_result_returns_none(self):
-		self.assertIsNone(execute(code="x = 5", description="Set a variable"))
+		self.assertIsNone(execute(code="x = 5", description="Set a variable", ctx=CTX))
 
 	def test_can_read_via_frappe(self):
-		count = execute(code="result = frappe.db.count('DocType')", description="Count doctypes")
+		count = execute(code="result = frappe.db.count('DocType')", description="Count doctypes", ctx=CTX)
 		self.assertIsInstance(count, int)
 
 	def test_imports_are_blocked(self):
 		with self.assertRaises(Exception):
-			execute(code="import os\nresult = os.getcwd()", description="Get working directory")
+			execute(code="import os\nresult = os.getcwd()", description="Get working directory", ctx=CTX)
 
 
 class TestCreate(IntegrationTestCase):
@@ -123,7 +131,7 @@ class TestCreate(IntegrationTestCase):
 		self.assertTrue(create.requires_confirmation)
 
 	def test_creates_doc_with_values(self):
-		result = create(doctype="ToDo", records=[{"description": "ai create probe"}])
+		result = create(doctype="ToDo", records=[{"description": "ai create probe"}], ctx=CTX)
 
 		self.assertEqual(result["doctype"], "ToDo")
 		self.assertEqual(len(result["created"]), 1)
@@ -134,11 +142,11 @@ class TestCreate(IntegrationTestCase):
 	def test_permission_denied_raises(self):
 		frappe.set_user("Guest")
 		with self.assertRaises(PermissionError):
-			create(doctype="User", records=[{"email": "x@example.com"}])
+			create(doctype="User", records=[{"email": "x@example.com"}], ctx=CTX)
 
 	def test_missing_required_field_reported_as_failure(self):
 		# ToDo.description is mandatory; the row fails validation and is reported, not raised.
-		result = create(doctype="ToDo", records=[{}])
+		result = create(doctype="ToDo", records=[{}], ctx=CTX)
 
 		self.assertEqual(result["created"], [])
 		self.assertEqual(len(result["failures"]), 1)
@@ -157,27 +165,29 @@ class TestUpdate(IntegrationTestCase):
 		self.assertTrue(update.requires_confirmation)
 
 	def test_modifies_doc_fields(self):
-		result = update(doctype="ToDo", names=[self.todo.name], values={"status": "Closed"})
+		result = update(doctype="ToDo", names=[self.todo.name], values={"status": "Closed"}, ctx=CTX)
 
 		self.assertEqual(result["updated"], [self.todo.name])
 		self.assertEqual(frappe.db.get_value("ToDo", self.todo.name, "status"), "Closed")
 
 	def test_invalid_value_reported_as_failure(self):
 		# Status is a Select field with a fixed set; an invalid value fails that row.
-		result = update(doctype="ToDo", names=[self.todo.name], values={"status": "Not A Real Status"})
+		result = update(
+			doctype="ToDo", names=[self.todo.name], values={"status": "Not A Real Status"}, ctx=CTX
+		)
 
 		self.assertEqual(result["updated"], [])
 		self.assertEqual(len(result["failures"]), 1)
 
 	def test_missing_record_reported_as_failure(self):
-		result = update(doctype="ToDo", names=["does-not-exist"], values={"status": "Closed"})
+		result = update(doctype="ToDo", names=["does-not-exist"], values={"status": "Closed"}, ctx=CTX)
 
 		self.assertEqual(result["updated"], [])
 		self.assertEqual(result["failures"][0]["name"], "does-not-exist")
 
 	def test_permission_denied_reported_as_failure(self):
 		frappe.set_user("Guest")
-		result = update(doctype="ToDo", names=[self.todo.name], values={"status": "Closed"})
+		result = update(doctype="ToDo", names=[self.todo.name], values={"status": "Closed"}, ctx=CTX)
 
 		self.assertEqual(result["updated"], [])
 		self.assertEqual(len(result["failures"]), 1)
@@ -195,20 +205,20 @@ class TestDelete(IntegrationTestCase):
 		self.assertTrue(delete.requires_confirmation)
 
 	def test_removes_doc(self):
-		result = delete(doctype="ToDo", names=[self.todo.name])
+		result = delete(doctype="ToDo", names=[self.todo.name], ctx=CTX)
 
 		self.assertEqual(result["deleted"], [self.todo.name])
 		self.assertFalse(frappe.db.exists("ToDo", self.todo.name))
 
 	def test_missing_record_reported_as_failure(self):
-		result = delete(doctype="ToDo", names=["does-not-exist"])
+		result = delete(doctype="ToDo", names=["does-not-exist"], ctx=CTX)
 
 		self.assertEqual(result["deleted"], [])
 		self.assertEqual(result["failures"][0]["name"], "does-not-exist")
 
 	def test_permission_denied_reported_as_failure(self):
 		frappe.set_user("Guest")
-		result = delete(doctype="ToDo", names=[self.todo.name])
+		result = delete(doctype="ToDo", names=[self.todo.name], ctx=CTX)
 
 		self.assertEqual(result["deleted"], [])
 		self.assertEqual(len(result["failures"]), 1)
