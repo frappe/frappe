@@ -732,8 +732,9 @@ def get_print_style(
 
 	css = frappe.get_template("templates/styles/standard.css").render(context)
 
-	if style and frappe.db.exists("Print Style", style):
-		css = css + "\n" + frappe.db.get_value("Print Style", style, "css")
+	style_css = style and frappe.db.get_value("Print Style", {"name": style, "disabled": 0}, "css")
+	if style_css:
+		css = css + "\n" + style_css
 
 	if flt(print_settings.font_size):
 		css = css + f"\n.print-format {{ font-size: {flt(print_settings.font_size)}pt; }}"
