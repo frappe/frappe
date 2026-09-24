@@ -737,7 +737,9 @@ class Database:
 					)
 					if isinstance(fieldname, str) and fieldname == "*":
 						as_dict = True
-					out = self.run_query(query, as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck)
+					out = self.run_query(
+						query, as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck
+					)
 
 				except Exception as e:
 					if ignore and (
