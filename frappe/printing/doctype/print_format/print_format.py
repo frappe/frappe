@@ -97,6 +97,10 @@ class PrintFormat(Document):
 		)
 		self.set_onload("print_templates", templates)
 
+		from frappe.printing.doctype.print_format.classic_converter import renders_from_file
+
+		self.set_onload("renders_from_file", renders_from_file(self))
+
 	def before_save(self):
 		if self.print_format_for == "Report":
 			self.custom_format = 1
@@ -354,14 +358,29 @@ def create_custom_format(doctype: str, name: str | int, based_on: str = "Standar
 	doc.doc_type = doctype
 	doc.name = name
 	doc.print_format_builder_beta = 1
+	from frappe.printing.doctype.print_format.classic_converter import (
+		create_default_layout,
+		renders_from_file,
+	)
+
+	source = None
 	if based_on and based_on != "Standard":
 		source = frappe.get_doc("Print Format", based_on)
 		source.check_permission("read")
+		if renders_from_file(source):
+			# "Based On" is fixed to the selected format in the print view, so a
+			# refusal here would be a dead end
+			frappe.msgprint(
+				_("{0} is rendered from an HTML file, so this format starts from the standard layout").format(
+					source.name
+				),
+				alert=True,
+			)
+			source = None
+	if source:
 		doc.format_data = source.format_data
 	else:
 		# seed the layout so the format prints something before its first Save & Apply
-		from frappe.printing.doctype.print_format.classic_converter import create_default_layout
-
 		doc.format_data = frappe.as_json(create_default_layout(frappe.get_meta(doctype)))
 	doc.insert()
 	return doc
