@@ -559,16 +559,18 @@ class PrintFormatGenerator:
 		)
 
 	def page_options(self) -> dict:
+		from frappe.utils.print_utils import convert_uom
+
 		size = self.print_settings.get("pdf_page_size")
 		if not size:
 			return {}
-		if size != "Custom":
-			return {"page-size": size}
-		return {
-			"page-size": size,
-			"page-height": self.print_settings.get("pdf_page_height"),
-			"page-width": self.print_settings.get("pdf_page_width"),
-		}
+		options = {"page-size": size}
+		if size == "Custom":
+			for option, setting in (("page-height", "pdf_page_height"), ("page-width", "pdf_page_width")):
+				value = self.print_settings.get(setting)
+				if value:
+					options[option] = convert_uom(value, "mm", "px", only_number=True)
+		return options
 
 	def render_typst_pdf(self, password=None):
 		"""Compile the resolved layout through Typst — ~10-15x faster than Chromium.

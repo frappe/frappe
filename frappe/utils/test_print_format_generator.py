@@ -6,6 +6,7 @@ import json
 import frappe
 from frappe.printing.layout import iter_layout_columns
 from frappe.tests import IntegrationTestCase
+from frappe.utils.print_utils import convert_uom
 
 
 class TestPrintFormatGenerator(IntegrationTestCase):
@@ -308,7 +309,12 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			pf, todo, settings={"pdf_page_size": "Custom", "pdf_page_height": 100, "pdf_page_width": 50}
 		)
 		self.assertEqual(
-			generator.page_options(), {"page-size": "Custom", "page-height": 100, "page-width": 50}
+			generator.page_options(),
+			{
+				"page-size": "Custom",
+				"page-height": convert_uom(100, "mm", "px", only_number=True),
+				"page-width": convert_uom(50, "mm", "px", only_number=True),
+			},
 		)
 
 	def test_render_pdf_passes_password_to_chrome(self):
