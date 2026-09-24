@@ -5,6 +5,8 @@ import { getLayoutDirection } from "@/utils/dropGeometry"
 const BLOCK_SELECTOR = ".__studio_component__"
 // blocks inside a studio component instance aren't editable, so the instance root is the hit target
 const HIT_SELECTOR = `${BLOCK_SELECTOR}:not(.__studio_component_child__)`
+// an empty named slot renders a placeholder div (slot blocks carry the class too, but are blocks)
+const EMPTY_SLOT_SELECTOR = `.__studio_component_slot__:not(${BLOCK_SELECTOR})`
 
 // Fraction of a container's main-axis extent, at EACH end, reserved for "reorder
 // beside me" instead of "nest inside me". Without this you could only reorder
@@ -39,7 +41,25 @@ export class DropZoneResolver {
 	) {}
 
 	resolve(clientX: number, clientY: number): DropZone | null {
-		const hoveredEl = this.hoveredElement(clientX, clientY)
+		const element = document.elementFromPoint(clientX, clientY) as HTMLElement | null
+		return this.emptySlotZone(element) || this.blockZone(element, clientX, clientY)
+	}
+
+	// dropping on an empty slot's placeholder targets that slot, not the owner's children
+	private emptySlotZone(element: HTMLElement | null): DropZone | null {
+		const placeholder = element?.closest(EMPTY_SLOT_SELECTOR) as HTMLElement | null
+		const owner = placeholder?.dataset.componentId ? this.findBlock(placeholder.dataset.componentId) : null
+		if (!placeholder || !owner || this.isInsideDragged(owner)) return null
+		return this.zoneFor(
+			owner,
+			placeholder.dataset.slotName || null,
+			placeholder.dataset.breakpoint || "desktop",
+			placeholder,
+		)
+	}
+
+	private blockZone(element: HTMLElement | null, clientX: number, clientY: number): DropZone | null {
+		const hoveredEl = (element?.closest(HIT_SELECTOR) as HTMLElement | null) || null
 		const hovered = this.hoveredBlock(hoveredEl)
 		if (!hoveredEl || !hovered) return null
 		const breakpoint = hoveredEl.dataset.breakpoint || "desktop"
@@ -48,11 +68,6 @@ export class DropZoneResolver {
 			return this.zoneFor(hovered, null, breakpoint) || beside
 		}
 		return beside
-	}
-
-	private hoveredElement(clientX: number, clientY: number): HTMLElement | null {
-		const element = document.elementFromPoint(clientX, clientY)
-		return (element?.closest(HIT_SELECTOR) as HTMLElement | null) || null
 	}
 
 	private hoveredBlock(element: HTMLElement | null): Block | null {
@@ -119,17 +134,25 @@ export class DropZoneResolver {
 		return pointer < low + band || pointer > high - band
 	}
 
-	private zoneFor(parent: Block, slotName: string | null, breakpoint: string): DropZone | null {
+	// `host` is where to search for the zone's elements. Renderless components (a
+	// Popover) have no element of their own, so without a host the search falls
+	// back to the canvas root; ids are unique, so that is safe.
+	private zoneFor(
+		parent: Block,
+		slotName: string | null,
+		breakpoint: string,
+		host?: HTMLElement | null,
+	): DropZone | null {
 		if (!this.accepts(parent)) return null
-		const parentEl = this.getBlockEl(parent, breakpoint)
-		if (!parentEl) return null
+		const scope = host || this.getBlockEl(parent, breakpoint) || this.getBlockEl(rootOf(parent), breakpoint)
+		if (!scope) return null
 		const blocks = slotName ? parent.getSlotContent(slotName) || [] : parent.children
 		const elements = blocks
-			.map((block) => this.findChildEl(parentEl, block, breakpoint))
+			.map((block) => this.findChildEl(scope, block, breakpoint))
 			.filter((element): element is HTMLElement => Boolean(element))
 		// components may render their children inside a wrapper, so measure the
 		// element that actually lays them out
-		const layoutEl = elements[0]?.parentElement || this.emptySlotEl(parentEl, parent, slotName) || parentEl
+		const layoutEl = elements[0]?.parentElement || this.emptySlotEl(scope, parent, slotName) || scope
 		const siblingEls = elements.filter(
 			(element) => element.dataset.componentId !== this.dragged.componentId && hasSize(element),
 		)
@@ -160,6 +183,12 @@ export class DropZoneResolver {
 		const slotId = parent.getSlot(slotName)?.slotId
 		return parentEl.querySelector(`.__studio_component_slot__[data-slot-id="${slotId}"]`)
 	}
+}
+
+function rootOf(block: Block): Block {
+	let root = block
+	while (root.getParentBlock()) root = root.getParentBlock() as Block
+	return root
 }
 
 function hasSize(element: HTMLElement): boolean {

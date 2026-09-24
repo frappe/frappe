@@ -65,6 +65,20 @@ function buildTree() {
 						{ componentId: "radio-b", componentName: "Radio", componentProps: { value: "b", label: "B" } },
 					],
 				} as BlockOptions,
+				// a component with an EMPTY named slot: its placeholder is the drop target
+				{
+					componentId: "popover",
+					componentName: "Popover",
+					componentProps: { side: "bottom", align: "start" },
+					componentSlots: {
+						trigger: {
+							slotName: "trigger",
+							slotId: "popover:trigger",
+							parentBlockId: "popover",
+							slotContent: [],
+						},
+					},
+				} as BlockOptions,
 				// in flow on desktop, pinned on mobile
 				{
 					...leaf("mobile-pinned"),
@@ -278,6 +292,40 @@ describe("reordering blocks on the canvas by dragging", () => {
 			const pinned = canvas.findBlock("pinned")
 			expect(pinned.baseStyles.left).to.equal("50px")
 			expect(pinned.mobileStyles.left).to.equal(undefined)
+		})
+	})
+
+	it("drops onto an empty slot's placeholder into that slot", () => {
+		const placeholder = () =>
+			document.querySelector(
+				'.__studio_component_slot__[data-slot-name="trigger"]:not(.__studio_component__)',
+			)!
+		cy.then(() => expect(placeholder()).to.exist)
+		startDrag("C", () => center(placeholder() as HTMLElement))
+		cy.then(() => {
+			const target = useCanvasStore().reorderTarget
+			expect(target.active).to.equal(true)
+			expect(target.isSlotTarget).to.equal(true)
+		})
+		release()
+		cy.then(() => {
+			const popover = canvas.findBlock("popover")
+			expect(popover.getSlotContent("trigger").map((block: Block) => block.componentId)).to.deep.equal(["C"])
+			expect(canvas.findBlock("C").parentSlotName).to.equal("trigger")
+			expect(childIds("popover")).to.deep.equal([])
+			expect(childIds("column")).to.deep.equal(["A", "B", "empty", "row", "positioned", "extras"])
+		})
+
+		// the Popover is renderless, so dragging back out has no owner element to measure from
+		startDrag("C", () => {
+			const rect = rectOf("A")
+			return { x: rect.left + rect.width / 2, y: rect.top + 4 }
+		})
+		release()
+		cy.then(() => {
+			expect(canvas.findBlock("popover").getSlotContent("trigger")).to.deep.equal([])
+			expect(canvas.findBlock("C").parentSlotName).to.equal(undefined)
+			expect(childIds("column")).to.deep.equal(["C", "A", "B", "empty", "row", "positioned", "extras"])
 		})
 	})
 
