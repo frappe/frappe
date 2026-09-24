@@ -259,6 +259,51 @@ class TestWorkflow(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			apply_workflow(todo, "Approve")
 
+	def test_get_workflow_state_count_only_counts_permitted_records(self):
+		"""get_workflow_state_count must aggregate only records the caller can actually see."""
+		from frappe.workflow.doctype.workflow.workflow import get_workflow_state_count
+
+		marker = "Marker-" + random_string(10)
+		private_todo = create_new_todo()
+		frappe.db.set_value("ToDo", private_todo.name, "workflow_state", marker)
+
+		frappe.set_user("Administrator")
+		admin_result = get_workflow_state_count(
+			doctype="ToDo", workflow_state_field="workflow_state", states=[]
+		)
+		self.assertIn(marker, [r["workflow_state"] for r in admin_result])
+
+		# test2@example.com has no role on ToDo and doesn't own/get assigned the record above
+		frappe.set_user("test2@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		visible_todos = frappe.get_list("ToDo", filters={"name": private_todo.name})
+		self.assertEqual(visible_todos, [])
+
+		restricted_result = get_workflow_state_count(
+			doctype="ToDo", workflow_state_field="workflow_state", states=[]
+		)
+		self.assertNotIn(marker, [r["workflow_state"] for r in (restricted_result or [])])
+
+	def test_get_workflow_state_count_rejects_unbound_field(self):
+		"""Only the field actually configured on a Workflow for the doctype can be aggregated."""
+		from frappe.workflow.doctype.workflow.workflow import get_workflow_state_count
+
+		create_new_todo()
+		result = get_workflow_state_count(doctype="ToDo", workflow_state_field="description", states=[])
+		self.assertFalse(result)
+
+	def test_get_workflow_state_count_works_for_inactive_workflow(self):
+		"""The field/doctype binding must not depend on the Workflow currently being active."""
+		from frappe.workflow.doctype.workflow.workflow import get_workflow_state_count
+
+		self.workflow.is_active = 0
+		self.workflow.save()
+
+		create_new_todo()
+		result = get_workflow_state_count(doctype="ToDo", workflow_state_field="workflow_state", states=[])
+		self.assertTrue(result)
+
 	# app-defined workflow task tests start here
 	def test_sync_tasks(self, doc=None):
 		"""test workflow with workflow tasks (server scripts, webhooks and app-defined methods)"""
