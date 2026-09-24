@@ -63,8 +63,9 @@ The site's ordered array of **active** apps, used to order contributions. Delibe
 *ordering* fails silently.
 
 **Generated route**:
-One of the four routes every app gets with **no declaration at all** — home, list,
-saved-view, record. `doctype` is a param, so four routes serve any number of doctypes.
+One of the routes every app gets with **no declaration at all** — home, list,
+standard-list, saved-view, record, standard-record, and module on a modular app. `doctype` is
+a param, so the same routes serve any number of doctypes.
 There is no per-doctype route and no opt-out.
 _Avoid_: default route, implicit route.
 

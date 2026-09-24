@@ -209,8 +209,9 @@ Do not "fix" these:
   exception: it is vue-router's object, so neither the inbound nor the outbound
   compatibility rule covers it. Do not delete the member, and do not hand a second one
   through on its precedent.
-- **`generated.ts` defines 4 routes for any number of doctypes** — `doctype` is a param,
-  and `view`/`layout`/`from` are query params by decision.
+- **`generated.ts` defines a fixed set of routes for any number of doctypes** (home, list,
+  standard-list, saved-view, record, standard-record, plus module when modular) —
+  `doctype` is a param, and `view`/`layout`/`from` are query params by decision.
 - **The shared library list is `SINGLETONS` (`frappe/shell/manifest.py:14`)** — `vue`,
   `vue-router`, `frappe-ui`, `@framework/ui`, `reka-ui`, `dompurify` — enforced at build
   time and documented nowhere else. **The list a stored script may import is a different

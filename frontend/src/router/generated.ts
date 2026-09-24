@@ -18,7 +18,7 @@ function flatRoutes() {
 		// /apps/crm/crm-deal
 		{ path: "/:doctype", name: "list", component: List },
 
-		// /apps/crm/crm-deal/view/list, the standard list page; `list` is the only view kind.
+		// /apps/crm/crm-deal/view/list, the standard list page.
 		{ path: "/:doctype/view/list", name: "standard-list", component: List },
 
 		// /apps/crm/crm-deal/view/list/open-deals, a saved view of the list kind.

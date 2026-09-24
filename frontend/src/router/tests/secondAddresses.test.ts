@@ -20,7 +20,7 @@ const addresses = new Addresses({
 		"Sales Invoice": ["sales-invoice", "accounts"],
 		"Accounts Settings": ["accounts-settings", "accounts"],
 	},
-	modules: { accounts: "Accounts" },
+	modules: { accounts: "Accounts", selling: "Selling" },
 	singles: ["Accounts Settings"],
 });
 
@@ -130,5 +130,36 @@ describe.each([
 		expect(urlFor("Sales Invoice", null, { view: "open" })).toBe(
 			`/apps/erpnext${prefix}/sales-invoice/view/list/open`
 		);
+	});
+});
+
+describe("second addresses on a modular app only", () => {
+	async function open(path: string) {
+		const router = createShellRouter(boot(true), addresses);
+		await router.push(path);
+		return router;
+	}
+
+	it.each(["/sales-invoice/SI-001/record", "/sales-invoice/view/list"])(
+		"shows not-found at the flat shape %s",
+		async (path) => {
+			const router = await open(path);
+
+			expect(router.currentRoute.value.name).toBe("not-found");
+		}
+	);
+
+	it("moves the standard list page to the doctype's own module", async () => {
+		const router = await open("/selling/sales-invoice/view/list");
+		const route = router.currentRoute.value;
+
+		expect(route.name).toBe("standard-list");
+		expect(route.params).toEqual({ module: "accounts", doctype: "sales-invoice" });
+	});
+
+	it("shows not-found under a module that does not exist", async () => {
+		const router = await open("/wrong-module/sales-invoice/view/list");
+
+		expect(router.currentRoute.value.name).toBe("not-found");
 	});
 });
