@@ -215,6 +215,8 @@ const partialVersion = computed(() => {
 const scroller = ref(null)
 const stick = ref(true)
 let lastScrollTop = 0
+// the view sat on the bottom at the last scroll or resize
+let atBottom = true
 
 function onScroll() {
 	const el = scroller.value
@@ -222,6 +224,7 @@ function onScroll() {
 	const distance = el.scrollHeight - el.scrollTop - el.clientHeight
 	const goingUp = el.scrollTop < lastScrollTop
 	lastScrollTop = el.scrollTop
+	atBottom = distance < 4
 	// any upward scroll unsticks; scrolling down re-sticks only once the view
 	// actually reaches the bottom — re-pinning from ~80px away yanks the page
 	// out of the user's hands mid-scroll
@@ -231,19 +234,25 @@ function onScroll() {
 }
 
 // collapsing a fold, a tool group or a thought can leave the view at the bottom
-// without any scroll event, so the thread's height is watched as well
+// without any scroll event, so the thread's height is watched as well; a panel,
+// the sidebar or the window resizing the list re-wraps the thread, so a view that
+// sat on the bottom is put back there
 const thread = ref(null)
 let resizeObserver = null
 onMounted(() => {
 	if (typeof ResizeObserver === "undefined") return
-	resizeObserver = new ResizeObserver(() => {
+	resizeObserver = new ResizeObserver((entries) => {
 		const el = scroller.value
-		if (el && el.scrollHeight - el.scrollTop - el.clientHeight < 4) stick.value = true
+		if (!el) return
+		if (stick.value && atBottom && entries.some((entry) => entry.target === el)) el.scrollTop = el.scrollHeight
+		atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 4
+		if (atBottom) stick.value = true
 	})
 	watch(
 		thread,
 		(el) => {
 			resizeObserver.disconnect()
+			resizeObserver.observe(scroller.value)
 			if (el) resizeObserver.observe(el)
 		},
 		{ immediate: true },
