@@ -1274,3 +1274,48 @@ context("Print Format form — renderer notice", () => {
 			.and("contain", "wkhtmltopdf is deprecated");
 	});
 });
+
+// ─── Classic builder page — guards ───────────────────────────────────────────
+
+context("Classic builder page — guards", () => {
+	let PF_NAME;
+
+	before(() => {
+		cy.login();
+		cy.visit("/desk");
+	});
+
+	beforeEach(() => {
+		PF_NAME = pf_name();
+	});
+
+	afterEach(() => {
+		cy.window().then((win) => cleanup(win, PF_NAME));
+	});
+
+	it("sends a new-builder format to the new builder", () => {
+		insert_builder_format(PF_NAME);
+
+		cy.visit(`/desk/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+		cy.location("pathname", { timeout: 20000 }).should(
+			"match",
+			/\/(app|desk)\/(?:[\w-]+\/)?print-format-builder-beta\//
+		);
+		cy.get(".print-format-main", { timeout: 20000 }).should("exist");
+	});
+
+	it("sends a custom HTML format back to the form", () => {
+		cy.insert_doc(
+			"Print Format",
+			{ name: PF_NAME, doc_type: "ToDo", custom_format: 1, html: "<div></div>" },
+			true
+		);
+
+		cy.visit(`/desk/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+		cy.location("pathname", { timeout: 20000 }).should(
+			"match",
+			/\/(app|desk)\/(?:[\w-]+\/)?print-format\/[^/]+$/
+		);
+		cy.get(".msgprint", { timeout: 20000 }).should("contain", "custom HTML format");
+	});
+});

@@ -21,6 +21,19 @@ frappe.pages["print-format-builder"].on_page_show = function (wrapper) {
 			frappe.set_route("Form", "Print Format", route[1]);
 			return;
 		}
+		if (print_format?.print_format_builder_beta) {
+			frappe.set_route("print-format-builder-beta", route[1]);
+			return;
+		}
+		if (print_format?.custom_format) {
+			frappe.msgprint(
+				__("{0} is a custom HTML format and cannot be edited in the builder.", [
+					route[1].bold(),
+				])
+			);
+			frappe.set_route("Form", "Print Format", route[1]);
+			return;
+		}
 		frappe.print_format_builder.print_format = print_format;
 		frappe.print_format_builder.refresh();
 	});
