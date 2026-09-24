@@ -344,6 +344,16 @@ frappe.ui.GroupBy = class {
 				}
 				docfield.label = __("Average of {0}", [__(docfield.label, null, docfield.parent)]);
 			}
+
+			if (
+				docfield.fieldtype == "Currency" &&
+				docfield.options &&
+				!docfield.options.includes(":") &&
+				docfield.options != this.group_by_field
+			) {
+				docfield.fieldtype = "Float";
+				docfield.options = null;
+			}
 		}
 
 		docfield.fieldname = "_aggregate_column";
