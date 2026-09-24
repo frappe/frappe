@@ -1,5 +1,5 @@
 frappe.pages["print-format-builder"].on_page_load = function (wrapper) {
-	frappe.print_format_builder = new frappe.PrintFormatBuilder(wrapper);
+	wrapper.builder = new frappe.PrintFormatBuilder(wrapper);
 	frappe.breadcrumbs.add("Setup", "Print Format");
 };
 
@@ -34,8 +34,8 @@ frappe.pages["print-format-builder"].on_page_show = function (wrapper) {
 			frappe.set_route("Form", "Print Format", route[1]);
 			return;
 		}
-		frappe.print_format_builder.print_format = print_format;
-		frappe.print_format_builder.refresh();
+		wrapper.builder.print_format = print_format;
+		wrapper.builder.refresh();
 	});
 };
 

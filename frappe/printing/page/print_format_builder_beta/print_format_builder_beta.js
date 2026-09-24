@@ -61,7 +61,7 @@ function load_print_format_builder(wrapper, force = false) {
 	let $parent = $(wrapper).find(".layout-main-section");
 
 	if (route.length < 2) {
-		frappe.print_format_builder?.destroy?.();
+		wrapper.builder?.destroy?.();
 		$parent.empty();
 		frappe.set_route("List", "Print Format");
 		return;
@@ -76,7 +76,7 @@ function load_print_format_builder(wrapper, force = false) {
 	});
 	wrapper.page.set_title(route[1]);
 
-	const current = frappe.print_format_builder;
+	const current = wrapper.builder;
 	if (!force && current?.has_unsaved_changes?.()) {
 		if (current.print_format === route[1]) return;
 		current.leave(() => load_print_format_builder(wrapper, true));
@@ -103,7 +103,7 @@ function load_print_format_builder(wrapper, force = false) {
 function mount_print_format_builder(wrapper, $parent, print_format) {
 	frappe.require("print_format_builder.bundle.js").then(() => {
 		if (frappe.get_route()[1] !== print_format) return;
-		frappe.print_format_builder = new frappe.ui.PrintFormatBuilder({
+		wrapper.builder = new frappe.ui.PrintFormatBuilder({
 			wrapper: $parent,
 			page: wrapper.page,
 			print_format,
