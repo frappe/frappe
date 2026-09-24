@@ -64,13 +64,16 @@ function patch_breadcrumbs_once() {
 function load_print_format_builder(wrapper) {
 	let route = frappe.get_route();
 	let $parent = $(wrapper).find(".layout-main-section");
-	frappe.print_format_builder?.destroy?.();
-	$parent.empty();
 
 	if (route.length < 2) {
 		frappe.set_route("List", "Print Format");
 		return;
 	}
+
+	const current = frappe.print_format_builder;
+	if (current?.print_format === route[1] && current.has_unsaved_changes?.()) return;
+	current?.destroy?.();
+	$parent.empty();
 
 	// _extra_label is re-appended on every breadcrumbs.update() call so it survives route changes
 	patch_breadcrumbs_once();
