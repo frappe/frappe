@@ -1,5 +1,5 @@
-// The `doctype_update` listener as claims: it forgets the changed DocType's meta, form layouts and
-// list settings, and nothing else; an open page keeps what it holds.
+// What the `doctype_update` listener promises: it forgets the changed DocType's meta, form
+// layouts and list settings, and nothing else; an open page keeps what it holds.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 

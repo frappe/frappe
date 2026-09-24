@@ -109,4 +109,16 @@ describe("useDoctypeMeta", () => {
 
     expect(getMeta.mock.calls.map(([doctype]) => doctype)).toEqual(["Note", "Task", "Note"]);
   });
+
+  it("drops a meta still in flight, whose child tables are not known yet", async () => {
+    useDoctypeMeta("Task");
+    await settled();
+    useDoctypeMeta("Note");
+
+    dropDoctypeMeta("Note Item");
+    useDoctypeMeta("Note");
+    useDoctypeMeta("Task");
+
+    expect(getMeta.mock.calls.map(([doctype]) => doctype)).toEqual(["Task", "Note", "Note"]);
+  });
 });

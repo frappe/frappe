@@ -1,5 +1,5 @@
 // One doctype's stored list settings: the site row and the person's own, fetched beside meta once
-// per DocType change, and written back silently. A write's response replaces both rows.
+// and again after a DocType change, written back silently. A write's response replaces both rows.
 import { runMethod } from "@framework/ui/api";
 import { computed, getCurrentScope, onScopeDispose, ref, type ComputedRef, type Ref } from "vue";
 import type { ListSettings, ListSettingsKey } from "./storedSettings";
@@ -90,7 +90,7 @@ export function useListSettings(doctype: string): ListSettingsHandle {
 	};
 }
 
-/** Sends a waiting write now; the doctype's next caller reads after every write already queued. */
+/** Forgets the doctype's settings; a waiting write goes out first, and the next caller reads after it. */
 export function dropListSettings(doctype: string): void {
 	const entry = entries.get(doctype);
 	if (!entry) return;

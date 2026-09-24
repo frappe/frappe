@@ -45,9 +45,13 @@ const entries = memoizedState((doctype: string) => doctype, buildEntry);
 export function useDoctypeMeta(
   doctype: MaybeRefOrGetter<string>
 ): UseDoctypeMeta {
-  const entry = computed(() => entries.get(toValue(doctype)));
-  // Read at call time: that fetches now, and the handle keeps this entry until the doctype moves.
-  void entry.value;
+  // Built at call time and held until the doctype moves, so a later drop cannot swap it.
+  let held = { doctype: toValue(doctype), entry: entries.get(toValue(doctype)) };
+  const entry = computed(() => {
+    const name = toValue(doctype);
+    if (name !== held.doctype) held = { doctype: name, entry: entries.get(name) };
+    return held.entry;
+  });
 
   return {
     meta: computed(() => entry.value.metas.value[toValue(doctype)] ?? null),
@@ -58,9 +62,12 @@ export function useDoctypeMeta(
   };
 }
 
-/** Forgets the doctype's meta and every meta holding it as a child table; the next caller fetches. */
+/** Forgets the doctype's meta, every meta holding it as a child table, and every fetch in flight. */
 export function dropDoctypeMeta(doctype: string): void {
-  entries.drop((key, entry) => key === doctype || doctype in entry.metas.value);
+  // A fetch in flight may answer from before the change, and its child tables are not known yet.
+  entries.drop(
+    (key, entry) => key === doctype || doctype in entry.metas.value || entry.loading.value
+  );
 }
 
 /** Drops every memoised meta, so one test's fetch cannot reach the next. */

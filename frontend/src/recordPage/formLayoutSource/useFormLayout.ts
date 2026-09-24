@@ -57,11 +57,16 @@ const entries = memoizedState(
 export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 	const { meta, metas, loading, error } = useDoctypeMeta(options.doctype);
 	const { fieldAccess } = useDocPermissions(options.doctype);
-	const entry = computed(() =>
-		entries.get({ doctype: toValue(options.doctype), type: options.type })
-	);
-	// Read at call time: that fetches now, and the handle keeps this entry until the doctype moves.
-	void entry.value;
+	// Built at call time and held until the input moves, so a later drop cannot swap it.
+	const inputNow = () => ({ doctype: toValue(options.doctype), type: options.type });
+	const first = inputNow();
+	let held = { input: first, entry: entries.get(first) };
+	const entry = computed(() => {
+		const input = inputNow();
+		if (input.doctype !== held.input.doctype || input.type !== held.input.type)
+			held = { input, entry: entries.get(input) };
+		return held.entry;
+	});
 
 	const layout = computed<FormLayoutSchema>(() => {
 		const response = entry.value.data as FormLayoutsResponse | null;
