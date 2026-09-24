@@ -734,6 +734,19 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertEqual(source.print_format_builder, 1)
 		self.assertEqual(frappe.parse_json(source.format_data), self.CLASSIC_FORMAT_DATA)
 
+	def test_convert_format_without_layout_builds_the_default_layout(self):
+		from frappe.printing.doctype.print_format.classic_converter import convert_print_format
+
+		doc = frappe.new_doc("Print Format")
+		doc.doc_type = "ToDo"
+		doc.name = "_Test Empty Layout"
+		doc.print_format_builder = 1
+		self.assertEqual(convert_print_format(doc), [])
+		layout = frappe.parse_json(doc.format_data)
+		self.assertTrue(layout["sections"])
+		self.assertEqual(doc.print_format_builder_beta, 1)
+		self.assertEqual(doc.pdf_generator, "chrome")
+
 	def test_create_custom_format_copies_standard_classic_without_developer_mode(self):
 		from frappe.printing.doctype.print_format.print_format import create_custom_format
 
