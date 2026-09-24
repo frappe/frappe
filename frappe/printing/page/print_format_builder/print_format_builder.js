@@ -5,6 +5,8 @@ const FULL_HEIGHT_PAGE_CLASS = "full-height-page";
 // runs again for every format opened without leaving the page, so the state is read
 // once and kept until the matching hide.
 let folded_sidebar = false;
+let leaving_to = null;
+let leaving = null;
 let restore_sidebar = false;
 
 function collapse_sidebar() {
@@ -64,13 +66,48 @@ function patch_breadcrumbs_once() {
 function load_print_format_builder(wrapper) {
 	let route = frappe.get_route();
 	let $parent = $(wrapper).find(".layout-main-section");
-	frappe.print_format_builder?.destroy?.();
-	$parent.empty();
 
 	if (route.length < 2) {
 		frappe.set_route("List", "Print Format");
 		return;
 	}
+
+	const current = frappe.print_format_builder;
+	if (current?.has_unsaved_changes?.() && route[1] !== leaving_to) {
+		if (current.print_format === route[1]) return;
+		if (leaving) {
+			leaving.target = route[1];
+			leaving.restored = true;
+			frappe.route_flags.replace_route = true;
+			frappe.set_route("print-format-builder", current.print_format);
+			return;
+		}
+		leaving = { target: route[1], restored: false };
+		current.flush().then(
+			() => {
+				const { target, restored } = leaving;
+				leaving = null;
+				leaving_to = target;
+				restored
+					? frappe.set_route("print-format-builder", target)
+					: load_print_format_builder(wrapper);
+			},
+			() => {
+				const { target, restored } = leaving;
+				leaving = null;
+				if (!restored) history.back();
+				current.warn_unsaved(() => {
+					leaving_to = target;
+					frappe.set_route("print-format-builder", target);
+				});
+			}
+		);
+		return;
+	}
+	leaving = null;
+	leaving_to = null;
+	current?.destroy?.();
+	$parent.empty();
 
 	// _extra_label is re-appended on every breadcrumbs.update() call so it survives route changes
 	patch_breadcrumbs_once();

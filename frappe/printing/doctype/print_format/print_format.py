@@ -253,7 +253,9 @@ class PrintFormat(Document):
 				compile(condition, "<condition>", "eval")
 			except SyntaxError as e:
 				frappe.throw(
-					_("{0} is not a valid condition: {1}").format(frappe.bold(where), e.msg),
+					_("{0} is not a valid condition: {1}").format(
+						frappe.bold(frappe.utils.escape_html(where)), e.msg
+					),
 					title=_("Invalid Condition"),
 				)
 
