@@ -238,6 +238,8 @@ def _download_multi_pdf(
 		for idx, ss in enumerate(result):
 			try:
 				pdf_writer = print_into_writer(doctype, ss)
+			except frappe.PermissionError:
+				raise
 			except Exception:
 				frappe.log_error(
 					title="Error in Multi PDF download",
@@ -271,6 +273,8 @@ def _download_multi_pdf(
 			for doc_name in doctype[doctype_name]:
 				try:
 					pdf_writer = print_into_writer(doctype_name, doc_name)
+				except frappe.PermissionError:
+					raise
 				except Exception:
 					if task_id:
 						frappe.publish_realtime(task_id=task_id, message="Failed")
