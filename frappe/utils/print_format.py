@@ -186,7 +186,13 @@ def _download_multi_pdf(
 		if frappe.db.get_value("Print Format", format, "pdf_generator") == "Typst":
 			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
 
+	format_language = format and frappe.db.get_value("Print Format", format, "default_print_language")
+
 	def print_into_writer(print_doctype, print_name):
+		with print_language(format_language):
+			return _print_into_writer(print_doctype, print_name)
+
+	def _print_into_writer(print_doctype, print_name):
 		from frappe.utils.print_utils import _print_format_doc_or_none, renders_through_generator
 
 		pf_doc = _print_format_doc_or_none(format)
