@@ -10,7 +10,7 @@ import frappe
 from frappe import _, cstr, get_module_path
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
-from frappe.utils import cint, escape_html, strip_html
+from frappe.utils import cint, escape_html, flt, strip_html
 from frappe.utils.jinja_globals import is_rtl
 
 if TYPE_CHECKING:
@@ -649,6 +649,10 @@ def get_print_style(
 
 	if style and frappe.db.exists("Print Style", style):
 		css = css + "\n" + frappe.db.get_value("Print Style", style, "css")
+
+	# after the Print Style, so a style that sets its own size does not win over the setting
+	if flt(print_settings.font_size):
+		css = css + f"\n.print-format {{ font-size: {flt(print_settings.font_size)}pt; }}"
 
 	# move @import to top
 	for at_import in list(set(re.findall(r"(@import url\([^\)]+\)[;]?)", css))):
