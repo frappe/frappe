@@ -2523,6 +2523,14 @@ class TestPageItemRoute(IntegrationTestCase):
 
 		self.assertEqual(items[0]["route"], "payroll")
 
+	def test_a_route_is_stored_without_surrounding_whitespace(self):
+		"""The stored route is what the desk appends to the page's route and what `item_key`
+		names the item by, so a stray space would break the link and split one destination
+		into two identities."""
+		doc = self.sidebar_with(link_type="Page", link_to=self.PAGE, route=" payroll ")
+
+		self.assertEqual(frappe.get_doc("Sidebar", doc.name).items[0].route, "payroll")
+
 	def test_a_route_that_leaves_the_page_is_refused(self):
 		"""The route is appended to the page's own, so anything that can address something
 		outside the page would point the item away from the page it links."""

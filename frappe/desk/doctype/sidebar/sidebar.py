@@ -969,7 +969,8 @@ def validate_item_route(item) -> None:
 	Only a Page item has anything below its link to name, so a route anywhere else is refused
 	rather than ignored: every other link type has one route per `link_to`.
 	"""
-	route = (item.get("route") or "").strip()
+	item.route = (item.get("route") or "").strip() or None
+	route = item.route
 	if not route:
 		return
 
