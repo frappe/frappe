@@ -207,15 +207,21 @@ def attach_print(
 				if html:
 					content = get_pdf(html, options={"password": password} if password else None)
 				elif renders_through_generator(pf_doc):
+					from frappe.printing.doctype.print_format.classic_converter import uses_legacy_weasyprint
 					from frappe.utils.print_format_generator import PrintFormatGenerator
 					from frappe.www.printview import validate_print_for_docstatus
 
 					doc_obj = doc or frappe.get_cached_doc(doctype, name)
 					validate_print_for_docstatus(doc_obj)
 					letterhead_name = letterhead if print_letterhead else None
-					generator = PrintFormatGenerator(
-						pf_doc, doc_obj, letterhead_name, no_letterhead=not print_letterhead
-					)
+					if uses_legacy_weasyprint(pf_doc):
+						from frappe.utils.weasyprint import legacy_generator
+
+						generator = legacy_generator(pf_doc, doc_obj, letterhead_name)
+					else:
+						generator = PrintFormatGenerator(
+							pf_doc, doc_obj, letterhead_name, no_letterhead=not print_letterhead
+						)
 					content = generator.render_pdf(password=password)
 				else:
 					kwargs["as_pdf"] = True

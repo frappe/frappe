@@ -1,0 +1,12 @@
+{% import "templates/print_format_weasyprint/macros.html" as macros %}
+<div class="section">
+	<div class="section-columns row">
+		{% for column in zone.columns %}
+		<div class="column col">
+			{% for df in column.fields %}
+			{{ macros.render_field(df, doc) }}
+			{% endfor %}
+		</div>
+		{% endfor %}
+	</div>
+</div>

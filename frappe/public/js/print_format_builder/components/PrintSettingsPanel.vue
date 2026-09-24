@@ -179,7 +179,7 @@ const DEPRECATION_NOTICES = {
 	WeasyPrint: {
 		short: __("Deprecated, removed in version 17"),
 		long: __(
-			"WeasyPrint is deprecated and will be removed in version 17. Switch this format to Chrome."
+			"Deprecated, removed in version 17. Renders with the v16 stylesheet; new blocks and styling need Chromium or Typst."
 		),
 	},
 };

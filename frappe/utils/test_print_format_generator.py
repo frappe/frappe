@@ -250,6 +250,47 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			chrome_options(page_number="Top Left", margin_top=0)["options"],
 		)
 
+	def test_custom_page_size_reaches_chrome_in_mm(self):
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator, page_size_mm
+		from frappe.utils.print_utils import convert_uom
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		with self.change_settings(
+			"Print Settings", pdf_page_size="Custom", pdf_page_height=100, pdf_page_width=50
+		):
+			settings = frappe.get_doc("Print Settings")
+			self.assertEqual(page_size_mm(settings), (50, 100))
+
+			generator = PrintFormatGenerator(pf, todo, no_letterhead=1)
+			with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
+				generator.render_pdf()
+			self.assertIn("size: 50.0mm 100.0mm", chrome_pdf.call_args.kwargs["html"])
+
+			from frappe.utils.pdf_generator.browser import Browser
+
+			browser = Browser.__new__(Browser)
+			browser.options = {}
+			browser._set_default_page_size()
+			self.assertEqual(browser.options["page-width"], "50.0mm")
+			self.assertEqual(browser.options["page-height"], "100.0mm")
+			self.assertAlmostEqual(
+				convert_uom(
+					browser._get_converted_num(browser.options["page-width"]), "px", "mm", only_number=True
+				),
+				50,
+				delta=0.5,
+			)
+			self.assertAlmostEqual(
+				convert_uom(
+					browser._get_converted_num(browser.options["page-height"]), "px", "mm", only_number=True
+				),
+				100,
+				delta=0.5,
+			)
+
 	def test_render_pdf_passes_password_to_chrome(self):
 		"""Encrypted PDFs (attach_print(password=...)) must stay encrypted on the
 		generator path — the chrome pipeline encrypts from options['password']."""

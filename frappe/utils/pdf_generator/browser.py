@@ -3,7 +3,7 @@ from typing import ClassVar
 from bs4 import BeautifulSoup
 
 import frappe
-from frappe.utils.data import cint
+from frappe.utils.data import cint, flt
 from frappe.utils.pdf import get_host_url
 from frappe.utils.print_utils import convert_uom, parse_float_and_unit
 
@@ -232,12 +232,10 @@ class Browser:
 		)
 
 		if pdf_page_size == "Custom":
-			options["page-height"] = options.get("page-height") or frappe.db.get_single_value(
-				"Print Settings", "pdf_page_height"
-			)
-			options["page-width"] = options.get("page-width") or frappe.db.get_single_value(
-				"Print Settings", "pdf_page_width"
-			)
+			for option, field in (("page-height", "pdf_page_height"), ("page-width", "pdf_page_width")):
+				if not options.get(option):
+					value = frappe.db.get_single_value("Print Settings", field)
+					options[option] = f"{flt(value)}mm" if value else None
 		else:
 			options["page-size"] = pdf_page_size
 

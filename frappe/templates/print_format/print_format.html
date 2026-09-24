@@ -32,7 +32,7 @@
 	{#- Chrome PDF: layout.header rendered once as a body element (page 1 only, reliable height) -#}
 	{{ chrome_layout_header or '' }}
 	{#- HTML preview: render layout.header once at the top of the body -#}
-	{%- if not for_chrome and not for_weasyprint and layout.header -%}
+	{%- if not for_chrome and layout.header -%}
 	{%- if layout.header is string -%}
 	<div class="document-header-content">{{ frappe.render_template(layout.header, {'doc': doc}) }}</div>
 	{%- elif layout.header.columns -%}
@@ -135,7 +135,7 @@
 	{#- Chrome PDF: layout.footer rendered once at the end of body -#}
 	{{ chrome_layout_footer or '' }}
 	{#- HTML preview: render layout.footer once at the bottom of the body -#}
-	{%- if not for_chrome and not for_weasyprint and layout.footer -%}
+	{%- if not for_chrome and layout.footer -%}
 	{%- if layout.footer is string -%}
 	<div class="document-footer-content">{{ frappe.render_template(layout.footer, {'doc': doc}) }}</div>
 	{%- elif layout.footer.columns -%}
