@@ -345,12 +345,12 @@ def create_default_layout(meta) -> dict:
 	for df in meta.fields:
 		if not df.fieldname:
 			continue
-		if df.fieldtype == "Section Break":
+		if df.fieldtype in ("Section Break", "Tab Break"):
 			state.skip = bool(cint(df.print_hide))
 			if state.skip:
 				state.section = state.column = None
 			else:
-				new_section(df)
+				new_section(df if df.fieldtype == "Section Break" else None)
 		elif state.skip:
 			continue
 		elif df.fieldtype == "Column Break":

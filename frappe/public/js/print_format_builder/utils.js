@@ -228,6 +228,8 @@ export function create_default_layout(meta, print_format) {
 
 		if (df.fieldtype === "Section Break") {
 			set_section(df);
+		} else if (df.fieldtype === "Tab Break") {
+			set_section();
 		} else if (df.fieldtype === "Column Break") {
 			set_column(df);
 		} else if (df.label && is_printable_docfield(df)) {
