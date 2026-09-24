@@ -8,7 +8,7 @@ import click
 import frappe
 from frappe import _
 
-TEMPLATE_DIR = "templates/print_format_weasyprint"
+TEMPLATE_DIR = "templates/print_format"
 ZONE_HTML_FIELDNAME = "_zone_html"
 
 # mirrored client-side in print_format_builder/fieldtypes.js + utils.js legacy_blockers_client
@@ -183,6 +183,7 @@ class PrintFormatGenerator:
 				"page_width": page_width,
 				"page_size": page_size,
 				"body_width": body_width,
+				"legacy": True,
 			}
 		)
 		self.context = context
@@ -325,7 +326,9 @@ class PrintFormatGenerator:
 				zone = (
 					"{% raw %}"
 					# nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
-					+ frappe.render_template(f"{TEMPLATE_DIR}/zone.html", {"zone": zone, "doc": self.doc})
+					+ frappe.render_template(
+						f"{TEMPLATE_DIR}/zone.html", {"zone": zone, "doc": self.doc, "legacy": True}
+					)
 					+ "{% endraw %}"
 				)
 			layout[key] = zone
