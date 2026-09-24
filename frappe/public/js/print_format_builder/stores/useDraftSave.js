@@ -103,18 +103,28 @@ export function useDraftSave({
 		// second would carry the timestamp the first is about to move
 		const run = () => {
 			const doc = letterhead.value;
-			const ours = Object.fromEntries(
-				LETTERHEAD_EDITED_FIELDS.map((key) => [key, doc[key]])
-			);
+			const snapshot = () =>
+				Object.fromEntries(LETTERHEAD_EDITED_FIELDS.map((key) => [key, doc[key]]));
+			let sent = snapshot();
 			return frappe
 				.call({ method: "frappe.client.save", args: { doc }, silent: true })
 				.catch((xhr) => {
 					if (xhr?.responseJSON?.exc_type !== "TimestampMismatchError") throw xhr;
-					return frappe.db.get_doc("Letter Head", doc.name).then((fresh) => {
-						const merged = Object.assign(fresh, ours, { _dirty: true });
-						if (letterhead.value === doc) letterhead.value = merged;
-						return frappe.call("frappe.client.save", { doc: merged });
-					});
+					// not frappe.db.get_doc: that syncs the reply into locals, and the
+					// letter head the inspector is bound to is that very object
+					sent = snapshot();
+					return frappe
+						.xcall("frappe.client.get", { doctype: "Letter Head", name: doc.name })
+						.then((fresh) => {
+							Object.assign(doc, fresh, sent);
+							return frappe.call("frappe.client.save", { doc });
+						});
+				})
+				.then((r) => {
+					doc.modified = r.message.modified;
+					// an edit made while the request was in flight is still unsaved
+					doc._dirty = LETTERHEAD_EDITED_FIELDS.some((key) => doc[key] !== sent[key]);
+					return r;
 				});
 		};
 		letterhead_push = letterhead_push.then(run, run);
@@ -122,7 +132,7 @@ export function useDraftSave({
 	}
 	function save_letterhead() {
 		if (!letterhead.value?._dirty) return Promise.resolve();
-		return push_letterhead().then((r) => (letterhead.value = r.message));
+		return push_letterhead();
 	}
 	function server_message(xhr) {
 		let r = xhr?.responseJSON;
@@ -210,10 +220,7 @@ export function useDraftSave({
 				has_draft.value = true;
 				if (!was_dirty) nextTick(() => (dirty.value = false));
 				if (letterhead.value && letterhead.value._dirty) {
-					return push_letterhead().then((res) => {
-						letterhead.value.modified = res.message.modified;
-						letterhead.value._dirty = false;
-					});
+					return push_letterhead();
 				}
 			})
 			.then(() => {
