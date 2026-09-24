@@ -85,11 +85,26 @@ function load_print_format_builder(wrapper, force = false) {
 	current?.destroy?.();
 	$parent.empty();
 
+	frappe.model.with_doc("Print Format", route[1], () => {
+		if (frappe.get_doc("Print Format", route[1])?.__onload?.renders_from_file) {
+			frappe.msgprint(
+				__("{0} is rendered from an HTML file and cannot be edited in the builder.", [
+					route[1].bold(),
+				])
+			);
+			frappe.set_route("Form", "Print Format", route[1]);
+			return;
+		}
+		mount_print_format_builder(wrapper, $parent, route[1]);
+	});
+}
+
+function mount_print_format_builder(wrapper, $parent, print_format) {
 	frappe.require("print_format_builder.bundle.js").then(() => {
 		frappe.print_format_builder = new frappe.ui.PrintFormatBuilder({
 			wrapper: $parent,
 			page: wrapper.page,
-			print_format: route[1],
+			print_format,
 		});
 	});
 }

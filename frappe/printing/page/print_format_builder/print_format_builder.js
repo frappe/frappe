@@ -10,7 +10,17 @@ frappe.pages["print-format-builder"].on_page_show = function (wrapper) {
 		return;
 	}
 	frappe.model.with_doc("Print Format", route[1], function () {
-		frappe.print_format_builder.print_format = frappe.get_doc("Print Format", route[1]);
+		const print_format = frappe.get_doc("Print Format", route[1]);
+		if (print_format?.__onload?.renders_from_file) {
+			frappe.msgprint(
+				__("{0} is rendered from an HTML file and cannot be edited in the builder.", [
+					route[1].bold(),
+				])
+			);
+			frappe.set_route("Form", "Print Format", route[1]);
+			return;
+		}
+		frappe.print_format_builder.print_format = print_format;
 		frappe.print_format_builder.refresh();
 	});
 };
