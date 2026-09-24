@@ -282,9 +282,6 @@ export const useStore = defineStore("form-builder-store", () => {
 	}
 
 	function setup_web_form_pages() {
-		// mark page 1 as the tab with no backing row, the way create_layout() does
-		form.value.layout.tabs[0].is_first = true;
-
 		renumber_web_form_pages();
 
 		// create_layout() prunes empty sections, leaving a page with no drop target
