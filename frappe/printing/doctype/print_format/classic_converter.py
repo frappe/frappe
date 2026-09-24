@@ -294,7 +294,8 @@ def renders_from_file(doc) -> bool:
 		return False
 	try:
 		path = os.path.join(get_module_path(module, "Print Format", doc.name), scrub(doc.name) + ".html")
-	except Exception:
+	except (frappe.DoesNotExistError, ImportError):
+		# the module is not on disk, so printing cannot read a file either
 		return False
 	return os.path.exists(path)
 
