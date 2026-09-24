@@ -682,7 +682,18 @@ describe("idle stores", () => {
 });
 
 describe("ActivityTimeline", () => {
-  it("draws one loading row above the oldest row while the older page loads", async () => {
+  it("draws a skeleton of the feed, and no spinner, on first load", async () => {
+    const el = document.createElement("div");
+    const app = createApp(() => h(ActivityTimeline, { activities: [], loading: true }));
+    app.mount(el);
+    mounted.push(app);
+    await nextTick();
+    expect(el.querySelectorAll(".fui-skeleton").length).toBeGreaterThan(0);
+    expect(el.querySelector("svg")).toBeNull();
+    expect(el.querySelectorAll(".activity")).toHaveLength(0);
+  });
+
+  it("draws skeleton rows above the oldest row while the older page loads", async () => {
     const el = document.createElement("div");
     const app = createApp(() =>
       h(ActivityTimeline, {
@@ -694,8 +705,10 @@ describe("ActivityTimeline", () => {
     mounted.push(app);
     await nextTick();
     const feed = el.querySelector(".activities")!;
-    expect(feed.firstElementChild?.classList.contains("activity")).toBe(false);
-    expect(feed.firstElementChild?.querySelector("svg")).not.toBeNull();
+    const top = feed.firstElementChild!;
+    expect(top.classList.contains("activity")).toBe(false);
+    expect(top.querySelectorAll(".fui-skeleton").length).toBeGreaterThan(0);
+    expect(top.querySelector("svg")).toBeNull();
     expect(feed.querySelectorAll("button")).toHaveLength(0);
   });
 

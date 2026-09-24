@@ -164,7 +164,7 @@ const fixtures: Array<Activity | CustomActivity> = [
 	},
 ];
 
-// loading spinner / empty state only show when there are no rows, so each toggle clears the feed
+// loading skeleton / empty state only show when there are no rows, so each toggle clears the feed
 const activities = computed<Array<Activity | CustomActivity>>(() =>
 	empty.value || loading.value ? [] : fixtures
 );

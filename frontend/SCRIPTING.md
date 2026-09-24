@@ -740,7 +740,7 @@ export default {
 
 The deal's strip then reads Activity, Emails, Details, Files. A Contact has no such script
 and opens on Details. When a script puts Activity first, the tab reads its rows as it
-mounts and shows a loading spinner until they arrive.
+mounts and shows a skeleton of the feed until they arrive.
 
 ## The feed: `page.activity`
 
@@ -792,8 +792,8 @@ for the newest activity page, a read that starts with the record read. `?tab=ema
 starts the Emails tab's read with the record read too, and the first paint does not wait
 for it. Any other address, a plain one included, starts no feed read: the rows are read
 as Activity first shows, so the first `onRefresh` sees none. That holds when a script puts
-Activity first, since the address named no tab; the tab shows a loading spinner until its
-rows arrive.
+Activity first, since the address named no tab; the tab shows a skeleton of the feed until
+its rows arrive.
 
 A script's rows are rebuilt on every replay, like any surface's, and survive `reload()`,
 which reads the server's rows again and leaves the script's alone.

@@ -4,7 +4,7 @@ import type { UploadedMedia } from "frappe-ui/editor";
 export interface ActivityTimelineProps {
   /** Rows in display order. Custom types render via the `#item-{type}` slot. */
   activities: Array<Activity | CustomActivity>;
-  /** First-load spinner; only shown while there are no activities yet. */
+  /** First-load skeleton; only shown while there are no activities yet. */
   loading?: boolean;
   /** Enables Load More; same object useActivityTimeline returns. */
   paginate?: Pagination;

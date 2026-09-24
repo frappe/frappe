@@ -8,10 +8,8 @@
 	>
 		<!-- min-h-full keeps short feeds at the top; shrink-0 keeps the overflow -->
 		<div class="min-h-full shrink-0">
-			<!-- spinner only on first load; cached data stays visible during revalidation -->
-			<div v-if="loading && !activities.length" class="flex justify-center py-8">
-				<LoadingIndicator class="size-5 text-ink-gray-5" />
-			</div>
+			<!-- skeleton only on first load; cached data stays visible during revalidation -->
+			<TimelineSkeleton v-if="loading && !activities.length" class="mt-2" />
 			<template v-else-if="!activities.length">
 				<slot name="empty">
 					<div class="flex flex-col items-center justify-center gap-3 py-8">
@@ -27,9 +25,7 @@
 				:tabindex="scrolls ? 0 : undefined"
 			>
 				<!-- older rows prepend here, at the oldest end -->
-				<div v-if="isFetching" class="flex w-full justify-center py-2">
-					<LoadingIndicator class="size-4 text-ink-gray-5" />
-				</div>
+				<TimelineSkeleton v-if="isFetching" :rows="2" />
 				<div
 					v-else-if="showLoadMoreButton && !loadMoreAtBottom"
 					class="mb-1 flex w-full justify-center"
@@ -112,7 +108,6 @@
 </template>
 
 <script setup lang="ts">
-import { LoadingIndicator } from "frappe-ui";
 import { computed, h, ref, useSlots } from "vue";
 import CommentItem from "./CommentItem.vue";
 import EmailItem from "./EmailItem.vue";
@@ -120,6 +115,7 @@ import DotIcon from "./DotIcon.vue";
 import { drawnKey, groupActivities } from "./grouping";
 import LoadMoreButton from "./LoadMoreButton.vue";
 import LogItem from "./LogItem.vue";
+import TimelineSkeleton from "./TimelineSkeleton.vue";
 import type { Activity, ActivityTimelineProps, CustomActivity } from "./types";
 import VersionItem from "./VersionItem.vue";
 

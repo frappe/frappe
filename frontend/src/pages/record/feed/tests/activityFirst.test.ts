@@ -111,7 +111,7 @@ async function openPlain(docname: string) {
 }
 
 describe("Activity moved first by a script", () => {
-	it("starts no early read, then reads on mount: a spinner, then the rows", async () => {
+	it("starts no early read, then reads on mount: a skeleton, then the rows", async () => {
 		registerRecordPage("CRM Deal", { onRefresh: (api) => api.tabs.order(["activity", "emails"]) });
 
 		const { root, tabs, early } = await openPlain("FIRST-1");
@@ -121,7 +121,7 @@ describe("Activity moved first by a script", () => {
 		expect(tabs.shown.value).toBe("activity");
 		expect(activityReads()).toHaveLength(1);
 		const body = root.querySelector('[data-record-tab="activity"]')!;
-		expect(body.querySelector(".activity-timeline .py-8 svg")).not.toBeNull();
+		expect(body.querySelectorAll(".activity-timeline .fui-skeleton").length).toBeGreaterThan(0);
 		expect(body.querySelectorAll(".activity")).toHaveLength(0);
 
 		answer([comment("comment:c1")]);
