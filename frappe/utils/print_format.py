@@ -152,7 +152,11 @@ def page_settings(pdf_options) -> dict:
 def publish_failure(task_id, error):
 	if task_id:
 		frappe.publish_realtime(
-			f"task_complete:{task_id}", message={"error": str(error)}, user=frappe.session.user
+			f"task_complete:{task_id}",
+			message={
+				"error": str(error) or _("You are not permitted to print one of the selected documents")
+			},
+			user=frappe.session.user,
 		)
 
 

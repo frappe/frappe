@@ -75,7 +75,7 @@ class TestBulkPdfLimits(IntegrationTestCase):
 				_download_multi_pdf("User", json.dumps(["Administrator"]), None, task_id="bulk-test")
 		publish.assert_called_once()
 		self.assertEqual(publish.call_args.args[0], "task_complete:bulk-test")
-		self.assertIn("error", publish.call_args.kwargs["message"])
+		self.assertTrue(publish.call_args.kwargs["message"]["error"])
 		self.assertEqual(publish.call_args.kwargs["user"], "Guest")
 
 	def test_document_count_setting_is_honoured(self):
