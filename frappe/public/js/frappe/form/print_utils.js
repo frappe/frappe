@@ -282,7 +282,7 @@ frappe.ui.form.qz_fail = function (e) {
 frappe.provide("frappe.printing");
 frappe.printing.convert_to_builder = function (doc) {
 	const method = "frappe.printing.doctype.print_format.print_format.";
-	if (doc.standard === "Yes") {
+	if (doc.standard === "Yes" && !frappe.boot.developer_mode) {
 		frappe.prompt(
 			{
 				fieldname: "name",
