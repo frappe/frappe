@@ -153,6 +153,24 @@ def get_context(context) -> PrintContext:
 	return context
 
 
+def cast_client_values(document: "Document"):
+	from frappe.model import table_fields
+	from frappe.utils.data import cast
+
+	rows = [document]
+	for df in document.meta.get_table_fields():
+		rows.extend(document.get(df.fieldname) or [])
+	for row in rows:
+		for df in row.meta.fields:
+			value = row.get(df.fieldname)
+			if value in (None, "") or df.fieldtype in table_fields:
+				continue
+			try:
+				row.set(df.fieldname, cast(df.fieldtype, value))
+			except frappe.ValidationError:
+				pass
+
+
 def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" | None:
 	"""Return print format document."""
 	if not print_format_name:
@@ -391,6 +409,7 @@ def get_html_and_style(
 		document = frappe.get_lazy_doc(doc, name, check_permission=True)
 	else:
 		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
+		cast_client_values(document)
 
 	print_format, is_beta = resolve_print_format(print_format, document.meta)
 	set_link_titles(document)
@@ -442,6 +461,7 @@ def get_rendered_raw_commands(
 		document = frappe.get_lazy_doc(doc, name, check_permission=True)
 	else:
 		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
+		cast_client_values(document)
 
 	print_format = get_print_format_doc(print_format, meta=document.meta)
 
