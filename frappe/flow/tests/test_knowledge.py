@@ -8,6 +8,7 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
+from flow import ToolContext
 from flow.knowledge import Knowledge, attachment_store, store
 from flow.knowledge.chunker import chunk_text
 from flow.knowledge.embedder import embed_texts, probe_dimension
@@ -31,6 +32,7 @@ from flow.knowledge.ingest import (
 from flow.knowledge.retriever import retrieve, retrieve_attachments
 
 DIM = 4
+CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
 
 
 def _rows():
@@ -1182,7 +1184,7 @@ class TestKnowledgeSearchTool(IntegrationTestCase):
 		kb = Knowledge("Scoped KB")
 		search = self._search_tool([kb])
 		with patch("flow.knowledge.retriever.retrieve", return_value=[]) as mock:
-			search(query="hi")
+			search(query="hi", ctx=CTX)
 		mock.assert_called_once_with("hi", kbs=[kb.name])
 
 	def test_multiple_knowledge_bases_are_all_scoped(self):
@@ -1190,7 +1192,7 @@ class TestKnowledgeSearchTool(IntegrationTestCase):
 		second = Knowledge("KB Two")
 		search = self._search_tool([first, second])
 		with patch("flow.knowledge.retriever.retrieve", return_value=[]) as mock:
-			search(query="hi")
+			search(query="hi", ctx=CTX)
 		mock.assert_called_once_with("hi", kbs=[first.name, second.name])
 
 	def test_kb_descriptions_appear_in_tool_description(self):

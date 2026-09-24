@@ -6,7 +6,7 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from flow import Agent, tool
+from flow import Agent, ToolContext, tool
 from flow.daemon.callback import tool_callback
 from flow.daemon.client import DaemonClient
 from flow.knowledge import Knowledge
@@ -18,13 +18,13 @@ MODEL = "Code Agent Model"
 
 
 @tool
-def count_todos(status: str = "Open") -> int:
+def count_todos(status: str = "Open", *, ctx: ToolContext) -> int:
 	"""Count ToDo records with `status`."""
 	return frappe.db.count("ToDo", {"status": status})
 
 
 @tool(requires_confirmation=True)
-def close_todo(name: str) -> str:
+def close_todo(name: str, *, ctx: ToolContext) -> str:
 	"""Close a ToDo."""
 	frappe.db.set_value("ToDo", name, "status", "Closed")
 	return name
@@ -259,7 +259,7 @@ class TestAgent(IntegrationTestCase):
 
 	def test_a_nested_tool_is_refused(self):
 		@tool
-		def inner() -> str:
+		def inner(*, ctx: ToolContext) -> str:
 			"""Nested."""
 			return "x"
 
