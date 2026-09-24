@@ -156,6 +156,18 @@ class Database:
 
 		return get_query_builder(self.db_type)
 
+	def run_query(self, query, *args, **kwargs):
+		"""Execute a Query Builder object on this connection.
+
+		Equivalent to `QueryBuilder.run`, which is hardwired to `frappe.local.db`. Going
+		through the same helper keeps the behaviour `run` adds -- field masking, child
+		queries, the SQLite transpilation flag -- instead of dropping it by calling `sql`
+		with a built query.
+		"""
+		from frappe.query_builder.utils import execute_query
+
+		return execute_query(query, *args, _db=self, **kwargs)
+
 	def get_query(self, *args, **kwargs) -> Query:
 		"""Build a query against this connection. Mirrors `frappe.qb.get_query`."""
 		from frappe.database.query import Engine
@@ -688,7 +700,7 @@ class Database:
 
 		if isinstance(filters, list):
 			if filters := list(f for f in filters if f is not None):
-				out = self.sql(
+				out = self.run_query(
 					self.get_query(
 						table=doctype,
 						fields=fieldname,
@@ -725,7 +737,7 @@ class Database:
 					)
 					if isinstance(fieldname, str) and fieldname == "*":
 						as_dict = True
-					out = self.sql(query, as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck)
+					out = self.run_query(query, as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck)
 
 				except Exception as e:
 					if ignore and (
@@ -1047,7 +1059,7 @@ class Database:
 		for column, value in to_update.items():
 			query = query.set(column, value)
 
-		self.sql(query, debug=debug)
+		self.run_query(query, debug=debug)
 
 	def bulk_update(
 		self,
@@ -1184,7 +1196,7 @@ class Database:
 			for column, value in modified_dict.items():
 				update_query = update_query.set(dt[column], value)
 
-		self.sql(update_query.where(dt.name.isin(docnames)), debug=debug)
+		self.run_query(update_query.where(dt.name.isin(docnames)), debug=debug)
 
 	def set_global(self, key, val, user="__global"):
 		"""Save a global key value. Global values will be automatically set if they match fieldname."""
@@ -1355,7 +1367,7 @@ class Database:
 		if cache and not filters and cache_key in self.value_cache[dt]:
 			return self.value_cache[dt][cache_key]
 
-		count = self.sql(
+		count = self.run_query(
 			self.get_query(table=dt, filters=filters, fields=Count("*"), distinct=distinct),
 			debug=debug,
 		)[0][0]
@@ -1510,7 +1522,7 @@ class Database:
 		if "debug" not in kwargs:
 			kwargs["debug"] = debug
 
-		return self.sql(query, **kwargs)
+		return self.run_query(query, **kwargs)
 
 	def truncate(self, doctype: str):
 		"""Truncate a table in the database. This runs a DDL command `TRUNCATE TABLE`.
@@ -1594,7 +1606,7 @@ class Database:
 
 		value_iterator = iter(values)
 		while value_chunk := tuple(itertools.islice(value_iterator, chunk_size)):
-			self.sql(query.insert(*value_chunk))
+			self.run_query(query.insert(*value_chunk))
 
 	def advisory_lock(self, key, *, timeout=10):
 		"""Hold a session-level advisory lock for the duration of the `with` block. Postgres uses
