@@ -18,11 +18,17 @@ function flatRoutes() {
 		// /apps/crm/crm-deal
 		{ path: "/:doctype", name: "list", component: List },
 
-		// /apps/crm/crm-deal/view/open-deals, a saved view, not a view type.
-		{ path: "/:doctype/view/:viewName", name: "saved-view", component: List },
+		// /apps/crm/crm-deal/view/list, the standard list page; `list` is the only view kind.
+		{ path: "/:doctype/view/list", name: "standard-list", component: List },
+
+		// /apps/crm/crm-deal/view/list/open-deals, a saved view of the list kind.
+		{ path: "/:doctype/view/list/:viewName", name: "saved-view", component: List },
 
 		// /apps/crm/crm-deal/CRM-DEAL-01?view=open-deals&layout=Compact; neither is a path segment.
 		{ path: "/:doctype/:name", name: "record", component: Record },
+
+		// /apps/crm/crm-deal/CRM-DEAL-01/record, the standard record page.
+		{ path: "/:doctype/:name/record", name: "standard-record", component: Record },
 	];
 }
 
@@ -37,11 +43,21 @@ function modularRoutes() {
 		// /apps/erpnext/accounts/sales-invoice/SI-001
 		{ path: "/:module/:doctype", name: "list", component: List },
 		{
-			path: "/:module/:doctype/view/:viewName",
+			path: "/:module/:doctype/view/list",
+			name: "standard-list",
+			component: List,
+		},
+		{
+			path: "/:module/:doctype/view/list/:viewName",
 			name: "saved-view",
 			component: List,
 		},
 		{ path: "/:module/:doctype/:name", name: "record", component: Record },
+		{
+			path: "/:module/:doctype/:name/record",
+			name: "standard-record",
+			component: Record,
+		},
 	];
 }
 

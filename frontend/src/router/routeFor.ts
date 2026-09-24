@@ -27,7 +27,7 @@ export function isModular(boot: Boot): boolean {
 }
 
 export type RouteOptions = {
-	/** A saved view id, `/<doctype>/view/<viewName>`. Never a view type. */
+	/** A saved view id, `/<doctype>/view/list/<viewName>`. Never a view type. */
 	view?: string;
 	/** Context, not identity: `?view=`, `?layout=` and friends. */
 	query?: Record<string, string>;
@@ -38,7 +38,7 @@ export type RouteOptions = {
  *
  *   routeFor('CRM Deal')                          -> /crm-deal
  *   routeFor('CRM Deal', 'CRM-DEAL-01')           -> /crm-deal/CRM-DEAL-01
- *   routeFor('CRM Deal', null, { view: 'open' })  -> /crm-deal/view/open
+ *   routeFor('CRM Deal', null, { view: 'open' })  -> /crm-deal/view/list/open
  *   routeFor('System Settings')                   -> /system-settings/System Settings
  *
  * A single has no list, so its list address is the document itself, whatever view was asked

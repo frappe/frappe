@@ -69,7 +69,7 @@ describe("a single's list address", () => {
 
 	it("drops a saved view, which a single cannot have", async () => {
 		const router = createShellRouter(boot(false), addresses);
-		await router.push("/accounts-settings/view/open");
+		await router.push("/accounts-settings/view/list/open");
 
 		expect(router.currentRoute.value.name).toBe("record");
 		expect(router.currentRoute.value.params.name).toBe("Accounts Settings");

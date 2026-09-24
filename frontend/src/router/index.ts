@@ -8,6 +8,8 @@ import { generatedRoutes } from "./generated";
 import { contributedRoutes } from "./contributed";
 import { isModular } from "./routeFor";
 
+const RECORD_ROUTES = new Set(["record", "standard-record"]);
+
 export function createShellRouter(boot: Boot, addresses: Addresses) {
 	const modular = isModular(boot);
 
@@ -44,7 +46,7 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 		if (doctype) {
 			// A single has no list to show: its list address is the document, as `routeFor` spells
 			// it. The module segment is checked on the next pass, as for any record.
-			if (addresses.isSingle(doctype) && to.name !== "record") {
+			if (addresses.isSingle(doctype) && !RECORD_ROUTES.has(String(to.name))) {
 				// Named params only: a saved view's `viewName` has no slot on the record route.
 				const params: Record<string, string> = { doctype: segment, name: doctype };
 				if (typeof to.params.module === "string") params.module = to.params.module;
