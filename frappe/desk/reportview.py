@@ -187,11 +187,18 @@ def validate_filters(data, filters):
 def setup_group_by(data):
 	"""Add columns for aggregated values e.g. count(name)"""
 	if data.group_by and data.aggregate_function:
-		if data.aggregate_function.lower() not in ("count", "sum", "avg"):
+		aggregate_function = data.aggregate_function.lower()
+		if aggregate_function not in ("count", "sum", "avg"):
 			frappe.throw(_("Invalid aggregate function"))
 
-		if frappe.db.has_column(data.aggregate_on_doctype, data.aggregate_on_field):
-			field = f"`tab{data.aggregate_on_doctype}`.`{data.aggregate_on_field}`"
+		aggregate_on_field = data.aggregate_on_field
+		if aggregate_function in ("sum", "avg"):
+			aggregate_on_field = get_currency_normalized_fieldname(
+				data.aggregate_on_doctype, aggregate_on_field
+			)
+
+		if frappe.db.has_column(data.aggregate_on_doctype, aggregate_on_field):
+			field = f"`tab{data.aggregate_on_doctype}`.`{aggregate_on_field}`"
 			data.fields.append({data.aggregate_function.upper(): field, "as": "_aggregate_column"})
 		else:
 			raise_invalid_field(data.aggregate_on_field)
@@ -199,6 +206,30 @@ def setup_group_by(data):
 		data.pop("aggregate_on_doctype")
 		data.pop("aggregate_on_field")
 		data.pop("aggregate_function")
+
+
+def get_currency_normalized_fieldname(doctype: str, fieldname: str) -> str:
+	"""
+	A Currency field whose docfield sets "options" to another fieldname (rather than a fixed
+	currency code) can hold a different currency on every row, e.g. a Sales Invoice's
+	`grand_total` in the customer's billing currency. Summing/averaging that field directly
+	mixes currencies and the result gets displayed with a single, arbitrary currency symbol --
+	showing the wrong amount.
+
+	Apps commonly store the same value already converted to the company's default currency in
+	a sibling `base_<fieldname>` field (e.g. `base_grand_total`). When one exists, aggregate on
+	it instead so the total is both numerically correct and in a single, consistent currency.
+	"""
+	meta = frappe.get_meta(doctype)
+	df = meta.get_field(fieldname)
+	if not df or df.fieldtype != "Currency" or not df.options:
+		return fieldname
+
+	base_fieldname = f"base_{fieldname}"
+	if meta.has_field(base_fieldname):
+		return base_fieldname
+
+	return fieldname
 
 
 def raise_invalid_field(fieldname):
