@@ -16,7 +16,7 @@ from typing import Any
 import frappe
 from frappe.database.sqlite import DEFAULT_BUSY_TIMEOUT_SECONDS
 from frappe.model.document import Document
-from frappe.utils import update_progress_bar
+from frappe.utils import convert_utc_to_system_timezone, get_datetime, now_datetime, update_progress_bar
 from frappe.utils.file_lock import LockTimeoutError
 from frappe.utils.synchronization import filelock
 
@@ -115,6 +115,12 @@ class SQLiteSearch(ABC):
 	- Ranking tracking (original BM25 vs modified scores)
 	- Filtering by user-defined criteria
 	- Permission-aware search results via query-level filtering
+	"""
+
+	BUILD_VOCABULARY = True
+	"""Whether to build the vocabulary behind spelling correction in search().
+
+	A second pass over everything indexed. Turn it off where search() is never called.
 	"""
 
 	@staticmethod
@@ -376,6 +382,7 @@ class SQLiteSearch(ABC):
 
 			# Get current progress
 			progress = self._get_index_progress()
+			started_at = self._build_started_at(is_continuation, progress)
 
 			# Check if indexing is already complete
 			if self._is_indexing_complete():
@@ -458,10 +465,12 @@ class SQLiteSearch(ABC):
 
 			# Check if all doctypes are indexed before building vocabulary
 			if not self._is_vocabulary_built_needed():
-				self._update_progress("All documents indexed, building vocabulary", 80, 100, absolute=True)
+				if self.BUILD_VOCABULARY:
+					self._update_progress(
+						"All documents indexed, building vocabulary", 80, 100, absolute=True
+					)
+					self._build_vocabulary_incremental()
 
-				# Build vocabulary incrementally
-				self._build_vocabulary_incremental()
 				self._mark_vocabulary_built()
 
 			# Final atomic replacement if this was a fresh build
@@ -486,6 +495,84 @@ class SQLiteSearch(ABC):
 			# Restore original database path
 			if temp_db_path:
 				self.db_path = original_db_path
+
+		self.index_documents_changed_during_build(started_at)
+
+	def _build_started_at(self, is_continuation: bool, progress: dict):
+		"""When this build began, carried across a resumed one.
+
+		A continuation skips what the earlier run indexed, so a fresh timestamp would miss every
+		edit between the two runs. Takes the caller's progress, in UTC: a fresh build writes those
+		rows into the temporary database.
+		"""
+		if is_continuation:
+			stamps = [row["started_at"] for row in progress.values() if row.get("started_at")]
+			if stamps:
+				return convert_utc_to_system_timezone(get_datetime(min(stamps))).replace(tzinfo=None)
+
+		return now_datetime()
+
+	def index_documents_changed_during_build(self, started_at, batch_size=1000):
+		"""Index documents saved while the build was running.
+
+		update_doc_index is inert for the whole of a build, so a document saved after its row was
+		read carries stale text. Indexed here rather than queued, which drains thirty rows every
+		five minutes. Filters on the real `modified`: the config's mapped field may be immutable.
+		"""
+		if not self.index_exists():
+			return
+
+		for doctype, config in self.doc_configs.items():
+			filters = dict(config.get("filters") or {})
+			filters["modified"] = (">=", started_at)
+			names = frappe.get_all(doctype, filters=filters, pluck="name")
+
+			for start in range(0, len(names), batch_size):
+				self.index_documents_by_name(doctype, names[start : start + batch_size])
+
+			self.remove_documents_deleted_during_build(doctype, started_at)
+
+	def index_documents_by_name(self, doctype, names: list[str]):
+		"""Read and index one batch of named documents, the way a build batch is read."""
+		if not names:
+			return
+
+		config = self.doc_configs[doctype]
+		fields = list(config["fields"])
+		for required in ("name", "modified"):
+			if required not in fields:
+				fields.append(required)
+
+		docs = frappe.qb.get_query(doctype, fields=fields, filters={"name": ("in", names)}).run(as_dict=True)
+
+		documents = []
+		for doc in docs:
+			doc.doctype = doctype
+			if config["modified_field"] != "modified":
+				doc.modified = getattr(doc, config["modified_field"], None) or doc.modified
+
+			document = self.prepare_document(doc)
+			if document:
+				documents.append(document)
+
+		if documents:
+			self._index_documents(documents)
+
+	def remove_documents_deleted_during_build(self, doctype, started_at):
+		"""Drop documents deleted while the build was running.
+
+		delete_doc_index is inert during a build, so the index can hold rows for documents already
+		gone. Reads Deleted Document; a delete_permanently=True deletion writes no such row, so its
+		indexed record can remain until the next full build.
+		"""
+		deleted = frappe.get_all(
+			"Deleted Document",
+			filters={"deleted_doctype": doctype, "creation": (">=", started_at)},
+			pluck="deleted_name",
+		)
+
+		for name in deleted:
+			self.remove_doc(doctype, name)
 
 	def _get_incomplete_count(self, where_clause):
 		"""Get count of incomplete records from search_index_progress table.

@@ -39,6 +39,7 @@ import frappe
 from frappe import _
 from frappe.app_state import get_disabled_modules
 from frappe.desk.desk_views import DeskViews
+from frappe.desk.doctype.workspace.workspace import PRIVATE_MODULE
 from frappe.desk.utils import is_item_allowed
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
@@ -1205,6 +1206,11 @@ OVERFLOW_KEY = "_dropped_doctypes"
 # The icon a module gets in the dock when it specifies none.
 DEFAULT_HEADER_ICON = "hammer"
 
+# The Private shell's own icon. It is one person's shell rather than a module of things, so it is
+# marked with a person rather than with whatever the `Private` module happens to hold. A layer of
+# the owner's may still replace it.
+PRIVATE_HEADER_ICON = "user"
+
 
 def get_module_contents(modules: list[str]) -> dict[str, dict[str, list]]:
 	"""Return what each of `modules` holds, using five queries for the whole set, one per entity.
@@ -1599,7 +1605,7 @@ def resolve_sidebar(shell: str, user: str, context: SidebarContext | None = None
 	resolved on its own, through its own module, so a module's other shells come along and the
 	answer matches what a batch would give.
 	"""
-	from frappe.desk.doctype.custom_sidebar.custom_sidebar import merge_layers
+	from frappe.desk.doctype.custom_sidebar.custom_sidebar import merged_arrangement
 
 	if context is None:
 		context = SidebarContext.for_modules([module_of_shell(shell) or shell], user)
@@ -1607,6 +1613,9 @@ def resolve_sidebar(shell: str, user: str, context: SidebarContext | None = None
 		raise ValueError(f"sidebar context is {context.user}'s, and cannot answer for {user}")
 
 	base = context.bases[shell]
+	if base.module == PRIVATE_MODULE:
+		return resolve_private_sidebar(shell, user, context, base)
+
 	filtered = filter_sidebar_items(base.rows, context.perm_ctx)
 
 	# Customizations are applied after the permission filter, never before, so a customization
@@ -1617,8 +1626,9 @@ def resolve_sidebar(shell: str, user: str, context: SidebarContext | None = None
 	# module inherits that. Re-anchoring would change what a customization names, not how a
 	# sidebar resolves.
 	layers = context.layers.get(base.module, [])
+	hidden = set()
 	if layers:
-		filtered = merge_layers(filtered, layers)
+		filtered, hidden = merged_arrangement(filtered, layers)
 		# An added row is the one kind that gets past that check, because it brings an item the
 		# base never held, so the filter above never saw it. Checking it here keeps the rule
 		# true for rows that bring their own item as well as rows that name an existing one.
@@ -1630,10 +1640,16 @@ def resolve_sidebar(shell: str, user: str, context: SidebarContext | None = None
 		# every module on every boot to get there.
 		filtered = [item for item in filtered if not item.get("hidden")]
 
-	# The user's private pages are added after that, which keeps them out of every stored
-	# customization: a customization can only name what it was shown when it was saved, and
-	# these arrive later.
-	filtered = append_derived_items(filtered, context.private_rows.get(base.module), context.perm_ctx)
+	# The user's private pages, for the ones no row names yet. A page made since rows were written
+	# has one in this user's own layer and is already above; this is the fallback for every page
+	# made before that, and for a row that stopped applying.
+	#
+	# `hidden` is passed so the fallback cannot undo a decision: a private page the user hid in
+	# this module's sidebar is missing from `filtered` because they hid it, and appending it here
+	# would put it straight back on the next boot.
+	filtered = append_derived_items(
+		filtered, context.private_rows.get(base.module), context.perm_ctx, hidden=hidden
+	)
 
 	# A shell needs at least one item this user can open, or it is dropped. Section Breaks do not
 	# count, since a header links nowhere; private pages and added rows are already in `filtered`.
@@ -1684,6 +1700,75 @@ def resolve_sidebar(shell: str, user: str, context: SidebarContext | None = None
 	)
 
 
+def resolve_private_sidebar(
+	shell: str, user: str, context: SidebarContext, base: frappe._dict
+) -> ResolvedSidebar:
+	"""Return the Private shell: the pages this user made, and nothing else.
+
+	It is the one shell whose contents are a person rather than a module, so three of the rules
+	above do not apply to it.
+
+	The base's rows are dropped. They are what the `Private` module holds, and what a module holds
+	is public, so they would put a page everyone can see into a shell that renders per viewer.
+	`Workspace.validate` refuses to save a new one; a site that already had one keeps it, reachable
+	by its own URL and listed nowhere here.
+
+	Only this user's own layer applies. The site's layer would arrange every user's private pages
+	at once, which is not a thing anyone could mean, and a workspace manager curating a module
+	should not be shown rows about other people's pages.
+
+	It is never dropped for being empty. Every other shell disappears when nothing in it is
+	navigable, because an empty sidebar is an unfinished one. This one is reached from the user
+	menu, so it has to exist before there is anything in it, and the desk draws its empty state.
+
+	Pages are pinned here: `hidden` is not passed to the append, so a page left out of the
+	arrangement comes back. A private page can be hidden from a module's sidebar, where it is a
+	guest, and not from this one, which is its home.
+	"""
+	from frappe.desk.doctype.custom_sidebar.custom_sidebar import merged_arrangement
+
+	layers = [layer for layer in context.layers.get(PRIVATE_MODULE, []) if layer.user == user]
+	items = []
+	if layers:
+		items, _hidden = merged_arrangement([], layers)
+		items = [item for item in items if allowed_added_item(item, context.perm_ctx)]
+
+	items = append_derived_items(items, all_private_rows(context.private_rows), context.perm_ctx)
+
+	label = base.title or shell
+	header_icon = PRIVATE_HEADER_ICON
+	for layer in layers:
+		if layer.label:
+			label = layer.label
+		if layer.header_icon:
+			header_icon = layer.header_icon
+
+	return ResolvedSidebar(
+		name=shell,
+		module=base.module,
+		label=_(label),
+		app=base.app or get_module_placement(base.module),
+		header_icon=header_icon,
+		module_onboarding=context.onboardings.get(base.module),
+		customized=bool(layers),
+		computed=bool(base.get("computed")),
+		# Only the pages of this module, so a page belonging to another one is still that module's
+		# workspace. This list is how the desk answers which shell a workspace belongs to, and a
+		# private page's own answer is decided by the route it was reached through instead.
+		workspaces=[row.link_to for row in context.private_rows.get(PRIVATE_MODULE) or []],
+		items=items,
+	)
+
+
+def all_private_rows(private_rows: dict[str, list[frappe._dict]]) -> list[frappe._dict]:
+	"""Every private page the user owns as one list, whatever module each belongs to.
+
+	The Private shell lists all of them. A module only says where else a page appears, so it
+	cannot decide whether a page is in its owner's own shell.
+	"""
+	return [row for rows in private_rows.values() for row in rows]
+
+
 def get_navigable_modules() -> list[str]:
 	"""Return the site's modules, minus the ones this user cannot navigate to.
 
@@ -1710,9 +1795,19 @@ def get_navigable_modules() -> list[str]:
 	# just cannot take you there.
 	disabled = get_disabled_modules()
 	code_only = get_code_only_modules()
-	visible = get_visible_modules(frappe.get_all("Module Def", pluck="name", order_by="name asc"))
+	modules = frappe.get_all("Module Def", pluck="name", order_by="name asc")
+	visible = get_visible_modules(modules)
 
-	return [module for module in visible if module not in disabled and module not in code_only]
+	navigable = [module for module in visible if module not in disabled and module not in code_only]
+
+	# The `Private` module is where a user's own pages live, and the shell it names is reached from
+	# the user menu rather than from a rail. None of the three checks above is about the user's own
+	# pages: blocking a module hides a product's navigation, and a site turning off an app says
+	# nothing about what somebody made for themselves. So it stays, in its place in the order.
+	if PRIVATE_MODULE in modules and PRIVATE_MODULE not in navigable:
+		navigable = sorted([*navigable, PRIVATE_MODULE])
+
+	return navigable
 
 
 def get_sidebar_bases(modules: list[str]) -> dict[str, frappe._dict]:
@@ -2038,26 +2133,45 @@ def filter_sidebar_items(items, perm_ctx, check_permission: bool = True):
 		if item.hidden:
 			entry["hidden"] = 1
 
-		# One cached read instead of three uncached ones. A missing report and a disabled report
-		# both end up with no `report` block, so neither needs its own check. `cache=True` stops
-		# the same report on ten sidebars costing ten round trips.
-		if item.link_type == "Report" and item.link_to:
-			report = frappe.db.get_value(
-				"Report",
-				item.link_to,
-				["report_type", "ref_doctype", "disabled"],
-				as_dict=True,
-				cache=True,
-			)
-			if report and not report.disabled:
-				entry["report"] = {
-					"report_type": report.report_type,
-					"ref_doctype": report.ref_doctype,
-				}
+		attach_report(entry, item.link_type, item.link_to)
 
 		filtered.append(entry)
 
 	return filtered
+
+
+def attach_report(entry: dict, link_type: str | None, link_to: str | None) -> dict:
+	"""Give a Report row the report facts the desk needs to build its route.
+
+	`frappe.ui.sidebar_item.get_route` cannot route a Report row without them: whether the report
+	is a query report decides between `query-report/<name>` and a report view on its ref doctype,
+	and a row with no `report` block gets no route at all, so it draws as a dead link.
+
+	Every row that reaches a sidebar goes through here, whether an app shipped it or a layer added
+	it. They arrive by different paths, `filter_sidebar_items` and `shape_added_item`, and a row a
+	user added is a link like any other once it is on screen.
+
+	One cached read instead of three uncached ones. A missing report and a disabled report both end
+	up with no `report` block, so neither needs its own check. `cache=True` stops the same report on
+	ten sidebars costing ten round trips.
+	"""
+	if link_type != "Report" or not link_to:
+		return entry
+
+	report = frappe.db.get_value(
+		"Report",
+		link_to,
+		["report_type", "ref_doctype", "disabled"],
+		as_dict=True,
+		cache=True,
+	)
+	if report and not report.disabled:
+		entry["report"] = {
+			"report_type": report.report_type,
+			"ref_doctype": report.ref_doctype,
+		}
+
+	return entry
 
 
 def allowed_added_item(item: dict, perm_ctx) -> bool:
@@ -2078,20 +2192,23 @@ def allowed_added_item(item: dict, perm_ctx) -> bool:
 	return is_item_allowed(item.get("link_to"), item.get("link_type"), perm_ctx)
 
 
-def append_derived_items(items, rows, perm_ctx):
-	"""Add `rows` to an already-resolved sidebar, skipping anything it already has.
+def append_derived_items(items, rows, perm_ctx, hidden=()):
+	"""Add `rows` to an already-resolved sidebar, skipping anything it already has or hid.
 
 	These items go through the same shaping and permission check as any other row. Once in the
 	payload they behave like any other item; the only difference is that no document holds them.
 
-	The skip keeps a site that stored these rows before they were computed from drawing two
-	links. The stored row is already in `items`, wherever its customization put it, and the
-	computed one is the duplicate.
+	The skip keeps a row and its derived twin from drawing two links. The stored row is already in
+	`items`, wherever its layer put it, and the derived one is the duplicate.
+
+	`hidden` is the keys the layers hid, which are not in `items` and must not come back through
+	here. Without it a hide could never stick: the item would be missing on the next boot, so this
+	would read it as one nothing names and append it again.
 	"""
 	if not rows:
 		return items
 
-	seen = {item["key"] for item in items}
+	seen = {item["key"] for item in items} | set(hidden)
 	for entry in filter_sidebar_items(rows, perm_ctx):
 		if entry["key"] in seen:
 			continue
@@ -2128,12 +2245,18 @@ def get_module_landing_route(items: list[dict]) -> str | None:
 		return None
 
 	if item.get("link_type") == "Workspace":
-		public = frappe.db.get_value("Workspace", item["link_to"], "public")
-		if public is None:
+		page = frappe.db.get_value("Workspace", item["link_to"], ["public", "title"], as_dict=True)
+		if not page:
 			return None
 
-		prefix = "/desk/" if public else "/desk/private/"
-		return prefix + frappe.utils.slug(item["link_to"])
+		if page.public:
+			return "/desk/" + frappe.utils.slug(item["link_to"])
+
+		# A private page is spelled by its title, not its name: the name carries the owner's email
+		# (`<title>-<user>`) and only the owner can open the page, so the email in the URL named
+		# something the reader already was. The shell is left off, the way it is for a public page:
+		# the desk writes one in on arrival, and a private page's own shell is `Private`.
+		return "/desk/private/" + frappe.utils.slug(page.title)
 
 	if item.get("link_type") == "DocType":
 		return doctype_landing_route(item)
@@ -2293,7 +2416,12 @@ def home_shell(
 		return shell
 
 	placed = Counter(shell for found in canonical.values() for shell in found.values())
-	return max(module_sidebars, key=lambda shell: placed[shell])
+	# The Private shell holds no entity, so the count can never choose it, and it must not win a
+	# tie either: home is where this user's work is, and their own pages are not where a route
+	# naming nothing should land. It is still their home when they made it their default workspace,
+	# which the step above answers.
+	candidates = [shell for shell in module_sidebars if shell != PRIVATE_MODULE] or list(module_sidebars)
+	return max(candidates, key=lambda shell: placed[shell])
 
 
 def app_of_module(module: str | None) -> str | None:

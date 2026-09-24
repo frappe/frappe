@@ -41,10 +41,20 @@ def is_item_allowed(name, item_type, ctx):
 	`restricted_doctypes`, `restricted_pages`) — in practice a
 	`frappe.desk.desk_views.DeskViews` instance.
 	"""
+	item_type = item_type.lower()
+
+	# Asked of everyone, Administrator included, because it is not only a permission question: a
+	# row can name a workspace that no longer exists, and `allowed_workspaces` is the list of pages
+	# there are. A row naming a deleted page used to render for Administrator as a link to nothing.
+	#
+	# So Administrator no longer returns before reading anything, which is what the early return
+	# below otherwise promises. The read it pays for is `get_workspaces`, which is `@request_cache`d
+	# and which a desk boot builds anyway, so it costs one build per request at most.
+	if item_type == "workspace":
+		return name in (ctx.allowed_workspaces or [])
+
 	if frappe.session.user == "Administrator":
 		return True
-
-	item_type = item_type.lower()
 
 	if item_type == "doctype":
 		try:
@@ -66,8 +76,6 @@ def is_item_allowed(name, item_type, ctx):
 		return name in (ctx.allowed_dashboards or [])
 	if item_type in ("help", "url"):
 		return True
-	if item_type == "workspace":
-		return name in (ctx.allowed_workspaces or [])
 
 	return False
 

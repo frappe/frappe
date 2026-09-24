@@ -79,6 +79,13 @@ class Workspace(DeskViews):
 		from frappe.utils import has_common
 		from frappe.utils.modules import is_module_visible
 
+		# A page you made yourself is yours whatever its module. Blocking a module hides a product's
+		# navigation, and it used to hide the user's own private pages with it: a page filed under
+		# Accounts vanished for its own owner if they had Accounts blocked, from their private shell
+		# as well as from the Accounts sidebar, and the desk offered no way to get it back.
+		if self.doc.for_user and self.doc.for_user == frappe.session.user:
+			return True
+
 		if not is_module_visible(self.doc.module):
 			return False
 

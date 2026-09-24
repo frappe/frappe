@@ -12,7 +12,10 @@ class TestWorkspace(IntegrationTestCase):
 		create_module("Test Module")
 
 	def tearDown(self):
-		frappe.db.delete("Workspace", {"module": "Test Module"})
+		# Deleted as documents, not as rows: a workspace takes its sidebar rows with it in
+		# `on_trash`, and a raw delete left rows naming a page that no longer exists.
+		for name in frappe.get_all("Workspace", filters={"module": "Test Module"}, pluck="name"):
+			frappe.delete_doc("Workspace", name, force=True, ignore_missing=True)
 		frappe.db.delete("DocType", {"module": "Test Module"})
 		frappe.delete_doc("Module Def", "Test Module")
 
@@ -69,7 +72,7 @@ class TestWorkspace(IntegrationTestCase):
 			saved = frappe.get_doc("Workspace", workspace.name)
 			self.assertEqual([shortcut.label for shortcut in saved.shortcuts], ["ToDo"])
 		finally:
-			frappe.db.delete("Workspace", {"name": workspace.name})
+			frappe.delete_doc("Workspace", workspace.name, force=True, ignore_missing=True)
 
 	def test_duplicate_shortcut_labels_are_rejected(self):
 		"""Two shortcuts sharing a label would collapse into one row on save, so block it."""
@@ -94,7 +97,7 @@ class TestWorkspace(IntegrationTestCase):
 			with self.assertRaises(frappe.ValidationError):
 				workspace.insert()
 		finally:
-			frappe.db.delete("Workspace", {"name": workspace.name})
+			frappe.delete_doc("Workspace", workspace.name, force=True, ignore_missing=True)
 
 	def test_preexisting_duplicate_labels_stay_editable(self):
 		"""Duplicates already stored (shipped app data, older sites) must not lock the workspace."""
@@ -150,7 +153,7 @@ class TestWorkspace(IntegrationTestCase):
 			self.assertEqual(len(workspace.shortcuts), 1)
 		finally:
 			frappe.db.delete("Workspace Shortcut", {"parent": workspace.name})
-			frappe.db.delete("Workspace", {"name": workspace.name})
+			frappe.delete_doc("Workspace", workspace.name, force=True, ignore_missing=True)
 
 	def test_role_restricted_non_public_workspace_visible_to_permitted_user(self):
 		"""Non-public workspace with roles should be visible to users with matching role."""
@@ -170,7 +173,7 @@ class TestWorkspace(IntegrationTestCase):
 			workspace_titles = [p.title for p in result["pages"]]
 			self.assertIn("Role Test Workspace", workspace_titles)
 		finally:
-			frappe.db.delete("Workspace", {"name": workspace.name})
+			frappe.delete_doc("Workspace", workspace.name, force=True, ignore_missing=True)
 
 
 class TestWorkspaceAccessLevels(IntegrationTestCase):

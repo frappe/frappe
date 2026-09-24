@@ -131,6 +131,56 @@ class Workspace(Document, DeskViews):
 				shortcut.report_ref_doctype = frappe.get_value("Report", shortcut.link_to, "ref_doctype")
 
 		self.validate_duplicate_widget_labels()
+		self.validate_shared_page_has_a_module()
+		self.validate_private_page_is_yours()
+
+	def validate_private_page_is_yours(self):
+		"""A private page belongs to the person named in `for_user`, and only they may write one.
+
+		A Workspace Manager may write anyone's, which is what the manager dialog does and what
+		`new_page` and `update_page` have always allowed. This says the same thing in the model,
+		because those are endpoints and a document API call reaches neither: anyone holding
+		`Desk User` could insert a Workspace naming somebody else in `for_user`, and the page then
+		wrote a row into that person's own sidebar (`add_private_to_sidebar`), which is one user
+		changing another user's navigation.
+
+		System writes are left alone. An install, a migration, a patch or a fixture import is the
+		site building itself rather than a user acting, and they run as Administrator in any case.
+		"""
+		if self.public or not self.for_user:
+			return
+
+		if self.for_user == frappe.session.user or is_workspace_manager():
+			return
+
+		if any(
+			frappe.flags.get(flag)
+			for flag in ("in_install", "in_migrate", "in_patch", "in_import", "in_fixtures")
+		):
+			return
+
+		frappe.throw(
+			_("You can only create a private workspace for yourself."),
+			frappe.PermissionError,
+			title=_("Not your workspace"),
+		)
+
+	def validate_shared_page_has_a_module(self):
+		"""Refuse a shared page in the `Private` module.
+
+		`Private` is not a place on the site, it is each user's own shell, and the desk draws that
+		shell from the pages its viewer owns. A shared page in it would either show in everybody's
+		private shell, which is a personal space that is not personal, or in nobody's, which is a
+		page nothing lists. Neither is what the person saving it meant.
+
+		Pages a site already had are left alone: they stay reachable by their own URL and are listed
+		in no private shell, and this only asks for a module the next time somebody saves one.
+		"""
+		if self.public and self.module == PRIVATE_MODULE:
+			frappe.throw(
+				_("A shared workspace needs a module other than {0}.").format(_(PRIVATE_MODULE)),
+				title=_("Pick a module"),
+			)
 
 	@staticmethod
 	def get_widget_label_counts(doc, parentfield) -> Counter:
@@ -214,11 +264,27 @@ class Workspace(Document, DeskViews):
 		else:
 			frappe.cache.delete_key("bootinfo")
 
+	def after_insert(self):
+		"""Give a new private page its rows.
+
+		Only a private one. A shared page's link is written by the path that created it, which is
+		the path that knows whether it wanted one: the page a new module opens on, for instance,
+		is listed by the module's own sidebar and needs no row of its own.
+
+		A private page has no such path. It is made from the desk, from a script, or by a test, and
+		wherever it comes from it belongs in its owner's sidebars.
+		"""
+		if not self.public:
+			add_to_sidebar(self)
+
 	def on_update(self):
+		self.resettle_sidebar_rows()
+		self.relabel_sidebar_rows()
+
 		if disable_saving_as_public():
 			return
 
-		if frappe.conf.developer_mode and self.public:
+		if self.can_export():
 			self.export_workspace()
 
 			if self.has_value_changed("title") or self.has_value_changed("module"):
@@ -233,12 +299,72 @@ class Workspace(Document, DeskViews):
 				):
 					delete_folder(previous.get("module"), "Workspace", previous.get("title"))
 
+	def relabel_sidebar_rows(self):
+		"""Keep the rows that list this page calling it what it is called now.
+
+		A row a write path added carries the page's title, so a rename would otherwise leave the
+		old one in the sidebar until the page was touched again. The link itself needs no fixing:
+		`link_to` is a Dynamic Link, so a rename rewrites every row naming it in one statement.
+		"""
+		from frappe.desk.doctype.custom_sidebar.custom_sidebar import relabel_workspace_rows
+
+		previous = self.get_doc_before_save()
+		if not previous or previous.get("title") == self.title:
+			return
+
+		relabel_workspace_rows(self.name, self.title)
+
+	def resettle_sidebar_rows(self):
+		"""Move the rows that list this page when the answer to "which sidebars" changes.
+
+		Three fields decide it: `module` says which module's sidebar the page is a guest in,
+		`public` says whether the row belongs in the site's layer or its owner's, and `for_user`
+		says whose layer that is. A save that leaves all three alone changes no row, so nothing is
+		rewritten on an ordinary edit.
+
+		Old rows go first, from every layer, because the layer a row has to leave is not always one
+		this save can name: a page that has just stopped being private has rows in the layer of
+		whoever used to own it.
+
+		An insert is left to the create paths, which call `add_to_sidebar` themselves. Answering it
+		here as well wrote a row for a page whose creator had decided it needed none, such as the
+		page a new module opens on.
+		"""
+		from frappe.desk.doctype.custom_sidebar.custom_sidebar import remove_workspace_rows
+
+		previous = self.get_doc_before_save()
+		if not previous or all(
+			previous.get(field) == self.get(field) for field in ("module", "public", "for_user")
+		):
+			return
+
+		# Rows go from every layer whatever is passed here; the owner is named so that a layer of
+		# theirs left holding nothing is tidied too. Whoever owned it before comes first, because a
+		# page that has just been handed over or shared leaves its old owner's layers behind.
+		remove_workspace_rows(self.name, previous.get("for_user") or self.for_user or None)
+		add_to_sidebar(self)
+
 	def export_workspace(self):
 		"""Export a standard workspace to its module's files (developer mode only)."""
-		# `self.module` guards the export: it drives the on-disk path (`get_module_path`), so a
-		# standard workspace with no module would crash inside `export_to_files`.
-		if frappe.conf.developer_mode and self.standard and self.module:
+		if self.can_export():
 			export_to_files(record_list=[["Workspace", self.name]], record_module=self.module)
+
+	def can_export(self):
+		"""Whether this page is one the developer's site keeps in an app's files.
+
+		Only a standard page is exported, and only in developer mode, and only when it has a module
+		to be exported under: the module drives the on-disk path (`get_module_path`), so a standard
+		page without one would crash inside `export_to_files`.
+
+		Asked before removing a folder as well as before writing one, because the same three things
+		decide whether there is a file at all. A page that was never written
+		to a file has no folder to remove, and asking for one is not free: resolving the path of a
+		module the site owns throws unless that module names a package. So on a developer's site,
+		deleting a page somebody made for themselves failed with "Package must be set for custom
+		Module Private", which is a sentence about exporting app content said to someone deleting
+		their own workspace.
+		"""
+		return bool(frappe.conf.developer_mode and self.standard and self.module)
 
 	def before_export(self, doc):
 		if doc.title != doc.label and doc.label == doc.name:
@@ -249,6 +375,21 @@ class Workspace(Document, DeskViews):
 			frappe.throw(_("You need to be Workspace Manager to delete a public workspace."))
 
 		self.delete_desktop_icon()
+		self.drop_sidebar_rows()
+
+	def drop_sidebar_rows(self):
+		"""Take this page out of every sidebar that lists it.
+
+		A row naming a page that is gone stops applying on its own, since resolution skips a
+		reference it cannot match (`apply_sidebar_row`). It is still removed, so a layer holds only
+		rows about pages that exist and a page created later under the same name does not inherit
+		a place somebody gave the old one.
+		"""
+		from frappe.desk.doctype.custom_sidebar.custom_sidebar import remove_workspace_rows
+
+		# The owner is named so their own layers go when this page was the only thing in them. Rows
+		# naming it are removed everywhere regardless, which is what a deleted page needs.
+		remove_workspace_rows(self.name, self.for_user or None)
 
 	def delete_desktop_icon(self):
 		"""Remove the workspace's icon from the grid along with the workspace.
@@ -274,7 +415,7 @@ class Workspace(Document, DeskViews):
 		# first, because `delete_folder` resolves the module to a path and throws for a missing
 		# module, which made a page whose module had been deleted impossible to delete. There is
 		# no folder to remove for such a page either.
-		if self.module and frappe.conf.developer_mode and frappe.db.exists("Module Def", self.module):
+		if self.can_export() and frappe.db.exists("Module Def", self.module):
 			delete_folder(self.module, "Workspace", self.title)
 
 	@staticmethod
@@ -618,9 +759,12 @@ def new_page(new_page: dict):
 
 	# A workspace no longer owns a sidebar; its module does. So instead of seeding a
 	# self-referencing item on the workspace, add a link to it in the module's sidebar, which is
-	# where it is navigated from. A private workspace's link is derived rather than written; see
-	# `add_to_sidebar` for that branch.
-	add_to_sidebar(doc)
+	# where it is navigated from.
+	#
+	# Shared pages only: a private one wrote its rows in `after_insert`, wherever it was made from,
+	# and asking again here reads its owner's layers a second time to find the rows already there.
+	if doc.public:
+		add_to_sidebar(doc)
 
 	return workspace_payload()
 
@@ -688,11 +832,8 @@ def add_to_sidebar(workspace):
 	someone created here is site intent. Writing it into the base would make the base unsafe for
 	an app to overwrite on update.
 
-	Nothing is written for a private workspace. The shared branch writes a link and the private
-	branch writes none, because a private page's link is derived on read from the workspace
-	itself: module, owner, title and icon are all on it (`sidebar.get_private_workspaces`).
-	Writing one put a row per private page into the document the whole site shares, and each row
-	was a second copy of four columns that could change underneath it.
+	A private page takes the other branch, `add_private_to_sidebar`: its rows go in its owner's
+	own layer, never in the site's, because they are about a page nobody else can open.
 
 	This runs on every write that can leave a workspace shared, not only on insert, since a page
 	that has just been made public needs the link its private form did not store.
@@ -711,7 +852,11 @@ def add_to_sidebar(workspace):
 	# A Link or URL workspace is a shortcut to somewhere the sidebar already lists, so only a page
 	# of its own gets a link. `type` is empty on pages that predate the field, and those are
 	# ordinary workspaces, the same reading `sidebar.get_private_workspaces` uses.
-	if not workspace.public or (workspace.type and workspace.type != "Workspace"):
+	if workspace.type and workspace.type != "Workspace":
+		return
+
+	if not workspace.public:
+		add_private_to_sidebar(workspace)
 		return
 
 	if not workspace.module:
@@ -744,6 +889,44 @@ def add_to_sidebar(workspace):
 			"icon": workspace.icon,
 		},
 	)
+
+
+def add_private_to_sidebar(workspace):
+	"""Give a private page its rows: one in its owner's Private layer, one in its module's.
+
+	A page used to reach its owner's sidebar derived on read, so nothing stored said it was there
+	and the owner could not arrange it or hide it from a module's sidebar. A row says it outright.
+
+	Two rows, because a private page is in two places: the Private shell, which is its home and is
+	where every page its owner made appears, and the sidebar of the module it was filed under,
+	where it is a guest. A page filed under `Private` is only at home, so it gets one row.
+
+	Both go in the owner's own layer. That is the one layer allowed to hold them
+	(`CustomSidebar.drop_private_workspaces`), because a row here is about a page nobody else can
+	open, and the site's layer is a document the whole site shares.
+
+	A page made before this wrote rows has none, and still reaches its owner's sidebars derived on
+	read. Nothing backfills, so the two ways coexist: a row where there is one, the derivation
+	where there is not.
+	"""
+	from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_user_sidebar_item
+
+	if not workspace.for_user or not workspace.module:
+		return
+
+	# The shell is drawn from the pages their owner made, so it has to exist before the first of
+	# them is filed anywhere else.
+	ensure_module(PRIVATE_MODULE)
+
+	row = {
+		"type": "Link",
+		"label": workspace.title,
+		"link_type": "Workspace",
+		"link_to": workspace.name,
+		"icon": workspace.icon,
+	}
+	for module in dict.fromkeys([PRIVATE_MODULE, workspace.module]):
+		add_user_sidebar_item(module, workspace.for_user, row)
 
 
 @frappe.whitelist()

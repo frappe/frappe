@@ -408,6 +408,14 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			helper: "frappe.ui.tooltip",
 			code_first: "button_el",
 			make: (opts) => {
+				// a label that ellipsises at a fixed width, so there is something to cut off
+				if (opts.only_on_overflow) {
+					const $label = $(
+						`<div class="explorer-truncate text-base text-ink-gray-8"></div>`
+					).text(opts.__trigger);
+					frappe.ui.tooltip($label, opts);
+					return $label;
+				}
 				const $btn = frappe.ui.button({ label: opts.__trigger || __("Hover me") });
 				frappe.ui.tooltip($btn, opts);
 				return $btn;
@@ -467,6 +475,31 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 						{
 							__trigger: __("Long"),
 							text: "A longer explanation that wraps across a couple of lines instead of running off the screen",
+						},
+					],
+				},
+				{
+					title: __("A list of reasons"),
+					items: [
+						{
+							__trigger: __("List"),
+							text: "Typst cannot render:\n• Custom CSS in the Style box\n• HTML block",
+							text_align: "start",
+						},
+					],
+				},
+				{
+					title: __("Only when overflow"),
+					items: [
+						{
+							__code: "frappe.ui.tooltip(label_el, { only_on_overflow: true })",
+							__trigger: __("Quarterly Sales Commission Report"),
+							only_on_overflow: true,
+						},
+						{
+							__code: "frappe.ui.tooltip(label_el, { only_on_overflow: true })",
+							__trigger: __("DocType"),
+							only_on_overflow: true,
 						},
 					],
 				},

@@ -23,8 +23,22 @@ from frappe.database import savepoint
 from frappe.query_builder import Order
 from frappe.utils import cint, cstr, get_assets_json
 from frappe.utils.change_log import has_app_update_notifications
-from frappe.utils.data import add_to_date
+from frappe.utils.data import add_to_date, sha256_hash
 from frappe.utils.island import get_ui_islands
+
+
+def hash_sid(sid: str) -> str:
+	"""Return the stored form of a session id.
+
+	`frappe.session.sid` and the client's cookie both hold the raw sid; only the
+	`Sessions` table and the session cache key off this hash, so leaking either
+	does not yield usable session tokens. "Guest" is shared and public, so it is
+	left as-is.
+	"""
+	if not sid or sid == "Guest":
+		return sid
+
+	return sha256_hash(sid)
 
 
 @frappe.whitelist()
@@ -47,12 +61,12 @@ def clear_sessions(user=None, keep_current=False, force=False):
 	if force:
 		reason = "Force Logged out by the user"
 
-	for sid in get_sessions_to_clear(user, keep_current, force):
-		delete_session(sid, reason=reason)
+	for sid_hash in get_sessions_to_clear(user, keep_current, force):
+		delete_session(sid_hash=sid_hash, reason=reason)
 
 
 def get_sessions_to_clear(user=None, keep_current=False, force=False):
-	"""Return sessions of the current user. Called at login / logout.
+	"""Return stored (hashed) ids of the user's sessions. Called at login / logout.
 
 	:param user: user name (default: current user)
 	:param keep_current: keep current session (default: false)
@@ -71,7 +85,8 @@ def get_sessions_to_clear(user=None, keep_current=False, force=False):
 	if keep_current:
 		if not force:
 			offset = max(0, offset - 1)
-		session_id = session_id.where(session.sid != frappe.session.sid)
+		# sessions are stored under the hash of the sid
+		session_id = session_id.where(session.sid != hash_sid(frappe.session.sid))
 
 	query = (
 		session_id.select(session.sid).offset(offset).limit(100).orderby(session.lastupdate, order=Order.desc)
@@ -80,7 +95,14 @@ def get_sessions_to_clear(user=None, keep_current=False, force=False):
 	return query.run(pluck=True)
 
 
-def delete_session(sid=None, user=None, reason="Session Expired"):
+def delete_session(sid=None, user=None, reason="Session Expired", *, sid_hash=None):
+	"""Delete a session.
+
+	:param sid: raw session id, as held by the client
+	:param sid_hash: the stored form of the sid, for callers that only have it
+		(`get_expired_sessions`, `get_sessions_to_clear` and friends all return
+		stored ids). Takes precedence over `sid` if both are given.
+	"""
 	from frappe.core.doctype.activity_log.feed import logout_feed
 
 	if frappe.flags.read_only:
@@ -88,17 +110,24 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 		# we should just ignore it till database is back up again.
 		return
 
-	if sid and not user:
+	sid_hash = sid_hash or hash_sid(sid)
+	if not sid_hash:
+		# nothing to delete
+		return
+
+	if not user:
 		table = frappe.qb.DocType("Sessions")
-		user_details = frappe.qb.from_(table).where(table.sid == sid).select(table.user).run(as_dict=True)
+		user_details = (
+			frappe.qb.from_(table).where(table.sid == sid_hash).select(table.user).run(as_dict=True)
+		)
 		if user_details:
 			user = user_details[0].get("user")
 
 	logout_feed(user, reason)
-	frappe.db.delete("Sessions", {"sid": sid})
+	frappe.db.delete("Sessions", {"sid": sid_hash})
 	frappe.db.commit(chain=True)
 
-	frappe.cache.hdel("session", sid)
+	frappe.cache.hdel("session", sid_hash)
 
 
 def clear_all_sessions(reason=None):
@@ -106,12 +135,12 @@ def clear_all_sessions(reason=None):
 	frappe.only_for("Administrator")
 	if not reason:
 		reason = "Deleted All Active Session"
-	for sid in frappe.qb.from_("Sessions").select("sid").run(pluck=True):
-		delete_session(sid, reason=reason)
+	for sid_hash in frappe.qb.from_("Sessions").select("sid").run(pluck=True):
+		delete_session(sid_hash=sid_hash, reason=reason)
 
 
 def get_expired_sessions():
-	"""Return list of expired sessions."""
+	"""Return stored (hashed) ids of expired sessions."""
 
 	sessions = frappe.qb.DocType("Sessions")
 	return (
@@ -121,8 +150,8 @@ def get_expired_sessions():
 
 def clear_expired_sessions():
 	"""This function is meant to be called from scheduler"""
-	for sid in get_expired_sessions():
-		delete_session(sid, reason="Session Expired")
+	for sid_hash in get_expired_sessions():
+		delete_session(sid_hash=sid_hash, reason="Session Expired")
 
 
 def get():
@@ -165,6 +194,9 @@ def get():
 		bootinfo["metadata_version"] = reset_metadata_version()
 
 	bootinfo.notes = get_unseen_notes()
+	bootinfo.notification_unread_count = frappe.db.count(
+		"Notification Log", {"read": 0, "for_user": frappe.session.user}
+	)
 	bootinfo.assets_json = get_assets_json()
 	bootinfo.ui_islands = get_ui_islands()
 	bootinfo.read_only = bool(frappe.flags.read_only)
@@ -247,6 +279,11 @@ class Session:
 				self.validate_user()
 				self.start(session_end, audit_user)
 
+	@property
+	def sid_hash(self) -> str:
+		"""The stored form of `sid`: what the `Sessions` table and the cache key off."""
+		return hash_sid(self.sid)
+
 	def validate_user(self):
 		if not frappe.get_cached_value("User", self.user, "enabled"):
 			frappe.throw(
@@ -318,12 +355,12 @@ class Session:
 					frappe.as_json(self.data["data"], indent=None, separators=(",", ":")),
 					self.data["user"],
 					now,
-					self.data["sid"],
+					self.sid_hash,
 					"Active",
 				)
 			)
 		).run()
-		frappe.cache.hset("session", self.data.sid, self.data)
+		frappe.cache.hset("session", self.sid_hash, self.data["data"])
 
 	def resume(self):
 		"""non-login request: load a session"""
@@ -367,11 +404,8 @@ class Session:
 		return data
 
 	def get_session_data_from_cache(self):
-		data = frappe.cache.hget("session", self.sid)
-		if data:
-			data = frappe._dict(data)
-			session_data = data.get("data", {})
-
+		session_data = frappe.cache.hget("session", self.sid_hash)
+		if session_data:
 			# set user for correct timezone
 			self.time_diff = frappe.utils.time_diff_in_seconds(
 				frappe.utils.now(), session_data.get("last_updated")
@@ -383,9 +417,9 @@ class Session:
 				and datetime.now(tz=UTC) > datetime.fromisoformat(session_end)
 			):
 				self._delete_session()
-				data = None
+				session_data = None
 
-		return data and data.data
+		return session_data
 
 	def get_session_data_from_db(self):
 		sessions = frappe.qb.DocType("Sessions")
@@ -393,7 +427,7 @@ class Session:
 		record = (
 			frappe.qb.from_(sessions)
 			.select(sessions.user, sessions.sessiondata)
-			.where(sessions.sid == self.sid)
+			.where(sessions.sid == self.sid_hash)
 			.where(sessions.lastupdate > get_expired_threshold())
 		).run()
 
@@ -407,7 +441,7 @@ class Session:
 		return data
 
 	def _delete_session(self):
-		delete_session(self.sid, reason="Session Expired")
+		delete_session(sid_hash=self.sid_hash, reason="Session Expired")
 
 	def start_as_guest(self):
 		"""all guests share the same 'Guest' session"""
@@ -441,7 +475,7 @@ class Session:
 			# update sessions table
 			(
 				frappe.qb.update(Sessions)
-				.where(Sessions.sid == self.data["sid"])
+				.where(Sessions.sid == self.sid_hash)
 				.set(
 					Sessions.sessiondata,
 					frappe.as_json(self.data["data"], indent=None, separators=(",", ":")),
@@ -453,7 +487,7 @@ class Session:
 
 			frappe.db.commit(chain=True)
 			updated_in_db = True
-			frappe.cache.hset("session", self.sid, self.data)
+			frappe.cache.hset("session", self.sid_hash, self.data["data"])
 
 		return updated_in_db
 

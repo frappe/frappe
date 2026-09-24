@@ -12,12 +12,12 @@ import frappe
 from frappe.auth import CookieManager, LoginAttemptTracker, validate_auth, validate_ip_address
 from frappe.core.doctype.user.user import generate_keys
 from frappe.frappeclient import AuthError, FrappeClient
-from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
+from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds, hash_sid
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_datetime, get_site_url, now
-from frappe.utils.data import add_to_date
+from frappe.utils.data import add_to_date, sha256_hash
 from frappe.www.login import _generate_temporary_login_link
 
 
@@ -167,6 +167,63 @@ class TestAuth(IntegrationTestCase):
 
 		with self.assertRaises(Exception):
 			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
+
+	def test_forced_password_reset_does_not_leak_reset_key(self):
+		from frappe.auth import LoginManager
+		from frappe.utils import add_days, set_request, today
+
+		self.set_system_settings("force_user_to_reset_password", 1)
+		self.addCleanup(self.set_system_settings, "force_user_to_reset_password", 0)
+
+		frappe.db.set_value("User", self.test_user_email, "last_password_reset_date", add_days(today(), -2))
+		frappe.db.commit()
+
+		set_request(method="POST", path="/api/method/login")
+		frappe.form_dict.usr = self.test_user_email
+		frappe.form_dict.pwd = self.test_user_password
+		frappe.local.response = frappe._dict()
+		frappe.local.request_ip = "127.0.0.68"
+		self.addCleanup(frappe.form_dict.clear)
+
+		emails_before = frappe.db.count("Email Queue")
+
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+
+		self.assertEqual(frappe.local.response.get("message"), "Password Reset")
+		self.assertNotIn("redirect_to", frappe.local.response)
+		self.assertGreater(frappe.db.count("Email Queue"), emails_before)
+
+	def test_forced_password_reset_waits_for_2fa(self):
+		from frappe.auth import LoginManager
+		from frappe.utils import add_days, set_request, today
+
+		system_settings = frappe.get_doc("System Settings")
+		system_settings.enable_two_factor_auth = 1
+		system_settings.two_factor_method = "OTP App"
+		system_settings.flags.ignore_mandatory = True
+		system_settings.save(ignore_permissions=True)
+		self.addCleanup(self.set_system_settings, "enable_two_factor_auth", 0)
+
+		self.set_system_settings("force_user_to_reset_password", 1)
+		self.addCleanup(self.set_system_settings, "force_user_to_reset_password", 0)
+
+		frappe.db.set_value("User", self.test_user_email, "last_password_reset_date", add_days(today(), -2))
+		frappe.db.commit()
+
+		set_request(method="POST", path="/api/method/login")
+		frappe.form_dict.usr = self.test_user_email
+		frappe.form_dict.pwd = self.test_user_password
+		frappe.local.response = frappe._dict()
+		frappe.local.request_ip = "127.0.0.69"
+		self.addCleanup(frappe.form_dict.clear)
+
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+
+		self.assertIn("tmp_id", frappe.local.response)
+		self.assertNotEqual(frappe.local.response.get("message"), "Password Reset")
+		self.assertNotIn("redirect_to", frappe.local.response)
 
 	@requires_test_service(TestService.WEB_SERVER)
 	def test_login_with_email_link(self):
@@ -356,6 +413,60 @@ class TestLoginAttemptTracker(IntegrationTestCase):
 		self.assertTrue(tracker.is_user_allowed())
 
 
+class TestSessionIdHashing(FrappeAPITestCase):
+	"""Sessions are stored under the sha256 of the sid, never the sid itself.
+
+	The raw sid lives only in the client's cookie, so a dump of `tabSessions` or of the
+	session cache yields nothing that can be replayed as a session.
+	"""
+
+	def sessions_row(self, stored_sid):
+		return frappe.db.sql("select user from tabSessions where sid=%s", stored_sid)
+
+	def test_raw_sid_is_never_stored(self):
+		sid = self.sid
+		self.assertFalse(self.sessions_row(sid), "raw sid must not appear in tabSessions")
+		self.assertFalse(frappe.cache.hget("session", sid), "raw sid must not key the session cache")
+
+	def test_session_is_stored_under_its_hash(self):
+		sid = self.sid
+		row = self.sessions_row(hash_sid(sid))
+		self.assertTrue(row, "session must be stored under the hash of the sid")
+		self.assertEqual(row[0][0], "Administrator")
+		self.assertTrue(frappe.cache.hget("session", hash_sid(sid)))
+
+	def test_cached_payload_does_not_carry_the_sid(self):
+		sid = self.sid
+		payload = frappe.cache.hget("session", hash_sid(sid))
+		self.assertNotIn("sid", payload, "the cached session must not carry the raw sid")
+
+	def request_with_cookie(self, sid):
+		"""Put a request carrying `sid` on this thread, restored when the test ends."""
+		from frappe.utils import set_request
+
+		original_request = getattr(frappe.local, "request", None)
+		if original_request is not None:
+			self.addCleanup(setattr, frappe.local, "request", original_request)
+		else:
+			self.addCleanup(delattr, frappe.local, "request")
+
+		set_request(path="/")
+		frappe.local.request.cookies = {"sid": sid}
+
+	def test_raw_cookie_resumes_the_session(self):
+		self.request_with_cookie(self.sid)
+		self.assertEqual(Session(user=None, resume=True).user, "Administrator")
+
+	def test_sid_hash_follows_sid(self):
+		self.request_with_cookie(self.sid)
+		session = Session(user=None, resume=True)
+		session.sid = "a" * 32
+		self.assertEqual(session.sid_hash, sha256_hash("a" * 32))
+
+	def test_guest_sid_is_not_hashed(self):
+		self.assertEqual(hash_sid("Guest"), "Guest")
+
+
 class TestSessionExpiry(FrappeAPITestCase):
 	def test_session_expires(self):
 		sid = self.sid  # triggers login for test case login
@@ -376,7 +487,8 @@ class TestSessionExpiry(FrappeAPITestCase):
 		# 1% higher should immediately expire
 		time_of_expiry = add_to_date(session_created, seconds=expiry_in * 1.01, as_string=True)
 		with self.freeze_time(time_of_expiry):
-			self.assertIn(sid, get_expired_sessions())
+			# sessions are stored under the hash of the sid, not the raw cookie value
+			self.assertIn(hash_sid(sid), get_expired_sessions())
 			self.assertFalse(s.get_session_data_from_db())
 
 	def test_expired_session_answers_401_without_leaking_method(self):

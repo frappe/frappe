@@ -61,13 +61,16 @@
 				</draggable>
 			</div>
 
-			<div v-if="!field_groups.length" class="pfb-empty">
-				{{
+			<EmptyState
+				v-if="!field_groups.length"
+				icon="search"
+				:title="search_text ? __('No fields match') : __('No printable fields')"
+				:description="
 					search_text
-						? __("No fields match your search.")
-						: __("This document type has no printable fields.")
-				}}
-			</div>
+						? __('Try a different word.')
+						: __('This document type has no fields to print.')
+				"
+			/>
 		</div>
 
 		<!-- ── Blocks ─────────────────────────────────────────── -->
@@ -164,48 +167,16 @@
 					</template>
 				</draggable>
 			</template>
-
-			<div class="pfb-group-label">
-				{{ __("Field template") }}
-				<a
-					:href="'/app/print-format-field-template'"
-					target="_blank"
-					class="pfb-manage-link text-muted"
-				>
-					{{ __("Manage") }}
-				</a>
-			</div>
-			<div class="pfb-group-desc">
-				{{ __("Make a custom field with HTML or Jinja") }}
-			</div>
-			<draggable
-				v-if="print_templates_list.length"
-				:list="print_templates_list"
-				:group="{ name: 'fields', pull: 'clone', put: false }"
-				:sort="false"
-				:clone="clone_field"
-				item-key="fieldname"
-				v-bind="DRAG_OPTIONS"
-				@start="setDragging(true)"
-				@end="setDragging(false)"
-			>
-				<template #item="{ element }">
-					<BlockCard
-						icon="code"
-						:name="element.display_label"
-						:desc="element.field_label || __('Custom block')"
-						:title="element.fieldname"
-						@click="add_to_layout(element)"
-					/>
-				</template>
-			</draggable>
 		</div>
 
 		<!-- ── Layers ─────────────────────────────────────────── -->
 		<div v-else-if="activeTab === 'layers'" class="pfb-tab-body pfb-tree" role="tree">
-			<div v-if="!layout" class="pfb-empty">
-				{{ __("No sections yet. Add sections to the canvas.") }}
-			</div>
+			<EmptyState
+				v-if="!layout"
+				icon="rows-3"
+				:title="__('No sections yet')"
+				:description="__('Add a section to the canvas to see it here.')"
+			/>
 			<draggable
 				v-else
 				v-model="tree_sections"
@@ -328,6 +299,7 @@
 												),
 												'pfb-tree-hover':
 													store.hovered_node.value === field,
+												'pfb-tree-row--conditional': !!field.visible_if,
 											}"
 											@mouseenter="store.hovered_field.value = field"
 											@mouseleave="store.hovered_field.value = null"
@@ -353,6 +325,14 @@
 												field_label(field)
 											}}</span>
 											<span
+												v-if="field.visible_if"
+												class="pfb-tree-eye"
+												:title="
+													__('Shown only when: {0}', [field.visible_if])
+												"
+												v-html="frappe.utils.icon('eye', 'sm')"
+											></span>
+											<span
 												v-if="field_broken(field)"
 												class="pfb-tree-warn"
 												:title="
@@ -371,9 +351,12 @@
 					</div>
 				</template>
 			</draggable>
-			<div v-if="layout && !layout.sections.length" class="pfb-empty">
-				{{ __("No sections yet. Add sections to the canvas.") }}
-			</div>
+			<EmptyState
+				v-if="layout && !layout.sections.length"
+				icon="rows-3"
+				:title="__('No sections yet')"
+				:description="__('Add a section to the canvas to see it here.')"
+			/>
 		</div>
 	</div>
 </template>
@@ -391,13 +374,13 @@ import {
 	FIELD_PLUCK_KEYS,
 } from "../utils";
 import BlockCard from "./BlockCard.vue";
+import EmptyState from "./EmptyState.vue";
 import { column_of, zone_of, zones } from "../layout";
 import { computed, onMounted, onUnmounted, nextTick, ref, watch, inject } from "vue";
 
 // state
 let search_text = ref("");
 let search_input = ref(null);
-let raw_templates = ref([]);
 
 // ── tab definitions ───────────────────────────────────────
 const TAB_STORE_KEY = "pfb_active_tab";
@@ -750,34 +733,6 @@ let field_groups = computed(() => {
 	return groups.filter((g) => g.fields.length);
 });
 
-// ── library tab ───────────────────────────────────────────
-function fetch_templates() {
-	const doctype = meta.value?.name;
-	if (!doctype) return;
-	Promise.all([
-		frappe.db.get_list("Print Format Field Template", {
-			fields: ["name", "template", "field"],
-			filters: { document_type: doctype },
-			limit: 100,
-		}),
-		frappe.db.get_list("Print Format Field Template", {
-			fields: ["name", "template", "field"],
-			filters: { document_type: ["is", "not set"] },
-			limit: 100,
-		}),
-	])
-		.then(([specific, generic]) => {
-			raw_templates.value = [...(specific || []), ...(generic || [])];
-		})
-		.catch(() => {
-			raw_templates.value = [];
-		});
-}
-
-function enter_tab(tab) {
-	if (tab === "library") fetch_templates();
-}
-
 // the indicator is the moving bar under the active tab; espresso's tabs.css
 // reads its offset and width from these two custom properties
 let tablist = ref(null);
@@ -793,39 +748,13 @@ function move_indicator() {
 
 watch(activeTab, (tab) => {
 	localStorage.setItem(TAB_STORE_KEY, tab);
-	enter_tab(tab);
 	nextTick(move_indicator);
-});
-
-let print_templates_list = computed(() => {
-	const templates = raw_templates.value;
-	return templates.map((template) => {
-		let df;
-		let field_label = null;
-		if (template.field) {
-			df = frappe.meta.get_docfield(meta.value.name, template.field);
-			field_label = df ? __(df.label, null, df.parent) : template.field;
-		} else {
-			df = { label: template.name, fieldname: frappe.scrub(template.name) };
-		}
-		return {
-			name: template.name,
-			display_label: template.name,
-			fieldname: (df?.fieldname || frappe.scrub(template.name)) + "_template",
-			fieldtype: "Field Template",
-			field_template: template.name,
-			field_label,
-		};
-	});
 });
 
 // ── computed: misc ─────────────────────────────────────────
 // ── lifecycle ──────────────────────────────────────────────
 onMounted(() => {
 	document.addEventListener("keydown", handle_slash_key);
-
-	// the watcher only fires on change, so a restored tab needs its setup run here
-	enter_tab(activeTab.value);
 	nextTick(move_indicator);
 });
 
@@ -1002,13 +931,6 @@ function handle_slash_key(e) {
 	flex-shrink: 0;
 }
 
-.pfb-manage-link {
-	font-size: var(--text-tiny);
-	font-weight: 400;
-	text-transform: none;
-	letter-spacing: 0;
-}
-
 /* ── Outline tab (tree) ──────────────────────────────────── */
 .pfb-tree {
 	padding: 12px 8px 0;
@@ -1026,13 +948,10 @@ function handle_slash_key(e) {
 	user-select: none;
 }
 
-.pfb-tree-row.pfb-tree-hover {
-	outline: 1px solid var(--pfb-accent);
-	outline-offset: -1px;
-}
-
 /* hovering a section or a column rings its whole subtree, the way the website
    builder's layers do; a field has no subtree, so it rings its own row */
+.pfb-tree-row.pfb-tree-hover,
+.pfb-tree-row.active,
 .pfb-tree-node:has(> .pfb-tree-row:hover),
 .pfb-tree-children > .pfb-tree-row:hover {
 	outline: 1px solid var(--pfb-accent);
@@ -1040,16 +959,21 @@ function handle_slash_key(e) {
 	border-radius: var(--radius);
 }
 
-/* a section row also carries the canvas-hover ring; inside the subtree ring that
-   second outline reads as a rule under the section's own label */
+/* inside the subtree ring, the section row's own ring reads as a rule under its label */
 .pfb-tree-node:has(> .pfb-tree-row:hover) > .pfb-tree-row.pfb-tree-hover {
 	outline: none;
 }
 
 .pfb-tree-row.active {
-	background: var(--surface-gray-3);
-	color: var(--text-color);
 	font-weight: 500;
+}
+
+.pfb-tree-row.active .pfb-tree-label {
+	color: var(--ink-gray-9);
+}
+
+.pfb-tree-row--conditional .pfb-tree-label {
+	color: var(--ink-gray-4);
 }
 
 .pfb-tree-chevron {
@@ -1094,37 +1018,39 @@ function handle_slash_key(e) {
 	white-space: nowrap;
 }
 
-.pfb-tree-warn {
+.pfb-tree-warn,
+.pfb-tree-eye {
 	display: inline-flex;
 	flex-shrink: 0;
+}
+
+.pfb-tree-warn {
 	color: var(--text-on-orange, #b95000);
 }
 
-.pfb-tree-children {
-	/* the website builder indents a level by 24px */
-	margin-left: 24px;
+.pfb-tree-eye {
+	--icon-stroke: var(--ink-gray-4);
 }
 
-.pfb-tree-fields {
+/* a level of nesting is padding inside the row, so the row still spans the panel */
+.pfb-tree-children > .pfb-tree-row,
+.pfb-tree-children > .pfb-tree-node > .pfb-tree-row {
+	padding-left: 32px;
+}
+
+.pfb-tree-children .pfb-tree-children > .pfb-tree-row {
+	padding-left: 56px;
+}
+
+/* an empty column is a drop target only while a drag is running */
+body.pfb-dragging .pfb-tree-fields {
 	min-height: 8px;
 }
 
 /* single-column sections have no Column row, so their fields sit directly
    under the section instead of indenting past a row that isn't there */
-.pfb-tree-fields--flush {
-	margin-left: 0;
-}
-
-/* ── Empty state ─────────────────────────────────────────── */
-.pfb-empty {
-	color: var(--text-muted);
-	font-size: var(--text-sm);
-	text-align: center;
-	padding: 16px;
-}
-
-.pfb-fields-tab .pfb-empty {
-	padding: 24px 16px;
+.pfb-tree-children .pfb-tree-children.pfb-tree-fields--flush > .pfb-tree-row {
+	padding-left: 32px;
 }
 
 .pfb-field-group {

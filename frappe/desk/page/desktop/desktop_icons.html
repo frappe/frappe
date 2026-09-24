@@ -23,7 +23,6 @@
             </button>
         </div>
         <div class="flex" style="gap:16px; align-items: center;">
-            <!-- the panel is a popover built by frappe.ui.Notifications off this button -->
             <div class="desktop-notifications">
                 <button class="btn-reset nav-link text-muted desktop-notification-icon" aria-label="{{ _("Notifications") }}">
                     <svg
@@ -31,7 +30,7 @@
                     >
                         <use href="#icon-bell"></use>
                     </svg>
-                    <span class="notification-count hidden" aria-live="polite"></span>
+                    <span class="notification-count es-badge hidden" data-variant="ghost" aria-live="polite"></span>
                 </button>
             </div>
             <div class="desktop-avatar">

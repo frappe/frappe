@@ -1,5 +1,6 @@
 <template>
 	<div
+		ref="root"
 		class="print-format-section-container"
 		data-pfb-section
 		:data-section-uid="field_uid(section)"
@@ -12,7 +13,6 @@
 			'section--preview': !!preview_doc,
 		}"
 		@click.stop="select_section"
-		@contextmenu="on_context_menu"
 		@mouseenter="store.hovered_section.value = section"
 		@mouseleave="store.hovered_section.value = null"
 	>
@@ -139,7 +139,7 @@
 		<div v-if="show_spacing_handles" class="pfb-section-chrome" :style="section_chrome_style">
 			<SectionSpacingHandles :section="section" type="margin" />
 			<SectionSpacingHandles :section="section" type="padding" />
-			<SectionRadiusHandle :section="section" />
+			<SectionRadiusHandle :target="section" />
 		</div>
 		<div class="page-break-indicator" v-if="section.page_break">
 			<span>— {{ __("Page Break") }} —</span>
@@ -163,7 +163,7 @@ import Field from "./Field.vue";
 import SectionActions from "./SectionActions.vue";
 import SectionSpacingHandles from "./SectionSpacingHandles.vue";
 import SectionRadiusHandle from "./SectionRadiusHandle.vue";
-import { computed, inject } from "vue";
+import { computed, inject, onMounted, onUnmounted, ref } from "vue";
 import { useColumnResize } from "../../composables/useColumnResize";
 import { always_has_content } from "../../fieldtypes";
 import {
@@ -173,7 +173,6 @@ import {
 	setDragging,
 	field_uid,
 } from "../../utils";
-import { useContextMenu } from "../../composables/useContextMenu";
 
 const props = defineProps(["section", "is_header", "zone"]);
 
@@ -341,40 +340,58 @@ function remove_section() {
 	store.remove_section(props.section);
 }
 
-const { open: open_context_menu } = useContextMenu();
+const root = ref(null);
+let context_menu = null;
+const body_section = () => !props.is_header;
+const menu_options = [
+	{
+		label: __("Copy section"),
+		icon: "copy",
+		condition: body_section,
+		onclick: () => store.copy_section(props.section),
+	},
+	{
+		label: __("Duplicate section"),
+		icon: "copy-plus",
+		condition: body_section,
+		onclick: () => store.duplicate_section(props.section),
+	},
+	{
+		label: __("Save as snippet"),
+		icon: "bookmark-plus",
+		condition: body_section,
+		onclick: () => store.prompt_snippet(props.section, "Section"),
+	},
+	{
+		label: __("Paste"),
+		icon: "clipboard-paste",
+		condition: () => !!store.clipboard.value,
+		onclick: () => store.paste_clipboard(),
+	},
+	{
+		group: "",
+		hide_label: true,
+		options: [
+			{
+				label: __("Delete section"),
+				icon: "trash",
+				theme: "red",
+				condition: body_section,
+				onclick: () => remove_section(),
+			},
+		],
+	},
+];
 
-function on_context_menu(e) {
-	select_section();
-	open_context_menu(e, [
-		!props.is_header && {
-			label: __("Copy section"),
-			icon: "copy",
-			action: () => store.copy_section(props.section),
-		},
-		!props.is_header && {
-			label: __("Duplicate section"),
-			icon: "copy-plus",
-			action: () => store.duplicate_section(props.section),
-		},
-		!props.is_header && {
-			label: __("Save as snippet"),
-			icon: "bookmark-plus",
-			action: () => store.prompt_snippet(props.section, "Section"),
-		},
-		store.clipboard.value && {
-			label: __("Paste"),
-			icon: "clipboard-paste",
-			action: () => store.paste_clipboard(),
-		},
-		!props.is_header && { divider: true },
-		!props.is_header && {
-			label: __("Delete section"),
-			icon: "trash",
-			danger: true,
-			action: remove_section,
-		},
-	]);
-}
+onMounted(() => {
+	context_menu = new frappe.ui.ContextMenu({
+		target: root.value,
+		options: menu_options,
+		empty_text: __("Nothing to paste"),
+		on_open: () => select_section(),
+	});
+});
+onUnmounted(() => context_menu?.destroy());
 
 function remove_column(index) {
 	if (props.section.columns.length <= 1) return;

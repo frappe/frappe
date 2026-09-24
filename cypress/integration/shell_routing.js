@@ -60,12 +60,11 @@ describe("Desk URL shell segment", () => {
 		});
 	});
 
-	it("keeps `private` reserved, even once a Private shell exists", () => {
-		// `/desk/private/<workspace>` names a user's own workspace and always has. A `Private`
-		// module with a sidebar of its own would land on the same segment, and reading it as a
-		// shell would turn `/desk/private/settings` into the public workspace of that name. The
-		// shell is added here because frappe alone ships none, and the guard is what is under
-		// test, not whether this site happens to trip it.
+	it("never strips a leading `private` as a shell prefix", () => {
+		// `private` means two things, told apart by position: the Private shell in position 0 and
+		// one of this user's own pages in position 1. So it is kept out of the table a prefix is
+		// read from. Left in, `/desk/private/settings` would stop being somebody's own page called
+		// Settings and become the public workspace of that name.
 		cy.window().then((win) => {
 			const router = win.frappe.router;
 			const shells = win.frappe.boot.module_sidebars;
@@ -82,6 +81,169 @@ describe("Desk URL shell segment", () => {
 			else delete shells["Private"];
 			router.setup_shell_routes();
 		});
+	});
+
+	// The desk's own slug rule, which is what the old URLs were built with.
+	const win_slug = (name) => name.toLowerCase().replace(/ /g, "-");
+
+	it("opens a private page in the Private shell, and keeps it in a module that lists it", () => {
+		// The page is made here rather than assumed, because a fresh site has none, and it is the
+		// grammar that is under test: `/desk/private/<title>` is the page in its own shell, and
+		// `/desk/<module>/private/<title>` is the same page in a sidebar it appears in.
+		// Owned by whoever is logged in: a private page belongs to its owner, and nobody may make
+		// one for somebody else.
+		cy.window()
+			.then((win) => {
+				const user = win.frappe.session.user;
+				// The module behind the `Build` shell, which is named after it on some sites and
+				// not on others (`Build Tools` on a frappe-only site).
+				const module = win.frappe.boot.module_sidebars["Build"].module;
+				return { user, module };
+			})
+			.then(({ user, module }) => {
+				const name = `Cypress Private Page-${user}`;
+				cy.call("frappe.client.insert", {
+					doc: {
+						doctype: "Workspace",
+						title: "Cypress Private Page",
+						label: name,
+						module,
+						public: 0,
+						for_user: user,
+						content: "[]",
+					},
+				});
+
+				cy.visit("/desk/private");
+				cy.location("pathname").should("eq", "/desk/private/cypress-private-page");
+				cy.window().its("frappe.app.sidebar.current_module").should("eq", "Private");
+
+				// The old spelling carries the owner's email. It still resolves, and the address
+				// bar is corrected to the title.
+				cy.visit(`/desk/private/${win_slug(name)}`);
+				cy.location("pathname").should("eq", "/desk/private/cypress-private-page");
+
+				cy.visit("/desk/build/private/cypress-private-page");
+				cy.location("pathname").should("eq", "/desk/build/private/cypress-private-page");
+				cy.window().its("frappe.app.sidebar.current_module").should("eq", "Build");
+
+				cy.call("frappe.client.delete", { doctype: "Workspace", name });
+			});
+	});
+
+	it("opens the Private shell on the first item of its sidebar, page or not", () => {
+		// The shell opens where every other shell opens: on the first item that leads anywhere.
+		// Usually that is one of your own pages, and when something has been put above it, it is
+		// that instead.
+		cy.window()
+			.its("frappe.session.user")
+			.then((user) => {
+				const name = `Cypress Landing Page-${user}`;
+				cy.call("frappe.client.insert", {
+					doc: {
+						doctype: "Workspace",
+						title: "Cypress Landing Page",
+						label: name,
+						module: "Private",
+						public: 0,
+						for_user: user,
+						content: "[]",
+					},
+				});
+
+				// Arranged the way the editor arranges it: a link of their own above the page.
+				cy.call(
+					"frappe.desk.doctype.custom_sidebar.custom_sidebar.save_sidebar_customization",
+					{
+						module: "Private",
+						items: JSON.stringify([
+							{
+								added: 1,
+								type: "Link",
+								link_type: "DocType",
+								link_to: "ToDo",
+								label: "My ToDos",
+							},
+							{
+								added: 1,
+								type: "Link",
+								link_type: "Workspace",
+								link_to: name,
+								label: "Cypress Landing Page",
+							},
+						]),
+					}
+				);
+				cy.reload();
+
+				cy.visit("/desk/private");
+				cy.location("pathname").should("eq", "/desk/private/todo");
+				cy.window().its("frappe.app.sidebar.current_module").should("eq", "Private");
+
+				cy.call("frappe.desk.doctype.custom_sidebar.custom_sidebar.reset_user_sidebar", {
+					module: "Private",
+				});
+				cy.call("frappe.client.delete", { doctype: "Workspace", name });
+			});
+	});
+
+	it("opens a landing that leaves the desk in a tab, and draws the pane", () => {
+		// `module_landing_route` hands back whatever a `URL` row points at, because the desktop's
+		// icons render it as an href. Handed to the router it would be read as desk path segments,
+		// so it is opened the way the app switcher opens one, and the pane gets the empty state
+		// rather than nothing at all.
+		cy.window()
+			.its("frappe.session.user")
+			.then((user) => {
+				cy.call(
+					"frappe.desk.doctype.custom_sidebar.custom_sidebar.save_sidebar_customization",
+					{
+						module: "Private",
+						items: JSON.stringify([
+							{
+								added: 1,
+								type: "Link",
+								link_type: "URL",
+								url: "https://frappe.io/",
+								label: "Frappe",
+							},
+						]),
+					}
+				);
+				cy.reload();
+
+				cy.window().then((win) => cy.stub(win, "open").as("new_tab"));
+				cy.window().then((win) => win.frappe.set_route("private"));
+
+				// `noopener` included: the tab must not keep a handle on the signed-in desk.
+				cy.get("@new_tab").should(
+					"have.been.calledWith",
+					"https://frappe.io/",
+					"_blank",
+					"noopener"
+				);
+				cy.location("pathname").should("eq", "/desk/private");
+				cy.get(".private-shell-empty").should("exist");
+
+				cy.call("frappe.desk.doctype.custom_sidebar.custom_sidebar.reset_user_sidebar", {
+					module: "Private",
+				});
+			});
+	});
+
+	it("reads anything else after `private` as a route inside the Private shell", () => {
+		// The word has two meanings and the segment after it decides which: one of your own pages,
+		// or, failing that, the shell's own slug with an ordinary route behind it. Without the
+		// second, every such URL said "Workspace todo does not exist".
+		cy.visit("/desk/private/todo");
+		cy.location("pathname").should("eq", "/desk/private/todo");
+		cy.window().its("frappe.app.sidebar.current_module").should("eq", "Private");
+		cy.window().its("frappe.router.current_route").should("deep.eq", ["List", "ToDo", "List"]);
+
+		// A word that names nothing at all is still a private page that is not there.
+		cy.visit("/desk/private/no-such-page-of-mine");
+		cy.get_open_dialog().should("contain.text", "does not exist");
+		cy.hide_dialog();
 	});
 
 	it("spells an ampersand out rather than encoding it", () => {
