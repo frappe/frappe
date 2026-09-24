@@ -660,10 +660,16 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertIn("print-format-doc", html)
 		self.assertIn("<p>Jinja: Administrator</p>", html)
 
-		convert_to_builder(self.FORMAT_NAME)
+		layout = frappe.parse_json(doc.format_data)
+		layout["sections"][0]["label"] = "Edited in builder"
+		doc.format_data = frappe.as_json(layout)
+		doc.margin_top = 33
+		doc.save()
+		self.assertRaises(frappe.ValidationError, convert_to_builder, self.FORMAT_NAME)
 		doc = frappe.get_doc("Print Format", self.FORMAT_NAME)
 		self.assertEqual(frappe.parse_json(doc.classic_format_data), backup)
-		self.assertEqual(frappe.parse_json(doc.format_data), self.EXPECTED_BETA_LAYOUT)
+		self.assertEqual(frappe.parse_json(doc.format_data)["sections"][0]["label"], "Edited in builder")
+		self.assertEqual(doc.margin_top, 33)
 
 		restore_classic_layout(self.FORMAT_NAME)
 		doc = frappe.get_doc("Print Format", self.FORMAT_NAME)
