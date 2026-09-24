@@ -1221,6 +1221,49 @@ class TestNavigationItemRenderers(IntegrationTestCase):
 			self.assertTrue(contributes(source_dir))
 
 
+class TestReplacementPageContributions(IntegrationTestCase):
+	"""An app whose only contribution is a replacement page still reaches the bundle."""
+
+	def assembled_apps(self, source_dir: str) -> list[str]:
+		with (
+			patch.object(frappe, "get_all_apps", return_value=["frappe", "helpdesk"]),
+			patch.object(frappe, "get_app_path", side_effect=lambda app: source_dir),
+			patch.object(frappe, "get_hooks", return_value={}),
+			patch("frappe.shell.manifest.declared_prefix", return_value="helpdesk"),
+		):
+			return [entry["app"] for entry in assemble()]
+
+	def test_pages_json_and_a_page_file_get_a_manifest_entry(self):
+		for folder in (("doctype", "hd_ticket", "frontend"), ("custom", "contact")):
+			with self.subTest(folder="/".join(folder)):
+				source_dir = tempfile.mkdtemp(prefix="helpdesk")
+				self.addCleanup(shutil.rmtree, source_dir)
+				declared = os.path.join(source_dir, "helpdesk", *folder)
+				os.makedirs(os.path.join(declared, "pages"))
+				self.assertNotIn("helpdesk", self.assembled_apps(source_dir))
+
+				with open(os.path.join(declared, "pages.json"), "w") as f:
+					json.dump({"record": "agent"}, f)
+				with open(os.path.join(declared, "pages", "agent.js"), "w") as f:
+					f.write('export default { component: () => import("./Agent.vue") }\n')
+
+				self.assertIn("helpdesk", self.assembled_apps(source_dir))
+
+	def test_pages_json_alone_gets_a_manifest_entry(self):
+		for folder in (("doctype", "hd_ticket", "frontend"), ("custom", "contact")):
+			with self.subTest(folder="/".join(folder)):
+				source_dir = tempfile.mkdtemp(prefix="helpdesk")
+				self.addCleanup(shutil.rmtree, source_dir)
+				declared = os.path.join(source_dir, "helpdesk", *folder)
+				os.makedirs(declared)
+				self.assertNotIn("helpdesk", self.assembled_apps(source_dir))
+
+				with open(os.path.join(declared, "pages.json"), "w") as f:
+					json.dump({"record": "agent"}, f)
+
+				self.assertIn("helpdesk", self.assembled_apps(source_dir))
+
+
 class TestShellAssetSwap(IntegrationTestCase):
 	"""The swap must survive a filesystem that refuses to rename the published directory."""
 
