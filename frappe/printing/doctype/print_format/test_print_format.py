@@ -236,9 +236,9 @@ class TestPrintFormatHardening(IntegrationTestCase):
 				self.assertIn("PROBE", html)
 
 	def test_failing_row_condition_logs_once_not_once_per_row(self):
-		log_db = get_log_db()
-		log_db.delete("Error Log")
-		log_db.commit()
+		# Count the delta rather than clearing the table: the log database is shared with
+		# every other process on the site, so this test does not own it exclusively.
+		before = get_log_db().count("Error Log")
 		self.render(
 			self.layout(
 				{
@@ -254,7 +254,7 @@ class TestPrintFormatHardening(IntegrationTestCase):
 			)
 		)
 		self.assertGreater(frappe.db.count("Has Role", {"parent": "Administrator"}), 1)
-		self.assertEqual(get_log_db().count("Error Log"), 1)
+		self.assertEqual(get_log_db().count("Error Log") - before, 1)
 
 	def test_labels_are_escaped(self):
 		payload = "<script>alert(1)</script>"
