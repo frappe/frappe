@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+from unittest.mock import patch
 
 import frappe
 from frappe.desk.doctype.form_layout.form_layout import (
@@ -11,12 +12,36 @@ from frappe.desk.doctype.form_layout.form_layout import (
 	save_form_layout,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.tests.classes.context_managers import set_user
+
+MANAGER = "test_form_layout_manager@example.com"
 
 
 def make_layout(**kwargs):
 	values = {"doctype": "Form Layout", "dt": "Note", "type": "Details", "layout": "[]"}
 	values.update(kwargs)
 	return frappe.get_doc(values)
+
+
+def a_manager() -> str:
+	if not frappe.db.exists("User", MANAGER):
+		frappe.get_doc(
+			doctype="User",
+			email=MANAGER,
+			first_name="Layout Manager",
+			user_type="System User",
+			roles=[{"role": "System Manager"}],
+		).insert(ignore_permissions=True)
+	return MANAGER
+
+
+def published_doctypes(publish) -> list[str]:
+	"""The doctypes named by each `doctype_update` sent through the patched publisher."""
+	return [
+		call.args[1]["doctype"]
+		for call in publish.call_args_list
+		if call.args[0] == "doctype_update" and call.kwargs.get("after_commit")
+	]
 
 
 class TestFormLayout(IntegrationTestCase):
@@ -167,3 +192,23 @@ class TestFormLayout(IntegrationTestCase):
 		self.assertEqual(len(result["layouts"]), 1)
 		fields = result["layouts"][0]["layout"][0]["sections"][0]["columns"][0]["fields"]
 		self.assertEqual(fields, ["title"])
+
+	def test_a_save_announces_its_doctype(self):
+		with set_user(a_manager()), patch("frappe.publish_realtime") as publish:
+			make_layout().insert()
+		self.assertEqual(published_doctypes(publish), ["Note"])
+
+	def test_a_delete_announces_its_doctype(self):
+		with set_user(a_manager()):
+			layout = make_layout().insert()
+			with patch("frappe.publish_realtime") as publish:
+				layout.delete()
+		self.assertEqual(published_doctypes(publish), ["Note"])
+
+	def test_moving_a_layout_announces_both_doctypes(self):
+		with set_user(a_manager()):
+			layout = make_layout().insert()
+			layout.dt = "ToDo"
+			with patch("frappe.publish_realtime") as publish:
+				layout.save()
+		self.assertEqual(sorted(published_doctypes(publish)), ["Note", "ToDo"])

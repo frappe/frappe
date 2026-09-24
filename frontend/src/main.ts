@@ -18,6 +18,7 @@ import { recordDrawnProps } from "@/pages/record/drawnProps";
 import { registerContributions } from "@/contributions/registry";
 import AppShell from "@/shell/AppShell.vue";
 import { createSocket } from "@/shell/socket";
+import { watchDoctypeUpdates } from "@/shell/doctypeUpdates";
 import Unauthorized from "@/shell/Unauthorized.vue";
 import BootError from "@/shell/BootError.vue";
 
@@ -64,6 +65,7 @@ async function start() {
 	// Where `getSocketInstance` looks; the plugin no longer opens one.
 	app.config.globalProperties.$socket = createSocket(boot);
 	watchClientScripts(app.config.globalProperties.$socket);
+	watchDoctypeUpdates(app.config.globalProperties.$socket);
 	app.use(router);
 	app.provide("boot", boot);
 	provideSession(app, boot.session);

@@ -1,5 +1,5 @@
-// One doctype's stored list settings: the site row and the person's own, fetched once per session
-// beside meta, and written back silently. A write's response replaces both rows.
+// One doctype's stored list settings: the site row and the person's own, fetched beside meta once
+// and again after a DocType change, written back silently. A write's response replaces both rows.
 import { runMethod } from "@framework/ui/api";
 import { computed, getCurrentScope, onScopeDispose, ref, type ComputedRef, type Ref } from "vue";
 import type { ListSettings, ListSettingsKey } from "./storedSettings";
@@ -39,6 +39,8 @@ interface Entry {
 	timer: ReturnType<typeof setTimeout> | null;
 	/** Writes go out one after another, so a late response cannot overwrite a later one. */
 	queue: Promise<void>;
+	/** The DocType changed; a holder keeps this entry, the next caller gets a new one. */
+	dropped: boolean;
 }
 
 const entries = new Map<string, Entry>();
@@ -47,17 +49,7 @@ export function useListSettings(doctype: string): ListSettingsHandle {
 	const entry = entryFor(doctype);
 	const address = { doctype, type: VIEW_TYPE };
 
-	function flush(): Promise<void> {
-		const patch = entry.pending;
-		entry.pending = null;
-		if (entry.timer) clearTimeout(entry.timer);
-		entry.timer = null;
-		if (!patch) return entry.queue;
-		const marks = { ...entry.resets };
-		return write(entry, () => send(`${API}.save`, { ...address, scope: "user", settings: patch }), () =>
-			restore(entry, patch, marks)
-		);
-	}
+	const flush = () => flushEntry(entry, doctype);
 
 	function save(patch: ListSettings) {
 		entry.pending = { ...entry.pending, ...patch };
@@ -98,6 +90,14 @@ export function useListSettings(doctype: string): ListSettingsHandle {
 	};
 }
 
+/** Forgets the doctype's settings; a waiting write goes out first, and the next caller reads after it. */
+export function dropListSettings(doctype: string): void {
+	const entry = entries.get(doctype);
+	if (!entry) return;
+	entry.dropped = true;
+	void flushEntry(entry, doctype);
+}
+
 /** Drops every fetched row, so one test's settings cannot reach the next. */
 export function resetListSettings(): void {
 	for (const entry of entries.values()) if (entry.timer) clearTimeout(entry.timer);
@@ -106,7 +106,7 @@ export function resetListSettings(): void {
 
 function entryFor(doctype: string): Entry {
 	const existing = entries.get(doctype);
-	if (existing) return existing;
+	if (existing && !existing.dropped) return existing;
 	const entry: Entry = {
 		tiers: ref({ site: null, user: null }),
 		loaded: ref(false),
@@ -114,10 +114,27 @@ function entryFor(doctype: string): Entry {
 		resets: {},
 		timer: null,
 		queue: Promise.resolve(),
+		dropped: false,
 	};
 	entries.set(doctype, entry);
-	load(entry, doctype);
+	if (existing) {
+		entry.queue = existing.queue.then(() => {
+			carryPending(existing, entry);
+			return load(entry, doctype);
+		});
+	} else load(entry, doctype);
 	return entry;
+}
+
+function flushEntry(entry: Entry, doctype: string): Promise<void> {
+	const patch = entry.pending;
+	entry.pending = null;
+	if (entry.timer) clearTimeout(entry.timer);
+	entry.timer = null;
+	if (!patch) return entry.queue;
+	const marks = { ...entry.resets };
+	const body = { doctype, type: VIEW_TYPE, scope: "user", settings: patch };
+	return write(entry, () => send(`${API}.save`, body), () => restore(entry, patch, marks));
 }
 
 async function load(entry: Entry, doctype: string) {
@@ -148,6 +165,13 @@ function restore(entry: Entry, patch: ListSettings, marks: Entry["resets"]) {
 		if ((entry.resets[key] ?? 0) === (marks[key] ?? 0)) Object.assign(kept, { [key]: patch[key] });
 	}
 	entry.pending = { ...kept, ...entry.pending };
+}
+
+/** A failed write lands in the dropped entry, which may have no holder left to flush it. */
+function carryPending(from: Entry, to: Entry) {
+	if (!from.pending) return;
+	restore(to, from.pending, {});
+	from.pending = null;
 }
 
 async function send(method: string, args: Record<string, unknown>): Promise<unknown> {

@@ -57,11 +57,16 @@ const entries = memoizedState(
 export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 	const { meta, metas, loading, error } = useDoctypeMeta(options.doctype);
 	const { fieldAccess } = useDocPermissions(options.doctype);
-	// Warm the current entry at call time; the computed tracks it from there.
-	const current = () =>
-		entries.get({ doctype: toValue(options.doctype), type: options.type });
-	current();
-	const entry = computed(current);
+	// Built at call time and held until the input moves, so a later drop cannot swap it.
+	const inputNow = () => ({ doctype: toValue(options.doctype), type: options.type });
+	const first = inputNow();
+	let held = { input: first, entry: entries.get(first) };
+	const entry = computed(() => {
+		const input = inputNow();
+		if (input.doctype !== held.input.doctype || input.type !== held.input.type)
+			held = { input, entry: entries.get(input) };
+		return held.entry;
+	});
 
 	const layout = computed<FormLayoutSchema>(() => {
 		const response = entry.value.data as FormLayoutsResponse | null;
@@ -108,6 +113,11 @@ export function whenSettled(loading: { value: boolean }): Promise<void> {
 			resolve();
 		});
 	});
+}
+
+/** Forgets the doctype's rows of every type; the next caller fetches. */
+export function dropFormLayouts(doctype: string): void {
+	entries.drop((key) => key.startsWith(`${doctype}:`));
 }
 
 /** Drops every memoised fetch, so one test's rows cannot reach the next. */
