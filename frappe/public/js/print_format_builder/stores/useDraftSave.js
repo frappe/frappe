@@ -102,23 +102,19 @@ export function useDraftSave({
 		// one at a time — the manual save and the autosave can both ask, and the
 		// second would carry the timestamp the first is about to move
 		const run = () => {
+			const doc = letterhead.value;
 			const ours = Object.fromEntries(
-				LETTERHEAD_EDITED_FIELDS.map((key) => [key, letterhead.value[key]])
+				LETTERHEAD_EDITED_FIELDS.map((key) => [key, doc[key]])
 			);
 			return frappe
-				.call({
-					method: "frappe.client.save",
-					args: { doc: letterhead.value },
-					silent: true,
-				})
+				.call({ method: "frappe.client.save", args: { doc }, silent: true })
 				.catch((xhr) => {
 					if (xhr?.responseJSON?.exc_type !== "TimestampMismatchError") throw xhr;
-					return frappe.db
-						.get_doc("Letter Head", letterhead.value.name)
-						.then((fresh) => {
-							letterhead.value = Object.assign(fresh, ours, { _dirty: true });
-							return frappe.call("frappe.client.save", { doc: letterhead.value });
-						});
+					return frappe.db.get_doc("Letter Head", doc.name).then((fresh) => {
+						const merged = Object.assign(fresh, ours, { _dirty: true });
+						if (letterhead.value === doc) letterhead.value = merged;
+						return frappe.call("frappe.client.save", { doc: merged });
+					});
 				});
 		};
 		letterhead_push = letterhead_push.then(run, run);
