@@ -200,7 +200,11 @@ def upload_file():
 		content = temp_path.read_bytes()
 		temp_path.unlink()
 		content_type = guess_type(filename)[0]
-		if optimize and content_type and content_type.startswith("image/"):
+		if optimize and content_type == "application/pdf":
+			from frappe.utils.pdf import optimize_pdf
+
+			content = optimize_pdf(content)
+		elif optimize and content_type and content_type.startswith("image/"):
 			from frappe.utils.image import optimize_image
 
 			args = {"content": content, "content_type": content_type}

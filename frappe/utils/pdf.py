@@ -27,7 +27,7 @@ from frappe.utils.jinja_globals import bundled_asset, is_rtl
 if TYPE_CHECKING:
 	import cssutils
 	from bs4 import BeautifulSoup
-	from pypdf import PdfWriter
+	from pypdf import PdfReader, PdfWriter
 
 PDF_CONTENT_ERRORS = [
 	"ContentNotFoundError",
@@ -498,6 +498,119 @@ def pdf_contains_js(file_content: bytes):
 		pass
 
 	return False
+
+
+def pdf_has_signature(content: bytes) -> bool:
+	"""Check if a PDF has a signed digital-signature field.
+
+	PDF signatures hash a specific byte range of the exact original file bytes;
+	re-serializing the file (as any pypdf write does) shifts object offsets and
+	invalidates that hash. Optimizing a signed PDF would silently break its
+	signature, so callers should skip optimization when this returns True.
+
+	Returns True (fail-safe) if the check itself can't be completed, since the
+	cost of skipping optimization is far lower than corrupting a signature.
+	"""
+	from io import BytesIO
+
+	from pypdf import PdfReader
+
+	try:
+		reader = PdfReader(BytesIO(content))
+		fields = reader.get_fields() or {}
+		return any(field.get("/FT") == "/Sig" and field.get("/V") for field in fields.values())
+	except Exception:
+		return True
+
+
+def _pdf_has_oversized_image(reader: "PdfReader", max_pixels: int) -> bool:
+	"""Check declared image XObject dimensions without decoding any pixel data.
+	Avoid exhausting memory in loading image.
+	"""
+	for page in reader.pages:
+		try:
+			xobjects = page["/Resources"]["/XObject"]
+		except KeyError:
+			continue
+		for xobj in xobjects.values():
+			xobj = xobj.get_object()
+			if xobj.get("/Subtype") != "/Image":
+				continue
+			width = int(xobj.get("/Width", 0))
+			height = int(xobj.get("/Height", 0))
+			if width * height > max_pixels:
+				return True
+	return False
+
+
+def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600) -> bytes:
+	"""Recompress embedded raster images and compress content streams to shrink a PDF.
+
+	Only benefits image-heavy PDFs (e.g. scanned documents); text/vector-only PDFs
+	won't shrink meaningfully. Falls back to the original content if optimization
+	fails, doesn't actually reduce the size, if the PDF is digitally signed, or if
+	it contains an image large enough to risk exhausting memory on decode.
+	"""
+	import zlib
+	from io import BytesIO
+
+	from PIL import Image, UnidentifiedImageError
+	from pypdf import PdfReader, PdfWriter
+	from pypdf.errors import PyPdfError
+
+	if pdf_has_signature(content):
+		return content
+
+	try:
+		reader = PdfReader(BytesIO(content))
+		if _pdf_has_oversized_image(reader, Image.MAX_IMAGE_PIXELS):
+			return content
+
+		writer = PdfWriter(clone_from=reader)
+
+		for page in writer.pages:
+			for img_file in page.images:
+				try:
+					image = img_file.image
+					if image.width > max_dim or image.height > max_dim:
+						image.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
+					img_file.replace(image, quality=quality, optimize=True)
+				except (
+					PyPdfError,
+					UnidentifiedImageError,
+					Image.DecompressionBombError,
+					OSError,
+					ValueError,
+					EOFError,
+					zlib.error,
+				):
+					# skip this image rather than abandoning the whole document
+					continue
+				except Exception:
+					frappe.log_error(title=_("Unexpected error while optimizing one image in PDF"))
+					continue
+			page.compress_content_streams()  # This is CPU intensive!
+
+		writer.compress_identical_objects(remove_duplicates=True, remove_unreferenced=True)
+
+		output = BytesIO()
+		writer.write(output)
+		optimized_content = output.getvalue()
+		return optimized_content if len(optimized_content) < len(content) else content
+	except (
+		PyPdfError,
+		UnidentifiedImageError,
+		Image.DecompressionBombError,
+		OSError,
+		ValueError,
+		EOFError,
+		zlib.error,
+	) as e:
+		frappe.msgprint(_("Failed to optimize PDF: {0}").format(str(e)))
+		return content
+	except Exception:
+		frappe.log_error(title=_("Unexpected error while optimizing PDF"))
+		return content
 
 
 def get_host_url():
