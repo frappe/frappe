@@ -10,6 +10,7 @@ from frappe.utils.print_format import (
 	download_multi_pdf_async,
 	get_max_bulk_print_docs,
 	get_max_concurrent_bulk_exports,
+	page_settings,
 )
 
 
@@ -52,6 +53,15 @@ class TestBulkPdfLimits(IntegrationTestCase):
 
 		self.assertEqual(seen, ["de"])
 		self.assertEqual(frappe.local.lang, "en")
+
+	def test_page_settings_map_the_dialogs_page_choice(self):
+		self.assertEqual(page_settings(None), {})
+		self.assertEqual(page_settings({"password": "x"}), {})
+		self.assertEqual(page_settings({"page-size": "Letter"}), {"pdf_page_size": "Letter"})
+		self.assertEqual(
+			page_settings({"page-height": "100mm", "page-width": "50mm"}),
+			{"pdf_page_size": "Custom", "pdf_page_height": "100mm", "pdf_page_width": "50mm"},
+		)
 
 	def test_document_count_setting_is_honoured(self):
 		frappe.db.set_single_value("Print Settings", "max_bulk_print_docs", 3)

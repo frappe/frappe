@@ -134,6 +134,21 @@ def download_multi_pdf_async(
 	return {"task_id": task_id}
 
 
+def page_settings(pdf_options) -> dict:
+	pdf_options = pdf_options or {}
+	settings = {}
+	for option, setting in (
+		("page-size", "pdf_page_size"),
+		("page-height", "pdf_page_height"),
+		("page-width", "pdf_page_width"),
+	):
+		if pdf_options.get(option):
+			settings[setting] = pdf_options[option]
+	if "pdf_page_height" in settings and "pdf_page_size" not in settings:
+		settings["pdf_page_size"] = "Custom"
+	return settings
+
+
 def _download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
@@ -222,7 +237,9 @@ def _download_multi_pdf(
 			pdf = legacy_generator(pf_doc, doc, letterhead).render_pdf()
 		else:
 			set_link_titles(doc)
-			generator = PrintFormatGenerator(pf_doc, doc, letterhead, no_letterhead=no_letterhead)
+			generator = PrintFormatGenerator(
+				pf_doc, doc, letterhead, no_letterhead=no_letterhead, settings=page_settings(options)
+			)
 			pdf = generator.render_pdf()
 		for page in PdfReader(BytesIO(pdf)).pages:
 			pdf_writer.add_page(page)
