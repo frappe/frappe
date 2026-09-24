@@ -11,7 +11,8 @@ import {
 	type ChildRect,
 	type LayoutDirection,
 } from "@/utils/dropGeometry"
-import { DropZoneResolver, type DropZone } from "@/utils/reorderDropZone"
+import { DropZoneResolver, familyPlacementMessage, type DropZone } from "@/utils/reorderDropZone"
+import { toast } from "frappe-ui"
 import type { PauseId } from "@/utils/useCanvasHistory"
 
 const DRAG_THRESHOLD = 4 // px before a mousedown becomes a drag
@@ -97,6 +98,8 @@ class BlockReorderSession {
 	private onUp = () => {
 		if (this.started && this.dropZone && this.dropIndex !== null) {
 			this.commit(this.dropZone, this.dropIndex)
+		} else if (this.started && this.resolver.rejectedComponent) {
+			toast.warning(familyPlacementMessage(this.resolver.rejectedComponent))
 		}
 		this.cleanup()
 	}

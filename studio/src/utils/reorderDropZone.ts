@@ -1,6 +1,7 @@
 // Ported from Builder, modified later
 import Block from "@/utils/block"
 import { getLayoutDirection } from "@/utils/dropGeometry"
+import type { FrappeUIComponent } from "@/types"
 
 const BLOCK_SELECTOR = ".__studio_component__"
 // blocks inside a studio component instance aren't editable, so the instance root is the hit target
@@ -34,13 +35,23 @@ export interface DropZone {
 //  - a container hovered on its inner core → nest inside it
 //  - a container hovered on its outer edge band → beside it
 //  - a gap between items → elementFromPoint already returns the parent
+export function familyPlacementMessage(component: FrappeUIComponent): string {
+	const familyRoot = Block.getComponents()?.[component.group as string]
+	return `${component.title} can only be placed inside a ${familyRoot?.title || component.group}`
+}
+
 export class DropZoneResolver {
+	// set when the last resolve refused a target for family reasons, so the
+	// engine can explain a rejected drop
+	rejectedComponent: FrappeUIComponent | null = null
+
 	constructor(
 		private dragged: Block,
 		private findBlock: (id: string) => Block | null,
 	) {}
 
 	resolve(clientX: number, clientY: number): DropZone | null {
+		this.rejectedComponent = null
 		const element = document.elementFromPoint(clientX, clientY) as HTMLElement | null
 		return this.emptySlotZone(element) || this.blockZone(element, clientX, clientY)
 	}
@@ -163,7 +174,9 @@ export class DropZoneResolver {
 	// their family root, so they only get zones under one — as the panel drop does.
 	private accepts(parent: Block): boolean {
 		const component = Block.getComponents()?.[this.dragged.componentName]
-		return !component || parent.canAddChild(component)
+		if (!component || parent.canAddChild(component)) return true
+		this.rejectedComponent = component
+		return false
 	}
 
 	private getBlockEl(block: Block, breakpoint: string): HTMLElement | null {

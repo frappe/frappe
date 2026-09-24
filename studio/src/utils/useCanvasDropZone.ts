@@ -7,6 +7,7 @@ import { toast } from "frappe-ui"
 import { Ref } from "vue"
 import { FrappeUIComponent } from "@/types"
 import { getLayoutDirection, type LayoutDirection } from "@/utils/dropGeometry"
+import { familyPlacementMessage } from "@/utils/reorderDropZone"
 
 const canvasStore = useCanvasStore()
 
@@ -177,8 +178,7 @@ export function useCanvasDropZone(
 
 	const canDrop = (componentDef: FrappeUIComponent, parentComponent: Block) => {
 		if (parentComponent.canAddChild(componentDef)) return true
-		const familyRoot = Block.getComponents()?.[componentDef.group as string]
-		toast.warning(`${componentDef.title} can only be placed inside a ${familyRoot?.title || componentDef.group}`)
+		toast.warning(familyPlacementMessage(componentDef))
 		return false
 	}
 
