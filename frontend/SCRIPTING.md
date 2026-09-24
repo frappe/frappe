@@ -12,7 +12,9 @@ region not listed here is not yet addressable.
 A record-page script is a `Client Script` row with `view = Record` and `dt` set to the
 doctype. Its body is an ES module whose default export is an object of handlers, keyed by
 event (`onRefresh`, `beforeSave`, `afterSave`, `onTabChange`, `onFormTabChange`, `onPost`)
-or by a fieldname. Every handler receives `page`.
+or by a fieldname. Every handler receives `page`. An app ships the same module as a **file
+script** in its own tree; it is built into the bundle and runs before the site's Client
+Scripts. The record tabs' section below shows one.
 
 `onRefresh` is a **replay**: the surfaces are cleared and rebuilt from the host's
 built-ins on every pass, so a conditional customization is a plain `if` over `page.doc`,
@@ -564,7 +566,7 @@ relabelled tab keeps its address. `activate(name)` moves the reader, on the reco
 terms: resolved at the call, delivered when the replay commits, and a hidden, unknown or
 other-strip name warns in a development build and moves nobody. Unlike `page.tabs`,
 `active` reads the old tab until the form has drawn the move. The handler for a change
-on this strip is `onFormTabChange`. The record's own strip, activity to details, is
+on this strip is `onFormTabChange`. The record's own strip, Details to Files, is
 `page.tabs` and is not this one.
 
 ### The script this design was judged by
@@ -688,8 +690,10 @@ export default {
 
 ## The record tabs: `page.tabs`
 
-The strip above the record's body: Activity, Emails, Files, Details and a script's own tabs.
-It speaks the eight verbs, `active` and `activate(name)`.
+The strip above the record's body: Details, Activity, Emails and Files, in that order, then
+a script's own tabs. It speaks the eight verbs, `active` and `activate(name)`. A plain
+address opens the first shown tab, Details unless a script moved another ahead of it;
+`?tab=<name>` opens the named tab when it is shown.
 
 ### An item
 
@@ -706,6 +710,35 @@ It speaks the eight verbs, `active` and `activate(name)`.
 The page draws a tab's body inside a scroller. A component that draws its own scroller sets
 `defineOptions({ scrollsItself: true })`, or `scrollsItself: true` on the component object,
 and the tab body adds none.
+
+### The tab order
+
+`order(names)` moves the named tabs to the front in the order given; the rest keep their
+order after them, and a name not on the strip is skipped with no warning.
+
+A doctype sets its own order in a file script its app ships, calling `page.tabs.order` on
+the replay. The file holds the same text as a Client Script, at one of two paths:
+
+| Path | For |
+| --- | --- |
+| `<module>/doctype/<scrubbed>/frontend/record.js` | A doctype the app owns. |
+| `<module>/custom/<scrubbed>/record.js` | Another app's doctype. |
+
+File scripts run before the site's Client Scripts, so a site's own `page.tabs.order` wins
+over the app's. A new or changed file takes effect after the next `bench build`.
+
+CRM opens a deal on its conversation, in `crm/fcrm/doctype/crm_deal/frontend/record.js`:
+
+```js
+export default {
+  onRefresh(page) {
+    page.tabs.order(['activity', 'emails'])   // Activity, Emails, Details, Files
+  },
+}
+```
+
+A Contact has no such script and opens on Details. When a script puts Activity first, the
+tab reads its rows as it mounts and shows a skeleton until they arrive.
 
 ## The feed: `page.activity`
 
@@ -751,11 +784,14 @@ newest 50 rows first and loads older pages as the reader scrolls up, so `items` 
 the reader goes. A comment, email or attachment another session adds arrives on its own,
 and a field change refreshes the newest page.
 
-The first `onRefresh` sees the newest page when the address opens the Activity tab; when it
-opens another tab, Emails included, the rows are read as Activity first shows, so that
-`onRefresh` sees none. When the address opens the Activity tab, the page's
-first paint and first `onRefresh` wait for the newest activity page, a read that starts
-with the record read.
+The first `onRefresh` sees the newest page when the address opens the Activity tab, with
+`?tab=activity` or `?activity=<key>`: the page's first paint and first `onRefresh` wait
+for the newest activity page, a read that starts with the record read. `?tab=emails`
+starts the Emails tab's read with the record read too, and the first paint does not wait
+for it. Any other address, a plain one included, starts no feed read: the rows are read
+as Activity first shows, so the first `onRefresh` sees none. That holds when a script puts
+Activity first, since the address named no tab; the tab shows a skeleton until its rows
+arrive.
 
 A script's rows are rebuilt on every replay, like any surface's, and survive `reload()`,
 which reads the server's rows again and leaves the script's alone.

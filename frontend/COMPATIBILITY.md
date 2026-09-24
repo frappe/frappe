@@ -60,7 +60,9 @@ What `page` is _for_ is a small, closed vocabulary:
   `email:<name>`, `version:<version>-<index>`), and on `files` the File's name; that key is
   what `scrollTo` and a `?activity=` link take, so it is safe to store in a script.
 - **Two tab surfaces, and they are not interchangeable.** `page.tabs` means the **record**
-  strip — activity, emails, files, details — and always will; `page.form.tabs` means the
+  strip — details, activity, emails, files by default — and always will. The order is not
+  part of that promise: a doctype sets its own with `page.tabs.order()` in a file script, and
+  a site's Client Script can set it again. `page.form.tabs` means the
   Form Layout strip *inside* details, a child of `page.form` because everything about the
   Details form sits under that one object. `page.tabs.active` returns a tab's **name**,
   because those tabs are named by whoever wrote them; `page.form.tabs.active` returns an
