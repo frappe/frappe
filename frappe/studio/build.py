@@ -156,6 +156,8 @@ class StudioAppBuilder:
 			if isinstance(blocks, str):
 				self._add_h_function_components(blocks)
 				blocks = frappe.parse_json(blocks)
+			if not blocks:
+				continue
 			root_block = blocks[0]
 			self._add_block_components(root_block)
 
