@@ -647,8 +647,9 @@ def get_print_style(
 
 	css = frappe.get_template("templates/styles/standard.css").render(context)
 
-	if style and frappe.db.exists("Print Style", style):
-		css = css + "\n" + frappe.db.get_value("Print Style", style, "css")
+	style_css = style and frappe.db.get_value("Print Style", {"name": style, "disabled": 0}, "css")
+	if style_css:
+		css = css + "\n" + style_css
 
 	# move @import to top
 	for at_import in list(set(re.findall(r"(@import url\([^\)]+\)[;]?)", css))):
