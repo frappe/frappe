@@ -4,6 +4,7 @@
 import type { RouteLocationRaw, Router } from "vue-router";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
+import { replacementFor } from "@/contributions/registry";
 
 export type Shell = { boot: Boot; addresses: Addresses; router: Router };
 
@@ -31,15 +32,19 @@ export type RouteOptions = {
 	view?: string;
 	/** Context, not identity: `?view=`, `?layout=` and friends. */
 	query?: Record<string, string>;
+	/** The standard page's second address; the main one when no app replaced the page. */
+	standard?: boolean;
 };
 
 /**
  * The route for a doctype's list, one of its saved views, or one record.
  *
- *   routeFor('CRM Deal')                          -> /crm-deal
- *   routeFor('CRM Deal', 'CRM-DEAL-01')           -> /crm-deal/CRM-DEAL-01
- *   routeFor('CRM Deal', null, { view: 'open' })  -> /crm-deal/view/list/open
- *   routeFor('System Settings')                   -> /system-settings/System Settings
+ *   routeFor('CRM Deal')                                     -> /crm-deal
+ *   routeFor('CRM Deal', 'CRM-DEAL-01')                      -> /crm-deal/CRM-DEAL-01
+ *   routeFor('CRM Deal', null, { view: 'open' })             -> /crm-deal/view/list/open
+ *   routeFor('System Settings')                              -> /system-settings/System Settings
+ *   routeFor('CRM Lead', null, { standard: true })           -> /crm-lead/view/list
+ *   routeFor('CRM Lead', 'CRM-LEAD-01', { standard: true })  -> /crm-lead/CRM-LEAD-01/record
  *
  * A single has no list, so its list address is the document itself, whatever view was asked
  * for. Under a modular prefix each is one segment deeper, with the doctype's own module.
@@ -70,7 +75,7 @@ export function routeFor(
 	if (!name && addresses.isSingle(doctype)) name = doctype;
 	if (name)
 		return {
-			name: "record",
+			name: standardOr(doctype, "record", options),
 			params: { ...params, name },
 			query: options.query,
 		};
@@ -81,7 +86,12 @@ export function routeFor(
 			query: options.query,
 		};
 	}
-	return { name: "list", params, query: options.query };
+	return { name: standardOr(doctype, "list", options), params, query: options.query };
+}
+
+/** The standard page's route name when it was asked for and an app replaced the page. */
+function standardOr(doctype: string, key: "record" | "list", options: RouteOptions) {
+	return options.standard && replacementFor(doctype, key) ? `standard-${key}` : key;
 }
 
 /** The route for a module's landing page. Modular prefixes only. */
