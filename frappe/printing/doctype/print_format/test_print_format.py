@@ -217,10 +217,13 @@ class TestPrintFormatHardening(IntegrationTestCase):
 		self.make(self.layout({**self.DATA, "visible_if": "   "}))
 
 	def test_runtime_condition_failure_shows_field_and_logs(self):
-		before = get_log_db().count("Error Log")
+		# Scoped to this error: the log database is shared with every other process on the
+		# site, so a global count also moves for reasons that have nothing to do with us.
+		condition_errors = {"method": ("like", "Print format condition failed%")}
+		before = get_log_db().count("Error Log", condition_errors)
 		html = self.render(self.layout({**self.DATA, "label": "PROBE", "visible_if": "doc.nope.nope"}))
 		self.assertIn("PROBE", html)
-		self.assertGreater(get_log_db().count("Error Log"), before)
+		self.assertGreater(get_log_db().count("Error Log", condition_errors), before)
 
 	def test_malformed_table_columns_do_not_crash(self):
 		table = {"label": "T", "fieldname": "roles", "fieldtype": "Table", "options": "Has Role"}
@@ -236,9 +239,11 @@ class TestPrintFormatHardening(IntegrationTestCase):
 				self.assertIn("PROBE", html)
 
 	def test_failing_row_condition_logs_once_not_once_per_row(self):
-		# Count the delta rather than clearing the table: the log database is shared with
-		# every other process on the site, so this test does not own it exclusively.
-		before = get_log_db().count("Error Log")
+		# Scoped to this error, and counted as a delta: the log database is shared with
+		# every other process on the site, so this test neither owns it nor can rely on a
+		# global count staying still.
+		condition_errors = {"method": ("like", "Print format condition failed%")}
+		before = get_log_db().count("Error Log", condition_errors)
 		self.render(
 			self.layout(
 				{
@@ -254,7 +259,7 @@ class TestPrintFormatHardening(IntegrationTestCase):
 			)
 		)
 		self.assertGreater(frappe.db.count("Has Role", {"parent": "Administrator"}), 1)
-		self.assertEqual(get_log_db().count("Error Log") - before, 1)
+		self.assertEqual(get_log_db().count("Error Log", condition_errors) - before, 1)
 
 	def test_labels_are_escaped(self):
 		payload = "<script>alert(1)</script>"
