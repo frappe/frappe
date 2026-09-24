@@ -745,6 +745,39 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertEqual(source.print_format_builder, 1)
 		self.assertEqual(frappe.parse_json(source.format_data), self.CLASSIC_FORMAT_DATA)
 
+	def test_create_custom_format_copies_source_print_options(self):
+		from frappe.printing.doctype.print_format.classic_converter import convert_print_format
+		from frappe.printing.doctype.print_format.print_format import (
+			COPIED_PRINT_OPTIONS,
+			create_custom_format,
+		)
+
+		options = {
+			"show_section_headings": 1,
+			"line_breaks": 1,
+			"align_labels_right": 1,
+			"font": "Arial",
+			"font_size": 11,
+			"page_number": "Top Center",
+			"margin_top": 25,
+			"margin_left": 5,
+			"css": ".print-format { color: red; }",
+		}
+		source = self.make_classic_format()
+		source.update(options).save()
+		name = f"_Test Copied Options {frappe.generate_hash(length=6)}"
+		doc = create_custom_format("User", name, based_on=self.FORMAT_NAME)
+		self.addCleanup(frappe.delete_doc, "Print Format", name, force=True)
+
+		in_place = frappe.get_doc("Print Format", self.FORMAT_NAME)
+		convert_print_format(in_place)
+		self.assertNotIn("show_label", frappe.parse_json(doc.format_data)["sections"][0])
+		self.assertEqual(frappe.parse_json(doc.format_data), frappe.parse_json(in_place.format_data))
+		for fieldname in COPIED_PRINT_OPTIONS:
+			with self.subTest(fieldname=fieldname):
+				self.assertEqual(doc.get(fieldname), in_place.get(fieldname))
+		self.assertEqual(doc.pdf_generator, "chrome")
+
 	def test_convert_format_without_layout_builds_the_default_layout(self):
 		from frappe.printing.doctype.print_format.classic_converter import convert_print_format
 
