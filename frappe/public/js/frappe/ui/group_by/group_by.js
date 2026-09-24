@@ -351,6 +351,7 @@ frappe.ui.GroupBy = class {
 				!docfield.options.includes(":") &&
 				docfield.options != this.group_by_field
 			) {
+				docfield.precision = frappe.meta.get_field_precision(docfield);
 				docfield.fieldtype = "Float";
 				docfield.options = null;
 			}
