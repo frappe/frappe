@@ -1318,4 +1318,25 @@ context("Classic builder page — guards", () => {
 		);
 		cy.get(".msgprint", { timeout: 20000 }).should("contain", "custom HTML format");
 	});
+
+	it("sends a custom HTML format flagged for the new builder back to the form", () => {
+		cy.insert_doc(
+			"Print Format",
+			{
+				name: PF_NAME,
+				doc_type: "ToDo",
+				custom_format: 1,
+				print_format_builder_beta: 1,
+				html: "<div></div>",
+			},
+			true
+		);
+
+		cy.visit(`/desk/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+		cy.location("pathname", { timeout: 20000 }).should(
+			"match",
+			/\/(app|desk)\/(?:[\w-]+\/)?print-format\/[^/]+$/
+		);
+		cy.get(".msgprint", { timeout: 20000 }).should("contain", "custom HTML format");
+	});
 });
