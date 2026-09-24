@@ -1,6 +1,6 @@
 // The first paint's time limit: a late source is left out, named, and lands when it finishes.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ref } from "vue";
+import { ref, watchEffect } from "vue";
 
 const scripts = vi.hoisted(() => ({ list: new Promise<never>(() => {}) }));
 
@@ -289,6 +289,48 @@ describe("the first paint's time limit", () => {
     expect(bRuns).toBe(2);
     expect(drawn(controller)).toEqual(["a-op"]);
     expect(warnings[0]).toContain("without waiting for B;");
+  });
+
+  it("leaves a running `beforeSave` out of the early paint and draws it once, when it ends", async () => {
+    const guard = gate();
+    await register("A", {
+      onRefresh: (page: RecordPageApi) => {
+        page.quickActions.add(action("a-op"));
+        void page.save();
+      },
+    });
+    await register("G", {
+      beforeSave: async (page: RecordPageApi) => {
+        page.quickActions.add(action("g-partial"));
+        await guard.opened;
+        page.quickActions.add(action("g-late"));
+      },
+    });
+    await register("B", {
+      onRefresh: (page: RecordPageApi) => page.quickActions.add(action("b-op")),
+    });
+    const controller = makePage({ isDirty: () => true });
+    let writes = -1;
+    watchEffect(
+      () => {
+        controller.quickActions.resolve();
+        writes += 1;
+      },
+      { flush: "sync" },
+    );
+
+    void controller.refresh();
+    await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS);
+
+    expect(controller.ready.value).toBe(true);
+    expect(drawn(controller)).toEqual(["a-op", "b-op"]);
+    expect(warnings[0]).toContain("without waiting for G;");
+    expect(writes).toBe(1);
+
+    guard.open();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(drawn(controller)).toEqual(["a-op", "g-partial", "b-op", "g-late"]);
+    expect(writes).toBe(2);
   });
 
   it("shows the finished sources' feed types in the early paint, and the late one's after", async () => {

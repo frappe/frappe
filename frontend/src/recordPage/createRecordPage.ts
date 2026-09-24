@@ -632,8 +632,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
           });
         }
       });
-      // Only the replay's own pass names its source; a save a replay handler starts does not.
-      await (ran ? gate.asReplaySource(source, run) : run());
+      // `ran` marks a replay's own pass, which the early paint names before a nested save's.
+      await gate.asSource(source, Boolean(ran), run);
     }
   }
 

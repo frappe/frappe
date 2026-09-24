@@ -39,8 +39,8 @@ a field handler, `onTabChange`, `onPost`, `beforeSave`, `afterSave`, a header or
 action's `run` and a dialog's callbacks show all their changes together at the end. A
 handler that must show progress while it runs uses `page.toast.success` or
 `page.toast.error`. The first paint waits at most 500 ms for the page's scripts. After
-that the page paints without the script still running, the console names it, and its
-changes land when it finishes.
+that the page paints without any script still running a handler, the console names it, and
+its changes land when it finishes.
 
 **Every place on the page is a list, every list takes a component item, and `before` /
 `after` names a neighbour.** There is no vocabulary of places on top of that: no zone or

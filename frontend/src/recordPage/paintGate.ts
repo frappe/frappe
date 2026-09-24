@@ -33,8 +33,8 @@ export interface PaintGate {
   refresh: () => Promise<void>;
   /** One paint for the work's ops, and its acts delivered after it. */
   hold: <T>(work: () => Promise<T> | T) => Promise<T>;
-  /** Runs a replay's handler under its source's name, which the early paint leaves out. */
-  asReplaySource: (source: string, work: () => Promise<void>) => Promise<void>;
+  /** Runs a handler under its source's name; the early paint leaves out every running source. */
+  asSource: (source: string, replay: boolean, work: () => Promise<void>) => Promise<void>;
   /** True while a replay or a hold is open, so an act waits for the commit. */
   isStaging: () => boolean;
   /** The reader left the page: closes its dialogs and stops the first-paint clock. */
@@ -48,8 +48,8 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
   const state = {
     holding: 0,
     replayed: false,
-    // The sources this page's replays are running, oldest first, and what they wait on, for the early paint.
-    replaySources: [] as { source: string }[],
+    // The sources running a handler on this page, oldest first, and what a replay waits on, for the early paint.
+    running: [] as { source: string; replay: boolean }[],
     awaiting: null as "permissions" | "sources" | null,
     firstPaintLimit: undefined as ReturnType<typeof setTimeout> | undefined,
     left: false,
@@ -120,12 +120,13 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     ready.value = true;
   }
 
-  /** The first replay ran out of time: draw every finished source, lift the skeletons, name the late one. */
+  /** The first replay ran out of time: draw every source not running, lift the skeletons, name the late one. */
   function paintWithoutLate() {
     if (ready.value || state.left) return;
-    const running = state.replaySources.map((entry) => entry.source);
-    const late = running.at(-1) ?? lateWait();
-    for (const surface of host.surfaces) surface.publishStaged(new Set(running));
+    const replayed = state.running.filter((entry) => entry.replay);
+    const late = (replayed.at(-1) ?? state.running.at(-1))?.source ?? lateWait();
+    const running = new Set(state.running.map((entry) => entry.source));
+    for (const surface of host.surfaces) surface.publishStaged(running);
     releaseEarlyActs();
     ready.value = true;
     console.warn(
@@ -161,13 +162,13 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     }
   }
 
-  async function asReplaySource(source: string, work: () => Promise<void>) {
-    const entry = { source };
-    state.replaySources.push(entry);
+  async function asSource(source: string, replay: boolean, work: () => Promise<void>) {
+    const entry = { source, replay };
+    state.running.push(entry);
     try {
       await work();
     } finally {
-      state.replaySources.splice(state.replaySources.indexOf(entry), 1);
+      state.running.splice(state.running.indexOf(entry), 1);
     }
   }
 
@@ -186,5 +187,5 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     if (!isStaging()) host.deliverHeldActs(false);
   }
 
-  return { ready, isReplaying, refresh, hold, asReplaySource, isStaging, leave };
+  return { ready, isReplaying, refresh, hold, asSource, isStaging, leave };
 }
