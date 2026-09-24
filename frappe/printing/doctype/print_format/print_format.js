@@ -58,7 +58,8 @@ frappe.ui.form.on("Print Format", {
 	render_buttons: function (frm) {
 		frm.page.clear_inner_toolbar();
 		if (!frm.is_new() && frm.doc.print_format_for === "DocType") {
-			if (!frm.doc.custom_format) {
+			const renders_from_file = frm.doc.__onload?.renders_from_file;
+			if (!frm.doc.custom_format && !renders_from_file) {
 				frm.add_custom_button(__("Edit Format"), function () {
 					if (!frm.doc.doc_type) {
 						frappe.msgprint(__("Please select DocType first"));
@@ -72,7 +73,7 @@ frappe.ui.form.on("Print Format", {
 				});
 			}
 			const can_convert = frm.doc.standard !== "Yes" || frappe.boot.developer_mode;
-			if (is_classic_format(frm.doc)) {
+			if (is_classic_format(frm.doc) && !renders_from_file) {
 				frm.add_custom_button(__("Convert to new builder"), function () {
 					frappe.printing.convert_to_builder(frm.doc);
 				});
