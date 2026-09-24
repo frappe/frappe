@@ -118,12 +118,16 @@ export function useDraftSave({
 	function report_failure(xhr) {
 		last_error.value = server_message(xhr);
 		if (save_failed.value) return;
+		const message = __("The latest changes to this print format are not saved.");
+		// a 500 already opened the framework's Server Error dialog
+		if (xhr?.status === 500) {
+			frappe.show_alert({ message, indicator: "red" });
+			return;
+		}
 		frappe.msgprint({
 			title: __("Autosave failed"),
 			indicator: "red",
-			message:
-				__("The latest changes to this print format are not saved.") +
-				(last_error.value ? `<br><br>${last_error.value}` : ""),
+			message: message + (last_error.value ? `<br><br>${last_error.value}` : ""),
 		});
 	}
 	function resume_autosave() {

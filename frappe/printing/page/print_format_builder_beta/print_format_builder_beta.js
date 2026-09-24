@@ -56,7 +56,7 @@ function patch_breadcrumbs_once() {
 	};
 }
 
-function load_print_format_builder(wrapper) {
+function load_print_format_builder(wrapper, force = false) {
 	let route = frappe.get_route();
 	let $parent = $(wrapper).find(".layout-main-section");
 
@@ -77,7 +77,11 @@ function load_print_format_builder(wrapper) {
 	wrapper.page.set_title(route[1]);
 
 	const current = frappe.print_format_builder;
-	if (current?.print_format === route[1] && current.has_unsaved_changes?.()) return;
+	if (!force && current?.has_unsaved_changes?.()) {
+		if (current.print_format === route[1]) return;
+		current.leave(() => load_print_format_builder(wrapper, true));
+		return;
+	}
 	current?.destroy?.();
 	$parent.empty();
 
