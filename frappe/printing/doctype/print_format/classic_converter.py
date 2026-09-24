@@ -25,18 +25,23 @@ DEFAULT_PRINT_HEADING = (
 
 
 def renders_from_file(doc) -> bool:
-	"""A standard format whose HTML ships as a file in its module prints that file,
-	whatever the row says."""
+	"""Whether the format prints from an HTML file shipped in its module.
+
+	`printview.get_print_format` reads that file and ignores the row's own
+	`html`, so the builder has nothing to edit and must not offer to."""
 	import os
 
-	from frappe.modules import get_module_path
+	from frappe.modules import get_module_path, scrub
 
-	if doc.standard != "Yes" or doc.custom_format or doc.raw_printing:
+	if doc.get("standard") != "Yes" or doc.get("custom_format") or doc.get("raw_printing"):
 		return False
-	module = doc.module or frappe.db.get_value("DocType", doc.doc_type, "module")
+	module = doc.get("module") or frappe.db.get_value("DocType", doc.get("doc_type"), "module")
 	if not module or frappe.get_cached_value("Module Def", module, "custom"):
 		return False
-	path = os.path.join(get_module_path(module, "Print Format", doc.name), frappe.scrub(doc.name) + ".html")
+	try:
+		path = os.path.join(get_module_path(module, "Print Format", doc.name), scrub(doc.name) + ".html")
+	except Exception:
+		return False
 	return os.path.exists(path)
 
 
