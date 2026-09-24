@@ -486,6 +486,7 @@ class PrintFormatGenerator:
 			options["header-includes-top-margin"] = True
 		if password:
 			options["password"] = password
+		options.update(self.page_options())
 		return get_chrome_pdf(
 			print_format=pf.name,
 			html=html,
@@ -493,6 +494,20 @@ class PrintFormatGenerator:
 			output=None,
 			pdf_generator="chrome",
 		)
+
+	def page_options(self) -> dict:
+		"""The page size as the Chrome renderer takes it, from the settings this
+		generator laid the page out for."""
+		size = self.print_settings.get("pdf_page_size")
+		if not size:
+			return {}
+		if size != "Custom":
+			return {"page-size": size}
+		return {
+			"page-size": size,
+			"page-height": self.print_settings.get("pdf_page_height"),
+			"page-width": self.print_settings.get("pdf_page_width"),
+		}
 
 	def render_typst_pdf(self, password=None):
 		"""Compile the resolved layout through Typst — ~10-15x faster than Chromium.

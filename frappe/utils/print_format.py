@@ -138,6 +138,22 @@ def download_multi_pdf_async(
 	return {"task_id": task_id}
 
 
+def page_settings(pdf_options) -> dict:
+	"""The bulk print dialog's page choice, in the Print Settings terms the generator reads."""
+	pdf_options = pdf_options or {}
+	settings = {}
+	for option, setting in (
+		("page-size", "pdf_page_size"),
+		("page-height", "pdf_page_height"),
+		("page-width", "pdf_page_width"),
+	):
+		if pdf_options.get(option):
+			settings[setting] = pdf_options[option]
+	if "pdf_page_height" in settings and "pdf_page_size" not in settings:
+		settings["pdf_page_size"] = "Custom"
+	return settings
+
+
 def _download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
@@ -238,7 +254,9 @@ def _download_multi_pdf(
 			validate_print(doc)
 			set_link_titles(doc)
 			pf = pf_doc or get_default_print_format(print_doctype)
-			generator = PrintFormatGenerator(pf, doc, letterhead, no_letterhead=no_letterhead)
+			generator = PrintFormatGenerator(
+				pf, doc, letterhead, no_letterhead=no_letterhead, settings=page_settings(options)
+			)
 			pdf = generator.render_pdf(password=(options or {}).get("password"))
 			for page in PdfReader(BytesIO(pdf)).pages:
 				pdf_writer.add_page(page)
