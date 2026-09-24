@@ -109,7 +109,8 @@ def download_multi_pdf_async(
 	job = None
 	for slot in range(get_max_concurrent_bulk_exports()):
 		job = frappe.enqueue(
-			_download_multi_pdf,
+			_download_multi_pdf_in_language,
+			language=frappe.local.lang,
 			doctype=doctype,
 			name=name,
 			task_id=task_id,
@@ -135,6 +136,12 @@ def download_multi_pdf_async(
 
 	frappe.local.response["http_status_code"] = http.HTTPStatus.CREATED
 	return {"task_id": task_id}
+
+
+def _download_multi_pdf_in_language(language: str | None, **kwargs):
+	"""A worker starts in the site's language, not the requester's."""
+	with print_language(language):
+		return _download_multi_pdf(**kwargs)
 
 
 def _download_multi_pdf(
