@@ -23,10 +23,11 @@
 				:favourited="favourited"
 				@run="runAction"
 			/>
-			<div v-else class="flex items-center gap-3">
+			<div v-else-if="error" class="flex items-center gap-3">
 				<h1 class="text-lg font-semibold">{{ route.params.name }}</h1>
 				<span class="text-sm text-ink-gray-5">{{ doctype }}</span>
 			</div>
+			<HeaderSkeleton v-else />
 		</template>
 
 		<p v-if="!doctype" class="py-5 text-sm text-ink-gray-6" :class="pageGutter">
@@ -88,6 +89,7 @@
 						:meta="meta"
 						:docinfo="docinfo"
 						:sections="sections"
+						:layoutLoading="panelLoading"
 						:disclosure="disclosure"
 						:collapsed="collapsed"
 						:run="runAction"
@@ -97,6 +99,8 @@
 					/>
 				</template>
 			</BodyColumns>
+
+			<BodySkeleton v-else :user="boot.session.user.name" />
 		</template>
 
 		<FrameBands v-if="controller" :bands="frame.after" :page="controller.page" />
@@ -182,6 +186,8 @@ import { tagsOf } from "./record/panel/people";
 import { useDisclosure } from "./record/panel/disclosure";
 import { layoutItems, layoutSections } from "./record/panel/panelEntries";
 import RecordPanel from "./record/panel/RecordPanel.vue";
+import BodySkeleton from "./record/skeletons/BodySkeleton.vue";
+import HeaderSkeleton from "./record/skeletons/HeaderSkeleton.vue";
 import { loadParts, loadRecord, saveRecord } from "./record/recordSource";
 import { changedFields, conflictError, SAVE_CONFLICT, stripTags } from "./record/saveResponse";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
@@ -279,6 +285,7 @@ const form = computed(() => {
 
 // Resolved against the draft, as the form's own `depends_on` is.
 const sections = computed(() => layoutSections(panelLayout.value?.layout.value ?? [], doc.value));
+const panelLoading = computed(() => panelLayout.value?.loading.value ?? false);
 
 // Open sections are the reader's, per doctype; the surface's labelled items are what there is to open.
 const disclosure = useDisclosure(

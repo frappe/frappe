@@ -24,6 +24,7 @@
 				</component>
 			</PanelSection>
 		</template>
+		<PanelSectionsSkeleton v-if="loading" />
 	</div>
 </template>
 
@@ -40,6 +41,7 @@ import { warnMissingCommit } from "@framework/ui/components/FormLayout/warnMissi
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
 import { BUILTIN, type Surface } from "@/recordPage/surface";
 import type { PanelSectionItem, RecordPageApi } from "@/recordPage";
+import PanelSectionsSkeleton from "../skeletons/PanelSectionsSkeleton.vue";
 import PanelSection from "./PanelSection.vue";
 import {
 	embedQuickActions,
@@ -55,6 +57,8 @@ const props = defineProps<{
 	/** The curated page a script's component mounts with; a built-in injects what it needs. */
 	page?: RecordPageApi;
 	isOpen: (name: string) => boolean;
+	/** The Side Panel layout is still loading: its sections are drawn as skeletons. */
+	loading?: boolean;
 }>();
 
 const emit = defineEmits<{ toggle: [name: string]; expand: [field: FieldNode] }>();

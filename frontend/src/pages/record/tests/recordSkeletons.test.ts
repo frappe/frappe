@@ -1,0 +1,193 @@
+// The record page while it loads: header and body skeletons until the record arrives, the
+// Details form's until the first replay, and the panel sections' while the Side Panel layout loads.
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createApp, defineComponent, h, nextTick } from "vue";
+import { RouterView } from "vue-router";
+
+const load = vi.hoisted(() => ({
+  answerRecord: (() => {}) as () => void,
+  layouts: {} as Record<string, { loading: { value: boolean }; layout: { value: unknown[] } }>,
+}));
+
+vi.mock("@/shell/PageFrame.vue", async () => {
+  const { defineComponent, h } = await import("vue");
+  return {
+    pageGutter: "px-[--page-gutter]",
+    default: defineComponent({
+      setup: (_, { slots }) => () => h("div", [h("header", slots.header?.()), slots.default?.()]),
+    }),
+  };
+});
+
+vi.mock("../recordSource", () => ({
+  loadRecord: vi.fn(
+    () =>
+      new Promise((resolve) => {
+        load.answerRecord = () =>
+          resolve({
+            document: { doctype: "Note", name: "N-1", modified: "2026-09-24 10:00:00" },
+            docinfo: { permissions: { read: 1, write: 1 } },
+            linkTitles: {},
+          });
+      }),
+  ),
+  loadParts: vi.fn(async () => ({})),
+  saveRecord: vi.fn(),
+}));
+
+vi.mock("../metaSource", () => ({ fetchMeta: vi.fn(async () => ({ name: "Note", fields: [] })) }));
+
+vi.mock("@/recordPage", async (importOriginal) => {
+  const original = (await importOriginal()) as object;
+  const { computed, ref, watch } = await import("vue");
+  return {
+    ...original,
+    loadClientScripts: vi.fn(async () => {}),
+    // One fake per layout type, flipped by the test: `loading` until it is told otherwise.
+    useFormLayout: ({ type }: { type: string }) => {
+      const state = { loading: ref(true), layout: ref<unknown[]>([]) };
+      load.layouts[type] = state;
+      return {
+        layout: computed(() => state.layout.value),
+        loading: computed(() => state.loading.value),
+        error: computed(() => null),
+        reload: () => {},
+        settled: () =>
+          new Promise<void>((resolve) => {
+            if (!state.loading.value) return resolve();
+            const stop = watch(state.loading, (busy) => {
+              if (busy) return;
+              stop();
+              resolve();
+            });
+          }),
+      };
+    },
+  };
+});
+
+vi.mock("@/pages/Home.vue", () => ({ default: { render: () => null } }));
+vi.mock("@/pages/List.vue", () => ({ default: { render: () => null } }));
+vi.mock("@/pages/Module.vue", () => ({ default: { render: () => null } }));
+vi.mock("@/shell/NotFound.vue", () => ({ default: { render: () => null } }));
+
+import { Addresses } from "@/addresses";
+import type { Boot } from "@/boot";
+import { createShellRouter } from "@/router";
+import { registerShell } from "@/router/routeFor";
+
+const boot = {
+  app: "frappe",
+  shell_base: "/apps/frappe",
+  prefixes: { frappe: { app: "frappe", modular: false } },
+  session: { user: { name: "test@example.com", email: "test@example.com" } },
+} as unknown as Boot;
+const addresses = new Addresses({ doctypes: { Note: ["note", "desk"] }, modules: { desk: "Desk" } });
+const apps: ReturnType<typeof createApp>[] = [];
+
+beforeEach(() => {
+  load.layouts = {};
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => new Response(JSON.stringify({ data: null }), { status: 200 })),
+  );
+});
+
+afterEach(() => {
+  for (const app of apps.splice(0)) app.unmount();
+  document.body.innerHTML = "";
+  vi.unstubAllGlobals();
+});
+
+async function settle() {
+  for (let turn = 0; turn < 10; turn++) {
+    await nextTick();
+    await new Promise((resolve) => setTimeout(resolve));
+  }
+}
+
+async function open() {
+  const router = createShellRouter(boot, addresses);
+  registerShell({ boot, addresses, router });
+  await router.push("/note/N-1");
+  const root = document.createElement("div");
+  document.body.appendChild(root);
+  const app = createApp(defineComponent({ render: () => h(RouterView) }));
+  app.use(router);
+  app.provide("boot", boot);
+  app.provide("addresses", addresses);
+  app.provide("socket", { emit() {}, on() {}, off() {} });
+  app.mount(root);
+  apps.push(app);
+  await settle();
+  return root;
+}
+
+function skeletons(root: HTMLElement, hook: string) {
+  return root.querySelectorAll(`[${hook}] .fui-skeleton`).length;
+}
+
+describe("before the record arrives", () => {
+  it("draws the header row's skeleton in place of the crumbs, star, menu and Save", async () => {
+    const root = await open();
+
+    expect(skeletons(root, "data-record-header-skeleton")).toBe(5);
+
+    load.answerRecord();
+    await settle();
+
+    expect(root.querySelector("[data-record-header-skeleton]")).toBeNull();
+    expect(root.querySelector("[data-crumbs]")).not.toBeNull();
+  });
+
+  it("draws the strip, the Details form and the panel as skeletons, the panel at its width", async () => {
+    const root = await open();
+
+    const body = root.querySelector("[data-record-body-skeleton]")!;
+    expect(skeletons(body as HTMLElement, "data-record-tabs-skeleton")).toBe(4);
+    expect(body.querySelector("[data-form-skeleton]")).not.toBeNull();
+    expect(skeletons(body as HTMLElement, "data-record-panel-skeleton")).toBeGreaterThan(0);
+    expect(body.querySelector<HTMLElement>('[data-body-column="panel"]')!.style.width).toBe(
+      "380px",
+    );
+
+    load.answerRecord();
+    await settle();
+
+    expect(root.querySelector("[data-record-body-skeleton]")).toBeNull();
+    expect(root.querySelector("[data-record-panel-skeleton]")).toBeNull();
+    expect(root.querySelector("[data-record-panel]")).not.toBeNull();
+  });
+});
+
+describe("once the record arrives", () => {
+  it("keeps the Details form skeleton under the strip until the first replay", async () => {
+    const root = await open();
+    load.answerRecord();
+    await settle();
+
+    expect(root.querySelector("[data-record-tabs] [data-form-skeleton]")).not.toBeNull();
+
+    load.layouts["Details"].loading.value = false;
+    load.layouts["Side Panel"].loading.value = false;
+    await settle();
+
+    expect(root.querySelector("[data-record-tabs-skeleton]")).toBeNull();
+    expect(root.querySelector("[data-form-skeleton]")).toBeNull();
+  });
+
+  it("draws the panel sections skeleton while the Side Panel layout loads", async () => {
+    const root = await open();
+    load.answerRecord();
+    await settle();
+
+    expect(skeletons(root, "data-panel-sections-skeleton")).toBeGreaterThan(0);
+
+    load.layouts["Side Panel"].loading.value = false;
+    await settle();
+
+    // No Side Panel layout: zero sections for good, and no skeleton standing in for them.
+    expect(root.querySelector("[data-panel-sections-skeleton]")).toBeNull();
+    expect(root.querySelector("[data-record-panel]")).not.toBeNull();
+  });
+});

@@ -102,6 +102,21 @@ describe("before the first replay", () => {
     expect(root.querySelector("nav")).toBeNull();
     expect(root.querySelector("[data-record-tab]")).toBeNull();
   });
+
+  it("draws a two-column Details form skeleton under the strip, gone after the replay", async () => {
+    const { root, state } = await mount(FOUR, "", false);
+
+    const form = root.querySelector("[data-record-tabs-skeleton] + [data-form-skeleton]");
+    expect(form!.querySelectorAll(".fui-skeleton")).toHaveLength(17);
+    expect(form!.querySelector(".grid")!.className).toContain("sm:grid-cols-2");
+
+    state.ready = true;
+    state.active = "details";
+    await nextTick();
+
+    expect(root.querySelector("[data-form-skeleton]")).toBeNull();
+    expect(root.querySelector("[data-details]")).not.toBeNull();
+  });
 });
 
 describe("the strip", () => {
@@ -141,6 +156,21 @@ describe("the strip", () => {
 
     expect(root.querySelector("nav")).toBeNull();
     expect(root.querySelector("[data-record-tab]")).toBeNull();
+  });
+
+  it("draws a two-column Details form skeleton under the strip, gone after the replay", async () => {
+    const { root, state } = await mount(FOUR, "", false);
+
+    const form = root.querySelector("[data-record-tabs-skeleton] + [data-form-skeleton]");
+    expect(form!.querySelectorAll(".fui-skeleton")).toHaveLength(17);
+    expect(form!.querySelector(".grid")!.className).toContain("sm:grid-cols-2");
+
+    state.ready = true;
+    state.active = "details";
+    await nextTick();
+
+    expect(root.querySelector("[data-form-skeleton]")).toBeNull();
+    expect(root.querySelector("[data-details]")).not.toBeNull();
   });
 });
 
