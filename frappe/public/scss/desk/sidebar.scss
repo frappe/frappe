@@ -89,6 +89,14 @@
 	// prepends the header straight into the panel.
 	.sidebar-header {
 		margin: 4px;
+
+		// Centres the chevron on the rows' count digit: the count ends 16px from the panel's edge
+		// (8px gutter, 8px `mr-2`) and its digit sits 6px of badge padding and half a glyph inside
+		// that. 4px of margin and 15px here land the 16px chevron's centre on it. Only while
+		// expanded, since folded the header is a 40px square around its mark.
+		.body-sidebar-container.expanded & {
+			padding-right: 15px;
+		}
 	}
 
 	.body-sidebar-top {
@@ -147,6 +155,10 @@
 			.drop-icon {
 				width: 28px;
 				height: 28px;
+				// Centres the chevron on the count digit in the rows above, which sits 8px of `mr-2`
+				// plus 6px of badge padding and half a glyph in from the row's edge. The 16px chevron
+				// centred in 28px starts 6px in, so the button steps in the other 5px.
+				margin-right: 5px;
 				text-align: center;
 			}
 		}

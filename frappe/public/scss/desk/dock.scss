@@ -200,8 +200,21 @@
 
 	svg,
 	img {
-		width: 20px;
-		height: 20px;
+		width: 24px;
+		height: 24px;
+	}
+
+	// A sprite icon that moves (the factory's smoke) plays only while its tile is hovered, and may
+	// draw past its 24px box into the tile's padding. Custom properties are the one thing that
+	// reaches inside a `<use>`, so the tile hands the icon these instead of a selector.
+	svg {
+		overflow: visible;
+	}
+
+	&:hover,
+	&:focus-visible {
+		--icon-motion: running;
+		--icon-motion-opacity: 1;
 	}
 
 	// No words in a 56px tray, and nothing that widens to make room for them. What names a tile is
@@ -217,11 +230,10 @@
 		overflow: hidden;
 	}
 
-	// A fill and a step in ink, and nothing that moves. A tile that slid out of the tray on hover
+	// A step in ink and no fill, and nothing that moves. A tile that slid out of the tray on hover
 	// read as bouncing, and it dragged the tooltip's gap around with it -- the bubble is placed
 	// when the pointer arrives and the tile then travelled toward it.
 	&:hover {
-		background: var(--dock-tile-hover);
 		color: var(--dock-ink-strong);
 	}
 
@@ -271,8 +283,14 @@ body.dock-pinned .dock {
 // header, so the header drops its own and leads with the name. Not when the sidebar is folded, where
 // the icon is all the header has left, and not below md, where there is no dock.
 @include media-breakpoint-up(md) {
-	body.dock-pinned.dock-active .body-sidebar-container.expanded .sidebar-header .header-logo {
-		display: none;
+	body.dock-pinned.dock-active .body-sidebar-container.expanded .sidebar-header {
+		// The name then starts where the rows' icons do: the header's 4px margin and this 12px
+		// meet the rows' 8px gutter and 8px `pl-2`.
+		padding-left: 12px;
+
+		.header-logo {
+			display: none;
+		}
 	}
 }
 
