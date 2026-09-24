@@ -289,11 +289,14 @@ describe("the dialog", () => {
 
     expect(host.querySelectorAll("[data-customize-skeleton] li")).toHaveLength(5);
     expect(host.querySelectorAll("[data-customize-skeleton] .fui-skeleton")).toHaveLength(20);
+    expect(host.querySelector("[data-customize-skeleton]")!.getAttribute("aria-hidden")).toBe("true");
+    expect(host.querySelector('[role="status"]')!.textContent).toBe("Loading");
     expect(host.querySelector("[data-testid='customize']")).toBeNull();
 
     resolvers[0]([item("sidebar-row")]);
     await flush();
     expect(host.querySelector("[data-customize-skeleton]")).toBeNull();
+    expect(host.querySelector('[role="status"]')).toBeNull();
     expect(rowKeys(host)).toEqual(["sidebar-row"]);
   });
 
@@ -408,5 +411,25 @@ describe("the dialog", () => {
 
     expect(host.textContent).toContain("Could not load this list");
     expect(host.querySelector("[data-testid='customize']")).toBeNull();
+  });
+
+  it("holds Save after a failed load, so it cannot write an empty list", async () => {
+    runMethod.mockReset();
+    runMethod.mockRejectedValue(new Error("nope"));
+
+    const host = document.createElement("div");
+    createApp({
+      render: () =>
+        h(CustomizeSidebarDialog, {
+          target: { container: "Rail", address: "frappe", title: "Customize sidebar" },
+        }),
+    }).mount(host);
+    await flush();
+
+    button(host, "Save").click();
+    await flush();
+
+    expect(button(host, "Save").disabled).toBe(true);
+    expect(runMethod).toHaveBeenCalledTimes(1);
   });
 });

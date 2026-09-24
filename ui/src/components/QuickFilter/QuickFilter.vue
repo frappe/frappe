@@ -30,9 +30,11 @@
 	<!-- Input-sized bars in the strip's own row, so the inputs land where the bars were. -->
 	<div
 		v-else-if="fieldsPending"
+		role="status"
 		class="flex flex-wrap items-center gap-2"
 		data-quick-filter-skeleton
 	>
+		<span class="sr-only">Loading</span>
 		<Skeleton v-for="bar in 3" :key="bar" class="h-7 w-40 shrink-0 rounded-4" />
 	</div>
 	<QuickFilterInputs v-else :fields="surfaced" v-model:filters="filters" />

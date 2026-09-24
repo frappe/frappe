@@ -1,6 +1,7 @@
 <template>
 	<!-- the timeline's own row grid and gutter heights, so the real rows land in place -->
-	<div class="flex flex-col gap-2">
+	<div role="status" class="flex flex-col gap-2">
+		<span class="sr-only">{{ label ?? "Loading" }}</span>
 		<div
 			v-for="(row, i) in shownRows"
 			:key="i"
@@ -38,6 +39,8 @@ import { computed } from "vue";
 const props = defineProps<{
 	/** Draws only the first rows; the first two are one-line changes. */
 	rows?: number;
+	/** What a screen reader hears in place of the rows; pass it translated. */
+	label?: string;
 }>();
 
 const ROWS: { kind: "change" | "comment" | "email"; width?: string }[] = [

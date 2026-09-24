@@ -90,6 +90,21 @@ gracefully — the page scrolls it like any block and it opens at the top; call
 `scrollToLatest()` on mount to open at the bottom. Pinning and stable prepends need the
 bounded layout above.
 
+### The skeleton
+
+`TimelineSkeleton` is the loading state the component draws itself: placeholder rows on the
+timeline's own grid (one-line changes, comment cards and an email card), so the real rows land
+where the bars were. It is exported for a host that must show the feed's shape before it can
+mount `ActivityTimeline`, for example while the page around it is still loading.
+
+| Prop     | Details                                                                                                  |
+| -------- | -------------------------------------------------------------------------------------------------------- |
+| `rows?`  | `number` — draws only the first rows (the first two are one-line changes); omit for all seven             |
+| `label?` | `string` — what a screen reader hears in place of the rows (default `"Loading"`); pass it translated     |
+
+The bars are hidden from screen readers; the root is a `role="status"` region that reads the
+label once.
+
 ### Slots
 
 Every slot receives the row it renders, so overrides stay type-safe.

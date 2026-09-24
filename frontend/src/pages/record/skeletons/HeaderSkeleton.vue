@@ -5,6 +5,7 @@
 		class="flex min-w-0 flex-1 items-center justify-between gap-3"
 		data-record-header-skeleton
 	>
+		<LoadingStatus />
 		<div class="flex min-w-0 flex-1 items-center gap-1">
 			<div class="flex items-center pr-0.5">
 				<Skeleton class="h-4 w-16 rounded-1" />
@@ -24,4 +25,5 @@
 
 <script setup lang="ts">
 import { Skeleton } from "frappe-ui";
+import LoadingStatus from "@/shell/LoadingStatus.vue";
 </script>

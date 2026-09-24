@@ -8,12 +8,19 @@
 			{{ failed }}
 		</p>
 
-		<ul v-else-if="loading" data-customize-skeleton>
-			<li v-for="row in 5" :key="row" class="flex items-center gap-1 px-1 py-1">
-				<Skeleton class="h-6 min-w-0 flex-1 rounded-4" />
-				<Skeleton v-for="control in 3" :key="control" class="size-7 shrink-0 rounded-4" />
-			</li>
-		</ul>
+		<template v-else-if="loading">
+			<LoadingStatus />
+			<ul aria-hidden="true" data-customize-skeleton>
+				<li v-for="row in 5" :key="row" class="flex items-center gap-1 px-1 py-1">
+					<Skeleton class="h-6 min-w-0 flex-1 rounded-4" />
+					<Skeleton
+						v-for="control in 3"
+						:key="control"
+						class="size-7 shrink-0 rounded-4"
+					/>
+				</li>
+			</ul>
+		</template>
 
 		<ul v-else data-testid="customize">
 			<li
@@ -67,7 +74,7 @@
 					variant="solid"
 					label="Save"
 					:loading="busy"
-					:disabled="loading"
+					:disabled="loading || !!failed"
 					@click="save"
 				/>
 			</div>
@@ -86,6 +93,7 @@ export type CustomizeTarget = Address & { title: string };
 import { ref, watch } from "vue";
 import { Button, Dialog, Skeleton } from "frappe-ui";
 import type { Navigation } from "@/boot";
+import LoadingStatus from "./LoadingStatus.vue";
 import {
 	type Address,
 	type ArrangedItem,
@@ -115,6 +123,7 @@ watch(
 	(target) => {
 		generation++;
 		items.value = [];
+		loading.value = false;
 		busy.value = false;
 		failed.value = null;
 		dragging.value = null;

@@ -76,6 +76,7 @@ async function mount(page: typeof Home) {
 		skeletons: () => root.querySelectorAll(".fui-skeleton").length,
 		links: () => root.querySelectorAll("li a").length,
 		text: () => root.textContent ?? "",
+		statuses: () => [...root.querySelectorAll('[role="status"]')].map((node) => node.textContent),
 	};
 }
 
@@ -114,7 +115,9 @@ describe("Module", () => {
 		const page = await mount(Module);
 		expect(page.tiles()).toBe(6);
 		expect(page.skeletons()).toBe(7);
-		expect(page.text()).not.toContain("Loading");
+		expect(page.text()).not.toContain("Loading…");
+		// One fetch, one announcement: the tile grid's.
+		expect(page.statuses()).toEqual(["Loading"]);
 
 		await read.answer([{ doctype: "Note", slug: "note", module: "desk" }]);
 		expect(page.skeletons()).toBe(0);

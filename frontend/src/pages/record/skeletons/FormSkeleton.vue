@@ -2,6 +2,7 @@
      heights and gaps. The caller supplies the container the real sections sit in. -->
 <template>
 	<div data-form-skeleton>
+		<LoadingStatus />
 		<Skeleton v-if="heading" class="my-0.5 h-[15px] w-24 rounded-1" />
 		<div
 			class="grid gap-4"
@@ -17,6 +18,7 @@
 
 <script setup lang="ts">
 import { Skeleton } from "frappe-ui";
+import LoadingStatus from "@/shell/LoadingStatus.vue";
 
 defineProps<{
 	columns: 1 | 2;

@@ -10,9 +10,10 @@
 				<Skeleton v-for="n in 4" :key="n" class="h-4 w-16 rounded-4" />
 			</div>
 		</div>
+		<!-- The strip has no status of its own: the feed's or the form's skeleton carries it. -->
 		<div v-if="feed" class="min-h-0 flex-1 overflow-hidden px-6 pb-8 pt-4" data-feed-skeleton>
 			<div class="mx-auto flex w-full max-w-3xl flex-col gap-5">
-				<TimelineSkeleton class="mt-2" />
+				<TimelineSkeleton class="mt-2" :label="__('Loading')" />
 			</div>
 		</div>
 		<FormSkeleton
@@ -30,6 +31,7 @@ import { computed } from "vue";
 import { useRoute } from "vue-router";
 import { Skeleton } from "frappe-ui";
 import { TimelineSkeleton } from "@framework/ui/ActivityTimeline";
+import { __ } from "@/i18n";
 import { addressesFeed } from "../feed/recordFeeds";
 import FormSkeleton from "./FormSkeleton.vue";
 

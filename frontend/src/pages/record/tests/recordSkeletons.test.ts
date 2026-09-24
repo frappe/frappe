@@ -6,6 +6,8 @@ import { RouterView } from "vue-router";
 
 const load = vi.hoisted(() => ({
   answerRecord: (() => {}) as () => void,
+  // Set by a test: the record read fails with it.
+  failure: null as unknown,
   layouts: {} as Record<string, { loading: { value: boolean }; layout: { value: unknown[] } }>,
 }));
 
@@ -22,7 +24,8 @@ vi.mock("@/shell/PageFrame.vue", async () => {
 vi.mock("../recordSource", () => ({
   loadRecord: vi.fn(
     () =>
-      new Promise((resolve) => {
+      new Promise((resolve, reject) => {
+        if (load.failure) return reject(load.failure);
         load.answerRecord = () =>
           resolve({
             document: { doctype: "Note", name: "N-1", modified: "2026-09-24 10:00:00" },
@@ -71,6 +74,7 @@ vi.mock("@/pages/List.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/pages/Module.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/shell/NotFound.vue", () => ({ default: { render: () => null } }));
 
+import { ApiError } from "@framework/ui/api";
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { createShellRouter } from "@/router";
@@ -87,6 +91,7 @@ const apps: ReturnType<typeof createApp>[] = [];
 
 beforeEach(() => {
   load.layouts = {};
+  load.failure = null;
   vi.stubGlobal(
     "fetch",
     vi.fn(async () => new Response(JSON.stringify({ data: null }), { status: 200 })),
@@ -132,6 +137,7 @@ describe("before the record arrives", () => {
     const root = await open();
 
     expect(skeletons(root, "data-record-header-skeleton")).toBe(5);
+    expect(root.querySelectorAll('[data-record-header-skeleton] [role="status"]')).toHaveLength(1);
 
     load.answerRecord();
     await settle();
@@ -209,5 +215,21 @@ describe("once the record arrives", () => {
     // No Side Panel layout: zero sections for good, and no skeleton standing in for them.
     expect(root.querySelector("[data-panel-sections-skeleton]")).toBeNull();
     expect(root.querySelector("[data-record-panel]")).not.toBeNull();
+  });
+});
+
+describe("when the record read fails", () => {
+  it.each([
+    [404, "Not found."],
+    [403, "You do not have permission to read this record."],
+  ])("drops the skeletons for the plain heading and the error on a %i", async (status, text) => {
+    load.failure = new ApiError({ type: "Error", message: "no" } as never, status);
+
+    const root = await open();
+
+    expect(root.querySelector("h1")!.textContent).toBe("N-1");
+    expect(root.textContent).toContain(text);
+    expect(root.querySelector("[data-record-header-skeleton]")).toBeNull();
+    expect(root.querySelector("[data-record-body-skeleton]")).toBeNull();
   });
 });

@@ -2,6 +2,7 @@
      PanelField's label and value grid. -->
 <template>
 	<div data-panel-sections-skeleton>
+		<LoadingStatus />
 		<template v-for="section in 3" :key="section">
 			<div class="flex h-[42px] items-center border-t border-outline-gray-1 px-4">
 				<Skeleton class="h-4 w-24 rounded-1" />
@@ -22,4 +23,5 @@
 
 <script setup lang="ts">
 import { Skeleton } from "frappe-ui";
+import LoadingStatus from "@/shell/LoadingStatus.vue";
 </script>

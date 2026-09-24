@@ -74,6 +74,7 @@
 
 		<!-- Shaped like the child rows: `SidebarItem`'s height, padding and icon size. -->
 		<div v-if="reading" data-expand-skeleton class="flex flex-col gap-0.5">
+			<LoadingStatus />
 			<div v-for="width in SKELETON_WIDTHS" :key="width" class="flex h-7 items-center pl-2">
 				<Skeleton class="size-4 shrink-0 rounded-1" />
 				<Skeleton :class="['ml-2 h-3 rounded-1', width]" />
@@ -97,6 +98,7 @@ import { buildTree, containsKey, type ItemNode } from "@/navigation/tree";
 import type { SectionMemory } from "@/navigation/sectionMemory";
 import { iconOf, labelOf, renderingOf } from "@/navigation/registry";
 import Icon from "@/icons/Icon.vue";
+import LoadingStatus from "./LoadingStatus.vue";
 import type { ItemContext } from "@/navigation/types";
 
 // `SidebarItem`'s own classes, for the two rows drawn by hand. Neither is ever current.
