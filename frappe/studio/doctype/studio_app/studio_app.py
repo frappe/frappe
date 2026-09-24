@@ -120,6 +120,7 @@ class StudioApp(WebsiteGenerator):
 		if context.is_guest:
 			page_filters["allow_guest"] = 1
 		context.app_pages = frappe.get_all("Studio Page", page_filters, ["name", "page_title", "route"])
+		context.app_home = self.app_home
 		context.is_developer_mode = frappe.utils.cint(frappe.conf.developer_mode)
 		context.vite_dev_server_host = get_vite_dev_server_host()
 

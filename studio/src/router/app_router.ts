@@ -12,12 +12,13 @@ declare global {
 		app_name: string
 		app_route: string
 		app_pages: Page[]
+		app_home?: string
 		is_guest?: boolean
 	}
 }
 
 function getPageRoutes(pages: Page[] = []): RouteRecordRaw[] {
-	return pages.map((page) => ({
+	const routes: RouteRecordRaw[] = pages.map((page) => ({
 		path: page.route,
 		name: page.page_title,
 		component: AppContainer,
@@ -27,6 +28,17 @@ function getPageRoutes(pages: Page[] = []): RouteRecordRaw[] {
 			appRoute: window.app_route,
 		},
 	}))
+	const homeRedirect = getHomeRedirect(pages)
+	if (homeRedirect) routes.push(homeRedirect)
+	return routes
+}
+
+function getHomeRedirect(pages: Page[]): RouteRecordRaw | undefined {
+	if (pages.some((page) => page.route === "/")) return
+	// absent from the list when unpublished or private for a guest, then "/" stays unmatched
+	const home = pages.find((page) => page.name === window.app_home)
+	if (!home || home.route.includes(":")) return
+	return { path: "/", redirect: home.route }
 }
 
 const router = createRouter({
