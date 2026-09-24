@@ -2,12 +2,10 @@
      then the two people rows, on PanelSection's padding and PeopleRow's grid. -->
 <template>
 	<div v-if="collapsed" class="flex flex-col items-center gap-1 py-3" data-record-panel-skeleton>
-		<LoadingStatus />
 		<Skeleton v-for="action in 3" :key="action" class="size-7 rounded-4" />
 	</div>
 
 	<div v-else class="flex flex-col" data-record-panel-skeleton>
-		<LoadingStatus />
 		<div class="flex flex-col gap-2.5 px-4 py-3">
 			<div class="flex flex-col">
 				<Skeleton class="my-[3px] h-4 w-40 rounded-1" />
@@ -38,7 +36,6 @@
 
 <script setup lang="ts">
 import { Skeleton } from "frappe-ui";
-import LoadingStatus from "@/shell/LoadingStatus.vue";
 
 defineProps<{ collapsed: boolean }>();
 </script>

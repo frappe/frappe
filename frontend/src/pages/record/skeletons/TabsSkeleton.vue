@@ -20,7 +20,6 @@
 			v-else
 			:columns="2"
 			:fields="8"
-			heading
 			class="mx-auto w-full max-w-3xl px-[--page-gutter] py-6"
 		/>
 	</div>

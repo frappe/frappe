@@ -115,7 +115,7 @@ describe("before the first replay", () => {
     const { root, state } = await mount(FOUR, "", false);
 
     const form = root.querySelector("[data-record-tabs-skeleton] + [data-form-skeleton]");
-    expect(form!.querySelectorAll(".fui-skeleton")).toHaveLength(17);
+    expect(form!.querySelectorAll(".fui-skeleton")).toHaveLength(16);
     expect(form!.querySelector(".grid")!.className).toContain("sm:grid-cols-2");
 
     state.ready = true;

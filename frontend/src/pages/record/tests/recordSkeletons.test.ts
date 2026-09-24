@@ -137,7 +137,7 @@ describe("before the record arrives", () => {
     const root = await open();
 
     expect(skeletons(root, "data-record-header-skeleton")).toBe(5);
-    expect(root.querySelectorAll('[data-record-header-skeleton] [role="status"]')).toHaveLength(1);
+    expect(root.querySelectorAll('[role="status"]')).toHaveLength(1);
 
     load.answerRecord();
     await settle();

@@ -3,11 +3,7 @@
 <template>
 	<div data-form-skeleton>
 		<LoadingStatus />
-		<Skeleton v-if="heading" class="my-0.5 h-[15px] w-24 rounded-1" />
-		<div
-			class="grid gap-4"
-			:class="[columns === 2 ? 'sm:grid-cols-2' : '', heading ? 'mt-6' : '']"
-		>
+		<div class="grid gap-4" :class="{ 'sm:grid-cols-2': columns === 2 }">
 			<div v-for="field in fields" :key="field" class="flex flex-col gap-1.5">
 				<Skeleton class="my-px h-[13px] w-20 rounded-1" />
 				<Skeleton class="h-7 w-full rounded-4" />
@@ -23,7 +19,5 @@ import LoadingStatus from "@/shell/LoadingStatus.vue";
 defineProps<{
 	columns: 1 | 2;
 	fields: number;
-	/** A bar for the first section's label above the fields. */
-	heading?: boolean;
 }>();
 </script>
