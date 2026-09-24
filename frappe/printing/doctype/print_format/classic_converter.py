@@ -182,7 +182,7 @@ def convert_classic_to_beta(format_data, meta, print_format=None) -> tuple[dict,
 	layout["sections"] = [
 		section for section in layout["sections"] if any(column["fields"] for column in section["columns"])
 	]
-	if not layout["sections"]:
+	if not data and not layout["sections"]:
 		layout["sections"] = create_default_layout(meta)["sections"]
 
 	for section in layout["sections"][1:]:
