@@ -8,7 +8,7 @@ import type { Boot } from "@/boot";
 import { registerContributions } from "@/contributions/registry";
 import type { ReplacementContribution } from "@/contributions/types";
 import { createShellRouter } from "@/router";
-import { failedPage } from "@/router/failedPage";
+import { failedPage, resetFailedPage } from "@/router/failedPage";
 import { clearLoadedPages, loadedPage, mainPageFor, preloadMainPage } from "@/router/mainPage";
 import { registerShell, routeFor, urlFor } from "@/router/routeFor";
 
@@ -119,7 +119,7 @@ beforeEach(() => {
 	setups.attrs = [];
 	guard.block = false;
 	flaky.failures = 0;
-	failedPage.value = null;
+	resetFailedPage();
 	for (const page of [salesInvoicePage, singleListPage, flakyPage]) page.mockClear();
 	clearLoadedPages();
 	warn = vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -304,20 +304,26 @@ describe.each([
 		expect(flakyPage).toHaveBeenCalledTimes(2);
 	});
 
-	it("records the address of a declared page that fails on the first navigation", async () => {
-		const router = createShellRouter(boot(modular), addresses);
-		const error = vi.spyOn(console, "error").mockImplementation(() => {});
+	it.each([
+		{ name: "JE/001", encoded: "JE%2F001" },
+		{ name: "JE#002?x", encoded: "JE%23002%3Fx" },
+	])(
+		"records the encoded address of $name when its declared page fails to load",
+		async ({ encoded }) => {
+			const router = createShellRouter(boot(modular), addresses);
+			const error = vi.spyOn(console, "error").mockImplementation(() => {});
 
-		await expect(router.push(`${prefix}/journal-entry/JE-001`)).rejects.toThrow(
-			"the page failed to load"
-		);
-		expect(error).toHaveBeenCalledWith(
-			expect.objectContaining({ message: "the page failed to load" })
-		);
-		error.mockRestore();
+			await expect(router.push(`${prefix}/journal-entry/${encoded}`)).rejects.toThrow(
+				"the page failed to load"
+			);
+			expect(error).toHaveBeenCalledWith(
+				expect.objectContaining({ message: "the page failed to load" })
+			);
+			error.mockRestore();
 
-		expect(failedPage.value).toBe(`/apps/erpnext${prefix}/journal-entry/JE-001`);
-	});
+			expect(failedPage.value).toBe(`/apps/erpnext${prefix}/journal-entry/${encoded}`);
+		}
+	);
 
 	it("forgets the failed address once another navigation lands", async () => {
 		const router = createShellRouter(boot(modular), addresses);
