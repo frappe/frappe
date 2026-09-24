@@ -147,7 +147,7 @@ class WebForm(WebsiteGenerator):
 		if empty_pages := self.get_empty_pages():
 			frappe.msgprint(
 				_("The web form skips these pages, because they have no visible fields: {0}").format(
-					", ".join(frappe.bold(frappe.utils.escape_html(label)) for label in empty_pages)
+					", ".join(frappe.bold(escape_html(label)) for label in empty_pages)
 				)
 				+ "<br>"
 				# an orange dialog on save reads as a failure unless it says otherwise
