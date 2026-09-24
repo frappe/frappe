@@ -9,7 +9,7 @@ export function listCacheKey(doctype: string, query: ListQuery): string {
   for (const part of KEY_PARTS) {
     if (query[part] !== undefined) parts[part] = query[part];
   }
-  if (query.fields) parts.fields = keyFields(query.fields);
+  parts.fields = keyFields(query.fields?.length ? query.fields : ["name"]);
   return `${doctype}\u0000${JSON.stringify(sortKeys(parts))}`;
 }
 
@@ -19,7 +19,7 @@ export function isFeedableQuery(query: ListQuery): boolean {
   return (query.fields ?? []).every((field) => field === "*" || PLAIN_FIELD.test(field));
 }
 
-/** The wrapper adds `modified` to every list read, so a query with or without it is one list. */
+/** The wrapper adds `modified` to every read, and asks for `name` when a read names no fields. */
 function keyFields(fields: readonly string[]): string[] {
   const unique = new Set(fields);
   if (!unique.has("*")) unique.add("modified");

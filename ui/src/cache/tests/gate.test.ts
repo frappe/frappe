@@ -2,13 +2,15 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   clearDataCache,
   feedDelete,
+  feedDocsDocument,
   feedDocumentWrite,
+  feedPartWrite,
   readCachedDocument,
   readCachedList,
   readCachedRows,
   takeTicket,
 } from "../index";
-import { DOCTYPE, MIDDLE, NEW, OLD, doc, readList, readRecord } from "./helpers";
+import { DOCTYPE, MIDDLE, NEW, OLD, PERMISSIONS, doc, readList, readRecord } from "./helpers";
 
 const query = { fields: ["name", "title"] };
 
@@ -32,18 +34,17 @@ describe("the write gate", () => {
 
   it("keeps a record read sent before a delete dropped after the delete lands", () => {
     const readTicket = takeTicket();
-    feedDelete(takeTicket(), DOCTYPE, "A");
-    readRecord(doc("A", NEW), {}, readTicket);
-    readList(query, [doc("A", NEW), doc("B", NEW)], {}, readTicket);
+    feedDelete(DOCTYPE, "A");
+    readRecord(doc("A", NEW), PERMISSIONS, readTicket);
+    readList(query, [doc("A", NEW), doc("B", NEW)], PERMISSIONS, readTicket);
     expect(readCachedDocument(DOCTYPE, "A")).toBeUndefined();
     expect(readCachedList(DOCTYPE, query)!.names).toEqual(["B"]);
   });
 
   it("seals a deleted document against a read sent while the delete was in flight", () => {
-    const deleteTicket = takeTicket();
     const readTicket = takeTicket();
-    feedDelete(deleteTicket, DOCTYPE, "A");
-    readRecord(doc("A", NEW), {}, readTicket);
+    feedDelete(DOCTYPE, "A");
+    readRecord(doc("A", NEW), PERMISSIONS, readTicket);
     expect(readCachedDocument(DOCTYPE, "A")).toBeUndefined();
     readRecord(doc("A", NEW));
     expect(readCachedDocument(DOCTYPE, "A")!.complete).toBe(true);
@@ -59,8 +60,16 @@ describe("the write gate", () => {
   it("gates each document on its own", () => {
     const readTicket = takeTicket();
     feedDocumentWrite(takeTicket(), DOCTYPE, doc("B", MIDDLE, { title: "saved" }));
-    readRecord(doc("A", NEW, { title: "read" }), {}, readTicket);
+    readRecord(doc("A", NEW, { title: "read" }), PERMISSIONS, readTicket);
     expect(readCachedDocument(DOCTYPE, "A")!.doc.title).toBe("read");
+  });
+
+  it("keeps a refused row's name in the list, unless the document was deleted", () => {
+    const listTicket = takeTicket();
+    feedDocumentWrite(takeTicket(), DOCTYPE, doc("Z", NEW));
+    feedDelete(DOCTYPE, "B");
+    readList(query, [doc("A", NEW), doc("B", NEW), doc("Z", NEW)], {}, listTicket);
+    expect(readCachedList(DOCTYPE, query)!.names).toEqual(["A", "Z"]);
   });
 
   it("takes increasing tickets across a clear", () => {
@@ -87,5 +96,47 @@ describe("a write", () => {
   it("leaves every list's names alone", () => {
     feedDocumentWrite(takeTicket(), DOCTYPE, doc("B", NEW, { title: "moved" }));
     expect(readCachedList(DOCTYPE, query)!.names).toEqual(["A", "B"]);
+  });
+});
+
+describe("a part write", () => {
+  it("drops a record or list read sent before it", () => {
+    readRecord(doc("A", OLD, { title: "a" }), { tags: [] });
+    const readTicket = takeTicket();
+    feedPartWrite(takeTicket(), DOCTYPE, "A", "tags", ["urgent"]);
+    readRecord(doc("A", OLD, { _user_tags: "" }), { tags: [] }, readTicket);
+    readList(query, [doc("A", OLD, { _user_tags: "" }), doc("B", OLD)], {}, readTicket);
+    const entry = readCachedDocument(DOCTYPE, "A")!;
+    expect(entry.doc._user_tags).toBe("urgent");
+    expect(entry.parts.tags).toEqual(["urgent"]);
+    expect(readCachedList(DOCTYPE, query)!.names).toEqual(["A", "B"]);
+  });
+});
+
+describe("a document of a reply's docs", () => {
+  beforeEach(() => readRecord(doc("A", MIDDLE, { title: "saved" }), { tags: ["x"] }));
+
+  it("applies when a save moved modified forward, keeping complete and parts", () => {
+    feedDocsDocument(takeTicket(), DOCTYPE, doc("A", NEW, { title: "method" }));
+    expect(readCachedDocument(DOCTYPE, "A")).toMatchObject({
+      complete: true,
+      parts: { tags: ["x"] },
+      doc: { modified: NEW, title: "method" },
+    });
+  });
+
+  it.each([
+    ["the same", MIDDLE],
+    ["an older", OLD],
+  ])("with %s modified holds unsaved values and is dropped", (_, modified) => {
+    feedDocsDocument(takeTicket(), DOCTYPE, doc("A", modified, { title: "unsaved" }));
+    expect(readCachedDocument(DOCTYPE, "A")!.doc.title).toBe("saved");
+  });
+
+  it("goes through the gate", () => {
+    const methodTicket = takeTicket();
+    feedDocumentWrite(takeTicket(), DOCTYPE, doc("A", NEW, { title: "second" }));
+    feedDocsDocument(methodTicket, DOCTYPE, doc("A", "2026-09-04 10:00:00.000000"));
+    expect(readCachedDocument(DOCTYPE, "A")!.doc.title).toBe("second");
   });
 });

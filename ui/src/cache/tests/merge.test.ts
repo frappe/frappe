@@ -74,3 +74,34 @@ describe("a record read", () => {
     expect(Object.isFrozen((entry.doc.items as object[])[0])).toBe(true);
   });
 });
+
+describe("a record read that asks for no parts", () => {
+  it("stores nothing for a document the cache does not hold", () => {
+    readRecord(doc("A", OLD), {});
+    expect(readCachedDocument(DOCTYPE, "A")).toBeUndefined();
+  });
+
+  it("leaves a partial entry partial", () => {
+    readList(query, [doc("A", OLD, { title: "listed" })]);
+    readRecord(doc("A", OLD, { title: "read", status: "Open" }), {});
+    const entry = readCachedDocument(DOCTYPE, "A")!;
+    expect(entry.complete).toBe(false);
+    expect(entry.doc).toEqual({ name: "A", modified: OLD, title: "read", status: "Open" });
+  });
+
+  it("replaces a complete entry's doc when newer, keeping complete and parts", () => {
+    readRecord(doc("A", OLD, { title: "first" }), { tags: ["x"] });
+    readRecord(doc("A", NEW, { title: "second" }), {});
+    expect(readCachedDocument(DOCTYPE, "A")).toMatchObject({
+      complete: true,
+      parts: { tags: ["x"] },
+      doc: { modified: NEW, title: "second" },
+    });
+  });
+
+  it("is dropped when older than the entry", () => {
+    readRecord(doc("A", NEW, { title: "new" }));
+    readRecord(doc("A", OLD, { title: "old" }), {});
+    expect(readCachedDocument(DOCTYPE, "A")!.doc.title).toBe("new");
+  });
+});

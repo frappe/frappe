@@ -13,6 +13,7 @@ import {
   type ListEntry,
 } from "./entries";
 import { isFeedableQuery, listCacheKey } from "./listKey";
+import { NameCounts } from "./nameCounts";
 import { WriteGate } from "./writeGate";
 
 const COMPLETE_LIMIT = 50;
@@ -21,6 +22,7 @@ const LIST_LIMIT = 20;
 export class DataCache {
   private documents = shallowReactive(new Map<string, DocumentEntry>());
   private lists = shallowReactive(new Map<string, ListEntry>());
+  private named = new NameCounts();
   // Least recently read first.
   private readRecords = new Set<string>();
   private readLists = new Set<string>();
@@ -38,6 +40,7 @@ export class DataCache {
     return this.gate.next();
   }
 
+  /** Only a read that asks for parts makes the entry complete. */
   recordRead(
     ticket: number,
     doctype: string,
@@ -50,10 +53,12 @@ export class DataCache {
     const entry = this.documents.get(key);
     if (!this.gate.admitRead(key, ticket)) return;
     if (entry && compareModified(doc, entry.doc) < 0) return;
-    this.documents.set(
-      key,
-      documentEntry(doctype, frozenCopy(doc), true, recordParts(envelope, include))
-    );
+    if (!include.some((part) => part !== "seen")) {
+      if (entry) this.replaceDoc(key, entry, doc);
+      return;
+    }
+    const parts = recordParts(envelope, include);
+    this.documents.set(key, documentEntry(doctype, frozenCopy(doc), true, parts));
     touch(this.readRecords, key);
     this.evictRecords();
   }
@@ -65,69 +70,85 @@ export class DataCache {
     envelope: ListEnvelope<DocumentRecord>
   ) {
     const rows = envelope.data;
-    if (!isFeedableQuery(query) || !Array.isArray(rows) || !rows.every(hasName)) return;
+    if (!this.gate.current(ticket) || !isFeedable(query, rows)) return;
     const key = listCacheKey(doctype, query);
     const previous = this.lists.get(key);
     const start = query.start ?? 0;
-    if (start > 0 && !previous) return;
-    const held = rows.filter((row) => this.applyRow(ticket, doctype, row));
-    const kept = start > 0 ? previous!.names.slice(0, start) : [];
-    const names = [...new Set([...kept, ...held.map((row) => String(row.name))])];
-    this.lists.set(key, listEntry(key, doctype, names, envelope, previous));
+    if (start > (previous?.names.length ?? 0)) return;
+    const listed = rows.filter((row) => this.applyRow(ticket, doctype, row));
+    const kept = previous ? previous.names.slice(0, start) : [];
+    const names = [...new Set([...kept, ...listed.map((row) => String(row.name))])];
+    this.setList(listEntry(key, doctype, names, envelope, previous));
     if (previous) this.dropUnnamed(doctype, previous.names);
     touch(this.readLists, key);
     this.evictLists();
   }
 
+  /** A save or a create. */
   documentWrite(ticket: number, doctype: string, doc: DocumentRecord) {
     if (!hasName(doc)) return;
     const key = documentKey(doctype, String(doc.name));
     if (!this.gate.admitWrite(key, ticket)) return;
     const entry = this.documents.get(key);
-    if (!entry) return;
-    this.documents.set(key, documentEntry(doctype, frozenCopy(doc), entry.complete, entry.parts));
+    if (entry) this.replaceDoc(key, entry, doc);
+  }
+
+  /** A method's `docs` hold unsaved documents too; only a save moves `modified` forward. */
+  docsWrite(ticket: number, doctype: string, doc: DocumentRecord) {
+    if (!hasName(doc)) return;
+    const key = documentKey(doctype, String(doc.name));
+    const entry = this.documents.get(key);
+    if (!entry || compareModified(doc, entry.doc) <= 0) return;
+    if (this.gate.admitWrite(key, ticket)) this.replaceDoc(key, entry, doc);
   }
 
   delete(doctype: string, name: string) {
     const key = documentKey(doctype, name);
     this.gate.seal(key);
     this.removeDocument(key);
+    if (!this.named.has(key)) return;
     for (const list of this.lists.values()) {
       if (list.doctype === doctype && list.names.includes(name)) {
-        this.lists.set(list.key, withoutName(list, name));
+        this.setList(withoutName(list, name));
       }
     }
   }
 
-  part(ticket: number, doctype: string, name: string, part: string, value: unknown) {
+  partWrite(ticket: number, doctype: string, name: string, part: string, value: unknown) {
     const key = documentKey(doctype, name);
+    if (!this.gate.admitWrite(key, ticket)) return;
     const entry = this.documents.get(key);
-    if (!entry || !this.gate.admitRead(key, ticket)) return;
+    if (!entry) return;
     const doc = withPartField(entry.doc, part, value);
     if (!entry.complete && doc === entry.doc) return;
     const parts = entry.complete ? { ...entry.parts, [part]: frozenCopy(value) } : entry.parts;
     this.documents.set(key, documentEntry(doctype, doc, entry.complete, parts));
   }
 
+  /** The server may hold the name in another case, so every entry matching it goes. */
   readError(doctype: string, name: string, error: unknown) {
-    if (isApiError(error) && (error.status === 403 || error.status === 404)) {
-      this.removeDocument(documentKey(doctype, name));
-    }
+    if (!isApiError(error) || (error.status !== 403 && error.status !== 404)) return;
+    const lowered = String(name).toLowerCase();
+    const matching = [...this.documents.values()].filter(
+      (entry) => entry.doctype === doctype && entry.name.toLowerCase() === lowered
+    );
+    for (const entry of matching) this.removeDocument(documentKey(doctype, entry.name));
   }
 
   clear() {
     this.documents.clear();
     this.lists.clear();
+    this.named.clear();
     this.readRecords.clear();
     this.readLists.clear();
     this.gate.clear();
   }
 
-  /** Whether the document has an entry once the row is applied. */
+  /** Whether the list keeps naming the row's document. */
   private applyRow(ticket: number, doctype: string, row: DocumentRecord): boolean {
     const key = documentKey(doctype, String(row.name));
+    if (!this.gate.admitRead(key, ticket)) return !this.gate.isSealed(key);
     const entry = this.documents.get(key);
-    if (!this.gate.admitRead(key, ticket)) return Boolean(entry);
     if (!entry || compareModified(row, entry.doc) > 0) {
       this.documents.set(key, documentEntry(doctype, frozenCopy(row), false));
       this.readRecords.delete(key);
@@ -138,13 +159,33 @@ export class DataCache {
     return true;
   }
 
+  private replaceDoc(key: string, entry: DocumentEntry, doc: DocumentRecord) {
+    const replaced = documentEntry(entry.doctype, frozenCopy(doc), entry.complete, entry.parts);
+    this.documents.set(key, replaced);
+  }
+
+  private setList(list: ListEntry) {
+    const previous = this.lists.get(list.key);
+    this.named.add(list.doctype, list.names);
+    if (previous) this.named.remove(previous.doctype, previous.names);
+    this.lists.set(list.key, list);
+  }
+
+  private removeList(key: string): ListEntry | undefined {
+    const list = this.lists.get(key);
+    if (!list) return undefined;
+    this.lists.delete(key);
+    this.named.remove(list.doctype, list.names);
+    return list;
+  }
+
   private evictRecords() {
     for (const key of this.readRecords) {
       if (this.readRecords.size <= COMPLETE_LIMIT) return;
       this.readRecords.delete(key);
       const entry = this.documents.get(key);
       if (!entry) continue;
-      if (this.isNamed(entry.doctype, entry.name)) {
+      if (this.named.has(key)) {
         this.documents.set(key, documentEntry(entry.doctype, entry.doc, false));
       } else {
         this.documents.delete(key);
@@ -156,8 +197,7 @@ export class DataCache {
     for (const key of this.readLists) {
       if (this.readLists.size <= LIST_LIMIT) return;
       this.readLists.delete(key);
-      const list = this.lists.get(key);
-      this.lists.delete(key);
+      const list = this.removeList(key);
       if (list) this.dropUnnamed(list.doctype, list.names);
     }
   }
@@ -165,24 +205,20 @@ export class DataCache {
   /** Removes each partial entry among `names` that no list names any more. */
   private dropUnnamed(doctype: string, names: readonly string[]) {
     for (const name of names) {
-      const entry = this.document(doctype, name);
-      if (entry && !entry.complete && !this.isNamed(doctype, name)) {
-        this.documents.delete(documentKey(doctype, name));
-      }
+      const key = documentKey(doctype, name);
+      const entry = this.documents.get(key);
+      if (entry && !entry.complete && !this.named.has(key)) this.documents.delete(key);
     }
-  }
-
-  private isNamed(doctype: string, name: string): boolean {
-    for (const list of this.lists.values()) {
-      if (list.doctype === doctype && list.names.includes(name)) return true;
-    }
-    return false;
   }
 
   private removeDocument(key: string) {
     this.documents.delete(key);
     this.readRecords.delete(key);
   }
+}
+
+function isFeedable(query: ListQuery, rows: unknown): rows is DocumentRecord[] {
+  return isFeedableQuery(query) && Array.isArray(rows) && rows.every(hasName);
 }
 
 function recordParts(envelope: Envelope<DocumentRecord>, include: readonly string[]) {
@@ -211,8 +247,10 @@ function listEntry(
   });
 }
 
+/** A capped count is a floor, not a total, so a delete leaves it as it is. */
 function withoutName(list: ListEntry, name: string): ListEntry {
-  const count = typeof list.count === "number" ? list.count - 1 : list.count;
+  const lowered = typeof list.count === "number" && !list.countCapped;
+  const count = lowered ? list.count! - 1 : list.count;
   const names = Object.freeze(list.names.filter((listed) => listed !== name));
   return Object.freeze({ ...list, names, count });
 }

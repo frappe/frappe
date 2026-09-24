@@ -2,13 +2,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { computed, nextTick, watch } from "vue";
 import {
   clearDataCache,
+  feedDelete,
+  feedDocsDocument,
   feedDocumentWrite,
+  feedPartWrite,
   readCachedDocument,
   readCachedList,
   readCachedRows,
   takeTicket,
 } from "../index";
-import { DOCTYPE, NEW, OLD, doc, readList, readRecord } from "./helpers";
+import { DOCTYPE, NEW, OLD, PERMISSIONS, doc, readList, readRecord } from "./helpers";
 
 const query = { fields: ["name", "title"] };
 
@@ -34,6 +37,19 @@ describe("a reader", () => {
     expect(changed.mock.calls[0][0]).toHaveLength(4);
     stop();
   });
+
+  it("sees one change per reply on a document entry", () => {
+    readList(query, [doc("A", OLD)]);
+    const changed = vi.fn();
+    const stop = watch(() => readCachedDocument(DOCTYPE, "A"), changed, { flush: "sync" });
+    readList(query, [doc("A", NEW), doc("B", NEW)]);
+    expect(changed).toHaveBeenCalledTimes(1);
+    readRecord(doc("A", NEW, { title: "read" }));
+    expect(changed).toHaveBeenCalledTimes(2);
+    feedDelete(DOCTYPE, "A");
+    expect(changed).toHaveBeenCalledTimes(3);
+    stop();
+  });
 });
 
 describe("clearDataCache", () => {
@@ -46,11 +62,20 @@ describe("clearDataCache", () => {
     expect(readCachedList(DOCTYPE, query)).toBeUndefined();
   });
 
-  it("forgets the writes the gate applied", () => {
-    const readTicket = takeTicket();
-    feedDocumentWrite(takeTicket(), DOCTYPE, doc("A", OLD));
+  it("drops every reply to a request sent before it", () => {
+    const before = takeTicket();
     clearDataCache();
-    readRecord(doc("A", NEW), {}, readTicket);
-    expect(readCachedDocument(DOCTYPE, "A")).toBeDefined();
+    readList(query, [doc("A", OLD)]);
+    readRecord(doc("B", OLD));
+    readRecord(doc("A", NEW), PERMISSIONS, before);
+    readList({ fields: ["name"] }, [doc("C", OLD)], {}, before);
+    feedDocumentWrite(before, DOCTYPE, doc("B", NEW));
+    feedDocsDocument(before, DOCTYPE, doc("B", NEW));
+    feedPartWrite(before, DOCTYPE, "B", "tags", ["x"]);
+    const [first, second] = [readCachedDocument(DOCTYPE, "A")!, readCachedDocument(DOCTYPE, "B")!];
+    expect(first).toMatchObject({ complete: false, doc: { modified: OLD } });
+    expect(second).toMatchObject({ doc: { modified: OLD }, parts: PERMISSIONS });
+    expect(second.doc).not.toHaveProperty("_user_tags");
+    expect(readCachedList(DOCTYPE, { fields: ["name"] })).toBeUndefined();
   });
 });

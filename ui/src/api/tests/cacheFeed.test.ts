@@ -1,8 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as cache from "../../cache";
 import { clearDataCache, readCachedDocument, readCachedList } from "../../cache";
-import { resetSession, setSession } from "../../composables/useSession";
-import type { Session } from "../index";
 import {
   addAssignment,
   addTag,
@@ -10,7 +8,6 @@ import {
   createDocument,
   deleteDocument,
   getDocument,
-  getDocumentPart,
   listDocuments,
   removeTag,
   runDocumentMethod,
@@ -21,9 +18,9 @@ vi.mock("../../cache", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../cache")>();
   return {
     ...actual,
+    feedDocsDocument: vi.fn(actual.feedDocsDocument),
     feedDocumentWrite: vi.fn(actual.feedDocumentWrite),
     feedListRead: vi.fn(actual.feedListRead),
-    feedPart: vi.fn(actual.feedPart),
     feedRecordRead: vi.fn(actual.feedRecordRead),
   };
 });
@@ -54,7 +51,11 @@ function cached(name: string) {
   return readCachedDocument("ToDo", name);
 }
 
-async function readRecord(name: string, modified: string, parts: Record<string, unknown> = {}) {
+async function readRecord(
+  name: string,
+  modified: string,
+  parts: Record<string, unknown> = { permissions: {} }
+) {
   respond({ data: { name, modified, status: "Open" }, ...parts });
   await getDocument("ToDo", name, { include: Object.keys(parts) });
 }
@@ -114,15 +115,14 @@ describe("reads", () => {
     expect(JSON.parse(sentQuery().get("fields")!)).toEqual(["*"]);
   });
 
-  it("getDocumentPart feeds a document part and skips any other", async () => {
-    await readRecord("T-1", OLD, { tags: [] });
-    respond({ data: ["urgent"] });
-    expect(await getDocumentPart("ToDo", "T-1", "tags")).toEqual({ data: ["urgent"] });
-    expect(cached("T-1")!.parts.tags).toEqual(["urgent"]);
-    expect(cached("T-1")!.doc._user_tags).toBe("urgent");
-    respond({ data: [{ type: "comment" }] });
-    await getDocumentPart("ToDo", "T-1", "activity");
-    expect(cache.feedPart).toHaveBeenCalledTimes(1);
+  it("getDocument with no include stores nothing new and completes nothing", async () => {
+    await readList(["T-1"]);
+    respond({ data: { name: "T-1", modified: OLD, status: "Open" } });
+    await getDocument("ToDo", "T-1");
+    respond({ data: { name: "T-2", modified: OLD } });
+    await getDocument("ToDo", "T-2");
+    expect(cached("T-1")!.complete).toBe(false);
+    expect(cached("T-2")).toBeUndefined();
   });
 });
 
@@ -190,6 +190,14 @@ describe("a reply's docs", () => {
     expect(cached("T-1")!.doc).toMatchObject({ modified: NEW, status: "Closed" });
   });
 
+  it("skips a document the method did not save", async () => {
+    await readRecord("T-1", OLD);
+    const unsaved = { doctype: "ToDo", name: "T-1", modified: OLD, status: "Unsaved" };
+    respond({ data: null, docs: [unsaved] });
+    await runDocumentMethod("ToDo", "T-1", "set_status");
+    expect(cached("T-1")!.doc.status).toBe("Open");
+  });
+
   it("drops a document from a call sent before a save that landed first", async () => {
     await readRecord("T-1", OLD);
     const answerMethod = respondLater();
@@ -223,21 +231,34 @@ describe("failures", () => {
   });
 });
 
-describe("the session", () => {
-  const as = (name: string) => ({ user: { name }, roles: [] }) as unknown as Session;
+describe("a fault in the cache", () => {
+  function catchRethrow() {
+    const rethrown: (() => void)[] = [];
+    vi.spyOn(globalThis, "queueMicrotask").mockImplementation((task) => rethrown.push(task));
+    return rethrown;
+  }
 
-  it("clears the cache when the user changes, and only then", async () => {
-    setSession(as("ann@example.com"));
+  it("empties the cache, rethrows on its own, and the request still answers", async () => {
     await readRecord("T-1", OLD);
-    setSession(as("ann@example.com"));
-    expect(cached("T-1")).toBeDefined();
-    setSession(as("bo@example.com"));
+    vi.mocked(cache.feedListRead).mockImplementationOnce(() => {
+      throw new Error("cache fault");
+    });
+    const rethrown = catchRethrow();
+    const body = { data: [{ name: "T-1", status: "Open", modified: OLD }], has_next_page: false };
+    respond(body);
+    expect(await listDocuments("ToDo", LIST)).toEqual(body);
     expect(cached("T-1")).toBeUndefined();
+    expect(rethrown).toHaveLength(1);
+    expect(rethrown[0]).toThrow("cache fault");
   });
 
-  it("clears the cache on reset", async () => {
-    await readRecord("T-1", OLD);
-    resetSession();
-    expect(cached("T-1")).toBeUndefined();
+  it("in a reply's docs does not fail the call", async () => {
+    vi.mocked(cache.feedDocsDocument).mockImplementationOnce(() => {
+      throw new Error("cache fault");
+    });
+    const rethrown = catchRethrow();
+    respond({ data: "done", docs: [{ doctype: "ToDo", name: "T-1", modified: NEW }] });
+    expect(await runDocumentMethod("ToDo", "T-1", "close")).toMatchObject({ data: "done" });
+    expect(rethrown[0]).toThrow("cache fault");
   });
 });

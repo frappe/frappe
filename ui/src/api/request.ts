@@ -1,4 +1,4 @@
-import { feedDocumentWrite, takeTicket } from "../cache";
+import { clearDataCache, feedDocsDocument, takeTicket } from "../cache";
 import type { DocumentRecord } from "./index";
 import { ApiError, readEnvelope, type Envelope, type ReadOptions } from "./envelope";
 
@@ -57,15 +57,27 @@ export async function request<T>(
     source: `${method} ${path}`,
     nullable,
   });
-  feedDocs(ticket, envelope);
+  feedSafely(() => feedDocs(ticket, envelope));
   return envelope;
 }
 
-/** A document method's reply carries the documents it changed under `docs`. */
+/** A cache fault empties the cache and surfaces on its own, so the request still answers. */
+export function feedSafely(feed: () => void): void {
+  try {
+    feed();
+  } catch (error) {
+    clearDataCache();
+    queueMicrotask(() => {
+      throw error;
+    });
+  }
+}
+
+/** A document method returns its documents under `docs` whether or not it saved them. */
 function feedDocs(ticket: number, envelope: Envelope<unknown>) {
   if (!Array.isArray(envelope.docs)) return;
   for (const doc of envelope.docs as DocumentRecord[]) {
-    if (typeof doc?.doctype === "string") feedDocumentWrite(ticket, doc.doctype, doc);
+    if (typeof doc?.doctype === "string") feedDocsDocument(ticket, doc.doctype, doc);
   }
 }
 

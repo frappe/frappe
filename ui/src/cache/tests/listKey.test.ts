@@ -17,6 +17,12 @@ describe("listCacheKey", () => {
     );
   });
 
+  it("gives absent, empty and name-only fields one key", () => {
+    expect(key({ fields: [] })).toBe(key({}));
+    expect(key({ fields: ["name"] })).toBe(key({}));
+    expect(key({ fields: ["name", "modified"] })).toBe(key({}));
+  });
+
   it("keeps the order of filter arrays", () => {
     expect(key({ filters: [["status", "=", "Open"]] })).not.toBe(
       key({ filters: [["Open", "=", "status"]] })
@@ -37,7 +43,7 @@ describe("listCacheKey", () => {
     ["or_filters", key({ or_filters: { status: "Closed" } })],
     ["order_by", key({ order_by: "creation asc" })],
     ["group_by", key({ group_by: "status" })],
-    ["fields", key({ fields: ["name"] })],
+    ["fields", key({ fields: ["title"] })],
   ])("changes with %s", (_, other) => {
     expect(other).not.toBe(key({}));
   });

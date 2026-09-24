@@ -7,7 +7,6 @@ import {
   readCachedDocument,
   readCachedList,
   readCachedRows,
-  takeTicket,
 } from "../index";
 import { DOCTYPE, NEW, OLD, doc, readList, readRecord } from "./helpers";
 
@@ -33,6 +32,19 @@ describe("a list read", () => {
     readList({ ...query, start: 20 }, rows("A"));
     expect(readCachedList(DOCTYPE, query)).toBeUndefined();
     expect(readCachedDocument(DOCTYPE, "A")).toBeUndefined();
+  });
+
+  it("from start N feeds nothing when the held list has fewer than N names", () => {
+    readList(query, rows("A", "B"));
+    readList({ ...query, start: 3 }, rows("E"));
+    expect(readCachedList(DOCTYPE, query)!.names).toEqual(["A", "B"]);
+    expect(readCachedDocument(DOCTYPE, "E")).toBeUndefined();
+  });
+
+  it("from start N appends when the held list has exactly N names", () => {
+    readList(query, rows("A", "B"));
+    readList({ ...query, start: 2 }, rows("C"));
+    expect(readCachedList(DOCTYPE, query)!.names).toEqual(["A", "B", "C"]);
   });
 
   it("removes a partial entry that no list names any more", () => {
@@ -79,15 +91,21 @@ describe("a delete", () => {
     const other = { fields: ["name"] };
     readList(query, rows("A", "B"), { count: 2 });
     readList(other, rows("B", "C"), { count: null });
-    feedDelete(takeTicket(), DOCTYPE, "B");
+    feedDelete(DOCTYPE, "B");
     expect(readCachedDocument(DOCTYPE, "B")).toBeUndefined();
     expect(readCachedList(DOCTYPE, query)).toMatchObject({ names: ["A"], count: 1 });
     expect(readCachedList(DOCTYPE, other)).toMatchObject({ names: ["C"], count: null });
   });
 
+  it("leaves a capped count alone", () => {
+    readList(query, rows("A", "B"), { count: 1000, count_capped: true });
+    feedDelete(DOCTYPE, "B");
+    expect(readCachedList(DOCTYPE, query)).toMatchObject({ names: ["A"], count: 1000 });
+  });
+
   it("leaves a list that does not name it alone", () => {
     readList(query, rows("A"), { count: 1 });
-    feedDelete(takeTicket(), DOCTYPE, "B");
+    feedDelete(DOCTYPE, "B");
     expect(readCachedList(DOCTYPE, query)).toMatchObject({ names: ["A"], count: 1 });
   });
 });
@@ -99,6 +117,12 @@ describe("a read error", () => {
     expect(readCachedDocument(DOCTYPE, "A")).toBeUndefined();
     expect(readCachedList(DOCTYPE, query)!.names).toEqual(["A", "B"]);
     expect(readCachedRows(DOCTYPE, query)!.map((row) => row.name)).toEqual(["B"]);
+  });
+
+  it("removes an entry held under the name in another case", () => {
+    readRecord(doc("Task-A", OLD));
+    feedReadError(DOCTYPE, "task-a", new ApiError({ type: "DoesNotExistError" }, 404));
+    expect(readCachedDocument(DOCTYPE, "Task-A")).toBeUndefined();
   });
 
   it("of another kind keeps the entry", () => {

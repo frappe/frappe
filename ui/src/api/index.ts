@@ -6,13 +6,11 @@ import {
   feedDelete,
   feedDocumentWrite,
   feedListRead,
-  feedPart,
   feedReadError,
   feedRecordRead,
-  takeTicket,
 } from "../cache";
-import { isFeedableQuery } from "../cache/listKey";
-import { request, type HttpMethod, type Query, type RequestOptions } from "./request";
+import { fed, feedPartReply, includeNames, withModified } from "./feed";
+import { feedSafely, request, type Query } from "./request";
 import { ApiError, type Envelope } from "./envelope";
 
 export {
@@ -115,7 +113,7 @@ export function getDocument<T extends DocumentRecord = DocumentRecord>(
     feedRecordRead(ticket, doctype, envelope, includeNames(include))
   );
   return reading.catch((error: unknown) => {
-    feedReadError(doctype, name, error);
+    feedSafely(() => feedReadError(doctype, name, error));
     throw error;
   });
 }
@@ -184,8 +182,8 @@ export function deleteDocument(
   name: string,
   { signal }: CallOptions = {}
 ): Promise<Envelope<"ok">> {
-  return fed<"ok">("DELETE", documentPath(doctype, name), { signal }, (ticket) =>
-    feedDelete(ticket, doctype, name)
+  return fed<"ok">("DELETE", documentPath(doctype, name), { signal }, () =>
+    feedDelete(doctype, name)
   );
 }
 
@@ -260,9 +258,9 @@ export function getDocumentPart<T = unknown>(
   params: Query = {},
   { signal }: CallOptions = {}
 ): Promise<Envelope<T>> {
-  const path = `${documentPath(doctype, name)}/${segment(part)}`;
-  return fed<T>("GET", path, { query: params, signal }, (ticket, envelope) => {
-    if (CACHED_PARTS.has(part)) feedPart(ticket, doctype, name, part, envelope.data);
+  return request<T>("GET", `${documentPath(doctype, name)}/${segment(part)}`, {
+    query: params,
+    signal,
   });
 }
 
@@ -309,45 +307,6 @@ function joinInclude(include?: readonly string[] | string): string | undefined {
   if (typeof include === "string") return include || undefined;
   return include?.length ? include.join(",") : undefined;
 }
-
-function includeNames(include?: readonly string[] | string): readonly string[] {
-  if (typeof include !== "string") return include ?? [];
-  return include.split(",").map((part) => part.trim()).filter(Boolean);
-}
-
-/** The ticket is taken at send time, so the cache orders the reply by when it was asked for. */
-async function fed<T>(
-  method: HttpMethod,
-  path: string,
-  options: RequestOptions,
-  feed: (ticket: number, envelope: Envelope<T>) => void
-): Promise<Envelope<T>> {
-  const ticket = takeTicket();
-  const envelope = await request<T>(method, path, { ...options, ticket });
-  feed(ticket, envelope);
-  return envelope;
-}
-
-/** Without `fields` the server sends `name` alone, and the cache orders rows by `modified`. */
-function withModified(query: ListQuery): ListQuery {
-  if (!isFeedableQuery(query)) return query;
-  const fields = query.fields?.length ? query.fields : ["name"];
-  if (fields.includes("*") || fields.includes("modified")) return query;
-  return { ...query, fields: [...fields, "modified"] };
-}
-
-/** The server's document parts, less `seen`: reading that one marks the document seen. */
-const CACHED_PARTS = new Set([
-  "permissions",
-  "attachments",
-  "assignments",
-  "shares",
-  "tags",
-  "favourites",
-  "follows",
-  "comments",
-  "link_titles",
-]);
 
 export type CollabPart =
   | "assignments"
@@ -519,16 +478,6 @@ export function removeComment(
   return removePart<PartResponse<"comments", Comment[]>>(
     doctype, name, "comments", comment, options
   );
-}
-
-/** A part write answers with the refreshed part under its own key. */
-function feedPartReply(doctype: string, name: string, part: CollabPart) {
-  return (ticket: number, envelope: Envelope<unknown>) => {
-    const reply = envelope.data as Record<string, unknown> | null;
-    if (reply && typeof reply === "object" && part in reply) {
-      feedPart(ticket, doctype, name, part, reply[part]);
-    }
-  };
 }
 
 function partPath(doctype: string, name: string, part: CollabPart, key?: string): string {

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { clearDataCache, readCachedDocument, readCachedList } from "../index";
+import { clearDataCache, feedDelete, readCachedDocument, readCachedList } from "../index";
 import { DOCTYPE, OLD, doc, readList, readRecord } from "./helpers";
 
 const listQuery = (index: number) => ({ filters: { owner: `user${index}` } });
@@ -23,6 +23,13 @@ describe("the 50 complete entries", () => {
     readRecords(51, 51);
     expect(readCachedDocument(DOCTYPE, "R1")!.complete).toBe(true);
     expect(readCachedDocument(DOCTYPE, "R2")).toBeUndefined();
+  });
+
+  it("do not count a record read that asks for no parts as a use", () => {
+    readRecords(1, 50);
+    readRecord(doc("R1", OLD), {});
+    readRecords(51, 51);
+    expect(readCachedDocument(DOCTYPE, "R1")).toBeUndefined();
   });
 
   it("keep a dropped entry as partial, without parts, while a list names it", () => {
@@ -63,5 +70,29 @@ describe("the 20 list entries", () => {
     expect(readCachedDocument(DOCTYPE, "Only")).toBeUndefined();
     expect(readCachedDocument(DOCTYPE, "Shared")!.complete).toBe(false);
     expect(readCachedDocument(DOCTYPE, "Read")!.complete).toBe(true);
+  });
+});
+
+describe("how many lists name a document", () => {
+  const first = listQuery(1);
+  const second = listQuery(2);
+  const held = (...names: string[]) =>
+    names.filter((name) => readCachedDocument(DOCTYPE, name) !== undefined);
+
+  it("stays right across replace, append, delete and eviction", () => {
+    readList(first, [doc("A", OLD), doc("B", OLD)]);
+    readList(second, [doc("B", OLD), doc("C", OLD)]);
+    readList(first, [doc("B", OLD), doc("D", OLD)]);
+    readList(first, [doc("B", OLD), doc("D", OLD)]);
+    expect(held("A", "B", "C", "D")).toEqual(["B", "C", "D"]);
+    readList({ ...first, start: 2 }, [doc("E", OLD)]);
+    feedDelete(DOCTYPE, "D");
+    expect(readCachedList(DOCTYPE, first)!.names).toEqual(["B", "E"]);
+    for (let index = 3; index <= 21; index++) readList(listQuery(index), []);
+    expect(readCachedList(DOCTYPE, second)).toBeUndefined();
+    expect(held("B", "C", "E")).toEqual(["B", "E"]);
+    readList(listQuery(22), []);
+    expect(readCachedList(DOCTYPE, first)).toBeUndefined();
+    expect(held("B", "E")).toEqual([]);
   });
 });

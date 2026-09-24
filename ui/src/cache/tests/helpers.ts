@@ -11,9 +11,12 @@ export function doc(name: string, modified?: string, fields: Record<string, unkn
   return { name, ...(modified ? { modified } : {}), ...fields } as DocumentRecord;
 }
 
+/** A record read asks for at least one part, or it leaves the entry partial. */
+export const PERMISSIONS = { permissions: { read: 1 } };
+
 export function readRecord(
   record: DocumentRecord,
-  parts: Record<string, unknown> = {},
+  parts: Record<string, unknown> = PERMISSIONS,
   ticket = takeTicket()
 ) {
   feedRecordRead(ticket, DOCTYPE, { data: record, ...parts }, Object.keys(parts));

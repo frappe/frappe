@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { clearDataCache, feedPart, readCachedDocument, takeTicket } from "../index";
+import { clearDataCache, feedPartWrite, readCachedDocument, takeTicket } from "../index";
 import { DOCTYPE, OLD, doc, readList, readRecord } from "./helpers";
 
 const assignments = [
@@ -8,7 +8,7 @@ const assignments = [
 ];
 
 function applyPart(name: string, part: string, value: unknown) {
-  feedPart(takeTicket(), DOCTYPE, name, part, value);
+  feedPartWrite(takeTicket(), DOCTYPE, name, part, value);
 }
 
 beforeEach(() => clearDataCache());

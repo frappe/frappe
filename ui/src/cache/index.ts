@@ -55,24 +55,29 @@ export function feedListRead(
   cache.listRead(ticket, doctype, query, envelope);
 }
 
-/** A save, a create, or one document of a reply's `docs`. */
+/** A save or a create. */
 export function feedDocumentWrite(ticket: number, doctype: string, doc: DocumentRecord): void {
   cache.documentWrite(ticket, doctype, doc);
 }
 
-/** A delete seals the document with a ticket of its own, so the reply's ticket goes unused. */
-export function feedDelete(_ticket: number, doctype: string, name: string): void {
+/** One document of a reply's `docs`, which a method may send back unsaved. */
+export function feedDocsDocument(ticket: number, doctype: string, doc: DocumentRecord): void {
+  cache.docsWrite(ticket, doctype, doc);
+}
+
+export function feedDelete(doctype: string, name: string): void {
   cache.delete(doctype, name);
 }
 
-export function feedPart(
+/** A part write's reply: the refreshed part. */
+export function feedPartWrite(
   ticket: number,
   doctype: string,
   name: string,
   part: string,
   value: unknown
 ): void {
-  cache.part(ticket, doctype, name, part, value);
+  cache.partWrite(ticket, doctype, name, part, value);
 }
 
 /** A 403 or 404 on a record read. */

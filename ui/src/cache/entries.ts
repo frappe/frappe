@@ -87,7 +87,9 @@ function assignedUser(row: unknown): string {
 /** Python's `json.dumps`: `", "` between items, non-ASCII escaped; an empty list is `""`. */
 function pythonJsonList(items: string[]): string {
   if (!items.length) return "";
-  const quoted = items.map((item) => JSON.stringify(item).replace(/[\u0080-￿]/g, unicodeEscape));
+  const quoted = items.map((item) =>
+    JSON.stringify(item).replace(/[\u0080-\uffff]/g, unicodeEscape)
+  );
   return `[${quoted.join(", ")}]`;
 }
 
