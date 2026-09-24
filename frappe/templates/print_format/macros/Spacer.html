@@ -1,2 +1,7 @@
+{%- if legacy -%}
+<div style="height: 1rem">
+</div>
+{%- else -%}
 <div style="height: {{ (df.height|int|string + 'px') if df.height else '1em' }};{{ df.custom_style|e if df.custom_style }}">
 </div>
+{%- endif -%}

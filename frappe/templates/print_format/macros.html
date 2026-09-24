@@ -9,7 +9,8 @@
 {% macro render_field(df, doc) %}
 {%- if not df.get('_hidden') -%}
 {%- set value = df.get('_value') if df.get('_value') is not none else doc.get(df.fieldname) -%}
-{% include ['templates/print_format/macros/' + df.renderer + '.html', 'templates/print_format/macros/Data.html'] ignore missing %}
+{%- set renderer = 'Data' if legacy and df.renderer in ['Barcode', 'Image', 'Repeater', 'StaticText', 'Typst'] else df.renderer -%}
+{% include ['templates/print_format/macros/' + renderer + '.html', 'templates/print_format/macros/Data.html'] ignore missing %}
 {%- endif -%}
 {% endmacro %}
 

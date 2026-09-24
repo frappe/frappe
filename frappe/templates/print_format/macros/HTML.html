@@ -1,3 +1,9 @@
+{%- if legacy -%}
+<div class="custom-html" {{ field_attributes(df) }}>
+	{{ frappe.render_template(df.html, {'doc': doc}) }}
+</div>
+{%- else -%}
 <div class="custom-html"{% if df.custom_style %} style="{{ df.custom_style|e }}"{% endif %} {{ field_attributes(df) }}>
 	{{ frappe.render_template(df.html, {'doc': doc}) }}
 </div>
+{%- endif -%}

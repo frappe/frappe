@@ -1,3 +1,35 @@
+{%- if legacy -%}
+{% if doc.get(df.fieldname) %}
+<div class="child-table" {{ field_attributes(df) }}>
+	<div class="label">
+		{{ _(df.label) }}
+	</div>
+	<table class="table table-bordered">
+		{% set columns = df.table_columns %}
+		<thead>
+			<tr class="table-row">
+				{% for column in columns %}
+				<th class="column-header" width="{{ column.width }}%" {{ field_attributes(column) }}>
+					{{ _(column.label) }}
+				</th>
+				{% endfor %}
+			</tr>
+		</thead>
+		<tbody>
+			{% for row in doc.get(df.fieldname) %}
+			<tr class="table-row {{ loop.cycle('odd', 'even') }}" data-idx="{{ row.idx }}">
+				{% for column in columns %}
+				<td class="column-value" width="{{ column.width }}%" {{ field_attributes(column) }}>
+					{{ row.get_formatted(column.fieldname) }}
+				</td>
+				{% endfor %}
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endif %}
+{%- else -%}
 {%- set _rows = df.get('_rows') if df.get('_rows') is not none else doc.get(df.fieldname) -%}
 {% if _rows and df.table_columns %}
 {% set _style = df.table_style or "lined" %}
@@ -88,3 +120,4 @@
 	</table>
 </div>
 {% endif %}
+{%- endif -%}
