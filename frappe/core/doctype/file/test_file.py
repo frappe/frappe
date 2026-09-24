@@ -72,6 +72,32 @@ def make_test_image_file(private=False):
 		_test_file.delete()
 
 
+@contextmanager
+def make_test_pdf_file(private=False):
+	import io
+
+	from PIL import Image
+
+	image_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
+	buf = io.BytesIO()
+	Image.open(image_path).save(buf, format="PDF")
+
+	test_file = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": "sample_pdf_for_optimization.pdf",
+			"content": buf.getvalue(),
+			"is_private": private,
+		}
+	).insert()
+	_test_file: File = frappe.get_doc("File", test_file.name)
+
+	try:
+		yield _test_file
+	finally:
+		_test_file.delete()
+
+
 class TestSimpleFile(IntegrationTestCase):
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
@@ -1901,6 +1927,18 @@ class TestFileUtils(IntegrationTestCase):
 class TestFileOptimization(IntegrationTestCase):
 	def test_optimize_file(self):
 		with make_test_image_file() as test_file:
+			original_size = test_file.file_size
+			original_content_hash = test_file.content_hash
+
+			test_file.optimize_file()
+			optimized_size = test_file.file_size
+			updated_content_hash = test_file.content_hash
+
+			self.assertLess(optimized_size, original_size)
+			self.assertNotEqual(original_content_hash, updated_content_hash)
+
+	def test_optimize_pdf(self):
+		with make_test_pdf_file() as test_file:
 			original_size = test_file.file_size
 			original_content_hash = test_file.content_hash
 

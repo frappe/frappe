@@ -1050,20 +1050,27 @@ class File(Document):
 		content_type = mimetypes.guess_type(self.file_name)[0]
 		is_local_image = content_type.startswith("image/") and self.file_size > 0
 		is_svg = content_type == "image/svg+xml"
+		is_local_pdf = content_type == "application/pdf" and self.file_size > 0
 
-		if not is_local_image:
-			raise NotImplementedError("Only local image files can be optimized")
+		if not (is_local_image or is_local_pdf):
+			raise NotImplementedError("Only local image or PDF files can be optimized")
 
 		if is_svg:
 			raise TypeError("Optimization of SVG images is not supported")
 
-		from frappe.utils.image import optimize_image
-
 		original_content = self.get_content()
-		optimized_content = optimize_image(
-			content=original_content,
-			content_type=content_type,
-		)
+
+		if is_local_pdf:
+			from frappe.utils.pdf import optimize_pdf
+
+			optimized_content = optimize_pdf(original_content)
+		else:
+			from frappe.utils.image import optimize_image
+
+			optimized_content = optimize_image(
+				content=original_content,
+				content_type=content_type,
+			)
 
 		if original_content == optimized_content:
 			# optimization failed, don't resave it

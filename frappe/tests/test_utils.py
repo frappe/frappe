@@ -881,6 +881,99 @@ class TestImage(IntegrationTestCase):
 		self.assertLessEqual(height, 500)
 		self.assertLess(len(optimized_content), len(original_content))
 
+	def test_optimize_pdf(self):
+		from pypdf import PdfReader
+
+		from frappe.utils.pdf import optimize_pdf
+
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		image = Image.open(image_file_path)
+
+		buf = io.BytesIO()
+		image.save(buf, format="PDF")
+		original_content = buf.getvalue()
+
+		optimized_content = optimize_pdf(original_content)
+
+		self.assertLess(len(optimized_content), len(original_content))
+		# still a valid, readable PDF with the image intact
+		reader = PdfReader(io.BytesIO(optimized_content))
+		images = list(reader.pages[0].images)
+		self.assertEqual(len(images), 1)
+
+	def test_optimize_pdf_falls_back_on_failure(self):
+		from frappe.utils.pdf import optimize_pdf
+
+		garbage_content = b"not a real pdf"
+		self.assertEqual(optimize_pdf(garbage_content), garbage_content)
+
+	@staticmethod
+	def _build_signed_pdf() -> bytes:
+		"""Build a PDF with a structurally valid (cryptographically fake) signature field."""
+		from pypdf import PdfReader, PdfWriter
+		from pypdf.generic import ArrayObject, DictionaryObject, NameObject, NumberObject, TextStringObject
+
+		buf = io.BytesIO()
+		Image.new("RGB", (300, 300), (0, 120, 255)).save(buf, format="PDF")
+		reader = PdfReader(io.BytesIO(buf.getvalue()))
+		writer = PdfWriter(clone_from=reader)
+		page = writer.pages[0]
+
+		sig_dict = DictionaryObject()
+		sig_dict.update(
+			{
+				NameObject("/Type"): NameObject("/Sig"),
+				NameObject("/ByteRange"): ArrayObject(
+					[NumberObject(0), NumberObject(10), NumberObject(20), NumberObject(30)]
+				),
+				NameObject("/Contents"): TextStringObject("fakebytes"),
+			}
+		)
+		sig_ref = writer._add_object(sig_dict)
+
+		field = DictionaryObject()
+		field.update(
+			{
+				NameObject("/FT"): NameObject("/Sig"),
+				NameObject("/T"): TextStringObject("Signature1"),
+				NameObject("/V"): sig_ref,
+				NameObject("/Rect"): ArrayObject(
+					[NumberObject(0), NumberObject(0), NumberObject(100), NumberObject(20)]
+				),
+				NameObject("/Subtype"): NameObject("/Widget"),
+				NameObject("/Type"): NameObject("/Annot"),
+				NameObject("/P"): page.indirect_reference,
+			}
+		)
+		field_ref = writer._add_object(field)
+		page[NameObject("/Annots")] = ArrayObject([field_ref])
+
+		acroform = DictionaryObject()
+		acroform.update({NameObject("/Fields"): ArrayObject([field_ref]), NameObject("/SigFlags"): NumberObject(3)})
+		acroform_ref = writer._add_object(acroform)
+		writer._root_object[NameObject("/AcroForm")] = acroform_ref
+
+		out = io.BytesIO()
+		writer.write(out)
+		return out.getvalue()
+
+	def test_pdf_has_signature(self):
+		from frappe.utils.pdf import pdf_has_signature
+
+		signed_pdf = self._build_signed_pdf()
+		self.assertTrue(pdf_has_signature(signed_pdf))
+
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		unsigned_buf = io.BytesIO()
+		Image.open(image_file_path).save(unsigned_buf, format="PDF")
+		self.assertFalse(pdf_has_signature(unsigned_buf.getvalue()))
+
+	def test_optimize_pdf_skips_signed_pdf(self):
+		from frappe.utils.pdf import optimize_pdf
+
+		signed_pdf = self._build_signed_pdf()
+		self.assertEqual(optimize_pdf(signed_pdf), signed_pdf)
+
 
 class TestPythonExpressions(IntegrationTestCase):
 	def test_validation_for_good_python_expression(self):

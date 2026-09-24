@@ -500,6 +500,65 @@ def pdf_contains_js(file_content: bytes):
 	return False
 
 
+def pdf_has_signature(content: bytes) -> bool:
+	"""Check if a PDF has a signed digital-signature field.
+
+	PDF signatures hash a specific byte range of the exact original file bytes;
+	re-serializing the file (as any pypdf write does) shifts object offsets and
+	invalidates that hash. Optimizing a signed PDF would silently break its
+	signature, so callers should skip optimization when this returns True.
+
+	Returns True (fail-safe) if the check itself can't be completed, since the
+	cost of skipping optimization is far lower than corrupting a signature.
+	"""
+	from io import BytesIO
+
+	from pypdf import PdfReader
+
+	try:
+		reader = PdfReader(BytesIO(content))
+		fields = reader.get_fields() or {}
+		return any(field.get("/FT") == "/Sig" and field.get("/V") for field in fields.values())
+	except Exception:
+		return True
+
+
+def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600) -> bytes:
+	"""Recompress embedded raster images and compress content streams to shrink a PDF.
+
+	Only benefits image-heavy PDFs (e.g. scanned documents); text/vector-only PDFs
+	won't shrink meaningfully. Falls back to the original content if optimization
+	fails, doesn't actually reduce the size, or if the PDF is digitally signed.
+	"""
+	from io import BytesIO
+
+	from PIL import Image
+	from pypdf import PdfReader, PdfWriter
+
+	if pdf_has_signature(content):
+		return content
+
+	try:
+		reader = PdfReader(BytesIO(content))
+		writer = PdfWriter(clone_from=reader)
+
+		for page in writer.pages:
+			for img_file in page.images:
+				image = img_file.image
+				if image.width > max_dim or image.height > max_dim:
+					image.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
+				img_file.replace(image, quality=quality, optimize=True)
+			page.compress_content_streams()
+
+		output = BytesIO()
+		writer.write(output)
+		optimized_content = output.getvalue()
+		return optimized_content if len(optimized_content) < len(content) else content
+	except Exception as e:
+		frappe.msgprint(_("Failed to optimize PDF: {0}").format(str(e)))
+		return content
+
+
 def get_host_url():
 	if frappe.request:
 		return frappe.request.host_url
