@@ -427,12 +427,13 @@ function add_files(file_array) {
 		.filter(check_restrictions)
 		.map((file) => {
 			let is_image = file.type.startsWith("image");
+			let is_pdf = file.type === "application/pdf";
 			let size_kb = file.size / 1024;
 			return {
 				file_obj: file,
 				cropper_file: file,
 				crop_box_data: null,
-				optimize: size_kb > 200 && is_image && !file.type.includes("svg"),
+				optimize: size_kb > 200 && ((is_image && !file.type.includes("svg")) || is_pdf),
 				name: file.name,
 				doc: null,
 				progress: 0,

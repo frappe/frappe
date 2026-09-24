@@ -881,6 +881,229 @@ class TestImage(IntegrationTestCase):
 		self.assertLessEqual(height, 500)
 		self.assertLess(len(optimized_content), len(original_content))
 
+	def test_optimize_pdf(self):
+		from pypdf import PdfReader
+
+		from frappe.utils.pdf import optimize_pdf
+
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		image = Image.open(image_file_path)
+
+		buf = io.BytesIO()
+		image.save(buf, format="PDF")
+		original_content = buf.getvalue()
+
+		optimized_content = optimize_pdf(original_content)
+
+		self.assertLess(len(optimized_content), len(original_content))
+		# still a valid, readable PDF with the image intact
+		reader = PdfReader(io.BytesIO(optimized_content))
+		images = list(reader.pages[0].images)
+		self.assertEqual(len(images), 1)
+
+	@staticmethod
+	def _count_image_objects(content: bytes) -> int:
+		"""Count distinct indirect objects with /Subtype /Image."""
+		from pypdf import PdfReader
+
+		reader = PdfReader(io.BytesIO(content))
+		count = 0
+		for i in range(1, reader.trailer["/Size"]):
+			obj = reader.get_object(i)
+			if obj is not None and hasattr(obj, "get") and obj.get("/Subtype") == "/Image":
+				count += 1
+		return count
+
+	def test_optimize_pdf_deduplicates_repeated_objects(self):
+		from pypdf import PdfReader, PdfWriter
+
+		from frappe.utils.pdf import optimize_pdf
+
+		image = Image.new("RGB", (800, 800), (20, 150, 90))
+		buf = io.BytesIO()
+		image.save(buf, format="PDF")
+		single_page_pdf = buf.getvalue()
+
+		writer = PdfWriter()
+		for _ in range(4):
+			writer.append(PdfReader(io.BytesIO(single_page_pdf)))
+		out = io.BytesIO()
+		writer.write(out)
+		duplicated_content = out.getvalue()
+
+		self.assertEqual(self._count_image_objects(duplicated_content), 4)
+
+		optimized_content = optimize_pdf(duplicated_content)
+
+		# the precise signal that dedup (not just quality recompression) ran:
+		# 4 duplicate image objects merged into 1 shared object
+		self.assertEqual(self._count_image_objects(optimized_content), 1)
+		self.assertLess(len(optimized_content), len(duplicated_content))
+		reader = PdfReader(io.BytesIO(optimized_content))
+		self.assertEqual(len(reader.pages), 4)
+		self.assertEqual(next(iter(reader.pages[0].images)).image.size, (800, 800))
+
+	def test_optimize_pdf_skips_unprocessable_image_but_optimizes_rest(self):
+		from pypdf import PdfReader, PdfWriter
+
+		from frappe.utils.pdf import optimize_pdf
+
+		# a 1-bit bilevel image (common for pure B&W text scans) is embedded via
+		# CCITT/TIFF, not JPEG, and raises ValueError when passed quality/optimize
+		# kwargs -- that must not abort optimizing the rest of the document
+		large_image = Image.new("RGB", (2200, 1600), (30, 90, 180))
+		rgb_buf = io.BytesIO()
+		large_image.save(rgb_buf, format="PDF")
+
+		bilevel_buf = io.BytesIO()
+		large_image.convert("1").save(bilevel_buf, format="PDF")
+
+		writer = PdfWriter()
+		writer.append(PdfReader(io.BytesIO(rgb_buf.getvalue())))
+		writer.append(PdfReader(io.BytesIO(bilevel_buf.getvalue())))
+		out = io.BytesIO()
+		writer.write(out)
+		mixed_content = out.getvalue()
+
+		optimized_content = optimize_pdf(mixed_content)
+
+		self.assertLess(len(optimized_content), len(mixed_content))
+		reader = PdfReader(io.BytesIO(optimized_content))
+		self.assertEqual(len(reader.pages), 2)
+
+		rgb_result = next(iter(reader.pages[0].images)).image
+		self.assertLessEqual(max(rgb_result.size), 1600)
+
+		bilevel_result = next(iter(reader.pages[1].images)).image
+		self.assertEqual(bilevel_result.size, (2200, 1600))
+		self.assertEqual(bilevel_result.mode, "1")
+
+	def test_optimize_pdf_skips_oversized_image(self):
+		from pypdf import PdfReader, PdfWriter
+		from pypdf.generic import NameObject, NumberObject
+
+		from frappe.utils.pdf import optimize_pdf
+
+		small_image = Image.new("RGB", (10, 10), (10, 90, 200))
+		buf = io.BytesIO()
+		small_image.save(buf, format="PDF")
+
+		reader = PdfReader(buf)
+		writer = PdfWriter(clone_from=reader)
+		xobjects = writer.pages[0]["/Resources"]["/XObject"]
+		for xobj in xobjects.values():
+			xobj = xobj.get_object()
+			if xobj.get("/Subtype") == "/Image":
+				xobj[NameObject("/Width")] = NumberObject(12000)
+				xobj[NameObject("/Height")] = NumberObject(12000)
+
+		out = io.BytesIO()
+		writer.write(out)
+		oversized_pdf = out.getvalue()
+
+		self.assertEqual(optimize_pdf(oversized_pdf), oversized_pdf)
+
+	def test_optimize_pdf_falls_back_on_failure(self):
+		from frappe.utils.pdf import optimize_pdf
+
+		garbage_content = b"not a real pdf"
+		self.assertEqual(optimize_pdf(garbage_content), garbage_content)
+
+	def test_optimize_pdf_does_not_log_expected_failures(self):
+		from frappe.utils.pdf import optimize_pdf
+
+		# malformed/untrusted PDF content is a routine failure mode, not a bug --
+		# must not spam Error Log for every bad upload
+		with patch("frappe.log_error") as mock_log_error:
+			result = optimize_pdf(b"not a real pdf")
+
+		self.assertEqual(result, b"not a real pdf")
+		mock_log_error.assert_not_called()
+
+	def test_optimize_pdf_logs_unexpected_errors(self):
+		from frappe.utils.pdf import optimize_pdf
+
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		buf = io.BytesIO()
+		Image.open(image_file_path).save(buf, format="PDF")
+		original_content = buf.getvalue()
+
+		with patch("pypdf.PdfWriter.compress_identical_objects", side_effect=TypeError("simulated bug")):
+			with patch("frappe.log_error") as mock_log_error:
+				result = optimize_pdf(original_content)
+
+		self.assertEqual(result, original_content)
+		mock_log_error.assert_called_once()
+
+	@staticmethod
+	def _build_signed_pdf() -> bytes:
+		"""Build a PDF with a structurally valid (cryptographically fake) signature field."""
+		from pypdf import PdfReader, PdfWriter
+		from pypdf.generic import ArrayObject, DictionaryObject, NameObject, NumberObject, TextStringObject
+
+		buf = io.BytesIO()
+		Image.new("RGB", (300, 300), (0, 120, 255)).save(buf, format="PDF")
+		reader = PdfReader(io.BytesIO(buf.getvalue()))
+		writer = PdfWriter(clone_from=reader)
+		page = writer.pages[0]
+
+		sig_dict = DictionaryObject()
+		sig_dict.update(
+			{
+				NameObject("/Type"): NameObject("/Sig"),
+				NameObject("/ByteRange"): ArrayObject(
+					[NumberObject(0), NumberObject(10), NumberObject(20), NumberObject(30)]
+				),
+				NameObject("/Contents"): TextStringObject("fakebytes"),
+			}
+		)
+		sig_ref = writer._add_object(sig_dict)
+
+		field = DictionaryObject()
+		field.update(
+			{
+				NameObject("/FT"): NameObject("/Sig"),
+				NameObject("/T"): TextStringObject("Signature1"),
+				NameObject("/V"): sig_ref,
+				NameObject("/Rect"): ArrayObject(
+					[NumberObject(0), NumberObject(0), NumberObject(100), NumberObject(20)]
+				),
+				NameObject("/Subtype"): NameObject("/Widget"),
+				NameObject("/Type"): NameObject("/Annot"),
+				NameObject("/P"): page.indirect_reference,
+			}
+		)
+		field_ref = writer._add_object(field)
+		page[NameObject("/Annots")] = ArrayObject([field_ref])
+
+		acroform = DictionaryObject()
+		acroform.update(
+			{NameObject("/Fields"): ArrayObject([field_ref]), NameObject("/SigFlags"): NumberObject(3)}
+		)
+		acroform_ref = writer._add_object(acroform)
+		writer._root_object[NameObject("/AcroForm")] = acroform_ref
+
+		out = io.BytesIO()
+		writer.write(out)
+		return out.getvalue()
+
+	def test_pdf_has_signature(self):
+		from frappe.utils.pdf import pdf_has_signature
+
+		signed_pdf = self._build_signed_pdf()
+		self.assertTrue(pdf_has_signature(signed_pdf))
+
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		unsigned_buf = io.BytesIO()
+		Image.open(image_file_path).save(unsigned_buf, format="PDF")
+		self.assertFalse(pdf_has_signature(unsigned_buf.getvalue()))
+
+	def test_optimize_pdf_skips_signed_pdf(self):
+		from frappe.utils.pdf import optimize_pdf
+
+		signed_pdf = self._build_signed_pdf()
+		self.assertEqual(optimize_pdf(signed_pdf), signed_pdf)
+
 
 class TestPythonExpressions(IntegrationTestCase):
 	def test_validation_for_good_python_expression(self):
