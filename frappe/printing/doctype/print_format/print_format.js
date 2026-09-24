@@ -5,13 +5,9 @@ const CLASSIC_BUILDER_NOTICE = __(
 	"The classic builder will be removed in version 17. Convert this format to the new builder to keep editing it."
 );
 const is_classic_format = (doc) => doc.print_format_builder && !doc.print_format_builder_beta;
-const uses_builder_renderer = (doc) =>
-	doc.print_format_builder_beta && !doc.custom_format && !doc.raw_printing;
-const effective_pdf_generator = (doc) => {
-	if (uses_builder_renderer(doc)) {
-		return ["Typst", "WeasyPrint"].includes(doc.pdf_generator) ? doc.pdf_generator : "chrome";
-	}
-	return doc.pdf_generator || "wkhtmltopdf";
+const effective_pdf_generator = (frm) => {
+	const picked = !frm.get_field("pdf_generator").df.hidden && frm.doc.pdf_generator;
+	return picked || frm.doc.__onload?.pdf_generator;
 };
 
 const DEPRECATED_RENDERERS = {
@@ -136,7 +132,7 @@ frappe.ui.form.on("Print Format", {
 		frm.dashboard.clear_headline();
 		const notices = [
 			is_classic_format(frm.doc) && CLASSIC_BUILDER_NOTICE,
-			DEPRECATED_RENDERERS[effective_pdf_generator(frm.doc)],
+			DEPRECATED_RENDERERS[effective_pdf_generator(frm)],
 		].filter(Boolean);
 		if (notices.length) frm.dashboard.set_headline(notices.join(" "), "orange");
 	},

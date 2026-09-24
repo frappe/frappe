@@ -35,6 +35,24 @@ class TestPrintFormat(IntegrationTestCase):
 		print_html = self.test_print_user("Classic")
 		self.assertTrue("/* classic format: for-test */" in print_html)
 
+	def test_onload_resolves_pdf_generator(self):
+		classic = frappe.get_doc(
+			{"doctype": "Print Format", "doc_type": "ToDo", "print_format_builder": 1, "pdf_generator": None}
+		)
+		classic.onload()
+		self.assertEqual(classic.get_onload("pdf_generator"), "wkhtmltopdf")
+
+		beta = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"pdf_generator": "wkhtmltopdf",
+			}
+		)
+		beta.onload()
+		self.assertEqual(beta.get_onload("pdf_generator"), "chrome")
+
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
