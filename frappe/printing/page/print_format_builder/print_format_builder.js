@@ -15,26 +15,6 @@ frappe.pages["print-format-builder"].on_page_show = function (wrapper) {
 	});
 };
 
-frappe.printing = frappe.printing || {};
-frappe.printing.convert_to_builder = function (name) {
-	frappe.confirm(
-		__(
-			"The layout of {0} will be rewritten for the new builder. The original layout is kept as a backup you can restore from the Print Format form. Fields the converter cannot map are dropped. Continue?",
-			[name.bold()]
-		),
-		() => {
-			frappe
-				.xcall("frappe.printing.doctype.print_format.print_format.convert_to_builder", {
-					name,
-				})
-				.then(() => {
-					frappe.model.clear_doc("Print Format", name);
-					frappe.set_route("print-format-builder-beta", name);
-				});
-		}
-	);
-};
-
 frappe.PrintFormatBuilder = class PrintFormatBuilder {
 	constructor(parent) {
 		this.parent = parent;
@@ -105,22 +85,20 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 		};
 	}
 	render_deprecation_banner() {
-		const banner = $(`
+		$(`
 			<div class="print-format-builder-deprecation">
 				<span class="es-badge" data-theme="amber" data-size="sm">${__("Deprecated")}</span>
 				<span class="print-format-builder-deprecation-text">${__(
 					"The classic builder is deprecated and will be removed in version 17. Existing formats keep working. Convert this format to keep editing it in the new builder."
 				)}</span>
+				<button class="es-button" data-variant="solid" data-size="sm">
+					<span class="es-button__label">${__("Convert to new builder")}</span>
+				</button>
 			</div>
-		`).appendTo(this.page.main);
-		if (this.print_format.standard === "Yes" && !frappe.boot.developer_mode) return;
-		$(`
-			<button class="es-button" data-variant="solid" data-size="sm">
-				<span class="es-button__label">${__("Convert to new builder")}</span>
-			</button>
 		`)
-			.appendTo(banner)
-			.on("click", () => frappe.printing.convert_to_builder(this.print_format.name));
+			.appendTo(this.page.main)
+			.find("button")
+			.on("click", () => frappe.printing.convert_to_builder(this.print_format));
 	}
 	render_layout() {
 		this.page.main.empty();

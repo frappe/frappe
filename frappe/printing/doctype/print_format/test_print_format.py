@@ -459,6 +459,19 @@ class TestClassicConverter(IntegrationTestCase):
 			self.assertIn("first_name", names)
 			self.assertNotIn("last_name", names)
 
+	def test_default_layout_skips_no_value_fields(self):
+		from frappe.printing.doctype.print_format.classic_converter import create_default_layout
+
+		fields = [
+			frappe._dict(fieldtype="Tab Break", fieldname="details_tab", label="Details"),
+			frappe._dict(fieldtype="Data", fieldname="first_name", label="First"),
+			frappe._dict(fieldtype="Button", fieldname="reset", label="Reset"),
+			frappe._dict(fieldtype="Table", fieldname="roles", label="Roles", options="Has Role"),
+		]
+		layout = create_default_layout(frappe._dict(fields=fields))
+		names = [f["fieldname"] for s in layout["sections"] for c in s["columns"] for f in c["fields"]]
+		self.assertEqual(names, ["first_name", "roles"])
+
 	def test_print_width_mapping(self):
 		from frappe.printing.doctype.print_format.classic_converter import (
 			distribute_widths,
@@ -720,6 +733,26 @@ class TestClassicConverter(IntegrationTestCase):
 		source = frappe.get_doc("Print Format", self.FORMAT_NAME)
 		self.assertEqual(source.print_format_builder, 1)
 		self.assertEqual(frappe.parse_json(source.format_data), self.CLASSIC_FORMAT_DATA)
+
+	def test_create_custom_format_copies_standard_classic_without_developer_mode(self):
+		from frappe.printing.doctype.print_format.print_format import create_custom_format
+
+		source = self.make_classic_format()
+		source.db_set("standard", "Yes", update_modified=False)
+		name = f"_Test From Standard {frappe.generate_hash(length=6)}"
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			doc = create_custom_format("User", name, based_on=self.FORMAT_NAME)
+		self.addCleanup(frappe.delete_doc, "Print Format", name, force=True)
+
+		self.assertEqual(doc.standard, "No")
+		self.assertEqual(doc.print_format_builder_beta, 1)
+		self.assertEqual(frappe.parse_json(doc.format_data), self.EXPECTED_BETA_LAYOUT)
+		source = frappe.get_doc("Print Format", self.FORMAT_NAME)
+		self.assertEqual(source.standard, "Yes")
+		self.assertEqual(source.print_format_builder, 1)
+		self.assertEqual(source.print_format_builder_beta, 0)
+		self.assertEqual(frappe.parse_json(source.format_data), self.CLASSIC_FORMAT_DATA)
+		self.assertFalse(source.classic_format_data)
 
 	def test_classic_create_refused(self):
 		from frappe.printing.doctype.print_format.print_format import create_custom_format
@@ -1163,3 +1196,116 @@ class TestWeasyPrintEngine(IntegrationTestCase):
 		with self.patch_legacy_render():
 			frappe.get_print("User", "Administrator", print_format=doc.name, as_pdf=True, no_letterhead=1)
 		self.assertIsNone(get_print_context())
+
+	def test_legacy_blockers(self):
+		from frappe.utils.weasyprint_legacy import legacy_blockers
+
+		doc = self.make_beta("WeasyPrint")
+		self.assertEqual(legacy_blockers(doc, frappe.parse_json(doc.format_data)), [])
+		layout = beta_layout(
+			{
+				"label": "First Name",
+				"fieldname": "first_name",
+				"fieldtype": "Data",
+				"custom_style": "color: red",
+			},
+			{"fieldname": "note", "fieldtype": "Static Text", "text": "Hi", "custom": 1},
+			{
+				"label": "Roles",
+				"fieldname": "roles",
+				"fieldtype": "Table",
+				"table_header_bg": "#eee",
+				"table_columns": [{"fieldname": "role", "column_condition": "doc.name"}],
+			},
+		)
+		layout["sections"][0]["background"] = "#fafafa"
+		blockers = legacy_blockers(doc, layout)
+		for reason in (
+			"Static Text block",
+			"Table styling",
+			"Table column conditions",
+			"Section background, padding, radius or custom CSS",
+			"Custom CSS on fields: First Name",
+		):
+			self.assertIn(reason, blockers)
+		self.assertIn("Custom HTML format", legacy_blockers(frappe._dict(custom_format=1), layout))
+
+	def test_weasyprint_rejects_new_blocks(self):
+		doc = self.make_beta("WeasyPrint")
+		doc.format_data = frappe.as_json(
+			beta_layout({"fieldname": "note", "fieldtype": "Static Text", "text": "Hi", "custom": 1})
+		)
+		with self.assertRaises(frappe.ValidationError) as cm:
+			doc.save()
+		self.assertIn("Static Text block", str(cm.exception))
+
+		doc.reload()
+		doc.pdf_generator = "chrome"
+		doc.format_data = frappe.as_json(
+			beta_layout({"fieldname": "note", "fieldtype": "Static Text", "text": "Hi", "custom": 1})
+		)
+		doc.save()
+		self.assertEqual(doc.pdf_generator, "chrome")
+
+	def test_weasyprint_keeps_unchanged_layout_with_blockers(self):
+		doc = self.make_beta("WeasyPrint")
+		doc.db_set(
+			"format_data",
+			frappe.as_json(
+				beta_layout({"fieldname": "note", "fieldtype": "Static Text", "text": "Hi", "custom": 1})
+			),
+			update_modified=False,
+		)
+		doc.reload()
+		doc.margin_top = 12
+		doc.save()
+		self.assertEqual(frappe.db.get_value("Print Format", doc.name, "pdf_generator"), "WeasyPrint")
+
+	def test_download_pdf_accepts_every_renderer(self):
+		from frappe.utils.print_format import download_pdf
+
+		for generator in ("Typst", "WeasyPrint", "chrome"):
+			with patch("frappe.get_print", return_value=b"%PDF") as get_print:
+				frappe.call(download_pdf, doctype="User", name="Administrator", pdf_generator=generator)
+			self.assertEqual(get_print.call_args.kwargs["pdf_generator"], generator)
+
+
+class TestPrintFormatPicker(IntegrationTestCase):
+	"""The print view lists formats whose print_format_for was never set."""
+
+	PRINT_PAGE_FILTERS: ClassVar = {"doc_type": "User", "print_format_for": ["in", ["DocType", ""]]}
+
+	def make_unset(self):
+		doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test Unset For {frappe.generate_hash(length=6)}",
+				"doc_type": "User",
+				"print_format_builder_beta": 1,
+				"format_data": frappe.as_json(beta_layout()),
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", doc.name, force=True)
+		doc.db_set("print_format_for", None, update_modified=False)
+		self.assertIsNone(frappe.db.get_value("Print Format", doc.name, "print_format_for"))
+		return doc
+
+	def test_null_print_format_for_is_listed(self):
+		doc = self.make_unset()
+		self.assertIn(doc.name, frappe.get_all("Print Format", filters=self.PRINT_PAGE_FILTERS, pluck="name"))
+		self.assertNotIn(
+			doc.name,
+			frappe.get_all(
+				"Print Format", filters={"doc_type": "User", "print_format_for": "DocType"}, pluck="name"
+			),
+		)
+
+	def test_patch_sets_doctype(self):
+		from frappe.patches.v16_0.set_print_format_for_doctype import execute
+
+		doc = self.make_unset()
+		modified = frappe.db.get_value("Print Format", doc.name, "modified")
+		execute()
+		execute()
+		self.assertEqual(frappe.db.get_value("Print Format", doc.name, "print_format_for"), "DocType")
+		self.assertEqual(frappe.db.get_value("Print Format", doc.name, "modified"), modified)

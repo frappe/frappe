@@ -115,7 +115,7 @@ frappe.ui.form.PrintView = class {
 				return {
 					filters: {
 						doc_type: this.frm.doctype,
-						print_format_for: "DocType",
+						print_format_for: ["in", ["DocType", ""]],
 					},
 				};
 			},

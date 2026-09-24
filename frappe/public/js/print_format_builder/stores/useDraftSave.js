@@ -21,6 +21,7 @@ export function useDraftSave({
 	// count, not a flag — autosave and a manual save can overlap
 	const saving_count = ref(0);
 	const save_failed = ref(false);
+	const last_error = ref("");
 	const has_draft = ref(false);
 	const save_status = computed(() =>
 		save_failed.value
@@ -34,7 +35,8 @@ export function useDraftSave({
 	// bumped by every apply/discard so a reply from an autosave that was already in
 	// flight can't put the draft back after it was cleared
 	let draft_epoch = 0;
-	// stops after a failure so the error dialog doesn't loop; a manual save re-arms it
+	// paused after a failure so the error dialog doesn't loop; the next edit,
+	// a manual save or a flush re-arms it
 	let autosave_stopped = false;
 	// one autosave at a time — a second would carry the same `modified` as the one
 	// still in flight and be rejected as stale. An apply/discard moves the timestamp
@@ -94,6 +96,60 @@ export function useDraftSave({
 			.call("frappe.client.save", { doc: letterhead.value })
 			.then((r) => (letterhead.value = r.message));
 	}
+	function server_message(xhr) {
+		let r = xhr?.responseJSON;
+		if (!r && xhr?.responseText) {
+			try {
+				r = JSON.parse(xhr.responseText);
+			} catch {
+				r = null;
+			}
+		}
+		try {
+			const messages = JSON.parse(r?._server_messages || "[]").map(
+				(m) => JSON.parse(m).message
+			);
+			if (messages.length) return messages.join("<br>");
+		} catch {
+			// not a frappe error payload
+		}
+		return r?.exc_type || xhr?.statusText || "";
+	}
+	function report_failure(xhr) {
+		last_error.value = server_message(xhr);
+		if (save_failed.value) return;
+		frappe.msgprint({
+			title: __("Autosave failed"),
+			indicator: "red",
+			message:
+				__("The latest changes to this print format are not saved.") +
+				(last_error.value ? `<br><br>${last_error.value}` : ""),
+		});
+	}
+	function resume_autosave() {
+		if (!autosave_stopped) return;
+		autosave_stopped = false;
+		autosave();
+	}
+	// one last attempt before leaving; rejects with the server message when the
+	// changes are still unsaved so the caller can warn instead of dropping them
+	function flush() {
+		autosave.cancel();
+		return after_autosave()
+			.then(() => {
+				if (viewing_version.value || applying) return;
+				if (dirty.value) {
+					autosave_stopped = false;
+					autosave_changes();
+				}
+				return after_autosave();
+			})
+			.then(() => {
+				if (save_failed.value || (dirty.value && !viewing_version.value)) {
+					return Promise.reject(last_error.value);
+				}
+			});
+	}
 	function autosave_changes() {
 		if (!dirty.value || autosave_stopped || viewing_version.value) return;
 		if (applying || autosave_inflight || document.body.classList.contains("pfb-dragging")) {
@@ -104,10 +160,16 @@ export function useDraftSave({
 		dirty.value = false;
 		saving_count.value++;
 		const epoch = draft_epoch;
-		autosave_promise = call("save_draft", {
-			data: get_preview_format_doc(),
-			modified: print_format.value.modified,
-		})
+		autosave_promise = frappe
+			.call({
+				method: "frappe.printing.doctype.print_format.print_format.save_draft",
+				args: {
+					name,
+					data: get_preview_format_doc(),
+					modified: print_format.value.modified,
+				},
+				silent: true,
+			})
 			.then((r) => {
 				// sync only the stamp — the user may have kept editing mid-request
 				const was_dirty = dirty.value;
@@ -124,12 +186,16 @@ export function useDraftSave({
 						});
 				}
 			})
-			.then(() => (save_failed.value = false))
-			.catch(() => {
+			.then(() => {
+				save_failed.value = false;
+				last_error.value = "";
+			})
+			.catch((xhr) => {
 				// an apply landed first and moved the timestamp on — not a failure
 				if (epoch !== draft_epoch) return;
 				autosave_stopped = true;
 				dirty.value = true;
+				report_failure(xhr);
 				save_failed.value = true;
 			})
 			.always(() => {
@@ -150,5 +216,7 @@ export function useDraftSave({
 		save_changes,
 		save_letterhead,
 		autosave,
+		resume_autosave,
+		flush,
 	};
 }

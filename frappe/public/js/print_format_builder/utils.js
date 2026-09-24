@@ -1,4 +1,10 @@
 import { layout_nodes } from "./layout";
+import {
+	is_printable_docfield,
+	LEGACY_SECTION_STYLE_KEYS,
+	LEGACY_TABLE_STYLE_KEYS,
+	LEGACY_UNSUPPORTED_FIELDTYPES,
+} from "./fieldtypes";
 
 export function set_prop(target, key, value, fallback) {
 	if (!target) return;
@@ -144,6 +150,44 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 	return blockers;
 }
 
+export function legacy_blockers_client(print_format, layout, letterhead) {
+	const blockers = [];
+	const add = (reason) => !blockers.includes(reason) && blockers.push(reason);
+	if (print_format?.custom_format) return [__("Custom HTML format")];
+	if (!print_format?.print_format_builder_beta) return [__("Not a builder format")];
+	if ((letterhead?.custom_css || "").trim()) add(__("Letterhead with custom CSS"));
+	const styled_fields = [];
+	for (const node of layout_nodes(layout)) {
+		if (!node.fieldtype) {
+			if (LEGACY_SECTION_STYLE_KEYS.some((key) => node[key]))
+				add(__("Section background, padding, radius or custom CSS"));
+			if ((node.condition || "").trim()) add(__("Visibility conditions"));
+			continue;
+		}
+		if (LEGACY_UNSUPPORTED_FIELDTYPES.includes(node.fieldtype)) {
+			if (node.fieldtype !== "Image" || node.custom || node.image_url)
+				add(__("{0} block", [__(node.fieldtype)]));
+		}
+		if ((node.custom_style || "").trim()) styled_fields.push(node.label || node.fieldname);
+		if ((node.condition || "").trim()) add(__("Visibility conditions"));
+		if (node.fieldtype === "Table") {
+			if (
+				node.table_bordered === false ||
+				(node.table_style && node.table_style !== "lined") ||
+				node.table_header === "plain" ||
+				LEGACY_TABLE_STYLE_KEYS.some((key) => node[key])
+			)
+				add(__("Table styling"));
+			for (const col of node.table_columns || []) {
+				if (col.merged_fields?.length) add(__("Merged table columns"));
+				if ((col.column_condition || "").trim()) add(__("Table column conditions"));
+			}
+		}
+	}
+	if (styled_fields.length) add(__("Custom CSS on fields: {0}", [list_names(styled_fields)]));
+	return blockers;
+}
+
 export function clamp_column_width(value) {
 	return Math.max(5, Math.min(100, parseInt(value) || 10));
 }
@@ -229,7 +273,7 @@ export function create_default_layout(meta, print_format) {
 			set_section(df);
 		} else if (df.fieldtype === "Column Break") {
 			set_column(df);
-		} else if (df.label) {
+		} else if (df.label && is_printable_docfield(df)) {
 			if (!column) set_column();
 
 			if (!df.print_hide) {

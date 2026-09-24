@@ -11,6 +11,79 @@ from frappe import _
 TEMPLATE_DIR = "templates/print_format_weasyprint"
 ZONE_HTML_FIELDNAME = "_zone_html"
 
+# mirrored client-side in print_format_builder/fieldtypes.js + utils.js legacy_blockers_client
+UNSUPPORTED_FIELDTYPES = ("Static Text", "Barcode", "Image", "Repeater", "Linked Field", "Typst")
+SECTION_STYLE_KEYS = ("background", "padding", "radius", "custom_style")
+TABLE_STYLE_KEYS = (
+	"table_header_bg",
+	"table_border_color",
+	"table_cell_padding",
+	"table_radius",
+	"table_min_height",
+)
+
+
+def legacy_blockers(print_format, layout) -> list[str]:
+	"""What the frozen v16 WeasyPrint generator silently drops from this layout —
+	empty means it renders as it did on v16."""
+	from frappe.printing.layout import iter_nodes
+
+	if print_format.get("custom_format"):
+		return [_("Custom HTML format")]
+	if not print_format.get("print_format_builder_beta"):
+		return [_("Not a builder format")]
+	blockers = []
+
+	def add(reason):
+		if reason not in blockers:
+			blockers.append(reason)
+
+	if not isinstance(layout, dict):
+		return blockers
+	letter_head = layout.get("letter_head")
+	if letter_head and (frappe.db.get_value("Letter Head", letter_head, "custom_css") or "").strip():
+		add(_("Letterhead with custom CSS"))
+	styled_fields = []
+	for _where, node in iter_nodes(layout):
+		fieldtype = node.get("fieldtype")
+		if (node.get("condition") or "").strip():
+			add(_("Visibility conditions"))
+		if not fieldtype:
+			if any(node.get(key) for key in SECTION_STYLE_KEYS):
+				add(_("Section background, padding, radius or custom CSS"))
+			continue
+		if fieldtype in UNSUPPORTED_FIELDTYPES and (
+			fieldtype != "Image" or node.get("custom") or node.get("image_url")
+		):
+			add(_("{0} block").format(_(fieldtype)))
+		if (node.get("custom_style") or "").strip():
+			styled_fields.append(node.get("label") or node.get("fieldname") or "?")
+		if fieldtype == "Table":
+			if (
+				node.get("table_bordered") is False
+				or node.get("table_style") not in (None, "", "lined")
+				or node.get("table_header") == "plain"
+				or any(node.get(key) for key in TABLE_STYLE_KEYS)
+			):
+				add(_("Table styling"))
+			for col in node.get("table_columns") or []:
+				if not isinstance(col, dict):
+					continue
+				if col.get("merged_fields"):
+					add(_("Merged table columns"))
+				if (col.get("column_condition") or "").strip():
+					add(_("Table column conditions"))
+	if styled_fields:
+		shown = ", ".join(styled_fields[:4])
+		add(
+			_("Custom CSS on fields: {0}").format(
+				_("{0} and {1} more").format(shown, len(styled_fields) - 4)
+				if len(styled_fields) > 4
+				else shown
+			)
+		)
+	return blockers
+
 
 @frappe.whitelist()
 def download_pdf(doctype: str, name: str | int, print_format: str, letterhead: str | None = None):

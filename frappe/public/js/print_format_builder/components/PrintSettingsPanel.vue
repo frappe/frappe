@@ -22,7 +22,7 @@
 					<option value="Typst" :disabled="typst_blockers.length > 0">
 						{{ __("Typst (fast)") }}
 					</option>
-					<option value="WeasyPrint" :disabled="has_typst_block">
+					<option value="WeasyPrint" :disabled="weasyprint_disabled">
 						{{ __("WeasyPrint") }}
 					</option>
 				</select>
@@ -135,7 +135,7 @@ import DeskControl from "./DeskControl.vue";
 
 let store = inject("$store");
 let { print_format, letterhead } = store;
-let { typst_blockers, has_typst_block } = store;
+let { typst_blockers, legacy_blockers, has_typst_block } = store;
 
 // ── custom css ─────────────────────────────────────────────
 let css_enabled = ref(!!print_format.value.css);
@@ -189,18 +189,23 @@ let renderer = computed(() => {
 });
 let deprecation_notice = computed(() => DEPRECATION_NOTICES[renderer.value] || null);
 let hint_icon = ref(null);
+let weasyprint_disabled = computed(
+	() =>
+		has_typst_block.value ||
+		(legacy_blockers.value.length > 0 && renderer.value !== "WeasyPrint")
+);
+const bullet_list = (title, items) => [title, ...items.map((b) => "• " + b)].join("\n");
 let renderer_hint = computed(() => {
-	if (typst_blockers.value.length) {
-		const items = typst_blockers.value.map((b) => "• " + b);
-		return [__("Typst cannot render:"), ...items].join("\n");
-	}
-	if (has_typst_block.value) {
-		return __("Chromium unavailable: this format uses a Typst block.");
-	}
-	if (deprecation_notice.value) {
-		return deprecation_notice.value.long;
-	}
-	return renderer.value === "Typst" ? __("Experimental") : "";
+	const parts = [];
+	if (deprecation_notice.value) parts.push(deprecation_notice.value.long);
+	if (has_typst_block.value)
+		parts.push(__("Chromium unavailable: this format uses a Typst block."));
+	if (typst_blockers.value.length)
+		parts.push(bullet_list(__("Typst cannot render:"), typst_blockers.value));
+	if (legacy_blockers.value.length)
+		parts.push(bullet_list(__("WeasyPrint cannot render:"), legacy_blockers.value));
+	if (!parts.length && renderer.value === "Typst") parts.push(__("Experimental"));
+	return parts.join("\n\n");
 });
 let hint_tooltip = null;
 watch(
