@@ -206,7 +206,7 @@ function recordId(doctype: string, docname: string) {
 	return JSON.stringify([doctype, docname]);
 }
 
-// A pointer names its own tab; an address with no `?tab=` opens the first tab, Details by default, so it names no feed.
+// A pointer names its own tab; an address with no `?tab=` names no feed, whichever tab opens first.
 function addressedTab(query: LocationQuery) {
 	if (activityPointer(query)) return ACTIVITY_TAB;
 	return typeof query.tab === "string" ? query.tab : "";

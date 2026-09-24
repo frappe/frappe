@@ -721,24 +721,26 @@ the replay. The file holds the same text as a Client Script, at one of two paths
 
 | Path | For |
 | --- | --- |
-| `<module>/doctype/<scrubbed>/frontend/record.js` | A doctype the app owns. |
-| `<module>/custom/<scrubbed>/record.js` | Another app's doctype. |
+| `<app>/<module>/doctype/<scrubbed>/frontend/record.js` | A doctype the app owns. |
+| `<app>/<module>/custom/<scrubbed>/record.js` | Another app's doctype. |
 
 File scripts run before the site's Client Scripts, so a site's own `page.tabs.order` wins
 over the app's. A new or changed file takes effect after the next `bench build`.
 
-CRM opens a deal on its conversation, in `crm/fcrm/doctype/crm_deal/frontend/record.js`:
+CRM opens a deal on its conversation with a script like this one, in
+`crm/fcrm/doctype/crm_deal/frontend/record.js`:
 
 ```js
 export default {
   onRefresh(page) {
-    page.tabs.order(['activity', 'emails'])   // Activity, Emails, Details, Files
+    page.tabs.order(['activity', 'emails'])
   },
 }
 ```
 
-A Contact has no such script and opens on Details. When a script puts Activity first, the
-tab reads its rows as it mounts and shows a skeleton until they arrive.
+The deal's strip then reads Activity, Emails, Details, Files. A Contact has no such script
+and opens on Details. When a script puts Activity first, the tab reads its rows as it
+mounts and shows a loading spinner until they arrive.
 
 ## The feed: `page.activity`
 
@@ -790,8 +792,8 @@ for the newest activity page, a read that starts with the record read. `?tab=ema
 starts the Emails tab's read with the record read too, and the first paint does not wait
 for it. Any other address, a plain one included, starts no feed read: the rows are read
 as Activity first shows, so the first `onRefresh` sees none. That holds when a script puts
-Activity first, since the address named no tab; the tab shows a skeleton until its rows
-arrive.
+Activity first, since the address named no tab; the tab shows a loading spinner until its
+rows arrive.
 
 A script's rows are rebuilt on every replay, like any surface's, and survive `reload()`,
 which reads the server's rows again and leaves the script's alone.
