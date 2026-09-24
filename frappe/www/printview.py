@@ -136,6 +136,7 @@ def cast_client_values(document: "Document"):
 	"""A document posted from the form carries JSON types: dates as strings and
 	whole floats as ints. The PDF loads the same document from the database, so
 	the preview must see the same Python types or the two render differently."""
+	from frappe.model import table_fields
 	from frappe.utils.data import cast
 
 	rows = [document]
@@ -144,8 +145,12 @@ def cast_client_values(document: "Document"):
 	for row in rows:
 		for df in row.meta.fields:
 			value = row.get(df.fieldname)
-			if value not in (None, ""):
+			if value in (None, "") or df.fieldtype in table_fields:
+				continue
+			try:
 				row.set(df.fieldname, cast(df.fieldtype, value))
+			except frappe.ValidationError:
+				pass
 
 
 def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" | None:
@@ -396,6 +401,7 @@ def get_rendered_raw_commands(
 		document = frappe.get_lazy_doc(doc, name, check_permission=True)
 	else:
 		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
+		cast_client_values(document)
 
 	print_format = get_print_format_doc(print_format, meta=document.meta)
 
@@ -570,7 +576,7 @@ def make_layout(doc: "Document", meta: "Meta") -> list:
 			page[-1]["columns"].append({"fields": []})
 
 	for df in meta.fields:
-		if df.fieldtype == "Section Break" or page == []:
+		if df.fieldtype in ("Section Break", "Tab Break") or page == []:
 			if len(page) > 1:
 				if not page[-1]["has_data"]:
 					# truncate last section if empty
@@ -659,7 +665,6 @@ def get_print_style(
 	context = {
 		"print_settings": print_settings,
 		"print_style": style,
-		"print_format": print_format,
 		"font": get_font(print_settings, print_format, for_legacy),
 	}
 
