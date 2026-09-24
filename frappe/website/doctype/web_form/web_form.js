@@ -745,15 +745,18 @@ function validate_page_break_limit(page_break_count) {
 
 function get_fields_for_doctype(doctype) {
 	return new Promise((resolve) => frappe.model.with_doctype(doctype, resolve)).then(() => {
-		return frappe.meta.get_docfields(doctype).filter((df) => {
-			return (
-				(frappe.model.is_value_type(df.fieldtype) &&
-					!["lft", "rgt"].includes(df.fieldname)) ||
-				["Table", "Table MultiSelect"].includes(df.fieldtype) ||
-				frappe.model.layout_fields.includes(df.fieldtype)
-			);
-		});
+		return frappe.meta.get_docfields(doctype).filter(is_web_form_field);
 	});
+}
+
+// also passed to the form builder, so its field picker offers the same fields as the grid
+function is_web_form_field(df) {
+	return (
+		(frappe.model.is_value_type(df.fieldtype) && !["lft", "rgt"].includes(df.fieldname)) ||
+		// capital S: "Table Multiselect" matches no field
+		["Table", "Table MultiSelect"].includes(df.fieldtype) ||
+		frappe.model.layout_fields.includes(df.fieldtype)
+	);
 }
 
 function on_controlled_access_change(frm) {
@@ -896,6 +899,7 @@ function render_form_builder(frm) {
 				is_web_form: true,
 				tab_fieldname: "form_builder_tab",
 				get_source_field_values: get_web_form_field_values,
+				is_source_field: is_web_form_field,
 				validate_page_limit: validate_page_break_limit,
 				force_read_only: is_builder_read_only(frm),
 			});
