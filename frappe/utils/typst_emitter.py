@@ -28,6 +28,8 @@ PX_TO_PT = 0.75
 HAIRLINE = '0.6pt + rgb("#e5e7eb")'
 MUTED = "#6b7280"
 DEFAULT_FONT = "Inter"
+SHRINK_JUSTIFY = ("center", "right-end", "space-between", "space-evenly")
+FULL_WIDTH_FIELDTYPES = ("Divider", "Table", "Repeater")
 
 
 def pt(px, default=0.0) -> float:
@@ -620,7 +622,8 @@ class TypstEmitter:
 		columns = [c for c in section.get("columns") or [] if isinstance(c, dict)]
 		if not columns:
 			return ""
-		rendered_columns = [self._column(section, c) for c in columns]
+		shrink = section.get("justify") in SHRINK_JUSTIFY
+		rendered_columns = [self._column(section, c, shrink=shrink) for c in columns]
 		if not any(rendered_columns):
 			return ""
 
@@ -726,9 +729,10 @@ class TypstEmitter:
 			+ ")"
 		)
 
-	def _column(self, section, column) -> str:
-		parts = [self._field(section, df) for df in column.get("fields") or []]
-		parts = [p for p in parts if p]
+	def _column(self, section, column, shrink=False) -> str:
+		rendered = [(df, self._field(section, df)) for df in column.get("fields") or []]
+		rendered = [(df, body) for df, body in rendered if body]
+		parts = [body for _, body in rendered]
 		if not parts:
 			return ""
 		if section.get("field_borders") and section.get("grid_borders") != "columns" and len(parts) > 1:
@@ -739,8 +743,29 @@ class TypstEmitter:
 			] + [parts[-1]]
 			return f"#stack(spacing: {pad}pt,\n" + ",\n".join(f"[{p}]" for p in ruled) + ")"
 		if len(parts) == 1:
-			return parts[0]
-		return "#stack(spacing: 8pt,\n" + ",\n".join(f"[{p}]" for p in parts) + ")"
+			body = parts[0]
+		else:
+			body = "#stack(spacing: 8pt,\n" + ",\n".join(f"[{p}]" for p in parts) + ")"
+		return self._shrink_to_content(rendered, body) if shrink else body
+
+	@staticmethod
+	def _shrink_to_content(rendered, body: str) -> str:
+		"""A column that a justify pushes around must not be widened by the blocks
+		that ask for the full width — measure the rest and hold the column to it."""
+		natural = [b for df, b in rendered if df.get("fieldtype") not in FULL_WIDTH_FIELDTYPES]
+		if not natural or len(natural) == len(rendered):
+			return body
+		ruler = (
+			natural[0]
+			if len(natural) == 1
+			else "#stack(spacing: 8pt,\n" + ",\n".join(f"[{p}]" for p in natural) + ")"
+		)
+		return (
+			"#layout(size => {\n"
+			f"let w = measure([{ruler}], width: size.width).width\n"
+			f"block(width: w)[{body}]\n"
+			"})"
+		)
 
 	# ── fields ──────────────────────────────────────────────────
 
