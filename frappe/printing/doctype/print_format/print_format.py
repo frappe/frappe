@@ -489,7 +489,7 @@ def convert_to_builder(name: str):
 		frappe.throw(_("{0} is rendered from an HTML file and cannot be converted").format(frappe.bold(name)))
 	if doc.standard == "Yes" and not frappe.conf.developer_mode:
 		frappe.throw(_("Standard print formats can only be converted in developer mode"))
-	dropped = convert_print_format(doc)
+	dropped = None if doc.print_format_builder_beta else convert_print_format(doc)
 	if dropped is None:
 		frappe.throw(_("{0} is not a classic print format").format(frappe.bold(name)))
 	_persist_conversion(doc)
