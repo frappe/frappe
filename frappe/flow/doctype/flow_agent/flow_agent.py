@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 	from flow.flow.doctype.flow_session.flow_session import FlowSession
 	from flow.lib.tool import Tool
 
-DEFAULT_MAX_ITERATIONS = 50
+DEFAULT_MAX_ITERATIONS = 100
 DEFAULT_TOKEN_BUDGET = 10_000_000
 
 # Skills bound to this agent; global ones add MAX_GLOBAL_SKILLS more. The index rides in

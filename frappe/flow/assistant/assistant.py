@@ -6,7 +6,7 @@ from __future__ import annotations
 import frappe
 
 ASSISTANT_AGENT_TITLE = "Flow"
-ASSISTANT_MAX_ITERATIONS = 50
+ASSISTANT_MAX_ITERATIONS = 500
 
 ASSISTANT_INSTRUCTIONS = (
 	"You are a Frappe assistant operating a live Frappe site through tools. Everything in Frappe "

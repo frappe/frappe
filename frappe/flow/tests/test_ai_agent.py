@@ -107,7 +107,7 @@ class TestAgent(IntegrationTestCase):
 
 		self.synced()
 
-		self.assertEqual(frappe.db.get_value("Flow Agent", "Todo Helper", "max_iterations"), 50)
+		self.assertEqual(frappe.db.get_value("Flow Agent", "Todo Helper", "max_iterations"), 100)
 
 	def test_sync_refuses_to_take_over_a_user_owned_agent(self):
 		frappe.get_doc(

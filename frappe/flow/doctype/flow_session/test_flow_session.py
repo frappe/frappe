@@ -622,7 +622,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		SessionConfig.model_validate(config)
 		[sub] = config["subagents"]
 		self.assertEqual(
-			(sub["name"], sub["system_prompt"], sub["max_turns"]), (child.name, "Look it up.", 50)
+			(sub["name"], sub["system_prompt"], sub["max_turns"]), (child.name, "Look it up.", 100)
 		)
 		self.assertEqual([t["function"]["name"] for t in sub["client_tools"]], ["read"])
 		self.assertEqual(sub["user_context"], {**config["user_context"], "agent": child.name})
@@ -687,7 +687,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 
 	def test_default_iterations_apply_when_unset(self):
 		self.agent.db_set("max_iterations", 0)
-		self.assertEqual(self.config()["max_turns"], 50)
+		self.assertEqual(self.config()["max_turns"], 100)
 
 	def test_the_agents_token_budget_caps_the_run(self):
 		self.agent.db_set("token_budget", 250_000)
