@@ -72,22 +72,6 @@ class TestPageIslandName(IntegrationTestCase):
 	def test_the_name_carries_the_app_and_the_page(self):
 		self.assertEqual(page_island_name("insights", "sales-dashboard"), "insights.page.sales-dashboard")
 
-	@patch.dict(frappe.conf, {"developer_mode": 1})
-	def test_a_frappe_ui_page_has_to_be_standard(self):
-		# Its Vue source lives in the app's page folder, and a non-standard page
-		# has no folder to live in.
-		page = frappe.new_doc(
-			"Page",
-			page_name=frappe.generate_hash(),
-			module="Core",
-			standard="No",
-			type="Frappe UI",
-		)
-		page.flags.do_not_update_json = True
-
-		with self.assertRaises(frappe.ValidationError):
-			page.insert()
-
 
 class TestIslandAssets(IntegrationTestCase):
 	def patch_assets_json(self, assets):

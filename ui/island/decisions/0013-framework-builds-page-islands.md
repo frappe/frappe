@@ -10,6 +10,8 @@ This amends 0005 rather than reversing it. The preset still resolves its tooling
 
 So a page island compiles against framework's frappe-ui, `@framework/ui`, and nothing of the app's. That is the shape of a starter and not a limitation to work around: a page that needs the app's own components has outgrown the scaffold, and it moves into the app's frontend as an ordinary island.
 
+Amended by [0014](0014-assets-json-is-the-island-registry.md). Such a page keeps its route: it names the app's island in its `island` field, and this build skips it.
+
 One build and not one per app, for the reason in [0002](0002-an-app-builds-its-islands-together.md) and again for [0003](0003-tailwind-scans-the-module-list-not-a-glob.md): every page island on the bench shares one vue chunk and one frappe-ui chunk, and the scan's throwaway first pass runs once instead of once per app. `after_app_build` runs it, because any app's build can be the one that added a page.
 
 Output is `sites/assets/frappe/dist/page-island/`, not `dist/island/`. A build owns every assets.json key pointing into its own directory, so framework's build and an app's own build need two directories or they drop each other's keys.

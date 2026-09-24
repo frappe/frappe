@@ -7,6 +7,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	LINKED_IDENTITY_FIELDS,
 	is_linked,
 	item_key,
+	validate_item_route,
 )
 from frappe.desk.doctype.workspace.workspace import check_workspace_manager, is_workspace_manager
 from frappe.desk.layers import resolve_layers
@@ -36,6 +37,7 @@ ADDED_ITEM_FIELDS = (
 	"url",
 	"show_arrow",
 	"filters",
+	"route",
 	"route_options",
 	"open_in_new_tab",
 )
@@ -76,6 +78,7 @@ class CustomSidebar(Document):
 	def validate(self):
 		self.validate_module()
 		self.validate_unique()
+		self.validate_item_routes()
 		self.drop_private_workspaces()
 		self.anchor_the_items()
 
@@ -83,6 +86,10 @@ class CustomSidebar(Document):
 		"""Check the module in the model rather than in the endpoints. `_validate_links` below no
 		longer checks this document's own Link fields, so nothing else would."""
 		check_module(self.module)
+
+	def validate_item_routes(self):
+		for item in self.sidebar_items:
+			validate_item_route(item)
 
 	def validate_unique(self):
 		existing = frappe.db.exists(
@@ -932,7 +939,7 @@ def anchor_references(rows: list[dict], shown: dict[str, dict]) -> None:
 			row["key"] = None
 		else:
 			# Nothing to point at, so the columns are cleared and the key carries the identity.
-			row.update(dict.fromkeys(("link_type", "link_to", "url")))
+			row.update(dict.fromkeys(("link_type", "link_to", "url", "route")))
 			row["key"] = item_key(item)
 
 
