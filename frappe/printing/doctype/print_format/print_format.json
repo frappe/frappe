@@ -12,6 +12,7 @@
   "report",
   "module",
   "default_print_language",
+  "preview_image",
   "column_break_3",
   "standard",
   "custom_format",
@@ -178,6 +179,15 @@
    "options": "Language"
   },
   {
+   "description": "Auto-generated thumbnail of this format. Use the 'Generate Preview' button to (re)generate.",
+   "fieldname": "preview_image",
+   "fieldtype": "Attach Image",
+   "label": "Preview Image",
+   "no_copy": 1,
+   "print_hide": 1,
+   "hidden": 1
+  },
+  {
    "depends_on": "eval:!doc.custom_format",
    "fieldname": "font",
    "fieldtype": "Data",
@@ -342,7 +352,7 @@
  "icon": "printer",
  "idx": 1,
  "links": [],
- "modified": "2026-09-23 12:00:00.000000",
+ "modified": "2026-09-24 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
@@ -369,5 +379,6 @@
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
- "track_changes": 1
+ "track_changes": 1,
+ "image_field": "preview_image"
 }
