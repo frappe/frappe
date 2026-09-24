@@ -494,7 +494,7 @@ textarea.form-control {
 
 .duration-picker {
 	position: fixed;
-	z-index: 999;
+	z-index: 9999;
 	border-radius: var(--radius);
 	box-shadow: var(--shadow-sm);
 	background: var(--popover-bg);
