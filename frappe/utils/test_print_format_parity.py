@@ -169,7 +169,7 @@ class TestPrintSurfaceMarkupContract(UnitTestCase):
 		self.assertIn("border-bottom-right-radius: var(--pfb-radius", last)
 
 		geometry = block(".print-format-doc .child-table .table .table-foot")
-		self.assertIn("height: var(--pfb-radius", geometry)
+		self.assertIn("height: var(--pfb-foot-height, var(--pfb-radius", geometry)
 
 		# nothing may re-close the outline on the last body row
 		self.assertNotRegex(
