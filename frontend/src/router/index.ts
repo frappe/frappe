@@ -4,14 +4,18 @@
 import { createRouter, createWebHistory } from "vue-router";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
+import { declaredReplacements } from "@/contributions/registry";
 import { generatedRoutes } from "./generated";
 import { contributedRoutes } from "./contributed";
 import { isModular } from "./routeFor";
+import { preloadMainPage } from "./mainPage";
+import { trackFailedPages } from "./failedPage";
 
 const RECORD_ROUTES = new Set(["record", "standard-record"]);
 
 export function createShellRouter(boot: Boot, addresses: Addresses) {
 	const modular = isModular(boot);
+	warnIgnoredListPages(addresses);
 
 	const router = createRouter({
 		history: createWebHistory(boot.shell_base),
@@ -67,6 +71,10 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 		return miss(to);
 	});
 
+	// After the guard above, so the page loads for the final address, never a redirected one.
+	router.beforeResolve((to) => preloadMainPage(to, addresses));
+	trackFailedPages(router);
+
 	return router;
 }
 
@@ -100,6 +108,17 @@ function flatAddress(to: any, addresses: Addresses) {
 	}
 
 	return null;
+}
+
+/** A single has no list, so a list page declared for one never opens. */
+function warnIgnoredListPages(addresses: Addresses) {
+	for (const page of declaredReplacements()) {
+		if (page.key !== "list" || !addresses.isSingle(page.doctype)) continue;
+		console.warn(
+			`[frappe] '${page.app}' replaces the list page of '${page.doctype}', a single with no ` +
+				"list; the declaration is ignored."
+		);
+	}
 }
 
 function miss(to: { path: string }) {

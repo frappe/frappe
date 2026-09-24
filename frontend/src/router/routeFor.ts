@@ -4,6 +4,7 @@
 import type { RouteLocationRaw, Router } from "vue-router";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
+import { replacementFor } from "@/contributions/registry";
 
 export type Shell = { boot: Boot; addresses: Addresses; router: Router };
 
@@ -31,6 +32,8 @@ export type RouteOptions = {
 	view?: string;
 	/** Context, not identity: `?view=`, `?layout=` and friends. */
 	query?: Record<string, string>;
+	/** The standard page's second address; the main one when no app replaced the page. */
+	standard?: boolean;
 };
 
 /**
@@ -70,7 +73,7 @@ export function routeFor(
 	if (!name && addresses.isSingle(doctype)) name = doctype;
 	if (name)
 		return {
-			name: "record",
+			name: standardOr(doctype, "record", options),
 			params: { ...params, name },
 			query: options.query,
 		};
@@ -81,7 +84,12 @@ export function routeFor(
 			query: options.query,
 		};
 	}
-	return { name: "list", params, query: options.query };
+	return { name: standardOr(doctype, "list", options), params, query: options.query };
+}
+
+/** The standard page's route name when it was asked for and an app replaced the page. */
+function standardOr(doctype: string, key: "record" | "list", options: RouteOptions) {
+	return options.standard && replacementFor(doctype, key) ? `standard-${key}` : key;
 }
 
 /** The route for a module's landing page. Modular prefixes only. */

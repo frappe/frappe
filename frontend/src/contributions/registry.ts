@@ -29,6 +29,11 @@ export function replacementFor(doctype: string, key: ReplacementContribution['ke
   return replacements.get(`${key}:${doctype}`)
 }
 
+/** Every winning replacement, for checks that need the address table. */
+export function declaredReplacements() {
+  return [...replacements.values()]
+}
+
 /**
  * Run order per doctype: the owning app first, then the site's `app_order`. Ownership is
  * structural: a file under `custom/` is somebody else's doctype.
