@@ -10,7 +10,7 @@ export interface Staging {
   beginReplay(): void;
   beginHold(): void;
   commit(): void;
-  publishStaged(except?: string): void;
+  publishStaged(except: ReadonlySet<string>): void;
 }
 
 export abstract class StagedOverlay<Op extends { source: string }> implements Staging {
@@ -42,9 +42,9 @@ export abstract class StagedOverlay<Op extends { source: string }> implements St
     return true;
   }
 
-  /** Draws the buffer as it stands, less one source's ops, and keeps staging. */
-  publishStaged(except?: string) {
-    if (this.pending) this.publish(this.pending.filter((op) => op.source !== except));
+  /** Draws the buffer as it stands, less the ops of the sources in `except`, and keeps staging. */
+  publishStaged(except: ReadonlySet<string>) {
+    if (this.pending) this.publish(this.pending.filter((op) => !except.has(op.source)));
   }
 
   protected get drawnOps(): Op[] {

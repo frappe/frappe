@@ -221,13 +221,16 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     rows: () => host.fileRows(),
     reload: () => host.reloadFiles(),
   });
-  const composer = new ComposerSurface({
-    openWriter: (name, options) => openWriter(name, options),
-    closeWriter: () => host.closeWriter?.(),
-    activeWriter: () => host.activeWriter?.() ?? "",
-    windowState: () => host.windowState?.() ?? "docked",
-    setWindow: (window) => host.setWindow?.(window),
-  }, () => gate.isStaging());
+  const composer = new ComposerSurface(
+    {
+      openWriter: (name, options) => openWriter(name, options),
+      closeWriter: () => host.closeWriter?.(),
+      activeWriter: () => host.activeWriter?.() ?? "",
+      windowState: () => host.windowState?.() ?? "docked",
+      setWindow: (window) => host.setWindow?.(window),
+    },
+    () => gate.isStaging(),
+  );
   const rows = createRows({
     doc: () => host.doc.value,
     fields: () => host.meta.value?.fields,
@@ -296,7 +299,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     permissionsReady: () => permissions.ready(),
     runRefresh: (ran) => dispatch("onRefresh", undefined, ran),
     warnUnknownHandlers: () => warnUnknownHandlers(),
-    releaseActs: (drawnOnly) => releaseHeldActs(drawnOnly),
+    deliverHeldActs: (drawnOnly) => deliverHeldActs(drawnOnly),
     closeDialogs: () => dialogs.closeAll(),
   });
   const { hold, isStaging } = gate;
@@ -356,7 +359,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   // With an empty removals list this hands the same object straight back.
   const page = withRemovals(capabilities);
 
-  function releaseHeldActs(drawnOnly: boolean) {
+  function deliverHeldActs(drawnOnly: boolean) {
     releaseActivations(drawnOnly);
     releaseDisclosures(drawnOnly);
     releaseFocus(drawnOnly);

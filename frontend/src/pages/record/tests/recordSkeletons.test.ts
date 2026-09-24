@@ -82,6 +82,7 @@ import { loadClientScripts } from "@/recordPage";
 import { FIRST_PAINT_LIMIT_MS } from "@/recordPage/paintGate";
 import { withRegisteringSource } from "@/recordPage/context";
 import { registerRecordPage, resetRegistry } from "@/recordPage/registry";
+import type { QuickAction, RecordPageApi } from "@/recordPage/types";
 import { createShellRouter } from "@/router";
 import { RecordFeeds } from "../feed/recordFeeds";
 import { loadRecord } from "../recordSource";
@@ -320,7 +321,14 @@ describe("a header or quick action's run paints once", () => {
     return [...root.querySelectorAll("button")].map((button) => button.textContent!.trim());
   }
 
-  it("draws what run adds on both sides of an await together, when run finishes", async () => {
+  it.each([
+    ["a quick action", (page: RecordPageApi, item: QuickAction) => page.quickActions.add(item)],
+    [
+      "a header item",
+      (page: RecordPageApi, item: QuickAction) =>
+        page.header.add({ ...item, zone: "left", display: "button" }),
+    ],
+  ])("draws what %s's run adds on both sides of an await together, when run finishes", async (_, place) => {
     let root!: HTMLElement;
     let midway: string[] = [];
     let finish = () => {};
@@ -328,7 +336,7 @@ describe("a header or quick action's run paints once", () => {
     await withRegisteringSource("paint-once", async () =>
       registerRecordPage("Note", {
         onRefresh: (page) =>
-          page.quickActions.add({
+          place(page, {
             name: "twice",
             label: "Add twice",
             run: async (page) => {

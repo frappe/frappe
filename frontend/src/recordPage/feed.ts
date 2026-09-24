@@ -185,7 +185,7 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
     return last;
   }
 
-  publishStaged(except?: string) {
+  publishStaged(except: ReadonlySet<string>) {
     super.publishStaged(except);
     if (this.staging) this.showTypes(this.typesWithout(except));
   }
@@ -202,8 +202,8 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
     }
   }
 
-  private typesWithout(except?: string) {
-    return this.stagedTypes.findLast((write) => write.source !== except)?.list ?? null;
+  private typesWithout(except?: ReadonlySet<string>) {
+    return this.stagedTypes.findLast((write) => !except?.has(write.source))?.list ?? null;
   }
 
   // Same list, same value: a new array would make the host read the feed again.

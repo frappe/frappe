@@ -258,6 +258,39 @@ describe("the first paint's time limit", () => {
     expect(drawn(controller)).toEqual(["a-op"]);
   });
 
+  it("leaves out a late source while a replay its save started still runs it", async () => {
+    let dirty = true;
+    let bRuns = 0;
+    await register("A", {
+      onRefresh: (page: RecordPageApi) => {
+        page.quickActions.add(action("a-op"));
+        void page.save();
+      },
+    });
+    await register("B", {
+      onRefresh: async (page: RecordPageApi) => {
+        page.quickActions.add(action("b-partial"));
+        bRuns += 1;
+        if (bRuns === 1) await new Promise((resolve) => setTimeout(resolve, 200));
+        else await never();
+      },
+    });
+    const controller = makePage({
+      isDirty: () => dirty,
+      save: async () => {
+        dirty = false;
+        await controller.refresh();
+      },
+    });
+
+    void controller.refresh();
+    await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS);
+
+    expect(bRuns).toBe(2);
+    expect(drawn(controller)).toEqual(["a-op"]);
+    expect(warnings[0]).toContain("without waiting for B;");
+  });
+
   it("shows the finished sources' feed types in the early paint, and the late one's after", async () => {
     const slow = gate();
     await register("early", {

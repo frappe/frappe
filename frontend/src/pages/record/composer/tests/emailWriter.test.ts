@@ -160,7 +160,7 @@ function heldSenders(senders: { senders: string[]; default: string | null }) {
 
 function fakeController(perms: Record<string, number> = { email: 1 }) {
 	const docname = `LEAD-${++record}`;
-	const composer = new ComposerSurface(composerHost("Lead", docname));
+	const composer = new ComposerSurface(composerHost("Lead", docname), () => false);
 	composer.provideBuiltins(() => composerBuiltins(perms));
 	const page = {
 		doctype: "Lead",

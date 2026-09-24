@@ -9,10 +9,7 @@
 		</template>
 
 		<!-- No slot when a script emptied or hid the row: the frame then draws no row at all. -->
-		<template
-			v-if="doctype && frame.header && (!painted || !isEmptyHeader(header))"
-			#header
-		>
+		<template v-if="doctype && frame.header && (!painted || !isEmptyHeader(header))" #header>
 			<RecordHeader
 				v-if="painted"
 				:projection="header"

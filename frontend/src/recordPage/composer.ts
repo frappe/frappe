@@ -45,8 +45,8 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
 
   constructor(
     private readonly host: ComposerHost,
-    /** The page's rule for whether an act waits for a commit; nothing stages outside a page. */
-    private readonly isStaging: () => boolean = () => false,
+    /** The page's rule for whether an act waits for a commit. */
+    private readonly isStaging: () => boolean,
   ) {
     super({ surface: "composer", keys: WRITER_ITEM_KEYS });
   }

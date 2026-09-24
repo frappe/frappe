@@ -21,7 +21,7 @@ export interface PaintGateHost {
   /** Called once every source is in, before the replay's second pass. */
   warnUnknownHandlers: () => void;
   /** Delivers the acts held so far; `drawnOnly` drops one whose target is not drawn. */
-  releaseActs: (drawnOnly: boolean) => void;
+  deliverHeldActs: (drawnOnly: boolean) => void;
   closeDialogs: () => void;
 }
 
@@ -48,8 +48,8 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
   const state = {
     holding: 0,
     replayed: false,
-    // What this page's replay is running or waiting on, for the warning when the first paint goes ahead.
-    replaySource: null as string | null,
+    // The sources this page's replays are running, oldest first, and what they wait on, for the early paint.
+    replaySources: [] as { source: string }[],
     awaiting: null as "permissions" | "sources" | null,
     firstPaintLimit: undefined as ReturnType<typeof setTimeout> | undefined,
     left: false,
@@ -123,8 +123,9 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
   /** The first replay ran out of time: draw every finished source, lift the skeletons, name the late one. */
   function paintWithoutLate() {
     if (ready.value || state.left) return;
-    const late = state.replaySource ?? lateWait();
-    for (const surface of host.surfaces) surface.publishStaged(state.replaySource ?? undefined);
+    const running = state.replaySources.map((entry) => entry.source);
+    const late = running.at(-1) ?? lateWait();
+    for (const surface of host.surfaces) surface.publishStaged(new Set(running));
     releaseEarlyActs();
     ready.value = true;
     console.warn(
@@ -136,7 +137,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
   function releaseEarlyActs() {
     state.early = true;
     try {
-      host.releaseActs(true);
+      host.deliverHeldActs(true);
     } finally {
       state.early = false;
     }
@@ -161,12 +162,12 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
   }
 
   async function asReplaySource(source: string, work: () => Promise<void>) {
-    const previous = state.replaySource;
-    state.replaySource = source;
+    const entry = { source };
+    state.replaySources.push(entry);
     try {
       await work();
     } finally {
-      state.replaySource = previous;
+      state.replaySources.splice(state.replaySources.indexOf(entry), 1);
     }
   }
 
@@ -182,7 +183,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
 
   /** Delivers the acts a replay or a hold kept back, once the last of them has committed. */
   function releaseActs() {
-    if (!isStaging()) host.releaseActs(false);
+    if (!isStaging()) host.deliverHeldActs(false);
   }
 
   return { ready, isReplaying, refresh, hold, asReplaySource, isStaging, leave };

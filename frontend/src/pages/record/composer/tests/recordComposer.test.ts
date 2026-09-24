@@ -136,7 +136,7 @@ afterEach(() => {
 
 function fakeController() {
 	const docname = `NOTE-${++record}`;
-	const composer = new ComposerSurface(composerHost("Note", docname));
+	const composer = new ComposerSurface(composerHost("Note", docname), () => false);
 	composer.provideBuiltins(composerBuiltins);
 	const page = {
 		doctype: "Note",
