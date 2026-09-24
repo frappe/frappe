@@ -27,6 +27,22 @@ const BREAKABLE_FIELDTYPES = new Set([
 	"HTML Editor",
 ]);
 const UNALIGNED_FIELDTYPES = new Set(["HTML", "Typst", "Spacer", "Divider", "Table", "Repeater"]);
+export const LEGACY_UNSUPPORTED_FIELDTYPES = [
+	"Static Text",
+	"Barcode",
+	"Image",
+	"Repeater",
+	"Linked Field",
+	"Typst",
+];
+export const LEGACY_SECTION_STYLE_KEYS = ["background", "padding", "radius", "custom_style"];
+export const LEGACY_TABLE_STYLE_KEYS = [
+	"table_header_bg",
+	"table_border_color",
+	"table_cell_padding",
+	"table_radius",
+	"table_min_height",
+];
 
 export const is_image = (df) => IMAGE_FIELDTYPES.has(df?.fieldtype);
 export const is_text = (df) => !NON_TEXT_FIELDTYPES.has(df?.fieldtype);
@@ -36,3 +52,7 @@ export const is_merge_image = (df) => MERGE_IMAGE_FIELDTYPES.has(df?.fieldtype);
 export const is_merge_html = (df) => MERGE_HTML_FIELDTYPES.has(df?.fieldtype);
 export const has_align = (df) => !UNALIGNED_FIELDTYPES.has(df?.fieldtype);
 export const always_has_content = (df) => CONTENT_FIELDTYPES.has(df?.fieldtype);
+export const is_printable_docfield = (df) =>
+	!frappe.model.no_value_type.includes(df?.fieldtype) ||
+	df?.fieldtype === "Table" ||
+	df?.fieldtype === "Table MultiSelect";

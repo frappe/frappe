@@ -363,7 +363,7 @@
 
 <script setup>
 import draggable from "vuedraggable";
-import { is_block } from "../fieldtypes";
+import { is_block, is_printable_docfield } from "../fieldtypes";
 import {
 	DRAG_OPTIONS,
 	clone_plain,
@@ -713,12 +713,7 @@ let field_groups = computed(() => {
 			continue;
 		}
 		if (df.fieldtype === "Column Break") continue;
-		if (
-			frappe.model.no_value_type.includes(df.fieldtype) &&
-			df.fieldtype !== "Table" &&
-			df.fieldtype !== "Table MultiSelect"
-		)
-			continue;
+		if (!is_printable_docfield(df)) continue;
 
 		if (q) {
 			const match =

@@ -147,6 +147,7 @@ class PrintFormat(Document):
 		self.validate_conditions()
 		self.validate_no_classic_layout()
 		self.validate_weasyprint_choice()
+		self.validate_weasyprint_layout()
 		self.validate_typst_renderer()
 
 	def validate_no_classic_layout(self):
@@ -179,6 +180,38 @@ class PrintFormat(Document):
 		frappe.throw(
 			_("WeasyPrint is deprecated and cannot be selected for a new format. Use Chrome instead."),
 			title=_("Renderer unavailable"),
+		)
+
+	def validate_weasyprint_layout(self):
+		"""The frozen WeasyPrint generator drops the new builder's blocks and styling;
+		refuse them at save time, except for an untouched layout that already rendered
+		through WeasyPrint."""
+		if self.pdf_generator != "WeasyPrint" or self.is_new():
+			return
+		if frappe.flags.in_migrate or frappe.flags.in_install:
+			return
+		from frappe.utils.weasyprint_legacy import legacy_blockers
+
+		try:
+			layout = frappe.parse_json(self.format_data) if self.format_data else {}
+		except Exception:
+			layout = {}
+		blockers = legacy_blockers(self, layout)
+		if not blockers:
+			return
+		before = self.get_doc_before_save()
+		if before and before.pdf_generator == "WeasyPrint":
+			try:
+				unchanged = frappe.parse_json(before.format_data or "{}") == layout
+			except Exception:
+				unchanged = False
+			if unchanged:
+				return
+		frappe.throw(
+			_("WeasyPrint cannot render this format: {0}. Switch the PDF Renderer to Chrome.").format(
+				", ".join(blockers)
+			),
+			title=_("WeasyPrint renderer unavailable"),
 		)
 
 	def validate_typst_renderer(self):

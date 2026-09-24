@@ -44,10 +44,11 @@ class PrintFormatBuilder {
 		);
 		this.page.add_action_icon(
 			"file-pen",
-			() => frappe.set_route("Form", "Print Format", this.print_format),
+			() => this.leave(() => frappe.set_route("Form", "Print Format", this.print_format)),
 			"",
 			__("Edit Print Format")
 		);
+		this.page.wrapper.on("hide.pfb", () => this.on_hide());
 		// Every menu entry left is a mobile-only mirror of a custom action button, so on
 		// wide screens the ⋯ would open an empty dropdown
 		this.page.menu_btn_group.addClass("hidden-xl");
@@ -82,7 +83,47 @@ class PrintFormatBuilder {
 		);
 	}
 
+	has_unsaved_changes() {
+		const draft = this.$component?.$store.draft;
+		return !!draft && (this.$component.$store.dirty.value || draft.save_failed.value);
+	}
+
+	leave(navigate) {
+		this.$component.$store.draft
+			.flush()
+			.then(navigate, () =>
+				frappe.warn(
+					__("Unsaved changes"),
+					__("The latest changes could not be saved and will be lost if you leave."),
+					navigate,
+					__("Leave anyway")
+				)
+			);
+	}
+
+	on_hide() {
+		if (!this.has_unsaved_changes()) return;
+		this.$component.$store.draft.flush().catch((message) => {
+			frappe.msgprint({
+				title: __("Unsaved changes"),
+				indicator: "red",
+				message:
+					__("The latest changes to {0} could not be saved.", [
+						this.print_format.bold(),
+					]) + (message ? `<br><br>${message}` : ""),
+				primary_action: {
+					label: __("Back to the builder"),
+					action: () => {
+						frappe.hide_msgprint();
+						frappe.set_route("print-format-builder-beta", this.print_format);
+					},
+				},
+			});
+		});
+	}
+
 	destroy() {
+		this.page.wrapper.off("hide.pfb");
 		this.app?.unmount();
 	}
 }

@@ -59,10 +59,10 @@ function patch_breadcrumbs_once() {
 function load_print_format_builder(wrapper) {
 	let route = frappe.get_route();
 	let $parent = $(wrapper).find(".layout-main-section");
-	frappe.print_format_builder?.destroy?.();
-	$parent.empty();
 
 	if (route.length < 2) {
+		frappe.print_format_builder?.destroy?.();
+		$parent.empty();
 		frappe.set_route("List", "Print Format");
 		return;
 	}
@@ -75,6 +75,11 @@ function load_print_format_builder(wrapper) {
 		_extra_label: route[1],
 	});
 	wrapper.page.set_title(route[1]);
+
+	const current = frappe.print_format_builder;
+	if (current?.print_format === route[1] && current.has_unsaved_changes?.()) return;
+	current?.destroy?.();
+	$parent.empty();
 
 	frappe.require("print_format_builder.bundle.js").then(() => {
 		frappe.print_format_builder = new frappe.ui.PrintFormatBuilder({

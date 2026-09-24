@@ -1,6 +1,11 @@
 // Copyright (c) 2017, Frappe Technologies and contributors
 // For license information, please see license.txt
 
+const CLASSIC_BUILDER_NOTICE = __(
+	"The classic builder is deprecated and will be removed in version 17. Existing formats keep working. Convert this format to keep editing it in the new builder."
+);
+const is_classic_format = (doc) => doc.print_format_builder && !doc.print_format_builder_beta;
+
 const DEPRECATED_RENDERERS = {
 	WeasyPrint: __(
 		"WeasyPrint is deprecated and will be removed in version 17. Switch this format to Chrome."
@@ -67,13 +72,9 @@ frappe.ui.form.on("Print Format", {
 				});
 			}
 			const can_convert = frm.doc.standard !== "Yes" || frappe.boot.developer_mode;
-			if (
-				frm.doc.print_format_builder &&
-				!frm.doc.print_format_builder_beta &&
-				can_convert
-			) {
+			if (is_classic_format(frm.doc)) {
 				frm.add_custom_button(__("Convert to new builder"), function () {
-					frm.trigger("convert_to_builder");
+					frappe.printing.convert_to_builder(frm.doc);
 				});
 			}
 			if (frm.doc.classic_format_data && can_convert) {
@@ -115,27 +116,6 @@ frappe.ui.form.on("Print Format", {
 			}
 		}
 	},
-	convert_to_builder: function (frm) {
-		frappe.confirm(
-			__(
-				"The layout of {0} will be rewritten for the new builder. The original layout is kept as a backup you can restore from this form. Fields the converter cannot map are dropped. Continue?",
-				[frm.doc.name.bold()]
-			),
-			() => {
-				frappe
-					.xcall(
-						"frappe.printing.doctype.print_format.print_format.convert_to_builder",
-						{
-							name: frm.doc.name,
-						}
-					)
-					.then(() => {
-						frappe.model.clear_doc("Print Format", frm.doc.name);
-						frappe.set_route("print-format-builder-beta", frm.doc.name);
-					});
-			}
-		);
-	},
 	set_pdf_generator_options: function (frm) {
 		const df = frappe.meta.get_docfield("Print Format", "pdf_generator", frm.doc.name);
 		const all_options = (df?.options || "").split("\n").filter(Boolean);
@@ -144,12 +124,12 @@ frappe.ui.form.on("Print Format", {
 		frm.set_df_property("pdf_generator", "options", options.join("\n"));
 	},
 	show_renderer_notice: function (frm) {
-		const message = DEPRECATED_RENDERERS[frm.doc.pdf_generator];
-		if (!message) {
-			frm.dashboard.clear_headline();
-			return;
-		}
-		frm.dashboard.set_headline(message, "orange");
+		frm.dashboard.clear_headline();
+		const notices = [
+			is_classic_format(frm.doc) && CLASSIC_BUILDER_NOTICE,
+			DEPRECATED_RENDERERS[frm.doc.pdf_generator],
+		].filter(Boolean);
+		if (notices.length) frm.dashboard.set_headline(notices.join(" "), "orange");
 	},
 	pdf_generator: function (frm) {
 		frm.trigger("show_renderer_notice");

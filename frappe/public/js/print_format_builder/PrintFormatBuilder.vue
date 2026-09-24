@@ -184,7 +184,7 @@ const SETTINGS_DOCTYPE = "Print Settings";
 // Editing the Single in a dialog rather than routing to its form: the builder
 // holds unsaved layout in memory, and navigating away would drop it.
 async function open_print_settings() {
-	if (!frappe.perm.has_perm(SETTINGS_DOCTYPE, 0, "write")) {
+	if (!frappe.boot.user.can_write.includes(SETTINGS_DOCTYPE)) {
 		frappe.msgprint(__("You are not permitted to change Print Settings"));
 		return;
 	}
