@@ -1,5 +1,4 @@
-// Drives the Get Fields picker. Every branch the picker has to tell apart gets a field
-// here, so one seeded DocType covers them all.
+// one seeded DocType, with a field for each case the Get Fields picker tells apart
 export default {
 	name: "Web Form Source",
 	custom: 1,

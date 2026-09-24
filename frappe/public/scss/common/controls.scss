@@ -53,8 +53,8 @@ select.form-control {
 }
 
 /* table multiselect */
-// The web form bundle imports common/form after this file, and its `.form-control`
-// height and padding would win on source order. The second selector out-ranks it.
+// the web form bundle imports common/form after this file, and its `.form-control`
+// height and padding would win on source order. The second selector outranks it
 .table-multiselect,
 .form-control.table-multiselect {
 	display: flex;

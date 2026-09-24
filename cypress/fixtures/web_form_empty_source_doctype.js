@@ -1,5 +1,5 @@
-// Nothing here survives get_fields_for_doctype: Heading and Button carry no value, and a
-// Section Break is layout. So the picker has nothing to offer and says so.
+// nothing here survives get_fields_for_doctype: Heading and Button carry no value and a
+// Section Break is layout, so the picker has nothing to offer
 export default {
 	name: "Web Form Empty Source",
 	custom: 1,

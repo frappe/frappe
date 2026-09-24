@@ -225,8 +225,7 @@ context("Grid", () => {
 		cy.visit("/desk/contact/Test Contact");
 		cy.get('.frappe-control[data-fieldname="links"]').as("table");
 		cy.get("@table").scrollIntoView();
-		// the drift this guards against is the page scroll, so there has to be some;
-		// Desk scrolls .main-section, not the window, so window.scrollY stays 0
+		// the drift comes from page scroll, so scroll .main-section: Desk never scrolls the window
 		cy.get("@table").closest(".main-section").its("0.scrollTop").should("be.greaterThan", 100);
 
 		cy.get("@table").find(".grid-add-row").click();

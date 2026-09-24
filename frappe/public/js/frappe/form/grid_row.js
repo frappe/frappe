@@ -120,7 +120,7 @@ export default class GridRow {
 						console.trace(e);
 					});
 			} else {
-				// The grid reads df.data, often a copy of df.get_data(); edit and keep that copy.
+				// the grid reads df.data, often a copy of df.get_data(), so edit that copy
 				const data = this.grid.get_data();
 				this.grid.df.data = data;
 
