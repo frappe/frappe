@@ -1,9 +1,9 @@
 # Return-visit walk
 
-The walk opens a list, opens a record, goes Back and Forward, then reaches the list and the
-record again through the rail, the sidebar or the breadcrumb. On each step it counts the
-skeletons shown and how many times each field and each list row is drawn, on a normal and
-a throttled network.
+The walk opens a list, opens a record, goes Back and Forward, then reaches the list
+through the rail, sidebar or breadcrumb. It reopens the record through navigation when
+available, otherwise from its list row. On each step it counts the skeletons shown and how
+many times each field and each list row is drawn, on a normal and a throttled network.
 
 A return step fails when it shows a skeleton, draws any field or row more than once, or
 does not settle in time. The walk is run by hand, not in CI. It is expected to fail until

@@ -189,16 +189,20 @@ function paintSummary(paints) {
 
 function printRun(run) {
 	const via = `list reached from the ${run.listVia}, record from the ${run.recordVia}`;
-	console.log(`\n${run.network} network, ${via}`);
+	write(`\n${run.network} network, ${via}`);
 	printLine(COLUMNS);
 	for (const step of run.steps) {
 		printLine(tableCells(step));
-		if (step.skeletons) console.log(`${"".padEnd(20)}skeletons: ${markerList(step)}`);
+		if (step.skeletons) write(`${"".padEnd(20)}skeletons: ${markerList(step)}`);
 	}
 }
 
+function write(text) {
+	process.stdout.write(`${text}\n`);
+}
+
 function printLine(cells) {
-	console.log(cells.map((cell, index) => String(cell).padEnd(index ? 9 : 20)).join(""));
+	write(cells.map((cell, index) => String(cell).padEnd(index ? 9 : 20)).join(""));
 }
 
 function tableCells(step) {
