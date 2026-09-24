@@ -186,6 +186,20 @@ describe("List states", () => {
     expect(root.textContent).not.toContain("No records");
   });
 
+  it("draws a checkbox-sized skeleton in each skeleton row's first cell", async () => {
+    const { root } = await mount(List, { columns, rows: [], loading: true });
+    for (const row of rowsOf(root)) {
+      const [first, ...rest] = row.querySelectorAll("[data-slot='list-cell']");
+      const box = first.querySelector(".fui-skeleton");
+      expect(box?.className).toContain("h-3.5 w-3.5 rounded-1");
+      expect(rest.map((cell) => cell.querySelectorAll(".fui-skeleton").length))
+        .toEqual([1, 1, 1]);
+      expect(row.querySelectorAll(".fui-skeleton")).toHaveLength(
+        columns.length + 1
+      );
+    }
+  });
+
   it("shows the empty text, or the empty slot, once loaded with no rows", async () => {
     const plain = await mount(List, { columns, rows: [] });
     expect(plain.root.textContent).toContain("No records");

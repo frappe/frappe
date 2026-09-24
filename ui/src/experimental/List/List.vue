@@ -110,7 +110,9 @@
 			</div>
 			<template v-else-if="loading">
 				<ListRow v-for="index in SKELETON_ROW_COUNT" :key="index">
-					<ListCell />
+					<ListCell class="ps-[calc(0.5rem+1px)]">
+						<Skeleton class="h-3.5 w-3.5 rounded-1" />
+					</ListCell>
 					<ListCell v-for="column in skeletonColumns" :key="column.fieldname">
 						<Skeleton class="h-3 w-full rounded-1" />
 					</ListCell>
