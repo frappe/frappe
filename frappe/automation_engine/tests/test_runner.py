@@ -111,6 +111,18 @@ class TestRunner(AutomationRunnerTestCase):
 		)
 		self.assertEqual(json.loads(arguments)["actions_snapshot"][0]["action_type"], "SetFieldValue")
 
+	def test_run_is_announced_silently(self):
+		todo = make_todo()
+		auto = make_automation([set_field("priority", "High")])
+		name = self.queue_row(auto, todo.name)
+		with patch("frappe.publish_realtime") as publish:
+			execute_automation(name)
+		task_updates = [
+			c.kwargs["message"] for c in publish.call_args_list if c.kwargs.get("event") == "task_update"
+		]
+		self.assertTrue(task_updates)
+		self.assertTrue(all(message.get("silent") for message in task_updates))
+
 	def test_missing_target_is_skipped(self):
 		auto = make_automation([set_field("priority", "High")])
 		name = self.queue_row(auto, "NO-SUCH-TODO")

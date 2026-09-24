@@ -138,7 +138,7 @@ frappe.ui.BackgroundTasks = class BackgroundTasks {
 					});
 			}
 
-			if (data.status) {
+			if (data.status && !data.silent) {
 				const title = frappe.utils.escape_html(data.task_name || __("Background Task"));
 				const alerts = {
 					Queued: { message: __("{0} queued", [title]), indicator: "blue" },
