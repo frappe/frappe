@@ -16,9 +16,6 @@
 						:model-value="$store.preview_doc_name.value || ''"
 						@update:model-value="(name) => $store.load_preview_doc(name || null)"
 					/>
-					<span v-if="no_records" class="canvas-toolbar-hint">
-						{{ __("No records to preview yet") }}
-					</span>
 				</div>
 				<div class="canvas-toolbar-right">
 					<button
@@ -128,7 +125,6 @@ const ZOOM_KEY = "pfb_canvas_zoom";
 const ZOOM_LEVELS = [50, 60, 70, 80, 90, 100, 125, 150];
 
 let show_preview = ref(false);
-let no_records = ref(false);
 let canvas_zoom = ref(nearest_zoom(parseInt(localStorage.getItem(ZOOM_KEY)) || 100));
 let zoom_ref = ref(null);
 let zoom_dropdown = null;
@@ -519,9 +515,7 @@ function pick_initial_doc() {
 				fields: ["name"],
 				order_by: "creation desc",
 			})
-			.then((rows) =>
-				rows?.length ? st.load_preview_doc(rows[0].name) : (no_records.value = true)
-			);
+			.then((rows) => rows?.length && st.load_preview_doc(rows[0].name));
 	if (!saved) return auto_select();
 	frappe.db
 		.get_value(meta?.name, saved, ["name", "docstatus"])
@@ -618,12 +612,6 @@ defineExpose({ toggle_preview, toggle_history, open_print_settings, show_preview
 	height: 28px;
 	padding: 2px 8px;
 	border-radius: var(--radius);
-}
-
-.canvas-toolbar-hint {
-	font-size: var(--text-sm);
-	color: var(--text-muted);
-	white-space: nowrap;
 }
 
 .canvas-toolbar-right {
