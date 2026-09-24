@@ -429,19 +429,18 @@ def _list_markers(value: str) -> str:
 	Innermost lists are marked first so a nested list does not take its items
 	from the list around it."""
 
-	def ordered(match):
-		items = re.split(r"<li[^>]*>", match.group(1), flags=re.I)[1:]
-		return "\n" + "".join(f"<x-li>{i}. {item}" for i, item in enumerate(items, 1))
+	def mark(match):
+		body = match.group(2)
+		if match.group(1).lower() == "ol":
+			items = re.split(r"<li[^>]*>", body, flags=re.I)[1:]
+			return "\n" + "".join(f"<x-li>{i}. {item}" for i, item in enumerate(items, 1))
+		return "\n" + re.sub(r"<li[^>]*>", "<x-li>\u2022 ", body, flags=re.I)
 
-	def unordered(match):
-		return "\n" + re.sub(r"<li[^>]*>", "<x-li>\u2022 ", match.group(1), flags=re.I)
-
-	for tag, marker in (("ol", ordered), ("ul", unordered)):
-		pattern = re.compile(rf"<{tag}[^>]*>((?:(?!<{tag}[^>]*>).)*?)</{tag}>", re.I | re.S)
-		while True:
-			value, count = pattern.subn(marker, value)
-			if not count:
-				break
+	pattern = re.compile(r"<(ol|ul)[^>]*>((?:(?!<[ou]l[^>]*>).)*?)</\1>", re.I | re.S)
+	while True:
+		value, count = pattern.subn(mark, value)
+		if not count:
+			break
 	return value
 
 
