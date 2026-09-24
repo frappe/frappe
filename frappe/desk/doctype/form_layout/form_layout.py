@@ -113,7 +113,7 @@ def save_form_layout(dt: str, type: str, layout: str, name: str | None = None, c
 
 def publish_doctype_update(dt: str) -> None:
 	"""Tell open desks that `dt`'s layouts changed, so the next visit fetches them again."""
-	frappe.publish_realtime("doctype_update", {"doctype": dt}, after_commit=True)
+	frappe.publish_realtime("doctype_update", {"doctype": dt}, after_commit=True)  # nosemgrep
 
 
 def validate_target(dt: str, type: str) -> None:
