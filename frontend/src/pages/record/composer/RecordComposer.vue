@@ -61,7 +61,7 @@ const writer = computed(() => {
 });
 // The pill stays while this record's writer floats.
 const docked = computed(() => Boolean(writer.value) && composerState.window === "docked");
-const creates = computed(() => createOptions(props.tabs, page.value));
+const creates = computed(() => createOptions(props.tabs, props.controller));
 const title = computed(() => titleOf(page.value));
 const onComposerTab = computed(() => {
 	const tab = props.tabs.find((item) => item.name === props.active);

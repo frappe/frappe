@@ -62,7 +62,7 @@ import type { PageDialogEntry } from "@/recordPage/dialog";
 import type { PageDialogFormOptions } from "@/recordPage/types";
 
 function makeEntry(form: PageDialogFormOptions) {
-  const entry: PageDialogEntry & { settled: any[] } = {
+  const entry: PageDialogEntry & { settled: any[]; holding: number } = {
     id: 1,
     source: "page-script:deal-hello",
     kind: "form",
@@ -75,6 +75,15 @@ function makeEntry(form: PageDialogFormOptions) {
       if (!entry.settled.length) entry.settled.push(result);
     },
     dismiss: vi.fn(),
+    holding: 0,
+    hold: async (work) => {
+      entry.holding += 1;
+      try {
+        return await work();
+      } finally {
+        entry.holding -= 1;
+      }
+    },
   };
   return entry;
 }
@@ -133,8 +142,11 @@ describe("the form host", () => {
     error.mockRestore();
   });
 
-  it("resolves with the field values on a clean submit", async () => {
-    const onSubmit = vi.fn();
+  it("resolves with the field values on a clean submit, held", async () => {
+    let heldDuringSubmit = 0;
+    const onSubmit = vi.fn(() => {
+      heldDuringSubmit = entry.holding;
+    });
     const entry = makeEntry({
       fields: FIELDS,
       defaults: { note: "hi" },
@@ -145,6 +157,7 @@ describe("the form host", () => {
     await click(root, "Submit");
 
     expect(onSubmit).toHaveBeenCalledWith({ note: "hi" });
+    expect(heldDuringSubmit).toBe(1);
     expect(entry.settled).toEqual([{ note: "hi" }]);
   });
 
@@ -192,6 +205,20 @@ describe("the form host", () => {
     expect(entry.settled).toEqual(["rejected"]);
   });
 
+  it("runs a custom action's onClick inside the entry's hold", async () => {
+    let heldDuringAction = 0;
+    const entry = makeEntry({
+      fields: FIELDS,
+      actions: [{ label: "Reject", onClick: () => void (heldDuringAction = entry.holding) }],
+    });
+    const root = render(entry);
+
+    await click(root, "Reject");
+
+    expect(heldDuringAction).toBe(1);
+    expect(entry.holding).toBe(0);
+  });
+
   it("validates and closes with the data for a custom action with no onClick", async () => {
     const entry = makeEntry({
       fields: FIELDS,
@@ -216,6 +243,21 @@ describe("the form host", () => {
 
     expect(onCancel).toHaveBeenCalledTimes(1);
     expect(entry.settled).toEqual([null]);
+  });
+
+  it("runs onCancel inside the entry's hold when the dialog is dismissed", async () => {
+    let heldDuringCancel = 0;
+    const entry = makeEntry({
+      fields: FIELDS,
+      onCancel: () => void (heldDuringCancel = entry.holding),
+    });
+    render(entry);
+
+    entry.onDismissed?.();
+    await settle();
+
+    expect(heldDuringCancel).toBe(1);
+    expect(entry.holding).toBe(0);
   });
 
   it("does not run onCancel after the reader already submitted", async () => {

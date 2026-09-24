@@ -4,8 +4,10 @@ import { ref } from "vue";
 import { dayjs } from "frappe-ui";
 import { compareActivities } from "@framework/ui/ActivityTimeline";
 import { currentSession } from "@framework/ui/composables/useSession";
+import { runningSource } from "./context";
 import { readOnly } from "./readOnly";
-import { Surface } from "./surface";
+import { NOT_DRAWN } from "./staging";
+import { BUILTIN, Surface } from "./surface";
 import { FEED_ITEM_KEYS } from "./types";
 import type {
   ActivityItem,
@@ -21,6 +23,8 @@ export interface ActivityHost {
   rows: () => ActivityRow[];
   scrollTo: (key: string) => Promise<boolean | null>;
   reload: () => Promise<void>;
+  /** The page's rule for whether an act waits for a commit. */
+  isStaging: () => boolean;
 }
 
 export interface FilesHost {
@@ -104,6 +108,10 @@ abstract class FeedSurface<Row extends Timed> extends Surface<FeedItem> {
     );
   }
 
+  protected isUndrawn(name: string) {
+    return super.has(name) && !this.isDrawn(name);
+  }
+
   private isServerRow(name: string) {
     return this.serverItems().some((row) => row.name === name);
   }
@@ -119,8 +127,8 @@ abstract class FeedSurface<Row extends Timed> extends Surface<FeedItem> {
 }
 
 export class ActivitySurface extends FeedSurface<ActivityItem> implements PageActivity {
-  // A replay's `types` waits for the commit, as its ops do.
-  private stagedTypes: VisibleTypes | null = null;
+  // `types` stages with its source, as an op does; the first entry is what the buffer starts from.
+  private stagedTypes: { source: string; list: VisibleTypes | null }[] = [];
   private shown = ref<VisibleTypes | null>(null);
   private heldScroll: string | null = null;
 
@@ -128,9 +136,9 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
     super("activity");
   }
 
-  /** Called in a replay, the move waits for `releaseScroll`, once the page on screen is this replay's. */
+  /** Called in a replay or a hold, the move waits for `releaseScroll`, once the page on screen is its own. */
   scrollTo(key: string) {
-    if (this.replaying) this.heldScroll = key;
+    if (this.host.isStaging()) this.heldScroll = key;
     else void this.deliverScroll(key);
   }
 
@@ -139,7 +147,7 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
   }
 
   types(list: VisibleTypes) {
-    if (this.replaying) this.stagedTypes = [...list];
+    if (this.staging) this.stagedTypes.push({ source: runningSource(), list: [...list] });
     else this.showTypes([...list]);
   }
 
@@ -150,21 +158,36 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
     return this.shown.value;
   }
 
-  releaseScroll() {
+  /** `drawnOnly` at the first paint that went ahead: a row of a script's not drawn yet is dropped. */
+  releaseScroll(drawnOnly = false) {
     const key = this.heldScroll;
     this.heldScroll = null;
-    if (key) void this.deliverScroll(key);
+    if (!key) return;
+    if (drawnOnly && this.isUndrawn(key))
+      this.warn("scrollTo", key, `${NOT_DRAWN}; the reader was not moved`);
+    else void this.deliverScroll(key);
   }
 
   beginReplay() {
-    this.stagedTypes = null;
+    this.stagedTypes = [{ source: BUILTIN, list: null }];
     super.beginReplay();
   }
 
-  commitReplay() {
-    const outermost = this.replaying === 1;
-    super.commitReplay();
-    if (outermost) this.showTypes(this.stagedTypes);
+  // A hold starts from the types on screen, as its ops start from the drawn list.
+  beginHold() {
+    if (!this.staging) this.stagedTypes = [{ source: BUILTIN, list: this.shown.value }];
+    super.beginHold();
+  }
+
+  commit() {
+    const last = super.commit();
+    if (last) this.showTypes(this.typesWithout());
+    return last;
+  }
+
+  publishStaged(except: ReadonlySet<string>) {
+    super.publishStaged(except);
+    if (this.staging) this.showTypes(this.typesWithout(except));
   }
 
   protected serverItems(): ActivityItem[] {
@@ -177,6 +200,10 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
     } catch (error) {
       console.error(`[record-page] page.activity.scrollTo("${key}") — the host threw`, error);
     }
+  }
+
+  private typesWithout(except?: ReadonlySet<string>) {
+    return this.stagedTypes.findLast((write) => !except?.has(write.source))?.list ?? null;
   }
 
   // Same list, same value: a new array would make the host read the feed again.

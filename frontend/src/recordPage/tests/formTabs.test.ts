@@ -217,7 +217,7 @@ describe("the replay", () => {
     // one — the strip would otherwise be torn down and rebuilt between them.
     expect(formTabs.resolve()).toEqual({ products: { hidden: true } });
 
-    formTabs.commitReplay();
+    formTabs.commit();
     expect(formTabs.resolve()).toEqual({ lead_details: { hidden: true } });
   });
 
@@ -237,10 +237,10 @@ describe("the replay", () => {
     formTabs.beginReplay();
     formTabs.beginReplay();
     formTabs.hide("products");
-    formTabs.commitReplay();
+    formTabs.commit();
     expect(formTabs.resolve()).toEqual({});
 
-    formTabs.commitReplay();
+    formTabs.commit();
     expect(formTabs.resolve()).toEqual({ products: { hidden: true } });
   });
 });

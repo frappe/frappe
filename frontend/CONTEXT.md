@@ -211,8 +211,8 @@ custom tab (a whole view belongs on the record strip, `page.tabs`).
 **Disclosure**:
 The reader's view state of a section: open or shut. It lives in the browser through the
 shell's section memory, keyed by user and per doctype, never on the server. A script's
-`open()`/`close()` is an **act** on the same terms as `activate`, held until the replay
-commits, and it is the page's, not the reader's: it is not remembered, and a click outranks it
+`open()`/`close()` is an **act** on the same terms as `activate`, held until the open replay
+or hold commits, and it is the page's, not the reader's: it is not remembered, and a click outranks it
 until the next replay.
 _Avoid_: collapsed (the panel as a whole collapses to a strip; a section is shut), expanded.
 
@@ -223,14 +223,24 @@ state, or with the **field overlay** below, which is a script's render-time over
 
 **Op**:
 One recorded verb — `{verb, source, …}`. Ops are **recorded, not applied**; nothing is
-rendered until a replay commits.
+rendered until the replay or hold they stage in commits.
 
 **Replay**:
 The host clearing **every** surface and re-running **every** source in run order. This is
 what makes conditional customization a plain `if` with no `else`. Ops stage while a replay
-is open and the outermost commit publishes them in one flush.
+or a **hold** is open, and whichever closes last publishes them in one flush. The first
+replay has a time limit: when it runs out, the page paints without any source still running
+a handler, in the replay or in a hold; their ops land when the last of those commits. When the
+page's permissions are what is late, no replay is open yet, so the early paint shows the
+built-ins only.
 _Avoid_: re-render, refresh (`page.refresh()`, the `onRefresh` event and the replay are
 three names for one operation — prefer "replay" for the mechanism).
+
+**Hold**:
+One paint for a handler's ops, published when it finishes. Every event but `onRefresh` runs
+inside a hold, and so does each host call into script code (`controller.hold`). A hold starts
+from what is drawn, where a replay starts from built-ins; its acts wait for its commit.
+_Avoid_: batch, transaction.
 
 **Handler**:
 One named function in the object a script exports — an event (`onRefresh`, `beforeSave`,

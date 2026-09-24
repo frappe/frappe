@@ -1,6 +1,6 @@
 // The `+` menu: the `create` of every tab on the strip, in strip order.
-import { errorMessage } from "@/recordPage";
-import type { RecordPageApi, TabCreateAction, TabItem } from "@/recordPage/types";
+import { errorMessage, type RecordPageController } from "@/recordPage";
+import type { TabCreateAction, TabItem } from "@/recordPage/types";
 
 export interface CreateOption {
 	label: string;
@@ -8,23 +8,24 @@ export interface CreateOption {
 	onClick: () => void;
 }
 
-export function createOptions(tabs: TabItem[], page: RecordPageApi): CreateOption[] {
+export function createOptions(tabs: TabItem[], controller: RecordPageController): CreateOption[] {
 	return tabs.flatMap(({ create }) =>
 		create
 			? [
 					{
 						label: create.label,
 						icon: create.icon,
-						onClick: () => void run(create, page),
+						onClick: () => void run(create, controller),
 					},
 			  ]
 			: []
 	);
 }
 
-async function run(create: TabCreateAction, page: RecordPageApi) {
+async function run(create: TabCreateAction, controller: RecordPageController) {
+	const { page } = controller;
 	try {
-		await create.run(page);
+		await controller.hold(() => create.run(page));
 	} catch (error) {
 		page.toast.error(errorMessage(error));
 	}

@@ -3,6 +3,7 @@
 import { markRaw, reactive } from "vue";
 import { runningSource } from "./context";
 import { ensureIcons } from "./iconClasses";
+import { StagedOverlay } from "./staging";
 import type { Position, SurfaceItem, SurfaceVerbs } from "./types";
 
 export interface ResolvedItem<Item extends SurfaceItem = SurfaceItem> {
@@ -29,17 +30,17 @@ export interface Vocabulary {
 	keys: readonly string[];
 }
 
-export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceVerbs<Item> {
-	private ops: Op<Item>[] = reactive([]);
+export class Surface<Item extends SurfaceItem = SurfaceItem>
+	extends StagedOverlay<Op<Item>>
+	implements SurfaceVerbs<Item>
+{
 	private saidKeys = new Set<string>();
-	// Where a replay's ops accumulate until it commits. Non-null only inside a
-	// replay; ops recorded anywhere else render immediately.
-	private pending: Op<Item>[] | null = null;
-	protected replaying = 0;
 	private builtins: () => Item[] = () => [];
 
 	/** Without a vocabulary every key is kept. */
-	constructor(private readonly vocabulary?: Vocabulary) {}
+	constructor(private readonly vocabulary?: Vocabulary) {
+		super(reactive([]));
+	}
 
 	// A block splices as a unit at the anchor: the first item takes the caller's
 	// position and each one after it follows the one before.
@@ -87,22 +88,22 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 		this.record({ verb: "clear", source: runningSource() });
 	}
 
-	// Resolves over the replay in flight: a source that calls `add('x')` and then
-	// `has('x')` in its own `refresh` handler is told about its own work.
+	// Resolves over the replay or hold in flight: a source that calls `add('x')` and then
+	// `has('x')` in its own handler is told about its own work.
 	has(name: string) {
-		return this.fold(this.pending ?? this.ops).some((entry) => entry.item.name === name);
+		return this.fold(this.currentOps).some((entry) => entry.item.name === name);
 	}
 
 	// Host side, reading the way `has` reads: `activate` asks this to tell a hidden tab from an absent one.
 	isVisible(name: string) {
-		return this.fold(this.pending ?? this.ops).some(
+		return this.fold(this.currentOps).some(
 			(entry) => entry.item.name === name && !entry.hidden,
 		);
 	}
 
-	// Host side, reading the way `has` reads: the item as the replay in flight would render it.
+	// Host side, reading the way `has` reads: the item as the replay or hold in flight would render it.
 	find(name: string): Item | undefined {
-		return this.fold(this.pending ?? this.ops).find((entry) => entry.item.name === name)?.item;
+		return this.fold(this.currentOps).find((entry) => entry.item.name === name)?.item;
 	}
 
 	// Host side, below: not part of what a script may call.
@@ -111,29 +112,9 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 		this.builtins = get;
 	}
 
-	/**
-	 * Opens a replay: ops are staged until the matching commit, and a replay
-	 * rebuilds from built-ins alone. Only the outermost commit publishes.
-	 */
-	beginReplay() {
-		this.pending = [];
-		this.replaying += 1;
-	}
-
-	/** Close a replay: the outermost one publishes the staged ops in one flush. */
-	commitReplay() {
-		if (this.replaying === 0) return;
-		this.replaying -= 1;
-		if (this.replaying > 0) return;
-		const staged = this.pending ?? [];
-		this.pending = null;
-		// One splice, not a clear and a refill: `ops` is reactive, and the host must never render the replay's middle.
-		this.ops.splice(0, this.ops.length, ...staged);
-	}
-
-	/** The rendered arrangement: committed ops only, never a replay in flight. */
+	/** The rendered arrangement: committed ops only, never a replay or hold in flight. */
 	resolve(): ResolvedItem<Item>[] {
-		return this.fold(this.ops);
+		return this.fold(this.drawnOps);
 	}
 
 	visible(): Item[] {
@@ -142,14 +123,15 @@ export class Surface<Item extends SurfaceItem = SurfaceItem> implements SurfaceV
 			.map((entry) => entry.item);
 	}
 
-	visibleInReplay(): Item[] {
-		return this.fold(this.pending ?? this.ops)
-			.filter((entry) => !entry.hidden)
-			.map((entry) => entry.item);
+	/** Whether the item shows in what is drawn, a replay or hold in flight left out. */
+	isDrawn(name: string) {
+		return this.visible().some((item) => item.name === name);
 	}
 
-	private record(op: Op<Item>) {
-		(this.pending ?? this.ops).push(op);
+	visibleInReplay(): Item[] {
+		return this.fold(this.currentOps)
+			.filter((entry) => !entry.hidden)
+			.map((entry) => entry.item);
 	}
 
 	// `has`, `find` and a later `update` must not see a dropped key.

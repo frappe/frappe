@@ -2,9 +2,8 @@
      mounted, hidden, after its first visit, and scrolls on its own, so scroll and focus survive a switch. -->
 <template>
 	<div class="relative flex h-full min-h-0 flex-col" data-record-tabs>
-		<TabsSkeleton v-if="!ready" />
 		<div
-			v-else-if="stripTabs.length"
+			v-if="stripTabs.length"
 			ref="stripRoot"
 			class="shrink-0"
 			:class="TAB_STRIP_CLASSES"
@@ -65,13 +64,11 @@ import type { ResolvedItem } from "@/recordPage/surface";
 import type { RecordPageApi, TabItem } from "@/recordPage/types";
 import { __ } from "@/i18n";
 import { RecordFeedsKey } from "../feed/recordFeeds";
-import TabsSkeleton from "../skeletons/TabsSkeleton.vue";
 import { DETAILS_TAB, scrollsItself, TAB_STRIP_CLASSES } from "./recordTabs";
 
 const props = defineProps<{
 	tabs: ResolvedItem<TabItem>[];
 	active: string;
-	ready: boolean;
 	page: RecordPageApi;
 	/** The page placed focus itself on this move, so the strip must not return it. */
 	claimsFocus?: (name: string) => boolean;

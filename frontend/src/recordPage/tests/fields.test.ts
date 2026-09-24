@@ -166,7 +166,7 @@ describe("the verbs", () => {
     fields.hide("status");
     fields.update("qty", { label: "Quantity" });
     fields.beginReplay();
-    fields.commitReplay();
+    fields.commit();
     expect(fields.resolve()).toEqual({});
   });
 
@@ -179,7 +179,7 @@ describe("the verbs", () => {
     expect(fields.resolve().status).toEqual({ override: { hidden: true } });
     fields.hide("status");
     expect(fields.resolve().status).toEqual({ override: { hidden: true } });
-    fields.commitReplay();
+    fields.commit();
     expect(fields.resolve().status).toEqual({ override: { hidden: true } });
   });
 
@@ -189,9 +189,9 @@ describe("the verbs", () => {
     fields.update("qty", { label: "Quantity" });
     fields.beginReplay();
     fields.update("qty", { label: "Nested" });
-    fields.commitReplay();
+    fields.commit();
     expect(fields.resolve()).toEqual({});
-    fields.commitReplay();
+    fields.commit();
     expect(fields.resolve().qty).toEqual({ meta: { label: "Nested" } });
   });
 });

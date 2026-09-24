@@ -78,7 +78,8 @@ async function mountBand() {
 		activity: { items: [EMAIL] },
 	};
 	page.composer = new ComposerSurface(
-		composerHost("Lead", docname, { page: () => page, userEmail: USER.email })
+		composerHost("Lead", docname, { page: () => page, userEmail: USER.email }),
+		() => false
 	);
 	page.composer.provideBuiltins(() => composerBuiltins(page.perms));
 	const controller = { page, composer: page.composer, firePost: vi.fn(async () => {}) };

@@ -9,6 +9,8 @@ import {
   identifyTabs,
   tabStripLabel,
 } from "@framework/ui/components/FormLayout/tabIdentity";
+import { runningSource } from "./context";
+import { StagedOverlay } from "./staging";
 import type {
   FormLayoutSchema,
   Tab,
@@ -31,44 +33,45 @@ export interface FormTabsSurfaceHost {
 }
 
 type Op =
-  | { verb: "hide" | "show"; identity: string }
-  | { verb: "update"; identity: string; patch: TabOverride }
-  | { verb: "clear" };
+  | { verb: "hide" | "show"; source: string; identity: string }
+  | { verb: "update"; source: string; identity: string; patch: TabOverride }
+  | { verb: "clear"; source: string };
 
-export class FormTabsSurface implements PageFormTabs {
-  // Reactive so the host's layout re-joins on a replay; shallow for the reason `FieldsSurface` gives.
-  private ops: Op[] = shallowReactive([]);
-  // The replay's ops until it commits: rendering a replay's middle tears the strip
-  // down and takes the reader's place in it with them.
-  private pending: Op[] | null = null;
-  private replaying = 0;
-
+export class FormTabsSurface extends StagedOverlay<Op> implements PageFormTabs {
   /** Installed by `createRecordPage`, which reads it from the host's strip. */
   declare readonly active: string;
   /** Installed there too: a miss on one strip wants to name the other. */
   declare activate: (identity: string) => void;
 
-  constructor(private host: FormTabsSurfaceHost) {}
+  // Shallow for the reason `FieldsSurface` gives.
+  constructor(private host: FormTabsSurfaceHost) {
+    super(shallowReactive([]));
+  }
 
   hide(identity: string) {
-    this.record({ verb: "hide", identity });
+    this.record({ verb: "hide", source: runningSource(), identity });
     this.warnIfAbsent(identity, "hide");
   }
 
   show(identity: string) {
-    this.record({ verb: "show", identity });
+    this.record({ verb: "show", source: runningSource(), identity });
     this.warnIfAbsent(identity, "show");
   }
 
   update(identity: string, patch: PageFormTabPatch) {
     // Named before the keys are read, so a mistyped identity is heard first.
     this.warnIfAbsent(identity, "update");
-    this.record({ verb: "update", identity, patch: translate(identity, patch) });
+    this.record({
+      verb: "update",
+      source: runningSource(),
+      identity,
+      patch: translate(identity, patch),
+    });
   }
 
   /** Every tab the layout carries at the call; a later `show` brings one back. */
   clear() {
-    this.record({ verb: "clear" });
+    this.record({ verb: "clear", source: runningSource() });
   }
 
   has(identity: string) {
@@ -98,35 +101,19 @@ export class FormTabsSurface implements PageFormTabs {
 
   // Host side, below: not part of what a script may call.
 
-  /** Whether the tab is on the strip right now, the replay in flight included. */
+  /** Whether the tab is on the strip right now, the replay or hold in flight included. */
   isVisible(identity: string) {
-    const tab = this.resolved().find((one) => one.identity === identity);
-    return !!tab && !tab.hidden;
+    return showsIn(this.resolved(), identity);
   }
 
-  /** Open a replay: ops recorded from here are staged, not applied. */
-  beginReplay() {
-    this.pending = [];
-    this.replaying += 1;
+  /** Whether the tab shows in what is drawn, a replay or hold in flight left out. */
+  isDrawn(identity: string) {
+    return showsIn(this.resolved(this.drawnOps), identity);
   }
 
-  /** Close a replay: the outermost one publishes the staged ops in one flush. */
-  commitReplay() {
-    if (this.replaying === 0) return;
-    this.replaying -= 1;
-    if (this.replaying > 0) return;
-    const staged = this.pending ?? [];
-    this.pending = null;
-    this.ops.splice(0, this.ops.length, ...staged);
-  }
-
-  /** The applied overlay: committed ops only, never a replay in flight. */
+  /** The applied overlay: committed ops only, never a replay or hold in flight. */
   resolve(): Record<string, TabOverride> {
-    return this.fold(this.ops);
-  }
-
-  private record(op: Op) {
-    (this.pending ?? this.ops).push(op);
+    return this.fold(this.drawnOps);
   }
 
   /** One override per tab, in op order. A `Map`, not an object, for the reason `FieldsSurface.fold` gives. */
@@ -150,12 +137,9 @@ export class FormTabsSurface implements PageFormTabs {
     return this.identified().find((tab) => tab.identity === identity);
   }
 
-  /**
-   * The strip as it stands: `depends_on` against the doc, then the ops over the
-   * replay in flight, so a source reading back its own `onRefresh` work is told about it.
-   */
-  private resolved() {
-    const overrides = this.fold(this.pending ?? this.ops);
+  /** The strip as it stands: `depends_on` against the doc, then the staged or drawn ops. */
+  private resolved(ops = this.currentOps) {
+    const overrides = this.fold(ops);
     const doc = this.host.doc();
     return this.identified().map((tab) => {
       const conditional = resolveTabConditionals(
@@ -180,6 +164,11 @@ export class FormTabsSurface implements PageFormTabs {
     if (!tabs?.length || this.raw(identity)) return;
     warnOnce(`page.form.tabs.${verb}("${identity}") — no such tab.`);
   }
+}
+
+function showsIn(tabs: { identity: string; hidden?: boolean }[], identity: string) {
+  const tab = tabs.find((one) => one.identity === identity);
+  return !!tab && !tab.hidden;
 }
 
 /**

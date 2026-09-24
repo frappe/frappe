@@ -538,7 +538,7 @@ describe("add takes a block", () => {
     built.add([action("a"), action("b")]);
     // The self-read resolves over the replay in flight.
     expect(built.has("b")).toBe(true);
-    built.commitReplay();
+    built.commit();
     expect(built.visible().map((item) => item.name)).toEqual([
       "copy_url",
       "a",
@@ -667,7 +667,7 @@ describe("the cross-rendering anchor warning", () => {
     const built = surface([button("refresh_quote")]);
     built.add(action("escalate"), { after: "refresh_quote" });
     built.beginReplay();
-    built.commitReplay();
+    built.commit();
     expect(built.visible().map((item) => item.name)).toEqual(["refresh_quote"]);
   });
 });

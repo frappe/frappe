@@ -6,9 +6,11 @@ import type { Decorator } from "@framework/ui/components/FormLayout/buildLayoutF
 import { resolveFieldConditionals } from "@framework/ui/components/FormLayout/resolveLayout";
 import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
 import type { FieldAccess } from "@framework/ui/composables/useDocPermissions";
+import { runningSource } from "./context";
 import { withAccess } from "./formLayoutSource/fieldAccess";
 import { applyFieldPatch, type FieldPatch } from "./formLayoutSource/fieldPatch";
 import { readOnly, type ReadOnlyAdvice } from "./readOnly";
+import { StagedOverlay } from "./staging";
 import type { PageField, PageFieldPatch, PageFields } from "./types";
 
 const SNAPSHOT_IS_READ_ONLY: ReadOnlyAdvice = {
@@ -79,37 +81,38 @@ export interface FieldsSurfaceHost {
 }
 
 type Op =
-  | { verb: "hide" | "show"; fieldname: string }
-  | { verb: "update"; fieldname: string; patch: FieldPatch };
+  | { verb: "hide" | "show"; source: string; fieldname: string }
+  | { verb: "update"; source: string; fieldname: string; patch: FieldPatch };
 
-export class FieldsSurface implements PageFields {
-  // Reactive so the host's layout re-joins on a replay. Shallow: a deep proxy would
-  // hand `v-bind` a Proxy of whatever a script put in `props`, breaking a class instance.
-  private ops: Op[] = shallowReactive([]);
-  // The replay's ops until it commits, so a script-hidden field does not flash into
-  // view for a tick on every save. Non-null only inside a replay.
-  private pending: Op[] | null = null;
-  private replaying = 0;
-
+export class FieldsSurface extends StagedOverlay<Op> implements PageFields {
   /** Installed by `createRecordPage`, which holds the replay state a focus waits on. */
   declare focus: (fieldname: string) => void;
 
-  constructor(private host: FieldsSurfaceHost) {}
+  // Shallow: a deep proxy would hand `v-bind` a Proxy of whatever a script put in
+  // `props`, breaking a class instance.
+  constructor(private host: FieldsSurfaceHost) {
+    super(shallowReactive([]));
+  }
 
   hide(fieldname: string) {
-    this.record({ verb: "hide", fieldname });
+    this.record({ verb: "hide", source: runningSource(), fieldname });
     this.warnIfAbsent(fieldname, "hide");
   }
 
   show(fieldname: string) {
-    this.record({ verb: "show", fieldname });
+    this.record({ verb: "show", source: runningSource(), fieldname });
     this.warnIfAbsent(fieldname, "show");
   }
 
   update(fieldname: string, patch: PageFieldPatch) {
     // Named before the keys are read, so a mistyped fieldname is heard first.
     this.warnIfAbsent(fieldname, "update");
-    this.record({ verb: "update", fieldname, patch: translate(fieldname, patch) });
+    this.record({
+      verb: "update",
+      source: runningSource(),
+      fieldname,
+      patch: translate(fieldname, patch),
+    });
   }
 
   has(fieldname: string) {
@@ -122,44 +125,34 @@ export class FieldsSurface implements PageFields {
       this.warnIfAbsent(fieldname, "get");
       return null;
     }
-    // The same calls the join makes, in the same order, so the reader cannot drift from the renderer.
-    const node = mapField(
-      withAccess(raw, (field) => this.host.fieldAccess(field.fieldname)),
-      {},
-      this.host.decorate,
-    );
-    // Over the replay in flight when there is one, as `Surface.has` reads: a source
-    // reading back its own `refresh` work is told about it, not about last replay's.
-    const patched = applyFieldPatch(node, this.fold(this.pending ?? this.ops)[fieldname]);
-    const resolved = resolveFieldConditionals(patched, this.host.doc());
+    // Over the replay or hold in flight when there is one, as `Surface.has` reads: a
+    // source reading back its own work is told about it, not about what is drawn.
+    const resolved = this.resolveField(raw, this.currentOps);
     return readOnly(snapshot(resolved), SNAPSHOT_IS_READ_ONLY);
   }
 
   // Host side, below: not part of what a script may call.
 
-  /** Opens a replay: ops from here are staged. Counted, so a nested `page.refresh()` re-enters. */
-  beginReplay() {
-    this.pending = [];
-    this.replaying += 1;
+  /** Whether the field shows in what is drawn, a replay or hold in flight left out. */
+  isDrawn(fieldname: string) {
+    const raw = this.raw(fieldname);
+    return !!raw && !this.resolveField(raw, this.drawnOps).hidden;
   }
 
-  /** Close a replay: the outermost one publishes the staged ops in one flush. */
-  commitReplay() {
-    if (this.replaying === 0) return;
-    this.replaying -= 1;
-    if (this.replaying > 0) return;
-    const staged = this.pending ?? [];
-    this.pending = null;
-    this.ops.splice(0, this.ops.length, ...staged);
-  }
-
-  /** The applied overlay: committed ops only, never a replay in flight. */
+  /** The applied overlay: committed ops only, never a replay or hold in flight. */
   resolve(): Record<string, FieldPatch> {
-    return this.fold(this.ops);
+    return this.fold(this.drawnOps);
   }
 
-  private record(op: Op) {
-    (this.pending ?? this.ops).push(op);
+  // The same calls the join makes, in the same order, so the reader cannot drift from the renderer.
+  private resolveField(raw: RawMetaField, ops: Op[]) {
+    const node = mapField(
+      withAccess(raw, (field) => this.host.fieldAccess(field.fieldname)),
+      {},
+      this.host.decorate,
+    );
+    const patched = applyFieldPatch(node, this.fold(ops)[raw.fieldname]);
+    return resolveFieldConditionals(patched, this.host.doc());
   }
 
   /**

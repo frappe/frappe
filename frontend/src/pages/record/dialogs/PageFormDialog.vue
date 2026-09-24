@@ -141,7 +141,9 @@ let answered = false;
 function dismissed() {
 	if (answered) return;
 	answered = true;
-	options.onCancel?.();
+	props.entry
+		.hold(() => options.onCancel?.())
+		.catch((exception) => report("onCancel", exception));
 }
 
 // Navigating off the record unmounts this component before the watcher below can run.
@@ -176,7 +178,7 @@ async function submit() {
 	error.value = "";
 	try {
 		const data = formData(layout.value, doc.value);
-		await options.onSubmit?.(data);
+		await props.entry.hold(() => options.onSubmit?.(data));
 		close(data);
 	} catch (exception) {
 		// The dialog stays open with the error inline, so a failed server call can be retried.
@@ -198,15 +200,18 @@ async function runAction(action: PageDialogAction, index: number) {
 	actionLoading[index] = true;
 	error.value = "";
 	try {
-		if (!action.onClick) {
+		const onClick = action.onClick;
+		if (!onClick) {
 			if (validate()) close(formData(layout.value, doc.value));
 			return;
 		}
-		await action.onClick({
-			data: formData(layout.value, doc.value),
-			close,
-			validate,
-		});
+		await props.entry.hold(() =>
+			onClick({
+				data: formData(layout.value, doc.value),
+				close,
+				validate,
+			})
+		);
 	} catch (exception) {
 		report(`action "${action.label}"`, exception);
 	} finally {

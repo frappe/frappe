@@ -1,8 +1,7 @@
-// The strip over the tab bodies: a skeleton until the first replay, a body that stays mounted after its first visit, and its focus.
+// The strip over the tab bodies: a body that stays mounted after its first visit, and its focus.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, reactive } from "vue";
 import { ScrollArea } from "frappe-ui";
-import { createMemoryHistory, createRouter } from "vue-router";
 
 const strips: unknown[] = [];
 
@@ -59,17 +58,10 @@ function entry(name: string, extra: Partial<TabItem> = {}, hidden = false): Reso
 async function mount(
   tabs: ResolvedItem<TabItem>[],
   active: string,
-  ready = true,
   onSelect?: (name: string) => unknown,
   claimsFocus?: (name: string) => boolean,
-  address = "/deal/D-1",
 ) {
-  const state = reactive({ tabs, active, ready, page, claimsFocus });
-  const router = createRouter({
-    history: createMemoryHistory(),
-    routes: [{ path: "/:path(.*)*", component: { render: () => null } }],
-  });
-  await router.push(address);
+  const state = reactive({ tabs, active, page, claimsFocus });
   const selected: string[] = [];
   const root = document.createElement("div");
   document.body.appendChild(root);
@@ -81,7 +73,6 @@ async function mount(
         { details: () => h("form", { "data-details": "" }, [h("input", { "data-field": "" })]) },
       ),
   });
-  app.use(router);
   app.mount(root);
   apps.push(app);
   await nextTick();
@@ -101,52 +92,6 @@ function viewport(root: HTMLElement, name: string) {
 function frame() {
   return new Promise((resolve) => requestAnimationFrame(resolve));
 }
-
-describe("before the first replay", () => {
-  it("draws a skeleton and no body", async () => {
-    const { root } = await mount(FOUR, "", false);
-
-    expect(root.querySelectorAll("[data-record-tabs-skeleton] .fui-skeleton")).toHaveLength(4);
-    expect(root.querySelector("nav")).toBeNull();
-    expect(root.querySelector("[data-record-tab]")).toBeNull();
-  });
-
-  it("draws a two-column Details form skeleton under the strip, gone after the replay", async () => {
-    const { root, state } = await mount(FOUR, "", false);
-
-    const form = root.querySelector("[data-record-tabs-skeleton] + [data-form-skeleton]");
-    expect(form!.querySelectorAll(".fui-skeleton")).toHaveLength(16);
-    expect(form!.querySelector(".grid")!.className).toContain("sm:grid-cols-2");
-
-    state.ready = true;
-    state.active = "details";
-    await nextTick();
-
-    expect(root.querySelector("[data-form-skeleton]")).toBeNull();
-    expect(root.querySelector("[data-details]")).not.toBeNull();
-  });
-
-  it.each(["?tab=activity", "?tab=emails", "?activity=x", "?tab=files&activity=x"])(
-    "draws the feed's skeleton, not the form's, when the address is %s",
-    async (query) => {
-      const { root } = await mount(FOUR, "", false, undefined, undefined, `/deal/D-1${query}`);
-
-      const feed = root.querySelector("[data-record-tabs-skeleton] + [data-feed-skeleton]");
-      expect(feed!.querySelectorAll(".fui-skeleton").length).toBeGreaterThan(0);
-      expect(root.querySelector("[data-form-skeleton]")).toBeNull();
-    },
-  );
-
-  it.each(["", "?tab=files", "?tab=details"])(
-    "draws the form's skeleton when the address is %s",
-    async (query) => {
-      const { root } = await mount(FOUR, "", false, undefined, undefined, `/deal/D-1${query}`);
-
-      expect(root.querySelector("[data-form-skeleton]")).not.toBeNull();
-      expect(root.querySelector("[data-feed-skeleton]")).toBeNull();
-    },
-  );
-});
 
 describe("the strip", () => {
   it("draws the visible tabs, each with its icon on the left of its label", async () => {
@@ -171,7 +116,7 @@ describe("the strip", () => {
     const tabs = new Surface<TabItem>({ surface: "tabs", keys: TAB_ITEM_KEYS });
     tabs.provideBuiltins(recordTabBuiltins);
     const host = new RecordTabsHost(route as any, router, () => tabs);
-    const { root } = await mount(FOUR, "activity", true, host.activate);
+    const { root } = await mount(FOUR, "activity", host.activate);
 
     root.querySelector<HTMLElement>('[data-tab="files"]')!.click();
     await nextTick();
@@ -389,7 +334,7 @@ describe("focus", () => {
   it("leaves focus alone when the page placed it on the move", async () => {
     const claimed: string[] = [];
     const claimsFocus = (name: string) => (claimed.push(name), true);
-    const { root, state } = await mount(FOUR, "details", true, undefined, claimsFocus);
+    const { root, state } = await mount(FOUR, "details", undefined, claimsFocus);
     const input = root.querySelector<HTMLInputElement>("[data-field]")!;
     input.focus();
     state.active = "activity";

@@ -95,7 +95,7 @@ describe("page.dialog.form and open", () => {
     const promise = controller.page.dialog.form({ fields: [] });
 
     controller.dialogs.value[0].settle({ summary: "submitted" });
-    controller.closeDialogs();
+    controller.leave();
 
     expect(await promise).toEqual({ summary: "submitted" });
   });
@@ -103,7 +103,7 @@ describe("page.dialog.form and open", () => {
   it("refuses to open once the page has gone away", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const controller = createRecordPage(makeHost());
-    controller.closeDialogs();
+    controller.leave();
 
     expect(await controller.page.dialog.form({ fields: [] })).toBeNull();
     expect(controller.dialogs.value).toHaveLength(0);
@@ -155,7 +155,7 @@ describe("page.dialog.form and open", () => {
     void first.then(() => closed.push("first"));
     void second.then(() => closed.push("second"));
 
-    controller.closeDialogs();
+    controller.leave();
 
     expect(await first).toBeNull();
     expect(await second).toBeNull();
@@ -305,13 +305,76 @@ describe("page.dialog.confirm and danger", () => {
     expect(await promise).toBe(true);
   });
 
+  it("draws a callback's ops once it finishes, not verb by verb", async () => {
+    confirmSpy.mockImplementation(() => ({ close: vi.fn() }));
+    const controller = createRecordPage(makeHost());
+    const drawnDuring: string[][] = [];
+    controller.page.dialog.confirm({
+      onConfirm: async () => {
+        controller.page.quickActions.add({ name: "a", label: "A" });
+        await Promise.resolve();
+        drawnDuring.push(controller.quickActions.visible().map((one) => one.name));
+        controller.page.quickActions.add({ name: "b", label: "B" });
+      },
+    });
+
+    await confirmSpy.mock.calls[0][0].onConfirm({});
+
+    expect(drawnDuring).toEqual([[]]);
+    expect(controller.quickActions.visible().map((one) => one.name)).toEqual(["a", "b"]);
+  });
+
+  type Run = () => Promise<void>;
+  it.each([
+    [
+      "an action's onClick",
+      (run: Run) => ({ actions: [{ label: "Go", onClick: run }] }),
+      (args: any) => args.actions[0].onClick({}),
+    ],
+    ["onCancel", (run: Run) => ({ onCancel: run }), (args: any) => args.onCancel()],
+  ])("draws %s's ops once it finishes, not verb by verb", async (_, options, fire) => {
+    confirmSpy.mockImplementation(() => ({ close: vi.fn() }));
+    const controller = createRecordPage(makeHost());
+    const drawnDuring: string[][] = [];
+    controller.page.dialog.confirm(
+      options(async () => {
+        controller.page.quickActions.add({ name: "a", label: "A" });
+        await Promise.resolve();
+        drawnDuring.push(controller.quickActions.visible().map((one) => one.name));
+        controller.page.quickActions.add({ name: "b", label: "B" });
+      }),
+    );
+
+    await fire(confirmSpy.mock.calls[0][0]);
+
+    expect(drawnDuring).toEqual([[]]);
+    expect(controller.quickActions.visible().map((one) => one.name)).toEqual(["a", "b"]);
+  });
+
+  it("resolves null and reports when onCancel rejects", async () => {
+    confirmSpy.mockImplementation(() => ({ close: vi.fn() }));
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { page } = createRecordPage(makeHost());
+    const failure = new Error("cancel failed");
+    const promise = page.dialog.confirm({ onCancel: () => Promise.reject(failure) });
+
+    await confirmSpy.mock.calls[0][0].onCancel();
+
+    expect(await promise).toBeNull();
+    expect(error).toHaveBeenCalledWith(
+      expect.stringContaining("page.dialog.confirm onCancel threw"),
+      failure,
+    );
+    error.mockRestore();
+  });
+
   it("dismisses a native dialog and resolves null when the page goes away", async () => {
     const handle = { close: vi.fn() };
     confirmSpy.mockImplementation(() => handle);
     const controller = createRecordPage(makeHost());
     const promise = controller.page.dialog.confirm({ title: "Sure?" });
 
-    controller.closeDialogs();
+    controller.leave();
 
     expect(handle.close).toHaveBeenCalled();
     expect(await promise).toBeNull();

@@ -18,5 +18,5 @@ import PageOpenDialog from "./PageOpenDialog.vue";
 const props = defineProps<{ controller: RecordPageController }>();
 
 // Unmounting is navigating away: every open dialog resolves `null`, so no script hangs on it.
-onUnmounted(() => props.controller.closeDialogs());
+onUnmounted(() => props.controller.leave());
 </script>

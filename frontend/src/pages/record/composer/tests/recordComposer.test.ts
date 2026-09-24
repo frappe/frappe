@@ -136,7 +136,7 @@ afterEach(() => {
 
 function fakeController() {
 	const docname = `NOTE-${++record}`;
-	const composer = new ComposerSurface(composerHost("Note", docname));
+	const composer = new ComposerSurface(composerHost("Note", docname), () => false);
 	composer.provideBuiltins(composerBuiltins);
 	const page = {
 		doctype: "Note",
@@ -144,7 +144,8 @@ function fakeController() {
 		composer,
 		toast: { error: vi.fn(), success: vi.fn() },
 	};
-	return { page, composer, firePost: vi.fn(async () => {}) } as any;
+	const hold = vi.fn(async (work: () => unknown) => work());
+	return { page, composer, hold, firePost: vi.fn(async () => {}) } as any;
 }
 
 async function mountBand(tabs: TabItem[], active: string, controller = fakeController()) {
@@ -193,6 +194,7 @@ describe("the pill", () => {
 		expect(options(root)).toEqual(["Log a call", "Attach a file"]);
 		(root.querySelector('[data-option="Attach a file"]') as HTMLElement).click();
 		expect(run).toHaveBeenCalledWith(controller.page);
+		expect(controller.hold).toHaveBeenCalledOnce();
 	});
 
 	it("draws no `+` menu when no tab creates anything", async () => {

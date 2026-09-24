@@ -1,5 +1,6 @@
 // `page.composer`: the writers the band at the foot of a composer tab offers, and the
 // acts that open and close one. The host draws the band and keeps the drafts.
+import { NOT_DRAWN } from "./staging";
 import { Surface } from "./surface";
 import { WRITER_ITEM_KEYS } from "./types";
 import type {
@@ -42,7 +43,11 @@ export interface ComposerHost {
 export class ComposerSurface extends Surface<WriterItem> implements PageComposer {
   private heldOpen: { name: string; options: ComposerOpenOptions } | null = null;
 
-  constructor(private readonly host: ComposerHost) {
+  constructor(
+    private readonly host: ComposerHost,
+    /** The page's rule for whether an act waits for a commit. */
+    private readonly isStaging: () => boolean,
+  ) {
     super({ surface: "composer", keys: WRITER_ITEM_KEYS });
   }
 
@@ -60,11 +65,11 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
     else this.host.setWindow(value);
   }
 
-  /** Called in a replay, the open waits for `releaseOpen`, as `activity.scrollTo` waits. */
+  /** Called in a replay or a hold, the open waits for `releaseOpen`, as `activity.scrollTo` waits. */
   open(name: string, options: ComposerOpenOptions = {}) {
     if (!this.canOpen(name)) return;
     const checked = this.checkWindow(name, options);
-    if (this.replaying) this.heldOpen = { name, options: checked };
+    if (this.isStaging()) this.heldOpen = { name, options: checked };
     else this.deliver(name, checked);
   }
 
@@ -75,10 +80,13 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
 
   // Host side, below: not part of what a script may call.
 
-  releaseOpen() {
+  /** `drawnOnly` at the first paint that went ahead: a writer not drawn yet is dropped. */
+  releaseOpen(drawnOnly = false) {
     const held = this.heldOpen;
     this.heldOpen = null;
-    if (held && this.canOpen(held.name, "it left the composer before the replay settled"))
+    if (!held) return;
+    if (drawnOnly && !this.isDrawn(held.name)) this.refuse(held.name, NOT_DRAWN);
+    else if (this.canOpen(held.name, "it left the composer before the replay settled"))
       this.deliver(held.name, held.options);
   }
 
