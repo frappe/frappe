@@ -93,7 +93,13 @@ const html_content_field = computed(() => F.value.content);
 const width_field = computed(() => F.value.width);
 const height_field = computed(() => F.value.height);
 
-const zone_source = computed(() => letterhead.value?.[source_field.value] || "Image");
+const zone_source = computed(() => {
+	const lh = letterhead.value;
+	if (!lh) return "Image";
+	if (lh[source_field.value] === "HTML") return "HTML";
+	if (!lh[image_field.value] && lh[html_content_field.value]) return "HTML";
+	return "Image";
+});
 const zone_align = computed(() => letterhead.value?.[align_field.value] ?? "Left");
 
 const aspect_ratio = ref(null);
@@ -187,6 +193,7 @@ function edit_html() {
 		docname: store.preview_doc_name.value,
 		on_save: (html) => {
 			letterhead.value[html_content_field.value] = html;
+			letterhead.value[source_field.value] = "HTML";
 			letterhead.value._dirty = true;
 		},
 	});
