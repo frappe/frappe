@@ -336,6 +336,28 @@ frappe.ui.GroupBy = class {
 				frappe.meta.docfield_map[this.aggregate_on_doctype][this.aggregate_on_field]
 			);
 
+			if (docfield.fieldtype === "Currency" && docfield.options) {
+				// Server-side, a Currency field whose value can vary per row (its "options"
+				// points to a currency fieldname rather than a fixed code) gets summed via its
+				// base_<fieldname> counterpart when one exists and is readable (see
+				// get_currency_normalized_fieldname in reportview.py) -- always in the
+				// company's default currency. Formatting the total with the *original* field's
+				// per-row currency here would mislabel it, e.g. showing a converted INR total
+				// with a "$" symbol when grouped by a currency column. Mirror the same
+				// existence + permission check so display only changes when the server
+				// actually substituted the field, then drop it so it falls back to the
+				// default currency.
+				const base_fieldname = "base_" + this.aggregate_on_field;
+				const base_df = frappe.meta.docfield_map[this.aggregate_on_doctype][base_fieldname];
+				if (
+					base_df &&
+					(!base_df.permlevel ||
+						frappe.perm.has_perm(this.aggregate_on_doctype, base_df.permlevel, "read"))
+				) {
+					docfield.options = null;
+				}
+			}
+
 			if (this.aggregate_function === "sum") {
 				docfield.label = __("Sum of {0}", [__(docfield.label, null, docfield.parent)]);
 			} else {
