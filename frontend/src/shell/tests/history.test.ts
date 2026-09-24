@@ -66,7 +66,7 @@ function makeRouter() {
 		routes: [
 			{ path: "/", name: "home", component: stub },
 			{ path: "/:doctype", name: "list", component: stub },
-			{ path: "/:doctype/view/:viewName", name: "saved-view", component: stub },
+			{ path: "/:doctype/view/list/:viewName", name: "saved-view", component: stub },
 			{ path: "/:doctype/:name", name: "record", component: stub },
 		],
 	});
