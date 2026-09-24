@@ -273,7 +273,9 @@ def _download_multi_pdf(
 				pdf_writer = print_into_writer(doctype, ss)
 			except frappe.PermissionError:
 				if task_id:
-					frappe.publish_realtime(task_id=task_id, message={"message": "Failed"})
+					frappe.publish_realtime(
+						task_id=task_id, message={"message": "Failed"}, user=frappe.session.user
+					)
 				raise
 			except Exception:
 				frappe.log_error(
@@ -282,7 +284,9 @@ def _download_multi_pdf(
 					reference_name=ss,
 				)
 				if task_id:
-					frappe.publish_realtime(task_id=task_id, message={"message": "Failed"})
+					frappe.publish_realtime(
+						task_id=task_id, message={"message": "Failed"}, user=frappe.session.user
+					)
 
 			# Publish progress
 			if task_id:
@@ -310,11 +314,11 @@ def _download_multi_pdf(
 					pdf_writer = print_into_writer(doctype_name, doc_name)
 				except frappe.PermissionError:
 					if task_id:
-						frappe.publish_realtime(task_id=task_id, message="Failed")
+						frappe.publish_realtime(task_id=task_id, message="Failed", user=frappe.session.user)
 					raise
 				except Exception:
 					if task_id:
-						frappe.publish_realtime(task_id=task_id, message="Failed")
+						frappe.publish_realtime(task_id=task_id, message="Failed", user=frappe.session.user)
 					frappe.log_error(
 						title="Error in Multi PDF download",
 						message=f"Permission Error on doc {doc_name} of doctype {doctype_name}",
