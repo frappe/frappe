@@ -1227,3 +1227,50 @@ context("Print Format Builder — draft and Save & Apply", () => {
 			.should("have.value", "29");
 	});
 });
+
+// ─── Print Format form — renderer notice ──────────────────────────────────────
+
+context("Print Format form — renderer notice", () => {
+	let PF_NAME;
+
+	before(() => {
+		cy.login();
+		cy.visit("/desk");
+	});
+
+	beforeEach(() => {
+		PF_NAME = pf_name();
+	});
+
+	afterEach(() => {
+		cy.window().then((win) => cleanup(win, PF_NAME));
+	});
+
+	it("treats an empty renderer on a classic format as wkhtmltopdf", () => {
+		cy.insert_doc(
+			"Print Format",
+			{
+				name: PF_NAME,
+				doc_type: "ToDo",
+				print_format_builder: 1,
+				format_data: JSON.stringify([
+					{ fieldtype: "Section Break", label: "" },
+					{ fieldtype: "Column Break" },
+					{ fieldname: "description", print_hide: 0 },
+				]),
+			},
+			true
+		);
+		cy.call("frappe.client.set_value", {
+			doctype: "Print Format",
+			name: PF_NAME,
+			fieldname: "pdf_generator",
+			value: "",
+		});
+
+		cy.visit(`/desk/print-format/${encodeURIComponent(PF_NAME)}`);
+		cy.get(".form-message:visible", { timeout: 20000 })
+			.should("contain", "classic builder will be removed")
+			.and("contain", "wkhtmltopdf is deprecated");
+	});
+});
