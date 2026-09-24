@@ -304,8 +304,6 @@ context("Web Form", () => {
 		});
 	});
 });
-<<<<<<< HEAD
-=======
 
 function set_web_form_fields_without_fieldname(fields) {
 	cy.get_doc("Web Form", "note").then(({ data }) => {
@@ -313,11 +311,3 @@ function set_web_form_fields_without_fieldname(fields) {
 		cy.call("frappe.client.save", { doc: data });
 	});
 }
-
-function set_web_form_field_default(fieldname, value) {
-	cy.get_doc("Web Form", "note").then(({ data }) => {
-		const field = data.web_form_fields.find((df) => df.fieldname === fieldname);
-		cy.set_value("Web Form Field", field.name, { default: value });
-	});
-}
->>>>>>> e71bec4 (test(web_form): defaults on phone fields and fields without fieldname)
