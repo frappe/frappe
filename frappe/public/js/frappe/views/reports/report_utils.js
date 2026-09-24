@@ -161,9 +161,9 @@ frappe.report_utils = {
 	},
 
 	get_link_sort_value(df) {
-		// datatable sorts on cell.content, but Link cells may display the linked title
+		// datatable sorts on cell.content, but Link cells display a title or translation
 		if (df.fieldtype !== "Link") return null;
-		return (cell) => frappe.utils.get_link_title(df.options, cell.content) || cell.content;
+		return (cell) => frappe.format(cell.content, df, { only_value: true });
 	},
 
 	get_result_of_fn(fn, values) {
