@@ -866,7 +866,7 @@ class TypstEmitter:
 			if align in ("right",):
 				body = f"#grid(columns: (1fr, auto), column-gutter: {gap_pt}pt, [{label}], [#align(right)[{value_text}]])"
 			else:
-				body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
+				body = f"#grid(columns: (auto, auto), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
 			return self._text_props(df, body)
 		spacing = gap_effect if gap_effect is not None else 4
 		parts = [f"[{label}]"] if label else []
