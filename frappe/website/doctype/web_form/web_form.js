@@ -449,7 +449,7 @@ class GetFieldsDialog {
 			(d) => d.fieldname && !is_layout_field(d)
 		);
 		this.existing_fieldnames = this.existing_rows.map((d) => d.fieldname);
-		// stale: a row the picker cannot re-add, so unselecting it here is the only way out
+		// stale: a row this dialog cannot re-add, so it stays listed to be kept or unselected
 		this.stale_fieldnames = new Set(
 			this.existing_fieldnames.filter((fieldname) => !this.fields_by_name[fieldname])
 		);
@@ -665,7 +665,7 @@ class GetFieldsDialog {
 			return __("Not a field in {0}. Unselect to remove it.", [this.frm.doc.doc_type]);
 		}
 		if (docfield.hidden) {
-			return __("Hidden in {0}, so it cannot be added back. Unselect to remove it.", [
+			return __("Hidden in {0}. If you unselect it, Get Fields cannot add it back.", [
 				this.frm.doc.doc_type,
 			]);
 		}
