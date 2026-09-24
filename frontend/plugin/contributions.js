@@ -122,8 +122,9 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 	}
 
 	warnings.push(...clashes(replacements));
-	warnings.push(...pageClashes(pages, manifest, definitions.values(), allSourceDirs));
-	return { doctypes, pages, itemTypes, replacements, declarations, warnings };
+	// Terminal only: the router reports the clashes a site really has, and most sites have none.
+	const pageWarnings = pageClashes(pages, manifest, definitions.values(), allSourceDirs);
+	return { doctypes, pages, itemTypes, replacements, declarations, warnings, pageWarnings };
 }
 
 /** A record's real name, read from its own JSON. `null` if there is no readable one. */
@@ -238,7 +239,7 @@ export default function contributions(manifest, allSourceDirs) {
 			const found = discover(manifest, allSourceDirs);
 			// `pages.json` is read, never imported, so vite would not reload the module on an edit.
 			for (const declaration of found.declarations) this.addWatchFile(declaration);
-			report(found.warnings, logger);
+			report([...found.warnings, ...found.pageWarnings], logger);
 			return generate(found);
 		},
 	};

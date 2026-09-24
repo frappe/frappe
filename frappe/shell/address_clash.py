@@ -1,10 +1,10 @@
-# A new or renamed DocType or module may not take an address a page or another row already has.
-
-# A flat app serves doctypes at `/<doctype-slug>` and a modular app modules at `/<module-slug>`,
-# so a DocType competes with flat apps' pages and a module with modular apps' pages.
+# A new or renamed DocType or module may not take an address a page or another row already has:
+# a DocType competes with flat apps' pages, a module with modular apps' pages.
 
 import glob
 import os
+
+import click
 
 import frappe
 from frappe import _
@@ -38,7 +38,10 @@ def clash(doctype: str, name: str, excluded: set[str]) -> str | None:
 			_(doctype), name, address, bench_relative(page)
 		)
 
-	filters = {"istable": 0} if doctype == "DocType" else {}
+	# In LIKE `_` is any one character, so this finds every spelling of the slug.
+	filters = {"name": ["like", address.replace("-", "_")]}
+	if doctype == "DocType":
+		filters["istable"] = 0
 	for other in frappe.get_all(doctype, filters=filters, pluck="name"):
 		if other not in excluded and slug(other) == address:
 			return _("{0} {1} would take the address {2}, which the {0} {3} already uses.").format(
@@ -55,6 +58,7 @@ def refuse(doctype: str, name: str, excluded: set[str]):
 	# Install, migrate and patch write what app code ships, so a clash there is reported, not refused.
 	if frappe.flags.in_migrate or frappe.flags.in_patch or frappe.flags.in_install:
 		frappe.logger("shell").warning(message)
+		click.secho(message, fg="yellow")
 		return
 
 	frappe.throw(message, exc=AddressClashError, title=_("Address Taken"))

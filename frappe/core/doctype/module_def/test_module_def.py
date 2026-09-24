@@ -199,7 +199,7 @@ class TestDisablingTheHostAppLeavesTheModule(IntegrationTestCase):
 		):
 			disabled = get_disabled_modules()
 
-		# left cached, the disabled app's doctypes stay unpermitted for every later test's user
+		# Left cached, the disabled app's doctypes stay unpermitted for every later test's user
 		frappe.local.request_cache.clear()
 		return disabled
 
@@ -409,6 +409,7 @@ class TestModuleAddressClash(IntegrationTestCase):
 		for flag, name in (
 			("in_migrate", "Test Clash Migrated Module"),
 			("in_install", "Test Clash Installed Module"),
+			("in_patch", "Test Clash Patched Module"),
 		):
 			with (
 				self.subTest(flag=flag),

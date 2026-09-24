@@ -24,7 +24,10 @@ export function contributedRoutes(app: string | null, modular: boolean, addresse
 function sharedSlugs(own: PageContribution[]) {
   const seen = new Set<string>()
   const shared = new Set<string>()
-  for (const { slug } of own) (seen.has(slug) ? shared : seen).add(slug)
+  for (const { slug } of own) {
+    if (seen.has(slug)) shared.add(slug)
+    else seen.add(slug)
+  }
 
   for (const slug of shared) {
     console.error(

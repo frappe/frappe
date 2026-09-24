@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import type { PageContribution } from "@/contributions/types";
+import { itemContext } from "@/navigation/context";
 import { createShellRouter } from "@/router";
 
 const fake = vi.hoisted(() => ({ pages: [] as PageContribution[] }));
@@ -114,5 +115,16 @@ describe("two pages of one app with one slug", () => {
 
 		expect(pageNames(false)).toEqual(["page:crm:deals"]);
 		expect(errors).not.toHaveBeenCalled();
+	});
+});
+
+describe("the pages a navigation item can link to", () => {
+	it("leave out a dropped page, whose route does not exist", () => {
+		fake.pages.push(page("lead"), page("deals"), page("deals", "helpdesk"));
+		const router = createShellRouter(boot(false), addresses);
+
+		const { pages } = itemContext(boot(false), addresses, router, [], {});
+
+		expect(pages.map((entry) => `${entry.app}/${entry.slug}`)).toEqual(["crm/deals"]);
 	});
 });

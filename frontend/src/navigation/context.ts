@@ -22,8 +22,8 @@ export function itemContext(
 		router,
 		items,
 		sidebars,
-		// This prefix's pages only, the same filter the route table applies.
-		pages: pages.filter((page) => page.app === boot.app),
+		// The pages the route table kept: this prefix's own, less any whose address is taken.
+		pages: pages.filter((page) => router.hasRoute(`page:${page.app}:${page.slug}`)),
 		// Rejects off the index: `[]` is a real answer here and must not be forged.
 		contentsOf: (moduleSlug) =>
 			boot.app

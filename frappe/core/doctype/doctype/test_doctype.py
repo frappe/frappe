@@ -1172,7 +1172,11 @@ class TestDocTypeAddressClash(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("DocType", "Test Clash Freed"))
 
 	def test_install_and_migrate_only_warn(self):
-		for flag, name in (("in_migrate", "Test Clash Migrated"), ("in_install", "Test Clash Installed")):
+		for flag, name in (
+			("in_migrate", "Test Clash Migrated"),
+			("in_install", "Test Clash Installed"),
+			("in_patch", "Test Clash Patched"),
+		):
 			with (
 				self.subTest(flag=flag),
 				pages_at([frappe.scrub(name).replace("_", "-")]),
