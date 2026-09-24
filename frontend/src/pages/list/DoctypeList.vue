@@ -27,7 +27,9 @@
 				</div>
 				<div v-if="!customizing" class="flex shrink-0 items-center gap-2">
 					<Filter v-model="filters" :doctype="doctype" />
-					<SortBy v-model="sort" :doctype="doctype" />
+					<SortBy v-if="seeded" v-model="sort" :doctype="doctype" />
+					<!-- Sized to the default sort: a direction button joined to its field's label. -->
+					<Skeleton v-else class="h-7 w-36 shrink-0 rounded-4" data-sort-skeleton />
 					<ColumnSettings
 						v-model="columns"
 						:doctype="doctype"
@@ -85,7 +87,7 @@
 </template>
 
 <script setup lang="ts">
-import { Breadcrumbs, Button, Dropdown } from "frappe-ui";
+import { Breadcrumbs, Button, Dropdown, Skeleton } from "frappe-ui";
 import { ColumnSettings } from "@framework/ui/ColumnSettings";
 import { List, ListBulkBar, ListFooter, type BulkAction } from "@framework/ui/experimental/List";
 import { Filter } from "@framework/ui/Filter";
@@ -132,6 +134,7 @@ const {
 	loading,
 	error,
 	metaError,
+	seeded,
 	rowCount,
 	totalCount,
 	totalCapped,

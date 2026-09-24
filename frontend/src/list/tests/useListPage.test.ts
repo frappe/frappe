@@ -171,6 +171,22 @@ describe("seeding", () => {
 		expect(page.sort.value).toEqual([{ fieldname: "title", direction: "desc" }]);
 	});
 
+	it("is seeded, with its sort, only once the stored settings are in", async () => {
+		let answerSettings!: () => void;
+		fake.runMethod.mockImplementationOnce(
+			(method: string, args: Record<string, any>) =>
+				new Promise((done) => (answerSettings = () => done(answer(method, args))))
+		);
+		await mount("/lead");
+		expect(page.seeded.value).toBe(false);
+		expect(page.sort.value).toEqual([]);
+
+		answerSettings();
+		await settle();
+		expect(page.seeded.value).toBe(true);
+		expect(page.sort.value).toEqual([{ fieldname: "amount", direction: "asc" }]);
+	});
+
 	it("takes a contributed list.js's columns over meta", async () => {
 		fake.contributed = [{ columns: [{ fieldname: "status" }, { fieldname: "title" }] }];
 		await mount("/lead");
