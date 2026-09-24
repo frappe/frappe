@@ -4,7 +4,7 @@ import os
 from unittest.mock import MagicMock, patch
 
 import frappe
-from frappe.tests import UnitTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils.pdf_generator.page import Page
 
 
@@ -164,3 +164,43 @@ class TestChromePDFElementHeight(UnitTestCase):
 			self.assertEqual(self.page.get_element_height(), 113)
 
 		self.assertIn("DOM.disable", [c.args[0] for c in self.session.send.call_args_list])
+
+
+class TestChromePDFPrivateFiles(IntegrationTestCase):
+	def setUp(self):
+		self.captured = [None]
+		self.session = _make_session(self.captured)
+		self.page = _make_page(self.session)
+		self.file = frappe.get_doc(
+			doctype="File",
+			file_name=f"{frappe.generate_hash(length=8)}.txt",
+			content="private",
+			is_private=1,
+		).insert()
+		self.addCleanup(frappe.delete_doc, "File", self.file.name, force=True)
+		with patch("frappe.utils.pdf_generator.page.get_host_url", return_value=HOST):
+			self.page.intercept_request_for_local_resources()
+		self.callback = self.captured[0]
+
+	def _fire(self, request_id, url):
+		with patch("frappe.utils.pdf_generator.page.get_host_url", return_value=HOST):
+			_fire_request(self.callback, request_id, url)
+		return [c.args[0] for c in self.session.send.call_args_list]
+
+	def _url(self, query=""):
+		return f"{HOST}{self.file.file_url.lstrip('/')}{query}"
+
+	def test_private_file_with_fid_is_served(self):
+		self.assertIn("Fetch.fulfillRequest", self._fire("req-1", self._url(f"?fid={self.file.name}")))
+
+	def test_private_file_is_denied_to_guest(self):
+		frappe.set_user("Guest")
+		self.addCleanup(frappe.set_user, "Administrator")
+		sent = self._fire("req-2", self._url(f"?fid={self.file.name}"))
+		self.assertIn("Fetch.failRequest", sent)
+		self.assertNotIn("Fetch.fulfillRequest", sent)
+
+	def test_private_file_traversal_is_denied(self):
+		sent = self._fire("req-3", HOST + "private/files/../../site_config.json")
+		self.assertIn("Fetch.failRequest", sent)
+		self.assertNotIn("Fetch.fulfillRequest", sent)
