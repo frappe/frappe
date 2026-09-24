@@ -42,6 +42,8 @@ class Tool:
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None
 
 	def __post_init__(self) -> None:
+		if "ctx" not in inspect.signature(self.func).parameters:
+			raise TypeError(f"Tool {self.name} must take `*, ctx: ToolContext`.")
 		self._validated = validate_call(config=ConfigDict(arbitrary_types_allowed=True))(self.func)
 
 	def __call__(self, **kwargs: Any) -> Any:

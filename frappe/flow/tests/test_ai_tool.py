@@ -77,6 +77,14 @@ class TestToolDecorator(UnitTestCase):
 		self.assertEqual(identify.parameters["properties"], {"value": {"type": "string"}})
 		self.assertEqual(identify(value="ok", ctx=CTX), ("ok", "test"))
 
+	def test_a_tool_without_context_is_refused_when_defined(self):
+		with self.assertRaisesRegex(TypeError, r"Tool ping must take `\*, ctx: ToolContext`"):
+
+			@tool
+			def ping() -> str:
+				"""Ping."""
+				return "pong"
+
 
 class TestSchemaPrimitives(UnitTestCase):
 	def test_primitives_and_required_flag(self):

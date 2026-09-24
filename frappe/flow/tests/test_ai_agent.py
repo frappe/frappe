@@ -267,7 +267,7 @@ class TestAgent(IntegrationTestCase):
 			self.synced(tools=[inner])
 
 	def test_a_lambda_tool_is_refused(self):
-		anonymous = tool(lambda: "x", name="anonymous", description="Anonymous.")
+		anonymous = tool(lambda *, ctx: "x", name="anonymous", description="Anonymous.")
 
 		with self.assertRaisesRegex(frappe.ValidationError, "module-level"):
 			self.synced(tools=[anonymous])
