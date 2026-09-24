@@ -21,8 +21,7 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 		history: createWebHistory(boot.shell_base),
 		routes: [
 			// Contributed pages match before generated routes: `/deals` must beat `/:doctype`.
-			// Nothing validates a page slug against a doctype or module slug; a clash shadows silently.
-			...contributedRoutes(boot.app),
+			...contributedRoutes(boot.app, modular, addresses),
 			...generatedRoutes(modular),
 			{
 				path: "/:pathMatch(.*)*",
