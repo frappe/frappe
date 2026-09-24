@@ -32,7 +32,7 @@ data-fieldtype="{{ df.fieldtype }}"
 {%- set _radius = df.table_radius if df.table_radius is defined and df.table_radius is not none else none -%}
 {%- if _radius is not none %}--pfb-radius:{{ _radius }}px;{% endif -%}
 {%- if df.table_header_bg and not plain_header %}--pfb-header-bg:{{ df.table_header_bg }};{% endif -%}
-{%- if df.table_min_height %}min-height:{{ df.table_min_height|int }}px;{% endif -%}
+{%- if df.table_min_height %}height:{{ df.table_min_height|int }}px;--pfb-foot-height:100%;{% endif -%}
 {%- endmacro %}
 
 {#- one empty cap cell per column: draws the closing bottom border (and rounded
