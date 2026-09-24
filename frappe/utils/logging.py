@@ -27,9 +27,20 @@ LOG_DB_NAME = "logs"
 class LogDatabase(SQLiteDatabase):
 	"""The site's log database.
 
-	Identical to :class:`~frappe.database.sqlite.database.SQLiteDatabase` apart from
-	where the file lives: the base class keeps site databases in `<site>/db/`, while
-	log data belongs in `<site>/logs/` next to the site's other log output.
+	Differs from :class:`~frappe.database.sqlite.database.SQLiteDatabase` in two ways.
+
+	Where the file lives: the base class keeps site databases in `<site>/db/`, while log
+	data belongs in `<site>/logs/` next to the site's other log output.
+
+	And how it treats transactions. The base class wraps work in a transaction and opens a
+	fresh one after every commit, which is right for a site's primary database, where a
+	request is one atomic unit. A log database is the opposite: each record is independent
+	and has to be durable the moment it is written -- an Error Log describing a failure is
+	worthless if it rolls back with the failure. Grouping log writes into a transaction also
+	makes them share a lock, so a single write that never reaches its commit holds `logs.db`
+	against every other process for the life of the connection. Running in autocommit
+	removes both problems: every statement is its own transaction, and no lock outlives the
+	statement that took it.
 	"""
 
 	def __init__(self):
@@ -43,6 +54,23 @@ class LogDatabase(SQLiteDatabase):
 		# sqlite3 creates the database file on connect, but not its parent directory.
 		self.get_db_path().parent.mkdir(parents=True, exist_ok=True)
 		super().connect()
+
+	def get_connection(self, read_only: bool = False):
+		"""Connect in autocommit mode. See the class docstring."""
+		conn = super().get_connection(read_only=read_only)
+
+		# `None` is sqlite3's autocommit: it stops opening an implicit transaction before
+		# a write, so each statement commits itself.
+		conn.isolation_level = None
+
+		return conn
+
+	def begin(self, *, read_only=False):
+		"""No-op: this connection never opens an explicit transaction.
+
+		`SQLiteDatabase.commit` calls `begin` to re-open one straight after committing, which
+		would leave the connection permanently mid-transaction and defeat autocommit.
+		"""
 
 
 def get_log_db() -> LogDatabase:
