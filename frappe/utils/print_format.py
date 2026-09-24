@@ -154,6 +154,15 @@ def page_settings(pdf_options) -> dict:
 	return settings
 
 
+def publish_failure(task_id: str, error: Exception):
+	"""The list view waits on task_complete alone, so a failure has to arrive there."""
+	frappe.publish_realtime(
+		f"task_complete:{task_id}",
+		message={"error": str(error) or _("You are not permitted to print one of the selected documents")},
+		user=frappe.session.user,
+	)
+
+
 def _download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
@@ -271,11 +280,9 @@ def _download_multi_pdf(
 		for idx, ss in enumerate(result):
 			try:
 				pdf_writer = print_into_writer(doctype, ss)
-			except frappe.PermissionError:
+			except frappe.PermissionError as e:
 				if task_id:
-					frappe.publish_realtime(
-						task_id=task_id, message={"message": "Failed"}, user=frappe.session.user
-					)
+					publish_failure(task_id, e)
 				raise
 			except Exception:
 				frappe.log_error(
@@ -312,9 +319,9 @@ def _download_multi_pdf(
 			for doc_name in doctype[doctype_name]:
 				try:
 					pdf_writer = print_into_writer(doctype_name, doc_name)
-				except frappe.PermissionError:
+				except frappe.PermissionError as e:
 					if task_id:
-						frappe.publish_realtime(task_id=task_id, message="Failed", user=frappe.session.user)
+						publish_failure(task_id, e)
 					raise
 				except Exception:
 					if task_id:
