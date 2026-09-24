@@ -86,6 +86,7 @@ function load_print_format_builder(wrapper, force = false) {
 	$parent.empty();
 
 	frappe.model.with_doc("Print Format", route[1], () => {
+		if (frappe.get_route()[1] !== route[1]) return;
 		if (frappe.get_doc("Print Format", route[1])?.__onload?.renders_from_file) {
 			frappe.msgprint(
 				__("{0} is rendered from an HTML file and cannot be edited in the builder.", [

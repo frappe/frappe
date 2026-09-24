@@ -10,6 +10,7 @@ frappe.pages["print-format-builder"].on_page_show = function (wrapper) {
 		return;
 	}
 	frappe.model.with_doc("Print Format", route[1], function () {
+		if (frappe.get_route()[1] !== route[1]) return;
 		const print_format = frappe.get_doc("Print Format", route[1]);
 		if (print_format?.__onload?.renders_from_file) {
 			frappe.msgprint(
