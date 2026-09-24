@@ -132,6 +132,22 @@ def get_context(context) -> PrintContext:
 	return context
 
 
+def cast_client_values(document: "Document"):
+	"""A document posted from the form carries JSON types: dates as strings and
+	whole floats as ints. The PDF loads the same document from the database, so
+	the preview must see the same Python types or the two render differently."""
+	from frappe.utils.data import cast
+
+	rows = [document]
+	for df in document.meta.get_table_fields():
+		rows.extend(document.get(df.fieldname) or [])
+	for row in rows:
+		for df in row.meta.fields:
+			value = row.get(df.fieldname)
+			if value not in (None, ""):
+				row.set(df.fieldname, cast(df.fieldtype, value))
+
+
 def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" | None:
 	"""Return print format document."""
 	if not print_format_name:
@@ -336,6 +352,7 @@ def get_html_and_style(
 		document = frappe.get_lazy_doc(doc, name, check_permission=True)
 	else:
 		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
+		cast_client_values(document)
 
 	print_format, is_beta = resolve_print_format(print_format, document.meta)
 
