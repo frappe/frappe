@@ -1366,6 +1366,64 @@ class TestReportView(IntegrationTestCase):
 		response = execute_cmd("frappe.desk.reportview.get")
 		self.assertListEqual(response["keys"], ["field_label", "field_name", "_aggregate_column"])
 
+	def test_reportview_group_by_aggregates_multi_currency_field_in_base_currency(self):
+		# a Currency field whose "options" points to a sibling currency fieldname can hold a
+		# different currency on every row; summing/averaging it directly mixes currencies and
+		# misrepresents the total. When a `base_<fieldname>` counterpart exists (the common
+		# convention for storing the same value converted to the company's default currency),
+		# Group By should aggregate on that instead.
+		doctype = new_doctype(
+			"Test Multi Currency GroupBy",
+			fields=[
+				{"label": "Party", "fieldname": "party", "fieldtype": "Data"},
+				{"label": "Currency", "fieldname": "currency", "fieldtype": "Link", "options": "Currency"},
+				{
+					"label": "Amount",
+					"fieldname": "amount",
+					"fieldtype": "Currency",
+					"options": "currency",
+				},
+				{
+					"label": "Amount (Company Currency)",
+					"fieldname": "base_amount",
+					"fieldtype": "Currency",
+				},
+			],
+		).insert()
+		self.addCleanup(lambda: frappe.delete_doc("DocType", doctype.name, force=True))
+
+		frappe.get_doc(
+			doctype=doctype.name, party="A", currency="USD", amount=10, base_amount=800
+		).insert()
+		frappe.get_doc(
+			doctype=doctype.name, party="A", currency="USD", amount=5, base_amount=400
+		).insert()
+		self.addCleanup(lambda: frappe.db.delete(doctype.name))
+
+		frappe.local.request = frappe._dict()
+		frappe.local.request.method = "POST"
+		frappe.local.form_dict = frappe._dict(
+			{
+				"doctype": doctype.name,
+				"fields": f'["`tab{doctype.name}`.`party` as party"]',
+				"filters": "[]",
+				"order_by": "_aggregate_column desc",
+				"start": 0,
+				"page_length": 20,
+				"view": "Report",
+				"with_comment_count": 0,
+				"group_by": "party",
+				"aggregate_on_field": "amount",
+				"aggregate_on_doctype": doctype.name,
+				"aggregate_function": "sum",
+			}
+		)
+		response = execute_cmd("frappe.desk.reportview.get")
+
+		# raw `amount` (10 + 5 = 15) would silently mix USD and the company's default
+		# currency; the aggregated total must come from `base_amount` (800 + 400) instead.
+		self.assertEqual(response["values"][0][1], 1200)
+
 	def test_reportview_get_permlevel_system_users(self):
 		with setup_patched_blog_post(), setup_test_user(set_user=True):
 			frappe.local.request = frappe._dict()
