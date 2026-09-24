@@ -109,7 +109,7 @@ def download_multi_pdf_async(
 	job = None
 	for slot in range(get_max_concurrent_bulk_exports()):
 		job = frappe.enqueue(
-			_download_multi_pdf_in_language,
+			_download_multi_pdf,
 			language=frappe.local.lang,
 			doctype=doctype,
 			name=name,
@@ -138,12 +138,6 @@ def download_multi_pdf_async(
 	return {"task_id": task_id}
 
 
-def _download_multi_pdf_in_language(language: str | None, **kwargs):
-	"""A worker starts in the site's language, not the requester's."""
-	with print_language(language):
-		return _download_multi_pdf(**kwargs)
-
-
 def _download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
@@ -152,6 +146,7 @@ def _download_multi_pdf(
 	letterhead: str | None = None,
 	options: str | None = None,
 	task_id: str | None = None,
+	language: str | None = None,
 ):
 	"""Return a PDF compiled by concatenating multiple documents.
 
@@ -202,39 +197,42 @@ def _download_multi_pdf(
 	def print_into_writer(print_doctype, print_name):
 		"""Route one document into the shared writer — builder formats through the
 		generator (which dispatches Typst), everything else through get_print."""
-		from frappe.printing.doctype.print_format.classic_converter import (
-			get_default_print_format,
-			uses_beta_renderer,
-		)
-		from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
-		from frappe.www.printview import set_link_titles, validate_print
-
-		pf_doc = _print_format_doc_or_none(format)
-		if not ((pf_doc is None or uses_beta_renderer(pf_doc)) and resolve_pdf_generator(pf_doc) == "chrome"):
-			return frappe.get_print(
-				print_doctype,
-				print_name,
-				format,
-				as_pdf=True,
-				output=pdf_writer,
-				no_letterhead=no_letterhead,
-				letterhead=letterhead,
-				pdf_options=options,
+		with print_language(language):
+			from frappe.printing.doctype.print_format.classic_converter import (
+				get_default_print_format,
+				uses_beta_renderer,
 			)
+			from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
+			from frappe.www.printview import set_link_titles, validate_print
 
-		from pypdf import PdfReader
+			pf_doc = _print_format_doc_or_none(format)
+			if not (
+				(pf_doc is None or uses_beta_renderer(pf_doc)) and resolve_pdf_generator(pf_doc) == "chrome"
+			):
+				return frappe.get_print(
+					print_doctype,
+					print_name,
+					format,
+					as_pdf=True,
+					output=pdf_writer,
+					no_letterhead=no_letterhead,
+					letterhead=letterhead,
+					pdf_options=options,
+				)
 
-		from frappe.utils.print_format_generator import PrintFormatGenerator
+			from pypdf import PdfReader
 
-		doc = frappe.get_doc(print_doctype, print_name)
-		validate_print(doc)
-		set_link_titles(doc)
-		pf = pf_doc or get_default_print_format(print_doctype)
-		generator = PrintFormatGenerator(pf, doc, letterhead, no_letterhead=no_letterhead)
-		pdf = generator.render_pdf(password=(options or {}).get("password"))
-		for page in PdfReader(BytesIO(pdf)).pages:
-			pdf_writer.add_page(page)
-		return pdf_writer
+			from frappe.utils.print_format_generator import PrintFormatGenerator
+
+			doc = frappe.get_doc(print_doctype, print_name)
+			validate_print(doc)
+			set_link_titles(doc)
+			pf = pf_doc or get_default_print_format(print_doctype)
+			generator = PrintFormatGenerator(pf, doc, letterhead, no_letterhead=no_letterhead)
+			pdf = generator.render_pdf(password=(options or {}).get("password"))
+			for page in PdfReader(BytesIO(pdf)).pages:
+				pdf_writer.add_page(page)
+			return pdf_writer
 
 	if not isinstance(doctype, dict):
 		result = frappe.parse_json(name)
