@@ -724,7 +724,10 @@ class TestClassicConverter(IntegrationTestCase):
 		)
 
 	def test_create_custom_format_based_on_classic_converts(self):
-		from frappe.printing.doctype.print_format.print_format import create_custom_format
+		from frappe.printing.doctype.print_format.print_format import (
+			create_custom_format,
+			restore_classic_layout,
+		)
 
 		self.make_classic_format()
 		name = f"_Test From Classic {frappe.generate_hash(length=6)}"
@@ -735,7 +738,9 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertEqual(doc.print_format_builder, 0)
 		self.assertEqual(doc.pdf_generator, "chrome")
 		self.assertEqual(frappe.parse_json(doc.format_data), self.EXPECTED_BETA_LAYOUT)
-		self.assertEqual(frappe.parse_json(doc.classic_format_data)["format_data"], self.CLASSIC_FORMAT_DATA)
+		self.assertFalse(doc.classic_format_data)
+		self.assertRaises(frappe.ValidationError, restore_classic_layout, name)
+		self.assertEqual(frappe.db.get_value("Print Format", name, "print_format_builder_beta"), 1)
 		source = frappe.get_doc("Print Format", self.FORMAT_NAME)
 		self.assertEqual(source.print_format_builder, 1)
 		self.assertEqual(frappe.parse_json(source.format_data), self.CLASSIC_FORMAT_DATA)

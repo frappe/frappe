@@ -444,6 +444,7 @@ def create_custom_format(
 		doc.format_data = source.format_data
 		if not doc.format_data or is_classic_layout(doc.format_data):
 			convert_print_format(doc)
+			doc.classic_format_data = None
 	else:
 		from frappe.printing.doctype.print_format.classic_converter import create_default_layout
 
