@@ -47,11 +47,15 @@ class ImportMapConflict(Exception):
 
 
 def contribution_globs(source_dir: str) -> list[str]:
-	"""The five contribution kinds, as paths; a file anywhere else is not a contribution."""
+	"""The six contribution kinds, as paths; a file anywhere else is not a contribution."""
 	return [
 		os.path.join(source_dir, "*", "doctype", "*", "frontend", "record.js"),
 		os.path.join(source_dir, "*", "doctype", "*", "frontend", "list.js"),
+		os.path.join(source_dir, "*", "doctype", "*", "frontend", "pages.json"),
+		os.path.join(source_dir, "*", "doctype", "*", "frontend", "pages", "*.js"),
 		os.path.join(source_dir, "*", "custom", "*", "record.js"),
+		os.path.join(source_dir, "*", "custom", "*", "pages.json"),
+		os.path.join(source_dir, "*", "custom", "*", "pages", "*.js"),
 		os.path.join(source_dir, "*", "frontend", "pages", "*.js"),
 		# Beside the `Navigation Item Type` JSON, where the plugin reads the kind's real name.
 		os.path.join(source_dir, "*", "navigation_item_type", "*", "frontend", "item.js"),

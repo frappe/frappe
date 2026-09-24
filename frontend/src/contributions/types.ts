@@ -28,6 +28,17 @@ export type DoctypeContribution =
   // move the doctype into your prefix.
   | { kind: 'custom'; app: string; doctype: string; handlers: RecordHandlers }
 
+// A page in place of a doctype's record or list page: <module>/doctype/<scrubbed>/frontend/
+// pages/<name>.js, named in pages.json beside it; the same under <module>/custom/<scrubbed>/.
+export type ReplacementContribution = {
+  app: string
+  doctype: string
+  key: 'record' | 'list'
+  foreign: boolean
+  title?: string
+  component: () => Promise<unknown>
+}
+
 // Not contributable: a route table, a doctype opt-out, shell chrome (every error state
 // included), a vite plugin or config, and a boot key from JS.
 
@@ -44,4 +55,5 @@ export type Contributions = {
   doctypes: DoctypeContribution[]
   pages: PageContribution[]
   itemTypes: ItemTypeContribution[]
+  replacements: ReplacementContribution[]
 }

@@ -6,6 +6,7 @@ import { basename, join } from "node:path";
 
 const VIRTUAL_ID = "virtual:frappe/contributions";
 const RESOLVED_ID = "\0" + VIRTUAL_ID;
+const STANDARD_PAGES = ["record", "list"];
 
 function directories(path) {
 	try {
@@ -72,6 +73,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 	const doctypes = [];
 	const pages = [];
 	const itemTypes = [];
+	const replacements = [];
 	const warnings = [];
 	// Every app on the bench, not just the manifest: a `custom/` folder can name a doctype
 	// owned by an app that contributes nothing.
@@ -85,19 +87,28 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 			// Your own doctype: <module>/doctype/<scrubbed>/frontend/{record,list}.js
 			const doctypeRoot = join(modulePath, "doctype");
 			for (const scrubbed of directories(doctypeRoot)) {
-				for (const kind of ["record", "list"]) {
+				for (const kind of STANDARD_PAGES) {
 					const file = join(doctypeRoot, scrubbed, "frontend", `${kind}.js`);
 					if (isFile(file))
 						doctypes.push({ kind, app, doctype: unscrub(scrubbed), file });
 				}
+
+				// A replaced standard page: <module>/doctype/<scrubbed>/frontend/pages.json
+				const frontend = join(doctypeRoot, scrubbed, "frontend");
+				const declarer = { app, doctype: unscrub(scrubbed), foreign: false };
+				replacements.push(...declaredPages(frontend, declarer, warnings));
 			}
 
-			// A foreign doctype: <module>/custom/<scrubbed>/record.js
+			// A foreign doctype: <module>/custom/<scrubbed>/{record.js,pages.json}
 			const customRoot = join(modulePath, "custom");
 			for (const scrubbed of directories(customRoot)) {
-				const file = join(customRoot, scrubbed, "record.js");
+				const folder = join(customRoot, scrubbed);
+				const file = join(folder, "record.js");
 				if (isFile(file))
 					doctypes.push({ kind: "custom", app, doctype: unscrub(scrubbed), file });
+
+				const declarer = { app, doctype: unscrub(scrubbed), foreign: true };
+				replacements.push(...declaredPages(folder, declarer, warnings));
 			}
 
 			// A new page: <module>/frontend/pages/<slug>.js. The `frontend/` segment is load-bearing:
@@ -129,7 +140,96 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 		}
 	}
 
-	return { doctypes, pages, itemTypes, warnings };
+	warnings.push(...clashes(replacements));
+	return { doctypes, pages, itemTypes, replacements, warnings };
+}
+
+/** The pages a folder's `pages.json` names from the `pages/` folder beside it. */
+function declaredPages(folder, declarer, warnings) {
+	const pagesRoot = join(folder, "pages");
+	const pageNames = files(pagesRoot).map((file) => basename(file, ".js"));
+	warnings.push(...handlerFileWarnings(folder, pageNames, declarer.foreign));
+
+	const path = join(folder, "pages.json");
+	const declaration = readDeclaration(path, warnings);
+	const found = [];
+	for (const [key, page] of Object.entries(declaration)) {
+		const problem = declarationProblem(key, page, pageNames);
+		if (problem) {
+			warnings.push(`[frappe] ${path}: ${problem}; that key is ignored.`);
+			continue;
+		}
+		found.push({ ...declarer, key, page, file: join(pagesRoot, `${page}.js`) });
+	}
+	return found;
+}
+
+/** A `.js` file beside `pages/` is a page's reserved handler file or, under `custom/`, a stray. */
+function handlerFileWarnings(folder, pageNames, foreign) {
+	const warnings = [];
+	for (const handler of files(folder)) {
+		const name = basename(handler, ".js");
+		if (STANDARD_PAGES.includes(name)) continue;
+
+		const file = join(folder, handler);
+		if (pageNames.includes(name)) {
+			warnings.push(
+				`[frappe] ${file} is reserved for the handlers of pages/${handler}; it is ignored.`
+			);
+		} else if (foreign) {
+			warnings.push(`[frappe] ${file} has no pages/${handler} beside it; it is ignored.`);
+		}
+	}
+	return warnings;
+}
+
+/** A `pages.json` as an object; `{}` if absent or unreadable. */
+function readDeclaration(path, warnings) {
+	if (!isFile(path)) return {};
+
+	let declaration;
+	try {
+		declaration = JSON.parse(readFileSync(path, "utf-8"));
+	} catch {
+		warnings.push(`[frappe] ${path} is not valid JSON; the whole file is ignored.`);
+		return {};
+	}
+	if (declaration === null || typeof declaration !== "object" || Array.isArray(declaration)) {
+		warnings.push(`[frappe] ${path} is not a JSON object; the whole file is ignored.`);
+		return {};
+	}
+	return declaration;
+}
+
+function declarationProblem(key, page, pageNames) {
+	if (!STANDARD_PAGES.includes(key))
+		return `unknown key ${JSON.stringify(key)}, only "record" and "list" are read`;
+	if (typeof page !== "string") return `"${key}" is not a page name`;
+	if (STANDARD_PAGES.includes(page))
+		return `"${key}" names "${page}", a name reserved for the standard pages`;
+	if (!pageNames.includes(page))
+		return `"${key}" names "${page}", but there is no pages/${page}.js`;
+	return null;
+}
+
+/** One warning per doctype and key that more than one app replaces. */
+function clashes(replacements) {
+	const byTarget = new Map();
+	for (const entry of replacements) {
+		const target = `${entry.doctype}'s ${entry.key} page`;
+		byTarget.set(target, [...(byTarget.get(target) ?? []), entry]);
+	}
+
+	const warnings = [];
+	for (const [target, entries] of byTarget) {
+		if (new Set(entries.map((entry) => entry.app)).size < 2) continue;
+		const who = entries.map((entry) => `${entry.app} (${entry.file})`).join(", ");
+		warnings.push(
+			`[frappe] ${target} is replaced by more than one app: ${who}. The owner's comes first, ` +
+				`then custom/ ones in the site's app order, and the last one wins at runtime.`
+		);
+	}
+	return warnings;
 }
 
 /** A record's real name, read from its own JSON. `null` if there is no readable one. */
@@ -143,7 +243,7 @@ function recordName(definition) {
 	}
 }
 
-function generate({ doctypes, pages, itemTypes, warnings }) {
+function generate({ doctypes, pages, itemTypes, replacements, warnings }) {
 	const lines = [
 		"// GENERATED by plugin/contributions.js. Do not edit.",
 		"function usable(entry) {",
@@ -162,6 +262,9 @@ function generate({ doctypes, pages, itemTypes, warnings }) {
 	});
 	itemTypes.forEach((entry, index) => {
 		imports.push(`import i${index} from ${JSON.stringify(entry.file)}`);
+	});
+	replacements.forEach((entry, index) => {
+		imports.push(`import r${index} from ${JSON.stringify(entry.file)}`);
 	});
 
 	lines.push(...imports);
@@ -201,6 +304,18 @@ function generate({ doctypes, pages, itemTypes, warnings }) {
 	});
 	lines.push("  ].filter(usable),");
 
+	lines.push("  replacements: [");
+	replacements.forEach((entry, index) => {
+		lines.push(
+			`    { app: ${JSON.stringify(entry.app)}, ` +
+				`doctype: ${JSON.stringify(entry.doctype)}, key: ${JSON.stringify(entry.key)}, ` +
+				`foreign: ${entry.foreign}, ` +
+				`title: r${index}?.title, component: r${index}?.component, ` +
+				`handlers: r${index}?.component, __file: ${JSON.stringify(entry.file)} },`
+		);
+	});
+	lines.push("  ].filter(usable),");
+
 	lines.push("}");
 
 	// Discovery's warnings are replayed in the browser, where the person missing a kind looks.
@@ -211,13 +326,24 @@ function generate({ doctypes, pages, itemTypes, warnings }) {
 	return lines.join("\n");
 }
 
+/** Prints discovery's warnings in the terminal that runs the build. */
+export function report(warnings, logger = console) {
+	for (const warning of warnings) logger.warn(warning);
+}
+
 export default function contributions(manifest, allSourceDirs) {
+	let logger;
 	return {
 		name: "frappe-contributions",
+		configResolved(config) {
+			logger = config.logger;
+		},
 		resolveId: (id) => (id === VIRTUAL_ID ? RESOLVED_ID : undefined),
 		load(id) {
 			if (id !== RESOLVED_ID) return;
-			return generate(discover(manifest, allSourceDirs));
+			const found = discover(manifest, allSourceDirs);
+			report(found.warnings, logger);
+			return generate(found);
 		},
 	};
 }
