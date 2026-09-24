@@ -8,6 +8,13 @@
 			{{ failed }}
 		</p>
 
+		<ul v-else-if="loading" data-customize-skeleton>
+			<li v-for="row in 5" :key="row" class="flex items-center gap-1 px-1 py-1">
+				<Skeleton class="h-6 min-w-0 flex-1 rounded-4" />
+				<Skeleton v-for="control in 3" :key="control" class="size-7 shrink-0 rounded-4" />
+			</li>
+		</ul>
+
 		<ul v-else data-testid="customize">
 			<li
 				v-for="item in items"
@@ -55,8 +62,14 @@
 
 		<template #actions>
 			<div class="flex justify-end gap-2">
-				<Button label="Reset" :loading="busy" @click="reset" />
-				<Button variant="solid" label="Save" :loading="busy" @click="save" />
+				<Button label="Reset" :loading="busy" :disabled="loading" @click="reset" />
+				<Button
+					variant="solid"
+					label="Save"
+					:loading="busy"
+					:disabled="loading"
+					@click="save"
+				/>
 			</div>
 		</template>
 	</Dialog>
@@ -71,7 +84,7 @@ export type CustomizeTarget = Address & { title: string };
 
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { Button, Dialog } from "frappe-ui";
+import { Button, Dialog, Skeleton } from "frappe-ui";
 import type { Navigation } from "@/boot";
 import {
 	type Address,
@@ -88,6 +101,8 @@ const emit = defineEmits<{ close: []; saved: [Navigation] }>();
 
 const items = ref<ArrangedItem[]>([]);
 const dragging = ref<string | null>(null);
+// `loading` is the list's first read; `busy` is Reset's or Save's own request.
+const loading = ref(false);
 const busy = ref(false);
 const failed = ref<string | null>(null);
 
@@ -100,6 +115,7 @@ watch(
 	(target) => {
 		generation++;
 		items.value = [];
+		busy.value = false;
 		failed.value = null;
 		dragging.value = null;
 		if (target) load(target);
@@ -109,15 +125,18 @@ watch(
 
 async function load(target: Address) {
 	const mine = generation;
-	busy.value = true;
+	loading.value = true;
+	await read(target, mine);
+	if (mine === generation) loading.value = false;
+}
+
+async function read(target: Address, mine: number) {
 	try {
 		const rows = await fetchArrangement(target);
 		if (mine === generation) items.value = rows;
 	} catch (error) {
 		if (mine === generation)
 			failed.value = `Could not load this list: ${(error as Error).message}`;
-	} finally {
-		if (mine === generation) busy.value = false;
 	}
 }
 
@@ -142,25 +161,33 @@ function drop(onto: string) {
 }
 
 async function save() {
-	if (props.target) await write(saveArrangement(props.target, items.value));
+	const target = props.target;
+	if (target) await hold((mine) => write(saveArrangement(target, items.value), mine));
 }
 
 async function reset() {
-	if (!props.target) return;
-	await write(resetArrangement(props.target));
-	await load(props.target);
+	const target = props.target;
+	if (!target) return;
+	await hold(async (mine) => {
+		await write(resetArrangement(target), mine);
+		await read(target, mine);
+	});
 }
 
-async function write(request: Promise<Navigation>) {
+/** Spins Reset and Save for one action of theirs, unless a new target has taken over. */
+async function hold(action: (mine: number) => Promise<void>) {
 	const mine = generation;
 	busy.value = true;
+	await action(mine);
+	if (mine === generation) busy.value = false;
+}
+
+async function write(request: Promise<Navigation>, mine: number) {
 	try {
 		emit("saved", await request);
 	} catch (error) {
 		if (mine === generation)
 			failed.value = `Could not save this list: ${(error as Error).message}`;
-	} finally {
-		if (mine === generation) busy.value = false;
 	}
 }
 </script>

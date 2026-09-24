@@ -304,6 +304,45 @@ describe("the panel's own context", () => {
 	});
 });
 
+describe("a module's contents while they are read", () => {
+	const rest: NavigationItem = { key: "rest", item_type: "Module Contents", link_to: "FCRM" };
+
+	/** The panel with its `rest` row clicked and the read held; `answer` lets it land. */
+	async function expanding() {
+		let answer!: (entries: unknown[]) => void;
+		fetchContents.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+
+		const { host } = await shell([accounts], { module_def_accounts: [lead, rest] }, "/crm-lead");
+		panel(host)?.querySelector<HTMLElement>("[data-key='rest'] button")?.click();
+		await flush();
+
+		return { host, answer };
+	}
+
+	it("draws three child-row skeletons, then the rows", async () => {
+		const { host, answer } = await expanding();
+		expect(panel(host)?.querySelectorAll("[data-expand-skeleton] .fui-skeleton").length).toBe(6);
+
+		answer([{ doctype: "Sales Invoice", slug: "sales-invoice", module: "Accounts" }]);
+		await flush();
+		await flush();
+
+		expect(panel(host)?.querySelector("[data-expand-skeleton]")).toBeNull();
+		expect(panel(host)?.querySelector("[data-key='rest:Sales Invoice']")).not.toBeNull();
+	});
+
+	it("clears the skeleton when the read answers with no children", async () => {
+		const { host, answer } = await expanding();
+		expect(panel(host)?.querySelector("[data-expand-skeleton]")).not.toBeNull();
+
+		answer([]);
+		await flush();
+		await flush();
+
+		expect(panel(host)?.querySelector("[data-expand-skeleton]")).toBeNull();
+	});
+});
+
 describe("the panel's heading", () => {
 	it("is the rail item's authored label", async () => {
 		const { host } = await shell([accounts], sidebars, "/sales-invoice");
