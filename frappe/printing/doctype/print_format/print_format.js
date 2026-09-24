@@ -159,6 +159,7 @@ frappe.ui.form.on("Print Format", {
 		if (should_force_chrome) {
 			frm.set_value("pdf_generator", "chrome");
 		}
+		frm.toggle_display("pdf_generator", !(is_builder && !is_custom));
 	},
 	doc_type: function (frm) {
 		frm.trigger("hide_absolute_value_field");
