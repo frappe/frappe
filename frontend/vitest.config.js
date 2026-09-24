@@ -48,8 +48,10 @@ export default defineConfig({
 			"../ui/src/components/Composer/tests/*.test.ts",
 			"../ui/src/components/Link/tests/*.test.ts",
 			"../ui/src/components/QuickFilter/tests/*.test.ts",
+			"../ui/src/composables/tests/useDoctypeMeta.test.ts",
 			"../ui/src/composables/tests/useLinkSearch.test.ts",
 			"../ui/src/experimental/List/tests/*.test.ts",
+			"../ui/src/utils/tests/sharedState.test.ts",
 		],
 		server: {
 			deps: {

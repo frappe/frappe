@@ -7,7 +7,7 @@ const fake = vi.hoisted(() => ({ runMethod: vi.fn() }));
 
 vi.mock("@framework/ui/api", () => ({ runMethod: fake.runMethod }));
 
-import { resetListSettings, useListSettings, WRITE_DEBOUNCE_MS } from "../useListSettings";
+import { dropListSettings, resetListSettings, useListSettings, WRITE_DEBOUNCE_MS } from "../useListSettings";
 
 const API = "frappe.desk.doctype.doctype_view.api";
 const ADDRESS = { doctype: "Lead", type: "List" };
@@ -155,5 +155,52 @@ describe("writing", () => {
 		await handle.resetForSite("sort");
 		expect(fake.runMethod).toHaveBeenLastCalledWith(`${API}.reset`, { ...ADDRESS, scope: "site", key: "sort" });
 		expect(handle.stored.value).toEqual({ columns: [{ fieldname: "amount" }] });
+	});
+});
+
+describe("dropping", () => {
+	const methods = () => fake.runMethod.mock.calls.map(([method]) => method.split(".").pop());
+
+	it("sends a waiting write at once, and the next caller reads only after it lands", async () => {
+		const open = useListSettings("Lead");
+		await settle();
+		let land = () => {};
+		fake.runMethod.mockImplementationOnce(
+			(method, args) => new Promise((resolve) => (land = () => resolve(respond(method, args))))
+		);
+		open.save({ columns: [{ fieldname: "title" }] });
+		dropListSettings("Lead");
+		const next = useListSettings("Lead");
+		await settle();
+		expect(methods()).toEqual(["get", "save"]);
+		land();
+		await settle();
+		await settle();
+		expect(methods()).toEqual(["get", "save", "get"]);
+		expect(next.stored.value).toEqual({
+			sort: [{ fieldname: "title", direction: "asc" }],
+			columns: [{ fieldname: "title" }],
+		});
+	});
+
+	it("leaves the open handle on its own rows, still writing", async () => {
+		const open = useListSettings("Lead");
+		await settle();
+		dropListSettings("Lead");
+		open.save({ sort: [] });
+		vi.advanceTimersByTime(WRITE_DEBOUNCE_MS);
+		await settle();
+		expect(methods()).toEqual(["get", "save"]);
+		expect(open.stored.value).toEqual({ sort: [] });
+	});
+
+	it("keeps every other doctype's rows", async () => {
+		useListSettings("Lead");
+		useListSettings("Deal");
+		await settle();
+		dropListSettings("Deal");
+		useListSettings("Lead");
+		await settle();
+		expect(methods()).toEqual(["get", "get"]);
 	});
 });

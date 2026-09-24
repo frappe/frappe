@@ -57,11 +57,11 @@ const entries = memoizedState(
 export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 	const { meta, metas, loading, error } = useDoctypeMeta(options.doctype);
 	const { fieldAccess } = useDocPermissions(options.doctype);
-	// Warm the current entry at call time; the computed tracks it from there.
-	const current = () =>
-		entries.get({ doctype: toValue(options.doctype), type: options.type });
-	current();
-	const entry = computed(current);
+	const entry = computed(() =>
+		entries.get({ doctype: toValue(options.doctype), type: options.type })
+	);
+	// Read at call time: that fetches now, and the handle keeps this entry until the doctype moves.
+	void entry.value;
 
 	const layout = computed<FormLayoutSchema>(() => {
 		const response = entry.value.data as FormLayoutsResponse | null;
@@ -108,6 +108,11 @@ export function whenSettled(loading: { value: boolean }): Promise<void> {
 			resolve();
 		});
 	});
+}
+
+/** Forgets the doctype's rows of every type; the next caller fetches. */
+export function dropFormLayouts(doctype: string): void {
+	entries.drop((key) => key.startsWith(`${doctype}:`));
 }
 
 /** Drops every memoised fetch, so one test's rows cannot reach the next. */

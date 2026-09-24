@@ -11,7 +11,7 @@ getMeta.mockImplementation(async (doctype: string) => ({
   children: [{ name: `${doctype} Item`, fields: [] }],
 }));
 
-import { resetDoctypeMeta, useDoctypeMeta } from "../useDoctypeMeta";
+import { dropDoctypeMeta, resetDoctypeMeta, useDoctypeMeta } from "../useDoctypeMeta";
 
 const settled = () => new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -82,5 +82,31 @@ describe("useDoctypeMeta", () => {
 
     expect(error.value).toBeNull();
     expect(meta.value?.name).toBe("Note");
+  });
+
+  it("fetches again after a drop, while a handle taken before keeps the meta it read", async () => {
+    getMeta.mockResolvedValueOnce({ data: { name: "Note", fields: [{ fieldname: "old" }] } });
+    const before = useDoctypeMeta("Note");
+    await settled();
+
+    dropDoctypeMeta("Note");
+    const after = useDoctypeMeta("Note");
+    await settled();
+
+    expect(getMeta).toHaveBeenCalledTimes(2);
+    expect(before.meta.value?.fields).toEqual([{ fieldname: "old" }]);
+    expect(after.meta.value?.fields).toEqual([]);
+  });
+
+  it("drops a parent's meta with its child table's, and leaves the rest", async () => {
+    useDoctypeMeta("Note");
+    useDoctypeMeta("Task");
+    await settled();
+
+    dropDoctypeMeta("Note Item");
+    useDoctypeMeta("Note");
+    useDoctypeMeta("Task");
+
+    expect(getMeta.mock.calls.map(([doctype]) => doctype)).toEqual(["Note", "Task", "Note"]);
   });
 });

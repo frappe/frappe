@@ -4,6 +4,8 @@ import type { ComputedRef, Ref } from "vue";
 export interface MemoizedState<Input, State> {
   /** The state for this input, built once and shared by every later caller. */
   get: (input: Input) => State;
+  /** Forgets every matching state; a holder keeps reading it, and the next `get` builds anew. */
+  drop: (match: (key: string, state: State) => boolean) => void;
   /** Drops every state, so one test cannot reach the next. */
   reset: () => void;
 }
@@ -27,6 +29,9 @@ export function memoizedState<Input, State>(
       const state = effectScope(true).run(() => build(input)) as State;
       states.set(key, state);
       return state;
+    },
+    drop(match) {
+      for (const [key, state] of states) if (match(key, state)) states.delete(key);
     },
     reset() {
       states.clear();
