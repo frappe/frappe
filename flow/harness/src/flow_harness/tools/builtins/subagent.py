@@ -18,8 +18,8 @@ _FAILED = frozenset({"error", "aborted", "max_turns", "budget", "cancelled", "de
 	display_template="Sub-agent: {{ description }}",
 )
 async def subagent(
-	task: Annotated[str, "The complete brief: the goal, what you already know, and exactly what to return"],
 	description: Annotated[str, "A three to five word label for the task, shown to the user"],
+	task: Annotated[str, "The complete brief: the goal, what you already know, and exactly what to return"],
 	agent: Annotated[str | None, "The agent to run, from the list below; omitted means general"] = None,
 	subagent_id: Annotated[
 		str | None, "Continue an earlier sub-agent, keeping its context, by the id from its result"
