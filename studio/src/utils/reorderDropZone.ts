@@ -28,6 +28,11 @@ export interface DropZone {
 	siblingEls: HTMLElement[]
 }
 
+export function familyPlacementMessage(component: FrappeUIComponent): string {
+	const familyRoot = Block.getComponents()?.[component.group as string]
+	return `${component.title} can only be placed inside a ${familyRoot?.title || component.group}`
+}
+
 // Resolves where a dragged block would land from whatever is under the cursor,
 // no modifier keys. Decided from the DEEPEST hovered block only (deeper climbing
 // wrongly pops out of tall containers like a grid's lower row):
@@ -35,11 +40,6 @@ export interface DropZone {
 //  - a container hovered on its inner core → nest inside it
 //  - a container hovered on its outer edge band → beside it
 //  - a gap between items → elementFromPoint already returns the parent
-export function familyPlacementMessage(component: FrappeUIComponent): string {
-	const familyRoot = Block.getComponents()?.[component.group as string]
-	return `${component.title} can only be placed inside a ${familyRoot?.title || component.group}`
-}
-
 export class DropZoneResolver {
 	// set when the last resolve refused a target for family reasons, so the
 	// engine can explain a rejected drop
@@ -60,13 +60,12 @@ export class DropZoneResolver {
 	private emptySlotZone(element: HTMLElement | null): DropZone | null {
 		const placeholder = element?.closest(EMPTY_SLOT_SELECTOR) as HTMLElement | null
 		const owner = placeholder?.dataset.componentId ? this.findBlock(placeholder.dataset.componentId) : null
-		if (!placeholder || !owner || this.isInsideDragged(owner)) return null
-		return this.zoneFor(
-			owner,
-			placeholder.dataset.slotName || null,
-			placeholder.dataset.breakpoint || "desktop",
-			placeholder,
-		)
+		const slotName = placeholder?.dataset.slotName || null
+		if (!placeholder || !owner || !slotName || this.isInsideDragged(owner)) return null
+		// a component instance's placeholder carries the instance id, but the
+		// slot lives on the rendered definition — the page block has no such slot
+		if (owner.isStudioComponent || !owner.getSlot(slotName)) return null
+		return this.zoneFor(owner, slotName, placeholder.dataset.breakpoint || "desktop", placeholder)
 	}
 
 	private blockZone(element: HTMLElement | null, clientX: number, clientY: number): DropZone | null {
