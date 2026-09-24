@@ -28,6 +28,7 @@ import {
 } from "../useActivityTimeline";
 import { addPendingActivity } from "../pendingRows";
 import ActivityTimeline from "../ActivityTimeline.vue";
+import TimelineSkeleton from "../TimelineSkeleton.vue";
 
 let docCounter = 0;
 /** A fresh document per test: the composable keeps one store per document for the session. */
@@ -682,7 +683,42 @@ describe("idle stores", () => {
 });
 
 describe("ActivityTimeline", () => {
-  it("draws one loading row above the oldest row while the older page loads", async () => {
+  it("draws a skeleton of the feed, and no spinner, on first load", async () => {
+    const el = document.createElement("div");
+    const app = createApp(() => h(ActivityTimeline, { activities: [], loading: true }));
+    app.mount(el);
+    mounted.push(app);
+    await nextTick();
+    expect(el.querySelectorAll(".fui-skeleton").length).toBeGreaterThan(0);
+    expect(el.querySelector("svg")).toBeNull();
+    expect(el.querySelectorAll(".activity")).toHaveLength(0);
+  });
+
+  it("announces the first-load skeleton once as a status, its bars hidden", async () => {
+    const el = document.createElement("div");
+    const app = createApp(() => h(ActivityTimeline, { activities: [], loading: true }));
+    app.mount(el);
+    mounted.push(app);
+    await nextTick();
+    const status = el.querySelectorAll('[role="status"]');
+    expect(status).toHaveLength(1);
+    expect(status[0].textContent!.trim()).toBe("Loading");
+    expect(status[0].querySelector(".sr-only")).not.toBeNull();
+    for (const bar of el.querySelectorAll(".fui-skeleton")) {
+      expect(bar.getAttribute("aria-hidden")).toBe("true");
+    }
+  });
+
+  it("reads the label a host passes to the skeleton", async () => {
+    const el = document.createElement("div");
+    const app = createApp(() => h(TimelineSkeleton, { label: "Chargement" }));
+    app.mount(el);
+    mounted.push(app);
+    await nextTick();
+    expect(el.querySelector('[role="status"]')!.textContent!.trim()).toBe("Chargement");
+  });
+
+  it("draws skeleton rows above the oldest row while the older page loads", async () => {
     const el = document.createElement("div");
     const app = createApp(() =>
       h(ActivityTimeline, {
@@ -694,8 +730,10 @@ describe("ActivityTimeline", () => {
     mounted.push(app);
     await nextTick();
     const feed = el.querySelector(".activities")!;
-    expect(feed.firstElementChild?.classList.contains("activity")).toBe(false);
-    expect(feed.firstElementChild?.querySelector("svg")).not.toBeNull();
+    const top = feed.firstElementChild!;
+    expect(top.classList.contains("activity")).toBe(false);
+    expect(top.querySelectorAll(".fui-skeleton").length).toBeGreaterThan(0);
+    expect(top.querySelector("svg")).toBeNull();
     expect(feed.querySelectorAll("button")).toHaveLength(0);
   });
 

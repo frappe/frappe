@@ -186,6 +186,85 @@ describe("List states", () => {
     expect(root.textContent).not.toContain("No records");
   });
 
+  it("draws a checkbox-sized skeleton in each skeleton row's first cell", async () => {
+    const { root } = await mount(List, { columns, rows: [], loading: true });
+    for (const row of rowsOf(root)) {
+      const [first, ...rest] = row.querySelectorAll("[data-slot='list-cell']");
+      const box = first.querySelector(".fui-skeleton");
+      expect(box?.className).toContain("h-3.5 w-3.5 rounded-1");
+      expect(rest.map((cell) => cell.querySelectorAll(".fui-skeleton").length))
+        .toEqual([1, 1, 1]);
+      expect(row.querySelectorAll(".fui-skeleton")).toHaveLength(
+        columns.length + 1
+      );
+    }
+  });
+
+  it("draws a label bar per placeholder column until the columns are known", async () => {
+    const state = reactive({
+      columns: [] as typeof columns,
+      rows: [] as ListRowData[],
+      loading: true,
+    });
+    const { root } = await mount(List, {
+      get columns() {
+        return state.columns;
+      },
+      get rows() {
+        return state.rows;
+      },
+      get loading() {
+        return state.loading;
+      },
+    });
+    const bars = () =>
+      [...root.querySelectorAll("[data-list-header-skeleton] .fui-skeleton")];
+
+    expect(bars()).toHaveLength(4);
+    for (const bar of bars()) {
+      expect(bar.className).toContain("h-2.5 w-16 rounded-1");
+    }
+    // The checkbox's cell and track, then one per bar: the bars sit over the rows' bars.
+    const header = root.querySelector<HTMLElement>("[data-slot='list-header']")!;
+    expect(header.querySelectorAll("[role='columnheader']")).toHaveLength(5);
+    const grid = root.querySelector<HTMLElement>("[style*='--_list-columns-base']")!;
+    const tracks = grid.style.getPropertyValue("--_list-columns-base");
+    expect(tracks.match(/^2rem|minmax\([^)]*\)/g)).toHaveLength(5);
+
+    state.columns = columns;
+    await flush();
+    expect(bars()).toHaveLength(0);
+    expect(header.textContent).toContain("Status");
+  });
+
+  it("draws the header checkbox as a skeleton while the rows load, then the real one", async () => {
+    const state = reactive({ rows: [] as ListRowData[], loading: true });
+    const { root } = await mount(List, {
+      columns,
+      get rows() {
+        return state.rows;
+      },
+      get loading() {
+        return state.loading;
+      },
+    });
+    const box = () =>
+      root.querySelector<HTMLElement>(
+        "[data-slot='list-header'] [role='columnheader']"
+      )!;
+
+    expect(box().querySelector(".fui-skeleton")?.className).toContain(
+      "h-3.5 w-3.5 rounded-1"
+    );
+    expect(box().querySelector("input[type='checkbox']")).toBeNull();
+
+    state.rows = rows;
+    state.loading = false;
+    await flush();
+    expect(box().querySelector(".fui-skeleton")).toBeNull();
+    expect(box().querySelector("input[type='checkbox']")).not.toBeNull();
+  });
+
   it("shows the empty text, or the empty slot, once loaded with no rows", async () => {
     const plain = await mount(List, { columns, rows: [] });
     expect(plain.root.textContent).toContain("No records");

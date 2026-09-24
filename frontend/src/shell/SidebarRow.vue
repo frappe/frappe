@@ -72,6 +72,15 @@
 			/>
 		</div>
 
+		<!-- Shaped like the child rows: `SidebarItem`'s height, padding and icon size. -->
+		<div v-if="reading" data-expand-skeleton class="flex flex-col gap-0.5">
+			<LoadingStatus />
+			<div v-for="width in SKELETON_WIDTHS" :key="width" class="flex h-7 items-center pl-2">
+				<Skeleton class="size-4 shrink-0 rounded-1" />
+				<Skeleton :class="['ml-2 h-3 rounded-1', width]" />
+			</div>
+		</div>
+
 		<SidebarRow
 			v-for="child in expandedNodes"
 			:key="child.item.key"
@@ -84,17 +93,19 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { SidebarItem, SidebarSection } from "frappe-ui";
+import { SidebarItem, SidebarSection, Skeleton } from "frappe-ui";
 import { buildTree, containsKey, type ItemNode } from "@/navigation/tree";
 import type { SectionMemory } from "@/navigation/sectionMemory";
 import { iconOf, labelOf, renderingOf } from "@/navigation/registry";
 import Icon from "@/icons/Icon.vue";
+import LoadingStatus from "./LoadingStatus.vue";
 import type { ItemContext } from "@/navigation/types";
 
 // `SidebarItem`'s own classes, for the two rows drawn by hand. Neither is ever current.
 const ROW = "flex h-7 items-center rounded-4 text-ink-gray-6 transition hover:bg-surface-gray-2";
 const ROW_TARGET =
 	"flex h-full min-w-0 flex-1 items-center rounded-4 pl-2 text-left focus-visible:ring-0 focus-visible:focus-ring";
+const SKELETON_WIDTHS = ["w-1/2", "w-2/3", "w-2/5"];
 
 // `current` is passed down: one row wins across the rail and the open panel together.
 const props = defineProps<{
@@ -150,6 +161,7 @@ function toggle() {
 }
 
 const expanded = ref(false);
+const reading = ref(false);
 const expandedNodes = ref<ItemNode[]>([]);
 
 // A new context is a new list, so an expansion measured against the old one collapses;
@@ -161,6 +173,7 @@ watch(
 	() => {
 		generation += 1;
 		expanded.value = false;
+		reading.value = false;
 		expandedNodes.value = [];
 	}
 );
@@ -170,6 +183,7 @@ async function expand() {
 
 	// Set before the await, so a second click cannot fire a second request.
 	expanded.value = true;
+	reading.value = true;
 	const mine = generation;
 
 	try {
@@ -179,6 +193,8 @@ async function expand() {
 		// Back to unexpanded, so it can be tried again.
 		if (mine === generation) expanded.value = false;
 		console.error(`[frappe] could not expand navigation item '${item.value.key}'`, error);
+	} finally {
+		if (mine === generation) reading.value = false;
 	}
 }
 </script>

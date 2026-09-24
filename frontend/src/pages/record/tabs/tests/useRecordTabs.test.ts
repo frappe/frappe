@@ -84,7 +84,7 @@ describe("the painted tab", () => {
     await page.open();
 
     expect(seen).toBe("");
-    expect(page.tabs.shown.value).toBe("activity");
+    expect(page.tabs.shown.value).toBe("details");
   });
 
   it("follows a hide after a click made while a replay was in flight", async () => {
@@ -108,14 +108,14 @@ describe("the painted tab", () => {
     page.controller.value!.tabs.hide("files");
     await settle();
 
-    expect(page.tabs.shown.value).toBe("activity");
+    expect(page.tabs.shown.value).toBe("details");
   });
 
   it("stays put when a later replay reorders the strip and the address names no tab", async () => {
     let reorder = false;
     registerRecordPage("CRM Deal", {
       onRefresh: (api) => {
-        if (reorder) api.tabs.order(["details"]);
+        if (reorder) api.tabs.order(["files"]);
       },
     });
     const page = makePage();
@@ -125,20 +125,20 @@ describe("the painted tab", () => {
     await page.controller.value!.refresh();
     await settle();
 
-    expect(page.tabs.shown.value).toBe("activity");
+    expect(page.tabs.shown.value).toBe("details");
     expect(page.route.query.tab).toBeUndefined();
   });
 
   it("opens a new page on the address alone, not on the last page's tab", async () => {
-    registerRecordPage("CRM Deal", { onRefresh: (api) => api.tabs.order(["details"]) });
+    registerRecordPage("CRM Deal", { onRefresh: (api) => api.tabs.order(["activity"]) });
     const page = makePage();
     await page.open();
-    expect(page.tabs.shown.value).toBe("details");
+    expect(page.tabs.shown.value).toBe("activity");
 
     resetRegistry();
     await page.open();
 
-    expect(page.tabs.shown.value).toBe("activity");
+    expect(page.tabs.shown.value).toBe("details");
   });
 
   it("gives no warning on a cold load whose `?tab=` names a hidden tab", async () => {
@@ -147,7 +147,7 @@ describe("the painted tab", () => {
 
     await page.open();
 
-    expect(page.tabs.shown.value).toBe("activity");
+    expect(page.tabs.shown.value).toBe("details");
     expect(warnings).toEqual([]);
   });
 });
@@ -217,7 +217,7 @@ describe("the tab events", () => {
     await page.controller.value!.refresh();
     await settle();
 
-    expect(seen).toEqual(["activity"]);
+    expect(seen).toEqual(["details"]);
     expect(warnings.some((message) => message.includes('hide("files")'))).toBe(true);
   });
 

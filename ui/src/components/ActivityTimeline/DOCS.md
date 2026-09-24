@@ -57,7 +57,7 @@ gives the timeline the bounded height its scroller needs — see
 | Property      | Details                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Props**     | `activities: Array<Activity \| CustomActivity>` (required), `loading?: boolean`, `paginate?: Pagination`, `scrolls?: boolean`                                                                                                                                                                                                                                                                                                     |
-| **Loading**   | First-load spinner shows only while `loading` **and** `activities` is empty; cached rows stay visible during revalidation                                                                                                                                                                                                                                                                                                        |
+| **Loading**   | A skeleton of the feed shows only while `loading` **and** `activities` is empty; cached rows stay visible during revalidation                                                                                                                                                                                                                                                                                                        |
 | **Empty**     | Renders a built-in "No activity found" state when `activities` is empty and not loading; replace it via the `#empty` slot                                                                                                                                                                                                                                                                                                        |
 | **Scrolling** | The component is its own scroll container (`column-reverse`): give it a bounded height — wrap it in `TimelineContainer`, or `flex-1 min-h-0` by hand — and it opens anchored at the newest row, stays pinned as content grows, and keeps the viewport still when older pages prepend — all natively, no scroll scripting. Unbounded, an ancestor scrolls it like any block and none of that works. DOM order stays chronological. Inside a scroller of your own, pass `:scrolls="false"`: the timeline drops its overflow and its tab stop, so keyboard focus lands once, on your scroller |
 | **Exposes**   | `scrollToRow(key: string): boolean` — scrolls the row with that key into view and highlights it for two seconds (deep links); a version row folded into a run scrolls to the run; returns `false` if the key isn't rendered. `scrollToLatest()` — jumps to the newest row (no flash); works in both scroll modes, so page-scroll layouts can call it on mount to open at the bottom                                                                                                                     |
@@ -89,6 +89,21 @@ On a page that scrolls as a document (no bounded height anywhere), the timeline 
 gracefully — the page scrolls it like any block and it opens at the top; call
 `scrollToLatest()` on mount to open at the bottom. Pinning and stable prepends need the
 bounded layout above.
+
+### The skeleton
+
+`TimelineSkeleton` is the loading state the component draws itself: placeholder rows on the
+timeline's own grid (one-line changes, comment cards and an email card), so the real rows land
+where the bars were. It is exported for a host that must show the feed's shape before it can
+mount `ActivityTimeline`, for example while the page around it is still loading.
+
+| Prop     | Details                                                                                                  |
+| -------- | -------------------------------------------------------------------------------------------------------- |
+| `rows?`  | `number` — draws only the first rows (the first two are one-line changes); omit for all seven             |
+| `label?` | `string` — what a screen reader hears in place of the rows (default `"Loading"`); pass it translated     |
+
+The bars are hidden from screen readers; the root is a `role="status"` region that reads the
+label once.
 
 ### Slots
 
@@ -217,7 +232,7 @@ component draws the control for you.
 | `fetchNextPage()`    | Reads the next older page and prepends it; concurrent calls share a read |
 | `loadMore?`          | Control config — `position` (`"top"` \| `"bottom"`), `label`, `icon`     |
 
-While `isFetchingNextPage` is true the component draws one loading row at the top, the
+While `isFetchingNextPage` is true the component draws two skeleton rows at the top, the
 oldest end. Otherwise, when `hasNextPage` is true, it draws a "Load more" button at the top,
 or at the bottom with `position: "bottom"`. A host that loads older rows on scroll calls
 `fetchNextPage()` itself. A failed read sets the composable's `error` and leaves

@@ -13,17 +13,25 @@ vi.mock("frappe-ui", () => ({
   // A render function, not a `template`: vitest resolves `vue` to the runtime-only build,
   // which has no compiler, so a string template silently renders nothing at all.
   Button: {
-    props: ["label", "icon", "variant", "loading"],
+    props: ["label", "icon", "variant", "loading", "disabled"],
     emits: ["click"],
     setup:
-      (props: { label?: string; loading?: boolean }, { emit }: { emit: (event: string) => void }) =>
+      (
+        props: { label?: string; loading?: boolean; disabled?: boolean },
+        { emit }: { emit: (event: string) => void }
+      ) =>
       () =>
       h(
         "button",
-        { onClick: () => emit("click"), "data-loading": props.loading ? "true" : undefined },
+        {
+          onClick: () => emit("click"),
+          disabled: props.disabled,
+          "data-loading": props.loading ? "true" : undefined,
+        },
         props.label ?? ""
       ),
   },
+  Skeleton: { setup: () => () => h("div", { class: "fui-skeleton" }) },
   // Rendered in place, not portaled, and only while open: what the shell's hash decides.
   Dialog: {
     props: ["modelValue", "title", "size"],
@@ -212,6 +220,10 @@ async function editor(rows: ArrangedItem[]) {
 }
 
 
+function button(host: HTMLElement, label: string): HTMLButtonElement {
+  return [...host.querySelectorAll("button")].find((node) => node.textContent === label)!;
+}
+
 function rowKeys(host: HTMLElement): (string | null)[] {
   return [...host.querySelectorAll("[data-key]")].map((row) => row.getAttribute("data-key"));
 }
@@ -253,7 +265,7 @@ describe("the dialog", () => {
 
   it("keeps Save held while a new target loads, even when the old target's save lands", async () => {
     const { host, target, resolvers } = await switching([item("rail-row")]);
-    [...host.querySelectorAll("button")].find((button) => button.textContent === "Save")!.click();
+    button(host, "Save").click();
     await flush();
 
     target.value = { container: "Sidebar", address: "sales", title: "Customize this sidebar" };
@@ -261,12 +273,61 @@ describe("the dialog", () => {
     resolvers[0]({ rail: [], sidebars: {} } as unknown as ArrangedItem[]);
     await flush();
 
-    const save = [...host.querySelectorAll("button")].find((b) => b.textContent === "Save")!;
-    expect(save.getAttribute("data-loading")).toBe("true");
+    const save = button(host, "Save");
+    expect(save.disabled).toBe(true);
+    expect(save.getAttribute("data-loading")).toBeNull();
 
     resolvers[1]([item("sidebar-row")]);
     await flush();
-    expect(save.getAttribute("data-loading")).toBeNull();
+    expect(save.disabled).toBe(false);
+  });
+
+  it("draws skeleton rows while the list loads, and the real rows once it lands", async () => {
+    const { host, target, resolvers } = await switching([item("rail-row")]);
+    target.value = { container: "Sidebar", address: "sales", title: "Customize this sidebar" };
+    await flush();
+
+    expect(host.querySelectorAll("[data-customize-skeleton] li")).toHaveLength(5);
+    expect(host.querySelectorAll("[data-customize-skeleton] .fui-skeleton")).toHaveLength(20);
+    expect(host.querySelector("[data-customize-skeleton]")!.getAttribute("aria-hidden")).toBe("true");
+    expect(host.querySelector('[role="status"]')!.textContent).toBe("Loading");
+    expect(host.querySelector("[data-testid='customize']")).toBeNull();
+
+    resolvers[0]([item("sidebar-row")]);
+    await flush();
+    expect(host.querySelector("[data-customize-skeleton]")).toBeNull();
+    expect(host.querySelector('[role="status"]')).toBeNull();
+    expect(rowKeys(host)).toEqual(["sidebar-row"]);
+  });
+
+  it("does not spin Reset or Save during the load, only holds them", async () => {
+    const { host, target } = await switching([]);
+    target.value = { container: "Sidebar", address: "sales", title: "Customize this sidebar" };
+    await flush();
+
+    for (const label of ["Reset", "Save"]) {
+      expect(button(host, label).getAttribute("data-loading")).toBeNull();
+      expect(button(host, label).disabled).toBe(true);
+    }
+  });
+
+  it("spins Reset through its own reload, over the rows rather than a skeleton", async () => {
+    const { host, resolvers } = await switching([item("a")]);
+    button(host, "Reset").click();
+    await flush();
+    expect(button(host, "Reset").getAttribute("data-loading")).toBe("true");
+
+    resolvers[0]({ rail: [], sidebars: {} } as unknown as ArrangedItem[]);
+    await flush();
+    expect(button(host, "Reset").getAttribute("data-loading")).toBe("true");
+    expect(host.querySelector("[data-customize-skeleton]")).toBeNull();
+    expect(rowKeys(host)).toEqual(["a"]);
+
+    resolvers[1]([item("b")]);
+    await flush();
+    await flush();
+    expect(button(host, "Reset").getAttribute("data-loading")).toBeNull();
+    expect(rowKeys(host)).toEqual(["b"]);
   });
 
   it("ignores a fetch that lands after its target was left", async () => {
@@ -350,5 +411,57 @@ describe("the dialog", () => {
 
     expect(host.textContent).toContain("Could not load this list");
     expect(host.querySelector("[data-testid='customize']")).toBeNull();
+  });
+
+  it("holds Save after a failed load, so it cannot write an empty list", async () => {
+    runMethod.mockReset();
+    runMethod.mockRejectedValue(new Error("nope"));
+
+    const host = document.createElement("div");
+    createApp({
+      render: () =>
+        h(CustomizeSidebarDialog, {
+          target: { container: "Rail", address: "frappe", title: "Customize sidebar" },
+        }),
+    }).mount(host);
+    await flush();
+
+    button(host, "Save").click();
+    await flush();
+
+    expect(button(host, "Save").disabled).toBe(true);
+    expect(runMethod).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves Save open after a failed save, and a retry sends again", async () => {
+    const editing = await editor([item("a")]);
+    const navigation = { rail: [item("a")], sidebars: {} };
+    runMethod.mockRejectedValueOnce(new Error("nope")).mockResolvedValue({ data: navigation });
+
+    await editing.click("Save");
+    expect(editing.host.textContent).toContain("Could not save this list: nope");
+    expect(editing.rowKeys()).toEqual(["a"]);
+    expect(button(editing.host, "Save").disabled).toBe(false);
+
+    await editing.click("Save");
+    expect(runMethod).toHaveBeenCalledTimes(3);
+    expect(editing.saved).toEqual([navigation]);
+    expect(editing.host.textContent).not.toContain("Could not save this list");
+  });
+
+  it("clears a failed save's error once a Reset goes through", async () => {
+    const editing = await editor([item("a")]);
+    runMethod
+      .mockRejectedValueOnce(new Error("nope"))
+      .mockResolvedValueOnce({ data: { rail: [], sidebars: {} } })
+      .mockResolvedValueOnce({ data: [item("b")] });
+
+    await editing.click("Save");
+    expect(editing.host.textContent).toContain("Could not save this list");
+
+    await editing.click("Reset");
+    await flush();
+    expect(editing.host.textContent).not.toContain("Could not save this list");
+    expect(editing.rowKeys()).toEqual(["b"]);
   });
 });

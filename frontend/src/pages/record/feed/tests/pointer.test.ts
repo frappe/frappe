@@ -126,11 +126,12 @@ describe("?activity=<key>", () => {
 	});
 
 	it("does nothing for the page's own ?tab= replace, the same key, or another record's", async () => {
-		const { feeds, open } = makePage({ activity: "comment:c3" });
+		const { tabs, feeds, open } = makePage({ activity: "comment:c3" });
 		const { handle, scrollToRow } = fakeTimeline([["comment:c3"]]);
 		feeds.attach(handle);
 		await open();
 		await vi.waitFor(() => expect(scrollToRow).toHaveBeenCalledTimes(1));
+		expect(tabs.shown.value).toBe("activity");
 
 		feeds.followPointer("CRM Deal", "CRM-DEAL-1", { tab: "files", activity: "comment:c3" });
 		feeds.followPointer("CRM Deal", "CRM-DEAL-2", { activity: "comment:c9" });

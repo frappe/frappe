@@ -14,6 +14,8 @@
 				Could not load this app's navigation.
 			</p>
 
+			<TileGridSkeleton v-else-if="loading" class="mt-6" />
+
 			<ul v-else-if="modular" class="mt-6 grid max-w-2xl grid-cols-2 gap-2">
 				<li v-for="module in modules" :key="module.slug">
 					<RouterLink
@@ -63,12 +65,13 @@ import type { Addresses } from "@/addresses";
 import { routeFor, routeForModule, isModular } from "@/router/routeFor";
 import { useContents } from "@/contents";
 import PageFrame from "@/shell/PageFrame.vue";
+import TileGridSkeleton from "./TileGridSkeleton.vue";
 
 const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
 
 const modular = computed(() => isModular(boot));
-const { entries, failed } = useContents(boot.app);
+const { entries, loading, failed } = useContents(boot.app);
 
 // Derived from what the reader can read: an empty module is a tile that leads nowhere.
 const modules = computed(() => {

@@ -2,15 +2,7 @@
      mounted, hidden, after its first visit, and scrolls on its own, so scroll and focus survive a switch. -->
 <template>
 	<div class="relative flex h-full min-h-0 flex-col" data-record-tabs>
-		<div
-			v-if="!ready"
-			class="shrink-0 border-b border-outline-gray-1 px-[--page-gutter] py-2"
-			data-record-tabs-skeleton
-		>
-			<div class="flex h-7 items-center gap-5">
-				<Skeleton v-for="n in 4" :key="n" class="h-4 w-16 rounded-4" />
-			</div>
-		</div>
+		<TabsSkeleton v-if="!ready" />
 		<div
 			v-else-if="stripTabs.length"
 			ref="stripRoot"
@@ -68,11 +60,12 @@
 
 <script setup lang="ts">
 import { computed, inject, reactive, ref, watch } from "vue";
-import { ScrollArea, Skeleton, Tabs } from "frappe-ui";
+import { ScrollArea, Tabs } from "frappe-ui";
 import type { ResolvedItem } from "@/recordPage/surface";
 import type { RecordPageApi, TabItem } from "@/recordPage/types";
 import { __ } from "@/i18n";
 import { RecordFeedsKey } from "../feed/recordFeeds";
+import TabsSkeleton from "../skeletons/TabsSkeleton.vue";
 import { DETAILS_TAB, scrollsItself, TAB_STRIP_CLASSES } from "./recordTabs";
 
 const props = defineProps<{

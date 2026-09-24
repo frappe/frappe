@@ -145,7 +145,7 @@ describe("the Activity rows the host hands page.activity", () => {
 		const feeds = onRecord("PRE-1");
 		fetchMock.mockImplementation(async () => respond({ activities: [comment("comment:c1")], next: null }));
 
-		const read = prefetchFeed("CRM Deal", "PRE-1", {});
+		const read = prefetchFeed("CRM Deal", "PRE-1", { tab: "activity" });
 		expect(feeds.pageHost.activityRows()).toEqual([]);
 		await read;
 
@@ -154,7 +154,7 @@ describe("the Activity rows the host hands page.activity", () => {
 
 	it("are read again by a reload before the body mounts", async () => {
 		const feeds = onRecord("PRE-2");
-		await prefetchFeed("CRM Deal", "PRE-2", {});
+		await prefetchFeed("CRM Deal", "PRE-2", { tab: "activity" });
 		fetchMock.mockImplementation(async () => respond({ activities: [comment("comment:c2")], next: null }));
 
 		await feeds.pageHost.reloadActivity();
@@ -186,12 +186,19 @@ describe("the eager read", () => {
 			.filter((url) => url.pathname.endsWith("/activity"));
 	}
 
-	it("starts the Activity read for an address with no tab", () => {
-		prefetchFeed("CRM Deal", "EAGER-1", {});
+	it("starts the Activity read for `?tab=activity`", () => {
+		prefetchFeed("CRM Deal", "EAGER-1", { tab: "activity" });
 		const [read] = activityReads();
 		expect(read.pathname).toBe("/api/v2/document/CRM%20Deal/EAGER-1/activity");
 		expect(read.searchParams.get("types")).toBeNull();
 		expect(read.searchParams.get("limit")).toBeNull();
+	});
+
+	it("starts the Activity read for a pointer alone", () => {
+		prefetchFeed("CRM Deal", "EAGER-10", { activity: "comment:c1" });
+		const [read] = activityReads();
+		expect(read.pathname).toBe("/api/v2/document/CRM%20Deal/EAGER-10/activity");
+		expect(read.searchParams.get("types")).toBeNull();
 	});
 
 	it("ends both reads' first-paint pass together", () => {
@@ -206,7 +213,7 @@ describe("the eager read", () => {
 		vi.mocked(endActivityPrefetch).mockClear();
 		let endedDuringOpen = true;
 
-		await withFeedRead("CRM Deal", "EAGER-6", {}, async (feedRead) => {
+		await withFeedRead("CRM Deal", "EAGER-6", { tab: "activity" }, async (feedRead) => {
 			await feedRead;
 			endedDuringOpen = vi.mocked(endActivityPrefetch).mock.calls.length > 0;
 		});
@@ -239,6 +246,16 @@ describe("the eager read", () => {
 
 		prefetchFeed("CRM Deal", "EAGER-4", { tab: "files", activity: "comment:c1" });
 		expect(activityReads()).toHaveLength(1);
+	});
+
+	it("reads nothing for an address with no tab, so the open waits on no read", async () => {
+		fetchMock.mockImplementation(() => new Promise<Response>(() => {}));
+
+		await withFeedRead("CRM Deal", "EAGER-9", {}, async (feedRead) => {
+			await feedRead;
+		});
+
+		expect(activityReads()).toHaveLength(0);
 	});
 });
 

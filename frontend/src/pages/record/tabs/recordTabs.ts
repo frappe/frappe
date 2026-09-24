@@ -25,6 +25,7 @@ export interface RecordTabOptions {
 /** No doctype condition: a script hides what its doctype does not need. */
 export function recordTabBuiltins({ requestUpload }: RecordTabOptions = {}): TabItem[] {
   return [
+    { name: DETAILS_TAB, label: __("Details"), icon: "lucide-table-properties" },
     {
       name: "activity",
       label: __("Activity"),
@@ -45,7 +46,6 @@ export function recordTabBuiltins({ requestUpload }: RecordTabOptions = {}): Tab
       component: markRaw(FilesTab),
       ...(requestUpload && { create: attachAFile(requestUpload) }),
     },
-    { name: DETAILS_TAB, label: __("Details"), icon: "lucide-table-properties" },
   ];
 }
 

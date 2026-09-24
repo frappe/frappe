@@ -202,14 +202,20 @@ export function activityPointer(query: LocationQuery): string {
 	return typeof key === "string" ? key : "";
 }
 
+/** The address opens Activity or Emails, so the page's placeholder is the feed's. */
+export function addressesFeed(query: LocationQuery): boolean {
+	const tab = addressedTab(query);
+	return tab === ACTIVITY_TAB || tab === EMAILS_TAB;
+}
+
 function recordId(doctype: string, docname: string) {
 	return JSON.stringify([doctype, docname]);
 }
 
-// A pointer names its own tab, and an address with no `?tab=` opens the first one, Activity.
+// A pointer names its own tab; an address with no `?tab=` names no feed, whichever tab opens first.
 function addressedTab(query: LocationQuery) {
 	if (activityPointer(query)) return ACTIVITY_TAB;
-	return typeof query.tab === "string" && query.tab ? query.tab : ACTIVITY_TAB;
+	return typeof query.tab === "string" ? query.tab : "";
 }
 
 async function pageUntilDrawn(timeline: ActivityTimelineHandle, key: string, current: () => boolean) {

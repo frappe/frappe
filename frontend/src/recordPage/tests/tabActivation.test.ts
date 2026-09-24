@@ -24,9 +24,9 @@ import { registerRecordPage, resetRegistry } from "../registry";
 import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
 
 const RECORD_TABS = [
+  { name: "details", label: "Details" },
   { name: "activity", label: "Activity" },
   { name: "emails", label: "Emails" },
-  { name: "details", label: "Details" },
 ];
 
 /** One named tab and one the doc's `with_products` decides. */
@@ -52,7 +52,7 @@ function makeHost(overrides: Partial<RecordPageHost> = {}) {
     meta: ref(null),
     perms: () => ({}),
     isDirty: () => false,
-    activeTab: () => "activity",
+    activeTab: () => "details",
     activateTab: (name) => void moved.push(name),
     formLayout: () => LAYOUT,
     activeFormTab: () => "lead_details",
@@ -222,7 +222,7 @@ describe("why this is a verb and not a writable `active`", () => {
 
     page.tabs.activate("nope");
 
-    expect(page.tabs.active).toBe("activity");
+    expect(page.tabs.active).toBe("details");
     expect(warnings).toHaveLength(1);
   });
 });

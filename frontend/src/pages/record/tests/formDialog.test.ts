@@ -26,6 +26,9 @@ vi.mock("frappe-ui", () => ({
     props: { message: String },
     setup: (props) => () => h("p", { class: "error" }, props.message),
   }),
+  Skeleton: defineComponent({
+    setup: () => () => h("div", { class: "fui-skeleton" }),
+  }),
   createResource: () => ({
     data: null,
     loading: false,
@@ -53,6 +56,7 @@ vi.mock("@framework/ui/components/FormLayout", () => ({
   }),
 }));
 
+import { getMeta, runMethod } from "@framework/ui/api";
 import PageFormDialog from "../dialogs/PageFormDialog.vue";
 import type { PageDialogEntry } from "@/recordPage/dialog";
 import type { PageDialogFormOptions } from "@/recordPage/types";
@@ -228,5 +232,46 @@ describe("the form host", () => {
 
     expect(onCancel).not.toHaveBeenCalled();
     expect(entry.settled).toEqual([{ note: "x" }]);
+  });
+});
+
+describe("a doctype form before its Quick Entry layout arrives", () => {
+  it("draws a one-column skeleton of four fields, gone once the layout lands", async () => {
+    let answerLayout!: () => void;
+    vi.mocked(runMethod).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          answerLayout = () =>
+            resolve({
+              data: {
+                layouts: [],
+                fallback: [{ sections: [{ columns: [{ fields: ["note"] }] }] }],
+              },
+            } as any);
+        }),
+    );
+    vi.mocked(getMeta).mockImplementationOnce(
+      async () => ({ data: { name: "Skeleton Note", fields: FIELDS } }) as any,
+    );
+    const root = render(makeEntry({ doctype: "Skeleton Note" }));
+    await settle();
+
+    const skeleton = root.querySelector("[data-form-skeleton]");
+    expect(skeleton).not.toBeNull();
+    expect(skeleton!.querySelectorAll(".grid > div")).toHaveLength(4);
+    expect(skeleton!.querySelector(".grid")!.className).not.toContain("grid-cols-2");
+    expect(root.querySelector("form")).toBeNull();
+
+    answerLayout();
+    await settle();
+
+    expect(root.querySelector("[data-form-skeleton]")).toBeNull();
+    expect(root.querySelector("form")).not.toBeNull();
+  });
+
+  it("draws no skeleton for a form whose fields are given", () => {
+    const root = render(makeEntry({ fields: FIELDS }));
+
+    expect(root.querySelector("[data-form-skeleton]")).toBeNull();
   });
 });

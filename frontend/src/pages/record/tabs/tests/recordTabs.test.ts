@@ -41,12 +41,12 @@ afterEach(() => {
 });
 
 describe("the built-ins", () => {
-  it("seeds four tabs in order, Activity first", () => {
+  it("seeds four tabs in order, Details first", () => {
     expect(recordTabBuiltins().map((tab) => tab.name)).toEqual([
+      "details",
       "activity",
       "emails",
       "files",
-      "details",
     ]);
   });
 });
@@ -57,13 +57,13 @@ describe("which tab shows", () => {
   });
 
   it("is the first visible tab when the address names none", () => {
-    expect(makeHost().host.active()).toBe("activity");
+    expect(makeHost().host.active()).toBe("details");
   });
 
   it("is the first visible tab for an unknown name, and the address is left alone", () => {
     const { host, route, router } = makeHost({ tab: "nope" });
 
-    expect(host.active()).toBe("activity");
+    expect(host.active()).toBe("details");
     expect(route.query.tab).toBe("nope");
     expect(router.replace).not.toHaveBeenCalled();
   });
@@ -72,7 +72,7 @@ describe("which tab shows", () => {
     const { host, tabs } = makeHost({ tab: "files" });
 
     tabs.hide("files");
-    expect(host.active()).toBe("activity");
+    expect(host.active()).toBe("details");
     tabs.show("files");
     expect(host.active()).toBe("files");
   });
@@ -89,11 +89,11 @@ describe("which tab shows", () => {
     const { host, tabs } = makeHost();
 
     tabs.beginReplay();
-    tabs.hide("activity");
+    tabs.hide("details");
 
-    expect(tabs.visible()[0].name).toBe("activity");
-    expect(host.active()).toBe("emails");
-    expect(host.shown()).toBe("activity");
+    expect(tabs.visible()[0].name).toBe("details");
+    expect(host.active()).toBe("activity");
+    expect(host.shown()).toBe("details");
   });
 });
 

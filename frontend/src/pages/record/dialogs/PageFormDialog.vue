@@ -10,6 +10,7 @@
 		@after-leave="entry.dismiss()"
 	>
 		<FormLayout v-if="layout.length" v-model:doc="doc" :layout="layout" />
+		<FormSkeleton v-else-if="layoutLoading" :columns="1" :fields="4" />
 		<ErrorMessage v-if="error" class="mt-2" :message="error" />
 		<template #actions>
 			<div v-if="options.actions?.length" class="flex justify-end gap-2">
@@ -69,6 +70,7 @@ import {
 	warnAmbiguousLayout,
 } from "@/recordPage/formDialogLayout";
 import type { PageDialogAction } from "@/recordPage/types";
+import FormSkeleton from "../skeletons/FormSkeleton.vue";
 
 // The dialog's fields commit to nothing, or they would fire the record's handlers under the same names.
 provide(CommitKey, NO_COMMIT);
@@ -104,6 +106,9 @@ const doctypeMeta = picked ? useDoctypeMeta(picked) : null;
 const permissions = picked ? useDocPermissions(picked) : null;
 
 const layout = computed<FormLayoutSchema>(() => applyRequired(baseLayout(), options.required));
+const layoutLoading = computed(() =>
+	Boolean(quickEntry?.loading.value || doctypeMeta?.loading.value)
+);
 
 function baseLayout(): FormLayoutSchema {
 	if (mode === "fields") return layoutFromFields(options.fields!);

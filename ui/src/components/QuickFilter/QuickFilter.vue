@@ -27,11 +27,22 @@
 		@update:fields="onUpdateFields"
 		@done="onDone"
 	/>
+	<!-- Input-sized bars in the strip's own row, so the inputs land where the bars were. -->
+	<div
+		v-else-if="fieldsPending"
+		role="status"
+		class="flex flex-wrap items-center gap-2"
+		data-quick-filter-skeleton
+	>
+		<span class="sr-only">Loading</span>
+		<Skeleton v-for="bar in 3" :key="bar" class="h-7 w-40 shrink-0 rounded-4" />
+	</div>
 	<QuickFilterInputs v-else :fields="surfaced" v-model:filters="filters" />
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { Skeleton } from "frappe-ui";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getFilterableFields } from "../Filter/getFilterableFields";
 import { getQuickFilterFields } from "./getQuickFilterFields";
@@ -54,7 +65,11 @@ const filters = defineModel<Filter[]>("filters", { default: () => [] });
 const fields = defineModel<FilterField[] | undefined>("fields", { default: undefined });
 const customizing = defineModel<boolean>("customizing", { default: false });
 
-const { meta } = useDoctypeMeta(props.doctype);
+const { meta, loading } = useDoctypeMeta(props.doctype);
+
+// Unknown only while no host set is bound and the first meta read is in flight; a failed read
+// falls back to the Name default.
+const fieldsPending = computed(() => fields.value === undefined && !meta.value && loading.value);
 
 // Default surfaced fields from Meta until the host/user customizes (`fields`
 // bound). Mutating in customize mode promotes the default into the model.

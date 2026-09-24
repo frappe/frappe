@@ -25,13 +25,27 @@
 					class="flex items-center ps-[calc(0.5rem+1px)] [&_input]:mt-0"
 					role="columnheader"
 				>
+					<Skeleton v-if="skeletonRows" class="h-3.5 w-3.5 rounded-1" />
 					<Checkbox
+						v-else
 						:modelValue="selectAllState === 'all'"
 						:indeterminate="selectAllState === 'some'"
 						aria-label="Select all"
 						@update:modelValue="toggleSelectAll"
 					/>
 				</div>
+				<!-- A label-sized bar over each placeholder column until the columns are known. -->
+				<template v-if="skeletonHeader">
+					<div
+						v-for="column in skeletonColumns"
+						:key="column.fieldname"
+						class="flex min-w-0 items-center"
+						role="columnheader"
+						data-list-header-skeleton
+					>
+						<Skeleton class="h-2.5 w-16 rounded-1" />
+					</div>
+				</template>
 				<div
 					v-for="column in columns"
 					:key="column.fieldname"
@@ -108,9 +122,11 @@
 					</ListCell>
 				</ListRow>
 			</div>
-			<template v-else-if="loading">
+			<template v-else-if="skeletonRows">
 				<ListRow v-for="index in SKELETON_ROW_COUNT" :key="index">
-					<ListCell />
+					<ListCell class="ps-[calc(0.5rem+1px)]">
+						<Skeleton class="h-3.5 w-3.5 rounded-1" />
+					</ListCell>
 					<ListCell v-for="column in skeletonColumns" :key="column.fieldname">
 						<Skeleton class="h-3 w-full rounded-1" />
 					</ListCell>
@@ -213,6 +229,9 @@ const { drafts, resizingFieldname, startResize, resetColumn } = useColumnResize(
 	onResize: (fieldname, width) => emit("column-resize", { fieldname, width }),
 	onReset: (fieldname) => emit("column-reset", { fieldname }),
 });
+
+const skeletonRows = computed(() => props.loading && !rows.value.length);
+const skeletonHeader = computed(() => props.loading && !columns.value.length);
 
 const skeletonColumns = computed<ListColumn[]>(() => {
 	if (columns.value.length) return columns.value;

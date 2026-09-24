@@ -63,7 +63,7 @@ import { useColumnStore } from "./columnStore";
 const props = defineProps<{
 	items: BodyItem[];
 	/** Handed to every script column beside its own props, as a band receives it. */
-	page: RecordPageApi;
+	page?: RecordPageApi;
 	user: string;
 	/** The row's width in px when the caller knows it; measured from the element otherwise. */
 	available?: number;

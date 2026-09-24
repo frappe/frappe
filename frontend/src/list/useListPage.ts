@@ -46,6 +46,8 @@ export interface ListPage extends ListRows {
 	/** The filters and sort the rows belong to, as one string: the session memory's key. */
 	rowsKey: () => string;
 	metaError: ComputedRef<string | null>;
+	/** True once meta, the stored settings and the URL are read into the state above. */
+	seeded: ComputedRef<boolean>;
 	/** True when the person's own row holds columns. */
 	columnsCustomized: ComputedRef<boolean>;
 	/** Clears the person's columns, so the site's or the app's show. */
@@ -252,6 +254,7 @@ export function useListPage(doctype: string): ListPage {
 		pageSize,
 		rowsKey,
 		metaError: computed(() => (error.value ? messageOf(error.value) : null)),
+		seeded: computed(() => seeded.value),
 		columnsCustomized: computed(() => settings.has("user", "columns")),
 		resetColumns: async () => {
 			await settings.reset("columns");

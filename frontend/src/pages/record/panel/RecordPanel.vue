@@ -14,6 +14,7 @@
 			:sections="sections"
 			:page="controller.page"
 			:isOpen="disclosure.isOpen"
+			:loading="layoutLoading"
 			@toggle="disclosure.toggle"
 			@expand="emit('expand', $event)"
 		/>
@@ -37,6 +38,7 @@ const props = defineProps<{
 	meta: any;
 	docinfo: DocInfo | null;
 	sections: LayoutSection[];
+	layoutLoading: boolean;
 	disclosure: Disclosure;
 	collapsed: boolean;
 	run: (action: QuickAction) => void;
