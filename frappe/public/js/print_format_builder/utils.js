@@ -1,4 +1,5 @@
 import { layout_nodes } from "./layout";
+import { is_printable_docfield } from "./fieldtypes";
 
 export function set_prop(target, key, value, fallback) {
 	if (!target) return;
@@ -229,7 +230,7 @@ export function create_default_layout(meta, print_format) {
 			set_section(df);
 		} else if (df.fieldtype === "Column Break") {
 			set_column(df);
-		} else if (df.label) {
+		} else if (df.label && is_printable_docfield(df)) {
 			if (!column) set_column();
 
 			if (!df.print_hide) {

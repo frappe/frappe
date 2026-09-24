@@ -4,6 +4,7 @@
 import json
 
 import frappe
+from frappe.model import no_value_fields
 from frappe.utils import cint, flt
 
 ASSUMED_BODY_WIDTH_PX = 750
@@ -277,6 +278,10 @@ def convert_print_format(doc):
 	return dropped
 
 
+def is_printable_docfield(df) -> bool:
+	return df.fieldtype not in no_value_fields or df.fieldtype in ("Table", "Table MultiSelect")
+
+
 def create_default_layout(meta) -> dict:
 	"""Build the new builder's default layout for a doctype from its meta.
 
@@ -328,7 +333,7 @@ def create_default_layout(meta) -> dict:
 			continue
 		elif df.fieldtype == "Column Break":
 			new_column(df)
-		elif df.label:
+		elif df.label and is_printable_docfield(df):
 			if not state.column:
 				new_column()
 			if cint(df.print_hide):
