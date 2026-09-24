@@ -20,12 +20,14 @@ context("Control Link (combobox)", () => {
 		});
 	});
 
+	// a fresh ToDo per test, found by its stamp: other specs leave ToDos with the same words behind
+	let todo_stamp;
+	let todo_description;
 	beforeEach(() => {
 		cy.visit("/desk/website");
-		cy.create_records({
-			doctype: "ToDo",
-			description: "this is a test todo for link",
-		}).as("todos");
+		todo_stamp = String(Date.now());
+		todo_description = `this is a test todo for link ${todo_stamp}`;
+		cy.create_records({ doctype: "ToDo", description: todo_description }).as("todos");
 	});
 
 	function get_dialog_with_link() {
@@ -113,7 +115,7 @@ context("Control Link (combobox)", () => {
 
 		cy.get("@todos").then((todos) => {
 			// Enter picks the highlighted row
-			field_input().type("todo for link", { delay: 100 });
+			field_input().type(todo_stamp, { delay: 100 });
 			panel()
 				.find(".es-combobox__list [role='option'][data-highlighted]")
 				.should("contain", todos[0]);
@@ -201,7 +203,7 @@ context("Control Link (combobox)", () => {
 		cy.get("@todos").then((todos) => {
 			get_dialog_with_link().as("dialog");
 			cy.intercept("/api/method/frappe.client.validate_link_and_fetch*").as("validate_link");
-			field_input().type("todo for link", { delay: 100 });
+			field_input().type(todo_stamp, { delay: 100 });
 			search().type("{enter}");
 			panel().should("not.exist");
 			// let the pick's validation settle, or the next change is dropped
@@ -416,19 +418,19 @@ context("Control Link (combobox)", () => {
 				frappe.boot.link_title_doctypes = ["ToDo"];
 			});
 
-		field_input().type("todo for link", { delay: 100 });
+		field_input().type(todo_stamp, { delay: 100 });
 		panel()
 			.find(".es-combobox__list [role='option'][data-highlighted]")
-			.should("contain", "this is a test todo for link");
+			.should("contain", todo_description);
 		search().type("{enter}");
 		panel().should("not.exist");
 		// the title is looked up after the pick lands: wait for it to show
-		field_input().should("have.value", "this is a test todo for link");
+		field_input().should("have.value", todo_description);
 		cy.get("@dialog").then((dialog) => {
 			cy.get("@todos").then((todos) => {
 				const field = dialog.get_field("link");
 				expect(field.get_value()).to.eq(todos[0]);
-				expect(field.get_label_value()).to.eq("this is a test todo for link");
+				expect(field.get_label_value()).to.eq(todo_description);
 			});
 		});
 	});
@@ -606,7 +608,7 @@ context("Control Link (combobox)", () => {
 
 				cy.get('.frappe-control[data-fieldname="items"] .grid-add-row').click();
 				panel().should("be.visible");
-				search().type("todo for link", { delay: 100 });
+				search().type(todo_stamp, { delay: 100 });
 				panel()
 					.find(".es-combobox__list [role='option'][data-highlighted]")
 					.should("contain", todos[0]);
@@ -629,7 +631,7 @@ context("Control Link (combobox)", () => {
 					});
 				cy.get('.frappe-control[data-fieldname="items"] .grid-add-row').click();
 				panel().should("be.visible");
-				search().type("todo for link", { delay: 100 });
+				search().type(todo_stamp, { delay: 100 });
 				panel()
 					.find(".es-combobox__list [role='option'][data-highlighted]")
 					.should("contain", todos[0]);
