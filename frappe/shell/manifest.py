@@ -15,7 +15,7 @@ from semantic_version import NpmSpec, Version
 import frappe
 from frappe.utils import get_bench_path
 
-from .registry import declared_prefix
+from .registry import declared_prefix, is_modular
 
 #: Enforced by the build and documented nowhere else; a duplicate instance breaks provide/inject.
 SINGLETONS = ("vue", "vue-router", "frappe-ui", "@framework/ui", "reka-ui", "dompurify")
@@ -46,6 +46,11 @@ class ImportMapConflict(Exception):
 	pass
 
 
+def page_glob(source_dir: str) -> str:
+	"""An app's pages, `<module>/frontend/pages/<slug>.js`; the file name is the address."""
+	return os.path.join(source_dir, "*", "frontend", "pages", "*.js")
+
+
 def contribution_globs(source_dir: str) -> list[str]:
 	"""The six contribution kinds, as paths; a file anywhere else is not a contribution."""
 	return [
@@ -56,7 +61,7 @@ def contribution_globs(source_dir: str) -> list[str]:
 		os.path.join(source_dir, "*", "custom", "*", "record.js"),
 		os.path.join(source_dir, "*", "custom", "*", "pages.json"),
 		os.path.join(source_dir, "*", "custom", "*", "pages", "*.js"),
-		os.path.join(source_dir, "*", "frontend", "pages", "*.js"),
+		page_glob(source_dir),
 		# Beside the `Navigation Item Type` JSON, where the plugin reads the kind's real name.
 		os.path.join(source_dir, "*", "navigation_item_type", "*", "frontend", "item.js"),
 	]
@@ -143,6 +148,7 @@ def assemble(apps: list[str] | None = None) -> list[dict]:
 			{
 				"app": app,
 				"app_prefix": declared_prefix(app),
+				"modular": is_modular(app),
 				"source_dir": source_dir,
 				"deps": app_deps(app),
 				"runtime_deps": app_runtime_deps(app),

@@ -369,3 +369,79 @@ describe("the terminal output", () => {
     expect(logger.warn).not.toHaveBeenCalled();
   });
 });
+
+describe("a page whose slug is already taken on the bench", () => {
+  const erpnext = {
+    "modules.txt": "Selling\nAccounts\n",
+    "selling/doctype/lead/lead.json": JSON.stringify({ name: "Lead" }),
+    "selling/doctype/lead_item/lead_item.json": JSON.stringify({
+      name: "Lead Item",
+      istable: 1,
+    }),
+  };
+
+  it("warns about a flat app's page that a doctype's slug holds, and keeps the page", () => {
+    const [crm, other] = bench({
+      crm: {
+        "fcrm/frontend/pages/lead.js": PAGE,
+        "fcrm/frontend/pages/selling.js": PAGE,
+        "fcrm/frontend/pages/lead-item.js": PAGE,
+      },
+      erpnext,
+    });
+    const { pages, pageWarnings } = discover([crm], [crm.source_dir, other.source_dir]);
+
+    expect(pages.map((page) => page.slug).sort()).toEqual(["lead", "lead-item", "selling"]);
+    expect(pageWarnings).toEqual([
+      `[frappe] ${join(crm.source_dir, "fcrm/frontend/pages/lead.js")}: the doctype 'Lead' ` +
+        "has the address /lead; on a site that has it, the page gets no route.",
+    ]);
+  });
+
+  it("warns about a modular app's page that a module's slug holds", () => {
+    const [crm, other] = bench({
+      crm: {
+        "fcrm/frontend/pages/lead.js": PAGE,
+        "fcrm/frontend/pages/accounts.js": PAGE,
+      },
+      erpnext,
+    });
+    const manifest = [{ ...crm, modular: true }];
+    const { pageWarnings } = discover(manifest, [crm.source_dir, other.source_dir]);
+
+    expect(pageWarnings).toEqual([
+      `[frappe] ${join(crm.source_dir, "fcrm/frontend/pages/accounts.js")}: the module ` +
+        "'Accounts' has the address /accounts; on a site that has it, the page gets no route.",
+    ]);
+  });
+
+  it("warns once, with both paths, about two pages of one app with one slug", () => {
+    const [crm] = bench({
+      crm: {
+        "fcrm/frontend/pages/deals.js": PAGE,
+        "sales/frontend/pages/deals.js": PAGE,
+      },
+    });
+    const [helpdesk] = bench({ helpdesk: { "desk/frontend/pages/deals.js": PAGE } });
+    const { pageWarnings } = discover([crm, helpdesk]);
+
+    expect(pageWarnings).toEqual([
+      "[frappe] 'crm' ships more than one page named 'deals': " +
+        `${join(crm.source_dir, "fcrm/frontend/pages/deals.js")}, ` +
+        `${join(crm.source_dir, "sales/frontend/pages/deals.js")}. None of them gets a route.`,
+    ]);
+  });
+
+  it("prints in the terminal only, since the router reports the clashes a site has", () => {
+    const [crm, other] = bench({ crm: { "fcrm/frontend/pages/lead.js": PAGE }, erpnext });
+    const plugin = contributions([crm], [crm.source_dir, other.source_dir]) as any;
+    const logger = { warn: vi.fn() };
+    plugin.configResolved({ logger });
+
+    const code = load(plugin);
+    const [warning] = discover([crm], [crm.source_dir, other.source_dir]).pageWarnings;
+
+    expect(logger.warn.mock.calls).toEqual([[warning]]);
+    expect(code).not.toContain("console.warn(\"[frappe]");
+  });
+});

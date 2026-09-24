@@ -4,6 +4,7 @@ import os
 import random
 import string
 import unittest
+from contextlib import contextmanager
 from unittest.case import skipIf
 from unittest.mock import patch
 
@@ -27,7 +28,9 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.desk.form.load import getdoc
 from frappe.model.delete_doc import delete_controllers
 from frappe.model.sync import remove_orphan_doctypes
+from frappe.shell.address_clash import AddressClashError
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import make_test_records
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_table_name
 
@@ -1100,6 +1103,88 @@ class TestDocType(IntegrationTestCase):
 		frappe.db.commit()
 		with self.assertRaises(frappe.DoesNotExistError):
 			frappe.get_meta(dt.name)
+
+
+@contextmanager
+def pages_at(slugs: list[str], modular_apps: bool = False):
+	"""Installed apps of one shape shipping a page at each slug, faked at the page-slug helper."""
+	pages = {slug: f"apps/probe/probe/probe/frontend/pages/{slug}.js" for slug in slugs}
+
+	def page_files(modular: bool) -> dict[str, str]:
+		return pages if modular == modular_apps else {}
+
+	with patch("frappe.shell.address_clash.page_files", side_effect=page_files):
+		yield
+
+
+class TestDocTypeAddressClash(IntegrationTestCase):
+	"""A new or renamed DocType may not take an address a flat app's page or another DocType has."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		make_test_records("User")
+
+	def setUp(self):
+		# A System Manager, the least a user needs to create a DocType.
+		frappe.set_user("test@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+
+	def insert(self, name: str, **kwargs) -> "DocType":
+		self.addCleanup(frappe.delete_doc, "DocType", name, force=True, ignore_missing=True)
+		return new_doctype(name, issingle=1, **kwargs).insert()
+
+	def test_a_flat_apps_page_refuses_the_doctype(self):
+		with pages_at(["test-clash-page"]), self.assertRaises(AddressClashError) as caught:
+			self.insert("Test Clash Page")
+		self.assertIn("apps/probe/probe/probe/frontend/pages/test-clash-page.js", str(caught.exception))
+
+	def test_a_modular_apps_page_leaves_the_doctype_alone(self):
+		with pages_at(["test-clash-page"], modular_apps=True):
+			self.insert("Test Clash Page")
+
+	def test_another_doctype_refuses_the_doctype(self):
+		self.insert("Test Clash Twin")
+		with self.assertRaises(AddressClashError) as caught:
+			self.insert("Test_Clash Twin")
+		self.assertIn("Test Clash Twin", str(caught.exception))
+
+	def test_a_child_table_holds_no_address_and_is_never_checked(self):
+		# A child table's table is DDL, which commits: the class rollback cannot undo this test.
+		self.addCleanup(frappe.db.commit)
+		for child in ("Test_Clash Row", "Test_Clash Cell"):
+			self.addCleanup(frappe.delete_doc, "DocType", child, force=True, ignore_missing=True)
+
+		self.insert("Test Clash Row")
+		new_doctype("Test_Clash Row", istable=1).insert()
+
+		new_doctype("Test_Clash Cell", istable=1).insert()
+		self.insert("Test Clash Cell")
+
+	def test_a_rename_is_checked_against_the_new_name(self):
+		old = self.insert("Test Clash Renamed").name
+		with pages_at(["test-clash-target"]), self.assertRaises(AddressClashError):
+			frappe.rename_doc("DocType", old, "Test Clash Target")
+
+		self.addCleanup(frappe.delete_doc, "DocType", "Test Clash Freed", force=True, ignore_missing=True)
+		with pages_at(["test-clash-renamed"]):
+			frappe.rename_doc("DocType", old, "Test Clash Freed")
+		self.assertTrue(frappe.db.exists("DocType", "Test Clash Freed"))
+
+	def test_install_and_migrate_only_warn(self):
+		for flag, name in (
+			("in_migrate", "Test Clash Migrated"),
+			("in_install", "Test Clash Installed"),
+			("in_patch", "Test Clash Patched"),
+		):
+			with (
+				self.subTest(flag=flag),
+				pages_at([frappe.scrub(name).replace("_", "-")]),
+				patch.dict(frappe.flags, {flag: True}),
+				self.assertLogs(frappe.logger("shell"), "WARNING") as logged,
+			):
+				self.insert(name)
+			self.assertIn(f"DocType {name} would take the address", logged.output[0])
 
 
 def new_doctype(

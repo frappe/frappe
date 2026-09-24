@@ -4,17 +4,18 @@
 import { readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { directories, files, isFile } from "./folders.js";
+import { pageClashes } from "./pageClashes.js";
 import { STANDARD_PAGES, clashes, declaredPages } from "./replacements.js";
 
 const VIRTUAL_ID = "virtual:frappe/contributions";
 const RESOLVED_ID = "\0" + VIRTUAL_ID;
 
 /**
- * `crm_deal` -> `CRM Deal`, read from the doctype's own JSON: title-casing the folder
- * yields "Crm Deal".
+ * `crm_deal` -> `{name: "CRM Deal", istable}`, read from the doctype's own JSON: title-casing
+ * the folder yields "Crm Deal".
  */
-function buildDoctypeNames(sourceDirs) {
-	const names = new Map();
+function readDoctypes(sourceDirs) {
+	const definitions = new Map();
 
 	for (const source_dir of sourceDirs) {
 		for (const module of directories(source_dir)) {
@@ -23,8 +24,8 @@ function buildDoctypeNames(sourceDirs) {
 				const definition = join(doctypeRoot, scrubbed, `${scrubbed}.json`);
 				if (!isFile(definition)) continue;
 				try {
-					const { name } = JSON.parse(readFileSync(definition, "utf-8"));
-					if (name) names.set(scrubbed, name);
+					const { name, istable } = JSON.parse(readFileSync(definition, "utf-8"));
+					if (name) definitions.set(scrubbed, { name, istable: Boolean(istable) });
 				} catch {
 					// A malformed definition is the doctype loader's to report. Fall back to the folder.
 				}
@@ -32,7 +33,7 @@ function buildDoctypeNames(sourceDirs) {
 		}
 	}
 
-	return names;
+	return definitions;
 }
 
 function titleCase(scrubbed) {
@@ -51,8 +52,8 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 	const warnings = [];
 	// Every app on the bench, not just the manifest: a `custom/` folder can name a doctype
 	// owned by an app that contributes nothing.
-	const names = buildDoctypeNames(allSourceDirs);
-	const unscrub = (scrubbed) => names.get(scrubbed) ?? titleCase(scrubbed);
+	const definitions = readDoctypes(allSourceDirs);
+	const unscrub = (scrubbed) => definitions.get(scrubbed)?.name ?? titleCase(scrubbed);
 
 	for (const { app, source_dir } of manifest) {
 		for (const module of directories(source_dir)) {
@@ -121,7 +122,9 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 	}
 
 	warnings.push(...clashes(replacements));
-	return { doctypes, pages, itemTypes, replacements, declarations, warnings };
+	// Terminal only: the router reports the clashes a site really has, and most sites have none.
+	const pageWarnings = pageClashes(pages, manifest, definitions.values(), allSourceDirs);
+	return { doctypes, pages, itemTypes, replacements, declarations, warnings, pageWarnings };
 }
 
 /** A record's real name, read from its own JSON. `null` if there is no readable one. */
@@ -236,7 +239,7 @@ export default function contributions(manifest, allSourceDirs) {
 			const found = discover(manifest, allSourceDirs);
 			// `pages.json` is read, never imported, so vite would not reload the module on an edit.
 			for (const declaration of found.declarations) this.addWatchFile(declaration);
-			report(found.warnings, logger);
+			report([...found.warnings, ...found.pageWarnings], logger);
 			return generate(found);
 		},
 	};

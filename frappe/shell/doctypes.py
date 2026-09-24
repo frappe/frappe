@@ -59,26 +59,54 @@ def metadata_version() -> str:
 
 
 def build_address_table() -> dict:
-	"""`{doctype: [slug, module_slug]}` over the whole bench, the module names, and the singles."""
+	"""`{doctype: [slug, module_slug]}` over the whole bench, plus modules, singles and slug-less doctypes."""
 	# Full-bench, so the table is byte-identical for every user and prefix and can leave boot.
 	# The module *slug*, so the client never re-implements `frappe.scrub`.
 	doctypes = {}
-	modules = {}
+	holders = {}
+	used_modules = {}
 	singles = []
+	unaddressed = []
 
+	# Two rows sharing a slug: the one created first keeps the address and the later one has none.
 	for name, module, issingle in frappe.get_all(
-		"DocType", filters={"istable": 0}, fields=["name", "module", "issingle"], as_list=True
+		"DocType",
+		filters={"istable": 0},
+		fields=["name", "module", "issingle"],
+		order_by="creation asc",
+		as_list=True,
 	):
 		module = module or ""
-		module_slug = slug(module) if module else ""
-		if module_slug:
-			modules[module_slug] = module
-		doctypes[name] = [slug(name), module_slug]
+		if module:
+			used_modules[module] = None
+		if not claim(holders, "DocType", name):
+			unaddressed.append(name)
+			continue
+		doctypes[name] = [slug(name), slug(module) if module else ""]
 		# A single has no list: its address opens the document itself.
 		if issingle:
 			singles.append(name)
 
-	return {"doctypes": doctypes, "modules": modules, "singles": singles}
+	# A module with no Module Def row sorts last, keeping the order its doctypes gave it.
+	created = frappe.get_all("Module Def", order_by="creation asc", pluck="name")
+	rank = {module: index for index, module in enumerate(created)}
+	modules = {}
+	for module in sorted(used_modules, key=lambda module: rank.get(module, len(rank))):
+		claim(modules, "Module Def", module)
+
+	return {"doctypes": doctypes, "modules": modules, "singles": singles, "unaddressed": unaddressed}
+
+
+def claim(holders: dict[str, str], doctype: str, name: str) -> bool:
+	"""Whether `name` gets its slug; a taken one is logged, since the row then has no address."""
+	address = slug(name)
+	if holder := holders.get(address):
+		frappe.logger("shell").warning(
+			f"{doctype} {name} has no address: {address} belongs to {doctype} {holder}, created first."
+		)
+		return False
+	holders[address] = name
+	return True
 
 
 def get_address_table() -> dict:
