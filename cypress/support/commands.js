@@ -37,16 +37,32 @@ Cypress.Commands.add("login", (email, password) => {
 	// cy.session clears all localStorage on new login, so we need to retain the last route
 	const session_last_route = window.localStorage.getItem("session_last_route");
 	return cy
-		.session([email, password] || "", () => {
-			return cy.request({
-				url: "/api/method/login",
-				method: "POST",
-				body: {
-					usr: email,
-					pwd: password,
+		.session(
+			[email, password] || "",
+			() => {
+				return cy.request({
+					url: "/api/method/login",
+					method: "POST",
+					body: {
+						usr: email,
+						pwd: password,
+					},
+				});
+			},
+			{
+				// A restored session whose cookie no longer authenticates leaves the next
+				// visit as Guest, which reads as a 403 on the page rather than as a login
+				// failure. Rebuild the session instead of reusing it.
+				validate() {
+					cy.request({
+						url: "/api/method/frappe.auth.get_logged_user",
+						failOnStatusCode: false,
+					})
+						.its("status")
+						.should("eq", 200);
 				},
-			});
-		})
+			}
+		)
 		.then(() => {
 			if (session_last_route) {
 				window.localStorage.setItem("session_last_route", session_last_route);
@@ -288,6 +304,14 @@ Cypress.Commands.add("clear_cache", () => {
 		});
 });
 
+Cypress.Commands.add("desk_ready", () => {
+	cy.window({ log: false }).should((win) => {
+		expect(win.frappe && win.frappe.app, "desk booted").to.be.ok;
+		expect(win.frappe.request.ajax_count, "requests settled").to.eq(0);
+	});
+	cy.get(".layout-main-section:visible").should("not.be.empty");
+});
+
 Cypress.Commands.add("dialog", (opts) => {
 	return cy
 		.window({ log: false })
@@ -446,7 +470,6 @@ const add_remove_role = (action, user, role, session_user) => {
 
 Cypress.Commands.add("open_list_filter", () => {
 	cy.get(".filter-section .filter-button").click();
-	cy.wait(300);
 	cy.get(".filter-popover").should("exist");
 });
 
