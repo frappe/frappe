@@ -1484,13 +1484,16 @@ Object.assign(frappe.utils, {
 						}
 					} else if (first_link.link_type === "URL") {
 						route = first_link.url;
-					} else if (first_link.link_type == "Page" && first_link.route) {
-						// `route` is the path inside the page, so it goes on the end of the
-						// page's own route.
+					} else if (first_link.link_type == "Page") {
 						route = frappe.utils.generate_route({
 							type: first_link.link_type,
 							name: first_link.link_to,
-							route: `${first_link.link_to}/${first_link.route}`,
+							route: first_link.route
+								? `${first_link.link_to}/${first_link.route}`
+								: undefined,
+							route_options: first_link.route_options
+								? JSON.parse(first_link.route_options)
+								: undefined,
 						});
 					} else {
 						route = frappe.utils.generate_route({
