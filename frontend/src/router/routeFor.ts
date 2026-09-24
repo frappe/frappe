@@ -39,12 +39,10 @@ export type RouteOptions = {
 /**
  * The route for a doctype's list, one of its saved views, or one record.
  *
- *   routeFor('CRM Deal')                                     -> /crm-deal
- *   routeFor('CRM Deal', 'CRM-DEAL-01')                      -> /crm-deal/CRM-DEAL-01
- *   routeFor('CRM Deal', null, { view: 'open' })             -> /crm-deal/view/list/open
- *   routeFor('System Settings')                              -> /system-settings/System Settings
- *   routeFor('CRM Lead', null, { standard: true })           -> /crm-lead/view/list
- *   routeFor('CRM Lead', 'CRM-LEAD-01', { standard: true })  -> /crm-lead/CRM-LEAD-01/record
+ *   routeFor('CRM Deal')                          -> /crm-deal
+ *   routeFor('CRM Deal', 'CRM-DEAL-01')           -> /crm-deal/CRM-DEAL-01
+ *   routeFor('CRM Deal', null, { view: 'open' })  -> /crm-deal/view/list/open
+ *   routeFor('System Settings')                   -> /system-settings/System Settings
  *
  * A single has no list, so its list address is the document itself, whatever view was asked
  * for. Under a modular prefix each is one segment deeper, with the doctype's own module.

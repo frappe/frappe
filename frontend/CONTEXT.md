@@ -67,6 +67,7 @@ One of the routes every app gets with **no declaration at all** — home, list,
 standard-list, saved-view, record, standard-record, and module on a modular app. `doctype` is
 a param, so the same routes serve any number of doctypes.
 There is no per-doctype route and no opt-out.
+The list and record routes open a doctype's declared replacement page when one exists.
 _Avoid_: default route, implicit route.
 
 **Contributed route**:

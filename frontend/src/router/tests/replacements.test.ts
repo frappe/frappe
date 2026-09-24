@@ -1,7 +1,7 @@
 // The page an app declares in place of a doctype's list or record page, at the main address.
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick } from "vue";
-import { RouterView } from "vue-router";
+import { createApp, defineComponent, h, nextTick, useAttrs } from "vue";
+import { isNavigationFailure, NavigationFailureType, RouterView } from "vue-router";
 
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
@@ -10,13 +10,16 @@ import type { ReplacementContribution } from "@/contributions/types";
 import { createShellRouter } from "@/router";
 import { registerShell, routeFor, urlFor } from "@/router/routeFor";
 
-const setups = vi.hoisted(() => ({ count: 0 }));
+const setups = vi.hoisted(() => ({ count: 0, attrs: [] as object[] }));
+// Set by a test: the standard record page's leave and update guards refuse the navigation.
+const guard = vi.hoisted(() => ({ block: false }));
 const fake = vi.hoisted(() => ({ replacements: [] as ReplacementContribution[] }));
 
 const DeclaredPage = defineComponent({
 	props: { doctype: String, name: String },
 	setup(props) {
 		setups.count++;
+		setups.attrs.push({ ...useAttrs() });
 		return () =>
 			h("div", {
 				"data-page": "declared",
@@ -26,8 +29,12 @@ const DeclaredPage = defineComponent({
 	},
 });
 
-function declared(doctype: string, key: "record" | "list"): ReplacementContribution {
-	return { app: "erpnext", doctype, key, foreign: false, component: async () => DeclaredPage };
+function declared(
+	doctype: string,
+	key: "record" | "list",
+	component: ReplacementContribution["component"] = async () => DeclaredPage
+): ReplacementContribution {
+	return { app: "erpnext", doctype, key, foreign: false, component };
 }
 
 vi.mock("virtual:frappe/contributions", () => ({
@@ -42,10 +49,21 @@ vi.mock("virtual:frappe/contributions", () => ({
 }));
 
 vi.mock("@/pages/Home.vue", () => ({ default: { render: () => null } }));
-vi.mock("@/pages/List.vue", () => ({ default: { render: () => h("div", { "data-page": "list" }) } }));
-vi.mock("@/pages/Record.vue", () => ({
-	default: { render: () => h("div", { "data-page": "record" }) },
+vi.mock("@/pages/List.vue", () => ({
+	default: { render: () => h("div", { "data-page": "list" }) },
 }));
+vi.mock("@/pages/Record.vue", async () => {
+	const { onBeforeRouteLeave, onBeforeRouteUpdate } = await import("vue-router");
+	return {
+		default: defineComponent({
+			setup() {
+				onBeforeRouteLeave(() => !guard.block);
+				onBeforeRouteUpdate(() => !guard.block);
+				return () => h("div", { "data-page": "record" });
+			},
+		}),
+	};
+});
 vi.mock("@/pages/Module.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/shell/NotFound.vue", () => ({ default: { render: () => null } }));
 
@@ -54,6 +72,7 @@ const addresses = new Addresses({
 		"Sales Invoice": ["sales-invoice", "accounts"],
 		"Purchase Invoice": ["purchase-invoice", "accounts"],
 		"Accounts Settings": ["accounts-settings", "accounts"],
+		"Journal Entry": ["journal-entry", "accounts"],
 	},
 	modules: { accounts: "Accounts" },
 	singles: ["Accounts Settings"],
@@ -75,12 +94,17 @@ beforeAll(async () => {
 		declared("Sales Invoice", "record"),
 		declared("Sales Invoice", "list"),
 		declared("Accounts Settings", "list"),
+		declared("Journal Entry", "record", async () => {
+			throw new Error("the page failed to load");
+		}),
 	];
 	await registerContributions(["frappe", "erpnext"]);
 });
 
 beforeEach(() => {
 	setups.count = 0;
+	setups.attrs = [];
+	guard.block = false;
 	warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 });
 
@@ -112,6 +136,10 @@ async function mount(modular: boolean, path: string) {
 	return { root, router };
 }
 
+async function blocked(navigation: Promise<unknown>) {
+	return isNavigationFailure(await navigation, NavigationFailureType.aborted);
+}
+
 function shown(root: HTMLElement) {
 	const page = root.querySelector<HTMLElement>("[data-page]");
 	return page && { ...page.dataset };
@@ -126,6 +154,7 @@ describe.each([
 
 		expect(router.currentRoute.value.name).toBe("record");
 		expect(shown(root)).toEqual({ page: "declared", doctype: "Sales Invoice", name: "SI-001" });
+		expect(setups.attrs).toEqual([{}]);
 	});
 
 	it("opens the declared list page at the main address, with the doctype only", async () => {
@@ -133,6 +162,7 @@ describe.each([
 
 		expect(router.currentRoute.value.name).toBe("list");
 		expect(shown(root)).toEqual({ page: "declared", doctype: "Sales Invoice" });
+		expect(setups.attrs).toEqual([{}]);
 	});
 
 	it("keeps the standard record page at the second address", async () => {
@@ -166,6 +196,49 @@ describe.each([
 		expect(setups.count).toBe(2);
 	});
 
+	it("fails the navigation when the declared page does not load", async () => {
+		const { root, router } = await mount(modular, `${prefix}/purchase-invoice/PI-001`);
+		const error = vi.spyOn(console, "error").mockImplementation(() => {});
+
+		await expect(router.push(`${prefix}/journal-entry/JE-001`)).rejects.toThrow(
+			"the page failed to load"
+		);
+		await settle();
+		error.mockRestore();
+
+		expect(router.currentRoute.value.params.name).toBe("PI-001");
+		expect(shown(root)).toEqual({ page: "record" });
+	});
+
+	it("keeps the standard record page's guard between two records", async () => {
+		const { root, router } = await mount(modular, `${prefix}/purchase-invoice/PI-001`);
+		guard.block = true;
+
+		expect(await blocked(router.push(`${prefix}/purchase-invoice/PI-002`))).toBe(true);
+		expect(router.currentRoute.value.params.name).toBe("PI-001");
+		expect(shown(root)).toEqual({ page: "record" });
+	});
+
+	it("keeps the standard record page's guard when it leaves for the list", async () => {
+		const { root, router } = await mount(modular, `${prefix}/purchase-invoice`);
+		await router.push(`${prefix}/purchase-invoice/PI-001`);
+		await settle();
+		guard.block = true;
+
+		expect(await blocked(router.push(`${prefix}/purchase-invoice`))).toBe(true);
+		expect(router.currentRoute.value.name).toBe("record");
+		expect(shown(root)).toEqual({ page: "record" });
+	});
+
+	it("keeps the standard record page's guard on the way to a declared record", async () => {
+		const { root, router } = await mount(modular, `${prefix}/purchase-invoice/PI-001`);
+		guard.block = true;
+
+		expect(await blocked(router.push(`${prefix}/sales-invoice/SI-001`))).toBe(true);
+		expect(router.currentRoute.value.params.name).toBe("PI-001");
+		expect(shown(root)).toEqual({ page: "record" });
+	});
+
 	it("builds the second address with standard only when the page is replaced", async () => {
 		await mount(modular, "/");
 		const base = `/apps/erpnext${prefix}`;
@@ -179,9 +252,7 @@ describe.each([
 		expect(urlFor("Purchase Invoice", "PI-001", { standard: true })).toBe(
 			`${base}/purchase-invoice/PI-001`
 		);
-		expect(urlFor("Purchase Invoice", null, { standard: true })).toBe(
-			`${base}/purchase-invoice`
-		);
+		expect(urlFor("Purchase Invoice", null, { standard: true })).toBe(`${base}/purchase-invoice`);
 	});
 
 	it("leaves every other link at the main address", async () => {
