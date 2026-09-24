@@ -155,14 +155,14 @@ context("List View", () => {
 		cy.get("@order").should("have.attr", "title", "descending");
 		cy.get("@order")
 			.find(".sort-order use")
-			.should("have.attr", "href", "#icon-sort-descending");
+			.should("have.attr", "href", "#icon-arrow-down-wide-narrow");
 
 		cy.get("@order").click();
 		cy.get("@order").should("have.attr", "data-value", "asc");
 		cy.get("@order").should("have.attr", "title", "ascending");
 		cy.get("@order")
 			.find(".sort-order use")
-			.should("have.attr", "href", "#icon-sort-ascending");
+			.should("have.attr", "href", "#icon-arrow-up-narrow-wide");
 	});
 
 	it("keeps selected rows checked after a list rerender", { scrollBehavior: false }, () => {
