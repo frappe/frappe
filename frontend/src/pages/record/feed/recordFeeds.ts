@@ -202,6 +202,12 @@ export function activityPointer(query: LocationQuery): string {
 	return typeof key === "string" ? key : "";
 }
 
+/** The address opens Activity or Emails, so the page's placeholder is the feed's. */
+export function addressesFeed(query: LocationQuery): boolean {
+	const tab = addressedTab(query);
+	return tab === ACTIVITY_TAB || tab === EMAILS_TAB;
+}
+
 function recordId(doctype: string, docname: string) {
 	return JSON.stringify([doctype, docname]);
 }

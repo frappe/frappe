@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, reactive } from "vue";
 import { ScrollArea } from "frappe-ui";
+import { createMemoryHistory, createRouter } from "vue-router";
 
 const strips: unknown[] = [];
 
@@ -61,8 +62,14 @@ async function mount(
   ready = true,
   onSelect?: (name: string) => unknown,
   claimsFocus?: (name: string) => boolean,
+  address = "/deal/D-1",
 ) {
   const state = reactive({ tabs, active, ready, page, claimsFocus });
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [{ path: "/:path(.*)*", component: { render: () => null } }],
+  });
+  await router.push(address);
   const selected: string[] = [];
   const root = document.createElement("div");
   document.body.appendChild(root);
@@ -74,6 +81,7 @@ async function mount(
         { details: () => h("form", { "data-details": "" }, [h("input", { "data-field": "" })]) },
       ),
   });
+  app.use(router);
   app.mount(root);
   apps.push(app);
   await nextTick();
@@ -117,6 +125,27 @@ describe("before the first replay", () => {
     expect(root.querySelector("[data-form-skeleton]")).toBeNull();
     expect(root.querySelector("[data-details]")).not.toBeNull();
   });
+
+  it.each(["?tab=activity", "?tab=emails", "?activity=x", "?tab=files&activity=x"])(
+    "draws the feed's skeleton, not the form's, when the address is %s",
+    async (query) => {
+      const { root } = await mount(FOUR, "", false, undefined, undefined, `/deal/D-1${query}`);
+
+      const feed = root.querySelector("[data-record-tabs-skeleton] + [data-feed-skeleton]");
+      expect(feed!.querySelectorAll(".fui-skeleton").length).toBeGreaterThan(0);
+      expect(root.querySelector("[data-form-skeleton]")).toBeNull();
+    },
+  );
+
+  it.each(["", "?tab=files", "?tab=details"])(
+    "draws the form's skeleton when the address is %s",
+    async (query) => {
+      const { root } = await mount(FOUR, "", false, undefined, undefined, `/deal/D-1${query}`);
+
+      expect(root.querySelector("[data-form-skeleton]")).not.toBeNull();
+      expect(root.querySelector("[data-feed-skeleton]")).toBeNull();
+    },
+  );
 });
 
 describe("the strip", () => {

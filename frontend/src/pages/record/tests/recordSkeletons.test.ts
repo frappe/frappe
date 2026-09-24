@@ -106,10 +106,10 @@ async function settle() {
   }
 }
 
-async function open() {
+async function open(address = "/note/N-1") {
   const router = createShellRouter(boot, addresses);
   registerShell({ boot, addresses, router });
-  await router.push("/note/N-1");
+  await router.push(address);
   const root = document.createElement("div");
   document.body.appendChild(root);
   const app = createApp(defineComponent({ render: () => h(RouterView) }));
@@ -158,6 +158,26 @@ describe("before the record arrives", () => {
     expect(root.querySelector("[data-record-panel-skeleton]")).toBeNull();
     expect(root.querySelector("[data-record-panel]")).not.toBeNull();
   });
+});
+
+describe("an address that opens a feed", () => {
+  it.each(["?tab=activity", "?tab=emails", "?activity=x"])(
+    "draws the feed's skeleton under the strip for %s, before and after the record arrives",
+    async (query) => {
+      const root = await open(`/note/N-1${query}`);
+
+      const early = root.querySelectorAll("[data-record-body-skeleton] [data-feed-skeleton] .fui-skeleton");
+      expect(early.length).toBeGreaterThan(0);
+      expect(root.querySelector("[data-form-skeleton]")).toBeNull();
+
+      load.answerRecord();
+      await settle();
+
+      const late = root.querySelectorAll("[data-record-tabs] [data-feed-skeleton] .fui-skeleton");
+      expect(late.length).toBeGreaterThan(0);
+      expect(root.querySelector("[data-form-skeleton]")).toBeNull();
+    },
+  );
 });
 
 describe("once the record arrives", () => {
