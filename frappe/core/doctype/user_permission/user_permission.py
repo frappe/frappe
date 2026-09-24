@@ -173,9 +173,9 @@ def get_applicable_for_doctype_list(
 	linked_doctypes = []
 	for linked_doctype, linked_doctype_values in linked_doctypes_map.items():
 		linked_doctypes.append(linked_doctype)
-		child_doctype = linked_doctype_values.get("child_doctype")
-		if child_doctype:
-			linked_doctypes.append(child_doctype)
+		for child_link in linked_doctype_values.get("child_links") or [linked_doctype_values]:
+			if child_doctype := child_link.get("child_doctype"):
+				linked_doctypes.append(child_doctype)
 
 	linked_doctypes += [actual_doctype]
 
