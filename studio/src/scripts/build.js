@@ -20,6 +20,7 @@ import frappeui from "frappe-ui/vite"
 import sharedDependencyResolver from "../../vite/sharedDependencyResolver.js"
 import studioRootAlias from "../../vite/studioRootAlias.js"
 import frameworkUIAlias from "../../vite/frameworkUIAlias.js"
+import frameworkUICodeEditorShim from "../../vite/frameworkUICodeEditorShim.js"
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
 // bench apps folder (scripts -> src -> frontend -> studio -> apps)
@@ -300,6 +301,9 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath, icons = [
 			}),
 			studioRootAlias(),
 			sharedDependencyResolver(path.resolve(__dirname, "../../")),
+			...(frameworkUIAvailable
+				? [frameworkUICodeEditorShim(APPS_DIR, path.resolve(__dirname, "../../"))]
+				: []),
 		],
 		resolve: {
 			alias: [
@@ -308,7 +312,18 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath, icons = [
 			],
 			// keep vue/pinia/etc as single instances so studio modules (composables/stores)
 			// share the app's runtime — Pinia breaks with duplicate copies
-			dedupe: ["vue", "vue-router", "pinia", "frappe-ui"],
+			dedupe: [
+				"vue",
+				"vue-router",
+				"pinia",
+				"frappe-ui",
+				"@codemirror/state",
+				"@codemirror/view",
+				"@codemirror/language",
+				"@lezer/common",
+				"@lezer/highlight",
+				"@lezer/lr",
+			],
 		},
 		css: {
 			postcss: {
