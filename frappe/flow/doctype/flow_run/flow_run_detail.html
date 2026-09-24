@@ -6,11 +6,27 @@
 .flow-run pre.args { white-space: pre-wrap; word-break: break-word; font-size: 12px; margin: 0; }
 .flow-run table.calls { width: 100%; margin: 0; font-size: 12px; }
 .flow-run .empty { color: var(--text-muted); }
+.flow-run pre.text { white-space: pre-wrap; word-break: break-word; margin: 0; background: var(--control-bg); border-radius: 6px; padding: 9px 11px; }
 </style>
 {% var esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v)); %}
 {% var nf = (n) => Number(n || 0).toLocaleString(); %}
 {% var hasKeys = (o) => o && Object.keys(o).length; %}
 <div class="flow-run">
+
+{% if input %}
+<h6>{{ __("Input") }}</h6>
+<pre class="text">{{ esc(input) }}</pre>
+{% endif %}
+
+{% if output %}
+<h6>{{ __("Output") }}</h6>
+<pre class="text">{{ esc(output) }}</pre>
+{% endif %}
+
+{% if error %}
+<h6>{{ __("Error") }}</h6>
+<pre class="text">{{ esc(error) }}</pre>
+{% endif %}
 
 {% if usage %}
 <h6>{{ __("Token Usage") }}</h6>
