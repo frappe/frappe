@@ -1274,6 +1274,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			editable,
 			align,
 			compareValue: compareFn,
+			sortValue: frappe.report_utils.get_link_sort_value(docfield),
 			format: (value, row, column, data) => {
 				let doc = null;
 				if (Array.isArray(row)) {
