@@ -14,6 +14,7 @@ class FormBuilder {
 		is_web_form,
 		tab_fieldname,
 		get_source_field_values,
+		is_source_field,
 		validate_page_limit,
 		force_read_only,
 	}) {
@@ -28,6 +29,8 @@ class FormBuilder {
 		this.tab_fieldname = tab_fieldname;
 		// web forms: (source_df, fieldnames) => values of a field picked from the source doctype
 		this.get_source_field_values = get_source_field_values;
+		// web forms: (df) => true when a source doctype field can go on the form
+		this.is_source_field = is_source_field;
 		// web forms: (page_break_count) => throws when the form has too many pages
 		this.validate_page_limit = validate_page_limit;
 		// host's standing read-only answer, unlike `read_only` below, which tracks the preview toggle
@@ -103,6 +106,7 @@ class FormBuilder {
 		this.store.is_web_form = this.is_web_form;
 		this.store.tab_fieldname = this.tab_fieldname;
 		this.store.get_source_field_values = this.get_source_field_values;
+		this.store.is_source_field = this.is_source_field;
 		this.store.validate_page_limit = this.validate_page_limit;
 		this.store.force_read_only = this.force_read_only;
 		this.store.read_only = this.force_read_only || this.store.read_only;

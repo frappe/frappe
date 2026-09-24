@@ -31,6 +31,8 @@ export const useStore = defineStore("form-builder-store", () => {
 	let source_doctype_fields = ref([]);
 	// set by the web form host, which owns what a picked source field carries
 	let get_source_field_values = ref(null);
+	// set by the web form host, which also filters its fields grid with it
+	let is_source_field = ref(null);
 	// set by the web form host, which owns the page limit and its message
 	let validate_page_limit = ref(null);
 	let preview = ref(false);
@@ -240,16 +242,8 @@ export const useStore = defineStore("form-builder-store", () => {
 		if (source_dt && !frappe.get_meta(source_dt)) {
 			await load_doctype_model(source_dt);
 		}
-		// same predicate as get_fields_for_doctype() in web_form.js, which feeds the grid
 		source_doctype_fields.value = source_dt
-			? frappe.get_meta(source_dt).fields.filter(
-					(df) =>
-						(frappe.model.is_value_type(df.fieldtype) &&
-							!["lft", "rgt"].includes(df.fieldname)) ||
-						// capital S: "Table Multiselect" matches no field
-						["Table", "Table MultiSelect"].includes(df.fieldtype) ||
-						frappe.model.layout_fields.includes(df.fieldtype)
-			  )
+			? frappe.get_meta(source_dt).fields.filter(is_source_field.value)
 			: [];
 	}
 
@@ -777,6 +771,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		tab_fieldname,
 		source_doctype_fields,
 		get_source_field_values,
+		is_source_field,
 		validate_page_limit,
 		preview,
 		drag,
