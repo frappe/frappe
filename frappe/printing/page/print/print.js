@@ -24,7 +24,7 @@ frappe.pages["print"].on_page_load = function (wrapper) {
 			print_view.frm = frappe.route_options.frm.doctype
 				? frappe.route_options.frm
 				: frappe.route_options.frm.frm;
-			frappe.route_options.frm = null;
+			delete frappe.route_options.frm;
 			let meta = print_view.frm.meta;
 			print_view.show(print_view.frm);
 		}
