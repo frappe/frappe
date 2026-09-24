@@ -525,12 +525,7 @@ def pdf_has_signature(content: bytes) -> bool:
 
 def _pdf_has_oversized_image(reader: "PdfReader", max_pixels: int) -> bool:
 	"""Check declared image XObject dimensions without decoding any pixel data.
-
-	Iterating page.images (pypdf) decodes every embedded image eagerly, before
-	any dimension check on the decoded result can run. That lets a small PDF
-	containing one enormously-declared but highly compressed image (a classic
-	decompression bomb) exhaust request-worker memory. /Width and /Height are
-	stored directly on the XObject dictionary and can be read for free.
+	Avoid exhausting memory in loading image.
 	"""
 	for page in reader.pages:
 		try:
@@ -575,10 +570,25 @@ def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600) -> byte
 
 		for page in writer.pages:
 			for img_file in page.images:
-				image = img_file.image
-				if image.width > max_dim or image.height > max_dim:
-					image.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
-				img_file.replace(image, quality=quality, optimize=True)
+				try:
+					image = img_file.image
+					if image.width > max_dim or image.height > max_dim:
+						image.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
+					img_file.replace(image, quality=quality, optimize=True)
+				except (
+					PyPdfError,
+					UnidentifiedImageError,
+					Image.DecompressionBombError,
+					OSError,
+					ValueError,
+					EOFError,
+					zlib.error,
+				):
+					# skip this image rather than abandoning the whole document
+					continue
+				except Exception:
+					frappe.log_error(title=_("Unexpected error while optimizing one image in PDF"))
+					continue
 			page.compress_content_streams()  # This is CPU intensive!
 
 		writer.compress_identical_objects(remove_duplicates=True, remove_unreferenced=True)

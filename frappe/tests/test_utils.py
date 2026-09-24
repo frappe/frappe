@@ -943,6 +943,41 @@ class TestImage(IntegrationTestCase):
 		self.assertEqual(len(reader.pages), 4)
 		self.assertEqual(next(iter(reader.pages[0].images)).image.size, (800, 800))
 
+	def test_optimize_pdf_skips_unprocessable_image_but_optimizes_rest(self):
+		from pypdf import PdfReader, PdfWriter
+
+		from frappe.utils.pdf import optimize_pdf
+
+		# a 1-bit bilevel image (common for pure B&W text scans) is embedded via
+		# CCITT/TIFF, not JPEG, and raises ValueError when passed quality/optimize
+		# kwargs -- that must not abort optimizing the rest of the document
+		large_image = Image.new("RGB", (2200, 1600), (30, 90, 180))
+		rgb_buf = io.BytesIO()
+		large_image.save(rgb_buf, format="PDF")
+
+		bilevel_buf = io.BytesIO()
+		large_image.convert("1").save(bilevel_buf, format="PDF")
+
+		writer = PdfWriter()
+		writer.append(PdfReader(io.BytesIO(rgb_buf.getvalue())))
+		writer.append(PdfReader(io.BytesIO(bilevel_buf.getvalue())))
+		out = io.BytesIO()
+		writer.write(out)
+		mixed_content = out.getvalue()
+
+		optimized_content = optimize_pdf(mixed_content)
+
+		self.assertLess(len(optimized_content), len(mixed_content))
+		reader = PdfReader(io.BytesIO(optimized_content))
+		self.assertEqual(len(reader.pages), 2)
+
+		rgb_result = next(iter(reader.pages[0].images)).image
+		self.assertLessEqual(max(rgb_result.size), 1600)
+
+		bilevel_result = next(iter(reader.pages[1].images)).image
+		self.assertEqual(bilevel_result.size, (2200, 1600))
+		self.assertEqual(bilevel_result.mode, "1")
+
 	def test_optimize_pdf_skips_oversized_image(self):
 		from pypdf import PdfReader, PdfWriter
 		from pypdf.generic import NameObject, NumberObject
