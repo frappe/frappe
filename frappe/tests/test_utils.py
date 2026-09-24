@@ -901,16 +901,70 @@ class TestImage(IntegrationTestCase):
 		images = list(reader.pages[0].images)
 		self.assertEqual(len(images), 1)
 
-	def test_optimize_pdf_skips_oversized_image(self):
+	@staticmethod
+	def _count_image_objects(content: bytes) -> int:
+		"""Count distinct indirect objects with /Subtype /Image."""
+		from pypdf import PdfReader
+
+		reader = PdfReader(io.BytesIO(content))
+		count = 0
+		for i in range(1, reader.trailer["/Size"]):
+			obj = reader.get_object(i)
+			if obj is not None and hasattr(obj, "get") and obj.get("/Subtype") == "/Image":
+				count += 1
+		return count
+
+	def test_optimize_pdf_deduplicates_repeated_objects(self):
+		from pypdf import PdfReader, PdfWriter
+
 		from frappe.utils.pdf import optimize_pdf
 
-		# declared 12000x12000 (144M pixels) exceeds Pillow's own decompression-bomb
-		# threshold; must be rejected before any pixel decode is attempted, since
-		# iterating page.images would otherwise decode it eagerly regardless
-		huge_image = Image.new("RGB", (12000, 12000), (10, 90, 200))
+		image = Image.new("RGB", (800, 800), (20, 150, 90))
 		buf = io.BytesIO()
-		huge_image.save(buf, format="PDF", resolution=100.0)
-		oversized_pdf = buf.getvalue()
+		image.save(buf, format="PDF")
+		single_page_pdf = buf.getvalue()
+
+		writer = PdfWriter()
+		for _ in range(4):
+			writer.append(PdfReader(io.BytesIO(single_page_pdf)))
+		out = io.BytesIO()
+		writer.write(out)
+		duplicated_content = out.getvalue()
+
+		self.assertEqual(self._count_image_objects(duplicated_content), 4)
+
+		optimized_content = optimize_pdf(duplicated_content)
+
+		# the precise signal that dedup (not just quality recompression) ran:
+		# 4 duplicate image objects merged into 1 shared object
+		self.assertEqual(self._count_image_objects(optimized_content), 1)
+		self.assertLess(len(optimized_content), len(duplicated_content))
+		reader = PdfReader(io.BytesIO(optimized_content))
+		self.assertEqual(len(reader.pages), 4)
+		self.assertEqual(list(reader.pages[0].images)[0].image.size, (800, 800))
+
+	def test_optimize_pdf_skips_oversized_image(self):
+		from pypdf import PdfReader, PdfWriter
+		from pypdf.generic import NameObject, NumberObject
+
+		from frappe.utils.pdf import optimize_pdf
+
+		small_image = Image.new("RGB", (10, 10), (10, 90, 200))
+		buf = io.BytesIO()
+		small_image.save(buf, format="PDF")
+
+		reader = PdfReader(buf)
+		writer = PdfWriter(clone_from=reader)
+		xobjects = writer.pages[0]["/Resources"]["/XObject"]
+		for xobj in xobjects.values():
+			xobj = xobj.get_object()
+			if xobj.get("/Subtype") == "/Image":
+				xobj[NameObject("/Width")] = NumberObject(12000)
+				xobj[NameObject("/Height")] = NumberObject(12000)
+
+		out = io.BytesIO()
+		writer.write(out)
+		oversized_pdf = out.getvalue()
 
 		self.assertEqual(optimize_pdf(oversized_pdf), oversized_pdf)
 
@@ -919,6 +973,32 @@ class TestImage(IntegrationTestCase):
 
 		garbage_content = b"not a real pdf"
 		self.assertEqual(optimize_pdf(garbage_content), garbage_content)
+
+	def test_optimize_pdf_does_not_log_expected_failures(self):
+		from frappe.utils.pdf import optimize_pdf
+
+		# malformed/untrusted PDF content is a routine failure mode, not a bug --
+		# must not spam Error Log for every bad upload
+		with patch("frappe.log_error") as mock_log_error:
+			result = optimize_pdf(b"not a real pdf")
+
+		self.assertEqual(result, b"not a real pdf")
+		mock_log_error.assert_not_called()
+
+	def test_optimize_pdf_logs_unexpected_errors(self):
+		from frappe.utils.pdf import optimize_pdf
+
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		buf = io.BytesIO()
+		Image.open(image_file_path).save(buf, format="PDF")
+		original_content = buf.getvalue()
+
+		with patch("pypdf.PdfWriter.compress_identical_objects", side_effect=TypeError("simulated bug")):
+			with patch("frappe.log_error") as mock_log_error:
+				result = optimize_pdf(original_content)
+
+		self.assertEqual(result, original_content)
+		mock_log_error.assert_called_once()
 
 	@staticmethod
 	def _build_signed_pdf() -> bytes:
@@ -962,7 +1042,9 @@ class TestImage(IntegrationTestCase):
 		page[NameObject("/Annots")] = ArrayObject([field_ref])
 
 		acroform = DictionaryObject()
-		acroform.update({NameObject("/Fields"): ArrayObject([field_ref]), NameObject("/SigFlags"): NumberObject(3)})
+		acroform.update(
+			{NameObject("/Fields"): ArrayObject([field_ref]), NameObject("/SigFlags"): NumberObject(3)}
+		)
 		acroform_ref = writer._add_object(acroform)
 		writer._root_object[NameObject("/AcroForm")] = acroform_ref
 

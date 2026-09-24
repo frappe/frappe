@@ -556,10 +556,12 @@ def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600) -> byte
 	fails, doesn't actually reduce the size, if the PDF is digitally signed, or if
 	it contains an image large enough to risk exhausting memory on decode.
 	"""
+	import zlib
 	from io import BytesIO
 
-	from PIL import Image
+	from PIL import Image, UnidentifiedImageError
 	from pypdf import PdfReader, PdfWriter
+	from pypdf.errors import PyPdfError
 
 	if pdf_has_signature(content):
 		return content
@@ -577,14 +579,19 @@ def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600) -> byte
 				if image.width > max_dim or image.height > max_dim:
 					image.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
 				img_file.replace(image, quality=quality, optimize=True)
-			page.compress_content_streams()
+			page.compress_content_streams() # This is CPU intensive!
+
+		writer.compress_identical_objects(remove_duplicates=True, remove_unreferenced=True)
 
 		output = BytesIO()
 		writer.write(output)
 		optimized_content = output.getvalue()
 		return optimized_content if len(optimized_content) < len(content) else content
-	except Exception as e:
+	except (PyPdfError, UnidentifiedImageError, Image.DecompressionBombError, OSError, ValueError, EOFError, zlib.error) as e:
 		frappe.msgprint(_("Failed to optimize PDF: {0}").format(str(e)))
+		return content
+	except Exception:
+		frappe.log_error(title=_("Unexpected error while optimizing PDF"))
 		return content
 
 
