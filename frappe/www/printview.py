@@ -659,6 +659,7 @@ def get_print_style(
 	context = {
 		"print_settings": print_settings,
 		"print_style": style,
+		"print_format": print_format,
 		"font": get_font(print_settings, print_format, for_legacy),
 	}
 

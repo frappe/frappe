@@ -8,7 +8,9 @@
 		border-radius: 8px;
 		max-width: 8.3in;
 		min-height: 11.69in;
-		padding: 0.75in;
+		{%- set _m = print_format or {} %}
+		{%- macro mm(side) %}{{ (_m.get(side) if _m.get(side) is not none else 15)|flt }}mm{% endmacro %}
+		padding: {{ mm("margin_top") }} {{ mm("margin_right") }} {{ mm("margin_bottom") }} {{ mm("margin_left") }};
 		margin: auto;
 		color: var(--gray-900);
 	}
