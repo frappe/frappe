@@ -24,6 +24,22 @@ DEFAULT_PRINT_HEADING = (
 )
 
 
+def renders_from_file(doc) -> bool:
+	"""A standard format whose HTML ships as a file in its module prints that file,
+	whatever the row says."""
+	import os
+
+	from frappe.modules import get_module_path
+
+	if doc.standard != "Yes" or doc.custom_format or doc.raw_printing:
+		return False
+	module = doc.module or frappe.db.get_value("DocType", doc.doc_type, "module")
+	if not module or frappe.get_cached_value("Module Def", module, "custom"):
+		return False
+	path = os.path.join(get_module_path(module, "Print Format", doc.name), frappe.scrub(doc.name) + ".html")
+	return os.path.exists(path)
+
+
 def is_classic_layout(format_data) -> bool:
 	if not format_data:
 		return False
@@ -258,7 +274,7 @@ def convert_print_format(doc):
 
 	Keeps the original classic array in `classic_format_data` so the conversion
 	is reversible and re-runnable."""
-	if doc.custom_format or doc.raw_printing:
+	if doc.custom_format or doc.raw_printing or renders_from_file(doc):
 		return
 	backup = parse_classic_backup(doc.classic_format_data)
 	if backup:

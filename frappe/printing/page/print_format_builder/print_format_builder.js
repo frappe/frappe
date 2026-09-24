@@ -85,14 +85,20 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 		};
 	}
 	render_deprecation_banner() {
+		const convertible =
+			this.print_format.print_format_builder && !this.print_format.custom_format;
 		$(`
 			<div class="form-message orange print-format-builder-deprecation">
 				<span class="print-format-builder-deprecation-text">${__(
 					"The classic builder will be removed in version 17. Convert this format to the new builder to keep editing it."
 				)}</span>
-				<button class="es-button" data-variant="outline" data-size="sm">
+				${
+					convertible
+						? `<button class="es-button" data-variant="outline" data-size="sm">
 					<span class="es-button__label">${__("Convert to new builder")}</span>
-				</button>
+				</button>`
+						: ""
+				}
 			</div>
 		`)
 			.appendTo(this.page.main)
