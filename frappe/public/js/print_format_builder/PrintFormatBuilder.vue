@@ -206,6 +206,7 @@ async function open_print_settings() {
 					fieldname: values,
 				})
 				.then(() => {
+					Object.assign(doc, values);
 					dialog.hide();
 					frappe.show_alert({
 						message: __("Print Settings updated"),
