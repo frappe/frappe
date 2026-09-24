@@ -291,6 +291,26 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 				delta=0.5,
 			)
 
+	def test_page_size_override_reaches_chrome_options(self):
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		generator = PrintFormatGenerator(pf, todo, settings={"pdf_page_size": "Letter"})
+		self.assertEqual(generator.page_options(), {"page-size": "Letter"})
+		with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
+			generator.render_pdf()
+		self.assertEqual(chrome_pdf.call_args.kwargs["options"]["page-size"], "Letter")
+
+		generator = PrintFormatGenerator(
+			pf, todo, settings={"pdf_page_size": "Custom", "pdf_page_height": 100, "pdf_page_width": 50}
+		)
+		self.assertEqual(
+			generator.page_options(), {"page-size": "Custom", "page-height": 100, "page-width": 50}
+		)
+
 	def test_render_pdf_passes_password_to_chrome(self):
 		"""Encrypted PDFs (attach_print(password=...)) must stay encrypted on the
 		generator path — the chrome pipeline encrypts from options['password']."""
