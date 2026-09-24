@@ -641,7 +641,16 @@ class TypstEmitter:
 			body = f"#stack(spacing: 8pt,\n[{label}],\n[{body}])"
 
 		block_args = self._section_block_args(section)
-		out = f"#block({', '.join(block_args)})[\n{body}\n]"
+		if section.get("keep_together"):
+			out = (
+				"#layout(size => {\n"
+				f"let body = [{body}]\n"
+				"let h = measure(body, width: size.width).height\n"
+				f"block({', '.join(block_args)}, breakable: h > size.height, body)\n"
+				"})"
+			)
+		else:
+			out = f"#block({', '.join(block_args)})[\n{body}\n]"
 		out = self._apply_style_effects(out, section.get("custom_style"))
 		margin = section.get("margin") or {}
 		top = pt(margin.get("top"))
@@ -674,8 +683,6 @@ class TypstEmitter:
 			)
 		if section.get("radius") is not None and not section.get("field_borders"):
 			args.append(f"radius: {pt(section['radius'])}pt")
-		if section.get("keep_together"):
-			args.append("breakable: false")
 		return args
 
 	def _columns_grid(self, section, columns, rendered_columns) -> str:
@@ -947,7 +954,15 @@ class TypstEmitter:
 		elif src.startswith("/files/"):
 			root, rel = frappe.get_site_path("public", "files"), src[len("/files/") :]
 		elif src.startswith("/assets/"):
-			root, rel = frappe.get_site_path("..", "assets"), src[len("/assets/") :]
+			# each app's assets are a symlink into the app, so contain within the app
+			app, _, rel = src[len("/assets/") :].partition("/")
+			if (
+				not rel
+				or app in ("", ".", "..")
+				or app not in os.listdir(frappe.get_site_path("..", "assets"))
+			):
+				return None
+			root = frappe.get_site_path("..", "assets", app)
 		else:
 			return None
 		# the src is document data — never let it walk out of its root
