@@ -57,6 +57,18 @@ class PrintViewTest(IntegrationTestCase):
 		self.assertIn("date:False", html)
 		self.assertIn("time:False", html)
 
+	def test_print_settings_font_size_wins_over_print_style(self):
+		from frappe.www.printview import get_print_style
+
+		original = frappe.db.get_single_value("Print Settings", "font_size")
+		self.addCleanup(frappe.db.set_single_value, "Print Settings", "font_size", original)
+		frappe.db.set_single_value("Print Settings", "font_size", 80)
+
+		css = get_print_style(style="Redesign")
+		style_css = frappe.db.get_value("Print Style", "Redesign", "css").strip()
+		self.assertIn(style_css, css)
+		self.assertGreater(css.rfind("font-size: 80.0pt"), css.find(style_css))
+
 	def _beta_format(self, doctype, **kwargs):
 		pf = frappe.get_doc(
 			doctype="Print Format",

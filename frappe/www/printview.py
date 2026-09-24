@@ -15,7 +15,7 @@ from frappe.printing.doctype.print_format.classic_converter import (
 	uses_beta_renderer,
 	uses_legacy_weasyprint,
 )
-from frappe.utils import cint, escape_html, strip_html
+from frappe.utils import cint, escape_html, flt, strip_html
 from frappe.utils.jinja_globals import is_rtl
 
 if TYPE_CHECKING:
@@ -734,6 +734,9 @@ def get_print_style(
 
 	if style and frappe.db.exists("Print Style", style):
 		css = css + "\n" + frappe.db.get_value("Print Style", style, "css")
+
+	if flt(print_settings.font_size):
+		css = css + f"\n.print-format {{ font-size: {flt(print_settings.font_size)}pt; }}"
 
 	# move @import to top
 	for at_import in list(set(re.findall(r"(@import url\([^\)]+\)[;]?)", css))):
