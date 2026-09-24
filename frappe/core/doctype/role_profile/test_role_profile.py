@@ -110,6 +110,43 @@ class TestRoleProfile(IntegrationTestCase):
 			{role.role for role in user_two.roles}, {role.role for role in role_profile_two.roles}
 		)
 
+	def create_role_profile(self, name, role):
+		frappe.delete_doc_if_exists("Role Profile", name, force=1)
+
+		return frappe.get_doc(doctype="Role Profile", role_profile=name, roles=[{"role": role}]).insert()
+
+	def create_user(self, **kwargs):
+		return frappe.get_doc(
+			doctype="User", email=frappe.mock("email"), first_name=frappe.mock("name"), **kwargs
+		).insert(ignore_permissions=True)
+
+	def test_deprecated_role_profile_name_is_moved_to_role_profiles(self):
+		self.create_role_profile("_Test Role Profile 1", "_Test Role 2")
+
+		user = self.create_user(role_profile_name="_Test Role Profile 1")
+
+		self.assertEqual([r.role_profile for r in user.role_profiles], ["_Test Role Profile 1"])
+		self.assertIn("_Test Role 2", [r.role for r in user.roles])
+
+	def test_removing_role_profiles(self):
+		self.create_role_profile("_Test Role Profile 1", "_Test Role 2")
+		self.create_role_profile("_Test Role Profile 2", "_Test Role 3")
+
+		user = self.create_user(
+			role_profiles=[{"role_profile": "_Test Role Profile 1"}, {"role_profile": "_Test Role Profile 2"}]
+		)
+		user.reload()
+
+		user.role_profiles = [r for r in user.role_profiles if r.role_profile != "_Test Role Profile 1"]
+		user.save()
+		user.reload()
+		self.assertEqual([r.role_profile for r in user.role_profiles], ["_Test Role Profile 2"])
+
+		user.role_profiles = []
+		user.save()
+		user.reload()
+		self.assertEqual(user.role_profiles, [])
+
 	def test_update_role_profile(self):
 		role_profile = frappe.get_doc("Role Profile", "_Test Role Profile 1")
 
