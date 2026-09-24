@@ -158,12 +158,6 @@ def attach_print(
 	from frappe.utils.pdf import get_pdf
 
 	print_settings = frappe.db.get_singles_dict("Print Settings")
-	if print_letterhead and not letterhead:
-		if not doc:
-			doc = frappe.get_cached_doc(doctype, name)
-		letterhead = doc.get("letter_head") or frappe.get_cached_value(
-			"Letter Head", {"is_default": 1}, "name"
-		)
 	kwargs = dict(
 		print_format=print_format,
 		style=style,
