@@ -86,10 +86,9 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 	}
 	render_deprecation_banner() {
 		$(`
-			<div class="print-format-builder-deprecation">
-				<span class="es-badge" data-theme="amber" data-size="sm">${__("Deprecated")}</span>
+			<div class="form-message orange print-format-builder-deprecation">
 				<span class="print-format-builder-deprecation-text">${__(
-					"The classic builder is deprecated and will be removed in version 17. Existing formats keep working. Convert this format to keep editing it in the new builder."
+					"This format uses the classic builder, which is going away in version 17. It keeps printing as it is, but to make further changes convert it to the new builder."
 				)}</span>
 				<button class="es-button" data-variant="solid" data-size="sm">
 					<span class="es-button__label">${__("Convert to new builder")}</span>

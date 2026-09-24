@@ -5,7 +5,8 @@
 	margin-bottom: var(--margin-md);
 }
 
-.print-format-builder-add-section, .print-format-builder-header {
+.print-format-builder-add-section,
+.print-format-builder-header {
 	border: 1px dashed var(--dark-border-color);
 	border-radius: var(--border-radius);
 	padding: var(--padding-sm);
@@ -81,8 +82,8 @@
 
 .print-format-builder-section-head {
 	cursor: move;
-	padding: var(--padding-md) calc(var(--padding-md) + 8px)
-		var(--padding-sm) calc(var(--padding-md) + 8px);
+	padding: var(--padding-md) calc(var(--padding-md) + 8px) var(--padding-sm)
+		calc(var(--padding-md) + 8px);
 }
 
 .column-selector-row {
@@ -165,14 +166,10 @@
 	display: flex;
 	align-items: center;
 	gap: var(--margin-sm);
-	padding: var(--padding-sm) var(--padding-md);
 	margin-bottom: var(--margin-md);
-	border: 1px solid var(--dark-border-color);
 	border-radius: var(--border-radius);
-	background: var(--bg-color);
 }
 
 .print-format-builder-deprecation-text {
 	flex: 1;
-	color: var(--text-muted);
 }
