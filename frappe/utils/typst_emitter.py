@@ -411,14 +411,29 @@ def _fr_widths(columns) -> list[str]:
 	return widths
 
 
+def _list_markers(value: str) -> str:
+	"""Numbers `<ol>` items and bullets `<ul>` ones, the way the browser draws them."""
+
+	def ordered(match):
+		items = re.split(r"<li[^>]*>", match.group(1), flags=re.I)[1:]
+		return "".join(f"<li>{i}. {item}" for i, item in enumerate(items, 1))
+
+	def unordered(match):
+		return re.sub(r"<li[^>]*>", "<li>\u2022 ", match.group(1), flags=re.I)
+
+	value = re.sub(r"<ol[^>]*>(.*?)</ol>", ordered, value, flags=re.I | re.S)
+	return re.sub(r"<ul[^>]*>(.*?)</ul>", unordered, value, flags=re.I | re.S)
+
+
 def _text_value(html_ish: str) -> str:
 	"""Formatted values may carry markup (Text Editor, address_display); keep the
 	line structure, drop the tags."""
 	value = str(html_ish or "")
 	if "<" not in value:
 		return value
-	value = re.sub(r"<br\s*/?>", "\n", value, flags=re.I)
-	value = re.sub(r"</(p|div|tr|li|h[1-6])>", "\n", value, flags=re.I)
+	value = _list_markers(value)
+	value = re.sub(r"<br\s*/?>[ \t]*\n?", "\n", value, flags=re.I)
+	value = re.sub(r"</(p|div|tr|li|h[1-6])>[ \t]*\n?", "\n", value, flags=re.I)
 	value = frappe.utils.strip_html(value)
 	return unescape_html(value).strip()
 
