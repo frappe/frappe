@@ -295,6 +295,14 @@ describe("one doctype's page replaced by two apps", () => {
   });
 });
 
+/** Runs the plugin's `load` with the one context method it calls. */
+function load(plugin: any, watched: string[] = []) {
+  return plugin.load.call(
+    { addWatchFile: (file: string) => watched.push(file) },
+    RESOLVED_ID,
+  );
+}
+
 describe("the generated module", () => {
   it("imports each replacement and drops one with no component at runtime", () => {
     const manifest = bench({ helpdesk: owner({ record: "runner" }) });
@@ -306,7 +314,7 @@ describe("the generated module", () => {
     );
 
     expect(plugin.resolveId("virtual:frappe/contributions")).toBe(RESOLVED_ID);
-    const code = plugin.load(RESOLVED_ID);
+    const code = load(plugin);
     expect(code).toContain(`import r0 from ${JSON.stringify(file)}`);
     expect(code).toContain(
       `  replacements: [\n` +
@@ -315,6 +323,17 @@ describe("the generated module", () => {
         `__file: ${JSON.stringify(file)} },\n` +
         `  ].filter(usable),`,
     );
+  });
+
+  it("watches each pages.json, so an edit reloads the module in dev", () => {
+    const manifest = bench({ helpdesk: owner({ record: "runner" }) });
+    const watched: string[] = [];
+
+    load(contributions(manifest), watched);
+
+    expect(watched).toEqual([
+      join(manifest[0].source_dir, TICKET, "frontend/pages.json"),
+    ]);
   });
 });
 
@@ -327,7 +346,7 @@ describe("the terminal output", () => {
     const logger = { warn: vi.fn() };
     plugin.configResolved({ logger });
 
-    const code = plugin.load(RESOLVED_ID);
+    const code = load(plugin);
     const [warning] = discover(manifest).warnings;
 
     expect(logger.warn.mock.calls).toEqual([[warning]]);
@@ -338,7 +357,7 @@ describe("the terminal output", () => {
     const manifest = withWarning();
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    (contributions(manifest) as any).load(RESOLVED_ID);
+    load(contributions(manifest));
 
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn.mock.calls[0][0]).toMatch(/^\[frappe\] .*unknown key "form"/);

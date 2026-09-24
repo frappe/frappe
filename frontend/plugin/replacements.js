@@ -25,7 +25,7 @@ export function declaredPages(folder, declarer) {
 		}
 		found.push({ ...declarer, key, page, file: join(pagesRoot, `${page}.js`) });
 	}
-	return { found, warnings };
+	return { found, warnings, declaration: isFile(path) ? path : null };
 }
 
 /** One warning per doctype and key that more than one app replaces. */

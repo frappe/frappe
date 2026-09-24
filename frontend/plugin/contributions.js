@@ -47,6 +47,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 	const pages = [];
 	const itemTypes = [];
 	const replacements = [];
+	const declarations = [];
 	const warnings = [];
 	// Every app on the bench, not just the manifest: a `custom/` folder can name a doctype
 	// owned by an app that contributes nothing.
@@ -72,6 +73,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 				const owned = declaredPages(frontend, declarer);
 				replacements.push(...owned.found);
 				warnings.push(...owned.warnings);
+				if (owned.declaration) declarations.push(owned.declaration);
 			}
 
 			// A foreign doctype: <module>/custom/<scrubbed>/{record.js,pages.json}
@@ -86,6 +88,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 				const custom = declaredPages(folder, declarer);
 				replacements.push(...custom.found);
 				warnings.push(...custom.warnings);
+				if (custom.declaration) declarations.push(custom.declaration);
 			}
 
 			// A new page: <module>/frontend/pages/<slug>.js. The `frontend/` segment is load-bearing:
@@ -118,7 +121,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 	}
 
 	warnings.push(...clashes(replacements));
-	return { doctypes, pages, itemTypes, replacements, warnings };
+	return { doctypes, pages, itemTypes, replacements, declarations, warnings };
 }
 
 /** A record's real name, read from its own JSON. `null` if there is no readable one. */
@@ -231,6 +234,8 @@ export default function contributions(manifest, allSourceDirs) {
 		load(id) {
 			if (id !== RESOLVED_ID) return;
 			const found = discover(manifest, allSourceDirs);
+			// `pages.json` is read, never imported, so vite would not reload the module on an edit.
+			for (const declaration of found.declarations) this.addWatchFile(declaration);
 			report(found.warnings, logger);
 			return generate(found);
 		},
