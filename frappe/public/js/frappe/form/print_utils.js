@@ -287,11 +287,11 @@ frappe.printing.convert_to_builder = function (doc) {
 			{
 				fieldname: "name",
 				fieldtype: "Data",
-				label: __("Name of the copy"),
+				label: __("New Format Name"),
 				reqd: 1,
 				default: __("{0} (New Builder)", [doc.name]),
 				description: __(
-					"{0} is a standard format stored in an app, so it is copied into a custom format for the new builder. The standard format stays as it is.",
+					"{0} is a standard format and cannot be changed. A copy with this name will open in the new builder.",
 					[doc.name.bold()]
 				),
 			},
