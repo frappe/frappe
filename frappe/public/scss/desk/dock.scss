@@ -267,6 +267,15 @@ body.dock-pinned .dock {
 	border-right: 1px solid var(--outline-gray-1);
 }
 
+// A pinned dock already shows the module's icon as its active tile, right beside the sidebar
+// header, so the header drops its own and leads with the name. Not when the sidebar is folded, where
+// the icon is all the header has left, and not below md, where there is no dock.
+@include media-breakpoint-up(md) {
+	body.dock-pinned.dock-active .body-sidebar-container.expanded .sidebar-header .header-logo {
+		display: none;
+	}
+}
+
 // The slide is the whole of the dock's arrival, so with motion turned down it simply is or is not
 // there. Both states stay reachable: the transform is what changes, not the class that drives it.
 @media (prefers-reduced-motion: reduce) {
