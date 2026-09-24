@@ -95,9 +95,8 @@ function expect_no_condition(fields, fieldname, key) {
 	]);
 }
 
-// A row only goes stale without a save, so it cannot be seeded: the server rejects a row
-// naming a field its doctype does not have. Point the form at ToDo in the UI instead, which
-// shares no field with either source doctype, and every seeded row is left over.
+// a stale row cannot be seeded, because the server rejects a row naming a missing field.
+// Point the form at ToDo in the UI instead, which shares no field with either source
 function open_picker_on_leftover_rows(seed) {
 	seed();
 	// Get Fields flushes the builder first, so let it mount before the switch
@@ -334,15 +333,14 @@ context("Web Form Get Fields", () => {
 	it("Leaves the layout alone when an Update adds nothing", () => {
 		open_picker_on(AUTHOR_LAYOUT);
 
-		// the form carries every offered field, so the picker opens with the whole list
-		// ticked. Update takes no new field, so it asks for nothing and rebuilds nothing.
+		// the form carries every offered field, so the picker opens all-ticked, Update adds
+		// nothing and nothing is rebuilt
 		picker().find(":checkbox:not(:checked)").should("not.exist");
 		cy.click_modal_primary_button("Update");
 
 		web_form_fields().should((fields) => {
-			// a break carries no fieldname, so it is named by its type. Comparing the whole
-			// table this way covers the order, the break and where the break sits in one go:
-			// a rebuild would answer with OFFERED plus the doctype's own `more_tab` page.
+			// a break has no fieldname, so name it by type. Comparing the whole table checks the
+			// order and the break's place at once. A rebuild would add the doctype's `more_tab` page
 			const layout = (rows) => rows.map((d) => d.fieldname || d.fieldtype);
 			expect(layout(fields), "the rows the author left").to.deep.eq(layout(AUTHOR_LAYOUT));
 		});

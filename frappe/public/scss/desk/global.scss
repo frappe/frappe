@@ -533,7 +533,7 @@ kbd {
 	}
 }
 
-// the rest of #freeze is in common/global.scss; desk keeps it above dialogs
+// keep the freeze backdrop above dialogs
 #freeze {
 	z-index: 2000;
 }

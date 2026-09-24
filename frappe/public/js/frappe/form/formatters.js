@@ -380,8 +380,8 @@ frappe.form.formatters = {
 	},
 	TableMultiSelect: function (rows, df, options) {
 		rows = rows || [];
-		// Web forms have no locals["DocType"], so the server ships the child
-		// docfields on df.fields instead.
+		// web forms have no locals["DocType"], so the server ships the child
+		// docfields on df.fields instead
 		const meta = frappe.get_meta(df.options);
 		const fields = meta?.fields?.length ? meta.fields : df.fields || [];
 		const link_field = fields.find((f) => f.fieldtype === "Link");

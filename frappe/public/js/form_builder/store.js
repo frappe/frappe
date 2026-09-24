@@ -21,8 +21,7 @@ export const useStore = defineStore("form-builder-store", () => {
 	});
 	let dirty = ref(false);
 	let read_only = ref(false);
-	// host's standing answer, re-applied after every fetch. `read_only` alone cannot hold it:
-	// finish_fetch() clears that on each fetch, the way the preview toggle needs
+	// the host's lock. finish_fetch() resets `read_only` to this, so a fetch cannot unlock
 	let force_read_only = ref(false);
 	let is_customize_form = ref(false);
 	let is_layout_form = ref(false);
@@ -76,9 +75,8 @@ export const useStore = defineStore("form-builder-store", () => {
 		return form.value.layout.tabs.find((tab) => tab.df.name == form.value.active_tab);
 	});
 
-	// dragging is gated on `read_only` alone, because a layout form may reorder what it may
-	// not restructure. `read_only`, not `force_read_only`: the preview toggle flips only the
-	// former, and a preview is not editable either
+	// not for dragging: a layout form may reorder fields, just not add or remove them.
+	// `read_only`, not `force_read_only`, because a preview sets only `read_only`
 	const can_edit_layout = computed(() => !read_only.value && !is_layout_form.value);
 
 	const active_element = useActiveElement();
@@ -134,8 +132,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		return form.value.layout.tabs.findIndex((tab) => tab.df.name === form.value.active_tab);
 	}
 
-	// restore the previously active tab by index if it still exists, else the first tab.
-	// a null or -1 index reads as undefined, so it falls through too
+	// a null, -1 or out-of-range index reads as undefined, so it falls back to the first tab
 	function restore_active_tab(previous_index) {
 		let tabs = form.value.layout.tabs;
 		form.value.active_tab = (tabs[previous_index] ?? tabs[0])?.df.name ?? null;
@@ -233,7 +230,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		}
 		docfields.value = frappe.get_meta("Web Form Field").fields;
 
-		// not for the properties panel — get_df() builds layout nodes from DocField meta
+		// not for the properties panel: get_df() builds layout nodes from DocField meta
 		if (!frappe.get_meta("DocField")) {
 			await load_doctype_model("DocField");
 		}
@@ -256,7 +253,6 @@ export const useStore = defineStore("form-builder-store", () => {
 			: [];
 	}
 
-	// read direction: web_form_fields rows to layout nodes
 	function web_form_rows_to_fields() {
 		// a row added from the grid has no fieldtype yet, so it has no layout node
 		let rows = (frm.value.doc.web_form_fields || []).filter((row) => row.fieldtype);
@@ -272,7 +268,6 @@ export const useStore = defineStore("form-builder-store", () => {
 				}
 			}
 
-			// a Page Break in a Web Form is a tab boundary
 			if (df.fieldtype === "Page Break") {
 				df.fieldtype = "Tab Break";
 			}
@@ -280,7 +275,7 @@ export const useStore = defineStore("form-builder-store", () => {
 			return df;
 		});
 
-		// page 1 is implicit — N pages are stored as N-1 Page Break rows, so prepend its tab
+		// page 1 is implicit: N pages are stored as N-1 Page Break rows
 		fields.unshift(get_df("Tab Break"));
 
 		return fields;
@@ -526,7 +521,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		return error_message;
 	}
 
-	// callers throw on a string return — returning undefined would save the old fields
+	// callers throw on a string. Returning undefined would save the old fields
 	function write_back_error(e) {
 		console.error(e);
 		return __(
@@ -564,8 +559,8 @@ export const useStore = defineStore("form-builder-store", () => {
 	}
 
 	function update_web_form_fields() {
-		// no `|| frm.is_new()` here — the grid also writes web_form_fields, so a clean
-		// builder must not overwrite rows "Get Fields" added behind its back
+		// no `|| frm.is_new()`: the grid also writes web_form_fields, and a clean builder
+		// must not overwrite rows that Get Fields added
 		if (!dirty.value) return;
 
 		frappe.dom.freeze(__("Saving..."));
@@ -581,11 +576,10 @@ export const useStore = defineStore("form-builder-store", () => {
 		}
 	}
 
-	// write direction: layout nodes back to web_form_fields rows. Rows are updated in place,
-	// because frm.set_value() on a table drops each row's name and recreates every row
+	// rows are updated in place: frm.set_value() on a table drops each row's name
 	function web_form_fields_to_rows(fields) {
-		// page 1 is implicit, so drop tab 0 — but only if get_updated_fields() kept it,
-		// or we would eat page 2's break instead
+		// drop the implicit page 1, but only if get_updated_fields() kept it, or page 2's
+		// break goes instead
 		let tab_count = fields.filter((df) => df.fieldtype === "Tab Break").length;
 		let dfs = tab_count === form.value.layout.tabs.length ? fields.slice(1) : fields;
 
@@ -605,7 +599,6 @@ export const useStore = defineStore("form-builder-store", () => {
 			for (let prop of web_form_field_props.value) {
 				row[prop] = df[prop] !== undefined ? df[prop] : null;
 			}
-			// a tab boundary is a Page Break in a Web Form
 			if (row.fieldtype === "Tab Break") {
 				row.fieldtype = "Page Break";
 			}
@@ -624,7 +617,6 @@ export const useStore = defineStore("form-builder-store", () => {
 		});
 
 		parent.web_form_fields = rows;
-		// fields removed in the builder
 		unclaimed.forEach((row) => frappe.model.clear_doc(row.doctype, row.name));
 
 		return rows;

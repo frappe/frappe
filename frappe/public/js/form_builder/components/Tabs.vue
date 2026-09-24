@@ -57,7 +57,7 @@ function remove_tab(tab, event, force = false) {
 	// is remove_tab_btn is not visible then return
 	if (!event?.currentTarget?.offsetParent && !force) return;
 
-	// page 1 always exists — the header hides its delete button, but Backspace bypasses that
+	// page 1 always exists. The header hides its delete button, but Backspace bypasses that
 	if (store.is_web_form && store.form.layout.tabs.length === 1) return;
 
 	if (store.is_customize_form && store.current_tab.df.is_custom_field == 0) {

@@ -1,22 +1,22 @@
-// Shared by the Web Form builder and Get Fields specs.
+// shared by the Web Form builder and Get Fields specs
 
 // a Desk tab panel is also a .tab-content, and Web Form has a "title" field of its
 // own, so an unscoped [data-fieldname] query reaches the Desk control
 export const CANVAS = ".form-builder-container";
 
 // Desk hides the page it leaves instead of removing it, so a route change leaves two
-// form pages in the DOM. Scope to the one on screen.
+// form pages in the DOM. Scope to the one on screen
 export const PAGE = ".page-container:visible";
 
 // a form page is named after its doctype. While a route change is still in flight the
-// page on screen is still the old one, so `:visible` cannot tell the two apart.
+// page on screen is still the old one, so `:visible` cannot tell the two apart
 export const WEB_FORM_PAGE = ".page-container[data-page-route='Web Form']";
 export const DOCTYPE_PAGE = ".page-container[data-page-route='DocType']";
 
 export const ROUTE = "builder-note";
 
 // two pages: the Page Break is the boundary, page one is implicit and has no row.
-// "public" is left out so the add-field picker has something unplaced to offer.
+// "public" is left out so the add-field picker has something unplaced to offer
 export const SEEDED_FIELDS = [
 	{ fieldname: "title", label: "Title", fieldtype: "Data", reqd: 1 },
 	{ fieldtype: "Page Break" },
@@ -45,7 +45,7 @@ export function web_form_fields() {
 }
 
 // `remove_doc` and `insert_doc` need `frappe.csrf_token` from whatever page the previous
-// test left behind, which may still be mid-navigation.
+// test left behind, which may still be mid-navigation
 export function wait_for_desk() {
 	cy.window().should((win) =>
 		expect(win.frappe?.csrf_token, "desk is loaded").to.be.a("string")
@@ -85,7 +85,7 @@ export function open_get_fields(route = ROUTE) {
 }
 
 // an unsaved form, filled in through the UI and given fields by Get Fields. It saves under
-// the route slugged from its title, so that is the name to clear first.
+// the route slugged from its title, so that is the name to clear first
 export function fill_new_web_form(title) {
 	wait_for_desk();
 	cy.remove_doc("Web Form", title.toLowerCase().replace(/ /g, "-"), true);

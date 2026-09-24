@@ -431,9 +431,8 @@ frappe.ui.form.on("Web Form Field", {
 	},
 });
 
-// one list of the doctype's fields (no breaks), rows already on the form pre-ticked.
-// Update adds what was ticked and removes the rows that were unticked. Ticking everything
-// takes the doctype's own layout too, breaks included, as long as there is something to add.
+// one list of the doctype's fields (no breaks), rows already on the form pre-ticked:
+// Update adds what was ticked and removes what was unticked
 class GetFieldsDialog {
 	constructor(frm, fields) {
 		this.frm = frm;
@@ -484,9 +483,8 @@ class GetFieldsDialog {
 			},
 		});
 		this.make_header();
-		// not on_page_show: that runs on shown.bs.modal, by which time the dialog already
-		// takes clicks, so it would re-tick what Unselect All just cleared.
-		// Only on a form without fields, or it would re-tick fields removed on purpose.
+		// not in on_page_show: the dialog takes clicks by then, so this would re-tick what
+		// Unselect All cleared. Empty forms only, or it re-ticks rows removed on purpose
 		!this.existing_rows.length && this.select_mandatory();
 		// Dialog takes no wrapper class, so the scroll cap goes on after construction
 		const $fields = this.dialog.get_field("fields").$wrapper;
@@ -547,15 +545,11 @@ class GetFieldsDialog {
 
 	update() {
 		const selected = this.dialog.get_value("fields");
-		// read before the rows move: the first new field is where the user is sent afterwards
+		// read before the rows move. The user is taken to this field afterwards
 		const [first_added] = this.get_new_fields(selected);
 
-		// checkbox state, not a Select All flag: Select All then one untick stays additive.
-		// Taking the whole doctype is the one Update that asks for the doctype's layout too,
-		// but only when it actually takes fields the form does not have: a form that already
-		// carries every doctype field opens all-ticked, and an Update that adds nothing asked
-		// for nothing. Rebuilding it would discard the breaks made in the builder, which carry
-		// no fieldname and so are never in `existing_rows`.
+		// taking the whole doctype takes its layout too, but only if that adds something:
+		// rebuilding discards the builder's breaks, which have no fieldname to preserve
 		const all_ticked = selected.length === this.dialog.get_field("fields").options.length;
 		all_ticked && first_added ? this.rebuild_layout(selected) : this.add_and_remove(selected);
 
@@ -584,7 +578,6 @@ class GetFieldsDialog {
 
 		// clear_doc also renumbers idx, which filtering the array would not
 		removed.forEach((d) => frappe.model.clear_doc(d.doctype, d.name));
-		// ticked rows are kept as they are, so edits made on them survive
 		this.get_new_fields(selected).forEach((df) => this.insert_row(df, selected));
 
 		// clear_doc does not dirty the form, and refresh_form_builder would reset __unsaved
@@ -604,19 +597,18 @@ class GetFieldsDialog {
 	}
 
 	// a new field sits where the DocType would put it, relative to the fields the form
-	// already has. Breaks are never consulted, so the form's own layout is left alone.
+	// already has; breaks are never consulted, so the form's own layout is left alone
 	get_insert_index(df) {
 		const rows = this.frm.doc.web_form_fields;
 		const position = this.fields.indexOf(df);
 		const row_index = (fieldname) => rows.findIndex((d) => d.fieldname === fieldname);
 
-		// the nearest DocType field before it that the form carries: sit just after that row
 		for (let i = position - 1; i >= 0; i--) {
 			const at = row_index(this.fields[i].fieldname);
 			if (at !== -1) return at + 1;
 		}
-		// nothing before it, so sit just before the nearest one after it. That keeps a new
-		// opening field inside the section the form opens with, not above it.
+		// nothing before it: sit before the nearest one after, so a new opening field stays
+		// inside the form's first section
 		for (let i = position + 1; i < this.fields.length; i++) {
 			const at = row_index(this.fields[i].fieldname);
 			if (at !== -1) return at;
@@ -636,8 +628,8 @@ class GetFieldsDialog {
 		this.frm.dirty();
 	}
 
-	// existing rows are reused, so their edits survive. A break is kept even with nothing
-	// ticked under it: the portal skips an empty page, and the save reports that it did.
+	// existing rows are reused, so their edits survive. An empty break is kept anyway:
+	// the portal skips the empty page and the save says so
 	get_ordered_rows(selected) {
 		const rows = this.doctype_fields
 			.filter((df) => is_layout_field(df) || selected.includes(df.fieldname))
@@ -653,8 +645,8 @@ class GetFieldsDialog {
 		return [...this.drop_empty_leading_pages(rows), ...stale_rows];
 	}
 
-	// page 1 is implicit, so opening with a Page Break (as a DocType opening with a Tab
-	// Break does) leaves page 1 blank and pushes every field onto page 2
+	// page 1 is implicit, so a leading Page Break (what a DocType's opening Tab Break
+	// becomes) leaves it blank and pushes every field onto page 2
 	drop_empty_leading_pages(rows) {
 		const first_field = rows.findIndex((d) => !is_layout_field(d));
 		// a Page Break past the first field divides the fields around it, so it stays
@@ -666,8 +658,7 @@ class GetFieldsDialog {
 		return this.frm.add_child("web_form_fields", get_web_form_field_values(df, fieldnames));
 	}
 
-	// three ways to go stale: doc_type has no such field, or has one skipped as hidden or as
-	// a fieldtype a Web Form cannot render. meta is loaded, so the docfield tells them apart.
+	// three ways to go stale: no such field, hidden, or a fieldtype a Web Form cannot render
 	get_stale_warning_title(fieldname) {
 		const docfield = frappe.meta.get_docfield(this.frm.doc.doc_type, fieldname);
 		if (!docfield) {
@@ -716,17 +707,16 @@ class GetFieldsDialog {
 			.trigger("change");
 	}
 
-	// the search hides rows with display:none, so the list would resize on every keystroke.
-	// Must run after the dialog paints, or the height reads 0.
+	// search hides rows, so an unfixed list resizes on every keystroke. Must run after
+	// the dialog paints, or the height reads 0
 	freeze_list_height() {
 		const $wrapper = this.dialog.get_field("fields").$wrapper;
 		$wrapper.height($wrapper.height());
 	}
 }
 
-// Get Fields and the builder's picker both add a field with these values. A condition is
-// kept only if `fieldnames` has every field it reads. Fields already on the form are not
-// revisited, so adding a field later does not restore a condition dropped earlier.
+// shared by Get Fields and the builder's picker. A condition is kept only if `fieldnames`
+// has every field it reads
 function get_web_form_field_values(df, fieldnames) {
 	return {
 		fieldname: df.fieldname,
@@ -790,12 +780,10 @@ function flush_form_builder(frm) {
 }
 
 function refresh_form_builder(frm) {
-	// fetch() is async, and the canvas only holds the new rows once it settles
 	return get_form_builder(frm)?.store.fetch();
 }
 
-// a Page Break is a builder tab, so on a multi-page form a newly added field can land on a
-// page the user is not looking at. Open that page and put the field in front of them.
+// a new field can land on a page the user is not looking at, so open that page
 function reveal_in_form_builder(frm, fieldname) {
 	const store = get_form_builder(frm)?.store;
 	if (!store || !fieldname) return;
@@ -833,7 +821,7 @@ function scroll_to_builder_field(fieldname, attempts = 10) {
 	field.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
-// `frm.sidebar` only exists while the user keeps Form Sidebar on, the way add_web_link guards it
+// `frm.sidebar` exists only while Form Sidebar is on
 function add_embed_link(frm) {
 	if (!frm.sidebar) return;
 
@@ -916,11 +904,8 @@ function render_form_builder(frm) {
 		.finally(() => (frm._web_form_builder_loading = false));
 }
 
-// hidden on the builder tab and on an unsaved doc, which has no sidebar content. the sidebar
-// reappears on save, so this runs on every refresh, not only on a tab change.
-// hide with Desk's `hide-sidebar` class, never an inline display: inline outranks the class and
-// would survive the sidebar's refresh after save. the main column needs no width override, it
-// has `flex-grow: 1` and fills the row once the sidebar is gone
+// hidden on the builder tab and on an unsaved doc. Runs on every refresh, since a save shows
+// the sidebar again. Use the class, not an inline display, which would survive that refresh
 function sync_form_sidebar(frm) {
 	if (!frm.page?.sidebar || frm.page.hide_sidebar || !frappe.boot.desk_settings?.form_sidebar) {
 		return;
@@ -940,8 +925,7 @@ function get_builder_tab(frm) {
 	return frm.layout?.tabs?.find((t) => t.df.fieldname === "form_builder_tab");
 }
 
-// a stale row has no usable docfield, so it never reaches this.
-// all three are listed, deduped: each is kept or dropped on its own, and keys often repeat one
+// deduped, since the three keys often hold the same condition
 function get_condition_warning_title(df) {
 	const conditions = [
 		...new Set([df.depends_on, df.mandatory_depends_on, df.read_only_depends_on]),
@@ -974,8 +958,8 @@ function condition_survives(condition, selected_fieldnames) {
 	return get_referenced_fieldnames(condition).every((f) => selected_fieldnames.includes(f));
 }
 
-// same prefixes as layout.js evaluate_depends_on_value, where a bare condition is doc[condition]
-// both accessor forms: an unmatched doc["x"] gives [], and [].every() is true
+// a bare condition is doc[condition], as in layout.js evaluate_depends_on_value.
+// match both doc.x and doc["x"]: a missed reference would let the condition through
 function get_referenced_fieldnames(condition) {
 	if (!condition.startsWith("eval:")) return [condition];
 	const refs = condition.matchAll(/\bdoc(?:\.(\w+)|\[["'](\w+)["']\])/g);

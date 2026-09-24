@@ -1247,7 +1247,7 @@ def get_table_multiselect_fields(
 	try:
 		meta = frappe.get_meta(child_doctype)
 	except frappe.DoesNotExistError:
-		# A stale field whose child table was deleted must not take the whole form down.
+		# a stale field whose child table was deleted must not take the whole form down
 		return []
 
 	link_field = next((df for df in meta.fields if df.fieldtype == "Link"), None)

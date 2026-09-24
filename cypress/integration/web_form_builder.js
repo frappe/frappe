@@ -151,7 +151,7 @@ context("Web Form Builder", () => {
 		seed_web_form();
 		open_builder();
 
-		// one Page Break row, but two pages — page one is implicit
+		// one Page Break row but two pages, since page one is implicit
 		cy.get(`${CANVAS} .tab-header .tabs .tab`).should("have.length", 2);
 		cy.get(`${CANVAS} .tab-header .tabs .tab:first`).should("contain.text", "Page 1");
 		cy.get(`${CANVAS} .tab-content.active [data-fieldname='title']`).should("exist");
@@ -266,9 +266,8 @@ context("Web Form Builder", () => {
 		cy.get(DOCTYPE_PAGE).findByRole("tab", { name: "Form" }).click();
 		cy.get(`${DOCTYPE_PAGE} ${CANVAS}`).should("be.visible");
 
-		// set_route resolves before the form renders, so wait for the Web Form to be the
-		// form on screen. Clicking a tab too early lands it on the DocType page, and the
-		// builder tab of the Web Form stays closed.
+		// set_route resolves before the form renders. Clicking a tab too early lands on the
+		// DocType page, so wait for the Web Form to be on screen
 		cy.window().then((win) => win.frappe.set_route("Form", "Web Form", ROUTE));
 		cy.window().its("cur_frm.doc.name").should("eq", ROUTE);
 		cy.get(WEB_FORM_PAGE).findByRole("tab", { name: "Form" }).click();
@@ -337,8 +336,8 @@ context("Web Form Builder", () => {
 		cy.visit("/desk/web-form/new");
 		cy.get(`${PAGE} .layout-side-section`).should("not.be.visible");
 
-		// move onto the builder tab and back off it, the path that asks for the sidebar.
-		// Showing it here with an inline display would outrank Desk and leave an empty shell.
+		// move onto the builder tab and back, the path that asks for the sidebar. An inline
+		// display here would outrank Desk and leave an empty shell
 		cy.get(PAGE).findByRole("tab", { name: "Form" }).click();
 		cy.get(PAGE).findByRole("tab", { name: "Settings" }).click();
 		cy.get(`${PAGE} .layout-side-section`).should("not.be.visible");

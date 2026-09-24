@@ -222,7 +222,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		this.primary_action_fulfilled = true;
 
 		// Table MultiSelect keeps .form-control on its pill box,
-		// not on the input that carries data-fieldname.
+		// not on the input that carries data-fieldname
 		let page = this.get_page(this.current_section);
 		let fields = $(`${page} .form-control, ${page} .table-multiselect input`);
 		let errors = [];
