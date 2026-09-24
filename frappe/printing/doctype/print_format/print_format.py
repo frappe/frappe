@@ -474,25 +474,18 @@ def create_custom_format(
 	return doc
 
 
-def _classic_conversion_values(doc) -> dict:
-	from frappe.printing.doctype.print_format.classic_converter import NUMERIC_DEFAULT_FIELDS
-
-	return {
-		"format_data": doc.format_data,
-		"classic_format_data": doc.classic_format_data,
-		"print_format_builder": doc.print_format_builder,
-		"print_format_builder_beta": doc.print_format_builder_beta,
-		"pdf_generator": doc.pdf_generator,
-		"page_number": doc.page_number,
-		**{f: doc.get(f) for f in NUMERIC_DEFAULT_FIELDS},
-	}
-
-
 def _persist_conversion(doc):
 	"""Standard formats are file-backed: write the row without exporting, so the
 	app's fixture stays classic and a later sync can restore it."""
+	from frappe.printing.doctype.print_format.classic_converter import conversion_values
+
 	if doc.standard == "Yes":
-		frappe.db.set_value("Print Format", doc.name, _classic_conversion_values(doc), update_modified=False)
+		frappe.db.set_value(
+			"Print Format",
+			doc.name,
+			{"format_data": doc.format_data, **conversion_values(doc)},
+			update_modified=False,
+		)
 		frappe.clear_cache(doctype=doc.doc_type)
 	else:
 		doc.save()

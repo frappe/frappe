@@ -167,13 +167,7 @@ export function getStore(print_format_name) {
 				print_format: print_format_name,
 			})
 			.then((r) => {
-				_print_format.classic_format_data = r.message.classic_format_data;
-				_print_format.print_format_builder = 0;
-				_print_format.print_format_builder_beta = 1;
-				_print_format.pdf_generator = "chrome";
-				if (_print_format.page_number === "Hide") {
-					_print_format.page_number = "Bottom Center";
-				}
+				Object.assign(_print_format, r.message.values);
 				if (r.message.dropped.length) {
 					frappe.msgprint({
 						title: __("Converted from the old Print Format Builder"),
