@@ -398,6 +398,11 @@ def safe_color(value, default=None):
 	return default
 
 
+def hairline(color=None) -> str:
+	color = safe_color(color)
+	return f'0.6pt + rgb("{color}")' if color else HAIRLINE
+
+
 def muted_text(text, color=MUTED) -> str:
 	return f'#text(size: 0.85em, fill: rgb("{color}"), {q(text)})'
 
@@ -642,7 +647,7 @@ class TypstEmitter:
 	def _section_block_args(self, section) -> list[str]:
 		args = ["width: 100%"]
 		if section.get("field_borders"):
-			args.append(f"stroke: {HAIRLINE}")
+			args.append(f"stroke: {hairline(section.get('border_color'))}")
 			args.append("radius: 4pt")
 			pad = frappe.utils.flt(section.get("cell_padding"), 0) or 8
 			args.append(f"inset: {pt(pad)}pt")
@@ -708,7 +713,8 @@ class TypstEmitter:
 			gutter = pad
 			divided = [cells[0]]
 			for cell in cells[1:]:
-				divided.append(f"grid.cell(stroke: (left: {HAIRLINE}), inset: (left: {pad}pt))" + cell)
+				rule = hairline(section.get("border_color"))
+				divided.append(f"grid.cell(stroke: (left: {rule}), inset: (left: {pad}pt))" + cell)
 			return (
 				f"#grid(columns: ({', '.join(widths)}), column-gutter: {gutter}pt, align: top,\n"
 				+ ",\n".join(divided)
@@ -728,7 +734,7 @@ class TypstEmitter:
 		if section.get("field_borders") and section.get("grid_borders") != "columns" and len(parts) > 1:
 			pad = pt(section.get("cell_padding"), 8)
 			ruled = [
-				f"#block(width: 100%, stroke: (bottom: {HAIRLINE}), inset: (bottom: {pad}pt))[{p}]"
+				f"#block(width: 100%, stroke: (bottom: {hairline(section.get('border_color'))}), inset: (bottom: {pad}pt))[{p}]"
 				for p in parts[:-1]
 			] + [parts[-1]]
 			return f"#stack(spacing: {pad}pt,\n" + ",\n".join(f"[{p}]" for p in ruled) + ")"
@@ -1056,10 +1062,11 @@ class TypstEmitter:
 		header_bg = None if header_mode == "plain" else safe_color(df.get("table_header_bg")) or "#f3f4f6"
 		# full grid when explicitly bordered or table_style is bordered; otherwise
 		# lined — horizontal rules between rows, matching the child-table classes
+		rule = hairline(df.get("table_border_color"))
 		if df.get("table_bordered") is not False or df.get("table_style") == "bordered":
-			stroke = HAIRLINE
+			stroke = rule
 		else:
-			stroke = f"(_, y) => if y > 0 {{ (top: {HAIRLINE}) }}"
+			stroke = f"(_, y) => if y > 0 {{ (top: {rule}) }}"
 
 		parts = [
 			f"columns: ({', '.join(widths)})",
