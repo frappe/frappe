@@ -534,6 +534,10 @@ body.print-format-doc .letter-head,
 	border-radius: var(--border-radius-md, 8px);
 	overflow: hidden;
 	padding: 0;
+	/* a grid section that breaks across pages closes its outline on both
+	   fragments instead of leaving the box open at the break */
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
 }
 .print-format-doc .section--grid .section-label {
 	padding: var(--pfb-cell-pad, 8px);
