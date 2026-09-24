@@ -75,12 +75,19 @@ function load_print_format_builder(wrapper) {
 	if (current?.has_unsaved_changes?.() && route[1] !== leaving_to) {
 		if (current.print_format === route[1]) return;
 		const target = route[1];
-		frappe.route_flags.replace_route = true;
-		frappe.set_route("print-format-builder", current.print_format);
-		current.leave(() => {
-			leaving_to = target;
-			frappe.set_route("print-format-builder", target);
-		});
+		current.flush().then(
+			() => {
+				leaving_to = target;
+				load_print_format_builder(wrapper);
+			},
+			() => {
+				history.back();
+				current.warn_unsaved(() => {
+					leaving_to = target;
+					frappe.set_route("print-format-builder", target);
+				});
+			}
+		);
 		return;
 	}
 	leaving_to = null;

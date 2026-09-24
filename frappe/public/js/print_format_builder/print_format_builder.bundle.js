@@ -88,17 +88,21 @@ class PrintFormatBuilder {
 		return !!draft && (this.$component.$store.dirty.value || draft.save_failed.value);
 	}
 
+	flush() {
+		return this.$component.$store.draft.flush();
+	}
+
 	leave(navigate) {
-		this.$component.$store.draft
-			.flush()
-			.then(navigate, () =>
-				frappe.warn(
-					__("Unsaved changes"),
-					__("The latest changes could not be saved and will be lost if you leave."),
-					navigate,
-					__("Leave anyway")
-				)
-			);
+		this.flush().then(navigate, () => this.warn_unsaved(navigate));
+	}
+
+	warn_unsaved(proceed) {
+		frappe.warn(
+			__("Unsaved changes"),
+			__("The latest changes could not be saved and will be lost if you leave."),
+			proceed,
+			__("Leave anyway")
+		);
 	}
 
 	on_hide() {
