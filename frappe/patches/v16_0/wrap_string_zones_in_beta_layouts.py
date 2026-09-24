@@ -12,7 +12,13 @@ def execute():
 	frappe.reload_doctype("Print Format")
 	for row in frappe.get_all(
 		"Print Format",
-		filters={"print_format_builder_beta": 1, "standard": "No", "format_data": ("is", "set")},
+		filters={
+			"print_format_builder_beta": 1,
+			"custom_format": 0,
+			"raw_printing": 0,
+			"standard": "No",
+			"format_data": ("is", "set"),
+		},
 		fields=["name", "format_data"],
 	):
 		try:

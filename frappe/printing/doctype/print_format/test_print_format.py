@@ -1054,6 +1054,26 @@ class TestWeasyPrintEngine(IntegrationTestCase):
 		wkhtmltopdf.assert_not_called()
 		self.assertFalse(frappe.form_dict.get("doctype"))
 
+	def test_download_multi_pdf_with_password_keeps_pages(self):
+		from io import BytesIO
+
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format import download_multi_pdf
+
+		doc = self.make_beta("WeasyPrint")
+		frappe.local.form_dict = frappe._dict()
+		download_multi_pdf(
+			"User",
+			frappe.as_json(["Administrator"]),
+			format=doc.name,
+			no_letterhead=True,
+			options=frappe.as_json({"password": "secret"}),
+		)
+		pdf = frappe.local.response.filecontent
+		self.assertTrue(pdf.startswith(b"%PDF"))
+		self.assertEqual(len(PdfReader(BytesIO(pdf)).pages), 1)
+
 	def test_get_print_context_is_cleaned_up(self):
 		from frappe.utils.print_format_generator import get_print_context
 

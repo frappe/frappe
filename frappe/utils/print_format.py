@@ -211,7 +211,7 @@ def _download_multi_pdf(
 		validate_print(doc)
 		set_link_titles(doc)
 		generator = PrintFormatGenerator(pf_doc, doc, letterhead, no_letterhead=no_letterhead)
-		pdf = generator.render_pdf(password=(options or {}).get("password"))
+		pdf = generator.render_pdf()
 		for page in PdfReader(BytesIO(pdf)).pages:
 			pdf_writer.add_page(page)
 		return pdf_writer
