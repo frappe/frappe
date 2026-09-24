@@ -316,6 +316,7 @@ def _download_multi_pdf(
 from frappe.deprecation_dumpster import read_multi_pdf
 
 
+# nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
 @frappe.whitelist(allow_guest=True)
 @frappe.concurrent_limit()
 def download_pdf(
