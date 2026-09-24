@@ -137,10 +137,15 @@ class TestFlowToolSystemGenerated(IntegrationTestCase):
 		with self.assertRaisesRegex(frappe.ValidationError, "Cannot delete system-generated"):
 			frappe.delete_doc("Flow Tool", tool.name)
 
-	def test_delete_blocked_even_with_ignore_permissions(self):
+	def test_the_owning_app_can_delete(self):
 		tool = self._tool()
+		frappe.delete_doc("Flow Tool", tool.name, ignore_permissions=True)
+		self.assertFalse(frappe.db.exists("Flow Tool", tool.name))
+
+	def test_a_builtin_is_blocked_even_with_ignore_permissions(self):
+		sync_builtin_tools()
 		with self.assertRaisesRegex(frappe.ValidationError, "Cannot delete system-generated"):
-			frappe.delete_doc("Flow Tool", tool.name, ignore_permissions=True)
+			frappe.delete_doc("Flow Tool", "read", ignore_permissions=True)
 
 	def test_cannot_unset_flag(self):
 		tool = self._tool()
