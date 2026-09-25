@@ -1154,10 +1154,19 @@ class TypstEmitter:
 		return muted_text(_(df["label"]), self._label_color()) + "\n#v(3pt)\n"
 
 	def _table_cell(self, row, col) -> str:
+		from frappe.utils.print_format_generator import format_field_value
+
 		merged = col.get("merged_fields")
 		if merged:
 			# the column's own field is the implicit primary line (Table.html:39)
-			merged = [{"fieldname": col.get("fieldname"), "fieldtype": col.get("fieldtype")}, *merged]
+			merged = [
+				{
+					"fieldname": col.get("fieldname"),
+					"fieldtype": col.get("fieldtype"),
+					"date_format": col.get("date_format"),
+				},
+				*merged,
+			]
 			img_fn = next(
 				(
 					mf.get("fieldname")
@@ -1172,7 +1181,7 @@ class TypstEmitter:
 				fieldname = mf.get("fieldname")
 				if not fieldname or mf.get("fieldtype") in MERGE_IMAGE_FIELDTYPES:
 					continue
-				value = _text_value(row.get_formatted(fieldname))
+				value = _text_value(format_field_value(row, mf))
 				if not value:
 					continue
 				if first_text:
@@ -1206,8 +1215,6 @@ class TypstEmitter:
 			if not name:
 				return ""
 			return f'#box(width: 100%, height: 75pt)[#image("{name}", width: 100%, height: 100%, fit: "contain")]'
-		from frappe.utils.print_format_generator import format_field_value
-
 		return f"#text({q(_text_value(format_field_value(row, col)))})"
 
 	def _table_thumb(self, row, col, img_fn, merged) -> str:

@@ -148,7 +148,12 @@ export function useFieldFormat(props, store, preview_doc) {
 		const extra = (col.merged_fields || []).filter((mf) => mf && mf.fieldname);
 		if (!extra.length) return [];
 		return [
-			{ fieldname: col.fieldname, fieldtype: col.fieldtype, style: "primary" },
+			{
+				fieldname: col.fieldname,
+				fieldtype: col.fieldtype,
+				style: "primary",
+				date_format: col.date_format,
+			},
 			...extra,
 		];
 	}
@@ -166,16 +171,17 @@ export function useFieldFormat(props, store, preview_doc) {
 		return merged_fields(col).filter((mf) => mf.fieldname !== img?.fieldname);
 	}
 
-	function format_merged(row, i, fieldname) {
+	function format_merged(row, i, mf) {
+		const fieldname = mf.fieldname;
 		const server = store.preview_child_values.value?.[props.df.fieldname]?.[i]?.[fieldname];
-		if (!blank(server)) {
+		if (!blank(server) && !mf.date_format) {
 			return frappe.utils.html2text(String(server)).trim();
 		}
 		const dcol = frappe.meta.get_docfield(props.df.options, fieldname) || {
 			fieldname,
 			fieldtype: "Data",
 		};
-		const val = format_cell(row, dcol);
+		const val = format_cell(row, { ...dcol, date_format: mf.date_format });
 		if (typeof val === "string" && val.includes("<")) {
 			return frappe.utils.html2text(val).trim();
 		}
@@ -184,7 +190,7 @@ export function useFieldFormat(props, store, preview_doc) {
 
 	function merged_line(row, i, mf) {
 		if (!is_merge_html(mf)) {
-			return frappe.utils.escape_html(String(format_merged(row, i, mf.fieldname) ?? ""));
+			return frappe.utils.escape_html(String(format_merged(row, i, mf) ?? ""));
 		}
 		const server = store.preview_child_values.value?.[props.df.fieldname]?.[i]?.[mf.fieldname];
 		const raw = blank(server) ? row[mf.fieldname] : server;
