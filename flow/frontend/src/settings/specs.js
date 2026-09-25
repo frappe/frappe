@@ -122,6 +122,7 @@ export const SPECS = {
 				name: "token_budget",
 				label: "Token budget",
 				type: "int",
+				placeholder: "No limit",
 				description:
 					"Tokens a single run may spend, shared with its sub-agents. Cached reads are not counted.",
 			},
@@ -578,7 +579,6 @@ export function newDoc(spec) {
 	}
 	if (spec.doctype === "Flow Agent") {
 		doc.max_iterations = 100;
-		doc.token_budget = 10000000;
 	}
 	return doc;
 }

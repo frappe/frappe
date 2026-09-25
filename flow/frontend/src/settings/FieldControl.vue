@@ -162,7 +162,7 @@
 		:description="field.description"
 		:required="field.required"
 		:placeholder="field.placeholder"
-		:model-value="doc[field.name] ?? ''"
+		:model-value="inputValue"
 		:disabled="disabled"
 		@update:model-value="
 			(value) => (doc[field.name] = field.type === 'int' ? Number(value) || 0 : value)
@@ -197,6 +197,13 @@ const readonlyText = computed(() => {
 const inputType = computed(
 	() => ({ int: "number", password: "password", url: "url" }[props.field.type] ?? "text")
 );
+
+// an int's placeholder stands for 0, e.g. "No limit"
+const inputValue = computed(() => {
+	const value = props.doc[props.field.name];
+	if (props.field.type === "int" && props.field.placeholder && !value) return "";
+	return value ?? "";
+});
 
 // Selected values remain visible while a different query is loading.
 const linkQuery = ref("");

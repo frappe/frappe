@@ -5,7 +5,7 @@ import asyncio
 
 import pytest
 
-from flow_harness.agent.loop import HookDecision
+from flow_harness.agent.loop import HookDecision, TokenBudget
 from flow_harness.events import AssistantMessage, ToolCall, Usage
 from flow_harness.model import Model, ModelRequest, ProviderError, run_with_retries
 from flow_harness.model.auth import ResolvedModelAuth
@@ -967,6 +967,12 @@ async def test_a_pause_keeps_its_budget_and_a_new_turn_starts_one(tmp_path):
 
 	await _run(session, "again", model=MockModel(replies=[AssistantMessage(content="ok")]))
 	assert session._budget is not paused
+
+
+def test_a_run_has_no_token_ceiling_by_default(tmp_path):
+	budget = TokenBudget(SessionConfig(cwd=str(tmp_path)).token_budget)
+	budget.add(Usage(input_tokens=10**12, output_tokens=10**12))
+	assert not budget.exhausted
 
 
 async def test_auto_compaction_counts_toward_run_budget(tmp_path):

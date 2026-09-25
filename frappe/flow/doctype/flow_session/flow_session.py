@@ -109,10 +109,7 @@ class FlowSession(Document):
 	def server_config(self) -> dict[str, Any]:
 		"""This session's flow server config. Tools go as schemas; the server calls back to run them."""
 		from flow.daemon import lifecycle
-		from flow.flow.doctype.flow_agent.flow_agent import (
-			DEFAULT_MAX_ITERATIONS,
-			DEFAULT_TOKEN_BUDGET,
-		)
+		from flow.flow.doctype.flow_agent.flow_agent import DEFAULT_MAX_ITERATIONS
 		from flow.lib.model import model_config
 
 		agent = frappe.get_doc("Flow Agent", self.agent)
@@ -133,7 +130,6 @@ class FlowSession(Document):
 			"skills_enabled": False,
 			"auto_approve": bool(self.auto_approve),
 			"max_turns": agent.max_iterations or DEFAULT_MAX_ITERATIONS,
-			"token_budget": agent.token_budget or DEFAULT_TOKEN_BUDGET,
 			"auto_compact": True,
 			"callback_url": lifecycle.callback_url(),
 			"callback_headers": lifecycle.callback_headers(),
@@ -142,6 +138,8 @@ class FlowSession(Document):
 			"user_context": context,
 			"cwd": str(lifecycle.session_root()),
 		}
+		if agent.token_budget:  # none: no cap
+			config["token_budget"] = agent.token_budget
 		if frappe.conf.flow_callback_timeout:
 			config["callback_timeout"] = frappe.conf.flow_callback_timeout
 		return config

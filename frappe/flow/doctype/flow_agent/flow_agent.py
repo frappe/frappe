@@ -18,7 +18,6 @@ if TYPE_CHECKING:
 	from flow.lib.tool import Tool
 
 DEFAULT_MAX_ITERATIONS = 100
-DEFAULT_TOKEN_BUDGET = 10_000_000
 
 # Skills bound to this agent; global ones add MAX_GLOBAL_SKILLS more. The index rides in
 # every session's prompt, so both caps together bound it however the skills are written.
