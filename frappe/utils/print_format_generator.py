@@ -433,7 +433,7 @@ class PrintFormatGenerator:
 		style_name = self.style or self.print_settings.print_style
 		print_style = (
 			frappe.get_doc("Print Style", style_name)
-			if style_name and frappe.db.exists("Print Style", style_name)
+			if style_name and frappe.db.exists("Print Style", {"name": style_name, "disabled": 0})
 			else None
 		)
 		self.context = frappe._dict(
