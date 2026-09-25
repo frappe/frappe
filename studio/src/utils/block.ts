@@ -179,21 +179,18 @@ class Block implements BlockOptions {
 	}
 
 	getChildIndex(child: Block) {
-		return this.getChildList(child).findIndex((block) => block.componentId === child.componentId)
+		return this.getSiblingsIncluding(child).findIndex((block) => block.componentId === child.componentId)
 	}
 
-	// the list a child lives in: a named slot's content, or the regular children
-	getChildList(child: Block): Block[] {
+	getSiblingsIncluding(child: Block): Block[] {
 		if (child.parentSlotName) {
 			return this.getSlotContent(child.parentSlotName) || []
 		}
 		return this.children
 	}
 
-	// Reorder an existing child within the list it already lives in.
-	// `index` is the position among the OTHER children (remove, then insert).
 	moveChild(child: Block, index: number) {
-		const siblings = this.getChildList(child)
+		const siblings = this.getSiblingsIncluding(child)
 		const childIndex = siblings.findIndex((block) => block.componentId === child.componentId)
 		if (childIndex === -1) return
 		siblings.splice(childIndex, 1)
@@ -302,7 +299,7 @@ class Block implements BlockOptions {
 	getSiblingBlock(direction: "next" | "previous") {
 		const parentBlock = this.getParentBlock();
 		if (!parentBlock) return null;
-		const siblings = parentBlock.getChildList(this);
+		const siblings = parentBlock.getSiblingsIncluding(this);
 		const index = parentBlock.getChildIndex(this);
 		const sibling = direction === "next" ? siblings[index + 1] : siblings[index - 1];
 		return sibling || null;
