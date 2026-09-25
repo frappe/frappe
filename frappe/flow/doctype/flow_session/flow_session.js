@@ -3,6 +3,12 @@
 
 frappe.ui.form.on("Flow Session", {
 	refresh(frm) {
+		if (!frm.is_new()) {
+			frm.add_custom_button(__("View in Flow"), () =>
+				window.open(`/flow/s/${encodeURIComponent(frm.doc.name)}`)
+			);
+		}
+
 		const parse = (v) => {
 			try {
 				return JSON.parse(v);
