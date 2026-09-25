@@ -22,7 +22,12 @@ from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
 from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension
 from frappe.desk.form.utils import add_comment
 from frappe.exceptions import ValidationError
+<<<<<<< HEAD
 from frappe.tests import IntegrationTestCase
+=======
+from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
+>>>>>>> a3614b3 (fix(file): skip stale Custom DocPerm entries in File permission query)
 from frappe.utils import get_files_path, set_request
 
 if TYPE_CHECKING:
@@ -1710,3 +1715,20 @@ class TestFileListUserPermissionRestriction(IntegrationTestCase):
 			filters={"name": ["in", [self.permitted_file.name, self.out_of_scope_file.name]]},
 		)
 		self.assertEqual(len(files), 2)
+
+
+class TestFilePermissionQuery(UnitTestCase):
+	def test_ignores_stale_custom_docperm_doctype(self):
+		"""A stale Custom DocPerm can reference a deleted DocType; must not crash the File list query."""
+		from frappe.core.doctype.file.file import get_permission_query_conditions
+		from frappe.permissions import SYSTEM_USER_ROLE
+
+		with (
+			patch(
+				"frappe.core.doctype.file.file.get_doctypes_with_read",
+				return_value=["Deleted Doctype XYZ"],
+			),
+			patch("frappe.get_roles", return_value=[SYSTEM_USER_ROLE]),
+		):
+			# should not raise frappe.exceptions.DoesNotExistError
+			get_permission_query_conditions(user="test1@example.com")
