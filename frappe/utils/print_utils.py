@@ -91,13 +91,13 @@ def get_print(
 
 	local = frappe.local
 	pf_doc = _print_format_doc_or_none(print_format)
-	if "pdf_generator" not in local.form_dict:
-		local.form_dict.pdf_generator = resolve_pdf_generator(pf_doc, pdf_generator)
-	elif uses_beta_renderer(pf_doc) and local.form_dict.pdf_generator not in GENERATOR_ENGINES:
-		local.form_dict.pdf_generator = resolve_pdf_generator(pf_doc)
+	generator = local.form_dict.get("pdf_generator")
+	if not generator or (uses_beta_renderer(pf_doc) and generator not in GENERATOR_ENGINES):
+		generator = resolve_pdf_generator(pf_doc, pdf_generator)
 
 	original_form_dict = copy.deepcopy(local.form_dict)
 	try:
+		local.form_dict.pdf_generator = generator
 		local.form_dict.doctype = doctype
 		local.form_dict.name = name
 		local.form_dict.format = print_format
@@ -112,54 +112,54 @@ def get_print(
 
 		response = get_response_without_exception_handling("printview", 200)
 		html = str(response.data, "utf-8")
+
+		if not as_pdf:
+			return html
+
+		if generator != "wkhtmltopdf":
+			previous = set_print_context(
+				doctype=doctype,
+				name=name,
+				doc=doc,
+				letterhead=letterhead,
+				no_letterhead=no_letterhead,
+				generator=None,
+			)
+			try:
+				for hook in frappe.get_hooks("pdf_generator"):
+					"""
+					check pdf_generator value in your hook function.
+					if it matches run and return pdf else return None
+					"""
+					pdf = frappe.call(
+						hook,
+						print_format=print_format,
+						html=html,
+						options=pdf_options,
+						output=output,
+						pdf_generator=generator,
+					)
+					# if hook returns a value, assume it was the correct pdf_generator and return it
+					if pdf:
+						if output and isinstance(pdf, bytes):
+							from io import BytesIO
+
+							from pypdf import PdfReader
+
+							reader = PdfReader(BytesIO(pdf))
+							for page in reader.pages:
+								output.add_page(page)
+							return output
+						return pdf
+			finally:
+				restore_print_context(previous)
+
+		for hook in frappe.get_hooks("on_print_pdf"):
+			frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
+
+		return get_pdf(html, options=pdf_options, output=output)
 	finally:
 		local.form_dict = original_form_dict
-
-	if not as_pdf:
-		return html
-
-	if local.form_dict.pdf_generator != "wkhtmltopdf":
-		previous = set_print_context(
-			doctype=doctype,
-			name=name,
-			doc=doc,
-			letterhead=letterhead,
-			no_letterhead=no_letterhead,
-			generator=None,
-		)
-		try:
-			for hook in frappe.get_hooks("pdf_generator"):
-				"""
-				check pdf_generator value in your hook function.
-				if it matches run and return pdf else return None
-				"""
-				pdf = frappe.call(
-					hook,
-					print_format=print_format,
-					html=html,
-					options=pdf_options,
-					output=output,
-					pdf_generator=local.form_dict.pdf_generator,
-				)
-				# if hook returns a value, assume it was the correct pdf_generator and return it
-				if pdf:
-					if output and isinstance(pdf, bytes):
-						from io import BytesIO
-
-						from pypdf import PdfReader
-
-						reader = PdfReader(BytesIO(pdf))
-						for page in reader.pages:
-							output.add_page(page)
-						return output
-					return pdf
-		finally:
-			restore_print_context(previous)
-
-	for hook in frappe.get_hooks("on_print_pdf"):
-		frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
-
-	return get_pdf(html, options=pdf_options, output=output)
 
 
 def attach_print(

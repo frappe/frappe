@@ -1230,6 +1230,25 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			pf = self._beta_format_for(doc.doctype)
 			self.assertRaises(frappe.PermissionError, download_pdf, doc.doctype, doc.name, pf.name)
 
+	def test_attach_print_renders_typst_formats_through_the_generator(self):
+		from unittest.mock import patch
+
+		pf = self._make_print_format(pdf_generator="Typst")
+		todo = frappe.get_doc(doctype="ToDo", description="typst attachment").insert()
+
+		with (
+			self.change_settings("Print Settings", send_print_as_pdf=1),
+			patch(
+				"frappe.utils.print_format_generator.PrintFormatGenerator.render_pdf", return_value=b"typst"
+			) as render_pdf,
+			patch("frappe.utils.pdf.get_pdf") as wkhtmltopdf,
+		):
+			out = frappe.attach_print("ToDo", todo.name, print_format=pf.name)
+
+		self.assertEqual(out["fcontent"], b"typst")
+		render_pdf.assert_called_once()
+		wkhtmltopdf.assert_not_called()
+
 	def test_attach_print_beta_blocks_draft(self):
 		"""attach_print's beta branch enforces the draft guard before rendering."""
 		doc = self._make_submittable_doc(0)
