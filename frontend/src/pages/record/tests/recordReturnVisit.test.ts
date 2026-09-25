@@ -3,7 +3,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick } from "vue";
 import { RouterView, type Router } from "vue-router";
 
-const load = vi.hoisted(() => ({ layoutsLoading: false }));
+const load = vi.hoisted(() => ({ layoutsLoading: false, failFirstReplay: false }));
+const prefetchEnded = vi.hoisted(() => [] as string[]);
+
+vi.mock("@framework/ui/ActivityTimeline", async (importOriginal) => {
+  const original = (await importOriginal()) as typeof import("@framework/ui/ActivityTimeline");
+  return {
+    ...original,
+    endActivityPrefetch: (doctype: string, docname: string, ...rest: []) => {
+      prefetchEnded.push(docname);
+      return original.endActivityPrefetch(doctype, docname, ...rest);
+    },
+  };
+});
 
 vi.mock("@/shell/PageFrame.vue", async () => {
   const { defineComponent, h } = await import("vue");
@@ -20,6 +32,13 @@ vi.mock("@/recordPage", async (importOriginal) => {
   const { computed, ref } = await import("vue");
   return {
     ...original,
+    createRecordPage: (...args: unknown[]) => {
+      const created = (original as any).createRecordPage(...args);
+      if (!load.failFirstReplay) return created;
+      created.paintNow = () => null;
+      created.refresh = () => Promise.reject(new Error("replay failed"));
+      return created;
+    },
     useFormLayout: () => {
       const loading = ref(load.layoutsLoading);
       return {
@@ -180,6 +199,8 @@ beforeEach(() => {
   server.holdSession = null;
   server.requests = [];
   load.layoutsLoading = false;
+  load.failFirstReplay = false;
+  prefetchEnded.length = 0;
   resetClientScripts();
   resetDoctypeMeta();
   resetUserRoles();
@@ -472,6 +493,28 @@ describe("a return visit", () => {
 
     expect(seen.at(-1)).toEqual(["F2", "F1"]);
     expect(recordReads() - before).toBe(2);
+  });
+
+  it("replays after the sidecar's re-read when a live update replaced it while the background read was out", async () => {
+    const replays: string[][] = [];
+    await register({ onRefresh: (page) => void replays.push(page.files.items.map((one) => one.name)) });
+    const { router } = await visitAndLeave();
+    server.attachments = [fileRow("F2", EARLIER)];
+    server.holdRecord = gate();
+    await comeBack(router);
+    await settle();
+    const added = fileRow("F1", OLD);
+    server.attachments = [...server.attachments, added];
+    const doc = { ...added, reference_doctype: "Note", reference_name: name };
+    socket.emit("docinfo_update", { key: "attachments", action: "add", doc });
+    await settle();
+    server.attachments = [...server.attachments, fileRow("F3", NEW)];
+    replays.length = 0;
+
+    server.holdRecord.open();
+    await settle();
+
+    expect(replays).toEqual([["F2", "F1", "F3"]]);
   });
 
   it("applies nothing from a background read that lands after the reader moved to another record", async () => {
@@ -780,6 +823,22 @@ describe("a return visit on the Activity tab", () => {
     expect(activeTab(root)).toBe("activity");
     expect(activityReads() - before).toBe(2);
     expect(root.querySelector('.activity[id="a2"]')).not.toBeNull();
+  });
+
+  it("ends the kept feed's mark when the first replay fails, and handles a failed background read", async () => {
+    await register({ onRefresh: drawState });
+    const { router } = await visitAndLeave("?tab=activity");
+    const errors: unknown[] = [];
+    apps.at(-1)!.config.errorHandler = (error) => void errors.push(error);
+    server.failRecord = true;
+    load.failFirstReplay = true;
+    prefetchEnded.length = 0;
+
+    await comeBack(router);
+    await settle();
+
+    expect(errors).toEqual([expect.objectContaining({ message: "replay failed" })]);
+    expect(prefetchEnded).toContain(name);
   });
 
   it("takes the cold path when no past visit kept the feed", async () => {

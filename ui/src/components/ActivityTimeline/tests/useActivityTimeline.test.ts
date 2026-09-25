@@ -508,6 +508,22 @@ describe("the prefetched read", () => {
       "comment:3",
     ]);
   });
+
+  it("reads again for a body that mounted while a staged read was out, when that read fails", async () => {
+    const name = freshDoc();
+    serve({ newest: { activities: [c(1)], next: null } });
+    await prefetchActivityTimeline("ToDo", name);
+    let fail!: (failure: Error) => void;
+    api.getDocumentPart.mockImplementationOnce(() => new Promise((_, reject) => (fail = reject)));
+    const staged = stageActivityTimelineRead("ToDo", name)!;
+    const { timeline } = mountTimeline(name);
+    await nextTick();
+    serve({ newest: { activities: [c(1), c(2)], next: null } });
+
+    fail(new Error("down"));
+    await expect(staged).rejects.toThrow("down");
+    await vi.waitFor(() => expect(timeline.activities.value.map((one) => one.key)).toEqual(["comment:1", "comment:2"]));
+  });
 });
 
 describe("pending rows", () => {

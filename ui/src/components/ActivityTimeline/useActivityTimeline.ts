@@ -92,6 +92,7 @@ export function stageActivityTimelineRead(
   store.prefetched.value = true;
   return store.stageNewest().catch((failure) => {
     store.prefetched.value = false;
+    if (store.mounted > 0) void store.refresh();
     throw failure;
   });
 }

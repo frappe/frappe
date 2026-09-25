@@ -526,6 +526,8 @@ interface OpenRecord extends Opening {
 	feedRead: Promise<void>;
 }
 
+type BackgroundRead = Promise<() => Promise<void> | void>;
+
 interface HeldRecord {
 	record: LoadedRecord;
 	metadata: any;
@@ -550,18 +552,22 @@ function inMemory({ target, details, panel }: Opening): HeldRecord | null {
 async function openFromMemory(opening: Opening, { record, metadata }: HeldRecord) {
 	show(record, metadata);
 	const created = buildController(opening);
-	const firstReplay = created.paintNow();
+	const painted = created.paintNow();
 	const reads = backgroundReads(opening.target);
-	if (!firstReplay) await created.refresh();
-	if (opening.mine !== generation) return;
-	landPaint(created, opening.pointer);
+	if (painted) landPaint(created, opening.pointer);
+	const firstReplay = painted ?? paintLate(opening, created);
 	await applyInBackground(opening.mine, created, reads, firstReplay);
 }
 
+async function paintLate({ mine, pointer }: Opening, created: RecordPageController) {
+	await created.refresh();
+	if (mine === generation) landPaint(created, pointer);
+}
+
 // Each read resolves to the function that applies it, so they all apply in one step.
-function backgroundReads(target: Opening["target"]): Promise<() => void>[] {
+function backgroundReads(target: Opening["target"]): BackgroundRead[] {
 	const before = docinfo.value;
-	const reads = [
+	const reads: BackgroundRead[] = [
 		loadRecord(target.doctype, target.name).then((fresh) => () => takeRefetch(fresh, before)),
 	];
 	const rows = feeds.rereadKept();
@@ -573,13 +579,17 @@ function backgroundReads(target: Opening["target"]): Promise<() => void>[] {
 async function applyInBackground(
 	mine: number,
 	created: RecordPageController,
-	reads: Promise<() => void>[],
-	firstReplay: Promise<void> | null
+	reads: BackgroundRead[],
+	firstReplay: Promise<void>
 ) {
 	try {
 		const [settled] = await Promise.all([Promise.allSettled(reads), firstReplay]);
 		if (mine !== generation) return;
-		for (const read of settled) if (read.status === "fulfilled") read.value();
+		const rereads = settled.map((read) =>
+			read.status === "fulfilled" ? read.value() : undefined
+		);
+		await Promise.all(rereads);
+		if (mine !== generation) return;
 	} finally {
 		if (mine === generation) feeds.endKeptRead();
 	}
@@ -591,10 +601,14 @@ function takeRefetch(fresh: LoadedRecord, before: DocInfo | null) {
 	const merged = mergeRefetch({ doc: doc.value, saved: saved.value }, fresh.document);
 	saved.value = merged.saved;
 	doc.value = merged.doc;
-	// A write or live update since the reads began may be missing from `fresh`; a new read includes it.
-	if (docinfo.value !== before) live.reloadQuietly();
-	else if (!same(before, fresh.docinfo)) docinfo.value = fresh.docinfo;
 	if (!same(linkTitles.value, fresh.linkTitles)) linkTitles.value = fresh.linkTitles;
+	// A write or live update since the reads began may be missing from `fresh`; a new read includes it.
+	if (docinfo.value !== before) return reloadDocinfo().catch(warnPartsFailed);
+	if (!same(before, fresh.docinfo)) docinfo.value = fresh.docinfo;
+}
+
+function warnPartsFailed(error: unknown) {
+	if (import.meta.env.DEV) console.warn("[record-page] docinfo re-read failed", error);
 }
 
 function show(loaded: LoadedRecord, metadata: any) {
