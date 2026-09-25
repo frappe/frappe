@@ -55,13 +55,14 @@ export function useCanvasHistory(source: Ref<Block>, selectedBlockIds: Ref<Set<s
 	const dirty = ref(false);
 
 	function commit() {
-		const record = createHistoryRecord();
-		// a batch that resumes with an immediate commit can be followed by the
-		// debounced watcher firing for the same change — never record a no-op
-		if (record.block === last.value.block) return;
+		const previousRecord = last.value;
+		const nextRecord = createHistoryRecord();
+		// Resume and the watcher can both record the same tree state.
+		// Skip the duplicate so Undo takes only one step.
+		if (nextRecord.block === previousRecord.block) return;
 		dirty.value = true;
-		undoStack.value.unshift(last.value);
-		last.value = record;
+		undoStack.value.unshift(previousRecord);
+		last.value = nextRecord;
 		if (undoStack.value.length > CAPACITY) {
 			undoStack.value.splice(CAPACITY, Number.POSITIVE_INFINITY);
 		}
