@@ -864,7 +864,7 @@ class TypstEmitter:
 			)
 
 	def _formatted_value(self, df):
-		if df.get("fieldtype") == "Linked Field":
+		if df.get("fieldtype") == "Linked Field" or df.get("_value") is not None:
 			return _text_value(df.get("_value") or "")
 		fieldname = df.get("fieldname")
 		if not fieldname:
@@ -1206,7 +1206,9 @@ class TypstEmitter:
 			if not name:
 				return ""
 			return f'#box(width: 100%, height: 75pt)[#image("{name}", width: 100%, height: 100%, fit: "contain")]'
-		return f"#text({q(_text_value(row.get_formatted(fieldname)))})"
+		from frappe.utils.print_format_generator import format_field_value
+
+		return f"#text({q(_text_value(format_field_value(row, col)))})"
 
 	def _table_thumb(self, row, col, img_fn, merged) -> str:
 		size = pt(frappe.utils.cint(col.get("image_size")), 40)

@@ -133,6 +133,15 @@
 										unit="%"
 										@update:model-value="(v) => set_width(col, v)"
 									/>
+									<DropdownRow
+										v-if="is_date_field(col)"
+										:label="__('Date format')"
+										:options="date_format_opts()"
+										:model-value="col.date_format || ''"
+										@update:model-value="
+											(v) => set_prop(col, 'date_format', v, '')
+										"
+									/>
 								</div>
 								<draggable
 									:list="col.merged_fields"
@@ -283,7 +292,7 @@ import ColorField from "./ColorField.vue";
 import VisibilitySection from "./VisibilitySection.vue";
 import { useSelectedField } from "./useSelectedField";
 import { is_merge_image } from "../../fieldtypes";
-import { clamp_column_width } from "../../utils";
+import { clamp_column_width, date_format_opts, is_date_field, set_prop } from "../../utils";
 
 const { selected_field, set_field_prop } = useSelectedField();
 
