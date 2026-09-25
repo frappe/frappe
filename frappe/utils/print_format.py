@@ -154,6 +154,16 @@ def page_settings(pdf_options) -> dict:
 	return settings
 
 
+def classic_page_options(pdf_options) -> dict:
+	"""The same page choice for the HTML pipeline, which takes dimensions with a unit."""
+	pdf_options = dict(pdf_options or {})
+	for option in ("page-height", "page-width"):
+		if isinstance(pdf_options.get(option), int | float):
+			pdf_options[option] = f"{pdf_options[option]}mm"
+			pdf_options["page-size"] = "Custom"
+	return pdf_options
+
+
 def publish_failure(task_id: str, error: Exception):
 	"""The list view waits on task_complete alone, so a failure has to arrive there."""
 	frappe.publish_realtime(
@@ -252,7 +262,7 @@ def _download_multi_pdf(
 					output=pdf_writer,
 					no_letterhead=no_letterhead,
 					letterhead=letterhead,
-					pdf_options=options,
+					pdf_options=classic_page_options(options),
 				)
 
 			from pypdf import PdfReader
