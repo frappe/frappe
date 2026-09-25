@@ -40,7 +40,7 @@ vi.mock("@/shell/NotFound.vue", () => ({ default: { render: () => null } }));
 
 import { clearDataCache, feedListRead, settleTicket, takeTicket } from "@framework/ui/cache";
 import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
-import { resetUserRoles } from "@framework/ui/composables/useUserRoles";
+import { resetUserRoles, useUserRoles } from "@framework/ui/composables/useUserRoles";
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { resetClientScripts } from "@/recordPage/clientScripts";
@@ -50,8 +50,10 @@ import type { AuthoredHandlers, RecordPageApi } from "@/recordPage/types";
 import { createShellRouter } from "@/router";
 import { registerShell } from "@/router/routeFor";
 
+const EARLIER = "2026-09-25 09:00:00.000000";
 const OLD = "2026-09-25 10:00:00.000000";
 const NEW = "2026-09-25 11:00:00.000000";
+const SAVED = "2026-09-25 12:00:00.000000";
 const META = {
   name: "Note",
   title_field: "title",
@@ -75,31 +77,44 @@ function gate(): Gate {
 /** What the server holds and how it answers; a test moves it between visits. */
 const server = {
   doc: {} as Record<string, any>,
+  /** Records other than the one a test visits, by name. */
+  others: {} as Record<string, Record<string, any>>,
   activity: [] as object[],
   failRecord: false,
   holdRecord: null as Gate | null,
   holdActivity: null as Gate | null,
+  holdSession: null as Gate | null,
   requests: [] as string[],
 };
 
-async function answer(url: URL, method: string): Promise<[unknown, number]> {
+async function answer(url: URL, method: string, body: any): Promise<[unknown, number]> {
   const path = decodeURIComponent(url.pathname);
   if (path === "/api/v2/doctype/Note/meta") return [{ data: META }, 200];
+  if (path === "/api/v2/session") {
+    await server.holdSession?.opened;
+    return [{ data: null }, 200];
+  }
   if (path.endsWith("/activity")) {
     await server.holdActivity?.opened;
     return [{ data: { activities: server.activity, next: null } }, 200];
   }
+  if (path.endsWith("/favourites") && method === "POST")
+    return [{ data: { favourites: [{ user: boot.session.user.name }], users: {} } }, 200];
+  if (path.startsWith("/api/v2/document/Note/") && method === "PATCH") {
+    server.doc = { ...server.doc, ...body, modified: SAVED };
+    return [{ data: server.doc }, 200];
+  }
   if (path.startsWith("/api/v2/document/Note/") && method === "GET") {
     await server.holdRecord?.opened;
     if (server.failRecord) return [{ errors: [{ type: "Error", message: "down" }] }, 500];
-    return [recordEnvelope(), 200];
+    return [recordEnvelope(server.others[path.split("/")[5]] ?? server.doc), 200];
   }
   return [{ data: null }, 200];
 }
 
-function recordEnvelope() {
+function recordEnvelope(doc: Record<string, any>) {
   return {
-    data: { ...server.doc },
+    data: { ...doc },
     permissions: { read: 1, write: 1 },
     assignments: [],
     shares: [],
@@ -132,10 +147,12 @@ let name = "";
 beforeEach(() => {
   name = `N-${++visits}`;
   server.doc = { doctype: "Note", name, title: "First", status: "Open", modified: OLD };
+  server.others = {};
   server.activity = [activityRow("a1", "Row one")];
   server.failRecord = false;
   server.holdRecord = null;
   server.holdActivity = null;
+  server.holdSession = null;
   server.requests = [];
   load.layoutsLoading = false;
   resetClientScripts();
@@ -149,7 +166,8 @@ beforeEach(() => {
       const url = new URL(String(input), "http://x");
       const method = init?.method ?? "GET";
       server.requests.push(`${method} ${decodeURIComponent(url.pathname)}`);
-      const [body, status] = await answer(url, method);
+      const sent = typeof init?.body === "string" ? JSON.parse(init.body) : undefined;
+      const [body, status] = await answer(url, method, sent);
       return new Response(JSON.stringify(body), { status });
     }),
   );
@@ -352,7 +370,117 @@ describe("a return visit", () => {
     expect(title).not.toHaveBeenCalled();
     expect(status).not.toHaveBeenCalled();
   });
+
+  it("lands an act a slow first replay makes after the reads returned, and replays once after it", async () => {
+    const pause = gate();
+    const runs = vi.fn();
+    let slow = false;
+    await register({
+      onRefresh: async (page) => {
+        runs();
+        page.quickActions.add({ name: "slow", label: "Slow" });
+        if (!slow) return;
+        slow = false;
+        await pause.opened;
+        page.tabs.activate("files");
+      },
+    });
+    const { root, router } = await visitAndLeave();
+    runs.mockClear();
+    slow = true;
+    await comeBack(router);
+    await settle();
+
+    expect(runs).toHaveBeenCalledOnce();
+
+    pause.open();
+    await settle();
+
+    expect(activeTab(root)).toBe("files");
+    expect(buttons(root, "Slow")).toBe(1);
+    expect(runs).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps a favourite the reader set while the background read was out", async () => {
+    await register({ onRefresh: drawState });
+    const { root, router } = await visitAndLeave();
+    server.holdRecord = gate();
+    await comeBack(router);
+    await settle();
+    root.querySelector<HTMLElement>("[data-favourite]")!.click();
+    await settle();
+
+    expect(favourited(root)).toBe("true");
+
+    server.holdRecord.open();
+    await settle();
+
+    expect(favourited(root)).toBe("true");
+  });
+
+  it("applies nothing from a background read that lands after the reader moved to another record", async () => {
+    await register({ onRefresh: drawState });
+    const { root, router } = await visitAndLeave();
+    const late = (server.holdRecord = gate());
+    await comeBack(router);
+    await settle();
+    server.holdRecord = null;
+    server.doc = { ...server.doc, title: "Second", status: "Won", modified: NEW };
+    const other = `${name}-other`;
+    server.others[other] = { doctype: "Note", name: other, title: "Other", status: "Draft", modified: EARLIER };
+    await router.push(`/note/${other}`);
+    await settle();
+
+    expect(state(root)).toBe(`Draft|Other|${EARLIER}|${EARLIER}|0`);
+
+    late.open();
+    await settle();
+
+    expect(state(root)).toBe(`Draft|Other|${EARLIER}|${EARLIER}|0`);
+    expect(crumbs(root)).toContain("Other");
+  });
+
+  it("keeps a save that landed while the background read was out", async () => {
+    await register({
+      onRefresh: (page) => {
+        drawState(page);
+        page.quickActions.add({
+          name: "save-mine",
+          label: "Save mine",
+          run: async (page) => {
+            page.doc.title = "Mine";
+            await page.save();
+          },
+        });
+      },
+    });
+    const { root, router } = await visitAndLeave();
+    const late = (server.holdRecord = gate());
+    const unsaved = { ...server.doc };
+    await comeBack(router);
+    await settle();
+    server.holdRecord = null;
+    click(root, "Save mine");
+    await settle();
+
+    expect(state(root)).toBe(`Open|Mine|${SAVED}|${SAVED}|0`);
+
+    // The read held back was answered before the save reached the server.
+    server.doc = unsaved;
+    late.open();
+    await settle();
+
+    expect(state(root)).toBe(`Open|Mine|${SAVED}|${SAVED}|0`);
+  });
 });
+
+function buttons(root: HTMLElement, label: string) {
+  return [...root.querySelectorAll("button")].filter((one) => one.textContent!.trim() === label).length;
+}
+
+function favourited(root: HTMLElement) {
+  return root.querySelector("[data-favourite]")?.getAttribute("aria-pressed") ?? null;
+}
 
 function activeTab(root: HTMLElement) {
   const shown = [...root.querySelectorAll<HTMLElement>("[data-record-tab]")].find((tab) => tab.style.display !== "none");
@@ -465,6 +593,27 @@ describe("the cold path", () => {
     expect(hasSkeleton(root)).toBe(true);
   });
 
+  it("is taken while the session's roles still load", async () => {
+    const onRefresh = vi.fn(drawState);
+    await register({ onRefresh });
+    const { root, router } = await visitAndLeave();
+    server.holdSession = gate();
+    useUserRoles().reload();
+    onRefresh.mockClear();
+
+    await comeBack(router);
+    await settle();
+
+    expect(hasSkeleton(root)).toBe(true);
+    expect(onRefresh).not.toHaveBeenCalled();
+
+    server.holdSession.open();
+    await settle();
+
+    expect(hasSkeleton(root)).toBe(false);
+    expect(onRefresh).toHaveBeenCalledOnce();
+  });
+
   it("is taken by page.reload(), which blanks the page and reads the record again", async () => {
     await register({
       onRefresh: (page) =>
@@ -512,6 +661,49 @@ describe("a return visit on the Activity tab", () => {
     expect(root.querySelector('.activity[id="a2"]')).not.toBeNull();
     expect(state(root)).toBe(`Open|First|${OLD}|${OLD}|2`);
     expect(onRefresh).toHaveBeenCalledTimes(2);
+    expect(activityReads() - before).toBe(1);
+  });
+
+  it("holds the re-read rows back until the record's read returns, then draws both in one task", async () => {
+    await register({ onRefresh: drawState });
+    const { root, router } = await visitAndLeave("?tab=activity");
+    server.holdRecord = gate();
+    server.activity = [activityRow("a1", "Row one"), activityRow("a2", "Row two")];
+
+    await comeBack(router, "?tab=activity");
+    await settle();
+
+    expect(root.querySelector('.activity[id="a2"]')).toBeNull();
+
+    server.doc = { ...server.doc, title: "Second", modified: NEW };
+    server.holdRecord.open();
+    const seen: string[] = [];
+    for (let task = 0; task < 20; task++) {
+      await new Promise((resolve) => setTimeout(resolve));
+      const rows = root.querySelector('.activity[id="a2"]') ? "rows" : "no rows";
+      seen.push(`${rows} ${crumbs(root).includes("Second") ? "new" : "old"}`);
+    }
+
+    expect(seen).toContain("rows new");
+    expect(seen.every((one) => one === "rows new" || one === "no rows old")).toBe(true);
+  });
+
+  it("reads the feed once when the reader opens Activity after a return visit on Details", async () => {
+    await register({
+      onRefresh: (page) =>
+        page.quickActions.add({ name: "open", label: "Open Activity", run: (page) => page.tabs.activate("activity") }),
+    });
+    const { root, router } = await visitAndLeave("?tab=activity");
+    const before = activityReads();
+    await comeBack(router);
+    await settle();
+
+    click(root, "Open Activity");
+    await settle();
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    await settle();
+
+    expect(activeTab(root)).toBe("activity");
     expect(activityReads() - before).toBe(1);
   });
 

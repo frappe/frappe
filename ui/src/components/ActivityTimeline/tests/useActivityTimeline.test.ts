@@ -25,6 +25,7 @@ import {
   hasActivityTimeline,
   prefetchActivityTimeline,
   reloadActivityTimeline,
+  stageActivityTimelineRead,
   useActivityTimeline,
 } from "../useActivityTimeline";
 import { addPendingActivity } from "../pendingRows";
@@ -469,6 +470,23 @@ describe("the prefetched read", () => {
 
     expect(hasActivityTimeline("ToDo", name)).toBe(true);
     expect(hasActivityTimeline("ToDo", name, ["email"])).toBe(false);
+  });
+
+  it("stages a kept store's re-read: its rows change only when the returned function runs", async () => {
+    const name = freshDoc();
+    expect(stageActivityTimelineRead("ToDo", name)).toBeNull();
+    serve({ newest: { activities: [c(1)], next: null } });
+    await prefetchActivityTimeline("ToDo", name);
+    serve({ newest: { activities: [c(1), c(2)], next: null } });
+
+    const apply = await stageActivityTimelineRead("ToDo", name)!;
+
+    expect(activityTimelineRows("ToDo", name).map((one) => one.key)).toEqual(["comment:1"]);
+    apply();
+    expect(activityTimelineRows("ToDo", name).map((one) => one.key)).toEqual([
+      "comment:1",
+      "comment:2",
+    ]);
   });
 });
 

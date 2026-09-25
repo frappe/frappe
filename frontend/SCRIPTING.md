@@ -45,13 +45,16 @@ its changes land when it finishes.
 On a **return visit**, a record seen earlier in the same tab and reached again by Back,
 Forward or a link, the page paints from memory before the first frame, and `onRefresh`
 runs twice: once over the remembered record, then once more when the background reads
-return, the record with its parts and, if they were kept, the Activity rows. If nothing
-changed, the second replay draws nothing. Acts in the first replay land as on a first
-visit; the second replay drops its acts with a development warning, so a one-time move
-such as `activate` or `scrollTo` must not rely on being made in every replay. Values the
-background reads change fire no field handlers. If the reader is editing when they return,
-only the fields the reader has not touched take the server's values. A first visit, or a
-record not held in memory in full, loads as described above.
+return, the record with its parts and, if they were kept, the Activity rows. The second
+replay waits for the first to finish, an `onRefresh` that awaits included. If nothing
+changed, the second replay draws nothing. Build new values in each replay: an object
+changed in place and handed over again reads as unchanged, so it is not drawn again. Acts
+in the first replay land as on a first visit; the second replay drops its acts with a
+development warning, so a one-time move such as `activate` or `scrollTo` must not rely on
+being made in every replay. Values the background reads change fire no field handlers. If
+the reader is editing when they return, only the fields the reader has not touched take
+the server's values. A first visit, or a record not held in memory in full, loads as
+described above.
 
 **Every place on the page is a list, every list takes a component item, and `before` /
 `after` names a neighbour.** There is no vocabulary of places on top of that: no zone or

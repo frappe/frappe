@@ -158,6 +158,13 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
     return this.shown.value;
   }
 
+  /** Takes the held move out of the way; the returned function puts it back. */
+  setAsideScroll() {
+    const key = this.heldScroll;
+    this.heldScroll = null;
+    return () => void (this.heldScroll = key);
+  }
+
   /** Delivers the held move, or drops it with a warning as `release` says. */
   releaseScroll(release: Release = "all") {
     const key = this.heldScroll;

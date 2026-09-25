@@ -8,6 +8,7 @@ import {
 	hasActivityTimeline,
 	prefetchActivityTimeline,
 	reloadActivityTimeline,
+	stageActivityTimelineRead,
 	type VisibleTypes,
 } from "@framework/ui/ActivityTimeline";
 import { removeAttachment, type AttachmentsPart } from "@framework/ui/api";
@@ -49,6 +50,8 @@ export interface RecordFeedsOptions {
 	whileOnRecord: () => () => boolean;
 }
 
+type ActivityRead = readonly [doctype: string, docname: string, types: VisibleTypes | undefined];
+
 export const RecordFeedsKey: InjectionKey<RecordFeeds> = Symbol("record-feeds");
 
 export class RecordFeeds {
@@ -59,6 +62,7 @@ export class RecordFeeds {
 	private readonly timeline = shallowRef<ActivityTimelineHandle | null>(null);
 	private opened = "";
 	private pointed = "";
+	private kept: ActivityRead | null = null;
 
 	constructor(private readonly options: RecordFeedsOptions) {}
 
@@ -150,11 +154,18 @@ export class RecordFeeds {
 		return read ? (activityTimelineRows(...read) as ActivityRow[]) : [];
 	}
 
-	/** Re-reads the Activity rows a past visit kept, as a prefetch so the body's mount reads nothing more; null with none kept. */
-	rereadKept(): Promise<void> | null {
+	/** Re-reads the Activity rows a past visit kept; they change when the returned function runs. Null with none kept. */
+	rereadKept(): Promise<() => void> | null {
 		const read = this.activityRead();
-		if (!read || !hasActivityTimeline(...read)) return null;
-		return prefetchActivityTimeline(...read).finally(() => endActivityPrefetch(...read));
+		const staged = read ? stageActivityTimelineRead(...read) : null;
+		if (staged) this.kept = read;
+		return staged;
+	}
+
+	/** The page leaves the record: an Activity body that mounts from now on catches up for itself. */
+	leave() {
+		if (this.kept) endActivityPrefetch(...this.kept);
+		this.kept = null;
 	}
 
 	private rereadStore(): Promise<void> {
@@ -163,7 +174,7 @@ export class RecordFeeds {
 	}
 
 	/** The read the Activity body makes: this record, in the types a script chose. */
-	private activityRead() {
+	private activityRead(): ActivityRead | null {
 		const controller = this.options.controller();
 		if (!controller) return null;
 		const { doctype, docname } = controller.page;

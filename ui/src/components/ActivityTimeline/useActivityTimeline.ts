@@ -80,6 +80,22 @@ export function hasActivityTimeline(
   return store?.fetched.value === true;
 }
 
+/** Re-reads a kept store's newest page; its rows change only when the returned function runs. Null with no kept store or a mounted one. */
+export function stageActivityTimelineRead(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+): Promise<() => void> | null {
+  const store = stores.get(storeKey(doctype, docname, visibleTypes));
+  if (!store?.fetched.value || store.mounted > 0) return null;
+  // Marked as a prefetch, so a mount before `endActivityPrefetch` reads nothing more.
+  store.prefetched.value = true;
+  return store.stageNewest().catch((failure) => {
+    store.prefetched.value = false;
+    throw failure;
+  });
+}
+
 /** Re-reads the newest page with no component mounted; with no store yet, it starts the first read. */
 export function reloadActivityTimeline(
   doctype: string,

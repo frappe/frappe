@@ -174,8 +174,8 @@ export interface RecordPageController {
   commits: RecordCommitChannel;
   /** The replay: clears every surface, then runs every source's `refresh` in run order. */
   refresh: (options?: RefreshOptions) => Promise<void>;
-  /** Replays and commits before it returns; false, having run nothing, while scripts or permissions load. */
-  paintNow: () => boolean;
+  /** Replays and commits its synchronous part before it returns, settling when every `onRefresh` has; null, having run nothing, while scripts or permissions load. */
+  paintNow: () => Promise<void> | null;
   /** `row` addresses the child row a dotted event happened to; see `Handler`. */
   fireEvent: (event: string, row?: RowAddress) => Promise<void>;
   /** Fires `onPost` with the posted row's key, once the server has answered the built-in writer. */
@@ -306,6 +306,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     runRefresh: (ran) => dispatch("onRefresh", undefined, ran),
     warnUnknownHandlers: () => warnUnknownHandlers(),
     deliverHeldActs: (release) => deliverHeldActs(release),
+    setAsideHeldActs: () => setAsideHeldActs(),
     closeDialogs: () => dialogs.closeAll(),
   });
   const { hold, isStaging } = gate;
@@ -371,6 +372,22 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     releaseFocus(release);
     activity.releaseScroll(release);
     composer.releaseOpen(release);
+  }
+
+  function setAsideHeldActs() {
+    const activations = [...heldActivations];
+    const disclosures = [...heldDisclosures];
+    const focus = heldFocus;
+    heldActivations.clear();
+    heldDisclosures.clear();
+    heldFocus = null;
+    const putBack = [activity.setAsideScroll(), composer.setAsideOpen()];
+    return () => {
+      for (const [strip, name] of activations) heldActivations.set(strip, name);
+      for (const [name, open] of disclosures) heldDisclosures.set(name, open);
+      heldFocus = focus;
+      for (const one of putBack) one();
+    };
   }
 
   // One sequence at a time: a second `page.save()` mid-flight joins it, so no handler fires twice.

@@ -141,6 +141,7 @@ import {
 	isEmptyHeader,
 	joinForm,
 	loadClientScripts,
+	permissionsLoaded,
 	projectFrame,
 	projectHeader,
 	SAVE_VETO,
@@ -461,6 +462,7 @@ async function reloadDocinfo() {
 
 // Only the route's load may paint from memory: a reload, a conflict or a failed action reads the server.
 async function load({ fromMemory = false } = {}) {
+	feeds.leave();
 	if (!doctype.value) {
 		live.release();
 		return;
@@ -539,6 +541,7 @@ function inMemory({ target, details, panel }: Opening): HeldRecord | null {
 		metadata &&
 		layouts &&
 		clientScriptsLoaded(target.doctype) &&
+		permissionsLoaded(target.doctype) &&
 		feedInMemory(target.doctype, target.name, route.query);
 	return ready ? { record, metadata } : null;
 }
@@ -547,42 +550,45 @@ function inMemory({ target, details, panel }: Opening): HeldRecord | null {
 async function openFromMemory(opening: Opening, { record, metadata }: HeldRecord) {
 	show(record, metadata);
 	const created = buildController(opening);
-	const painted = created.paintNow();
+	const firstReplay = created.paintNow();
 	const reads = backgroundReads(opening.target);
-	if (!painted) await created.refresh();
+	if (!firstReplay) await created.refresh();
 	if (opening.mine !== generation) return;
 	landPaint(created, opening.pointer);
-	await applyInBackground(opening.mine, created, reads);
+	await applyInBackground(opening.mine, created, reads, firstReplay);
 }
 
-// Each read resolves to how it applies; the store applies its own feed rows.
-function backgroundReads(target: Opening["target"]): Promise<(() => void) | void>[] {
-	const read = docinfoRead;
-	return [
-		loadRecord(target.doctype, target.name).then((fresh) => () => takeRefetch(fresh, read)),
-		feeds.rereadKept() ?? Promise.resolve(),
+// Each read resolves to the function that applies it, so they all apply in one step.
+function backgroundReads(target: Opening["target"]): Promise<() => void>[] {
+	const before = docinfo.value;
+	const reads = [
+		loadRecord(target.doctype, target.name).then((fresh) => () => takeRefetch(fresh, before)),
 	];
+	const rows = feeds.rereadKept();
+	if (rows) reads.push(rows);
+	return reads;
 }
 
-/** Every read applied together, then one replay whose acts are dropped. */
+/** Once the first replay is done, every read applied together, then one replay whose acts are dropped. */
 async function applyInBackground(
 	mine: number,
 	created: RecordPageController,
-	reads: Promise<(() => void) | void>[]
+	reads: Promise<() => void>[],
+	firstReplay: Promise<void> | null
 ) {
-	const settled = await Promise.allSettled(reads);
+	const [settled] = await Promise.all([Promise.allSettled(reads), firstReplay]);
 	if (mine !== generation) return;
-	for (const read of settled) if (read.status === "fulfilled") read.value?.();
+	for (const read of settled) if (read.status === "fulfilled") read.value();
 	await created.refresh({ background: true });
 }
 
 // Written to the refs, never through the commit channel, so no field handler fires.
-function takeRefetch(fresh: LoadedRecord, read: number) {
+function takeRefetch(fresh: LoadedRecord, before: DocInfo | null) {
 	const merged = mergeRefetch({ doc: doc.value, saved: saved.value }, fresh.document);
 	saved.value = merged.saved;
 	doc.value = merged.doc;
-	// A sidecar re-read begun since carries newer rows.
-	if (read === docinfoRead && !same(docinfo.value, fresh.docinfo)) docinfo.value = fresh.docinfo;
+	// A sidecar write or re-read since the reads began holds newer rows.
+	if (docinfo.value === before && !same(before, fresh.docinfo)) docinfo.value = fresh.docinfo;
 	if (!same(linkTitles.value, fresh.linkTitles)) linkTitles.value = fresh.linkTitles;
 }
 
@@ -841,6 +847,7 @@ onMounted(() => {
 });
 onUnmounted(() => {
 	live.dispose();
+	feeds.leave();
 	window.removeEventListener("keydown", onKeydown);
 	window.removeEventListener("beforeunload", onBeforeUnload);
 });

@@ -25,6 +25,8 @@ export interface PaintGateHost {
   warnUnknownHandlers: () => void;
   /** Delivers or drops the acts held so far, as `release` says. */
   deliverHeldActs: (release: Release) => void;
+  /** Takes the acts held so far out of the way; the returned function puts them back. */
+  setAsideHeldActs: () => () => void;
   closeDialogs: () => void;
 }
 
@@ -34,8 +36,8 @@ export interface PaintGate {
   isReplaying: ComputedRef<boolean>;
   /** The replay: rebuilds every overlay from built-ins, then runs every source's `onRefresh`. */
   refresh: (options?: RefreshOptions) => Promise<void>;
-  /** Replays and commits before it returns; false, having run nothing, when anything must be waited for. */
-  paintNow: () => boolean;
+  /** Replays and commits its synchronous part before it returns; null, having run nothing, when anything must be waited for. */
+  paintNow: () => Promise<void> | null;
   /** One paint for the work's ops, and its acts delivered after it. */
   hold: <T>(work: () => Promise<T> | T) => Promise<T>;
   /** Runs a handler under its source's name; the early paint leaves out every running source. */
@@ -47,7 +49,7 @@ export interface PaintGate {
 }
 
 export interface RefreshOptions {
-  /** The replay after a background read: its acts are dropped with a warning. */
+  /** The replay after a background read: it opens once no other replay is open, and its acts are dropped with a warning. */
   background?: boolean;
 }
 
@@ -65,8 +67,8 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     left: false,
     // True while the first paint's acts land: the page then reads as drawn, not staging.
     early: false,
-    // Set when a background replay commits; the next release drops what is held.
-    dropActs: false,
+    // Background replays waiting for the open replays to close.
+    queued: [] as (() => void)[],
   };
 
   async function refresh(options: RefreshOptions = {}) {
@@ -85,17 +87,23 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     const everything = Promise.all([host.sourcesReady?.(), host.permissionsReady()]);
     // Raced, so a late rejection of `everything` is already handled when the second pass awaits it.
     await waitFor("permissions", Promise.race([host.permissionsReady(), everything]));
+    if (background) await replaysClosed();
     openReplay();
+    const putBack = background ? host.setAsideHeldActs() : undefined;
     try {
       await runSources(everything);
     } finally {
       // In `finally` so a throwing handler cannot leave the page staged for good.
-      closeReplay(background);
+      closeReplay(putBack);
     }
   }
 
+  async function replaysClosed() {
+    while (replaying.value) await new Promise<void>((resume) => state.queued.push(resume));
+  }
+
   function paintNow() {
-    if (state.left || !host.loaded()) return false;
+    if (state.left || !host.loaded()) return null;
     openReplay();
     const ran = new Set<Registration>();
     let pass: MaybePromise = undefined;
@@ -104,15 +112,13 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     } finally {
       if (!pass) endPaintNow();
     }
-    if (pass) {
-      paintEarly();
-      void pass.finally(endPaintNow);
-    }
-    return true;
+    if (!pass) return Promise.resolve();
+    paintEarly();
+    return Promise.resolve(pass).finally(endPaintNow);
   }
 
   function endPaintNow() {
-    closeReplay(false);
+    closeReplay();
     replayed();
   }
 
@@ -144,10 +150,15 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     for (const surface of host.surfaces) surface.beginReplay();
   }
 
-  function closeReplay(background: boolean) {
+  /** `putBack` marks a background replay: the acts held since it opened are dropped, and those set aside return. */
+  function closeReplay(putBack?: () => void) {
     for (const surface of host.surfaces) surface.commit();
     replaying.value -= 1;
-    if (background) state.dropActs = true;
+    if (putBack) {
+      host.deliverHeldActs("none");
+      putBack();
+    }
+    if (!replaying.value) for (const resume of state.queued.splice(0)) resume();
     // After the commit, so the strip the reader lands on is the one on screen.
     releaseActs();
   }
@@ -224,10 +235,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
 
   /** Delivers the acts a replay or a hold kept back, once the last of them has committed. */
   function releaseActs() {
-    if (isStaging()) return;
-    const release = state.dropActs ? "none" : "all";
-    state.dropActs = false;
-    host.deliverHeldActs(release);
+    if (!isStaging()) host.deliverHeldActs("all");
   }
 
   return { ready, isReplaying, refresh, paintNow, hold, asSource, isStaging, leave };

@@ -12,6 +12,7 @@ export {
   hasActivityTimeline,
   prefetchActivityTimeline,
   reloadActivityTimeline,
+  stageActivityTimelineRead,
   useActivityTimeline,
 } from "./useActivityTimeline";
 export { addPendingActivity } from "./pendingRows";

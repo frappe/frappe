@@ -86,10 +86,11 @@ export abstract class StagedOverlay<Op extends { source: string }> implements St
 }
 
 /** Equal by content; a function, a class instance or a raw-marked value only by identity. */
-function sameValue(a: unknown, b: unknown, seen = new WeakSet<object>()): boolean {
+function sameValue(a: unknown, b: unknown, seen = new WeakMap<object, object>()): boolean {
   if (Object.is(a, b)) return true;
-  if (!isData(a) || !isData(b) || seen.has(a)) return false;
-  seen.add(a);
+  if (!isData(a) || !isData(b)) return false;
+  if (seen.has(a)) return seen.get(a) === b;
+  seen.set(a, b);
   if (Array.isArray(a) || Array.isArray(b)) {
     if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
     return a.every((one, index) => sameValue(one, b[index], seen));

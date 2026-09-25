@@ -31,6 +31,7 @@ export {
   watchClientScripts,
 } from "./clientScripts";
 export type { RecordPageController } from "./createRecordPage";
+export { permissionsLoaded } from "./pagePermissions";
 
 export type { AuthoredHandlers, Handler, PostedRow, RecordPageHandlers } from "./types";
 

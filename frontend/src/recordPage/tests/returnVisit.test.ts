@@ -137,7 +137,7 @@ describe("paintNow", () => {
     });
     const { controller, moved } = await loadedPage();
 
-    expect(controller.paintNow()).toBe(true);
+    expect(controller.paintNow()).not.toBeNull();
 
     expect(controller.ready.value).toBe(true);
     expect(controller.isReplaying.value).toBe(false);
@@ -164,7 +164,7 @@ describe("paintNow", () => {
     });
     const { controller, moved } = await loadedPage();
 
-    expect(controller.paintNow()).toBe(true);
+    expect(controller.paintNow()).not.toBeNull();
 
     expect(controller.ready.value).toBe(true);
     expect(drawn(controller)).toEqual(["one"]);
@@ -186,7 +186,7 @@ describe("paintNow", () => {
     const { controller } = makePage();
     await vi.advanceTimersByTimeAsync(0);
 
-    expect(controller.paintNow()).toBe(false);
+    expect(controller.paintNow()).toBeNull();
 
     expect(onRefresh).not.toHaveBeenCalled();
     expect(controller.ready.value).toBe(false);
@@ -198,7 +198,7 @@ describe("paintNow", () => {
     const { controller } = makePage();
     await vi.advanceTimersByTimeAsync(0);
 
-    expect(controller.paintNow()).toBe(false);
+    expect(controller.paintNow()).toBeNull();
     expect(controller.ready.value).toBe(false);
   });
 
@@ -209,7 +209,7 @@ describe("paintNow", () => {
     await register("deal", { onRefresh });
     const { controller } = makePage();
 
-    expect(controller.paintNow()).toBe(false);
+    expect(controller.paintNow()).toBeNull();
     expect(onRefresh).not.toHaveBeenCalled();
   });
 });
@@ -267,6 +267,84 @@ describe("refresh({ background: true })", () => {
     await controller.refresh({ background: true });
 
     expect(paints.actions).toBe(1);
+  });
+
+  it("waits for a slow first replay, whose act made after its await lands, then runs once", async () => {
+    const pause = gate();
+    const runs = vi.fn();
+    await register("slow", {
+      onRefresh: async (page: RecordPageApi) => {
+        runs();
+        page.quickActions.add(action("one"));
+        if (runs.mock.calls.length === 1) await pause.opened;
+        page.quickActions.add(action("two"));
+        page.tabs.activate("notes");
+      },
+    });
+    const { controller, moved } = await loadedPage();
+    const firstReplay = controller.paintNow();
+    const background = controller.refresh({ background: true });
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(runs).toHaveBeenCalledOnce();
+
+    pause.open();
+    await firstReplay;
+    await background;
+
+    expect(moved).toEqual(["notes"]);
+    expect(drawn(controller)).toEqual(["one", "two"]);
+    expect(runs).toHaveBeenCalledTimes(2);
+    expect(warnings).toEqual([
+      '[record-page] page.tabs.activate("notes") — it ran in the replay after a background read; the reader was not moved.',
+    ]);
+  });
+
+  it("lands an act a hold made before an overlapping background replay opened", async () => {
+    await register("deal", {
+      onRefresh: (page: RecordPageApi) => page.quickActions.add(action("one")),
+    });
+    const { controller, moved } = await loadedPage();
+    await controller.paintNow();
+    const pause = gate();
+    const held = controller.hold(async () => {
+      controller.page.tabs.activate("notes");
+      await pause.opened;
+    });
+
+    await controller.refresh({ background: true });
+    expect(moved).toEqual([]);
+    pause.open();
+    await held;
+
+    expect(moved).toEqual(["notes"]);
+    expect(warnings).toEqual([]);
+  });
+
+  it("draws nothing when an unchanged replay hands one new object to two ops", async () => {
+    await register("deal", {
+      onRefresh: (page: RecordPageApi) => {
+        const create = { label: "New", icon: "lucide-plus", run };
+        page.tabs.add([
+          { name: "one", label: "One", create },
+          { name: "two", label: "Two", create },
+        ]);
+      },
+    });
+    const { controller } = await loadedPage();
+    controller.paintNow();
+    let paints = -1;
+    watchEffect(
+      () => {
+        controller.tabs.resolve();
+        paints += 1;
+      },
+      { flush: "sync" },
+    );
+
+    await controller.refresh({ background: true });
+
+    expect(paints).toBe(0);
   });
 
   it("draws once, and only the overlay that changed", async () => {

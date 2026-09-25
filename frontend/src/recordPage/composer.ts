@@ -80,6 +80,13 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
 
   // Host side, below: not part of what a script may call.
 
+  /** Takes the held open out of the way; the returned function puts it back. */
+  setAsideOpen() {
+    const held = this.heldOpen;
+    this.heldOpen = null;
+    return () => void (this.heldOpen = held);
+  }
+
   /** Delivers the held open, or drops it with a warning as `release` says. */
   releaseOpen(release: Release = "all") {
     const held = this.heldOpen;

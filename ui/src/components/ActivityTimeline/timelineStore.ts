@@ -91,12 +91,20 @@ export class TimelineStore implements LiveFeed {
     return this.olderRead;
   }
 
+  /** Reads the newest page and hands back what takes it in; nothing changes before that runs. */
+  async stageNewest(): Promise<() => void> {
+    const page = await this.readPage();
+    return () => {
+      this.takeNewest(page);
+      this.error.value = null;
+      this.fetched.value = true;
+    };
+  }
+
   private async readNewest() {
     this.loading.value = true;
     try {
-      this.takeNewest(await this.readPage());
-      this.error.value = null;
-      this.fetched.value = true;
+      (await this.stageNewest())();
     } catch (failure) {
       this.error.value = failure;
     } finally {
