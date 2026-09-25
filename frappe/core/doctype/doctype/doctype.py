@@ -128,7 +128,7 @@ class DocType(Document):
 		grid_page_length: DF.Int
 		has_web_view: DF.Check
 		hide_toolbar: DF.Check
-		icon: DF.Data | None
+		icon: DF.Icon | None
 		image_field: DF.Data | None
 		in_create: DF.Check
 		index_web_pages_for_search: DF.Check
@@ -282,6 +282,7 @@ class DocType(Document):
 	def set_defaults_for_single_and_table(self):
 		if self.issingle:
 			self.allow_import = 0
+			self.allow_rename = 0
 			self.is_submittable = 0
 			self.istable = 0
 
@@ -522,6 +523,12 @@ class DocType(Document):
 			# unique is automatically an index
 			if d.unique:
 				d.search_index = 0
+
+			# no-value fieldtypes have no column, so these column-only properties don't apply
+			if d.fieldtype in no_value_fields:
+				d.unique = 0
+				d.search_index = 0
+				d.not_nullable = 0
 
 	def get_permission_log_options(self, event=None):
 		if self.custom and event != "after_delete":
@@ -1333,6 +1340,10 @@ def _test_connection_query(doctype, field, idx):
 	filters[field] = ""
 
 	try:
+		# SQLite treats unknown double-quoted identifiers as string literals, so an
+		# invalid link field can otherwise make this validation query appear valid.
+		if frappe.db.db_type == "sqlite" and field not in frappe.get_meta(doctype).get_valid_columns():
+			raise InvalidFieldNameError(field)
 		frappe.get_all(doctype, filters=filters, limit=1, distinct=True, ignore_ifnull=True)
 	except Exception as e:
 		frappe.clear_last_message()

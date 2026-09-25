@@ -1,5 +1,6 @@
 import http
 import os
+import tempfile
 import uuid
 from io import BytesIO
 from typing import Literal
@@ -19,6 +20,45 @@ base_template_path = "www/printview.html"
 
 from frappe.www.printview import validate_print_permission
 
+MULTI_PDF_ASYNC_RATE_LIMIT = 10
+MULTI_PDF_ASYNC_RATE_WINDOW = 60
+
+
+def get_max_bulk_print_docs() -> int:
+	"""Return the maximum documents allowed in one bulk PDF export."""
+	return (
+		frappe.cint(frappe.db.get_single_value("Print Settings", "max_bulk_print_docs"))
+		or frappe.cint(frappe.conf.get("max_bulk_print_docs"))
+		or 100
+	)
+
+
+def get_max_concurrent_bulk_exports() -> int:
+	"""Return the maximum concurrent bulk PDF exports allowed per user."""
+	return (
+		frappe.cint(frappe.db.get_single_value("Print Settings", "max_concurrent_bulk_exports"))
+		or frappe.cint(frappe.conf.get("max_concurrent_bulk_exports"))
+		or 5
+	)
+
+
+def _enforce_multi_pdf_async_rate_limit():
+	cache_key = frappe.cache.make_key(f"rl:multi_pdf_async:{frappe.session.user}")
+	# NX makes initialisation atomic: concurrent first requests can't reset each other's count
+	frappe.cache.set(cache_key, 0, nx=True, ex=MULTI_PDF_ASYNC_RATE_WINDOW)
+
+	if frappe.cache.incrby(cache_key, 1) > MULTI_PDF_ASYNC_RATE_LIMIT:
+		frappe.throw(
+			_("You hit the rate limit because of too many requests. Please try after sometime."),
+			frappe.RateLimitExceededError,
+		)
+
+
+def _get_multi_pdf_doc_count(doctype: str | dict[str, list[str]], name: str | list[str]) -> int:
+	if isinstance(doctype, dict):
+		return sum([len(doctype[dt]) for dt in doctype])
+	return len(frappe.parse_json(name))
+
 
 @frappe.whitelist()
 def download_multi_pdf(
@@ -34,6 +74,10 @@ def download_multi_pdf(
 	"""
 	if not (frappe.get_cached_value("User", frappe.session.user, "bulk_actions")):
 		frappe.throw(_("You are not allowed to perform bulk actions."), frappe.PermissionError)
+
+	max_docs = get_max_bulk_print_docs()
+	if _get_multi_pdf_doc_count(doctype, name) > max_docs:
+		frappe.throw(_("Cannot generate PDF for more than {0} documents at a time").format(max_docs))
 
 	return _download_multi_pdf(doctype, name, format, no_letterhead, letterhead, options)
 
@@ -53,24 +97,42 @@ def download_multi_pdf_async(
 	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
 		frappe.throw(_("You are not allowed to perform bulk actions"), frappe.PermissionError)
 
-	task_id = str(uuid.uuid4())
-	if isinstance(doctype, dict):
-		doc_count = sum([len(doctype[dt]) for dt in doctype])
-	else:
-		doc_count = len(frappe.parse_json(name))
+	_enforce_multi_pdf_async_rate_limit()
 
-	frappe.enqueue(
-		_download_multi_pdf,
-		doctype=doctype,
-		name=name,
-		task_id=task_id,
-		format=format,
-		no_letterhead=no_letterhead,
-		letterhead=letterhead,
-		options=options,
-		queue="long" if doc_count > 20 else "short",
-		at_front_when_starved=True,
-	)
+	doc_count = _get_multi_pdf_doc_count(doctype, name)
+	max_docs = get_max_bulk_print_docs()
+	if doc_count > max_docs:
+		frappe.throw(_("Cannot generate PDF for more than {0} documents at a time").format(max_docs))
+
+	task_id = str(uuid.uuid4())
+
+	job = None
+	for slot in range(get_max_concurrent_bulk_exports()):
+		job = frappe.enqueue(
+			_download_multi_pdf,
+			doctype=doctype,
+			name=name,
+			task_id=task_id,
+			format=format,
+			no_letterhead=no_letterhead,
+			letterhead=letterhead,
+			options=options,
+			queue="long" if doc_count > 20 else "short",
+			at_front_when_starved=True,
+			job_id=f"multi_pdf_async:{frappe.session.user}:{slot}",
+			deduplicate=True,
+		)
+		if job is not None:
+			break
+
+	if job is None:
+		frappe.throw(
+			_(
+				"You already have the maximum number of bulk PDF exports in progress. Please wait for one to finish."
+			),
+			frappe.RateLimitExceededError,
+		)
+
 	frappe.local.response["http_status_code"] = http.HTTPStatus.CREATED
 	return {"task_id": task_id}
 
@@ -390,7 +452,7 @@ def print_by_server(
 	print_format: str | None = None,
 	doc: Document | None = None,
 	no_letterhead: bool | int = 0,
-	file_path: str | None = None,
+	file_path: str | None = None,  # backward compatibility
 ):
 	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
 	try:
@@ -398,6 +460,7 @@ def print_by_server(
 	except ImportError:
 		frappe.throw(_("You need to install pycups to use this feature!"))
 
+	file_path = None
 	try:
 		cups.setServer(print_settings.server_ip)
 		cups.setPort(print_settings.port)
@@ -409,9 +472,9 @@ def print_by_server(
 		output = frappe.get_print(
 			doctype, name, print_format, doc=doc, no_letterhead=no_letterhead, as_pdf=True, output=output
 		)
-		if not file_path:
-			file_path = os.path.join("/", "tmp", f"frappe-pdf-{frappe.generate_hash()}.pdf")
-		output.write(open(file_path, "wb"))
+		with tempfile.NamedTemporaryFile(prefix="frappe-pdf-", suffix=".pdf", delete=False) as f:
+			file_path = f.name
+			output.write(f)
 		conn.printFile(print_settings.printer_name, file_path, name, {})
 	except OSError as e:
 		if (
@@ -423,3 +486,6 @@ def print_by_server(
 			frappe.throw(_("PDF generation failed"))
 	except cups.IPPError:
 		frappe.throw(_("Printing failed"))
+	finally:
+		if file_path:
+			os.remove(file_path)

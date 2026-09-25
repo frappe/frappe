@@ -9,6 +9,7 @@ import frappe.utils
 from frappe import _
 from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
 from frappe.model.document import Document
+from frappe.printing.layout import iter_fields, iter_nodes, iter_zones
 from frappe.utils.jinja import validate_template
 from frappe.utils.print_format_generator import download_pdf, get_html
 
@@ -95,6 +96,10 @@ class PrintFormat(Document):
 			order_by="document_type desc",
 		)
 		self.set_onload("print_templates", templates)
+
+		from frappe.printing.doctype.print_format.classic_converter import renders_from_file
+
+		self.set_onload("renders_from_file", renders_from_file(self))
 
 	def before_save(self):
 		if self.print_format_for == "Report":
@@ -186,7 +191,6 @@ class PrintFormat(Document):
 		block named, instead of breaking every print later."""
 		from frappe.utils.jinja import get_jenv
 		from frappe.utils.typst_emitter import (
-			_walk,
 			compile_typst_source,
 			has_jinja,
 			has_typst_blocks,
@@ -201,7 +205,7 @@ class PrintFormat(Document):
 			return
 		sample_doc = None
 		sample_loaded = False
-		for where, df in _walk(layout):
+		for where, df in iter_nodes(layout):
 			markup = (df.get("typst") or "").strip() if df.get("fieldtype") == "Typst" else ""
 			if not markup:
 				continue
@@ -253,7 +257,9 @@ class PrintFormat(Document):
 				compile(condition, "<condition>", "eval")
 			except SyntaxError as e:
 				frappe.throw(
-					_("{0} is not a valid condition: {1}").format(frappe.bold(where), e.msg),
+					_("{0} is not a valid condition: {1}").format(
+						frappe.bold(frappe.utils.escape_html(where)), e.msg
+					),
 					title=_("Invalid Condition"),
 				)
 
@@ -327,24 +333,16 @@ class PrintFormat(Document):
 
 def _iter_conditions(layout):
 	"""Yield (label, expression) for every condition in a beta layout."""
-	zones = [layout.get("header"), layout.get("footer"), *(layout.get("sections") or [])]
-	for zone in zones:
-		if not isinstance(zone, dict):
-			continue
-		yield from _condition(zone, zone.get("label") or _("Section"), "visible_if")
-		columns = zone.get("columns")
-		for column in columns if isinstance(columns, list) else []:
-			fields = (column or {}).get("fields") if isinstance(column, dict) else None
-			for df in fields if isinstance(fields, list) else []:
-				if not isinstance(df, dict):
-					continue
-				label = df.get("label") or df.get("fieldname") or _("Field")
-				yield from _condition(df, label, "visible_if")
-				yield from _condition(df, label, "row_condition")
-				table_columns = df.get("table_columns")
-				for col in table_columns if isinstance(table_columns, list) else []:
-					if isinstance(col, dict):
-						yield from _condition(col, col.get("label") or label, "column_condition")
+	for where, zone in iter_zones(layout):
+		yield from _condition(zone, where, "visible_if")
+		for df in iter_fields(zone):
+			label = df.get("label") or df.get("fieldname") or _("Field")
+			yield from _condition(df, label, "visible_if")
+			yield from _condition(df, label, "row_condition")
+			table_columns = df.get("table_columns")
+			for col in table_columns if isinstance(table_columns, list) else []:
+				if isinstance(col, dict):
+					yield from _condition(col, col.get("label") or label, "column_condition")
 
 
 def _condition(holder, label, key):
@@ -360,14 +358,29 @@ def create_custom_format(doctype: str, name: str | int, based_on: str = "Standar
 	doc.doc_type = doctype
 	doc.name = name
 	doc.print_format_builder_beta = 1
+	from frappe.printing.doctype.print_format.classic_converter import (
+		create_default_layout,
+		renders_from_file,
+	)
+
+	source = None
 	if based_on and based_on != "Standard":
 		source = frappe.get_doc("Print Format", based_on)
 		source.check_permission("read")
+		if renders_from_file(source):
+			# "Based On" is fixed to the selected format in the print view, so a
+			# refusal here would be a dead end
+			frappe.msgprint(
+				_("{0} is rendered from an HTML file, so this format starts from the standard layout").format(
+					source.name
+				),
+				alert=True,
+			)
+			source = None
+	if source:
 		doc.format_data = source.format_data
 	else:
 		# seed the layout so the format prints something before its first Save & Apply
-		from frappe.printing.doctype.print_format.classic_converter import create_default_layout
-
 		doc.format_data = frappe.as_json(create_default_layout(frappe.get_meta(doctype)))
 	doc.insert()
 	return doc
@@ -408,8 +421,18 @@ def _writable_format(name: str, modified: str | datetime):
 def save_draft(name: str, data: str | dict, modified: str | datetime):
 	"""Store the builder's in-progress changes without touching what prints."""
 	doc = _writable_format(name, modified)
-	doc.db_set("draft_data", frappe.as_json(_draft_payload(data)))
+	payload = _draft_payload(data)
+	_check_draft(doc, payload)
+	doc.db_set("draft_data", frappe.as_json(payload))
 	return doc.modified
+
+
+def _check_draft(doc, payload):
+	"""The cheap validations, so a bad colour or condition is reported while editing."""
+	for field, value in payload.items():
+		doc.set(field, value)
+	doc.validate_colors()
+	doc.validate_conditions()
 
 
 @frappe.whitelist()
@@ -420,7 +443,112 @@ def apply_draft(name: str, modified: str | datetime, data: str | dict | None = N
 		doc.set(field, value)
 	doc.draft_data = None
 	doc.save()
+	_record_version(doc, "Save & Apply", {field: doc.get(field) for field in BUILDER_DRAFT_FIELDS})
 	return doc.as_dict()
+
+
+VERSION_KEY = "print_format_version"
+
+
+def _record_version(doc, snapshot_type: str, fields: dict, label: str | None = None):
+	comment = _("saved version {0}").format(frappe.bold(label)) if label else _("applied the builder draft")
+	frappe.get_doc(
+		{
+			"doctype": "Version",
+			"ref_doctype": doc.doctype,
+			"docname": doc.name,
+			"data": frappe.as_json(
+				{
+					"comment": comment,
+					VERSION_KEY: {"type": snapshot_type, "label": label, "fields": fields},
+				},
+				indent=None,
+			),
+		}
+	).insert(ignore_permissions=True)
+
+
+@frappe.whitelist()
+def save_version(name: str, label: str, data: str | dict, modified: str | datetime):
+	"""Keep a named copy of the builder draft that can be restored later."""
+	_require_str(name=name, label=label)
+	doc = _writable_format(name, modified)
+	label = label.strip()
+	if not label:
+		frappe.throw(_("Give the version a name"))
+	_record_version(doc, "Manual", _draft_payload(data), label)
+
+
+def _require_str(**values):
+	for key, value in values.items():
+		if not isinstance(value, str):
+			frappe.throw(_("{0} must be text").format(key), frappe.ValidationError)
+
+
+@frappe.whitelist()
+def delete_version(name: str, version: str):
+	"""Remove a recorded version; the format itself is untouched."""
+	_require_str(name=name, version=version)
+	frappe.has_permission("Print Format", "write", doc=name, throw=True)
+	_version_snapshot(name, version)
+	frappe.delete_doc("Version", version, ignore_permissions=True)
+
+
+@frappe.whitelist()
+def get_versions(name: str):
+	"""Versions recorded by the builder, newest first."""
+	_require_str(name=name)
+	frappe.has_permission("Print Format", "read", doc=name, throw=True)
+	out = []
+	for row in frappe.get_all(
+		"Version",
+		filters={
+			"ref_doctype": "Print Format",
+			"docname": name,
+			"data": ("like", f'%"{VERSION_KEY}"%'),
+		},
+		fields=["name", "owner", "creation", "data"],
+		order_by="creation desc",
+		limit_page_length=50,
+	):
+		snapshot = (frappe.parse_json(row.data) or {}).get(VERSION_KEY)
+		if snapshot:
+			out.append(
+				{
+					"name": row.name,
+					"owner": row.owner,
+					"creation": row.creation,
+					"type": snapshot.get("type"),
+					"label": snapshot.get("label"),
+				}
+			)
+	return out
+
+
+@frappe.whitelist()
+def get_version_fields(name: str, version: str):
+	"""The builder fields a recorded version holds, for previewing it."""
+	_require_str(name=name, version=version)
+	frappe.has_permission("Print Format", "read", doc=name, throw=True)
+	return _version_snapshot(name, version).get("fields")
+
+
+def _version_snapshot(name: str, version: str) -> dict:
+	row = frappe.db.get_value("Version", version, ["docname", "data"], as_dict=True)
+	snapshot = row and row.docname == name and (frappe.parse_json(row.data) or {}).get(VERSION_KEY)
+	if not snapshot:
+		frappe.throw(_("This version does not belong to {0}").format(frappe.bold(name)))
+	return snapshot
+
+
+@frappe.whitelist()
+def restore_version(name: str, version: str, modified: str | datetime):
+	"""Load a recorded version into the draft; what prints waits for Save & Apply."""
+	_require_str(name=name, version=version)
+	doc = _writable_format(name, modified)
+	snapshot = _version_snapshot(name, version)
+	doc.db_set("draft_data", frappe.as_json(_draft_payload(snapshot.get("fields"))))
+	return doc.modified
 
 
 @frappe.whitelist()

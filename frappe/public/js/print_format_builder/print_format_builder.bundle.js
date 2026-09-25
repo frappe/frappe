@@ -15,22 +15,21 @@ class PrintFormatBuilder {
 
 		this.page.set_title(this.print_format);
 		this.page.set_primary_action(__("Save & Apply"), () => {
-			this.$component.$store.save_changes();
+			this.$component.$store.draft.save();
 		});
 
 		frappe.ui.keys.add_shortcut({
 			shortcut: "ctrl+s",
-			action: () => this.$component.$store.save_changes(),
+			action: () => this.$component.$store.draft.save(),
 			description: __("Save & Apply Print Format"),
 			page: this.page,
 		});
-		// shown only while a draft exists — see the has_draft watch below
-		let $discard_btn = this.page.add_button(__("Discard Draft"), () => {
-			frappe.confirm(
-				__("Discard your unapplied changes and go back to what this format prints?"),
-				() => this.$component.$store.discard_draft()
-			);
-		});
+		this.page.add_action_icon(
+			"rotate-ccw-clock",
+			() => this.$component.toggle_history(),
+			"",
+			__("Version History")
+		);
 		let $preview_btn = this.page.add_action_icon(
 			"eye",
 			() => this.$component.toggle_preview(),
@@ -45,10 +44,11 @@ class PrintFormatBuilder {
 		);
 		this.page.add_action_icon(
 			"file-pen",
-			() => frappe.set_route("Form", "Print Format", this.print_format),
+			() => this.leave(() => frappe.set_route("Form", "Print Format", this.print_format)),
 			"",
 			__("Edit Print Format")
 		);
+		this.page.wrapper.on("hide.pfb", () => this.on_hide());
 		// Every menu entry left is a mobile-only mirror of a custom action button, so on
 		// wide screens the ⋯ would open an empty dropdown
 		this.page.menu_btn_group.addClass("hidden-xl");
@@ -61,7 +61,7 @@ class PrintFormatBuilder {
 		// the indicator only speaks up when something is pending — a format whose
 		// edits are live needs no badge
 		watch(
-			() => this.$component.$store.save_status,
+			() => this.$component.$store.draft.status,
 			(status) => {
 				if (status.value === "saving") this.page.set_indicator(__("Saving…"), "gray");
 				else if (status.value === "failed")
@@ -69,12 +69,6 @@ class PrintFormatBuilder {
 				else if (status.value === "draft") this.page.set_indicator(__("Draft"), "orange");
 				else this.page.clear_indicator();
 			},
-			{ deep: true, immediate: true }
-		);
-
-		watch(
-			() => this.$component.$store.has_draft,
-			(has_draft) => $discard_btn.toggle(!!has_draft.value),
 			{ deep: true, immediate: true }
 		);
 
@@ -89,7 +83,51 @@ class PrintFormatBuilder {
 		);
 	}
 
+	has_unsaved_changes() {
+		const draft = this.$component?.$store.draft;
+		return !!draft && (this.$component.$store.dirty.value || draft.save_failed.value);
+	}
+
+	flush() {
+		return this.$component.$store.draft.flush();
+	}
+
+	leave(navigate) {
+		this.flush().then(navigate, () => this.warn_unsaved(navigate));
+	}
+
+	warn_unsaved(proceed) {
+		frappe.warn(
+			__("Unsaved changes"),
+			__("The latest changes could not be saved and will be lost if you leave."),
+			proceed,
+			__("Leave anyway")
+		);
+	}
+
+	on_hide() {
+		if (!this.has_unsaved_changes()) return;
+		this.$component.$store.draft.flush().catch((message) => {
+			frappe.msgprint({
+				title: __("Unsaved changes"),
+				indicator: "red",
+				message:
+					__("The latest changes to {0} could not be saved.", [
+						this.print_format.bold(),
+					]) + (message ? `<br><br>${message}` : ""),
+				primary_action: {
+					label: __("Back to the builder"),
+					action: () => {
+						frappe.hide_msgprint();
+						frappe.set_route("print-format-builder", this.print_format);
+					},
+				},
+			});
+		});
+	}
+
 	destroy() {
+		this.page.wrapper.off("hide.pfb");
 		this.app?.unmount();
 	}
 }

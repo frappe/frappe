@@ -78,7 +78,7 @@
    "label": "Show Currency Symbol on Right Side"
   }
  ],
- "icon": "fa fa-bitcoin",
+ "icon": "currency",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],

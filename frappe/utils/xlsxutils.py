@@ -275,7 +275,7 @@ class XLSXStyleBuilder:
 				continue
 
 			if indent := row.get(field):
-				style_cell(row_idx, col_idx, register_indent_style(indent))
+				style_cell(row_idx, col_idx, register_indent_style(cint(indent)))
 
 		return self
 

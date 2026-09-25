@@ -22,7 +22,9 @@
 				type="text"
 				class="flex-1"
 			/>
-			<FormControl v-model="importStatus" type="select" :options="importOptions" />
+			<div class="w-44 shrink-0">
+				<FormControl v-model="importStatus" type="select" :options="importOptions" />
+			</div>
 		</div>
 
 		<div v-if="dataImports.data?.length" class="overflow-y-scroll">
@@ -79,7 +81,7 @@
 			}"
 		>
 			<template #body-content>
-				<div>
+				<div class="space-y-4">
 					<Link
 						v-model="doctypeForImport"
 						doctype="DocType"
@@ -88,6 +90,17 @@
 						}"
 						label="Choose a Document Type to import"
 					/>
+					<div class="space-y-1.5">
+						<FormControl
+							type="select"
+							v-model="importType"
+							:options="importTypeOptions"
+							:label="t('Import type')"
+						/>
+						<div class="text-p-sm text-ink-gray-5 leading-4">
+							{{ importTypeDescription }}
+						</div>
+					</div>
 				</div>
 			</template>
 		</Dialog>
@@ -108,6 +121,31 @@ const search = ref("");
 const importStatus = ref("All");
 const showModal = ref(false);
 const doctypeForImport = ref<string | null>(null);
+const importType = ref("Insert New Records");
+
+// This library ships no i18n of its own; read the host translator at call time.
+function t(message: string): string {
+	const translate = (globalThis as { __?: (m: string) => string }).__;
+	return typeof translate === "function" ? translate(message) : message;
+}
+
+const importTypeOptions = [
+	{ label: t("Insert New Records"), value: "Insert New Records" },
+	{ label: t("Update Existing Records"), value: "Update Existing Records" },
+	{ label: t("Insert or Update Records"), value: "Insert or Update Records" },
+];
+
+const importTypeDescription = computed(() => {
+	return {
+		"Insert New Records": t("Add new records. Existing records are not changed."),
+		"Update Existing Records": t(
+			"Update records that already exist. Each row must include the record's ID (name)."
+		),
+		"Insert or Update Records": t(
+			"Add new records and update existing ones in the same import."
+		),
+	}[importType.value];
+});
 const emit = defineEmits(["updateStep"]);
 const router = useRouter();
 
@@ -134,7 +172,7 @@ const createDataImport = (close: () => void) => {
 	props.dataImports.insert.submit(
 		{
 			reference_doctype: doctypeForImport.value!,
-			import_type: "Insert New Records",
+			import_type: importType.value,
 			mute_emails: true,
 			status: "Pending",
 		},

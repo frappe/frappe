@@ -4,6 +4,7 @@
  "creation": "2017-11-18 15:36:09.676722",
  "doctype": "DocType",
  "document_type": "Document",
+ "documentation": "https://docs.frappe.io/framework/user/en/guides/integration/social_login_key",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
@@ -208,6 +209,7 @@
   }
  ],
  "grid_page_length": 50,
+ "icon": "key-round",
  "index_web_pages_for_search": 1,
  "links": [],
  "modified": "2026-09-07 20:16:36.820751",

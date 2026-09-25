@@ -644,23 +644,25 @@ def get_messages_from_file(path: str) -> list[tuple[str, str, str | None, int]]:
 
 def extract_messages_from_python_code(code: str) -> list[tuple[int, str, str | None]]:
 	"""Extracts translatable strings from Python code using babel."""
-	from babel.messages.extract import extract_python
+	from frappe.gettext.extractors.python import extract
 
 	messages = []
 
-	for message in extract_python(
+	for message in extract(
 		io.BytesIO(code.encode()),
 		keywords=["_", "_lt", "N_"],
 		comment_tags=(),
 		options={},
 	):
-		lineno, _func, args, _comments = message
+		lineno, func, args, _comments = message
 
-		if not args or not args[0]:
+		if func == "pgettext":
+			context, source_text = args
+		else:
+			context, source_text = None, args[0] if isinstance(args, tuple) else args
+
+		if not source_text:
 			continue
-
-		source_text = args[0] if isinstance(args, tuple) else args
-		context = args[1] if len(args) == 2 else None
 
 		messages.append((lineno, source_text, context))
 

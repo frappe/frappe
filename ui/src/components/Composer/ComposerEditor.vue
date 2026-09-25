@@ -20,7 +20,6 @@
 				>
 					<slot name="top" />
 
-					<EditorBubbleMenu :items="commentToolbar" />
 					<EditorTableMenu />
 
 					<div
@@ -183,11 +182,9 @@ import LucidePaperclip from "~icons/lucide/paperclip";
 import {
 	Editor,
 	EditorContent,
-	EditorBubbleMenu,
 	EditorFixedMenu,
 	EditorTableMenu,
 	RichTextKit,
-	commentToolbar,
 	Paragraph,
 	H2,
 	H3,
@@ -259,7 +256,7 @@ const { arrivedState: toolbarArrived } = useScroll(toolbarScroller);
 
 const mentionItems = computed(() =>
 	(props.mentions ?? []).map((option) => ({
-		id: option.value,
+		value: option.value,
 		label: option.label,
 	}))
 );

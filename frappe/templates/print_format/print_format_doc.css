@@ -287,7 +287,7 @@
         so there is no empty band under square tables. */
 .print-format-doc .child-table .table .table-foot {
 	padding: 0;
-	height: var(--pfb-radius, 0);
+	height: var(--pfb-foot-height, var(--pfb-radius, 0));
 	border: none !important;
 }
 
@@ -530,15 +530,19 @@ body.print-format-doc .letter-head,
 	--pfb-pad-right: 0px;
 	--pfb-pad-bottom: 0px;
 	--pfb-pad-left: 0px;
-	border: 1px solid var(--gray-300);
+	border: 1px solid var(--pfb-grid-border, var(--gray-300));
 	border-radius: var(--border-radius-md, 8px);
 	overflow: hidden;
 	padding: 0;
+	/* a grid section that breaks across pages closes its outline on both
+	   fragments instead of leaving the box open at the break */
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
 }
 .print-format-doc .section--grid .section-label {
 	padding: var(--pfb-cell-pad, 8px);
 	margin: 0;
-	border-bottom: 1px solid var(--gray-300);
+	border-bottom: 1px solid var(--pfb-grid-border, var(--gray-300));
 }
 .print-format-doc .section--grid .section-columns {
 	padding: 0;
@@ -549,39 +553,69 @@ body.print-format-doc .letter-head,
 	padding: 0;
 }
 .print-format-doc .section--grid .col:not(:last-child) {
-	border-right: 1px solid var(--gray-300);
+	border-right: 1px solid var(--pfb-grid-border, var(--gray-300));
 }
-.print-format-doc .section--grid .field {
+.print-format-doc .section--grid .field,
+.print-format-doc .section--grid .custom-html,
+.print-format-doc .section--grid .field-template,
+.print-format-doc .section--grid .pfb-repeater,
+.print-format-doc .section--grid .child-table {
 	padding: var(--pfb-cell-pad, 8px);
-	border-bottom: 1px solid var(--gray-300);
-}
-.print-format-doc .section--grid .field + .field {
+	border-bottom: 1px solid var(--pfb-grid-border, var(--gray-300));
 	margin-top: 0;
 }
-.print-format-doc .section--grid .field:last-child {
+.print-format-doc .section--grid .field:last-child,
+.print-format-doc .section--grid .custom-html:last-child,
+.print-format-doc .section--grid .field-template:last-child,
+.print-format-doc .section--grid .pfb-repeater:last-child,
+.print-format-doc .section--grid .child-table:last-child {
 	border-bottom: none;
 }
 /* fold the section padding into the outermost cells */
-.print-format-doc .section--grid .field:first-child {
+.print-format-doc .section--grid .field:first-child,
+.print-format-doc .section--grid .custom-html:first-child,
+.print-format-doc .section--grid .field-template:first-child,
+.print-format-doc .section--grid .pfb-repeater:first-child,
+.print-format-doc .section--grid .child-table:first-child {
 	padding-top: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-top));
 }
-.print-format-doc .section--grid .field:last-child {
+.print-format-doc .section--grid .field:last-child,
+.print-format-doc .section--grid .custom-html:last-child,
+.print-format-doc .section--grid .field-template:last-child,
+.print-format-doc .section--grid .pfb-repeater:last-child,
+.print-format-doc .section--grid .child-table:last-child {
 	padding-bottom: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-bottom));
 }
-.print-format-doc .section--grid .col:first-child .field {
+.print-format-doc .section--grid .col:first-child .field,
+.print-format-doc .section--grid .col:first-child .custom-html,
+.print-format-doc .section--grid .col:first-child .field-template,
+.print-format-doc .section--grid .col:first-child .pfb-repeater,
+.print-format-doc .section--grid .col:first-child .child-table {
 	padding-left: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-left));
 }
-.print-format-doc .section--grid .col:last-child .field {
+.print-format-doc .section--grid .col:last-child .field,
+.print-format-doc .section--grid .col:last-child .custom-html,
+.print-format-doc .section--grid .col:last-child .field-template,
+.print-format-doc .section--grid .col:last-child .pfb-repeater,
+.print-format-doc .section--grid .col:last-child .child-table {
 	padding-right: calc(var(--pfb-cell-pad, 8px) + var(--pfb-pad-right));
 }
 .print-format-doc .section--grid-rows .col:not(:last-child) {
 	border-right: none;
 }
-.print-format-doc .section--grid-columns .field {
+.print-format-doc .section--grid-columns .field,
+.print-format-doc .section--grid-columns .custom-html,
+.print-format-doc .section--grid-columns .field-template,
+.print-format-doc .section--grid-columns .pfb-repeater,
+.print-format-doc .section--grid-columns .child-table {
 	border-bottom: none;
 }
 
 .print-format-doc .custom-html .row {
 	margin-left: 0;
 	margin-right: 0;
+}
+
+.print-format-doc .field .label.label--no-colon::after {
+	content: none;
 }

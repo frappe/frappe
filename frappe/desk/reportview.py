@@ -444,6 +444,8 @@ def export_query():
 
 	form_params["as_list"] = True
 	csv_params = pop_csv_params(form_params)
+	# the report view sends this for its on-screen table; exports keep document names
+	form_params.pop("with_link_titles", None)
 	export_in_background = int(form_params.pop("export_in_background", 0))
 
 	if export_in_background:
@@ -881,7 +883,7 @@ def delete_items():
 	doctype = frappe.form_dict.get("doctype")
 
 	if len(items) > 10:
-		frappe.enqueue("frappe.desk.reportview.delete_bulk", doctype=doctype, items=items)
+		frappe.enqueue("frappe.desk.reportview.delete_bulk", doctype=doctype, items=items, queue="long")
 		return None
 
 	return delete_bulk(doctype, items)

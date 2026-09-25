@@ -47,6 +47,11 @@ class TestFullTextSearch(IntegrationTestCase):
 		res = self.index.search("GNU")
 		self.assertEqual(len(res), 0)
 
+	def test_update_index_by_name_with_base_implementation(self):
+		index = FullTextSearch("test_frappe_index")
+		self.assertIsNone(index.get_document_to_index())
+		self.assertIsNone(index.update_index_by_name("missing-document"))
+
 	def test_update_index(self):
 		# Update existing index
 		self.index.update_index({"name": "sw/erpnext", "content": """AwesomeERPNext"""})

@@ -7,6 +7,16 @@ window.DataTable = DataTable;
 frappe.provide("frappe.views");
 
 frappe.views.ReportView = class ReportView extends frappe.views.ListView {
+	static load_last_view() {
+		const doctype = frappe.get_route()[1];
+		if (!frappe.model.can_get_report(doctype)) {
+			frappe.route_flags.replace_route = true;
+			frappe.set_route("list", frappe.router.doctype_layout || doctype, "list");
+			return true;
+		}
+		return super.load_last_view();
+	}
+
 	get view_name() {
 		return "Report";
 	}
@@ -398,6 +408,16 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		});
 
 		this.setup_inline_filter_observer();
+		this.setup_link_side_panel();
+	}
+
+	// Preview Link cells in the side panel so filters, sort and scroll survive.
+	setup_link_side_panel() {
+		this.$datatable_wrapper
+			.off("click.side-panel")
+			.on("click.side-panel", "a[data-doctype][data-name]", (e) =>
+				frappe.ui.handle_link_cell_click(e, this.datatable)
+			);
 	}
 
 	setup_inline_filter_observer() {
@@ -1254,6 +1274,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			editable,
 			align,
 			compareValue: compareFn,
+			sortValue: frappe.report_utils.get_link_sort_value(docfield),
 			format: (value, row, column, data) => {
 				let doc = null;
 				if (Array.isArray(row)) {

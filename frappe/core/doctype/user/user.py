@@ -20,9 +20,10 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document, get_controller
-from frappe.query_builder import DocType
+from frappe.query_builder import DocType, Table
 from frappe.rate_limiter import rate_limit
-from frappe.sessions import clear_sessions
+from frappe.sessions import clear_sessions, hash_sid
+from frappe.twofactor import should_run_2fa
 from frappe.utils import (
 	cint,
 	escape_html,
@@ -33,6 +34,7 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
+from frappe.utils.background_jobs import get_queue, get_running_jobs_in_queue
 from frappe.utils.data import sha256_hash
 from frappe.utils.html_utils import sanitize_html
 from frappe.utils.password import check_password, get_password_reset_limit, is_password_reused
@@ -51,6 +53,8 @@ desk_properties = (
 	"form_navigation_buttons",
 	"timeline",
 	"dashboard",
+	"report_split_view",
+	"show_my_space",
 )
 
 
@@ -126,6 +130,7 @@ class User(Document):
 		onboarding_status: DF.SmallText | None
 		phone: DF.Data | None
 		redirect_url: DF.SmallText | None
+		report_split_view: DF.Check
 		reset_password_key: DF.Data | None
 		restrict_ip: DF.SmallText | None
 		role_profile_name: DF.Link | None
@@ -135,6 +140,7 @@ class User(Document):
 		send_me_a_copy: DF.Check
 		send_welcome_email: DF.Check
 		show_absolute_datetime_in_timeline: DF.Check
+		show_my_space: DF.Check
 		simultaneous_sessions: DF.Int
 		social_logins: DF.Table[UserSocialLogin]
 		thread_notify: DF.Check
@@ -163,22 +169,24 @@ class User(Document):
 			.where(sessions.user == self.name)
 		).run(as_dict=True)
 
-		def mask(sid: str):
-			return sid[:4] + "*" * 10
+		def mask(sid_hash: str):
+			return sid_hash[:4] + "*" * 10
+
+		# `sessions.sid` is the stored hash, so compare against the hash of the current sid
+		current_sid_hash = hash_sid(frappe.session.sid)
 
 		session_docs = []
 		for session in sessions_data:
 			data = frappe.parse_json(session.sessiondata)
-			sid_hash = sha256_hash(session.sid)
 			session_docs.append(
 				{
-					"name": sid_hash,
-					"id": mask(sid_hash),
+					"name": session.sid,
+					"id": mask(session.sid),
 					"owner": session.user,
 					"modified_by": session.user,
 					"ip_address": data.session_ip,
 					"last_updated": data.last_updated,
-					"is_current": session.sid == frappe.session.sid,
+					"is_current": session.sid == current_sid_hash,
 					"session_created": data.creation,
 					"user_agent": data.user_agent,
 				}
@@ -285,11 +293,7 @@ class User(Document):
 		"""This handles old role_profile_name field if programatically set.
 
 		This behaviour will be removed in future versions."""
-		if not self.role_profiles:
-			self.role_profile_name = None
-			return
-
-		if not self.role_profile_name:
+		if not self.role_profile_name or not self.has_value_changed("role_profile_name"):
 			return
 
 		current_role_profiles = {r.role_profile for r in self.role_profiles}
@@ -607,6 +611,8 @@ class User(Document):
 		if self.name in STANDARD_USERS:
 			throw(_("User {0} cannot be deleted").format(self.name))
 
+		self.validate_no_pending_owner_sweep(self.name)
+
 		# disable the user and log him/her out
 		self.enabled = 0
 		if getattr(frappe.local, "login_manager", None):
@@ -690,7 +696,25 @@ class User(Document):
 		if old_name in STANDARD_USERS:
 			throw(_("User {0} cannot be renamed").format(self.name))
 
+		self.validate_no_pending_owner_sweep(old_name, new_name)
 		self.validate_email_type(new_name)
+
+	def validate_no_pending_owner_sweep(self, *names):
+		queue = get_queue("long")
+		pending_names = {
+			job.kwargs["kwargs"].get(key)
+			for job in queue.jobs + get_running_jobs_in_queue(queue)
+			if job.kwargs.get("site") == frappe.local.site
+			and job.kwargs.get("method") == "frappe.core.doctype.user.user.rewrite_owner_fields"
+			for key in ("old_name", "new_name")
+		}
+		for name in names:
+			if name in pending_names:
+				throw(
+					_(
+						"A pending rename involving {0} is still being applied. Please try again later."
+					).format(frappe.bold(name))
+				)
 
 	def validate_email_type(self, email):
 		from frappe.utils import validate_email_address
@@ -698,17 +722,16 @@ class User(Document):
 		validate_email_address(email.strip(), True)
 
 	def after_rename(self, old_name, new_name, merge=False):
-		tables = frappe.db.get_tables()
-		for tab in tables:
-			desc = frappe.db.get_table_columns_description(tab)
-			has_fields = [d.get("name") for d in desc if d.get("name") in ["owner", "modified_by"]]
-			for field in has_fields:
-				frappe.db.sql(
-					"""UPDATE `{}`
-					SET `{}` = {}
-					WHERE `{}` = {}""".format(tab, field, "%s", field, "%s"),
-					(new_name, old_name),
-				)
+		if not frappe.flags.in_personal_data_deletion:
+			frappe.enqueue(
+				"frappe.core.doctype.user.user.rewrite_owner_fields",
+				old_name=old_name,
+				new_name=new_name,
+				commit=True,
+				queue="long",
+				timeout=36000,
+				enqueue_after_commit=True,
+			)
 
 		if frappe.db.exists("Notification Settings", old_name):
 			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
@@ -1011,6 +1034,12 @@ def update_password(
 
 	user_doc.validate_reset_password()
 
+	frappe.db.set_value("User", user, "last_password_reset_date", today())
+	frappe.db.set_value("User", user, "reset_password_key", "")
+
+	if key and should_run_2fa(user):
+		return "/login"
+
 	# get redirect url from cache
 	redirect_to = frappe.cache.hget("redirect_after_login", user)
 	if redirect_to:
@@ -1018,9 +1047,6 @@ def update_password(
 		frappe.cache.hdel("redirect_after_login", user)
 
 	frappe.local.login_manager.login_as(user)
-
-	frappe.db.set_value("User", user, "last_password_reset_date", today())
-	frappe.db.set_value("User", user, "reset_password_key", "")
 
 	if user_doc.user_type == "System User":
 		return get_default_path() or "/desk"
@@ -1123,6 +1149,27 @@ def _get_user_for_update_password(key, old_password):
 		user = frappe.session.user
 		result.user = user
 	return result
+
+
+def rewrite_owner_fields(old_name: str, new_name: str, commit: bool = False):
+	"""Point `owner` and `modified_by` at a renamed user's new name in every table.
+
+	Neither column is indexed, so this runs for minutes on a large site; `commit` releases the
+	read view and its row locks one statement at a time. Running it again is safe. If a new user
+	has taken the old name since, rows written after that user was created are theirs and stay.
+	"""
+	tables = frappe.db.get_tables()
+	for tab in tables:
+		desc = frappe.db.get_table_columns_description(tab)
+		has_fields = [d.get("name") for d in desc if d.get("name") in ["owner", "modified_by"]]
+		table = Table(tab)
+		taken_at = frappe.db.get_value("User", old_name, "creation")
+		for field in has_fields:
+			query = frappe.qb.update(table).set(table[field], new_name).where(table[field] == old_name)
+			if taken_at:
+				written_at = table.creation if field == "owner" else table.modified
+				query = query.where(written_at < taken_at)
+			query.run(auto_commit=commit)
 
 
 def reset_user_data(user):
@@ -1567,12 +1614,13 @@ def clear_session(sid_hash: str):
 	from frappe.sessions import delete_session
 
 	sessions = frappe.qb.DocType("Sessions")
-	sessions_data = (
-		frappe.qb.from_(sessions).select(sessions.sid).where(sessions.user == frappe.session.user)
+	owned = (
+		frappe.qb.from_(sessions)
+		.select(sessions.sid)
+		.where(sessions.user == frappe.session.user)
+		.where(sessions.sid == sid_hash)
 	).run(pluck=True)
 
-	for session in sessions_data:
-		if sha256_hash(session) == sid_hash:
-			delete_session(sid=session, reason="Force Logged out by the user", user=frappe.session.user)
-			frappe.toast(_("Successfully signed out"))
-			return
+	if owned:
+		delete_session(sid_hash=owned[0], reason="Force Logged out by the user", user=frappe.session.user)
+		frappe.toast(_("Successfully signed out"))

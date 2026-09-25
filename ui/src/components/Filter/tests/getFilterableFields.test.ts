@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getFilterableFields } from "../getFilterableFields";
+import { getFilterableFields, pickFilterFields } from "../getFilterableFields";
 import type { RawMetaField } from "../../FormLayout/types";
 
 describe("getFilterableFields", () => {
@@ -87,5 +87,26 @@ describe("getFilterableFields", () => {
     expect(result.find((f) => f.fieldname === "name")?.options).toBe(
       "CRM Lead"
     );
+  });
+});
+
+describe("pickFilterFields", () => {
+  const available = getFilterableFields(
+    [{ fieldname: "title", fieldtype: "Data", label: "Title" }],
+    "Lead"
+  );
+
+  it("offers every field when the host names none", () => {
+    expect(pickFilterFields(available)).toEqual(available);
+  });
+
+  it("offers only the named fields, in the host's order, with its declarations", () => {
+    const picked = pickFilterFields(available, [
+      { fieldname: "source", fieldtype: "Data", label: "Source" },
+      "title",
+      "missing",
+    ]);
+    expect(picked.map((f) => f.fieldname)).toEqual(["source", "title"]);
+    expect(picked[0].value).toBe("source");
   });
 });

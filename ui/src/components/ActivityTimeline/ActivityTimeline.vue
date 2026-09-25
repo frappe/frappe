@@ -61,7 +61,10 @@
 						</div>
 						<div
 							class="mb-4 flex flex-1"
-							:class="[i == displayActivities.length - 1 && 'mb-5']"
+							:class="[
+								i == displayActivities.length - 1 && 'mb-5',
+								activity.pending && 'pointer-events-none opacity-60',
+							]"
 							:data-type="activity.type"
 						>
 							<!-- Load More in activity -->

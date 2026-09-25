@@ -6,7 +6,13 @@ import json
 
 import frappe
 from frappe.desk.link_title import get_report_link_titles
-from frappe.desk.query_report import build_xlsx_data, export_query, format_fields, run
+from frappe.desk.query_report import (
+	add_custom_column_data,
+	build_xlsx_data,
+	export_query,
+	format_fields,
+	run,
+)
 from frappe.tests import IntegrationTestCase
 from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, make_xlsx
 
@@ -173,6 +179,59 @@ class TestQueryReport(IntegrationTestCase):
 			"CSV row order should follow visible_idx sequence, not default order",
 		)
 
+	def test_owner_opens_prepared_report_by_name_without_prepared_report_role(self):
+		from frappe.core.doctype.prepared_report.prepared_report import create_json_gz_file
+		from frappe.core.doctype.user_permission.test_user_permission import create_user
+
+		frappe.set_user("Administrator")
+		owner = create_user("test_prepared_report_owner@example.com", "Website Manager")
+		reader = create_user("test_prepared_report_reader@example.com", "Website Manager")
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Open ToDos " + frappe.generate_hash(length=6),
+				"report_type": "Query Report",
+				"query": "select name from tabToDo",
+				"prepared_report": 1,
+				"is_standard": "No",
+			}
+		).insert(ignore_permissions=True)
+		custom_report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "My Open ToDos " + frappe.generate_hash(length=6),
+				"report_type": "Custom Report",
+				"reference_report": report.name,
+				"prepared_report": 1,
+				"is_standard": "No",
+			}
+		).insert(ignore_permissions=True)
+		other_report = frappe.copy_doc(report)
+		other_report.report_name = "Closed ToDos " + frappe.generate_hash(length=6)
+		other_report.insert(ignore_permissions=True)
+
+		# the ready notification links a custom report's prepared report to its reference report
+		with self.set_user(owner.name):
+			prepared_report = frappe.get_doc(
+				{"doctype": "Prepared Report", "report_name": custom_report.name}
+			).insert(ignore_permissions=True)
+			create_json_gz_file(
+				{"columns": [], "result": []}, prepared_report.doctype, prepared_report.name, report.name
+			)
+			filters = json.dumps({"prepared_report_name": prepared_report.name})
+			self.assertEqual(run(report.name, filters)["doc"].name, prepared_report.name)
+			with self.assertRaises(frappe.PermissionError):
+				run(other_report.name, filters)
+
+		with self.set_user(reader.name), self.assertRaises(frappe.PermissionError):
+			run(report.name, filters)
+
+		custom_report.delete()
+		with self.set_user(owner.name), self.assertRaises(frappe.PermissionError):
+			run(report.name, filters)
+
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
 
@@ -290,6 +349,18 @@ class TestQueryReport(IntegrationTestCase):
 		self.assertIsInstance(csv_data.result[0]["posting_date"], str)
 		self.assertIsInstance(csv_data.result[0]["created_on"], str)
 
+	def test_export_strips_quotes_from_link_labels(self):
+		"""Quoted link values are plain text labels in desk, so exports must drop the quotes too"""
+		data = frappe._dict(
+			columns=[
+				{"fieldname": "account", "fieldtype": "Link"},
+				{"fieldname": "remarks", "fieldtype": "Data"},
+			],
+			result=[{"account": "'Total Asset (Debit)'", "remarks": "'As per ledger'"}],
+		)
+		format_fields(data, "Excel")
+		self.assertEqual(data.result[0], {"account": "Total Asset (Debit)", "remarks": "'As per ledger'"})
+
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader
 		from io import StringIO
@@ -298,14 +369,19 @@ class TestQueryReport(IntegrationTestCase):
 		REF_DOCTYPE = "DocType"
 		REPORT_COLUMNS = ["name", "module", "issingle"]
 
-		if not frappe.db.exists("Report", REPORT_NAME):
-			report = frappe.new_doc("Report")
-			report.report_name = REPORT_NAME
-			report.ref_doctype = "User"
-			report.report_type = "Query Report"
-			report.query = frappe.qb.from_(REF_DOCTYPE).select(*REPORT_COLUMNS).limit(10).get_sql()
-			report.is_standard = "No"
-			report.save()
+		report = (
+			frappe.get_doc("Report", REPORT_NAME)
+			if frappe.db.exists("Report", REPORT_NAME)
+			else frappe.new_doc("Report")
+		)
+		report.report_name = REPORT_NAME
+		report.ref_doctype = "User"
+		report.report_type = "Query Report"
+		report.query = (
+			f"SELECT {', '.join(f'`{column}`' for column in REPORT_COLUMNS)} FROM `tab{REF_DOCTYPE}` LIMIT 10"
+		)
+		report.is_standard = "No"
+		report.save()
 
 		for delimiter in (",", ";", "\t", "|"):
 			for quoting in (QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC):
@@ -450,6 +526,40 @@ data = columns, result
 			raise e
 			frappe.db.rollback()
 
+	def test_custom_column_linked_to_another_custom_column(self):
+		"""Test custom column that looks up its value through another custom column"""
+
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "test_custom_column_chain@example.com",
+				"first_name": "Rhea",
+				"last_name": "Menon",
+				"send_welcome_email": 0,
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert()
+
+		self.addCleanup(frappe.set_user, frappe.session.user)
+		frappe.set_user(user.name)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Follow up on renewal"}).insert()
+
+		custom_columns = [
+			{"fieldname": "owner", "doctype": "ToDo", "link_field": {"fieldname": "todo", "names": []}},
+			{
+				"fieldname": "full_name",
+				"doctype": "User",
+				"link_field": {"fieldname": "owner", "names": []},
+			},
+		]
+
+		result = add_custom_column_data(custom_columns, [{"todo": todo.name}])
+
+		self.assertDictEqual(
+			{"todo": todo.name, "owner": user.name, "full_name": "Rhea Menon"},
+			result[0],
+		)
+
 	def test_xlsx_styles_structure(self):
 		"""build_xlsx_data with build_styles=True returns a well-formed styles dict"""
 		data = create_mock_data()
@@ -519,19 +629,39 @@ data = columns, result
 		self.assertIn("num_format", date_style)
 		self.assertEqual(date_style.get("align"), "right")
 
+	def test_xlsx_style_builder_float_indent_is_whole_number(self):
+		"""Excel ignores a fractional alignment indent, so float tree levels must become integers"""
+		column_map = {0: {"fieldname": "account", "fieldtype": "Data", "label": "Account"}}
+		row_map = {1: {"account": "Current Assets", "indent": 1.0}, 2: {"account": "Debtors", "indent": 2.0}}
+
+		builder = XLSXStyleBuilder(
+			XLSXMetadata(column_map=column_map, row_map=row_map), default_styling=False
+		)
+		builder.apply_indentations()
+
+		for row_idx, expected in ((1, 2), (2, 4)):
+			indent = builder.styles[builder.cell_styles[(row_idx, 0)][0]]["indent"]
+			self.assertEqual(indent, expected)
+			self.assertIsInstance(indent, int)
+
 	def test_export_report_via_email(self):
 		REPORT_NAME = "Test CSV Report"
 		REF_DOCTYPE = "DocType"
 		REPORT_COLUMNS = ["name", "module", "issingle"]
 
-		if not frappe.db.exists("Report", REPORT_NAME):
-			report = frappe.new_doc("Report")
-			report.report_name = REPORT_NAME
-			report.ref_doctype = "User"
-			report.report_type = "Query Report"
-			report.query = frappe.qb.from_(REF_DOCTYPE).select(*REPORT_COLUMNS).limit(10).get_sql()
-			report.is_standard = "No"
-			report.save()
+		report = (
+			frappe.get_doc("Report", REPORT_NAME)
+			if frappe.db.exists("Report", REPORT_NAME)
+			else frappe.new_doc("Report")
+		)
+		report.report_name = REPORT_NAME
+		report.ref_doctype = "User"
+		report.report_type = "Query Report"
+		report.query = (
+			f"SELECT {', '.join(f'`{column}`' for column in REPORT_COLUMNS)} FROM `tab{REF_DOCTYPE}` LIMIT 10"
+		)
+		report.is_standard = "No"
+		report.save()
 
 		frappe.local.form_dict = frappe._dict(
 			{
@@ -543,6 +673,8 @@ data = columns, result
 			}
 		)
 		frappe.db.delete("Email Queue")
+		user_email = frappe.get_cached_value("User", frappe.session.user, "email")
+		frappe.db.delete("Email Unsubscribe", {"email": user_email})
 		frappe.db.commit()
 		export_query()
 

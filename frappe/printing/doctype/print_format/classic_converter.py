@@ -4,6 +4,7 @@
 import json
 
 import frappe
+from frappe.model import no_value_fields
 from frappe.utils import cint, flt
 
 ASSUMED_BODY_WIDTH_PX = 750
@@ -277,6 +278,32 @@ def convert_print_format(doc):
 	return dropped
 
 
+def renders_from_file(doc) -> bool:
+	"""Whether the format prints from an HTML file shipped in its module.
+
+	`printview.get_print_format` reads that file and ignores the row's own
+	`html`, so the builder has nothing to edit and must not offer to."""
+	import os
+
+	from frappe.modules import get_module_path, scrub
+
+	if doc.get("standard") != "Yes" or doc.get("custom_format") or doc.get("raw_printing"):
+		return False
+	module = doc.get("module") or frappe.db.get_value("DocType", doc.get("doc_type"), "module")
+	if not module or frappe.get_cached_value("Module Def", module, "custom"):
+		return False
+	try:
+		path = os.path.join(get_module_path(module, "Print Format", doc.name), scrub(doc.name) + ".html")
+	except (frappe.DoesNotExistError, ImportError):
+		# the module is not on disk, so printing cannot read a file either
+		return False
+	return os.path.exists(path)
+
+
+def is_printable_docfield(df) -> bool:
+	return df.fieldtype not in no_value_fields or df.fieldtype in ("Table", "Table MultiSelect")
+
+
 def create_default_layout(meta) -> dict:
 	"""Build the new builder's default layout for a doctype from its meta.
 
@@ -328,7 +355,7 @@ def create_default_layout(meta) -> dict:
 			continue
 		elif df.fieldtype == "Column Break":
 			new_column(df)
-		elif df.label:
+		elif df.label and is_printable_docfield(df):
 			if not state.column:
 				new_column()
 			if cint(df.print_hide):

@@ -5,8 +5,17 @@ from typing import ClassVar
 from unittest.mock import patch
 
 import frappe
-from frappe.search.sqlite_search import SQLiteSearch, SQLiteSearchIndexMissingError, index_docs_in_queue
+from frappe.search.sqlite_search import (
+	SQLiteSearch,
+	SQLiteSearchIndexMissingError,
+	_build_lock_name,
+	build_index,
+	build_index_if_not_exists,
+	index_docs_in_queue,
+)
 from frappe.tests import IntegrationTestCase
+from frappe.utils import convert_utc_to_system_timezone, get_datetime, now_datetime
+from frappe.utils.synchronization import filelock
 
 
 class TestSQLiteSearch(SQLiteSearch):
@@ -39,6 +48,113 @@ class TestSQLiteSearch(SQLiteSearch):
 			return {}
 		# Simulate user-specific filtering
 		return {"owner": frappe.session.user}
+
+
+class BuildWindowSearch(TestSQLiteSearch):
+	"""Its own index file: these tests drop and rebuild, and must not touch a shared one."""
+
+	INDEX_NAME = "test_build_window_search.db"
+	BUILD_VOCABULARY = False
+
+	INDEXABLE_DOCTYPES: ClassVar = {
+		"Note": {
+			"fields": ["name", "title", "content", "owner", {"modified": "creation"}],
+		},
+	}
+
+
+class TestBuildWindow(IntegrationTestCase):
+	"""Writes made while a build was running, which the build itself cannot see."""
+
+	def setUp(self):
+		self.search = BuildWindowSearch()
+		self.search.drop_index()
+		self.addCleanup(self.search.drop_index)
+
+	def test_a_document_edited_during_the_build_is_caught_up(self):
+		"""The config maps modified to creation for scoring, which an edit does not move."""
+		note = frappe.get_doc(doctype="Note", title="Before Edit", content="body").insert()
+		self.addCleanup(frappe.delete_doc, "Note", note.name, force=True)
+
+		started_at = now_datetime()
+		self.search.build_index()
+		self.assertEqual(self.indexed_title(note.name), "Before Edit")
+
+		note.title = "After Edit"
+		note.save()
+		self.search.index_documents_changed_during_build(started_at)
+
+		self.assertEqual(self.indexed_title(note.name), "After Edit")
+
+	def test_a_document_deleted_during_the_build_is_removed(self):
+		note = frappe.get_doc(doctype="Note", title="Deleted Mid Build", content="body").insert()
+
+		started_at = now_datetime()
+		self.search.build_index()
+		self.assertEqual(self.indexed_title(note.name), "Deleted Mid Build")
+
+		frappe.delete_doc("Note", note.name)
+		self.search.index_documents_changed_during_build(started_at)
+
+		self.assertIsNone(self.indexed_title(note.name))
+
+	def test_a_continuation_starts_from_the_interrupted_build(self):
+		"""A fresh build writes its progress into the temp database, not the live one."""
+		note = frappe.get_doc(doctype="Note", title="Interrupted Build", content="body").insert()
+		self.addCleanup(frappe.delete_doc, "Note", note.name, force=True)
+
+		temp_path = self.search._get_db_path(is_temp=True)
+		self.addCleanup(lambda: os.path.exists(temp_path) and os.unlink(temp_path))
+
+		with patch.object(BuildWindowSearch, "_index_documents", side_effect=RuntimeError("killed")):
+			with self.assertRaises(RuntimeError):
+				self.search.build_index(batch_size=1)
+
+		interrupted = BuildWindowSearch()
+		interrupted.db_path = temp_path
+		stamps = [
+			row["started_at"] for row in interrupted._get_index_progress().values() if row.get("started_at")
+		]
+		self.assertTrue(stamps, "the interrupted build left no progress rows behind")
+		expected = convert_utc_to_system_timezone(get_datetime(min(stamps))).replace(tzinfo=None)
+
+		carried = []
+		with patch.object(
+			BuildWindowSearch,
+			"index_documents_changed_during_build",
+			lambda instance, started_at, **kwargs: carried.append(started_at),
+		):
+			BuildWindowSearch().build_index(is_continuation=True)
+
+		self.assertEqual(carried, [expected])
+
+	def test_the_index_reports_complete_without_the_vocabulary_pass(self):
+		"""_is_indexing_complete waits on the vocabulary flag, which the skipped pass never sets."""
+		self.search.build_index()
+
+		self.assertFalse(BuildWindowSearch.BUILD_VOCABULARY)
+		self.assertTrue(self.search._is_indexing_complete())
+
+	def test_the_vocabulary_pass_runs_only_when_it_is_turned_on(self):
+		with (
+			patch.object(BuildWindowSearch, "_is_vocabulary_built_needed", return_value=False),
+			patch.object(BuildWindowSearch, "_build_vocabulary_incremental") as vocabulary,
+		):
+			BuildWindowSearch().build_index()
+			vocabulary.assert_not_called()
+
+			with patch.object(BuildWindowSearch, "BUILD_VOCABULARY", True):
+				BuildWindowSearch().build_index()
+
+			vocabulary.assert_called()
+
+	def indexed_title(self, name):
+		connection = self.search._get_connection(read_only=True)
+		try:
+			row = connection.execute("SELECT * FROM search_fts WHERE name = ?", (name,)).fetchone()
+			return row["title"] if row else None
+		finally:
+			connection.close()
 
 
 class TestSQLiteSearchAPI(IntegrationTestCase):
@@ -110,6 +226,36 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 				pass
 
 		super().tearDown()
+
+	def test_build_index_creates_a_missing_index(self):
+		"""build_index_if_not_exists passes force=False, so that path has to build."""
+		self.search.drop_index()
+		self.addCleanup(self.search.drop_index)
+
+		build_index(TestSQLiteSearch, force=False)
+
+		self.assertTrue(self.search.index_exists())
+
+	def test_scheduled_builder_creates_a_missing_index(self):
+		self.search.drop_index()
+		self.addCleanup(self.search.drop_index)
+
+		with patch("frappe.search.sqlite_search.get_search_classes", return_value=[TestSQLiteSearch]):
+			build_index_if_not_exists()
+
+		self.assertTrue(self.search.index_exists())
+
+	def test_a_second_build_skips_while_one_is_running(self):
+		"""A fresh build deletes any temp database it finds, so two would delete each other's work."""
+		self.search.drop_index()
+		self.addCleanup(self.search.drop_index)
+
+		with filelock(_build_lock_name(TestSQLiteSearch), timeout=0):
+			build_index(TestSQLiteSearch, force=True)
+			self.assertFalse(self.search.index_exists())
+
+		build_index(TestSQLiteSearch, force=True)
+		self.assertTrue(self.search.index_exists())
 
 	def test_index_lifecycle_and_status_methods(self):
 		"""Test index building, existence checking, and status validation."""

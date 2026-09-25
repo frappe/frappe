@@ -21,6 +21,7 @@ from unittest.mock import patch
 import frappe
 from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_cache, resolve_sidebar
 from frappe.desk.doctype.sidebar.test_sidebar import make_sidebar, no_developer_mode
+from frappe.desk.doctype.workspace.workspace import PRIVATE_MODULE
 from frappe.tests import IntegrationTestCase
 
 CONVERT = "frappe.patches.v16_0.convert_sidebars"
@@ -186,6 +187,17 @@ class TestV16Upgrade(IntegrationTestCase):
 			module=cls.SHIPPED_MODULE,
 			standard=1,
 		)
+
+		# A v16 site carries no `Custom Sidebar` at all: the doctype is new here, and the archive
+		# above is the whole of what that version stored. The private page made for these fixtures
+		# writes rows of its own on insert (`add_private_to_sidebar`), which a real upgrade would
+		# never find, so they are cleared and the conversion starts from what v16 actually left.
+		for name in frappe.get_all(
+			"Custom Sidebar",
+			filters={"module": ["in", [cls.MODULE, cls.QUIET_MODULE, cls.SHIPPED_MODULE, PRIVATE_MODULE]]},
+			pluck="name",
+		):
+			frappe.delete_doc("Custom Sidebar", name, force=True, ignore_permissions=True)
 
 		cls.before = frappe.db.count("Workspace Sidebar"), frappe.db.count("Workspace Sidebar Item")
 		cls.output = run_conversion()

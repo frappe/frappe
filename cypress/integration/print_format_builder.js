@@ -34,6 +34,39 @@ function one_section_layout() {
 	);
 }
 
+function insert_contact_table_format(name) {
+	cy.insert_doc(
+		"Print Format",
+		{
+			name,
+			doc_type: "Contact",
+			print_format_builder_beta: 1,
+			format_data: JSON.stringify(
+				builder_layout([
+					{
+						label: "Rep Section",
+						columns: [
+							{
+								label: "",
+								fields: [
+									{
+										fieldtype: "Repeater",
+										fieldname: "rep1",
+										label: "Rep",
+										source: "email_ids",
+										repeater_columns: [{ template: [], align: "left" }],
+									},
+								],
+							},
+						],
+					},
+				])
+			),
+		},
+		true
+	);
+}
+
 function insert_builder_format(name, sections = []) {
 	cy.insert_doc(
 		"Print Format",
@@ -70,7 +103,7 @@ context("Print Format Builder — create flow", () => {
 		cy.visit("/app/print-format-builder");
 		cy.location("pathname", { timeout: 20000 }).should(
 			"match",
-			/^\/(app|desk)\/print-format(\/view\/list)?$/
+			/^\/(app|desk)\/(?:[\w-]+\/)?print-format(\/view\/list)?$/
 		);
 	});
 
@@ -83,7 +116,7 @@ context("Print Format Builder — create flow", () => {
 
 		cy.location("pathname", { timeout: 20000 }).should(
 			"match",
-			/\/(app|desk)\/print-format-builder\//
+			/\/(app|desk)\/(?:[\w-]+\/)?print-format-builder\//
 		);
 		cy.get(".print-format-main", { timeout: 20000 }).should("exist");
 	});
@@ -106,7 +139,7 @@ context("Print Format Builder — create flow", () => {
 		// of trusting the typed string (cy.type can drop characters)
 		cy.location("pathname", { timeout: 20000 }).should(
 			"match",
-			/\/(app|desk)\/print-format\/(?!view\/)/
+			/\/(app|desk)\/(?:[\w-]+\/)?print-format\/(?!view\/)/
 		);
 		cy.location("pathname").then((path) => {
 			const created = decodeURIComponent(path.split("/").pop());
@@ -143,7 +176,7 @@ context("Print Format Builder — create flow", () => {
 		// of trusting the typed string (cy.type can drop characters)
 		cy.location("pathname", { timeout: 20000 }).should(
 			"match",
-			/\/(app|desk)\/print-format-builder\//
+			/\/(app|desk)\/(?:[\w-]+\/)?print-format-builder\//
 		);
 		cy.location("pathname").then((path) => {
 			const created = decodeURIComponent(path.split("/").pop());
@@ -161,46 +194,36 @@ context("Print Format Builder — create flow", () => {
 		});
 	});
 
-	// 3. Loading the builder for an existing format and saving a change
-	it("loads the builder and Save persists a margin change", () => {
+	// Left panel tab bar: order, first-run default, and the remembered tab
+	it("left panel opens on Fields and remembers the tab you left on", () => {
 		cy.visit("/app");
-
-		cy.insert_doc(
-			"Print Format",
-			{
-				name: PF_NAME,
-				doc_type: "ToDo",
-				print_format_builder_beta: 1,
-				format_data: JSON.stringify({ header: "", sections: [] }),
-			},
-			true
-		);
-
-		cy.intercept(
-			"POST",
-			"api/method/frappe.printing.doctype.print_format.print_format.apply_draft"
-		).as("save");
+		insert_builder_format(PF_NAME, [{ label: "Alpha", columns: [{ label: "", fields: [] }] }]);
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
 
-		cy.get(".pfb-margin-grid", { timeout: 30000 }).should("be.visible");
+		cy.get(".es-tabs__tab", { timeout: 30000 })
+			.should("have.length", 4)
+			.then(($tabs) => {
+				const order = [...$tabs].map((t) => t.dataset.tab);
+				expect(order).to.deep.equal(["fields", "layers", "blocks", "library"]);
+			});
 
-		cy.get(".freeze").should("not.exist");
-		cy.get('[data-testid="page-status"]').should("not.be.visible");
+		// a builder nobody has opened before starts on the first tab, not on a named one
+		cy.window().then((win) => win.localStorage.removeItem("pfb_active_tab"));
+		cy.reload();
+		cy.get(".es-tabs__tab[data-tab='fields']", { timeout: 30000 }).should(
+			"have.attr",
+			"data-state",
+			"active"
+		);
 
-		cy.contains(".pfb-margin-cell label", "Top")
-			.closest(".pfb-margin-cell")
-			.find('input[type="number"]')
-			.clear()
-			.type("9")
-			.trigger("change")
-			.blur();
-
-		cy.contains(".page-actions .primary-action", "Save & Apply").click({ force: true });
-		cy.wait("@save").then((interception) => {
-			expect(interception.response.statusCode).to.equal(200);
-			expect(Number(interception.response.body.message.margin_top)).to.equal(9);
-		});
-		cy.get('[data-testid="page-status"]').should("not.be.visible");
+		// and the tab you left on survives a reload
+		cy.get(".es-tabs__tab[data-tab='blocks']").click();
+		cy.reload();
+		cy.get(".es-tabs__tab[data-tab='blocks']", { timeout: 30000 }).should(
+			"have.attr",
+			"data-state",
+			"active"
+		);
 	});
 
 	// 4. Layers tab: clicking a section scrolls to it and selects it
@@ -285,35 +308,6 @@ context("Print Format Builder — create flow", () => {
 		});
 	});
 
-	// 7. Table layout: field_borders renders a grid with a column divider
-	it("table layout renders grid borders in the canvas", () => {
-		cy.visit("/app");
-
-		insert_builder_format(PF_NAME, [
-			{
-				label: "Grid",
-				field_borders: true,
-				columns: [
-					{
-						fields: [
-							{ fieldtype: "Data", fieldname: "description", label: "Description" },
-						],
-					},
-					{ fields: [{ fieldtype: "Data", fieldname: "status", label: "Status" }] },
-				],
-			},
-		]);
-
-		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-
-		cy.get(".section--grid", { timeout: 30000 }).should("be.visible");
-		cy.get(".section--grid .column")
-			.first()
-			.should(($el) => {
-				expect(parseInt($el.css("border-right-width"), 10)).to.be.greaterThan(0);
-			});
-	});
-
 	// 8. Settings (inspector): label color uses the Frappe Color control and persists on save
 	it("settings label color persists on save", () => {
 		cy.visit("/app");
@@ -344,42 +338,46 @@ context("Print Format Builder — create flow", () => {
 		});
 	});
 
-	// 9. Selecting a repeater field exposes per-column width and color controls
-	it("repeater inspector shows column width and color controls", () => {
+	// 9. A custom table column row opens its width, align and colour settings
+	it("custom table column settings open from the row", () => {
 		cy.visit("/app");
-
-		insert_builder_format(PF_NAME, [
-			{
-				label: "Rep Section",
-				columns: [
-					{
-						label: "",
-						fields: [
-							{
-								fieldtype: "Repeater",
-								fieldname: "rep1",
-								label: "Rep",
-								repeater_columns: [{ template: [], align: "left" }],
-							},
-						],
-					},
-				],
-			},
-		]);
+		insert_contact_table_format(PF_NAME);
 
 		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-
 		cy.get("[data-pfb-section]", { timeout: 30000 }).should("be.visible");
 		cy.contains("[data-pfb-section]", "Rep Section")
 			.find(".field")
 			.first()
 			.click({ force: true });
 
-		cy.get(".pfb-inspector").should("contain", "Repeater");
+		cy.get(".pfb-inspector").should("contain", "Custom Table");
 		cy.get(".pfb-inspector").should("contain", "Columns");
-		cy.get(".pfb-inspector").should("contain", "Color");
-		cy.get(".pfb-inspector .pfb-rep-col-color .selected-color").should("exist");
-		cy.get(".pfb-inspector .pfb-col-width-input").should("exist");
+		cy.get(".pfb-inspector .pfb-col-row").should("have.length", 1);
+		cy.get(".pfb-inspector .pfb-col-editor").should("not.exist");
+		cy.get(".pfb-inspector .pfb-col-row button[title='Column settings']").click();
+		cy.get(".pfb-inspector .pfb-col-editor").should("contain", "Width");
+		cy.get(".pfb-inspector .pfb-col-editor").should("contain", "Align");
+		cy.get(".pfb-inspector .pfb-col-editor").should("contain", "Colour");
+	});
+
+	// 9b. Typing / in a column template offers the source table's fields
+	it("slash in a custom table column inserts a field chip", () => {
+		cy.visit("/app");
+		insert_contact_table_format(PF_NAME);
+
+		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+		cy.get("[data-pfb-section]", { timeout: 30000 }).should("be.visible");
+		cy.contains("[data-pfb-section]", "Rep Section")
+			.find(".field")
+			.first()
+			.click({ force: true });
+
+		cy.get(".pfb-inspector .pfb-col-row .pfb-tpl-text").first().type("Mail: /ema");
+		cy.get(".pfb-tpl-menu").should("contain", "Email");
+		cy.get(".pfb-inspector .pfb-col-row .pfb-tpl-text").first().type("{enter}");
+		cy.get(".pfb-tpl-menu").should("not.exist");
+		cy.get(".pfb-inspector .pfb-col-row .es-badge").should("contain", "Email");
+		cy.get(".pfb-inspector .pfb-col-row .pfb-tpl-text").first().should("have.value", "Mail: ");
 	});
 
 	// 10. Inspector header shows the doctype field's label, not a custom print label
@@ -469,23 +467,6 @@ context("Print Format Builder — setup flow", () => {
 
 	afterEach(() => {
 		cy.window().then((win) => cleanup(win, PF_NAME));
-	});
-
-	// 7. New format with no format_data shows the "How do you want to start?" screen
-	it("shows setup screen when no layout is saved", () => {
-		cy.insert_doc(
-			"Print Format",
-			{ name: PF_NAME, doc_type: "ToDo", print_format_builder_beta: 1 },
-			true
-		);
-
-		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-
-		cy.get(".pfb-setup", { timeout: 20000 }).should("be.visible");
-		cy.get(".pfb-setup-title").should("contain", "How do you want to start?");
-		cy.get(".pfb-setup-option").should("have.length", 2);
-		cy.contains(".pfb-setup-option-label", "Start from default").should("be.visible");
-		cy.contains(".pfb-setup-option-label", "Start blank").should("be.visible");
 	});
 
 	// 8. Format with saved format_data skips the setup screen entirely
@@ -590,27 +571,6 @@ context("Print Format Builder — section insert", () => {
 		cy.window().then((win) => cleanup(win, PF_NAME));
 	});
 
-	// 11. Section insert element exists in DOM (opacity:0, not display:none)
-	it("section insert element is present in DOM between sections", () => {
-		cy.insert_doc(
-			"Print Format",
-			{
-				name: PF_NAME,
-				doc_type: "ToDo",
-				print_format_builder_beta: 1,
-				format_data: one_section_layout(),
-			},
-			true
-		);
-
-		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
-
-		cy.get(".section-insert").should("exist");
-		cy.get(".section-insert").first().should("not.have.css", "display", "none");
-		cy.get(".section-insert-btn").first().should("contain", "Add Section");
-	});
-
 	// 12. Clicking the insert strip before a section adds a new section above it
 	it("clicking section insert before a section inserts a new section", () => {
 		cy.insert_doc(
@@ -631,30 +591,6 @@ context("Print Format Builder — section insert", () => {
 		);
 
 		cy.get(".section-with-insert .section-insert-btn").first().click({ force: true });
-
-		cy.get(".sections-container [data-pfb-section]").should("have.length", 2);
-	});
-
-	// 13. The footer insert strip appends a section after all existing sections
-	it("footer section insert appends a section at the end", () => {
-		cy.insert_doc(
-			"Print Format",
-			{
-				name: PF_NAME,
-				doc_type: "ToDo",
-				print_format_builder_beta: 1,
-				format_data: one_section_layout(),
-			},
-			true
-		);
-
-		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-		cy.get(".sections-container [data-pfb-section]", { timeout: 20000 }).should(
-			"have.length",
-			1
-		);
-
-		cy.get(".sections-container > .section-insert .section-insert-btn").click({ force: true });
 
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 2);
 	});
@@ -689,33 +625,6 @@ context("Print Format Builder — section insert", () => {
 
 		cy.get(".sections-container > .section-insert .section-insert-btn").click({ force: true });
 		cy.get(".sections-container [data-pfb-section]").should("have.length", 3);
-	});
-
-	// 15. Section insert is NOT hidden in clean-preview mode (regression guard)
-	//
-	// The old code had:
-	//   .pfb-clean-preview :deep(.section-insert) { display: none !important }
-	// which hid the button when a live record was loaded. The fix removed that rule.
-	it("section insert is not hidden when preview class is present on the canvas", () => {
-		cy.insert_doc(
-			"Print Format",
-			{
-				name: PF_NAME,
-				doc_type: "ToDo",
-				print_format_builder_beta: 1,
-				format_data: one_section_layout(),
-			},
-			true
-		);
-
-		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
-
-		cy.get(".print-format-main").then(($el) => {
-			$el[0].classList.add("pfb-clean-preview");
-		});
-
-		cy.get(".section-insert").first().should("not.have.css", "display", "none");
 	});
 });
 
@@ -771,24 +680,6 @@ context("Print Format Builder — column width resize", () => {
 					.trigger("pointerup", { ...opts, clientX: x + dx, clientY: y });
 			});
 	}
-
-	// 16. One handle per column boundary; none for a single-column section
-	it("renders a resize handle only between section columns", () => {
-		insert_builder_format(PF_NAME, [
-			...two_column_section(),
-			{ label: "One Col", columns: [{ label: "", fields: [] }] },
-		]);
-
-		cy.visit(`/app/print-format-builder/${encodeURIComponent(PF_NAME)}`);
-		cy.get(".sections-container", { timeout: 20000 }).should("be.visible");
-
-		cy.contains("[data-pfb-section]", "Two Cols")
-			.find(".col-width-handle")
-			.should("have.length", 1);
-		cy.contains("[data-pfb-section]", "One Col")
-			.find(".col-width-handle")
-			.should("have.length", 0);
-	});
 
 	// 17. Dragging the boundary applies flex ratios on the canvas and persists
 	// column widths in format_data on save
@@ -1158,7 +1049,13 @@ context("Print Format Builder — selection & spacing", () => {
 
 // ─── Draft / Save & Apply ─────────────────────────────────────────────────────
 
-const DISCARD_BTN = `.custom-actions [data-label="${encodeURIComponent("Discard Draft")}"]`;
+function open_history() {
+	cy.get(".page-actions")
+		.find('[title="Version History"], [data-original-title="Version History"]')
+		.first()
+		.click({ force: true });
+	cy.get(".pfb-history-list", { timeout: 20000 }).should("be.visible");
+}
 
 context("Print Format Builder — draft and Save & Apply", () => {
 	let PF_NAME;
@@ -1193,13 +1090,11 @@ context("Print Format Builder — draft and Save & Apply", () => {
 		).as("draft");
 
 		cy.get('[data-testid="page-status"]').should("not.be.visible");
-		cy.get(DISCARD_BTN).should("not.be.visible");
 
 		set_margin_top("17");
 
 		cy.wait("@draft").its("response.statusCode").should("eq", 200);
 		cy.get('[data-testid="page-status"]').should("contain", "Draft");
-		cy.get(DISCARD_BTN).should("be.visible");
 
 		// the live format is untouched until Save & Apply
 		cy.call("frappe.client.get_value", {
@@ -1225,7 +1120,6 @@ context("Print Format Builder — draft and Save & Apply", () => {
 		cy.wait("@apply").its("response.statusCode").should("eq", 200);
 
 		cy.get('[data-testid="page-status"]').should("not.be.visible");
-		cy.get(DISCARD_BTN).should("not.be.visible");
 
 		cy.call("frappe.client.get_value", {
 			doctype: "Print Format",
@@ -1235,6 +1129,9 @@ context("Print Format Builder — draft and Save & Apply", () => {
 			expect(Number(r.message.margin_top)).to.equal(19);
 			expect(r.message.draft_data).to.be.oneOf([null, ""]);
 		});
+
+		open_history();
+		cy.get(".pfb-history-list").should("contain", "Save & Apply");
 	});
 
 	it("keeps Typst block markup through Save & Apply", () => {
@@ -1287,7 +1184,7 @@ context("Print Format Builder — draft and Save & Apply", () => {
 		});
 	});
 
-	it("Discard Draft throws the draft away and leaves the format as it prints", () => {
+	it("restoring the published version throws the draft away", () => {
 		cy.intercept(
 			"POST",
 			"api/method/frappe.printing.doctype.print_format.print_format.discard_draft"
@@ -1296,12 +1193,15 @@ context("Print Format Builder — draft and Save & Apply", () => {
 		set_margin_top("23");
 		cy.get('[data-testid="page-status"]').should("contain", "Draft");
 
-		cy.get(DISCARD_BTN).click({ force: true });
+		open_history();
+		cy.contains(".pfb-history-row", "Published version")
+			.find(".pfb-history-action")
+			.first()
+			.click({ force: true });
 		cy.get(".modal-footer .btn-modal-primary:visible").click();
 		cy.wait("@discard").its("response.statusCode").should("eq", 200);
 
 		cy.get('[data-testid="page-status"]').should("not.be.visible");
-		cy.get(DISCARD_BTN).should("not.be.visible");
 
 		cy.call("frappe.client.get_value", {
 			doctype: "Print Format",

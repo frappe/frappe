@@ -26,18 +26,24 @@ EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 @contextmanager
 def setup_test_user(set_user=False):
 	test_user = frappe.get_doc("User", "test@example.com")
-	user_roles = frappe.get_roles()
-	test_user.remove_roles(*user_roles)
-	test_user.add_roles("Blogger")
+	original_user = frappe.session.user
+	original_roles = [role.role for role in test_user.roles]
 
-	if set_user:
-		frappe.set_user(test_user.name)
+	try:
+		test_user.set("roles", [])
+		test_user.append_roles("Blogger")
+		test_user.save(ignore_permissions=True)
 
-	yield test_user
+		if set_user:
+			frappe.set_user(test_user.name)
 
-	test_user.reload()
-	test_user.remove_roles("Blogger")
-	test_user.add_roles(*user_roles)
+		yield test_user
+	finally:
+		frappe.set_user(original_user)
+		test_user.reload()
+		test_user.set("roles", [])
+		test_user.append_roles(*original_roles)
+		test_user.save(ignore_permissions=True)
 
 
 @contextmanager
@@ -448,7 +454,7 @@ class TestDBQuery(IntegrationTestCase):
 			in build_match_conditions(as_condition=False)
 		)
 		# get as conditions
-		if frappe.db.db_type == "mariadb":
+		if frappe.db.db_type in {"mariadb", "sqlite"}:
 			assertion_string = """(((ifnull(`tabTest Blog Post`.`name`, '')='' or `tabTest Blog Post`.`name` in ('_Test Blog Post 1', '_Test Blog Post'))))"""
 		elif frappe.db.db_type == "postgres":
 			assertion_string = """(((ifnull(cast(`tabTest Blog Post`.`name` as varchar), '')='' or cast(`tabTest Blog Post`.`name` as varchar) in ('_Test Blog Post 1', '_Test Blog Post'))))"""
@@ -627,13 +633,19 @@ class TestDBQuery(IntegrationTestCase):
 		# single date should include entire day
 		start = "2021-01-01"
 		cond = get_between_date_filter([start, start], datetime_df)
-		self.assertQueryEqual(cond, f"'{start} 00:00:00.000000' AND '{start} 23:59:59.999999'")
+		self.assertQueryEqual(
+			cond,
+			f"'{frappe.db.format_datetime(start)}' AND "
+			f"'{frappe.db.format_datetime(f'{start} 23:59:59.999999')}'",
+		)
 
 		# datetime field on datetime type should remain same
 		start = "2021-01-01 01:01:00"
 		end = "2022-01-02 12:23:43"
 		cond = get_between_date_filter([start, end], datetime_df)
-		self.assertQueryEqual(cond, f"'{start}.000000' AND '{end}.000000'")
+		self.assertQueryEqual(
+			cond, f"'{frappe.db.format_datetime(start)}' AND '{frappe.db.format_datetime(end)}'"
+		)
 
 	def test_comments_blob_not_readable(self):
 		with setup_test_user(set_user=True):
@@ -1412,6 +1424,10 @@ class TestDBQuery(IntegrationTestCase):
 			self.assertTrue('strpos( cast("tabautoinc_dt_test"."name" as varchar), \'1\')' in query)
 			self.assertTrue("strpos( cast(name as varchar), '1')" in query)
 			self.assertTrue('where cast("tabautoinc_dt_test"."name" as varchar) = \'1\'' in query)
+		elif frappe.db.db_type == "sqlite":
+			self.assertIn('INSTR("tabautoinc_dt_test"."name", \'1\')', query)
+			self.assertIn("INSTR(name, '1')", query)
+			self.assertIn('WHERE "tabautoinc_dt_test"."name" = 1', query)
 		else:
 			self.assertTrue("locate('1', `tabautoinc_dt_test`.`name`)" in query)
 			self.assertTrue("locate('1', name)" in query)
@@ -1722,6 +1738,18 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertTrue(len(result[0]["roles"]) > 0, "Child table is empty")
 		self.assertNotIn("name", result[0], "Injected 'name' field leaked into the final output")
 
+	def test_setup_test_user_restores_user_and_roles(self):
+		original_user = frappe.session.user
+		test_user = frappe.get_doc("User", "test@example.com")
+		original_roles = {role.role for role in test_user.roles}
+
+		with setup_test_user(set_user=True):
+			self.assertEqual(frappe.session.user, test_user.name)
+			self.assertEqual({role.role for role in test_user.reload().roles}, {"Blogger"})
+
+		self.assertEqual(frappe.session.user, original_user)
+		self.assertEqual({role.role for role in test_user.reload().roles}, original_roles)
+
 	def test_distinct_with_injected_name_raises(self):
 		with self.assertRaises(frappe.ValidationError):
 			frappe.qb.get_query(
@@ -1988,6 +2016,9 @@ class TestReportView(IntegrationTestCase):
 
 
 def add_child_table_to_blog_post():
+	if not frappe.db.exists("DocType", "Test Blog Post"):
+		setup_for_tests()
+
 	child_table = frappe.get_doc(
 		{
 			"doctype": "DocType",
