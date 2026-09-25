@@ -1,5 +1,6 @@
 <template>
 	<Teleport to="body">
+		<div class="pfb-overlay-backdrop"></div>
 		<div class="pfb-overlay" @click.self="$emit('close')">
 			<div class="pfb-preview-modal">
 				<div v-if="!docname" class="pfb-preview-empty">
