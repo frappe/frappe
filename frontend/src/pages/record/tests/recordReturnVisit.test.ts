@@ -68,7 +68,7 @@ import { withRegisteringSource } from "@/recordPage/context";
 import { registerRecordPage, resetRegistry } from "@/recordPage/registry";
 import type { AuthoredHandlers, RecordPageApi } from "@/recordPage/types";
 import { createShellRouter } from "@/router";
-import { registerShell } from "@/router/routeFor";
+import { registerShell, routeFor } from "@/router/routeFor";
 
 const EARLIER = "2026-09-25 09:00:00.000000";
 const OLD = "2026-09-25 10:00:00.000000";
@@ -267,7 +267,7 @@ async function visitAndLeave(query = "") {
 
 /** Back to the record; resolves once the new page has rendered once, with no timer run. */
 async function comeBack(router: Router, query = "") {
-  await router.push(`/note/${name}${query}`);
+  await router.push(routeFor("Note", name, { query: Object.fromEntries(new URLSearchParams(query)) }));
   await nextTick();
 }
 
@@ -561,7 +561,7 @@ describe("a return visit", () => {
     server.doc = { ...server.doc, title: "Second", status: "Won", modified: NEW };
     const other = `${name}-other`;
     server.others[other] = { doctype: "Note", name: other, title: "Other", status: "Draft", modified: EARLIER };
-    await router.push(`/note/${other}`);
+    await router.push(routeFor("Note", other));
     await settle();
 
     expect(state(root)).toBe(`Draft|Other|${EARLIER}|${EARLIER}|0`);
