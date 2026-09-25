@@ -1171,8 +1171,16 @@ def get_permission_query_conditions(user: str | None = None) -> str:
 	if SYSTEM_USER_ROLE not in frappe.get_roles(user):
 		return f""" `tabFile`.`owner` = {frappe.db.escape(user)} """
 
+	# Custom DocPerm rows can outlive their DocType, drop those
+	# before frappe.get_meta() below assumes the doctype still exists.
+	candidate_doctypes = get_doctypes_with_read(user)
+	existing_doctypes = set(
+		frappe.get_all("DocType", filters={"name": ["in", candidate_doctypes]}, pluck="name")
+	)
+	readable_doctypes = [dt for dt in candidate_doctypes if dt in existing_doctypes]
+
 	openly_readable_doctypes, owner_restricted_doctypes = _split_doctypes_by_owner_constraint(
-		get_doctypes_with_read(user), user
+		readable_doctypes, user
 	)
 	# a doctype that requires an owner constraint is never additionally scoped by User
 	# Permissions here - same "if_owner takes priority, else check user permissions" rule
