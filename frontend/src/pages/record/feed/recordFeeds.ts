@@ -5,6 +5,7 @@ import { until } from "@vueuse/core";
 import {
 	activityTimelineRows,
 	endActivityPrefetch,
+	hasActivityTimeline,
 	prefetchActivityTimeline,
 	reloadActivityTimeline,
 	type VisibleTypes,
@@ -149,6 +150,13 @@ export class RecordFeeds {
 		return read ? (activityTimelineRows(...read) as ActivityRow[]) : [];
 	}
 
+	/** Re-reads the Activity rows a past visit kept, as a prefetch so the body's mount reads nothing more; null with none kept. */
+	rereadKept(): Promise<void> | null {
+		const read = this.activityRead();
+		if (!read || !hasActivityTimeline(...read)) return null;
+		return prefetchActivityTimeline(...read).finally(() => endActivityPrefetch(...read));
+	}
+
 	private rereadStore(): Promise<void> {
 		const read = this.activityRead();
 		return read ? reloadActivityTimeline(...read) : Promise.resolve();
@@ -188,6 +196,11 @@ export function prefetchFeed(doctype: string, docname: string, query: LocationQu
 	const tab = addressedTab(query);
 	if (tab === EMAILS_TAB) void prefetchActivityTimeline(doctype, docname, EMAIL_TYPES);
 	return tab === ACTIVITY_TAB ? prefetchActivityTimeline(doctype, docname) : Promise.resolve();
+}
+
+/** True unless the address opens Activity and no past visit kept its rows. */
+export function feedInMemory(doctype: string, docname: string, query: LocationQuery): boolean {
+	return addressedTab(query) !== ACTIVITY_TAB || hasActivityTimeline(doctype, docname);
 }
 
 /** After the first paint: a feed body that mounts later catches up on what the eager read missed. */

@@ -24,6 +24,7 @@ export { setIconSource } from "./iconClasses";
 export type { IconSource } from "./iconClasses";
 export {
   clientScriptChanges,
+  clientScriptsLoaded,
   invalidateClientScripts,
   loadClientScripts,
   reloadClientScripts,

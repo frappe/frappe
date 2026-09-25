@@ -9,6 +9,7 @@ export { default as VersionItem } from "./VersionItem.vue";
 export {
   activityTimelineRows,
   endActivityPrefetch,
+  hasActivityTimeline,
   prefetchActivityTimeline,
   reloadActivityTimeline,
   useActivityTimeline,

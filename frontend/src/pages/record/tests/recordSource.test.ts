@@ -1,6 +1,7 @@
 // The page's three server calls: which route each takes, which parts it asks for, and what it hands back.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { loadParts, loadRecord, saveRecord } from "../recordSource";
+import { clearDataCache, feedListRead, settleTicket, takeTicket } from "@framework/ui/cache";
+import { loadParts, loadRecord, readCachedRecord, saveRecord } from "../recordSource";
 
 const fetchMock = vi.fn<typeof fetch>();
 
@@ -44,7 +45,10 @@ beforeEach(() => {
 	vi.stubGlobal("fetch", fetchMock);
 	fetchMock.mockReset();
 });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+	vi.unstubAllGlobals();
+	clearDataCache();
+});
 
 describe("loadRecord", () => {
 	it("reads the document with every part the page draws, and marks it seen", async () => {
@@ -85,6 +89,34 @@ describe("loadRecord", () => {
 			name: "ApiError",
 			status: 403,
 		});
+	});
+});
+
+describe("readCachedRecord", () => {
+	it("hands back an unfrozen copy of a full read, shaped as loadRecord's", async () => {
+		respond(ENVELOPE);
+		const fromServer = await loadRecord("CRM Deal", "D-1");
+
+		const cached = readCachedRecord("CRM Deal", "D-1")!;
+
+		expect(cached).toEqual(fromServer);
+		cached.document.status = "Won";
+		cached.docinfo.tags!.push("mine");
+		expect(readCachedRecord("CRM Deal", "D-1")!.document).not.toHaveProperty("status");
+		expect(readCachedRecord("CRM Deal", "D-1")!.docinfo.tags).toEqual(["urgent"]);
+	});
+
+	it("is null for a record never read, and for one a newer list row left partial", async () => {
+		expect(readCachedRecord("CRM Deal", "D-1")).toBeNull();
+		respond(ENVELOPE);
+		await loadRecord("CRM Deal", "D-1");
+
+		const ticket = takeTicket();
+		const row = { name: "D-1", modified: "2026-09-18 11:00:00.000000" };
+		feedListRead(ticket, "CRM Deal", {}, { data: [row] } as never);
+		settleTicket(ticket);
+
+		expect(readCachedRecord("CRM Deal", "D-1")).toBeNull();
 	});
 });
 

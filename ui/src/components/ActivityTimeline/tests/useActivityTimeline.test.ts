@@ -22,6 +22,7 @@ vi.mock("../../../socket", () => ({
 import {
   activityTimelineRows,
   endActivityPrefetch,
+  hasActivityTimeline,
   prefetchActivityTimeline,
   reloadActivityTimeline,
   useActivityTimeline,
@@ -453,6 +454,21 @@ describe("the prefetched read", () => {
     await reloadActivityTimeline("ToDo", name);
     expect(activityTimelineRows("ToDo", name).map((a) => a.key)).toEqual(["comment:2"]);
     expect(api.getDocumentPart).toHaveBeenCalledTimes(2);
+  });
+
+  it("holds a store only once its newest page is in, for these types alone", async () => {
+    const name = freshDoc();
+    expect(hasActivityTimeline("ToDo", name)).toBe(false);
+    let answer!: (page: Page) => void;
+    serve({ newest: new Promise<Page>((done) => (answer = done)) });
+    const read = prefetchActivityTimeline("ToDo", name);
+    expect(hasActivityTimeline("ToDo", name)).toBe(false);
+
+    answer({ activities: [c(1)], next: null });
+    await read;
+
+    expect(hasActivityTimeline("ToDo", name)).toBe(true);
+    expect(hasActivityTimeline("ToDo", name, ["email"])).toBe(false);
   });
 });
 

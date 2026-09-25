@@ -134,6 +134,7 @@ import type { FieldNode } from "@framework/ui/components/FormLayout/types";
 import { identifyTabs } from "@framework/ui/components/FormLayout/tabIdentity";
 import { getSocketInstance } from "@framework/ui/socket";
 import {
+	clientScriptsLoaded,
 	createRecordPage,
 	errorMessage,
 	formItems,
@@ -162,6 +163,7 @@ import { FILES_TAB, TAB_STRIP_CLASSES, recordTabBuiltins } from "./record/tabs/r
 import { useRecordTabs } from "./record/tabs/useRecordTabs";
 import {
 	activityPointer,
+	feedInMemory,
 	RecordFeeds,
 	RecordFeedsKey,
 	withFeedRead,
@@ -169,7 +171,7 @@ import {
 import PageDialogs from "./record/dialogs/PageDialogs.vue";
 import RecordUploadDialog from "./record/feed/RecordUploadDialog.vue";
 import { formTabMemory } from "./record/formTabMemory";
-import { fetchMeta } from "./record/metaSource";
+import { fetchMeta, metaInMemory } from "./record/metaSource";
 import { PANEL_BUILTINS } from "./record/panel/builtins";
 import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
 import { favouritesOf, hasFavourited } from "./record/favourites";
@@ -184,7 +186,14 @@ import { layoutItems, layoutSections } from "./record/panel/panelEntries";
 import RecordPanel from "./record/panel/RecordPanel.vue";
 import BodySkeleton from "./record/skeletons/BodySkeleton.vue";
 import HeaderSkeleton from "./record/skeletons/HeaderSkeleton.vue";
-import { loadParts, loadRecord, saveRecord } from "./record/recordSource";
+import {
+	loadParts,
+	loadRecord,
+	readCachedRecord,
+	saveRecord,
+	type LoadedRecord,
+} from "./record/recordSource";
+import { mergeRefetch, same } from "./record/refetchMerge";
 import { changedFields, conflictError, SAVE_CONFLICT, stripTags } from "./record/saveResponse";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import type { Boot } from "@/boot";
@@ -450,7 +459,8 @@ async function reloadDocinfo() {
 	docinfo.value = fresh;
 }
 
-async function load() {
+// Only the route's load may paint from memory: a reload, a conflict or a failed action reads the server.
+async function load({ fromMemory = false } = {}) {
 	if (!doctype.value) {
 		live.release();
 		return;
@@ -494,18 +504,99 @@ async function load() {
 		fallback: "none",
 		overrides: () => controller.value?.fields.resolve() ?? {},
 	});
+	const opening = { mine, target, pointer, details, panel };
+	const held = fromMemory ? inMemory(opening) : null;
+	if (held) return openFromMemory(opening, held);
 	await withFeedRead(target.doctype, target.name, route.query, (feedRead) =>
-		openRecord({ mine, target, pointer, details, panel, feedRead })
+		openRecord({ ...opening, feedRead })
 	);
 }
 
-interface OpenRecord {
+interface Opening {
 	mine: number;
 	target: { doctype: string; name: string };
 	pointer: string;
 	details: UseFormLayout;
 	panel: UseFormLayout;
+}
+
+interface OpenRecord extends Opening {
 	feedRead: Promise<void>;
+}
+
+interface HeldRecord {
+	record: LoadedRecord;
+	metadata: any;
+}
+
+/** The record and its meta, when everything a first replay reads is already in memory. */
+function inMemory({ target, details, panel }: Opening): HeldRecord | null {
+	const record = readCachedRecord(target.doctype, target.name);
+	if (!record) return null;
+	const metadata = metaInMemory(target.doctype);
+	const layouts = !details.loading.value && !panel.loading.value;
+	const ready =
+		metadata &&
+		layouts &&
+		clientScriptsLoaded(target.doctype) &&
+		feedInMemory(target.doctype, target.name, route.query);
+	return ready ? { record, metadata } : null;
+}
+
+/** A return visit: paints before the first await, then re-reads quietly and replays once. */
+async function openFromMemory(opening: Opening, { record, metadata }: HeldRecord) {
+	show(record, metadata);
+	const created = buildController(opening);
+	const painted = created.paintNow();
+	const reads = backgroundReads(opening.target);
+	if (!painted) await created.refresh();
+	if (opening.mine !== generation) return;
+	landPaint(created, opening.pointer);
+	await applyInBackground(opening.mine, created, reads);
+}
+
+// Each read resolves to how it applies; the store applies its own feed rows.
+function backgroundReads(target: Opening["target"]): Promise<(() => void) | void>[] {
+	const read = docinfoRead;
+	return [
+		loadRecord(target.doctype, target.name).then((fresh) => () => takeRefetch(fresh, read)),
+		feeds.rereadKept() ?? Promise.resolve(),
+	];
+}
+
+/** Every read applied together, then one replay whose acts are dropped. */
+async function applyInBackground(
+	mine: number,
+	created: RecordPageController,
+	reads: Promise<(() => void) | void>[]
+) {
+	const settled = await Promise.allSettled(reads);
+	if (mine !== generation) return;
+	for (const read of settled) if (read.status === "fulfilled") read.value?.();
+	await created.refresh({ background: true });
+}
+
+// Written to the refs, never through the commit channel, so no field handler fires.
+function takeRefetch(fresh: LoadedRecord, read: number) {
+	const merged = mergeRefetch({ doc: doc.value, saved: saved.value }, fresh.document);
+	saved.value = merged.saved;
+	doc.value = merged.doc;
+	// A sidecar re-read begun since carries newer rows.
+	if (read === docinfoRead && !same(docinfo.value, fresh.docinfo)) docinfo.value = fresh.docinfo;
+	if (!same(linkTitles.value, fresh.linkTitles)) linkTitles.value = fresh.linkTitles;
+}
+
+function show(loaded: LoadedRecord, metadata: any) {
+	saved.value = { ...loaded.document };
+	doc.value = JSON.parse(JSON.stringify(loaded.document));
+	docinfo.value = loaded.docinfo;
+	linkTitles.value = loaded.linkTitles;
+	meta.value = metadata;
+}
+
+function landPaint(created: RecordPageController, pointer: string) {
+	actionsVersion.value++;
+	if (pointer) created.page.activity.scrollTo(pointer);
 }
 
 /** The record read, then the page's first paint; a newer load cuts it short at any wait. */
@@ -516,11 +607,7 @@ async function openRecord({ mine, target, pointer, details, panel, feedRead }: O
 			fetchMeta(target.doctype),
 		]);
 		if (mine !== generation) return;
-		saved.value = { ...loaded.document };
-		doc.value = JSON.parse(JSON.stringify(loaded.document));
-		docinfo.value = loaded.docinfo;
-		linkTitles.value = loaded.linkTitles;
-		meta.value = metadata;
+		show(loaded, metadata);
 	} catch (e) {
 		if (mine !== generation) return;
 		error.value =
@@ -530,6 +617,20 @@ async function openRecord({ mine, target, pointer, details, panel, feedRead }: O
 		return;
 	}
 
+	const created = buildController({ mine, target, pointer, details, panel });
+	// The first replay must see both layouts, or a script's act on a tab or section is dropped as unknown,
+	// and the Activity rows when their read began beside the record's.
+	await Promise.all([details.settled(), panel.settled(), feedRead]);
+	if (mine !== generation) return;
+	await created.refresh();
+	if (mine !== generation) return;
+	landPaint(created, pointer);
+	// The shown tab's body has mounted by now; a feed body that mounts later reads what it missed.
+	await nextTick();
+}
+
+/** The page's controller with its built-ins, made current. */
+function buildController({ target, pointer, details, panel }: Opening) {
 	const created = createRecordPage({
 		doctype: target.doctype,
 		docname: target.name,
@@ -576,17 +677,7 @@ async function openRecord({ mine, target, pointer, details, panel, feedRead }: O
 	detailsLayout.value = details;
 	controller.value = created;
 	feeds.showPointedTab(pointer);
-
-	// The first replay must see both layouts, or a script's act on a tab or section is dropped as unknown,
-	// and the Activity rows when their read began beside the record's.
-	await Promise.all([details.settled(), panel.settled(), feedRead]);
-	if (mine !== generation) return;
-	await created.refresh();
-	if (mine !== generation) return;
-	actionsVersion.value++;
-	if (pointer) created.page.activity.scrollTo(pointer);
-	// The shown tab's body has mounted by now; a feed body that mounts later reads what it missed.
-	await nextTick();
+	return created;
 }
 
 // One request per record at a time; a request the previous record left in flight is not joined.
@@ -754,7 +845,7 @@ onUnmounted(() => {
 	window.removeEventListener("beforeunload", onBeforeUnload);
 });
 
-watch([doctype, docname], load, { immediate: true });
+watch([doctype, docname], () => load({ fromMemory: true }), { immediate: true });
 // The page's own `?tab=` replace keeps the key, so only a new pointer on the same record moves the reader.
 watch(
 	() => activityPointer(route.query),

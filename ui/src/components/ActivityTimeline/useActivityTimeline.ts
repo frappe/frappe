@@ -70,6 +70,16 @@ export function activityTimelineRows(
   return store ? shownRows(store, typeNames(visibleTypes)) : [];
 }
 
+/** True when a store for this read holds its newest page, mounted or kept idle. */
+export function hasActivityTimeline(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+): boolean {
+  const store = stores.get(storeKey(doctype, docname, visibleTypes));
+  return store?.fetched.value === true;
+}
+
 /** Re-reads the newest page with no component mounted; with no store yet, it starts the first read. */
 export function reloadActivityTimeline(
   doctype: string,
