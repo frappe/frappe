@@ -169,7 +169,7 @@ class BlockReorderSession {
 		const zone = this.resolver.resolve(clientX, clientY)
 		if (!zone) return this.clearTarget()
 		const style = getComputedStyle(zone.layoutEl)
-		const direction = getLayoutDirection(style)
+		const direction = getLayoutDirection(zone.layoutEl)
 		const lines = clusterLines(collectChildRects(zone.siblingEls, direction))
 		const pointerMain = direction === "row" ? clientX : clientY
 		const pointerCross = direction === "row" ? clientY : clientX

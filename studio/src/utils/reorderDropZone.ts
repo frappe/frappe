@@ -135,7 +135,7 @@ export class DropZoneResolver {
 		clientY: number,
 		fraction: number,
 	): boolean {
-		const direction = getLayoutDirection(getComputedStyle(layoutEl))
+		const direction = getLayoutDirection(layoutEl)
 		const rect = element.getBoundingClientRect()
 		const low = direction === "row" ? rect.left : rect.top
 		const high = direction === "row" ? rect.right : rect.bottom

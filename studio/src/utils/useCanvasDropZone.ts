@@ -91,7 +91,7 @@ export function useCanvasDropZone(
 
 			if (parentComponent) {
 				const parentElement = getBlockElement(parentComponent)
-				layoutDirection = getLayoutDirection(window.getComputedStyle(parentElement))
+				layoutDirection = getLayoutDirection(parentElement)
 				index = findDropIndex(ev, parentElement, layoutDirection)
 				if (canvasStore.activeCanvas?.selectedSlot?.parentBlockId === parentComponent.componentId) {
 					slotName = canvasStore.activeCanvas.selectedSlot?.slotName

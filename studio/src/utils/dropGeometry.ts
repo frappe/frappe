@@ -32,7 +32,8 @@ export interface IndicatorGeometry {
 	length: number
 }
 
-export function getLayoutDirection(style: CSSStyleDeclaration): LayoutDirection {
+export function getLayoutDirection(element: HTMLElement): LayoutDirection {
+	const style = getComputedStyle(element)
 	const display = style.display
 	if (display === "flex" || display === "inline-flex") {
 		return style.flexDirection.includes("row") ? "row" : "column"
