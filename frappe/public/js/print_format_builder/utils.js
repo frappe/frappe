@@ -381,6 +381,7 @@ const TABLE_COLUMN_PLUCK_KEYS = [
 	"merge_direction",
 	"image_size",
 	"column_condition",
+	"date_format",
 ];
 
 export const FIELD_PLUCK_KEYS = [
@@ -426,6 +427,7 @@ export const FIELD_PLUCK_KEYS = [
 	"show_empty",
 	"hide_colon",
 	"table_min_height",
+	"date_format",
 ];
 
 const ZONE_FIELD_PLUCK_KEYS = FIELD_PLUCK_KEYS.filter(
@@ -690,4 +692,45 @@ export function table_field_opts(fields) {
 	return (fields || [])
 		.filter((f) => f.fieldtype === "Table")
 		.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname }));
+}
+
+export const DATE_FORMATS = [
+	"dd-mm-yyyy",
+	"mm-dd-yyyy",
+	"yyyy-mm-dd",
+	"dd/mm/yyyy",
+	"dd.mm.yyyy",
+	"d MMM yyyy",
+	"d MMMM yyyy",
+	"MMM d, yyyy",
+	"MMMM d, yyyy",
+	"EEE, d MMM yyyy",
+];
+
+const MOMENT_TOKENS = { yyyy: "YYYY", dd: "DD", d: "D", mm: "MM", EEEE: "dddd", EEE: "ddd" };
+
+export function moment_date_format(fmt) {
+	return fmt.replace(/yyyy|MMMM|MMM|mm|dd|d|EEEE|EEE/g, (t) => MOMENT_TOKENS[t] || t);
+}
+
+export const is_date_field = (df) => df?.fieldtype === "Date" || df?.fieldtype === "Datetime";
+
+export function format_date_value(raw, df) {
+	if (!df?.date_format || !is_date_field(df) || !raw) return null;
+	const m = moment(frappe.datetime.str_to_obj(raw));
+	if (!m.isValid()) return null;
+	let fmt = moment_date_format(df.date_format);
+	if (df.fieldtype === "Datetime") fmt += " " + frappe.datetime.get_user_time_fmt();
+	return m.format(fmt);
+}
+
+export function date_format_opts() {
+	const today = frappe.datetime.now_date();
+	return [
+		{ value: "", label: __("System default") },
+		...DATE_FORMATS.map((f) => ({
+			value: f,
+			label: format_date_value(today, { fieldtype: "Date", date_format: f }),
+		})),
+	];
 }
