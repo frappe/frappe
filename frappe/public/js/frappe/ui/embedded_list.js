@@ -241,7 +241,8 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 			.map((col) => {
 				const label = frappe.utils.escape_html(col.label || "");
 				const title = col.title ? ` title="${frappe.utils.escape_html(col.title)}"` : "";
-				const align = col.align === "center" ? ' class="text-center"' : "";
+				const align_class = { center: "text-center", right: "text-right" }[col.align];
+				const align = align_class ? ` class="${align_class}"` : "";
 				return `<th${align}${title}>${label}</th>`;
 			})
 			.join("");
@@ -263,11 +264,18 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 	}
 
 	build_cell_html(col, col_idx, row) {
-		const align = col.align === "center" ? ' class="text-center"' : "";
+		const align_class = { center: "text-center", right: "text-right" }[col.align];
+		const align = align_class ? ` class="${align_class}"` : "";
 		const clickable = typeof col.on_click === "function";
-		const col_attr = clickable
-			? ` data-col-idx="${col_idx}" class="embedded-list-clickable"`
-			: "";
+		// data-col-idx only — the class is merged below, since a second `class`
+		// attribute on the same <td> is dropped by the browser (losing the handler hook).
+		const col_attr = clickable ? ` data-col-idx="${col_idx}"` : "";
+		const td_class = (base) => {
+			const classes = [base, align_class, clickable && "embedded-list-clickable"].filter(
+				Boolean
+			);
+			return classes.length ? ` class="${classes.join(" ")}"` : "";
+		};
 
 		if (col.type === "actions") {
 			return `<td class="text-center embedded-list-actions" data-col-idx="${col_idx}">${this.build_actions_html(
@@ -276,21 +284,22 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 		}
 
 		if (typeof col.render === "function") {
-			return `<td${align}${col_attr}>${col.render(row) ?? ""}</td>`;
+			return `<td${td_class()}${col_attr}>${col.render(row) ?? ""}</td>`;
 		}
 
 		const raw = col.fieldname ? row[col.fieldname] : "";
 
 		if (col.type === "check") {
-			return `<td class="text-center"${col_attr}>${
+			// Checks default to centered, but an explicit `align` wins (one alignment only).
+			return `<td${td_class(align_class ? "" : "text-center")}${col_attr}>${
 				raw ? frappe.utils.icon("check", "xs") : ""
 			}</td>`;
 		}
 
 		if (col.type === "badge") {
-			if (raw == null || raw === "") return `<td${align}${col_attr}></td>`;
+			if (raw == null || raw === "") return `<td${td_class()}${col_attr}></td>`;
 			const color = typeof col.color === "function" ? col.color(row) : col.color || "gray";
-			return `<td${align}${col_attr}>${frappe.ui.badge.html({
+			return `<td${td_class()}${col_attr}>${frappe.ui.badge.html({
 				label: raw,
 				theme: color,
 			})}</td>`;
@@ -311,7 +320,7 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 			return `<td${align}><a href="#" data-route-link="${col_idx}">${text}</a></td>`;
 		}
 
-		return `<td${align}${col_attr}>${frappe.utils.escape_html(raw ?? "")}</td>`;
+		return `<td${td_class()}${col_attr}>${frappe.utils.escape_html(raw ?? "")}</td>`;
 	}
 
 	build_actions_html(col) {
