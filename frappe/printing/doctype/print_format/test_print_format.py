@@ -110,6 +110,11 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 
 		user = frappe.get_doc("User", "Administrator")
 		self.assertEqual(format_field_value(user, df), user.get_formatted("birth_date"))
+		merged = df | {
+			"date_format": "d MMM yyyy",
+			"merged_fields": [{"fieldname": "email", "fieldtype": "Data"}],
+		}
+		self.assertEqual(format_field_value(user, merged), "11 Feb 2026")
 		stamp = format_field_value(
 			user, {"fieldname": "last_login", "fieldtype": "Datetime", "date_format": "dd/mm/yyyy"}
 		)
