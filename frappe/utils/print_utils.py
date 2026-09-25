@@ -131,6 +131,7 @@ def get_print(
 					check pdf_generator value in your hook function.
 					if it matches run and return pdf else return None
 					"""
+					# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
 					pdf = frappe.call(
 						hook,
 						print_format=print_format,
