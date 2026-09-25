@@ -745,7 +745,14 @@ def format_date(string_date=None, format_string: str | None = None, parse_day_fi
 			date, format_string, locale=(frappe.local.lang or "").replace("-", "_")
 		)
 	except (UnknownLocaleError, ValueError):
-		format_string = format_string.replace("MM", "%m").replace("dd", "%d").replace("yyyy", "%Y")
+		format_string = (
+			format_string.replace("MMMM", "%B")
+			.replace("MMM", "%b")
+			.replace("MM", "%m")
+			.replace("dd", "%d")
+			.replace("yyyy", "%Y")
+			.replace("yy", "%y")
+		)
 		formatted_date = date.strftime(format_string)
 	return formatted_date
 
