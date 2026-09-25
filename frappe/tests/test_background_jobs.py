@@ -70,7 +70,8 @@ class TestBackgroundJobs(IntegrationTestCase):
 		conn.delete(worker.key)
 		conn.hset(worker.key, "state", "idle")
 
-		worker.heartbeat()
+		# Short TTL so this worker does not show up in later worker checks.
+		worker.heartbeat(timeout=5)
 
 		self.assertIn(worker.name, [w.name for w in RQWorker.get_list()])
 
