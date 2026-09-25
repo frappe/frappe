@@ -25,6 +25,7 @@ vi.mock("@framework/ui/api", async () => {
   };
 });
 
+import { runMethod } from "@framework/ui/api";
 import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
 import { loadClientScripts, resetClientScripts } from "../clientScripts";
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
@@ -190,6 +191,11 @@ describe("paintNow", () => {
     expect(warnings).toEqual([
       "[record-page] slow.onRefresh on CRM Deal returned a promise, which is not awaited; onRefresh is synchronous.",
     ]);
+    const reports = vi
+      .mocked(runMethod)
+      .mock.calls.filter(([method]) => String(method).includes("report_customization_error"));
+    expect(reports).toHaveLength(1);
+    expect(reports[0][1]).toMatchObject({ source: "slow", event: "onRefresh (async)", doctype: "CRM Deal" });
 
     const held = gate();
     const holding = controller.hold(() => held.opened);

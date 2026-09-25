@@ -664,11 +664,16 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     }
   }
 
+  // Filed in production too: a Client Script's lost changes must reach an admin.
   function warnAsyncRefresh(source: string) {
-    if (!import.meta.env.DEV) return;
-    console.warn(
-      `[record-page] ${source}.onRefresh on ${host.doctype} returned a promise, which is not awaited; onRefresh is synchronous.`,
-    );
+    const message = `[record-page] ${source}.onRefresh on ${host.doctype} returned a promise, which is not awaited; onRefresh is synchronous.`;
+    if (import.meta.env.DEV) console.warn(message);
+    reportCustomizationError(new Error(message), {
+      source,
+      event: "onRefresh (async)",
+      doctype: host.doctype,
+      record: host.docname,
+    });
   }
 
   function reportHandlerError(source: string, event: string, error: unknown) {
