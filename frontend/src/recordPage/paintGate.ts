@@ -44,7 +44,7 @@ export interface PaintGate {
   asSource: (source: string, work: () => Promise<void>) => Promise<void>;
   /** True while a replay or a hold is open, so an act waits for the commit. */
   isStaging: () => boolean;
-  /** True while the replay after a background read runs, so an act in it is dropped. */
+  /** True while the replay after a background read, or a late `onRefresh` part it started, runs; an act then is dropped. */
   inBackground: () => boolean;
   /** The reader left the page: closes its dialogs and late holds, and delivers no more acts. */
   leave: () => void;
@@ -77,7 +77,8 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     left: false,
     // True while the first paint's acts land: the page then reads as drawn, not staging.
     early: false,
-    background: false,
+    // Counted: a background replay's late `onRefresh` parts drop every act until they settle.
+    background: 0,
   };
   let markLeft!: () => void;
   const left = new Promise<void>((resolve) => (markLeft = resolve));
@@ -109,7 +110,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     } finally {
       // In `finally` so a throwing handler cannot leave the page staged for good.
       closeReplay();
-      holdLate(late);
+      holdLate(late, false);
     }
   }
 
@@ -133,22 +134,26 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
   /** The whole replay in one step, once nothing is left to wait for. */
   function replayNow(background: boolean) {
     openReplay();
-    state.background = background;
+    if (background) state.background += 1;
     let late: LateRefresh[] = [];
     try {
       host.warnUnknownHandlers();
       late = host.runRefresh(new Set());
     } finally {
-      state.background = false;
+      if (background) state.background -= 1;
       closeReplay();
     }
-    holdLate(late);
+    holdLate(late, background);
   }
 
   /** Opened once the replay has committed, so its synchronous part draws without waiting for these. */
-  function holdLate(late: LateRefresh[]) {
-    for (const { source, settled } of late)
-      void asSource(source, () => hold(() => bounded(source, settled)));
+  function holdLate(late: LateRefresh[], background: boolean) {
+    for (const { source, settled } of late) {
+      if (background) state.background += 1;
+      void asSource(source, () => hold(() => bounded(source, settled))).finally(() => {
+        if (background) state.background -= 1;
+      });
+    }
   }
 
   /** Answers when the part settles or the reader leaves, or after the limit with a warning. */
@@ -268,7 +273,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
   }
 
   function inBackground() {
-    return state.background;
+    return state.background > 0;
   }
 
   return {

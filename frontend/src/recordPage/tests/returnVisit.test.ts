@@ -398,7 +398,7 @@ describe("refresh({ background: true })", () => {
     expect(drawn(controller)).toEqual(["Won", "held"]);
   });
 
-  it("draws its onRefresh's part after an await when it settles, and lands that part's acts", async () => {
+  it("draws its onRefresh's part after an await when it settles, and drops that part's acts", async () => {
     let status = "Open";
     let pause = gate();
     await register("deal", {
@@ -424,11 +424,19 @@ describe("refresh({ background: true })", () => {
     pause.open();
     await vi.advanceTimersByTimeAsync(0);
     expect(drawn(controller)).toEqual(["Won", "late Won"]);
+    expect(moved).toEqual(["notes"]);
+    expect(warnings).toContain(
+      '[record-page] page.tabs.activate("notes") — it ran in the replay after a background read; the reader was not moved.',
+    );
+
+    pause = gate();
+    await controller.refresh();
+    pause.open();
+    await vi.advanceTimersByTimeAsync(0);
     expect(moved).toEqual(["notes", "notes"]);
-    expect(warnings.some((one) => one.includes("background read"))).toBe(false);
   });
 
-  it("lands a quick action's act made while a background replay's late part runs", async () => {
+  it("drops a quick action's act made while a background replay's late part runs, with the warning", async () => {
     const pause = gate();
     await register("deal", {
       onRefresh: async (page: RecordPageApi) => {
@@ -444,8 +452,13 @@ describe("refresh({ background: true })", () => {
     pause.open();
     await vi.advanceTimersByTimeAsync(0);
 
+    expect(moved).toEqual([]);
+    expect(warnings).toContain(
+      '[record-page] page.tabs.activate("notes") — it ran in the replay after a background read; the reader was not moved.',
+    );
+
+    await controller.hold(() => controller.page.tabs.activate("notes"));
     expect(moved).toEqual(["notes"]);
-    expect(warnings.some((one) => one.includes("background read"))).toBe(false);
   });
 
   it("keeps its newer ops when an older onRefresh's part after an await settles", async () => {

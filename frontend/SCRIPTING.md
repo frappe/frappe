@@ -60,10 +60,11 @@ changed, the second replay draws nothing. Build new values in each replay: an ob
 changed in place and handed over again reads as unchanged, so it is not drawn again. Acts
 in the first replay land as on a first visit; the second replay drops its acts with a
 development warning, so a one-time move such as `activate` or `scrollTo` must not rely on
-being made in every replay. Values the background reads change fire no field handlers. If
-the reader is editing when they return, only the fields the reader has not touched take
-the server's values. A first visit, or a record not held in memory in full, loads as
-described above.
+being made in every replay. While an `async onRefresh` started by the second replay is still
+running, the page drops every act, a quick action's among them. Values the background reads
+change fire no field handlers. If the reader is editing when they return, only the fields
+the reader has not touched take the server's values. A first visit, or a record not held
+in memory in full, loads as described above.
 
 **Every place on the page is a list, every list takes a component item, and `before` /
 `after` names a neighbour.** There is no vocabulary of places on top of that: no zone or
