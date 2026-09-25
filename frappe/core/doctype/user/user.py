@@ -23,6 +23,7 @@ from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.rate_limiter import rate_limit
 from frappe.sessions import clear_sessions
+from frappe.twofactor import should_run_2fa
 from frappe.utils import (
 	cint,
 	escape_html,
@@ -957,6 +958,12 @@ def update_password(
 
 	user_doc.validate_reset_password()
 
+	frappe.db.set_value("User", user, "last_password_reset_date", today())
+	frappe.db.set_value("User", user, "reset_password_key", "")
+
+	if key and should_run_2fa(user):
+		return "/login"
+
 	# get redirect url from cache
 	redirect_to = frappe.cache.hget("redirect_after_login", user)
 	if redirect_to:
@@ -964,9 +971,6 @@ def update_password(
 		frappe.cache.hdel("redirect_after_login", user)
 
 	frappe.local.login_manager.login_as(user)
-
-	frappe.db.set_value("User", user, "last_password_reset_date", today())
-	frappe.db.set_value("User", user, "reset_password_key", "")
 
 	if user_doc.user_type == "System User":
 		return get_default_path() or "/desk"
