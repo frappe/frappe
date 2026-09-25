@@ -262,3 +262,80 @@ context("Attach Control with Failed Document Save", () => {
 		cy.get(".frappe-list > .no-result").should("be.visible");
 	});
 });
+
+context("Attach Control in a Child Table Row", () => {
+	before(() => {
+		cy.login();
+		cy.visit("/desk/doctype");
+		return cy
+			.window()
+			.its("frappe")
+			.then((frappe) => {
+				return frappe
+					.xcall("frappe.tests.ui_test_helpers.create_child_doctype", {
+						name: "Child Test Attach Control",
+						fields: [
+							{
+								label: "Title",
+								fieldname: "title",
+								fieldtype: "Data",
+								in_list_view: 1,
+							},
+							{
+								label: "Attach File or Image",
+								fieldname: "attach",
+								fieldtype: "Attach",
+							},
+						],
+					})
+					.then(() => {
+						return frappe.xcall("frappe.tests.ui_test_helpers.create_doctype", {
+							name: "Test Attach Control Grid",
+							fields: [
+								{
+									label: "Items",
+									fieldname: "items",
+									fieldtype: "Table",
+									options: "Child Test Attach Control",
+								},
+							],
+						});
+					});
+			});
+	});
+
+	it("keeps the row open after uploading and clearing a file", () => {
+		cy.new_form("Test Attach Control Grid");
+		cy.get('.frappe-control[data-fieldname="items"]').as("table");
+		cy.get("@table").findByRole("button", { name: "Add row" }).click();
+		cy.intercept("POST", "/api/method/frappe.desk.form.save.savedocs").as("save");
+		cy.findByRole("button", { name: "Save" }).click();
+		cy.wait("@save");
+
+		cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
+		cy.get(".grid-row-open").findByRole("button", { name: "Attach" }).click();
+		// a dialog asked to close while still fading in stays open, covering the row
+		cy.get_open_dialog().find(".modal-dialog").should("have.css", "transform", "none");
+		cy.get_open_dialog()
+			.find(".file-upload-area")
+			.selectFile("cypress/fixtures/sample_attachments/attachment-2.txt", {
+				action: "drag-drop",
+			});
+		cy.get_open_dialog().findByRole("button", { name: "Upload" }).click();
+		cy.wait("@save");
+
+		cy.get(".grid-row-open")
+			.should("have.attr", "data-idx", "1")
+			.find(".attached-file-link")
+			.should("contain", "attachment-2.txt");
+
+		cy.get(".grid-row-open").find('[data-action="clear_attachment"]').click();
+		cy.click_modal_primary_button("Yes");
+		cy.wait("@save");
+
+		cy.get(".grid-row-open")
+			.should("have.attr", "data-idx", "1")
+			.findByRole("button", { name: "Attach" })
+			.should("be.visible");
+	});
+});
