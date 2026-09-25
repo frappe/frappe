@@ -426,7 +426,7 @@ body.pfb-dragging * {
 
 .pfb-overlay {
 	position: fixed;
-	inset: calc(var(--navbar-height) + var(--page-head-height)) 0 0 0;
+	inset: 0;
 	z-index: 1035;
 	display: flex;
 	align-items: center;
