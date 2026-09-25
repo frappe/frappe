@@ -60,8 +60,9 @@ export function createLiveUpdates(
     } else if (action === "delete") {
       resource.data = current.filter((a) => a.key !== activity.key);
     } else {
+      // an edit keeps its author, and the payload's may not resolve to an avatar
       resource.data = current.map((a) =>
-        a.key === activity.key ? activity : a
+        a.key === activity.key ? { ...activity, author: a.author } : a
       );
     }
   };
