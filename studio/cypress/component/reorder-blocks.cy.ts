@@ -98,6 +98,8 @@ function buildTree() {
 
 const blockSelector = (id: string) =>
 	`.__studio_component__[data-component-id="${id}"][data-breakpoint="desktop"]`
+// the selected block's overlay; free move starts from here, as in builder
+const editorSelector = (id: string) => `.editor[data-component-id="${id}"]`
 
 function center(element: HTMLElement) {
 	const rect = element.getBoundingClientRect()
@@ -109,8 +111,12 @@ function rectOf(id: string) {
 }
 
 // press on a block, cross the drag threshold, then hover the target point
-function startDrag(sourceId: string, getTarget: () => { x: number; y: number }) {
-	cy.get(blockSelector(sourceId)).then(($el) => {
+function startDrag(
+	sourceId: string,
+	getTarget: () => { x: number; y: number },
+	selector: (id: string) => string = blockSelector,
+) {
+	cy.get(selector(sourceId)).then(($el) => {
 		const { x, y } = center($el[0])
 		cy.wrap($el).trigger("mousedown", { button: 0, clientX: x, clientY: y, force: true })
 		cy.get("body").trigger("mousemove", { clientX: x + 10, clientY: y + 10, force: true })
@@ -123,6 +129,11 @@ function startDrag(sourceId: string, getTarget: () => { x: number; y: number }) 
 
 function release() {
 	cy.get("body").trigger("mouseup", { force: true })
+}
+
+function select(id: string) {
+	cy.get(blockSelector(id)).click({ force: true })
+	cy.get(editorSelector(id)).should("exist")
 }
 
 describe("reordering blocks on the canvas by dragging", () => {
@@ -239,10 +250,15 @@ describe("reordering blocks on the canvas by dragging", () => {
 		let undoEntries = 0
 		cy.then(() => (undoEntries = canvas.history.undoStack.length))
 
-		startDrag("pinned", () => {
-			const { x, y } = center(document.querySelector(blockSelector("pinned"))!)
-			return { x: x + 100, y: y + 50 }
-		})
+		select("pinned")
+		startDrag(
+			"pinned",
+			() => {
+				const { x, y } = center(document.querySelector(blockSelector("pinned"))!)
+				return { x: x + 100, y: y + 50 }
+			},
+			editorSelector,
+		)
 		cy.get("#reorder-ghost").should("not.exist")
 		cy.then(() => {
 			const pinned = canvas.findBlock("pinned")
@@ -286,13 +302,18 @@ describe("reordering blocks on the canvas by dragging", () => {
 			expect(isMovable(block, "desktop")).to.equal(false)
 			expect(isReorderable(block, "mobile")).to.equal(false)
 			expect(isMovable(block, "mobile")).to.equal(true)
-			// a stale active breakpoint must not leak into a drag on another canvas
-			canvas.setActiveBreakpoint("mobile")
 		})
-		startDrag("pinned", () => {
-			const { x, y } = center(document.querySelector(blockSelector("pinned"))!)
-			return { x: x + 40, y }
-		})
+		select("pinned")
+		// a stale active breakpoint must not leak into a drag on another canvas
+		cy.then(() => canvas.setActiveBreakpoint("mobile"))
+		startDrag(
+			"pinned",
+			() => {
+				const { x, y } = center(document.querySelector(blockSelector("pinned"))!)
+				return { x: x + 40, y }
+			},
+			editorSelector,
+		)
 		cy.then(() => expect(canvas.activeBreakpoint).to.equal("desktop"))
 		release()
 		cy.then(() => {

@@ -5,7 +5,7 @@
 		:selected="isBlockSelected"
 		:data-component-id="block.componentId"
 		:class="getStyleClasses"
-		@mousedown="handleMouseDown"
+		@mousedown.prevent="handleMouseDown"
 		@click.stop="handleClick"
 	>
 		<!-- Component name label -->
@@ -201,15 +201,14 @@ const componentLabelClasses = computed(() => {
 const handleMouseDown = (ev: MouseEvent) => {
 	if (ev.button !== 0 || store.mode !== "select") return
 	if ((ev.target as HTMLElement).closest("button")) return
-	const start = isReorderable(props.block, props.breakpoint)
-		? startBlockReorder
-		: isMovable(props.block, props.breakpoint)
-			? startBlockMove
-			: null
-	if (!start) return
-	ev.preventDefault()
-	ev.stopPropagation()
-	start(ev, props.block, props.breakpoint)
+
+	if (isReorderable(props.block, props.breakpoint)) {
+		ev.stopPropagation()
+		startBlockReorder(ev, props.block, props.breakpoint)
+	} else if (isMovable(props.block, props.breakpoint)) {
+		ev.stopPropagation()
+		startBlockMove(ev, props.block, props.breakpoint)
+	}
 }
 
 const handleClick = (ev: MouseEvent) => {

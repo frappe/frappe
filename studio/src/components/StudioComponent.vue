@@ -124,7 +124,6 @@ import useCanvasStore from "@/stores/canvasStore"
 import useStudioStore from "@/stores/studioStore"
 import { getBlockInfo, getComponentRoot, isObjectEmpty } from "@/utils/helpers"
 import { isReorderable, startBlockReorder } from "@/utils/useBlockReorder"
-import { isMovable, startBlockMove } from "@/utils/useBlockMove"
 import { isDynamicValue } from "@/utils/code"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
@@ -339,23 +338,17 @@ const getClickedComponent = (e: MouseEvent) => {
 	}
 }
 
-// Press-and-drag any block in one gesture (no need to select first): in-flow
-// blocks reorder, absolutely positioned ones move freely. The drag threshold
-// inside both engines means a plain click still falls through to handleClick.
+// Press-and-drag any block to reorder it in one gesture (no need to select
+// first). The threshold inside startBlockReorder means a plain click still
+// falls through to handleClick for selection.
 const handleMouseDown = (e: MouseEvent) => {
 	if (e.button !== 0 || store.mode !== "select") return
 	const block = getClickedComponent(e)
-	if (!block) return
 	const breakpoint = getBlockInfo(e).breakpoint || props.breakpoint
-	const start = isReorderable(block, breakpoint)
-		? startBlockReorder
-		: isMovable(block, breakpoint)
-			? startBlockMove
-			: null
-	if (!start) return
+	if (!block || !isReorderable(block, breakpoint)) return
 	// every ancestor block listens too; only the deepest one owns the drag
 	e.stopPropagation()
-	start(e, block, breakpoint)
+	startBlockReorder(e, block, breakpoint)
 }
 
 const handleClick = (e: MouseEvent) => {
