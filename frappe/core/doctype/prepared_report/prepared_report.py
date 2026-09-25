@@ -79,13 +79,17 @@ class PreparedReport(Document):
 
 	def after_insert(self):
 		timeout = frappe.get_value("Report", self.report_name, "timeout")
-		enqueue(
-			generate_report,
-			queue="long",
+		frappe.enqueue_task(
+			method="frappe.core.doctype.prepared_report.prepared_report.generate_report",
 			prepared_report=self.name,
+			task_name=self.report_name,
+			ref_doctype=self.doctype,
+			ref_docname=self.name,
 			timeout=timeout or REPORT_TIMEOUT,
+			show_progress_bar=False,
 			enqueue_after_commit=True,
 			at_front_when_starved=True,
+			queue="long",
 		)
 
 	def get_prepared_data(self, with_file_name=False, format="json"):
