@@ -1,5 +1,4 @@
 import { useCanvasHistory } from "@/utils/useCanvasHistory"
-import type { IndicatorGeometry } from "@/utils/dropGeometry"
 import { Ref } from "vue"
 
 export interface BreakpointConfig {
@@ -24,21 +23,3 @@ export interface CanvasProps {
 
 export type CanvasHistory = Ref<ReturnType<typeof useCanvasHistory>>
 
-export interface ScreenRect {
-	top: number
-	left: number
-	width: number
-	height: number
-}
-
-// on-canvas block reorder feedback, read by the DropIndicator overlay
-export interface ReorderTarget {
-	active: boolean
-	// insertion line geometry, screen px
-	line: IndicatorGeometry | null
-	containerRect: ScreenRect | null
-	// dropping into a named slot (purple accent) vs regular children (blue)
-	isSlotTarget: boolean
-	// dropping into the block's own container (reorder) vs a different one
-	isSameContainer: boolean
-}
