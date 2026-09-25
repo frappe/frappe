@@ -9,6 +9,7 @@ from frappe.utils import cint, flt
 
 ASSUMED_BODY_WIDTH_PX = 750
 DEFAULT_COLUMN_WIDTH_PCT = 10
+MAX_DEFAULT_TABLE_COLUMNS = 8
 # classic wrapped text and table blocks in `padding: 10px 0px`; the beta renderer
 # has no such default, so converted sections carry the gap explicitly
 CONVERTED_SECTION_GAP_PX = 10
@@ -148,6 +149,8 @@ def convert_classic_to_beta(format_data, meta, print_format=None) -> tuple[dict,
 	layout["sections"] = [
 		section for section in layout["sections"] if any(column["fields"] for column in section["columns"])
 	]
+	if not data and not layout["sections"]:
+		layout["sections"] = create_default_layout(meta)["sections"]
 
 	for section in layout["sections"][1:]:
 		section["margin"] = {"top": CONVERTED_SECTION_GAP_PX, "right": 0, "bottom": 0, "left": 0}
@@ -192,16 +195,28 @@ def convert_table_columns(df, meta_df, dropped) -> list:
 				}
 			)
 	else:
-		for child_df in child_meta.fields:
-			if child_df.fieldtype in ("Section Break", "Column Break") or cint(child_df.print_hide):
-				continue
+		child_fields = [
+			child_df
+			for child_df in child_meta.fields
+			if child_df.fieldtype not in ("Section Break", "Column Break", "Tab Break")
+			and not cint(child_df.print_hide)
+		]
+		if len(child_fields) > MAX_DEFAULT_TABLE_COLUMNS:
+			# a wide child table keeps what its author marked essential: the list-view
+			# and mandatory columns, plus the rich-text description
+			child_fields = [
+				df
+				for df in child_fields
+				if cint(df.in_list_view) or cint(df.reqd) or df.fieldtype == "Text Editor"
+			] or child_fields
+		for child_df in child_fields:
 			columns.append(
 				{
 					"label": child_df.label or child_df.fieldname,
 					"fieldname": child_df.fieldname,
 					"fieldtype": child_df.fieldtype,
 					"options": child_df.options,
-					"width": None,
+					"width": parse_print_width(child_df.width),
 				}
 			)
 

@@ -80,12 +80,13 @@ def get_print(
 	from frappe.website.serve import get_response_without_exception_handling
 
 	local = frappe.local
-	if "pdf_generator" not in local.form_dict:
-		pf_doc = _print_format_doc_or_none(print_format)
-		local.form_dict.pdf_generator = resolve_pdf_generator(pf_doc, pdf_generator)
+	generator = local.form_dict.get("pdf_generator") or resolve_pdf_generator(
+		_print_format_doc_or_none(print_format), pdf_generator
+	)
 
 	original_form_dict = copy.deepcopy(local.form_dict)
 	try:
+		local.form_dict.pdf_generator = generator
 		local.form_dict.doctype = doctype
 		local.form_dict.name = name
 		local.form_dict.format = print_format
@@ -100,44 +101,45 @@ def get_print(
 
 		response = get_response_without_exception_handling("printview", 200)
 		html = str(response.data, "utf-8")
+
+		if not as_pdf:
+			return html
+
+		if generator != "wkhtmltopdf":
+			hook_func = frappe.get_hooks("pdf_generator")
+			for hook in hook_func:
+				"""
+				check pdf_generator value in your hook function.
+				if it matches run and return pdf else return None
+				"""
+				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
+				pdf = frappe.call(
+					hook,
+					print_format=print_format,
+					html=html,
+					options=pdf_options,
+					output=output,
+					pdf_generator=generator,
+				)
+				# if hook returns a value, assume it was the correct pdf_generator and return it
+				if pdf:
+					if output and isinstance(pdf, bytes):
+						from io import BytesIO
+
+						from pypdf import PdfReader
+
+						reader = PdfReader(BytesIO(pdf))
+						for page in reader.pages:
+							output.add_page(page)
+						return output
+					return pdf
+
+		for hook in frappe.get_hooks("on_print_pdf"):
+			frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
+
+		return get_pdf(html, options=pdf_options, output=output)
 	finally:
 		local.form_dict = original_form_dict
-
-	if not as_pdf:
-		return html
-
-	if local.form_dict.pdf_generator != "wkhtmltopdf":
-		hook_func = frappe.get_hooks("pdf_generator")
-		for hook in hook_func:
-			"""
-			check pdf_generator value in your hook function.
-			if it matches run and return pdf else return None
-			"""
-			pdf = frappe.call(
-				hook,
-				print_format=print_format,
-				html=html,
-				options=pdf_options,
-				output=output,
-				pdf_generator=local.form_dict.pdf_generator,
-			)
-			# if hook returns a value, assume it was the correct pdf_generator and return it
-			if pdf:
-				if output and isinstance(pdf, bytes):
-					from io import BytesIO
-
-					from pypdf import PdfReader
-
-					reader = PdfReader(BytesIO(pdf))
-					for page in reader.pages:
-						output.add_page(page)
-					return output
-				return pdf
-
-	for hook in frappe.get_hooks("on_print_pdf"):
-		frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
-
-	return get_pdf(html, options=pdf_options, output=output)
 
 
 def attach_print(
@@ -158,12 +160,6 @@ def attach_print(
 	from frappe.utils.pdf import get_pdf
 
 	print_settings = frappe.db.get_singles_dict("Print Settings")
-	if print_letterhead and not letterhead:
-		if not doc:
-			doc = frappe.get_cached_doc(doctype, name)
-		letterhead = doc.get("letter_head") or frappe.get_cached_value(
-			"Letter Head", {"is_default": 1}, "name"
-		)
 	kwargs = dict(
 		print_format=print_format,
 		style=style,
@@ -183,7 +179,7 @@ def attach_print(
 	pf_doc = _print_format_doc_or_none(print_format)
 	render_via_generator = (pf_doc is None or uses_beta_renderer(pf_doc)) and resolve_pdf_generator(
 		pf_doc
-	) == "chrome"
+	) in ("chrome", "Typst")
 
 	try:
 		with print_language(lang or frappe.local.lang):

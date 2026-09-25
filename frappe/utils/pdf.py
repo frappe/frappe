@@ -241,6 +241,7 @@ def prepare_options(html, options):
 	)
 
 	if pdf_page_size == "Custom":
+		options.pop("page-size", None)
 		options["page-height"] = options.get("page-height") or frappe.db.get_single_value(
 			"Print Settings", "pdf_page_height"
 		)
