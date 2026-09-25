@@ -2,8 +2,19 @@ import types
 
 import frappe
 from frappe.tests import IntegrationTestCase
+<<<<<<< HEAD
 from frappe.utils.jinja import get_jenv, render_template
 from frappe.utils.safe_exec import SafeDoc, ServerScriptNotEnabled, get_safe_globals, safe_exec
+=======
+from frappe.utils.jinja import get_jenv, get_jinja_hooks, render_template
+from frappe.utils.safe_exec import (
+	SAFE_EXEC_CONFIG_KEY,
+	SafeDoc,
+	ServerScriptNotEnabled,
+	get_safe_globals,
+	safe_exec,
+)
+>>>>>>> 1a1bd38 (test(jinja): add regression test for the import change)
 
 
 class TestSafeExec(IntegrationTestCase):
@@ -344,3 +355,35 @@ class TestJinjaGlobals(IntegrationTestCase):
 		self.assertIsNot(jenv_restricted.globals, jenv_unrestricted.globals)
 		self.assertIs(get_jenv(restrict_globals=True), jenv_restricted)
 		self.assertIs(get_jenv(restrict_globals=False), jenv_unrestricted)
+
+	def test_module_path_hook_excludes_merely_imported_functions(self):
+		"""Module-path jinja hooks must not expose functions merely imported into that module."""
+		from subprocess import check_output
+
+		fixture = types.ModuleType("frappe_test_jinja_hook_fixture")
+
+		def run_echo(cmd):
+			# uses the module-level import internally; this must keep working
+			return check_output(cmd)
+
+		run_echo.__module__ = fixture.__name__
+		fixture.run_echo = run_echo
+		fixture.check_output = check_output  # imported, not defined here
+
+		with (
+			patch.object(
+				frappe,
+				"get_hooks",
+				return_value={"methods": ["frappe_test_jinja_hook_fixture"], "filters": []},
+			),
+			patch.object(frappe, "get_module", return_value=fixture),
+		):
+			method_dict, _ = get_jinja_hooks()
+
+		self.assertIn("run_echo", method_dict)
+		self.assertIs(method_dict["run_echo"], run_echo)
+		self.assertNotIn("check_output", method_dict)
+
+		# the filter only controls what's exposed to templates; the function's own
+		# internal use of the imported name is completely unaffected
+		self.assertEqual(method_dict["run_echo"](["echo", "ok"]).strip(), b"ok")
