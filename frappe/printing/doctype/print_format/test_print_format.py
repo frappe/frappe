@@ -96,7 +96,7 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 
 	FORMAT_NAME = "_Test Builder Elements"
 
-	def render(self, df):
+	def render(self, df, name="Administrator"):
 		from frappe.utils.print_format_generator import get_html
 
 		frappe.delete_doc("Print Format", self.FORMAT_NAME, force=True, ignore_missing=True)
@@ -111,7 +111,7 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 			}
 		).insert()
 		self.addCleanup(frappe.delete_doc, "Print Format", self.FORMAT_NAME, force=True)
-		return get_html("User", "Administrator", self.FORMAT_NAME)
+		return get_html("User", name, self.FORMAT_NAME)
 
 	def test_image_element(self):
 		df = {"fieldname": "image_test", "fieldtype": "Image", "custom": 1, "label": "Logo"}
@@ -125,20 +125,29 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 	def test_date_format_overrides_system_format(self):
 		from frappe.utils.print_format_generator import format_field_value
 
-		frappe.db.set_value("User", "Administrator", "birth_date", "2026-02-11", update_modified=False)
-		self.addCleanup(frappe.db.set_value, "User", "Administrator", "birth_date", None)
-		df = {"fieldname": "birth_date", "fieldtype": "Date", "label": "Birth Date"}
-		self.assertIn("11 Feb 2026", self.render(df | {"date_format": "d MMM yyyy"}))
-		self.assertIn("February 11, 2026", self.render(df | {"date_format": "MMMM d, yyyy"}))
-		self.assertNotIn("11 Feb 2026", self.render(df))
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "date_format_test@example.com",
+				"first_name": "Date Format",
+				"birth_date": "2026-02-11",
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_if_duplicate=True)
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
+		frappe.db.set_value("User", user.name, "last_login", "2026-02-11 09:30:00", update_modified=False)
+		user.reload()
 
-		user = frappe.get_doc("User", "Administrator")
+		df = {"fieldname": "birth_date", "fieldtype": "Date", "label": "Birth Date"}
+		self.assertIn("11 Feb 2026", self.render(df | {"date_format": "d MMM yyyy"}, user.name))
+		self.assertIn("February 11, 2026", self.render(df | {"date_format": "MMMM d, yyyy"}, user.name))
+		self.assertNotIn("11 Feb 2026", self.render(df, user.name))
+
 		self.assertEqual(format_field_value(user, df), user.get_formatted("birth_date"))
 		stamp = format_field_value(
 			user, {"fieldname": "last_login", "fieldtype": "Datetime", "date_format": "dd/mm/yyyy"}
 		)
-		if user.last_login:
-			self.assertRegex(stamp, r"^\d{2}/\d{2}/\d{4} \d{2}:\d{2}")
+		self.assertTrue(stamp.startswith("11/02/2026 09:30"))
 
 	def test_table_column_date_format_reaches_plain_and_merged_cells(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
