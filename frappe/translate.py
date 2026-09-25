@@ -975,12 +975,12 @@ def print_language(language: str):
 	frappe.local.jenv_restricted = None
 	frappe.local.jenv_unrestricted = None
 
-	yield
-
-	# restore original values
-	frappe.local.lang = _lang
-	frappe.local.jenv_restricted = _jenv_restricted
-	frappe.local.jenv_unrestricted = _jenv_unrestricted
+	try:
+		yield
+	finally:
+		frappe.local.lang = _lang
+		frappe.local.jenv_restricted = _jenv_restricted
+		frappe.local.jenv_unrestricted = _jenv_unrestricted
 
 
 # Backward compatibility
