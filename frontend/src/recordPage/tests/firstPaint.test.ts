@@ -320,22 +320,66 @@ describe("ready", () => {
     expect(drawn(controller)).toEqual(["replayed"]);
   });
 
-  it("does not wait for an onRefresh that returns a promise, and warns about it", async () => {
+  it("waits for an onRefresh's part after its await, and draws that part in one commit", async () => {
+    const pause = gate();
     await register("slow", {
       onRefresh: async (page: RecordPageApi) => {
+        const { quickActions } = page;
         page.quickActions.add(action("one"));
-        await never();
+        await pause.opened;
+        page.quickActions.add(action("two"));
+        quickActions.add(action("kept"));
       },
     });
     const controller = makePage();
+    let writes = -1;
+    watchEffect(
+      () => {
+        controller.quickActions.resolve();
+        writes += 1;
+      },
+      { flush: "sync" },
+    );
 
     await controller.refresh();
+    expect(controller.ready.value).toBe(false);
+    expect(warnings).toEqual([
+      "[record-page] slow.onRefresh on CRM Deal returned a promise; onRefresh should be synchronous. The first paint waits up to 500 ms for what it does after its first await; after that it lands as a later paint.",
+    ]);
+    const before = writes;
+
+    pause.open();
+    await vi.advanceTimersByTimeAsync(0);
 
     expect(controller.ready.value).toBe(true);
-    expect(drawn(controller)).toEqual(["one"]);
-    expect(warnings).toEqual([
-      "[record-page] slow.onRefresh on CRM Deal returned a promise, which is not awaited; onRefresh is synchronous.",
-    ]);
+    expect(drawn(controller)).toEqual(["one", "two", "kept"]);
+    expect(writes).toBe(before + 1);
+  });
+
+  it("paints without an onRefresh still running at the time limit, and draws it when it settles", async () => {
+    const pause = gate();
+    await register("slow", {
+      onRefresh: async (page: RecordPageApi) => {
+        page.quickActions.add(action("one"));
+        await pause.opened;
+        page.quickActions.add(action("two"));
+      },
+    });
+    await register("fast", {
+      onRefresh: (page: RecordPageApi) => page.quickActions.add(action("fast")),
+    });
+    const controller = makePage();
+
+    void controller.refresh();
+    await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS);
+
+    expect(controller.ready.value).toBe(true);
+    expect(drawn(controller)).toEqual(["fast"]);
+    expect(warnings[1]).toContain("without waiting for slow;");
+
+    pause.open();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(drawn(controller)).toEqual(["one", "fast", "two"]);
   });
 
   it("stays false through a nested `page.refresh()` until the outer replay ends", async () => {

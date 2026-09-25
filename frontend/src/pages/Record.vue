@@ -518,6 +518,7 @@ function blank() {
 	docinfo.value = null;
 	linkTitles.value = {};
 	saving.value = false;
+	controller.value?.leave();
 	controller.value = null;
 	panelLayout.value = null;
 	detailsLayout.value = null;
@@ -867,6 +868,7 @@ onMounted(() => {
 	window.addEventListener("beforeunload", onBeforeUnload);
 });
 onUnmounted(() => {
+	controller.value?.leave();
 	live.dispose();
 	feeds.endKeptRead();
 	window.removeEventListener("keydown", onKeydown);

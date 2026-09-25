@@ -29,7 +29,8 @@ import { runMethod } from "@framework/ui/api";
 import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
 import { loadClientScripts, resetClientScripts } from "../clientScripts";
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
-import { withRegisteringSource } from "../context";
+import { LATE_LIMIT_MS } from "../paintGate";
+import { HOST_SOURCE, runningSource, withRegisteringSource } from "../context";
 import { registerRecordPage, resetRegistry } from "../registry";
 import type { AuthoredHandlers, RecordPageApi } from "../types";
 
@@ -165,18 +166,18 @@ describe("paintNow", () => {
     expect(seen).toEqual([false]);
   });
 
-  it("warns about an onRefresh that returns a promise, and ignores what it does after its await", async () => {
+  it("paints at once while an onRefresh awaits, and lands what it does after its await in one commit", async () => {
     const pause = gate();
     await register("early", {
       onRefresh: (page: RecordPageApi) => page.quickActions.add(action("one")),
     });
     await register("slow", {
       onRefresh: async (page: RecordPageApi) => {
+        const { tabs } = page;
         page.quickActions.add(action("two"));
         await pause.opened;
         page.quickActions.add(action("three"));
-        page.fields.hide("rate");
-        page.tabs.activate("notes");
+        tabs.activate("notes");
       },
     });
     await register("after", {
@@ -188,26 +189,57 @@ describe("paintNow", () => {
 
     expect(controller.ready.value).toBe(true);
     expect(drawn(controller)).toEqual(["one", "two", "four"]);
-    expect(warnings).toEqual([
-      "[record-page] slow.onRefresh on CRM Deal returned a promise, which is not awaited; onRefresh is synchronous.",
-    ]);
-    const reports = vi
-      .mocked(runMethod)
-      .mock.calls.filter(([method]) => String(method).includes("report_customization_error"));
-    expect(reports).toHaveLength(1);
-    expect(reports[0][1]).toMatchObject({ source: "slow", event: "onRefresh (async)", doctype: "CRM Deal" });
+    const paints = countPaints(controller);
 
-    const held = gate();
-    const holding = controller.hold(() => held.opened);
     pause.open();
     await vi.advanceTimersByTimeAsync(0);
-    held.open();
-    await holding;
+
+    expect(drawn(controller)).toEqual(["one", "two", "four", "three"]);
+    expect(paints.actions).toBe(1);
+    expect(moved).toEqual(["notes"]);
+  });
+
+  it("warns on every replay and files one Error Log row for a source whose onRefresh returns a promise", async () => {
+    await register("awaiting", { onRefresh: async () => {} });
+    const { controller } = await loadedPage();
+
+    controller.paintNow();
     await controller.refresh();
 
-    expect(drawn(controller)).toEqual(["one", "two", "four"]);
-    expect(controller.fields.resolve()).toEqual({});
-    expect(moved).toEqual([]);
+    const said =
+      "[record-page] awaiting.onRefresh on CRM Deal returned a promise; onRefresh should be synchronous. The first paint waits up to 500 ms for what it does after its first await; after that it lands as a later paint.";
+    expect(warnings).toEqual([said, said]);
+    const reports = vi
+      .mocked(runMethod)
+      .mock.calls.filter(
+        ([method, params]) =>
+          String(method).includes("report_customization_error") &&
+          (params as { source?: string }).source === "awaiting",
+      );
+    expect(reports).toHaveLength(1);
+    expect(reports[0][1]).toMatchObject({ event: "onRefresh (async)", doctype: "CRM Deal" });
+  });
+
+  it("reports an onRefresh whose promise rejects, and draws what it did before", async () => {
+    await register("failing", {
+      onRefresh: async (page: RecordPageApi) => {
+        page.quickActions.add(action("one"));
+        await Promise.resolve();
+        page.quickActions.add(action("two"));
+        throw new Error("boom");
+      },
+    });
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { controller } = await loadedPage();
+
+    controller.paintNow();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(drawn(controller)).toEqual(["one", "two"]);
+    expect(errors).toHaveBeenCalledWith(
+      "[record-page] failing.onRefresh on CRM Deal threw",
+      expect.any(Error),
+    );
   });
 
   it("does nothing and answers false while the doctype's scripts are loading", async () => {
@@ -331,6 +363,78 @@ describe("refresh({ background: true })", () => {
     expect(drawn(controller)).toEqual(["Won", "held"]);
   });
 
+  it("draws its onRefresh's part after an await when it settles, and lands that part's acts", async () => {
+    let status = "Open";
+    let pause = gate();
+    await register("deal", {
+      onRefresh: async (page: RecordPageApi) => {
+        const seen = status;
+        page.quickActions.add(action("status", seen));
+        await pause.opened;
+        page.quickActions.add(action("late", `late ${seen}`));
+        page.tabs.activate("notes");
+      },
+    });
+    const { controller, moved } = await loadedPage();
+    controller.paintNow();
+    pause.open();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(moved).toEqual(["notes"]);
+
+    pause = gate();
+    status = "Won";
+    await controller.refresh({ background: true });
+    expect(drawn(controller)).toEqual(["Won"]);
+
+    pause.open();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(drawn(controller)).toEqual(["Won", "late Won"]);
+    expect(moved).toEqual(["notes", "notes"]);
+    expect(warnings.some((one) => one.includes("background read"))).toBe(false);
+  });
+
+  it("lands a quick action's act made while a background replay's late part runs", async () => {
+    const pause = gate();
+    await register("deal", {
+      onRefresh: async (page: RecordPageApi) => {
+        page.quickActions.add(action("one"));
+        await pause.opened;
+      },
+    });
+    const { controller, moved } = await loadedPage();
+    controller.paintNow();
+    await controller.refresh({ background: true });
+
+    await controller.hold(() => controller.page.tabs.activate("notes"));
+    pause.open();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(moved).toEqual(["notes"]);
+    expect(warnings.some((one) => one.includes("background read"))).toBe(false);
+  });
+
+  it("keeps its newer ops when an older onRefresh's part after an await settles", async () => {
+    let status = "Open";
+    const pause = gate();
+    await register("deal", {
+      onRefresh: (page: RecordPageApi) => {
+        page.quickActions.add(action("status", status));
+        if (status === "Open")
+          return pause.opened.then(() => page.quickActions.add(action("late")));
+      },
+    });
+    const { controller } = await loadedPage();
+    controller.paintNow();
+
+    status = "Won";
+    await controller.refresh({ background: true });
+    expect(drawn(controller)).toEqual(["Open"]);
+    pause.open();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(drawn(controller)).toEqual(["Won", "late"]);
+  });
+
   it("draws an action whose function is new, so a click never runs the last replay's", async () => {
     await register("deal", {
       onRefresh: (page: RecordPageApi) =>
@@ -408,5 +512,75 @@ describe("refresh({ background: true })", () => {
 
     expect(paints).toEqual({ actions: 1, fields: 0 });
     expect(drawn(controller)).toEqual(["Won"]);
+  });
+});
+
+describe("an onRefresh part that never settles", () => {
+  const stopped = "[record-page] hung.onRefresh on CRM Deal did not settle within 5 s; the page stopped waiting for it.";
+
+  it("holds the page's paints until the limit, then stops waiting with one warning", async () => {
+    let calls = 0;
+    await register("hung", {
+      onRefresh: (page: RecordPageApi) => {
+        page.quickActions.add(action("status", page.doc.status));
+        if (calls++ === 0) return new Promise<void>(() => {});
+      },
+      status: (page: RecordPageApi) => page.quickActions.add(action("field")),
+    });
+    const { controller, doc } = await loadedPage();
+    controller.paintNow();
+    doc.value.status = "Won";
+    await controller.refresh();
+    await controller.fireEvent("status");
+
+    expect(drawn(controller)).toEqual(["Open"]);
+
+    await vi.advanceTimersByTimeAsync(LATE_LIMIT_MS);
+
+    expect(drawn(controller)).toEqual(["Won", "field"]);
+    doc.value.status = "Lost";
+    await controller.refresh();
+    await controller.fireEvent("status");
+    expect(drawn(controller)).toEqual(["Lost", "field"]);
+    await vi.advanceTimersByTimeAsync(LATE_LIMIT_MS);
+    expect(warnings.filter((one) => one === stopped)).toHaveLength(1);
+  });
+
+  it("closes its hold when the reader leaves, landing no act and giving no warning", async () => {
+    await register("hung", {
+      onRefresh: async (page: RecordPageApi) => {
+        page.quickActions.add(action("one"));
+        await Promise.resolve();
+        page.quickActions.add(action("two"));
+        page.tabs.activate("notes");
+        await new Promise<void>(() => {});
+      },
+    });
+    const { controller, moved } = await loadedPage();
+    controller.paintNow();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(drawn(controller)).toEqual(["one"]);
+
+    controller.leave();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(drawn(controller)).toEqual(["one", "two"]);
+    expect(moved).toEqual([]);
+    expect(vi.getTimerCount()).toBe(0);
+    expect(warnings).not.toContain(stopped);
+  });
+
+  it("names no source once its replay returns, so a later page's own dialog is the host's", async () => {
+    await register("hung", { onRefresh: () => new Promise<void>(() => {}) });
+    const { controller } = await loadedPage();
+    controller.paintNow();
+
+    expect(runningSource()).toBe(HOST_SOURCE);
+
+    controller.leave();
+    const next = makePage().controller;
+    void next.page.dialog.open({} as any);
+    expect(next.dialogs.value.map((one) => one.source)).toEqual([HOST_SOURCE]);
   });
 });

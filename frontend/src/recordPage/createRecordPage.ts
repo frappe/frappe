@@ -30,7 +30,7 @@ import { registrationsFor, type Registration } from "./registry";
 import { reportCustomizationError } from "./reportError";
 import { createRows, warnRowIssue } from "./rows";
 import { clientScriptsLoaded } from "./clientScripts";
-import { createPaintGate, type RefreshOptions } from "./paintGate";
+import { createPaintGate, type LateRefresh, type RefreshOptions } from "./paintGate";
 import { IN_BACKGROUND, NOT_DRAWN, type Staging } from "./staging";
 import { Surface } from "./surface";
 import { PANEL_SECTION_KEYS, QUICK_ACTION_KEYS, TAB_ITEM_KEYS } from "./types";
@@ -66,7 +66,7 @@ const INERT: any = new Proxy(() => {}, {
   set: () => true,
 });
 
-/** The `page` one `onRefresh` gets; once closed, every member read off it is inert. */
+/** The `page` `onRefresh` gets; once closed, every member read off it is inert. */
 function pageView(page: RecordPageApi) {
   let open = true;
   const view = new Proxy(page, { get: (target, key) => (open ? Reflect.get(target, key) : INERT) });
@@ -202,7 +202,7 @@ export interface RecordPageController {
   isReplaying: ComputedRef<boolean>;
   /** The `open`/`form` dialogs on screen, for the host's `<PageDialogs>`. */
   dialogs: Ref<PageDialogEntry[]>;
-  /** The reader left the page: closes its dialogs newest-first, each resolving `null`, and stops the first-paint clock. */
+  /** The reader left the page: closes its dialogs newest-first, each resolving `null`, and closes the `page` `onRefresh` got. */
   leave: () => void;
 }
 
@@ -366,7 +366,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     composer,
     rows: rows.rows,
     save: () => save(),
-    reload: () => host.reload(),
+    reload: () => (gate.hasLeft() ? Promise.resolve() : host.reload()),
     refresh: () => gate.refresh(),
     toast: {
       success: (message) => toast.success(message),
@@ -380,6 +380,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
 
   // With an empty removals list this hands the same object straight back.
   const page = withRemovals(capabilities);
+  const refreshView = pageView(page);
 
   function deliverHeldActs(drawnOnly: boolean) {
     releaseActivations(drawnOnly);
@@ -394,7 +395,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
 
   /** The one save path: a clean doc resolves at once, and a `beforeSave` throw sends nothing. */
   function save() {
-    if (!host.isDirty()) return Promise.resolve();
+    if (gate.hasLeft() || !host.isDirty()) return Promise.resolve();
     if (!saving) saving = runSave().finally(() => (saving = null));
     return saving;
   }
@@ -641,32 +642,37 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
 
   /** A replay's pass, synchronous; `ran` carries its first pass into its second, so no source runs twice. */
   function runRefresh(ran: Set<Registration>) {
+    const late: LateRefresh[] = [];
     for (const registration of registrationsFor(host.doctype)) {
       if (ran.has(registration)) continue;
       ran.add(registration);
       const { source, handlers } = registration;
       const handler = handlers.onRefresh;
-      if (handler) withRunningSource(source, () => refreshWith(source, handler));
+      const settled = handler && refreshWith(source, handler);
+      if (settled) late.push({ source, settled });
     }
+    return late;
   }
 
-  /** An `onRefresh` that returns a promise is warned about, and its `page` does nothing after that. */
+  /** Answers when the rest of an `onRefresh` that returned a promise settles. */
   function refreshWith(source: string, handler: Handler) {
-    const view = pageView(page);
     try {
-      const result: unknown = handler(view.page);
+      let result: unknown;
+      withRunningSource(source, () => void (result = handler(refreshView.page)));
       if (!(result instanceof Promise)) return;
-      view.close();
       warnAsyncRefresh(source);
-      result.catch((error) => reportHandlerError(source, "onRefresh", error));
+      return result.then(
+        () => {},
+        (error) => reportHandlerError(source, "onRefresh", error),
+      );
     } catch (error) {
       reportHandlerError(source, "onRefresh", error);
     }
   }
 
-  // Filed in production too: a Client Script's lost changes must reach an admin.
+  // Filed in production too, so an admin sees which scripts to move to a cached read.
   function warnAsyncRefresh(source: string) {
-    const message = `[record-page] ${source}.onRefresh on ${host.doctype} returned a promise, which is not awaited; onRefresh is synchronous.`;
+    const message = `[record-page] ${source}.onRefresh on ${host.doctype} returned a promise; onRefresh should be synchronous. The first paint waits up to 500 ms for what it does after its first await; after that it lands as a later paint.`;
     if (import.meta.env.DEV) console.warn(message);
     reportCustomizationError(new Error(message), {
       source,
@@ -767,7 +773,10 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     ready: gate.ready,
     isReplaying: gate.isReplaying,
     dialogs: dialogs.entries,
-    leave: gate.leave,
+    leave: () => {
+      refreshView.close();
+      gate.leave();
+    },
   };
 }
 

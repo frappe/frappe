@@ -4,6 +4,7 @@ import { createApp, defineComponent, h, nextTick } from "vue";
 import { RouterView, type Router } from "vue-router";
 
 const load = vi.hoisted(() => ({ layoutsLoading: false }));
+const made = vi.hoisted(() => ({ controllers: [] as any[] }));
 
 vi.mock("@/shell/PageFrame.vue", async () => {
   const { defineComponent, h } = await import("vue");
@@ -16,10 +17,16 @@ vi.mock("@/shell/PageFrame.vue", async () => {
 });
 
 vi.mock("@/recordPage", async (importOriginal) => {
-  const original = (await importOriginal()) as object;
+  const original = (await importOriginal()) as any;
   const { computed, ref } = await import("vue");
   return {
     ...original,
+    createRecordPage: (host: unknown) => {
+      const controller = original.createRecordPage(host);
+      controller.leave = vi.fn(controller.leave);
+      made.controllers.push(controller);
+      return controller;
+    },
     useFormLayout: () => {
       const loading = ref(load.layoutsLoading);
       return {
@@ -185,6 +192,7 @@ beforeEach(() => {
   server.holdParts = [];
   server.requests = [];
   load.layoutsLoading = false;
+  made.controllers = [];
   resetClientScripts();
   resetDoctypeMeta();
   resetUserRoles();
@@ -553,6 +561,73 @@ describe("a return visit", () => {
     await settle();
 
     expect(state(root)).toBe(`Open|Mine|${SAVED}|${SAVED}|0`);
+  });
+});
+
+describe("a record the reader leaves while its onRefresh awaits", () => {
+  it("lets the rest of that onRefresh touch nothing on the next record, and leaves each controller once", async () => {
+    const pause = gate();
+    let armed = false;
+    await register({
+      onRefresh: async (page) => {
+        drawState(page);
+        if (!armed || page.docname !== name) return;
+        await pause.opened;
+        page.doc.title = "Changed";
+        void page.save();
+        page.tabs.activate("activity");
+      },
+    });
+    const { root, router } = await visitAndLeave();
+    armed = true;
+    await comeBack(router);
+    await settle();
+    const other = `${name}-other`;
+    server.others[other] = { doctype: "Note", name: other, title: "Other", status: "Draft", modified: EARLIER };
+    await router.push(routeFor("Note", other));
+    await settle();
+    const tab = activeTab(root);
+
+    pause.open();
+    await settle();
+
+    const current = made.controllers.at(-1);
+    expect(current.page.doc.title).toBe("Other");
+    expect(server.requests.filter((request) => request.startsWith("PATCH"))).toEqual([]);
+    expect(activeTab(root)).toBe(tab);
+    for (const controller of made.controllers.filter((one) => one.page.docname === name))
+      expect(controller.leave).toHaveBeenCalledOnce();
+    expect(current.leave).not.toHaveBeenCalled();
+  });
+
+  it("lets a save kept from its page before the await do nothing on the next record", async () => {
+    const pause = gate();
+    let armed = false;
+    await register({
+      onRefresh: async (page) => {
+        if (!armed || page.docname !== name) return;
+        const { save } = page;
+        await pause.opened;
+        void save();
+      },
+    });
+    const { router } = await visitAndLeave();
+    armed = true;
+    await comeBack(router);
+    await settle();
+    const other = `${name}-other`;
+    server.others[other] = { doctype: "Note", name: other, title: "Other", status: "Draft", modified: EARLIER };
+    await router.push(routeFor("Note", other));
+    await settle();
+    const current = made.controllers.at(-1);
+    current.page.doc.title = "Edited";
+
+    pause.open();
+    await settle();
+
+    expect(server.requests.filter((request) => request.startsWith("PATCH"))).toEqual([]);
+    expect(current.page.doc.title).toBe("Edited");
+    expect(current.page.isDirty).toBe(true);
   });
 });
 

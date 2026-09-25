@@ -70,7 +70,7 @@ function makePage(query: Record<string, string> = {}) {
 }
 
 async function settle() {
-  for (let turn = 0; turn < 3; turn++) await nextTick();
+  for (let turn = 0; turn < 4; turn++) await nextTick();
 }
 
 describe("the painted tab", () => {

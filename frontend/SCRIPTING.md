@@ -21,11 +21,15 @@ built-ins on every pass, so a conditional customization is a plain `if` over `pa
 with no `else` to undo it. Scripts run in `run_order`, and on one name the last to write
 wins.
 
-`onRefresh` is synchronous. One that returns a promise, an `async onRefresh` or one that
-awaits, is wrong: it gets a development warning and the replay does not wait for it. A
-call on `page` after its first `await` is ignored, but a part of `page` kept from before
-it (`const { tabs } = page`) is not blocked, so do not keep one. A replay reads what the page already holds: `page.doc`,
-`page.saved`, `page.meta` and the rows. A helper for cached server reads is coming.
+`onRefresh` should be synchronous. A replay reads what the page already holds:
+`page.doc`, `page.saved`, `page.meta` and the rows. An `async onRefresh`, or one that
+returns a promise, still works, but what it does after its first `await` lands later, in
+one paint when it settles: the first paint waits up to 500 ms for it; after that it lands
+as a later paint. The page stops waiting for it after 5 seconds. A member kept from
+`page` before the first `await` (`const { tabs } = page`) is not blocked once the reader
+has left, except `save`, `reload` and `refresh`, which then do nothing; do not keep one.
+It also gives a
+development warning and files an Error Log entry. A helper for cached server reads is coming; move server reads to it when it lands.
 
 ```js
 export default {

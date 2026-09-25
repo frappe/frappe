@@ -227,8 +227,8 @@ rendered until the replay or hold they stage in commits.
 
 **Replay**:
 The host clearing **every** surface and re-running **every** source in run order,
-synchronously: a promise an `onRefresh` returns is not awaited, and what it does after that
-is ignored. This is what makes conditional customization a plain `if` with no `else`. Ops
+synchronously: an `onRefresh` that returns a promise runs the rest in a hold for its
+source. This is what makes conditional customization a plain `if` with no `else`. Ops
 stage while a replay or a **hold** is open, and whichever closes last publishes them in one
 flush. The first replay has a time limit while it waits for the page's scripts or
 permissions: when it runs out, the page paints without any source still running a handler

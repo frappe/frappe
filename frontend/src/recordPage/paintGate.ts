@@ -8,6 +8,9 @@ import type { Staging } from "./staging";
 /** How long the first paint waits for the page's scripts before it goes ahead without a late one. */
 export const FIRST_PAINT_LIMIT_MS = 500;
 
+/** How long an `onRefresh`'s part after an await holds the page's paints before the page stops waiting. */
+export const LATE_LIMIT_MS = 5000;
+
 export interface PaintGateHost {
   doctype: string;
   docname: string;
@@ -18,8 +21,8 @@ export interface PaintGateHost {
   permissionsReady: () => Promise<unknown>;
   /** True when the sources and the permissions are already in, so a replay needs no wait. */
   loaded: () => boolean;
-  /** Runs `onRefresh` for each source `ran` does not hold yet, adding it. */
-  runRefresh: (ran: Set<Registration>) => void;
+  /** Runs `onRefresh` for each source `ran` does not hold yet, adding it; answers the ones still running. */
+  runRefresh: (ran: Set<Registration>) => LateRefresh[];
   /** Called once every source is in, before the replay's second pass. */
   warnUnknownHandlers: () => void;
   /** Delivers the acts held so far; `drawnOnly` drops one whose target is not drawn. */
@@ -43,8 +46,16 @@ export interface PaintGate {
   isStaging: () => boolean;
   /** True while the replay after a background read runs, so an act in it is dropped. */
   inBackground: () => boolean;
-  /** The reader left the page: closes its dialogs and stops the first-paint clock. */
+  /** The reader left the page: closes its dialogs and late holds, and delivers no more acts. */
   leave: () => void;
+  /** True once the reader has left, so a kept `page.save` or `page.reload` does nothing. */
+  hasLeft: () => boolean;
+}
+
+/** An `onRefresh` that returned a promise: the rest of it runs in a hold for its source. */
+export interface LateRefresh {
+  source: string;
+  settled: Promise<void>;
 }
 
 export interface RefreshOptions {
@@ -68,6 +79,8 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     early: false,
     background: false,
   };
+  let markLeft!: () => void;
+  const left = new Promise<void>((resolve) => (markLeft = resolve));
 
   async function refresh(options: RefreshOptions = {}) {
     if (state.left) return;
@@ -89,27 +102,31 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     if (state.left) return;
     if (background) return replayNow(true);
     openReplay();
+    // Filled by `runSources`, so the first pass's late parts are still held when the second pass throws.
+    const late: LateRefresh[] = [];
     try {
-      await runSources(everything);
+      await runSources(everything, late);
     } finally {
       // In `finally` so a throwing handler cannot leave the page staged for good.
       closeReplay();
+      holdLate(late);
     }
   }
 
   /** The sources already registered run while the Client Script tier loads; it runs last anyway. */
-  async function runSources(everything: Promise<unknown>) {
+  async function runSources(everything: Promise<unknown>, late: LateRefresh[]) {
     const ran = new Set<Registration>();
-    host.runRefresh(ran);
+    late.push(...host.runRefresh(ran));
     await waitFor("sources", everything);
     host.warnUnknownHandlers();
-    host.runRefresh(ran);
+    late.push(...host.runRefresh(ran));
   }
 
   function paintNow() {
     if (state.left || !host.loaded()) return false;
     replayNow(false);
-    replayed();
+    state.replayed = true;
+    ready.value = true;
     return true;
   }
 
@@ -117,13 +134,38 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
   function replayNow(background: boolean) {
     openReplay();
     state.background = background;
+    let late: LateRefresh[] = [];
     try {
       host.warnUnknownHandlers();
-      host.runRefresh(new Set());
+      late = host.runRefresh(new Set());
     } finally {
       state.background = false;
       closeReplay();
     }
+    holdLate(late);
+  }
+
+  /** Opened once the replay has committed, so its synchronous part draws without waiting for these. */
+  function holdLate(late: LateRefresh[]) {
+    for (const { source, settled } of late)
+      void asSource(source, () => hold(() => bounded(source, settled)));
+  }
+
+  /** Answers when the part settles or the reader leaves, or after the limit with a warning. */
+  function bounded(source: string, settled: Promise<void>) {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const limit = new Promise<void>((resolve) => {
+      timer = setTimeout(() => {
+        if (import.meta.env.DEV)
+          console.warn(
+            `[record-page] ${source}.onRefresh on ${host.doctype} did not settle within ${LATE_LIMIT_MS / 1000} s; the page stopped waiting for it.`,
+          );
+        resolve();
+      }, LATE_LIMIT_MS);
+    });
+    const done = Promise.race([settled, left, limit]);
+    void done.then(() => clearTimeout(timer));
+    return done;
   }
 
   async function waitFor(what: typeof state.awaiting, promise: Promise<unknown>) {
@@ -211,6 +253,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
 
   function leave() {
     state.left = true;
+    markLeft();
     clearTimeout(state.firstPaintLimit);
     host.closeDialogs();
   }
@@ -221,12 +264,23 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
 
   /** Delivers the acts a replay or a hold kept back, once the last of them has committed. */
   function releaseActs() {
-    if (!isStaging()) host.deliverHeldActs(false);
+    if (!state.left && !isStaging()) host.deliverHeldActs(false);
   }
 
   function inBackground() {
     return state.background;
   }
 
-  return { ready, isReplaying, refresh, paintNow, hold, asSource, isStaging, inBackground, leave };
+  return {
+    ready,
+    isReplaying,
+    refresh,
+    paintNow,
+    hold,
+    asSource,
+    isStaging,
+    inBackground,
+    leave,
+    hasLeft: () => state.left,
+  };
 }
