@@ -97,6 +97,9 @@ def _create_run(rule, row, snapshot, doc):
 	# The referenced doc may legitimately be gone (deleted, or a Doc Deleted trigger); the
 	# task must record it regardless, so skip Dynamic Link existence validation.
 	run.flags.ignore_links = True
+	# Automations work in the background: their runs are found in the task list and the logs,
+	# never announced with a toast.
+	run.flags.silent = True
 	return run.insert(ignore_permissions=True)
 
 

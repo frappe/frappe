@@ -143,9 +143,16 @@ table.no-border, table.no-border td {
 	font-weight: bold;
 }
 
-.print-format td, .print-format th {
-	vertical-align: top !important;
-	padding: 6px !important;
+:where(.print-format) td,
+:where(.print-format) th,
+.print-format .table > thead > tr > th,
+.print-format .table > tbody > tr > th,
+.print-format .table > tfoot > tr > th,
+.print-format .table > thead > tr > td,
+.print-format .table > tbody > tr > td,
+.print-format .table > tfoot > tr > td {
+	vertical-align: top;
+	padding: 6px;
 }
 
 .print-format p {

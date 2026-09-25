@@ -24,7 +24,7 @@ frappe.pages["print"].on_page_load = function (wrapper) {
 			print_view.frm = frappe.route_options.frm.doctype
 				? frappe.route_options.frm
 				: frappe.route_options.frm.frm;
-			frappe.route_options.frm = null;
+			delete frappe.route_options.frm;
 			let meta = print_view.frm.meta;
 			print_view.show(print_view.frm);
 		}
@@ -532,8 +532,8 @@ frappe.ui.form.PrintView = class {
 			.attr("dir", frappe.utils.is_rtl(this.lang_code) ? "rtl" : "ltr");
 		this.$print_format_body.find("html").attr("lang", this.lang_code);
 		this.$print_format_body.find("head").html(
-			`<style type="text/css">${out.style}</style>
-			<link href="${base_url}${print_css}" rel="stylesheet">`
+			`<link href="${base_url}${print_css}" rel="stylesheet">
+			<style type="text/css">${out.style}</style>`
 		);
 
 		this.$print_format_body
@@ -751,6 +751,9 @@ frappe.ui.form.PrintView = class {
 			});
 			if (this.additional_settings && Object.keys(this.additional_settings).length) {
 				params.append("settings", JSON.stringify(this.additional_settings));
+			}
+			if (this.lang_code) {
+				params.append("_lang", this.lang_code);
 			}
 			let w = window.open(
 				`/api/method/frappe.utils.print_format_generator.download_pdf?${params}`
