@@ -940,6 +940,36 @@ describe("a return visit on the Activity tab", () => {
     expect(urls.filter((url) => url.includes('types=["log"]'))).toHaveLength(1);
   });
 
+  it("holds the first read of types no past visit kept until the record's read returns, then draws both in one task", async () => {
+    let types: VisibleTypes = ["comment"];
+    await register({
+      onRefresh: (page) => {
+        page.activity.types(types);
+        drawState(page);
+      },
+    });
+    const { root, router } = await visitAndLeave("?tab=activity");
+    types = ["log"];
+    server.holdRecord = gate();
+
+    await comeBack(router, "?tab=activity");
+    await settle();
+
+    expect(root.querySelector(".activity")).toBeNull();
+
+    server.doc = { ...server.doc, title: "Second", modified: NEW };
+    server.holdRecord.open();
+    const seen: string[] = [];
+    for (let task = 0; task < 20; task++) {
+      await new Promise((resolve) => setTimeout(resolve));
+      const rows = root.querySelector('.activity[id="a1"]') ? "rows" : "no rows";
+      seen.push(`${rows} ${crumbs(root).includes("Second") ? "new" : "old"}`);
+    }
+
+    expect(seen).toContain("rows new");
+    expect(seen.every((one) => one === "rows new" || one === "no rows old")).toBe(true);
+  });
+
   it("takes the cold path when no past visit kept the feed", async () => {
     await register({ onRefresh: drawState });
     const { root, router } = await visitAndLeave();

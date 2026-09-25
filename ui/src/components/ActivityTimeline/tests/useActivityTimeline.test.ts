@@ -474,7 +474,6 @@ describe("the prefetched read", () => {
 
   it("stages a kept store's re-read: its rows change only when the returned function runs", async () => {
     const name = freshDoc();
-    expect(stageActivityTimelineRead("ToDo", name)).toBeNull();
     serve({ newest: { activities: [c(1)], next: null } });
     await prefetchActivityTimeline("ToDo", name);
     serve({ newest: { activities: [c(1), c(2)], next: null } });
@@ -487,6 +486,34 @@ describe("the prefetched read", () => {
       "comment:1",
       "comment:2",
     ]);
+  });
+
+  it("stages a store's first read: the feed loads with no rows until the returned function runs", async () => {
+    const name = freshDoc();
+    serve({ newest: { activities: [c(1)], next: null } });
+    const staged = stageActivityTimelineRead("ToDo", name)!;
+    const { timeline } = mountTimeline(name);
+
+    const apply = await staged;
+
+    expect(timeline.loading.value).toBe(true);
+    expect(timeline.activities.value).toEqual([]);
+    apply();
+    expect(timeline.loading.value).toBe(false);
+    expect(timeline.activities.value.map((one) => one.key)).toEqual(["comment:1"]);
+    expect(api.getDocumentPart).toHaveBeenCalledOnce();
+  });
+
+  it("reads a store's first page for itself when its staged first read is never applied", async () => {
+    const name = freshDoc();
+    serve({ newest: { activities: [c(1)], next: null } });
+    await stageActivityTimelineRead("ToDo", name);
+
+    endActivityPrefetch("ToDo", name);
+    const { timeline } = mountTimeline(name);
+
+    await vi.waitFor(() => expect(timeline.activities.value.map((one) => one.key)).toEqual(["comment:1"]));
+    expect(timeline.loading.value).toBe(false);
   });
 
   it("skips a staged page when a newer read landed first, so no newer row is lost", async () => {
