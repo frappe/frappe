@@ -506,8 +506,8 @@ frappe.ui.form.PrintView = class {
 			.attr("dir", frappe.utils.is_rtl(this.lang_code) ? "rtl" : "ltr");
 		this.$print_format_body.find("html").attr("lang", this.lang_code);
 		this.$print_format_body.find("head").html(
-			`<style type="text/css">${out.style}</style>
-			<link href="${base_url}${print_css}" rel="stylesheet">`
+			`<link href="${base_url}${print_css}" rel="stylesheet">
+			<style type="text/css">${out.style}</style>`
 		);
 
 		this.$print_format_body
