@@ -1,6 +1,6 @@
 <template>
 	<Teleport to="body">
-		<div class="pfb-overlay" @click.self="$emit('close')">
+		<div class="pfb-overlay" :style="{ top: overlay_top + 'px' }" @click.self="$emit('close')">
 			<div class="pfb-preview-modal">
 				<div v-if="!docname" class="pfb-preview-empty">
 					{{ __("Pick a record in the toolbar above to preview it.") }}
@@ -35,6 +35,7 @@ let store = inject("$store");
 let { print_format, layout, letterhead } = store;
 
 let preview_loaded = ref(false);
+let overlay_top = ref(0);
 let iframe = ref(null);
 let pdf_url = ref(null);
 let render_seq = 0;
@@ -134,14 +135,20 @@ function on_keydown(e) {
 	emit("close");
 }
 
+function place_overlay() {
+	overlay_top.value = document.querySelector(".page-head")?.getBoundingClientRect().bottom ?? 0;
+}
 onMounted(() => {
+	place_overlay();
 	render();
 	window.addEventListener("keydown", on_keydown);
+	window.addEventListener("resize", place_overlay);
 });
 onUnmounted(() => {
 	render_abort?.abort();
 	set_pdf_url(null);
 	window.removeEventListener("keydown", on_keydown);
+	window.removeEventListener("resize", place_overlay);
 });
 </script>
 
