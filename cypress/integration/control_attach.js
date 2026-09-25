@@ -304,7 +304,7 @@ context("Attach Control in a Child Table Row", () => {
 			});
 	});
 
-	it("keeps the row open after uploading a file", () => {
+	it("keeps the row open after uploading and clearing a file", () => {
 		cy.new_form("Test Attach Control Grid");
 		cy.get('.frappe-control[data-fieldname="items"]').as("table");
 		cy.get("@table").findByRole("button", { name: "Add row" }).click();
@@ -314,6 +314,8 @@ context("Attach Control in a Child Table Row", () => {
 
 		cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
 		cy.get(".grid-row-open").findByRole("button", { name: "Attach" }).click();
+		// a dialog asked to close while still fading in stays open, covering the row
+		cy.get_open_dialog().find(".modal-dialog").should("have.css", "transform", "none");
 		cy.get_open_dialog()
 			.find(".file-upload-area")
 			.selectFile("cypress/fixtures/sample_attachments/attachment-2.txt", {
@@ -326,5 +328,14 @@ context("Attach Control in a Child Table Row", () => {
 			.should("have.attr", "data-idx", "1")
 			.find(".attached-file-link")
 			.should("contain", "attachment-2.txt");
+
+		cy.get(".grid-row-open").find('[data-action="clear_attachment"]').click();
+		cy.click_modal_primary_button("Yes");
+		cy.wait("@save");
+
+		cy.get(".grid-row-open")
+			.should("have.attr", "data-idx", "1")
+			.findByRole("button", { name: "Attach" })
+			.should("be.visible");
 	});
 });
