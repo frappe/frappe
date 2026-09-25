@@ -664,10 +664,33 @@ export const DATE_FORMATS = [
 	"EEE, d MMM yyyy",
 ];
 
-const MOMENT_TOKENS = { yyyy: "YYYY", dd: "DD", d: "D", mm: "MM", EEEE: "dddd", EEE: "ddd" };
+const NAME_TOKENS = {
+	MMMM: ["month", "long"],
+	MMM: ["month", "short"],
+	EEEE: ["weekday", "long"],
+	EEE: ["weekday", "short"],
+};
 
-export function moment_date_format(fmt) {
-	return fmt.replace(/yyyy|MMMM|MMM|mm|dd|d|EEEE|EEE/g, (t) => MOMENT_TOKENS[t] || t);
+export function format_date_tokens(date, fmt, lang) {
+	const pad = (n) => String(n).padStart(2, "0");
+	const name = (token) => {
+		const [part, style] = NAME_TOKENS[token];
+		try {
+			return new Intl.DateTimeFormat(lang, { [part]: style }).format(date);
+		} catch {
+			return new Intl.DateTimeFormat("en", { [part]: style }).format(date);
+		}
+	};
+	return fmt.replace(/yyyy|MMMM|MMM|EEEE|EEE|mm|dd|d/g, (t) =>
+		NAME_TOKENS[t]
+			? name(t)
+			: {
+					yyyy: date.getFullYear(),
+					mm: pad(date.getMonth() + 1),
+					dd: pad(date.getDate()),
+					d: date.getDate(),
+			  }[t]
+	);
 }
 
 export const is_date_field = (df) => df?.fieldtype === "Date" || df?.fieldtype === "Datetime";
@@ -676,9 +699,9 @@ export function format_date_value(raw, df) {
 	if (!df?.date_format || !is_date_field(df) || !raw) return null;
 	const m = moment(frappe.datetime.str_to_obj(raw));
 	if (!m.isValid()) return null;
-	let fmt = moment_date_format(df.date_format);
-	if (df.fieldtype === "Datetime") fmt += " " + frappe.datetime.get_user_time_fmt();
-	return m.format(fmt);
+	let out = format_date_tokens(m.toDate(), df.date_format, frappe.boot?.lang || "en");
+	if (df.fieldtype === "Datetime") out += " " + m.format(frappe.datetime.get_user_time_fmt());
+	return out;
 }
 
 export function date_format_opts(sample) {
