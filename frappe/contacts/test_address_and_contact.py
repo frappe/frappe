@@ -2,7 +2,9 @@
 # License: MIT. See LICENSE
 
 import frappe
+import frappe.contacts.address_and_contact as address_and_contact_module
 from frappe.contacts.address_and_contact import get_permission_query_conditions, has_permission, remove_link
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.permissions import add_user_permission, remove_user_permission
 from frappe.tests import IntegrationTestCase
@@ -115,14 +117,34 @@ class TestRemoveLink(IntegrationTestCase):
 
 
 class TestContactAddressPartyPermission(IntegrationTestCase):
-	"""Contact/Address access follows the party (Customer/Supplier/Company/Sales
-	Partner) each record is linked to via the `links` Dynamic Link child table."""
+	"""Contact/Address access follows the party each record is linked to via the
+	`links` Dynamic Link child table. Uses a throwaway DocType standing in for a
+	real party doctype (e.g. Customer), so this runs without ERPNext installed."""
 
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		cls.customer_a = cls.make_customer("_Test Customer A")
-		cls.customer_b = cls.make_customer("_Test Customer B")
+
+		cls.party_role = "Test Party Role"
+		if not frappe.db.exists("Role", cls.party_role):
+			frappe.get_doc({"doctype": "Role", "role_name": cls.party_role}).insert(ignore_permissions=True)
+
+		# a randomly-suffixed name avoids colliding with a doctype left behind by
+		# an earlier run whose cleanup didn't stick (DocType creation is DDL, which
+		# implicit-commits ahead of the test transaction, so cleanup isn't guaranteed)
+		cls.party_doctype = new_doctype(permissions=[{"role": cls.party_role, "read": 1}]).insert(
+			ignore_permissions=True
+		)
+		cls.addClassCleanup(frappe.delete_doc, "DocType", cls.party_doctype.name, force=True)
+
+		cls.original_party_doctypes = address_and_contact_module.PARTY_DOCTYPES
+		address_and_contact_module.PARTY_DOCTYPES = (cls.party_doctype.name,)
+		cls.addClassCleanup(
+			setattr, address_and_contact_module, "PARTY_DOCTYPES", cls.original_party_doctypes
+		)
+
+		cls.party_a = cls.make_party("_Test Party A")
+		cls.party_b = cls.make_party("_Test Party B")
 
 		cls.scoped_user = "test_scoped_user@example.com"
 		if not frappe.db.exists("User", cls.scoped_user):
@@ -132,40 +154,38 @@ class TestContactAddressPartyPermission(IntegrationTestCase):
 					"email": cls.scoped_user,
 					"first_name": "Scoped",
 					"send_welcome_email": 0,
-					"roles": [{"role": "Sales User"}],
+					"roles": [{"role": cls.party_role}],
 				}
 			).insert(ignore_permissions=True)
 
-		add_user_permission("Customer", cls.customer_a.name, cls.scoped_user)
-		cls.addClassCleanup(remove_user_permission, "Customer", cls.customer_a.name, cls.scoped_user)
+		add_user_permission(cls.party_doctype.name, cls.party_a.name, cls.scoped_user)
+		cls.addClassCleanup(remove_user_permission, cls.party_doctype.name, cls.party_a.name, cls.scoped_user)
 
-	@staticmethod
-	def make_customer(customer_name):
-		if frappe.db.exists("Customer", customer_name):
-			return frappe.get_doc("Customer", customer_name)
-		return frappe.get_doc(
-			{"doctype": "Customer", "customer_name": customer_name, "customer_group": "Individual"}
-		).insert(ignore_permissions=True)
+	@classmethod
+	def make_party(cls, some_fieldname):
+		return frappe.get_doc({"doctype": cls.party_doctype.name, "some_fieldname": some_fieldname}).insert(
+			ignore_permissions=True
+		)
 
-	def make_contact(self, customer):
+	def make_contact(self, party):
 		return frappe.get_doc(
 			{
 				"doctype": "Contact",
-				"first_name": f"_Test Contact for {customer.name}",
-				"links": [{"link_doctype": "Customer", "link_name": customer.name}],
+				"first_name": f"_Test Contact for {party.name}",
+				"links": [{"link_doctype": self.party_doctype.name, "link_name": party.name}],
 			}
 		).insert(ignore_permissions=True)
 
 	def test_has_permission_follows_linked_party(self):
-		contact_b = self.make_contact(self.customer_b)
-		contact_a = self.make_contact(self.customer_a)
+		contact_b = self.make_contact(self.party_b)
+		contact_a = self.make_contact(self.party_a)
 
 		self.assertFalse(has_permission(contact_b, "read", self.scoped_user))
 		self.assertTrue(has_permission(contact_a, "read", self.scoped_user))
 
 	def test_query_conditions_follow_linked_party(self):
-		contact_b = self.make_contact(self.customer_b)
-		contact_a = self.make_contact(self.customer_a)
+		contact_b = self.make_contact(self.party_b)
+		contact_a = self.make_contact(self.party_a)
 
 		conditions = get_permission_query_conditions("Contact", self.scoped_user)
 		names = frappe.db.sql_list(
@@ -177,8 +197,8 @@ class TestContactAddressPartyPermission(IntegrationTestCase):
 		self.assertNotIn(contact_b.name, names)
 
 	def test_user_without_user_permission_sees_every_party(self):
-		contact_b = self.make_contact(self.customer_b)
-		contact_a = self.make_contact(self.customer_a)
+		contact_b = self.make_contact(self.party_b)
+		contact_a = self.make_contact(self.party_a)
 
 		plain_user = "test_plain_user@example.com"
 		if not frappe.db.exists("User", plain_user):
@@ -188,7 +208,7 @@ class TestContactAddressPartyPermission(IntegrationTestCase):
 					"email": plain_user,
 					"first_name": "Plain",
 					"send_welcome_email": 0,
-					"roles": [{"role": "Sales User"}],
+					"roles": [{"role": self.party_role}],
 				}
 			).insert(ignore_permissions=True)
 
@@ -216,3 +236,35 @@ class TestContactAddressPartyPermission(IntegrationTestCase):
 			{"name": unlinked_contact.name},
 		)
 		self.assertIn(unlinked_contact.name, names)
+
+	def test_stale_party_link_is_treated_as_unlinked(self):
+		"""A link to a party doctype whose app was since uninstalled must not hide
+		the record from lists, matching how has_permission treats it as unlinked."""
+		stale_doctype = new_doctype(permissions=[{"role": self.party_role, "read": 1}]).insert(
+			ignore_permissions=True
+		)
+		stale_record = frappe.get_doc({"doctype": stale_doctype.name, "some_fieldname": "stale"}).insert(
+			ignore_permissions=True
+		)
+		contact = frappe.get_doc(
+			{
+				"doctype": "Contact",
+				"first_name": "_Test Stale Link Contact",
+				"links": [{"link_doctype": stale_doctype.name, "link_name": stale_record.name}],
+			}
+		).insert(ignore_permissions=True)
+
+		frappe.delete_doc("DocType", stale_doctype.name, force=True, ignore_permissions=True)
+
+		address_and_contact_module.PARTY_DOCTYPES = (stale_doctype.name, self.party_doctype.name)
+		try:
+			self.assertTrue(has_permission(contact, "read", self.scoped_user))
+
+			conditions = get_permission_query_conditions("Contact", self.scoped_user)
+			names = frappe.db.sql_list(
+				f"select name from `tabContact` where name = %(name)s and {conditions}",
+				{"name": contact.name},
+			)
+			self.assertIn(contact.name, names)
+		finally:
+			address_and_contact_module.PARTY_DOCTYPES = (self.party_doctype.name,)

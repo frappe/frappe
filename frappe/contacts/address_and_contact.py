@@ -76,7 +76,10 @@ def get_party_links(doc) -> list[tuple[str, str]]:
 	return [
 		(link.link_doctype, link.link_name)
 		for link in doc.get("links") or []
-		if link.link_doctype in PARTY_DOCTYPES and link.link_name
+		if link.link_doctype in PARTY_DOCTYPES
+		and link.link_name
+		# skip a stale link to a doctype whose app was uninstalled
+		and frappe.db.exists("DocType", link.link_doctype, cache=True)
 	]
 
 
@@ -106,11 +109,17 @@ def get_permission_query_conditions(doctype, user=None):
 	if user == "Administrator":
 		return ""
 
+	installed_party_doctypes = [d for d in PARTY_DOCTYPES if frappe.db.exists("DocType", d, cache=True)]
+	if not installed_party_doctypes:
+		# no app providing a party doctype is installed: nothing to restrict by
+		return ""
+
 	party_conditions = []
-	for party_doctype in PARTY_DOCTYPES:
+	for party_doctype in installed_party_doctypes:
 		if not frappe.has_permission(party_doctype, "read", user=user):
 			continue
 
+		# get_list() applies every permission hook registered for this doctype
 		permitted_names = frappe.get_list(party_doctype, pluck="name", user=user)
 		if not permitted_names:
 			continue
@@ -130,7 +139,7 @@ def get_permission_query_conditions(doctype, user=None):
 		select 1 from `tabDynamic Link` dl
 		where dl.parent = `tab{doctype}`.name
 			and dl.parenttype = {frappe.db.escape(doctype)}
-			and dl.link_doctype in ({", ".join(frappe.db.escape(d) for d in PARTY_DOCTYPES)})
+			and dl.link_doctype in ({", ".join(frappe.db.escape(d) for d in installed_party_doctypes)})
 	)"""
 
 	return "(" + " or ".join([no_party_condition, *party_conditions]) + ")"
