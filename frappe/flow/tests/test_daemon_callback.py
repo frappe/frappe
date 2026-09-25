@@ -8,6 +8,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 
+from flow.api import api
 from flow.daemon.callback import callback, confirm_title
 from flow.daemon.client import DaemonClient
 from flow.lib.tool import ToolContext, tool
@@ -19,6 +20,10 @@ SECRET = "callback-secret"
 OWNER = "callback-owner@example.com"
 MODULE = "flow.tests.test_daemon_callback"
 BOOM = "def main(reason: str) -> str:\n\traise ValueError(reason)\n"
+
+
+def ended(run):
+	"""An on_end the tests patch."""
 
 
 @tool
@@ -172,6 +177,28 @@ class TestToolCallback(IntegrationTestCase):
 		self.session.reload()
 		self.assertEqual(self.session.last_synced_seq, 8)
 		self.assertEqual(len(self.session.messages), 4)
+
+	def test_on_end_is_called_once_as_the_owner_after_the_terminal_sync(self):
+		run = frappe.get_doc(
+			{
+				"doctype": "Flow Run",
+				"session": self.session.name,
+				"source": "Manual",
+				"status": "Running",
+				"on_end": f"{MODULE}.ended",
+			}
+		).insert()
+		calls = []
+		daemon = FakeDaemon(rows=turn(1, "daemon-run", "hello"))
+		with (
+			patch.object(DaemonClient, "for_site", return_value=daemon),
+			patch(f"{MODULE}.ended", side_effect=lambda run: calls.append((run.name, frappe.session.user))),
+		):
+			api.session(self.session.name)  # Administrator opening it records the end, leaves on_end
+			self.assertEqual(calls, [])
+			self.call_terminal(8)
+			self.call_terminal(8)
+		self.assertEqual(calls, [(run.name, OWNER)])
 
 	def test_terminal_recovery_creates_the_run_as_the_session_owner(self):
 		daemon = FakeDaemon(rows=turn(1, "daemon-run", "hello"))

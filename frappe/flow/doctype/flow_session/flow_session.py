@@ -240,6 +240,7 @@ class FlowSession(Document):
 			status = client.cancel_pending(self.name)["status"]
 		if status == "cancelled":
 			self.sync()
+			call_on_end(self)
 		return status
 
 	def _assert_can_run(self) -> None:
@@ -286,8 +287,7 @@ class FlowSession(Document):
 			return client.entries(self.name, since=since, path=path)
 
 	def sync(self) -> None:
-		"""Record the flow server's log since the last sync into Flow Runs and transcript rows,
-		then call the on_end of each run that ended."""
+		"""Record the flow server's log since the last sync into Flow Runs and transcript rows."""
 		self._lock()
 		try:
 			with DaemonClient.for_site() as client:
@@ -299,7 +299,6 @@ class FlowSession(Document):
 			if exc.status != 404:
 				frappe.throw(str(exc), title=_("Flow Server"))
 			fail_running(self.name, GONE)
-			call_on_end(self.name)
 			return
 		if rows:
 			LogRecorder(self).record(rows)
@@ -314,7 +313,6 @@ class FlowSession(Document):
 			self.title = info["title"]
 		self.flags.ignore_validate = True
 		self.save(ignore_permissions=True)
-		call_on_end(self.name)
 
 	def _lock(self) -> None:
 		"""Lock this session's row for the transaction and re-read it."""

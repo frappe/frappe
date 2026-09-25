@@ -215,14 +215,20 @@ def fail_running(session_name: str, error: str) -> None:
 		frappe.db.set_value("Flow Run", name, {"status": "Failed", "error": error})
 
 
-def call_on_end(session_name: str) -> None:
-	"""Call each ended run's on_end once. A failing one is logged and its writes undone."""
-	for name, on_end in frappe.db.get_values(
+def call_on_end(session: FlowSession) -> None:
+	"""Call each ended run's on_end once, only in the session owner's request so it runs as
+	them; another user's request leaves it for theirs. A failing one is logged and undone."""
+	if frappe.session.user != session.owner:
+		return
+	for name in frappe.get_all(
 		"Flow Run",
-		{"session": session_name, "status": ("in", ENDED), "on_end": ("is", "set")},
-		["name", "on_end"],
-		for_update=True,  # a locking read sees another sync's clear, so no second call
+		filters={"session": session.name, "status": ("in", ENDED), "on_end": ("is", "set")},
+		pluck="name",
 	):
+		# locked by name: a locking scan would lock every run on the site
+		on_end = frappe.db.get_value("Flow Run", name, "on_end", for_update=True)
+		if not on_end:  # another request called it first
+			continue
 		frappe.db.set_value("Flow Run", name, "on_end", None, update_modified=False)
 		frappe.db.savepoint(ON_END_SAVEPOINT)
 		try:

@@ -13,7 +13,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 
-from flow.lib.session import new_session
+from flow.lib.session import call_on_end, new_session
 
 if TYPE_CHECKING:
 	from flow.flow.doctype.flow_session.flow_session import FlowSession
@@ -97,6 +97,7 @@ def session(session: str) -> dict[str, Any]:
 	doc = _load_session(session, "read")
 	if frappe.db.exists("Flow Run", {"session": doc.name, "status": ("in", ("Running", "Paused"))}):
 		doc.sync()
+		call_on_end(doc)
 	return _session_payload(doc)
 
 
