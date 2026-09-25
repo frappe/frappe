@@ -4,7 +4,7 @@ frappe.listview_settings["Dashboard"] = {
 			return doc.name;
 		},
 		get_label() {
-			return frappe.utils.icon("dashboard-list", "sm");
+			return frappe.utils.icon("layout-dashboard", "sm");
 		},
 		get_description(doc) {
 			return __("View {0}", [`${doc.name}`]);

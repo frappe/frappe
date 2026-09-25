@@ -6,7 +6,7 @@
 }
 
 @mixin card(
-	$radius: var(--border-radius-md),
+	$radius: var(--radius-md),
 	$shadow: var(--card-shadow),
 	$padding: var(--padding-sm),
 	$background-color: var(--card-bg)
@@ -38,7 +38,7 @@
 	$top: 0,
 	$left: 0,
 	$background-color: var(--bg-color),
-	$border-radius: var(--border-radius)
+	$border-radius: var(--radius)
 ) {
 	// Deprecated: Does not work as expected anymore. Also, this never worked in Safari.
 }

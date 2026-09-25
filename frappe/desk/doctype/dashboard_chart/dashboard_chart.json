@@ -90,7 +90,8 @@
    "depends_on": "eval: ['Sum', 'Average'].includes(doc.chart_type)\n",
    "fieldname": "value_based_on",
    "fieldtype": "Select",
-   "label": "Value Based On"
+   "label": "Value Based On",
+   "mandatory_depends_on": "eval: ['Sum', 'Average'].includes(doc.chart_type)"
   },
   {
    "fieldname": "column_break_6",
@@ -307,8 +308,9 @@
    "label": "Show Values over Chart"
   }
  ],
+ "icon": "chart-area",
  "links": [],
- "modified": "2026-07-17 11:42:00.000000",
+ "modified": "2026-07-20 10:15:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
@@ -349,6 +351,7 @@
    "share": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

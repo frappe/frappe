@@ -55,18 +55,6 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			// like links, currencies, HTMLs etc.
 			this.disp_area = this.$wrapper.find(".control-value").get(0);
 		}
-		this.setup_shortcut();
-	}
-	setup_shortcut() {
-		$(this.input_area).on("keydown", function (event) {
-			if (event.originalEvent.ctrlKey || event.originalEvent.metaKey) {
-				if (event.originalEvent.key === "k" || event.originalEvent.key === "K") {
-					$("#navbar-modal-search").click();
-					event.preventDefault();
-					return false;
-				}
-			}
-		});
 	}
 	set_max_width() {
 		if (this.constructor.horizontal) {
@@ -270,11 +258,21 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		// do not set has-error class on form load
 		if (this.frm && this.frm.cscript && this.frm.cscript.is_onload) return;
 
-		// do not set has-error class while dialog is rendered
-		// set has-error if dialog primary button is clicked
-		if (this.layout && this.layout.is_dialog && !this.layout.primary_action_fulfilled) return;
+		// do not set has-error class while a dialog or web form is rendered
+		// set has-error only once the primary action (submit) has been attempted
+		if (
+			this.layout &&
+			(this.layout.is_dialog || this.layout.doctype === "Web Form") &&
+			!this.layout.primary_action_fulfilled
+		)
+			return;
 
-		this.$wrapper.toggleClass("has-error", Boolean(this.df.reqd && is_null(value)));
+		const is_invalid = this.$wrapper.hasClass("has-error-invalid");
+		this.$wrapper.toggleClass("has-error-mandatory", Boolean(this.df.reqd && is_null(value)));
+		this.$wrapper.toggleClass(
+			"has-error",
+			is_invalid || Boolean(this.df.reqd && is_null(value))
+		);
 	}
 	set_invalid() {
 		let invalid = !!this.df.invalid;
@@ -283,7 +281,9 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 			this.$input?.toggleClass("invalid", invalid);
 			this.grid_row.columns[this.df.fieldname].is_invalid = invalid;
 		} else {
-			this.$wrapper.toggleClass("has-error", invalid);
+			const is_mandatory_and_empty = this.$wrapper.hasClass("has-error-mandatory");
+			this.$wrapper.toggleClass("has-error-invalid", invalid);
+			this.$wrapper.toggleClass("has-error", is_mandatory_and_empty || invalid);
 		}
 	}
 	set_required() {

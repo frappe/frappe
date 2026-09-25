@@ -32,22 +32,40 @@ if (props.df.fieldtype === "Icon") {
 		<div v-else class="control-label label" :class="{ reqd: df.reqd }">{{ __(df.label) }}</div>
 
 		<!-- data input -->
-		<input
-			v-if="slots.label"
-			class="form-control"
-			type="text"
-			:style="{ height: df.fieldtype == 'Table MultiSelect' ? '42px' : '' }"
-			:placeholder="__(placeholder)"
-			readonly
-		/>
-		<input
-			v-else
-			class="form-control"
-			type="text"
-			:value="value"
-			:disabled="read_only || df.read_only"
-			@input="(event) => $emit('update:modelValue', event.target.value)"
-		/>
+		<div class="control-input">
+			<input
+				v-if="slots.label"
+				class="form-control"
+				type="text"
+				:style="{ height: df.fieldtype == 'Table MultiSelect' ? '42px' : '' }"
+				:placeholder="__(placeholder)"
+				readonly
+			/>
+			<input
+				v-else
+				class="form-control"
+				type="text"
+				:value="value"
+				:disabled="read_only || df.read_only"
+				@input="(event) => $emit('update:modelValue', event.target.value)"
+			/>
+
+			<!-- color selector icon -->
+			<div class="selected-color no-value" />
+
+			<!-- icon selector icon -->
+			<div
+				v-if="df.fieldtype == 'Icon'"
+				class="selected-icon no-value"
+				v-html="frappe.utils.icon('folder', 'sm')"
+			/>
+			<!-- phone selector icon -->
+			<div
+				v-if="df.fieldtype == 'Phone'"
+				class="selected-phone no-value"
+				v-html="frappe.utils.icon('chevron-down', 'sm')"
+			/>
+		</div>
 		<input
 			v-if="slots.label && df.fieldtype === 'Barcode'"
 			class="mt-2 form-control"
@@ -65,32 +83,5 @@ if (props.df.fieldtype === "Icon") {
 			:class="['time-zone', !df.description ? 'mt-2' : '']"
 			v-html="time_zone"
 		/>
-
-		<!-- color selector icon -->
-		<div class="selected-color no-value" />
-
-		<!-- icon selector icon -->
-		<div
-			v-if="df.fieldtype == 'Icon'"
-			class="selected-icon no-value"
-			v-html="frappe.utils.icon('folder-normal', 'md')"
-		/>
-		<!-- phone selector icon -->
-		<div
-			v-if="df.fieldtype == 'Phone'"
-			class="selected-phone no-value"
-			v-html="frappe.utils.icon('down', 'sm')"
-		/>
 	</div>
 </template>
-
-<style lang="scss" scoped>
-.selected-color {
-	background-color: transparent;
-	top: 30px !important;
-}
-
-.selected-phone {
-	top: 32px !important;
-}
-</style>

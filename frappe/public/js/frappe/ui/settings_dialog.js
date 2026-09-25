@@ -39,7 +39,7 @@ frappe.ui.SettingsDialogPanel = class SettingsDialogPanel {
 				<div class="settings-dialog-panel-actions"></div>
 			</div>
 		`).appendTo(this.$el);
-		this.$body = $('<div class="settings-dialog-panel-body"></div>').appendTo(this.$el);
+		this.$body = $('<div class="settings-dialog-panel-body px-2"></div>').appendTo(this.$el);
 		// `body` is the public handle consumers render into.
 		this.body = this.$body;
 	}
@@ -64,13 +64,18 @@ frappe.ui.SettingsDialogPanel = class SettingsDialogPanel {
 	}
 
 	make_action(action) {
-		const $btn = $(`<button type="button"></button>`)
-			.addClass(`btn btn-sm ${action.primary ? "btn-primary" : "btn-default"}`)
-			.addClass(action.class || "")
-			.text(action.label || "");
-		// `this` and the first argument are both the panel, so actions can mutate it.
-		action.click && $btn.on("click", () => action.click.call(this, this));
-		return $btn;
+		return frappe.ui.button({
+			label: action.label || "",
+			icon: action.icon,
+			variant: action.variant,
+			// So a destructive action can look destructive. `theme: "red"` is the button's own
+			// way of saying that; without it a panel could only get there by hand-writing a
+			// css_class the component does not know about.
+			theme: action.theme,
+			css_class: action.class,
+			// `this` and the first argument are both the panel, so actions can mutate it.
+			onclick: action.click && (() => action.click.call(this, this)),
+		});
 	}
 
 	add_fields(fields) {
@@ -240,28 +245,28 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 	}
 
 	make_tab_item(item) {
+		// The icon span is only built when there's an icon to put in it: `.settings-dialog-tab-icon`
+		// is what the label's left margin hangs off, so an empty one indents an icon-less item as
+		// though it had one.
+		const icon_html = item.icon_html
+			? // Raw markup — only ever set developer-authored, trusted HTML here.
+			  // Never populate `icon_html` from a server response or user input.
+			  item.icon_html
+			: item.icon
+			? // Sprite icon name, resolved (and escaped) through the icon util.
+			  frappe.utils.icon(item.icon, "sm")
+			: "";
+
 		const $item = $(`
 			<button type="button" class="settings-dialog-tab-item" data-tab-id="${frappe.utils.escape_html(
 				item.id
 			)}">
 				<span class="settings-dialog-tab-item-content">
-					<span class="settings-dialog-tab-icon"></span>
+					${icon_html ? `<span class="settings-dialog-tab-icon">${icon_html}</span>` : ""}
 					<span class="settings-dialog-tab-label"></span>
 				</span>
 			</button>
 		`);
-
-		const $icon = $item.find(".settings-dialog-tab-icon");
-		if (item.icon_html) {
-			// Raw markup — only ever set developer-authored, trusted HTML here.
-			// Never populate `icon_html` from a server response or user input.
-			$icon.html(item.icon_html);
-		} else if (item.icon) {
-			// Sprite icon name, resolved (and escaped) through the icon util.
-			$icon.html(frappe.utils.icon(item.icon, "sm"));
-		} else {
-			$icon.remove();
-		}
 
 		$item.find(".settings-dialog-tab-label").text(item.label || item.id);
 
@@ -296,5 +301,17 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 
 	get_panel(id) {
 		return this._panels[id];
+	}
+
+	reset(tabs, default_tab) {
+		// Swap tabs without destroying the modal shell — clears panel state, rebuilds
+		// the sidebar, and activates the new default tab.
+		this.$panels.empty();
+		this._items = {};
+		this._panels = {};
+		this.tabs = tabs;
+		this.render_sidebar();
+		const first = default_tab || this.first_tab_id();
+		if (first) this.activate(first);
 	}
 };

@@ -120,7 +120,7 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 				if (e.which == 13) {
 					if (me.has_primary_action) {
 						e.preventDefault();
-						me.get_primary_btn().trigger("click");
+						frappe.app.trigger_primary_action();
 					}
 				}
 			});
@@ -157,7 +157,7 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 				if (!is_null(v)) ret[f.df.fieldname] = v;
 			}
 
-			if (this.is_dialog && f.df.reqd && !f.value) {
+			if ((this.is_dialog || this.doctype === "Web Form") && f.df.reqd && !f.value) {
 				f.refresh_input();
 			}
 

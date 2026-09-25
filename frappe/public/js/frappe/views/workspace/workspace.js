@@ -1,6 +1,37 @@
 import EditorJS from "@editorjs/editorjs";
 import Undo from "editorjs-undo";
 
+// sentinel class on the injected "this workspace is hidden" notice block, so it can be
+// rendered for Workspace Managers but stripped before the content is saved.
+const HIDDEN_NOTICE_MARKER = "workspace-hidden-notice";
+
+// Rail id for the Manage Workspaces group holding workspaces with no module. Every tab there is
+// identified by its module name, and "" cannot be used as one, because `SettingsDialog` keys its
+// items by id and treats a falsy id as no tab.
+const NO_MODULE_TAB = "__no_module__";
+
+// "Access" options in the New Workspace dialog: a virtual field that maps to the underlying
+// `public`, `for_user` and `roles` fields.
+//   private -> personal (public=0, for_user=current user)
+//   group   -> public but role-gated (public=1, roles=[...])
+//   public  -> visible to everyone (public=1, no roles)
+const ACCESS_PRIVATE = __("Only to you");
+const ACCESS_GROUP = __("To a group of users");
+const ACCESS_PUBLIC = __("To everyone");
+
+// `content` arrives as a JSON string on the boot payload. Parse it defensively: one row with
+// mangled content (see the seeding comment in `initialize_new_page`) would otherwise throw out of
+// the constructor, take the whole desk down and leave no way to fix it.
+function parse_content(workspace) {
+	if (typeof workspace.content != "string") return;
+	try {
+		workspace.content = JSON.parse(workspace.content);
+	} catch (e) {
+		console.error(`Workspace "${workspace.name}" has unreadable content`, e);
+		workspace.content = [];
+	}
+}
+
 frappe.standard_pages["Workspaces"] = function () {
 	var wrapper = frappe.container.add_page("Workspaces");
 
@@ -32,21 +63,6 @@ frappe.views.Workspace = class Workspace {
 			public: {},
 			private: {},
 		};
-		this.indicator_colors = [
-			"green",
-			"cyan",
-			"blue",
-			"orange",
-			"yellow",
-			"gray",
-			"grey",
-			"red",
-			"pink",
-			"darkgrey",
-			"purple",
-			"light-blue",
-		];
-
 		this.prepare_container();
 		this.sidebar = frappe.app.sidebar;
 		this.cached_pages = $.extend(true, {}, frappe.boot.workspaces);
@@ -60,9 +76,7 @@ frappe.views.Workspace = class Workspace {
 		const me = this;
 		this.workspaces.map((workspace) => {
 			workspace.is_editable = !workspace.public || me.has_access;
-			if (typeof workspace.content == "string") {
-				workspace.content = JSON.parse(workspace.content);
-			}
+			parse_content(workspace);
 		});
 	}
 
@@ -71,13 +85,39 @@ frappe.views.Workspace = class Workspace {
 			this.sidebar.setup(this._page.name);
 		}
 	}
+
+	// The modules a workspace can be assigned to, memoised for the life of the view. The New
+	// Workspace dialog, the Manage Workspaces panel and the "not on any dock" prompt all need the
+	// same list, and the installed modules do not change during a session.
+	get_assignable_modules() {
+		if (!this._assignable_modules) {
+			this._assignable_modules = frappe
+				.xcall("frappe.desk.doctype.workspace.workspace.get_assignable_modules")
+				.then((modules) => modules || [])
+				// Drop the memo on failure. A cached rejected promise would give the same error
+				// to every later caller, so one dropped request would break the New Workspace
+				// dialog and the Manage panel for the rest of the session.
+				.catch((e) => {
+					this._assignable_modules = null;
+					throw e;
+				});
+		}
+		return this._assignable_modules;
+	}
+
+	// Modules are grouped by app in the label, since two apps can ship similarly named modules. A
+	// module the site owns is in no app's dock and has no app to name, so it is shown on its own
+	// rather than under an app.
+	module_select_options(modules) {
+		return modules.map((m) => ({
+			value: m.module,
+			label: m.app_title ? `${__(m.label)} (${__(m.app_title)})` : __(m.label),
+		}));
+	}
+
 	prepare_container() {
 		this.body = this.wrapper.find(".layout-main-section");
 		this.$page = $(`<div class="editor-js-container"></div>`).appendTo(this.body);
-	}
-
-	get_workspaces() {
-		return frappe.xcall("frappe.desk.desktop.get_workspaces", null, "GET");
 	}
 
 	show() {
@@ -174,60 +214,69 @@ frappe.views.Workspace = class Workspace {
 			let current_page = this.workspaces.find((p) => p.name == page.name);
 			this._page = current_page;
 			const me = this;
-			let header_dropdown = `${__(this._page.name)}`;
-			let menu_items = [
-				{
-					label: "Edit",
-					icon: "edit",
-					onClick: async () => {
-						if (!this.editor || !this.editor.readOnly) return;
-						this.is_read_only = false;
-						await this.editor.readOnly.toggle();
-						this.editor.isReady.then(() => {
-							this.setup_customization_buttons(this._page);
-							this.make_blocks_sortable();
-						});
-					},
-					condition: () => {
-						return current_page.is_editable;
-					},
-				},
-				{
-					label: "New",
-					icon: "plus",
-					onClick: function () {
-						me.initialize_new_page(true);
-					},
-					condition: () => {
-						return me.has_create_access;
-					},
-				},
-			];
-			if (frappe.is_mobile()) {
-				frappe.breadcrumbs.add({
-					type: "Custom",
-					label: header_dropdown + `${frappe.utils.icon("chevron-down")}`,
-					route: "#",
-					menu_items: menu_items,
+			// private workspaces are stored as `${title}-${for_user}`; show just the title
+			let header_dropdown = `${__(this._page.title)}`;
+			frappe.breadcrumbs.add({
+				type: "Custom",
+				label: header_dropdown,
+				route: "#",
+			});
+			if (!this.add_workspace_controls) {
+				this.workspace_actions_button = this.page.add_action_icon("ellipsis", "", "");
+
+				$(this.workspace_actions_button).removeAttr("data-original-title");
+				$(this.workspace_actions_button).removeClass("btn-default");
+				new frappe.ui.Dropdown({
+					trigger: $(this.workspace_actions_button),
+					// The button sits at the end of the page header, so the menu hangs back
+					// under it rather than running off the edge.
+					align: "end",
+					options: [
+						{
+							label: __("Edit"),
+							icon: "pencil",
+							onclick: async () => {
+								if (!this.editor || !this.editor.readOnly) return;
+								this.is_read_only = false;
+								await this.editor.readOnly.toggle();
+								this.editor.isReady.then(() => {
+									this.setup_customization_buttons(this._page);
+									this.make_blocks_sortable();
+								});
+							},
+							condition: () => {
+								return current_page.is_editable;
+							},
+						},
+						{
+							label: __("New"),
+							icon: "plus",
+							onclick: () => this.initialize_new_page(),
+							condition: () => {
+								return this.has_create_access;
+							},
+						},
+						{
+							label: __("Manage"),
+							icon: "settings",
+							onclick: () => this.open_workspace_manager(current_page),
+							condition: () => {
+								// available whenever the user can manage at least one workspace
+								// (a Workspace Manager, or anyone with their own private pages)
+								return this.workspaces.some((p) => p.is_editable);
+							},
+						},
+						{
+							label: __("Reset to Standard"),
+							icon: "rotate-ccw",
+							onclick: () => this.reset_workspace_customization(current_page),
+							condition: () => {
+								return current_page.is_customized && this.has_access;
+							},
+						},
+					],
 				});
-			} else {
-				frappe.breadcrumbs.add({
-					type: "Custom",
-					label: header_dropdown,
-					route: "#",
-				});
-				if (!this.add_workspace_controls) {
-					this.workspace_actions_button = this.page.add_action_icon("ellipsis", "", "");
-					$(this.workspace_actions_button).removeAttr("data-original-title");
-					$(this.workspace_actions_button).removeClass("btn-default");
-					frappe.ui.create_menu({
-						parent: $(this.workspace_actions_button),
-						open_on_left: true,
-						size: "fit-content",
-						menu_items: menu_items,
-					});
-					this.add_workspace_controls = true;
-				}
+				this.add_workspace_controls = true;
 			}
 
 			this.wrapper.find(".workspace-header").hide();
@@ -241,20 +290,19 @@ frappe.views.Workspace = class Workspace {
 			if (!this._page.public) {
 				app = "private";
 			} else {
-				app = this._page.app;
-				if (!app && this._page.module) {
-					app = frappe.boot.module_app[frappe.router.slug(this._page.module)];
-				}
-				// this._page.module && this.sidebar.show_sidebar_for_module(this._page.module);
-				if (!app) app = "frappe";
+				// Derived from the module; there is no `Workspace.app` any more.
+				app =
+					(this._page.module &&
+						frappe.boot.module_app[frappe.router.slug(this._page.module)]) ||
+					"frappe";
 			}
 
-			if (typeof current_page.content == "string") {
-				current_page.content = JSON.parse(current_page.content);
-			}
+			parse_content(current_page);
 
 			this.content = current_page.content;
 			this.content && this.add_custom_cards_in_content();
+			this.content && this.add_hidden_notice_in_content(current_page);
+			this.add_mount_notice(current_page);
 
 			$(".item-anchor").addClass("disable-click");
 
@@ -273,7 +321,7 @@ frappe.views.Workspace = class Workspace {
 			this.wrapper.find(".workspace-title").html(__(this._page.title));
 			this.wrapper
 				.find(".workspace-icon")
-				.html(frappe.utils.icon(this._page.icon || "folder-normal", "md"));
+				.html(frappe.utils.icon(this._page.icon || "folder", "md"));
 
 			localStorage.current_page = current_page.name;
 			localStorage.is_current_page_public = current_page.public ? "true" : "false";
@@ -336,6 +384,542 @@ frappe.views.Workspace = class Workspace {
 		}
 	}
 
+	add_hidden_notice_in_content(page) {
+		// A hidden workspace is dropped from everyone else's sidebar; a Workspace Manager
+		// still sees it. Prepend a display-only text block explaining why. The sentinel
+		// span lets save_page() strip it so it is never persisted into the workspace.
+		if (!page.is_hidden || !this.has_access) return;
+		if (
+			this.content.some(
+				(b) => b.type == "paragraph" && b.data?.text?.includes(HIDDEN_NOTICE_MARKER)
+			)
+		) {
+			return;
+		}
+		this.content.unshift({
+			type: "paragraph",
+			data: {
+				text: `<span class="${HIDDEN_NOTICE_MARKER}">${__(
+					"This workspace is hidden from other users. You can see it because you're a Workspace Manager."
+				)}</span>`,
+				col: "12",
+			},
+		});
+	}
+
+	// A workspace with no `app` is in no app's sidebar, so it's only reachable through global
+	// search or Manage Workspaces. Prompt whoever lands on it: a dialog offering to place it for
+	// anyone who can, and an explanation for anyone who cannot. Both are dismissible: being
+	// unmounted is worth raising but not worth trapping someone over.
+	async add_mount_notice(page) {
+		// standard workspaces are mounted by the app that ships them, via their module
+		if (!page || page.module || page.standard || page.type !== "Workspace") return;
+		// show_page runs on every navigation, so do not stack dialogs on the same workspace.
+		if (this.mount_dialog && this.mount_dialog.page_name === page.name) return;
+		// ...and once it's been waved off, leave it alone for the rest of the session rather
+		// than re-asking every time the workspace is opened
+		if (this.dismissed_mount_prompts?.has(page.name)) return;
+
+		// mirrors `can_edit_workspace` on the server: a Workspace Manager may mount anything,
+		// anyone may mount their own private workspace
+		const can_mount =
+			this.has_access || (!page.public && page.for_user === frappe.session.user);
+
+		if (!can_mount) {
+			// there's nothing for them to act on, so say it once and don't raise it again
+			this.dismissed_mount_prompts = this.dismissed_mount_prompts || new Set();
+			this.dismissed_mount_prompts.add(page.name);
+			frappe.msgprint({
+				title: __("Not in any app"),
+				indicator: "orange",
+				message: __(
+					"This workspace isn't in any app's sidebar, so it can only be found through search. Ask a Workspace Manager to add it to an app."
+				),
+			});
+			return;
+		}
+
+		await this.prompt_assign_module(page);
+	}
+
+	// Ask which module `page` belongs to, then assign it and refresh the desk in place. Closing
+	// the dialog without choosing is fine; it just does not ask again this session.
+	async prompt_assign_module(page) {
+		const modules = await this.get_assignable_modules();
+		let mounted = false;
+		const d = new frappe.ui.Dialog({
+			title: __("Add {0} to a module", [__(page.title)]),
+			fields: [
+				{
+					fieldtype: "HTML",
+					fieldname: "why",
+					options: `<p class="text-muted">${__(
+						"This workspace isn't in any module's sidebar yet, so there's no way to navigate to it. Pick the module it belongs to."
+					)}</p>`,
+				},
+				{
+					label: __("Module"),
+					fieldtype: "Select",
+					fieldname: "module",
+					reqd: 1,
+					options: this.module_select_options(modules),
+					default: frappe.app.sidebar?.current_module_def(),
+					description: __("Which module's sidebar this workspace appears in"),
+				},
+			],
+			primary_action_label: __("Add"),
+			primary_action: (values) => {
+				mounted = true;
+				d.hide();
+				frappe.call({
+					method: "frappe.desk.doctype.workspace.workspace.set_workspace_module",
+					args: { name: page.name, module: values.module },
+					freeze: true,
+					callback: (r) => {
+						if (!r.message) return;
+						this.apply_manager_changes(r.message);
+						frappe.show_alert({
+							message: __("Added {0} to {1}", [__(page.title), __(values.module)]),
+							indicator: "green",
+						});
+					},
+				});
+			},
+		});
+
+		// tracked so a re-render of the same workspace doesn't stack a second copy on top
+		d.page_name = page.name;
+		this.mount_dialog = d;
+		d.$wrapper.on("hidden.bs.modal", () => {
+			if (this.mount_dialog === d) this.mount_dialog = null;
+			// closed without picking an app -> take the hint and stop asking for this session
+			if (!mounted) {
+				this.dismissed_mount_prompts = this.dismissed_mount_prompts || new Set();
+				this.dismissed_mount_prompts.add(page.name);
+			}
+		});
+
+		d.show();
+	}
+
+	async open_workspace_manager(current_page) {
+		// Two-pane manager, shaped like the schema it manages: modules on the left, and the
+		// selected module's workspaces on the right. A workspace's module decides which dock
+		// lists it and whose sidebar carries it, so moving one between modules is the main task,
+		// which makes the module rather than the workspace the thing to organise by. The old rail
+		// listed every workspace under Standard, Custom and Private, three groups that say nothing
+		// about where a workspace appears.
+		//
+		// The list comes from the server, not `frappe.boot.workspaces`: the bootinfo only
+		// carries the user's *own* private workspaces, but a Workspace Manager manages every
+		// workspace (including other users' private ones).
+		// `EmbeddedList` is a separate lazy bundle, so it has to be loaded before a module panel
+		// renders. It loads alongside the two reads rather than after them, and all three are
+		// awaited together so the first panel builds synchronously when the dialog opens.
+		const [manageable, modules] = await Promise.all([
+			frappe.xcall("frappe.desk.doctype.workspace.workspace.get_manageable_workspaces"),
+			this.get_assignable_modules(),
+			frappe.require("embedded_list.bundle.js").catch((e) => {
+				// eslint-disable-next-line no-console
+				console.error("Manage Workspaces: failed to load embedded_list.bundle.js", e);
+				frappe.ui.toast({
+					message: __("The workspace list may not load. Please refresh the page."),
+					type: "warning",
+				});
+			}),
+		]);
+		if (!manageable || !manageable.length) return;
+
+		this.manager_modules = modules;
+		const tabs = this.workspace_manager_tabs(manageable, modules);
+
+		this.workspace_manager = new frappe.ui.SettingsDialog({
+			title: __("Manage Workspaces"),
+			tabs,
+			default_tab: this.manager_tab_for(tabs, current_page && current_page.module),
+		});
+		this.workspace_manager.show();
+	}
+
+	// One rail item per module that holds something, in a single flat list. It deliberately does
+	// not list every module on the site: the rail is how you find a workspace, and moving one into
+	// an empty module is the Module field's job, which offers the full list.
+	//
+	// The rail is not grouped by app. The dialog manages modules, and which app ships a module is
+	// not something you act on here. App headings only split one short list into several shorter
+	// ones and pushed the modules down the page.
+	workspace_manager_tabs(manageable, modules) {
+		const meta = {};
+		(modules || []).forEach((m) => (meta[m.module] = m));
+
+		const by_module = new Map();
+		manageable.forEach((page) => {
+			page._access = page.standard
+				? __("Standard")
+				: page.public
+				? __("Everyone")
+				: page.for_user
+				? __("Private")
+				: __("Shared");
+			const key = page.module || "";
+			if (!by_module.has(key)) by_module.set(key, []);
+			by_module.get(key).push(page);
+		});
+
+		// The unreachable ones come first, because they are the ones worth fixing. Two states
+		// share that position: a workspace with no module, and one naming a module that does not
+		// exist, since the `Link` is not enforced by the database and a module can be renamed or
+		// deleted. Both are unreachable and both are fixed the same way, with the Module field.
+		// Everything else is alphabetical: with no headings to scan, the label is what you look
+		// for.
+		const missing = (key) => Boolean(key) && !meta[key];
+		const rank = (key) => (!key || missing(key) ? 0 : 1);
+
+		const keys = [...by_module.keys()].sort((a, b) => {
+			const al = (meta[a] || {}).label || a;
+			const bl = (meta[b] || {}).label || b;
+			return rank(a) - rank(b) || __(al).localeCompare(__(bl));
+		});
+
+		const items = keys.map((key) => {
+			// A workspace whose module cannot be offered still has to appear, or it would drop
+			// out of the only dialog that can move it. `missing` also covers a module this user
+			// cannot see because a block hides it, which is a different cause with the same
+			// result: they cannot navigate to it.
+			const module = meta[key] || {
+				module: key,
+				label: key || __("No module"),
+				app_title: null,
+				missing: Boolean(key),
+			};
+			return {
+				id: key || NO_MODULE_TAB,
+				label: __(module.label),
+				// icon: module.missing || !key ? "circle-alert" : "folder",
+				render: (panel) => this.render_module_panel(panel, module, by_module.get(key)),
+			};
+		});
+
+		// One group, so the rail has a single top-level heading naming the list rather than one
+		// heading per app splitting it into pieces.
+		return [{ group: __("Modules"), items }];
+	}
+
+	// `SettingsDialog.activate` does nothing for an id it has no item for, which would leave the
+	// dialog open on a blank panel, so a module is only used as the landing tab once it is
+	// confirmed to be one.
+	manager_tab_for(tabs, module) {
+		const wanted = module || NO_MODULE_TAB;
+		const found = tabs.some((group) => group.items.some((item) => item.id === wanted));
+		return found ? wanted : undefined;
+	}
+
+	// A module's workspaces. The list and the per-workspace form are two views of the same panel
+	// (`set_view` swaps it whole, `refresh()` restores the list), so drilling in does not stack a
+	// second dialog over the first.
+	render_module_panel(panel, module, pages) {
+		const rows = pages || [];
+		panel.set_view({
+			title: __(module.label),
+			render: (p) => {
+				new frappe.ui.EmbeddedList({
+					wrapper: $('<div class="workspace-manager-list"></div>').appendTo(p.body),
+					// The line belongs to the list rather than the panel header above it. The
+					// list draws no header without a title, description or Add button, and the
+					// search box lives in that header, so a bare list would lose the one control
+					// a long module needs.
+					description: module.missing
+						? __(
+								"{0} workspace(s) name the module {1}, which doesn't exist on this site — nothing can navigate to them. Give each one a module below.",
+								[rows.length, module.module]
+						  )
+						: !module.module
+						? __(
+								"{0} workspace(s) have no module, so nothing can navigate to them. Give each one a module below.",
+								[rows.length]
+						  )
+						: module.app_title
+						? __("{0} workspace(s) in this module, which {1} ships.", [
+								rows.length,
+								__(module.app_title),
+						  ])
+						: __("{0} workspace(s) in this module, which this site owns.", [
+								rows.length,
+						  ]),
+					empty_message: __("No workspaces in this module."),
+					empty_icon: "layout-grid",
+					get_data: () => Promise.resolve(rows),
+					on_row_click: (row) => this.open_workspace_settings(panel, row),
+					columns: [
+						{
+							label: __("Workspace"),
+							fieldname: "title",
+							render: (row) => frappe.utils.escape_html(__(row.title)),
+						},
+						{
+							label: __("Access"),
+							fieldname: "_access",
+							type: "badge",
+							color: (row) =>
+								row.standard ? "blue" : row.public ? "green" : "gray",
+						},
+						// A manager sees private workspaces owned by other users, and the owner
+						// column is what tells them apart, since the titles will not
+						{ label: __("Owner"), fieldname: "for_user" },
+					],
+				}).refresh();
+			},
+		});
+	}
+
+	// The selected workspace's settings, shown in place of the list.
+	async open_workspace_settings(panel, page) {
+		panel.set_view({
+			title: __(page.title),
+			render: (p) => p.body.html(`<div class="text-muted">${__("Loading...")}</div>`),
+		});
+
+		const settings = await frappe.xcall(
+			"frappe.desk.doctype.workspace.workspace.get_workspace_settings",
+			{ name: page.name }
+		);
+		if (!settings) return;
+
+		// Back comes before anything destructive, and it returns to the list rather than closing,
+		// because sorting a module's workspaces means entering and leaving this view repeatedly.
+		const actions = [
+			{ label: __("Back"), icon: "chevron-left", click: () => panel.refresh() },
+		];
+		if (!settings.standard) {
+			actions.push({
+				label: __("Delete"),
+				theme: "red",
+				click: () => this.delete_workspace_from_manager(page),
+			});
+		}
+		actions.push({
+			label: __("Save"),
+			variant: "solid",
+			click: (p) => this.save_workspace_from_manager(p, settings),
+		});
+
+		panel.set_view({
+			title: __(settings.title),
+			description: settings.standard
+				? __(
+						"A standard workspace is shipped by the app; changes are saved as customizations."
+				  )
+				: __("Control who can see this workspace and how it appears."),
+			actions,
+			fields: this.workspace_manager_fields(settings, this.manager_modules),
+		});
+	}
+
+	// Rebuild the rail after a change that can move a workspace between modules, and land on the
+	// module it moved to, since seeing where it landed is the point.
+	async refresh_workspace_manager(module) {
+		if (!this.workspace_manager) return;
+
+		const manageable = await frappe.xcall(
+			"frappe.desk.doctype.workspace.workspace.get_manageable_workspaces"
+		);
+		if (!manageable || !manageable.length) {
+			this.workspace_manager.hide();
+			return;
+		}
+
+		const tabs = this.workspace_manager_tabs(manageable, this.manager_modules);
+		this.workspace_manager.reset(tabs, this.manager_tab_for(tabs, module));
+	}
+
+	workspace_manager_fields(settings, apps) {
+		const access_to_label = {
+			private: ACCESS_PRIVATE,
+			group: ACCESS_GROUP,
+			public: ACCESS_PUBLIC,
+		};
+		// A standard workspace's `public` flag is app-owned, so it can only ever be shared
+		// (open to everyone or gated to a group). Custom workspaces get the full range, but
+		// only a Workspace Manager may make one public.
+		let access_options;
+		if (settings.standard) {
+			access_options = [ACCESS_GROUP, ACCESS_PUBLIC];
+		} else if (this.has_access) {
+			access_options = [ACCESS_PRIVATE, ACCESS_GROUP, ACCESS_PUBLIC];
+		} else {
+			access_options = [ACCESS_PRIVATE];
+		}
+
+		const role_rows = (settings.roles || []).map((role) => ({ role }));
+
+		return [
+			{
+				label: __("Title"),
+				fieldname: "title",
+				fieldtype: "Data",
+				default: settings.title,
+				reqd: 1,
+				read_only: settings.standard ? 1 : 0,
+				description: settings.standard
+					? __("The title of a standard workspace is managed by the app.")
+					: "",
+			},
+			{
+				label: __("Module"),
+				fieldname: "module",
+				fieldtype: "Select",
+				options: this.module_select_options(apps || []),
+				default: settings.module,
+				// A standard workspace's module is owned by the app that ships it, and there is
+				// no per-site override to record a different one in.
+				read_only: settings.standard ? 1 : 0,
+				description: settings.standard
+					? __("A standard workspace stays in the module that ships it.")
+					: __("Which module's sidebar this workspace appears in"),
+			},
+			{
+				label: __("Icon"),
+				fieldname: "icon",
+				fieldtype: "Icon",
+				default: settings.icon,
+			},
+			{
+				label: __("Access"),
+				fieldname: "access",
+				fieldtype: "Select",
+				options: access_options,
+				default: access_to_label[settings.access] || access_options[0],
+				reqd: 1,
+				description: __("Who can see this workspace"),
+			},
+			{
+				label: __("Roles"),
+				fieldname: "roles",
+				fieldtype: "Table",
+				depends_on: `eval:doc.access=='${ACCESS_GROUP}'`,
+				description: __("Users with any of these roles can see this workspace"),
+				data: role_rows,
+				get_data: () => role_rows,
+				fields: [
+					{
+						label: __("Role"),
+						fieldname: "role",
+						fieldtype: "Link",
+						options: "Role",
+						in_list_view: 1,
+						reqd: 1,
+					},
+				],
+			},
+		];
+	}
+
+	save_workspace_from_manager(panel, settings) {
+		const values = panel.get_values();
+		if (!values) return;
+
+		const label_to_access = {
+			[ACCESS_PRIVATE]: "private",
+			[ACCESS_GROUP]: "group",
+			[ACCESS_PUBLIC]: "public",
+		};
+		const access = label_to_access[values.access];
+		const roles =
+			access === "group" ? (values.roles || []).map((r) => r.role).filter(Boolean) : [];
+
+		frappe.call({
+			method: "frappe.desk.doctype.workspace.workspace.update_workspace_settings",
+			args: {
+				name: settings.name,
+				title: values.title,
+				icon: values.icon,
+				access,
+				roles,
+				// read-only for standard workspaces, so this only ever moves a custom one
+				module: values.module,
+			},
+			freeze: true,
+			callback: (r) => {
+				if (!r.message) return;
+				this.apply_manager_changes(r.message);
+				frappe.show_alert({ message: __("Workspace updated"), indicator: "green" });
+				// Stay open on the module it now belongs to. Saving used to close the dialog, so
+				// moving several workspaces meant reopening it each time, and it never showed
+				// where the workspace landed.
+				this.refresh_workspace_manager(values.module || settings.module);
+			},
+		});
+	}
+
+	delete_workspace_from_manager(page) {
+		frappe.confirm(
+			__("Delete the <b>{0}</b> workspace? This cannot be undone.", [__(page.title)]),
+			() => {
+				frappe.call({
+					method: "frappe.desk.doctype.workspace.workspace.delete_page",
+					args: { name: page.name },
+					freeze: true,
+					callback: (r) => {
+						if (!r.message) return;
+						this.apply_manager_changes(r.message);
+						frappe.show_alert({
+							message: __("Workspace {0} deleted", [__(page.title)]),
+							indicator: "green",
+						});
+						// Back to the module it was in, which is where the next one to look at is.
+						this.refresh_workspace_manager(page.module);
+					},
+				});
+			}
+		);
+	}
+
+	apply_manager_changes(message) {
+		// Refresh the cached workspace + sidebar payloads and re-render, mirroring create_page.
+		frappe.boot.workspaces = message.workspace_pages;
+		this.workspaces = frappe.boot.workspaces.pages;
+		this.setup_pages(frappe.boot.workspaces.pages);
+		if (message.module_sidebars) frappe.boot.module_sidebars = message.module_sidebars;
+		if (message.entity_module) frappe.boot.entity_module = message.entity_module;
+		// The dock is app-scoped: it renders `app_data[app].dock`. A workspace that just changed
+		// app, or gained one, only moves docks once this mapping is swapped in.
+		if (message.app_data) frappe.boot.app_data = message.app_data;
+		this.reload();
+		// reload() re-derives the current page synchronously; re-render its sidebar so a rename
+		// or visibility change is reflected in the shell.
+		if (frappe.app.sidebar && this._page) {
+			frappe.app.sidebar.setup(this._page.name);
+			// ...and re-resolve the app context + dock, which `setup` leaves alone
+			frappe.app.sidebar.refresh();
+		}
+	}
+
+	reset_workspace_customization(page) {
+		frappe.confirm(
+			__(
+				"Reset <b>{0}</b> to the standard, app-shipped version? This removes all site customizations.",
+				[__(page.title)]
+			),
+			() => {
+				frappe.call({
+					method: "frappe.desk.doctype.custom_workspace.custom_workspace.reset_workspace_customization",
+					args: { workspace: page.name },
+					freeze: true,
+					callback: () => {
+						// Back on the app's layout, so the next layout save freezes it
+						// again and is worth warning about again.
+						page.is_layout_customized = 0;
+						frappe.show_alert({
+							message: __("Workspace reset to standard"),
+							indicator: "green",
+						});
+						this.reload();
+					},
+				});
+			}
+		);
+	}
+
 	initialize_editorjs_undo() {
 		this.undo = new Undo({ editor: this.editor });
 		this.undo.initialize({ blocks: this.content || [] });
@@ -357,6 +941,7 @@ frappe.views.Workspace = class Workspace {
 		this.body.addClass("edit-mode");
 		this.initialize_editorjs_undo();
 		this.clear_page_actions();
+		$("#full-search-button").addClass("hidden");
 
 		// switch headers
 		this.wrapper.find(".page-head").removeClass("hidden");
@@ -366,13 +951,20 @@ frappe.views.Workspace = class Workspace {
 			this.page.set_primary_action(
 				__("Save"),
 				() => {
-					this.clear_page_actions();
-					this.body.removeClass("edit-mode");
-					this.save_page(page).then((saved) => {
-						if (!saved) return;
-						this.undo.readOnly = true;
-						this.editor.readOnly.toggle();
-						this.is_read_only = true;
+					// A standard workspace's first layout save freezes it against app
+					// updates, so it is confirmed before it happens rather than reported
+					// afterwards.
+					this.confirm_layout_freeze(page).then((go_ahead) => {
+						if (!go_ahead) return;
+						this.clear_page_actions();
+						this.body.removeClass("edit-mode");
+						$("#full-search-button").removeClass("hidden");
+						this.save_page(page).then((saved) => {
+							if (!saved) return;
+							this.undo.readOnly = true;
+							this.editor.readOnly.toggle();
+							this.is_read_only = true;
+						});
 					});
 				},
 				null,
@@ -382,6 +974,7 @@ frappe.views.Workspace = class Workspace {
 		this.page.set_secondary_action(__("Discard"), async () => {
 			this.body.removeClass("edit-mode");
 			this.clear_page_actions();
+			$("#full-search-button").removeClass("hidden");
 			await this.editor.readOnly.toggle();
 			this.is_read_only = true;
 			frappe.boot.workspaces = this.cached_pages;
@@ -396,6 +989,28 @@ frappe.views.Workspace = class Workspace {
 		}
 		$(this.workspace_actions_button).remove();
 		this.add_workspace_controls = false;
+	}
+
+	// A standard workspace's layout is stored as a snapshot, so saving one stops the app's later
+	// layout changes from reaching this site, while its roles, icon and visibility keep updating,
+	// because those are stored as a diff. Warn at the point the user causes it, and only the first
+	// time: once the snapshot exists there is nothing left to warn about.
+	confirm_layout_freeze(page) {
+		const freezes = page.standard && !page.is_layout_customized && !frappe.boot.developer_mode;
+		if (!freezes) return Promise.resolve(true);
+
+		return new Promise((resolve) => {
+			frappe.confirm(
+				__(
+					"<b>{0}</b> is shipped by its app. Saving this layout keeps your arrangement, and the app's later changes to this page's layout will stop showing up here. Its roles, icon and visibility keep following the app either way, and <b>Reset to Standard</b> undoes this.",
+					[__(page.title)]
+				),
+				() => resolve(true),
+				() => resolve(false),
+				__("Save Layout"),
+				__("Cancel")
+			);
+		});
 	}
 
 	make_blocks_sortable() {
@@ -416,9 +1031,12 @@ frappe.views.Workspace = class Workspace {
 		);
 	}
 
-	initialize_new_page() {
+	async initialize_new_page() {
 		var me = this;
 		this.get_parent_pages();
+		// A workspace with no module lands on no dock, so ask for one up front rather than create
+		// a stranded workspace and rely on the "not on any dock" prompt to fix it.
+		const apps = await this.get_assignable_modules();
 		const d = new frappe.ui.Dialog({
 			title: __("New Workspace"),
 			fields: [
@@ -433,6 +1051,7 @@ frappe.views.Workspace = class Workspace {
 					fieldtype: "Select",
 					fieldname: "type",
 					options: ["Workspace", "Link", "URL"],
+					default: "Workspace",
 					reqd: 1,
 					onchange: function () {
 						d.set_df_property("link_type", "hidden", this.get_value() != "Link");
@@ -464,28 +1083,35 @@ frappe.views.Workspace = class Workspace {
 					options: "URL",
 				},
 				{
-					label: __("Parent"),
+					label: __("Access"),
 					fieldtype: "Select",
-					fieldname: "parent",
-					options: this.private_parent_pages,
-				},
-				{
-					label: __("Public"),
-					fieldtype: "Check",
-					fieldname: "is_public",
-					depends_on: `eval:${this.has_access}`,
+					fieldname: "access",
+					reqd: 1,
+					default: ACCESS_PRIVATE,
+					options: this.access_options(),
+					description: __("Who can see this workspace"),
 					onchange: function () {
+						let is_private = this.get_value() === ACCESS_PRIVATE;
 						d.set_df_property(
 							"parent",
 							"options",
-							this.get_value() ? me.public_parent_pages : me.private_parent_pages
+							is_private ? me.private_parent_pages : me.public_parent_pages
 						);
-						d.set_df_property("icon", "hidden", this.get_value() ? 0 : 1);
-						d.set_df_property("indicator_color", "hidden", this.get_value() ? 1 : 0);
+						d.set_df_property(
+							"roles",
+							"hidden",
+							this.get_value() !== ACCESS_GROUP ? 1 : 0
+						);
 					},
 				},
 				{
-					fieldtype: "Column Break",
+					label: __("Module"),
+					fieldtype: "Select",
+					fieldname: "module",
+					reqd: 1,
+					options: this.module_select_options(apps),
+					default: frappe.app.sidebar?.current_module_def(),
+					description: __("Which module's sidebar this workspace appears in"),
 				},
 				{
 					label: __("Icon"),
@@ -493,10 +1119,28 @@ frappe.views.Workspace = class Workspace {
 					fieldname: "icon",
 				},
 				{
-					label: __("Indicator color"),
+					label: __("Roles"),
+					fieldtype: "Table",
+					fieldname: "roles",
+					hidden: 1,
+					description: __("Users with any of these roles can see this workspace"),
+					fields: [
+						{
+							label: __("Role"),
+							fieldtype: "Link",
+							fieldname: "role",
+							options: "Role",
+							in_list_view: 1,
+							reqd: 1,
+						},
+					],
+				},
+				{
+					label: __("Parent"),
 					fieldtype: "Select",
-					fieldname: "indicator_color",
-					options: this.indicator_colors,
+					fieldname: "parent",
+					options: this.private_parent_pages,
+					hidden: 1,
 				},
 			],
 			primary_action_label: __("Create"),
@@ -504,58 +1148,62 @@ frappe.views.Workspace = class Workspace {
 				values.title = strip_html(values.title);
 				d.hide();
 
-				let name = values.title + (values.is_public ? "" : "-" + frappe.session.user);
+				let is_public = values.access !== ACCESS_PRIVATE;
+				let name = values.title + (is_public ? "" : "-" + frappe.session.user);
+				// seed the new workspace with the welcome blocks (header + edit hint) so it opens
+				// with guidance instead of a bare title
 				let blocks = [
 					{
 						type: "header",
-
-						data: { text: values.title },
+						data: { text: __("Welcome to the {0} workspace", [values.title]) },
 					},
 				];
+				if (this.has_access) {
+					blocks.push({
+						type: "paragraph",
+						data: {
+							// Plain text, never markup: `content` is a Long Text field, so a tag
+							// with an attribute is HTML-sanitized on save and comes back with the
+							// JSON's own quotes rewritten, leaving unparseable content.
+							text: __("Click on the {0} menu to edit", ["\u22ef"]),
+						},
+					});
+				}
 
 				let new_page = {
 					content: JSON.stringify(blocks),
 					name: name,
 					label: name,
 					title: values.title,
-					public: values.is_public || 0,
-					for_user: values.is_public ? "" : frappe.session.user,
+					public: is_public ? 1 : 0,
+					for_user: is_public ? "" : frappe.session.user,
 					icon: values.icon,
-					indicator_color: values.indicator_color,
+					roles: values.access === ACCESS_GROUP ? values.roles || [] : [],
 					parent_page: values.parent || "",
+					// The module this workspace belongs to. It decides the dock entry the
+					// workspace appears under, and defaults to the module of the shell it was
+					// created from.
+					module: values.module || frappe.app.sidebar?.current_module_def(),
 					is_editable: true,
 					selected: true,
-					app: frappe.current_app?.app_name,
 					type: values.type,
 					link_type: values.link_type,
 					link_to: values.link_to,
 					external_link: values.external_link,
 				};
 
-				if (values.type === "Workspace") {
-					this.setup_customization_buttons(new_page);
-				}
-
 				if (new_page.type !== "Workspace") {
 					this.create_page(new_page);
 				} else {
-					this.editor
-						.render({
-							blocks: blocks,
-						})
-						.then(async () => {
-							if (this.editor.configuration.readOnly) {
-								this.is_read_only = false;
-								await this.editor.readOnly.toggle();
-							}
-
-							this.create_page(new_page).then(() => {
-								let route = frappe.router.slug(
-									new_page.public ? new_page.name : "private/" + new_page.name
-								);
-								frappe.set_route(route);
-							});
-						});
+					// Create then navigate to the new workspace in view (read-only) mode. We don't
+					// set up the edit-mode customization buttons or toggle the editor here,
+					// because the route change re-renders the workspace read-only.
+					this.create_page(new_page).then(() => {
+						let route = frappe.router.slug(
+							new_page.public ? new_page.name : "private/" + new_page.name
+						);
+						frappe.set_route(route);
+					});
 				}
 			},
 		});
@@ -583,11 +1231,20 @@ frappe.views.Workspace = class Workspace {
 							frappe.boot.workspaces = r.message.workspace_pages;
 							me.workspaces = frappe.boot.workspaces.pages;
 							me.setup_pages(frappe.boot.workspaces.pages);
-							frappe.boot.workspace_sidebar_item = r.message.sidebar_items;
+							if (r.message.module_sidebars)
+								frappe.boot.module_sidebars = r.message.module_sidebars;
+							if (r.message.entity_module)
+								frappe.boot.entity_module = r.message.entity_module;
 						}
 
-						if (new_page.public === 0) {
-							frappe.app.sidebar.setup("private");
+						// Switch the shell to the module the new workspace belongs to, so it
+						// shows the workspace just created. Nothing is pushed onto the rail,
+						// because the rail lists the entries an app's `Dock` record
+						// names, and a new workspace reaches the shell through its module's
+						// sidebar instead.
+						const module = frappe.app.sidebar.module_for_workspace(new_page.name);
+						if (module) {
+							frappe.app.sidebar.setup(module);
 						}
 
 						resolve();
@@ -600,9 +1257,7 @@ frappe.views.Workspace = class Workspace {
 	setup_pages(all_pages) {
 		all_pages.forEach((page) => {
 			page.is_editable = !page.public || this.has_access;
-			if (typeof page.content == "string") {
-				page.content = JSON.parse(page.content);
-			}
+			parse_content(page);
 		});
 
 		if (all_pages) {
@@ -610,13 +1265,13 @@ frappe.views.Workspace = class Workspace {
 			frappe.workspace_list = [];
 			frappe.workspace_map = {};
 			for (let page of all_pages) {
-				frappe.workspaces[frappe.router.slug(page.name)] = {
-					name: page.name,
-					public: page.public,
-				};
-				if (!page.app && page.module) {
+				// `app` is derived, not stored, but callers still read it off the page object.
+				if (page.module) {
 					page.app = frappe.boot.module_app[frappe.slug(page.module)];
 				}
+				// store the full page (matching desk.js setup_workspaces) so consumers like the
+				// sidebar header have title/icon/for_user, not just name/public
+				frappe.workspaces[frappe.router.slug(page.name)] = page;
 				frappe.workspace_map[page.name] = page;
 				frappe.workspace_list.push(page);
 			}
@@ -740,6 +1395,15 @@ frappe.views.Workspace = class Workspace {
 							item.data.card_name !== "Custom Reports")
 				);
 
+				// never persist the display-only "workspace is hidden" notice
+				blocks = blocks.filter(
+					(item) =>
+						!(
+							item.type == "paragraph" &&
+							item.data?.text?.includes(HIDDEN_NOTICE_MARKER)
+						)
+				);
+
 				if (
 					page.content == JSON.stringify(blocks) &&
 					Object.keys(new_widgets).length === 0
@@ -763,6 +1427,9 @@ frappe.views.Workspace = class Workspace {
 					},
 					callback: function (res) {
 						if (res.message) {
+							// The layout snapshot now exists, so the freeze has already
+							// happened; do not warn about it again before the next save.
+							page.is_layout_customized = 1;
 							me.discard = true;
 							me.reload();
 							if (window.Cypress) return;
@@ -789,12 +1456,9 @@ frappe.views.Workspace = class Workspace {
 	reload() {
 		delete this.pages[this._page.name];
 		this._page = null;
-		return this.get_workspaces().then((r) => {
-			frappe.boot.workspaces = r;
-			this.setup_pages(frappe.boot.workspaces.pages);
-			this.show();
-			if (this.undo) this.undo.readOnly = true;
-		});
+		this.setup_pages(frappe.boot.workspaces.pages);
+		this.show();
+		if (this.undo) this.undo.readOnly = true;
 	}
 
 	get_parent_pages(page) {
@@ -818,6 +1482,17 @@ frappe.views.Workspace = class Workspace {
 		if (page) {
 			return page.public ? this.public_parent_pages : this.private_parent_pages;
 		}
+	}
+
+	// "Access" choices for the New Workspace dialog. Creating a public workspace (whether
+	// role-gated or open to everyone) requires the Workspace Manager role, so users without
+	// it can only ever create a private "Only to you" workspace.
+	access_options() {
+		let options = [ACCESS_PRIVATE];
+		if (this.has_access) {
+			options.push(ACCESS_GROUP, ACCESS_PUBLIC);
+		}
+		return options;
 	}
 
 	create_page_skeleton() {

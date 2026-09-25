@@ -1,0 +1,526 @@
+/* Utility classes for desk and website pages, using Tailwind's names.
+ * (The Vue apps use real Tailwind — this file is only for classic
+ * Frappe markup.)
+ *
+ * Before adding a class here:
+ * 1. Use the exact Tailwind name. If Tailwind doesn't have it, don't
+ *    invent it.
+ * 2. Only add a class when you actually need it somewhere.
+ * 3. Only layout, spacing, and token-based colors/shadows/radius here.
+ *    Never hardcoded colors like #333 or bg-red-500. Text styles live in
+ *    typography.css, component styles in components/.
+ * 4. Prefer gap on the parent over margins on children.
+ *
+ * Spacing: 1 step = var(--spacing) = 0.25rem.
+ * Breakpoints: sm 576px, md 768px, lg 992px, xl 1200px (Frappe's grid,
+ * not Tailwind's defaults).
+ *
+ * Watch out: some class names here also exist in old Frappe or Bootstrap
+ * CSS. Always check how a name is used before adding or removing it.
+ * TODO: delete common/flex.scss once nothing uses its old names anymore
+ * (.align-center, .flex-column etc. — see the note in that file).
+ *
+ * Keep this file imported at the very end of the bundle. It has to load
+ * after all other CSS so that these classes win when two rules set the
+ * same thing. */
+
+/* ---- display ---- */
+.flex {
+	display: flex;
+}
+
+.inline-flex {
+	display: inline-flex;
+}
+
+.hidden {
+	display: none;
+}
+
+/* ---- position ---- (Tailwind's names; bootstrap uses .position-* so no clash) */
+.relative {
+	position: relative;
+}
+
+.absolute {
+	position: absolute;
+}
+
+.inset-0 {
+	inset: 0;
+}
+
+/* ---- flex direction / wrap ---- */
+.flex-col {
+	flex-direction: column;
+}
+
+/* Note: old CSS (Bootstrap and common/flex.scss) also defines these two
+   names, with the same effect — so nothing changes visually today. These
+   are here so markup keeps working after the old files are deleted. */
+.flex-wrap {
+	flex-wrap: wrap;
+}
+
+.flex-nowrap {
+	flex-wrap: nowrap;
+}
+
+/* ---- alignment ---- */
+.items-start {
+	align-items: flex-start;
+}
+
+.items-center {
+	align-items: center;
+}
+
+.items-end {
+	align-items: flex-end;
+}
+
+.items-baseline {
+	align-items: baseline;
+}
+
+.justify-start {
+	justify-content: flex-start;
+}
+
+.justify-center {
+	justify-content: center;
+}
+
+.justify-between {
+	justify-content: space-between;
+}
+
+.justify-end {
+	justify-content: flex-end;
+}
+
+/* ---- flex sizing ---- */
+.flex-1 {
+	flex: 1 1 0%;
+}
+
+.grow {
+	flex-grow: 1;
+}
+
+.shrink-0 {
+	flex-shrink: 0;
+}
+
+/* ---- spacing (1 step = 0.25rem) ----
+   Makes gap-* plus the full padding/margin family for the steps below.
+   ps/pe/ms/me mean start and end — they flip automatically in
+   right-to-left languages. Prefer gap on the parent over margins. */
+
+$spacing-steps: (
+	"0\\.5": 0.5,
+	"1": 1,
+	"1\\.5": 1.5,
+	"2": 2,
+	"2\\.5": 2.5,
+	"3": 3,
+	"4": 4,
+	"5": 5,
+	"6": 6,
+	"8": 8,
+);
+
+@function spacing-step($n) {
+	@if $n ==1 {
+		@return var(--spacing);
+	}
+
+	@return calc(var(--spacing) * #{$n});
+}
+
+@each $name, $n in $spacing-steps {
+	.gap-#{$name} {
+		gap: spacing-step($n);
+	}
+}
+
+/* p/m utilities coexist with Bootstrap's identically-named ones. For steps
+   Bootstrap defines (whole numbers), its !important physical declarations
+   still win in devtools — harmless, because the $spacers remap in
+   desk/variables.scss made the values identical. The fractional steps (0.5,
+   1.5, 2.5) exist only here. When Bootstrap's utilities are dropped, these
+   take over with no markup change. Logical properties (padding-inline/-block)
+   on purpose: same result today, RTL-safe forever. */
+@each $name, $n in $spacing-steps {
+	.p-#{$name} {
+		padding: spacing-step($n);
+	}
+
+	.ps-#{$name} {
+		padding-inline-start: spacing-step($n);
+	}
+
+	.pe-#{$name} {
+		padding-inline-end: spacing-step($n);
+	}
+
+	.py-#{$name} {
+		padding-block: spacing-step($n);
+	}
+
+	.px-#{$name} {
+		padding-inline: spacing-step($n);
+	}
+
+	.pt-#{$name} {
+		padding-top: spacing-step($n);
+	}
+
+	.pb-#{$name} {
+		padding-bottom: spacing-step($n);
+	}
+}
+
+@each $name, $n in $spacing-steps {
+	.m-#{$name} {
+		margin: spacing-step($n);
+	}
+
+	.ms-#{$name} {
+		margin-inline-start: spacing-step($n);
+	}
+
+	.me-#{$name} {
+		margin-inline-end: spacing-step($n);
+	}
+
+	.my-#{$name} {
+		margin-block: spacing-step($n);
+	}
+
+	.mx-#{$name} {
+		margin-inline: spacing-step($n);
+	}
+
+	.mt-#{$name} {
+		margin-top: spacing-step($n);
+	}
+
+	.mb-#{$name} {
+		margin-bottom: spacing-step($n);
+	}
+}
+
+/* auto margins push siblings apart in a flex row */
+.ms-auto {
+	margin-inline-start: auto;
+}
+
+.me-auto {
+	margin-inline-end: auto;
+}
+
+/* ---- sizing / overflow ---- */
+.w-full {
+	width: 100%;
+}
+
+.min-w-0 {
+	min-width: 0;
+}
+
+/* size-<n> sets width AND height together (Tailwind's size-*), reusing the
+   spacing scale (1 step = 0.25rem) — for square boxes like icon wells and
+   avatars. Add steps to the list as call sites need them. */
+$size-steps: 4, 5, 6, 8, 9, 10, 11, 12, 14, 16;
+
+@each $n in $size-steps {
+	.size-#{$n} {
+		width: spacing-step($n);
+		height: spacing-step($n);
+	}
+}
+
+/* max-width caps (Tailwind's named scale). Add more as call sites need them. */
+.max-w-xs {
+	max-width: 20rem;
+}
+
+.max-w-lg {
+	max-width: 32rem;
+}
+
+/* min-height steps (Tailwind's min-h-*, on the spacing scale) — e.g. giving
+   an empty state room to breathe. Bootstrap has no min-h-*, so no collision. */
+$min-h-steps: 24, 32, 40, 48, 64, 80, 96;
+
+@each $n in $min-h-steps {
+	.min-h-#{$n} {
+		min-height: spacing-step($n);
+	}
+}
+
+.truncate {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.overflow-hidden {
+	overflow: hidden;
+}
+
+.overflow-x-auto {
+	overflow-x: auto;
+}
+
+.whitespace-nowrap {
+	white-space: nowrap;
+}
+
+/* ---- cursor ---- */
+.cursor-pointer {
+	cursor: pointer;
+}
+
+/* ---- text alignment ---- */
+.text-center {
+	text-align: center;
+}
+
+/* ---- borders (1px, outline-gray-2 by default; add a border-outline-*
+   class to change the color) ---- */
+/* .border and .border-0 need !important because Bootstrap has classes
+   with the same names that also use !important — without it, ours would
+   always lose.
+   TODO: remove the !important here and on border-outline-* further down
+   once Bootstrap's utility classes are gone. Remove both together. */
+.border {
+	border: 1px solid var(--outline-gray-2) !important;
+}
+
+.border-0 {
+	border: 0 !important;
+}
+
+.border-t {
+	border-top: 1px solid var(--outline-gray-2);
+}
+
+.border-b {
+	border-bottom: 1px solid var(--outline-gray-2);
+}
+
+.border-s {
+	border-inline-start: 1px solid var(--outline-gray-2);
+}
+
+.border-e {
+	border-inline-end: 1px solid var(--outline-gray-2);
+}
+
+/* ---- colors ----
+   One class per espresso color token: text-ink-*, bg-surface-*,
+   border-outline-*. Same names frappe-ui uses, so markup written here
+   also makes sense there. Only token colors — nothing hardcoded. */
+
+$color-families: (
+	"gray": 9,
+	"red": 10,
+	"blue": 10,
+	"green": 10,
+	"amber": 10,
+	"orange": 10,
+	"yellow": 10,
+	"teal": 10,
+	"cyan": 10,
+	"violet": 10,
+	"purple": 10,
+	"pink": 10,
+);
+
+@each $family, $steps in $color-families {
+	@for $i from 1 through $steps {
+		.text-ink-#{$family}-#{$i} {
+			color: var(--ink-#{$family}-#{$i});
+		}
+
+		.bg-surface-#{$family}-#{$i} {
+			background-color: var(--surface-#{$family}-#{$i});
+		}
+
+		/* !important so these can change the color of .border above.
+           TODO: remove together with .border's !important. */
+		.border-outline-#{$family}-#{$i} {
+			border-color: var(--outline-#{$family}-#{$i}) !important;
+		}
+	}
+}
+
+/* non-numbered semantic tokens */
+.text-ink-base {
+	color: var(--ink-base);
+}
+
+.text-ink-blue-link {
+	color: var(--ink-blue-link);
+}
+
+.bg-surface-base {
+	background-color: var(--surface-base);
+}
+
+@for $i from 1 through 3 {
+	.bg-surface-elevation-#{$i} {
+		background-color: var(--surface-elevation-#{$i});
+	}
+}
+
+.border-outline-base {
+	border-color: var(--outline-base) !important;
+}
+
+@for $i from 1 through 2 {
+	.border-outline-elevation-#{$i} {
+		border-color: var(--outline-elevation-#{$i}) !important;
+	}
+}
+
+/* ---- shadows (from the espresso elevation tokens) ---- */
+.shadow-sm {
+	box-shadow: var(--elevation-sm);
+}
+
+.shadow {
+	box-shadow: var(--elevation-base);
+}
+
+.shadow-md {
+	box-shadow: var(--elevation-md);
+}
+
+.shadow-lg {
+	box-shadow: var(--elevation-lg);
+}
+
+.shadow-xl {
+	box-shadow: var(--elevation-xl);
+}
+
+/* ---- focus rings ----
+   Only show when navigating with the keyboard. focus-* draws the ring as
+   a shadow; focus-outline-* draws it as an outline (doesn't move any
+   layout, follows rounded corners). */
+$focus-colors: "default", "red", "green", "amber", "blue", "violet";
+
+@each $color in $focus-colors {
+	.focus-#{$color}:focus-visible {
+		box-shadow: var(--focus-#{$color});
+		outline: none;
+	}
+
+	.focus-outline-#{$color}:focus-visible {
+		outline: var(--focus-outline-#{$color});
+		outline-offset: 0;
+	}
+}
+
+/* ---- rounded corners (from the espresso radius tokens) ---- */
+.rounded-none {
+	border-radius: var(--radius-none);
+}
+
+.rounded-sm {
+	border-radius: var(--radius-sm);
+}
+
+.rounded {
+	border-radius: var(--radius);
+}
+
+.rounded-md {
+	border-radius: var(--radius-md);
+}
+
+.rounded-lg {
+	border-radius: var(--radius-lg);
+}
+
+.rounded-xl {
+	border-radius: var(--radius-xl);
+}
+
+.rounded-2xl {
+	border-radius: var(--radius-2xl);
+}
+
+.rounded-full {
+	border-radius: var(--radius-full);
+}
+
+/* per-corner radius — Tailwind's logical corner names, so a rounded corner
+   tucked against a border-s/border-t edge stays put when the layout flips:
+     ss = start-start (top-left in LTR)   se = start-end (top-right)
+     es = end-start   (bottom-left)       ee = end-end   (bottom-right)
+   The suffix picks the same radius tokens as the all-corner .rounded-* scale
+   above (unsuffixed = the base radius). rtlcss leaves logical properties alone,
+   so these flip for free. */
+$radius-corners: (
+	"ss": start-start,
+	"se": start-end,
+	"es": end-start,
+	"ee": end-end,
+);
+$radius-sizes: (
+	"-none": var(--radius-none),
+	"-sm": var(--radius-sm),
+	"": var(--radius),
+	"-md": var(--radius-md),
+	"-lg": var(--radius-lg),
+	"-xl": var(--radius-xl),
+	"-2xl": var(--radius-2xl),
+	"-full": var(--radius-full),
+);
+
+@each $corner, $edges in $radius-corners {
+	@each $suffix, $token in $radius-sizes {
+		.rounded-#{$corner}#{$suffix} {
+			border-#{$edges}-radius: $token;
+		}
+	}
+}
+
+/* ---- responsive and dark-mode variants (add only when needed) ----
+   Dark mode example, used like class="bg-surface-gray-2 dark:bg-surface-gray-4":
+
+     [data-theme="dark"] .dark\:bg-surface-gray-4 { ... }
+
+   You'll rarely need this — the tokens themselves already change in dark
+   mode. If you keep reaching for it, the token choice is probably wrong.
+
+   Keep this section at the bottom of the file: max-sm:gap-1 only beats
+   gap-2 because it comes later in the CSS.
+
+   And if a value should change everywhere on mobile (like page padding),
+   change the token inside a media query instead of adding classes here. */
+
+/* below sm (phones) */
+@media (max-width: 575.98px) {
+	.max-sm\:hidden {
+		display: none;
+	}
+}
+
+/* sm and up */
+@media (min-width: 576px) {
+	.sm\:flex {
+		display: flex;
+	}
+}
+
+/* below lg (phones + tablets) */
+@media (max-width: 991.98px) {
+	.max-lg\:hidden {
+		display: none;
+	}
+}

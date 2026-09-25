@@ -15,8 +15,7 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo, get_navbar_settings
 from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
 from frappe.desk.desk_views import DeskViews
-from frappe.desk.doctype.changelog_feed.changelog_feed import get_changelog_feed_items
-from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
+from frappe.desk.doctype.desktop_settings.desktop_settings import get_desktop_page, is_desktop_icons_page
 from frappe.desk.doctype.form_tour.form_tour import get_onboarding_ui_tours
 from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
@@ -29,7 +28,6 @@ from frappe.model.base_document import get_controller
 from frappe.utils import add_user_info, get_system_timezone
 from frappe.utils.caching import redis_cache
 from frappe.utils.change_log import get_versions
-from frappe.utils.frappecloud import on_frappecloud
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
 
@@ -56,19 +54,24 @@ def get_bootinfo():
 	if frappe.session["user"] != "Guest":
 		bootinfo.user_info = get_user_info()
 
-	bootinfo.modules = {}
-	bootinfo.module_list = []
 	desk_views = DeskViews()
 	desk_views.build_entities()
 	desk_views.add_to_boot(bootinfo)
-	load_desktop_data(bootinfo)
-	bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
+	load_desktop_data(bootinfo, desk_views)
 	bootinfo.letter_heads = get_letter_heads()
 	bootinfo.active_domains = frappe.get_active_domains()
 	bootinfo.all_domains = frappe.get_all("Domain", pluck="name")
 	add_layouts(bootinfo)
 
-	bootinfo.module_app = frappe.local.module_app
+	# module_app is keyed by scrubbed module name
+	bootinfo.module_app = get_boot_module_app()
+	# Where a code-only module's navigation went, so the desk can resolve an entity whose own
+	# module ships none. Unfiltered on purpose: the client already checks each heir against
+	# `module_sidebars`, the per-user payload, so filtering here would repeat that. Keyed by real
+	# module name, unlike module_app above.
+	from frappe.utils.modules import get_code_only_module_heirs
+
+	bootinfo.code_only_module_heirs = get_code_only_module_heirs()
 	bootinfo.single_types = frappe.get_all("DocType", {"issingle": 1}, pluck="name")
 	bootinfo.nested_set_doctypes = frappe.get_all("DocField", {"fieldname": "lft"}, pluck="parent")
 	bootinfo.tree_view_doctypes = get_tree_view_doctypes()
@@ -120,9 +123,7 @@ def get_bootinfo():
 	bootinfo.translated_doctypes = get_translated_doctypes()
 	bootinfo.doctype_ptype_map = get_doctype_ptype_map()
 	bootinfo.subscription_conf = add_subscription_conf()
-	bootinfo.marketplace_apps = get_marketplace_apps()
 	bootinfo.is_fc_site = is_fc_site()
-	bootinfo.changelog_feed = get_changelog_feed_items()
 	bootinfo.cloud_settings = get_cloud_settings_boot_context()
 	bootinfo.enable_address_autocompletion = frappe.db.get_single_value(
 		"Geolocation Settings", "enable_address_autocompletion"
@@ -134,6 +135,7 @@ def get_bootinfo():
 	bootinfo.setup_wizard_completed_apps = get_setup_wizard_completed_apps() or []
 	bootinfo.desktop_icon_urls = get_desktop_icon_urls()
 	bootinfo.desktop_icon_style = get_icon_style() or "Subtle"
+	bootinfo.desktop_page = get_desktop_page()
 	if bootinfo.is_fc_site:
 		bootinfo.site_info = current_site_info()
 	return bootinfo
@@ -160,22 +162,136 @@ def get_letter_heads():
 
 
 def load_conf_settings(bootinfo):
-	from frappe.core.api.file import get_max_file_size
+	from frappe.core.api.file import get_file_chunk_size, get_max_file_size
 
 	bootinfo.max_file_size = get_max_file_size()
+	bootinfo.file_chunk_size = get_file_chunk_size()
 	for key in ("developer_mode", "socketio_port", "file_watcher_port"):
 		if key in frappe.conf:
 			bootinfo[key] = frappe.conf.get(key)
 
 
-def load_desktop_data(bootinfo):
-	allowed_pages = [d.name for d in bootinfo.workspaces.get("pages")]
-	bootinfo.workspace_sidebar_item = get_sidebar_items(allowed_pages)
-	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()
-	bootinfo.app_data = []
+def get_boot_module_app():
+	"""`frappe.local.module_app` extended with modules that exist only in the DB.
 
-	Workspace = frappe.qb.DocType("Workspace")
-	Module = frappe.qb.DocType("Module Def")
+	A Module Def created from the UI (e.g. to host a custom doctype) carries its app in
+	`app_name` but never appears in any modules.txt, so `frappe.local.module_app` misses it.
+	The desk uses this map to resolve a routed doctype's owning app -- which sidebar to show
+	and which app's workspace rail to switch to -- so fold those modules in for the boot
+	payload only. Server-side file-path resolution (`frappe.get_module_app`) intentionally
+	stays modules.txt-based."""
+	module_app = dict(frappe.local.module_app)
+	installed_apps = set(frappe.get_installed_apps())
+	for module in frappe.get_all("Module Def", fields=["name", "app_name"]):
+		key = frappe.scrub(module.name)
+		if key not in module_app and module.app_name in installed_apps:
+			module_app[key] = module.app_name
+	return module_app
+
+
+def get_app_rail_host_map():
+	"""Map each companion app to the host app whose rail it mounts on.
+
+	A companion app, such as India Compliance for ERPNext or India Payroll for HRMS, has no shell
+	of its own; its entries live on the host app's rail. This map lets the desk resolve the app
+	context (rail and header) of a companion app's workspaces to the host app, so the user stays
+	in the host's rail while using the companion.
+
+	It is read from the records rather than a hook, and it uses the dock layers cache, which
+	exists for questions the boot asks on every request. Only mounts that take effect are here: a
+	companion whose host is not installed, whose host ships no dock, or that ships no rows itself
+	is an ordinary app with its own rail and apps-screen slot.
+	"""
+	from frappe.desk.doctype.dock.dock import mounted_apps
+
+	return mounted_apps()
+
+
+# Fallback apps-screen sort order for apps that don't declare a `sequence_id` in their
+# `add_to_apps_screen` hook. Sits below Framework (1000) so it always trails real apps.
+#
+# This default stays. It orders the app's slot on the apps screen, which is what makes the rails
+# read in the same order as the screen users reach them from. Its module-level counterpart is
+# gone: where a module sits on a rail is a row's position in the `Dock` record its app ships,
+# which has no unset state and so needs no default.
+DEFAULT_APP_SEQUENCE_ID = 100
+
+
+def load_desktop_data(bootinfo, desk_views: DeskViews | None = None):
+	"""`desk_views` is the instance the boot already built, passed in so the permission reads
+	`build_canonical_shells` needs are the ones already cached rather than a second set. It
+	defaults to a fresh one because those reads are lazy, so an outside caller that has none
+	still works and simply pays for them.
+	"""
+	from frappe.desk.doctype.dock.dock import resolve_dock
+	from frappe.desk.doctype.sidebar.sidebar import build_canonical_shells
+
+	desk_views = desk_views or DeskViews()
+
+	# A companion app's workspaces resolve their app context (rail and header) to the host app it
+	# mounts on, so the companion appears inside the host's rail rather than switching the desk to
+	# a shell of its own. This is not redundant with the companion's rows being in the host's
+	# entry set: only those rows are derivable from that, and a companion's other workspaces need
+	# the host's rail on screen too.
+	bootinfo.app_rail_host = get_app_rail_host_map()
+	# The dock this user sees, keyed by app: each app's own dock, with the site's arrangement and
+	# then the user's applied on top, filtered to what they can reach. It is keyed by app because
+	# a dock layer is per app, so arranging one app's rail says nothing about another's and the
+	# client no longer has to intersect one cross-app list with each app's entry set. This is an
+	# arrangement rather than the dock's contents: an entry it does not name still shows, in its
+	# app's own order, after the ones it does. An app with no arrangement is absent rather than
+	# carried as an empty list.
+	bootinfo.dock = resolve_dock()
+	# Keyed by exact-case module name, so a `Sidebar` row in `app_data[].dock` indexes straight in.
+	# This replaced three overlapping payloads: `workspace_sidebar_item` (keyed by lowercased
+	# workspace title), `default_workspace_map` and `module_wise_workspaces`, which together made
+	# the desk reconcile four keyspaces for one identity.
+	bootinfo.module_sidebars = get_module_sidebars()
+	bootinfo.entity_module = build_entity_module_map(bootinfo.module_sidebars)
+	# Where each thing a desk route can name opens when nothing else states a shell: a bare
+	# `/desk/item`, a URL naming a shell that cannot show the entity, and the server's own URL
+	# builders. Keyed by kind, then by name, because entity names are not unique across kinds.
+	# See `build_canonical_shells` for the ladder and for why it is resolved here rather than in
+	# the desk.
+	# `home_shell` is where a route that names nothing lands, and the shell the map falls back to
+	# for anything the ladder could not place. It comes out of the same call so the two agree.
+	# `get_user` has already loaded the user's default workspace, so it is handed over rather than
+	# read again. An outside caller with no `bootinfo.user` simply gets the count's answer.
+	default_workspace = ((bootinfo.get("user") or {}).get("default_workspace") or {}).get("name")
+	bootinfo.canonical_shell, bootinfo.home_shell = build_canonical_shells(
+		bootinfo.module_sidebars, bootinfo.entity_module, desk_views, default_workspace=default_workspace
+	)
+
+	# Only the Desktop Icon grid reads these; the default Apps screen builds itself from
+	# `app_data` below. Set after `module_sidebars`, which `is_icon_permitted` reads.
+	if is_desktop_icons_page():
+		from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
+
+		bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
+
+	bootinfo.app_data = get_app_data()
+
+
+def get_app_data() -> list[dict]:
+	"""Return the apps the desk knows about, each with the ordered set of entries its dock offers.
+
+	This backs the apps (desktop) screen and the dock, which renders
+	`app_data[app].dock` for whichever app is in context, ordered by the arrangement in
+	`frappe.boot.dock`. It is one typed list rather than the separate module and workspace lists
+	it replaces, which the client had to reconcile to render a single rail and where the pin
+	landed in the list the rail never read. It stays its own function so anything that re-mounts a
+	workspace can hand the client a fresh copy without duplicating the grouping rules (see
+	`mount_workspace`).
+
+	It takes no arguments. It used to be given the workspace names this user may see, for the
+	derived first-workspace guess that ticket 11 removed. Reach is now applied per entry by
+	`get_app_entry_set`, which asks the same question about the same user.
+	"""
+	from frappe.desk.doctype.dock.dock import get_app_entry_set
+
+	app_data = []
+
+	app_rail_host = get_app_rail_host_map()
 
 	for app_name in frappe.get_installed_apps():
 		# get app details from app_info (/apps)
@@ -185,23 +301,45 @@ def load_desktop_data(bootinfo):
 			app_info = apps[0]
 			has_permission = app_info.get("has_permission")
 			if has_permission and not frappe.get_attr(has_permission)():
+				# The user can't access this app, so we don't expose its routes or its dock. We
+				# still surface its name/title so things that reference the app can be labelled
+				# (e.g. the sidebar header subtitle) instead of falling back to the user's name.
+				# on_apps_screen stays False so it never shows on the apps screen, and an empty
+				# `dock` keeps the desk-side lookups from breaking.
+				app_data.append(
+					dict(
+						on_apps_screen=False,
+						sequence_id=app_info.get("sequence_id") or DEFAULT_APP_SEQUENCE_ID,
+						app_name=app_info.get("name") or app_name,
+						app_title=app_info.get("title")
+						or (frappe.get_hooks("app_title", app_name=app_name) or [None])[0]
+						or app_name,
+						app_route="",
+						desk_route="",
+						app_logo_url=app_info.get("logo")
+						or frappe.get_hooks("app_logo_url", app_name=app_name)
+						or frappe.get_hooks("app_logo_url", app_name="frappe"),
+						dock=[],
+					)
+				)
 				continue
 
-		workspaces = [
-			r[0]
-			for r in (
-				frappe.qb.from_(Workspace)
-				.inner_join(Module)
-				.on(Workspace.module == Module.name)
-				.select(Workspace.name)
-				.where(Module.app_name == app_name)
-				.run()
-			)
-			if r[0] in allowed_pages
-		]
+		# The entries this app's dock offers: the rows of the `Dock` record it ships,
+		# permission-filtered. This is no longer `get_app_modules`, because an app's dock stopped
+		# being every module it owns in some order and became a document its author writes, so a
+		# module the record never names is off this rail permanently. Which of these are on the
+		# rail, and in what order, is `frappe.boot.dock`.
+		dock = get_app_entry_set(app_name)
 
-		bootinfo.app_data.append(
+		app_data.append(
 			dict(
+				# Whether the app opts into the apps screen via the add_to_apps_screen hook. An app
+				# that pins into a host app's dock never takes a slot of its own, even if it still
+				# declares add_to_apps_screen from before the dock existed: the pin wins.
+				on_apps_screen=bool(apps) and app_name not in app_rail_host,
+				# Sort order for the apps (desktop) screen; lower shows first, Framework is pinned
+				# last (sequence_id 1000). Apps that don't declare one fall to a middle default.
+				sequence_id=app_info.get("sequence_id") or DEFAULT_APP_SEQUENCE_ID,
 				app_name=app_info.get("name") or app_name,
 				app_title=app_info.get("title")
 				or (
@@ -212,19 +350,74 @@ def load_desktop_data(bootinfo):
 					or ""
 				)
 				or app_name,
-				app_route=(
+				# Only what the app declares. The third source used to be an arbitrary workspace
+				# picked by `sequence_id`, which was a guess, and a worse one under this model,
+				# because that workspace may sit in a module the app's `Dock` record never names,
+				# so the icon would land somewhere the rail does not show. The rest of the steps
+				# are resolved late on the client, so reordering a rail moves the landing with it
+				# (`Sidebar.app_landing_route`).
+				app_route=app_info.get("route")
+				or (
 					frappe.get_hooks("app_home", app_name=app_name)
 					and frappe.get_hooks("app_home", app_name=app_name)[0]
 				)
-				or (workspaces and "/desk/" + frappe.utils.slug(workspaces[0]))
 				or "",
+				# A non-desk app's door back into the desk. Configuring such an app -- its roles,
+				# its custom fields, the workspace it ships -- stays a desk job, so the app may
+				# name a desk route here and the apps screen renders it under the app's icon as a
+				# second link. Passed through exactly as `app_route` is: a literal route the app
+				# author owns, neither resolved nor permission-checked here.
+				desk_route=app_info.get("desk_route") or "",
+				# Only the app's own logo (from add_to_apps_screen or its app_logo_url hook); left
+				# empty when it declares none, so the desk renders an alphabet icon instead.
 				app_logo_url=app_info.get("logo")
 				or frappe.get_hooks("app_logo_url", app_name=app_name)
-				or frappe.get_hooks("app_logo_url", app_name="frappe"),
-				modules=frappe.get_all("Module Def", dict(app_name=app_name), pluck="name"),
-				workspaces=workspaces,
+				or None,
+				dock=dock,
 			)
 		)
+
+	return app_data
+
+
+def get_app_modules(app_name: str) -> list[str]:
+	"""Return one app's modules that this user can navigate to, in a stable order.
+
+	This used to be the app's dock, which is now the rows of the record the app ships. Three
+	readers are left, and all want the same thing: the switcher's list of shells, the manager's
+	pool of things to add, and the last step of the landing ladder. Each offers what this returns
+	as a destination.
+
+	That is why the filter is narrower than before. It used to filter only blocked modules, which
+	was harmless while it fed the rail, since the client silently dropped any row missing from the
+	module-sidebars payload, where a disabled app's modules and code-only modules never appear.
+	Removing that mask without adding the two checks would offer `Core`, `Custom` and `Desk` as
+	destinations that resolve to nothing.
+
+	So it asks the same three questions `get_navigable_modules` asks site-wide, scoped to one app:
+	not blocked by this user, not in a disabled app, and not code-only. That is one definition of
+	a module you can navigate to.
+
+	The order has two tiers:
+
+	1. `modules.txt` position, the order the app declares its modules in.
+	2. Name, for modules that exist only in the database (a `Module Def` added from the UI and
+	   never written to `modules.txt`), which follow the declared ones alphabetically.
+
+	Sorting by name alone would alphabetise the trailing set, which changes behaviour.
+	"""
+	from frappe.utils.modules import get_code_only_modules, get_visible_modules
+
+	modules = get_visible_modules(frappe.get_all("Module Def", filters={"app_name": app_name}, pluck="name"))
+	if not modules:
+		return []
+
+	code_only = get_code_only_modules()
+	modules = [module for module in modules if module not in code_only]
+
+	declared = {name: idx for idx, name in enumerate(frappe.get_module_list(app_name))}
+
+	return sorted(modules, key=lambda module: (declared.get(module, len(declared)), module))
 
 
 def load_translations(bootinfo):
@@ -394,32 +587,6 @@ def load_currency_docs(bootinfo):
 	bootinfo.docs += currency_docs
 
 
-def get_marketplace_apps():
-	import requests
-
-	apps = []
-	cache_key = "frappe_marketplace_apps"
-
-	if frappe.conf.developer_mode or not on_frappecloud():
-		return apps
-
-	def get_apps_from_fc():
-		remote_site = frappe.conf.frappecloud_url or "frappecloud.com"
-		request_url = f"https://{remote_site}/api/method/press.api.marketplace.get_marketplace_apps"
-		request = requests.get(request_url, timeout=2.0)
-		return request.json()["message"]
-
-	try:
-		apps = frappe.cache.get_value(cache_key, get_apps_from_fc, shared=True)
-		installed_apps = set(frappe.get_installed_apps())
-		apps = [app for app in apps if app["name"] not in installed_apps]
-	except Exception:
-		# Don't retry for a day
-		frappe.cache.set_value(cache_key, apps, shared=True, expires_in_sec=24 * 60 * 60)
-
-	return apps
-
-
 @redis_cache
 def get_tree_view_doctypes():
 	return frappe.get_all("DocType", {"default_view": "Tree"}, pluck="name")
@@ -439,81 +606,89 @@ def get_sentry_dsn():
 	return os.getenv("FRAPPE_SENTRY_DSN")
 
 
-def get_sidebar_items(allowed_workspaces):
-	from frappe import _
-	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import auto_generate_sidebar_from_module
+def get_module_sidebars():
+	"""Build `bootinfo.module_sidebars` by resolving each of the site's shells.
 
-	workspace_sidebars = frappe.get_all(
-		"Workspace Sidebar", fields=["name", "header_icon", "module_onboarding"]
+	Which shells exist still comes from walking modules, not `Sidebar` rows (see
+	`get_navigable_modules`). What a module owns is whatever `get_sidebar_bases` finds under it,
+	and each of those goes to `resolve_sidebar`, which holds every rule that shapes an answer.
+	This function picks the set and assembles the payload; it decides nothing about what a shell
+	resolves to.
+
+	It is keyed by shell identity: a `Sidebar` document's exact name, or the exact module name
+	where the base was computed. Keyed by module, a module's second sidebar was overwritten by its
+	first and disappeared with no error. A shell is what the desk shows and what a dock row
+	selects, so it is the correct key. The naming rule (`set_default_title`) keeps the two the
+	same string unless a sidebar was renamed, so a reader holding a module still indexes straight
+	in.
+
+	This is one keyspace, in exact case. The legacy payload was keyed by `title.lower()`, a third
+	keyspace alongside `router.slug(name)` and the exact Workspace name.
+	"""
+	from frappe.desk.doctype.sidebar.sidebar import (
+		SidebarContext,
+		get_navigable_modules,
+		resolve_sidebar,
 	)
-	module_sidebars = auto_generate_sidebar_from_module()
-	workspace_sidebars.extend(module_sidebars)
-	sidebar_items = {}
 
-	for sidebar in workspace_sidebars:
-		sidebar_title = sidebar.get("name")
-		sidebar_doc = None
-		if sidebar_title:
-			sidebar_doc = frappe.get_doc("Workspace Sidebar", sidebar_title)
-		else:
-			sidebar_title = sidebar.title
-			sidebar_doc = sidebar
-		is_my_workspaces = "My Workspaces" in sidebar_title
-		items = []
-		for item in sidebar_doc.items:
-			workspace_sidebar = {
-				"label": _(item.label),
-				"link_to": item.link_to,
-				"link_type": item.link_type,
-				"type": item.type,
-				"icon": item.icon,
-				"child": item.child,
-				"collapsible": item.collapsible,
-				"indent": item.indent,
-				"keep_closed": item.keep_closed,
-				"url": item.url,
-				"show_arrow": item.show_arrow,
-				"filters": item.filters,
-				"route_options": item.route_options,
-				"tab": item.navigate_to_tab,
-			}
-			if (
-				item.link_type == "Report"
-				and item.link_to
-				and frappe.db.exists("Report", item.link_to)
-				and not frappe.db.get_value("Report", item.link_to, "disabled")
-			):
-				report_type, ref_doctype = frappe.db.get_value(
-					"Report", item.link_to, ["report_type", "ref_doctype"]
-				)
-				workspace_sidebar["report"] = {
-					"report_type": report_type,
-					"ref_doctype": ref_doctype,
-				}
-			if (
-				is_my_workspaces
-				or item.type == "Section Break"
-				or sidebar_doc.is_item_allowed(item.link_to, item.link_type, allowed_workspaces)
-			):
-				items.append(workspace_sidebar)
+	modules = get_navigable_modules()
+	if not modules:
+		return {}
 
-		# A sidebar (and its desktop icon) is shown only if the user can see at least one
-		# real item in it, i.e. a non-Section-Break item survived the per-item filter above.
-		# This is the single source of truth for sidebar permissions and mirrors
-		# Desktop Icon.is_permitted. "My Workspaces" is always shown.
-		if not is_my_workspaces and not any(item["type"] != "Section Break" for item in items):
-			continue
+	user = frappe.session.user
+	context = SidebarContext.for_modules(modules, user)
 
-		sidebar_items[sidebar_title.lower()] = {
-			"label": sidebar_title,
-			"items": items,
-			"header_icon": sidebar.get("header_icon"),
-			"module_onboarding": sidebar.get("module_onboarding"),
-			"module": sidebar_doc.module,
-			"app": sidebar_doc.app,
-		}
-	add_user_specific_sidebar(sidebar_items)
-	return sidebar_items
+	payload = {}
+	for shell in context.bases:
+		resolved = resolve_sidebar(shell, user, context)
+		if resolved:
+			payload[shell] = resolved.as_boot_entry()
+
+	return payload
+
+
+def build_entity_module_map(module_sidebars):
+	"""Map each entity (`link_to`) to the shell whose sidebar owns it.
+
+	This replaces `default_workspace_map`. It is built from the already-filtered payload and keyed
+	the same way, so it can never name a shell or an entity the user cannot see, and what it
+	returns indexes straight back into the payload.
+
+	When two sidebars claim the same entity, the last-installed app wins, and two claims from the
+	same app are ordered by shell name ascending. Install order follows dependency order wherever
+	a dependency exists, since the installer refuses to install an app before its `required_apps`,
+	so a claim from the app built on top beats the one underneath, which is how `hrms` claims
+	`Employee`. The rule stops here: the desk's `get_modules_linking` orders curations and does
+	not use it.
+
+	Two consequences are not visible in the loop below:
+
+	1. Ownership is per-user. The payload is permission-filtered before it gets here, so the
+	   winner is the last-installed app among the claims this user can see. Two users may
+	   correctly resolve one entity to different shells, and a user who cannot see the winning
+	   shell falls to the next claim rather than to nothing.
+	2. The losing claim is not reported anywhere: no log, no report, no `after_migrate` line. The
+	   problem with the last-write-wins this replaces was that it was arbitrary, over a dict
+	   ordered by module name, not that it was quiet. A rule an author can predict from their own
+	   install order needs no warning, so please do not add one.
+	"""
+	# A module placed by `get_module_placement` rather than by a shipped document can name an app
+	# that is not installed here, so an unknown app ranks below every installed one instead of
+	# raising. Ownership is not worth a broken boot.
+	install_index = {app: index for index, app in enumerate(frappe.get_installed_apps())}
+
+	claims = {}
+	for shell, sidebar in module_sidebars.items():
+		claim = (install_index.get(sidebar.get("app"), -1), shell)
+		for item in sidebar["items"]:
+			if item.get("link_to") and item.get("is_default_module"):
+				claims.setdefault(item["link_to"], []).append(claim)
+
+	# The comparator, in one place: highest install index, then lowest shell name.
+	return {
+		entity: min(entity_claims, key=lambda claim: (-claim[0], claim[1]))[1]
+		for entity, entity_claims in claims.items()
+	}
 
 
 def get_desktop_icon_urls():
@@ -541,17 +716,3 @@ def get_desktop_icon_urls():
 						icons_map[app][variant].append(assets_path)
 
 	return icons_map
-
-
-def add_user_specific_sidebar(sidebar_items):
-	sidebars_to_remove = []
-	for sidebar in sidebar_items.keys():
-		if f"-{frappe.session.user.lower()}" in sidebar:
-			sidebars_to_remove.append(sidebar)
-	for sidebar in sidebars_to_remove:
-		try:
-			sidebar_name = sidebar.replace(f"-{frappe.session.user.lower()}", "")
-			sidebar_items[sidebar]["label"] = sidebar_items[sidebar_name]["label"]
-			sidebar_items[sidebar_name] = sidebar_items.pop(sidebar)
-		except KeyError:
-			pass

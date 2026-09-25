@@ -1,86 +1,144 @@
 frappe.provide("frappe.ui.sidebar_item");
+
+// Put the shell in front of a desk path, so a link in a sidebar names the shell it sits in.
+//
+// Without this the rendered href says `/desk/todo` while the URL it leads to says
+// `/desk/build/todo`, and `is_route_in_sidebar` compares the two by string, so nothing is ever
+// highlighted. It also means clicking the link arrives already correct, instead of arriving bare
+// and being rewritten a moment later.
+//
+// A `URL` item is left alone: it points wherever its author said, which need not be the desk at
+// all. So is anything that is not a desk path.
+//
+// The rule has to be the one `write_shell_into_url` uses, character for character, because the
+// highlight is a string comparison between this href and the URL. That includes not saying the
+// shell twice: `/desk/build` is the Build workspace and its shell is Build, so the prefix would
+// add a segment and no information.
+function in_shell(path, shell) {
+	if (!shell || !path || !path.startsWith("/desk/")) return path;
+
+	// The query string is not part of what the shell goes in front of, and leaving it in would
+	// make `/desk/build?x=1` look unlike `/desk/build` and take a prefix it should not.
+	const [route, rest] = split_query(path.slice("/desk/".length));
+	const slug = frappe.router.shell_slug(shell);
+	if (route === slug || route.startsWith(slug + "/")) return path;
+
+	return "/desk/" + slug + "/" + route + rest;
+}
+
+function split_query(path) {
+	const at = path.search(/[?#]/);
+	return at === -1 ? [path, ""] : [path.slice(0, at), path.slice(at)];
+}
+
+// Resolve a sidebar item (from `bootinfo.module_sidebars`) to a navigable route.
+// Shared by the rendered sidebar links and the header workspace switcher.
+//
+// `shell` is the sidebar the item belongs to, and the caller says which: an item on screen belongs
+// to the sidebar showing it, while `module_landing_route` asks about a module that is not the one
+// on screen. Left out, the route carries no shell and the desk writes one in on arrival.
+frappe.ui.sidebar_item.get_route = function (item, edit_mode = false, shell = null) {
+	let path;
+	if (item.type !== "Link") return path;
+
+	if (item.link_type === "Report") {
+		let args = {
+			type: item.link_type,
+			name: item.link_to,
+		};
+		if (!edit_mode) {
+			if (item.report) {
+				args.is_query_report =
+					item.report.report_type === "Query Report" ||
+					item.report.report_type == "Script Report";
+				args.report_ref_doctype = item.report.ref_doctype;
+			} else {
+				return;
+			}
+		}
+
+		path = frappe.utils.generate_route(args);
+	} else if (item.link_type == "Workspace") {
+		let workspaces = frappe.workspaces[frappe.router.slug(item.link_to)];
+		if (workspaces && workspaces.public) {
+			path = "/desk/" + frappe.router.slug(item.link_to);
+		} else {
+			path = "/desk/private/" + frappe.router.slug(item.link_to);
+		}
+
+		if (item.route) {
+			path = item.route;
+		}
+	} else if (item.link_type === "URL") {
+		path = item.url;
+	} else if (item.link_type == "Page" && item.route_options) {
+		path = frappe.utils.generate_route({
+			type: item.link_type,
+			name: item.link_to,
+			route_options: JSON.parse(item.route_options),
+		});
+	} else {
+		let args = {
+			type: item.link_type,
+			name: item.link_to,
+			tab: item.tab,
+		};
+		// get_filter_as_json() returns null for an empty filter array, so an item stored
+		// with `filters` of "[]" lands here with nothing to convert.
+		const filters_as_json = item.filters
+			? frappe.utils.get_filter_as_json(JSON.parse(item.filters))
+			: null;
+		if (filters_as_json) {
+			let filters_json = JSON.parse(filters_as_json);
+			for (const [key, value] of Object.entries(filters_json)) {
+				if (Array.isArray(value)) {
+					filters_json[key] = value[0] === "=" ? value[1] : JSON.stringify(value);
+				}
+			}
+			if (item.link_type == "DocType") {
+				args.doc_view = "List";
+				args.route_options = filters_json;
+			}
+		} else if (item.route_options && item.link_type == "DocType") {
+			args.doc_view = "List";
+			args.route_options = JSON.parse(item.route_options);
+		}
+		path = frappe.utils.generate_route(args);
+
+		// If a DocType Layout is specified on this link, append ?layout=<route>
+		// so the form/list opens under that layout context.
+		if (item.link_type === "DocType" && item.doctype_layout) {
+			const layout_info = (frappe.boot.doctype_layouts || []).find(
+				(l) => l.name === item.doctype_layout
+			);
+			if (layout_info) {
+				const doctype_slug = frappe.router.slug(item.link_to);
+				path = `/desk/${doctype_slug}?layout=${encodeURIComponent(layout_info.name)}`;
+			}
+		}
+	}
+
+	return in_shell(path, shell);
+};
+
 frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 	constructor(opts) {
 		this.item = opts.item;
 		this.container = opts.container;
 		this.nested_items = opts.item.nested_items || [];
-		this.workspace_title =
-			($(".body-sidebar").attr("data-title") &&
-				$(".body-sidebar").attr("data-title").toLowerCase()) ||
-			frappe.app.sidebar.sidebar_title;
+		// The module whose sidebar this item is in, read off the sidebar rather than out of the
+		// DOM. It keys the collapsed/expanded state of section breaks in localStorage.
+		//
+		// It used to read `data-title` and lowercase it, falling back to `sidebar.sidebar_title`,
+		// a property that no longer exists, so the fallback was always undefined and every module
+		// shared one state. The lowercasing also made it a fourth keyspace, in a change whose
+		// point was to have one: the exact-case module name.
+		this.current_module = frappe.app.sidebar.current_module;
 		this.prepare(opts);
 		this.make();
 	}
 	get_path() {
-		let path;
-		if (this.item.type === "Link") {
-			if (this.item.link_type === "Report") {
-				let args = {
-					type: this.item.link_type,
-					name: this.item.link_to,
-				};
-				if (!frappe.app.sidebar.editor.edit_mode) {
-					if (this.item.report) {
-						args.is_query_report =
-							this.item.report.report_type === "Query Report" ||
-							this.item.report.report_type == "Script Report";
-						args.report_ref_doctype = this.item.report.ref_doctype;
-					} else {
-						return;
-					}
-				}
-
-				path = frappe.utils.generate_route(args);
-			} else if (this.item.link_type == "Workspace") {
-				let workspaces = frappe.workspaces[frappe.router.slug(this.item.link_to)];
-				if (workspaces && workspaces.public) {
-					path = "/desk/" + frappe.router.slug(this.item.link_to);
-				} else {
-					path = "/desk/private/" + frappe.router.slug(this.item.link_to);
-				}
-
-				if (this.item.route) {
-					path = this.item.route;
-				}
-			} else if (this.item.link_type === "URL") {
-				path = this.item.url;
-			} else if (this.item.link_type == "Page" && this.item.route_options) {
-				path = frappe.utils.generate_route({
-					type: this.item.link_type,
-					name: this.item.link_to,
-					route_options: JSON.parse(this.item.route_options),
-				});
-			} else {
-				let args = {
-					type: this.item.link_type,
-					name: this.item.link_to,
-					tab: this.item.tab,
-				};
-				if (this.item.filters) {
-					let filters_json = JSON.parse(
-						frappe.utils.get_filter_as_json(JSON.parse(this.item.filters))
-					);
-					filters_json = this.transform_filters(filters_json);
-					if (this.item.link_type == "DocType") {
-						args.doc_view = "List";
-						args.route_options = filters_json;
-					}
-				} else if (this.item.route_options && this.item.link_type == "DocType") {
-					args.doc_view = "List";
-					args.route_options = JSON.parse(this.item.route_options);
-				}
-				path = frappe.utils.generate_route(args);
-			}
-		}
-		return path;
-	}
-	transform_filters(filters_json) {
-		for (const [key, value] of Object.entries(filters_json)) {
-			if (Array.isArray(value)) {
-				filters_json[key] = value[1];
-			}
-		}
-		return filters_json;
+		return frappe.ui.sidebar_item.get_route(this.item, false, this.current_module);
 	}
 
 	prepare() {}
@@ -90,18 +148,32 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 			return;
 		}
 		this.set_suffix();
-		if (!this.item.icon && !(this.item.child && this.item.parent.indent)) {
+		// `parent` is only set on items find_nested_items() actually nested; a row can carry
+		// `child` without one (a Section Break, or a child with no section above it).
+		// Items nested under an indented section draw no icon, even one they set themselves.
+		// The item's own icon is left alone so the sidebar editor still sees and saves it.
+		const hide_icon = !!(this.item.child && this.item.parent?.indent);
+		if (!this.item.icon && !hide_icon) {
 			this.item.icon = "list";
 		}
 		this.wrapper = $(
 			frappe.render_template("sidebar_item", {
 				item: this.item,
 				path: this.path,
-				edit_mode: frappe.app.sidebar.editor.edit_mode,
+				hide_icon,
 			})
 		);
 		$(this.container).append(this.wrapper);
-		this.setup_editing_controls();
+		this.setup_click();
+	}
+
+	setup_click() {
+		if (!this.path) return;
+		this.wrapper.find(".item-anchor").on("click", () => {
+			if (frappe.is_mobile()) {
+				frappe.app.sidebar.close();
+			}
+		});
 	}
 	set_suffix() {
 		if (this.item.suffix) {
@@ -114,51 +186,6 @@ frappe.ui.sidebar_item.TypeLink = class SidebarItem {
 		shortcut = frappe.ui.keys.get_shortcut_label(shortcut);
 		return `<span class="keyboard-shortcut">${shortcut}</span>`;
 	}
-	setup_editing_controls() {
-		this.menu_items = this.get_menu_items();
-		this.$edit_menu = this.wrapper.find(".edit-menu");
-		this.$sidebar_container = this.$edit_menu.parent();
-		frappe.ui.create_menu({
-			parent: this.$edit_menu,
-			menu_items: this.menu_items,
-		});
-	}
-	get_menu_items() {
-		let me = this;
-		let menu_items = [
-			{
-				label: "Edit Item",
-				icon: "pen",
-				onClick: () => {
-					frappe.app.sidebar.editor.perform_action("edit", me.item);
-				},
-			},
-			{
-				label: "Add Item Below",
-				icon: "add",
-				onClick: () => {
-					frappe.app.sidebar.editor.perform_action("add_below", me.item);
-				},
-			},
-			{
-				label: "Duplicate",
-				icon: "copy",
-				onClick: () => {
-					frappe.app.sidebar.editor.perform_action("duplicate", me.item);
-				},
-			},
-			{
-				label: "Delete",
-				icon: "trash-2",
-				onClick: () => {
-					console.log(me.item);
-					frappe.app.sidebar.editor.perform_action("delete", me.item);
-				},
-			},
-		];
-		return menu_items;
-	}
-	add_menu_items() {}
 };
 
 frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends (
@@ -186,7 +213,7 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		this.full_template = $(this.wrapper);
 	}
 	make() {
-		if (this.nested_items.length == 0 && !frappe.app.sidebar.editor.edit_mode) {
+		if (this.nested_items.length == 0) {
 			return;
 		}
 		super.make();
@@ -223,16 +250,14 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		const me = this;
 		this.old_state;
 		$(document).on("sidebar-expand", function (event, expand) {
+			// A heading keeps its row in the rail and loses only its text (see sidebar.scss), so
+			// groups stay apart by the gap they had rather than by a rule drawn for the occasion.
 			if (expand.sidebar_expand) {
-				$(me.wrapper.find(".section-break")).removeClass("hidden");
-				$(me.wrapper.find(".divider")).addClass("hidden");
 				if (me.old_state) {
 					me.collapsed = me.old_state;
 					me.toggle();
 				}
 			} else {
-				$(me.wrapper.find(".section-break")).addClass("hidden");
-				$(me.wrapper.find(".divider")).removeClass("hidden");
 				me.old_state = me.collapsed;
 				me.open();
 				if (me.item.indent) {
@@ -244,16 +269,20 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 
 	enable_collapsible(item, $item_container) {
 		let sidebar_control = this.$item_control;
-		let drop_icon = "chevron-down";
+		let stroke_color = window.getComputedStyle(document.body).getPropertyValue("--ink-gray-5");
+
 		if (item.collapsible) {
-			let stroke_color = window
-				.getComputedStyle(document.body)
-				.getPropertyValue("--ink-gray-5");
 			this.$drop_icon = $(`<button class="btn-reset drop-icon hidden">`)
-				.html(frappe.utils.icon(drop_icon, "sm", "", "", "", "", stroke_color))
+				.html(frappe.utils.icon("chevron-down", "sm", "", "", "", "", stroke_color))
 				.appendTo(sidebar_control);
 
 			this.$drop_icon.removeClass("hidden");
+		} else if (item.show_arrow) {
+			// The leading chevron span was removed from sidebar_item.html, so build the
+			// toggle indicator here instead of selecting the now-absent [item-icon] span.
+			this.$drop_icon = $(`<button class="btn-reset drop-icon">`)
+				.html(frappe.utils.icon("chevron-right", "sm", "", "", "", "", stroke_color))
+				.prependTo(this.wrapper.find(".item-anchor").first());
 		}
 
 		if (item.keep_closed) {
@@ -261,12 +290,9 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		}
 		if (
 			Object.keys(this.section_breaks_state) &&
-			this.section_breaks_state[this.workspace_title]
+			this.section_breaks_state[this.current_module]
 		) {
 			this.apply_section_break_state();
-		}
-		if (item.show_arrow) {
-			this.$drop_icon = this.wrapper.find('[item-icon="chevron-right"]');
 		}
 		if (item.collapsible || item.show_arrow) {
 			this.setup_event_listner();
@@ -274,9 +300,9 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 	}
 	apply_section_break_state() {
 		const me = this;
-		let current_sidebar_state = this.section_breaks_state[this.workspace_title];
+		let current_sidebar_state = this.section_breaks_state[this.current_module];
 		for (const [element_name, collapsed] of Object.entries(current_sidebar_state)) {
-			if ($(this.wrapper).attr("title") == element_name) {
+			if (this.item.label == element_name) {
 				me.collapsed = collapsed;
 				me.toggle();
 			}
@@ -292,6 +318,8 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 			if (e.originalEvent.isTrusted) {
 				me.save_section_break_state();
 			}
+			// Docking the sidebar is how a collapsed one shows the group that was just
+			// expanded, since the group itself is off screen while collapsed.
 			if (!frappe.app.sidebar.sidebar_expanded) {
 				frappe.app.sidebar.open();
 				this.open();
@@ -299,123 +327,24 @@ frappe.ui.sidebar_item.TypeSectionBreak = class SectionBreakSidebarItem extends 
 		});
 	}
 	save_section_break_state() {
-		if (!this.section_breaks_state[this.workspace_title]) {
-			this.section_breaks_state[this.workspace_title] = {};
+		if (!this.section_breaks_state[this.current_module]) {
+			this.section_breaks_state[this.current_module] = {};
 		}
 
-		const title = this.wrapper.attr("title");
-		this.section_breaks_state[this.workspace_title][title] = this.collapsed;
+		this.section_breaks_state[this.current_module][this.item.label] = this.collapsed;
 
 		localStorage.setItem("section-breaks-state", JSON.stringify(this.section_breaks_state));
-	}
-
-	get_menu_items() {
-		let me = this;
-		let menu_items = [
-			{
-				label: "Edit Item",
-				icon: "pen",
-				onClick: () => {
-					console.log("Start ediitng");
-					frappe.app.sidebar.editor.perform_action("edit", me.item);
-				},
-			},
-			{
-				label: "Add Nested Items",
-				icon: "add",
-				onClick: () => {
-					frappe.app.sidebar.editor.show_new_dialog({
-						nested: true,
-						parent_item: me.item,
-					});
-				},
-			},
-			{
-				label: "Duplicate",
-				icon: "copy",
-				onClick: () => {
-					frappe.app.sidebar.editor.perform_action("duplicate", me.item);
-				},
-			},
-			{
-				label: "Delete",
-				icon: "trash-2",
-				onClick: () => {
-					frappe.app.sidebar.editor.perform_action("delete", me.item);
-				},
-			},
-		];
-		return menu_items;
-	}
-};
-
-frappe.ui.sidebar_item.TypeSpacer = class SpacerItem extends frappe.ui.sidebar_item.TypeLink {
-	constructor(item, items) {
-		super(item);
-	}
-};
-
-frappe.ui.sidebar_item.TypeSidebarItemGroup = class SpacerItem extends (
-	frappe.ui.sidebar_item.TypeLink
-) {
-	constructor(item, items) {
-		super(item);
-		this.title = frappe.app.sidebar.workspace_title;
-		this.setup_click();
-	}
-
-	setup_click() {
-		const me = this;
-		this.wrapper.on("click", function () {
-			frappe.call({
-				method: "frappe.desk.doctype.sidebar_item_group.sidebar_item_group.get_reports",
-				args: { module_name: frappe.app.sidebar.workspace_title },
-				callback: function (r) {
-					if (r.message) {
-						let links_html = "";
-
-						r.message.forEach((report) => {
-							let args = {
-								type: "Report",
-								name: report.title,
-								is_query_report:
-									report.report_type === "Query Report" ||
-									report.report_type === "Script Report",
-								report_ref_doctype: report.ref_doctype,
-							};
-
-							links_html += `<a href="${encodeURI(
-								frappe.utils.generate_route(args)
-							)}">${report.title}</a><br>`;
-						});
-
-						var d = new frappe.ui.Dialog({
-							title: __(me.item.label),
-							fields: [
-								{
-									fieldtype: "HTML",
-									options: links_html,
-								},
-							],
-						});
-						d.show();
-					}
-				},
-			});
-		});
 	}
 };
 
 frappe.ui.sidebar_item.TypeButton = class SidebarButton extends frappe.ui.sidebar_item.TypeLink {
 	constructor(item) {
 		super(item);
-		this.title = frappe.app.sidebar.workspace_title;
 		this.item.id && this.wrapper.attr("id", this.item.id);
 		this.item.class && this.wrapper.attr("class", this.item.class);
-		this.wrapper.attr("title", this.item.label);
-		this.setup_click();
 	}
 
+	// overrides TypeLink.setup_click(), invoked once via the base class's make()
 	setup_click() {
 		const me = this;
 		if (this.item.onClick) {

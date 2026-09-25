@@ -270,6 +270,13 @@ frappe.ui.form.Dashboard = class FormDashboard {
 					if (d.label == group.label) {
 						group_added.push(d.label);
 						group.items.push(...d.items);
+
+						if (d.fieldnames) {
+							if (!group.fieldnames) {
+								group.fieldnames = {};
+							}
+							Object.assign(group.fieldnames, d.fieldnames);
+						}
 					}
 				});
 			});
@@ -335,7 +342,9 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 		// bind new
 		transactions_area_body.find(".btn-new").on("click", function () {
-			me.frm.make_new($(this).attr("data-doctype"));
+			const doctype = $(this).attr("data-doctype");
+			const fieldname = $(this).attr("data-fieldname");
+			me.frm.make_new(doctype, fieldname);
 		});
 
 		this.data_rendered = true;
@@ -369,17 +378,20 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		let doctype = $link.attr("data-doctype"),
 			names = $link.attr("data-names") || [];
 
-		if (
+		const fieldname =
+			$link.find(".document-link-badge").attr("data-fieldname") ||
+			(this.data.non_standard_fieldnames && this.data.non_standard_fieldnames[doctype]) ||
+			this.data.fieldname;
+
+		if (names.length) {
+			frappe.route_options = { name: ["in", names] };
+		} else if (
 			this.internal_links_found &&
 			this.internal_links_found.find((d) => d.doctype === doctype)
 		) {
-			if (names.length) {
-				frappe.route_options = { name: ["in", names] };
-			} else {
-				return false;
-			}
-		} else if (this.data.fieldname) {
-			frappe.route_options = this.get_document_filter(doctype);
+			return false;
+		} else if (fieldname) {
+			frappe.route_options = this.get_document_filter(doctype, fieldname);
 			if (show_open && frappe.ui.notifications) {
 				frappe.ui.notifications.show_open_count_list(doctype);
 			}
@@ -388,13 +400,10 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		frappe.set_route("List", doctype, "List");
 	}
 
-	get_document_filter(doctype) {
+	get_document_filter(doctype, fieldname) {
 		// return the default filter for the given document
 		// like {"customer": frm.doc.name}
-		let filter = {};
-		let fieldname = this.data.non_standard_fieldnames
-			? this.data.non_standard_fieldnames[doctype] || this.data.fieldname
-			: this.data.fieldname;
+		const filter = {};
 
 		if (this.data.dynamic_links && this.data.dynamic_links[fieldname]) {
 			let dynamic_fieldname = this.data.dynamic_links[fieldname][1];
@@ -464,16 +473,22 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		});
 
 		$.each(count.external_links_found, function (i, d) {
-			me.frm.dashboard.set_badge_count_for_external_link(d.doctype, d.open_count, d.count);
+			me.frm.dashboard.set_badge_count_for_external_link(
+				d.doctype,
+				d.open_count,
+				d.count,
+				d.names
+			);
 		});
 	}
 
-	set_badge_count_for_external_link(doctype, open_count, count) {
+	set_badge_count_for_external_link(doctype, open_count, count, names) {
 		let $link = $(this.transactions_area).find(
 			'.document-link[data-doctype="' + doctype + '"]'
 		);
 
 		this.set_badge_count_common(open_count, count, $link);
+		$link.attr("data-names", names ? names.join(",") : "");
 	}
 
 	set_badge_count_for_internal_link(doctype, open_count, count, names) {

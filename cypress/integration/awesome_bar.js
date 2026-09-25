@@ -12,7 +12,9 @@ context("Awesome Bar", () => {
 	beforeEach(() => {
 		cy.get("body").type("{esc}");
 		cy.wait(300);
-		cy.get("#navbar-modal-search").as("awesome_bar_search");
+		// the global-search trigger moved from the page header into the sidebar's standard-items
+		// band, above the module's own items
+		cy.get(".body-sidebar .navbar-modal-search-mobile").as("awesome_bar_search");
 		cy.get("@awesome_bar_search").click();
 		cy.get("#navbar-search").as("awesome_bar");
 		cy.get("#navbar-search").type("{selectall}");
@@ -39,7 +41,9 @@ context("Awesome Bar", () => {
 		cy.get(".awesomplete").findByRole("listbox").should("be.visible");
 		cy.get("@awesome_bar").type("{enter}");
 		cy.get(".title-text").should("contain", "To Do");
-		cy.location("pathname").should("eq", "/desk/todo");
+		// Matched on the end rather than the whole path: a desk URL carries the shell it opened
+		// in, and which shell owns ToDo is not what this test is about.
+		cy.location("pathname").should("match", /\/todo$/);
 	});
 
 	// it("finds text in doctype list", () => {
@@ -87,5 +91,31 @@ context("Awesome Bar", () => {
 		cy.get("@awesome_bar").type("{downarrow}{enter}");
 		cy.get(".modal-title").should("contain", "Result");
 		cy.get(".msgprint").should("contain", "55 + 32 = 87");
+	});
+
+	it("support number formats in math expressions", () => {
+		cy.window()
+			.its("frappe")
+			.then((frappe) => {
+				frappe.boot.sysdefaults.number_format = "#,###.##";
+			});
+		cy.get("@awesome_bar").type("1,250.2 + 1,250.2");
+		cy.wait(150); // Wait a bit before hitting enter
+		cy.get("@awesome_bar").type("{downarrow}{enter}");
+		cy.get(".modal-title").should("contain", "Result");
+		cy.get(".msgprint").should("contain", "1,250.2 + 1,250.2 = 2,500.4");
+		cy.hide_dialog();
+
+		cy.get("@awesome_bar_search").click();
+		cy.window()
+			.its("frappe")
+			.then((frappe) => {
+				frappe.boot.sysdefaults.number_format = "#.###,##";
+			});
+		cy.get("@awesome_bar").type("1.500,2 + 1.500,2");
+		cy.wait(150); // Wait a bit before hitting enter
+		cy.get("@awesome_bar").type("{downarrow}{enter}");
+		cy.get(".modal-title").should("contain", "Result");
+		cy.get(".msgprint").should("contain", "1.500,2 + 1.500,2 = 3.000,4");
 	});
 });

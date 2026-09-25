@@ -52,6 +52,8 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 	}
 
 	show_doc(route) {
+		this.clear_attachment_preview_state();
+
 		var doctype = route[1],
 			doctype_layout = frappe.router.doctype_layout || doctype,
 			name = route.slice(2).join("/");
@@ -77,19 +79,26 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 	}
 
 	fetch_and_render(doctype, name, doctype_layout) {
-		frappe.model.with_doc(doctype, name, (name, r) => {
-			if (r && r["403"]) return; // not permitted
+		return frappe.model.with_doc(
+			doctype,
+			name,
+			(name, r) => {
+				if (r && r["403"]) return; // not permitted
 
-			if (!(locals[doctype] && locals[doctype][name])) {
-				if (name && name.substr(0, 3) === "new") {
-					this.render_new_doc(doctype, name, doctype_layout);
-				} else {
-					frappe.show_not_found();
+				if (!(locals[doctype] && locals[doctype][name])) {
+					if (name && name.substr(0, 3) === "new") {
+						this.render_new_doc(doctype, name, doctype_layout);
+					} else {
+						frappe.show_not_found();
+					}
+					return;
 				}
-				return;
-			}
-			this.render(doctype_layout, name);
-		});
+				this.render(doctype_layout, name);
+			},
+			// Passing any error_callback here (even a no-op) makes with_doc() skip its
+			// cache and recheck with the server.
+			() => {}
+		);
 	}
 
 	render_new_doc(doctype, name, doctype_layout) {
@@ -103,7 +112,17 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 	}
 
 	render(doctype_layout, name) {
+		this.clear_attachment_preview_state();
 		frappe.container.change_to(doctype_layout);
 		frappe.views.formview[doctype_layout].frm.refresh(name);
+	}
+
+	clear_attachment_preview_state() {
+		$(".attachment-preview-open, .attachment-preview-resizing")
+			.removeClass("attachment-preview-open attachment-preview-resizing")
+			.each((_, el) => el.style.removeProperty("--attachment-preview-width"));
+		$(".attachment-preview").remove();
+		$(document).off("keydown.attachment_preview");
+		$(document).off(".attachment_preview_resize");
 	}
 };

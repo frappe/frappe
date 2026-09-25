@@ -10,6 +10,12 @@ from frappe import DoesNotExistError, ValidationError, _, _dict
 from frappe.cache_manager import build_table_count_cache
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.desk.desk_views import DeskViews
+from frappe.desk.doctype.custom_workspace.custom_workspace import (
+	apply_customization,
+	get_customization,
+)
+from frappe.desk.utils import is_item_allowed
+from frappe.utils.caching import request_cache
 
 
 def handle_not_exist(fn):
@@ -32,16 +38,16 @@ class Workspace(DeskViews):
 		self.workspace_manager = "Workspace Manager" in frappe.get_roles()
 
 		self.user = frappe.get_user()
-		self.allowed_modules = self.get_cached("user_allowed_modules", self.get_allowed_modules)
 
-		self.doc = frappe.get_cached_doc("Workspace", self.page_name)
-		if (
-			self.doc
-			and self.doc.module
-			and self.doc.module not in self.allowed_modules
-			and not self.workspace_manager
-		):
-			raise frappe.PermissionError
+		# A standard workspace stays the live, app-owned base; a site's customization is a
+		# separate delta merged on top here. Use a fresh (non-cached) doc on the merge path
+		# so we never mutate the shared cached document.
+		customization = get_customization(self.page_name)
+		if customization:
+			self.doc = frappe.get_doc("Workspace", self.page_name)
+			apply_customization(self.doc, customization)
+		else:
+			self.doc = frappe.get_cached_doc("Workspace", self.page_name)
 
 		self.can_read = self.get_cached("user_perm_can_read", self.get_can_read_items)
 
@@ -57,20 +63,34 @@ class Workspace(DeskViews):
 			self.table_counts = get_table_with_counts()
 
 	def is_permitted(self):
-		"""Return true if `Has Role` is not set or the user is allowed."""
+		"""Return true if the workspace is visible to the current user.
+
+		Visibility is gated purely by access (module visibility / roles):
+
+		1. Its `module` must be visible to the user, meaning not one they have blocked.
+		2. Then, if the workspace has `roles`, the user must have one of them.
+
+		The module check runs before the roles branch. It used to sit inside the no-roles branch,
+		so a role-gated workspace in a blocked module stayed visible and the block did nothing for
+		exactly the workspaces someone had restricted.
+
+		No dock layer is an access filter, whether the app's fragment, the site's arrangement or a
+		user's own. All three are arrangements, applied on the client from `frappe.boot.dock`.
+		Keeping them out of here keeps the full permitted pool available for the picker.
+		"""
 		from frappe.utils import has_common
+		from frappe.utils.modules import is_module_visible
+
+		if not is_module_visible(self.doc.module):
+			return False
 
 		allowed = [d.role for d in self.doc.roles]
-
-		custom_roles = get_custom_allowed_roles("page", self.doc.name)
-		allowed.extend(custom_roles)
+		allowed.extend(get_custom_allowed_roles("page", self.doc.name))
 
 		if not allowed:
 			return True
 
-		roles = frappe.get_roles()
-
-		if has_common(roles, allowed):
+		if has_common(frappe.get_roles(), allowed):
 			return True
 
 	def get_cached(self, cache_key, fallback_fn):
@@ -210,7 +230,7 @@ class Workspace(DeskViews):
 					continue
 
 				# Check if user is allowed to view
-				if self.is_item_allowed(item.link_to, item.link_type):
+				if is_item_allowed(item.link_to, item.link_type, self):
 					prepared_item = self._prepare_item(item)
 					new_items.append(prepared_item)
 
@@ -252,7 +272,7 @@ class Workspace(DeskViews):
 
 		for item in shortcuts:
 			new_item = item.as_dict().copy()
-			if self.is_item_allowed(item.link_to, item.type) and _in_active_domains(item):
+			if is_item_allowed(item.link_to, item.type, self) and _in_active_domains(item):
 				if item.type == "Report":
 					report = self.allowed_reports.get(item.link_to, {})
 					if report.get("report_type") in ["Query Report", "Script Report", "Custom Report"]:
@@ -273,7 +293,7 @@ class Workspace(DeskViews):
 		quick_lists = self.doc.quick_lists
 
 		for item in quick_lists:
-			if self.is_item_allowed(item.document_type, "doctype"):
+			if is_item_allowed(item.document_type, "doctype", self):
 				new_item = item.as_dict().copy()
 
 				# Translate label
@@ -346,24 +366,63 @@ def get_desktop_page(page: str):
 		return {}
 
 
-@frappe.whitelist()
-def get_workspaces():
-	"""Get list of sidebar items for desk"""
+def _overlay_customization_properties(pages: list) -> bool:
+	"""Apply each site customization's property facet onto the listed page dict.
 
-	from frappe.modules.utils import get_module_app
+	Returns whether any `sequence_id` was overridden (so the caller knows to re-sort).
+	"""
+	resequenced = False
+	for page in pages:
+		customization = get_customization(page.name)
+		if not customization:
+			continue
+		page["is_customized"] = True
+		# the frontend renders the editor.js layout from this `content`; show the site's
+		# saved snapshot verbatim (get_desktop_page applies the same on the doc).
+		if customization.content:
+			page["content"] = customization.content
+			# the layout is a snapshot, so this workspace has stopped receiving the app's
+			# layout changes. The desk warns before the save that causes it, and this is
+			# what tells it the warning has already been earned.
+			page["is_layout_customized"] = 1
+		if customization.visibility == "Hidden":
+			# Hidden for regular users; like the soft `is_hidden` flag, a Workspace Manager
+			# still sees it (the workspace shows an in-page "hidden" banner) so it stays
+			# discoverable and manageable.
+			page["is_hidden"] = 1
+		elif customization.visibility == "Visible":
+			page["is_hidden"] = 0
+		if customization.icon:
+			page["icon"] = customization.icon
+		if customization.indicator_color:
+			page["indicator_color"] = customization.indicator_color
+		if customization.override_sequence:
+			page["sequence_id"] = customization.sequence_id
+			resequenced = True
+	return resequenced
+
+
+@request_cache
+def get_workspaces():
+	"""Get list of sidebar items for desk.
+
+	Cached per-request: a single boot resolves the visible workspaces several times
+	(`DeskViews.build_entities`, `get_workspaces_with_sidebar`, and the lazy
+	`DeskViews.allowed_workspaces` permission context), and each pass runs a
+	`get_all("Workspace")` query plus a `Workspace()` build per page. Memoising for the
+	life of the request collapses those into one enumeration without leaking across
+	requests (the cache clears when the request ends).
+	"""
+
+	from frappe.utils.modules import get_module_placement
 
 	has_access = "Workspace Manager" in frappe.get_roles()
-
-	# don't get domain restricted pages
-	blocked_modules = frappe.get_cached_doc("User", frappe.session.user).get_blocked_modules()
-	blocked_modules.append("Dummy Module")
 
 	# adding None to allowed_domains to include pages without domain restriction
 	allowed_domains = [None, *frappe.get_active_domains()]
 
 	filters = {
 		"restrict_to_domain": ["in", allowed_domains],
-		"module": ["not in", blocked_modules],
 	}
 
 	if has_access:
@@ -382,7 +441,8 @@ def get_workspaces():
 		"icon",
 		"indicator_color",
 		"is_hidden",
-		"app",
+		"sequence_id",
+		"standard",
 		"type",
 		"link_type",
 		"link_to",
@@ -391,6 +451,12 @@ def get_workspaces():
 	all_pages = frappe.get_all(
 		"Workspace", fields=fields, filters=filters, order_by=order_by, ignore_permissions=True
 	)
+
+	# overlay the property facet (visibility / icon / colour / position) of any site
+	# customization before filtering & sorting; roles & content are merged inside Workspace().
+	if _overlay_customization_properties(all_pages):
+		all_pages.sort(key=lambda page: page.get("sequence_id") or 0)
+
 	pages = []
 	private_pages = []
 
@@ -399,16 +465,19 @@ def get_workspaces():
 		try:
 			workspace = Workspace(page, True)
 			if has_access or workspace.is_permitted():
-				if page.public and (has_access or not page.is_hidden) and page.title != "Welcome Workspace":
+				if page.public and (has_access or not page.is_hidden):
 					pages.append(page)
 				elif page.for_user == frappe.session.user:
 					private_pages.append(page)
+				elif not page.public and not page.for_user:
+					pages.append(page)
 				page["label"] = _(page.get("name"))
 
-			if not page["app"] and page["module"]:
-				page["app"] = frappe.db.get_value("Module Def", page["module"], "app_name") or get_module_app(
-					page["module"]
-				)
+			# Derived, never stored: there is no `Workspace.app` any more, so the module decides
+			# which app a workspace belongs to. It is `None` for a module no app lists, which a
+			# site's own module may be. Resolving this through `get_module_app` threw for exactly
+			# those modules, and the exception escaped the `PermissionError` handler below.
+			page["app"] = get_module_placement(page["module"]) if page["module"] else None
 			if page["link_type"] == "Report":
 				report_type, ref_doctype = frappe.db.get_value(
 					"Report", page["link_to"], ["report_type", "ref_doctype"]
@@ -422,11 +491,6 @@ def get_workspaces():
 			pass
 	if private_pages:
 		pages.extend(private_pages)
-
-	if len(pages) == 0:
-		welcome_workspace = next((x for x in all_pages if x["title"] == "Welcome Workspace"), None)
-		if welcome_workspace:
-			pages.append(welcome_workspace)
 
 	return {
 		"pages": pages,

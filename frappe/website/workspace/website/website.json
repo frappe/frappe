@@ -1,5 +1,4 @@
 {
- "app": "frappe",
  "charts": [
   {
    "chart_name": "Webpage Views",
@@ -13,7 +12,7 @@
  "doctype": "Workspace",
  "for_user": "",
  "hide_custom": 0,
- "icon": "website",
+ "icon": "app-window",
  "idx": 5,
  "is_hidden": 0,
  "label": "Website",
@@ -96,7 +95,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-11 23:42:31.758169",
+ "modified": "2026-09-23 13:29:53.675855",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
@@ -122,6 +121,7 @@
  "roles": [],
  "sequence_id": 14.0,
  "shortcuts": [],
+ "standard": 1,
  "title": "Website",
  "type": "Workspace"
 }

@@ -1,0 +1,23 @@
+/* Espresso Hover Card — a rich preview that appears when the pointer rests
+ * on something (a user link shows the person's card, a document link shows
+ * a summary). It's Tooltip's timing with Popover's body.
+ *
+ * The shell IS the popover shell — same surface, border, shadow, radius and
+ * enter/exit motion — so this class is a small modifier used WITH it:
+ *
+ *   <div class="es-popover es-hover-card" data-state="open"
+ *        data-side="bottom" data-align="center">
+ *     ... any content ...
+ *   </div>
+ *
+ * React/Vue apps put both classes on their HoverCardContent primitive and
+ * everything in popover.css (data-state, data-side/align, animations)
+ * applies as-is; classic frappe gets the markup from frappe.ui.hover_card.
+ *
+ */
+
+.es-hover-card {
+    width: calc(var(--spacing) * 64);
+    padding: calc(var(--spacing) * 4);
+    color: var(--ink-gray-8);
+}

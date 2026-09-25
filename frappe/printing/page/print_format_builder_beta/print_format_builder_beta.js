@@ -1,3 +1,24 @@
+const FULL_HEIGHT_PAGE_CLASS = "full-height-page";
+
+let folded_sidebar = false;
+let restore_sidebar = false;
+
+function collapse_sidebar() {
+	const sidebar = frappe.app?.sidebar;
+	if (!sidebar || folded_sidebar) return;
+	folded_sidebar = true;
+	restore_sidebar = !!sidebar.sidebar_expanded;
+	if (restore_sidebar) sidebar.close();
+}
+
+function restore_sidebar_state() {
+	if (!folded_sidebar) return;
+	folded_sidebar = false;
+	if (!restore_sidebar) return;
+	restore_sidebar = false;
+	frappe.app?.sidebar?.open();
+}
+
 frappe.pages["print-format-builder-beta"].on_page_load = function (wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
@@ -5,106 +26,87 @@ frappe.pages["print-format-builder-beta"].on_page_load = function (wrapper) {
 		single_column: true,
 	});
 
-	// hot reload in development
+	$(wrapper).on("hide", () => {
+		document.body.classList.remove(FULL_HEIGHT_PAGE_CLASS);
+		restore_sidebar_state();
+	});
+
 	if (frappe.boot.developer_mode) {
 		frappe.hot_update = frappe.hot_update || [];
-		frappe.hot_update.push(() => load_print_format_builder_beta(wrapper));
+		frappe.hot_update.push(() => load_print_format_builder(wrapper));
 	}
 };
 
 frappe.pages["print-format-builder-beta"].on_page_show = function (wrapper) {
-	load_print_format_builder_beta(wrapper);
+	document.body.classList.add(FULL_HEIGHT_PAGE_CLASS);
+	collapse_sidebar();
+	load_print_format_builder(wrapper);
 };
 
-function load_print_format_builder_beta(wrapper) {
+function patch_breadcrumbs_once() {
+	if (frappe.breadcrumbs._pfb_patched) return;
+	frappe.breadcrumbs._pfb_patched = true;
+	const orig = frappe.breadcrumbs.update.bind(frappe.breadcrumbs);
+	frappe.breadcrumbs.update = function () {
+		orig();
+		const crumbs = this.all[this.current_page()];
+		if (crumbs?._extra_label) {
+			this.append_breadcrumb_element("", crumbs._extra_label);
+		}
+	};
+}
+
+function load_print_format_builder(wrapper, force = false) {
 	let route = frappe.get_route();
 	let $parent = $(wrapper).find(".layout-main-section");
+
+	if (route.length < 2) {
+		wrapper.builder?.destroy?.();
+		$parent.empty();
+		frappe.set_route("List", "Print Format");
+		return;
+	}
+
+	patch_breadcrumbs_once();
+	frappe.breadcrumbs.add({
+		type: "Custom",
+		label: __("Print Format"),
+		route: "/desk/print-format",
+		_extra_label: route[1],
+	});
+	wrapper.page.set_title(route[1]);
+
+	const current = wrapper.builder;
+	if (!force && current?.has_unsaved_changes?.()) {
+		if (current.print_format === route[1]) return;
+		current.leave(() => load_print_format_builder(wrapper, true));
+		return;
+	}
+	current?.destroy?.();
 	$parent.empty();
 
-	if (route.length > 1) {
-		frappe.require("print_format_builder.bundle.js").then(() => {
-			frappe.print_format_builder = new frappe.ui.PrintFormatBuilder({
-				wrapper: $parent,
-				page: wrapper.page,
-				print_format: route[1],
-			});
+	frappe.model.with_doc("Print Format", route[1], () => {
+		if (frappe.get_route()[1] !== route[1]) return;
+		if (frappe.get_doc("Print Format", route[1])?.__onload?.renders_from_file) {
+			frappe.msgprint(
+				__("{0} is rendered from an HTML file and cannot be edited in the builder.", [
+					route[1].bold(),
+				])
+			);
+			frappe.set_route("Form", "Print Format", route[1]);
+			return;
+		}
+		mount_print_format_builder(wrapper, $parent, route[1]);
+	});
+}
+
+function mount_print_format_builder(wrapper, $parent, print_format) {
+	frappe.require("print_format_builder.bundle.js").then(() => {
+		if (frappe.get_route()[1] !== print_format) return;
+		wrapper.builder = new frappe.ui.PrintFormatBuilder({
+			wrapper: $parent,
+			page: wrapper.page,
+			print_format,
 		});
-	} else {
-		let d = new frappe.ui.Dialog({
-			title: __("Create or Edit Print Format"),
-			fields: [
-				{
-					label: __("Action"),
-					fieldname: "action",
-					fieldtype: "Select",
-					options: [
-						{ label: __("Create New"), value: "Create" },
-						{ label: __("Edit Existing"), value: "Edit" },
-					],
-					change() {
-						let action = d.get_value("action");
-						d.get_primary_btn().text(action === "Create" ? __("Create") : __("Edit"));
-					},
-				},
-				{
-					label: __("Select Document Type"),
-					fieldname: "doctype",
-					fieldtype: "Link",
-					options: "DocType",
-					filters: {
-						istable: 0,
-					},
-					reqd: 1,
-					default: frappe.route_options ? frappe.route_options.doctype : null,
-				},
-				{
-					label: __("New Print Format Name"),
-					fieldname: "print_format_name",
-					fieldtype: "Data",
-					depends_on: (doc) => doc.action === "Create",
-					mandatory_depends_on: (doc) => doc.action === "Create",
-				},
-				{
-					label: __("Select Print Format"),
-					fieldname: "print_format",
-					fieldtype: "Link",
-					options: "Print Format",
-					only_select: 1,
-					depends_on: (doc) => doc.action === "Edit",
-					get_query() {
-						return {
-							filters: {
-								doc_type: d.get_value("doctype"),
-								print_format_builder_beta: 1,
-							},
-						};
-					},
-					mandatory_depends_on: (doc) => doc.action === "Edit",
-				},
-			],
-			primary_action_label: __("Edit"),
-			primary_action({ action, doctype, print_format, print_format_name }) {
-				if (action === "Edit") {
-					frappe.set_route("print-format-builder-beta", print_format);
-				} else if (action === "Create") {
-					d.get_primary_btn().prop("disabled", true);
-					frappe.db
-						.insert({
-							doctype: "Print Format",
-							name: print_format_name,
-							doc_type: doctype,
-							print_format_builder_beta: 1,
-						})
-						.then((doc) => {
-							frappe.set_route("print-format-builder-beta", doc.name);
-						})
-						.finally(() => {
-							d.get_primary_btn().prop("disabled", false);
-						});
-				}
-			},
-		});
-		d.set_value("action", "Create");
-		d.show();
-	}
+	});
 }

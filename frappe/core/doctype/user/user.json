@@ -5,6 +5,7 @@
  "creation": "2022-01-10 17:29:51.672911",
  "description": "Represents a User in the system.",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions",
  "engine": "InnoDB",
  "field_order": [
   "user_details_tab",
@@ -63,6 +64,8 @@
   "timeline",
   "dashboard",
   "show_absolute_datetime_in_timeline",
+  "report_settings_section",
+  "report_split_view",
   "change_password",
   "new_password",
   "logout_all_sessions",
@@ -329,11 +332,13 @@
    "depends_on": "eval:doc.enabled && (!doc.__islocal || !cint(doc.send_welcome_email))",
    "fieldname": "change_password",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Change Password"
   },
   {
    "fieldname": "new_password",
    "fieldtype": "Password",
+   "hidden": 1,
    "label": "Set New Password",
    "no_copy": 1
   },
@@ -341,6 +346,7 @@
    "default": "1",
    "fieldname": "logout_all_sessions",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Logout From All Devices After Changing Password"
   },
   {
@@ -840,6 +846,19 @@
    "label": "Show Absolute Datetime in Timeline"
   },
   {
+   "collapsible": 1,
+   "fieldname": "report_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Report Settings"
+  },
+  {
+   "default": "1",
+   "description": "Open linked documents in a side panel instead of navigating away from the report.",
+   "fieldname": "report_split_view",
+   "fieldtype": "Check",
+   "label": "Split view in reports"
+  },
+  {
    "fieldname": "sessions_tab",
    "fieldtype": "Tab Break",
    "label": "Sessions"
@@ -856,10 +875,10 @@
    "default": "1",
    "fieldname": "form_navigation_buttons",
    "fieldtype": "Check",
-   "label": "Navigation Buttons"
+   "label": "Show navigation buttons"
   }
  ],
- "icon": "fa fa-user",
+ "icon": "user-round",
  "idx": 413,
  "image_field": "user_image",
  "links": [
@@ -910,7 +929,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-04-28 21:59:59.160099",
+ "modified": "2026-09-23 16:29:39.053759",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

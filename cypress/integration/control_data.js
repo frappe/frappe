@@ -49,10 +49,7 @@ context("Data Control", () => {
 		cy.new_form("Test Data Control");
 
 		//Checking the URL for the new form of the doctype
-		cy.location("pathname").should(
-			"contains",
-			"/desk/test-data-control/new-test-data-control"
-		);
+		cy.location("pathname").should("contains", "/test-data-control/new-test-data-control");
 		cy.get(".title-text-form").should("have.text", "New Test Data Control");
 		cy.get('.frappe-control[data-fieldname="name1"]')
 			.find("label")
@@ -65,7 +62,7 @@ context("Data Control", () => {
 			.should("have.class", "reqd");
 
 		//Checking if the status is "Not Saved" initially
-		cy.get(".page-head-content .indicator-pill").should("have.text", "Not Saved");
+		cy.get('[data-testid="page-status"]').should("contain.text", "Not Saved");
 
 		//Inputting data in the field
 		cy.fill_field("name1", "@@###", "Data");
@@ -131,10 +128,7 @@ context("Data Control", () => {
 		cy.fill_field("phone", "9432380001", "Data");
 		cy.findByRole("button", { name: "Save" }).click({ force: true });
 		//Checking if the fields contains the data which has been filled in
-		cy.location("pathname").should(
-			"not.contains",
-			"/desk/test-data-control/new-test-data-control"
-		);
+		cy.location("pathname").should("not.contains", "/test-data-control/new-test-data-control");
 		cy.get_field("name1").should("have.value", "Komal");
 		cy.get_field("email").should("have.value", "komal@test.com");
 		cy.get_field("phone").should("have.value", "9432380001");
@@ -144,8 +138,7 @@ context("Data Control", () => {
 		//Deleting the inserted document
 		cy.go_to_list("Test Data Control");
 		cy.get(".list-row-checkbox").eq(0).click({ force: true });
-		cy.get(".actions-btn-group > .btn").contains("Actions").click();
-		cy.get('.actions-btn-group > .dropdown-menu [data-label="Delete"]').click();
-		cy.click_modal_primary_button("Yes");
+		cy.click_action_button("Delete");
+		cy.click_modal_primary_button("Delete");
 	});
 });

@@ -69,9 +69,9 @@ export default class ShortcutWidget extends Widget {
 
 	set_actions() {
 		if (this.in_customize_mode) return;
-		let icon_to_append = frappe.utils.icon("es-line-arrow-up-right", "xs", "", "", "ml-2");
+		let icon_to_append = frappe.utils.icon("arrow-up-right", "xs", "", "", "ml-2");
 		if (frappe.utils.is_rtl(frappe.boot.lang)) {
-			icon_to_append = frappe.utils.icon("es-line-arrow-up-left", "xs", "", "", "ml-2");
+			icon_to_append = frappe.utils.icon("arrow-up-left", "xs", "", "", "ml-2");
 		}
 		$(icon_to_append).appendTo(this.action_area);
 
@@ -109,13 +109,23 @@ export default class ShortcutWidget extends Widget {
 
 		this.action_area.empty();
 		const label = get_label();
-		let color = this.color && count ? this.color.toLowerCase() : "gray";
-		$(
-			`<div class="indicator-pill no-indicator-dot ellipsis ${color}">${__(label)}</div>`
-		).appendTo(this.action_area);
 
-		$(frappe.utils.icon("es-line-arrow-up-right", "xs", "", "", "ml-2")).appendTo(
-			this.action_area
-		);
+		// TODO: (Workspace): Remove this once the color map is updated in the backend
+
+		const COLOR_MAP = {
+			Grey: "gray",
+			Green: "green",
+			Red: "red",
+			Orange: "amber",
+			Pink: "violet",
+			Yellow: "amber",
+			Blue: "blue",
+			Cyan: "blue",
+		};
+
+		const color = this.color && count ? COLOR_MAP[this.color] || "gray" : "gray";
+		frappe.ui.badge({ label: __(label), theme: color }).appendTo(this.action_area);
+
+		$(frappe.utils.icon("arrow-up-right", "xs", "", "", "ml-2")).appendTo(this.action_area);
 	}
 }

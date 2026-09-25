@@ -1,3 +1,8 @@
+// the page-size pills are an es TabButtons radio group now — no data-value
+// attribute, so match by exact pill text
+const paging_pill = (value) =>
+	cy.contains(".list-paging-area .es-pill", new RegExp("^\\s*" + value + "\\s*$"));
+
 context("List Paging", () => {
 	before(() => {
 		cy.login();
@@ -20,7 +25,7 @@ context("List Paging", () => {
 		cy.get(".list-paging-area .btn-more").click();
 		cy.get(".list-paging-area .list-count").should("contain.text", "60 of");
 
-		cy.get('.list-paging-area .btn-group .btn-paging[data-value="100"]').click();
+		paging_pill(100).click();
 
 		cy.get(".list-paging-area .list-count").should("contain.text", "100 of");
 		cy.get(".list-paging-area .btn-more").click();
@@ -32,7 +37,7 @@ context("List Paging", () => {
 		cy.get('.page-head .standard-actions [data-original-title="Reload List"]').click();
 		cy.get(".list-paging-area .list-count").should("contain.text", "300 of");
 
-		cy.get('.list-paging-area .btn-group .btn-paging[data-value="500"]').click();
+		paging_pill(500).click();
 
 		cy.get(".list-paging-area .list-count").should("contain.text", "500 of");
 		cy.get(".list-paging-area .btn-more").click();

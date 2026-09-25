@@ -38,6 +38,7 @@ frappe.Application = class Application {
 		this.load_user_permissions();
 		this.make_nav_bar();
 		this.make_sidebar();
+		this.set_desktop_page_class();
 		this.set_favicon();
 		this.set_fullwidth_if_enabled();
 		this.add_browser_class();
@@ -142,20 +143,27 @@ frappe.Application = class Application {
 			frappe.msgprint(frappe.boot.messages);
 		}
 
-		if (frappe.user_roles.includes("System Manager")) {
+		if (
+			frappe.user_roles.includes("System Manager") ||
+			frappe.user_roles.includes("Workspace Manager")
+		) {
 			// delayed following requests to make boot faster
 			setTimeout(() => {
-				if (
-					!frappe.ui.maybe_show_legacy_gravatar_cleanup_prompt({
-						onhide: () => {
-							this.show_change_log();
-							this.show_update_available();
-						},
-					})
-				) {
+				// One prompt per boot, in order: whichever has something to say takes the
+				// turn, and the rest of the notices follow whenever it closes.
+				const rest = () => {
 					this.show_change_log();
 					this.show_update_available();
+				};
+				const prompts = [
+					frappe.ui.maybe_show_new_navigation_prompt,
+					frappe.ui.maybe_show_legacy_gravatar_cleanup_prompt,
+				];
+
+				for (const prompt of prompts) {
+					if (prompt({ onhide: rest })) return;
 				}
+				rest();
 			}, 1000);
 		}
 
@@ -249,7 +257,9 @@ frappe.Application = class Application {
 					},
 				],
 			});
-			s.fields_dict.checking.$wrapper.html('<i class="fa fa-spinner fa-spin fa-4x"></i>');
+			s.fields_dict.checking.$wrapper.html(
+				frappe.utils.icon("loader-circle", "xl", "", "animation: spin 1s linear infinite")
+			);
 			s.show();
 			frappe.call({
 				method: "frappe.email.doctype.email_account.email_account.set_email_password",
@@ -277,8 +287,34 @@ frappe.Application = class Application {
 		});
 		d.show();
 	}
+	// `frappe.boot.user.all_reports` held an exact duplicate of `frappe.boot.allowed_reports` --
+	// the same dict from the same call, so ~47 KB of every boot payload was spent twice. The key
+	// is gone from the payload; this getter keeps app code reading it working, and because it
+	// hands back the very same object, writes through it still land where they used to.
+	//
+	// Ends: delete this in the release after the one that ships it, by which point every app has
+	// had a version in which to move to `frappe.boot.allowed_reports`.
+	alias_removed_boot_keys() {
+		if (!frappe.boot.user || "all_reports" in frappe.boot.user) return;
+
+		let warned = false;
+		Object.defineProperty(frappe.boot.user, "all_reports", {
+			configurable: true,
+			get: () => {
+				if (!warned) {
+					warned = true;
+					console.warn(
+						"frappe.boot.user.all_reports is deprecated and will be removed; " +
+							"read frappe.boot.allowed_reports instead."
+					);
+				}
+				return frappe.boot.allowed_reports;
+			},
+		});
+	}
 	load_bootinfo() {
 		if (frappe.boot) {
+			this.alias_removed_boot_keys();
 			this.setup_workspaces();
 			frappe.model.sync(frappe.boot.docs);
 			this.check_metadata_cache_status();
@@ -292,7 +328,6 @@ frappe.Application = class Application {
 
 			frappe.boot.setup_complete = frappe.boot.sysdefaults["setup_complete"];
 			frappe.user.name = frappe.boot.user.name;
-			frappe.router.setup();
 		} else {
 			this.set_as_guest();
 		}
@@ -376,6 +411,7 @@ frappe.Application = class Application {
 				"body"
 			);
 			frappe.container = new frappe.views.Container();
+			frappe.ui.setup_site_banners();
 		}
 	}
 	make_nav_bar() {
@@ -401,7 +437,18 @@ frappe.Application = class Application {
 		});
 	}
 	handle_session_expired() {
-		frappe.app.redirect_to_login();
+		if (frappe.app.session_expired_dialog) {
+			return;
+		}
+		const dialog = new frappe.ui.Dialog({
+			title: __("Session Expired"),
+		});
+		dialog.onhide = () => frappe.app.redirect_to_login();
+		frappe.app.session_expired_dialog = dialog;
+		dialog.show();
+		dialog.set_message(
+			__("Your session has expired due to inactivity. Please log in again to continue.")
+		);
 	}
 	redirect_to_login() {
 		window.location.href = `/login?redirect-to=${encodeURIComponent(
@@ -476,6 +523,15 @@ frappe.Application = class Application {
 		$("html").addClass(frappe.utils.get_browser().name.toLowerCase());
 	}
 
+	set_desktop_page_class() {
+		// The two /app/desktop pages share CSS class names (.desktop-wrapper, .desktop-icon),
+		// so desktop.css scopes each set to one of these body classes. Exactly one is present.
+		const desktop_icons = frappe.boot.desktop_page === "Desktop Icons";
+		$("body")
+			.toggleClass("desktop-icons-page", desktop_icons)
+			.toggleClass("apps-page", !desktop_icons);
+	}
+
 	set_fullwidth_if_enabled() {
 		frappe.ui.toolbar.set_fullwidth_if_enabled();
 	}
@@ -537,7 +593,6 @@ frappe.Application = class Application {
 							newdoc.idx = null;
 							newdoc.__run_link_triggers = false;
 							newdoc.on_paste_event = true;
-							newdoc = JSON.parse(JSON.stringify(newdoc));
 							frappe.set_route("Form", newdoc.doctype, newdoc.name);
 							frappe.dom.unfreeze();
 						});

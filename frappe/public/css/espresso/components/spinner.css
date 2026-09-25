@@ -1,0 +1,125 @@
+/* Espresso Spinner — comet-arc loading indicator.
+ *
+ * Pure CSS on an empty element used as a paint surface (span, svg, div).
+ * Color comes from currentColor; size from the consumer (a width/height
+ * class, inline style, or a parent component like .es-button) over the
+ * 16px default below. Ring thickness and inset stay proportional via
+ * %-based defaults.
+ *
+ * Attributes (optional):
+ *   data-track="true"   faint full-circle track behind the arc
+ *
+ * Standalone use should add role="status" and an aria-label; inside
+ * aria-busy components (e.g. .es-button) keep it aria-hidden instead.
+ *
+ * Baseline: Chrome 111+, Safari 16.4+, Firefox 128+ (@property, trig
+ * functions in calc, color-mix). */
+
+/* Registered so the angle interpolates in animation. The animation spins
+   the GRADIENT angle, not the element: rotating the element rasterizes
+   the circle once and any sub-device-pixel offset in that raster orbits
+   visibly (wobble at 16px/18px on 2x displays). With a static element the
+   circle is re-painted antialiased around a fixed center every frame —
+   wobble is geometrically impossible. */
+@property --es-spinner-angle {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0deg;
+}
+
+.es-spinner {
+    display: inline-block;
+    flex-shrink: 0;
+    /* default box; any width/height from the consumer overrides */
+    width: 16px;
+    height: 16px;
+
+    /* Two rulers, one thickness: a percentage resolves against the paint
+       radius in the mask gradient but against the paint box in the cap
+       gradient, so the mask value is 2× the cap value. Anchored to the md
+       spec: 16px box − 2×1.2px inset = 13.6px paint box; 2px ring =
+       14.7% of 13.6px = 29.4% of the 6.8px radius. */
+    --es-spinner-thickness: 14.7%;
+    --es-spinner-mask-thickness: 29.4%;
+    --es-spinner-inset: 7.5%;
+    --es-spinner-paint-size: calc(100% - 2 * var(--es-spinner-inset));
+    --es-spinner-track-color: transparent;
+
+    /* the spinning comet arc over an optional faint track —
+       layer 1: a round dot capping the solid head (rounded end); it orbits
+                the arc centerline radius (50% − t/2) at the animated angle
+       layer 2: a conic gradient fading from transparent (gap + tail) to
+                solid, rotated by the same animated angle
+       layer 3: a full circle, transparent unless data-track is set */
+    background-image:
+        radial-gradient(
+            calc(var(--es-spinner-thickness) / 2)
+                calc(var(--es-spinner-thickness) / 2) at
+                calc(
+                    50% + (50% - var(--es-spinner-thickness) / 2) *
+                        sin(var(--es-spinner-angle))
+                )
+                calc(
+                    50% - (50% - var(--es-spinner-thickness) / 2) *
+                        cos(var(--es-spinner-angle))
+                ),
+            currentColor 92%,
+            transparent
+        ),
+        conic-gradient(
+            from var(--es-spinner-angle),
+            transparent 32%,
+            currentColor 92%,
+            currentColor 100%
+        ),
+        linear-gradient(
+            var(--es-spinner-track-color),
+            var(--es-spinner-track-color)
+        );
+    background-size: var(--es-spinner-paint-size) var(--es-spinner-paint-size);
+    background-position: center;
+    background-repeat: no-repeat;
+
+    /* clip everything painted above into a ring of the configured thickness.
+       The outer transparent stop bounds the ring circle (the corners of the
+       square mask image sit beyond `farthest-side` and would show otherwise);
+       the half-pixel fade is for antialiasing. */
+    -webkit-mask: radial-gradient(
+            farthest-side,
+            transparent calc(100% - var(--es-spinner-mask-thickness)),
+            #000 calc(100% - var(--es-spinner-mask-thickness)),
+            #000 calc(100% - 0.5px),
+            transparent 100%
+        )
+        center / var(--es-spinner-paint-size) var(--es-spinner-paint-size)
+        no-repeat;
+    mask: radial-gradient(
+            farthest-side,
+            transparent calc(100% - var(--es-spinner-mask-thickness)),
+            #000 calc(100% - var(--es-spinner-mask-thickness)),
+            #000 calc(100% - 0.5px),
+            transparent 100%
+        )
+        center / var(--es-spinner-paint-size) var(--es-spinner-paint-size)
+        no-repeat;
+
+    /* spins the gradient angle — the element itself never moves */
+    animation: es-spinner-rotate 0.7s linear infinite;
+}
+
+/* faint full-circle track behind the arc */
+.es-spinner[data-track="true"] {
+    --es-spinner-track-color: color-mix(in srgb, currentColor 15%, transparent);
+}
+
+@keyframes es-spinner-rotate {
+    to {
+        --es-spinner-angle: 360deg;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .es-spinner {
+        animation-duration: 1.6s;
+    }
+}

@@ -1,0 +1,264 @@
+// The dock: a floating tray of app-module icons, parked off the left edge of the window and
+// revealed by pushing the pointer into that edge. Rendered by frappe.ui.Dock and opt-in per app.
+//
+// It is an overlay, not a column. The body sidebar holds the left edge of the window and is
+// permanent; the dock rides above it, vertically centred and clear of both ends, the way the macOS
+// Dock floats over the desktop rather than taking a strip of it. Nothing in the layout moves when
+// it arrives or leaves.
+//
+// Icons only. A label per row is what a 220px column is for, and this is 56px wide: the tile is the
+// whole row, and the name it would have carried is a tooltip (see Dock.sync_row_tooltips). That is
+// also why the tray can be centred at all -- sixteen modules at 28px of row each is a column, and
+// at 40px of tile each it is a strip half the screen's height.
+//
+// dock.js carries the reveal rules; what is here is the geometry.
+:root {
+	// The tray's own width: a 40px tile in 8px of padding either side.
+	--dock-tile: 40px;
+	--dock-width: 56px;
+
+	// The tray's surface, and the ink that has to read on it.
+	//
+	// `--surface-gray-4` rather than the raw `--gray-500` this started as. A palette token is one
+	// flat colour in both themes, and a mid-grey that looked like a floating panel over a dark page
+	// was mud over a white one. The surface scale inverts: this is #424242 in dark, which is the
+	// colour the tray already was, and #e2e2e2 in light, which is the same relationship to a white
+	// page. The inks invert with it, so one declaration each serves both.
+	--dock-bg: var(--surface-gray-4);
+	--dock-ink: var(--ink-gray-7);
+	--dock-ink-strong: var(--ink-gray-9);
+
+	// A tile's own fills, and the rule under the app mark. These are the one thing the token scales
+	// cannot express, because "a step forward" is not the same direction in both themes: on a light
+	// tray it is darker and on a dark tray it is lighter, and no single `--surface-gray-N` is on the
+	// near side of `--surface-gray-4` in both. So they are overlays, stated per theme, the way
+	// `--desk-sidebar-bg` is in sidebar.scss.
+	--dock-tile-hover: rgba(0, 0, 0, 0.07);
+	--dock-tile-active: rgba(0, 0, 0, 0.12);
+	--dock-rule: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="dark"] {
+	--dock-tile-hover: rgba(255, 255, 255, 0.14);
+	--dock-tile-active: rgba(255, 255, 255, 0.22);
+	--dock-rule: rgba(255, 255, 255, 0.18);
+}
+
+.dock {
+	// Fixed to the window rather than placed in the shell's flex row, and centred on the window's
+	// own height. The two transforms are written together on this one element: the centring is
+	// permanent and the slide is the state, so they cannot be split across a wrapper without one
+	// overwriting the other.
+	position: fixed;
+	left: 8px;
+	top: 50%;
+	// Parked off screen: 150% of its own width clears the 8px inset with room to spare. Off rather
+	// than hidden, so there is something for the transform to animate from and the tray is never
+	// mid-paint when it lands.
+	transform: translate(-150%, -50%);
+	// Above the body sidebar's 1020: the dock covers whatever it is over.
+	z-index: 1030;
+
+	width: var(--dock-width);
+	transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+	// Tall enough for the modules it has and no taller. Sixteen tiles is already most of a laptop's
+	// height, so the tray scrolls rather than running off both ends of a short window.
+	max-height: calc(100vh - 32px);
+	overflow-y: auto;
+	// The tray is the scroll container, so its own bar would sit inside the rounded corner.
+	scrollbar-width: none;
+
+	&::-webkit-scrollbar {
+		display: none;
+	}
+
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	padding: 8px;
+
+	background: var(--dock-bg);
+	border-radius: 18px;
+	box-shadow: var(--shadow-2xl);
+
+	&.hidden {
+		display: none;
+	}
+
+	// The app's mark, pinned to the top of the tray. It is the same 40px tile as a module below it,
+	// so the column reads as one run of tiles, and it opens the menu the sidebar header's chevron
+	// opens (see Dock.setup_header_menu).
+	.dock-logo {
+		flex: 0 0 auto;
+		width: 100%;
+
+		.shell-header {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+
+			width: var(--dock-tile);
+			height: var(--dock-tile);
+			padding: 0;
+			border: none;
+			border-radius: 12px;
+			background: transparent;
+			cursor: pointer;
+			transition: background-color 0.15s ease;
+
+			&:hover,
+			&.active-sidebar {
+				background: var(--dock-tile-hover);
+			}
+		}
+
+		// Both are the column's width talking: a name and a chevron are what a 220px header has
+		// room for. The mark alone says which app this is, and the menu still opens from it.
+		.title-container,
+		.drop-icon {
+			display: none;
+		}
+
+		// Same for the app's mark, on the same reasoning as the tiles below it. An app whose mark is
+		// a real logo is an <img> and takes no notice of either token.
+		color: var(--dock-ink-strong);
+		--icon-stroke: currentColor;
+
+		.header-logo {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		svg,
+		img {
+			width: 22px;
+			height: 22px;
+		}
+
+		// An app whose mark is a letter tile rather than a logo. Round it to the tile's own radius
+		// so it fills the slot instead of sitting in it as a swatch.
+		.icon-container {
+			border-radius: 12px;
+			overflow: hidden;
+		}
+	}
+
+	// The rule between the app's mark and its modules. Inset from the tray's padding so it reads as
+	// a division of the column rather than a line across the whole object.
+	.dock-logo + .dock-items::before {
+		content: "";
+		display: block;
+		width: 24px;
+		height: 1px;
+		margin: 2px auto 6px;
+		background: var(--dock-rule);
+	}
+
+	.dock-items {
+		flex: 1 1 auto;
+		width: 100%;
+
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 6px;
+	}
+}
+
+// One tile. The whole row, since there is no label beside it: a 40px square with the module's glyph
+// centred in it, transparent until it is hovered or active -- the ghost treatment the rail's rows
+// have always had, restated here because the surfaces it used to borrow are page surfaces and this
+// tray is not the page.
+.dock-item {
+	position: relative;
+	flex: 0 0 auto;
+
+	width: var(--dock-tile);
+	height: var(--dock-tile);
+	padding: 0;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	border: none;
+	border-radius: 12px;
+	background: transparent;
+	// Held a step back from the strongest ink, so the hovered and active tiles have somewhere to
+	// step forward to.
+	color: var(--dock-ink);
+	// A desk glyph is stroked from `--icon-stroke`, not from `color` (see common/icons.scss), and
+	// that token is set per surface -- `--gray-700` on the page, `--gray-300` in dark. Neither is
+	// answering this tray, which is why the glyphs came out near-black on the grey in light. Point
+	// the stroke at `currentColor` instead and the hover and active steps above carry the glyph
+	// with them for free.
+	--icon-stroke: currentColor;
+	cursor: pointer;
+	transition: background-color 0.15s ease, color 0.15s ease;
+
+	svg,
+	img {
+		width: 20px;
+		height: 20px;
+	}
+
+	// No words in a 56px tray, and nothing that widens to make room for them. What names a tile is
+	// the label beside it (below), which is why this can go rather than fold.
+	.dock-item-label {
+		display: none;
+	}
+
+	// A module with no authored icon wears the letter tile desktop_icon() builds, which brings its
+	// own colour. Round it to the tile's radius so it fills the slot.
+	.icon-container {
+		border-radius: 12px;
+		overflow: hidden;
+	}
+
+	// A fill and a step in ink, and nothing that moves. A tile that slid out of the tray on hover
+	// read as bouncing, and it dragged the tooltip's gap around with it -- the bubble is placed
+	// when the pointer arrives and the tile then travelled toward it.
+	&:hover {
+		background: var(--dock-tile-hover);
+		color: var(--dock-ink-strong);
+	}
+
+	// Where you are. A filled tile rather than the page's `.active-sidebar` surface, for the same
+	// reason the ink is white: that surface is drawn to sit on the page, and this one sits on the
+	// tray.
+	&.active {
+		background: var(--dock-tile-active);
+		color: var(--dock-ink-strong);
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--dock-ink-strong);
+		outline-offset: 2px;
+	}
+}
+
+// Out. One class on <body>, set by frappe.ui.Dock, so the arrival is one transform on one fixed
+// element and nothing underneath it moves. The centring half is carried through unchanged; only the
+// slide resolves.
+body.dock-open .dock {
+	transform: translate(0, -50%);
+}
+
+// The slide is the whole of the dock's arrival, so with motion turned down it simply is or is not
+// there. Both states stay reachable: the transform is what changes, not the class that drives it.
+@media (prefers-reduced-motion: reduce) {
+	.dock,
+	.dock-item {
+		transition: none;
+	}
+}
+
+// mirror the body sidebar: the dock goes away on mobile, where there is no pointer to push an edge
+// with and no room to float a tray over the page.
+@include media-breakpoint-down(sm) {
+	.dock {
+		display: none;
+	}
+}

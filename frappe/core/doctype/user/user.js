@@ -4,7 +4,6 @@ frappe.ui.form.on("User", {
 			return {
 				filters: {
 					for_user: ["in", ["", frappe.session.user]],
-					title: ["!=", "Welcome Workspace"],
 				},
 			};
 		});
@@ -103,6 +102,11 @@ frappe.ui.form.on("User", {
 	refresh: function (frm) {
 		let doc = frm.doc;
 
+		frappe.scroll_to_user_roles_field = function () {
+			frappe.hide_msgprint(true);
+			frm.scroll_to_field("roles_html");
+		};
+
 		frappe.xcall("frappe.apps.get_apps").then((r) => {
 			let apps = r?.map((r) => r.name) || [];
 			frm.set_df_property("default_app", "options", ["", ...apps]);
@@ -123,6 +127,9 @@ frappe.ui.form.on("User", {
 		}
 
 		frm.toggle_display(["sb1", "sb3", "modules_access"], false);
+		if (frm.is_new() && has_access_to_edit_user()) {
+			frm.toggle_display(["sb1", "sb3", "modules_access"], true);
+		}
 		frm.trigger("setup_impersonation");
 
 		if (!frm.is_new()) {
@@ -157,6 +164,17 @@ frappe.ui.form.on("User", {
 				);
 
 				frm.toggle_display(["sb1", "sb3", "modules_access"], true);
+			}
+
+			if (cint(frm.doc.enabled) && frm.has_perm("write")) {
+				frm.add_custom_button(
+					__("Change Password"),
+					() =>
+						frappe.ui.show_change_password_dialog(frm.doc.name, () =>
+							frm.reload_doc()
+						),
+					__("Password")
+				);
 			}
 
 			frm.add_custom_button(
@@ -431,18 +449,22 @@ frappe.ui.form.on("User Email", {
 frappe.ui.form.on("User Role Profile", {
 	role_profiles_add: function (frm) {
 		if (frm.doc.role_profiles.length > 0) {
-			frm.roles_editor.disable = 1;
+			if (frm.roles_editor) {
+				frm.roles_editor.disable = 1;
+			}
 			frm.call("populate_role_profile_roles").then(() => {
-				frm.roles_editor.show();
+				if (frm.roles_editor) {
+					frm.roles_editor.show();
+				}
 			});
-			$(".deselect-all, .select-all").prop("disabled", true);
 		}
 	},
 	role_profiles_remove: function (frm) {
 		if (frm.doc.role_profiles.length == 0) {
-			frm.roles_editor.disable = 0;
-			frm.roles_editor.show();
-			$(".deselect-all, .select-all").prop("disabled", false);
+			if (frm.roles_editor) {
+				frm.roles_editor.disable = 0;
+				frm.roles_editor.show();
+			}
 		}
 	},
 });

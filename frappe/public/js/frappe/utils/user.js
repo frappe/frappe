@@ -24,6 +24,44 @@ frappe.update_user_info = function (user_info) {
 	}
 };
 
+frappe.ui.show_change_password_dialog = function (user, on_success) {
+	const dialog = new frappe.ui.Dialog({
+		title: __("Change Password"),
+		fields: [
+			{
+				label: __("Set New Password"),
+				fieldtype: "Password",
+				fieldname: "new_password",
+				reqd: 1,
+			},
+			{
+				label: __("Logout From All Devices After Changing Password"),
+				fieldtype: "Check",
+				fieldname: "logout_all_sessions",
+				default: 1,
+			},
+		],
+		primary_action_label: __("Change Password"),
+		primary_action: (values) => {
+			return frappe
+				.call({
+					method: "frappe.core.doctype.user.user.change_password",
+					args: {
+						user: user,
+						new_password: values.new_password,
+						logout_all_sessions: values.logout_all_sessions,
+					},
+				})
+				.then(() => {
+					dialog.hide();
+					frappe.show_alert({ message: __("Password changed"), indicator: "green" });
+					on_success?.();
+				});
+		},
+	});
+	dialog.show();
+};
+
 frappe.provide("frappe.user");
 
 $.extend(frappe.user, {
@@ -50,40 +88,6 @@ $.extend(frappe.user, {
 				return true;
 		}
 	},
-	get_desktop_items: function () {
-		// hide based on permission
-		var modules_list = $.map(frappe.boot.allowed_modules, function (icon) {
-			var m = icon.module_name;
-			var type = frappe.modules[m] && frappe.modules[m].type;
-
-			if (frappe.boot.user.allow_modules.indexOf(m) === -1) return null;
-
-			var ret = null;
-			if (type === "module") {
-				if (frappe.boot.user.allow_modules.indexOf(m) != -1 || frappe.modules[m].is_help)
-					ret = m;
-			} else if (type === "page") {
-				if (frappe.boot.allowed_pages.indexOf(frappe.modules[m].link) != -1) ret = m;
-			} else if (type === "list") {
-				if (frappe.model.can_read(frappe.modules[m]._doctype)) ret = m;
-			} else if (type === "view") {
-				ret = m;
-			} else if (type === "setup") {
-				if (
-					frappe.user.has_role("System Manager") ||
-					frappe.user.has_role("Administrator")
-				)
-					ret = m;
-			} else {
-				ret = m;
-			}
-
-			return ret;
-		});
-
-		return modules_list;
-	},
-
 	is_report_manager: function () {
 		return frappe.user.has_role(["Administrator", "System Manager", "Report Manager"]);
 	},

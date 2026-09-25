@@ -1,22 +1,38 @@
 // clean-this-file
+// Colours, radii and shadows come from Espresso tokens, so the panel tracks the
+// theme the same way frappe-ui's <Sidebar> / <SidebarItem> do -- the hand-rolled
+// --sidebar-* colour variables this file used to define carried their own dark
+// values and drifted from them. Only the panel's width is still a local variable:
+// it is layout, not a design token, and the resize handle writes to it.
 :root {
-	--sidebar-hover-color: #f3f3f3;
-	--sidebar-active-color: rgba(255, 255, 255, 1);
-	--sidebar-border-color: #ededed;
-	--divider-color: rgba(237, 237, 237, 1);
-	--sidebar-width: 220px;
-}
-[data-theme="dark"] {
-	--sidebar-hover-color: rgba(43, 43, 43, 1);
-	--sidebar-active-color: rgba(66, 66, 66, 1);
-	--sidebar-border-color: #232323;
-	--divider-color: rgba(52, 52, 52, 1);
+	// 14rem, the width the reference panel is drawn at.
+	--sidebar-width: 224px;
+	// 3rem, the reference's `collapsedWidth`: the 16px glyphs in the rows' 8px gutter and `pl-2`,
+	// which centres them, and the header's 40px trigger in its 4px gutter.
+	--sidebar-collapsed-width: 48px;
+
+	// The surface the panel and the rail are painted with.
+	//
+	// It is not `--surface-sidebar` directly, because that token is `transparent` in dark:
+	// frappe-ui draws its sidebar *on* the app background, so it can afford to paint nothing
+	// and let the page show through. The desk's panel is drawn *over* the page instead -- a
+	// docked app gives it `position: absolute` (see dock.scss) -- and a see-through overlay
+	// showed the page's own text straight through the rows sitting on top of it.
+	//
+	// Light is `--surface-sidebar` unchanged. Dark is the same relationship rebuilt with an
+	// opaque colour: one step off the page, the way gray-50 sits one step off white.
+	--desk-sidebar-bg: var(--surface-sidebar);
 }
 
-// sidebar-item states
+[data-theme="dark"] {
+	--desk-sidebar-bg: var(--surface-gray-1);
+}
+
+// sidebar-item states -- mirrors <SidebarItem>'s `hover:bg-surface-gray-2` on a
+// `rounded` (8px) row.
 @mixin hover-mixin {
-	background-color: var(--sidebar-hover-color);
-	border-radius: 8px;
+	background-color: var(--surface-gray-2);
+	border-radius: var(--radius);
 	text-decoration: none;
 }
 
@@ -25,34 +41,62 @@
 	flex-direction: column;
 	height: fit-content;
 	width: fit-content;
-
-	.body-sidebar-placeholder {
-		display: none;
-		width: 50px;
-		height: 100vh;
-	}
+	// Positioning context for .sidebar-panel, which is absolute inside it, and the box that holds
+	// the sidebar's width in the layout. On a desktop the sidebar is in flow and permanent, so this
+	// measures its 224px and the main section starts after it. Below md the sidebar is a drawer and
+	// goes out of flow, and this measures nothing.
+	//
+	// The panel still names its own offset (see sidebar_panel.scss) rather than reading it off this
+	// box, because it has to clear the sidebar in both cases and only one of them has a width here.
+	position: relative;
 }
 
 .body-sidebar {
+	// In flow, and a positioning context for the handle on its edge. Its container is
+	// `fit-content`, so the container measures the panel's own 224px and the page starts after it.
+	//
+	// This is the panel in every mode on a desktop now. It used to depend on whether the app had a
+	// rail -- a docked app took the panel out of flow and let the rail call it up over the page --
+	// and that is the polarity the rail's auto-hide reversed: the panel is the permanent surface
+	// and the rail is what comes and goes (see dock.scss). Below md it goes out of flow again, but
+	// as a drawer rather than as a second column.
 	position: relative;
-	width: 50px;
-	background: var(--surface-menu-bar);
-	border-right: 1px solid var(--sidebar-border-color);
-	transition-property: all;
-	transition-duration: 0.3s;
-	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-	// @include transition(all, 0.3s ,cubic-bezier(0.4, 0, 0.2, 1));
+	width: var(--sidebar-width);
+	background: var(--desk-sidebar-bg);
+	border-right: 1px solid var(--outline-gray-1);
+	// the panel's own chrome fades with its contents when collapsing / expanding, and the width
+	// is the reference's `transition-[width] duration-300 ease-in-out`
+	transition: background 0.2s ease, border-color 0.2s ease, width 0.3s ease-in-out;
+	overflow-x: hidden;
+
+	// slide + fade every band of the panel when collapsing / expanding
+	> * {
+		transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+	}
 
 	display: flex;
 	flex-direction: column;
-	gap: 14px;
-	height: 100vh;
+	height: 100vh; // fallback for engines without dvh
+	height: 100dvh;
 	z-index: 1020;
-	padding: 8px 8px 10px 8px;
+	// No padding of its own, because the bands inside it do not share one gutter. The header sits
+	// in the reference's `px-1` and the rows in its `px-2`, which is what lets a 28px mark hang
+	// further out than the 16px glyphs under it, and a single 8px on the panel lined the two up.
+	padding: 0;
+
+	// The header's band, which is the reference's `h-12`: a 40px trigger centred in 48px, in the
+	// 4px gutter. It is the header's own margin rather than a wrapper, because SidebarHeader.make
+	// prepends the header straight into the panel.
+	.sidebar-header {
+		margin: 4px;
+	}
 
 	.body-sidebar-top {
 		flex: 1 1;
-		padding: 1px;
+		// The reference's scroll viewport -- `px-2 pt-0.5 pb-10` -- starting flush under the
+		// header's band. The gutter is inside the scroll box, so an active row's shadow has 8px
+		// of room either side and nothing has to be inset by a pixel to keep it from clipping.
+		padding: 2px 8px 40px;
 		width: auto;
 		display: flex;
 		align-items: flex-start;
@@ -64,6 +108,7 @@
 		position: static;
 		font-size: var(--text-base);
 		@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
+
 		// transition: width 200ms;
 		.sidebar-items {
 			width: 100%;
@@ -71,23 +116,33 @@
 		}
 	}
 
+	.body-sidebar-cards {
+		padding: 0 8px;
+	}
+
 	.body-sidebar-bottom {
-		padding: 0px;
+		// The user chip is the header's row drawn again -- a 40px trigger around a 28px mark --
+		// so it takes the header's 4px gutter rather than the rows' 8px.
+		padding: 0 4px 4px;
 		width: 100%;
 	}
 
 	.divider {
-		margin: var(--margin-xs) 0;
-		border-top: 1px solid var(--gray-300);
+		margin: var(--spacing) 0;
+		border-top: 1px solid var(--outline-gray-2);
 		width: 100%;
 	}
 
+	// The panel's rows and the rail's are one row drawn twice, both to frappe-ui's <SidebarItem>:
+	// `h-7 rounded`, `pl-2` inside it, a `size-4` glyph, the label `ml-2 truncate text-sm`, and
+	// `space-y-0.5` between rows.
 	.standard-sidebar-item {
 		display: flex;
 		position: relative;
 		@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 
-		margin-bottom: 1px;
+		margin-bottom: 2px;
+
 		.sidebar-item-control {
 			.drop-icon {
 				width: 28px;
@@ -100,31 +155,62 @@
 			@include hover-mixin();
 		}
 
+		// `text-ink-gray-8` on the row you are on. It is set on the anchor because that is what
+		// carries the row's ink, and the glyph follows it through currentColor.
+		&.active-sidebar .item-anchor {
+			color: var(--ink-gray-8);
+		}
+
 		.sidebar-item-label {
 			@include truncate();
+			// `text-sm` in full, not just its size: the tracking and the weight used to come from
+			// whatever the page was set in, which is 14px's tracking worn by 13px text.
 			font-size: var(--text-sm);
+			line-height: 1.15;
+			font-weight: var(--font-weight-regular);
+			letter-spacing: 0.02em;
 			display: block;
 			flex: 1 1 auto;
 			align-items: center;
 			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
 			cursor: pointer;
+			// `ml-2` from the glyph; `flex: 1` above is what pushes a suffix to the row's far end
+			margin-left: 8px;
 		}
+
+		// A group's heading is `text-base`, one step up from the rows it names. It is set here
+		// rather than in the `.section-break` block at the foot of this file, which is two classes
+		// against this block's three and has been quietly losing -- leaving every heading at the
+		// rows' own 13px.
+		.section-break .sidebar-item-label {
+			font-size: var(--text-base);
+			line-height: 1.15;
+			letter-spacing: 0.02em;
+		}
+
 		.item-anchor {
 			@include truncate();
 			display: flex;
-			gap: 2px;
 			align-items: center;
-			// padding: 3px 0px 3px 11px;
 			flex: 1;
 			height: 28px;
+			padding: 0 0 0 8px;
+			border-radius: var(--radius);
 			color: var(--ink-gray-6);
 			text-decoration: none;
 			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
+
+			// no colour of its own: the glyph is the row's ink through currentColor, so it darkens
+			// with the label when the row goes active
 			.sidebar-item-icon {
-				padding: 7px;
 				display: flex;
 				align-items: center;
 				justify-content: center;
+
+				svg {
+					width: 16px;
+					height: 16px;
+				}
 			}
 		}
 	}
@@ -133,7 +219,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
-		margin: var(--margin-sm) 0;
+		margin: calc(var(--spacing) * 2) 0;
 	}
 
 	.onboarding-sidebar,
@@ -142,10 +228,12 @@
 		font-size: var(--text-sm);
 		display: flex;
 		align-items: center;
+
 		svg {
 			margin: 0px;
 			flex: 0 0 auto;
 		}
+
 		span {
 			margin-left: 10px;
 			@include truncate();
@@ -156,11 +244,28 @@
 		padding: 4px 0px;
 	}
 
-	.standard-items-sections {
-		.dropdown-notifications {
-			.notifications-list {
-				left: 100%;
-			}
+	// `text-base-medium text-ink-gray-8` over `text-sm text-ink-gray-6`, the pair the header's
+	// title and subtitle are. Set here rather than left to the Bootstrap classes the markup used
+	// to carry, each of which was a size or a grey from another system.
+	.sidebar-user-button .avatar-name-email {
+		// `flex-1`, the way the header's own title block fills the row
+		flex: 1 1 0%;
+		min-width: 0;
+
+		span {
+			font-size: var(--text-md);
+			line-height: 1.15;
+			font-weight: var(--font-weight-medium);
+			letter-spacing: 0.015em;
+			color: var(--ink-gray-8);
+		}
+
+		span + span {
+			font-size: var(--text-sm);
+			font-weight: var(--font-weight-regular);
+			letter-spacing: 0.02em;
+			color: var(--ink-gray-6);
+			margin-top: 2px;
 		}
 	}
 }
@@ -168,47 +273,23 @@
 @mixin body-sidebar-expanded {
 	.body-sidebar {
 		// make it an overlay on hover
-		position: absolute;
 		width: var(--sidebar-width);
 
-		.collapse-sidebar-link {
-			text-decoration: none;
-			font-size: var(--text-sm);
-			display: flex;
-			align-items: center;
-			svg {
-				margin: 0px;
-				flex: 0 0 auto;
-			}
-			span {
-				margin-left: 10px;
-				@include truncate();
-			}
-			@include transition(all, 0.3s, cubic-bezier(0.4, 0, 0.2, 1));
-		}
-
-		.nav-item {
-			padding: 4px 8px;
-		}
-
+		// The user chip is the header's trigger drawn at the other end of the panel: a 40px row
+		// around a 28px mark, `px-1.5` inside it, `ml-2` to the text. The hover surface is the
+		// trigger itself rather than the box around it, which is a hover 8px taller than the row
+		// it lights up.
 		.dropdown-navbar-user {
-			&:hover {
-				@include hover-mixin();
-			}
-
 			.sidebar-user-button {
-				border-radius: var(--border-radius-sm);
+				border-radius: var(--radius);
+				padding: 0 6px;
+
+				&:hover,
+				&.user-menu-active {
+					@include hover-mixin();
+				}
 			}
 		}
-	}
-
-	// show placeholder so that main section remains static
-	.body-sidebar-placeholder {
-		display: flex;
-		width: var(--sidebar-width);
-	}
-	.sidebar-resize-handle {
-		cursor: w-resize;
 	}
 }
 
@@ -216,38 +297,228 @@
 	@include body-sidebar-expanded();
 }
 
-@include media-breakpoint-down(sm) {
-	// body sidebar hidded in mobile view
-	.body-sidebar-container {
+// Collapsed, on a desktop: the reference's rail. The panel narrows to 48px and keeps every mark
+// where it was -- the rows' glyphs, the header's logo, the user's avatar -- while everything that
+// is a word folds to nothing (`w-0 opacity-0`). Nothing moves sideways, because the marks were
+// already inside the first 48px: the rail is the panel with its right side taken away.
+//
+// Headings keep their height and lose their text, so the groups stay apart by the same gap they
+// had, which is what the reference does with a SidebarLabel and no `divider`.
+@include media-breakpoint-up(md) {
+	.body-sidebar-container:not(.expanded) {
 		.body-sidebar {
-			padding: 0px;
-			width: 0px;
-			overflow: hidden;
-			transition-property: none;
-			.standard-items-sections {
-				.dropdown-notifications {
-					.notifications-list {
-						// sidebar is width: 0; overflow: hidden here - go fixed so the panel isn't clipped
-						position: fixed;
-						left: 0;
-						width: 100vw;
-					}
+			width: var(--sidebar-collapsed-width);
+
+			.sidebar-item-label,
+			.sidebar-item-suffix,
+			.sidebar-item-control,
+			.shell-header .title-container,
+			.shell-header .drop-icon,
+			.avatar-name-email {
+				flex: 0 0 0;
+				width: 0;
+				min-width: 0;
+				// the label's `ml-2` and the chip's inline 8px both go with the word they spaced
+				margin: 0 !important;
+				padding: 0;
+				opacity: 0;
+				overflow: hidden;
+			}
+
+			// `w-auto` on the header's trigger: the 28px mark and its `px-1.5`, nothing after it.
+			.shell-header {
+				gap: 0;
+				width: 40px;
+			}
+
+			// The same for the user chip, which is the header's trigger drawn again. Its width is
+			// an inline style in the markup, hence the weight.
+			.sidebar-user-button {
+				width: 40px !important;
+				padding: 0 6px;
+				border-radius: var(--radius);
+
+				&:hover,
+				&.user-menu-active {
+					@include hover-mixin();
 				}
 			}
+
+			// A group that stays open in the rail shows its rows at the rail's own inset, not
+			// behind the rule an expanded group draws down its left.
+			.indent + .nested-container {
+				margin-left: 0;
+				border-left: none;
+
+				.sidebar-item-container {
+					margin-left: 0;
+				}
+			}
+		}
+
+		// The rail folds every nested group (see SidebarItem.toggle_on_collapse), and the row you
+		// are on goes with it. The group standing in for it wears the active pill instead, so the
+		// rail still says where you are. It reads the fold off the DOM, so it follows navigation
+		// with nothing to keep in step.
+		.sidebar-item-container:has(> .nested-container.hidden .active-sidebar)
+			> .standard-sidebar-item {
+			background: var(--surface-elevation-3);
+			box-shadow: var(--shadow-sm);
+			border-radius: var(--radius);
+
+			.item-anchor {
+				color: var(--ink-gray-8);
+			}
+		}
+
+		// A panel opened from the rail lands against the rail, not against the panel it replaced.
+		.sidebar-panel {
+			left: var(--sidebar-collapsed-width);
+		}
+	}
+}
+
+// The panel's edge is the control: an 8px strip centred on the border, the whole height of the
+// panel, that collapses it to its rail and back from anywhere along it. On hover it draws the
+// border heavier and takes a cursor pointing the way the panel will go.
+//
+// It lives on the container, beside the panel, for the reason the arrow below does.
+.sidebar-edge {
+	position: absolute;
+	top: 0;
+	left: calc(var(--sidebar-width) - 4px);
+	z-index: 1022;
+	width: 8px;
+	height: 100%;
+	cursor: w-resize;
+	transition: left 0.3s ease-in-out;
+
+	&::after {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 50%;
+		width: 2px;
+		height: 100%;
+		transform: translateX(-50%);
+		background: transparent;
+		transition: background-color 0.15s ease;
+	}
+
+	&:hover::after {
+		background: var(--outline-gray-3);
+	}
+
+	.body-sidebar-container:not(.expanded) & {
+		left: calc(var(--sidebar-collapsed-width) - 4px);
+		cursor: e-resize;
+	}
+
+	// A drawer has no edge to fold at; the scrim behind it closes it.
+	@include media-breakpoint-down(sm) {
+		display: none;
+	}
+}
+
+// The collapse arrow: a 24px disc centred on the edge, level with the user chip at the foot of the
+// panel. It shows while the pointer is on the edge, or on the arrow itself, or when a keyboard has
+// brought focus to it, which makes it the edge's keyboard equivalent. It points the way the panel
+// will go -- left to fold into the rail, right to open back out -- so it turns rather than being
+// swapped for a second glyph.
+//
+// It is the container's child, not the panel's, and names its own offset for the same reason the
+// notification panel does (see sidebar_panel.scss): the panel clips what overhangs it.
+.sidebar-collapse-arrow {
+	position: absolute;
+	// centred on the user chip: its 40px row sits 8px off the bottom, so its middle is 28px up
+	bottom: 16px;
+	left: calc(var(--sidebar-width) - 12px);
+	z-index: 1023;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	border-radius: 50%;
+	border: 1px solid var(--outline-gray-2);
+	background: var(--surface-elevation-3, var(--surface-base));
+	box-shadow: var(--shadow-sm);
+	color: var(--ink-gray-6);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.15s ease, left 0.3s ease-in-out, background-color 0.15s ease;
+
+	svg {
+		width: 12px;
+		height: 12px;
+		transition: transform 0.3s ease-in-out;
+	}
+
+	&:hover {
+		background: var(--surface-gray-2);
+		color: var(--ink-gray-8);
+	}
+
+	.sidebar-edge:hover ~ &,
+	&:hover,
+	&:focus-visible {
+		opacity: 1;
+		pointer-events: auto;
+	}
+
+	.body-sidebar-container:not(.expanded) & {
+		left: calc(var(--sidebar-collapsed-width) - 12px);
+
+		svg {
+			transform: rotate(180deg);
+		}
+	}
+
+	// Below md the panel is a drawer and closes by the scrim behind it.
+	@include media-breakpoint-down(sm) {
+		display: none;
+	}
+}
+
+// Mobile is the same overlay on the same terms: the panel keeps its width and its place, and the
+// collapsed state fades it out, rather than being squeezed to `width: 0` on rules of its own. It
+// used to need those, because a panel that reserved space in flow had to give the space back on a
+// narrow screen; it reserves none anywhere now.
+//
+// What is mobile's own is the dimming overlay behind the panel and the full-height pin, because
+// here the panel covers the page rather than standing beside it.
+@include media-breakpoint-down(sm) {
+	// A drawer over the page in either mode and in either state -- out of flow even while closed,
+	// because a closed panel left in flow would hold 224px of a phone screen for something that is
+	// not on it.
+	.body-sidebar {
+		position: absolute;
+	}
+
+	// A closed drawer leaves entirely rather than narrowing to a rail: on a phone the rail would
+	// take 48px of a screen that has none to spare.
+	.body-sidebar-container:not(.expanded) .body-sidebar {
+		background: transparent;
+		border-right-color: transparent;
+		pointer-events: none;
+
+		> * {
+			transform: translateX(-12px);
+			opacity: 0;
 		}
 	}
 
 	// expands when navbar-brand is clicked
 	.body-sidebar-container.expanded {
 		position: relative;
+
 		.body-sidebar {
-			padding: 8px 8px 10px 8px;
-			width: var(--sidebar-width);
 			height: 100%;
-			position: absolute;
 			bottom: 0;
 			top: 0;
 		}
+
 		.overlay {
 			display: block;
 			position: absolute;
@@ -256,13 +527,10 @@
 			z-index: 1021;
 			left: var(--sidebar-width);
 			overflow: auto;
-			background-color: rgba(128, 128, 128, 0.5);
-		}
-
-		// acts a overlay when in mobile view
-		.body-sidebar-placeholder {
-			display: flex;
-			width: 0px;
+			// A scrim dims the page behind the drawer, so it has to be dark in both themes.
+			// A mid-grey at half opacity only dims a light page; over a dark one it lifted the
+			// page towards the drawer instead of pushing it back.
+			background-color: rgba(0, 0, 0, 0.5);
 		}
 	}
 }
@@ -272,9 +540,10 @@
 }
 
 .active-sidebar {
-	background: var(--sidebar-active-color);
+	background: var(--surface-elevation-3);
 	box-shadow: var(--shadow-sm);
-	border-radius: 8px;
+	border-radius: var(--radius);
+
 	:hover {
 		text-decoration: none;
 	}
@@ -284,125 +553,102 @@
 	display: none;
 }
 
-.body-sidebar .sidebar-toggle-btn {
-	position: absolute;
-	right: -12px;
-	bottom: 80px;
-	width: 24px;
-	height: 24px;
-	border-radius: 50%;
-	border: 1px solid var(--sidebar-border-color);
-	background: var(--surface-menu-bar);
-	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	padding: 0;
-	opacity: 0;
-	visibility: hidden;
-	transition: opacity 0.15s ease, visibility 0.15s ease;
-	z-index: 1023;
-
-	svg {
-		width: 12px;
-		height: 12px;
-	}
-
-	&:hover {
-		background: var(--sidebar-hover-color);
-	}
-}
-
-.body-sidebar:hover .sidebar-toggle-btn {
-	opacity: 1;
-	visibility: visible;
-}
-
-.sidebar-resize-handle {
-	position: absolute;
-	top: 0;
-	right: -4px;
-	width: 8px;
-	height: 100%;
-	z-index: 1022;
-	cursor: e-resize;
-
-	&::after {
-		content: "";
-		position: absolute;
-		left: 50%;
-		top: 0;
-		transform: translateX(-50%);
-		width: 2px;
-		height: 100%;
-		background: transparent;
-		transition: background 0.15s ease;
-	}
-
-	&:hover::after {
-		background: var(--ink-gray-2);
-	}
-}
+// A group's own heading, to frappe-ui's <SidebarLabel>: `h-7 pl-2` around `text-base
+// text-ink-gray-5`. It names the rows under it rather than being one of them, which is why it is
+// the one line here that is not --text-sm -- and why it is not bold either: the size and the fade
+// do the work.
 .section-break {
 	color: var(--ink-gray-5) !important;
-	margin-left: 7px;
-	gap: 0px !important;
+	gap: 0 !important;
+
+	// Size and tracking are set with the rows above, where they can win on specificity. What is
+	// left here is the one thing a heading needs that no row does: no gap for a glyph it has not
+	// got, so the text starts where a glyph would.
+	.sidebar-item-label {
+		margin-left: 0 !important;
+	}
 }
+
+// `mt-4` above a heading, the reference's only group separation. Not above the first one, which
+// already has the band or the header over it.
+.sidebar-items > .section-item:has(.section-break):not(:first-child) {
+	margin-top: 16px;
+}
+
 .section-item {
 	.standard-sidebar-item {
 		align-items: center;
-	}
-}
-.bottom-edit-controls {
-	display: flex;
-	gap: 35%;
-}
-.body-sidebar-container[data-mode="edit"] {
-	.standard-sidebar-item:hover {
-		& .sidebar-item-edit-controls {
-			visibility: visible;
-		}
-	}
-	.promotional-banners,
-	.dropdown-navbar-user {
-		display: none;
-	}
-}
-.sidebar-item-edit-controls {
-	visibility: hidden;
-	position: absolute;
-	right: 0;
-	display: flex;
-	gap: 6px;
-}
-.standard-sidebar-item[data-name="add-sidebar-item"] {
-	margin-top: 5px;
-	width: 100%;
-	& .sidebar-item-label {
-		color: var(--ink-gray-5) !important;
 	}
 }
 
 .menu-icon {
 	margin: 0px !important;
 }
+
 .indent {
 	.sidebar-item-control {
 		margin-left: auto;
 	}
 }
+
 .indent + .nested-container {
-	margin-left: 16px;
+	margin-left: calc(var(--spacing) * 2 + 1px);
+	border-left: 1px solid var(--outline-gray-1);
+
+	.sidebar-item-container {
+		margin-left: var(--spacing);
+	}
 }
+
+// A count, or a shortcut hint: `mr-2 text-sm text-ink-gray-4` on a zone the label's flex-grow has
+// already stranded at the row's end.
 .sidebar-item-suffix {
 	margin-left: auto;
-	padding: 7px;
+	margin-right: 8px;
+	padding: 0;
+
 	.keyboard-shortcut {
-		color: var(--ink-gray-4, #999999);
+		color: var(--ink-gray-4);
 		font-size: var(--text-sm);
 		line-height: 1.15;
 		letter-spacing: 0.02em;
 		font-weight: 420;
 	}
 }
+
+// The standard-items band on the body sidebar: search, notifications and background tasks, directly
+// under the header and above the module's own items, behind a divider.
+//
+// The divider is drawn only when the band has something in it: each row hides itself until it has
+// something to say (background tasks until there is a task, notifications until they load), and a
+// rule under an empty band would read as a stray line.
+//
+// It is a sibling of `.body-sidebar-top` rather than inside it, so it does not scroll with the
+// module's items. It takes the scroll box's top offset and inset while it has rows, and the scroll
+// box drops its own offset so the gap between the two is not counted twice.
+.body-sidebar .standard-items-band {
+	flex: none;
+
+	// The rows' gutter, since these are the rows' rows.
+	padding: 0 8px;
+
+	&:not(:empty) {
+		// `pt-0.5` under the header, then the group separation the reference uses between one run
+		// of rows and the next.
+		//
+		// 14px rather than 16 because the scroll box under it keeps 2px of its own and the two
+		// are read as one gap. That 2px is not spacing and cannot be handed over: it is the
+		// headroom an active first row's shadow needs, and a scroll box flush against the row
+		// cuts the top of the pill off.
+		padding-top: 2px;
+		margin-bottom: 14px;
+		width: 100%;
+	}
+}
+
+// The sidebar keeps everything it owns. The dock used to carry the header's menu, the user button,
+// search and notifications, and the sidebar's own copies were switched off to stop the pair saying
+// the same thing twice down one edge. That traded on the dock being the surface that is always
+// there. It is not -- it is a push at the edge away -- so a sidebar stripped to bare labels would be
+// a permanent surface missing its furniture for the sake of a hidden one, and nothing is taken off
+// it here. Nor does `dock-active` change where the sidebar starts: the dock floats over it.

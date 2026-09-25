@@ -43,7 +43,7 @@ from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
 from frappe.utils import cached_property, cast, cint, cstr
 from frappe.utils.caching import site_cache
-from frappe.utils.data import add_to_date, get_datetime
+from frappe.utils.data import add_to_date, get_currency_precision, get_datetime
 
 ListOrTuple = list | tuple
 SerializableTypes = str | int | float | datetime
@@ -807,11 +807,21 @@ class Meta(Document):
 						group.get("items").append(doctype)
 					link.added = True
 
+					# Add fieldname to transaction group for external links
+					if not link.is_child_table:
+						if "fieldnames" not in group:
+							group["fieldnames"] = {}
+						group["fieldnames"][link.link_doctype] = link.link_fieldname
+
 			if not link.added:
 				# group not found, make a new group
-				data.transactions.append(
-					dict(label=link.group, items=[link.parent_doctype or link.link_doctype])
-				)
+				new_group = dict(label=link.group, items=[link.parent_doctype or link.link_doctype])
+
+				# Add fieldname to new transaction group for external links
+				if not link.is_child_table:
+					new_group["fieldnames"] = {link.link_doctype: link.link_fieldname}
+
+				data.transactions.append(new_group)
 
 			if not data.fieldname and link.link_fieldname:
 				data.fieldname = link.link_fieldname
@@ -921,8 +931,10 @@ def get_field_precision(df, doc=None, currency=None):
 		precision = cint(df.precision)
 
 	elif df.fieldtype == "Currency":
-		precision = cint(frappe.db.get_default("currency_precision"))
-		if not precision:
+		currency_precision = get_currency_precision()
+		if currency_precision is not None:
+			precision = currency_precision
+		else:
 			precision = get_precision_from_currency_format(currency or get_field_currency(df, doc))
 	else:
 		precision = cint(frappe.db.get_default("float_precision")) or 3

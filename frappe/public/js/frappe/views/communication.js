@@ -5,6 +5,8 @@ import localforage from "localforage";
 
 frappe.last_edited_communication = {};
 const separator_element = "<div>---</div>";
+// Quill uses <p>---</p>; match both when stripping quoted content
+const separator_regex = /<(?:div|p)(?:\s[^>]*)?>---<\/(?:div|p)>/i;
 
 frappe.views.CommunicationComposer = class {
 	constructor(opts) {
@@ -59,7 +61,7 @@ frappe.views.CommunicationComposer = class {
 			},
 			{
 				fieldtype: "Button",
-				label: frappe.utils.icon("down", "xs"),
+				label: frappe.utils.icon("chevron-down", "xs"),
 				title: __("More Options"),
 				fieldname: "option_toggle_button",
 				click: () => {
@@ -100,6 +102,14 @@ frappe.views.CommunicationComposer = class {
 				fieldtype: "Link",
 				options: "Email Template",
 				fieldname: "email_template",
+				get_query: function () {
+					if (me.frm?.doctype) {
+						return {
+							query: "frappe.email.doctype.email_template.email_template.get_email_templates",
+							filters: { reference_doctype: me.frm.doctype },
+						};
+					}
+				},
 				onchange: async function () {
 					const email_template = this.value;
 					if (!email_template) {
@@ -301,7 +311,7 @@ frappe.views.CommunicationComposer = class {
 		this.dialog.set_df_property("more_options", "hidden", !show_options);
 		this.dialog.set_df_property("email_template_section_break", "hidden", !show_options);
 
-		const label = frappe.utils.icon(show_options ? "up-line" : "down", "xs");
+		const label = frappe.utils.icon(show_options ? "chevron-up" : "chevron-down", "xs");
 		this.dialog.get_field("option_toggle_button").set_label(label);
 	}
 
@@ -570,6 +580,18 @@ frappe.views.CommunicationComposer = class {
 		const last_edited = this.get_last_edited_communication();
 		if (!last_edited.content && !last_edited.html_content) return;
 
+		// For replies: strip duplicate quoted content (Quill uses <p>---</p>)
+		if (this.is_a_reply) {
+			const reply_block = this.get_earlier_reply();
+			for (const field of ["content", "html_content"]) {
+				if (last_edited[field]) {
+					last_edited[field] =
+						(last_edited[field].split(separator_regex)[0] || "").trimEnd() +
+						reply_block;
+				}
+			}
+		}
+
 		// prevent re-triggering of email template
 		if (last_edited.email_template) {
 			const template_field = this.dialog.fields_dict.email_template;
@@ -661,7 +683,7 @@ frappe.views.CommunicationComposer = class {
 			<div class='attach-list'></div>
 			<p class='add-more-attachments'>
 				<button class='btn btn-xs btn-default'>
-					${frappe.utils.icon("small-add", "xs")}&nbsp;
+					${frappe.utils.icon("plus", "xs")}&nbsp;
 					${__("Add Attachment")}
 				</button>
 			</p>
@@ -719,7 +741,7 @@ frappe.views.CommunicationComposer = class {
 					class="btn-link"
 					style="padding-left: var(--padding-xs)"
 				>
-					${frappe.utils.icon("link-url", "sm")}
+					${frappe.utils.icon("link", "sm")}
 				</a>
 			</label>
 		</p>`);
@@ -793,7 +815,7 @@ frappe.views.CommunicationComposer = class {
 	save_as_draft() {
 		if (this.dialog && this.frm) {
 			let message = this.get_email_content();
-			message = message.split(separator_element)[0];
+			message = message.split(separator_regex)[0];
 			this.save_item_in_local_forage(this.frm.doctype + this.frm.docname, message);
 			this.save_item_in_local_forage(
 				this.frm.doctype + this.frm.docname + "_use_html",
@@ -897,21 +919,14 @@ frappe.views.CommunicationComposer = class {
 						me.frm.reload_doc();
 					}
 
-					let undo_alert = frappe.show_alert(
-						{
-							message: `<span>${__(
-								"Email Sent"
-							)}</span><span class="cursor-pointer ml-4" data-action="undo" style="font-weight: 500; text-decoration: underline;">${__(
-								"Undo"
-							)}</span>`,
-							indicator: "green",
-						},
-						10,
-						{
-							undo: () => {
-								if (undo_alert) {
-									undo_alert.find(".close").click();
-								}
+					const undo_toast = frappe.ui.toast({
+						message: __("Email Sent"),
+						type: "success",
+						duration: 10000,
+						action: {
+							label: __("Undo"),
+							onclick: () => {
+								undo_toast.dismiss();
 								frappe
 									.xcall(
 										"frappe.core.doctype.communication.email.undo_email_send",
@@ -936,14 +951,14 @@ frappe.views.CommunicationComposer = class {
 											frm: me.frm,
 										});
 
-										frappe.show_alert({
+										frappe.ui.toast({
 											message: __("Email sending undone"),
-											indicator: "blue",
+											type: "info",
 										});
 									});
 							},
-						}
-					);
+						},
+					});
 
 					// try the success callback if it exists
 					if (me.success) {
@@ -1004,7 +1019,7 @@ frappe.views.CommunicationComposer = class {
 		}
 
 		if (this.is_a_reply && !this.reply_set) {
-			message += this.get_earlier_reply();
+			message = message.split(separator_regex)[0] + this.get_earlier_reply();
 		}
 
 		await this.set_email_content(message);

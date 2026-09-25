@@ -1,0 +1,335 @@
+<template>
+	<div class="pfb-settings">
+		<InspectorSection :label="__('Document')">
+			<div class="form-group">
+				<div class="pfb-label-with-hint">
+					<label class="control-label">{{ __("PDF Renderer") }}</label>
+					<span
+						v-if="renderer_hint"
+						ref="hint_icon"
+						class="pfb-hint-icon"
+						v-html="frappe.utils.icon('info', 'xs')"
+					></span>
+				</div>
+				<select
+					class="form-control form-control-sm"
+					:value="renderer"
+					@change="set_renderer($event.target.value)"
+				>
+					<option value="chrome" :disabled="has_typst_block">
+						{{ __("Chromium") }}
+					</option>
+					<option value="Typst" :disabled="typst_blockers.length > 0">
+						{{ __("Typst (fast)") }}
+					</option>
+					<option v-if="renderer === 'WeasyPrint'" value="WeasyPrint" disabled>
+						{{ __("WeasyPrint") }}
+					</option>
+				</select>
+				<div v-if="deprecation_notice" class="pfb-renderer-note">
+					{{ deprecation_notice.short }}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="control-label">{{ __("Letter Head") }}</label>
+				<DeskControl
+					:df="letterhead_df"
+					:model-value="letterhead?.name || ''"
+					@update:model-value="set_letterhead"
+				/>
+			</div>
+		</InspectorSection>
+
+		<InspectorSection :label="__('Text')">
+			<div class="form-group">
+				<label class="control-label">{{ __("Google Font") }}</label>
+				<Autocomplete
+					:options="font_options"
+					:model-value="print_format.font || ''"
+					:placeholder="__('Default')"
+					@select="(o) => (print_format.font = o.value)"
+				/>
+			</div>
+			<div class="form-group">
+				<label class="control-label">{{ __("Font Size (px)") }}</label>
+				<input
+					type="number"
+					class="form-control form-control-sm"
+					placeholder="12, 13, 14"
+					:value="print_format.font_size"
+					@change="(e) => (print_format.font_size = parseFloat(e.target.value) || 14)"
+				/>
+			</div>
+			<div class="form-group" v-for="c in color_settings" :key="c.fieldname">
+				<label class="control-label">{{ c.label }}</label>
+				<ColorInput
+					:fieldname="c.fieldname"
+					:model-value="print_format[c.fieldname] || ''"
+					:placeholder="c.label"
+					@update:model-value="(v) => (print_format[c.fieldname] = v || null)"
+				/>
+			</div>
+			<div class="form-group">
+				<ToggleRow
+					:label="__('Colon after labels')"
+					:model-value="!!print_format.show_label_colon"
+					@update:model-value="(v) => (print_format.show_label_colon = v ? 1 : 0)"
+				/>
+			</div>
+		</InspectorSection>
+
+		<InspectorSection :label="__('Page')">
+			<div class="form-group">
+				<label class="control-label">{{ __("Margins (mm)") }}</label>
+				<div class="pfb-margin-grid">
+					<div class="pfb-margin-cell" v-for="df in margins" :key="df.fieldname">
+						<label class="pfb-margin-label control-label">{{ df.label }}</label>
+						<input
+							type="number"
+							class="form-control form-control-sm"
+							:value="print_format[df.fieldname]"
+							min="0"
+							@change="(e) => update_margin(df.fieldname, e.target.value)"
+						/>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="control-label">{{ __("Page Number") }}</label>
+				<select class="form-control form-control-sm" v-model="print_format.page_number">
+					<option v-for="p in page_number_positions" :value="p.value">
+						{{ p.label }}
+					</option>
+				</select>
+			</div>
+		</InspectorSection>
+
+		<InspectorSection :label="__('Style')" :init-open="false">
+			<div class="form-group">
+				<ToggleRow
+					:label="__('Custom CSS')"
+					:model-value="css_enabled"
+					@update:model-value="toggle_css"
+				/>
+				<textarea
+					v-if="css_enabled"
+					class="form-control form-control-sm pfb-css-input"
+					:placeholder="__('.print-format p { margin: 0; }')"
+					spellcheck="false"
+					rows="8"
+					:value="print_format.css || ''"
+					@input="(e) => (print_format.css = e.target.value)"
+				></textarea>
+			</div>
+		</InspectorSection>
+	</div>
+</template>
+
+<script setup>
+import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
+import Autocomplete from "../../vue-components/Autocomplete.vue";
+import ToggleRow from "./inspector/ToggleRow.vue";
+import InspectorSection from "./inspector/InspectorSection.vue";
+import ColorInput from "./inspector/ColorInput.vue";
+import DeskControl from "./DeskControl.vue";
+
+let store = inject("$store");
+let { print_format, letterhead } = store;
+let { typst_blockers, legacy_blockers, has_typst_block } = store;
+
+// ── custom css ─────────────────────────────────────────────
+let css_enabled = ref(!!print_format.value.css);
+// a discarded draft or re-fetch replaces the doc — the toggle follows it,
+// except a toggle the user opened themselves stays open through a doc swap
+// (a save with an empty box must not close the panel under them)
+let css_manual = false;
+watch(
+	() => print_format.value,
+	(pf) => {
+		if (pf?.css) css_enabled.value = true;
+		else if (!css_manual) css_enabled.value = false;
+	}
+);
+watch(
+	() => print_format.value?.css,
+	(v) => {
+		if (v) css_enabled.value = true;
+	}
+);
+// turning the toggle off clears the css from the format, but keep what was
+// typed so flipping it back on restores it while this panel stays mounted
+let stashed_css = "";
+
+function toggle_css(on) {
+	css_manual = on;
+	css_enabled.value = on;
+	if (on) {
+		if (stashed_css && !print_format.value.css) {
+			print_format.value.css = stashed_css;
+		}
+	} else {
+		stashed_css = print_format.value.css || "";
+		print_format.value.css = "";
+	}
+}
+
+let google_fonts = ref([]);
+
+const DEPRECATION_NOTICES = {
+	WeasyPrint: {
+		short: __("Deprecated, removed in version 17"),
+		long: __(
+			"Deprecated, removed in version 17. Renders with the v16 stylesheet; new blocks and styling need Chromium or Typst."
+		),
+	},
+};
+let renderer = computed(() => {
+	const value = print_format.value?.pdf_generator;
+	return ["Typst", "WeasyPrint"].includes(value) ? value : "chrome";
+});
+let deprecation_notice = computed(() => DEPRECATION_NOTICES[renderer.value] || null);
+let hint_icon = ref(null);
+const bullet_list = (title, items) => [title, ...items.map((b) => "• " + b)].join("\n");
+let renderer_hint = computed(() => {
+	const parts = [];
+	if (deprecation_notice.value) parts.push(deprecation_notice.value.long);
+	if (has_typst_block.value)
+		parts.push(__("Chromium unavailable: this format uses a Typst block."));
+	if (typst_blockers.value.length)
+		parts.push(bullet_list(__("Typst cannot render:"), typst_blockers.value));
+	if (renderer.value === "WeasyPrint" && legacy_blockers.value.length)
+		parts.push(bullet_list(__("WeasyPrint cannot render:"), legacy_blockers.value));
+	if (!parts.length && renderer.value === "Typst") parts.push(__("Experimental"));
+	return parts.join("\n\n");
+});
+let hint_tooltip = null;
+watch(
+	[hint_icon, renderer_hint],
+	([el, text]) => {
+		hint_tooltip?.destroy();
+		hint_tooltip = null;
+		if (!el || !text) return;
+		frappe.ui.tooltip(el, { text, text_align: "start" });
+		hint_tooltip = $(el).data("es-tooltip");
+	},
+	{ flush: "post" }
+);
+onUnmounted(() => hint_tooltip?.destroy());
+
+function set_renderer(value) {
+	if (value !== "Typst" && has_typst_block.value) return;
+	print_format.value.pdf_generator = value === "Typst" ? "Typst" : "chrome";
+}
+let font_options = computed(() => [
+	{ label: __("Default"), value: "" },
+	...google_fonts.value.map((f) => ({ label: f, value: f })),
+]);
+
+let margins = computed(() => [
+	{ label: __("Top"), fieldname: "margin_top" },
+	{ label: __("Bottom"), fieldname: "margin_bottom" },
+	{ label: __("Left", null, "alignment"), fieldname: "margin_left" },
+	{ label: __("Right", null, "alignment"), fieldname: "margin_right" },
+]);
+
+let page_number_positions = computed(() => [
+	{ label: __("Hide"), value: "Hide" },
+	{ label: __("Top Left"), value: "Top Left" },
+	{ label: __("Top Center"), value: "Top Center" },
+	{ label: __("Top Right"), value: "Top Right" },
+	{ label: __("Bottom Left"), value: "Bottom Left" },
+	{ label: __("Bottom Center"), value: "Bottom Center" },
+	{ label: __("Bottom Right"), value: "Bottom Right" },
+]);
+
+function update_margin(fieldname, value) {
+	print_format.value[fieldname] = Math.max(0, parseFloat(value) || 0);
+}
+
+// ── colors ─────────────────────────────────────────────────
+const color_settings = [
+	{ fieldname: "label_color", label: __("Label Color") },
+	{ fieldname: "value_color", label: __("Value Color") },
+];
+const letterhead_df = {
+	fieldname: "letter_head",
+	fieldtype: "Link",
+	options: "Letter Head",
+	placeholder: __("No letter head"),
+};
+function set_letterhead(name) {
+	if (name === (letterhead.value?.name || "")) return;
+	name ? store.change_letterhead(name) : store.remove_letterhead();
+}
+
+onMounted(() => {
+	let method =
+		"frappe.printing.page.print_format_builder_beta.print_format_builder_beta.get_google_fonts";
+	frappe.call(method).then((r) => {
+		google_fonts.value = r.message || [];
+		if (print_format.value.font && !google_fonts.value.includes(print_format.value.font)) {
+			google_fonts.value.push(print_format.value.font);
+		}
+	});
+});
+</script>
+
+<style scoped>
+.pfb-label-with-hint {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.pfb-label-with-hint .control-label {
+	margin: 0;
+}
+
+.pfb-hint-icon {
+	display: inline-flex;
+	color: var(--text-muted);
+}
+
+.pfb-renderer-note {
+	margin-top: 4px;
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+
+.pfb-settings .form-group {
+	margin-bottom: 12px;
+}
+
+.pfb-settings .form-group:last-child {
+	margin-bottom: 0;
+}
+
+.pfb-settings :deep(.frappe-control) {
+	margin-bottom: 0;
+}
+
+.pfb-margin-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 6px;
+}
+
+.pfb-margin-cell {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.pfb-margin-label {
+	font-size: var(--text-tiny);
+}
+
+.pfb-css-input {
+	margin-top: 6px;
+	font-family: monospace;
+	font-size: var(--text-xs);
+	line-height: 1.5;
+	resize: vertical;
+	min-height: 120px;
+}
+</style>

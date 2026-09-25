@@ -48,11 +48,11 @@ frappe.ui.SortSelector = class SortSelector {
 			const SORT_TITLE_AND_ICON = {
 				desc: {
 					title: __("descending"),
-					icon: "sort-descending",
+					icon: "arrow-down-wide-narrow",
 				},
 				asc: {
 					title: __("ascending"),
-					icon: "sort-ascending",
+					icon: "arrow-up-narrow-wide",
 				},
 			};
 			const { title, icon } = SORT_TITLE_AND_ICON[sort_order];

@@ -1,0 +1,293 @@
+<template>
+	<div class="pfb-inspector" @click.stop>
+		<template v-if="show_history">
+			<div class="pfb-inspector-head">
+				<div class="pfb-inspector-title">
+					<span class="pfb-inspector-kind">{{ __("Version history") }}</span>
+				</div>
+				<div class="pfb-inspector-actions">
+					<button
+						class="es-button"
+						data-size="xs"
+						data-variant="ghost"
+						data-icon-button="true"
+						:title="__('Save a named version')"
+						@click="save_named_version"
+						v-html="frappe.utils.icon('bookmark-plus', 'sm')"
+					></button>
+					<button
+						class="es-button"
+						data-size="xs"
+						data-variant="ghost"
+						data-icon-button="true"
+						:title="__('Close')"
+						@click="store.versions.close()"
+						v-html="frappe.utils.icon('x', 'sm')"
+					></button>
+				</div>
+			</div>
+			<VersionHistory />
+		</template>
+		<template v-else>
+			<!-- Header — hidden on the canvas (settings) view -->
+			<div v-if="has_selection" class="pfb-inspector-head">
+				<div class="pfb-inspector-title">
+					<span class="pfb-inspector-kind">{{ inspector_kind }}</span>
+					<span class="pfb-inspector-name">{{ inspector_subtitle }}</span>
+				</div>
+				<button
+					v-if="snippet_kind"
+					class="es-button"
+					data-size="xs"
+					data-variant="ghost"
+					data-icon-button="true"
+					:title="__('Save as snippet')"
+					@click="store.prompt_snippet(selected_field || selected_section, snippet_kind)"
+					v-html="frappe.utils.icon('bookmark-plus', 'sm')"
+				></button>
+			</div>
+
+			<!-- Breadcrumb: navigate up to parent section when a field is selected -->
+			<div
+				v-if="selected_field && parent_section && !is_multi_select"
+				class="pfb-breadcrumb"
+			>
+				<button
+					class="pfb-breadcrumb-btn"
+					@click="select_parent_section"
+					:title="__('Select parent section (Esc)')"
+				>
+					<span v-html="frappe.utils.icon('arrow-up', 'xs')"></span>
+					<span class="pfb-breadcrumb-label">{{ __("Section:") }}</span>
+					<span class="pfb-breadcrumb-name">{{
+						parent_section.label || __("Untitled")
+					}}</span>
+				</button>
+			</div>
+
+			<!-- Nothing selected: canvas-wide print settings -->
+			<div v-if="!has_selection" class="pfb-insp-body">
+				<PrintSettingsPanel />
+			</div>
+
+			<!-- ── Letter Head Footer inspector ──────────────────────── -->
+			<template v-else-if="selected_lh_footer">
+				<LetterHeadZoneInspector zone="footer" />
+			</template>
+
+			<!-- ── Letter Head inspector ──────────────────────────────── -->
+			<template v-else-if="selected_letterhead">
+				<LetterHeadZoneInspector zone="header" />
+			</template>
+
+			<FieldPropertiesPanel v-else-if="is_multi_select" />
+
+			<!-- ── Table field inspector ───────────────────────────────── -->
+			<TableFieldInspector v-else-if="selected_field && is_table_field" />
+
+			<!-- ── Repeater inspector ──────────────────────────────── -->
+			<RepeaterFieldInspector v-else-if="selected_field && is_repeater_field" />
+
+			<!-- ── Field inspector ─────────────────────────────────── -->
+			<FieldPropertiesPanel v-else-if="selected_field" />
+
+			<!-- ── Section inspector ───────────────────────────────── -->
+			<SectionPropertiesPanel v-else-if="selected_section" />
+		</template>
+	</div>
+</template>
+
+<script setup>
+import { computed, inject } from "vue";
+import { section_of } from "../../layout";
+import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
+import SectionPropertiesPanel from "./SectionPropertiesPanel.vue";
+import RepeaterFieldInspector from "./RepeaterFieldInspector.vue";
+import TableFieldInspector from "./TableFieldInspector.vue";
+import FieldPropertiesPanel from "./FieldPropertiesPanel.vue";
+import VersionHistory from "../VersionHistory.vue";
+import PrintSettingsPanel from "../PrintSettingsPanel.vue";
+
+let store = inject("$store");
+let { open: show_history } = store.versions;
+
+function save_named_version() {
+	frappe.prompt(
+		{ fieldname: "label", fieldtype: "Data", label: __("Version name"), reqd: 1 },
+		({ label }) => store.versions.save(label),
+		__("Save version"),
+		__("Save")
+	);
+}
+let { letterhead, layout, print_format } = store;
+
+let selected_field = computed(() => store.selected_field.value);
+let selected_count = computed(
+	() => store.selected_fields.value.length + store.selected_sections.value.length
+);
+let is_multi_select = computed(() => store.is_multi_select.value);
+let selected_section = computed(() => store.selected_section.value);
+let selected_letterhead = computed(() => store.selected_letterhead.value);
+let selected_lh_footer = computed(() => store.selected_lh_footer.value);
+let has_selection = computed(
+	() =>
+		selected_field.value ||
+		selected_section.value ||
+		selected_letterhead.value ||
+		selected_lh_footer.value
+);
+
+let snippet_kind = computed(() => {
+	if (is_multi_select.value) return "";
+	if (selected_field.value) return "Field";
+	const section = selected_section.value;
+	if (section && section !== layout.value?.header && section !== layout.value?.footer) {
+		return "Section";
+	}
+	return "";
+});
+let is_table_field = computed(() => selected_field.value?.fieldtype === "Table");
+let is_repeater_field = computed(() => selected_field.value?.fieldtype === "Repeater");
+
+let inspector_kind = computed(() => {
+	if (is_multi_select.value) return __("Selection");
+	if (selected_lh_footer.value) return __("Letter Head");
+	if (selected_letterhead.value) return __("Letter Head");
+	if (selected_field.value) {
+		if (selected_field.value.fieldtype === "Table") return __("Table");
+		if (selected_field.value.fieldtype === "Repeater") return __("Custom Table");
+		return __("Field");
+	}
+	if (selected_section.value) return __("Section");
+	return __("Canvas");
+});
+
+let inspector_subtitle = computed(() => {
+	if (is_multi_select.value) {
+		return store.selected_sections.value.length
+			? __("{0} items", [selected_count.value])
+			: __("{0} fields", [selected_count.value]);
+	}
+	if (selected_lh_footer.value) return __("Footer");
+	if (selected_letterhead.value) return letterhead.value?.name || "";
+	if (selected_field.value) {
+		const df = selected_field.value;
+		if (df.custom) return df.label || df.fieldname;
+		return frappe.meta.get_label(print_format.value.doc_type, df.fieldname);
+	}
+	if (selected_section.value) return selected_section.value.label || __("Untitled section");
+	return "";
+});
+
+let parent_section = computed(() =>
+	selected_field.value ? section_of(layout.value, selected_field.value) : null
+);
+
+function select_parent_section() {
+	if (parent_section.value) {
+		store.selected_section.value = parent_section.value;
+		store.selected_field.value = null;
+	}
+}
+</script>
+
+<style scoped>
+.pfb-inspector {
+	width: 300px;
+	flex-shrink: 0;
+	height: 100%;
+	overflow-y: auto;
+	border-left: 1px solid var(--border-color);
+	background: var(--fg-color);
+	display: flex;
+	flex-direction: column;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.pfb-inspector-actions {
+	display: flex;
+	gap: 2px;
+}
+
+.pfb-inspector-head {
+	height: 40px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 8px 12px 8px 16px;
+	border-bottom: 1px solid var(--border-color);
+	flex-shrink: 0;
+	min-height: 0;
+}
+
+.pfb-inspector-title {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+}
+
+.pfb-inspector-kind {
+	font-size: var(--text-sm);
+	font-weight: var(--weight-semibold);
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.pfb-inspector-name {
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	flex: 1;
+	min-width: 0;
+}
+
+.pfb-inspector-name::before {
+	content: "·";
+	margin-right: 6px;
+	opacity: 0.4;
+}
+
+/* ── Breadcrumb ──────────────────────────────────────────── */
+.pfb-breadcrumb {
+	padding: 4px 16px;
+	border-bottom: 1px solid var(--border-color);
+	background: var(--fg-color);
+}
+
+.pfb-breadcrumb-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 6px;
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	border-radius: var(--radius);
+	color: var(--text-muted);
+	font-size: var(--text-xs);
+	transition: background 0.1s, color 0.1s;
+	max-width: 100%;
+}
+
+.pfb-breadcrumb-btn:hover {
+	background: var(--surface-gray-2);
+}
+
+.pfb-breadcrumb-label {
+	font-weight: 500;
+	flex-shrink: 0;
+}
+
+.pfb-breadcrumb-name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* ── Canvas settings (nothing selected) ──────────────────── */
+</style>

@@ -17,7 +17,7 @@ frappe.dashboard_utils = {
 						<button class="btn btn-secondary btn-xs">
 							${icon_html}
 							<span class="filter-label">${__(filter.label)}</span>
-							${frappe.utils.icon("select", "xs")}
+							${frappe.utils.icon("chevrons-up-down", "xs")}
 						</button>
 				</a>`;
 			let options_html;
@@ -132,7 +132,7 @@ frappe.dashboard_utils = {
 
 	remove_common_static_filter_values(static_filters, dynamic_filters) {
 		if (dynamic_filters) {
-			if ($.isArray(static_filters)) {
+			if (Array.isArray(static_filters)) {
 				static_filters = static_filters.filter((static_filter) => {
 					for (let dynamic_filter of dynamic_filters) {
 						if (

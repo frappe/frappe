@@ -31,7 +31,7 @@ export default class QuickListWidget extends Widget {
 			`<div class="add-new btn btn-xs pull-right"
 			title="${__("Add New")} ${__(this.document_type)}
 			">
-				${frappe.utils.icon("add", "sm")}
+				${frappe.utils.icon("plus", "sm")}
 			</div>`
 		);
 
@@ -51,7 +51,7 @@ export default class QuickListWidget extends Widget {
 	setup_refresh_list_button() {
 		this.refresh_list = $(
 			`<div class="refresh-list btn btn-xs pull-right" title="${__("Refresh List")}">
-				${frappe.utils.icon("es-line-reload", "sm")}
+				${frappe.utils.icon("refresh-cw", "sm")}
 			</div>`
 		);
 
@@ -65,7 +65,7 @@ export default class QuickListWidget extends Widget {
 	setup_filter_list_button() {
 		this.filter_list = $(
 			`<div class="filter-list btn btn-xs pull-right" title="${__("Add/Update Filter")}">
-				${frappe.utils.icon("filter", "sm")}
+				${frappe.utils.icon("funnel", "sm")}
 			</div>`
 		);
 
@@ -153,15 +153,23 @@ export default class QuickListWidget extends Widget {
 		`);
 
 		if (indicator) {
-			$(`
-				<div class="status indicator-pill ${indicator[1]} ellipsis">
-					${indicator[0]}
-				</div>
-			`).appendTo($quick_list_item);
+			frappe.ui
+				.badge({
+					label: indicator[0],
+					theme: indicator[1],
+					css_class: "status ellipsis",
+				})
+				.appendTo($quick_list_item);
 		}
-		let icon_to_append = `<div class="right-arrow">${frappe.utils.icon("right", "xs")}</div>`;
+		let icon_to_append = `<div class="right-arrow">${frappe.utils.icon(
+			"chevron-right",
+			"xs"
+		)}</div>`;
 		if (frappe.utils.is_rtl(frappe.boot.lang)) {
-			icon_to_append = `<div class="left-arrow">${frappe.utils.icon("left", "xs")}</div>`;
+			icon_to_append = `<div class="left-arrow">${frappe.utils.icon(
+				"chevron-left",
+				"xs"
+			)}</div>`;
 		}
 		$(icon_to_append).appendTo($quick_list_item);
 

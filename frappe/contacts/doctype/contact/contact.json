@@ -6,6 +6,7 @@
  "creation": "2013-01-10 16:34:32",
  "doctype": "DocType",
  "document_type": "Setup",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/contact",
  "engine": "InnoDB",
  "field_order": [
   "contact_section",
@@ -48,6 +49,7 @@
    "options": "fa fa-user"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "first_name",
    "fieldtype": "Data",
    "in_global_search": 1,
@@ -56,6 +58,7 @@
    "oldfieldtype": "Data"
   },
   {
+   "allow_in_quick_entry": 1,
    "bold": 1,
    "fieldname": "last_name",
    "fieldtype": "Data",
@@ -158,6 +161,7 @@
    "label": "Department"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "designation",
    "fieldtype": "Data",
    "label": "Designation"
@@ -240,6 +244,7 @@
    "read_only": 1
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "company_name",
    "fieldtype": "Data",
    "label": "Company Name"
@@ -252,16 +257,15 @@
    "read_only": 1
   }
  ],
- "icon": "fa fa-user",
+ "icon": "contact",
  "idx": 1,
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-03-23 16:01:30.937045",
+ "modified": "2026-07-31 16:01:30.937045",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",
- "name_case": "Title Case",
  "naming_rule": "By script",
  "owner": "Administrator",
  "permissions": [
@@ -390,6 +394,8 @@
    "write": 1
   }
  ],
+ "quick_entry": 1,
+ "row_format": "Dynamic",
  "show_title_field_in_link": 1,
  "sort_field": "creation",
  "sort_order": "DESC",

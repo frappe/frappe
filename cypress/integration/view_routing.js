@@ -208,9 +208,11 @@ context("View", () => {
 		cy.call("frappe.tests.ui_test_helpers.setup_default_view", { view: "Report" }).then(() => {
 			cy.visit("/desk/event");
 			cy.visit("/desk/event/view/list");
-			cy.location("pathname").should("eq", "/desk/event/view/list");
+			// Matched on the end rather than the whole path: a desk URL carries the shell it
+			// opened in, and which shell Event belongs to is not what this test is about.
+			cy.location("pathname").should("match", /\/event\/view\/list$/);
 			cy.go("back");
-			cy.location("pathname").should("eq", "/desk/event");
+			cy.location("pathname").should("match", /\/event$/);
 		});
 	});
 

@@ -256,11 +256,11 @@ frappe.search.utils = {
 		var me = this;
 		var out = [];
 		var route;
-		Object.keys(frappe.boot.user.all_reports).forEach(function (item) {
+		Object.keys(frappe.boot.allowed_reports).forEach(function (item) {
 			const search_result = me.fuzzy_search(keywords, item, true);
 			var level = search_result.score;
 			if (level > 0) {
-				var report = frappe.boot.user.all_reports[item];
+				var report = frappe.boot.allowed_reports[item];
 				if (report.report_type == "Report Builder")
 					route = ["List", report.ref_doctype, "Report", item];
 				else route = ["query-report", item];
@@ -335,22 +335,31 @@ frappe.search.utils = {
 		return out;
 	},
 
-	get_desktop_icons: function (keywords) {
+	// Search covers every workspace the user is permitted (`frappe.workspaces`), not just those
+	// carrying sidebar items. That matters because a rail only lists the entries its app's `Dock`
+	// record names, so for a workspace no record names, search is the way back to it.
+	get_workspaces: function (keywords) {
 		var me = this;
 		var out = [];
-		frappe.boot.desktop_icons.forEach(function (item) {
-			const search_result = me.fuzzy_search(keywords, item.label, true);
-			var level = search_result.score;
-			if (level > 0) {
-				var ret = {
-					type: "Desktop Icon",
-					label: __("Open {0}", [search_result.marked_string || __(item.label)]),
-					value: __("Open {0}", [__(item.label)]),
-					index: level,
-					icon_data: item,
-				};
+		Object.values(frappe.workspaces || {}).forEach(function (workspace) {
+			const name = workspace.name;
+			const title = workspace.title || workspace.label || name;
+			if (!title) return;
 
-				out.push(ret);
+			const search_result = me.fuzzy_search(keywords, title, true);
+			const level = search_result.score;
+			if (level > 0) {
+				out.push({
+					type: "Workspace",
+					label: __("Open {0} Workspace", [search_result.marked_string || __(title)]),
+					value: __("Open {0} Workspace", [__(title)]),
+					index: level,
+					// open the workspace's sidebar and land on its first item; falls back to the
+					// workspace's own route when it has no sidebar items
+					onclick: function () {
+						frappe.app.sidebar.open_workspace(name);
+					},
+				});
 			}
 		});
 		return out;
@@ -675,27 +684,6 @@ frappe.search.utils = {
 			args: args,
 		});
 	},
-	get_marketplace_apps: function (keywords) {
-		var me = this;
-		var out = [];
-		frappe.boot.marketplace_apps.forEach(function (item) {
-			const search_result = me.fuzzy_search(keywords, item.title, true);
-			if (search_result.score > 0) {
-				var ret = {
-					label: __("Install {0} from Marketplace", [search_result.marked_string]),
-					value: __("Install {0} from Marketplace", [__(item.title)]),
-					index: search_result.score * 0.8,
-					route: [
-						`https://frappecloud.com/${item.route}?utm_source=awesomebar`,
-						item.name,
-					],
-				};
-
-				out.push(ret);
-			}
-		});
-		return out;
-	},
 	searchable_functions: [],
 };
 
@@ -711,9 +699,9 @@ function hide_navbar_search_modal() {
 frappe.search.open_global_search_from_navbar_shortcut = function (e) {
 	const from_bar = ($("#navbar-search").val() || "").trim();
 	const dlg = frappe.searchdialog?.search;
-	if (dlg?.open_global_search_dialog) {
+	if (dlg?.toggle_global_search_dialog) {
 		hide_navbar_search_modal();
-		dlg.open_global_search_dialog(from_bar);
+		dlg.toggle_global_search_dialog(from_bar);
 	}
 	if (e) {
 		e.preventDefault();
@@ -725,15 +713,20 @@ frappe.search.open_global_search_from_navbar_shortcut = function (e) {
  * Open the navbar Awesome Bar from Global Search (Ctrl/Cmd+K).
  */
 frappe.search.open_awesomebar_from_global_search_shortcut = function (e) {
+	if (e) {
+		e.preventDefault();
+	}
+	const awesome_bar = frappe.app.awesome_bar;
+	if (awesome_bar?.is_open()) {
+		awesome_bar.close();
+		return false;
+	}
 	const dlg = frappe.searchdialog?.search;
 	if (dlg?.search_dialog?.is_visible) {
 		const keywords = (dlg.$input?.val() || "").trim();
 		dlg.search_dialog.hide();
 		$("#navbar-search").val(keywords);
 	}
-	$("#navbar-modal-search").click();
-	if (e) {
-		e.preventDefault();
-	}
+	awesome_bar.open();
 	return false;
 };

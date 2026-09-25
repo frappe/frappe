@@ -1,0 +1,178 @@
+/* Espresso Tabs — an underline tab bar with panels. For switching between
+ * views of the same thing; for picking a value use Pills (es-pills).
+ *
+ * Framework-neutral: the class + data-attribute contract below is
+ * everything. data-state="active|inactive" and data-orientation are what
+ * radix/reka tab primitives emit, so React and Vue apps get this styling
+ * as-is; classic frappe gets the markup from frappe.ui.tabs.
+ *
+ *   <div class="es-tabs" data-orientation="horizontal">
+ *     <div class="es-tabs__list" role="tablist">
+ *       <button class="es-tabs__tab" role="tab" data-state="active"
+ *               aria-selected="true">Details</button>
+ *       <button class="es-tabs__tab" role="tab" data-state="inactive"
+ *               aria-selected="false">Settings</button>
+ *       <span class="es-tabs__indicator"></span>
+ *     </div>
+ *     <div class="es-tabs__panel" role="tabpanel" data-state="active">...</div>
+ *     <div class="es-tabs__panel" role="tabpanel" data-state="inactive">...</div>
+ *   </div>
+ *
+ * The indicator is the moving 2px bar under the active tab. Its position
+ * comes from two custom properties the owner sets on it — and reka's
+ * TabsIndicator publishes the same numbers under its own names, which are
+ * wired in as fallbacks, so frappe-ui apps get the slide animation with
+ * zero extra code:
+ *   --es-tabs-indicator-x     offset to the active tab (px)
+ *   --es-tabs-indicator-w     width of the active tab (px)
+ * Without JS (static markup) there is no bar — the active tab still reads
+ * clearly from its ink color. */
+
+.es-tabs {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.es-tabs[data-orientation="vertical"] {
+    flex-direction: row;
+}
+
+/* ---- the tab bar (paddings/gaps straight from frappe-ui's Tabs.vue:
+   list = p-1 gap-5, horizontal adds px-5, vertical adds py-3; horizontal
+   triggers carry py-2.5, vertical ones px-2.5 and NO vertical padding —
+   row rhythm in a vertical bar comes from the list's gap) ---- */
+.es-tabs__list {
+    position: relative;
+    display: flex;
+    gap: calc(var(--spacing) * 5);
+    padding: calc(var(--spacing) * 1) calc(var(--spacing) * 5);
+    border-bottom: 1px solid var(--outline-gray-1);
+    /* many tabs on a narrow screen: the bar scrolls, the page doesn't */
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.es-tabs[data-orientation="vertical"] > .es-tabs__list {
+    flex-direction: column;
+    padding: calc(var(--spacing) * 3) calc(var(--spacing) * 1);
+    border-bottom: 0;
+    border-inline-end: 1px solid var(--outline-gray-1);
+    overflow: visible;
+}
+
+/* ---- tabs ---- */
+.es-tabs__tab {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 1.5);
+    padding: calc(var(--spacing) * 2.5) 0;
+    border: 0;
+    background: transparent;
+    font-size: var(--text-base);
+    line-height: calc(var(--spacing) * 4);
+    color: var(--ink-gray-5);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: color 300ms ease-in-out;
+}
+
+.es-tabs[data-orientation="vertical"] .es-tabs__tab {
+    padding: 0 calc(var(--spacing) * 2.5);
+    /* every row hugs the left edge: full width so short labels don't
+       shrink-wrap, and explicit start-alignment so no button default can
+       center the icon+label group (buttons center text by default) */
+    width: 100%;
+    justify-content: flex-start;
+    text-align: start;
+}
+
+.es-tabs__tab:hover {
+    color: var(--ink-gray-9);
+}
+
+.es-tabs__tab[data-state="active"] {
+    color: var(--ink-gray-9);
+}
+
+.es-tabs__tab:disabled,
+.es-tabs__tab[data-disabled] {
+    color: var(--ink-gray-4);
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.es-tabs__tab:focus-visible {
+    outline: var(--focus-outline-default, 2px solid var(--outline-gray-3));
+    outline-offset: -2px;
+    border-radius: var(--radius-sm);
+}
+
+.es-tabs__tab > svg,
+.es-tabs__tab > img,
+.es-tabs__tab > .icon {
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+    flex-shrink: 0;
+    margin: 0;
+}
+
+/* ---- the sliding indicator ---- */
+.es-tabs__indicator {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    border-radius: var(--radius-full);
+    background: var(--surface-gray-10);
+    width: var(--es-tabs-indicator-w, var(--reka-tabs-indicator-size, 0px));
+    /* the 1px downward shift is frappe-ui's trick: the bar straddles the
+       list's bottom border, and the list clips it, so it reads as a thin
+       line sitting ON the rail instead of a 2px block above it */
+    transform: translateX(
+            var(--es-tabs-indicator-x, var(--reka-tabs-indicator-position, 0px))
+        )
+        translateY(1px);
+    transition: transform 300ms cubic-bezier(0.23, 1, 0.32, 1),
+        width 300ms cubic-bezier(0.23, 1, 0.32, 1);
+    pointer-events: none;
+}
+
+.es-tabs[data-orientation="vertical"] .es-tabs__indicator {
+    left: auto;
+    bottom: auto;
+    top: 0;
+    inset-inline-end: 0;
+    width: 2px;
+    height: var(--es-tabs-indicator-w, var(--reka-tabs-indicator-size, 0px));
+    transform: translateY(
+        var(--es-tabs-indicator-x, var(--reka-tabs-indicator-position, 0px))
+    );
+    transition: transform 300ms cubic-bezier(0.23, 1, 0.32, 1),
+        height 300ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .es-tabs__tab,
+    .es-tabs__indicator {
+        transition: none;
+    }
+}
+
+/* ---- panels ---- */
+.es-tabs__panel {
+    padding-top: calc(var(--spacing) * 2);
+    outline: none;
+    min-width: 0;
+}
+
+.es-tabs[data-orientation="vertical"] > .es-tabs__panel {
+    padding-top: 0;
+    padding-inline-start: calc(var(--spacing) * 2);
+    flex: 1 1 auto;
+}
+
+.es-tabs__panel[data-state="inactive"] {
+    display: none;
+}

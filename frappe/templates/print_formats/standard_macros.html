@@ -137,7 +137,6 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{% if child_templates and child_templates[df.fieldname] %}
 		{% include child_templates[df.fieldname] %}
 	{% elif df.fieldtype=="Check" and doc[df.fieldname] %}
-		<!-- <i class="{{ 'fa fa-check' }}"></i> -->
 		<svg viewBox="0 0 16 16"
 			fill="transparent" stroke="#1F272E" stroke-width="2"
 			xmlns="http://www.w3.org/2000/svg" id="icon-tick"
@@ -158,7 +157,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 		<img src="{{ doc[df.fieldname] }}" class="signature-img img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
 	{% elif df.fieldtype=="Barcode" and not doc[df.fieldname].startswith("<svg") %}
-		<svg data-barcode-value="{{ doc[df.fieldname] }}" height="80" data-options='{{ df.options }}'></svg>
+		<svg data-barcode-value="{{ doc[df.fieldname] }}" data-options='{{ df.options }}'></svg>
 	{% elif df.fieldtype in ("Attach", "Attach Image") and frappe.utils.is_image(doc[df.fieldname]) %}
 		<img src="{{ doc[df.fieldname] }}" class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>

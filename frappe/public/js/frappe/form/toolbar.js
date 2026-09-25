@@ -341,7 +341,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		// Navigate
 		if (!this.frm.is_new() && !this.frm.meta.issingle) {
 			this.page.add_action_icon(
-				frappe.utils.is_rtl() ? "es-line-right-chevron" : "es-line-left-chevron",
+				frappe.utils.is_rtl() ? "chevron-right" : "chevron-left",
 				() => {
 					this.frm.navigate_records(1);
 				},
@@ -349,7 +349,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				__("Previous Document")
 			);
 			this.page.add_action_icon(
-				frappe.utils.is_rtl() ? "es-line-left-chevron" : "es-line-right-chevron",
+				frappe.utils.is_rtl() ? "chevron-left" : "chevron-right",
 				() => {
 					this.frm.navigate_records(0);
 				},
@@ -642,10 +642,20 @@ frappe.ui.form.Toolbar = class Toolbar {
 			frappe.model.can_create("Property Setter")
 		) {
 			let doctype = is_doctype_form ? this.frm.docname : this.frm.doctype;
-			let is_doctype_custom = is_doctype_form ? this.frm.doc.custom : false;
 			let is_core_doctype = frappe.model.core_doctypes_list.includes(doctype);
 
-			if (!is_core_doctype && !is_doctype_custom && this.frm.meta.issingle === 0) {
+			if (!is_core_doctype && !frappe.model.is_single(doctype)) {
+				this.page.add_menu_item(
+					__("Settings"),
+					() => {
+						// The DocType Settings feature ships as its own on-demand bundle
+						// (kept out of desk.bundle.js), so load it before opening.
+						frappe.require("doctype_settings.bundle.js", () => {
+							frappe.doctype_settings.open(doctype);
+						});
+					},
+					true
+				);
 				this.page.add_menu_item(
 					__("Customize"),
 					() => {
@@ -806,7 +816,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				function () {
 					me.frm.page.set_view("main");
 				},
-				"edit"
+				"pencil"
 			);
 		} else if (status === "Cancel") {
 			let add_cancel_button = () => {
@@ -844,7 +854,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 			}[status];
 
 			var icon = {
-				Update: "edit",
+				Update: "pencil",
 			}[status];
 
 			this.page.set_primary_action(__(status), click, icon);
@@ -877,6 +887,16 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 
 	show_jump_to_field_dialog() {
+		// Reuse the existing Jump to Field dialog if it's already open.
+		const existing_dialog = frappe.ui.open_dialogs.find(
+			(dialog) => dialog.dialog_type === "jump_to_field" && dialog.display
+		);
+
+		if (existing_dialog) {
+			existing_dialog.hide();
+			return;
+		}
+
 		let visible_fields_filter = (f) =>
 			!["Section Break", "Column Break", "Tab Break"].includes(f.df.fieldtype) &&
 			!f.df.hidden &&
@@ -913,6 +933,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 			},
 			animate: false,
 		});
+
+		dialog.dialog_type = "jump_to_field";
 
 		dialog.show();
 	}

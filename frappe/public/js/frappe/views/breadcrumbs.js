@@ -1,34 +1,15 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+// The trail names the entity, never the shell it lives in: the dock names the app and the module
+// sidebar names the module and highlights the entity within it, so a workspace crumb would
+// repeat what the shell already says. This file therefore does not resolve an entity to a module
+// or a workspace; that is `shell_for_route`'s job, and its answer is a shell. See
+// ui/sidebar/sidebar.js.
 frappe.breadcrumbs = {
 	all: {},
 
-	preferred: {
-		File: "",
-		Dashboard: "Customization",
-		"Dashboard Chart": "Customization",
-		"Dashboard Chart Source": "Customization",
-	},
-
-	module_map: {
-		Core: "Settings",
-		Email: "Settings",
-		Custom: "Settings",
-		Workflow: "Settings",
-		Printing: "Settings",
-		Setup: "Settings",
-		Automation: "Tools",
-	},
-
-	set_doctype_module(doctype, module) {
-		localStorage["preferred_breadcrumbs:" + doctype] = module;
-	},
-
-	get_doctype_module(doctype) {
-		return localStorage["preferred_breadcrumbs:" + doctype];
-	},
-
+	// `module` is kept in the signature for callers outside this app; nothing reads it.
 	add(module, doctype, type) {
 		let obj;
 		if (typeof module === "object") {
@@ -48,6 +29,20 @@ frappe.breadcrumbs = {
 		return frappe.get_route_str();
 	},
 
+	set_tree_breadcrumb(breadcrumbs) {
+		const doctype = breadcrumbs.doctype;
+		const tree_title = frappe.treeview_settings?.[doctype]?.title || doctype;
+
+		this.append_breadcrumb_element(
+			`/desk/${frappe.router.slug(doctype)}`,
+			__(tree_title),
+			"title-text"
+		);
+
+		let tree_crumb = this.$breadcrumbs.find("li a.title-text").last();
+		tree_crumb.parent().addClass("ellipsis");
+	},
+
 	update() {
 		var breadcrumbs = this.all[frappe.breadcrumbs.current_page()];
 
@@ -62,23 +57,23 @@ frappe.breadcrumbs = {
 						.find("li")
 						.get($(container).find("li").length - 1);
 					$(last_element).find("a").attr("href", "");
-					frappe.ui.create_menu({
-						parent: $(last_element),
-						menu_items: breadcrumbs.menu_items,
-						size: "fit-content",
+					// `menu_items` follow frappe.ui.Dropdown's row shape: label, icon,
+					// onclick / href, condition, submenu.
+					new frappe.ui.Dropdown({
+						trigger: $(last_element),
+						options: breadcrumbs.menu_items,
 					});
 				});
 			}
 		} else {
-			// workspace
-			this.set_workspace_breadcrumb(breadcrumbs);
-
 			// form / print
 			let view = frappe.get_route()[0];
 			view = view ? view.toLowerCase() : null;
 			if (breadcrumbs.doctype && ["print", "form"].includes(view)) {
 				this.set_list_breadcrumb(breadcrumbs);
 				this.set_form_breadcrumb(breadcrumbs, view);
+			} else if (breadcrumbs.doctype && view === "tree") {
+				this.set_tree_breadcrumb(breadcrumbs);
 			} else if (breadcrumbs.doctype && view === "list") {
 				this.set_list_breadcrumb(breadcrumbs);
 			} else if (breadcrumbs.doctype && view == "dashboard-view") {
@@ -109,91 +104,6 @@ frappe.breadcrumbs = {
 		a.innerHTML = label;
 		el.appendChild(a);
 		this.$breadcrumbs.append(el);
-	},
-
-	get last_route() {
-		return frappe.route_history.slice(-2)[0];
-	},
-
-	set_workspace_breadcrumb(breadcrumbs) {
-		// get preferred module for breadcrumbs, based on history and module
-
-		if (!breadcrumbs.workspace) {
-			this.set_workspace(breadcrumbs);
-		}
-
-		if (!breadcrumbs.workspace) {
-			return;
-		}
-
-		if (
-			breadcrumbs.module_info &&
-			(breadcrumbs.module_info.blocked ||
-				!frappe.visible_modules.includes(breadcrumbs.module_info.module))
-		) {
-			return;
-		}
-		if (frappe.app.sidebar.sidebar_title) {
-			let icon = frappe.utils.get_desktop_icon_by_label(frappe.app.sidebar.sidebar_title);
-			let url = frappe.utils.get_route_for_icon(icon);
-			if (url) {
-				this.append_breadcrumb_element(url, __(icon.label), "worksapce-breadcrumb");
-			}
-		}
-
-		let worksapce_crumb = this.$breadcrumbs.find("li a.worksapce-breadcrumb");
-
-		worksapce_crumb.parent().addClass("ellipsis");
-	},
-
-	set_workspace(breadcrumbs) {
-		// try and get module from doctype or other settings
-		// then get the workspace for that module
-
-		this.setup_modules();
-		var from_module = this.get_doctype_module(breadcrumbs.doctype);
-
-		if (from_module) {
-			breadcrumbs.module = from_module;
-		} else if (this.preferred[breadcrumbs.doctype] !== undefined) {
-			// get preferred module for breadcrumbs
-			breadcrumbs.module = this.preferred[breadcrumbs.doctype];
-		}
-
-		// guess from last route
-		if (this.last_route?.[0] == "Workspaces") {
-			let last_workspace = this.last_route[1];
-
-			if (
-				breadcrumbs.module &&
-				frappe.boot.module_wise_workspaces[breadcrumbs.module]?.includes(last_workspace)
-			) {
-				breadcrumbs.workspace = last_workspace;
-			}
-		} else {
-			// choose from __workspaces
-			const doctype_meta = frappe.get_meta(breadcrumbs.doctype);
-			if (doctype_meta?.__workspaces?.length) {
-				breadcrumbs.workspace = doctype_meta.__workspaces[0];
-			}
-
-			if (breadcrumbs.module) {
-				if (this.module_map[breadcrumbs.module]) {
-					breadcrumbs.module = this.module_map[breadcrumbs.module];
-				}
-
-				breadcrumbs.module_info = frappe.get_module(breadcrumbs.module);
-
-				// set workspace
-				if (
-					breadcrumbs.module_info &&
-					frappe.boot.module_wise_workspaces[breadcrumbs.module]
-				) {
-					breadcrumbs.workspace =
-						frappe.boot.module_wise_workspaces[breadcrumbs.module][0];
-				}
-			}
-		}
 	},
 
 	set_list_breadcrumb(breadcrumbs) {
@@ -261,14 +171,6 @@ frappe.breadcrumbs = {
 		).appendTo(this.$breadcrumbs);
 	},
 
-	setup_modules() {
-		if (!frappe.visible_modules) {
-			frappe.visible_modules = $.map(frappe.boot.allowed_workspaces, (m) => {
-				return m.module;
-			});
-		}
-	},
-
 	rename(doctype, old_name, new_name) {
 		var old_route_str = ["Form", doctype, old_name].join("/");
 		var new_route_str = ["Form", doctype, new_name].join("/");
@@ -279,7 +181,6 @@ frappe.breadcrumbs = {
 
 	clear() {
 		this.$breadcrumbs = $(".navbar-breadcrumbs").empty();
-		this.append_breadcrumb_element("/desk", frappe.utils.icon("home"));
 	},
 
 	toggle(show) {

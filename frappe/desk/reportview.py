@@ -14,6 +14,7 @@ import frappe
 import frappe.permissions
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.desk.link_title import get_report_link_titles, send_link_titles
 from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
 from frappe.model.base_document import get_controller
 from frappe.model.qb_query import DatabaseQuery
@@ -31,12 +32,22 @@ _FIELDNAME_RE = re.compile(r"^[a-zA-Z0-9_]+$")
 @frappe.read_only()
 def get():
 	args = get_form_params()
+	with_link_titles = sbool(args.pop("with_link_titles", False))
+
 	# If virtual doctype, get data from controller get_list method
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
 		data = compress(frappe.call(controller.get_list, args=args, **args))
 	else:
 		data = compress(execute(**args), args=args)
+
+	# `compress` returns the rows untouched when there are none, and reduces a child table
+	# field to its bare fieldname, so pair the requested fields back up with its key order.
+	if with_link_titles and isinstance(data, dict):
+		field_info = {info.get("fieldname"): info for info in get_field_info(args.fields, args.doctype)}
+		columns = [field_info.get(key) for key in data["keys"]]
+		send_link_titles(get_report_link_titles(columns, data["values"]))
+
 	return data
 
 
@@ -479,8 +490,25 @@ def _export_query(form_params, csv_params, populate_response=True):
 	add_totals_row = 1 if form_params.pop("add_totals_row", None) == "1" else None
 	translate_values = 1 if form_params.pop("translate_values", None) == "1" else None
 
+	visible_names = form_params.pop("visible_names", None)
+	if isinstance(visible_names, str):
+		visible_names = frappe.parse_json(visible_names)
+	if not (isinstance(visible_names, list) and visible_names):
+		visible_names = None
+
 	if selection := form_params.pop("selected_items", None):
 		form_params["filters"] = {"name": ("in", json.loads(selection))}
+
+	# visible_names is the client's ordered display sequence
+	# When present, take precedence over generic filters/order/pagination: fetch
+	# exactly those rows, then reorder in Python below.
+	# Mirrors the visible_idx pattern in Query Report.
+	if visible_names:
+		form_params["filters"] = {"name": ("in", visible_names)}
+		form_params["order_by"] = None
+		form_params.pop("page_length", None)
+		form_params.pop("limit_page_length", None)
+		form_params.pop("start", None)
 
 	make_access_log(
 		doctype=doctype,
@@ -491,6 +519,9 @@ def _export_query(form_params, csv_params, populate_response=True):
 
 	db_query = DatabaseQuery(doctype)
 	ret = db_query.execute(**form_params)
+
+	if visible_names:
+		ret = _reorder_by_visible_names(ret, form_params.get("fields", []), doctype, visible_names)
 
 	if not frappe.permissions.can_export(doctype):
 		if frappe.permissions.can_export(doctype, is_owner=True):
@@ -554,6 +585,29 @@ def _export_query(form_params, csv_params, populate_response=True):
 		return title, file_extension, content
 
 	provide_binary_file(_(title), file_extension, content)
+
+
+def _reorder_by_visible_names(ret, fields, doctype, visible_names):
+	"""Reorder `ret` (list of row tuples, `as_list=True`) so that rows appear
+	in the same order as `visible_names`. Rows whose primary key isn't in
+	`visible_names` are dropped. If the primary key column can't be located in
+	`fields`, `ret` is returned unchanged (server-order fallback).
+
+	Only the primary doctype's `name` column is a valid match.
+	Using linked doctype's `name` as the reorder key
+	would silently rebuild the export against the wrong identifier."""
+	name_field = f"`tab{doctype}`.`name`"
+	name_idx = None
+	for i, field in enumerate(fields):
+		if not isinstance(field, str):
+			continue
+		if field == name_field or field == "name":
+			name_idx = i
+			break
+	if name_idx is None:
+		return ret
+	ret_by_name = {row[name_idx]: row for row in ret}
+	return [ret_by_name[n] for n in visible_names if n in ret_by_name]
 
 
 def append_totals_row(data):
@@ -749,7 +803,9 @@ def delete_bulk(doctype, items):
 		return undeleted_items
 
 	frappe.msgprint(
-		_("Deleted all documents successfully"), realtime=True, title=_("Bulk Operation Successful")
+		_("Deleted {0} records from {1} doctype").format(len(items), doctype),
+		realtime=True,
+		title=_("Bulk Operation Successful"),
 	)
 	return []
 

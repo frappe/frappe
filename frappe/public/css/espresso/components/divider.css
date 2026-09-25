@@ -1,0 +1,66 @@
+/* Espresso Divider — a thin separator line, horizontal or vertical.
+ *
+ * Plain form: <hr class="es-divider"> (horizontal) or with
+ * data-orientation="vertical". Add data-flex-item when a vertical divider
+ * sits in a flex row and should stretch to the row's height.
+ *
+ * Action form: a small button sitting on the line —
+ *   <div class="es-divider-action">
+ *     <div class="es-divider-line" aria-hidden="true"></div>
+ *     <button class="es-button">...</button>
+ *   </div>
+ * data-position="start" or "end" moves the button off-center.
+ * (The vertical action form isn't ported yet — add it when needed.) */
+
+.es-divider {
+    border: 0;
+    border-top: 1px solid var(--outline-gray-2);
+    width: 100%;
+    margin: 0;
+}
+
+.es-divider[data-orientation="vertical"] {
+    border-top: 0;
+    border-inline-start: 1px solid var(--outline-gray-2);
+    width: 0;
+    height: 100%;
+}
+
+.es-divider[data-flex-item] {
+    align-self: stretch;
+    height: auto;
+}
+
+/* ---- action form: button over the line ---- */
+.es-divider-action {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: calc(var(--spacing) * 7);
+    white-space: nowrap;
+}
+
+.es-divider-action[data-position="start"] {
+    justify-content: flex-start;
+    padding-inline-start: calc(var(--spacing) * 4);
+}
+
+.es-divider-action[data-position="end"] {
+    justify-content: flex-end;
+    padding-inline-end: calc(var(--spacing) * 4);
+}
+
+.es-divider-action > .es-divider-line {
+    position: absolute;
+    inset-inline: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    border-top: 1px solid var(--outline-gray-2);
+}
+
+.es-divider-action > .es-button {
+    position: relative;
+    z-index: 1;
+}

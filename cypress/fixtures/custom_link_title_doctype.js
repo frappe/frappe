@@ -27,6 +27,13 @@ export default {
 			options: "Custom Link Title DocType",
 			in_list_view: 1,
 		},
+		{
+			fieldname: "language",
+			fieldtype: "Link",
+			label: "Language",
+			options: "Language",
+			in_list_view: 1,
+		},
 	],
 	links: [],
 	modified: "2026-08-17 09:11:24.000000",

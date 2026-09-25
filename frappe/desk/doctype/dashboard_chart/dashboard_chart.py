@@ -220,7 +220,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 			else get_period(r[0], timegrain)
 			for r in result
 		],
-		"datasets": [{"name": chart.name, "values": [r[1] for r in result]}],
+		"datasets": [{"name": _(chart.name), "values": [r[1] for r in result]}],
 	}
 
 
@@ -296,7 +296,7 @@ def get_group_by_chart_config(chart, filters) -> dict | None:
 	if data:
 		return {
 			"labels": [item.name for item in data],
-			"datasets": [{"name": chart.name, "values": [item["count"] for item in data]}],
+			"datasets": [{"name": _(chart.name), "values": [item["count"] for item in data]}],
 		}
 	return None
 
@@ -372,6 +372,7 @@ class DashboardChart(Document):
 		parent_document_type: DF.Link | None
 		report_name: DF.Link | None
 		roles: DF.Table[HasRole]
+		show_values_over_chart: DF.Check
 		source: DF.Link | None
 		time_interval: DF.Literal["Yearly", "Quarterly", "Monthly", "Weekly", "Daily"]
 		timeseries: DF.Check
@@ -417,6 +418,8 @@ class DashboardChart(Document):
 		else:
 			if not self.based_on:
 				frappe.throw(_("Time series based on is required to create a dashboard chart"))
+			if self.chart_type in ["Sum", "Average"] and not self.value_based_on:
+				frappe.throw(_("Value Based On field is required to create a dashboard chart"))
 
 	def check_document_type(self):
 		if frappe.get_meta(self.document_type).issingle:

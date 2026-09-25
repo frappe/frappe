@@ -252,7 +252,9 @@ $.extend(frappe.model, {
 			// meta has sugar, like __js and other properties that doc won't have
 			frappe.meta.__doctype_meta = JSON.parse(JSON.stringify(meta));
 		}
-		for (const asset_key of ["__list_js", "__custom_list_js", "__calendar_js", "__tree_js"]) {
+		// custom scripts run last so they can override the standard
+		// definitions for any view, calendar included (#37460)
+		for (const asset_key of ["__list_js", "__calendar_js", "__tree_js", "__custom_list_js"]) {
 			if (meta[asset_key]) {
 				new Function(meta[asset_key])();
 			}
@@ -263,17 +265,19 @@ $.extend(frappe.model, {
 		}
 	},
 
-	with_doc: function (doctype, name, callback) {
-		return new Promise((resolve) => {
+	with_doc: function (doctype, name, callback, error_callback) {
+		return new Promise((resolve, reject) => {
 			if (!name) name = doctype; // single type
-			if (
+			const use_cache =
+				!error_callback &&
 				locals[doctype] &&
 				locals[doctype][name] &&
-				frappe.model.get_docinfo(doctype, name)
-			) {
+				frappe.model.get_docinfo(doctype, name);
+			if (use_cache) {
 				callback && callback(name);
 				resolve(frappe.get_doc(doctype, name));
 			} else {
+				let permission_denied = false;
 				return frappe.call({
 					method: "frappe.desk.form.load.getdoc",
 					type: "GET",
@@ -284,6 +288,18 @@ $.extend(frappe.model, {
 					callback: function (r) {
 						callback && callback(name, r);
 						resolve(frappe.get_doc(doctype, name));
+					},
+					error_handlers: {
+						PermissionError: () => {
+							permission_denied = true;
+						},
+					},
+					error: function (r) {
+						if (permission_denied) {
+							frappe.model.remove_from_locals(doctype, name);
+						}
+						error_callback && error_callback(r, permission_denied);
+						reject(r);
 					},
 				});
 			}
@@ -412,19 +428,18 @@ $.extend(frappe.model, {
 		return frappe.boot.user.can_print.indexOf(doctype) !== -1;
 	},
 
+	can_print_docstatus: function (doctype, docstatus) {
+		if (!frappe.model.is_submittable(doctype) || docstatus == 1) return true;
+
+		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings") || {};
+		if (docstatus == 2) return !!cint(print_settings.allow_print_for_cancelled);
+		if (docstatus == 0) return !!cint(print_settings.allow_print_for_draft);
+		return false;
+	},
+
 	can_print_doc: function (frm) {
-		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings");
-		const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
-		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
-
-		const docstatus_allows_print =
-			!frappe.model.is_submittable(frm.doc.doctype) ||
-			frm.doc.docstatus == 1 ||
-			(allow_print_for_cancelled && frm.doc.docstatus == 2) ||
-			(allow_print_for_draft && frm.doc.docstatus == 0);
-
 		return !!(
-			docstatus_allows_print &&
+			frappe.model.can_print_docstatus(frm.doc.doctype, frm.doc.docstatus) &&
 			frappe.model.can_print(null, frm) &&
 			!frm.meta.issingle
 		);
@@ -626,6 +641,18 @@ $.extend(frappe.model, {
 		}
 	},
 
+	get_title_from_title_field: function (doc, meta) {
+		let df = meta.fields.find((df) => df.fieldname === meta.title_field);
+		let title_value = doc[meta.title_field];
+
+		if (df?.fieldtype && ["Link", "Dynamic Link"].includes(df.fieldtype)) {
+			const doctype = df.fieldtype === "Dynamic Link" ? doc[df.options] : df.options;
+			title_value = frappe.utils.get_link_title(doctype, title_value) ?? title_value;
+		}
+
+		return title_value;
+	},
+
 	get_doc_title(doc) {
 		if (typeof doc.name == "string") {
 			if (doc.name.startsWith("new-" + doc.doctype.toLowerCase().replace(/ /g, "-"))) {
@@ -634,7 +661,7 @@ $.extend(frappe.model, {
 		}
 		let meta = frappe.get_meta(doc.doctype);
 		if (meta.title_field) {
-			return doc[meta.title_field];
+			return this.get_title_from_title_field(doc, meta);
 		} else {
 			return String(doc.name);
 		}
@@ -701,24 +728,30 @@ $.extend(frappe.model, {
 				title = `${value} (${docname})`;
 			}
 		}
-		frappe.confirm(__("Permanently delete {0}?", [title.bold()]), function () {
-			return frappe.call({
-				method: "frappe.client.delete",
-				args: {
-					doctype: doctype,
-					name: docname,
-				},
-				freeze: true,
-				freeze_message: __("Deleting {0}...", [title]),
-				callback: function (r, rt) {
-					if (!r.exc) {
-						frappe.utils.play_sound("delete");
-						frappe.model.delete_from_locals(doctype, docname);
-						if (callback) callback(r, rt);
-					}
-				},
-			});
-		});
+		// destructive: red primary via frappe.warn, not a neutral confirm
+		frappe.warn(
+			__("Confirm"),
+			__("Permanently delete {0}?", [title.bold()]),
+			function () {
+				return frappe.call({
+					method: "frappe.client.delete",
+					args: {
+						doctype: doctype,
+						name: docname,
+					},
+					freeze: true,
+					freeze_message: __("Deleting {0}...", [title]),
+					callback: function (r, rt) {
+						if (!r.exc) {
+							frappe.utils.play_sound("delete");
+							frappe.model.delete_from_locals(doctype, docname);
+							if (callback) callback(r, rt);
+						}
+					},
+				});
+			},
+			__("Delete")
+		);
 	},
 
 	rename_doc: function (doctype, docname, callback) {
