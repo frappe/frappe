@@ -188,7 +188,7 @@ describe("paintNow", () => {
     expect(controller.ready.value).toBe(true);
     expect(drawn(controller)).toEqual(["one", "two", "four"]);
     expect(warnings).toEqual([
-      "[record-page] slow.onRefresh on CRM Deal returned a promise — onRefresh is synchronous, so what it does after its first await is ignored.",
+      "[record-page] slow.onRefresh on CRM Deal returned a promise, which is not awaited; onRefresh is synchronous.",
     ]);
 
     const held = gate();

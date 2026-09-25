@@ -125,6 +125,17 @@ describe("the first paint's time limit", () => {
     expect(warnings).toHaveLength(1);
   });
 
+  it("names the scripts it waits for, not a hold running beside them", async () => {
+    await register("G", { onTabChange: never });
+    const controller = makePage({ sourcesReady: never });
+
+    void controller.fireEvent("onTabChange");
+    void controller.refresh();
+    await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS);
+
+    expect(warnings[0]).toContain("without waiting for the page's scripts");
+  });
+
   it("warns nothing when the first refresh finishes inside the limit", async () => {
     await register("early", {
       onRefresh: (page: RecordPageApi) => page.quickActions.add(action("one")),
@@ -323,7 +334,7 @@ describe("ready", () => {
     expect(controller.ready.value).toBe(true);
     expect(drawn(controller)).toEqual(["one"]);
     expect(warnings).toEqual([
-      "[record-page] slow.onRefresh on CRM Deal returned a promise — onRefresh is synchronous, so what it does after its first await is ignored.",
+      "[record-page] slow.onRefresh on CRM Deal returned a promise, which is not awaited; onRefresh is synchronous.",
     ]);
   });
 

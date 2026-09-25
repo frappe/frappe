@@ -162,7 +162,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
   /** The first replay ran out of time: draw every source not running, lift the skeletons, name the late one. */
   function paintWithoutLate() {
     if (ready.value || state.left) return;
-    const late = state.running.at(-1) ?? lateWait();
+    const late = state.awaiting ? lateWait() : (state.running.at(-1) ?? lateWait());
     const running = new Set(state.running);
     for (const surface of host.surfaces) surface.publishStaged(running);
     releaseEarlyActs();

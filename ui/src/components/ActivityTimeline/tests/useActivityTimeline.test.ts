@@ -504,16 +504,49 @@ describe("the prefetched read", () => {
     expect(api.getDocumentPart).toHaveBeenCalledOnce();
   });
 
-  it("reads a store's first page for itself when its staged first read is never applied", async () => {
+  it("reads a store whose staged first read was left out only when a body mounts on it", async () => {
     const name = freshDoc();
     serve({ newest: { activities: [c(1)], next: null } });
-    await stageActivityTimelineRead("ToDo", name);
+    const staged = stageActivityTimelineRead("ToDo", name)!;
 
     endActivityPrefetch("ToDo", name);
+    await staged;
+    expect(api.getDocumentPart).toHaveBeenCalledOnce();
+    expect(activityTimelineRows("ToDo", name)).toEqual([]);
+
+    const { timeline } = mountTimeline(name);
+    await vi.waitFor(() => expect(keys(timeline)).toEqual(["comment:1"]));
+    expect(timeline.loading.value).toBe(false);
+    expect(api.getDocumentPart).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps a mounted body loading when the prefetch mark ends before its own first read lands", async () => {
+    const name = freshDoc();
+    let answer!: (page: Page) => void;
+    serve({ newest: new Promise<Page>((done) => (answer = done)) });
     const { timeline } = mountTimeline(name);
 
-    await vi.waitFor(() => expect(timeline.activities.value.map((one) => one.key)).toEqual(["comment:1"]));
-    expect(timeline.loading.value).toBe(false);
+    endActivityPrefetch("ToDo", name);
+    expect(timeline.loading.value).toBe(true);
+
+    answer({ activities: [c(1)], next: null });
+    await vi.waitFor(() => expect(keys(timeline)).toEqual(["comment:1"]));
+    expect(api.getDocumentPart).toHaveBeenCalledOnce();
+  });
+
+  it("drops a failed first read's error when a first read is staged over it", async () => {
+    const name = freshDoc();
+    serve({});
+    await expect(stageActivityTimelineRead("ToDo", name)).rejects.toThrow();
+
+    serve({ newest: { activities: [c(1)], next: null } });
+    const staged = stageActivityTimelineRead("ToDo", name)!;
+    const { timeline } = mountTimeline(name);
+
+    expect(timeline.error.value).toBeNull();
+    expect(timeline.loading.value).toBe(true);
+    (await staged)();
+    expect(keys(timeline)).toEqual(["comment:1"]);
   });
 
   it("skips a staged page when a newer read landed first, so no newer row is lost", async () => {

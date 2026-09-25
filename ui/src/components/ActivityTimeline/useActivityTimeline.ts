@@ -59,8 +59,8 @@ export function endActivityPrefetch(
   const store = stores.get(storeKey(doctype, docname, visibleTypes));
   if (!store) return;
   store.prefetched.value = false;
-  // A staged first read whose page never ran leaves the store with no rows, so it reads for itself.
-  if (!store.fetched.value && store.loading.value) void store.load();
+  // A staged first read whose page never ran: the store reads when a body next asks for it.
+  if (!store.fetched.value && !store.reading) store.loading.value = false;
 }
 
 /** The rows a store holds, pending ones included, with no component mounted; none if no read began. */
@@ -96,7 +96,10 @@ export function stageActivityTimelineRead(
   // Marked as a prefetch, so a mount before `endActivityPrefetch` reads nothing more.
   store.prefetched.value = true;
   const first = !store.fetched.value;
-  if (first) store.loading.value = true;
+  if (first) {
+    store.loading.value = true;
+    store.error.value = null;
+  }
   return store.stageNewest().then(
     (take) => () => {
       take();
@@ -131,14 +134,14 @@ function getTimelineStore(
   docname: string,
   visibleTypes?: VisibleTypes
 ): TimelineStore {
-  const store = stores.get(storeKey(doctype, docname, visibleTypes));
-  if (store) return store;
-  const added = addTimelineStore(doctype, docname, visibleTypes);
-  void added.load();
-  return added;
+  const store =
+    stores.get(storeKey(doctype, docname, visibleTypes)) ??
+    addTimelineStore(doctype, docname, visibleTypes);
+  if (!store.fetched.value && !store.loading.value) void store.load();
+  return store;
 }
 
-// cached with no read begun
+/** Adds a store to the cache without starting its read. */
 function addTimelineStore(
   doctype: string,
   docname: string,

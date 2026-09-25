@@ -616,8 +616,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   async function fireEvent(event: string, row?: RowAddress) {
     // One handle for the whole dispatch, and the same object `page.rows()` hands back.
     const detail = row ? rows.handle(row) : undefined;
-    if (event === "onRefresh") runRefresh(new Set());
-    else await hold(() => dispatch(event, detail));
+    await hold(() => dispatch(event, detail));
   }
 
   function firePost(key: string) {
@@ -668,7 +667,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   function warnAsyncRefresh(source: string) {
     if (!import.meta.env.DEV) return;
     console.warn(
-      `[record-page] ${source}.onRefresh on ${host.doctype} returned a promise — onRefresh is synchronous, so what it does after its first await is ignored.`,
+      `[record-page] ${source}.onRefresh on ${host.doctype} returned a promise, which is not awaited; onRefresh is synchronous.`,
     );
   }
 

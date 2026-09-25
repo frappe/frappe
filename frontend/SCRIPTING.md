@@ -22,8 +22,9 @@ with no `else` to undo it. Scripts run in `run_order`, and on one name the last 
 wins.
 
 `onRefresh` is synchronous. One that returns a promise, an `async onRefresh` or one that
-awaits, gets a development warning, the replay does not wait for it, and what it does
-after its first `await` is ignored. A replay reads what the page already holds: `page.doc`,
+awaits, is wrong: it gets a development warning and the replay does not wait for it. A
+call on `page` after its first `await` is ignored, but a part of `page` kept from before
+it (`const { tabs } = page`) is not blocked, so do not keep one. A replay reads what the page already holds: `page.doc`,
 `page.saved`, `page.meta` and the rows. A helper for cached server reads is coming.
 
 ```js

@@ -78,6 +78,11 @@ export class TimelineStore implements LiveFeed {
     this.untrack();
   }
 
+  /** whether a read started by `load` is out */
+  get reading(): boolean {
+    return this.newestRead !== undefined;
+  }
+
   load(): Promise<void> {
     this.newestRead ??= this.readNewest().finally(() => {
       this.newestRead = undefined;
