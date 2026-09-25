@@ -381,16 +381,6 @@ def _first_given(*values):
 
 
 def log_table(doctype: str):
-	"""Return `(builder, table)` for a log DocType's table, creating the table if needed.
-
-	The SQLite dialect is requested explicitly instead of using `frappe.qb`, which is
-	bound to the site's primary backend.
-
-	Every query against a log DocType is built from here, so this is where the table is
-	guaranteed to exist. Doing it in the individual callers instead would mean a retention
-	sweep, a "clear all" or a stats query that happens to run before anything was ever
-	logged would hit a table that does not exist yet.
-	"""
 	from frappe.query_builder.utils import get_query_builder
 
 	ensure_log_table(doctype)
