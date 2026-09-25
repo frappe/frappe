@@ -33,14 +33,14 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 	}
 	clear_attachment() {
 		let me = this;
-		frappe.confirm(__("Are you sure you want to delete the attachment?"), function () {
+		const message = __("Are you sure you want to delete the attachment?");
+		const dialog = frappe.confirm(message, function () {
 			if (me.frm) {
 				let file_url = me.value || me.get_model_value();
 				me.parse_validate_and_set_in_model(null).then(() => {
 					me.refresh();
 					if (!me.frm.is_new()) {
-						let save_action = me.frm.doc.docstatus == 1 ? "Update" : "Save";
-						me.frm.save(save_action, () => {
+						me.save_form(() => {
 							if (!me.frm.is_dirty()) {
 								me.frm.attachments.remove_attachment_by_filename(file_url);
 							}
@@ -55,6 +55,7 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 				me.refresh();
 			}
 		});
+		dialog.keep_grid_form_open = true;
 	}
 	on_attach_click() {
 		this.set_upload_options();
@@ -87,6 +88,7 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 			options.doctype = this.frm.doctype;
 			options.docname = this.frm.docname;
 			options.fieldname = this.df.fieldname;
+			options.keep_grid_form_open = true;
 			options.make_attachments_public = this.df.make_attachment_public
 				? 1
 				: this.frm.meta.make_attachments_public;
@@ -144,10 +146,26 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		if (this.frm) {
 			await this.parse_validate_and_set_in_model(attachment.file_url);
 			this.frm.attachments.update_attachment(attachment);
-			if (!this.frm.is_new()) {
-				this.frm.doc.docstatus == 1 ? this.frm.save("Update") : this.frm.save();
+			if (!this.frm.is_new() && this.frm.is_dirty()) {
+				this.save_form();
 			}
 		}
 		this.set_value(attachment.file_url);
+	}
+
+	save_form(callback) {
+		const open_row = this.frm.open_grid_row();
+		const in_open_row = open_row?.doc === this.doc;
+		this.frm.save(this.frm.doc.docstatus == 1 ? "Update" : "Save", (r) => {
+			if (in_open_row && !r.exc) {
+				const { grid, doc } = open_row;
+				// a new row is renamed on save, so fall back to its position
+				const row =
+					grid.get_row(doc.name) ??
+					grid.grid_rows.find((grid_row) => grid_row.doc.idx === doc.idx);
+				row?.toggle_view(true);
+			}
+			callback?.(r);
+		});
 	}
 };
