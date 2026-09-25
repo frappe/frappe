@@ -81,8 +81,7 @@
    "read_only_depends_on": "eval:doc.is_system_generated"
   },
   {
-   "default": "10000000",
-   "description": "Tokens a single run may spend, shared with its sub-agents. Cached reads are not counted.",
+   "description": "Tokens a single run may spend, shared with its sub-agents. Cached reads are not counted. 0 means no limit.",
    "fieldname": "token_budget",
    "fieldtype": "Int",
    "label": "Token Budget",
@@ -157,7 +156,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-22 12:00:00.000000",
+ "modified": "2026-09-26 00:21:27.926255",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Agent",

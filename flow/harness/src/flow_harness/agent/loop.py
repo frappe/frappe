@@ -100,13 +100,13 @@ class TokenBudget:
 	"""What a run may spend, shared by a session and the sub-agents inside it.
 
 	Attributes:
-		limit: Ceiling on the running total.
+		limit: Ceiling on the running total; None for no ceiling.
 		spent: Fresh input and output tokens so far. Adapters report cache reads
 			within the input count, and providers discount them heavily, so they
 			are taken back out; cache creation stays in, since it is charged.
 	"""
 
-	limit: int
+	limit: int | None
 	spent: int = 0
 
 	def add(self, usage: Usage) -> None:
@@ -114,7 +114,7 @@ class TokenBudget:
 
 	@property
 	def exhausted(self) -> bool:
-		return self.spent >= self.limit
+		return self.limit is not None and self.spent >= self.limit
 
 
 @dataclass(frozen=True)
