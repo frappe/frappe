@@ -55,6 +55,43 @@ class TestBulkPdfLimits(IntegrationTestCase):
 		self.assertEqual(seen, ["de"])
 		self.assertEqual(frappe.local.lang, "en")
 
+	def test_bulk_pdf_sends_typst_builder_formats_through_the_generator(self):
+		import json
+		from io import BytesIO
+
+		from pypdf import PdfWriter
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		pf = frappe.get_doc(
+			doctype="Print Format",
+			name=frappe.generate_hash(length=10),
+			doc_type="ToDo",
+			print_format_builder_beta=1,
+			pdf_generator="Typst",
+			format_data="{}",
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", pf.name, force=True)
+		todo = frappe.get_doc(doctype="ToDo", description="typst bulk").insert()
+		blank = BytesIO()
+		writer = PdfWriter()
+		writer.add_blank_page(width=72, height=72)
+		writer.write(blank)
+
+		with (
+			patch(
+				"frappe.utils.print_format_generator.PrintFormatGenerator.render_pdf",
+				return_value=blank.getvalue(),
+			) as render_pdf,
+			patch("frappe.get_print") as get_print,
+			patch.object(frappe.local, "response", frappe._dict()),
+		):
+			_download_multi_pdf("ToDo", json.dumps([todo.name]), pf.name)
+			self.assertTrue(frappe.local.response.filecontent)
+
+		render_pdf.assert_called_once()
+		get_print.assert_not_called()
+
 	def test_page_settings_map_the_dialogs_page_choice(self):
 		self.assertEqual(page_settings(None), {})
 		self.assertEqual(page_settings({"password": "x"}), {})
