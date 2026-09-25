@@ -110,6 +110,7 @@ def download_multi_pdf_async(
 	for slot in range(get_max_concurrent_bulk_exports()):
 		job = frappe.enqueue(
 			_download_multi_pdf,
+			language=frappe.local.lang,
 			doctype=doctype,
 			name=name,
 			task_id=task_id,
@@ -137,6 +138,41 @@ def download_multi_pdf_async(
 	return {"task_id": task_id}
 
 
+def page_settings(pdf_options) -> dict:
+	"""The bulk print dialog's page choice, in the Print Settings terms the generator reads."""
+	pdf_options = pdf_options or {}
+	settings = {}
+	for option, setting in (
+		("page-size", "pdf_page_size"),
+		("page-height", "pdf_page_height"),
+		("page-width", "pdf_page_width"),
+	):
+		if pdf_options.get(option):
+			settings[setting] = pdf_options[option]
+	if "pdf_page_height" in settings and "pdf_page_size" not in settings:
+		settings["pdf_page_size"] = "Custom"
+	return settings
+
+
+def classic_page_options(pdf_options) -> dict:
+	"""The same page choice for the HTML pipeline, which takes dimensions with a unit."""
+	pdf_options = dict(pdf_options or {})
+	for option in ("page-height", "page-width"):
+		if isinstance(pdf_options.get(option), int | float):
+			pdf_options[option] = f"{pdf_options[option]}mm"
+			pdf_options["page-size"] = "Custom"
+	return pdf_options
+
+
+def publish_failure(task_id: str, error: Exception):
+	"""The list view waits on task_complete alone, so a failure has to arrive there."""
+	frappe.publish_realtime(
+		f"task_complete:{task_id}",
+		message={"error": str(error) or _("You are not permitted to print one of the selected documents")},
+		user=frappe.session.user,
+	)
+
+
 def _download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
@@ -145,6 +181,7 @@ def _download_multi_pdf(
 	letterhead: str | None = None,
 	options: str | None = None,
 	task_id: str | None = None,
+	language: str | None = None,
 ):
 	"""Return a PDF compiled by concatenating multiple documents.
 
@@ -182,6 +219,8 @@ def _download_multi_pdf(
 
 	from pypdf import PdfWriter
 
+	format_language = format and frappe.db.get_value("Print Format", format, "default_print_language")
+
 	pdf_writer = PdfWriter()
 
 	options = frappe.parse_json(options)
@@ -192,45 +231,56 @@ def _download_multi_pdf(
 		if frappe.db.get_value("Print Format", format, "pdf_generator") == "Typst":
 			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
 
+	def document_language(print_doctype, print_name):
+		"""The print page's precedence: the document's own language, then the
+		format's default, then the language the print was requested in."""
+		doc_language = None
+		if frappe.get_meta(print_doctype).has_field("language"):
+			doc_language = frappe.db.get_value(print_doctype, print_name, "language")
+		return doc_language or format_language or language
+
 	def print_into_writer(print_doctype, print_name):
 		"""Route one document into the shared writer — builder formats through the
 		generator (which dispatches Typst), everything else through get_print."""
-		from frappe.printing.doctype.print_format.classic_converter import (
-			get_default_print_format,
-			uses_beta_renderer,
-		)
-		from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
-		from frappe.www.printview import set_link_titles, validate_print
-
-		pf_doc = _print_format_doc_or_none(format)
-		if not (
-			(pf_doc is None or uses_beta_renderer(pf_doc))
-			and resolve_pdf_generator(pf_doc) in ("chrome", "Typst")
-		):
-			return frappe.get_print(
-				print_doctype,
-				print_name,
-				format,
-				as_pdf=True,
-				output=pdf_writer,
-				no_letterhead=no_letterhead,
-				letterhead=letterhead,
-				pdf_options=options,
+		with print_language(document_language(print_doctype, print_name)):
+			from frappe.printing.doctype.print_format.classic_converter import (
+				get_default_print_format,
+				uses_beta_renderer,
 			)
+			from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
+			from frappe.www.printview import set_link_titles, validate_print
 
-		from pypdf import PdfReader
+			pf_doc = _print_format_doc_or_none(format)
+			if not (
+				(pf_doc is None or uses_beta_renderer(pf_doc))
+				and resolve_pdf_generator(pf_doc) in ("chrome", "Typst")
+			):
+				return frappe.get_print(
+					print_doctype,
+					print_name,
+					format,
+					as_pdf=True,
+					output=pdf_writer,
+					no_letterhead=no_letterhead,
+					letterhead=letterhead,
+					pdf_options=classic_page_options(options),
+				)
 
-		from frappe.utils.print_format_generator import PrintFormatGenerator
+			from pypdf import PdfReader
 
-		doc = frappe.get_doc(print_doctype, print_name)
-		validate_print(doc)
-		set_link_titles(doc)
-		pf = pf_doc or get_default_print_format(print_doctype)
-		generator = PrintFormatGenerator(pf, doc, letterhead, no_letterhead=no_letterhead)
-		pdf = generator.render_pdf(password=(options or {}).get("password"))
-		for page in PdfReader(BytesIO(pdf)).pages:
-			pdf_writer.add_page(page)
-		return pdf_writer
+			from frappe.utils.print_format_generator import PrintFormatGenerator
+
+			doc = frappe.get_doc(print_doctype, print_name)
+			validate_print(doc)
+			set_link_titles(doc)
+			pf = pf_doc or get_default_print_format(print_doctype)
+			generator = PrintFormatGenerator(
+				pf, doc, letterhead, no_letterhead=no_letterhead, settings=page_settings(options)
+			)
+			pdf = generator.render_pdf(password=(options or {}).get("password"))
+			for page in PdfReader(BytesIO(pdf)).pages:
+				pdf_writer.add_page(page)
+			return pdf_writer
 
 	if not isinstance(doctype, dict):
 		result = frappe.parse_json(name)
@@ -241,6 +291,10 @@ def _download_multi_pdf(
 		for idx, ss in enumerate(result):
 			try:
 				pdf_writer = print_into_writer(doctype, ss)
+			except frappe.PermissionError as e:
+				if task_id:
+					publish_failure(task_id, e)
+				raise
 			except Exception:
 				frappe.log_error(
 					title="Error in Multi PDF download",
@@ -248,7 +302,9 @@ def _download_multi_pdf(
 					reference_name=ss,
 				)
 				if task_id:
-					frappe.publish_realtime(task_id=task_id, message={"message": "Failed"})
+					frappe.publish_realtime(
+						task_id=task_id, message={"message": "Failed"}, user=frappe.session.user
+					)
 
 			# Publish progress
 			if task_id:
@@ -274,9 +330,13 @@ def _download_multi_pdf(
 			for doc_name in doctype[doctype_name]:
 				try:
 					pdf_writer = print_into_writer(doctype_name, doc_name)
+				except frappe.PermissionError as e:
+					if task_id:
+						publish_failure(task_id, e)
+					raise
 				except Exception:
 					if task_id:
-						frappe.publish_realtime(task_id=task_id, message="Failed")
+						frappe.publish_realtime(task_id=task_id, message="Failed", user=frappe.session.user)
 					frappe.log_error(
 						title="Error in Multi PDF download",
 						message=f"Permission Error on doc {doc_name} of doctype {doctype_name}",

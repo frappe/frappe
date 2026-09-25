@@ -10,7 +10,7 @@ import frappe
 from frappe import _, cstr, get_module_path
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
-from frappe.utils import cint, escape_html, strip_html
+from frappe.utils import cint, escape_html, flt, strip_html
 from frappe.utils.jinja_globals import is_rtl
 
 if TYPE_CHECKING:
@@ -130,6 +130,28 @@ def get_context(context) -> PrintContext:
 		}
 	)
 	return context
+
+
+def cast_client_values(document: "Document"):
+	"""A document posted from the form carries JSON types: dates as strings and
+	whole floats as ints. The PDF loads the same document from the database, so
+	the preview must see the same Python types or the two render differently."""
+	from frappe.model import table_fields
+	from frappe.utils.data import cast
+
+	rows = [document]
+	for df in document.meta.get_table_fields():
+		rows.extend(document.get(df.fieldname) or [])
+	for row in rows:
+		for df in row.meta.fields:
+			value = row.get(df.fieldname)
+			if value in (None, "") or df.fieldtype in table_fields:
+				continue
+			messages = len(frappe.local.message_log)
+			try:
+				row.set(df.fieldname, cast(df.fieldtype, value))
+			except (frappe.ValidationError, ValueError):
+				del frappe.local.message_log[messages:]
 
 
 def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" | None:
@@ -336,6 +358,7 @@ def get_html_and_style(
 		document = frappe.get_lazy_doc(doc, name, check_permission=True)
 	else:
 		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
+		cast_client_values(document)
 
 	print_format, is_beta = resolve_print_format(print_format, document.meta)
 
@@ -379,6 +402,7 @@ def get_rendered_raw_commands(
 		document = frappe.get_lazy_doc(doc, name, check_permission=True)
 	else:
 		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
+		cast_client_values(document)
 
 	print_format = get_print_format_doc(print_format, meta=document.meta)
 
@@ -392,12 +416,16 @@ def get_rendered_raw_commands(
 	}
 
 
+PAGE_SIZE_SETTINGS = ("pdf_page_size", "pdf_page_height", "pdf_page_width")
+
+
 def get_allowed_print_settings_override(doc: "Document", settings: dict | None) -> dict:
 	"""Keep only the Print Settings a caller may override: the doctype's own print toggles,
 	never unrelated flags like allow_print_for_draft that the docstatus guard reads."""
 	if not settings:
 		return {}
 	allowed = set(doc.get_print_settings() or []) if hasattr(doc, "get_print_settings") else set()
+	allowed.update(PAGE_SIZE_SETTINGS)
 	return {key: value for key, value in settings.items() if key in allowed}
 
 
@@ -553,7 +581,7 @@ def make_layout(doc: "Document", meta: "Meta") -> list:
 			page[-1]["columns"].append({"fields": []})
 
 	for df in meta.fields:
-		if df.fieldtype == "Section Break" or page == []:
+		if df.fieldtype in ("Section Break", "Tab Break") or page == []:
 			if len(page) > 1:
 				if not page[-1]["has_data"]:
 					# truncate last section if empty
@@ -650,6 +678,10 @@ def get_print_style(
 	style_css = style and frappe.db.get_value("Print Style", {"name": style, "disabled": 0}, "css")
 	if style_css:
 		css = css + "\n" + style_css
+
+	# after the Print Style, so a style that sets its own size does not win over the setting
+	if flt(print_settings.font_size):
+		css = css + f"\n.print-format {{ font-size: {flt(print_settings.font_size)}pt; }}"
 
 	# move @import to top
 	for at_import in list(set(re.findall(r"(@import url\([^\)]+\)[;]?)", css))):
