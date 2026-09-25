@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.desk.desk_views import DeskViews
+from frappe.desk.doctype.dashboard.dashboard import get_permitted_cards
 from frappe.desk.doctype.note.note import _get_unseen_notes, get_unseen_notes, mark_as_seen
 from frappe.desk.doctype.sidebar.test_sidebar import developer_mode
 from frappe.tests import IntegrationTestCase
@@ -245,6 +246,24 @@ class TestAllowedDashboards(IntegrationTestCase):
 
 		self.assertIn(empty.name, allowed)
 		self.assertNotIn(filled.name, allowed)
+
+	def test_a_missing_number_card_is_skipped_quietly(self):
+		frappe.set_user("Administrator")
+		card = frappe.get_doc(
+			doctype="Number Card",
+			label=frappe.generate_hash(),
+			type="Document Type",
+			document_type="ToDo",
+			function="Count",
+		).insert()
+		dashboard = self.dashboard(cards=[{"card": card.name}])
+		frappe.db.delete("Number Card", card.name)
+
+		frappe.set_user("test@example.com")
+		frappe.clear_messages()
+
+		self.assertEqual(get_permitted_cards(dashboard.name), [])
+		self.assertEqual(frappe.get_message_log(), [])
 
 
 class TestPermissionQueries(IntegrationTestCase):
