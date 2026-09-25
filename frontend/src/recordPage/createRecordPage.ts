@@ -658,7 +658,9 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   function refreshWith(source: string, handler: Handler) {
     try {
       let result: unknown;
-      withRunningSource(source, () => void (result = handler(refreshView.page)));
+      withRunningSource(source, () => {
+        result = handler(refreshView.page);
+      });
       if (!(result instanceof Promise)) return;
       warnAsyncRefresh(source);
       return result.then(

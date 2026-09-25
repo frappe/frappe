@@ -242,6 +242,41 @@ describe("paintNow", () => {
     );
   });
 
+  it("reports a rejecting onRefresh once, with no unhandled rejection", async () => {
+    await register("rejecting", {
+      onRefresh: async () => {
+        await Promise.resolve();
+        throw new Error("boom");
+      },
+    });
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    const unhandled: unknown[] = [];
+    const listen = (reason: unknown) => void unhandled.push(reason);
+    process.on("unhandledRejection", listen);
+    const { controller } = await loadedPage();
+
+    try {
+      controller.paintNow();
+      await vi.advanceTimersByTimeAsync(0);
+      vi.useRealTimers();
+      await new Promise((resolve) => setImmediate(resolve));
+    } finally {
+      process.off("unhandledRejection", listen);
+    }
+
+    expect(unhandled).toEqual([]);
+    const said = errors.mock.calls.filter(([message]) => String(message).includes("rejecting."));
+    expect(said).toHaveLength(1);
+    const filed = vi
+      .mocked(runMethod)
+      .mock.calls.filter(
+        ([, params]) =>
+          (params as { source?: string; event?: string }).source === "rejecting" &&
+          (params as { event?: string }).event === "onRefresh",
+      );
+    expect(filed).toHaveLength(1);
+  });
+
   it("does nothing and answers false while the doctype's scripts are loading", async () => {
     scripts.list = new Promise<never>(() => {});
     const onRefresh = vi.fn((page: RecordPageApi) => page.quickActions.add(action("one")));
