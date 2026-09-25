@@ -7,6 +7,7 @@ from unittest.mock import patch
 import frappe
 from frappe.tests import IntegrationTestCase
 
+from flow.api import api
 from flow.daemon.client import DaemonClient
 from flow.lib import session as sessions
 from flow.tests.test_fake_daemon import (
@@ -20,6 +21,12 @@ from flow.tests.test_fake_daemon import (
 	text,
 	turn,
 )
+
+ON_END = "flow.tests.test_session_sync.ended"
+
+
+def ended(run):
+	"""What the tests point on_end at; each test patches it."""
 
 
 class TestSync(IntegrationTestCase):
@@ -326,3 +333,83 @@ class TestSync(IntegrationTestCase):
 		self.assertEqual(self.session.title, "Generated")
 		self.sync(FakeDaemon(title=None))
 		self.assertEqual(self.session.title, "Generated")
+
+	def test_on_end_is_called_once_the_run_ends_and_only_once(self):
+		run = self.placeholder()
+		run.db_set("on_end", ON_END)
+		daemon = FakeDaemon(turn(1, "r1")[:2], running=True)
+		with patch(ON_END) as on_end:
+			self.sync(daemon)
+			sessions.call_on_end(self.session)
+			on_end.assert_not_called()
+			daemon.rows, daemon.running = turn(1, "r1"), False
+			self.sync(daemon)
+			sessions.call_on_end(self.session)
+			sessions.call_on_end(self.session)
+		on_end.assert_called_once()
+		ended_run = on_end.call_args.args[0]
+		self.assertEqual(
+			(ended_run.name, ended_run.status, ended_run.output), (run.name, "Completed", "done")
+		)
+		self.assertIsNone(frappe.db.get_value("Flow Run", run.name, "on_end"))
+
+	def test_opening_a_session_the_server_lost_calls_on_end(self):
+		run = self.placeholder()
+		run.db_set("on_end", ON_END)
+		daemon = FakeDaemon(missing=True)
+		with patch.object(DaemonClient, "for_site", return_value=daemon), patch(ON_END) as on_end:
+			api.session(self.session.name)
+		self.assertEqual(on_end.call_args.args[0].status, "Failed")
+
+	def test_a_failing_on_end_is_logged_and_its_writes_undone(self):
+		run = self.placeholder()
+		run.db_set("on_end", ON_END)
+
+		def fail(run):
+			frappe.db.set_value("Flow Session", run.session, "title", "Changed")
+			raise RuntimeError("boom")
+
+		with patch(ON_END, side_effect=fail):
+			self.sync(FakeDaemon(turn(1, "r1"), title=None))
+			sessions.call_on_end(self.session)
+		run.reload()
+		self.assertEqual((run.status, run.on_end), ("Completed", None))
+		self.assertIsNone(frappe.db.get_value("Flow Session", self.session.name, "title"))
+		self.assertTrue(
+			frappe.db.exists("Error Log", {"reference_doctype": "Flow Run", "reference_name": run.name})
+		)
+
+	def test_chat_gives_its_run_the_on_end(self):
+		with patch.object(DaemonClient, "for_site", return_value=FakeDaemon()), patch(ON_END) as on_end:
+			run = self.session.chat("hi", on_end=ON_END)
+			self.session.sync()
+			sessions.call_on_end(self.session)
+		self.assertEqual(on_end.call_args.args[0].name, run.name)
+
+	def test_chat_records_an_ended_run_but_leaves_its_on_end_for_later(self):
+		run = self.placeholder()
+		run.db_set("on_end", ON_END)
+		daemon = FakeDaemon(turn(1, "r1"))
+		daemon.turns = 1
+		with patch.object(DaemonClient, "for_site", return_value=daemon), patch(ON_END) as on_end:
+			self.session.chat("next")
+			on_end.assert_not_called()
+			sessions.call_on_end(self.session)
+		self.assertEqual(on_end.call_args.args[0].name, run.name)
+
+	def test_cancelling_a_paused_runs_approvals_calls_on_end(self):
+		run = self.placeholder(message="delete it")
+		run.db_set("on_end", ON_END)
+		daemon = self.sync(FakeDaemon(pause(1, "r1")))
+		with patch.object(DaemonClient, "for_site", return_value=daemon), patch(ON_END) as on_end:
+			self.session.cancel_pending()
+		self.assertEqual(on_end.call_args.args[0].status, "Failed")
+
+	def test_a_steered_message_gives_a_run_its_first_on_end_only(self):
+		run = self.placeholder()
+		daemon = FakeDaemon(turn(1, "r1")[:2], running=True)
+		with patch.object(DaemonClient, "for_site", return_value=daemon):
+			joined = self.session.chat("and this", on_end=ON_END)
+			self.session.chat("and that", on_end="flow.tests.test_session_sync.other")
+		self.assertEqual(joined.name, run.name)
+		self.assertEqual(frappe.db.get_value("Flow Run", run.name, "on_end"), ON_END)

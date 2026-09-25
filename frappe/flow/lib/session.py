@@ -31,6 +31,8 @@ STATUS = {
 	"aborted": "Failed",
 	"error": "Failed",
 }
+ENDED = ("Completed", "Denied", "Failed")
+ON_END_SAVEPOINT = "flow_on_end"
 ERRORS = {
 	"max_turns": "The agent hit its iteration limit.",
 	"budget": "The agent hit its output token budget.",
@@ -211,6 +213,31 @@ def fail_running(session_name: str, error: str) -> None:
 		"Flow Run", filters={"session": session_name, "status": "Running"}, pluck="name"
 	):
 		frappe.db.set_value("Flow Run", name, {"status": "Failed", "error": error})
+
+
+def call_on_end(session: FlowSession) -> None:
+	"""Call each ended run's on_end once, only in the session owner's request so it runs as
+	them; another user's request leaves it for theirs. A failing one is logged and undone."""
+	if frappe.session.user != session.owner:
+		return
+	for name in frappe.get_all(
+		"Flow Run",
+		filters={"session": session.name, "status": ("in", ENDED), "on_end": ("is", "set")},
+		pluck="name",
+	):
+		# locked by name: a locking scan would lock every run on the site
+		on_end = frappe.db.get_value("Flow Run", name, "on_end", for_update=True)
+		if not on_end:  # another request called it first
+			continue
+		frappe.db.set_value("Flow Run", name, "on_end", None, update_modified=False)
+		frappe.db.savepoint(ON_END_SAVEPOINT)
+		try:
+			frappe.get_attr(on_end)(frappe.get_doc("Flow Run", name))
+		except Exception:
+			frappe.db.rollback(save_point=ON_END_SAVEPOINT)
+			frappe.log_error(
+				title="Flow Run on_end failed", reference_doctype="Flow Run", reference_name=name
+			)
 
 
 def _latest_run(session_name: str) -> FlowRun | None:
