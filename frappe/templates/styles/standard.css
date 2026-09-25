@@ -143,8 +143,8 @@ table.no-border, table.no-border td {
 	font-weight: bold;
 }
 
-.print-format td,
-.print-format th,
+:where(.print-format) td,
+:where(.print-format) th,
 .print-format .table > thead > tr > th,
 .print-format .table > tbody > tr > th,
 .print-format .table > tfoot > tr > th,
