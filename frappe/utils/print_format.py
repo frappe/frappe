@@ -1,6 +1,7 @@
 import http
 import json
 import os
+import tempfile
 import uuid
 from io import BytesIO
 from typing import Literal
@@ -361,7 +362,7 @@ def print_by_server(
 	print_format: str | None = None,
 	doc: Document | None = None,
 	no_letterhead: bool | int = 0,
-	file_path: str | None = None,
+	file_path: str | None = None,  # backward compatibility
 ):
 	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
 	try:
@@ -369,6 +370,7 @@ def print_by_server(
 	except ImportError:
 		frappe.throw(_("You need to install pycups to use this feature!"))
 
+	file_path = None
 	try:
 		cups.setServer(print_settings.server_ip)
 		cups.setPort(print_settings.port)
@@ -377,9 +379,9 @@ def print_by_server(
 		output = frappe.get_print(
 			doctype, name, print_format, doc=doc, no_letterhead=no_letterhead, as_pdf=True, output=output
 		)
-		if not file_path:
-			file_path = os.path.join("/", "tmp", f"frappe-pdf-{frappe.generate_hash()}.pdf")
-		output.write(open(file_path, "wb"))
+		with tempfile.NamedTemporaryFile(prefix="frappe-pdf-", suffix=".pdf", delete=False) as f:
+			file_path = f.name
+			output.write(f)
 		conn.printFile(print_settings.printer_name, file_path, name, {})
 	except OSError as e:
 		if (
@@ -391,3 +393,6 @@ def print_by_server(
 			frappe.throw(_("PDF generation failed"))
 	except cups.IPPError:
 		frappe.throw(_("Printing failed"))
+	finally:
+		if file_path:
+			os.remove(file_path)
