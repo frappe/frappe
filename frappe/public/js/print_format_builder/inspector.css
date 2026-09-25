@@ -424,16 +424,21 @@ body.pfb-dragging * {
 	min-width: 0;
 }
 
+.pfb-overlay-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 1034;
+	background: rgba(0, 0, 0, 0.6);
+}
+
 .pfb-overlay {
 	position: fixed;
 	inset: 0;
 	z-index: 1035;
-	isolation: isolate;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	padding: 24px;
-	background: rgba(0, 0, 0, 0.6);
 }
 
 body.pfb-col-resizing,
