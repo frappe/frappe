@@ -58,7 +58,7 @@ vi.mock("@/pages/Module.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/shell/NotFound.vue", () => ({ default: { render: () => null } }));
 
 import { activityTimelineRows } from "@framework/ui/ActivityTimeline";
-import { clearDataCache, feedListRead, settleTicket, takeTicket } from "@framework/ui/cache";
+import { clearDataCache, feedListRead, readCachedDocument, settleTicket, takeTicket } from "@framework/ui/cache";
 import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
 import { resetUserRoles, useUserRoles } from "@framework/ui/composables/useUserRoles";
 import { Addresses } from "@/addresses";
@@ -102,7 +102,7 @@ const server = {
   activity: [] as object[],
   attachments: [] as object[],
   favourites: [] as object[],
-  failRecord: false,
+  recordStatus: 200,
   holdRecord: null as Gate | null,
   holdActivity: null as Gate | null,
   holdSession: null as Gate | null,
@@ -133,7 +133,7 @@ async function answer(url: URL, method: string, body: any): Promise<[unknown, nu
   if (path.startsWith("/api/v2/document/Note/") && method === "GET") {
     await server.holdRecord?.opened;
     if (!url.searchParams.get("include")?.includes("seen")) await server.holdParts.shift()?.opened;
-    if (server.failRecord) return [{ errors: [{ type: "Error", message: "down" }] }, 500];
+    if (server.recordStatus !== 200) return [{ errors: [{ type: "Error", message: "down" }] }, server.recordStatus];
     return [recordEnvelope(server.others[path.split("/")[5]] ?? server.doc), 200];
   }
   return [{ data: null }, 200];
@@ -197,7 +197,7 @@ beforeEach(() => {
   server.attachments = [];
   server.favourites = [];
   socket.handlers = {};
-  server.failRecord = false;
+  server.recordStatus = 200;
   server.holdRecord = null;
   server.holdActivity = null;
   server.holdSession = null;
@@ -664,7 +664,7 @@ describe("a failed re-read", () => {
   it("keeps the record it had while the feed's re-read still applies", async () => {
     await register({ onRefresh: drawState });
     const { root, router } = await visitAndLeave("?tab=activity");
-    server.failRecord = true;
+    server.recordStatus = 500;
     server.doc = { ...server.doc, status: "Won", modified: NEW };
     server.activity = [activityRow("a1", "Row one"), activityRow("a2", "Row two")];
 
@@ -673,6 +673,27 @@ describe("a failed re-read", () => {
 
     expect(state(root)).toBe(`Open|First|${OLD}|${OLD}|2`);
     expect(root.querySelector('.activity[id="a2"]')).not.toBeNull();
+  });
+
+  it.each([
+    [403, "You do not have permission to read this record."],
+    [404, "Not found."],
+  ])("of %i clears the painted record and shows the read error, as a cold load would", async (status, message) => {
+    await register({ onRefresh: drawState });
+    const { root, router } = await visitAndLeave();
+    server.recordStatus = status;
+
+    await comeBack(router);
+
+    expect(state(root)).toBe(`Open|First|${OLD}|${OLD}|0`);
+
+    await settle();
+
+    expect(root.textContent).toContain(message);
+    expect(state(root)).toBeNull();
+    expect(crumbs(root)).toBe("");
+    expect(root.querySelector("[data-record-form]")).toBeNull();
+    expect(readCachedDocument("Note", name)).toBeUndefined();
   });
 });
 
@@ -864,7 +885,7 @@ describe("a return visit on the Activity tab", () => {
     const { router } = await visitAndLeave("?tab=activity");
     const errors: unknown[] = [];
     apps.at(-1)!.config.errorHandler = (error) => void errors.push(error);
-    server.failRecord = true;
+    server.recordStatus = 500;
     load.failFirstReplay = true;
     prefetchEnded.length = 0;
 

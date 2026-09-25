@@ -484,15 +484,7 @@ async function load({ fromMemory = false } = {}) {
 
 	// Blanked before the fetch: the heading changes synchronously, and the old controller's quick
 	// actions close over the previous page. `saved` goes with `doc` so `isDirty` stays false.
-	doc.value = {};
-	saved.value = {};
-	docinfo.value = null;
-	linkTitles.value = {};
-	saving.value = false;
-	controller.value = null;
-	panelLayout.value = null;
-	detailsLayout.value = null;
-	disclosure.reset();
+	blank();
 	formTab.value = tabMemory.value.recall();
 	activeFormTab.value = "";
 
@@ -520,6 +512,18 @@ async function load({ fromMemory = false } = {}) {
 	await withFeedRead(target.doctype, target.name, route.query, (feedRead) =>
 		openRecord({ ...opening, feedRead })
 	);
+}
+
+function blank() {
+	doc.value = {};
+	saved.value = {};
+	docinfo.value = null;
+	linkTitles.value = {};
+	saving.value = false;
+	controller.value = null;
+	panelLayout.value = null;
+	detailsLayout.value = null;
+	disclosure.reset();
 }
 
 interface Opening {
@@ -576,7 +580,10 @@ async function paintLate({ mine, pointer }: Opening, created: RecordPageControll
 function backgroundReads(target: Opening["target"]): BackgroundRead[] {
 	const before = docinfo.value;
 	const reads: BackgroundRead[] = [
-		loadRecord(target.doctype, target.name).then((fresh) => () => takeRefetch(fresh, before)),
+		loadRecord(target.doctype, target.name).then(
+			(fresh) => () => takeRefetch(fresh, before),
+			(failure) => () => takeReadFailure(failure)
+		),
 	];
 	const rows = feeds.rereadKept();
 	if (rows) reads.push(rows);
@@ -601,7 +608,7 @@ async function applyInBackground(
 		);
 		await Promise.all(rereads);
 		if (replayed.status === "rejected") throw replayed.reason;
-		if (mine !== generation) return;
+		if (mine !== generation || error.value) return;
 	} finally {
 		if (mine === generation) feeds.endKeptRead();
 	}
@@ -617,6 +624,19 @@ function takeRefetch(fresh: LoadedRecord, before: DocInfo | null) {
 	// A write or live update since the reads began may be missing from `fresh`; a new read includes it.
 	if (docinfo.value !== before) return reloadDocinfo().catch(warnDocinfoFailed);
 	if (!same(before, fresh.docinfo)) docinfo.value = fresh.docinfo;
+}
+
+// A denied or deleted record leaves the page as a cold load's answer would; any other failure keeps it.
+function takeReadFailure(failure: unknown) {
+	if (!isApiError(failure) || (failure.status !== 403 && failure.status !== 404)) return;
+	blank();
+	error.value = readFailure(failure);
+}
+
+function readFailure(failure: unknown) {
+	return isApiError(failure) && failure.status === 403
+		? "You do not have permission to read this record."
+		: "Not found.";
 }
 
 function show(loaded: LoadedRecord, metadata: any) {
@@ -643,10 +663,7 @@ async function openRecord({ mine, target, pointer, details, panel, feedRead }: O
 		show(loaded, metadata);
 	} catch (e) {
 		if (mine !== generation) return;
-		error.value =
-			isApiError(e) && e.status === 403
-				? "You do not have permission to read this record."
-				: "Not found.";
+		error.value = readFailure(e);
 		return;
 	}
 
