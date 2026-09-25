@@ -13,10 +13,11 @@ h4 {
 
 // !! PDF Barcode hack !!
 // Workaround for rendering barcodes prior to https://github.com/frappe/frappe/pull/15307
+svg[data-barcode-value] {
+	height: auto;
+}
+
 @media print {
-	svg[data-barcode-value] {
-		height: auto;
-	}
 	svg[data-barcode-value] > rect {
 		fill: white !important;
 	}
