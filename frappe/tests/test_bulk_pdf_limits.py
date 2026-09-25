@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils.print_format import (
+	classic_page_options,
 	download_multi_pdf,
 	download_multi_pdf_async,
 	get_max_bulk_print_docs,
@@ -62,6 +63,45 @@ class TestBulkPdfLimits(IntegrationTestCase):
 			page_settings({"page-height": "100mm", "page-width": "50mm"}),
 			{"pdf_page_size": "Custom", "pdf_page_height": "100mm", "pdf_page_width": "50mm"},
 		)
+
+	def test_classic_page_options_carry_the_dialogs_custom_size_in_mm(self):
+		self.assertEqual(classic_page_options(None), {})
+		self.assertEqual(classic_page_options({"page-size": "A5"}), {"page-size": "A5"})
+		self.assertEqual(
+			classic_page_options({"page-height": 100, "page-width": 50.5, "password": "x"}),
+			{"page-size": "Custom", "page-height": "100mm", "page-width": "50.5mm", "password": "x"},
+		)
+		self.assertEqual(
+			classic_page_options({"page-height": "100mm", "page-width": "50mm"}),
+			{"page-height": "100mm", "page-width": "50mm"},
+		)
+
+	def test_bulk_pdf_hands_classic_formats_the_custom_size_with_a_unit(self):
+		import json
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		pf = frappe.get_doc(
+			doctype="Print Format",
+			name=frappe.generate_hash(length=10),
+			doc_type="User",
+			custom_format=1,
+			print_format_type="Jinja",
+			html="{{ doc.name }}",
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", pf.name, force=True)
+		seen = []
+
+		def fake_get_print(*args, **kwargs):
+			seen.append(kwargs["pdf_options"])
+			kwargs["output"].add_blank_page(width=72, height=72)
+			return kwargs["output"]
+
+		options = json.dumps({"page-height": 100, "page-width": 50})
+		with patch("frappe.get_print", side_effect=fake_get_print):
+			_download_multi_pdf("User", json.dumps(["Administrator"]), pf.name, options=options)
+
+		self.assertEqual(seen, [{"page-size": "Custom", "page-height": "100mm", "page-width": "50mm"}])
 
 	def test_bulk_pdf_tells_the_requester_when_a_permission_check_fails(self):
 		import json
