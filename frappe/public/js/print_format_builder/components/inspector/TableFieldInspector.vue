@@ -136,7 +136,7 @@
 									<DropdownRow
 										v-if="is_date_field(col)"
 										:label="__('Date format')"
-										:options="date_format_opts()"
+										:options="date_format_opts(column_sample(col))"
 										:model-value="col.date_format || ''"
 										@update:model-value="
 											(v) => set_prop(col, 'date_format', v, '')
@@ -294,7 +294,7 @@ import { useSelectedField } from "./useSelectedField";
 import { is_merge_image } from "../../fieldtypes";
 import { clamp_column_width, date_format_opts, is_date_field, set_prop } from "../../utils";
 
-const { selected_field, set_field_prop } = useSelectedField();
+const { selected_field, preview_doc, set_field_prop } = useSelectedField();
 
 let table_style = computed(() => selected_field.value?.table_style ?? "lined");
 let table_bordered = computed(() => selected_field.value?.table_bordered ?? true);
@@ -386,6 +386,11 @@ function pick_column(opt) {
 	}
 	if (!selected_field.value.table_columns) selected_field.value.table_columns = [];
 	selected_field.value.table_columns = [...selected_field.value.table_columns, entry];
+}
+
+function column_sample(col) {
+	const rows = preview_doc.value?.[selected_field.value.fieldname] || [];
+	return rows.find((r) => r[col.fieldname])?.[col.fieldname];
 }
 
 function remove_table_column(idx) {

@@ -724,13 +724,13 @@ export function format_date_value(raw, df) {
 	return m.format(fmt);
 }
 
-export function date_format_opts() {
-	const today = frappe.datetime.now_date();
+export function date_format_opts(sample) {
+	const value = sample || frappe.datetime.now_date();
 	return [
 		{ value: "", label: __("System default") },
 		...DATE_FORMATS.map((f) => ({
 			value: f,
-			label: format_date_value(today, { fieldtype: "Date", date_format: f }),
+			label: format_date_value(value, { fieldtype: "Date", date_format: f }),
 		})),
 	];
 }

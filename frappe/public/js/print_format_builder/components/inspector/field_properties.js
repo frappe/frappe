@@ -147,7 +147,10 @@ export const FIELD_SECTIONS = [
 				key: "date_format",
 				component: DropdownRow,
 				when: is_date_field,
-				props: () => ({ label: __("Date format"), options: date_format_opts() }),
+				props: (df, ctx) => ({
+					label: __("Date format"),
+					options: date_format_opts(ctx.preview_doc?.[df.fieldname]),
+				}),
 				get: (df) => df.date_format ?? "",
 				set: (df, v, ctx) => ctx.set(df, "date_format", v, ""),
 			},
