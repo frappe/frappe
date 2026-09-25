@@ -9,14 +9,17 @@ from werkzeug.local import Local
 
 import frappe
 from frappe.core.doctype.rq_job.rq_job import remove_failed_jobs
+from frappe.core.doctype.rq_worker.rq_worker import RQWorker
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils.background_jobs import (
 	RQ_JOB_FAILURE_TTL,
 	RQ_RESULTS_TTL,
+	FrappeBaseWorker,
 	create_job_id,
 	execute_job,
 	generate_qname,
+	get_queue,
 	get_queues_timeout,
 	get_redis_conn,
 )
@@ -58,6 +61,18 @@ class TestBackgroundJobs(IntegrationTestCase):
 		self.assertEqual(timeouts["custom"], 5000)
 		self.assertEqual(timeouts["long"], 1500)
 		self.assertLessEqual(builtin, set(timeouts))
+
+	def test_worker_reregisters_after_its_key_expires(self):
+		conn = get_redis_conn()
+		worker = FrappeBaseWorker([get_queue("short")], connection=conn)
+		worker.register_birth()
+		# What RQ leaves once the worker key has expired.
+		conn.delete(worker.key)
+		conn.hset(worker.key, "state", "idle")
+
+		worker.heartbeat()
+
+		self.assertIn(worker.name, [w.name for w in RQWorker.get_list()])
 
 	def test_enqueue_at_front(self):
 		kwargs = {
