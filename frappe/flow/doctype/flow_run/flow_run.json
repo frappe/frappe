@@ -14,7 +14,7 @@
   "status",
   "iterations",
   "daemon_run_id",
-  "on_end",
+  "on_complete",
   "section_break_io",
   "input",
   "output",
@@ -109,10 +109,10 @@
   },
   {
    "description": "Dotted path of a function Flow calls with this run once it ends; cleared once called.",
-   "fieldname": "on_end",
+   "fieldname": "on_complete",
    "fieldtype": "Data",
    "hidden": 1,
-   "label": "On End",
+   "label": "On Complete",
    "read_only": 1
   },
   {
@@ -220,7 +220,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-09-25 12:00:00.000000",
+ "modified": "2026-09-25 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Run",

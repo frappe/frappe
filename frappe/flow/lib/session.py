@@ -32,7 +32,7 @@ STATUS = {
 	"error": "Failed",
 }
 ENDED = ("Completed", "Denied", "Failed")
-ON_END_SAVEPOINT = "flow_on_end"
+ON_COMPLETE_SAVEPOINT = "flow_on_complete"
 ERRORS = {
 	"max_turns": "The agent hit its iteration limit.",
 	"budget": "The agent hit its output token budget.",
@@ -215,28 +215,28 @@ def fail_running(session_name: str, error: str) -> None:
 		frappe.db.set_value("Flow Run", name, {"status": "Failed", "error": error})
 
 
-def call_on_end(session: FlowSession) -> None:
-	"""Call each ended run's on_end once, only in the session owner's request so it runs as
+def call_on_complete(session: FlowSession) -> None:
+	"""Call each ended run's on_complete once, only in the session owner's request so it runs as
 	them; another user's request leaves it for theirs. A failing one is logged and undone."""
 	if frappe.session.user != session.owner:
 		return
 	for name in frappe.get_all(
 		"Flow Run",
-		filters={"session": session.name, "status": ("in", ENDED), "on_end": ("is", "set")},
+		filters={"session": session.name, "status": ("in", ENDED), "on_complete": ("is", "set")},
 		pluck="name",
 	):
 		# locked by name: a locking scan would lock every run on the site
-		on_end = frappe.db.get_value("Flow Run", name, "on_end", for_update=True)
-		if not on_end:  # another request called it first
+		on_complete = frappe.db.get_value("Flow Run", name, "on_complete", for_update=True)
+		if not on_complete:  # another request called it first
 			continue
-		frappe.db.set_value("Flow Run", name, "on_end", None, update_modified=False)
-		frappe.db.savepoint(ON_END_SAVEPOINT)
+		frappe.db.set_value("Flow Run", name, "on_complete", None, update_modified=False)
+		frappe.db.savepoint(ON_COMPLETE_SAVEPOINT)
 		try:
-			frappe.get_attr(on_end)(frappe.get_doc("Flow Run", name))
+			frappe.get_attr(on_complete)(frappe.get_doc("Flow Run", name))
 		except Exception:
-			frappe.db.rollback(save_point=ON_END_SAVEPOINT)
+			frappe.db.rollback(save_point=ON_COMPLETE_SAVEPOINT)
 			frappe.log_error(
-				title="Flow Run on_end failed", reference_doctype="Flow Run", reference_name=name
+				title="Flow Run on_complete failed", reference_doctype="Flow Run", reference_name=name
 			)
 
 

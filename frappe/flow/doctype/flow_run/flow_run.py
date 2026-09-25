@@ -29,7 +29,7 @@ class FlowRun(Document):
 		feedback_rating: DF.Literal["", "Up", "Down"]
 		input: DF.LongText | None
 		iterations: DF.Int
-		on_end: DF.Data | None
+		on_complete: DF.Data | None
 		output: DF.LongText | None
 		questions: DF.JSON | None
 		reference_doctype: DF.Link | None
