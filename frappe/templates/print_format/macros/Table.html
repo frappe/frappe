@@ -71,6 +71,10 @@
 						{%- set _safe = _src.startswith("/") or _src.startswith("http://") or _src.startswith("https://") -%}
 						{%- if _is_image and _safe -%}
 							<img src="{{ frappe.utils.get_image_thumbnail_uri(_src)|e }}" alt="{{ _(column.label or '')|e }}" style="max-width: 100%; max-height: 100px;" />
+						{%- elif column.date_format and row.get(column.fieldname) and column.fieldtype == "Datetime" -%}
+							{{ frappe.utils.format_datetime(row.get(column.fieldname), column.date_format.replace("mm", "MM") ~ " " ~ frappe.utils.get_user_time_format()) }}
+						{%- elif column.date_format and row.get(column.fieldname) and column.fieldtype == "Date" -%}
+							{{ frappe.utils.formatdate(row.get(column.fieldname), column.date_format) }}
 						{%- else -%}
 							{{ row.get_formatted(column.fieldname) }}
 						{%- endif -%}

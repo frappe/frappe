@@ -98,6 +98,24 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 		# no source -> block is skipped entirely
 		self.assertNotIn("print-image", self.render(df | {"image_url": ""}))
 
+	def test_date_format_overrides_system_format(self):
+		from frappe.utils.print_format_generator import format_field_value
+
+		frappe.db.set_value("User", "Administrator", "birth_date", "2026-02-11", update_modified=False)
+		self.addCleanup(frappe.db.set_value, "User", "Administrator", "birth_date", None)
+		df = {"fieldname": "birth_date", "fieldtype": "Date", "label": "Birth Date"}
+		self.assertIn("11 Feb 2026", self.render(df | {"date_format": "d MMM yyyy"}))
+		self.assertIn("February 11, 2026", self.render(df | {"date_format": "MMMM d, yyyy"}))
+		self.assertNotIn("11 Feb 2026", self.render(df))
+
+		user = frappe.get_doc("User", "Administrator")
+		self.assertEqual(format_field_value(user, df), user.get_formatted("birth_date"))
+		stamp = format_field_value(
+			user, {"fieldname": "last_login", "fieldtype": "Datetime", "date_format": "dd/mm/yyyy"}
+		)
+		if user.last_login:
+			self.assertRegex(stamp, r"^\d{2}/\d{2}/\d{4} \d{2}:\d{2}")
+
 	def test_allow_page_break_marks_field_breakable(self):
 		# the class name also lives in the stylesheet, so assert on the body markup only
 		def body(html):
