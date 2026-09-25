@@ -427,6 +427,7 @@ COPIED_PRINT_OPTIONS = (
 	"label_color",
 	"value_color",
 	"page_number",
+	"absolute_value",
 	"css",
 	"default_print_language",
 )
