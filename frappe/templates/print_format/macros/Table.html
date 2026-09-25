@@ -30,6 +30,15 @@
 </div>
 {% endif %}
 {%- else -%}
+{%- macro cell_value(row, df) -%}
+	{%- if df.date_format and row.get(df.fieldname) and df.fieldtype == "Datetime" -%}
+		{{- frappe.utils.format_datetime(row.get(df.fieldname), df.date_format.replace("mm", "MM") ~ " " ~ frappe.utils.get_user_time_format()) -}}
+	{%- elif df.date_format and row.get(df.fieldname) and df.fieldtype == "Date" -%}
+		{{- frappe.utils.formatdate(row.get(df.fieldname), df.date_format) -}}
+	{%- else -%}
+		{{- row.get_formatted(df.fieldname) -}}
+	{%- endif -%}
+{%- endmacro -%}
 {%- set _rows = df.get('_rows') if df.get('_rows') is not none else doc.get(df.fieldname) -%}
 {% if _rows and df.table_columns %}
 {% set _style = df.table_style or "lined" %}
@@ -64,7 +73,7 @@
 			<tr class="table-row {{ loop.cycle('odd', 'even') }}" data-idx="{{ row.idx }}"{% if row.get("page_break") and not loop.first %} style="page-break-before: always"{% endif %}>
 				{% for column in columns %}
 				{# Column's own field is always the implicit primary line; merged_fields holds the extra fields. #}
-				{%- set _merged = ([{"fieldname": column.fieldname, "fieldtype": column.fieldtype, "style": "primary"}] + column.merged_fields) if column.merged_fields else None -%}
+				{%- set _merged = ([{"fieldname": column.fieldname, "fieldtype": column.fieldtype, "style": "primary", "date_format": column.date_format}] + column.merged_fields) if column.merged_fields else None -%}
 				<td class="column-value{% if _merged %} column-value--merged{% endif %}" width="{{ column.width }}%"{% if _cell_style %} style="{{ _cell_style|e }}"{% endif %} {{ field_attributes(column) }}>
 					{%- if _merged -%}
 						{# Merged cell: an image field (if any) floats left, the rest stack as text lines (first = primary). #}
@@ -92,7 +101,7 @@
 								{%- endif -%}
 							{%- endif -%}
 							<div class="cell-lines{% if column.merge_direction == 'horizontal' %} cell-lines--horizontal{% endif %}">
-								{%- for mf in _merged -%}{%- if mf.fieldname and mf.fieldname != ns.img_fn -%}<div class="cell-line cell-line--{{ (mf.style or 'primary')|e }}">{% if mf.fieldtype in ("Text Editor", "HTML Editor") %}{{ row.get_formatted(mf.fieldname) }}{% else %}{{ row.get_formatted(mf.fieldname)|striptags|e }}{% endif %}</div>{%- endif -%}{%- endfor -%}
+								{%- for mf in _merged -%}{%- if mf.fieldname and mf.fieldname != ns.img_fn -%}<div class="cell-line cell-line--{{ (mf.style or 'primary')|e }}">{% if mf.fieldtype in ("Text Editor", "HTML Editor") %}{{ row.get_formatted(mf.fieldname) }}{% else %}{{ cell_value(row, mf)|striptags|e }}{% endif %}</div>{%- endif -%}{%- endfor -%}
 							</div>
 						</div>
 					{%- else -%}
@@ -103,12 +112,8 @@
 						{%- set _safe = _src.startswith("/") or _src.startswith("http://") or _src.startswith("https://") -%}
 						{%- if _is_image and _safe -%}
 							<img src="{{ frappe.utils.get_image_thumbnail_uri(_src)|e }}" alt="{{ _(column.label or '')|e }}" style="max-width: 100%; max-height: 100px;" />
-						{%- elif column.date_format and row.get(column.fieldname) and column.fieldtype == "Datetime" -%}
-							{{ frappe.utils.format_datetime(row.get(column.fieldname), column.date_format.replace("mm", "MM") ~ " " ~ frappe.utils.get_user_time_format()) }}
-						{%- elif column.date_format and row.get(column.fieldname) and column.fieldtype == "Date" -%}
-							{{ frappe.utils.formatdate(row.get(column.fieldname), column.date_format) }}
 						{%- else -%}
-							{{ row.get_formatted(column.fieldname) }}
+							{{ cell_value(row, column) }}
 						{%- endif -%}
 					{%- endif -%}
 				</td>
