@@ -7,13 +7,18 @@ from frappe.utils.data import cint, cstr
 # Chromium download/setup helpers were moved to `frappe.utils.chromium.download`.
 
 
-def _print_format_doc_or_none(print_format: str | None):
+def _print_format_doc_or_none(print_format: str | None, doctype: str | None = None):
 	"""Return the Print Format doc, or None for an empty/"Standard"/deleted name.
+
+	With a doctype, an empty name means the doctype's default print format, the one
+	printview renders, so the PDF engine is picked for the format that is printed.
 
 	Degrading a missing name to None (instead of raising DoesNotExistError) keeps
 	notifications and scheduled jobs that reference a removed format from breaking
 	mid-send — they fall back to the Standard render.
 	"""
+	if not print_format and doctype:
+		print_format = frappe.get_meta(doctype).default_print_format
 	if not print_format or print_format == "Standard":
 		return None
 	try:
@@ -81,7 +86,7 @@ def get_print(
 
 	local = frappe.local
 	if "pdf_generator" not in local.form_dict:
-		pf_doc = _print_format_doc_or_none(print_format)
+		pf_doc = _print_format_doc_or_none(print_format, doctype)
 		local.form_dict.pdf_generator = resolve_pdf_generator(pf_doc, pdf_generator)
 
 	original_form_dict = copy.deepcopy(local.form_dict)
@@ -180,7 +185,7 @@ def attach_print(
 		uses_beta_renderer,
 	)
 
-	pf_doc = _print_format_doc_or_none(print_format)
+	pf_doc = _print_format_doc_or_none(print_format, doctype)
 	render_via_generator = (pf_doc is None or uses_beta_renderer(pf_doc)) and resolve_pdf_generator(
 		pf_doc
 	) == "chrome"
