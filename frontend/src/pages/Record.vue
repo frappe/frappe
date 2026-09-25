@@ -177,7 +177,7 @@ import { PANEL_BUILTINS } from "./record/panel/builtins";
 import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
 import { favouritesOf, hasFavourited } from "./record/favourites";
 import { canFollow, declinedMessage } from "./record/follow";
-import { useLiveDocinfo } from "./record/liveDocinfo";
+import { useLiveDocinfo, warnDocinfoFailed } from "./record/liveDocinfo";
 import { useLiveClientScripts } from "./record/liveClientScripts";
 import { personOf, type DocInfo } from "./record/panel/context";
 import { mergePart } from "./record/panel/peopleActions";
@@ -242,6 +242,7 @@ const PINNED_CONTROLS = ["save"];
 let generation = 0;
 // Likewise for two sidecar re-reads: several picks in one gesture each fire one.
 let docinfoRead = 0;
+let docinfoLanding: Promise<void> = Promise.resolve();
 
 const doctype = computed(() => addresses.doctypeOf(String(route.params.doctype)));
 const docname = computed(() => String(route.params.name));
@@ -451,12 +452,19 @@ function chooseFormTab(identity: string) {
 	tabMemory.value.remember(identity);
 }
 
-async function reloadDocinfo() {
+function reloadDocinfo() {
+	docinfoLanding = readDocinfo();
+	return docinfoLanding;
+}
+
+// A read that a newer one replaced resolves once the newest has landed.
+async function readDocinfo(): Promise<void> {
 	if (!doctype.value) return;
 	const mine = generation;
 	const read = ++docinfoRead;
 	const fresh = await loadParts(doctype.value, docname.value);
-	if (mine !== generation || read !== docinfoRead) return;
+	if (mine !== generation) return;
+	if (read !== docinfoRead) return docinfoLanding;
 	docinfo.value = fresh;
 }
 
@@ -564,7 +572,7 @@ async function paintLate({ mine, pointer }: Opening, created: RecordPageControll
 	if (mine === generation) landPaint(created, pointer);
 }
 
-// Each read resolves to the function that applies it, so they all apply in one step.
+// Each read resolves to its applier, which may return a re-read to wait for; they all apply in one step.
 function backgroundReads(target: Opening["target"]): BackgroundRead[] {
 	const before = docinfo.value;
 	const reads: BackgroundRead[] = [
@@ -575,7 +583,7 @@ function backgroundReads(target: Opening["target"]): BackgroundRead[] {
 	return reads;
 }
 
-/** Once the first replay is done, every read applied together, then one replay whose acts are dropped. */
+/** After the first replay, every read applied together and any docinfo re-read landed, then one replay whose acts are dropped. */
 async function applyInBackground(
 	mine: number,
 	created: RecordPageController,
@@ -583,12 +591,16 @@ async function applyInBackground(
 	firstReplay: Promise<void>
 ) {
 	try {
-		const [settled] = await Promise.all([Promise.allSettled(reads), firstReplay]);
+		const [settled, [replayed]] = await Promise.all([
+			Promise.allSettled(reads),
+			Promise.allSettled([firstReplay]),
+		]);
 		if (mine !== generation) return;
 		const rereads = settled.map((read) =>
 			read.status === "fulfilled" ? read.value() : undefined
 		);
 		await Promise.all(rereads);
+		if (replayed.status === "rejected") throw replayed.reason;
 		if (mine !== generation) return;
 	} finally {
 		if (mine === generation) feeds.endKeptRead();
@@ -603,12 +615,8 @@ function takeRefetch(fresh: LoadedRecord, before: DocInfo | null) {
 	doc.value = merged.doc;
 	if (!same(linkTitles.value, fresh.linkTitles)) linkTitles.value = fresh.linkTitles;
 	// A write or live update since the reads began may be missing from `fresh`; a new read includes it.
-	if (docinfo.value !== before) return reloadDocinfo().catch(warnPartsFailed);
+	if (docinfo.value !== before) return reloadDocinfo().catch(warnDocinfoFailed);
 	if (!same(before, fresh.docinfo)) docinfo.value = fresh.docinfo;
-}
-
-function warnPartsFailed(error: unknown) {
-	if (import.meta.env.DEV) console.warn("[record-page] docinfo re-read failed", error);
 }
 
 function show(loaded: LoadedRecord, metadata: any) {

@@ -42,9 +42,7 @@ export function useLiveDocinfo<T extends object>({ socket, docinfo, reload }: Op
 	// A failed re-read keeps the last sidecar on screen; the next delta or reconnect tries again.
 	function reloadQuietly(scheduledFor: Target | null = target) {
 		if (scheduledFor !== target) return;
-		reload().catch((error) => {
-			if (import.meta.env.DEV) console.warn("[record-page] docinfo re-read failed", error);
-		});
+		reload().catch(warnDocinfoFailed);
 	}
 
 	// Once for a burst of deltas: an assign of three people lands three logs.
@@ -115,6 +113,11 @@ export function useLiveDocinfo<T extends object>({ socket, docinfo, reload }: Op
 	}
 
 	return { follow, release, dispose, reloadQuietly: () => reloadQuietly() };
+}
+
+/** The dev warning for a sidecar re-read that failed; the last sidecar stays on screen. */
+export function warnDocinfoFailed(error: unknown) {
+	if (import.meta.env.DEV) console.warn("[record-page] docinfo re-read failed", error);
 }
 
 /** Whether a delta belongs to the record on screen. */

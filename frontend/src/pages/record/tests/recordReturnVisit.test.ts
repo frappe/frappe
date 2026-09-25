@@ -57,6 +57,7 @@ vi.mock("@/pages/List.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/pages/Module.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/shell/NotFound.vue", () => ({ default: { render: () => null } }));
 
+import { activityTimelineRows } from "@framework/ui/ActivityTimeline";
 import { clearDataCache, feedListRead, settleTicket, takeTicket } from "@framework/ui/cache";
 import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
 import { resetUserRoles, useUserRoles } from "@framework/ui/composables/useUserRoles";
@@ -105,6 +106,8 @@ const server = {
   holdRecord: null as Gate | null,
   holdActivity: null as Gate | null,
   holdSession: null as Gate | null,
+  /** One gate per docinfo re-read (a read without `seen`), taken in the order the reads start. */
+  holdParts: [] as Gate[],
   requests: [] as string[],
 };
 
@@ -129,6 +132,7 @@ async function answer(url: URL, method: string, body: any): Promise<[unknown, nu
   }
   if (path.startsWith("/api/v2/document/Note/") && method === "GET") {
     await server.holdRecord?.opened;
+    if (!url.searchParams.get("include")?.includes("seen")) await server.holdParts.shift()?.opened;
     if (server.failRecord) return [{ errors: [{ type: "Error", message: "down" }] }, 500];
     return [recordEnvelope(server.others[path.split("/")[5]] ?? server.doc), 200];
   }
@@ -197,6 +201,7 @@ beforeEach(() => {
   server.holdRecord = null;
   server.holdActivity = null;
   server.holdSession = null;
+  server.holdParts = [];
   server.requests = [];
   load.layoutsLoading = false;
   load.failFirstReplay = false;
@@ -512,6 +517,35 @@ describe("a return visit", () => {
     replays.length = 0;
 
     server.holdRecord.open();
+    await settle();
+
+    expect(replays).toEqual([["F2", "F1", "F3"]]);
+  });
+
+  it("replays after the newest sidecar re-read when a later re-read replaced the one the record read started", async () => {
+    const replays: string[][] = [];
+    await register({ onRefresh: (page) => void replays.push(page.files.items.map((one) => one.name)) });
+    const { router } = await visitAndLeave();
+    server.attachments = [fileRow("F2", EARLIER)];
+    server.holdRecord = gate();
+    await comeBack(router);
+    await settle();
+    const added = fileRow("F1", OLD);
+    const doc = { ...added, reference_doctype: "Note", reference_name: name };
+    socket.emit("docinfo_update", { key: "attachments", action: "add", doc });
+    const [replaced, newest] = (server.holdParts = [gate(), gate()]);
+    server.holdRecord.open();
+    await settle();
+    socket.emit("disconnect");
+    socket.emit("connect");
+    await settle();
+    replays.length = 0;
+
+    server.attachments = [fileRow("F2", EARLIER), added];
+    replaced.open();
+    await settle();
+    server.attachments = [...server.attachments, fileRow("F3", NEW)];
+    newest.open();
     await settle();
 
     expect(replays).toEqual([["F2", "F1", "F3"]]);
@@ -839,6 +873,24 @@ describe("a return visit on the Activity tab", () => {
 
     expect(errors).toEqual([expect.objectContaining({ message: "replay failed" })]);
     expect(prefetchEnded).toContain(name);
+  });
+
+  it("applies the kept feed's re-read before ending its mark when the first replay fails", async () => {
+    await register({ onRefresh: drawState });
+    const { router } = await visitAndLeave("?tab=activity");
+    apps.at(-1)!.config.errorHandler = () => {};
+    server.activity = [activityRow("a1", "Row one"), activityRow("a2", "Row two")];
+    server.holdActivity = gate();
+    load.failFirstReplay = true;
+
+    await comeBack(router);
+    await settle();
+    prefetchEnded.length = 0;
+    server.holdActivity.open();
+    await settle();
+
+    expect(prefetchEnded).toContain(name);
+    expect(activityTimelineRows("Note", name).map((row: any) => row.key)).toContain("a2");
   });
 
   it("takes the cold path when no past visit kept the feed", async () => {
