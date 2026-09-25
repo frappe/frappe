@@ -2,7 +2,7 @@
 	<div class="user-image-container hidden-xs hidden-sm">
 		<div class="sidebar-image-wrapper">
 			{% if user_image %}
-			<img class="sidebar-image" src="{{ user_image }}" />
+			<img class="sidebar-image" src="{%= frappe.utils.escape_html(user_image) %}" />
 			{% else %}
 			<div class="sidebar-standard-image hide">
 				<div class="standard-image"></div>

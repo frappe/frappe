@@ -207,8 +207,20 @@ export default class BulkOperations {
 				},
 			})
 			.then((r) => {
+				// delete_items returns the undeleted names, or null when the job was enqueued.
+				// Only trust an explicit list — otherwise we would clear meta locals for
+				// documents that still exist (failed deletes) or were not deleted yet (async).
 				let failed = r.message;
-				if (!failed) failed = [];
+				if (!Array.isArray(failed)) {
+					if (done) done();
+					return;
+				}
+
+				for (const name of docnames) {
+					if (!failed.includes(name)) {
+						frappe.model.delete_from_locals(this.doctype, name);
+					}
+				}
 
 				if (failed.length && !r._server_messages) {
 					frappe.throw(
@@ -379,12 +391,14 @@ export default class BulkOperations {
 		show_help_text();
 
 		function set_value_field(dialogObj) {
-			const new_df = Object.assign({}, field_mappings[dialogObj.get_value("field")]);
+			const field_value = dialogObj.get_value("field");
+			if (!field_value || !field_mappings[field_value]) return;
+			const new_df = Object.assign({}, field_mappings[field_value]);
 			/* if the field label has status in it and
 			if it has select fieldtype with no default value then
 			set a default value from the available option. */
 			if (
-				new_df.label.match(status_regex) &&
+				new_df.label?.match(status_regex) &&
 				new_df.fieldtype === "Select" &&
 				!new_df.default
 			) {

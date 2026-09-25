@@ -94,7 +94,7 @@ def get_unsubcribed_url(reference_doctype, reference_name, email, unsubscribe_me
 
 
 @frappe.whitelist(allow_guest=True)
-def unsubscribe(doctype, name, email):
+def unsubscribe(doctype: str, name: str, email: str):
 	# unsubsribe from comments and communications
 	if not frappe.flags.in_test and not verify_request():
 		return
@@ -181,6 +181,8 @@ def get_queue():
 
 
 def retry_sending_emails():
+	from frappe.email.doctype.email_queue.email_queue import get_email_retry_limit
+
 	emails_in_sending = frappe.get_all(
 		"Email Queue", filters={"status": "Sending"}, fields=["name", "modified"]
 	)
@@ -191,7 +193,7 @@ def retry_sending_emails():
 			sent_to_atleast_one_recipient = any(
 				rec.recipient for rec in email_queue.recipients if rec.is_mail_sent()
 			)
-			if email_queue.retry < cint(frappe.db.get_system_setting("email_retry_limit")) or 3:
+			if email_queue.retry < get_email_retry_limit():
 				update_fields.update(
 					{
 						"status": "Partially Sent" if sent_to_atleast_one_recipient else "Not Sent",

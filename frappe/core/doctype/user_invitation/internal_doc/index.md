@@ -91,6 +91,12 @@ Cancels a specific pending invitation associated with an installed Framework app
 
 ![cancel invitation api example](./cancel_invitation_api_example.png)
 
+### `resend_invitation`
+Resends a specific pending invitation associated with an installed Framework application.
+
+Requires the `invitation name` and the `app name` as parameters.
+
+
 ## Normal flow
 
 1. Invitations are created from the desk or by using the [`invite_by_email`](#invite_by_email) whitelisted function. An email is sent to the invited email with a link to accept the invitation.

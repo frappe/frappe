@@ -473,8 +473,8 @@ def has_controller_permissions(doc, ptype, user=None, debug=False) -> bool:
 	return True
 
 
-def get_doctypes_with_read():
-	return list({cstr(p.parent) for p in get_valid_perms() if p.parent and p.read})
+def get_doctypes_with_read(user=None):
+	return list({cstr(p.parent) for p in get_valid_perms(user=user) if p.parent and p.read})
 
 
 def get_valid_perms(doctype=None, user=None):
@@ -593,11 +593,13 @@ def add_user_permission(
 		).insert(ignore_permissions=ignore_permissions)
 
 
-def remove_user_permission(doctype, name, user):
+def remove_user_permission(doctype, name, user, ignore_permissions=False):
 	user_permission_name = frappe.db.get_value(
 		"User Permission", dict(user=user, allow=doctype, for_value=name)
 	)
-	frappe.delete_doc("User Permission", user_permission_name)
+	frappe.delete_doc(
+		"User Permission", user_permission_name, force=True, ignore_permissions=ignore_permissions
+	)
 
 
 def clear_user_permissions_for_doctype(doctype, user=None):
@@ -848,10 +850,16 @@ def has_child_permission(
 			)
 			return False
 
+		parent_doc = child_doc.parent_doc if hasattr(child_doc, "parent_doc") else None
+		if parent_doc is None:
+			parent_doc = child_doc.parent
+	else:
+		parent_doc = None
+
 	return has_permission(
 		parent_doctype,
 		ptype=ptype,
-		doc=child_doc and getattr(child_doc, "parent_doc", child_doc.parent),
+		doc=parent_doc,
 		user=user,
 		raise_exception=raise_exception,
 		debug=debug,

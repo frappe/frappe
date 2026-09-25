@@ -51,9 +51,6 @@ def create_user_type(user_type):
 	if frappe.db.exists("User Type", user_type):
 		frappe.delete_doc("User Type", user_type)
 
-	user_type_limit = {frappe.scrub(user_type): 1}
-	update_site_config("user_type_doctype_limit", user_type_limit)
-
 	doc = frappe.get_doc(
 		{
 			"doctype": "User Type",

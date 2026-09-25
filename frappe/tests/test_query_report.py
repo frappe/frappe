@@ -1,9 +1,18 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import datetime
+import json
+
 import frappe
 import frappe.utils
-from frappe.desk.query_report import build_xlsx_data, export_query, run
+from frappe.desk.query_report import (
+	add_custom_column_data,
+	build_xlsx_data,
+	export_query,
+	format_fields,
+	run,
+)
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.xlsxutils import make_xlsx
 
@@ -16,6 +25,77 @@ class TestQueryReport(FrappeTestCase):
 
 	def tearDown(self):
 		frappe.db.rollback()
+
+	def test_get_data_for_custom_field_with_large_name_list(self):
+		from frappe.desk.query_report import get_data_for_custom_field
+
+		frappe.set_user("Administrator")
+
+		names = [f"NONEXISTENT-{i:06d}" for i in range(6000)]
+		result = get_data_for_custom_field("ToDo", "description", names)
+		self.assertEqual(result, {})
+
+	def test_owner_opens_prepared_report_by_name_without_prepared_report_role(self):
+		from frappe.core.doctype.prepared_report.prepared_report import create_json_gz_file
+
+		frappe.set_user("Administrator")
+		owner, reader = (
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": email.split("@", 1)[0],
+					"send_welcome_email": 0,
+					"roles": [{"role": "Website Manager"}],
+				}
+			).insert()
+			for email in ("test_prepared_report_owner@example.com", "test_prepared_report_reader@example.com")
+		)
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Open ToDos " + frappe.generate_hash(length=6),
+				"report_type": "Query Report",
+				"query": "select name from tabToDo",
+				"prepared_report": 1,
+				"is_standard": "No",
+			}
+		).insert(ignore_permissions=True)
+		custom_report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "My Open ToDos " + frappe.generate_hash(length=6),
+				"report_type": "Custom Report",
+				"reference_report": report.name,
+				"prepared_report": 1,
+				"is_standard": "No",
+			}
+		).insert(ignore_permissions=True)
+		other_report = frappe.copy_doc(report)
+		other_report.report_name = "Closed ToDos " + frappe.generate_hash(length=6)
+		other_report.insert(ignore_permissions=True)
+
+		# the ready notification links a custom report's prepared report to its reference report
+		with self.set_user(owner.name):
+			prepared_report = frappe.get_doc(
+				{"doctype": "Prepared Report", "report_name": custom_report.name}
+			).insert(ignore_permissions=True)
+			create_json_gz_file(
+				{"columns": [], "result": []}, prepared_report.doctype, prepared_report.name, report.name
+			)
+			filters = json.dumps({"prepared_report_name": prepared_report.name})
+			self.assertEqual(run(report.name, filters)["doc"].name, prepared_report.name)
+			with self.assertRaises(frappe.PermissionError):
+				run(other_report.name, filters)
+
+		with self.set_user(reader.name), self.assertRaises(frappe.PermissionError):
+			run(report.name, filters)
+
+		custom_report.delete()
+		with self.set_user(owner.name), self.assertRaises(frappe.PermissionError):
+			run(report.name, filters)
 
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
@@ -87,6 +167,49 @@ class TestQueryReport(FrappeTestCase):
 		for row in xlsx_data:
 			# column_b should be 'str' even with composite cell value
 			self.assertEqual(type(row[1]), str)
+
+	def test_xlsx_export_preserves_date_objects(self):
+		"""Date/Datetime columns must reach Excel as real date objects, while CSV keeps strings"""
+
+		posting_date = datetime.date(2026, 6, 1)
+		created_on = datetime.datetime(2026, 6, 1, 9, 30)
+
+		def make_data():
+			return frappe._dict(
+				columns=[
+					{"label": "Posting Date", "fieldname": "posting_date", "fieldtype": "Date"},
+					{"label": "Created On", "fieldname": "created_on", "fieldtype": "Datetime"},
+				],
+				result=[{"posting_date": posting_date, "created_on": created_on}],
+			)
+
+		# Excel: date objects are preserved so make_xlsx can write real date cells
+		excel_data = make_data()
+		format_fields(excel_data, "Excel")
+		self.assertEqual(excel_data.result[0]["posting_date"], posting_date)
+		self.assertIsInstance(excel_data.result[0]["created_on"], datetime.datetime)
+
+		xlsx_data, _column_widths = build_xlsx_data(excel_data, [0], include_indentation=0)
+		self.assertIsInstance(xlsx_data[1][0], datetime.date)
+		self.assertIsInstance(xlsx_data[1][1], datetime.datetime)
+
+		# CSV (default, no file_format_type): dates are stringified for display
+		csv_data = make_data()
+		format_fields(csv_data)
+		self.assertIsInstance(csv_data.result[0]["posting_date"], str)
+		self.assertIsInstance(csv_data.result[0]["created_on"], str)
+
+	def test_export_strips_quotes_from_link_labels(self):
+		"""Quoted link values are plain text labels in desk, so exports must drop the quotes too"""
+		data = frappe._dict(
+			columns=[
+				{"fieldname": "account", "fieldtype": "Link"},
+				{"fieldname": "remarks", "fieldtype": "Data"},
+			],
+			result=[{"account": "'Total Asset (Debit)'", "remarks": "'As per ledger'"}],
+		)
+		format_fields(data, "Excel")
+		self.assertEqual(data.result[0], {"account": "Total Asset (Debit)", "remarks": "'As per ledger'"})
 
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader
@@ -245,6 +368,40 @@ data = columns, result
 		except Exception as e:
 			raise e
 			frappe.db.rollback()
+
+	def test_custom_column_linked_to_another_custom_column(self):
+		"""Test custom column that looks up its value through another custom column"""
+
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "test_custom_column_chain@example.com",
+				"first_name": "Rhea",
+				"last_name": "Menon",
+				"send_welcome_email": 0,
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert()
+
+		self.addCleanup(frappe.set_user, frappe.session.user)
+		frappe.set_user(user.name)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Follow up on renewal"}).insert()
+
+		custom_columns = [
+			{"fieldname": "owner", "doctype": "ToDo", "link_field": {"fieldname": "todo", "names": []}},
+			{
+				"fieldname": "full_name",
+				"doctype": "User",
+				"link_field": {"fieldname": "owner", "names": []},
+			},
+		]
+
+		result = add_custom_column_data(custom_columns, [{"todo": todo.name}])
+
+		self.assertDictEqual(
+			{"todo": todo.name, "owner": user.name, "full_name": "Rhea Menon"},
+			result[0],
+		)
 
 	def test_export_report_via_email(self):
 		REPORT_NAME = "Test CSV Report"

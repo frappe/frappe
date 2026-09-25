@@ -268,6 +268,44 @@ class TestDBQuery(FrappeTestCase):
 				result in DatabaseQuery("DocType").execute(filters={"name": ["not in", "DocType,DocField"]})
 			)
 
+	def test_large_in_filter_does_not_exceed_sqlparse_token_limit(self):
+		# A large `in (...)` list produces a query that exceeds sqlparse's 10k-token
+		# cap; query validation must not crash with SQLParseError.
+		names = [f"NONEXISTENT-{i:06d}" for i in range(6000)]
+		self.assertEqual(DatabaseQuery("DocType").execute(filters={"name": ["in", names]}), [])
+
+	def test_in_filter_json_encoded_values(self):
+		# JSON-encoded list string should work the same as comma-separated
+		for result in [{"name": "DocType"}, {"name": "DocField"}]:
+			self.assertTrue(
+				result
+				in DatabaseQuery("DocType").execute(filters={"name": ["in", '["DocType", "DocField"]']})
+			)
+
+		# Values containing commas must not be split
+		todo = frappe.get_doc(
+			doctype="ToDo", description="Test, With Comma", allocated_to="Administrator"
+		).insert()
+		try:
+			results = DatabaseQuery("ToDo").execute(
+				filters={"description": ["in", '["Test, With Comma"]']},
+				fields=["description"],
+			)
+			self.assertIn({"description": "Test, With Comma"}, results)
+
+			results_split = DatabaseQuery("ToDo").execute(
+				filters={"description": ["in", "Test, With Comma"]},
+				fields=["description"],
+			)
+			self.assertNotIn({"description": "Test, With Comma"}, results_split)
+		finally:
+			frappe.delete_doc("ToDo", todo.name)
+
+	def test_string_as_field(self):
+		self.assertEqual(
+			frappe.get_all("DocType", as_list=True), frappe.get_all("DocType", fields="name", as_list=True)
+		)
+
 	def test_none_filter(self):
 		query = frappe.qb.get_query("DocType", fields="name", filters={"restrict_to_domain": None})
 		sql = str(query).replace("`", "").replace('"', "")
@@ -573,6 +611,61 @@ class TestDBQuery(FrappeTestCase):
 				result = search_link("ToDo", term)
 				self.assertIsInstance(result, list)
 
+	def test_validate_generated_query(self):
+		"""Unit test the final-query validator directly."""
+		from frappe.model.db_query import validate_generated_query
+
+		# legitimate generated queries must pass
+		valid = [
+			"select `tabNote`.`name`, `tabNote`.`title` from `tabNote` where `tabNote`.`title` like '%a%' order by `tabNote`.`modified` desc",
+			"select distinct `tabUser`.`name` from `tabUser` where ifnull(`tabUser`.`enabled`, 0) = 1",
+			"select count(`tabNote`.name) as c from `tabNote` group by `tabNote`.owner",
+			"select `tabA`.`name` from `tabA` left join `tabB` tb on (tb.`name` = `tabA`.`link`) where tb.`x` in ('a', 'b')",
+			"select `tabX`.`name` from `tabX` where `tabX`.`email` = 'a@b.com'",
+		]
+		for query in valid:
+			with self.subTest(query=query):
+				validate_generated_query(query)  # should not raise
+
+		# allowed read-only functions must pass
+		for query in [
+			"select now() as n from `tabNote`",
+			"select upper(`tabNote`.`title`) from `tabNote`",
+			"select length(`tabNote`.`title`) from `tabNote`",
+			"select ifnull(cast(`tabNote`.`name` as varchar), '') from `tabNote`",
+		]:
+			with self.subTest(query=query):
+				validate_generated_query(query)  # should not raise
+
+		# constructs a list query must never contain
+		invalid = [
+			"select `tabNote`.`name` from `tabNote` union select password from `tabUser`",
+			"select `tabNote`.`name` from `tabNote` union all select 1",
+			"select `tabNote`.`name` from `tabNote` intersect select 1",
+			"select `tabNote`.`name` from `tabNote` where x in (select secret from vault)",
+			"select exists(select 1 from `tabX`) from `tabNote`",
+			"select `tabNote`.`name` from `tabNote`; drop table `tabUser`",
+			"select `tabNote`.`name` /* x */ from `tabNote`",
+			"select `tabNote`.`name` from `tabNote` -- c\n",
+			"select un/**/ion from `tabNote`",
+			"select * into outfile '/tmp/x' from `tabNote`",
+			# functions not on the allow-list
+			"select version() from `tabNote`",
+			"select sleep(5) from `tabNote`",
+			"select `tabNote`.`name` from `tabNote` where x = user()",
+			"select `tabNote`.`name` from `tabNote` order by rand()",
+			"select updatexml(1, 2, 3) from `tabNote`",
+		]
+		for query in invalid:
+			with self.subTest(query=query):
+				self.assertRaises(frappe.DataError, validate_generated_query, query)
+
+	def test_permission_conditions_with_subquery_allowed(self):
+		"""Trusted permission/hook conditions may contain subqueries and must not be blocked."""
+		# Event's get_permission_query_conditions injects `or exists (select ... )`
+		query = DatabaseQuery("Event").execute(fields=["name", "subject"], limit_page_length=1, run=0)
+		self.assertIn("exists (select", query.lower())
+
 	def test_nested_permission(self):
 		frappe.set_user("Administrator")
 		create_nested_doctype()
@@ -697,6 +790,18 @@ class TestDBQuery(FrappeTestCase):
 				fields=["name"],
 				order_by="(select rank from tabRankedDocTypes where tabRankedDocTypes.name = tabDocType.name) asc",
 			)
+
+		blocked_order_bys = (
+			"xyz(qpr(module, 'Core'), -1), name",
+			"xyz(abc(end(module, 1, 1)), 67), name",
+			"length(module), name",
+			"utf(module), name",
+			"concat(module, ''), name",
+			"coalesce(xyz(module, 'Core'), 0)",
+		)
+		for order_by in blocked_order_bys:
+			with self.assertRaises(frappe.ValidationError):
+				DatabaseQuery("DocType").execute(fields=["name"], order_by=order_by)
 
 		# validate allowed usage
 		DatabaseQuery("DocType").execute(
@@ -908,6 +1013,36 @@ class TestDBQuery(FrappeTestCase):
 			self.assertFalse("test_field" in data[0])
 			self.assertTrue("name" in data[0])
 			self.assertEqual(len(data[0]), 1)
+
+	def test_permlevel_fields_in_order_by(self):
+		# A permlevel-protected field must not be usable in order by / group by,
+		# else its value leaks via a sorting side-channel oracle.
+		with setup_patched_blog_post(), setup_test_user(set_user=True):
+			for order_by in (
+				"published",
+				"`published` desc",
+				"`tabBlog Post`.`published`",
+			):
+				self.assertRaises(
+					frappe.PermissionError,
+					frappe.get_list,
+					"Blog Post",
+					fields=["name"],
+					order_by=order_by,
+					limit=1,
+				)
+
+			self.assertRaises(
+				frappe.PermissionError,
+				frappe.get_list,
+				"Blog Post",
+				fields=["name"],
+				group_by="published",
+				limit=1,
+			)
+
+			# permlevel-0 field must still be sortable
+			frappe.get_list("Blog Post", fields=["name"], order_by="title asc", limit=1)
 
 			data = frappe.get_list(
 				"Blog Post",
@@ -1236,6 +1371,347 @@ class TestDBQuery(FrappeTestCase):
 		self.assertIn("''", query)
 		self.assertNotIn("0", query)
 		self.assertNotIn("ifnull", query)
+
+
+# module-level hooks used by TestDotNotationPermission to test permission_query_conditions path
+def _dn_hook_deny_all(user, doctype=None, **kwargs):
+	"""Returns a condition that matches no record — used to assert the hook blocks the JOIN."""
+	return f"`tab{doctype}`.`name` = '__no_match__'"
+
+
+def _dn_hook_subquery(user, doctype=None, **kwargs):
+	"""Returns a subquery condition — used to assert _user_tables keeps validation clean."""
+	return f"`tab{doctype}`.`name` in (select name from `tab{doctype}` where 1=0)"
+
+
+class TestDotNotationPermission(FrappeTestCase):
+	"""dot-notation link field queries must respect row-level restrictions on the linked DocType."""
+
+	ROLE = "DN Test Role"
+	USER = "dn_test@example.com"
+	# doctype names
+	CHILD_IFO = "DN Child IfOwner"  # if_owner restricted
+	CHILD_UP = "DN Child UP"  # user-permission restricted
+	PARENT = "DN Test Parent"
+
+	@classmethod
+	def _cleanup(cls):
+		frappe.set_user("Administrator")
+		for dt in (cls.PARENT, cls.CHILD_IFO, cls.CHILD_UP):
+			if frappe.db.exists("DocType", dt):
+				for n in frappe.get_all(dt, pluck="name"):
+					frappe.delete_doc(dt, n, force=True, ignore_permissions=True)
+				frappe.delete_doc("DocType", dt, force=True, ignore_permissions=True)
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls._cleanup()
+		frappe.set_user("Administrator")
+
+		if not frappe.db.exists("Role", cls.ROLE):
+			frappe.get_doc({"doctype": "Role", "role_name": cls.ROLE}).insert()
+		if not frappe.db.exists("User", cls.USER):
+			frappe.get_doc(
+				{"doctype": "User", "email": cls.USER, "first_name": "DN", "new_password": "test"}
+			).insert(ignore_permissions=True)
+		frappe.get_doc("User", cls.USER).add_roles(cls.ROLE)
+
+		def _perm(ifo=0):
+			return [
+				{"role": cls.ROLE, "read": 1, "create": 1, "if_owner": ifo},
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1},
+			]
+
+		new_doctype(
+			cls.CHILD_IFO,
+			fields=[{"fieldname": "secret", "fieldtype": "Data", "label": "Secret"}],
+			permissions=_perm(ifo=1),
+		).insert(ignore_permissions=True)
+		new_doctype(
+			cls.CHILD_UP,
+			fields=[{"fieldname": "secret", "fieldtype": "Data", "label": "Secret"}],
+			permissions=_perm(ifo=0),
+		).insert(ignore_permissions=True)
+		new_doctype(
+			cls.PARENT,
+			fields=[
+				{"fieldname": "ifo_link", "fieldtype": "Link", "label": "Ifo Link", "options": cls.CHILD_IFO},
+				{"fieldname": "up_link", "fieldtype": "Link", "label": "Up Link", "options": cls.CHILD_UP},
+				{"fieldname": "user_link", "fieldtype": "Link", "label": "User Link", "options": "User"},
+			],
+			permissions=_perm(),
+		).insert(ignore_permissions=True)
+
+		# if_owner records: one owned by Admin, one by test user
+		cls.ifo_theirs = frappe.get_doc({"doctype": cls.CHILD_IFO, "secret": "theirs"}).insert(
+			ignore_permissions=True
+		)
+		frappe.set_user(cls.USER)
+		cls.ifo_mine = frappe.get_doc({"doctype": cls.CHILD_IFO, "secret": "mine"}).insert(
+			ignore_permissions=True
+		)
+		frappe.set_user("Administrator")
+
+		# user-permission records
+		cls.up_a = frappe.get_doc({"doctype": cls.CHILD_UP, "secret": "up_a"}).insert(ignore_permissions=True)
+		cls.up_b = frappe.get_doc({"doctype": cls.CHILD_UP, "secret": "up_b"}).insert(ignore_permissions=True)
+
+		# parent rows
+		def ins(**kw):
+			return frappe.get_doc({"doctype": cls.PARENT, **kw}).insert(ignore_permissions=True)
+
+		cls.p_theirs = ins(ifo_link=cls.ifo_theirs.name)
+		cls.p_mine = ins(ifo_link=cls.ifo_mine.name)
+		cls.p_up_a = ins(up_link=cls.up_a.name)
+		cls.p_up_b = ins(up_link=cls.up_b.name)
+		cls.p_user_link = ins(user_link=cls.USER)
+
+	@classmethod
+	def tearDownClass(cls):
+		cls._cleanup()
+		for dt, name in [("User", cls.USER), ("Role", cls.ROLE)]:
+			if frappe.db.exists(dt, name):
+				frappe.delete_doc(dt, name, force=True, ignore_permissions=True)
+		super().tearDownClass()
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		clear_user_permissions_for_doctype(self.CHILD_UP, self.USER)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		clear_user_permissions_for_doctype(self.CHILD_UP, self.USER)
+
+	def _get(self, parent, field):
+		rows = frappe.get_list(self.PARENT, filters={"name": parent}, fields=[field])
+		return rows[0].get(field.split(".")[1]) if rows else None
+
+	def test_if_owner_blocks_others_linked_data(self):
+		frappe.set_user(self.USER)
+		self.assertIsNone(self._get(self.p_theirs.name, "ifo_link.secret"))
+
+	def test_if_owner_allows_own_linked_data(self):
+		frappe.set_user(self.USER)
+		self.assertEqual(self._get(self.p_mine.name, "ifo_link.secret"), "mine")
+
+	def test_user_permission_blocks_out_of_scope_linked_data(self):
+		add_user_permission(self.CHILD_UP, self.up_a.name, self.USER)
+		frappe.set_user(self.USER)
+		self.assertIsNone(self._get(self.p_up_b.name, "up_link.secret"))
+
+	def test_user_permission_allows_permitted_linked_data(self):
+		add_user_permission(self.CHILD_UP, self.up_a.name, self.USER)
+		frappe.set_user(self.USER)
+		self.assertEqual(self._get(self.p_up_a.name, "up_link.secret"), "up_a")
+
+	def test_ignore_permissions_bypasses_all_restrictions(self):
+		frappe.set_user(self.USER)
+		result = DatabaseQuery(self.PARENT).execute(
+			filters={"name": self.p_theirs.name},
+			fields=["ifo_link.secret"],
+			ignore_permissions=True,
+		)
+		self.assertEqual(result[0].get("secret"), "theirs")
+
+	def test_shared_record_accessible_via_dot_notation(self):
+		"""Share OR branch: a record the user doesn't own but was shared with them
+		must still be readable via dot-notation (not silently return null)."""
+		frappe.share.add("DN Child IfOwner", self.ifo_theirs.name, self.USER, read=1, notify=0)
+		try:
+			frappe.set_user(self.USER)
+			self.assertEqual(self._get(self.p_theirs.name, "ifo_link.secret"), "theirs")
+		finally:
+			frappe.set_user("Administrator")
+			frappe.share.remove("DN Child IfOwner", self.ifo_theirs.name, self.USER)
+
+	def test_applicable_for_user_permission_enforced(self):
+		"""UP scoped to the root doctype (applicable_for=PARENT) is enforced on the JOIN.
+		Without this, applicable_for UPs were silently ignored for linked doctypes."""
+		add_user_permission(self.CHILD_UP, self.up_a.name, self.USER, applicable_for=self.PARENT)
+		frappe.set_user(self.USER)
+		self.assertIsNone(self._get(self.p_up_b.name, "up_link.secret"))
+		self.assertEqual(self._get(self.p_up_a.name, "up_link.secret"), "up_a")
+
+	def test_permission_hook_on_linked_doctype_enforced(self):
+		"""permission_query_conditions hook registered for the linked DocType is applied
+		to the JOIN ON clause, not silently ignored."""
+		hook_path = "frappe.tests.test_db_query._dn_hook_deny_all"
+		orig = frappe.get_hooks
+
+		def patched(*args, **kw):
+			# intercept permission_query_conditions only; pass everything else through
+			# as-is so callers that rely on frappe's default return values aren't broken
+			key = args[0] if args else kw.get("hook")
+			if key == "permission_query_conditions":
+				return {self.CHILD_UP: [hook_path]}
+			return orig(*args, **kw)
+
+		with patch.object(frappe, "get_hooks", side_effect=patched):
+			frappe.set_user(self.USER)
+			# hook returns "name = '__no_match__'" → JOIN matches nothing → null
+			self.assertIsNone(self._get(self.p_up_a.name, "up_link.secret"))
+
+	def test_real_user_permission_query_condition_hook_is_aliased(self):
+		frappe.set_user(self.USER)
+		self.assertEqual(self._get(self.p_user_link.name, "user_link.name"), self.USER)
+
+	def test_permission_hook_subquery_does_not_trip_validator(self):
+		"""Permission hooks can legitimately return subqueries. The _user_tables split
+		must keep them out of validate_generated_query so no DataError is raised."""
+		hook_path = "frappe.tests.test_db_query._dn_hook_subquery"
+		orig = frappe.get_hooks
+
+		def patched(*args, **kw):
+			key = args[0] if args else kw.get("hook")
+			if key == "permission_query_conditions":
+				return {self.CHILD_UP: [hook_path]}
+			return orig(*args, **kw)
+
+		with patch.object(frappe, "get_hooks", side_effect=patched):
+			frappe.set_user(self.USER)
+			try:
+				# must not raise DataError even though hook returns a subquery
+				frappe.get_list(self.PARENT, filters={"name": self.p_up_a.name}, fields=["up_link.secret"])
+			except frappe.exceptions.DataError:
+				self.fail("DataError raised — _user_tables split is not working")
+
+
+class TestChildTableParentRowPermission(FrappeTestCase):
+	"""Direct child-table queries (parent_doctype=...) must respect the parent's own
+	row-level restrictions (User Permissions), not just doctype-level read on the parent."""
+
+	ROLE = "CT Test Role"
+	USER = "ct_test@example.com"
+	OWNER = "CT Test Owner"  # linked doctype that User Permission scopes against
+	PARENT = "CT Test Parent"
+	CHILD = "CT Test Child"
+
+	@classmethod
+	def _cleanup(cls):
+		frappe.set_user("Administrator")
+		for dt in (cls.PARENT, cls.CHILD, cls.OWNER):
+			if frappe.db.exists("DocType", dt):
+				for n in frappe.get_all(dt, pluck="name"):
+					frappe.delete_doc(dt, n, force=True, ignore_permissions=True)
+				frappe.delete_doc("DocType", dt, force=True, ignore_permissions=True)
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls._cleanup()
+		frappe.set_user("Administrator")
+
+		if not frappe.db.exists("Role", cls.ROLE):
+			frappe.get_doc({"doctype": "Role", "role_name": cls.ROLE}).insert()
+		if not frappe.db.exists("User", cls.USER):
+			frappe.get_doc(
+				{"doctype": "User", "email": cls.USER, "first_name": "CT", "new_password": "test"}
+			).insert(ignore_permissions=True)
+		frappe.get_doc("User", cls.USER).add_roles(cls.ROLE)
+
+		new_doctype(cls.OWNER).insert(ignore_permissions=True)
+		new_doctype(
+			cls.CHILD,
+			istable=1,
+			fields=[{"fieldname": "value", "fieldtype": "Data", "label": "Value"}],
+		).insert(ignore_permissions=True)
+		new_doctype(
+			cls.PARENT,
+			fields=[
+				{"fieldname": "owner_ref", "fieldtype": "Link", "label": "Owner Ref", "options": cls.OWNER},
+				{"fieldname": "items", "fieldtype": "Table", "label": "Items", "options": cls.CHILD},
+			],
+			# plain doctype-level read, no if_owner: row scoping relies entirely on the
+			# User Permission on the linked OWNER doctype, same shape as many real-world setups
+			permissions=[
+				{"role": cls.ROLE, "read": 1},
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1},
+			],
+		).insert(ignore_permissions=True)
+
+		cls.owner_a = frappe.get_doc({"doctype": cls.OWNER, "some_fieldname": "a"}).insert(
+			ignore_permissions=True
+		)
+		cls.owner_b = frappe.get_doc({"doctype": cls.OWNER, "some_fieldname": "b"}).insert(
+			ignore_permissions=True
+		)
+
+		def ins(owner):
+			return frappe.get_doc(
+				{
+					"doctype": cls.PARENT,
+					"owner_ref": owner.name,
+					"items": [{"value": f"{owner.name}-row"}],
+				}
+			).insert(ignore_permissions=True)
+
+		cls.parent_a = ins(cls.owner_a)
+		cls.parent_b = ins(cls.owner_b)
+
+	@classmethod
+	def tearDownClass(cls):
+		cls._cleanup()
+		for dt, name in [("User", cls.USER), ("Role", cls.ROLE)]:
+			if frappe.db.exists(dt, name):
+				frappe.delete_doc(dt, name, force=True, ignore_permissions=True)
+		super().tearDownClass()
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		clear_user_permissions_for_doctype(self.OWNER, self.USER)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		clear_user_permissions_for_doctype(self.OWNER, self.USER)
+
+	def _child_rows(self, parent):
+		return DatabaseQuery(self.CHILD).execute(
+			filters=[["parent", "=", parent.name], ["parenttype", "=", self.PARENT]],
+			fields=["value", "parent"],
+			parent_doctype=self.PARENT,
+		)
+
+	def test_build_match_conditions_without_execute_does_not_crash(self):
+		"""build_match_conditions() can be called directly on a child doctype without going
+		through execute() first (e.g. reportview.get_match_cond/build_match_conditions) —
+		parent_doctype must not be read before it's ever been set."""
+		frappe.set_user(self.USER)
+		self.assertEqual(DatabaseQuery(self.CHILD).build_match_conditions(), "")
+
+	def test_child_query_blocks_out_of_scope_parent_rows(self):
+		add_user_permission(self.OWNER, self.owner_a.name, self.USER)
+		frappe.set_user(self.USER)
+		self.assertEqual(self._child_rows(self.parent_b), [])
+
+	def test_child_query_allows_in_scope_parent_rows(self):
+		add_user_permission(self.OWNER, self.owner_a.name, self.USER)
+		frappe.set_user(self.USER)
+		rows = self._child_rows(self.parent_a)
+		self.assertEqual(len(rows), 1)
+		self.assertEqual(rows[0]["value"], f"{self.owner_a.name}-row")
+
+	def test_child_query_honors_contextual_permission_on_parent_identity(self):
+		"""A User Permission scoped directly to the parent doctype's own identity, with
+		applicable_for set to the doctype actually being queried (the reference doctype),
+		must still be honored on the child-table route — not just permissions on a link field.
+
+		If the reference doctype isn't threaded through correctly, this doesn't merely deny
+		access: the applicable_for check silently matches nothing, no restricting condition
+		gets added at all, and every parent's rows become visible — so both directions must
+		be checked, not just that the in-scope row is still readable."""
+		try:
+			add_user_permission(self.PARENT, self.parent_a.name, self.USER, applicable_for=self.CHILD)
+			frappe.set_user(self.USER)
+
+			rows_a = self._child_rows(self.parent_a)
+			self.assertEqual(len(rows_a), 1)
+			self.assertEqual(rows_a[0]["value"], f"{self.owner_a.name}-row")
+
+			self.assertEqual(self._child_rows(self.parent_b), [])
+		finally:
+			frappe.set_user("Administrator")
+			clear_user_permissions_for_doctype(self.PARENT, self.USER)
 
 
 class TestReportView(FrappeTestCase):

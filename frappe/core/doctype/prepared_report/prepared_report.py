@@ -9,6 +9,7 @@ from typing import Any
 from rq import get_current_job
 
 import frappe
+from frappe import _
 from frappe.database.utils import dangerously_reconnect_on_connection_abort
 from frappe.desk.form.load import get_attachments
 from frappe.desk.query_report import generate_report_result
@@ -83,18 +84,21 @@ class PreparedReport(Document):
 		)
 
 	def get_prepared_data(self, with_file_name=False):
-		if attachments := get_attachments(self.doctype, self.name):
-			attachment = None
-			for f in attachments or []:
-				if f.file_url.endswith(".gz"):
-					attachment = f
-					break
+		attachments = get_attachments(self.doctype, self.name)
+		if not attachments:
+			frappe.throw(_("No attachment found for the prepared report"), title=_("Attachment Not Found"))
 
-			attached_file = frappe.get_doc("File", attachment.name)
+		attachment = None
+		for f in attachments or []:
+			if f.file_url.endswith(".gz"):
+				attachment = f
+				break
 
-			if with_file_name:
-				return (gzip.decompress(attached_file.get_content()), attachment.file_name)
-			return gzip.decompress(attached_file.get_content())
+		attached_file = frappe.get_doc("File", attachment.name)
+
+		if with_file_name:
+			return (gzip.decompress(attached_file.get_content()), attachment.file_name)
+		return gzip.decompress(attached_file.get_content())
 
 
 def generate_report(prepared_report):
@@ -124,7 +128,10 @@ def generate_report(prepared_report):
 	except Exception:
 		# we need to ensure that error gets stored
 		_save_error(instance, error=frappe.get_traceback(with_context=True))
+		return
 
+	instance.reload()
+	instance.status = "Completed"
 	instance.report_end_time = frappe.utils.now()
 	instance.peak_memory_usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 	add_data_to_monitor(peak_memory_usage=instance.peak_memory_usage)
@@ -161,8 +168,11 @@ def update_job_id(prepared_report):
 
 
 @frappe.whitelist()
-def make_prepared_report(report_name, filters=None):
+def make_prepared_report(report_name: str, filters: dict[str, Any] | str | list | None = None):
 	"""run reports in background"""
+	from frappe.desk.query_report import get_report_doc
+
+	get_report_doc(report_name)
 	prepared_report = frappe.get_doc(
 		{
 			"doctype": "Prepared Report",
@@ -186,7 +196,7 @@ def process_filters_for_prepared_report(filters: dict[str, Any] | str) -> str:
 
 
 @frappe.whitelist()
-def get_reports_in_queued_state(report_name, filters):
+def get_reports_in_queued_state(report_name: str, filters: dict[str, Any] | str | list):
 	return frappe.get_all(
 		"Prepared Report",
 		filters={
@@ -226,7 +236,7 @@ def expire_stalled_report():
 
 
 @frappe.whitelist()
-def delete_prepared_reports(reports):
+def delete_prepared_reports(reports: str | list[dict[str, Any]]):
 	reports = frappe.parse_json(reports)
 	for report in reports:
 		prepared_report = frappe.get_doc("Prepared Report", report["name"])
@@ -258,7 +268,7 @@ def create_json_gz_file(data, dt, dn, report_name):
 
 
 @frappe.whitelist()
-def download_attachment(dn):
+def download_attachment(dn: str):
 	pr = frappe.get_doc("Prepared Report", dn)
 	if not pr.has_permission("read"):
 		frappe.throw(frappe._("Cannot Download Report due to insufficient permissions"))
@@ -304,8 +314,13 @@ def has_permission(doc, user):
 
 
 @frappe.whitelist()
-def enqueue_json_to_csv_conversion(prepared_report_name):
+def enqueue_json_to_csv_conversion(prepared_report_name: str):
 	"""Call this to enqueue the conversion in background."""
+	frappe.get_doc("Prepared Report", prepared_report_name).check_permission("read")
+	_enqueue_json_to_csv_conversion(prepared_report_name)
+
+
+def _enqueue_json_to_csv_conversion(prepared_report_name: str):
 	enqueue(method=convert_json_to_csv, queue="long", prepared_report_name=prepared_report_name)
 
 
@@ -337,7 +352,10 @@ def convert_json_to_csv(prepared_report_name):
 	writer = csv.DictWriter(output, fieldnames=fieldnames)
 	writer.writeheader()
 	for row in result:
-		writer.writerow({key: row.get(key, "") for key in fieldnames})
+		if isinstance(row, dict):
+			writer.writerow({key: row.get(key, "") for key in fieldnames})
+		else:
+			writer.writerow({field: row[idx] for idx, field in enumerate(fieldnames)})
 
 	csv_content = output.getvalue().encode("utf-8")
 

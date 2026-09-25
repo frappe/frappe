@@ -278,6 +278,7 @@ class DocType(Document):
 	def set_defaults_for_single_and_table(self):
 		if self.issingle:
 			self.allow_import = 0
+			self.allow_rename = 0
 			self.is_submittable = 0
 			self.istable = 0
 
@@ -1649,6 +1650,34 @@ def validate_fields(meta: Meta):
 					)
 				)
 
+	def validate_link_filters(docfield):
+		link_filters_value = docfield.get("link_filters")
+		if not link_filters_value:
+			return
+
+		try:
+			link_filters = json.loads(link_filters_value)
+		except (TypeError, ValueError):
+			frappe.throw(
+				_("Invalid Filters for field {0}. Filters must be valid JSON.").format(
+					frappe.bold(docfield.label or docfield.fieldname)
+				)
+			)
+
+		if not isinstance(link_filters, list) or any(
+			not isinstance(filter_row, list) or len(filter_row) != 4 for filter_row in link_filters
+		):
+			frappe.throw(
+				_(
+					"Invalid Filters for field {0}. Filters must be a list of filters, where each filter is a list with four values: doctype, fieldname, operator, and value."
+				).format(frappe.bold(docfield.label or docfield.fieldname))
+			)
+
+		if docfield.fieldtype == "Attachment Gallery" and any(
+			filter_row[0] != "File" for filter_row in link_filters
+		):
+			frappe.throw(_("Attachment Gallery filters must target File."))
+
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
@@ -1672,6 +1701,7 @@ def validate_fields(meta: Meta):
 		validate_fetch_from(d)
 		validate_data_field_type(d)
 		check_decimal_config(d)
+		validate_link_filters(d)
 
 		if not frappe.flags.in_migrate:
 			check_unique_fieldname(meta.get("name"), d.fieldname)

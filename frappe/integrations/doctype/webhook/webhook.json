@@ -83,7 +83,7 @@
   {
    "fieldname": "html_condition",
    "fieldtype": "HTML",
-   "options": "<p><strong>Condition Examples:</strong></p>\n<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n</pre>"
+   "options": "<p><strong>{{ __(\"Condition Examples\") }}:</strong></p>\n<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n</pre>"
   },
   {
    "fieldname": "sb_webhook",
@@ -226,7 +226,7 @@
    "link_fieldname": "webhook"
   }
  ],
- "modified": "2024-10-28 12:21:52.172428",
+ "modified": "2026-04-22 15:33:54.888415",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",

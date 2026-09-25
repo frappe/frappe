@@ -276,11 +276,20 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					// immediately show from cache
 					me.awesomplete.list = me.$input.cache[doctype][term];
 				}
+				var reference_doctype = me.get_reference_doctype() || "";
+				var docfield_parent =
+					me.df?.parent || reference_doctype || (me.frm && me.frm.doctype) || "";
+				var meta_df =
+					docfield_parent && me.df?.fieldname
+						? frappe.meta.get_docfield(docfield_parent, me.df.fieldname)
+						: null;
+
 				var args = {
 					txt: term,
 					doctype: doctype,
-					ignore_user_permissions: me.df.ignore_user_permissions,
-					reference_doctype: me.get_reference_doctype() || "",
+					ignore_user_permissions:
+						me.df?.ignore_user_permissions || meta_df?.ignore_user_permissions,
+					reference_doctype: reference_doctype,
 					page_length: cint(frappe.boot.sysdefaults?.link_field_results_limit) || 10,
 				};
 
@@ -410,12 +419,25 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 			me.autocomplete_open = false;
 
-			// prevent selection on tab
-			let TABKEY = 9;
-			if (e.keyCode === TABKEY) {
-				e.preventDefault();
-				me.awesomplete.close();
-				return false;
+			// prevent selection on tab/enter if input doesn't match
+			const TABKEY = 9;
+			const ENTERKEY = 13;
+			const event = o.originalEvent;
+			if (event && [TABKEY, ENTERKEY].includes(event.keyCode)) {
+				const input = me.get_label_value().toLowerCase();
+				if (!input && event.keyCode === TABKEY) {
+					e.preventDefault();
+					me.awesomplete.close();
+					return false;
+				} else if (input && !me.input_matches_item(input, item)) {
+					e.preventDefault();
+
+					// prevent browser default tab behavior (focus change)
+					if (event.preventDefault) {
+						event.preventDefault();
+					}
+					return false;
+				}
 			}
 
 			if (item.action) {
@@ -437,10 +459,27 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		this.$input.on("awesomplete-selectcomplete", function (e) {
 			let o = e.originalEvent;
-			if (o.text.value.indexOf("__link_option") !== -1) {
+			if (cstr(o.text.value).indexOf("__link_option") !== -1) {
 				me.$input.val("");
 			}
 		});
+	}
+
+	/**
+	 * Checks if the current input matches any property (label, value, or description)
+	 * of the provided autocomplete item (case-insensitive).
+	 *
+	 * @param {string} input - The current input value.
+	 * @param {Object} item - The autocomplete item to check against.
+	 * @returns {boolean} - True if input matches the label, value, or description.
+	 */
+	input_matches_item(input, item) {
+		return (
+			input &&
+			[this.get_translated(item.label ?? item.value), item.value, item.description].some(
+				(value) => cstr(value).toLowerCase().includes(input)
+			)
+		);
 	}
 
 	show_untranslated() {
@@ -560,11 +599,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			return obj;
 		};
 
-		// apply link field filters
-		if (this.df.link_filters && !!this.df.link_filters.length) {
-			this.apply_link_field_filters();
-		}
-
 		if (this.get_query || this.df.get_query) {
 			var get_query = this.get_query || this.df.get_query;
 			if ($.isPlainObject(get_query)) {
@@ -626,17 +660,35 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			if (!args.filters) args.filters = {};
 			$.extend(args.filters, this.df.filters);
 		}
+
+		if (this.df.link_filters && !!this.df.link_filters.length) {
+			const link_filters = this.apply_link_field_filters();
+
+			if (Array.isArray(args.filters)) {
+				const doctype = this.get_options();
+				const fieldnames = Object.keys(link_filters);
+				args.filters = args.filters
+					.filter((filter) => {
+						const [filter_doctype, fieldname] =
+							filter.length >= 4 ? filter : [doctype, filter[0]];
+						return filter_doctype !== doctype || !fieldnames.includes(fieldname);
+					})
+					.concat(
+						fieldnames.map((fieldname) => [fieldname, ...link_filters[fieldname]])
+					);
+			} else {
+				args.filters = { ...(args.filters || {}), ...link_filters };
+			}
+		}
 	}
 
 	apply_link_field_filters() {
-		let link_filters = JSON.parse(this.df.link_filters);
-		let filters = this.parse_filters(link_filters);
-		// take filters from the link field and add to the query
-		this.get_query = function () {
-			return {
-				filters,
-			};
-		};
+		try {
+			return this.parse_filters(JSON.parse(this.df.link_filters));
+		} catch (e) {
+			console.error("Invalid link_filters JSON:", this.df.link_filters, e);
+			return {};
+		}
 	}
 
 	parse_filters(link_filters) {
@@ -759,6 +811,13 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					"Select",
 					"Duration",
 					"Time",
+					"Percent",
+					"Phone",
+					"Barcode",
+					"Autocomplete",
+					"Icon",
+					"Color",
+					"Rating",
 				].includes(df.fieldtype) ||
 				df.read_only == 1 ||
 				df.is_virtual == 1;

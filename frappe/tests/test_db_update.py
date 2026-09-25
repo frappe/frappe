@@ -151,6 +151,25 @@ class TestDBUpdate(FrappeTestCase):
 		frappe.db.commit()
 
 	@run_only_if(db_type_is.MARIADB)
+	def test_unique_index_on_field_with_search_index(self):
+		"""Unique index must be created even when the field already has a search index"""
+
+		doctype = new_doctype(
+			fields=[{"fieldname": "bill_no", "fieldtype": "Data", "search_index": 1}]
+		).insert()
+		try:
+			doctype.fields[0].unique = 1
+			doctype.save()
+			self.check_unique_indexes(doctype.name, "bill_no")
+
+			frappe.get_doc(doctype=doctype.name, bill_no="INV-001").insert()
+			with self.assertRaises(frappe.UniqueValidationError):
+				frappe.get_doc(doctype=doctype.name, bill_no="INV-001").insert()
+		finally:
+			doctype.delete(force=True)
+			frappe.db.commit()  # nosemgrep
+
+	@run_only_if(db_type_is.MARIADB)
 	def test_varchar_length(self):
 		from frappe.database.schema import add_column
 

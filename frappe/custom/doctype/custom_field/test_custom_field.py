@@ -5,8 +5,10 @@ import frappe
 from frappe.custom.doctype.custom_field.custom_field import (
 	create_custom_field,
 	create_custom_fields,
+	delete_custom_fields,
 	rename_fieldname,
 )
+from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.tests.utils import FrappeTestCase
 
 test_records = frappe.get_test_records("Custom Field")
@@ -105,3 +107,50 @@ class TestCustomField(FrappeTestCase):
 		self.assertFalse(doc.get(old))
 
 		field.delete()
+
+	def test_delete_custom_fields(self):
+		doctype = "ToDo"
+		fields = [
+			{
+				"fieldname": f"test_delete_{frappe.generate_hash(length=5)}",
+				"fieldtype": "Data",
+				"insert_after": "status",
+			}
+			for _ in range(4)
+		]
+		fieldnames = [f["fieldname"] for f in fields]
+
+		create_custom_fields({doctype: fields})
+
+		# create property setters for fields deleted via safe path (hooks should clean these up)
+		for fieldname in fieldnames[:2]:
+			make_property_setter(doctype, fieldname, "hidden", "1", "Check")
+
+		def field_exists(fieldname):
+			return frappe.db.exists("Custom Field", {"fieldname": fieldname, "dt": doctype})
+
+		def property_setter_exists(fieldname):
+			return frappe.db.exists("Property Setter", {"doc_type": doctype, "field_name": fieldname})
+
+		for fieldname in fieldnames:
+			self.assertTrue(field_exists(fieldname))
+		for fieldname in fieldnames[:2]:
+			self.assertTrue(property_setter_exists(fieldname))
+
+		# 1
+		delete_custom_fields({doctype: [fieldnames[0], fieldnames[0]]})
+		self.assertFalse(field_exists(fieldnames[0]))
+		self.assertFalse(property_setter_exists(fieldnames[0]))
+
+		# 2
+		delete_custom_fields({doctype: [{"fieldname": fieldnames[1]}]})
+		self.assertFalse(field_exists(fieldnames[1]))
+		self.assertFalse(property_setter_exists(fieldnames[1]))
+
+		# 3
+		delete_custom_fields({doctype: [fieldnames[2], fieldnames[2]]}, bypass_hooks=True)
+		self.assertFalse(field_exists(fieldnames[2]))
+
+		# 4
+		delete_custom_fields({doctype: [{"fieldname": fieldnames[3]}]}, bypass_hooks=True)
+		self.assertFalse(field_exists(fieldnames[3]))

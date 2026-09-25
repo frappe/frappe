@@ -253,7 +253,7 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 		}
 		let me = this;
 		return {
-			allowedChars: /^[A-Za-z0-9_]*$/,
+			allowedChars: /^[\p{L}0-9_]*$/u,
 			mentionDenotationChars: ["@"],
 			isolateCharacter: true,
 			source: frappe.utils.debounce(async function (search_term, renderList) {

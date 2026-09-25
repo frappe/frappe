@@ -105,7 +105,12 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 	}
 	can_rename() {
-		return this.frm.perm[0].write && this.frm.meta.allow_rename && !this.frm.doc.__islocal;
+		return (
+			this.frm.perm[0].write &&
+			this.frm.meta.allow_rename &&
+			!this.frm.doc.__islocal &&
+			!this.frm.meta.issingle
+		);
 	}
 	show_unchanged_document_alert() {
 		frappe.show_alert({
@@ -148,9 +153,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 				})
 				.then((new_docname) => {
 					const reload_form = (input_name) => {
+						frappe.model.rename_doc_in_locals(doctype, docname, input_name, merge);
 						$(document).trigger("rename", [doctype, docname, input_name]);
-						if (locals[doctype] && locals[doctype][docname])
-							delete locals[doctype][docname];
 						this.frm.reload_doc();
 					};
 
@@ -309,9 +313,10 @@ frappe.ui.form.Toolbar = class Toolbar {
 		this.page.clear_icons();
 		this.page.clear_menu();
 
-		if (frappe.boot.desk_settings.form_sidebar) {
+		this.make_menu_items();
+
+		if (frappe.boot.desk_settings.form_navigation_buttons) {
 			this.make_navigation();
-			this.make_menu_items();
 		}
 	}
 
@@ -319,7 +324,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		// Navigate
 		if (!this.frm.is_new() && !this.frm.meta.issingle) {
 			this.page.add_action_icon(
-				"es-line-left-chevron",
+				frappe.utils.is_rtl() ? "es-line-right-chevron" : "es-line-left-chevron",
 				() => {
 					this.frm.navigate_records(1);
 				},
@@ -327,7 +332,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				__("Previous Document")
 			);
 			this.page.add_action_icon(
-				"es-line-right-chevron",
+				frappe.utils.is_rtl() ? "es-line-left-chevron" : "es-line-right-chevron",
 				() => {
 					this.frm.navigate_records(0);
 				},
@@ -647,6 +652,12 @@ frappe.ui.form.Toolbar = class Toolbar {
 					.then((is_amended) => {
 						if (is_amended) {
 							this.page.clear_actions();
+							let btn = this.page.set_secondary_action(__("Amend"), () => {});
+							btn.prop("disabled", true)
+								.wrap('<span style="display:inline-block"></span>')
+								.parent()
+								.attr("title", __("Already amended as {0}", [is_amended]))
+								.tooltip({ delay: { show: 400, hide: 100 }, trigger: "hover" });
 							return;
 						}
 						this.set_page_actions(status);

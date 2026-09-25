@@ -1,0 +1,82 @@
+{
+ "actions": [],
+ "creation": "2026-04-10 16:14:40.343135",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "securitytxt_section",
+  "public_expires",
+  "public_contacts",
+  "public_languages",
+  "public_policy",
+  "security_txt"
+ ],
+ "fields": [
+  {
+   "fieldname": "securitytxt_section",
+   "fieldtype": "Section Break",
+   "label": "Security.txt"
+  },
+  {
+   "description": "Date after which this security.txt should be considered stale. Expires timestamp is converted to UTC.",
+   "fieldname": "public_expires",
+   "fieldtype": "Datetime",
+   "label": "Expires"
+  },
+  {
+   "description": "Website, email or phone where vulnerabilities can be reported. Defaults to `https://security.frappe.io`",
+   "fieldname": "public_contacts",
+   "fieldtype": "Table",
+   "label": "Contact",
+   "options": "Security Settings Contact"
+  },
+  {
+   "description": "Defaults to `en`",
+   "fieldname": "public_languages",
+   "fieldtype": "Table MultiSelect",
+   "label": "Preferred Language",
+   "options": "Security Settings Language"
+  },
+  {
+   "description": "Guidelines and policies on vulnerability reporting. Defaults to `https://frappe.io/security`",
+   "fieldname": "public_policy",
+   "fieldtype": "Data",
+   "label": "Policy",
+   "options": "URL"
+  },
+  {
+   "fieldname": "security_txt",
+   "fieldtype": "Small Text",
+   "is_virtual": 1,
+   "label": "Preview",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-04-17 13:07:45.259146",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Security Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

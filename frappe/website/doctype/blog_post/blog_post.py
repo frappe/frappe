@@ -5,6 +5,8 @@ from math import ceil
 
 import frappe
 from frappe import _
+from frappe.query_builder import DocType, Order
+from frappe.query_builder.functions import Concat, Count, IfNull
 from frappe.utils import (
 	cint,
 	get_fullname,
@@ -308,58 +310,75 @@ def clear_blog_cache():
 
 
 def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_length=20, order_by=None):
-	conditions = []
-	if filters and filters.get("blog_category"):
-		category = filters.get("blog_category")
-	else:
-		category = frappe.utils.escape_html(
-			frappe.local.form_dict.blog_category or frappe.local.form_dict.category
-		)
+	BlogPost = DocType("Blog Post")
+	Blogger = DocType("Blogger")
+	Comment = DocType("Comment")
 
-	if filters and filters.get("blogger"):
-		conditions.append("t1.blogger={}".format(frappe.db.escape(filters.get("blogger"))))
-
-	if category:
-		conditions.append("t1.blog_category={}".format(frappe.db.escape(category)))
-
-	if txt:
-		conditions.append(
-			'(t1.content like {0} or t1.title like {0}")'.format(frappe.db.escape("%" + txt + "%"))
-		)
-
-	if conditions:
-		frappe.local.no_cache = 1
-
-	query = """\
-		select
-			t1.title, t1.name, t1.blog_category, t1.route, t1.published_on, t1.read_time,
-				t1.published_on as creation,
-				t1.read_time as read_time,
-				t1.featured as featured,
-				t1.meta_image as cover_image,
-				t1.content as content,
-				t1.content_type as content_type,
-				t1.content_html as content_html,
-				t1.content_md as content_md,
-				ifnull(t1.blog_intro, t1.content) as intro,
-				t2.full_name, t2.avatar, t1.blogger,
-				(select count(name) from `tabComment`
-					where
-						comment_type='Comment'
-						and reference_doctype='Blog Post'
-						and reference_name=t1.name) as comments
-		from `tabBlog Post` t1, `tabBlogger` t2
-		where t1.published = 1
-		and t1.blogger = t2.name
-		{condition}
-		order by featured desc, published_on desc, name asc
-		limit {page_len} OFFSET {start}""".format(
-		start=limit_start,
-		page_len=limit_page_length,
-		condition=(" and " + " and ".join(conditions)) if conditions else "",
+	comments_subquery = (
+		frappe.qb.from_(Comment)
+		.select(Count(Comment.name))
+		.where(Comment.comment_type == "Comment")
+		.where(Comment.reference_doctype == "Blog Post")
+		.where(Comment.reference_name == BlogPost.name)
 	)
 
-	posts = frappe.db.sql(query, as_dict=1)
+	query = (
+		frappe.qb.from_(BlogPost)
+		.join(Blogger)
+		.on(BlogPost.blogger == Blogger.name)
+		.select(
+			BlogPost.title,
+			BlogPost.name,
+			BlogPost.blog_category,
+			BlogPost.route,
+			BlogPost.published_on,
+			BlogPost.read_time,
+			BlogPost.published_on.as_("creation"),
+			BlogPost.featured.as_("featured"),
+			BlogPost.meta_image.as_("cover_image"),
+			BlogPost.content.as_("content"),
+			BlogPost.content_type.as_("content_type"),
+			BlogPost.content_html.as_("content_html"),
+			BlogPost.content_md.as_("content_md"),
+			IfNull(BlogPost.blog_intro, BlogPost.content).as_("intro"),
+			Blogger.full_name,
+			Blogger.avatar,
+			BlogPost.blogger,
+			comments_subquery.as_("comments"),
+		)
+		.where(BlogPost.published == 1)
+	)
+
+	if filters and filters.get("blogger"):
+		query = query.where(BlogPost.blogger == filters.get("blogger"))
+
+	category = (
+		(filters.get("blog_category") if filters else None)
+		or frappe.local.form_dict.blog_category
+		or frappe.local.form_dict.category
+	)
+
+	if category:
+		category = frappe.utils.escape_html(category)
+		query = query.where(BlogPost.blog_category == category)
+
+	if txt:
+		query = query.where(
+			(BlogPost.content.like(Concat("%", txt, "%"))) | (BlogPost.title.like(Concat("%", txt, "%")))
+		)
+
+	if filters or txt:
+		frappe.local.no_cache = 1
+
+	query = (
+		query.orderby(BlogPost.featured, order=Order.desc)
+		.orderby(BlogPost.published_on, order=Order.desc)
+		.orderby(BlogPost.name, order=Order.asc)
+		.limit(cint(limit_page_length))
+		.offset(cint(limit_start))
+	)
+
+	posts = query.run(as_dict=1)
 
 	for post in posts:
 		post.content = get_html_content_based_on_type(post, "content", post.content_type)

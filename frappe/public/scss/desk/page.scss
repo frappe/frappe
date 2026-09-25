@@ -93,6 +93,10 @@
 	@include card($padding: 0px);
 	box-shadow: none;
 	border: 1px solid var(--border-color);
+
+	[dir="rtl"] & {
+		overflow: visible;
+	}
 }
 
 .page-head {

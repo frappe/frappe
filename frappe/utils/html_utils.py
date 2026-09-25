@@ -186,7 +186,10 @@ def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=No
 
 	# Allow caller to explicitly disallow some tags
 	if disallowed_tags:
-		tags.difference_update(disallowed_tags)
+		if disallowed_tags == "*":
+			tags = set()
+		else:
+			tags.difference_update(disallowed_tags)
 
 	# returns html with escaped tags, escaped orphan >, <, etc.
 	escaped_html = bleach.clean(

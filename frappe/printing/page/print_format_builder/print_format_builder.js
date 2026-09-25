@@ -411,7 +411,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 
 			// new dialog
 			var d = new frappe.ui.Dialog({
-				title: "Edit Section",
+				title: __("Edit Section"),
 				fields: [
 					{
 						label: __("No of Columns"),

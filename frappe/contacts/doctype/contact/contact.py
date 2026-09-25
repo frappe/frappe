@@ -1,5 +1,7 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from typing import Any
+
 import frappe
 from frappe import _
 from frappe.contacts.address_and_contact import set_link_title
@@ -7,7 +9,7 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
-from frappe.utils import cstr, has_gravatar
+from frappe.utils import cstr
 
 
 class Contact(Document):
@@ -69,14 +71,62 @@ class Contact(Document):
 		self.set_user()
 
 		set_link_title(self)
-
-		if self.email_id and not self.image:
-			self.image = has_gravatar(self.email_id)
+		deduplicate_dynamic_links(self)
+		self.validate_primary_contact()
 
 		if self.get("sync_with_google_contacts") and not self.get("google_contacts"):
 			frappe.throw(_("Select Google Contacts to which contact should be synced."))
 
-		deduplicate_dynamic_links(self)
+	def validate_primary_contact(self) -> None:
+		if not self.is_primary_contact:
+			return
+
+		links = {(link.link_doctype, link.link_name) for link in self.links}
+		if not links:
+			return
+
+		self._lock_linked_documents(links)
+		primary_contacts = self._get_linked_primary_contacts(links)
+
+		if primary_contacts:
+			frappe.db.set_value("Contact", {"name": ["in", primary_contacts]}, "is_primary_contact", 0)
+
+	def _lock_linked_documents(self, links: set[tuple[str, str]]) -> None:
+		links_by_doctype = {}
+		for doctype, name in links:
+			links_by_doctype.setdefault(doctype, set()).add(name)
+
+		# Lock in a stable order so concurrent primary-contact updates serialize without deadlocking.
+		for doctype, names in sorted(links_by_doctype.items()):
+			frappe.qb.get_query(
+				doctype,
+				fields=["name"],
+				filters={"name": ["in", sorted(names)]},
+				order_by="name",
+				for_update=True,
+			).run()
+
+	def _get_linked_primary_contacts(self, links: set[tuple[str, str]]) -> list[str]:
+		Contact = frappe.qb.DocType("Contact")
+		DynamicLink = frappe.qb.DocType("Dynamic Link")
+
+		link_filter = None
+		for doctype, name in links:
+			condition = (DynamicLink.link_doctype == doctype) & (DynamicLink.link_name == name)
+			link_filter = condition if link_filter is None else link_filter | condition
+
+		return (
+			frappe.qb.from_(Contact)
+			.join(DynamicLink)
+			.on(DynamicLink.parent == Contact.name)
+			.select(Contact.name)
+			.distinct()
+			.where(Contact.is_primary_contact == 1)
+			.where(Contact.name != self.name)
+			.where(DynamicLink.parenttype == "Contact")
+			.where(DynamicLink.parentfield == "links")
+			.where(link_filter)
+		).run(pluck=True)
 
 	def set_user(self):
 		if not self.user and self.email_id:
@@ -312,7 +362,7 @@ def invite_user(contact: str):
 
 
 @frappe.whitelist()
-def get_contact_details(contact):
+def get_contact_details(contact: str):
 	contact = frappe.get_doc("Contact", contact)
 	contact.check_permission()
 
@@ -341,15 +391,17 @@ def update_contact(doc, method):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def contact_query(doctype, txt, searchfield, start, page_len, filters):
+def contact_query(
+	doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict[str, Any]
+):
 	from frappe.desk.reportview import get_match_cond
 
 	doctype = "Contact"
 	if not frappe.get_meta(doctype).get_field(searchfield) and searchfield not in frappe.db.DEFAULT_COLUMNS:
 		return []
 
-	link_doctype = filters.pop("link_doctype")
-	link_name = filters.pop("link_name")
+	link_doctype = filters.pop("link_doctype", None)
+	link_name = filters.pop("link_name", None)
 
 	return frappe.db.sql(
 		f"""select
@@ -379,7 +431,7 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 
 
 @frappe.whitelist()
-def address_query(links):
+def address_query(links: str):
 	import json
 
 	links = [

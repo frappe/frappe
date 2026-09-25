@@ -5,27 +5,20 @@
     <p class="panel-subtitle">{{ _("wants to access the following details from your account") }}</p>
   </div>
   <div class="panel-body">
-      <ul>
+    <ul>
       {% for dtl in details %}
         <li>{{ _(dtl.title()) }}</li>
       {% endfor %}
-      </ul>
+    </ul>
     <div class="action-buttons d-flex">
-      <button id="deny" class="btn btn-sm btn-light btn-block mr-3">{{ _("Deny") }}</button>
-      <button id="allow" class="btn btn-sm btn-primary btn-block">{{ _("Allow") }}</button>
+      <a href="{{ failure_url | string }}" class="btn btn-sm btn-light btn-block mr-3">{{ _("Deny") }}</a>
+      <form method="POST" action="{{ success_url | string }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="btn btn-sm btn-primary btn-block">{{ _("Allow") }}</button>
+      </form>
     </div>
   </div>
 </div>
-<script type="text/javascript">
-  frappe.ready(function() {
-    $('#allow').on('click', function(event) {
-      window.location.replace("{{ success_url | string }}");
-    });
-    $('#deny').on('click', function(event) {
-      window.location.replace("{{ failure_url | string }}");
-    });
-  });
-</script>
 {% else %}
 <div class="panel panel-danger">
   <div class="panel-heading">

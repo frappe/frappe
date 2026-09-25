@@ -57,6 +57,7 @@
   "view_switcher",
   "form_settings_section",
   "form_sidebar",
+  "form_navigation_buttons",
   "timeline",
   "dashboard",
   "change_password",
@@ -812,6 +813,12 @@
    "fieldname": "dashboard",
    "fieldtype": "Check",
    "label": "Dashboard"
+  },
+  {
+   "default": "1",
+   "fieldname": "form_navigation_buttons",
+   "fieldtype": "Check",
+   "label": "Navigation Buttons"
   }
  ],
  "icon": "fa fa-user",
@@ -875,7 +882,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-05-21 14:57:24.333141",
+ "modified": "2026-01-02 16:00:51.406511",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

@@ -69,12 +69,14 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					column_width += 50;
 				}
 				let column_title = `<span class="indicator red">
-					${col.header_title || `<i>${__("Untitled Column")}</i>`}
+					${frappe.utils.escape_html(col.header_title) || `<i>${__("Untitled Column")}</i>`}
 					${!col.df ? show_warnings_button : ""}
 				</span>`;
 				return {
 					id: frappe.utils.get_random(6),
-					name: col.header_title || (df ? df.label : "Untitled Column"),
+					name:
+						frappe.utils.escape_html(col.header_title) ||
+						(df ? df.label : "Untitled Column"),
 					content: column_title,
 					skip_import: true,
 					editable: false,
@@ -98,13 +100,13 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				: null;
 
 			let column_title = `<span class="indicator green">
-				${col.header_title || df.label}
+				${frappe.utils.escape_html(col.header_title) || df.label}
 				${date_format ? `(${date_format})` : ""}
 			</span>`;
 
 			return {
 				id: df.fieldname,
-				name: col.header_title,
+				name: frappe.utils.escape_html(col.header_title),
 				content: column_title,
 				df: df,
 				editable: false,

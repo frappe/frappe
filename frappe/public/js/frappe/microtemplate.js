@@ -163,6 +163,21 @@ frappe.render_template = function (name, data) {
 	}
 
 	w.document.write(html);
+
+	// show footer on print
+	const footer = w.document.getElementById("footer-html");
+	if (footer) {
+		footer.classList.remove("visible-pdf");
+		footer.style.marginTop = "auto";
+
+		const print_format = w.document.querySelector(".print-format");
+		if (print_format) {
+			print_format.style.display = "flex";
+			print_format.style.flexDirection = "column";
+			print_format.style.minHeight = "100vh";
+		}
+	}
+
 	w.document.close();
 }),
 	(frappe.render_tree = function (opts) {

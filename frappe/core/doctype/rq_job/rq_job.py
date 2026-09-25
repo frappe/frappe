@@ -93,7 +93,7 @@ class RQJob(Document):
 	def get_matching_job_ids(args) -> list[str]:
 		filters = make_filter_dict(args.get("filters"))
 
-		queues = _eval_filters(filters.get("queue"), QUEUES)
+		queues = _eval_filters(filters.get("queue"), QUEUES + get_custom_queues())
 		statuses = _eval_filters(filters.get("status"), JOB_STATUSES)
 
 		matched_job_ids = []
@@ -236,5 +236,11 @@ def get_all_queued_jobs():
 
 
 @frappe.whitelist()
-def stop_job(job_id):
+def stop_job(job_id: str):
 	frappe.get_doc("RQ Job", job_id).stop_job()
+
+
+@frappe.whitelist()
+def get_custom_queues():
+	frappe.has_permission("RQ Job", throw=True)
+	return list((frappe.conf.workers or {}).keys())

@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import os
+from typing import Any
 
 from rq.timeouts import JobTimeoutException
 
@@ -91,7 +92,7 @@ class DataImport(Document):
 			self.payload_count = len(payloads)
 
 	@frappe.whitelist()
-	def get_preview_from_template(self, import_file=None, google_sheets_url=None):
+	def get_preview_from_template(self, import_file: str | None = None, google_sheets_url: str | None = None):
 		if import_file:
 			self.import_file = import_file
 
@@ -176,7 +177,13 @@ def start_import(data_import):
 
 
 @frappe.whitelist()
-def download_template(doctype, export_fields=None, export_records=None, export_filters=None, file_type="CSV"):
+def download_template(
+	doctype: str,
+	export_fields: str | dict[str, list[str]] | None = None,
+	export_records: str | None = None,
+	export_filters: str | dict[str, Any] | list[list[Any]] | None = None,
+	file_type: str = "CSV",
+):
 	"""
 	Download template from Exporter
 	        :param doctype: Document Type
@@ -240,6 +247,15 @@ def get_import_status(data_import_name: str):
 	import_status["total_records"] = total_payload_count
 
 	return import_status
+
+
+@frappe.whitelist(methods=["GET"])
+@frappe.read_only()
+def get_import_log_count(data_import: str):
+	doc = frappe.get_doc("Data Import", data_import)
+	doc.check_permission("read")
+
+	return frappe.db.count("Data Import Log", {"data_import": data_import})
 
 
 @frappe.whitelist()

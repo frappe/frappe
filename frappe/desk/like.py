@@ -13,7 +13,7 @@ from frappe.utils import get_link_to_form
 
 
 @frappe.whitelist()
-def toggle_like(doctype, name, add=False):
+def toggle_like(doctype: str, name: str, add: str | bool = False):
 	"""Adds / removes the current user in the `__liked_by` property of the given document.
 	If column does not exist, will add it in the database.
 
@@ -32,6 +32,8 @@ def _toggle_like(doctype, name, add, user=None):
 
 	if not user:
 		user = frappe.session.user
+
+	frappe.has_permission(doctype, "read", doc=name, throw=True)
 
 	try:
 		liked_by = frappe.db.get_value(doctype, name, "_liked_by")

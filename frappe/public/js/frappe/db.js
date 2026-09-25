@@ -91,7 +91,12 @@ frappe.db = {
 	},
 	delete_doc: function (doctype, name) {
 		return new Promise((resolve) => {
-			frappe.call("frappe.client.delete", { doctype, name }, (r) => resolve(r.message));
+			frappe.call("frappe.client.delete", { doctype, name }, (r) => {
+				if (!r.exc) {
+					frappe.model.delete_from_locals(doctype, name);
+				}
+				resolve(r.message);
+			});
 		});
 	},
 	count: function (doctype, args = {}) {
@@ -115,7 +120,7 @@ frappe.db = {
 			limit,
 		});
 	},
-	get_link_options(doctype, txt = "", filters = {}) {
+	get_link_options(doctype, txt = "", filters = {}, page_length = 0) {
 		return new Promise((resolve) => {
 			frappe.call({
 				type: "GET",
@@ -124,6 +129,7 @@ frappe.db = {
 					doctype,
 					txt,
 					filters,
+					page_length,
 				},
 				callback(r) {
 					resolve(r.message);

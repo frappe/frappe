@@ -201,13 +201,16 @@ frappe.ui.Filter = class {
 		this._filter_value_set = Promise.resolve();
 
 		if (["in", "not in"].includes(condition) && Array.isArray(value)) {
-			value = value.join(",");
+			value = value.some((v) => String(v).includes(","))
+				? JSON.stringify(value)
+				: value.join(",");
 		}
 
 		if (Array.isArray(value)) {
 			this._filter_value_set = this.field.set_value(value);
-		} else if (value !== undefined || value !== null) {
-			this._filter_value_set = this.field.set_value((value + "").trim());
+		} else if (value !== undefined && value !== null) {
+			const field_value = typeof value === "number" ? value : String(value).trim();
+			this._filter_value_set = this.field.set_value(field_value);
 		}
 		return this._filter_value_set;
 	}
@@ -484,7 +487,12 @@ frappe.ui.filter_utils = {
 			}
 		} else if (["in", "not in"].includes(condition)) {
 			if (val) {
-				val = val.split(",").map((v) => strip(v));
+				try {
+					const parsed = JSON.parse(val);
+					val = Array.isArray(parsed) ? parsed : [String(parsed)];
+				} catch {
+					val = val.split(",").map((v) => strip(v));
+				}
 			}
 		} else if (frappe.boot.additional_filters_config[condition]) {
 			val = field.value || val;

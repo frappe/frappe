@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+from typing import Any
 
 import frappe
 from frappe import _
@@ -48,7 +49,7 @@ def get_setup_stages(args):  # nosemgrep
 
 
 @frappe.whitelist()
-def setup_complete(args):
+def setup_complete(args: str | dict[str, Any]):
 	"""Calls hooks for `setup_wizard_complete`, sets home page as `desktop`
 	and clears cache. If wizard breaks, calls `setup_wizard_exception` hook"""
 
@@ -68,7 +69,9 @@ def setup_complete(args):
 
 
 @frappe.whitelist()
-def initialize_system_settings_and_user(system_settings_data, user_data):
+def initialize_system_settings_and_user(
+	system_settings_data: str | dict[str, Any], user_data: str | dict[str, Any]
+):
 	system_settings = frappe.get_single("System Settings")
 
 	if cint(system_settings.setup_complete):
@@ -183,6 +186,13 @@ def run_setup_success(args):  # nosemgrep
 	for hook in frappe.get_hooks("setup_wizard_success"):
 		frappe.get_attr(hook)(args)
 	install_fixtures.install()
+	if not frappe.conf.developer_mode:
+		login_as_first_user(args)
+
+
+def login_as_first_user(args):
+	if args.get("email") and hasattr(frappe.local, "login_manager"):
+		frappe.local.login_manager.login_as(args.get("email"))
 
 
 def get_stages_hooks(args):  # nosemgrep
@@ -377,7 +387,7 @@ def disable_future_access():
 
 
 @frappe.whitelist()
-def load_messages(language):
+def load_messages(language: str):
 	"""Load translation messages for given language from all `setup_wizard_requires`
 	javascript files"""
 	from frappe.translate import get_messages_for_boot

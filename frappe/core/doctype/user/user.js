@@ -88,6 +88,8 @@ frappe.ui.form.on("User", {
 			frm.roles_editor.reset();
 		}
 
+		frm.fields_dict.new_password?.$input?.attr("autocomplete", "new-password");
+
 		if (
 			frm.can_edit_roles &&
 			!frm.is_new() &&
@@ -122,7 +124,7 @@ frappe.ui.form.on("User", {
 
 		frappe.xcall("frappe.apps.get_apps").then((r) => {
 			let apps = r?.map((r) => r.name) || [];
-			frm.set_df_property("default_app", "options", [" ", ...apps]);
+			frm.set_df_property("default_app", "options", ["", ...apps]);
 		});
 
 		if (frm.is_new()) {
@@ -231,7 +233,7 @@ frappe.ui.form.on("User", {
 			}
 
 			if (
-				cint(frappe.boot.sysdefaults.enable_two_factor_auth) &&
+				frappe.defaults.is_enabled("enable_two_factor_auth") &&
 				(frappe.session.user == doc.name || frappe.user.has_role("System Manager"))
 			) {
 				frm.add_custom_button(

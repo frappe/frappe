@@ -419,6 +419,32 @@ class TestEmailAccount(FrappeTestCase):
 		self.assertEqual(inbox_mails, 2)
 		self.assertEqual(test_folder_mails, 1)
 
+	def test_email_sync_rule_ignores_reindexed_uids(self):
+		email_account = frappe.get_doc(
+			doctype="Email Account",
+			email_account_name="Test IMAP Sync Account",
+			email_id="test_imap_sync@example.com",
+			use_imap=1,
+			email_sync_option="ALL",
+			initial_sync_count=100,
+			imap_folder=[{"folder_name": "INBOX", "append_to": "Communication"}],
+		).insert(ignore_permissions=True)
+		self.addCleanup(email_account.delete)
+
+		communication = frappe.get_doc(
+			doctype="Communication",
+			communication_type="Communication",
+			communication_medium="Email",
+			sent_or_received="Received",
+			email_account=email_account.name,
+			subject="Quotation request",
+			sender="sender@example.com",
+			uid=-1,
+		).insert(ignore_permissions=True)
+		self.addCleanup(communication.delete)
+
+		self.assertEqual(email_account.build_email_sync_rule(), "UID 1:101")
+
 	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
 	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
 	def mocked_get_inbound_mails(
@@ -624,6 +650,32 @@ class TestInboundMail(FrappeTestCase):
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
+
+	def test_subject_match_when_append_to_doctype_has_no_subject_field(self):
+		"""Inbound mail must not raise when the `Append To` doctype has no subject_field configured."""
+		mail_content = self.get_test_mail(fname="incoming-subject-placeholder.raw").replace(
+			"{{ subject }}", "RE: An unmatched subject line"
+		)
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
+
+		no_subject_fields = frappe._dict(subject_field=None, sender_field=None)
+		with patch.object(InboundMail, "get_email_fields", return_value=no_subject_fields):
+			# Should return None instead of raising an exception
+			self.assertIsNone(inbound_mail.match_record_by_subject_and_sender("ToDo"))
+
+	def test_subject_match_when_append_to_doctype_has_no_sender_field(self):
+		"""Subject matching must skip the sender filter (not crash) when sender_field is absent."""
+		mail_content = self.get_test_mail(fname="incoming-subject-placeholder.raw").replace(
+			"{{ subject }}", "RE: An unmatched subject line"
+		)
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
+
+		# subject_field set, sender_field absent: must build the subject filter and skip the sender one.
+		no_sender_field = frappe._dict(subject_field="description", sender_field=None)
+		with patch.object(InboundMail, "get_email_fields", return_value=no_sender_field):
+			self.assertIsNone(inbound_mail.match_record_by_subject_and_sender("ToDo"))
 
 	def test_reference_document_by_subject_match_with_accents(self):
 		subject = "Nouvelle tâche à faire 😃"

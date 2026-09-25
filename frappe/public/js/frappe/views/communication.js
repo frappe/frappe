@@ -242,7 +242,7 @@ frappe.views.CommunicationComposer = class {
 		let print_format_lang;
 		if (print_format != "Standard") {
 			print_format_lang = frappe.get_doc(
-				"Print Format",
+				":Print Format",
 				print_format
 			)?.default_print_language;
 		}
@@ -543,8 +543,8 @@ frappe.views.CommunicationComposer = class {
 			format = this.selected_format();
 		}
 
-		if (locals["Print Format"] && locals["Print Format"][format]) {
-			return locals["Print Format"][format];
+		if (locals[":Print Format"] && locals[":Print Format"][format]) {
+			return locals[":Print Format"][format];
 		} else {
 			return {};
 		}

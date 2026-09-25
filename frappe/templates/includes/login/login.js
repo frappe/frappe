@@ -250,17 +250,9 @@ login.login_handlers = (function () {
 					window.location.href = data.home_page;
 				}
 			} else if (window.location.hash === '#forgot') {
-				if (data.message === 'not found') {
-					login.set_status({{ _("Not a valid user") | tojson }}, 'red');
-				} else if (data.message == 'not allowed') {
-					login.set_status({{ _("Not Allowed") | tojson }}, 'red');
-				} else if (data.message == 'disabled') {
-					login.set_status({{ _("Not Allowed: Disabled User") | tojson }}, 'red');
-				} else {
-					login.set_status({{ _("Instructions Emailed") | tojson }}, 'green');
-				}
-
-
+				// Always show the same message regardless of whether the account
+				// exists or not, to prevent username enumeration (CWE-204).
+				login.set_status({{ _("Instructions Emailed") | tojson }}, 'green');
 			} else if (window.location.hash === '#signup') {
 				if (cint(data.message[0]) == 0) {
 					login.set_status(data.message[1], 'red');
@@ -288,7 +280,6 @@ login.login_handlers = (function () {
 		},
 		401: get_error_handler({{ _("Invalid Login. Try again.") | tojson }}),
 		417: get_error_handler({{ _("Oops! Something went wrong.") | tojson }}),
-		404: get_error_handler({{ _("User does not exist.") | tojson }}),
 		429: get_error_handler({{ _("Too many requests. Please try again later.") | tojson }}),
 		500: get_error_handler({{ _("Something went wrong.") | tojson }}),
 	};

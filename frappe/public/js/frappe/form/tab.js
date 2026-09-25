@@ -22,7 +22,7 @@ export default class Tab {
 					href="#${id}"
 					role="tab"
 					aria-controls="${id}">
-					${__(this.label)}
+					${__(this.label, null, this.doctype)}
 				</button>
 			</li>
 		`).appendTo(this.tab_link_container);

@@ -327,13 +327,7 @@ export default class Grid {
 	}
 
 	get_selected() {
-		return (this.grid_rows || [])
-			.map((row) => {
-				return row.doc.__checked ? row.doc.name : null;
-			})
-			.filter((d) => {
-				return d;
-			});
+		return (this.data || []).filter((doc) => doc.__checked).map((doc) => doc.name);
 	}
 
 	get_selected_children() {
@@ -848,7 +842,10 @@ export default class Grid {
 
 	set_value(fieldname, value, doc) {
 		if (this.display_status !== "None" && doc?.name && this.grid_rows_by_docname?.[doc.name]) {
-			this.grid_rows_by_docname[doc.name].refresh_field(fieldname, value);
+			let grid_row = this.grid_rows_by_docname[doc.name];
+			grid_row.refresh_field(fieldname, value);
+			// re-evaluate depends_on of sibling columns that reference this field
+			grid_row.refresh_dependency();
 		}
 	}
 
@@ -1075,7 +1072,9 @@ export default class Grid {
 		if (user_settings && user_settings[this.doctype] && user_settings[this.doctype].length) {
 			this.user_defined_columns = user_settings[this.doctype]
 				.map((row) => {
-					let column = frappe.meta.get_docfield(this.doctype, row.fieldname);
+					let column =
+						this.docfields?.find((d) => d.fieldname === row.fieldname) ||
+						frappe.meta.get_docfield(this.doctype, row.fieldname);
 
 					if (column) {
 						column.in_list_view = 1;

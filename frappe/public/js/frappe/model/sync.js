@@ -31,6 +31,10 @@ Object.assign(frappe.model, {
 					frappe.meta.sync(d);
 				}
 
+				if (d.doctype === "Print Format") {
+					frappe.model.sync_print_format_for_meta(d);
+				}
+
 				if (d.localname) {
 					frappe.model.rename_after_save(d, i);
 				}
@@ -41,16 +45,60 @@ Object.assign(frappe.model, {
 		return r.docs;
 	},
 
+	sync_print_format_for_meta: function (doc) {
+		if (!locals[":Print Format"]) locals[":Print Format"] = {};
+
+		if (doc.docstatus < 2 && !cint(doc.disabled)) {
+			locals[":Print Format"][doc.name] = {
+				...doc,
+				doctype: ":Print Format",
+			};
+		} else {
+			delete locals[":Print Format"][doc.name];
+		}
+	},
+
 	rename_after_save: (d, i) => {
 		frappe.model.new_names[d.localname] = d.name;
+		frappe.model.rename_doc_in_locals(d.doctype, d.localname, d.name);
 		$(document).trigger("rename", [d.doctype, d.localname, d.name]);
-		delete locals[d.doctype][d.localname];
 
 		// update docinfo to new dict keys
 		if (i === 0) {
 			frappe.model.docinfo[d.doctype][d.name] = frappe.model.docinfo[d.doctype][d.localname];
 			frappe.model.docinfo[d.doctype][d.localname] = undefined;
 		}
+	},
+
+	delete_from_locals: (doctype, name) => {
+		frappe.model.clear_doc(doctype, name);
+		if (locals[":" + doctype]) {
+			delete locals[":" + doctype][name];
+		}
+	},
+
+	rename_doc_in_locals: (doctype, old_name, new_name, merge = false) => {
+		if (old_name === new_name) {
+			return;
+		}
+
+		if (locals[doctype]) {
+			delete locals[doctype][old_name];
+		}
+
+		const meta_doctype = ":" + doctype;
+		const doc = locals[meta_doctype]?.[old_name];
+		if (!doc) {
+			return;
+		}
+
+		// The target survives a merge; keep its cached values if present.
+		if (!merge) {
+			doc.name = new_name;
+			doc.doctype = meta_doctype;
+			locals[meta_doctype][new_name] = doc;
+		}
+		delete locals[meta_doctype][old_name];
 	},
 
 	sync_docinfo: (r) => {
@@ -127,11 +175,20 @@ Object.assign(frappe.model, {
 				}
 
 				// child table, override each row and append new rows if required
+				const incoming_names = new Set(doc[fieldname].map((d) => d.name));
 				for (let i = 0; i < doc[fieldname].length; i++) {
 					let d = doc[fieldname][i];
-					let local_d = local_doc[fieldname][i];
+					let local_d_in_parent = local_doc[fieldname][i];
+					const local_d = locals[d.doctype] ? locals[d.doctype][d.name] : null;
 					if (local_d) {
-						// deleted and added again
+						Object.assign(local_d, d);
+						clear_keys(d, local_d);
+						if (local_d_in_parent !== local_d) {
+							local_doc[fieldname][i] = local_d;
+						}
+						continue;
+					}
+					if (local_d_in_parent && !incoming_names.has(local_d_in_parent.name)) {
 						if (!locals[d.doctype]) locals[d.doctype] = {};
 
 						if (!d.name) {
@@ -141,13 +198,13 @@ Object.assign(frappe.model, {
 
 						// if incoming row is not registered, register it
 						if (!locals[d.doctype][d.name]) {
-							const old_name = local_d.name;
+							const old_name = local_d_in_parent.name;
 
 							// detach old key
 							delete locals[d.doctype][old_name];
 
 							// re-attach with new name
-							locals[d.doctype][d.name] = local_d;
+							locals[d.doctype][d.name] = local_d_in_parent;
 
 							// migrate per-row docfield overrides to new name
 							const dc = frappe.meta.docfield_copy[d.doctype];
@@ -158,10 +215,10 @@ Object.assign(frappe.model, {
 						}
 
 						// row exists, just copy the values
-						Object.assign(local_d, d);
-						clear_keys(d, local_d);
+						Object.assign(local_d_in_parent, d);
+						clear_keys(d, local_d_in_parent);
 					} else {
-						local_doc[fieldname].push(d);
+						local_doc[fieldname][i] = d;
 						if (!d.parent) d.parent = doc.name;
 						frappe.model.add_to_locals(d);
 					}
@@ -172,6 +229,7 @@ Object.assign(frappe.model, {
 					for (let i = doc[fieldname].length; i < local_doc[fieldname].length; i++) {
 						// clear from local
 						let d = local_doc[fieldname][i];
+						if (incoming_names.has(d.name)) continue;
 						if (locals[d.doctype] && locals[d.doctype][d.name]) {
 							delete locals[d.doctype][d.name];
 						}

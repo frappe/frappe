@@ -6,10 +6,12 @@ import copy
 import datetime
 import json
 import re
+import threading
 from collections import Counter
 from functools import lru_cache
 
 import sqlparse
+import sqlparse.engine.grouping
 from sqlparse import tokens
 from sqlparse.sql import Function, Parenthesis, Statement
 
@@ -34,7 +36,9 @@ from frappe.utils import (
 	get_timespan_date_range,
 	make_filter_tuple,
 )
-from frappe.utils.data import DateTimeLikeObject, get_datetime, getdate, sbool
+from frappe.utils.data import convert_type_for_between_filters, sbool
+
+_convert_type_for_between_filters = convert_type_for_between_filters  # bw compatibility
 
 
 @lru_cache(maxsize=128)
@@ -65,7 +69,218 @@ FIELD_COMMA_PATTERN = re.compile(r"[0-9a-zA-Z_]+\s*,")
 STRICT_FIELD_PATTERN = re.compile(r".*/\*.*")
 STRICT_UNION_PATTERN = re.compile(r".*\s(union).*\s")
 ORDER_GROUP_PATTERN = re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*")
+# Matches a SQL function call and captures its name, e.g. `field(` -> "field".
+FUNCTION_CALL_PATTERN = re.compile(r"\b(\w+)\s*\(")
+ALLOWED_ORDER_BY_FUNCTIONS = frozenset(
+	(
+		"sum",
+		"count",
+		"avg",
+		"min",
+		"max",
+		"abs",
+		"round",
+		"floor",
+		"ceil",
+		"ceiling",
+		"mod",
+		"pow",
+		"power",
+		"sqrt",
+		"truncate",
+		"sign",
+		"exp",
+		"ln",
+		"log",
+		"log2",
+		"log10",
+		"pi",
+		"timestamp",
+		"date",
+		"year",
+		"month",
+		"day",
+		"dayofmonth",
+		"dayofweek",
+		"dayofyear",
+		"dayname",
+		"monthname",
+		"week",
+		"weekday",
+		"weekofyear",
+		"quarter",
+		"hour",
+		"minute",
+		"second",
+		"microsecond",
+		"datediff",
+		"timediff",
+		"timestampdiff",
+		"to_days",
+		"to_seconds",
+		"unix_timestamp",
+		"last_day",
+		"extract",
+		# type/null handling
+		"cast",
+		"convert",
+		"coalesce",
+		"ifnull",
+		"nullif",
+	)
+)
+
+ALLOWED_SQL_FUNCTIONS = ALLOWED_ORDER_BY_FUNCTIONS | frozenset(
+	(
+		# type / null handling
+		"isnull",
+		"least",
+		# current date / time
+		"now",
+		"curdate",
+		"curtime",
+		"current_date",
+		"current_time",
+		"current_timestamp",
+		"utc_date",
+		"utc_time",
+		"utc_timestamp",
+		# date / time manipulation
+		"from_unixtime",
+		"from_days",
+		"str_to_date",
+		"date_format",
+		"time_format",
+		"date_add",
+		"date_sub",
+		"adddate",
+		"subdate",
+		"addtime",
+		"subtime",
+		"makedate",
+		"maketime",
+		"period_add",
+		"period_diff",
+		"sec_to_time",
+		"time_to_sec",
+		"yearweek",
+		# string / search helpers
+		"upper",
+		"lower",
+		"ucase",
+		"length",
+		"locate",
+		"char_length",
+		"character_length",
+		"octet_length",
+		"trim",
+		"ltrim",
+		"rtrim",
+	)
+)
 SPECIAL_FIELD_CHARS = frozenset(("(", "`", ".", "'", '"', "*"))
+
+# Set operations that must never appear in a generated list query.
+SET_OPERATION_KEYWORDS = frozenset(("union", "intersect", "except", "minus"))
+
+
+def _query_has_subquery(node) -> bool:
+	"""Return True if any parenthesised group contains a DML keyword (i.e. a subquery)."""
+	for token in node.tokens:
+		if isinstance(token, Parenthesis) and any(t.ttype is tokens.DML for t in token.flatten()):
+			return True
+		if token.is_group and _query_has_subquery(token):
+			return True
+	return False
+
+
+def _find_disallowed_function(node) -> str | None:
+	"""Return the name of the first function call not in `ALLOWED_SQL_FUNCTIONS`, else None."""
+	for token in node.tokens:
+		if isinstance(token, Function):
+			name = token.get_name()
+			if name and name.lower() not in ALLOWED_SQL_FUNCTIONS:
+				return name
+		if token.is_group:
+			if disallowed := _find_disallowed_function(token):
+				return disallowed
+	return None
+
+
+_PARSE_FULL_QUERY_LOCK = threading.Lock()
+
+
+def _parse_full_query(query: str):
+	# Lift sqlparse's 10k-token DoS cap for our own generated query (a large but legitimate
+	# `IN (...)` list can exceed it). Lock keeps the save-restore of the global atomic across
+	# threads, else a concurrent parse can capture None as "original" and leave the cap off.
+	with _PARSE_FULL_QUERY_LOCK:
+		original_limit = sqlparse.engine.grouping.MAX_GROUPING_TOKENS
+		sqlparse.engine.grouping.MAX_GROUPING_TOKENS = None
+		try:
+			return sqlparse.parse(query)
+		finally:
+			sqlparse.engine.grouping.MAX_GROUPING_TOKENS = original_limit
+
+
+@lru_cache(maxsize=1024)
+def validate_generated_query(query: str) -> None:
+	"""Parse a finally generated query and reject constructs a list query must never contain.
+
+	Checks:
+	1. Exactly one statement (no stacked/`;`-separated queries).
+	2. The statement is a plain SELECT.
+	3. No SQL comments (also defeats keyword obfuscation like `un/**/ion`).
+	4. No set operations (UNION / INTERSECT / EXCEPT / MINUS).
+	5. No `SELECT ... INTO` (blocks OUTFILE/DUMPFILE file writes).
+	6. No secondary DML/DDL statements.
+	7. No subqueries.
+	8. Only functions in `ALLOWED_SQL_FUNCTIONS` are used.
+	"""
+	statements = [s for s in _parse_full_query(query) if s.token_first(skip_cm=True) is not None]
+
+	# stacked queries
+	if len(statements) != 1:
+		_raise_illegal_query()
+
+	statement = statements[0]
+
+	# only plain SELECT allowed
+	if statement.get_type() != "SELECT":
+		_raise_illegal_query()
+
+	for token in statement.flatten():
+		ttype, value = token.ttype, token.value.lower()
+
+		# comments have no place in a generated query and can hide obfuscated keywords
+		if ttype in tokens.Comment:
+			_raise_illegal_query()
+
+		if ttype in tokens.Keyword:
+			# `union`, `union all`, `intersect`, ... -> match on the leading word
+			if value.split(" ", 1)[0] in SET_OPERATION_KEYWORDS:
+				_raise_illegal_query()
+
+			# `select ... into outfile/dumpfile ...`
+			if value == "into":
+				_raise_illegal_query()
+
+		# secondary statements sneaking in as extra DML (insert/update/delete/replace)
+		# or DDL (drop/create/alter/truncate)
+		if (ttype is tokens.DML and value != "select") or ttype in tokens.DDL:
+			_raise_illegal_query()
+
+	if _query_has_subquery(statement):
+		frappe.throw(_("Subqueries are not allowed in this query."), frappe.DataError)
+
+	if disallowed_function := _find_disallowed_function(statement):
+		frappe.throw(
+			_("Function {0} is not allowed in this query.").format(disallowed_function), frappe.DataError
+		)
+
+
+def _raise_illegal_query():
+	frappe.throw(_("Illegal SQL Query"), frappe.DataError)
 
 
 class DatabaseQuery:
@@ -82,6 +297,7 @@ class DatabaseQuery:
 		self.ignore_ifnull = False
 		self.flags = frappe._dict()
 		self.reference_doctype = None
+		self.parent_doctype = None
 		self.permission_map = {}
 		self.shared = []
 		self._fetch_shared_documents = False
@@ -252,6 +468,12 @@ from {tables}
 {order_by}
 {limit}""".format(**args)
 
+		# Defense-in-depth: parse the finally generated query and reject anything a
+		# safe list query should never contain (subqueries, set operations, comments,
+		# stacked statements, etc). Skipped only for explicit `strict=False` callers.
+		if self.strict is not False:
+			self.validate_generated_query(args)
+
 		return frappe.db.sql(
 			query,
 			as_dict=not self.as_list,
@@ -260,6 +482,24 @@ from {tables}
 			ignore_ddl=self.ignore_ddl,
 			run=self.run,
 		)
+
+	def validate_generated_query(self, args):
+		"""Validate the finally generated query as a last line of defense.
+
+		Reconstructs the query from user-controllable parts only (fields, joined tables,
+		user filter conditions, order/group by) and rejects it if it contains constructs
+		a plain list query should never have. Trusted permission/hook conditions are
+		excluded because they may legitimately contain subqueries.
+		"""
+		user_conditions = self._user_conditions
+		query = "select {fields} from {tables} {conditions} {group_by} {order_by}".format(
+			fields=args.fields,
+			tables=self._user_tables,
+			conditions=f"where {user_conditions}" if user_conditions else "",
+			group_by=args.group_by or "",
+			order_by=args.order_by or "",
+		)
+		validate_generated_query(query)
 
 	def prepare_args(self):
 		self.parse_args()
@@ -279,22 +519,42 @@ from {tables}
 		# query dict
 		args.tables = self.tables[0]
 
+		self._user_tables = self.tables[0]
+
 		# left join parent, child tables
 		for child in self.tables[1:]:
 			parent_name = cast_name(f"{self.tables[0]}.name")
-			args.tables += f" {self.join} {child} on ({child}.parenttype = {frappe.db.escape(self.doctype)} and {child}.parent = {parent_name})"
+			child_join = f" {self.join} {child} on ({child}.parenttype = {frappe.db.escape(self.doctype)} and {child}.parent = {parent_name})"
+			args.tables += child_join
+			self._user_tables += child_join
 
 		# left join link tables
 		for link in self.link_tables:
-			args.tables += f" {self.join} {link.table_name} {link.table_alias} on ({link.table_alias}.`name` = {self.tables[0]}.`{link.fieldname}`)"
+			base_on = f"{link.table_alias}.`name` = {self.tables[0]}.`{link.fieldname}`"
+			self._user_tables += f" {self.join} {link.table_name} {link.table_alias} on ({base_on})"
 
-		if self.grouped_or_conditions:
-			self.conditions.append(f"({' or '.join(self.grouped_or_conditions)})")
+			on_clause = base_on
+			if link.get("join_conditions"):
+				on_clause += f" and {link.join_conditions}"
+			args.tables += f" {self.join} {link.table_name} {link.table_alias} on ({on_clause})"
 
-		args.conditions = " and ".join(self.conditions)
+		grouped_or_clause = (
+			[f"({' or '.join(self.grouped_or_conditions)})"] if self.grouped_or_conditions else []
+		)
 
-		if self.or_conditions:
-			args.conditions += (" or " if args.conditions else "") + " or ".join(self.or_conditions)
+		def _join_conditions(parts: list) -> str:
+			conditions = " and ".join(parts)
+			if self.or_conditions:
+				conditions += (" or " if conditions else "") + " or ".join(self.or_conditions)
+			return conditions
+
+		# Full conditions (used to run the query): user conditions + trusted permission
+		# conditions. Ordering is preserved: filters, permission conditions, grouped or.
+		args.conditions = _join_conditions(self.conditions + self.permission_conditions + grouped_or_clause)
+
+		# User-controllable conditions only (used to validate the generated query). Trusted
+		# permission/hook conditions are excluded so their subqueries don't trip validation.
+		self._user_conditions = _join_conditions(self.conditions + grouped_or_clause)
 
 		self.set_field_tables()
 		self.cast_name_fields()
@@ -327,9 +587,11 @@ from {tables}
 		self.set_order_by(args)
 
 		self.validate_order_by_and_group_by(args.order_by)
+		self.validate_fieldlevel_permissions_for_sort(args.order_by)
 		args.order_by = (args.order_by and (" order by " + args.order_by)) or ""
 
 		self.validate_order_by_and_group_by(self.group_by)
+		self.validate_fieldlevel_permissions_for_sort(self.group_by)
 		args.group_by = (self.group_by and (" group by " + self.group_by)) or ""
 
 		return args
@@ -560,8 +822,64 @@ from {tables}
 			table_alias=f"`tab{doctype}_{self.linked_table_counter[doctype]}`",
 		)
 		self.linked_table_aliases[linked_table.table_alias.replace("`", "")] = linked_table.table_name
+
+		if not self.flags.ignore_permissions:
+			linked_table.join_conditions = self._build_linked_join_conditions(
+				doctype, linked_table.table_alias
+			)
+
 		self.link_tables.append(linked_table)
 		return linked_table
+
+	def _build_linked_join_conditions(self, doctype, table_alias):
+		"""Row-level access conditions for a linked doctype, injected into the JOIN ON clause.
+
+		Enforces if_owner constraints and user permissions that would normally restrict
+		direct list queries on the linked doctype, preventing dot-notation field bypass.
+		"""
+		conditions = []
+		role_permissions = frappe.permissions.get_role_permissions(doctype, user=self.user)
+
+		# skip user perm check if owner constraint is required
+		if requires_owner_constraint(role_permissions):
+			conditions.append(f"{table_alias}.`owner` = {frappe.db.escape(self.user, percent=False)}")
+		elif role_permissions.get("read") or role_permissions.get("select"):
+			user_permissions = frappe.permissions.get_user_permissions(self.user)
+			allowed_docs = [
+				p.get("doc")
+				for p in user_permissions.get(doctype, [])
+				if not p.get("applicable_for") or p.get("applicable_for") == self.doctype
+			]
+			if allowed_docs:
+				values = ", ".join(frappe.db.escape(d, percent=False) for d in allowed_docs)
+				conditions.append(f"{table_alias}.`name` in ({values})")
+
+		has_role_read = bool(role_permissions.get("read") or role_permissions.get("select"))
+		if conditions or not has_role_read:
+			shared = frappe.share.get_shared(doctype, self.user)
+			if shared:
+				share_values = ", ".join(frappe.db.escape(s, percent=False) for s in shared)
+				share_cond = f"{table_alias}.`name` in ({share_values})"
+				if conditions:
+					conditions = [f"({' and '.join(conditions)} or {share_cond})"]
+				else:
+					conditions.append(share_cond)
+
+		# apply permission_query_conditions for the linked doctype (hooks + server scripts),
+		# replacing the default table reference with the aliased name used in this JOIN
+		hooks = frappe.get_hooks("permission_query_conditions", {})
+		for method in hooks.get(doctype, []) + hooks.get("*", []):
+			if hook_cond := frappe.call(frappe.get_attr(method), self.user, doctype=doctype):
+				# replace only field-level references (`tabDoctype`.field or `tabDoctype`.`field`)
+				# with the alias, not bare table names inside subqueries (`from `tabDoctype``)
+				conditions.append(hook_cond.replace(f"`tab{doctype}`.", f"{table_alias}."))
+
+		if script_name := get_server_script_map().get("permission_query", {}).get(doctype):
+			script = frappe.get_doc("Server Script", script_name)
+			if script_cond := script.get_permission_query_conditions(self.user):
+				conditions.append(script_cond.replace(f"`tab{doctype}`.", f"{table_alias}."))
+
+		return " and ".join(conditions)
 
 	def check_read_permission(self, doctype: str, parent_doctype: str | None = None):
 		if self.flags.ignore_permissions:
@@ -639,6 +957,10 @@ from {tables}
 	def build_conditions(self):
 		self.conditions = []
 		self.grouped_or_conditions = []
+		# Permission/hook conditions are trusted (server-generated) and may legitimately
+		# contain subqueries (e.g. `... in (select ...)`), so they are tracked separately
+		# and exempted from the final-query validation in `validate_generated_query`.
+		self.permission_conditions = []
 		self.build_filter_conditions(self.filters, self.conditions)
 		self.build_filter_conditions(self.or_filters, self.grouped_or_conditions)
 
@@ -646,7 +968,7 @@ from {tables}
 		if not self.flags.ignore_permissions:
 			match_conditions = self.build_match_conditions()
 			if match_conditions:
-				self.conditions.append(f"({match_conditions})")
+				self.permission_conditions.append(f"({match_conditions})")
 
 	def build_filter_conditions(self, filters, conditions: list, ignore_permissions=None):
 		"""build conditions from user filters"""
@@ -683,7 +1005,6 @@ from {tables}
 		if self.flags.ignore_permissions:
 			return
 
-		asterisk_fields = []
 		permitted_fields = set(
 			get_permitted_fields(
 				doctype=self.doctype,
@@ -694,7 +1015,10 @@ from {tables}
 		)
 		permitted_child_table_fields = {}
 
-		for i, field in enumerate(self.fields):
+		# Create a copy of the fields list and reverse it to avoid index issues when removing fields
+		fields_to_check = list(enumerate(self.fields))[::-1]
+
+		for i, field in fields_to_check:
 			# field: 'count(distinct `tabPhoto`.name) as total_count'
 			# column: 'tabPhoto.name'
 			# field: 'count(`tabPhoto`.name) as total_count'
@@ -704,9 +1028,10 @@ from {tables}
 				continue
 
 			column = columns[0]
+			# handle * fields
 			if column == "*" and "*" in field:
 				if not in_function("*", field):
-					asterisk_fields.append(i)
+					self.fields[i : i + 1] = permitted_fields
 				continue
 
 			# handle pseudo columns
@@ -760,12 +1085,6 @@ from {tables}
 			# remove if access not allowed
 			else:
 				self.remove_field(i)
-
-		# handle * fields
-		j = 0
-		for i in asterisk_fields:
-			self.fields[i + j : i + j + 1] = permitted_fields
-			j = j + len(permitted_fields) - 1
 
 	def prepare_filter_condition(self, f):
 		"""Returns a filter condition in the format:
@@ -851,7 +1170,11 @@ from {tables}
 
 			values = f.value or ""
 			if isinstance(values, str):
-				values = values.split(",")
+				try:
+					parsed = json.loads(values)
+					values = parsed if isinstance(parsed, list) else [parsed]
+				except ValueError:
+					values = values.split(",")
 
 			fallback = "''"
 			value = [frappe.db.escape((cstr(v) or "").strip(), percent=False) for v in values]
@@ -1024,9 +1347,10 @@ from {tables}
 
 			# add user permission only if role has read perm
 			elif role_permissions.get("read") or role_permissions.get("select"):
-				# get user permissions
-				user_permissions = frappe.permissions.get_user_permissions(self.user)
-				self.add_user_permissions(user_permissions)
+				if frappe.flags.get("ignore_user_permissions_for_doctype") != self.doctype:
+					# get user permissions
+					user_permissions = frappe.permissions.get_user_permissions(self.user)
+					self.add_user_permissions(user_permissions)
 
 			# Only when full read access is not present fetch shared docuemnts.
 			# This is done to avoid extra query.
@@ -1050,10 +1374,42 @@ from {tables}
 			if not only_if_shared and self.shared and conditions:
 				conditions = f"(({conditions}) or ({self.get_share_condition()}))"
 
+			if self.doctype_meta.istable and self.parent_doctype:
+				parent_condition = self.get_parent_row_permission_condition()
+				if parent_condition:
+					conditions += (" and " + parent_condition) if conditions else parent_condition
+
 			return conditions
 
 		else:
 			return self.match_filters
+
+	def get_parent_row_permission_condition(self) -> str:
+		"""Restrict child rows to parents the user has row-level (not just doctype-level) access to.
+
+		check_read_permission() only checks doctype-level read on parent_doctype; this folds
+		in the parent's own row-level conditions (User Permission/owner/share) as a subquery.
+		"""
+		if self.flags.ignore_permissions:
+			return ""
+
+		parent_meta = frappe.get_meta(self.parent_doctype)
+		if parent_meta.issingle:
+			return ""
+
+		parent_query = DatabaseQuery(self.parent_doctype, user=self.user)
+		# thread through reference_doctype: applicable_for-scoped User Permissions on the
+		# parent's own "name" field are matched against it (see build_match_conditions),
+		# and a bare DatabaseQuery() otherwise leaves it unset
+		parent_query.reference_doctype = self.reference_doctype
+		parent_condition = parent_query.build_match_conditions()
+		if not parent_condition:
+			return ""
+
+		return (
+			f"`tab{self.doctype}`.`parent` in "
+			f"(select `name` from `tab{self.parent_doctype}` where {parent_condition})"
+		)
 
 	def get_share_condition(self):
 		return (
@@ -1200,21 +1556,9 @@ from {tables}
 		if any(re.search(r"\b" + pattern + r"\b", sanitized) for pattern in subquery_indicators):
 			frappe.throw(_("Cannot use sub-query here."))
 
-		blacklisted_sql_functions = {
-			"sleep",
-			"benchmark",
-			"extractvalue",
-			"database",
-			"user",
-			"current_user",
-			"version",
-			"substr",
-			"substring",
-			"updatexml",
-			"load_file",
-			"session_user",
-			"system_user",
-		}
+		blacklisted_operators = {"if", "regexp", "rlike", "like"}
+		if any(re.search(r"\b" + op + r"\b", sanitized) for op in blacklisted_operators):
+			frappe.throw(_("Illegal SQL Query"))
 
 		for field in parameters.split(","):
 			field = field.strip()
@@ -1227,10 +1571,44 @@ from {tables}
 						tbl = tbl[4:-1]
 					frappe.throw(_("Please select atleast 1 column from {0} to sort/group").format(tbl))
 
-			# Check for SQL function using regex with word boundaries and optional whitespace before parenthesis
-			for func in blacklisted_sql_functions:
-				if re.search(r"\b" + re.escape(func) + r"\W*\(", field.lower()):
+			for func in FUNCTION_CALL_PATTERN.findall(field.lower()):
+				if func not in ALLOWED_ORDER_BY_FUNCTIONS:
 					frappe.throw(_("Cannot use {0} in order/group by").format(field))
+
+	def validate_fieldlevel_permissions_for_sort(self, parameters: str):
+		"""Block sorting/grouping by a field the user can't read at its permlevel."""
+		if not parameters or self.flags.ignore_permissions:
+			return
+
+		from frappe.desk.reportview import extract_fieldnames
+
+		for column in extract_fieldnames(parameters):
+			if not column or column == "*" or column[0] in {"'", '"'} or column.isnumeric():
+				continue
+
+			doctype = self.doctype
+			fieldname = column
+			if "." in column:
+				table, fieldname = column.split(".", 1)
+				doctype = self.linked_table_aliases.get(table, table)
+				doctype = doctype.replace("`", "").removeprefix("tab")
+
+			# Only real docfields with permlevel > 0 are gated. Standard/meta fields,
+			# aliases and pseudo-columns (get_field returns None) and permlevel-0 fields
+			# are always readable
+			df = frappe.get_meta(doctype).get_field(fieldname)
+			if not df or not df.permlevel:
+				continue
+
+			permitted = get_permitted_fields(
+				doctype=doctype,
+				parenttype=self.parent_doctype,
+				permission_type=self.permission_map.get(doctype),
+			)
+			if fieldname not in permitted:
+				raise frappe.PermissionError(
+					_("Not permitted to sort or group by {0}").format(frappe.bold(fieldname))
+				)
 
 	def add_limit(self):
 		if self.limit_page_length:
@@ -1375,8 +1753,8 @@ def get_between_date_filter(value, df=None):
 
 	# if filter value is date but fieldtype is datetime:
 	if fieldtype == "Datetime":
-		from_date = _convert_type_for_between_filters(from_date, set_time=datetime.time())
-		to_date = _convert_type_for_between_filters(to_date, set_time=datetime.time(23, 59, 59, 999999))
+		from_date = convert_type_for_between_filters(from_date, set_time=datetime.time())
+		to_date = convert_type_for_between_filters(to_date, set_time=datetime.time(23, 59, 59, 999999))
 
 	# If filter value is already datetime, do nothing.
 	if fieldtype == "Datetime":
@@ -1385,23 +1763,6 @@ def get_between_date_filter(value, df=None):
 		cond = f"'{frappe.db.format_date(from_date)}' AND '{frappe.db.format_date(to_date)}'"
 
 	return cond
-
-
-def _convert_type_for_between_filters(
-	value: DateTimeLikeObject, set_time: datetime.time
-) -> datetime.datetime:
-	if isinstance(value, str):
-		if " " in value.strip():
-			value = get_datetime(value)
-		else:
-			value = getdate(value)
-
-	if isinstance(value, datetime.datetime):
-		return value
-	elif isinstance(value, datetime.date):
-		return datetime.datetime.combine(value, set_time)
-
-	return value
 
 
 def get_additional_filter_field(additional_filters_config, f, value):

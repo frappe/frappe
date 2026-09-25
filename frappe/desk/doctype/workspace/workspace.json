@@ -2,7 +2,6 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:label",
- "beta": 1,
  "creation": "2020-01-23 13:45:59.470592",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -219,7 +218,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2024-05-30 17:30:36.791171",
+ "modified": "2026-05-30 20:50:29.564384",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",
@@ -251,6 +250,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

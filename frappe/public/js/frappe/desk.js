@@ -104,8 +104,17 @@ frappe.Application = class Application {
 		if (frappe.user_roles.includes("System Manager")) {
 			// delayed following requests to make boot faster
 			setTimeout(() => {
-				this.show_change_log();
-				this.show_update_available();
+				if (
+					!frappe.ui.maybe_show_legacy_gravatar_cleanup_prompt({
+						onhide: () => {
+							this.show_change_log();
+							this.show_update_available();
+						},
+					})
+				) {
+					this.show_change_log();
+					this.show_update_available();
+				}
 			}, 1000);
 		}
 
@@ -360,15 +369,17 @@ frappe.Application = class Application {
 	logout() {
 		var me = this;
 		me.logged_out = true;
-		return frappe.call({
-			method: "logout",
-			callback: function (r) {
-				if (r.exc) {
-					return;
-				}
+		frappe.confirm(__("Are you sure you want to log out?"), function () {
+			return frappe.call({
+				method: "logout",
+				callback: function (r) {
+					if (r.exc) {
+						return;
+					}
 
-				me.redirect_to_login();
-			},
+					me.redirect_to_login();
+				},
+			});
 		});
 	}
 	handle_session_expired() {
@@ -418,7 +429,7 @@ frappe.Application = class Application {
 			!Array.isArray(change_log) ||
 			!change_log.length ||
 			window.Cypress ||
-			cint(frappe.boot.sysdefaults.disable_change_log_notification)
+			frappe.defaults.is_enabled("disable_change_log_notification")
 		) {
 			return;
 		}

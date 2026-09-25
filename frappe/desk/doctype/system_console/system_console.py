@@ -5,6 +5,7 @@ import json
 
 import frappe
 from frappe.model.document import Document
+from frappe.utils.response import json_handler
 from frappe.utils.safe_exec import read_sql, safe_exec
 
 
@@ -32,7 +33,8 @@ class SystemConsole(Document):
 				safe_exec(self.console, script_filename="System Console")
 				self.output = "\n".join(frappe.debug_log)
 			elif self.type == "SQL":
-				self.output = frappe.as_json(read_sql(self.console, as_dict=1))
+				# Use json module directly to preserve key order.
+				self.output = json.dumps(read_sql(self.console, as_dict=1), default=json_handler)
 		except Exception:
 			self.commit = False
 			self.output = frappe.get_traceback()
@@ -48,7 +50,7 @@ class SystemConsole(Document):
 
 
 @frappe.whitelist(methods=["POST"])
-def execute_code(doc):
+def execute_code(doc: str):
 	console = frappe.get_doc(json.loads(doc))
 	console.run()
 	return console.as_dict()

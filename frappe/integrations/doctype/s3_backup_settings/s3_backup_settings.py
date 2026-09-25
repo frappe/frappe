@@ -79,12 +79,12 @@ class S3BackupSettings(Document):
 @frappe.whitelist()
 def take_backup():
 	"""Enqueue longjob for taking backup to s3"""
-	enqueue(
+	job = enqueue(
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_s3",
 		queue="long",
 		timeout=1500,
 	)
-	frappe.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
+	return job.id
 
 
 def take_backups_daily():

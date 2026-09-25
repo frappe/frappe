@@ -17,7 +17,11 @@ def validate_route_conflict(doctype, name):
 	all_names = []
 	for _doctype in ["Page", "Workspace", "DocType"]:
 		all_names.extend(
-			[slug(d) for d in frappe.get_all(_doctype, pluck="name") if (doctype != _doctype and d != name)]
+			[
+				slug(d)
+				for d in frappe.get_all(_doctype, pluck="name")
+				if not (doctype == _doctype and d == name)
+			]
 		)
 
 	if slug(name) in all_names:
@@ -46,9 +50,13 @@ def get_csv_bytes(data: list[list], csv_params: dict) -> bytes:
 	from csv import writer
 	from io import StringIO
 
+	from frappe.utils.csvutils import escape_formula_injection
+
+	_data = [[escape_formula_injection(v) for v in row] for row in data]
+
 	file = StringIO()
 	csv_writer = writer(file, **csv_params)
-	csv_writer.writerows(data)
+	csv_writer.writerows(_data)
 
 	return file.getvalue().encode("utf-8")
 

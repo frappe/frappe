@@ -2,8 +2,9 @@ import frappe
 
 
 @frappe.whitelist()
-def get_print_settings_to_show(doctype, docname):
+def get_print_settings_to_show(doctype: str, docname: str):
 	doc = frappe.get_doc(doctype, docname)
+	doc.check_permission("read")
 	print_settings = frappe.get_single("Print Settings")
 
 	if hasattr(doc, "get_print_settings"):

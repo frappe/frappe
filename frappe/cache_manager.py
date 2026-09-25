@@ -122,6 +122,11 @@ def clear_defaults_cache(user=None):
 def clear_doctype_cache(doctype=None):
 	clear_controller_cache(doctype)
 
+	if doctype:
+		frappe.local.valid_columns.pop(doctype, None)
+	else:
+		frappe.local.valid_columns = {}
+
 	_clear_doctype_cache_from_redis(doctype)
 	if hasattr(frappe.db, "after_commit"):
 		frappe.db.after_commit.add(lambda: _clear_doctype_cache_from_redis(doctype))
@@ -200,7 +205,12 @@ def build_table_count_cache():
 	table_rows = frappe.qb.Field("table_rows").as_("count")
 	information_schema = frappe.qb.Schema("information_schema")
 
-	data = (frappe.qb.from_(information_schema.tables).select(table_name, table_rows)).run(as_dict=True)
+	query = frappe.qb.from_(information_schema.tables).select(table_name, table_rows)
+	if frappe.db.db_type == "postgres":
+		query = query.where(frappe.qb.Field("schemaname") == frappe.conf.get("db_schema", "public"))
+	else:
+		query = query.where(information_schema.tables.table_schema == frappe.db.cur_db_name)
+	data = query.run(as_dict=True)
 	counts = {d.get("name").replace("tab", "", 1): d.get("count", None) for d in data}
 	frappe.cache.set_value("information_schema:counts", counts)
 

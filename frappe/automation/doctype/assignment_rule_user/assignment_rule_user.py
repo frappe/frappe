@@ -18,5 +18,6 @@ class AssignmentRuleUser(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 		user: DF.Link
+		weight: DF.Int
 	# end: auto-generated types
 	pass

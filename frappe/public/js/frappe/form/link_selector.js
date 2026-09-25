@@ -27,7 +27,6 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 					fieldtype: "Data",
 					fieldname: "txt",
 					label: __("Beginning with"),
-					description: __("You can use wildcard %"),
 				},
 				{
 					fieldtype: "HTML",

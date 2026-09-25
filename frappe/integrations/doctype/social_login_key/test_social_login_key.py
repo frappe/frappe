@@ -9,7 +9,7 @@ from frappe.auth import CookieManager, LoginManager
 from frappe.integrations.doctype.social_login_key.social_login_key import BaseUrlNotSetError
 from frappe.tests.utils import FrappeTestCase, change_settings
 from frappe.utils import set_request
-from frappe.utils.oauth import login_via_oauth2
+from frappe.utils.oauth import consume_oauth_state, create_oauth_state, login_via_oauth2
 
 TEST_GITHUB_USER = "githublogin@example.com"
 
@@ -35,7 +35,7 @@ class TestSocialLoginKey(FrappeTestCase):
 		mock_session.get.side_effect = github_response_for_private_email
 
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
-			login_via_oauth2("github", "iwriu", {"token": "ewrwerwer"})  # Dummy code and state token
+			login_via_oauth2("github", "iwriu", create_oauth_state(None))  # Dummy code, real state token
 
 	def test_github_login_with_public_email(self):
 		github_social_login_setup()
@@ -44,7 +44,7 @@ class TestSocialLoginKey(FrappeTestCase):
 		mock_session.get.side_effect = github_response_for_public_email
 
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
-			login_via_oauth2("github", "iwriu", {"token": "ewrwerwer"})  # Dummy code and state token
+			login_via_oauth2("github", "iwriu", create_oauth_state(None))  # Dummy code, real state token
 
 	def test_normal_signup_and_github_login(self):
 		github_social_login_setup()
@@ -57,8 +57,56 @@ class TestSocialLoginKey(FrappeTestCase):
 		mock_session.get.side_effect = github_response_for_login
 
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
-			login_via_oauth2("github", "iwriu", {"token": "ewrwerwer"})
+			login_via_oauth2("github", "iwriu", create_oauth_state(None))
 		self.assertEqual(frappe.session.user, TEST_GITHUB_USER)
+
+	def test_oauth_state_helpers_reject_unknown_and_reused_tokens(self):
+		"""consume_oauth_state must only resolve tokens it minted itself, and only once."""
+		self.assertIsNone(consume_oauth_state("attacker-forged-token"))
+		self.assertIsNone(consume_oauth_state(""))
+
+		state = create_oauth_state("/app/some-page")
+		self.assertEqual(consume_oauth_state(state), "/app/some-page")
+		# same token can't be redeemed twice
+		self.assertIsNone(consume_oauth_state(state))
+
+	def test_forged_oauth_state_is_rejected_end_to_end(self):
+		"""A state value that wasn't issued via create_oauth_state() must not log anyone in
+		or produce a redirect, regardless of what it contains."""
+		github_social_login_setup()
+
+		mock_session = MagicMock()
+		mock_session.get.side_effect = github_response_for_login
+
+		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
+			login_via_oauth2("github", "iwriu", "attacker-forged-token")
+
+		self.assertEqual(frappe.session.user, "Guest")
+		self.assertEqual(frappe.local.response.get("http_status_code"), 417)
+		self.assertNotEqual(frappe.local.response.get("type"), "redirect")
+
+	def test_oauth_state_cannot_be_replayed(self):
+		"""A legitimate state token must not be usable a second time."""
+		github_social_login_setup()
+
+		mock_session = MagicMock()
+		mock_session.get.side_effect = github_response_for_login
+
+		state = create_oauth_state("/app/some-legit-page")
+
+		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
+			login_via_oauth2("github", "iwriu", state)
+		self.assertEqual(frappe.session.user, TEST_GITHUB_USER)
+		self.assertEqual(frappe.local.response.get("location"), "/app/some-legit-page")
+
+		frappe.set_user("Guest")
+		frappe.local.response.pop("location", None)
+		frappe.local.response.pop("http_status_code", None)
+
+		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
+			login_via_oauth2("github", "iwriu", state)
+		self.assertEqual(frappe.session.user, "Guest")
+		self.assertEqual(frappe.local.response.get("http_status_code"), 417)
 
 	def test_force_disabled_signups(self):
 		key = github_social_login_setup()
@@ -69,7 +117,7 @@ class TestSocialLoginKey(FrappeTestCase):
 		mock_session.get.side_effect = github_response_for_login
 
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
-			login_via_oauth2("github", "iwriu", {"token": "ewrwerwer"})
+			login_via_oauth2("github", "iwriu", create_oauth_state(None))
 		self.assertEqual(frappe.session.user, "Guest")
 
 	@change_settings("Website Settings", disable_signup=1)
@@ -83,7 +131,7 @@ class TestSocialLoginKey(FrappeTestCase):
 		mock_session.get.side_effect = github_response_for_login
 
 		with patch.object(OAuth2Service, "get_auth_session", return_value=mock_session):
-			login_via_oauth2("github", "iwriu", {"token": "ewrwerwer"})
+			login_via_oauth2("github", "iwriu", create_oauth_state(None))
 
 		self.assertEqual(frappe.session.user, TEST_GITHUB_USER)
 

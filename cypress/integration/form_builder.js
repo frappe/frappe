@@ -42,16 +42,33 @@ context("Form Builder", () => {
 
 		cy.get("[data-fieldname='gender']").click();
 
+		// wait for the dialog to be fully shown before interacting: bootstrap
+		// focuses the modal container at the end of the fade transition, which
+		// otherwise swallows keystrokes typed into the filter input
+		cy.window().then((win) => {
+			win.__filter_modal_shown = false;
+			win.$(win.document).one("shown.bs.modal", () => {
+				win.__filter_modal_shown = true;
+			});
+		});
+
 		// click on filter action button
 		cy.get('[data-fieldname="gender"] .field-actions button:first').click();
+		cy.window().its("__filter_modal_shown").should("eq", true);
 
 		// add filter
 		cy.get(".modal-body .clear-filters").click();
 		cy.get(".modal-body .filter-action-buttons .add-filter").click();
-		cy.wait(100);
-		cy.get(".modal-body .filter-box .list_filter .filter-field .link-field input").type(
-			"Male"
-		);
+		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("filter_search");
+		cy.get(".modal-body .filter-box .list_filter .filter-field .link-field input")
+			.as("filter_input")
+			.focus()
+			.type("Male", { delay: 100 });
+		// select "Male" from the dropdown so the filter value is committed
+		cy.wait("@filter_search");
+		cy.get("@filter_input").parent().findByRole("listbox").should("be.visible");
+		cy.get("@filter_input").type("{enter}", { delay: 100 });
+		cy.get("@filter_input").blur();
 		cy.get(".btn-modal-primary").click();
 
 		// Save the document
@@ -59,10 +76,9 @@ context("Form Builder", () => {
 
 		// Open a new Form
 		cy.new_form(doctype_name);
-		// Click on the "salutation" field
+		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 		cy.get_field("gender").clear().click();
 
-		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 		cy.wait("@search_link").then((data) => {
 			expect(data.response.body.message.length).to.eq(1);
 			expect(data.response.body.message[0].value).to.eq("Male");

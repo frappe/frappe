@@ -199,8 +199,8 @@ class TestGlobalSearch(FrappeTestCase):
 		global_search.update_global_search_for_all_web_pages()
 		global_search.sync_global_search()
 		frappe.db.commit()
-		results = global_search.web_search("unsubscribe")
-		self.assertTrue("Unsubscribe" in results[0].content)
+		results = global_search.web_search("login")
+		self.assertTrue("login" in results[0].content)
 		results = global_search.web_search(
 			text="unsubscribe", scope='manufacturing" UNION ALL SELECT 1,2,3,4,doctype from __global_search'
 		)

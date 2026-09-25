@@ -288,10 +288,12 @@ export default class GridRow {
 						delete this.grid.filter["row-index"];
 					}
 
-					this.grid.grid_sortable.option(
-						"disabled",
-						Object.keys(this.grid.filter).length !== 0
-					);
+					if (this.grid.grid_sortable) {
+						this.grid.grid_sortable.option(
+							"disabled",
+							Object.keys(this.grid.filter).length !== 0
+						);
+					}
 
 					this.grid.prevent_build = true;
 					me.grid.refresh();
@@ -327,6 +329,10 @@ export default class GridRow {
 			// remove row
 			if (!this.open_form_button) {
 				this.open_form_button = $('<div class="col"></div>').appendTo(this.row);
+				this.open_form_button.on("click", function (e) {
+					me.toggle_view();
+					return false;
+				});
 
 				if (!this.configure_columns) {
 					const edit_msg = __("Edit", "", "Edit grid row");
@@ -334,12 +340,8 @@ export default class GridRow {
 						<div class="btn-open-row" data-toggle="tooltip" data-placement="right" title="${edit_msg}">
 							<a>${frappe.utils.icon("edit", "xs")}</a>
 						</div>
-					`)
-						.appendTo(this.open_form_button)
-						.on("click", function () {
-							me.toggle_view();
-							return false;
-						});
+					`).appendTo(this.open_form_button);
+
 					$(this.open_form_button)
 						.parent()
 						.on("keydown", function (ev) {
@@ -480,16 +482,28 @@ export default class GridRow {
 
 		d.set_primary_action(__("Add"), () => {
 			let selected_fields = d.get_values().fields;
+			const existing_settings = {};
+			this.selected_columns_for_grid.forEach((col) => {
+				existing_settings[col.fieldname] = col;
+			});
+
 			this.selected_columns_for_grid = [];
 			if (selected_fields) {
 				selected_fields.forEach((selected_column) => {
-					let docfield = frappe.meta.get_docfield(this.grid.doctype, selected_column);
-					this.grid.update_default_colsize(docfield);
+					if (existing_settings[selected_column]) {
+						this.selected_columns_for_grid.push(existing_settings[selected_column]);
+					} else {
+						let docfield = frappe.meta.get_docfield(
+							this.grid.doctype,
+							selected_column
+						);
+						this.grid.update_default_colsize(docfield);
 
-					this.selected_columns_for_grid.push({
-						fieldname: selected_column,
-						columns: docfield.columns || docfield.colsize,
-					});
+						this.selected_columns_for_grid.push({
+							fieldname: selected_column,
+							columns: docfield.columns || docfield.colsize,
+						});
+					}
 				});
 
 				this.render_selected_columns();
@@ -574,7 +588,7 @@ export default class GridRow {
 							<div class='col-4' style='padding-top: 2px; margin-top:-2px;' title='${__("Columns")}'>
 								<input class='form-control column-width my-1 input-xs text-right'
 								style='height: 24px; max-width: 80px; background: var(--bg-color);'
-									value='${docfield.columns || cint(d.columns)}'
+									value='${cint(d.columns) || docfield.columns}'
 									data-fieldname='${docfield.fieldname}' style='background-color: var(--modal-bg); display: inline'>
 							</div>
 							<div class='col-1' style='padding-top: 3px;'>
@@ -707,7 +721,7 @@ export default class GridRow {
 
 		this.grid.visible_columns.forEach((col, ci) => {
 			// to get update df for the row
-			let df = fields.find((field) => field?.fieldname === col[0].fieldname);
+			let df = this.get_column_docfield(fields, col[0].fieldname);
 
 			this.set_dependant_property(df);
 
@@ -747,6 +761,18 @@ export default class GridRow {
 			// last empty column
 			$(`<div class="col grid-static-col search"></div>`).appendTo(this.row);
 		}
+	}
+
+	get_column_docfield(fields, fieldname) {
+		const column_df = fields.find((field) => field?.fieldname === fieldname);
+		const row_df = this.docfields?.find((df) => df.fieldname === fieldname);
+
+		if (!column_df || !row_df || column_df === row_df) return column_df;
+
+		row_df.sticky = column_df.sticky;
+		row_df.in_list_view = column_df.in_list_view;
+
+		return row_df;
 	}
 
 	set_dependant_property(df) {
@@ -1474,9 +1500,7 @@ export default class GridRow {
 				? this.grid.user_defined_columns
 				: this.docfields;
 
-		let df = fields.find((col) => {
-			return col?.fieldname === fieldname;
-		});
+		let df = this.get_column_docfield(fields, fieldname);
 
 		// format values if no frm
 		if (df && this.doc) {

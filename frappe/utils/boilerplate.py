@@ -349,6 +349,10 @@ build-backend = "flit_core.buildapi"
 [tool.bench.dev-dependencies]
 # package_name = "~=1.1.0"
 
+# These apt dependencies will be installed from Ubuntu repositories when you host your app on Frappe Cloud
+[deploy.dependencies.apt]
+packages = []
+
 [tool.ruff]
 line-length = 110
 target-version = "py310"
@@ -500,6 +504,12 @@ app_license = "{app_license}"
 # See frappe.core.notifications.get_notification_config
 
 # notification_config = "{app_name}.notifications.get_notification_config"
+
+# Awesome Bar
+# -----------
+# Extra search results: list of dicts with label, description, route, index.
+# route: ["List", "ToDo"], "/desk/docs/some/page", or "https://example.com"
+# awesomebar_search = ["{app_name}.search.awesomebar_results"]
 
 # Permissions
 # -----------

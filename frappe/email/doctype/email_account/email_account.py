@@ -4,6 +4,7 @@
 import email.utils
 import functools
 import imaplib
+import inspect
 import time
 from datetime import datetime, timedelta
 from poplib import error_proto
@@ -28,20 +29,23 @@ class SentEmailInInbox(Exception):
 
 def cache_email_account(cache_name):
 	def decorator_cache_email_account(func):
+		signature = inspect.signature(func)
+
 		@functools.wraps(func)
 		def wrapper_cache_email_account(*args, **kwargs):
 			if not hasattr(frappe.local, cache_name):
 				setattr(frappe.local, cache_name, {})
 
 			cached_accounts = getattr(frappe.local, cache_name)
-			match_by = [*list(kwargs.values()), "default"]
-			matched_accounts = list(filter(None, [cached_accounts.get(key) for key in match_by]))
-			if matched_accounts:
-				return matched_accounts[0]
+			lookup = signature.bind(*args, **kwargs).arguments
+			match_by = (lookup.get("match_by_email"), lookup.get("match_by_doctype"))
+			if account := cached_accounts.get(match_by):
+				return account
 
-			matched_accounts = func(*args, **kwargs)
-			cached_accounts.update(matched_accounts or {})
-			return matched_accounts and next(iter(matched_accounts.values()))
+			account = func(*args, **kwargs)
+			if account:
+				cached_accounts[match_by] = account
+			return account
 
 		return wrapper_cache_email_account
 
@@ -377,7 +381,7 @@ class EmailAccount(Document):
 
 	@classmethod
 	def create_dummy(cls):
-		return cls.from_record({"sender": "notifications@example.com"})
+		return cls.from_record({"name": "Notifications", "email_id": "notifications@example.com"})
 
 	@classmethod
 	@cache_email_account("outgoing_email_account")
@@ -392,16 +396,16 @@ class EmailAccount(Document):
 			match_by_email = parse_addr(match_by_email)[1]
 			doc = cls.find_one_by_filters(enable_outgoing=1, email_id=match_by_email)
 			if doc:
-				return {match_by_email: doc}
+				return doc
 
 		if match_by_doctype:
 			doc = cls.find_one_by_filters(enable_outgoing=1, enable_incoming=1, append_to=match_by_doctype)
 			if doc:
-				return {match_by_doctype: doc}
+				return doc
 
 		doc = cls.find_default_outgoing()
 		if doc:
-			return {"default": doc}
+			return doc
 
 		if _raise_error:
 			frappe.throw(
@@ -752,7 +756,14 @@ class EmailAccount(Document):
 
 
 @frappe.whitelist()
-def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
+def get_append_to(
+	doctype: str | None = None,
+	txt: str | None = None,
+	searchfield: str | None = None,
+	start: int | None = None,
+	page_len: int | None = None,
+	filters: list | dict | str | None = None,
+):
 	txt = txt if txt else ""
 
 	filters = {"istable": 0, "issingle": 0, "email_append_to": 1}
@@ -903,6 +914,7 @@ def get_max_email_uid(email_account):
 			"communication_medium": "Email",
 			"sent_or_received": "Received",
 			"email_account": email_account,
+			"uid": (">", 0),
 		},
 		fields=["max(uid) as uid"],
 	):
@@ -985,7 +997,8 @@ def remove_user_email_inbox(email_account):
 
 
 @frappe.whitelist()
-def set_email_password(email_account, password):
+def set_email_password(email_account: str, password: str):
+	frappe.has_permission("Email Account", "write", email_account, throw=True)
 	account = frappe.get_doc("Email Account", email_account)
 	if account.awaiting_password and account.auth_method != "OAuth":
 		account.awaiting_password = 0

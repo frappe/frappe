@@ -3,7 +3,7 @@ frappe.ui.form.on("Version", {
 		frm.add_custom_button(__("Show all Versions"), function () {
 			frappe.set_route("List", "Version", {
 				ref_doctype: frm.doc.ref_doctype,
-				docname: frm.doc.docname,
+				docname: ["=", frm.doc.docname],
 			});
 		});
 

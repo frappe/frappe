@@ -10,7 +10,7 @@ from frappe.utils import get_url_to_form
 
 
 @frappe.whitelist()
-def update_follow(doctype: str, doc_name: str, following: bool):
+def update_follow(doctype: str, doc_name: str | int, following: bool):
 	if following:
 		return follow_document(doctype, doc_name, frappe.session.user)
 	else:
@@ -47,21 +47,33 @@ def follow_document(doctype, doc_name, user):
 	if (not frappe.get_meta(doctype).track_changes) or user == "Administrator":
 		return
 
+	if user != frappe.session.user and not frappe.has_permission("Document Follow", "write"):
+		frappe.throw(_("You can only follow documents for yourself."), frappe.PermissionError)
+
+	if not frappe.has_permission(doctype, "read", doc=doc_name, user=user):
+		return False
+
 	if not frappe.db.get_value("User", user, "document_follow_notify", ignore=True, cache=True):
 		return
 
 	if not is_document_followed(doctype, doc_name, user):
+		if not frappe.has_permission("Document Follow", "create", user=user):
+			return False
+
 		doc = frappe.new_doc("Document Follow")
-		doc.update({"ref_doctype": doctype, "ref_docname": doc_name, "user": user})
-		doc.save()
+		doc.update({"ref_doctype": doctype, "ref_docname": str(doc_name), "user": user})
+		doc.save(ignore_permissions=True)
 		return doc
 
 
 @frappe.whitelist()
 def unfollow_document(doctype, doc_name, user):
+	if user != frappe.session.user and not frappe.has_permission("Document Follow", "write"):
+		frappe.throw(_("You can only unfollow documents for yourself."), frappe.PermissionError)
+
 	doc = frappe.get_all(
 		"Document Follow",
-		filters={"ref_doctype": doctype, "ref_docname": doc_name, "user": user},
+		filters={"ref_doctype": doctype, "ref_docname": str(doc_name), "user": user},
 		fields=["name"],
 		limit=1,
 	)
@@ -94,7 +106,7 @@ def send_email_alert(receiver, docinfo, timeline):
 def send_document_follow_mails(frequency):
 	"""
 	param:
-	frequency for sanding mails
+	frequency for sending mails
 
 	task:
 	set receiver according to frequency
@@ -123,6 +135,7 @@ def get_user_list(frequency):
 		.on(DocumentFollow.user == User.name)
 		.where(User.document_follow_notify == 1)
 		.where(User.document_follow_frequency == frequency)
+		.where(User.enabled == 1)
 		.select(DocumentFollow.user)
 		.groupby(DocumentFollow.user)
 	).run(pluck="user")
@@ -134,6 +147,18 @@ def get_message_for_user(frequency, user):
 	valid_document_follows = []
 
 	for document_follow in latest_document_follows:
+		if not frappe.has_permission(
+			document_follow.ref_doctype, "read", doc=document_follow.ref_docname, user=user
+		):
+			frappe.db.delete(
+				"Document Follow",
+				{
+					"ref_doctype": document_follow.ref_doctype,
+					"ref_docname": document_follow.ref_docname,
+					"user": user,
+				},
+			)
+			continue
 		content = get_message(document_follow.ref_docname, document_follow.ref_doctype, frequency, user)
 		if content:
 			message = message + content
@@ -178,11 +203,11 @@ def get_version(doctype, doc_name, frequency, user):
 			time = frappe.utils.format_datetime(v.modified, "hh:mm a")
 			timeline_items = []
 			if change.changed:
-				timeline_items = get_field_changed(change.changed, time, doctype, doc_name, v)
+				timeline_items = get_field_changed(change.changed, time, doctype, doc_name, v, user)
 			if change.row_changed:
-				timeline_items = get_row_changed(change.row_changed, time, doctype, doc_name, v)
+				timeline_items = get_row_changed(change.row_changed, time, doctype, doc_name, v, user)
 			if change.added:
-				timeline_items = get_added_row(change.added, time, doctype, doc_name, v)
+				timeline_items = get_added_row(change.added, time, doctype, doc_name, v, user)
 
 			timeline = timeline + timeline_items
 
@@ -229,21 +254,17 @@ def is_document_followed(doctype, doc_name, user):
 	)
 
 
-@frappe.whitelist()
-def get_follow_users(doctype, doc_name):
-	return frappe.get_all(
-		"Document Follow", filters={"ref_doctype": doctype, "ref_docname": doc_name}, fields=["user"]
-	)
-
-
-def get_row_changed(row_changed, time, doctype, doc_name, v):
+def get_row_changed(row_changed, time, doctype, doc_name, v, user):
 	from frappe.core.utils import html2text
 
 	items = []
 	for d in row_changed:
-		d[2] = d[2] if d[2] else " "
+		if not _can_read_child_table_field(doctype, d[0], d[3][0][0], user):
+			continue
+
 		d[0] = d[0] if d[0] else " "
 		d[3][0][1] = d[3][0][1] if d[3][0][1] else " "
+
 		items.append(
 			{
 				"time": v.modified,
@@ -264,7 +285,7 @@ def get_row_changed(row_changed, time, doctype, doc_name, v):
 	return items
 
 
-def get_added_row(added, time, doctype, doc_name, v):
+def get_added_row(added, time, doctype, doc_name, v, user):
 	return [
 		{
 			"time": v.modified,
@@ -275,14 +296,21 @@ def get_added_row(added, time, doctype, doc_name, v):
 			"by": v.modified_by,
 		}
 		for d in added
+		if _can_read_table_field(doctype, d[0], user)
 	]
 
 
-def get_field_changed(changed, time, doctype, doc_name, v):
+def get_field_changed(changed, time, doctype, doc_name, v, user):
 	from frappe.core.utils import html2text
 
 	items = []
+	permitted_fieldnames = frappe.get_meta(doctype).get_permitted_fieldnames(
+		permission_type="read", user=user
+	)
 	for d in changed:
+		if d[0] not in permitted_fieldnames:
+			continue
+
 		d[1] = d[1] if d[1] else " "
 		d[2] = d[2] if d[2] else " "
 		d[0] = d[0] if d[0] else " "
@@ -340,3 +368,42 @@ def _get_filters(frequency, user):
 		]
 
 	return filters
+
+
+def _can_read_child_table_field(doctype: str, table_field: str, child_field: str, user: str) -> bool:
+	"""Check whether a user may read a child table field change.
+	Args:
+		doctype (str): Parent DocType that owns the child table field.
+		table_field (str): Table fieldname on the parent DocType.
+		child_field (str): Fieldname on the child DocType row that changed.
+		user (str): User whose roles and permlevels are used for the check.
+	"""
+
+	if not _can_read_table_field(doctype, table_field, user):
+		return False
+
+	child_doctype = frappe.get_meta(doctype).get_field(table_field).options
+
+	if not child_doctype:
+		return False
+
+	return child_field in frappe.get_meta(child_doctype).get_permitted_fieldnames(
+		permission_type="read", parenttype=doctype, user=user
+	)
+
+
+def _can_read_table_field(doctype: str, table_field: str, user: str) -> bool:
+	"""Check whether a user may read a parent Table field.
+	Args:
+		doctype(str): Parent DocType that contains the child table field.
+		table_field(str): Table fieldname on the parent DocType.
+		user(str): User whose roles and permlevels are used for the check.
+	"""
+	meta = frappe.get_meta(doctype)
+	table_df = meta.get_field(table_field)
+
+	if not table_df:
+		return False
+
+	permlevel = table_df.permlevel
+	return permlevel in meta.get_permlevel_access(permission_type="read", user=user)

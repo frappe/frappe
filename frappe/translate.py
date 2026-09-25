@@ -625,7 +625,7 @@ def extract_messages_from_python_code(code: str) -> list[tuple[int, str, str | N
 
 	for message in extract_python(
 		io.BytesIO(code.encode()),
-		keywords=["_", "_lt"],
+		keywords=["_", "_lt", "N_"],
 		comment_tags=(),
 		options={},
 	):
@@ -889,7 +889,7 @@ def deduplicate_messages(messages):
 
 
 @frappe.whitelist()
-def update_translations_for_source(source=None, translation_dict=None):
+def update_translations_for_source(source: str | None = None, translation_dict: str | None = None):
 	if not (source and translation_dict):
 		return
 
@@ -981,17 +981,20 @@ def print_language(language: str):
 
 	# remember original values
 	_lang = frappe.local.lang
-	_jenv = frappe.local.jenv
+	_jenv_restricted = getattr(frappe.local, "jenv_restricted", None)
+	_jenv_unrestricted = getattr(frappe.local, "jenv_unrestricted", None)
 
 	# set language, empty any existing lang_full_dict and jenv
 	frappe.local.lang = language
-	frappe.local.jenv = None
+	frappe.local.jenv_restricted = None
+	frappe.local.jenv_unrestricted = None
 
 	yield
 
 	# restore original values
 	frappe.local.lang = _lang
-	frappe.local.jenv = _jenv
+	frappe.local.jenv_restricted = _jenv_restricted
+	frappe.local.jenv_unrestricted = _jenv_unrestricted
 
 
 # Backward compatibility

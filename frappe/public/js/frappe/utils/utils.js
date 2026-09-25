@@ -242,7 +242,7 @@ Object.assign(frappe.utils, {
 	},
 
 	escape_html: function (txt) {
-		if (!txt) return "";
+		if (txt == null) return ""; // null or undefined, but keep 0 / false
 		let escape_html_mapping = {
 			"&": "&amp;",
 			"<": "&lt;",
@@ -1586,21 +1586,16 @@ Object.assign(frappe.utils, {
 		if (!doctype || !name) {
 			return;
 		}
-		try {
-			return frappe
-				.xcall("frappe.desk.search.get_link_title", {
-					doctype: doctype,
-					docname: name,
-				})
-				.then((title) => {
-					frappe.utils.add_link_title(doctype, name, title);
-					return title;
-				});
-		} catch (error) {
-			console.log("Error while fetching link title.");
-			console.log(error);
-			return Promise.resolve(name);
-		}
+		return frappe
+			.xcall("frappe.desk.search.get_link_title", {
+				doctype: doctype,
+				docname: name,
+			})
+			.then((title) => {
+				frappe.utils.add_link_title(doctype, name, title);
+				return title;
+			})
+			.catch(() => name);
 	},
 
 	only_allow_num_decimal(input) {
@@ -1650,15 +1645,7 @@ Object.assign(frappe.utils, {
 	},
 
 	process_filter_expression(filter) {
-		let filters = [];
-		if (filter) {
-			try {
-				filters = JSON.parse(filter);
-			} catch {
-				console.warn("Invalid JSON in filter expression", filter);
-			}
-		}
-		return filters;
+		return new Function(`return ${filter}`)();
 	},
 
 	get_filter_from_json(filter_json, doctype) {

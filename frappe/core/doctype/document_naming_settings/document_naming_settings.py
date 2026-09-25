@@ -174,7 +174,7 @@ class DocumentNamingSettings(Document):
 		NamingSeries(series).validate()
 
 	@frappe.whitelist()
-	def get_options(self, doctype=None):
+	def get_options(self, doctype: str | None = None):
 		doctype = doctype or self.transaction_type
 		if not doctype:
 			return

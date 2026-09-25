@@ -246,7 +246,8 @@ class NotificationsView extends BaseNotificationsView {
 		let doc_link = this.get_item_link(notification_log);
 
 		let read_class = notification_log.read ? "" : "unread";
-		let message = notification_log.subject;
+		// Title/Description are the canonical fields; fall back to the legacy subject/content.
+		let message = notification_log.title || notification_log.subject || "";
 
 		let title = message.match(/<b class="subject-title">(.*?)<\/b>/);
 		message = title
@@ -341,7 +342,16 @@ class NotificationsView extends BaseNotificationsView {
 		const link_docname = notification_doc.document_name
 			? notification_doc.document_name
 			: notification_doc.name;
-		return frappe.utils.get_form_link(link_doctype, link_docname);
+		const form_link = frappe.utils.get_form_link(link_doctype, link_docname);
+		// the timeline renders each entry with `id="<doctype>-<name>"`, so the
+		// source record anchors the link to the exact spot in the document
+		if (notification_doc.source_doctype && notification_doc.source_name) {
+			const anchor = `${frappe.scrub(notification_doc.source_doctype)}-${
+				notification_doc.source_name
+			}`;
+			return `${form_link}#${anchor}`;
+		}
+		return form_link;
 	}
 
 	toggle_notification_icon(seen) {
@@ -421,13 +431,15 @@ class EventsView extends BaseNotificationsView {
 				// REDESIGN-TODO: Add location to calendar field
 				let location = "";
 				if (event.location) {
-					location = `, ${event.location}`;
+					location = `, ${frappe.utils.escape_html(event.location)}`;
 				}
 
-				return `<a class="recent-item event" href="/app/event/${event.name}">
-					<div class="event-border" style="border-color: ${event.color}"></div>
+				return `<a class="recent-item event" href="/app/event/${frappe.utils.escape_html(
+					event.name
+				)}">
+					<div class="event-border" style="border-color: ${frappe.utils.escape_html(event.color)}"></div>
 					<div class="event-item">
-						<div class="event-subject">${event.subject}</div>
+						<div class="event-subject">${frappe.utils.escape_html(event.subject)}</div>
 						<div class="event-time">${time}${location}</div>
 						${particpants}
 					</div>
