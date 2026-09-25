@@ -139,6 +139,9 @@ function select(id: string) {
 describe("reordering blocks on the canvas by dragging", () => {
 	let canvas: any
 	const childIds = (id: string) => canvas.findBlock(id).children.map((child: Block) => child.componentId)
+	// retries until the debounced tree watcher has recorded the entry
+	const expectUndoEntries = (count: number) =>
+		cy.wrap(null, { log: false }).should(() => expect(canvas.history.undoStack.length).to.equal(count))
 
 	beforeEach(() => {
 		Block.setComponents(COMPONENTS)
@@ -192,8 +195,7 @@ describe("reordering blocks on the canvas by dragging", () => {
 			expect(childIds("column")).to.deep.equal(["B", "C", "A", "empty", "row", "positioned", "extras"])
 			expect([...canvas.selectedBlockIds]).to.deep.equal(["A"])
 		})
-		cy.wait(HISTORY_DEBOUNCE)
-		cy.then(() => expect(canvas.history.undoStack.length).to.equal(undoEntries + 1))
+		expectUndoEntries(undoEntries + 1)
 	})
 
 	it("moves a block into a row container between two siblings", () => {
@@ -271,10 +273,7 @@ describe("reordering blocks on the canvas by dragging", () => {
 			expect(childIds("positioned")).to.deep.equal(["pinned", "anchored"])
 			expect(childIds("column")).to.deep.equal(["A", "B", "C", "empty", "row", "positioned", "extras"])
 		})
-		cy.wait(HISTORY_DEBOUNCE)
-		cy.then(() => {
-			expect(canvas.history.undoStack.length).to.equal(undoEntries + 1)
-		})
+		expectUndoEntries(undoEntries + 1)
 	})
 
 	it("keeps family parts inside their family root", () => {
