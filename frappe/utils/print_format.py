@@ -424,11 +424,14 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 		or {}
 	)
 
+	from bs4 import BeautifulSoup
+
 	context_doc = frappe._dict(doc or {})
 	rendered = {}
 
+	# Jinja branches can leave a tag open; unbalanced, the PDF parser folds the report body into the header.
 	if letter_head.content:
-		header = render_template(letter_head.content, {"doc": context_doc})
+		header = str(BeautifulSoup(render_template(letter_head.content, {"doc": context_doc}), "html.parser"))
 		if letter_head.custom_css:
 			header += f"\n<style>\n{letter_head.custom_css}\n</style>\n"
 		rendered["header"] = header
@@ -436,7 +439,7 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 			header += f"\n<script>\n{letter_head.header_script}\n</script>\n"
 
 	if letter_head.footer:
-		footer = render_template(letter_head.footer, {"doc": context_doc})
+		footer = str(BeautifulSoup(render_template(letter_head.footer, {"doc": context_doc}), "html.parser"))
 		if letter_head.footer_script:
 			footer += f"\n<script>\n{letter_head.footer_script}\n</script>\n"
 		rendered["footer"] = footer
