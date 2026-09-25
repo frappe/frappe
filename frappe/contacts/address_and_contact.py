@@ -5,6 +5,7 @@ from typing import Any
 
 import frappe
 from frappe import _
+from frappe.query_builder.terms import NamedParameterWrapper
 
 
 def load_address_and_contact(doc, key=None) -> None:
@@ -119,19 +120,24 @@ def get_permission_query_conditions(doctype, user=None):
 		if not frappe.has_permission(party_doctype, "read", user=user):
 			continue
 
-		# get_list() applies every permission hook registered for this doctype
-		permitted_names = frappe.get_list(party_doctype, pluck="name", user=user)
-		if not permitted_names:
-			continue
+		# unexecuted query, not materialized names: carries every permission hook
+		# for this doctype without pulling every row into Python
+		party_query = frappe.get_list(party_doctype, fields=["name"], user=user, order_by=None, run=False)
 
-		escaped_names = ", ".join(frappe.db.escape(name) for name in permitted_names)
+		# pypika's literal quoting doesn't escape backslashes; bind params instead
+		# and substitute via frappe.db.escape, which does
+		param_wrapper = NamedParameterWrapper()
+		party_sql = party_query.get_sql(param_wrapper=param_wrapper)
+		for param_key, param_value in param_wrapper.get_parameters().items():
+			party_sql = party_sql.replace(f"%({param_key})s", frappe.db.escape(param_value))
+
 		party_conditions.append(
 			f"""exists(
 				select 1 from `tabDynamic Link` dl
 				where dl.parent = `tab{doctype}`.name
 					and dl.parenttype = {frappe.db.escape(doctype)}
 					and dl.link_doctype = {frappe.db.escape(party_doctype)}
-					and dl.link_name in ({escaped_names})
+					and dl.link_name in ({party_sql})
 			)"""
 		)
 

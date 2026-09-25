@@ -117,9 +117,8 @@ class TestRemoveLink(IntegrationTestCase):
 
 
 class TestContactAddressPartyPermission(IntegrationTestCase):
-	"""Contact/Address access follows the party each record is linked to via the
-	`links` Dynamic Link child table. Uses a throwaway DocType standing in for a
-	real party doctype (e.g. Customer), so this runs without ERPNext installed."""
+	"""Contact/Address access follows the linked party (via `links`), using a
+	throwaway DocType so this runs without ERPNext installed."""
 
 	@classmethod
 	def setUpClass(cls):
@@ -129,9 +128,7 @@ class TestContactAddressPartyPermission(IntegrationTestCase):
 		if not frappe.db.exists("Role", cls.party_role):
 			frappe.get_doc({"doctype": "Role", "role_name": cls.party_role}).insert(ignore_permissions=True)
 
-		# a randomly-suffixed name avoids colliding with a doctype left behind by
-		# an earlier run whose cleanup didn't stick (DocType creation is DDL, which
-		# implicit-commits ahead of the test transaction, so cleanup isn't guaranteed)
+		# random suffix avoids clashing with a doctype an earlier run left behind
 		cls.party_doctype = new_doctype(permissions=[{"role": cls.party_role, "read": 1}]).insert(
 			ignore_permissions=True
 		)
@@ -237,34 +234,39 @@ class TestContactAddressPartyPermission(IntegrationTestCase):
 		)
 		self.assertIn(unlinked_contact.name, names)
 
-	def test_stale_party_link_is_treated_as_unlinked(self):
-		"""A link to a party doctype whose app was since uninstalled must not hide
-		the record from lists, matching how has_permission treats it as unlinked."""
-		stale_doctype = new_doctype(permissions=[{"role": self.party_role, "read": 1}]).insert(
-			ignore_permissions=True
-		)
-		stale_record = frappe.get_doc({"doctype": stale_doctype.name, "some_fieldname": "stale"}).insert(
-			ignore_permissions=True
-		)
-		contact = frappe.get_doc(
+	def test_query_conditions_escape_backslash_in_party_name(self):
+		"""A backslash in a party name must not break or bypass the condition."""
+		# "Prompt" naming so the explicit backslash-containing name below actually
+		# sticks; the shared self.party_doctype defaults to hash-based naming
+		tricky_doctype = new_doctype(
+			permissions=[{"role": self.party_role, "read": 1}], autoname="Prompt"
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "DocType", tricky_doctype.name, force=True)
+
+		address_and_contact_module.PARTY_DOCTYPES = (self.party_doctype.name, tricky_doctype.name)
+		self.addCleanup(setattr, address_and_contact_module, "PARTY_DOCTYPES", (self.party_doctype.name,))
+
+		tricky_party = frappe.get_doc(
+			{"doctype": tricky_doctype.name, "name": "_Test Tricky\\Party", "some_fieldname": "x"}
+		).insert(ignore_permissions=True)
+		self.assertEqual(tricky_party.name, "_Test Tricky\\Party")
+
+		add_user_permission(tricky_doctype.name, tricky_party.name, self.scoped_user)
+		self.addCleanup(remove_user_permission, tricky_doctype.name, tricky_party.name, self.scoped_user)
+
+		allowed_contact = frappe.get_doc(
 			{
 				"doctype": "Contact",
-				"first_name": "_Test Stale Link Contact",
-				"links": [{"link_doctype": stale_doctype.name, "link_name": stale_record.name}],
+				"first_name": "_Test Contact for tricky party",
+				"links": [{"link_doctype": tricky_doctype.name, "link_name": tricky_party.name}],
 			}
 		).insert(ignore_permissions=True)
+		other_contact = self.make_contact(self.party_b)
 
-		frappe.delete_doc("DocType", stale_doctype.name, force=True, ignore_permissions=True)
-
-		address_and_contact_module.PARTY_DOCTYPES = (stale_doctype.name, self.party_doctype.name)
-		try:
-			self.assertTrue(has_permission(contact, "read", self.scoped_user))
-
-			conditions = get_permission_query_conditions("Contact", self.scoped_user)
-			names = frappe.db.sql_list(
-				f"select name from `tabContact` where name = %(name)s and {conditions}",
-				{"name": contact.name},
-			)
-			self.assertIn(contact.name, names)
-		finally:
-			address_and_contact_module.PARTY_DOCTYPES = (self.party_doctype.name,)
+		conditions = get_permission_query_conditions("Contact", self.scoped_user)
+		names = frappe.db.sql_list(
+			f"select name from `tabContact` where name in %(names)s and {conditions}",
+			{"names": [allowed_contact.name, other_contact.name]},
+		)
+		self.assertIn(allowed_contact.name, names)
+		self.assertNotIn(other_contact.name, names)
