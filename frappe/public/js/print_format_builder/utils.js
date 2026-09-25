@@ -675,11 +675,14 @@ export function format_date_tokens(date, fmt, lang) {
 	const pad = (n) => String(n).padStart(2, "0");
 	const name = (token) => {
 		const [part, style] = NAME_TOKENS[token];
+		const options = { day: "numeric", month: "long", weekday: "short", [part]: style };
+		let formatter;
 		try {
-			return new Intl.DateTimeFormat(lang, { [part]: style }).format(date);
+			formatter = new Intl.DateTimeFormat(lang, options);
 		} catch {
-			return new Intl.DateTimeFormat("en", { [part]: style }).format(date);
+			formatter = new Intl.DateTimeFormat("en", options);
 		}
+		return formatter.formatToParts(date).find((p) => p.type === part).value;
 	};
 	return fmt.replace(/yyyy|MMMM|MMM|EEEE|EEE|mm|dd|d/g, (t) =>
 		NAME_TOKENS[t]
