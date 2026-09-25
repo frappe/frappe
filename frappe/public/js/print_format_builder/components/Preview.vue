@@ -136,7 +136,11 @@ function on_keydown(e) {
 }
 
 function place_overlay() {
-	overlay_top.value = document.querySelector(".page-head")?.getBoundingClientRect().bottom ?? 0;
+	const head = document
+		.querySelector(".builder-root")
+		?.closest(".page-container")
+		?.querySelector(".page-head");
+	overlay_top.value = head?.getBoundingClientRect().bottom ?? 0;
 }
 onMounted(() => {
 	place_overlay();
