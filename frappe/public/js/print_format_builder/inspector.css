@@ -428,6 +428,7 @@ body.pfb-dragging * {
 	position: fixed;
 	inset: 0;
 	z-index: 1035;
+	isolation: isolate;
 	display: flex;
 	align-items: center;
 	justify-content: center;
