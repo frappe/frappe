@@ -151,6 +151,7 @@ import {
 } from "@/recordPage";
 import type { UseFormLayout } from "@/recordPage/formLayoutSource/useFormLayout";
 import { routeFor } from "@/router/routeFor";
+import { __ } from "@/i18n";
 import BodyColumns from "./record/body/BodyColumns.vue";
 import FrameBands from "./record/FrameBands.vue";
 import RecordHeader from "./record/RecordHeader.vue";
@@ -613,8 +614,8 @@ function takeReadFailure(failure: unknown) {
 
 function readFailure(failure: unknown) {
 	return isApiError(failure) && failure.status === 403
-		? "You do not have permission to read this record."
-		: "Not found.";
+		? __("You do not have permission to read this record.")
+		: __("Not found.");
 }
 
 function show(loaded: LoadedRecord, metadata: any) {
