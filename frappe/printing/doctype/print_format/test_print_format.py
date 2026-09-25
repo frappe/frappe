@@ -110,16 +110,62 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 
 		user = frappe.get_doc("User", "Administrator")
 		self.assertEqual(format_field_value(user, df), user.get_formatted("birth_date"))
-		merged = df | {
-			"date_format": "d MMM yyyy",
-			"merged_fields": [{"fieldname": "email", "fieldtype": "Data"}],
-		}
-		self.assertEqual(format_field_value(user, merged), "11 Feb 2026")
 		stamp = format_field_value(
 			user, {"fieldname": "last_login", "fieldtype": "Datetime", "date_format": "dd/mm/yyyy"}
 		)
 		if user.last_login:
 			self.assertRegex(stamp, r"^\d{2}/\d{2}/\d{4} \d{2}:\d{2}")
+
+	def test_table_column_date_format_reaches_plain_and_merged_cells(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+		from frappe.utils.print_format_generator import get_html
+
+		child = new_doctype(
+			istable=1,
+			fields=[
+				{"fieldname": "due", "fieldtype": "Date", "label": "Due"},
+				{"fieldname": "note", "fieldtype": "Data", "label": "Note"},
+			],
+		).insert()
+		parent = new_doctype(
+			fields=[{"fieldname": "rows", "fieldtype": "Table", "options": child.name, "label": "Rows"}]
+		).insert()
+		self.addCleanup(parent.delete)
+		self.addCleanup(child.delete)
+		doc = frappe.get_doc(
+			{"doctype": parent.name, "rows": [{"due": "2026-02-11", "note": "paid"}]}
+		).insert()
+
+		def column(**extra):
+			return {"fieldname": "due", "fieldtype": "Date", "label": "Due", "width": 50} | extra
+
+		def render(col):
+			frappe.delete_doc("Print Format", self.FORMAT_NAME, force=True, ignore_missing=True)
+			table = {"fieldname": "rows", "fieldtype": "Table", "options": child.name, "table_columns": [col]}
+			frappe.get_doc(
+				{
+					"doctype": "Print Format",
+					"name": self.FORMAT_NAME,
+					"doc_type": parent.name,
+					"standard": "No",
+					"print_format_builder_beta": 1,
+					"format_data": frappe.as_json(
+						{"sections": [{"label": "", "columns": [{"label": "", "fields": [table]}]}]}
+					),
+				}
+			).insert()
+			self.addCleanup(frappe.delete_doc, "Print Format", self.FORMAT_NAME, force=True)
+			return get_html(parent.name, doc.name, self.FORMAT_NAME)
+
+		self.assertIn(">11 Feb 2026<", render(column(date_format="d MMM yyyy")))
+		self.assertNotIn("11 Feb 2026", render(column()))
+		merged = column(
+			date_format="d MMM yyyy",
+			merged_fields=[{"fieldname": "note", "fieldtype": "Data", "style": "muted"}],
+		)
+		html = render(merged)
+		self.assertIn('cell-line--primary">11 Feb 2026<', html)
+		self.assertIn('cell-line--muted">paid<', html)
 
 	def test_allow_page_break_marks_field_breakable(self):
 		# the class name also lives in the stylesheet, so assert on the body markup only
