@@ -5,18 +5,8 @@ import { toRaw } from "vue";
 /** Why a held act is dropped when the first paint goes ahead without its target. */
 export const NOT_DRAWN = "the first paint went ahead without it";
 
-/** Why a held act is dropped when the replay after a background read commits. */
+/** Why an act is dropped when it runs in the replay after a background read. */
 export const IN_BACKGROUND = "it ran in the replay after a background read";
-
-/** Which held acts a commit delivers: every one, those whose target is drawn, or none. */
-export type Release = "all" | "drawn" | "none";
-
-/** The reason a held act is dropped under `release`, or null when it lands. */
-export function dropReason(release: Release, isDrawn: () => boolean): string | null {
-  if (release === "none") return IN_BACKGROUND;
-  if (release === "drawn" && !isDrawn()) return NOT_DRAWN;
-  return null;
-}
 
 /** What the page opens, closes and publishes on every overlay a replay or a hold stages. */
 export interface Staging {

@@ -31,14 +31,14 @@ import { reportCustomizationError } from "./reportError";
 import { createRows, warnRowIssue } from "./rows";
 import { clientScriptsLoaded } from "./clientScripts";
 import { createPaintGate, type RefreshOptions } from "./paintGate";
-import { dropReason, type Release, type Staging } from "./staging";
-import { guard, inOrder } from "./steps";
+import { IN_BACKGROUND, NOT_DRAWN, type Staging } from "./staging";
 import { Surface } from "./surface";
 import { PANEL_SECTION_KEYS, QUICK_ACTION_KEYS, TAB_ITEM_KEYS } from "./types";
 import type {
   ActivityRow,
   ComposerOpenOptions,
   FileRow,
+  Handler,
   PageRow,
   PanelSectionItem,
   PanelSectionsApi,
@@ -57,6 +57,20 @@ function asVeto(error: unknown): Error {
   const veto = error instanceof Error ? error : new Error(String(error));
   veto.name = SAVE_VETO;
   return veto;
+}
+
+// Gives itself back for any read, call or write, and an await on it never resumes.
+const INERT: any = new Proxy(() => {}, {
+  get: (_, key) => (key === Symbol.toPrimitive ? () => undefined : INERT),
+  apply: () => INERT,
+  set: () => true,
+});
+
+/** The `page` one `onRefresh` gets; once closed, every member read off it is inert. */
+function pageView(page: RecordPageApi) {
+  let open = true;
+  const view = new Proxy(page, { get: (target, key) => (open ? Reflect.get(target, key) : INERT) });
+  return { page: view, close: () => void (open = false) };
 }
 
 /** The closed event vocabulary; every other key is a fieldname. */
@@ -174,8 +188,8 @@ export interface RecordPageController {
   commits: RecordCommitChannel;
   /** The replay: clears every surface, then runs every source's `refresh` in run order. */
   refresh: (options?: RefreshOptions) => Promise<void>;
-  /** Replays and commits its synchronous part before it returns, settling when every `onRefresh` has; null, having run nothing, while scripts or permissions load. */
-  paintNow: () => Promise<void> | null;
+  /** Replays and commits before it returns true; false, having run nothing, while scripts or permissions load. */
+  paintNow: () => boolean;
   /** `row` addresses the child row a dotted event happened to; see `Handler`. */
   fireEvent: (event: string, row?: RowAddress) => Promise<void>;
   /** Fires `onPost` with the posted row's key, once the server has answered the built-in writer. */
@@ -220,6 +234,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     scrollTo: (key) => host.scrollToActivity(key),
     reload: () => host.reloadActivity(),
     isStaging: () => gate.isStaging(),
+    inBackground: () => gate.inBackground(),
   });
   const files = new FilesSurface({
     rows: () => host.fileRows(),
@@ -234,6 +249,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       setWindow: (window) => host.setWindow?.(window),
     },
     () => gate.isStaging(),
+    () => gate.inBackground(),
   );
   const rows = createRows({
     doc: () => host.doc.value,
@@ -303,10 +319,9 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     permissionsReady: () => permissions.ready(),
     loaded: () =>
       permissions.loaded() && (!host.sourcesReady || clientScriptsLoaded(host.doctype)),
-    runRefresh: (ran) => dispatch("onRefresh", undefined, ran),
+    runRefresh: (ran) => runRefresh(ran),
     warnUnknownHandlers: () => warnUnknownHandlers(),
-    deliverHeldActs: (release) => deliverHeldActs(release),
-    setAsideHeldActs: () => setAsideHeldActs(),
+    deliverHeldActs: (drawnOnly) => deliverHeldActs(drawnOnly),
     closeDialogs: () => dialogs.closeAll(),
   });
   const { hold, isStaging } = gate;
@@ -366,28 +381,12 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   // With an empty removals list this hands the same object straight back.
   const page = withRemovals(capabilities);
 
-  function deliverHeldActs(release: Release) {
-    releaseActivations(release);
-    releaseDisclosures(release);
-    releaseFocus(release);
-    activity.releaseScroll(release);
-    composer.releaseOpen(release);
-  }
-
-  function setAsideHeldActs() {
-    const activations = [...heldActivations];
-    const disclosures = [...heldDisclosures];
-    const focus = heldFocus;
-    heldActivations.clear();
-    heldDisclosures.clear();
-    heldFocus = null;
-    const putBack = [activity.setAsideScroll(), composer.setAsideOpen()];
-    return () => {
-      for (const [strip, name] of activations) heldActivations.set(strip, name);
-      for (const [name, open] of disclosures) heldDisclosures.set(name, open);
-      heldFocus = focus;
-      for (const one of putBack) one();
-    };
+  function deliverHeldActs(drawnOnly: boolean) {
+    releaseActivations(drawnOnly);
+    releaseDisclosures(drawnOnly);
+    releaseFocus(drawnOnly);
+    activity.releaseScroll(drawnOnly);
+    composer.releaseOpen(drawnOnly);
   }
 
   // One sequence at a time: a second `page.save()` mid-flight joins it, so no handler fires twice.
@@ -413,16 +412,16 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
 
   function focusField(fieldname: string) {
     if (!canFocus(fieldname)) return;
-    if (isStaging()) heldFocus = fieldname;
+    if (gate.inBackground()) warnFocus(fieldname, IN_BACKGROUND);
+    else if (isStaging()) heldFocus = fieldname;
     else deliverFocus(fieldname);
   }
 
-  function releaseFocus(release: Release) {
+  function releaseFocus(drawnOnly: boolean) {
     const held = heldFocus;
     heldFocus = null;
     if (!held) return;
-    const dropped = dropReason(release, () => fields.isDrawn(held));
-    if (dropped) warnFocus(held, dropped);
+    if (drawnOnly && !fields.isDrawn(held)) warnFocus(held, NOT_DRAWN);
     else if (canFocus(held, "it left the form before the replay settled")) deliverFocus(held);
   }
 
@@ -460,12 +459,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     );
   }
 
-  function releaseDisclosures(release: Release) {
+  function releaseDisclosures(drawnOnly: boolean) {
     const held = [...heldDisclosures];
     heldDisclosures.clear();
     for (const [name, open] of held) {
-      const dropped = dropReason(release, () => panelSections.isDrawn(name));
-      if (dropped) warnDisclose(name, open, dropped);
+      if (drawnOnly && !panelSections.isDrawn(name)) warnDisclose(name, open, NOT_DRAWN);
       // Re-read, as a held activation is: a later source can hide or relabel the section.
       else if (canDisclose(name, open, "it left the panel before the replay settled"))
         deliverDisclosure(name, open);
@@ -475,7 +473,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   /** Both acts: a miss is said the way `activate` says one, and a hidden section is a miss. */
   function disclose(name: string, open: boolean) {
     if (!canDisclose(name, open)) return;
-    if (isStaging()) heldDisclosures.set(name, open);
+    if (gate.inBackground()) warnDisclose(name, open, IN_BACKGROUND);
+    else if (isStaging()) heldDisclosures.set(name, open);
     else deliverDisclosure(name, open);
   }
 
@@ -521,12 +520,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     );
   }
 
-  function releaseActivations(release: Release) {
+  function releaseActivations(drawnOnly: boolean) {
     const held = [...heldActivations];
     heldActivations.clear();
     for (const [strip, name] of held) {
-      const dropped = dropReason(release, () => surfaceFor(strip).isDrawn(name));
-      if (dropped) warnActivate(strip, name, dropped);
+      if (drawnOnly && !surfaceFor(strip).isDrawn(name)) warnActivate(strip, name, NOT_DRAWN);
       // Re-read, not replayed: a later source can hide the tab an earlier one
       // activated, and delivering that move would land the reader on the fallback.
       else if (!surfaceFor(strip).isVisible(name))
@@ -542,7 +540,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   /** Both strips' `activate`: the interesting miss names the other strip, and only a caller holding both can say so. */
   function activate(strip: TabStrip, name: string) {
     if (!canReach(strip, name)) return;
-    if (isStaging()) heldActivations.set(strip, name);
+    if (gate.inBackground()) warnActivate(strip, name, IN_BACKGROUND);
+    else if (isStaging()) heldActivations.set(strip, name);
     else move(strip, name);
   }
 
@@ -617,7 +616,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   async function fireEvent(event: string, row?: RowAddress) {
     // One handle for the whole dispatch, and the same object `page.rows()` hands back.
     const detail = row ? rows.handle(row) : undefined;
-    if (event === "onRefresh") await dispatch(event, detail);
+    if (event === "onRefresh") runRefresh(new Set());
     else await hold(() => dispatch(event, detail));
   }
 
@@ -625,24 +624,52 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     return hold(() => dispatch("onPost", { name: key }));
   }
 
-  /** `ran` carries a replay's first pass into its second, so no source runs twice. */
-  function dispatch(event: string, detail?: PageRow | PostedRow, ran?: Set<Registration>) {
-    return inOrder(registrationsFor(host.doctype), (registration) => {
-      if (ran?.has(registration)) return;
-      ran?.add(registration);
-      const { source, handlers } = registration;
+  async function dispatch(event: string, detail?: PageRow | PostedRow) {
+    for (const { source, handlers } of registrationsFor(host.doctype)) {
       const handler = handlers[event];
-      if (!handler) return;
+      if (!handler) continue;
       const run = () =>
-        withRunningSource(source, () =>
-          guard(
-            () => handler(page, detail),
-            (error) => reportHandlerError(source, event, error),
-          ),
-        );
-      // `ran` marks a replay's own pass, which the early paint names before a nested save's.
-      return gate.asSource(source, Boolean(ran), run);
-    });
+        withRunningSource(source, async () => {
+          try {
+            await handler(page, detail);
+          } catch (error) {
+            reportHandlerError(source, event, error);
+          }
+        });
+      await gate.asSource(source, run);
+    }
+  }
+
+  /** A replay's pass, synchronous; `ran` carries its first pass into its second, so no source runs twice. */
+  function runRefresh(ran: Set<Registration>) {
+    for (const registration of registrationsFor(host.doctype)) {
+      if (ran.has(registration)) continue;
+      ran.add(registration);
+      const { source, handlers } = registration;
+      const handler = handlers.onRefresh;
+      if (handler) withRunningSource(source, () => refreshWith(source, handler));
+    }
+  }
+
+  /** An `onRefresh` that returns a promise is warned about, and its `page` does nothing after that. */
+  function refreshWith(source: string, handler: Handler) {
+    const view = pageView(page);
+    try {
+      const result: unknown = handler(view.page);
+      if (!(result instanceof Promise)) return;
+      view.close();
+      warnAsyncRefresh(source);
+      result.catch((error) => reportHandlerError(source, "onRefresh", error));
+    } catch (error) {
+      reportHandlerError(source, "onRefresh", error);
+    }
+  }
+
+  function warnAsyncRefresh(source: string) {
+    if (!import.meta.env.DEV) return;
+    console.warn(
+      `[record-page] ${source}.onRefresh on ${host.doctype} returned a promise — onRefresh is synchronous, so what it does after its first await is ignored.`,
+    );
   }
 
   function reportHandlerError(source: string, event: string, error: unknown) {

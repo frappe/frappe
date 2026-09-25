@@ -21,6 +21,11 @@ built-ins on every pass, so a conditional customization is a plain `if` over `pa
 with no `else` to undo it. Scripts run in `run_order`, and on one name the last to write
 wins.
 
+`onRefresh` is synchronous. One that returns a promise, an `async onRefresh` or one that
+awaits, gets a development warning, the replay does not wait for it, and what it does
+after its first `await` is ignored. A replay reads what the page already holds: `page.doc`,
+`page.saved`, `page.meta` and the rows. A helper for cached server reads is coming.
+
 ```js
 export default {
   onRefresh(page) {
@@ -38,15 +43,14 @@ Every handler other than `onRefresh` runs in a **hold** and paints once, when it
 a field handler, `onTabChange`, `onPost`, `beforeSave`, `afterSave`, a header or quick
 action's `run` and a dialog's callbacks show all their changes together at the end. A
 handler that must show progress while it runs uses `page.toast.success` or
-`page.toast.error`. The first paint waits at most 500 ms for the page's scripts. After
-that the page paints without any script still running a handler, the console names it, and
-its changes land when it finishes.
+`page.toast.error`. The first paint waits at most 500 ms for the page's scripts and
+permissions. After that the page paints what it has, without any handler still running,
+the console names what it waits for, and the rest lands when it arrives.
 
 On a **return visit**, a record seen earlier in the same tab and reached again by Back,
 Forward or a link, the page paints from memory before the first frame, and `onRefresh`
 runs twice: once over the remembered record, then once more when the background reads
-return, the record with its parts and, if they were kept, the Activity rows. The second
-replay waits for the first to finish, an `onRefresh` that awaits included. If nothing
+return, the record with its parts and, if they were kept, the Activity rows. If nothing
 changed, the second replay draws nothing. Build new values in each replay: an object
 changed in place and handed over again reads as unchanged, so it is not drawn again. Acts
 in the first replay land as on a first visit; the second replay drops its acts with a

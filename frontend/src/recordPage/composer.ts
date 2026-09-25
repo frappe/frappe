@@ -1,6 +1,6 @@
 // `page.composer`: the writers the band at the foot of a composer tab offers, and the
 // acts that open and close one. The host draws the band and keeps the drafts.
-import { dropReason, type Release } from "./staging";
+import { IN_BACKGROUND, NOT_DRAWN } from "./staging";
 import { Surface } from "./surface";
 import { WRITER_ITEM_KEYS } from "./types";
 import type {
@@ -47,6 +47,7 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
     private readonly host: ComposerHost,
     /** The page's rule for whether an act waits for a commit. */
     private readonly isStaging: () => boolean,
+    private readonly inBackground: () => boolean = () => false,
   ) {
     super({ surface: "composer", keys: WRITER_ITEM_KEYS });
   }
@@ -68,6 +69,7 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
   /** Called in a replay or a hold, the open waits for `releaseOpen`, as `activity.scrollTo` waits. */
   open(name: string, options: ComposerOpenOptions = {}) {
     if (!this.canOpen(name)) return;
+    if (this.inBackground()) return void this.refuse(name, IN_BACKGROUND);
     const checked = this.checkWindow(name, options);
     if (this.isStaging()) this.heldOpen = { name, options: checked };
     else this.deliver(name, checked);
@@ -80,20 +82,12 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
 
   // Host side, below: not part of what a script may call.
 
-  /** Takes the held open out of the way; the returned function puts it back. */
-  setAsideOpen() {
-    const held = this.heldOpen;
-    this.heldOpen = null;
-    return () => void (this.heldOpen = held);
-  }
-
-  /** Delivers the held open, or drops it with a warning as `release` says. */
-  releaseOpen(release: Release = "all") {
+  /** `drawnOnly` at the first paint that went ahead: a writer not drawn yet is dropped. */
+  releaseOpen(drawnOnly = false) {
     const held = this.heldOpen;
     this.heldOpen = null;
     if (!held) return;
-    const dropped = dropReason(release, () => this.isDrawn(held.name));
-    if (dropped) this.refuse(held.name, dropped);
+    if (drawnOnly && !this.isDrawn(held.name)) this.refuse(held.name, NOT_DRAWN);
     else if (this.canOpen(held.name, "it left the composer before the replay settled"))
       this.deliver(held.name, held.options);
   }

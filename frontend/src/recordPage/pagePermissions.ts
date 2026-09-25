@@ -27,11 +27,6 @@ export interface PagePermissions {
   loaded: () => boolean;
 }
 
-/** True once the session's roles and the doctype's meta are in, as a page's `loaded()` reads. */
-export function permissionsLoaded(doctype: string): boolean {
-  return !useDocPermissions(doctype).loading.value;
-}
-
 export function createPagePermissions(
   host: PagePermissionsHost,
 ): PagePermissions {

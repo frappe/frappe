@@ -226,14 +226,16 @@ One recorded verb — `{verb, source, …}`. Ops are **recorded, not applied**; 
 rendered until the replay or hold they stage in commits.
 
 **Replay**:
-The host clearing **every** surface and re-running **every** source in run order. This is
-what makes conditional customization a plain `if` with no `else`. Ops stage while a replay
-or a **hold** is open, and whichever closes last publishes them in one flush. The first
-replay has a time limit: when it runs out, the page paints without any source still running
-a handler, in the replay or in a hold; their ops land when the last of those commits. When the
-page's permissions are what is late, no replay is open yet, so the early paint shows the
-built-ins only. A return visit replays twice: from memory before the first frame, then once
-after the background reads, whose acts are dropped.
+The host clearing **every** surface and re-running **every** source in run order,
+synchronously: a promise an `onRefresh` returns is not awaited, and what it does after that
+is ignored. This is what makes conditional customization a plain `if` with no `else`. Ops
+stage while a replay or a **hold** is open, and whichever closes last publishes them in one
+flush. The first replay has a time limit while it waits for the page's scripts or
+permissions: when it runs out, the page paints without any source still running a handler
+in a hold; their ops land when the last of those commits. When the page's permissions are
+what is late, no replay is open yet, so the early paint shows the built-ins only. A return
+visit replays twice: from memory before the first frame, then once after the background
+reads, whose acts are dropped.
 _Avoid_: re-render, refresh (`page.refresh()`, the `onRefresh` event and the replay are
 three names for one operation — prefer "replay" for the mechanism).
 

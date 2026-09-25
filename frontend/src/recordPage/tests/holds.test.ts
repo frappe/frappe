@@ -19,7 +19,7 @@ vi.mock("@framework/ui/api", () => ({
 }));
 
 import { createRecordPage, SAVE_VETO, type RecordPageHost } from "../createRecordPage";
-import { withRegisteringSource } from "../context";
+import { HOST_SOURCE, runningSource, withRegisteringSource } from "../context";
 import { registerRecordPage, resetRegistry } from "../registry";
 import type { AuthoredHandlers, RecordPageApi } from "../types";
 
@@ -237,19 +237,18 @@ describe("a hold and a replay that overlap", () => {
     const pause = gate();
     let replays = 0;
     await register("deal", {
-      onRefresh: async (page: RecordPageApi) => {
+      onRefresh: (page: RecordPageApi) => {
         page.quickActions.add(action("replayed"));
-        if (++replays > 1) {
-          page.fields.hide("rate");
-          await pause.opened;
-        }
+        if (++replays > 1) page.fields.hide("rate");
       },
       qty: (page: RecordPageApi) => {
         page.quickActions.add(action("held"));
         page.form.tabs.hide("notes");
       },
     });
-    const { controller } = makePage();
+    const { controller } = makePage({
+      sourcesReady: () => (replays ? pause.opened : Promise.resolve()),
+    });
     await controller.refresh();
     const paints = countPaints(controller);
 
@@ -283,5 +282,32 @@ describe("acts inside a handler", () => {
     await firing;
 
     expect(moved).toEqual([{ tab: "custom", drawn: ["details", "activity", "custom"] }]);
+  });
+});
+
+describe("the running source", () => {
+  it("names each of two overlapping handlers until it settles, then the host", async () => {
+    const first = gate();
+    const second = gate();
+    const seen: string[] = [];
+    await register("A", { qty: () => first.opened });
+    await register("B", {
+      rate: async () => {
+        await second.opened;
+        seen.push(runningSource());
+      },
+    });
+    const { controller } = makePage();
+    await controller.refresh();
+
+    const a = controller.fireEvent("qty");
+    const b = controller.fireEvent("rate");
+    first.open();
+    await a;
+    second.open();
+    await b;
+
+    expect(seen).toEqual(["B"]);
+    expect(runningSource()).toBe(HOST_SOURCE);
   });
 });

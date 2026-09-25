@@ -137,7 +137,7 @@ describe("paintNow", () => {
     });
     const { controller, moved } = await loadedPage();
 
-    expect(controller.paintNow()).not.toBeNull();
+    expect(controller.paintNow()).toBe(true);
 
     expect(controller.ready.value).toBe(true);
     expect(controller.isReplaying.value).toBe(false);
@@ -146,7 +146,25 @@ describe("paintNow", () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
-  it("draws an onRefresh still running when it finishes, with no first-paint limit", async () => {
+  it("opens and commits in one step, before any microtask runs", async () => {
+    const seen: boolean[] = [];
+    await register("deal", {
+      onRefresh: (page: RecordPageApi) => {
+        page.quickActions.add(action("one"));
+        queueMicrotask(() => void seen.push(controller.isReplaying.value));
+      },
+    });
+    const { controller } = await loadedPage();
+    const paints = countPaints(controller);
+
+    controller.paintNow();
+
+    expect(paints.actions).toBe(1);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(seen).toEqual([false]);
+  });
+
+  it("warns about an onRefresh that returns a promise, and ignores what it does after its await", async () => {
     const pause = gate();
     await register("early", {
       onRefresh: (page: RecordPageApi) => page.quickActions.add(action("one")),
@@ -156,6 +174,7 @@ describe("paintNow", () => {
         page.quickActions.add(action("two"));
         await pause.opened;
         page.quickActions.add(action("three"));
+        page.fields.hide("rate");
         page.tabs.activate("notes");
       },
     });
@@ -164,18 +183,25 @@ describe("paintNow", () => {
     });
     const { controller, moved } = await loadedPage();
 
-    expect(controller.paintNow()).not.toBeNull();
+    expect(controller.paintNow()).toBe(true);
 
     expect(controller.ready.value).toBe(true);
-    expect(drawn(controller)).toEqual(["one"]);
-    expect(vi.getTimerCount()).toBe(0);
+    expect(drawn(controller)).toEqual(["one", "two", "four"]);
+    expect(warnings).toEqual([
+      "[record-page] slow.onRefresh on CRM Deal returned a promise — onRefresh is synchronous, so what it does after its first await is ignored.",
+    ]);
 
+    const held = gate();
+    const holding = controller.hold(() => held.opened);
     pause.open();
     await vi.advanceTimersByTimeAsync(0);
+    held.open();
+    await holding;
+    await controller.refresh();
 
-    expect(drawn(controller)).toEqual(["one", "two", "three", "four"]);
-    expect(moved).toEqual(["notes"]);
-    expect(warnings).toEqual([]);
+    expect(drawn(controller)).toEqual(["one", "two", "four"]);
+    expect(controller.fields.resolve()).toEqual({});
+    expect(moved).toEqual([]);
   });
 
   it("does nothing and answers false while the doctype's scripts are loading", async () => {
@@ -186,7 +212,7 @@ describe("paintNow", () => {
     const { controller } = makePage();
     await vi.advanceTimersByTimeAsync(0);
 
-    expect(controller.paintNow()).toBeNull();
+    expect(controller.paintNow()).toBe(false);
 
     expect(onRefresh).not.toHaveBeenCalled();
     expect(controller.ready.value).toBe(false);
@@ -198,7 +224,7 @@ describe("paintNow", () => {
     const { controller } = makePage();
     await vi.advanceTimersByTimeAsync(0);
 
-    expect(controller.paintNow()).toBeNull();
+    expect(controller.paintNow()).toBe(false);
     expect(controller.ready.value).toBe(false);
   });
 
@@ -209,7 +235,7 @@ describe("paintNow", () => {
     await register("deal", { onRefresh });
     const { controller } = makePage();
 
-    expect(controller.paintNow()).toBeNull();
+    expect(controller.paintNow()).toBe(false);
     expect(onRefresh).not.toHaveBeenCalled();
   });
 });
@@ -255,6 +281,50 @@ describe("refresh({ background: true })", () => {
     expect(drawn(controller)).toEqual(["Open"]);
   });
 
+  it("opens and commits in one step once the sources are in", async () => {
+    const seen: boolean[] = [];
+    let status = "Open";
+    await register("deal", {
+      onRefresh: (page: RecordPageApi) => {
+        page.quickActions.add(action("status", status));
+        queueMicrotask(() => void seen.push(controller.isReplaying.value));
+      },
+    });
+    const { controller } = await loadedPage();
+    controller.paintNow();
+    await vi.advanceTimersByTimeAsync(0);
+    seen.length = 0;
+    const paints = countPaints(controller);
+
+    status = "Won";
+    await controller.refresh({ background: true });
+
+    expect(seen).toEqual([false]);
+    expect(paints.actions).toBe(1);
+    expect(drawn(controller)).toEqual(["Won"]);
+  });
+
+  it("keeps its newer ops when a hold open across it commits", async () => {
+    let status = "Open";
+    await register("deal", {
+      onRefresh: (page: RecordPageApi) => page.quickActions.add(action("status", status)),
+    });
+    const { controller } = await loadedPage();
+    controller.paintNow();
+    const pause = gate();
+    const held = controller.hold(async () => {
+      await pause.opened;
+      controller.page.quickActions.add(action("held"));
+    });
+
+    status = "Won";
+    await controller.refresh({ background: true });
+    pause.open();
+    await held;
+
+    expect(drawn(controller)).toEqual(["Won", "held"]);
+  });
+
   it("draws an action whose function is new, so a click never runs the last replay's", async () => {
     await register("deal", {
       onRefresh: (page: RecordPageApi) =>
@@ -269,65 +339,12 @@ describe("refresh({ background: true })", () => {
     expect(paints.actions).toBe(1);
   });
 
-  it("waits for a slow first replay, whose act made after its await lands, then runs once", async () => {
-    const pause = gate();
-    const runs = vi.fn();
-    await register("slow", {
-      onRefresh: async (page: RecordPageApi) => {
-        runs();
-        page.quickActions.add(action("one"));
-        if (runs.mock.calls.length === 1) await pause.opened;
-        page.quickActions.add(action("two"));
-        page.tabs.activate("notes");
-      },
-    });
-    const { controller, moved } = await loadedPage();
-    const firstReplay = controller.paintNow();
-    const background = controller.refresh({ background: true });
-    await vi.advanceTimersByTimeAsync(0);
-
-    expect(runs).toHaveBeenCalledOnce();
-
-    pause.open();
-    await firstReplay;
-    await background;
-
-    expect(moved).toEqual(["notes"]);
-    expect(drawn(controller)).toEqual(["one", "two"]);
-    expect(runs).toHaveBeenCalledTimes(2);
-    expect(warnings).toEqual([
-      '[record-page] page.tabs.activate("notes") — it ran in the replay after a background read; the reader was not moved.',
-    ]);
-  });
-
-  it("never opens a background replay queued behind a slow one once the reader left", async () => {
-    const pause = gate();
-    const runs = vi.fn();
-    await register("slow", {
-      onRefresh: async () => {
-        runs();
-        if (runs.mock.calls.length === 1) await pause.opened;
-      },
-    });
-    const { controller } = await loadedPage();
-    const firstReplay = controller.paintNow();
-    const background = controller.refresh({ background: true });
-    await vi.advanceTimersByTimeAsync(0);
-    controller.leave();
-
-    pause.open();
-    await firstReplay;
-    await background;
-
-    expect(runs).toHaveBeenCalledOnce();
-  });
-
   it("lands an act a hold made before an overlapping background replay opened", async () => {
     await register("deal", {
       onRefresh: (page: RecordPageApi) => page.quickActions.add(action("one")),
     });
     const { controller, moved } = await loadedPage();
-    await controller.paintNow();
+    controller.paintNow();
     const pause = gate();
     const held = controller.hold(async () => {
       controller.page.tabs.activate("notes");

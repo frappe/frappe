@@ -134,14 +134,12 @@ import type { FieldNode } from "@framework/ui/components/FormLayout/types";
 import { identifyTabs } from "@framework/ui/components/FormLayout/tabIdentity";
 import { getSocketInstance } from "@framework/ui/socket";
 import {
-	clientScriptsLoaded,
 	createRecordPage,
 	errorMessage,
 	formItems,
 	isEmptyHeader,
 	joinForm,
 	loadClientScripts,
-	permissionsLoaded,
 	projectFrame,
 	projectHeader,
 	SAVE_VETO,
@@ -507,8 +505,8 @@ async function load({ fromMemory = false } = {}) {
 		overrides: () => controller.value?.fields.resolve() ?? {},
 	});
 	const opening = { mine, target, pointer, details, panel };
-	const held = fromMemory ? inMemory(opening) : null;
-	if (held) return openFromMemory(opening, held);
+	const fromCache = fromMemory ? openFromMemory(opening) : null;
+	if (fromCache) return fromCache;
 	await withFeedRead(target.doctype, target.name, route.query, (feedRead) =>
 		openRecord({ ...opening, feedRead })
 	);
@@ -540,40 +538,24 @@ interface OpenRecord extends Opening {
 
 type BackgroundRead = Promise<() => Promise<void> | void>;
 
-interface HeldRecord {
-	record: LoadedRecord;
-	metadata: any;
-}
-
-/** The record and its meta, when everything a first replay reads is already in memory. */
-function inMemory({ target, details, panel }: Opening): HeldRecord | null {
+/** A return visit: paints before the first await, then re-reads quietly and replays once; null when memory lacks anything. */
+function openFromMemory(opening: Opening): Promise<void> | null {
+	const { mine, target, pointer, details, panel } = opening;
 	const record = readCachedRecord(target.doctype, target.name);
 	if (!record) return null;
 	const metadata = metaInMemory(target.doctype);
 	const layouts = !details.loading.value && !panel.loading.value;
-	const ready =
-		metadata &&
-		layouts &&
-		clientScriptsLoaded(target.doctype) &&
-		permissionsLoaded(target.doctype) &&
-		feedInMemory(target.doctype, target.name, route.query);
-	return ready ? { record, metadata } : null;
-}
-
-/** A return visit: paints before the first await, then re-reads quietly and replays once. */
-async function openFromMemory(opening: Opening, { record, metadata }: HeldRecord) {
+	if (!metadata || !layouts || !feedInMemory(target.doctype, target.name, route.query))
+		return null;
 	show(record, metadata);
 	const created = buildController(opening);
-	const painted = created.paintNow();
-	const reads = backgroundReads(opening.target);
-	if (painted) landPaint(created, opening.pointer);
-	const firstReplay = painted ?? paintLate(opening, created);
-	await applyInBackground(opening.mine, created, reads, firstReplay);
-}
-
-async function paintLate({ mine, pointer }: Opening, created: RecordPageController) {
-	await created.refresh();
-	if (mine === generation) landPaint(created, pointer);
+	if (!created.paintNow()) {
+		blank();
+		return null;
+	}
+	const reads = backgroundReads(target);
+	landPaint(created, pointer);
+	return applyInBackground(mine, created, reads);
 }
 
 // Each read resolves to its applier, which may return a re-read to wait for; they all apply in one step.
@@ -590,24 +572,19 @@ function backgroundReads(target: Opening["target"]): BackgroundRead[] {
 	return reads;
 }
 
-/** After the first replay, every read applied together and any docinfo re-read landed, then one replay whose acts are dropped. */
+/** Every read applied together and any docinfo re-read landed, then one replay whose acts are dropped. */
 async function applyInBackground(
 	mine: number,
 	created: RecordPageController,
-	reads: BackgroundRead[],
-	firstReplay: Promise<void>
+	reads: BackgroundRead[]
 ) {
 	try {
-		const [settled, [replayed]] = await Promise.all([
-			Promise.allSettled(reads),
-			Promise.allSettled([firstReplay]),
-		]);
+		const settled = await Promise.allSettled(reads);
 		if (mine !== generation) return;
 		const rereads = settled.map((read) =>
 			read.status === "fulfilled" ? read.value() : undefined
 		);
 		await Promise.all(rereads);
-		if (replayed.status === "rejected") throw replayed.reason;
 		if (mine !== generation || error.value) return;
 	} finally {
 		if (mine === generation) feeds.endKeptRead();

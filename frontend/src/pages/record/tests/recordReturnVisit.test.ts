@@ -3,19 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick } from "vue";
 import { RouterView, type Router } from "vue-router";
 
-const load = vi.hoisted(() => ({ layoutsLoading: false, failFirstReplay: false }));
-const prefetchEnded = vi.hoisted(() => [] as string[]);
-
-vi.mock("@framework/ui/ActivityTimeline", async (importOriginal) => {
-  const original = (await importOriginal()) as typeof import("@framework/ui/ActivityTimeline");
-  return {
-    ...original,
-    endActivityPrefetch: (doctype: string, docname: string, ...rest: []) => {
-      prefetchEnded.push(docname);
-      return original.endActivityPrefetch(doctype, docname, ...rest);
-    },
-  };
-});
+const load = vi.hoisted(() => ({ layoutsLoading: false }));
 
 vi.mock("@/shell/PageFrame.vue", async () => {
   const { defineComponent, h } = await import("vue");
@@ -32,13 +20,6 @@ vi.mock("@/recordPage", async (importOriginal) => {
   const { computed, ref } = await import("vue");
   return {
     ...original,
-    createRecordPage: (...args: unknown[]) => {
-      const created = (original as any).createRecordPage(...args);
-      if (!load.failFirstReplay) return created;
-      created.paintNow = () => null;
-      created.refresh = () => Promise.reject(new Error("replay failed"));
-      return created;
-    },
     useFormLayout: () => {
       const loading = ref(load.layoutsLoading);
       return {
@@ -204,8 +185,6 @@ beforeEach(() => {
   server.holdParts = [];
   server.requests = [];
   load.layoutsLoading = false;
-  load.failFirstReplay = false;
-  prefetchEnded.length = 0;
   resetClientScripts();
   resetDoctypeMeta();
   resetUserRoles();
@@ -420,36 +399,6 @@ describe("a return visit", () => {
     expect(state(root)).toBe(`Won|Second|${NEW}|${NEW}|0`);
     expect(title).not.toHaveBeenCalled();
     expect(status).not.toHaveBeenCalled();
-  });
-
-  it("lands an act a slow first replay makes after the reads returned, and replays once after it", async () => {
-    const pause = gate();
-    const runs = vi.fn();
-    let slow = false;
-    await register({
-      onRefresh: async (page) => {
-        runs();
-        page.quickActions.add({ name: "slow", label: "Slow" });
-        if (!slow) return;
-        slow = false;
-        await pause.opened;
-        page.tabs.activate("files");
-      },
-    });
-    const { root, router } = await visitAndLeave();
-    runs.mockClear();
-    slow = true;
-    await comeBack(router);
-    await settle();
-
-    expect(runs).toHaveBeenCalledOnce();
-
-    pause.open();
-    await settle();
-
-    expect(activeTab(root)).toBe("files");
-    expect(buttons(root, "Slow")).toBe(1);
-    expect(runs).toHaveBeenCalledTimes(2);
   });
 
   it("keeps a favourite the reader set while the background read was out", async () => {
@@ -878,40 +827,6 @@ describe("a return visit on the Activity tab", () => {
     expect(activeTab(root)).toBe("activity");
     expect(activityReads() - before).toBe(2);
     expect(root.querySelector('.activity[id="a2"]')).not.toBeNull();
-  });
-
-  it("ends the kept feed's mark when the first replay fails, and handles a failed background read", async () => {
-    await register({ onRefresh: drawState });
-    const { router } = await visitAndLeave("?tab=activity");
-    const errors: unknown[] = [];
-    apps.at(-1)!.config.errorHandler = (error) => void errors.push(error);
-    server.recordStatus = 500;
-    load.failFirstReplay = true;
-    prefetchEnded.length = 0;
-
-    await comeBack(router);
-    await settle();
-
-    expect(errors).toEqual([expect.objectContaining({ message: "replay failed" })]);
-    expect(prefetchEnded).toContain(name);
-  });
-
-  it("applies the kept feed's re-read before ending its mark when the first replay fails", async () => {
-    await register({ onRefresh: drawState });
-    const { router } = await visitAndLeave("?tab=activity");
-    apps.at(-1)!.config.errorHandler = () => {};
-    server.activity = [activityRow("a1", "Row one"), activityRow("a2", "Row two")];
-    server.holdActivity = gate();
-    load.failFirstReplay = true;
-
-    await comeBack(router);
-    await settle();
-    prefetchEnded.length = 0;
-    server.holdActivity.open();
-    await settle();
-
-    expect(prefetchEnded).toContain(name);
-    expect(activityTimelineRows("Note", name).map((row: any) => row.key)).toContain("a2");
   });
 
   it("replays after the first read of types the script shows now and no past visit kept", async () => {

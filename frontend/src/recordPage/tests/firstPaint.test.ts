@@ -1,4 +1,4 @@
-// The first paint's time limit: a late source is left out, named, and lands when it finishes.
+// The first paint's time limit: what a replay waits for is named, and lands when it arrives.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ref, watchEffect } from "vue";
 
@@ -90,25 +90,15 @@ afterEach(() => {
 });
 
 describe("the first paint's time limit", () => {
-  it("paints the finished sources, names the late one, and draws it when it finishes", async () => {
-    let finish!: () => void;
-    const late = new Promise<void>((resolve) => (finish = resolve));
+  it("paints the file scripts, names the scripts it waits for, and draws the late ones when they arrive", async () => {
+    const list = gate();
     await register("early", {
       onRefresh: (page: RecordPageApi) => {
         page.quickActions.add(action("one"));
         page.fields.hide("f1");
       },
     });
-    await register("slow", {
-      onRefresh: async (page: RecordPageApi) => {
-        page.quickActions.add(action("two"));
-        page.fields.hide("f2");
-        page.form.tabs.hide("t2");
-        await late;
-        page.quickActions.add(action("three"));
-      },
-    });
-    const controller = makePage();
+    const controller = makePage({ sourcesReady: () => list.opened });
 
     const refreshing = controller.refresh();
     await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS);
@@ -116,14 +106,20 @@ describe("the first paint's time limit", () => {
     expect(controller.ready.value).toBe(true);
     expect(drawn(controller)).toEqual(["one"]);
     expect(Object.keys(controller.fields.resolve())).toEqual(["f1"]);
-    expect(controller.form.tabs.resolve()).toEqual({});
     expect(warnings).toHaveLength(1);
-    expect(warnings[0]).toContain("without waiting for slow");
+    expect(warnings[0]).toContain("without waiting for the page's scripts");
 
-    finish();
+    await register("client-script:late", {
+      onRefresh: (page: RecordPageApi) => {
+        page.quickActions.add(action("two"));
+        page.fields.hide("f2");
+        page.form.tabs.hide("t2");
+      },
+    });
+    list.open();
     await refreshing;
 
-    expect(drawn(controller)).toEqual(["one", "two", "three"]);
+    expect(drawn(controller)).toEqual(["one", "two"]);
     expect(Object.keys(controller.fields.resolve())).toEqual(["f1", "f2"]);
     expect(Object.keys(controller.form.tabs.resolve())).toEqual(["t2"]);
     expect(warnings).toHaveLength(1);
@@ -159,13 +155,10 @@ describe("the first paint's time limit", () => {
   });
 
   it("stays quiet when the reader leaves before the limit", async () => {
-    await register("slow", {
-      onRefresh: async (page: RecordPageApi) => {
-        page.quickActions.add(action("one"));
-        await new Promise<void>(() => {});
-      },
+    await register("early", {
+      onRefresh: (page: RecordPageApi) => page.quickActions.add(action("one")),
     });
-    const controller = makePage();
+    const controller = makePage({ sourcesReady: never });
 
     void controller.refresh();
     await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS / 2);
@@ -180,13 +173,14 @@ describe("the first paint's time limit", () => {
   it("keeps a later refresh waiting for its scripts, as before", async () => {
     let finish!: () => void;
     let replays = 0;
-    await register("slow", {
-      onRefresh: async (page: RecordPageApi) => {
-        page.quickActions.add(action(`run-${++replays}`));
-        if (replays > 1) await new Promise<void>((resolve) => (finish = resolve));
-      },
+    let lists = 0;
+    await register("early", {
+      onRefresh: (page: RecordPageApi) => page.quickActions.add(action(`run-${++replays}`)),
     });
-    const controller = makePage();
+    const controller = makePage({
+      sourcesReady: () =>
+        ++lists > 1 ? new Promise<void>((resolve) => (finish = resolve)) : Promise.resolve(),
+    });
     await controller.refresh();
 
     const refreshing = controller.refresh();
@@ -197,98 +191,6 @@ describe("the first paint's time limit", () => {
     finish();
     await refreshing;
     expect(drawn(controller)).toEqual(["run-2"]);
-  });
-
-  it("leaves out the replay's own late source, not the `beforeSave` its save is waiting on", async () => {
-    await register("early", {
-      onRefresh: (page: RecordPageApi) => page.quickActions.add(action("one")),
-    });
-    await register("late", {
-      onRefresh: async (page: RecordPageApi) => {
-        page.quickActions.add(action("partial"));
-        await page.save();
-      },
-    });
-    await register("guard", { beforeSave: never });
-    const controller = makePage({ isDirty: () => true });
-
-    void controller.refresh();
-    await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS);
-
-    expect(controller.ready.value).toBe(true);
-    expect(drawn(controller)).toEqual(["one"]);
-    expect(warnings[0]).toContain("without waiting for late;");
-  });
-
-  it("names the running source when a save started by an earlier source ends after it", async () => {
-    const log: string[] = [];
-    const guardStarted = gate();
-    const bStarted = gate();
-    await register("A", {
-      onRefresh: async (page: RecordPageApi) => {
-        page.quickActions.add(action("a-op"));
-        void page.save();
-        await guardStarted.opened;
-        log.push("A done");
-      },
-    });
-    await register("B", {
-      onRefresh: async (page: RecordPageApi) => {
-        log.push("B start");
-        page.quickActions.add(action("b-partial"));
-        bStarted.open();
-        await never();
-      },
-    });
-    await register("guard", {
-      beforeSave: async () => {
-        log.push("guard start");
-        guardStarted.open();
-        await bStarted.opened;
-        log.push("guard end");
-      },
-    });
-    const controller = makePage({ isDirty: () => true });
-
-    void controller.refresh();
-    await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS);
-
-    expect(log).toEqual(["guard start", "A done", "B start", "guard end"]);
-    expect(warnings[0]).toContain("without waiting for B;");
-    expect(drawn(controller)).toEqual(["a-op"]);
-  });
-
-  it("leaves out a late source while a replay its save started still runs it", async () => {
-    let dirty = true;
-    let bRuns = 0;
-    await register("A", {
-      onRefresh: (page: RecordPageApi) => {
-        page.quickActions.add(action("a-op"));
-        void page.save();
-      },
-    });
-    await register("B", {
-      onRefresh: async (page: RecordPageApi) => {
-        page.quickActions.add(action("b-partial"));
-        bRuns += 1;
-        if (bRuns === 1) await new Promise((resolve) => setTimeout(resolve, 200));
-        else await never();
-      },
-    });
-    const controller = makePage({
-      isDirty: () => dirty,
-      save: async () => {
-        dirty = false;
-        await controller.refresh();
-      },
-    });
-
-    void controller.refresh();
-    await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS);
-
-    expect(bRuns).toBe(2);
-    expect(drawn(controller)).toEqual(["a-op"]);
-    expect(warnings[0]).toContain("without waiting for B;");
   });
 
   it("leaves a running `beforeSave` out of the early paint and draws it once, when it ends", async () => {
@@ -333,24 +235,21 @@ describe("the first paint's time limit", () => {
     expect(writes).toBe(2);
   });
 
-  it("shows the finished sources' feed types in the early paint, and the late one's after", async () => {
-    const slow = gate();
+  it("shows the file scripts' feed types in the early paint, and a late script's after", async () => {
+    const list = gate();
     await register("early", {
       onRefresh: (page: RecordPageApi) => page.activity.types(["comment"]),
     });
-    await register("slow", {
-      onRefresh: async (page: RecordPageApi) => {
-        page.activity.types(["email"]);
-        await slow.opened;
-      },
-    });
-    const controller = makePage();
+    const controller = makePage({ sourcesReady: () => list.opened });
 
     const refreshing = controller.refresh();
     await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS);
     expect(controller.activity.shownTypes()).toEqual(["comment"]);
 
-    slow.open();
+    await register("client-script:late", {
+      onRefresh: (page: RecordPageApi) => page.activity.types(["email"]),
+    });
+    list.open();
     await refreshing;
     expect(controller.activity.shownTypes()).toEqual(["email"]);
   });
@@ -380,13 +279,13 @@ describe("the first paint's time limit", () => {
 
 describe("ready", () => {
   it("waits for a save a replay handler started, when its hold closes last", async () => {
+    const list = gate();
     const started = gate();
     const guard = gate();
     await register("saver", {
-      onRefresh: async (page: RecordPageApi) => {
+      onRefresh: (page: RecordPageApi) => {
         page.quickActions.add(action("replayed"));
         void page.save();
-        await started.opened;
       },
     });
     await register("guard", {
@@ -395,9 +294,12 @@ describe("ready", () => {
         await guard.opened;
       },
     });
-    const controller = makePage({ isDirty: () => true });
+    const controller = makePage({ isDirty: () => true, sourcesReady: () => list.opened });
 
-    await controller.refresh();
+    const refreshing = controller.refresh();
+    await started.opened;
+    list.open();
+    await refreshing;
     expect(controller.ready.value).toBe(false);
     expect(drawn(controller)).toEqual([]);
 
@@ -407,22 +309,38 @@ describe("ready", () => {
     expect(drawn(controller)).toEqual(["replayed"]);
   });
 
+  it("does not wait for an onRefresh that returns a promise, and warns about it", async () => {
+    await register("slow", {
+      onRefresh: async (page: RecordPageApi) => {
+        page.quickActions.add(action("one"));
+        await never();
+      },
+    });
+    const controller = makePage();
+
+    await controller.refresh();
+
+    expect(controller.ready.value).toBe(true);
+    expect(drawn(controller)).toEqual(["one"]);
+    expect(warnings).toEqual([
+      "[record-page] slow.onRefresh on CRM Deal returned a promise — onRefresh is synchronous, so what it does after its first await is ignored.",
+    ]);
+  });
+
   it("stays false through a nested `page.refresh()` until the outer replay ends", async () => {
     const outer = gate();
-    let runs = 0;
-    let readyAfterInner: boolean | undefined;
-    const controller = makePage();
+    let lists = 0;
+    let inner: Promise<void> | undefined;
+    const controller = makePage({
+      sourcesReady: () => (++lists === 1 ? outer.opened : Promise.resolve()),
+    });
     await register("nested", {
-      onRefresh: async (page: RecordPageApi) => {
-        if (++runs > 1) return;
-        await page.refresh();
-        readyAfterInner = controller.ready.value;
-        await outer.opened;
-      },
+      onRefresh: (page: RecordPageApi) => void (inner ??= page.refresh()),
     });
 
     const refreshing = controller.refresh();
-    await vi.waitFor(() => expect(readyAfterInner).toBe(false));
+    await vi.waitFor(() => expect(inner).toBeDefined());
+    await inner;
     expect(controller.ready.value).toBe(false);
 
     outer.open();
@@ -431,23 +349,16 @@ describe("ready", () => {
   });
 
   it("runs a source that registers between the two passes once, in order", async () => {
-    const listArrives = gate();
     const order: string[] = [];
     let answerList!: () => void;
     const list = new Promise<void>((resolve) => (answerList = resolve));
-    await register("file", {
-      onRefresh: async () => {
-        order.push("file");
-        await listArrives.opened;
-      },
-    });
+    await register("file", { onRefresh: () => void order.push("file") });
     const controller = makePage({ sourcesReady: () => list });
 
     const refreshing = controller.refresh();
     await vi.waitFor(() => expect(order).toEqual(["file"]));
     await register("client-script:late", { onRefresh: () => void order.push("client") });
     answerList();
-    listArrives.open();
     await refreshing;
 
     expect(order).toEqual(["file", "client"]);
@@ -460,7 +371,7 @@ describe("acts held at the early paint", () => {
     { name: "activity", label: "Activity" },
   ];
 
-  function makeActingPage() {
+  function makeActingPage(overrides: Partial<RecordPageHost> = {}) {
     const moved: { tab: string; drawn: string[] }[] = [];
     const focused: string[] = [];
     const scrolled: string[] = [];
@@ -472,6 +383,7 @@ describe("acts held at the early paint", () => {
       focusField: (fieldname) => void focused.push(fieldname),
       scrollToActivity: async (key) => Boolean(scrolled.push(key)),
       openWriter: (name) => void opened.push(name),
+      ...overrides,
     });
     controller.tabs.provideBuiltins(() => RECORD_TABS as any[]);
     return { controller, moved, focused, scrolled, opened };
@@ -480,22 +392,26 @@ describe("acts held at the early paint", () => {
   const tab = (name: string) => ({ name, label: name, component: {} }) as any;
 
   it("delivers a finished source's tab move and focus, and drops an open of a section not drawn", async () => {
-    const slow = gate();
+    const list = gate();
     await register("early", {
       onRefresh: (page: RecordPageApi) => {
         page.tabs.add(tab("custom"));
         page.tabs.activate("custom");
         page.fields.focus("qty");
+        void page.save();
       },
     });
-    await register("slow", {
-      onRefresh: async (page: RecordPageApi) => {
+    await register("guard", {
+      beforeSave: async (page: RecordPageApi) => {
         page.panelSections.add({ name: "late", label: "Late" } as any);
         page.panelSections.open("late");
-        await slow.opened;
+        await never();
       },
     });
-    const { controller, moved, focused } = makeActingPage();
+    const { controller, moved, focused } = makeActingPage({
+      isDirty: () => true,
+      sourcesReady: () => list.opened,
+    });
 
     const refreshing = controller.refresh();
     await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS);
@@ -506,7 +422,7 @@ describe("acts held at the early paint", () => {
       true,
     );
 
-    slow.open();
+    list.open();
     await refreshing;
     expect(moved).toHaveLength(1);
     expect(focused).toEqual(["qty"]);
@@ -521,8 +437,7 @@ describe("acts held at the early paint", () => {
         page.composer.open("call");
       },
     });
-    await register("slow", { onRefresh: never });
-    const { controller, moved, scrolled, opened } = makeActingPage();
+    const { controller, moved, scrolled, opened } = makeActingPage({ sourcesReady: never });
 
     void controller.refresh();
     await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS);
@@ -533,21 +448,20 @@ describe("acts held at the early paint", () => {
   });
 
   it("keeps a move asked for after the early paint until the final commit", async () => {
-    const slow = gate();
-    await register("slow", {
-      onRefresh: async (page: RecordPageApi) => {
-        await slow.opened;
-        page.tabs.add(tab("later"));
-        page.tabs.activate("later");
-      },
-    });
-    const { controller, moved } = makeActingPage();
+    const list = gate();
+    const { controller, moved } = makeActingPage({ sourcesReady: () => list.opened });
 
     const refreshing = controller.refresh();
     await vi.advanceTimersByTimeAsync(FIRST_PAINT_LIMIT_MS);
     expect(moved).toEqual([]);
 
-    slow.open();
+    await register("client-script:late", {
+      onRefresh: (page: RecordPageApi) => {
+        page.tabs.add(tab("later"));
+        page.tabs.activate("later");
+      },
+    });
+    list.open();
     await refreshing;
     expect(moved).toEqual([{ tab: "later", drawn: ["details", "activity", "later"] }]);
   });
