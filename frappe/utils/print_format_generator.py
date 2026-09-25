@@ -109,6 +109,24 @@ def get_qr_code(value: str) -> str:
 	return "data:image/svg+xml;base64," + base64.b64encode(stream.getvalue()).decode()
 
 
+DATE_FIELDTYPES = ("Date", "Datetime")
+
+
+def format_field_value(doc, df) -> str:
+	"""The value a field prints: a Date or Datetime with its own `date_format` is
+	formatted with it, everything else the way `get_formatted` does."""
+	from frappe.utils.data import format_datetime, formatdate, get_user_time_format
+
+	fieldname = df.get("fieldname")
+	date_format = df.get("date_format")
+	value = doc.get(fieldname)
+	if date_format and value and df.get("fieldtype") in DATE_FIELDTYPES:
+		if df.get("fieldtype") == "Datetime":
+			return format_datetime(value, f"{date_format.replace('mm', 'MM')} {get_user_time_format()}")
+		return formatdate(value, date_format)
+	return doc.get_formatted(fieldname)
+
+
 @frappe.whitelist()
 def get_formatted_field_values(doctype: str, name: str) -> dict:
 	"""Return the same formatted value each field prints (`doc.get_formatted`) so the
@@ -937,6 +955,7 @@ class PrintFormatGenerator:
 		df["section"] = section
 		self.prepare_barcode(df)
 		self.prepare_linked_field(df)
+		self.prepare_date_format(df)
 		self.filter_conditional_rows(df)
 
 	def set_field_renderers(self, layout):
@@ -1035,6 +1054,14 @@ class PrintFormatGenerator:
 			df["_value"] = value
 			return
 		df["_value"] = frappe.format_value(value, df=target_df, doc=self.doc)
+
+	def prepare_date_format(self, df):
+		if (
+			df.get("date_format")
+			and df.get("fieldtype") in DATE_FIELDTYPES
+			and self.doc.get(df.get("fieldname"))
+		):
+			df["_value"] = format_field_value(self.doc, df)
 
 	def process_margin_texts(self, layout):
 		for key in (*self._TOP_POSITIONS, *self._BOTTOM_POSITIONS):

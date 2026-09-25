@@ -1,5 +1,5 @@
 import { computed } from "vue";
-import { sanitize_html, thumb_hue } from "../utils";
+import { format_date_value, sanitize_html, thumb_hue } from "../utils";
 import { HTML_CONTENT_FIELDTYPES, is_image, is_merge_html, is_merge_image } from "../fieldtypes";
 
 const IMAGE_EXTENSIONS = /\.(png|jpe?g|gif|webp|svg|bmp|ico)(\?.*)?$/i;
@@ -12,6 +12,8 @@ export function useFieldFormat(props, store, preview_doc) {
 		if (blank(raw)) return null;
 		const ft = props.df.fieldtype;
 		if (ft === "Check") return raw ? __("Yes") : __("No");
+		const dated = format_date_value(raw, props.df);
+		if (dated !== null) return dated;
 		try {
 			const formatted = frappe.format(
 				raw,
@@ -29,7 +31,12 @@ export function useFieldFormat(props, store, preview_doc) {
 	});
 
 	const preview_value_html = computed(() => {
-		if (!preview_doc.value || !props.df.fieldname || props.df.fieldtype === "Check")
+		if (
+			!preview_doc.value ||
+			!props.df.fieldname ||
+			props.df.fieldtype === "Check" ||
+			props.df.date_format
+		)
 			return null;
 		const server = store.preview_values.value?.[props.df.fieldname];
 		if (blank(server)) return null;
@@ -111,6 +118,7 @@ export function useFieldFormat(props, store, preview_doc) {
 	}
 
 	function cell_server_html(i, col) {
+		if (col.date_format) return null;
 		const v = store.preview_child_values.value?.[props.df.fieldname]?.[i]?.[col.fieldname];
 		if (blank(v)) return null;
 		return sanitize_html(String(v));
@@ -120,6 +128,8 @@ export function useFieldFormat(props, store, preview_doc) {
 		const raw = row[col.fieldname];
 		if (blank(raw)) return "";
 		if (col.fieldtype === "Check") return raw ? __("Yes") : __("No");
+		const dated = format_date_value(raw, col);
+		if (dated !== null) return dated;
 		if (HTML_CONTENT_FIELDTYPES.has(col.fieldtype)) return sanitize_html(raw);
 		try {
 			const formatted = frappe.format(raw, col, { only_value: true }, row);
@@ -138,7 +148,12 @@ export function useFieldFormat(props, store, preview_doc) {
 		const extra = (col.merged_fields || []).filter((mf) => mf && mf.fieldname);
 		if (!extra.length) return [];
 		return [
-			{ fieldname: col.fieldname, fieldtype: col.fieldtype, style: "primary" },
+			{
+				fieldname: col.fieldname,
+				fieldtype: col.fieldtype,
+				style: "primary",
+				date_format: col.date_format,
+			},
 			...extra,
 		];
 	}
@@ -156,16 +171,17 @@ export function useFieldFormat(props, store, preview_doc) {
 		return merged_fields(col).filter((mf) => mf.fieldname !== img?.fieldname);
 	}
 
-	function format_merged(row, i, fieldname) {
+	function format_merged(row, i, mf) {
+		const fieldname = mf.fieldname;
 		const server = store.preview_child_values.value?.[props.df.fieldname]?.[i]?.[fieldname];
-		if (!blank(server)) {
+		if (!blank(server) && !mf.date_format) {
 			return frappe.utils.html2text(String(server)).trim();
 		}
 		const dcol = frappe.meta.get_docfield(props.df.options, fieldname) || {
 			fieldname,
 			fieldtype: "Data",
 		};
-		const val = format_cell(row, dcol);
+		const val = format_cell(row, { ...dcol, date_format: mf.date_format });
 		if (typeof val === "string" && val.includes("<")) {
 			return frappe.utils.html2text(val).trim();
 		}
@@ -174,7 +190,7 @@ export function useFieldFormat(props, store, preview_doc) {
 
 	function merged_line(row, i, mf) {
 		if (!is_merge_html(mf)) {
-			return frappe.utils.escape_html(String(format_merged(row, i, mf.fieldname) ?? ""));
+			return frappe.utils.escape_html(String(format_merged(row, i, mf) ?? ""));
 		}
 		const server = store.preview_child_values.value?.[props.df.fieldname]?.[i]?.[mf.fieldname];
 		const raw = blank(server) ? row[mf.fieldname] : server;
