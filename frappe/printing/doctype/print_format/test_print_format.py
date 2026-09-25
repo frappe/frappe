@@ -123,17 +123,18 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 		self.assertNotIn("print-image", self.render(df | {"image_url": ""}))
 
 	def test_date_format_overrides_system_format(self):
+		from frappe.utils.data import format_time
 		from frappe.utils.print_format_generator import format_field_value
 
 		user = frappe.get_doc(
 			{
 				"doctype": "User",
-				"email": "date_format_test@example.com",
+				"email": f"date_format_{frappe.generate_hash(length=6)}@example.com",
 				"first_name": "Date Format",
 				"birth_date": "2026-02-11",
 				"send_welcome_email": 0,
 			}
-		).insert(ignore_if_duplicate=True)
+		).insert()
 		self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
 		frappe.db.set_value("User", user.name, "last_login", "2026-02-11 09:30:00", update_modified=False)
 		user.reload()
@@ -147,7 +148,7 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 		stamp = format_field_value(
 			user, {"fieldname": "last_login", "fieldtype": "Datetime", "date_format": "dd/mm/yyyy"}
 		)
-		self.assertTrue(stamp.startswith("11/02/2026 09:30"))
+		self.assertEqual(stamp, "11/02/2026 " + format_time(user.last_login))
 
 	def test_table_column_date_format_reaches_plain_and_merged_cells(self):
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
