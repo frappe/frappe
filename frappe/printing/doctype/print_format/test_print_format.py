@@ -104,12 +104,12 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 		user = frappe.get_doc(
 			{
 				"doctype": "User",
-				"email": "date_format_test@example.com",
+				"email": f"date_format_{frappe.generate_hash(length=8)}@example.com",
 				"first_name": "Date Format",
 				"birth_date": "2026-02-11",
 				"send_welcome_email": 0,
 			}
-		).insert(ignore_if_duplicate=True)
+		).insert()
 		self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
 		frappe.db.set_value("User", user.name, "last_login", "2026-02-11 09:30:00", update_modified=False)
 		user.reload()
