@@ -5,6 +5,19 @@ import { toRaw } from "vue";
 /** Why a held act is dropped when the first paint goes ahead without its target. */
 export const NOT_DRAWN = "the first paint went ahead without it";
 
+/** Why a held act is dropped when the replay after a background read commits. */
+export const IN_BACKGROUND = "it ran in the replay after a background read";
+
+/** Which held acts a commit delivers: every one, those whose target is drawn, or none. */
+export type Release = "all" | "drawn" | "none";
+
+/** The reason a held act is dropped under `release`, or null when it lands. */
+export function dropReason(release: Release, isDrawn: () => boolean): string | null {
+  if (release === "none") return IN_BACKGROUND;
+  if (release === "drawn" && !isDrawn()) return NOT_DRAWN;
+  return null;
+}
+
 /** What the page opens, closes and publishes on every overlay a replay or a hold stages. */
 export interface Staging {
   beginReplay(): void;
@@ -66,9 +79,29 @@ export abstract class StagedOverlay<Op extends { source: string }> implements St
   }
 
   private publish(staged: Op[]) {
-    const drawn = toRaw(this.drawn);
-    if (staged.length === drawn.length && staged.every((op, index) => op === drawn[index])) return;
+    if (sameValue(staged, toRaw(this.drawn))) return;
     // One splice, not a clear and a refill: the host must never render the buffer's middle.
     this.drawn.splice(0, this.drawn.length, ...staged);
   }
+}
+
+/** Equal by content; a function, a class instance or a raw-marked value only by identity. */
+function sameValue(a: unknown, b: unknown, seen = new WeakSet<object>()): boolean {
+  if (Object.is(a, b)) return true;
+  if (!isData(a) || !isData(b) || seen.has(a)) return false;
+  seen.add(a);
+  if (Array.isArray(a) || Array.isArray(b)) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+    return a.every((one, index) => sameValue(one, b[index], seen));
+  }
+  const keys = Object.keys(a);
+  if (keys.length !== Object.keys(b).length) return false;
+  return keys.every((key) => Object.hasOwn(b, key) && sameValue(a[key], b[key], seen));
+}
+
+function isData(value: unknown): value is Record<string, unknown> {
+  if (!value || typeof value !== "object") return false;
+  if ((value as { __v_skip?: boolean }).__v_skip) return false;
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === Array.prototype || proto === null;
 }

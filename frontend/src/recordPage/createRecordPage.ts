@@ -29,8 +29,10 @@ import { readOnly, type ReadOnlyAdvice } from "./readOnly";
 import { registrationsFor, type Registration } from "./registry";
 import { reportCustomizationError } from "./reportError";
 import { createRows, warnRowIssue } from "./rows";
-import { createPaintGate } from "./paintGate";
-import { NOT_DRAWN, type Staging } from "./staging";
+import { clientScriptsLoaded } from "./clientScripts";
+import { createPaintGate, type RefreshOptions } from "./paintGate";
+import { dropReason, type Release, type Staging } from "./staging";
+import { guard, inOrder } from "./steps";
 import { Surface } from "./surface";
 import { PANEL_SECTION_KEYS, QUICK_ACTION_KEYS, TAB_ITEM_KEYS } from "./types";
 import type {
@@ -171,7 +173,9 @@ export interface RecordPageController {
   /** What the host provides as `CommitKey`: a field's commit fires its handler through it. */
   commits: RecordCommitChannel;
   /** The replay: clears every surface, then runs every source's `refresh` in run order. */
-  refresh: () => Promise<void>;
+  refresh: (options?: RefreshOptions) => Promise<void>;
+  /** Replays and commits before it returns; false, having run nothing, while scripts or permissions load. */
+  paintNow: () => boolean;
   /** `row` addresses the child row a dotted event happened to; see `Handler`. */
   fireEvent: (event: string, row?: RowAddress) => Promise<void>;
   /** Fires `onPost` with the posted row's key, once the server has answered the built-in writer. */
@@ -297,9 +301,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     surfaces,
     sourcesReady: host.sourcesReady,
     permissionsReady: () => permissions.ready(),
+    loaded: () =>
+      permissions.loaded() && (!host.sourcesReady || clientScriptsLoaded(host.doctype)),
     runRefresh: (ran) => dispatch("onRefresh", undefined, ran),
     warnUnknownHandlers: () => warnUnknownHandlers(),
-    deliverHeldActs: (drawnOnly) => deliverHeldActs(drawnOnly),
+    deliverHeldActs: (release) => deliverHeldActs(release),
     closeDialogs: () => dialogs.closeAll(),
   });
   const { hold, isStaging } = gate;
@@ -359,12 +365,12 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   // With an empty removals list this hands the same object straight back.
   const page = withRemovals(capabilities);
 
-  function deliverHeldActs(drawnOnly: boolean) {
-    releaseActivations(drawnOnly);
-    releaseDisclosures(drawnOnly);
-    releaseFocus(drawnOnly);
-    activity.releaseScroll(drawnOnly);
-    composer.releaseOpen(drawnOnly);
+  function deliverHeldActs(release: Release) {
+    releaseActivations(release);
+    releaseDisclosures(release);
+    releaseFocus(release);
+    activity.releaseScroll(release);
+    composer.releaseOpen(release);
   }
 
   // One sequence at a time: a second `page.save()` mid-flight joins it, so no handler fires twice.
@@ -394,11 +400,12 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     else deliverFocus(fieldname);
   }
 
-  function releaseFocus(drawnOnly: boolean) {
+  function releaseFocus(release: Release) {
     const held = heldFocus;
     heldFocus = null;
     if (!held) return;
-    if (drawnOnly && !fields.isDrawn(held)) warnFocus(held, NOT_DRAWN);
+    const dropped = dropReason(release, () => fields.isDrawn(held));
+    if (dropped) warnFocus(held, dropped);
     else if (canFocus(held, "it left the form before the replay settled")) deliverFocus(held);
   }
 
@@ -436,11 +443,12 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     );
   }
 
-  function releaseDisclosures(drawnOnly: boolean) {
+  function releaseDisclosures(release: Release) {
     const held = [...heldDisclosures];
     heldDisclosures.clear();
     for (const [name, open] of held) {
-      if (drawnOnly && !panelSections.isDrawn(name)) warnDisclose(name, open, NOT_DRAWN);
+      const dropped = dropReason(release, () => panelSections.isDrawn(name));
+      if (dropped) warnDisclose(name, open, dropped);
       // Re-read, as a held activation is: a later source can hide or relabel the section.
       else if (canDisclose(name, open, "it left the panel before the replay settled"))
         deliverDisclosure(name, open);
@@ -496,11 +504,12 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     );
   }
 
-  function releaseActivations(drawnOnly: boolean) {
+  function releaseActivations(release: Release) {
     const held = [...heldActivations];
     heldActivations.clear();
     for (const [strip, name] of held) {
-      if (drawnOnly && !surfaceFor(strip).isDrawn(name)) warnActivate(strip, name, NOT_DRAWN);
+      const dropped = dropReason(release, () => surfaceFor(strip).isDrawn(name));
+      if (dropped) warnActivate(strip, name, dropped);
       // Re-read, not replayed: a later source can hide the tab an earlier one
       // activated, and delivering that move would land the reader on the fallback.
       else if (!surfaceFor(strip).isVisible(name))
@@ -600,41 +609,38 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   }
 
   /** `ran` carries a replay's first pass into its second, so no source runs twice. */
-  async function dispatch(
-    event: string,
-    detail?: PageRow | PostedRow,
-    ran?: Set<Registration>,
-  ) {
-    for (const registration of registrationsFor(host.doctype)) {
-      if (ran?.has(registration)) continue;
+  function dispatch(event: string, detail?: PageRow | PostedRow, ran?: Set<Registration>) {
+    return inOrder(registrationsFor(host.doctype), (registration) => {
+      if (ran?.has(registration)) return;
       ran?.add(registration);
       const { source, handlers } = registration;
       const handler = handlers[event];
-      if (!handler) continue;
-      const run = () => withRunningSource(source, async () => {
-        try {
-          await handler(page, detail);
-        } catch (error) {
-          // `beforeSave` rethrows to abort the save and is not reported: the user
-          // is looking straight at a failed save, and a working veto is not an error.
-          if (event === "beforeSave") throw error;
-          console.error(
-            `[record-page] ${source}.${event} on ${host.doctype} threw`,
-            error,
-          );
-          // No `route`: the reporter reads `location`, the URL an admin can paste;
-          // `router.fullPath` drops the app's base.
-          reportCustomizationError(error, {
-            source,
-            event,
-            doctype: host.doctype,
-            record: host.docname,
-          });
-        }
-      });
+      if (!handler) return;
+      const run = () =>
+        withRunningSource(source, () =>
+          guard(
+            () => handler(page, detail),
+            (error) => reportHandlerError(source, event, error),
+          ),
+        );
       // `ran` marks a replay's own pass, which the early paint names before a nested save's.
-      await gate.asSource(source, Boolean(ran), run);
-    }
+      return gate.asSource(source, Boolean(ran), run);
+    });
+  }
+
+  function reportHandlerError(source: string, event: string, error: unknown) {
+    // `beforeSave` rethrows to abort the save and is not reported: the user
+    // is looking straight at a failed save, and a working veto is not an error.
+    if (event === "beforeSave") throw error;
+    console.error(`[record-page] ${source}.${event} on ${host.doctype} threw`, error);
+    // No `route`: the reporter reads `location`, the URL an admin can paste;
+    // `router.fullPath` drops the app's base.
+    reportCustomizationError(error, {
+      source,
+      event,
+      doctype: host.doctype,
+      record: host.docname,
+    });
   }
 
   // Meta can lag the first paint, so the check waits for a replay that has fields.
@@ -706,6 +712,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     composer,
     commits,
     refresh: gate.refresh,
+    paintNow: gate.paintNow,
     fireEvent,
     firePost,
     hold,

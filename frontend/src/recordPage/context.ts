@@ -1,5 +1,7 @@
 // Which source is speaking right now: registration attributes new handlers,
 // running attributes surface ops. "host" is the app's own bundled code.
+import { settle } from "./steps";
+
 export const HOST_SOURCE = "host";
 
 let registering = HOST_SOURCE;
@@ -22,12 +24,9 @@ export async function withRegisteringSource(source: string, work: () => Promise<
 	}
 }
 
-export async function withRunningSource(source: string, work: () => Promise<any>) {
+/** Runs `work` as `source`; synchronous work finishes, and is attributed, before this returns. */
+export function withRunningSource<T>(source: string, work: () => T): T {
 	const previous = running;
 	running = source;
-	try {
-		await work();
-	} finally {
-		running = previous;
-	}
+	return settle(work, () => (running = previous));
 }

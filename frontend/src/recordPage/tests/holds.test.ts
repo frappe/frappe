@@ -229,7 +229,7 @@ describe("a hold and a replay that overlap", () => {
     pause.open();
     await firing;
 
-    expect(paints).toEqual({ count: 1, fields: 1, formTabs: 1 });
+    expect(paints).toEqual({ count: 1, fields: 0, formTabs: 1 });
     expect(drawn(controller)).toEqual(["replayed", "held"]);
   });
 

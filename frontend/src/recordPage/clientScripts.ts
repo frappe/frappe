@@ -18,6 +18,7 @@ import {
 const TIER_SOURCE = "client-scripts";
 
 const tiers = new Map<string, Promise<void>>();
+const loadedTiers = new WeakSet<Promise<void>>();
 const sources = new Map<string, string[]>();
 const toasted = new Set<string>();
 // The shared toast channel; the compatibility layer reports a removal hit through it.
@@ -69,8 +70,19 @@ export function clientScriptWait(doctype: string): string | null {
 
 /** Resolves when the doctype's tier has registered; one fetch per doctype. */
 export function loadClientScripts(doctype: string): Promise<void> {
-  const loading = tiers.get(doctype) ?? buildTier(doctype);
+  const loading = tiers.get(doctype) ?? trackTier(buildTier(doctype));
   tiers.set(doctype, loading);
+  return loading;
+}
+
+/** True once the doctype's tier has registered and nothing has dropped it since. */
+export function clientScriptsLoaded(doctype: string): boolean {
+  const loading = tiers.get(doctype);
+  return Boolean(loading && loadedTiers.has(loading));
+}
+
+function trackTier(loading: Promise<void>) {
+  loading.then(() => loadedTiers.add(loading), () => {});
   return loading;
 }
 

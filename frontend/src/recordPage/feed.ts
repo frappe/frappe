@@ -6,7 +6,7 @@ import { compareActivities } from "@framework/ui/ActivityTimeline";
 import { currentSession } from "@framework/ui/composables/useSession";
 import { runningSource } from "./context";
 import { readOnly } from "./readOnly";
-import { NOT_DRAWN } from "./staging";
+import { dropReason, type Release } from "./staging";
 import { BUILTIN, Surface } from "./surface";
 import { FEED_ITEM_KEYS } from "./types";
 import type {
@@ -158,13 +158,13 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
     return this.shown.value;
   }
 
-  /** `drawnOnly` at the first paint that went ahead: a row of a script's not drawn yet is dropped. */
-  releaseScroll(drawnOnly = false) {
+  /** Delivers the held move, or drops it with a warning as `release` says. */
+  releaseScroll(release: Release = "all") {
     const key = this.heldScroll;
     this.heldScroll = null;
     if (!key) return;
-    if (drawnOnly && this.isUndrawn(key))
-      this.warn("scrollTo", key, `${NOT_DRAWN}; the reader was not moved`);
+    const dropped = dropReason(release, () => !this.isUndrawn(key));
+    if (dropped) this.warn("scrollTo", key, `${dropped}; the reader was not moved`);
     else void this.deliverScroll(key);
   }
 

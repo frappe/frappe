@@ -1,6 +1,6 @@
 // `page.composer`: the writers the band at the foot of a composer tab offers, and the
 // acts that open and close one. The host draws the band and keeps the drafts.
-import { NOT_DRAWN } from "./staging";
+import { dropReason, type Release } from "./staging";
 import { Surface } from "./surface";
 import { WRITER_ITEM_KEYS } from "./types";
 import type {
@@ -80,12 +80,13 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
 
   // Host side, below: not part of what a script may call.
 
-  /** `drawnOnly` at the first paint that went ahead: a writer not drawn yet is dropped. */
-  releaseOpen(drawnOnly = false) {
+  /** Delivers the held open, or drops it with a warning as `release` says. */
+  releaseOpen(release: Release = "all") {
     const held = this.heldOpen;
     this.heldOpen = null;
     if (!held) return;
-    if (drawnOnly && !this.isDrawn(held.name)) this.refuse(held.name, NOT_DRAWN);
+    const dropped = dropReason(release, () => this.isDrawn(held.name));
+    if (dropped) this.refuse(held.name, dropped);
     else if (this.canOpen(held.name, "it left the composer before the replay settled"))
       this.deliver(held.name, held.options);
   }

@@ -329,7 +329,7 @@ describe("the first paint's time limit", () => {
 
     guard.open();
     await vi.advanceTimersByTimeAsync(0);
-    expect(drawn(controller)).toEqual(["a-op", "g-partial", "b-op", "g-late"]);
+    expect(drawn(controller)).toEqual(["a-op", "b-op", "g-partial", "g-late"]);
     expect(writes).toBe(2);
   });
 
