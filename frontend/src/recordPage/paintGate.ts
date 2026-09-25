@@ -88,6 +88,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     // Raced, so a late rejection of `everything` is already handled when the second pass awaits it.
     await waitFor("permissions", Promise.race([host.permissionsReady(), everything]));
     if (background) await replaysClosed();
+    if (state.left) return;
     openReplay();
     const putBack = background ? host.setAsideHeldActs() : undefined;
     try {

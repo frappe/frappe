@@ -80,6 +80,8 @@ const server = {
   /** Records other than the one a test visits, by name. */
   others: {} as Record<string, Record<string, any>>,
   activity: [] as object[],
+  attachments: [] as object[],
+  favourites: [] as object[],
   failRecord: false,
   holdRecord: null as Gate | null,
   holdActivity: null as Gate | null,
@@ -98,8 +100,10 @@ async function answer(url: URL, method: string, body: any): Promise<[unknown, nu
     await server.holdActivity?.opened;
     return [{ data: { activities: server.activity, next: null } }, 200];
   }
-  if (path.endsWith("/favourites") && method === "POST")
-    return [{ data: { favourites: [{ user: boot.session.user.name }], users: {} } }, 200];
+  if (path.endsWith("/favourites") && method === "POST") {
+    server.favourites = [{ user: boot.session.user.name }];
+    return [{ data: { favourites: server.favourites, users: {} } }, 200];
+  }
   if (path.startsWith("/api/v2/document/Note/") && method === "PATCH") {
     server.doc = { ...server.doc, ...body, modified: SAVED };
     return [{ data: server.doc }, 200];
@@ -119,14 +123,32 @@ function recordEnvelope(doc: Record<string, any>) {
     assignments: [],
     shares: [],
     tags: [],
-    favourites: [],
+    favourites: server.favourites,
     follows: false,
     users: {},
     link_titles: {},
-    attachments: [],
+    attachments: server.attachments,
     seen: [],
   };
 }
+
+function fileRow(name: string, creation: string) {
+  return { name, file_name: `${name}.txt`, file_url: `/files/${name}.txt`, is_private: 0, creation, owner: "test@example.com" };
+}
+
+/** The realtime socket the page listens on; `emit` plays a server event to every listener. */
+const socket = {
+  handlers: {} as Record<string, Set<(payload: unknown) => void>>,
+  emit(event: string, payload?: unknown) {
+    socket.handlers[event]?.forEach((handler) => handler(payload));
+  },
+  on(event: string, handler: (payload: unknown) => void) {
+    (socket.handlers[event] ??= new Set()).add(handler);
+  },
+  off(event: string, handler: (payload: unknown) => void) {
+    socket.handlers[event]?.delete(handler);
+  },
+};
 
 function activityRow(key: string, text: string) {
   return { type: "log", key, timestamp: "2026-09-25 09:00:00", data: { name: key, subtype: "info", text } };
@@ -149,6 +171,9 @@ beforeEach(() => {
   server.doc = { doctype: "Note", name, title: "First", status: "Open", modified: OLD };
   server.others = {};
   server.activity = [activityRow("a1", "Row one")];
+  server.attachments = [];
+  server.favourites = [];
+  socket.handlers = {};
   server.failRecord = false;
   server.holdRecord = null;
   server.holdActivity = null;
@@ -199,7 +224,7 @@ async function mount(address: string) {
   app.use(router);
   app.provide("boot", boot);
   app.provide("addresses", addresses);
-  app.provide("socket", { emit() {}, on() {}, off() {} });
+  app.provide("socket", socket);
   app.mount(root);
   apps.push(app);
   return { root, router };
@@ -416,6 +441,37 @@ describe("a return visit", () => {
     await settle();
 
     expect(favourited(root)).toBe("true");
+  });
+
+  it("reads the sidecar again when a live update replaced it while the background read was out", async () => {
+    const seen: string[][] = [];
+    await register({
+      onRefresh: (page) =>
+        page.quickActions.add({
+          name: "files",
+          label: "List files",
+          run: (page) => void seen.push(page.files.items.map((one) => one.name)),
+        }),
+    });
+    const { root, router } = await visitAndLeave();
+    server.attachments = [fileRow("F2", EARLIER)];
+    server.holdRecord = gate();
+    const before = recordReads();
+    await comeBack(router);
+    await settle();
+    const added = fileRow("F1", OLD);
+    server.attachments = [...server.attachments, added];
+    const doc = { ...added, reference_doctype: "Note", reference_name: name };
+    socket.emit("docinfo_update", { key: "attachments", action: "add", doc });
+    await settle();
+
+    server.holdRecord.open();
+    await settle();
+    click(root, "List files");
+    await settle();
+
+    expect(seen.at(-1)).toEqual(["F2", "F1"]);
+    expect(recordReads() - before).toBe(2);
   });
 
   it("applies nothing from a background read that lands after the reader moved to another record", async () => {
@@ -688,7 +744,21 @@ describe("a return visit on the Activity tab", () => {
     expect(seen.every((one) => one === "rows new" || one === "no rows old")).toBe(true);
   });
 
-  it("reads the feed once when the reader opens Activity after a return visit on Details", async () => {
+  it("reads the feed once on a return visit to Activity", async () => {
+    await register({ onRefresh: drawState });
+    const { root, router } = await visitAndLeave("?tab=activity");
+    const before = activityReads();
+
+    await comeBack(router, "?tab=activity");
+    await settle();
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    await settle();
+
+    expect(activeTab(root)).toBe("activity");
+    expect(activityReads() - before).toBe(1);
+  });
+
+  it("catches up when the reader opens Activity after a return visit on Details has applied its reads", async () => {
     await register({
       onRefresh: (page) =>
         page.quickActions.add({ name: "open", label: "Open Activity", run: (page) => page.tabs.activate("activity") }),
@@ -698,13 +768,18 @@ describe("a return visit on the Activity tab", () => {
     await comeBack(router);
     await settle();
 
+    expect(activeTab(root)).not.toBe("activity");
+    expect(activityReads() - before).toBe(1);
+
+    server.activity = [activityRow("a1", "Row one"), activityRow("a2", "Row two")];
     click(root, "Open Activity");
     await settle();
     await new Promise((resolve) => setTimeout(resolve, 400));
     await settle();
 
     expect(activeTab(root)).toBe("activity");
-    expect(activityReads() - before).toBe(1);
+    expect(activityReads() - before).toBe(2);
+    expect(root.querySelector('.activity[id="a2"]')).not.toBeNull();
   });
 
   it("takes the cold path when no past visit kept the feed", async () => {

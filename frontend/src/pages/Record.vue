@@ -462,7 +462,7 @@ async function reloadDocinfo() {
 
 // Only the route's load may paint from memory: a reload, a conflict or a failed action reads the server.
 async function load({ fromMemory = false } = {}) {
-	feeds.leave();
+	feeds.endKeptRead();
 	if (!doctype.value) {
 		live.release();
 		return;
@@ -576,9 +576,13 @@ async function applyInBackground(
 	reads: Promise<() => void>[],
 	firstReplay: Promise<void> | null
 ) {
-	const [settled] = await Promise.all([Promise.allSettled(reads), firstReplay]);
-	if (mine !== generation) return;
-	for (const read of settled) if (read.status === "fulfilled") read.value();
+	try {
+		const [settled] = await Promise.all([Promise.allSettled(reads), firstReplay]);
+		if (mine !== generation) return;
+		for (const read of settled) if (read.status === "fulfilled") read.value();
+	} finally {
+		if (mine === generation) feeds.endKeptRead();
+	}
 	await created.refresh({ background: true });
 }
 
@@ -587,8 +591,9 @@ function takeRefetch(fresh: LoadedRecord, before: DocInfo | null) {
 	const merged = mergeRefetch({ doc: doc.value, saved: saved.value }, fresh.document);
 	saved.value = merged.saved;
 	doc.value = merged.doc;
-	// A sidecar write or re-read since the reads began holds newer rows.
-	if (docinfo.value === before && !same(before, fresh.docinfo)) docinfo.value = fresh.docinfo;
+	// A write or live update since the reads began may be missing from `fresh`; a new read includes it.
+	if (docinfo.value !== before) live.reloadQuietly();
+	else if (!same(before, fresh.docinfo)) docinfo.value = fresh.docinfo;
 	if (!same(linkTitles.value, fresh.linkTitles)) linkTitles.value = fresh.linkTitles;
 }
 
@@ -847,7 +852,7 @@ onMounted(() => {
 });
 onUnmounted(() => {
 	live.dispose();
-	feeds.leave();
+	feeds.endKeptRead();
 	window.removeEventListener("keydown", onKeydown);
 	window.removeEventListener("beforeunload", onBeforeUnload);
 });

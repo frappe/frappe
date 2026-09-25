@@ -162,8 +162,8 @@ export class RecordFeeds {
 		return staged;
 	}
 
-	/** The page leaves the record: an Activity body that mounts from now on catches up for itself. */
-	leave() {
+	/** The kept rows' re-read is applied or the page left: an Activity body that mounts from now on catches up for itself. */
+	endKeptRead() {
 		if (this.kept) endActivityPrefetch(...this.kept);
 		this.kept = null;
 	}

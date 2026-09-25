@@ -300,6 +300,28 @@ describe("refresh({ background: true })", () => {
     ]);
   });
 
+  it("never opens a background replay queued behind a slow one once the reader left", async () => {
+    const pause = gate();
+    const runs = vi.fn();
+    await register("slow", {
+      onRefresh: async () => {
+        runs();
+        if (runs.mock.calls.length === 1) await pause.opened;
+      },
+    });
+    const { controller } = await loadedPage();
+    const firstReplay = controller.paintNow();
+    const background = controller.refresh({ background: true });
+    await vi.advanceTimersByTimeAsync(0);
+    controller.leave();
+
+    pause.open();
+    await firstReplay;
+    await background;
+
+    expect(runs).toHaveBeenCalledOnce();
+  });
+
   it("lands an act a hold made before an overlapping background replay opened", async () => {
     await register("deal", {
       onRefresh: (page: RecordPageApi) => page.quickActions.add(action("one")),

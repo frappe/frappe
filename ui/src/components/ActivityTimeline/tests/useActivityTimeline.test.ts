@@ -488,6 +488,26 @@ describe("the prefetched read", () => {
       "comment:2",
     ]);
   });
+
+  it("skips a staged page when a newer read landed first, so no newer row is lost", async () => {
+    const name = freshDoc();
+    serve({ newest: { activities: [c(1)], next: null } });
+    await prefetchActivityTimeline("ToDo", name);
+    let answer!: (page: Page) => void;
+    serve({ newest: new Promise<Page>((done) => (answer = done)) });
+    const staged = stageActivityTimelineRead("ToDo", name)!;
+    serve({ newest: { activities: [c(1), c(2), c(3)], next: null } });
+    await reloadActivityTimeline("ToDo", name);
+
+    answer({ activities: [c(1), c(2)], next: null });
+    (await staged)();
+
+    expect(activityTimelineRows("ToDo", name).map((one) => one.key)).toEqual([
+      "comment:1",
+      "comment:2",
+      "comment:3",
+    ]);
+  });
 });
 
 describe("pending rows", () => {
