@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any
 import frappe
 from frappe import _
 
-from flow.lib.session import call_on_end
+from flow.lib.session import call_on_complete
 from flow.lib.tool import ToolContext
 
 if TYPE_CHECKING:
@@ -88,7 +88,7 @@ def run_ended_callback(session_id: str, terminal_seq: int) -> dict:
 				_("The flow server did not expose terminal sequence {0}.").format(terminal_seq),
 				title=_("Flow Server"),
 			)
-		call_on_end(session)
+		call_on_complete(session)
 		return {"synced_through": session.last_synced_seq}
 	finally:
 		frappe.set_user(user)

@@ -18,7 +18,7 @@ from flow.lib.session import (
 	READ_ONLY,
 	STOPPED,
 	LogRecorder,
-	call_on_end,
+	call_on_complete,
 	fail_running,
 	flow_server,
 )
@@ -155,11 +155,11 @@ class FlowSession(Document):
 		trigger: str | None = None,
 		reference_doctype: str | None = None,
 		reference_name: str | None = None,
-		on_end: str | None = None,
+		on_complete: str | None = None,
 	) -> FlowRun:
 		"""Start a turn and return its Running Flow Run, or the active run it joined.
 		`attachments` are File names whose content travels with this turn. Once the run
-		ends, Flow calls the function at the dotted path `on_end` with it."""
+		ends, Flow calls the function at the dotted path `on_complete` with it."""
 		from flow.flow.doctype.flow_session_attachment.flow_session_attachment import (
 			build_turn,
 			cleanup_indexed_files,
@@ -194,8 +194,8 @@ class FlowSession(Document):
 			frappe.throw(str(exc), title=_("Flow Server"))
 		if reply.get("status") == "steered":
 			run = self._active_run()
-			if on_end and not run.on_end:  # a run keeps the first on_end it is given
-				run.db_set("on_end", on_end)
+			if on_complete and not run.on_complete:  # a run keeps the first on_complete it is given
+				run.db_set("on_complete", on_complete)
 		else:
 			run = frappe.get_doc(
 				{
@@ -207,7 +207,7 @@ class FlowSession(Document):
 					"reference_doctype": reference_doctype,
 					"reference_name": reference_name,
 					"status": "Running",
-					"on_end": on_end,
+					"on_complete": on_complete,
 				}
 			).insert(ignore_permissions=True)
 		if turn.attachment_rows:
@@ -240,7 +240,7 @@ class FlowSession(Document):
 			status = client.cancel_pending(self.name)["status"]
 		if status == "cancelled":
 			self.sync()
-			call_on_end(self)
+			call_on_complete(self)
 		return status
 
 	def _assert_can_run(self) -> None:

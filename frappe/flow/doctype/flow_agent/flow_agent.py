@@ -320,10 +320,10 @@ class FlowAgent(Document):
 		trigger: str | None = None,
 		reference_doctype: str | None = None,
 		reference_name: str | None = None,
-		on_end: str | None = None,
+		on_complete: str | None = None,
 	) -> FlowRun:
 		"""Start `input` and return its Running Flow Run, in a new or existing session.
-		Once the run ends, Flow calls the function at the dotted path `on_end` with it."""
+		Once the run ends, Flow calls the function at the dotted path `on_complete` with it."""
 		from flow.lib.session import load_session, new_session
 
 		if session:
@@ -336,7 +336,7 @@ class FlowAgent(Document):
 			trigger=trigger,
 			reference_doctype=reference_doctype,
 			reference_name=reference_name,
-			on_end=on_end,
+			on_complete=on_complete,
 		)
 
 

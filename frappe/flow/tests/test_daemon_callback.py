@@ -23,7 +23,7 @@ BOOM = "def main(reason: str) -> str:\n\traise ValueError(reason)\n"
 
 
 def ended(run):
-	"""An on_end the tests patch."""
+	"""An on_complete the tests patch."""
 
 
 @tool
@@ -178,14 +178,14 @@ class TestToolCallback(IntegrationTestCase):
 		self.assertEqual(self.session.last_synced_seq, 8)
 		self.assertEqual(len(self.session.messages), 4)
 
-	def test_on_end_is_called_once_as_the_owner_after_the_terminal_sync(self):
+	def test_on_complete_is_called_once_as_the_owner_after_the_terminal_sync(self):
 		run = frappe.get_doc(
 			{
 				"doctype": "Flow Run",
 				"session": self.session.name,
 				"source": "Manual",
 				"status": "Running",
-				"on_end": f"{MODULE}.ended",
+				"on_complete": f"{MODULE}.ended",
 			}
 		).insert()
 		calls = []
@@ -194,7 +194,7 @@ class TestToolCallback(IntegrationTestCase):
 			patch.object(DaemonClient, "for_site", return_value=daemon),
 			patch(f"{MODULE}.ended", side_effect=lambda run: calls.append((run.name, frappe.session.user))),
 		):
-			api.session(self.session.name)  # Administrator opening it records the end, leaves on_end
+			api.session(self.session.name)  # Administrator opening it records the end, leaves on_complete
 			self.assertEqual(calls, [])
 			self.call_terminal(8)
 			self.call_terminal(8)

@@ -121,10 +121,10 @@ class Agent:
 
 		return new_session(self.name, title=title, auto_approve=self.auto_approve)
 
-	def run(self, input: str, *, on_end: str | None = None) -> FlowRun:
+	def run(self, input: str, *, on_complete: str | None = None) -> FlowRun:
 		"""Start `input` in a new session and return its Running Flow Run without waiting.
-		Once the run ends, Flow calls the function at the dotted path `on_end` with it."""
-		return self.new_session().chat(input, on_end=on_end)
+		Once the run ends, Flow calls the function at the dotted path `on_complete` with it."""
+		return self.new_session().chat(input, on_complete=on_complete)
 
 
 def _ensure_tool(tool: Tool) -> str:
