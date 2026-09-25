@@ -23,6 +23,8 @@ export interface PagePermissions {
   fieldAccess: (fieldname: string) => FieldAccess;
   /** Resolves once roles and meta are in, so `page.roles` is never seen empty. */
   ready: () => Promise<void>;
+  /** True once roles and meta are in, for a replay that must not wait. */
+  loaded: () => boolean;
 }
 
 export function createPagePermissions(
@@ -45,6 +47,7 @@ export function createPagePermissions(
     roles: () => roles.value ?? [],
     fieldAccess: (fieldname) => accessTo(fieldname),
     ready: () => (loaded ??= whenLoaded(loading)),
+    loaded: () => !loading.value,
   };
 
   function rightsView(from: Record<string, any>) {

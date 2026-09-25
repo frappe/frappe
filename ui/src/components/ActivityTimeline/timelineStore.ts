@@ -39,6 +39,9 @@ export class TimelineStore implements LiveFeed {
   private readKeys = new Set<string>();
   private newestRead: Promise<void> | undefined;
   private olderRead: Promise<void> | undefined;
+  /** newest-page reads begun so far, and the latest of them whose page was taken in */
+  private newestBegun = 0;
+  private newestTaken = 0;
 
   constructor(
     private readonly doctype: string,
@@ -75,6 +78,11 @@ export class TimelineStore implements LiveFeed {
     this.untrack();
   }
 
+  /** whether a read started by `load` is out */
+  get reading(): boolean {
+    return this.newestRead !== undefined;
+  }
+
   load(): Promise<void> {
     this.newestRead ??= this.readNewest().finally(() => {
       this.newestRead = undefined;
@@ -91,12 +99,23 @@ export class TimelineStore implements LiveFeed {
     return this.olderRead;
   }
 
+  /** Reads the newest page and hands back what takes it in; nothing changes before that runs, and a newer read taken in first wins. */
+  async stageNewest(): Promise<() => void> {
+    const begun = ++this.newestBegun;
+    const page = await this.readPage();
+    return () => {
+      if (begun < this.newestTaken) return;
+      this.newestTaken = begun;
+      this.takeNewest(page);
+      this.error.value = null;
+      this.fetched.value = true;
+    };
+  }
+
   private async readNewest() {
     this.loading.value = true;
     try {
-      this.takeNewest(await this.readPage());
-      this.error.value = null;
-      this.fetched.value = true;
+      (await this.stageNewest())();
     } catch (failure) {
       this.error.value = failure;
     } finally {

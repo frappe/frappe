@@ -5,8 +5,10 @@ import { until } from "@vueuse/core";
 import {
 	activityTimelineRows,
 	endActivityPrefetch,
+	hasActivityTimeline,
 	prefetchActivityTimeline,
 	reloadActivityTimeline,
+	stageActivityTimelineRead,
 	type VisibleTypes,
 } from "@framework/ui/ActivityTimeline";
 import { removeAttachment, type AttachmentsPart } from "@framework/ui/api";
@@ -48,6 +50,8 @@ export interface RecordFeedsOptions {
 	whileOnRecord: () => () => boolean;
 }
 
+type ActivityRead = readonly [doctype: string, docname: string, types: VisibleTypes | undefined];
+
 export const RecordFeedsKey: InjectionKey<RecordFeeds> = Symbol("record-feeds");
 
 export class RecordFeeds {
@@ -58,6 +62,7 @@ export class RecordFeeds {
 	private readonly timeline = shallowRef<ActivityTimelineHandle | null>(null);
 	private opened = "";
 	private pointed = "";
+	private kept: ActivityRead | null = null;
 
 	constructor(private readonly options: RecordFeedsOptions) {}
 
@@ -149,13 +154,28 @@ export class RecordFeeds {
 		return read ? (activityTimelineRows(...read) as ActivityRow[]) : [];
 	}
 
+	/** Re-reads the Activity rows a past visit kept, else the addressed feed's first read; applied when the returned function runs. */
+	rereadKept(query: LocationQuery): Promise<() => void> | null {
+		const read = this.activityRead();
+		if (!read || !(hasActivityTimeline(...read) || addressedTab(query) === ACTIVITY_TAB)) return null;
+		const staged = stageActivityTimelineRead(...read);
+		if (staged) this.kept = read;
+		return staged;
+	}
+
+	/** The kept rows' re-read is applied or the page left: an Activity body that mounts from now on catches up for itself. */
+	endKeptRead() {
+		if (this.kept) endActivityPrefetch(...this.kept);
+		this.kept = null;
+	}
+
 	private rereadStore(): Promise<void> {
 		const read = this.activityRead();
 		return read ? reloadActivityTimeline(...read) : Promise.resolve();
 	}
 
 	/** The read the Activity body makes: this record, in the types a script chose. */
-	private activityRead() {
+	private activityRead(): ActivityRead | null {
 		const controller = this.options.controller();
 		if (!controller) return null;
 		const { doctype, docname } = controller.page;
@@ -188,6 +208,11 @@ export function prefetchFeed(doctype: string, docname: string, query: LocationQu
 	const tab = addressedTab(query);
 	if (tab === EMAILS_TAB) void prefetchActivityTimeline(doctype, docname, EMAIL_TYPES);
 	return tab === ACTIVITY_TAB ? prefetchActivityTimeline(doctype, docname) : Promise.resolve();
+}
+
+/** True unless the address opens Activity and no past visit kept its rows. */
+export function feedInMemory(doctype: string, docname: string, query: LocationQuery): boolean {
+	return addressedTab(query) !== ACTIVITY_TAB || hasActivityTimeline(doctype, docname);
 }
 
 /** After the first paint: a feed body that mounts later catches up on what the eager read missed. */

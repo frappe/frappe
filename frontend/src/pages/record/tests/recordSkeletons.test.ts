@@ -36,10 +36,14 @@ vi.mock("../recordSource", () => ({
       }),
   ),
   loadParts: vi.fn(async () => ({})),
+  readCachedRecord: vi.fn(() => null),
   saveRecord: vi.fn(),
 }));
 
-vi.mock("../metaSource", () => ({ fetchMeta: vi.fn(async () => ({ name: "Note", fields: [] })) }));
+vi.mock("../metaSource", () => ({
+  fetchMeta: vi.fn(async () => ({ name: "Note", fields: [] })),
+  metaInMemory: vi.fn(() => null),
+}));
 
 vi.mock("@/recordPage", async (importOriginal) => {
   const original = (await importOriginal()) as object;

@@ -21,6 +21,16 @@ built-ins on every pass, so a conditional customization is a plain `if` over `pa
 with no `else` to undo it. Scripts run in `run_order`, and on one name the last to write
 wins.
 
+`onRefresh` should be synchronous. A replay reads what the page already holds:
+`page.doc`, `page.saved`, `page.meta` and the rows. An `async onRefresh`, or one that
+returns a promise, still works, but what it does after its first `await` lands later, in
+one paint when it settles: the first paint waits up to 500 ms for it; after that it lands
+as a later paint. The page stops waiting for it after 5 seconds. A member kept from
+`page` before the first `await` (`const { tabs } = page`) is not blocked once the reader
+has left, except `save`, `reload` and `refresh`, which then do nothing; do not keep one.
+It also gives a
+development warning and files an Error Log entry. A helper for cached server reads is coming; move server reads to it when it lands.
+
 ```js
 export default {
   onRefresh(page) {
@@ -38,9 +48,23 @@ Every handler other than `onRefresh` runs in a **hold** and paints once, when it
 a field handler, `onTabChange`, `onPost`, `beforeSave`, `afterSave`, a header or quick
 action's `run` and a dialog's callbacks show all their changes together at the end. A
 handler that must show progress while it runs uses `page.toast.success` or
-`page.toast.error`. The first paint waits at most 500 ms for the page's scripts. After
-that the page paints without any script still running a handler, the console names it, and
-its changes land when it finishes.
+`page.toast.error`. The first paint waits at most 500 ms for the page's scripts and
+permissions. After that the page paints what it has, without any handler still running,
+the console names what it waits for, and the rest lands when it arrives.
+
+On a **return visit**, a record seen earlier in the same tab and reached again by Back,
+Forward or a link, the page paints from memory before the first frame, and `onRefresh`
+runs twice: once over the remembered record, then once more when the background reads
+return, the record with its parts and, if they were kept, the Activity rows. If nothing
+changed, the second replay draws nothing. Build new values in each replay: an object
+changed in place and handed over again reads as unchanged, so it is not drawn again. Acts
+in the first replay land as on a first visit; the second replay drops its acts with a
+development warning, so a one-time move such as `activate` or `scrollTo` must not rely on
+being made in every replay. While an `async onRefresh` started by the second replay is still
+running, the page drops every act, a quick action's among them. Values the background reads
+change fire no field handlers. If the reader is editing when they return, only the fields
+the reader has not touched take the server's values. A first visit, or a record not held
+in memory in full, loads as described above.
 
 **Every place on the page is a list, every list takes a component item, and `before` /
 `after` names a neighbour.** There is no vocabulary of places on top of that: no zone or
@@ -652,6 +676,7 @@ is re-applied silently, and Save fails the same way until a reload.
 
 A field handler runs when the reader commits that field: `status(page)` on a status
 change, before any save. A child table's fields are addressed by the table, `products.qty`.
+A value a return visit's background read brings in fires no handler.
 
 ### The script this design was judged by
 
@@ -796,7 +821,9 @@ and a field change refreshes the newest page.
 
 The first `onRefresh` sees the newest page when the address opens the Activity tab, with
 `?tab=activity` or `?activity=<key>`: the page's first paint and first `onRefresh` wait
-for the newest activity page, a read that starts with the record read. `?tab=emails`
+for the newest activity page, a read that starts with the record read. On a return visit
+to that address with the rows kept from before, the first `onRefresh` reads the kept rows
+and does not wait; the rows read again arrive in the second replay. `?tab=emails`
 starts the Emails tab's read with the record read too, and the first paint does not wait
 for it. Any other address, a plain one included, starts no feed read: the rows are read
 as Activity first shows, so the first `onRefresh` sees none. That holds when a script puts

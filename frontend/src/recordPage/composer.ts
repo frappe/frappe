@@ -1,6 +1,6 @@
 // `page.composer`: the writers the band at the foot of a composer tab offers, and the
 // acts that open and close one. The host draws the band and keeps the drafts.
-import { NOT_DRAWN } from "./staging";
+import { IN_BACKGROUND, NOT_DRAWN } from "./staging";
 import { Surface } from "./surface";
 import { WRITER_ITEM_KEYS } from "./types";
 import type {
@@ -47,6 +47,7 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
     private readonly host: ComposerHost,
     /** The page's rule for whether an act waits for a commit. */
     private readonly isStaging: () => boolean,
+    private readonly inBackground: () => boolean = () => false,
   ) {
     super({ surface: "composer", keys: WRITER_ITEM_KEYS });
   }
@@ -68,6 +69,7 @@ export class ComposerSurface extends Surface<WriterItem> implements PageComposer
   /** Called in a replay or a hold, the open waits for `releaseOpen`, as `activity.scrollTo` waits. */
   open(name: string, options: ComposerOpenOptions = {}) {
     if (!this.canOpen(name)) return;
+    if (this.inBackground()) return void this.refuse(name, IN_BACKGROUND);
     const checked = this.checkWindow(name, options);
     if (this.isStaging()) this.heldOpen = { name, options: checked };
     else this.deliver(name, checked);

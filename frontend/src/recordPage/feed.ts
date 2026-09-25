@@ -6,7 +6,7 @@ import { compareActivities } from "@framework/ui/ActivityTimeline";
 import { currentSession } from "@framework/ui/composables/useSession";
 import { runningSource } from "./context";
 import { readOnly } from "./readOnly";
-import { NOT_DRAWN } from "./staging";
+import { IN_BACKGROUND, NOT_DRAWN } from "./staging";
 import { BUILTIN, Surface } from "./surface";
 import { FEED_ITEM_KEYS } from "./types";
 import type {
@@ -25,6 +25,8 @@ export interface ActivityHost {
   reload: () => Promise<void>;
   /** The page's rule for whether an act waits for a commit. */
   isStaging: () => boolean;
+  /** True in the replay after a background read, which drops its acts. */
+  inBackground: () => boolean;
 }
 
 export interface FilesHost {
@@ -138,7 +140,9 @@ export class ActivitySurface extends FeedSurface<ActivityItem> implements PageAc
 
   /** Called in a replay or a hold, the move waits for `releaseScroll`, once the page on screen is its own. */
   scrollTo(key: string) {
-    if (this.host.isStaging()) this.heldScroll = key;
+    if (this.host.inBackground())
+      this.warn("scrollTo", key, `${IN_BACKGROUND}; the reader was not moved`);
+    else if (this.host.isStaging()) this.heldScroll = key;
     else void this.deliverScroll(key);
   }
 

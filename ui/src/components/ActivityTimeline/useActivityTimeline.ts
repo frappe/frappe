@@ -57,7 +57,10 @@ export function endActivityPrefetch(
   visibleTypes?: VisibleTypes
 ) {
   const store = stores.get(storeKey(doctype, docname, visibleTypes));
-  if (store) store.prefetched.value = false;
+  if (!store) return;
+  store.prefetched.value = false;
+  // A staged first read whose page never ran: the store reads when a body next asks for it.
+  if (!store.fetched.value && !store.reading) store.loading.value = false;
 }
 
 /** The rows a store holds, pending ones included, with no component mounted; none if no read began. */
@@ -68,6 +71,50 @@ export function activityTimelineRows(
 ): Array<Activity | CustomActivity> {
   const store = stores.get(storeKey(doctype, docname, visibleTypes));
   return store ? shownRows(store, typeNames(visibleTypes)) : [];
+}
+
+/** True when a store for this read holds its newest page, mounted or kept idle. */
+export function hasActivityTimeline(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+): boolean {
+  const store = stores.get(storeKey(doctype, docname, visibleTypes));
+  return store?.fetched.value === true;
+}
+
+/** Reads a store's newest page, its first when none is kept; its rows change only when the returned function runs. Null with a mounted store. */
+export function stageActivityTimelineRead(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+): Promise<() => void> | null {
+  const store =
+    stores.get(storeKey(doctype, docname, visibleTypes)) ??
+    addTimelineStore(doctype, docname, visibleTypes);
+  if (store.mounted > 0) return null;
+  // Marked as a prefetch, so a mount before `endActivityPrefetch` reads nothing more.
+  store.prefetched.value = true;
+  const first = !store.fetched.value;
+  if (first) {
+    store.loading.value = true;
+    store.error.value = null;
+  }
+  return store.stageNewest().then(
+    (take) => () => {
+      take();
+      if (first) store.loading.value = false;
+    },
+    (failure) => {
+      store.prefetched.value = false;
+      if (first) {
+        store.loading.value = false;
+        store.error.value = failure;
+      }
+      if (store.mounted > 0) void store.refresh();
+      throw failure;
+    }
+  );
 }
 
 /** Re-reads the newest page with no component mounted; with no store yet, it starts the first read. */
@@ -87,14 +134,22 @@ function getTimelineStore(
   docname: string,
   visibleTypes?: VisibleTypes
 ): TimelineStore {
-  const cacheKey = storeKey(doctype, docname, visibleTypes);
-  let store = stores.get(cacheKey);
-  if (!store) {
-    const types = typeNames(visibleTypes);
-    store = new TimelineStore(doctype, docname, visibleTypes, types);
-    stores.add(cacheKey, store);
-    void store.load();
-  }
+  const store =
+    stores.get(storeKey(doctype, docname, visibleTypes)) ??
+    addTimelineStore(doctype, docname, visibleTypes);
+  if (!store.fetched.value && !store.loading.value) void store.load();
+  return store;
+}
+
+/** Adds a store to the cache without starting its read. */
+function addTimelineStore(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+): TimelineStore {
+  const types = typeNames(visibleTypes);
+  const store = new TimelineStore(doctype, docname, visibleTypes, types);
+  stores.add(storeKey(doctype, docname, visibleTypes), store);
   return store;
 }
 

@@ -418,7 +418,7 @@ describe("unknown handler keys", () => {
     const controller = createRecordPage(makeHost());
     vi.spyOn(console, "error").mockImplementation(() => {});
 
-    await controller.fireEvent("onRefresh");
+    await controller.refresh();
     await expect(controller.fireEvent("beforeSave")).rejects.toThrow("veto");
 
     expect(reportedFailures()).toContain("client-script:A.onRefresh");

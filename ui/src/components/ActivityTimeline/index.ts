@@ -9,8 +9,10 @@ export { default as VersionItem } from "./VersionItem.vue";
 export {
   activityTimelineRows,
   endActivityPrefetch,
+  hasActivityTimeline,
   prefetchActivityTimeline,
   reloadActivityTimeline,
+  stageActivityTimelineRead,
   useActivityTimeline,
 } from "./useActivityTimeline";
 export { addPendingActivity } from "./pendingRows";
