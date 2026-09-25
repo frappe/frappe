@@ -318,6 +318,18 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIsNone(_print_format_doc_or_none("Standard"))
 		self.assertIsNone(_print_format_doc_or_none(None))
 
+	def test_empty_format_name_resolves_to_doctype_default(self):
+		"""With no print_format name, printview renders the doctype's default print format,
+		so the PDF engine must be picked for that format, not for Standard."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
+
+		default = self._make_print_format()
+		with patch.object(frappe.get_meta("ToDo"), "default_print_format", default.name):
+			self.assertEqual(_print_format_doc_or_none(None, "ToDo").name, default.name)
+			self.assertEqual(resolve_pdf_generator(_print_format_doc_or_none("", "ToDo")), "chrome")
+
 	def test_standard_print_follows_print_settings_pdf_generator(self):
 		"""Standard (no print format) must honour Print Settings, while a beta format
 		stays pinned to chrome — wkhtmltopdf cannot lay out its flexbox columns."""
