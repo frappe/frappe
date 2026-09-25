@@ -134,6 +134,32 @@ def download_multi_pdf_async(
 	return {"task_id": task_id}
 
 
+def page_settings(pdf_options) -> dict:
+	pdf_options = pdf_options or {}
+	settings = {}
+	for option, setting in (
+		("page-size", "pdf_page_size"),
+		("page-height", "pdf_page_height"),
+		("page-width", "pdf_page_width"),
+	):
+		if pdf_options.get(option):
+			settings[setting] = pdf_options[option]
+	if "pdf_page_height" in settings and "pdf_page_size" not in settings:
+		settings["pdf_page_size"] = "Custom"
+	return settings
+
+
+def publish_failure(task_id, error):
+	if task_id:
+		frappe.publish_realtime(
+			f"task_complete:{task_id}",
+			message={
+				"error": str(error) or _("You are not permitted to print one of the selected documents")
+			},
+			user=frappe.session.user,
+		)
+
+
 def _download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
@@ -186,7 +212,13 @@ def _download_multi_pdf(
 		if frappe.db.get_value("Print Format", format, "pdf_generator") == "Typst":
 			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
 
+	format_language = format and frappe.db.get_value("Print Format", format, "default_print_language")
+
 	def print_into_writer(print_doctype, print_name):
+		with print_language(format_language):
+			return _print_into_writer(print_doctype, print_name)
+
+	def _print_into_writer(print_doctype, print_name):
 		from frappe.utils.print_utils import _print_format_doc_or_none, renders_through_generator
 
 		pf_doc = _print_format_doc_or_none(format)
@@ -216,7 +248,9 @@ def _download_multi_pdf(
 			pdf = legacy_generator(pf_doc, doc, letterhead).render_pdf()
 		else:
 			set_link_titles(doc)
-			generator = PrintFormatGenerator(pf_doc, doc, letterhead, no_letterhead=no_letterhead)
+			generator = PrintFormatGenerator(
+				pf_doc, doc, letterhead, no_letterhead=no_letterhead, settings=page_settings(options)
+			)
 			pdf = generator.render_pdf()
 		for page in PdfReader(BytesIO(pdf)).pages:
 			pdf_writer.add_page(page)
@@ -231,6 +265,9 @@ def _download_multi_pdf(
 		for idx, ss in enumerate(result):
 			try:
 				pdf_writer = print_into_writer(doctype, ss)
+			except frappe.PermissionError as e:
+				publish_failure(task_id, e)
+				raise
 			except Exception:
 				frappe.log_error(
 					title="Error in Multi PDF download",
@@ -238,7 +275,9 @@ def _download_multi_pdf(
 					reference_name=ss,
 				)
 				if task_id:
-					frappe.publish_realtime(task_id=task_id, message={"message": "Failed"})
+					frappe.publish_realtime(
+						task_id=task_id, message={"message": "Failed"}, user=frappe.session.user
+					)
 
 			# Publish progress
 			if task_id:
@@ -264,9 +303,12 @@ def _download_multi_pdf(
 			for doc_name in doctype[doctype_name]:
 				try:
 					pdf_writer = print_into_writer(doctype_name, doc_name)
+				except frappe.PermissionError as e:
+					publish_failure(task_id, e)
+					raise
 				except Exception:
 					if task_id:
-						frappe.publish_realtime(task_id=task_id, message="Failed")
+						frappe.publish_realtime(task_id=task_id, message="Failed", user=frappe.session.user)
 					frappe.log_error(
 						title="Error in Multi PDF download",
 						message=f"Permission Error on doc {doc_name} of doctype {doctype_name}",

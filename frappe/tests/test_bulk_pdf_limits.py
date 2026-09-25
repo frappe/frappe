@@ -10,6 +10,7 @@ from frappe.utils.print_format import (
 	download_multi_pdf_async,
 	get_max_bulk_print_docs,
 	get_max_concurrent_bulk_exports,
+	page_settings,
 )
 
 
@@ -22,6 +23,60 @@ class TestBulkPdfLimits(IntegrationTestCase):
 
 	def _pacing_key(self):
 		return frappe.cache.make_key(f"rl:multi_pdf_async:{frappe.session.user}")
+
+	def test_bulk_pdf_uses_the_formats_default_print_language(self):
+		import json
+
+		from pypdf import PdfWriter
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		pf = frappe.get_doc(
+			doctype="Print Format",
+			name=frappe.generate_hash(length=10),
+			doc_type="User",
+			custom_format=1,
+			print_format_type="Jinja",
+			html="{{ doc.name }}",
+			default_print_language="de",
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", pf.name, force=True)
+		seen = []
+
+		def fake_get_print(*args, **kwargs):
+			seen.append(frappe.local.lang)
+			kwargs["output"].add_blank_page(width=72, height=72)
+			return kwargs["output"]
+
+		with patch("frappe.get_print", side_effect=fake_get_print):
+			_download_multi_pdf("User", json.dumps(["Administrator"]), pf.name)
+
+		self.assertEqual(seen, ["de"])
+		self.assertEqual(frappe.local.lang, "en")
+
+	def test_page_settings_map_the_dialogs_page_choice(self):
+		self.assertEqual(page_settings(None), {})
+		self.assertEqual(page_settings({"password": "x"}), {})
+		self.assertEqual(page_settings({"page-size": "Letter"}), {"pdf_page_size": "Letter"})
+		self.assertEqual(
+			page_settings({"page-height": "100mm", "page-width": "50mm"}),
+			{"pdf_page_size": "Custom", "pdf_page_height": "100mm", "pdf_page_width": "50mm"},
+		)
+
+	def test_bulk_pdf_tells_the_requester_when_a_permission_check_fails(self):
+		import json
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		frappe.set_user("Guest")
+		self.addCleanup(frappe.set_user, "Administrator")
+		with patch("frappe.publish_realtime") as publish:
+			with self.assertRaises(frappe.PermissionError):
+				_download_multi_pdf("User", json.dumps(["Administrator"]), None, task_id="bulk-test")
+		publish.assert_called_once()
+		self.assertEqual(publish.call_args.args[0], "task_complete:bulk-test")
+		self.assertTrue(publish.call_args.kwargs["message"]["error"])
+		self.assertEqual(publish.call_args.kwargs["user"], "Guest")
 
 	def test_document_count_setting_is_honoured(self):
 		frappe.db.set_single_value("Print Settings", "max_bulk_print_docs", 3)

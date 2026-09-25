@@ -35,6 +35,24 @@ class TestPrintFormat(IntegrationTestCase):
 		print_html = self.test_print_user("Classic")
 		self.assertTrue("/* classic format: for-test */" in print_html)
 
+	def test_onload_resolves_pdf_generator(self):
+		classic = frappe.get_doc(
+			{"doctype": "Print Format", "doc_type": "ToDo", "print_format_builder": 1, "pdf_generator": None}
+		)
+		classic.onload()
+		self.assertEqual(classic.get_onload("pdf_generator"), "wkhtmltopdf")
+
+		beta = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"pdf_generator": "wkhtmltopdf",
+			}
+		)
+		beta.onload()
+		self.assertEqual(beta.get_onload("pdf_generator"), "chrome")
+
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
@@ -660,10 +678,16 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertIn("print-format-doc", html)
 		self.assertIn("<p>Jinja: Administrator</p>", html)
 
-		convert_to_builder(self.FORMAT_NAME)
+		layout = frappe.parse_json(doc.format_data)
+		layout["sections"][0]["label"] = "Edited in builder"
+		doc.format_data = frappe.as_json(layout)
+		doc.margin_top = 33
+		doc.save()
+		self.assertRaises(frappe.ValidationError, convert_to_builder, self.FORMAT_NAME)
 		doc = frappe.get_doc("Print Format", self.FORMAT_NAME)
 		self.assertEqual(frappe.parse_json(doc.classic_format_data), backup)
-		self.assertEqual(frappe.parse_json(doc.format_data), self.EXPECTED_BETA_LAYOUT)
+		self.assertEqual(frappe.parse_json(doc.format_data)["sections"][0]["label"], "Edited in builder")
+		self.assertEqual(doc.margin_top, 33)
 
 		restore_classic_layout(self.FORMAT_NAME)
 		doc = frappe.get_doc("Print Format", self.FORMAT_NAME)
@@ -718,7 +742,10 @@ class TestClassicConverter(IntegrationTestCase):
 		)
 
 	def test_create_custom_format_based_on_classic_converts(self):
-		from frappe.printing.doctype.print_format.print_format import create_custom_format
+		from frappe.printing.doctype.print_format.print_format import (
+			create_custom_format,
+			restore_classic_layout,
+		)
 
 		self.make_classic_format()
 		name = f"_Test From Classic {frappe.generate_hash(length=6)}"
@@ -729,10 +756,45 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertEqual(doc.print_format_builder, 0)
 		self.assertEqual(doc.pdf_generator, "chrome")
 		self.assertEqual(frappe.parse_json(doc.format_data), self.EXPECTED_BETA_LAYOUT)
-		self.assertEqual(frappe.parse_json(doc.classic_format_data)["format_data"], self.CLASSIC_FORMAT_DATA)
+		self.assertFalse(doc.classic_format_data)
+		self.assertRaises(frappe.ValidationError, restore_classic_layout, name)
+		self.assertEqual(frappe.db.get_value("Print Format", name, "print_format_builder_beta"), 1)
 		source = frappe.get_doc("Print Format", self.FORMAT_NAME)
 		self.assertEqual(source.print_format_builder, 1)
 		self.assertEqual(frappe.parse_json(source.format_data), self.CLASSIC_FORMAT_DATA)
+
+	def test_create_custom_format_copies_source_print_options(self):
+		from frappe.printing.doctype.print_format.classic_converter import convert_print_format
+		from frappe.printing.doctype.print_format.print_format import (
+			COPIED_PRINT_OPTIONS,
+			create_custom_format,
+		)
+
+		options = {
+			"show_section_headings": 1,
+			"line_breaks": 1,
+			"align_labels_right": 1,
+			"font": "Arial",
+			"font_size": 11,
+			"page_number": "Top Center",
+			"margin_top": 25,
+			"margin_left": 5,
+			"css": ".print-format { color: red; }",
+		}
+		source = self.make_classic_format()
+		source.update(options).save()
+		name = f"_Test Copied Options {frappe.generate_hash(length=6)}"
+		doc = create_custom_format("User", name, based_on=self.FORMAT_NAME)
+		self.addCleanup(frappe.delete_doc, "Print Format", name, force=True)
+
+		in_place = frappe.get_doc("Print Format", self.FORMAT_NAME)
+		convert_print_format(in_place)
+		self.assertNotIn("show_label", frappe.parse_json(doc.format_data)["sections"][0])
+		self.assertEqual(frappe.parse_json(doc.format_data), frappe.parse_json(in_place.format_data))
+		for fieldname in COPIED_PRINT_OPTIONS:
+			with self.subTest(fieldname=fieldname):
+				self.assertEqual(doc.get(fieldname), in_place.get(fieldname))
+		self.assertEqual(doc.pdf_generator, "chrome")
 
 	def test_convert_format_without_layout_builds_the_default_layout(self):
 		from frappe.printing.doctype.print_format.classic_converter import convert_print_format
@@ -746,6 +808,52 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertTrue(layout["sections"])
 		self.assertEqual(doc.print_format_builder_beta, 1)
 		self.assertEqual(doc.pdf_generator, "chrome")
+
+	def test_get_beta_layout_matches_convert_print_format(self):
+		from frappe.printing.doctype.print_format.classic_converter import (
+			NUMERIC_DEFAULT_FIELDS,
+			conversion_values,
+			convert_print_format,
+			create_default_layout,
+			get_beta_layout,
+		)
+
+		doc = self.make_classic_format()
+		doc.update(self.CONVERTED_FIELDS_BEFORE)
+		doc.format_data = frappe.as_json(
+			[
+				{
+					"fieldname": "user_emails",
+					"print_hide": 0,
+					"visible_columns": [
+						{"fieldname": "email_account", "print_hide": 0, "print_width": "50%"},
+						{"fieldname": "email_id", "print_hide": 0, "print_width": "50%"},
+					],
+				}
+			]
+		)
+		doc.save()
+		converted = frappe.get_doc("Print Format", self.FORMAT_NAME)
+		convert_print_format(converted)
+		result = get_beta_layout(self.FORMAT_NAME)
+		self.assertEqual(result["layout"], frappe.parse_json(converted.format_data))
+		self.assertEqual(result["values"], conversion_values(converted))
+		self.assertEqual(result["values"]["pdf_generator"], "chrome")
+		self.assertEqual(result["values"]["page_number"], "Bottom Center")
+		self.assertEqual(result["values"]["print_format_builder_beta"], 1)
+		meta = frappe.get_meta("Print Format")
+		for fieldname in NUMERIC_DEFAULT_FIELDS:
+			self.assertEqual(result["values"][fieldname], flt(meta.get_field(fieldname).default))
+		table = result["layout"]["sections"][0]["columns"][0]["fields"][0]
+		self.assertEqual([c["width"] for c in table["table_columns"]], [10, 45, 45])
+
+		doc.db_set("format_data", None)
+		result = get_beta_layout(self.FORMAT_NAME)
+		self.assertEqual(result["layout"], create_default_layout(frappe.get_meta("User")))
+		self.assertEqual(result["dropped"], [])
+		self.assertEqual(
+			frappe.db.get_value("Print Format", self.FORMAT_NAME, "print_format_builder_beta"), 0
+		)
 
 	def test_create_custom_format_copies_standard_classic_without_developer_mode(self):
 		from frappe.printing.doctype.print_format.print_format import create_custom_format

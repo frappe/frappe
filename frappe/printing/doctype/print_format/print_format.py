@@ -94,8 +94,10 @@ class PrintFormat(Document):
 		)
 		self.set_onload("print_templates", templates)
 		from frappe.printing.doctype.print_format.classic_converter import renders_from_file
+		from frappe.utils.print_utils import resolve_pdf_generator
 
 		self.set_onload("renders_from_file", renders_from_file(self))
+		self.set_onload("pdf_generator", resolve_pdf_generator(self))
 
 	def before_save(self):
 		if self.print_format_for == "Report":
@@ -411,6 +413,25 @@ def _condition(holder, label, key):
 		yield label, condition
 
 
+COPIED_PRINT_OPTIONS = (
+	"show_section_headings",
+	"line_breaks",
+	"align_labels_right",
+	"show_label_colon",
+	"margin_top",
+	"margin_bottom",
+	"margin_left",
+	"margin_right",
+	"font",
+	"font_size",
+	"label_color",
+	"value_color",
+	"page_number",
+	"css",
+	"default_print_language",
+)
+
+
 @frappe.whitelist()
 def create_custom_format(
 	doctype: str, name: str | int, based_on: str = "Standard", beta: str | int | bool = True
@@ -442,8 +463,11 @@ def create_custom_format(
 			source = None
 	if source:
 		doc.format_data = source.format_data
+		for fieldname in COPIED_PRINT_OPTIONS:
+			doc.set(fieldname, source.get(fieldname))
 		if not doc.format_data or is_classic_layout(doc.format_data):
 			convert_print_format(doc)
+			doc.classic_format_data = None
 	else:
 		from frappe.printing.doctype.print_format.classic_converter import create_default_layout
 
@@ -452,25 +476,18 @@ def create_custom_format(
 	return doc
 
 
-def _classic_conversion_values(doc) -> dict:
-	from frappe.printing.doctype.print_format.classic_converter import NUMERIC_DEFAULT_FIELDS
-
-	return {
-		"format_data": doc.format_data,
-		"classic_format_data": doc.classic_format_data,
-		"print_format_builder": doc.print_format_builder,
-		"print_format_builder_beta": doc.print_format_builder_beta,
-		"pdf_generator": doc.pdf_generator,
-		"page_number": doc.page_number,
-		**{f: doc.get(f) for f in NUMERIC_DEFAULT_FIELDS},
-	}
-
-
 def _persist_conversion(doc):
 	"""Standard formats are file-backed: write the row without exporting, so the
 	app's fixture stays classic and a later sync can restore it."""
+	from frappe.printing.doctype.print_format.classic_converter import conversion_values
+
 	if doc.standard == "Yes":
-		frappe.db.set_value("Print Format", doc.name, _classic_conversion_values(doc), update_modified=False)
+		frappe.db.set_value(
+			"Print Format",
+			doc.name,
+			{"format_data": doc.format_data, **conversion_values(doc)},
+			update_modified=False,
+		)
 		frappe.clear_cache(doctype=doc.doc_type)
 	else:
 		doc.save()
@@ -489,7 +506,7 @@ def convert_to_builder(name: str):
 		frappe.throw(_("{0} is rendered from an HTML file and cannot be converted").format(frappe.bold(name)))
 	if doc.standard == "Yes" and not frappe.conf.developer_mode:
 		frappe.throw(_("Standard print formats can only be converted in developer mode"))
-	dropped = convert_print_format(doc)
+	dropped = None if doc.print_format_builder_beta else convert_print_format(doc)
 	if dropped is None:
 		frappe.throw(_("{0} is not a classic print format").format(frappe.bold(name)))
 	_persist_conversion(doc)

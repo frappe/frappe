@@ -1227,3 +1227,116 @@ context("Print Format Builder — draft and Save & Apply", () => {
 			.should("have.value", "29");
 	});
 });
+
+// ─── Print Format form — renderer notice ──────────────────────────────────────
+
+context("Print Format form — renderer notice", () => {
+	let PF_NAME;
+
+	before(() => {
+		cy.login();
+		cy.visit("/desk");
+	});
+
+	beforeEach(() => {
+		PF_NAME = pf_name();
+	});
+
+	afterEach(() => {
+		cy.window().then((win) => cleanup(win, PF_NAME));
+	});
+
+	it("treats an empty renderer on a classic format as wkhtmltopdf", () => {
+		cy.insert_doc(
+			"Print Format",
+			{
+				name: PF_NAME,
+				doc_type: "ToDo",
+				print_format_builder: 1,
+				format_data: JSON.stringify([
+					{ fieldtype: "Section Break", label: "" },
+					{ fieldtype: "Column Break" },
+					{ fieldname: "description", print_hide: 0 },
+				]),
+			},
+			true
+		);
+		cy.call("frappe.client.set_value", {
+			doctype: "Print Format",
+			name: PF_NAME,
+			fieldname: "pdf_generator",
+			value: "",
+		});
+
+		cy.visit(`/desk/print-format/${encodeURIComponent(PF_NAME)}`);
+		cy.get(".form-message:visible", { timeout: 20000 })
+			.should("contain", "classic builder will be removed")
+			.and("contain", "wkhtmltopdf is deprecated");
+	});
+});
+
+// ─── Classic builder page — guards ───────────────────────────────────────────
+
+context("Classic builder page — guards", () => {
+	let PF_NAME;
+
+	before(() => {
+		cy.login();
+		cy.visit("/desk");
+	});
+
+	beforeEach(() => {
+		PF_NAME = pf_name();
+	});
+
+	afterEach(() => {
+		cy.window().then((win) => cleanup(win, PF_NAME));
+	});
+
+	it("sends a new-builder format to the new builder", () => {
+		insert_builder_format(PF_NAME);
+
+		cy.visit(`/desk/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+		cy.location("pathname", { timeout: 20000 }).should(
+			"match",
+			/\/(app|desk)\/(?:[\w-]+\/)?print-format-builder-beta\//
+		);
+		cy.get(".print-format-main", { timeout: 20000 }).should("exist");
+	});
+
+	it("sends a custom HTML format back to the form", () => {
+		cy.insert_doc(
+			"Print Format",
+			{ name: PF_NAME, doc_type: "ToDo", custom_format: 1, html: "<div></div>" },
+			true
+		);
+
+		cy.visit(`/desk/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+		cy.location("pathname", { timeout: 20000 }).should(
+			"match",
+			/\/(app|desk)\/(?:[\w-]+\/)?print-format\/[^/]+$/
+		);
+		cy.get(".msgprint", { timeout: 20000 }).should("contain", "custom HTML format");
+	});
+
+	it("sends a custom HTML format flagged for the new builder back to the form", () => {
+		cy.insert_doc(
+			"Print Format",
+			{
+				name: PF_NAME,
+				doc_type: "ToDo",
+				custom_format: 1,
+				print_format_builder_beta: 1,
+				html: "<div></div>",
+			},
+			true
+		);
+
+		cy.visit(`/desk/print-format-builder/${encodeURIComponent(PF_NAME)}`);
+		cy.location("pathname", { timeout: 20000 }).should(
+			"match",
+			/\/(app|desk)\/(?:[\w-]+\/)?print-format\/[^/]+$/
+		);
+		cy.get(".msgprint", { timeout: 20000 }).should("contain", "custom HTML format");
+	});
+});
