@@ -165,10 +165,11 @@ def cast_client_values(document: "Document"):
 			value = row.get(df.fieldname)
 			if value in (None, "") or df.fieldtype in table_fields:
 				continue
+			messages = len(frappe.local.message_log)
 			try:
 				row.set(df.fieldname, cast(df.fieldtype, value))
 			except frappe.ValidationError:
-				pass
+				del frappe.local.message_log[messages:]
 
 
 def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" | None:

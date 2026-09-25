@@ -96,7 +96,7 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 
 	FORMAT_NAME = "_Test Builder Elements"
 
-	def render(self, df):
+	def render(self, df, name="Administrator"):
 		from frappe.utils.print_format_generator import get_html
 
 		frappe.delete_doc("Print Format", self.FORMAT_NAME, force=True, ignore_missing=True)
@@ -111,7 +111,7 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 			}
 		).insert()
 		self.addCleanup(frappe.delete_doc, "Print Format", self.FORMAT_NAME, force=True)
-		return get_html("User", "Administrator", self.FORMAT_NAME)
+		return get_html("User", name, self.FORMAT_NAME)
 
 	def test_image_element(self):
 		df = {"fieldname": "image_test", "fieldtype": "Image", "custom": 1, "label": "Logo"}
@@ -121,6 +121,85 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 		self.assertIn("field-align-center", html)
 
 		self.assertNotIn("print-image", self.render(df | {"image_url": ""}))
+
+	def test_date_format_overrides_system_format(self):
+		from frappe.utils.data import format_time
+		from frappe.utils.print_format_generator import format_field_value
+
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": f"date_format_{frappe.generate_hash(length=6)}@example.com",
+				"first_name": "Date Format",
+				"birth_date": "2026-02-11",
+				"send_welcome_email": 0,
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
+		frappe.db.set_value("User", user.name, "last_login", "2026-02-11 09:30:00", update_modified=False)
+		user.reload()
+
+		df = {"fieldname": "birth_date", "fieldtype": "Date", "label": "Birth Date"}
+		self.assertIn("11 Feb 2026", self.render(df | {"date_format": "d MMM yyyy"}, user.name))
+		self.assertIn("February 11, 2026", self.render(df | {"date_format": "MMMM d, yyyy"}, user.name))
+		self.assertNotIn("11 Feb 2026", self.render(df, user.name))
+
+		self.assertEqual(format_field_value(user, df), user.get_formatted("birth_date"))
+		stamp = format_field_value(
+			user, {"fieldname": "last_login", "fieldtype": "Datetime", "date_format": "dd/mm/yyyy"}
+		)
+		self.assertEqual(stamp, "11/02/2026 " + format_time(user.last_login))
+
+	def test_table_column_date_format_reaches_plain_and_merged_cells(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+		from frappe.utils.print_format_generator import get_html
+
+		child = new_doctype(
+			istable=1,
+			fields=[
+				{"fieldname": "due", "fieldtype": "Date", "label": "Due"},
+				{"fieldname": "note", "fieldtype": "Data", "label": "Note"},
+			],
+		).insert()
+		parent = new_doctype(
+			fields=[{"fieldname": "rows", "fieldtype": "Table", "options": child.name, "label": "Rows"}]
+		).insert()
+		self.addCleanup(parent.delete)
+		self.addCleanup(child.delete)
+		doc = frappe.get_doc(
+			{"doctype": parent.name, "rows": [{"due": "2026-02-11", "note": "paid"}]}
+		).insert()
+
+		def column(**extra):
+			return {"fieldname": "due", "fieldtype": "Date", "label": "Due", "width": 50} | extra
+
+		def render(col):
+			frappe.delete_doc("Print Format", self.FORMAT_NAME, force=True, ignore_missing=True)
+			table = {"fieldname": "rows", "fieldtype": "Table", "options": child.name, "table_columns": [col]}
+			frappe.get_doc(
+				{
+					"doctype": "Print Format",
+					"name": self.FORMAT_NAME,
+					"doc_type": parent.name,
+					"standard": "No",
+					"print_format_builder_beta": 1,
+					"format_data": frappe.as_json(
+						{"sections": [{"label": "", "columns": [{"label": "", "fields": [table]}]}]}
+					),
+				}
+			).insert()
+			self.addCleanup(frappe.delete_doc, "Print Format", self.FORMAT_NAME, force=True)
+			return get_html(parent.name, doc.name, self.FORMAT_NAME)
+
+		self.assertIn(">11 Feb 2026<", render(column(date_format="d MMM yyyy")))
+		self.assertNotIn("11 Feb 2026", render(column()))
+		merged = column(
+			date_format="d MMM yyyy",
+			merged_fields=[{"fieldname": "note", "fieldtype": "Data", "style": "muted"}],
+		)
+		html = render(merged)
+		self.assertIn('cell-line--primary">11 Feb 2026<', html)
+		self.assertIn('cell-line--muted">paid<', html)
 
 	def test_allow_page_break_marks_field_breakable(self):
 		def body(html):

@@ -30,6 +30,32 @@ def _make_session(captured):
 	return session
 
 
+class TestPdfStreamHandle(UnitTestCase):
+	def _page_with_pdf_futures(self, response):
+		import asyncio
+
+		loop = asyncio.new_event_loop()
+		self.addCleanup(loop.close)
+		response_future = loop.create_future()
+		if response is not None:
+			response_future.set_result(response)
+		send_task = loop.create_future()
+		send_task.set_result(response_future)
+		page = _make_page(MagicMock())
+		page.wait_for_pdf = send_task
+		return page
+
+	def test_returns_the_stream_once_the_response_arrived(self):
+		page = self._page_with_pdf_futures({"result": {"stream": "handle-1"}})
+		self.assertEqual(page.get_pdf_stream_id(), "handle-1")
+		page.session.wait_for_event.assert_any_call(page.wait_for_pdf.result(), timeout=30)
+
+	def test_raises_instead_of_reading_a_pending_response(self):
+		page = self._page_with_pdf_futures(None)
+		with self.assertRaises(RuntimeError):
+			page.get_pdf_stream_id()
+
+
 def _fire_request(callback, request_id, url):
 	"""Simulate Chrome firing a Fetch.requestPaused CDP event."""
 	callback(

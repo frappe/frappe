@@ -57,6 +57,48 @@ class PrintViewTest(IntegrationTestCase):
 		self.assertIn("date:False", html)
 		self.assertIn("time:False", html)
 
+	def test_preview_with_an_uncastable_value_leaves_no_message_behind(self):
+		doctype = new_doctype(
+			fields=[{"fieldname": "some_date", "fieldtype": "Date", "label": "Some Date"}]
+		).insert()
+		doc = frappe.get_doc(doctype=doctype.name, some_date="2026-01-31").insert()
+		pf = frappe.get_doc(
+			doctype="Print Format",
+			name=frappe.generate_hash(length=10),
+			doc_type=doctype.name,
+			custom_format=1,
+			print_format_type="Jinja",
+			html="{{ doc.name }}",
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", pf.name, force=True)
+		posted = doc.as_dict()
+		posted["some_date"] = "not-a-date"
+
+		messages_before = len(frappe.get_message_log())
+		html = get_html_and_style(doc=frappe.as_json(posted), print_format=pf.name, no_letterhead=1)["html"]
+
+		self.assertIn(doc.name, html)
+		self.assertEqual(len(frappe.get_message_log()), messages_before)
+
+	def test_get_print_leaves_form_dict_as_it_found_it(self):
+		note = frappe.get_doc(doctype="Note", title=frappe.generate_hash()).insert()
+		print_format = self._beta_format("Note", pdf_generator="chrome", format_data="{}")
+		seen = []
+
+		def fake_chrome_pdf(print_format, html, options, output, pdf_generator=None):
+			seen.append((frappe.form_dict.doctype, frappe.form_dict.name, pdf_generator))
+			return b"pdf"
+
+		with patch.object(frappe.local, "form_dict", frappe._dict(cmd="x")):
+			with patch("frappe.utils.pdf.get_chrome_pdf", side_effect=fake_chrome_pdf):
+				pdf = frappe.get_print("Note", note.name, print_format.name, as_pdf=True)
+			self.assertEqual(pdf, b"pdf")
+			self.assertEqual(seen, [("Note", note.name, "chrome")])
+			self.assertEqual(frappe.local.form_dict, {"cmd": "x"})
+
+			frappe.get_print("Note", note.name, "Standard")
+			self.assertEqual(frappe.local.form_dict, {"cmd": "x"})
+
 	def test_print_settings_font_size_wins_over_print_style(self):
 		from frappe.www.printview import get_print_style
 

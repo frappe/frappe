@@ -381,6 +381,7 @@ const TABLE_COLUMN_PLUCK_KEYS = [
 	"merge_direction",
 	"image_size",
 	"column_condition",
+	"date_format",
 ];
 
 export const FIELD_PLUCK_KEYS = [
@@ -426,6 +427,7 @@ export const FIELD_PLUCK_KEYS = [
 	"show_empty",
 	"hide_colon",
 	"table_min_height",
+	"date_format",
 ];
 
 const ZONE_FIELD_PLUCK_KEYS = FIELD_PLUCK_KEYS.filter(
@@ -690,4 +692,71 @@ export function table_field_opts(fields) {
 	return (fields || [])
 		.filter((f) => f.fieldtype === "Table")
 		.map((f) => ({ label: f.label || f.fieldname, value: f.fieldname }));
+}
+
+export const DATE_FORMATS = [
+	"dd-mm-yyyy",
+	"mm-dd-yyyy",
+	"yyyy-mm-dd",
+	"dd/mm/yyyy",
+	"dd.mm.yyyy",
+	"d MMM yyyy",
+	"d MMMM yyyy",
+	"MMM d, yyyy",
+	"MMMM d, yyyy",
+	"EEE, d MMM yyyy",
+];
+
+const NAME_TOKENS = {
+	MMMM: ["month", "long"],
+	MMM: ["month", "short"],
+	EEEE: ["weekday", "long"],
+	EEE: ["weekday", "short"],
+};
+
+export function format_date_tokens(date, fmt, lang) {
+	const pad = (n) => String(n).padStart(2, "0");
+	const name = (token) => {
+		const [part, style] = NAME_TOKENS[token];
+		const options = { day: "numeric", month: "long", weekday: "short", [part]: style };
+		let formatter;
+		try {
+			formatter = new Intl.DateTimeFormat(lang, options);
+		} catch {
+			formatter = new Intl.DateTimeFormat("en", options);
+		}
+		return formatter.formatToParts(date).find((p) => p.type === part).value;
+	};
+	return fmt.replace(/yyyy|MMMM|MMM|EEEE|EEE|mm|dd|d/g, (t) =>
+		NAME_TOKENS[t]
+			? name(t)
+			: {
+					yyyy: date.getFullYear(),
+					mm: pad(date.getMonth() + 1),
+					dd: pad(date.getDate()),
+					d: date.getDate(),
+			  }[t]
+	);
+}
+
+export const is_date_field = (df) => df?.fieldtype === "Date" || df?.fieldtype === "Datetime";
+
+export function format_date_value(raw, df) {
+	if (!df?.date_format || !is_date_field(df) || !raw) return null;
+	const m = moment(frappe.datetime.str_to_obj(raw));
+	if (!m.isValid()) return null;
+	let out = format_date_tokens(m.toDate(), df.date_format, frappe.boot?.lang || "en");
+	if (df.fieldtype === "Datetime") out += " " + m.format(frappe.datetime.get_user_time_fmt());
+	return out;
+}
+
+export function date_format_opts(sample) {
+	const value = sample || frappe.datetime.now_date();
+	return [
+		{ value: "", label: __("System default") },
+		...DATE_FORMATS.map((f) => ({
+			value: f,
+			label: format_date_value(value, { fieldtype: "Date", date_format: f }),
+		})),
+	];
 }

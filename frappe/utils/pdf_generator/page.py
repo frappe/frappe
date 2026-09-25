@@ -399,13 +399,13 @@ class Page:
 		return self.get_pdf_from_stream(result["stream"], raw)
 
 	def get_pdf_stream_id(self):
-		# wait for task to complete
 		self.session.wait_for_event(self.wait_for_pdf)
-		# wait for event to complete
-		task = self.wait_for_pdf.result()
-		future = task.result()
-		stream_id = future["result"]["stream"]
-		return stream_id
+		response_future = self.wait_for_pdf.result()
+		self.session.wait_for_event(response_future, timeout=30)
+		if not response_future.done() or response_future.cancelled():
+			raise RuntimeError("Timed out waiting for the Page.printToPDF response")
+		response = response_future.result()
+		return response["result"]["stream"]
 
 	def get_pdf_from_stream(self, stream_id, raw=False):
 		from io import BytesIO
