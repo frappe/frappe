@@ -66,7 +66,7 @@ import type { Boot } from "@/boot";
 import { resetClientScripts } from "@/recordPage/clientScripts";
 import { withRegisteringSource } from "@/recordPage/context";
 import { registerRecordPage, resetRegistry } from "@/recordPage/registry";
-import type { AuthoredHandlers, RecordPageApi } from "@/recordPage/types";
+import type { AuthoredHandlers, RecordPageApi, VisibleTypes } from "@/recordPage/types";
 import { createShellRouter } from "@/router";
 import { registerShell, routeFor } from "@/router/routeFor";
 
@@ -912,6 +912,32 @@ describe("a return visit on the Activity tab", () => {
 
     expect(prefetchEnded).toContain(name);
     expect(activityTimelineRows("Note", name).map((row: any) => row.key)).toContain("a2");
+  });
+
+  it("replays after the first read of types the script shows now and no past visit kept", async () => {
+    let types: VisibleTypes = ["comment"];
+    await register({
+      onRefresh: (page) => {
+        page.activity.types(types);
+        drawState(page);
+      },
+    });
+    const { root, router } = await visitAndLeave("?tab=activity");
+    types = ["log"];
+    server.holdActivity = gate();
+
+    await comeBack(router, "?tab=activity");
+
+    expect(hasSkeleton(root)).toBe(false);
+    expect(state(root)).toBe(`Open|First|${OLD}|${OLD}|1`);
+
+    await settle();
+    server.holdActivity.open();
+    await settle();
+
+    const urls = vi.mocked(fetch).mock.calls.map(([url]) => decodeURIComponent(String(url)));
+    expect(state(root)).toBe(`Open|First|${OLD}|${OLD}|1`);
+    expect(urls.filter((url) => url.includes('types=["log"]'))).toHaveLength(1);
   });
 
   it("takes the cold path when no past visit kept the feed", async () => {

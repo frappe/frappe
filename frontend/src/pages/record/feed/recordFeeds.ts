@@ -154,10 +154,11 @@ export class RecordFeeds {
 		return read ? (activityTimelineRows(...read) as ActivityRow[]) : [];
 	}
 
-	/** Re-reads the Activity rows a past visit kept; they change when the returned function runs. Null with none kept. */
-	rereadKept(): Promise<() => void> | null {
+	/** Re-reads the Activity rows a past visit kept, applied when the returned function runs; else the addressed feed's first read. */
+	rereadKept(query: LocationQuery): Promise<() => void> | null {
 		const read = this.activityRead();
-		const staged = read ? stageActivityTimelineRead(...read) : null;
+		if (!read) return null;
+		const staged = stageActivityTimelineRead(...read) ?? firstRead(read, query);
 		if (staged) this.kept = read;
 		return staged;
 	}
@@ -212,6 +213,12 @@ export function prefetchFeed(doctype: string, docname: string, query: LocationQu
 /** True unless the address opens Activity and no past visit kept its rows. */
 export function feedInMemory(doctype: string, docname: string, query: LocationQuery): boolean {
 	return addressedTab(query) !== ACTIVITY_TAB || hasActivityTimeline(doctype, docname);
+}
+
+// The first replay chooses the types, so a store for them may be missing though the unfiltered one was kept.
+function firstRead(read: ActivityRead, query: LocationQuery): Promise<() => void> | null {
+	if (addressedTab(query) !== ACTIVITY_TAB || hasActivityTimeline(...read)) return null;
+	return prefetchActivityTimeline(...read).then(() => () => {});
 }
 
 /** After the first paint: a feed body that mounts later catches up on what the eager read missed. */

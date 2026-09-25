@@ -585,7 +585,7 @@ function backgroundReads(target: Opening["target"]): BackgroundRead[] {
 			(failure) => () => takeReadFailure(failure)
 		),
 	];
-	const rows = feeds.rereadKept();
+	const rows = feeds.rereadKept(route.query);
 	if (rows) reads.push(rows);
 	return reads;
 }
