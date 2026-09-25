@@ -31,6 +31,8 @@ STATUS = {
 	"aborted": "Failed",
 	"error": "Failed",
 }
+ENDED = ("Completed", "Denied", "Failed")
+ON_END_SAVEPOINT = "flow_on_end"
 ERRORS = {
 	"max_turns": "The agent hit its iteration limit.",
 	"budget": "The agent hit its output token budget.",
@@ -211,6 +213,25 @@ def fail_running(session_name: str, error: str) -> None:
 		"Flow Run", filters={"session": session_name, "status": "Running"}, pluck="name"
 	):
 		frappe.db.set_value("Flow Run", name, {"status": "Failed", "error": error})
+
+
+def call_on_end(session_name: str) -> None:
+	"""Call each ended run's on_end once. A failing one is logged and its writes undone."""
+	for name, on_end in frappe.db.get_values(
+		"Flow Run",
+		{"session": session_name, "status": ("in", ENDED), "on_end": ("is", "set")},
+		["name", "on_end"],
+		for_update=True,  # a locking read sees another sync's clear, so no second call
+	):
+		frappe.db.set_value("Flow Run", name, "on_end", None, update_modified=False)
+		frappe.db.savepoint(ON_END_SAVEPOINT)
+		try:
+			frappe.get_attr(on_end)(frappe.get_doc("Flow Run", name))
+		except Exception:
+			frappe.db.rollback(save_point=ON_END_SAVEPOINT)
+			frappe.log_error(
+				title="Flow Run on_end failed", reference_doctype="Flow Run", reference_name=name
+			)
 
 
 def _latest_run(session_name: str) -> FlowRun | None:

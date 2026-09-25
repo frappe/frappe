@@ -75,6 +75,13 @@ def agents():
 flow_agents = ["myapp.ai.agents"]
 ```
 
+### Act when a run ends
+
+```python
+# Flow calls myapp.ai.save_draft(run) once the run ends, failed or not. Keep it quick.
+agent.run("Draft a reply to ticket 42", on_end="myapp.ai.save_draft")
+```
+
 ### Share a tool with agents made in the desk
 
 ```python

@@ -21,6 +21,12 @@ from flow.tests.test_fake_daemon import (
 	turn,
 )
 
+ON_END = "flow.tests.test_session_sync.ended"
+
+
+def ended(run):
+	"""What the tests point on_end at; each test patches it."""
+
 
 class TestSync(IntegrationTestCase):
 	"""The log recorder: the flow server's log rows become Flow Runs and transcript rows."""
@@ -326,3 +332,59 @@ class TestSync(IntegrationTestCase):
 		self.assertEqual(self.session.title, "Generated")
 		self.sync(FakeDaemon(title=None))
 		self.assertEqual(self.session.title, "Generated")
+
+	def test_on_end_is_called_once_the_run_ends_and_only_once(self):
+		run = self.placeholder()
+		run.db_set("on_end", ON_END)
+		daemon = FakeDaemon(turn(1, "r1")[:2], running=True)
+		with patch(ON_END) as on_end:
+			self.sync(daemon)
+			on_end.assert_not_called()
+			daemon.rows, daemon.running = turn(1, "r1"), False
+			self.sync(daemon)
+			self.sync(daemon)
+		on_end.assert_called_once()
+		ended_run = on_end.call_args.args[0]
+		self.assertEqual(
+			(ended_run.name, ended_run.status, ended_run.output), (run.name, "Completed", "done")
+		)
+		self.assertIsNone(frappe.db.get_value("Flow Run", run.name, "on_end"))
+
+	def test_on_end_hears_of_a_run_the_server_lost(self):
+		run = self.placeholder()
+		run.db_set("on_end", ON_END)
+		with patch(ON_END) as on_end:
+			self.sync(FakeDaemon(missing=True))
+		self.assertEqual(on_end.call_args.args[0].status, "Failed")
+
+	def test_a_failing_on_end_is_logged_and_its_writes_undone(self):
+		run = self.placeholder()
+		run.db_set("on_end", ON_END)
+
+		def fail(run):
+			frappe.db.set_value("Flow Session", run.session, "title", "Changed")
+			raise RuntimeError("boom")
+
+		with patch(ON_END, side_effect=fail):
+			self.sync(FakeDaemon(turn(1, "r1"), title=None))
+		run.reload()
+		self.assertEqual((run.status, run.on_end), ("Completed", None))
+		self.assertIsNone(self.session.title)
+		self.assertTrue(
+			frappe.db.exists("Error Log", {"reference_doctype": "Flow Run", "reference_name": run.name})
+		)
+
+	def test_chat_gives_its_run_the_on_end(self):
+		with patch.object(DaemonClient, "for_site", return_value=FakeDaemon()), patch(ON_END) as on_end:
+			run = self.session.chat("hi", on_end=ON_END)
+			self.session.sync()
+		self.assertEqual(on_end.call_args.args[0].name, run.name)
+
+	def test_a_steered_message_gives_a_run_its_first_on_end_only(self):
+		run = self.placeholder()
+		daemon = FakeDaemon(turn(1, "r1")[:2], running=True)
+		with patch.object(DaemonClient, "for_site", return_value=daemon):
+			joined = self.session.chat("and this", on_end=ON_END)
+			self.session.chat("and that", on_end="flow.tests.test_session_sync.other")
+		self.assertEqual(joined.name, run.name)
+		self.assertEqual(frappe.db.get_value("Flow Run", run.name, "on_end"), ON_END)

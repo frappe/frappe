@@ -12,7 +12,16 @@ from frappe import _
 from frappe.model.document import Document
 
 from flow.daemon.client import DaemonClient, DaemonError
-from flow.lib.session import ABANDONED, GONE, READ_ONLY, STOPPED, LogRecorder, fail_running, flow_server
+from flow.lib.session import (
+	ABANDONED,
+	GONE,
+	READ_ONLY,
+	STOPPED,
+	LogRecorder,
+	call_on_end,
+	fail_running,
+	flow_server,
+)
 
 if TYPE_CHECKING:
 	from flow.flow.doctype.flow_run.flow_run import FlowRun
@@ -146,9 +155,11 @@ class FlowSession(Document):
 		trigger: str | None = None,
 		reference_doctype: str | None = None,
 		reference_name: str | None = None,
+		on_end: str | None = None,
 	) -> FlowRun:
 		"""Start a turn and return its Running Flow Run, or the active run it joined.
-		`attachments` are File names whose content travels with this turn."""
+		`attachments` are File names whose content travels with this turn. Once the run
+		ends, Flow calls the function at the dotted path `on_end` with it."""
 		from flow.flow.doctype.flow_session_attachment.flow_session_attachment import (
 			build_turn,
 			cleanup_indexed_files,
@@ -183,6 +194,8 @@ class FlowSession(Document):
 			frappe.throw(str(exc), title=_("Flow Server"))
 		if reply.get("status") == "steered":
 			run = self._active_run()
+			if on_end and not run.on_end:  # a run keeps the first on_end it is given
+				run.db_set("on_end", on_end)
 		else:
 			run = frappe.get_doc(
 				{
@@ -194,6 +207,7 @@ class FlowSession(Document):
 					"reference_doctype": reference_doctype,
 					"reference_name": reference_name,
 					"status": "Running",
+					"on_end": on_end,
 				}
 			).insert(ignore_permissions=True)
 		if turn.attachment_rows:
@@ -272,7 +286,8 @@ class FlowSession(Document):
 			return client.entries(self.name, since=since, path=path)
 
 	def sync(self) -> None:
-		"""Record the flow server's log since the last sync into Flow Runs and transcript rows."""
+		"""Record the flow server's log since the last sync into Flow Runs and transcript rows,
+		then call the on_end of each run that ended."""
 		self._lock()
 		try:
 			with DaemonClient.for_site() as client:
@@ -284,6 +299,7 @@ class FlowSession(Document):
 			if exc.status != 404:
 				frappe.throw(str(exc), title=_("Flow Server"))
 			fail_running(self.name, GONE)
+			call_on_end(self.name)
 			return
 		if rows:
 			LogRecorder(self).record(rows)
@@ -298,6 +314,7 @@ class FlowSession(Document):
 			self.title = info["title"]
 		self.flags.ignore_validate = True
 		self.save(ignore_permissions=True)
+		call_on_end(self.name)
 
 	def _lock(self) -> None:
 		"""Lock this session's row for the transaction and re-read it."""
