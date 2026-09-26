@@ -1584,12 +1584,14 @@ def get_ghost_tables() -> list[str]:
 	"""Return tables of DocTypes that no longer exist."""
 	ghost_tables = []
 	standard_tables = get_standard_tables()
-	doctype_tables = frappe.get_all("DocType", pluck="name")
+	doctype_tables = [
+		f"tab{doctype}"[: frappe.db.MAX_COLUMN_LENGTH] for doctype in frappe.get_all("DocType", pluck="name")
+	]
 
 	for table_name in get_base_tables():
 		if not table_name.startswith("tab"):
 			continue
-		if table_name.replace("tab", "", 1) not in doctype_tables and table_name not in standard_tables:
+		if table_name not in doctype_tables and table_name not in standard_tables:
 			ghost_tables.append(table_name)
 
 	return ghost_tables
