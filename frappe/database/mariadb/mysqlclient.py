@@ -125,6 +125,9 @@ class MariaDBConnectionUtil:
 	def set_execution_timeout(self, seconds: int):
 		self.sql("set session max_statement_time = %s", int(seconds))
 
+	def get_execution_timeout(self) -> float:
+		return self.sql("select @@session.max_statement_time")[0][0]
+
 	def set_session_time_zone(self, timezone: str):
 		try:
 			self.sql("set session time_zone = %s", timezone)

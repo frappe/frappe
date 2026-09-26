@@ -296,6 +296,12 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		# Postgres expects milliseconds as input
 		self.sql("set local statement_timeout = %s", int(seconds) * 1000)
 
+	@contextmanager
+	def execution_timeout(self, seconds: int):
+		"""`set local` already ends with the transaction. A timed out statement aborts it, which rejects a restore."""
+		self.set_execution_timeout(seconds)
+		yield
+
 	def set_session_time_zone(self, timezone: str):
 		self.sql("set time zone %s", timezone)
 

@@ -194,6 +194,9 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def set_execution_timeout(self, seconds: int):
 		self.sql(f"PRAGMA busy_timeout = {int(seconds) * 1000}")
 
+	def get_execution_timeout(self) -> float:
+		return self.sql("PRAGMA busy_timeout")[0][0] / 1000
+
 	def set_session_time_zone(self, timezone: str):
 		self._session_time_zone = ZoneInfo(timezone)
 
