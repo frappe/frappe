@@ -414,7 +414,9 @@ def validate_column_name(n):
 
 def validate_column_length(fieldname):
 	if len(fieldname) > frappe.db.MAX_COLUMN_LENGTH:
-		frappe.throw(_("Fieldname is limited to 64 characters ({0})").format(fieldname))
+		frappe.throw(
+			_("Fieldname is limited to {0} characters ({1})").format(frappe.db.MAX_COLUMN_LENGTH, fieldname)
+		)
 
 
 def get_definition(fieldtype, precision=None, length=None, *, options=None, duckdb=False):
