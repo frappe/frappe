@@ -1570,6 +1570,7 @@ def trim_database(context: CliCtxObj, dry_run, format, no_backup, yes=False):
 					print(f"* Dropping Table '{table}'...")
 				frappe.db.sql_ddl(f"drop table `{table}`")
 
+			frappe.db.commit()
 			ALL_DATA[frappe.local.site] = TABLES_TO_DROP
 		frappe.destroy()
 
