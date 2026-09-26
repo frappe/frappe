@@ -26,7 +26,7 @@ from psycopg2.errors import (
 	SequenceGeneratorLimitExceeded,
 	SyntaxError,
 )
-from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
+from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ, TRANSACTION_STATUS_INERROR
 
 import frappe
 from frappe.database.database import CREATE_OR_DROP, Database
@@ -292,15 +292,24 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 		return conn
 
-	def set_execution_timeout(self, seconds: int):
+	def set_execution_timeout(self, seconds: float):
 		# Postgres expects milliseconds as input
-		self.sql("set local statement_timeout = %s", int(seconds) * 1000)
+		self.sql("set local statement_timeout = %s", round(seconds * 1000))
+
+	def get_execution_timeout(self) -> float:
+		query = "select setting::float / 1000 from pg_settings where name = 'statement_timeout'"
+		return self.sql(query)[0][0]
 
 	@contextmanager
-	def execution_timeout(self, seconds: int):
-		"""`set local` already ends with the transaction. A timed out statement aborts it, which rejects a restore."""
+	def execution_timeout(self, seconds: float):
+		"""A timed out statement aborts the transaction, which rejects the restore and ends `set local` anyway."""
+		previous_timeout = self.get_execution_timeout()
 		self.set_execution_timeout(seconds)
-		yield
+		try:
+			yield
+		finally:
+			if self._conn.get_transaction_status() != TRANSACTION_STATUS_INERROR:
+				self.set_execution_timeout(previous_timeout)
 
 	def set_session_time_zone(self, timezone: str):
 		self.sql("set time zone %s", timezone)
