@@ -46,6 +46,7 @@ frappe.confirm = function (
 	});
 
 	d.$body.append(`<p class="frappe-confirm-message">${message}</p>`);
+	d.$wrapper.on("hidden.bs.modal", () => d.$wrapper.remove());
 	d.show();
 
 	// flag, used to bind "okay" on enter
@@ -94,6 +95,7 @@ frappe.warn = function (
 	// destructive confirm: the es-button red theme replaces the old
 	// btn-primary → btn-danger class swap
 	d.get_primary_btn().attr("data-theme", "red");
+	d.$wrapper.on("hidden.bs.modal", () => d.$wrapper.remove());
 
 	d.show();
 	return d;
@@ -126,6 +128,7 @@ frappe.prompt = function (fields, callback, title, primary_label) {
 			callback(values);
 		}
 	);
+	d.$wrapper.on("hidden.bs.modal", () => d.$wrapper.remove());
 	d.show();
 	return d;
 };
@@ -403,6 +406,7 @@ frappe.show_progress = (title, count, total = 100, description, hide_on_completi
 		</div`).appendTo(dialog.body);
 		dialog.progress_bar = dialog.progress.css({ "margin-top": "10px" }).find(".progress-bar");
 		dialog.$wrapper.removeClass("fade");
+		dialog.$wrapper.on("hidden.bs.modal", () => dialog.$wrapper.remove());
 		dialog.show();
 		frappe.cur_progress = dialog;
 	}
