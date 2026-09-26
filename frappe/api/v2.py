@@ -9,6 +9,7 @@ Note:
 """
 
 import json
+from functools import partial
 from typing import Any
 
 from werkzeug.routing import Rule
@@ -16,10 +17,19 @@ from werkzeug.routing import Rule
 import frappe
 import frappe.client
 from frappe import _, cint, cstr, get_newargs, is_whitelisted
-from frappe.api import discovery
+from frappe.api import collaboration, discovery, files
+from frappe.api.include import (
+	add_document_parts,
+	add_list_parts,
+	add_meta_parts,
+	parse_include,
+	serialize_meta,
+)
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.database.utils import DefaultOrderBy
 from frappe.handler import is_valid_http_method, run_server_script, upload_file
+
+SEARCH_PAGE_LENGTH = 10
 
 PERMISSION_MAP = {
 	"GET": "read",
@@ -85,6 +95,7 @@ def read_doc(doctype: str, name: str):
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
 	doc.apply_fieldlevel_read_permissions()
+	add_document_parts(doc, parse_include(frappe.form_dict.get("include")))
 	_doc = doc.as_dict()
 
 	for key in _doc:
@@ -112,10 +123,14 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 		limit: Maximum number of records to fetch (default: 20)
 		group_by: Group by field
 		as_dict: Return results as dictionary (default: True)
+		include: Comma-separated parts to add beside the list; `count` is the only one
 
 	Response:
 		frappe.response["data"]: List of document records as dicts
 		frappe.response["has_next_page"]: Indicates if more pages are available
+		frappe.response["count"], ["count_capped"]: With include=count, the row count under the
+			same filters, reported as frappe.api.include.COUNT_CAP with count_capped when more
+			rows than that match; None when the count timed out
 
 	Controller Customization:
 		Doctype controllers can customize queries by implementing a static get_list(query) method
@@ -137,6 +152,7 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 	args = frappe.form_dict
 	fields: list | None = frappe.parse_json(args.get("fields", None))
 	filters: dict | None = frappe.parse_json(args.get("filters", None))
+	or_filters: dict | None = frappe.parse_json(args.get("or_filters", None))
 	order_by: str | None = args.get("order_by", DefaultOrderBy)
 	start: int = cint(args.get("start", 0))
 	limit: int = cint(args.get("limit", 20))
@@ -148,15 +164,20 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 		raise FrappeValueError("'fields' must be a list")
 	if filters and not isinstance(filters, (list, dict)):
 		raise FrappeValueError("'filters' must be a list or dictionary")
+	if or_filters and not isinstance(or_filters, (list, dict)):
+		raise FrappeValueError("'or_filters' must be a list or dictionary")
 	if order_by and not isinstance(order_by, str):
 		raise FrappeValueError("'order_by' must be a string")
 	if group_by and not isinstance(group_by, str):
 		raise FrappeValueError("'group_by' must be a string")
 
+	add_list_parts(doctype, parse_include(args.get("include")), filters, or_filters, group_by)
+
 	query = frappe.qb.get_query(
 		table=doctype,
 		fields=fields,
 		filters=filters,
+		or_filters=or_filters,
 		order_by=order_by,
 		offset=start,
 		limit=limit + 1,  # Fetch one extra to check if there's a next page
@@ -195,6 +216,44 @@ def count(doctype: str) -> int:
 	frappe.form_dict.doctype = doctype
 
 	return get_count()
+
+
+def search(doctype: str):
+	"""
+	GET /api/v2/doctype/<doctype>/search?txt=...
+
+	The link-field search: the same rows `frappe.desk.search.search_link` returns, as
+	`data: [{value, label, description}]`.
+
+	Query Parameters:
+		txt: The text to match
+		filters: JSON filters on the searched doctype
+		reference_doctype: The doctype the link field sits on
+		query: A whitelisted custom search method
+		limit: Rows per page (10 when absent or below 1)
+		start: Row offset (default: 0)
+	"""
+	from frappe.desk.search import build_for_autosuggest, search_widget
+
+	args = frappe.form_dict
+	# a zero limit would mean no limit at all in get_list
+	page_length = cint(args.get("limit"))
+	if page_length < 1:
+		page_length = SEARCH_PAGE_LENGTH
+
+	results = search_widget(
+		doctype,
+		cstr(args.get("txt")).strip(),
+		args.get("query") or None,
+		start=cint(args.get("start", 0)),
+		page_length=page_length,
+		filters=args.get("filters") or None,
+		reference_doctype=args.get("reference_doctype") or None,
+	)
+	# the same Cache-Control that search_link's @http_cache sends; it keys on the v1 path, so it
+	# does not fire for this route
+	frappe.local.response_headers.set("Cache-Control", "private,max-age=60,stale-while-revalidate=300")
+	return build_for_autosuggest(results, doctype=doctype)
 
 
 def create_doc(doctype: str):
@@ -244,7 +303,8 @@ def delete_doc(doctype: str, name: str):
 
 def get_meta(doctype: str):
 	frappe.only_for("All")
-	return frappe.get_meta(doctype)
+	add_meta_parts(doctype, parse_include(frappe.form_dict.get("include")))
+	return serialize_meta(frappe.get_meta(doctype))
 
 
 def execute_doc_method(doctype: str, name: str, method: str | None = None):
@@ -601,6 +661,21 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 	return response
 
 
+def collaboration_rules() -> list[Rule]:
+	# only a literal part segment beats the greedy `<path:name>`
+	rules = []
+	for part in collaboration.ADD:
+		path = f"/document/<doctype>/<path:name>/{part}"
+		add = partial(collaboration.add, part=part)
+		remove = partial(collaboration.remove, part=part)
+		update = partial(collaboration.update, part=part)
+		rules.append(Rule(path, methods=["POST"], endpoint=add))
+		rules.append(Rule(path, methods=["DELETE"], endpoint=remove))
+		rules.append(Rule(f"{path}/<path:key>", methods=["DELETE"], endpoint=remove))
+		rules.append(Rule(f"{path}/<path:key>", methods=["PATCH"], endpoint=update))
+	return rules
+
+
 url_rules = [
 	# Discovery APIs
 	Rule("/discovery", methods=["GET"], endpoint=discovery.root),
@@ -634,6 +709,8 @@ url_rules = [
 	# Document level APIs
 	Rule("/document/<doctype>", methods=["GET", "QUERY"], endpoint=document_list),
 	Rule("/document/<doctype>", methods=["POST"], endpoint=create_doc),
+	# a static rule beats the dynamic one, so an upload of bytes never reaches `create_doc`
+	Rule("/document/File", methods=["POST"], endpoint=files.create_file),
 	Rule("/document/<doctype>/bulk_delete", methods=["POST"], endpoint=bulk_delete_docs),
 	Rule("/document/<doctype>/bulk_update", methods=["POST"], endpoint=bulk_update_docs),
 	Rule("/document/<doctype>/<path:name>/", methods=["GET"], endpoint=read_doc),
@@ -645,7 +722,15 @@ url_rules = [
 		methods=["GET", "POST", "QUERY"],
 		endpoint=execute_doc_method,
 	),
+	*collaboration_rules(),
+	Rule("/document/<doctype>/<path:name>/attachments", methods=["POST"], endpoint=files.attach),
+	Rule(
+		"/document/<doctype>/<path:name>/attachments/<path:file_name>",
+		methods=["DELETE"],
+		endpoint=files.detach,
+	),
 	# Collection level APIs
 	Rule("/doctype/<doctype>/meta", methods=["GET"], endpoint=get_meta),
 	Rule("/doctype/<doctype>/count", methods=["GET", "QUERY"], endpoint=count),
+	Rule("/doctype/<doctype>/search", methods=["GET"], endpoint=search),
 ]

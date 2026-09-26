@@ -1,13 +1,19 @@
+import json
 import typing
+from base64 import b64encode
+from functools import cached_property
+from io import BytesIO
 from random import choice
 from unittest.mock import patch
 
 import requests
 
 import frappe
+import frappe.share
 from frappe.api import discovery
 from frappe.installer import update_site_config
-from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
+from frappe.model.document import Document
+from frappe.tests.test_api import FrappeAPITestCase, make_request, suppress_stdout
 from frappe.tests.utils import toggle_test_mode, wait_for_job, whitelist_for_tests
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 
@@ -46,7 +52,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 	def test_unauthorized_call_v2(self):
 		# test 1: fetch documents without auth
 		response = requests.get(self.resource(self.DOCTYPE))
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 403, response.get_data(as_text=True)[-3000:])
 
 	def test_get_list_v2(self):
 		# test 2: fetch documents without params
@@ -152,7 +158,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 				self.resource("Website Theme", "Standard", "method", "get_apps"), {"sid": self.sid}
 			)
 
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 403, response.get_data(as_text=True)[-3000:])
 
 	def test_update_document_v2(self):
 		generated_desc = frappe.mock("paragraph")
@@ -847,7 +853,7 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			with self.subTest(path=path):
 				with suppress_stdout():
 					response = self.get(path, {"sid": sid})
-				self.assertEqual(response.status_code, 403)
+				self.assertEqual(response.status_code, 403, response.get_data(as_text=True)[-3000:])
 
 
 class TestReadOnlyMode(FrappeAPITestCase):
@@ -894,3 +900,892 @@ def test(*, fail: int | bool = False, handled: int | bool = True, message: str =
 			1 / 0
 	else:
 		frappe.msgprint(message)
+
+
+class TestIncludePartsV2(FrappeAPITestCase):
+	"""`include=` parts beside a document read, and `include=children` beside a meta read."""
+
+	version = "v2"
+	TEST_USER = "api-include-user@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		# the test client answers on another thread, so fixtures are committed to be visible there
+		super().setUpClass()
+		if not frappe.db.exists("User", cls.TEST_USER):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": cls.TEST_USER,
+					"first_name": "Include User",
+					"send_welcome_email": 0,
+				}
+			).insert(ignore_permissions=True)
+		cls.todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": frappe.generate_hash(), "allocated_to": cls.TEST_USER}
+		).insert()
+		cls.assignment = frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": frappe.generate_hash(),
+				"allocated_to": cls.TEST_USER,
+				"reference_type": "ToDo",
+				"reference_name": cls.todo.name,
+			}
+		).insert()
+		frappe.share.add("ToDo", cls.todo.name, cls.TEST_USER, write=1)
+		frappe.get_doc(
+			{
+				"doctype": "Comment",
+				"comment_type": "Comment",
+				"reference_doctype": "ToDo",
+				"reference_name": cls.todo.name,
+				"content": "a comment",
+			}
+		).insert()
+		frappe.db.set_value(
+			"ToDo", cls.todo.name, "_liked_by", json.dumps([cls.TEST_USER]), update_modified=False
+		)
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		frappe.delete_doc_if_exists("ToDo", cls.assignment.name, force=True)
+		frappe.delete_doc_if_exists("ToDo", cls.todo.name, force=True)
+		frappe.delete_doc_if_exists("User", cls.TEST_USER, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	@cached_property
+	def user_sid(self) -> str:
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		original_request = getattr(frappe.local, "request", None)
+		set_request(path="/")
+		try:
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as(self.TEST_USER)
+			return frappe.session.sid
+		finally:
+			frappe.local.request = original_request
+
+	def read(self, include: str, name: str | None = None):
+		return self.get(
+			self.resource("ToDo", name or self.todo.name), {"sid": self.user_sid, "include": include}
+		)
+
+	def seed_seen(self, users: list[str]):
+		frappe.db.set_value("ToDo", self.todo.name, "_seen", json.dumps(users), update_modified=False)
+		frappe.db.commit()  # nosemgrep
+
+	def test_parts_beside_the_document(self):
+		response = self.read("permissions,attachments,assignments,shares,tags,favourites,comments,users")
+		self.assertEqual(response.status_code, 200, response.json)
+		body = response.json
+		self.assertEqual(body["data"]["name"], self.todo.name)
+		self.assertEqual(body["permissions"]["read"], 1)
+		self.assertEqual(body["attachments"], [])
+		self.assertEqual(body["assignments"][0]["user"], self.TEST_USER)
+		self.assertNotIn("allocated_to", body["assignments"][0])
+		self.assertEqual(
+			body["shares"], [{"user": self.TEST_USER, "read": 1, "write": 1, "submit": 0, "share": 0}]
+		)
+		self.assertEqual(body["tags"], [])
+		self.assertEqual(body["favourites"], [{"user": self.TEST_USER}])
+		self.assertIn("a comment", body["comments"][0]["content"])
+		self.assertEqual(body["users"][self.TEST_USER]["full_name"], "Include User")
+		self.assertIn("Administrator", body["users"])
+
+	def test_bare_read_has_no_parts_and_marks_nothing(self):
+		with patch.object(Document, "add_seen") as add_seen:
+			response = self.read("")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(set(response.json), {"data"})
+		add_seen.assert_not_called()
+
+	def test_seen_marks_and_returns_the_list(self):
+		# a GET's write is rolled back under test, so the mark is asserted on the call
+		self.seed_seen(["other@example.com"])
+		with patch.object(Document, "add_seen") as add_seen:
+			response = self.read("seen")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json["seen"], ["other@example.com", self.TEST_USER])
+		add_seen.assert_called_once()
+
+	def test_users_ignores_parts_that_name_no_user(self):
+		frappe.get_doc({"doctype": "Tag", "name": "read"}).insert(
+			ignore_permissions=True, ignore_if_duplicate=True
+		)
+		frappe.db.commit()  # nosemgrep
+		from frappe.desk.doctype.tag.tag import add_tag
+
+		add_tag("read", "ToDo", self.todo.name)
+		frappe.db.commit()  # nosemgrep
+		response = self.read("permissions,tags,link_titles,users")
+		self.assertEqual(response.json["tags"], ["read"])
+		self.assertEqual(set(response.json["users"]), {"Administrator"})
+
+	def test_include_must_be_a_string(self):
+		with suppress_stdout():
+			response = self.get(self.resource("ToDo", self.todo.name), {"sid": self.sid, "include": ["seen"]})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "ValidationError")
+
+	def test_users_covers_the_seen_list(self):
+		self.seed_seen(["other@example.com"])
+		with patch.object(Document, "add_seen"):
+			response = self.read("seen,users")
+		self.assertIn(self.TEST_USER, response.json["users"])
+
+	def test_seen_does_not_mark_twice(self):
+		self.seed_seen([self.TEST_USER])
+		with patch.object(Document, "add_seen") as add_seen:
+			response = self.read("seen")
+		self.assertEqual(response.json["seen"], [self.TEST_USER])
+		add_seen.assert_not_called()
+
+	def test_unknown_part_is_an_error(self):
+		with suppress_stdout():
+			response = self.read("permissions,views")
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "UnknownPartError")
+		self.assertNotIn("permissions", response.json)
+
+	def test_meta_children(self):
+		response = self.get(self.doctype_path("User", "meta"), {"sid": self.user_sid, "include": "children"})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["name"], "User")
+		self.assertEqual(response.json["data"]["masked_fields"], [])
+		children = {child["name"]: child for child in response.json["children"]}
+		self.assertIn("Has Role", children)
+		self.assertEqual(children["Has Role"]["masked_fields"], [])
+
+	def test_meta_unknown_part_is_an_error(self):
+		with suppress_stdout():
+			response = self.get(
+				self.doctype_path("User", "meta"), {"sid": self.user_sid, "include": "fields"}
+			)
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "UnknownPartError")
+
+	def test_list_or_filters(self):
+		response = self.get(
+			self.resource("ToDo"),
+			{
+				"sid": self.sid,
+				"fields": '["name"]',
+				"or_filters": json.dumps(
+					[["name", "=", self.todo.name], ["description", "=", self.assignment.description]]
+				),
+			},
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(len(response.json["data"]), 2)
+
+	def test_list_or_filters_shape(self):
+		with suppress_stdout():
+			response = self.get(self.resource("ToDo"), {"sid": self.sid, "or_filters": '"name"'})
+		self.assertEqual(response.status_code, 417)
+
+
+class TestListPartsV2(FrappeAPITestCase):
+	"""`include=count` beside a list read, and the link-field search route."""
+
+	version = "v2"
+
+	@classmethod
+	def setUpClass(cls):
+		# the test client answers on another thread, so fixtures are committed to be visible there
+		super().setUpClass()
+		cls.prefix = f"api-search-{frappe.generate_hash(length=8)}"
+		cls.todos = [
+			frappe.get_doc({"doctype": "ToDo", "description": f"{cls.prefix} {word}"}).insert()
+			for word in ("alpha", "bravo", "charlie")
+		]
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		for todo in cls.todos:
+			frappe.delete_doc_if_exists("ToDo", todo.name, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	@property
+	def filters(self) -> str:
+		return json.dumps({"description": ["like", f"{self.prefix}%"]})
+
+	def list(self, **params):
+		return self.get(self.resource("ToDo"), {"sid": self.sid, "filters": self.filters, **params})
+
+	def search(self, **params):
+		return self.get(self.doctype_path("ToDo", "search"), {"sid": self.sid, **params})
+
+	def test_count_beside_the_list(self):
+		response = self.list(include="count", limit=1)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(len(response.json["data"]), 1)
+		self.assertTrue(response.json["has_next_page"])
+		self.assertEqual(response.json["count"], 3)
+		self.assertFalse(response.json["count_capped"])
+		# get_count's own ten-minute cache header must not reach the list response
+		self.assertNotIn("max-age=600", response.headers["Cache-Control"])
+
+	def test_count_stops_at_the_cap(self):
+		with patch("frappe.api.include.COUNT_CAP", 2):
+			response = self.list(include="count")
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(len(response.json["data"]), 3)
+		self.assertEqual(response.json["count"], 2)
+		self.assertTrue(response.json["count_capped"])
+
+	def test_count_of_exactly_the_cap_is_not_capped(self):
+		with patch("frappe.api.include.COUNT_CAP", 3):
+			response = self.list(include="count")
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["count"], 3)
+		self.assertFalse(response.json["count_capped"])
+
+	def test_count_is_null_on_timeout(self):
+		with patch("frappe.desk.reportview.count_rows", return_value=None):
+			response = self.list(include="count")
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertIsNone(response.json["count"])
+		self.assertFalse(response.json["count_capped"])
+
+	def test_count_follows_or_filters(self):
+		or_filters = json.dumps([["name", "=", self.todos[0].name], ["name", "=", self.todos[1].name]])
+		response = self.list(include="count", or_filters=or_filters)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["count"], 2)
+
+	def test_count_follows_group_by(self):
+		# the fixtures share one status; a grouped list of two statuses counts two groups, not three rows
+		closed = self.todos[2].name
+		frappe.db.set_value("ToDo", closed, "status", "Closed")
+		frappe.db.commit()  # nosemgrep
+		try:
+			response = self.list(include="count", fields=json.dumps(["status"]), group_by="status")
+		finally:
+			frappe.db.set_value("ToDo", closed, "status", "Open")
+			frappe.db.commit()  # nosemgrep
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(len(response.json["data"]), 2)
+		self.assertEqual(response.json["count"], 2)
+
+	def test_no_count_without_include(self):
+		for params in ({}, {"include": ""}):
+			response = self.list(**params)
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertEqual(set(response.json), {"data", "has_next_page"})
+
+	def test_list_unknown_part_is_an_error(self):
+		with suppress_stdout():
+			response = self.list(include="count,totals")
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "UnknownPartError")
+		self.assertNotIn("count", response.json)
+
+	def test_search_rows(self):
+		response = self.search(txt=self.prefix)
+		self.assertEqual(response.status_code, 200, response.json)
+		rows = response.json["data"]
+		self.assertEqual({row["value"] for row in rows}, {todo.name for todo in self.todos})
+		self.assertEqual(set(rows[0]), {"value", "label", "description"})
+		self.assertEqual(response.headers["Cache-Control"], "private,max-age=60,stale-while-revalidate=300")
+
+	def test_search_limit_and_start(self):
+		first = self.search(txt=self.prefix, limit=2)
+		self.assertEqual(len(first.json["data"]), 2)
+		rest = self.search(txt=self.prefix, limit=2, start=2)
+		self.assertEqual(len(rest.json["data"]), 1)
+		self.assertNotIn(rest.json["data"][0]["value"], [row["value"] for row in first.json["data"]])
+
+	def test_search_takes_filters(self):
+		response = self.search(txt=self.prefix, filters=json.dumps({"name": self.todos[1].name}))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual([row["value"] for row in response.json["data"]], [self.todos[1].name])
+
+	def test_search_limit_zero_falls_back_to_the_default_page(self):
+		extra = [
+			frappe.get_doc({"doctype": "ToDo", "description": f"{self.prefix} extra {index}"}).insert()
+			for index in range(8)
+		]
+		frappe.db.commit()  # nosemgrep
+		try:
+			response = self.search(txt=self.prefix, limit=0)
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertEqual(len(response.json["data"]), 10)
+		finally:
+			for todo in extra:
+				frappe.delete_doc_if_exists("ToDo", todo.name, force=True)
+			frappe.db.commit()  # nosemgrep
+
+	def test_search_user_through_the_standard_query(self):
+		# User routes to user_query, which reads the filters as a dict
+		response = self.get(
+			self.doctype_path("User", "search"),
+			{
+				"sid": self.sid,
+				"txt": "Admin",
+				"filters": json.dumps({"enabled": 1, "user_type": "System User"}),
+			},
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertIn("Administrator", [row["value"] for row in response.json["data"]])
+
+	def test_search_refuses_a_guest(self):
+		# no suppress_stdout: the refusal prints, and a None stdout turns that into a 500
+		response = self.get(self.doctype_path("ToDo", "search"), {"sid": "Guest", "txt": self.prefix})
+		self.assertEqual(response.status_code, 403)
+
+
+class TestCollaborationWritesV2(FrappeAPITestCase):
+	"""`POST`, `DELETE` and `PATCH` on the collaboration parts of a document route."""
+
+	version = "v2"
+	TEST_USER = "api-collab-user@example.com"
+	PEER = "api-collab-peer@example.com"
+	# adding a tag creates a Tag master that outlives the class; these are the ones the tests add
+	TAGS = ("urgent", "slashed")
+
+	@classmethod
+	def setUpClass(cls):
+		# the test client answers on another thread, so fixtures are committed to be visible there
+		super().setUpClass()
+		for email in (cls.TEST_USER, cls.PEER):
+			cls.make_user(email)
+		cls.todo = cls.make_todo()
+		# owned by Administrator and allocated to someone else, so TEST_USER cannot read it
+		cls.unreadable = cls.make_todo(cls.PEER)
+		cls.note = frappe.get_doc({"doctype": "Note", "title": frappe.generate_hash(), "public": 1}).insert()
+		slash = cls.make_todo()
+		cls.slash_name = frappe.rename_doc("ToDo", slash.name, f"SO/2026/{slash.name}", force=True)
+		cls.admin_comment = cls.make_comment(cls.todo.name)
+		cls.other_comment = cls.make_comment(cls.slash_name)
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def make_user(cls, email: str):
+		if frappe.db.exists("User", email):
+			return
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": "Collab User",
+				"send_welcome_email": 0,
+				"document_follow_notify": 1,
+			}
+		).insert(ignore_permissions=True)
+		user.add_roles("Desk User")
+
+	@classmethod
+	def make_todo(cls, allocated_to: str | None = None):
+		return frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": frappe.generate_hash(),
+				"allocated_to": allocated_to or cls.TEST_USER,
+			}
+		).insert()
+
+	@classmethod
+	def make_comment(cls, name: str) -> str:
+		return (
+			frappe.get_doc(
+				{
+					"doctype": "Comment",
+					"comment_type": "Comment",
+					"reference_doctype": "ToDo",
+					"reference_name": name,
+					"content": "a comment",
+				}
+			)
+			.insert()
+			.name
+		)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		frappe.delete_doc_if_exists("ToDo", cls.slash_name, force=True)
+		frappe.delete_doc_if_exists("ToDo", cls.todo.name, force=True)
+		frappe.delete_doc_if_exists("ToDo", cls.unreadable.name, force=True)
+		frappe.delete_doc_if_exists("Note", cls.note.name, force=True)
+		for tag in cls.TAGS:
+			frappe.delete_doc_if_exists("Tag", tag, force=True)
+		for email in (cls.TEST_USER, cls.PEER):
+			frappe.delete_doc_if_exists("User", email, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	@cached_property
+	def user_sid(self) -> str:
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		original_request = getattr(frappe.local, "request", None)
+		set_request(path="/")
+		try:
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as(self.TEST_USER)
+			return frappe.session.sid
+		finally:
+			frappe.local.request = original_request
+
+	def part(self, *parts, doctype: str = "ToDo", name: str | None = None):
+		return self.resource(doctype, name or self.todo.name, *parts)
+
+	def add(self, path: str, body: dict | None = None, sid: str | None = None):
+		return self.post(path, {"sid": sid or self.user_sid, **(body or {})})
+
+	def remove(self, path: str, sid: str | None = None):
+		return self.delete(path, data={"sid": sid or self.user_sid})
+
+	def edit(self, path: str, body: dict, sid: str | None = None):
+		return self.patch(path, {"sid": sid or self.user_sid, **body})
+
+	def test_assignment_add_and_remove(self):
+		response = self.add(self.part("assignments"), {"user": self.PEER, "description": "look"})
+		self.assertEqual(response.status_code, 200, response.json)
+		rows = response.json["data"]["assignments"]
+		self.assertEqual(rows[0]["user"], self.PEER)
+		self.assertEqual(set(rows[0]), {"user", "description", "priority", "date"})
+		self.assertIn(self.PEER, response.json["data"]["users"])
+
+		response = self.remove(self.part("assignments", self.PEER))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["assignments"], [])
+		frappe.db.rollback()
+		status = frappe.db.get_value(
+			"ToDo",
+			{"reference_type": "ToDo", "reference_name": self.todo.name, "allocated_to": self.PEER},
+			"status",
+		)
+		self.assertEqual(status, "Cancelled")
+
+	def test_assignment_rejects_an_unstringy_option(self):
+		with suppress_stdout():
+			response = self.add(self.part("assignments"), {"user": self.PEER, "priority": ["High"]})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "InvalidRequestError")
+
+	def test_assignment_needs_write_on_the_document(self):
+		# not under suppress_stdout: it sets sys.stdout to None, and the share lookup this
+		# refusal walks prints a deprecation warning
+		response = self.add(
+			self.part("assignments", doctype="Note", name=self.note.name), {"user": self.PEER}
+		)
+		self.assertEqual(response.status_code, 403, response.json)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+
+	def test_share_upserts_one_row(self):
+		self.add(self.part("shares"), {"user": self.PEER, "write": 1})
+		response = self.add(self.part("shares"), {"user": self.PEER, "write": 0, "share": 1})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(
+			response.json["data"]["shares"],
+			[{"user": self.PEER, "read": 1, "write": 0, "submit": 0, "share": 1}],
+		)
+		self.assertIn(self.PEER, response.json["data"]["users"])
+		response = self.remove(self.part("shares", self.PEER))
+		self.assertEqual(response.json["data"]["shares"], [])
+
+	def test_share_with_everyone(self):
+		response = self.add(self.part("shares"), {"user": "everyone"})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["shares"][0]["user"], "everyone")
+		self.assertNotIn("everyone", response.json["data"]["users"])
+		response = self.remove(self.part("shares", "everyone"))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["shares"], [])
+
+	def test_share_cannot_drop_read(self):
+		with suppress_stdout():
+			response = self.add(self.part("shares"), {"user": self.PEER, "read": 0})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "InvalidRequestError")
+
+	def test_share_needs_the_share_right(self):
+		response = self.add(self.part("shares", doctype="Note", name=self.note.name), {"user": self.PEER})
+		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+
+	def test_tag_add_and_remove(self):
+		response = self.add(self.part("tags"), {"tag": "urgent"})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"], {"tags": ["urgent"]})
+		response = self.remove(self.part("tags", "urgent"))
+		self.assertEqual(response.json["data"], {"tags": []})
+
+	def test_tag_needs_write(self):
+		response = self.add(self.part("tags", doctype="Note", name=self.note.name), {"tag": "urgent"})
+		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+
+	def test_tag_rejects_a_comma(self):
+		with suppress_stdout():
+			response = self.add(self.part("tags"), {"tag": "a,b"})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "InvalidRequestError")
+
+	def test_favourite_add_and_remove(self):
+		response = self.add(self.part("favourites"))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["favourites"][0]["user"], self.TEST_USER)
+		self.assertIn(self.TEST_USER, response.json["data"]["users"])
+		response = self.remove(self.part("favourites"))
+		self.assertEqual(response.json["data"]["favourites"], [])
+
+	def test_follow_add_read_and_remove(self):
+		path = self.part("follows", doctype="Note", name=self.note.name)
+		response = self.add(path)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"], {"follows": True})
+		response = self.get(
+			self.resource("Note", self.note.name), {"sid": self.user_sid, "include": "follows"}
+		)
+		self.assertIs(response.json["follows"], True)
+		response = self.remove(path)
+		self.assertEqual(response.json["data"], {"follows": False})
+
+	def test_declined_follow_answers_with_the_true_state(self):
+		with suppress_stdout():
+			response = self.add(self.part("follows"))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"], {"follows": False})
+
+	def test_comment_add_edit_and_remove(self):
+		response = self.add(self.part("comments"), {"content": "hello"})
+		self.assertEqual(response.status_code, 200, response.json)
+		mine = [row for row in response.json["data"]["comments"] if row["owner"] == self.TEST_USER]
+		self.assertIn("hello", mine[0]["content"])
+		self.assertIn(self.TEST_USER, response.json["data"]["users"])
+
+		response = self.edit(self.part("comments", mine[0]["name"]), {"content": "edited"})
+		self.assertEqual(response.status_code, 200, response.json)
+		contents = [row["content"] for row in response.json["data"]["comments"]]
+		self.assertTrue(any("edited" in content for content in contents))
+
+		response = self.remove(self.part("comments", mine[0]["name"]))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual([row["name"] for row in response.json["data"]["comments"]], [self.admin_comment])
+
+	def test_comment_on_an_unreadable_record_is_refused(self):
+		response = self.add(self.part("comments", name=self.unreadable.name), {"content": "hello"})
+		self.assertEqual(response.status_code, 403, response.json)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+
+	def test_comment_of_another_user_cannot_be_removed(self):
+		with suppress_stdout():
+			response = self.remove(self.part("comments", self.admin_comment))
+		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+		self.assertTrue(frappe.db.exists("Comment", self.admin_comment))
+
+	def test_comment_of_another_user_cannot_be_edited(self):
+		with suppress_stdout():
+			response = self.edit(self.part("comments", self.admin_comment), {"content": "mine now"})
+		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+
+	def test_comment_on_another_record_cannot_be_removed(self):
+		with suppress_stdout():
+			response = self.remove(self.part("comments", self.other_comment))
+		self.assertEqual(response.status_code, 404)
+		self.assertEqual(response.json["errors"][0]["type"], "DoesNotExistError")
+		self.assertTrue(frappe.db.exists("Comment", self.other_comment))
+
+	def test_bad_body_is_an_error(self):
+		with suppress_stdout():
+			response = self.add(self.part("tags"), {"tag": ""})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "InvalidRequestError")
+
+	def test_key_rules(self):
+		with suppress_stdout():
+			keyless = self.remove(self.part("favourites", "someone"))
+			keyed = self.remove(self.part("tags"))
+			edited = self.edit(self.part("tags", "urgent"), {"tag": "x"})
+		self.assertEqual(keyless.status_code, 417)
+		self.assertEqual(keyed.status_code, 417)
+		self.assertEqual(edited.status_code, 417)
+		self.assertEqual(edited.json["errors"][0]["type"], "ValidationError")
+
+	def test_unknown_part_is_not_a_route(self):
+		with suppress_stdout():
+			response = self.add(self.part("views"))
+		self.assertEqual(response.status_code, 404)
+
+	def test_slash_named_record_routes(self):
+		name = self.slash_name
+		response = self.get(self.resource("ToDo", name), {"sid": self.user_sid, "include": "tags"})
+		self.assertEqual(response.json["data"]["name"], name)
+		response = self.add(self.part("tags", name=name), {"tag": "slashed"})
+		self.assertEqual(response.json["data"], {"tags": ["slashed"]}, response.json)
+		response = self.remove(self.part("tags", "slashed", name=name))
+		self.assertEqual(response.json["data"], {"tags": []}, response.json)
+		response = self.add(self.part("favourites", name=name))
+		self.assertEqual(response.json["data"]["favourites"][0]["user"], self.TEST_USER)
+		response = self.remove(self.part("favourites", name=name))
+		self.assertEqual(response.json["data"]["favourites"], [])
+		response = self.edit(self.resource("ToDo", name), {"description": "still a document"})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["description"], "still a document")
+		response = self.remove(self.resource("ToDo", name))
+		self.assertEqual(response.status_code, 202, response.json)
+		frappe.db.rollback()
+		self.assertFalse(frappe.db.exists("ToDo", name))
+
+
+class TestFileRoutesV2(FrappeAPITestCase):
+	"""Uploading through `POST /document/File`, and the `attachments` sub-resource."""
+
+	version = "v2"
+	TEST_USER = "api-file-user@example.com"
+	READER = "api-file-reader@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		# the test client answers on another thread, so fixtures are committed to be visible there
+		super().setUpClass()
+		for email in (cls.TEST_USER, cls.READER):
+			cls.make_user(email)
+		cls.todo = cls.make_todo()
+		cls.other = cls.make_todo()
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def make_user(cls, email: str):
+		if frappe.db.exists("User", email):
+			return
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": "File User",
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_permissions=True)
+		user.add_roles("Desk User")
+
+	@classmethod
+	def make_todo(cls):
+		return frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": frappe.generate_hash(),
+				"allocated_to": cls.TEST_USER,
+			}
+		).insert()
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		for todo in (cls.todo, cls.other):
+			for name in frappe.get_all(
+				"File",
+				filters={"attached_to_doctype": "ToDo", "attached_to_name": todo.name},
+				pluck="name",
+			):
+				frappe.delete_doc_if_exists("File", name, force=True)
+			frappe.delete_doc_if_exists("ToDo", todo.name, force=True)
+		for email in (cls.TEST_USER, cls.READER):
+			frappe.delete_doc_if_exists("User", email, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	def sid_of(self, user: str) -> str:
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		original_request = getattr(frappe.local, "request", None)
+		original_user = frappe.session.user
+		set_request(path="/")
+		try:
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as(user)
+			return frappe.session.sid
+		finally:
+			frappe.local.request = original_request
+			# logging in leaves this thread as that user, and the cleanup here runs as Administrator
+			frappe.set_user(original_user)
+
+	@cached_property
+	def user_sid(self) -> str:
+		return self.sid_of(self.TEST_USER)
+
+	def upload(self, path: str, content: bytes, file_name: str, **fields):
+		"""A multipart POST, the way the browser's chunk loop sends one."""
+		data = {"file": (BytesIO(content), file_name), "sid": self.user_sid, **fields}
+		return make_request(target=self.TEST_CLIENT.post, args=(path,), kwargs={"data": data})
+
+	def attachments_path(self, name: str, file_name: str | None = None) -> str:
+		parts = ("ToDo", name, "attachments")
+		return self.resource(*parts, file_name) if file_name else self.resource(*parts)
+
+	def attach_one(self, todo_name: str, file_name: str) -> str:
+		"""Upload a file to the document and return its File name, as the answer reports it."""
+		response = self.upload(self.attachments_path(todo_name), b"hello", file_name)
+		self.assertEqual(response.status_code, 200, response.json)
+		return response.json["data"]["attachments"][0]["name"]
+
+	def test_detached_upload_creates_a_file(self):
+		response = self.upload(
+			self.resource("File"), b"hello", "detached.txt", is_private="1", folder="Home/Attachments"
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		data = response.json["data"]
+		self.assertEqual(data["file_name"], "detached.txt")
+		self.assertTrue(data["file_url"])
+		frappe.delete_doc_if_exists("File", data["name"], force=True)
+
+	def test_the_file_route_does_not_take_over_the_file_list(self):
+		# the static POST rule shares its path with the dynamic list rule
+		response = self.get(self.resource("File"), {"sid": self.sid, "limit": 1})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertIsInstance(response.json["data"], list)
+
+	def test_the_lowercase_path_is_not_the_upload_route(self):
+		# werkzeug matches a rule by case, so the static rule does not catch this spelling
+		with suppress_stdout():
+			response = self.upload(self.resource("file"), b"hello", "lower.txt")
+		self.assertNotEqual(response.status_code, 200, response.json)
+
+	def test_json_create_is_still_a_plain_insert(self):
+		response = self.post(
+			self.resource("File"),
+			{
+				"sid": self.sid,
+				"file_name": "base64.txt",
+				"is_private": 1,
+				"content": b64encode(b"hello").decode(),
+				"decode": True,
+			},
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["file_name"], "base64.txt")
+		frappe.delete_doc_if_exists("File", response.json["data"]["name"], force=True)
+
+	def test_the_file_route_refuses_the_attach_fields(self):
+		response = self.upload(
+			self.resource("File"), b"hello", "sideways.txt", doctype="ToDo", docname=self.todo.name
+		)
+		self.assertEqual(response.status_code, 417, response.json)
+
+	def test_a_method_field_is_refused_on_the_document_route(self):
+		response = self.upload(self.resource("File"), b"hello", "redirect.txt", method="frappe.ping")
+		self.assertEqual(response.status_code, 417, response.json)
+
+	def test_attach_answers_with_the_refreshed_part(self):
+		response = self.upload(self.attachments_path(self.todo.name), b"hello", "attached.txt")
+		self.assertEqual(response.status_code, 200, response.json)
+		rows = response.json["data"]["attachments"]
+		self.assertEqual([row["file_name"] for row in rows], ["attached.txt"])
+		# the part carries who uploaded it and when, and the users key names them
+		self.assertEqual(rows[0]["owner"], self.TEST_USER)
+		self.assertTrue(rows[0]["creation"])
+		self.assertIn(self.TEST_USER, response.json["data"]["users"])
+		# the browser reads this key to find the row it just made
+		self.assertEqual(response.json["data"]["file"], rows[0]["name"])
+
+	def test_a_chunk_that_is_not_the_last_answers_with_no_file(self):
+		response = self.upload(
+			self.attachments_path(self.todo.name),
+			b"half",
+			"chunked.txt",
+			chunk_index="0",
+			total_chunk_count="2",
+			chunk_byte_offset="0",
+			total_file_size="8",
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertIsNone(response.json["data"])
+
+	def test_the_last_chunk_answers_with_the_reassembled_file(self):
+		path = self.attachments_path(self.todo.name)
+		first = self.upload(
+			path,
+			b"0123",
+			"whole.txt",
+			chunk_index="0",
+			total_chunk_count="2",
+			chunk_byte_offset="0",
+			total_file_size="8",
+		)
+		self.assertIsNone(first.json["data"])
+		second = self.upload(
+			path,
+			b"4567",
+			"whole.txt",
+			chunk_index="1",
+			total_chunk_count="2",
+			chunk_byte_offset="4",
+			total_file_size="8",
+		)
+		self.assertEqual(second.status_code, 200, second.json)
+		file_name = second.json["data"]["file"]
+		frappe.db.rollback()
+		self.assertEqual(frappe.get_doc("File", file_name).get_content(), "01234567")
+		frappe.delete_doc_if_exists("File", file_name, force=True)
+
+	def test_attach_needs_write_on_the_document(self):
+		data = {"file": (BytesIO(b"hello"), "denied.txt"), "sid": self.sid_of(self.READER)}
+		response = make_request(
+			target=self.TEST_CLIENT.post,
+			args=(self.attachments_path(self.todo.name),),
+			kwargs={"data": data},
+		)
+		self.assertEqual(response.status_code, 403, response.json)
+
+	def test_attach_without_bytes_is_an_error(self):
+		response = self.post(self.attachments_path(self.todo.name), {"sid": self.user_sid})
+		self.assertEqual(response.status_code, 417, response.json)
+
+	def test_detach_deletes_the_file(self):
+		file_name = self.attach_one(self.todo.name, "gone.txt")
+		response = self.delete(
+			self.attachments_path(self.todo.name, file_name), query_string={"sid": self.user_sid}
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		# another test attaches to the same document, so the part is read for this file alone
+		names = [row["name"] for row in response.json["data"]["attachments"]]
+		self.assertNotIn(file_name, names)
+		# the request ran on another thread: end this one's read view before asking the database
+		frappe.db.rollback()
+		self.assertFalse(frappe.db.exists("File", file_name))
+
+	def test_detach_refuses_a_file_on_another_document(self):
+		file_name = self.attach_one(self.other.name, "elsewhere.txt")
+		response = self.delete(
+			self.attachments_path(self.todo.name, file_name), query_string={"sid": self.user_sid}
+		)
+		self.assertEqual(response.status_code, 404, response.json)
+		frappe.db.rollback()
+		self.assertTrue(frappe.db.exists("File", file_name))
+		frappe.delete_doc_if_exists("File", file_name, force=True)
+
+	def test_a_file_response_passes_through_the_v2_method_route(self):
+		response = self.get(
+			self.method("frappe.core.doctype.data_import.data_import.download_template"),
+			{
+				"sid": self.sid,
+				"doctype": "ToDo",
+				"export_fields": {"ToDo": ["description"]},
+				"export_records": "blank_template",
+				"file_type": "CSV",
+			},
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertIn("text/csv", response.headers["Content-Type"])
+		self.assertIn("Description", response.get_data(as_text=True))
