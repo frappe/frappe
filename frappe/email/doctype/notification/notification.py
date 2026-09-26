@@ -14,7 +14,15 @@ from frappe.desk.doctype.notification_log.notification_log import enqueue_create
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json, get_doc_module
-from frappe.utils import add_to_date, cast, cint, now_datetime, nowdate, validate_email_address
+from frappe.utils import (
+	add_to_date,
+	cast,
+	cint,
+	get_email_address,
+	now_datetime,
+	nowdate,
+	validate_email_address,
+)
 from frappe.utils.data import evaluate_filters
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
@@ -649,11 +657,15 @@ def get_context(context):
 				if child_field:
 					for d in doc.get(child_field):
 						email_id = d.get(data_field)
+						if email_id == "Administrator":
+							email_id = get_email_address("Administrator")
 						if validate_email_address(email_id):
 							recipients.append(email_id)
 				# field from current doc
 				else:
 					email_ids_value = doc.get(data_field)
+					if email_ids_value == "Administrator":
+						email_ids_value = get_email_address("Administrator")
 					if validate_email_address(email_ids_value):
 						email_ids = email_ids_value.replace(",", "\n")
 						recipients = recipients + email_ids.split("\n")
