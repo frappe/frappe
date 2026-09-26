@@ -261,6 +261,7 @@ class FlowSession(Document):
 				config["model"],
 				api_key=config["api_key"],
 				api_base=config["api_base"],
+				model_params=config.get("model_params"),
 				reasoning_effort=reasoning_effort,
 			)
 		self.db_set("model", model)
