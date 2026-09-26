@@ -25,7 +25,10 @@
 				@show-cc-bcc="revealCcBcc"
 				@move="(recipient) => moveRecipient('to', recipient)"
 			/>
-			<div v-if="showCc || showBcc" class="flex shrink-0 items-center gap-1">
+			<div
+				v-if="showCc || showBcc"
+				class="-mr-1.5 flex shrink-0 items-center gap-1"
+			>
 				<Button
 					v-if="showCc"
 					variant="ghost"
