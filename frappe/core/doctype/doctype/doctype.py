@@ -142,7 +142,6 @@ class DocType(Document):
 		links: DF.Table[DocTypeLink]
 		make_attachments_public: DF.Check
 		max_attachments: DF.Int
-		migration_hash: DF.Data | None
 		module: DF.Link
 		naming_rule: DF.Literal[
 			"",

@@ -101,7 +101,6 @@
   "website_search_field",
   "advanced",
   "engine",
-  "migration_hash",
   "row_format",
   "connections_tab"
  ],
@@ -582,11 +581,6 @@
    "options": "\nSet by user\nAutoincrement\nBy fieldname\nBy \"Naming Series\" field\nExpression\nExpression (old style)\nRandom\nUUID\nBy script"
   },
   {
-   "fieldname": "migration_hash",
-   "fieldtype": "Data",
-   "hidden": 1
-  },
-  {
    "fieldname": "states",
    "fieldtype": "Table",
    "label": "Document States",
@@ -814,7 +808,7 @@
    "link_fieldname": "document_type"
   }
  ],
- "modified": "2026-09-21 13:57:58.884093",
+ "modified": "2026-09-26 16:14:21.289191",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
