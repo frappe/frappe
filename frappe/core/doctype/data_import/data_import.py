@@ -146,6 +146,7 @@ class DataImport(Document):
 		i = self.get_importer()
 		return i.get_data_for_import_preview()
 
+	@frappe.whitelist(methods=["POST"])
 	def start_import(self):
 		from frappe.utils.scheduler import is_scheduler_inactive
 
