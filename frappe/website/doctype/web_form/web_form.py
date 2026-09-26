@@ -1248,10 +1248,6 @@ def get_link_options(
 			frappe.PermissionError,
 		)
 
-	link_options, filters = [], {}
-	if web_form.login_required and not allow_read_on_all_link_options:
-		filters = {"owner": frappe.session.user}
-
 	fields = ["name as value"]
 
 	meta = frappe.get_meta(doctype)
@@ -1260,7 +1256,10 @@ def get_link_options(
 	if show_title_field:
 		fields.append(f"{meta.title_field} as label")
 
-	link_options = frappe.get_all(doctype, filters, fields)
+	if web_form.login_required and not allow_read_on_all_link_options:
+		link_options = frappe.get_list(doctype, fields=fields)
+	else:
+		link_options = frappe.get_all(doctype, fields=fields)
 
 	if show_title_field:
 		if meta.translated_doctype:
