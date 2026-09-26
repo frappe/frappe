@@ -69,17 +69,56 @@ def get_list():
 @frappe.whitelist()
 @frappe.read_only()
 def get_count() -> int | None:
+	args = get_form_params()
+	count = count_rows(**args)
+	limit = cint(args.limit)
+	# a count that hit `limit` or timed out is cacheable; a virtual doctype counts itself, without either
+	if limit and (count == limit or count is None) and not is_virtual_doctype(args.doctype):
+		frappe.local.response_headers.set("Cache-Control", "private,max-age=600,stale-while-revalidate=10800")
+	return count
+
+
+def count_rows(
+	doctype: str,
+	*,
+	filters=None,
+	or_filters=None,
+	group_by: str | None = None,
+	distinct=False,
+	limit=0,
+	**query_args,
+) -> int | None:
+	"""Count the rows the filters select, at most `limit`; None when the one-second timeout hits.
+
+	`query_args` are the rest of the `DatabaseQuery.execute` arguments, as a request sends them.
+	"""
 	from frappe.query_builder.functions import Count
 
-	args = get_form_params()
+	args = frappe._dict(
+		doctype=doctype,
+		filters=filters,
+		or_filters=or_filters,
+		group_by=group_by,
+		distinct=distinct,
+		limit=limit,
+		**query_args,
+	)
 
-	if is_virtual_doctype(args.doctype):
-		controller = get_controller(args.doctype)
+	# a caller off the request path hands filters that `get_form_params` never saw
+	if filters:
+		validate_filters(args, filters)
+	if or_filters:
+		validate_filters(args, or_filters)
+
+	if is_virtual_doctype(doctype):
+		controller = get_controller(doctype)
+		# the controller reads a dict, so the named arguments go back into one; a name the caller
+		# left out now reaches it as its default rather than being absent
 		return frappe.call(controller.get_count, args=args, **args)
 
-	args.distinct = sbool(args.distinct)
-	args.limit = cint(args.limit)
-	fieldname = f"`tab{args.doctype}`.name"
+	args.distinct = sbool(distinct)
+	args.limit = cint(limit)
+	fieldname = f"`tab{doctype}`.name"
 	args.order_by = None
 
 	args.fields = [fieldname]
@@ -105,9 +144,6 @@ def get_count() -> int | None:
 			count = None
 		else:
 			raise
-
-	if count == args.limit or count is None:
-		frappe.local.response_headers.set("Cache-Control", "private,max-age=600,stale-while-revalidate=10800")
 
 	return count
 
