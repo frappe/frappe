@@ -122,8 +122,8 @@ class MariaDBConnectionUtil:
 	def create_connection(self):
 		return MySQLdb.connect(**self.get_connection_settings())
 
-	def set_execution_timeout(self, seconds: int):
-		self.sql("set session max_statement_time = %s", int(seconds))
+	def set_execution_timeout(self, seconds: float):
+		self.sql("set session max_statement_time = %s", float(seconds))
 
 	def get_execution_timeout(self) -> float:
 		return self.sql("select @@session.max_statement_time")[0][0]

@@ -164,7 +164,7 @@ class Database:
 		except Exception as e:
 			self.logger.warning(f"Couldn't set session time zone {e}")
 
-	def set_execution_timeout(self, seconds: int):
+	def set_execution_timeout(self, seconds: float):
 		"""Set session speicifc timeout on exeuction of statements.
 		If any statement takes more time it will be killed along with entire transaction."""
 		raise NotImplementedError
@@ -174,7 +174,7 @@ class Database:
 		raise NotImplementedError
 
 	@contextmanager
-	def execution_timeout(self, seconds: int):
+	def execution_timeout(self, seconds: float):
 		"""Apply an execution timeout inside the block, then restore the previous one."""
 		previous_timeout = self.get_execution_timeout()
 		self.set_execution_timeout(seconds)
