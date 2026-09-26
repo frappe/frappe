@@ -695,6 +695,7 @@ async def _authenticated_model(inputs: LoopInputs) -> Model:
 		api_key=auth.api_key,
 		api_base=auth.base_url,
 		headers=auth.headers,
+		params=inputs.config.model_params,
 		refresh_auth=auth.refresh,
 	)
 

@@ -218,9 +218,15 @@ def _child_inputs(
 	prompt = agent.system_prompt
 	if prompt is None and config.system_prompt is not None:
 		prompt = strip_tool_from_prompt(config.system_prompt, subagent.name)
-	own_model = (agent.model, agent.api_key, agent.api_base) != (None, None, None)
+	own_model = (agent.model, agent.api_key, agent.api_base, agent.model_params) != (None,) * 4
 	if own_model:
-		config = config.model_copy(update={"api_key": agent.api_key, "api_base": agent.api_base})
+		config = config.model_copy(
+			update={
+				"api_key": agent.api_key,
+				"api_base": agent.api_base,
+				"model_params": agent.model_params or {},
+			}
+		)
 	tools = inputs.server_tools or {}
 	own_tools = {  # composed afresh when the agent picks its own builtin or extension tools
 		name: value for name in ("tools", "extension_tools") if (value := getattr(agent, name)) is not None
