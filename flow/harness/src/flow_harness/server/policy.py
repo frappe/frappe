@@ -30,8 +30,8 @@ class ServerPolicy:
 			None = any; an empty set refuses client callbacks.
 		require_auth: Refuse to serve without a bearer token, even on loopback or
 			a unix socket.
-		inline_credentials: Accept `api_key`/`api_base` on session create and
-			set-model; a request carrying them is a 400 when off.
+		inline_credentials: Accept `api_key`, `api_base` and `model_params` on session
+			create and set-model; a request carrying them is a 400 when off.
 		extensions: Load extensions from the global extensions directory (arbitrary
 			operator Python) and serve the extension reload/info routes (403 when
 			off). Explicit `--extension` paths always load.

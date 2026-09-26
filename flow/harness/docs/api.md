@@ -39,11 +39,11 @@ One daemon can serve many sites (a Frappe bench): point `FLOW_TENANTS_FILE` at a
 
 - `model`, `credential_id`, and optional `reasoning_effort` (`off` through `max`);
 - `cwd`, `tools`, `extension_tools` (omit it to get every loaded extension tool), `client_tools`, and `auto_approve` (default: `false`);
-- `subagents`, the sub-agents the `subagent` tool may run beside `general`, and `max_concurrent_subagents`, how many may run at once (see [tools.md](tools.md#sub-agents)); an agent's `api_key` and `api_base` are refused wherever the session's own are;
+- `subagents`, the sub-agents the `subagent` tool may run beside `general`, and `max_concurrent_subagents`, how many may run at once (see [tools.md](tools.md#sub-agents)); an agent's `api_key`, `api_base` and `model_params` are refused wherever the session's own are;
 - `system_prompt` for a complete prompt override, or `system_preamble`, `system_suffix`, and `system_append` for composition;
 - `skills_enabled`, `skill_paths`, and compaction settings.
 
-The server resolves credentials and prompt context itself; do not send API keys, provider URLs, or tokens in session or run requests. The one exception is a policy opt-in for clients that manage credentials themselves (the deployed profile turns it on, since e.g. Frappe resolves credentials per site): `api_key` and an optional `api_base` may then be sent on session create and on `POST /sessions/{sid}/model`, and replace the daemon's credential resolution for that session. On set-model the pair is replaced as a unit — sending either field replaces both, sending neither keeps the stored pair. The key persists with the session (owner-only files) and is redacted to `***` in every API response. When the policy switch is off (the default), a request carrying these fields is a 400.
+The server resolves credentials and prompt context itself; do not send API keys, provider URLs, or tokens in session or run requests. The one exception is a policy opt-in for clients that manage credentials themselves (the deployed profile turns it on, since e.g. Frappe resolves credentials per site): `api_key` and an optional `api_base` may then be sent on session create and on `POST /sessions/{sid}/model`, and replace the daemon's credential resolution for that session. On set-model the key, the endpoint and `model_params` are replaced as a unit — sending any of them replaces all three, sending none keeps the stored ones. The key persists with the session (owner-only files) and is redacted to `***` in every API response. The same switch gates `model_params` on session create and set-model, extra provider params sent with every model call (e.g. `{"provider": {"zdr": true}}` for OpenRouter), since they can carry a key or endpoint too. When the policy switch is off (the default), a request carrying these fields is a 400.
 
 ## Service and provider routes
 
@@ -86,7 +86,7 @@ The server resolves credentials and prompt context itself; do not send API keys,
 | `POST /extensions/reload` | Re-imports all extensions and returns the fresh info payload. |
 | `POST /skills` | Previews the skills a supplied `SessionConfig` would discover. |
 | `PATCH /sessions/{sid}/config` | Updates `auto_approve`, `tools`, `client_tools` together with `confirm_tools`, or `title`; any other field is refused. An approval change applies at the next tool gate, a tool change to later runs. |
-| `POST /sessions/{sid}/model` | Sets `model`, optional `credential_id`, and optional `reasoning_effort`. With the inline-credentials policy on, also accepts `api_key`/`api_base`. |
+| `POST /sessions/{sid}/model` | Sets `model`, optional `credential_id`, and optional `reasoning_effort`. With the inline-credentials policy on, also accepts `api_key`, `api_base` and `model_params`. |
 | `POST /sessions/{sid}/rewind` | Moves the active branch to `{"target_seq": N}`; `0` means an empty conversation. |
 | `POST /sessions/{sid}/compact` | Runs manual compaction; the optional body is `{"instructions": "..."}`. |
 | `GET /sessions/{sid}/file/diff?path=` | Original and current text of a file the session changed, for the diff viewer; 404 when the session never touched it. |
