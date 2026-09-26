@@ -26,6 +26,7 @@ class TestPage(IntegrationTestCase):
 			self.assertRaises(frappe.PermissionError, get, "error-log")
 			self.assertNotIn("not found", str(frappe.local.message_log))
 			self.assertRaises(frappe.DoesNotExistError, get, "not-a-page-or-doctype")
+			self.assertRaises(frappe.DoesNotExistError, get, "%")
 
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
