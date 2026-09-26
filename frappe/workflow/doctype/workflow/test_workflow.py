@@ -259,6 +259,18 @@ class TestWorkflow(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			apply_workflow(todo, "Approve")
 
+	def test_get_workflow_state_count_requires_workflow_permission(self):
+		"""Only callers who can configure Workflows may use this, regardless of doctype/field chosen."""
+		from frappe.workflow.doctype.workflow.workflow import get_workflow_state_count
+
+		create_new_todo()
+
+		frappe.set_user("test2@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		with self.assertRaises(frappe.PermissionError):
+			get_workflow_state_count(doctype="ToDo", workflow_state_field="workflow_state", states=[])
+
 	# app-defined workflow task tests start here
 	def test_sync_tasks(self, doc=None):
 		"""test workflow with workflow tasks (server scripts, webhooks and app-defined methods)"""

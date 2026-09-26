@@ -144,6 +144,7 @@ class Workflow(Document):
 @frappe.whitelist()
 def get_workflow_state_count(doctype: str, workflow_state_field: str, states: str | list[str]):
 	frappe.has_permission(doctype=doctype, ptype="read", throw=True)
+	frappe.has_permission(doctype="Workflow", ptype="write", throw=True)
 	states = frappe.parse_json(states)
 
 	if workflow_state_field in frappe.get_meta(doctype).get_valid_columns():
