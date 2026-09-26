@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.desk.link_title import get_report_link_titles
 from frappe.desk.search import (
 	awesomebar_search,
 	get_link_title,
@@ -706,19 +707,48 @@ class TestSearch(IntegrationTestCase):
 			)
 
 	def test_select_permission_shows_link_titles(self):
+		doctype, name = self.make_select_only_titled_doc()
+
+		with self.set_user("test@example.com"):
+			self.assertFalse(frappe.has_permission(doctype, "read", name))
+			self.assertEqual(get_link_title(doctype, name), "Selectable Title")
+			self.assertEqual(search_link(doctype, "")[0].get("label"), "Selectable Title")
+			self.assertEqual(
+				get_report_link_titles(
+					[{"fieldname": "link", "fieldtype": "Link", "options": doctype}], [{"link": name}]
+				),
+				{f"{doctype}::{name}": "Selectable Title"},
+			)
+
+	def test_select_permission_hides_restricted_link_titles(self):
+		doctype, name = self.make_select_only_titled_doc(title_permlevel=1)
+
+		with self.set_user("test@example.com"):
+			self.assertEqual(get_link_title(doctype, name), name)
+			self.assertNotEqual(search_link(doctype, "")[0].get("label"), "Selectable Title")
+			self.assertEqual(
+				get_report_link_titles(
+					[{"fieldname": "link", "fieldtype": "Link", "options": doctype}], [{"link": name}]
+				),
+				{},
+			)
+
+	def make_select_only_titled_doc(self, title_permlevel=0):
 		with self.set_user("Administrator"):
 			doctype = new_doctype(
-				fields=[{"fieldname": "title", "fieldtype": "Data", "label": "Title"}],
+				fields=[
+					{
+						"fieldname": "title",
+						"fieldtype": "Data",
+						"label": "Title",
+						"permlevel": title_permlevel,
+					}
+				],
 				title_field="title",
 				show_title_field_in_link=1,
 				permissions=[{"role": "_Test Role", "select": 1, "read": 0}],
 			).insert()
-			name = frappe.get_doc(doctype=doctype.name, title="Selectable Title").insert().name
-
-		with self.set_user("test@example.com"):
-			self.assertFalse(frappe.has_permission(doctype.name, "read", name))
-			self.assertEqual(get_link_title(doctype.name, name), "Selectable Title")
-			self.assertEqual(search_link(doctype.name, "")[0].get("label"), "Selectable Title")
+			return doctype.name, frappe.get_doc(doctype=doctype.name, title="Selectable Title").insert().name
 
 	def test_awesomebar_search_hook(self):
 		real_get_hooks = frappe.get_hooks
