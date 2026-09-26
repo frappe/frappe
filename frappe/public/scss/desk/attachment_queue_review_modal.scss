@@ -1,0 +1,227 @@
+// Styles for the Attachment Queue review dialog.
+// Imported after embedded_list.scss so local overrides take precedence.
+
+// ── Modal Header & Split Screen Spacing ──
+.aq-split-screen {
+	padding: 16px 20px 16px 20px;
+	height: 76vh;
+	max-height: 76vh;
+	overflow: hidden;
+	display: flex;
+	flex-direction: row;
+	gap: 16px;
+	box-sizing: border-box;
+}
+
+// ── Left Pane: List View (55%) ──
+.aq-list-pane {
+	flex: 0 0 calc(55% - 8px);
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	overflow: visible;
+	height: 100%;
+}
+
+.aq-list-wrapper {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	overflow: visible;
+	min-height: 0;
+
+	// ── Embedded List Framework ──
+	.embedded-list {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		overflow: visible;
+		min-height: 0;
+	}
+
+	.embedded-list-header {
+		flex-shrink: 0;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 16px;
+		overflow: visible;
+		min-height: 30px;
+		padding: 0 2px;
+	}
+
+	.embedded-list-header-left {
+		display: flex;
+		align-items: center;
+	}
+
+	.embedded-list-header-actions {
+		display: flex;
+		align-items: center;
+		overflow: visible;
+	}
+
+	// Embedded list filter controls.
+	.filter-section {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		overflow: visible;
+	}
+
+	.embedded-list-result {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		min-height: 0;
+	}
+
+	// ── List View Table ──
+	.embedded-list-table-wrap {
+		flex: 1;
+		overflow-y: auto;
+		border: 1px solid var(--border-color);
+		border-radius: var(--border-radius-md, 8px);
+		background: var(--card-bg, #fff);
+		margin-bottom: 0;
+		display: block;
+	}
+
+	// Keep the selected-row background while hovered; higher specificity overrides the base list rule.
+	table.embedded-list-table tbody tr.active-row,
+	table.embedded-list-table tbody tr.active-row:hover {
+		background-color: var(--control-bg, #ebf1f6);
+
+		td {
+			font-weight: 500;
+			color: var(--text-color);
+		}
+	}
+
+	.embedded-list > .min-h-48,
+	.embedded-list-loading,
+	.embedded-list-error {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+	}
+
+	// ── Pagination ──
+	.list-paging-area {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 8px;
+		flex-shrink: 0;
+		min-height: 34px;
+		margin-top: auto;
+
+		.level-left {
+			display: flex;
+			align-items: center;
+		}
+
+		// Override Espresso's default tab styles.
+		.es-tab-buttons {
+			border-radius: 6px;
+			padding: 1.5px;
+			gap: 2px;
+		}
+
+		.es-pill {
+			font-size: 11px;
+			padding: 3px 7px;
+			line-height: 14px;
+			border-radius: 5px;
+		}
+
+		.level-right {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		.list-count {
+			font-size: 11px;
+			color: var(--text-muted);
+			white-space: nowrap;
+		}
+
+		.btn-more {
+			height: 24px;
+			padding: 2px 8px;
+			font-size: 11px;
+		}
+	}
+}
+
+// ── Right Pane: Preview Pane (45%) ──
+.aq-preview-pane {
+	flex: 0 0 calc(45% - 8px);
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	height: 100%;
+	background: var(--card-bg, #fff);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-md, 8px);
+	box-sizing: border-box;
+	position: relative;
+}
+
+.aq-preview-empty-container {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+	height: 100%;
+}
+
+// Swapped preview content; the footer remains fixed.
+.aq-preview-content {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.aq-preview-footer {
+	flex-shrink: 0;
+	min-height: 34px;
+	padding: 8px;
+	border-top: 1px solid var(--border-color);
+}
+
+.aq-preview-body {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: var(--subtle-fg, #f8f9fa);
+	overflow: hidden;
+
+	iframe {
+		width: 100%;
+		height: 100%;
+		border: 0;
+		outline: none;
+		background-color: #fff;
+	}
+
+	img {
+		max-width: calc(100% - 32px);
+		max-height: calc(100% - 32px);
+		width: auto;
+		height: auto;
+		border: 0;
+		border-radius: var(--border-radius-md, 8px);
+		box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+	}
+}

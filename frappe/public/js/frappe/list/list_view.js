@@ -996,6 +996,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	after_render() {
 		this.$no_result.html(this.get_no_result_message());
 		this.setup_new_doc_event();
+
+		// Load the review module only for doctypes that support the Upload First banner.
+		frappe.attachment_queue_review_loader
+			?.is_upload_first_enabled?.(this.doctype)
+			?.then((enabled) => {
+				if (!enabled) {
+					return;
+				}
+
+				frappe.require("/assets/frappe/js/frappe/attachment_queue_review.js").then(() => {
+					frappe.attachment_queue_list_action?.setup(this);
+				});
+			});
 	}
 
 	render() {
