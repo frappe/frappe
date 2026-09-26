@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
 from frappe.automation_engine.registry import clear_automation_cache
 from frappe.automation_engine.relationships import (
@@ -123,6 +125,22 @@ class TestSchemaRelationships(IntegrationTestCase):
 		names = self._names("Note")
 
 		self.assertFalse([name for name in names if name.startswith(("version_via", "comment_via"))])
+
+	def test_direct_and_child_link_on_one_fieldname_are_both_offered(self):
+		linked_fields = {
+			"ToDo": {
+				"fieldname": ["allocated_to"],
+				"child_links": [{"child_doctype": "Has Role", "fieldname": ["allocated_to"]}],
+			}
+		}
+
+		with patch("frappe.desk.form.linked_with.get_linked_fields", return_value=linked_fields):
+			names = self._names("User")
+
+		self.assertEqual(names["todo_via_allocated_to"]["label"], "ToDo (by allocated_to)")
+		self.assertEqual(
+			names["todo_via_has_role_allocated_to"]["label"], "ToDo (by allocated_to on Has Role)"
+		)
 
 	def test_ignore_hook_extends_the_deny_list(self):
 		self.assertIn("todo_via_allocated_to", self._names("User"))
