@@ -12,6 +12,7 @@ import frappe
 from frappe import _, bold, is_whitelisted
 from frappe.app_state import get_disabled_modules
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
+from frappe.model import get_permitted_fields
 from frappe.model.db_query import get_order_by
 from frappe.permissions import has_permission
 from frappe.utils import cint, cstr, escape_html, sbool, unique
@@ -450,6 +451,7 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 		for item in res:
 			item = list(item)
 			if len(item) == 1:
+				title_value = None
 				title_field = meta.title_field
 				docfield = meta.get_field(title_field)
 				if docfield and docfield.is_virtual:
@@ -619,8 +621,9 @@ def get_link_title(doctype: str, docname: str | int):
 	if meta.show_title_field_in_link:
 		try:
 			doc = frappe.get_lazy_doc(doctype, docname)
-			doc.check_permission()
-			return doc.get(meta.title_field)
+			doc.check_permission("select")
+			if meta.title_field in get_permitted_fields(doctype):
+				return doc.get(meta.title_field)
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()
 

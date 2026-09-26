@@ -9,7 +9,14 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.desk.search import awesomebar_search, get_names_for_mentions, search_link, search_widget
+from frappe.desk.link_title import get_report_link_titles
+from frappe.desk.search import (
+	awesomebar_search,
+	get_link_title,
+	get_names_for_mentions,
+	search_link,
+	search_widget,
+)
 from frappe.permissions import add_user_permission
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
@@ -698,6 +705,59 @@ class TestSearch(IntegrationTestCase):
 				reference_doctype="Test Search Dangling Parent",
 				link_fieldname="nonexistent_field",
 			)
+
+	def test_select_permission_shows_link_titles(self):
+		doctype, name, user = self.make_select_only_titled_doc()
+
+		with self.set_user(user):
+			self.assertFalse(frappe.has_permission(doctype, "read", name))
+			self.assertEqual(get_link_title(doctype, name), "Selectable Title")
+			self.assertEqual(search_link(doctype, "")[0].get("label"), "Selectable Title")
+			self.assertEqual(
+				get_report_link_titles(
+					[{"fieldname": "link", "fieldtype": "Link", "options": doctype}], [{"link": name}]
+				),
+				{f"{doctype}::{name}": "Selectable Title"},
+			)
+
+	def test_select_permission_hides_restricted_link_titles(self):
+		doctype, name, user = self.make_select_only_titled_doc(title_permlevel=1)
+
+		with self.set_user(user):
+			self.assertEqual(get_link_title(doctype, name), name)
+			self.assertNotEqual(search_link(doctype, "")[0].get("label"), "Selectable Title")
+			self.assertEqual(
+				get_report_link_titles(
+					[{"fieldname": "link", "fieldtype": "Link", "options": doctype}], [{"link": name}]
+				),
+				{},
+			)
+
+	def make_select_only_titled_doc(self, title_permlevel=0):
+		with self.set_user("Administrator"):
+			role = frappe.new_doc("Role", role_name=frappe.generate_hash()).insert().name
+			doctype = new_doctype(
+				fields=[
+					{
+						"fieldname": "title",
+						"fieldtype": "Data",
+						"label": "Title",
+						"permlevel": title_permlevel,
+					}
+				],
+				title_field="title",
+				show_title_field_in_link=1,
+				permissions=[{"role": role, "select": 1, "read": 0}],
+			).insert()
+			name = frappe.get_doc(doctype=doctype.name, title="Selectable Title").insert().name
+			user = frappe.get_doc(
+				doctype="User",
+				email=f"select-{frappe.generate_hash(length=8)}@example.com",
+				first_name="Select Only",
+				send_welcome_email=0,
+				roles=[{"role": role}],
+			).insert()
+			return doctype.name, name, user.name
 
 	def test_awesomebar_search_hook(self):
 		real_get_hooks = frappe.get_hooks
