@@ -13,9 +13,8 @@ def get(name):
 	try:
 		page = frappe.get_doc("Page", name)
 	except frappe.DoesNotExistError:
-		if doctype := next(
-			(d for d in frappe.get_all("DocType", {"istable": 0}, pluck="name") if slug(d) == name), None
-		):
+		doctype = frappe.db.get_value("DocType", {"name": ("like", name.replace("-", "_")), "istable": 0})
+		if doctype and slug(doctype) == name:
 			check_doctype_permission(doctype)
 		raise
 
