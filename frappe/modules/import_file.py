@@ -6,6 +6,7 @@ import os
 import orjson
 
 import frappe
+from frappe.core.doctype.migration_hash.migration_hash import get_migration_hash, set_migration_hash
 from frappe.model.base_document import get_controller
 from frappe.modules import get_module_path, scrub_dt_dn
 from frappe.query_builder import DocType
@@ -81,19 +82,15 @@ def import_file_by_path(
 ) -> bool:
 	"""Import file from the given path.
 
-	Some conditions decide if a file should be imported or not.
-	Evaluation takes place in the order they are mentioned below.
+	Each record in the file is imported when one of these is true, checked in this order:
 
-	- Check if `force` is true. Import the file. If not, move ahead.
-	- Get `db_modified_timestamp`(value of the modified field in the database for the file).
-	        If the return is `none,` this file doesn't exist in the DB, so Import the file. If not, move ahead.
-	- Check if there is a hash in DB for that file. If there is, Calculate the Hash of the file to import and compare it with the one in DB if they are not equal.
-	        Import the file. If Hash doesn't exist, move ahead.
-	- Check if `db_modified_timestamp` is older than the timestamp in the file; if it is, we import the file.
+	- `force` is set, or the record is not in the database.
+	- The file has a stored Migration Hash that differs from its current hash.
+	- The file has no stored Migration Hash and its `modified` is newer than the database.
+	        A DocType without a stored Migration Hash is always imported.
 
-	If timestamp comparison happens for doctypes, that means the Hash for it doesn't exist.
-	So, even if the timestamp is newer on DB (When comparing timestamps), we import the file and add the calculated Hash to the DB.
-	So in the subsequent imports, we can use hashes to compare. As a precautionary measure, the timestamp is updated to the current time as well.
+	The hash is stored per file, so two files that hold the same record do not replace each other's hash.
+	An import that replaces a record newer than the file sets `modified` to now, so it never moves back.
 
 	Args:
 	        path (str): Path to the file.
@@ -112,6 +109,7 @@ def import_file_by_path(
 		return False
 
 	calculated_hash = calculate_hash(path)
+	stored_hash = get_migration_hash(path)
 	imported = False
 
 	if docs:
@@ -119,26 +117,16 @@ def import_file_by_path(
 			docs = [docs]
 
 		for doc in docs:
-			# modified timestamp in db, none if doctype's first import
 			db_modified_timestamp = frappe.db.get_value(doc["doctype"], doc["name"], "modified")
 			is_db_timestamp_latest = db_modified_timestamp and (
 				get_datetime(doc.get("modified")) <= get_datetime(db_modified_timestamp)
 			)
 
 			if not force and db_modified_timestamp:
-				stored_hash = None
-				if doc["doctype"] == "DocType":
-					try:
-						stored_hash = frappe.db.get_value(doc["doctype"], doc["name"], "migration_hash")
-					except Exception:
-						pass
-
-				# if hash exists and is equal no need to update
-				if stored_hash and stored_hash == calculated_hash:
+				if stored_hash == calculated_hash:
 					continue
 
-				# if hash doesn't exist, check if db timestamp is same as json timestamp, add hash if from doctype
-				if is_db_timestamp_latest and doc["doctype"] != "DocType":
+				if not stored_hash and is_db_timestamp_latest and doc["doctype"] != "DocType":
 					continue
 
 			import_doc(
@@ -151,20 +139,15 @@ def import_file_by_path(
 			)
 			imported = True
 
-			if doc["doctype"] == "DocType":
-				doctype_table = DocType("DocType")
-				frappe.qb.update(doctype_table).set(doctype_table.migration_hash, calculated_hash).where(
-					doctype_table.name == doc["name"]
-				).run()
-
 			new_modified_timestamp = doc.get("modified")
-
-			# if db timestamp is newer, hash must have changed, must update db timestamp
-			if is_db_timestamp_latest and doc["doctype"] == "DocType":
+			if is_db_timestamp_latest and not data_import:
 				new_modified_timestamp = now()
 
 			if new_modified_timestamp:
 				update_modified(new_modified_timestamp, doc)
+
+		if stored_hash != calculated_hash and not data_import:
+			set_migration_hash(path, calculated_hash)
 
 	return imported
 
