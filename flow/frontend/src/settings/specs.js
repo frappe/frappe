@@ -80,6 +80,15 @@ export const SPECS = {
 				when: (doc) => !doc.provider,
 				placeholder: "http://localhost:11434",
 			},
+			{
+				name: "extra_params",
+				label: "Extra params",
+				type: "code",
+				language: "json",
+				placeholder: '{"provider": {"zdr": true}}',
+				description:
+					"Extra LiteLLM params sent with every call to this model. Anyone who can use Flow can read them, so keep keys out.",
+			},
 		],
 		actions: [
 			{
