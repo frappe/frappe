@@ -408,11 +408,12 @@
    "fieldname": "condition_description",
    "fieldtype": "HTML",
    "label": "Condition description",
-   "options": "<p>Multiple webforms can be created for a single doctype. Add filters specific to this webform to display correct record after submission.</p><p>For Example:</p>\n<p>If you create a separate webform every year to capture feedback from employees add a \n field named year in doctype and add a filter <b>year = 2023</b></p>\n"
+   "options": "<p>Filter the records this web form shows (e.g., <b>year = 2023</b> for a yearly feedback form).</p>"
   },
   {
    "fieldname": "condition_section",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Filters"
   },
   {
    "fieldname": "condition_json",
@@ -477,7 +478,7 @@
    "link_fieldname": "web_form"
   }
  ],
- "modified": "2026-09-22 20:45:59.139577",
+ "modified": "2026-09-26 12:10:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form",
