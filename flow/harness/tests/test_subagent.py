@@ -394,6 +394,25 @@ def test_a_child_takes_credentials_with_its_model_or_on_their_own(tmp_path):
 	assert child().reasoning_effort is None and child(reasoning_effort="low").reasoning_effort == "low"
 
 
+def test_a_childs_model_params_travel_with_its_model(tmp_path):
+	inputs = LoopInputs(
+		config=SessionConfig(cwd=str(tmp_path), model_params={"route": "parent"}),
+		messages=[],
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+		abort=asyncio.Event(),
+		model_name="mock",
+	)
+
+	def params(**definition):
+		agent = SubagentConfig(name="a", **definition)
+		child = _child_inputs(inputs, Transcript("c1"), agent, lambda config: select_tools(config.tools))
+		return child.config.model_params
+
+	assert params() == {"route": "parent"}
+	assert params(model="other") == {}
+	assert params(model_params={"route": "child"}) == {"route": "child"}
+
+
 def test_a_child_spends_the_run_budget_its_parent_is_spending(tmp_path):
 	budget = TokenBudget(limit=100)
 	inputs = LoopInputs(

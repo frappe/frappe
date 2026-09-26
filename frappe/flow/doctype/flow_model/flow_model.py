@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import re
+from typing import Any
 from urllib.parse import urlparse
 
 import frappe
@@ -24,6 +25,7 @@ class FlowModel(Document):
 		base_url: DF.Data | None
 		context_window: DF.Int
 		enabled: DF.Check
+		extra_params: DF.JSON | None
 		model_id: DF.Data
 		provider: DF.Link | None
 		title: DF.Data
@@ -34,6 +36,7 @@ class FlowModel(Document):
 		self._apply_provider()
 		self._validate_model_id()
 		self._validate_base_url()
+		self._validate_extra_params()
 		self._validate_provider_known()
 		self._resolve_context_window()
 
@@ -80,6 +83,19 @@ class FlowModel(Document):
 				title=_("Invalid Base URL"),
 			)
 
+	def _validate_extra_params(self):
+		self.extra_params = self.extra_params or None  # a JSON column rejects ""
+		try:
+			params = self.model_params()
+		except ValueError:
+			frappe.throw(_("Extra Params must be valid JSON."), title=_("Invalid Extra Params"))
+		if not isinstance(params, dict):
+			frappe.throw(_("Extra Params must be a JSON object."), title=_("Invalid Extra Params"))
+
+	def model_params(self) -> dict[str, Any]:
+		"""Extra Params as a dict, sent with every call to this model."""
+		return frappe.parse_json(self.extra_params) if self.extra_params else {}
+
 	def _resolve_context_window(self):
 		# Always derived from the model — never user input. Keeps the last detected value when
 		# litellm can't resolve the model, and 0 otherwise (callers fall back to a default).
@@ -114,6 +130,7 @@ class FlowModel(Document):
 		base_url = self.base_url or provider_creds.get("base_url")
 
 		kwargs = {
+			**self.model_params(),
 			"model": self.model_id,
 			"api_key": api_key,
 			"messages": [{"role": "user", "content": "ping"}],

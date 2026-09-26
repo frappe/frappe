@@ -12,17 +12,20 @@ from frappe import _
 
 
 def model_config(model: str) -> dict[str, Any]:
-	"""The daemon's model, api_key and api_base for a Flow Model the user may use."""
+	"""The daemon's model, api_key, api_base and model_params for a Flow Model the user may use."""
 	frappe.has_permission("Flow Model", "read", model, throw=True)
 	doc = frappe.get_doc("Flow Model", model)
 	if not doc.enabled:
 		frappe.throw(_("Flow Model {0} is disabled.").format(model), title=_("Disabled Model"))
 	provider = resolve_provider_credentials(doc.model_id)
-	return {
+	config = {
 		"model": doc.model_id,
 		"api_key": doc.get_password("api_key", raise_exception=False) or provider.get("api_key"),
 		"api_base": doc.base_url or provider.get("base_url"),
 	}
+	if model_params := doc.model_params():
+		config["model_params"] = model_params
+	return config
 
 
 def resolve_provider_credentials(model_id: str) -> dict[str, Any]:

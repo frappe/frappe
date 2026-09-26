@@ -739,7 +739,7 @@ class Session:
 				api_key=auth.api_key,
 				api_base=auth.base_url,
 				headers=auth.headers,
-				params=reasoning_params(self.model, "off"),
+				params={**self.config.model_params, **(reasoning_params(self.model, "off") or {})},
 				refresh_auth=auth.refresh,
 			)
 			title = await titling.generate_title(model, first_message)

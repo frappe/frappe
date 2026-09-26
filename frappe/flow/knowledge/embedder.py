@@ -56,6 +56,7 @@ def _model_config(model: str) -> dict[str, Any]:
 
 	provider_creds = resolve_provider_credentials(doc.model_id)
 	config: dict[str, Any] = {
+		**doc.model_params(),
 		"model": doc.model_id,
 		"api_key": doc.get_password("api_key", raise_exception=False) or provider_creds.get("api_key") or "",
 	}

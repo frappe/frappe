@@ -457,6 +457,7 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 				"model_id": "openai/gpt-4o",
 				"api_key": "sk-other",
 				"base_url": "https://other.example.com",
+				"extra_params": '{"provider": {"zdr": true}}',
 				"enabled": 1,
 			}
 		).insert()
@@ -471,6 +472,7 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 					{
 						"api_key": "sk-other",
 						"api_base": "https://other.example.com",
+						"model_params": {"provider": {"zdr": True}},
 						"reasoning_effort": None,
 					},
 				)
@@ -694,6 +696,35 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		self.assertEqual(self.config()["token_budget"], 250_000)
 		self.agent.db_set("token_budget", 0)  # no limit
 		self.assertNotIn("token_budget", self.config())
+
+	def test_each_model_sends_its_own_extra_params(self):
+		child_model = frappe.get_doc(
+			{
+				"doctype": "Flow Model",
+				"title": "Child Model",
+				"model_id": "openai/gpt-4o",
+				"extra_params": '{"route": "fallback"}',
+				"enabled": 1,
+			}
+		).insert()
+		child = frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "Config Child",
+				"model": child_model.name,
+				"instructions": "Look it up.",
+				"enabled": 1,
+			}
+		).insert()
+		self.agent.append("sub_agents", {"agent": child.name})
+		self.agent.save()
+		self.assertNotIn("model_params", self.config())
+
+		self.model.db_set("extra_params", '{"provider": {"zdr": true}}')
+		config = self.config()
+		SessionConfig.model_validate(config)
+		self.assertEqual(config["model_params"], {"provider": {"zdr": True}})
+		self.assertEqual(config["subagents"][0]["model_params"], {"route": "fallback"})
 
 	def test_trigger_sessions_always_auto_approve(self):
 		session = self.session(source="Trigger", auto_approve=0)

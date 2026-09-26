@@ -4,6 +4,7 @@ importing the session lifecycle (which imports the loop)."""
 from __future__ import annotations
 
 from collections.abc import Iterable
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -50,6 +51,7 @@ class SessionConfig(BaseModel):
 		api_key: Client-supplied model API key, used instead of the daemon's credential
 			store. Redacted in API responses.
 		api_base: Endpoint override that travels with `api_key`.
+		model_params: Extra provider params sent with every model call.
 		confirm_tools: Extra tools that pause for approval, on top of each tool's own
 			default. `auto_approve` is the only way to switch approval off.
 		auto_approve: Unattended runs (triggers) skip approval.
@@ -89,6 +91,7 @@ class SessionConfig(BaseModel):
 	credential_id: str | None = None
 	api_key: str | None = None
 	api_base: str | None = None
+	model_params: dict[str, Any] = Field(default_factory=dict)
 	confirm_tools: list[str] = Field(default_factory=list)
 	auto_approve: bool = False
 	skills_enabled: bool = True
@@ -130,6 +133,8 @@ class SubagentConfig(BaseModel):
 		api_key: Client-supplied model API key that replaces the daemon's credential
 			store. Redacted in API responses.
 		api_base: Endpoint override that travels with `api_key`.
+		model_params: Extra provider params for the child's model calls; like `api_key`,
+			never inherited once the child sets its own model.
 		reasoning_effort: How hard the model should think.
 		system_prompt: Verbatim system prompt.
 		tools: Built-in and bundled tools, by name; `subagent` is never one of them.
@@ -147,6 +152,7 @@ class SubagentConfig(BaseModel):
 	model: str | None = None
 	api_key: str | None = None
 	api_base: str | None = None
+	model_params: dict[str, Any] | None = None
 	reasoning_effort: ReasoningEffort | None = None
 	system_prompt: str | None = None
 	tools: list[str] | None = None

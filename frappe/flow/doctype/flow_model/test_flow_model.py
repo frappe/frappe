@@ -110,6 +110,32 @@ class TestFlowModelBaseURL(IntegrationTestCase):
 					doc.insert()
 
 
+class TestFlowModelExtraParams(IntegrationTestCase):
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_extra_params_must_be_a_json_object(self):
+		for bad in ("{not json", "[1, 2]"):
+			with self.subTest(extra_params=bad):
+				doc = frappe.get_doc(_model(extra_params=bad))
+				with self.assertRaisesRegex(frappe.ValidationError, "Extra Params"):
+					doc.insert()
+		doc = frappe.get_doc(_model(extra_params='{"provider": {"zdr": true}}')).insert()
+		self.assertEqual(doc.model_params(), {"provider": {"zdr": True}})
+
+	def test_cleared_extra_params_save_as_empty(self):
+		doc = frappe.get_doc(_model(extra_params='{"a": 1}')).insert()
+		doc.extra_params = ""  # what Desk sends for an emptied editor
+		doc.save()
+		self.assertIsNone(frappe.db.get_value("Flow Model", doc.name, "extra_params"))
+
+	def test_test_connection_sends_the_extra_params(self):
+		doc = frappe.get_doc(_model(extra_params='{"provider": {"zdr": true}}')).insert()
+		with patch("litellm.completion") as completion:
+			doc.test_connection()
+		self.assertEqual(completion.call_args.kwargs["provider"], {"zdr": True})
+
+
 class TestContextWindow(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()

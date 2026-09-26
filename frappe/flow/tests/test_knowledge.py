@@ -237,6 +237,12 @@ class TestEmbedder(IntegrationTestCase):
 			with self.assertRaisesRegex(frappe.ValidationError, "invalid api key"):
 				embed_texts(["a"])
 
+	def test_embed_texts_sends_the_models_extra_params(self):
+		self.model.db_set("extra_params", '{"provider": {"zdr": true}}')
+		with patch("litellm.embedding", return_value=_embedding_response([[1.0]])) as mocked:
+			embed_texts(["a"])
+		self.assertEqual(mocked.call_args.kwargs["provider"], {"zdr": True})
+
 	def test_probe_dimension(self):
 		response = _embedding_response([[0.0] * 1536])
 		with patch("litellm.embedding", return_value=response):

@@ -29,6 +29,10 @@ class TestModelConfig(IntegrationTestCase):
 			{"model": "openai/gpt-4o-mini", "api_key": "sk-model", "api_base": "http://gateway.local"},
 		)
 
+	def test_the_config_carries_the_models_extra_params(self):
+		self.model.db_set("extra_params", '{"provider": {"zdr": true}}')
+		self.assertEqual(model_config(self.model.name)["model_params"], {"provider": {"zdr": True}})
+
 	def test_a_disabled_model_is_refused(self):
 		self.model.db_set("enabled", 0)
 

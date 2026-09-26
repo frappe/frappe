@@ -93,7 +93,8 @@ def test_failed_persist_reverts_the_model_change_too(tmp_path, monkeypatch):
 	meta write must undo it, or the 500 leaves a new model on the old key."""
 	store = _store(tmp_path)
 	c = _client(store, ServerPolicy(inline_credentials=True))
-	sid = c.post("/sessions", json={"cwd": str(tmp_path), "api_key": KEY}).json()["session_id"]
+	body = {"cwd": str(tmp_path), "api_key": KEY, "model_params": {"route": "a"}}
+	sid = c.post("/sessions", json=body).json()["session_id"]
 	session = store.get(sid)
 
 	def boom(session):
@@ -103,7 +104,7 @@ def test_failed_persist_reverts_the_model_change_too(tmp_path, monkeypatch):
 	r = c.post(f"/sessions/{sid}/model", json={"model": "mock-b", "api_key": "sk-new"})
 	assert r.status_code == 500
 	assert session.model == "mock"
-	assert session.config.api_key == KEY
+	assert (session.config.api_key, session.config.model_params) == (KEY, {"route": "a"})
 
 
 def test_inline_credentials_survive_restart(tmp_path):
@@ -163,3 +164,69 @@ def test_deployed_accepts_inline_credentials(tmp_path):
 	assert r.status_code == 200
 	assert r.json()["config"]["api_key"] == "***"
 	assert KEY not in r.text
+
+
+def test_model_params_need_the_inline_credentials_switch(tmp_path):
+	store = _store(tmp_path)
+	params = {"api_base": "http://gw.localhost"}
+	for body in ({"model_params": params}, {"subagents": [{"name": "a", "model_params": params}]}):
+		r = _client(store).post("/sessions", json={"cwd": str(tmp_path), **body})
+		assert r.status_code == 400
+		assert "server policy" in r.json()["detail"]
+	sid = _client(store).post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
+	r = _client(store).post(f"/sessions/{sid}/model", json={"model": "mock", "model_params": params})
+	assert r.status_code == 400
+	assert store.get(sid).config.model_params == {}
+	r = _client(store, ServerPolicy(inline_credentials=True)).post(
+		"/sessions", json={"cwd": str(tmp_path), "model_params": params}
+	)
+	assert r.status_code == 200
+	assert r.json()["config"]["model_params"] == params
+
+
+def test_set_model_replaces_the_model_params_with_the_pair(tmp_path):
+	store = _store(tmp_path)
+	c = _client(store, ServerPolicy(inline_credentials=True))
+	body = {"cwd": str(tmp_path), "api_key": KEY, "model_params": {"route": "first"}}
+	sid = c.post("/sessions", json=body).json()["session_id"]
+	config = store.get(sid).config
+
+	# a switch to a model without params clears the old ones (Flow sends the pair on every switch)
+	c.post(f"/sessions/{sid}/model", json={"model": "mock-b", "api_key": KEY, "api_base": None})
+	assert config.model_params == {}
+
+	c.post(f"/sessions/{sid}/model", json={"model": "mock", "api_key": KEY, "model_params": {"route": "b"}})
+	assert config.model_params == {"route": "b"}
+
+	# params alone replace the whole unit too
+	c.post(f"/sessions/{sid}/model", json={"model": "mock-b", "model_params": {"route": "c"}})
+	assert (config.api_key, config.model_params) == (None, {"route": "c"})
+
+	# nothing inline sent: the stored ones stay
+	c.post(f"/sessions/{sid}/model", json={"model": "mock"})
+	assert config.model_params == {"route": "c"}
+
+
+async def test_every_model_call_carries_the_model_params(tmp_path, monkeypatch):
+	calls = []
+
+	async def completion(**kwargs):
+		calls.append(kwargs)
+		return {"choices": [{"message": {"content": "Done"}, "finish_reason": "stop"}]}
+
+	monkeypatch.setattr("litellm.acompletion", completion)
+	session = _store(tmp_path).create(
+		SessionConfig(
+			cwd=str(tmp_path),
+			model="openai/test",
+			api_key=KEY,
+			model_params={"provider": {"zdr": True}},
+			stream=False,
+		)
+	)
+	handle = await session.run("hello")
+	await handle.task
+	await session._title_task
+
+	assert len(calls) == 2  # the turn and the title
+	assert all(call["provider"] == {"zdr": True} for call in calls)
