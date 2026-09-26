@@ -1319,7 +1319,9 @@ from {tables}
 
 		quote_char = "`" if frappe.db.db_type == "mariadb" else '"'
 		param_wrapper = NamedParameterWrapper()
-		sql = criterion.get_sql(with_namespace=True, quote_char=quote_char, param_wrapper=param_wrapper)
+		sql = criterion.get_sql(
+			with_namespace=True, quote_char=quote_char, param_wrapper=param_wrapper, subquery=True
+		)
 		for key, value in param_wrapper.get_parameters().items():
 			sql = sql.replace(f"%({key})s", frappe.db.escape(value))
 		return sql

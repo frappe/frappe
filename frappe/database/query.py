@@ -1936,7 +1936,7 @@ class Engine:
 			condition = self.get_permission_conditions(self.doctype, self.table)
 			if condition:
 				quote_char = "`" if self.is_mariadb else '"'
-				return condition.get_sql(with_namespace=True, quote_char=quote_char)
+				return condition.get_sql(with_namespace=True, quote_char=quote_char, subquery=True)
 			return ""
 
 		if not self.ignore_user_permissions:
