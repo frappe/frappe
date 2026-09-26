@@ -92,3 +92,26 @@ export function safe_attrs(attrs, component) {
 	}
 	return out;
 }
+
+/** True for promises and other thenables (async options, submenus...). */
+export function is_thenable(value) {
+	return !!value && typeof value.then === "function";
+}
+
+/** A { group, options: [...] } section in a mixed options list. */
+export function is_group(entry) {
+	return entry && typeof entry === "object" && "group" in entry && Array.isArray(entry.options);
+}
+
+/**
+ * Lucide icon markup for a row or trigger. Icon names end up inside an svg
+ * `use` href, so only plain names pass; anything else warns and renders
+ * nothing.
+ */
+export function icon_html(name, svg_class, component) {
+	if (typeof name !== "string" || !/^[a-z0-9-]+$/i.test(name)) {
+		console.warn(`frappe.ui.${component}: icons take a lucide icon name, got "${name}"`);
+		return "";
+	}
+	return frappe.utils.icon(name, "sm", "", "", svg_class, true);
+}
