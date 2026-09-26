@@ -5,6 +5,7 @@ import contextlib
 import io
 import mimetypes
 import os
+import re
 import subprocess
 from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urlparse
@@ -21,7 +22,7 @@ from frappe import _
 from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.utils import cstr, scrub_urls
 from frappe.utils.caching import redis_cache
-from frappe.utils.data import get_url
+from frappe.utils.data import URLS_HTTP_TAG_PATTERN, get_url, validate_egress_url
 from frappe.utils.jinja_globals import bundled_asset, is_rtl
 
 if TYPE_CHECKING:
@@ -104,6 +105,71 @@ def pdf_footer_html(soup, head, content, styles, html_id, css, path=None):
 	)
 
 
+# Schemes are case-insensitive; URLS_HTTP_TAG_PATTERN isn't, so make a matching copy that is.
+ATTR_URL_HTTP_PATTERN = re.compile(URLS_HTTP_TAG_PATTERN.pattern, re.IGNORECASE)
+
+# Unquoted url() can't contain whitespace; quoted url() can, hence the separate pattern.
+CSS_URL_UNQUOTED_PATTERN = re.compile(r"(url\(\s*)(http[^'\")\s]+)(\s*\))", re.IGNORECASE)
+CSS_URL_QUOTED_PATTERN = re.compile(r"(url\(\s*(['\"]))(http[^'\"]*)(\2\s*\))", re.IGNORECASE)
+
+
+def guard_pdf_resource_urls(html: str) -> str:
+	"""Blank out non-local href/src/CSS-url() references that resolve to a restricted address.
+
+	Site hosts are trusted outright; everything else is resolved and dropped
+	if disallowed. Rendering proceeds without the blocked resource.
+	"""
+	trusted_hosts = {_bare_hostname(get_url(allow_header_override=False))}
+	trusted_hosts.update(_bare_hostname(domain) for domain in (frappe.conf.domains or []))
+	trusted_hosts.discard(None)
+
+	blocked = []
+
+	def _is_blocked(url: str) -> bool:
+		if _bare_hostname(url) in trusted_hosts:
+			return False
+		try:
+			validate_egress_url(url)
+			return False
+		except ValueError:
+			blocked.append(url)
+			return True
+
+	def _blank_attr(match):
+		attr, eq, url, quote = match.groups()
+		return f"{attr}{eq}{quote}" if _is_blocked(url) else match.group(0)
+
+	def _blank_css_url(match):
+		prefix, url, suffix = match.groups()
+		return f"{prefix}{suffix}" if _is_blocked(url) else match.group(0)
+
+	def _blank_css_url_quoted(match):
+		prefix, _quote, url, suffix = match.groups()
+		return f"{prefix}{suffix}" if _is_blocked(url) else match.group(0)
+
+	html = ATTR_URL_HTTP_PATTERN.sub(_blank_attr, html)
+	html = CSS_URL_QUOTED_PATTERN.sub(_blank_css_url_quoted, html)
+	html = CSS_URL_UNQUOTED_PATTERN.sub(_blank_css_url, html)
+
+	if blocked:
+		frappe.log_error(
+			title="Blocked internal PDF resource URL",
+			message="Blanked out a resource URL resolving to an internal address before PDF render:\n"
+			+ "\n".join(blocked),
+		)
+
+	return html
+
+
+def _bare_hostname(value: str | None) -> str | None:
+	"""Bare hostname for comparison, whether `value` is a full URL or a bare host[:port]."""
+	if not value:
+		return None
+	if "://" not in value:
+		value = "//" + value
+	return urlparse(value).hostname
+
+
 def get_pdf(html, options=None, output: "PdfWriter" | None = None, smart_shrinking: bool = False):
 	"""Render `html` to PDF.
 
@@ -111,6 +177,7 @@ def get_pdf(html, options=None, output: "PdfWriter" | None = None, smart_shrinki
 	        clipping the overflow.
 	"""
 	html = scrub_urls(html)
+	html = guard_pdf_resource_urls(html)
 	html, options = prepare_options(html, options)
 
 	options.update({"disable-javascript": "", "disable-local-file-access": ""})
