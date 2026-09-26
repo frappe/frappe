@@ -724,7 +724,10 @@ class Meta(Document):
 			permission_type = "select" if frappe.only_has_select_perm(self.name, user=user) else "read"
 
 		if permission_type == "select":
-			return self.get_search_fields()
+			fieldnames = self.get_search_fields()
+			if self.show_title_field_in_link and self.title_field and self.title_field not in fieldnames:
+				fieldnames.append(self.title_field)
+			return fieldnames
 
 		if not self.get_permissions(parenttype=parenttype):
 			return self.get_fieldnames_with_value()
