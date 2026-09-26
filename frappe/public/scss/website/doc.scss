@@ -80,13 +80,6 @@ $navbar-height-lg: 4.5rem;
 	}
 }
 
-.doc-search {
-	@include media-breakpoint-up(lg) {
-		padding-left: 4rem;
-		padding-right: 4rem;
-	}
-}
-
 .doc-sidebar {
 	position: sticky;
 	top: $navbar-height;
