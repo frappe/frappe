@@ -9,7 +9,13 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.desk.search import awesomebar_search, get_names_for_mentions, search_link, search_widget
+from frappe.desk.search import (
+	awesomebar_search,
+	get_link_title,
+	get_names_for_mentions,
+	search_link,
+	search_widget,
+)
 from frappe.permissions import add_user_permission
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
@@ -698,6 +704,21 @@ class TestSearch(IntegrationTestCase):
 				reference_doctype="Test Search Dangling Parent",
 				link_fieldname="nonexistent_field",
 			)
+
+	def test_select_permission_shows_link_titles(self):
+		with self.set_user("Administrator"):
+			doctype = new_doctype(
+				fields=[{"fieldname": "title", "fieldtype": "Data", "label": "Title"}],
+				title_field="title",
+				show_title_field_in_link=1,
+				permissions=[{"role": "_Test Role", "select": 1, "read": 0}],
+			).insert()
+			name = frappe.get_doc(doctype=doctype.name, title="Selectable Title").insert().name
+
+		with self.set_user("test@example.com"):
+			self.assertFalse(frappe.has_permission(doctype.name, "read", name))
+			self.assertEqual(get_link_title(doctype.name, name), "Selectable Title")
+			self.assertEqual(search_link(doctype.name, "")[0].get("label"), "Selectable Title")
 
 	def test_awesomebar_search_hook(self):
 		real_get_hooks = frappe.get_hooks
