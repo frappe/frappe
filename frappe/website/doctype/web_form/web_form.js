@@ -283,10 +283,10 @@ frappe.ui.form.on("Web Form", {
 
 		frm.dynamic_filter_table = $(`<table class="table table-bordered" style="cursor:${
 			frm.has_perm("write") ? "pointer" : "default"
-		}; margin:0px;">
+		}; margin: 0 0 var(--margin-lg); border-radius: 10px; border-spacing: 0; border-collapse: separate;">
 			<thead>
 				<tr>
-					<th style="width: 20%">${__("Filter")}</th>
+					<th>${__("Filter")}</th>
 					<th style="width: 20%">${__("Condition")}</th>
 					<th>${__("Value")}</th>
 				</tr>
