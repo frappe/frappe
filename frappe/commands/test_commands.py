@@ -1019,6 +1019,19 @@ class TestCommandUtils(IntegrationTestCase):
 		self.assertIsInstance(app_groups["frappe"], click.Group)
 
 
+class TestTrimDatabase(IntegrationTestCase):
+	def test_ghost_tables_include_deleted_doctype_tables(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		doctype = new_doctype().insert().name
+		frappe.db.delete("DocType", {"name": doctype})
+
+		ghost_tables = frappe.commands.site.get_ghost_tables()
+
+		self.assertIn(f"tab{doctype}", ghost_tables)
+		self.assertNotIn("tabUser", ghost_tables)
+
+
 class TestDBCli(BaseTestCommands):
 	@timeout(10)
 	def test_db_cli(self):
