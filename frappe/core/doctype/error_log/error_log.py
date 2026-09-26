@@ -2,13 +2,25 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.model.document import Document
-from frappe.query_builder import Interval
-from frappe.query_builder.functions import Count, Date, Max, Min, Now
+from frappe.query_builder.functions import Count, Date, Max, Min
+from frappe.utils import add_days, cint, now
 from frappe.utils.caching import http_cache
+from frappe.utils.logging import LogDocument, get_log_db, log_table
 
 
-class ErrorLog(Document):
+def _cutoff(days: int) -> str:
+	"""Return the timestamp `days` in the past, as a string.
+
+	The cutoff is computed in Python rather than with `Now() - Interval(days=...)`, which the
+	query builder renders for SQLite as `CURRENT_TIMESTAMP - datetime('now', '+N days')` --
+	one timestamp minus another, which SQLite evaluates numerically and never matches. A
+	literal keeps the comparison correct, and `creation` is an ISO timestamp so string
+	ordering is chronological ordering.
+	"""
+	return add_days(now(), -cint(days))
+
+
+class ErrorLog(LogDocument):
 	_DOCTYPE_NAME = "Error Log"
 
 	# begin: auto-generated types
@@ -39,20 +51,32 @@ class ErrorLog(Document):
 
 	def onload(self):
 		if not self.seen and not frappe.flags.read_only:
+			# `LogDocument.db_set` writes to the log database and commits that connection, so
+			# the previous explicit `frappe.db.commit()` -- which committed the *primary*
+			# transaction -- is neither needed nor wanted here.
 			self.db_set("seen", 1, update_modified=0)
-			frappe.db.commit()
 
 	@staticmethod
 	def clear_old_logs(days=30):
-		table = frappe.qb.DocType("Error Log")
-		frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))
+		db = get_log_db()
+		qb, table = log_table("Error Log")
+
+		db.sql(qb.from_(table).where(table.creation < _cutoff(days)).delete())
+		db.commit()
 
 
 @frappe.whitelist()
 def clear_error_logs():
 	"""Flush all Error Logs"""
 	frappe.only_for("System Manager")
-	frappe.db.truncate("Error Log")
+
+	# `frappe.db.truncate` would target the primary database, where Error Log no longer has a
+	# table. A DELETE on the log connection is the equivalent operation here.
+	db = get_log_db()
+	qb, table = log_table("Error Log")
+
+	db.sql(qb.from_(table).delete())
+	db.commit()
 
 
 @frappe.whitelist()
@@ -84,26 +108,32 @@ def get_fingerprint_stats(fingerprint: str) -> dict:
 	"""
 	frappe.has_permission("Error Log", throw=True)
 
-	table = frappe.qb.DocType("Error Log")
+	# Built with the log database's own dialect and run on its connection: `.run()` would
+	# execute against `frappe.db`, which no longer holds these rows.
+	qb, table = log_table("Error Log")
 
-	summary = (
-		frappe.qb.from_(table)
+	db = get_log_db()
+
+	summary = db.sql(
+		qb.from_(table)
 		.where(table.fingerprint == fingerprint)
 		.select(
 			Count("*").as_("count"),
 			Min(table.creation).as_("first_seen"),
 			Max(table.creation).as_("last_seen"),
-		)
-	).run(as_dict=True)[0]
+		),
+		as_dict=True,
+	)[0]
 
-	timeline = (
-		frappe.qb.from_(table)
+	timeline = db.sql(
+		qb.from_(table)
 		.where(table.fingerprint == fingerprint)
-		.where(table.creation >= (Now() - Interval(days=30)))
+		.where(table.creation >= _cutoff(30))
 		.groupby(Date(table.creation))
 		.orderby(Date(table.creation))
-		.select(Date(table.creation).as_("day"), Count("*").as_("count"))
-	).run(as_dict=True)
+		.select(Date(table.creation).as_("day"), Count("*").as_("count")),
+		as_dict=True,
+	)
 
 	return {
 		"count": summary.count or 0,

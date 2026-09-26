@@ -142,6 +142,7 @@ class DatabaseQuery:
 				page_length,
 				limit,
 				limit_page_length,
+				group_by,
 				order_by,
 				as_list,
 				with_comment_count,
@@ -307,6 +308,7 @@ class DatabaseQuery:
 		page_length: int | None,
 		limit: int | None,
 		limit_page_length: int | None,
+		group_by: str | None,
 		order_by: str,
 		as_list: bool,
 		with_comment_count: bool,
@@ -351,6 +353,10 @@ class DatabaseQuery:
 			"start": start or offset or limit_start or 0,
 			"page_length": _page_length,
 			"limit_page_length": _page_length,
+			# Without this a controller cannot aggregate: a dashboard chart asks for
+			# `{"COUNT": "*"}` grouped by its date field, and dropping the grouping here
+			# hands it ungrouped rows that it then misreads as (date, value) pairs.
+			"group_by": group_by,
 			"order_by": order_by,
 			"as_list": as_list,
 			"with_comment_count": with_comment_count,

@@ -39,6 +39,7 @@ from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import add_to_date, execute_in_shell, get_bench_path, get_bench_relative_path, now
 from frappe.utils.backups import BackupGenerator, fetch_latest_backups
+from frappe.utils.logging import get_log_db
 from frappe.utils.scheduler import enable_scheduler, is_scheduler_inactive
 
 _result: Result | None = None
@@ -669,7 +670,7 @@ class TestBackups(BaseTestCommands):
 					"Note",
 				]
 			},
-			"excludes": {"excludes": ["Activity Log", "Access Log", "Error Log"]},
+			"excludes": {"excludes": ["Activity Log", "Access Log", "View Log"]},
 		}
 	)
 	home = os.path.expanduser("~")
@@ -781,20 +782,19 @@ class TestBackups(BaseTestCommands):
 		self.assertIsNotNone(after_backup["private"])
 
 	def test_clear_log_table(self):
+		# Error Log rows live in the site's log database, so the command has no table in the
+		# primary database to back up, copy or swap -- it should delete the aged-out rows
+		# from `logs.db` and leave the primary database's tables untouched.
 		d = frappe.get_doc(doctype="Error Log", title="Something").insert()
 		d.db_set("creation", "2010-01-01", update_modified=False)
 		frappe.db.commit()
-		frappe.db.sql_ddl(
-			IntegrationTestCase.normalize_sql("DROP TABLE IF EXISTS `tabError Log backup_table`")
-		)  # drop old tables if exists (Maintain Sanity)
-		frappe.db.sql_ddl(IntegrationTestCase.normalize_sql("DROP TABLE IF EXISTS `tabError Log temp_table`"))
 		tables_before = frappe.db.get_tables(cached=False)
 
 		self.execute("bench --site {site} clear-log-table --days=30 --doctype='Error Log'")
 		self.assertEqual(self.returncode, 0)
 		frappe.db.commit()
 
-		self.assertFalse(frappe.db.exists("Error Log", d.name))
+		self.assertFalse(get_log_db().exists("Error Log", d.name))
 		tables_after = frappe.db.get_tables(cached=False)
 		self.assertEqual(set(tables_before), set(tables_after))
 
