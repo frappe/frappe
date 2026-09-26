@@ -267,6 +267,18 @@ class TestReportview(IntegrationTestCase):
 
 		self.assertEqual(frappe.local.response["_link_titles"]["Role::System Manager"], "System Manager")
 
+	def test_get_sends_link_titles_for_aliased_child_table_columns(self):
+		self.enable_link_titles("Role", title_field="role_name")
+
+		self.get_rows(
+			doctype="User",
+			fields=["`tabUser`.`name`", "`tabHas Role`.`role` as 'Has Role:role'"],
+			filters={"name": "Administrator"},
+			with_link_titles=1,
+		)
+
+		self.assertEqual(frappe.local.response["_link_titles"]["Role::System Manager"], "System Manager")
+
 	def get_todo_rows(self, name, **extra_params):
 		return self.get_rows(
 			doctype="ToDo",
