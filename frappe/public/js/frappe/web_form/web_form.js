@@ -221,8 +221,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		// submit attempted: allow mandatory fields to show the error highlight
 		this.primary_action_fulfilled = true;
 
-		// Table MultiSelect keeps .form-control on its pill box,
-		// not on the input that carries data-fieldname
+		// Table MultiSelect has data-fieldname on its inner input, not on .form-control
 		let page = this.get_page(this.current_section);
 		let fields = $(`${page} .form-control, ${page} .table-multiselect input`);
 		let errors = [];
