@@ -260,6 +260,10 @@ $min-h-steps: 24, 32, 40, 48, 64, 80, 96;
 	}
 }
 
+.max-h-80 {
+	max-height: spacing-step(80);
+}
+
 .truncate {
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -272,6 +276,10 @@ $min-h-steps: 24, 32, 40, 48, 64, 80, 96;
 
 .overflow-x-auto {
 	overflow-x: auto;
+}
+
+.overflow-y-auto {
+	overflow-y: auto;
 }
 
 .whitespace-nowrap {

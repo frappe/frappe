@@ -14,14 +14,14 @@ const add_field_ref = ref(null);
 // cmd/ctrl + shift + n to open the add field autocomplete
 const { ctrl_shift_n, Backspace } = useMagicKeys();
 whenever(ctrl_shift_n, (value) => {
-	if (value && selected.value && !store.is_layout_form) {
+	if (value && selected.value && store.can_edit_layout) {
 		add_field_ref.value.open();
 	}
 });
 
 // delete/backspace to delete the field
 whenever(Backspace, (value) => {
-	if (value && selected.value && store.not_using_input && !store.is_layout_form) {
+	if (value && selected.value && store.not_using_input && store.can_edit_layout) {
 		remove_field();
 	}
 });
@@ -220,8 +220,12 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 			</template>
 			<template #actions>
 				<div class="field-actions" :hidden="store.read_only">
+					<!-- Web Form Field has no `link_filters`, so the save path drops them silently -->
 					<button
-						v-if="['Attachment Gallery', 'Link'].includes(field.df.fieldtype)"
+						v-if="
+							['Attachment Gallery', 'Link'].includes(field.df.fieldtype) &&
+							!store.is_web_form
+						"
 						class="btn btn-xs btn-icon"
 						:class="is_filter_applied()"
 						@click="edit_filters"
@@ -236,8 +240,9 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 					>
 						<div v-html="frappe.utils.icon('plus', 'sm')" />
 					</AddFieldButton>
+					<!-- the copy gets a blank fieldname, which `validate_fields` skips silently -->
 					<button
-						v-if="!store.is_layout_form"
+						v-if="!store.is_layout_form && !store.is_web_form"
 						class="btn btn-xs btn-icon"
 						:title="__('Duplicate field')"
 						@click.stop="duplicate_field"

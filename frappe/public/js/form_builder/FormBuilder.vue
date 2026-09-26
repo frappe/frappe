@@ -1,7 +1,7 @@
 <script setup>
 import Sidebar from "./components/Sidebar.vue";
 import Tabs from "./components/Tabs.vue";
-import { computed, onMounted, watch, ref } from "vue";
+import { computed, onMounted, watch, ref, provide } from "vue";
 import { useStore } from "./store";
 import { onClickOutside } from "@vueuse/core";
 
@@ -12,6 +12,12 @@ let should_render = computed(() => {
 });
 
 let container = ref(null);
+
+// an element, not an id: Desk keeps a hidden form's DOM, so a second builder would
+// repeat the id and querySelector would teleport into the hidden one
+let autocomplete_area = ref(null);
+provide("autocomplete_area", autocomplete_area);
+
 onClickOutside(container, () => (store.form.selected_field = null), {
 	ignore: [".combo-box-options"],
 });
@@ -43,7 +49,7 @@ onMounted(() => store.fetch());
 			</div>
 		</div>
 	</div>
-	<div id="autocomplete-area" />
+	<div ref="autocomplete_area" class="autocomplete-area" />
 </template>
 
 <style lang="scss" scoped>

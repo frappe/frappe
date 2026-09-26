@@ -380,8 +380,11 @@ frappe.form.formatters = {
 	},
 	TableMultiSelect: function (rows, df, options) {
 		rows = rows || [];
+		// web forms have no doctype meta, so fall back to the child fields sent by the server
 		const meta = frappe.get_meta(df.options);
-		const link_field = meta.fields.find((df) => df.fieldtype === "Link");
+		const fields = meta?.fields?.length ? meta.fields : df.fields || [];
+		const link_field = fields.find((f) => f.fieldtype === "Link");
+		if (!link_field) return "";
 		const formatted_values = rows.map((row) => {
 			const value = row[link_field.fieldname];
 			return `<span class="text-nowrap">
