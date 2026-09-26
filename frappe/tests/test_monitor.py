@@ -1,9 +1,12 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import datetime
+import time
+
 import frappe
 import frappe.monitor
-from frappe.monitor import MONITOR_REDIS_KEY, get_trace_id
+from frappe.monitor import MONITOR_REDIS_KEY, get_request_wait, get_trace_id
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 from frappe.utils.response import build_response
@@ -132,3 +135,37 @@ class TestMonitor(IntegrationTestCase):
 		self.assertEqual(get_trace_id(), request_id)
 		self.assertIn(request_id, str(frappe.db.last_query))
 		frappe.monitor.stop(response)
+
+	def test_request_wait(self):
+		request_start = time.time() - 0.5
+		set_request(
+			method="GET",
+			path="/api/method/frappe.ping",
+			headers={"X-Request-Start": f"t={request_start:.3f}"},
+		)
+		response = build_response("json")
+
+		frappe.monitor.start()
+		frappe.monitor.stop(response)
+
+		log = frappe.parse_json(frappe.cache.lrange(MONITOR_REDIS_KEY, 0, -1)[0].decode())
+		self.assertGreaterEqual(log.request["wait"], 499_000)
+		self.assertLess(log.request["wait"], 5_000_000)
+
+	def test_request_wait_without_header(self):
+		set_request(method="GET", path="/api/method/frappe.ping")
+		response = build_response("json")
+
+		frappe.monitor.start()
+		frappe.monitor.stop(response)
+
+		log = frappe.parse_json(frappe.cache.lrange(MONITOR_REDIS_KEY, 0, -1)[0].decode())
+		self.assertNotIn("wait", log.request)
+
+	def test_get_request_wait(self):
+		now = datetime.datetime.now(datetime.UTC)
+		self.assertAlmostEqual(get_request_wait(f"t={now.timestamp() - 2}", now), 2_000_000, delta=1)
+		self.assertEqual(get_request_wait("garbage", now), 0)
+		self.assertEqual(get_request_wait("t=nan", now), 0)
+		self.assertEqual(get_request_wait("t=-inf", now), 0)
+		self.assertEqual(get_request_wait(f"t={now.timestamp() + 10}", now), 0)
