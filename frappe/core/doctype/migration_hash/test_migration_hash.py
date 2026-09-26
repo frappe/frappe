@@ -49,6 +49,17 @@ class IntegrationTestMigrationHash(IntegrationTestCase):
 			self.assertEqual(frappe.db.get_value("Note", name, "content"), "first")
 			self.assertEqual(get_migration_hash(path), calculate_hash(path))
 
+	def test_site_edit_newer_than_file_is_kept(self):
+		name = "_Test Migration Hash Site Edit"
+		with tempfile.TemporaryDirectory() as folder:
+			path = write_note_file(folder, name, "first")
+			import_file_by_path(path)
+			frappe.db.set_value("Note", name, "content", "site edit")
+
+			write_note_file(folder, name, "second")
+			self.assertFalse(import_file_by_path(path))
+			self.assertEqual(frappe.db.get_value("Note", name, "content"), "site edit")
+
 	def test_files_holding_the_same_record_keep_their_own_hash(self):
 		name = "_Test Migration Hash Duplicate"
 		with tempfile.TemporaryDirectory() as first_folder, tempfile.TemporaryDirectory() as second_folder:
