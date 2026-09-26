@@ -1624,3 +1624,97 @@ def clear_session(sid_hash: str):
 	if owned:
 		delete_session(sid_hash=owned[0], reason="Force Logged out by the user", user=frappe.session.user)
 		frappe.toast(_("Successfully signed out"))
+
+
+@frappe.whitelist(methods=["POST"])
+def bulk_add_roles(users: str | list, roles: str | list) -> None:
+	"""Bulk assign roles to multiple users without overwriting existing roles."""
+	frappe.has_permission("User", "write", throw=True)
+
+	users, roles = _validate_bulk_role_args(users, roles)
+
+	if not users or not roles:
+		return
+
+	if len(users) > 500:
+		frappe.throw(_("Bulk role assignment is limited to 500 users at a time."))
+
+	if len(users) > 20:
+		frappe.enqueue(
+			"frappe.core.doctype.user.user._assign_roles",
+			users=users,
+			roles=roles,
+			queue="long",
+			enqueue_after_commit=True,
+		)
+		frappe.msgprint(
+			_("Role assignment for {0} users has been queued in the background.").format(len(users)),
+			alert=True,
+		)
+	else:
+		_assign_roles(users, roles)
+		frappe.msgprint(
+			_("Roles successfully added to {0} users.").format(len(users)), alert=True, indicator="green"
+		)
+
+
+@frappe.whitelist(methods=["POST"])
+def bulk_remove_roles(users: str | list, roles: str | list) -> None:
+	"""Remove roles from multiple users, leaving their other roles intact."""
+	frappe.has_permission("User", "write", throw=True)
+
+	users, roles = _validate_bulk_role_args(users, roles)
+
+	if not users or not roles:
+		return
+
+	if len(users) > 500:
+		frappe.throw(_("Bulk role unassignment is limited to 500 users at a time."))
+
+	if len(users) > 20:
+		frappe.enqueue(
+			"frappe.core.doctype.user.user._unassign_roles",
+			users=users,
+			roles=roles,
+			queue="long",
+			enqueue_after_commit=True,
+		)
+		frappe.msgprint(
+			_("Role removal for {0} users has been queued in the background.").format(len(users)),
+			alert=True,
+		)
+	else:
+		_unassign_roles(users, roles)
+		frappe.msgprint(
+			_("Roles successfully removed from {0} users.").format(len(users)), alert=True, indicator="green"
+		)
+
+
+def _validate_bulk_role_args(users: str | list, roles: str | list) -> tuple[list, list]:
+	"""Parse and type-check arguments shared by the bulk role endpoints."""
+	if isinstance(users, str):
+		users = frappe.parse_json(users)
+	if isinstance(roles, str):
+		roles = frappe.parse_json(roles)
+
+	if not isinstance(users, list) or not all(isinstance(u, str) for u in users):
+		frappe.throw(_("Users must be a list of string identifiers."))
+
+	if not isinstance(roles, list) or not all(isinstance(r, str) for r in roles):
+		frappe.throw(_("Roles must be a list of string identifiers."))
+
+	return users, roles
+
+
+def _assign_roles(users: list, roles: list) -> None:
+	"""Internal method to handle the DB loop, either synchronously or via background job."""
+	for user_id in users:
+		user_doc = frappe.get_doc("User", user_id)
+		user_doc.add_roles(*roles)
+
+
+def _unassign_roles(users: list, roles: list) -> None:
+	"""Internal method to handle the DB loop, either synchronously or via background job."""
+	for user_id in users:
+		user_doc = frappe.get_doc("User", user_id)
+		user_doc.remove_roles(*roles)
