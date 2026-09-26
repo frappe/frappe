@@ -51,6 +51,10 @@ class TestDocType(IntegrationTestCase):
 			doc = new_doctype(name).insert()
 			doc.delete()
 
+	@skipIf(frappe.conf and frappe.conf.db_type != "postgres", "Only for Postgres")
+	def test_validate_name_fits_postgres_identifier(self):
+		self.assertRaises(frappe.NameError, new_doctype("Test " + "x" * 56).insert)
+
 	@skipIf(
 		frappe.conf and frappe.conf.db_type == "sqlite",
 		"Not for SQLite for now",
