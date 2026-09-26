@@ -18,6 +18,16 @@ class TestPage(IntegrationTestCase):
 			frappe.get_doc(doctype="Page", page_name="DocType", module="Core").insert,
 		)
 
+	def test_route_of_an_unreadable_doctype_raises_permission_error(self):
+		from frappe.desk.desk_page import get
+
+		with self.set_user("test2@example.com"):
+			frappe.clear_messages()
+			self.assertRaises(frappe.PermissionError, get, "error-log")
+			self.assertNotIn("not found", str(frappe.local.message_log))
+			self.assertRaises(frappe.DoesNotExistError, get, "not-a-page-or-doctype")
+			self.assertRaises(frappe.DoesNotExistError, get, "%")
+
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
