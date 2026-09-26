@@ -191,8 +191,11 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def get_db_path(self):
 		return Path(frappe.get_site_path()) / "db" / f"{self.cur_db_name}.db"
 
-	def set_execution_timeout(self, seconds: int):
-		self.sql(f"PRAGMA busy_timeout = {int(seconds) * 1000}")
+	def set_execution_timeout(self, seconds: float):
+		self.sql(f"PRAGMA busy_timeout = {round(seconds * 1000)}")
+
+	def get_execution_timeout(self) -> float:
+		return self.sql("PRAGMA busy_timeout")[0][0] / 1000
 
 	def set_session_time_zone(self, timezone: str):
 		self._session_time_zone = ZoneInfo(timezone)

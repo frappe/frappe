@@ -226,6 +226,13 @@ class TestDashboardConnections(IntegrationTestCase):
 		todo.links = todo.links[:-2]
 		todo.run_method("save_customization")
 
+	def test_open_count_restores_the_execution_timeout(self):
+		execution_timeout = frappe.db.get_execution_timeout()
+
+		get_open_count("User", "Administrator")
+
+		self.assertEqual(frappe.db.get_execution_timeout(), execution_timeout)
+
 
 def create_test_data():
 	create_test_child_table_with_link_to_doctype_a()
