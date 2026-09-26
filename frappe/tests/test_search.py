@@ -707,9 +707,9 @@ class TestSearch(IntegrationTestCase):
 			)
 
 	def test_select_permission_shows_link_titles(self):
-		doctype, name = self.make_select_only_titled_doc()
+		doctype, name, user = self.make_select_only_titled_doc()
 
-		with self.set_user("test@example.com"):
+		with self.set_user(user):
 			self.assertFalse(frappe.has_permission(doctype, "read", name))
 			self.assertEqual(get_link_title(doctype, name), "Selectable Title")
 			self.assertEqual(search_link(doctype, "")[0].get("label"), "Selectable Title")
@@ -721,9 +721,9 @@ class TestSearch(IntegrationTestCase):
 			)
 
 	def test_select_permission_hides_restricted_link_titles(self):
-		doctype, name = self.make_select_only_titled_doc(title_permlevel=1)
+		doctype, name, user = self.make_select_only_titled_doc(title_permlevel=1)
 
-		with self.set_user("test@example.com"):
+		with self.set_user(user):
 			self.assertEqual(get_link_title(doctype, name), name)
 			self.assertNotEqual(search_link(doctype, "")[0].get("label"), "Selectable Title")
 			self.assertEqual(
@@ -735,6 +735,7 @@ class TestSearch(IntegrationTestCase):
 
 	def make_select_only_titled_doc(self, title_permlevel=0):
 		with self.set_user("Administrator"):
+			role = frappe.new_doc("Role", role_name=frappe.generate_hash()).insert().name
 			doctype = new_doctype(
 				fields=[
 					{
@@ -746,9 +747,17 @@ class TestSearch(IntegrationTestCase):
 				],
 				title_field="title",
 				show_title_field_in_link=1,
-				permissions=[{"role": "_Test Role", "select": 1, "read": 0}],
+				permissions=[{"role": role, "select": 1, "read": 0}],
 			).insert()
-			return doctype.name, frappe.get_doc(doctype=doctype.name, title="Selectable Title").insert().name
+			name = frappe.get_doc(doctype=doctype.name, title="Selectable Title").insert().name
+			user = frappe.get_doc(
+				doctype="User",
+				email=f"select-{frappe.generate_hash(length=8)}@example.com",
+				first_name="Select Only",
+				send_welcome_email=0,
+				roles=[{"role": role}],
+			).insert()
+			return doctype.name, name, user.name
 
 	def test_awesomebar_search_hook(self):
 		real_get_hooks = frappe.get_hooks
