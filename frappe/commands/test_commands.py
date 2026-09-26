@@ -32,6 +32,7 @@ import frappe.commands.scheduler
 import frappe.commands.site
 import frappe.commands.utils
 import frappe.recorder
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.installer import add_to_installed_apps, remove_app
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase, timeout
@@ -1021,8 +1022,6 @@ class TestCommandUtils(IntegrationTestCase):
 
 class TestTrimDatabase(IntegrationTestCase):
 	def test_ghost_tables_include_deleted_doctype_tables(self):
-		from frappe.core.doctype.doctype.test_doctype import new_doctype
-
 		doctype = new_doctype().insert().name
 		frappe.db.delete("DocType", {"name": doctype})
 
@@ -1030,6 +1029,14 @@ class TestTrimDatabase(IntegrationTestCase):
 
 		self.assertIn(f"tab{doctype}", ghost_tables)
 		self.assertNotIn("tabUser", ghost_tables)
+
+	def test_ghost_tables_skip_truncated_doctype_tables(self):
+		doctype = new_doctype("Test " + "x" * 56)
+		doctype.db_insert()
+		truncated_table = f"tab{doctype.name}"[: frappe.db.MAX_COLUMN_LENGTH]
+
+		with patch("frappe.commands.site.get_base_tables", return_value=[truncated_table]):
+			self.assertNotIn(truncated_table, frappe.commands.site.get_ghost_tables())
 
 
 class TestDBCli(BaseTestCommands):
