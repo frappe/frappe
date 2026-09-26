@@ -9,6 +9,7 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.custom.doctype.customize_form.test_customize_form import TestCustomizeForm
 from frappe.desk.notifications import get_open_count
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 
 
 class TestDashboardConnections(IntegrationTestCase):
@@ -225,6 +226,14 @@ class TestDashboardConnections(IntegrationTestCase):
 		todo = TestCustomizeForm().get_customize_form("ToDo")
 		todo.links = todo.links[:-2]
 		todo.run_method("save_customization")
+
+	@unimplemented_for(db_type_is.POSTGRES)
+	def test_open_count_restores_the_execution_timeout(self):
+		execution_timeout = frappe.db.get_execution_timeout()
+
+		get_open_count("User", "Administrator")
+
+		self.assertEqual(frappe.db.get_execution_timeout(), execution_timeout)
 
 
 def create_test_data():
