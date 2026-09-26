@@ -753,7 +753,6 @@ function get_fields_for_doctype(doctype) {
 function is_web_form_field(df) {
 	return (
 		(frappe.model.is_value_type(df.fieldtype) && !["lft", "rgt"].includes(df.fieldname)) ||
-		// capital S: "Table Multiselect" matches no field
 		["Table", "Table MultiSelect"].includes(df.fieldtype) ||
 		frappe.model.layout_fields.includes(df.fieldtype)
 	);

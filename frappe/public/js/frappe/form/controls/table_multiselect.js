@@ -213,8 +213,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 		return (this.get_link_field() || {}).options;
 	}
 	on_input(e) {
-		// the desk search endpoint is not guest-allowed, so web forms ship the options
-		// with the page, like Table fields do, and match them here
+		// guests can't call the desk search endpoint, so web forms filter options sent with the page
 		if (!this.df.is_web_form) {
 			return super.on_input(e);
 		}
@@ -251,8 +250,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 	}
 	get_link_field() {
 		if (!this._link_field) {
-			// web forms have no locals["DocType"], so the server ships the child
-			// docfields on df.fields instead
+			// web forms have no doctype meta, so fall back to the child fields sent by the server
 			const meta = frappe.get_meta(this.df.options);
 			const fields = meta?.fields?.length ? meta.fields : this.df.fields || [];
 			this._link_field = fields.find((df) => df.fieldtype === "Link");

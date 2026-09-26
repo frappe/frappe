@@ -87,12 +87,11 @@ frappe.ready(function () {
 
 				return df;
 			}
-			// portal visitors cannot create documents, so never offer "Create a new ..."
+
 			if (["Link", "Table MultiSelect"].includes(df.fieldtype)) {
 				df.only_select = true;
 			}
-			// frappe.client.validate_link_and_fetch is not guest-allowed. The server
-			// still rejects unknown links when the form is saved
+			// validate_link_and_fetch isn't guest-allowed; save still validates links
 			if (df.fieldtype === "Table MultiSelect") {
 				df.ignore_link_validation = true;
 			}
