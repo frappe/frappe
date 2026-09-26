@@ -13,7 +13,8 @@
   "model_id",
   "context_window",
   "api_key",
-  "base_url"
+  "base_url",
+  "extra_params"
  ],
  "fields": [
   {
@@ -69,10 +70,16 @@
    "fieldname": "base_url",
    "fieldtype": "Data",
    "label": "Base URL"
+  },
+  {
+   "description": "Extra LiteLLM params sent with every call to this model, e.g. <code>{\"provider\": {\"zdr\": true}}</code> for OpenRouter's zero data retention. Flow Users can read them, so keep keys out.",
+   "fieldname": "extra_params",
+   "fieldtype": "JSON",
+   "label": "Extra Params"
   }
  ],
  "links": [],
- "modified": "2026-09-10 20:00:00",
+ "modified": "2026-09-26 12:18:55.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Model",
