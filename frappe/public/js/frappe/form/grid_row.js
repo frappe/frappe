@@ -973,40 +973,6 @@ export default class GridRow {
 			add_style += `left: ${this.grid.get_sticky_offset(df.fieldname)}px;`;
 		}
 
-		let grid;
-		let grid_container;
-		let input_in_focus = false;
-
-		// prevent random layout shifts caused by widgets and on click position elements inside view (UX).
-		function on_input_focus(el) {
-			input_in_focus = true;
-
-			let container_width = grid_container.getBoundingClientRect().width;
-			let container_left = grid_container.getBoundingClientRect().left;
-			let grid_left = parseFloat(grid.style.left);
-			let element_left = el.offset().left;
-			let fieldtype = el.data("fieldtype");
-
-			let offset_right = container_width - (element_left + el.width());
-			let offset_left = 0;
-			let element_screen_x = element_left - container_left;
-			let element_position_x = container_width - (element_left - container_left);
-
-			if (["Date", "Time", "Datetime"].includes(fieldtype)) {
-				offset_left = element_position_x - 220;
-			}
-			if (["Link", "Dynamic Link"].includes(fieldtype)) {
-				offset_left = element_position_x - 250;
-			}
-			if (element_screen_x < 0) {
-				grid.style.left = `${grid_left - element_screen_x}px`;
-			} else if (offset_left < 0) {
-				grid.style.left = `${grid_left + offset_left}px`;
-			} else if (offset_right < 0) {
-				grid.style.left = `${grid_left + offset_right}px`;
-			}
-		}
-
 		// Delay date_picker widget to prevent temporary layout shift (UX).
 		function handle_date_picker() {
 			let date_time_picker = document.querySelectorAll(".datepicker.active")[0];
@@ -1083,10 +1049,6 @@ export default class GridRow {
 				!input_in_focus && trigger_focus(first_input_field, $(col).data("df"));
 
 				if (event.pointerType == "touch") {
-					first_input_field.length && on_input_focus(first_input_field);
-
-					first_input_field.one("blur", () => (input_in_focus = false));
-
 					first_input_field.data("fieldtype") == "Date" && handle_date_picker();
 				}
 
