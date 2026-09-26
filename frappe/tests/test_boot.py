@@ -98,6 +98,26 @@ class TestBootData(IntegrationTestCase):
 		self.assertNotIn(without_roles, allowed_reports)
 		self.assertIn(enabled, allowed_reports)
 
+	def test_report_on_a_missing_doctype_is_skipped_quietly(self):
+		frappe.set_user("Administrator")
+		orphan = self._make_report("Test Orphan Report")
+		enabled = self._make_report("Test Report Beside Orphan")
+		for report in (orphan, enabled):
+			frappe.db.delete("Has Role", {"parent": report, "parenttype": "Report"})
+		# stands in for a report whose DocType was deleted
+		frappe.db.set_value("Report", orphan, "ref_doctype", "Test Uninstalled DocType")
+
+		frappe.set_user("test@example.com")
+		frappe.clear_messages()
+		error_logs = frappe.db.count("Error Log")
+
+		allowed_reports = DeskViews.get_allowed_reports()
+
+		self.assertNotIn(orphan, allowed_reports)
+		self.assertIn(enabled, allowed_reports)
+		self.assertEqual(frappe.get_message_log(), [])
+		self.assertEqual(frappe.db.count("Error Log"), error_logs)
+
 	def _make_report(self, report_name, disabled=0):
 		return (
 			frappe.get_doc(
