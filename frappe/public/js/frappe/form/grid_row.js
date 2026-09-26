@@ -1149,6 +1149,9 @@ export default class GridRow {
 				this.make_control(column);
 				column.static_area.toggle(false);
 				column.field_area.toggle(true);
+				if (column.df.fieldtype === "Currency") {
+					this.update_currency_symbol_in_grid_input(column.field, column.df);
+				}
 			});
 
 			frappe.ui.form.editable_row = this;
@@ -1235,9 +1238,15 @@ export default class GridRow {
 				field.$input.attr("data-first-input", 1);
 			}
 			if (df.fieldtype === "Currency") {
-				this.update_currency_symbol_in_grid_input(field, df);
 				field.$input.off("input.grid-currency").on("input.grid-currency", () => {
-					this.update_currency_symbol_in_grid_input(field, df);
+					const $wrapper = field.$input.parent();
+					const has_value = /\d/.test(field.$input.val() || "");
+					if (
+						$wrapper.hasClass("grid-currency-input") &&
+						has_value !== $wrapper.hasClass("grid-currency-has-value")
+					) {
+						this.update_currency_symbol_in_grid_input(field, df);
+					}
 				});
 			}
 		}
@@ -1592,7 +1601,7 @@ export default class GridRow {
 		const symbol = window.get_currency_symbol(currency);
 
 		// skip if compound symbols like in case of EGP - "£ or ج."
-		if (symbol && (symbol.includes(" or ") || symbol.length > 3)) {
+		if (symbol && symbol.includes(" or ")) {
 			return;
 		}
 
@@ -1602,6 +1611,7 @@ export default class GridRow {
 		let $wrapper = field.$input.parent();
 		if (!$wrapper.hasClass("grid-currency-input")) {
 			field.$input.wrap('<div class="grid-currency-input"></div>');
+			$wrapper = field.$input.parent();
 		}
 
 		$wrapper.toggleClass("grid-currency-symbol-right", show_on_right);
@@ -1632,6 +1642,11 @@ export default class GridRow {
 
 		const has_value = /\d/.test(field.$input.val() || "");
 		$wrapper.toggleClass("grid-currency-has-value", has_value);
+		if (has_value && $wrapper.is(":visible")) {
+			const $symbol = show_on_right ? $suffix : $prefix;
+			const symbol_width = $symbol[0].getBoundingClientRect().width;
+			$wrapper.css("--grid-currency-symbol-width", `${symbol_width}px`);
+		}
 	}
 	get_field(fieldname) {
 		let field = this.on_grid_fields_dict[fieldname];
