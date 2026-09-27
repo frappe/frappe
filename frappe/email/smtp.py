@@ -29,6 +29,7 @@ class SMTPServer:
 		use_oauth=0,
 		access_token=None,
 		timeout=2 * 60,
+		validate_ssl_certificate=True,
 	):
 		self.login = login
 		self.email_account = email_account
@@ -41,6 +42,7 @@ class SMTPServer:
 		self.access_token = access_token
 		self._session = None
 		self.timeout = timeout
+		self.validate_ssl_certificate = validate_ssl_certificate
 
 		if not self.server:
 			frappe.msgprint(
@@ -57,11 +59,18 @@ class SMTPServer:
 	def server(self):
 		return cstr(self._server or "")
 
+	def _ssl_context(self):
+		context = ssl.create_default_context()
+		if self.validate_ssl_certificate is not None and not cint(self.validate_ssl_certificate):
+			context.check_hostname = False
+			context.verify_mode = ssl.CERT_NONE
+		return context
+
 	def secure_session(self, conn):
 		"""Secure the connection incase of TLS."""
 		if self.use_tls:
 			conn.ehlo()
-			conn.starttls(context=ssl.create_default_context())
+			conn.starttls(context=self._ssl_context())
 			conn.ehlo()
 
 	@property
@@ -74,9 +83,7 @@ class SMTPServer:
 			return self._session
 
 		# `context` is only accepted by SMTP_SSL; plain SMTP has no such argument.
-		SMTP = (
-			partial(smtplib.SMTP_SSL, context=ssl.create_default_context()) if self.use_ssl else smtplib.SMTP
-		)
+		SMTP = partial(smtplib.SMTP_SSL, context=self._ssl_context()) if self.use_ssl else smtplib.SMTP
 
 		try:
 			_session = SMTP(self.server, self.port, timeout=self.timeout)
