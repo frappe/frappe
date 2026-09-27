@@ -31,7 +31,7 @@
 					</button>
 				</div>
 
-				<div v-if="showSearchInput" class="flex w-full px-3 pb-3 pt-2">
+				<div v-if="showSearchInput" class="flex w-full p-3">
 					<Input
 						ref="searchInput"
 						type="text"
