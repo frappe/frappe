@@ -3236,8 +3236,17 @@ class TestQuery(IntegrationTestCase):
 			self.assertIn("OFFSET 10", query)
 
 	def test_get_list_with_offset_and_no_limit(self):
-		names = frappe.get_list("DocType", order_by="name", pluck="name")
-		self.assertEqual(frappe.get_list("DocType", order_by="name", offset=10, pluck="name"), names[10:])
+		with self.set_user("test2@example.com"):
+			for _ in range(12):
+				frappe.get_doc({"doctype": "ToDo", "description": "_Test offset without limit"}).insert()
+			query = {
+				"filters": {"description": "_Test offset without limit"},
+				"order_by": "name",
+				"pluck": "name",
+			}
+			names = frappe.get_list("ToDo", **query)
+			self.assertEqual(frappe.get_list("ToDo", offset=10, **query), names[10:])
+			self.assertEqual(len(names[10:]), 2)
 
 	@run_only_if(db_type_is.MARIADB)
 	def test_build_filter_conditions_escapes_backslash_safely(self):
