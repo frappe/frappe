@@ -783,7 +783,8 @@ export const useStore = defineStore("form-builder-store", () => {
 			// the item was dropped elsewhere, so remove the tab it opened
 			let tabs = form.value.layout.tabs;
 			tabs.splice(tabs.indexOf(new_tab), 1);
-			form.value.active_tab = origin.df.name;
+			// dropped on another page, so stay there; otherwise go back to where the drag began
+			if (form.value.active_tab == new_tab.df.name) form.value.active_tab = origin.df.name;
 			form.value.selected_field = null;
 		} else if (kind == "column") {
 			// the dropped column takes the place of the empty one the tab opened with
