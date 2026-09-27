@@ -44,6 +44,23 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 		expected_slugs = sorted(t.name for t in BUILTIN_TOOLS)
 		self.assertEqual(sorted(row.tool for row in doc.tools), expected_slugs)
 
+	def test_install_adds_builtin_tools_before_any_model(self):
+		self.assertIn(
+			"flow.assistant.sync_builtin_assistant", frappe.get_hooks("after_install", app_name="flow")
+		)
+		frappe.db.set_value("Flow Agent", ASSISTANT_AGENT_TITLE, "is_system_generated", 0)
+		frappe.delete_doc("Flow Agent", ASSISTANT_AGENT_TITLE, ignore_permissions=True)
+		frappe.db.set_value("Flow Model", {"enabled": 1}, "enabled", 0)
+		builtins = [t.name for t in BUILTIN_TOOLS]
+		frappe.db.delete("Flow Tool", {"name": ("in", builtins)})
+
+		sync_builtin_assistant()
+
+		self.assertEqual(
+			sorted(frappe.get_all("Flow Tool", {"name": ("in", builtins)}, pluck="name")), sorted(builtins)
+		)
+		self.assertFalse(frappe.db.exists("Flow Agent", ASSISTANT_AGENT_TITLE))
+
 	def test_sync_updates_instructions_on_existing_system_agent(self):
 		# sync_builtin_assistant should overwrite instructions on a system-generated agent.
 		original = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
