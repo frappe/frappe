@@ -134,13 +134,13 @@ def get_login_with_email_link_ratelimit() -> int:
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=get_login_with_email_link_ratelimit, seconds=60 * 60)
-def send_login_link(email: str):
+def send_login_link(email: str, redirect_to: str | None = None):
 	if not frappe.get_system_settings("login_with_email_link"):
 		return
 
 	try:
 		expiry = frappe.get_system_settings("login_with_email_link_expiry") or 10
-		link = _generate_temporary_login_link(email, expiry)
+		link = _generate_temporary_login_link(email, expiry, redirect_to=sanitize_redirect(redirect_to))
 
 		app_name = (
 			frappe.get_website_settings("app_name") or frappe.get_system_settings("app_name") or _("Frappe")
@@ -167,13 +167,17 @@ def send_login_link(email: str):
 		frappe.log_error(title="Login link generation failed unexpectedly", message=frappe.get_traceback())
 
 
-def _generate_temporary_login_link(email: str, expiry: int):
+def _generate_temporary_login_link(email: str, expiry: int, redirect_to: str | None = None):
 	assert isinstance(email, str)
 
 	if not frappe.db.exists("User", {"name": email, "enabled": 1}):
 		frappe.throw(_("No active user found with email address {0}").format(email), frappe.DoesNotExistError)
 	key = frappe.generate_hash()
-	frappe.cache.set_value(f"one_time_login_key:{key}", email, expires_in_sec=expiry * 60)
+	frappe.cache.set_value(
+		f"one_time_login_key:{key}",
+		{"email": email, "redirect_to": redirect_to},
+		expires_in_sec=expiry * 60,
+	)
 
 	return get_url(f"/api/method/frappe.www.login.login_via_key?key={key}", allow_header_override=False)
 
@@ -182,14 +186,17 @@ def _generate_temporary_login_link(email: str, expiry: int):
 @rate_limit(limit=get_login_with_email_link_ratelimit, seconds=60 * 60)
 def login_via_key(key: str):
 	cache_key = f"one_time_login_key:{key}"
-	email = frappe.cache.get_value(cache_key)
+	login_details = frappe.cache.get_value(cache_key)
 
-	if email:
+	if login_details:
 		frappe.cache.delete_value(cache_key)
-		frappe.local.login_manager.login_as(email)
+		if isinstance(login_details, str):
+			login_details = {"email": login_details}
+		frappe.local.login_manager.login_as(login_details["email"])
 
 		redirect_post_login(
-			desk_user=frappe.db.get_value("User", frappe.session.user, "user_type") == "System User"
+			desk_user=frappe.db.get_value("User", frappe.session.user, "user_type") == "System User",
+			redirect_to=login_details.get("redirect_to"),
 		)
 	else:
 		frappe.respond_as_web_page(

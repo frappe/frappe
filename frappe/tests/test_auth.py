@@ -349,7 +349,7 @@ class TestEmailLinkRedirect(IntegrationTestCase):
 	def test_missing_redirect_uses_default(self):
 		self.consume_link(self.send_link())
 		self.assertEqual(frappe.session.user, self.email)
-		self.assertEqual(frappe.local.response["location"], "http://localhost/me")
+		self.assertEqual(frappe.local.response["location"], frappe.utils.get_url("/me"))
 
 	def test_legacy_email_entry_uses_default(self):
 		key = frappe.generate_hash()
@@ -358,7 +358,7 @@ class TestEmailLinkRedirect(IntegrationTestCase):
 		self.addCleanup(frappe.cache.delete_value, cache_key)
 		self.consume_link(key, redirect_to="/me?injected=1")
 		self.assertEqual(frappe.session.user, self.email)
-		self.assertEqual(frappe.local.response["location"], "http://localhost/me")
+		self.assertEqual(frappe.local.response["location"], frappe.utils.get_url("/me"))
 		self.assertIsNone(frappe.cache.get_value(cache_key))
 
 	def test_link_query_cannot_override_stored_redirect(self):

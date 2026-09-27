@@ -84,6 +84,7 @@ login.bind_events = function () {
 		var args = {};
 		args.cmd = "frappe.www.login.send_login_link";
 		args.email = ($("#login_with_email_link_email").val() || "").trim();
+		args.redirect_to = frappe.utils.get_url_arg("redirect-to");
 		if (!args.email || !validate_email(args.email)) {
 			login.show_field_error("login_with_email_link_email", {{ _("Invalid Email.") | tojson }});
 			return false;
