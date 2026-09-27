@@ -1,5 +1,5 @@
 <template>
-	<div v-if="error" class="border-ink-red-6 flex flex-col gap-2 border p-2 text-ink-red-6" ref="componentRef">
+	<div v-if="error" class="border-ink-red-5 flex flex-col gap-2 border p-2 text-ink-red-5" ref="componentRef">
 		<p class="text-sm-semibold">An error occurred while rendering {{ block.componentName }}:</p>
 		<pre class="text-xs">{{ error }}</pre>
 	</div>
@@ -93,13 +93,24 @@
 			:block="block.extendedFromComponent || block"
 			:breakpoint="breakpoint"
 			:isSelected="isSelected"
+			:isPrimaryInstance="isPrimaryInstance"
 			:target="(target as HTMLElement)"
 		/>
 	</teleport>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, useAttrs, inject, ComputedRef, onErrorCaptured, h } from "vue"
+import {
+	computed,
+	ref,
+	watch,
+	useAttrs,
+	inject,
+	ComputedRef,
+	onErrorCaptured,
+	h,
+	getCurrentInstance,
+} from "vue"
 import type { ComponentPublicInstance } from "vue"
 import { useEventListener } from "@vueuse/core"
 import StudioComponentWrapper from "@/components/StudioComponentWrapper.vue"
@@ -110,7 +121,9 @@ import { customVueComponentsRegistry } from "@/globals"
 
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
-import { getComponentRoot, isObjectEmpty } from "@/utils/helpers"
+import useStudioStore from "@/stores/studioStore"
+import { getBlockInfo, getComponentRoot, isObjectEmpty } from "@/utils/helpers"
+import { isReorderable, startBlockReorder } from "@/utils/useBlockReorder"
 import { isDynamicValue } from "@/utils/code"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
@@ -134,6 +147,7 @@ defineOptions({
 	inheritAttrs: false,
 })
 
+const store = useStudioStore()
 const canvasStore = useCanvasStore()
 const codeStore = useCodeStore()
 
@@ -182,10 +196,15 @@ const componentName = computed(() => {
 
 	if (props.block.isCustomVueComponent) {
 		name = customVueComponentsRegistry.value[name]
-		if (!name) return h(MissingComponent, { componentName: props.block.componentName })
 	}
+	if (!name || isUnregistered(name)) return h(MissingComponent, { componentName: props.block.componentName })
 	return name
 })
+
+// e.g. a frappe-ui component that a later version removed: Vue would render it as an empty unknown element
+const registeredComponents = getCurrentInstance()?.appContext.components ?? {}
+const isUnregistered = (name: unknown) =>
+	typeof name === "string" && /^[A-Z]/.test(name) && !(name in registeredComponents)
 
 const slotScope = inject<ComputedRef<SlotScope> | null>("slotScope", null)
 const componentContext = inject<ComputedRef | null>("componentContext", null)
@@ -265,6 +284,13 @@ watch(
 	{ immediate: true },
 )
 
+// Show component editor only on the first instance; the rest render as faint outlines
+const isPrimaryInstance = computed(() => {
+	if (!props.block.isRepeated()) return true
+	const instanceIndex = slotScope?.value?.dataIndex
+	return instanceIndex === undefined || instanceIndex === 0
+})
+
 const target = computed<HTMLElement | null>(() => {
 	if (!componentRef.value) return null
 	const root = getComponentRoot(componentRef)
@@ -312,7 +338,25 @@ const getClickedComponent = (e: MouseEvent) => {
 	}
 }
 
+// Press-and-drag any block to reorder it in one gesture (no need to select
+// first). The threshold inside startBlockReorder means a plain click still
+// falls through to handleClick for selection.
+const handleMouseDown = (e: MouseEvent) => {
+	if (e.button !== 0 || store.mode !== "select") return
+	const block = getClickedComponent(e)
+	const breakpoint = getBlockInfo(e).breakpoint || props.breakpoint
+	if (!block || !isReorderable(block, breakpoint)) return
+	// every ancestor block listens too; only the deepest one owns the drag
+	e.stopPropagation()
+	startBlockReorder(e, block, breakpoint)
+}
+
 const handleClick = (e: MouseEvent) => {
+	if (canvasStore.preventClick) {
+		e.stopPropagation()
+		e.preventDefault()
+		return
+	}
 	const block = getClickedComponent(e) || props.block
 	canvasStore.activeCanvas?.selectBlock(block, e)
 	if (slotScope?.value) {
@@ -333,6 +377,7 @@ const handleClick = (e: MouseEvent) => {
 
 // Selection/hover listen natively on the rendered root, NOT via template events — those become
 // event props and can't attach when the component renders a fragment root (e.g. ListRows)
+useEventListener(target, "mousedown", handleMouseDown)
 useEventListener(target, "click", handleClick)
 useEventListener(target, "mouseover", handleMouseOver)
 useEventListener(target, "mouseleave", handleMouseLeave)

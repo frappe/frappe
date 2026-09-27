@@ -14,14 +14,14 @@
 					<Combobox
 						:key="Object.keys(block?.componentSlots || {}).length"
 						:options="availableSlotOptions"
-						:allowCustomValue="true"
 						placeholder="Search or add a slot"
 						@update:modelValue="(slotName: string) => addSlot(slotName)"
 						align="end"
 					>
-						<template #trigger="{ togglePopover }">
-							<Button @click="togglePopover" size="sm" variant="ghost" icon="lucide-plus" />
+						<template #trigger>
+							<Button size="sm" variant="ghost" icon="lucide-plus" />
 						</template>
+						<template #item-add-slot="{ query }">Add "{{ query.trim() }}"</template>
 					</Combobox>
 				</template>
 
@@ -29,12 +29,12 @@
 					<div
 						v-for="(slot, slotName) in block?.componentSlots"
 						:key="slotName"
-						class="flex w-full cursor-pointer items-center justify-between gap-1 rounded py-0.5"
+						class="flex w-full cursor-pointer items-center justify-between gap-1 rounded-4 py-0.5"
 						@click="selectSlot(slotName)"
 					>
 						<div class="flex min-w-0 items-center gap-1.5">
 							<Tooltip
-								placement="left"
+								side="left"
 								:hoverDelay="0"
 								:text="isDynamicSlot(slotName) ? 'Dynamic slot' : 'Standard slot'"
 							>
@@ -76,7 +76,7 @@
 						variant="ghost"
 						@click.stop="block?.toggleVisibilityCondition()"
 					>
-						<FeatherIcon :name="block.visibilityCondition ? 'zap' : 'zap-off'" class="h-3 w-3" />
+						<span :class="block.visibilityCondition ? 'lucide-zap' : 'lucide-zap-off'" class="h-3 w-3" />
 					</Button>
 				</template>
 				<Code
@@ -109,7 +109,7 @@
 
 <script setup lang="ts">
 import { ref, computed, toValue, watchEffect } from "vue"
-import { Combobox, Button, Tooltip, Badge, FeatherIcon } from "frappe-ui"
+import { Combobox, Button, Tooltip, Badge } from "frappe-ui"
 import Block from "@/utils/block"
 import { getComponentSlots } from "@/utils/components"
 import PropsEditor from "@/components/PropsEditor.vue"
@@ -154,12 +154,20 @@ watchEffect(async () => {
 	declaredSlots.value = slots.map((slot) => slot.name)
 })
 
-type SlotOption = { label: string; value: string }
-const availableSlotOptions = computed<SlotOption[]>(() =>
-	declaredSlots.value
+const availableSlotOptions = computed(() => [
+	...declaredSlots.value
 		.filter((name) => !props.block?.getSlot(name))
 		.map((name) => ({ label: name, value: name })),
-)
+	{
+		type: "custom" as const,
+		key: "add-slot",
+		label: "Add slot",
+		slot: "add-slot",
+		condition: ({ query }: { query: string }) =>
+			Boolean(query.trim()) && !declaredSlots.value.includes(query.trim()),
+		onClick: ({ query }: { query: string }) => addSlot(query),
+	},
+])
 
 const addSlot = (slotName: string) => {
 	if (!slotName) return

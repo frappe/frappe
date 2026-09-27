@@ -3,14 +3,27 @@
 import json
 import os
 import re
+import subprocess
+import traceback
 
 import click
 import frappe
 from frappe.build import get_node_env
-from frappe.commands import popen
 from frappe.utils import get_files_path
 
-from studio.constants import DEFAULT_COMPONENTS, NON_VUE_COMPONENTS
+from studio.constants import NON_VUE_COMPONENTS
+from studio.utils import walk_blocks
+
+ANSI_ESCAPE_REGEX = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
+LUCIDE_ICON_REGEX = re.compile(r"\blucide-[a-z0-9]+(?:-[a-z0-9]+)*")
+
+
+class StudioAppBuildError(RuntimeError):
+	"""Build failure carrying the full build output on `output`."""
+
+	def __init__(self, message: str, output: str):
+		super().__init__(message)
+		self.output = output
 
 
 class StudioAppBuilder:
@@ -18,10 +31,11 @@ class StudioAppBuilder:
 		self.app_name = studio_app
 		self.is_standard = is_standard
 		self.frappe_app = frappe_app
-		self.components = set(DEFAULT_COMPONENTS)
+		self.components = set()
 		self.studio_component_blocks = {}
 		self.custom_vue_components: dict[str, str] = {}  # {ComponentName: absolute_path}
 		self.page_scripts: list[dict] = []  # [{page_name, file_path}]
+		self.icons: set[str] = set()
 
 		if self.is_standard:
 			"""Build a standard (exported) studio app.
@@ -102,24 +116,48 @@ class StudioAppBuilder:
 			page_scripts_json = json.dumps(self.page_scripts)
 			command += f" --page-scripts '{page_scripts_json}'"
 
+		if self.icons:
+			command += f" --icons {','.join(sorted(self.icons))}"
+
 		studio_app_path = frappe.get_app_source_path("studio")
-		popen(command, cwd=studio_app_path, env=get_node_env(), raise_err=True)
+		result = subprocess.run(
+			command,
+			cwd=studio_app_path,
+			env={**os.environ, **get_node_env()},
+			shell=True,
+			capture_output=True,
+			text=True,
+		)
+		if result.stdout:
+			click.echo(result.stdout)
+		if result.stderr:
+			click.echo(result.stderr, err=True)
+		if result.returncode:
+			output = ANSI_ESCAPE_REGEX.sub("", f"{result.stdout or ''}\n{result.stderr or ''}")
+			raise StudioAppBuildError(
+				f"build failed for app '{self.app_name}' (exit status {result.returncode})", output
+			)
 
 	def get_app_components(self) -> set[str]:
 		pages = frappe.get_all(
 			"Studio Page",
 			filters={"studio_app": self.app_name, "published": 1, "blocks": ("is", "set")},
-			pluck="blocks",
+			fields=["blocks", "script"],
 		)
 		if not pages:
 			return set()
 
-		for blocks in pages:
+		for page in pages:
+			self._add_icons(page.script)
+			blocks = page.blocks
 			if not blocks:
 				continue
+			self._add_icons(blocks if isinstance(blocks, str) else None)
 			if isinstance(blocks, str):
 				self._add_h_function_components(blocks)
 				blocks = frappe.parse_json(blocks)
+			if not blocks:
+				continue
 			root_block = blocks[0]
 			self._add_block_components(root_block)
 
@@ -144,7 +182,9 @@ class StudioAppBuilder:
 				continue
 			try:
 				with open(page_path) as f:
-					page_data = json.load(f)
+					page_text = f.read()
+				page_data = json.loads(page_text)
+				self._add_icons(page_text)
 			except (json.JSONDecodeError, OSError) as e:
 				click.secho(f"Warning: Could not read {page_path}: {e}", fg="yellow")
 				continue
@@ -160,6 +200,9 @@ class StudioAppBuilder:
 			if isinstance(blocks, list) and blocks:
 				self._add_block_components(blocks[0])
 
+	def _add_icons(self, text: str | None) -> None:
+		self.icons.update(LUCIDE_ICON_REGEX.findall(text or ""))
+
 	def _add_h_function_components(self, text: str) -> None:
 		"""Extract component names from h(ComponentName...) function calls"""
 		pattern = r"\bh\(\s*([A-Z][a-zA-Z0-9_]*)"
@@ -168,23 +211,14 @@ class StudioAppBuilder:
 		for match in matches:
 			self.components.add(match)
 
-	def _add_block_components(self, block: dict) -> None:
-		if block.get("isStudioComponent"):
-			self._add_studio_components(block)
-		elif block.get("isCustomVueComponent"):
-			self._add_custom_vue_component(block.get("componentName"))
-		elif block.get("componentName") not in NON_VUE_COMPONENTS:
-			self.components.add(block.get("componentName"))
-		for child in block.get("children", []):
-			self._add_block_components(child)
-
-		if slots := block.get("componentSlots"):
-			for slot in slots.values():
-				content = slot.get("slotContent")
-				if not isinstance(content, list):
-					continue
-				for slot_child in content:
-					self._add_block_components(slot_child)
+	def _add_block_components(self, blocks) -> None:
+		for block in walk_blocks(blocks):
+			if block.get("isStudioComponent"):
+				self._add_studio_components(block)
+			elif block.get("isCustomVueComponent"):
+				self._add_custom_vue_component(block.get("componentName"))
+			elif block.get("componentName") not in NON_VUE_COMPONENTS:
+				self.components.add(block.get("componentName"))
 
 	def _add_studio_components(self, block: dict):
 		if self.is_standard:
@@ -193,6 +227,7 @@ class StudioAppBuilder:
 				self._add_block_components(self.studio_component_blocks[comp_name])
 		else:
 			component_block = frappe.db.get_value("Studio Component", block.get("componentName"), "block")
+			self._add_icons(component_block if isinstance(component_block, str) else None)
 			if isinstance(component_block, str):
 				component_block = frappe.parse_json(component_block)
 			self._add_block_components(component_block)
@@ -211,7 +246,9 @@ class StudioAppBuilder:
 			component_file_path = os.path.join(components_folder, file)
 			try:
 				with open(component_file_path) as f:
-					component = json.load(f)
+					component_text = f.read()
+				component = json.loads(component_text)
+				self._add_icons(component_text)
 
 				component_name = component.get("name")
 				block = component.get("block")
@@ -234,18 +271,14 @@ class StudioAppBuilder:
 				break
 
 
-def build_standard_apps(app: str | None = None) -> None:
-	"""Scan all apps on the bench for studio/ folders and build each exported app.
+def build_standard_apps(apps: list[str] | None = None) -> None:
+	"""Scan passed apps on the bench for studio/ folders and build each exported app.
 
 	This function works without DB access — it reads component data from
 	exported JSON files on disk.
-
-	Args:
-	        app: Only build studio apps exported to this specific frappe app
 	"""
-	apps = [app] if app else frappe.get_all_apps()
-
-	for frappe_app in apps:
+	failed_apps = []
+	for frappe_app in apps or frappe.get_all_apps():
 		studio_folder = get_studio_folder(frappe_app)
 		if not os.path.exists(studio_folder):
 			continue
@@ -268,7 +301,12 @@ def build_standard_apps(app: str | None = None) -> None:
 				StudioAppBuilder(studio_app, is_standard=True, frappe_app=frappe_app).build()
 				click.echo(click.style("✔", fg="green") + f" Built {studio_app}")
 			except Exception:
+				traceback.print_exc()
 				click.echo(click.style("✖", fg="red") + f" Build failed for {studio_app}")
+				failed_apps.append(studio_app)
+
+	if failed_apps:
+		raise RuntimeError(f"Studio app builds failed: {', '.join(failed_apps)}")
 
 
 def build_custom_apps() -> None:
@@ -308,7 +346,9 @@ def get_studio_folder(frappe_app: str) -> str | None:
 	return frappe.get_app_source_path(frappe_app, "studio")
 
 
-def after_build() -> None:
-	"""Hook called after `bench build`. Builds all standard studio apps"""
+def after_app_build(built_apps: list[str]) -> None:
+	"""Hook called after any app is built. Builds studio apps for the built apps."""
+	if not built_apps:
+		return
 	click.secho("\nBuilding Studio Apps...", fg="cyan")
-	build_standard_apps()
+	build_standard_apps(built_apps)

@@ -1,3 +1,5 @@
+import type { StudioComponent } from "@/types/Studio/StudioComponent"
+
 export interface StudioPage {
 	creation: string
 	name: string
@@ -13,6 +15,8 @@ export interface StudioPage {
 	page_name: string
 	/**	Published : Check	*/
 	published?: 0 | 1
+	/**	Allow Guest Access : Check	*/
+	allow_guest?: 0 | 1
 	/**	Route : Data	*/
 	route: string
 	/**	Blocks : JSON	*/
@@ -23,5 +27,6 @@ export interface StudioPage {
 	script?: string
 	/**	Title : Data	*/
 	page_title?: string
+	components?: StudioComponent[]
 	[key: string]: any
 }

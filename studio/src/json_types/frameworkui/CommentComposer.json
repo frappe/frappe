@@ -13,6 +13,16 @@
         "uploadFunction": {
           "type": "object"
         },
+        "extensions": {
+          "type": "array",
+          "items": {}
+        },
+        "maxAttachments": {
+          "type": "number"
+        },
+        "submitting": {
+          "type": "boolean"
+        },
         "mentions": {
           "type": "array",
           "items": {
@@ -39,6 +49,9 @@
       "type": "object",
       "properties": {
         "actions": {
+          "type": "object"
+        },
+        "footer": {
           "type": "object"
         }
       },

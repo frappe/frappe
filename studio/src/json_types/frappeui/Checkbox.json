@@ -4,7 +4,23 @@
   "definitions": {
     "CheckboxProps": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
+        "modelValue": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number",
+              "const": 1
+            },
+            {
+              "type": "number",
+              "const": 0
+            }
+          ]
+        },
         "label": {
           "type": "string"
         },
@@ -17,8 +33,28 @@
               "type": "string"
             },
             {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
               "type": "object",
+              "additionalProperties": false,
               "properties": {
+                "messages": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
                 "name": {
                   "type": "string"
                 },
@@ -27,15 +63,8 @@
                 },
                 "stack": {
                   "type": "string"
-                },
-                "messages": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
                 }
               },
-              "additionalProperties": false,
               "required": [
                 "message",
                 "name"
@@ -52,36 +81,21 @@
         "size": {
           "type": "string",
           "enum": [
+            "xs",
             "sm",
             "md"
           ]
         },
+        "padded": {
+          "type": "boolean"
+        },
         "disabled": {
           "type": "boolean"
-        },
-        "padding": {
-          "type": "boolean"
-        },
-        "modelValue": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "type": "number",
-              "const": 1
-            },
-            {
-              "type": "number",
-              "const": 0
-            }
-          ]
         },
         "indeterminate": {
           "type": "boolean"
         }
-      },
-      "additionalProperties": false
+      }
     }
   }
 }

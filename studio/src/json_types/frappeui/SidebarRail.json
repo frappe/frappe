@@ -8,12 +8,15 @@
         "label": {
           "type": "string"
         },
+        "description": {
+          "type": "string"
+        },
         "icon": {
           "type": [
             "string"
           ]
         },
-        "to": {
+        "route": {
           "anyOf": [
             {
               "type": "string"
@@ -22,6 +25,9 @@
               "type": "object"
             }
           ]
+        },
+        "href": {
+          "type": "string"
         },
         "active": {
           "type": "boolean"
@@ -39,7 +45,7 @@
         "variant": {
           "type": "string",
           "enum": [
-            "tile",
+            "subtle",
             "ghost"
           ]
         }

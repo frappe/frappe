@@ -1,5 +1,5 @@
 <template>
-	<Tooltip :disabled="!label" :placement="tooltipPlacement" :text="label" :hover-delay="hoverDelay">
+	<Tooltip :disabled="!label" :side="tooltipPlacement" :text="label" :hover-delay="hoverDelay">
 		<button class="flex gap-2 text-sm text-ink-gray-5 hover:text-ink-gray-8" v-bind="attrs" ref="rootRef">
 			<component :is="icon" :class="iconClasses" />
 		</button>
@@ -20,7 +20,7 @@ const props = withDefaults(
 	}>(),
 	{
 		size: "md",
-		hoverDelay: 0.1,
+		hoverDelay: 100,
 		tooltipPlacement: "right",
 	},
 )

@@ -1,7 +1,7 @@
 <template>
 	<div class="flex flex-col">
 		<div v-if="label" class="mb-1.5 text-xs text-ink-gray-5">{{ label }}</div>
-		<div class="flex h-auto min-h-40 flex-col overflow-hidden rounded-lg border border-outline-elevation-2">
+		<div class="flex h-auto min-h-40 flex-col overflow-hidden rounded-6 border border-outline-elevation-2">
 			<div class="flex gap-2 border-b border-outline-elevation-2 bg-surface-gray-1 p-2">
 				<Button
 					v-for="tool in tools"

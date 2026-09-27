@@ -5,6 +5,7 @@ import { toast } from "frappe-ui"
 import type { ObjectLiteral, StyleValue, SelectOption, HashString, RGBString } from "@/types"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
 import type { StudioApp } from "@/types/Studio/StudioApp"
+import DOMPurify from "dompurify"
 
 function isEditor() {
 	return window.location.pathname.startsWith("/studio/")
@@ -286,15 +287,20 @@ async function fetchPage(pageName: string) {
 	return pageResource.doc
 }
 
-async function findPageWithRoute(appName: string, pageRoute: string) {
-	let pageName = createResource({
-		url: "studio.studio.doctype.studio_page.studio_page.find_page_with_route",
+// Fetches the page definition (blocks + resources + variables) in one unprivileged call.
+// Data the page renders stays permission-checked by the endpoints its resources call.
+async function findPageWithRoute(appName: string, pageRoute: string, preview: boolean = false) {
+	const page = createResource({
+		url: "studio.studio.doctype.studio_page.studio_page.get_page",
 		method: "GET",
-		params: { app_name: appName, page_route: pageRoute },
+		params: { app_name: appName, page_route: pageRoute, preview },
 	})
-	await pageName.fetch()
-	pageName = pageName.data
-	return fetchPage(pageName)
+	try {
+		await page.fetch()
+	} catch (error) {
+		return null
+	}
+	return page.data
 }
 
 // extract dynamic route variables from a vue-router route, e.g. "/articles/:category" -> ["category"]
@@ -314,24 +320,35 @@ function getAutocompleteValues(data: SelectOption[]) {
 	return (data || []).map((d) => d["value"])
 }
 
-function getParamsObj(params: { key: string; value: string }[]) {
-	const paramsObj: { [key: string]: string } = {}
+type EditableParam = { key: string; value: string; name?: string; isJSONValue?: boolean }
+function getParamsObj(params: EditableParam[]) {
+	const paramsObj: Record<string, unknown> = {}
 	params.forEach((param) => {
 		if (param.key) {
-			paramsObj[param.key] = param.value
+			paramsObj[param.key] = getStoredParamValue(param)
 		}
 	})
 	return paramsObj
 }
 
-function getParamsArray(params?: string | { [key: string]: string }) {
+function getStoredParamValue(param: EditableParam) {
+	if (!param.isJSONValue) return param.value
+	try {
+		return JSON.parse(param.value)
+	} catch {
+		return param.value
+	}
+}
+
+function getParamsArray(params?: string | Record<string, unknown>) {
 	if (!params) return []
 	if (typeof params == "string") {
 		params = JSON.parse(params || "{}")
 	}
-	const paramsArray: { key: string; value: string; name: string }[] = []
+	const paramsArray: EditableParam[] = []
 	Object.entries(params!).forEach(([key, value]) => {
-		paramsArray.push({ key, value, name: key })
+		const _value = typeof value === "string" ? value : JSON.stringify(value)
+		paramsArray.push({ key, value: _value ?? "", name: key, isJSONValue: typeof value !== "string" })
 	})
 	return paramsArray
 }
@@ -542,6 +559,11 @@ function scrub(txt: string | null | undefined) {
 	return txt.replace(/ |-/g, "_").toLowerCase()
 }
 
+function sanitizeHTML(html?: string): string {
+	return DOMPurify.sanitize(html ?? "", { ADD_TAGS: ["use"] })
+}
+
+
 export {
 	isEditor,
 	deepCloneObject,
@@ -597,4 +619,5 @@ export {
 	getErrorMessage,
 	throttle,
 	scrub,
+	sanitizeHTML,
 }

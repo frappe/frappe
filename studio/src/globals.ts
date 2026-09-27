@@ -14,20 +14,19 @@ import {
 	Dialog,
 	Divider,
 	Dropdown,
-	MonthPicker,
 	ErrorMessage,
-	FeatherIcon,
 	FileUploader,
 	FormControl,
 	FormLabel,
-	Input,
-	ListItem,
-	ListView,
+	Icon,
 	LoadingIndicator,
 	LoadingText,
 	MultiSelect,
+	Password,
 	Progress,
 	Popover,
+	Radio,
+	RadioGroup,
 	Rating,
 	Select,
 	Sidebar,
@@ -35,22 +34,17 @@ import {
 	SidebarItem,
 	SidebarLabel,
 	SidebarCollapseToggle,
+	SidebarCard,
+	SidebarRail,
+	SidebarRailItem,
 	Slider,
 	Switch,
 	TabButtons,
 	Tabs,
 	TextInput,
 	Textarea,
-	TextEditor,
-	Toast,
 	Tooltip,
 	Tree,
-	CommandPalette,
-	CommandPaletteItem,
-	Calendar,
-	NumberChart,
-	AxisChart,
-	DonutChart,
 	ContextMenu,
 	Duration,
 	Spinner,
@@ -64,7 +58,24 @@ import {
 	SettingsBody,
 	SettingsRow,
 } from "frappe-ui"
-import { CodeEditor } from "frappe-ui/code-editor"
+import {
+	Calendar,
+	CommandPalette,
+	CommandPaletteItem,
+	ListView,
+	TextEditor,
+} from "frappe-ui/experimental"
+import {
+	AreaChart,
+	BarChart,
+	LineChart,
+	DonutChart,
+	FunnelChart,
+	HeatmapChart,
+	ScatterChart,
+	SankeyChart,
+	NumberCard,
+} from "frappe-ui/charts"
 import {
 	List,
 	ListRows,
@@ -105,21 +116,18 @@ export function registerGlobalComponents(app: App) {
 	app.component("TimePicker", TimePicker)
 	app.component("DateTimePicker", DateTimePicker)
 	app.component("DateRangePicker", DateRangePicker)
-	app.component("MonthPicker", MonthPicker)
 	app.component("Dialog", Dialog)
 	app.component("Divider", Divider)
 	app.component("Dropdown", Dropdown)
 	app.component("ErrorMessage", ErrorMessage)
-	app.component("FeatherIcon", FeatherIcon)
 	app.component("FileUploader", FileUploader)
 	app.component("FormControl", FormControl)
 	app.component("FormLabel", FormLabel)
-	app.component("Input", Input)
-	app.component("ListItem", ListItem)
-	app.component("ListView", ListView)
+	app.component("Icon", Icon)
 	app.component("LoadingIndicator", LoadingIndicator)
 	app.component("LoadingText", LoadingText)
 	app.component("MultiSelect", MultiSelect)
+	app.component("Password", Password)
 	app.component("Progress", Progress)
 	app.component("Popover", Popover)
 	app.component("Rating", Rating)
@@ -130,20 +138,27 @@ export function registerGlobalComponents(app: App) {
 	app.component("Tabs", Tabs)
 	app.component("TextInput", TextInput)
 	app.component("Textarea", Textarea)
-	app.component("TextEditor", TextEditor)
-	app.component("Toast", Toast)
 	app.component("Tooltip", Tooltip)
 	app.component("Tree", Tree)
+	app.component("ListView", ListView)
+	app.component("TextEditor", TextEditor)
 	app.component("CommandPalette", CommandPalette)
 	app.component("CommandPaletteItem", CommandPaletteItem)
 	app.component("Calendar", Calendar)
-	app.component("NumberChart", NumberChart)
-	app.component("AxisChart", AxisChart)
-	app.component("DonutChart", DonutChart)
-	app.component("CodeEditor", CodeEditor)
 	app.component("ContextMenu", ContextMenu)
 	app.component("Duration", Duration)
 	app.component("Spinner", Spinner)
+
+	// frappe-ui/charts
+	app.component("AreaChart", AreaChart)
+	app.component("BarChart", BarChart)
+	app.component("LineChart", LineChart)
+	app.component("DonutChart", DonutChart)
+	app.component("FunnelChart", FunnelChart)
+	app.component("HeatmapChart", HeatmapChart)
+	app.component("ScatterChart", ScatterChart)
+	app.component("SankeyChart", SankeyChart)
+	app.component("NumberCard", NumberCard)
 
 	// List family (frappe-ui/list) — dropped as a tree via the `list` block template.
 	app.component("List", List)
@@ -172,6 +187,15 @@ export function registerGlobalComponents(app: App) {
 	app.component("SidebarItem", SidebarItem)
 	app.component("SidebarLabel", SidebarLabel)
 	app.component("SidebarCollapseToggle", SidebarCollapseToggle)
+	app.component("SidebarCard", SidebarCard)
+
+	// SidebarRail family — dropped as a tree via the `sidebar-rail` block template.
+	app.component("SidebarRail", SidebarRail)
+	app.component("SidebarRailItem", SidebarRailItem)
+
+	// RadioGroup family — dropped as a tree via the `radio-group` block template.
+	app.component("RadioGroup", RadioGroup)
+	app.component("Radio", Radio)
 
 	// @framework/ui components — only on frappe versions that ship apps/frappe/ui.
 	// __FRAMEWORK_UI_AVAILABLE__ is a build-time constant; when false, production
@@ -225,7 +249,9 @@ export function registerGlobalComponents(app: App) {
 		)
 		app.component(
 			"CommentComposer",
-			defineAsyncComponent(() => import("@framework/ui/components/Composer/CommentComposer/CommentComposer.vue")),
+			defineAsyncComponent(
+				() => import("@framework/ui/components/Composer/CommentComposer/CommentComposer.vue"),
+			),
 		)
 		app.component(
 			"Filter",

@@ -1,6 +1,6 @@
 <template>
 	<Dialog
-		v-model="showDialog"
+		v-model:open="showDialog"
 		:title="isEditing ? 'Edit App' : 'New App'"
 		width="md"
 		@after-leave="

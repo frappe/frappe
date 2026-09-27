@@ -1,6 +1,6 @@
 <template>
 	<Dialog
-		v-model="showDialog"
+		v-model:open="showDialog"
 		title="Add Fields from DocType"
 		size="3xl"
 		@after-leave="
@@ -21,7 +21,6 @@
 					:placeholder="`Select fields from ${formMeta.doctype}`"
 					v-model="formMeta.fields"
 					:options="doctypeFields.data"
-					:multiple="true"
 				>
 					<template #summary="{ selectedOptions, summary }">
 						<template v-if="selectedOptions.length">
@@ -82,7 +81,7 @@ import Block from "@/utils/block"
 import { getComponentBlock } from "@/utils/serializer"
 import type { DocTypeField, SelectOption } from "@/types"
 import components from "@/data/components"
-import { Link } from "frappe-ui/frappe"
+import Link from "@framework/ui/components/Link/Link.vue"
 import Grid from "@/components/Grid.vue"
 import { toast } from "frappe-ui"
 

@@ -111,7 +111,7 @@ const props = defineProps<{ controlledProperties: Set<string> }>()
 const canvasStore = useCanvasStore()
 const studioStore = useStudioStore()
 const propertySearch = ref("")
-const propertyCombobox = ref<{ reset: () => void } | null>(null)
+const propertyCombobox = ref<{ clear: () => void } | null>(null)
 
 const selectedBlock = computed(() =>
 	blockController.isAnyBlockSelected() ? blockController.getFirstSelectedBlock() : null,
@@ -214,7 +214,7 @@ const canAddProperty = (property: string) =>
 
 const resetPicker = () => {
 	propertySearch.value = ""
-	nextTick(() => propertyCombobox.value?.reset())
+	nextTick(() => propertyCombobox.value?.clear())
 }
 
 const focusProperty = async (property: string) => {
@@ -227,7 +227,7 @@ const focusProperty = async (property: string) => {
 
 const addProperty = (raw: string | null) => {
 	const block = selectedBlock.value
-	// the null emitted by the combobox's own reset must not reset again (loop)
+	// the null emitted by the combobox's own clear must not reset again (loop)
 	if (!raw || !block) return
 
 	// "color: red" style input sets the value right away; a bare name adds an empty row

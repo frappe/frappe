@@ -5,12 +5,13 @@
 		:selected="isBlockSelected"
 		:data-component-id="block.componentId"
 		:class="getStyleClasses"
+		@mousedown.prevent="handleMouseDown"
 		@click.stop="handleClick"
 	>
 		<!-- Component name label -->
 		<span
-			v-if="!props.block.isRoot()"
-			class="absolute -top-3 left-0 inline-flex items-center gap-1 text-xs"
+			v-if="!props.block.isRoot() && isPrimaryInstance"
+			class="absolute bottom-full left-0 mb-1 inline-flex items-center gap-1 whitespace-nowrap rounded-1 px-1 text-xs"
 			:class="componentLabelClasses"
 		>
 			<LucideRepeat v-if="block.isRepeater() || block.isRepeated()" class="h-3 w-3 shrink-0" />
@@ -62,7 +63,7 @@
 				}"
 			>
 				<span
-					class="absolute -top-3 left-0 inline-block text-nowrap text-xs text-ink-base"
+					class="absolute bottom-full left-0 mb-1 inline-block text-nowrap rounded-1 px-1 text-xs text-ink-base"
 					:class="isSlotSelected(slot.slotId) ? 'bg-surface-purple-6' : 'bg-surface-purple-6/65'"
 				>
 					#{{ slotName }}
@@ -85,6 +86,8 @@ import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import trackTarget, { Tracker } from "@/utils/trackTarget"
+import { isReorderable, startBlockReorder } from "@/utils/useBlockReorder"
+import { isMovable, startBlockMove } from "@/utils/useBlockMove"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
 
@@ -105,6 +108,10 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	isPrimaryInstance: {
+		type: Boolean,
+		default: true,
+	},
 })
 
 const store = useStudioStore()
@@ -116,11 +123,18 @@ const tracker = ref<Tracker>()
 const canvasProps = inject("canvasProps") as CanvasProps
 
 const showMarginPaddingHandlers = computed(() => {
-	return isBlockSelected.value && !props.block.isRoot() && !resizing.value && !canvasStore.isDragging
+	return (
+		props.isPrimaryInstance &&
+		isBlockSelected.value &&
+		!props.block.isRoot() &&
+		!resizing.value &&
+		!canvasStore.isDragging
+	)
 })
 
 const showResizer = computed(() => {
 	return (
+		props.isPrimaryInstance &&
 		!props.block.isRoot() &&
 		isBlockSelected.value &&
 		!canvasStore.isDragging &&
@@ -146,11 +160,19 @@ const getStyleClasses = computed(() => {
 		classes.push("ring-outline-blue-4")
 	}
 
+	if (!props.isPrimaryInstance) {
+		classes.push("opacity-40")
+		return classes
+	}
+
 	if (isBlockSelected.value && !props.block.isRoot() && !canvasStore.isDragging) {
 		// make editor interactive
 		classes.push("pointer-events-auto")
 		// Place the block on the top of the stack
 		classes.push("!z-[19]")
+		if (isMovable(props.block, props.breakpoint)) {
+			classes.push("cursor-grab")
+		}
 	}
 	return classes
 })
@@ -169,16 +191,30 @@ const componentLabelClasses = computed(() => {
 			? "bg-surface-purple-6 text-ink-base"
 			: "bg-surface-blue-6 text-ink-base"
 	} else {
-		return props.block.isStudioComponent ? "text-ink-purple-6" : "text-ink-blue-6"
+		return props.block.isStudioComponent ? "text-ink-purple-5" : "text-ink-blue-5"
 	}
 })
 
-const preventClick = ref(false)
-const handleClick = (ev: MouseEvent) => {
-	if (preventClick.value) {
-		preventClick.value = false
-		return
+// The selected block's overlay sits above the block itself, so it has to start
+// the drag (reorder for in-flow blocks, free move for absolutely positioned
+// ones); the resize/spacing handlers stop their own mousedown.
+const handleMouseDown = (ev: MouseEvent) => {
+	// preventDefault keeps focus where it was, so blur explicitly to commit pending panel edits
+	;(document.activeElement as HTMLElement | null)?.blur()
+	if (ev.button !== 0 || store.mode !== "select") return
+	if ((ev.target as HTMLElement).closest("button")) return
+
+	if (isReorderable(props.block, props.breakpoint)) {
+		ev.stopPropagation()
+		startBlockReorder(ev, props.block, props.breakpoint)
+	} else if (isMovable(props.block, props.breakpoint)) {
+		ev.stopPropagation()
+		startBlockMove(ev, props.block, props.breakpoint)
 	}
+}
+
+const handleClick = (ev: MouseEvent) => {
+	if (canvasStore.preventClick) return
 	const editorWrapper = editor.value
 	editorWrapper.classList.add("pointer-events-none")
 	let element = document.elementFromPoint(ev.x, ev.y) as HTMLElement
@@ -231,7 +267,12 @@ watchEffect(() => {
 
 // Slot overlay tracking
 const showSlotOverlays = computed(() => {
-	return isBlockSelected.value && !props.block.isRoot() && Object.keys(props.block.componentSlots).length > 0
+	return (
+		props.isPrimaryInstance &&
+		isBlockSelected.value &&
+		!props.block.isRoot() &&
+		Object.keys(props.block.componentSlots).length > 0
+	)
 })
 
 const slotOverlays = ref<Record<string, HTMLElement>>({})

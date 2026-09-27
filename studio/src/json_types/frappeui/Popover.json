@@ -39,6 +39,19 @@
         "dismissible": {
           "type": "boolean"
         },
+        "autoFocus": {
+          "type": "boolean"
+        },
+        "trigger": {
+          "type": "string",
+          "enum": [
+            "click",
+            "manual"
+          ]
+        },
+        "reference": {
+          "type": "string"
+        },
         "matchTriggerWidth": {
           "type": "boolean"
         },
@@ -46,78 +59,6 @@
           "type": "boolean"
         },
         "arrow": {
-          "type": "boolean"
-        },
-        "show": {
-          "type": "boolean"
-        },
-        "trigger": {
-          "type": "string",
-          "enum": [
-            "click",
-            "hover"
-          ]
-        },
-        "hoverDelay": {
-          "type": "number"
-        },
-        "leaveDelay": {
-          "type": "number"
-        },
-        "placement": {
-          "type": "string",
-          "enum": [
-            "top-start",
-            "top-end",
-            "bottom-start",
-            "bottom-end",
-            "right-start",
-            "right-end",
-            "left-start",
-            "left-end",
-            "top",
-            "bottom",
-            "right",
-            "left"
-          ]
-        },
-        "popoverClass": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "object"
-            },
-            {
-              "type": "array",
-              "items": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "object"
-                  }
-                ]
-              }
-            }
-          ]
-        },
-        "transition": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "enum": [
-            "default",
-            null
-          ]
-        },
-        "hideOnBlur": {
-          "type": "boolean"
-        },
-        "matchTargetWidth": {
           "type": "boolean"
         }
       },

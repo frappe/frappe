@@ -1,17 +1,23 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/MonthPickerProps",
+  "$ref": "#/definitions/FormLabelProps",
   "definitions": {
-    "MonthPickerProps": {
+    "FormLabelProps": {
       "type": "object",
       "properties": {
-        "placeholder": {
+        "label": {
           "type": "string"
         },
-        "disabled": {
+        "id": {
+          "type": "string"
+        },
+        "required": {
           "type": "boolean"
         }
       },
+      "required": [
+        "label"
+      ],
       "additionalProperties": false
     }
   }

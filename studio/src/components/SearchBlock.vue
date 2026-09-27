@@ -5,14 +5,14 @@
 			<OptionToggle
 				v-model="searchMode"
 				:options="[
-					{ label: 'Search', value: 'search', 'icon-left': 'search' },
-					{ label: 'Find & Replace', value: 'replace', 'icon-left': 'edit-3' },
+					{ label: 'Search', value: 'search', iconLeft: 'lucide-search' },
+					{ label: 'Find & Replace', value: 'replace', iconLeft: 'lucide-pen-line' },
 				]"
 			/>
 		</div>
 
 		<div class="mb-4 flex gap-2">
-			<Input
+			<TextInput
 				ref="searchInput"
 				class="flex-1"
 				type="text"
@@ -23,10 +23,9 @@
 				id="searchInput"
 			/>
 
-			<Popover class="relative inline-block text-left">
-				<template #target="{ isOpen, togglePopover }">
+			<Popover bare>
+				<template #trigger="{ open }">
 					<Button
-						@click="togglePopover"
 						variant="outline"
 						icon="lucide-filter"
 						label="Filters"
@@ -41,23 +40,22 @@
 						>
 							{{ selectedFiltersCount }}
 						</span>
-						<FeatherIcon :name="isOpen ? 'chevron-up' : 'chevron-down'" class="size-4" />
+						<span :class="open ? 'lucide-chevron-up' : 'lucide-chevron-down'" class="size-4" />
 					</Button>
 				</template>
-				<template #body>
-					<div class="w-48 rounded-lg bg-surface-base py-2 shadow-lg ring-1 ring-black ring-opacity-5">
+				<template #default>
+					<div class="w-48 rounded-6 bg-surface-base py-2 shadow-lg ring-1 ring-black ring-opacity-5">
 						<div class="text-xs-medium px-3 py-2 text-ink-gray-5">Filter search results by:</div>
 						<div class="space-y-1 px-2">
 							<label
 								v-for="filter in filters"
 								:key="filter.name"
-								class="flex cursor-pointer items-center rounded px-2 py-1.5 text-sm text-ink-gray-8 hover:bg-surface-gray-1"
+								class="flex cursor-pointer items-center rounded-4 px-2 py-1.5 text-sm text-ink-gray-8 hover:bg-surface-gray-1"
 							>
-								<Input
-									type="checkbox"
-									:checked="filter.selected"
-									@change="toggleFilter(filter)"
-									class="focus:ring-ink-gray-5 mr-3 size-4 rounded border-outline-gray-1 text-ink-gray-7"
+								<Checkbox
+									:modelValue="filter.selected"
+									@update:modelValue="toggleFilter(filter)"
+									class="mr-3"
 								/>
 								<span>{{ filter.name }}</span>
 							</label>
@@ -72,18 +70,16 @@
 
 		<div v-if="canvasStore.activeCanvas?.selectedBlocks?.length" class="mb-4">
 			<label class="flex cursor-pointer items-center text-sm text-ink-gray-7">
-				<Input
-					type="checkbox"
+				<Checkbox
 					v-model="searchInSelectedBlock"
-					@change="performSearch"
+					@update:modelValue="performSearch"
 					label="Search inside selected block only"
-					class="focus:ring-ink-gray-5 border-outline-gray-1 text-ink-gray-7"
-				></Input>
+				/>
 			</label>
 		</div>
 
 		<div v-if="searchMode === 'replace'" class="mb-4">
-			<Input
+			<TextInput
 				class="w-full"
 				type="text"
 				placeholder="Replace with..."
@@ -113,7 +109,7 @@
 		<div v-if="!query" class="mt-6 text-center">
 			<div class="flex flex-col items-center justify-center py-8">
 				<div class="mb-4 flex size-16 items-center justify-center rounded-full bg-surface-gray-2">
-					<FeatherIcon name="search" class="size-8 text-ink-gray-4" />
+					<span class="lucide-search size-8 text-ink-gray-4" />
 				</div>
 				<h3 class="text-sm-medium mb-2 text-ink-gray-6">Search your blocks</h3>
 			</div>
@@ -123,7 +119,7 @@
 			<!-- Search Results -->
 			<div v-for="(result, index) in results" :key="result.componentId">
 				<div
-					class="mb-2 flex cursor-pointer items-center justify-between rounded px-3 py-2 text-sm text-ink-gray-7 hover:bg-surface-gray-1"
+					class="mb-2 flex cursor-pointer items-center justify-between rounded-4 px-3 py-2 text-sm text-ink-gray-7 hover:bg-surface-gray-1"
 					@mouseover.stop="canvasStore.activeCanvas?.setHoveredBlock(result.componentId)"
 					@click="canvasStore.activeCanvas?.scrollBlockIntoView(result)"
 				>
@@ -149,7 +145,7 @@
 		<div v-else-if="query && results.length === 0" class="mt-6 text-center">
 			<!-- No Results State -->
 			<div class="flex flex-col items-center justify-center py-6">
-				<FeatherIcon name="search" class="mb-3 size-6 text-ink-gray-4" />
+				<span class="lucide-search mb-3 size-6 text-ink-gray-4" />
 				<h3 class="text-sm-medium mb-1 text-ink-gray-6">No results found</h3>
 				<p class="text-xs text-ink-gray-5">Try different keywords or adjust your filters</p>
 			</div>
@@ -160,7 +156,7 @@
 import type Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import { watchDebounced } from "@vueuse/core"
-import { FeatherIcon, Popover, Input, Button } from "frappe-ui"
+import { Popover, TextInput, Checkbox, Button } from "frappe-ui"
 import { computed, nextTick, onMounted, Ref, ref } from "vue"
 import { toast } from "frappe-ui"
 import OptionToggle from "@/components/OptionToggle.vue"
@@ -169,7 +165,7 @@ import { jsToJson } from "@/utils/serializer"
 const canvasStore = useCanvasStore()
 
 const searchBlock = ref(null) as Ref<HTMLInputElement | null>
-const searchInput = ref(null) as Ref<HTMLInputElement | null>
+const searchInput = ref<InstanceType<typeof TextInput> | null>(null)
 const query = ref("")
 const replaceQuery = ref("")
 const searchMode = ref<"search" | "replace">("search")
@@ -293,10 +289,7 @@ const handleKeydown = (event: KeyboardEvent) => {
 	// Cmd+F or Ctrl+F for quick search
 	if ((event.metaKey || event.ctrlKey) && event.key === "f") {
 		event.preventDefault()
-		const input = searchInput.value?.querySelector?.("input") || searchInput.value
-		if (input && "focus" in input && typeof input.focus === "function") {
-			input.focus()
-		}
+		searchInput.value?.focus()
 	}
 	// Escape to clear search
 	if (event.key === "Escape") {

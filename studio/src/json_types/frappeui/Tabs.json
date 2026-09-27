@@ -5,14 +5,33 @@
     "TabsProps": {
       "type": "object",
       "properties": {
-        "as": {
-          "type": "string"
+        "modelValue": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "vertical": {
+          "type": "boolean"
+        },
+        "dir": {
+          "type": "string",
+          "enum": [
+            "ltr",
+            "rtl"
+          ]
         },
         "tabs": {
           "type": "array",
           "items": {
             "type": "object",
             "properties": {
+              "value": {
+                "type": [
+                  "string",
+                  "number"
+                ]
+              },
               "label": {
                 "type": "string"
               },
@@ -21,36 +40,62 @@
                   "string"
                 ]
               },
+              "iconLeft": {
+                "type": [
+                  "string"
+                ]
+              },
+              "disabled": {
+                "type": "boolean"
+              },
               "route": {
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object"
+                  }
+                ]
+              },
+              "condition": {
+                "type": "object"
+              },
+              "data": {
+                "type": "object",
+                "additionalProperties": {}
               }
             },
             "required": [
-              "label"
+              "value"
             ],
             "additionalProperties": false
           }
         },
-        "vertical": {
-          "type": "boolean"
-        },
-        "modelValue": {
-          "type": [
-            "string",
-            "number"
-          ]
-        },
-        "dir": {
+        "variant": {
           "type": "string",
           "enum": [
-            "rtl",
-            "ltr"
+            "underline",
+            "subtle",
+            "ghost",
+            "browser-tab"
+          ]
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md"
+          ]
+        },
+        "side": {
+          "type": "string",
+          "enum": [
+            "left",
+            "right"
           ]
         }
       },
-      "required": [
-        "tabs"
-      ],
       "additionalProperties": false
     }
   }

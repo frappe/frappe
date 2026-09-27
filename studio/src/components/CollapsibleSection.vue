@@ -1,8 +1,8 @@
 <!-- Extracted from Builder -->
 <template>
 	<div>
-		<div class="text-sm-medium flex items-center justify-between">
-			<h3 class="flex cursor-pointer items-center gap-1.5 text-base text-ink-gray-9" @click="toggleCollapsed">
+		<div class="text-sm-medium flex cursor-pointer items-center justify-between" @click="toggleCollapsed">
+			<h3 class="flex items-center gap-1.5 text-base text-ink-gray-9">
 				{{ sectionName }}
 				<slot name="title-suffix" />
 			</h3>
@@ -11,7 +11,6 @@
 				:icon="collapsed ? 'lucide-chevron-right' : 'lucide-chevron-down'"
 				:variant="'ghost'"
 				size="sm"
-				@click="toggleCollapsed"
 			></Button>
 		</div>
 		<div v-if="!collapsed">
@@ -20,9 +19,8 @@
 	</div>
 </template>
 <script lang="ts" setup>
-import { toValue } from "@vueuse/core"
 import { Button } from "frappe-ui"
-import { ref, watch } from "vue"
+import { ref, toValue, watch } from "vue"
 
 const props = withDefaults(
 	defineProps<{

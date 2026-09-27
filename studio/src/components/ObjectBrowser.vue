@@ -6,25 +6,25 @@
 			@click="toggleExpanded('root')"
 			class="flex cursor-pointer items-center gap-0.5 font-bold"
 		>
-			<FeatherIcon :name="isExpanded('root') ? 'chevron-down' : 'chevron-right'" class="h-3 w-3" />
-			<span class="text-ink-pink-8">{{ name }}</span>
+			<span :class="isExpanded('root') ? 'lucide-chevron-down' : 'lucide-chevron-right'" class="h-3 w-3" />
+			<span class="text-ink-pink-7">{{ name }}</span>
 		</div>
 
 		<!-- object properties -->
 		<div v-if="!name || isExpanded('root')" class="ml-4">
 			<div v-for="(value, key) in object" :key="key">
-				<div class="group/key my-[7px] flex cursor-pointer items-start gap-0.5" @click="toggleExpanded(key)">
-					<FeatherIcon
+				<div class="group/key my-[7px] flex cursor-pointer items-center gap-0.5" @click="toggleExpanded(key)">
+					<span
 						v-if="isObject(value)"
-						:name="isExpanded(key) ? 'chevron-down' : 'chevron-right'"
-						class="-ml-0.5 h-3 w-3"
+						:class="isExpanded(key) ? 'lucide-chevron-down' : 'lucide-chevron-right'"
+						class="h-3 w-3"
 					/>
-					<span class="text-ink-pink-8">{{ key }}:</span>
+					<span class="text-ink-pink-7">{{ key }}:</span>
 					<span
 						:class="[
 							// wrap truncated text on expansion to display the entire value
 							!isObject(value) && isExpanded(key) ? 'whitespace-normal text-wrap break-all' : 'truncate',
-							'text-ink-violet-8',
+							'text-ink-violet-7',
 						]"
 					>
 						{{ formatValue(value) }}
@@ -33,7 +33,7 @@
 					<IconButton
 						:icon="LucideCopy"
 						label="Copy object path"
-						class="invisible ml-auto px-2 hover:visible group-hover/key:visible"
+						class="invisible ml-1 shrink-0 hover:visible group-hover/key:visible"
 						size="sm"
 						:hoverDelay="1"
 						@click.prevent="copyToClipboard('{{ ' + getObjectPath(key) + ' }}')"
@@ -51,7 +51,6 @@
 
 <script setup lang="ts">
 import { copyToClipboard } from "@/utils/helpers"
-import { FeatherIcon } from "frappe-ui"
 import { ref, computed } from "vue"
 import IconButton from "@/components/IconButton.vue"
 import LucideCopy from "~icons/lucide/copy"

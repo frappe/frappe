@@ -17,8 +17,28 @@
               "type": "string"
             },
             {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
               "type": "object",
+              "additionalProperties": false,
               "properties": {
+                "messages": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
                 "name": {
                   "type": "string"
                 },
@@ -27,15 +47,8 @@
                 },
                 "stack": {
                   "type": "string"
-                },
-                "messages": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
                 }
               },
-              "additionalProperties": false,
               "required": [
                 "message",
                 "name"
@@ -50,9 +63,6 @@
           "type": "string"
         },
         "modelValue": {
-          "type": "string"
-        },
-        "value": {
           "type": "string"
         },
         "interval": {
@@ -96,54 +106,30 @@
         "offset": {
           "type": "number"
         },
-        "placement": {
-          "type": "string",
-          "enum": [
-            "bottom-start",
-            "top-start",
-            "top-end",
-            "bottom-end",
-            "right-start",
-            "right-end",
-            "left-start",
-            "left-end"
-          ]
-        },
         "placeholder": {
           "type": "string"
         },
         "variant": {
           "type": "string",
           "enum": [
+            "subtle",
             "outline",
-            "subtle"
+            "ghost"
           ]
         },
         "size": {
           "type": "string",
           "enum": [
+            "xs",
             "sm",
             "md",
-            "lg",
-            "xl"
+            "lg"
           ]
         },
         "typeable": {
           "type": "boolean"
         },
-        "readonly": {
-          "type": "boolean"
-        },
-        "allowCustom": {
-          "type": "boolean"
-        },
         "keepOpen": {
-          "type": "boolean"
-        },
-        "autoClose": {
-          "type": "boolean"
-        },
-        "use12Hour": {
           "type": "boolean"
         },
         "format": {
@@ -166,20 +152,6 @@
         },
         "max": {
           "type": "string"
-        },
-        "minTime": {
-          "type": "string"
-        },
-        "maxTime": {
-          "type": "string"
-        },
-        "scrollMode": {
-          "type": "string",
-          "enum": [
-            "center",
-            "start",
-            "nearest"
-          ]
         }
       },
       "additionalProperties": false

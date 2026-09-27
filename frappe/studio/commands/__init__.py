@@ -17,7 +17,13 @@ def build_studio_app(context, app_name: str, site: str | None = None):
 	frappe.init(site)
 	frappe.connect()
 	app = frappe.get_doc("Studio App", app_name)
-	app.generate_app_build()
+	result = app.generate_app_build()
+	if build_error := result.get("build_error"):
+		click.secho(
+			f"Build failed for '{app_name}' — see the output above (Error Log: {build_error['error_log']})",
+			fg="red",
+		)
+		raise SystemExit(1)
 	print(f"Studio App '{app_name}' built successfully.")
 
 

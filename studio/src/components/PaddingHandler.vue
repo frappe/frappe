@@ -31,7 +31,7 @@
 				}"
 				@mousedown.stop="handlePadding($event, Position.Top)"
 			/>
-			<div class="m-auto text-sm text-ink-purple-10" v-show="updating">
+			<div class="m-auto text-sm text-ink-purple-9" v-show="updating">
 				{{ blockStyles.paddingTop }}
 			</div>
 		</div>
@@ -58,7 +58,7 @@
 				}"
 				@mousedown.stop="handlePadding($event, Position.Bottom)"
 			/>
-			<div class="m-auto text-sm text-ink-purple-10" v-show="updating">
+			<div class="m-auto text-sm text-ink-purple-9" v-show="updating">
 				{{ blockStyles.paddingBottom }}
 			</div>
 		</div>
@@ -85,7 +85,7 @@
 				}"
 				@mousedown.stop="handlePadding($event, Position.Left)"
 			/>
-			<div class="m-auto text-sm text-ink-purple-10" v-show="updating">
+			<div class="m-auto text-sm text-ink-purple-9" v-show="updating">
 				{{ blockStyles.paddingLeft }}
 			</div>
 		</div>
@@ -112,7 +112,7 @@
 				}"
 				@mousedown.stop="handlePadding($event, Position.Right)"
 			/>
-			<div class="m-auto text-sm text-ink-purple-10" v-show="updating">
+			<div class="m-auto text-sm text-ink-purple-9" v-show="updating">
 				{{ blockStyles.paddingRight }}
 			</div>
 		</div>

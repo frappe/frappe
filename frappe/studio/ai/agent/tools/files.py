@@ -89,7 +89,7 @@ def run_trigger_app_build(ctx, args: dict) -> str:
 	if isinstance(ref, str):
 		return ref
 	_, studio_app = ref
-	frappe.enqueue_doc("Studio App", studio_app, "generate_app_build", queue="long", timeout=1200)
+	frappe.enqueue_doc("Studio App", studio_app, "build_app_bundle", queue="long", timeout=1200)
 	return (
 		"Started an app rebuild. The file changes appear in the running app only after it finishes — "
 		"tell the user to wait for the build to complete."

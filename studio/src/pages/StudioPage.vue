@@ -4,7 +4,7 @@
 		<StudioToolbar class="relative z-30" />
 		<div class="flex flex-col">
 			<StudioLeftPanel
-				class="absolute bottom-0 left-0 top-[var(--toolbar-height)] z-20 overflow-auto bg-surface-base"
+				class="absolute bottom-0 left-0 top-[var(--toolbar-height)] z-20 overflow-hidden bg-surface-base"
 			/>
 
 			<StudioCanvas
@@ -37,7 +37,7 @@
 								{{ store.activePage?.page_title }}
 							</a>
 							<template v-for="(fragment, index) in canvasStore.fragmentStack" :key="fragment.fragmentId">
-								<FeatherIcon name="chevron-right" class="h-3 w-3" />
+								<span class="lucide-chevron-right h-3 w-3" />
 								<a
 									v-if="index < canvasStore.fragmentStack.length - 1"
 									class="flex cursor-pointer items-center gap-1.5"
@@ -69,7 +69,7 @@
 								@click.prevent="store.studioLayout.rightPanelActiveTab = 'Interface'"
 							></Button>
 							<Button variant="subtle" class="text-xs" @click="canvasStore.exitFragmentMode">
-								<template #prefix><FeatherIcon name="chevron-left" class="!h-3 !w-3" /></template>
+								<template #prefix><span class="lucide-chevron-left !h-3 !w-3" /></template>
 								{{ parentFragmentName }}
 							</Button>
 							<Button variant="solid" class="text-xs" :loading="savingFragment" @click="saveFragmentMode">
@@ -153,10 +153,8 @@
 					label="Edit Code"
 					:showLineNumbers="true"
 					:showSaveButton="true"
-					:completions="
-						(context: CompletionContext) =>
-							getCompletions(context, canvasStore.editableBlock?.getCompletions())
-					"
+					:completions="dynamicValueCompletions"
+					:overrideCompletions="true"
 					@save="
 						(val) => {
 							canvasStore.editableBlock?.setProp(canvasStore.editableCode.propName, val)
@@ -170,6 +168,7 @@
 				/>
 			</template>
 		</Dialog>
+		<PasteConflictDialog />
 	</div>
 </template>
 
@@ -177,7 +176,7 @@
 import { onActivated, watchEffect, watch, ref, onDeactivated, toRef, nextTick, computed } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
-import { usePageMeta, Dialog, FeatherIcon, Button } from "frappe-ui"
+import { usePageMeta, Dialog, Button } from "frappe-ui"
 import type { CompletionContext } from "@codemirror/autocomplete"
 
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
@@ -187,6 +186,7 @@ import StudioRightPanel from "@/components/StudioRightPanel.vue"
 import StudioCanvas from "@/components/StudioCanvas.vue"
 import OverlayList from "@/components/OverlayList.vue"
 import Code from "@/components/Code.vue"
+import PasteConflictDialog from "@/components/PasteConflictDialog.vue"
 
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
@@ -194,7 +194,7 @@ import { studioPages } from "@/data/studioPages"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
 import { getBlockCopy, getRootBlock } from "@/utils/serializer"
-import { useStudioCompletions } from "@/utils/useStudioCompletions"
+import { useStudioCompletions, useDynamicValueCompletions } from "@/utils/useStudioCompletions"
 import { toast } from "frappe-ui"
 
 const route = useRoute()
@@ -203,6 +203,9 @@ const store = useStudioStore()
 const canvasStore = useCanvasStore()
 
 const getCompletions = useStudioCompletions()
+const getDynamicValueCompletions = useDynamicValueCompletions()
+// created once: a fresh array here would make Code.vue rebuild its extensions on every re-render
+const dynamicValueCompletions = getDynamicValueCompletions(() => canvasStore.editableBlock?.getCompletions())
 const componentContextMenu = toRef(store, "componentContextMenu")
 useStudioEvents(saveFragmentMode)
 
@@ -248,7 +251,7 @@ async function saveFragmentMode() {
 	}
 
 	if (canvasStore.editingMode === "fragment") {
-		toast.success(`${canvasStore.fragmentData.fragmentName} saved successfully`)
+		toast.success(`${canvasStore.fragmentData.fragmentName} saved`)
 	}
 	// saving a nested fragment returns to its parent fragment canvas
 	if (canvasStore.fragmentStack.length > 1) {

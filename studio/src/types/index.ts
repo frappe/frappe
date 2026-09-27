@@ -158,7 +158,8 @@ export type Operators =
 export type Filter = {
 	fieldname: string
 	operator: Operators
-	value?: string | null
+	// in / not in carry a list of values; everything else a scalar
+	value?: string | string[] | number | null
 	field: DocTypeField
 }
 

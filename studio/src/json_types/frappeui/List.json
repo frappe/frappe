@@ -5,10 +5,65 @@
       "type": "object",
       "properties": {
         "columns": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "sm": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "md": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "lg": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "xl": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "base"
+              ],
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "not": {}
+                  }
+                ]
+              }
+            }
+          ]
         },
         "divider": {
           "type": "string",

@@ -10,6 +10,7 @@ import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
 import { loadPageScriptModule, setPageScriptHotUpdateHandler } from "@/data/studioPageScripts"
 import * as globalUtils from "@/utils/globalUtils"
+import { useSocket } from "@/socket"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
 import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
 import { isFunctionExpression, toOptionalChaining, getTopLevelBindings } from "@/utils/parseCode"
@@ -62,18 +63,26 @@ const useCodeStore = defineStore("codeStore", () => {
 
 	// RESOURCES
 	let pendingResources: Record<string, any> | null = null
-	async function setPageResources(page: StudioPage, setResourceConfig: boolean = false) {
+	async function setPageResources(
+		page: StudioPage,
+		setResourceConfig: boolean = false,
+		preloadedResources?: Resource[],
+	) {
 		stopResourceWatchers()
 		// Each load uses its own map, so old async updates cannot change the current page resources.
 		const pageResources = reactive({}) as Record<string, any>
 		pendingResources = pageResources
 
-		studioPageResources.filters = { parent: page.name }
-		await studioPageResources.reload()
-		if (pendingResources !== pageResources) return
+		let resourceRows = preloadedResources
+		if (!resourceRows) {
+			studioPageResources.filters = { parent: page.name }
+			await studioPageResources.reload()
+			if (pendingResources !== pageResources) return
+			resourceRows = studioPageResources.data as Resource[]
+		}
 
 		await Promise.all(
-			studioPageResources.data.map(async (resource: Resource) => {
+			resourceRows.map(async (resource: Resource) => {
 				await addPageResource(resource, pageResources)
 				const newResource = pageResources[resource.resource_name]
 				if (setResourceConfig && newResource) {
@@ -210,17 +219,33 @@ const useCodeStore = defineStore("codeStore", () => {
 		const evaluatedFilters: Filters = {}
 
 		for (const key in filters) {
-			let value = Array.isArray(filters[key]) ? filters[key][1] : filters[key]
-
-			if (isDynamicValue(value)) {
-				// null ?? undefined → undefined, so nullish filters get dropped on serialization
-				evaluatedFilters[key] = getDynamicValue(value, {}) ?? undefined
+			const raw = filters[key]
+			if (Array.isArray(raw)) {
+				// A list filter is [operator, value] and Frappe unpacks exactly that pair —
+				// the operator must survive to the wire (stripping it turned "!=" and
+				// "not in" filters into equality/bare lists). A flat [op, v1, v2, ...] is
+				// a malformed multi-value filter from older saves — recover it.
+				const operator = raw[0]
+				const value = raw.length > 2 ? raw.slice(1) : raw[1]
+				const evaluated = evaluateFilterValue(value)
+				evaluatedFilters[key] = evaluated === undefined ? undefined : [operator, evaluated]
 			} else {
-				evaluatedFilters[key] = value
+				evaluatedFilters[key] = evaluateFilterValue(raw)
 			}
 		}
 
 		return evaluatedFilters
+	}
+
+	const evaluateFilterValue = (value: any): any => {
+		if (Array.isArray(value)) {
+			return value.map((item) => evaluateFilterValue(item)).filter((item) => item !== undefined)
+		}
+		if (isDynamicValue(value)) {
+			// null ?? undefined → undefined, so nullish filters get dropped on serialization
+			return getDynamicValue(value, {}) ?? undefined
+		}
+		return value
 	}
 
 	function getAPIParams(params: Record<string, any> | string | null = null) {
@@ -315,12 +340,16 @@ const useCodeStore = defineStore("codeStore", () => {
 	}
 
 	// VARIABLES
-	async function setPageVariables(page: StudioPage) {
-		studioVariables.filters = { parent: page.name }
-		await studioVariables.reload()
+	async function setPageVariables(page: StudioPage, preloadedVariables?: Variable[]) {
+		let variableRows = preloadedVariables
+		if (!variableRows) {
+			studioVariables.filters = { parent: page.name }
+			await studioVariables.reload()
+			variableRows = studioVariables.data as Variable[]
+		}
 		variables.value = {}
 
-		studioVariables.data.map((variable: Variable) => {
+		variableRows.map((variable: Variable) => {
 			variables.value[variable.variable_name] = getInitialVariableValue(variable)
 		})
 	}
@@ -469,6 +498,7 @@ const useCodeStore = defineStore("codeStore", () => {
 			...resources.value,
 			...pageScriptTemplateBindings.value,
 			...globalUtils,
+			socket: useSocket(),
 			route: unref(routeObject.value),
 			router: routerObject.value,
 		}
@@ -483,6 +513,7 @@ const useCodeStore = defineStore("codeStore", () => {
 			...currentResourceProxies(),
 			...pageScriptBindings.value,
 			...globalUtils,
+			socket: useSocket(),
 			route: currentRoute,
 			router: routerObject.value,
 		}

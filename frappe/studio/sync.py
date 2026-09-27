@@ -10,6 +10,7 @@ from studio.build import build_custom_apps
 def after_migrate():
 	_patch_mode(True)
 	sync_studio_apps()
+	remove_orphaned_apps_and_pages()
 	_patch_mode(False)
 	# Rebuild all published custom (DB) apps.
 	build_custom_apps()
@@ -45,26 +46,55 @@ def sync_studio_apps(app_name: str | None = None):
 			print(f"Syncing Studio App {studio_app} for {app}")
 			if os.path.isdir(os.path.join(studio_folder_path, studio_app)):
 				app_folder = os.path.join(studio_folder_path, studio_app)
-				app_path = os.path.join(app_folder, studio_app) + ".json"
-				import_file_by_path(app_path)
+				import_file_by_path(get_app_file_path(app_folder))
 
 				sync_pages(app_folder)
 				sync_components(app_folder)
 
 
+def remove_orphaned_apps_and_pages():
+	"""Delete standard apps and pages from DB whose exported files are gone, like frappe's orphaned doctype remover."""
+	apps, pages = get_exported_docnames()
+	standard = {"is_standard": 1, "frappe_app": ("in", frappe.get_installed_apps())}
+
+	for app in frappe.get_all("Studio App", filters=standard, pluck="name"):
+		if app not in apps:
+			print(f"Removing orphan Studio App {app}")
+			frappe.delete_doc("Studio App", app, force=True)
+
+	for page in frappe.get_all("Studio Page", filters=standard, fields=["name", "page_title"]):
+		if page.name not in pages:
+			print(f"Removing orphan Studio Page {page.page_title}")
+			frappe.delete_doc("Studio Page", page.name, force=True, ignore_missing=True)
+
+
+def get_exported_docnames() -> tuple[set[str], set[str]]:
+	"""Docnames of every Studio App and Studio Page that has a file on disk, as (apps, pages).
+
+	Walks folders rather than studio_apps.txt: an app whose folder exists but isn't listed is
+	unsynced, not an orphan.
+	"""
+	apps, pages = set(), set()
+	for app in frappe.get_installed_apps():
+		studio_folder_path = frappe.get_app_source_path(app, "studio")
+		if not os.path.isdir(studio_folder_path):
+			continue
+		for entry in os.listdir(studio_folder_path):
+			app_folder = os.path.join(studio_folder_path, entry)
+			app_path = get_app_file_path(app_folder)
+			if not os.path.isfile(app_path):
+				continue
+			apps.add(read_json_file(app_path).get("name"))
+			# exported page `name` is the scrubbed title; the docname is `page_name`
+			pages.update(read_json_file(path).get("page_name") for path in get_page_file_paths(app_folder))
+	return apps, pages
+
+
 def sync_pages(app_folder):
-	studio_page_folder = os.path.join(app_folder, "studio_page")
-	if not os.path.exists(studio_page_folder):
-		return
 	# each page is a folder holding <stem>.json + <stem>.ts; the script lives in the .ts (the runtime
 	# loads it directly), so the DB `script` field stays empty for exported pages
-	for entry in os.listdir(studio_page_folder):
-		page_dir = os.path.join(studio_page_folder, entry)
-		if not os.path.isdir(page_dir):
-			continue
-		page_path = os.path.join(page_dir, f"{entry}.json")
-		if os.path.exists(page_path):
-			import_file_by_path(page_path)
+	for page_path in get_page_file_paths(app_folder):
+		import_file_by_path(page_path)
 
 
 def sync_components(app_folder):
@@ -76,3 +106,24 @@ def sync_components(app_folder):
 		if component.endswith(".json"):
 			component_path = os.path.join(studio_component_folder, component)
 			import_file_by_path(component_path)
+
+
+def get_app_file_path(app_folder) -> str:
+	# the folder keeps the app's name as-is, but its JSON is written scrubbed (`my-app/my_app.json`)
+	return os.path.join(app_folder, f"{frappe.scrub(os.path.basename(app_folder))}.json")
+
+
+def get_page_file_paths(app_folder) -> list[str]:
+	studio_page_folder = os.path.join(app_folder, "studio_page")
+	if not os.path.exists(studio_page_folder):
+		return []
+	paths = []
+	for entry in os.listdir(studio_page_folder):
+		page_path = os.path.join(studio_page_folder, entry, f"{entry}.json")
+		if os.path.isfile(page_path):
+			paths.append(page_path)
+	return paths
+
+
+def read_json_file(path) -> dict:
+	return frappe.parse_json(frappe.read_file(path))

@@ -3,24 +3,25 @@
 	<div class="flex w-full items-center justify-between">
 		<InputLabel v-if="label">{{ label }}</InputLabel>
 		<TabButtons
-			class="w-full min-w-[150px] [&>div]:flex [&>div]:w-full [&_[data-slot=tab-button]>*]:w-full [&_[data-slot=tab-button]]:flex-1"
-			:buttons="options"
+			class="w-full min-w-[150px]"
+			fluid
+			:options="options"
 			:modelValue="modelValue"
 			@update:modelValue="$emit('update:modelValue', $event)"
 		></TabButtons>
 	</div>
 </template>
 <script setup lang="ts">
+import type { PropType } from "vue"
 import InputLabel from "@/components/InputLabel.vue"
-import { TabButtons, ButtonProps } from "frappe-ui"
+import { TabButtons, type TabButton } from "frappe-ui"
 
-type ButtonProps = typeof ButtonProps
 defineProps({
 	modelValue: {
-		type: [String, Number, Boolean],
+		type: [String, Number],
 	},
 	options: {
-		type: Array<ButtonProps>,
+		type: Array as PropType<TabButton[]>,
 		default: () => [],
 	},
 	label: {

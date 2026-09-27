@@ -1,25 +1,26 @@
 <!-- Extracted from Builder, modified later -->
 <template>
-	<Popover transition="default" :placement="placement" class="!block w-full" popoverClass="!min-w-fit">
-		<template #target="{ togglePopover, isOpen }">
-			<slot
-				name="target"
-				:togglePopover="
-					() => {
-						togglePopover()
-						setSelectorPosition(modelColor)
-					}
-				"
-				:isOpen="isOpen"
-			></slot>
+	<Popover v-model:open="isOpen" trigger="manual" :side="side" :align="align" bare>
+		<template #trigger>
+			<div class="w-full">
+				<slot name="target" :togglePopover="togglePopover" :isOpen="isOpen"></slot>
+			</div>
 		</template>
-		<template #body="{ close }">
-			<div class="flex w-[200px] flex-col rounded bg-surface-base shadow-lg">
-				<Tabs v-if="showTokens" :tabs="[{ label: 'Custom' }, { label: 'Tokens' }]" v-model="activeTab"></Tabs>
+		<template #default>
+			<div class="flex w-[200px] flex-col rounded-4 bg-surface-base shadow-lg">
+				<Tabs
+					v-if="showTokens"
+					:tabs="[
+						{ label: 'Custom', value: 'custom' },
+						{ label: 'Tokens', value: 'tokens' },
+					]"
+					v-model="activeTab"
+					class="[&_[data-slot=tab-list]]:px-5 [&_[data-slot=tab-list]]:py-2"
+				></Tabs>
 				<div
-					v-show="!showTokens || activeTab === 0"
+					v-show="!showTokens || activeTab === 'custom'"
 					ref="colorPicker"
-					class="rounded-b-lg bg-surface-base p-3"
+					class="rounded-b-6 bg-surface-base p-3"
 				>
 					<div
 						ref="colorMap"
@@ -31,7 +32,7 @@
 							`,
 						}"
 						@mousedown.prevent="handleSelectorMove"
-						class="relative m-auto h-24 w-44 rounded-md"
+						class="relative m-auto h-24 w-44 rounded-5"
 						@click.prevent="setColor"
 					>
 						<div
@@ -52,7 +53,7 @@
 					</div>
 					<div
 						ref="hueMap"
-						class="relative m-auto mt-2 h-3 w-44 rounded-md"
+						class="relative m-auto mt-2 h-3 w-44 rounded-5"
 						@click="setHue"
 						@mousedown.prevent="handleHueSelectorMove"
 						:style="{
@@ -97,15 +98,10 @@
 						</div>
 					</div>
 				</div>
-				<div v-show="showTokens && activeTab === 1" class="p-1">
-					<ListBox
-						:borderLess="true"
-						:options="tokens"
-						@update:modelValue="emit('update:modelValue', $event)"
-						class="h-[184px]"
-					>
+				<div v-show="showTokens && activeTab === 'tokens'" class="p-1">
+					<ListBox :borderLess="true" :options="tokens" @update:modelValue="selectToken" class="h-[184px]">
 						<template #option-prefix="{ option }">
-							<div class="mr-2 size-4 rounded border" :style="{ background: option.value }"></div>
+							<div class="mr-2 size-4 rounded-4 border" :style="{ background: option.value }"></div>
 						</template>
 					</ListBox>
 				</div>
@@ -142,33 +138,34 @@ const props = withDefaults(
 		modelValue: HashString | RGBString | null
 		property?: "backgroundColor" | "borderColor" | "textColor"
 		showTokens?: boolean
-		placement?:
-			| "bottom-start"
-			| "top-start"
-			| "top-end"
-			| "bottom-end"
-			| "right-start"
-			| "right-end"
-			| "left-start"
-			| "left-end"
-			| "bottom"
-			| "top"
-			| "right"
-			| "left"
+		side?: "top" | "right" | "bottom" | "left"
+		align?: "start" | "center" | "end"
 	}>(),
 	{
 		modelValue: null,
-		placement: "bottom-start",
+		side: "bottom",
+		align: "start",
 		showTokens: true,
 	},
 )
 
-const activeTab = ref(1)
+const activeTab = ref("tokens")
+const isOpen = ref(false)
 const modelColor = computed(() => {
 	return getRGB(props.modelValue)
 })
 
+const togglePopover = () => {
+	isOpen.value = !isOpen.value
+	setSelectorPosition(modelColor.value)
+}
+
 const emit = defineEmits(["update:modelValue"])
+
+const selectToken = (value?: string | null) => {
+	emit("update:modelValue", value)
+	isOpen.value = false
+}
 
 const colors = [
 	"#FFB3E6",

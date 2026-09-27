@@ -4,13 +4,13 @@
 		<div
 			v-for="block in overlayNodes"
 			:key="block.componentId"
-			class="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed bg-surface-base p-3"
+			class="flex cursor-pointer items-center gap-3 rounded-6 border border-dashed bg-surface-base p-3"
 			:class="block.isStudioComponent ? 'border-outline-purple-4' : 'border-outline-blue-4'"
 			@click="editOverlay(block)"
 		>
 			<div
-				class="bg-surface-white flex h-7 w-7 shrink-0 items-center justify-center rounded"
-				:class="block.isStudioComponent ? 'text-ink-purple-7' : 'text-ink-blue-6'"
+				class="bg-surface-white flex h-7 w-7 shrink-0 items-center justify-center rounded-4"
+				:class="block.isStudioComponent ? 'text-ink-purple-6' : 'text-ink-blue-5'"
 			>
 				<component :is="block.getIcon()" class="h-3.5 w-3.5" />
 			</div>
@@ -24,7 +24,7 @@
 			</div>
 			<span
 				class="flex shrink-0 items-center gap-1 text-xs font-medium"
-				:class="block.isStudioComponent ? 'text-ink-purple-6' : 'text-ink-blue-6'"
+				:class="block.isStudioComponent ? 'text-ink-purple-5' : 'text-ink-blue-5'"
 			>
 				Edit
 				<LucideArrowUpRight class="h-3 w-3" />

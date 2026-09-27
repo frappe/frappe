@@ -17,11 +17,10 @@
         "size": {
           "type": "string",
           "enum": [
+            "xs",
             "sm",
             "md",
-            "lg",
-            "xl",
-            "2xl"
+            "lg"
           ]
         },
         "variant": {
@@ -73,7 +72,7 @@
             }
           ]
         },
-        "link": {
+        "href": {
           "type": "string"
         },
         "type": {

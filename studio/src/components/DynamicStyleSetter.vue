@@ -85,7 +85,7 @@ const error = ref("")
 watch(dynamicValue, () => (error.value = ""))
 
 const setStyle = () => {
-	// CSS values like var(--ink-red-5) must be quoted to be valid JS, flag them before saving
+	// CSS values like var(--ink-red-4) must be quoted to be valid JS, flag them before saving
 	error.value = getExpressionError(dynamicValue.value) || ""
 	if (error.value) return
 

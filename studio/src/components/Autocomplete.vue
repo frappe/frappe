@@ -10,7 +10,7 @@
 		<div class="relative" ref="containerRef">
 			<!-- the popper-positioned list anchors to this input row -->
 			<ComboboxAnchor
-				class="group form-input flex h-7 flex-1 items-center gap-2 rounded bg-surface-gray-2 p-0 text-sm text-ink-gray-8 transition-colors focus-within:bg-surface-base focus-within:ring-2 focus-within:ring-outline-gray-3"
+				class="group form-input flex h-7 flex-1 items-center gap-2 rounded-4 bg-surface-gray-2 p-0 text-sm text-ink-gray-8 transition-colors focus-within:bg-surface-base focus-within:ring-2 focus-within:ring-outline-gray-3"
 			>
 				<div v-if="$slots.prefix" class="flex items-center pl-2">
 					<slot name="prefix" />
@@ -40,7 +40,7 @@
 					ref="contentRef"
 					position="popper"
 					:side-offset="4"
-					class="z-50 w-[var(--reka-combobox-trigger-width)] overflow-hidden rounded-lg border bg-surface-base shadow-xl"
+					class="z-50 w-[var(--reka-combobox-trigger-width)] overflow-hidden rounded-6 border bg-surface-base shadow-xl"
 				>
 					<div class="max-h-[min(20rem,var(--reka-combobox-content-available-height))] overflow-y-auto p-1">
 						<template v-for="(option, index) in displayOptions" :key="`${option.value}-${index}`">
@@ -58,7 +58,7 @@
 								v-else
 								:value="option.value"
 								:disabled="option.disabled"
-								class="group flex cursor-default select-none items-center gap-2 rounded px-2 py-1.5 text-sm text-ink-gray-9 transition-colors data-[disabled]:pointer-events-none data-[highlighted]:bg-surface-gray-1 data-[disabled]:opacity-50"
+								class="group flex cursor-default select-none items-center gap-2 rounded-4 px-2 py-1.5 text-sm text-ink-gray-9 transition-colors data-[disabled]:pointer-events-none data-[highlighted]:bg-surface-gray-1 data-[disabled]:opacity-50"
 							>
 								<component v-if="option.prefix" :is="option.prefix" class="h-4 w-4 flex-shrink-0" />
 								<span class="w-full flex-1 truncate">{{ option.label }}</span>

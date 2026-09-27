@@ -17,8 +17,28 @@
               "type": "string"
             },
             {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
               "type": "object",
+              "additionalProperties": false,
               "properties": {
+                "messages": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
                 "name": {
                   "type": "string"
                 },
@@ -27,15 +47,8 @@
                 },
                 "stack": {
                   "type": "string"
-                },
-                "messages": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
                 }
               },
-              "additionalProperties": false,
               "required": [
                 "message",
                 "name"
@@ -48,6 +61,19 @@
         },
         "id": {
           "type": "string"
+        },
+        "modelValue": {
+          "anyOf": [
+            {
+              "type": [
+                "string",
+                "number"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "options": {
           "type": "array",
@@ -67,7 +93,10 @@
                     "type": "string"
                   },
                   "value": {
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   },
                   "icon": {
                     "type": [
@@ -85,19 +114,6 @@
                   },
                   "slots": {
                     "type": "object"
-                  },
-                  "slotName": {
-                    "type": "string"
-                  },
-                  "render": {
-                    "anyOf": [
-                      {
-                        "type": "object"
-                      },
-                      {
-                        "type": "object"
-                      }
-                    ]
                   }
                 },
                 "required": [
@@ -135,9 +151,6 @@
                   "slots": {
                     "type": "object"
                   },
-                  "slotName": {
-                    "type": "string"
-                  },
                   "onClick": {
                     "type": "object"
                   },
@@ -146,16 +159,6 @@
                   },
                   "condition": {
                     "type": "object"
-                  },
-                  "render": {
-                    "anyOf": [
-                      {
-                        "type": "object"
-                      },
-                      {
-                        "type": "object"
-                      }
-                    ]
                   }
                 },
                 "required": [
@@ -198,7 +201,10 @@
                               "type": "string"
                             },
                             "value": {
-                              "type": "string"
+                              "type": [
+                                "string",
+                                "number"
+                              ]
                             },
                             "icon": {
                               "type": [
@@ -216,19 +222,6 @@
                             },
                             "slots": {
                               "type": "object"
-                            },
-                            "slotName": {
-                              "type": "string"
-                            },
-                            "render": {
-                              "anyOf": [
-                                {
-                                  "type": "object"
-                                },
-                                {
-                                  "type": "object"
-                                }
-                              ]
                             }
                           },
                           "required": [
@@ -266,9 +259,6 @@
                             "slots": {
                               "type": "object"
                             },
-                            "slotName": {
-                              "type": "string"
-                            },
                             "onClick": {
                               "type": "object"
                             },
@@ -277,16 +267,6 @@
                             },
                             "condition": {
                               "type": "object"
-                            },
-                            "render": {
-                              "anyOf": [
-                                {
-                                  "type": "object"
-                                },
-                                {
-                                  "type": "object"
-                                }
-                              ]
                             }
                           },
                           "required": [
@@ -327,10 +307,10 @@
         "size": {
           "type": "string",
           "enum": [
+            "xs",
             "sm",
             "md",
-            "lg",
-            "xl"
+            "lg"
           ]
         },
         "placeholder": {
@@ -341,6 +321,9 @@
         },
         "open": {
           "type": "boolean"
+        },
+        "query": {
+          "type": "string"
         },
         "openOnFocus": {
           "type": "boolean"
@@ -373,22 +356,17 @@
             "string"
           ]
         },
-        "allowCustomValue": {
-          "type": "boolean"
-        },
         "loading": {
           "type": "boolean"
         },
         "emptyText": {
           "type": "string"
         },
-        "placement": {
-          "type": "string",
-          "enum": [
-            "start",
-            "center",
-            "end"
-          ]
+        "hideSearch": {
+          "type": "boolean"
+        },
+        "filterable": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false

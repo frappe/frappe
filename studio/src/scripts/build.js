@@ -1,13 +1,17 @@
 import {
 	FRAPPE_UI_COMPONENTS,
 	FRAPPE_UI_MOLECULES,
-	FRAPPE_COMPONENTS,
+	FRAPPE_UI_EXPERIMENTAL_COMPONENTS,
+	FRAPPE_UI_CHARTS,
 	STUDIO_COMPONENTS,
 	FRAMEWORK_UI_COMPONENTS,
 } from "../utils/constants.js"
 import { writeFileSync } from "fs"
 import fs from "fs"
 import { build } from "vite"
+import tailwindcss from "tailwindcss"
+import loadTailwindConfig from "tailwindcss/loadConfig.js"
+import autoprefixer from "autoprefixer"
 import vue from "@vitejs/plugin-vue"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
@@ -16,6 +20,7 @@ import frappeui from "frappe-ui/vite"
 import sharedDependencyResolver from "../../vite/sharedDependencyResolver.js"
 import studioRootAlias from "../../vite/studioRootAlias.js"
 import frameworkUIAlias from "../../vite/frameworkUIAlias.js"
+import frameworkUICodeEditorShim from "../../vite/frameworkUICodeEditorShim.js"
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
 // bench apps folder (scripts -> src -> frontend -> studio -> apps)
@@ -74,6 +79,7 @@ const { values: argv } = parseArgs({
 		base: { type: "string" },
 		"custom-components": { type: "string" },
 		"page-scripts": { type: "string" },
+		icons: { type: "string" },
 	},
 	strict: false,
 })
@@ -90,6 +96,7 @@ await generateAppBuild(
 	argv.base,
 	argv["custom-components"],
 	argv["page-scripts"],
+	argv.icons,
 )
 
 export async function generateAppBuild(
@@ -99,6 +106,7 @@ export async function generateAppBuild(
 	base,
 	customComponentsJson,
 	pageScriptsJson,
+	icons,
 ) {
 	if (!appName) return
 
@@ -109,36 +117,50 @@ export async function generateAppBuild(
 	const componentSources = findComponentSources(componentList, customComponents)
 	const rendererContent = getRendererContent(componentSources, pageScripts)
 	const tempRendererPath = writeRendererFile(appName, rendererContent)
-	await buildWithVite(appName, tempRendererPath, outDir, base)
+	const iconList = icons ? icons.split(",") : []
+	await buildWithVite(appName, tempRendererPath, outDir, base, iconList)
 	deleteRendererFile(tempRendererPath)
 }
 
 function findComponentSources(appComponents, customComponents = {}) {
 	const frappeUIComponents = []
 	const frappeUIMolecules = []
-	const frappeComponents = []
+	const frappeUIExperimentalComponents = []
+	const frappeUICharts = []
 	const frameworkUIComponents = []
 	const studioComponents = []
+	const missingComponents = []
 
 	appComponents.forEach((component) => {
 		if (FRAPPE_UI_COMPONENTS.includes(component)) {
 			frappeUIComponents.push(component)
 		} else if (FRAPPE_UI_MOLECULES.includes(component)) {
 			frappeUIMolecules.push(component)
-		} else if (FRAPPE_COMPONENTS.includes(component)) {
-			frappeComponents.push(component)
+		} else if (FRAPPE_UI_EXPERIMENTAL_COMPONENTS.includes(component)) {
+			frappeUIExperimentalComponents.push(component)
+		} else if (FRAPPE_UI_CHARTS.includes(component)) {
+			frappeUICharts.push(component)
 		} else if (FRAMEWORK_UI_COMPONENTS.includes(component)) {
 			// Drop @framework/ui components when the package isn't on this bench —
 			// a stale app reference must not break the build with an unresolvable import.
 			if (frameworkUIAvailable) frameworkUIComponents.push(component)
 		} else if (STUDIO_COMPONENTS.includes(component)) {
 			studioComponents.push(component)
+		} else {
+			missingComponents.push(component)
 		}
 	})
+
+	if (missingComponents.length) {
+		throw new Error(
+			`Components used by this app are missing from the build lists: ` + `${missingComponents.join(", ")}`,
+		)
+	}
 	return {
 		frappeUIComponents,
 		frappeUIMolecules,
-		frappeComponents,
+		frappeUIExperimentalComponents,
+		frappeUICharts,
 		frameworkUIComponents,
 		studioComponents,
 		customComponents,
@@ -149,7 +171,8 @@ function getRendererContent(componentSources, pageScripts = []) {
 	const {
 		frappeUIComponents,
 		frappeUIMolecules,
-		frappeComponents,
+		frappeUIExperimentalComponents,
+		frappeUICharts,
 		frameworkUIComponents,
 		studioComponents,
 		customComponents,
@@ -159,8 +182,12 @@ function getRendererContent(componentSources, pageScripts = []) {
 	// Molecules ship from a dedicated subpath
 	const frappeUIMoleculeImports =
 		frappeUIMolecules.length > 0 ? `import { ${frappeUIMolecules.join(",\n ")} } from "frappe-ui/list";` : ""
-	const frappeImports =
-		frappeComponents.length > 0 ? `import { ${frappeComponents.join(",\n ")} } from "frappe-ui/frappe";` : ""
+	const frappeUIExperimentalImports =
+		frappeUIExperimentalComponents.length > 0
+			? `import { ${frappeUIExperimentalComponents.join(",\n ")} } from "frappe-ui/experimental";`
+			: ""
+	const frappeUIChartImports =
+		frappeUICharts.length > 0 ? `import { ${frappeUICharts.join(",\n ")} } from "frappe-ui/charts";` : ""
 	const frameworkUIImports = getFrameworkUIImports(frameworkUIComponents)
 	const studioImports = studioComponents
 		.map((comp) => `import ${comp} from "@/components/AppLayout/${comp}.vue"`)
@@ -173,7 +200,8 @@ function getRendererContent(componentSources, pageScripts = []) {
 	const componentRegistrations = [
 		...frappeUIComponents.map((comp) => `app.component("${comp}", ${comp})`),
 		...frappeUIMolecules.map((comp) => `app.component("${comp}", ${comp})`),
-		...frappeComponents.map((comp) => `app.component("${comp}", ${comp})`),
+		...frappeUIExperimentalComponents.map((comp) => `app.component("${comp}", ${comp})`),
+		...frappeUICharts.map((comp) => `app.component("${comp}", ${comp})`),
 		...frameworkUIComponents.map((comp) => `app.component("${comp}", ${comp})`),
 		...studioComponents.map((comp) => `app.component("${comp}", ${comp})`),
 		...customComponentNames.map((comp) => `app.component("${comp}", ${comp})`),
@@ -200,11 +228,11 @@ import "@/setupFrappeUIResource"
 import app_router from "@/router/app_router"
 import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
-import { spritePlugin } from "frappe-ui/icons"
 
 ${frappeUIImports}
 ${frappeUIMoleculeImports}
-${frappeImports}
+${frappeUIExperimentalImports}
+${frappeUIChartImports}
 ${frameworkUIImports}
 ${studioImports}
 ${customImports}
@@ -216,7 +244,6 @@ const pinia = createPinia()
 app.use(app_router)
 app.use(pinia)
 app.use(resourcesPlugin)
-app.use(spritePlugin)
 
 ${componentRegistrations}
 window.__APP_COMPONENTS__ = app._context.components
@@ -256,7 +283,7 @@ function writeRendererFile(appName, content) {
 	return rendererPath
 }
 
-async function buildWithVite(appName, entryFilePath, outDir, basePath) {
+async function buildWithVite(appName, entryFilePath, outDir, basePath, icons = []) {
 	outDir = outDir || path.resolve(__dirname, `../../../studio/public/app_builds/${appName}`)
 	basePath = basePath || `/assets/studio/app_builds/${appName}/`
 
@@ -274,6 +301,9 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath) {
 			}),
 			studioRootAlias(),
 			sharedDependencyResolver(path.resolve(__dirname, "../../")),
+			...(frameworkUIAvailable
+				? [frameworkUICodeEditorShim(APPS_DIR, path.resolve(__dirname, "../../"))]
+				: []),
 		],
 		resolve: {
 			alias: [
@@ -282,7 +312,23 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath) {
 			],
 			// keep vue/pinia/etc as single instances so studio modules (composables/stores)
 			// share the app's runtime — Pinia breaks with duplicate copies
-			dedupe: ["vue", "vue-router", "pinia", "frappe-ui"],
+			dedupe: [
+				"vue",
+				"vue-router",
+				"pinia",
+				"frappe-ui",
+				"@codemirror/state",
+				"@codemirror/view",
+				"@codemirror/language",
+				"@lezer/common",
+				"@lezer/highlight",
+				"@lezer/lr",
+			],
+		},
+		css: {
+			postcss: {
+				plugins: [tailwindcss(getAppTailwindConfig(icons)), autoprefixer()],
+			},
 		},
 		build: {
 			manifest: true,
@@ -298,11 +344,24 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath) {
 			chunkSizeWarningLimit: 1000,
 		},
 		optimizeDeps: {
-			include: ["frappe-ui > feather-icons", "showdown", "engine.io-client"],
+			include: ["showdown", "engine.io-client"],
 		},
 	})
 
 	console.log(`Vite build completed for ${appName}`)
+}
+
+function getAppTailwindConfig(appIconClasses) {
+	const editorConfig = loadTailwindConfig(path.resolve(__dirname, "../../tailwind.config.js"))
+
+	// The editor needs every icon for its picker. App builds replace that rule
+	// with the app's icon classes to avoid shipping CSS for the entire icon set.
+	const sharedSafelist = editorConfig.safelist.filter((entry) => entry.pattern?.source !== "^lucide-")
+
+	return {
+		...editorConfig,
+		safelist: [...sharedSafelist, ...appIconClasses],
+	}
 }
 
 function deleteRendererFile(rendererPath) {

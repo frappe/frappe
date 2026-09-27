@@ -1,6 +1,6 @@
 <template>
 	<Dialog
-		v-model="showDialog"
+		v-model:open="showDialog"
 		:title="resource?.resource_id ? 'Edit Data Source' : 'Add Data Source'"
 		size="2xl"
 		@after-leave="reset"
@@ -57,22 +57,47 @@
 
 				<!-- Document List -->
 				<template v-if="newResource.resource_type === 'Document List' && newResource.document_type">
-					<FormControl
-						label="Fields"
-						:required="true"
-						type="multiselect"
-						:placeholder="`Select fields from ${newResource.document_type}`"
-						v-model="newResource.fields"
-						:options="doctypeFields.data"
-						:multiple="true"
-					>
-						<template #summary="{ selectedOptions, summary }">
-							<template v-if="selectedOptions.length">
-								{{ selectedOptions.map((o: SelectOption) => o.label).join(", ") }}
+					<div class="flex flex-col gap-1.5">
+						<FormControl
+							label="Fields"
+							:required="true"
+							type="multiselect"
+							:placeholder="`Select fields from ${newResource.document_type}`"
+							v-model="newResource.fields"
+							:options="fieldOptions"
+						>
+							<template #summary="{ selectedOptions, summary }">
+								<template v-if="selectedOptions.length">
+									{{
+										selectedOptions
+											.filter((o: SelectOption) => !invalidFields.has(o.value))
+											.map((o: SelectOption) => o.label)
+											.join(", ")
+									}}
+								</template>
+								<template v-else>{{ summary }}</template>
 							</template>
-							<template v-else>{{ summary }}</template>
-						</template>
-					</FormControl>
+							<template #item-label="{ item }">
+								<span :class="['truncate', invalidFields.has(item.value) && 'text-ink-gray-4 line-through']">
+									{{ item.label }}
+								</span>
+							</template>
+							<template #item-suffix="{ item }">
+								<Badge v-if="invalidFields.has(item.value)" theme="amber" size="sm" variant="ghost">
+									Missing Field
+								</Badge>
+							</template>
+						</FormControl>
+						<div v-if="invalidFields.size" class="flex items-center gap-1.5 text-p-sm text-ink-amber-7">
+							<span class="lucide-triangle-alert size-3.5 shrink-0" />
+							<span class="text-p-sm">
+								<span class="font-medium">{{ [...invalidFields].join(", ") }}</span>
+								{{ invalidFields.size === 1 ? "is no longer a field" : "are no longer fields" }} on
+								{{ newResource.document_type }}.
+								<button type="button" class="ml-1 underline" @click="removeInvalidFields">Remove</button>
+							</span>
+						</div>
+					</div>
 					<Filters label="Filters" v-model="newResource.filters" :docfields="filterFields" />
 					<div class="flex w-full flex-row gap-2">
 						<FormControl
@@ -89,7 +114,7 @@
 									}
 								}
 							"
-							:options="sortFields.data"
+							:options="sortFields.data || []"
 							class="w-full"
 						/>
 						<FormControl
@@ -135,10 +160,9 @@
 
 					<FormControl
 						label="Whitelisted Methods"
-						type="autocomplete"
+						type="multiselect"
 						v-model="newResource.whitelisted_methods"
-						:options="whitelistedMethods.data"
-						:multiple="true"
+						:options="whitelistedMethods.data || []"
 					/>
 				</template>
 
@@ -197,8 +221,8 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
-import { createResource, Dialog, FormControl, Checkbox, ErrorMessage, Button } from "frappe-ui"
-import { Link } from "frappe-ui/frappe"
+import { createResource, Dialog, FormControl, Checkbox, ErrorMessage, Button, Badge } from "frappe-ui"
+import Link from "@framework/ui/components/Link/Link.vue"
 import ScriptSection from "@/components/ScriptSection.vue"
 import Filters from "@/components/Filters.vue"
 import Grid from "@/components/Grid.vue"
@@ -240,6 +264,75 @@ const emptyResource: Resource = {
 }
 
 const newResource = ref<Resource>({ ...emptyResource })
+
+// doctype metadata
+const filterFields = ref<DocTypeField[]>([])
+
+const doctypeFields = createResource({
+	url: "studio.api.get_doctype_fields",
+	makeParams: () => ({ ...makeParams(), with_standard_fields: true }),
+	transform: (data: DocTypeField[]) => {
+		filterFields.value = data
+		return data.map((field) => {
+			return {
+				label: field.fieldname,
+				value: field.fieldname,
+			}
+		})
+	},
+})
+
+const whitelistedMethods = createResource({
+	url: "studio.api.get_whitelisted_methods",
+	makeParams,
+	transform: (data: string[]) => {
+		return data.map((method) => {
+			return {
+				label: method,
+				value: method,
+			}
+		})
+	},
+})
+
+const sortFields = createResource({
+	url: "studio.api.get_sort_fields",
+	makeParams,
+})
+
+watch(
+	() => newResource.value?.document_type,
+	(doctype) => {
+		if (!doctype || doctype === doctypeFields.params?.doctype) return
+		doctypeFields.fetch()
+		whitelistedMethods.fetch()
+		sortFields.fetch()
+	},
+)
+
+function makeParams() {
+	return {
+		doctype: newResource.value.document_type || props.resource?.document_type,
+	}
+}
+
+// selected fields that no longer exist on the doctype, kept as options so they can still be removed
+const invalidFields = computed(() => {
+	const available = new Set((doctypeFields.data || []).map((option: SelectOption) => option.value))
+	return new Set((newResource.value.fields || []).filter((fieldname: string) => !available.has(fieldname)))
+})
+
+const fieldOptions = computed<SelectOption[]>(() => [
+	...(doctypeFields.data || []),
+	...[...invalidFields.value].map((fieldname) => ({ label: fieldname, value: fieldname })),
+])
+
+function removeInvalidFields() {
+	newResource.value.fields = newResource.value.fields?.filter(
+		(fieldname: string) => !invalidFields.value.has(fieldname),
+	)
+}
+
 watch(
 	() => props.resource,
 	async () => {
@@ -283,46 +376,20 @@ function getParsedFilters(filters: string | object | undefined) {
 	return filters
 }
 
-const filterFields = ref<DocTypeField[]>([])
+// script boilerplates
+watch(
+	() => newResource.value?.resource_type,
+	(resource_type, oldResourceType) => {
+		if (!resource_type) return
+		const currentValue = newResource.value.transform
+		if (currentValue == null || currentValue == undefined) return
 
-const doctypeFields = createResource({
-	url: "studio.api.get_doctype_fields",
-	makeParams: () => ({ ...makeParams(), with_standard_fields: true }),
-	transform: (data: DocTypeField[]) => {
-		filterFields.value = data
-		return data.map((field) => {
-			return {
-				label: field.fieldname,
-				value: field.fieldname,
-			}
-		})
+		const oldBoilerplate = oldResourceType ? getTransformFnBoilerplate(oldResourceType as ResourceType) : null
+		if (!currentValue || currentValue === oldBoilerplate) {
+			newResource.value.transform = getTransformFnBoilerplate(resource_type as ResourceType)
+		}
 	},
-})
-
-const whitelistedMethods = createResource({
-	url: "studio.api.get_whitelisted_methods",
-	makeParams,
-	transform: (data: string[]) => {
-		return data.map((method) => {
-			return {
-				label: method,
-				value: method,
-			}
-		})
-	},
-})
-
-const sortFields = createResource({
-	url: "studio.api.get_sort_fields",
-	cache: ["sortFields", newResource.value.document_type],
-	makeParams,
-})
-
-function makeParams() {
-	return {
-		doctype: props.resource?.document_type || newResource.value.document_type,
-	}
-}
+)
 
 function getTransformFnBoilerplate(resource_type: ResourceType) {
 	if (resource_type == "Document") {
@@ -340,29 +407,8 @@ function getFnBoilerplate(event: "success" | "error") {
 	}
 }
 
-watch(
-	() => newResource.value?.document_type,
-	(doctype) => {
-		if (!doctype) return
-		doctypeFields.fetch()
-		whitelistedMethods.fetch()
-		sortFields.fetch()
-	},
-)
-
-watch(
-	() => newResource.value?.resource_type,
-	(resource_type, oldResourceType) => {
-		if (!resource_type) return
-		const currentValue = newResource.value.transform
-		if (currentValue == null || currentValue == undefined) return
-
-		const oldBoilerplate = oldResourceType ? getTransformFnBoilerplate(oldResourceType as ResourceType) : null
-		if (!currentValue || currentValue === oldBoilerplate) {
-			newResource.value.transform = getTransformFnBoilerplate(resource_type as ResourceType)
-		}
-	},
-)
+// validation
+const errorMessage = ref("")
 
 const requiredFields = computed(() => {
 	const reqd: Record<string, string> = { resource_name: "Data Source Name" }
@@ -384,9 +430,8 @@ const requiredFields = computed(() => {
 	return reqd
 })
 
-const errorMessage = ref("")
-const areRequiredFieldsFilled = () => {
-	const missingFields = Object.keys(requiredFields.value).filter((field) => !newResource.value[field])
+function areRequiredFieldsFilled() {
+	const missingFields = Object.keys(requiredFields.value).filter((field) => isEmpty(newResource.value[field]))
 	if (missingFields.length) {
 		errorMessage.value = `Please set ${missingFields.map((field) => requiredFields.value[field]).join(", ")}`
 		return false
@@ -396,7 +441,12 @@ const areRequiredFieldsFilled = () => {
 	}
 }
 
-const reset = () => {
+// fields and filters are an empty [] / {} when nothing is set
+function isEmpty(value: unknown) {
+	return typeof value === "object" ? isObjectEmpty(value) : !value
+}
+
+function reset() {
 	newResource.value = { ...emptyResource }
 	errorMessage.value = ""
 }

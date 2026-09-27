@@ -1,6 +1,6 @@
 <template>
-	<Dialog v-model="showDialog" :options="{ title: 'Studio Settings', size: 'lg' }" @after-leave="reset">
-		<template #body-content>
+	<Dialog v-model:open="showDialog" title="Studio Settings" size="lg" @after-leave="reset">
+		<template #default>
 			<div class="flex flex-col gap-3">
 				<FormControl
 					label="OpenRouter API Key"

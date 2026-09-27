@@ -11,7 +11,7 @@ Studio is a visual app builder for the Frappe Framework. It allows developers to
    - Write object oriented code as much as possible.
    - Keep function sizes small, ideally 10 lines.
    - Write the main code/function first and write helper functions/building blocks below it in the order of usage.
-   - Keep files small, between 100 and 300 lines
+   - Keep files small, upto 500 lines
    - Keep directories or module small, fewer than 15 files.
    - Avoid abbreviations.
    - Use standard API as much as possible.

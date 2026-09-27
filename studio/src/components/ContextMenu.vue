@@ -6,7 +6,7 @@
 		</DropdownMenuTrigger>
 		<DropdownMenuPortal>
 			<DropdownMenuContent
-				class="z-50 min-w-[150px] rounded-lg bg-surface-base p-1.5 text-sm shadow-2xl"
+				class="z-50 min-w-[150px] rounded-6 bg-surface-base p-1.5 text-sm shadow-2xl"
 				:side-offset="0"
 				align="start"
 				avoid-collisions
@@ -15,14 +15,14 @@
 					<!-- option with a nested submenu (Add Component) -->
 					<DropdownMenuSub v-if="option.submenu && (!option.condition || option.condition())">
 						<DropdownMenuSubTrigger
-							class="flex w-full cursor-pointer items-center gap-2 rounded px-3 py-1.5 text-ink-gray-8 outline-none data-[highlighted]:bg-surface-gray-3 data-[state=open]:bg-surface-gray-3"
+							class="flex w-full cursor-pointer items-center gap-2 rounded-4 px-3 py-1.5 text-ink-gray-8 outline-none data-[highlighted]:bg-surface-gray-3 data-[state=open]:bg-surface-gray-3"
 						>
 							<span class="flex-1 truncate">{{ option.label }}</span>
 							<LucideChevronRight class="size-4 shrink-0 text-ink-gray-5" />
 						</DropdownMenuSubTrigger>
 						<DropdownMenuPortal>
 							<DropdownMenuSubContent
-								class="z-50 flex w-max min-w-[200px] flex-col rounded-lg bg-surface-base py-1.5 text-sm shadow-2xl"
+								class="z-50 flex w-max min-w-[200px] flex-col rounded-6 bg-surface-base py-1.5 text-sm shadow-2xl"
 								:side-offset="4"
 								:align-offset="-4"
 								avoid-collisions
@@ -49,7 +49,7 @@
 											<DropdownMenuItem
 												v-for="(child, childIndex) in group.options"
 												:key="childIndex"
-												class="flex cursor-pointer items-center gap-2 rounded px-3 py-1.5 text-ink-gray-8 outline-none data-[highlighted]:bg-surface-gray-3"
+												class="flex cursor-pointer items-center gap-2 rounded-4 px-3 py-1.5 text-ink-gray-8 outline-none data-[highlighted]:bg-surface-gray-3"
 												@select="child.action && handleClick(child.action)"
 											>
 												<component
@@ -72,10 +72,10 @@
 					<!-- standard action option -->
 					<DropdownMenuItem
 						v-else-if="!option.submenu && (!option.condition || option.condition())"
-						class="cursor-pointer rounded px-3 py-1.5 outline-none data-[disabled]:cursor-default data-[disabled]:text-ink-gray-3"
+						class="cursor-pointer rounded-4 px-3 py-1.5 outline-none data-[disabled]:cursor-default data-[disabled]:text-ink-gray-3"
 						:class="
 							option.theme === 'red'
-								? 'text-ink-red-6 data-[highlighted]:bg-surface-red-3'
+								? 'text-ink-red-5 data-[highlighted]:bg-surface-red-3'
 								: 'text-ink-gray-8 data-[highlighted]:bg-surface-gray-3'
 						"
 						:disabled="option.disabled && option.disabled()"

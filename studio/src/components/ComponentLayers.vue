@@ -22,7 +22,7 @@
 					:data-component-layer-id="element.componentId"
 					:data-indent="indent"
 					:title="element.componentId"
-					class="component-layer-item relative min-w-24 cursor-pointer select-none rounded border border-transparent bg-surface-base bg-opacity-50 text-base text-ink-gray-6"
+					class="component-layer-item relative min-w-24 cursor-pointer select-none rounded-4 border border-transparent bg-surface-base bg-opacity-50 text-base text-ink-gray-6"
 					:class="{
 						'border-outline-blue-5 !bg-surface-blue-2 dark:!bg-surface-blue-10':
 							canvasStore.layerDraggingOverBlock === element.componentId,
@@ -40,9 +40,9 @@
 							'!opacity-50': !element.isVisible() || isParentHidden,
 						}"
 					>
-						<FeatherIcon
+						<span
 							v-if="isExpandable(element)"
-							:name="isExpanded(element) ? 'chevron-down' : 'chevron-right'"
+							:class="isExpanded(element) ? 'lucide-chevron-down' : 'lucide-chevron-right'"
 							class="h-3 w-3"
 							@click.stop="toggleExpanded(element)"
 						/>
@@ -50,14 +50,14 @@
 							:is="element.getIcon()"
 							class="h-3 w-3"
 							:class="{
-								'text-ink-purple-6 opacity-80 dark:opacity-100 dark:brightness-125 dark:saturate-[0.3]':
+								'text-ink-purple-5 opacity-80 dark:opacity-100 dark:brightness-125 dark:saturate-[0.3]':
 									element.isStudioComponent,
 							}"
 						/>
 						<span
 							class="layer-label min-h-[1em] min-w-[2em] max-w-64 scroll-my-16 truncate"
 							:class="{
-								'text-ink-purple-6 opacity-80 dark:opacity-100 dark:brightness-125 dark:saturate-[0.3]':
+								'text-ink-purple-5 opacity-80 dark:opacity-100 dark:brightness-125 dark:saturate-[0.3]':
 									element.isStudioComponent,
 							}"
 							:contenteditable="element.editable"
@@ -91,11 +91,14 @@
 								class="invisible cursor-pointer group-hover:visible"
 								@click.stop="element.toggleVisibilityCondition()"
 							>
-								<FeatherIcon :name="element.visibilityCondition ? 'zap' : 'zap-off'" class="h-3 w-3" />
+								<span
+									:class="element.visibilityCondition ? 'lucide-zap' : 'lucide-zap-off'"
+									class="h-3 w-3"
+								/>
 							</div>
-							<FeatherIcon
+							<span
 								v-if="!element.isRoot() && !isParentHidden"
-								:name="element.isVisible() ? 'eye' : 'eye-off'"
+								:class="element.isVisible() ? 'lucide-eye' : 'lucide-eye-off'"
 								class="invisible mr-2 h-3 w-3 cursor-pointer group-hover:visible"
 								@click.stop="element.toggleVisibility()"
 							/>
@@ -121,7 +124,7 @@
 							:data-slot-name="slotName"
 							:data-slot-parent-id="slot.parentBlockId"
 							:title="slot.slotName"
-							class="relative min-w-24 cursor-pointer select-none rounded border border-transparent bg-surface-base bg-opacity-50 text-base text-ink-gray-6"
+							class="relative min-w-24 cursor-pointer select-none rounded-4 border border-transparent bg-surface-base bg-opacity-50 text-base text-ink-gray-6"
 							:class="{
 								'border-outline-blue-5 !bg-surface-blue-2 dark:!bg-surface-blue-10':
 									canvasStore.layerDraggingOverSlot === slot.slotId,
@@ -132,9 +135,9 @@
 								class="group my-[7px] flex items-center gap-1.5 pr-[2px] font-medium"
 								:style="{ paddingLeft: `${childIndent}px` }"
 							>
-								<FeatherIcon
+								<span
 									v-if="isSlotExpandable(slot)"
-									:name="isSlotExpanded(slot) ? 'chevron-down' : 'chevron-right'"
+									:class="isSlotExpanded(slot) ? 'lucide-chevron-down' : 'lucide-chevron-right'"
 									class="h-3 w-3"
 									@click.stop="toggleSlotExpanded(slot)"
 								/>
@@ -165,7 +168,6 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from "vue"
-import { FeatherIcon } from "frappe-ui"
 import Draggable from "vuedraggable"
 
 import ComponentLayers from "@/components/ComponentLayers.vue"

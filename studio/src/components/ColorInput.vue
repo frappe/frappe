@@ -24,7 +24,7 @@
 					>
 						<template #prefix>
 							<div
-								class="h-4 w-4 rounded shadow-sm"
+								class="h-4 w-4 rounded-4 shadow-sm"
 								@click="togglePopover"
 								:style="{
 									background: modelValue

@@ -2,7 +2,7 @@
 	<div class="group relative flex h-full w-full flex-col gap-1.5">
 		<template v-if="label">
 			<FormInputLabel v-if="isFormInput">{{ label }}</FormInputLabel>
-			<InputLabel v-else :class="[required ? `after:text-ink-red-7 after:content-['_*']` : '']">
+			<InputLabel v-else :class="[required ? `after:text-ink-red-6 after:content-['_*']` : '']">
 				{{ label }}
 			</InputLabel>
 		</template>
@@ -10,7 +10,7 @@
 			<Button
 				@click="actionButton?.handler"
 				variant="subtle"
-				class="h-2 w-2 rounded-sm text-ink-gray-3 opacity-0 transition-opacity group-hover:opacity-100"
+				class="h-2 w-2 rounded-1 text-ink-gray-3 opacity-0 transition-opacity group-hover:opacity-100"
 				:icon="actionButton.icon"
 				:title="actionButton.label"
 				:disabled="readonly"
@@ -75,7 +75,9 @@ const props = withDefaults(
 		autofocus?: boolean
 		showSaveButton?: boolean
 		showLineNumbers?: boolean
-		completions?: Function | null
+		completions?: CompletionSource | CompletionSource[] | null
+		// when set, `completions` replaces ALL built-in sources (language snippets, window scope)
+		overrideCompletions?: boolean
 		label?: string
 		description?: string
 		placeholder?: string
@@ -147,10 +149,9 @@ const syncToParent = () => {
 // -- Language Extension --
 let languageConf = new Compartment()
 const loadLanguage = async (type: string): Promise<Extension> => {
-	// The user-provided completion source (page-script bindings, etc.), scoped to a sublanguage.
+	// The user-provided completion sources (page-script bindings, etc.), scoped to a sublanguage.
 	const customCompletions = (language: LRLanguage) => {
-		if (!props.completions) return []
-		return language.data.of({ autocomplete: props.completions })
+		return completionSources.value.map((source) => language.data.of({ autocomplete: source }))
 	}
 
 	// Completions inside a <script>/JS region: the custom source plus window globals (private keys
@@ -287,9 +288,15 @@ const getAutocompletionOptions = () => {
 		maxRenderedOptions: 10,
 		closeOnBlur: false,
 		icons: false,
-		optionClass: () => "flex h-7 !px-2 items-center rounded !text-ink-gray-5",
+		optionClass: () => "flex h-7 !px-2 items-center rounded-4 !text-ink-gray-5",
+		...(props.overrideCompletions && { override: completionSources.value }),
 	})
 }
+
+const completionSources = computed<CompletionSource[]>(() => {
+	if (!props.completions) return []
+	return Array.isArray(props.completions) ? props.completions : [props.completions]
+})
 
 const customIndent = indentService.of((context: any, pos: number) => {
 	/* helper to indent correctly inside objects because codemirror fails to do it for a bare object literal */

@@ -2,6 +2,8 @@
 # For license information, please see license.txt
 import json
 import os
+import re
+from urllib.parse import quote
 
 import frappe
 from frappe import _
@@ -11,9 +13,27 @@ from frappe.website.website_generator import WebsiteGenerator
 
 from studio.export import can_export, delete_folder, write_document_file
 from studio.realtime import publish_doc_change
+from studio.utils import walk_blocks
+
+IMPORT_RE = re.compile(r"""(?:from|import)\s*\(?\s*['"]((?:@app/|\.\.?/)[^'"]+)['"]""")
+EXTENSIONS = (".ts", ".js", ".vue", ".json", ".css")
 
 
 class StudioAppRenderer(DocumentPage):
+	def render(self):
+		# redirect guests to login instead of serving a dead page.
+		if frappe.session.user == "Guest" and not self.can_render_for_guest():
+			frappe.flags.redirect_location = f"/login?redirect-to=/{quote(self.path)}"
+			raise frappe.Redirect(http_status_code=302)
+		return super().render()
+
+	def can_render_for_guest(self):
+		if self.is_preview():
+			return False
+		return bool(
+			frappe.db.exists("Studio Page", dict(studio_app=self.docname, published=1, allow_guest=1))
+		)
+
 	def can_render(self):
 		if app := self.find_app_for_path():
 			self.doctype = "Studio App"
@@ -95,9 +115,11 @@ class StudioApp(WebsiteGenerator):
 		context.app_title = self.app_title
 		context.frappe_app = self.frappe_app or ""
 		context.base_url = frappe.utils.get_url(self.route)
-		context.app_pages = frappe.get_all(
-			"Studio Page", dict(studio_app=self.name, published=1), ["name", "page_title", "route"]
-		)
+		context.is_guest = frappe.session.user == "Guest"
+		page_filters = dict(studio_app=self.name, published=1)
+		if context.is_guest:
+			page_filters["allow_guest"] = 1
+		context.app_pages = frappe.get_all("Studio Page", page_filters, ["name", "page_title", "route"])
 		context.is_developer_mode = frappe.utils.cint(frappe.conf.developer_mode)
 		context.vite_dev_server_host = get_vite_dev_server_host()
 
@@ -153,18 +175,33 @@ class StudioApp(WebsiteGenerator):
 		delete_folder(old_path)
 
 	@frappe.whitelist()
-	def generate_app_build(self):
+	def generate_app_build(self) -> dict:
+		"""Build the app bundle. Failures are logged to an Error Log and returned as
+		`build_error` instead of raised, so callers can surface them in the UI."""
 		if not frappe.has_permission("Studio App", ptype="write"):
 			frappe.throw(_("You do not have permission to generate the app build"), frappe.PermissionError)
 
+		try:
+			self.build_app_bundle()
+			return {"build_error": None}
+		except Exception as e:
+			return {"build_error": self._log_build_failure(e)}
+
+	def build_app_bundle(self):
+		"""Build the app bundle, raising on failure — background jobs enqueue this
+		so a failed build marks the job as failed instead of looking successful."""
 		from studio.build import StudioAppBuilder
 
-		try:
-			StudioAppBuilder(
-				studio_app=self.name, is_standard=self.is_standard, frappe_app=self.frappe_app
-			).build()
-		except Exception as e:
-			raise Exception(f"Build process failed: {str(e)}")
+		StudioAppBuilder(
+			studio_app=self.name, is_standard=self.is_standard, frappe_app=self.frappe_app
+		).build()
+
+	def _log_build_failure(self, exception: Exception) -> dict:
+		error_log = frappe.log_error(
+			title=f"Studio app build failed: {self.name}",
+			message=getattr(exception, "output", None) or frappe.get_traceback(),
+		)
+		return {"error_log": error_log.name}
 
 	@frappe.whitelist()
 	def publish_app(self):
@@ -173,12 +210,7 @@ class StudioApp(WebsiteGenerator):
 			page_doc = frappe.get_doc("Studio Page", page)
 			page_doc.publish()
 
-		try:
-			self.generate_app_build()
-		except Exception:
-			pass
-
-		return {"published_pages": len(pages)}
+		return {"published_pages": len(pages), **self.generate_app_build()}
 
 	@frappe.whitelist()
 	def unpublish_app(self):
@@ -326,8 +358,112 @@ class StudioApp(WebsiteGenerator):
 				with open(frappe.get_app_path("studio", "studio_apps.txt"), "w") as f:
 					f.write("\n".join(apps))
 
+	def collect_files(self, script: str, script_dir: str, blocks) -> list[dict]:
+		"""The custom Vue components `blocks` use and everything the script and those files import."""
+		files = {}
+		pending = [
+			path for name in custom_vue_component_names(blocks) if (path := self.find_vue_component(name))
+		]
+		pending += self.resolve_imports(script, script_dir)
+
+		while pending:
+			path = pending.pop()
+			if path in files:
+				continue
+			with open(self.resolve_file_path(path), encoding="utf-8") as f:
+				files[path] = f.read()
+			pending += self.resolve_imports(files[path], os.path.dirname(path))
+
+		return [{"path": path, "content": files[path]} for path in sorted(files)]
+
+	def write_files(self, files: list[dict]):
+		"""Add copied files without replacing incompatible files already in the app."""
+		targets = {}
+		for file in files:
+			if (
+				not isinstance(file, dict)
+				or not isinstance(file.get("path"), str)
+				or not isinstance(file.get("content"), str)
+			):
+				frappe.throw(_("Invalid copied file."))
+			path = file["path"]
+			target = self.resolve_file_path(path)
+			if not target.lower().endswith(EXTENSIONS):
+				frappe.throw(_("Unsupported copied file: {0}").format(path))
+			if target in targets and targets[target]["content"] != file["content"]:
+				frappe.throw(_("The copy contains conflicting versions of {0}.").format(path))
+			targets[target] = file
+
+		for target, file in targets.items():
+			if not os.path.exists(target):
+				continue
+			if os.path.isfile(target) and frappe.read_file(target) == file["content"]:
+				continue
+			frappe.throw(
+				_("{0} already exists with different content. Rename it before pasting.").format(
+					file["path"]
+				),
+				title=_("File conflict"),
+			)
+
+		for target, file in targets.items():
+			if os.path.exists(target):
+				continue
+			os.makedirs(os.path.dirname(target), exist_ok=True)
+			with open(target, "x", encoding="utf-8") as f:
+				f.write(file["content"])
+
+	def find_vue_component(self, name: str) -> str | None:
+		matches = []
+		for dirpath, _dirnames, filenames in os.walk(self.get_folder_path()):
+			if f"{name}.vue" in filenames:
+				matches.append(os.path.relpath(os.path.join(dirpath, f"{name}.vue"), self.get_folder_path()))
+		if len(matches) > 1:
+			frappe.throw(
+				_("Custom component {0} is ambiguous: {1}").format(name, ", ".join(sorted(matches))),
+				title=_("Duplicate component name"),
+			)
+		return matches[0] if matches else None
+
+	def resolve_imports(self, source: str, from_dir: str) -> list[str]:
+		paths = []
+		for spec in IMPORT_RE.findall(source or ""):
+			base = spec[len("@app/") :] if spec.startswith("@app/") else os.path.join(from_dir, spec)
+			if path := self.resolve_module(os.path.normpath(base)):
+				paths.append(path)
+		return paths
+
+	def resolve_module(self, base: str) -> str | None:
+		"""Vite's lookup: the path itself, then with an extension, then an index file."""
+		if os.path.isabs(base) or base == ".." or base.startswith(f"..{os.sep}"):
+			return None
+		candidates = [
+			base,
+			*(base + ext for ext in EXTENSIONS),
+			*(os.path.join(base, f"index{ext}") for ext in (".ts", ".js")),
+		]
+		for candidate in candidates:
+			if os.path.isfile(self.resolve_file_path(candidate)):
+				return candidate
+		return None
+
+	def resolve_file_path(self, path: str) -> str:
+		root = os.path.realpath(self.get_folder_path())
+		target = os.path.realpath(os.path.join(root, path))
+		if target == root or not target.startswith(root + os.sep):
+			frappe.throw(_("Invalid file path: {0}").format(path), frappe.PermissionError)
+		return target
+
 	def get_folder_path(self, name: str | None = None):
 		return frappe.get_app_source_path(self.frappe_app, "studio", name or self.name)
+
+
+def custom_vue_component_names(blocks) -> set[str]:
+	return {
+		block["componentName"]
+		for block in walk_blocks(blocks)
+		if block.get("isCustomVueComponent") and block.get("componentName")
+	}
 
 
 def get_vite_dev_server_port():

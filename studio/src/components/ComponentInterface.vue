@@ -19,32 +19,34 @@
 					<Popover
 						v-for="(input, index) in componentInputs"
 						:key="input.input_name"
-						:show="showEditPopover && editingIndex === index"
-						@update:show="
-							(show: boolean) => {
-								if (!show) cancelEdit()
+						:open="showEditPopover && editingIndex === index"
+						@update:open="
+							(open: boolean) => {
+								if (!open) cancelEdit()
 							}
 						"
-						placement="bottom-center"
+						trigger="manual"
+						side="bottom"
+						align="center"
 					>
-						<template #target>
+						<template #trigger>
 							<div
-								class="group flex flex-1 cursor-pointer justify-between rounded border border-outline-gray-2 px-2 py-1 hover:bg-surface-gray-1"
+								class="group flex flex-1 cursor-pointer justify-between rounded-4 border border-outline-gray-2 px-2 py-1 hover:bg-surface-gray-1"
 								@click="editInput(input, index)"
 							>
 								<div class="flex items-center gap-2">
-									<FeatherIcon :name="getFieldTypeIcon(input.type)" class="h-4 w-4 text-ink-gray-4" />
+									<span :class="getFieldTypeIcon(input.type)" class="h-4 w-4 text-ink-gray-4" />
 									<span class="text-sm text-ink-gray-7">{{ input.input_name }}</span>
 								</div>
 								<button
-									class="flex cursor-pointer items-center rounded-sm p-1 text-ink-gray-6 opacity-0 transition-opacity hover:text-ink-gray-8 group-hover:opacity-100"
+									class="flex cursor-pointer items-center rounded-1 p-1 text-ink-gray-6 opacity-0 transition-opacity hover:text-ink-gray-8 group-hover:opacity-100"
 									@click.stop="componentEditorStore.removeComponentInput(index)"
 								>
-									<FeatherIcon name="x" class="h-4 w-4" />
+									<span class="lucide-x h-4 w-4" />
 								</button>
 							</div>
 						</template>
-						<template #body-main>
+						<template #default>
 							<div
 								class="w-64 space-y-4 p-4"
 								v-if="editingInput && editingIndex === index"
@@ -74,13 +76,13 @@
 									:required="true"
 								>
 									<template #prefix>
-										<FeatherIcon
-											:name="editingInput ? getFieldTypeIcon(editingInput.type) : 'help-circle'"
+										<span
+											:class="editingInput ? getFieldTypeIcon(editingInput.type) : 'lucide-circle-help'"
 											class="mr-1 h-3 w-3 text-ink-gray-4"
 										/>
 									</template>
 									<template #item-prefix="{ item }">
-										<FeatherIcon :name="getFieldTypeIcon(item.value)" class="h-3 w-3 text-ink-gray-4" />
+										<span :class="getFieldTypeIcon(item.value)" class="h-3 w-3 text-ink-gray-4" />
 									</template>
 								</FormControl>
 								<FormControl
@@ -118,9 +120,9 @@
 								</div>
 								<div class="text-xs text-ink-gray-4">
 									Press
-									<kbd class="rounded bg-surface-gray-2 px-1 py-0.5">⌘</kbd>
+									<kbd class="rounded-4 bg-surface-gray-2 px-1 py-0.5">⌘</kbd>
 									+
-									<kbd class="rounded bg-surface-gray-2 px-1 py-0.5">S</kbd>
+									<kbd class="rounded-4 bg-surface-gray-2 px-1 py-0.5">S</kbd>
 									to save
 								</div>
 							</div>
@@ -145,7 +147,7 @@
 
 <script setup lang="ts">
 import { ref, markRaw, computed } from "vue"
-import { Combobox, Popover, FormControl, Button, FeatherIcon } from "frappe-ui"
+import { Combobox, Popover, FormControl, Button } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"
 import Code from "@/components/Code.vue"
@@ -173,15 +175,15 @@ const fieldTypeOptions = [
 
 const getFieldTypeIcon = (type: string) => {
 	const iconMap: Record<string, string> = {
-		text: "type",
-		number: "hash",
-		checkbox: "check-square",
-		textarea: "align-left",
-		select: "list",
-		code: "code",
-		color: "droplet",
+		text: "lucide-type",
+		number: "lucide-hash",
+		checkbox: "lucide-square-check",
+		textarea: "lucide-text-align-start",
+		select: "lucide-list",
+		code: "lucide-code",
+		color: "lucide-droplet",
 	}
-	return iconMap[type] || "type"
+	return iconMap[type] || "lucide-type"
 }
 
 const editInput = (input: ComponentInput, index: number) => {

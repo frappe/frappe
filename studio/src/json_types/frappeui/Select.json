@@ -17,8 +17,28 @@
               "type": "string"
             },
             {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
               "type": "object",
+              "additionalProperties": false,
               "properties": {
+                "messages": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
                 "name": {
                   "type": "string"
                 },
@@ -27,15 +47,8 @@
                 },
                 "stack": {
                   "type": "string"
-                },
-                "messages": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
                 }
               },
-              "additionalProperties": false,
               "required": [
                 "message",
                 "name"
@@ -52,10 +65,10 @@
         "size": {
           "type": "string",
           "enum": [
+            "xs",
             "sm",
             "md",
-            "lg",
-            "xl"
+            "lg"
           ]
         },
         "variant": {
@@ -75,13 +88,13 @@
         "modelValue": {
           "anyOf": [
             {
-              "type": "string"
+              "type": [
+                "string",
+                "number"
+              ]
             },
             {
-              "type": "number"
-            },
-            {
-              "type": "object"
+              "type": "null"
             }
           ]
         },
@@ -102,16 +115,9 @@
                     "type": "string"
                   },
                   "value": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "object"
-                      }
+                    "type": [
+                      "string",
+                      "number"
                     ]
                   },
                   "disabled": {
@@ -139,6 +145,31 @@
         },
         "emptyText": {
           "type": "string"
+        },
+        "side": {
+          "type": "string",
+          "enum": [
+            "top",
+            "right",
+            "bottom",
+            "left"
+          ]
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end"
+          ]
+        },
+        "offset": {
+          "type": "number"
+        },
+        "portalTo": {
+          "type": [
+            "string"
+          ]
         }
       },
       "additionalProperties": false

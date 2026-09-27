@@ -13,18 +13,30 @@
         "uploadFunction": {
           "type": "object"
         },
-        "headerFields": {
+        "extensions": {
           "type": "array",
-          "items": {
-            "type": "string",
-            "enum": [
-              "from",
-              "to",
-              "subject",
-              "cc",
-              "bcc"
-            ]
-          }
+          "items": {}
+        },
+        "maxAttachments": {
+          "type": "number"
+        },
+        "submitting": {
+          "type": "boolean"
+        },
+        "showTo": {
+          "type": "boolean"
+        },
+        "showCc": {
+          "type": "boolean"
+        },
+        "showBcc": {
+          "type": "boolean"
+        },
+        "showFrom": {
+          "type": "boolean"
+        },
+        "showSubject": {
+          "type": "boolean"
         },
         "senders": {
           "type": "array",
@@ -60,6 +72,9 @@
           "type": "object"
         },
         "actions": {
+          "type": "object"
+        },
+        "footer": {
           "type": "object"
         }
       },

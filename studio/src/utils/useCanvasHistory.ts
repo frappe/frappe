@@ -55,9 +55,14 @@ export function useCanvasHistory(source: Ref<Block>, selectedBlockIds: Ref<Set<s
 	const dirty = ref(false);
 
 	function commit() {
+		const previousRecord = last.value;
+		const nextRecord = createHistoryRecord();
+		// Resume and the watcher can both record the same tree state.
+		// Skip the duplicate so Undo takes only one step.
+		if (nextRecord.block === previousRecord.block) return;
 		dirty.value = true;
-		undoStack.value.unshift(last.value);
-		last.value = createHistoryRecord();
+		undoStack.value.unshift(previousRecord);
+		last.value = nextRecord;
 		if (undoStack.value.length > CAPACITY) {
 			undoStack.value.splice(CAPACITY, Number.POSITIVE_INFINITY);
 		}

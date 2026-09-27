@@ -10,18 +10,14 @@
           "items": {
             "type": "object",
             "properties": {
-              "label": {
+              "value": {
                 "type": [
                   "string",
                   "number"
                 ]
               },
-              "value": {
-                "type": [
-                  "string",
-                  "number",
-                  "boolean"
-                ]
+              "label": {
+                "type": "string"
               },
               "icon": {
                 "type": [
@@ -33,38 +29,8 @@
                   "string"
                 ]
               },
-              "iconRight": {
-                "type": [
-                  "string"
-                ]
-              },
-              "active": {
-                "type": "boolean"
-              },
               "disabled": {
                 "type": "boolean"
-              },
-              "tooltip": {
-                "type": "string"
-              },
-              "class": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": {
-                      "type": "boolean"
-                    }
-                  }
-                ]
               },
               "route": {
                 "anyOf": [
@@ -83,103 +49,25 @@
                 "type": "object"
               }
             },
-            "additionalProperties": false
-          }
-        },
-        "buttons": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "label": {
-                "type": [
-                  "string",
-                  "number"
-                ]
-              },
-              "value": {
-                "type": [
-                  "string",
-                  "number",
-                  "boolean"
-                ]
-              },
-              "icon": {
-                "type": [
-                  "string"
-                ]
-              },
-              "iconLeft": {
-                "type": [
-                  "string"
-                ]
-              },
-              "iconRight": {
-                "type": [
-                  "string"
-                ]
-              },
-              "active": {
-                "type": "boolean"
-              },
-              "disabled": {
-                "type": "boolean"
-              },
-              "tooltip": {
-                "type": "string"
-              },
-              "class": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": {
-                      "type": "boolean"
-                    }
-                  }
-                ]
-              },
-              "route": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "object"
-                  }
-                ]
-              },
-              "href": {
-                "type": "string"
-              },
-              "onClick": {
-                "type": "object"
-              }
-            },
+            "required": [
+              "value",
+              "label"
+            ],
             "additionalProperties": false
           }
         },
         "modelValue": {
           "type": [
             "string",
-            "number",
-            "boolean"
+            "number"
           ]
         },
-        "type": {
+        "variant": {
           "type": "string",
           "enum": [
+            "underline",
             "subtle",
             "ghost",
-            "underline",
             "browser-tab"
           ]
         },
@@ -193,12 +81,15 @@
         "vertical": {
           "type": "boolean"
         },
-        "direction": {
+        "side": {
           "type": "string",
           "enum": [
             "left",
             "right"
           ]
+        },
+        "fluid": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false

@@ -3,13 +3,7 @@ import { useDebounceFn, useStorage } from "@vueuse/core"
 import router from "@/router/studio_router"
 import { defineStore } from "pinia"
 
-import {
-	fetchApp,
-	fetchPage,
-	confirm,
-	getInitialVariableValue,
-	getRouteVariables,
-} from "@/utils/helpers"
+import { fetchApp, fetchPage, confirm, getInitialVariableValue, getRouteVariables } from "@/utils/helpers"
 import { getBlockInstance, getRootBlock, getBlockCopyWithoutParent, jsToJson } from "@/utils/serializer"
 import { studioPages } from "@/data/studioPages"
 import { studioApps } from "@/data/studioApps"
@@ -19,16 +13,20 @@ import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore from "@/stores/codeStore"
 import { reloadCustomVueComponents } from "@/globals"
-import {
-	registerStudioPageScripts,
-	unregisterStudioPageScripts,
-} from "@/data/studioPageScripts"
+import { registerStudioPageScripts, unregisterStudioPageScripts } from "@/data/studioPageScripts"
 import { registerCustomComponentPaths } from "@/utils/components"
 import type { CustomVueComponentMeta } from "@/types/vue"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
 import type { StudioPage } from "@/types/Studio/StudioPage"
-import type { LeftPanelOptions, RightPanelOptions, leftPanelComponentTabOptions, StudioMode } from "@/types"
+import type { PageCopy } from "@/utils/blockCopyPaste"
+import type {
+	BlockOptions,
+	LeftPanelOptions,
+	RightPanelOptions,
+	leftPanelComponentTabOptions,
+	StudioMode,
+} from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
 import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable"
 import { toast, dialog } from "frappe-ui"
@@ -103,11 +101,11 @@ const useStudioStore = defineStore("store", () => {
 					if (activeApp.value?.name === appName) {
 						router.replace({ name: "Home" })
 					}
-					toast.success(`App "${appTitle}" deleted successfully`)
+					toast.success(`App "${appTitle}" deleted`)
 				},
 				onError() {
 					toast.error("An unexpected error occurred while deleting the app.")
-				}
+				},
 			})
 		}
 	}
@@ -143,7 +141,7 @@ const useStudioStore = defineStore("store", () => {
 			try {
 				await studioPages.delete.submit(page.name)
 				await setApp(appName)
-				toast.success(`Page "${page.page_title}" deleted successfully`)
+				toast.success(`Page "${page.page_title}" deleted`)
 			} catch (error) {
 				toast.error("An unexpected error occurred while deleting the page.")
 			}
@@ -153,12 +151,12 @@ const useStudioStore = defineStore("store", () => {
 	async function duplicateAppPage(appName: string, page: StudioPage) {
 		toast.promise(
 			createResource({
-				url: "studio.studio.doctype.studio_page.studio_page.duplicate_page",
+				url: "studio.studio.doctype.studio_page.copy_paste_handler.duplicate_page",
 				method: "POST",
 				params: {
 					page_name: page.name,
 					app_name: appName,
-				}
+				},
 			}).fetch(),
 			{
 				loading: "Duplicating page",
@@ -168,10 +166,31 @@ const useStudioStore = defineStore("store", () => {
 						name: "StudioPage",
 						params: { appID: appName, pageID: page.name },
 					})
-					return `Page "${page.page_title}" duplicated successfully`
+					return `Page "${page.page_title}" duplicated`
 				},
 			},
 		)
+	}
+
+	async function pastePage(
+		copy: PageCopy & { blocks: BlockOptions[] } & Record<string, any>,
+		targetPage?: string,
+	) {
+		const appName = activeApp.value!.name
+		const page: StudioPage = await call("studio.studio.doctype.studio_page.copy_paste_handler.paste_page", {
+			app_name: appName,
+			page: copy,
+			target_page: targetPage,
+		})
+		if (targetPage) {
+			await setCustomComponents()
+			await setupPageScripts()
+			await setPage(targetPage)
+			toast.success("Page replaced")
+		} else {
+			router.push({ name: "StudioPage", params: { appID: appName, pageID: page.name } })
+			toast.success("Page created")
+		}
 	}
 
 	function getAppPageRoute(pageName: string) {
@@ -284,24 +303,26 @@ const useStudioStore = defineStore("store", () => {
 				message:
 					"This page was updated after you opened it. Refresh to load the latest version - your unsaved canvas changes will be replaced.",
 				confirmLabel: "Refresh",
-				theme: "yellow",
+				theme: "amber",
 				onConfirm: () => selectedPage.value && setPage(selectedPage.value),
 			})
-		}
-		else throw error
+		} else throw error
 	}
 
 	function updateActivePage(key: string, value: string | number) {
+		if (!activePage.value) return
+		const page = activePage.value
 		return studioPages.runDocMethod
 			.submit({
-				name: activePage.value?.name,
+				name: page.name,
 				method: "save_page_field",
 				fieldname: key,
 				value: value,
-				known_modified: activePage.value?.modified,
+				known_modified: page.modified,
 			})
 			.then((response: any) => {
-				activePage.value![key] = value
+				if (activePage.value?.name !== page.name) return
+				activePage.value[key] = value
 				syncPageModified(response)
 			})
 			.catch(handlePageWriteConflict)
@@ -339,17 +360,23 @@ const useStudioStore = defineStore("store", () => {
 									label: "Edit Pages",
 									onClick: () => {
 										studioLayout.value.leftPanelActiveTab = "Pages"
-									}
-								}
+									},
+								},
 							})
 						}
 					},
-				}
+				},
 			)
 			.then(async () => {
-				await generateAppBuild()
+				const buildError = await generateAppBuild()
 				activePage.value = await fetchPage(selectedPage.value!)
-				if (activeApp.value && activePage.value) {
+				if (!activeApp.value || !activePage.value) return
+				if (buildError) {
+					showBuildErrorDialog(
+						buildError,
+						"The page was published, but the app build failed - it may not reflect your latest changes.",
+					)
+				} else {
 					openPageInBrowser(activeApp.value, activePage.value)
 				}
 			})
@@ -357,21 +384,25 @@ const useStudioStore = defineStore("store", () => {
 
 	async function unpublishPage() {
 		if (!activePage.value) return
+		const page = activePage.value
 		const confirmed = await confirm(
-			`Are you sure you want to unpublish the page "${activePage.value.page_title}"? It will no longer be publicly accessible.`,
+			`Are you sure you want to unpublish the page "${page.page_title}"? It will no longer be publicly accessible.`,
 		)
 		if (!confirmed) {
 			return
 		}
 		return studioPages.runDocMethod.submit(
 			{
-				name: selectedPage.value,
+				name: page.name,
 				method: "unpublish",
 			},
 			{
 				onSuccess(data: any) {
-					activePage.value!.published = 0
-					syncPageModified(data)
+					if (activePage.value?.name === page.name) {
+						activePage.value.published = 0
+						syncPageModified(data)
+					}
+					if (appPages.value[page.name]) appPages.value[page.name].published = 0
 					toast.success("Page unpublished")
 				},
 				onError(error: any) {
@@ -379,7 +410,7 @@ const useStudioStore = defineStore("store", () => {
 						description: error.messages.join(", "),
 					})
 				},
-			}
+			},
 		)
 	}
 
@@ -390,7 +421,7 @@ const useStudioStore = defineStore("store", () => {
 			message:
 				"This will discard all changes made to the page since it was last published. Are you sure you want to continue?",
 			confirmLabel: "Revert",
-			theme: "yellow",
+			theme: "amber",
 			onConfirm: async () => {
 				try {
 					await studioPages.runDocMethod.submit({
@@ -424,8 +455,16 @@ const useStudioStore = defineStore("store", () => {
 				async onSuccess(data: any) {
 					activePage.value = await fetchPage(selectedPage.value!)
 					setAppPages(activeApp.value!.name)
-					openPageInBrowser(activeApp.value!, activePage.value!)
-					toast.success(`App published successfully (${data?.message?.published_pages} pages)`)
+					const buildError = data?.message?.build_error
+					if (buildError) {
+						showBuildErrorDialog(
+							buildError,
+							"The app was published, but the build failed - published pages may not reflect your latest changes.",
+						)
+					} else {
+						openPageInBrowser(activeApp.value!, activePage.value!)
+						toast.success(`App published (${data?.message?.published_pages} pages)`)
+					}
 				},
 				onError(error: any) {
 					toast.error("Failed to publish the app", {
@@ -511,21 +550,50 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	// build
-	function generateAppBuild() {
-		if (!activeApp.value) return
-		return studioApps.runDocMethod.submit({
-			name: activeApp.value.name,
-			method: "generate_app_build",
-		}, {
-			onSuccess() {
+	async function generateAppBuild(): Promise<{ error_log: string } | null> {
+		if (!activeApp.value) return null
+		try {
+			const data: any = await studioApps.runDocMethod.submit({
+				name: activeApp.value.name,
+				method: "generate_app_build",
+			})
+			const buildError = data?.message?.build_error
+			if (!buildError) {
 				toast.success("App build generated")
-			},
-			onError(error: any) {
-				toast.warning("Skipped app build due to errors", {
-					description: error?.messages?.join(", "),
-					duration: Infinity,
-				})
-			},
+			}
+			return buildError ?? null
+		} catch (error: any) {
+			toast.warning("Skipped app build due to errors", {
+				description: error?.messages?.join(", "),
+				duration: Infinity,
+			})
+			return null
+		}
+	}
+
+	function showBuildErrorDialog(buildError: { error_log: string }, message: string) {
+		dialog.confirm({
+			title: "App build failed",
+			message: `${message} Check the error log for the full build output.`,
+			theme: "amber",
+			actions: [
+				{
+					label: "View Page",
+					variant: "outline",
+					onClick: () => {
+						if (activeApp.value && activePage.value) {
+							openPageInBrowser(activeApp.value, activePage.value)
+						}
+					},
+				},
+				{
+					label: "View Error Log",
+					variant: "solid",
+					onClick: () => {
+						window.open(`/app/error-log/${buildError.error_log}`, "_blank")
+					},
+				},
+			],
 		})
 	}
 
@@ -541,10 +609,13 @@ const useStudioStore = defineStore("store", () => {
 		// Seed each dynamic param with its design-time test value (empty string when unset),
 		// e.g. "/hr/:employee/:id" -> { employee, id } filled from routeVariables
 		const paramNames = getRouteVariables(activePage.value.route)
-		newRoute.params = paramNames.reduce((params, name) => {
-			params[name] = routeVariables.value[name] ?? ""
-			return params
-		}, {} as Record<string, string>)
+		newRoute.params = paramNames.reduce(
+			(params, name) => {
+				params[name] = routeVariables.value[name] ?? ""
+				return params
+			},
+			{} as Record<string, string>,
+		)
 
 		return newRoute
 	})
@@ -572,10 +643,7 @@ const useStudioStore = defineStore("store", () => {
 	function setRouteVariable(name: string, value: string) {
 		if (!activePage.value) return
 		routeVariables.value[name] = value
-		localStorage.setItem(
-			`${activePage.value.name}:routeVariables`,
-			JSON.stringify(routeVariables.value),
-		)
+		localStorage.setItem(`${activePage.value.name}:routeVariables`, JSON.stringify(routeVariables.value))
 		resetState()
 	}
 
@@ -622,7 +690,7 @@ const useStudioStore = defineStore("store", () => {
 				options.push({
 					value: currentPath,
 					label: currentPath,
-					type: variableType
+					type: variableType,
 				})
 
 				if (typeof obj[key] === "object" && obj[key] !== null) {
@@ -660,6 +728,7 @@ const useStudioStore = defineStore("store", () => {
 		updateActiveApp,
 		deleteAppPage,
 		duplicateAppPage,
+		pastePage,
 		appPages,
 		setAppPages,
 		getAppPageRoute,
