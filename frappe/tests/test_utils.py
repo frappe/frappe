@@ -2250,6 +2250,12 @@ class TestArgumentTypingValidations(IntegrationTestCase):
 		obj = object()
 		self.assertEqual(test_strings("a", other=obj), ("a", None, obj))
 
+		@validate_argument_types
+		def test_nested(docs: "str | list[dict | Undefined]"):  # noqa: F821
+			return docs
+
+		self.assertEqual(test_nested([obj]), [obj])
+
 	def test_whitelisted_method_validates_string_annotations(self):
 		from frappe.handler import execute_cmd
 
