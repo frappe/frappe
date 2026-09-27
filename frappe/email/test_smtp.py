@@ -1,7 +1,8 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: The MIT License
 
-from unittest.mock import Mock
+import ssl
+from unittest.mock import Mock, patch
 
 import frappe
 from frappe.email.doctype.email_account.email_account import EmailAccount
@@ -45,6 +46,34 @@ class TestSMTP(IntegrationTestCase):
 	def test_smtp_tls_session(self):
 		for port in [None, 0, 587, "587"]:
 			make_server(port, 0, 1)
+
+	def test_starttls_uses_default_ssl_context(self):
+		server = SMTPServer(server="smtp.example.com", use_tls=1)
+		connection = Mock()
+
+		server.secure_session(connection)
+
+		context = connection.starttls.call_args.kwargs["context"]
+		self.assertEqual(context.verify_mode, ssl.CERT_REQUIRED)
+		self.assertTrue(context.check_hostname)
+		connection.starttls.assert_called_once_with(context=context)
+
+	@patch("frappe.email.smtp.smtplib.SMTP_SSL")
+	def test_smtp_ssl_uses_default_ssl_context(self, smtp_ssl):
+		server = SMTPServer(server="smtp.example.com", port=465, use_ssl=1)
+
+		server.session
+
+		context = smtp_ssl.call_args.kwargs["context"]
+		self.assertEqual(context.verify_mode, ssl.CERT_REQUIRED)
+		self.assertTrue(context.check_hostname)
+
+	@patch("frappe.email.smtp.smtplib.SMTP_SSL", side_effect=ssl.SSLCertVerificationError(1, "untrusted"))
+	def test_smtp_ssl_certificate_error_is_descriptive(self, smtp_ssl):
+		server = SMTPServer(server="smtp.example.com", port=465, use_ssl=1)
+
+		with self.assertRaisesRegex(frappe.ValidationError, "Could not verify the TLS certificate"):
+			server.session
 
 	def test_get_email_account(self):
 		existing_email_accounts = frappe.get_all(

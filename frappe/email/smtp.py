@@ -75,9 +75,7 @@ class SMTPServer:
 
 		# `context` is only accepted by SMTP_SSL; plain SMTP has no such argument.
 		SMTP = (
-			partial(smtplib.SMTP_SSL, context=ssl.create_default_context())
-			if self.use_ssl
-			else smtplib.SMTP
+			partial(smtplib.SMTP_SSL, context=ssl.create_default_context()) if self.use_ssl else smtplib.SMTP
 		)
 
 		try:
@@ -109,6 +107,15 @@ class SMTPServer:
 
 		except smtplib.SMTPAuthenticationError:
 			self.throw_invalid_credentials_exception(email_account=self.email_account)
+
+		except ssl.SSLCertVerificationError as e:
+			frappe.throw(
+				_(
+					"Could not verify the TLS certificate for SMTP server {0} on port {1}: {2}. "
+					"Ensure the server name matches the certificate and the certificate is valid and trusted."
+				).format(self.server, self.port, str(e)),
+				title=_("SMTP Certificate Verification Failed"),
+			)
 
 		except OSError as e:
 			# Invalid mail server -- due to refusing connection
