@@ -70,9 +70,7 @@
 									v-model="newEvent.success_message"
 									autocomplete="off"
 									:description="
-										newEvent.action === 'Insert a Document'
-											? `Default: ${newEvent.doctype} created successfully`
-											: ''
+										newEvent.action === 'Insert a Document' ? `Default: ${newEvent.doctype} created` : ''
 									"
 								/>
 								<Code
@@ -409,7 +407,7 @@ const deleteEvent = async (event: ComponentEvent) => {
 	if (confirmed) {
 		try {
 			props.block?.removeEvent(event.event)
-			toast.success(`Event ${event.event} deleted successfully`)
+			toast.success(`Event ${event.event} deleted`)
 		} catch (error) {
 			toast.error(`Failed to delete the event ${event.event}: ${error}`)
 		}
@@ -430,11 +428,16 @@ const saveEvent = (event: ComponentEvent) => {
 	event = getEvent(event)
 	if (isEditing) {
 		props.block?.updateEvent(event)
-		toast.success("Event updated successfully")
+		toast.success("Event updated")
 	} else {
 		props.block?.addEvent(event)
+		toast.success("Event added")
 	}
-	if (event.action !== "Run Script") {
+	if (event.action === "Run Script") {
+		// the dialog stays open for scripts, so later saves should update this event
+		newEvent.value.isEditing = true
+		newEvent.value.oldEvent = event.event
+	} else {
 		showAddEventDialog.value = false
 	}
 }
