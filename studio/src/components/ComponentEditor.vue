@@ -11,7 +11,7 @@
 		<!-- Component name label -->
 		<span
 			v-if="!props.block.isRoot() && isPrimaryInstance"
-			class="absolute bottom-full left-0 inline-flex items-center gap-1 whitespace-nowrap text-xs"
+			class="absolute bottom-full left-0 mb-1 inline-flex items-center gap-1 whitespace-nowrap rounded-1 px-1 text-xs"
 			:class="componentLabelClasses"
 		>
 			<LucideRepeat v-if="block.isRepeater() || block.isRepeated()" class="h-3 w-3 shrink-0" />
@@ -63,7 +63,7 @@
 				}"
 			>
 				<span
-					class="absolute bottom-full left-0 inline-block text-nowrap text-xs text-ink-base"
+					class="absolute bottom-full left-0 mb-1 inline-block text-nowrap rounded-1 px-1 text-xs text-ink-base"
 					:class="isSlotSelected(slot.slotId) ? 'bg-surface-purple-6' : 'bg-surface-purple-6/65'"
 				>
 					#{{ slotName }}
