@@ -12,8 +12,7 @@ export type LayoutDirection = "row" | "column"
 export type IndicatorOrientation = "vertical" | "horizontal"
 
 export interface ChildRect {
-	// position in the measured element list, so callers can map an index in
-	// reading order back to the element/block it came from
+	// Position in the input element list, used to find this block after sorting.
 	index: number
 	// main-axis extents (left/right for row, top/bottom for column)
 	start: number
