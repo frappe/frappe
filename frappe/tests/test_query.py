@@ -2469,6 +2469,19 @@ class TestQuery(IntegrationTestCase):
 			self.assertIn(self.normalize_sql("ORDER BY `created_date`"), self.normalize_sql(sql))
 		self.assertIn(self.normalize_sql("`creation` `created_date`"), self.normalize_sql(sql))
 
+	def test_order_by_expression_alias_with_group_by(self):
+		for expression in (
+			{"SUB": [{"SUM": "idx"}, {"COUNT": "name"}], "as": "score"},
+			{"IFNULL": [{"SUM": "idx"}, 0], "as": "score"},
+		):
+			with self.subTest(expression=expression):
+				result = frappe.qb.get_query(
+					"DocField", fields=["parent", expression], group_by="parent", order_by="score desc"
+				).run(as_dict=True)
+				scores = [row.score for row in result]
+				self.assertGreater(len(scores), 1)
+				self.assertEqual(scores, sorted(scores, reverse=True))
+
 	def test_distinct_keeps_valid_order_by(self):
 		for field, order_by in (
 			("user_type", "user_type asc"),
