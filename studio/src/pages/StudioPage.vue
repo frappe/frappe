@@ -169,6 +169,7 @@
 			</template>
 		</Dialog>
 		<PasteConflictDialog />
+		<StudioCommandPalette />
 		<KeyboardShortcutsDialog v-model:open="store.showShortcutsDialog" />
 	</div>
 </template>
@@ -188,6 +189,7 @@ import StudioCanvas from "@/components/StudioCanvas.vue"
 import OverlayList from "@/components/OverlayList.vue"
 import Code from "@/components/Code.vue"
 import PasteConflictDialog from "@/components/PasteConflictDialog.vue"
+import StudioCommandPalette from "@/components/CommandPalette/StudioCommandPalette.vue"
 
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
