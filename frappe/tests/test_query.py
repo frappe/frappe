@@ -2470,17 +2470,26 @@ class TestQuery(IntegrationTestCase):
 		self.assertIn(self.normalize_sql("`creation` `created_date`"), self.normalize_sql(sql))
 
 	def test_order_by_expression_alias_with_group_by(self):
-		for expression in (
-			{"SUB": [{"SUM": "idx"}, {"COUNT": "name"}], "as": "score"},
-			{"IFNULL": [{"SUM": "idx"}, 0], "as": "score"},
-		):
-			with self.subTest(expression=expression):
-				result = frappe.qb.get_query(
-					"DocField", fields=["parent", expression], group_by="parent", order_by="score desc"
-				).run(as_dict=True)
-				scores = [row.score for row in result]
-				self.assertGreater(len(scores), 1)
-				self.assertEqual(scores, sorted(scores, reverse=True))
+		with self.set_user("test2@example.com"):
+			for priority, count in (("Low", 1), ("Medium", 2), ("High", 3)):
+				for _ in range(count):
+					frappe.get_doc(
+						{"doctype": "ToDo", "description": "_Test alias order", "priority": priority}
+					).insert()
+
+			for expression, expected in (
+				({"SUB": [{"SUM": "idx"}, {"COUNT": "name"}], "as": "score"}, ["Low", "Medium", "High"]),
+				({"IFNULL": [{"COUNT": "name"}, 0], "as": "score"}, ["High", "Medium", "Low"]),
+			):
+				with self.subTest(expression=expression):
+					rows = frappe.get_list(
+						"ToDo",
+						fields=["priority", expression],
+						filters={"description": "_Test alias order"},
+						group_by="priority",
+						order_by="score desc",
+					)
+					self.assertEqual([row.priority for row in rows], expected)
 
 	def test_distinct_keeps_valid_order_by(self):
 		for field, order_by in (
