@@ -26,8 +26,6 @@ export type ComponentEvent = {
 	on_error_script?: string,
 	/** action = 'Run Script' */
 	script?: string
-	// for editing
-	isEditing?: boolean
 	oldEvent?: Events | string
 }
 

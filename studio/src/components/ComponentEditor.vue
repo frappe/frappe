@@ -11,7 +11,7 @@
 		<!-- Component name label -->
 		<span
 			v-if="!props.block.isRoot() && isPrimaryInstance"
-			class="absolute -top-3 left-0 inline-flex items-center gap-1 text-xs"
+			class="absolute bottom-full left-0 mb-1 inline-flex items-center gap-1 whitespace-nowrap rounded-1 px-1 text-xs"
 			:class="componentLabelClasses"
 		>
 			<LucideRepeat v-if="block.isRepeater() || block.isRepeated()" class="h-3 w-3 shrink-0" />
@@ -63,7 +63,7 @@
 				}"
 			>
 				<span
-					class="absolute -top-3 left-0 inline-block text-nowrap text-xs text-ink-base"
+					class="absolute bottom-full left-0 mb-1 inline-block text-nowrap rounded-1 px-1 text-xs text-ink-base"
 					:class="isSlotSelected(slot.slotId) ? 'bg-surface-purple-6' : 'bg-surface-purple-6/65'"
 				>
 					#{{ slotName }}
@@ -199,6 +199,8 @@ const componentLabelClasses = computed(() => {
 // the drag (reorder for in-flow blocks, free move for absolutely positioned
 // ones); the resize/spacing handlers stop their own mousedown.
 const handleMouseDown = (ev: MouseEvent) => {
+	// preventDefault keeps focus where it was, so blur explicitly to commit pending panel edits
+	;(document.activeElement as HTMLElement | null)?.blur()
 	if (ev.button !== 0 || store.mode !== "select") return
 	if ((ev.target as HTMLElement).closest("button")) return
 

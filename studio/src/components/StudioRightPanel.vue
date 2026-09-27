@@ -13,39 +13,38 @@
 				:max-dimension="400"
 			/>
 
-			<div class="sticky top-0 z-[12] flex w-full border-outline-elevation-2 bg-surface-base px-1 text-base">
-				<!-- prettier-ignore -->
-				<button
-					v-for="tab of tabs"
-					:key="tab"
-					class="mx-2 py-3"
-					@click="(store.studioLayout.rightPanelActiveTab = tab as RightPanelOptions)"
-					:class="{
-						'dark:border-zinc-500 dark:text-zinc-300 border-b-[1px] border-outline-gray-8': activeTab === tab,
-						'dark:text-zinc-500 text-ink-gray-6': activeTab !== tab,
-						'flex-1 px-2': !showInterfaceTab,
-					}"
-				>
-					{{ tab }}
-				</button>
-			</div>
+			<div class="sticky top-0 z-[12] w-full bg-surface-base">
+				<div class="flex w-full border-outline-elevation-2 px-1 text-base">
+					<!-- prettier-ignore -->
+					<button
+						v-for="tab of tabs"
+						:key="tab"
+						class="mx-2 border-b py-3"
+						@click="(store.studioLayout.rightPanelActiveTab = tab as RightPanelOptions)"
+						:class="{
+							'border-outline-gray-8 text-ink-gray-9': activeTab === tab,
+							'border-transparent text-ink-gray-6': activeTab !== tab,
+							'flex-1 px-2': !showInterfaceTab,
+						}"
+					>
+						{{ tab }}
+					</button>
+				</div>
 
-			<div
-				v-if="showSearchInput"
-				class="sticky top-[41px] z-50 mb-2 mt-[-15px] flex w-full bg-surface-base p-3"
-			>
-				<Input
-					ref="searchInput"
-					type="text"
-					variant="outline"
-					placeholder="Search properties"
-					v-model="store.propertyFilter"
-					@input="
-						(value: string) => {
-							store.propertyFilter = value
-						}
-					"
-				/>
+				<div v-if="showSearchInput" class="flex w-full p-3">
+					<Input
+						ref="searchInput"
+						type="text"
+						variant="outline"
+						placeholder="Search properties"
+						v-model="store.propertyFilter"
+						@input="
+							(value: string) => {
+								store.propertyFilter = value
+							}
+						"
+					/>
+				</div>
 			</div>
 
 			<ComponentProperties

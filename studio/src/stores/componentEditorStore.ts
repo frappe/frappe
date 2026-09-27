@@ -31,7 +31,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		return studioComponents.insert.submit(component, {
 			onSuccess(data: any) {
 				componentStore.cacheComponent(data)
-				toast.success("Component created successfully")
+				toast.success("Component created")
 				return data
 			},
 			onError(error: any) {
@@ -76,7 +76,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 			onSuccess(data: StudioComponent) {
 				componentStore.cacheComponent(data)
 				resetStudioComponent()
-				toast.success("Component saved successfully")
+				toast.success("Component saved")
 			},
 			onError(error: any) {
 				toast.error("Failed to save component", {
@@ -133,7 +133,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 						studio_app: store.activeApp?.name,
 					})
 					.then(() => {
-						toast.success(`Component '${component.component_name}' deleted successfully`)
+						toast.success(`Component '${component.component_name}' deleted`)
 						studioComponents.reload()
 						componentStore.removeCachedComponent(component.component_id)
 					})
