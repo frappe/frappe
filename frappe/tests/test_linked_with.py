@@ -8,7 +8,6 @@ from frappe.core.doctype.user_permission.user_permission import get_applicable_f
 from frappe.database import savepoint
 from frappe.desk.form import linked_with
 from frappe.model.delete_doc import LinkedDocumentsOverflow, get_linked_docs
-from frappe.model.dynamic_links import _dynamic_link_map_key, invalidate_distinct_link_doctypes
 from frappe.tests import IntegrationTestCase
 
 
@@ -929,14 +928,36 @@ class TestLinkedWith(IntegrationTestCase):
 		finally:
 			frappe.delete_doc("DocType", target_doctype)
 
-	def test_new_dynamic_link_resets_the_request_map(self):
-		# test mode rebuilds the map on every call, so check the reset directly
-		frappe.cache.set_value(_dynamic_link_map_key("Child DocType1", "reference_doctype"), ["ToDo"])
-		frappe.local.dynamic_link_map = {"ToDo": []}
+	def test_same_request_lookup_finds_a_new_dynamic_link(self):
+		# new doctypes, so no earlier row links the target
+		all_can_edit = [{"role": "All", "read": 1, "write": 1, "create": 1}]
+		target_doctype = new_doctype(permissions=all_can_edit).insert().name
+		link_fields = [
+			{"fieldname": "reference_doctype", "fieldtype": "Link", "options": "DocType"},
+			{"fieldname": "reference_name", "fieldtype": "Dynamic Link", "options": "reference_doctype"},
+		]
+		linking_doctype = new_doctype(fields=link_fields, permissions=all_can_edit).insert().name
+		try:
+			# outside tests the dynamic link map is built once per request
+			with self.set_user("test@example.com"), patch.object(frappe, "in_test", False):
+				frappe.local.dynamic_link_map = None
+				target = frappe.new_doc(target_doctype).insert()
+				self.assertNotIn(linking_doctype, linked_with.get(target_doctype, target.name))
 
-		invalidate_distinct_link_doctypes("Child DocType1", "reference_doctype", "Note")
+				link = frappe.get_doc(
+					{
+						"doctype": linking_doctype,
+						"reference_doctype": target_doctype,
+						"reference_name": target.name,
+					}
+				).insert()
 
-		self.assertIsNone(frappe.local.dynamic_link_map)
+				linked_docs = linked_with.get(target_doctype, target.name)[linking_doctype]["docs"]
+				self.assertEqual([doc.name for doc in linked_docs], [link.name])
+		finally:
+			frappe.local.dynamic_link_map = None
+			frappe.delete_doc("DocType", linking_doctype)
+			frappe.delete_doc("DocType", target_doctype)
 
 	def test_check_delete_integrity(self):
 		"""Don't allow deleting cancelled document if amendment exists"""
