@@ -238,8 +238,9 @@ const doctypeFields = ref<{ label: string; value: string }[]>([])
 const selectDoctype = async (doctype: string) => {
 	newEvent.value.doctype = doctype
 	if (!doctype) return
-	await loadDoctypeFields(doctype)
-	newEvent.value.fields = getDefaultFieldRows()
+	if (await loadDoctypeFields(doctype)) {
+		newEvent.value.fields = getDefaultFieldRows()
+	}
 }
 
 const loadDoctypeFields = async (doctype: string) => {
@@ -255,8 +256,16 @@ const loadDoctypeFields = async (doctype: string) => {
 			})
 		},
 	})
-	await fields.reload()
+	try {
+		await fields.reload()
+	} catch {
+		toast.error(`Failed to load fields for ${doctype}`)
+		return false
+	}
+	// a slower response for a previously selected doctype must not overwrite the current one
+	if (newEvent.value.doctype !== doctype) return false
 	doctypeFields.value = fields.data
+	return true
 }
 
 const getDefaultFieldRows = () => {
