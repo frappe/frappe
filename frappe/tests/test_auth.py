@@ -379,7 +379,7 @@ class TestEmailLinkRedirect(IntegrationTestCase):
 
 	def test_key_is_deleted_before_login(self):
 		key = self.send_link("/me")
-		with patch.object(frappe.local.login_manager, "login_as", side_effect=frappe.AuthenticationError):
+		with patch.object(LoginManager, "login_as", side_effect=frappe.AuthenticationError):
 			with self.assertRaises(frappe.AuthenticationError):
 				self.consume_link(key)
 		self.assertIsNone(frappe.cache.get_value(f"one_time_login_key:{key}"))
