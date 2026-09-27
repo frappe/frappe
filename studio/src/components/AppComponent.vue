@@ -246,7 +246,7 @@ const handleSuccess = (event: any) => (data: DataResult) => {
 		)
 	} else {
 		if (event.action === "Insert a Document") {
-			toast.success(event.success_message || `${event.doctype} created successfully`)
+			toast.success(event.success_message || `${event.doctype} created`)
 		}
 	}
 }

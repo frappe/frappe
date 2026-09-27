@@ -207,7 +207,7 @@ const deleteResource = async (resource_name: string) => {
 				await codeStore.setPageResources(store.activePage, true)
 				await store.refreshActivePageModified()
 			}
-			toast.success(`Data Source ${resource_name} deleted successfully`)
+			toast.success(`Data Source ${resource_name} deleted`)
 		})
 		.catch(() => {
 			toast.error(`Failed to delete data source ${resource_name}`)
@@ -222,7 +222,7 @@ const editResource = async (resource: Resource) => {
 				await codeStore.setPageResources(store.activePage, true)
 				store.syncPageModified(data)
 			}
-			toast.success(`Data Source ${resource.resource_name} updated successfully`)
+			toast.success(`Data Source ${resource.resource_name} updated`)
 			showResourceDialog.value = false
 		})
 		.catch(() => {
@@ -364,7 +364,7 @@ const deleteVariable = async (variable: Variable) => {
 					await codeStore.setPageVariables(store.activePage)
 					await store.refreshActivePageModified()
 				}
-				toast.success(`Variable ${variable.variable_name} deleted successfully`)
+				toast.success(`Variable ${variable.variable_name} deleted`)
 			})
 			.catch(() => {
 				toast.error(`Failed to delete variable ${variable.variable_name}`)

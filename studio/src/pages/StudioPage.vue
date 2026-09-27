@@ -251,7 +251,7 @@ async function saveFragmentMode() {
 	}
 
 	if (canvasStore.editingMode === "fragment") {
-		toast.success(`${canvasStore.fragmentData.fragmentName} saved successfully`)
+		toast.success(`${canvasStore.fragmentData.fragmentName} saved`)
 	}
 	// saving a nested fragment returns to its parent fragment canvas
 	if (canvasStore.fragmentStack.length > 1) {

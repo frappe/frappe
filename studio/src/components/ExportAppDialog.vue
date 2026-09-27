@@ -51,7 +51,7 @@ function exportApp() {
 		{
 			onSuccess: () => {
 				store.setApp(store.activeApp!.name)
-				toast.success("App exported successfully")
+				toast.success("App exported")
 				showDialog.value = false
 			},
 			onError: (error: any) => {

@@ -101,7 +101,7 @@ const useStudioStore = defineStore("store", () => {
 					if (activeApp.value?.name === appName) {
 						router.replace({ name: "Home" })
 					}
-					toast.success(`App "${appTitle}" deleted successfully`)
+					toast.success(`App "${appTitle}" deleted`)
 				},
 				onError() {
 					toast.error("An unexpected error occurred while deleting the app.")
@@ -141,7 +141,7 @@ const useStudioStore = defineStore("store", () => {
 			try {
 				await studioPages.delete.submit(page.name)
 				await setApp(appName)
-				toast.success(`Page "${page.page_title}" deleted successfully`)
+				toast.success(`Page "${page.page_title}" deleted`)
 			} catch (error) {
 				toast.error("An unexpected error occurred while deleting the page.")
 			}
@@ -166,7 +166,7 @@ const useStudioStore = defineStore("store", () => {
 						name: "StudioPage",
 						params: { appID: appName, pageID: page.name },
 					})
-					return `Page "${page.page_title}" duplicated successfully`
+					return `Page "${page.page_title}" duplicated`
 				},
 			},
 		)
@@ -463,7 +463,7 @@ const useStudioStore = defineStore("store", () => {
 						)
 					} else {
 						openPageInBrowser(activeApp.value!, activePage.value!)
-						toast.success(`App published successfully (${data?.message?.published_pages} pages)`)
+						toast.success(`App published (${data?.message?.published_pages} pages)`)
 					}
 				},
 				onError(error: any) {
