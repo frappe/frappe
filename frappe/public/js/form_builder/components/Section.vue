@@ -55,6 +55,8 @@
 					:animation="200"
 					:easing="store.get_animation"
 					:disabled="store.read_only"
+					@start="store.start_drag('column')"
+					@end="store.end_drag"
 				>
 					<template #item="{ element }">
 						<Column

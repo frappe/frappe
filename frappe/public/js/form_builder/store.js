@@ -727,7 +727,7 @@ export const useStore = defineStore("form-builder-store", () => {
 	}
 
 	// Tab actions
-	function add_new_tab() {
+	function add_new_tab(sections = [section_boilerplate()]) {
 		validate_web_form_page_limit();
 
 		// a Web Form page is named by the renumbering watcher
@@ -735,11 +735,63 @@ export const useStore = defineStore("form-builder-store", () => {
 
 		let tab = {
 			df: get_df("Tab Break", "", label),
-			sections: [section_boilerplate()],
+			sections,
 		};
 
 		form.value.layout.tabs.push(tab);
 		activate_tab(tab);
+	}
+
+	// the section, column or field being dragged, so the add tab button can open a tab for it
+	let dragged_item = null;
+	// bumped when a drag opens a tab, so the tab header's queued hover switches do not pull
+	// the view off it
+	let tabs_added_by_drag = ref(0);
+
+	function start_drag(kind) {
+		dragged_item = { kind, origin: current_tab.value };
+	}
+
+	function add_tab_for_drag() {
+		// once per drag, or a refused tab (page limit) throws again on every dragenter
+		if (!dragged_item || dragged_item.tried) return;
+		dragged_item.tried = true;
+
+		// a column or field needs a section to land in
+		let sections = dragged_item.kind == "section" ? [] : [section_boilerplate()];
+
+		add_new_tab(sections);
+		// the reactive tab, as changes through the raw one do not re-render
+		dragged_item.new_tab = current_tab.value;
+		dragged_item.first_column = sections[0]?.columns[0].df.name;
+		tabs_added_by_drag.value++;
+	}
+
+	function end_drag() {
+		let { kind, origin, new_tab, first_column } = dragged_item;
+		dragged_item = null;
+		if (!new_tab) return;
+
+		let columns = new_tab.sections[0]?.columns;
+		let unused = {
+			section: !new_tab.sections.length,
+			column: columns?.length == 1,
+			field: !columns?.[0].fields.length,
+		}[kind];
+
+		if (unused) {
+			// the item was dropped elsewhere, so remove the tab it opened
+			let tabs = form.value.layout.tabs;
+			tabs.splice(tabs.indexOf(new_tab), 1);
+			form.value.active_tab = origin.df.name;
+			form.value.selected_field = null;
+		} else if (kind == "column") {
+			// the dropped column takes the place of the empty one the tab opened with
+			columns.splice(
+				columns.findIndex((column) => column.df.name == first_column),
+				1
+			);
+		}
 	}
 
 	function activate_tab(tab) {
@@ -790,6 +842,10 @@ export const useStore = defineStore("form-builder-store", () => {
 		is_df_updated,
 		get_layout,
 		add_new_tab,
+		tabs_added_by_drag,
+		start_drag,
+		add_tab_for_drag,
+		end_drag,
 		activate_tab,
 		validate_web_form_page_limit,
 		tab_text,

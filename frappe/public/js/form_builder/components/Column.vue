@@ -27,6 +27,8 @@
 			:easing="store.get_animation"
 			item-key="id"
 			:disabled="store.read_only"
+			@start="store.start_drag('field')"
+			@end="store.end_drag"
 		>
 			<template #item="{ element }">
 				<Field

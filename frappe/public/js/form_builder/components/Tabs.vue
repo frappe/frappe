@@ -32,9 +32,11 @@ function activate_tab(tab) {
 }
 
 function drag_over(tab) {
+	// a drag that opens a new tab on the way to the add button cancels these switches
+	let count = store.tabs_added_by_drag;
 	!dragged.value &&
 		setTimeout(() => {
-			store.form.active_tab = tab.df.name;
+			if (count === store.tabs_added_by_drag) store.form.active_tab = tab.df.name;
 		}, 500);
 }
 
@@ -172,7 +174,11 @@ function delete_tab_message(tab) {
 				</div>
 			</template>
 		</draggable>
-		<div class="tab-actions" :hidden="!store.can_edit_layout">
+		<div
+			class="tab-actions"
+			:hidden="!store.can_edit_layout"
+			@dragenter="store.add_tab_for_drag"
+		>
 			<button
 				class="new-tab-btn btn btn-xs flex items-center gap-1"
 				:title="store.tab_text.add_title"
@@ -200,6 +206,8 @@ function delete_tab_message(tab) {
 				:easing="store.get_animation"
 				item-key="id"
 				:disabled="store.read_only"
+				@start="store.start_drag('section')"
+				@end="store.end_drag"
 			>
 				<template #item="{ element }">
 					<Section
