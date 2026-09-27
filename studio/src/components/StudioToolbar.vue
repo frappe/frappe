@@ -22,12 +22,17 @@
 							{
 								label: 'App Settings',
 								icon: 'lucide-settings',
-								onClick: () => (showAppDialog = true),
+								onClick: () => (store.showAppDialog = true),
 							},
 							{
 								label: 'Studio Settings',
 								icon: 'lucide-sliders-vertical',
 								onClick: () => (store.showStudioSettingsDialog = true),
+							},
+							{
+								label: 'Keyboard Shortcuts',
+								icon: 'lucide-command',
+								onClick: () => (store.showShortcutsDialog = true),
 							},
 							{
 								label: 'Delete App',
@@ -144,7 +149,7 @@
 			<PublishButton :disabled="canvasStore.showFragmentCanvas" />
 		</div>
 		<AppDialog
-			v-model:showDialog="showAppDialog"
+			v-model:showDialog="store.showAppDialog"
 			:app="store.activeApp"
 			@update="(app: StudioApp) => store.setApp(app.name)"
 		/>
@@ -177,6 +182,4 @@ const canvasStore = useCanvasStore()
 const routeString = computed(() => store.activePage?.route || "/")
 const showExportAppDialog = ref(false)
 const canExportApp = computed(() => window.is_developer_mode && !isObjectEmpty(store.activeApp))
-
-const showAppDialog = ref(false)
 </script>

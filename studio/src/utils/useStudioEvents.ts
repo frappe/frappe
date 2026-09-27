@@ -2,12 +2,13 @@ import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { useEventListener } from "@vueuse/core"
 import blockController from "@/utils/blockController"
-import { isCtrlOrCmd, isTargetEditable, numberToPx, isHTML } from "@/utils/helpers"
+import { isTargetEditable, numberToPx, isHTML } from "@/utils/helpers"
 import { getComponentBlock } from "@/utils/serializer"
 import { copyBlocks, copySelectedBlocks, pasteBlocks, pasteDataSource } from "@/utils/blockCopyPaste"
 import Block from "@/utils/block"
 import type { BlockOptions } from "@/types"
-import { toast } from "frappe-ui"
+import { toast, useKeyboardShortcut } from "frappe-ui"
+import { commandShortcuts } from "@/components/Commands"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
@@ -72,84 +73,56 @@ export function useStudioEvents(saveFragmentMode: () => void) {
 		}
 	})
 
-	useEventListener(document, "keydown", (e) => {
-		// save
-		if (e.key === "s" && isCtrlOrCmd(e) && store.selectedPage) {
-			// the page autosaves - just swallow the browser's save dialog in page mode
-			e.preventDefault()
-			if (canvasStore.editingMode !== "page") {
-				saveFragmentMode()
-			}
-			return
-		}
-
-		if (isTargetEditable(e)) return
-
-		// delete
-		if (e.key === "Backspace" || e.key === "Delete") {
-			// a selected slot takes precedence over its (also-selected) parent block
-			const selectedSlot = canvasStore.activeCanvas?.selectedSlot
-			if (selectedSlot) {
-				const parent = canvasStore.activeCanvas?.findBlock(selectedSlot.parentBlockId)
-				parent?.removeSlot(selectedSlot.slotName)
-				e.stopPropagation()
-				return
-			}
-
-			if (blockController.isAnyBlockSelected()) {
-				for (const block of blockController.getSelectedBlocks()) {
-					canvasStore.activeCanvas?.removeBlock(block, e.shiftKey)
+	// a command that declares keys owns its binding; what is left needs the
+	// keyboard event or the fragment save, so it stays a plain shortcut
+	useKeyboardShortcut([
+		...commandShortcuts(),
+		{
+			combo: "Mod+S",
+			description: "Save Component",
+			group: "General",
+			allowInInput: true,
+			// the page autosaves - in page mode this just swallows the browser's save dialog
+			enabled: () => Boolean(store.selectedPage),
+			handler: () => {
+				if (canvasStore.editingMode !== "page") {
+					saveFragmentMode()
 				}
-				clearSelection()
-				e.stopPropagation()
-				return
-			}
-		}
+			},
+		},
+		...(["Backspace", "Delete"] as const).map((combo) => ({
+			combo,
+			description: "Delete Selected Blocks",
+			group: "Edit",
+			handler: (e: KeyboardEvent) => deleteSelection(e, false),
+		})),
+		// on a breakpoint other than desktop, a plain delete only hides the block
+		...(["Shift+Backspace", "Shift+Delete"] as const).map((combo) => ({
+			combo,
+			description: "Delete Selected Blocks on All Breakpoints",
+			group: "Edit",
+			handler: (e: KeyboardEvent) => deleteSelection(e, true),
+		})),
+	])
+}
 
-		// duplicate
-		if (e.key === "d" && isCtrlOrCmd(e)) {
-			if (blockController.isAnyBlockSelected() && !blockController.multipleBlocksSelected()) {
-				e.preventDefault()
-				const block = blockController.getSelectedBlocks()[0]
-				block.duplicateBlock()
-			}
-			return
-		}
+const deleteSelection = (e: KeyboardEvent, force: boolean) => {
+	// a selected slot takes precedence over its (also-selected) parent block
+	const selectedSlot = canvasStore.activeCanvas?.selectedSlot
+	if (selectedSlot) {
+		const parent = canvasStore.activeCanvas?.findBlock(selectedSlot.parentBlockId)
+		parent?.removeSlot(selectedSlot.slotName)
+		e.stopPropagation()
+		return
+	}
 
-		// undo
-		if (e.key === "z" && isCtrlOrCmd(e) && !e.shiftKey && canvasStore.activeCanvas?.history?.canUndo()) {
-			canvasStore.activeCanvas?.history.undo()
-			e.preventDefault()
-			return
+	if (blockController.isAnyBlockSelected()) {
+		for (const block of blockController.getSelectedBlocks()) {
+			canvasStore.activeCanvas?.removeBlock(block, force)
 		}
-
-		// redo
-		if (e.key === "z" && e.shiftKey && isCtrlOrCmd(e) && canvasStore.activeCanvas?.history?.canRedo) {
-			canvasStore.activeCanvas?.history.redo()
-			e.preventDefault()
-			return
-		}
-
-		// search block
-		if (e.key === "f" && isCtrlOrCmd(e) && e.shiftKey) {
-			e.preventDefault();
-			store.showSearchBlock = true;
-		}
-
-		if (isCtrlOrCmd(e) || e.shiftKey) {
-			return
-		}
-
-		if (e.key === "c") {
-			store.mode = "container"
-			return
-		}
-
-		if (e.key === "v") {
-			store.mode = "select"
-			return
-		}
-	})
+		clearSelection()
+		e.stopPropagation()
+	}
 }
 
 const clearSelection = () => {

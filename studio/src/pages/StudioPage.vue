@@ -169,6 +169,7 @@
 			</template>
 		</Dialog>
 		<PasteConflictDialog />
+		<KeyboardShortcutsDialog v-model:open="store.showShortcutsDialog" />
 	</div>
 </template>
 
@@ -176,7 +177,7 @@
 import { onActivated, watchEffect, watch, ref, onDeactivated, toRef, nextTick, computed } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useDebounceFn } from "@vueuse/core"
-import { usePageMeta, Dialog, Button } from "frappe-ui"
+import { usePageMeta, Dialog, Button, KeyboardShortcutsDialog } from "frappe-ui"
 import type { CompletionContext } from "@codemirror/autocomplete"
 
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"

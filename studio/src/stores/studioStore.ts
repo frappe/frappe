@@ -54,6 +54,8 @@ const useStudioStore = defineStore("store", () => {
 	const showSearchBlock = ref(false)
 	const showStudioSettingsDialog = ref(false)
 	const showPageOptions = ref(false)
+	const showAppDialog = ref(false)
+	const showShortcutsDialog = ref(false)
 
 	// studio apps
 	const activeApp = ref<StudioApp | null>(null)
@@ -720,6 +722,8 @@ const useStudioStore = defineStore("store", () => {
 		// dialogs
 		showSearchBlock,
 		showStudioSettingsDialog,
+		showAppDialog,
+		showShortcutsDialog,
 		showPageOptions,
 		// studio app
 		activeApp,
