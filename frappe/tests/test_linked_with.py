@@ -5,6 +5,11 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.database import savepoint
 from frappe.desk.form import linked_with
+<<<<<<< HEAD
+=======
+from frappe.model.delete_doc import LinkedDocumentsOverflow, get_linked_docs
+from frappe.model.dynamic_links import _dynamic_link_map_key, invalidate_distinct_link_doctypes
+>>>>>>> f1dee13 (test(dynamic_links): a new linked doctype resets the request map)
 from frappe.tests import IntegrationTestCase
 
 
@@ -906,7 +911,19 @@ class TestLinkedWith(IntegrationTestCase):
 		finally:
 			frappe.delete_doc("DocType", target_doctype)
 
+<<<<<<< HEAD
 >>>>>>> 3541bbc (test(linked_with): find dynamic links added after the first lookup)
+=======
+	def test_new_dynamic_link_resets_the_request_map(self):
+		# test mode rebuilds the map on every call, so check the reset directly
+		frappe.cache.set_value(_dynamic_link_map_key("Child DocType1", "reference_doctype"), ["ToDo"])
+		frappe.local.dynamic_link_map = {"ToDo": []}
+
+		invalidate_distinct_link_doctypes("Child DocType1", "reference_doctype", "Note")
+
+		self.assertIsNone(frappe.local.dynamic_link_map)
+
+>>>>>>> f1dee13 (test(dynamic_links): a new linked doctype resets the request map)
 	def test_check_delete_integrity(self):
 		"""Don't allow deleting cancelled document if amendment exists"""
 		doc = frappe.get_doc({"doctype": "Parent DocType"}).insert()
