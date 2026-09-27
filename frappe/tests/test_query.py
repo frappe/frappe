@@ -3235,6 +3235,10 @@ class TestQuery(IntegrationTestCase):
 			self.assertNotIn("LIMIT", query)
 			self.assertIn("OFFSET 10", query)
 
+	def test_get_list_with_offset_and_no_limit(self):
+		names = frappe.get_list("DocType", order_by="name", pluck="name")
+		self.assertEqual(frappe.get_list("DocType", order_by="name", offset=10, pluck="name"), names[10:])
+
 	@run_only_if(db_type_is.MARIADB)
 	def test_build_filter_conditions_escapes_backslash_safely(self):
 		"""A filter value ending in a backslash must not let its string literal
