@@ -908,6 +908,26 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertIsInstance(out, dict)
 		parent_record.delete()
 
+	def test_get_finds_dynamic_links_added_after_first_lookup(self):
+		# a new doctype, so no earlier Child DocType1 row links to it
+		target_doctype = new_doctype().insert().name
+		try:
+			target = frappe.new_doc(target_doctype).insert()
+			self.assertNotIn("Child DocType1", linked_with.get(target_doctype, target.name))
+
+			child_record = frappe.get_doc(
+				{
+					"doctype": "Child DocType1",
+					"reference_doctype": target_doctype,
+					"reference_name": target.name,
+				}
+			).insert()
+
+			linked_docs = linked_with.get(target_doctype, target.name)["Child DocType1"]["docs"]
+			self.assertEqual([doc.name for doc in linked_docs], [child_record.name])
+		finally:
+			frappe.delete_doc("DocType", target_doctype)
+
 	def test_check_delete_integrity(self):
 		"""Don't allow deleting cancelled document if amendment exists"""
 		doc = frappe.get_doc({"doctype": "Parent DocType"}).insert()
