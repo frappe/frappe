@@ -52,7 +52,11 @@ scheduler_events = {
 	},
 }
 
-after_install = ["flow.permissions.ensure_flow_role", "flow.daemon.lifecycle.after_install"]
+after_install = [
+	"flow.permissions.ensure_flow_role",
+	"flow.assistant.sync_builtin_assistant",
+	"flow.daemon.lifecycle.after_install",
+]
 after_migrate = [
 	"flow.permissions.ensure_flow_role",
 	"flow.assistant.sync_builtin_assistant",
