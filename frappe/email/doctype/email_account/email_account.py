@@ -617,7 +617,7 @@ class EmailAccount(Document):
 			"use_ssl": cint(self.use_ssl_for_outgoing),
 			"use_tls": cint(self.use_tls),
 			"use_oauth": self.auth_method == "OAuth" and not self.no_smtp_authentication,
-			"access_token": self.get_access_token(),
+			"access_token": None if self.no_smtp_authentication else self.get_access_token(),
 		}
 
 		if self.flags.validate_smtp_connection:
