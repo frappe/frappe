@@ -724,7 +724,7 @@ class Meta(Document):
 			permission_type = "select" if frappe.only_has_select_perm(self.name, user=user) else "read"
 
 		if permission_type == "select":
-			return self.get_select_fieldnames()
+			return self.get_select_fieldnames(with_virtual_fields)
 
 		if not self.get_permissions(parenttype=parenttype):
 			return self.get_fieldnames_with_value()
@@ -747,13 +747,15 @@ class Meta(Document):
 		)
 		return permitted_fieldnames
 
-	def get_select_fieldnames(self):
+	def get_select_fieldnames(self, with_virtual_fields=True):
 		"""Search fields, plus the link title when it is not restricted to a higher permlevel."""
 		fieldnames = self.get_search_fields()
 		title = (
 			self.get_field(self.title_field) if self.show_title_field_in_link and self.title_field else None
 		)
-		if title and not title.permlevel and title.fieldname not in fieldnames:
+		if not title or title.permlevel or title.fieldname in fieldnames:
+			return fieldnames
+		if with_virtual_fields or not title.is_virtual:
 			fieldnames.append(title.fieldname)
 		return fieldnames
 
