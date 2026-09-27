@@ -58,6 +58,16 @@ class TestSMTP(IntegrationTestCase):
 		self.assertTrue(context.check_hostname)
 		connection.starttls.assert_called_once_with(context=context)
 
+	def test_starttls_skips_certificate_validation_when_disabled(self):
+		server = SMTPServer(server="smtp.example.com", use_tls=1, validate_ssl_certificate=0)
+		connection = Mock()
+
+		server.secure_session(connection)
+
+		context = connection.starttls.call_args.kwargs["context"]
+		self.assertEqual(context.verify_mode, ssl.CERT_NONE)
+		self.assertFalse(context.check_hostname)
+
 	@patch("frappe.email.smtp.smtplib.SMTP_SSL")
 	def test_smtp_ssl_uses_default_ssl_context(self, smtp_ssl):
 		server = SMTPServer(server="smtp.example.com", port=465, use_ssl=1)
@@ -67,6 +77,16 @@ class TestSMTP(IntegrationTestCase):
 		context = smtp_ssl.call_args.kwargs["context"]
 		self.assertEqual(context.verify_mode, ssl.CERT_REQUIRED)
 		self.assertTrue(context.check_hostname)
+
+	@patch("frappe.email.smtp.smtplib.SMTP_SSL")
+	def test_smtp_ssl_skips_certificate_validation_when_disabled(self, smtp_ssl):
+		server = SMTPServer(server="smtp.example.com", port=465, use_ssl=1, validate_ssl_certificate=0)
+
+		server.session
+
+		context = smtp_ssl.call_args.kwargs["context"]
+		self.assertEqual(context.verify_mode, ssl.CERT_NONE)
+		self.assertFalse(context.check_hostname)
 
 	@patch("frappe.email.smtp.smtplib.SMTP_SSL", side_effect=ssl.SSLCertVerificationError(1, "untrusted"))
 	def test_smtp_ssl_certificate_error_is_descriptive(self, smtp_ssl):
