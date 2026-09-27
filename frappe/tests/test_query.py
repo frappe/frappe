@@ -3227,7 +3227,8 @@ class TestQuery(IntegrationTestCase):
 
 		query = frappe.qb.get_query("Doctype", offset=10).get_sql()
 		if frappe.db.db_type != "postgres":
-			self.assertIn(f"LIMIT {MAX_LIMIT} OFFSET 10", query)
+			no_limit = -1 if frappe.db.db_type == "sqlite" else MAX_LIMIT
+			self.assertIn(f"LIMIT {no_limit} OFFSET 10", query)
 			query = frappe.qb.get_query("Doctype", limit=10, offset=10).get_sql()
 			self.assertIn("LIMIT 10 OFFSET 10", query)
 		else:

@@ -330,9 +330,10 @@ class Engine:
 			if not isinstance(offset, int) or offset < 0:
 				frappe.throw(_("Offset must be a non-negative integer"), TypeError)
 
-			# In MariaDB and SQLite, offset requires limit
+			# In MariaDB and SQLite, offset requires limit. MAX_LIMIT overflows SQLite's signed
+			# integers, but SQLite reads a negative limit as no limit.
 			if not self.is_postgres and not limit:
-				self.query = self.query.limit(MAX_LIMIT)
+				self.query = self.query.limit(-1 if self.is_sqlite else MAX_LIMIT)
 
 			self.query = self.query.offset(offset)
 
