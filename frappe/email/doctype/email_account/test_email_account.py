@@ -191,8 +191,8 @@ class TestEmailAccount(IntegrationTestCase):
 		sent_mail = email.message_from_string(frappe.safe_decode(frappe.flags.sent_mail))
 		self.assertTrue("test-mail-001" in sent_mail.get("Subject"))
 
-	@patch.object(EmailAccount, "get_access_token", return_value="outlook-access-token")
-	def test_no_smtp_authentication_skips_smtp_login(self, _get_access_token):
+	@patch.object(EmailAccount, "get_access_token")
+	def test_no_smtp_authentication_skips_smtp_login(self, get_access_token):
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		email_account.password = "smtp-password"
 		email_account.no_smtp_authentication = 1
@@ -202,6 +202,9 @@ class TestEmailAccount(IntegrationTestCase):
 			config = email_account.sendmail_config()
 			self.assertIsNone(config["password"])
 			self.assertFalse(config["use_oauth"])
+			self.assertIsNone(config["access_token"])
+
+		get_access_token.assert_not_called()
 
 	def test_print_format(self):
 		comm_name = make(
