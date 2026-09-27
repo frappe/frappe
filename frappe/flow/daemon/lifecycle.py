@@ -34,6 +34,8 @@ from flow.flow.doctype.flow_tool.flow_tool import sync_server_tools
 START_TIMEOUT = 30
 EXTENSIONS_DIR = "extensions"
 STOP_TIMEOUT = 5
+SITE_POLL = 5  # seconds serve waits between checks for a site with Flow
+UMASK = 0o077  # session transcripts and the socket are the bench user's alone
 LOCK = "flow_server"
 # The daemon inherits only these names: no bench credentials or stray FLOW_* switches.
 INHERITED_ENV = (
@@ -66,13 +68,18 @@ def after_install() -> None:
 def after_migrate() -> None:
 	"""Restarts so `bench update` ships new daemon code, then mirrors its extension tools."""
 	provision_site()
-	_run_or_warn(restart)
+	_run_or_warn(_restart_if_local)
 	_run_or_warn(sync_server_tools)
 
 
+def _restart_if_local() -> None:
+	if not supervised():  # supervised deployments restart after all sites migrate
+		restart()
+
+
 def keep_alive() -> None:
-	"""Scheduler: restart a daemon that died."""
-	if not _flow_bin().exists():
+	"""Scheduler: restart a daemon that died, unless supervisor runs it."""
+	if not _flow_bin().exists() or supervised():
 		return
 	ensure_running()
 
@@ -209,6 +216,9 @@ def _edit_tenants(change: Callable[[dict], object]) -> dict:
 
 def ensure_running() -> bool:
 	"""Start a daemon that is not answering; True when this call started it."""
+	if supervised():
+		_wait_for_supervisor()
+		return False
 	with filelock(LOCK, is_global=True):
 		if healthy():
 			return False
@@ -217,14 +227,41 @@ def ensure_running() -> bool:
 
 
 def restart() -> None:
+	if supervised():  # stop it; supervisor starts it, we wait
+		stop()
+		_wait_for_supervisor()
+		return
 	with filelock(LOCK, is_global=True):
 		_restart()
 
 
 def start() -> None:
 	"""Launch the daemon detached and wait until it answers on the socket."""
+	if supervised():
+		_wait_for_supervisor()
+		return
 	with filelock(LOCK, is_global=True):
 		_start()
+
+
+def serve() -> None:
+	"""Run the daemon in the foreground, for supervisor. It replaces one Flow started itself."""
+	if not supervised():
+		raise RuntimeError("set flow_server_manager to supervisor in common_site_config.json before serving")
+	runtime_dir().mkdir(parents=True, exist_ok=True)
+	tenants = _read_tenants()
+	if not tenants:
+		click.echo("flow server waits for a site with Flow installed")
+	while not tenants:  # exiting would make supervisor give up
+		time.sleep(SITE_POLL)
+		tenants = _read_tenants()
+	with filelock(LOCK, is_global=True):
+		_stop()
+		command, env = _prepare(tenants)
+		pid_file().write_text(str(os.getpid()))
+	os.chdir(runtime_dir())
+	os.umask(UMASK)
+	os.execve(command[0], command, env)
 
 
 def stop() -> None:
@@ -238,13 +275,43 @@ def _restart() -> None:
 
 
 def _start() -> None:
-	if not _flow_bin().exists():
-		raise RuntimeError("flow server is missing from the bench environment; reinstall the Flow app")
 	tenants = _read_tenants()
 	if not tenants:
 		raise RuntimeError("no site is provisioned yet; run `bench flow-server setup`")
+	command, env = _prepare(tenants)
+	log = log_path()
+	with log.open("ab") as out:
+		process = subprocess.Popen(
+			command,
+			stdin=subprocess.DEVNULL,
+			stdout=out,
+			stderr=out,
+			cwd=runtime_dir(),
+			env=env,
+			start_new_session=True,
+			umask=UMASK,
+		)
+	try:
+		pid_file().write_text(str(process.pid))
+		if _wait_until_healthy(process):
+			return
+		raise RuntimeError(f"flow server did not start, see {log}:\n{_log_tail(log)}")
+	except BaseException:
+		try:
+			_terminate_process(process)
+		finally:
+			pid_file().unlink(missing_ok=True)
+			socket_path().unlink(missing_ok=True)
+		raise
+
+
+def _prepare(tenants: dict) -> tuple[list[str], dict[str, str]]:
+	"""The daemon's command line and scrubbed environment, once no other daemon answers."""
+	if not _flow_bin().exists():
+		raise RuntimeError("flow server is missing from the bench environment; reinstall the Flow app")
 	if healthy():
 		raise RuntimeError(f"a flow server already answers on {socket_path()}; stop it by hand")
+	runtime_dir().mkdir(parents=True, exist_ok=True)
 	env = {name: os.environ[name] for name in INHERITED_ENV if name in os.environ}
 	env["FLOW_TENANTS_FILE"] = str(tenants_file())
 	allowed = ["read_file", "grep", "subagent"]
@@ -262,34 +329,22 @@ def _start() -> None:
 		*("--data-dir", str(state_dir() / "data")),
 		*("--profile", "deployed"),
 	]
-	runtime_dir().mkdir(parents=True, exist_ok=True)
-	log = log_path()
-	with log.open("ab") as out:
-		process = subprocess.Popen(
-			command,
-			stdin=subprocess.DEVNULL,
-			stdout=out,
-			stderr=out,
-			cwd=runtime_dir(),
-			env=env,
-			start_new_session=True,
-			umask=0o077,  # session transcripts and the socket are the bench user's alone
-		)
-	try:
-		pid_file().write_text(str(process.pid))
-		deadline = time.monotonic() + START_TIMEOUT
-		while time.monotonic() < deadline and process.poll() is None:
-			if healthy():
-				return
-			time.sleep(0.2)
-		raise RuntimeError(f"flow server did not start, see {log}:\n{_log_tail(log)}")
-	except BaseException:
-		try:
-			_terminate_process(process)
-		finally:
-			pid_file().unlink(missing_ok=True)
-			socket_path().unlink(missing_ok=True)
-		raise
+	return command, env
+
+
+def _wait_for_supervisor() -> None:
+	if not _wait_until_healthy():
+		raise RuntimeError("flow server did not become ready under supervisor; check its status and log")
+
+
+def _wait_until_healthy(process: subprocess.Popen | None = None) -> bool:
+	"""True once the daemon answers; False after START_TIMEOUT or once `process` exits."""
+	deadline = time.monotonic() + START_TIMEOUT
+	while time.monotonic() < deadline and (process is None or process.poll() is None):
+		if healthy():
+			return True
+		time.sleep(0.2)
+	return False
 
 
 def _stop() -> None:
@@ -336,6 +391,14 @@ def healthy() -> bool:
 
 
 # --- helpers and paths --------------------------------------------------
+
+
+def supervised() -> bool:
+	"""Deployment ownership is bench-wide, independent of whether the daemon is alive."""
+	manager = frappe.get_common_site_config().get("flow_server_manager", "local")
+	if manager not in ("local", "supervisor"):
+		raise RuntimeError("flow_server_manager must be local or supervisor in common_site_config.json")
+	return manager == "supervisor"
 
 
 def _redis_url() -> str | None:

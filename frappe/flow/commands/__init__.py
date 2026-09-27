@@ -35,11 +35,21 @@ def start():
 	click.secho(lifecycle.status(), fg="green")
 
 
+@flow_server.command("serve")
+def serve():
+	"""Run the daemon in the foreground, for supervisor."""
+	from flow.daemon import lifecycle
+
+	lifecycle.serve()
+
+
 @flow_server.command("stop")
 def stop():
 	"""Stop the daemon."""
 	from flow.daemon import lifecycle
 
+	if lifecycle.supervised():
+		raise click.ClickException("supervisor runs the flow server; stop it with supervisorctl")
 	lifecycle.stop()
 	click.echo(lifecycle.status())
 

@@ -20,6 +20,8 @@ class TestDaemonLifecycle(UnitTestCase):
 	def setUp(self):
 		tmp = TemporaryDirectory()
 		self.addCleanup(tmp.cleanup)
+		(Path(tmp.name) / "config").mkdir()
+		self.enterContext(patch("frappe.utils.synchronization.get_bench_path", return_value=tmp.name))
 		self.state = Path(tmp.name) / "sites" / "flow-server"
 		self.runtime = Path(tmp.name) / "flow-server"
 		self.log = Path(tmp.name) / "logs" / "flow-server.log"
@@ -35,6 +37,8 @@ class TestDaemonLifecycle(UnitTestCase):
 		self.enterContext(patch.object(lifecycle, "log_path", return_value=self.log))
 		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
 		self.enterContext(patch.object(lifecycle, "healthy", return_value=False))
+		self.supervised = lifecycle.supervised
+		self.enterContext(patch.object(lifecycle, "supervised", return_value=False))
 		self.flow_bin = Path(tmp.name) / "env" / "bin" / "flow"
 		self.enterContext(patch.object(lifecycle, "_flow_bin", return_value=self.flow_bin))
 		self.site = frappe.local.site
@@ -232,6 +236,33 @@ class TestDaemonLifecycle(UnitTestCase):
 			lifecycle.after_migrate()
 		self.assertIn("no listing", secho.call_args_list[0].args[0])
 
+	def test_migrate_restarts_the_daemon_unless_supervisor_runs_it(self):
+		for supervised, restarts in ((False, 1), (True, 0)):
+			with (
+				self.subTest(supervised=supervised),
+				patch.object(lifecycle, "supervised", return_value=supervised),
+				patch.object(lifecycle, "restart") as restart,
+				patch.object(lifecycle, "sync_server_tools") as sync,
+			):
+				lifecycle.after_migrate()
+			self.assertEqual(restart.call_count, restarts)
+			sync.assert_called_once()
+
+	def test_invalid_manager_warns_without_failing_install_or_migrate(self):
+		for hook in (lifecycle.after_install, lifecycle.after_migrate):
+			with (
+				self.subTest(hook=hook.__name__),
+				patch.object(lifecycle, "supervised", self.supervised),
+				patch.object(frappe, "get_common_site_config", return_value={"flow_server_manager": "typo"}),
+				patch.object(lifecycle, "sync_server_tools") as sync,
+				patch.object(subprocess, "Popen") as popen,
+				patch.object(click, "secho") as secho,
+			):
+				hook()
+			self.assertIn("flow_server_manager must be local or supervisor", secho.call_args_list[0].args[0])
+			popen.assert_not_called()
+			sync.assert_called_once()
+
 	def test_start_refuses_without_a_provisioned_site(self):
 		self.install_flow_bin()
 		with self.assertRaisesRegex(RuntimeError, "no site is provisioned"):
@@ -327,6 +358,148 @@ class TestDaemonLifecycle(UnitTestCase):
 			self.install_flow_bin()
 			lifecycle.keep_alive()
 			ensure_running.assert_called_once()
+
+	def test_ownership_comes_from_bench_config_not_site_config_or_a_stale_marker(self):
+		self.runtime.mkdir(parents=True)
+		(self.runtime / "supervised").touch()
+		for config, expected in (
+			({}, False),
+			({"flow_server_manager": "local"}, False),
+			({"flow_server_manager": "supervisor"}, True),
+		):
+			with (
+				self.subTest(config=config),
+				patch.object(frappe, "get_common_site_config", return_value=frappe._dict(config)),
+				patch.dict(
+					frappe.local.conf, {"flow_server_manager": "supervisor" if not expected else "local"}
+				),
+			):
+				self.assertEqual(self.supervised(), expected)
+
+	def test_invalid_manager_does_not_silently_allow_local_startup(self):
+		with (
+			patch.object(frappe, "get_common_site_config", return_value={"flow_server_manager": "typo"}),
+			self.assertRaisesRegex(RuntimeError, "must be local or supervisor"),
+		):
+			self.supervised()
+
+	def test_supervised_start_waits_without_holding_the_launch_lock_or_spawning(self):
+		for start in (lifecycle.start, lifecycle.ensure_running):
+			with (
+				self.subTest(start=start.__name__),
+				patch.object(lifecycle, "supervised", return_value=True),
+				patch.object(lifecycle, "healthy", side_effect=[False, True]),
+				patch.object(lifecycle.time, "sleep"),
+				patch.object(lifecycle, "filelock") as lock,
+				patch.object(subprocess, "Popen") as popen,
+			):
+				self.assertFalse(start())
+			lock.assert_not_called()
+			popen.assert_not_called()
+
+	def test_unavailable_supervisor_does_not_fall_back_to_a_local_daemon(self):
+		for start in (lifecycle.start, lifecycle.ensure_running):
+			with (
+				self.subTest(start=start.__name__),
+				patch.object(lifecycle, "supervised", return_value=True),
+				patch.object(lifecycle, "START_TIMEOUT", 0),
+				patch.object(subprocess, "Popen") as popen,
+				self.assertRaisesRegex(RuntimeError, "did not become ready under supervisor"),
+			):
+				start()
+			popen.assert_not_called()
+
+	def test_install_waits_for_supervisor_before_syncing_tools(self):
+		self.install_flow_bin()
+		events = []
+		with (
+			patch.object(lifecycle, "supervised", return_value=True),
+			patch.object(lifecycle, "_wait_for_supervisor", side_effect=lambda: events.append("ready")),
+			patch.object(lifecycle, "sync_server_tools", side_effect=lambda: events.append("sync")),
+			patch.object(subprocess, "Popen") as popen,
+		):
+			lifecycle.keep_alive()
+			lifecycle.after_install()
+		self.assertEqual(events, ["ready", "sync"])
+		popen.assert_not_called()
+
+	def test_a_supervised_restart_stops_the_daemon_and_waits_for_supervisor(self):
+		with (
+			patch.object(lifecycle, "supervised", return_value=True),
+			patch.object(lifecycle, "_stop") as stop,
+			patch.object(lifecycle, "_start") as start,
+			patch.object(lifecycle, "healthy", side_effect=[False, True]) as healthy,
+			patch.object(lifecycle.time, "sleep"),
+		):
+			lifecycle.restart()
+		stop.assert_called_once()
+		start.assert_not_called()
+		self.assertEqual(healthy.call_count, 2)
+
+		with (
+			patch.object(lifecycle, "supervised", return_value=True),
+			patch.object(lifecycle, "_stop"),
+			patch.object(lifecycle, "START_TIMEOUT", 0),
+			self.assertRaisesRegex(RuntimeError, "did not become ready"),
+		):
+			lifecycle.restart()
+
+	def test_serve_becomes_the_daemon_in_the_foreground(self):
+		self.install_flow_bin()
+		lifecycle.provision_site()
+		with (
+			patch.dict(os.environ, {"PATH": "/usr/bin", "OPENAI_API_KEY": "sk"}, clear=True),
+			patch.object(lifecycle, "_redis_url", return_value=None),
+			patch.object(lifecycle, "_stop") as stop,
+			patch.object(lifecycle, "supervised", return_value=True),
+			patch.object(os, "chdir") as chdir,
+			patch.object(os, "umask") as umask,
+			patch.object(os, "execve") as execve,
+		):
+			lifecycle.serve()
+		stop.assert_called_once()  # a daemon Flow started before
+		command, args, env = execve.call_args.args
+		self.assertEqual(command, str(self.flow_bin))
+		self.assertEqual(args[:2], [str(self.flow_bin), "serve"])
+		self.assertEqual(
+			env,
+			{
+				"PATH": "/usr/bin",
+				"FLOW_TENANTS_FILE": str(self.state / "tenants.json"),
+				"FLOW_POLICY": '{"tool_allowlist": ["read_file", "grep", "subagent"]}',
+			},
+		)
+		chdir.assert_called_once_with(self.runtime)
+		umask.assert_called_once_with(0o077)
+		self.assertEqual(lifecycle.pid_file().read_text(), str(os.getpid()))
+
+	def test_serve_waits_for_a_first_site(self):
+		self.install_flow_bin()
+
+		def first_site_installed(_):
+			lifecycle.provision_site()
+
+		with (
+			patch.object(lifecycle, "supervised", return_value=True),
+			patch.object(lifecycle.time, "sleep", side_effect=first_site_installed) as sleep,
+			patch.object(lifecycle, "_redis_url", return_value=None),
+			patch.object(os, "chdir"),
+			patch.object(os, "umask"),
+			patch.object(os, "execve") as execve,
+		):
+			lifecycle.serve()
+		sleep.assert_called_once_with(lifecycle.SITE_POLL)
+		execve.assert_called_once()
+
+	def test_serve_requires_explicit_supervisor_ownership(self):
+		with (
+			patch.object(lifecycle, "_stop") as stop,
+			patch.object(os, "execve") as execve,
+			self.assertRaisesRegex(RuntimeError, "set flow_server_manager to supervisor"),
+		):
+			lifecycle.serve()
+		stop.assert_not_called()
+		execve.assert_not_called()
 
 	def install_flow_bin(self) -> None:
 		self.flow_bin.parent.mkdir(parents=True)
