@@ -93,7 +93,7 @@ flow_tools = ["myapp.ai.get_open_todos"]
 
 ```python
 session = agent.new_session(title="Todo assistant")
-# Or continue one: session = flow.lib.session.load_session(session_name)
+# Or continue one: session = load_session(session_name)
 
 session.chat("What tasks do I have open?")
 session.chat("Close the ones due before last Friday.")
