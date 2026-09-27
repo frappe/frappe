@@ -363,6 +363,37 @@ async def test_an_unknown_agent_is_an_error_result(tmp_path):
 	assert not [e for e in events if e.get("subagent_id")]
 
 
+async def test_empty_arguments_count_as_left_out(tmp_path):
+	session, events = _session(tmp_path, subagents=[SubagentConfig(name="Lookup")])
+	model = ScriptedModel(
+		{
+			"go": [
+				AssistantMessage(
+					content=[
+						_spawn("c1", "find it", agent="Lookup", subagent_id=""),
+						_spawn("c2", "ask it", agent="", subagent_id=""),
+					]
+				),
+				AssistantMessage(content="done"),
+			],
+			"find it": [AssistantMessage(content="found")],
+			"ask it": [AssistantMessage(content="answered")],
+		}
+	)
+
+	await _run(session, "go", model)
+
+	results = {r["tool_call_id"]: r for r in _of(events, "tool_result")}
+	assert (
+		results["c1"]["content"] == "found\n\n[subagent_id: c1]"
+		and results["c1"]["details"]["agent"] == "Lookup"
+	)
+	assert (
+		results["c2"]["content"] == "answered\n\n[subagent_id: c2]"
+		and results["c2"]["details"]["agent"] == "general"
+	)
+
+
 def test_a_child_takes_credentials_with_its_model_or_on_their_own(tmp_path):
 	config = SessionConfig(cwd=str(tmp_path), api_key="parent-key", api_base="http://parent")
 	inputs = LoopInputs(

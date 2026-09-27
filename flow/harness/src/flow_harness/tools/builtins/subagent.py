@@ -39,6 +39,7 @@ async def subagent(
 	"""
 	if ctx.run_subagent is None:
 		return ToolResult(content="[sub-agents are not available here]", is_error=True)
+	agent, subagent_id = agent or None, subagent_id or None  # models send "" for skipped options
 	try:
 		outcome = await ctx.run_subagent(ctx.tool_call_id, task, agent, subagent_id)
 	except ValueError as error:  # refused before anything ran
