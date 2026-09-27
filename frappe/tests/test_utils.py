@@ -10,6 +10,7 @@ from decimal import ROUND_HALF_UP, Decimal, localcontext
 from enum import Enum
 from io import StringIO
 from mimetypes import guess_type
+from typing import Literal
 from unittest.mock import patch
 
 from hypothesis import given
@@ -1929,6 +1930,28 @@ class TestArgumentTypingValidations(IntegrationTestCase):
 			self.assertEqual(test_mocks(obj_instance), obj_instance)
 		with self.assertRaises(FrappeTypeError):
 			test_mocks(1)
+
+	def test_validate_string_annotations(self):
+		@validate_argument_types
+		def test_strings(name: "str", count: "int | None" = None, other: "Undefined" = None):  # noqa: F821
+			return name, count, other
+
+		self.assertEqual(test_strings("a", "1"), ("a", 1, None))
+		with self.assertRaises(FrappeTypeError):
+			test_strings({"name": ("like", "%")})
+
+		# unresolvable forward refs are not validated
+		obj = object()
+		self.assertEqual(test_strings("a", other=obj), ("a", None, obj))
+
+	def test_validate_literal(self):
+		@validate_argument_types
+		def test_literal(kind: Literal["a", "b"]):
+			return kind
+
+		self.assertEqual(test_literal("a"), "a")
+		with self.assertRaises(FrappeTypeError):
+			test_literal("c")
 
 
 class TestChangeLog(IntegrationTestCase):
