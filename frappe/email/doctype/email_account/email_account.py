@@ -617,6 +617,11 @@ class EmailAccount(Document):
 			"password": None if self.no_smtp_authentication else self._password,
 			"use_ssl": cint(self.use_ssl_for_outgoing),
 			"use_tls": cint(self.use_tls),
+			"validate_ssl_certificate": (
+				frappe.db.get_value("Email Domain", self.domain, "validate_ssl_certificate_for_outgoing")
+				if self.get("domain")
+				else None
+			),
 			"use_oauth": self.auth_method == "OAuth" and not self.no_smtp_authentication,
 			"access_token": None if self.no_smtp_authentication else self.get_access_token(),
 		}
