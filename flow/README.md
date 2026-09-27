@@ -78,7 +78,7 @@ flow_agents = ["myapp.ai.agents"]
 ### Act when a run ends
 
 ```python
-# Flow calls myapp.ai.save_draft(run) once the run ends, failed or not. Keep it quick.
+# Flow calls myapp.ai.save_draft(run) when the run ends.
 agent.run("Draft a reply to ticket 42", on_complete="myapp.ai.save_draft")
 ```
 
@@ -89,10 +89,11 @@ agent.run("Draft a reply to ticket 42", on_complete="myapp.ai.save_draft")
 flow_tools = ["myapp.ai.get_open_todos"]
 ```
 
-### Persist a conversation
+### Manage sessions
 
 ```python
 session = agent.new_session(title="Todo assistant")
+# Or continue one: session = flow.lib.session.load_session(session_name)
 
 session.chat("What tasks do I have open?")
 session.chat("Close the ones due before last Friday.")
