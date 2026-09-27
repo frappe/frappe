@@ -714,36 +714,35 @@ class TestSearch(IntegrationTestCase):
 			self.assertEqual(get_link_title(doctype, name), "Selectable Title")
 			self.assertEqual(search_link(doctype, "")[0].get("label"), "Selectable Title")
 			self.assertEqual(
-				get_report_link_titles(
-					[{"fieldname": "link", "fieldtype": "Link", "options": doctype}], [{"link": name}]
-				),
-				{f"{doctype}::{name}": "Selectable Title"},
+				self.get_report_titles(doctype, name), {f"{doctype}::{name}": "Selectable Title"}
 			)
 
 	def test_select_permission_hides_restricted_link_titles(self):
-		doctype, name, user = self.make_select_only_titled_doc(title_permlevel=1)
+		doctype, name, user = self.make_select_only_titled_doc(permlevel=1)
 
 		with self.set_user(user):
 			self.assertEqual(get_link_title(doctype, name), name)
 			self.assertNotEqual(search_link(doctype, "")[0].get("label"), "Selectable Title")
-			self.assertEqual(
-				get_report_link_titles(
-					[{"fieldname": "link", "fieldtype": "Link", "options": doctype}], [{"link": name}]
-				),
-				{},
-			)
+			self.assertEqual(self.get_report_titles(doctype, name), {})
 
-	def make_select_only_titled_doc(self, title_permlevel=0):
+	def test_select_permission_skips_virtual_link_titles_in_reports(self):
+		doctype, name, user = self.make_select_only_titled_doc(is_virtual=1, options="'Virtual Title'")
+
+		with self.set_user(user):
+			self.assertEqual(self.get_report_titles(doctype, name), {})
+
+	def get_report_titles(self, doctype, name):
+		return get_report_link_titles(
+			[{"fieldname": "link", "fieldtype": "Link", "options": doctype}], [{"link": name}]
+		)
+
+	def make_select_only_titled_doc(self, **title_properties):
 		with self.set_user("Administrator"):
 			role = frappe.new_doc("Role", role_name=frappe.generate_hash()).insert().name
 			doctype = new_doctype(
 				fields=[
-					{
-						"fieldname": "title",
-						"fieldtype": "Data",
-						"label": "Title",
-						"permlevel": title_permlevel,
-					}
+					{"fieldname": "code", "fieldtype": "Data", "label": "Code"},
+					{"fieldname": "title", "fieldtype": "Data", "label": "Title", **title_properties},
 				],
 				title_field="title",
 				show_title_field_in_link=1,
