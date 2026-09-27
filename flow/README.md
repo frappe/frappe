@@ -78,7 +78,7 @@ flow_agents = ["myapp.ai.agents"]
 ### Act when a run ends
 
 ```python
-# Flow calls myapp.ai.save_draft(run) once the run ends, failed or not. Keep it quick.
+# Flow calls myapp.ai.save_draft(run) when the run ends.
 agent.run("Draft a reply to ticket 42", on_complete="myapp.ai.save_draft")
 ```
 
@@ -89,10 +89,11 @@ agent.run("Draft a reply to ticket 42", on_complete="myapp.ai.save_draft")
 flow_tools = ["myapp.ai.get_open_todos"]
 ```
 
-### Persist a conversation
+### Manage sessions
 
 ```python
 session = agent.new_session(title="Todo assistant")
+# Or continue one: session = flow.lib.session.load_session(session_name)
 
 session.chat("What tasks do I have open?")
 session.chat("Close the ones due before last Friday.")
@@ -115,6 +116,8 @@ Then add a `Flow Provider` with your API key and a `Flow Model` with a model ID 
 ### Flow agent harness
 
 Conversations run on the flow agent harness, a daemon from the [`frappe-flow`](https://pypi.org/project/frappe-flow/) package that is shared by every site on the bench. Installing the app starts it; `bench flow-server setup|start|stop|restart|status` manage it by hand. Its log is at `<bench>/logs/flow-server.log`.
+
+To run it under Supervisor, set `"flow_server_manager": "supervisor"` in `common_site_config.json` and add `bench flow-server serve` as a Supervisor program with `autorestart=true` that logs to `logs/flow-server.log`. Restart that program after updating Flow or its extensions.
 
 ## Repository layout
 
