@@ -83,4 +83,19 @@ context("Date Control", () => {
 			);
 		});
 	});
+
+	it("Entering a date manually in the input field syncs the datepicker calendar preview", () => {
+		cy.clear_dialogs();
+		cy.clear_datepickers();
+
+		get_dialog().as("dialog");
+		cy.get_field("date", "Date").click();
+
+		// Enter date manually via typing
+		cy.get_field("date", "Date").type("2020-01-15");
+
+		// Datepicker preview header and selected cell should sync with the entered date
+		cy.get(".datepicker--nav-title").should("contain", "2020");
+		cy.get(".datepicker--cell.-selected-[data-date=15]").should("exist");
+	});
 });

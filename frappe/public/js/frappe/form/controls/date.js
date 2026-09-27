@@ -39,7 +39,9 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		}
 
 		if (should_refresh) {
-			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
+			const date_obj = frappe.datetime.str_to_obj(value);
+			this.datepicker.selectDate(date_obj);
+			this.datepicker.date = date_obj;
 		}
 	}
 	set_date_options() {
@@ -76,6 +78,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 					.text(this.today_text);
 
 				this.update_datepicker_position();
+				this.sync_calendar_to_input();
 			},
 			onRenderCell: (date, cellType) => {
 				if (cellType === "day" && this.df.disabled_dates) {
@@ -93,12 +96,17 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 	}
 
 	get_start_date() {
-		return this.get_now_date();
+		let value = this.value || this.get_value();
+		return (value && frappe.datetime.str_to_obj(value)) || this.get_now_date();
 	}
 
 	set_datepicker() {
 		this.$input.datepicker(this.datepicker_options);
 		this.datepicker = this.$input.data("datepicker");
+
+		this.$input.on("input", () => {
+			this.sync_calendar_to_input();
+		});
 
 		// today button didn't work as expected,
 		// so explicitly bind the event
@@ -106,6 +114,63 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			this.datepicker.selectDate(this.get_now_date());
 			this.datepicker.hide();
 		});
+	}
+
+	sync_calendar_to_input() {
+		if (this.timepicker_only || !this.datepicker) return;
+
+		let val = this.$input.val();
+		if (!val) {
+			this.datepicker.selectedDates = [];
+			this.datepicker.views[this.datepicker.currentView]?._render();
+			return;
+		}
+
+		let date_obj = this.parse_date_input(val);
+		if (date_obj) {
+			this.datepicker.selectedDates = [date_obj];
+			this.datepicker.date = date_obj;
+			if (this.datepicker.timepicker) {
+				this.datepicker.timepicker._setTime(date_obj);
+				this.datepicker.timepicker.update();
+			}
+		}
+	}
+
+	parse_date_input(val) {
+		if (!val || typeof val !== "string") return null;
+		val = val.trim();
+		if (!val) return null;
+
+		const user_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
+		const date_formats = [
+			user_fmt,
+			user_fmt.replace("YYYY", "YY"),
+			"YYYY-MM-DD",
+			"DD-MM-YYYY",
+			"DD/MM/YYYY",
+			"DD.MM.YYYY",
+			"MM-DD-YYYY",
+			"MM/DD/YYYY",
+			"YYYY/MM/DD",
+			"DD-MM-YY",
+			"DD/MM/YY",
+			"DD.MM.YY",
+			"YY-MM-DD",
+			"MM-DD-YY",
+			"MM/DD/YY",
+		];
+
+		const time_formats = ["HH:mm:ss", "hh:mm:ss A", "HH:mm", "hh:mm A"];
+		const formats = [...date_formats];
+		for (let df of date_formats) {
+			for (let tf of time_formats) {
+				formats.push(`${df} ${tf}`);
+			}
+		}
+
+		const m = moment(val, formats, true);
+		return m.isValid() ? m.toDate() : null;
 	}
 	update_datepicker_position() {
 		if (!this.frm) return;

@@ -15,11 +15,13 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 		value = this.format_for_input(value);
 		this.$input && this.$input.val(value);
 		if (should_refresh) {
-			this.datepicker.selectDate(frappe.datetime.user_to_obj(value));
+			const date_obj = frappe.datetime.user_to_obj(value);
+			this.datepicker.selectDate(date_obj);
+			this.datepicker.date = date_obj;
 		} else if (value && !this.datepicker.selectedDates.length) {
 			const date_obj = frappe.datetime.str_to_obj(raw_value);
 			this.datepicker.selectedDates = [date_obj];
-			this.datepicker.viewDate = date_obj;
+			this.datepicker.date = date_obj;
 			this.datepicker.lastSelectedDate = date_obj;
 		}
 	}
