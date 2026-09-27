@@ -76,9 +76,11 @@ def parse_json(field):
 
 
 def remove_empty_values(docdict):
-	"""Remove empty fields from documents, child rows, and block children."""
+	"""Remove empty fields from documents, child rows, block children, and slot content."""
 	to_remove = []
 	for attr, value in docdict.items():
+		if attr == "componentSlots" and isinstance(value, dict):
+			remove_empty_values_from_slots(value)
 		if attr in PRESERVED_EMPTY_PROPERTIES:
 			continue
 
@@ -96,3 +98,12 @@ def remove_empty_values(docdict):
 
 	for attr in to_remove:
 		del docdict[attr]
+
+
+def remove_empty_values_from_slots(slots):
+	"""Prune blocks inside slot content; the slots themselves are kept as-is."""
+	for slot in slots.values():
+		if isinstance(slot, dict) and isinstance(slot.get("slotContent"), list):
+			for block in slot["slotContent"]:
+				if isinstance(block, dict):
+					remove_empty_values(block)

@@ -80,7 +80,13 @@ class TestStudioPage(IntegrationTestCase):
 					"remove_empty_list": [],
 					"remove_empty_dict": {},
 					"componentProps": {"empty_value": "", "false_value": False},
-					"componentSlots": {},
+					"componentSlots": {
+						"default": {
+							"slotName": "default",
+							"slotContent": [{"componentName": "TextBlock", "remove_empty_string": ""}],
+						},
+						"label": {"slotName": "label", "slotContent": ""},
+					},
 					"children": [
 						{"componentName": "TextBlock", "remove_empty_string": ""},
 					],
@@ -99,7 +105,10 @@ class TestStudioPage(IntegrationTestCase):
 					{
 						"componentName": "Button",
 						"componentProps": {"empty_value": "", "false_value": False},
-						"componentSlots": {},
+						"componentSlots": {
+							"default": {"slotName": "default", "slotContent": [{"componentName": "TextBlock"}]},
+							"label": {"slotName": "label", "slotContent": ""},
+						},
 						"children": [{"componentName": "TextBlock"}],
 					}
 				],
