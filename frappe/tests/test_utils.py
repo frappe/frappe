@@ -2250,6 +2250,20 @@ class TestArgumentTypingValidations(IntegrationTestCase):
 		obj = object()
 		self.assertEqual(test_strings("a", other=obj), ("a", None, obj))
 
+	def test_whitelisted_method_validates_string_annotations(self):
+		from frappe.handler import execute_cmd
+
+		# document_follow uses `from __future__ import annotations`, so its annotations are strings
+		form_dict = frappe._dict(doctype="ToDo", doc_name={"owner": "Administrator"})
+		with (
+			self.set_user("test@example.com"),
+			patch.object(frappe.local, "request", frappe._dict(method="POST"), create=True),
+			patch.object(frappe.local, "form_dict", form_dict),
+		):
+			self.assertRaises(
+				FrappeTypeError, execute_cmd, "frappe.desk.form.document_follow.follow_document"
+			)
+
 	def test_validate_literal(self):
 		@validate_argument_types
 		def test_literal(kind: Literal["a", "b"]):
