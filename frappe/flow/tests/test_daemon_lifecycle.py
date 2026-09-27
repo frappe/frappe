@@ -236,14 +236,16 @@ class TestDaemonLifecycle(UnitTestCase):
 			lifecycle.after_migrate()
 		self.assertIn("no listing", secho.call_args_list[0].args[0])
 
-	def test_migrate_restarts_the_daemon_unless_supervisor_runs_it(self):
-		for supervised, restarts in ((False, 1), (True, 0)):
+	def test_migrate_restarts_unless_supervised_and_the_site_has_no_extensions(self):
+		for supervised, extensions, restarts in ((False, False, 1), (True, False, 0), (True, True, 1)):
 			with (
-				self.subTest(supervised=supervised),
+				self.subTest(supervised=supervised, extensions=extensions),
 				patch.object(lifecycle, "supervised", return_value=supervised),
 				patch.object(lifecycle, "restart") as restart,
 				patch.object(lifecycle, "sync_server_tools") as sync,
 			):
+				if extensions:
+					(self.partition / "extensions").mkdir(parents=True)
 				lifecycle.after_migrate()
 			self.assertEqual(restart.call_count, restarts)
 			sync.assert_called_once()

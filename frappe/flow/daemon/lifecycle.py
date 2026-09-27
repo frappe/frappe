@@ -68,12 +68,13 @@ def after_install() -> None:
 def after_migrate() -> None:
 	"""Restarts so `bench update` ships new daemon code, then mirrors its extension tools."""
 	provision_site()
-	_run_or_warn(_restart_if_local)
+	_run_or_warn(_restart_if_needed)
 	_run_or_warn(sync_server_tools)
 
 
-def _restart_if_local() -> None:
-	if not supervised():  # supervised deployments restart after all sites migrate
+def _restart_if_needed() -> None:
+	"""Supervised benches restart the program after updates."""
+	if not supervised() or site_extensions_dir().is_dir():  # extension tools are allowed only at start
 		restart()
 
 
