@@ -3,22 +3,23 @@
 import datetime
 import time
 from unittest.mock import Mock, patch
+from urllib.parse import parse_qs, urlparse
 
 import requests
 from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request
 
 import frappe
-from frappe.auth import CookieManager, LoginAttemptTracker, validate_auth, validate_ip_address
+from frappe.auth import CookieManager, LoginAttemptTracker, LoginManager, validate_auth, validate_ip_address
 from frappe.core.doctype.user.user import generate_keys
 from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds, hash_sid
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import get_datetime, get_site_url, now
+from frappe.utils import get_datetime, get_site_url, now, set_request
 from frappe.utils.data import add_to_date, sha256_hash
-from frappe.www.login import _generate_temporary_login_link
+from frappe.www.login import _generate_temporary_login_link, login_via_key, send_login_link
 
 
 def add_user(email, password, username=None, mobile_no=None):
@@ -258,6 +259,140 @@ class TestAuth(IntegrationTestCase):
 		expiry_time = next(x for x in client.session.cookies if x.name == "sid").expires
 		current_time = datetime.datetime.now(tz=datetime.UTC).timestamp()
 		self.assertAlmostEqual(get_expiry_in_seconds(), expiry_time - current_time, delta=60 * 60)
+
+
+class TestEmailLinkRedirect(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.email = "email-link@example.com"
+		frappe.get_doc(
+			doctype="User", email=cls.email, first_name="Email Link", send_welcome_email=0
+		).insert()
+		cls.addClassCleanup(frappe.db.commit)
+		cls.addClassCleanup(frappe.delete_doc, "User", cls.email, force=True)
+
+	def setUp(self):
+		super().setUp()
+		self.enterContext(self.change_settings("System Settings", login_with_email_link=1, commit=True))
+		self.enterContext(self.set_user("Guest"))
+		for name, value in {
+			"request": None,
+			"request_ip": frappe.generate_hash(),
+			"response": frappe._dict(),
+			"form_dict": frappe._dict(),
+			"cookie_manager": CookieManager(),
+			"login_manager": None,
+		}.items():
+			self.enterContext(patch.object(frappe.local, name, value, create=True))
+		set_request(method="POST", path="/api/method/frappe.www.login.send_login_link")
+		frappe.local.login_manager = LoginManager()
+		self.enterContext(patch("frappe.utils.oauth.get_default_path", return_value=None))
+		self.enterContext(patch("frappe.utils.oauth.get_home_page", return_value="me"))
+
+	def send_link(self, redirect_to=None):
+		frappe.form_dict.cmd = "frappe.www.login.send_login_link"
+		with patch("frappe.sendmail") as sendmail:
+			frappe.call(send_login_link, email=self.email, redirect_to=redirect_to)
+		link = sendmail.call_args.kwargs["args"]["link"]
+		query = parse_qs(urlparse(link).query)
+		self.assertEqual(set(query), {"key"})
+		key = query["key"][0]
+		self.addCleanup(frappe.cache.delete_value, f"one_time_login_key:{key}")
+		return key
+
+	def consume_link(self, key, redirect_to=None):
+		frappe.local.form_dict = frappe._dict(
+			cmd="frappe.www.login.login_via_key", key=key, redirect_to=redirect_to
+		)
+		frappe.form_dict["redirect-to"] = redirect_to
+		set_request(
+			path="/api/method/frappe.www.login.login_via_key",
+			query_string={"key": key, "redirect_to": redirect_to or "", "redirect-to": redirect_to or ""},
+		)
+		frappe.call(login_via_key, **frappe.form_dict)
+
+	def test_redirect_to_oauth_authorization(self):
+		redirect_to = (
+			"/api/method/frappe.integrations.oauth2.authorize"
+			"?client_id=test-client&scope=openid%20all&state=a%2Bb%3D"
+		)
+		key = self.send_link(redirect_to)
+		self.consume_link(key)
+		self.assertEqual(frappe.session.user, self.email)
+		self.assertEqual(frappe.local.response["location"], "http://localhost" + redirect_to)
+
+	def test_same_origin_absolute_redirect(self):
+		key = self.send_link("http://localhost/me?tab=profile")
+		self.consume_link(key)
+		self.assertEqual(frappe.local.response["location"], "http://localhost/me?tab=profile")
+
+	def test_external_redirect_falls_back_to_desk(self):
+		for redirect_to in ("https://other.example.com/private", "//other.example.com/private"):
+			with self.subTest(redirect_to=redirect_to):
+				key = self.send_link(redirect_to)
+				self.consume_link(key)
+				self.assertEqual(frappe.local.response["location"], "http://localhost/desk")
+
+	def test_redirect_is_stored_with_email_and_expiry(self):
+		key = self.send_link("/me?tab=profile")
+		cache_key = f"one_time_login_key:{key}"
+		self.assertEqual(
+			frappe.cache.get_value(cache_key),
+			{"email": self.email, "redirect_to": "http://localhost/me?tab=profile"},
+		)
+		expiry = frappe.get_system_settings("login_with_email_link_expiry") or 10
+		ttl = frappe.cache.ttl(frappe.cache.make_key(cache_key))
+		self.assertGreater(ttl, 0)
+		self.assertLessEqual(ttl, expiry * 60)
+
+	def test_missing_redirect_uses_default(self):
+		self.consume_link(self.send_link())
+		self.assertEqual(frappe.session.user, self.email)
+		self.assertEqual(frappe.local.response["location"], "http://localhost/me")
+
+	def test_legacy_email_entry_uses_default(self):
+		key = frappe.generate_hash()
+		cache_key = f"one_time_login_key:{key}"
+		frappe.cache.set_value(cache_key, self.email, expires_in_sec=600)
+		self.addCleanup(frappe.cache.delete_value, cache_key)
+		self.consume_link(key, redirect_to="/me?injected=1")
+		self.assertEqual(frappe.session.user, self.email)
+		self.assertEqual(frappe.local.response["location"], "http://localhost/me")
+		self.assertIsNone(frappe.cache.get_value(cache_key))
+
+	def test_link_query_cannot_override_stored_redirect(self):
+		key = self.send_link("/me?tab=profile")
+		self.consume_link(key, redirect_to="https://other.example.com/injected")
+		self.assertEqual(frappe.local.response["location"], "http://localhost/me?tab=profile")
+
+	def test_key_is_single_use(self):
+		key = self.send_link("/me")
+		self.consume_link(key)
+		self.assertIsNone(frappe.cache.get_value(f"one_time_login_key:{key}"))
+		frappe.set_user("Guest")
+		frappe.local.response.clear()
+		self.consume_link(key)
+		self.assertEqual(frappe.session.user, "Guest")
+		self.assertEqual(frappe.local.response["http_status_code"], 403)
+		self.assertEqual(frappe.local.response["type"], "page")
+
+	def test_key_is_deleted_before_login(self):
+		key = self.send_link("/me")
+		with patch.object(frappe.local.login_manager, "login_as", side_effect=frappe.AuthenticationError):
+			with self.assertRaises(frappe.AuthenticationError):
+				self.consume_link(key)
+		self.assertIsNone(frappe.cache.get_value(f"one_time_login_key:{key}"))
+
+	def test_invalid_or_expired_key(self):
+		key = self.send_link("/me")
+		frappe.cache.delete_value(f"one_time_login_key:{key}")
+		for invalid_key in (key, frappe.generate_hash()):
+			with self.subTest(key=invalid_key):
+				self.consume_link(invalid_key)
+				self.assertEqual(frappe.session.user, "Guest")
+				self.assertEqual(frappe.local.response["http_status_code"], 403)
+				self.assertEqual(frappe.local.response["type"], "page")
 
 
 class TestAllowedReferrer(UnitTestCase):

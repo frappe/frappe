@@ -42,6 +42,25 @@ context("Login", () => {
 		cy.window().its("frappe.session.user").should("eq", "Administrator");
 	});
 
+	it("includes redirect-to when requesting an email login link", () => {
+		const redirect_to =
+			"/api/method/frappe.integrations.oauth2.authorize?client_id=test-client&scope=openid%20all&state=a%2Bb%3D";
+		const query = new URLSearchParams({ "redirect-to": redirect_to });
+		cy.visit(`/login?${query}#login-with-email-link`);
+		cy.window().then((win) => {
+			cy.stub(win.login, "call").resolves().as("sendLoginLink");
+		});
+
+		cy.get("#login_with_email_link_email").type("email-link@example.com");
+		cy.get(".form-login-with-email-link").submit();
+
+		cy.get("@sendLoginLink").should("have.been.calledWithMatch", {
+			cmd: "frappe.www.login.send_login_link",
+			email: "email-link@example.com",
+			redirect_to,
+		});
+	});
+
 	it("check redirect after login", () => {
 		// mock for OAuth 2.0 client_id, redirect_uri, scope and state
 		const payload = new URLSearchParams({
