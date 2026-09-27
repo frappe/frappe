@@ -61,7 +61,7 @@ const useStudioStore = defineStore("store", () => {
 	const activeApp = ref<StudioApp | null>(null)
 	const appPages = computed<Record<string, StudioPage>>(() => {
 		const pages: Record<string, StudioPage> = {}
-		studioPages.data.map((page: StudioPage) => {
+		studioPages.data?.forEach((page: StudioPage) => {
 			pages[page.name] = page
 		})
 		return pages
