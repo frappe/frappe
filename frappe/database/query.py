@@ -392,8 +392,8 @@ class Engine:
 
 		# Track field aliases for use in group_by/order_by
 		for field in self.fields:
-			if isinstance(field, Field | DynamicTableField | AggregateFunction) and field.alias:
-				self.field_aliases.add(field.alias)
+			if alias := getattr(field, "alias", None):
+				self.field_aliases.add(alias)
 
 		if self.apply_permissions:
 			self.fields = self.apply_field_permissions()
