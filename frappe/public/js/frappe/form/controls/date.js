@@ -40,7 +40,15 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		}
 
 		if (should_refresh) {
+<<<<<<< HEAD
 			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
+=======
+			const date = frappe.datetime.str_to_obj(value);
+			this._suppress_change = true;
+			this.datepicker.selectDate(date);
+			this._suppress_change = false;
+			this.datepicker.date = date;
+>>>>>>> e54c3fe (fix(datepicker): sync calendar year with date input)
 		}
 	}
 	set_date_options() {
