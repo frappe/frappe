@@ -199,6 +199,8 @@ const componentLabelClasses = computed(() => {
 // the drag (reorder for in-flow blocks, free move for absolutely positioned
 // ones); the resize/spacing handlers stop their own mousedown.
 const handleMouseDown = (ev: MouseEvent) => {
+	// preventDefault keeps focus where it was, so blur explicitly to commit pending panel edits
+	;(document.activeElement as HTMLElement | null)?.blur()
 	if (ev.button !== 0 || store.mode !== "select") return
 	if ((ev.target as HTMLElement).closest("button")) return
 
