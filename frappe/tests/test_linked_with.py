@@ -8,6 +8,7 @@ from frappe.core.doctype.user_permission.user_permission import get_applicable_f
 from frappe.database import savepoint
 from frappe.desk.form import linked_with
 from frappe.model.delete_doc import LinkedDocumentsOverflow, get_linked_docs
+from frappe.model.dynamic_links import _dynamic_link_map_key, invalidate_distinct_link_doctypes
 from frappe.tests import IntegrationTestCase
 
 
@@ -927,6 +928,15 @@ class TestLinkedWith(IntegrationTestCase):
 			self.assertEqual([doc.name for doc in linked_docs], [child_record.name])
 		finally:
 			frappe.delete_doc("DocType", target_doctype)
+
+	def test_new_dynamic_link_resets_the_request_map(self):
+		# test mode rebuilds the map on every call, so check the reset directly
+		frappe.cache.set_value(_dynamic_link_map_key("Child DocType1", "reference_doctype"), ["ToDo"])
+		frappe.local.dynamic_link_map = {"ToDo": []}
+
+		invalidate_distinct_link_doctypes("Child DocType1", "reference_doctype", "Note")
+
+		self.assertIsNone(frappe.local.dynamic_link_map)
 
 	def test_check_delete_integrity(self):
 		"""Don't allow deleting cancelled document if amendment exists"""
