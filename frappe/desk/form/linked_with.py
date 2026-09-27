@@ -950,7 +950,7 @@ def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False)
 	ret.update(get_linked_fields(doctype, without_ignore_user_permissions_enabled))
 
 	# find links of parents
-	for dt in get_parent_doctypes(doctype, without_ignore_user_permissions_enabled):
+	for dt in get_parent_doctypes([doctype], without_ignore_user_permissions_enabled)[doctype]:
 		if dt in ret:
 			continue
 		ret[dt] = {"get_parent": True}
@@ -958,14 +958,24 @@ def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False)
 	return remove_excluded_doctypes(ret)
 
 
-def get_parent_doctypes(child_doctype, without_ignore_user_permissions_enabled=False) -> list[str]:
-	filters = [["fieldtype", "in", frappe.model.table_fields], ["options", "=", child_doctype]]
+def get_parent_doctypes(
+	child_doctypes, without_ignore_user_permissions_enabled=False
+) -> dict[str, list[str]]:
+	"""Map each child doctype to the doctypes that embed it in a table field."""
+	parents = {child: [] for child in child_doctypes}
+	if not parents:
+		return parents
+
+	filters = [["fieldtype", "in", frappe.model.table_fields], ["options", "in", list(parents)]]
 	if without_ignore_user_permissions_enabled:
 		filters.append(["ignore_user_permissions", "!=", 1])
 
-	return frappe.get_all("DocField", filters=filters, pluck="parent") + frappe.get_all(
-		"Custom Field", filters=filters, pluck="dt"
+	rows = frappe.get_all("DocField", filters=filters, fields=["parent", "options"]) + frappe.get_all(
+		"Custom Field", filters=filters, fields=["dt as parent", "options"]
 	)
+	for row in rows:
+		parents[row.options].append(row.parent)
+	return parents
 
 
 def remove_excluded_doctypes(linked_doctypes: dict) -> dict:
@@ -1048,18 +1058,22 @@ def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 
 def get_dynamic_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 	ret = {}
-
+	fields = []
 	for df in get_dynamic_link_map().get(doctype, []):
 		meta = frappe.get_meta(df.parent)
 		if meta.issingle:
 			continue
-
 		if without_ignore_user_permissions_enabled and meta.get_field(df.fieldname).ignore_user_permissions:
 			continue
+		fields.append((df, meta.istable))
 
+	parents = get_parent_doctypes(
+		{df.parent for df, is_child in fields if is_child}, without_ignore_user_permissions_enabled
+	)
+	for df, is_child in fields:
 		link = {"fieldname": [df.fieldname], "doctype_fieldname": df.options}
-		if meta.istable:
-			for parenttype in get_parent_doctypes(df.parent, without_ignore_user_permissions_enabled):
+		if is_child:
+			for parenttype in parents[df.parent]:
 				ret[parenttype] = {"child_doctype": df.parent, **link}
 		else:
 			ret[df.parent] = link
