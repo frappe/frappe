@@ -5,6 +5,7 @@
 		:selected="isBlockSelected"
 		:data-component-id="block.componentId"
 		:class="getStyleClasses"
+		@mousedown.prevent="handleMouseDown"
 		@click.stop="handleClick"
 	>
 		<!-- Component name label -->
@@ -85,6 +86,8 @@ import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import trackTarget, { Tracker } from "@/utils/trackTarget"
+import { isReorderable, startBlockReorder } from "@/utils/useBlockReorder"
+import { isMovable, startBlockMove } from "@/utils/useBlockMove"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
 
@@ -167,6 +170,9 @@ const getStyleClasses = computed(() => {
 		classes.push("pointer-events-auto")
 		// Place the block on the top of the stack
 		classes.push("!z-[19]")
+		if (isMovable(props.block, props.breakpoint)) {
+			classes.push("cursor-grab")
+		}
 	}
 	return classes
 })
@@ -189,12 +195,24 @@ const componentLabelClasses = computed(() => {
 	}
 })
 
-const preventClick = ref(false)
-const handleClick = (ev: MouseEvent) => {
-	if (preventClick.value) {
-		preventClick.value = false
-		return
+// The selected block's overlay sits above the block itself, so it has to start
+// the drag (reorder for in-flow blocks, free move for absolutely positioned
+// ones); the resize/spacing handlers stop their own mousedown.
+const handleMouseDown = (ev: MouseEvent) => {
+	if (ev.button !== 0 || store.mode !== "select") return
+	if ((ev.target as HTMLElement).closest("button")) return
+
+	if (isReorderable(props.block, props.breakpoint)) {
+		ev.stopPropagation()
+		startBlockReorder(ev, props.block, props.breakpoint)
+	} else if (isMovable(props.block, props.breakpoint)) {
+		ev.stopPropagation()
+		startBlockMove(ev, props.block, props.breakpoint)
 	}
+}
+
+const handleClick = (ev: MouseEvent) => {
+	if (canvasStore.preventClick) return
 	const editorWrapper = editor.value
 	editorWrapper.classList.add("pointer-events-none")
 	let element = document.elementFromPoint(ev.x, ev.y) as HTMLElement

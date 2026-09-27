@@ -121,7 +121,9 @@ import { customVueComponentsRegistry } from "@/globals"
 
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
-import { getComponentRoot, isObjectEmpty } from "@/utils/helpers"
+import useStudioStore from "@/stores/studioStore"
+import { getBlockInfo, getComponentRoot, isObjectEmpty } from "@/utils/helpers"
+import { isReorderable, startBlockReorder } from "@/utils/useBlockReorder"
 import { isDynamicValue } from "@/utils/code"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
@@ -145,6 +147,7 @@ defineOptions({
 	inheritAttrs: false,
 })
 
+const store = useStudioStore()
 const canvasStore = useCanvasStore()
 const codeStore = useCodeStore()
 
@@ -335,7 +338,25 @@ const getClickedComponent = (e: MouseEvent) => {
 	}
 }
 
+// Press-and-drag any block to reorder it in one gesture (no need to select
+// first). The threshold inside startBlockReorder means a plain click still
+// falls through to handleClick for selection.
+const handleMouseDown = (e: MouseEvent) => {
+	if (e.button !== 0 || store.mode !== "select") return
+	const block = getClickedComponent(e)
+	const breakpoint = getBlockInfo(e).breakpoint || props.breakpoint
+	if (!block || !isReorderable(block, breakpoint)) return
+	// every ancestor block listens too; only the deepest one owns the drag
+	e.stopPropagation()
+	startBlockReorder(e, block, breakpoint)
+}
+
 const handleClick = (e: MouseEvent) => {
+	if (canvasStore.preventClick) {
+		e.stopPropagation()
+		e.preventDefault()
+		return
+	}
 	const block = getClickedComponent(e) || props.block
 	canvasStore.activeCanvas?.selectBlock(block, e)
 	if (slotScope?.value) {
@@ -356,6 +377,7 @@ const handleClick = (e: MouseEvent) => {
 
 // Selection/hover listen natively on the rendered root, NOT via template events — those become
 // event props and can't attach when the component renders a fragment root (e.g. ListRows)
+useEventListener(target, "mousedown", handleMouseDown)
 useEventListener(target, "click", handleClick)
 useEventListener(target, "mouseover", handleMouseOver)
 useEventListener(target, "mouseleave", handleMouseLeave)
