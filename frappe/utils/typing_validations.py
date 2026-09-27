@@ -118,6 +118,16 @@ def get_resolved_annotations(func: Callable) -> dict:
 	return get_type_hints(func, include_extras=True, format=Format.FORWARDREF)
 
 
+def has_forward_ref(annotation) -> bool:
+	"""Whether an unresolved forward ref appears anywhere in the annotation."""
+	if isinstance(annotation, ForwardRefOrStr):
+		return True
+	# `Literal` args are values, not forward refs
+	if get_origin(annotation) is Literal:
+		return False
+	return any(has_forward_ref(arg) for arg in getattr(annotation, "__args__", ()))
+
+
 def transform_parameter_types(func: Callable, args: tuple, kwargs: dict, force_types=False):
 	"""
 	Validate the types of the arguments passed to a function with the type annotations
@@ -171,13 +181,8 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict, force_t
 
 		current_arg_value = prepared_args[current_arg]
 
-		# if the type is a ForwardRef or str, ignore it
-		if isinstance(current_arg_type, ForwardRefOrStr):
-			continue
-		# `Literal` args are values, not forward refs
-		elif get_origin(current_arg_type) is not Literal and any(
-			isinstance(x, ForwardRefOrStr) for x in getattr(current_arg_type, "__args__", [])
-		):
+		# types that can't be resolved (e.g. imported only for type checking) aren't validated
+		if has_forward_ref(current_arg_type):
 			continue
 		# ignore unittest.mock objects
 		elif is_mock(current_arg_value):
