@@ -23,7 +23,7 @@ import { commandGroups, getCommands, registerCommand, resolveText } from "@/comp
 import useStudioStore from "@/stores/studioStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 
-type PaletteItem = CPItem & { action?: () => void; group?: string }
+type PaletteItem = CPItem & { action?: () => void; group?: string; shortcutName?: string }
 type Step = { id: string; label: string; placeholder: string; hint: string }
 
 const store = useStudioStore()
@@ -74,6 +74,8 @@ const paletteCommands = computed<PaletteItem[]>(() =>
 			icon: resolveText(command.icon),
 			description: command.group,
 			group: command.group,
+			// the name the shortcuts dialog lists it under, e.g. "Toggle Panels"
+			shortcutName: command.keys?.description,
 			keepOpen: command.keepOpen,
 			action: command.action,
 		})),
@@ -127,7 +129,7 @@ const pageItems = computed<PaletteItem[]>(() =>
 )
 
 const matches = (item: PaletteItem, query: string) =>
-	item.title.toLowerCase().includes(query) || Boolean(item.description?.toLowerCase().includes(query))
+	[item.title, item.description, item.shortcutName].some((text) => text?.toLowerCase().includes(query))
 
 const paletteGroups = computed(() => {
 	const query = searchQuery.value.toLowerCase().trim()
