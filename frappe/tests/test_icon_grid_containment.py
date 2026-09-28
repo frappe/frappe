@@ -23,6 +23,7 @@ from frappe.desk.doctype.desktop_icon.desktop_icon import (
 	add_workspace_to_desktop,
 	clear_desktop_icons_cache,
 	create_desktop_icons_from_installed_apps,
+	create_desktop_icons_from_workspace,
 	get_desktop_icons,
 	import_desktop_icon_fixtures,
 )
@@ -328,6 +329,25 @@ class TestAnAppGetsOneIcon(IconGridTestCase):
 			seed_desktop_icons()
 
 			self.assertEqual(self.app_icons(), [SHIPPED])
+
+	def test_a_workspace_icon_is_parented_to_the_icon_its_app_ships(self):
+		with desktop_page(DESKTOP_ICONS):
+			self.make_icon(SHIPPED, icon_type="App", app="frappe", link="/app/test-shipped")
+			workspace = self.make_public_workspace("Test Parented Workspace")
+
+			create_desktop_icons_from_workspace()
+
+			self.assertEqual(frappe.db.get_value("Desktop Icon", workspace.name, "parent_icon"), SHIPPED)
+
+	def test_a_portal_apps_workspace_icon_stays_off_the_desktop(self):
+		"""Otherwise lms's "Learning" workspace shows up next to its "Frappe Learning" App icon."""
+		with desktop_page(DESKTOP_ICONS):
+			self.make_icon(SHIPPED, icon_type="App", app="frappe", link="/test-portal")
+			workspace = self.make_public_workspace("Test Portal Workspace")
+
+			create_desktop_icons_from_workspace()
+
+			self.assertEqual(frappe.db.get_value("Desktop Icon", workspace.name, "hidden"), 1)
 
 
 class TestTheGridWorksExactlyAsItDoesToday(IconGridTestCase):

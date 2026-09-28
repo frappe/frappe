@@ -338,15 +338,10 @@ def create_desktop_icons_from_workspace():
 				# save, so every generated row landed with no app and was invisible to anything
 				# asking an icon which app it came from.
 				icon.app = app_name
-				# App icons are labelled by `app_title`; an app that declares no such hook has
-				# none to parent this workspace icon to, and looking one up by a null label
-				# would match whatever unlabelled row happens to exist.
 				app_title = (frappe.get_hooks("app_title", app_name=app_name) or [None])[0]
-				app_icon = (
-					frappe.db.exists("Desktop Icon", {"label": app_title, "icon_type": "App"})
-					if app_title
-					else None
-				)
+				# Found by `app`, not by `app_title`: apps ship their icon under labels of their
+				# own (lms ships "Frappe Learning" with the title "Learning").
+				app_icon = frappe.db.exists("Desktop Icon", {"icon_type": "App", "app": app_name})
 				if app_icon:
 					icon.parent_icon = app_icon
 
