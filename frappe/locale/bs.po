@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-09-20 09:34+0000\n"
-"PO-Revision-Date: 2026-09-21 04:20\n"
+"PO-Revision-Date: 2026-09-28 04:21\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -4840,7 +4840,7 @@ msgstr "Provjeri URL zahtjeva"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_column_selector.html:1
 msgid "Check columns to select, drag to set order."
-msgstr "Označite kolone za odabir, povucite da postavi redoslijed."
+msgstr "Odaberi kolone za odabir, povucite da postavi redoslijed."
 
 #: frappe/public/js/frappe/microtemplate.js:256
 msgid "Check the Error Log for details."
@@ -4854,22 +4854,22 @@ msgstr "Provjeri Zapisnik Grešaka za više informacija: {0}"
 #. 'Workflow Document State'
 #: frappe/workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Check this if the Update Value is a formula or expression (e.g. doc.amount * 2). Leave unchecked for plain text values."
-msgstr "Označite ovo ako je vrijednost ažuriranja formula ili izraz (npr. doc.amount * 2). Ostavite neodabrano za vrijednosti običnog teksta."
+msgstr "Odaberi ovo ako je vrijednost ažuriranja formula ili izraz (npr. doc.amount * 2). Ostavite neodabrano za vrijednosti običnog teksta."
 
 #: frappe/website/doctype/website_settings/website_settings.js:147
 msgid "Check this if you don't want users to sign up for an account on your site. Users won't get desk access unless you explicitly provide it."
-msgstr "Označite ovo ako ne želite da se korisnici registriraju za račun na vašoj web stranici. Korisnici neće dobiti pristup radnom prostoru osim ako izričito ne navedete."
+msgstr "Odaberi ovo ako ne želite da se korisnici registriraju za račun na vašoj web stranici. Korisnici neće dobiti pristup radnom prostoru osim ako izričito ne navedete."
 
 #. Description of the 'User must always select' (Check) field in DocType
 #. 'Document Naming Settings'
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.json
 msgid "Check this if you want to force the user to select a series before saving. There will be no default if you check this."
-msgstr "Označite ovo ako želite prisiliti korisnika da odabere seriju prije spremanja. Ako odaberete ovo, neće biti standard postavke."
+msgstr "Odaberi ovo ako želite prisiliti korisnika da odabere seriju prije spremanja. Ako odaberete ovo, neće biti standard postavke."
 
 #. Description of the 'Show Full Number' (Check) field in DocType 'Number Card'
 #: frappe/desk/doctype/number_card/number_card.json
 msgid "Check to display the full numeric value (e.g., 1,234,567 instead of 1.2M)."
-msgstr "Označite za prikaz pune numeričke vrijednosti (npr. 1.234.567 umjesto 1,2 miliona)."
+msgstr "Odaberi za prikaz pune numeričke vrijednosti (npr. 1.234.567 umjesto 1,2 miliona)."
 
 #: frappe/public/js/frappe/desk.js:244
 msgid "Checking one moment"
@@ -5483,12 +5483,12 @@ msgstr "Komercijalno Zaokruživanje"
 #. Label of the commit (Check) field in DocType 'System Console'
 #: frappe/desk/doctype/system_console/system_console.json
 msgid "Commit"
-msgstr "Počini"
+msgstr "Izvrši"
 
 #. Label of the committed (Check) field in DocType 'Console Log'
 #: frappe/desk/doctype/console_log/console_log.json
 msgid "Committed"
-msgstr "Počinjeno"
+msgstr "Izvršeno"
 
 #: frappe/utils/password_strength.py:176
 msgid "Common names and surnames are easy to guess."
@@ -9584,7 +9584,7 @@ msgstr "Kod Ugradnje kopiran"
 
 #: frappe/database/query.py:2443
 msgid "Empty alias is not allowed"
-msgstr "Prazan pseudonim nije dozvoljen"
+msgstr "Prazan nadimak nije dozvoljen"
 
 #: frappe/public/js/form_builder/components/Section.vue:285
 msgid "Empty column"
@@ -14574,7 +14574,7 @@ msgstr "Nevažeća agregatna funkcija: {0}"
 
 #: frappe/database/query.py:2449
 msgid "Invalid alias format: {0}. Alias must be a simple identifier."
-msgstr "Nevažeći format aliasa: {0}. Alias mora biti jednostavan identifikator."
+msgstr "Nevažeći format nadimka: {0}. Alias mora biti jednostavan identifikator."
 
 #: frappe/core/doctype/user_invitation/user_invitation.py:196
 msgid "Invalid app"
@@ -14630,7 +14630,7 @@ msgstr "Nevažeći izraz postavljen u filteru {0} ({1})"
 
 #: frappe/database/query.py:2176
 msgid "Invalid field format for SELECT: {0}. Field names must be simple, backticked, table-qualified, aliased, or '*'."
-msgstr "Nevažeći format polja za SELECT: {0}. Nazivi polja moraju biti jednostavni, sa povratnim ukrštanjem, kvalifikovani tabelom, aliasirani ili sa '*'."
+msgstr "Nevažeći format polja za SELECT: {0}. Nazivi polja moraju biti jednostavni, sa povratnim ukrštanjem, kvalifikovani tabelom, imenovani ili sa '*'."
 
 #: frappe/database/query.py:1313
 msgid "Invalid field format in {0}: {1}. Use 'field', 'link_field.field', or 'child_table.field'."
@@ -14650,7 +14650,7 @@ msgstr "Nevažeći naziv polja '{0}' u automatskom nazivu"
 
 #: frappe/utils/file_manager.py:237
 msgid "Invalid file name"
-msgstr ""
+msgstr "Nevažeći naziv datoteke"
 
 #: frappe/deprecation_dumpster.py:283
 msgid "Invalid file path: {0}"
@@ -16841,22 +16841,22 @@ msgstr "MariaDB Varijable"
 
 #: frappe/public/js/frappe/ui/notifications/notifications.js:49
 msgid "Mark all as read"
-msgstr "Označi sve kao pročitano"
+msgstr "Odaberi sve kao pročitano"
 
 #: frappe/core/doctype/communication/communication.js:78
 #: frappe/core/doctype/communication/communication_list.js:19
 #: frappe/public/js/frappe/ui/notifications/notifications.js:327
 msgid "Mark as Read"
-msgstr "Označi kao Pročitano"
+msgstr "Odaberi kao Pročitano"
 
 #: frappe/core/doctype/communication/communication.js:95
 msgid "Mark as Spam"
-msgstr "Označi kao Neželjenu Poštu"
+msgstr "Odaberi kao Neželjenu Poštu"
 
 #: frappe/core/doctype/communication/communication.js:78
 #: frappe/core/doctype/communication/communication_list.js:22
 msgid "Mark as Unread"
-msgstr "Označi kao Nepročitano"
+msgstr "Odaberi kao Nepročitano"
 
 #. Option for the 'Message Type' (Select) field in DocType 'Notification'
 #. Option for the 'Content Type' (Select) field in DocType 'Web Page'
@@ -22369,7 +22369,7 @@ msgstr "Postavka Direktnog Ispisivanja"
 
 #: frappe/desk/doctype/console_log/console_log.js:6
 msgid "Re-Run in Console"
-msgstr "Ponovo Pokreni u Konzoli"
+msgstr "Ponovo Izvrši u Konzoli"
 
 #: frappe/email/doctype/email_account/email_account.py:825
 msgid "Re:"
@@ -24203,13 +24203,13 @@ msgstr "Pravila sa većim brojem prioriteta će se prvo primijeniti."
 #. Label of the dormant_days (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Run Jobs only Daily if Inactive For (Days)"
-msgstr "Pokreni poslove samo dnevno ako su neaktivni (dana)"
+msgstr "Izvrši poslove samo dnevno ako su neaktivni (dana)"
 
 #. Description of the 'Enable Scheduled Jobs' (Check) field in DocType 'System
 #. Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
 msgid "Run scheduled jobs only if checked"
-msgstr "Pokreni planirane poslove samo ako je odabrano"
+msgstr "Izvrši planirane poslove samo ako je odabrano"
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:57
 msgid "Runtime in Minutes"
@@ -28719,7 +28719,7 @@ msgstr "Ovaj tip dokumenta nema polja siroče za skraćivanje"
 
 #: frappe/core/doctype/doctype/doctype.py:1098
 msgid "This doctype has pending migrations, run 'bench migrate' before modifying the doctype to avoid losing changes."
-msgstr "Ovaj tip dokumenta ima migracije na čekanju, pokrenite 'bench migrate' prije izmjene tipa dokumenta kako biste izbjegli gubitak promjena."
+msgstr "Ovaj tip dokumenta ima migracije na čekanju, izvrši 'bench migrate' prije izmjene tipa dokumenta kako biste izbjegli gubitak promjena."
 
 #: frappe/model/delete_doc.py:164
 msgid "This document can not be deleted right now as it's being modified by another user. Please try again after some time."
@@ -28777,7 +28777,7 @@ msgstr "Ova je datoteka priložena zaštićenom dokumentu i ne može se izbrisat
 
 #: frappe/public/js/frappe/file_uploader/FilePreview.vue:85
 msgid "This file is public and can be accessed by anyone, even without logging in. Mark it private to limit access."
-msgstr "Ova datoteka je javna i može joj pristupiti bilo ko, čak i bez prijave. Označi ga privatnim da ograničite pristup."
+msgstr "Ova datoteka je javna i može joj pristupiti bilo ko, čak i bez prijave. Odaberi ga privatnim da ograničite pristup."
 
 #: frappe/core/doctype/file/file.js:20
 msgid "This file is public. It can be accessed without authentication."
@@ -29719,7 +29719,7 @@ msgstr "Okidač na važećim metodama kao što su \"before_insert\", \"after_upd
 
 #: frappe/public/js/frappe/ui/keyboard.js:210
 msgid "Trigger primary action"
-msgstr "Pokreni Primarnu Radnju"
+msgstr "Izvrši Primarnu Radnju"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:153
 msgid "Trim Table"
