@@ -736,7 +736,14 @@ function refresh_wizard_table_preview(frm, { force = false } = {}) {
 
 frappe.ui.form.on("Data Import", {
 	setup(frm) {
-		frappe.realtime.on("data_import_refresh", ({ data_import }) => {
+		// The import dialog builds a new form each time, so it switches these off on close.
+		frm._realtime_handlers = [];
+		const listen = (event, handler) => {
+			frappe.realtime.on(event, handler);
+			frm._realtime_handlers.push([event, handler]);
+		};
+
+		listen("data_import_refresh", ({ data_import }) => {
 			if (data_import !== frm.doc.name) return;
 			frm.import_in_progress = false;
 			frm._wizard_import_progress = null;
@@ -745,7 +752,7 @@ frappe.ui.form.on("Data Import", {
 				frm.refresh();
 			});
 		});
-		frappe.realtime.on("data_import_blocked", ({ data_import }) => {
+		listen("data_import_blocked", ({ data_import }) => {
 			if (data_import !== frm.doc.name) return;
 			frm.import_in_progress = false;
 			frm._wizard_import_progress = null;
@@ -763,7 +770,7 @@ frappe.ui.form.on("Data Import", {
 				frm.trigger("update_primary_action");
 			});
 		});
-		frappe.realtime.on("data_import_progress", (data) => {
+		listen("data_import_progress", (data) => {
 			// One frm is reused; ignore events for other imports.
 			if (data.data_import !== frm.doc.name) {
 				return;
@@ -1668,11 +1675,6 @@ frappe.ui.form.on("Data Import", {
 		frm._diw_google_sheets_preview_source = null;
 		frm.import_preview = null;
 		frm.import_tree_preview = null;
-		const grid = frm.fields_dict.value_mappings?.grid;
-		if (grid?._value_mapping_scroll_handler) {
-			document.removeEventListener("scroll", grid._value_mapping_scroll_handler, true);
-			delete grid._value_mapping_scroll_handler;
-		}
 		frm.events.toggle_import_issues_ui(frm, false, false);
 		frm.events.toggle_import_log_ui(frm, false);
 		frm.toggle_display("section_import_tree_preview", false);

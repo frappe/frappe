@@ -129,6 +129,13 @@ function _open(opts, { data_import, reference_doctype, import_type, title, on_im
 		} catch (e) {
 			// ignore
 		}
+		for (const [event, handler] of frm._realtime_handlers || []) {
+			frappe.realtime.off(event, handler);
+		}
+		const grid = frm.fields_dict.value_mappings?.grid;
+		if (grid?._value_mapping_scroll_handler) {
+			document.removeEventListener("scroll", grid._value_mapping_scroll_handler, true);
+		}
 		removeEventListener("beforeunload", frm.beforeUnloadListener, { capture: true });
 		if (window.cur_frm === frm) window.cur_frm = null;
 	});
