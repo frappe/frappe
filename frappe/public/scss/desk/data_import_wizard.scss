@@ -421,6 +421,14 @@ ul.diw-map-dropdown-portaled {
 		background: var(--surface-gray-2);
 	}
 
+	// Skip drawing rows scrolled out of view; trees can have 10k+ rows. Set on the row's
+	// children, not the row, so the connector line drawn outside the row is not clipped.
+	.diw-tree-row > .diw-tree-row-main,
+	.diw-tree-row > .diw-tree-row-meta {
+		content-visibility: auto;
+		contain-intrinsic-size: auto 24px;
+	}
+
 	// Guide lines connecting nested tree rows to their parent.
 	.tree-children {
 		position: relative;

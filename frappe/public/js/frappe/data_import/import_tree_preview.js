@@ -88,11 +88,26 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 			</div>
 		`);
 
-		const $tree = $('<div class="tree with-skeleton">').appendTo(
-			this.wrapper.find(".import-tree-body")
-		);
-		const $root_children = $('<ul class="tree-children">').appendTo($tree);
-		roots.forEach((node) => this.render_node(node, $root_children, children_by_parent));
+		// One HTML string instead of per-node jQuery keeps large trees (10k+ nodes) responsive.
+		const rendered = [];
+		const actions_html = this.can_edit_node()
+			? frappe.ui.button.html({
+					label: __("Actions"),
+					icon_right: "chevron-down",
+					variant: "outline",
+					size: "xs",
+					css_class: "diw-tree-node-actions",
+			  })
+			: "";
+		const html = roots
+			.map((node) => this.get_node_html(node, children_by_parent, rendered, actions_html))
+			.join("");
+		const $tree = $(
+			`<div class="tree with-skeleton"><ul class="tree-children">${html}</ul></div>`
+		).appendTo(this.wrapper.find(".import-tree-body"));
+		this._node_by_li = new Map();
+		$tree.find(".tree-node").each((i, li) => this._node_by_li.set(li, rendered[i]));
+		this.bind_tree_events($tree);
 		this._sync_tree_action_button_states();
 
 		this.wrapper.find(".diw-tree-filter-input input").on("input.diw_tree_filter", (e) => {
@@ -199,85 +214,73 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		this._dropdowns = [];
 	}
 
-	render_node(node, $parent, children_by_parent) {
+	/** `rendered` collects nodes in document order so clicks can find their node. */
+	get_node_html(node, children_by_parent, rendered, actions_html) {
+		rendered.push(node);
 		const children = children_by_parent[node.id] || [];
 		const expandable = cint(node.is_group) || children.length > 0;
-		const $li = $('<li class="tree-node block w-full list-none m-0">').appendTo($parent);
 		const is_open = expandable && children.length > 0;
-
-		if (is_open) {
-			$li.addClass("opened");
-		}
-
-		const $row = $(
-			'<div class="diw-tree-row relative flex items-center gap-2 w-full cursor-pointer rounded-sm px-2 py-1">'
-		)
-			.attr("data-row-number", node.row_number)
-			.appendTo($li);
-		const $main = $(
-			'<span class="tree-link diw-tree-row-main flex items-center gap-1 flex-1 min-w-0 text-sm">'
-		).appendTo($row);
-
+		const li_class = [
+			"tree-node block w-full list-none m-0",
+			is_open && "opened",
+			this.is_edited(node) && "is-edited",
+			node.orphan && "import-tree-node-orphan",
+		]
+			.filter(Boolean)
+			.join(" ");
 		// Leaves get a spacer so their labels line up with siblings.
-		if (expandable) {
-			$(
-				'<span class="diw-tree-chevron inline-flex size-4 items-center justify-center text-ink-gray-6">'
-			)
-				.html(is_open ? this.icon_set.chevron_open : this.icon_set.chevron_closed)
-				.appendTo($main);
-		} else {
-			$(
-				'<span class="diw-tree-chevron diw-tree-chevron--spacer invisible pointer-events-none inline-flex size-4" aria-hidden="true">'
-			).appendTo($main);
-		}
+		const chevron = expandable
+			? `<span class="diw-tree-chevron inline-flex size-4 items-center justify-center text-ink-gray-6">${
+					is_open ? this.icon_set.chevron_open : this.icon_set.chevron_closed
+			  }</span>`
+			: '<span class="diw-tree-chevron diw-tree-chevron--spacer invisible pointer-events-none inline-flex size-4" aria-hidden="true"></span>';
+		const label_class = `tree-label diw-tree-label flex-1 min-w-0 truncate${
+			node.orphan ? " text-ink-orange-7" : ""
+		}`;
+		const row_number =
+			node.row_number == null
+				? ""
+				: ` data-row-number="${frappe.utils.escape_html(String(node.row_number))}"`;
+		const children_html = children
+			.map((child) => this.get_node_html(child, children_by_parent, rendered, actions_html))
+			.join("");
 
-		$('<a class="tree-label diw-tree-label flex-1 min-w-0 truncate">')
-			.toggleClass("text-ink-orange-7", Boolean(node.orphan))
-			.attr("data-name", node.id)
-			.html(this.get_node_label_html(node))
-			.appendTo($main);
+		return `<li class="${li_class}"><div class="diw-tree-row relative flex items-center gap-2 w-full cursor-pointer rounded-sm px-2 py-1"${row_number}><span class="tree-link diw-tree-row-main flex items-center gap-1 flex-1 min-w-0 text-sm">${chevron}<a class="${label_class}" data-name="${frappe.utils.escape_html(
+			String(node.id)
+		)}">${this.get_node_label_html(
+			node
+		)}</a></span><span class="diw-tree-row-meta inline-flex items-center justify-end gap-1 shrink-0 text-xs ps-2">${this.get_node_meta_html(
+			node
+		)}${actions_html}</span></div><ul class="tree-children"${
+			is_open ? "" : ' style="display: none;"'
+		}>${children_html}</ul></li>`;
+	}
 
-		const $meta = $(
-			'<span class="diw-tree-row-meta inline-flex items-center justify-end gap-1 shrink-0 text-xs ps-2">'
-		)
-			.html(this.get_node_meta_html(node))
-			.appendTo($row);
-
-		// Always show edited state styling, even when readonly
-		$li.toggleClass("is-edited", this.is_edited(node));
-		// Only show Actions button when editing is allowed (not readonly)
-		if (this.can_edit_node()) {
-			this.mount_node_actions(node, $meta);
-		}
-
-		const $children = $('<ul class="tree-children">').appendTo($li);
-		children.forEach((child) => this.render_node(child, $children, children_by_parent));
-
-		if (!expandable || !children.length) {
-			$children.hide();
-		}
-
-		$row.on("click", (e) => {
-			// Clicks on the Actions button must not toggle the branch.
-			if ($(e.target).closest(".diw-tree-node-actions").length) {
+	bind_tree_events($tree) {
+		$tree.on("click", ".diw-tree-row", (e) => {
+			const $row = $(e.currentTarget);
+			const $li = $row.parent();
+			const node = this._node_by_li.get($li[0]);
+			const $actions = $(e.target).closest(".diw-tree-node-actions");
+			if ($actions.length) {
+				this.open_node_actions(node, $actions);
 				return;
 			}
 			e.preventDefault();
-			if (expandable && children.length) {
+			const $main = $row.children(".diw-tree-row-main");
+			const $children = $li.children(".tree-children");
+			if ($children.children(".tree-node").length) {
 				this.toggle_children($li, $main, $children);
 			}
-			frappe.dom.activate($row.closest(".tree"), $main, "tree-link");
-			this.on_row_click?.(node.row_number);
+			frappe.dom.activate($tree, $main, "tree-link");
+			this.on_row_click?.(node?.row_number);
 		});
-
-		$row.hover(
-			() => $li.addClass("hover-active"),
-			() => $li.removeClass("hover-active")
+		$tree.on("mouseenter", ".diw-tree-row", (e) =>
+			$(e.currentTarget).parent().addClass("hover-active")
 		);
-
-		if (node.orphan) {
-			$li.addClass("import-tree-node-orphan");
-		}
+		$tree.on("mouseleave", ".diw-tree-row", (e) =>
+			$(e.currentTarget).parent().removeClass("hover-active")
+		);
 	}
 
 	get_node_label_html(node) {
@@ -290,8 +293,8 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		if (this.is_edited(node)) {
 			parts.push(
 				frappe.ui.badge.html({
-					label: __("edited"),
-					theme: "blue",
+					label: __("Edited"),
+					theme: "gray",
 					size: "sm",
 					css_class: "diw-tree-edited-badge",
 				})
@@ -474,22 +477,17 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 	}
 
 	/** Actions button + dropdown of actions in the row's meta area. */
-	mount_node_actions(node, $meta) {
-		const $btn = frappe.ui.button({
-			label: __("Actions"),
-			icon_right: "chevron-down",
-			variant: "outline",
-			size: "xs",
-			css_class: "diw-tree-node-actions",
+	/** Menus are built on first click; building one per node up front is slow on big trees. */
+	open_node_actions(node, $btn) {
+		if ($btn.data("es-dropdown")) return;
+		const dropdown = new frappe.ui.Dropdown({
+			trigger: $btn,
+			align: "end",
+			options: () => this.get_node_menu_items(node),
 		});
-		$meta.append($btn);
-		this._dropdowns.push(
-			new frappe.ui.Dropdown({
-				trigger: $btn,
-				align: "end",
-				options: () => this.get_node_menu_items(node),
-			})
-		);
+		$btn.data("es-dropdown", dropdown);
+		this._dropdowns.push(dropdown);
+		dropdown.open();
 	}
 
 	get_node_menu_items(node) {
