@@ -62,7 +62,10 @@ export function commandShortcuts() {
 			...command.keys!,
 			group: command.group,
 			enabled: command.condition,
-			handler: () => command.action(),
+			handler: () => {
+				store.componentContextMenu?.hideContextMenu()
+				command.action()
+			},
 		}))
 }
 

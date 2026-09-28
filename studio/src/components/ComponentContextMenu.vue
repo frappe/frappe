@@ -281,7 +281,10 @@ function promoteToRoot(newRoot: Block, target: Block) {
 	newRoot.selectBlock()
 }
 
+const hideContextMenu = () => contextMenuRef.value?.hide()
+
 defineExpose({
 	showContextMenu,
+	hideContextMenu,
 })
 </script>
