@@ -4,7 +4,6 @@ import useCanvasStore from "@/stores/canvasStore"
 import blockController from "@/utils/blockController"
 import { openInDesk } from "@/utils/helpers"
 import { nextTick } from "vue"
-import type { LeftPanelOptions } from "@/types"
 
 /** A key binding for a command. The description labels it in the shortcuts dialog. */
 export type CommandKeys = {
@@ -29,7 +28,7 @@ export type Command = {
 	inPalette?: boolean
 }
 
-export const commandGroups = ["Navigate", "Page", "Panels", "Layers", "View", "General", "Edit"] as const
+export const commandGroups = ["Navigate", "Page", "Layers", "View", "General", "Edit"] as const
 export type CommandGroup = (typeof commandGroups)[number]
 
 export const resolveText = (value: string | (() => string)) => (typeof value === "function" ? value() : value)
@@ -115,30 +114,6 @@ registerCommand({
 	action: () => (store.showPageOptions = true),
 })
 
-// Panels
-
-const leftPanelTabs: { tab: LeftPanelOptions; icon: string }[] = [
-	{ tab: "Pages", icon: "lucide-book" },
-	{ tab: "Add Component", icon: "lucide-plus-circle" },
-	{ tab: "Layers", icon: "lucide-layers" },
-	{ tab: "Data", icon: "lucide-database" },
-	{ tab: "Code", icon: "lucide-code" },
-	{ tab: "AI Assistant", icon: "lucide-sparkle" },
-]
-
-for (const { tab, icon } of leftPanelTabs) {
-	registerCommand({
-		name: `open-${tab.toLowerCase().replace(/ /g, "-")}-panel`,
-		title: `Open ${tab}`,
-		icon,
-		group: "Panels",
-		action: () => {
-			store.studioLayout.showLeftPanel = true
-			store.studioLayout.leftPanelActiveTab = tab
-		},
-	})
-}
-
 // Layers
 
 const showLayersTab = async () => {
@@ -199,15 +174,6 @@ registerCommand({
 		store.studioLayout.showRightPanel = !store.studioLayout.showRightPanel
 		store.studioLayout.showLeftPanel = store.studioLayout.showRightPanel
 	},
-})
-
-registerCommand({
-	name: "fit-canvas",
-	title: "Fit Canvas to Screen",
-	icon: "lucide-maximize",
-	group: "View",
-	keys: { combo: "Mod+Shift+Digit0", description: "Fit Canvas to Screen" },
-	action: () => canvasStore.activeCanvas?.setScaleAndTranslate(),
 })
 
 // General

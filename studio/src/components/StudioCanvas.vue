@@ -391,7 +391,6 @@ defineExpose({
 	canvasProps,
 	canvasContainer,
 	// canvas utils
-	setScaleAndTranslate,
 	findBlock,
 	removeBlock,
 	getRootBlock,
