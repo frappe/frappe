@@ -1,12 +1,20 @@
 // Fails when a test file under frontend/ or ui/ matches no vitest `include` pattern.
 import { execFileSync } from "node:child_process";
-import { globSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import {
+  globSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const FRONTEND = import.meta.dirname;
 
-if (import.meta.main) main();
+// Not `import.meta.main`: Node 24.0 and 24.1 lack it, and the check would pass unrun.
+if (realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) main();
 
 function main() {
   const root = resolve(FRONTEND, "..");
