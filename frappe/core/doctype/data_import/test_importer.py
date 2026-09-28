@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.data_import.data_import import DataImport
+from frappe.core.doctype.data_import.import_provider import ImportProvider
 from frappe.core.doctype.data_import.importer import (
 	ACTION_INSERT,
 	ACTION_UPDATE,
@@ -54,6 +55,30 @@ def _register_data_import_cleanup(test_case, data_import):
 
 def _register_file_cleanup(test_case, file_doc):
 	test_case.addCleanup(_delete_file, file_doc.name)
+
+
+class RecordingImportProvider(ImportProvider):
+	def get_import_fields(self):
+		return {
+			"fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data", "reqd": 1}],
+			"child_tables": [],
+		}
+
+	def import_row(self, importer, doc):
+		record = frappe.new_doc(importer.doctype)
+		record.update(doc)
+		record.description = "created by provider"
+		record.insert()
+		return record, None
+
+
+class RejectingImportProvider(RecordingImportProvider):
+	def validate(self, import_file):
+		return [{"row": import_file.data[0].row_number, "message": "Rejected by provider"}]
+
+
+def _provider_hooks(provider):
+	return {"data_import_providers": {doctype_name: [f"{__name__}.{provider.__name__}"]}}
 
 
 class TestImporter(IntegrationTestCase):
@@ -675,6 +700,41 @@ class TestImporter(IntegrationTestCase):
 
 		self.assertEqual(response["status"], "not_running")
 		self.assertEqual(frappe.db.get_value("Data Import", data_import.name, "status"), "Error")
+
+	def test_import_provider_creates_the_records(self):
+		_delete_doctype_records(doctype_name, SAMPLE_IMPORT_DOC_NAMES)
+		self.addCleanup(_delete_doctype_records, doctype_name, SAMPLE_IMPORT_DOC_NAMES)
+		data_import = self.get_importer(doctype_name, get_import_file("sample_import_file"))
+
+		with self.patch_hooks(_provider_hooks(RecordingImportProvider)):
+			data_import.start_import()
+
+		self.assertEqual(data_import.reload().status, "Success")
+		for name in SAMPLE_IMPORT_DOC_NAMES:
+			self.assertEqual(frappe.db.get_value(doctype_name, name, "description"), "created by provider")
+
+	def test_import_provider_warnings_block_the_import(self):
+		_delete_doctype_records(doctype_name, SAMPLE_IMPORT_DOC_NAMES)
+		self.addCleanup(_delete_doctype_records, doctype_name, SAMPLE_IMPORT_DOC_NAMES)
+		data_import = self.get_importer(doctype_name, get_import_file("sample_import_file"))
+
+		with self.patch_hooks(_provider_hooks(RejectingImportProvider)):
+			data_import.start_import()
+
+		data_import.reload()
+		self.assertEqual(data_import.status, "Pending")
+		self.assertIn("Rejected by provider", data_import.template_warnings)
+		self.assertFalse(frappe.db.exists(doctype_name, "Test"))
+
+	def test_get_import_fields_returns_provider_schema(self):
+		from frappe.core.doctype.data_import.data_import import get_import_fields
+
+		self.assertIsNone(get_import_fields(doctype_name))
+
+		with self.patch_hooks(_provider_hooks(RecordingImportProvider)):
+			self.assertEqual(get_import_fields(doctype_name), RecordingImportProvider().get_import_fields())
+			with self.set_user("Guest"):
+				self.assertRaises(frappe.PermissionError, get_import_fields, doctype_name)
 
 	def get_importer(self, doctype, import_file, update=False, use_sniffer=False, import_type=None):
 		data_import = frappe.new_doc("Data Import")
