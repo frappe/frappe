@@ -50,7 +50,7 @@ export function createLiveUpdates(
       action === "add" &&
       hasUnresolvedRowOfType(doctype, docname, activity.type)
     ) {
-      refresh();
+      refresh().then(() => addIfMissing(activity));
       return;
     }
 
@@ -65,6 +65,13 @@ export function createLiveUpdates(
         a.key === activity.key ? { ...activity, author: a.author } : a
       );
     }
+  };
+
+  // a failed refetch keeps the old feed, which would lose the row held back for it
+  const addIfMissing = (activity: Activity) => {
+    const current = (resource.data as Activity[] | undefined) ?? [];
+    if (current.some((a) => a.key === activity.key)) return;
+    resource.data = [...current, activity];
   };
 
   const onDocUpdate = (payload: unknown) => {
