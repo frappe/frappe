@@ -22,6 +22,7 @@ jobs:
     outputs:
       build: ${{ steps.check-build.outputs.build }}
       run_postgres: ${{ steps.check-build.outputs.run_postgres }}
+      tests: ${{ steps.check-build.outputs.tests }}
     steps:
       - name: Clone
         uses: actions/checkout@v7
@@ -107,6 +108,8 @@ jobs:
           TOTAL_BUILDS: 2
           FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN || '' }}
           IMPACT_MAP_OUTFILE: ${{ github.event_name == 'schedule' && format('impact-map-{0}-{1}.json', matrix.db, matrix.index) || '' }}
+          # The impact map is built on mariadb only, so postgres always runs the full suite.
+          SELECTED_TESTS: ${{ matrix.db == 'mariadb' && needs.checkrun.outputs.tests || '' }}
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v7
