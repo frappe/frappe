@@ -5,6 +5,7 @@ import { setActivePinia } from "pinia"
 import Block from "@/utils/block"
 import { COMPONENTS } from "@/data/components"
 import { getBlockInstance } from "@/utils/serializer"
+import getBlockTemplate from "@/utils/blockTemplate"
 import { canPasteStylesTo, copyBlockStyles, pasteBlockStyles } from "@/utils/blockCopyPaste"
 import type { BlockOptions } from "@/types"
 
@@ -39,5 +40,17 @@ describe("copy and paste block styles", () => {
 		const source = container("source", { baseStyles: { color: "red" } })
 		copyBlockStyles(source)
 		expect(canPasteStylesTo(source)).to.be.false
+	})
+
+	it("pastes one page's root styles onto another page's root", () => {
+		const root = () => getBlockInstance({ ...getBlockTemplate("body") })
+		const sourceRoot = root()
+		sourceRoot.setStyle("background", "black")
+		const targetRoot = root()
+
+		copyBlockStyles(sourceRoot)
+		expect(canPasteStylesTo(targetRoot)).to.be.true
+		pasteBlockStyles(targetRoot)
+		expect(targetRoot.baseStyles.background).to.equal("black")
 	})
 })

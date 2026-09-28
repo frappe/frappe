@@ -496,7 +496,9 @@ export function copyBlockStyles(block: Block) {
 }
 
 export function canPasteStylesTo(block: Block) {
-	return Boolean(copiedStyle.value.styles) && copiedStyle.value.componentId !== block.componentId
+	if (!copiedStyle.value.styles) return false
+	// every page's root has the same id, so a root copied on one page can style another's
+	return block.isRoot() || copiedStyle.value.componentId !== block.componentId
 }
 
 export function pasteBlockStyles(block: Block) {
