@@ -1379,8 +1379,8 @@ frappe.ui.form.on("Data Import", {
 	update_primary_action(frm) {
 		// All actions live in the wizard footer; keep Ctrl/Cmd+S saving.
 		frm.page.clear_primary_action();
-		// Set save_action on the page DOM element, not frm.page.
-		if (frappe.container?.page) {
+		// Ctrl+S falls back to the routed page's save_action, which a dialog form does not own.
+		if (frappe.container?.page && !frm.in_dialog) {
 			frappe.container.page.save_action = () =>
 				frm.save().then(() => {
 					// Re-fetch the preview only while still editing (before the import starts).
