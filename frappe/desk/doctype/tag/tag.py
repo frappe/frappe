@@ -45,7 +45,7 @@ class Tag(Document):
 		self.validate_apps()
 
 	def validate_apps(self):
-		apps = [row.app_name for row in self.get("apps", []) if row.app_name]
+		apps = [row.app_name for row in (self.get("apps") or []) if row.app_name]
 		if len(apps) != len(set(apps)):
 			frappe.throw(_("Each app can only be added once"))
 		invalid_apps = set(apps) - set(frappe.get_active_apps())
@@ -191,7 +191,7 @@ class DocTags:
 				tag_doc.append("apps", {"app_name": app or "frappe"})
 			tag_doc.insert()
 		else:
-			apps = {row.app_name for row in tag_doc.get("apps", []) if row.app_name}
+			apps = {row.app_name for row in (tag_doc.get("apps") or []) if row.app_name}
 			if frappe.get_meta("Tag").has_field("apps") and not apps:
 				tag_doc.append("apps", {"app_name": "frappe"})
 				apps.add("frappe")
