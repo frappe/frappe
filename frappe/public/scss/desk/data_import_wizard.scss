@@ -240,21 +240,6 @@
 			outline: none;
 		}
 	}
-
-	// Frozen mapping shown as a read-only field for completed imports.
-	.diw-col-map-readonly {
-		display: flex;
-		align-items: center;
-		width: 100%;
-		height: 28px;
-		padding: 0 var(--padding-sm);
-		background-color: var(--surface-base);
-		border: 1px solid var(--border-color);
-		border-radius: var(--radius);
-		color: var(--text-muted);
-		font-size: var(--text-sm);
-		cursor: default;
-	}
 }
 
 // Dropdown is reparented to <body> to escape the datatable header's clipping, so it

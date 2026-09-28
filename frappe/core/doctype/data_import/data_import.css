@@ -1,4 +1,4 @@
-/* Skipped warnings get a muted appearance — the skip action shows them struck-through. */
+/* Skipped warnings are faded. */
 .warnings .warning.skipped .body {
 	opacity: 0.6;
 }
@@ -40,19 +40,6 @@
 
 [data-fieldname="value_mappings"] > .grid-field > .control-label {
 	display: none;
-}
-
-/* Let Link / Select dropdowns escape the scrollable grid in the hidden std form. */
-body[data-route^="data-import"]
-	.data-import-std-form
-	[data-fieldname="value_mappings"]
-	.form-grid-container,
-body[data-route^="data-import"] .data-import-std-form [data-fieldname="value_mappings"] .form-grid,
-body[data-route^="data-import"]
-	.data-import-std-form
-	[data-fieldname="value_mappings"]
-	.grid-body {
-	overflow: visible !important;
 }
 
 [data-fieldname="value_mappings"] .awesomplete > ul {
