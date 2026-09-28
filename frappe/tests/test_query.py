@@ -1293,6 +1293,44 @@ class TestQuery(IntegrationTestCase):
 
 		self.assertFalse(frappe.qb.get_query("DocType", filters={"modified": ["is", "not set"]}).run())
 
+	def test_is_set_uses_joined_field_doctype(self):
+		target_doctype = new_doctype(
+			"Query Is Set Target",
+			fields=[{"fieldname": "shared_field", "fieldtype": "Data"}],
+		).insert(ignore_if_duplicate=True)
+		self.addCleanup(target_doctype.delete)
+
+		source_doctype = new_doctype(
+			"Query Is Set Source",
+			fields=[
+				{"fieldname": "shared_field", "fieldtype": "Int"},
+				{"fieldname": "link_field", "fieldtype": "Link", "options": target_doctype.name},
+			],
+		).insert(ignore_if_duplicate=True)
+		self.addCleanup(source_doctype.delete)
+
+		set_target = frappe.get_doc({"doctype": target_doctype.name, "shared_field": "0"}).insert()
+		not_set_target = frappe.get_doc({"doctype": target_doctype.name}).insert()
+		self.addCleanup(set_target.delete)
+		self.addCleanup(not_set_target.delete)
+
+		set_source = frappe.get_doc(
+			{"doctype": source_doctype.name, "shared_field": 0, "link_field": set_target.name}
+		).insert()
+		not_set_source = frappe.get_doc(
+			{"doctype": source_doctype.name, "shared_field": 0, "link_field": not_set_target.name}
+		).insert()
+		self.addCleanup(set_source.delete)
+		self.addCleanup(not_set_source.delete)
+
+		for value, expected in (("set", set_source.name), ("not set", not_set_source.name)):
+			with self.subTest(value=value):
+				result = frappe.qb.get_query(
+					source_doctype.name,
+					filters={"link_field.shared_field": ["is", value]},
+				).run(pluck="name")
+				self.assertEqual(result, [expected])
+
 	def test_is_set_is_not_set_on_non_nullable_fields(self):
 		doctype = new_doctype(
 			fields=[

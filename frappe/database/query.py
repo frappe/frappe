@@ -739,7 +739,7 @@ class Engine:
 			return operator_fn(_field, nodes or ("",))
 
 		if _operator.casefold() == "is" and isinstance(_field, Field):
-			criterion = self._build_typed_is_criterion(_field, field, _value, doctype or self.doctype)
+			criterion = self._build_typed_is_criterion(_field, field, _value, filter_doctype)
 			if criterion is not None:
 				return criterion
 
