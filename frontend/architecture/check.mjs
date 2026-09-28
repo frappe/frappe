@@ -98,7 +98,7 @@ export class LayerCheck {
             pairs: [],
           });
         }
-        edges.get(id).pairs.push({ from, to, line });
+        edges.get(id).pairs.push({ from, to, line, known: null });
       }
     }
     for (const e of edges.values()) e.count = e.pairs.length;

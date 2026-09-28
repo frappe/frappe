@@ -7,15 +7,20 @@ export function conceptsOf(markdown, layer) {
   );
   if (heading < 0) return [];
   const rows = [];
-  let inTable = !layer.table;
+  let underLabel = !layer.table;
+  let header = null;
   for (const line of lines.slice(heading + 1)) {
     if (line.startsWith("## ") || line.startsWith("### ")) break;
     // "Outside the layers" holds two tables, each under a bold label.
-    if (layer.table && line.startsWith("**")) inTable = line === layer.table;
-    const cells = inTable && tableCells(line);
-    if (
-      cells?.length === 2 &&
-      cells[0] !== "Concept" &&
+    if (layer.table && line.startsWith("**")) underLabel = line === layer.table;
+    const cells = tableCells(line);
+    if (!cells) header = null;
+    else if (!header) header = cells[0];
+    // A layer can hold other tables, such as the import list; only concept rows count.
+    else if (
+      underLabel &&
+      header === "Concept" &&
+      cells.length === 2 &&
       !/^-+$/.test(cells[0])
     ) {
       rows.push({ name: cells[0], what: cells[1] });

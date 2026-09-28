@@ -43,6 +43,7 @@ describe("LayerCheck", () => {
 			edge("app/lib", "app/lib", "import", ["app/lib/new.ts", "app/lib/old.ts", 1]),
 		]);
 		expect(c.edges.map((e) => e.status)).toEqual(["allowed"]);
+		expect(c.edges[0].pairs[0].known).toBeNull();
 	});
 
 	it("checks an import between two layers of one folder", () => {
@@ -124,6 +125,12 @@ const doc = `
 | Concept | What it is |
 | --- | --- |
 | \`AppShell\` | The root component |
+
+**The import list.**
+
+| Name | What it gives |
+| --- | --- |
+| \`vue\` | The shared package |
 
 ## The five flows
 
