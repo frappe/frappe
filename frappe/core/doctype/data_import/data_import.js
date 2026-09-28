@@ -182,6 +182,47 @@ function get_skipped_row_set(frm) {
 	return new Set((frm.doc.skipped_rows || []).map((row) => cint(row.row_number)));
 }
 
+/** One line per invalid value with a Skip button, for values the user cannot map. */
+function get_mapping_skip_list_html(frm, skipped_rows) {
+	if (has_import_started(frm)) return "";
+	const lines = (frm.doc.value_mappings || [])
+		.map((mapping) => {
+			const rows = JSON.parse(mapping.row_numbers || "[]");
+			if (!rows.length) return "";
+			const is_skipped = rows.every((row) => skipped_rows.has(cint(row)));
+			const count =
+				rows.length === 1
+					? __("1 row")
+					: __("{0} rows", [format_number(rows.length, null, 0)]);
+			const button = frappe.ui.button.html({
+				label: is_skipped ? __("Undo skip") : __("Skip"),
+				size: "xs",
+				variant: "outline",
+				css_class: "diw-skip-value-rows shrink-0",
+				attrs: { "data-mapping": mapping.name },
+			});
+			const column = frappe.utils.escape_html(mapping.column_label || "");
+			const value = frappe.utils.escape_html(mapping.source_value || "");
+			return `
+				<li class="flex items-center justify-between gap-3${is_skipped ? " text-ink-gray-5" : ""}">
+					<span class="min-w-0 truncate">${column} · <strong>${value}</strong> · ${count}</span>
+					${button}
+				</li>
+			`;
+		})
+		.join("");
+	if (!lines) return "";
+	return `
+		<div class="diw-mapping-skip-list mt-4">
+			<div class="text-base-semibold text-ink-gray-9 mb-1">${__("Or skip rows instead")}</div>
+			<div class="text-sm text-ink-gray-6 mb-2">${__(
+				"Skip every row that has one of these values. Skipped rows are not imported."
+			)}</div>
+			<ul class="list-none m-0 p-0 flex flex-col gap-2 text-sm">${lines}</ul>
+		</div>
+	`;
+}
+
 /** One place deciding whether this import has warnings. */
 function get_current_import_warnings(frm, preview_data) {
 	preview_data = get_fix_issues_preview_data(frm, preview_data);
@@ -400,6 +441,12 @@ function get_mapping_target_df(grid_row) {
 		Object.assign(df, { fieldtype: "Link", options: link_doctype });
 	} else if (fieldtype === "Select" && select_options) {
 		Object.assign(df, { fieldtype: "Select", options: select_options });
+	}
+	// A value whose rows are all skipped needs no mapping.
+	const rows = JSON.parse(doc.row_numbers || "[]");
+	const skipped = get_skipped_row_set(grid_row.frm);
+	if (rows.length && rows.every((row) => skipped.has(cint(row)))) {
+		df.read_only = 1;
 	}
 	return df;
 }
@@ -2327,9 +2374,10 @@ frappe.ui.form.on("Data Import", {
 					.join(", ");
 				helper = `
 					<div class="body mb-3">
-						${__("Some columns have invalid values. Map them to valid values below. Affected columns: {0}.", [
-							column_labels,
-						])}
+						${__(
+							"Some columns have invalid values. Map them to valid values below, or skip the rows that have them. Affected columns: {0}.",
+							[column_labels]
+						)}
 					</div>
 				`;
 			}
@@ -2337,6 +2385,7 @@ frappe.ui.form.on("Data Import", {
 				<div class="warning-mapping m-0 p-0">
 					${helper}
 					<div class="diw-mapping-grid-host"></div>
+					${get_mapping_skip_list_html(frm, skipped_rows)}
 				</div>
 			`;
 		}
@@ -2461,30 +2510,32 @@ frappe.ui.form.on("Data Import", {
 			e.preventDefault();
 			const $btn = $(e.currentTarget);
 			const rows_to_skip = JSON.parse($btn.attr("data-rows-to-skip") || "[]");
-			frm.events.toggle_skip_duplicate_rows(frm, rows_to_skip);
+			frm.events.toggle_skip_rows(frm, rows_to_skip);
+		});
+		frm.get_field("import_warnings").$wrapper.on("click", ".diw-skip-value-rows", (e) => {
+			e.preventDefault();
+			const name = $(e.currentTarget).attr("data-mapping");
+			const mapping = (frm.doc.value_mappings || []).find((row) => row.name === name);
+			if (mapping) frm.events.toggle_skip_rows(frm, JSON.parse(mapping.row_numbers || "[]"));
 		});
 	},
 
-	/** Toggle skip state for duplicate rows - skip all except the first occurrence */
-	toggle_skip_duplicate_rows(frm, rows_to_skip) {
-		const skipped_set = new Set((frm.doc.skipped_rows || []).map((r) => cint(r.row_number)));
-		const all_already_skipped = rows_to_skip.every((row) => skipped_set.has(cint(row)));
+	/** Skip all of `rows`, or restore them if they are all skipped already. */
+	toggle_skip_rows(frm, rows) {
+		const skipped_by_row = new Map(
+			(frm.doc.skipped_rows || []).map((r) => [cint(r.row_number), r])
+		);
+		const all_skipped = rows.every((row) => skipped_by_row.has(cint(row)));
 
-		if (all_already_skipped) {
-			// Undo skip - remove all these rows from skipped_rows
-			for (const row_number of rows_to_skip) {
-				const skipped = (frm.doc.skipped_rows || []).find(
-					(r) => cint(r.row_number) === cint(row_number)
-				);
-				if (skipped) {
-					frappe.model.clear_doc(skipped.doctype, skipped.name);
-				}
+		if (all_skipped) {
+			for (const row_number of rows) {
+				const skipped = skipped_by_row.get(cint(row_number));
+				frappe.model.clear_doc(skipped.doctype, skipped.name);
 			}
 		} else {
-			// Skip all duplicate rows (except the first one which isn't in rows_to_skip)
 			const preview_data = get_fix_issues_preview_data(frm);
-			for (const row_number of rows_to_skip) {
-				if (skipped_set.has(cint(row_number))) continue;
+			for (const row_number of rows) {
+				if (skipped_by_row.has(cint(row_number))) continue;
 				const preview_row = preview_data?.data?.find(
 					(row) => cint(row[0]) === cint(row_number)
 				);
