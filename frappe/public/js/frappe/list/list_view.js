@@ -204,26 +204,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		super.setup_page_head();
 		this.set_primary_action();
 		this.set_actions_menu_items();
-		this.setup_import_menu();
-	}
-
-	setup_import_menu() {
-		if (!frappe.model.can_import(this.doctype, null, this.meta)) return;
-
-		const doctype = this.doctype;
-		const group = __("Import", null, "Button in list view menu");
-
-		const add_sub_item = (label, click) => {
-			// Flat label keeps add_menu_item dedup unique; menu_submenu data renders the submenu.
-			const $item = this.page.add_menu_item(`${group} > ${label}`, click, true, null, false);
-			$item.closest("li").data("menu_submenu", { group, label });
-			return $item;
-		};
-
-		add_sub_item(__("New Import"), () => this.open_import_dialog());
-		add_sub_item(__("Show All"), () =>
-			frappe.set_route("list", "data-import", { reference_doctype: doctype })
-		);
 	}
 
 	open_import_dialog() {
@@ -2549,6 +2529,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_menu_items() {
 		const doctype = this.doctype;
 		const items = [];
+
+		if (frappe.model.can_import(doctype, null, this.meta)) {
+			items.push({
+				label: __("Import", null, "Button in list view menu"),
+				action: () => this.open_import_dialog(),
+				standard: true,
+			});
+		}
 
 		if (frappe.user_roles.includes("System Manager")) {
 			items.push({
