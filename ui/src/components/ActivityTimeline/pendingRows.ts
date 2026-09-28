@@ -1,30 +1,24 @@
 import { ref } from "vue";
 import type { Activity, CustomActivity, PendingActivity } from "./types";
 
-/**
- * A row drawn before the server confirmed it. `key` is a throwaway the row renders under for
- * its whole life; `confirmedKey` is the key the server's row will carry, which is known only
- * once the create request answers.
- */
+/** A row drawn before the server confirms it. `key` is a throwaway it renders under for life;
+ * `confirmedKey` is the server's key, known once the create request answers. */
 export type PendingRow = (Activity | CustomActivity) & {
   key: string;
   confirmedKey?: string;
 };
 
-// Kept per document, so every filtered view of it draws the same pending rows.
+// per document, so every filtered view draws the same pending rows
 const pendingRowsByDocument = ref<Record<string, PendingRow[]>>({});
 
-// All a retired pending row leaves behind, per document: confirmed key to the key it rendered under.
-// { "HD Ticket:123": { "comment:0a1b4f9e2c": "pending:7c3e" } } draws that comment as pending:7c3e.
+// confirmed key to the pending key it keeps rendering under, per document
+// e.g. { "HD Ticket:123": { "comment:0a1b4f9e2c": "pending:7c3e" } }
 const adoptedKeysByDocument = ref<Record<string, Record<string, string>>>({});
 
 const toDocumentId = (doctype: string, docname: string) =>
   `${doctype}:${docname}`;
 
-/**
- * Draws a row in the feed before the server has confirmed it. The row carries `pending`, so
- * the timeline renders it muted.
- */
+/** Draws a muted row in the feed before the server confirms it. */
 export function addPendingActivity(
   doctype: string,
   docname: string,
@@ -62,10 +56,8 @@ export function pendingRowsFor(doctype: string, docname: string): PendingRow[] {
   return pendingRowsByDocument.value[toDocumentId(doctype, docname)] ?? [];
 }
 
-/**
- * True while a row of this type has not been resolved. A live row arriving in that window
- * cannot be told apart from the one being waited for, and drawing both is a visible duplicate.
- */
+/** True while a row of this type has no confirmed key yet. A live row arriving then
+ * can't be told apart from it, and drawing both would duplicate it. */
 export function hasUnresolvedRowOfType(
   doctype: string,
   docname: string,
@@ -91,11 +83,8 @@ export function withAdoptedKeys(
   });
 }
 
-/**
- * Drops the pending rows the feed now carries, keeping the key each rendered under so the real
- * row adopts it. Vue then patches that node rather than remounting it, which would rebuild the
- * email iframe at its collapsed height and jump.
- */
+/** Drops pending rows the feed now carries. The real row adopts the pending key, so Vue patches
+ * the node instead of remounting it (a remounted email iframe collapses and jumps). */
 export function retirePendingRows(
   doctype: string,
   docname: string,
