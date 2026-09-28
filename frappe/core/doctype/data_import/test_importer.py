@@ -665,6 +665,17 @@ class TestImporter(IntegrationTestCase):
 		self.assertIn(expected_id_key, fields_dict, "ID fallback failed")
 		table_field.label = original_label  # maintain sanity in test env
 
+	def test_stop_import_without_job_marks_error(self):
+		from frappe.core.doctype.data_import.data_import import stop_data_import
+
+		data_import = self.get_importer(doctype_name, get_import_file("sample_import_file"))
+		data_import.db_set("status", "In Progress")
+
+		response = stop_data_import(data_import.name)
+
+		self.assertEqual(response["status"], "not_running")
+		self.assertEqual(frappe.db.get_value("Data Import", data_import.name, "status"), "Error")
+
 	def get_importer(self, doctype, import_file, update=False, use_sniffer=False, import_type=None):
 		data_import = frappe.new_doc("Data Import")
 		if import_type:

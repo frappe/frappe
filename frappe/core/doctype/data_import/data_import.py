@@ -5,7 +5,7 @@ import os
 from typing import Any
 
 from rq.command import send_stop_job_command
-from rq.exceptions import InvalidJobOperation
+from rq.exceptions import InvalidJobOperation, NoSuchJobError
 from rq.timeouts import JobTimeoutException
 
 import frappe
@@ -82,33 +82,6 @@ class DataImport(Document):
 		use_csv_sniffer: DF.Check
 		value_mappings: DF.Table[DataImportValueMapping]
 	# end: auto-generated types
-
-	def onload(self):
-		self.reconcile_orphaned_import()
-
-	def reconcile_orphaned_import(self):
-		"""Recover a doc stuck at "In Progress" whose background job is gone.
-
-		A worker crash or restart can leave the status at "In Progress" with no live RQ
-		job — the wizard would then show a frozen progress screen forever. On load, if the
-		job is no longer queued/running, move the doc to "Error" so it becomes retryable.
-		"""
-		if self.status != "In Progress":
-			return
-		if is_job_enqueued(f"data_import||{self.name}"):
-			return
-		# Mark terminal only if still In Progress, so we don't clobber the worker's final status.
-		# Leave `modified` untouched: this is a system fix during load, not a user edit.
-		frappe.db.set_value(
-			"Data Import",
-			{"name": self.name, "status": "In Progress"},
-			{"status": "Error"},
-			update_modified=False,
-		)
-		# Re-read from DB: if the worker already wrote a terminal status (e.g. "Success")
-		# between the initial load and this onload, the set_value WHERE was a no-op and we
-		# must not overwrite self.status with "Error".
-		self.status = frappe.db.get_value("Data Import", self.name, "status") or self.status
 
 	def validate(self):
 		doc_before_save = self.get_doc_before_save()
@@ -290,7 +263,7 @@ def stop_data_import(doc_name: str):
 	job_was_running = True
 	try:
 		send_stop_job_command(connection=get_redis_conn(), job_id=job_id)
-	except InvalidJobOperation:
+	except (InvalidJobOperation, NoSuchJobError):
 		# Job already finished or worker crashed — no active job to stop.
 		job_was_running = False
 
