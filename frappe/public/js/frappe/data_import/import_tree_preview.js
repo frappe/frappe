@@ -51,7 +51,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 				${this.get_status_banner_html(tree_preview)}
 				<div class="import-tree-actions flex items-center justify-between gap-2 mb-2">
 					<label class="diw-tree-filter-input flex items-center gap-2 flex-1 min-w-0 max-w-lg border rounded px-2 bg-surface-base">
-						<span class="diw-tree-filter-icon inline-flex text-muted">${this.icon_set.search}</span>
+						<span class="diw-tree-filter-icon inline-flex text-ink-gray-6">${this.icon_set.search}</span>
 						<input type="search" class="form-control input-sm" placeholder="${__(
 							"Filter nodes"
 						)}" autocomplete="off" />
@@ -81,7 +81,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 				</div>
 				<div class="import-tree-box flex flex-col border rounded overflow-hidden bg-surface-base">
 					<div class="import-tree-body flex-1 overflow-auto border-0 bg-transparent"></div>
-					<div class="diw-tree-preview-footer flex items-center shrink-0 border-t text-sm text-muted px-3 py-2 bg-surface-gray-1">
+					<div class="diw-tree-preview-footer flex items-center shrink-0 border-t text-sm text-ink-gray-6 px-3 py-2 bg-surface-gray-1">
 						<span class="whitespace-nowrap">${footer}</span>
 					</div>
 				</div>
@@ -221,7 +221,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		// Leaves get a spacer so their labels line up with siblings.
 		if (expandable) {
 			$(
-				'<span class="diw-tree-chevron inline-flex size-4 items-center justify-center text-muted">'
+				'<span class="diw-tree-chevron inline-flex size-4 items-center justify-center text-ink-gray-6">'
 			)
 				.html(is_open ? this.icon_set.chevron_open : this.icon_set.chevron_closed)
 				.appendTo($main);
@@ -302,7 +302,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 				node.warnings.map((warning) => strip_html(warning)).join(" ")
 			);
 			parts.push(
-				`<span class="text-warning diw-tree-warning-icon" title="${title}">${frappe.utils.icon(
+				`<span class="text-ink-amber-6 diw-tree-warning-icon" title="${title}">${frappe.utils.icon(
 					"triangle-alert",
 					"sm",
 					"",
@@ -313,7 +313,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 			);
 		}
 		if (node.orphan) {
-			parts.push(`<span class="text-muted text-xs">(${__("unlinked")})</span>`);
+			parts.push(`<span class="text-ink-gray-6 text-xs">(${__("unlinked")})</span>`);
 		}
 		return parts.join("");
 	}

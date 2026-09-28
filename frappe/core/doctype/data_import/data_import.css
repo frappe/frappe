@@ -24,11 +24,11 @@
 .diw-step-panel[data-step="3"]
 	.frappe-control[data-fieldname="import_log_heading"]
 	.section-head.import-log-title {
-	font-size: var(--text-md);
+	font-size: var(--text-base);
 	font-weight: 600;
 	line-height: 1.5;
-	color: var(--text-color);
-	padding-bottom: var(--padding-lg);
+	color: var(--ink-gray-8);
+	padding-bottom: calc(var(--spacing) * 5);
 }
 
 /* Hide duplicate field labels; section break is the collapsible header. */

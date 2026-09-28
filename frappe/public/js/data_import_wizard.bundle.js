@@ -148,7 +148,7 @@ function render_import_file_card(control, frm, $mount) {
 				)}</div>
 				<div class="min-w-0">
 					<a class="diw-import-file-card-name block truncate text-base-semibold text-ink-gray-9" href="${safe_href}" target="_blank" rel="noopener noreferrer" title="${safe_name}">${safe_name}</a>
-					<div class="text-sm text-muted">${frappe.utils.escape_html(meta_text)}</div>
+					<div class="text-sm text-ink-gray-6">${frappe.utils.escape_html(meta_text)}</div>
 				</div>
 			</div>
 			${
@@ -175,7 +175,7 @@ function render_google_sheet_card(control, frm, $mount) {
 	$mount.html(`
 		<div class="diw-google-sheet-card flex items-center justify-between gap-2 w-full rounded p-2 text-sm bg-surface-gray-2">
 			<div class="flex items-center gap-2 min-w-0 flex-1">
-				<span class="inline-flex shrink-0 text-muted">${frappe.utils.icon(
+				<span class="inline-flex shrink-0 text-ink-gray-6">${frappe.utils.icon(
 					"link",
 					"sm",
 					"",
@@ -483,7 +483,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 
 		if (!this.has_import_settings()) {
 			$upload.append(
-				`<div class="text-sm text-muted py-6">${__(
+				`<div class="text-sm text-ink-gray-6 py-6">${__(
 					"Select a Document Type to upload a file or Google Sheet."
 				)}</div>`
 			);
@@ -709,7 +709,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 
 		const $ui = $(`
 			<div class="diw-file-dropzone-ui flex flex-col items-center text-center gap-1 pointer-events-none" aria-hidden="true">
-				<div class="diw-file-dropzone-icon text-muted">${frappe.utils.icon(
+				<div class="diw-file-dropzone-icon text-ink-gray-6">${frappe.utils.icon(
 					"cloud-upload",
 					"md",
 					"",
@@ -717,7 +717,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 					"",
 					true
 				)}</div>
-				<div class="diw-file-dropzone-text text-sm text-muted max-w-sm">${__(
+				<div class="diw-file-dropzone-text text-sm text-ink-gray-6 max-w-sm">${__(
 					"Drag a CSV or Excel file here, or click to browse"
 				)}</div>
 				${get_dropzone_hint_html()}

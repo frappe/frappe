@@ -11,13 +11,13 @@
 
 	&.layout-main-section {
 		min-height: calc(100vh - var(--navbar-height));
-		padding: var(--padding-lg);
+		padding: calc(var(--spacing) * 5);
 		background: var(--surface-gray-1);
 	}
 
 	.layout-main-section-wrapper,
 	.data-import-custom-wrapper {
-		background: var(--bg-light-gray);
+		background: var(--surface-gray-2);
 	}
 }
 
@@ -63,7 +63,7 @@
 .diw-config-main,
 .diw-config-options {
 	.form-group {
-		margin-bottom: var(--padding-md);
+		margin-bottom: calc(var(--spacing) * 4);
 
 		&:last-child {
 			margin-bottom: 0;
@@ -103,10 +103,10 @@
 			align-items: center;
 			justify-content: center;
 			min-height: 12rem;
-			padding: var(--padding-lg);
-			border: 1px dashed var(--dark-border-color, var(--border-color));
+			padding: calc(var(--spacing) * 5);
+			border: 1px dashed var(--outline-gray-2);
 			border-radius: var(--radius);
-			background-color: var(--bg-color);
+			background-color: var(--surface-base);
 			cursor: pointer;
 		}
 
@@ -115,7 +115,7 @@
 			.control-input,
 			.diw-file-dropzone-target {
 				border-color: var(--gray-500);
-				background-color: var(--control-bg);
+				background-color: var(--surface-gray-2);
 			}
 		}
 	}
@@ -221,11 +221,11 @@
 	input {
 		width: 100%;
 		height: 28px;
-		padding: 0 var(--padding-sm);
+		padding: 0 calc(var(--spacing) * 2);
 		background-color: var(--surface-base);
-		border: 1px solid var(--border-color);
+		border: 1px solid var(--outline-gray-1);
 		border-radius: var(--radius);
-		color: var(--text-color);
+		color: var(--ink-gray-8);
 		box-shadow: none;
 
 		&:focus {
@@ -240,9 +240,9 @@
 ul.diw-map-dropdown-portaled {
 	list-style: none;
 	margin: 0;
-	padding: var(--padding-xs);
-	background-color: var(--bg-color);
-	border: 1px solid var(--border-color);
+	padding: calc(var(--spacing) * 1);
+	background-color: var(--surface-base);
+	border: 1px solid var(--outline-gray-1);
 	border-radius: var(--radius);
 	box-shadow: var(--shadow-md);
 	max-height: unquote("min(60vh, 300px)");
@@ -256,14 +256,14 @@ ul.diw-map-dropdown-portaled {
 	> li,
 	> [role="option"] {
 		cursor: pointer;
-		padding: var(--padding-sm);
+		padding: calc(var(--spacing) * 2);
 		font-size: var(--text-sm);
-		color: var(--text-color);
+		color: var(--ink-gray-8);
 		border-radius: var(--radius);
 		white-space: unset;
 
 		&:not(:last-child) {
-			margin-bottom: var(--margin-xs);
+			margin-bottom: calc(var(--spacing) * 1);
 		}
 
 		p {
@@ -272,13 +272,13 @@ ul.diw-map-dropdown-portaled {
 		}
 
 		strong {
-			font-weight: var(--weight-semibold);
+			font-weight: var(--font-weight-semibold);
 		}
 
 		&:hover,
 		&[aria-selected="true"] {
-			background-color: var(--awesomplete-hover-bg);
-			color: var(--text-color);
+			background-color: var(--surface-gray-2);
+			color: var(--ink-gray-8);
 		}
 	}
 }
@@ -294,14 +294,14 @@ ul.diw-map-dropdown-portaled {
 
 		.section-head:not(.form-in-grid *) {
 			border-bottom: none;
-			color: var(--heading-color);
+			color: var(--ink-gray-9);
 		}
 	}
 
 	.warnings {
 		.warning {
 			.body {
-				color: var(--text-color);
+				color: var(--ink-gray-8);
 				line-height: 1.5;
 			}
 
@@ -310,7 +310,7 @@ ul.diw-map-dropdown-portaled {
 			.warning-col-header {
 				border-left: none !important;
 				text-transform: none;
-				color: var(--heading-color);
+				color: var(--ink-gray-9);
 			}
 		}
 	}
@@ -324,7 +324,26 @@ ul.diw-map-dropdown-portaled {
 .diw-row-preview-hover-card {
 	width: auto;
 	max-width: min(90vw, 56rem);
-	padding: var(--padding-sm);
+	padding: calc(var(--spacing) * 2);
+}
+
+.diw-row-preview-table {
+	border-collapse: collapse;
+	font-size: var(--text-sm);
+
+	th,
+	td {
+		padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2.5);
+		border: 1px solid var(--outline-gray-1);
+		text-align: left;
+		white-space: nowrap;
+	}
+
+	th {
+		background: var(--surface-gray-2);
+		color: var(--ink-gray-9);
+		font-weight: var(--font-weight-semibold);
+	}
 }
 
 .diw-fix-issues-step {
@@ -338,7 +357,7 @@ ul.diw-map-dropdown-portaled {
 		}
 
 		.form-grid-container {
-			border: 1px solid var(--table-border-color) !important;
+			border: 1px solid var(--outline-gray-1) !important;
 			border-radius: var(--radius-md) !important;
 			overflow-x: auto !important;
 			overflow-y: hidden !important;
@@ -353,16 +372,24 @@ ul.diw-map-dropdown-portaled {
 }
 
 // ---- import log + progress ----
+.diw-import-log-table {
+	table-layout: fixed;
+}
+
+.diw-import-log-line {
+	min-height: calc(var(--spacing) * 7);
+}
+
 .diw-import-progress-standard {
 	.es-progress__label {
-		font-size: var(--text-md);
+		font-size: var(--text-base);
 		font-weight: 400;
-		color: var(--heading-color);
+		color: var(--ink-gray-9);
 	}
 
 	.es-progress__hint {
-		font-size: var(--text-md);
-		color: var(--text-muted);
+		font-size: var(--text-base);
+		color: var(--ink-gray-6);
 	}
 }
 
@@ -386,12 +413,12 @@ ul.diw-map-dropdown-portaled {
 		max-height: min(360px, 48vh);
 
 		.tree {
-			padding: var(--padding-sm) var(--padding-md);
+			padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
 		}
 	}
 
 	.tree-node.hover-active > .diw-tree-row {
-		background: var(--fg-hover-color, var(--highlight-color));
+		background: var(--surface-gray-2);
 	}
 
 	// Guide lines connecting nested tree rows to their parent.
@@ -413,7 +440,7 @@ ul.diw-map-dropdown-portaled {
 		top: 0;
 		bottom: 0;
 		width: 1px;
-		background: var(--border-color);
+		background: var(--outline-gray-1);
 	}
 
 	.tree-node > .tree-children > .tree-node:last-child::before {
@@ -428,7 +455,7 @@ ul.diw-map-dropdown-portaled {
 		top: 14px;
 		width: 12px;
 		height: 1px;
-		background: var(--border-color);
+		background: var(--outline-gray-1);
 	}
 
 	.diw-tree-row-main {
@@ -447,7 +474,7 @@ ul.diw-map-dropdown-portaled {
 		line-height: 1.4;
 		font-size: inherit;
 		font-weight: inherit;
-		color: var(--text-color);
+		color: var(--ink-gray-8);
 	}
 }
 
@@ -497,11 +524,11 @@ ul.diw-map-dropdown-portaled {
 	}
 
 	.diw-log-kv-row .diw-log-kv-key {
-		padding-inline-end: var(--padding-sm);
+		padding-inline-end: calc(var(--spacing) * 2);
 	}
 
 	.diw-log-kv-row .diw-log-kv-val {
-		padding-inline-start: var(--padding-md);
+		padding-inline-start: calc(var(--spacing) * 4);
 	}
 
 	.diw-log-kv-key-inner,
@@ -521,12 +548,12 @@ ul.diw-map-dropdown-portaled {
 // Parent+child selectors so these beat the utilities, which load later.
 @media (max-width: 768px) {
 	.data-import-custom-page.layout-main-section {
-		padding: var(--padding-sm);
+		padding: calc(var(--spacing) * 2);
 	}
 
 	.data-import-custom-ui .diw-shell {
 		max-width: 100%;
-		gap: var(--padding-md);
+		gap: calc(var(--spacing) * 4);
 	}
 
 	.diw-stepper-wrap {
@@ -539,14 +566,14 @@ ul.diw-map-dropdown-portaled {
 
 	.diw-config-step .diw-config-grid {
 		grid-template-columns: 1fr;
-		gap: var(--padding-md);
+		gap: calc(var(--spacing) * 4);
 	}
 
 	.diw-card .diw-step-content,
 	.diw-card .diw-status-area,
 	.diw-card .diw-footer {
-		padding-left: var(--padding-md);
-		padding-right: var(--padding-md);
+		padding-left: calc(var(--spacing) * 4);
+		padding-right: calc(var(--spacing) * 4);
 	}
 
 	.diw-table-preview .diw-preview-toolbar {
@@ -572,7 +599,7 @@ ul.diw-map-dropdown-portaled {
 	// Stack the Result / Details tables on narrow screens.
 	.diw-import-log-summary-grid {
 		flex-direction: column;
-		gap: var(--padding-md);
+		gap: calc(var(--spacing) * 4);
 	}
 
 	.diw-import-progress-hero .diw-import-progress-stats {

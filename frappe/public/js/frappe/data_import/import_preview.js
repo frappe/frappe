@@ -104,7 +104,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				<div class="diw-table-preview min-w-0 w-full">
 					<div class="diw-preview-toolbar flex items-center justify-between gap-2 mb-2">
 						<div class="table-actions inline-flex items-center shrink-0"></div>
-						<div class="diw-preview-toolbar-meta table-message text-base text-muted ms-auto text-right whitespace-nowrap"></div>
+						<div class="diw-preview-toolbar-meta table-message text-base text-ink-gray-6 ms-auto text-right whitespace-nowrap"></div>
 					</div>
 					<div class="table-preview mt-3 min-w-0 w-full border rounded-md bg-surface-base"></div>
 				</div>
@@ -143,7 +143,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					frappe.utils.escape_html(col.header_title) ||
 					`<i>${__("Untitled Column")}</i>`;
 				let column_title = `<span class="diw-preview-col-header diw-preview-col-header--skipped inline-flex items-center gap-2 min-w-0">
-					<span class="diw-preview-col-title truncate text-muted">${title}</span>
+					<span class="diw-preview-col-title truncate text-ink-gray-6">${title}</span>
 				</span>`;
 				return {
 					id: `skipped-${i}`,
@@ -160,7 +160,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 						if (value === DIW_MAP_CELL) {
 							return column_title;
 						}
-						return `<div class="text-muted">${value}</div>`;
+						return `<div class="text-ink-gray-6">${value}</div>`;
 					},
 				};
 			}
@@ -777,7 +777,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.wrapper
 			.find(".table-actions")
 			.html(
-				`<div class="text-base text-muted">${__(
+				`<div class="text-base text-ink-gray-6">${__(
 					"Map each file column to a field. Save to apply changes."
 				)}</div>`
 			);
