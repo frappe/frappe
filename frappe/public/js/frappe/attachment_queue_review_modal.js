@@ -300,7 +300,7 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 		const file_url = frappe.attachment_queue_review.get_preview_url(row.source_file);
 		const file_name =
 			frappe.attachment_queue_review.get_file_name(row.source_file || "") || file_url;
-		const preview_type = this._get_preview_type(row.source_file);
+		const preview_type = frappe.attachment_queue_review.get_preview_type(row.source_file);
 
 		this.$start_review_btn.prop("disabled", false);
 
@@ -370,16 +370,6 @@ frappe.ui.AttachmentQueueModal = class AttachmentQueueModal {
 
 		// Fallback to Attachment Queue form
 		frappe.set_route("Form", "Attachment Queue", queue_name);
-	}
-
-	_get_preview_type(source_url) {
-		if (!source_url) return "unsupported";
-		const url = String(source_url).split("?")[0].toLowerCase();
-		const ext = url.includes(".") ? url.split(".").pop() : "";
-		const image_exts = ["jpg", "jpeg", "png", "gif", "webp", "svg", "avif", "bmp", "ico"];
-		if (ext === "pdf") return "pdf";
-		if (image_exts.includes(ext)) return "image";
-		return "unsupported";
 	}
 
 	async _setup_native_toolbar() {

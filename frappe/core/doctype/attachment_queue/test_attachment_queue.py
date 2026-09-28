@@ -153,9 +153,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 		) as enqueue_document_extraction:
 			queue_doc = self.make_queue(auto_extract=True)
 
-		enqueue_document_extraction.assert_called_once_with(
-			queue_doc.name, queue="default", enqueue_after_commit=True
-		)
+		enqueue_document_extraction.assert_called_once_with(queue_doc.name)
 
 	def test_does_not_requeue_extraction_when_unrelated_field_changes(self):
 		queue_doc = self.make_queue()
@@ -428,14 +426,16 @@ class TestAttachmentQueue(IntegrationTestCase):
 		with self.set_user(user.name):
 			self.assertTrue(frappe.has_permission("Attachment Queue", "read", doc=queue_doc))
 
-			with patch.object(queue_doc, "enqueue_extraction") as enqueue_extraction:
+			with patch(
+				"frappe.core.doctype.attachment_queue.attachment_queue.enqueue_document_extraction"
+			) as enqueue_document_extraction:
 				with self.assertRaises(frappe.PermissionError):
 					queue_doc.extract_in_background()
 
 			with self.assertRaises(frappe.PermissionError):
 				queue_doc.set_document_type(target_doctype)
 
-		enqueue_extraction.assert_not_called()
+		enqueue_document_extraction.assert_not_called()
 
 	def test_owner_can_drive_queue_with_create_on_target_doctype(self):
 		# Counterpart to the test above, so the denial is attributable to the missing create
@@ -447,12 +447,14 @@ class TestAttachmentQueue(IntegrationTestCase):
 		queue_doc.reload()
 
 		with self.set_user(user.name):
-			with patch.object(queue_doc, "enqueue_extraction") as enqueue_extraction:
+			with patch(
+				"frappe.core.doctype.attachment_queue.attachment_queue.enqueue_document_extraction"
+			) as enqueue_document_extraction:
 				queue_doc.extract_in_background()
 
 			context = queue_doc.set_document_type(target_doctype)
 
-		enqueue_extraction.assert_called_once()
+		enqueue_document_extraction.assert_called_once_with(queue_doc.name)
 		self.assertEqual(context["document_type"], target_doctype)
 
 	def test_set_document_type_requires_upload_first_enabled_doctype(self):
