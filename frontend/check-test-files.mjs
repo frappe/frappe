@@ -5,22 +5,25 @@ import { tmpdir } from "node:os";
 import { join, relative, resolve } from "node:path";
 
 const FRONTEND = import.meta.dirname;
-const ROOT = resolve(FRONTEND, "..");
 
-main();
+if (import.meta.main) main();
 
 function main() {
-  const run = new Set(testFilesVitestRuns());
-  const onDisk = testFilesOnDisk();
-  const missing = onDisk.filter((file) => !run.has(file));
+  const root = resolve(FRONTEND, "..");
+  const missing = unrunTestFiles(root, testFilesVitestRuns());
   if (missing.length) {
     console.error(
       "These test files match no `include` pattern in frontend/vitest.config.js:"
     );
-    for (const file of missing) console.error(`  ${relative(ROOT, file)}`);
+    for (const file of missing) console.error(`  ${relative(root, file)}`);
     process.exit(1);
   }
-  console.log(`All ${onDisk.length} test files run.`);
+  console.log("Every test file runs.");
+}
+
+export function unrunTestFiles(root, run) {
+  const runs = new Set(run);
+  return testFilesOnDisk(root).filter((file) => !runs.has(file));
 }
 
 // Read from a file: the config logs a line to stdout before vitest prints its JSON.
@@ -42,12 +45,14 @@ function testFilesVitestRuns() {
   return files;
 }
 
-function testFilesOnDisk() {
+function testFilesOnDisk(root) {
   return globSync(
     "{frontend,ui}/**/*.{test,spec}.{js,jsx,ts,tsx,mjs,cjs,mts,cts}",
     {
-      cwd: ROOT,
+      cwd: root,
       exclude: (path) => path.includes("node_modules"),
     }
-  ).map((file) => join(ROOT, file));
+  )
+    .map((file) => join(root, file))
+    .sort();
 }

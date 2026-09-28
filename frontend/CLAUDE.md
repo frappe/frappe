@@ -69,8 +69,8 @@ yarn --cwd frontend test:run
 That is exactly what CI does (`.github/workflows/frontend-tests.yml`). The **base** pair
 is the correct input, not a `bench build`-generated one: `yarn.lock.base` was resolved from
 `package.base.json` alone, and no test needs anything an app declares. Every `*.test.ts`
-under `frontend/src`, `frontend/plugin` and `ui/src` runs. `test:files` fails when a test
-file sits where no `include` pattern reaches it.
+under `frontend/` and `ui/src` runs. `test:files` fails when a test file sits where no
+`include` pattern reaches it.
 
 `vitest.config.js` sets `resolve.dedupe` for tests only: a `ui/` test imports ui by its real
 path, and `ui/` has no `node_modules`. The list is every package `ui/package.json` declares,

@@ -41,7 +41,7 @@ export default defineConfig({
 	test: {
 		globals: true,
 		environment: "happy-dom",
-		include: ["src/**/*.test.ts", "plugin/**/*.test.ts", "../ui/src/**/*.test.ts"],
+		include: ["**/*.test.ts", "../ui/src/**/*.test.ts"],
 		server: {
 			deps: {
 				// frappe-ui imports extensionless; externalised as native Node ESM that fails, and
