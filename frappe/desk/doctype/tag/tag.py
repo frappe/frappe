@@ -39,7 +39,8 @@ class Tag(Document):
 	# end: auto-generated types
 
 	def validate(self):
-		if self.color and self.color not in TAG_COLOR_NAMES:
+		color = self.get("color")
+		if color and color not in TAG_COLOR_NAMES:
 			frappe.throw(_("Invalid tag color"))
 		self.validate_apps()
 
@@ -112,10 +113,13 @@ def get_tags(doctype: str, txt: str, app: str = "frappe"):
 def get_tags_for_app(app: str, txt: str = ""):
 	"""Return visible tags and colors for one installed app."""
 	validate_tag_app(app)
-	tags = frappe.get_list(
-		"Tag", filters=[["name", "like", f"%{txt}%"]], fields=["name", "color"], order_by="name asc"
-	)
-	return [{"name": tag.name, "color": tag.color} for tag in tags if tag_belongs_to_app(tag.name, app)]
+	fields = ["name"]
+	if frappe.get_meta("Tag").has_field("color"):
+		fields.append("color")
+	tags = frappe.get_list("Tag", filters=[["name", "like", f"%{txt}%"]], fields=fields, order_by="name asc")
+	return [
+		{"name": tag.name, "color": tag.get("color")} for tag in tags if tag_belongs_to_app(tag.name, app)
+	]
 
 
 @frappe.whitelist(methods=["POST"])
@@ -150,6 +154,8 @@ def validate_tag_app(app: str) -> None:
 
 def tag_belongs_to_app(tag_name: str, app: str) -> bool:
 	"""Whether a tag is shared with the given app; legacy unscoped tags belong to Desk."""
+	if not frappe.get_meta("Tag").has_field("apps"):
+		return app == "frappe"
 	apps = frappe.get_all(
 		"Tag App",
 		filters={"parent": tag_name, "parenttype": "Tag", "parentfield": "apps"},
@@ -177,15 +183,19 @@ class DocTags:
 		tag_doc = frappe.get_doc("Tag", tag) if frappe.db.exists("Tag", tag) else None
 		if not tag_doc:
 			frappe.has_permission("Tag", "create", throw=True)
-			tag_doc = frappe.get_doc({"doctype": "Tag", "name": tag, "color": color})
-			tag_doc.append("apps", {"app_name": app or "frappe"})
+			values = {"doctype": "Tag", "name": tag}
+			if frappe.get_meta("Tag").has_field("color"):
+				values["color"] = color
+			tag_doc = frappe.get_doc(values)
+			if frappe.get_meta("Tag").has_field("apps"):
+				tag_doc.append("apps", {"app_name": app or "frappe"})
 			tag_doc.insert()
 		else:
 			apps = {row.app_name for row in tag_doc.get("apps", []) if row.app_name}
-			if not apps:
+			if frappe.get_meta("Tag").has_field("apps") and not apps:
 				tag_doc.append("apps", {"app_name": "frappe"})
 				apps.add("frappe")
-			if app and app not in apps:
+			if frappe.get_meta("Tag").has_field("apps") and app and app not in apps:
 				tag_doc.check_permission("write")
 				tag_doc.append("apps", {"app_name": app})
 				tag_doc.save()
