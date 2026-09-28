@@ -14,6 +14,13 @@ from studio.utils import has_page_write_perm
 
 
 @frappe.whitelist()
+def get_app_boot(app_name: str) -> dict:
+	app = frappe.get_doc("Studio App", app_name)
+	app.check_permission("read")
+	return app.get_boot()
+
+
+@frappe.whitelist()
 def get_doctype_fields(doctype: str, with_standard_fields: bool = False) -> list[dict]:
 	frappe.has_permission(doctype, ptype="read", throw=True)
 	excluded_fieldtypes = (set(no_value_fields) | set(display_fieldtypes)) - set(table_fields)

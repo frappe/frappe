@@ -21,6 +21,30 @@ class TestStudioApp(FrappeTestCase):
 		self.assertEqual(app.app_title, "My Build App")
 		self.assertEqual(app.route, "my-build-app")
 
+	def test_context_carries_app_home_and_boot(self):
+		app = make_studio_app(app_title="Home App", app_name="home-app")
+		page = make_studio_page(app.name, page_title="Landing", published=1)
+		context = frappe._dict()
+		# get_context commits for the csrf token, which would leak the app past the test rollback
+		with patch.object(frappe.db, "commit"):
+			app.reload().get_context(context)
+		self.assertEqual(context.app_home, page.name)
+		self.assertEqual([p.name for p in context.app_pages], [page.name])
+		self.assertEqual(context.boot, {})
+
+	def test_boot_comes_from_studio_app_boot_hook(self):
+		app = unsaved_studio_app("boot-app")
+		with patch_boot_hook(app.name, f"{__name__}.boot_contribution"):
+			self.assertEqual(app.get_boot(), {"roles": ["Customer"]})
+
+	def test_boot_drops_a_failing_contributor(self):
+		app = unsaved_studio_app("broken-boot-app")
+		with patch_boot_hook(app.name, f"{__name__}.failing_contribution"), patch(
+			"frappe.log_error"
+		) as log_error:
+			self.assertEqual(app.get_boot(), {})
+		log_error.assert_called_once_with(title=f"studio_app_boot failed for {app.name}")
+
 
 class TestStudioAppBuilder(FrappeTestCase):
 	"""Tests build orchestration."""
@@ -275,6 +299,33 @@ class TestStudioAppBuilder(FrappeTestCase):
 		expected_files_path = os.path.abspath(get_files_path("app_builds", app_name))
 		self.assertEqual(builder.out_dir, expected_files_path)
 		self.assertEqual(builder.base, f"/files/app_builds/{app_name}/")
+
+
+def unsaved_studio_app(name):
+	app = frappe.new_doc("Studio App")
+	app.name = name
+	return app
+
+
+def boot_contribution():
+	return {"roles": ["Customer"]}
+
+
+def failing_contribution():
+	raise ValueError("no boot for you")
+
+
+@contextmanager
+def patch_boot_hook(app_name, handler):
+	get_hooks = frappe.get_hooks
+
+	def with_boot_hook(hook=None, *args, **kwargs):
+		if hook == "studio_app_boot":
+			return {app_name: [handler]}
+		return get_hooks(hook, *args, **kwargs)
+
+	with patch("frappe.get_hooks", side_effect=with_boot_hook):
+		yield
 
 
 def make_studio_app(**kwargs):

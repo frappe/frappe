@@ -13,6 +13,7 @@ declare global {
 		app_route: string
 		app_pages: Page[]
 		app_home?: string
+		boot?: Record<string, unknown>
 		is_guest?: boolean
 	}
 }

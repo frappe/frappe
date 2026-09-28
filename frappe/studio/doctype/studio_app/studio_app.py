@@ -121,8 +121,20 @@ class StudioApp(WebsiteGenerator):
 			page_filters["allow_guest"] = 1
 		context.app_pages = frappe.get_all("Studio Page", page_filters, ["name", "page_title", "route"])
 		context.app_home = self.app_home
+		context.boot = self.get_boot()
 		context.is_developer_mode = frappe.utils.cint(frappe.conf.developer_mode)
 		context.vite_dev_server_host = get_vite_dev_server_host()
+
+	def get_boot(self) -> dict:
+		"""Get the boot data for this Studio app"""
+		handlers = frappe.get_hooks("studio_app_boot", {}).get(self.name) or []
+		if not handlers:
+			return {}
+		try:
+			return frappe.get_attr(handlers[-1])() or {}
+		except Exception:
+			frappe.log_error(title=f"studio_app_boot failed for {self.name}")
+			return {}
 
 	def autoname(self):
 		if not self.name:

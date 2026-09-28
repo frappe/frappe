@@ -12,6 +12,7 @@
 		<div id="modals"></div>
 		<div id="popovers"></div>
 		<script>
+			window.boot = {{ boot|tojson }};
 			window.csrf_token = "{{ csrf_token }}";
 			window.is_preview = "{{ is_preview }}";
 			window.app_name = "{{ app_name }}";

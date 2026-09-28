@@ -87,9 +87,20 @@ const useStudioStore = defineStore("store", () => {
 		const appDoc = await fetchApp(appName)
 		if (!appDoc) return
 		activeApp.value = appDoc
+		await setAppBoot(appName)
 		await setAppPages(appName)
 		await setCustomComponents()
 		await setupPageScripts()
+	}
+
+	// the canvas is not a rendered app page, so it asks for the app's studio_app_boot dict
+	async function setAppBoot(appName: string) {
+		try {
+			window.boot = await call("studio.api.get_app_boot", { app_name: appName })
+		} catch (error) {
+			console.error("Failed to load app boot", error)
+			window.boot = {}
+		}
 	}
 
 	async function deleteApp(appName: string, appTitle: string) {
