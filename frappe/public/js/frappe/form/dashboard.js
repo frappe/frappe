@@ -382,6 +382,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			frappe.route_options = this.get_document_filter(doctype);
 			if (show_open && frappe.ui.notifications) {
 				frappe.ui.notifications.show_open_count_list(doctype);
+				return;
 			}
 		}
 
