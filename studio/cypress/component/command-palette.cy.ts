@@ -55,6 +55,23 @@ describe("command palette and shortcuts", () => {
 		cy.get("input[placeholder='Search commands...']").should("exist")
 	})
 
+	it("lists the Navigate commands in order", () => {
+		store.activeApp = { name: "test-app" } as any
+		store.activePage = { name: "test-page" } as any
+		press("k", "KeyK", mod)
+		cy.contains("Navigate")
+			.parent()
+			.find("span.truncate, span.text-ellipsis")
+			.then((titles) => {
+				expect([...titles].map((title) => title.textContent?.trim())).to.deep.equal([
+					"Go to Dashboard",
+					"View App in Desk",
+					"View Page in Desk",
+					"Go to Page",
+				])
+			})
+	})
+
 	it("runs a command's key binding", () => {
 		press("\\", "Backslash", mod)
 		cy.wrap(null).should(() => {

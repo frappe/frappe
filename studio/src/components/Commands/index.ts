@@ -2,7 +2,7 @@ import router from "@/router/studio_router"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import blockController from "@/utils/blockController"
-import { openInDesk } from "@/utils/helpers"
+import { openInDesk, openPageInDesk } from "@/utils/helpers"
 import { nextTick } from "vue"
 
 /** A key binding for a command. The description labels it in the shortcuts dialog. */
@@ -76,12 +76,21 @@ registerCommand({
 })
 
 registerCommand({
-	name: "view-in-desk",
+	name: "view-app-in-desk",
 	title: "View App in Desk",
 	icon: "lucide-arrow-up-right",
 	group: "Navigate",
 	condition: () => Boolean(store.activeApp),
 	action: () => openInDesk(store.activeApp!),
+})
+
+registerCommand({
+	name: "view-page-in-desk",
+	title: "View Page in Desk",
+	icon: "lucide-arrow-up-right",
+	group: "Navigate",
+	condition: () => Boolean(store.activePage),
+	action: () => openPageInDesk(store.activePage!),
 })
 
 // Page

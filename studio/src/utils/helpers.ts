@@ -5,6 +5,7 @@ import { toast } from "frappe-ui"
 import type { ObjectLiteral, StyleValue, SelectOption, HashString, RGBString } from "@/types"
 import type { Variable } from "@/types/Studio/StudioPageVariable"
 import type { StudioApp } from "@/types/Studio/StudioApp"
+import type { StudioPage } from "@/types/Studio/StudioPage"
 import DOMPurify from "dompurify"
 
 function isEditor() {
@@ -274,6 +275,10 @@ async function fetchApp(appName: string) {
 
 function openInDesk(app: StudioApp) {
 	window.open(`/app/studio-app/${app.name}`, "_blank")
+}
+
+function openPageInDesk(page: StudioPage) {
+	window.open(`/app/studio-page/${page.name}`, "_blank")
 }
 
 // page
@@ -593,6 +598,7 @@ export {
 	// app
 	fetchApp,
 	openInDesk,
+	openPageInDesk,
 	// page
 	fetchPage,
 	findPageWithRoute,
