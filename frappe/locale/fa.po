@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-09-20 09:34+0000\n"
-"PO-Revision-Date: 2026-09-21 04:20\n"
+"PO-Revision-Date: 2026-09-28 04:21\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2048,7 +2048,7 @@ msgstr "نقش‌های مجاز"
 #. Transition'
 #: frappe/workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Allow Self Approval"
-msgstr "اجازه تصویب شخصی"
+msgstr "اجازه تأیید توسط خود شخص"
 
 #. Label of the enable_telemetry (Check) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -25216,7 +25216,7 @@ msgstr "انتخاب {0}"
 
 #: frappe/model/workflow.py:138
 msgid "Self approval is not allowed"
-msgstr "تأیید خود مجاز نیست"
+msgstr "تأیید توسط خود شخص مجاز نیست"
 
 #: frappe/www/contact.html:41
 msgid "Send"
