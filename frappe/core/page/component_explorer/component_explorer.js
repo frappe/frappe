@@ -16,6 +16,9 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		onclick: ({ query }) => frappe.ui.toast({ message: `Create "${query || "new"}"` }),
 	};
 
+	// the quick entry example's fields, read back by its Save action
+	let explorer_todo_fields;
+
 	const COMPONENTS = {
 		Combobox: {
 			helper: "frappe.ui.combobox",
@@ -866,6 +869,338 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 							side: "top",
 							align: "end",
 							content: "Hangs off the top edge, right ends lined up.",
+						},
+					],
+				},
+			],
+		},
+		BottomSheet: {
+			helper: "frappe.ui.bottom_sheet",
+			groups: [
+				{
+					title: __("Action menu (a divider between groups, red for destructive)"),
+					items: [
+						{
+							button: { label: "Record menu", icon: "ellipsis" },
+							title: "SAL-ORD-2026-00142",
+							subtitle: "Sales Order",
+							options: [
+								{
+									group: "",
+									hide_label: true,
+									options: [
+										{
+											label: "Duplicate",
+											icon: "copy",
+											onclick: () =>
+												frappe.ui.toast({ message: "Duplicated" }),
+										},
+										{
+											label: "Print",
+											icon: "printer",
+											onclick: () => frappe.ui.toast({ message: "Print" }),
+										},
+										{
+											label: "Email",
+											icon: "mail",
+											onclick: () => frappe.ui.toast({ message: "Email" }),
+										},
+										{
+											label: "Copy link",
+											icon: "link",
+											onclick: () =>
+												frappe.ui.toast({ message: "Link copied" }),
+										},
+									],
+								},
+								{
+									group: "",
+									hide_label: true,
+									options: [
+										{
+											label: "Delete",
+											icon: "trash-2",
+											theme: "red",
+											onclick: () => frappe.ui.toast({ message: "Deleted" }),
+										},
+									],
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Picker (the current choice is checked; a tap applies and closes)"),
+					items: [
+						{
+							button: { label: "Sort by", icon: "arrow-down-wide-narrow" },
+							title: "Sort by",
+							options: [
+								{
+									label: "Created On",
+									selected: true,
+									onclick: () =>
+										frappe.ui.toast({ message: "Sorted by Created On" }),
+								},
+								{
+									label: "Last Updated On",
+									onclick: () =>
+										frappe.ui.toast({ message: "Sorted by Last Updated On" }),
+								},
+								{
+									label: "Grand Total",
+									onclick: () =>
+										frappe.ui.toast({ message: "Sorted by Grand Total" }),
+								},
+								{
+									label: "Customer",
+									onclick: () =>
+										frappe.ui.toast({ message: "Sorted by Customer" }),
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Confirmation (two actions side by side)"),
+					items: [
+						{
+							button: { label: "Delete 3 orders", icon: "trash-2", theme: "red" },
+							title: "Delete 3 Sales Orders?",
+							content:
+								"Draft orders are deleted permanently. Submitted ones have to be cancelled first.",
+							actions: [
+								{ label: "Cancel" },
+								{
+									label: "Delete",
+									variant: "solid",
+									theme: "red",
+									onclick: () =>
+										frappe.ui.toast({ message: "3 Sales Orders deleted" }),
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Quick entry form (close button, full height, sticky Save)"),
+					items: [
+						{
+							__code: 'let fields;\nfrappe.ui.bottom_sheet({\n  button: { label: "New ToDo", icon: "plus" },\n  title: "New ToDo",\n  show_close: true,\n  height: "full",\n  content: () => {\n    const body = document.createElement("div");\n    fields = new frappe.ui.FieldGroup({ body, fields: todo_fields });\n    fields.make();\n    return body;\n  },\n  actions: [{\n    label: "Save",\n    variant: "solid",\n    // returning false keeps the sheet open\n    onclick: () => save(fields.get_values(true)) || false,\n  }],\n})',
+							button: { label: "New ToDo", icon: "plus" },
+							title: "New ToDo",
+							show_close: true,
+							height: "full",
+							content: () => {
+								const body = document.createElement("div");
+								explorer_todo_fields = new frappe.ui.FieldGroup({
+									body,
+									fields: [
+										{
+											fieldtype: "Small Text",
+											fieldname: "description",
+											label: "Description",
+											reqd: 1,
+										},
+										{
+											fieldtype: "Date",
+											fieldname: "date",
+											label: "Due Date",
+										},
+										{
+											fieldtype: "Select",
+											fieldname: "priority",
+											label: "Priority",
+											options: "Low\nMedium\nHigh",
+											default: "Medium",
+										},
+										{
+											fieldtype: "Link",
+											fieldname: "allocated_to",
+											label: "Allocated To",
+											options: "User",
+										},
+									],
+								});
+								explorer_todo_fields.make();
+								return body;
+							},
+							actions: [
+								{
+									label: "Save",
+									variant: "solid",
+									onclick: () => {
+										const values = explorer_todo_fields.get_values(true);
+										if (!values.description) {
+											frappe.ui.toast({
+												message: "Add a description first",
+											});
+											return false;
+										}
+										frappe.ui.toast({
+											message: `ToDo saved: ${values.description}`,
+										});
+									},
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Searchable multi-select (the footer counts the picks)"),
+					items: [
+						{
+							__code: 'frappe.ui.bottom_sheet({\n  button: { label: "Assign to", icon: "user-plus" },\n  title: "Assign to",\n  height: "full",\n  // content gets the sheet: update the footer as picks change\n  content: (sheet) => build_user_list({\n    on_change: (picked) => sheet.set_actions([\n      { label: `Assign · ${picked.size}`, variant: "solid", onclick: () => assign(picked) },\n    ]),\n  }),\n})',
+							button: { label: "Assign to", icon: "user-plus" },
+							title: "Assign to",
+							height: "full",
+							content: (sheet) => {
+								const users = [
+									["Priya Shah", "priya@example.com"],
+									["Ravi Kumar", "ravi@example.com"],
+									["Jane Doe", "jane@example.com"],
+									["John Smith", "john@example.com"],
+									["Aisha Khan", "aisha@example.com"],
+								];
+								const picked = new Set();
+								const $wrap = $(`
+									<div class="flex flex-col gap-2">
+										<input type="search" class="form-control" placeholder="${__("Search users")}">
+										<div class="flex flex-col"></div>
+									</div>`);
+								const $list = $wrap.children().last();
+								const update_footer = () =>
+									sheet.set_actions([
+										{
+											label: picked.size
+												? `Assign · ${picked.size}`
+												: "Assign",
+											variant: "solid",
+											disabled: !picked.size,
+											onclick: () =>
+												frappe.ui.toast({
+													message: `Assigned to ${picked.size}`,
+												}),
+										},
+									]);
+								const render = (query) => {
+									$list.empty();
+									users
+										.filter((user) =>
+											user
+												.join(" ")
+												.toLowerCase()
+												.includes(query.toLowerCase())
+										)
+										.forEach(([name, email]) => {
+											const $row = $(`
+												<label class="flex items-center gap-3 py-2 cursor-pointer">
+													<input type="checkbox">
+													${frappe.ui.avatar.html({ label: name })}
+													<span class="flex flex-col">
+														<span class="name"></span>
+														<span class="email text-ink-gray-5"></span>
+													</span>
+												</label>`);
+											$row.find(".name").text(name);
+											$row.find(".email").text(email);
+											$row.find("input")
+												.prop("checked", picked.has(email))
+												.on("change", (e) => {
+													e.target.checked
+														? picked.add(email)
+														: picked.delete(email);
+													update_footer();
+												});
+											$list.append($row);
+										});
+								};
+								$wrap
+									.find("input[type=search]")
+									.on("input", (e) => render(e.target.value));
+								render("");
+								update_footer();
+								return $wrap[0];
+							},
+						},
+					],
+				},
+				{
+					title: __("Peek with snap points (drag the handle between half and full)"),
+					items: [
+						{
+							button: { label: "Preview order", icon: "panel-bottom" },
+							title: "SAL-ORD-2026-00142",
+							subtitle: "Acme Industries",
+							snap_points: ["half", "full"],
+							content: () =>
+								$(`
+									<div class="flex flex-col">
+										<div class="flex justify-between py-2 border-b"><span class="text-ink-gray-5">Date</span><span>12-09-2026</span></div>
+										<div class="flex justify-between py-2 border-b"><span class="text-ink-gray-5">Delivery Date</span><span>26-09-2026</span></div>
+										<div class="flex justify-between py-2 border-b"><span class="text-ink-gray-5">Grand Total</span><span>₹ 1,24,500.00</span></div>
+										<div class="flex justify-between py-2"><span class="text-ink-gray-5">Items</span><span>3</span></div>
+									</div>`)[0],
+							actions: [
+								{ label: "Open" },
+								{
+									label: "Create Invoice",
+									variant: "solid",
+									onclick: () => frappe.ui.toast({ message: "Invoice created" }),
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Steps inside one sheet (push shows Back; Escape goes back first)"),
+					items: [
+						{
+							__code: 'frappe.ui.bottom_sheet({\n  button: { label: "Filter by date", icon: "calendar-range" },\n  title: "Choose field",\n  options: date_fields.map((label) => ({\n    label,\n    // push a step instead of opening a second sheet; false keeps it open\n    onclick: (e, sheet) => {\n      sheet.push({ title: "Condition", subtitle: label, options: conditions });\n      return false;\n    },\n  })),\n})',
+							button: { label: "Filter by date", icon: "calendar-range" },
+							title: "Choose field",
+							options: ["Date", "Delivery Date", "Created On"].map((label) => ({
+								label,
+								onclick: (e, sheet) => {
+									sheet.push({
+										title: "Condition",
+										subtitle: label,
+										options: [
+											"Equals",
+											"After",
+											"Before",
+											"Between",
+											"Timespan",
+										].map((condition) => ({
+											label: condition,
+											onclick: () =>
+												frappe.ui.toast({
+													message: `${label} · ${condition}`,
+												}),
+										})),
+									});
+									return false;
+								},
+							})),
+						},
+					],
+				},
+				{
+					title: __("Not dismissible (only its action closes it)"),
+					items: [
+						{
+							button: { label: "Required notice" },
+							title: "Session expired",
+							content:
+								"Sign in again to keep working. Unsaved changes stay in this tab.",
+							dismissible: false,
+							actions: [
+								{
+									label: "Sign in",
+									variant: "solid",
+									onclick: () => frappe.ui.toast({ message: "Signing in…" }),
+								},
+							],
 						},
 					],
 				},
