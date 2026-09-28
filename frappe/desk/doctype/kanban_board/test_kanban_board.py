@@ -237,3 +237,8 @@ class TestKanbanBoardNativePayloads(IntegrationTestCase):
 		# update_order with a native dict
 		_board, updated_cards = kb.update_order(self.board.name, {})
 		self.assertEqual(updated_cards, [])
+
+	def test_save_settings_without_fields(self):
+		resp = kb.save_settings(self.board.name, {"show_labels": 1})
+		self.assertEqual(resp["fields"], [])
+		self.assertEqual(resp["show_labels"], 1)
