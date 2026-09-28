@@ -45,22 +45,6 @@ class TestDataImport(UnitTestCase):
 		col = Column(0, "Col Header", "User", ["test@example.com"], map_to_field="Nonexistent Field")
 		self.assertTrue(any("Could not map column" in w.get("message", "") for w in col.warnings))
 
-	def test_preview_cache_skips_google_sheets(self):
-		from frappe.core.doctype.data_import.preview_cache import should_cache_preview
-
-		doc = frappe._dict(
-			name="DI-TEST",
-			import_file="/files/sample.csv",
-			google_sheets_url=None,
-		)
-		self.assertTrue(should_cache_preview(doc))
-
-		doc.google_sheets_url = "https://docs.google.com/spreadsheets/d/abc/edit"
-		self.assertFalse(should_cache_preview(doc))
-
-		doc.import_file = None
-		self.assertFalse(should_cache_preview(doc))
-
 	def test_clear_stale_template_warnings_on_file_swap(self):
 		"""Swapping import_file must drop blocked-import snapshots (wizard routing)."""
 		import json

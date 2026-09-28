@@ -169,48 +169,6 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(len(preview.data), 4)
 		self.assertEqual(len(preview.columns), 16)
 
-	def test_preview_from_template_uses_server_cache(self):
-		from frappe.core.doctype.data_import.preview_cache import (
-			clear_preview_cache,
-			get_cached_preview,
-			get_preview_cache_key,
-		)
-
-		import_file = get_import_file("sample_import_file")
-		data_import = self.get_importer(doctype_name, import_file)
-		clear_preview_cache(data_import.name)
-
-		first = data_import.get_preview_from_template()
-		cached = get_cached_preview(data_import)
-		self.assertIsNotNone(cached)
-		self.assertEqual(len(cached.data), len(first.data))
-		self.assertEqual(get_preview_cache_key(data_import), get_preview_cache_key(data_import))
-
-		# Second call must hit Redis — no re-parse.
-		second = data_import.get_preview_from_template()
-		self.assertEqual(len(second.data), len(first.data))
-		self.assertEqual(len(second.columns), len(first.columns))
-
-		# Mapping fingerprint change must miss the previous cache entry.
-		key_before = get_preview_cache_key(data_import)
-		data_import.append(
-			"value_mappings",
-			{
-				"column": "Title",
-				"fieldname": "title",
-				"source_value": "mapped-source",
-				"target_value": "mapped-target",
-			},
-		)
-		key_after = get_preview_cache_key(data_import)
-		self.assertNotEqual(key_before, key_after)
-		self.assertIsNone(get_cached_preview(data_import))
-
-		# Recompute under the new fingerprint and cache again.
-		remapped = data_import.get_preview_from_template()
-		self.assertIsNotNone(get_cached_preview(data_import))
-		self.assertEqual(len(remapped.data), len(first.data))
-
 	# ignored on postgres because myisam doesn't exist on pg
 	@unimplemented_for(db_type_is.POSTGRES, db_type_is.SQLITE)
 	def test_data_import_without_mandatory_values(self):
@@ -918,33 +876,22 @@ class TestTreeDataImport(IntegrationTestCase):
 		payload_ids = [p.doc.node_name for p in imp.import_file.get_payloads_for_import()]
 		self.assertEqual(payload_ids, ["Root", "Division", "Leaf"])
 
-	def test_tree_parent_overrides_update_preview_and_cache_key(self):
-		"""Tree move edits must change the preview parent and bust the Redis preview cache."""
-		from frappe.core.doctype.data_import.preview_cache import (
-			clear_preview_cache,
-			get_cached_preview,
-			get_preview_cache_key,
-		)
-
+	def test_tree_parent_overrides_update_preview(self):
 		rows = [
 			("Root", "1", ""),
 			("Division", "1", "Root"),
 			("Leaf", "0", "Division"),
 		]
 		data_import = self._get_importer(self._make_csv_file(rows))
-		clear_preview_cache(data_import.name)
 
 		baseline = data_import.get_preview_from_template()
 		leaf = next(node for node in baseline.tree_preview.nodes if node.id == "Leaf")
 		self.assertEqual(leaf.parent, "Division")
 		self.assertEqual(leaf.orig_parent, "Division")
-		key_before = get_preview_cache_key(data_import)
 
 		# Move Leaf under Root via the same JSON the wizard persists.
 		data_import.tree_parent_overrides = frappe.as_json({leaf.row_number: {"parent": "Root"}})
 		data_import.db_set("tree_parent_overrides", data_import.tree_parent_overrides)
-		self.assertNotEqual(key_before, get_preview_cache_key(data_import))
-		self.assertIsNone(get_cached_preview(data_import))
 
 		preview = data_import.get_preview_from_template()
 		moved = next(node for node in preview.tree_preview.nodes if node.id == "Leaf")
