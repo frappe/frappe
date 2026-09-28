@@ -4,20 +4,8 @@ import type { App, Ref } from "vue";
 import FormLayout from "../FormLayout.vue";
 import type { FormLayoutSchema } from "../types";
 
-/**
- * The tab strip's promise, at the DOM: *the reader keeps their place*.
- *
- * Two failures are asserted against, and a fix for one that isn't a fix for the
- * other is not a fix — an index survives neither, and an identity held inside
- * the component survives only the second:
- *
- *  1. the form is destroyed and rebuilt (what a save does to it), and
- *  2. a `depends_on` tab appears or disappears beside the reader.
- *
- * frappe-ui's `Tabs` is stubbed because reka-ui paints nothing under happy-dom.
- * The stub is faithful about the one thing under test: it selects by each tab's
- * `value`, exactly as the real wrapper does.
- */
+// The reader keeps their tab when the form is rebuilt and when a `depends_on` tab
+// appears beside them. `Tabs` is stubbed because reka-ui paints nothing under happy-dom.
 vi.mock("frappe-ui", async (importOriginal) => ({
   ...((await importOriginal()) as object),
   Tabs: defineComponent({
@@ -232,10 +220,7 @@ describe("the reader keeps their place", () => {
   });
 
   it("leaves the intent alone when handed a value naming no tab", async () => {
-    // The wrapper cannot reach this today — every value it is given was just
-    // derived from the list it rendered — but the model may be a host's, and
-    // blanking someone else's state on a stray emit is not this component's to
-    // do. Asserted because it is exactly what the first draft got wrong.
+    // The model may be a host's: a stray emit must not blank someone else's state.
     const tab = ref("");
     const strip = mount(ref({ extra: 1 }), tab);
 

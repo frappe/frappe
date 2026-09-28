@@ -73,9 +73,9 @@ under `frontend/src`, `frontend/plugin` and `ui/src` runs. `test:files` fails wh
 file sits where no `include` pattern reaches it.
 
 `vitest.config.js` sets `resolve.dedupe` for tests only: a `ui/` test imports ui by its real
-path, and `ui/` has no `node_modules`. The list is every package `ui/package.json` declares, so
-a package `ui/` imports but does not declare fails its test. The build config still rejects it, for the reason under
-"Imports" below.
+path, and `ui/` has no `node_modules`. The list is every package `ui/package.json` declares,
+so in CI a package that `ui/` imports but does not declare fails its test. The build config
+still rejects `resolve.dedupe`, for the reason under "Imports" below.
 
 **`vitest.config.js` runs with `css: { postcss: {} }`, and that is not cosmetic.**
 `postcss.config.js` loads `tailwind.config.js`, which reads `manifest.json` at module
@@ -96,8 +96,7 @@ Two things to know:
   from the bench's apps.
 - **`vitest.config.js` is separate from `vite.config.js` deliberately** — the latter calls
   `readManifest()` at module scope, and `manifest.json` does not exist on a fresh clone or
-  in CI. Its `include` glob is `src/**/tests/*.test.ts`; a test file anywhere else, or one
-  directory deeper, **silently does not run**.
+  in CI.
 
 ## Formatting: `.js` and `.vue` are formatted, `.ts` is not
 
