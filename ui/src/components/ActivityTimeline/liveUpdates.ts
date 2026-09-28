@@ -50,7 +50,7 @@ export function createLiveUpdates(
       action === "add" &&
       hasUnresolvedRowOfType(doctype, docname, activity.type)
     ) {
-      refresh().then(() => addIfMissing(activity));
+      refresh().then(() => resource.error && addIfMissing(activity));
       return;
     }
 
@@ -67,7 +67,8 @@ export function createLiveUpdates(
     }
   };
 
-  // a failed refetch keeps the old feed, which would lose the row held back for it
+  // A failed refetch keeps the old feed, which would lose the row held back for it.
+  // Only then: a successful one leaving it out means it was deleted meanwhile.
   const addIfMissing = (activity: Activity) => {
     const current = (resource.data as Activity[] | undefined) ?? [];
     if (current.some((a) => a.key === activity.key)) return;
