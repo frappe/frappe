@@ -2229,22 +2229,6 @@ class TestQuery(IntegrationTestCase):
 			"SELECT `tabDocType`.* FROM `tabDocType` LEFT JOIN `tabDocField` ON `tabDocField`.`parent`=`tabDocType`.`name` AND `tabDocField`.`parenttype`='DocType' AND `tabDocField`.`parentfield`='fields' WHERE `tabDocField`.`name` IS NULL AND `tabDocType`.`parent`<>''",
 		)
 
-	def test_field_alias_in_group_by(self):
-		query = frappe.qb.get_query(
-			"User",
-			fields=["creation as created_date", {"COUNT": "*"}],
-			group_by="created_date",
-			order_by="created_date",
-		)
-
-		sql = query.get_sql()
-		self.assertIn(self.normalize_sql("GROUP BY `created_date`"), self.normalize_sql(sql))
-		if (
-			frappe.db.db_type != "postgres"
-		):  # since Postgres requires fields in Order by to be grouped or aggregated, order by is dropped
-			self.assertIn(self.normalize_sql("ORDER BY `created_date`"), self.normalize_sql(sql))
-		self.assertIn(self.normalize_sql("`creation` `created_date`"), self.normalize_sql(sql))
-
 	def test_field_alias_permission_check(self):
 		query = frappe.qb.get_query(
 			"User",
@@ -2837,6 +2821,85 @@ class TestQuery(IntegrationTestCase):
 
 		rows = frappe.db.sql(f"SELECT name FROM `tabToDo` WHERE 1=1 and {cond}", as_dict=True)
 		self.assertIn(todo.name, [r.name for r in rows])
+
+
+class TestAggregateOrdering(IntegrationTestCase):
+	def setUp(self):
+		super().setUp()
+		self.addCleanup(frappe.db.rollback)
+		self.names = []
+		for priority, date, idx in (
+			("Low", "2026-01-01", 2),
+			("Low", "2026-01-03", 3),
+			("High", "2026-01-02", 7),
+		):
+			todo = frappe.get_doc(
+				doctype="ToDo", description="Aggregate ordering", priority=priority, date=date, idx=idx
+			).insert()
+			self.names.append(todo.name)
+		self.filters = {"name": ("in", self.names)}
+
+	def test_get_value_aggregate_with_default_order(self):
+		from frappe.utils import getdate
+
+		self.assertEqual(frappe.db.get_value("ToDo", self.filters, [{"MAX": "date"}]), getdate("2026-01-03"))
+
+	def test_get_value_aggregate_without_matching_rows(self):
+		self.assertIsNone(frappe.db.get_value("ToDo", {"name": frappe.generate_hash()}, [{"MAX": "date"}]))
+
+	def test_get_value_nested_aggregate_with_default_order(self):
+		self.assertEqual(frappe.db.get_value("ToDo", self.filters, [{"IFNULL": [{"SUM": "idx"}, 0]}]), 12)
+
+	def test_aggregate_with_doctype_default_order(self):
+		from frappe.database.utils import DefaultOrderBy
+
+		rows = frappe.qb.get_query(
+			"ToDo", fields=[Count("*")], filters=self.filters, order_by=DefaultOrderBy
+		).run(pluck=True)
+		self.assertEqual(rows, [3])
+
+	def test_grouped_field_alias_order(self):
+		rows = frappe.qb.get_query(
+			"ToDo",
+			fields=["priority as urgency", {"COUNT": "*"}],
+			filters=self.filters,
+			group_by="urgency",
+			order_by="urgency desc",
+		).run()
+		self.assertSequenceEqual(rows, [("Low", 2), ("High", 1)])
+
+	def test_aggregate_expression_alias_order(self):
+		for expression, expected in (
+			({"SUM": "idx", "as": "score"}, [("High", 7), ("Low", 5)]),
+			({"IFNULL": [{"SUM": "idx"}, 0], "as": "score"}, [("High", 7), ("Low", 5)]),
+			({"ADD": [{"SUM": "idx"}, 10], "as": "score"}, [("High", 17), ("Low", 15)]),
+		):
+			with self.subTest(expression=expression):
+				rows = frappe.qb.get_query(
+					"ToDo",
+					fields=["priority", expression],
+					filters=self.filters,
+					group_by="priority",
+					order_by="score desc",
+				).run()
+				self.assertSequenceEqual(rows, expected)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_grouped_order_by_ungrouped_field(self):
+		rows = frappe.qb.get_query(
+			"ToDo",
+			fields=["priority", {"COUNT": "*"}],
+			filters=self.filters,
+			group_by="priority",
+			order_by="date desc",
+		).run()
+		self.assertSequenceEqual(rows, [("Low", 2), ("High", 1)])
+
+	def test_nonaggregate_order_is_preserved(self):
+		rows = frappe.qb.get_query("ToDo", fields=["name"], filters=self.filters, order_by="date asc").run(
+			pluck=True
+		)
+		self.assertEqual(rows, [self.names[0], self.names[2], self.names[1]])
 
 
 # This function is used as a permission query condition hook

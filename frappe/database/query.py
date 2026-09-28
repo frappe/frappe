@@ -317,19 +317,27 @@ class Engine:
 		if for_update:
 			self.query = self.query.for_update(skip_locked=skip_locked, nowait=not wait)
 
+		# Nested expressions such as IFNULL(SUM(...), 0) are aggregates too.
+		self.is_aggregate_query = (
+			self.is_postgres
+			and is_select
+			and (bool(group_by) or any(getattr(field, "is_aggregate", False) for field in self.fields))
+		)
+		self._grouped_sqls = ()
+
 		if group_by:
 			self.apply_group_by(group_by)
 
 		if order_by:
 			if not (
-				self.is_postgres and is_select and (distinct or group_by)
+				self.is_postgres and is_select and distinct
 			):  # ignore in Postgres since order by fields need to appear in select distinct
 				self.apply_order_by(order_by)
 			else:
 				warnings.warn(
 					(
 						"ORDER BY fields have been ignored because PostgreSQL requires them to "
-						"appear in the SELECT list when using DISTINCT or GROUP BY."
+						"appear in the SELECT list when using DISTINCT."
 					),
 					UserWarning,
 					stacklevel=2,
@@ -353,6 +361,8 @@ class Engine:
 		for field in self.fields:
 			if isinstance(field, Field | DynamicTableField) and field.alias:
 				self.field_aliases.add(field.alias)
+			elif self.is_postgres and (alias := getattr(field, "alias", None)):
+				self.field_aliases.add(alias)
 
 		if self.apply_permissions:
 			self.fields = self.apply_field_permissions()
@@ -1206,8 +1216,22 @@ class Engine:
 			# Note: Comma handling is done in parse_fields before this method is called
 			return self.parse_string_field(field)
 
+	def _normalize_postgres_order_field(self, field):
+		"""Keep grouped fields and aliases; aggregate other PostgreSQL sort fields."""
+		current_sql = field.get_sql() if hasattr(field, "get_sql") else str(field)
+		if current_sql in self._grouped_sqls or current_sql.strip('"') in self.field_aliases:
+			return field
+		if not getattr(field, "is_aggregate", False):
+			return functions.Max(field)
+		return field
+
 	def apply_group_by(self, group_by: str | None = None):
 		parsed_group_by_fields = self._validate_group_by(group_by)
+		if self.is_aggregate_query:
+			self._grouped_sqls = {
+				field.get_sql() if hasattr(field, "get_sql") else str(field)
+				for field in parsed_group_by_fields
+			}
 		self.query = self.query.groupby(*parsed_group_by_fields)
 
 	def apply_order_by(self, order_by: str | None):
@@ -1217,6 +1241,8 @@ class Engine:
 
 		parsed_order_fields = self._validate_order_by(order_by)
 		for order_field, order_direction in parsed_order_fields:
+			if self.is_aggregate_query:
+				order_field = self._normalize_postgres_order_field(order_field)
 			self.query = self.query.orderby(order_field, order=order_direction)
 
 	def _apply_default_order_by(self):
@@ -1232,6 +1258,8 @@ class Engine:
 					field_name = parts[0]
 					spec_order = parts[1].lower() if len(parts) > 1 else sort_order.lower()
 					field = self.table[field_name]
+					if self.is_aggregate_query:
+						field = self._normalize_postgres_order_field(field)
 					if self.db_query_compat:
 						order_direction = Order.desc if spec_order == "desc" else Order.asc
 					else:
@@ -1239,6 +1267,8 @@ class Engine:
 					self.query = self.query.orderby(field, order=order_direction)
 		else:
 			field = self.table[sort_field]
+			if self.is_aggregate_query:
+				field = self._normalize_postgres_order_field(field)
 			if self.db_query_compat:
 				order_direction = Order.desc if sort_order.lower() == "desc" else Order.asc
 			else:
