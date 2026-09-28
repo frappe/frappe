@@ -1337,6 +1337,8 @@ class TestLinkTitle(IntegrationTestCase):
 
 		from frappe.desk.search import get_link_title
 
+		self.assertEqual(get_link_title("ToDo", todo.name), todo.description)
+
 		frappe.clear_messages()
 		with self.set_user(user.name):
 			self.assertEqual(get_link_title("ToDo", todo.name), todo.name)
