@@ -13,9 +13,9 @@ def get(name):
 	try:
 		page = frappe.get_doc("Page", name)
 	except frappe.DoesNotExistError:
-		matches = frappe.get_all(
-			"DocType", {"name": ("like", name.replace("-", "_")), "istable": 0}, pluck="name"
-		)
+		# "_" matches the space in a doctype name; any wildcard in the route itself is escaped
+		pattern = name.replace("\\", "\\\\").replace("%", "\\%").replace("-", "_")
+		matches = frappe.get_all("DocType", {"name": ("like", pattern), "istable": 0}, pluck="name")
 		if doctype := next((d for d in matches if slug(d) == name), None):
 			check_doctype_permission(doctype)
 		raise
