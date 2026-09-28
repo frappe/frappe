@@ -178,10 +178,10 @@ registerCommand({
 
 registerCommand({
 	name: "toggle-panels",
-	title: "Toggle Panels",
+	// both panels follow the right one, so its state names the action
+	title: () => (store.studioLayout.showRightPanel ? "Hide Both Panels" : "Show Both Panels"),
 	icon: "lucide-panels-left-bottom",
 	group: "View",
-	inPalette: false,
 	keys: { combo: "Mod+Backslash", description: "Toggle Panels" },
 	action: () => {
 		store.studioLayout.showRightPanel = !store.studioLayout.showRightPanel
