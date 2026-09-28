@@ -276,7 +276,7 @@ def create_desktop_icons_from_installed_apps():
 	apps = frappe.get_installed_apps()
 	index = 0
 	for a in apps:
-		if get_app_desktop_icon(a):
+		if frappe.db.exists("Desktop Icon", {"icon_type": "App", "app": a}):
 			continue
 
 		app_details = frappe.get_hooks("add_to_apps_screen", app_name=a)
