@@ -132,22 +132,22 @@ Object.assign(frappe.model, {
 
 		locals[doc.doctype][doc.name] = doc;
 
-		let meta = frappe.get_meta(doc.doctype);
-		let is_table = meta ? meta.istable : doc.parentfield;
 		// add child docs to locals
+		const meta = frappe.get_meta(doc.doctype);
+		const is_table = meta ? meta.istable : doc.parentfield;
 		if (!is_table) {
-			for (var i in doc) {
-				if (i.startsWith("__")) continue;
-				var value = doc[i];
-
-				if ($.isArray(value)) {
-					for (var x = 0, y = value.length; x < y; x++) {
-						var d = value[x];
-
-						if (typeof d == "object" && !d.parent) d.parent = doc.name;
-
-						frappe.model.add_to_locals(d);
-					}
+			for (const [fieldname, value] of Object.entries(doc)) {
+				if (fieldname.startsWith("__") || !Array.isArray(value)) continue;
+				for (const child of value) {
+					if (typeof child === "object" && !child.parent) child.parent = doc.name;
+					frappe.model.add_to_locals(child);
+				}
+			}
+		} else {
+			for (const df of frappe.meta.get_table_fields(doc.doctype)) {
+				for (const child of doc[df.fieldname] || []) {
+					if (!child.parent) child.parent = doc.name;
+					frappe.model.add_to_locals(child);
 				}
 			}
 		}
@@ -184,7 +184,7 @@ Object.assign(frappe.model, {
 						: null;
 					if (local_child_doc) {
 						// update the existing child doc in locals
-						Object.assign(local_child_doc, updated_child_doc);
+						frappe.model.update_in_locals(updated_child_doc);
 						clear_keys(updated_child_doc, local_child_doc);
 						// update parent array reference if needed
 						if (local_child_doc_in_parent !== local_child_doc) {
@@ -227,8 +227,7 @@ Object.assign(frappe.model, {
 							}
 						}
 
-						// row exists, just copy the values
-						Object.assign(local_child_doc_in_parent, updated_child_doc);
+						frappe.model.update_in_locals(updated_child_doc);
 						clear_keys(updated_child_doc, local_child_doc_in_parent);
 					} else {
 						// row at this position is needed at a different index
@@ -248,6 +247,9 @@ Object.assign(frappe.model, {
 					) {
 						// clear from local
 						let d = local_parent_doc[fieldname][i];
+						for (const child_df of frappe.meta.get_table_fields(d.doctype)) {
+							frappe.model.clear_table(d, child_df.fieldname);
+						}
 						if (locals[d.doctype] && locals[d.doctype][d.name]) {
 							delete locals[d.doctype][d.name];
 						}

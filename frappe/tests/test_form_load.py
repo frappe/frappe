@@ -3,13 +3,39 @@
 import frappe
 from frappe.core.page.permission_manager.permission_manager import add, reset, update
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-from frappe.desk.form.load import get_docinfo, getdoc, getdoctype
+from frappe.desk.form.load import get_docinfo, get_meta_bundle, getdoc, getdoctype
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_helpers import setup_for_tests
 from frappe.utils.file_manager import save_file
 
 
 class TestFormLoad(IntegrationTestCase):
+	def test_nested_child_table_meta_bundle(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		grandchild = new_doctype(istable=1).insert().name
+		child = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{"label": "Details", "fieldname": "details", "fieldtype": "Table", "options": grandchild}
+				],
+			)
+			.insert()
+			.name
+		)
+		root = (
+			new_doctype(
+				fields=[{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child}],
+			)
+			.insert()
+			.name
+		)
+
+		bundle = get_meta_bundle(root)
+		self.assertEqual([meta.name for meta in bundle], [root, child, grandchild])
+		self.assertIn("some_fieldname", {df.fieldname for df in bundle[-1].fields})
+
 	def test_load(self):
 		getdoctype("DocType")
 		meta = next(filter(lambda d: d.name == "DocType", frappe.response.docs))

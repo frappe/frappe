@@ -819,6 +819,36 @@ def push_perm_check_log(log, debug=False):
 	frappe.flags.get("has_permission_check_logs").append(log)
 
 
+def get_nested_child_root_doctype(child_doctype: str, root_doctype: str | None = None) -> str | None:
+	"""Find a valid root DocType for an intermediate child table."""
+	parents = set(
+		frappe.get_all("DocField", filters={"fieldtype": "Table", "options": child_doctype}, pluck="parent")
+	)
+	parents.update(
+		frappe.get_all("Custom Field", filters={"fieldtype": "Table", "options": child_doctype}, pluck="dt")
+	)
+	roots = {
+		parent
+		for parent in parents
+		if not frappe.get_meta(parent).istable
+		and any(
+			df.fieldtype == "Table" and df.options == child_doctype and not df.is_virtual
+			for df in frappe.get_meta(parent).get_table_fields()
+		)
+	}
+	if root_doctype:
+		return root_doctype if root_doctype in roots else None
+	return next(iter(roots)) if len(roots) == 1 else None
+
+
+def get_nested_child_permlevels(root_doctype: str, ptype: str, user: str) -> set[int]:
+	ptype = "read" if ptype == "select" else ptype
+	levels = set(frappe.get_meta(root_doctype).get_permlevel_access(ptype, user=user))
+	if 0 not in levels and frappe.share.get_shared(root_doctype, user, rights=[ptype], limit=1):
+		levels.add(0)
+	return levels
+
+
 def has_child_permission(
 	child_doctype,
 	ptype="read",
@@ -828,15 +858,23 @@ def has_child_permission(
 	*,
 	debug=False,
 	print_logs=True,
+	_visited=None,
+	_root_doctype=None,
 ) -> bool:
 	debug and _debug_log("This doctype is a child table, permissions will be checked on parent.")
 	if isinstance(child_doc, str):
 		child_doc = frappe.db.get_value(
 			child_doctype,
 			child_doc,
-			("parent", "parenttype", "parentfield"),
+			("name", "parent", "parenttype", "parentfield"),
 			as_dict=True,
 		)
+	if child_doc:
+		_visited = _visited or set()
+		key = (child_doctype, child_doc.name or id(child_doc))
+		if key in _visited:
+			return False
+		_visited.add(key)
 
 	if child_doc:
 		parent_doctype = child_doc.parenttype
@@ -850,7 +888,7 @@ def has_child_permission(
 
 	parent_meta = frappe.get_meta(parent_doctype)
 
-	if parent_meta.istable or not (
+	if not (
 		valid_parentfields := [
 			df.fieldname
 			for df in parent_meta.get_table_fields(include_computed=True)
@@ -888,8 +926,26 @@ def has_child_permission(
 		permlevel = parent_meta.get_field(parentfield).permlevel
 		# checking for select == checking for "select or read"
 		# select does not support access of higher permlevel child tables, but read does
+		permission_parent = child_doc.parent_doc if hasattr(child_doc, "parent_doc") else None
+		if parent_meta.istable and permission_parent is None:
+			permission_parent = frappe.db.get_value(
+				parent_doctype,
+				child_doc.parent,
+				("name", "parent", "parenttype", "parentfield"),
+				as_dict=True,
+			)
+			if permission_parent:
+				permission_parent.doctype = parent_doctype
+		if parent_meta.istable and (
+			permission_parent is None
+			or str(permission_parent.name) != str(child_doc.parent)
+			or permission_parent.doctype != parent_doctype
+		):
+			return False
 		accessible_permlevels = parent_meta.get_permlevel_access(
-			"read" if ptype == "select" else ptype, user=user
+			"read" if ptype == "select" else ptype,
+			parenttype=permission_parent.parenttype if parent_meta.istable else None,
+			user=user,
 		)
 		if permlevel > 0 and permlevel not in accessible_permlevels:
 			push_perm_check_log(
@@ -900,11 +956,42 @@ def has_child_permission(
 			)
 			return False
 
-		parent_doc = child_doc.parent_doc if hasattr(child_doc, "parent_doc") else None
+		parent_doc = (
+			permission_parent
+			if parent_meta.istable
+			else (child_doc.parent_doc if hasattr(child_doc, "parent_doc") else None)
+		)
 		if parent_doc is None:
 			parent_doc = child_doc.parent
 	else:
 		parent_doc = None
+	if parent_meta.istable:
+		if parent_doc is None:
+			root_doctype = get_nested_child_root_doctype(parent_doctype, _root_doctype)
+			if not root_doctype:
+				return False
+			root_meta = frappe.get_meta(root_doctype)
+			accessible_permlevels = get_nested_child_permlevels(root_doctype, ptype, user)
+			if not any(
+				df.permlevel in accessible_permlevels
+				for df in parent_meta.get_table_fields()
+				if df.fieldtype == "Table" and df.options == child_doctype and not df.is_virtual
+			) or not any(
+				df.permlevel in accessible_permlevels
+				for df in root_meta.get_table_fields()
+				if df.fieldtype == "Table" and df.options == parent_doctype and not df.is_virtual
+			):
+				return False
+			return has_permission(root_doctype, ptype=ptype, user=user, print_logs=print_logs, debug=debug)
+		return has_child_permission(
+			parent_doctype,
+			ptype,
+			parent_doc,
+			user,
+			debug=debug,
+			print_logs=print_logs,
+			_visited=_visited,
+		)
 
 	return has_permission(
 		parent_doctype,

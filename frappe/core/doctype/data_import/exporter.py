@@ -10,6 +10,21 @@ from frappe.utils.csvutils import build_csv_response
 from frappe.utils.xlsxutils import build_xlsx_response, get_default_xlsx_styles
 
 
+def reject_nested_table_import_export(meta):
+	persisted_tables = [df for df in meta.get_table_fields() if not df.is_virtual]
+	if meta.istable and persisted_tables:
+		frappe.throw(
+			_("Data Import and Export do not support nested child tables in {0}").format(meta.name),
+			frappe.ValidationError,
+		)
+	for table_field in persisted_tables:
+		if any(not df.is_virtual for df in frappe.get_meta(table_field.options).get_table_fields()):
+			frappe.throw(
+				_("Data Import and Export do not support nested child tables in {0}").format(meta.name),
+				frappe.ValidationError,
+			)
+
+
 class Exporter:
 	def __init__(
 		self,
@@ -31,6 +46,7 @@ class Exporter:
 		"""
 		self.doctype = doctype
 		self.meta = frappe.get_meta(doctype)
+		reject_nested_table_import_export(self.meta)
 		self.export_fields = export_fields
 		self.export_filters = export_filters
 		self.export_page_length = export_page_length

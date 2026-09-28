@@ -2,6 +2,8 @@
 # License: MIT. See LICENSE
 """Use blog post test to test user permissions logic"""
 
+from unittest.mock import patch
+
 import frappe
 import frappe.defaults
 import frappe.model.meta
@@ -33,7 +35,480 @@ from frappe.utils.user import UserPermissions
 EXTRA_TEST_RECORD_DEPENDENCIES = ["User", "Contact", "Salutation"]
 
 
+def nested_root_scope_condition(user, doctype):
+	return f"`tab{doctype}`.`scope` = {frappe.db.escape('allowed')}"
+
+
 class TestPermissions(IntegrationTestCase):
+	def test_nested_child_query_respects_root_user_permission(self):
+		frappe.set_user("Administrator")
+		grandchild_dt = new_doctype(istable=1).insert().name
+		child_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{
+						"label": "Details",
+						"fieldname": "details",
+						"fieldtype": "Table",
+						"options": grandchild_dt,
+					}
+				],
+			)
+			.insert()
+			.name
+		)
+		root_dt = (
+			new_doctype(
+				fields=[
+					{"label": "Assignee", "fieldname": "assignee", "fieldtype": "Link", "options": "User"},
+					{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child_dt},
+				],
+				permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1}],
+			)
+			.insert()
+			.name
+		)
+		for assignee, value in (("test1@example.com", "allowed"), ("Administrator", "denied")):
+			frappe.get_doc(
+				{
+					"doctype": root_dt,
+					"assignee": assignee,
+					"rows": [{"details": [{"some_fieldname": value}]}],
+				}
+			).insert()
+		add_user_permission("User", "test1@example.com", "test1@example.com", applicable_for=root_dt)
+		frappe.set_user("test1@example.com")
+		rows = frappe.get_list(grandchild_dt, fields=["some_fieldname"], parent_doctype=child_dt)
+		self.assertEqual([row.some_fieldname for row in rows], ["allowed"])
+
+	def test_nested_child_query_respects_root_permission_hook(self):
+		frappe.set_user("Administrator")
+		grandchild_dt = new_doctype(istable=1).insert().name
+		child_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{
+						"label": "Details",
+						"fieldname": "details",
+						"fieldtype": "Table",
+						"options": grandchild_dt,
+					}
+				],
+			)
+			.insert()
+			.name
+		)
+		root_dt = (
+			new_doctype(
+				fields=[
+					{"label": "Scope", "fieldname": "scope", "fieldtype": "Data"},
+					{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child_dt},
+				],
+				permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1}],
+			)
+			.insert()
+			.name
+		)
+		for scope in ("allowed", "denied"):
+			frappe.get_doc(
+				{
+					"doctype": root_dt,
+					"scope": scope,
+					"rows": [{"details": [{"some_fieldname": scope}]}],
+				}
+			).insert()
+		original_get_hooks = frappe.get_hooks
+
+		def get_hooks_with_scope(key=None, *args, **kwargs):
+			if key == "permission_query_conditions":
+				return {root_dt: ["frappe.tests.test_permissions.nested_root_scope_condition"]}
+			return original_get_hooks(key, *args, **kwargs)
+
+		frappe.set_user("test1@example.com")
+		with patch.object(frappe, "get_hooks", get_hooks_with_scope):
+			rows = frappe.get_list(grandchild_dt, fields=["some_fieldname"], parent_doctype=child_dt)
+		self.assertEqual([row.some_fieldname for row in rows], ["allowed"])
+
+	def test_child_query_excludes_private_root_table(self):
+		frappe.set_user("Administrator")
+		child_dt = new_doctype(istable=1).insert().name
+		root_dt = (
+			new_doctype(
+				fields=[
+					{
+						"label": "Public Rows",
+						"fieldname": "public_rows",
+						"fieldtype": "Table",
+						"options": child_dt,
+					},
+					{
+						"label": "Private Rows",
+						"fieldname": "private_rows",
+						"fieldtype": "Table",
+						"options": child_dt,
+						"permlevel": 1,
+					},
+				],
+				permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1}],
+			)
+			.insert()
+			.name
+		)
+		frappe.get_doc(
+			{
+				"doctype": root_dt,
+				"public_rows": [{"some_fieldname": "visible"}],
+				"private_rows": [{"some_fieldname": "secret"}],
+			}
+		).insert()
+		frappe.set_user("test1@example.com")
+		rows = frappe.get_list(child_dt, fields=["some_fieldname"], parent_doctype=root_dt)
+		self.assertEqual([row.some_fieldname for row in rows], ["visible"])
+
+	def test_single_child_query_excludes_private_table(self):
+		frappe.set_user("Administrator")
+		child_dt = new_doctype(istable=1).insert().name
+		root_dt = (
+			new_doctype(
+				issingle=1,
+				fields=[
+					{
+						"label": "Public Rows",
+						"fieldname": "public_rows",
+						"fieldtype": "Table",
+						"options": child_dt,
+					},
+					{
+						"label": "Private Rows",
+						"fieldname": "private_rows",
+						"fieldtype": "Table",
+						"options": child_dt,
+						"permlevel": 1,
+					},
+				],
+				permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1}],
+			)
+			.insert()
+			.name
+		)
+		frappe.get_doc(
+			{
+				"doctype": root_dt,
+				"public_rows": [{"some_fieldname": "visible"}],
+				"private_rows": [{"some_fieldname": "secret"}],
+			}
+		).save()
+		frappe.set_user("test1@example.com")
+		rows = frappe.get_list(child_dt, fields=["some_fieldname"], parent_doctype=root_dt)
+		self.assertEqual([row.some_fieldname for row in rows], ["visible"])
+
+	def test_nested_child_query_under_single_root(self):
+		frappe.set_user("Administrator")
+		grandchild_dt = new_doctype(istable=1).insert().name
+		child_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{
+						"label": "Details",
+						"fieldname": "details",
+						"fieldtype": "Table",
+						"options": grandchild_dt,
+					}
+				],
+			)
+			.insert()
+			.name
+		)
+		root_dt = (
+			new_doctype(
+				issingle=1,
+				fields=[{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child_dt}],
+				permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1}],
+			)
+			.insert()
+			.name
+		)
+		frappe.get_doc({"doctype": root_dt, "rows": [{"details": [{"some_fieldname": "visible"}]}]}).save()
+		frappe.set_user("test1@example.com")
+		rows = frappe.get_list(grandchild_dt, fields=["some_fieldname"], parent_doctype=child_dt)
+		self.assertEqual([row.some_fieldname for row in rows], ["visible"])
+
+	def test_nested_child_tab_notation_excludes_private_table(self):
+		frappe.set_user("Administrator")
+		grandchild_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{"label": "Value", "fieldname": "some_fieldname", "fieldtype": "Data"},
+					{"label": "Secret", "fieldname": "secret", "fieldtype": "Data", "mask": 1},
+				],
+			)
+			.insert()
+			.name
+		)
+		child_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{
+						"label": "Public",
+						"fieldname": "public",
+						"fieldtype": "Table",
+						"options": grandchild_dt,
+					},
+					{
+						"label": "Private",
+						"fieldname": "private",
+						"fieldtype": "Table",
+						"options": grandchild_dt,
+						"permlevel": 1,
+					},
+				],
+			)
+			.insert()
+			.name
+		)
+		root_dt = (
+			new_doctype(
+				fields=[{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child_dt}],
+				permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1}],
+			)
+			.insert()
+			.name
+		)
+		frappe.get_doc(
+			{
+				"doctype": root_dt,
+				"rows": [
+					{
+						"public": [{"some_fieldname": "visible", "secret": "public secret"}],
+						"private": [{"some_fieldname": "secret", "secret": "private secret"}],
+					}
+				],
+			}
+		).insert()
+		frappe.set_user("test1@example.com")
+		rows = frappe.get_list(
+			child_dt,
+			fields=[f"`tab{grandchild_dt}`.`some_fieldname` as value"],
+			parent_doctype=root_dt,
+		)
+		self.assertEqual([row.value for row in rows], ["visible"])
+		masked_rows = frappe.get_list(
+			child_dt,
+			fields=[f"`tab{grandchild_dt}`.`secret` as exposed_secret"],
+			parent_doctype=root_dt,
+		)
+		self.assertEqual([row.exposed_secret for row in masked_rows], ["XXXXXXXX"])
+		masked_tuples = frappe.get_list(
+			child_dt,
+			fields=[f"`tab{grandchild_dt}`.`secret` as exposed_secret"],
+			parent_doctype=root_dt,
+			as_list=True,
+		)
+		self.assertEqual(masked_tuples, [("XXXXXXXX",)])
+		masked_values = frappe.get_list(
+			child_dt,
+			fields=[f"`tab{grandchild_dt}`.`secret` as exposed_secret"],
+			parent_doctype=root_dt,
+			pluck="exposed_secret",
+		)
+		self.assertEqual(masked_values, ["XXXXXXXX"])
+
+	def test_nested_child_permissions_and_query(self):
+		frappe.set_user("Administrator")
+		grandchild_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{"label": "Value", "fieldname": "some_fieldname", "fieldtype": "Data"},
+					{"label": "Secret", "fieldname": "secret", "fieldtype": "Data", "mask": 1},
+					{"label": "Restricted", "fieldname": "restricted", "fieldtype": "Data", "permlevel": 1},
+				],
+			)
+			.insert()
+			.name
+		)
+		child_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{
+						"label": "Details",
+						"fieldname": "details",
+						"fieldtype": "Table",
+						"options": grandchild_dt,
+					},
+					{
+						"label": "Private Details",
+						"fieldname": "private_details",
+						"fieldtype": "Table",
+						"options": grandchild_dt,
+						"permlevel": 1,
+					},
+				],
+			)
+			.insert()
+			.name
+		)
+		root_dt = (
+			new_doctype(
+				fields=[{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child_dt}],
+				permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1}],
+			)
+			.insert()
+			.name
+		)
+		root = frappe.get_doc(
+			{
+				"doctype": root_dt,
+				"rows": [
+					{
+						"details": [
+							{"some_fieldname": "visible", "secret": "hidden", "restricted": "classified"}
+						]
+					}
+				],
+			}
+		).insert()
+		grandchild_name = root.rows[0].details[0].name
+
+		frappe.set_user("test1@example.com")
+		grandchild = frappe.get_doc(grandchild_dt, grandchild_name)
+		self.assertTrue(grandchild.has_permission("read"))
+		self.assertTrue(grandchild.has_permission("write"))
+		rows = frappe.get_list(
+			child_dt,
+			fields=["name", {"details": ["some_fieldname", "secret"]}],
+			parent_doctype=root_dt,
+		)
+		self.assertEqual(rows[0].details[0].some_fieldname, "visible")
+		self.assertEqual(rows[0].details[0].secret, "XXXXXXXX")
+		with self.assertRaises(frappe.PermissionError):
+			frappe.get_list(
+				child_dt,
+				fields=["name"],
+				filters={"details.restricted": "classified"},
+				parent_doctype=root_dt,
+			)
+		with self.assertRaises(frappe.PermissionError):
+			frappe.get_list(child_dt, order_by="details.restricted asc", parent_doctype=root_dt)
+		with self.assertRaises(frappe.PermissionError):
+			frappe.get_list(
+				child_dt,
+				filters={"private_details.some_fieldname": "guess"},
+				parent_doctype=root_dt,
+			)
+		details = frappe.get_list(
+			grandchild_dt,
+			fields=["name", "some_fieldname", "secret"],
+			parent_doctype=child_dt,
+		)
+		self.assertEqual([row.name for row in details], [grandchild_name])
+		self.assertEqual(details[0].some_fieldname, "visible")
+		self.assertEqual(details[0].secret, "XXXXXXXX")
+		aliased_details = frappe.get_list(
+			grandchild_dt,
+			fields=["secret as exposed_secret"],
+			parent_doctype=child_dt,
+		)
+		self.assertEqual(aliased_details[0].exposed_secret, "XXXXXXXX")
+		self.assertEqual(
+			frappe.get_list(
+				grandchild_dt,
+				fields=["secret as exposed_secret"],
+				parent_doctype=child_dt,
+				as_list=True,
+			),
+			[("XXXXXXXX",)],
+		)
+		root_for_edit = frappe.get_doc(root_dt, root.name)
+		root_for_edit.apply_fieldlevel_read_permissions()
+		self.assertEqual(root_for_edit.rows[0].details[0].secret, "XXXXXXXX")
+		root_for_edit.save()
+		self.assertEqual(frappe.db.get_value(grandchild_dt, grandchild_name, "secret"), "hidden")
+		grandchild.reload()
+		grandchild.restricted = "changed"
+		grandchild.save()
+		self.assertEqual(frappe.db.get_value(grandchild_dt, grandchild_name, "restricted"), "classified")
+		grandchild.parent = "nonexistent"
+		self.assertFalse(grandchild.has_permission("read"))
+		grandchild.parent = root.rows[0].name
+		grandchild.parentfield = "wrong_field"
+		self.assertFalse(grandchild.has_permission("read"))
+		grandchild.parentfield = "details"
+		child_name = root.rows[0].name
+		frappe.db.set_value(
+			child_dt,
+			child_name,
+			{"parent": child_name, "parenttype": child_dt, "parentfield": "details"},
+			update_modified=False,
+		)
+		try:
+			self.assertFalse(frappe.get_doc(grandchild_dt, grandchild_name).has_permission("read"))
+		finally:
+			frappe.db.set_value(
+				child_dt,
+				child_name,
+				{"parent": root.name, "parenttype": root_dt, "parentfield": "rows"},
+				update_modified=False,
+			)
+		owned_root = frappe.get_doc(
+			{"doctype": root_dt, "rows": [{"details": [{"some_fieldname": "owned"}]}]}
+		).insert()
+		frappe.db.set_value("DocPerm", {"parent": root_dt, "role": "System Manager"}, "if_owner", 1)
+		frappe.clear_cache(doctype=root_dt)
+		self.assertEqual(
+			[row.name for row in frappe.get_list(grandchild_dt, parent_doctype=child_dt)],
+			[owned_root.rows[0].details[0].name],
+		)
+
+		frappe.set_user("test3@example.com")
+		self.assertFalse(frappe.get_doc(grandchild_dt, grandchild_name).has_permission("read"))
+		with self.assertRaises(frappe.PermissionError):
+			frappe.get_list(
+				child_dt, fields=["name", {"details": ["some_fieldname"]}], parent_doctype=root_dt
+			)
+		with self.assertRaises(frappe.PermissionError):
+			frappe.get_list(grandchild_dt, fields=["name"], parent_doctype=child_dt)
+		frappe.set_user("Administrator")
+		frappe.share.add(root_dt, root.name, "test3@example.com", read=1)
+		frappe.set_user("test3@example.com")
+		self.assertEqual(
+			[row.name for row in frappe.get_list(grandchild_dt, parent_doctype=child_dt)],
+			[grandchild_name],
+		)
+		frappe.set_user("Administrator")
+		other_root_dt = (
+			new_doctype(
+				fields=[{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child_dt}],
+				permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1}],
+			)
+			.insert()
+			.name
+		)
+		other_root = frappe.get_doc(
+			{"doctype": other_root_dt, "rows": [{"details": [{"some_fieldname": "other root"}]}]}
+		).insert()
+		frappe.set_user("test3@example.com")
+		forged = frappe.get_doc(grandchild_dt, grandchild_name)
+		forged.parent = other_root.rows[0].name
+		self.assertFalse(forged.has_permission("read"))
+		with self.assertRaises(frappe.PermissionError):
+			frappe.get_list(grandchild_dt, parent_doctype=child_dt)
+		self.assertEqual(
+			[
+				row.name
+				for row in frappe.get_list(grandchild_dt, parent_doctype=child_dt, root_doctype=root_dt)
+			],
+			[grandchild_name],
+		)
+		with self.assertRaises(frappe.PermissionError):
+			frappe.get_list(grandchild_dt, parent_doctype=child_dt, root_doctype=other_root_dt)
+
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
