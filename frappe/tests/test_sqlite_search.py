@@ -5,18 +5,13 @@ from typing import ClassVar
 from unittest.mock import patch
 
 import frappe
-<<<<<<< HEAD
-from frappe.search.sqlite_search import SQLiteSearch, SQLiteSearchIndexMissingError
-=======
 from frappe.search.sqlite_search import (
 	SQLiteSearch,
 	SQLiteSearchIndexMissingError,
 	_build_lock_name,
 	build_index,
 	build_index_if_not_exists,
-	index_docs_in_queue,
 )
->>>>>>> 41978c5 (test(search): cover building an index that does not exist yet)
 from frappe.tests import IntegrationTestCase
 from frappe.utils.synchronization import filelock
 
