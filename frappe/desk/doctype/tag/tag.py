@@ -212,8 +212,8 @@ class DocTags:
 		else:
 			tl = unique(filter(lambda x: x, tl))
 			tags = ",".join(tl)
-		old_tags = set(filter(None, self.get_tags(dn).split(",")))
-		new_tags = set(filter(None, tags.split(",")))
+		old_tags = {tag for tag in self.get_tags(dn).split(",") if tag}
+		new_tags = {tag for tag in tags.split(",") if tag}
 		try:
 			frappe.db.set_value(self.dt, dn, "_user_tags", tags, update_modified=False)
 			doc = frappe.get_lazy_doc(self.dt, dn)
