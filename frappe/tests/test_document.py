@@ -12,6 +12,7 @@ from frappe.app import make_form_dict
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.rq_job.test_rq_job import wait_for_completion
 from frappe.core.doctype.user.user import User
+from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.desk.doctype.note.note import Note
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.model.document import Document, LazyChildTable, LazyDocument
@@ -534,16 +535,22 @@ class TestDocument(IntegrationTestCase):
 					"options": "(doc.title or '').upper()",
 				},
 			],
+			permissions=[{"role": "_Test Role", "read": 1, "write": 1, "create": 1}],
 		).insert()
 		self.addCleanup(doctype.delete, force=True)
+		user = create_user("test_single_virtual_fields@example.com", "_Test Role")
 
-		single = frappe.get_doc(doctype.name)
-		single.title = "hello"
-		single.save()
+		def assert_virtual_field_not_stored(expected_value):
+			self.assertEqual(frappe.db.count("Singles", {"doctype": doctype.name, "field": "loud_title"}), 0)
+			self.assertEqual(frappe.get_doc(doctype.name).as_dict().loud_title, expected_value)
 
-		self.assertEqual(frappe.db.count("Singles", {"doctype": doctype.name, "field": "title"}), 1)
-		self.assertEqual(frappe.db.count("Singles", {"doctype": doctype.name, "field": "loud_title"}), 0)
-		self.assertEqual(frappe.get_doc(doctype.name).as_dict().loud_title, "HELLO")
+		with self.set_user(user.name):
+			single = frappe.get_doc({"doctype": doctype.name, "title": "hello"}).insert()
+			assert_virtual_field_not_stored("HELLO")
+
+			single.title = "bye"
+			single.save()
+			assert_virtual_field_not_stored("BYE")
 
 	def test_run_method(self):
 		doc = frappe.get_last_doc("User")
