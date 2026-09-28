@@ -414,6 +414,20 @@ class TestDBUpdate(IntegrationTestCase):
 			)[0][0]
 		self.assertEqual(length, 64)
 
+	def test_trim_table_drops_every_orphaned_column(self):
+		from frappe.database.schema import add_column
+
+		doctype = new_doctype().insert()
+		orphaned_columns = ["orphan_one", "orphan_two"]
+		for column in orphaned_columns:
+			add_column(doctype.name, column_name=column, fieldtype="Data")
+
+		dropped_columns = frappe.model.meta.trim_table(doctype.name, dry_run=False)
+
+		self.assertCountEqual(dropped_columns, orphaned_columns)
+		for column in orphaned_columns:
+			self.assertFalse(frappe.db.has_column(doctype.name, column))
+
 
 class TestDBUpdateSanityChecks(IntegrationTestCase):
 	@skipIf(
