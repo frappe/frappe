@@ -75,7 +75,7 @@ export function useStudioEvents(saveFragmentMode: () => void) {
 
 	// a command that declares keys owns its binding; what is left needs the
 	// keyboard event or the fragment save, so it stays a plain shortcut
-	useKeyboardShortcut([
+	const shortcuts = [
 		...commandShortcuts(),
 		{
 			combo: "Mod+S",
@@ -88,6 +88,21 @@ export function useStudioEvents(saveFragmentMode: () => void) {
 				if (canvasStore.editingMode !== "page") {
 					saveFragmentMode()
 				}
+			},
+		},
+		{
+			combo: "Escape",
+			description: "Exit Component Editing",
+			group: "General",
+			preventDefault: false,
+			// a drag handles its own Escape: it cancels the drag, not the fragment
+			enabled: () => canvasStore.editingMode !== "page" && !canvasStore.isDragging,
+			handler: (e: KeyboardEvent) => {
+				// Escape in the context menu only closes the menu
+				if ((e.target as Element | null)?.closest?.('[role="menu"]')) return
+				// after this keypress: a discard confirmation mounted now would hear the same
+				// Escape on window and close before it can be answered
+				setTimeout(() => canvasStore.exitFragmentMode())
 			},
 		},
 		...(["Backspace", "Delete"] as const).map((combo) => ({
@@ -103,7 +118,9 @@ export function useStudioEvents(saveFragmentMode: () => void) {
 			group: "Edit",
 			handler: (e: KeyboardEvent) => deleteSelection(e, true),
 		})),
-	])
+	]
+	// combos are plain strings here: Studio's frappe-ui import is untyped (src/lib.d.ts)
+	useKeyboardShortcut(shortcuts as Parameters<typeof useKeyboardShortcut>[0])
 }
 
 const deleteSelection = (e: KeyboardEvent, force: boolean) => {
