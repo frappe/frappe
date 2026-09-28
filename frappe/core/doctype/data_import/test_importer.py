@@ -1029,8 +1029,7 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 
 	def _cleanup_docs(self, labels):
 		for label in reversed(labels):
-			name = frappe.db.get_value(self.doctype_name, {"node_label": label})
-			if name:
+			for name in frappe.get_all(self.doctype_name, filters={"node_label": label}, pluck="name"):
 				frappe.delete_doc(self.doctype_name, name, force=1)
 		frappe.db.commit()  # Ensure deletions are flushed to DB before continuing; # nosemgrep
 
@@ -1181,6 +1180,30 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 		self.assertEqual(nodes_by_id["Branch A"].depth, 0)
 		self.assertEqual(nodes_by_id["Branch B"].depth, 1)
 		self.assertEqual(nodes_by_id["Branch C"].depth, 2)
+
+		self._cleanup_docs(labels)
+
+	def test_tree_alias_shared_by_existing_records_is_not_resolved(self):
+		from frappe.core.doctype.data_import.value_mapping import get_blocking_warnings
+
+		labels = ("Shared Root", "New Child")
+		self._cleanup_docs(labels)
+		for _ in range(2):
+			frappe.get_doc(
+				{"doctype": self.doctype_name, "node_label": "Shared Root", "is_group": 1}
+			).insert()
+		frappe.db.commit()  # nosemgrep
+
+		data_import = self._get_importer(self._make_csv_file([("New Child", "0", "Shared Root")]))
+		preview = data_import.get_preview_from_template()
+
+		child = next(node for node in preview.tree_preview.nodes if node.id == "New Child")
+		self.assertTrue(any("not found" in w for w in child.warnings))
+
+		imp = Importer(self.doctype_name, data_import=data_import)
+		self.assertTrue(
+			get_blocking_warnings(imp.import_file.get_all_warnings(), imp.import_file, data_import)
+		)
 
 		self._cleanup_docs(labels)
 

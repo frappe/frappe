@@ -1179,55 +1179,37 @@ def _build_import_reference_sets(
 
 def _get_existing_tree_parent_refs(doctype: str, parent_refs: set, alias_field: str | None) -> set:
 	"""Return parent values from the file that already exist in the DB (by name or alias)."""
-	parent_list = list(parent_refs)
-	if not parent_list:
-		return set()
-
-	limit = len(parent_list)
-	existing = set(
-		frappe.get_all(
-			doctype,
-			filters={"name": ("in", parent_list)},
-			pluck="name",
-			limit=limit,
-		)
-	)
-	if alias_field:
-		existing |= set(
-			frappe.get_all(
-				doctype,
-				filters={alias_field: ("in", parent_list)},
-				pluck=alias_field,
-				limit=limit,
-			)
-		)
-	return existing
+	return set(_build_db_tree_parent_name_map(doctype, parent_refs, alias_field))
 
 
 def _build_db_tree_parent_name_map(doctype: str, parent_refs: set, alias_field: str | None) -> dict:
-	"""Map parent link values from the file to existing document names."""
+	"""Map parent link values from the file to existing document names.
+	An alias shared by more than one record is left out, so the file has to use the name."""
 	parent_list = list(parent_refs)
 	if not parent_list:
 		return {}
 
 	name_map = {}
-	limit = len(parent_list)
 	for name in frappe.get_all(
 		doctype,
 		filters={"name": ("in", parent_list)},
 		pluck="name",
-		limit=limit,
+		limit=len(parent_list),
 	):
 		name_map[name] = name
 
 	if alias_field:
+		names_by_alias = {}
 		for row in frappe.get_all(
 			doctype,
 			filters={alias_field: ("in", parent_list)},
 			fields=["name", alias_field],
-			limit=limit,
 		):
-			name_map[cstr(row[alias_field]).strip()] = row.name
+			names_by_alias.setdefault(cstr(row[alias_field]).strip(), []).append(row.name)
+
+		for alias, names in names_by_alias.items():
+			if len(names) == 1:
+				name_map.setdefault(alias, names[0])
 
 	return name_map
 
