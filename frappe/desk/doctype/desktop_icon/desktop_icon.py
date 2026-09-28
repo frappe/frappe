@@ -395,7 +395,7 @@ def create_desktop_icons_from_installed_apps():
 			continue
 
 		app_details = frappe.get_hooks("add_to_apps_screen", app_name=a)
-		if not frappe.db.exists("Desktop Icon", [{"icon_type": "App"}, {"app": a}]):
+		if not frappe.db.exists("Desktop Icon", {"icon_type": "App", "app": a}):
 			if len(app_details) != 0:
 				icon = frappe.new_doc("Desktop Icon")
 				icon.label = app_title
@@ -405,7 +405,9 @@ def create_desktop_icons_from_installed_apps():
 				icon.app = a
 				icon.link = app_details[0]["route"]
 				icon.logo_url = app_details[0]["logo"]
-				if not frappe.db.exists("Desktop Icon", [{"label": icon.label, "icon_type": icon.icon_type}]):
+				# `label` is the docname, so an icon of any type already holding it (India
+				# Compliance ships a Folder named after its app) would fail the insert.
+				if not frappe.db.exists("Desktop Icon", icon.label):
 					icon.save()
 				index += 1
 

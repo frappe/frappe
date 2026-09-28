@@ -22,6 +22,7 @@ import frappe
 from frappe.desk.doctype.desktop_icon.desktop_icon import (
 	add_workspace_to_desktop,
 	clear_desktop_icons_cache,
+	create_desktop_icons_from_installed_apps,
 	get_desktop_icons,
 	import_desktop_icon_fixtures,
 )
@@ -70,7 +71,7 @@ def desktop_page(page: str):
 
 
 @contextmanager
-def shipped_icon_fixture(app: str = "frappe"):
+def shipped_icon_fixture(app: str = "frappe", **fields):
 	"""An app shipping one icon fixture, for the length of the test.
 
 	It is written to disk rather than mocked, because the import reads the app's folder and the
@@ -98,6 +99,7 @@ def shipped_icon_fixture(app: str = "frappe"):
 					"modified": "2026-01-01 00:00:00.000000",
 					"name": SHIPPED,
 					"standard": 1,
+					**fields,
 				}
 			)
 		)
@@ -288,6 +290,44 @@ class TestTheFlagIsWhatSeedsTheGrid(IconGridTestCase):
 				self.flip(DESKTOP_ICONS)
 
 			self.assertEqual(frappe.db.count("Desktop Icon"), seeded)
+
+
+class TestAnAppGetsOneIcon(IconGridTestCase):
+	"""An app's own icon is found by its `app`, not by a label that has to equal `app_title`.
+
+	Apps ship App icons under labels of their own (lms ships "Frappe Learning" with the title
+	"Learning"), and an icon of another type can hold the title as its name (India Compliance ships
+	a Folder called "India Compliance").
+
+	"""
+
+	def app_icons(self, app: str = "frappe") -> list[str]:
+		return frappe.get_all("Desktop Icon", filters={"icon_type": "App", "app": app}, pluck="name")
+
+	def test_an_app_shipping_its_own_icon_is_not_given_a_second(self):
+		with desktop_page(DESKTOP_ICONS):
+			self.make_icon(SHIPPED, icon_type="App", app="frappe")
+
+			create_desktop_icons_from_installed_apps()
+
+			self.assertEqual(self.app_icons(), [SHIPPED])
+
+	def test_an_app_title_held_by_another_icon_does_not_abort_the_seeding(self):
+		app_title = frappe.get_hooks("app_title", app_name="frappe")[0]
+		with desktop_page(DESKTOP_ICONS):
+			self.make_icon(app_title, icon_type="Folder", app="frappe")
+
+			create_desktop_icons_from_installed_apps()
+
+			self.assertEqual(frappe.db.get_value("Desktop Icon", app_title, "icon_type"), "Folder")
+			self.assertEqual(self.app_icons(), [])
+
+	def test_switching_to_the_grid_does_not_add_a_second_icon_for_an_app_that_ships_one(self):
+		"""The shipped rows have to land before the generator looks for them."""
+		with desktop_page(DESKTOP_ICONS), shipped_icon_fixture(icon_type="App"):
+			seed_desktop_icons()
+
+			self.assertEqual(self.app_icons(), [SHIPPED])
 
 
 class TestTheGridWorksExactlyAsItDoesToday(IconGridTestCase):

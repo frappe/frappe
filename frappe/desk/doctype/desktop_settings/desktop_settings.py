@@ -48,20 +48,21 @@ class DesktopSettings(Document):
 
 
 def seed_desktop_icons():
-	"""Fill a freshly switched-on grid: generated rows, then every app's shipped ones.
+	"""Fill a freshly switched-on grid: every app's shipped rows, then generated ones.
 
 	This exists only while the flag has two settings; see `frappe/desk/RETIRING.md`.
 
 	Both producers are idempotent, skipping an icon that already exists, so repeated switches
-	accumulate nothing.
+	accumulate nothing. The shipped rows go first because the generator skips an app that
+	already has an icon, and would otherwise add a second one next to the app's own.
 	"""
 	from frappe.desk.doctype.desktop_icon.desktop_icon import (
 		create_desktop_icons,
 		import_desktop_icon_fixtures,
 	)
 
-	create_desktop_icons()
 	import_desktop_icon_fixtures()
+	create_desktop_icons()
 
 	# Anyone who booted between the save and this job cached an empty grid, and the rows
 	# themselves clear nothing useful: a generated icon is not `standard`, so its own `on_update`
