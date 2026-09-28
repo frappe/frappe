@@ -36,7 +36,8 @@ static import or a direct call. A lower layer may run a function that a higher l
 registered with it, such as a script's handler or a page's save. That is a callback, not
 a break: the lower layer owns the contract, and the higher layer fills it.
 
-Code in the browser reaches the server only through HTTP, under `/api/v2`.
+Browser code reaches server code only through `/api/v2` requests and the realtime socket.
+The HTML page, the JS files and the icon sprite are static files.
 
 | # | Layer | Holds | Where | May use |
 | --- | --- | --- | --- | --- |
@@ -59,8 +60,7 @@ Two things sit outside the nine layers:
   and nothing imports it. It is the only file that may use every layer.
 - **The build sits beside them.** It reads app folders and writes the registry file and
   the import map. The running desk never imports it. The build is `frontend/plugin/`,
-  `frontend/vite.config.js`, `frappe/bundler.py`, the manifest code the bundler needs,
-  and `ui/vite/`.
+  `frontend/vite.config.js`, `frappe/bundler.py`, and the manifest code the bundler needs.
 
 ### `ui/` stands on its own
 
@@ -72,12 +72,13 @@ data, or record page words.
 - **The desk passes in what only the desk has**: the session, the CSRF token, the socket,
   upload limits, and the invite address. `ui/` works, with a sensible default, when an
   app passes none of them.
-- **Judge `ui/` by what it exports**, not by what the desk imports. No app uses `ui/`
-  yet, but apps will. "No app uses it today" is never a reason to cut or change something
-  in `ui/`.
-- **The public surface is the root index and the named subpaths** in `ui/package.json`.
-  The `"./*"` entry stays for now, so any file can still be imported. A deep import
-  carries no promise.
+- **Judge `ui/` by what it exports**, not by what the desk imports. "No app uses it
+  today" is never a reason to cut or change something in `ui/`.
+- **The concept lists use the root index and the named subpaths** in `ui/package.json`.
+  The `"./*"` entry stays for now, so any file can still be imported. No export carries a
+  promise yet. The @framework/ui map decides the public surface.
+- **`ui/` has its own tools for apps**: `ui/vite`, the vite plugin for an app that uses
+  `@framework/ui`, and `ui/island`. They are not part of the desk build.
 
 ### Why the record page engine and the pages are two layers
 
@@ -93,7 +94,8 @@ API, a store, a cache, a registration point, a hook, a lifecycle event, a DocTyp
 route only desk v2 uses. A helper used by one file is not a concept. A family of names
 learned together is one row.
 
-Rows marked *new* do not exist in code yet. An accepted cut or a `ui/` change adds them.
+Rows marked *new* do not exist in code yet. Rows marked *changed* exist, but an accepted
+cut or a `ui/` change reshapes them.
 
 ### 1. Framework server
 
@@ -176,7 +178,7 @@ The list is what `ui/` exports from its root index and from `@framework/ui/api`.
 | Session store (`useSession`, `setSession`, `provideSession`, `currentSession`, `SessionKey`) | One shared session. The desk passes its own; `ui/` fetches one only when none is passed |
 | Doctype meta store (`useDoctypeMeta`, `DoctypeMeta`) | Fetches and holds each doctype's meta. Clears itself on `doctype_update` |
 | Scoped registry (`setScoped`) | Overrides a map entry for one Vue scope |
-| Socket input | *New shape.* The app hands `ui/` its socket, and `ui/` joins record rooms on it. `ui/` warns when there is none |
+| Socket input | *Changed.* The app hands `ui/` its socket, and `ui/` joins record rooms on it. `ui/` warns when there is none |
 | Translate function | *New.* `ui/`'s own `__`, which works without the desk's boot version |
 
 The desk also imports about 20 files by path, for example `useDocPermissions`,
@@ -194,9 +196,9 @@ component group, with its main names.
 | Layout building (`buildLayoutFromMeta`, `compose`, `Decorator`, `fieldsToLayout`, `resolveLayout`, `evaluateDependsOn`) | Turns meta fields into a layout tree, and applies depends-on, hidden and overrides for one document |
 | Child rows (`useChildRowModel`, `newRowValues`) | The rows of a child table field, and a new row's default values |
 | Value formatting (`formatField`, `formatNumber`, `formatCurrency`, `flt`, `getFormatDefaults`, `setFormatDefaults`) | Formats numbers, currency and dates for display |
-| Field types (`@framework/ui/fields`: `registerFieldType`, `getFieldComponent`, `useFieldTypes`) | Maps a fieldtype to the component that draws it |
+| Field types (`registerFieldType`, `getFieldComponent`; `useFieldTypes` from `FormLayout`) | Maps a fieldtype to the component that draws it |
 | Form keys (`DocKey`, `ParentDocKey`, `UpdateKey`, `LinkTitlesKey`) | How a field reads the document, writes a value, and shows link titles |
-| Change reports | How a form tells its host that a value or a child row changed. Optional: a form works without a host |
+| Change reports | *Changed.* What replaces `CommitKey` once the commit channel moves to `frontend/`. How a form tells its host that a value or a child row changed. Optional: a form works without a host |
 | `Link`, `Grid`, `Phone`, `TableMultiSelect` | Field controls with their own pickers and tables |
 | `ActivityTimeline` (`@framework/ui/ActivityTimeline`: `ActivityTimeline`, `useActivityTimeline`, `reloadActivityTimeline`, `addPendingActivity`, `compareActivities`) | A record's activity feed, its row types, and one listener per record room for feed rows and docinfo |
 | `Composer` (`@framework/ui/Composer`: `CommentComposer`, `EmailComposer`) | Comment and email editors, and the payload each sends |
@@ -225,7 +227,7 @@ component group, with its main names.
 | Module contents (`fetchContents`, `useContents`, `ContentEntry`) | What a module holds, filtered for the user |
 | Translations (`loadTranslations`, `__`, `__n`) | Fetch the messages at start, and translate a string or a plural |
 | Icons (`Icon`, the sprite) | One SVG sprite, loaded once, and the component that draws a symbol or an emoji |
-| Latest reply wins | *New.* One helper for every "only the newest answer counts" guard |
+| Latest reply wins | *New.* One helper for the desk's "only the newest answer counts" guards. `ui/` keeps its own, because it may not use this layer |
 | Per-user browser memory | *New.* One helper for every value kept in browser storage for one user |
 | `virtual:frappe/contributions` | The build's index of every app's contributed files |
 | Contributions (`Contributions`, `DoctypeContribution`, `RecordHandlers`) | Everything an app may add: doctype handlers, pages, item kinds, replacements |
@@ -286,7 +288,7 @@ component group, with its main names.
 | `Surface` | A list surface records a script's acts and replays them over the built-ins |
 | Staging | Acts wait during a replay and appear at one commit |
 | Paint gate | When the page first paints, how a late `onRefresh` lands, and the one repaint for background reads on a return visit |
-| Held acts | *New shape.* One queue of script acts (open, close, tab, focus) that runs after the commit |
+| Held acts | *Changed.* One queue for the acts a script asks for during a replay (open, close, tab, focus, scroll). They run after the commit |
 | Commit channel | Turns a field change into a handler key (`qty`, `items.qty`, `items.onAdd`) and runs it |
 | Field and form tab overlays | Changes keyed by fieldname or tab identity |
 | Header projection | Turns the header list into two zones, nesting and overflow |
@@ -301,7 +303,7 @@ component group, with its main names.
 | Row handles | Child row handles that find their row again, and refuse once it is gone |
 | Feed surfaces | The engine behind `page.activity` and `page.files` |
 | Composer surface (`ComposerHost`) | `page.composer`, over a host that owns the composer state |
-| Icon and prop hooks (`setIconSource`, `setDrawnProps`) | The record page hands the engine an icon lookup and frappe-ui's prop names when it registers |
+| Icon and prop hooks (`setIconSource`, `setDrawnProps`) | The record page hands the engine an icon lookup and frappe-ui's `Button` prop names when it registers. Both halves are one concept |
 
 ### 8. Pages
 
@@ -336,7 +338,7 @@ component group, with its main names.
 | Panel disclosure | Which panel sections are open |
 | Built-in actions | Framework quick actions and menu rows, offered by right |
 | Composer host (`composerHost`, `openWriterContext`) | Joins `page.composer` to the shell's composer, and gives a writer its record |
-| Writers | *New shape.* One pipeline for the comment and email writers and their drafts |
+| Writers | *Changed.* One pipeline for the comment and email writers and their drafts |
 | Body columns | Column widths and collapse, per user |
 | Form tab memory | The last form tab per doctype, per user |
 | Dock height | The docked composer's height, per user |
@@ -379,7 +381,7 @@ the reference for each `page` member.
 | `vue`, `vue-router`, `frappe-ui` | The framework's shared packages |
 | `@framework/ui` | All of `ui/` while the `"./*"` entry stays |
 | `frappe/i18n` | `__` and `__n` |
-| Desk names | `routeFor`, `routeForModule`, `urlFor`, `RouteOptions`, `isModular`, `ContentEntry` |
+| Desk names | `routeFor`, `routeForModule`, `urlFor`, `RouteOptions`, `isModular`, `ContentEntry`. App files import them from `@shell` today; stored scripts cannot. The one module name is for Build and publishing to choose |
 | App names | Names an app publishes through its `import_map` hook |
 
 A script reaches the rest of the desk only through the `page` object it is handed.
@@ -400,17 +402,16 @@ A script reaches the rest of the desk only through the `page` object it is hande
 | `build_shell` | `bench build` writes the manifest, installs packages if needed, builds once, and swaps the output in |
 | One vite config | One build for all apps, served at `/assets/frappe/frontend/` |
 | Aliases (`@/`, `@shell`) | `@/` is private to the framework; `@shell` gives app files the desk names |
-| Manifest | The apps that add to the desk, their folders and packages. Moves here from `frappe/shell/` |
+| Manifest | The apps that add to the desk, their folders and packages. The part the bundler needs moves here from `frappe/shell/` |
 | Shared packages (singletons) | Packages every app must share one copy of. A conflict stops the build |
 | `desk.package.json` | An app's declared frontend packages, merged into one `package.json` and lockfile |
 | Contribution layout and discovery | The file paths that count as contributions, and the walk that finds them |
 | Replacement pages (`pages.json`) | A doctype's `pages.json` replaces its standard list or record page |
 | Page clash warnings | Warns when a page slug equals a doctype or module slug |
-| One tree | An app's bare imports resolve from the framework's `node_modules`, only if declared |
+| Shared `node_modules` | An app's bare imports resolve from the framework's `node_modules`, only if the app declares them |
 | Import map | Points each name on the import list at a built file |
 | `classes.json` | Every CSS class the build defines |
 | Tailwind presets and content | Each app's theme preset, and the folders Tailwind reads |
-| `ui/vite` | The vite plugin for apps that use `@framework/ui` |
 
 ## The five flows
 
@@ -432,7 +433,7 @@ numbers. Every flow is also counted in files per flow and in timing guards.
 | 4 | The server builds boot: core keys, session, `metadata_version`, prefix map, and the rail and sidebars filtered for the user | 2, 1 | App permission; each navigation row filtered by readable doctypes, modules and pages | Session in Redis by session id; `metadata_version` and prefix map in the site cache; navigation not cached |
 | 5 | Translations and the icon sprite start, not awaited | 5 | None | HTTP cache, 1 year, by language and translation version. The sprite is a static file |
 | 6 | The address table loads, awaited | 5, 3, 2 | The user may enter at least one app | One server cache key, checked against `metadata_version`. HTTP cache, 1 year, by `metadata_version` |
-| 7 | `main.ts` registers the standard pages. Contributions register item kinds, app pages, replacements and handlers. The record page registers its icon and prop hooks | 5, 7 | None | Browser memory, by item kind, by address kind and doctype, by doctype |
+| 7 | `main.ts` registers the standard pages. Contributions register item kinds, app pages, replacements and handlers. The record page registers its icon and prop hooks | 5, 7, 8 | None | Browser memory, by item kind, by address kind and doctype, by doctype |
 | 8 | The router is built from boot, addresses and page registrations | 6 | None. The router checks only that an address names a known doctype | Browser memory |
 | 9 | The socket opens and is handed to `ui/`. The desk hands `ui/` its session. Each cache of site data listens for `doctype_update` itself | 6, 3 | Realtime server: the user room; the site room for System Users only; each document room by read permission | Session store in browser memory |
 | 10 | The shell draws the rail and sidebar, before any page code arrives. Each row is drawn by its kind's renderer | 6, 5 | **Browser**: none; the rows were filtered in step 4 | Per-user browser memory: open sections, collapsed sidebar. Sidebar memory per tab, by address and user |
@@ -440,7 +441,8 @@ numbers. Every flow is also counted in files per flow and in timing guards.
 
 **Budget:** first paint time; boot size; `get_boot` time on the server; no request sent
 twice; layout shift; the shell drawn before the page's code arrives; a change on screen
-soon after any click.
+soon after any click. For Home: on a cold load, time until usable, request count and JS
+size; on a return visit, skeleton frames and time until usable.
 
 ### Open a list: sidebar click to rows painted
 
@@ -448,7 +450,7 @@ soon after any click.
 | --- | --- | --- | --- | --- |
 | 1 | A sidebar row's link, built with `routeFor`, is clicked | 6, 5 | None | None |
 | 2 | The router checks the slug against the address table | 6 | None: an address check, not a permission check | Browser memory |
-| 3 | The address and the frame change at once. The page shows its skeleton while the registered page's code loads | 6 | None | Loaded pages in browser memory |
+| 3 | The address and the frame change at once. The page shows its skeleton while the registered page's code loads. The shell picks the sidebar for the new address | 6 | None | Loaded pages in browser memory. Sidebar memory per tab, by address and user |
 | 4 | The list page asks for the doctype's meta. Roles come from the session | 7, 3 | Any signed-in user | Browser memory, by doctype; cleared on `doctype_update` |
 | 5 | The list loads its saved settings (the site row and the user's row) and works out columns, sort and quick filters | 7, 3 | Read on the doctype; System Manager for the site row. **Browser**: columns on fields the user cannot read are dropped | Browser memory, by doctype; cleared on `doctype_update` |
 | 6 | The rows are read, with the count on the first page | 7, 3, 1 | Doctype read, row rules and field permissions in the query | Data cache, by doctype and query. Rows memory, by doctype. Page size and scroll in the history entry |
@@ -463,7 +465,7 @@ skeleton frames, time until usable, re-reads.
 | --- | --- | --- | --- | --- |
 | 1 | The row link goes through the same router steps as the list. The frame changes at once | 6 | None | Loaded pages in browser memory |
 | 2 | The record page starts a visit: skeletons, the last form tab, and the record's room | 8, 3 | Realtime server: read permission on the room | Per-user browser memory: form tab by doctype |
-| 3 | In parallel, the script loader starts (see the last flow) and the two form layouts load | 7, 3 | Layouts: read on the doctype | Scripts by doctype; layouts by doctype and type; both cleared on `doctype_update` |
+| 3 | In parallel, the script loader starts (see the last flow) and the two form layouts load | 7, 3 | Layouts: read on the doctype | Scripts by doctype, dropped on `client_script_changed`; layouts by doctype and type, cleared on `doctype_update` |
 | 4a | Return visit: if memory holds every part the visit needs, the page paints from memory at once, then re-reads. Background reads land in one repaint | 8, 3 | None before the paint. The re-read carries the server check. A refusal shows the "no permission" page state | Data cache, by doctype and name |
 | 4b | First visit: the activity read starts beside the record read | 8, 3 | Read permission on the record | Activity store, by record |
 | 5 | The record is read with its parts and meta, and goes into the data cache | 8, 3, 1 | Read permission and field-level read rules | Data cache, by doctype and name; meta by doctype |
@@ -510,23 +512,35 @@ that copy in the same tab, and the page shows "no permission" once the server re
 ## Where the code is not there yet
 
 Each row is a place where today's code breaks this file. The PR that closes a row
-removes it.
+removes it. The owner is the map that builds the change, as the target architecture
+ruled. The hand-off ticket that files each cut on its map can change an owner.
+
+| Owner | What it covers |
+| --- | --- |
+| One page model ([#43265](https://github.com/frappe/frappe/issues/43265)) | The record page's runtime: the engine, `Record.vue`, the script loader |
+| Return visits ([#43276](https://github.com/frappe/frappe/issues/43276)) | Painting a record or list from memory on a return visit |
+| Activity column ([#42758](https://github.com/frappe/frappe/issues/42758)) | The activity feed, the composer and its writers |
+| Build and publishing ([#43085](https://github.com/frappe/frappe/issues/43085)) | The build, `main.ts`, contributions and the import list |
+| @framework/ui ([#42660](https://github.com/frappe/frappe/issues/42660)) | Everything in `ui/` |
+| New map | The shell, the list, the router and the server routes. Not created yet |
 
 **Layer breaks and moves**
 
 | Today | Target | Owner |
 | --- | --- | --- |
 | `get_url_to_form` in `frappe/utils/data.py` imports `frappe/shell/links.py`, and there are two record address builders | One record address builder in layer 1 | New map for the shell, list, router and server routes |
-| `frappe/bundler.py` imports `frappe/shell/manifest.py` | The manifest code the bundler needs moves into the build | New map |
+| `frappe/bundler.py` imports `frappe/shell/manifest.py` | The manifest code the bundler needs moves into the build | Build and publishing |
 | The shell page renderer is in `frappe/website/page_renderers/` and imports `frappe/shell/` | It moves into `frappe/shell/`, found through the `page_renderer` hook | New map |
 | `routeFor` is in `router/` and the item contract is in `navigation/types.ts` | Both move to layer 5 | New map |
-| `contributions/registry.ts` imports `@/recordPage` to hand over record handlers | The script loader reads the registry | One page model |
+| `contributions/registry.ts` imports `@/recordPage` to hand over record handlers | The registry no longer imports the engine | Build and publishing |
 | `shell/ComposerWindow.vue` imports the writers from `pages/record/composer/`; `shell/composer.ts` imports types from `@/recordPage` | The record page registers its writers | Activity column |
 | `shell/doctypeUpdates.ts` imports the layout and list settings caches | Each cache clears itself on `doctype_update` | Build and publishing |
 | `router/generated.ts` and `router/standardPages.ts` import the pages | The router reads page registrations | New map |
 | `main.ts` sets the record page's icon and prop hooks | The record page sets them when it registers | Build and publishing |
 | `useSession`, `useDoctypeMeta`, `useDocPermissions` and `useUserRoles` sit in the component layer | They move to `ui` data | @framework/ui |
 | Two import lists: the `import_map` hook for stored scripts, `@shell` for app files | One import list | Build and publishing |
+| `useDoctypeMeta` imports a type from `components/FormLayout` | `ui` data uses nothing in `ui` components | @framework/ui |
+| `ui/src/api` and `ui/src/cache` import each other | The cache does not import the request code | @framework/ui |
 
 **Concepts that change**
 
@@ -548,7 +562,7 @@ removes it.
 | The editor loads to show saved comments | Cleaned HTML; the editor loads to write | Activity column |
 | The list's column and sort panels load with the list | They load when opened | New map |
 | The tombstone code in `recordPage/pageCompatibility.ts` for an empty list | Gone; the rule stays in `COMPATIBILITY.md` | One page model |
-| Dead code: `resolveDoctype`, `currentNavigation`, `forgetRows`, `clear_address_table`, `clear_doctype_owners`, `setDocValueReader`, `reloadClientScripts`, a second loader in `useFormLayout.ts` | Gone | New map |
+| Dead code: `resolveDoctype`, `currentNavigation`, `forgetRows`, `clear_address_table`, `clear_doctype_owners`, `setDocValueReader`, `reloadClientScripts`, the unused `scope` in `arrangement.ts`, a second loader in `useFormLayout.ts` | Gone | New map |
 | The currency lookup keeps its own map that never refreshes | It reads the data cache | Return visits |
 
 **Where `ui/` does not stand on its own yet.** The @framework/ui map owns each row.
