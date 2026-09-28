@@ -2,6 +2,7 @@ import router from "@/router/studio_router"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import blockController from "@/utils/blockController"
+import { copyBlockStyles } from "@/utils/blockCopyPaste"
 import { openInDesk, openPageInDesk } from "@/utils/helpers"
 import { nextTick } from "vue"
 
@@ -254,6 +255,19 @@ registerCommand({
 	action: () => {
 		if (!blockController.isAnyBlockSelected() || blockController.multipleBlocksSelected()) return
 		blockController.getSelectedBlocks()[0].duplicateBlock()
+	},
+})
+
+registerCommand({
+	name: "copy-block-styles",
+	title: "Copy Block Styles",
+	icon: "lucide-clipboard-copy",
+	group: "Edit",
+	inPalette: false,
+	keys: { combo: "Mod+Shift+C", description: "Copy Block Styles" },
+	action: () => {
+		if (!blockController.isAnyBlockSelected() || blockController.multipleBlocksSelected()) return
+		copyBlockStyles(blockController.getSelectedBlocks()[0])
 	},
 })
 

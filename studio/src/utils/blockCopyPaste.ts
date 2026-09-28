@@ -1,4 +1,5 @@
 import { dialog, toast, call } from "frappe-ui"
+import { useStorage } from "@vueuse/core"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore from "@/stores/codeStore"
@@ -14,7 +15,7 @@ import PasteWarningToast from "@/components/PasteWarningToast.vue"
 import { getBlockCopy, getBlockCopyWithoutParent, getBlockInstance, isJSONString } from "@/utils/serializer"
 import { setClipboardData } from "@/utils/helpers"
 import Block from "@/utils/block"
-import type { BlockOptions } from "@/types"
+import type { BlockOptions, BlockStyles } from "@/types"
 
 const CLIPBOARD_FORMAT = "studio-copied-blocks"
 const CLIPBOARD_PREFIX = `${CLIPBOARD_FORMAT}:`
@@ -480,4 +481,25 @@ function insertBlocks(blocks: BlockOptions[]): (() => void) | undefined {
 		insertedBlocks.forEach((block) => block.deleteBlock())
 		canvas.clearSelection()
 	}
+}
+
+// styles
+
+const copiedStyle = useStorage<{ componentId: string; styles: BlockStyles | null }>(
+	"studio-copied-style",
+	{ componentId: "", styles: null },
+	sessionStorage,
+)
+
+export function copyBlockStyles(block: Block) {
+	copiedStyle.value = { componentId: block.componentId, styles: block.getStylesCopy() }
+}
+
+export function canPasteStylesTo(block: Block) {
+	return Boolean(copiedStyle.value.styles) && copiedStyle.value.componentId !== block.componentId
+}
+
+export function pasteBlockStyles(block: Block) {
+	if (!canPasteStylesTo(block)) return
+	block.updateStyles(copiedStyle.value.styles!)
 }
