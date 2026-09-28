@@ -171,7 +171,7 @@
 		</Dialog>
 		<PasteConflictDialog />
 		<StudioCommandPalette />
-		<KeyboardShortcutsDialog v-model:open="store.showShortcutsDialog" />
+		<KeyboardShortcutsDialog v-model:open="store.showShortcutsDialog" :search-threshold="0" />
 	</div>
 </template>
 
