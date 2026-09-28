@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.data_import.data_import import DataImport
+from frappe.core.doctype.data_import.import_provider import ImportProvider
 from frappe.core.doctype.data_import.importer import (
 	ACTION_INSERT,
 	ACTION_UPDATE,
@@ -14,6 +15,7 @@ from frappe.core.doctype.data_import.importer import (
 	_get_tree_node_key,
 	_parse_number,
 	build_fields_dict_for_column_matching,
+	create_import_log,
 	get_tree_alias_fieldname,
 	uses_tree_alias_references,
 )
@@ -55,6 +57,35 @@ def _register_data_import_cleanup(test_case, data_import):
 
 def _register_file_cleanup(test_case, file_doc):
 	test_case.addCleanup(_delete_file, file_doc.name)
+
+
+class RecordingImportProvider(ImportProvider):
+	def get_import_fields(self):
+		return {
+			"fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data", "reqd": 1}],
+			"child_tables": [],
+		}
+
+	def import_row(self, importer, doc):
+		record = frappe.new_doc(importer.doctype)
+		record.update(doc)
+		record.description = "created by provider"
+		record.insert()
+		return record, None
+
+
+class RejectingImportProvider(RecordingImportProvider):
+	def validate(self, import_file):
+		return [{"row": import_file.data[0].row_number, "message": "Rejected by provider"}]
+
+
+class UnsafeMessageImportProvider(RecordingImportProvider):
+	def validate(self, import_file):
+		return [{"row": 2, "message": "<b>Bad</b> row <script>alert(1)</script>", "type": "info"}]
+
+
+def _provider_hooks(provider):
+	return {"data_import_providers": {doctype_name: [f"{__name__}.{provider.__name__}"]}}
 
 
 class TestImporter(IntegrationTestCase):
@@ -338,6 +369,60 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(len(import_logs), 1)
 		self.assertEqual(import_logs[0].import_action, ACTION_UPDATE)
 
+	def test_retry_after_timed_out_clears_failed_logs(self):
+		self.addCleanup(_delete_doctype_records, doctype_name, SAMPLE_IMPORT_DOC_NAMES)
+		for name in SAMPLE_IMPORT_DOC_NAMES:
+			frappe.delete_doc_if_exists(doctype_name, name)
+		frappe.db.commit()  # nosemgrep
+
+		import_file = get_import_file("sample_import_file")
+		data_import = self.get_importer(doctype_name, import_file)
+
+		# "Test" carries a second child-table row, so its payload spans sheet rows 2-3;
+		# "Test 2" is row 4 and "Test 3" is row 5. Seed a previous attempt that imported
+		# "Test" and "Test 3" but failed on "Test 2" before timing out.
+		for name in ("Test", "Test 3"):
+			frappe.get_doc({"doctype": doctype_name, "title": name}).insert()
+		frappe.db.commit()  # nosemgrep
+
+		create_import_log(
+			data_import.name,
+			0,
+			{"success": True, "docname": "Test", "row_indexes": [2, 3]},
+		)
+		create_import_log(
+			data_import.name,
+			1,
+			{
+				"success": False,
+				"row_indexes": [4],
+				"messages": [{"message": "Previous attempt timed out"}],
+			},
+		)
+		create_import_log(
+			data_import.name,
+			2,
+			{"success": True, "docname": "Test 3", "row_indexes": [5]},
+		)
+		frappe.db.commit()  # nosemgrep
+		data_import.db_set("status", "Timed Out")
+
+		i = Importer(data_import.reference_doctype, data_import=data_import)
+		i.import_data()
+		data_import.reload()
+
+		self.assertEqual(data_import.status, "Success")
+		self.assertTrue(frappe.db.exists(doctype_name, "Test 2"))
+
+		import_logs = frappe.get_all(
+			"Data Import Log",
+			fields=["success", "row_indexes"],
+			filters={"data_import": data_import.name},
+			order_by="log_index",
+		)
+		self.assertEqual(len(import_logs), 3)
+		self.assertFalse(any(not log.success for log in import_logs))
+
 	def test_get_import_status_upsert_counts(self):
 		existing_doc = frappe.get_doc(
 			doctype=doctype_name,
@@ -383,6 +468,16 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(status["success"], 2)
 		self.assertEqual(status["total_records"], 2)
 
+		from frappe.core.doctype.data_import.data_import import get_import_logs
+
+		all_logs = get_import_logs(data_import.name, status="all")
+		success_logs = get_import_logs(data_import.name, status="success")
+		failed_logs = get_import_logs(data_import.name, status="failed")
+		self.assertEqual(len(all_logs), 2)
+		self.assertEqual(len(success_logs), 2)
+		self.assertEqual(len(failed_logs), 0)
+		self.assertTrue(all(log.success for log in success_logs))
+
 	def test_mapped_select_still_shows_warning_but_unmapped_blocks_import(self):
 		from frappe.core.doctype.data_import.value_mapping import (
 			build_lookup_from_mappings,
@@ -411,7 +506,10 @@ class TestImporter(IntegrationTestCase):
 		self.assertIn("Opn", col.warnings[0]["message"])
 		self.assertIn("Pasiv", col.warnings[0]["message"])
 		self.assertIn("is not valid", col.warnings[0]["message"])
-		self.assertIn("row 3 · Allowed:", col.warnings[0]["message"])
+		message = col.warnings[0]["message"]
+		self.assertIn("row 3", message)
+		# "Allowed:" renders on its own line below the last row-numbers line
+		self.assertLess(message.index("row 3"), message.index("Allowed:"))
 		unmapped = get_unmapped_invalid_values_for_column(col, value_lookup, "Contact")
 		self.assertEqual(len(unmapped), 1)
 		self.assertEqual(unmapped[0]["source"], "Opn")
@@ -501,12 +599,12 @@ class TestImporter(IntegrationTestCase):
 		df = frappe._dict(fieldname="status", parent="Contact")
 		self.assertEqual(resolve_import_value(" Pasiv ", df, "Contact", lookup), "Passive")
 
-	def test_no_of_rows_count_returns_row_count(self):
-		from frappe.core.doctype.data_import.value_mapping import no_of_rows_count
+	def test_row_count_label_returns_row_count(self):
+		from frappe.core.doctype.data_import.value_mapping import row_count_label
 
-		self.assertEqual(no_of_rows_count([]), "")
-		self.assertEqual(no_of_rows_count([3]), "1")
-		self.assertEqual(no_of_rows_count([2, 3, 4]), "3")
+		self.assertEqual(row_count_label([]), "")
+		self.assertEqual(row_count_label([3]), "1")
+		self.assertEqual(row_count_label([2, 3, 4]), "3")
 
 	def test_format_row_numbers_for_warning_truncates_long_lists(self):
 		from frappe.core.doctype.data_import.importer import format_row_numbers_for_warning
@@ -516,6 +614,13 @@ class TestImporter(IntegrationTestCase):
 			format_row_numbers_for_warning([2, 3, 4, 5, 6, 7, 8, 9, 100]),
 			"2, 3, 4, 5, 6, 7, ... 100",
 		)
+
+	def test_get_value_row_map_groups_rows_by_value(self):
+		from frappe.core.doctype.data_import.importer import get_value_row_map
+
+		value_rows = get_value_row_map(["Open", "Closed", None, "Open", 5, "Open"], [4, 2, 3, 2, 6, 4])
+		self.assertEqual(value_rows, {"Open": [2, 4], "Closed": [2], "5": [6]})
+		self.assertEqual(list(value_rows), ["Open", "Closed", "5"])
 
 	def test_link_validation_ignores_header_row_when_not_on_first_line(self):
 		"""Leading blank rows must not treat the header line as data (e.g. Gender → row 3)."""
@@ -588,6 +693,87 @@ class TestImporter(IntegrationTestCase):
 		expected_id_key = "ID (table_field_1)"
 		self.assertIn(expected_id_key, fields_dict, "ID fallback failed")
 		table_field.label = original_label  # maintain sanity in test env
+
+	def test_invalid_link_and_select_values_warn_once_per_column(self):
+		import tempfile
+
+		from frappe.core.doctype.data_import.importer import ImportFile
+		from frappe.core.doctype.data_import.value_mapping import get_blocking_warnings
+
+		with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False) as f:
+			f.write("Description,Status,Allocated To\n")
+			for i in range(3):
+				f.write(f"Task {i},Bogus,nobody@example.com\n")
+		import_file = ImportFile("ToDo", f.name, import_type="Insert New Records", console=True)
+		# Row warnings are only raised while rows are parsed into documents.
+		import_file.get_payloads_for_import()
+		warnings = import_file.get_warnings()
+
+		self.assertEqual([w for w in warnings if w.get("row")], [])
+		mapping_warnings = [w for w in warnings if w.get("type") == "value_mapping"]
+		self.assertEqual(len(mapping_warnings), 2)
+		self.assertEqual(len(get_blocking_warnings(warnings, import_file)), 2)
+
+		all_rows_skipped = frappe._dict(
+			name="skip-test", skipped_rows=[frappe._dict(row_number=row) for row in (2, 3, 4)]
+		)
+		self.assertEqual(get_blocking_warnings(warnings, import_file, all_rows_skipped), [])
+
+	def test_stop_import_without_job_marks_error(self):
+		from frappe.core.doctype.data_import.data_import import stop_data_import
+
+		data_import = self.get_importer(doctype_name, get_import_file("sample_import_file"))
+		data_import.db_set("status", "In Progress")
+
+		response = stop_data_import(data_import.name)
+
+		self.assertEqual(response["status"], "not_running")
+		self.assertEqual(frappe.db.get_value("Data Import", data_import.name, "status"), "Error")
+
+	def test_import_provider_creates_the_records(self):
+		_delete_doctype_records(doctype_name, SAMPLE_IMPORT_DOC_NAMES)
+		self.addCleanup(_delete_doctype_records, doctype_name, SAMPLE_IMPORT_DOC_NAMES)
+		data_import = self.get_importer(doctype_name, get_import_file("sample_import_file"))
+
+		with self.patch_hooks(_provider_hooks(RecordingImportProvider)):
+			data_import.start_import()
+
+		self.assertEqual(data_import.reload().status, "Success")
+		for name in SAMPLE_IMPORT_DOC_NAMES:
+			self.assertEqual(frappe.db.get_value(doctype_name, name, "description"), "created by provider")
+
+	def test_import_provider_warning_messages_are_sanitised(self):
+		data_import = self.get_importer(doctype_name, get_import_file("sample_import_file"))
+
+		with self.patch_hooks(_provider_hooks(UnsafeMessageImportProvider)):
+			warnings = data_import.get_importer().import_file.get_warnings()
+
+		message = next(w["message"] for w in warnings if "Bad" in w["message"])
+		self.assertNotIn("<script", message)
+		self.assertIn("<b>Bad</b>", message)
+
+	def test_import_provider_warnings_block_the_import(self):
+		_delete_doctype_records(doctype_name, SAMPLE_IMPORT_DOC_NAMES)
+		self.addCleanup(_delete_doctype_records, doctype_name, SAMPLE_IMPORT_DOC_NAMES)
+		data_import = self.get_importer(doctype_name, get_import_file("sample_import_file"))
+
+		with self.patch_hooks(_provider_hooks(RejectingImportProvider)):
+			data_import.start_import()
+
+		data_import.reload()
+		self.assertEqual(data_import.status, "Pending")
+		self.assertIn("Rejected by provider", data_import.template_warnings)
+		self.assertFalse(frappe.db.exists(doctype_name, "Test"))
+
+	def test_get_import_fields_returns_provider_schema(self):
+		from frappe.core.doctype.data_import.data_import import get_import_fields
+
+		self.assertIsNone(get_import_fields(doctype_name))
+
+		with self.patch_hooks(_provider_hooks(RecordingImportProvider)):
+			self.assertEqual(get_import_fields(doctype_name), RecordingImportProvider().get_import_fields())
+			with self.set_user("Guest"):
+				self.assertRaises(frappe.PermissionError, get_import_fields, doctype_name)
 
 	def get_importer(self, doctype, import_file, update=False, use_sniffer=False, import_type=None):
 		data_import = frappe.new_doc("Data Import")
@@ -863,11 +1049,41 @@ class TestTreeDataImport(IntegrationTestCase):
 		payload_ids = [p.doc.node_name for p in imp.import_file.get_payloads_for_import()]
 		self.assertEqual(payload_ids, ["Root", "Division", "Leaf"])
 
+	def test_tree_parent_overrides_update_preview(self):
+		rows = [
+			("Root", "1", ""),
+			("Division", "1", "Root"),
+			("Leaf", "0", "Division"),
+		]
+		data_import = self._get_importer(self._make_csv_file(rows))
+
+		baseline = data_import.get_preview_from_template()
+		leaf = next(node for node in baseline.tree_preview.nodes if node.id == "Leaf")
+		self.assertEqual(leaf.parent, "Division")
+		self.assertEqual(leaf.orig_parent, "Division")
+
+		# Move Leaf under Root via the same JSON the wizard persists.
+		data_import.tree_parent_overrides = frappe.as_json({leaf.row_number: {"parent": "Root"}})
+		data_import.db_set("tree_parent_overrides", data_import.tree_parent_overrides)
+
+		preview = data_import.get_preview_from_template()
+		moved = next(node for node in preview.tree_preview.nodes if node.id == "Leaf")
+		self.assertEqual(moved.parent, "Root")
+		self.assertEqual(moved.orig_parent, "Division")
+		self.assertTrue(moved.edited)
+
+		# Import-time cell patch must follow the same override.
+		imp = Importer(self.doctype_name, data_import=data_import)
+		leaf_payload = next(p for p in imp.import_file.get_payloads_for_import() if p.doc.node_name == "Leaf")
+		meta = frappe.get_meta(self.doctype_name)
+		self.assertEqual(leaf_payload.doc.get(meta.nsm_parent_field), "Root")
+
 	def test_tree_import(self):
 		meta = frappe.get_meta(self.doctype_name)
 		parent_field = meta.nsm_parent_field
 
-		for name in ("Root", "Division", "Leaf"):
+		# Delete leaves before parents — NestedSet blocks deleting a node with children.
+		for name in ("Leaf", "Division", "Root"):
 			frappe.delete_doc_if_exists(self.doctype_name, name)
 		frappe.db.commit()  # ensure deletions are flushed to DB before import; # nosemgrep
 
@@ -880,6 +1096,11 @@ class TestTreeDataImport(IntegrationTestCase):
 		Importer(self.doctype_name, data_import=data_import).import_data()
 
 		self.assertEqual(frappe.db.get_value(self.doctype_name, "Leaf", parent_field), "Division")
+
+		# Same child-first order for teardown after the import.
+		for name in ("Leaf", "Division", "Root"):
+			frappe.delete_doc_if_exists(self.doctype_name, name)
+		frappe.db.commit()  # nosemgrep
 
 	def test_field_autoname_tree_skips_alias_mode(self):
 		self.assertFalse(uses_tree_alias_references(self.doctype_name))
@@ -963,8 +1184,7 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 
 	def _cleanup_docs(self, labels):
 		for label in reversed(labels):
-			name = frappe.db.get_value(self.doctype_name, {"node_label": label})
-			if name:
+			for name in frappe.get_all(self.doctype_name, filters={"node_label": label}, pluck="name"):
 				frappe.delete_doc(self.doctype_name, name, force=1)
 		frappe.db.commit()  # Ensure deletions are flushed to DB before continuing; # nosemgrep
 
@@ -1073,6 +1293,26 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 
 		self._cleanup_docs((existing_label, "New Child"))
 
+	def test_blocked_import_resets_status_to_pending(self):
+		"""A run stopped by prechecks must stay actionable instead of sticking on In Progress."""
+		self._cleanup_docs(("Orphan Child",))
+
+		# "Ghost Parent" exists neither in the file nor in the DB, so the parent warning blocks.
+		rows = [("Orphan Child", "0", "Ghost Parent")]
+		data_import = self._get_importer(self._make_csv_file(rows))
+		data_import.db_set("status", "In Progress")
+
+		imp = Importer(self.doctype_name, data_import=data_import)
+		imp.import_data()
+		data_import.reload()
+
+		self.assertTrue(imp.blocked_by_warnings)
+		self.assertEqual(data_import.status, "Pending")
+		self.assertTrue(frappe.parse_json(data_import.template_warnings or "[]"))
+		self.assertFalse(frappe.db.exists(self.doctype_name, {"node_label": "Orphan Child"}))
+
+		self._cleanup_docs(("Orphan Child",))
+
 	def test_tree_preview_nests_subtree_with_external_db_parent(self):
 		"""In-file subtree under a DB-only parent is nested in preview, not shown as orphans."""
 		existing_label = "Existing Root"
@@ -1095,6 +1335,30 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 		self.assertEqual(nodes_by_id["Branch A"].depth, 0)
 		self.assertEqual(nodes_by_id["Branch B"].depth, 1)
 		self.assertEqual(nodes_by_id["Branch C"].depth, 2)
+
+		self._cleanup_docs(labels)
+
+	def test_tree_alias_shared_by_existing_records_is_not_resolved(self):
+		from frappe.core.doctype.data_import.value_mapping import get_blocking_warnings
+
+		labels = ("Shared Root", "New Child")
+		self._cleanup_docs(labels)
+		for _ in range(2):
+			frappe.get_doc(
+				{"doctype": self.doctype_name, "node_label": "Shared Root", "is_group": 1}
+			).insert()
+		frappe.db.commit()  # nosemgrep
+
+		data_import = self._get_importer(self._make_csv_file([("New Child", "0", "Shared Root")]))
+		preview = data_import.get_preview_from_template()
+
+		child = next(node for node in preview.tree_preview.nodes if node.id == "New Child")
+		self.assertTrue(any("not found" in w for w in child.warnings))
+
+		imp = Importer(self.doctype_name, data_import=data_import)
+		self.assertTrue(
+			get_blocking_warnings(imp.import_file.get_all_warnings(), imp.import_file, data_import)
+		)
 
 		self._cleanup_docs(labels)
 
