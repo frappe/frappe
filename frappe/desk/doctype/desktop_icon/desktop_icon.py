@@ -219,12 +219,12 @@ def clear_desktop_icons_cache(user=None):
 
 
 def get_app_desktop_icon(app_name: str) -> str | None:
-	"""Return the name of the "App" type Desktop Icon created for `app_name`, if it exists."""
-	app_title = frappe.get_hooks("app_title", app_name=app_name)
-	if not app_title:
-		return None
+	"""Return the name of the "App" type Desktop Icon for `app_name`, if it exists.
 
-	return frappe.db.exists("Desktop Icon", {"label": app_title[0], "icon_type": "App"})
+	Found by `app`, not by `app_title`: apps ship their icon under labels of their own (frappe
+	ships "Framework" with the title "Frappe Framework").
+	"""
+	return frappe.db.exists("Desktop Icon", {"icon_type": "App", "app": app_name})
 
 
 def create_desktop_icons_from_workspace():
@@ -276,7 +276,7 @@ def create_desktop_icons_from_installed_apps():
 	apps = frappe.get_installed_apps()
 	index = 0
 	for a in apps:
-		if frappe.db.exists("Desktop Icon", {"icon_type": "App", "app": a}):
+		if get_app_desktop_icon(a):
 			continue
 
 		app_details = frappe.get_hooks("add_to_apps_screen", app_name=a)
