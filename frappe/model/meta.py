@@ -1038,7 +1038,7 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 
 def trim_table(doctype, dry_run=True):
 	key = f"table_columns::tab{doctype}"
-	frappe.cache.delete_value(key)
+	frappe.client_cache.delete_value(key)
 	ignore_fields = default_fields + optional_fields + child_table_fields
 	columns = frappe.db.get_table_columns(doctype)
 	fields = frappe.get_meta(doctype, cached=False).get_fieldnames_with_value()
@@ -1050,8 +1050,14 @@ def trim_table(doctype, dry_run=True):
 	DROPPED_COLUMNS = columns_to_remove[:]
 
 	if columns_to_remove and not dry_run:
-		columns_to_remove = ", ".join(f"DROP `{c}`" for c in columns_to_remove)
-		frappe.db.sql_ddl(f"ALTER TABLE `tab{doctype}` {columns_to_remove}")
+		if frappe.db.db_type == "sqlite":
+			# SQLite allows only one DROP per ALTER TABLE
+			for column in columns_to_remove:
+				frappe.db.sql_ddl(f"ALTER TABLE `tab{doctype}` DROP `{column}`")
+		else:
+			columns_to_remove = ", ".join(f"DROP `{c}`" for c in columns_to_remove)
+			frappe.db.sql_ddl(f"ALTER TABLE `tab{doctype}` {columns_to_remove}")
+		frappe.client_cache.delete_value(key)
 
 	return DROPPED_COLUMNS
 
