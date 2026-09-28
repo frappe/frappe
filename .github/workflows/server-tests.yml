@@ -30,8 +30,10 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: impact-map.json
-          key: impact-map-${{ github.sha }}
-          restore-keys: impact-map-
+          # Scoped by branch: PRs can also restore caches from the default branch, and a
+          # develop map would silently mis-select tests for a hotfix branch.
+          key: impact-map-${{ github.base_ref || github.ref_name }}-${{ github.sha }}
+          restore-keys: impact-map-${{ github.base_ref || github.ref_name }}-
       - name: Check if unit tests should be run
         id: check-build
         run: |
@@ -270,7 +272,7 @@ jobs:
         uses: actions/cache/save@v6
         with:
           path: impact-map.json
-          key: impact-map-${{ github.sha }}
+          key: impact-map-${{ github.ref_name }}-${{ github.sha }}
 
   # TIP: Require this single check in branch protection, e.g. Server / Success
   success:
