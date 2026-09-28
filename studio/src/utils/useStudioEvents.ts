@@ -109,21 +109,14 @@ export function useStudioEvents(saveFragmentMode: () => void) {
 			combo,
 			description: "Delete Selected Blocks",
 			group: "Edit",
-			handler: (e: KeyboardEvent) => deleteSelection(e, false),
-		})),
-		// on a breakpoint other than desktop, a plain delete only hides the block
-		...(["Shift+Backspace", "Shift+Delete"] as const).map((combo) => ({
-			combo,
-			description: "Delete Selected Blocks on All Breakpoints",
-			group: "Edit",
-			handler: (e: KeyboardEvent) => deleteSelection(e, true),
+			handler: deleteSelection,
 		})),
 	]
 	// combos are plain strings here: Studio's frappe-ui import is untyped (src/lib.d.ts)
 	useKeyboardShortcut(shortcuts as Parameters<typeof useKeyboardShortcut>[0])
 }
 
-const deleteSelection = (e: KeyboardEvent, force: boolean) => {
+const deleteSelection = (e: KeyboardEvent) => {
 	// a selected slot takes precedence over its (also-selected) parent block
 	const selectedSlot = canvasStore.activeCanvas?.selectedSlot
 	if (selectedSlot) {
@@ -135,7 +128,7 @@ const deleteSelection = (e: KeyboardEvent, force: boolean) => {
 
 	if (blockController.isAnyBlockSelected()) {
 		for (const block of blockController.getSelectedBlocks()) {
-			canvasStore.activeCanvas?.removeBlock(block, force)
+			canvasStore.activeCanvas?.removeBlock(block)
 		}
 		clearSelection()
 		e.stopPropagation()
