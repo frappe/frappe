@@ -1011,7 +1011,11 @@ class ImportFile:
 			from frappe.core.doctype.data_import.import_provider import get_import_provider
 
 			provider = get_import_provider(self.reference_doctype)
-			self._provider_warnings = (provider.validate(self) or []) if provider else []
+			warnings = (provider.validate(self) or []) if provider else []
+			# The UI renders messages as HTML, and a provider may put file values in them.
+			for warning in warnings:
+				warning["message"] = clean_html(cstr(warning.get("message")))
+			self._provider_warnings = warnings
 		return self._provider_warnings
 
 	def get_all_warnings(self):
@@ -1821,7 +1825,7 @@ class Column:
 				self.warnings.append(
 					{
 						"message": _("Could not map column {0} to field {1}").format(
-							column_number, self.map_to_field
+							column_number, escape_html(cstr(self.map_to_field))
 						),
 						"type": "info",
 					}

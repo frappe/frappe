@@ -77,6 +77,11 @@ class RejectingImportProvider(RecordingImportProvider):
 		return [{"row": import_file.data[0].row_number, "message": "Rejected by provider"}]
 
 
+class UnsafeMessageImportProvider(RecordingImportProvider):
+	def validate(self, import_file):
+		return [{"row": 2, "message": "<b>Bad</b> row <script>alert(1)</script>", "type": "info"}]
+
+
 def _provider_hooks(provider):
 	return {"data_import_providers": {doctype_name: [f"{__name__}.{provider.__name__}"]}}
 
@@ -734,6 +739,16 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(data_import.reload().status, "Success")
 		for name in SAMPLE_IMPORT_DOC_NAMES:
 			self.assertEqual(frappe.db.get_value(doctype_name, name, "description"), "created by provider")
+
+	def test_import_provider_warning_messages_are_sanitised(self):
+		data_import = self.get_importer(doctype_name, get_import_file("sample_import_file"))
+
+		with self.patch_hooks(_provider_hooks(UnsafeMessageImportProvider)):
+			warnings = data_import.get_importer().import_file.get_warnings()
+
+		message = next(w["message"] for w in warnings if "Bad" in w["message"])
+		self.assertNotIn("<script", message)
+		self.assertIn("<b>Bad</b>", message)
 
 	def test_import_provider_warnings_block_the_import(self):
 		_delete_doctype_records(doctype_name, SAMPLE_IMPORT_DOC_NAMES)

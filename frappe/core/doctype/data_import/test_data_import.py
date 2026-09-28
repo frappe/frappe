@@ -45,6 +45,12 @@ class TestDataImport(UnitTestCase):
 		col = Column(0, "Col Header", "User", ["test@example.com"], map_to_field="Nonexistent Field")
 		self.assertTrue(any("Could not map column" in w.get("message", "") for w in col.warnings))
 
+	def test_column_mapping_warning_escapes_the_field_name(self):
+		col = Column(0, "Col Header", "User", ["x"], map_to_field="<img src=x onerror=alert(1)>")
+		message = next(w["message"] for w in col.warnings if "Could not map column" in w["message"])
+		self.assertNotIn("<img", message)
+		self.assertIn("&lt;img", message)
+
 	def test_clear_stale_template_warnings_on_file_swap(self):
 		"""Swapping import_file must drop blocked-import snapshots (wizard routing)."""
 		import json
