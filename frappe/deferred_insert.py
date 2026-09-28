@@ -1,5 +1,5 @@
 import json
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 import redis
 
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 queue_prefix = "insert_queue_for_"
 
 
-def deferred_insert(doctype: str, records: list[dict | "Document"] | str):
+def deferred_insert(doctype: str, records: list[dict] | dict | str):
 	if isinstance(records, dict | list):
 		_records = json.dumps(records)
 	else:
@@ -21,7 +21,10 @@ def deferred_insert(doctype: str, records: list[dict | "Document"] | str):
 	try:
 		frappe.cache.rpush(f"{queue_prefix}{doctype}", _records)
 	except redis.exceptions.ConnectionError:
-		for record in records:
+		records_to_insert = json.loads(_records)
+		if isinstance(records_to_insert, dict):
+			records_to_insert = [records_to_insert]
+		for record in records_to_insert:
 			insert_record(record, doctype)
 
 

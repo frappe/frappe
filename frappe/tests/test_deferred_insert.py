@@ -1,4 +1,7 @@
-from unittest.mock import patch
+import json
+from unittest.mock import call, patch
+
+import redis
 
 import frappe
 from frappe.core.doctype.error_log.error_log import flush_error_logs, get_queued_error_log_count
@@ -23,6 +26,26 @@ class TestDeferredInsert(IntegrationTestCase):
 		frappe.clear_cache()  # deferred_insert cache keys are supposed to be persistent
 		save_to_db()
 		self.assertTrue(frappe.db.exists("Route History", route_history))
+
+	def test_error_log_redis_failure_falls_back_to_database(self):
+		record = {"method": "Error 1", "error": "Failed to deliver"}
+		records = [record, {"method": "Error 2", "error": "Delivery timed out"}]
+		for input_shape, payload, expected_records in (
+			("dict", record, [record]),
+			("list", records, records),
+			("json_dict", json.dumps(record), [record]),
+			("json_list", json.dumps(records), records),
+		):
+			with (
+				self.subTest(input_shape=input_shape),
+				patch.object(frappe.cache, "rpush", side_effect=redis.exceptions.ConnectionError),
+				patch("frappe.deferred_insert.insert_record", return_value=True) as insert_record,
+			):
+				deferred_insert("Error Log", payload)
+				self.assertEqual(
+					insert_record.call_args_list,
+					[call(expected_record, "Error Log") for expected_record in expected_records],
+				)
 
 	def test_save_to_db_for_single_doctype(self):
 		route_history = {"route": frappe.generate_hash(), "user": "Administrator"}
