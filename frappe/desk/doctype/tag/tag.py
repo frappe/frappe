@@ -7,6 +7,22 @@ from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.utils import unique
 
+TAG_COLOR_NAMES = (
+	"Gray",
+	"Black",
+	"Blue",
+	"Green",
+	"Red",
+	"Pink",
+	"Orange",
+	"Amber",
+	"Yellow",
+	"Cyan",
+	"Teal",
+	"Violet",
+	"Purple",
+)
+
 
 class Tag(Document):
 	_DOCTYPE_NAME = "Tag"
@@ -22,7 +38,18 @@ class Tag(Document):
 		description: DF.SmallText | None
 	# end: auto-generated types
 
-	pass
+	def validate(self):
+		if self.color and self.color not in TAG_COLOR_NAMES:
+			frappe.throw(_("Invalid tag color"))
+		self.validate_apps()
+
+	def validate_apps(self):
+		apps = [row.app_name for row in self.get("apps", []) if row.app_name]
+		if len(apps) != len(set(apps)):
+			frappe.throw(_("Each app can only be added once"))
+		invalid_apps = set(apps) - set(frappe.get_active_apps())
+		if invalid_apps:
+			frappe.throw(_("These apps are not installed: {0}").format(", ".join(sorted(invalid_apps))))
 
 
 def check_user_tags(dt):
@@ -71,11 +98,64 @@ def get_tagged_docs(doctype: str, tag: str):
 
 
 @frappe.whitelist()
-def get_tags(doctype: str, txt: str):
+def get_tags(doctype: str, txt: str, app: str = "frappe"):
 	tag = frappe.get_list("Tag", filters=[["name", "like", f"%{txt}%"]])
 	tags = [t.name for t in tag]
+	return sorted(
+		name
+		for name in set(tags)
+		if name and txt.casefold() in name.casefold() and tag_belongs_to_app(name, app)
+	)
 
-	return sorted(filter(lambda t: t and txt.casefold() in t.casefold(), list(set(tags))))
+
+@frappe.whitelist(methods=["GET"])
+def get_tags_for_app(app: str, txt: str = ""):
+	"""Return visible tags and colors for one installed app."""
+	validate_tag_app(app)
+	tags = frappe.get_list(
+		"Tag", filters=[["name", "like", f"%{txt}%"]], fields=["name", "color"], order_by="name asc"
+	)
+	return [{"name": tag.name, "color": tag.color} for tag in tags if tag_belongs_to_app(tag.name, app)]
+
+
+@frappe.whitelist(methods=["POST"])
+def update_document_tags(
+	doctype: str,
+	docname: str,
+	app: str,
+	added: list[dict] | None = None,
+	removed: list[str] | None = None,
+):
+	"""Apply a batch of tag changes for an app, preserving global tag identity."""
+	validate_tag_app(app)
+	frappe.has_permission(doctype, "write", doc=docname, throw=True)
+	doc = frappe.get_doc(doctype, docname)
+	doc.check_permission("write")
+	doc_tags = DocTags(doctype)
+	for tag in added or []:
+		label = (tag.get("name") or "").strip()
+		if not label or "," in label:
+			frappe.throw(_("Tag must have a name and cannot contain commas"))
+		doc_tags.add(docname, label, app=app, color=tag.get("color"))
+	for tag in removed or []:
+		doc_tags.remove(docname, tag)
+	return frappe.db.get_value(doctype, docname, "_user_tags") or ""
+
+
+def validate_tag_app(app: str) -> None:
+	"""Ensure an app-scoped tag request names an installed app."""
+	if app not in frappe.get_active_apps():
+		frappe.throw(_("Application is not installed"), frappe.ValidationError)
+
+
+def tag_belongs_to_app(tag_name: str, app: str) -> bool:
+	"""Whether a tag is shared with the given app; legacy unscoped tags belong to Desk."""
+	apps = frappe.get_all(
+		"Tag App",
+		filters={"parent": tag_name, "parenttype": "Tag", "parentfield": "apps"},
+		pluck="app_name",
+	)
+	return app in apps or (app == "frappe" and not apps)
 
 
 class DocTags:
@@ -92,13 +172,27 @@ class DocTags:
 		"""Return tag for a particular item."""
 		return (frappe.db.get_value(self.dt, dn, "_user_tags", ignore=1) or "").strip()
 
-	def add(self, dn, tag):
+	def add(self, dn, tag, app: str = "frappe", color: str | None = None):
 		"""Add a new user tag."""
+		tag_doc = frappe.get_doc("Tag", tag) if frappe.db.exists("Tag", tag) else None
+		if not tag_doc:
+			frappe.has_permission("Tag", "create", throw=True)
+			tag_doc = frappe.get_doc({"doctype": "Tag", "name": tag, "color": color})
+			tag_doc.append("apps", {"app_name": app or "frappe"})
+			tag_doc.insert()
+		else:
+			apps = {row.app_name for row in tag_doc.get("apps", []) if row.app_name}
+			if not apps:
+				tag_doc.append("apps", {"app_name": "frappe"})
+				apps.add("frappe")
+			if app and app not in apps:
+				tag_doc.check_permission("write")
+				tag_doc.append("apps", {"app_name": app})
+				tag_doc.save()
+
 		tl = self.get_tags(dn).split(",")
 		if tag not in tl:
 			tl.append(tag)
-			if not frappe.db.exists("Tag", tag):
-				frappe.get_doc({"doctype": "Tag", "name": tag}).insert(ignore_permissions=True)
 			self.update(dn, tl)
 
 	def remove(self, dn, tag):
@@ -118,10 +212,13 @@ class DocTags:
 		else:
 			tl = unique(filter(lambda x: x, tl))
 			tags = ",".join(tl)
+		old_tags = set(filter(None, self.get_tags(dn).split(",")))
+		new_tags = set(filter(None, tags.split(",")))
 		try:
 			frappe.db.set_value(self.dt, dn, "_user_tags", tags, update_modified=False)
 			doc = frappe.get_lazy_doc(self.dt, dn)
 			update_tags(doc, tags)
+			log_tag_changes(doc, old_tags, new_tags)
 		except Exception as e:
 			if frappe.db.is_missing_column(e):
 				if not tags:
@@ -138,6 +235,13 @@ class DocTags:
 		from frappe.database.schema import add_column
 
 		add_column(self.dt, "_user_tags", "Data")
+
+
+def log_tag_changes(doc: Document, old_tags: set[str], new_tags: set[str]) -> None:
+	"""Create timeline entries for each tag membership change."""
+	for action, tags in ((_("added"), new_tags - old_tags), (_("removed"), old_tags - new_tags)):
+		for tag in sorted(tags):
+			doc.add_comment("Label", _("{0} tag {1}").format(action, frappe.bold(tag)))
 
 
 def delete_tags_for_document(doc):
@@ -207,4 +311,4 @@ def get_documents_for_tag(tag: str):
 
 @frappe.whitelist()
 def get_tags_list_for_awesomebar():
-	return frappe.get_list("Tag", pluck="name", order_by=None)
+	return [tag["name"] for tag in get_tags_for_app("frappe")]

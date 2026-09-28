@@ -169,6 +169,19 @@ function normalizeLiveActivity(
         },
       };
 
+    case "info_logs":
+      return {
+        type: "log",
+        key: `log:${name}`,
+        timestamp,
+        author,
+        data: {
+          name,
+          subtype: "info",
+          text: `${author.fullname} ${stripHtml(String(doc.content ?? ""))}`,
+        },
+      };
+
     case "assignment_logs": {
       const isCompleted = doc.comment_type === "Assignment Completed";
       const text = stripHtml(String(doc.content ?? ""));

@@ -17,6 +17,7 @@ export * from "./components/Phone";
 export * from "./components/TableMultiSelect";
 export * from "./components/Notifications";
 export * from "./components/ActivityTimeline";
+export * from "./components/Tag";
 export * from "./components/InviteUser";
 // Moved out of `frappe-ui/frappe` (frappe/frappe-ui#923). They all know about
 // a Frappe backend or Frappe Cloud, so they sit here rather than in frappe-ui.
