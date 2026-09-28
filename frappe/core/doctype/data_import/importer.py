@@ -1937,7 +1937,9 @@ class Column:
 			if isinstance(d, str):
 				return frappe.utils.guess_date_format(d)
 
-		date_formats = [guess_date_format(d) for d in self.column_values]
+		# Dates repeat a lot in real files, so guess each distinct value once.
+		format_by_value = {d: guess_date_format(d) for d in set(self.column_values)}
+		date_formats = [format_by_value[d] for d in self.column_values]
 		date_formats = [d for d in date_formats if d]
 		if not date_formats:
 			return
