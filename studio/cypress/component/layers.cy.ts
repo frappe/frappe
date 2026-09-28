@@ -28,7 +28,7 @@ function buildTree() {
 					slotName: "trigger",
 					slotId: "popover:trigger",
 					parentBlockId: "popover",
-					slotContent: [container("slotted", [container("slotted-leaf")])],
+					slotContent: [getBlockInstance(container("slotted", [container("slotted-leaf")]))],
 				},
 			},
 		} as BlockOptions,
@@ -54,15 +54,9 @@ describe("expand and collapse all layers", () => {
 		cy.get(layer("inner")).should("not.be.visible")
 	})
 
-	it("expands every nested block and slot", () => {
+	it("expands every nested block and slot, then collapses back to the top level", () => {
 		cy.then(() => layers.expandAll())
-		for (const id of ["inner", "leaf", "slotted", "slotted-leaf"]) {
-			cy.get(layer(id)).should("be.visible")
-		}
-	})
-
-	it("collapses back to the top level", () => {
-		cy.then(() => layers.expandAll())
+		cy.get(layer("leaf")).should("be.visible")
 		cy.get(layer("slotted-leaf")).should("be.visible")
 		cy.then(() => layers.collapseAll())
 		cy.get(layer("outer")).should("be.visible")

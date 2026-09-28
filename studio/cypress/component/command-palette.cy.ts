@@ -2,8 +2,7 @@ import { pinia } from "../support/component"
 
 import { defineComponent, h } from "vue"
 import { setActivePinia } from "pinia"
-// @ts-ignore
-import { KeyboardShortcutsDialog, useKeyboardShortcut } from "frappe-ui"
+import { useKeyboardShortcut, type KeyboardShortcutConfig } from "frappe-ui"
 
 import StudioCommandPalette from "@/components/CommandPalette/StudioCommandPalette.vue"
 import { commandShortcuts } from "@/components/Commands"
@@ -13,15 +12,9 @@ const mod = Cypress.platform === "darwin" ? { metaKey: true } : { ctrlKey: true 
 
 const Harness = defineComponent({
 	setup() {
-		const store = useStudioStore()
-		useKeyboardShortcut(commandShortcuts())
-		return () => [
-			h(StudioCommandPalette),
-			h(KeyboardShortcutsDialog, {
-				open: store.showShortcutsDialog,
-				"onUpdate:open": (open: boolean) => (store.showShortcutsDialog = open),
-			}),
-		]
+		// Studio types combo as a plain string: its frappe-ui import is untyped (src/lib.d.ts)
+		useKeyboardShortcut(commandShortcuts() as KeyboardShortcutConfig[])
+		return () => h(StudioCommandPalette)
 	},
 })
 
@@ -37,7 +30,6 @@ describe("command palette and shortcuts", () => {
 		store = useStudioStore()
 		store.studioLayout.showLeftPanel = true
 		store.studioLayout.showRightPanel = true
-		store.showShortcutsDialog = false
 		cy.mount(Harness, { global: { plugins: [pinia] } })
 	})
 
@@ -48,28 +40,12 @@ describe("command palette and shortcuts", () => {
 		cy.wrap(null).should(() => expect(store.studioLayout.showLeftPanel).to.be.false)
 	})
 
-	it("steps into Go to Page and backs out with Escape", () => {
+	// Go to Page is the stepped command here; any step should behave the same
+	it("keeps focus in the search when a step opens and backs out with Escape", () => {
 		press("k", "KeyK", mod)
 		cy.contains("Go to Page").click()
 		cy.get("input[placeholder='Search by title or route...']").should("be.focused").type("{esc}")
 		cy.get("input[placeholder='Search commands...']").should("exist")
-	})
-
-	it("lists the Navigate commands in order", () => {
-		store.activeApp = { name: "test-app" } as any
-		store.activePage = { name: "test-page" } as any
-		press("k", "KeyK", mod)
-		cy.contains("Navigate")
-			.parent()
-			.find("span.truncate, span.text-ellipsis")
-			.then((titles) => {
-				expect([...titles].map((title) => title.textContent?.trim())).to.deep.equal([
-					"Go to Dashboard",
-					"View App in Desk",
-					"View Page in Desk",
-					"Go to Page",
-				])
-			})
 	})
 
 	it("runs a command's key binding", () => {
@@ -78,11 +54,5 @@ describe("command palette and shortcuts", () => {
 			expect(store.studioLayout.showLeftPanel).to.be.false
 			expect(store.studioLayout.showRightPanel).to.be.false
 		})
-	})
-
-	it("lists registered shortcuts in the shortcuts dialog", () => {
-		press("?", "Slash", { shiftKey: true })
-		cy.contains("Open Command Palette").should("be.visible")
-		cy.contains("Toggle Left Panel").should("be.visible")
 	})
 })

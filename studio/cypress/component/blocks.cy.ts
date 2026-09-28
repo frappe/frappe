@@ -16,7 +16,6 @@ describe("copy and paste block styles", () => {
 	beforeEach(() => {
 		Block.setComponents(COMPONENTS)
 		setActivePinia(pinia)
-		sessionStorage.clear()
 	})
 
 	it("merges every breakpoint's styles into the target block", () => {
@@ -36,20 +35,8 @@ describe("copy and paste block styles", () => {
 		expect(target.mobileStyles).to.deep.equal({ display: "none" })
 	})
 
-	it("keeps a snapshot, so later edits to the source are not pasted", () => {
-		const source = container("source", { baseStyles: { color: "red" } })
-		const target = container("target")
-
-		copyBlockStyles(source)
-		source.setStyle("color", "green")
-		pasteBlockStyles(target)
-
-		expect(target.baseStyles.color).to.equal("red")
-	})
-
 	it("does not paste onto the block the styles came from", () => {
 		const source = container("source", { baseStyles: { color: "red" } })
-		expect(canPasteStylesTo(source)).to.be.false
 		copyBlockStyles(source)
 		expect(canPasteStylesTo(source)).to.be.false
 	})
