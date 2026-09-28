@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "{reference_doctype} Import-.#####",
+ "autoname": "format:{reference_doctype} Import on {creation}",
  "creation": "2019-08-04 14:16:08.318714",
  "doctype": "DocType",
  "documentation": "https://docs.frappe.io/erpnext/user/manual/en/data-import",
@@ -249,11 +249,11 @@
  "hide_toolbar": 1,
  "icon": "import",
  "links": [],
- "modified": "2026-07-24 14:36:39.136121",
+ "modified": "2026-09-28 23:32:22.657159",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import",
- "naming_rule": "Expression",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {
