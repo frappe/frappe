@@ -734,7 +734,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 
 		if (!this.$table_preview?.length) return;
 
-		const is_fmt_success = this.frm?.doc?.status === "Success";
+		const can_change_format =
+			this.events.set_column_date_format && this.frm?.doc?.status !== "Success";
 
 		this.$table_preview.find(".diw-col-map-fmt-mount").each((_, mount) => {
 			const i = cint(mount.getAttribute("data-col-index"));
@@ -753,11 +754,9 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				css_class: "rounded-full shrink-0",
 			});
 			$btn.on("mousedown click", (e) => e.stopPropagation());
-			// Disable the calendar button after a completed import.
-			if (is_fmt_success) {
-				$btn.prop("disabled", true);
-			}
+			$btn.prop("disabled", !can_change_format);
 			$(mount).empty().append($btn);
+			if (!can_change_format) return;
 
 			const dropdown = new frappe.ui.Dropdown({
 				trigger: $btn,
@@ -779,8 +778,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 							options: formats.map((o) => ({
 								label: o.detected ? __("{0} (detected)", [o.label]) : o.label,
 								selected: o.value === current,
-								onclick: () =>
-									this.events.set_column_date_format?.(i - 1, o.value),
+								onclick: () => this.events.set_column_date_format(i - 1, o.value),
 							})),
 						},
 					];
