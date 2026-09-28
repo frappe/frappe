@@ -185,7 +185,7 @@ class AttachmentQueue(Document):
 
 	@staticmethod
 	def clear_old_logs(days=30):
-		from frappe.utils import add_days, create_batch, now_datetime
+		from frappe.utils import add_days, now_datetime
 
 		cutoff = add_days(now_datetime(), -cint(days))
 		names = frappe.get_all(
