@@ -23,6 +23,10 @@ frappe.provide("frappe.ui");
 
 const EXIT_MS = 100; // keep in sync with es-popover-out in popover.css
 
+// panels other components open from inside this one (a combobox or dropdown
+// menu, a datepicker) mount in <body>, so a press or focus in them is inside
+const LAYERS = ".es-menu, .es-popover, .datepicker";
+
 // what Tab can land on, for the close-on-tab-out bookkeeping below
 const TABBABLE =
 	'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])';
@@ -145,13 +149,13 @@ frappe.ui.Popover = class Popover {
 		// a click anywhere that isn't the panel or the trigger closes it
 		// (capture: before the click can be swallowed by stopPropagation)
 		this.onpointerdown = (e) => {
-			if (panel.contains(e.target) || this.trigger_el.contains(e.target)) return;
+			if (this.is_inside(e.target)) return;
 			this.close("outside");
 		};
 		// focus escaping the panel by any other route (programmatic, a
 		// screen reader jump) also closes it — the radix "focus outside" rule
 		this.onfocusin = (e) => {
-			if (panel.contains(e.target) || this.trigger_el.contains(e.target)) return;
+			if (this.is_inside(e.target)) return;
 			this.close("blur");
 		};
 		// the trigger can move (window resize, a scrolling container) — keep
@@ -169,9 +173,21 @@ frappe.ui.Popover = class Popover {
 		document.addEventListener("pointerdown", this.onpointerdown, { capture: true });
 		document.addEventListener("focusin", this.onfocusin);
 		window.addEventListener("resize", this.onreposition);
+		// content that grows or shrinks while open (rows added) re-anchors too
+		this.resize_observer = new ResizeObserver(this.onreposition);
+		this.resize_observer.observe(panel);
 		document.addEventListener("scroll", this.onreposition, { capture: true, passive: true });
 
 		this.opts.on_open && this.opts.on_open(this);
+	}
+
+	is_inside(target) {
+		if (!target || !this.panel) return false;
+		return (
+			this.panel.contains(target) ||
+			this.trigger_el.contains(target) ||
+			!!(target.closest && target.closest(LAYERS))
+		);
 	}
 
 	// Tab is not trapped (this is not a modal): tabbing past the panel's
@@ -202,6 +218,7 @@ frappe.ui.Popover = class Popover {
 		document.removeEventListener("pointerdown", this.onpointerdown, { capture: true });
 		document.removeEventListener("focusin", this.onfocusin);
 		window.removeEventListener("resize", this.onreposition);
+		this.resize_observer.disconnect();
 		document.removeEventListener("scroll", this.onreposition, { capture: true });
 
 		this.trigger_el.setAttribute("aria-expanded", "false");
