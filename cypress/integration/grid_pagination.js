@@ -48,6 +48,41 @@ context("Grid Pagination", () => {
 		cy.get("@table").find(".current-page-number").should("have.value", "20");
 		cy.get("@table").find(".total-page-number").should("contain", "20");
 	});
+	it("deletes selected rows from every page", () => {
+		cy.visit("/desk/contact/Test Contact");
+		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
+		cy.get("@table")
+			.find(".grid-body .grid-row")
+			.first()
+			.should("have.attr", "data-idx", "1")
+			.invoke("attr", "data-name")
+			.as("first_row");
+		cy.get("@table").find(".grid-body .grid-row .grid-row-check").first().click();
+		cy.get("@table").find(".next-page").click();
+		cy.get("@table")
+			.find(".grid-body .grid-row")
+			.last()
+			.should("have.attr", "data-idx", "100")
+			.invoke("attr", "data-name")
+			.as("last_row");
+		cy.get("@table").find(".grid-body .grid-row .grid-row-check").last().click();
+		cy.get("@table").find(".prev-page").click();
+		cy.get("@table").find(".current-page-number").should("have.value", "1");
+		cy.get("@table").findByRole("button", { name: "Delete 2 rows" }).click();
+		cy.get("@first_row").then((first_row) => {
+			cy.get("@last_row").then((last_row) => {
+				cy.window()
+					.its("cur_frm")
+					.should((frm) => {
+						const names = frm.doc.phone_nos.map((row) => row.name);
+						expect(names).to.have.length(998);
+						expect(names).not.to.include(first_row);
+						expect(names).not.to.include(last_row);
+						expect(frm.is_dirty()).to.be.true;
+					});
+			});
+		});
+	});
 	it("go to specific page, use up and down arrow, type characters, 0 page and more than existing page", () => {
 		cy.visit("/desk/contact/Test Contact");
 		cy.get('.frappe-control[data-fieldname="phone_nos"]').as("table");
