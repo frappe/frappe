@@ -621,8 +621,8 @@ def get_link_title(doctype: str, docname: str | int):
 	if meta.show_title_field_in_link:
 		try:
 			doc = frappe.get_lazy_doc(doctype, docname)
-			doc.check_permission("select")
-			if meta.title_field in get_permitted_fields(doctype):
+			is_title_permitted = meta.title_field in get_permitted_fields(doctype)
+			if is_title_permitted and has_permission(doctype, "select", doc, print_logs=False):
 				return doc.get(meta.title_field)
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()

@@ -206,6 +206,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.set_actions_menu_items();
 	}
 
+	open_import_dialog() {
+		frappe.require("data_import_tools.bundle.js", () => {
+			frappe.data_import.open_data_import_dialog({
+				reference_doctype: this.doctype,
+				import_type: "Insert New Records",
+			});
+		});
+	}
+
 	set_actions_menu_items() {
 		this.actions_menu_items = this.get_actions_menu_items();
 		this.workflow_action_menu_items = this.get_workflow_action_menu_items();
@@ -721,6 +730,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				label: __("Create"),
 				icon: "plus",
 				css_class: "btn-new-doc",
+			});
+		}
+
+		if (!has_filters_set && frappe.model.can_import(this.doctype, null, this.meta)) {
+			actions.push({
+				label: __("Import"),
+				icon: "import",
+				css_class: "btn-import-doc",
 			});
 		}
 
@@ -2265,6 +2282,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.make_new_doc();
 			}
 		});
+		this.$no_result.find(".btn-import-doc").click(() => this.open_import_dialog());
 	}
 
 	setup_tag_visibility() {
@@ -2290,6 +2308,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			if (this.avoid_realtime_update()) {
+				return;
+			}
+
+			// Bulk imports publish no doc name.
+			if (!data.name) {
+				this.refresh();
 				return;
 			}
 
@@ -2509,10 +2533,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (frappe.model.can_import(doctype, null, this.meta)) {
 			items.push({
 				label: __("Import", null, "Button in list view menu"),
-				action: () =>
-					frappe.set_route("list", "data-import", {
-						reference_doctype: doctype,
-					}),
+				action: () => this.open_import_dialog(),
 				standard: true,
 			});
 		}

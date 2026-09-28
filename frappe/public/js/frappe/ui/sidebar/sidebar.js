@@ -67,6 +67,17 @@ function strip_trailing_slash(path) {
 	return path.replace(/\/$/, "");
 }
 
+// The entities an item links, as shell resolution names them. Mirrors `linked_entities` in
+// sidebar.py: a Page item with a `route` also links its page route, `<page>/<route>`, because
+// several apps link one container page at routes of their own.
+function linked_entities(item) {
+	if (!item.link_to) return [];
+	if (item.link_type === "Page" && item.route) {
+		return [item.link_to, `${item.link_to}/${item.route}`];
+	}
+	return [item.link_to];
+}
+
 frappe.ui.Sidebar = class Sidebar {
 	constructor() {
 		if (!frappe.boot.setup_complete) {
@@ -1590,7 +1601,7 @@ frappe.ui.Sidebar = class Sidebar {
 		// it shows, making every dashboard route resolve as the page "dashboard-view". Nothing
 		// links that page, so dashboards fell through to the fallbacks.
 		if (ENTITY_VIEW_ROUTES[route[0]] && route.length > 1) return route[1];
-		if (route[0] && frappe.boot.page_info?.[route[0]]) return route[0];
+		if (route[0] && frappe.boot.page_info?.[route[0]]) return this.page_route_entity(route);
 		switch (route.length) {
 			case 1:
 				return route[0];
@@ -1605,6 +1616,17 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 	}
 
+	// The longest page route the map knows, else the page. A sidebar item can link a page at a
+	// route inside it (`linked_entities`), and that route is what decides the shell.
+	page_route_entity(route) {
+		const page_routes = frappe.boot.canonical_shell?.Page || {};
+		for (let length = route.length; length > 1; length--) {
+			const entity = route.slice(0, length).join("/");
+			if (page_routes[entity]) return entity;
+		}
+		return route[0];
+	}
+
 	// Every module whose sidebar contains `link_to`. It ignores which app a link belongs to on
 	// purpose (see set_workspace_sidebar), so curated cross-app links resolve correctly.
 	// `link_type` narrows the match to one kind of entity. Names are not unique across kinds --
@@ -1617,7 +1639,9 @@ frappe.ui.Sidebar = class Sidebar {
 		let modules = [];
 		Object.entries(frappe.boot.module_sidebars || {}).forEach(([module, sidebar]) => {
 			const lists = (sidebar.items || []).some(
-				(item) => item.link_to === link_to && (!link_type || item.link_type === link_type)
+				(item) =>
+					linked_entities(item).includes(link_to) &&
+					(!link_type || item.link_type === link_type)
 			);
 			if (lists) modules.push(module);
 		});
