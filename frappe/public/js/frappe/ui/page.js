@@ -624,18 +624,11 @@ frappe.ui.Page = class Page {
 			(el.classList.contains("hidden-xl") &&
 				window.matchMedia("(min-width: 992px)").matches);
 		const segments = [[]];
-		// group label -> { row, segs }: option row plus divider-split submenu sections.
+		// one submenu row per inner-button group, keyed by group label
 		const nested_groups = new Map();
 
 		$parent.children("li").each((_, li) => {
 			if (li.classList.contains("dropdown-divider")) {
-				// Tagged divider splits its submenu, not the parent menu.
-				const sub_group = $(li).data("menu_submenu_divider");
-				if (sub_group && nested_groups.has(sub_group)) {
-					const entry = nested_groups.get(sub_group);
-					if (entry.segs[entry.segs.length - 1].length) entry.segs.push([]);
-					return;
-				}
 				if (!responsive_hidden(li) && segments[segments.length - 1].length) {
 					segments.push([]);
 				}
@@ -670,14 +663,17 @@ frappe.ui.Page = class Page {
 			// them as one "Group" row with a submenu instead
 			const nested = $li.data("menu_submenu");
 			if (nested) {
-				let entry = nested_groups.get(nested.group);
-				if (!entry) {
-					const row = { label: nested.group, css_class: css_class || undefined };
-					entry = { row, segs: [[]] };
-					nested_groups.set(nested.group, entry);
-					segments[segments.length - 1].push(row);
+				let submenu = nested_groups.get(nested.group);
+				if (!submenu) {
+					submenu = [];
+					nested_groups.set(nested.group, submenu);
+					segments[segments.length - 1].push({
+						label: nested.group,
+						css_class: css_class || undefined,
+						submenu,
+					});
 				}
-				entry.segs[entry.segs.length - 1].push({
+				submenu.push({
 					label: nested.label,
 					disabled: a.classList.contains("disabled"),
 					onclick,
@@ -694,15 +690,6 @@ frappe.ui.Page = class Page {
 				onclick,
 			});
 		});
-
-		// One section stays flat; multiple render as separated groups.
-		for (const { row, segs } of nested_groups.values()) {
-			const parts = segs.filter((s) => s.length);
-			row.submenu =
-				parts.length <= 1
-					? parts[0] || []
-					: parts.map((options) => ({ group: "", hide_label: true, options }));
-		}
 
 		const groups = segments.filter((segment) => segment.length);
 		if (groups.length <= 1) return groups[0] || [];

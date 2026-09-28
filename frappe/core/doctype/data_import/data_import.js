@@ -943,7 +943,6 @@ frappe.ui.form.on("Data Import", {
 		frm.events.reset_import_ui_state(frm);
 		frm._wizard_import_progress = null;
 		frm._import_log_filter = null;
-		frm._import_log_total_count = null;
 		frm._diw_template_warnings_source_key = null;
 		// Let the wizard recompute the landing step for this document.
 		frm.wizard_step = null;
@@ -2964,8 +2963,6 @@ frappe.ui.form.on("Data Import", {
 					inserted: cint(m.inserted),
 					updated: cint(m.updated),
 				};
-				frm._import_log_total_count =
-					cint(m.success) + cint(m.failed) || frm._import_log_total_count;
 				fetch_logs(frm._import_log_status_summary);
 			},
 			error: function () {
