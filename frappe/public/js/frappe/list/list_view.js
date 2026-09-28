@@ -204,6 +204,34 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		super.setup_page_head();
 		this.set_primary_action();
 		this.set_actions_menu_items();
+		this.setup_import_menu();
+	}
+
+	setup_import_menu() {
+		if (!frappe.model.can_import(this.doctype, null, this.meta)) return;
+
+		const doctype = this.doctype;
+		const group = __("Import", null, "Button in list view menu");
+
+		const open_dialog = (args) => {
+			frappe.require("data_import_tools.bundle.js", () => {
+				frappe.data_import.open_data_import_dialog(args);
+			});
+		};
+
+		const add_sub_item = (label, click) => {
+			// Flat label keeps add_menu_item dedup unique; menu_submenu data renders the submenu.
+			const $item = this.page.add_menu_item(`${group} > ${label}`, click, true, null, false);
+			$item.closest("li").data("menu_submenu", { group, label });
+			return $item;
+		};
+
+		add_sub_item(__("New Import"), () =>
+			open_dialog({ reference_doctype: doctype, import_type: "Insert New Records" })
+		);
+		add_sub_item(__("Show All"), () =>
+			frappe.set_route("list", "data-import", { reference_doctype: doctype })
+		);
 	}
 
 	set_actions_menu_items() {
@@ -2293,6 +2321,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return;
 			}
 
+			// Bulk imports publish no doc name.
+			if (!data.name) {
+				this.refresh();
+				return;
+			}
+
 			this.pending_document_refreshes.push(data);
 			this.debounced_refresh();
 		});
@@ -2505,17 +2539,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_menu_items() {
 		const doctype = this.doctype;
 		const items = [];
-
-		if (frappe.model.can_import(doctype, null, this.meta)) {
-			items.push({
-				label: __("Import", null, "Button in list view menu"),
-				action: () =>
-					frappe.set_route("list", "data-import", {
-						reference_doctype: doctype,
-					}),
-				standard: true,
-			});
-		}
 
 		if (frappe.user_roles.includes("System Manager")) {
 			items.push({
