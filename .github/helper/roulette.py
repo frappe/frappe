@@ -188,7 +188,9 @@ def select_tests(files_list):
 	]
 	# Coverage cannot see dependency bumps and the like, so those force the full suite. Frontend code
 	# is safe to ignore, except `.html`: that is mostly Jinja rendered on the server.
-	ignorable_files = [f for f in files_list if is_docs(f) or (is_frontend_code(f) and not f.endswith(".html"))]
+	ignorable_files = [
+		f for f in files_list if is_docs(f) or (is_frontend_code(f) and not f.endswith(".html"))
+	]
 	other_files = [f for f in files_list if f not in relevant_files and f not in ignorable_files]
 	# A test module's content can only break its own tests and those of modules importing it.
 	core_files = [f for f in relevant_files if f.startswith(CORE_PATHS) and not impact_map.is_test_module(f)]
