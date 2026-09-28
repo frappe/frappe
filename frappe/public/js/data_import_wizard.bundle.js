@@ -1174,6 +1174,15 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 					})
 				);
 			}
+			if (!importing && frm._data_import_dialog) {
+				this.$footer_right.prepend(
+					frappe.ui.button({
+						label: __("Done"),
+						variant: status === "Success" ? "solid" : undefined,
+						onclick: () => frm._data_import_dialog.hide(),
+					})
+				);
+			}
 		}
 	}
 
