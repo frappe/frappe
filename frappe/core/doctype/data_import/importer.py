@@ -1590,46 +1590,11 @@ class Row:
 				value, col.df, self.header.reference_doctype, self.header.value_lookup
 			)
 		df = col.df
-		if df.fieldtype == "Select":
-			select_options = get_select_options(df)
-			if select_options and cstr(value) not in select_options:
-				if self.has_value_mapping(value, col):
-					# A saved value mapping fixes this at import time, so no row warning.
-					return value
-				options_string = ", ".join(select_options)
-				msg = _('"{0}" is not valid. Allowed: {1}').format(
-					frappe.bold(escape_html(cstr(value))), frappe.bold(options_string)
-				)
-				self.warnings.append(
-					{
-						"row": self.row_number,
-						"field": df_as_json(df),
-						"message": msg,
-					}
-				)
-				return
-
-		elif df.fieldtype == "Link":
-			if df.options == self.doctype and _is_same_file_tree_reference(value, self.header):
-				return value
-
-			exists = self.link_exists(value, df)
-			if not exists:
-				if self.has_value_mapping(value, col):
-					# A saved value mapping fixes this at import time, so no row warning.
-					return value
-				msg = _('"{0}" is not a valid {1}').format(
-					frappe.bold(escape_html(cstr(value))), frappe.bold(df.label)
-				)
-				self.warnings.append(
-					{
-						"row": self.row_number,
-						"field": df_as_json(df),
-						"message": msg,
-					}
-				)
-				return
-		elif df.fieldtype == "Date":
+		if df.fieldtype in ("Select", "Link"):
+			# Invalid values are reported once per column as a value_mapping warning, with their
+			# rows, and that warning blocks the import until they are mapped or skipped.
+			return value
+		if df.fieldtype == "Date":
 			value = self.get_date(value, col)
 			if isinstance(value, str):
 				# value was not parsed as datetime object
@@ -1675,19 +1640,6 @@ class Row:
 				)
 
 		return value
-
-	def has_value_mapping(self, value, col) -> bool:
-		"""True when a saved value mapping covers this invalid Link/Select value (preview only)."""
-		if frappe.flags.in_import:
-			# During import the value is already resolved via resolve_import_value.
-			return False
-		from frappe.core.doctype.data_import.value_mapping import get_field_map, normalize_source_value
-
-		field_map = get_field_map(col, self.header.value_lookup, self.header.reference_doctype)
-		return normalize_source_value(value) in field_map
-
-	def link_exists(self, value, df):
-		return bool(frappe.db.exists(df.options, value, cache=True))
 
 	def parse_value(self, value, col):
 		df = col.df

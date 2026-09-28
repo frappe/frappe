@@ -687,6 +687,31 @@ class TestImporter(IntegrationTestCase):
 		self.assertIn(expected_id_key, fields_dict, "ID fallback failed")
 		table_field.label = original_label  # maintain sanity in test env
 
+	def test_invalid_link_and_select_values_warn_once_per_column(self):
+		import tempfile
+
+		from frappe.core.doctype.data_import.importer import ImportFile
+		from frappe.core.doctype.data_import.value_mapping import get_blocking_warnings
+
+		with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False) as f:
+			f.write("Description,Status,Allocated To\n")
+			for i in range(3):
+				f.write(f"Task {i},Bogus,nobody@example.com\n")
+		import_file = ImportFile("ToDo", f.name, import_type="Insert New Records", console=True)
+		# Row warnings are only raised while rows are parsed into documents.
+		import_file.get_payloads_for_import()
+		warnings = import_file.get_warnings()
+
+		self.assertEqual([w for w in warnings if w.get("row")], [])
+		mapping_warnings = [w for w in warnings if w.get("type") == "value_mapping"]
+		self.assertEqual(len(mapping_warnings), 2)
+		self.assertEqual(len(get_blocking_warnings(warnings, import_file)), 2)
+
+		all_rows_skipped = frappe._dict(
+			name="skip-test", skipped_rows=[frappe._dict(row_number=row) for row in (2, 3, 4)]
+		)
+		self.assertEqual(get_blocking_warnings(warnings, import_file, all_rows_skipped), [])
+
 	def test_stop_import_without_job_marks_error(self):
 		from frappe.core.doctype.data_import.data_import import stop_data_import
 
