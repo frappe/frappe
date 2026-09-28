@@ -280,6 +280,7 @@ if __name__ == "__main__":
 			sys.exit(0)
 
 	os.system('echo "build=strawberry" >> $GITHUB_OUTPUT')
-	# Empty means the full suite.
-	os.system(f'echo "tests={" ".join(selected_tests or [])}" >> $GITHUB_OUTPUT')
+	# Empty means the full suite. Written without a shell: these are PR-controlled file names.
+	with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+		f.write(f"tests={' '.join(selected_tests or [])}\n")
 	os.system(f'echo "run_postgres={"true" if run_postgres else "false"}" >> $GITHUB_OUTPUT')
