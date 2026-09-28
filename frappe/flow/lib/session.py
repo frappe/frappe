@@ -215,6 +215,16 @@ def fail_running(session_name: str, error: str) -> None:
 		frappe.db.set_value("Flow Run", name, {"status": "Failed", "error": error})
 
 
+def sync_with_retry(session: FlowSession) -> None:
+	"""Sync, again in a new transaction if a concurrent sync commits first; call before any write."""
+	try:
+		session.sync()
+	except (frappe.TimestampMismatchError, frappe.QueryDeadlockError):
+		frappe.db.rollback()  # our reads predate its commit
+		session.reload()
+		session.sync()
+
+
 def call_on_complete(session: FlowSession) -> None:
 	"""Call each ended run's on_complete once, only in the session owner's request so it runs as
 	them; another user's request leaves it for theirs. A failing one is logged and undone."""
