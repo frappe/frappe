@@ -275,7 +275,8 @@ if __name__ == "__main__":
 
 	# If we reach here, run the build
 	selected_tests = None
-	if build_type == "server" and not ci_files_changed:
+	# An explicit request for server tests gets the full suite.
+	if build_type == "server" and not ci_files_changed and not has_run_server_tests_label(pr_number, repo):
 		selected_tests = select_tests(files_list)
 		if selected_tests == []:
 			print("No server-side changes; Stopping Python build process.")
