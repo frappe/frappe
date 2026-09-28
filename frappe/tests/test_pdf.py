@@ -135,6 +135,36 @@ class TestPdf(IntegrationTestCase):
 		# If image was actually retrieved then size will be  in few kbs, else bytes.
 		self.assertGreaterEqual(len(pdf), 10_000)
 
+	def read_test_pdf(self, filename: str) -> bytes:
+		path = frappe.get_app_path("frappe", "tests", "data", filename)
+		with open(path, "rb") as f:
+			return f.read()
+
+	def test_pdf_contains_js_detects_document_level_js(self):
+		# document-level "run on open" JS, stored via /Root/Names/JavaScript
+		# as an indirect reference -- the common, dangerous placement
+		content = self.read_test_pdf("sample_pdf_with_js.pdf")
+		self.assertTrue(pdfgen.pdf_contains_js(content))
+
+	def test_pdf_contains_js_detects_page_level_js(self):
+		# JS attached via a page's /AA (additional-actions) dictionary,
+		# stored indirectly -- the realistic real-world construction
+		content = self.read_test_pdf("sample_pdf_with_page_level_js.pdf")
+		self.assertTrue(pdfgen.pdf_contains_js(content))
+
+	def test_pdf_contains_js_false_for_clean_pdf(self):
+		content = self.read_test_pdf("sample_pdf.pdf")
+		self.assertFalse(pdfgen.pdf_contains_js(content))
+
+	def test_pdf_contains_js_does_not_raise_on_encrypted_pdf(self):
+		# this fixture genuinely contains JS (verifiable by decrypting it with
+		# password "frappe"), but resolving /Root on the undecrypted content
+		# raises pypdf.errors.FileNotDecryptedError -- must not propagate
+		# uncaught, same documented "treat as no JS" contract as any other
+		# file we can't inspect
+		content = self.read_test_pdf("sample_encrypted_pdf_with_js.pdf")
+		self.assertFalse(pdfgen.pdf_contains_js(content))
+
 
 class TestChromePdfGeometry(IntegrationTestCase):
 	"""Unit tests for Browser paper geometry — no chromium process involved."""
