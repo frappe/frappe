@@ -11,6 +11,9 @@
 		>
 			<div v-html="icon"></div>
 			<a class="tree-label">{{ node.label }}</a>
+			<span v-if="node.is_private" class="text-muted private-label">{{
+				__("(private)")
+			}}</span>
 			<!-- Icon open File record in new tab -->
 			<a
 				v-if="node.is_leaf"
@@ -133,5 +136,10 @@ function onMouseleave() {
 }
 .popover {
 	padding: 10px;
+}
+.private-label {
+	margin-left: 0.25rem;
+	font-size: var(--text-xs);
+	white-space: nowrap;
 }
 </style>
