@@ -23,11 +23,15 @@ from frappe.database.utils import (
 	is_order_by_in_select,
 )
 from frappe.model import CORE_DOCTYPES as PERMITTED_CORE_DOCTYPES
-from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
+from frappe.model import OPTIONAL_FIELDS, get_permitted_fields, std_fields
 from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
 from frappe.model.document import Document
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.custom import Month, MonthName, Quarter, Year
+from frappe.utils import cstr
+
+# Fieldtypes of standard columns that have no DocField in meta
+STANDARD_FIELD_TYPES: dict[str, str] = {df["fieldname"]: df["fieldtype"] for df in std_fields}
 
 CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 	(
@@ -733,6 +737,11 @@ class Engine:
 				else OPERATOR_MAP["in"]
 			)
 			return operator_fn(_field, nodes or ("",))
+
+		if _operator.casefold() == "is" and isinstance(_field, Field):
+			criterion = self._build_typed_is_criterion(_field, field, _value, doctype or self.doctype)
+			if criterion is not None:
+				return criterion
 
 		# The `is` ("set"/"not set") operator compares against an empty string (`= ''`).
 		# MariaDB silently coerces `''` to the column's type (e.g. `0` for an int), but
@@ -2055,6 +2064,33 @@ class Engine:
 		else:
 			docfield = next((df for df in meta.fields if df.fieldname == fieldname), None)
 		return bool(docfield) and docfield.fieldtype == "JSON"
+
+	def _build_typed_is_criterion(
+		self, _field: Field, field: str | Field, value: Any, doctype: str
+	) -> "Criterion | None":
+		"""Build `is set` / `is not set` for numeric and date/time fields.
+
+		The generic `func_is` compares against '', which Postgres rejects for non-text columns.
+		Returns None for other fieldtypes so the generic operator is used.
+		"""
+		from frappe.model import datetime_fields, numeric_fieldtypes
+
+		fieldname = field if isinstance(field, str) else getattr(_field, "name", str(_field))
+		fieldname = fieldname.split(".")[-1].strip('`"')
+		df = frappe.get_meta(doctype).get_field(fieldname)
+
+		fieldtype = df.fieldtype if df else STANDARD_FIELD_TYPES.get(fieldname)
+		if fieldtype not in (*numeric_fieldtypes, *datetime_fields):
+			return None
+
+		is_numeric = fieldtype in numeric_fieldtypes
+		match cstr(value).lower():
+			case "set":
+				return (_field != 0) if is_numeric else _field.isnotnull()
+			case "not set":
+				return (_field.isnull() | (_field == 0)) if is_numeric else _field.isnull()
+			case _:
+				raise ValueError("`is` operator only supports `set` and `not set` as value")
 
 	def _is_field_nullable(self, doctype: str, fieldname: str) -> bool:
 		"""Check if a field can contain NULL values."""

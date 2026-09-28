@@ -1273,6 +1273,127 @@ class TestQuery(IntegrationTestCase):
 		result = frappe.qb.get_query("DocType", filters={"autoname": ["is", "set"]}).run(as_dict=1)
 		self.assertFalse(any(d.name == "Property Setter" for d in result))
 
+	def test_is_set_is_not_set_on_non_text_fields(self):
+		"""`is set` / `is not set` must not compare numeric or date fields with '' (breaks Postgres)"""
+		for fieldname in ("istable", "modified"):
+			for value in ("set", "not set"):
+				query = frappe.qb.get_query("DocType", filters={fieldname: ["is", value]})
+				self.assertNotIn("''", str(query))
+				query.run()
+
+		child_tables = frappe.qb.get_query("DocType", filters={"istable": ["is", "set"]}).run(pluck="name")
+		self.assertIn("DocField", child_tables)
+		self.assertNotIn("DocType", child_tables)
+
+		non_child_tables = frappe.qb.get_query("DocType", filters={"istable": ["is", "not set"]}).run(
+			pluck="name"
+		)
+		self.assertIn("DocType", non_child_tables)
+		self.assertNotIn("DocField", non_child_tables)
+
+		self.assertFalse(frappe.qb.get_query("DocType", filters={"modified": ["is", "not set"]}).run())
+
+	def test_is_set_is_not_set_on_non_nullable_fields(self):
+		doctype = new_doctype(
+			fields=[
+				{"fieldname": "test_date", "fieldtype": "Date"},
+				{"fieldname": "test_time", "fieldtype": "Time"},
+				{"fieldname": "test_datetime", "fieldtype": "Datetime"},
+				{"fieldname": "test_int", "fieldtype": "Int"},
+				{"fieldname": "test_check", "fieldtype": "Check"},
+				{
+					"fieldname": "test_date_non_nullable",
+					"fieldtype": "Date",
+					"not_nullable": 1,
+					"default": "2026-09-28",
+				},
+				{
+					"fieldname": "test_time_non_nullable",
+					"fieldtype": "Time",
+					"not_nullable": 1,
+					"default": "13:43:46",
+				},
+				{
+					"fieldname": "test_datetime_non_nullable",
+					"fieldtype": "Datetime",
+					"not_nullable": 1,
+					"default": "2026-09-28 13:43:46",
+				},
+				{"fieldname": "test_int_non_nullable", "fieldtype": "Int", "not_nullable": 1},
+				{"fieldname": "test_check_non_nullable", "fieldtype": "Check", "not_nullable": 1},
+			]
+		).insert()
+		self.addCleanup(doctype.delete)
+		filled = frappe.get_doc(
+			{
+				"doctype": doctype.name,
+				"test_date": "2026-09-28",
+				"test_time": "13:43:46",
+				"test_datetime": "2026-09-28 13:43:46",
+				"test_int": 42,
+				"test_check": 1,
+				"test_date_non_nullable": "2026-09-28",
+				"test_time_non_nullable": "13:43:46",
+				"test_datetime_non_nullable": "2026-09-28 13:43:46",
+				"test_int_non_nullable": 42,
+				"test_check_non_nullable": 1,
+			}
+		).insert()
+		empty = frappe.get_doc({"doctype": doctype.name}).insert()
+		explicitly_empty = frappe.get_doc(
+			{
+				"doctype": doctype.name,
+				**{f"test_{kind}": "" for kind in ("date", "time", "datetime")},
+				**{f"test_{kind}": 0 for kind in ("int", "check")},
+				**{f"test_{kind}_non_nullable": 0 for kind in ("int", "check")},
+			}
+		).insert()
+		explicitly_none = frappe.get_doc(
+			{
+				"doctype": doctype.name,
+				**{f"test_{kind}": None for kind in ("date", "time", "datetime", "int", "check")},
+				**{
+					f"test_{kind}_non_nullable": None for kind in ("date", "time", "datetime", "int", "check")
+				},
+			}
+		).insert()
+		all_fieldnames = (
+			"test_date",
+			"test_time",
+			"test_datetime",
+			"test_int",
+			"test_check",
+			"test_date_non_nullable",
+			"test_time_non_nullable",
+			"test_datetime_non_nullable",
+			"test_int_non_nullable",
+			"test_check_non_nullable",
+		)
+		all_names = {filled.name, empty.name, explicitly_empty.name, explicitly_none.name}
+		for fieldname in all_fieldnames:
+			if fieldname.endswith("_non_nullable") and fieldname not in (
+				"test_int_non_nullable",
+				"test_check_non_nullable",
+			):
+				expected_set = {filled.name, empty.name, explicitly_empty.name, explicitly_none.name}
+			else:
+				expected_set = {filled.name}
+			expected_not_set = all_names - expected_set
+			for value, expected in (
+				("set", expected_set),
+				("not set", expected_not_set),
+			):
+				with self.subTest(fieldname=fieldname, value=value):
+					query = frappe.qb.get_query(
+						doctype.name,
+						filters={
+							fieldname: ["is", value],
+							"name": ["in", list(all_names)],
+						},
+					)
+					self.assertNotIn("''", str(query))
+					self.assertEqual(set(query.run(pluck="name")), expected)
+
 	def test_permission_query_condition(self):
 		"""Test permission query condition being applied from hooks and server script"""
 		from frappe.desk.doctype.dashboard_settings.dashboard_settings import create_dashboard_settings
