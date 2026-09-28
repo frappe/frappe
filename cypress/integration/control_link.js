@@ -357,4 +357,40 @@ context("Control Link", () => {
 				cy.get(".custom-link-option").should("be.visible");
 			});
 	});
+
+	it("keeps list format filters when merging link filters", () => {
+		cy.dialog({
+			title: "Link",
+			fields: [
+				{
+					label: "Select ToDo",
+					fieldname: "link",
+					fieldtype: "Link",
+					options: "ToDo",
+					link_filters: '[["ToDo", "status", "=", "Closed"]]',
+					get_query: () => ({
+						filters: [
+							["ToDo", "status", "=", "Open"],
+							["ToDo", "priority", "=", "High"],
+							["Communication", "status", "=", "Open"],
+							["description", "like", "%test todo%"],
+						],
+					}),
+				},
+			],
+		}).as("dialog");
+
+		cy.wait(500);
+
+		cy.get("@dialog").then((dialog) => {
+			let filters = dialog.get_field("link").get_search_args("").filters;
+
+			expect(filters).to.deep.eq([
+				["ToDo", "priority", "=", "High"],
+				["Communication", "status", "=", "Open"],
+				["description", "like", "%test todo%"],
+				["status", "=", "Closed"],
+			]);
+		});
+	});
 });

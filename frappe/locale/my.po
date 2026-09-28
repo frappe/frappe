@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-09-06 09:32+0000\n"
-"PO-Revision-Date: 2026-09-14 04:19\n"
+"POT-Creation-Date: 2026-09-20 09:34+0000\n"
+"PO-Revision-Date: 2026-09-21 04:20\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Burmese\n"
 "MIME-Version: 1.0\n"
@@ -70,7 +70,7 @@ msgstr "&copy; Frappe Technologies Pvt. Ltd. နှင့် ပူးပေါ�
 msgid "&lt;head&gt; HTML"
 msgstr "&lt;head&gt; HTML ကို"
 
-#: frappe/database/query.py:2383
+#: frappe/database/query.py:2390
 msgid "'*' is only allowed in {0} SQL function(s)"
 msgstr "'*' ကို {0} SQL function(များ) တွင်သာ ခွင့်ပြုပါသည်"
 
@@ -90,7 +90,7 @@ msgstr "'List View တွင်' သည် {1} အမျိုးအစား၏
 msgid "'In List View' not allowed for type {0} in row {1}"
 msgstr "'List View တွင်' သည် အတန်း {1} ရှိ {0} အမျိုးအစားအတွက် ခွင့်မပြုပါ"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:164
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:175
 msgid "'Recipients' not specified"
 msgstr "'လက်ခံသူများ' သတ်မှတ်မထားပါ"
 
@@ -789,9 +789,13 @@ msgstr "Frappe Framework instance တစ်ခုသည် OAuth Client၊ Resou
 msgid "A field with the name {0} already exists in {1}"
 msgstr "{0} အမည်ရှိ အကွက်သည် {1} တွင် ရှိပြီးဖြစ်သည်"
 
-#: frappe/core/doctype/file/file.py:348
+#: frappe/core/doctype/file/file.py:354
 msgid "A file with same name {} already exists"
 msgstr "တူညီသောအမည် {} ရှိ ဖိုင်တစ်ခု ရှိပြီးဖြစ်သည်"
+
+#: frappe/core/doctype/file/file.py:124 frappe/core/doctype/file/file.py:176
+msgid "A folder cannot have a File URL"
+msgstr ""
 
 #. Description of the 'Scopes' (Text) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -802,7 +806,7 @@ msgstr "အသုံးပြုသူ ခွင့်ပြုပြီးန�
 msgid "A new account has been created for you at {0}."
 msgstr ""
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:431
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:449
 msgid "A recurring {0} {1} has been created for you via Auto Repeat {2}."
 msgstr "ထပ်ခါတလဲလဲ {0} {1} ကို Auto Repeat {2} မှတစ်ဆင့် သင့်အတွက် ဖန်တီးပြီးပါပြီ။"
 
@@ -1281,6 +1285,7 @@ msgstr "CSS ထည့်ပါ"
 msgid "Add Card to Dashboard"
 msgstr "ကတ်ကို ဒိုင်ခွက်ဘုတ်သို့ ထည့်ပါ"
 
+#: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:34
 #: frappe/public/js/frappe/views/reports/query_report.js:211
 msgid "Add Chart to Dashboard"
 msgstr "ဇယားကို ဒိုင်ခွက်ဘုတ်သို့ ထည့်ပါ"
@@ -1290,8 +1295,8 @@ msgid "Add Child"
 msgstr "ကလေးအချက် ထည့်ပါ"
 
 #: frappe/public/js/frappe/views/kanban/kanban_board.html:4
-#: frappe/public/js/frappe/views/reports/query_report.js:1990
-#: frappe/public/js/frappe/views/reports/query_report.js:1993
+#: frappe/public/js/frappe/views/reports/query_report.js:2001
+#: frappe/public/js/frappe/views/reports/query_report.js:2004
 #: frappe/public/js/frappe/views/reports/report_view.js:368
 #: frappe/public/js/frappe/views/reports/report_view.js:393
 #: frappe/public/js/print_format_builder/Field.vue:112
@@ -1799,7 +1804,7 @@ msgstr "စုစည်းမှုလုပ်ဆောင်ချက် အ�
 msgid "Aggregate Function field is required to create a dashboard chart"
 msgstr "ဒက်ရှ်ဘုတ်ဇယားဖန်တီးရန် စုစည်းမှုလုပ်ဆောင်ချက်အကွက် လိုအပ်ပါသည်"
 
-#: frappe/database/query.py:2432
+#: frappe/database/query.py:2439
 msgid "Alias must be a string"
 msgstr "Alias သည် စာသားဖြစ်ရပါမည်"
 
@@ -2012,7 +2017,7 @@ msgid "Allow Print for Cancelled"
 msgstr "ပယ်ဖျက်ထားသည့်အတွက် ပုံနှိပ်ခွင့်ပြုရန်"
 
 #. Label of the allow_print_for_draft (Check) field in DocType 'Print Settings'
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:438
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:456
 #: frappe/printing/doctype/print_settings/print_settings.json
 msgid "Allow Print for Draft"
 msgstr "မူကြမ်းအတွက် ပုံနှိပ်ခွင့်ပြုရန်"
@@ -3072,7 +3077,7 @@ msgstr "အကွက်သို့ ပူးတွဲ"
 msgid "Attached To Name"
 msgstr "အမည်သို့ ပူးတွဲ"
 
-#: frappe/core/doctype/file/file.py:192
+#: frappe/core/doctype/file/file.py:198
 msgid "Attached To Name must be a string or an integer"
 msgstr "ပူးတွဲအမည်သည် စာသားတစ်ခု သို့မဟုတ် ကိန်းပြည့်တစ်ခု ဖြစ်ရပါမည်"
 
@@ -3104,7 +3109,7 @@ msgstr ""
 msgid "Attachment Limit (MB)"
 msgstr "ပူးတွဲကန့်သတ်ချက် (MB)"
 
-#: frappe/core/doctype/file/file.py:417
+#: frappe/core/doctype/file/file.py:423
 #: frappe/public/js/frappe/form/sidebar/attachments.js:36
 msgid "Attachment Limit Reached"
 msgstr "ပူးတွဲကန့်သတ်ချက် ပြည့်သွားပါပြီ"
@@ -3135,11 +3140,11 @@ msgstr "ပူးတွဲဖိုင် ဆက်တင်များ"
 msgid "Attachments"
 msgstr "ပူးတွဲဖိုင်များ"
 
-#: frappe/public/js/frappe/form/print_utils.js:149
+#: frappe/public/js/frappe/form/print_utils.js:160
 msgid "Attempting Connection to QZ Tray..."
 msgstr "QZ Tray သို့ ချိတ်ဆက်ရန် ကြိုးစားနေသည်..."
 
-#: frappe/public/js/frappe/form/print_utils.js:165
+#: frappe/public/js/frappe/form/print_utils.js:176
 msgid "Attempting to launch QZ Tray..."
 msgstr "QZ Tray ကို စတင်ရန် ကြိုးစားနေသည်..."
 
@@ -3319,11 +3324,11 @@ msgstr "အလိုအလျောက် ပြန်လုပ်ခြင်�
 msgid "Auto Repeat Day"
 msgstr "အလိုအလျောက် ပြန်လုပ်ရက်"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:173
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:184
 msgid "Auto Repeat Day{0} {1} has been repeated."
 msgstr "အလိုအလျောက် ပြန်လုပ်ရက်{0} {1} ပြန်လုပ်ပြီးပါပြီ။"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:479
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:497
 msgid "Auto Repeat Document Creation Failed"
 msgstr "အလိုအလျောက် ပြန်လုပ်ခြင်း စာရွက်စာတမ်း ဖန်တီးမှု မအောင်မြင်ပါ"
 
@@ -3340,7 +3345,7 @@ msgstr "အလိုအလျောက် ပြန်လုပ်ခြင်�
 msgid "Auto Repeat created for this document"
 msgstr "ဤစာရွက်စာတမ်းအတွက် အလိုအလျောက် ပြန်လုပ်ခြင်း ဖန်တီးပြီးပါပြီ"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:482
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:500
 msgid "Auto Repeat failed for {0}"
 msgstr "အလိုအလျောက် ထပ်လုပ်ခြင်း {0} အတွက် မအောင်မြင်ပါ"
 
@@ -3384,9 +3389,13 @@ msgstr "မှတ်ချက်ပေးသော စာရွက်စာတ�
 msgid "Auto follow documents that you create"
 msgstr "သင်ဖန်တီးသော စာရွက်စာတမ်းများကို အလိုအလျောက် စောင့်ကြည့်ပါ"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:242
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:259
 msgid "Auto repeat failed. Please enable auto repeat after fixing the issues."
 msgstr "အလိုအလျောက် ထပ်လုပ်ခြင်း မအောင်မြင်ပါ။ ပြဿနာများကို ဖြေရှင်းပြီးနောက် အလိုအလျောက် ထပ်လုပ်ခြင်းကို ဖွင့်ပါ။"
+
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:244
+msgid "Auto repeat skipped. The owner cannot access the reference document."
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -4402,11 +4411,11 @@ msgstr "ဖယ်ရှား၍မရပါ"
 msgid "Cannot Update After Submit"
 msgstr "တင်သွင်းပြီးနောက် အပ်ဒိတ်လုပ်၍မရပါ"
 
-#: frappe/core/doctype/file/file.py:757
+#: frappe/core/doctype/file/file.py:764 frappe/utils/file_manager.py:385
 msgid "Cannot access file path {0}"
 msgstr "ဖိုင်လမ်းကြောင်း {0} ကို ဝင်ရောက်၍မရပါ"
 
-#: frappe/core/doctype/file/file.py:155
+#: frappe/core/doctype/file/file.py:159
 msgid "Cannot attach a folder to a document"
 msgstr "ဖိုင်တွဲကို စာရွက်စာတမ်းတွင် ပူးတွဲ၍မရပါ"
 
@@ -4414,7 +4423,7 @@ msgstr "ဖိုင်တွဲကို စာရွက်စာတမ်း�
 msgid "Cannot cancel before submitting while transitioning from <b>{0} State</b> to <b>{1} State</b>"
 msgstr "<b>{0} အခြေအနေ</b> မှ <b>{1} အခြေအနေ</b> သို့ ပြောင်းလဲနေစဉ် တင်သွင်းခြင်းမပြုမီ ပယ်ဖျက်၍မရပါ"
 
-#: frappe/workflow/doctype/workflow/workflow.py:111
+#: frappe/workflow/doctype/workflow/workflow.py:114
 msgid "Cannot cancel before submitting. See Transition {0}"
 msgstr "တင်သွင်းခြင်းမပြုမီ ပယ်ဖျက်၍မရပါ။ အသွင်ကူးပြောင်းမှု {0} ကိုကြည့်ပါ"
 
@@ -4438,7 +4447,7 @@ msgstr ""
 msgid "Cannot change state of Cancelled Document <b>({0} State)</b>"
 msgstr "ပယ်ဖျက်ထားသော စာရွက်စာတမ်း၏ အခြေအနေကို ပြောင်း၍ မရပါ <b>({0} အခြေအနေ)</b>"
 
-#: frappe/workflow/doctype/workflow/workflow.py:100
+#: frappe/workflow/doctype/workflow/workflow.py:103
 msgid "Cannot change state of Cancelled Document. Transition row {0}"
 msgstr "ပယ်ဖျက်ထားသော စာရွက်စာတမ်း၏ အခြေအနေကို ပြောင်း၍ မရပါ။ ကူးပြောင်းမှုအတန်း {0}"
 
@@ -4462,7 +4471,7 @@ msgstr "အခြားအသုံးပြုသူများ၏ သီး�
 msgid "Cannot delete Desktop Icon '{0}' as it is restricted"
 msgstr "'{0}' Desktop Icon ကို ကန့်သတ်ထားသောကြောင့် ဖျက်၍ မရပါ"
 
-#: frappe/core/doctype/file/file.py:244
+#: frappe/core/doctype/file/file.py:250
 msgid "Cannot delete Home and Attachments folders"
 msgstr "Home နှင့် ပူးတွဲဖိုင်များ ဖိုဒါများကို ဖျက်၍ မရပါ"
 
@@ -4538,15 +4547,15 @@ msgstr "စံ နံပါတ်ကတ်များအတွက် စစ်�
 msgid "Cannot edit standard fields"
 msgstr "စံအကွက်များကို တည်းဖြတ်၍ မရပါ"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:131
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:142
 msgid "Cannot enable {0} for a non-submittable doctype"
 msgstr "တင်သွင်းနိုင်သော doctype မဟုတ်သည့်အတွက် {0} ကို ဖွင့်၍ မရပါ"
 
-#: frappe/core/doctype/file/file.py:343
+#: frappe/core/doctype/file/file.py:349
 msgid "Cannot find file {} on disk"
 msgstr "ဒစ်ခ်ပေါ်တွင် ဖိုင် {} ကို ရှာမတွေ့ပါ"
 
-#: frappe/core/doctype/file/file.py:695
+#: frappe/core/doctype/file/file.py:702
 msgid "Cannot get file contents of a Folder"
 msgstr "ဖိုင်တွဲတစ်ခု၏ ဖိုင်အကြောင်းအရာများကို ရယူ၍ မရပါ"
 
@@ -4829,7 +4838,11 @@ msgstr "တောင်းဆိုမှု URL ကို စစ်ဆေးပ
 msgid "Check columns to select, drag to set order."
 msgstr "ရွေးချယ်ရန် ကော်လံများကို အမှတ်ခြစ်ပါ၊ အစီအစဉ်သတ်မှတ်ရန် ဆွဲပါ။"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:485
+#: frappe/public/js/frappe/microtemplate.js:256
+msgid "Check the Error Log for details."
+msgstr ""
+
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:503
 msgid "Check the Error Log for more information: {0}"
 msgstr "နောက်ထပ် အချက်အလက်များအတွက် အမှားမှတ်တမ်းကို စစ်ဆေးပါ: {0}"
 
@@ -4900,7 +4913,7 @@ msgstr "အကွက် {1} အတွက် Child Table {0} သည် virtual �
 msgid "Child Tables are shown as a Grid in other DocTypes"
 msgstr "Child Tables များသည် အခြား DocTypes များတွင် Grid အဖြစ် ပြသပါသည်"
 
-#: frappe/database/query.py:1184
+#: frappe/database/query.py:1191
 msgid "Child query fields for '{0}' must be a list or tuple."
 msgstr "'{0}' အတွက် child query fields များသည် list သို့မဟုတ် tuple ဖြစ်ရပါမည်။"
 
@@ -5251,7 +5264,7 @@ msgctxt "Shrink code field."
 msgid "Collapse"
 msgstr "ခေါက်သိမ်းရန်"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2293
+#: frappe/public/js/frappe/views/reports/query_report.js:2306
 #: frappe/public/js/frappe/views/treeview.js:133
 msgid "Collapse All"
 msgstr "အားလုံးခေါက်သိမ်းရန်"
@@ -5308,7 +5321,7 @@ msgstr "ခေါက်သိမ်းနိုင်မှု မူတည်�
 #: frappe/desk/doctype/number_card/number_card.json
 #: frappe/desk/doctype/todo/todo.json
 #: frappe/desk/doctype/workspace_shortcut/workspace_shortcut.json
-#: frappe/public/js/frappe/views/reports/query_report.js:1305
+#: frappe/public/js/frappe/views/reports/query_report.js:1310
 #: frappe/public/js/frappe/widgets/widget_dialog.js:546
 #: frappe/public/js/frappe/widgets/widget_dialog.js:694
 #: frappe/website/doctype/color/color.json
@@ -5786,8 +5799,8 @@ msgstr "ချိတ်ဆက်ထားသော အက်ပ်"
 msgid "Connected User"
 msgstr "ချိတ်ဆက်ထားသော အသုံးပြုသူ"
 
-#: frappe/public/js/frappe/form/print_utils.js:155
-#: frappe/public/js/frappe/form/print_utils.js:179
+#: frappe/public/js/frappe/form/print_utils.js:166
+#: frappe/public/js/frappe/form/print_utils.js:190
 msgid "Connected to QZ Tray!"
 msgstr "QZ Tray သို့ ချိတ်ဆက်ပြီးပါပြီ!"
 
@@ -6043,11 +6056,15 @@ msgstr "အထွက်အီးမေးလ်ဆာဗာသို့ ချ�
 msgid "Could not find {0}"
 msgstr "{0} ကို ရှာမတွေ့ပါ"
 
+#: frappe/public/js/frappe/microtemplate.js:223
+msgid "Could not generate PDF"
+msgstr ""
+
 #: frappe/core/doctype/data_import/importer.py:952
 msgid "Could not map column {0} to field {1}"
 msgstr "ကော်လံ {0} ကို အကွက် {1} သို့ ချိတ်ဆက်၍မရပါ"
 
-#: frappe/database/query.py:1087
+#: frappe/database/query.py:1094
 msgid "Could not parse field: {0}"
 msgstr "အကွက်ကို ခွဲခြမ်း၍မရပါ: {0}"
 
@@ -6155,7 +6172,7 @@ msgstr ""
 #: frappe/public/js/frappe/list/list_filter.js:121
 #: frappe/public/js/frappe/views/file/file_view.js:106
 #: frappe/public/js/frappe/views/interaction.js:18
-#: frappe/public/js/frappe/views/reports/query_report.js:1337
+#: frappe/public/js/frappe/views/reports/query_report.js:1342
 #: frappe/public/js/frappe/views/workspace/workspace.js:502
 #: frappe/workflow/page/workflow_builder/workflow_builder.js:46
 msgid "Create"
@@ -6179,7 +6196,7 @@ msgid "Create Card"
 msgstr "ကတ် ဖန်တီးရန်"
 
 #: frappe/public/js/frappe/views/reports/query_report.js:286
-#: frappe/public/js/frappe/views/reports/query_report.js:1264
+#: frappe/public/js/frappe/views/reports/query_report.js:1269
 msgid "Create Chart"
 msgstr "ဇယား ဖန်တီးရန်"
 
@@ -6297,7 +6314,7 @@ msgstr "သင်ဖန်တီးထားသည်"
 msgid "Created By {0}"
 msgstr "{0} မှ ဖန်တီးထားသည်"
 
-#: frappe/workflow/doctype/workflow/workflow.py:65
+#: frappe/workflow/doctype/workflow/workflow.py:68
 msgid "Created Custom Field {0} in {1}"
 msgstr "စိတ်ကြိုက်အကွက် {0} ကို {1} တွင် ဖန်တီးပြီးပါပြီ"
 
@@ -8531,11 +8548,11 @@ msgstr "စာရွက်စာတမ်း အမျိုးအစား"
 msgid "Document Type and Function are required to create a number card"
 msgstr "နံပါတ်ကတ် ဖန်တီးရန် စာရွက်စာတမ်း အမျိုးအစားနှင့် လုပ်ဆောင်ချက် လိုအပ်ပါသည်"
 
-#: frappe/permissions.py:158
+#: frappe/permissions.py:160
 msgid "Document Type is not importable"
 msgstr "စာရွက်စာတမ်းအမျိုးအစားကို ထည့်သွင်း၍မရပါ"
 
-#: frappe/permissions.py:154
+#: frappe/permissions.py:156
 msgid "Document Type is not submittable"
 msgstr "စာရွက်စာတမ်းအမျိုးအစားကို တင်သွင်း၍မရပါ"
 
@@ -8987,7 +9004,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/toolbar.js:211
 #: frappe/public/js/frappe/form/toolbar.js:800
 #: frappe/public/js/frappe/views/reports/query_report.js:926
-#: frappe/public/js/frappe/views/reports/query_report.js:1935
+#: frappe/public/js/frappe/views/reports/query_report.js:1946
 #: frappe/public/js/frappe/widgets/base_widget.js:65
 #: frappe/public/js/frappe/widgets/chart_widget.js:304
 #: frappe/public/js/frappe/widgets/number_card_widget.js:365
@@ -9561,7 +9578,7 @@ msgstr "အီးမေးလ်များကို လုပ်ငန်း�
 msgid "Embed code copied"
 msgstr "ထည့်သွင်းကုဒ် ကူးယူပြီးပါပြီ"
 
-#: frappe/database/query.py:2436
+#: frappe/database/query.py:2443
 msgid "Empty alias is not allowed"
 msgstr "အလွတ် alias ခွင့်ပြုမထားပါ"
 
@@ -9569,7 +9586,7 @@ msgstr "အလွတ် alias ခွင့်ပြုမထားပါ"
 msgid "Empty column"
 msgstr "ကော်လံအလွတ်"
 
-#: frappe/database/query.py:2377
+#: frappe/database/query.py:2384
 msgid "Empty string arguments are not allowed"
 msgstr "အလွတ် string arguments ခွင့်ပြုမထားပါ"
 
@@ -9593,7 +9610,7 @@ msgstr "လုပ်ဆောင်ချက်အတည်ပြုခြင်
 msgid "Enable Address Autocompletion"
 msgstr "လိပ်စာအလိုအလျောက်ဖြည့်စွက်ခြင်းကို ဖွင့်မည်"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:123
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:124
 msgid "Enable Allow Auto Repeat for the doctype {0} in Customize Form"
 msgstr "Customize Form တွင် doctype {0} အတွက် Allow Auto Repeat ကို ဖွင့်ပါ"
 
@@ -9863,7 +9880,7 @@ msgstr "အဆုံး"
 #. Label of the end_date (Date) field in DocType 'Audit Trail'
 #. Label of the end_date (Datetime) field in DocType 'Web Page'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:150
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:161
 #: frappe/core/doctype/audit_trail/audit_trail.json
 #: frappe/public/js/frappe/utils/common.js:371
 #: frappe/website/doctype/web_page/web_page.json
@@ -9879,7 +9896,7 @@ msgstr "ပြီးဆုံးရက် အကွက်"
 msgid "End Date cannot be before Start Date!"
 msgstr "ပြီးဆုံးရက်သည် စတင်ရက်မတိုင်မီ ဖြစ်၍မရပါ!"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:146
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:157
 msgid "End Date cannot be today."
 msgstr "ပြီးဆုံးရက်သည် ယနေ့ဖြစ်၍မရပါ။"
 
@@ -10049,7 +10066,7 @@ msgstr "အမှားမှတ်တမ်းများ"
 msgid "Error Message"
 msgstr "အမှားသတင်းစကား"
 
-#: frappe/public/js/frappe/form/print_utils.js:186
+#: frappe/public/js/frappe/form/print_utils.js:197
 msgid "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Click here to Download and install QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Click here to learn more about Raw Printing</a>."
 msgstr "QZ Tray အပလီကေးရှင်းသို့ ချိတ်ဆက်ရာတွင် အမှားဖြစ်ပွားခဲ့သည်...<br><br> Raw Print အင်္ဂါရပ်ကို အသုံးပြုရန် QZ Tray အပလီကေးရှင်းကို ထည့်သွင်းပြီး လုပ်ဆောင်နေရပါမည်။<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">QZ Tray ကို ဒေါင်းလုဒ်လုပ်ပြီး ထည့်သွင်းရန် ဤနေရာကို နှိပ်ပါ</a>။<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Raw Printing အကြောင်း ပိုမိုလေ့လာရန် ဤနေရာကို နှိပ်ပါ</a>။"
 
@@ -10095,7 +10112,7 @@ msgstr "{0}.get_list တွင် အမှား: {1}"
 msgid "Error parsing nested filters: {0}. {1}"
 msgstr "အဆင့်ဆင့်စစ်ထုတ်မှုများကို ခွဲခြမ်းစိတ်ဖြာရာတွင် အမှား: {0}။ {1}"
 
-#: frappe/desk/search.py:297
+#: frappe/desk/search.py:302
 msgid "Error validating \"Ignore User Permissions\""
 msgstr ""
 
@@ -10284,7 +10301,7 @@ msgstr "ကုဒ် လုပ်ဆောင်နေသည်"
 msgid "Executing..."
 msgstr "လုပ်ဆောင်နေသည်..."
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2309
+#: frappe/public/js/frappe/views/reports/query_report.js:2322
 msgid "Execution Time: {0} sec"
 msgstr "လုပ်ဆောင်ချိန်: {0} စက္ကန့်"
 
@@ -10313,7 +10330,7 @@ msgctxt "Enlarge code field."
 msgid "Expand"
 msgstr "ချဲ့ရန်"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2291
+#: frappe/public/js/frappe/views/reports/query_report.js:2304
 #: frappe/public/js/frappe/views/treeview.js:143
 msgid "Expand All"
 msgstr "အားလုံးချဲ့ရန်"
@@ -10390,7 +10407,7 @@ msgstr "QR Code ပုံ စာမျက်နှာ သက်တမ်းက�
 #: frappe/core/page/permission_manager/permission_manager_help.html:66
 #: frappe/public/js/frappe/data_import/data_exporter.js:92
 #: frappe/public/js/frappe/data_import/data_exporter.js:247
-#: frappe/public/js/frappe/views/reports/query_report.js:1978
+#: frappe/public/js/frappe/views/reports/query_report.js:1989
 #: frappe/public/js/frappe/views/reports/report_view.js:1733
 #: frappe/public/js/frappe/widgets/chart_widget.js:320
 msgid "Export"
@@ -10780,7 +10797,7 @@ msgstr "{0} မှ အကွက်များကို ရယူနေသည်
 #: frappe/public/js/frappe/list/bulk_operations.js:346
 #: frappe/public/js/frappe/list/list_view_permission_restrictions.html:3
 #: frappe/public/js/frappe/views/reports/query_report.js:237
-#: frappe/public/js/frappe/views/reports/query_report.js:2037
+#: frappe/public/js/frappe/views/reports/query_report.js:2049
 #: frappe/website/doctype/web_form_field/web_form_field.json
 #: frappe/website/doctype/web_form_list_column/web_form_list_column.json
 msgid "Field"
@@ -10798,7 +10815,7 @@ msgstr "\"Website Search Field\" သတ်မှတ်ထားပါက \"title
 msgid "Field \"value\" is mandatory. Please specify value to be updated"
 msgstr "\"value\" အကွက်သည် မဖြစ်မနေ ဖြည့်ရမည်။ ပြင်ဆင်မည့် တန်ဖိုးကို သတ်မှတ်ပေးပါ"
 
-#: frappe/desk/search.py:335
+#: frappe/desk/search.py:340
 msgid "Field <code>{0}</code> not found in {1}"
 msgstr "<code>{0}</code> အကွက်ကို {1} တွင် ရှာမတွေ့ပါ"
 
@@ -10962,7 +10979,7 @@ msgstr "အကွက်များ"
 msgid "Fields Multicheck"
 msgstr "အကွက်များ Multicheck"
 
-#: frappe/core/doctype/file/file.py:510
+#: frappe/core/doctype/file/file.py:517
 msgid "Fields `file_name` or `file_url` must be set for File"
 msgstr "ဖိုင်အတွက် `file_name` သို့မဟုတ် `file_url` အကွက်များကို သတ်မှတ်ထားရပါမည်"
 
@@ -10970,7 +10987,7 @@ msgstr "ဖိုင်အတွက် `file_name` သို့မဟုတ် `
 msgid "Fields must be a list or tuple when as_list is enabled"
 msgstr "as_list ဖွင့်ထားသောအခါ အကွက်များသည် list သို့မဟုတ် tuple ဖြစ်ရပါမည်"
 
-#: frappe/database/query.py:1133
+#: frappe/database/query.py:1140
 msgid "Fields must be a string, list, tuple, pypika Field, or pypika Function"
 msgstr "အကွက်များသည် string, list, tuple, pypika Field သို့မဟုတ် pypika Function ဖြစ်ရပါမည်"
 
@@ -11058,7 +11075,7 @@ msgstr "ဖိုင်အမျိုးအစား"
 msgid "File URL"
 msgstr "ဖိုင် URL"
 
-#: frappe/core/doctype/file/file.py:128
+#: frappe/core/doctype/file/file.py:132
 msgid "File URL is required when copying an existing attachment."
 msgstr "ရှိပြီးသား ပူးတွဲဖိုင်ကို ကူးယူသောအခါ ဖိုင် URL လိုအပ်ပါသည်။"
 
@@ -11066,7 +11083,7 @@ msgstr "ရှိပြီးသား ပူးတွဲဖိုင်ကိ�
 msgid "File backup is ready"
 msgstr "ဖိုင် အရန်သိမ်းမှု အဆင်သင့်ဖြစ်ပါပြီ"
 
-#: frappe/core/doctype/file/file.py:760
+#: frappe/core/doctype/file/file.py:767
 msgid "File name cannot have {0}"
 msgstr "ဖိုင်အမည်တွင် {0} မပါဝင်ရပါ"
 
@@ -11074,7 +11091,7 @@ msgstr "ဖိုင်အမည်တွင် {0} မပါဝင်ရပါ"
 msgid "File not attached"
 msgstr "ဖိုင် ပူးတွဲမထားပါ"
 
-#: frappe/core/doctype/file/file.py:870 frappe/public/js/frappe/request.js:198
+#: frappe/core/doctype/file/file.py:877 frappe/public/js/frappe/request.js:198
 #: frappe/utils/file_manager.py:221
 msgid "File size exceeded the maximum allowed size of {0} MB"
 msgstr "ဖိုင်အရွယ်အစားသည် ခွင့်ပြုထားသော အများဆုံးအရွယ်အစား {0} MB ကို ကျော်လွန်သွားပါသည်"
@@ -11083,7 +11100,7 @@ msgstr "ဖိုင်အရွယ်အစားသည် ခွင့်ပ�
 msgid "File too big"
 msgstr "ဖိုင် အရမ်းကြီးသည်"
 
-#: frappe/core/doctype/file/file.py:469
+#: frappe/core/doctype/file/file.py:476
 msgid "File type of {0} is not allowed"
 msgstr "ဖိုင်အမျိုးအစား {0} ကို ခွင့်မပြုပါ"
 
@@ -11091,7 +11108,7 @@ msgstr "ဖိုင်အမျိုးအစား {0} ကို ခွင့
 msgid "File upload failed."
 msgstr "ဖိုင်တင်ခြင်း မအောင်မြင်ပါ။"
 
-#: frappe/core/doctype/file/file.py:456 frappe/core/doctype/file/file.py:527
+#: frappe/core/doctype/file/file.py:462 frappe/core/doctype/file/file.py:534
 msgid "File {0} does not exist"
 msgstr "ဖိုင် {0} မရှိပါ"
 
@@ -11412,7 +11429,7 @@ msgstr "ဖိုင်တွဲအမည်"
 msgid "Folder name should not include '/' (slash)"
 msgstr "ဖိုင်တွဲအမည်တွင် '/' (slash) ပါဝင်ခြင်း မရှိသင့်ပါ"
 
-#: frappe/core/doctype/file/file.py:573
+#: frappe/core/doctype/file/file.py:580
 msgid "Folder {0} is not empty"
 msgstr "ဖိုင်တွဲ {0} သည် ဗလာမဟုတ်ပါ"
 
@@ -11446,7 +11463,7 @@ msgstr "အောက်ပါ စာရွက်စာတမ်းများ�
 msgid "Following fields are missing:"
 msgstr "အောက်ပါ အကွက်များ ပျောက်ဆုံးနေသည်-"
 
-#: frappe/public/js/frappe/ui/field_group.js:184
+#: frappe/public/js/frappe/ui/field_group.js:186
 msgid "Following fields have invalid values:"
 msgstr "အောက်ပါ အကွက်များတွင် မမှန်ကန်သော တန်ဖိုးများ ရှိသည်-"
 
@@ -11454,7 +11471,7 @@ msgstr "အောက်ပါ အကွက်များတွင် မမှ�
 msgid "Following fields have missing values"
 msgstr "အောက်ပါ အကွက်များတွင် တန်ဖိုးများ ပျောက်ဆုံးနေသည်"
 
-#: frappe/public/js/frappe/ui/field_group.js:171
+#: frappe/public/js/frappe/ui/field_group.js:173
 msgid "Following fields have missing values:"
 msgstr "အောက်ပါ အကွက်များတွင် တန်ဖိုးများ ပျောက်ဆုံးနေသည်-"
 
@@ -11622,7 +11639,7 @@ msgid "For comparison, use >5, <10 or =324.\n"
 msgstr "နှိုင်းယှဉ်ရန် >5, <10 သို့မဟုတ် =324 ကို အသုံးပြုပါ။\n"
 "အပိုင်းအခြားများအတွက် 5:10 ကို အသုံးပြုပါ (5 နှင့် 10 ကြားရှိ တန်ဖိုးများအတွက်)။"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2306
+#: frappe/public/js/frappe/views/reports/query_report.js:2319
 msgid "For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
 msgstr "နှိုင်းယှဉ်ရန် >5, <10 သို့မဟုတ် =324 ကို အသုံးပြုပါ။ အပိုင်းအခြားများအတွက် 5:10 ကို အသုံးပြုပါ (5 နှင့် 10 ကြားရှိ တန်ဖိုးများအတွက်)။"
 
@@ -11919,7 +11936,7 @@ msgstr "ရက်စွဲမှ"
 msgid "From Date Field"
 msgstr "ရက်စွဲအကွက်မှ"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1998
+#: frappe/public/js/frappe/views/reports/query_report.js:2009
 msgid "From Document Type"
 msgstr "စာရွက်စာတမ်းအမျိုးအစားမှ"
 
@@ -11990,7 +12007,7 @@ msgstr "လုပ်ဆောင်ချက် အခြေခံ၍"
 msgid "Function {0} is not whitelisted."
 msgstr "လုပ်ဆောင်ချက် {0} သည် ခွင့်ပြုစာရင်းတွင် မပါဝင်ပါ။"
 
-#: frappe/database/query.py:2281
+#: frappe/database/query.py:2288
 msgid "Function {0} requires arguments but none were provided"
 msgstr "လုပ်ဆောင်ချက် {0} သည် အချက်အလက်များ လိုအပ်သော်လည်း မည်သည့်အရာမျှ ပေးမထားပါ"
 
@@ -12073,6 +12090,10 @@ msgstr "တာဝန်ပေးအပ်ခံရသူတစ်ဦးစီအ
 #: frappe/public/js/frappe/utils/utils.js:2091
 msgid "Generate Tracking URL"
 msgstr "ခြေရာခံ URL ဖန်တီးရန်"
+
+#: frappe/public/js/frappe/microtemplate.js:247
+msgid "Generating PDF..."
+msgstr ""
 
 #. Option for the 'Provider' (Select) field in DocType 'Geolocation Settings'
 #: frappe/integrations/doctype/geolocation_settings/geolocation_settings.json
@@ -12504,7 +12525,7 @@ msgstr "အုပ်စုအမျိုးအစား"
 msgid "Group By field is required to create a dashboard chart"
 msgstr "ဒက်ရှ်ဘုတ်ဇယားဖန်တီးရန် အုပ်စုအလိုက် အကွက်လိုအပ်ပါသည်"
 
-#: frappe/database/query.py:1321
+#: frappe/database/query.py:1328
 msgid "Group By must be a string"
 msgstr "အုပ်စုအလိုက်သည် စာသားဖြစ်ရပါမည်"
 
@@ -12897,7 +12918,7 @@ msgstr "ဝှက်ထားသော"
 msgid "Hidden Fields"
 msgstr "ဝှက်ထားသော အကွက်များ"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1785
+#: frappe/public/js/frappe/views/reports/query_report.js:1788
 msgid "Hidden columns include: <br> {0}"
 msgstr "ဝှက်ထားသော ကော်လံများတွင် ပါဝင်သည်: <br> {0}"
 
@@ -13084,17 +13105,17 @@ msgstr "ပင်မစာမျက်နှာ"
 msgid "Home Settings"
 msgstr "ပင်မ ဆက်တင်များ"
 
-#: frappe/core/doctype/file/test_file.py:406
-#: frappe/core/doctype/file/test_file.py:408
-#: frappe/core/doctype/file/test_file.py:472
+#: frappe/core/doctype/file/test_file.py:450
+#: frappe/core/doctype/file/test_file.py:452
+#: frappe/core/doctype/file/test_file.py:536
 msgid "Home/Test Folder 1"
 msgstr "ပင်မ/စမ်းသပ်ဖိုင်တွဲ 1"
 
-#: frappe/core/doctype/file/test_file.py:461
+#: frappe/core/doctype/file/test_file.py:505
 msgid "Home/Test Folder 1/Test Folder 3"
 msgstr "ပင်မ/စမ်းသပ်ဖိုင်တွဲ 1/စမ်းသပ်ဖိုင်တွဲ 3"
 
-#: frappe/core/doctype/file/test_file.py:417
+#: frappe/core/doctype/file/test_file.py:461
 msgid "Home/Test Folder 2"
 msgstr "ပင်မ/စမ်းသပ်ဖိုင်တွဲ 2"
 
@@ -13947,16 +13968,16 @@ msgstr "အက်ပလီကေးရှင်းများမှ အပြ�
 msgid "Include Web View Link in Email"
 msgstr "အီးမေးလ်တွင် ဝဘ်ကြည့်ရှုမှု လင့်ခ်ပါဝင်စေရန်"
 
-#: frappe/public/js/frappe/form/print_utils.js:69
-#: frappe/public/js/frappe/views/reports/query_report.js:1759
+#: frappe/public/js/frappe/form/print_utils.js:74
+#: frappe/public/js/frappe/views/reports/query_report.js:1762
 msgid "Include filters"
 msgstr "စစ်ထုတ်မှုများ ပါဝင်စေရန်"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1781
+#: frappe/public/js/frappe/views/reports/query_report.js:1784
 msgid "Include hidden columns"
 msgstr "ဝှက်ထားသော ကော်လံများ ပါဝင်စေရန်"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1751
+#: frappe/public/js/frappe/views/reports/query_report.js:1754
 msgid "Include indentation"
 msgstr "အကွက်ချခြင်း ပါဝင်စေရန်"
 
@@ -14125,7 +14146,7 @@ msgstr "အပေါ်တွင် ထည့်သွင်းပါ"
 
 #. Label of the insert_after (Select) field in DocType 'Custom Field'
 #: frappe/custom/doctype/custom_field/custom_field.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2043
+#: frappe/public/js/frappe/views/reports/query_report.js:2056
 msgid "Insert After"
 msgstr "နောက်တွင် ထည့်သွင်းပါ"
 
@@ -14207,11 +14228,11 @@ msgstr "ထည့်သွင်းထားသော အက်ပ်မျာ�
 msgid "Instructions"
 msgstr "ညွှန်ကြားချက်များ"
 
-#: frappe/permissions.py:880
+#: frappe/permissions.py:882
 msgid "Insufficient Permission Level for {0}"
 msgstr "{0} အတွက် ခွင့်ပြုချက်အဆင့် မလုံလောက်ပါ"
 
-#: frappe/database/query.py:1381
+#: frappe/database/query.py:1388
 msgid "Insufficient Permission for {0}"
 msgstr "{0} အတွက် ခွင့်ပြုချက် မလုံလောက်ပါ"
 
@@ -14399,7 +14420,7 @@ msgstr ""
 msgid "Invalid Fieldname"
 msgstr "မမှန်ကန်သော အကွက်အမည်"
 
-#: frappe/core/doctype/file/file.py:300
+#: frappe/core/doctype/file/file.py:306
 msgid "Invalid File URL"
 msgstr "မမှန်ကန်သော ဖိုင် URL"
 
@@ -14412,7 +14433,7 @@ msgstr "မမှန်ကန်သော စစ်ထုတ်မှု"
 msgid "Invalid Filter Format for field {0} of type {1}. Try using filter icon on the field to set it correctly"
 msgstr "အကွက် {0} အမျိုးအစား {1} အတွက် မမှန်ကန်သော စစ်ထုတ်မှုပုံစံ။ အကွက်ပေါ်ရှိ စစ်ထုတ်မှုအိုင်ကွန်ကို အသုံးပြု၍ မှန်ကန်စွာ သတ်မှတ်ကြည့်ပါ"
 
-#: frappe/utils/dashboard.py:61
+#: frappe/utils/dashboard.py:62
 msgid "Invalid Filter Value"
 msgstr "မမှန်ကန်သော စစ်ထုတ်မှုတန်ဖိုး"
 
@@ -14476,7 +14497,7 @@ msgstr "မမှန်ကန်သော အစားထိုးခြင်�
 msgid "Invalid Package Name"
 msgstr ""
 
-#: frappe/integrations/doctype/connected_app/connected_app.py:212
+#: frappe/integrations/doctype/connected_app/connected_app.py:213
 msgid "Invalid Parameters."
 msgstr "ဘောင်များ မမှန်ကန်ပါ။"
 
@@ -14505,18 +14526,22 @@ msgstr "ဇယား အကွက်အမည် မမှန်ကန်ပါ"
 msgid "Invalid Transition"
 msgstr "အသွင်ကူးပြောင်းမှု မမှန်ကန်ပါ"
 
-#: frappe/core/doctype/file/file.py:311
+#: frappe/core/doctype/file/file.py:317
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:551
 #: frappe/public/js/frappe/widgets/widget_dialog.js:602
 #: frappe/utils/csvutils.py:258 frappe/utils/csvutils.py:279
 msgid "Invalid URL"
 msgstr "မမှန်ကန်သော URL"
 
+#: frappe/utils/file_manager.py:237
+msgid "Invalid Upload"
+msgstr ""
+
 #: frappe/email/receive.py:160
 msgid "Invalid User Name or Support Password. Please rectify and try again."
 msgstr "အသုံးပြုသူအမည် သို့မဟုတ် Support စကားဝှက် မမှန်ကန်ပါ။ ပြင်ဆင်၍ ထပ်မံကြိုးစားပါ။"
 
-#: frappe/public/js/frappe/ui/field_group.js:182
+#: frappe/public/js/frappe/ui/field_group.js:184
 msgid "Invalid Values"
 msgstr "တန်ဖိုးများ မမှန်ကန်ပါ"
 
@@ -14543,7 +14568,7 @@ msgstr "စုစည်းမှုလုပ်ဆောင်ချက် မ�
 msgid "Invalid aggregate function: {0}"
 msgstr ""
 
-#: frappe/database/query.py:2442
+#: frappe/database/query.py:2449
 msgid "Invalid alias format: {0}. Alias must be a simple identifier."
 msgstr "Alias ပုံစံ မမှန်ကန်ပါ: {0}။ Alias သည် ရိုးရှင်းသော identifier ဖြစ်ရပါမည်။"
 
@@ -14551,11 +14576,11 @@ msgstr "Alias ပုံစံ မမှန်ကန်ပါ: {0}။ Alias သ�
 msgid "Invalid app"
 msgstr "အက်ပ် မမှန်ကန်ပါ"
 
-#: frappe/database/query.py:2402 frappe/database/query.py:2418
+#: frappe/database/query.py:2409 frappe/database/query.py:2425
 msgid "Invalid argument format: {0}. Only quoted string literals or simple field names are allowed."
 msgstr "Argument ပုံစံ မမှန်ကန်ပါ: {0}။ ကိုးကားထားသော string literal များ သို့မဟုတ် ရိုးရှင်းသော အကွက်အမည်များသာ ခွင့်ပြုပါသည်။"
 
-#: frappe/database/query.py:2366
+#: frappe/database/query.py:2373
 msgid "Invalid argument type: {0}. Only strings, numbers, dicts, and None are allowed."
 msgstr "Argument အမျိုးအစား မမှန်ကန်ပါ: {0}။ string များ၊ ကိန်းဂဏန်းများ၊ dict များနှင့် None သာ ခွင့်ပြုပါသည်။"
 
@@ -14579,7 +14604,7 @@ msgstr "အဆင့်ဆင့် စစ်ထုတ်မှုများ�
 msgid "Invalid credentials, try again."
 msgstr ""
 
-#: frappe/database/query.py:1365
+#: frappe/database/query.py:1372
 msgid "Invalid direction in Order By: {0}. Must be 'ASC' or 'DESC'."
 msgstr "စီရန်တွင် လမ်းကြောင်း မမှန်ကန်ပါ: {0}။ 'ASC' သို့မဟုတ် 'DESC' ဖြစ်ရပါမည်။"
 
@@ -14599,11 +14624,11 @@ msgstr ""
 msgid "Invalid expression set in filter {0} ({1})"
 msgstr "စစ်ထုတ်မှု {0} ({1}) တွင် မမှန်ကန်သော ဖော်ပြချက် သတ်မှတ်ထားသည်"
 
-#: frappe/database/query.py:2169
+#: frappe/database/query.py:2176
 msgid "Invalid field format for SELECT: {0}. Field names must be simple, backticked, table-qualified, aliased, or '*'."
 msgstr "ရွေးချယ် အတွက် မမှန်ကန်သော အကွက်ပုံစံ: {0}။ အကွက်အမည်များသည် ရိုးရှင်း၊ backtick ပါသော၊ table-qualified၊ aliased သို့မဟုတ် '*' ဖြစ်ရမည်။"
 
-#: frappe/database/query.py:1306
+#: frappe/database/query.py:1313
 msgid "Invalid field format in {0}: {1}. Use 'field', 'link_field.field', or 'child_table.field'."
 msgstr "{0} တွင် မမှန်ကန်သော အကွက်ပုံစံ: {1}။ 'field'၊ 'link_field.field' သို့မဟုတ် 'child_table.field' ကို အသုံးပြုပါ။"
 
@@ -14611,13 +14636,17 @@ msgstr "{0} တွင် မမှန်ကန်သော အကွက်ပု
 msgid "Invalid field name {0}"
 msgstr "အကွက်အမည် မမှန်ကန်ပါ {0}"
 
-#: frappe/database/query.py:1192
+#: frappe/database/query.py:1199
 msgid "Invalid field type: {0}"
 msgstr "အကွက်အမျိုးအစား မမှန်ကန်ပါ: {0}"
 
 #: frappe/core/doctype/doctype/doctype.py:1129
 msgid "Invalid fieldname '{0}' in autoname"
 msgstr "autoname တွင် မမှန်ကန်သော အကွက်အမည် '{0}'"
+
+#: frappe/utils/file_manager.py:237
+msgid "Invalid file name"
+msgstr ""
 
 #: frappe/deprecation_dumpster.py:283
 msgid "Invalid file path: {0}"
@@ -14639,7 +14668,7 @@ msgstr "စစ်ထုတ်မှု မမှန်ကန်ပါ: {0}"
 msgid "Invalid format. Supported formats are {0}"
 msgstr ""
 
-#: frappe/database/query.py:2286
+#: frappe/database/query.py:2293
 msgid "Invalid function argument type: {0}. Only strings, numbers, lists, and None are allowed."
 msgstr "လုပ်ဆောင်ချက် အငြင်းအမျိုးအစား မမှန်ကန်ပါ: {0}။ strings, numbers, lists နှင့် None သာ ခွင့်ပြုထားသည်။"
 
@@ -14664,7 +14693,7 @@ msgstr "အမည်ပေးစနစ် မမှန်ကန်ပါ {}: အ
 msgid "Invalid naming series {}: dot (.) missing before the numeric placeholders. Kindly use a format like <b>ABCD.#####</b>."
 msgstr "အမည်ပေးစနစ် မမှန်ကန်ပါ {}: ကိန်းဂဏန်းနေရာယူများ၏ ရှေ့တွင် အစက် (.) ပျောက်ဆုံးနေသည်။ <b>ABCD.#####</b> ကဲ့သို့ ပုံစံကို အသုံးပြုပါ။"
 
-#: frappe/database/query.py:2358
+#: frappe/database/query.py:2365
 msgid "Invalid nested expression: dictionary must represent a function or operator"
 msgstr "မမှန်ကန်သော အထပ်ထပ် ဖော်ပြချက်: အဘိဓာန်သည် လုပ်ဆောင်ချက် သို့မဟုတ် အော်ပရေတာကို ကိုယ်စားပြုရမည်"
 
@@ -14704,7 +14733,7 @@ msgstr "စစ်ထုတ်မှု အခြေအနေအတွက် မ�
 msgid "Invalid template file for import"
 msgstr "တင်သွင်းရန် ပုံစံဖိုင် မမှန်ကန်ပါ"
 
-#: frappe/integrations/doctype/connected_app/connected_app.py:218
+#: frappe/integrations/doctype/connected_app/connected_app.py:219
 msgid "Invalid token state! Check if the token has been created by the OAuth user."
 msgstr "တိုကင် အခြေအနေ မမှန်ကန်ပါ! OAuth အသုံးပြုသူက တိုကင်ကို ဖန်တီးထားခြင်း ရှိမရှိ စစ်ဆေးပါ။"
 
@@ -14730,7 +14759,7 @@ msgstr "wkhtmltopdf ဗားရှင်း မမှန်ကန်ပါ"
 msgid "Invalid {0} condition"
 msgstr "{0} အခြေအနေ မမှန်ကန်ပါ"
 
-#: frappe/database/query.py:2247
+#: frappe/database/query.py:2254
 msgid "Invalid {0} dictionary format"
 msgstr "{0} အဘိဓာန် ပုံစံ မမှန်ကန်ပါ"
 
@@ -15053,7 +15082,7 @@ msgstr "ပကတိမဟုတ်သော"
 msgid "Is standard"
 msgstr "စံနှုန်းဖြစ်သည်"
 
-#: frappe/core/doctype/file/utils.py:157 frappe/utils/file_manager.py:311
+#: frappe/core/doctype/file/utils.py:157 frappe/utils/file_manager.py:316
 msgid "It is risky to delete this file: {0}. Please contact your System Manager."
 msgstr "ဤဖိုင်ကို ဖျက်ရန် အန္တရာယ်ရှိပါသည်: {0}။ သင့်စနစ်စီမံခန့်ခွဲသူကို ဆက်သွယ်ပါ။"
 
@@ -16311,7 +16340,7 @@ msgstr "နောက်ထပ်ဖွင့်ရန်"
 #: frappe/public/js/frappe/list/base_list.js:525
 #: frappe/public/js/frappe/list/list_view.js:405
 #: frappe/public/js/frappe/ui/listing.html:16
-#: frappe/public/js/frappe/views/reports/query_report.js:1165
+#: frappe/public/js/frappe/views/reports/query_report.js:1170
 msgid "Loading"
 msgstr "ဖွင့်နေသည်"
 
@@ -16942,7 +16971,7 @@ msgstr "ငွေကြေးအမျိုးအစားအတွက် အ�
 msgid "Maximum"
 msgstr "အများဆုံး"
 
-#: frappe/core/doctype/file/file.py:411
+#: frappe/core/doctype/file/file.py:417
 msgid "Maximum Attachment Limit of {0} has been reached for {1} {2}."
 msgstr "{1} {2} အတွက် ပူးတွဲကန့်သတ်ချက် အများဆုံး {0} ပြည့်သွားပါပြီ။"
 
@@ -17305,7 +17334,7 @@ msgstr "ခွင့်ပြုချက် ပျောက်ဆုံးန�
 msgid "Missing Value"
 msgstr "ပျောက်ဆုံးနေသော တန်ဖိုး"
 
-#: frappe/public/js/frappe/ui/field_group.js:169
+#: frappe/public/js/frappe/ui/field_group.js:171
 #: frappe/public/js/frappe/widgets/widget_dialog.js:374
 #: frappe/public/js/workflow_builder/store.js:97
 #: frappe/workflow/doctype/workflow/workflow.js:71
@@ -18122,7 +18151,7 @@ msgstr "{0} {1} အသစ်ကို ဒက်ရှ်ဘုတ် {2} သိ�
 msgid "New {0} {1} created"
 msgstr "{0} {1} အသစ် ဖန်တီးပြီးပါပြီ"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:416
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:434
 msgid "New {0}: {1}"
 msgstr "{0} အသစ်: {1}"
 
@@ -18480,7 +18509,7 @@ msgstr "မှတ်ချက်များ မရှိသေးပါ။"
 msgid "No contacts added yet."
 msgstr "ဆက်သွယ်ရန်အချက်အလက်များ မထည့်သွင်းရသေးပါ။"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:469
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:487
 msgid "No contacts linked to document"
 msgstr "စာရွက်စာတမ်းနှင့် ချိတ်ဆက်ထားသော ဆက်သွယ်ရန်အချက်အလက် မရှိပါ"
 
@@ -18492,7 +18521,7 @@ msgstr "{0} တွင် ငွေကြေးအကွက်များ မရ
 msgid "No data to export"
 msgstr "တင်ပို့ရန် ဒေတာ မရှိပါ"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1568
+#: frappe/public/js/frappe/views/reports/query_report.js:1573
 msgid "No data to perform this action"
 msgstr "ဤလုပ်ဆောင်ချက်ကို လုပ်ဆောင်ရန် ဒေတာမရှိပါ"
 
@@ -18776,7 +18805,7 @@ msgstr "ကျွတ်လွတ်ခွင့်မရှိ"
 msgid "Not Permitted"
 msgstr "ခွင့်မပြုပါ"
 
-#: frappe/desk/query_report.py:842
+#: frappe/desk/query_report.py:849
 msgid "Not Permitted to read {0}"
 msgstr "{0} ကို ဖတ်ရန် ခွင့်မပြုပါ"
 
@@ -18836,7 +18865,7 @@ msgstr "မှန်ကန်သော ရုံးလုပ်ငန်းစ�
 msgid "Not active"
 msgstr "လက်ရှိအသုံးမပြုပါ"
 
-#: frappe/permissions.py:408
+#: frappe/permissions.py:410
 msgid "Not allowed for {0}: {1}"
 msgstr "{0} အတွက် ခွင့်မပြုပါ: {1}"
 
@@ -18856,7 +18885,7 @@ msgstr "ပယ်ဖျက်ထားသော စာရွက်စာတမ�
 msgid "Not allowed to print draft documents"
 msgstr "မူကြမ်းစာရွက်စာတမ်းများကို ပရင့်ထုတ်ခွင့်မပြုပါ"
 
-#: frappe/permissions.py:238
+#: frappe/permissions.py:240
 msgid "Not allowed via controller permission check"
 msgstr "Controller ခွင့်ပြုချက်စစ်ဆေးမှုမှတစ်ဆင့် ခွင့်မပြုပါ"
 
@@ -18897,7 +18926,7 @@ msgid "Not permitted. {0}."
 msgstr "ခွင့်မပြုပါ။ {0}။"
 
 #. Name of a DocType
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:438
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:456
 #: frappe/desk/doctype/note/note.json
 msgid "Note"
 msgstr "မှတ်ချက်"
@@ -19512,7 +19541,7 @@ msgstr "စီမံခန့်ခွဲသူသာ အသံဖမ်းစ�
 msgid "Only Allow Edit For"
 msgstr "တည်းဖြတ်ခွင့်ပြုရန် အတွက်သာ"
 
-#: frappe/desk/query_report.py:523
+#: frappe/desk/query_report.py:524
 msgid "Only CSV and Excel formats are supported for export"
 msgstr ""
 
@@ -19529,7 +19558,7 @@ msgstr "ဒေတာအကွက်အတွက် ခွင့်ပြုထ�
 msgid "Only Send Records Updated in Last X Hours"
 msgstr "နောက်ဆုံး X နာရီအတွင်း အပ်ဒိတ်လုပ်ထားသော မှတ်တမ်းများကိုသာ ပို့ပါ"
 
-#: frappe/core/doctype/file/file.py:206
+#: frappe/core/doctype/file/file.py:212
 msgid "Only System Managers can make this file public."
 msgstr "စနစ်မန်နေဂျာများသာ ဤဖိုင်ကို အများသုံးအဖြစ် သတ်မှတ်နိုင်သည်။"
 
@@ -19747,7 +19776,7 @@ msgstr "လုပ်ဆောင်ချက်"
 msgid "Operator must be one of {0}"
 msgstr "အော်ပရေတာသည် {0} ထဲမှ တစ်ခုဖြစ်ရပါမည်"
 
-#: frappe/database/query.py:2314
+#: frappe/database/query.py:2321
 msgid "Operator {0} requires exactly 2 arguments (left and right operands)"
 msgstr "အော်ပရေတာ {0} သည် အငြင်းအခုံ 2 ခု (ဘယ်နှင့် ညာ operand) အတိအကျ လိုအပ်ပါသည်"
 
@@ -19862,7 +19891,7 @@ msgstr "လိမ္မော်ရောင်"
 msgid "Order"
 msgstr "အစဉ်"
 
-#: frappe/database/query.py:1337
+#: frappe/database/query.py:1344
 msgid "Order By must be a string"
 msgstr "စီရန် သည် စာသားဖြစ်ရပါမည်"
 
@@ -19970,7 +19999,7 @@ msgstr ""
 #: frappe/email/doctype/auto_email_report/auto_email_report.json
 #: frappe/printing/page/print/print.js:90
 #: frappe/public/js/frappe/form/templates/print_layout.html:44
-#: frappe/public/js/frappe/views/reports/query_report.js:1959
+#: frappe/public/js/frappe/views/reports/query_report.js:1970
 msgid "PDF"
 msgstr ""
 
@@ -20289,7 +20318,7 @@ msgstr "မူရင်းသည် ဒေတာထည့်သွင်းမ�
 msgid "Parent-to-child or child-to-different-child grouping is not allowed."
 msgstr "မူရင်း-ကလေး သို့မဟုတ် ကလေး-အခြားကလေး အုပ်စုဖွဲ့ခြင်း ခွင့်မပြုပါ။"
 
-#: frappe/permissions.py:856
+#: frappe/permissions.py:858
 msgid "Parentfield not specified in {0}: {1}"
 msgstr "Parentfield ကို {0} တွင် သတ်မှတ်မထားပါ: {1}"
 
@@ -20429,7 +20458,7 @@ msgstr "ပက်ချ်"
 msgid "Patch Log"
 msgstr "ပက်ချ် မှတ်တမ်း"
 
-#: frappe/modules/patch_handler.py:136
+#: frappe/modules/patch_handler.py:153
 msgid "Patch type {} not found in patches.txt"
 msgstr "ပက်ချ် အမျိုးအစား {} ကို patches.txt တွင် ရှာမတွေ့ပါ"
 
@@ -20568,7 +20597,7 @@ msgstr "{0} ကို အပြီးအပိုင် ဖျက်မည်လ
 msgid "Permission"
 msgstr ""
 
-#: frappe/database/query.py:1001 frappe/database/query.py:1380
+#: frappe/database/query.py:1001 frappe/database/query.py:1387
 #: frappe/desk/doctype/workspace/workspace.py:109
 msgid "Permission Error"
 msgstr "ခွင့်ပြုချက် အမှား"
@@ -20741,7 +20770,7 @@ msgstr "ဖုန်းနံပါတ်"
 msgid "Phone Number {0} set in field {1} is not valid."
 msgstr "အကွက် {1} တွင် သတ်မှတ်ထားသော ဖုန်းနံပါတ် {0} သည် မမှန်ကန်ပါ။"
 
-#: frappe/public/js/frappe/form/print_utils.js:79
+#: frappe/public/js/frappe/form/print_utils.js:84
 #: frappe/public/js/frappe/views/reports/report_view.js:1670
 #: frappe/public/js/frappe/views/reports/report_view.js:1673
 msgid "Pick Columns"
@@ -20818,7 +20847,7 @@ msgstr "ဇယားပုံ သတ်မှတ်ပါ"
 msgid "Please Update SMS Settings"
 msgstr "SMS ဆက်တင်များကို အပ်ဒိတ်လုပ်ပါ"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:623
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:641
 msgid "Please add a subject to your email"
 msgstr "သင့်အီးမေးလ်တွင် ခေါင်းစဉ်တစ်ခု ထည့်သွင်းပါ"
 
@@ -20830,7 +20859,7 @@ msgstr "ခိုင်လုံသော မှတ်ချက်တစ်ခ�
 msgid "Please add at least one naming series."
 msgstr ""
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1569
+#: frappe/public/js/frappe/views/reports/query_report.js:1574
 msgid "Please adjust filters to include some data"
 msgstr "ဒေတာအချို့ပါဝင်ရန် စစ်ထုတ်မှုများကို ချိန်ညှိပါ"
 
@@ -20854,7 +20883,7 @@ msgstr "Letter Head အတွက် HTML သတ်မှတ်ရန် ပု�
 msgid "Please attach the package"
 msgstr "ပက်ကေ့ချ်ကို ပူးတွဲပေးပါ"
 
-#: frappe/utils/dashboard.py:58
+#: frappe/utils/dashboard.py:59
 msgid "Please check the filter values set for Dashboard Chart: {}"
 msgstr "ဒက်ရှ်ဘုတ်ဇယားအတွက် သတ်မှတ်ထားသော စစ်ထုတ်တန်ဖိုးများကို စစ်ဆေးပါ: {}"
 
@@ -20964,7 +20993,7 @@ msgstr "Social login ကို ဖွင့်မပေးမီ Client ID က�
 msgid "Please enter Client Secret before social login is enabled"
 msgstr "Social login ကို ဖွင့်မပေးမီ Client Secret ကို ထည့်သွင်းပါ"
 
-#: frappe/integrations/doctype/connected_app/connected_app.py:56
+#: frappe/integrations/doctype/connected_app/connected_app.py:57
 msgid "Please enter OpenID Configuration URL"
 msgstr "OpenID Configuration URL ကို ထည့်သွင်းပါ"
 
@@ -21013,7 +21042,7 @@ msgstr "သင့်စကားဝှက်အဟောင်းကို ထ�
 msgid "Please fill the following mandatory fields before saving:"
 msgstr ""
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:444
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:462
 msgid "Please find attached {0}: {1}"
 msgstr "ပူးတွဲပါ {0}: {1} ကို ကြည့်ရှုပါ"
 
@@ -21073,7 +21102,7 @@ msgstr "ကျေးဇူးပြု၍ အဖွဲ့အစည်းအမ�
 msgid "Please select Minimum Password Score"
 msgstr "ကျေးဇူးပြု၍ အနည်းဆုံး စကားဝှက်အမှတ်ကို ရွေးချယ်ပါ"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1258
+#: frappe/public/js/frappe/views/reports/query_report.js:1263
 msgid "Please select X and Y fields"
 msgstr "X နှင့် Y အကွက်များကို ရွေးချယ်ပါ"
 
@@ -21139,7 +21168,7 @@ msgstr "အီးမေးလ်လိပ်စာ သတ်မှတ်ပါ"
 msgid "Please set a printer mapping for this print format in the Printer Settings"
 msgstr "ဤပရင့်ပုံစံအတွက် ပရင်တာဆက်တင်များတွင် ပရင်တာမြေပုံရေးဆွဲမှုကို သတ်မှတ်ပါ"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1480
+#: frappe/public/js/frappe/views/reports/query_report.js:1485
 msgid "Please set filters"
 msgstr "စစ်ထုတ်မှုများ သတ်မှတ်ပါ"
 
@@ -21179,7 +21208,7 @@ msgstr "ကျေးဇူးပြု၍ ကိရိယာများ > အ�
 msgid "Please specify"
 msgstr "ကျေးဇူးပြု၍ သတ်မှတ်ပါ"
 
-#: frappe/permissions.py:830
+#: frappe/permissions.py:832
 msgid "Please specify a valid parent DocType for {0}"
 msgstr "ကျေးဇူးပြု၍ {0} အတွက် မှန်ကန်သော မိဘ DocType ကို သတ်မှတ်ပါ"
 
@@ -21551,7 +21580,7 @@ msgstr "DocType {0} ၏ အဓိက သော့ကို ပြောင်း
 #: frappe/public/js/frappe/form/templates/print_layout.html:46
 #: frappe/public/js/frappe/form/toolbar.js:465
 #: frappe/public/js/frappe/list/bulk_operations.js:95
-#: frappe/public/js/frappe/views/reports/query_report.js:1941
+#: frappe/public/js/frappe/views/reports/query_report.js:1952
 #: frappe/public/js/frappe/views/reports/report_view.js:1632
 #: frappe/public/js/frappe/views/treeview.js:510 frappe/www/printview.html:19
 msgid "Print"
@@ -21625,7 +21654,7 @@ msgstr "ပရင့်ပုံစံ အကူအညီ"
 msgid "Print Format Type"
 msgstr "ပရင့်ပုံစံ အမျိုးအစား"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1687
+#: frappe/public/js/frappe/views/reports/query_report.js:1692
 msgid "Print Format not found"
 msgstr "ပရင့်ပုံစံ မတွေ့ပါ"
 
@@ -21664,7 +21693,7 @@ msgstr "တန်ဖိုးမရှိပါက ပရင့်ဝှက်�
 msgid "Print Language"
 msgstr "ပုံနှိပ်ဘာသာစကား"
 
-#: frappe/public/js/frappe/form/print_utils.js:255
+#: frappe/public/js/frappe/form/print_utils.js:266
 msgid "Print Sent to the printer!"
 msgstr "ပရင့်ကို ပရင်တာသို့ ပို့ပြီးပါပြီ!"
 
@@ -21679,7 +21708,7 @@ msgstr "ပရင့်ဆာဗာ"
 #: frappe/printing/doctype/print_settings/print_settings.json
 #: frappe/printing/doctype/print_style/print_style.js:6
 #: frappe/printing/page/print/print.js:181
-#: frappe/public/js/frappe/form/print_utils.js:129
+#: frappe/public/js/frappe/form/print_utils.js:138
 #: frappe/public/js/frappe/form/templates/print_layout.html:35
 #: frappe/workspace_sidebar/printing.json
 msgid "Print Settings"
@@ -21886,7 +21915,7 @@ msgstr "ဂုဏ်သတ္တိအမျိုးအစား"
 msgid "Protect Attached Files"
 msgstr "ပူးတွဲဖိုင်များကို ကာကွယ်ပါ"
 
-#: frappe/core/doctype/file/file.py:602
+#: frappe/core/doctype/file/file.py:609
 msgid "Protected File"
 msgstr "ကာကွယ်ထားသော ဖိုင်"
 
@@ -22084,7 +22113,7 @@ msgstr "QR ကုဒ်"
 msgid "QR Code for Login Verification"
 msgstr "ဝင်ရောက်ရန် အတည်ပြုချက်အတွက် QR ကုဒ်"
 
-#: frappe/public/js/frappe/form/print_utils.js:264
+#: frappe/public/js/frappe/form/print_utils.js:275
 msgid "QZ Tray Failed:"
 msgstr "QZ Tray မအောင်မြင်ပါ:"
 
@@ -22421,7 +22450,7 @@ msgstr "ဖတ်ရှုမုဒ်"
 msgid "Read the documentation to know more"
 msgstr "ပိုမိုသိရှိရန် စာရွက်စာတမ်းကို ဖတ်ရှုပါ"
 
-#: frappe/utils/safe_exec.py:747 frappe/utils/safe_exec.py:760
+#: frappe/utils/safe_exec.py:749 frappe/utils/safe_exec.py:762
 msgid "Read-Only queries are allowed"
 msgstr "ဖတ်ရှုမှုသီးသန့် မေးခွန်းများသာ ခွင့်ပြုထားသည်"
 
@@ -22855,7 +22884,7 @@ msgstr "ရည်ညွှန်းသူ"
 #: frappe/public/js/frappe/form/form.js:1252
 #: frappe/public/js/frappe/form/templates/print_layout.html:6
 #: frappe/public/js/frappe/list/base_list.js:68
-#: frappe/public/js/frappe/views/reports/query_report.js:1930
+#: frappe/public/js/frappe/views/reports/query_report.js:1941
 #: frappe/public/js/frappe/views/treeview.js:516
 #: frappe/public/js/frappe/widgets/chart_widget.js:296
 #: frappe/public/js/frappe/widgets/number_card_widget.js:358
@@ -23279,6 +23308,10 @@ msgstr "အစီရင်ခံစာ ဖော်ပြချက်"
 msgid "Report Document Error"
 msgstr "အစီရင်ခံစာ စာရွက်စာတမ်း အမှား"
 
+#: frappe/core/doctype/data_import/data_import.js:210
+msgid "Report Error"
+msgstr ""
+
 #. Name of a DocType
 #: frappe/core/doctype/report_filter/report_filter.json
 msgid "Report Filter"
@@ -23323,7 +23356,7 @@ msgstr "အစီရင်ခံစာ မန်နေဂျာ"
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:39
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json
 #: frappe/desk/doctype/number_card/number_card.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2130
+#: frappe/public/js/frappe/views/reports/query_report.js:2143
 msgid "Report Name"
 msgstr "အစီရင်ခံစာ အမည်"
 
@@ -23387,7 +23420,7 @@ msgstr "အစီရင်ခံစာ ကန့်သတ်ချက် ပြ�
 msgid "Report timed out."
 msgstr "အစီရင်ခံစာ အချိန်ကုန်သွားပါပြီ။"
 
-#: frappe/desk/query_report.py:900
+#: frappe/desk/query_report.py:907
 msgid "Report updated successfully"
 msgstr "အစီရင်ခံစာ အောင်မြင်စွာ အပ်ဒိတ်လုပ်ပြီးပါပြီ"
 
@@ -23395,7 +23428,7 @@ msgstr "အစီရင်ခံစာ အောင်မြင်စွာ အ�
 msgid "Report was not saved (there were errors)"
 msgstr "အစီရင်ခံစာကို သိမ်းဆည်းမထားပါ (အမှားများရှိခဲ့သည်)"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2168
+#: frappe/public/js/frappe/views/reports/query_report.js:2181
 msgid "Report with more than 10 columns looks better in Landscape mode."
 msgstr "ကော်လံ ၁၀ ခုထက်ပိုသော အစီရင်ခံစာသည် အလျားလိုက်မုဒ်တွင် ပိုမိုကောင်းမွန်စွာ မြင်ရပါသည်။"
 
@@ -23761,6 +23794,7 @@ msgstr "ပေးပို့ခြင်းကို ပြန်လည်စ�
 msgid "Retry"
 msgstr "ပြန်စမ်းကြည့်ပါ"
 
+#: frappe/email/doctype/email_queue/email_queue.js:28
 #: frappe/email/doctype/email_queue/email_queue_list.js:47
 msgid "Retry Sending"
 msgstr "ပြန်လည်ပို့ရန်"
@@ -24133,7 +24167,7 @@ msgstr "စည်းမျဉ်း"
 msgid "Rule Conditions"
 msgstr "စည်းမျဉ်းအခြေအနေများ"
 
-#: frappe/permissions.py:702
+#: frappe/permissions.py:704
 msgid "Rule for this doctype, role, permlevel and if-owner combination already exists."
 msgstr "ဤ DocType၊ အခန်းကဏ္ဍ၊ permlevel နှင့် if-owner ပေါင်းစပ်မှုအတွက် စည်းမျဉ်း ရှိပြီးသားဖြစ်သည်။"
 
@@ -24251,7 +24285,7 @@ msgstr "SQL ရလဒ်"
 msgid "SQL Queries"
 msgstr "SQL မေးခွန်းများ"
 
-#: frappe/database/query.py:2159
+#: frappe/database/query.py:2166
 msgid "SQL functions are not allowed as strings in SELECT: {0}. Use dict syntax like {{'COUNT': '*'}} instead."
 msgstr "SQL လုပ်ဆောင်ချက်များကို SELECT တွင် စာကြောင်းများအဖြစ် ခွင့်မပြုပါ: {0}။ {{'COUNT': '*'}} ကဲ့သို့ dict syntax ကို အသုံးပြုပါ။"
 
@@ -24361,7 +24395,7 @@ msgstr "စနေနေ့"
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:45
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:189
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:389
-#: frappe/public/js/frappe/views/reports/query_report.js:2122
+#: frappe/public/js/frappe/views/reports/query_report.js:2135
 #: frappe/public/js/frappe/views/reports/report_view.js:1839
 #: frappe/public/js/frappe/views/workspace/workspace.js:367
 #: frappe/public/js/frappe/widgets/base_widget.js:143
@@ -24384,7 +24418,7 @@ msgstr "အဖြစ် သိမ်းဆည်းရန်"
 msgid "Save Customizations"
 msgstr "စိတ်ကြိုက်ပြင်ဆင်မှုများကို သိမ်းဆည်းပါ"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2125
+#: frappe/public/js/frappe/views/reports/query_report.js:2138
 msgid "Save Report"
 msgstr "အစီရင်ခံစာ သိမ်းဆည်းပါ"
 
@@ -24926,7 +24960,7 @@ msgid "Select Column"
 msgstr "ကော်လံ ရွေးချယ်ရန်"
 
 #: frappe/printing/page/print_format_builder/print_format_builder_field.html:42
-#: frappe/public/js/frappe/form/print_utils.js:85
+#: frappe/public/js/frappe/form/print_utils.js:90
 msgid "Select Columns"
 msgstr "ကော်လံများရွေးချယ်ပါ"
 
@@ -25267,6 +25301,7 @@ msgid "Send Notifications For Email Threads"
 msgstr "အီးမေးလ် ချည်မျှင်များအတွက် အကြောင်းကြားချက်များ ပို့ပါ"
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:21
+#: frappe/email/doctype/email_queue/email_queue.js:7
 msgid "Send Now"
 msgstr "ယခုပို့ပါ"
 
@@ -25535,7 +25570,7 @@ msgstr "အပ်လုဒ်တင်နေစဉ် ဆာဗာအမှာ�
 msgid "Server failed to process this request because of a concurrent conflicting request. Please try again."
 msgstr "တစ်ချိန်တည်း ကွဲလွဲနေသော တောင်းဆိုမှုကြောင့် ဆာဗာက ဤတောင်းဆိုမှုကို လုပ်ဆောင်ရန် မအောင်မြင်ပါ။ ကျေးဇူးပြု၍ ထပ်မံကြိုးစားပါ။"
 
-#: frappe/concurrency_limiter.py:103
+#: frappe/concurrency_limiter.py:115
 msgid "Server is busy. Please try again in a few seconds."
 msgstr ""
 
@@ -25641,7 +25676,7 @@ msgstr "စစ်ထုတ်မှုများ သတ်မှတ်မည�
 msgid "Set Filters for {0}"
 msgstr "{0} အတွက် စစ်ထုတ်မှုများ သတ်မှတ်မည်"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2289
+#: frappe/public/js/frappe/views/reports/query_report.js:2302
 msgid "Set Level"
 msgstr "အဆင့် သတ်မှတ်ရန်"
 
@@ -25883,7 +25918,7 @@ msgstr "တပ်ဆင်မှု > အသုံးပြုသူ"
 msgid "Setup > User Permissions"
 msgstr "တပ်ဆင်မှု > အသုံးပြုသူခွင့်ပြုချက်များ"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1984
+#: frappe/public/js/frappe/views/reports/query_report.js:1995
 #: frappe/public/js/frappe/views/reports/report_view.js:1817
 msgid "Setup Auto Email"
 msgstr "အလိုအလျောက် အီးမေးလ် တပ်ဆင်မှု"
@@ -25997,6 +26032,10 @@ msgstr "မြှားပြသရန်"
 #: frappe/integrations/doctype/oauth_settings/oauth_settings.json
 msgid "Show Auth Server Metadata"
 msgstr "ပြသရန် Auth Server Metadata"
+
+#: frappe/desk/doctype/kanban_board/kanban_board.js:10
+msgid "Show Board"
+msgstr ""
 
 #: frappe/desk/doctype/calendar_view/calendar_view.js:10
 msgid "Show Calendar"
@@ -26921,7 +26960,7 @@ msgstr "စတင်ပါ"
 #. Label of the start_date (Date) field in DocType 'Audit Trail'
 #. Label of the start_date (Datetime) field in DocType 'Web Page'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:150
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:161
 #: frappe/core/doctype/audit_trail/audit_trail.json
 #: frappe/public/js/frappe/utils/common.js:364
 #: frappe/website/doctype/web_page/web_page.json
@@ -27322,7 +27361,7 @@ msgstr "တင်သွင်းရန် ခလုတ် အညွှန်း"
 
 #. Label of the submit_on_creation (Check) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:132
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:143
 msgid "Submit on Creation"
 msgstr "ဖန်တီးသည့်အခါ တင်သွင်းမည်"
 
@@ -27347,7 +27386,7 @@ msgstr "စာရွက်စာတမ်း {0} ခု တင်သွင်း
 msgid "Submitted"
 msgstr "တင်သွင်းပြီး"
 
-#: frappe/workflow/doctype/workflow/workflow.py:105
+#: frappe/workflow/doctype/workflow/workflow.py:108
 msgid "Submitted Document cannot be converted back to draft. Transition row {0}"
 msgstr "တင်သွင်းထားသော စာရွက်စာတမ်းကို မူကြမ်းသို့ ပြန်ပြောင်း၍ မရပါ။ အသွင်ကူးပြောင်းမှု အတန်း {0}"
 
@@ -27974,7 +28013,7 @@ msgstr "ဇယား HTML"
 msgid "Table MultiSelect"
 msgstr "ဇယား MultiSelect"
 
-#: frappe/desk/search.py:348
+#: frappe/desk/search.py:353
 msgid "Table MultiSelect requires a table with at least one Link field, but none was found in {0}"
 msgstr "Table MultiSelect သည် Link အကွက် အနည်းဆုံး တစ်ခုပါသော ဇယား လိုအပ်သော်လည်း {0} တွင် မတွေ့ရှိပါ"
 
@@ -28122,7 +28161,7 @@ msgstr "စမ်းသပ်အလုပ် ID"
 msgid "Test Spanish"
 msgstr "စပိန်ဘာသာ စမ်းသပ်"
 
-#: frappe/core/doctype/file/test_file.py:464
+#: frappe/core/doctype/file/test_file.py:508
 msgid "Test_Folder"
 msgstr "စမ်းသပ်_ဖိုင်တွဲ"
 
@@ -28218,11 +28257,11 @@ msgstr "Google Cloud Console ရှိ <a href=\"https://console.cloud.google.co
 msgid "The Condition '{0}' is invalid"
 msgstr "အခြေအနေ '{0}' သည် မမှန်ကန်ပါ"
 
-#: frappe/core/doctype/file/file.py:299
+#: frappe/core/doctype/file/file.py:305
 msgid "The File URL you've entered is incorrect"
 msgstr "သင်ထည့်သွင်းထားသော ဖိုင် URL သည် မမှန်ကန်ပါ"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:112
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:113
 msgid "The Next Scheduled Date cannot be later than the End Date."
 msgstr "နောက်လာမည့် စီစဉ်ထားသောရက်စွဲသည် ပြီးဆုံးရက်ထက် နောက်ကျ၍မရပါ။"
 
@@ -28311,15 +28350,15 @@ msgstr "ရွေးချယ်ထားသော စာရွက်စာတ�
 msgid "The email button is enabled for the user in the document."
 msgstr ""
 
-#: frappe/desk/search.py:361
+#: frappe/desk/search.py:366
 msgid "The field {0} in {1} does not allow ignoring user permissions"
 msgstr "အကွက် {0} သည် {1} တွင် အသုံးပြုသူခွင့်ပြုချက်များကို လျစ်လျူရှုခြင်းကို ခွင့်မပြုပါ"
 
-#: frappe/desk/search.py:376
+#: frappe/desk/search.py:381
 msgid "The field {0} in {1} links to {2} and not {3}"
 msgstr "အကွက် {0} သည် {1} တွင် {2} သို့ လင့်ခ်ချိတ်ဆက်ထားပြီး {3} သို့ မဟုတ်ပါ"
 
-#: frappe/core/doctype/file/file.py:197
+#: frappe/core/doctype/file/file.py:203
 msgid "The fieldname you've specified in Attached To Field is invalid"
 msgstr "အကွက်သို့ ပူးတွဲတွင် သင်သတ်မှတ်ထားသော အကွက်အမည်သည် မမှန်ကန်ပါ"
 
@@ -28387,9 +28426,17 @@ msgstr "Google Cloud Console ရှိ <a href=\"https://console.cloud.google.co
 "\"IAM &amp; Admin\" &gt; \"Settings\"\n"
 "</a> အောက်မှ ရရှိသော ပရောဂျက်နံပါတ်"
 
+#: frappe/public/js/frappe/microtemplate.js:209
+msgid "The report may be too large to render in a single request. Narrow the filters and try again, or use Print and save as PDF from your browser."
+msgstr ""
+
 #: frappe/desk/utils.py:112
 msgid "The report you requested has been generated.<br><br>Click here to download:<br><a href='{0}'>{0}</a><br><br>This link will expire in {1} hours."
 msgstr "သင်တောင်းဆိုထားသော အစီရင်ခံစာကို ထုတ်လုပ်ပြီးပါပြီ။<br><br>ဒေါင်းလုဒ်လုပ်ရန် ဤနေရာကို နှိပ်ပါ:<br><a href='{0}'>{0}</a><br><br>ဤလင့်ခ်သည် {1} နာရီအတွင်း သက်တမ်းကုန်ဆုံးပါမည်။"
+
+#: frappe/public/js/frappe/microtemplate.js:286
+msgid "The request could not be completed. Check your connection and try again."
+msgstr ""
 
 #: frappe/core/doctype/user/user.py:1068
 msgid "The reset password link has been expired"
@@ -28460,7 +28507,7 @@ msgstr "သင်ကူးထည့်သော တန်ဖိုးသည် {
 msgid "The webhook will be triggered if this expression is true"
 msgstr "ဤဖော်ပြချက်သည် မှန်ပါက webhook ကို အလုပ်လုပ်မည်ဖြစ်သည်"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:183
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:194
 msgid "The {0} is already on auto repeat {1}"
 msgstr "{0} သည် အလိုအလျောက်ပြန်လုပ်ခြင်း {1} တွင် ရှိနေပြီးဖြစ်သည်"
 
@@ -28529,7 +28576,7 @@ msgstr "\"{}\" ဟုခေါ်သော တာဝန်မရှိပါ"
 msgid "There is nothing new to show you right now."
 msgstr "ယခုအချိန်တွင် သင့်ကို ပြသရန် အသစ်အဆန်း မရှိပါ။"
 
-#: frappe/core/doctype/file/file.py:754 frappe/utils/file_manager.py:372
+#: frappe/core/doctype/file/file.py:761 frappe/utils/file_manager.py:381
 msgid "There is some problem with the file url: {0}"
 msgstr "ဖိုင် URL တွင် ပြဿနာတစ်ခုရှိနေသည်: {0}"
 
@@ -28610,7 +28657,7 @@ msgstr "ဤ Kanban Board သည် သီးသန့်ဖြစ်ပါမည
 msgid "This Month"
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:475
+#: frappe/core/doctype/file/file.py:482
 msgid "This PDF cannot be uploaded as it contains unsafe content."
 msgstr "ဤ PDF တွင် မလုံခြုံသော အကြောင်းအရာများ ပါဝင်သောကြောင့် တင်၍မရပါ။"
 
@@ -28720,7 +28767,7 @@ msgstr "ဤအကွက်သည် ဤနေရာတွင် သတ်မှ�
 "eval:doc.myfield=='My Value'\n"
 "eval:doc.age&gt;18"
 
-#: frappe/core/doctype/file/file.py:601
+#: frappe/core/doctype/file/file.py:608
 msgid "This file is attached to a protected document and cannot be deleted."
 msgstr "ဤဖိုင်သည် ကာကွယ်ထားသော စာရွက်စာတမ်းတစ်ခုနှင့် ပူးတွဲထားပြီး ဖျက်၍မရပါ။"
 
@@ -28755,7 +28802,7 @@ msgstr "ဤတည်နေရာပြ ဝန်ဆောင်မှုပေ�
 msgid "This goes above the slideshow."
 msgstr "ဤအရာသည် ဆလိုက်ရှိုးအပေါ်တွင် ပေါ်လာမည်ဖြစ်သည်။"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2366
+#: frappe/public/js/frappe/views/reports/query_report.js:2379
 msgid "This is a background report. Please set the appropriate filters and then generate a new one."
 msgstr "ဤအရာသည် နောက်ခံအစီရင်ခံစာဖြစ်သည်။ သင့်လျော်သော စစ်ထုတ်မှုများကို သတ်မှတ်ပြီး အသစ်တစ်ခု ထုတ်ပါ။"
 
@@ -29424,9 +29471,9 @@ msgstr "အပေါ် ညာ"
 msgid "Topic"
 msgstr "ခေါင်းစဉ်"
 
-#: frappe/desk/query_report.py:833
+#: frappe/desk/query_report.py:840
 #: frappe/public/js/frappe/views/reports/print_grid.html:50
-#: frappe/public/js/frappe/views/reports/query_report.js:1396
+#: frappe/public/js/frappe/views/reports/query_report.js:1401
 #: frappe/public/js/frappe/views/reports/report_view.js:1647
 msgid "Total"
 msgstr "စုစုပေါင်း"
@@ -29584,7 +29631,7 @@ msgstr "ကူးပြောင်းမှုများ"
 msgid "Translatable"
 msgstr "ဘာသာပြန်နိုင်သော"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:2428
+#: frappe/public/js/frappe/views/reports/query_report.js:2441
 msgid "Translate Data"
 msgstr "ဒေတာကို ဘာသာပြန်ပါ"
 
@@ -29861,7 +29908,7 @@ msgstr "URL ဆက်သွယ်ရန်သည် https:// ဖြင့် စ
 msgid "URL for documentation or help"
 msgstr "စာရွက်စာတမ်းများ သို့မဟုတ် အကူအညီအတွက် URL"
 
-#: frappe/core/doctype/file/file.py:310
+#: frappe/core/doctype/file/file.py:316
 msgid "URL must start with http:// or https://"
 msgstr "URL သည် http:// သို့မဟုတ် https:// ဖြင့် စတင်ရပါမည်"
 
@@ -29968,7 +30015,7 @@ msgstr "အီးမေးလ်အကောင့် ပျောက်ဆု�
 msgid "Unable to update event"
 msgstr "ဖြစ်ရပ်ကို အပ်ဒိတ်လုပ်၍မရပါ"
 
-#: frappe/core/doctype/file/file.py:565
+#: frappe/core/doctype/file/file.py:572
 msgid "Unable to write file format for {0}"
 msgstr "{0} အတွက် ဖိုင်ပုံစံကို ရေး၍မရပါ"
 
@@ -30029,7 +30076,7 @@ msgstr "ကလိုင်းယင့်ဆော့ဖ်ဝဲရေးသာ
 "<br>\n"
 "<b>ဆော့ဖ်ဝဲ၏ ဗားရှင်းများ သို့မဟုတ် အပ်ဒိတ်များတွင် အတူတူပင် ဖြစ်နေရမည်</b>။"
 
-#: frappe/website/report/website_analytics/website_analytics.js:60
+#: frappe/website/report/website_analytics/website_analytics.js:55
 msgid "Unknown"
 msgstr "မသိ"
 
@@ -30074,7 +30121,7 @@ msgstr "မဖတ်ရသေး"
 msgid "Unread Notification Sent"
 msgstr "မဖတ်ရသေးသော အသိပေးချက် ပို့ပြီး"
 
-#: frappe/utils/safe_exec.py:748 frappe/utils/safe_exec.py:761
+#: frappe/utils/safe_exec.py:750 frappe/utils/safe_exec.py:763
 msgid "Unsafe SQL query"
 msgstr "မလုံခြုံသော SQL မေးခွန်း"
 
@@ -30113,15 +30160,15 @@ msgstr "စာရင်းပယ်ဖျက်ခြင်း ကန့်သ�
 msgid "Unsubscribed"
 msgstr "စာရင်းမှ ပယ်ဖျက်ထား"
 
-#: frappe/desk/query_report.py:522
+#: frappe/desk/query_report.py:523
 msgid "Unsupported file format: {0}"
 msgstr ""
 
-#: frappe/database/query.py:1177
+#: frappe/database/query.py:1184
 msgid "Unsupported function or operator: {0}"
 msgstr "ပံ့ပိုးမထားသော လုပ်ဆောင်ချက် သို့မဟုတ် အော်ပရေတာ: {0}"
 
-#: frappe/database/query.py:2250
+#: frappe/database/query.py:2257
 msgid "Unsupported {0}: {1}"
 msgstr "ပံ့ပိုးမထားသော {0}: {1}"
 
@@ -30662,7 +30709,7 @@ msgstr "အသုံးပြုသူခွင့်ပြုချက်"
 #. Label of a Link in the Users Workspace
 #: frappe/core/page/permission_manager/permission_manager_help.html:97
 #: frappe/core/workspace/users/users.json
-#: frappe/public/js/frappe/views/reports/query_report.js:2109
+#: frappe/public/js/frappe/views/reports/query_report.js:2122
 #: frappe/public/js/frappe/views/reports/report_view.js:1865
 msgid "User Permissions"
 msgstr "အသုံးပြုသူခွင့်ပြုချက်များ"
@@ -30776,11 +30823,11 @@ msgstr "အသုံးပြုသူ {0} ကို ပိတ်၍မရပါ
 msgid "User {0} cannot be renamed"
 msgstr "အသုံးပြုသူ {0} ကို အမည်ပြောင်း၍မရပါ"
 
-#: frappe/permissions.py:146
+#: frappe/permissions.py:148
 msgid "User {0} does not have access to this document"
 msgstr "အသုံးပြုသူ {0} သည် ဤစာရွက်စာတမ်းကို ဝင်ရောက်ခွင့်မရှိပါ"
 
-#: frappe/permissions.py:171
+#: frappe/permissions.py:173
 msgid "User {0} does not have doctype access via role permission for document {1}"
 msgstr "အသုံးပြုသူ {0} သည် စာရွက်စာတမ်း {1} အတွက် အခန်းကဏ္ဍ ခွင့်ပြုချက် မှတစ်ဆင့် DocType ဝင်ရောက်ကြည့်ရှုခွင့် မရှိပါ"
 
@@ -32145,7 +32192,7 @@ msgstr "Y ဝင်ရိုးအကွက်များ"
 
 #. Label of the y_field (Select) field in DocType 'Dashboard Chart Field'
 #: frappe/desk/doctype/dashboard_chart_field/dashboard_chart_field.json
-#: frappe/public/js/frappe/views/reports/query_report.js:1297
+#: frappe/public/js/frappe/views/reports/query_report.js:1302
 msgid "Y Field"
 msgstr "Y အကွက်"
 
@@ -32268,11 +32315,11 @@ msgstr "အင်တာနက်နှင့် ချိတ်ဆက်ထာ�
 msgid "You are not allowed to access this resource"
 msgstr "ဤအရင်းအမြစ်ကို ဝင်ရောက်ခွင့်မရှိပါ"
 
-#: frappe/permissions.py:456
+#: frappe/permissions.py:458
 msgid "You are not allowed to access this {0} record because it is linked to {1} '{2}' in field {3}"
 msgstr "ဤ {0} မှတ်တမ်းကို ဝင်ရောက်ကြည့်ရှုခွင့်မရှိပါ၊ အကြောင်းမှာ {3} အကွက်တွင် {1} '{2}' နှင့် ချိတ်ဆက်ထားသောကြောင့်ဖြစ်သည်"
 
-#: frappe/permissions.py:445
+#: frappe/permissions.py:447
 msgid "You are not allowed to access this {0} record because it is linked to {1} '{2}' in row {3}, field {4}"
 msgstr "ဤ {0} မှတ်တမ်းကို ဝင်ရောက်ကြည့်ရှုခွင့် မရှိပါ၊ အကြောင်းမှာ ၎င်းသည် အတန်း {3}၊ အကွက် {4} ရှိ {1} '{2}' နှင့် ချိတ်ဆက်ထားသောကြောင့်ဖြစ်သည်"
 
@@ -32299,7 +32346,7 @@ msgstr "အစီရင်ခံစာကို တည်းဖြတ်ခွ�
 #: frappe/core/doctype/data_import/exporter.py:132
 #: frappe/core/doctype/data_import/exporter.py:136
 #: frappe/desk/reportview.py:500 frappe/desk/reportview.py:503
-#: frappe/permissions.py:653
+#: frappe/permissions.py:655
 msgid "You are not allowed to export {} doctype"
 msgstr "DocType {} ကို တင်ပို့ရန် ခွင့်မပြုပါ"
 
@@ -32396,7 +32443,7 @@ msgstr "ဤစာမျက်နှာကို လေ့လာပြီးန�
 msgid "You can disable this {0} instead of deleting it."
 msgstr "ဤ {0} ကို ဖျက်မည့်အစား ပိတ်ထားနိုင်ပါသည်။"
 
-#: frappe/core/doctype/file/file.py:872
+#: frappe/core/doctype/file/file.py:879
 msgid "You can increase the limit from System Settings."
 msgstr "စနစ်ဆက်တင်များမှ ကန့်သတ်ချက်ကို တိုးမြှင့်နိုင်ပါသည်။"
 
@@ -32530,11 +32577,11 @@ msgstr "ကလေးဇယား အကွက်ကို ဝင်ရောက�
 msgid "You do not have permission to access field: {0}"
 msgstr "အကွက် {0} ကို ဝင်ရောက်ကြည့်ရှုရန် ခွင့်ပြုချက်မရှိပါ"
 
-#: frappe/core/doctype/file/file.py:234
+#: frappe/core/doctype/file/file.py:240
 msgid "You do not have permission to access this file"
 msgstr ""
 
-#: frappe/desk/query_report.py:1183
+#: frappe/desk/query_report.py:1190
 msgid "You do not have permission to access {0}: {1}."
 msgstr "{0} ကို ဝင်ရောက်ကြည့်ရှုရန် ခွင့်ပြုချက် မရှိပါ: {1}။"
 
@@ -32579,7 +32626,7 @@ msgstr "{0} အကြောင်း အစီရင်ခံစာ ရယူခ
 msgid "You don't have permission to print: {0}"
 msgstr ""
 
-#: frappe/utils/file_manager.py:411
+#: frappe/utils/file_manager.py:424
 msgid "You don't have permission to read/attach the file {0}."
 msgstr ""
 
@@ -32722,7 +32769,7 @@ msgstr "သင်သည် {0} {1} ကို ပေါင်းစည်းရ�
 msgid "You need write permission on {0} {1} to rename"
 msgstr "သင်သည် {0} {1} ကို အမည်ပြောင်းရန် ရေးသားခွင့် လိုအပ်ပါသည်"
 
-#: frappe/utils/file_manager.py:402
+#: frappe/utils/file_manager.py:415
 msgid "You need write permissions to add attachments to this record."
 msgstr ""
 
@@ -32918,7 +32965,7 @@ msgstr "သုည"
 msgid "Zero means send records updated at anytime"
 msgstr "သုည ဆိုသည်မှာ မည်သည့်အချိန်တွင်မဆို အပ်ဒိတ်လုပ်ပြီး မှတ်တမ်းများကို ပို့ပါ"
 
-#: frappe/core/doctype/file/file.py:650 frappe/core/doctype/file/file.py:668
+#: frappe/core/doctype/file/file.py:657 frappe/core/doctype/file/file.py:675
 msgid "Zip file extracts to more than the maximum allowed size of {0} MB"
 msgstr ""
 
@@ -33151,7 +33198,7 @@ msgstr "အီးမေးလ်"
 msgid "email inbox"
 msgstr "အီးမေးလ် ဝင်စာပုံး"
 
-#: frappe/permissions.py:450 frappe/permissions.py:461
+#: frappe/permissions.py:452 frappe/permissions.py:463
 msgid "empty"
 msgstr "ဗလာ"
 
@@ -33635,7 +33682,7 @@ msgstr ""
 msgid "via Assignment Rule"
 msgstr "တာဝန်ပေးခြင်း စည်းမျဉ်း မှတစ်ဆင့်"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:264
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:282
 msgid "via Auto Repeat"
 msgstr "အလိုအလျောက် ထပ်လုပ်ခြင်း မှတစ်ဆင့်"
 
@@ -34018,7 +34065,7 @@ msgstr "{0} နာရီ"
 msgid "{0} has already assigned default value for {1}."
 msgstr "{0} သည် {1} အတွက် မူရင်းတန်ဖိုးကို သတ်မှတ်ပြီးဖြစ်သည်။"
 
-#: frappe/database/query.py:1281
+#: frappe/database/query.py:1288
 msgid "{0} has invalid backtick notation: {1}"
 msgstr "{0} တွင် မမှန်ကန်သော backtick သင်္ကေတ ရှိသည်: {1}"
 
@@ -34055,7 +34102,7 @@ msgstr "{0} သည် {1} ၏ မျိုးဆက်ဖြစ်သည်"
 msgid "{0} is a mandatory field"
 msgstr "{0} သည် မဖြစ်မနေအကွက်ဖြစ်သည်"
 
-#: frappe/core/doctype/file/file.py:663
+#: frappe/core/doctype/file/file.py:670
 msgid "{0} is a not a valid zip file"
 msgstr "{0} သည် မှန်ကန်သော zip ဖိုင် မဟုတ်ပါ"
 
@@ -34071,7 +34118,7 @@ msgstr "{0} သည် {1} ၏ ဘိုးဘွား ဖြစ်သည်"
 msgid "{0} is an invalid Data field."
 msgstr "{0} သည် မမှန်ကန်သော ဒေတာအကွက်ဖြစ်သည်။"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:162
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:173
 msgid "{0} is an invalid email address in 'Recipients'"
 msgstr "'လက်ခံသူများ' တွင် {0} သည် မမှန်ကန်သော အီးမေးလ်လိပ်စာ ဖြစ်ပါသည်"
 
@@ -34184,11 +34231,11 @@ msgstr "{0} သည် မှန်ကန်သော Workflow State မဟုတ
 msgid "{0} is not a valid field of {1}"
 msgstr ""
 
-#: frappe/permissions.py:845
+#: frappe/permissions.py:847
 msgid "{0} is not a valid parent DocType for {1}"
 msgstr "{0} သည် {1} အတွက် မှန်ကန်သော မိဘ DocType မဟုတ်ပါ"
 
-#: frappe/permissions.py:865
+#: frappe/permissions.py:867
 msgid "{0} is not a valid parentfield for {1}"
 msgstr "{0} သည် {1} အတွက် မှန်ကန်သော parentfield မဟုတ်ပါ"
 
@@ -34196,7 +34243,7 @@ msgstr "{0} သည် {1} အတွက် မှန်ကန်သော parentf
 msgid "{0} is not a valid report format. Report format should one of the following {1}"
 msgstr "{0} သည် မှန်ကန်သော အစီရင်ခံစာပုံစံ မဟုတ်ပါ။ အစီရင်ခံစာပုံစံသည် အောက်ပါတို့ထဲမှ တစ်ခုဖြစ်ရပါမည် {1}"
 
-#: frappe/core/doctype/file/file.py:627
+#: frappe/core/doctype/file/file.py:634
 msgid "{0} is not a zip file"
 msgstr "{0} သည် zip ဖိုင် မဟုတ်ပါ"
 
@@ -34358,7 +34405,7 @@ msgstr "{0} သည် စာလုံးဖြင့် စတင်ပြီး
 msgid "{0} never sends email, so it cannot be enabled for users."
 msgstr ""
 
-#: frappe/workflow/doctype/workflow/workflow.py:92
+#: frappe/workflow/doctype/workflow/workflow.py:95
 msgid "{0} not a valid State"
 msgstr "{0} သည် မှန်ကန်သော အခြေအနေ မဟုတ်ပါ"
 
@@ -34455,7 +34502,7 @@ msgctxt "User added rows to child table"
 msgid "{0} rows to {1}"
 msgstr "{1} သို့ အတန်းများ {0} ခု"
 
-#: frappe/desk/query_report.py:915
+#: frappe/desk/query_report.py:922
 msgid "{0} saved successfully"
 msgstr "{0} အောင်မြင်စွာ သိမ်းဆည်းပြီး"
 
@@ -34479,7 +34526,7 @@ msgstr "{0} သည် ဤစာရွက်စာတမ်းကို {1} န�
 msgid "{0} should be indexed because it's referred in dashboard connections"
 msgstr "{0} သည် Dashboard ချိတ်ဆက်မှုများတွင် ကိုးကားထားသောကြောင့် အညွှန်းတပ်သင့်ပါသည်"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:149
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:160
 msgid "{0} should not be same as {1}"
 msgstr "{0} သည် {1} နှင့် တူမနေသင့်ပါ"
 
@@ -34576,7 +34623,7 @@ msgstr "{0} {1} မရှိပါ၊ ပေါင်းစည်းရန် �
 msgid "{0} {1} is linked with the following submitted documents: {2}"
 msgstr "{0} {1} သည် အောက်ပါ တင်သွင်းပြီး စာရွက်စာတမ်းများနှင့် ချိတ်ဆက်ထားသည်: {2}"
 
-#: frappe/model/document.py:296 frappe/permissions.py:605
+#: frappe/model/document.py:296 frappe/permissions.py:607
 msgid "{0} {1} not found"
 msgstr "{0} {1} မတွေ့ပါ"
 
@@ -34633,7 +34680,7 @@ msgstr ""
 msgid "{0}: Cannot set import as {1} is not importable"
 msgstr ""
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:436
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:454
 msgid "{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
 msgstr "{0}: ထပ်ခါထပ်ခါ စာရွက်စာတမ်းအသစ် ပူးတွဲခြင်း မအောင်မြင်ပါ။ အလိုအလျောက် ထပ်လုပ်ခြင်း အသိပေးချက် အီးမေးလ်တွင် စာရွက်စာတမ်း ပူးတွဲခြင်းကို ဖွင့်ရန် ပုံနှိပ် ဆက်တင်များတွင် {1} ကို ဖွင့်ပါ"
 
@@ -34711,7 +34758,7 @@ msgstr ""
 msgid "{0}: {1} is set to state {2}"
 msgstr "{0}: {1} သည် အခြေအနေ {2} သို့ သတ်မှတ်ထားသည်"
 
-#: frappe/public/js/frappe/views/reports/query_report.js:1355
+#: frappe/public/js/frappe/views/reports/query_report.js:1360
 msgid "{0}: {1} vs {2}"
 msgstr ""
 
