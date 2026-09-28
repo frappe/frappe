@@ -4,40 +4,29 @@ import type { App, Ref } from "vue";
 import FormLayout from "../FormLayout.vue";
 import type { FormLayoutSchema } from "../types";
 
-/**
- * The tab strip's promise, at the DOM: *the reader keeps their place*.
- *
- * Two failures are asserted against, and a fix for one that isn't a fix for the
- * other is not a fix — an index survives neither, and an identity held inside
- * the component survives only the second:
- *
- *  1. the form is destroyed and rebuilt (what a save does to it), and
- *  2. a `depends_on` tab appears or disappears beside the reader.
- *
- * frappe-ui's `Tabs` is stubbed because reka-ui paints nothing under happy-dom.
- * The stub is deliberately faithful about the one thing under test: it speaks
- * only `modelValue` *indices*, exactly as the real wrapper does, so these tests
- * exercise the identity/index translation rather than assuming it away.
- */
+// The reader keeps their tab when the form is rebuilt and when a `depends_on` tab
+// appears beside them. `Tabs` is stubbed because reka-ui paints nothing under happy-dom.
 vi.mock("frappe-ui", async (importOriginal) => ({
   ...((await importOriginal()) as object),
   Tabs: defineComponent({
-    props: { tabs: { type: Array, required: true }, modelValue: Number },
+    props: { tabs: { type: Array, required: true }, modelValue: [String, Number] },
     emits: ["update:modelValue"],
     setup(props, { emit, slots }) {
-      return () =>
-        h("div", { "data-active-index": String(props.modelValue) }, [
-          ...(props.tabs as any[]).map((tab, index) =>
+      return () => {
+        const tabs = props.tabs as any[];
+        return h("div", { "data-active": String(props.modelValue) }, [
+          ...tabs.map((tab) =>
             h("button", {
               "data-tab": tab.identity,
               "data-label": tab.label,
-              onClick: () => emit("update:modelValue", index),
+              onClick: () => emit("update:modelValue", tab.value),
             })
           ),
           slots["tab-panel"]?.({
-            tab: (props.tabs as any[])[props.modelValue ?? 0],
+            tab: tabs.find((tab) => tab.value === props.modelValue) ?? tabs[0],
           }),
         ]);
+      };
     },
   }),
 }));
@@ -104,14 +93,8 @@ function mount(
     /** Every `update:activeTab` since mount, in order. */
     announced: () => announced,
     identities: () => triggers().map((el) => el.getAttribute("data-tab")),
-    activeIdentity: () => {
-      const index = Number(
-        host!
-          .querySelector("[data-active-index]")!
-          .getAttribute("data-active-index")
-      );
-      return triggers()[index]?.getAttribute("data-tab");
-    },
+    activeIdentity: () =>
+      host!.querySelector("[data-active]")!.getAttribute("data-active"),
     click: async (identity: string) => {
       host!.querySelector<HTMLElement>(`[data-tab="${identity}"]`)!.click();
       await nextTick();
@@ -223,13 +206,7 @@ describe("the reader keeps their place", () => {
         el.getAttribute("data-tab")
       );
     const activeIdentity = () =>
-      identities()[
-        Number(
-          host!
-            .querySelector("[data-active-index]")!
-            .getAttribute("data-active-index")
-        )
-      ];
+      host!.querySelector("[data-active]")!.getAttribute("data-active");
 
     expect(identities()).toEqual(["tab-1", "tab-2", "tab-3"]);
     host.querySelector<HTMLElement>('[data-tab="tab-3"]')!.click();
@@ -242,20 +219,17 @@ describe("the reader keeps their place", () => {
     expect(activeIdentity()).toBe("tab-3");
   });
 
-  it("leaves the intent alone when handed an index naming no tab", async () => {
-    // The wrapper cannot reach this today — every index it is given was just
-    // derived from the list it rendered — but the model may be a host's, and
-    // blanking someone else's state on a stray emit is not this component's to
-    // do. Asserted because it is exactly what the first draft got wrong.
+  it("leaves the intent alone when handed a value naming no tab", async () => {
+    // The model may be a host's: a stray emit must not blank someone else's state.
     const tab = ref("");
     const strip = mount(ref({ extra: 1 }), tab);
 
     await strip.click("contacts");
     expect(tab.value).toBe("contacts");
 
-    const wrapper = host!.querySelector("[data-active-index]")!;
+    const wrapper = host!.querySelector("[data-active]")!;
     // @ts-expect-error reaching the stub's emit through the rendered vnode
-    wrapper.__vnode.component.emit("update:modelValue", 99);
+    wrapper.__vnode.component.emit("update:modelValue", "no-such-tab");
     await nextTick();
 
     expect(tab.value).toBe("contacts");
@@ -311,9 +285,9 @@ describe("the reader keeps their place", () => {
 
     host.querySelector<HTMLElement>('[data-tab="contacts"]')!.click();
     await nextTick();
-    expect(
-      host.querySelector("[data-active-index]")!.getAttribute("data-active-index")
-    ).toBe("2");
+    expect(host.querySelector("[data-active]")!.getAttribute("data-active")).toBe(
+      "contacts"
+    );
   });
 });
 

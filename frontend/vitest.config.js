@@ -1,5 +1,6 @@
 // The test runner. Separate from `vite.config.js`, which reads the `manifest.json` that
 // `bench build` generates and a clean clone lacks.
+import { readFileSync } from "node:fs";
 import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vitest/config";
 import vue from "@vitejs/plugin-vue";
@@ -11,6 +12,7 @@ import contributions from "./plugin/contributions.js";
 const manifest = [
 	{ app: "frappe", source_dir: fileURLToPath(new URL("../frappe", import.meta.url)) },
 ];
+const ui = JSON.parse(readFileSync(new URL("../ui/package.json", import.meta.url), "utf8"));
 
 export default defineConfig({
 	plugins: [
@@ -31,7 +33,7 @@ export default defineConfig({
 		// `@framework/ui` is linked in as raw source and must resolve its imports in this tree.
 		preserveSymlinks: true,
 		// A `ui/` test imports `ui/` by its real path, where no `node_modules` lies above it.
-		dedupe: ["vue", "vue-router", "frappe-ui", "@vueuse/core", "@tiptap/core"],
+		dedupe: Object.keys({ ...ui.dependencies, ...ui.peerDependencies }),
 	},
 	// No postcss: `tailwind.config.js` reads `manifest.json` at module scope, and a frappe-ui
 	// `<style>` block would reach it through `vite:css`. An empty object overrides, not merges.
@@ -39,20 +41,7 @@ export default defineConfig({
 	test: {
 		globals: true,
 		environment: "happy-dom",
-		include: [
-			"src/**/tests/*.test.ts",
-			"plugin/tests/*.test.ts",
-			"../ui/src/api/tests/*.test.ts",
-			"../ui/src/cache/tests/*.test.ts",
-			"../ui/src/components/ActivityTimeline/tests/*.test.ts",
-			"../ui/src/components/Composer/tests/*.test.ts",
-			"../ui/src/components/Link/tests/*.test.ts",
-			"../ui/src/components/QuickFilter/tests/*.test.ts",
-			"../ui/src/composables/tests/useDoctypeMeta.test.ts",
-			"../ui/src/composables/tests/useLinkSearch.test.ts",
-			"../ui/src/experimental/List/tests/*.test.ts",
-			"../ui/src/utils/tests/sharedState.test.ts",
-		],
+		include: ["**/*.test.ts", "../ui/src/**/*.test.ts"],
 		server: {
 			deps: {
 				// frappe-ui imports extensionless; externalised as native Node ESM that fails, and

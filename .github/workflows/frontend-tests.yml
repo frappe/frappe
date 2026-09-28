@@ -53,5 +53,8 @@ jobs:
       - name: Lint
         run: yarn --cwd frontend lint
 
+      - name: Check that every test file runs
+        run: yarn --cwd frontend test:files
+
       - name: Run unit tests
         run: yarn --cwd frontend test:run

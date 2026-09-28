@@ -8,6 +8,7 @@
     "build": "vite build",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:files": "node check-test-files.mjs",
     "lint": "cd .. && eslint --config frontend/eslint.config.js frontend/src ui/src",
     "base-lock": "./base-lock.sh"
   },
