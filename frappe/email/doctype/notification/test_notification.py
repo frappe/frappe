@@ -10,7 +10,7 @@ import frappe.utils.scheduler
 from frappe.desk.form import assign_to
 from frappe.tests import IntegrationTestCase
 
-from .notification import trigger_notifications
+from .notification import get_context, trigger_notifications
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["User", "Notification"]
 
@@ -513,6 +513,24 @@ class TestNotification(IntegrationTestCase):
 		recipients = [d.recipient for d in email_queue.recipients]
 		self.assertTrue("test2@example.com" in recipients)
 		self.assertTrue("test1@example.com" in recipients)
+
+	def test_notification_to_administrator_owner(self):
+		frappe.set_user("Administrator")
+
+		notification = {
+			"document_type": "ToDo",
+			"subject": "ToDo created by Administrator",
+			"event": "New",
+			"message": "New ToDo",
+			"recipients": [{"receiver_by_document_field": "owner"}],
+		}
+
+		with get_test_notification(notification) as n:
+			todo = frappe.get_doc(doctype="ToDo", description="Review the quarterly report").insert()
+
+			recipients, _, _ = n.get_list_of_recipients(todo, get_context(todo))
+			todo.delete()
+			self.assertEqual(recipients, [frappe.db.get_value("User", "Administrator", "email")])
 
 	def test_notification_value_change_casted_types(self):
 		"""Make sure value change event dont fire because of incorrect type comparisons."""
