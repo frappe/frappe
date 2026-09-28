@@ -1,4 +1,4 @@
-// Reads a layer's concept table and the five flows from ARCHITECTURE.md.
+// Reads a layer's concepts, the five flows and the ways to change the desk from ARCHITECTURE.md.
 
 export function conceptsOf(markdown, layer) {
   const lines = markdown.split("\n");
@@ -37,6 +37,30 @@ export function flowsOf(markdown) {
     if (flow) readFlowLine(flow, line);
   }
   return flows.map(({ inBudget, ...flow }) => flow);
+}
+
+export function extensionsOf(markdown) {
+  const lines = markdown.split("\n");
+  const start = lines.indexOf("## Ways to change the desk");
+  if (start < 0) return [];
+  const rows = [];
+  for (const line of lines.slice(start + 1)) {
+    if (line.startsWith("## ")) break;
+    const cells = tableCells(line);
+    if (cells?.length !== 7 || cells[0] === "Way" || /^-+$/.test(cells[0]))
+      continue;
+    const [name, who, layer, how, changes, pair, pairNote] = cells;
+    rows.push({
+      name,
+      tier: who.toLowerCase(),
+      layer,
+      how,
+      changes,
+      pair,
+      pairNote,
+    });
+  }
+  return rows;
 }
 
 function readFlowLine(flow, line) {

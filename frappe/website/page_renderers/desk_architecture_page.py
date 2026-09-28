@@ -1,7 +1,6 @@
 # /desk-architecture: the desk's layers, flows and layer breaks, built from the working tree.
 
 import os
-import shutil
 import subprocess
 
 import frappe
@@ -28,15 +27,20 @@ def build_diagram() -> str:
 	"""The page, built by the script from the code as it is on disk."""
 	repo = os.path.dirname(frappe.get_app_path("frappe"))
 	# Exit code 1 only means the code breaks layers.json; the page still shows it.
-	run = subprocess.run(
-		[shutil.which("node") or "node", os.path.join(repo, SCRIPT), "--stdout"],
-		cwd=repo,
-		capture_output=True,
-		text=True,
-		timeout=60,
-	)
-	if not run.stdout:
-		frappe.throw(
-			f"<pre>{frappe.utils.escape_html(run.stderr)}</pre>", title=frappe._("Diagram Not Built")
+	try:
+		run = subprocess.run(
+			["node", os.path.join(repo, SCRIPT), "--stdout"],
+			cwd=repo,
+			capture_output=True,
+			text=True,
+			timeout=60,
 		)
+	except (OSError, subprocess.TimeoutExpired) as e:
+		not_built(str(e))
+	if not run.stdout:
+		not_built(run.stderr)
 	return run.stdout
+
+
+def not_built(reason: str):
+	frappe.throw(f"<pre>{frappe.utils.escape_html(reason)}</pre>", title=frappe._("Diagram Not Built"))

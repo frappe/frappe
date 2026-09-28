@@ -1,9 +1,8 @@
 // Places every file of the import graph in a layer from layers.json and checks each import.
 
 export class LayerCheck {
-  constructor(graph, layerFile, readFile) {
+  constructor(graph, layerFile) {
     this.layerFile = layerFile;
-    this.readFile = readFile;
     this.unplaced = [];
     this.loops = graph.folderCycles;
     this.boxes = this.buildBoxes(graph.nodes);
@@ -83,10 +82,10 @@ export class LayerCheck {
   buildEdges(graphEdges) {
     const edges = new Map();
     for (const edge of graphEdges) {
-      for (const [from, to] of edge.pairs) {
+      for (const [from, to, line] of edge.pairs) {
         const fromBox = this.boxOf(edge.from, from);
         const toBox = this.boxOf(edge.to, to);
-        if (!fromBox || !toBox) continue;
+        if (!fromBox || !toBox || fromBox === toBox) continue;
         const id = `${fromBox.id}>${toBox.id}>${edge.kind}`;
         if (!edges.has(id)) {
           const status = this.statusOf(edge.kind, fromBox.layer, toBox.layer);
@@ -99,7 +98,6 @@ export class LayerCheck {
             pairs: [],
           });
         }
-        const line = edge.kind === "import" ? this.importLine(from, to) : null;
         edges.get(id).pairs.push({ from, to, line });
       }
     }
@@ -120,7 +118,7 @@ export class LayerCheck {
     for (const edge of this.edges.filter(isBreak)) {
       for (const pair of edge.pairs) {
         const i = known.findIndex(
-          (k) => pair.from.startsWith(k.from) && pair.to.startsWith(k.to)
+          (k) => covers(k.from, pair.from) && covers(k.to, pair.to)
         );
         pair.known = i >= 0 ? i : null;
         if (i >= 0) seen.add(i);
@@ -136,23 +134,13 @@ export class LayerCheck {
     const layer = this.layerOf(file);
     return layer && this.boxes.find((b) => b.id === `${folder}@${layer}`);
   }
-
-  // Found by the target's file name: good enough to link to the line.
-  importLine(from, to) {
-    const base = to
-      .split("/")
-      .pop()
-      .replace(/\.(ts|vue|js|mjs|py)$/, "");
-    const name =
-      base === "index" || base === "__init__" ? to.split("/").at(-2) : base;
-    const lines = this.readFile(from).split("\n");
-    const i = lines.findIndex(
-      (l) => /\bimport\b|\bfrom\b/.test(l) && l.includes(name)
-    );
-    return i >= 0 ? i + 1 : null;
-  }
 }
 
 export function isBreak(edge) {
   return edge.status === "break" || edge.status === "known";
+}
+
+// A path ending in "/" covers its folder; any other path covers only that file.
+function covers(entry, file) {
+  return entry.endsWith("/") ? file.startsWith(entry) : file === entry;
 }

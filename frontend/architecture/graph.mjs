@@ -39,38 +39,38 @@ class FolderGraph {
           from,
           nodeOf(imp.target),
           imp.kind,
-          file,
-          imp.target,
-          imp.typeOnly,
-          imp.dynamic
+          [file, imp.target, imp.line],
+          imp
         );
       }
     }
     for (const call of info.apiCalls) {
-      const target = this.sources.resolvePythonMethod(call);
+      const target = this.sources.resolvePythonMethod(call.method);
       if (!target) continue;
       this.ensureServerFile(target);
-      this.addEdge(from, nodeOf(target), "api", file, target);
+      this.addEdge(from, nodeOf(target), "api", [file, target, call.line]);
     }
   }
 
   addPyEdges(file, info) {
-    for (const target of info.imports) {
+    for (const { target, line } of info.imports) {
       this.ensureServerFile(target);
-      this.addEdge(nodeOf(file), nodeOf(target), "import", file, target);
+      this.addEdge(nodeOf(file), nodeOf(target), "import", [
+        file,
+        target,
+        line,
+      ]);
     }
   }
 
   addShellCallerEdges() {
     for (const ref of this.sources.shellCallers()) {
       this.ensureServerFile(ref.from);
-      this.addEdge(
-        nodeOf(ref.from),
-        nodeOf(ref.to),
-        ref.kind,
+      this.addEdge(nodeOf(ref.from), nodeOf(ref.to), ref.kind, [
         ref.from,
-        ref.to
-      );
+        ref.to,
+        ref.line,
+      ]);
     }
   }
 
@@ -95,8 +95,8 @@ class FolderGraph {
     externals[pkg] = (externals[pkg] || 0) + 1;
   }
 
-  addEdge(from, to, kind, fromFile, toFile, typeOnly = false, dynamic = false) {
-    if (from === to) return;
+  // An import inside one folder stays: the layer file can split a folder across two layers.
+  addEdge(from, to, kind, pair, { typeOnly = false, dynamic = false } = {}) {
     const key = `${from}|${to}|${kind}`;
     if (!this.edges.has(key)) {
       this.edges.set(key, {
@@ -113,8 +113,8 @@ class FolderGraph {
     edge.count += 1;
     if (typeOnly) edge.typeOnly += 1;
     if (dynamic) edge.dynamic += 1;
-    if (!edge.pairs.some(([a, b]) => a === fromFile && b === toFile))
-      edge.pairs.push([fromFile, toFile]);
+    if (!edge.pairs.some(([a, b]) => a === pair[0] && b === pair[1]))
+      edge.pairs.push(pair);
   }
 
   nodeList() {

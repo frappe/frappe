@@ -417,6 +417,39 @@ A script reaches the rest of the desk only through the `page` object it is hande
 | Layer file (`frontend/architecture/layers.json`) | Each layer's paths and the layers it may use, and each of today's breaks with the ticket that removes it |
 | `/desk-architecture` | In developer mode, a System Manager's page of the layers, the flows and every import that breaks the layer file, built from the working tree on each request |
 
+## Ways to change the desk
+
+Every way an app, a site admin or a user changes the desk, with the layer that holds it.
+"Same job as" names another way that does the same job.
+
+| Way | Who | Layer | How it is registered | What it changes | Same job as | Note |
+| --- | --- | --- | --- | --- | --- | --- |
+| record.js file script | App | 9 | A file in the app's frontend folder, found by the build | Handlers on a doctype's record page | Stored script |  |
+| Stored script | Site | 9 | A Client Script row with view = Record | Handlers on a doctype's record page | record.js file script |  |
+| list.js list file | App | 9 | A file in the app's frontend folder | A doctype's list, such as extra columns |  |  |
+| item.js item file | App | 9 | A file in the app's frontend folder | How one kind of navigation item draws | navigation_item_resolvers hook | Winner rule differs today: first app wins the renderer, last app wins the visibility hook |
+| App page | App | 8 | A page file the build registers | Adds a page under the app's prefix |  |  |
+| Replacement page (pages.json) | App | 8 | pages.json beside a doctype | Replaces the standard list or record page for a doctype |  |  |
+| @shell import alias | App | build | Vite alias | Desk names an app file may import | import_map hook | Two import lists; the target has one |
+| import_map hook | App | build | hooks.py | Names a stored script may import | @shell import alias | Two import lists; the target has one |
+| desk.package.json | App | build | A file in the app | The app's frontend packages |  |  |
+| Tailwind preset | App | build | A preset file in the app | The app's theme |  |  |
+| app_prefix hook | App | 2 | hooks.py | The address prefix the app claims |  |  |
+| app_modular hook | App | 2 | hooks.py | Whether record addresses include the module |  |  |
+| app_permission hook | App | 2 | hooks.py | Who may enter the app's prefix |  |  |
+| app_boot hook | App | 2 | hooks.py | Extra keys in the boot payload |  |  |
+| add_to_apps_screen hook | App | 2 | hooks.py | The app's tile on /apps |  |  |
+| navigation_item_resolvers hook | App | 2 | hooks.py | Who can see the app's own item type | item.js item file |  |
+| Cross-app rail rows (app:key) | App | 2 | Navigation rows shipped by another app | Adds rows to another app's rail |  |  |
+| Base rail and sidebars | App | 1 | Rail and Sidebar records shipped with the app | The app's navigation |  |  |
+| Site rail and sidebar copy | Site | 1 | Rail and Sidebar site layer, or the customize dialog | Navigation for every user on the site |  |  |
+| Form Layout | Site | 1 | A Form Layout row | Details, Side Panel or Quick Entry layout | Stored script | A field can be hidden three ways: the layout, a script, or the DocType |
+| Doctype View (site) | Site | 1 | The list's column and sort panels, saved for the site | Default columns, sort and quick filters |  |  |
+| DocType and Customize Form | Site | 1 | DocType or Property Setter rows | Fields, labels, hidden, read-only |  |  |
+| Doctype View (user) | User | 1 | The list's column and sort panels | The user's own columns, sort and quick filters |  |  |
+| Arrangement (user) | User | 2 | The customize sidebar dialog | The user's order of rail and sidebar items |  |  |
+| Per-user rail and sidebar | User | 1 | Rail and Sidebar user layer | Rows the user hides or adds |  |  |
+
 ## The five flows
 
 Each flow is written as it will be after the accepted cuts. Each step names its layer, its

@@ -47,6 +47,11 @@ class TestDeskArchitecturePage(IntegrationTestCase):
 		self.assertIn("<title>Desk v2 architecture</title>", page)
 		self.assertIn('"id":"main"', page)
 
+	def test_a_missing_node_shows_why_the_page_is_not_built(self):
+		with patch("subprocess.run", side_effect=FileNotFoundError("node")):
+			response = self.open_page("Administrator")
+		self.assertIn("Diagram Not Built", response.get_data(as_text=True))
+
 
 def make_user(email):
 	return frappe.get_doc(

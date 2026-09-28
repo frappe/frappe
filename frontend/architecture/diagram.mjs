@@ -8,7 +8,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { buildGraph } from "./graph.mjs";
 import { LayerCheck } from "./check.mjs";
-import { conceptsOf, flowsOf } from "./architectureDoc.mjs";
+import { conceptsOf, extensionsOf, flowsOf } from "./architectureDoc.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(here, "..", "..");
@@ -19,7 +19,7 @@ export function buildDiagram(root = ROOT) {
   const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
   const layerFile = JSON.parse(read("frontend/architecture/layers.json"));
   const doc = read(layerFile.architecture);
-  const check = new LayerCheck(buildGraph(root), layerFile, read);
+  const check = new LayerCheck(buildGraph(root), layerFile);
   const data = {
     commit: git(root, "rev-parse --short HEAD"),
     branch: git(root, "rev-parse --abbrev-ref HEAD"),
@@ -34,12 +34,12 @@ export function buildDiagram(root = ROOT) {
     knownBreaks: check.knownBreaks,
     loops: check.loops,
     flows: flowsOf(doc),
-    extensions: JSON.parse(read("frontend/architecture/extensions.json")),
+    extensions: extensionsOf(doc),
     unplaced: check.unplaced,
   };
-  // A "</script>" inside the JSON would end the page's script early.
-  const json = JSON.stringify(data).replaceAll("</", "<\\/");
-  const scripts = ["panel.js", "views.js"]
+  // A "</script>" or "<!--" inside the JSON would end or break the page's script.
+  const json = JSON.stringify(data).replaceAll("<", "\\u003c");
+  const scripts = ["shared.js", "panel.js", "layersView.js", "views.js"]
     .map((f) => read(`frontend/architecture/${f}`))
     .join("\n");
   const html = read("frontend/architecture/diagram.html")

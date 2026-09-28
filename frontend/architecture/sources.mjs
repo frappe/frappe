@@ -2,9 +2,18 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
+import {
+  JS_EXT,
+  lineAt,
+  isCountedJs,
+  isCountedPy,
+  parseApiCalls,
+  packageName,
+  stripComments,
+  countLines,
+} from "./sourceText.mjs";
 
-const JS_EXT = [".ts", ".vue", ".js", ".mjs"];
 const SKIPPED_DIRS = ["node_modules", "tests", "stories", "__pycache__"];
 const IMPORT_PATTERNS = [
   /\b(import|export)\s+(type\s+)?[^'";]*?\bfrom\s*['"]([^'"\n]+)['"]/g,
@@ -15,12 +24,11 @@ const IMPORT_PATTERNS = [
 export class Sources {
   constructor(root) {
     this.root = path.resolve(root);
-    this.uiExports = null;
+    this.uiExports = this.readUiExports();
   }
 
   // frontend/src and frontend/plugin, plus the ui/src files they reach through imports.
   jsFiles() {
-    this.uiExports = this.readUiExports();
     const files = new Map();
     const queue = [
       ...this.walk("frontend/src"),
@@ -68,12 +76,12 @@ export class Sources {
   shellCallers() {
     const refs = [];
     for (const line of this.grepShellReferences()) {
-      const [file] = line.split(":");
+      const [file, lineNo] = line.split(":");
       if (!isCountedPy(file)) continue;
       const kind = file === "frappe/hooks.py" ? "hook" : "import";
       for (const m of line.matchAll(/frappe\.shell\.([a-z_]+)/g)) {
         const to = this.pyFile(`frappe/shell/${m[1]}`);
-        if (to) refs.push({ from: file, to, kind });
+        if (to) refs.push({ from: file, to, kind, line: Number(lineNo) });
       }
     }
     return refs;
@@ -105,28 +113,27 @@ export class Sources {
           spec,
           typeOnly: index === 0 && Boolean(m[2]),
           dynamic: index === 2,
+          line: lineAt(code, m.index),
         });
       }
     }
     return found.map((imp) => this.resolveImport(file, imp));
   }
 
-  resolveImport(file, { spec, typeOnly, dynamic }) {
+  resolveImport(file, { spec, ...found }) {
     const clean = spec.split("?")[0];
     if (clean.startsWith("virtual:frappe/")) {
       return {
         kind: "virtual",
         target: "frontend/plugin/contributions.js",
-        typeOnly,
-        dynamic,
+        ...found,
       };
     }
     const resolved = this.resolveJs(file, clean);
-    if (resolved)
-      return { kind: "import", target: resolved, typeOnly, dynamic };
+    if (resolved) return { kind: "import", target: resolved, ...found };
     const pkg = packageName(clean);
     return pkg
-      ? { kind: "import", external: pkg, typeOnly, dynamic }
+      ? { kind: "import", external: pkg, ...found }
       : { kind: "import" };
   }
 
@@ -174,7 +181,8 @@ export class Sources {
       /^\s*from\s+(\.+)([\w.]*)\s+import\s+([\w, ()]+)/gm
     )) {
       const target = this.relativePyImport(file, m[1], m[2]);
-      if (target && target !== file) targets.push(target);
+      if (target && target !== file)
+        targets.push({ target, line: lineAt(text, m.index) });
     }
     const absolute = [
       /^\s*from\s+(frappe(?:\.\w+)+)\s+import\s+/gm,
@@ -183,7 +191,7 @@ export class Sources {
     for (const re of absolute) {
       for (const m of text.matchAll(re)) {
         const target = this.pyFile(m[1].replace(/\./g, "/"));
-        if (target) targets.push(target);
+        if (target) targets.push({ target, line: lineAt(text, m.index) });
       }
     }
     return targets;
@@ -205,8 +213,19 @@ export class Sources {
 
   grepShellReferences() {
     try {
-      const cmd = `git grep -n -E "frappe\\.shell\\.[a-z_]+" -- "frappe/*.py" ":!frappe/shell/*"`;
-      const out = execSync(cmd, { cwd: this.root, encoding: "utf8" });
+      const args = [
+        "grep",
+        "-n",
+        "-E",
+        "frappe\\.shell\\.[a-z_]+",
+        "--",
+        "frappe/*.py",
+        ":!frappe/shell/*",
+      ];
+      const out = execFileSync("git", args, {
+        cwd: this.root,
+        encoding: "utf8",
+      });
       return out.split("\n").filter(Boolean);
     } catch {
       // git grep exits non-zero when nothing matches.
@@ -240,47 +259,4 @@ export class Sources {
   read(file) {
     return fs.readFileSync(path.join(this.root, file), "utf8");
   }
-}
-
-// Tests, stories and type declaration files are left out of nodes and counts.
-function isCountedJs(file) {
-  if (!JS_EXT.some((e) => file.endsWith(e)) || file.endsWith(".d.ts"))
-    return false;
-  return (
-    !/(^|\/)(tests|stories|node_modules)\//.test(file) &&
-    !/\.(test|spec|stories)\./.test(file)
-  );
-}
-
-function isCountedPy(file) {
-  return (
-    file.endsWith(".py") &&
-    !/(^|\/)tests?\//.test(file) &&
-    !/(^|\/)test_[^/]*\.py$/.test(file)
-  );
-}
-
-function parseApiCalls(code) {
-  return [...code.matchAll(/['"`](frappe(?:\.[a-z0-9_]+){2,})['"`]/g)].map(
-    (m) => m[1]
-  );
-}
-
-function packageName(spec) {
-  if (/\s/.test(spec) || spec.startsWith("/")) return null;
-  if (spec.startsWith("~icons/")) return "~icons";
-  if (spec.startsWith("node:")) return spec;
-  const parts = spec.split("/");
-  return spec.startsWith("@") ? parts.slice(0, 2).join("/") : parts[0];
-}
-
-function stripComments(text) {
-  return text
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/(^|[^:"'`\\])\/\/.*$/gm, "$1");
-}
-
-function countLines(text) {
-  if (!text) return 0;
-  return text.split("\n").length - (text.endsWith("\n") ? 1 : 0);
 }

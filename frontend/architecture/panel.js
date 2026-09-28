@@ -1,97 +1,5 @@
-// Shared helpers and the details panel of the architecture page.
-/* global DATA, current, drawLayers, drawMatrix, drawFlow, drawExtensions */
-const VIEWS = [
-	{ key: "A", name: "Layers", draw: drawLayers },
-	{ key: "B", name: "Layer matrix", draw: drawMatrix },
-	{ key: "C", name: "Flows, step by step", draw: drawFlow },
-	{ key: "D", name: "Ways to change the desk", draw: drawExtensions },
-];
-const ORDER = ["main", "9", "8", "7", "6", "5", "4", "3", "2", "1", "build"];
-const COLOR = {
-	main: "#57606a",
-	9: "#8c959f",
-	8: "#6f42c1",
-	7: "#8250df",
-	6: "#5a67d8",
-	5: "#3b82c4",
-	4: "#1b998b",
-	3: "#16806f",
-	2: "#b7791f",
-	1: "#8a6116",
-	build: "#c05621",
-};
-const GH = "https://github.com/frappe/frappe/blob/desk-v2/";
-const layer = (id) => DATA.layers.find((l) => l.id === id);
-const box = (id) => DATA.boxes.find((b) => b.id === id);
-const isBreak = (e) => e.status === "break" || e.status === "known";
-const inLoop = new Set(DATA.loops.flat());
-const state = { selected: null, showAll: false, showLoops: false, flow: 2, step: 0 };
-
-function esc(s) {
-	return String(s).replace(
-		/[&<>"]/g,
-		(c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])
-	);
-}
-function md(s) {
-	return esc(s)
-		.replace(/`([^`]+)`/g, "<code>$1</code>")
-		.replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
-		.replace(
-			/\[([^\]]+)\]\(([^)]+)\)/g,
-			(m, t, u) =>
-				`<a href="${
-					u.startsWith("#") ? GH + DATA.architecture + u : u
-				}" target="_blank">${t}</a>`
-		);
-}
-function short(folder) {
-	return folder
-		.replace(/^frontend\/src\//, "")
-		.replace(/^ui\/src\//, "ui/")
-		.replace(/^frappe\//, "frappe/");
-}
-function fileLink(p, line) {
-	return `<a href="${GH}${p}${line ? "#L" + line : ""}" target="_blank"><code>${esc(p)}${
-		line ? ":" + line : ""
-	}</code></a>`;
-}
-function statusPill(s) {
-	const text = {
-		break: "new break",
-		known: "known break",
-		allowed: "allowed",
-		inside: "same layer",
-		callback: "callback, not a use",
-	}[s];
-	return `<span class="pill ${s}">${text}</span>`;
-}
-function layerName(id) {
-	const l = layer(id);
-	return `${/^\d$/.test(id) ? id + ". " : ""}${l.name}`;
-}
-function archLink(l) {
-	return `<a href="${GH}${DATA.architecture}#${
-		l.section
-	}" target="_blank">ARCHITECTURE.md, ${esc(layerName(l.id))}</a>`;
-}
-function stats() {
-	const breaks = DATA.edges.filter(isBreak).flatMap((e) => e.pairs);
-	const fresh = breaks.filter((p) => p.known === null).length;
-	const files = DATA.boxes.reduce((n, b) => n + b.files.length, 0);
-	const lines = DATA.boxes.reduce((n, b) => n + b.lines, 0);
-	document.getElementById("stats").innerHTML = [
-		`Built from <b>${DATA.branch}</b> at <b>${DATA.commit}</b>, ${DATA.builtAt}`,
-		`<span><b>${files}</b> files, <b>${lines.toLocaleString()}</b> lines</span>`,
-		`<span class="red"><b>${fresh}</b> new breaks</span>`,
-		`<span class="red"><b>${breaks.length - fresh}</b> known breaks</span>`,
-		`<span><b>${DATA.loops.length}</b> folder loops</span>`,
-		DATA.unplaced.length
-			? `<span class="red"><b>${DATA.unplaced.length}</b> files in no layer</span>`
-			: "",
-	].join("");
-}
-
+// The details panel: what one click on a layer, a folder, a line or a card shows.
+/* global DATA, VIEWS, ORDER, state, current, drawLayers, esc, md, short, layer, box, isBreak, layerName, archLink, statusPill, fileLink */
 function select(kind, id) {
 	state.selected = { kind, id };
 	const panel = document.getElementById("panel");
@@ -114,7 +22,7 @@ function idleDetail() {
 		<h3>Where the data comes from</h3>
 		<p>Built on each request from the code (the import graph), <code>frontend/architecture/layers.json</code> (which layer may use which) and <code>${esc(
 			DATA.architecture
-		)}</code> (the concepts and the flows). Only the "Ways to change the desk" view is kept by hand, in <code>frontend/architecture/extensions.json</code>.</p>`;
+		)}</code> (the concepts and the flows). The ways to change the desk come from the same file.</p>`;
 }
 function layerDetail(id) {
 	const l = layer(id);
@@ -178,7 +86,7 @@ function boxDetail(id) {
 			.sort((x, y) => y.count - x.count)
 			.map(
 				(e) =>
-					`<tr><td><a href="#" onclick="select('edge','${e.id}');return false">${esc(
+					`<tr><td><a href="#" data-select="edge" data-id="${esc(e.id)}">${esc(
 						short(box(e[end]).folder)
 					)}</a></td><td>${e.count}</td><td>${statusPill(e.status)}</td></tr>`
 			)
@@ -276,7 +184,7 @@ function cellDetail(key) {
 			.sort((x, y) => y.count - x.count)
 			.map(
 				(e) =>
-					`<tr><td><a href="#" onclick="select('edge','${e.id}');return false">${esc(
+					`<tr><td><a href="#" data-select="edge" data-id="${esc(e.id)}">${esc(
 						short(box(e.from).folder)
 					)} to ${esc(short(box(e.to).folder))}</a></td><td>${
 						e.count
@@ -299,7 +207,7 @@ function extDetail(i) {
 				  )}</p>`
 				: ""
 		}
-		<h3>Source</h3><p>Kept by hand in <code>frontend/architecture/extensions.json</code>. The concept is in ${archLink(
+		<h3>Source</h3><p>The ways to change the desk in ARCHITECTURE.md. The concept is in ${archLink(
 			layer(x.layer)
 		)}.</p>`;
 }
