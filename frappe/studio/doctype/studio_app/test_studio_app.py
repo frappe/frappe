@@ -12,7 +12,7 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_files_path
 
-from studio.build import StudioAppBuilder, get_published_custom_apps
+from studio.build import StudioAppBuilder, get_app_router_file, get_published_custom_apps
 
 
 class TestStudioApp(FrappeTestCase):
@@ -31,6 +31,25 @@ class TestStudioApp(FrappeTestCase):
 		self.assertEqual(context.app_home, page.name)
 		self.assertEqual([p.name for p in context.app_pages], [page.name])
 		self.assertEqual(context.boot, {})
+
+	def test_context_exposes_the_router_file_only_in_developer_mode(self):
+		app = make_studio_app(
+			app_title="Routed App", app_name="routed-app", is_standard=1, frappe_app="studio", route="routed"
+		)
+		with mock_studio_app_files(app.name, router="{ setup(router) {} }") as studio_folder, patch(
+			"studio.build.get_studio_folder", return_value=studio_folder
+		), patch.object(frappe.db, "commit"):
+			with patch.dict(frappe.local.conf, {"developer_mode": 1}):
+				context = frappe._dict()
+				app.get_context(context)
+				self.assertEqual(
+					context.app_router_file, os.path.join(studio_folder, "routed_app", "router.ts")
+				)
+
+			with patch.dict(frappe.local.conf, {"developer_mode": 0}):
+				context = frappe._dict()
+				app.get_context(context)
+				self.assertIsNone(context.app_router_file)
 
 	def test_boot_comes_from_studio_app_boot_hook(self):
 		app = unsaved_studio_app("boot-app")
@@ -285,6 +304,27 @@ class TestStudioAppBuilder(FrappeTestCase):
 			builder._run_vite_build()
 		self.assertNotIn("--icons", run.call_args.args[0])
 
+	def test_passes_the_router_file_to_the_build(self):
+		builder = StudioAppBuilder("routed-app", is_standard=True, frappe_app="studio")
+		builder.components = {"Button"}
+		with mock_studio_app_files("routed-app", router="{}") as studio_folder, patch(
+			"studio.build.get_studio_folder", return_value=studio_folder
+		):
+			self.assertEqual(
+				get_app_router_file("studio", "routed-app"),
+				os.path.join(studio_folder, "routed_app", "router.ts"),
+			)
+			builder.app_router = get_app_router_file("studio", "routed-app")
+			with patch("studio.build.subprocess.run") as run, patch("studio.build.os.makedirs"):
+				run.return_value.returncode = 0
+				builder._run_vite_build()
+			self.assertIn(f" --app-router {builder.app_router}", run.call_args.args[0])
+
+		with mock_studio_app_files("routed-app") as studio_folder, patch(
+			"studio.build.get_studio_folder", return_value=studio_folder
+		):
+			self.assertIsNone(get_app_router_file("studio", "routed-app"))
+
 	def test_build_paths_for_standard_app(self):
 		app_name = "standard-app"
 		builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="studio")
@@ -362,13 +402,17 @@ def make_studio_page(studio_app, **kwargs):
 
 
 @contextmanager
-def mock_studio_app_files(app_name, pages=None, components=None):
+def mock_studio_app_files(app_name, pages=None, components=None, router=None):
 	tmpdir = tempfile.mkdtemp()
 	try:
 		studio_folder = os.path.join(tmpdir, "studio")
 		app_folder = os.path.join(studio_folder, frappe.scrub(app_name))
 		page_folder = os.path.join(app_folder, "studio_page")
 		os.makedirs(page_folder)
+
+		if router is not None:
+			with open(os.path.join(app_folder, "router.ts"), "w") as f:
+				f.write(router)
 
 		if pages:
 			# each page is exported into its own folder holding <stem>.json (+ optional <stem>.ts)

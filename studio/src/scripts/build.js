@@ -78,6 +78,7 @@ const { values: argv } = parseArgs({
 		base: { type: "string" },
 		"custom-components": { type: "string" },
 		"page-scripts": { type: "string" },
+		"app-router": { type: "string" },
 		icons: { type: "string" },
 	},
 	strict: false,
@@ -96,6 +97,7 @@ await generateAppBuild(
 	argv["custom-components"],
 	argv["page-scripts"],
 	argv.icons,
+	argv["app-router"],
 )
 
 export async function generateAppBuild(
@@ -106,6 +108,7 @@ export async function generateAppBuild(
 	customComponentsJson,
 	pageScriptsJson,
 	icons,
+	appRouter,
 ) {
 	if (!appName) return
 
@@ -114,7 +117,7 @@ export async function generateAppBuild(
 	// pageScripts: [{ page_name, file_path }]
 	const pageScripts = pageScriptsJson ? JSON.parse(pageScriptsJson) : []
 	const componentSources = findComponentSources(componentList, customComponents)
-	const rendererContent = getRendererContent(componentSources, pageScripts)
+	const rendererContent = getRendererContent(componentSources, pageScripts, appRouter)
 	const tempRendererPath = writeRendererFile(appName, rendererContent)
 	const iconList = icons ? icons.split(",") : []
 	await buildWithVite(appName, tempRendererPath, outDir, base, iconList)
@@ -166,7 +169,7 @@ function findComponentSources(appComponents, customComponents = {}) {
 	}
 }
 
-function getRendererContent(componentSources, pageScripts = []) {
+function getRendererContent(componentSources, pageScripts = [], appRouter = null) {
 	const {
 		frappeUIComponents,
 		frappeUIMolecules,
@@ -220,13 +223,18 @@ ${pageScripts
 })`
 		: ""
 
+	// A standard app's studio/<app>/router.ts is compiled in.
+	const routerImport = appRouter ? `import routerConfig from ${JSON.stringify(appRouter)}` : ""
+	const routerConfig = appRouter ? "routerConfig" : "{}"
+
 	const rendererContent = `import "@/index.css"
 import { createApp } from "vue"
 import { createPinia } from "pinia"
 import "@/setupFrappeUIResource"
-import app_router from "@/router/app_router"
+import { createAppRouter } from "@/router/app_router"
 import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
+${routerImport}
 
 ${frappeUIImports}
 ${frappeUIMoleculeImports}
@@ -240,7 +248,6 @@ ${pageScriptImport}
 const app = createApp(AppRenderer)
 const pinia = createPinia()
 
-app.use(app_router)
 app.use(pinia)
 app.use(resourcesPlugin)
 
@@ -248,7 +255,14 @@ ${componentRegistrations}
 window.__APP_COMPONENTS__ = app._context.components
 
 ${pageScriptSetup}
-app.mount("#app")`
+
+async function bootstrap() {
+	// installing the router runs the first navigation, so the app's guards must already be in place
+	app.use(await createAppRouter(${routerConfig}))
+	app.mount("#app")
+}
+
+bootstrap()`
 	return rendererContent
 }
 

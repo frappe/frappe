@@ -62,8 +62,9 @@ async function loadPage() {
 }
 
 function resolveCurrentPath(): string | undefined {
-	// every route is a page route whose path is the page's route pattern (see app_router)
-	return route.matched[0]?.path
+	// by page, not matched path: an alias record's path is the alias, and the server looks up the page's own route
+	const pageName = route.matched[0]?.meta?.pageName
+	return window.app_pages.find((page) => page.name === pageName)?.route
 }
 
 watch(() => route.path, handleRouteChange, { immediate: true })

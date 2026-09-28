@@ -3,7 +3,7 @@ import "@/index.css"
 import { createApp } from "vue"
 import { createPinia } from "pinia"
 import "@/setupFrappeUIResource"
-import app_router from "@/router/app_router"
+import { createAppRouter, loadRouterConfig } from "@/router/app_router"
 import AppRenderer from "@/AppRenderer.vue"
 import { resourcesPlugin } from "frappe-ui"
 import { registerGlobalComponents, registerCustomVueComponents } from "@/globals"
@@ -14,7 +14,6 @@ import { initSocket } from "@/socket"
 const app = createApp(AppRenderer)
 const pinia = createPinia()
 
-app.use(app_router)
 app.use(pinia)
 app.use(resourcesPlugin)
 app.provide("socket", initSocket())
@@ -34,14 +33,14 @@ if (window.is_preview && typeof window.is_preview === "string") {
 	window.is_preview = window.is_preview === "1" || window.is_preview === "True"
 }
 
-const frappeApp = (window as any).frappe_app
-if (frappeApp) {
-	Promise.all([
-		registerCustomVueComponents(frappeApp),
-		registerStudioPageScripts(frappeApp),
-	]).then(() => {
-		app.mount("#app")
-	})
-} else {
+async function bootstrap() {
+	const frappeApp = (window as any).frappe_app
+	if (frappeApp) {
+		await Promise.all([registerCustomVueComponents(frappeApp), registerStudioPageScripts(frappeApp)])
+	}
+	// installing the router runs the first navigation, so the app's guards must already be in place
+	app.use(await createAppRouter(await loadRouterConfig()))
 	app.mount("#app")
 }
+
+bootstrap()
