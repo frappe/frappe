@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-08-31 23:56+0000\n"
-"PO-Revision-Date: 2026-09-21 04:20\n"
+"PO-Revision-Date: 2026-09-28 04:21\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -466,7 +466,7 @@ msgid "<h3>Print Format Help</h3>\n"
 msgstr "<h3>Utskrift Format Hjälp</h3>\n"
 "<hr>\n"
 "<h4>Introduktion</h4>\n"
-"<p>Utskrift Format renderas på serversida med Jinja Templating Language. Alla formulär har tillgång till<code>doc</code> objekt som innehåller information om dokumentet som formateras. Du kan också komma åt vanliga verktyg via<code>frappe</code> modul.</p>\n"
+"<p>Utskrift Format renderas på serversida med Jinja Templating Language. Alla formulär har tillgång till<code>doc</code> objekt som innehåller information om dokument som formateras. Du kan också komma åt vanliga verktyg via<code>frappe</code> modul.</p>\n"
 "<p>För still tillhandahålls Bootstrap CSS och du kan använda hela utbudet av klasser..</p>\n"
 "<hr>\n"
 "<h4>Referenser</h4>\n"
@@ -573,7 +573,7 @@ msgid "<h4>Email Reply Example</h4>\n\n"
 "<p>Templates are compiled using the Jinja Templating Language. To learn more about Jinja, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">read this documentation.</a></p>\n"
 msgstr "<h4>E-post Svar Exempel</h4>\n\n"
 "<pre>Order Försenad\n\n"
-"Transaktion {{ name }} har överskridit förfallodatum. Vänligen vidta nödvändiga åtgärder.\n\n"
+"Transaktion {{ name }} förfallodatum överskriden. Vidta nödvändiga åtgärder.\n\n"
 "Detaljer\n\n"
 "- Kund: {{ customer }}\n"
 "- Belopp: {{ grand_total }}\n"
@@ -2820,7 +2820,7 @@ msgstr "Uppgift Klar"
 #. Label of a Table field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Assignment Days"
-msgstr "Automation Dagar"
+msgstr "Automatisering Dagar"
 
 #. Name of a DocType
 #. Label of a Link in the Tools Workspace
@@ -2831,17 +2831,17 @@ msgstr "Automation Dagar"
 #: frappe/automation/workspace/tools/tools.json
 #: frappe/core/doctype/doctype/doctype.json frappe/desk/doctype/todo/todo.json
 msgid "Assignment Rule"
-msgstr "Automation Regel"
+msgstr "Automatisering Regel"
 
 #. Name of a DocType
 #: frappe/automation/doctype/assignment_rule_day/assignment_rule_day.json
 msgid "Assignment Rule Day"
-msgstr "Automation Regel Dag"
+msgstr "Automatisering Regel Dag"
 
 #. Name of a DocType
 #: frappe/automation/doctype/assignment_rule_user/assignment_rule_user.json
 msgid "Assignment Rule User"
-msgstr "Automation Regel Användare"
+msgstr "Automatisering Regel Användare"
 
 #: frappe/automation/doctype/assignment_rule/assignment_rule.py:56
 msgid "Assignment Rule is not allowed on document type {0}"
@@ -2850,7 +2850,7 @@ msgstr "Tilldelning Regel är ej tillåten på dokument typ {0}"
 #. Label of a Section Break field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
 msgid "Assignment Rules"
-msgstr "Automation Regler"
+msgstr "Automatisering Regler"
 
 #: frappe/desk/doctype/notification_log/notification_log.py:238
 msgid "Assignment Update on {0}"
@@ -3502,7 +3502,7 @@ msgstr "Bakgrundsutskrift (erfordras för >25 dokument)"
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Background Workers"
-msgstr "Bakgrund Tjänster"
+msgstr "Bakgrund Processer"
 
 #: frappe/integrations/doctype/google_drive/google_drive.py:172
 msgid "Backing up Data."
@@ -8375,7 +8375,7 @@ msgstr "Dokument Upplåst"
 
 #: frappe/public/js/frappe/list/list_view.js:1111
 msgid "Document has been cancelled"
-msgstr "Dokumentet är annullerad"
+msgstr "Dokument är annullerad"
 
 #: frappe/public/js/frappe/list/list_view.js:1110
 msgid "Document has been submitted"
@@ -8383,7 +8383,7 @@ msgstr "Dokument är godkänd"
 
 #: frappe/public/js/frappe/list/list_view.js:1109
 msgid "Document is in draft state"
-msgstr "Dokumentet är i utkast tillstånd"
+msgstr "Dokument är i utkast tillstånd"
 
 #: frappe/public/js/frappe/form/workflow.js:47
 msgid "Document is only editable by users with role"
@@ -8391,7 +8391,7 @@ msgstr "Dokument kan endast redigeras av användare med roll"
 
 #: frappe/core/doctype/communication/communication.js:185
 msgid "Document not Relinked"
-msgstr "Dokumentet är inte länkad om"
+msgstr "Dokument är inte länkad om"
 
 #: frappe/model/rename_doc.py:216 frappe/public/js/frappe/form/toolbar.js:164
 msgid "Document renamed from {0} to {1}"
@@ -19054,7 +19054,7 @@ msgstr "Original"
 #: frappe/core/doctype/version/version_view.html:74
 #: frappe/core/doctype/version/version_view.html:139
 msgid "Original Value"
-msgstr "Ursprung Värde"
+msgstr "Gamla Värde"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #. Option for the 'Type' (Select) field in DocType 'Communication'
@@ -19616,7 +19616,7 @@ msgstr "Sökväg {0} är inte giltigt sökväg"
 #. Label of a Int field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Payload Count"
-msgstr "Payload Antal"
+msgstr "Datamängd Antal"
 
 #. Label of a Int field in DocType 'Prepared Report'
 #: frappe/core/doctype/prepared_report/prepared_report.json
@@ -21362,7 +21362,7 @@ msgstr "RQ Jobb"
 #. Name of a DocType
 #: frappe/core/doctype/rq_worker/rq_worker.json
 msgid "RQ Worker"
-msgstr "RQ Tjänst"
+msgstr "RQ Process"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -26621,7 +26621,7 @@ msgstr "System Status Rapport Tabeller"
 #. Name of a DocType
 #: frappe/desk/doctype/system_health_report_workers/system_health_report_workers.json
 msgid "System Health Report Workers"
-msgstr "System Status Rapport Tjänster"
+msgstr "System Status Rapport Processer"
 
 #. Label of a Card Break in the Build Workspace
 #: frappe/core/workspace/build/build.json
@@ -27228,7 +27228,7 @@ msgstr "Länk du försöker logga in med är ogiltig eller har upphört att gäl
 
 #: frappe/website/doctype/web_page/web_page.js:125
 msgid "The meta description is an HTML attribute that provides a brief summary of a web page. Search engines such as Google often display the meta description in search results, which can influence click-through rates."
-msgstr "Meta beskrivning är HTML egenskap som ger kort översikt av webbplats. Sök motorer som Google visar ofta meta beskrivning i sök resultat, vilket kan påverka klick värdena."
+msgstr "Meta beskrivning är HTML egenskap som ger kort översikt av webbplats. Söksystem som Google visar ofta meta beskrivning i sök resultat, vilket kan påverka klick värdena."
 
 #: frappe/website/doctype/web_page/web_page.js:132
 msgid "The meta image is unique image representing the content of the page. Images for this Card should be at least 280px in width, and at least 150px in height."
@@ -28363,7 +28363,7 @@ msgstr "Totalt"
 #. Label of a Int field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Total Background Workers"
-msgstr "Totalt Antal Bakgrund Tjänster"
+msgstr "Totalt Antal Bakgrund Processer"
 
 #. Label of a Int field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -29706,7 +29706,7 @@ msgstr "Användare kan endast ta bort bifogade filer om dokument antingen är i 
 #. 'Energy Point Rule'
 #: frappe/social/doctype/energy_point_rule/energy_point_rule.json
 msgid "Users assigned to the reference document will get points."
-msgstr "Användare som är tilldelad till referens dokumentet får poäng."
+msgstr "Användare som är tilldelad till referens dokument får poäng."
 
 #: frappe/public/js/frappe/ui/theme_switcher.js:70
 msgid "Uses system's theme to switch between light and dark mode"
@@ -31099,7 +31099,7 @@ msgstr "Du {0}"
 
 #: frappe/printing/page/print_format_builder/print_format_builder.js:743
 msgid "You can add dynamic properties from the document by using Jinja templating."
-msgstr "Du kan lägga till dynamiska egenskaper från dokumentet med Jinja mall."
+msgstr "Du kan lägga till dynamiska egenskaper från dokument med Jinja mall."
 
 #: frappe/printing/doctype/letter_head/letter_head.js:43
 msgid "You can also access wkhtmltopdf variables (valid only in PDF print):"
