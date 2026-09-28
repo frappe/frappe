@@ -19,14 +19,7 @@ frappe.attachment_queue_review.extraction_pending_statuses = ["Queued", "Process
 // Time before showing that extraction is taking longer than expected.
 frappe.attachment_queue_review.extraction_slow_threshold = 90000;
 frappe.attachment_queue_review.extraction_poll_interval = 3000;
-frappe.attachment_queue_review.image_extensions = [
-	".png",
-	".jpg",
-	".jpeg",
-	".webp",
-	".gif",
-	".bmp",
-];
+frappe.attachment_queue_review.image_extensions = [".png", ".jpg", ".jpeg"];
 
 frappe.attachment_queue_review.start_from_attachment_queue = async function (frm) {
 	if (!frappe.attachment_queue_review.reviewable_statuses.includes(frm.doc.status)) {

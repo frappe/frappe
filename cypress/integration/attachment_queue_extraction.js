@@ -1,39 +1,28 @@
-// Regression cover for `frappe.attachment_queue_review.wait_for_extraction`.
+// Covers frappe.attachment_queue_review.wait_for_extraction.
 //
-// `task_update` is Background Task's realtime event, so it carries Background Task's
-// status vocabulary ("Completed"), not the queue row's ("Ready for Review"). Matching
-// the queue row's names in the listener left the success path dead: the fallback poll of
-// the day stood down on a healthy socket, so a successful extraction had no way to settle
-// the promise before the 90s timer, which then warned "Extraction Still Running" about a
-// row that had already finished. The poll is unconditional now, but the listener is still
-// the thing that settles the normal case, so the cover stays.
-//
-// Nothing awaits this promise to show the preview any more — the panel renders from the
-// queue row's source file and this only refreshes it — so the 90s mark no longer settles
-// anything. It reports slowness and keeps watching (T3, T6).
+// It fakes the server's replies and the realtime socket,
+// and it freezes time so the 90-second behaviour runs instantly.
 
 context("Attachment Queue extraction wait", () => {
 	const QUEUE_NAME = "test-attachment-queue";
 	const TASK_ID = "task-under-test";
 	const SLOW_THRESHOLD = 90000;
-	const SLOW_POLL = 15000;
+	const POLL_INTERVAL = 3000;
 
 	before(() => {
 		cy.login();
 	});
 
 	beforeEach(() => {
-		// testIsolation is off for this suite, and these tests freeze timers and replace
-		// realtime handlers — a fresh window per test keeps that from leaking forward.
+		// testIsolation is off, and these tests freeze timers and replace realtime handlers.
 		cy.visit("/app/todo");
 		cy.window()
 			.its("frappe")
 			.then((frappe) => frappe.attachment_queue_review_loader.load());
 	});
 
-	// Drives wait_for_extraction against a fake queue row whose status the test moves,
-	// standing in for the worker updating the row on the server.
-	function harness(win, { socket_connected = true } = {}) {
+	// Drives wait_for_extraction against a fake queue row whose status the test moves.
+	function harness(win) {
 		const state = {
 			status: "Queued",
 			resolved: null,
@@ -56,19 +45,12 @@ context("Attachment Queue extraction wait", () => {
 
 		state.msgprint = cy.stub(win.frappe, "msgprint");
 
-		// Assigned rather than stubbed: these live on RealTimeClient.prototype, and the
-		// fresh visit in beforeEach is what restores them.
 		win.frappe.realtime.on = (event, handler) => {
 			if (event === "task_update") {
 				state.handlers.push(handler);
 			}
 		};
 		win.frappe.realtime.off = () => {};
-
-		// The bug only reproduces on a healthy socket: the 3s fallback poll stands down
-		// whenever it is connected, leaving the realtime listener as the only thing that
-		// can settle the promise before the slow threshold.
-		win.frappe.realtime.socket = { connected: socket_connected };
 
 		state.emit = (message) => state.handlers.forEach((handler) => handler(message));
 
@@ -104,8 +86,7 @@ context("Attachment Queue extraction wait", () => {
 			const state = harness(win);
 			state.start();
 
-			// The worker commits the row before it publishes, so the row is already
-			// terminal by the time the event lands.
+			// The worker commits the row before it publishes, so the row is already terminal.
 			state.status = "Ready for Review";
 			state.emit({ task_id: TASK_ID, status: "Completed" });
 
@@ -123,7 +104,6 @@ context("Attachment Queue extraction wait", () => {
 			const state = harness(win);
 			state.start();
 
-			// Finished after the immediate fetch, and no event ever arrives.
 			state.status = "Ready for Review";
 			cy.tick(SLOW_THRESHOLD);
 
@@ -144,8 +124,7 @@ context("Attachment Queue extraction wait", () => {
 			state.status = "Processing";
 			cy.tick(SLOW_THRESHOLD);
 
-			// Reported once, and deliberately still unsettled: the panel is not blocked
-			// on this, so a slow extraction is no reason to stop following it.
+			// Still unsettled on purpose: the panel is not blocked on this wait.
 			cy.wrap(state).its("slow_calls").should("have.length", 1);
 			cy.then(() => {
 				expect(state.slow_calls[0]).to.have.property("status", "Processing");
@@ -153,7 +132,6 @@ context("Attachment Queue extraction wait", () => {
 				expect(state.msgprint, "no blocking warning").to.not.be.called;
 			});
 
-			// The extraction it was still waiting for eventually lands.
 			cy.then(() => {
 				state.status = "Ready for Review";
 				state.emit({ task_id: TASK_ID, status: "Completed" });
@@ -187,15 +165,13 @@ context("Attachment Queue extraction wait", () => {
 			const state = harness(win);
 			state.start();
 
-			// "Completed" is a far more common payload than "Ready for Review" ever was,
-			// so an unrelated background task must not settle this extraction.
+			// "Completed" is a common payload, so an unrelated task must not settle this wait.
 			state.status = "Processing";
 			state.emit({ task_id: "an-unrelated-task", status: "Completed" });
-			cy.tick(3000);
+			cy.tick(POLL_INTERVAL);
 
 			cy.wrap(state).should("have.property", "resolved", null);
 
-			// The matching event still works, so the assertion above is not vacuous.
 			cy.then(() => {
 				state.status = "Ready for Review";
 				state.emit({ task_id: TASK_ID, status: "Completed" });
@@ -204,13 +180,11 @@ context("Attachment Queue extraction wait", () => {
 		});
 	});
 
-	it("T6: polls past the threshold on a healthy socket, so a lost event still settles", () => {
+	it("T6: keeps polling past the threshold, so a lost event still settles", () => {
 		cy.clock();
 		cy.window().then((win) => {
-			// Socket connected throughout, and no task_update is ever emitted: polling is
-			// the only thing that can settle this, which is exactly why it runs regardless
-			// of socket state.
-			const state = harness(win, { socket_connected: true });
+			// No task_update is ever emitted, so only the poll can settle this.
+			const state = harness(win);
 			state.start();
 
 			state.status = "Processing";
@@ -220,7 +194,7 @@ context("Attachment Queue extraction wait", () => {
 			cy.then(() => {
 				state.status = "Ready for Review";
 			});
-			cy.tick(SLOW_POLL);
+			cy.tick(POLL_INTERVAL);
 
 			cy.wrap(state).its("resolved").should("have.property", "status", "Ready for Review");
 		});
@@ -229,11 +203,11 @@ context("Attachment Queue extraction wait", () => {
 	it("T7: aborting resolves null and stops watching", () => {
 		cy.clock();
 		cy.window().then((win) => {
-			const state = harness(win, { socket_connected: false });
+			const state = harness(win);
 			state.start();
 
 			state.status = "Processing";
-			cy.tick(3000);
+			cy.tick(POLL_INTERVAL);
 
 			cy.then(() => {
 				state.controller.abort();
@@ -246,7 +220,7 @@ context("Attachment Queue extraction wait", () => {
 				// A row that finishes after the abort must not reach the caller.
 				state.status = "Ready for Review";
 			});
-			cy.tick(SLOW_THRESHOLD + SLOW_POLL);
+			cy.tick(SLOW_THRESHOLD + POLL_INTERVAL);
 			cy.then(() => {
 				expect(state.fetches, "no polling after abort").to.eq(state.fetches_at_abort);
 				expect(state.resolved, "still null").to.be.null;

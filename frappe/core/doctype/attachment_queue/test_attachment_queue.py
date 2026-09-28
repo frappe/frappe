@@ -92,8 +92,6 @@ class TestAttachmentQueue(IntegrationTestCase):
 			lambda: frappe.delete_doc("Background Task", task.name, force=True, ignore_permissions=True)
 		)
 		queue_doc.db_set({"status": status, "task": task.name})
-		# make_queue leaves skip_auto_extraction on the doc it returns; enqueue_extraction_if_needed
-		# checks that flag first, so the caller needs a doc without it.
 		return frappe.get_doc("Attachment Queue", queue_doc.name)
 
 	def make_desk_user(self):
@@ -111,15 +109,9 @@ class TestAttachmentQueue(IntegrationTestCase):
 		return user
 
 	def make_target_doctype(self, **desk_user_permissions):
-		"""An upload-first target DocType whose Desk User permissions the test controls.
-
-		"File" is unusable for this: it grants the "All" role blanket read/write/create,
-		so it can never express "user cannot create the target".
-		"""
+		"""An upload-first target DocType whose Desk User permissions the test controls."""
 		from frappe.core.doctype.doctype.test_doctype import new_doctype
 
-		# DocPerm defaults read/write/create/delete to 1, so an omitted right is a granted
-		# right. Start from nothing and let the caller opt in to exactly what it needs.
 		rights = {"read": 0, "write": 0, "create": 0, "delete": 0}
 		rights.update(desk_user_permissions)
 
@@ -195,13 +187,6 @@ class TestAttachmentQueue(IntegrationTestCase):
 			enqueue_document_extraction.assert_not_called()
 
 	def test_cancelled_extraction_does_not_strand_the_queue_row(self):
-		"""A cancelled task must leave the row recoverable, not mid-flight.
-
-		Cancellation runs no callback on either path: the job is dropped before the worker
-		sees it, or the work horse is killed mid-extraction. Nothing on this side gets to
-		write, so the row keeps its status - and Queued/Processing are exactly the two
-		statuses that then refuse to re-enqueue it.
-		"""
 		from frappe.core.doctype.attachment_queue.attachment_queue import REVIEWABLE_STATUSES
 
 		for status in ("Queued", "Processing"):
@@ -224,9 +209,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 				enqueue_document_extraction.assert_called_once()
 
 	def test_live_extraction_task_still_blocks_re_enqueue(self):
-		"""Only a cancelled task releases the guard.
-
-		The Queued/Processing check is what stops a second save from extracting the same
+		"""The Queued/Processing check is what stops a second save from extracting the same
 		file twice. Recovery must not fire on a task that is merely still in flight.
 		"""
 		for status, task_status in (("Queued", "Queued"), ("Processing", "Running")):
@@ -348,9 +331,6 @@ class TestAttachmentQueue(IntegrationTestCase):
 	def test_accepts_image_without_extracting_text(self):
 		from frappe.core.doctype.attachment_queue.attachment_queue import extract_attachment_queue_record
 
-		# The framework ships no image text extraction. An image is still a valid queue
-		# input: it reaches review with an empty extraction, for the reviewer to read off
-		# the preview pane and key in by hand.
 		queue_doc = self.make_queue(
 			file_name=f"document-{uuid4().hex}.png",
 			content=b"fake image content",
@@ -370,8 +350,6 @@ class TestAttachmentQueue(IntegrationTestCase):
 	def test_completes_when_pdf_has_no_embedded_text_layer(self):
 		from frappe.core.doctype.attachment_queue.attachment_queue import extract_attachment_queue_record
 
-		# A scanned PDF yields nothing from pdfplumber. That is an empty extraction, not a
-		# failure — the row still reaches review so the file can be keyed in from the preview.
 		queue_doc = self.make_queue()
 		pdfplumber = FakePDFPlumber([FakePDFPage(text="", layout_text="", words=[], tables=[])])
 
@@ -387,8 +365,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 		self.assertFalse(queue_doc.error_message)
 
 	def test_desk_user_cannot_create_queue_row_directly(self):
-		# Queue rows are framework-owned, like Email Queue: they are created for the user by
-		# create_upload_first_queue(), never authored from a form.
+		# Check the permissions.
 		user = self.make_desk_user()
 		target_doctype = self.make_target_doctype(read=1, create=1)
 
@@ -442,8 +419,6 @@ class TestAttachmentQueue(IntegrationTestCase):
 		self.assertEqual(queue_doc.status, "Queued")
 
 	def test_owner_cannot_drive_queue_without_create_on_target_doctype(self):
-		# A queue row outlives the permission that created it. Losing create on the target
-		# must stop the owner driving the row, while leaving their read intact.
 		user = self.make_desk_user()
 		target_doctype = self.make_target_doctype(read=1)
 		queue_doc = self.make_queue(document_type=target_doctype)
@@ -534,8 +509,6 @@ class TestAttachmentQueue(IntegrationTestCase):
 		).insert(ignore_permissions=True)
 		self.addCleanup(lambda: frappe.delete_doc("User", user.name, force=True, ignore_permissions=True))
 
-		# Read but not write: enough to see the file, not enough to re-parent it onto a
-		# queue row, which is what create_upload_first_queue does.
 		frappe.share.add(doctype="File", name=file_doc.name, user=user.name, read=1, write=0)
 
 		with self.set_user(user.name):
@@ -610,9 +583,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 		from frappe.core.doctype.attachment_queue.attachment_queue import link_to_document
 
 		# A row whose File has been deleted since it was created has nothing to hand over.
-		# Refusing the link would wedge the reviewer — their document is already saved and
-		# the file cannot be brought back — so the row moves on, and the one thing that must
-		# not happen is reporting an attachment that did not happen.
+		# It never claims an attachment that didn't happen.
 		queue_doc = self.make_queue()
 		target_file = self.make_file(file_name=f"target-{uuid4().hex}.pdf")
 		queue_doc.db_set(
@@ -644,9 +615,6 @@ class TestAttachmentQueue(IntegrationTestCase):
 	def test_link_to_document_rejects_mismatched_document_type(self):
 		from frappe.core.doctype.attachment_queue.attachment_queue import link_to_document
 
-		# The client can hold a queue name from an earlier, failed save. If it then saves an
-		# unrelated document, this is the check that has to stop it. "Administrator" exists,
-		# so the existence check cannot be what rejects the call.
 		queue_doc = self.make_queue()
 		queue_doc.db_set({"document_type": "File", "status": "Ready for Review"})
 
@@ -668,9 +636,8 @@ class TestAttachmentQueue(IntegrationTestCase):
 		link_to_document(queue_doc.name, "File", first_target.name)
 
 		# Re-linking moves the row on but not the source file, which is already attached to
-		# the first document — the row and the file would end up pointing at different docs.
-		# created_document is what refuses it, not the row's status: the status guard would
-		# also refuse a first link taken while extraction was still running.
+		# the first document - the row and the file would end up pointing at different docs.
+		# created_document is what refuses it, not the row's status.
 		with self.assertRaises(frappe.ValidationError):
 			link_to_document(queue_doc.name, "File", second_target.name)
 
@@ -678,14 +645,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 		self.assertEqual(queue_doc.created_document, first_target.name)
 
 	def test_link_to_document_rejects_a_claim_taken_before_the_winner_committed(self):
-		"""Two concurrent links must not both pass the created_document check.
-
-		Both requests snapshot the row before either writes, so both snapshots say
-		unclaimed. This is the loser: its snapshot is that stale read, while the winner's
-		claim is already in the database. Only a locked read of the live row refuses it -
-		checking the snapshot would overwrite created_document and leave the row pointing
-		at one document while the source file sat on the other.
-		"""
+		"""Two concurrent links must not both pass the created_document check."""
 		from frappe.core.doctype.attachment_queue.attachment_queue import link_to_document
 
 		queue_doc = self.make_queue()
@@ -724,10 +684,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 		from frappe.desk.form.load import get_attachments
 
 		# The production entry point, end to end: the upload-first banner creates the row,
-		# extraction is still Queued, and the reviewer saves before it finishes. The other
-		# tests build their queue row by hand; this one goes through the flow a reviewer
-		# actually drives, and asserts the thing they actually see — the source file in the
-		# target document's Attachments section, which is what get_attachments feeds.
+		# extraction is still Queued, and the reviewer saves before it finishes.
 		target_doctype = self.make_target_doctype(read=1, write=1, create=1)
 		file_doc = self.make_file()
 
@@ -765,7 +722,6 @@ class TestAttachmentQueue(IntegrationTestCase):
 		queue_doc.reload()
 		self.assertTrue(result["ok"])
 		self.assertEqual(queue_doc.created_document, target_file.name)
-		# Extraction owns the status until it ends. Claiming the row does not end it.
 		self.assertEqual(queue_doc.status, "Processing")
 
 		source_file = frappe.get_doc("File", frappe.db.get_value("File", {"file_url": queue_doc.source_file}))
@@ -799,7 +755,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 		# The worker fetches the row before the slow part and writes its terminal status
 		# after it, so a link taken in between is invisible to it. Writing "Ready for
 		# Review" unconditionally would put a row that has already produced its document
-		# back into the review modal — the symptom this whole change exists to fix.
+		# back into the review modal.
 		queue_doc = self.make_queue()
 		target_file = self.make_file(file_name=f"target-{uuid4().hex}.pdf")
 		queue_doc.db_set({"document_type": "File", "status": "Processing"})
@@ -874,12 +830,6 @@ class TestAttachmentQueue(IntegrationTestCase):
 	def test_target_document_can_be_deleted_while_queue_row_survives(self):
 		from frappe.core.doctype.attachment_queue.attachment_queue import link_to_document
 
-		# A queue row records work that was done; it is not a business reference to the
-		# document it produced. Registering the DocType in ignore_links_on_delete is what
-		# keeps created_document out of the link check, the way Email Queue and
-		# Integration Request keep theirs out.
-		# read=1 only because a DocPerm row with no rights at all fails DocType validation;
-		# this test runs as Administrator and does not exercise Desk User permissions.
 		target_doctype = self.make_target_doctype(read=1)
 		target_doc = frappe.new_doc(target_doctype).insert(ignore_permissions=True)
 		queue_doc = self.make_queue(document_type=target_doctype)
@@ -892,8 +842,6 @@ class TestAttachmentQueue(IntegrationTestCase):
 
 		self.assertFalse(frappe.db.exists(target_doctype, target_doc.name))
 
-		# The row stays as it was. document_type in particular is load-bearing: has_permission
-		# and get_permission_query_conditions both read it.
 		queue_doc.reload()
 		self.assertEqual(queue_doc.status, "Completed")
 		self.assertEqual(queue_doc.document_type, target_doctype)
@@ -903,7 +851,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 		from frappe.core.doctype.attachment_queue.attachment_queue import get_document_review_context
 
 		# debug_output is a traceback with local variable values. Being able to read the
-		# queue row is not enough to earn it — permlevel 1 is.
+		# queue row is not enough to earn it - permlevel 1 is.
 		user = self.make_desk_user()
 		target_doctype = self.make_target_doctype(read=1)
 		queue_doc = self.make_queue(document_type=target_doctype)
@@ -933,9 +881,6 @@ class TestAttachmentQueue(IntegrationTestCase):
 		queue_doc = self.make_queue()
 		file_name = frappe.db.get_value("File", {"file_url": queue_doc.source_file}, "name")
 
-		# Completed because that is the only status cleanup touches. The file is still on the
-		# row here, which is what the assertion needs: delete_doc has to take it along rather
-		# than orphan it on disk.
 		queue_doc.db_set("status", "Completed")
 
 		# Backdate past the retention window instead of using the default 30 days.
@@ -947,13 +892,7 @@ class TestAttachmentQueue(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("File", file_name))
 
 	def test_clear_old_logs_keeps_intake_that_is_not_finished(self):
-		"""Cleanup is a log purge, not an intake purge.
-
-		A row is disposable only once it has produced its document. Anything still
-		extracting, or still waiting for a reviewer, owns its source file - that upload is
-		the only copy of it, and delete_doc takes the File along with the row. Age alone
-		must not decide this.
-		"""
+		"""Old rows in any other status (Draft, Queued, Processing, Ready for Review, Failed) are kept."""
 		from frappe.core.doctype.attachment_queue.attachment_queue import (
 			REVIEWABLE_STATUSES,
 			AttachmentQueue,
@@ -981,7 +920,6 @@ class TestAttachmentQueue(IntegrationTestCase):
 			self.assertTrue(frappe.db.exists("Attachment Queue", name), f"{status} row was deleted")
 			self.assertTrue(frappe.db.exists("File", file_name), f"{status} source file was deleted")
 
-		# The row that produced its document is finished, and is still purged.
 		self.assertFalse(frappe.db.exists("Attachment Queue", finished_name))
 		self.assertFalse(frappe.db.exists("File", finished_file))
 
@@ -997,9 +935,6 @@ class TestAttachmentQueue(IntegrationTestCase):
 
 		self.assertEqual(get_ready_for_review_count("File"), 1)
 
-	# Owner scoping is not in get_permission_query_conditions() by design: the Desk User
-	# DocPerm is if_owner, so db_query already ANDs `owner = user` onto the hook's
-	# document_type filter. The two compose; the hook must not duplicate the owner clause.
 	def test_ready_for_review_count_respects_owner_permissions(self):
 		from frappe.core.doctype.attachment_queue.attachment_queue import get_ready_for_review_count
 
@@ -1017,17 +952,9 @@ class TestAttachmentQueue(IntegrationTestCase):
 			self.assertEqual(get_ready_for_review_count("File"), 1)
 
 	def test_queue_list_excludes_rows_for_unreadable_doctypes(self):
-		"""get_permission_query_conditions scopes the list to readable target DocTypes.
-
-		A queue row exists only to feed a document, so it is exactly as reachable as the
-		DocType it targets. Both rows here are owned by the same user, so the if_owner
-		DocPerm cannot account for the difference - the target DocType is the only thing
-		separating them.
-		"""
+		"""get_permission_query_conditions scopes the list to readable target DocTypes."""
 		user = self.make_desk_user()
 		readable = self.make_target_doctype(read=1)
-		# create without read: a valid DocPerm row (DocType validation rejects an empty one)
-		# that still leaves the DocType outside get_doctypes_with_read.
 		unreadable = self.make_target_doctype(create=1)
 
 		visible = self.make_queue(document_type=readable)

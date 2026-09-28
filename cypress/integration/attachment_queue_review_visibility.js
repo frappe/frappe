@@ -1,16 +1,9 @@
-// Regression cover for when the review panel is on screen and when it is not.
+// Covers when the review panel is shown on the form, and its size and layout.
 //
-// The rule this suite holds in place: the panel belongs to the review, and the review
-// ends with the link. It is up for as long as the reviewer is keying the document in,
-// and it is gone once the save has linked the queue row — a submittable document's
-// Submit page shows no preview at all, the source file is reached from the sidebar's
-// own attachment preview instead. Two things could quietly break that: a refresh
-// landing after the link and re-mounting from the Completed context, and the save's
-// reroute not being seen as a document switch.
+// The panel stays while the user fills in the document, and goes away once the save
+// links the queue row. After that, the source file is shown in the sidebar instead.
 //
-// Driven against a real ToDo form rather than a fake frm: the parts that matter here
-// are framework parts — FormFactory's page-change, frm.refresh(), the stylesheet — so
-// faking them would test the fakes.
+// Uses a real ToDo form, since the page change, refresh and CSS are what is being tested.
 
 context("Attachment Queue review panel visibility", () => {
 	const QUEUE_NAME = "test-attachment-queue";
@@ -31,7 +24,7 @@ context("Attachment Queue review panel visibility", () => {
 			.its("frappe")
 			.then((frappe) => frappe.attachment_queue_review_loader.load());
 
-		// Mount a review against the real form, the way route_to_new_document would.
+		// Start a review on this form.
 		cy.window().then((win) => {
 			const frm = win.cur_frm;
 			frm.doc.__attachment_queue_review_context = {
@@ -66,9 +59,9 @@ context("Attachment Queue review panel visibility", () => {
 		cy.window().then((win) => {
 			const frm = win.cur_frm;
 
-			// State as it stands for the page-change that follows rename_notify: the panel
-			// is still stamped with the local name the review was keyed in under. The
-			// review ended with that save, so the panel goes with it.
+			// After the first save, the route changes from the "new-todo-..." name to the
+			// saved name. The panel still has the old name, and the save ended the review,
+			// so the panel is removed.
 			frm.attachment_queue_review_panel_docname = "new-todo-abc1234567";
 
 			cy.stub(win.frappe, "get_route").returns(["Form", "ToDo", frm.docname]);
@@ -100,10 +93,8 @@ context("Attachment Queue review panel visibility", () => {
 		});
 	});
 
-	// The guard that makes "closed after save" deterministic. The context stays on the
-	// saved document — get_pending_link reads it to refuse a second link on submit — so
-	// without this a refresh landing after link_after_save would mount the panel again,
-	// on the Submit page, from a row that has already given up its file.
+	// The context stays on the saved document so a second link can be refused on submit.
+	// So mount() must skip a Completed review, or a later refresh would show the panel again.
 	it("T4: a refresh after the link does not bring the panel back", () => {
 		cy.window().then((win) => {
 			const frm = win.cur_frm;
@@ -125,10 +116,8 @@ context("Attachment Queue review panel visibility", () => {
 		});
 	});
 
-	// The pre-save experience, which the panel's lifetime changes must not cost. The
-	// shell is built once per source file, so a refresh mid-review leaves the iframe —
-	// and the PDF it has already downloaded, at the page the reviewer scrolled to —
-	// exactly where it was.
+	// The panel is built once per source file, so a refresh keeps the same iframe and the
+	// PDF stays on the page the user scrolled to.
 	it("T5: a refresh mid-review reuses the same iframe node and src", () => {
 		cy.window().then((win) => {
 			const frm = win.cur_frm;
@@ -152,9 +141,8 @@ context("Attachment Queue review panel visibility", () => {
 		cy.window().then((win) => {
 			const frm = win.cur_frm;
 
-			// layout.js stamps these on *every* .form-tabs-list on the page whenever a form
-			// tab is clicked. The panel borrows that class for its own strip, so the strip
-			// has to be immune to a `top` measured against the page's scrollport.
+			// layout.js adds this class to every .form-tabs-list when a form tab is clicked.
+			// The panel's tab strip uses the same class, so it must not become sticky.
 			const $tabs = frm.attachment_queue_review_panel.find(".form-tabs-list");
 			$tabs.addClass("form-tabs-sticky-up");
 
@@ -164,10 +152,8 @@ context("Attachment Queue review panel visibility", () => {
 		});
 	});
 
-	// The preview's height comes from the viewport, never from the row. A grid row is
-	// sized by its tallest item, so a panel that only capped its height inherited whatever
-	// the form column made the row: the same PDF was tall on a long tab and short on a
-	// collapsed one, and the viewer rescaled its page to match.
+	// The preview height should follow the viewport, not the form beside it. Otherwise the
+	// same PDF is tall next to a long form and short next to a short one.
 	function head_height(win) {
 		return parseFloat(
 			win
@@ -196,10 +182,8 @@ context("Attachment Queue review panel visibility", () => {
 
 			const before = panel_height();
 
-			// Collapsing a section is the cheapest way to change what the form column holds
-			// without leaving the document. Its own outerHeight is not the precondition to
-			// assert — the column stretches to the row now, so on a form shorter than the
-			// viewport that number is the row's either way; what changed is the content.
+			// Collapse a section to change the form's content. Check the section body, since
+			// the form column always fills the row.
 			const $head = frm.$wrapper.find(".form-layout .section-head.collapsible").first();
 			const $body = $head.next(".section-body");
 			const body_before = $body.get(0)?.getBoundingClientRect().height;
@@ -212,7 +196,6 @@ context("Attachment Queue review panel visibility", () => {
 			).to.not.equal(body_before);
 			expect(panel_height(), "preview unmoved").to.be.closeTo(before, 2);
 
-			// And the panel's own tab strip, which changes what the panel holds.
 			frm.attachment_queue_review_panel.find(".form-tabs-list .nav-link").each((_, el) => {
 				win.$(el).trigger("click");
 			});
@@ -229,8 +212,6 @@ context("Attachment Queue review panel visibility", () => {
 			const $std = layout(win);
 			const $form = $std.children(".form-layout");
 
-			// The preview sets the row now, so the form column has to take the rest of it —
-			// otherwise a short form ends in page background next to a full-height preview.
 			expect($form.outerHeight(), "form column fills the row").to.be.closeTo(
 				$std.outerHeight(),
 				2
@@ -238,11 +219,8 @@ context("Attachment Queue review panel visibility", () => {
 		});
 	});
 
-	// The preview track is an absolute length now. It used to be a percentage of
-	// .std-form-layout, and that box is not a fixed thing: page.scss sizes
-	// .layout-main-section-wrapper at 80% in general but calc(100% - the form sidebar)
-	// on a form route, so the same stored width rendered differently depending on where
-	// the reviewer had just been.
+	// The preview width is a fixed length, not a percentage of the form layout. The
+	// layout's width changes between routes, so a percentage made the preview jump.
 	it("T8: the preview column keeps its width when the container narrows", () => {
 		cy.window().then((win) => {
 			const frm = win.cur_frm;
@@ -252,7 +230,7 @@ context("Attachment Queue review panel visibility", () => {
 			const before = panel_width();
 			expect(before, "a real column to begin with").to.be.greaterThan(0);
 
-			// What a route or sidebar change does to the container underneath the grid.
+			// Narrow the container, like a route or sidebar change does.
 			const $wrapper = frm.page.wrapper.find(".layout-main-section-wrapper");
 			const layout_before = layout(win).get(0).getBoundingClientRect().width;
 			$wrapper.css("width", "70%");
@@ -283,7 +261,6 @@ context("Attachment Queue review panel visibility", () => {
 			review.set_active_tab(frm, "preview");
 			expect(panel_width(), "tabs leave it alone").to.be.closeTo(before, 1);
 
-			// The form column's own content changing is the other half of the complaint.
 			frm.$wrapper.find(".form-layout .section-head.collapsible").first().trigger("click");
 			expect(panel_width(), "so does the form beside it").to.be.closeTo(before, 1);
 		});

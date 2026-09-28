@@ -1,23 +1,12 @@
-// Regression cover for where a review *session* ends, on both halves of the feature.
+// Covers when an Attachment Queue review ends, on the form and in the modal.
 //
-// The review ends with the save that links its queue row: the row reaches Completed and
-// the panel comes down with it. What used to outlive that save was the *intent to link*.
-// The loader's before_save re-armed a pending link from the Completed context on the
-// submit that followed, and the one-shot guard it leant on (frm.doc.__attachment_queue_linked)
-// had just been stripped by frappe.model.sync, so the submit re-called link_to_document and
-// the server answered "is Completed and cannot be linked again". The modal had the mirror
-// of the same fault: it kept its selection and its preview iframe between visits, so
-// reopening it offered a finished review as though it were still actionable, and starting
-// that produced a second document with no attachment — the source file having already moved
-// to the first one.
+// On the form, the review ends when the save links the queue row. The panel closes, and
+// the submit that follows must not link again, which the server would reject.
+// In the modal, the review ends when the dialog closes. Reopening it must not show the old
+// selection or preview.
 //
-// So the two ends are: the link session ends when the row reaches Completed, and the modal's
-// session ends when the dialog hides.
-//
-// Driven against a real ToDo form and a real Dialog: the parts that matter are framework
-// parts — the form's carriers across a save, the dialog's DOM outliving its visit — so
-// faking them would test the fakes. EmbeddedList is the one thing stood in for; it has no
-// part in what is under test here.
+// Uses a real ToDo form and a real Dialog, since those are what is being tested. Only
+// EmbeddedList is stubbed.
 
 context("Attachment Queue review lifecycle", () => {
 	const QUEUE_NAME = "test-lifecycle-queue";
@@ -32,8 +21,7 @@ context("Attachment Queue review lifecycle", () => {
 	});
 
 	beforeEach(() => {
-		// A real, saved document: the link session's whole question is what survives a
-		// save, so a form that is still __islocal cannot exercise it.
+		// A saved document, since these tests check what survives a save.
 		cy.insert_doc(
 			"ToDo",
 			{ description: "attachment queue review lifecycle cover" },
@@ -46,8 +34,7 @@ context("Attachment Queue review lifecycle", () => {
 			.its("frappe")
 			.then((frappe) => frappe.attachment_queue_review_loader.load());
 
-		// Mounted through set_context, the same single writer hydrate_context uses in
-		// production, so the context sits where the loader and the guards look for it.
+		// Set the context the same way hydrate_context does.
 		cy.window().then((win) => {
 			const frm = win.cur_frm;
 			win.frappe.attachment_queue_review.set_context(frm, {
@@ -61,25 +48,22 @@ context("Attachment Queue review lifecycle", () => {
 		});
 	});
 
-	// The one line the loader's before_save runs. Kept as a helper because every test here
-	// turns on what it computes.
+	// Same as the loader's before_save hook.
 	function before_save(win, frm) {
 		frm.__attachment_queue_pending_link =
 			win.frappe.attachment_queue_review.get_pending_link(frm) || null;
 	}
 
-	// What frappe.model.sync leaves behind on a save of an already-saved document:
-	// update_in_locals' clear_keys deletes every key the server response does not carry,
-	// which is every client-only __ property the review wrote. This is the state the
-	// submit's after_save actually runs in.
+	// Saving a saved document removes the client-only __ keys from frm.doc
+	// (frappe.model.sync). This does the same.
 	function sync_strips_doc_flags(frm) {
 		delete frm.doc.__attachment_queue_review_context;
 		delete frm.doc.__attachment_queue_linked;
 		delete frm.doc.__attachment_queue_name;
 	}
 
-	// Answers only link_to_document, so the docinfo reload that follows a successful link
-	// neither counts as a link nor gets a reply it cannot read.
+	// Records only link_to_document calls. Other calls, like the docinfo reload after a
+	// link, still get a reply but are not counted.
 	function stub_link_call(win) {
 		const calls = [];
 		cy.stub(win.frappe, "call").callsFake((opts) => {
@@ -95,8 +79,8 @@ context("Attachment Queue review lifecycle", () => {
 	function build_modal(win) {
 		const modal = new win.frappe.ui.AttachmentQueueModal({ doctype: "ToDo" });
 		modal._build_screens();
-		// EmbeddedList is not under test here — the selection and the preview are — so the
-		// list is stood in for, which also shows that the reopen path re-reads it.
+		// EmbeddedList is not being tested, so stub it. The stub also lets tests check
+		// that the list is refreshed.
 		modal.list = { refresh: cy.stub() };
 		return modal;
 	}
@@ -116,13 +100,11 @@ context("Attachment Queue review lifecycle", () => {
 			expect(calls[0].args.attachment_queue).to.equal(QUEUE_NAME);
 			expect(review.get_context(frm).status, "row is Completed").to.equal("Completed");
 
-			// Submit. before_save runs first, while the Completed context is still on
-			// frm.doc — the guard has to read it there, because the save that follows is
-			// what strips it, and only then do after_save and on_submit reach
-			// link_after_save with __attachment_queue_linked already gone.
+			// Submit. before_save still sees the Completed context, so it arms nothing.
 			before_save(win, frm);
 			expect(frm.__attachment_queue_pending_link, "no second link armed").to.be.null;
 
+			// The save strips frm.doc. Then after_save and on_submit both run the link.
 			sync_strips_doc_flags(frm);
 			review.link_after_save(frm);
 			review.link_after_save(frm);
@@ -144,9 +126,8 @@ context("Attachment Queue review lifecycle", () => {
 
 			expect(frm.attachment_queue_review_panel, "torn down by the link").to.be.null;
 
-			// And the refresh that follows the save does not put it back. The context is
-			// still on frm.doc — the guard in T1 reads it there — so this is mount()
-			// refusing a finished review rather than simply finding nothing.
+			// The refresh after the save must not bring it back. The context is still
+			// there, so this checks that mount() skips a Completed review.
 			expect(review.get_context(frm).status, "context still readable").to.equal("Completed");
 			review.mount(frm);
 			expect(frm.attachment_queue_review_panel, "and stays down").to.be.null;
@@ -158,9 +139,8 @@ context("Attachment Queue review lifecycle", () => {
 			const review = win.frappe.attachment_queue_review;
 			const frm = win.cur_frm;
 
-			// The save that claims a still-extracting row. The server accepts it — the
-			// source file moves onto the document there and then — but answers with the
-			// row's own transient status, because extraction is what ends the review.
+			// The server accepts a link while extraction is running, and replies with the
+			// row's current status.
 			review.set_context(frm, {
 				queue_name: QUEUE_NAME,
 				document_type: "ToDo",
@@ -180,18 +160,16 @@ context("Attachment Queue review lifecycle", () => {
 			before_save(win, frm);
 			review.link_after_save(frm);
 
-			// The extracted text has nowhere else to appear, so the panel outlives the save.
+			// The panel stays open so the extracted text can still show up.
 			expect(frm.attachment_queue_review_panel, "panel survives the link").to.not.be.null;
 			expect(review.get_context(frm).status, "status is not faked").to.equal("Processing");
 			review.mount(frm);
 			expect(frm.attachment_queue_review_panel, "and mount() keeps it").to.not.be.null;
 
-			// The submit that follows must still not arm a second link: the row has already
-			// produced its document, whatever its status says.
+			// The row already has its document, so the submit must not link again.
 			before_save(win, frm);
 			expect(frm.__attachment_queue_pending_link, "no second link armed").to.be.null;
 
-			// Extraction ending is what ends the review.
 			review.set_context(frm, { ...review.get_context(frm), status: "Completed" });
 			review.mount(frm);
 			expect(frm.attachment_queue_review_panel, "panel comes down with extraction").to.be
@@ -230,7 +208,7 @@ context("Attachment Queue review lifecycle", () => {
 				const review = win.frappe.attachment_queue_review;
 				const modal = build_modal(win);
 
-				// The list row still says "Ready for Review"; the server says otherwise.
+				// The list still shows "Ready for Review", but the server says Completed.
 				cy.stub(review, "fetch_context").resolves({
 					queue_name: QUEUE_NAME,
 					document_type: "ToDo",
@@ -309,7 +287,6 @@ context("Attachment Queue review lifecycle", () => {
 			});
 		});
 
-		// A different file in a rebuilt panel: nothing of the previous review is left.
 		cy.get(".attachment-queue-review-panel iframe").should("have.attr", "src", NEXT_SOURCE);
 
 		cy.window().then((win) => {
@@ -330,8 +307,8 @@ context("Attachment Queue review lifecycle", () => {
 			const review = win.frappe.attachment_queue_review;
 			const frm = win.cur_frm;
 
-			// The state a reopened document is in: no session in memory, and a finished
-			// queue row still reachable through pending_context or ?attachment_queue=.
+			// Like reopening the saved document: no context on the form, but
+			// pending_context still holds the Completed row.
 			review.teardown(frm);
 			delete frm.doc.__attachment_queue_review_context;
 			review.pending_context = {
@@ -356,10 +333,8 @@ context("Attachment Queue review lifecycle", () => {
 			const review = win.frappe.attachment_queue_review;
 			const frm = win.cur_frm;
 
-			// The upload-first flow starts a review on a row that is still Queued, and the
-			// panel's copy of the status lags the worker. A stale "Queued" must not end the
-			// link session: the server accepts that link and moves the source file onto the
-			// document there and then.
+			// The panel's status can be behind the worker. A row that is still Queued can
+			// be linked, since the server accepts it.
 			review.set_context(frm, {
 				queue_name: QUEUE_NAME,
 				document_type: "ToDo",
@@ -373,9 +348,8 @@ context("Attachment Queue review lifecycle", () => {
 				document_type: "ToDo",
 			});
 
-			// What does end the link session is the row having produced its document —
-			// which, for a link taken mid-extraction, arrives while the status is still
-			// transient. Without this the submit would arm a second link against it.
+			// Once the row has a created_document it must not be linked again, even while
+			// extraction is still running.
 			review.set_context(frm, {
 				queue_name: QUEUE_NAME,
 				document_type: "ToDo",
@@ -387,30 +361,25 @@ context("Attachment Queue review lifecycle", () => {
 
 			expect(review.get_pending_link(frm), "already produced a document").to.be.null;
 
-			// is_review_completed stays status-only: it governs the panel, not the link,
-			// and the panel has to outlive a mid-extraction save so the extracted text
-			// still has somewhere to land.
+			// is_review_completed checks the status only. It decides when the panel closes,
+			// and the panel stays open during extraction.
 			expect(review.is_review_completed({ status: "Processing" })).to.be.false;
 			expect(review.is_review_completed({ status: "Ready for Review" })).to.be.false;
 			expect(review.is_review_completed({ status: "Completed" })).to.be.true;
 		});
 	});
 
-	// The regression that lost the link outright. frm.doc is a cache of the review, not
-	// its carrier: update_in_locals ends on clear_keys, which drops every client-only __
-	// property the server response does not carry, and an ERPNext form makes several
-	// doc-returning round trips while the reviewer keys the document in. The save that
-	// follows must still link.
+	// Every sync removes the __ keys from frm.doc, and ERPNext forms sync several times
+	// while the user fills them in. The save must still link, using the URL.
 	it("T9: a sync that strips frm.doc still links on save", () => {
 		cy.window().then((win) => {
 			const review = win.frappe.attachment_queue_review;
 			const frm = win.cur_frm;
 			const calls = stub_link_call(win);
 
-			// The URL the review has been carrying since it started.
+			// The review keeps the queue name in the URL.
 			review.set_query_param("attachment_queue", QUEUE_NAME);
 
-			// What clear_keys leaves behind, without the rest of a save.
 			delete frm.doc.__attachment_queue_review_context;
 			expect(review.get_context(frm), "context gone, as after a sync").to.be.null;
 
@@ -426,7 +395,6 @@ context("Attachment Queue review lifecycle", () => {
 			expect(calls[0].args.attachment_queue).to.equal(QUEUE_NAME);
 			expect(calls[0].args.document_name).to.equal(frm.doc.name);
 
-			// The link is what ends the review, and the URL is where that is recorded.
 			expect(
 				win.frappe.utils.get_query_params().attachment_queue,
 				"review closed on the URL too"
@@ -435,9 +403,8 @@ context("Attachment Queue review lifecycle", () => {
 		});
 	});
 
-	// The other half of the same carrier: once the link has cleared the URL, a fetch that
-	// was already in flight must not put the review back. It would re-stamp the param and
-	// let the submit's before_save arm a second link against a Completed row.
+	// After a link clears the URL, a fetch that started before it must not bring the
+	// review back. Otherwise the submit would link again.
 	it("T10: a stale hydrate response cannot revive a finished review", () => {
 		cy.window().then((win) => {
 			const review = win.frappe.attachment_queue_review;
@@ -447,8 +414,8 @@ context("Attachment Queue review lifecycle", () => {
 			delete frm.doc.__attachment_queue_review_context;
 			review.pending_context = null;
 
-			// The race: hydrate reads the param, starts its fetch, and the link finishes
-			// while that fetch is out. The reply describes the row as it was.
+			// The link finishes while hydrate is waiting for its fetch, so the reply is
+			// out of date.
 			cy.stub(review, "fetch_context").callsFake(() => {
 				review.clear_query_param("attachment_queue");
 				return Promise.resolve({
