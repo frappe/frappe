@@ -160,6 +160,19 @@ registerCommand({
 // View
 
 registerCommand({
+	name: "toggle-panels",
+	// both panels follow the right one, so its state names the action
+	title: () => (store.studioLayout.showRightPanel ? "Hide Panels" : "Show Panels"),
+	icon: "lucide-panels-left-bottom",
+	group: "View",
+	keys: { combo: "Mod+Backslash", description: "Toggle Panels" },
+	action: () => {
+		store.studioLayout.showRightPanel = !store.studioLayout.showRightPanel
+		store.studioLayout.showLeftPanel = store.studioLayout.showRightPanel
+	},
+})
+
+registerCommand({
 	name: "toggle-left-panel",
 	title: () => (store.studioLayout.showLeftPanel ? "Hide Left Panel" : "Show Left Panel"),
 	icon: () => (store.studioLayout.showLeftPanel ? "lucide-panel-left-close" : "lucide-panel-left-open"),
@@ -174,19 +187,6 @@ registerCommand({
 	icon: () => (store.studioLayout.showRightPanel ? "lucide-panel-right-close" : "lucide-panel-right-open"),
 	group: "View",
 	action: () => (store.studioLayout.showRightPanel = !store.studioLayout.showRightPanel),
-})
-
-registerCommand({
-	name: "toggle-panels",
-	// both panels follow the right one, so its state names the action
-	title: () => (store.studioLayout.showRightPanel ? "Hide Both Panels" : "Show Both Panels"),
-	icon: "lucide-panels-left-bottom",
-	group: "View",
-	keys: { combo: "Mod+Backslash", description: "Toggle Panels" },
-	action: () => {
-		store.studioLayout.showRightPanel = !store.studioLayout.showRightPanel
-		store.studioLayout.showLeftPanel = store.studioLayout.showRightPanel
-	},
 })
 
 // General
