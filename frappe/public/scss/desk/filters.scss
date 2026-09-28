@@ -1,35 +1,43 @@
-.filter-icon.active {
-	--icon-stroke: var(--primary);
-}
-
 .filter-popover {
-	min-width: 500px;
-	min-height: 50px;
-	@include get_textstyle("base", "regular");
-	z-index: 1019;
-	border: 1px solid var(--border-color);
+	// sized by its rows, not a fixed width
+	width: max-content;
+	min-width: min(400px, calc(100vw - 16px));
+	max-width: calc(100vw - 16px);
+	// a classic Link field's awesomplete list hangs out of the panel
+	overflow: visible;
 }
 
 .filter-area {
-	.filter-box {
-		padding: var(--padding-xs) var(--padding-md) var(--padding-xs) 0;
+	// one grid for every row so the columns line up
+	.filter-edit-area {
+		display: grid;
+		grid-template-columns: auto 140px auto 170px auto;
+		column-gap: calc(var(--spacing) * 2);
+		row-gap: calc(var(--spacing) * 2);
+		align-items: center;
+	}
 
-		.form-group {
-			margin-bottom: 0;
+	.empty-filters {
+		grid-column: 1 / -1;
+		padding: var(--padding-xs) var(--padding-sm);
+	}
+
+	.filter-box {
+		display: grid;
+		grid-template-columns: subgrid;
+		grid-column: 1 / -1;
+		align-items: center;
+
+		&.is-empty {
+			.filter-condition,
+			.filter-field-area {
+				visibility: hidden;
+			}
 		}
 
-		.remove-filter {
-			cursor: pointer;
-			line-height: 2;
-
-			&:focus {
-				outline: none;
-			}
-
-			&:focus-visible .icon {
-				box-shadow: var(--focus-default);
-				border-radius: 4px;
-			}
+		.filter-prefix {
+			padding-inline-start: var(--padding-xs);
+			text-align: end;
 		}
 
 		.filter-field {
@@ -37,86 +45,77 @@
 				position: relative;
 				margin-bottom: 0;
 			}
+
+			.form-control {
+				height: var(--input-height);
+			}
+		}
+
+		.condition {
+			font-weight: var(--font-weight-regular);
+
+			.es-button__label {
+				flex: 1;
+				min-width: 0;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				text-align: start;
+			}
 		}
 
 		.awesomplete {
 			& > ul,
 			& > [role="listbox"] {
 				min-width: 100%;
-				width: auto;
-
-				& > li,
-				& > [role="option"] {
-					max-width: 300px;
-				}
+				width: max-content;
+				max-width: 300px;
 			}
 		}
-	}
-
-	.empty-filters {
-		padding: 3px;
 	}
 
 	.filter-action-buttons {
-		display: flex;
-		justify-content: space-between;
-		margin-bottom: 0.5rem;
-
-		.add-filter {
-			cursor: pointer;
-		}
-
-		.btn {
-			box-shadow: none;
-
-			&:focus-visible {
-				box-shadow: var(--focus-default) !important;
-			}
-		}
-	}
-
-	.divider {
-		margin: 15px 0;
-		background-color: var(--border-color);
+		margin-top: calc(var(--spacing) * 3);
 	}
 }
 
-// for sm and above
-@include media-breakpoint-up(sm) {
-	.filter-box .row > div[class*="col-sm-"] {
-		padding-right: 0px;
-	}
-	.filter-field {
-		.frappe-control {
-			position: relative;
-		}
-	}
-	.modal .remove-filter {
-		display: block !important;
-	}
-}
-
-@include media-breakpoint-down(sm) {
-	.filter-popover {
-		min-width: 100%;
-		margin-left: -5px;
-	}
-
+@include media-breakpoint-down(xs) {
 	.filter-area {
+		.filter-edit-area {
+			grid-template-columns: 1fr auto;
+		}
+
+		// stacked: prefix and remove on one line, the three controls below
 		.filter-box {
-			.form-group {
-				margin-bottom: 5px;
+			grid-template-columns: 1fr auto;
+			row-gap: calc(var(--spacing) * 1.5);
+
+			.filter-prefix {
+				min-width: 0;
+				padding: 0;
+				text-align: start;
 			}
 
-			.remove-filter {
-				@include get_textstyle("sm", "regular");
-				color: var(--primary);
+			.filter-remove {
+				grid-column: 2;
+				grid-row: 1;
 			}
 
-			.filter-index {
-				font-size: var(--text-xs);
-				text-transform: uppercase;
+			.fieldname-select-area,
+			.filter-condition,
+			.filter-field-area {
+				grid-column: 1 / -1;
 			}
+
+			&.is-empty {
+				.filter-condition,
+				.filter-field-area {
+					display: none;
+				}
+			}
+		}
+
+		.empty-filters {
+			padding-inline: 0;
 		}
 	}
 }

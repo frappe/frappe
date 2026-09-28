@@ -767,6 +767,8 @@ class FilterArea {
 	}
 
 	refresh_list_view() {
+		// the filter button counts the toolbar boxes too
+		this.filter_list.update_filter_button();
 		if (this.trigger_refresh) {
 			this.list_view.start = 0;
 			this.list_view.refresh();
@@ -1138,8 +1140,6 @@ class FilterArea {
 			this.trigger_refresh = false;
 		}
 
-		this.filter_list.clear_filters();
-
 		const promises = [];
 		const fields_dict = this.list_view.page.fields_dict;
 		for (let key in fields_dict) {
@@ -1147,6 +1147,8 @@ class FilterArea {
 			promises.push(() => field.set_value(""));
 		}
 		return frappe.run_serially(promises).then(() => {
+			// last, so the filter count drops once, after the toolbar boxes are empty
+			this.filter_list.clear_filters();
 			this.trigger_refresh = true;
 			if (promises.length === 0) {
 				// refresh if there are no standard fields
@@ -1404,26 +1406,23 @@ class FilterArea {
 	}
 
 	make_filter_list() {
-		$(`<div class="filter-selector">
-			<div class="btn-group">
-				<button class="btn btn-default btn-sm filter-button">
-					<span class="filter-icon button-icon">
-						${frappe.utils.icon("funnel")}
-					</span>
-					<span class="button-label hidden-xs">
-					${__("Filter")}
-					<span>
-				</button>
-				<button class="btn btn-default btn-sm filter-x-button" title="${__("Clear all filters")}">
-					<span class="filter-icon button-icon">
-						${frappe.utils.icon("x")}
-					</span>
-				</button>
-			</div>
-		</div>`).appendTo(this.$filter_list_wrapper);
+		const $selector = $(
+			`<div class="filter-selector"><div class="flex items-center"></div></div>`
+		).appendTo(this.$filter_list_wrapper);
 
-		this.filter_button = this.$filter_list_wrapper.find(".filter-button");
-		this.filter_x_button = this.$filter_list_wrapper.find(".filter-x-button");
+		this.filter_button = frappe.ui.button({
+			label: __("Filter"),
+			icon: "list-filter",
+			css_class: "filter-button",
+		});
+		this.filter_button.find(".es-button__label").addClass("button-label max-sm:hidden");
+		this.filter_button.append('<span class="filter-label hidden"></span>');
+		this.filter_x_button = frappe.ui.button({
+			icon: "x",
+			tooltip: __("Clear all filters"),
+			css_class: "filter-x-button rounded-ss-none rounded-es-none hidden",
+		});
+		$selector.children().append(this.filter_button, this.filter_x_button);
 		this.filter_list = new frappe.ui.FilterGroup({
 			base_list: this.list_view,
 			parent: this.$filter_list_wrapper,

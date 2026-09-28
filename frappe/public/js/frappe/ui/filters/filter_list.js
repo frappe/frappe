@@ -1,3 +1,5 @@
+// A list of filter rows, in a popover on `filter_button` or in place in
+// `parent` (dialogs, form fields). A row applies as soon as it is complete.
 frappe.ui.FilterGroup = class {
 	constructor(opts) {
 		$.extend(this, opts);
@@ -13,9 +15,25 @@ frappe.ui.FilterGroup = class {
 	}
 
 	make_popover() {
-		this.init_filter_popover();
+		// the rows outlive the panel: the area is kept and re-mounted on every open
+		this.wrapper = this.get_filter_area_template();
+		this.set_filter_events();
+		this.popover = new frappe.ui.Popover({
+			trigger: this.filter_button,
+			content: () => this.get_popover_content(),
+			side: "bottom",
+			align: "end",
+			css_class: "filter-popover",
+			on_open: (popover) => this.on_popover_open(popover),
+			on_close: () => {
+				this.drop_standard_rows();
+				this.update_filters();
+				this.apply_changes();
+			},
+		});
 		this.set_clear_all_filters_event();
-		this.set_popover_events();
+
+		frappe.router.on("change", () => this.hide_popover());
 	}
 
 	set_clear_all_filters_event() {
@@ -35,144 +53,162 @@ frappe.ui.FilterGroup = class {
 		});
 	}
 
-	hide_popover() {
-		this.filter_button?.popover("hide");
+	// rows go in before the panel is measured, so it opens at its final size
+	get_popover_content() {
+		this.sync_standard_rows();
+		if (!this.filters.length) this.add_new_filter({ open_picker: false });
+		return this.wrapper[0];
 	}
 
-	init_filter_popover() {
-		this.filter_button.popover({
-			content: this.get_filter_area_template(),
-			template: `
-				<div class="filter-popover popover">
-					<div class="arrow"></div>
-					<div class="popover-body popover-content">
-					</div>
-				</div>
-			`,
-			html: true,
-			trigger: "manual",
-			container: "body",
-			placement: "bottom",
-			offset: "-100px, 0",
-		});
+	// the list's toolbar filters show as rows too, while the toolbar box stays their home
+	sync_standard_rows() {
+		const filter_area = this.base_list?.filter_area;
+		if (!filter_area) return;
+		this.drop_standard_rows();
+		const own = this.filters.slice();
+		const rows = filter_area
+			.get_standard_filters()
+			.map(([doctype, fieldname, condition, value]) => {
+				if (condition === "like" && typeof value === "string") {
+					value = value.replace(/^%+|%+$/g, "");
+				}
+				const filter = this._push_new_filter(doctype, fieldname, condition, value);
+				filter.standard_field = fieldname;
+				own.length && filter.filter_edit_area.insertBefore(own[0].filter_edit_area);
+				return filter;
+			});
+		this.filters = [...rows, ...own];
+		rows.length && this.toggle_empty_filters(false);
+		// a Type set in the toolbar turns a Dynamic Link row into a record picker
+		this.refresh_dynamic_link_filters();
+		this.refresh_prefixes();
+	}
+
+	drop_standard_rows() {
+		this.filters.filter((f) => f.standard_field).forEach((f) => f.remove());
+		this.filters = this.filters.filter((f) => !f.standard_field);
+	}
+
+	// write a toolbar row back to its box; once the box can't hold it, it becomes a panel filter
+	sync_to_toolbar(filter) {
+		const box = this.base_list.page.fields_dict[filter.standard_field];
+		const condition = filter.get_condition();
+		const value = this.is_complete(filter) ? filter.get_selected_value() : null;
+		const box_condition = box.df.match_type || box.df.condition || "=";
+		// text boxes switch between equals and like
+		const text_box = !!box.df.match_type;
+		const fits =
+			value != null &&
+			filter.field.df.fieldname === filter.standard_field &&
+			(condition === box_condition || (text_box && ["=", "like"].includes(condition))) &&
+			!(box.df.fieldtype === "Check" && !cint(value));
+
+		if (fits) {
+			if (text_box) {
+				box.df.match_type = condition;
+				box.$wrapper
+					.find(".match-type-dropdown-btn")
+					.html(frappe.utils.icon(condition === "=" ? "equal" : "equal-approximately"));
+			}
+			box.set_value(condition === "like" ? value.replace(/^%+|%+$/g, "") : value);
+			return;
+		}
+
+		filter.standard_field = null;
+		box.set_value("");
+		this.apply_changes();
+	}
+
+	on_popover_open(popover) {
+		this.applied_filters = JSON.stringify(this.get_filters());
+		const only_row = this.filters.length === 1 && this.filters[0];
+		if (only_row && only_row.is_empty()) {
+			this.after_enter(popover.panel, () => only_row.fieldselect.open());
+		}
+	}
+
+	// opened mid enter-animation, the picker lines up with a trigger that is still scaling in
+	after_enter(panel, fn) {
+		let done = false;
+		const run = () => {
+			if (done || !this.is_popover_open()) return;
+			done = true;
+			fn();
+		};
+		panel.addEventListener("animationend", run, { once: true });
+		setTimeout(run, 200);
+	}
+
+	hide_popover() {
+		this.popover?.close("owner");
+	}
+
+	is_popover_open() {
+		return !!this.popover?.is_open;
 	}
 
 	toggle_empty_filters(show) {
-		this.wrapper && this.wrapper.find(".empty-filters").toggle(show);
-	}
-
-	set_popover_events() {
-		$(document.body).on("mousedown", (e) => {
-			if (this.wrapper && this.wrapper.is(":visible")) {
-				const in_datepicker =
-					$(e.target).is(".datepicker--cell") ||
-					$(e.target).closest(".datepicker--nav-title").length !== 0 ||
-					$(e.target).parents(".datepicker--nav-action").length !== 0 ||
-					$(e.target).parents(".datepicker").length !== 0 ||
-					$(e.target).is(".datepicker--button");
-
-				if (
-					$(e.target).parents(".filter-popover").length === 0 &&
-					$(e.target).parents(".filter-box").length === 0 &&
-					// a Link field's combobox panel lives in <body>, not in the popover;
-					// a press on its scrollbar arrives with <html> as its target
-					$(e.target).closest(".es-combobox__panel").length === 0 &&
-					!(
-						$(e.target).is("html") &&
-						$(".es-combobox__panel[data-state='open']").length
-					) &&
-					this.filter_button.find($(e.target)).length === 0 &&
-					!$(e.target).is(this.filter_button) &&
-					!in_datepicker
-				) {
-					this.wrapper && this.hide_popover();
-				}
-			}
-		});
-
-		this.filter_button.on("click", () => {
-			this.filter_button.popover("toggle");
-		});
-
-		this.filter_button.on("shown.bs.popover", () => {
-			let hide_empty_filters = this.filters && this.filters.length > 0;
-
-			if (!this.wrapper) {
-				this.wrapper = $(".filter-popover");
-				if (hide_empty_filters) {
-					this.toggle_empty_filters(false);
-					this.add_filters_to_popover(this.filters);
-				}
-				this.set_filter_events();
-			}
-			this.toggle_empty_filters(false);
-			!hide_empty_filters && this.add_filter(this.doctype, "name");
-
-			this.filters[0]?.fieldselect?.$input?.focus();
-		});
-
-		this.filter_button.on("hidden.bs.popover", () => {
-			this.apply();
-		});
-
-		// REDESIGN-TODO: (Temporary) Review and find best solution for this
-		frappe.router.on("change", () => {
-			if (this.wrapper && this.wrapper.is(":visible")) {
-				this.hide_popover();
-			}
-		});
-	}
-
-	add_filters_to_popover(filters) {
-		filters.forEach((filter) => {
-			filter.parent = this.wrapper;
-			filter.field = null;
-			filter.make();
-		});
+		this.wrapper && this.wrapper.find(".empty-filters").toggleClass("hidden", !show);
 	}
 
 	apply() {
 		this.update_filters();
+		this.applied_filters = JSON.stringify(this.get_filters());
+		this.on_change();
+	}
+
+	// the same filters again refresh nothing, so opening and closing is free
+	apply_changes() {
+		const filters = JSON.stringify(this.get_filters());
+		if (filters === this.applied_filters) return;
+		this.applied_filters = filters;
+		this.update_filter_button();
 		this.on_change();
 	}
 
 	update_filter_button() {
 		if (!this.filter_button) return;
 
-		const filters_applied = this.filters.length > 0;
-		const button_label = filters_applied
-			? __("Filters {0}", [`<span class="filter-label">${this.filters.length}</span>`])
-			: __("Filter");
-
-		this.filter_button
-			.toggleClass("btn-default", !filters_applied)
-			.toggleClass("btn-primary-light", filters_applied);
-
-		this.filter_button.find(".filter-icon").toggleClass("active", filters_applied);
-
-		this.filter_button.find(".button-label").html(button_label);
+		const standard = this.base_list?.filter_area?.get_standard_filters().length || 0;
+		const count = this.get_filters().length + standard;
+		this.filter_button.find(".filter-label").text(count).toggleClass("hidden", !count);
+		// the clear button only shows, and joins the filter button, when there is something to clear
+		this.filter_button.toggleClass("rounded-se-none rounded-ee-none", count > 0);
+		this.filter_x_button?.toggleClass("hidden", !count);
 		this.filter_button.attr(
 			"title",
-			`${this.filters.length} Filter${this.filters.length > 1 ? "s" : ""} Applied`
+			count ? __("{0} filters applied", [count]) : __("Filter")
 		);
 	}
 
 	set_filter_events() {
-		this.wrapper.find(".add-filter").on("click", () => {
-			this.toggle_empty_filters(false);
-			this.add_filter(this.doctype, "name");
-
-			this.filters[this.filters.length - 1]?.fieldselect?.$input?.focus();
-		});
+		this.wrapper.find(".add-filter").on("click", () => this.add_new_filter());
 
 		this.wrapper.find(".clear-filters").on("click", () => {
 			this.toggle_empty_filters(true);
-			this.clear_filters();
-			this.on_change();
+			if (this.base_list) {
+				// the toolbar boxes are cleared too
+				const had_filters = this.get_filters().length;
+				this.base_list.filter_area.clear().then(() => had_filters && this.on_change());
+			} else {
+				this.filters.forEach((f) => f.remove());
+				this.filters = [];
+				this.apply_changes();
+			}
 			this.hide_popover();
 		});
+	}
 
-		this.wrapper.find(".apply-filters").on("click", () => this.hide_popover());
+	// a row with no field yet; its picker opens so the first click lands on a field
+	add_new_filter({ open_picker = true } = {}) {
+		this.toggle_empty_filters(false);
+		let filter = this.filters.find((f) => f.is_empty());
+		if (!filter) {
+			filter = this._push_new_filter(this.doctype, null);
+			this.refresh_prefixes();
+		}
+		open_picker && filter.fieldselect.open();
+		return filter;
 	}
 
 	add_filters(filters) {
@@ -182,25 +218,23 @@ frappe.ui.FilterGroup = class {
 			promises.push(() => this.add_filter(...filter));
 		}
 
-		return frappe.run_serially(promises).then(() => this.update_filters());
+		return frappe.run_serially(promises).then(() => {
+			this.update_filters();
+			// set from outside (saved view, route): the host refreshes for these itself
+			this.applied_filters = JSON.stringify(this.get_filters());
+		});
 	}
 
 	add_filter(doctype, fieldname, condition, value, hidden) {
 		if (!fieldname) return Promise.resolve();
 		// adds a new filter, returns true if filter has been added
 
-		// {}: Add in page filter by fieldname if exists ('=' => 'like')
-
 		if (!this.validate_args(doctype, fieldname)) return false;
-		const is_new_filter = arguments.length < 2;
-		if (is_new_filter && this.wrapper.find(".new-filter:visible").length) {
-			// only allow 1 new filter at a time!
-			return Promise.resolve();
-		} else {
-			let args = [doctype, fieldname, condition, value, hidden];
-			const promise = this.push_new_filter(args, is_new_filter);
-			return promise && promise.then ? promise : Promise.resolve();
-		}
+		let args = [doctype, fieldname, condition, value, hidden];
+		const promise = this.push_new_filter(args);
+		this.toggle_empty_filters(false);
+		this.refresh_prefixes();
+		return promise && promise.then ? promise : Promise.resolve();
 	}
 
 	validate_args(doctype, fieldname) {
@@ -224,17 +258,15 @@ frappe.ui.FilterGroup = class {
 		// args: [doctype, fieldname, condition, value]
 		if (this.filter_exists(args)) return;
 
-		// {}: Clear page filter fieldname field
-
 		let filter = this._push_new_filter(...args);
 
 		if (filter && filter.value) {
-			// filter.setup_state(is_new_filter);
 			return filter._filter_value_set; // internal promise
 		}
 	}
 
 	_push_new_filter(doctype, fieldname, condition, value, hidden = false) {
+		let filter;
 		let args = {
 			parent: this.wrapper,
 			parent_doctype: this.doctype,
@@ -248,17 +280,26 @@ frappe.ui.FilterGroup = class {
 			on_change: (update) => {
 				if (update) this.update_filters();
 				this.refresh_dynamic_link_filters();
-				this.on_change();
+				this.refresh_prefixes();
+				if (filter?.standard_field) return this.sync_to_toolbar(filter);
+				this.apply_changes();
 			},
+			on_enter: () => this.hide_popover(),
 			filter_items: (doctype, fieldname) => {
 				return !this.filter_exists([doctype, fieldname]);
 			},
 			filter_list: this.base_list || this,
 		};
 
-		let filter = new frappe.ui.Filter(args);
+		filter = new frappe.ui.Filter(args);
 		this.filters.push(filter);
 		return filter;
+	}
+
+	// "Where" on the first row, "And" on the rest
+	refresh_prefixes() {
+		const rows = this.filters.filter((f) => f.filter_edit_area.parent().length);
+		rows.forEach((f, i) => f.set_prefix(i === 0 ? __("Where") : __("And")));
 	}
 
 	get_filter_value(fieldname) {
@@ -290,28 +331,33 @@ frappe.ui.FilterGroup = class {
 			});
 	}
 
+	// a row counts once it has a field and a value
+	is_complete(filter) {
+		if (!filter.field) return false;
+		const value = filter.get_selected_value();
+		return value != null && value !== "" && !(Array.isArray(value) && !value.length);
+	}
+
+	// toolbar rows are left out: the list reads those from the toolbar boxes
 	get_filters() {
 		return this.filters
-			.filter((f) => f.field)
-			.filter((f) => f.get_selected_value() != null)
-			.map((f) => {
-				return f.get_value();
-			});
+			.filter((f) => !f.standard_field && this.is_complete(f))
+			.map((f) => f.get_value());
 	}
 
 	update_filters() {
-		// remove hidden filters and undefined filters
-		const filter_exists = (f) => ![undefined, null].includes(f.get_selected_value());
-		this.filters.map((f) => !filter_exists(f) && f.remove());
-		this.filters = this.filters.filter((f) => filter_exists(f) && f.field);
+		this.filters.map((f) => !this.is_complete(f) && f.remove());
+		this.filters = this.filters.filter((f) => this.is_complete(f));
+		this.refresh_prefixes();
 		this.update_filter_button();
 		this.filters.length === 0 && this.toggle_empty_filters(true);
 	}
 
 	clear_filters() {
 		this.filters.map((f) => f.remove(true));
-		// {}: Clear page filters, .date-range-picker (called list run())
 		this.filters = [];
+		this.applied_filters = "[]";
+		this.update_filter_button();
 	}
 
 	get_filter(fieldname) {
@@ -321,32 +367,28 @@ frappe.ui.FilterGroup = class {
 	}
 
 	get_filter_area_template() {
-		return $(`
+		const $area = $(`
 			<div class="filter-area">
 				<div class="filter-edit-area">
-					<div class="text-muted empty-filters text-center">
+					<div class="empty-filters text-ink-gray-5">
 						${__("No filters selected")}
 					</div>
 				</div>
-				<hr class="divider"></hr>
-				<div class="filter-action-buttons">
-					<button class="text-muted add-filter btn btn-xs">
-						+ ${__("Add a Filter")}
-					</button>
-					<div>
-						<button class="btn btn-secondary btn-xs clear-filters">
-							${__("Clear Filters")}
-						</button>
-						${
-							this.filter_button
-								? `<button class="btn btn-primary btn-xs apply-filters">
-								${__("Apply Filters")}
-							</button>`
-								: ""
-						}
-					</div>
-				</div>
+				<div class="filter-action-buttons flex items-center justify-between gap-2"></div>
 			</div>`);
+		$area.find(".filter-action-buttons").append(
+			frappe.ui.button({
+				label: __("Add filter"),
+				icon: "plus",
+				css_class: "add-filter",
+			}),
+			frappe.ui.button({
+				label: __("Clear all"),
+				variant: "ghost",
+				css_class: "clear-filters text-ink-gray-6",
+			})
+		);
+		return $area;
 	}
 
 	get_filters_as_object() {
