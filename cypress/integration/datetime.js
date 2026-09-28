@@ -83,6 +83,26 @@ context("Control Date, Time and DateTime", () => {
 				cy.get_field("time").should("have.value", d.match_value);
 			});
 		});
+
+		it("keeps a typed time when the field is focused again", () => {
+			cy.set_value("System Settings", "System Settings", { time_format: "HH:mm:ss" });
+			cy.window()
+				.its("frappe")
+				.then((frappe) => {
+					frappe.sys_defaults.time_format = "HH:mm:ss";
+				});
+			cy.new_form(doctype_name);
+			cy.fill_field("time", "10:00:00", "Time").blur();
+
+			// overwrite without emptying the input, so the picker is not cleared in between
+			cy.get_field("time").type("{selectall}11:00:00", { delay: 100 }).blur();
+			cy.window().its("cur_frm.doc.time").should("eq", "11:00:00");
+
+			// showing the picker must not restore the previous time
+			cy.get_field("time").click().wait(200);
+			cy.get_field("time").should("have.value", "11:00:00").blur();
+			cy.window().its("cur_frm.doc.time").should("eq", "11:00:00");
+		});
 	});
 
 	describe("DateTime formats", () => {
