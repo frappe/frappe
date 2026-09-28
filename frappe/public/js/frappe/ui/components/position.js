@@ -42,13 +42,15 @@ export function place(panel, anchor, side, align, offset) {
 		else if (align === "end") align = "start";
 	}
 
-	let rect = panel.getBoundingClientRect();
+	// layout size, not getBoundingClientRect: that one is scaled mid enter-animation
+	const size = () => ({ width: panel.offsetWidth, height: panel.offsetHeight });
+	let rect = size();
 
 	// taller than the viewport: cap it and let the panel scroll
 	const max_height = window.innerHeight - 2 * VIEWPORT_PAD;
 	if (rect.height > max_height) {
 		panel.style.maxHeight = `${max_height}px`;
-		rect = panel.getBoundingClientRect();
+		rect = size();
 	}
 
 	// how much free space there is on each side of the anchor
