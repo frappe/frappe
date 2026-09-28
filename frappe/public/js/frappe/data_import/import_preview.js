@@ -107,6 +107,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 						<div class="diw-preview-toolbar-meta table-message text-base text-ink-gray-6 ms-auto text-right whitespace-nowrap"></div>
 					</div>
 					<div class="table-preview mt-3 min-w-0 w-full border rounded-md bg-surface-base"></div>
+					<div class="diw-skipped-columns hidden mt-3 flex flex-wrap items-center gap-1.5"></div>
 				</div>
 			`);
 			$preview = this.wrapper.find(".diw-table-preview");
@@ -143,7 +144,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					frappe.utils.escape_html(col.header_title) ||
 					`<i>${__("Untitled Column")}</i>`;
 				let column_title = `<span class="diw-preview-col-header diw-preview-col-header--skipped inline-flex items-center gap-2 min-w-0">
-					<span class="diw-preview-col-title truncate text-ink-gray-6">${title}</span>
+					<span class="diw-preview-col-title truncate">${title}</span>
 				</span>`;
 				return {
 					id: `skipped-${i}`,
@@ -160,7 +161,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 						if (value === DIW_MAP_CELL) {
 							return column_title;
 						}
-						return `<div class="text-ink-gray-6">${value}</div>`;
+						return value;
 					},
 				};
 			}
@@ -349,6 +350,42 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.setup_wizard_scroll();
 		this.mount_column_map_controls();
 		this.mount_date_format_controls();
+		this.show_skipped_columns();
+	}
+
+	/** Grey out columns that won't be imported and list them below the table. */
+	show_skipped_columns() {
+		const skipped = (this.preview_data.columns || [])
+			.map((col, i) => ({ col, i }))
+			.filter(({ i }) => i > 0 && this._column_map_values?.[i] === DONT_IMPORT);
+
+		const style = this.datatable?.style;
+		const cells = (i) => `.dt-cell--col-${i}:not(.dt-cell--header)`;
+		// Cells force their text colour with !important, so colour the content inside them.
+		const content = (i) => `${cells(i)} .dt-cell__content`;
+		(this._greyed_columns || []).forEach((i) => {
+			style?.removeStyle(cells(i));
+			style?.removeStyle(content(i));
+		});
+		this._greyed_columns = skipped.map(({ i }) => i);
+		this._greyed_columns.forEach((i) => {
+			style?.setStyle(cells(i), { backgroundColor: "var(--surface-gray-2)" });
+			style?.setStyle(content(i), { color: "var(--ink-gray-4)" });
+		});
+
+		const $list = this.wrapper.find(".diw-skipped-columns");
+		$list.toggleClass("hidden", !skipped.length).html(
+			skipped.length
+				? `<span class="text-sm text-ink-gray-6">${__("Not imported:")}</span>` +
+						skipped
+							.map(({ col }) =>
+								frappe.ui.badge.html({
+									label: col.header_title || __("Untitled Column"),
+								})
+							)
+							.join("")
+				: ""
+		);
 	}
 
 	/** Stretch a few columns to fill the width instead of leaving a blank strip. */
@@ -514,6 +551,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			this._mapping_dropdown_scroll_handler = null;
 		}
 		this.$table_preview?.off(".diw-map-portal");
+		// What each column is mapped to right now, including unsaved picks.
+		this._column_map_values = {};
 		if (!this.$table_preview?.length) return;
 
 		const is_success = this.frm?.doc?.status === "Success";
@@ -531,6 +570,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			if (!(i > 0) || !col) return;
 
 			const current = this.get_column_map_value(col);
+			this._column_map_values[i] = current;
 			let ready = false;
 			let applied = current;
 			const control = frappe.ui.form.make_control({
@@ -549,6 +589,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 						const next = control.get_value() || DONT_IMPORT;
 						if (next === applied) return;
 						applied = next;
+						this._column_map_values[i] = next;
+						this.show_skipped_columns();
 						this.events.remap_column({ [i - 1]: next });
 					},
 				},
