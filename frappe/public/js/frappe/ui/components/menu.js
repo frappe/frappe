@@ -144,7 +144,7 @@ function assign_mnemonic(label_el, text, taken) {
 	return null;
 }
 
-function build_item(item, { reserve_icon_space, component, taken }) {
+export function build_item(item, { reserve_icon_space, component, taken }) {
 	// a disabled row is always a real disabled <button>, never a link — a
 	// disabled <a> keeps a working href that a screen reader's link list or
 	// a script click would still follow, right past the disabled state

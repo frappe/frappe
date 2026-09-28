@@ -1,5 +1,5 @@
 import { place, SIDES, ALIGNS } from "./position.js";
-import { validated } from "./utils.js";
+import { validated, TABBABLE, resolve_content } from "./utils.js";
 
 frappe.provide("frappe.ui");
 
@@ -26,10 +26,6 @@ const EXIT_MS = 100; // keep in sync with es-popover-out in popover.css
 // panels other components open from inside this one (a combobox or dropdown
 // menu, a datepicker) mount in <body>, so a press or focus in them is inside
 const LAYERS = ".es-menu, .es-popover, .datepicker";
-
-// what Tab can land on, for the close-on-tab-out bookkeeping below
-const TABBABLE =
-	'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])';
 
 let id_counter = 0;
 
@@ -90,18 +86,8 @@ frappe.ui.Popover = class Popover {
 	// The panel body. Elements and element-returning functions are the rich
 	// channel; strings become text nodes so they can never smuggle markup.
 	resolve_content() {
-		let content = this.opts.content;
-		if (typeof content === "function") content = content(this);
-		if (typeof content === "string") {
-			const p = document.createElement("div");
-			p.textContent = content;
-			return p;
-		}
-		const el = content && $(content)[0];
-		if (!el) {
-			console.warn("frappe.ui.Popover: no content to show");
-			return null;
-		}
+		const el = resolve_content(this.opts.content, this);
+		if (!el) console.warn("frappe.ui.Popover: no content to show");
 		return el;
 	}
 
