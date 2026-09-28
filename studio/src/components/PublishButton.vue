@@ -3,17 +3,12 @@
 		<Button
 			size="sm"
 			variant="solid"
-			:disabled="disabled || publishingPage"
-			:loading="publishingPage || publishingApp"
+			:disabled="disabled || store.publishingPage"
+			:loading="store.publishingPage || publishingApp"
 			class="rounded-br-none rounded-tr-none border-0"
-			@click="
-				() => {
-					publishingPage = true
-					store.publishPage().finally(() => (publishingPage = false))
-				}
-			"
+			@click="store.publishPage()"
 		>
-			{{ publishingApp ? "Publishing App..." : publishingPage ? "Publishing Page..." : "Publish Page" }}
+			{{ publishingApp ? "Publishing App..." : store.publishingPage ? "Publishing Page..." : "Publish Page" }}
 		</Button>
 		<Dropdown
 			:options="[
@@ -69,7 +64,7 @@
 				<Button
 					size="sm"
 					variant="solid"
-					:disabled="disabled || publishingPage || publishingApp"
+					:disabled="disabled || store.publishingPage || publishingApp"
 					icon="lucide-chevron-down"
 					class="!w-6 justify-start rounded-bl-none rounded-tl-none border-0 pr-0 text-xs"
 				/>
@@ -92,6 +87,5 @@ defineProps<{
 }>()
 
 const store = useStudioStore()
-const publishingPage = ref(false)
 const publishingApp = ref(false)
 </script>
