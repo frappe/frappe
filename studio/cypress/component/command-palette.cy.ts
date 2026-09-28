@@ -43,7 +43,7 @@ describe("command palette and shortcuts", () => {
 	it("finds a command by its name in the shortcuts dialog", () => {
 		press("k", "KeyK", mod)
 		cy.get("input[placeholder='Search commands...']").type("toggle panels")
-		cy.contains("Hide Both Panels").should("be.visible")
+		cy.contains("Hide Panels").should("be.visible")
 	})
 
 	// Go to Page is the stepped command here; any step should behave the same

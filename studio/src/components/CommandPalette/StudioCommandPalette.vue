@@ -19,7 +19,7 @@ import { useKeyboardShortcut } from "frappe-ui"
 import CommandPalette from "@/components/CommandPalette/CommandPalette.vue"
 import CommandPaletteItem from "@/components/CommandPalette/CommandPaletteItem.vue"
 import type { CommandPaletteItem as CPItem } from "@/components/CommandPalette/CommandPalette.vue"
-import { commandGroups, getCommands, registerCommand, resolveText } from "@/components/Commands"
+import { commandGroups, commands, resolveText } from "@/components/Commands"
 import useStudioStore from "@/stores/studioStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 
@@ -50,11 +50,12 @@ const openStep = (step: Step) => {
 }
 
 // the step command stays here: it drives activeStep, which is local
-registerCommand({
+commands.register({
 	name: "go-to-page",
 	title: "Go to Page",
 	icon: "lucide-file-search",
 	group: "Navigate",
+	after: "go-to-dashboard",
 	keepOpen: true,
 	action: () =>
 		openStep({
@@ -66,7 +67,7 @@ registerCommand({
 })
 
 const paletteCommands = computed<PaletteItem[]>(() =>
-	getCommands()
+	commands.visible.value
 		.filter((command) => command.inPalette !== false)
 		.map((command) => ({
 			name: command.name,

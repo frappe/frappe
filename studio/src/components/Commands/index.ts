@@ -4,6 +4,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import blockController from "@/utils/blockController"
 import { copyBlockStyles } from "@/utils/blockCopyPaste"
 import { openInDesk, openPageInDesk } from "@/utils/helpers"
+import { createRegistry, type RegistryItem } from "@/utils/createRegistry"
 import { nextTick } from "vue"
 
 /** A key binding for a command. The description labels it in the shortcuts dialog. */
@@ -14,14 +15,12 @@ export type CommandKeys = {
 	description: string
 }
 
-export type Command = {
-	name: string
+export type Command = RegistryItem & {
 	/** a function when the label depends on state, such as Show or Hide Left Panel */
 	title: string | (() => string)
 	icon: string | (() => string)
 	group: CommandGroup
 	action: () => void
-	condition?: () => boolean
 	keys?: CommandKeys
 	/** keep the palette open, for a command that opens a step */
 	keepOpen?: boolean
@@ -38,25 +37,14 @@ export const resolveText = (value: string | (() => string)) => (typeof value ===
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
 
-const commands: Command[] = []
-
-/** registering a name again replaces the command, so a remounted component does not duplicate it */
-export function registerCommand(command: Command) {
-	const index = commands.findIndex((existing) => existing.name === command.name)
-	if (index === -1) commands.push(command)
-	else commands[index] = command
-}
-
-export function getCommands() {
-	return commands.filter((command) => command.condition?.() ?? true)
-}
+export const commands = createRegistry<Command>()
 
 /**
  * Every command that declares a binding, shaped for useKeyboardShortcut. Read once at
  * setup, so a command registered later gets no binding until the next reload.
  */
 export function commandShortcuts() {
-	return commands
+	return commands.all.value
 		.filter((command) => command.keys)
 		.map((command) => ({
 			...command.keys!,
@@ -71,7 +59,7 @@ export function commandShortcuts() {
 
 // Navigate
 
-registerCommand({
+commands.register({
 	name: "go-to-dashboard",
 	title: "Go to Dashboard",
 	icon: "lucide-layout-dashboard",
@@ -79,7 +67,7 @@ registerCommand({
 	action: () => router.push({ name: "Home" }),
 })
 
-registerCommand({
+commands.register({
 	name: "view-app-in-desk",
 	title: "View App in Desk",
 	icon: "lucide-arrow-up-right",
@@ -88,7 +76,7 @@ registerCommand({
 	action: () => openInDesk(store.activeApp!),
 })
 
-registerCommand({
+commands.register({
 	name: "view-page-in-desk",
 	title: "View Page in Desk",
 	icon: "lucide-arrow-up-right",
@@ -99,7 +87,7 @@ registerCommand({
 
 // Page
 
-registerCommand({
+commands.register({
 	name: "preview-page",
 	title: "Preview Page",
 	icon: "lucide-play",
@@ -108,7 +96,7 @@ registerCommand({
 	action: () => store.openPageInBrowser(store.activeApp!, store.activePage!, true),
 })
 
-registerCommand({
+commands.register({
 	name: "publish-page",
 	title: "Publish Page",
 	icon: "lucide-globe",
@@ -118,7 +106,7 @@ registerCommand({
 	action: () => store.publishPage(),
 })
 
-registerCommand({
+commands.register({
 	name: "page-options",
 	title: "Page Options",
 	icon: "lucide-file-cog",
@@ -135,7 +123,7 @@ const showLayersTab = async () => {
 	await nextTick()
 }
 
-registerCommand({
+commands.register({
 	name: "expand-layers",
 	title: "Expand All Layers",
 	icon: "lucide-chevrons-up-down",
@@ -146,7 +134,7 @@ registerCommand({
 	},
 })
 
-registerCommand({
+commands.register({
 	name: "collapse-layers",
 	title: "Collapse All Layers",
 	icon: "lucide-chevrons-down-up",
@@ -159,7 +147,7 @@ registerCommand({
 
 // View
 
-registerCommand({
+commands.register({
 	name: "toggle-panels",
 	// both panels follow the right one, so its state names the action
 	title: () => (store.studioLayout.showRightPanel ? "Hide Panels" : "Show Panels"),
@@ -172,7 +160,7 @@ registerCommand({
 	},
 })
 
-registerCommand({
+commands.register({
 	name: "toggle-left-panel",
 	title: () => (store.studioLayout.showLeftPanel ? "Hide Left Panel" : "Show Left Panel"),
 	icon: () => (store.studioLayout.showLeftPanel ? "lucide-panel-left-close" : "lucide-panel-left-open"),
@@ -181,7 +169,7 @@ registerCommand({
 	action: () => (store.studioLayout.showLeftPanel = !store.studioLayout.showLeftPanel),
 })
 
-registerCommand({
+commands.register({
 	name: "toggle-right-panel",
 	title: () => (store.studioLayout.showRightPanel ? "Hide Right Panel" : "Show Right Panel"),
 	icon: () => (store.studioLayout.showRightPanel ? "lucide-panel-right-close" : "lucide-panel-right-open"),
@@ -191,7 +179,7 @@ registerCommand({
 
 // General
 
-registerCommand({
+commands.register({
 	name: "search-blocks",
 	title: "Search Blocks",
 	icon: "lucide-search",
@@ -200,7 +188,7 @@ registerCommand({
 	action: () => (store.showSearchBlock = true),
 })
 
-registerCommand({
+commands.register({
 	name: "app-settings",
 	title: "App Settings",
 	icon: "lucide-settings",
@@ -209,7 +197,7 @@ registerCommand({
 	action: () => (store.showAppDialog = true),
 })
 
-registerCommand({
+commands.register({
 	name: "studio-settings",
 	title: "Studio Settings",
 	icon: "lucide-sliders-vertical",
@@ -217,7 +205,7 @@ registerCommand({
 	action: () => (store.showStudioSettingsDialog = true),
 })
 
-registerCommand({
+commands.register({
 	name: "shortcuts",
 	title: "Keyboard Shortcuts",
 	icon: "lucide-command",
@@ -228,7 +216,7 @@ registerCommand({
 
 // Edit: key bindings with no palette entry
 
-registerCommand({
+commands.register({
 	name: "select-mode",
 	title: "Select Mode",
 	icon: "lucide-mouse-pointer",
@@ -238,7 +226,7 @@ registerCommand({
 	action: () => (store.mode = "select"),
 })
 
-registerCommand({
+commands.register({
 	name: "container-mode",
 	title: "Container Mode",
 	icon: "lucide-square",
@@ -248,7 +236,7 @@ registerCommand({
 	action: () => (store.mode = "container"),
 })
 
-registerCommand({
+commands.register({
 	name: "duplicate-block",
 	title: "Duplicate Block",
 	icon: "lucide-copy",
@@ -261,7 +249,7 @@ registerCommand({
 	},
 })
 
-registerCommand({
+commands.register({
 	name: "copy-block-styles",
 	title: "Copy Block Styles",
 	icon: "lucide-clipboard-copy",
@@ -274,7 +262,7 @@ registerCommand({
 	},
 })
 
-registerCommand({
+commands.register({
 	name: "undo",
 	title: "Undo",
 	icon: "lucide-undo-2",
@@ -287,7 +275,7 @@ registerCommand({
 	},
 })
 
-registerCommand({
+commands.register({
 	name: "redo",
 	title: "Redo",
 	icon: "lucide-redo-2",
