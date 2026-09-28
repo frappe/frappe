@@ -2086,9 +2086,17 @@ class Engine:
 		is_numeric = fieldtype in numeric_fieldtypes
 		match cstr(value).lower():
 			case "set":
-				return (_field != 0) if is_numeric else _field.isnotnull()
+				if is_numeric:
+					return _field != 0
+				if frappe.db.db_type == "sqlite":
+					return _field.isnotnull() & (_field != "")
+				return _field.isnotnull()
 			case "not set":
-				return (_field.isnull() | (_field == 0)) if is_numeric else _field.isnull()
+				if is_numeric:
+					return _field.isnull() | (_field == 0)
+				if frappe.db.db_type == "sqlite":
+					return _field.isnull() | (_field == "")
+				return _field.isnull()
 			case _:
 				raise ValueError("`is` operator only supports `set` and `not set` as value")
 

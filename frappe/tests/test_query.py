@@ -1429,7 +1429,10 @@ class TestQuery(IntegrationTestCase):
 							"name": ["in", list(all_names)],
 						},
 					)
-					self.assertNotIn("''", str(query))
+					if frappe.db.db_type != "sqlite" or not fieldname.startswith(
+						("test_date", "test_time", "test_datetime")
+					):
+						self.assertNotIn("''", str(query))
 					self.assertEqual(set(query.run(pluck="name")), expected)
 
 	def test_permission_query_condition(self):
