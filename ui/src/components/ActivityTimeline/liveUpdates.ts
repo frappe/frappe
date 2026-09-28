@@ -30,6 +30,9 @@ export function createLiveUpdates(
     return known ?? fallback;
   };
 
+  // live rows skipped while a pending row of their type waits for its key
+  const heldBack = new Map<string, Activity>();
+
   const onUpdate = (payload: unknown) => {
     const { doc, key, action } = payload as {
       doc: Record<string, unknown>;
@@ -50,8 +53,13 @@ export function createLiveUpdates(
       action === "add" &&
       hasUnresolvedRowOfType(doctype, docname, activity.type)
     ) {
-      refresh().then(() => resource.error && addIfMissing(activity));
+      heldBack.set(activity.key, activity);
+      refresh().then(restoreHeldBack);
       return;
+    }
+    if (heldBack.has(activity.key)) {
+      if (action === "delete") heldBack.delete(activity.key);
+      else heldBack.set(activity.key, activity);
     }
 
     const current = (resource.data as Activity[] | undefined) ?? [];
@@ -67,12 +75,14 @@ export function createLiveUpdates(
     }
   };
 
-  // A failed refetch keeps the old feed, which would lose the row held back for it.
-  // Only then: a successful one leaving it out means it was deleted meanwhile.
-  const addIfMissing = (activity: Activity) => {
+  // The refetch can leave a held row out without it being deleted: the fetch failed, or it is
+  // an email dated older than the first page. Deleted ones were dropped from here on the way.
+  const restoreHeldBack = () => {
     const current = (resource.data as Activity[] | undefined) ?? [];
-    if (current.some((a) => a.key === activity.key)) return;
-    resource.data = [...current, activity];
+    const keys = new Set(current.map((a) => a.key));
+    const missing = [...heldBack.values()].filter((a) => !keys.has(a.key));
+    heldBack.clear();
+    if (missing.length) resource.data = [...current, ...missing];
   };
 
   const onDocUpdate = (payload: unknown) => {
