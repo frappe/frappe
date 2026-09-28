@@ -87,6 +87,17 @@ class IntegrationTestDesktopIcon(IntegrationTestCase):
 
 			self.assertEqual(frappe.db.get_value("Desktop Icon", workspace.name, "parent_icon"), SHIPPED)
 
+	def test_a_desk_app_linking_under_desk_keeps_its_workspace_icon(self):
+		"""`/app` is the old name for `/desk`. frappe ships "Framework" linking to `/desk/build`."""
+		with empty_desktop():
+			self.make_icon(SHIPPED, icon_type="App", app="frappe", link="/desk/test-shipped")
+			workspace = self.make_public_workspace("Test Desk Workspace")
+
+			create_desktop_icons_from_workspace()
+
+			self.assertEqual(frappe.db.get_value("Desktop Icon", workspace.name, "hidden"), 0)
+			self.assertEqual(frappe.db.get_value("Desktop Icon", workspace.name, "parent_icon"), SHIPPED)
+
 	def test_a_portal_apps_workspace_icon_stays_off_the_desktop(self):
 		"""Otherwise lms's "Learning" workspace shows up next to its "Frappe Learning" App icon."""
 		with empty_desktop():

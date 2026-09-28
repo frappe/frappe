@@ -4,6 +4,7 @@
 import json
 import os
 import random
+import re
 
 import frappe
 from frappe import _
@@ -227,6 +228,15 @@ def get_app_desktop_icon(app_name: str) -> str | None:
 	return frappe.db.exists("Desktop Icon", {"icon_type": "App", "app": app_name})
 
 
+# `/app` is the old name for `/desk`, and App icons are still shipped with either.
+DESK_LINK_PATTERN = re.compile(r"^/(desk|app)(/.*)?$")
+
+
+def is_desk_link(link: str | None) -> bool:
+	"""Whether `link` opens the desk, rather than an app's own portal."""
+	return bool(link and DESK_LINK_PATTERN.match(link))
+
+
 def create_desktop_icons_from_workspace():
 	workspaces = frappe.get_all(
 		"Workspace",
@@ -253,12 +263,12 @@ def create_desktop_icons_from_workspace():
 				app_icon_link = frappe.db.get_value("Desktop Icon", app_icon, "link") if app_icon else None
 
 				# Portal App With Desk Workspace
-				if app_icon_link and not app_icon_link.startswith("/app"):
+				if app_icon_link and not is_desk_link(app_icon_link):
 					icon.hidden = 1
 					icon.parent_icon = None
 
 				# If Desk App has one workspace with the same name
-				if icon.label == app_title and app_icon_link and app_icon_link.startswith("/app"):
+				if icon.label == app_title and is_desk_link(app_icon_link):
 					icon.hidden = 1
 					icon.parent_icon = None
 
