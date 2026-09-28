@@ -122,6 +122,7 @@ frappe.ui.Tags = class {
 			css_class: "form-tag",
 			title: label,
 		});
+		this.apply_stored_color(label, $tag);
 
 		// wrap the label text so truncation can engage (a bare text node in a
 		// flex container can't ellipsize); also the onTagClick target
@@ -160,5 +161,30 @@ frappe.ui.Tags = class {
 			hash = (hash * 31 + label.charCodeAt(i)) % 997;
 		}
 		return themes[hash % themes.length];
+	}
+
+	apply_stored_color(label, $tag) {
+		const themes = {
+			Gray: "gray",
+			Black: "darkgrey",
+			Blue: "blue",
+			Green: "green",
+			Red: "red",
+			Pink: "pink",
+			Orange: "amber",
+			Amber: "amber",
+			Yellow: "yellow",
+			Cyan: "cyan",
+			Teal: "green",
+			Violet: "violet",
+			Purple: "purple",
+		};
+		frappe.db
+			.get_value("Tag", label, "color")
+			.then(({ message }) => {
+				const theme = themes[message?.color];
+				if (theme) $tag.attr("data-theme", theme);
+			})
+			.catch(() => {});
 	}
 };
