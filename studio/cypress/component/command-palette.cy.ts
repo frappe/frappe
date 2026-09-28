@@ -41,11 +41,13 @@ describe("command palette and shortcuts", () => {
 	})
 
 	// Go to Page is the stepped command here; any step should behave the same
-	it("keeps focus in the search when a step opens and backs out with Escape", () => {
+	it("keeps focus in the search when a step opens; Escape clears, backs out, then closes", () => {
 		press("k", "KeyK", mod)
 		cy.contains("Go to Page").click()
-		cy.get("input[placeholder='Search by title or route...']").should("be.focused").type("{esc}")
-		cy.get("input[placeholder='Search commands...']").should("exist")
+		cy.get("input[placeholder='Search by title or route...']").should("be.focused").type("home{esc}")
+		cy.get("input[placeholder='Search by title or route...']").should("have.value", "").type("{esc}")
+		cy.get("input[placeholder='Search commands...']").should("be.focused").type("{esc}")
+		cy.get("input[placeholder='Search commands...']").should("not.exist")
 	})
 
 	it("runs a command's key binding", () => {
