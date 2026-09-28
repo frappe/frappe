@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
@@ -266,6 +266,21 @@ class TestSync(IntegrationTestCase):
 	def test_a_server_error_surfaces(self):
 		with self.assertRaisesRegex(frappe.ValidationError, "500"):
 			self.sync(FakeDaemon(broken=self.session.name))
+
+	def test_a_sync_that_loses_to_a_concurrent_one_runs_again_in_a_new_transaction(self):
+		for error in (frappe.TimestampMismatchError, frappe.QueryDeadlockError):
+			session = Mock(**{"sync.side_effect": [error, None]})
+			with self.subTest(error=error.__name__), patch.object(frappe.db, "rollback") as rollback:
+				sessions.sync_with_retry(session)
+				rollback.assert_called_once_with()
+				session.reload.assert_called_once_with()
+				self.assertEqual(session.sync.call_count, 2)
+
+	def test_a_sync_is_retried_only_once(self):
+		session = Mock(**{"sync.side_effect": frappe.TimestampMismatchError})
+		with patch.object(frappe.db, "rollback"), self.assertRaises(frappe.TimestampMismatchError):
+			sessions.sync_with_retry(session)
+		self.assertEqual(session.sync.call_count, 2)
 
 	def test_sync_recovers_a_run_whose_placeholder_was_rolled_back(self):
 		session = self.new_session(source="Trigger")

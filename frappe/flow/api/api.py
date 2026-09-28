@@ -13,7 +13,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 
-from flow.lib.session import call_on_complete, new_session
+from flow.lib.session import call_on_complete, new_session, sync_with_retry
 
 if TYPE_CHECKING:
 	from flow.flow.doctype.flow_session.flow_session import FlowSession
@@ -96,7 +96,7 @@ def session(session: str) -> dict[str, Any]:
 	repairs a terminal event the client missed; a settled one needs no server call."""
 	doc = _load_session(session, "read")
 	if frappe.db.exists("Flow Run", {"session": doc.name, "status": ("in", ("Running", "Paused"))}):
-		doc.sync()
+		sync_with_retry(doc)
 		call_on_complete(doc)
 	return _session_payload(doc)
 
@@ -229,7 +229,7 @@ def sync_session(session: str) -> dict[str, Any]:
 	"""Record the flow server's log into this session after a terminal event, or when a
 	client reconnects; never called on a schedule."""
 	doc = _load_session(session, "write")
-	doc.sync()
+	sync_with_retry(doc)
 	return _session_payload(doc)
 
 
