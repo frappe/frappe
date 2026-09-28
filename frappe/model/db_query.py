@@ -71,6 +71,9 @@ STRICT_UNION_PATTERN = re.compile(r".*\s(union).*\s")
 ORDER_GROUP_PATTERN = re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*")
 # Matches a SQL function call and captures its name, e.g. `field(` -> "field".
 FUNCTION_CALL_PATTERN = re.compile(r"\b(\w+)\s*\(")
+# Matches an unqualified column name, e.g. `start` but not `tabX`.`start`, `ifnull(x, 0)` or `1`.
+BARE_COLUMN_PATTERN = re.compile(r"^[a-zA-Z_]\w*$")
+SORT_DIRECTIONS = frozenset(("asc", "desc"))
 ALLOWED_ORDER_BY_FUNCTIONS = frozenset(
 	(
 		"sum",
@@ -583,7 +586,8 @@ from {tables}
 				fields.append(f"`{field}`")
 
 		args.fields = ", ".join(fields)
-
+		self.quote_order_by_and_group_by()
+		
 		self.set_order_by(args)
 
 		self.validate_order_by_and_group_by(args.order_by)
@@ -1491,6 +1495,31 @@ from {tables}
 				conditions.append(condition)
 
 		return " and ".join(conditions) if conditions else ""
+
+	def quote_order_by_and_group_by(self):
+		"""Backtick bare column names, so a column named after a SQL keyword (`start`, `commit`)
+		tokenizes as an identifier. Qualified names, expressions and ordinals are left alone.
+		"""
+		for attr in ("order_by", "group_by"):
+			clause = getattr(self, attr)
+			if not clause or not isinstance(clause, str) or clause == DefaultOrderBy:
+				continue
+
+			terms = []
+			for term in clause.split(","):
+				parts = term.split()
+				if (
+					parts
+					and len(parts) <= 2
+					and parts[0].lower() not in SORT_DIRECTIONS
+					and BARE_COLUMN_PATTERN.match(parts[0])
+					and (len(parts) == 1 or parts[1].lower() in SORT_DIRECTIONS)
+				):
+					parts[0] = f"`{parts[0]}`"
+					term = " ".join(parts)
+				terms.append(term.strip())
+
+			setattr(self, attr, ", ".join(terms))
 
 	def set_order_by(self, args):
 		if self.order_by and self.order_by != "KEEP_DEFAULT_ORDERING":
