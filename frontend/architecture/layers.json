@@ -1,0 +1,255 @@
+{
+	"about": "Which layer each file belongs to, and which layers it may use. The longest matching path wins. knownBreaks lists today's breaks, each with the ticket that removes it.",
+	"architecture": "frontend/ARCHITECTURE.md",
+	"notUse": {
+		"hook": "hooks.py names a function that a lower layer calls back. The lower layer owns the contract.",
+		"virtual": "A module the build writes for the desk to import, such as virtual:frappe/contributions."
+	},
+	"layers": [
+		{
+			"id": "main",
+			"name": "Start-up",
+			"place": "top",
+			"section": "outside-the-layers",
+			"table": "**`main.ts`**",
+			"paths": [
+				"frontend/src/main.ts"
+			],
+			"mayUse": [
+				"8",
+				"7",
+				"6",
+				"5",
+				"4",
+				"3",
+				"2",
+				"1"
+			]
+		},
+		{
+			"id": "9",
+			"name": "Customization",
+			"section": "9-customization",
+			"paths": [],
+			"mayUse": [],
+			"note": "App folders and Client Script rows. Not in the import graph: the import list decides what this code may use."
+		},
+		{
+			"id": "8",
+			"name": "Pages",
+			"section": "8-pages",
+			"paths": [
+				"frontend/src/pages/"
+			],
+			"mayUse": [
+				"7",
+				"6",
+				"5",
+				"4",
+				"3",
+				"2",
+				"1"
+			]
+		},
+		{
+			"id": "7",
+			"name": "Page engines",
+			"section": "7-page-engines",
+			"paths": [
+				"frontend/src/recordPage/",
+				"frontend/src/list/"
+			],
+			"mayUse": [
+				"6",
+				"5",
+				"4",
+				"3",
+				"2",
+				"1"
+			]
+		},
+		{
+			"id": "6",
+			"name": "Shell",
+			"section": "6-shell",
+			"paths": [
+				"frontend/src/shell/",
+				"frontend/src/navigation/",
+				"frontend/src/router/"
+			],
+			"mayUse": [
+				"5",
+				"4",
+				"3",
+				"2",
+				"1"
+			]
+		},
+		{
+			"id": "5",
+			"name": "Desk services and registry",
+			"section": "5-desk-services-and-registry",
+			"paths": [
+				"frontend/src/"
+			],
+			"mayUse": [
+				"4",
+				"3",
+				"2",
+				"1"
+			]
+		},
+		{
+			"id": "4",
+			"name": "ui components",
+			"section": "4-ui-components",
+			"paths": [
+				"ui/src/",
+				"ui/island/"
+			],
+			"mayUse": [
+				"3",
+				"1"
+			]
+		},
+		{
+			"id": "3",
+			"name": "ui data",
+			"section": "3-ui-data",
+			"paths": [
+				"ui/src/api/",
+				"ui/src/cache/",
+				"ui/src/socket.ts",
+				"ui/src/utils/",
+				"ui/src/composables/useSession.ts",
+				"ui/src/composables/useDoctypeMeta.ts",
+				"ui/src/composables/useDocPermissions.ts",
+				"ui/src/composables/useUserRoles.ts"
+			],
+			"mayUse": [
+				"1"
+			]
+		},
+		{
+			"id": "2",
+			"name": "Desk server",
+			"section": "2-desk-server",
+			"paths": [
+				"frappe/shell/"
+			],
+			"mayUse": [
+				"1"
+			]
+		},
+		{
+			"id": "1",
+			"name": "Framework server",
+			"section": "1-framework-server",
+			"paths": [
+				"frappe/"
+			],
+			"mayUse": []
+		},
+		{
+			"id": "build",
+			"name": "The build",
+			"place": "beside",
+			"section": "outside-the-layers",
+			"table": "**The build**",
+			"paths": [
+				"frontend/plugin/",
+				"frontend/vite.config.js",
+				"frappe/bundler.py"
+			],
+			"mayUse": [
+				"1"
+			]
+		}
+	],
+	"knownBreaks": [
+		{
+			"from": "frappe/utils/data.py",
+			"to": "frappe/shell/links.py",
+			"why": "get_url_to_form builds a record address with the desk server's builder. There are two builders.",
+			"ticket": 43493,
+			"title": "Shell and routes: keep one builder for a record's address, in the framework server"
+		},
+		{
+			"from": "frappe/bundler.py",
+			"to": "frappe/shell/manifest.py",
+			"why": "The bundler reads the app manifest from the desk server.",
+			"ticket": 43456,
+			"title": "Move the manifest code out of frappe/shell/ into the build code"
+		},
+		{
+			"from": "frappe/website/page_renderers/",
+			"to": "frappe/shell/",
+			"why": "The shell page renderer sits in the framework's website code and imports the desk server.",
+			"ticket": 43495,
+			"title": "Shell and routes: the shell page renderer moves into frappe/shell/"
+		},
+		{
+			"from": "frontend/src/public.ts",
+			"to": "frontend/src/router/routeFor.ts",
+			"why": "The names an app may import include routeFor, which lives in the router.",
+			"ticket": 43494,
+			"title": "Shell and routes: routeFor and the item.js contract move to desk services"
+		},
+		{
+			"from": "frontend/src/contributions/",
+			"to": "frontend/src/navigation/types.ts",
+			"why": "The registry uses the item contract, which lives in the navigation folder.",
+			"ticket": 43494,
+			"title": "Shell and routes: routeFor and the item.js contract move to desk services"
+		},
+		{
+			"from": "frontend/src/contributions/registry.ts",
+			"to": "frontend/src/recordPage/",
+			"why": "The registry hands record handlers to the page engine directly.",
+			"ticket": 43453,
+			"title": "The shell stops importing pages, and the record page sets up its own icon and drawn props"
+		},
+		{
+			"from": "frontend/src/shell/doctypeUpdates.ts",
+			"to": "frontend/src/recordPage/formLayoutSource/",
+			"why": "The shell clears the form layout cache on doctype_update.",
+			"ticket": 43453,
+			"title": "The shell stops importing pages, and the record page sets up its own icon and drawn props"
+		},
+		{
+			"from": "frontend/src/shell/doctypeUpdates.ts",
+			"to": "frontend/src/list/",
+			"why": "The shell clears the list settings cache on doctype_update.",
+			"ticket": 43453,
+			"title": "The shell stops importing pages, and the record page sets up its own icon and drawn props"
+		},
+		{
+			"from": "frontend/src/shell/ComposerWindow.vue",
+			"to": "frontend/src/pages/record/composer/",
+			"why": "The composer window imports the record page's writers.",
+			"ticket": 43450,
+			"title": "Activity column: the composer window gets its writers by registration, not by import"
+		},
+		{
+			"from": "frontend/src/shell/composer.ts",
+			"to": "frontend/src/recordPage/",
+			"why": "The composer store imports page engine types.",
+			"ticket": 43450,
+			"title": "Activity column: the composer window gets its writers by registration, not by import"
+		},
+		{
+			"from": "frontend/src/router/",
+			"to": "frontend/src/pages/",
+			"why": "The router imports the standard pages instead of reading page registrations.",
+			"ticket": 43486,
+			"title": "Shell and routes: the router gets every page by registration"
+		},
+		{
+			"from": "ui/src/composables/useDoctypeMeta.ts",
+			"to": "ui/src/components/FormLayout/",
+			"why": "A ui data composable imports a type from a ui component.",
+			"ticket": 43481,
+			"title": "@framework/ui: four data composables move to the ui data layer"
+		}
+	]
+}

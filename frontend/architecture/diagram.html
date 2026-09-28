@@ -1,0 +1,100 @@
+<!doctype html>
+<!-- diagram.mjs puts the data in DATA. -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Desk v2 architecture</title>
+<style>
+	* { box-sizing: border-box; }
+	body { margin: 0; font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #1f2328; background: #f6f7f9; }
+	code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; background: #eef0f3; padding: 0 3px; border-radius: 3px; }
+	a { color: #0b5cad; text-decoration: none; }
+	a:hover { text-decoration: underline; }
+	header { display: flex; gap: 16px; align-items: center; padding: 10px 16px; background: #fff; border-bottom: 1px solid #dde1e6; flex-wrap: wrap; }
+	header h1 { font-size: 15px; margin: 0; }
+	.tag { font-size: 11px; padding: 1px 6px; border-radius: 9px; background: #fff3cd; color: #7a5b00; }
+	.stats { display: flex; gap: 12px; color: #57606a; }
+	.stats b { color: #1f2328; }
+	.stats .red b { color: #c62828; }
+	main { display: flex; height: calc(100vh - 49px); }
+	#view { flex: 1; overflow: auto; padding: 14px 16px 80px; }
+	#panel { width: 380px; border-left: 1px solid #dde1e6; background: #fff; overflow: auto; padding: 14px 16px 80px; }
+	#panel h2 { font-size: 15px; margin: 0 0 4px; }
+	#panel h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #57606a; margin: 16px 0 6px; }
+	#panel table { border-collapse: collapse; width: 100%; }
+	#panel td { border-top: 1px solid #eef0f3; padding: 3px 4px; vertical-align: top; }
+	#panel .muted { color: #57606a; }
+	#panel code { word-break: break-all; }
+	.pill { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 9px; margin: 1px 2px 1px 0; background: #eef0f3; }
+	.pill.break { background: #fde2e1; color: #b3261e; }
+	.pill.known { background: #fde2e1; color: #b3261e; }
+	.pill.allowed { background: #e3f4e8; color: #1a7f37; }
+	.pill.inside { background: #eef0f3; }
+	.pill.callback { background: #e1ecfb; color: #0b5cad; }
+	.pill.server { background: #fff3cd; color: #7a5b00; }
+	.legend { display: flex; gap: 14px; margin: 0 0 10px; color: #57606a; flex-wrap: wrap; align-items: center; }
+	.legend i { display: inline-block; width: 22px; height: 0; border-top: 2px solid; vertical-align: middle; margin-right: 4px; }
+	.legend label { cursor: pointer; }
+	svg text { font-size: 11px; pointer-events: none; }
+	.box rect { stroke: #fff; stroke-width: 1; cursor: pointer; }
+	.box.dim { opacity: .25; }
+	.box.sel rect { stroke: #1f2328; stroke-width: 2; }
+	.box.loop rect { stroke: #e36209; stroke-width: 2; stroke-dasharray: 4 2; }
+	.layerlabel { cursor: pointer; }
+	.layerlabel:hover rect { fill: #e7eaee; }
+	.edge { fill: none; }
+	.edge.hit { stroke: transparent; stroke-width: 9; cursor: pointer; }
+	/* matrix */
+	table.matrix { border-collapse: collapse; }
+	table.matrix th, table.matrix td { border: 1px solid #dde1e6; padding: 4px 6px; text-align: center; min-width: 46px; }
+	table.matrix th { background: #fff; font-weight: 600; font-size: 12px; }
+	table.matrix th.row { text-align: left; }
+	table.matrix td.may { background: #f0faf3; }
+	table.matrix td.no { background: #f6f7f9; }
+	table.matrix td.self { background: #eef0f3; }
+	table.matrix td.bad { background: #fbd3d0; color: #b3261e; font-weight: 700; }
+	table.matrix td.has { cursor: pointer; }
+	table.matrix td.has:hover { outline: 2px solid #1f2328; }
+	/* flow */
+	.flowtabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+	.flowtabs button, .stepnav button { border: 1px solid #dde1e6; background: #fff; border-radius: 6px; padding: 4px 10px; cursor: pointer; font: inherit; }
+	.flowtabs button.on { background: #1f2328; color: #fff; border-color: #1f2328; }
+	.flow { display: grid; grid-template-columns: minmax(320px, 1fr) 300px; gap: 16px; }
+	.step { background: #fff; border: 1px solid #dde1e6; border-radius: 6px; padding: 6px 10px; margin-bottom: 6px; cursor: pointer; }
+	.step.on { border-color: #1f2328; box-shadow: 0 0 0 1px #1f2328; }
+	.step .n { font-weight: 700; margin-right: 6px; }
+	.stack div { border-radius: 5px; padding: 6px 10px; margin-bottom: 4px; background: #fff; border: 1px solid #dde1e6; color: #8c959f; }
+	.stack div.lit { color: #fff; border-color: transparent; }
+	/* extension points */
+	.ext { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+	.ext h2 { font-size: 13px; margin: 0 0 8px; }
+	.card { background: #fff; border: 1px solid #dde1e6; border-left-width: 4px; border-radius: 6px; padding: 6px 10px; margin-bottom: 6px; cursor: pointer; }
+	.card.pairhit { outline: 2px solid #e36209; }
+	.card .pair { color: #e36209; font-size: 11px; }
+	/* switcher */
+	#switcher { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 6px; background: #1f2328; color: #fff; padding: 6px 8px; border-radius: 22px; box-shadow: 0 6px 20px rgba(0,0,0,.25); z-index: 10; }
+	#switcher button { background: transparent; color: #fff; border: 0; font-size: 16px; width: 30px; height: 30px; border-radius: 15px; cursor: pointer; }
+	#switcher button:hover { background: #3a3f45; }
+	#switcher span { min-width: 210px; text-align: center; font-weight: 600; }
+</style>
+</head>
+<body>
+<header>
+	<h1>Desk v2 architecture</h1>
+	<div class="stats" id="stats"></div>
+</header>
+<main>
+	<div id="view"></div>
+	<aside id="panel"></aside>
+</main>
+<div id="switcher">
+	<button id="prev" title="Previous view (Left arrow)">&#8249;</button>
+	<span id="label"></span>
+	<button id="next" title="Next view (Right arrow)">&#8250;</button>
+</div>
+<script>
+const DATA = /*DATA*/null;
+/*SCRIPTS*/
+</script>
+</body>
+</html>

@@ -61,6 +61,8 @@ Two things sit outside the nine layers:
 - **The build sits beside them.** It reads app folders and writes the registry file and
   the import map. The running desk never imports it. The build is `frontend/plugin/`,
   `frontend/vite.config.js`, `frappe/bundler.py`, and the manifest code the bundler needs.
+  The architecture page in `frontend/architecture/` sits beside it too: it reads the code
+  and this file, and the running desk never loads it.
 
 ### `ui/` stands on its own
 
@@ -412,6 +414,8 @@ A script reaches the rest of the desk only through the `page` object it is hande
 | Import map | Points each name on the import list at a built file |
 | `classes.json` | Every CSS class the build defines |
 | Tailwind presets and content | Each app's theme preset, and the folders Tailwind reads |
+| Layer file (`frontend/architecture/layers.json`) | Each layer's paths and the layers it may use, and each of today's breaks with the ticket that removes it |
+| `/desk-architecture` | In developer mode, a System Manager's page of the layers, the flows and every import that breaks the layer file, built from the working tree on each request |
 
 ## The five flows
 
