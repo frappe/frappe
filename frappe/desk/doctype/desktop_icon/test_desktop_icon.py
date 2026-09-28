@@ -4,7 +4,10 @@
 from contextlib import contextmanager
 
 import frappe
-from frappe.desk.doctype.desktop_icon.desktop_icon import create_desktop_icons_from_installed_apps
+from frappe.desk.doctype.desktop_icon.desktop_icon import (
+	create_desktop_icons_from_installed_apps,
+	create_desktop_icons_from_workspace,
+)
 from frappe.tests import IntegrationTestCase
 
 # On IntegrationTestCase, the doctype test records and all
@@ -40,6 +43,20 @@ class IntegrationTestDesktopIcon(IntegrationTestCase):
 			{"doctype": "Desktop Icon", "label": label, "link_type": "External", **kwargs}
 		).insert()
 
+	def make_public_workspace(self, title: str):
+		# a workspace icon links to the workspace's sidebar, which the install creates first
+		frappe.get_doc({"doctype": "Workspace Sidebar", "title": title}).insert(ignore_permissions=True)
+		return frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": title,
+				"label": title,
+				"module": "Core",
+				"public": 1,
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
+
 	def app_icons(self, app: str = "frappe") -> list[str]:
 		return frappe.get_all("Desktop Icon", filters={"icon_type": "App", "app": app}, pluck="name")
 
@@ -60,3 +77,22 @@ class IntegrationTestDesktopIcon(IntegrationTestCase):
 
 			self.assertEqual(frappe.db.get_value("Desktop Icon", app_title, "icon_type"), "Folder")
 			self.assertEqual(self.app_icons(), [])
+
+	def test_a_workspace_icon_is_parented_to_the_icon_its_app_ships(self):
+		with empty_desktop():
+			self.make_icon(SHIPPED, icon_type="App", app="frappe", link="/app/test-shipped")
+			workspace = self.make_public_workspace("Test Parented Workspace")
+
+			create_desktop_icons_from_workspace()
+
+			self.assertEqual(frappe.db.get_value("Desktop Icon", workspace.name, "parent_icon"), SHIPPED)
+
+	def test_a_portal_apps_workspace_icon_stays_off_the_desktop(self):
+		"""Otherwise lms's "Learning" workspace shows up next to its "Frappe Learning" App icon."""
+		with empty_desktop():
+			self.make_icon(SHIPPED, icon_type="App", app="frappe", link="/test-portal")
+			workspace = self.make_public_workspace("Test Portal Workspace")
+
+			create_desktop_icons_from_workspace()
+
+			self.assertEqual(frappe.db.get_value("Desktop Icon", workspace.name, "hidden"), 1)
