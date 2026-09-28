@@ -76,6 +76,10 @@ class Importer:
 		self.console = console
 		self.use_sniffer = use_sniffer
 
+		# set user lang for translations
+		frappe.cache.hdel("lang", frappe.session.user)
+		frappe.set_user_lang(frappe.session.user)
+
 		self.data_import = data_import
 		if not self.data_import:
 			self.data_import = frappe.get_doc(doctype="Data Import")
@@ -112,10 +116,6 @@ class Importer:
 		return out
 
 	def before_import(self):
-		# set user lang for translations
-		frappe.cache.hdel("lang", frappe.session.user)
-		frappe.set_user_lang(frappe.session.user)
-
 		# set flags
 		frappe.flags.in_import = True
 		frappe.flags.mute_emails = self.data_import.mute_emails
