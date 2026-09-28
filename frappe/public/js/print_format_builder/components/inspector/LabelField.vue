@@ -1,21 +1,12 @@
 <template>
-	<div class="pfb-insp-row pfb-insp-row--col">
-		<span class="pfb-insp-label">{{ label }}</span>
+	<InspectorRow :label="label" stacked>
 		<div class="label-field-controls">
-			<label v-if="showToggle" class="switch-control" :title="showLabel">
-				<span class="input-area">
-					<input
-						type="checkbox"
-						role="switch"
-						:aria-label="showLabel"
-						:checked="show_on"
-						@change="$emit('update:show', $event.target.checked ? 'show' : 'hide')"
-					/>
-				</span>
-				<span class="switch-visual" aria-hidden="true">
-					<span class="switch-thumb"></span>
-				</span>
-			</label>
+			<Switch
+				v-if="showToggle"
+				:label="showLabel"
+				:model-value="show_on"
+				@update:model-value="(on) => $emit('update:show', on ? 'show' : 'hide')"
+			/>
 			<input
 				v-if="!showToggle || show_on"
 				class="pfb-insp-input"
@@ -25,11 +16,13 @@
 				@input="$emit('update:modelValue', $event.target.value)"
 			/>
 		</div>
-	</div>
+	</InspectorRow>
 </template>
 
 <script setup>
 import { computed } from "vue";
+import InspectorRow from "./InspectorRow.vue";
+import Switch from "./Switch.vue";
 
 const props = defineProps({
 	modelValue: { type: String, default: "" },

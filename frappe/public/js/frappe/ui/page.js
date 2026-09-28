@@ -60,8 +60,8 @@ frappe.ui.Page = class Page {
 		this.make();
 		if (!Object.keys(opts).includes("hide_sidebar")) this.hide_sidebar = false;
 		// pages can hide just the dock (while keeping the body sidebar) via this option;
-		// the two are independent, and `hide_sidebar` only closes the panel where a rail is on
-		// screen to reopen it (see Sidebar.page_allows_sidebar)
+		// the two are independent, and `hide_sidebar` takes the panel away on a desktop and merely
+		// closes the drawer on a narrow screen (see Sidebar.page_allows_sidebar)
 		if (!Object.keys(opts).includes("hide_dock")) this.hide_dock = false;
 		frappe.ui.pages[frappe.get_route_str()] = this;
 	}

@@ -17,6 +17,18 @@
 		<meta name="apple-mobile-web-app-status-bar-style" content="white">
 		<meta name="mobile-web-app-capable" content="yes">
 		<title>{{ app_name }}</title>
+		{% if desk_theme.lower() == "automatic" %}
+		<style>
+			/* The dark theme tokens only apply once desk.js swaps data-theme from
+			   "automatic" to "dark", so paint the splash from the OS preference.
+			   #171717 is --surface-base (--gray-950) in the dark theme. */
+			@media (prefers-color-scheme: dark) {
+				html[data-theme="automatic"] body {
+					background-color: #171717;
+				}
+			}
+		</style>
+		{% endif %}
 		<link rel="shortcut icon"
 			href="{{ favicon or "/assets/frappe/images/frappe-favicon.svg" }}" type="image/x-icon">
 		<link rel="icon"

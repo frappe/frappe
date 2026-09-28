@@ -91,12 +91,7 @@ def ensure_run_lookup_index():
 	Background Task carries no index of its own and grows with every run, so without this the
 	check degrades into a full scan as history accumulates.
 	"""
-	table = "tabBackground Task"
-	if not frappe.db.has_index(table, RUN_LOOKUP_INDEX):
-		# Raw DDL: the query builder does not create indexes.
-		frappe.db.sql_ddl(
-			f"ALTER TABLE `{table}` ADD INDEX `{RUN_LOOKUP_INDEX}` (`task_name`, `method`, `creation`)"
-		)
+	frappe.db.add_index("Background Task", ["task_name", "method", "creation"], RUN_LOOKUP_INDEX)
 
 
 def _completed_names(automation: str, fire_at: datetime) -> list[str | None]:
@@ -246,10 +241,11 @@ def _target_date(rule, today):
 
 
 def _due_names(rule, target) -> list[str]:
-	# `between` on the whole day covers Date and Datetime fields alike.
+	# Date bounds, not datetime strings: SQLite compares Date columns as text, and the
+	# query engine widens date bounds to the whole day for Datetime fields.
 	filters = [
 		*_normalize_filters(frappe.parse_json(rule.filters) if rule.filters else None),
-		[rule.date_field, "between", [f"{target} 00:00:00", f"{target} 23:59:59"]],
+		[rule.date_field, "between", [target, target]],
 	]
 	names = frappe.get_all(rule.document_type, filters=filters, pluck="name")
 	return _condition_filtered(rule, names)

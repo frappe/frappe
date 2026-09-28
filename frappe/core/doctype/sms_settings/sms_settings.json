@@ -3,6 +3,7 @@
  "allow_copy": 1,
  "creation": "2013-01-10 16:34:24",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/sms-setting",
  "engine": "InnoDB",
  "field_order": [
   "sms_gateway_url",

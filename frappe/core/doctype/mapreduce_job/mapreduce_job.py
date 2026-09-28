@@ -2,9 +2,10 @@
 # For license information, please see license.txt
 
 from types import NoneType
+from uuid import uuid4
 
 import frappe
-from frappe import qb
+from frappe import _, qb
 from frappe.model.document import Document
 from frappe.query_builder.functions import Count
 from frappe.utils import cint
@@ -22,12 +23,13 @@ class MapReduceJob(Document):
 		amended_from: DF.Link | None
 		callback: DF.Data | None
 		callback_executed: DF.Check
-		data: DF.JSON | None
+		data: DF.JSON
 		document_name: DF.DynamicLink | None
 		document_type: DF.Link | None
-		map: DF.Data | None
+		job_name: DF.Data
+		map: DF.Data
 		name: DF.Int | None
-		reduce: DF.Data | None
+		reduce: DF.Data
 		result: DF.JSON | None
 	# end: auto-generated types
 
@@ -39,6 +41,9 @@ class MapReduceJob(Document):
 	def on_submit(self):
 		data = frappe.parse_json(self.data)
 		assert isinstance(data, list), "Data should always be a list"
+
+		if not data:
+			frappe.throw(_("Data cannot be an empty list"))
 
 		create_tasks(self.name)
 
@@ -57,6 +62,22 @@ class MapReduceJob(Document):
 		):
 			qb.update(mrt).set(mrt.status, "Canceled").where(mrt.name.isin(to_cancel)).run()
 
+	@staticmethod
+	def clear_old_logs(days=30):
+		from frappe.query_builder import Interval
+		from frappe.query_builder.functions import Now
+
+		mapreduce = frappe.qb.DocType("MapReduce Job")
+		to_delete = (
+			frappe.qb.from_(mapreduce)
+			.select(mapreduce.name)
+			.where(mapreduce.modified < (Now() - Interval(days=days)))
+		).run(as_dict=True, pluck="name")
+		for x in to_delete:
+			if frappe.db.get_value("MapReduce Job", x, "docstatus") == 1:
+				frappe.get_doc("MapReduce Job", x).cancel()
+			frappe.delete_doc("MapReduce Job", x)
+
 
 def create_tasks(job: str):
 	doc = frappe.get_doc("MapReduce Job", job)
@@ -72,6 +93,7 @@ def create_tasks(job: str):
 		task.map_partial = None
 		task.save()
 
+	_create_dummy_bg_task(job)
 	atomically_schedule_tasks(job, 4)
 
 
@@ -163,6 +185,7 @@ def atomically_schedule_tasks(job, count):
 				)
 
 	frappe.db.commit()
+	publish_progress_to_bg_task(job)
 
 
 def pause_tasks(job: str):
@@ -239,3 +262,50 @@ def get_progress(job: str | int):
 	# progress
 	job_status.progress = (len([x for x in tasks if x == "Completed"]) / len(tasks)) * 100
 	return job_status
+
+
+# Below methods are hacky way to use Background Task to publish progress to user facing UI
+def _create_dummy_bg_task(job: str):
+	job_name = frappe.db.get_value("MapReduce Job", job, "job_name")
+
+	# create a single background task for the main MapReduce Job
+	bg = frappe.new_doc("Background Task")
+	bg.task_id = str(uuid4())
+	bg.task_name = job_name
+	bg.status = "Running"
+	bg.user = frappe.session.user
+	bg.method = "frappe.core.doctype.mapreduce_job.mapreduce_job._stub"
+	bg.is_mapreduce = True
+	bg.queue = "long"
+	bg.show_progress_bar = True
+	bg.allow_user_cancellation = True
+	bg.allow_user_retry = False
+	bg.ref_doctype = "MapReduce Job"
+	bg.ref_docname = job
+	bg.started_at = frappe.utils.now()
+	bg.insert(ignore_permissions=True)
+
+
+def _stub():
+	pass
+
+
+def publish_progress_to_bg_task(job: str):
+	# TODO: store BG Task id directly in mapreduce
+	# update status and publish progress to background task
+	if task := frappe.db.get_all(
+		"Background Task", {"ref_doctype": "MapReduce Job", "ref_docname": job}, pluck="name"
+	):
+		# get progress on mapreduce job
+		status = get_progress(job)
+
+		task = frappe.get_doc("Background Task", task[0])
+		task.publish_progress(
+			percent=status.progress,
+		)
+		if status.progress == 100:
+			values = {"status": "Completed", "progress": 100, "ended_at": frappe.utils.now()}
+			task.db_set(values)
+			task._publish(
+				{"task_id": task.task_id, "task_name": task.task_name, "status": "Completed", "progress": 100}
+			)

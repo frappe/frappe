@@ -33,8 +33,9 @@ class FullTextSearch:
 		"""Get all documents to be indexed conforming to the schema"""
 		return []
 
-	def get_document_to_index(self):
-		return {}
+	def get_document_to_index(self, name=None):
+		"""Get the document (conforming to the schema) to index for `name`"""
+		return None
 
 	def build(self):
 		"""Build search index for all documents"""

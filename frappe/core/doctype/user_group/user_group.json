@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "autoname": "Prompt",
  "creation": "2021-04-12 15:17:24.751710",
  "doctype": "DocType",
@@ -17,6 +18,7 @@
    "reqd": 1
   }
  ],
+ "icon": "user-round-group",
  "index_web_pages_for_search": 1,
  "links": [],
  "modified": "2024-03-23 16:04:00.597980",
@@ -43,6 +45,7 @@
    "role": "Desk User"
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

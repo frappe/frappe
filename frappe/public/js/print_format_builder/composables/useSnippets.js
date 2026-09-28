@@ -123,9 +123,40 @@ export function useSnippets({ insert_section, insert_field, doc_type }) {
 
 	init().catch((e) => console.error("Could not load print format snippets", e));
 
+	function prompt_snippet(node, snippet_type) {
+		const is_field = snippet_type === "Field";
+		frappe.prompt(
+			{
+				label: __("Snippet name"),
+				fieldname: "name",
+				fieldtype: "Data",
+				reqd: 1,
+				default: node.label || (is_field ? node.fieldname : "") || "",
+			},
+			({ name }) => {
+				save_snippet(name, node, snippet_type).then(
+					() =>
+						frappe.show_alert(
+							{
+								message: is_field
+									? __("Field saved as snippet")
+									: __("Section saved as snippet"),
+								indicator: "green",
+							},
+							3
+						),
+					() => {}
+				);
+			},
+			is_field ? __("Save Field as Snippet") : __("Save Section as Snippet"),
+			__("Save")
+		);
+	}
+
 	return {
 		snippets,
 		save_snippet,
+		prompt_snippet,
 		insert_snippet,
 		delete_snippet,
 	};

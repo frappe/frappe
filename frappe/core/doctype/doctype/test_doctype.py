@@ -116,8 +116,9 @@ class TestDocType(IntegrationTestCase):
 		doc2.name = "two"
 
 		doc1.insert()
+		frappe.db.savepoint("before_duplicate_insert")
 		self.assertRaises(frappe.UniqueValidationError, doc2.insert)
-		frappe.db.rollback()
+		frappe.db.rollback(save_point="before_duplicate_insert")
 
 		dt.fields[0].unique = 0
 		dt.save()
@@ -384,6 +385,23 @@ class TestDocType(IntegrationTestCase):
 		field_1.search_index = 1
 
 		self.assertRaises(CannotIndexedError, doc.insert)
+
+	def test_no_value_field_resets_column_properties(self):
+		doc = new_doctype("Test No Value Field Reset")
+		field_1 = doc.append("fields", {})
+		field_1.fieldname = "some_fieldname_1"
+		field_1.fieldtype = "HTML"
+		field_1.unique = 1
+		field_1.search_index = 1
+		field_1.not_nullable = 1
+
+		doc.insert()  # would raise NonUniqueError before the reset
+
+		self.assertFalse(field_1.unique)
+		self.assertFalse(field_1.search_index)
+		self.assertFalse(field_1.not_nullable)
+
+		doc.delete()
 
 	def test_cancel_link_doctype(self):
 		import json

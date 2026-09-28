@@ -383,7 +383,9 @@ class TestDrainer(IntegrationTestCase):
 			patch.object(drainer, "kick_drainer") as kick,
 			self.change_settings("Automation Settings", drain_seconds=0.001),
 		):
-			drain(batch_size=2, executor=processed.append)
+			with patch.object(drainer, "time", wraps=drainer.time) as clock:
+				clock.monotonic.side_effect = [100.0, 101.0]
+				drain(batch_size=2, executor=processed.append)
 
 		self.assertEqual(len(processed), 2)
 		# Two rows are still due, so the drain hands off to a fresh job instead of running on.

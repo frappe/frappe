@@ -375,6 +375,12 @@ class TestDateBasedScheduler(IntegrationTestCase):
 		process_date_based()
 		self.assertEqual([r.ref_name for r in self.rows(rule)], [event.name])
 
+	def test_standard_datetime_field_matches_anywhere_in_the_day(self):
+		todo = make_todo(self.days_out(10))
+		rule = make_date_rule(date_field="creation", date_offset=0)
+		process_date_based()
+		self.assertEqual([r.ref_name for r in self.rows(rule)], [todo.name])
+
 	def test_target_day_follows_the_site_timezone(self):
 		"""'now' is site-local, so the offset is measured off the site's calendar day."""
 		original = frappe.db.get_single_value("System Settings", "time_zone")

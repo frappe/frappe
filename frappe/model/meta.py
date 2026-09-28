@@ -18,7 +18,7 @@ Example:
 import json
 import os
 import typing
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import frappe
 from frappe import N_, _
@@ -515,8 +515,8 @@ class Meta(Document):
 			recent_change = frappe.db.sql(
 				f"SELECT `creation` FROM `tab{self.name}` ORDER BY `creation` DESC LIMIT 1"
 			)  # nosemgrep
-			if recent_change and get_datetime(recent_change[0][0]) > add_to_date(
-				None, days=-1 * LARGE_TABLE_RECENCY_THRESHOLD
+			if recent_change and get_datetime(recent_change[0][0]) > (
+				datetime.now() + timedelta(days=(-1 * LARGE_TABLE_RECENCY_THRESHOLD))
 			):
 				self.is_large_table = True
 

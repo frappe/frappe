@@ -7,6 +7,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	LINKED_IDENTITY_FIELDS,
 	is_linked,
 	item_key,
+	validate_item_route,
 )
 from frappe.desk.doctype.workspace.workspace import check_workspace_manager, is_workspace_manager
 from frappe.desk.layers import resolve_layers
@@ -36,6 +37,7 @@ ADDED_ITEM_FIELDS = (
 	"url",
 	"show_arrow",
 	"filters",
+	"route",
 	"route_options",
 	"open_in_new_tab",
 )
@@ -76,6 +78,7 @@ class CustomSidebar(Document):
 	def validate(self):
 		self.validate_module()
 		self.validate_unique()
+		self.validate_item_routes()
 		self.drop_private_workspaces()
 		self.anchor_the_items()
 
@@ -83,6 +86,10 @@ class CustomSidebar(Document):
 		"""Check the module in the model rather than in the endpoints. `_validate_links` below no
 		longer checks this document's own Link fields, so nothing else would."""
 		check_module(self.module)
+
+	def validate_item_routes(self):
+		for item in self.sidebar_items:
+			validate_item_route(item)
 
 	def validate_unique(self):
 		existing = frappe.db.exists(
@@ -100,28 +107,42 @@ class CustomSidebar(Document):
 			)
 
 	def drop_private_workspaces(self):
-		"""Drop rows naming a private workspace from any layer, the site's and a user's alike.
+		"""Drop rows naming someone else's private workspace, or any private one from the site's
+		layer.
 
-		A private page's link is derived on read (`sidebar.get_private_workspaces`), and the
-		derived row is appended to the arrangement the client is shown, so it comes back on the
-		next save. Storing it would put a row per private page in the document the whole site
-		shares, or, in the owner's own layer, a second copy of a link that is already derived
-		from the workspace and that points nowhere once the page is deleted.
+		A row naming a private page belongs in one place only: the layer of the user who owns it.
+		There it is what makes the page's place in the sidebar a stored fact, so the owner can
+		arrange it, rename it and hide it from a module's sidebar. Anywhere else it is a row about
+		a page its reader cannot open, and in the site's layer it also puts a row per private page
+		into the document the whole site shares, where an admin tidying up finds other users'
+		pages.
+
+		A page with no row of its own still reaches its owner's sidebar, derived on read from the
+		workspace itself (`sidebar.get_private_workspaces`). That is what every page made before
+		rows were written relies on, and it is why a row dropped here loses nothing.
 
 		This is enforced here rather than in the endpoints, because every write is a way in: the
-		two save endpoints, `add_site_sidebar_item`, the form and the API. It also clears rows a
-		site stored before the derivation existed, on the next save of that layer.
+		two save endpoints, `add_user_sidebar_item`, `add_site_sidebar_item`, the form and the
+		API. It also clears rows a site stored in the wrong layer, on the next save of that layer.
 
 		A public workspace is untouched: its link is stored, and arranging or hiding it is what
-		the layers are for.
+		the layers are for. So is a page with no owner at all: `get_workspaces` shows one to
+		everybody, so it is a shared page in all but the column, and a layer may hold it.
 		"""
 		named = {row.link_to for row in self.sidebar_items if row.link_type == "Workspace" and row.link_to}
 		if not named:
 			return
 
-		private = set(
-			frappe.get_all("Workspace", filters={"name": ["in", list(named)], "public": 0}, pluck="name")
+		# Owned pages only, named rather than excluded. A `!=` filter is wrapped in `ifnull(col, '')`,
+		# so on the site layer, whose `user` is the empty string, `for_user != ''` matched nothing
+		# and an unowned page was kept there while every owned one was dropped -- the rule stated
+		# one way and behaving another.
+		owners = frappe.get_all(
+			"Workspace",
+			filters={"name": ["in", list(named)], "public": 0, "for_user": ["is", "set"]},
+			fields=["name", "for_user"],
 		)
+		private = {row.name for row in owners if row.for_user != self.user}
 		if private:
 			self.set(
 				"sidebar_items",
@@ -277,8 +298,19 @@ def resolve_arrangement(
 
 
 def merge_layers(items: list[dict], layers: list["CustomSidebar"]) -> list[dict]:
-	"""Return the arrangement as it renders. An item left hidden by every layer is removed, rather
-	than rendered as hidden the way the dock renders one."""
+	"""Return the arrangement as it renders, for a caller that does not need the hidden keys."""
+	return merged_arrangement(items, layers)[0]
+
+
+def merged_arrangement(items: list[dict], layers: list["CustomSidebar"]) -> tuple[list[dict], set[str]]:
+	"""Return the arrangement as it renders, and the keys the layers hid.
+
+	An item left hidden by every layer is removed, rather than rendered as hidden the way the
+	dock renders one. Which keys those were is still worth knowing, because a hidden item is a
+	decision and a later step can undo it by accident: a private page hidden here is left out of
+	the list, so the derived append no longer finds it and adds it straight back. The append is
+	given these keys and skips them (`sidebar.append_derived_items`).
+	"""
 	resolved, hidden = resolve_arrangement(items, layers)
 
 	kept = []
@@ -293,7 +325,7 @@ def merge_layers(items: list[dict], layers: list["CustomSidebar"]) -> list[dict]
 		item.pop("hidden", None)
 		kept.append(item)
 
-	return kept
+	return kept, {key for key, is_hidden in hidden.items() if is_hidden}
 
 
 def apply_sidebar_row(row, item: dict | None) -> dict | None:
@@ -328,7 +360,14 @@ def overrides(row) -> dict:
 
 
 def shape_added_item(row) -> dict:
-	"""Return an added row in the shape the boot payload uses for a base item."""
+	"""Return an added row in the shape the boot payload uses for a base item.
+
+	"The shape a base item uses" includes the report facts a Report row carries, which is why
+	`attach_report` runs here too. Without it a report someone added to their own sidebar draws as
+	a link with no route, while the identical row shipped by an app works.
+	"""
+	from frappe.desk.doctype.sidebar.sidebar import attach_report
+
 	item = {field: row.get(field) for field in ADDED_ITEM_FIELDS}
 	item.update(
 		{
@@ -338,6 +377,7 @@ def shape_added_item(row) -> dict:
 			"added": 1,
 		}
 	)
+	attach_report(item, row.link_type, row.link_to)
 	return item
 
 
@@ -372,29 +412,72 @@ def layer_arrangement(module: str, user: str | None) -> list[dict]:
 	A curator given a filtered screen would drop the site's rows for everything they personally
 	cannot see on the next save, since this editor writes the whole arrangement.
 
-	Private workspaces are absent, as they are from every stored arrangement: they are derived
-	after the merge, and `drop_private_workspaces` removes any that were stored.
+	A user arranging their own layer is also shown the private pages they made, including the ones
+	no row names yet, marked as rows of theirs. That is what turns a page made before rows were
+	written into a stored one: this editor saves the whole arrangement, so the first save says
+	where the page is instead of leaving it to the derivation. The site's layer is shown none of
+	them, because it may hold none (`drop_private_workspaces`).
 	"""
-	from frappe.desk.doctype.sidebar.sidebar import filter_sidebar_items, get_module_base
+	from frappe.desk.doctype.sidebar.sidebar import PRIVATE_MODULE, filter_sidebar_items, get_module_base
 
 	check_module(module)
 
-	base = get_module_base(module)
-	# `is_item_allowed` is a method on `DeskViews`, so the check needs an instance: one throwaway
-	# `Workspace`, the same as `SidebarContext` builds for the boot.
-	items = filter_sidebar_items(base.rows, frappe.new_doc("Workspace"), check_permission=bool(user))
+	perm_ctx = frappe.new_doc("Workspace")
+	# The Private shell is drawn from the pages this user made rather than from what the module
+	# holds, and what it holds is public, so the base has nothing to say about it. See
+	# `sidebar.resolve_private_sidebar`.
+	if module == PRIVATE_MODULE:
+		items = []
+	else:
+		base = get_module_base(module)
+		# `is_item_allowed` is a method on `DeskViews`, so the check needs an instance: one
+		# throwaway `Workspace`, the same as `SidebarContext` builds for the boot.
+		items = filter_sidebar_items(base.rows, perm_ctx, check_permission=bool(user))
+
 	resolved, hidden = resolve_arrangement(items, get_layers(module, user))
 
 	own = get_customization(module, user)
 	own_added = {item_key(row) for row in own.sidebar_items if row.added} if own else set()
 
-	return [
+	arrangement = [
 		{
 			**item,
 			"hidden": int(hidden.get(item_key(item), 0)),
 			"added": int(item_key(item) in own_added),
 		}
 		for item in resolved
+	]
+
+	return arrangement + unstored_private_items(module, user, arrangement, perm_ctx)
+
+
+def unstored_private_items(module: str, user: str | None, arrangement: list[dict], perm_ctx) -> list[dict]:
+	"""The user's private pages this layer does not name yet, shaped as rows of their own.
+
+	They are marked `added`, because that is what they become: saving the arrangement stores them,
+	and from then on the page's place is a stored fact rather than something derived after the
+	merge.
+	"""
+	from frappe.desk.doctype.sidebar.sidebar import (
+		PRIVATE_MODULE,
+		all_private_rows,
+		filter_sidebar_items,
+		get_private_workspaces,
+	)
+
+	if not user:
+		return []
+
+	by_module = get_private_workspaces(user)
+	rows = all_private_rows(by_module) if module == PRIVATE_MODULE else by_module.get(module)
+	if not rows:
+		return []
+
+	seen = {item_key(item) for item in arrangement}
+	return [
+		{**item, "hidden": 0, "added": 1}
+		for item in filter_sidebar_items(rows, perm_ctx)
+		if item_key(item) not in seen
 	]
 
 
@@ -488,6 +571,225 @@ def reset_to_standard(module: str):
 		frappe.delete_doc("Custom Sidebar", name, ignore_permissions=True, force=True)
 
 	return module_payload()
+
+
+def add_user_sidebar_item(module: str, user: str, item: dict) -> None:
+	"""Append one item to `user`'s own layer, leaving the rest unchanged.
+
+	The per-user mirror of `add_site_sidebar_item`, and the whole reason it is per user: the only
+	rows written this way are the links to a user's own private pages, which belong in that user's
+	layer and nowhere else (`drop_private_workspaces`).
+
+	A user with no layer for this module gets one holding just this row. That is a layer of
+	additions and nothing else, which the merge reads as appends rather than as an arrangement, so
+	the row lands at the end of the sidebar and nothing else in it moves
+	(`frappe/desk/layers.py`).
+
+	An item already present is skipped, so the caller does not have to check.
+	"""
+	existing = get_customization(module, user)
+	doc = (
+		frappe.get_doc("Custom Sidebar", existing.name)
+		if existing
+		else frappe.new_doc("Custom Sidebar").update({"module": module, "user": user})
+	)
+
+	if any(item_key(row) == item_key(item) for row in doc.sidebar_items):
+		return
+
+	doc.append("sidebar_items", {**item, "added": 1})
+	# Saved under the caller's own permissions, which already say exactly who may write a layer:
+	# your own, or anyone's if you curate navigation for everyone (`has_permission`). A page's
+	# owner writing their own layer passes it, and so does a Workspace Manager making a page for
+	# somebody else. Nobody else can reach here, because `Workspace.validate_private_page_is_yours`
+	# refuses the page itself.
+	doc.save()
+
+
+def layers_holding(
+	link_to: str, user: str | None = None, added_only: bool = False, not_labelled: str | None = None
+) -> list[frappe._dict]:
+	"""The layers holding a row that names this workspace, as `name` and `user`.
+
+	One query for however many layers there are, and it answers with the owner of each, which is
+	what the cache invalidation below needs. Asking `Sidebar Item` for parents and then asking
+	`Custom Sidebar` about those parents was two queries for one question.
+
+	`user` narrows it to one person's layers, `added_only` to rows that carry an item rather than
+	reference one, and `not_labelled` to rows whose label is out of date.
+	"""
+	item = frappe.qb.DocType("Sidebar Item")
+	layer = frappe.qb.DocType("Custom Sidebar")
+
+	query = (
+		frappe.qb.from_(item)
+		.join(layer)
+		.on(item.parent == layer.name)
+		.select(layer.name, layer.user)
+		.distinct()
+		.where(
+			(item.parenttype == "Custom Sidebar")
+			& (item.link_type == "Workspace")
+			& (item.link_to == link_to)
+		)
+	)
+	if user:
+		query = query.where(layer.user == user)
+	if added_only:
+		query = query.where(item.added == 1)
+	if not_labelled is not None:
+		# A row with no label at all is out of date too, and `<>` alone would not say so.
+		query = query.where((item.label != not_labelled) | item.label.isnull())
+
+	return query.run(as_dict=True)
+
+
+def forget_layers(layers: list[frappe._dict]) -> None:
+	"""Clear what a save or a delete of these layers would have cleared.
+
+	The writes below go through `frappe.db`, which touches no document and runs no hook, so the two
+	caches a `Custom Sidebar` keeps warm have to be dropped here: the document itself, which
+	`get_layers_for` reads through `get_cached_doc`, and the boot of whoever the layer belongs to.
+
+	This loops, and it has to: each user's boot is its own cache key. They are Redis deletes, not
+	queries, so the loop costs nothing that grows with the database.
+	"""
+	for layer in layers:
+		frappe.clear_document_cache("Custom Sidebar", layer.name)
+		if layer.user:
+			frappe.cache.hdel("bootinfo", layer.user)
+		else:
+			# The site's layer applies to everyone, so everyone's boot is stale.
+			frappe.cache.delete_key("bootinfo")
+
+
+def remove_workspace_rows(link_to: str, owner: str | None = None) -> None:
+	"""Drop every row naming `link_to` as a workspace, from every layer that holds one.
+
+	What a row names can stop being the page it named: the page is deleted, it moves to another
+	module, or it stops being private and earns a stored link of its own instead. A row left behind
+	names nothing, and while resolution skips such a row (`apply_sidebar_row`), leaving it there
+	would put the page back in a module's sidebar if a page of that name ever came back.
+
+	Every layer, always. A page that has just become private was shared a moment ago, so its rows
+	are in the site's layer and in the layer of everyone who had arranged the module that listed it,
+	and none of those people may keep a row naming a page they can no longer open. Narrowing the
+	removal to one person left exactly those rows behind.
+
+	`owner` is who the page belongs to, when it belongs to anybody. It says nothing about which rows
+	go; it says whose emptied layers may go with them, which is the one part of this that costs a
+	document write apiece (`drop_layers_saying_nothing`).
+
+	Three statements, whatever the number of layers. This used to load and save each layer as a
+	document, which is fine for a private page, where only its owner holds a row, and not fine for
+	a shared one: every user who has ever arranged that module's sidebar holds a reference to it, so
+	deleting a workspace on a large site was a document read and a document write per user, inside
+	the delete. The rows are removed with `db.delete` instead and the caches are dropped by hand
+	(`forget_layers`), because nothing in a row removal needs `validate` to run.
+
+	It writes past permissions, as the document version did: this runs after a workspace is gone,
+	over every layer that named it, and somebody deleting a shared page they own cannot write the
+	arrangements of everyone who had put that page in their sidebar. Nothing user-supplied is
+	written -- rows naming one deleted document are removed, and nothing else is touched.
+
+	Child rows rather than documents, which is what makes one statement enough: a `Sidebar Item` has
+	no controller and nothing hangs off it, so there is no lifecycle to skip. The layers themselves
+	are documents and are deleted as documents, which is why that only happens on the narrow path
+	below.
+	"""
+	layers = layers_holding(link_to)
+	if not layers:
+		return
+
+	names = [layer.name for layer in layers]
+	frappe.db.delete(
+		"Sidebar Item",
+		{
+			"parenttype": "Custom Sidebar",
+			"link_type": "Workspace",
+			"link_to": link_to,
+			"parent": ["in", names],
+		},
+	)
+	if owner:
+		drop_layers_saying_nothing([layer.name for layer in layers if layer.user == owner])
+	forget_layers(layers)
+
+
+def drop_layers_saying_nothing(names: list[str]) -> None:
+	"""Delete any of `names` left with no rows, no label and no icon.
+
+	An empty layer is not the same as an empty arrangement: one of these was never arranged, it just
+	lost the single row it was created for. Left behind it is read on every boot of whoever owns it,
+	which is a read to learn that nobody has an opinion.
+
+	Only the owner's layers, which is what keeps this bounded: a page has one owner and at most two
+	layers of theirs name it. The layers that exist because of a single page are the ones a page's
+	own write path created (`add_user_sidebar_item`), and those are the owner's. A shared page's
+	rows sit in layers somebody arranged by hand, which hold more than that one row and do not
+	empty, so nothing is lost by leaving them alone.
+
+	The layers are deleted as documents, in one call with every name, because a `Custom Sidebar` is
+	a document: `on_trash` clears its owner's boot, and the deletion is recorded like any other.
+	"""
+	unopinionated = frappe.get_all(
+		"Custom Sidebar",
+		filters={
+			"name": ["in", names],
+			"label": ["in", ["", None]],
+			"header_icon": ["in", ["", None]],
+		},
+		pluck="name",
+	)
+	if not unopinionated:
+		return
+
+	still_holding = set(
+		frappe.get_all(
+			"Sidebar Item",
+			filters={"parenttype": "Custom Sidebar", "parent": ["in", unopinionated]},
+			pluck="parent",
+			distinct=True,
+		)
+	)
+	empty = [name for name in unopinionated if name not in still_holding]
+	if empty:
+		# ignore_permissions for the reason the caller gives: this is cleanup after a page is gone.
+		frappe.delete_doc("Custom Sidebar", empty, ignore_permissions=True, force=True)
+
+
+def relabel_workspace_rows(link_to: str, label: str) -> None:
+	"""Rename the rows that name this workspace, wherever they are.
+
+	A row that carries an item rather than a reference to one stores what the item is called, so
+	a page's rows keep its old title until somebody says otherwise. A reference row stores a label
+	only when a layer overrode it, and that override is a name somebody chose and is left alone.
+
+	The rows named a private page in practice, since those are the added rows a page's own write
+	path creates.
+
+	One update, whatever the number of rows, for the reason `remove_workspace_rows` gives: this runs
+	inside a workspace save, and a rename must not cost a document write per layer. It writes past
+	permissions on the same terms, and the only value it writes is the page's own title.
+	"""
+	layers = layers_holding(link_to, added_only=True, not_labelled=label)
+	if not layers:
+		return
+
+	frappe.db.set_value(
+		"Sidebar Item",
+		{
+			"parenttype": "Custom Sidebar",
+			"link_type": "Workspace",
+			"link_to": link_to,
+			"added": 1,
+			"parent": ["in", [layer.name for layer in layers]],
+		},
+		"label",
+		label,
+		update_modified=False,
+	)
+	forget_layers(layers)
 
 
 def add_site_sidebar_item(module: str, item: dict) -> None:
@@ -637,7 +939,7 @@ def anchor_references(rows: list[dict], shown: dict[str, dict]) -> None:
 			row["key"] = None
 		else:
 			# Nothing to point at, so the columns are cleared and the key carries the identity.
-			row.update(dict.fromkeys(("link_type", "link_to", "url")))
+			row.update(dict.fromkeys(("link_type", "link_to", "url", "route")))
 			row["key"] = item_key(item)
 
 

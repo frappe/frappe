@@ -37,16 +37,32 @@ Cypress.Commands.add("login", (email, password) => {
 	// cy.session clears all localStorage on new login, so we need to retain the last route
 	const session_last_route = window.localStorage.getItem("session_last_route");
 	return cy
-		.session([email, password] || "", () => {
-			return cy.request({
-				url: "/api/method/login",
-				method: "POST",
-				body: {
-					usr: email,
-					pwd: password,
+		.session(
+			[email, password] || "",
+			() => {
+				return cy.request({
+					url: "/api/method/login",
+					method: "POST",
+					body: {
+						usr: email,
+						pwd: password,
+					},
+				});
+			},
+			{
+				// A restored session whose cookie no longer authenticates leaves the next
+				// visit as Guest, which reads as a 403 on the page rather than as a login
+				// failure. Rebuild the session instead of reusing it.
+				validate() {
+					cy.request({
+						url: "/api/method/frappe.auth.get_logged_user",
+						failOnStatusCode: false,
+					})
+						.its("status")
+						.should("eq", 200);
 				},
-			});
-		})
+			}
+		)
 		.then(() => {
 			if (session_last_route) {
 				window.localStorage.setItem("session_last_route", session_last_route);

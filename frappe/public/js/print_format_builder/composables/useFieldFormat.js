@@ -1,18 +1,19 @@
 import { computed } from "vue";
-import { sanitize_html, thumb_hue } from "../utils";
+import { format_date_value, sanitize_html, thumb_hue } from "../utils";
+import { HTML_CONTENT_FIELDTYPES, is_image, is_merge_html, is_merge_image } from "../fieldtypes";
 
-const IMAGE_FIELDTYPES = new Set(["Attach Image", "Image", "Attach"]);
 const IMAGE_EXTENSIONS = /\.(png|jpe?g|gif|webp|svg|bmp|ico)(\?.*)?$/i;
-const HTML_CONTENT_FIELDTYPES = new Set(["Text Editor", "Long Text"]);
-const MERGE_IMAGE_FIELDTYPES = new Set(["Attach Image", "Attach"]);
+const blank = (v) => v === null || v === undefined || v === "";
 
 export function useFieldFormat(props, store, preview_doc) {
 	const preview_value = computed(() => {
 		if (!preview_doc.value || !props.df.fieldname) return null;
 		const raw = preview_doc.value[props.df.fieldname];
-		if (raw === null || raw === undefined || raw === "") return null;
+		if (blank(raw)) return null;
 		const ft = props.df.fieldtype;
 		if (ft === "Check") return raw ? __("Yes") : __("No");
+		const dated = format_date_value(raw, props.df);
+		if (dated !== null) return dated;
 		try {
 			const formatted = frappe.format(
 				raw,
@@ -30,10 +31,15 @@ export function useFieldFormat(props, store, preview_doc) {
 	});
 
 	const preview_value_html = computed(() => {
-		if (!preview_doc.value || !props.df.fieldname || props.df.fieldtype === "Check")
+		if (
+			!preview_doc.value ||
+			!props.df.fieldname ||
+			props.df.fieldtype === "Check" ||
+			props.df.date_format
+		)
 			return null;
 		const server = store.preview_values.value?.[props.df.fieldname];
-		if (server === null || server === undefined || server === "") return null;
+		if (blank(server)) return null;
 		return sanitize_html(String(server));
 	});
 
@@ -45,7 +51,7 @@ export function useFieldFormat(props, store, preview_doc) {
 	});
 
 	function is_image_field(col, value) {
-		if (IMAGE_FIELDTYPES.has(col?.fieldtype)) return true;
+		if (is_image(col)) return true;
 		if (value && typeof value === "string" && IMAGE_EXTENSIONS.test(value)) return true;
 		return false;
 	}
@@ -59,12 +65,24 @@ export function useFieldFormat(props, store, preview_doc) {
 		return parts.join("; ");
 	}
 
+	function frame_style(df) {
+		return {
+			...(df.table_radius != null ? { "--pfb-radius": df.table_radius + "px" } : {}),
+			...(df.table_header_bg && df.table_header !== "plain"
+				? { "--pfb-header-bg": df.table_header_bg }
+				: {}),
+			...(df.table_min_height
+				? { height: df.table_min_height + "px", "--pfb-foot-height": "100%" }
+				: {}),
+		};
+	}
+
 	function repeater_cell(col, i, row) {
 		return (col.template || [])
 			.map((tok) => {
 				if (tok.t === "s") return tok.v || "";
 				const server = store.preview_child_values.value?.[props.df.source]?.[i]?.[tok.v];
-				if (server !== null && server !== undefined && server !== "") {
+				if (!blank(server)) {
 					return frappe.utils.html2text(String(server));
 				}
 				const child_df = repeater_child_df(tok.v);
@@ -83,7 +101,7 @@ export function useFieldFormat(props, store, preview_doc) {
 
 	function multiselect_display(df) {
 		const server = store.preview_values.value?.[df.fieldname];
-		if (server !== null && server !== undefined && server !== "") {
+		if (!blank(server)) {
 			return frappe.utils.html2text(String(server));
 		}
 		const rows = preview_doc.value?.[df.fieldname] || [];
@@ -100,15 +118,18 @@ export function useFieldFormat(props, store, preview_doc) {
 	}
 
 	function cell_server_html(i, col) {
+		if (col.date_format) return null;
 		const v = store.preview_child_values.value?.[props.df.fieldname]?.[i]?.[col.fieldname];
-		if (v === null || v === undefined || v === "") return null;
+		if (blank(v)) return null;
 		return sanitize_html(String(v));
 	}
 
 	function format_cell(row, col) {
 		const raw = row[col.fieldname];
-		if (raw === null || raw === undefined || raw === "") return "";
+		if (blank(raw)) return "";
 		if (col.fieldtype === "Check") return raw ? __("Yes") : __("No");
+		const dated = format_date_value(raw, col);
+		if (dated !== null) return dated;
 		if (HTML_CONTENT_FIELDTYPES.has(col.fieldtype)) return sanitize_html(raw);
 		try {
 			const formatted = frappe.format(raw, col, { only_value: true }, row);
@@ -127,7 +148,12 @@ export function useFieldFormat(props, store, preview_doc) {
 		const extra = (col.merged_fields || []).filter((mf) => mf && mf.fieldname);
 		if (!extra.length) return [];
 		return [
-			{ fieldname: col.fieldname, fieldtype: col.fieldtype, style: "primary" },
+			{
+				fieldname: col.fieldname,
+				fieldtype: col.fieldtype,
+				style: "primary",
+				date_format: col.date_format,
+			},
 			...extra,
 		];
 	}
@@ -137,7 +163,7 @@ export function useFieldFormat(props, store, preview_doc) {
 	}
 
 	function image_merge(col) {
-		return merged_fields(col).find((mf) => MERGE_IMAGE_FIELDTYPES.has(mf.fieldtype)) || null;
+		return merged_fields(col).find((mf) => is_merge_image(mf)) || null;
 	}
 
 	function text_merges(col) {
@@ -145,20 +171,31 @@ export function useFieldFormat(props, store, preview_doc) {
 		return merged_fields(col).filter((mf) => mf.fieldname !== img?.fieldname);
 	}
 
-	function format_merged(row, i, fieldname) {
+	function format_merged(row, i, mf) {
+		const fieldname = mf.fieldname;
 		const server = store.preview_child_values.value?.[props.df.fieldname]?.[i]?.[fieldname];
-		if (server !== null && server !== undefined && server !== "") {
+		if (!blank(server) && !mf.date_format) {
 			return frappe.utils.html2text(String(server)).trim();
 		}
 		const dcol = frappe.meta.get_docfield(props.df.options, fieldname) || {
 			fieldname,
 			fieldtype: "Data",
 		};
-		const val = format_cell(row, dcol);
+		const val = format_cell(row, { ...dcol, date_format: mf.date_format });
 		if (typeof val === "string" && val.includes("<")) {
 			return frappe.utils.html2text(val).trim();
 		}
 		return val;
+	}
+
+	function merged_line(row, i, mf) {
+		if (!is_merge_html(mf)) {
+			return frappe.utils.escape_html(String(format_merged(row, i, mf) ?? ""));
+		}
+		const server = store.preview_child_values.value?.[props.df.fieldname]?.[i]?.[mf.fieldname];
+		const raw = blank(server) ? row[mf.fieldname] : server;
+		if (blank(raw)) return "";
+		return sanitize_html(String(raw));
 	}
 
 	function cell_image(col, row) {
@@ -192,6 +229,7 @@ export function useFieldFormat(props, store, preview_doc) {
 		rating_stars,
 		is_image_field,
 		cell_style,
+		frame_style,
 		repeater_cell,
 		multiselect_display,
 		cell_server_html,
@@ -200,6 +238,7 @@ export function useFieldFormat(props, store, preview_doc) {
 		image_merge,
 		text_merges,
 		format_merged,
+		merged_line,
 		cell_image,
 		thumb_box,
 		thumb,

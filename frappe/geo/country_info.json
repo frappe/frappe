@@ -439,11 +439,12 @@
  },
  "Bulgaria": {
   "code": "bg",
-  "currency": "BGN",
-  "currency_name": "Bulgarian Lev",
-  "currency_fraction": "Stotinka",
+  "currency": "EUR",
+  "currency_name": "Euro",
+  "currency_fraction": "Cent",
   "currency_fraction_units": 100,
-  "currency_symbol": "\u043b\u0432",
+  "smallest_currency_fraction_value": 0.01,
+  "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Sofia"
@@ -719,11 +720,12 @@
  },
  "Croatia": {
   "code": "hr",
-  "currency": "HRK",
-  "currency_fraction": "Lipa",
+  "currency": "EUR",
+  "currency_fraction": "Cent",
   "currency_fraction_units": 100,
-  "currency_name": "Croatian Kuna",
-  "currency_symbol": "kn",
+  "smallest_currency_fraction_value": 0.01,
+  "currency_name": "Euro",
+  "currency_symbol": "\u20ac",
   "number_format": "#.###,##",
   "timezones": [
    "Europe/Zagreb"
@@ -753,10 +755,11 @@
  },
  "Cyprus": {
   "code": "cy",
-  "currency": "CYP",
+  "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
-  "currency_name": "Cyprus Pound",
+  "smallest_currency_fraction_value": 0.01,
+  "currency_name": "Euro",
   "currency_symbol": "\u20ac",
   "number_format": "#.###,##",
   "timezones": [
@@ -901,6 +904,7 @@
   "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "currency_name": "Euro",
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
@@ -1551,11 +1555,12 @@
  },
  "Latvia": {
   "code": "lv",
-  "currency": "LVL",
-  "currency_fraction": "Sant\u012bms",
+  "currency": "EUR",
+  "currency_fraction": "Cent",
   "currency_fraction_units": 100,
-  "currency_name": "Latvian Lats",
-  "currency_symbol": "Ls",
+  "smallest_currency_fraction_value": 0.01,
+  "currency_name": "Euro",
+  "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Riga"
@@ -1627,11 +1632,12 @@
  },
  "Lithuania": {
   "code": "lt",
-  "currency": "LTL",
-  "currency_fraction": "Centas",
+  "currency": "EUR",
+  "currency_fraction": "Cent",
   "currency_fraction_units": 100,
-  "currency_name": "Lithuanian Litas",
-  "currency_symbol": "Lt",
+  "smallest_currency_fraction_value": 0.01,
+  "currency_name": "Euro",
+  "currency_symbol": "\u20ac",
   "date_format": "yyyy-mm-dd",
   "number_format": "# ###,##",
   "timezones": [
@@ -3053,7 +3059,7 @@
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_name": "Euro",
-  "currency_symbol": "€",
+  "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
     "Europe/Belgrade"

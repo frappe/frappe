@@ -14,10 +14,13 @@
 import { computed, ref } from "vue";
 import { canvas_zoom } from "../../utils";
 
-const props = defineProps(["section"]);
+const props = defineProps({
+	target: { type: Object, required: true },
+	prop: { type: String, default: "radius" },
+});
 const active = ref(false);
 
-const radius = computed(() => props.section.radius || 0);
+const radius = computed(() => props.target[props.prop] || 0);
 // sits on the rounded corner arc (top-left), never closer than a grabbable gap
 const pos = computed(() => {
 	const r = Math.max(radius.value, 10) + "px";
@@ -34,7 +37,7 @@ function start(e) {
 	function move(ev) {
 		// dragging toward the section centre (down-right) grows the radius
 		const delta = (ev.clientX - ox + (ev.clientY - oy)) / 2 / zoom;
-		props.section.radius = Math.max(0, Math.round(start_val + delta));
+		props.target[props.prop] = Math.max(0, Math.round(start_val + delta));
 	}
 	function up() {
 		active.value = false;

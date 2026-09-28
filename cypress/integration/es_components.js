@@ -231,6 +231,31 @@ context("Espresso components", () => {
 			cy.get(".es-tooltip").should("not.exist");
 			cy.get("@trigger").should("not.have.attr", "aria-describedby");
 		});
+
+		// The variant the dock's tiles use: every tile is the same square in one column and every
+		// bubble lands in the same place beside it, so the arrow names nothing the position had not
+		// already said. The class is what the stylesheet hides it by; the node is not built either,
+		// and this asserts both so neither half can be dropped on its own.
+		it("drops the arrow for es-tooltip--plain, and keeps it otherwise", () => {
+			cy.contains(".es-button", "No delay").as("trigger");
+
+			cy.get("@trigger").trigger("pointerenter", { pointerType: "mouse" });
+			cy.get(".es-tooltip").should("not.have.class", "es-tooltip--plain");
+			cy.get(".es-tooltip .es-tooltip__arrow").should("exist");
+			cy.get("@trigger").trigger("pointerleave");
+
+			cy.window().then((win) => {
+				const tip = new win.frappe.ui.Tooltip(win.document.body, {
+					text: "Plain",
+					delay: 0,
+					class: "es-tooltip--plain",
+				});
+				tip.show();
+				cy.get(".es-tooltip.es-tooltip--plain").should("exist");
+				cy.get(".es-tooltip .es-tooltip__arrow").should("not.exist");
+				cy.then(() => tip.destroy());
+			});
+		});
 	});
 
 	describe("Popover", () => {

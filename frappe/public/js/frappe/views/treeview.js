@@ -578,7 +578,7 @@ frappe.views.TreeView = class TreeView {
 			},
 			{
 				label: __("Delete"),
-				icon: "trash-2",
+				icon: "trash",
 				danger: true,
 				condition: function (node) {
 					return me.can_delete;

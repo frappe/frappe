@@ -4,6 +4,7 @@
  "creation": "2019-01-24 15:51:06.362222",
  "doctype": "DocType",
  "document_type": "Document",
+ "documentation": "https://docs.frappe.io/framework/user/en/guides/app-development/connected-app",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

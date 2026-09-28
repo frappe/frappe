@@ -159,7 +159,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.fieldtype !== 'Attachment Gallery'",
+   "depends_on": "eval:!frappe.model.no_value_type.includes(doc.fieldtype)",
    "fieldname": "search_index",
    "fieldtype": "Check",
    "label": "Index",
@@ -182,7 +182,7 @@
    "depends_on": "eval:doc.fieldtype !== 'Attachment Gallery'",
    "fieldname": "in_standard_filter",
    "fieldtype": "Check",
-   "label": "In List Filter"
+   "label": "In Standard Filter"
   },
   {
    "default": "0",
@@ -306,7 +306,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.fieldtype !== 'Attachment Gallery'",
+   "depends_on": "eval:!frappe.model.no_value_type.includes(doc.fieldtype)",
    "fieldname": "unique",
    "fieldtype": "Check",
    "label": "Unique"
@@ -632,7 +632,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!['Check', 'Currency', 'Float', 'Int', 'Percent', 'Rating', 'Select', 'Table', 'Table MultiSelect', 'Attachment Gallery'].includes(doc.fieldtype)",
+   "depends_on": "eval:!['Check', 'Currency', 'Float', 'Int', 'Percent', 'Rating', 'Select'].includes(doc.fieldtype) && !frappe.model.no_value_type.includes(doc.fieldtype)",
    "fieldname": "not_nullable",
    "fieldtype": "Check",
    "label": "Not Nullable"
@@ -698,7 +698,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-09 12:06:52.425311",
+ "modified": "2026-09-23 14:47:18.443497",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",

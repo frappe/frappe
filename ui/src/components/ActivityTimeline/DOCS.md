@@ -276,13 +276,87 @@ Returns:
 | ------------ | --------------------------------------------------------------------------------------------------------------------- |
 | `activities` | `ComputedRef` — deduped, sorted, and grouped rows ready for the component                                             |
 | `loading`    | `ComputedRef<boolean>`                                                                                                |
-| `reload()`   | Refetch the feed                                                                                                      |
+| `reload()`   | Refetch the feed; coalesced, so N callers in the same moment cost one request. Returns a promise                       |
 | `paginate`   | `Pagination` — "Load more" controller for emails and milestones; bind it to the component only if you want pagination |
 
-**Realtime.** While mounted it subscribes to the doc's socket room and
-patches the feed live — new comments/likes/assignments/attachments arrive via
-`docinfo_update`, and field changes trigger a reload via `doc_update`. It unsubscribes on
-unmount.
+**Realtime.** While mounted it subscribes to the doc's socket room and patches the feed
+live. Two server events drive it:
+
+| Event            | Carries                     | What happens                               |
+| ---------------- | --------------------------- | ------------------------------------------ |
+| `docinfo_update` | the whole row (`as_dict()`) | spliced into the feed, no request          |
+| `doc_update`     | `{doctype, name, modified}` | too thin to splice, so: a coalesced refetch |
+
+Comments, likes, assignments, attachments and emails arrive whole via `docinfo_update`
+(published by Comment and Communication). Everything else (a status change, an SLA field,
+a version row) comes through `doc_update`.
+
+Three things happen for you:
+
+- **One subscription per document.** The socket wiring lives on the shared
+  `doctype:docname` store and is reference-counted, so two components on the same document
+  share one room, one set of handlers and one refetch.
+- **Refetches are coalesced.** One save fires several `doc_update`s (`_comments`,
+  `modified`, the field itself); they join a 300ms window and produce one request.
+- **Reconnects heal.** A room is server-side state on a socket id and Redis pub/sub buffers
+  nothing, so after a drop you are in no room and the gap is lost silently. On `connect`
+  after a `disconnect` it rejoins every held room and fires one catch-up refetch. Same on
+  mounting onto an already-fetched store.
+
+> Reconnect healing only runs if socket.io actually reconnects: check your app's
+> `reconnectionAttempts`, since a low value means it gives up after a short outage and
+> `connect` never fires.
+
+## Optimistic updates
+
+A send is two round trips (create, then refetch), so the composer looks dead for a moment,
+and with the socket down the row may not arrive at all. `addPendingActivity` puts it in the
+feed immediately.
+
+```ts
+import { addPendingActivity } from "@framework/ui";
+
+const row = addPendingActivity("HD Ticket", ticketId, {
+  type: "comment",
+  timestamp: dayjs().format("YYYY-MM-DD HH:mm:ss"),
+  author: { email: user.email, fullname: user.full_name },
+  data: { name: "", content },
+});
+// clear the composer now; the feed row is the only copy on screen
+
+onSuccess: (res) => {
+  const name = typeof res === "string" ? res : res?.message;
+  name ? row.resolve(`comment:${name}`) : row.drop();
+},
+onError: () => {
+  row.drop();
+  content.value = draft; // put the composer back
+},
+```
+
+`addPendingActivity(doctype, docname, activity)` takes any `Activity` or `CustomActivity`
+minus `key`, and returns `{ resolve(key), drop() }`.
+
+The pending row lives until a fetched row with the same `key` arrives, then vanishes in the
+same tick the real one appears: no flicker, no duplicate. `resolve` swaps the throwaway key
+(`pending:<uuid>`) for the one the server row will carry, so it needs the create endpoint to
+return the new document's name. If yours doesn't, `drop()` on success and let the refetch
+bring the row in.
+
+Only call `resolve` on a response that confirms the write: if no matching row ever arrives,
+the pending one stays on screen.
+
+**Rendering.** Pending rows carry `pending: true` and render muted and non-interactive.
+Anything keyed by document name (reactions, separately-fetched attachments) has nothing to
+key on yet, so read it off the row while pending:
+
+```ts
+if (activity.pending)
+  return { reactions: [], attachments: activity.data.attachments ?? [] };
+```
+
+**Replacing a row in flight.** Hold the handle in module scope and `drop()` the previous one
+if a second send can start before the first resolves (a debounced editor, a retry).
 
 ## Smart folding
 

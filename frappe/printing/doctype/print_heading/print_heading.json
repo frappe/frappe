@@ -6,6 +6,7 @@
  "creation": "2013-01-10 16:34:24",
  "doctype": "DocType",
  "document_type": "Setup",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/print-headings",
  "engine": "InnoDB",
  "field_order": [
   "print_heading",

@@ -1,6 +1,5 @@
 <template>
-	<div class="pfb-insp-row">
-		<span class="pfb-insp-label">{{ label }}</span>
+	<InspectorRow :label="label">
 		<div class="pfb-spacing-sides">
 			<div v-for="side in sides" :key="side" class="pfb-spacing-side">
 				<input
@@ -13,10 +12,12 @@
 				<span>{{ side_labels[side].charAt(0) }}</span>
 			</div>
 		</div>
-	</div>
+	</InspectorRow>
 </template>
 
 <script setup>
+import InspectorRow from "./InspectorRow.vue";
+
 const props = defineProps({
 	label: { type: String, required: true },
 	modelValue: { type: Object, default: null },

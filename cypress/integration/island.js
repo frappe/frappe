@@ -1,8 +1,8 @@
 // Desk's half of the island seam: `frappe.ui.mount_island`.
 //
 // The island under test is a fixture the browser builds — an ESM blob registered
-// in `frappe.boot.assets_json` under the `.island.js` key convention and declared
-// in `frappe.boot.ui_islands`, as a real app's build and hooks.py would do. It is
+// in `frappe.boot.assets_json` under the `.island.js` key convention and listed
+// in `frappe.boot.ui_islands`, as a real app's build would do. It is
 // self-contained, the way a built island is, so this spec covers framework's seam
 // and no app's bundle.
 //
@@ -11,7 +11,6 @@
 // built.
 
 const ISLAND = "frappe.cypress_fixture";
-const BUNDLE = "cypress_fixture";
 
 const FIXTURE_MODULE = `
 	export function mount(el, context) {
@@ -66,13 +65,13 @@ function blob_url(win, source, type) {
 }
 
 function register_fixture(win) {
-	win.frappe.boot.assets_json[`${BUNDLE}.island.js`] = blob_url(
+	win.frappe.boot.assets_json[`${ISLAND}.island.js`] = blob_url(
 		win,
 		FIXTURE_MODULE,
 		"text/javascript"
 	);
-	win.frappe.boot.assets_json[`${BUNDLE}.island.css`] = blob_url(win, FIXTURE_CSS, "text/css");
-	win.frappe.boot.ui_islands = { ...win.frappe.boot.ui_islands, [ISLAND]: BUNDLE };
+	win.frappe.boot.assets_json[`${ISLAND}.island.css`] = blob_url(win, FIXTURE_CSS, "text/css");
+	win.frappe.boot.ui_islands = [...(win.frappe.boot.ui_islands || []), ISLAND];
 }
 
 function host_element(win, id) {
@@ -127,7 +126,7 @@ context("Island", () => {
 			const el = host_element(win, "island-3");
 			return win.frappe.ui.mount_island(ISLAND, el, {}).ready.then(() => {
 				expect(win.__island_context.styles).to.deep.equal([
-					win.frappe.boot.assets_json[`${BUNDLE}.island.css`],
+					win.frappe.boot.assets_json[`${ISLAND}.island.css`],
 				]);
 				const root = el.querySelector(".fixture-island").shadowRoot;
 				expect(root.adoptedStyleSheets[0].cssRules[0].selectorText).to.equal(".fixture");
@@ -186,7 +185,7 @@ context("Island", () => {
 		});
 	});
 
-	it("explains an island name no app declares", () => {
+	it("explains an island name this site does not have", () => {
 		cy.window().then((win) => {
 			const el = host_element(win, "island-8");
 			return win.frappe.ui.mount_island("nosuchapp.nosuchisland", el, {}).ready.then(
@@ -194,22 +193,22 @@ context("Island", () => {
 					throw new Error("expected mount_island to reject");
 				},
 				(e) => {
-					expect(e.message).to.contain("ui_islands");
+					expect(e.message).to.contain("is not on this site");
 				}
 			);
 		});
 	});
 
-	it("explains a declared island whose app has not been built", () => {
+	it("explains a registered island whose app has not been built", () => {
 		cy.window().then((win) => {
 			const el = host_element(win, "island-9");
-			win.frappe.boot.ui_islands["frappe.unbuilt"] = "unbuilt_fixture";
+			win.frappe.boot.ui_islands.push("frappe.unbuilt");
 			return win.frappe.ui.mount_island("frappe.unbuilt", el, {}).ready.then(
 				() => {
 					throw new Error("expected mount_island to reject");
 				},
 				(e) => {
-					expect(e.message).to.contain("assets.json");
+					expect(e.message).to.contain("is not on this site");
 				}
 			);
 		});

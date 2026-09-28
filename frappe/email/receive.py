@@ -227,6 +227,10 @@ class EmailServer:
 		uidnext = int(self.parse_imap_response("UIDNEXT", message[0]) or "1")
 		frappe.db.set_value("Email Account", self.settings.email_account, "uidnext", uidnext)
 
+		# Remove {"} quotes that are added to handle spaces in IMAP Folder names
+		if folder[0] == folder[-1] == '"':
+			folder = folder[1:-1]
+
 		if uid_validity is None:
 			frappe.flags.initial_sync = True
 
@@ -240,15 +244,18 @@ class EmailServer:
 				update_modified=False,
 			)
 
+			sync_count = 100 if uid_validity else int(self.settings.initial_sync_count)
+			from_uid = 1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
+
 			if self.settings.use_imap:
-				# Remove {"} quotes that are added to handle spaces in IMAP Folder names
-				if folder[0] == folder[-1] == '"':
-					folder = folder[1:-1]
+				folder_values = {"uidvalidity": current_uid_validity, "uidnext": uidnext}
+				if self.settings.sync_from_uid is not None:
+					folder_values["sync_from_uid"] = from_uid
 
 				frappe.db.set_value(
 					"IMAP Folder",
 					{"parent": self.settings.email_account_name, "folder_name": folder},
-					{"uidvalidity": current_uid_validity, "uidnext": uidnext},
+					folder_values,
 					update_modified=False,
 				)
 			else:
@@ -259,11 +266,22 @@ class EmailServer:
 					update_modified=False,
 				)
 
-			sync_count = 100 if uid_validity else int(self.settings.initial_sync_count)
-			from_uid = 1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
 			# sync last 100 email
 			self.settings.email_sync_rule = f"UID {from_uid}:{uidnext}"
 			self.uid_reindexed = True
+		elif self.settings.sync_from_uid == 0 and self.settings.email_sync_rule != "UNSEEN":
+			from frappe.email.doctype.email_account.email_account import get_max_email_uid
+
+			# the account-wide position can lie past this folder's own uids, where no search ever matches
+			sync_from_uid = min(get_max_email_uid(self.settings.email_account), uidnext)
+			frappe.db.set_value(
+				"IMAP Folder",
+				{"parent": self.settings.email_account_name, "folder_name": folder},
+				"sync_from_uid",
+				sync_from_uid,
+				update_modified=False,
+			)
+			self.settings.email_sync_rule = f"UID {sync_from_uid}:*"
 
 	def parse_imap_response(self, cmd, response):
 		pattern = rf"(?<={cmd} )[0-9]*"
@@ -675,10 +693,11 @@ class Email:
 class InboundMail(Email):
 	"""Class representation of incoming mail along with mail handlers."""
 
-	def __init__(self, content, email_account, uid=None, seen_status=None, append_to=None):
+	def __init__(self, content, email_account, uid=None, seen_status=None, append_to=None, imap_folder=None):
 		self.email_account = email_account
 		self.uid = uid or -1
 		self.append_to = append_to
+		self.imap_folder = imap_folder
 		self.seen_status = seen_status or 0
 		super().__init__(content)
 

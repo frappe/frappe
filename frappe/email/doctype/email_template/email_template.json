@@ -6,6 +6,7 @@
  "creation": "2014-06-19 05:20:26.331041",
  "doctype": "DocType",
  "document_type": "Document",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/email-template",
  "engine": "InnoDB",
  "field_order": [
   "subject",

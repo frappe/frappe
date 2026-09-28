@@ -94,8 +94,11 @@ function appPages(appPath) {
  * One page folder, if a Frappe UI page lives in it.
  *
  * A page of any other type is not this build's, and a folder with no json at
- * all is not a page. A Frappe UI page with no entry beside it is an error: the
- * page is registered and its route would show an unbuilt island.
+ * all is not a page. Neither is a page that names an island, which the app's own
+ * build registers.
+ *
+ * A Frappe UI page with no entry beside it is an error: the page is registered
+ * and its route would show an unbuilt island.
  */
 function readPage(dir) {
 	const base = path.basename(dir);
@@ -110,6 +113,9 @@ function readPage(dir) {
 	}
 
 	if (doc.doctype !== "Page" || doc.type !== PAGE_ISLAND_TYPE) return null;
+
+	// The page names an island the app builds itself. There is no source here.
+	if (doc.island) return null;
 
 	const entry = path.join(dir, `${base}.island.js`);
 	if (!fs.existsSync(entry))

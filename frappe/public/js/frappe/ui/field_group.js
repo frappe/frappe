@@ -67,17 +67,19 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 			super.make();
 			this.refresh();
 
-			let defaults = {};
+			const is_saved_doc = this.doc?.name && !this.doc.__islocal;
+			if (!is_saved_doc) {
+				let defaults = {};
+				$.each(this.fields_list, (i, field) => {
+					let def_value = this.get_field_default_value(field);
+					if (def_value === undefined) return;
+					defaults[field.df.fieldname] = def_value;
+				});
 
-			$.each(this.fields_list, (i, field) => {
-				let def_value = this.get_field_default_value(field);
-				if (def_value === undefined) return;
-				defaults[field.df.fieldname] = def_value;
-			});
-
-			this.set_values(defaults).then(() => {
-				me.refresh_dependency();
-			});
+				this.set_values(defaults).then(() => {
+					me.refresh_dependency();
+				});
+			}
 
 			if (!this.no_submit_on_enter) {
 				this.catch_enter_as_submit();

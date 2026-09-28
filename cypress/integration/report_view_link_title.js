@@ -44,18 +44,17 @@ context("Report View Link Titles", () => {
 		);
 	});
 
-	it("skips the link title lookup for a blank Link column", () => {
-		const requested_docnames = [];
-		cy.intercept("POST", "/api/method/frappe.desk.search.get_link_title", (req) => {
-			requested_docnames.push(req.body.docname);
-		}).as("link_title");
+	it("takes titles from the report response, leaving a blank Link column empty", () => {
+		cy.intercept("POST", "/api/method/frappe.desk.search.get_link_title").as("link_title");
 
 		cy.visit(`/desk/List/${doctype_name}/Report`);
 
-		cy.wait("@link_title").then(() => {
-			expect(requested_docnames).to.not.include("null");
-			expect(requested_docnames).to.include("Renewal Reminder");
-		});
+		expect_link_titles(
+			`a[data-doctype="${doctype_name}"][data-name="Renewal Reminder"]`,
+			"Renewal reminder for Contoso"
+		);
+		cy.get('a[data-name="null"]').should("not.exist");
+		cy.get("@link_title.all").should("have.length", 0);
 	});
 
 	it("resolves the title of each link against its own doctype", () => {

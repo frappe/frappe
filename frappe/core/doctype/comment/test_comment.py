@@ -151,6 +151,7 @@ class TestCommentPermissions(IntegrationTestCase):
 	"""Read on the Comment doctype must not be read on every comment in the site."""
 
 	def setUp(self):
+		setup_for_tests()
 		self.todo = frappe.get_doc(doctype="ToDo", description="comment permission test").insert()
 		self.comment = self.todo.add_comment("Comment", "internal discussion").name
 

@@ -4,10 +4,12 @@
 import json
 
 import frappe
+from frappe.model import no_value_fields
 from frappe.utils import cint, flt
 
 ASSUMED_BODY_WIDTH_PX = 750
 DEFAULT_COLUMN_WIDTH_PCT = 10
+MAX_DEFAULT_TABLE_COLUMNS = 8
 # classic wrapped text and table blocks in `padding: 10px 0px`; the beta renderer
 # has no such default, so converted sections carry the gap explicitly
 CONVERTED_SECTION_GAP_PX = 10
@@ -101,12 +103,12 @@ def convert_classic_to_beta(format_data, meta, print_format=None) -> tuple[dict,
 		state.column["fields"].append(field)
 
 	for df in data:
-		if df.fieldtype == "Section Break":
+		if df.fieldtype in ("Section Break", "Tab Break"):
 			state.skip = bool(cint(df.print_hide))
 			if state.skip:
 				state.section = state.column = None
 			else:
-				new_section(df.label)
+				new_section(df.label if df.fieldtype == "Section Break" else "")
 		elif state.skip:
 			continue
 		elif df.fieldtype == "Column Break":
@@ -147,6 +149,8 @@ def convert_classic_to_beta(format_data, meta, print_format=None) -> tuple[dict,
 	layout["sections"] = [
 		section for section in layout["sections"] if any(column["fields"] for column in section["columns"])
 	]
+	if not data and not layout["sections"]:
+		layout["sections"] = create_default_layout(meta)["sections"]
 
 	for section in layout["sections"][1:]:
 		section["margin"] = {"top": CONVERTED_SECTION_GAP_PX, "right": 0, "bottom": 0, "left": 0}
@@ -191,16 +195,28 @@ def convert_table_columns(df, meta_df, dropped) -> list:
 				}
 			)
 	else:
-		for child_df in child_meta.fields:
-			if child_df.fieldtype in ("Section Break", "Column Break") or cint(child_df.print_hide):
-				continue
+		child_fields = [
+			child_df
+			for child_df in child_meta.fields
+			if child_df.fieldtype not in ("Section Break", "Column Break", "Tab Break")
+			and not cint(child_df.print_hide)
+		]
+		if len(child_fields) > MAX_DEFAULT_TABLE_COLUMNS:
+			# a wide child table keeps what its author marked essential: the list-view
+			# and mandatory columns, plus the rich-text description
+			child_fields = [
+				df
+				for df in child_fields
+				if cint(df.in_list_view) or cint(df.reqd) or df.fieldtype == "Text Editor"
+			] or child_fields
+		for child_df in child_fields:
 			columns.append(
 				{
 					"label": child_df.label or child_df.fieldname,
 					"fieldname": child_df.fieldname,
 					"fieldtype": child_df.fieldtype,
 					"options": child_df.options,
-					"width": None,
+					"width": parse_print_width(child_df.width),
 				}
 			)
 
@@ -277,6 +293,32 @@ def convert_print_format(doc):
 	return dropped
 
 
+def renders_from_file(doc) -> bool:
+	"""Whether the format prints from an HTML file shipped in its module.
+
+	`printview.get_print_format` reads that file and ignores the row's own
+	`html`, so the builder has nothing to edit and must not offer to."""
+	import os
+
+	from frappe.modules import get_module_path, scrub
+
+	if doc.get("standard") != "Yes" or doc.get("custom_format") or doc.get("raw_printing"):
+		return False
+	module = doc.get("module") or frappe.db.get_value("DocType", doc.get("doc_type"), "module")
+	if not module or frappe.get_cached_value("Module Def", module, "custom"):
+		return False
+	try:
+		path = os.path.join(get_module_path(module, "Print Format", doc.name), scrub(doc.name) + ".html")
+	except (frappe.DoesNotExistError, ImportError):
+		# the module is not on disk, so printing cannot read a file either
+		return False
+	return os.path.exists(path)
+
+
+def is_printable_docfield(df) -> bool:
+	return df.fieldtype not in no_value_fields or df.fieldtype in ("Table", "Table MultiSelect")
+
+
 def create_default_layout(meta) -> dict:
 	"""Build the new builder's default layout for a doctype from its meta.
 
@@ -318,17 +360,17 @@ def create_default_layout(meta) -> dict:
 	for df in meta.fields:
 		if not df.fieldname:
 			continue
-		if df.fieldtype == "Section Break":
+		if df.fieldtype in ("Section Break", "Tab Break"):
 			state.skip = bool(cint(df.print_hide))
 			if state.skip:
 				state.section = state.column = None
 			else:
-				new_section(df)
+				new_section(df if df.fieldtype == "Section Break" else None)
 		elif state.skip:
 			continue
 		elif df.fieldtype == "Column Break":
 			new_column(df)
-		elif df.label:
+		elif df.label and is_printable_docfield(df):
 			if not state.column:
 				new_column()
 			if cint(df.print_hide):

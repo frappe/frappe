@@ -9,7 +9,8 @@ from frappe import _
 from frappe.core.utils import find
 from frappe.desk.form.linked_with import get_linked_doctypes
 from frappe.model.document import Document
-from frappe.utils import cstr
+from frappe.query_builder import Order
+from frappe.utils import cint, cstr
 
 
 class UserPermission(Document):
@@ -172,18 +173,18 @@ def get_applicable_for_doctype_list(
 	linked_doctypes = []
 	for linked_doctype, linked_doctype_values in linked_doctypes_map.items():
 		linked_doctypes.append(linked_doctype)
-		child_doctype = linked_doctype_values.get("child_doctype")
-		if child_doctype:
-			linked_doctypes.append(child_doctype)
+		for child_link in linked_doctype_values.get("child_links") or [linked_doctype_values]:
+			if child_doctype := child_link.get("child_doctype"):
+				linked_doctypes.append(child_doctype)
 
 	linked_doctypes += [actual_doctype]
 
 	if txt:
 		linked_doctypes = [d for d in linked_doctypes if txt.lower() in d.lower()]
 
-	linked_doctypes.sort()
+	linked_doctypes = sorted(set(linked_doctypes))
 
-	return [[doctype] for doctype in linked_doctypes[start:page_len]]
+	return [[doctype] for doctype in linked_doctypes[start : start + page_len]]
 
 
 def get_permitted_documents(doctype):
@@ -244,6 +245,44 @@ def clear_user_permissions(user: str, for_doctype: str):
 		frappe.clear_cache()
 
 	return total
+
+
+@frappe.whitelist()
+def get_user_permission_list(allow: str, txt: str | None = None, start: int = 0, page_length: int = 50):
+	"""One page of User Permissions for `allow`, with each user's name and image joined in.
+	`txt` searches the user, their name, the value and the applicable doctype."""
+	frappe.only_for("System Manager")
+
+	up = frappe.qb.DocType("User Permission")
+	user = frappe.qb.DocType("User")
+	query = (
+		frappe.qb.from_(up)
+		.left_join(user)
+		.on(up.user == user.name)
+		.select(
+			up.name,
+			up.user,
+			up.for_value,
+			up.applicable_for,
+			up.apply_to_all_doctypes,
+			user.full_name,
+			user.user_image,
+		)
+		.where(up.allow == allow)
+		.orderby(up.modified, order=Order.desc)
+		.orderby(up.name, order=Order.desc)
+		.limit(cint(page_length))
+		.offset(cint(start))
+	)
+	if txt:
+		like = f"%{txt}%"
+		query = query.where(
+			up.user.like(like)
+			| user.full_name.like(like)
+			| up.for_value.like(like)
+			| up.applicable_for.like(like)
+		)
+	return query.run(as_dict=True)
 
 
 @frappe.whitelist()

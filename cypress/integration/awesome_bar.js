@@ -12,8 +12,9 @@ context("Awesome Bar", () => {
 	beforeEach(() => {
 		cy.get("body").type("{esc}");
 		cy.wait(300);
-		// the global-search trigger moved from the page header into the dock (icon only)
-		cy.get(".dock .navbar-modal-search-mobile").as("awesome_bar_search");
+		// the global-search trigger moved from the page header into the sidebar's standard-items
+		// band, above the module's own items
+		cy.get(".body-sidebar .navbar-modal-search-mobile").as("awesome_bar_search");
 		cy.get("@awesome_bar_search").click();
 		cy.get("#navbar-search").as("awesome_bar");
 		cy.get("#navbar-search").type("{selectall}");
@@ -39,7 +40,9 @@ context("Awesome Bar", () => {
 		cy.get(".awesomplete").findByRole("listbox").should("be.visible");
 		cy.get("@awesome_bar").type("{enter}");
 		cy.get(".title-text").should("contain", "To Do");
-		cy.location("pathname").should("eq", "/desk/todo");
+		// Matched on the end rather than the whole path: a desk URL carries the shell it opened
+		// in, and which shell owns ToDo is not what this test is about.
+		cy.location("pathname").should("match", /\/todo$/);
 	});
 
 	// it("finds text in doctype list", () => {

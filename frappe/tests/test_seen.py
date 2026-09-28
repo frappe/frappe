@@ -44,7 +44,7 @@ class TestSeen(IntegrationTestCase):
 		self.assertTrue("test@example.com" in json.loads(ev._seen))
 		self.assertTrue("test1@example.com" in json.loads(ev._seen))
 
-		ev.save()
+		ev.save(ignore_permissions=True)
 		ev = frappe.get_doc("Event", ev.name)
 
 		self.assertFalse("test@example.com" in json.loads(ev._seen))

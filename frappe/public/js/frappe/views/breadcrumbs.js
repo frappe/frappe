@@ -4,7 +4,7 @@
 // The trail names the entity, never the shell it lives in: the dock names the app and the module
 // sidebar names the module and highlights the entity within it, so a workspace crumb would
 // repeat what the shell already says. This file therefore does not resolve an entity to a module
-// or a workspace; that is resolve_initial_sidebar's job, and its answer is a module. See
+// or a workspace; that is `shell_for_route`'s job, and its answer is a shell. See
 // ui/sidebar/sidebar.js.
 frappe.breadcrumbs = {
 	all: {},

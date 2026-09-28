@@ -4,6 +4,7 @@
  "autoname": "hash",
  "creation": "2017-01-11 04:21:35.217943",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

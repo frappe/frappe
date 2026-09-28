@@ -288,6 +288,13 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 
 		script2.insert()
 
+		# Rate-limit counters outlive database rollbacks, so isolate this test
+		# from earlier runs. The final part of the key is the request IP.
+		for script in (script1, script2):
+			counter_prefix = f"rl:server_script:{script.name}:"
+			frappe.cache.delete_keys(counter_prefix)
+			self.addCleanup(frappe.cache.delete_keys, counter_prefix)
+
 		frappe.db.commit()
 
 		site = frappe.utils.get_site_url(frappe.local.site)

@@ -251,7 +251,12 @@ class File(Document):
 		self.validate_not_referenced_in_attach_field()
 		self._delete_file_on_disk()
 		if not self.is_folder:
-			self.add_comment_in_reference_doc("Attachment Removed", self.file_name)
+			fieldname = escape_html(self.attached_to_field or "")
+			file_name = escape_html(self.file_name)
+			self.add_comment_in_reference_doc(
+				"Attachment Removed",
+				f"<span data-fieldname='{fieldname}'>{file_name}</span>",
+			)
 
 	def on_rollback(self):
 		rollback_flags = ("new_file", "original_content", "original_path")
@@ -298,8 +303,12 @@ class File(Document):
 		if self.is_remote_file:
 			return
 
+		if self.file_url and ".." in self.file_url.split("/"):
+			frappe.throw(_("The File URL you've entered is incorrect"), title=_("Invalid File URL"))
+
 		base_path = os.path.realpath(get_files_path(is_private=self.is_private))
-		if not os.path.realpath(self.get_full_path()).startswith(base_path):
+		file_path = os.path.realpath(self.get_full_path())
+		if os.path.commonpath((base_path, file_path)) != base_path:
 			frappe.throw(
 				_("The File URL you've entered is incorrect"),
 				title=_("Invalid File URL"),
@@ -1009,10 +1018,13 @@ class File(Document):
 		icon = ' <i class="fa fa-lock text-warning"></i>' if self.is_private else ""
 		file_url = quote(frappe.safe_encode(self.file_url), safe="/:") if self.file_url else self.file_name
 		file_name = escape_html(self.file_name or self.file_url)
+		# fieldname is embedded so the timeline can drop this entry for users without permlevel
+		# access to the field, without needing a structured Comment field of its own
+		fieldname = escape_html(self.attached_to_field or "")
 
 		self.add_comment_in_reference_doc(
 			"Attachment",
-			f"<a href='{file_url}' target='_blank'>{file_name}</a>{icon}",
+			f"<a href='{file_url}' target='_blank' data-fieldname='{fieldname}'>{file_name}</a>{icon}",
 		)
 
 	def add_comment_in_reference_doc(self, comment_type, text):
@@ -1030,10 +1042,21 @@ class File(Document):
 		if self.file_url:
 			self.is_private = cint(self.file_url.startswith("/private"))
 
+	def validate_file_url_matches_record(self):
+		"""Ensure file_url actually resolves back to an existing File record with this name."""
+		if not self.file_url:
+			return
+
+		actual_file_url = frappe.db.get_value("File", self.name, "file_url") if self.name else None
+		if actual_file_url != self.file_url:
+			frappe.throw(_("The File URL does not belong to this File record"), frappe.PermissionError)
+
 	@frappe.whitelist()
 	def optimize_file(self):
 		if self.is_folder:
 			raise TypeError("Folders cannot be optimized")
+
+		self.validate_file_url_matches_record()
 
 		content_type = mimetypes.guess_type(self.file_name)[0]
 		is_local_image = content_type.startswith("image/") and self.file_size > 0
@@ -1148,8 +1171,16 @@ def get_permission_query_conditions(user: str | None = None) -> str:
 	if SYSTEM_USER_ROLE not in frappe.get_roles(user):
 		return f""" `tabFile`.`owner` = {frappe.db.escape(user)} """
 
+	# Custom DocPerm rows can outlive their DocType, drop those
+	# before frappe.get_meta() below assumes the doctype still exists.
+	candidate_doctypes = get_doctypes_with_read(user)
+	existing_doctypes = set(
+		frappe.get_all("DocType", filters={"name": ["in", candidate_doctypes]}, pluck="name")
+	)
+	readable_doctypes = [dt for dt in candidate_doctypes if dt in existing_doctypes]
+
 	openly_readable_doctypes, owner_restricted_doctypes = _split_doctypes_by_owner_constraint(
-		get_doctypes_with_read(user), user
+		readable_doctypes, user
 	)
 	# a doctype that requires an owner constraint is never additionally scoped by User
 	# Permissions here - same "if_owner takes priority, else check user permissions" rule

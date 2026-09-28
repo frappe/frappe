@@ -26,6 +26,10 @@ inputs:
     required: false
     description: 'Whether to disable background workers'
     default: false
+  enable-server-scripts:
+    required: false
+    description: 'Whether to enable Server Scripts for tests that call them through the web server'
+    default: true
   db:
     required: false
     default: mariadb
@@ -191,6 +195,7 @@ runs:
     env:
       DB: ${{ inputs.db }}
       BUILD_ASSETS: ${{ inputs.build-assets }}
+      ENABLE_SERVER_SCRIPTS: ${{ inputs.enable-server-scripts }}
     run: |
       # Create Site (asset build is CPU-bound and independent of the DB, so
       # build it in the background while the site is being created)
@@ -222,7 +227,9 @@ runs:
       bench set-config -g root_login "$DB_ROOT_USER"
       bench set-config -g root_password "$DB_ROOT_PWD"
       bench set-config -g admin_password admin
-      bench set-config -g server_script_enabled 1 --parse
+      if [ "$ENABLE_SERVER_SCRIPTS" == "true" ]; then
+        bench set-config -g server_script_enabled 1 --parse
+      fi
 
       bench new-site test_site \
         --db-type "$DB" \

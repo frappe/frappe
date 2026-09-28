@@ -644,23 +644,25 @@ def get_messages_from_file(path: str) -> list[tuple[str, str, str | None, int]]:
 
 def extract_messages_from_python_code(code: str) -> list[tuple[int, str, str | None]]:
 	"""Extracts translatable strings from Python code using babel."""
-	from babel.messages.extract import extract_python
+	from frappe.gettext.extractors.python import extract
 
 	messages = []
 
-	for message in extract_python(
+	for message in extract(
 		io.BytesIO(code.encode()),
 		keywords=["_", "_lt", "N_"],
 		comment_tags=(),
 		options={},
 	):
-		lineno, _func, args, _comments = message
+		lineno, func, args, _comments = message
 
-		if not args or not args[0]:
+		if func == "pgettext":
+			context, source_text = args
+		else:
+			context, source_text = None, args[0] if isinstance(args, tuple) else args
+
+		if not source_text:
 			continue
-
-		source_text = args[0] if isinstance(args, tuple) else args
-		context = args[1] if len(args) == 2 else None
 
 		messages.append((lineno, source_text, context))
 
@@ -987,6 +989,13 @@ def print_language(language: str):
 	    html = frappe.get_print(...)
 	```
 	"""
+	# a background job resolves its user's language on the first translation, which
+	# would undo the requested one mid-print — settle it before switching
+	job = getattr(frappe.local, "job", None)
+	if job is not None and not job.lang_resolved:
+		frappe.set_user_lang(job.user)
+		job.lang_resolved = True
+
 	if not language or language == frappe.local.lang:
 		# do nothing
 		yield
@@ -1002,12 +1011,12 @@ def print_language(language: str):
 	frappe.local.jenv_restricted = None
 	frappe.local.jenv_unrestricted = None
 
-	yield
-
-	# restore original values
-	frappe.local.lang = _lang
-	frappe.local.jenv_restricted = _jenv_restricted
-	frappe.local.jenv_unrestricted = _jenv_unrestricted
+	try:
+		yield
+	finally:
+		frappe.local.lang = _lang
+		frappe.local.jenv_restricted = _jenv_restricted
+		frappe.local.jenv_unrestricted = _jenv_unrestricted
 
 
 # Backward compatibility

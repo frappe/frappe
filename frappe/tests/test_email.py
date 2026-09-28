@@ -15,6 +15,7 @@ from frappe.email.doctype.email_queue.email_queue import QueueBuilder
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import run_only_if
+from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Email Account"]
 
@@ -401,6 +402,7 @@ class TestVerifiedRequests(IntegrationTestCase):
 		frappe.local.request = None
 
 
+@requires_test_service(TestService.SMTP_SERVER)
 class TestEmailIntegrationTest(IntegrationTestCase):
 	"""Sends email to local SMTP server and verifies correctness.
 

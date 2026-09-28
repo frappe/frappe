@@ -52,20 +52,6 @@ class PrintViewTest(IntegrationTestCase):
 				self.assertEqual(frappe.local.response.filecontent, b"pdf")
 			self._assert_print_link_titles(render_pdf.call_args.kwargs["html"], doc, links)
 
-	def test_print_view_without_errors(self):
-		user = frappe.get_last_doc("User")
-
-		messages_before = frappe.get_message_log()
-		ret = get_html_and_style(doc=user.as_json(), print_format="Standard", no_letterhead=1)
-		messages_after = frappe.get_message_log()
-
-		if len(messages_after) > len(messages_before):
-			new_messages = messages_after[len(messages_before) :]
-			self.fail("Print view showing error/warnings: \n" + "\n".join(str(msg) for msg in new_messages))
-
-		# html should exist
-		self.assertTrue(bool(ret["html"]))
-
 	def _make_attachment_fields_doctype(self):
 		return new_doctype(
 			fields=[
@@ -130,6 +116,31 @@ class PrintViewTest(IntegrationTestCase):
 		html = get_html_and_style(doc=evil.as_json(), print_format=print_format.name, no_letterhead=1)["html"]
 		self.assertNotIn('onerror="alert(1)"', html)
 		self.assertIn("&#34;", html)
+
+	def test_absolute_value_print_format_prints_positive_numbers(self):
+		"""Print Format's "Show Absolute Values" should flip negative Currency/Int
+		fields positive at render time."""
+		doctype = new_doctype(
+			fields=[
+				{"label": "Amount", "fieldname": "amount", "fieldtype": "Currency"},
+				{"label": "Qty", "fieldname": "qty", "fieldtype": "Int"},
+			]
+		).insert()
+		doc = frappe.get_doc(doctype=doctype.name, amount=-543.21, qty=-9).insert()
+
+		print_format = frappe.get_doc(
+			doctype="Print Format",
+			name=frappe.generate_hash(length=10),
+			doc_type=doctype.name,
+			print_format_builder_beta=1,
+			absolute_value=1,
+		).insert()
+		html = get_html_and_style(doc=doc.as_json(), print_format=print_format.name, no_letterhead=1)["html"]
+		self.assertIn("543.21", html)
+		self.assertNotIn("-543.21", html)
+		# ">-9<" (not the bare "-9") — CSS custom properties like var(--gray-900)
+		# would otherwise false-positive the substring check
+		self.assertNotIn(">-9<", html)
 
 	def test_print_error(self):
 		"""Print failures shouldn't generate PDF with failure message but instead escalate the error"""

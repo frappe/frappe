@@ -5,6 +5,7 @@
  "description": "Adds a custom field to a DocType",
  "doctype": "DocType",
  "document_type": "Setup",
+ "documentation": "https://docs.frappe.io/framework/user/en/basics/doctypes/customize",
  "engine": "InnoDB",
  "field_order": [
   "is_system_generated",
@@ -257,6 +258,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:!frappe.model.no_value_type.includes(doc.fieldtype)",
    "fieldname": "unique",
    "fieldtype": "Check",
    "label": "Unique"
@@ -546,7 +548,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-09 12:06:52.425311",
+ "modified": "2026-09-23 14:47:18.443497",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

@@ -131,6 +131,14 @@ class TestDBUpdate(IntegrationTestCase):
 				f"""show index from `tab{doctype}` where column_name = '{field}' and Non_unique = 0""",
 				as_dict=1,
 			)
+		else:
+			indexes = []
+			for index in frappe.db.sql(f"PRAGMA index_list(`tab{doctype}`)", as_dict=True):
+				if not index.unique:
+					continue
+				columns = frappe.db.sql(f"PRAGMA index_info(`{index.name}`)", as_dict=True)
+				if any(column.name == field for column in columns):
+					indexes.append(index)
 		self.assertEqual(
 			len(indexes), 1, msg=f"There should be 1 index on {doctype}.{field}, found {indexes}"
 		)
@@ -376,7 +384,7 @@ class TestDBUpdate(IntegrationTestCase):
 
 		doctype.autoname = "hash"
 		doctype.save()
-		varchar = "varchar" if frappe.db.db_type == "mariadb" else "character varying"
+		varchar = "varchar" if frappe.db.db_type in ("mariadb", "sqlite") else "character varying"
 		self.assertIn(varchar, frappe.db.get_column_type(doctype.name, "name"))
 		doc.reload()  # ensure that docs are still accesible
 
@@ -397,9 +405,13 @@ class TestDBUpdate(IntegrationTestCase):
 		test_doc = new_doctype().insert()
 		col_name = f"col_{frappe.generate_hash(length=4)}"
 		add_column(test_doc.name, fieldtype="Data", column_name=col_name, length=50)
-		length = frappe.db.sql(
-			f"SELECT CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'tab{test_doc.name}' AND COLUMN_NAME = '{col_name}' ",
-		)[0][0]
+		if frappe.db.db_type == "sqlite":
+			column_type = frappe.db.get_column_type(test_doc.name, col_name)
+			length = int(column_type.removeprefix("varchar(").removesuffix(")"))
+		else:
+			length = frappe.db.sql(
+				f"SELECT CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'tab{test_doc.name}' AND COLUMN_NAME = '{col_name}' ",
+			)[0][0]
 		self.assertEqual(length, 64)
 
 

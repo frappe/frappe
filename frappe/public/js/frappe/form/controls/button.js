@@ -22,7 +22,7 @@ frappe.ui.form.ControlButton = class ControlButton extends frappe.ui.form.Contro
 
 		const btn_size = this.df.btn_size ? `btn-${this.df.btn_size}` : "btn-xs";
 		this.$input = $(
-			`<button
+			`<button type="button"
 				class="btn ${frappe.utils.escape_html(btn_size)} ${frappe.utils.escape_html(btn_type)}"
 				title="${this.df.title || frappe.utils.escape_html(this.df.label)}"
 			>`

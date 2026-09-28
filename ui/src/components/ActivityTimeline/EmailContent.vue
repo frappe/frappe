@@ -21,6 +21,9 @@ const MAX_CONTENT_HEIGHT = 500; // in px; taller emails scroll inside the iframe
 
 const iframeRef = ref<HTMLIFrameElement | null>(null);
 const dataTheme = useDataTheme(); // needed for the iframe to inherit the host's theme (dark/light) so the email content matches the rest of the app.
+// Read once: a reactive theme in the srcdoc below would reload the iframe on every toggle.
+// Later changes go through the watch at the bottom, which sets the attribute in place.
+const initialTheme = dataTheme.value;
 
 // reactive to content: strip inline colors + fold reply quotes into a CSS-only collapse
 const processedContent = computed(() => collapseReplyQuotes(stripEmailColors(props.content)));
@@ -101,18 +104,27 @@ function collapseQuote(doc: Document, quote: Element, forGmail: boolean) {
 const htmlContent = computed(
 	() => `
   <!DOCTYPE html>
-  <html>
+  <html data-theme="${initialTheme}">
   <head>
     <meta http-equiv="Content-Security-Policy" content="script-src 'none'; object-src 'none';" />
     <base target="_blank" />
     <style>
+      /* color-scheme paints the default canvas and text, so the very first frame is
+         already the right theme instead of the browser's white until the host CSS lands */
       :root {
+        color-scheme: light;
         --bg-surface-gray-3: #ededed;
         --bg-surface-gray-4: #e2e2e2;
       }
       [data-theme='dark'] {
+        color-scheme: dark;
         --bg-surface-gray-3: #343434;
         --bg-surface-gray-4: #424242;
+      }
+      /* the card behind is bg-surface-base; showing it through beats repainting it here */
+      html,
+      body {
+        background: transparent;
       }
       .replied-content .collapse {
         margin: 10px 0 10px 0;

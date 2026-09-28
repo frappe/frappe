@@ -335,7 +335,7 @@ function build_panel(groups, { empty_text, component }) {
  * One open menu: the root panel plus any open submenu panels.
  * The owner (Dropdown/ContextMenu) creates a MenuTree per open and gets an
  * on_close(reason) callback; reasons are "activate", "escape", "outside",
- * "tab" and "owner" (closed programmatically).
+ * "tab", "navigate" and "owner" (closed programmatically).
  */
 export class MenuTree {
 	constructor({ options, empty_text, component, anchor, ignore, on_close, lock_scroll }) {
@@ -427,6 +427,8 @@ export class MenuTree {
 		// don't get stuck on
 		this.onblur = () => this.show_mnemonics(false);
 		window.addEventListener("blur", this.onblur);
+
+		frappe.router.once("change", () => this.close("navigate"));
 
 		// keyboard opens land on a row right away (ArrowDown = first,
 		// ArrowUp = last); mouse opens just focus the panel so keys work

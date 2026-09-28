@@ -496,6 +496,86 @@ class TestEmailAccount(IntegrationTestCase):
 
 		self.assertEqual(email_account.build_email_sync_rule(), "UID 1:101")
 
+	def make_imap_account(self, sync_from_uids):
+		email_account = frappe.get_doc(
+			doctype="Email Account",
+			email_account_name="Test IMAP Folders Account",
+			email_id="test_imap_folders@example.com",
+			email_server="imap.example.com",
+			enable_incoming=1,
+			use_imap=1,
+			email_sync_option="ALL",
+			create_contact=0,
+			imap_folder=[
+				{"folder_name": folder_name, "uidvalidity": "1", "sync_from_uid": sync_from_uid}
+				for folder_name, sync_from_uid in sync_from_uids.items()
+			],
+		).insert(ignore_permissions=True)
+
+		def delete_account():
+			for name in frappe.get_all("Communication", {"email_account": email_account.name}, pluck="name"):
+				frappe.delete_doc("Communication", name, force=True)
+			frappe.delete_doc("Email Account", email_account.name, force=True)
+
+		self.addCleanup(delete_account)
+		return email_account.name
+
+	def get_sync_from_uids(self, email_account):
+		return dict(
+			frappe.get_all(
+				"IMAP Folder", {"parent": email_account}, ["folder_name", "sync_from_uid"], as_list=True
+			)
+		)
+
+	def test_each_folder_syncs_from_its_own_position(self):
+		email_account = self.make_imap_account({"RFQ": 0, "INBOX": 0, "Sales": 0})
+		frappe.get_doc(
+			doctype="Communication",
+			communication_medium="Email",
+			sent_or_received="Received",
+			email_account=email_account,
+			subject="Quotation request rfq-6806",
+			sender="sender@example.com",
+			message_id="rfq-6806@example.com",
+			uid=6806,
+		).insert(ignore_permissions=True)
+		mailbox = IMAPMailbox({"RFQ": {6806: "rfq-6806"}, "INBOX": {6035: "inbox-6035"}, "Sales": {}})
+		receive_from_mailbox(mailbox, email_account)
+
+		mailbox.folders["RFQ"][6807] = "rfq-6807"
+		mailbox.folders["INBOX"][6036] = "quotation-42"
+		mailbox.folders["Sales"][1] = "quotation-42"
+		receive_from_mailbox(mailbox, email_account)
+
+		self.assertTrue(frappe.db.exists("Communication", {"message_id": "rfq-6807@example.com"}))
+		self.assertEqual(frappe.db.count("Communication", {"message_id": "quotation-42@example.com"}), 1)
+		self.assertEqual(self.get_sync_from_uids(email_account), {"RFQ": 6808, "INBOX": 6037, "Sales": 2})
+
+	def test_uidvalidity_change_keeps_other_folder_position(self):
+		email_account = self.make_imap_account({"RFQ": 6807, "INBOX": 6036})
+		mailbox = IMAPMailbox(
+			{"RFQ": {6806: "rfq-6806"}, "INBOX": {1: "inbox-1", 2: "inbox-2"}}, uidvalidity={"INBOX": 9}
+		)
+		receive_from_mailbox(mailbox, email_account)
+
+		self.assertEqual(self.get_sync_from_uids(email_account), {"RFQ": 6807, "INBOX": 3})
+
+	def test_failed_mail_keeps_folder_position_behind_it(self):
+		email_account = self.make_imap_account({"RFQ": 7})
+		mailbox = IMAPMailbox({"RFQ": {7: "rfq-7", 8: "rfq-8"}})
+		process = InboundMail.process
+
+		def process_or_fail(mail):
+			if mail.uid == "8":
+				raise ValueError("attachment could not be saved")
+			return process(mail)
+
+		with patch.object(InboundMail, "process", process_or_fail), self.assertRaises(Exception):
+			receive_from_mailbox(mailbox, email_account)
+
+		self.assertTrue(frappe.db.exists("Communication", {"message_id": "rfq-7@example.com"}))
+		self.assertEqual(self.get_sync_from_uids(email_account), {"RFQ": 8})
+
 	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
 	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
 	def mocked_get_inbound_mails(
@@ -822,3 +902,58 @@ def cleanup(sender=None):
 	for name in names:
 		frappe.delete_doc_if_exists("Communication", name.name)
 		frappe.delete_doc_if_exists("Communication Link", {"parent": name.name})
+
+
+class IMAPMailbox:
+	"""IMAP server with per-folder UIDs; like Zoho, a UID range starting past the last UID matches nothing."""
+
+	def __init__(self, folders, uidvalidity=None):
+		self.folders = folders
+		self.uidvalidity = uidvalidity or {}
+		self.selected_folder = None
+
+	def __call__(self, *args, **kwargs):
+		return self
+
+	def login(self, *args):
+		return "OK", [b""]
+
+	def logout(self):
+		return "BYE", [b""]
+
+	def select(self, folder, readonly=False):
+		self.selected_folder = self.folders[folder.strip('"')]
+		return "OK", [b""]
+
+	def status(self, folder, names):
+		folder_name = folder.strip('"')
+		uidvalidity = self.uidvalidity.get(folder_name, 1)
+		uidnext = max(self.folders[folder_name], default=0) + 1
+		return "OK", [f"{folder} (UIDVALIDITY {uidvalidity} UIDNEXT {uidnext})".encode()]
+
+	def uid(self, command, *args):
+		mails = self.selected_folder
+		if command == "search":
+			start, end = args[1].removeprefix("UID ").split(":")
+			end = max(mails, default=0) if end == "*" else int(end)
+			return "OK", [" ".join(str(uid) for uid in sorted(mails) if int(start) <= uid <= end).encode()]
+
+		uid = int(args[0])
+		raw_mail = (
+			"From: sender@example.com\r\n"
+			"To: test_imap_folders@example.com\r\n"
+			f"Subject: Quotation request {mails[uid]}\r\n"
+			f"Message-ID: <{mails[uid]}@example.com>\r\n"
+			"Content-Type: text/plain\r\n\r\n"
+			"Please share the price list.\r\n"
+		).encode()
+		return "OK", [(f"{uid} (UID {uid} BODY[] {{0}}".encode(), raw_mail), b")"]
+
+
+def receive_from_mailbox(mailbox, email_account):
+	with (
+		patch("frappe.email.receive.imaplib.IMAP4", mailbox),
+		patch.object(frappe.db, "commit"),
+		patch.object(frappe.db, "rollback"),
+	):
+		frappe.get_doc("Email Account", email_account).receive()
