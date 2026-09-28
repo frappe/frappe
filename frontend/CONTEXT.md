@@ -6,6 +6,7 @@ page** those contributions customize.
 
 [`PHILOSOPHY.md`](./PHILOSOPHY.md) is the *rules*; this is the *vocabulary* those rules
 use. [`CLAUDE.md`](./CLAUDE.md) is the operational half.
+[`ARCHITECTURE.md`](./ARCHITECTURE.md) says which layer each thing sits in.
 
 **One glossary.** A term means the same thing everywhere in this package. Where a word is
 defined here, this file is canonical — a comment that disagrees is a bug in the comment.

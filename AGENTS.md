@@ -43,6 +43,9 @@ Layer-specific rules live next to the layer and take precedence on their own gro
 [`frontend/PHILOSOPHY.md`](./frontend/PHILOSOPHY.md) (`DP1`-`DP4`),
 [`ui/PHILOSOPHY.md`](./ui/PHILOSOPHY.md) (`FP1`-`FP3`), and the operational notes in
 [`frontend/CLAUDE.md`](./frontend/CLAUDE.md) and [`ui/CLAUDE.md`](./ui/CLAUDE.md).
+The layers, the concepts each keeps and the main flows are in
+[`frontend/ARCHITECTURE.md`](./frontend/ARCHITECTURE.md). A new concept or a new edge
+between layers needs a ruling, and the same PR updates it.
 
 ### Comments
 

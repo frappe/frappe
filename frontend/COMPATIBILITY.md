@@ -12,7 +12,8 @@ different risk:
   developer watching. The audience that pays for a break.
 
 What `page` offers, verb by verb and region by region, is in [`SCRIPTING.md`](./SCRIPTING.md);
-this document says what of it survives an upgrade.
+this document says what of it survives an upgrade. Where `page` sits among the desk's
+layers is in [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 
 ## Start with the version reality
 

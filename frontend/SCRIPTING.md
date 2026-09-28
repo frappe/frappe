@@ -3,6 +3,8 @@
 What `page` offers a script, region by region, with the script each region's design was
 judged by as its worked example. [`COMPATIBILITY.md`](./COMPATIBILITY.md) says which of
 this survives an upgrade; this document says what there is.
+[`ARCHITECTURE.md`](./ARCHITECTURE.md) says where a script sits among the desk's layers
+and what it may import.
 
 One section per region of the page. A region's section lands with the region, so a
 region not listed here is not yet addressable.
