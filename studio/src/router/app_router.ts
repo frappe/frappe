@@ -35,12 +35,6 @@ declare global {
 	}
 }
 
-let router: Router
-
-export function getAppRouter(): Router {
-	return router
-}
-
 export async function createAppRouter(config: RouterConfig = {}): Promise<Router> {
 	const { extendRoute, setup, ...options } = config
 	const routes = getPageRoutes(window.app_pages)
@@ -48,7 +42,7 @@ export async function createAppRouter(config: RouterConfig = {}): Promise<Router
 	const homeRedirect = getHomeRedirect(routes)
 	if (homeRedirect) routes.push(homeRedirect)
 
-	router = createRouter({
+	const router = createRouter({
 		...options,
 		history: createWebHistory(`/${window.app_route}`),
 		routes,
