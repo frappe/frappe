@@ -83,7 +83,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 
 		frappe.model.with_doctype(doctype, () => {
 			this.refresh();
-			this.on_ready?.();
+			this.on_ready?.(this);
 		});
 	}
 
@@ -235,33 +235,37 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.data = [this.build_mapping_row(), ...this.data];
 	}
 
-	/** Build or refresh the datatable once the pane has a stable width. */
+	/** Build or refresh the datatable. The wizard calls this again once the pane is shown. */
 	render_datatable_if_needed(force = false) {
 		if (!this.$table_preview?.length) return;
 
-		if (!this._can_render_datatable()) {
-			this._schedule_datatable_render();
+		// A datatable built in a hidden pane measures its columns wrong.
+		if (this.frm?._data_import_wizard && !this.is_visible()) {
+			this._render_pending = true;
 			return;
 		}
 
 		const width = this._get_container_width();
-		if (!force && this.datatable && this._rendered_container_width === width) {
+		if (
+			!force &&
+			!this._render_pending &&
+			this.datatable &&
+			this._rendered_container_width === width
+		) {
 			this.setup_wizard_scroll();
 			return;
 		}
 
-		try {
-			this._build_datatable();
-		} catch (error) {
-			const now = Date.now();
-			if (!this._datatable_last_build_warn || now - this._datatable_last_build_warn > 5000) {
-				console.warn("Data Import preview datatable build failed; will retry", error);
-				this._datatable_last_build_warn = now;
-			}
-			this._schedule_datatable_render();
-			return;
-		}
+		this._render_pending = false;
+		this._build_datatable();
 		this._rendered_container_width = width;
+	}
+
+	is_visible() {
+		const el = this.$table_preview?.get(0);
+		return Boolean(
+			el?.isConnected && el.getClientRects().length && this._get_container_width()
+		);
 	}
 
 	/** Width of the visible preview pane, used before stretching columns. */
@@ -277,49 +281,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			el;
 
 		return Math.floor(host.getBoundingClientRect().width || 0);
-	}
-
-	/** The preview can mount in a hidden wizard pane that has no layout yet. */
-	_can_render_datatable() {
-		const el = this.$table_preview?.get(0);
-		if (!el) return false;
-		if (!el.isConnected || !document.contains(el)) return false;
-
-		const host =
-			el.closest(".diw-preview-pane-table") ||
-			el.closest(".data-import-preview-section") ||
-			el.closest(".form-section");
-		if (!host) return true;
-		if (!host.isConnected || !document.contains(host)) return false;
-
-		const step_panel = el.closest(".diw-step-panel");
-		if (step_panel?.classList.contains("hidden")) return false;
-
-		const style = window.getComputedStyle(host);
-		if (style.display === "none" || style.visibility === "hidden") return false;
-		if (host.offsetWidth <= 0) return false;
-		if (this._get_container_width() <= 0) return false;
-		return el.getClientRects().length > 0;
-	}
-
-	_schedule_datatable_render() {
-		if (this._datatable_render_queued) return;
-		this._datatable_render_queued = true;
-
-		const try_render = (attempt = 0) => {
-			if (this._can_render_datatable()) {
-				this._datatable_render_queued = false;
-				this.render_datatable_if_needed(true);
-				return;
-			}
-			if (attempt < 40) {
-				requestAnimationFrame(() => try_render(attempt + 1));
-				return;
-			}
-			this._datatable_render_queued = false;
-		};
-
-		requestAnimationFrame(() => try_render(0));
 	}
 
 	_build_datatable() {
@@ -349,7 +310,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			}
 		}
 
-		let built_new = false;
 		if (!this.datatable) {
 			try {
 				this.datatable = new DataTable(host_el, {
@@ -365,7 +325,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					disableReorderColumn: true,
 				});
 				this._datatable_host = host_el;
-				built_new = true;
 			} catch (error) {
 				this.datatable = null;
 				this._datatable_host = null;
@@ -390,30 +349,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.setup_wizard_scroll();
 		this.mount_column_map_controls();
 		this.mount_date_format_controls();
-
-		// A tree doctype's Table pane stays hidden until its tab opens, so columns can misalign.
-		if (built_new) {
-			this._reconcile_wizard_datatable();
-		}
-	}
-
-	_reconcile_wizard_datatable() {
-		if (!this.$table_preview?.closest(".diw-preview-step").length) return;
-		cancelAnimationFrame(this._wizard_reconcile_raf);
-		this._wizard_reconcile_raf = requestAnimationFrame(() => {
-			this._wizard_reconcile_raf = requestAnimationFrame(() => {
-				this._wizard_reconcile_raf = null;
-				if (!this.datatable || !this._can_render_datatable()) return;
-				try {
-					this.datatable.refresh(this.data, this._get_render_columns());
-					this.setup_wizard_scroll();
-					this.mount_column_map_controls();
-					this.mount_date_format_controls();
-				} catch (error) {
-					// Best effort; a later resize reconciles the layout.
-				}
-			});
-		});
 	}
 
 	/** Stretch a few columns to fill the width instead of leaving a blank strip. */

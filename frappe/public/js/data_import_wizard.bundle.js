@@ -250,12 +250,6 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		};
 		window.addEventListener("resize", this._on_resize, { passive: true });
 		this.update_card_height();
-
-		// The datatable gives up on an unlaid-out pane, so re-mount when preview data lands.
-		this._on_preview_ready = () => {
-			if (this.current_step === 1) this.render_panel();
-		};
-		$(this.frm.wrapper).on("diw-import-preview-ready.diw_wizard", this._on_preview_ready);
 	}
 
 	unmount() {

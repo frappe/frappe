@@ -707,27 +707,9 @@ function append_preview_pane_fields(frm, parent_el, fieldnames, shell_class = ""
 	return { mounted: appended, reparented: appended };
 }
 
-/** Re-render table preview after wizard reparents fields into the visible pane. */
+/** Render the table preview if its pane is showing; a hidden pane renders when shown. */
 function refresh_wizard_table_preview(frm, { force = false } = {}) {
-	const preview = frm.import_preview;
-	if (!preview?.preview_data) return;
-
-	frm._wizard_table_preview_dirty = true;
-	frm._wizard_table_preview_force = frm._wizard_table_preview_force || force;
-	if (frm._wizard_table_preview_raf) return;
-
-	// Wait two frames so the reparented pane has layout before measuring columns.
-	frm._wizard_table_preview_raf = requestAnimationFrame(() => {
-		frm._wizard_table_preview_raf = requestAnimationFrame(() => {
-			frm._wizard_table_preview_raf = null;
-			if (!frm._wizard_table_preview_dirty) return;
-			const should_force = frm._wizard_table_preview_force;
-			frm._wizard_table_preview_dirty = false;
-			frm._wizard_table_preview_force = false;
-			if (!preview.preview_data || !preview.$table_preview?.length) return;
-			preview.render_datatable_if_needed?.(should_force);
-		});
-	});
+	frm.import_preview?.render_datatable_if_needed(force);
 }
 
 frappe.ui.form.on("Data Import", {
@@ -1266,12 +1248,6 @@ frappe.ui.form.on("Data Import", {
 				frm.events.go_to_wizard_step(frm, target_step);
 			}
 
-			// Step change and async preview mount can race on new docs, so render once more.
-			if (target_step === 1 && frm.has_import_file?.()) {
-				setTimeout(() => {
-					refresh_wizard_table_preview(frm, { force: true });
-				}, 0);
-			}
 			return true;
 		} catch (_error) {
 			return false;
@@ -2114,10 +2090,8 @@ frappe.ui.form.on("Data Import", {
 			}
 
 			// Sections are reparented into the Preview step, so keep them expanded.
-			setTimeout(() => {
-				frm.layout?.sections_dict?.section_import_tree_preview?.collapse(false);
-				$(frm.wrapper).trigger("diw-import-preview-ready");
-			}, 0);
+			frm.layout?.sections_dict?.section_import_tree_preview?.collapse(false);
+			$(frm.wrapper).trigger("diw-import-preview-ready");
 		};
 
 		frappe.require("data_import_tools.bundle.js", render_tree_preview);
@@ -2144,7 +2118,6 @@ frappe.ui.form.on("Data Import", {
 				frm.import_preview.import_log = import_log;
 				frm.import_preview.provider_schema = provider_schema || null;
 				frm.import_preview.refresh();
-				refresh_wizard_table_preview(frm, { force: true });
 				$(frm.wrapper).trigger("diw-import-preview-ready");
 				return;
 			}
@@ -2186,14 +2159,11 @@ frappe.ui.form.on("Data Import", {
 							frm._diw_column_map_dirty = true;
 						},
 					},
-					on_ready() {
-						setTimeout(() => {
-							if (frm.import_preview) {
-								frm.import_preview.data_import_name = frm.doc.name;
-							}
-							refresh_wizard_table_preview(frm, { force: true });
-							$(frm.wrapper).trigger("diw-import-preview-ready");
-						}, 0);
+					// Can run before the constructor returns, so take the instance from the callback.
+					on_ready(preview) {
+						frm.import_preview = preview;
+						preview.data_import_name = frm.doc.name;
+						$(frm.wrapper).trigger("diw-import-preview-ready");
 					},
 				});
 			});
