@@ -6,6 +6,9 @@ export function useCanvasNavigationGuard(canvasContainer: { value: HTMLElement |
 	const router = useRouter()
 	let removeNavigationGuard: (() => void) | null = null
 	let isCanvasInteraction = false
+	const resetCanvasInteraction = () => {
+		setTimeout(() => { isCanvasInteraction = false }, 0)
+	}
 
 	onMounted(() => {
 		const canvasContainerEl = canvasContainer.value as HTMLElement
@@ -16,9 +19,8 @@ export function useCanvasNavigationGuard(canvasContainer: { value: HTMLElement |
 			isCanvasInteraction = true
 		}, true)
 
-		canvasContainerEl.addEventListener("mouseup", () => {
-			setTimeout(() => { isCanvasInteraction = false }, 0)
-		}, true)
+		// on the document, so a press released outside the canvas (e.g. onto a context menu) still resets the flag
+		document.addEventListener("mouseup", resetCanvasInteraction, true)
 
 		removeNavigationGuard = router.beforeEach((to, from) => {
 			if (to.fullPath === from.fullPath) return true
@@ -28,6 +30,7 @@ export function useCanvasNavigationGuard(canvasContainer: { value: HTMLElement |
 	})
 
 	onUnmounted(() => {
+		document.removeEventListener("mouseup", resetCanvasInteraction, true)
 		removeNavigationGuard?.()
 	})
 }
