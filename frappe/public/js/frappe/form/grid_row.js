@@ -910,7 +910,7 @@ export default class GridRow {
 		let add_style = `flex: 1 0 ${width}px; width: ${width}px;`;
 		if (df.sticky) {
 			add_class = " sticky-grid-col";
-			add_style += `left: ${this.grid.get_sticky_offset(df.fieldname)}px;`;
+			add_style += `inset-inline-start: ${this.grid.get_sticky_offset(df.fieldname)}px;`;
 		}
 
 		let $col = $(
@@ -970,7 +970,7 @@ export default class GridRow {
 		let add_style = `flex: 1 0 ${width}px; width: ${width}px;`;
 		if (df.sticky) {
 			add_class += " sticky-grid-col";
-			add_style += `left: ${this.grid.get_sticky_offset(df.fieldname)}px;`;
+			add_style += `inset-inline-start: ${this.grid.get_sticky_offset(df.fieldname)}px;`;
 		}
 
 		let grid;
