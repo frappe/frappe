@@ -1073,13 +1073,8 @@ def get_value_row_map(column_values, value_row_numbers):
 	for value, row_number in zip(column_values, value_row_numbers, strict=False):
 		if value in INVALID_VALUES:
 			continue
-		key = cstr(value)
-		value_rows.setdefault(key, [])
-		if row_number not in value_rows[key]:
-			value_rows[key].append(row_number)
-	for rows in value_rows.values():
-		rows.sort()
-	return value_rows
+		value_rows.setdefault(cstr(value), set()).add(row_number)
+	return {value: sorted(rows) for value, rows in value_rows.items()}
 
 
 def format_row_numbers_for_warning(rows: list, max_shown: int = 6) -> str:

@@ -586,6 +586,13 @@ class TestImporter(IntegrationTestCase):
 			"2, 3, 4, 5, 6, 7, ... 100",
 		)
 
+	def test_get_value_row_map_groups_rows_by_value(self):
+		from frappe.core.doctype.data_import.importer import get_value_row_map
+
+		value_rows = get_value_row_map(["Open", "Closed", None, "Open", 5, "Open"], [4, 2, 3, 2, 6, 4])
+		self.assertEqual(value_rows, {"Open": [2, 4], "Closed": [2], "5": [6]})
+		self.assertEqual(list(value_rows), ["Open", "Closed", "5"])
+
 	def test_link_validation_ignores_header_row_when_not_on_first_line(self):
 		"""Leading blank rows must not treat the header line as data (e.g. Gender → row 3)."""
 		from frappe.core.doctype.data_import.importer import ImportFile
