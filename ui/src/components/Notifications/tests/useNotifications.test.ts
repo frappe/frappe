@@ -51,9 +51,11 @@ describe("markAsRead", () => {
 
     await controller.markAsRead("unread-1");
 
-    expect(api.runMethod).toHaveBeenCalledWith(MARK_AS_READ, {
-      docname: "unread-1",
-    });
+    expect(api.runMethod).toHaveBeenCalledWith(
+      MARK_AS_READ,
+      { docname: "unread-1" },
+      { nullable: true },
+    );
     expect(api.updateDocument).not.toHaveBeenCalled();
   });
 
@@ -63,9 +65,11 @@ describe("markAsRead", () => {
 
     await controller.markAsRead("elsewhere");
 
-    expect(api.runMethod).toHaveBeenCalledWith(MARK_AS_READ, {
-      docname: "elsewhere",
-    });
+    expect(api.runMethod).toHaveBeenCalledWith(
+      MARK_AS_READ,
+      { docname: "elsewhere" },
+      { nullable: true },
+    );
   });
 
   it("refreshes the unread count afterwards", async () => {

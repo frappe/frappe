@@ -194,7 +194,13 @@ describe("useInviteUser", () => {
     expect(api.runDocumentMethod).toHaveBeenCalledWith("User Invitation", "inv-1", "cancel_invite");
 
     await store.resend("inv-2");
-    expect(api.runDocumentMethod).toHaveBeenCalledWith("User Invitation", "inv-2", "resend_invite");
+    expect(api.runDocumentMethod).toHaveBeenCalledWith(
+      "User Invitation",
+      "inv-2",
+      "resend_invite",
+      {},
+      { nullable: true },
+    );
   });
 
   it("cancellingName is the busy row while cancel() is in flight, then null", async () => {

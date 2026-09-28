@@ -62,19 +62,19 @@ cp frontend/package.base.json frontend/package.json
 cp frontend/yarn.lock.base frontend/yarn.lock
 yarn --cwd frontend install --frozen-lockfile
 yarn --cwd frontend lint
+yarn --cwd frontend test:files
 yarn --cwd frontend test:run
 ```
 
 That is exactly what CI does (`.github/workflows/frontend-tests.yml`). The **base** pair
 is the correct input, not a `bench build`-generated one: `yarn.lock.base` was resolved from
-`package.base.json` alone, and no test needs anything an app declares. Baseline is
-**104 files / 1274 tests**, under `recordPage/tests/`, `pages/record/tests/`,
-`pages/record/panel/tests/`, `pages/record/tabs/tests/`, `pages/record/feed/tests/`,
-`shell/tests/`, `navigation/tests/`, `../ui/src/components/ActivityTimeline/tests/` and
-`../ui/src/api/tests/`.
+`package.base.json` alone, and no test needs anything an app declares. Every `*.test.ts`
+under `frontend/src`, `frontend/plugin` and `ui/src` runs. `test:files` fails when a test
+file sits where no `include` pattern reaches it.
 
 `vitest.config.js` sets `resolve.dedupe` for tests only: a `ui/` test imports ui by its real
-path, and `ui/` has no `node_modules`. The build config still rejects it, for the reason under
+path, and `ui/` has no `node_modules`. The list is every package `ui/package.json` declares, so
+a package `ui/` imports but does not declare fails its test. The build config still rejects it, for the reason under
 "Imports" below.
 
 **`vitest.config.js` runs with `css: { postcss: {} }`, and that is not cosmetic.**
