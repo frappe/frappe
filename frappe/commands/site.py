@@ -765,10 +765,25 @@ def disable_user(context: CliCtxObj, email):
 
 @click.command("migrate")
 @click.option("--skip-failing", is_flag=True, help="Skip patches that fail to run")
+@click.option(
+	"--skip-search-index",
+	is_flag=True,
+	help=(
+		"Deprecated and ignored because website search indexing has been removed. Remove this option from "
+		"migration scripts; it will be removed in v17."
+	),
+)
 @click.option("--skip-fixtures", is_flag=True, help="Skip loading fixtures")
 @pass_context
-def migrate(context: CliCtxObj, skip_failing=False, skip_fixtures=False):
+def migrate(context: CliCtxObj, skip_failing=False, skip_fixtures=False, skip_search_index=False):
 	"Run patches, sync schema and rebuild files/translations"
+	if skip_search_index:
+		click.secho(
+			"Warning: --skip-search-index is deprecated and has no effect because website search indexing "
+			"has been removed. Remove it from your migration command; it will be removed in v17.",
+			fg="yellow",
+			err=True,
+		)
 
 	from frappe.migrate import SiteMigration
 
@@ -780,6 +795,13 @@ def migrate(context: CliCtxObj, skip_failing=False, skip_fixtures=False):
 			print()
 	if not context.sites:
 		raise SiteNotSpecifiedError
+
+
+@click.command("build-search-index")
+@pass_context
+def build_search_index(context: CliCtxObj):
+	"""Kept for compatibility; website search indexing has been removed."""
+	get_site(context)
 
 
 @click.command("migrate-to")
@@ -1770,6 +1792,7 @@ commands = [
 	stop_recording,
 	add_to_hosts,
 	start_ngrok,
+	build_search_index,
 	partial_restore,
 	trim_tables,
 	trim_database,
