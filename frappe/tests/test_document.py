@@ -521,6 +521,30 @@ class TestDocument(IntegrationTestCase):
 			self.assertIsInstance(doc.as_dict().get("age"), timedelta)
 			self.assertIsInstance(doc.get_valid_dict().get("age"), timedelta)
 
+	def test_virtual_fields_of_single_are_not_stored(self):
+		doctype = new_doctype(
+			issingle=1,
+			fields=[
+				{"fieldname": "title", "fieldtype": "Data", "label": "Title"},
+				{
+					"fieldname": "loud_title",
+					"fieldtype": "Data",
+					"label": "Loud Title",
+					"is_virtual": 1,
+					"options": "(doc.title or '').upper()",
+				},
+			],
+		).insert()
+		self.addCleanup(doctype.delete, force=True)
+
+		single = frappe.get_doc(doctype.name)
+		single.title = "hello"
+		single.save()
+
+		self.assertEqual(frappe.db.count("Singles", {"doctype": doctype.name, "field": "title"}), 1)
+		self.assertEqual(frappe.db.count("Singles", {"doctype": doctype.name, "field": "loud_title"}), 0)
+		self.assertEqual(frappe.get_doc(doctype.name).as_dict().loud_title, "HELLO")
+
 	def test_run_method(self):
 		doc = frappe.get_last_doc("User")
 
