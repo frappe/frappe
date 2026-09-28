@@ -3,6 +3,7 @@ import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import blockController from "@/utils/blockController"
 import { openInDesk } from "@/utils/helpers"
+import { nextTick } from "vue"
 import type { LeftPanelOptions } from "@/types"
 
 /** A key binding for a command. The description labels it in the shortcuts dialog. */
@@ -28,7 +29,7 @@ export type Command = {
 	inPalette?: boolean
 }
 
-export const commandGroups = ["Navigate", "Page", "Panels", "View", "General", "Edit"] as const
+export const commandGroups = ["Navigate", "Page", "Panels", "Layers", "View", "General", "Edit"] as const
 export type CommandGroup = (typeof commandGroups)[number]
 
 export const resolveText = (value: string | (() => string)) => (typeof value === "function" ? value() : value)
@@ -137,6 +138,36 @@ for (const { tab, icon } of leftPanelTabs) {
 		},
 	})
 }
+
+// Layers
+
+const showLayersTab = async () => {
+	store.studioLayout.showLeftPanel = true
+	store.studioLayout.leftPanelActiveTab = "Layers"
+	await nextTick()
+}
+
+registerCommand({
+	name: "expand-layers",
+	title: "Expand All Layers",
+	icon: "lucide-chevrons-up-down",
+	group: "Layers",
+	action: async () => {
+		await showLayersTab()
+		store.activeLayers?.expandAll()
+	},
+})
+
+registerCommand({
+	name: "collapse-layers",
+	title: "Collapse All Layers",
+	icon: "lucide-chevrons-down-up",
+	group: "Layers",
+	action: async () => {
+		await showLayersTab()
+		store.activeLayers?.collapseAll()
+	},
+})
 
 // View
 

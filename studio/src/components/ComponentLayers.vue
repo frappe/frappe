@@ -146,7 +146,7 @@
 							</div>
 
 							<div v-if="isSlotExpanded(slot)">
-								<ComponentLayers :blocks="slot.slotContent" ref="slotLayer" :indent="slotIndent" />
+								<ComponentLayers :blocks="slot.slotContent" :ref="slotLayer" :indent="slotIndent" />
 							</div>
 						</div>
 					</div>
@@ -167,7 +167,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from "vue"
+import { ref, watch, computed, nextTick } from "vue"
 import Draggable from "vuedraggable"
 
 import ComponentLayers from "@/components/ComponentLayers.vue"
@@ -198,11 +198,16 @@ const props = withDefaults(
 const canvasStore = useCanvasStore()
 const rootContainer = ref<HTMLElement | null>(null)
 const childLayers = ref<LayerInstance[]>([])
-const childLayer = (el: LayerInstance) => {
-	if (el) {
-		childLayers.value.push(el)
+const slotLayers = ref<LayerInstance[]>([])
+// function refs run on every re-render, so skip layers that are already tracked
+const trackLayer = (layers: LayerInstance[], el: unknown) => {
+	const layer = el as LayerInstance | null
+	if (layer && !layers.includes(layer)) {
+		layers.push(layer)
 	}
 }
+const childLayer = (el: unknown) => trackLayer(childLayers.value, el)
+const slotLayer = (el: unknown) => trackLayer(slotLayers.value, el)
 
 interface LayerBlock extends Block {
 	editable: boolean
@@ -535,8 +540,28 @@ watch(
 
 const slotIndent = computed(() => childIndent + 16)
 
+const expandAll = async () => {
+	for (const block of props.blocks) {
+		if (isExpandable(block)) expandedLayers.value.add(block.componentId)
+		for (const slot of Object.values(block.componentSlots || {})) {
+			if (isSlotExpandable(slot)) expandedSlots.value.add(slot.slotId)
+		}
+	}
+	// slot layers render only once their slot is expanded
+	await nextTick()
+	await Promise.all([...childLayers.value, ...slotLayers.value].map((layer) => layer.expandAll()))
+}
+
+const collapseAll = () => {
+	;[...childLayers.value, ...slotLayers.value].forEach((layer) => layer.collapseAll())
+	expandedLayers.value = new Set(["root"])
+	expandedSlots.value = new Set()
+}
+
 defineExpose({
 	toggleExpanded,
 	blockExistsInTree,
+	expandAll,
+	collapseAll,
 })
 </script>

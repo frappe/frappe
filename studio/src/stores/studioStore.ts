@@ -28,6 +28,7 @@ import type {
 	StudioMode,
 } from "@/types"
 import ComponentContextMenu from "@/components/ComponentContextMenu.vue"
+import type ComponentLayers from "@/components/ComponentLayers.vue"
 import type { Variable, VariableOption } from "@/types/Studio/StudioPageVariable"
 import { toast, dialog } from "frappe-ui"
 import { createResource, call } from "frappe-ui"
@@ -49,6 +50,7 @@ const useStudioStore = defineStore("store", () => {
 	)
 	const mode = ref<StudioMode>("select")
 	const componentContextMenu = ref<InstanceType<typeof ComponentContextMenu> | null>(null)
+	const activeLayers = ref<InstanceType<typeof ComponentLayers> | null>(null)
 
 	// dialogs
 	const showSearchBlock = ref(false)
@@ -719,6 +721,7 @@ const useStudioStore = defineStore("store", () => {
 		studioLayout,
 		mode,
 		componentContextMenu,
+		activeLayers,
 		// dialogs
 		showSearchBlock,
 		showStudioSettingsDialog,
