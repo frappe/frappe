@@ -603,6 +603,30 @@ class TestImporter(IntegrationTestCase):
 		frappe.local.lang = "de"
 		self.assertEqual(get_df_for_column_header(doctype_name, "Titel").fieldname, "title")
 
+	def test_import_maps_headers_in_user_language(self):
+		self.addCleanup(setattr, frappe.local, "lang", frappe.local.lang)
+		self.addCleanup(frappe.local.request_cache.clear)
+		frappe.local.lang = "en"
+		frappe.local.request_cache.clear()
+
+		import_file = frappe.get_doc(
+			doctype="File",
+			content="Währungsname\n_Test User Language\n",
+			file_name="data_import_user_language.csv",
+			is_private=1,
+		)
+		import_file.save(ignore_permissions=True)
+		_register_file_cleanup(self, import_file)
+		self.addCleanup(_delete_doctype_records, "Currency", ["_Test User Language"])
+
+		with (
+			self.set_user("test@example.com"),
+			patch("frappe.translate.get_user_lang", return_value="de"),
+		):
+			self.get_importer("Currency", import_file).start_import()
+
+		self.assertTrue(frappe.db.exists("Currency", "_Test User Language"))
+
 	def get_importer(self, doctype, import_file, update=False, use_sniffer=False, import_type=None):
 		data_import = frappe.new_doc("Data Import")
 		if import_type:
