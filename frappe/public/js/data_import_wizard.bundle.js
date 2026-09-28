@@ -1081,11 +1081,11 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 
 		const show_back = step !== 0;
 		const show_next = step === 0 || step === 1 || (step === 2 && import_started);
-		const next_disabled = loading;
+		// A large file can take seconds to preview; show that it is working.
+		const loading_label = __("Loading preview...");
 		// Fix Issues: Save while dirty; Import only when clean.
 		const show_save = step === 2 && can_import && !import_started && is_dirty;
 		const show_apply = step === 2 && can_import && !import_started && !is_dirty;
-		const apply_disabled = loading;
 
 		this.$footer_left.empty();
 		this.$footer_right.empty();
@@ -1105,7 +1105,8 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 				frappe.ui.button({
 					label: __("Next"),
 					icon_right: "arrow-right",
-					disabled: next_disabled,
+					loading,
+					loading_label,
 					onclick: () => this.on_next(),
 				})
 			);
@@ -1116,7 +1117,8 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 				frappe.ui.button({
 					label: __("Save"),
 					variant: "solid",
-					disabled: loading,
+					loading,
+					loading_label,
 					onclick: () => this.on_save(),
 				})
 			);
@@ -1127,7 +1129,8 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 				frappe.ui.button({
 					label: __("Import"),
 					variant: "solid",
-					disabled: apply_disabled,
+					loading,
+					loading_label,
 					onclick: () => this.on_apply(),
 				})
 			);
