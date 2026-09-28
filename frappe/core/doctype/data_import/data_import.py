@@ -37,7 +37,7 @@ def _value_mapping_state(doc) -> list[tuple[str, str, str, str]]:
 
 
 def _import_source_fingerprint(doc) -> str:
-	"""Fingerprint of parse inputs that invalidate blocked-import warning snapshots."""
+	"""Parse inputs; when these change, saved template warnings are stale."""
 	return "|".join(
 		[
 			cstr(doc.import_file),
@@ -97,7 +97,7 @@ class DataImport(Document):
 			# Tree overrides are keyed by sheet row number, so a new file invalidates them.
 			self.tree_parent_overrides = ""
 
-		# The tree structure (and its row numbers) belongs to a specific DocType.
+		# Overrides belong to one DocType's tree.
 		if doc_before_save and doc_before_save.reference_doctype != self.reference_doctype:
 			self.tree_parent_overrides = ""
 
@@ -108,7 +108,7 @@ class DataImport(Document):
 		importer = self.get_importer() if (self.import_file or self.google_sheets_url) else None
 		if importer:
 			self.set_payload_count(importer)
-			# File content can change at the same URL — drop snapshotted warnings so Fix Issues stays correct
+			# The same URL can serve new content; changed mappings mean the warnings are stale.
 			mappings_before_sync = _value_mapping_state(self)
 			self.sync_value_mappings_from_import(importer)
 			if self.template_warnings and _value_mapping_state(self) != mappings_before_sync:
@@ -117,17 +117,15 @@ class DataImport(Document):
 			self.set_payload_count()
 
 	def clear_stale_template_warnings(self, doc_before_save) -> None:
-		"""Drop blocked-import warning snapshots that no longer match the current file
-		or mappings — otherwise the wizard keeps landing on Fix Issues after a swap."""
+		"""Clear saved warnings once the file or mappings change, or the wizard stays on Fix Issues."""
 		if not self.template_warnings or not doc_before_save:
 			return
 
-		# Also invalidate on mapping-only and delimiter/column-map edits
 		if _import_source_fingerprint(self) != _import_source_fingerprint(doc_before_save):
 			self.template_warnings = ""
 			return
 
-		# Keep template warnings on skipped_rows-only changes so Undo Skip stays available
+		# skipped_rows-only edits keep the warnings, so Undo Skip stays available.
 		if _value_mapping_state(self) != _value_mapping_state(doc_before_save):
 			self.template_warnings = ""
 
@@ -264,11 +262,10 @@ def stop_data_import(doc_name: str):
 	try:
 		send_stop_job_command(connection=get_redis_conn(), job_id=job_id)
 	except (InvalidJobOperation, NoSuchJobError):
-		# Job already finished or worker crashed — no active job to stop.
+		# The job already finished or the worker died, so there is nothing to stop.
 		job_was_running = False
 
-	# RQ stop can kill the worker before it writes a final status (also recovers an orphaned
-	# "In Progress"). Only mark terminal if DB is still In Progress, to preserve the worker's status.
+	# A killed worker may never write a status; only In Progress is ours to overwrite.
 	frappe.db.set_value(
 		"Data Import",
 		{"name": data_import.name, "status": "In Progress"},
@@ -310,8 +307,7 @@ def start_import(data_import):
 	finally:
 		frappe.flags.in_import = False
 
-	# A blocked run already published `data_import_blocked`, which reloads the doc client
-	# side; publishing refresh as well would make it reload twice.
+	# A blocked run already sent `data_import_blocked`; a refresh too would reload twice.
 	if not (i and i.blocked_by_warnings):
 		frappe.publish_realtime(
 			"data_import_refresh",
@@ -320,8 +316,7 @@ def start_import(data_import):
 			docname=data_import.name,
 		)
 
-		# list_update is suppressed during import (frappe.flags.in_import) to avoid flooding;
-		# publish one refresh for the reference doctype list after import completes.
+		# list_update is muted while in_import, so send one for the list once the import ends.
 		if data_import.reference_doctype and data_import.status in ("Success", "Partial Success"):
 			data = {"doctype": data_import.reference_doctype, "name": None, "user": frappe.session.user}
 			frappe.publish_realtime("list_update", data, after_commit=True)  # nosemgrep
@@ -329,11 +324,7 @@ def start_import(data_import):
 
 @frappe.whitelist()
 def get_import_fields(doctype: str):
-	"""Custom Import Provider field schema for the picker dialog, or ``None`` (use meta).
-
-	Shape: ``{"fields": [<df>, ...], "child_tables": [{"fieldname", "label", "fields": [<df>]}]}``
-	(see ``ImportProvider.get_import_fields``).
-	"""
+	"""The provider's ``get_import_fields`` schema for the field picker, or None to use meta."""
 	if not doctype:
 		return None
 	frappe.has_permission(doctype, "read", throw=True)
@@ -467,15 +458,7 @@ def get_import_log_count(data_import: str):
 
 @frappe.whitelist()
 def get_import_logs(data_import: str, status: str | None = None):
-	"""Return up to 1000 import log rows for the UI preview.
-
-	Tabs:
-	- ``all`` (default): first 1000 by ``log_index`` (mixed success/failure)
-	- ``success``: up to 1000 successful rows
-	- ``failed``: up to 1000 failed rows
-
-	Tab badge totals come from ``get_import_status``.
-	"""
+	"""Up to 1000 log rows; ``status`` is "all" (default), "success" or "failed"."""
 	doc = frappe.get_doc("Data Import", data_import)
 	doc.check_permission("read")
 

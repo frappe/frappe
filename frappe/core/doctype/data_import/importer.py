@@ -45,8 +45,7 @@ class Importer:
 		self.doctype = doctype
 		self.console = console
 		self.use_sniffer = use_sniffer
-		# True when prechecks blocked the run; a `data_import_blocked` event was already
-		# sent, so callers skip the normal "refresh" broadcast.
+		# Set when prechecks block the run; callers then skip the "refresh" broadcast.
 		self.blocked_by_warnings = False
 
 		self.data_import = data_import
@@ -161,7 +160,7 @@ class Importer:
 				self.print_grouped_warnings(warnings)
 			else:
 				self.data_import.db_set("template_warnings", json.dumps(warnings))
-				# Keep the doc actionable in the UI when import prechecks block execution.
+				# Back to Pending so the user can fix the file and start again.
 				self.data_import.db_set("status", "Pending")
 				frappe.publish_realtime(
 					"data_import_blocked",
@@ -483,8 +482,7 @@ class Importer:
 			first_message = messages[0]
 			if isinstance(first_message, dict):
 				if first_message.get("message"):
-					# Already sanitized by msgprint, but re-sanitize so the realtime payload is
-					# safe however the message reached us; the client renders it as HTML.
+					# The client renders this as HTML and not every message went through msgprint.
 					message_text = clean_html(first_message.get("message"))
 					is_html = True
 				else:
@@ -732,7 +730,7 @@ class ImportFile:
 	):
 		self.doctype = doctype
 		self.reference_doctype = reference_doctype or doctype
-		# Per-row tree edits (move / group toggle), keyed by int row number: {row: {parent, is_group}}.
+		# {row_number: {"parent": ..., "is_group": ...}} from the tree editor.
 		self.tree_parent_overrides = {
 			cint(row): value
 			for row, value in (frappe.parse_json(tree_parent_overrides or "{}") or {}).items()
@@ -908,7 +906,7 @@ class ImportFile:
 		return out
 
 	def get_payloads_for_import(self):
-		# Apply tree edits before building docs; sort_tree_payloads reorders parent-first.
+		# Before building docs, so sort_tree_payloads orders by the edited parents.
 		self.apply_tree_overrides()
 		payloads = []
 		# make a copy
@@ -921,8 +919,7 @@ class ImportFile:
 		return sort_tree_payloads(payloads, self.doctype, self.import_type)
 
 	def apply_tree_overrides(self):
-		"""Patch parent/is_group cells for rows the user moved or (un)grouped; preview and
-		import both read these cells, so the one mutation flows through the whole pipeline."""
+		"""Write the user's tree edits into the parent and is_group cells before import."""
 		overrides = self.tree_parent_overrides
 		if not overrides:
 			return
@@ -1092,20 +1089,19 @@ def _get_id_fieldname_from_meta(meta) -> str:
 
 def _get_tree_alias_field_from_meta(meta) -> str | None:
 	"""Alias field for parent-by-alias tree imports; None when name comes from a field: autoname."""
-	# Not a tree doctype — no alias needed
+	# Not a tree DocType, so no alias
 	if not meta.is_nested_set():
 		return None
 
-	# Name comes from a field: autoname — the ID column is in the file, no alias needed
+	# field: autoname puts the name in the file, so no alias
 	if meta.autoname and meta.autoname.startswith("field:"):
 		return None
 
-	# Has a title_field different from the ID field — use it as alias
+	# A title_field different from the ID field is the alias
 	if meta.title_field and meta.title_field != _get_id_fieldname_from_meta(meta):
 		return meta.title_field
 
-	# Fallback for tree doctypes with auto-generated names and no title_field:
-	# Use the first required Data field as the identifier (e.g., account_name for Account)
+	# No usable title_field: fall back to the first mandatory Data field (e.g. account_name).
 	for field in meta.fields:
 		if field.fieldtype == "Data" and field.reqd:
 			return field.fieldname
@@ -1265,8 +1261,7 @@ def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 		orig_parent = _get_tree_parent_value(row, parent_column, doc, parent_field)
 		orig_is_group = cint(doc.get(is_group_field)) if is_group_field else 0
 
-		# Apply the user's tree edits for display + warning recomputation. Keep the
-		# originals so the client can show an "edited" badge and reset a single node.
+		# Keep the originals so the client can badge edited nodes and reset one.
 		override = overrides.get(row.row_number) or {}
 		parent = orig_parent
 		is_group = orig_is_group
@@ -1303,7 +1298,7 @@ def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 			message = _("Duplicate ID {0} in rows {1}").format(
 				frappe.bold(escape_html(cstr(node_id))), format_row_numbers_for_warning(row_numbers)
 			)
-			# Include type and rows metadata so the UI can offer "Keep First, Skip Rest"
+			# type and rows let the UI offer "Keep First, Skip Rest".
 			tree_warnings.append(
 				{
 					"message": message,
@@ -1599,7 +1594,7 @@ class Row:
 			select_options = get_select_options(df)
 			if select_options and cstr(value) not in select_options:
 				if self.has_value_mapping(value, col):
-					# A saved value mapping resolves this at import time — no row warning.
+					# A saved value mapping fixes this at import time, so no row warning.
 					return value
 				options_string = ", ".join(select_options)
 				msg = _('"{0}" is not valid. Allowed: {1}').format(
@@ -1621,7 +1616,7 @@ class Row:
 			exists = self.link_exists(value, df)
 			if not exists:
 				if self.has_value_mapping(value, col):
-					# A saved value mapping resolves this at import time — no row warning.
+					# A saved value mapping fixes this at import time, so no row warning.
 					return value
 				msg = _('"{0}" is not a valid {1}').format(
 					frappe.bold(escape_html(cstr(value))), frappe.bold(df.label)
@@ -1985,7 +1980,6 @@ class Column:
 
 			warn_invalid_link_select_values(self)
 		elif self.df.fieldtype in ("Date", "Time", "Datetime"):
-			# TODO: let user set the date format explicitly; auto-guess is ambiguous (e.g. dd-mm-yy vs yy-mm-dd).
 			self.date_format = self.date_format_override or self.guess_date_format_for_column()
 
 			if not self.date_format:
@@ -2025,18 +2019,15 @@ class Column:
 
 
 class _HashableTableDF(frappe._dict):
-	"""A synthetic child-table docfield that is hashable (so it survives ``set(doctypes)`` in
-	``Header`` like a real docfield does)."""
+	"""Stand-in child-table docfield; hashable because Header puts table dfs in a set."""
 
 	def __hash__(self):
 		return hash((self.get("fieldname"), self.get("options")))
 
 
 def _build_fields_dict_from_schema(parent_doctype, schema):
-	"""Header -> docfield map built from a provider's schema instead of meta.
-
-	Mirrors build_fields_dict_for_column_matching; each child table's DocType comes from
-	its fields' ``parent``."""
+	"""build_fields_dict_for_column_matching for a provider schema instead of meta.
+	A child table's DocType is taken from its fields' ``parent``."""
 	out = {}
 
 	groups = [(parent_doctype, None, schema.get("fields") or [])]

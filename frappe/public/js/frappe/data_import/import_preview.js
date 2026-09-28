@@ -8,15 +8,15 @@ import { get_columns_for_picker } from "./data_exporter";
 
 frappe.provide("frappe.data_import");
 
-/** Sentinel mapping value (matches remap_column behavior). */
+// Same sentinel the server checks in remap_column.
 const DONT_IMPORT = "Don't Import";
-/** Placeholder values used by the synthetic first-row mapper. */
+// Row 1 shows the file's column titles because the header holds the mapper.
 const DIW_MAP_CELL = "__diw_col_map__";
 const DIW_MAP_LABEL = "__diw_col_map_label__";
 
 const DATE_FIELDTYPES = ["Date", "Datetime", "Time"];
 
-// Curated date formats; the auto-detected one is always offered too.
+// The auto-detected format is always offered alongside these.
 const COMMON_DATE_FORMATS = [
 	"%Y-%m-%d",
 	"%d-%m-%Y",
@@ -150,7 +150,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					name:
 						frappe.utils.escape_html(col.header_title) ||
 						(df ? df.label : "Untitled Column"),
-					// Header hosts the mapper; file column title sits in row 1.
 					content: `<span class="diw-col-map-field block min-w-0 w-full" data-col-index="${i}"></span>`,
 					skip_import: true,
 					editable: false,
@@ -212,7 +211,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		return df.fieldname;
 	}
 
-	/** Synthetic first row that hosts inline mapping controls. */
 	build_mapping_row() {
 		return (this.preview_data.columns || []).map((col) =>
 			is_sr_no_column(col) ? DIW_MAP_LABEL : DIW_MAP_CELL
@@ -233,8 +231,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			});
 		});
 
-		// Prepend the mapping row so mappings stay visible after import.
-		// Controls are disabled, not hidden, once status is Success.
 		this._has_mapping_row = true;
 		this.data = [this.build_mapping_row(), ...this.data];
 	}
@@ -268,7 +264,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this._rendered_container_width = width;
 	}
 
-	/** Width of the visible preview pane — stable before stretching columns. */
+	/** Width of the visible preview pane, used before stretching columns. */
 	_get_container_width() {
 		const el = this.$table_preview?.get(0);
 		if (!el) return 0;
@@ -283,7 +279,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		return Math.floor(host.getBoundingClientRect().width || 0);
 	}
 
-	/** Preview may mount in a hidden wizard pane — wait until layout is visible. */
+	/** The preview can mount in a hidden wizard pane that has no layout yet. */
 	_can_render_datatable() {
 		const el = this.$table_preview?.get(0);
 		if (!el) return false;
@@ -395,18 +391,12 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.mount_column_map_controls();
 		this.mount_date_format_controls();
 
-		// Pane width can be unstable at build time — a tree doctype's Table pane is
-		// revealed only when its tab opens, so the body renders narrower than the
-		// header and columns misalign. Reconcile once the pane settles.
+		// A tree doctype's Table pane stays hidden until its tab opens, so columns can misalign.
 		if (built_new) {
 			this._reconcile_wizard_datatable();
 		}
 	}
 
-	/**
-	 * Re-run the datatable layout once pane width is stable so header and body align.
-	 * Otherwise the misalignment persists until a later resize or interaction.
-	 */
 	_reconcile_wizard_datatable() {
 		if (!this.$table_preview?.closest(".diw-preview-step").length) return;
 		cancelAnimationFrame(this._wizard_reconcile_raf);
@@ -420,19 +410,16 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					this.mount_column_map_controls();
 					this.mount_date_format_controls();
 				} catch (error) {
-					// A later interaction will reconcile; avoid throwing mid-frame.
+					// Best effort; a later resize reconciles the layout.
 				}
 			});
 		});
 	}
 
-	/**
-	 * Stretch columns to fill the available width when the dataset has few columns,
-	 * avoiding a large blank strip on the right side of the table.
-	 */
+	/** Stretch a few columns to fill the width instead of leaving a blank strip. */
 	_get_render_columns() {
 		const base_columns = (this.columns || []).map((col) => ({ ...col }));
-		// Wizard uses horizontal scroll — stretching columns causes visible width reflow.
+		// The wizard scrolls horizontally, and stretching there causes visible reflow.
 		if (this.$table_preview?.closest(".diw-preview-step").length) {
 			return base_columns;
 		}
@@ -476,7 +463,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 
 		const rows = this.data?.length || 0;
 		const dynamic_height = Math.min(360, Math.max(220, window.innerHeight * 0.42));
-		// Header (~44px) + each body row (mapping + data at cellHeight 42).
+		// ~44px header plus 42px per row.
 		const compact_height = Math.max(120, rows * 42 + 44);
 		// Size from rendered rows, not whether the file was truncated.
 		const use_compact = rows > 0 && rows <= 13;
@@ -487,7 +474,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			overflowX: "auto",
 			overflowY: use_compact ? "hidden" : "auto",
 		});
-		// Keep host overflow neutral so inline Autocomplete dropdown can escape cells.
+		// Leave host overflow unset so it doesn't clip the mapper dropdown.
 		this.$table_preview.css({ overflowX: "", overflowY: "" });
 	}
 
@@ -515,7 +502,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		frappe.utils.scroll_to(this.$table_preview.find(`.dt-row-${row_index}`), true, 30);
 	}
 
-	/** Row count in the preview toolbar (right side). */
+	/** Row count in the preview toolbar. */
 	render_table_message() {
 		const $message = this.wrapper.find(".table-message");
 		const visible_rows = this._has_mapping_row ? this.data.length - 1 : this.data.length;
@@ -553,8 +540,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			width: "16px",
 			fill: frappe.ui.color.get_color_shade("green", is_dark ? "light" : "dark"),
 		});
-		// Muted readonly rows. Shade names are light-mode; flip for dark so the bg
-		// stays readable against .dt-cell's forced text color.
+		// Shade names are light-mode, so flip them in dark mode to keep text readable.
 		let row_classes = this.datatable
 			.getRows()
 			.filter((row) => this.is_row_imported(row))
@@ -572,7 +558,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 
 		// Tint row 1 so it reads as the file-column header.
 		if (this._has_mapping_row) {
-			// Use surface-gray-1 (one step lighter than the mapper row).
 			this.datatable.style.setStyle(".dt-row-0 .dt-cell", {
 				backgroundColor: "var(--surface-gray-1)",
 				fontWeight: "500",
@@ -580,16 +565,13 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		}
 	}
 
-	/**
-	 * Mount a simple inline Autocomplete in mapper row; Save persists mapping via
-	 * existing remap_column + after_save flow.
-	 */
+	/** Save persists these mappings through remap_column in after_save. */
 	mount_column_map_controls() {
 		this._map_controls?.forEach((control) => {
 			control.$wrapper?.remove();
 		});
 		this._map_controls = [];
-		// Remove dropdowns portaled to <body> so they don't leak on re-render.
+		// Dropdowns portaled to <body> would leak on re-render.
 		this._portaled_dropdowns?.forEach((ul) => ul.remove());
 		this._portaled_dropdowns = [];
 		if (this._mapping_dropdown_scroll_handler) {
@@ -656,8 +638,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	/** Shared dropdown positioning for all mapper Autocomplete inputs. */
 	setup_mapping_dropdown_portal() {
 		if (!this.$table_preview?.length) return;
-		// Once reparented to <body> (below), the list is no longer a child of
-		// `.awesomplete`, so remember it on the input to keep re-finding it.
+		// Once moved to <body> the list leaves .awesomplete, so the input keeps a ref.
 		const get_dropdown = (input) =>
 			input._diw_map_ul || $(input).closest(".awesomplete").children("ul").get(0);
 
@@ -666,7 +647,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			if (input.closest(".form-in-grid")) return;
 			const ul = get_dropdown(input);
 			if (!ul) return;
-			// Reparent to <body> so the list escapes the header transform+clip.
+			// Move to <body> so the list escapes the header's transform and clipping.
 			if (ul.parentNode !== document.body) {
 				ul.classList.add("diw-map-dropdown-portaled");
 				input._diw_map_ul = ul;

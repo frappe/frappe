@@ -105,7 +105,7 @@ function dedupe_import_warnings(warnings) {
 		} else {
 			const key = `${w.code || ""}|${w.title || ""}|${w.message || ""}`;
 			const existing = seen_others.get(key);
-			// Prefer warning with more metadata (e.g., type, rows) for better UI rendering
+			// Prefer the typed warning; it renders richer UI.
 			if (!existing || (w.type && !existing.type)) {
 				seen_others.set(key, w);
 			}
@@ -207,7 +207,7 @@ function get_fix_issues_preview_data(frm, preview_data) {
 	return null;
 }
 
-/** Authoritative Fix Issues panel state — shared by mount logic and the empty state. */
+/** Fix Issues panel state, shared by the mount logic and the empty state. */
 function get_fix_issues_state(frm, preview_data) {
 	preview_data = get_fix_issues_preview_data(frm, preview_data);
 	const warnings = get_current_import_warnings(frm, preview_data);
@@ -276,13 +276,13 @@ function prepare_fix_issues_step(frm, preview_data) {
 	return state;
 }
 
-/** The mappings grid sits inside the warnings HTML; detach it so .html() keeps its handlers. */
+// Detach the mappings grid so .html() does not destroy its handlers.
 function set_import_warnings_html(frm, html) {
 	frm.fields_dict.value_mappings?.$wrapper?.detach();
 	frm.get_field("import_warnings")?.$wrapper.html(html);
 }
 
-/** Detach reparented field wrappers so jQuery .empty() doesn't destroy their event handlers. */
+// Detach first so jQuery .empty() keeps the fields' event handlers.
 function detach_fix_issues_fields(frm) {
 	for (const fieldname of ["import_warnings", "value_mappings"]) {
 		frm.fields_dict[fieldname]?.$wrapper?.detach();
@@ -301,7 +301,6 @@ function mount_fix_issues_step(frm, container) {
 
 	const $step = $('<div class="diw-fix-issues-step flex flex-col gap-5"></div>');
 
-	// No top "Issues" heading — group headlines live inside the warnings HTML.
 	const warnings_field = frm.fields_dict.import_warnings;
 	if (warnings_field?.$wrapper?.length && (state.has_warnings || state.has_mappings)) {
 		frm.toggle_display("import_warnings", true);
@@ -454,7 +453,7 @@ function get_import_preview_error_message(error) {
 	return __("Failed to load import file");
 }
 
-/** Show one modal for preview load failures — no inline duplicate in the upload section. */
+/** Show one modal for preview load failures. */
 function show_import_preview_error(frm, error, source_key) {
 	if (frm._import_preview_error_key === source_key) {
 		return;
@@ -495,8 +494,7 @@ function get_import_preview_source_key(frm) {
 	].join("|");
 }
 
-// Drop blocked-import warnings when the source file changes; otherwise
-// the wizard keeps routing to Fix Issues from the old file until the next save.
+// Stale blocked-import warnings would keep routing to Fix Issues for the old file.
 function clear_stale_template_warnings_for_source(frm) {
 	const source_key = get_import_preview_source_key(frm);
 	const prev = frm._diw_template_warnings_source_key;
@@ -512,7 +510,7 @@ function is_import_preview_ready_for_source(frm, source_key = get_import_preview
 
 /** Whether refresh / field triggers should auto-fetch the import preview. */
 function should_auto_import_preview(frm, source_key = get_import_preview_source_key(frm)) {
-	// get_preview_from_template needs a real doc name — never call it on unsaved docs.
+	// get_preview_from_template needs a saved doc name.
 	if (frm.is_new?.()) {
 		return false;
 	}
@@ -533,11 +531,7 @@ function should_defer_auto_import_preview(frm) {
 	return Boolean(frm._skip_refresh_import_file || frm._wizard_navigation_in_progress);
 }
 
-/**
- * Save a dirty/new Data Import before wizard navigation.
- * Returns false on failure so the caller must not advance — frm.save() swallows
- * rejections, so we also treat still-dirty / still-new as failure.
- */
+// frm.save() swallows rejections, so a still-dirty or new doc counts as failure.
 async function save_wizard_form_if_needed(frm) {
 	if (!frm.is_dirty() && !frm.is_new()) {
 		return true;
@@ -681,7 +675,7 @@ function is_tree_import_preview(frm, preview_data) {
 	return Boolean(preview_data?.tree_preview);
 }
 
-/** Mount preview fields into a pane; skip when already mounted to avoid table reflow. */
+// Skip already-mounted fields to avoid a table reflow.
 function append_preview_pane_fields(frm, parent_el, fieldnames, shell_class = "") {
 	if (!parent_el) return { mounted: false, reparented: false };
 
@@ -705,7 +699,7 @@ function append_preview_pane_fields(frm, parent_el, fieldnames, shell_class = ""
 	for (const fieldname of fieldnames) {
 		const field = frm.fields_dict[fieldname];
 		if (field?.$wrapper?.length) {
-			// Reparented fields must be visible — wizard panes own layout, not desk hide-control.
+			// Wizard panes own layout, so reparented fields must not stay hidden.
 			frm.toggle_display(fieldname, true);
 			$column.append(field.$wrapper);
 			appended = true;
@@ -726,7 +720,7 @@ function refresh_wizard_table_preview(frm, { force = false } = {}) {
 	frm._wizard_table_preview_force = frm._wizard_table_preview_force || force;
 	if (frm._wizard_table_preview_raf) return;
 
-	// Double rAF: wait for reparented pane layout before measuring column widths.
+	// Wait two frames so the reparented pane has layout before measuring columns.
 	frm._wizard_table_preview_raf = requestAnimationFrame(() => {
 		frm._wizard_table_preview_raf = requestAnimationFrame(() => {
 			frm._wizard_table_preview_raf = null;
@@ -769,8 +763,7 @@ frappe.ui.form.on("Data Import", {
 				indicator: "red",
 			});
 			frm.dashboard?.hide_progress?.();
-			// The blocked attempt stored fresh warnings server-side (db_set), so
-			// reload to render them, then land on Fix Issues.
+			// The blocked attempt saved new warnings server-side, so reload to render them.
 			frm.reload_doc().then(() => {
 				frm.events.go_to_wizard_step(frm, 2);
 				frm.trigger("update_primary_action");
@@ -877,7 +870,7 @@ frappe.ui.form.on("Data Import", {
 					frm.events.refresh_wizard_ui?.(frm);
 				});
 			}
-			// Completion transition is handled by data_import_refresh realtime event.
+			// Completion is handled by the data_import_refresh event.
 		});
 
 		frm.set_query("reference_doctype", () => {
@@ -926,15 +919,13 @@ frappe.ui.form.on("Data Import", {
 		}
 	},
 
-	/** onload fires only the first time a doc opens (frappe caches them in opendocs),
-	 *  so a reused frm would keep the previous doc's preview state — drop it here so
-	 *  should_auto_import_preview re-fetches for this doc. */
+	// onload runs only on first open (opendocs cache), so reset state for a reused frm.
 	reset_stale_document_state(frm) {
 		const docname = frm.doc?.name || null;
 		const prev = frm._diw_loaded_docname;
 		if (prev === docname) return;
 
-		// First save renames new-* → real name on the same form — not a doc switch.
+		// The first save renames new-* on the same form; that is not a doc switch.
 		const is_first_save_rename =
 			prev &&
 			String(prev).startsWith("new-") &&
@@ -965,7 +956,7 @@ frappe.ui.form.on("Data Import", {
 			frm.events.import_file(frm, { force: true });
 			return;
 		}
-		// File may have been attached while the doc was still new — preview was deferred.
+		// A file attached while the doc was new had its preview deferred.
 		if (should_auto_import_preview(frm)) {
 			frm.trigger("import_file");
 		}
@@ -976,8 +967,7 @@ frappe.ui.form.on("Data Import", {
 		frm.events.reset_stale_document_state(frm);
 		frm.page.hide_icon_group();
 		frm.trigger("update_indicators");
-		// Status is db_set in the worker, so the client doc stays Pending until reload —
-		// keep a client-started run alive so the UI doesn't briefly flash idle.
+		// The worker db_sets status, so keep a client-started run alive until reload.
 		const status_running = frm.doc.status === "In Progress";
 		const client_starting = Boolean(frm.import_in_progress && frm.doc.status === "Pending");
 		const is_import_running = status_running || client_starting;
@@ -1012,12 +1002,9 @@ frappe.ui.form.on("Data Import", {
 		// Footer Cancel / Report Error / Retry are refreshed via refresh_wizard_ui.
 		frm.events.refresh_wizard_ui?.(frm);
 
-		// "Go to List" moved onto the Total rows metric in the import log (see render_import_log).
-
 		frm.trigger("render_custom_ui");
 		frm.trigger("update_primary_action");
-		// Preview is often already cached after import, so import_file is skipped —
-		// refresh Map columns visibility from the new status without a re-fetch.
+		// Preview is usually cached here, so refresh Map columns without a re-fetch.
 		if (is_import_complete(frm.doc.status)) {
 			frm.import_preview?.add_actions?.();
 		}
@@ -1104,8 +1091,7 @@ frappe.ui.form.on("Data Import", {
 	mount_preview_step(frm, { tree_el, table_el }) {
 		const is_tree_doctype = is_tree_reference_doctype(frm);
 
-		// import_preview is declared before section_import_preview in the DocType, so mount
-		// fields directly — section wrappers are often empty or contain the wrong fields.
+		// Mount fields directly: section wrappers are often empty or hold the wrong fields.
 		if (is_tree_doctype) {
 			const { reparented: tree_reparented } = append_preview_pane_fields(
 				frm,
@@ -1140,13 +1126,11 @@ frappe.ui.form.on("Data Import", {
 
 		if (frm.has_import_file?.()) {
 			refresh_wizard_table_preview(frm, { force: table_reparented });
-			// Preview DOM is reused across steps; refresh actions so Map columns hides
-			// after Success / Partial Success without a full page reload.
+			// Preview DOM is reused across steps, so refresh actions to hide Map columns.
 			frm.import_preview?.add_actions?.();
 		}
 
-		// Re-apply after remount — loading may have started while fields were still in
-		// the hidden form layout, or the Tree tab may have been empty on first paint.
+		// Loading may have started while the fields were still in the hidden form layout.
 		if (frm._import_preview_loading) {
 			update_preview_loading_skeleton(frm, true);
 		}
@@ -1286,8 +1270,7 @@ frappe.ui.form.on("Data Import", {
 				frm.events.go_to_wizard_step(frm, target_step);
 			}
 
-			// Step transition + async preview mount can race in new docs; force one
-			// extra render pass so table rows appear without manual refresh.
+			// Step change and async preview mount can race on new docs, so render once more.
 			if (target_step === 1 && frm.has_import_file?.()) {
 				setTimeout(() => {
 					refresh_wizard_table_preview(frm, { force: true });
@@ -1315,7 +1298,7 @@ frappe.ui.form.on("Data Import", {
 		return true;
 	},
 
-	/** Fix Issues footer Save — persist dirty changes; do not start the import. */
+	/** Fix Issues footer Save: saves changes without starting the import. */
 	async handle_wizard_save(frm) {
 		const ok = await save_wizard_form_if_needed(frm);
 		if (!ok) {
@@ -1389,7 +1372,7 @@ frappe.ui.form.on("Data Import", {
 	},
 
 	update_primary_action(frm) {
-		// All actions live in the wizard footer; keep Ctrl/Cmd+S saving.
+		// The wizard footer owns the actions.
 		frm.page.clear_primary_action();
 		// Ctrl+S falls back to the routed page's save_action, which a dialog form does not own.
 		if (frappe.container?.page && !frm.in_dialog) {
@@ -1444,8 +1427,6 @@ frappe.ui.form.on("Data Import", {
 					total_records
 				);
 
-				// Export Errored / Download Skipped now live on the Failed / Skipped metrics
-				// in the import log (see render_import_log), not on the navbar.
 				if (failed_records > 0) {
 					message +=
 						"<br/>" +
@@ -1472,7 +1453,6 @@ frappe.ui.form.on("Data Import", {
 		});
 	},
 
-	// Cancel Import lives in the wizard footer (Import step). The action is `cancel_import`.
 	cancel_import(frm) {
 		frappe.confirm(
 			__("This will terminate the job immediately and might be dangerous, are you sure?"),
@@ -1483,8 +1463,7 @@ frappe.ui.form.on("Data Import", {
 					})
 					.then((response) => {
 						if (response?.status === "not_running") {
-							// Job already finished or worker crashed — server still
-							// transitioned orphaned "In Progress" to "Error".
+							// The server still marks an orphaned In Progress import as Error.
 							frappe.show_alert({
 								message: __("Job was not running; status updated."),
 								indicator: "orange",
@@ -1492,14 +1471,12 @@ frappe.ui.form.on("Data Import", {
 						} else {
 							frappe.show_alert(__("Job Stopped Successfully"));
 						}
-						// Always reload to show the updated status from the server.
 						frm.reload_doc();
 					});
 			}
 		);
 	},
 
-	// Report Error lives in the wizard footer when status === "Error".
 	report_error_now(frm) {
 		frappe.db
 			.get_list("Error Log", {
@@ -1624,8 +1601,7 @@ frappe.ui.form.on("Data Import", {
 		const source_key = get_import_preview_source_key(frm);
 		const source_changed = frm._diw_google_sheets_preview_source !== source_key;
 
-		// Save / re-render can re-fire this handler for the same URL — don't wipe error
-		// state or start a second preview fetch (that produced duplicate modals).
+		// Save or re-render can re-fire this for the same URL; avoid a duplicate fetch and modal.
 		if (source_changed) {
 			clear_stale_template_warnings_for_source(frm);
 			frm._diw_google_sheets_preview_source = source_key;
@@ -1653,7 +1629,7 @@ frappe.ui.form.on("Data Import", {
 	},
 
 	refresh_google_sheet(frm) {
-		// Sheet data can change without a URL change — drop blocked-import snapshots.
+		// Sheet data can change without a URL change, so drop blocked-import warnings.
 		if (frm.doc.template_warnings) {
 			frm.doc.template_warnings = "";
 		}
@@ -1795,8 +1771,7 @@ frappe.ui.form.on("Data Import", {
 	},
 
 	setup_mapping_dropdown_portal(grid) {
-		// Awesomplete instances live on the frappe control, not the input element,
-		// so find the dropdown via the DOM instead of input.awesomplete.
+		// Awesomplete lives on the frappe control, not the input, so find the list via DOM.
 		const get_dropdown = (input) => $(input).closest(".awesomplete").children("ul").get(0);
 
 		if (grid._value_mapping_scroll_handler) {
@@ -1805,14 +1780,12 @@ frappe.ui.form.on("Data Import", {
 		}
 
 		const position_dropdown = (input) => {
-			// The row-edit modal (.form-in-grid) is CSS-transformed, which would make
-			// position:fixed relative to it; its own overflow handles the list anyway.
+			// .form-in-grid is transformed, which breaks position:fixed; it handles overflow itself.
 			if (input.closest(".form-in-grid")) return;
 			const ul = get_dropdown(input);
 			if (!ul) return;
 			const rect = input.getBoundingClientRect();
-			// Fixed position escapes the wizard panel that clips the list; explicit
-			// width because the stylesheet's width:100% would span the viewport when fixed.
+			// Fixed escapes the clipping wizard panel; set width since 100% would span the viewport.
 			$(ul).css({
 				position: "fixed",
 				left: rect.left,
@@ -1939,7 +1912,7 @@ frappe.ui.form.on("Data Import", {
 			if (!force_reload) {
 				return frm._import_preview_promise;
 			}
-			// Navigation (Save/Next) needs a fresh fetch — drop stale in-flight work.
+			// Save/Next navigation needs a fresh fetch, so drop stale in-flight work.
 			frm._import_preview_request_id = (frm._import_preview_request_id || 0) + 1;
 			frm._import_preview_promise = null;
 			frm._import_preview_failed_source = null;
@@ -2144,7 +2117,7 @@ frappe.ui.form.on("Data Import", {
 				frm.import_tree_preview.data_import_name = frm.doc.name;
 			}
 
-			// Reparented into the wizard Preview step — keep section bodies expanded.
+			// Sections are reparented into the Preview step, so keep them expanded.
 			setTimeout(() => {
 				frm.layout?.sections_dict?.section_import_tree_preview?.collapse(false);
 				$(frm.wrapper).trigger("diw-import-preview-ready");
@@ -2287,8 +2260,7 @@ frappe.ui.form.on("Data Import", {
 		let columns = preview_data?.columns;
 		let warnings = get_current_import_warnings(frm, preview_data);
 
-		// Saved value mappings are explicit choices — always show them, even when this
-		// preview run doesn't redetect hints (that signal is async-timing-dependent).
+		// Always show saved mappings; redetected hints depend on async timing.
 		const has_saved_mappings = (frm.doc.value_mappings || []).length > 0;
 		frm.events.toggle_import_issues_ui(frm, warnings.length > 0, has_saved_mappings);
 		update_section_count(
@@ -2431,7 +2403,7 @@ frappe.ui.form.on("Data Import", {
 			.map((warning) => {
 				// For duplicate ID warnings, show a "Keep First, Skip Rest" button
 				if (warning.type === "duplicate_id" && warning.rows && warning.rows.length > 1) {
-					const rows_to_skip = warning.rows.slice(1); // Skip all but the first row
+					const rows_to_skip = warning.rows.slice(1);
 					const all_skipped = rows_to_skip.every((row) => skipped_rows.has(cint(row)));
 					const skip_btn = frappe.ui.button.html({
 						label: all_skipped
@@ -2546,7 +2518,7 @@ frappe.ui.form.on("Data Import", {
 			// Skip all duplicate rows (except the first one which isn't in rows_to_skip)
 			const preview_data = get_fix_issues_preview_data(frm);
 			for (const row_number of rows_to_skip) {
-				if (skipped_set.has(cint(row_number))) continue; // Already skipped
+				if (skipped_set.has(cint(row_number))) continue;
 				const preview_row = preview_data?.data?.find(
 					(row) => cint(row[0]) === cint(row_number)
 				);
@@ -2571,9 +2543,7 @@ frappe.ui.form.on("Data Import", {
 		if (skipped) {
 			frappe.model.clear_doc(skipped.doctype, skipped.name);
 		} else {
-			// Fix Issues can render its Skip Row buttons from cached preview data before
-			// ImportPreview exists, so resolve through the same helper the step mounts with —
-			// reading frm.import_preview alone would silently store an empty row_data.
+			// ImportPreview may not exist yet; reading it directly would store an empty row_data.
 			const preview_row = get_fix_issues_preview_data(frm)?.data?.find(
 				(row) => cint(row[0]) === row_number
 			);
@@ -2594,8 +2564,7 @@ frappe.ui.form.on("Data Import", {
 			(value || "").replace(/\s+/g, " ").trim().toLowerCase();
 		const active_filter = frm._import_log_filter || "all";
 
-		// Renders even with zero logs (e.g. every row skipped => Success with no log rows);
-		// returning early here would leave the loading skeleton on screen forever.
+		// Render even with zero logs, or the loading skeleton stays on screen forever.
 		const render_logs = (logs, status_summary = {}) => {
 			frm.events.toggle_import_log_ui(frm, true);
 
@@ -2638,7 +2607,6 @@ frappe.ui.form.on("Data Import", {
 				? Math.max(status_total_rows, total_rows + skipped_rows_count)
 				: total_rows + skipped_rows_count;
 
-			// Tab badges already show "1000 of N" when a bucket is capped; no separate banner.
 			const show_export =
 				total_rows > IMPORT_LOG_PREVIEW_LIMIT ||
 				success_rows > IMPORT_LOG_PREVIEW_LIMIT ||
@@ -2662,7 +2630,7 @@ frappe.ui.form.on("Data Import", {
 				}, 0);
 			}
 
-			// Server already filtered by tab — do not re-filter client-side.
+			// The server already filters by tab.
 			const has_rows = logs.length > 0;
 			let rows = logs
 				.map((log) => {
@@ -2682,8 +2650,7 @@ frappe.ui.form.on("Data Import", {
 						)}</div></div>`;
 					} else {
 						const messages = parse_messages(log);
-						// message is server-sanitized HTML (msgprint runs nh3 clean_html) so it
-						// renders raw; title bypasses that sanitization and must still be escaped.
+						// message is sanitized server-side (nh3); title is not, so escape it.
 						const summary_text =
 							messages[0]?.message || messages[0]?.title || __("Import failed");
 						const normalized_summary = normalize_import_log_text(summary_text);
@@ -2858,8 +2825,6 @@ frappe.ui.form.on("Data Import", {
 				kv_row(__("Last modified on"), fmt_dt(frm.doc.modified)),
 			];
 
-			// Summary lives directly under the existing "Import Log" heading.
-			// Result-row actions (Go to list / downloads) are mounted inline per row.
 			const summary_html = `
 				<div class="diw-import-log-summary mb-4">
 					<div class="diw-import-log-summary-grid flex gap-8">
@@ -3175,8 +3140,7 @@ frappe.ui.form.on("Data Import", {
 			return;
 		}
 
-		// Pending: do not paint the empty after-import log into hidden fields —
-		// reparenting them on step 3 would flash that empty UI before progress.
+		// Pending: skip painting the empty log, or reparenting on step 3 flashes it.
 		if (frm.doc.status === "Pending") {
 			frm.events.set_import_log_heading(frm, "");
 			frm.get_field("import_log_preview")?.$wrapper?.empty();

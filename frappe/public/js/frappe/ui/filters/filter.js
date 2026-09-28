@@ -704,7 +704,7 @@ frappe.ui.filter_utils = {
 		) {
 			df.fieldtype = "Data";
 		}
-		// guard non-string options (e.g. Attach coerced to Data) before .toLowerCase()
+		// options may be non-string, e.g. for Attach coerced to Data.
 		if (
 			df.fieldtype === "Data" &&
 			typeof df.options === "string" &&

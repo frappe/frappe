@@ -98,7 +98,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.page = this.wrapper.page;
 		this.layout_main = this.page.main.get(0);
 
-		// For forms embedded in dialogs, prevent the page from changing the browser title
+		// A form in a dialog must not change the underlying page's title or breadcrumbs.
 		if (this.in_dialog) {
 			this.page.set_document_title = false;
 		}
@@ -886,7 +886,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 	refresh_header(switched) {
 		// set title
-		// main title — skip for forms embedded in dialogs
+		// main title
 		if ((!this.meta.in_dialog || this.in_form) && !this.in_dialog) {
 			frappe.utils.set_title(this.meta.issingle ? this.doctype : this.docname);
 		}

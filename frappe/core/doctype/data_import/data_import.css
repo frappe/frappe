@@ -3,7 +3,7 @@
 	opacity: 0.6;
 }
 
-/* Wizard preview shells (.diw-preview-field-shell) — full-width column layout. */
+/* Preview sections take the full width inside the wizard. */
 .data-import-tree-preview-section .section-body,
 .data-import-preview-section .section-body {
 	display: block;
@@ -20,7 +20,7 @@
 	display: none;
 }
 
-/* Wizard step DOM reparents import_log_heading into the Import step. */
+/* The wizard moves import_log_heading into the Import step panel. */
 .diw-step-panel[data-step="3"]
 	.frappe-control[data-fieldname="import_log_heading"]
 	.section-head.import-log-title {

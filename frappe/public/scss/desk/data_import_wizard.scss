@@ -1,7 +1,4 @@
-// Data Import wizard component styles; layout utilities live on the markup.
-
-// Hide the standard Save button (Ctrl/Cmd+S still saves); scoped to the shell so
-// the list's own Add button stays.
+// Hides Save (Ctrl/Cmd+S still saves); scoped so the list's Add button stays.
 .data-import-custom-shell .page-head .primary-action {
 	display: none;
 }
@@ -28,9 +25,6 @@
 	max-width: 840px;
 }
 
-// ---- stepper ----
-// Stepper styles live in espresso/components/stepper.css.
-
 .diw-file-dropzone-icon,
 .diw-tree-filter-icon,
 .diw-tree-chevron,
@@ -44,7 +38,7 @@
 	height: 20px;
 }
 
-// ---- panels / chrome (padding utilities on the markup; mobile overrides below) ----
+// ---- panels ----
 .diw-step-content {
 	.form-section {
 		margin-bottom: 0;
@@ -87,7 +81,7 @@
 		display: none;
 	}
 
-	// Invisible hit target over the whole zone; real clicks open the uploader.
+	// Invisible hit target so a click anywhere on the zone opens the uploader.
 	.btn-attach {
 		position: absolute;
 		inset: 0;
@@ -203,7 +197,7 @@
 			border-left: 0;
 		}
 
-		// Room + surface-gray-2 so the inline column mapper seats cleanly.
+		// Tall enough to seat the inline column mapper.
 		.dt-header .dt-cell__content {
 			min-height: 42px;
 		}
@@ -215,7 +209,7 @@
 	}
 }
 
-// Style the inline mapper as a normal field; scoped to beat datatable form-control reset.
+// Scoped to beat the datatable's form-control reset.
 .diw-table-preview .diw-col-map-field {
 	width: 100%;
 
@@ -242,8 +236,7 @@
 	}
 }
 
-// Dropdown is reparented to <body> to escape the datatable header's clipping, so it
-// loses the scoped awesomplete listbox styles — re-apply the essentials here.
+// Reparented to <body> to escape header clipping, so scoped awesomplete styles are lost.
 ul.diw-map-dropdown-portaled {
 	list-style: none;
 	margin: 0;
@@ -327,7 +320,7 @@ ul.diw-map-dropdown-portaled {
 	}
 }
 
-// Override fixed hover-card width for the row preview popover.
+// Row previews need more room than the hover card's fixed width.
 .diw-row-preview-hover-card {
 	width: auto;
 	max-width: min(90vw, 56rem);
@@ -466,7 +459,7 @@ ul.diw-map-dropdown-portaled {
 	box-sizing: border-box;
 	// Match the 28px input height to align with the adjacent button.
 	height: var(--input-height);
-	// Zero the label's Bootstrap margin so the row height stays 28px.
+	// Bootstrap's label margin would break the row height.
 	margin: 0;
 
 	input,
@@ -490,18 +483,14 @@ ul.diw-map-dropdown-portaled {
 	}
 }
 
-// ---- import log summary (Result / Details key-value tables) ----
-
 .diw-import-log-summary {
-	// Hairline between rows lives on the cells so it spans only the table width,
-	// aligning with the section heading rather than bleeding to the step edge.
+	// Borders on the cells so the hairline spans the table, not the whole step.
 	.diw-log-kv-row:not(:first-child) .diw-log-kv-key,
 	.diw-log-kv-row:not(:first-child) .diw-log-kv-val {
 		border-top: 1px solid var(--outline-gray-2);
 	}
 
-	// Keep Result and Details row heights aligned even when some Result rows
-	// include inline action buttons (Go to list / download actions).
+	// Some Result rows hold buttons; centering keeps both tables' rows aligned.
 	.diw-log-kv-row .diw-log-kv-key,
 	.diw-log-kv-row .diw-log-kv-val {
 		vertical-align: middle;
@@ -529,8 +518,7 @@ ul.diw-map-dropdown-portaled {
 	}
 }
 
-// ---- mobile (phones + narrow tablets) ----
-// Wizard-specific mobile overrides; use parent+child to beat late-loading utilities.
+// Parent+child selectors so these beat the utilities, which load later.
 @media (max-width: 768px) {
 	.data-import-custom-page.layout-main-section {
 		padding: var(--padding-sm);
@@ -596,8 +584,6 @@ ul.diw-map-dropdown-portaled {
 	}
 }
 
-// Hide the embedded desk page's chrome so only the wizard shows, and cap the body
-// height so the wizard's viewport-based card sizing scrolls inside the modal.
 .data-import-dialog {
 	.modal-dialog {
 		max-width: min(1200px, 94vw);
@@ -626,8 +612,7 @@ ul.diw-map-dropdown-portaled {
 		}
 	}
 
-	// The wizard floors the card height for the viewport, which overflows inside a modal;
-	// cap it to the dialog body so the whole card fits. !important beats the inline height.
+	// The card's viewport-based height overflows a modal; !important beats the inline style.
 	.diw-card {
 		height: calc(84vh - 96px) !important;
 		min-height: calc(84vh - 96px) !important;

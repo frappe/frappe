@@ -1,15 +1,15 @@
 frappe.provide("frappe.data_import");
 
-/** Static tree preview for the import wizard — desk tree markup with mockup-aligned chrome. */
+/** Static tree preview using the same markup and styles as desk Tree View. */
 frappe.data_import.ImportTreePreview = class ImportTreePreview {
 	constructor({ wrapper, doctype, preview_data, on_row_click, events, readonly }) {
 		this.wrapper = wrapper;
 		this.doctype = doctype;
 		this.preview_data = preview_data;
 		this.on_row_click = on_row_click;
-		// events.on_change(overrides_map) — persist the move / group edits to the form.
+		// events.on_change(overrides_map) persists move / group edits to the form.
 		this.events = events || {};
-		// readonly: true when import is complete — hides edit actions.
+		// readonly hides the edit actions once the import is complete.
 		this.readonly = Boolean(readonly);
 		this.icon_set = {
 			chevron_open: frappe.utils.icon("chevron-down", "xs", "", "", "", true),
@@ -139,7 +139,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		});
 	}
 
-	/** Build parent→children maps; unreachable cycle nodes become orphans. */
+	/** Nodes in a parent cycle are unreachable from the roots and become orphans. */
 	_build_tree(nodes) {
 		const nodes_by_id = {};
 		nodes.forEach((node) => {
@@ -177,7 +177,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 			if (reachable.has(node.id)) {
 				continue;
 			}
-			// Show as a top-level orphan and detach from the cycle so render cannot recurse.
+			// Detach from the cycle so render cannot recurse.
 			node.orphan = true;
 			roots.push(node);
 			const parent_id = node.parent;
@@ -218,7 +218,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 			'<span class="tree-link diw-tree-row-main flex items-center gap-1 flex-1 min-w-0 text-sm">'
 		).appendTo($row);
 
-		// Expandable: chevron only. Leaves: same-width spacer so labels line up with siblings.
+		// Leaves get a spacer so their labels line up with siblings.
 		if (expandable) {
 			$(
 				'<span class="diw-tree-chevron inline-flex size-4 items-center justify-center text-muted">'
@@ -382,7 +382,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		this._sync_tree_action_button_states();
 	}
 
-	/** Filter tree rows by label or sheet row number; keep ancestors of matches visible. */
+	/** Matches label or sheet row number; ancestors of matches stay visible. */
 	filter_tree(query) {
 		const $tree = this.wrapper.find(".tree");
 		if (!$tree.length) return;
@@ -428,9 +428,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		this._sync_tree_action_button_states();
 	}
 
-	// ---- tree editing (move / group toggle) --------------------------------
-
-	/** Any editing possible at all — needs the parent and/or is_group column mapped, and not readonly. */
+	/** Editing needs the parent or is_group column mapped. */
 	can_edit_node() {
 		if (this.readonly) return false;
 		return Boolean(this.editable || this.is_group_editable);
@@ -455,7 +453,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 		return this.is_group_editable && cint(node.is_group) && !this.has_children(node);
 	}
 
-	/** Node id + every id beneath it — invalid move targets (would make a cycle). */
+	/** Moving a node under itself or a descendant would make a cycle. */
 	get_descendant_ids(node) {
 		const ids = new Set([node.id]);
 		const nodes = this.get_nodes();
@@ -560,7 +558,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 
 	apply_move(node, new_parent_id) {
 		node.parent = new_parent_id || null;
-		// The user explicitly reparented it, so it is no longer an unlinked/orphan node.
+		// A manual move resolves the orphan state.
 		node.orphan = false;
 		this.persist_and_rerender();
 	}
@@ -573,7 +571,7 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 	reset_node(node) {
 		node.parent = node.orig_parent || null;
 		node.is_group = cint(node.orig_is_group);
-		// Clear client orphan flag; _build_tree re-marks cycle fragments after re-link.
+		// _build_tree re-marks any cycle fragments after re-link.
 		node.orphan = false;
 		this.persist_and_rerender();
 	}

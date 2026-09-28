@@ -1,8 +1,4 @@
-// Data Import stepper wizard — plain JS view built on standard frappe.ui/desk
-// components (make_control field wrappers, frappe.ui.button/progress/empty_state,
-// frappe.utils.icon).
-// The orchestration lives in data_import.js; this class is only the view layer
-// behind the `frm._data_import_wizard` interface (set_step / refresh_ui / …).
+// View layer for the Data Import wizard; orchestration lives in data_import.js.
 
 const WIZARD_STEPS = [
 	{ id: "config", label: __("Config") },
@@ -13,7 +9,7 @@ const WIZARD_STEPS = [
 
 const STEP_COUNT = WIZARD_STEPS.length;
 
-/** Reparented field wrappers — detached (not removed) on unmount to keep handlers. */
+/** Form fields the wizard moves into its steps; detached on unmount so they keep their handlers. */
 const REPARENTED_FIELDS = [
 	"reference_doctype",
 	"import_type",
@@ -83,9 +79,6 @@ function is_sr_no_column(col) {
 	return col?.header_title === "Sr. No" || col?.header_title === __("Sr. No");
 }
 
-// ---- Config-step upload helpers (dropzone + file/sheet cards) --------------
-
-/** Hint under the drop zone; omit size when boot does not expose a limit. */
 function get_dropzone_hint_html() {
 	const max_bytes = frappe.boot?.max_file_size;
 	if (!max_bytes) return "";
@@ -95,7 +88,7 @@ function get_dropzone_hint_html() {
 	])}</div>`;
 }
 
-/** Basename from an attach value (plain path or FILENAME,url form). */
+/** Attach values are a plain URL or "FILENAME,DATA_URL". */
 function get_import_file_name(file_url) {
 	if (!file_url) return "";
 	const match = file_url.match(/^([^:]+),(.+):(.+)$/);
@@ -223,8 +216,6 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		this.refresh_from_frm();
 	}
 
-	// ---- lifecycle ---------------------------------------------------------
-
 	build() {
 		this.$root = $(`
 			<div class="data-import-custom-ui flex justify-center w-full">
@@ -252,8 +243,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		this.$footer_left = this.$root.find(".diw-footer-left");
 		this.$footer_right = this.$root.find(".diw-footer-right");
 
-		// One card height for every step — sized to the viewport, not step content —
-		// so all steps are uniform and long content scrolls inside .diw-step-content.
+		// Same card height on every step; long content scrolls inside .diw-step-content.
 		this._on_resize = () => {
 			if (this._resize_raf) cancelAnimationFrame(this._resize_raf);
 			this._resize_raf = requestAnimationFrame(() => this.update_card_height());
@@ -261,8 +251,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		window.addEventListener("resize", this._on_resize, { passive: true });
 		this.update_card_height();
 
-		// Preview data often lands after the step mounts; if the pane isn't laid out yet the
-		// datatable stops retrying and never builds. Re-mount on arrival to build against a laid-out pane.
+		// The datatable gives up on an unlaid-out pane, so re-mount when preview data lands.
 		this._on_preview_ready = () => {
 			if (this.current_step === 1) this.render_panel();
 		};
@@ -280,8 +269,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 	/** Fixed card height from the viewport; desktop pins height, mobile keeps a floor. */
 	update_card_height() {
 		if (!this.$card?.length) return;
-		// innerWidth/innerHeight can be 0 in some embedded/headless contexts —
-		// fall back to the document/screen so we don't collapse to the mobile path.
+		// innerWidth/innerHeight can be 0 when embedded or headless; avoid the mobile path.
 		const doc_el = document.documentElement;
 		const vw = window.innerWidth || doc_el.clientWidth || screen.width || 1024;
 		const vh = window.innerHeight || doc_el.clientHeight || screen.height || 768;
@@ -310,7 +298,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		const prev_docname = this._docname;
 		const doc_changed = current_docname !== prev_docname;
 		if (doc_changed) {
-			// On first save (new-* → DI-xxx) keep the current step; recompute only for a different doc
+			// First save renames new-* to a real name; keep the current step in that case.
 			const is_first_save_rename =
 				prev_docname &&
 				String(prev_docname).startsWith("new-") &&
@@ -318,15 +306,13 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 				!String(current_docname).startsWith("new-");
 
 			this._docname = current_docname;
-			// After any doc change (including first save), panel must re-render to update
-			// banner visibility (is_new check) and tabs visibility (import_file check).
+			// Re-render so the pending-imports banner and upload tabs reflect the saved doc.
 			this._panel_rendered = false;
 			if (!is_first_save_rename) {
 				this._step_initialized = false;
 				this._upload_source = null;
 				this._preview_panes = null;
-				// Re-read from the frm: a leftover `true` here would keep Next disabled and
-				// the preview stuck on its loading skeleton for the new document.
+				// A stale `true` would keep Next disabled and the preview stuck on its skeleton.
 				this._preview_loading = Boolean(frm._import_preview_loading);
 			}
 		}
@@ -341,8 +327,6 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		this.set_step(target);
 	}
 
-	// ---- public interface used by data_import.js ---------------------------
-
 	set_step(step, { force = false } = {}) {
 		step = Math.max(0, Math.min(cint(step), STEP_COUNT - 1));
 		const step_changed = this.current_step !== step;
@@ -350,9 +334,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		this.frm.wizard_step = step;
 		this.render_stepper();
 		this.render_mobile_header();
-		// Only re-render the panel if the step actually changed (or forced) to avoid
-		// duplicate API calls (e.g., pending imports count) when refresh_from_frm is
-		// called multiple times for the same step.
+		// Re-render only when needed to avoid duplicate API calls on repeated refreshes.
 		if (step_changed || force || !this._panel_rendered) {
 			this._panel_rendered = true;
 			this.render_panel();
@@ -379,8 +361,6 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		this.render_footer();
 	}
 
-	// ---- stepper -----------------------------------------------------------
-
 	render_stepper() {
 		if (!this.stepper) {
 			this.stepper = new frappe.ui.Stepper({
@@ -389,17 +369,14 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 				label: __("Import steps"),
 				// re-checked on every render, so lock state follows the wizard
 				is_locked: (index) => !can_go_to_wizard_step(this.frm, index, this.current_step),
-				// completion is factual, so checks survive navigating back:
-				// config/preview/fix are done once the import has started,
-				// the import step once it finished
+				// Earlier steps count as done once the import starts, the last once it finishes.
 				is_completed: (index) => {
 					if (index < this.current_step) return true;
 					if (index <= 2) return Boolean(this.frm.has_import_started?.());
 					return is_import_complete(this.frm.doc?.status);
 				},
 				on_step_click: (index) => this.on_step_click(index),
-				// locked clicks route to the same handler — its can_go check
-				// fails and shows the "complete the earlier steps" alert
+				// on_step_click refuses locked steps with a "complete earlier steps" alert.
 				on_locked_click: (index) => this.on_step_click(index),
 			});
 			this.$stepper_wrap.append(this.stepper.$el);
@@ -423,13 +400,10 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		this.mobile_stepper.set_current(this.current_step);
 	}
 
-	// ---- panels ------------------------------------------------------------
-
 	render_panel() {
 		const step = this.current_step;
 		this._preview_panes = null;
-		// Detach (not remove) reparented control wrappers before emptying — jQuery
-		// .empty() would otherwise strip their event handlers (e.g. the dropzone click).
+		// Detach first: .empty() would strip the reparented controls' event handlers.
 		this.detach_reparented_fields();
 		this.$panels.empty();
 		const $panel = $(
@@ -464,7 +438,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		const frm = this.frm;
 		const $step = $('<div class="diw-config-step flex flex-col gap-4"></div>');
 
-		// Avoid .section-body class: its flex rules would collapse the grid columns
+		// Avoid .section-body: its flex rules collapse the grid columns.
 		const $settings = $(`
 			<div class="diw-config-section m-0 p-0 border-0 shadow-none bg-transparent">
 				<div class="diw-config-head m-0 p-0 border-0 shadow-none bg-transparent mb-4"><span class="diw-section-head-title text-base-semibold">${__(
@@ -489,7 +463,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		this.maybe_render_pending_imports_banner($settings);
 		$step.append($settings);
 
-		// Upload file — header with Download Template, source tabs, then panes.
+		// Upload: Download Template header, source tabs, then the panes.
 		const $upload = $(`
 			<div class="diw-upload-section mt-4 pt-4 border-t">
 				<div class="flex items-center justify-between gap-4 mb-2">
@@ -518,9 +492,6 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 			return;
 		}
 
-		// Tabs only when a source still needs choosing: once a file is attached (or a
-		// Google Sheet URL is saved and unchanged) the source is fixed, so we show just
-		// that source's card without tabs.
 		const show_tabs = this.should_show_upload_tabs();
 		const $file_pane = $('<div class="diw-frm-field w-full"></div>');
 		this.reparent_field($file_pane, "import_file");
@@ -577,9 +548,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		return Boolean(doc?.reference_doctype && doc?.import_type);
 	}
 
-	/** In the dialog, on a brand-new import, nudge the user to resume an existing Pending
-	 *  import for this DocType (file attached) instead of starting a duplicate. Rendered
-	 *  just below the "Import settings" heading. */
+	/** In the dialog, nudge users to resume a pending import instead of duplicating it. */
 	maybe_render_pending_imports_banner($settings) {
 		const frm = this.frm;
 		const doctype = frm.doc?.reference_doctype;
@@ -622,7 +591,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 					icon_right: "arrow-right",
 					onclick: () => {
 						frm._data_import_dialog?.hide?.();
-						// Pending imports of this DocType that have a file — matches the count.
+						// Same filters as the count above.
 						frappe.set_route("List", "Data Import", {
 							reference_doctype: doctype,
 							status: "Pending",
@@ -637,10 +606,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 			.catch(() => $slot.remove());
 	}
 
-	/**
-	 * Keep Import File / Google Sheets visible on Config once settings are filled,
-	 * including on unsaved (new) docs. Clears dependency-hide from layout refresh.
-	 */
+	/** Undo depends_on hiding so the upload fields show on unsaved docs too. */
 	force_show_upload_fields() {
 		const frm = this.frm;
 		if (!this.has_import_settings()) return;
@@ -686,10 +652,6 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		}
 	}
 
-	/**
-	 * After FileUploader finishes: attach the file URL, save if the Data Import is
-	 * still new (preview needs a real name), otherwise just persist when dirty and preview.
-	 */
 	bind_import_file_upload_complete(control) {
 		const frm = this.frm;
 		const wizard = this;
@@ -697,8 +659,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 			const file_url = attachment?.file_url;
 			if (!file_url) return;
 
-			// Do not call Attach's default handler — it fires an unawaited save and
-			// races preview against a temporary new-* name.
+			// Skip Attach's default handler: its unawaited save races preview on the new-* name.
 			await this.parse_validate_and_set_in_model(file_url);
 			frm.attachments?.update_attachment?.(attachment);
 			control._diw_sync_from_doc?.();
@@ -706,7 +667,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 			try {
 				if (frm.is_new()) {
 					await frm.save();
-					// After first save, force re-render to hide tabs (file now attached).
+					// Re-render so the upload tabs hide now that a file is attached.
 					wizard._panel_rendered = false;
 					wizard.set_step(wizard.current_step);
 					return;
@@ -732,11 +693,10 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 	enhance_import_file_dropzone(control) {
 		const frm = this.frm;
 		if (!control?.$wrapper) return;
-		// Re-apply on every mount: a fresh pane is created each render, so the host
-		// class must be re-added even when the control itself is already enhanced.
+		// The pane is recreated each render, so re-add the host class on every mount.
 		const $host = control.$wrapper.closest(".diw-frm-field");
 		$host.addClass("diw-file-dropzone-host");
-		// Always rebind upload completion (control survives remounts across code changes).
+		// Rebind upload completion on every mount; the control outlives the wizard.
 		this.bind_import_file_upload_complete(control);
 		if (control._diw_dropzone_enhanced) {
 			control._diw_sync_from_doc?.();
@@ -788,16 +748,14 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		const on_zone_click = (event) => {
 			if (control.value || is_read_only() || $(event.target).closest("[data-action]").length)
 				return;
-			// Attach control's own button already opens the uploader; avoid double-open
-			// when its click bubbles to the dropzone host.
+			// The Attach button opens the uploader itself; don't open it twice on bubble.
 			if ($(event.target).closest(".btn-attach").length) return;
 			event.preventDefault();
 			event.stopPropagation();
 			event.stopImmediatePropagation?.();
 			control.on_attach_click?.();
 		};
-		// Bind to input_area (persists across reparents), not the pane (recreated each
-		// render); toggle the drag state on whichever host currently wraps it.
+		// Bind to input_area, which survives reparenting; the pane is recreated each render.
 		const host_of = () => $input_area.closest(".diw-file-dropzone-host");
 		const on_dragover = (event) => {
 			if (control.value || is_read_only()) return;
@@ -879,7 +837,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		const $card_mount = $('<div class="hide"></div>');
 		$input_area.append($card_mount);
 
-		// Resolve the current host each time — the pane is recreated on every render.
+		// The pane is recreated on every render, so resolve the host each time.
 		const host_of = () => $input_area.closest(".diw-google-sheet-host");
 		const original_set_input = control.set_input.bind(control);
 		const is_meta_read_only = () => control.df?.read_only || control.disp_status === "Read";
@@ -958,7 +916,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		const $tree_pane = $('<div class="diw-preview-pane-tree min-h-0 min-w-0 w-full"></div>');
 		// Remember tab across re-renders
 		const active = this._preview_tab === "table" ? 1 : 0;
-		// Tabs (not Pills) owns panel visibility — two views of the same data
+		// Tabs switches between the two views of the same data.
 		this.preview_tabs = new frappe.ui.Tabs({
 			css_class: "diw-preview-tabs",
 			active,
@@ -985,8 +943,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		this._preview_tab = tab;
 		this.preview_tabs?.set_active?.(tab === "table" ? 1 : 0, { silent: true });
 		if (tab === "table") {
-			// Tabs mounts a panel lazily on first activation, so the datatable may have
-			// been built against a detached pane — re-render now that it's laid out.
+			// Tabs mounts panels lazily, so the datatable may have been built on a detached pane.
 			this.frm.events.refresh_wizard_table_preview?.(this.frm);
 		}
 	}
@@ -1000,7 +957,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 			Promise.resolve(frm.events.ensure_import_preview_ready(frm))
 				.catch(() => null)
 				.then(() => {
-					// Ignore if the user moved on / another load superseded this one.
+					// Stale if the user left the step or a newer load started.
 					if (token !== this._fix_issues_token || this.current_step !== 2) return;
 					this.render_panel();
 					this.render_footer();
@@ -1013,7 +970,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		}
 	}
 
-	/** Placeholder while the preview resolves — generic skeleton rows, not a pixel-perfect mock. */
+	/** Skeleton while the preview loads. */
 	render_fix_issues_skeleton($content) {
 		const sk = (width, height = "14px") =>
 			frappe.ui.skeleton.html({ width, height, css_class: "rounded" });
@@ -1056,8 +1013,6 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 			(col) => !is_sr_no_column(col) && !col?.skip_import && Boolean(col?.df)
 		).length;
 
-		// Icon well + title + description come from the component; the stats row below
-		// is composed from the shared utility classes, the way empty_state itself is.
 		const $empty = frappe.ui.empty_state({
 			icon: "list-checks",
 			title: __("No issues to fix"),
@@ -1094,8 +1049,6 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		this.frm.events.mount_import_step(this.frm, $content.get(0));
 	}
 
-	// ---- status ------------------------------------------------------------
-
 	render_status() {
 		const frm = this.frm;
 		this.$status.empty();
@@ -1104,7 +1057,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		const import_running = Boolean(
 			frm.import_in_progress || frm.doc?.status === "In Progress"
 		);
-		// The Import step renders its own progress hero — keep the status bar quiet there.
+		// The Import step shows its own progress, so skip the status bar there.
 		if (in_import_step && import_running) return;
 
 		const $msg = frm.layout?.msg_area;
@@ -1121,8 +1074,6 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 			this.$status.append($progress.clone(false, false));
 		}
 	}
-
-	// ---- footer ------------------------------------------------------------
 
 	render_footer() {
 		const frm = this.frm;
@@ -1188,8 +1139,6 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 			);
 		}
 
-		// Import step: the navbar has no actions now, so the contextual import controls
-		// live on the footer right. Cancel while running; Retry / Report Error after.
 		if (step === 3) {
 			const status = frm.doc.status;
 			const importing = status === "In Progress" || frm.import_in_progress;
@@ -1231,8 +1180,6 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		}
 	}
 
-	// ---- navigation --------------------------------------------------------
-
 	on_step_click(index) {
 		const frm = this.frm;
 		if (!can_go_to_wizard_step(frm, index, this.current_step)) {
@@ -1249,8 +1196,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		this.on_go(index);
 	}
 
-	/** Moving forward from a dirty form saves first (Save + Next), then re-fetches the
-	 *  preview on the Preview step so tree warnings recompute against the saved edits. */
+	/** Re-fetch the preview after saving so tree warnings reflect the saved edits. */
 	async save_if_dirty() {
 		const frm = this.frm;
 		if (!frm.is_dirty()) return true;
@@ -1293,7 +1239,7 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 		this.on_go(this.current_step - 1);
 	}
 
-	/** Fix Issues footer: persist dirty mappings/skips, then swap Save → Import. */
+	/** Fix Issues footer: Save while there are unsaved mappings or skips, then Import. */
 	async on_save() {
 		const frm = this.frm;
 		const ok = await frm.events.handle_wizard_save?.(frm);

@@ -1,8 +1,6 @@
 // Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 // License: MIT. See LICENSE
 
-// Opens the Data Import wizard in a dialog by hosting a real Data Import form inside it.
-
 frappe.provide("frappe.data_import");
 
 frappe.data_import.open_data_import_dialog = function ({
@@ -20,7 +18,7 @@ frappe.data_import.open_data_import_dialog = function ({
 		);
 	}
 
-	// The meta carries the Data Import form script that mounts the wizard.
+	// The meta carries the form script that mounts the wizard.
 	frappe.model.with_doctype("Data Import", () => {
 		frappe.require("data_import_wizard.bundle.js", () => {
 			_open({ data_import, reference_doctype, import_type, title });
@@ -38,13 +36,13 @@ function _open({ data_import, reference_doctype, import_type, title }) {
 
 	const $host = $('<div class="data-import-dialog-host"></div>').appendTo(dialog.$body);
 
-	// in_form=false: skip rename_notify's set_route so first save doesn't tear down the dialog
+	// in_form=false skips rename_notify's set_route, which would close the dialog on save.
 	const frm = new frappe.ui.form.Form("Data Import", $host.get(0), false);
 	frm.in_dialog = true;
 	frm._data_import_dialog = dialog;
 
 	const boot_new = () => {
-		// New doc isn't persisted until the wizard saves, so closing without attaching creates no record
+		// Unsaved until the wizard saves, so closing early leaves no record.
 		const name = frappe.model.make_new_doc_and_get_name("Data Import");
 		const doc = frappe.get_doc("Data Import", name);
 		doc.reference_doctype = reference_doctype;
@@ -66,7 +64,7 @@ function _open({ data_import, reference_doctype, import_type, title }) {
 	dialog.$wrapper.addClass("data-import-dialog");
 	dialog.show();
 
-	// Instantiate after show so the host has layout (make_app_page/measurements are happier).
+	// Boot after show so the host has layout to measure.
 	if (data_import) {
 		boot_existing();
 	} else {

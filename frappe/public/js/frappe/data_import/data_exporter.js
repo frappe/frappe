@@ -19,8 +19,7 @@ frappe.data_import.DataExporter = class DataExporter {
 		this.doctype = doctype;
 		this.exporting_for = exporting_for;
 		this.hide_blank_template = hide_blank_template;
-		// Provider field schema ({fields, child_tables}); when set the picker reads
-		// from it instead of DocType meta. Other callers (e.g. list export) pass none.
+		// {fields, child_tables}; when set, the picker reads it instead of DocType meta.
 		this.provider_schema = provider_schema || null;
 		frappe.model.with_doctype(doctype, () => {
 			this.make_dialog(filetype);
