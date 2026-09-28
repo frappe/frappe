@@ -267,13 +267,19 @@ function prepare_fix_issues_step(frm, preview_data) {
 	if (!frm.has_import_file?.() || state.is_complete) {
 		frm.events.toggle_import_issues_ui(frm, false, false);
 		if (state.is_complete) {
-			frm.get_field("import_warnings")?.$wrapper.html("");
+			set_import_warnings_html(frm, "");
 		}
 		return state;
 	}
 
 	frm.events.render_import_warnings(frm, state.preview_data);
 	return state;
+}
+
+/** The mappings grid sits inside the warnings HTML; detach it so .html() keeps its handlers. */
+function set_import_warnings_html(frm, html) {
+	frm.fields_dict.value_mappings?.$wrapper?.detach();
+	frm.get_field("import_warnings")?.$wrapper.html(html);
 }
 
 /** Detach reparented field wrappers so jQuery .empty() doesn't destroy their event handlers. */
@@ -1680,7 +1686,7 @@ frappe.ui.form.on("Data Import", {
 		frm.toggle_display("section_import_preview", false);
 		frm.get_field("import_tree_preview")?.$wrapper.empty();
 		frm.get_field("import_preview")?.$wrapper.empty();
-		frm.get_field("import_warnings")?.$wrapper.html("");
+		set_import_warnings_html(frm, "");
 		frm.get_field("import_log_preview")?.$wrapper.empty();
 		update_section_count(frm, "import_warnings_section", 0, "import-warnings-count");
 		update_section_count(frm, "value_mappings_section", 0, "value-mappings-count");
@@ -2269,7 +2275,7 @@ frappe.ui.form.on("Data Import", {
 
 		if (is_import_complete(frm.doc.status)) {
 			frm.events.toggle_import_issues_ui(frm, false, false);
-			frm.get_field("import_warnings")?.$wrapper.html("");
+			set_import_warnings_html(frm, "");
 			update_section_count(frm, "import_warnings_section", 0, "import-warnings-count");
 			update_section_count(frm, "value_mappings_section", 0, "value-mappings-count");
 			return;
@@ -2293,7 +2299,7 @@ frappe.ui.form.on("Data Import", {
 		);
 
 		if (!warnings.length && !has_saved_mappings) {
-			frm.get_field("import_warnings").$wrapper.html("");
+			set_import_warnings_html(frm, "");
 			update_section_count(frm, "import_warnings_section", 0, "import-warnings-count");
 			return;
 		}
@@ -2486,7 +2492,8 @@ frappe.ui.form.on("Data Import", {
 			html += warning_group(__("Issues"), generic_issue_html);
 		}
 
-		frm.get_field("import_warnings").$wrapper.html(
+		set_import_warnings_html(
+			frm,
 			html ? `<div class="warnings w-full m-0 p-0 flex flex-col gap-3">${html}</div>` : ""
 		);
 		update_section_count(
