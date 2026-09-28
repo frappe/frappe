@@ -394,6 +394,44 @@ frappe.ui.form.Form = class FrappeForm {
 					}
 				}
 			);
+
+			// Grandchild rows belong to this form through their immediate child row.
+			$.each(frappe.meta.get_table_fields(df.options), function (j, nested_df) {
+				frappe.model.on(
+					nested_df.options,
+					"*",
+					function (fieldname, value, doc, skip_dirty_trigger = false) {
+						if (
+							doc.parenttype !== df.options ||
+							doc.parentfield !== nested_df.fieldname
+						) {
+							return;
+						}
+
+						const parent_row = locals[df.options]?.[doc.parent];
+						if (
+							parent_row?.parent !== me.docname ||
+							parent_row?.parenttype !== me.doctype ||
+							parent_row?.parentfield !== df.fieldname
+						) {
+							return;
+						}
+
+						if (!skip_dirty_trigger) {
+							me.dirty();
+						}
+
+						me.fields_dict[df.fieldname].grid
+							.get_row(parent_row.name)
+							?.grid_form?.fields_dict?.[nested_df.fieldname]?.grid.set_value(
+								fieldname,
+								value,
+								doc
+							);
+						return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+					}
+				);
+			});
 		});
 	}
 

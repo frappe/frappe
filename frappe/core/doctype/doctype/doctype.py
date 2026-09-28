@@ -207,6 +207,7 @@ class DocType(Document):
 		self.set("can_change_name_type", validate_autoincrement_autoname(self))
 		self.validate_document_type()
 		validate_fields(self)
+		validate_nested_table_fields(self.name, self.fields, self.istable)
 		self.check_indexing_for_dashboard_links()
 		if not self.istable:
 			validate_permissions(self)
@@ -1354,6 +1355,32 @@ def validate_fields_for_doctype(doctype):
 	meta = frappe.get_meta(doctype, cached=False)
 	validate_links_table_fieldnames(meta)
 	validate_fields(meta)
+	validate_nested_table_fields(doctype, meta.fields, meta.istable)
+
+
+def validate_nested_table_fields(doctype, fields, is_table):
+	"""Allow one persisted Table field below a child table, without cycles."""
+	if not is_table:
+		return
+	if any(df.fieldtype == "Table MultiSelect" and not df.get("is_virtual") for df in fields):
+		frappe.throw(_("Table MultiSelect is not supported inside a child table"), frappe.ValidationError)
+
+	nested_fields = [df for df in fields if df.fieldtype == "Table" and not df.get("is_virtual")]
+	if not nested_fields:
+		return
+
+	for df in nested_fields:
+		if df.options == doctype or any(
+			not child_df.is_virtual for child_df in frappe.get_meta(df.options).get_table_fields()
+		):
+			frappe.throw(_("Nested child tables can only be one level deep"), frappe.ValidationError)
+
+	parents = frappe.get_all("DocField", filters={"options": doctype, "fieldtype": "Table"}, pluck="parent")
+	parents.extend(
+		frappe.get_all("Custom Field", filters={"options": doctype, "fieldtype": "Table"}, pluck="dt")
+	)
+	if any(parent != doctype and frappe.get_meta(parent).istable for parent in parents):
+		frappe.throw(_("Nested child tables can only be one level deep"), frappe.ValidationError)
 
 
 # this is separate because it is also called via custom field

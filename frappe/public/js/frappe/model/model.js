@@ -699,8 +699,8 @@ $.extend(frappe.model, {
 	},
 
 	clear_table: function (doc, parentfield) {
-		for (const d of doc[parentfield] || []) {
-			delete locals[d.doctype][d.name];
+		for (const d of [...(doc[parentfield] || [])]) {
+			this.clear_doc(d.doctype, d.name);
 		}
 		doc[parentfield] = [];
 	},
@@ -715,6 +715,9 @@ $.extend(frappe.model, {
 	clear_doc: function (doctype, name) {
 		var doc = locals[doctype] && locals[doctype][name];
 		if (!doc) return;
+		for (const df of frappe.meta.get_table_fields(doctype)) {
+			this.clear_table(doc, df.fieldname);
+		}
 
 		var parent = null;
 		if (doc.parenttype) {

@@ -8,6 +8,7 @@ from datetime import timedelta
 from unittest.mock import Mock, patch
 
 import frappe
+import frappe.client
 from frappe.app import make_form_dict
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.rq_job.test_rq_job import wait_for_completion
@@ -34,6 +35,529 @@ class CustomNoteWithoutProperty(Note):
 
 
 class TestDocument(IntegrationTestCase):
+	def test_nested_custom_table_field(self):
+		grandchild_dt = new_doctype(istable=1).insert().name
+		child_dt = new_doctype(istable=1).insert().name
+		frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"dt": child_dt,
+				"fieldname": "custom_details",
+				"label": "Details",
+				"fieldtype": "Table",
+				"options": grandchild_dt,
+				"insert_after": "some_fieldname",
+			}
+		).insert()
+		root_dt = (
+			new_doctype(
+				fields=[{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child_dt}]
+			)
+			.insert()
+			.name
+		)
+		root = frappe.get_doc(
+			{"doctype": root_dt, "rows": [{"custom_details": [{"some_fieldname": "custom value"}]}]}
+		).insert()
+		self.assertEqual(
+			frappe.get_doc(root_dt, root.name).rows[0].custom_details[0].some_fieldname, "custom value"
+		)
+
+	def test_add_nested_custom_table_field_to_populated_child(self):
+		grandchild_dt = new_doctype(istable=1).insert().name
+		child_dt = new_doctype(istable=1).insert().name
+		root_dt = (
+			new_doctype(
+				fields=[{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child_dt}],
+			)
+			.insert()
+			.name
+		)
+		root = frappe.get_doc(
+			{"doctype": root_dt, "rows": [{"some_fieldname": "first"}, {"some_fieldname": "second"}]}
+		).insert()
+		first_name, second_name = [row.name for row in root.rows]
+		frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"dt": child_dt,
+				"fieldname": "custom_details",
+				"label": "Details",
+				"fieldtype": "Table",
+				"options": grandchild_dt,
+				"insert_after": "some_fieldname",
+			}
+		).insert()
+		self.assertNotIn("custom_details", frappe.db.get_table_columns(child_dt))
+		root.reload()
+		self.assertEqual([row.name for row in root.rows], [first_name, second_name])
+		self.assertEqual([row.custom_details for row in root.rows], [[], []])
+		root.rows[0].append("custom_details", {"some_fieldname": "added"})
+		root.save()
+		loaded = frappe.get_doc(root_dt, root.name)
+		self.assertEqual(loaded.rows[0].custom_details[0].some_fieldname, "added")
+		self.assertEqual(loaded.rows[1].custom_details, [])
+
+	def test_nested_child_large_tree_load_is_batched(self):
+		grandchild_dt = new_doctype(istable=1).insert().name
+		child_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{
+						"label": "Details",
+						"fieldname": "details",
+						"fieldtype": "Table",
+						"options": grandchild_dt,
+					}
+				],
+			)
+			.insert()
+			.name
+		)
+		root_dt = (
+			new_doctype(
+				fields=[{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child_dt}],
+			)
+			.insert()
+			.name
+		)
+		root = frappe.get_doc(
+			{
+				"doctype": root_dt,
+				"rows": [
+					{"details": [{"some_fieldname": str(i)}, {"some_fieldname": "extra"}]} for i in range(30)
+				],
+			}
+		).insert()
+		frappe.get_doc(root_dt, root.name)
+		with self.assertQueryCount(3):
+			loaded = frappe.get_doc(root_dt, root.name)
+		self.assertEqual(len(loaded.rows), 30)
+		self.assertTrue(all(len(row.details) == 2 for row in loaded.rows))
+		frappe.delete_doc(root_dt, root.name)
+		self.assertEqual(frappe.db.count(grandchild_dt, {"parenttype": child_dt}), 0)
+
+	def test_nested_child_update_after_submit(self):
+		grandchild_dt = new_doctype(istable=1).insert().name
+		child_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{
+						"label": "Details",
+						"fieldname": "details",
+						"fieldtype": "Table",
+						"options": grandchild_dt,
+						"allow_on_submit": 1,
+					}
+				],
+			)
+			.insert()
+			.name
+		)
+		root_dt = (
+			new_doctype(
+				is_submittable=1,
+				fields=[
+					{
+						"label": "Rows",
+						"fieldname": "rows",
+						"fieldtype": "Table",
+						"options": child_dt,
+						"allow_on_submit": 1,
+					}
+				],
+			)
+			.insert()
+			.name
+		)
+		root = frappe.get_doc(
+			{"doctype": root_dt, "rows": [{"details": [{"some_fieldname": "before"}]}]}
+		).insert()
+		root.submit()
+		self.assertEqual(root.rows[0].details[0].docstatus, 1)
+		root.rows[0].details[0].some_fieldname = "after"
+		with self.assertRaises(frappe.UpdateAfterSubmitError):
+			root.save()
+		root.reload()
+		root.rows[0].append("details", {"some_fieldname": "new"})
+		root.save()
+		self.assertEqual(
+			[row.some_fieldname for row in frappe.get_doc(root_dt, root.name).rows[0].details],
+			["before", "new"],
+		)
+
+	def test_nested_child_validation(self):
+		grandchild_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{"label": "Value", "fieldname": "value", "fieldtype": "Data", "reqd": 1},
+					{"label": "User", "fieldname": "user", "fieldtype": "Link", "options": "User"},
+				],
+			)
+			.insert()
+			.name
+		)
+		child_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{
+						"label": "Details",
+						"fieldname": "details",
+						"fieldtype": "Table",
+						"options": grandchild_dt,
+					}
+				],
+			)
+			.insert()
+			.name
+		)
+		root_dt = (
+			new_doctype(
+				fields=[{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child_dt}],
+			)
+			.insert()
+			.name
+		)
+		root = frappe.get_doc({"doctype": root_dt, "rows": [{"details": [{"user": "Administrator"}]}]})
+		with self.assertRaises(frappe.MandatoryError):
+			root.insert()
+		root.rows[0].details[0].value = "valid"
+		root.rows[0].details[0].user = "missing@example.com"
+		with self.assertRaises(frappe.LinkValidationError):
+			root.insert()
+		root.rows[0].details[0].user = "Administrator"
+		root.insert()
+		root.rows[0].details[0].user = "missing@example.com"
+		with self.assertRaises(frappe.LinkValidationError):
+			root.save()
+		self.assertEqual(frappe.get_doc(root_dt, root.name).rows[0].details[0].user, "Administrator")
+
+	def test_nested_child_table_depth_validation(self):
+		third_dt = new_doctype(istable=1).insert().name
+		leaf_dt = new_doctype(istable=1).insert().name
+		new_doctype(
+			istable=1,
+			fields=[{"label": "Details", "fieldname": "details", "fieldtype": "Table", "options": leaf_dt}],
+		).insert()
+		parent = frappe.get_doc("DocType", leaf_dt)
+		parent.append(
+			"fields",
+			{"label": "Too Deep", "fieldname": "too_deep", "fieldtype": "Table", "options": third_dt},
+		)
+		with self.assertRaises(frappe.ValidationError):
+			parent.save()
+		with self.assertRaises(frappe.ValidationError):
+			frappe.get_doc(
+				{
+					"doctype": "Custom Field",
+					"dt": leaf_dt,
+					"fieldname": "custom_too_deep",
+					"label": "Too Deep",
+					"fieldtype": "Table",
+					"options": third_dt,
+					"insert_after": "some_fieldname",
+				}
+			).insert()
+
+	def test_nested_child_table_invalid_references(self):
+		child_dt = new_doctype(istable=1).insert().name
+		child = frappe.get_doc("DocType", child_dt)
+		child.append(
+			"fields", {"label": "Self", "fieldname": "self_rows", "fieldtype": "Table", "options": child_dt}
+		)
+		with self.assertRaises(frappe.ValidationError):
+			child.save()
+
+		other_dt = (
+			new_doctype(
+				istable=1,
+				fields=[{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child_dt}],
+			)
+			.insert()
+			.name
+		)
+		child = frappe.get_doc("DocType", child_dt)
+		child.append(
+			"fields", {"label": "Other", "fieldname": "other", "fieldtype": "Table", "options": other_dt}
+		)
+		with self.assertRaises(frappe.ValidationError):
+			child.save()
+
+		child = frappe.get_doc("DocType", child_dt)
+		child.append(
+			"fields",
+			{"label": "Multi", "fieldname": "multi", "fieldtype": "Table MultiSelect", "options": other_dt},
+		)
+		with self.assertRaises(frappe.ValidationError):
+			child.save()
+
+	def test_virtual_child_table_does_not_add_persisted_depth(self):
+		leaf_dt = new_doctype(istable=1).insert().name
+		middle_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{
+						"label": "Virtual Details",
+						"fieldname": "virtual_details",
+						"fieldtype": "Table",
+						"options": leaf_dt,
+						"is_virtual": 1,
+					}
+				],
+			)
+			.insert()
+			.name
+		)
+		root_dt = (
+			new_doctype(
+				fields=[{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": middle_dt}],
+			)
+			.insert()
+			.name
+		)
+		self.assertTrue(frappe.get_meta(root_dt).get_field("rows"))
+		self.assertNotIn("virtual_details", frappe.db.get_table_columns(middle_dt))
+
+	def test_nested_child_custom_field_update_rejects_extra_depth(self):
+		leaf_dt = new_doctype(istable=1).insert().name
+		middle_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{"label": "Details", "fieldname": "details", "fieldtype": "Table", "options": leaf_dt}
+				],
+			)
+			.insert()
+			.name
+		)
+		third_dt = new_doctype(istable=1).insert().name
+		custom_field = frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"dt": leaf_dt,
+				"fieldname": "custom_extra",
+				"label": "Extra",
+				"fieldtype": "Data",
+			}
+		).insert()
+		custom_field.fieldtype = "Table"
+		custom_field.options = third_dt
+		with self.assertRaises(frappe.ValidationError):
+			custom_field.save()
+		self.assertEqual(frappe.get_meta(middle_dt).get_field("details").options, leaf_dt)
+
+	def test_nested_child_failed_save_preserves_tree(self):
+		grandchild_dt = (
+			new_doctype(
+				istable=1,
+				fields=[{"label": "Value", "fieldname": "value", "fieldtype": "Data", "reqd": 1}],
+			)
+			.insert()
+			.name
+		)
+		child_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{
+						"label": "Details",
+						"fieldname": "details",
+						"fieldtype": "Table",
+						"options": grandchild_dt,
+					}
+				],
+			)
+			.insert()
+			.name
+		)
+		root_dt = (
+			new_doctype(
+				fields=[{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child_dt}],
+			)
+			.insert()
+			.name
+		)
+		root = frappe.get_doc(
+			{"doctype": root_dt, "rows": [{"details": [{"value": "first"}, {"value": "second"}]}]}
+		).insert()
+		before = [(row.name, row.value) for row in root.rows[0].details]
+		root.rows[0].details[0].value = "changed"
+		root.rows[0].details.pop(1)
+		root.rows[0].append("details", {"value": ""})
+		with self.assertRaises(frappe.MandatoryError):
+			root.save()
+		self.assertEqual(
+			[(row.name, row.value) for row in frappe.get_doc(root_dt, root.name).rows[0].details], before
+		)
+
+	def test_client_grandchild_changes_run_root_update_hook(self):
+		grandchild_dt = new_doctype(istable=1).insert().name
+		child_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{
+						"label": "Details",
+						"fieldname": "details",
+						"fieldtype": "Table",
+						"options": grandchild_dt,
+					}
+				],
+			)
+			.insert()
+			.name
+		)
+		root_dt = (
+			new_doctype(
+				fields=[{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child_dt}],
+			)
+			.insert()
+			.name
+		)
+		root = frappe.get_doc({"doctype": root_dt, "rows": [{}]}).insert()
+		updates = []
+		original_run_method = Document.run_method
+
+		def record_root_update(doc, method, *args, **kwargs):
+			if doc.doctype == root_dt and method == "on_update":
+				updates.append(doc.name)
+			return original_run_method(doc, method, *args, **kwargs)
+
+		with patch.object(Document, "run_method", record_root_update):
+			frappe.client.insert_doc(
+				{
+					"doctype": grandchild_dt,
+					"parenttype": child_dt,
+					"parent": root.rows[0].name,
+					"parentfield": "details",
+					"some_fieldname": "new",
+				}
+			)
+			inserted = frappe.get_doc(root_dt, root.name).rows[0].details[0]
+			frappe.client.delete_doc(grandchild_dt, inserted.name)
+		self.assertEqual(updates, [root.name, root.name])
+
+	def test_nested_child_table_round_trip_and_cascade(self):
+		grandchild_dt = new_doctype(istable=1).insert().name
+		child_dt = (
+			new_doctype(
+				istable=1,
+				fields=[
+					{"label": "Value", "fieldname": "value", "fieldtype": "Data"},
+					{
+						"label": "Details",
+						"fieldname": "details",
+						"fieldtype": "Table",
+						"options": grandchild_dt,
+					},
+				],
+			)
+			.insert()
+			.name
+		)
+		root_dt = (
+			new_doctype(
+				fields=[{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child_dt}],
+				permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1}],
+			)
+			.insert()
+			.name
+		)
+		columns = frappe.db.get_table_columns(child_dt)
+		self.assertNotIn("details", columns)
+		self.assertTrue({"parent", "parenttype", "parentfield", "idx"}.issubset(columns))
+		from frappe.core.doctype.data_import.exporter import Exporter
+		from frappe.core.doctype.data_import.importer import Importer
+
+		with self.assertRaises(frappe.ValidationError):
+			Exporter(root_dt, export_fields={})
+		with self.assertRaises(frappe.ValidationError):
+			Importer(root_dt)
+		with self.assertRaises(frappe.ValidationError):
+			Exporter(child_dt, export_fields={})
+		with self.assertRaises(frappe.ValidationError):
+			Importer(child_dt)
+
+		root = frappe.get_doc(
+			{
+				"doctype": root_dt,
+				"rows": [
+					{"value": "first", "details": [{"some_fieldname": "one"}, {"some_fieldname": "two"}]},
+					{"value": "second", "details": [{"some_fieldname": "three"}]},
+				],
+			}
+		).insert()
+		loaded = frappe.get_doc(root_dt, root.name)
+		self.assertEqual([row.value for row in loaded.rows], ["first", "second"])
+		self.assertEqual([row.some_fieldname for row in loaded.rows[0].details], ["one", "two"])
+		for row in loaded.rows:
+			self.assertEqual((row.parent, row.parenttype, row.parentfield), (root.name, root_dt, "rows"))
+			for detail in row.details:
+				self.assertEqual(
+					(detail.parent, detail.parenttype, detail.parentfield), (row.name, child_dt, "details")
+				)
+		self.assertEqual([row.idx for row in loaded.rows[0].details], [1, 2])
+		self.assertNotEqual(loaded.rows[0].details[0].name, loaded.rows[0].details[1].name)
+		self.assertEqual(frappe.get_doc(child_dt, loaded.rows[0].name).details[0].some_fieldname, "one")
+		self.assertEqual(
+			frappe.parse_json(loaded.as_json())["rows"][0]["details"][0]["some_fieldname"], "one"
+		)
+		result = frappe.get_list(
+			child_dt,
+			fields=["name", {"details": ["some_fieldname"]}],
+			filters={"parent": root.name},
+			order_by="idx asc",
+			parent_doctype=root_dt,
+		)
+		self.assertEqual(len(result), 2)
+		self.assertEqual(result[0].details[0].some_fieldname, "one")
+
+		loaded.rows[0].details.reverse()
+		for idx, detail in enumerate(loaded.rows[0].details, start=1):
+			detail.idx = idx
+		loaded.save()
+		self.assertEqual(
+			[(row.some_fieldname, row.idx) for row in frappe.get_doc(root_dt, root.name).rows[0].details],
+			[("two", 1), ("one", 2)],
+		)
+		loaded.reload()
+
+		loaded.rows[0].details[0].some_fieldname = "updated"
+		removed_detail = loaded.rows[0].details.pop(1)
+		loaded.rows[1].append("details", {"some_fieldname": "four"})
+		loaded.save()
+		self.assertEqual(frappe.get_doc(root_dt, root.name).rows[0].details[0].some_fieldname, "updated")
+		self.assertFalse(frappe.db.exists(grandchild_dt, removed_detail.name))
+		frappe.client.insert_doc(
+			{
+				"doctype": grandchild_dt,
+				"parenttype": child_dt,
+				"parent": loaded.rows[1].name,
+				"parentfield": "details",
+				"some_fieldname": "from client",
+			}
+		)
+		client_row = next(
+			row
+			for row in frappe.get_doc(root_dt, root.name).rows[1].details
+			if row.some_fieldname == "from client"
+		)
+		frappe.client.delete_doc(grandchild_dt, client_row.name)
+		self.assertFalse(frappe.db.exists(grandchild_dt, client_row.name))
+
+		loaded.reload()
+		removed_row = loaded.rows.pop(0)
+		loaded.save()
+		self.assertEqual(frappe.db.count(grandchild_dt, {"parent": removed_row.name}), 0)
+		self.assertEqual(frappe.get_doc(root_dt, root.name).rows[0].details[0].some_fieldname, "three")
+		frappe.delete_doc(root_dt, root.name)
+		self.assertEqual(frappe.db.count(grandchild_dt, {"parenttype": child_dt}), 0)
+
 	def test_get_return_empty_list_for_table_field_if_none(self):
 		d = frappe.get_doc({"doctype": "User"})
 		self.assertEqual(d.get("roles"), [])

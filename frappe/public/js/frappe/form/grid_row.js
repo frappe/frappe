@@ -1353,7 +1353,13 @@ export default class GridRow {
 	}
 
 	get_open_form() {
-		return frappe.ui.form.get_open_grid_form();
+		if (this.grid.get_parent_doc()?.parenttype) {
+			return this.grid.grid_rows?.find((row) => row.wrapper?.hasClass("grid-row-open"));
+		}
+		return $(".grid-row-open")
+			.filter((_, element) => !$(element).parents(".grid-row-open").length)
+			.first()
+			.data("grid_row");
 	}
 
 	toggle_view(show, callback) {
@@ -1418,7 +1424,9 @@ export default class GridRow {
 			.find(".grid-delete-row")
 			.toggle(!(this.grid.df && this.grid.df.cannot_delete_rows));
 
-		frappe.dom.freeze("", "grid-form");
+		if (!this.grid.get_parent_doc()?.parenttype) {
+			frappe.dom.freeze("", "grid-form");
+		}
 		if (cur_frm) cur_frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
 		if (
@@ -1435,17 +1443,22 @@ export default class GridRow {
 		}
 	}
 	hide_form() {
+		this.wrapper.find(".grid-row-open").each((_, element) => {
+			$(element).data("grid_row")?.hide_form();
+		});
 		if (frappe.utils.is_xs()) {
 			$(this.grid.form_grid).css("min-width", "738px");
 			$(this.grid.form_grid).css("position", "relative");
 		}
-		frappe.dom.unfreeze();
+		if (!this.grid.get_parent_doc()?.parenttype) {
+			frappe.dom.unfreeze();
+		}
 		this.row.toggle(true);
 		if (!frappe.dom.is_element_in_modal(this.row)) {
 			frappe.utils.scroll_to(this.row, true, 15);
 		}
 		this.refresh();
-		if (cur_frm) cur_frm.cur_grid = null;
+		if (cur_frm) cur_frm.cur_grid = this.grid.control?.layout?.grid_row || null;
 		if (this.grid_form) {
 			this.grid_form.wrapper.css("display", "none");
 		}

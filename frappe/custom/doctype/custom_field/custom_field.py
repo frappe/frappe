@@ -215,6 +215,17 @@ class CustomField(Document):
 			self.translatable = 0
 
 		check_fieldname_conflicts(self)
+		if (
+			self.fieldtype in ("Table", "Table MultiSelect")
+			and not self.is_virtual
+			and frappe.get_meta(self.dt).istable
+		):
+			from frappe.core.doctype.doctype.doctype import validate_nested_table_fields
+
+			fields = [
+				df for df in frappe.get_meta(self.dt, cached=False).fields if df.fieldname != self.fieldname
+			]
+			validate_nested_table_fields(self.dt, [*fields, self], True)
 
 	def on_update(self):
 		# validate field

@@ -24,7 +24,7 @@ from frappe.database.utils import commit_after_response
 from frappe.desk.form.document_follow import _follow_document
 from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.model import optional_fields, table_fields
-from frappe.model.base_document import BaseDocument, D, get_controller
+from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE, BaseDocument, D, get_controller
 from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype, simple_singledispatch
@@ -567,7 +567,8 @@ class Document(BaseDocument):
 	def mask_fields(self):
 		from frappe.model.utils.mask import mask_field_value
 
-		mask_fields = frappe.get_meta(self.doctype).get_masked_fields()
+		root_doctype = self.get_root_doctype()
+		mask_fields = self.meta.get_masked_fields(parenttype=root_doctype if self.meta.istable else None)
 
 		if mask_fields:
 			# Flag masked fields so get_valid_dict() does not cast the XXXXXXXX placeholder
@@ -578,16 +579,10 @@ class Document(BaseDocument):
 			val = self.get(field.fieldname)
 			self.set(field.fieldname, mask_field_value(field, val))
 
-		for table_field in self.meta.get_table_fields():
-			child_mask_fields = frappe.get_meta(table_field.options).get_masked_fields(
-				parenttype=self.doctype
-			)
-			if not child_mask_fields:
-				continue
-
-			masked_fieldnames = {field.fieldname for field in child_mask_fields}
-			for row in self.get(table_field.fieldname) or []:
-				row.flags.masked_fieldnames = masked_fieldnames
+		for row in self.get_all_descendants():
+			child_mask_fields = row.meta.get_masked_fields(parenttype=root_doctype)
+			if child_mask_fields:
+				row.flags.masked_fieldnames = {field.fieldname for field in child_mask_fields}
 				for field in child_mask_fields:
 					row.set(field.fieldname, mask_field_value(field, row.get(field.fieldname)))
 
@@ -620,7 +615,40 @@ class Document(BaseDocument):
 
 			self.set(fieldname, children)
 
+		if self.doctype not in DOCTYPES_FOR_DOCTYPE and not self.meta.istable:
+			self._load_grandchildren_from_db()
+
 		return self
+
+	def _load_grandchildren_from_db(self):
+		"""Load nested tables in batches, one query per child DocType and field."""
+		children_by_doctype = {}
+		for child in self.get_all_children():
+			children_by_doctype.setdefault(child.doctype, []).append(child)
+
+		for child_doctype, children in children_by_doctype.items():
+			child_meta = frappe.get_meta(child_doctype)
+			by_name = {str(child.name): child for child in children}
+			for df in child_meta.get_table_fields():
+				if df.is_virtual or is_virtual_doctype(df.options):
+					continue
+				rows = frappe.db.get_values(
+					df.options,
+					{
+						"parent": ["in", list(by_name)],
+						"parenttype": child_doctype,
+						"parentfield": df.fieldname,
+					},
+					"*",
+					as_dict=True,
+					order_by="idx asc",
+					for_update=self.flags.for_update,
+				)
+				grouped = {}
+				for row in rows:
+					grouped.setdefault(str(row.parent), []).append(row)
+				for name, child in by_name.items():
+					child.set(df.fieldname, grouped.get(name, []))
 
 	def _load_child_table_from_db(self, fieldname, child_doctype):
 		for_update = ""
@@ -754,7 +782,7 @@ class Document(BaseDocument):
 
 		# children
 		if not getattr(self.meta, "is_virtual", False):
-			for d in self.get_all_children():
+			for d in self.get_all_descendants():
 				d.db_insert()
 
 		self.reset_computed_child_tables()
@@ -924,6 +952,27 @@ class Document(BaseDocument):
 			or frappe.get_meta(df.options).is_virtual == 1
 		):
 			existing_row_names = [row.name for row in all_rows if row.name and not row.is_new()]
+			if frappe.get_meta(df.options).get_table_fields():
+				removed_names = frappe.get_all(
+					df.options,
+					filters={
+						"parent": str(self.name),
+						"parenttype": self.doctype,
+						"parentfield": fieldname,
+						"name": ["not in", existing_row_names] if existing_row_names else ["!=", ""],
+					},
+					pluck="name",
+				)
+				for nested_df in frappe.get_meta(df.options).get_table_fields():
+					if removed_names and not nested_df.is_virtual:
+						frappe.db.delete(
+							nested_df.options,
+							{
+								"parent": ["in", removed_names],
+								"parenttype": df.options,
+								"parentfield": nested_df.fieldname,
+							},
+						)
 
 			tbl = frappe.qb.DocType(df.options)
 			qry = (
@@ -943,6 +992,7 @@ class Document(BaseDocument):
 		for d in all_rows:
 			d: Document
 			d.db_update()
+			d.update_children()
 
 	def reset_computed_child_tables(self):
 		"""Reset computed child tables so that they are reloaded next time"""
@@ -1005,7 +1055,7 @@ class Document(BaseDocument):
 
 		if set_child_names:
 			# set name for children
-			for d in self.get_all_children():
+			for d in self.get_all_descendants():
 				set_new_name(d)
 
 		self.flags.name_set = True
@@ -1065,7 +1115,7 @@ class Document(BaseDocument):
 			self.creation = self.modified
 			self.owner = self.modified_by
 
-		for d in self.get_all_children():
+		for d in self.get_all_descendants():
 			d.modified = self.modified
 			d.modified_by = self.modified_by
 			if not d.owner:
@@ -1079,7 +1129,7 @@ class Document(BaseDocument):
 		# docstatus property automatically sets a docstatus if not set
 		docstatus = self.docstatus
 
-		for d in self.get_all_children():
+		for d in self.get_all_descendants():
 			d.set("docstatus", docstatus)
 
 	def _validate(self):
@@ -1097,7 +1147,7 @@ class Document(BaseDocument):
 		self.validate_workflow()
 		self._validate_length()
 
-		for d in self.get_all_children():
+		for d in self.get_all_descendants():
 			d._validate_data_fields()
 			d._validate_selects()
 			d._validate_non_negative()
@@ -1259,8 +1309,8 @@ class Document(BaseDocument):
 			return
 
 		all_fields = self.meta.fields.copy()
-		for table_field in self.meta.get_table_fields(include_computed=True):
-			all_fields += frappe.get_meta(table_field.options).fields or []
+		for child in self.get_all_descendants():
+			all_fields += child.meta.fields or []
 
 		if all(df.permlevel == 0 for df in all_fields):
 			self.mask_fields()
@@ -1276,12 +1326,10 @@ class Document(BaseDocument):
 					# hasattr might return True for class attribute which can't be delattr-ed.
 					continue
 
-		for table_field in self.meta.get_table_fields(include_computed=True):
-			for df in frappe.get_meta(table_field.options).fields or []:
-				if df.permlevel and df.permlevel not in has_access_to:
-					for child in self.get(table_field.fieldname) or []:
-						if hasattr(child, df.fieldname):
-							delattr(child, df.fieldname)
+		for child in self.get_all_descendants():
+			for df in child.meta.fields or []:
+				if df.permlevel and df.permlevel not in has_access_to and hasattr(child, df.fieldname):
+					delattr(child, df.fieldname)
 
 		self.mask_fields()
 
@@ -1291,30 +1339,23 @@ class Document(BaseDocument):
 		if frappe.flags.in_install or frappe.session.user == "Administrator" or self.is_new():
 			return
 
-		mask_fields = self.meta.get_masked_fields()
-		child_mask_fields = {
-			table_field.fieldname: masked
-			for table_field in self.meta.get_table_fields()
-			if (masked := frappe.get_meta(table_field.options).get_masked_fields(parenttype=self.doctype))
-		}
-		if not mask_fields and not child_mask_fields:
+		root_doctype = self.get_root_doctype()
+		rows = (self, *self.get_all_descendants())
+		masked_rows = [
+			(row, row.meta.get_masked_fields(parenttype=root_doctype if row.meta.istable else None))
+			for row in rows
+		]
+		if not any(fields for _, fields in masked_rows):
 			return
 
 		# frappe.db.get_value() goes through the query builder which re-masks results for
 		# non-admin users, returning XXXXXXXX. frappe.get_doc() uses load_from_db() which
 		# queries the DB directly and always returns the actual stored value.
 		db_doc = frappe.get_doc(self.doctype, self.name)
-		for df in mask_fields:
-			self.set(df.fieldname, db_doc.get(df.fieldname))
-
-		for fieldname, masked in child_mask_fields.items():
-			db_rows = {row.name: row for row in db_doc.get(fieldname)}
-			for row in self.get(fieldname) or []:
-				db_row = db_rows.get(row.name)
-				# new rows have no DB counterpart — nothing to restore
-				if not db_row:
-					continue
-				for df in masked:
+		db_rows = {(row.doctype, row.name): row for row in (db_doc, *db_doc.get_all_descendants())}
+		for row, fields in masked_rows:
+			if db_row := db_rows.get((row.doctype, row.name)):
+				for df in fields:
 					row.set(df.fieldname, db_row.get(df.fieldname))
 
 	def validate_higher_perm_levels(self):
@@ -1335,12 +1376,9 @@ class Document(BaseDocument):
 		if self.is_new():
 			return
 
-		# check for child tables
-		for df in self.meta.get_table_fields():
-			high_permlevel_fields = frappe.get_meta(df.options).get_high_permlevel_fields()
-			if high_permlevel_fields:
-				for d in self.get(df.fieldname):
-					d.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
+		for child in self.get_all_descendants():
+			if high_permlevel_fields := child.meta.get_high_permlevel_fields():
+				child.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
 	def get_permlevel_access(self, permission_type="write"):
 		allowed_permlevels = []
@@ -1361,11 +1399,24 @@ class Document(BaseDocument):
 	def get_permissions(self):
 		if self.meta.istable:
 			# use parent permissions
-			permissions = frappe.get_meta(self.parenttype).permissions
+			permissions = frappe.get_meta(self.get_root_doctype()).permissions
 		else:
 			permissions = self.meta.permissions
 
 		return permissions
+
+	def get_root_doctype(self):
+		if not self.meta.istable:
+			return self.doctype
+		parenttype = self.parenttype
+		if frappe.get_meta(parenttype).istable:
+			parent_doc = self.parent_doc
+			parenttype = (
+				parent_doc.parenttype
+				if parent_doc
+				else frappe.db.get_value(parenttype, self.parent, "parenttype")
+			)
+		return parenttype
 
 	def _set_defaults(self):
 		if frappe.flags.in_import:
@@ -1383,6 +1434,8 @@ class Document(BaseDocument):
 				for d in value:
 					if d.is_new():
 						d.update_if_missing(new_doc)
+					if d.meta.get_table_fields():
+						d._set_defaults()
 
 	def check_if_latest(self):
 		"""Checks if `modified` timestamp provided by document being updated is same as the
@@ -1472,23 +1525,26 @@ class Document(BaseDocument):
 
 	def set_parent_in_children(self):
 		"""Updates `parent` and `parenttype` property in all children."""
-		for d in self.get_all_children():
-			d.parent = self.name
-			d.parenttype = self.doctype
+		for parent in (self, *self.get_all_descendants()):
+			for d in parent.get_all_children():
+				d.parent = parent.name
+				d.parenttype = parent.doctype
 
 	def set_name_in_children(self):
 		# Set name for any new children
-		for d in self.get_all_children():
+		for d in self.get_all_descendants():
 			if not d.name:
 				set_new_name(d)
+			for child in d.get_all_children():
+				child.parent = d.name
 
 	def validate_update_after_submit(self):
 		if self.flags.ignore_validate_update_after_submit:
 			return
 
 		self._validate_update_after_submit()
-		for d in self.get_all_children():
-			if d.is_new() and self.meta.get_field(d.parentfield).allow_on_submit:
+		for d in self.get_all_descendants():
+			if d.is_new() and frappe.get_meta(d.parenttype).get_field(d.parentfield).allow_on_submit:
 				# in case of a new row, don't validate allow on submit, if table is allow on submit
 				continue
 
@@ -1501,7 +1557,7 @@ class Document(BaseDocument):
 			return
 
 		missing = self._get_missing_mandatory_fields()
-		for d in self.get_all_children():
+		for d in self.get_all_descendants():
 			missing.extend(d._get_missing_mandatory_fields())
 
 		if not missing:
@@ -1655,7 +1711,7 @@ class Document(BaseDocument):
 
 		invalid_links, cancelled_links = self.get_invalid_links(link_value_cache=link_cache)
 
-		for d in self.get_all_children():
+		for d in self.get_all_descendants():
 			result = d.get_invalid_links(is_submittable=self.meta.is_submittable, link_value_cache=link_cache)
 			invalid_links.extend(result[0])
 			cancelled_links.extend(result[1])
@@ -1685,6 +1741,14 @@ class Document(BaseDocument):
 				children.extend(value)
 
 		return children
+
+	def get_all_descendants(self) -> list["Document"]:
+		"""Return persisted child rows in parent-first order."""
+		descendants = []
+		for child in self.get_all_children():
+			descendants.append(child)
+			descendants.extend(child.get_all_descendants())
+		return descendants
 
 	def run_method(self, method: str, *args, **kwargs):
 		"""run standard triggers, plus those in hooks"""

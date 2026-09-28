@@ -36,7 +36,7 @@ export const LEGACY_COLSIZE_TO_PX = {
 };
 
 frappe.ui.form.get_open_grid_form = function () {
-	return $(".grid-row-open").data("grid_row");
+	return $(".grid-row-open").last().data("grid_row");
 };
 
 frappe.ui.form.close_grid_form = function () {
@@ -82,6 +82,10 @@ export default class Grid {
 
 	get perm() {
 		return this.control?.perm || this.frm?.perm || this.df.perm;
+	}
+
+	get_parent_doc() {
+		return this.control?.layout?.grid_row?.doc || this.frm?.doc;
 	}
 
 	set perm(_perm) {
@@ -401,7 +405,7 @@ export default class Grid {
 	delete_all_rows() {
 		const num_rows = this.data.length;
 		frappe.confirm(__("Are you sure you want to delete all {0} rows?", [num_rows]), () => {
-			this.frm.doc[this.df.fieldname] = [];
+			frappe.model.clear_table(this.get_parent_doc(), this.df.fieldname);
 			$(this.parent).find(".rows").empty();
 			this.grid_rows = [];
 			this.refresh();
@@ -664,7 +668,7 @@ export default class Grid {
 		if (this.frm) {
 			this.display_status = frappe.perm.get_field_display_status(
 				this.df,
-				this.frm.doc,
+				this.get_parent_doc(),
 				this.perm
 			);
 		} else if (this.df.is_web_form && this.control) {
@@ -846,7 +850,7 @@ export default class Grid {
 		if (this.frm && this.frm.docname) {
 			// use doc specific docfield object
 			this.df = frappe.meta.get_docfield(
-				this.frm.doctype,
+				this.get_parent_doc()?.doctype || this.frm.doctype,
 				this.df.fieldname,
 				this.frm.docname
 			);
@@ -998,14 +1002,14 @@ export default class Grid {
 			data = this.get_filtered_data();
 		} else {
 			data = this.frm
-				? this.frm.doc[this.df.fieldname] || []
+				? this.get_parent_doc()?.[this.df.fieldname] || []
 				: this.df.data || this.get_modal_data();
 		}
 		return data;
 	}
 
 	get_filtered_data() {
-		let all_data = this.frm ? this.frm.doc[this.df.fieldname] : this.df.data;
+		let all_data = this.frm ? this.get_parent_doc()?.[this.df.fieldname] : this.df.data;
 
 		if (!all_data) return;
 
@@ -1231,11 +1235,12 @@ export default class Grid {
 
 			if (this.frm) {
 				var d = frappe.model.add_child(
-					this.frm.doc,
+					this.get_parent_doc(),
 					this.df.options,
 					this.df.fieldname,
 					idx
 				);
+				this.frm.dirty();
 				if (copy_doc) {
 					d = this.duplicate_row(d, copy_doc);
 				}
@@ -1291,7 +1296,7 @@ export default class Grid {
 			d.idx = index + 1;
 			$item.attr("data-idx", d.idx);
 
-			if (this.frm) this.frm.doc[this.df.fieldname][index] = d;
+			if (this.frm) this.get_parent_doc()[this.df.fieldname][index] = d;
 			this.data[index] = d;
 			this.grid_rows[index] = this.grid_rows_by_docname[d.name];
 		});
@@ -1682,11 +1687,16 @@ export default class Grid {
 								frappe.throw(__("Cannot import table with more than 5000 rows."));
 							}
 							const fieldnames = data[2];
-							me.frm.clear_table(me.df.fieldname);
+							const parent_doc = me.get_parent_doc();
+							frappe.model.clear_table(parent_doc, me.df.fieldname);
 							data.forEach((row, i) => {
 								if (i < BULK_EDIT_CSV_HEADER_ROWS) return;
 								if (!row.some((v) => v)) return;
-								const d = me.frm.add_child(me.df.fieldname);
+								const d = frappe.model.add_child(
+									parent_doc,
+									me.df.options,
+									me.df.fieldname
+								);
 								row.forEach((value, ci) => {
 									const fieldname = fieldnames[ci];
 									const df = frappe.meta.get_docfield(me.df.options, fieldname);
@@ -1739,7 +1749,7 @@ export default class Grid {
 					}
 				});
 
-				(this.frm.doc[this.df.fieldname] || []).forEach((d) => {
+				(this.get_parent_doc()?.[this.df.fieldname] || []).forEach((d) => {
 					const row = data[2].map((fieldname, i) => {
 						let value = d[fieldname];
 						if (docfields[i].fieldtype === "Date" && value) {

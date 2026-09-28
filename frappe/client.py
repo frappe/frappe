@@ -540,11 +540,11 @@ def insert_doc(doc) -> "Document":
 		if not (doc.parenttype and doc.parent and doc.parentfield):
 			frappe.throw(_("Parenttype, Parent and Parentfield are required to insert a child record"))
 
-		# inserting a child record
-		parent = frappe.get_doc(doc.parenttype, doc.parent)
+		# Save through the root document so its validation and hooks run.
+		parent, root = _get_child_parent_and_root(doc.parenttype, doc.parent, doc.parentfield, doc.doctype)
 		parent.append(doc.parentfield, doc)
-		parent.save()
-		return parent
+		root.save()
+		return root
 
 	return frappe.get_doc(doc).insert()
 
@@ -562,14 +562,33 @@ def delete_doc(doctype, name):
 
 		assert len(values) == 3, "expected parenttype, parent and parentfield for child table row"
 		parenttype, parent, parentfield = values
-		parent = frappe.get_doc(parenttype, parent)
-		if not parent.has_permission("write"):
+		parent, root = _get_child_parent_and_root(parenttype, parent, parentfield, doctype)
+		if not root.has_permission("write"):
 			raise frappe.DoesNotExistError(doctype=doctype)
 
 		for row in parent.get(parentfield):
 			if row.name == name:
 				parent.remove(row)
-				parent.save()
+				root.save()
 				break
 	else:
 		frappe.delete_doc(doctype, name, ignore_missing=False)
+
+
+def _get_child_parent_and_root(parenttype, parent, parentfield, child_doctype):
+	field = frappe.get_meta(parenttype).get_field(parentfield)
+	if not field or field.fieldtype not in frappe.model.table_fields or field.options != child_doctype:
+		raise frappe.DoesNotExistError(doctype=child_doctype)
+
+	parent_doc = frappe.get_doc(parenttype, parent)
+	if not frappe.is_table(parenttype):
+		return parent_doc, parent_doc
+
+	root = frappe.get_doc(parent_doc.parenttype, parent_doc.parent)
+	root_field = frappe.get_meta(root.doctype).get_field(parent_doc.parentfield)
+	if not root_field or root_field.options != parenttype:
+		raise frappe.DoesNotExistError(doctype=child_doctype)
+	for row in root.get(parent_doc.parentfield):
+		if row.name == parent_doc.name:
+			return row, root
+	raise frappe.DoesNotExistError(doctype=child_doctype)

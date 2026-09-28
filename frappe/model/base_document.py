@@ -92,7 +92,7 @@ DOCTYPE_TABLE_FIELDS = [
 
 TABLE_DOCTYPES_FOR_DOCTYPE = MappingProxyType({df["fieldname"]: df["options"] for df in DOCTYPE_TABLE_FIELDS})
 
-# child tables cannot have child tables
+# DocType's own metadata rows use a fixed schema while DocType is bootstrapping.
 TABLE_DOCTYPES_FOR_CHILD_TABLES = MappingProxyType({})
 
 DOCTYPES_FOR_DOCTYPE = {"DocType", *TABLE_DOCTYPES_FOR_DOCTYPE.values()}
@@ -484,8 +484,9 @@ class BaseDocument:
 			value["doctype"] = doctype
 			controller = get_controller(doctype)
 			child = controller.__new__(controller)
-			child._table_fieldnames = TABLE_DOCTYPES_FOR_CHILD_TABLES
-			child._non_computed_table_fieldnames = TABLE_DOCTYPES_FOR_CHILD_TABLES
+			if doctype in DOCTYPES_FOR_DOCTYPE:
+				child._table_fieldnames = TABLE_DOCTYPES_FOR_CHILD_TABLES
+				child._non_computed_table_fieldnames = TABLE_DOCTYPES_FOR_CHILD_TABLES
 			child.__init__(value)
 
 		__dict = child.__dict__
@@ -530,7 +531,7 @@ class BaseDocument:
 		if self.doctype == "DocType":
 			return DOCTYPE_TABLE_FIELDS
 
-		# child tables don't have child tables
+		# Metadata rows must not recursively load their own DocType definitions.
 		if self.doctype in DOCTYPES_FOR_DOCTYPE:
 			return ()
 

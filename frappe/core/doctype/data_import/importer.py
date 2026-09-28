@@ -10,6 +10,7 @@ from datetime import date, datetime, time
 import frappe
 from frappe import _
 from frappe.app_state import clear_cache_after_maintenance
+from frappe.core.doctype.data_import.exporter import reject_nested_table_import_export
 from frappe.core.doctype.data_import.value_mapping import INVALID_VALUES
 from frappe.core.doctype.version.version import get_diff
 from frappe.locale import get_number_format
@@ -73,6 +74,7 @@ class Importer:
 		self, doctype, data_import=None, file_path=None, import_type=None, console=False, use_sniffer=False
 	):
 		self.doctype = doctype
+		reject_nested_table_import_export(frappe.get_meta(doctype))
 		self.console = console
 		self.use_sniffer = use_sniffer
 		# Set when prechecks block the run; callers then skip the "refresh" broadcast.

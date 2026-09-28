@@ -115,7 +115,12 @@ def mask_fields(
 		Result with masked field values applied based on user permissions
 	"""
 	from frappe.database.query import CORE_DOCTYPES
-	from frappe.model.utils.mask import mask_dict_results, mask_list_results, mask_pluck_results
+	from frappe.model.utils.mask import (
+		mask_dict_results,
+		mask_field_value,
+		mask_list_results,
+		mask_pluck_results,
+	)
 
 	# We can't query meta for core doctypes here
 	if doctype in CORE_DOCTYPES:
@@ -143,7 +148,18 @@ def mask_fields(
 		return mask_list_results(result, masked_fields, field_index_map)
 
 	# Handle as_dict format
-	return mask_dict_results(result, masked_fields)
+	mask_dict_results(result, masked_fields)
+	masked_by_name = {field.fieldname: field for field in masked_fields}
+	for field in fields:
+		name = getattr(field, "name", None)
+		alias = getattr(field, "alias", None)
+		if name not in masked_by_name or not alias or alias == name:
+			continue
+		masked_field = masked_by_name[name]
+		for row in result:
+			if alias in row:
+				row[alias] = mask_field_value(masked_field, row[alias])
+	return result
 
 
 def get_masked_joined_fields(doctype: str, fields: list[Any]) -> list[Any]:
@@ -194,6 +210,9 @@ def execute_query(query, *args, **kwargs):
 		result = mask_fields(
 			dt, fields, result, as_dict=as_dict, pluck=kwargs.get("pluck", False), parent_doctype=parent_dt
 		)
+		result = mask_dynamic_fields(
+			fields, result, as_dict=as_dict, pluck=kwargs.get("pluck", False), parent_doctype=parent_dt or dt
+		)
 
 	if name_field_injected and result and not kwargs.get("pluck"):
 		if isinstance(result[0], dict):
@@ -208,6 +227,46 @@ def execute_query(query, *args, **kwargs):
 	return result
 
 
+def mask_dynamic_fields(fields, result, *, as_dict, pluck, parent_doctype):
+	"""Mask selected child and link fields using their own DocType metadata."""
+	from frappe.database.query import CORE_DOCTYPES, ChildQuery, DynamicTableField
+	from frappe.model.utils.mask import mask_field_value
+
+	selected_fields = [field for field in fields if not isinstance(field, ChildQuery)]
+	mutable_rows = None
+
+	for index, field in enumerate(selected_fields):
+		if not isinstance(field, DynamicTableField) or field.doctype in CORE_DOCTYPES:
+			continue
+		meta = frappe.get_meta(field.doctype)
+		masked_field = next(
+			(
+				df
+				for df in meta.get_masked_fields(parenttype=parent_doctype if meta.istable else None)
+				if df.fieldname == field.fieldname
+			),
+			None,
+		)
+		if not masked_field:
+			continue
+		if pluck:
+			if index == 0:
+				result = [mask_field_value(masked_field, value) for value in result]
+			break
+		if as_dict:
+			key = field.alias or field.fieldname
+			for row in result:
+				if key in row:
+					row[key] = mask_field_value(masked_field, row[key])
+		else:
+			if mutable_rows is None:
+				mutable_rows = [list(row) for row in result]
+			for row in mutable_rows:
+				row[index] = mask_field_value(masked_field, row[index])
+
+	return [tuple(row) for row in mutable_rows] if mutable_rows is not None else result
+
+
 def mask_child_query_fields(child_queries, result):
 	if not isinstance(result[0], dict):
 		return
@@ -219,7 +278,7 @@ def mask_child_query_fields(child_queries, result):
 		if child_query.doctype in CORE_DOCTYPES:
 			continue
 		masked_fields = frappe.get_meta(child_query.doctype).get_masked_fields(
-			parenttype=child_query.parent_doctype
+			parenttype=getattr(child_query, "permission_parent_doctype", child_query.parent_doctype)
 		)
 		if not masked_fields:
 			continue

@@ -290,6 +290,23 @@ def delete_from_table(doctype: str, name: str, ignore_doctypes: list[str], doc):
 
 	child_doctypes_to_delete = set(child_doctypes) - set(ignore_doctypes)
 	for child_doctype in child_doctypes_to_delete:
+		child_meta = frappe.get_meta(child_doctype)
+		if nested_fields := [df for df in child_meta.get_table_fields() if not df.is_virtual]:
+			child_names = frappe.get_all(
+				child_doctype,
+				filters={"parenttype": doctype, "parent": name},
+				pluck="name",
+			)
+			if child_names:
+				for df in nested_fields:
+					frappe.db.delete(
+						df.options,
+						{
+							"parenttype": child_doctype,
+							"parentfield": df.fieldname,
+							"parent": ["in", child_names],
+						},
+					)
 		frappe.db.delete(child_doctype, {"parenttype": doctype, "parent": name})
 
 
