@@ -458,22 +458,11 @@ def get_import_status(data_import_name: str):
 
 @frappe.whitelist(methods=["GET"])
 @frappe.read_only()
-def get_import_log_count(data_import: str, status: str | None = None):
-	"""Count Data Import Log rows for a document.
-
-	:param status: Optional ``"success"`` / ``"failed"`` filter. ``None`` / ``"all"`` = all rows.
-	"""
+def get_import_log_count(data_import: str):
 	doc = frappe.get_doc("Data Import", data_import)
 	doc.check_permission("read")
 
-	filters: dict[str, Any] = {"data_import": data_import}
-	status_key = (status or "all").lower()
-	if status_key == "success":
-		filters["success"] = 1
-	elif status_key == "failed":
-		filters["success"] = 0
-
-	return frappe.db.count("Data Import Log", filters)
+	return frappe.db.count("Data Import Log", {"data_import": data_import})
 
 
 @frappe.whitelist()
@@ -485,7 +474,7 @@ def get_import_logs(data_import: str, status: str | None = None):
 	- ``success``: up to 1000 successful rows
 	- ``failed``: up to 1000 failed rows
 
-	Tab badge totals come from ``get_import_status`` / ``get_import_log_count``.
+	Tab badge totals come from ``get_import_status``.
 	"""
 	doc = frappe.get_doc("Data Import", data_import)
 	doc.check_permission("read")

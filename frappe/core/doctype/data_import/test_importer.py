@@ -461,7 +461,7 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(status["success"], 2)
 		self.assertEqual(status["total_records"], 2)
 
-		from frappe.core.doctype.data_import.data_import import get_import_log_count, get_import_logs
+		from frappe.core.doctype.data_import.data_import import get_import_logs
 
 		all_logs = get_import_logs(data_import.name, status="all")
 		success_logs = get_import_logs(data_import.name, status="success")
@@ -470,9 +470,6 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(len(success_logs), 2)
 		self.assertEqual(len(failed_logs), 0)
 		self.assertTrue(all(log.success for log in success_logs))
-		self.assertEqual(get_import_log_count(data_import.name, status="success"), 2)
-		self.assertEqual(get_import_log_count(data_import.name, status="failed"), 0)
-		self.assertEqual(get_import_log_count(data_import.name, status="all"), 2)
 
 	def test_mapped_select_still_shows_warning_but_unmapped_blocks_import(self):
 		from frappe.core.doctype.data_import.value_mapping import (
