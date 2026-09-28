@@ -244,20 +244,31 @@ class OAuthWebRequestValidator(RequestValidator):
 		# access_token and the refresh_token and set expiration for the
 		# access_token to now + expires_in seconds.
 
+		try:
+			incoming_refresh_token = request.body.get("refresh_token")
+		except AttributeError:
+			incoming_refresh_token = None
+
+		old_token_name = None
+		if incoming_refresh_token:
+			old_token_name = frappe.db.get_value(
+				"OAuth Bearer Token",
+				{
+					"refresh_token": incoming_refresh_token,
+					"client": request.client["name"],
+				},
+				"name",
+			)
+
 		otoken = frappe.new_doc("OAuth Bearer Token")
 		otoken.client = request.client["name"]
 		try:
 			otoken.user = (
 				request.user
 				if request.user
-				else frappe.db.get_value(
-					"OAuth Bearer Token",
-					{
-						"refresh_token": request.body.get("refresh_token"),
-						"client": request.client["name"],
-					},
-					"user",
-				)
+				else frappe.db.get_value("OAuth Bearer Token", old_token_name, "user")
+				if old_token_name
+				else frappe.session.user
 			)
 		except Exception:
 			otoken.user = frappe.session.user
@@ -267,6 +278,10 @@ class OAuthWebRequestValidator(RequestValidator):
 		otoken.refresh_token = token.get("refresh_token")
 		otoken.expires_in = token["expires_in"]
 		otoken.save(ignore_permissions=True)
+
+		if old_token_name:
+			frappe.db.set_value("OAuth Bearer Token", old_token_name, "status", "Revoked")
+
 		frappe.db.commit()
 
 		return frappe.db.get_value("OAuth Client", request.client["name"], "default_redirect_uri")
