@@ -11,6 +11,12 @@ in full. Walk them before drafting or refactoring, and cite by ID in reviews (`D
 `FP2`, `P3`). The notes below are operational specifics — the design *rules* live in
 PHILOSOPHY.md, not here.
 
+## Layers — read `ARCHITECTURE.md`
+
+[`ARCHITECTURE.md`](./ARCHITECTURE.md) is the map: nine layers, each of which may use only
+the layers below it; a closed list of concepts per layer; and the five main flows. A new
+concept or a new edge between layers needs a ruling, and the same PR updates the file.
+
 ## Components: frappe-ui and `@framework/ui` first
 
 Reach for a [frappe-ui](https://github.com/frappe/frappe-ui) component or an
