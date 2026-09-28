@@ -279,6 +279,7 @@ class DbColumn:
 		if not current_def:
 			self.fieldname = validate_column_name(self.fieldname)
 			self.table.add_column.append(self)
+			frappe.flags.setdefault("new_columns", set()).add((self.table.doctype, self.fieldname))
 
 			if column_type not in ("text", "longtext"):
 				if self.unique:

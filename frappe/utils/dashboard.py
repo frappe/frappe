@@ -104,19 +104,28 @@ def sync_dashboards(app=None):
 
 
 def make_records_in_module(app, module):
-	dashboards_path = frappe.get_module_path(module, f"{module}_dashboard")
-	charts_path = frappe.get_module_path(module, "dashboard chart")
-	cards_path = frappe.get_module_path(module, "number card")
+	for path in dashboard_files(module):
+		import_file_by_path(path)
 
-	paths = [dashboards_path, charts_path, cards_path]
-	for path in paths:
-		make_records(path)
+
+def dashboard_files(module):
+	"""The Dashboard, Dashboard Chart and Number Card files a module ships"""
+	files = []
+	for folder in (f"{module}_dashboard", "dashboard chart", "number card"):
+		files += record_files(frappe.get_module_path(module, folder))
+	return files
 
 
 def make_records(path, filters=None):
-	if os.path.isdir(path):
-		for fname in os.listdir(path):
-			if os.path.isdir(join(path, fname)):
-				if fname == "__pycache__":
-					continue
-				import_file_by_path(f"{path}/{fname}/{fname}.json")
+	for file in record_files(path):
+		import_file_by_path(file)
+
+
+def record_files(path):
+	if not os.path.isdir(path):
+		return []
+	return [
+		join(path, fname, f"{fname}.json")
+		for fname in os.listdir(path)
+		if os.path.exists(join(path, fname, f"{fname}.json"))
+	]

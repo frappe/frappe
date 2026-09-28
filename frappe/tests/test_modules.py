@@ -3,6 +3,7 @@ import shutil
 import unittest
 from contextlib import contextmanager
 from pathlib import Path
+from unittest.mock import patch
 
 import frappe
 from frappe import scrub
@@ -10,6 +11,7 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.model.meta import trim_table
+from frappe.model.sync import apply_custom_field_values
 from frappe.modules import export_customizations, export_module_json, get_module_path
 from frappe.modules.utils import export_doc, sync_customizations
 from frappe.tests import IntegrationTestCase
@@ -253,3 +255,86 @@ def note_customizations():
 		doctype_link.delete()
 		trim_table("Note", dry_run=False)
 		delete_path(frappe.get_module_path("Desk", "Note"))
+
+
+class TestCustomFieldValues(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.flags.pop("new_columns", None)
+		# adding a column commits, so the role and field come before anything a test rolls back
+		cls.role = frappe.get_doc({"doctype": "Role", "role_name": "_Test Custom Field Value"}).insert()
+		create_custom_field("Role", {"fieldname": "test_shipped_value", "fieldtype": "Data"})
+		create_custom_field("Role", {"fieldname": "test_shipped_check", "fieldtype": "Check"})
+		cls.new_columns = frappe.flags.pop("new_columns")
+
+	@classmethod
+	def tearDownClass(cls):
+		cls.role.delete()
+		frappe.delete_doc("Custom Field", "Role-test_shipped_value")
+		frappe.delete_doc("Custom Field", "Role-test_shipped_check")
+		trim_table("Role", dry_run=False)
+		# trim_table altered the table, which commits implicitly
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	def setUp(self):
+		self.file = Path(frappe.get_site_path("role_with_custom_field_value.json"))
+		self.file.write_text(
+			frappe.as_json(
+				{
+					"doctype": "Role",
+					"name": self.role.name,
+					"test_shipped_value": "from file",
+					"test_shipped_check": 1,
+				}
+			)
+		)
+		self.addCleanup(self.file.unlink)
+		self.addCleanup(frappe.db.rollback)
+
+	def apply(self, new_columns, files=None):
+		frappe.flags.new_columns = set(new_columns)
+		with patch("frappe.model.sync.standard_doc_files", return_value=files or [str(self.file)]):
+			apply_custom_field_values()
+
+	def get_values(self):
+		return frappe.db.get_value(
+			"Role", self.role.name, ["test_shipped_value", "test_shipped_check", "modified"], as_dict=True
+		)
+
+	def test_records_the_columns_a_custom_field_adds(self):
+		self.assertIn(("Role", "test_shipped_value"), self.new_columns)
+		self.assertIn(("Role", "test_shipped_check"), self.new_columns)
+
+	def test_fills_new_columns(self):
+		modified = self.get_values().modified
+		self.apply(self.new_columns)
+		values = self.get_values()
+		self.assertEqual(values.test_shipped_value, "from file")
+		self.assertEqual(values.test_shipped_check, 1)
+		self.assertEqual(values.modified, modified)
+
+	def test_keeps_columns_that_existed(self):
+		frappe.db.set_value("Role", self.role.name, "test_shipped_value", "set on site")
+		self.apply(set())
+		values = self.get_values()
+		self.assertEqual(values.test_shipped_value, "set on site")
+		self.assertEqual(values.test_shipped_check, 0)
+
+	def test_recreated_field_is_not_a_new_column(self):
+		frappe.delete_doc("Custom Field", "Role-test_shipped_value")
+		create_custom_field("Role", {"fieldname": "test_shipped_value", "fieldtype": "Data"})
+		self.assertNotIn(("Role", "test_shipped_value"), frappe.flags.pop("new_columns", set()))
+
+	def test_keeps_a_value_set_in_this_run(self):
+		frappe.db.set_value("Role", self.role.name, "test_shipped_value", "set by a hook")
+		self.apply(self.new_columns)
+		self.assertEqual(self.get_values().test_shipped_value, "set by a hook")
+
+	def test_a_broken_file_does_not_raise(self):
+		broken = Path(frappe.get_site_path("role_with_broken_value.json"))
+		broken.write_text("{")
+		self.addCleanup(broken.unlink)
+		self.apply(self.new_columns, files=[str(self.file), str(broken)])
+		self.assertEqual(self.get_values().test_shipped_value, None)

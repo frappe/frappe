@@ -297,12 +297,13 @@ def is_required_by(app_name: str, dependent_app: str) -> bool:
 
 def install_app(name, verbose=False, set_as_patched=True, force=False):
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
-	from frappe.model.sync import sync_for
+	from frappe.model.sync import apply_custom_field_values, sync_for
 	from frappe.modules.utils import sync_customizations
 	from frappe.utils.fixtures import sync_fixtures
 
 	frappe.flags.in_install = name
 	frappe.flags.ignore_in_install = False
+	frappe.flags.new_columns = set()
 
 	frappe.clear_cache()
 	app_hooks = frappe.get_hooks(app_name=name)
@@ -390,6 +391,8 @@ def install_app(name, verbose=False, set_as_patched=True, force=False):
 
 	for after_sync in app_hooks.after_sync or []:
 		frappe.get_attr(after_sync)()  #
+
+	apply_custom_field_values()
 
 	frappe.clear_cache()
 	frappe.client_cache.erase_persistent_caches()

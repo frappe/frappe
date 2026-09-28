@@ -86,6 +86,7 @@ class SiteMigration:
 	def setUp(self):
 		"""Complete setup required for site migration"""
 		frappe.flags.touched_tables = set()
+		frappe.flags.new_columns = set()
 		self.touched_tables_file = frappe.get_site_path("touched_tables.json")
 		frappe.clear_cache()
 
@@ -219,6 +220,9 @@ class SiteMigration:
 		for app in frappe.get_installed_apps():
 			for fn in frappe.get_hooks("after_migrate", app_name=app):
 				frappe.get_attr(fn)()
+
+		print("Applying custom field values from standard files...")
+		frappe.model.sync.apply_custom_field_values()
 
 		print("Applying state of disabled apps again...")
 		reapply_disabled_app_state()

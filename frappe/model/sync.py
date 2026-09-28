@@ -8,10 +8,12 @@ perms will get synced only if none exist
 import glob
 import os
 import re
+from collections import defaultdict
 
 import frappe
+from frappe.database.database import savepoint
 from frappe.desk.doctype.desktop_icon.desktop_icon import import_desktop_icon_fixtures
-from frappe.modules.import_file import import_file_by_path
+from frappe.modules.import_file import import_file_by_path, read_doc_from_file
 from frappe.modules.patch_handler import _patch_mode
 from frappe.utils import update_progress_bar
 
@@ -71,6 +73,32 @@ def sync_all(force=0, reset_permissions=False):
 
 
 def sync_for(app_name, force=0, reset_permissions=False):
+	files = get_app_doc_files(app_name)
+
+	l = len(files)
+	if l:
+		for i, doc_path in enumerate(files):
+			imported = import_file_by_path(
+				doc_path, force=force, ignore_version=True, reset_permissions=reset_permissions
+			)
+
+			if imported:
+				frappe.db.commit(chain=True)
+
+			# show progress bar
+			update_progress_bar(f"Updating DocTypes for {app_name}", i, l)
+
+		# print each progress bar on new line
+		print()
+
+	# The icon grid's fixtures use their own entry point because of the desktop-mode guard: an
+	# Apps-mode site holds no icon rows, shipped or generated, and switching to the grid is what
+	# imports them.
+	import_desktop_icon_fixtures(app_name, force=force)
+
+
+def get_app_doc_files(app_name):
+	"""The document files `app_name` ships, in the order `sync_for` imports them"""
 	files = []
 
 	if app_name == "frappe":
@@ -144,27 +172,7 @@ def sync_for(app_name, force=0, reset_permissions=False):
 	# `Sidebar` now. An app that has not re-exported yet falls back to a computed base rather
 	# than to nothing, which makes dropping them safe.
 	files = get_doc_files(files=files, start_path=frappe.get_app_path(app_name), doctypes=APP_ROOTED_DOCTYPES)
-
-	l = len(files)
-	if l:
-		for i, doc_path in enumerate(files):
-			imported = import_file_by_path(
-				doc_path, force=force, ignore_version=True, reset_permissions=reset_permissions
-			)
-
-			if imported:
-				frappe.db.commit(chain=True)
-
-			# show progress bar
-			update_progress_bar(f"Updating DocTypes for {app_name}", i, l)
-
-		# print each progress bar on new line
-		print()
-
-	# The icon grid's fixtures use their own entry point because of the desktop-mode guard: an
-	# Apps-mode site holds no icon rows, shipped or generated, and switching to the grid is what
-	# imports them.
-	import_desktop_icon_fixtures(app_name, force=force)
+	return files
 
 
 def get_doc_files(files, start_path, doctypes=None):
@@ -207,6 +215,62 @@ def get_doc_files(files, start_path, doctypes=None):
 		if doc_path not in files:
 			files.append(doc_path)
 
+	return files
+
+
+def apply_custom_field_values():
+	"""Fill Custom Fields whose column was added in this process from the standard files that carry them.
+
+	A file can carry a value for a field another app adds. `import_doc` drops the key while the
+	field is missing, and an unchanged file is never imported again, so a field that arrives after
+	its document stays at its default. A new column holds only defaults, so no value on the site can
+	have been set by hand, and a hook that set one in this run is kept. Only a parent document's
+	fields are read.
+	"""
+	new_columns = frappe.flags.pop("new_columns", set())
+	# a missing value is cheaper than a failed migrate or install
+	with savepoint(catch=Exception):
+		try:
+			fill_custom_fields(new_columns)
+		except Exception:
+			# deferred, so the rollback keeps it
+			frappe.log_error("Could not apply custom field values", defer_insert=True)
+			raise
+
+
+def fill_custom_fields(new_columns):
+	custom_fields = defaultdict(set)
+	for doctype, fieldname in frappe.get_all("Custom Field", fields=["dt", "fieldname"], as_list=True):
+		if (doctype, fieldname) in new_columns:
+			custom_fields[doctype].add(fieldname)
+
+	if not custom_fields:
+		return
+
+	for path in standard_doc_files():
+		docs = read_doc_from_file(path)
+		for doc in docs if isinstance(docs, list) else [docs]:
+			fieldnames = custom_fields.get(doc.get("doctype"), set()) & doc.keys()
+			values = {fieldname: doc[fieldname] for fieldname in fieldnames if doc[fieldname] is not None}
+			if not values:
+				continue
+
+			current = frappe.db.get_value(doc["doctype"], doc.get("name"), list(values), as_dict=True)
+			if unset := {
+				fieldname: value for fieldname, value in values.items() if current and not current[fieldname]
+			}:
+				frappe.db.set_value(doc["doctype"], doc["name"], unset, update_modified=False)
+
+
+def standard_doc_files():
+	"""Every document file the installed apps ship, as `sync_all` and `sync_dashboards` find them"""
+	from frappe.utils.dashboard import dashboard_files
+
+	files = []
+	for app in frappe.get_installed_apps():
+		files += get_app_doc_files(app)
+		for module in frappe.local.app_modules.get(app) or []:
+			files += dashboard_files(module)
 	return files
 
 
