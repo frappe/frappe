@@ -135,7 +135,7 @@ def close_log_db():
 		frappe.local.log_db = None
 
 
-class LogDocument(Document):
+class SQLiteLogDocument(Document):
 	"""Base controller for log DocTypes that store their rows in the log database.
 
 	Log DocTypes are declared `is_virtual`, which tells the framework it owns no table
@@ -329,7 +329,7 @@ def ensure_log_table(doctype: str) -> None:
 	issues its DDL through `frappe.db`, which must keep pointing at the primary database.
 
 	Columns come from the DocType's own meta and the log connection's `type_map`, so the table
-	matches what `get_valid_dict` will hand to :meth:`LogDocument.db_insert`. Creation is
+	matches what `get_valid_dict` will hand to :meth:`SQLiteLogDocument.db_insert`. Creation is
 	one-shot per process: the check is cached on `frappe.local`.
 	"""
 	created = getattr(frappe.local, "log_tables_ready", None)
@@ -399,7 +399,7 @@ def is_log_doctype(doctype: str) -> bool:
 	from frappe.model.base_document import get_controller
 
 	try:
-		return issubclass(get_controller(doctype), LogDocument)
+		return issubclass(get_controller(doctype), SQLiteLogDocument)
 	except ImportError:
 		# The one expected failure: an unknown or uninstalled DocType has no controller to
 		# import, and so is not a log DocType. `import_controller` raises `ImportError` for

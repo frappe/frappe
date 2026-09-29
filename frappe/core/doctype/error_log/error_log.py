@@ -5,7 +5,7 @@ import frappe
 from frappe.query_builder.functions import Count, Date, Max, Min
 from frappe.utils import add_days, cint, now
 from frappe.utils.caching import http_cache
-from frappe.utils.logging import LogDocument, get_log_db, log_table
+from frappe.utils.logging import SQLiteLogDocument, get_log_db, log_table
 
 
 def _cutoff(days: int) -> str:
@@ -20,7 +20,7 @@ def _cutoff(days: int) -> str:
 	return add_days(now(), -cint(days))
 
 
-class ErrorLog(LogDocument):
+class ErrorLog(SQLiteLogDocument):
 	_DOCTYPE_NAME = "Error Log"
 
 	# begin: auto-generated types
@@ -51,7 +51,7 @@ class ErrorLog(LogDocument):
 
 	def onload(self):
 		if not self.seen and not frappe.flags.read_only:
-			# `LogDocument.db_set` writes to the log database and commits that connection, so
+			# `SQLiteLogDocument.db_set` writes to the log database and commits that connection, so
 			# the previous explicit `frappe.db.commit()` -- which committed the *primary*
 			# transaction -- is neither needed nor wanted here.
 			self.db_set("seen", 1, update_modified=0)
