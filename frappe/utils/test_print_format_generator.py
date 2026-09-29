@@ -330,6 +330,20 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			self.assertEqual(_print_format_doc_or_none(None, "ToDo").name, default.name)
 			self.assertEqual(resolve_pdf_generator(_print_format_doc_or_none("", "ToDo")), "chrome")
 
+	def test_typst_default_format_prints_without_a_format_name(self):
+		"""get_print with no format name hands a Typst default format to the Typst hook."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		default = self._make_print_format(pdf_generator="Typst")
+		todo = self._make_todo()
+		with (
+			patch.object(frappe.get_meta("ToDo"), "default_print_format", default.name),
+			patch.object(PrintFormatGenerator, "render_typst_pdf", return_value=b"%PDF-typst"),
+		):
+			self.assertEqual(frappe.get_print("ToDo", todo.name, as_pdf=True), b"%PDF-typst")
+
 	def test_standard_print_follows_print_settings_pdf_generator(self):
 		"""Standard (no print format) must honour Print Settings, while a beta format
 		stays pinned to chrome — wkhtmltopdf cannot lay out its flexbox columns."""
