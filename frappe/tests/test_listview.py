@@ -75,13 +75,16 @@ class TestListView(IntegrationTestCase):
 		job = frappe.get_doc(
 			doctype="MapReduce Job", job_name="Test assigned to count", map="m", reduce="r", data="[]"
 		).insert()
-		frappe.get_doc(
+		todo = frappe.get_doc(
 			doctype="ToDo",
 			description="Test assigned to count",
 			allocated_to="Administrator",
 			reference_type="MapReduce Job",
 			reference_name=job.name,
 		).insert()
+		# same reference name, another doctype: must not be counted
+		other_todo = frappe.copy_doc(todo).insert()
+		frappe.db.set_value("ToDo", other_todo.name, "reference_type", "MapReduce Task")
 
 		data = get_group_by_count("MapReduce Job", [["name", "=", job.name]], "assigned_to")
 		self.assertEqual(data, [{"name": "Administrator", "count": 1}])
