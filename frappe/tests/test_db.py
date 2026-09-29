@@ -2398,12 +2398,13 @@ class TestConcurrency(IntegrationTestCase):
 			self.assertEqual(frappe.db.sql("show transaction_read_only")[0][0], "off")
 
 	@run_only_if(db_type_is.POSTGRES)
-	def test_read_only_snapshot_keeps_transaction_with_callbacks(self):
+	def test_read_only_snapshot_keeps_commit_callbacks_queued(self):
 		calls = []
 		with self.secondary_connection():
 			frappe.db.after_commit.add(lambda: calls.append(1))
 			with frappe.db.read_only_snapshot():
-				self.assertEqual(frappe.db.sql("show transaction_read_only")[0][0], "off")
+				self.assertEqual(frappe.db.sql("show transaction_read_only")[0][0], "on")
+			self.assertEqual(len(frappe.db.after_commit), 1)
 
 		self.assertFalse(calls)
 
