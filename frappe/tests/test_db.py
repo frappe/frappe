@@ -2666,6 +2666,22 @@ class TestPostgresSchemaQueryIndependence(ExtIntegrationTestCase):
 		with self.assertSqlException():
 			frappe.db.add_index(doctype="User", fields=("col_c",))
 
+	def test_add_trigram_index_outside_extension_schema(self) -> None:
+		# pg_trgm stays in public, off the search_path of a site on alt_schema
+		frappe.db.sql_ddl("CREATE EXTENSION IF NOT EXISTS pg_trgm")
+		self.addCleanup(frappe.db.connect)
+		with patch.dict(frappe.conf, {"db_schema": "alt_schema"}):
+			frappe.db.connect()  # sets the search_path to alt_schema
+			frappe.db.add_index(self.test_table_name, ["col_d"], using="gin_trgm")
+
+		self.assertTrue(
+			frappe.db.sql(
+				"""SELECT 1 FROM pg_indexes
+				WHERE schemaname = 'alt_schema' AND tablename = %s AND indexdef LIKE %s""",
+				(f"tab{self.test_table_name}", "%gin_trgm_ops%"),
+			)
+		)
+
 	# TODO: is there some method like remove_index:
 	# TODO: apps/frappe/frappe/patches/v14_0/drop_unused_indexes.py # def drop_index_if_exists()
 	# TODO: apps/frappe/frappe/database/postgres/schema.py # def alter()
