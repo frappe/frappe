@@ -1,5 +1,5 @@
 // Views C and D, the switcher between the four views, and the page's listeners.
-/* global DATA, VIEWS, ORDER, COLOR, GH, state, esc, md, layerName, idleDetail, select, drawLayers, stats */
+/* global DATA, INK, VIEWS, ORDER, COLOR, GH, state, esc, md, layerName, idleDetail, select, drawLayers, stats */
 function drawFlow() {
 	const flow = DATA.flows[state.flow];
 	const step = flow.steps[state.step];
@@ -11,7 +11,7 @@ function drawFlow() {
 			const name =
 				id === "index.html" ? __("{0} (inline script)", ["index.html"]) : layerName(id);
 			return `<div class="${on ? "lit" : ""}" style="${
-				on ? `background:${COLOR[id] || "#57606a"}` : ""
+				on ? `background:${COLOR[id] || COLOR.main}` : ""
 			}">${esc(name)}</div>`;
 		})
 		.join("");
@@ -19,9 +19,9 @@ function drawFlow() {
 		<div class="flowtabs">${DATA.flows
 			.map(
 				(f, i) =>
-					`<button class="${
-						i === state.flow ? "on" : ""
-					}" onclick="state.flow=${i};state.step=0;drawFlow()">${md(
+					`<button class="es-button"${
+						i === state.flow ? ' data-variant="solid"' : ""
+					} onclick="state.flow=${i};state.step=0;drawFlow()">${md(
 						f.title.split(":")[0]
 					)}</button>`
 			)
@@ -37,9 +37,11 @@ function drawFlow() {
 			${
 				i === state.step
 					? `<div style="margin-top:6px">
-				<div><span class="pill">${__("layers {0}", [esc(s.layerText)])}</span>${
+				<div><span class="es-badge">${__("layers {0}", [esc(s.layerText)])}</span>${
 							server
-								? `<span class="pill server">${__("goes to the server")}</span>`
+								? `<span class="es-badge" data-theme="amber">${__(
+										"goes to the server"
+								  )}</span>`
 								: ""
 					  }</div>
 				<div style="margin-top:4px"><b>${__("Permission check:")}</b> ${md(s.check)}</div>
@@ -55,9 +57,9 @@ function drawFlow() {
 		<h3>${__("Layers")}</h3><div>${[...lit]
 		.map(
 			(l) =>
-				`<span class="pill" style="background:${COLOR[l] || "#57606a"};color:#fff">${esc(
-					l === "index.html" ? l : layerName(l)
-				)}</span>`
+				`<span class="es-badge" style="background:${COLOR[l] || COLOR.main};color:${
+					INK.on
+				}">${esc(l === "index.html" ? l : layerName(l))}</span>`
 		)
 		.join("")}</div>
 		<h3>${__("Permission check")}</h3><p>${md(step.check)}</p>
@@ -96,7 +98,7 @@ function drawExtensions() {
 										COLOR[x.layer]
 								  }" data-select="ext" data-id="${i}" onmouseenter="pairHit(this,true)" onmouseleave="pairHit(this,false)">
 				<b>${esc(x.name)}</b><div class="muted">${esc(x.changes)}</div>
-				<div><span class="pill">${esc(layerName(x.layer))}</span>${
+				<div><span class="es-badge">${esc(layerName(x.layer))}</span>${
 										x.pair
 											? `<span class="pair">${__("same job as {0}", [
 													esc(x.pair),

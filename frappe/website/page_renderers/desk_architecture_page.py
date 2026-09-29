@@ -50,8 +50,6 @@ def not_built(reason: str):
 
 def with_translations(page: str) -> str:
 	"""The page with the translations of its own `__()` strings in the user's language."""
-	if frappe.local.lang == "en":
-		return page
 	translations = frappe.translate.get_all_translations(frappe.local.lang)
 	# Prettier may break the line after "__(", and quotes a label that holds " with '.
 	literals = re.findall(r"""__\(\s*(["'])((?:(?!\1)[^\\]|\\.)*)\1""", page)

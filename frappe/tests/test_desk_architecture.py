@@ -67,6 +67,14 @@ class TestDeskArchitecturePage(IntegrationTestCase):
 		messages = json.loads(page.split("const MESSAGES = ", 1)[1].split(";\n", 1)[0])
 		self.assertEqual(set(messages), set(translations) - {"Not a label of the page"})
 
+	def test_a_site_s_own_english_wording_reaches_the_page(self):
+		with (
+			patch.object(frappe.local, "lang", "en"),
+			patch("frappe.translate.get_all_translations", return_value={"Layers": "Levels"}),
+		):
+			page = self.open_page("Administrator").get_data(as_text=True)
+		self.assertIn('const MESSAGES = {"Layers": "Levels"}', page)
+
 
 def make_user(email):
 	return frappe.get_doc(

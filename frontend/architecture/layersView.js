@@ -1,5 +1,5 @@
 // View A draws the layers and their folders; view B the matrix of which layer uses which.
-/* global DATA, ORDER, COLOR, state, inLoop, layer, box, isBreak, esc, short, layerName */
+/* global DATA, INK, ORDER, COLOR, state, inLoop, layer, box, isBreak, esc, short, layerName */
 function drawLayers() {
 	const view = document.getElementById("view");
 	const W = Math.max(900, view.clientWidth - 40);
@@ -54,12 +54,12 @@ function drawLayers() {
 		const folders = bs.length === 1 ? __("1 folder") : __("{0} folders", [bs.length]);
 		svg += `<g class="layerlabel" data-select="layer" data-id="${esc(
 			id
-		)}"><rect x="0" y="${y}" width="${
-			LABEL - 8
-		}" height="${ROW}" rx="6" fill="#fff" stroke="#dde1e6"/>
-			<rect x="0" y="${y}" width="5" height="${ROW}" rx="2" fill="${COLOR[id]}"/>
+		)}"><rect x="0" y="${y}" width="${LABEL - 8}" height="${ROW}" rx="6" style="fill:${
+			INK.surface
+		};stroke:${INK.outline}"/>
+			<rect x="0" y="${y}" width="5" height="${ROW}" rx="2" style="fill:${COLOR[id]}"/>
 			<text x="12" y="${y + 20}" style="font-weight:600;font-size:12px">${esc(layerName(id))}</text>
-			<text x="12" y="${y + 38}" fill="#57606a">${
+			<text x="12" y="${y + 38}" style="fill:${INK.muted}">${
 			bs.length
 				? __("{0}, {1} lines, {2} concepts", [
 						folders,
@@ -69,8 +69,10 @@ function drawLayers() {
 				: __("{0} concepts, not in the graph", [l.concepts.length])
 		}</text></g>`;
 		if (!bs.length)
-			svg += `<rect x="${LABEL}" y="${y}" width="${avail}" height="${ROW}" rx="4" fill="none" stroke="#c9ced4" stroke-dasharray="4 3"/>
-			<text x="${LABEL + 10}" y="${y + 31}" fill="#8c959f">${__(
+			svg += `<rect x="${LABEL}" y="${y}" width="${avail}" height="${ROW}" rx="4" fill="none" style="stroke:${
+				INK.dashed
+			}" stroke-dasharray="4 3"/>
+			<text x="${LABEL + 10}" y="${y + 31}" style="fill:${INK.line}">${__(
 				"App folders and Client Script rows. They reach the desk only through the import list and the page object."
 			)}</text>`;
 	});
@@ -96,18 +98,18 @@ function drawLayers() {
 				y2 - (same ? -bend : bend)
 			} ${x2},${y2}`;
 			const stroke = isBreak(e)
-				? "#c62828"
+				? INK.red
 				: e.status === "callback"
-				? "#0b5cad"
+				? INK.blue
 				: sel
 				? e.from === sel
-					? "#3b4a5a"
-					: "#1a7f37"
-				: "#8c959f";
+					? INK.strong
+					: INK.green
+				: INK.line;
 			const width = isBreak(e) ? 2.2 : Math.min(4, 0.8 + Math.log2(e.count + 1) * 0.5);
 			const dash = e.status === "known" ? `stroke-dasharray="6 3"` : "";
 			const op = isBreak(e) || sel ? 0.9 : 0.25;
-			return `<path class="edge" d="${d}" stroke="${stroke}" stroke-width="${width}" ${dash} opacity="${op}"/>
+			return `<path class="edge" d="${d}" style="stroke:${stroke}" stroke-width="${width}" ${dash} opacity="${op}"/>
 			<path class="edge hit" d="${d}" data-select="edge" data-id="${esc(e.id)}"><title>${__(
 				"{0} to {1}: {2} ({3})",
 				[esc(short(box(e.from).folder)), esc(short(box(e.to).folder)), e.count, e.status]
@@ -133,19 +135,21 @@ function drawLayers() {
 			"{0}: {1} files, {2} lines",
 			[esc(b.folder), b.files.length, b.lines]
 		)}</title>
-			<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="4" fill="${
+			<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="4" style="fill:${
 			COLOR[b.layer]
 		}" opacity="${0.55 + Math.min(0.45, b.lines / 6000)}"/>
 			${
 				fits
-					? `<text x="${p.x + 5}" y="${
-							p.y + 20
-					  }" fill="#fff" style="font-weight:600">${esc(
+					? `<text x="${p.x + 5}" y="${p.y + 20}" style="fill:${
+							INK.on
+					  };font-weight:600">${esc(
 							name.length * 6.2 > p.w - 8
 								? name.slice(0, Math.floor((p.w - 8) / 6.2)) + "…"
 								: name
 					  )}</text>
-			<text x="${p.x + 5}" y="${p.y + 37}" fill="#fff" opacity=".85">${b.lines.toLocaleString()}</text>`
+			<text x="${p.x + 5}" y="${p.y + 37}" style="fill:${
+							INK.on
+					  }" opacity=".85">${b.lines.toLocaleString()}</text>`
 					: ""
 			}</g>`;
 	}
@@ -153,11 +157,11 @@ function drawLayers() {
 
 	view.innerHTML =
 		`<div class="legend">
-		<span><i style="border-color:#c62828"></i>${__("new break (CI fails)")}</span>
-		<span><i style="border-color:#c62828;border-top-style:dashed"></i>${__(
+		<span><i style="border-color:${INK.red}"></i>${__("new break (CI fails)")}</span>
+		<span><i style="border-color:${INK.red};border-top-style:dashed"></i>${__(
 			"known break (has a ticket)"
 		)}</span>
-		<span><i style="border-color:#0b5cad"></i>${__("callback")}</span>
+		<span><i style="border-color:${INK.blue}"></i>${__("callback")}</span>
 		<label><input type="checkbox" ${
 			state.showAll ? "checked" : ""
 		} onchange="state.showAll=this.checked;drawLayers()"> ${__("show all {0} edges", [

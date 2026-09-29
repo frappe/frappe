@@ -1,5 +1,5 @@
 // The details panel: what one click on a layer, a folder, a line or a card shows.
-/* global DATA, VIEWS, ORDER, state, current, drawLayers, esc, md, short, layer, box, isBreak, layerName, archLink, statusPill, fileLink */
+/* global DATA, INK, VIEWS, ORDER, state, current, drawLayers, esc, md, short, layer, box, isBreak, layerName, archLink, statusPill, fileLink */
 function select(kind, id) {
 	state.selected = { kind, id };
 	const panel = document.getElementById("panel");
@@ -21,7 +21,7 @@ function idleDetail() {
 		<h3>${__("Read the colours")}</h3>
 		<p>${__(
 			"A {0} line or cell is an import that the layer file does not allow. Dashed red is a known break: the layer file lists it with the ticket that removes it. Solid red is new: CI fails on it.",
-			[`<b style="color:#c62828">${__("red")}</b>`]
+			[`<b style="color:${INK.red}">${__("red")}</b>`]
 		)}</p>
 		<p>${__(
 			"An orange dashed outline marks a folder inside a loop, where folders import each other."
@@ -53,7 +53,11 @@ function layerDetail(id) {
 			.map(
 				([k, v]) =>
 					`<tr><td>${esc(layerName(k))}</td><td>${v.n}${
-						v.bad ? ` <span class="pill break">${__("{0} break", [v.bad])}</span>` : ""
+						v.bad
+							? ` <span class="es-badge" data-theme="red">${__("{0} break", [
+									v.bad,
+							  ])}</span>`
+							: ""
 					}</td></tr>`
 			)
 			.join("");
@@ -69,7 +73,7 @@ function layerDetail(id) {
 		${l.note ? `<p>${esc(l.note)}</p>` : ""}
 		<h3>${__("May use")}</h3><div>${
 		l.mayUse.length
-			? l.mayUse.map((m) => `<span class="pill">${esc(layerName(m))}</span>`).join("")
+			? l.mayUse.map((m) => `<span class="es-badge">${esc(layerName(m))}</span>`).join("")
 			: __("Nothing.")
 	}</div>
 		<h3>${__("Paths in {0}", ["layers.json"])}</h3><div>${
@@ -103,7 +107,7 @@ function boxDetail(id) {
 			)
 			.join("");
 	const ext = Object.entries(b.externals || {})
-		.map(([k, v]) => `<span class="pill">${esc(k)} ${v}</span>`)
+		.map(([k, v]) => `<span class="es-badge">${esc(k)} ${v}</span>`)
 		.join("");
 	const none = `<tr><td>${__("Nothing in the graph")}</td></tr>`;
 	return `<h2><code>${esc(b.folder)}</code></h2>
@@ -148,7 +152,7 @@ function edgeDetail(id) {
 		`<code>${esc(short(from.folder))}</code>`,
 		`<code>${esc(short(to.folder))}</code>`,
 	])}</h2>
-		<div>${statusPill(e.status)} <span class="pill">${esc(e.kind)}</span> ${__("{0} file pairs", [
+		<div>${statusPill(e.status)} <span class="es-badge">${esc(e.kind)}</span> ${__("{0} file pairs", [
 		e.count,
 	])}</div>
 		<p class="muted">${__("{0} to {1}.", [esc(layerName(from.layer)), esc(layerName(to.layer))])} ${
@@ -204,7 +208,7 @@ function cellDetail(key) {
 				? __("Same layer.")
 				: may
 				? __("The layer file allows this.")
-				: `<b style='color:#c62828'>${__("The layer file does not allow this.")}</b>`
+				: `<b style="color:${INK.red}">${__("The layer file does not allow this.")}</b>`
 		}</p>
 		<table>${edges
 			.sort((x, y) => y.count - x.count)
@@ -220,7 +224,7 @@ function cellDetail(key) {
 function extDetail(i) {
 	const x = DATA.extensions[i];
 	return `<h2>${esc(x.name)}</h2>
-		<div><span class="pill">${esc(x.tier)}</span> <span class="pill">${esc(
+		<div><span class="es-badge">${esc(x.tier)}</span> <span class="es-badge">${esc(
 		layerName(x.layer)
 	)}</span></div>
 		<h3>${__("What it changes")}</h3><p>${esc(x.changes)}</p>
