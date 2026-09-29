@@ -8,7 +8,7 @@
 			<button
 				v-if="stepLabel"
 				type="button"
-				class="text-base-semibold ml-1.5 flex shrink-0 items-center gap-1.5 rounded-4 px-1.5 py-1 text-ink-gray-7 transition-colors hover:bg-surface-gray-2"
+				class="text-base-medium ml-3 flex shrink-0 items-center gap-1.5 py-1 text-ink-gray-6 transition-colors hover:text-ink-gray-9"
 				@click="goBack">
 				{{ stepLabel }}
 				<span class="lucide-chevron-right size-3 text-ink-gray-4" aria-hidden="true" />
