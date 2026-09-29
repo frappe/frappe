@@ -851,20 +851,25 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		copy_sql = copy_statement.as_string(cursor)
 		buffer = io.StringIO()
 		try:
-			row_count = flushed = 0
+			row_count = 0
 			for value in values:
 				buffer.write("\t".join(_copy_encode(column) for column in value) + "\n")
 				row_count += 1
 				if row_count % chunk_size == 0:
-					_copy_flush(cursor, copy_sql, buffer)
-					# COPY bypasses Database.execute, so keep transaction_writes in step with the
-					# rows sent -- else auto_commit_on_many_writes never sees a large load.
-					self.transaction_writes += row_count - flushed
-					flushed = row_count
-			_copy_flush(cursor, copy_sql, buffer)
-			self.transaction_writes += row_count - flushed
+					self._copy_flush(cursor, copy_sql, buffer)
+			self._copy_flush(cursor, copy_sql, buffer)
 		finally:
 			cursor.close()
+
+	def _copy_flush(self, cursor, copy_sql, buffer):
+		"""Send the buffered rows. COPY bypasses `sql`, so count the chunk as one write, like an INSERT."""
+		if not buffer.tell():
+			return
+		buffer.seek(0)
+		cursor.copy_expert(copy_sql, buffer)
+		buffer.seek(0)
+		buffer.truncate(0)
+		self.transaction_writes += 1
 
 
 def _copy_encode(value):
@@ -893,15 +898,6 @@ def _copy_encode(value):
 		encoded = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 		return f"{encoded}.{microseconds:06d}" if microseconds else encoded
 	return str(value).replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n").replace("\r", "\\r")
-
-
-def _copy_flush(cursor, copy_sql, buffer):
-	if not buffer.tell():
-		return
-	buffer.seek(0)
-	cursor.copy_expert(copy_sql, buffer)
-	buffer.seek(0)
-	buffer.truncate(0)
 
 
 def modify_query(query):
