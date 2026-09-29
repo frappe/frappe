@@ -1473,8 +1473,12 @@ class Engine:
 
 		# Allow select-list aliases - return as Field (no table prefix)
 		if field_name in self.field_aliases:
-			# GROUP BY binds a name to the table column before the select-list alias
-			if self.apply_permissions and field_name in frappe.get_meta(self.doctype).get_valid_columns():
+			# GROUP BY binds a name to the table column before the select-list alias; ORDER BY does not
+			if (
+				clause_name == "Group By"
+				and self.apply_permissions
+				and field_name in frappe.get_meta(self.doctype).get_valid_columns()
+			):
 				self.check_filter_field_permission(self.doctype, field_name)
 			return Field(field_name)
 
