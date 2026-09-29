@@ -538,16 +538,19 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		catalogs so callers stay db-agnostic. Only full (non-partial) btree indexes count,
 		like the indexes SHOW INDEX reports on InnoDB -- a hash or partial index cannot
 		serve the ordering and unrestricted lookups callers are checking for.
+		``Constraint_name`` is set when a primary key or unique constraint owns the index.
 		"""
 		result = self.sql(
 			f"""
-			SELECT ic.relname AS "Key_name"
+			SELECT ic.relname AS "Key_name", c.conname AS "Constraint_name"
 			FROM pg_index i
 			JOIN pg_class tc ON tc.oid = i.indrelid
 			JOIN pg_class ic ON ic.oid = i.indexrelid
 			JOIN pg_am am ON am.oid = ic.relam
 			JOIN pg_namespace n ON n.oid = tc.relnamespace
 			JOIN pg_attribute a ON a.attrelid = tc.oid AND a.attnum = i.indkey[0]
+			LEFT JOIN pg_constraint c
+				ON c.conindid = i.indexrelid AND c.conrelid = i.indrelid AND c.contype IN ('p', 'u')
 			WHERE tc.relname = %(table_name)s
 				AND n.nspname = %(schema)s
 				AND a.attname = %(fieldname)s
