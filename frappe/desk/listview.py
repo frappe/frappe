@@ -55,6 +55,7 @@ def get_group_by_count(doctype: str, current_filters: str | list, field: str) ->
 				(ToDo.status != "Cancelled")
 				& (ToDo.allocated_to == User.name)
 				& (User.user_type == "System User")
+				& (ToDo.reference_type == doctype)
 				& (ToDo.reference_name.isin(SubQuery(filtered_records)))
 			)
 			.groupby(ToDo.allocated_to)
