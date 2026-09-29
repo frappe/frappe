@@ -11,6 +11,7 @@ import frappe
 import frappe.desk.reportview
 from frappe import _
 from frappe.core.utils import ljust_list
+from frappe.database.duckdb.database import get_latest_complete_sync
 from frappe.desk.form.load import get_attachments
 from frappe.desk.link_title import get_report_link_titles, send_link_titles
 from frappe.desk.reportview import clean_params, parse_json
@@ -174,18 +175,11 @@ def generate_report_result(
 	}
 
 	if report.snapshot_report and report.doctype_to_sync:
-		if latest_sync := frappe.db.get_all(
-			"DuckDB Sync",
-			filters={"doc_type": report.doctype_to_sync[0].doc_type, "docstatus": 1},
-			fields=["creation"],
-			pluck="creation",
-			order_by="creation desc",
-			limit=1,
-		):
+		if latest_sync := get_latest_complete_sync(report.doctype_to_sync[0].doc_type):
 			return_dict.update(
 				{
 					"snapshot_report": True,
-					"snapshot_at": latest_sync[0],
+					"snapshot_at": latest_sync.creation,
 				}
 			)
 
