@@ -321,6 +321,18 @@ class TestDashboardChart(IntegrationTestCase):
 		self.assertEqual(list(result["dataPoints"].values()), [100, 200, 400, 300, 100])
 		self.assertEqual(days_apart, [2, 1, 1, 2])
 
+	def test_heatmap_dashboard_chart_checks_permission(self):
+		chart = {
+			"name": "Test Heatmap",
+			"chart_type": "Count",
+			"type": "Heatmap",
+			"document_type": self.doctype_name,
+			"based_on": "date",
+		}
+
+		with self.set_user("Guest"), self.assertRaises(frappe.PermissionError):
+			get(chart=frappe.as_json(chart), no_cache=1)
+
 	def test_user_date_label_dashboard_chart(self):
 		frappe.delete_doc_if_exists("Dashboard Chart", "Test Dashboard Chart Date Label")
 
