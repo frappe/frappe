@@ -232,7 +232,7 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 	datefield = chart.based_on
 	year = cint(heatmap_year) if heatmap_year else getdate(nowdate()).year
 
-	filters.append([doctype, datefield, ">", f"{year}-01-01"])
+	filters.append([doctype, datefield, ">=", f"{year}-01-01"])
 	filters.append([doctype, datefield, "<", f"{year + 1}-01-01"])
 
 	day_timestamp = UnixTimestamp(Date(frappe.qb.DocType(doctype)[datefield]))
