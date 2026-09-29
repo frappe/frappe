@@ -1,5 +1,5 @@
 // Views C and D, the switcher between the four views, and the page's listeners.
-/* global DATA, VIEWS, ORDER, GH, state, esc, md, layerName, layerClass, idleDetail, select, drawLayers, stats */
+/* global DATA, VIEWS, ORDER, state, sourceLink, esc, md, layerName, layerClass, idleDetail, select, drawLayers, stats */
 function drawFlow() {
 	const flow = DATA.flows[state.flow];
 	const step = flow.steps[state.step];
@@ -66,10 +66,10 @@ function drawFlow() {
 		"The files each step passes through, and its request. {0} names layers per step, not files or requests.",
 		["<code>ARCHITECTURE.md</code>"]
 	)}</p>
-		<h3>${__("Source")}</h3><p><a href="${GH}${DATA.architecture}#the-five-flows" target="_blank">${__(
-		"{0}, the five flows",
-		["ARCHITECTURE.md"]
-	)}</a></p>`;
+		<h3>${__("Source")}</h3><p>${sourceLink(
+		`${DATA.architecture}#the-five-flows`,
+		__("{0}, the five flows", ["ARCHITECTURE.md"])
+	)}</p>`;
 }
 
 function drawExtensions() {

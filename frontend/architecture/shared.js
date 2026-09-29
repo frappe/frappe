@@ -7,7 +7,6 @@ const VIEWS = [
 	{ key: "D", name: __("Ways to change the desk"), draw: drawExtensions },
 ];
 const ORDER = ["main", "9", "8", "7", "6", "5", "4", "3", "2", "1", "build"];
-const GH = "https://github.com/frappe/frappe/blob/desk-v2/";
 const layer = (id) => DATA.layers.find((l) => l.id === id);
 const box = (id) => DATA.boxes.find((b) => b.id === id);
 const isBreak = (e) => e.status === "break" || e.status === "known";
@@ -38,8 +37,8 @@ function md(s) {
 }
 // Links in ARCHITECTURE.md are relative to it; anything but these is shown as text.
 function linkTarget(u) {
-	if (u.startsWith("#")) return GH + DATA.architecture + u;
-	if (u.startsWith("./")) return GH + "frontend/" + u.slice(2);
+	if (u.startsWith("#")) return sourceUrl(DATA.architecture + u);
+	if (u.startsWith("./")) return sourceUrl("frontend/" + u.slice(2));
 	if (u.startsWith("https://")) return u;
 	return null;
 }
@@ -49,10 +48,17 @@ function short(folder) {
 		.replace(/^ui\/src\//, "ui/")
 		.replace(/^frappe\//, "frappe/");
 }
+// With no web remote there is no base, and paths show as plain text.
+function sourceUrl(path) {
+	return DATA.sourceBase ? DATA.sourceBase + path : null;
+}
+function sourceLink(path, html) {
+	const url = sourceUrl(path);
+	return url ? `<a href="${esc(url)}" target="_blank">${html}</a>` : html;
+}
 function fileLink(p, line) {
-	return `<a href="${GH}${p}${line ? "#L" + line : ""}" target="_blank"><code>${esc(p)}${
-		line ? ":" + line : ""
-	}</code></a>`;
+	const text = `<code>${esc(p)}${line ? ":" + line : ""}</code>`;
+	return sourceLink(p + (line ? "#L" + line : ""), text);
 }
 function statusPill(s) {
 	const text = {
@@ -74,9 +80,10 @@ function layerClass(id) {
 	return `layer-${ORDER.includes(id) ? id : "main"}`;
 }
 function archLink(l) {
-	return `<a href="${GH}${DATA.architecture}#${
-		l.section
-	}" target="_blank">ARCHITECTURE.md, ${esc(layerName(l.id))}</a>`;
+	return sourceLink(
+		`${DATA.architecture}#${l.section}`,
+		`ARCHITECTURE.md, ${esc(layerName(l.id))}`
+	);
 }
 function stats() {
 	const breaks = DATA.edges.filter(isBreak).flatMap((e) => e.pairs);

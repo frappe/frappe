@@ -23,6 +23,7 @@ export function buildDiagram(root = ROOT) {
   const data = {
     commit: git(root, "rev-parse --short HEAD"),
     branch: git(root, "rev-parse --abbrev-ref HEAD"),
+    sourceBase: sourceBase(root),
     builtAt: new Date().toISOString().slice(0, 16).replace("T", " "),
     architecture: layerFile.architecture,
     layers: layerFile.layers.map((l) => ({
@@ -65,6 +66,25 @@ function main() {
   }
   for (const line of check.report()) console.error(line);
   if (!check.passes) process.exitCode = 1;
+}
+
+// Links go to the commit the page was built from, on the remote the branch tracks, else origin.
+export function sourceBase(root) {
+  const branch = git(root, "rev-parse --abbrev-ref HEAD");
+  const tracked = git(
+    root,
+    `for-each-ref --format=%(upstream:remotename) refs/heads/${branch}`
+  );
+  const remote =
+    tracked ||
+    (git(root, "remote").split("\n").includes("origin") ? "origin" : "");
+  if (!remote) return null;
+  const web = git(root, `remote get-url ${remote}`)
+    .replace(/^git@([^:]+):/, "https://$1/")
+    .replace(/\.git$/, "");
+  return web.startsWith("https://")
+    ? `${web}/blob/${git(root, "rev-parse HEAD")}/`
+    : null;
 }
 
 function git(root, args) {
