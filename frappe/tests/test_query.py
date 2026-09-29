@@ -3123,8 +3123,8 @@ class TestQuery(IntegrationTestCase):
 		from frappe.database.query import Engine
 
 		engine = Engine()
-		self.assertEqual(engine._get_ifnull_fallback("Patch Log", "skipped"), "0")
-		self.assertEqual(engine._get_ifnull_fallback("Patch Log", "patch"), "''")
+		self.assertEqual(engine._get_ifnull_fallback("Patch Log", "skipped"), 0)
+		self.assertEqual(engine._get_ifnull_fallback("Patch Log", "patch"), "")
 
 	@run_only_if(db_type_is.MARIADB)
 	def test_drop_unique_constraint_for_deleted_fields_mariadb(self):
