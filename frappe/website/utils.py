@@ -11,7 +11,7 @@ from werkzeug.wrappers import Response
 
 import frappe
 from frappe.app_state import get_disabled_doctypes
-from frappe.apps import get_apps, get_default_path, is_desk_apps
+from frappe.apps import get_apps, get_default_path, get_route, is_desk_apps
 from frappe.model.document import Document
 from frappe.utils import (
 	cint,
@@ -125,6 +125,11 @@ def get_home_page():
 		# by hooks
 		if not home_page:
 			home_page = get_home_page_via_hooks()
+
+		# from default-app
+		user_default_app = frappe.get_cache_value("User", frappe.session.user, "default_app")
+		if user_default_app:
+			home_page = get_route(user_default_app)
 
 		# global
 		if not home_page:
