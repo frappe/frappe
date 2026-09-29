@@ -8,17 +8,4 @@ Desk
 Integrations
 Printing
 Contacts
-<<<<<<< HEAD
 Automation
-=======
-Automation
-System
-Build
-Data
-<<<<<<< HEAD
-Users
-Automation Engine
->>>>>>> 821274b (refactor: move automation doctypes into dedicated Automation Engine module)
-=======
-Users
->>>>>>> e553f79 (refactor(automation): consolidate doctypes in Automation module)

@@ -17,26 +17,9 @@ from frappe.utils.data import cint
 SUPPORTED_FORMATS = ("jpg", "jpeg", "webp")
 
 
-<<<<<<< HEAD
 def get_preview_from_html(html: str, format: str = "jpg") -> bytes:
 	"""Screenshot a raw HTML string; returns viewport-sized image bytes."""
 	return capture_screenshot(format, html=html)
-=======
-def get_preview_from_html(html: str, format: str = "jpg", width: int = 1280, height: int = 720) -> bytes:
-	"""Screenshot a raw HTML string and return the image bytes.
-
-	Args:
-	        html: The raw HTML to render and capture.
-	        format: Image format — one of ``SUPPORTED_FORMATS`` (jpg, jpeg, webp).
-	        width: Viewport width in pixels (default 1280). Set this to the rendered
-	                content's width (e.g. a print sheet's pixel width) so the capture
-	                isn't cropped or letterboxed.
-	        height: Viewport height in pixels (default 720).
-
-	Returns the captured image as bytes, sized to the given viewport.
-	"""
-	return capture_screenshot(format, html=html, width=width, height=height)
->>>>>>> 55a459b (feat(automation): support documentless actions)
 
 
 def get_preview_from_url(
