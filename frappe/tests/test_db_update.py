@@ -165,16 +165,20 @@ class TestDBUpdate(IntegrationTestCase):
 		doctype.save()
 
 		for column in ("starts_on", "starts_day"):
-			expression = frappe.db.sql(
-				"""SELECT pg_get_expr(d.adbin, d.adrelid)
-				FROM pg_attrdef d
-				JOIN pg_class c ON c.oid = d.adrelid
-				JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = d.adnum
-				WHERE c.relname = %s AND a.attname = %s""",
-				(table, column),
-				pluck=True,
-			)
+			expression = get_column_default_expression(table, column)
 			self.assertFalse(expression, msg=f"{column} kept a frozen literal default: {expression}")
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_nullability_change_keeps_dynamic_defaults_dynamic(self):
+		doctype = new_doctype(
+			fields=[{"fieldname": "starts_day", "fieldtype": "Date", "default": "Today"}]
+		).insert()
+
+		doctype.fields[0].not_nullable = 1
+		doctype.save()
+
+		expression = get_column_default_expression(f"tab{doctype.name}", "starts_day")
+		self.assertFalse(expression, msg=f"starts_day kept a frozen literal default: {expression}")
 
 	def test_bigint_conversion(self):
 		doctype = new_doctype(fields=[{"fieldname": "int_field", "fieldtype": "Int"}]).insert()
@@ -556,3 +560,15 @@ def get_other_fields_meta(meta):
 def get_table_column(doctype, fieldname):
 	table_columns = frappe.db.get_table_columns_description(f"tab{doctype}")
 	return find(table_columns, lambda d: d.get("name") == fieldname)
+
+
+def get_column_default_expression(table, column):
+	return frappe.db.sql(
+		"""SELECT pg_get_expr(d.adbin, d.adrelid)
+		FROM pg_attrdef d
+		JOIN pg_class c ON c.oid = d.adrelid
+		JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = d.adnum
+		WHERE c.relname = %s AND a.attname = %s""",
+		(table, column),
+		pluck=True,
+	)
