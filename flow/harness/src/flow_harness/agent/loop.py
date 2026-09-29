@@ -247,10 +247,14 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	if config.auto_compact:
 		await model.load_model_limits(abort)
 	tools = inputs.server_tools or {}
-	schemas = [tool.to_schema() for tool in tools.values()] + config.client_tools
+	schemas = [tool.to_schema() for tool in tools.values()]
 	tool_display_templates = {
 		tool.name: tool.display_template for tool in tools.values() if tool.display_template is not None
 	}
+	for client_tool in config.client_tools:  # its display template is for the UI, not the model
+		schemas.append({key: value for key, value in client_tool.items() if key != "display_template"})
+		if template := client_tool.get("display_template"):
+			tool_display_templates[client_tool["function"]["name"]] = template
 	ctx = _tool_context(inputs)
 
 	budget = inputs.budget or TokenBudget(config.token_budget)
