@@ -1030,6 +1030,7 @@ frappe.ui.Sidebar = class Sidebar {
 
 		this.sidebar_header.toggle_width(this.sidebar_expanded);
 		this.label_rail();
+		this.sync_panel_inert();
 		$("body").toggleClass("sidebar-collapsed", !this.sidebar_expanded);
 		$(document).trigger("sidebar-expand", {
 			sidebar_expand: this.sidebar_expanded,
@@ -1070,6 +1071,7 @@ frappe.ui.Sidebar = class Sidebar {
 	open() {
 		this.sidebar_expanded = true;
 		this.remember_collapsed(false);
+		this.cancel_slide_shut();
 		this.wrapper.removeClass("sliding-shut");
 		this.expand_sidebar();
 		this.set_active_workspace_item();
@@ -1080,17 +1082,30 @@ frappe.ui.Sidebar = class Sidebar {
 	slide_shut() {
 		const $panel = this.wrapper.find(".body-sidebar");
 		const finish = () => {
-			$panel.off("transitionend.slide-shut");
-			clearTimeout(this.slide_shut_timer);
+			this.cancel_slide_shut();
 			this.wrapper.removeClass("sliding-shut");
 			if (!this.sidebar_expanded) this.expand_sidebar();
 		};
+		// An earlier close, reopened before it finished, must not end this one.
+		this.cancel_slide_shut();
 		this.wrapper.addClass("sliding-shut");
+		this.sync_panel_inert();
 		$panel.off("transitionend.slide-shut").on("transitionend.slide-shut", (e) => {
 			if (e.target === $panel[0] && e.originalEvent.propertyName === "width") finish();
 		});
 		// No transitionend comes when nothing animates, as with reduced motion.
 		this.slide_shut_timer = setTimeout(finish, 700);
+	}
+
+	cancel_slide_shut() {
+		this.wrapper.find(".body-sidebar").off("transitionend.slide-shut");
+		clearTimeout(this.slide_shut_timer);
+	}
+
+	// Collapsed beside a pinned dock the panel has no width, so its links must not take focus.
+	sync_panel_inert() {
+		const hidden = !this.sidebar_expanded && !!this.dock?.is_pinned && !frappe.is_mobile();
+		this.wrapper?.find(".body-sidebar").prop("inert", hidden);
 	}
 
 	set_height() {

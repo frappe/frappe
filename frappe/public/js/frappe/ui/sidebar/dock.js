@@ -76,6 +76,7 @@ frappe.ui.Dock = class Dock {
 		this.is_pinned = pinned;
 		$("body").toggleClass("dock-pinned", pinned);
 		pinned ? this.open() : this.close();
+		this.sidebar.sync_panel_inert();
 	}
 
 	setup_user_menu() {
