@@ -67,19 +67,17 @@ commands.register({
 })
 
 const paletteCommands = computed<PaletteItem[]>(() =>
-	commands.visible.value
-		.filter((command) => command.inPalette !== false)
-		.map((command) => ({
-			name: command.name,
-			title: resolveText(command.title),
-			icon: resolveText(command.icon),
-			description: command.group,
-			group: command.group,
-			// the name the shortcuts dialog lists it under, e.g. "Toggle Panels"
-			shortcutName: command.keys?.description,
-			keepOpen: command.keepOpen,
-			action: command.action,
-		})),
+	commands.visible.value.map((command) => ({
+		name: command.name,
+		title: resolveText(command.title),
+		icon: resolveText(command.icon),
+		description: command.group,
+		group: command.group,
+		// the name the shortcuts dialog lists it under, e.g. "Toggle Panels"
+		shortcutName: command.keys?.description,
+		keepOpen: command.keepOpen,
+		action: command.action,
+	})),
 )
 
 const RECENT_COMMANDS_KEY = "studio:recent_commands"

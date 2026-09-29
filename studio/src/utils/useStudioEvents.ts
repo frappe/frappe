@@ -4,7 +4,7 @@ import { useEventListener } from "@vueuse/core"
 import blockController from "@/utils/blockController"
 import { isTargetEditable, numberToPx, isHTML } from "@/utils/helpers"
 import { getComponentBlock } from "@/utils/serializer"
-import { copyBlocks, copySelectedBlocks, pasteBlocks, pasteDataSource } from "@/utils/blockCopyPaste"
+import { copyBlocks, copyBlockStyles, copySelectedBlocks, pasteBlocks, pasteDataSource } from "@/utils/blockCopyPaste"
 import Block from "@/utils/block"
 import type { BlockOptions } from "@/types"
 import { toast, useKeyboardShortcut } from "frappe-ui"
@@ -73,8 +73,8 @@ export function useStudioEvents(saveFragmentMode: () => void) {
 		}
 	})
 
-	// a command that declares keys owns its binding; what is left needs the
-	// keyboard event or the fragment save, so it stays a plain shortcut
+	// Palette commands register their own shortcuts. The shortcuts below are only
+	// for the keyboard, so they are not commands.
 	const shortcuts = [
 		...commandShortcuts(),
 		{
@@ -95,13 +95,13 @@ export function useStudioEvents(saveFragmentMode: () => void) {
 			description: "Exit Component Editing",
 			group: "General",
 			preventDefault: false,
-			// a drag handles its own Escape: it cancels the drag, not the fragment
+			// During a drag, Escape cancels the drag. It must not also exit the fragment.
 			enabled: () => canvasStore.editingMode !== "page" && !canvasStore.isDragging,
 			handler: (e: KeyboardEvent) => {
-				// Escape in the context menu only closes the menu
+				// In the context menu, Escape only closes the menu.
 				if ((e.target as Element | null)?.closest?.('[role="menu"]')) return
-				// after this keypress: a discard confirmation mounted now would hear the same
-				// Escape on window and close before it can be answered
+				// Exit after this keypress ends. If the discard dialog opens now, the same
+				// Escape closes it before the user can answer.
 				setTimeout(() => canvasStore.exitFragmentMode())
 			},
 		},
@@ -111,10 +111,59 @@ export function useStudioEvents(saveFragmentMode: () => void) {
 			group: "Edit",
 			handler: deleteSelection,
 		})),
+		{
+			combo: "Mod+D",
+			description: "Duplicate Block",
+			group: "Edit",
+			handler: () => singleSelectedBlock()?.duplicateBlock(),
+		},
+		{
+			combo: "Mod+Shift+C",
+			description: "Copy Block Styles",
+			group: "Edit",
+			handler: () => {
+				const block = singleSelectedBlock()
+				if (block) copyBlockStyles(block)
+			},
+		},
+		{
+			combo: "Mod+Z",
+			description: "Undo",
+			group: "Edit",
+			handler: () => {
+				const history = canvasStore.activeCanvas?.history
+				if (history?.canUndo()) history.undo()
+			},
+		},
+		{
+			combo: "Mod+Shift+Z",
+			description: "Redo",
+			group: "Edit",
+			handler: () => {
+				const history = canvasStore.activeCanvas?.history
+				if (history?.canRedo()) history.redo()
+			},
+		},
+		{
+			combo: "C",
+			description: "Container Mode",
+			group: "Tools",
+			handler: () => (store.mode = "container"),
+		},
+		{
+			combo: "V",
+			description: "Select Mode",
+			group: "Tools",
+			handler: () => (store.mode = "select"),
+		},
 	]
 	// combos are plain strings here: Studio's frappe-ui import is untyped (src/lib.d.ts)
 	useKeyboardShortcut(shortcuts as Parameters<typeof useKeyboardShortcut>[0])
 }
+
+// duplicate and copy styles act on one block only
+const singleSelectedBlock = () =>
+	blockController.multipleBlocksSelected() ? null : blockController.getFirstSelectedBlock()
 
 const deleteSelection = (e: KeyboardEvent) => {
 	// a selected slot takes precedence over its (also-selected) parent block

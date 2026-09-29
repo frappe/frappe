@@ -1,8 +1,6 @@
 import router from "@/router/studio_router"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
-import blockController from "@/utils/blockController"
-import { copyBlockStyles } from "@/utils/blockCopyPaste"
 import { openInDesk, openPageInDesk } from "@/utils/helpers"
 import { createRegistry, type RegistryItem } from "@/utils/createRegistry"
 import { nextTick } from "vue"
@@ -24,11 +22,9 @@ export type Command = RegistryItem & {
 	keys?: CommandKeys
 	/** keep the palette open, for a command that opens a step */
 	keepOpen?: boolean
-	/** false for a key binding that should not be listed in the palette */
-	inPalette?: boolean
 }
 
-export const commandGroups = ["Navigate", "Page", "Layers", "View", "General", "Edit"] as const
+export const commandGroups = ["Navigate", "Page", "Layers", "View", "General"] as const
 export type CommandGroup = (typeof commandGroups)[number]
 
 export const resolveText = (value: string | (() => string)) => (typeof value === "function" ? value() : value)
@@ -212,78 +208,4 @@ commands.register({
 	group: "General",
 	keys: { combo: "Shift+Slash", description: "Show Keyboard Shortcuts" },
 	action: () => (store.showShortcutsDialog = true),
-})
-
-// Edit: key bindings with no palette entry
-
-commands.register({
-	name: "select-mode",
-	title: "Select Mode",
-	icon: "lucide-mouse-pointer",
-	group: "Edit",
-	inPalette: false,
-	keys: { combo: "V", description: "Select Mode" },
-	action: () => (store.mode = "select"),
-})
-
-commands.register({
-	name: "container-mode",
-	title: "Container Mode",
-	icon: "lucide-square",
-	group: "Edit",
-	inPalette: false,
-	keys: { combo: "C", description: "Container Mode" },
-	action: () => (store.mode = "container"),
-})
-
-commands.register({
-	name: "duplicate-block",
-	title: "Duplicate Block",
-	icon: "lucide-copy",
-	group: "Edit",
-	inPalette: false,
-	keys: { combo: "Mod+D", description: "Duplicate Block" },
-	action: () => {
-		if (!blockController.isAnyBlockSelected() || blockController.multipleBlocksSelected()) return
-		blockController.getSelectedBlocks()[0].duplicateBlock()
-	},
-})
-
-commands.register({
-	name: "copy-block-styles",
-	title: "Copy Block Styles",
-	icon: "lucide-clipboard-copy",
-	group: "Edit",
-	inPalette: false,
-	keys: { combo: "Mod+Shift+C", description: "Copy Block Styles" },
-	action: () => {
-		if (!blockController.isAnyBlockSelected() || blockController.multipleBlocksSelected()) return
-		copyBlockStyles(blockController.getSelectedBlocks()[0])
-	},
-})
-
-commands.register({
-	name: "undo",
-	title: "Undo",
-	icon: "lucide-undo-2",
-	group: "Edit",
-	inPalette: false,
-	keys: { combo: "Mod+Z", description: "Undo" },
-	action: () => {
-		const history = canvasStore.activeCanvas?.history
-		if (history?.canUndo()) history.undo()
-	},
-})
-
-commands.register({
-	name: "redo",
-	title: "Redo",
-	icon: "lucide-redo-2",
-	group: "Edit",
-	inPalette: false,
-	keys: { combo: "Mod+Shift+Z", description: "Redo" },
-	action: () => {
-		const history = canvasStore.activeCanvas?.history
-		if (history?.canRedo()) history.redo()
-	},
 })
