@@ -96,6 +96,10 @@ def get_using_clause(column: DbColumn, column_type: str) -> str:
 	return f"USING {value}::{cast}"
 
 
+# the column in a unique violation's DETAIL, e.g. `Key (bill_no)=(INV-1) is duplicated.`
+DUPLICATE_KEY_PATTERN = re.compile(r"Key \((.+?)\)=")
+
+
 class PostgresTable(DBTable):
 	def create(self):
 		varchar_len = frappe.db.VARCHAR_LEN
@@ -373,7 +377,8 @@ class PostgresTable(DBTable):
 			if frappe.db.is_duplicate_fieldname(e):
 				frappe.throw(str(e))
 			elif frappe.db.is_duplicate_entry(e):
-				fieldname = str(e).split("'")[-2]
+				duplicate_key = DUPLICATE_KEY_PATTERN.search(e.diag.message_detail or "")
+				fieldname = duplicate_key.group(1) if duplicate_key else e.diag.constraint_name
 				frappe.throw(
 					_(
 						"{0} field cannot be set as unique in {1}, as there are non-unique existing values"
