@@ -9,7 +9,7 @@ frappe.provide("frappe.ui");
 
 /**
  * @typedef {Object} DonutOpts
- * @property {DonutSegment[]} segments
+ * @property {DonutSegment[]} segments With none above zero, the chart shows "No data to show" in the ring's place.
  * @property {{value: string, label?: string}} [center] Text in the hole when nothing is hovered.
  * @property {function} [format] (value) -> string, for the hovered centre and the tooltip.
  * @property {number} [size=240] Chart width and height, in px.
@@ -46,6 +46,11 @@ frappe.ui.Donut = class Donut {
 		this.$chart = $('<div class="es-donut__chart">')
 			.css({ width: size, height: size })
 			.appendTo(this.$el);
+		if (!this.segments.length) {
+			this.$el.attr("data-state", "empty");
+			$('<div class="es-donut__empty">').text(__("No data to show")).appendTo(this.$chart);
+			return;
+		}
 		this.render_ring();
 		this.render_center();
 		this.$tip = $('<div class="es-donut__tip">').appendTo(this.$chart);
@@ -84,17 +89,13 @@ frappe.ui.Donut = class Donut {
 	}
 
 	render_ring() {
-		const { c, ro, ri } = this.geometry;
+		const { ro } = this.geometry;
 		const svg = svg_el("svg", {
 			viewBox: `0 0 ${this.size} ${this.size}`,
 			class: "es-donut__svg",
 			role: "img",
 			"aria-label": this.segments.map((s) => `${s.label} ${s.pct}%`).join(", "),
 		});
-		if (!this.segments.length) {
-			const track = svg_el("path", { class: "es-donut__track", d: ring_path(c, ri, ro) });
-			svg.appendChild(track);
-		}
 		this.shapes = this.segments.map((seg, i) => {
 			const shape = svg_el("path", { class: "es-donut__seg", d: this.path(seg, ro) });
 			shape.style.fill = seg.color;

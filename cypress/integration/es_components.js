@@ -401,6 +401,19 @@ context("Espresso components", () => {
 			});
 		});
 
+		it("shows a dash and No data for a missing reading, but prints a zero", () => {
+			cy.contains(".explorer-group", "No reading").within(() => {
+				cy.contains(".es-stat-card", "Conversion rate")
+					.should("have.attr", "data-state", "empty")
+					.and("contain.text", "—")
+					.and("contain.text", "No data");
+				cy.contains(".es-stat-card", "Refunds")
+					.should("not.have.attr", "data-state")
+					.find(".es-stat-card__value")
+					.should("have.text", "0");
+			});
+		});
+
 		it("makes a clickable card a keyboard button", () => {
 			cy.contains(".explorer-group", "Series dot")
 				.find(".es-stat-card--clickable")
@@ -424,6 +437,15 @@ context("Espresso components", () => {
 					.and("contain", "width: 84%");
 				cy.get(".es-bar-list__tick").last().should("have.text", "50000");
 			});
+		});
+
+		it("says there is no data instead of drawing an empty axis", () => {
+			cy.contains(".explorer-group", "Empty")
+				.find(".es-bar-list[data-state='empty']")
+				.within(() => {
+					cy.get(".es-bar-list__empty").should("have.text", "No data to show");
+					cy.get(".es-bar-list__axis").should("not.exist");
+				});
 		});
 
 		it("widens the label gutter and passes the clicked item back", () => {
@@ -464,11 +486,14 @@ context("Espresso components", () => {
 			});
 		});
 
-		it("draws an empty track when there is nothing to chart", () => {
-			cy.contains(".explorer-group", "Empty").within(() => {
-				cy.get(".es-donut__seg").should("have.length", 0);
-				cy.get(".es-donut__track").should("have.length", 1);
-			});
+		it("says there is no data in the ring's place when there is nothing to chart", () => {
+			cy.contains(".explorer-group", "Empty")
+				.find(".es-donut[data-state='empty']")
+				.within(() => {
+					cy.get(".es-donut__empty").should("have.text", "No data to show");
+					cy.get(".es-donut__svg").should("not.exist");
+					cy.get(".es-donut__legend").should("not.exist");
+				});
 		});
 	});
 });

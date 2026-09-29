@@ -6,7 +6,7 @@
  *   <div class="es-donut">
  *     <div class="es-donut__chart">
  *       <svg class="es-donut__svg" role="img" aria-label="Overdue 35%, …">
- *         <path class="es-donut__seg"/>…     (or one .es-donut__track when empty)
+ *         <path class="es-donut__seg"/>…
  *       </svg>
  *       <div class="es-donut__center">
  *         <div class="es-donut__value">55%</div>
@@ -21,7 +21,10 @@
  *         <span class="es-donut__legend-pct">35%</span>
  *       </div>
  *     </div>
- *   </div> */
+ *   </div>
+ *
+ * With no segments the root carries data-state="empty" and the chart box holds
+ * only <div class="es-donut__empty">No data to show</div>. */
 
 .es-donut {
     display: flex;
@@ -40,17 +43,19 @@
     height: 100%;
 }
 
-.es-donut__seg,
-.es-donut__track {
-    fill-rule: evenodd;
-}
-
-.es-donut__track {
-    fill: var(--surface-gray-2);
-}
-
 .es-donut__seg {
+    fill-rule: evenodd;
     transition: opacity 150ms ease;
+}
+
+.es-donut__empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-sm);
+    color: var(--ink-gray-5);
 }
 
 .es-donut__seg.is-dim {

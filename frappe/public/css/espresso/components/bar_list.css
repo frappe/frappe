@@ -20,9 +20,21 @@
  * Custom properties:
  *   --es-bl-label-w               label gutter width (label_width option), 96px by default
  *
+ * With no items the root carries data-state="empty" and holds only
+ *   <div class="es-bar-list__empty">No data to show</div>
+ *
  * Modifiers:
  *   .es-bar-list__row--clickable  the row acts as a button
  *   .es-bar-list--hover-values    end labels appear only on row hover */
+
+.es-bar-list__empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 120px;
+    font-size: var(--text-sm);
+    color: var(--ink-gray-5);
+}
 
 .es-bar-list__plot {
     position: relative;

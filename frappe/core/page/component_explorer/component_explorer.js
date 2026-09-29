@@ -1001,6 +1001,13 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					],
 				},
 				{
+					title: __("No reading vs zero"),
+					items: [
+						{ label: "Conversion rate", value: null },
+						{ label: "Refunds", value: "0" },
+					],
+				},
+				{
 					title: __("Series dot + clickable"),
 					items: [
 						{
@@ -1058,6 +1065,10 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 						},
 					],
 				},
+				{
+					title: __("Empty"),
+					items: [{ items: [] }],
+				},
 			],
 		},
 		Donut: {
@@ -1096,7 +1107,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Empty"),
-					items: [{ segments: [], center: { value: "0", label: "no data" }, size: 180 }],
+					items: [{ segments: [], size: 180 }],
 				},
 			],
 		},

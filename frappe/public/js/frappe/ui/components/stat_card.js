@@ -12,7 +12,7 @@ frappe.provide("frappe.ui");
 /**
  * @typedef {Object} StatCardOpts
  * @property {string} label Small heading above the value. Rendered as text.
- * @property {string|number|Element|JQuery} value The headline number, already formatted.
+ * @property {string|number|Element|JQuery} [value] The headline number, already formatted. Leave it null when there is no reading: the card shows "—" and "No data" (0 is a reading).
  * @property {StatCardDelta} [delta] Trend line under the value. Takes the place of `caption`.
  * @property {string|Element|JQuery} [caption] Muted line under the value.
  * @property {string} [dot] CSS colour for a dot before the label — ties the card to a chart series.
@@ -53,12 +53,18 @@ frappe.ui.stat_card = function ({
 		.text(label || "")
 		.appendTo($head);
 
-	set_content($('<div class="es-stat-card__value">').appendTo($card), value);
-
-	if (delta) {
-		$card.append(build_delta(delta));
-	} else if (caption != null) {
-		set_content($('<div class="es-stat-card__caption">').appendTo($card), caption);
+	const $value = $('<div class="es-stat-card__value">').appendTo($card);
+	if (value == null) {
+		$card.attr("data-state", "empty");
+		$value.text("—");
+		$('<div class="es-stat-card__caption">').text(__("No data")).appendTo($card);
+	} else {
+		set_content($value, value);
+		if (delta) {
+			$card.append(build_delta(delta));
+		} else if (caption != null) {
+			set_content($('<div class="es-stat-card__caption">').appendTo($card), caption);
+		}
 	}
 
 	if (onclick) make_activatable($card.addClass("es-stat-card--clickable"), onclick);

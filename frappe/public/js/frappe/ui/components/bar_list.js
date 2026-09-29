@@ -11,7 +11,7 @@ frappe.provide("frappe.ui");
 
 /**
  * @typedef {Object} BarListOpts
- * @property {BarListItem[]} items One row per item, drawn in the given order.
+ * @property {BarListItem[]} items One row per item, drawn in the given order. With none, the chart shows "No data to show" (zero values still draw).
  * @property {number} [max] Axis maximum; defaults to the largest value.
  * @property {function} [format] (value) -> string, for the end labels and axis ticks.
  * @property {string} [color] Bar colour (any CSS colour or token); defaults to a dark grey.
@@ -44,15 +44,20 @@ frappe.ui.bar_list = function ({
 	on_click,
 	css_class,
 } = {}) {
+	const $root = $('<div class="es-bar-list">').addClass(css_class || "");
+	if (!items.length) {
+		return $root
+			.attr("data-state", "empty")
+			.append($('<div class="es-bar-list__empty">').text(__("No data to show")));
+	}
+
 	format = format || ((v) => String(v));
 	const values = items.map((it) => Math.max(flt(it.value), 0));
 	const data_max = max != null ? max : Math.max(0, ...values);
 	const { nice_max, ticks } = axis_ticks(data_max, 6);
 	const at = (v) => (nice_max ? (Math.max(flt(v), 0) / nice_max) * 100 : 0) + "%";
 
-	const $root = $('<div class="es-bar-list">')
-		.addClass(css_class || "")
-		.toggleClass("es-bar-list--hover-values", !!values_on_hover);
+	$root.toggleClass("es-bar-list--hover-values", !!values_on_hover);
 	if (label_width) $root.css("--es-bl-label-w", label_width + "px");
 	const $plot = $('<div class="es-bar-list__plot">').appendTo($root);
 
