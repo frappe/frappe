@@ -302,7 +302,11 @@ async function buildWithVite(appName, entryFilePath, outDir, basePath, icons = [
 			studioRootAlias(),
 			sharedDependencyResolver(path.resolve(__dirname, "../../")),
 			...(frameworkUIAvailable
-				? [frameworkUICodeEditorShim(APPS_DIR, path.resolve(__dirname, "../../"))]
+				? [
+						// Resolves @framework/ui's own deps from studio's node_modules
+						(await import("@framework/ui/vite")).default(),
+						frameworkUICodeEditorShim(APPS_DIR, path.resolve(__dirname, "../../")),
+					]
 				: []),
 		],
 		resolve: {
