@@ -563,6 +563,7 @@ class CustomizeForm(Document):
 				"value": value,
 				"property_type": property_type,
 			},
+			validate_fields_for_doctype=False,
 			is_system_generated=False,
 		)
 

@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import cint
 
 not_allowed_fieldtype_change = ["naming_series"]
 
@@ -41,11 +42,34 @@ class PropertySetter(Document):
 
 	def validate(self):
 		self.validate_fieldtype_change()
+		self.validate_ignore_user_permissions()
 
 		if self.is_new():
 			delete_property_setter(self.doc_type, self.property, self.field_name, self.row_name)
 
 		frappe.clear_cache(doctype=self.doc_type)
+
+	def validate_ignore_user_permissions(self):
+		if (
+			self.flags.validate_fields_for_doctype is False
+			or self.doctype_or_field != "DocField"
+			or self.property not in ("fieldtype", "ignore_user_permissions")
+			or not self.field_name
+		):
+			return
+
+		field = frappe.get_meta(self.doc_type, cached=False).get_field(self.field_name)
+		if not field:
+			return
+
+		updated_field = frappe._dict(field.as_dict())
+		updated_field[self.property] = (
+			cint(self.value) if self.property == "ignore_user_permissions" else self.value
+		)
+
+		from frappe.core.doctype.doctype.doctype import validate_ignore_user_permissions
+
+		validate_ignore_user_permissions(updated_field)
 
 	def on_trash(self):
 		frappe.clear_cache(doctype=self.doc_type)

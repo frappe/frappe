@@ -44,6 +44,7 @@ ILLEGAL_FIELDNAME_PATTERN = re.compile("""['",./%@()<>{}]""")
 WHITESPACE_PADDING_PATTERN = re.compile(r"^[ \t\n\r]+|[ \t\n\r]+$", flags=re.ASCII)
 START_WITH_LETTERS_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.ASCII)
 FIELD_PATTERN = re.compile("{(.*?)}", flags=re.UNICODE)
+IGNORE_USER_PERMISSIONS_FIELD_TYPES = frozenset(("Link", "Dynamic Link", "Table MultiSelect"))
 
 
 class InvalidFieldNameError(frappe.ValidationError):
@@ -1359,6 +1360,21 @@ def validate_fields_for_doctype(doctype):
 
 
 # this is separate because it is also called via custom field
+def validate_ignore_user_permissions(field):
+	if frappe.flags.in_migrate or not field.ignore_user_permissions:
+		return
+
+	if field.fieldtype not in IGNORE_USER_PERMISSIONS_FIELD_TYPES:
+		parent = field.get("parent") or field.get("dt")
+		frappe.throw(
+			_("{0}: Ignore User Permissions is not supported for field {1} of type {2}").format(
+				frappe.bold(parent),
+				frappe.bold(_(field.label or field.fieldname, context=parent)),
+				frappe.bold(field.fieldtype),
+			)
+		)
+
+
 def validate_fields(meta: Meta):
 	"""Validate doctype fields. Checks
 	1. There are no illegal characters in fieldnames
@@ -1856,6 +1872,7 @@ def validate_fields(meta: Meta):
 		check_illegal_characters(d.fieldname)
 		check_invalid_fieldnames(meta.get("name"), d.fieldname)
 		check_fieldname_length(d.fieldname)
+		validate_ignore_user_permissions(d)
 		check_hidden_and_mandatory(meta.get("name"), d)
 		check_unique_and_text(meta.get("name"), d)
 		check_table_multiselect_option(d)

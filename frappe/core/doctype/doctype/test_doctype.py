@@ -19,6 +19,7 @@ from frappe.core.doctype.doctype.doctype import (
 	UniqueFieldnameError,
 	WrongOptionsDoctypeLinkError,
 	validate_fields,
+	validate_ignore_user_permissions,
 	validate_links_table_fieldnames,
 	validate_permissions,
 )
@@ -783,6 +784,84 @@ class TestDocType(IntegrationTestCase):
 		doctype.fields[0].__dict__.pop("link_filters", None)
 
 		validate_fields(doctype)
+
+	def test_ignore_user_permissions_rejects_unsupported_fieldtype(self):
+		doctype = new_doctype()
+		doctype.fields[0].ignore_user_permissions = 1
+
+		with self.assertRaisesRegex(frappe.ValidationError, "Ignore User Permissions is not supported"):
+			validate_fields(doctype)
+
+	def test_ignore_user_permissions_allows_supported_fieldtypes(self):
+		for fieldtype in ("Link", "Dynamic Link", "Table MultiSelect"):
+			with self.subTest(fieldtype=fieldtype):
+				field = frappe._dict(
+					fieldtype=fieldtype,
+					fieldname="allowed_field",
+					label="Allowed Field",
+					parent="Test DocType",
+					ignore_user_permissions=1,
+				)
+				validate_ignore_user_permissions(field)
+
+	def test_ignore_user_permissions_validation_is_skipped_during_migration(self):
+		field = frappe._dict(
+			fieldtype="Data",
+			fieldname="legacy_field",
+			label="Legacy Field",
+			parent="Test DocType",
+			ignore_user_permissions=1,
+		)
+
+		with patch.dict(frappe.flags, {"in_migrate": True}):
+			validate_ignore_user_permissions(field)
+
+	def test_custom_field_validates_ignore_user_permissions(self):
+		custom_field = frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"dt": "ToDo",
+				"fieldname": "invalid_ignore_user_permissions",
+				"label": "Invalid Ignore User Permissions",
+				"fieldtype": "Data",
+				"ignore_user_permissions": 1,
+			}
+		)
+
+		with self.assertRaisesRegex(frappe.ValidationError, "Ignore User Permissions is not supported"):
+			custom_field.insert()
+
+		frappe.clear_cache(doctype="ToDo")
+
+	def test_property_setter_validates_ignore_user_permissions(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "Ignore User Permissions is not supported"):
+			frappe.make_property_setter(
+				{
+					"doctype": "ToDo",
+					"fieldname": "status",
+					"property": "ignore_user_permissions",
+					"value": "1",
+					"property_type": "Check",
+				}
+			)
+
+		frappe.clear_cache(doctype="ToDo")
+
+	def test_ignore_user_permissions_property_setter_allows_missing_field(self):
+		property_setter = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doctype_or_field": "DocField",
+				"doc_type": "ToDo",
+				"field_name": "missing_field",
+				"property": "ignore_user_permissions",
+				"value": "1",
+				"property_type": "Check",
+			}
+		)
+		property_setter.flags.validate_fields_for_doctype = True
+
+		self.assertIsNone(property_setter.validate_ignore_user_permissions())
 
 	def test_custom_field_validates_link_filters(self):
 		custom_field = frappe.get_doc(
