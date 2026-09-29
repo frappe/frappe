@@ -404,14 +404,19 @@ def contact_query(
 	if not frappe.get_meta(doctype).get_field(searchfield) and searchfield not in frappe.db.DEFAULT_COLUMNS:
 		return []
 
+	link_doctype = filters.get("link_doctype")
+	link_name = filters.get("link_name")
+	if not (link_doctype and link_name):
+		return []
+
 	Contact = frappe.qb.DocType(doctype)
 	query = frappe.qb.get_query(
 		Contact,
 		fields=[Contact.name, Contact.full_name, Contact.company_name],
 		filters=[
 			[Contact[searchfield], "like", f"%{txt}%"],
-			["Dynamic Link", "link_doctype", "=", filters.get("link_doctype")],
-			["Dynamic Link", "link_name", "=", filters.get("link_name")],
+			["Dynamic Link", "link_doctype", "=", link_doctype],
+			["Dynamic Link", "link_name", "=", link_name],
 		],
 		limit=page_len,
 		offset=start,
