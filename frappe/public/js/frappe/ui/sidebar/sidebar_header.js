@@ -183,7 +183,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 				submenu: modules.map((shell) => ({
 					name: `module-${shell}`,
 					label: __(frappe.boot.module_sidebars[shell]?.label || shell),
-					icon: frappe.boot.module_sidebars[shell]?.header_icon,
+					icon: frappe.get_module_icon(shell),
 					onclick: () => sidebar.open_module(shell),
 				})),
 			});
@@ -360,14 +360,16 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			this.sidebar.get_sidebar_app()?.app_title
 		);
 	}
-	// The module's own icon, used by the onboarding widget: an authored `header_icon`, otherwise a
-	// letter icon from its title, the same pair the rail uses. There is no app-logo fallback,
-	// because an app's logo was never this module's icon and the one used was whichever app
-	// happened to be installed first.
+	// The module's own icon, used by the onboarding widget: `frappe.get_module_icon`, so it is the
+	// icon its dock tile shows, otherwise a letter icon from its title, the same pair the rail uses.
+	// A shell that is not a module (the private one) keeps its own `header_icon`. There is no
+	// app-logo fallback, because an app's logo was never this module's icon and the one used was
+	// whichever app happened to be installed first.
 	set_header_icon() {
 		const sidebar = this.sidebar.sidebar_data;
-		this.header_icon = sidebar?.header_icon
-			? frappe.utils.icon(sidebar.header_icon, "md")
+		const icon = frappe.get_module_icon(this.sidebar.current_module) || sidebar?.header_icon;
+		this.header_icon = icon
+			? frappe.utils.icon(icon, "md")
 			: frappe.utils.desktop_icon(this.title || "", "gray", "sm");
 	}
 

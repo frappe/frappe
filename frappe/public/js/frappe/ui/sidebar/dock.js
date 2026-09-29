@@ -421,7 +421,8 @@ frappe.ui.Dock = class Dock {
 	module_logo() {
 		let sidebar = frappe.boot.module_sidebars[this.sidebar.current_module] || {};
 		let label = sidebar.label || this.sidebar.current_module || __("Apps");
-		return { icon: this.entry_icon(sidebar.header_icon, label), title: label };
+		let icon = frappe.get_module_icon(this.sidebar.current_module);
+		return { icon: this.entry_icon(icon, label), title: label };
 	}
 
 	// A dock entry's icon: the authored one, otherwise a letter icon from its label. The top slot

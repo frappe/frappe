@@ -1,6 +1,21 @@
 import "./sidebar_item";
 import "./dock";
 
+// A module's icon, the one name the dock tile and the sidebar header both draw. An app's `Dock`
+// must give each of its rows an icon, and a Sidebar has its own `header_icon`, so the two could
+// drift apart; the dock's row wins so the header always matches the tile. This user's saved
+// arrangement is checked before the app's own dock, and a module on no dock falls back to its
+// `header_icon`.
+frappe.get_module_icon = function (module) {
+	if (!module) return null;
+	const rows = (frappe.boot.app_data || []).flatMap((app) => [
+		...((frappe.boot.dock || {})[app.app_name] || []),
+		...(app.dock || []),
+	]);
+	const row = rows.find((r) => r.link_type === "Sidebar" && r.link_to === module && r.icon);
+	return row?.icon || frappe.boot.module_sidebars?.[module]?.header_icon || null;
+};
+
 // Route prefixes that name an entity of another kind rather than being one themselves:
 // `/desk/query-report/Balance Sheet` is about the Report, not about "query-report". Both the
 // entity and its link type are read from the prefix, which is why they live in one table.
@@ -1381,7 +1396,7 @@ frappe.ui.Sidebar = class Sidebar {
 			// selects. A blank at an upper layer means inherit, which the server resolves, so a
 			// blank here is an entry nobody has labelled.
 			label: row.title || page?.title || sidebar?.label || row.link_to || row.url,
-			icon: row.icon || page?.icon || sidebar?.header_icon,
+			icon: row.icon || page?.icon || frappe.get_module_icon(module),
 			page,
 		};
 	}
