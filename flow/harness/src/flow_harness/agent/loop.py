@@ -72,6 +72,7 @@ from flow_harness.model.reasoning import reasoning_params
 from flow_harness.session.config import SessionConfig
 from flow_harness.session.transcript import PendingApproval
 from flow_harness.tools import SubagentOutcome, Tool, ToolContext
+from flow_harness.tools.tool import display_template_variables
 
 if TYPE_CHECKING:
 	from flow_harness.extensions import ExtensionRuntime
@@ -254,6 +255,10 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	for client_tool in config.client_tools:  # its display template is for the UI, not the model
 		schemas.append({key: value for key, value in client_tool.items() if key != "display_template"})
 		if template := client_tool.get("display_template"):
+			try:
+				display_template_variables(template)
+			except (TypeError, ValueError):
+				continue  # a malformed one would end the run when rendered
 			tool_display_templates[client_tool["function"]["name"]] = template
 	ctx = _tool_context(inputs)
 
