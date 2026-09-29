@@ -1,23 +1,10 @@
 import types
+from unittest.mock import patch
 
 import frappe
-<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils.jinja import get_jenv, render_template
-from frappe.utils.safe_exec import SafeDoc, ServerScriptNotEnabled, get_safe_globals, safe_exec
-=======
-import frappe.integrations.utils
-import frappe.utils.safe_exec as safe_exec_utils
-from frappe.tests import IntegrationTestCase
 from frappe.utils.jinja import get_jenv, get_jinja_hooks, render_template
-from frappe.utils.safe_exec import (
-	SAFE_EXEC_CONFIG_KEY,
-	SafeDoc,
-	ServerScriptNotEnabled,
-	get_safe_globals,
-	safe_exec,
-)
->>>>>>> 1a1bd38 (test(jinja): add regression test for the import change)
+from frappe.utils.safe_exec import SafeDoc, ServerScriptNotEnabled, get_safe_globals, safe_exec
 
 
 class TestSafeExec(FrappeTestCase):
