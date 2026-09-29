@@ -3,7 +3,7 @@ import re
 
 import frappe
 from frappe import _
-from frappe.database.schema import DbColumn, DBTable, get_definition
+from frappe.database.schema import NOT_NULL_TYPES, DbColumn, DBTable, get_definition
 from frappe.utils import cint, cstr, flt
 from frappe.utils.defaults import get_not_null_defaults
 
@@ -64,6 +64,35 @@ def get_single_column_index_name(table_name: str, fieldname: str) -> str:
 
 def get_unique_index_name(table_name: str, fieldname: str) -> str:
 	return get_qualified_index_name(table_name, [fieldname], "unique")
+
+
+# Postgres won't implicitly cast text to these column types, so a type change casts through text.
+# Int goes through numeric so that decimal text converts.
+USING_CASTS = {
+	"date": "date",
+	"timestamp": "timestamp",
+	"time": "time",
+	"json": "json",
+	"decimal": "numeric",
+	"smallint": "smallint",
+	"int": "numeric::int",
+	"bigint": "numeric::bigint",
+}
+
+
+def get_using_clause(column: DbColumn, column_type: str) -> str:
+	"""Return the USING clause that converts the column's values to `column_type`, or "" if none is needed.
+
+	Blanks become NULL, or the not-null default in a NOT NULL column."""
+	cast = USING_CASTS.get(column_type.split("(")[0])
+	if not cast:
+		return ""
+
+	value = f"NULLIF(`{column.fieldname}`::text, '')"
+	if column.fieldtype in NOT_NULL_TYPES:
+		not_null_default = frappe.db.escape(cstr(get_not_null_defaults(column.fieldtype)))
+		value = f"COALESCE({value}, {not_null_default})"
+	return f"USING {value}::{cast}"
 
 
 class PostgresTable(DBTable):
@@ -152,48 +181,15 @@ class PostgresTable(DBTable):
 		new_column_names = {col.fieldname for col in self.add_column}
 
 		for col in self.change_type:
-			# Postgres won't implicitly cast text/varchar to these types, so SET DATA TYPE
-			# needs an explicit USING expression. NOT NULL numerics coalesce blanks to 0;
-			# nullable types map blanks to NULL.
-			using_clause = ""
-			if col.fieldtype == "Datetime":
-				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::timestamp without time zone"
-			elif col.fieldtype == "Date":
-				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::date"
-			elif col.fieldtype == "Time":
-				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::time without time zone"
-			elif col.fieldtype == "Check":
-				using_clause = f"USING COALESCE(NULLIF(`{col.fieldname}`::text, ''), '0')::smallint"
-			elif col.fieldtype in ("Currency", "Float", "Percent"):
-				using_clause = f"USING COALESCE(NULLIF(`{col.fieldname}`::text, ''), '0')::numeric"
-			elif col.fieldtype in ("Duration", "Rating"):
-				# Duration/Rating are nullable (not in NOT_NULL_TYPES), so keep blanks NULL.
-				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::numeric"
-			elif col.fieldtype == "Int":
-				# cast to the actual target type: Int with length > 11 is a bigint column
-				# (Long Int), so a plain ::int would overflow its legitimate values; a standard
-				# Int stays int and still errors on out-of-range values (use Long Int for those).
-				int_type = get_definition(col.fieldtype, length=col.length)
-				using_clause = (
-					f"USING COALESCE(NULLIF(`{col.fieldname}`::text, ''), '0')::numeric::{int_type}"
-				)
-			elif col.fieldtype == "JSON":
-				using_clause = f"USING NULLIF(`{col.fieldname}`::text, '')::json"
-
-			if using_clause:
+			column_type = get_definition(col.fieldtype, precision=col.precision, length=col.length)
+			if using_clause := get_using_clause(col, column_type):
 				# the column's existing (string) DEFAULT can't be cast to the new type, so
 				# drop it and re-apply the proper default via the set_default pass below.
 				query.append(f"ALTER COLUMN `{col.fieldname}` DROP DEFAULT")
 				if col not in self.set_default:
 					self.set_default.append(col)
 
-			query.append(
-				"ALTER COLUMN `{}` TYPE {} {}".format(
-					col.fieldname,
-					get_definition(col.fieldtype, precision=col.precision, length=col.length),
-					using_clause,
-				)
-			)
+			query.append(f"ALTER COLUMN `{col.fieldname}` TYPE {column_type} {using_clause}")
 
 		if alter_pk := self.alter_primary_key():
 			query.append(alter_pk)
