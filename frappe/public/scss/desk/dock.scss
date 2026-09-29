@@ -100,14 +100,10 @@
 			padding: 0;
 			border: none;
 			border-radius: 12px;
+			// No fill on hover: the mark is the app's own logo, and it reads as one without a tile
+			// behind it. Its tooltip says where it goes.
 			background: transparent;
 			cursor: pointer;
-			transition: background-color 0.15s ease;
-
-			&:hover,
-			&.active-sidebar {
-				background: var(--dock-tile-hover);
-			}
 		}
 
 		// Both are the column's width talking: a name and a chevron are what a 220px header has
@@ -275,6 +271,9 @@ body.dock-pinned .dock {
 	border-radius: 0;
 	box-shadow: none;
 	border-right: 1px solid var(--outline-gray-1);
+	// 4px on top puts the app's mark at (12, 8), centred on the page header's 48px band and where
+	// the apps screen draws its logo, so the mark stays put on the way in.
+	padding-top: 4px;
 	// The tiles scroll, not the column, so the app mark and the avatar under them stay in view on
 	// a short window: the avatar is the only way to Settings and Logout while the dock is pinned.
 	overflow: hidden;
@@ -286,6 +285,18 @@ body.dock-pinned .dock {
 
 		&::-webkit-scrollbar {
 			display: none;
+		}
+	}
+
+	// At the head of a full-height column, the app's mark comes up to 32px.
+	.dock-logo .header-logo {
+		width: 32px;
+		height: 32px;
+
+		img,
+		svg {
+			width: 32px;
+			height: 32px;
 		}
 	}
 
