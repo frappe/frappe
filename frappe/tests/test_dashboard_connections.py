@@ -7,8 +7,9 @@ import frappe
 import frappe.utils
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.custom.doctype.customize_form.test_customize_form import TestCustomizeForm
-from frappe.desk.notifications import get_open_count
+from frappe.desk.notifications import get_doc_count, get_open_count
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 
 
 class TestDashboardConnections(IntegrationTestCase):
@@ -232,6 +233,22 @@ class TestDashboardConnections(IntegrationTestCase):
 		get_open_count("User", "Administrator")
 
 		self.assertEqual(frappe.db.get_execution_timeout(), execution_timeout)
+
+
+class TestLinkedDocumentCount(IntegrationTestCase):
+	@unimplemented_for(db_type_is.SQLITE)
+	def test_timed_out_count_keeps_the_transaction_usable(self):
+		execution_timeout = frappe.db.get_execution_timeout()
+
+		with frappe.db.execution_timeout(0.1), patch.object(frappe, "get_all", sleep_past_the_timeout):
+			self.assertEqual(get_doc_count("ToDo", {}), "?")
+			self.assertEqual(get_doc_count("ToDo", {}), "?")
+
+		self.assertEqual(frappe.db.get_execution_timeout(), execution_timeout)
+
+
+def sleep_past_the_timeout(*args, **kwargs):
+	frappe.db.multisql({"mariadb": "select sleep(1)", "postgres": "select pg_sleep(1)"})
 
 
 def create_test_data():
