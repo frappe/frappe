@@ -65,6 +65,12 @@ class TestContact(IntegrationTestCase):
 		results = contact_query("Contact", "Contact Query Match", "name", 0, 10, filters)
 		self.assertEqual(results[0][0], contact.name)
 
+	def test_contact_query_without_link_filters(self):
+		contact = create_contact("Unlinked Contact Query", "Mr")
+
+		results = contact_query("Contact", contact.name, "name", 0, 10, {})
+		self.assertEqual(results, [])
+
 	def test_contact_query_ranks_company_name_matches(self):
 		later_match = create_contact("A Company Contact", "Mr", save=False)
 		later_match.company_name = "Supplier Company Match"
