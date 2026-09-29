@@ -213,9 +213,8 @@ class PostgresTable(DBTable):
 				# nullable types (e.g. Duration, Rating) keep their NULL default
 				col_default = "NULL"
 
-			elif col.default in frappe.db.DEFAULT_SHORTCUTS or cstr(col.default).startswith(":"):
-				# frappe resolves these per document (Today, Now, __user, :fieldname, ...). Emitting
-				# them as literals would make postgres freeze one value at migration time.
+			elif col.has_dynamic_default:
+				# a literal would make postgres freeze one value at migration time
 				col_default = "NULL"
 
 			else:
