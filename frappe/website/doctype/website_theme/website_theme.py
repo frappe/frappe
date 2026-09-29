@@ -106,6 +106,13 @@ class WebsiteTheme(Document):
 		# add a random suffix
 		suffix = frappe.generate_hash(length=8) if self.custom else "style"
 		file_name = frappe.scrub(self.name) + "_" + suffix + ".css"
+
+		if os.sep in file_name or (os.altsep and os.altsep in file_name):
+			frappe.throw(
+				_("Theme name cannot contain '/' or path separators"),
+				title=_("Invalid Website Theme Name"),
+			)
+
 		output_path = join_path(folder_path, file_name)
 
 		base_path = os.path.realpath(folder_path)
