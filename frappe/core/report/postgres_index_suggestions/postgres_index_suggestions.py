@@ -8,9 +8,10 @@ from psycopg2.errors import ObjectNotInPrerequisiteState, UndefinedTable
 
 import frappe
 from frappe import _
-from frappe.database.database import savepoint
 from frappe.modules.utils import get_doctype_app_map
 from frappe.utils import cint
+
+STATEMENTS_SAVEPOINT = "index_suggestions_statements"
 
 # columns never worth suggesting a standalone index on: the primary key, the child-table linkage
 # columns frappe already covers, and the standard ordering/audit columns that appear in almost
@@ -110,8 +111,9 @@ def _suggested_columns(tables: set) -> dict:
 
 def _recorded_statements() -> list:
 	"""This database's pg_stat_statements rows, or none if the extension is missing or not loaded."""
-	with savepoint(catch=(UndefinedTable, ObjectNotInPrerequisiteState)):
-		return frappe.db.sql(
+	frappe.db.savepoint(STATEMENTS_SAVEPOINT)
+	try:
+		statements = frappe.db.sql(
 			"""
 			SELECT query, calls
 			FROM pg_stat_statements s
@@ -119,7 +121,14 @@ def _recorded_statements() -> list:
 			WHERE d.datname = current_database()
 			"""
 		)
-	return []
+	except Exception as exception:
+		# a failed statement aborts the transaction; undo only this read, then re-raise the rest
+		frappe.db.rollback(save_point=STATEMENTS_SAVEPOINT)
+		if isinstance(exception, UndefinedTable | ObjectNotInPrerequisiteState):
+			return []
+		raise
+	frappe.db.release_savepoint(STATEMENTS_SAVEPOINT)
+	return statements
 
 
 def _leading_indexed_columns(tables: set) -> dict:
