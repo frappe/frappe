@@ -73,6 +73,7 @@ USING_CASTS = {
 	"timestamp": "timestamp",
 	"time": "time",
 	"json": "json",
+	"uuid": "uuid",
 	"decimal": "numeric",
 	"smallint": "numeric::smallint",
 	"int": "numeric::int",
@@ -181,7 +182,9 @@ class PostgresTable(DBTable):
 		new_column_names = {col.fieldname for col in self.add_column}
 
 		for col in self.change_type:
-			column_type = get_definition(col.fieldtype, precision=col.precision, length=col.length)
+			column_type = get_definition(
+				col.fieldtype, precision=col.precision, length=col.length, options=col.options
+			)
 			if using_clause := get_using_clause(col, column_type):
 				# the column's existing (string) DEFAULT can't be cast to the new type, so
 				# drop it and re-apply the proper default via the set_default pass below.

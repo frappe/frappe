@@ -7,7 +7,6 @@ import psycopg2.extensions
 from psycopg2 import sql
 from psycopg2.errorcodes import (
 	CLASS_INTEGRITY_CONSTRAINT_VIOLATION,
-	DATATYPE_MISMATCH,
 	DATETIME_FIELD_OVERFLOW,
 	DEADLOCK_DETECTED,
 	DUPLICATE_COLUMN,
@@ -194,11 +193,10 @@ class PostgresExceptionUtil:
 	@staticmethod
 	def is_data_truncated(e):
 		# a value cannot be cast to the column's new type -- e.g. changing a field holding
-		# "not a number" to Int. MariaDB reports TRUNCATED_WRONG_VALUE; postgres is stricter and
-		# aborts the ALTER: it refuses to auto-cast the column (datatype mismatch) or a value fails
-		# the cast (invalid representation / numeric out of range / invalid date or time).
+		# "not a number" to Int. MariaDB reports TRUNCATED_WRONG_VALUE; postgres aborts the ALTER
+		# when a value fails the cast (invalid representation / numeric out of range / invalid date
+		# or time). A datatype mismatch means a missing USING cast, not bad data, so it stays raw.
 		return getattr(e, "pgcode", None) in (
-			DATATYPE_MISMATCH,
 			INVALID_TEXT_REPRESENTATION,
 			NUMERIC_VALUE_OUT_OF_RANGE,
 			INVALID_DATETIME_FORMAT,
