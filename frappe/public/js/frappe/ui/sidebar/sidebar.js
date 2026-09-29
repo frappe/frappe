@@ -1,11 +1,7 @@
 import "./sidebar_item";
 import "./dock";
 
-// A module's icon, the one name the dock tile and the sidebar header both draw. An app's `Dock`
-// must give each of its rows an icon, and a Sidebar has its own `header_icon`, so the two could
-// drift apart; the dock's row wins so the header always matches the tile. This user's saved
-// arrangement is checked before the app's own dock, and a module on no dock falls back to its
-// `header_icon`.
+// A module's icon. The dock row wins over the Sidebar's `header_icon`, so the header matches the tile.
 frappe.get_module_icon = function (module) {
 	if (!module) return null;
 	const rows = (frappe.boot.app_data || []).flatMap((app) => [
@@ -638,7 +634,7 @@ frappe.ui.Sidebar = class Sidebar {
 	// element. Shared by the sidebar's user button and the dock's avatar so both open
 	// the same menu. What a site adds in Navbar Settings is not here; that hangs off the sidebar
 	// header's menu, see SidebarHeader.navbar_items. `button` is the element that gets the
-	// active-state class while the menu is open. `side` and `align` place the menu against it.
+	// active-state class while the menu is open.
 	create_user_menu({ parent, button, side = "top", align = "start" }) {
 		const me = this;
 		const $btn = button;
@@ -646,8 +642,6 @@ frappe.ui.Sidebar = class Sidebar {
 
 		new frappe.ui.Dropdown({
 			trigger: $container,
-			// Both triggers sit at the foot of their column: the sidebar's opens the menu up from
-			// it, the dock's out to its right, over the sidebar.
 			side,
 			align,
 			options: [

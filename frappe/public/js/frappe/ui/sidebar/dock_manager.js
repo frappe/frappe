@@ -347,8 +347,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	apply(rail) {
 		frappe.boot.dock = { ...(frappe.boot.dock || {}), [this.app.app_name]: rail };
 		frappe.app.sidebar.refresh_dock();
-		// The sidebar header draws the current module's icon from the same rail, so a module whose
-		// icon was just changed would otherwise keep its old one there until the next navigation.
+		// The header draws the module's icon from this rail too.
 		frappe.app.sidebar.refresh_header();
 	}
 

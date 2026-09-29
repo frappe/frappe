@@ -17,10 +17,7 @@
 	--dock-tile: 40px;
 	--dock-width: 56px;
 
-	// The tray's surface, and the ink that has to read on it. The sidebar's own surface, pinned or
-	// floating, so the dock reads as part of the same shell; floating, its shadow is what sets it
-	// apart from the sidebar it slides over. The inks invert with the theme, so one declaration
-	// each serves both.
+	// The sidebar's surface, so the dock reads as part of the same shell.
 	--dock-bg: var(--desk-sidebar-bg);
 	--dock-ink: var(--ink-gray-7);
 	--dock-ink-strong: var(--ink-gray-9);
@@ -100,8 +97,6 @@
 			padding: 0;
 			border: none;
 			border-radius: 12px;
-			// No fill on hover: the mark is the app's own logo, and it reads as one without a tile
-			// behind it. Its tooltip says where it goes.
 			background: transparent;
 			cursor: pointer;
 		}
@@ -123,8 +118,7 @@
 			align-items: center;
 			justify-content: center;
 
-			// An app's logo image brings its own shape. The chip the sidebar header puts behind a
-			// mark showed around its rounded corners as a grey rim.
+			// The header's chip showed around a logo image's corners.
 			&:has(img) {
 				background: transparent;
 			}
@@ -197,23 +191,19 @@
 	cursor: pointer;
 	transition: background-color 0.15s ease, color 0.15s ease;
 
-	// 20px, the size a Lucide line icon is drawn for. Larger, its stroke thickens and it goes wonky.
+	// Lucide strokes go wonky above 20px.
 	svg,
 	img {
 		width: 20px;
 		height: 20px;
 	}
 
-	// A crafted `-duotone` icon is filled shapes rather than a line, and reads small at the line
-	// icons' size. See Dock.make_dock_item.
 	&.dock-item--duotone svg {
 		width: 26px;
 		height: 26px;
 	}
 
-	// A sprite icon that moves (the factory's smoke) plays only while its tile is hovered, and may
-	// draw past its box into the tile's padding. Custom properties are the one thing that
-	// reaches inside a `<use>`, so the tile hands the icon these instead of a selector.
+	// Animated icons play on hover. Only custom properties reach inside a `<use>`.
 	svg {
 		overflow: visible;
 	}
@@ -265,15 +255,9 @@ body.dock-open .dock {
 	transform: translate(0, -50%);
 }
 
-// Pinned (the `dock_mode` preference): the same tray set down as the leftmost column of the body's
-// flex row, so the sidebar and the page start after it instead of under it. It runs the window's
-// full height with its tiles from the top, the way the sidebar beside it does, and gives up what
-// only a floating object needs: the slide, the rounded ends and the shadow. It takes the sidebar's
-// edge too, so the two read as one shell split by a rule.
+// Pinned: the same tray as an in-flow column left of the sidebar.
 body.dock-pinned .dock {
-	// One pixel over the tray's width for the border on its right, so the tiles keep their full
-	// 40px between 8px each side. Left at 56px, the border took a pixel from the tiles, and the
-	// scrolling list clipped half a pixel off each side of them.
+	// +1px for the border, or the tiles lose a pixel and get clipped.
 	width: calc(var(--dock-width) + 1px);
 	position: relative;
 	top: auto;
@@ -287,15 +271,12 @@ body.dock-pinned .dock {
 	border-radius: 0;
 	box-shadow: none;
 	border-right: 1px solid var(--outline-gray-1);
-	// 4px on top puts the app's mark at (12, 8), centred on the page header's 48px band and where
-	// the apps screen draws its logo, so the mark stays put on the way in.
+	// Lines the mark up with the apps screen's logo.
 	padding-top: 4px;
-	// The tiles scroll, not the column, so the app mark and the avatar under them stay in view on
-	// a short window: the avatar is the only way to Settings and Logout while the dock is pinned.
+	// The tiles scroll, not the column, so the avatar stays in view.
 	overflow: hidden;
 
-	// Brings the rule under the mark up to y=48, level with the page header's bottom border. Taken
-	// off the mark rather than the rule, which sits inside the scrolling tiles and would be clipped.
+	// Levels the rule with the page header's border; on the rule itself it would be clipped.
 	.dock-logo {
 		margin-bottom: -4px;
 	}
@@ -310,7 +291,6 @@ body.dock-pinned .dock {
 		}
 	}
 
-	// At the head of a full-height column, the app's mark comes up to 32px.
 	.dock-logo .header-logo {
 		width: 32px;
 		height: 32px;
@@ -323,9 +303,7 @@ body.dock-pinned .dock {
 	}
 }
 
-// The user's avatar, at the foot of the column: the items above it take the free height. Only a
-// pinned dock shows it (see Dock.setup_user_menu), and the sidebar gives up its own user button for
-// as long as it does.
+// The user's avatar, shown only on a pinned dock.
 .dock-user {
 	display: none;
 	flex: 0 0 auto;
@@ -337,8 +315,6 @@ body.dock-pinned .dock {
 	}
 }
 
-// The avatar fills the tile's middle at its own size, rather than the size a tile's glyph is held
-// to. Written under `body.dock-pinned`, the only place it shows, to outweigh the pinned glyph rule.
 body.dock-pinned .dock .dock-user-button {
 	.avatar,
 	img {
@@ -357,13 +333,9 @@ body.dock-pinned .dock .dock-user-button {
 	}
 }
 
-// A pinned dock already shows the module's icon as its active tile, right beside the sidebar
-// header, so the header drops its own and leads with the name. Not when the sidebar is folded, where
-// the icon is all the header has left, and not below md, where there is no dock.
+// The dock's active tile already shows the module's icon.
 @include media-breakpoint-up(md) {
 	body.dock-pinned.dock-active .body-sidebar-container.expanded .sidebar-header {
-		// The name then starts where the rows' icons do: the header's 4px margin and this 12px
-		// meet the rows' 8px gutter and 8px `pl-2`.
 		padding-left: 12px;
 
 		.header-logo {

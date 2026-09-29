@@ -360,11 +360,7 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			this.sidebar.get_sidebar_app()?.app_title
 		);
 	}
-	// The module's own icon, used by the onboarding widget: `frappe.get_module_icon`, so it is the
-	// icon its dock tile shows, otherwise a letter icon from its title, the same pair the rail uses.
-	// A shell that is not a module (the private one) keeps its own `header_icon`. There is no
-	// app-logo fallback, because an app's logo was never this module's icon and the one used was
-	// whichever app happened to be installed first.
+	// The same icon as the module's dock tile, otherwise a letter icon from its title.
 	set_header_icon() {
 		const sidebar = this.sidebar.sidebar_data;
 		const icon = frappe.get_module_icon(this.sidebar.current_module) || sidebar?.header_icon;
