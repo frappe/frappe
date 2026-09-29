@@ -1,7 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from unittest.mock import Mock, patch
+from contextlib import suppress
+from unittest.mock import patch
 
 from psycopg2.errors import InsufficientPrivilege
 
@@ -37,10 +38,17 @@ class TestPostgresIndexSuggestions(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("ToDo", todo.name))
 
 	def test_unrelated_failure_is_reraised(self):
-		self.replace_statements_read(Mock(side_effect=InsufficientPrivilege("permission denied")))
+		# a real failed statement, so the transaction aborts before the unrelated error is raised
+		def read():
+			with suppress(Exception):
+				frappe.db._cursor.execute("SELECT 1 FROM pg_stat_statements_missing")
+			raise InsufficientPrivilege("permission denied")
+
+		self.replace_statements_read(read)
 
 		with self.assertRaises(InsufficientPrivilege):
 			_suggested_columns({"tabToDo"})
+		self.assertEqual(frappe.db.sql("SELECT 1")[0][0], 1)
 
 	def test_indexes_come_from_the_site_schema_only(self):
 		indexed = _leading_indexed_columns({"tabToDo", "pg_class"})
