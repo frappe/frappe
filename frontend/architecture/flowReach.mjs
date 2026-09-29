@@ -20,8 +20,8 @@ export class FlowReach {
     });
   }
 
-  // Type imports count, because a reader follows them. A dynamic import is not followed: it
-  // loads when another flow needs it, such as a page.
+  // Type imports count. A dynamic import is not followed: it loads with another flow, such as
+  // a page.
   reach(entry) {
     const seen = new Set();
     const queue = [entry];

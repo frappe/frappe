@@ -29,8 +29,7 @@ export class Sources {
     this.uiExports = this.readUiExports();
   }
 
-  // frontend/src, frontend/plugin and all of ui/: ui/ is a library for every app, so a ui/
-  // file the desk never imports is still checked.
+  // frontend/src, frontend/plugin and all of ui/, including the ui/ files the desk never imports.
   jsFiles() {
     this.js ??= this.readJsFiles();
     return this.js;
