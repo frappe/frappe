@@ -238,6 +238,16 @@ class TestDBUpdate(IntegrationTestCase):
 			self.assertTrue(get_table_column(doctype.name, fieldname).not_nullable, fieldname)
 		self.assertEqual(frappe.db.get_value(doctype.name, doc.name, list(fieldtypes)), (0, 0, 0))
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_invalid_date_conversion_errors_cleanly(self):
+		doctype = new_doctype(fields=[{"fieldname": "due_on", "fieldtype": "Data"}]).insert()
+		frappe.get_doc(doctype=doctype.name, due_on="next week").insert()
+
+		doctype.fields[0].fieldtype = "Date"
+		with self.assertRaisesRegex(frappe.ValidationError, "cannot be converted"):
+			doctype.save()
+		frappe.db.rollback()
+
 	@run_only_if(db_type_is.MARIADB)
 	def test_blank_values_are_coerced_so_the_conversion_can_proceed(self):
 		"""An empty string only fails to cast because it is empty; migrate makes it the default"""
