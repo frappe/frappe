@@ -335,7 +335,10 @@ class PostgresTable(DBTable):
 		change_nullability = []
 		for col in self.change_nullability:
 			default = col.default or get_not_null_defaults(col.fieldtype)
-			if isinstance(default, str):
+			if col.has_dynamic_default:
+				# a literal would make postgres freeze one value at migration time
+				default = "NULL"
+			elif isinstance(default, str):
 				default = frappe.db.escape(default)
 			change_nullability.append(
 				f'ALTER COLUMN "{col.fieldname}" {"SET" if col.not_nullable else "DROP"} NOT NULL'
