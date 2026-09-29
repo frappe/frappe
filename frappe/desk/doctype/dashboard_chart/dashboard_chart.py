@@ -238,7 +238,7 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 	day_timestamp = UnixTimestamp(Date(frappe.qb.DocType(doctype)[datefield]))
 	# by position: a GROUP BY alias loses to a column of the same name
 	data = dict(
-		frappe.get_all(
+		frappe.get_list(
 			doctype,
 			fields=[day_timestamp, {aggregate_function: value_field}],
 			filters=filters,
@@ -246,6 +246,7 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 			as_list=1,
 			order_by="1 asc",
 			ignore_ifnull=True,
+			parent_doctype=chart.parent_document_type,
 		)
 	)
 
