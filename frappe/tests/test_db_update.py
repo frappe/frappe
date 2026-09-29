@@ -210,6 +210,18 @@ class TestDBUpdate(IntegrationTestCase):
 			doctype.save()
 		frappe.db.rollback()
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_float_to_check_conversion(self):
+		doctype = new_doctype(fields=[{"fieldname": "flag", "fieldtype": "Float"}]).insert()
+		ticked = frappe.get_doc(doctype=doctype.name, flag=1).insert()
+		unticked = frappe.get_doc(doctype=doctype.name, flag=0).insert()
+
+		doctype.fields[0].fieldtype = "Check"
+		doctype.save()
+
+		self.assertEqual(frappe.db.get_value(doctype.name, ticked.name, "flag"), 1)
+		self.assertEqual(frappe.db.get_value(doctype.name, unticked.name, "flag"), 0)
+
 	@run_only_if(db_type_is.MARIADB)
 	def test_blank_values_are_coerced_so_the_conversion_can_proceed(self):
 		"""An empty string only fails to cast because it is empty; migrate makes it the default"""
