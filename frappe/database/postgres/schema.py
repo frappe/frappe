@@ -54,7 +54,7 @@ def get_qualified_index_name(
 	name = f"{base}_index"
 	if len(name.encode()) > 63:
 		digest = hashlib.md5(base.encode()).hexdigest()[:10]
-		name = f"{name[:52]}_{digest}"
+		name = f"{name.encode()[:52].decode(errors='ignore')}_{digest}"
 	return name
 
 
