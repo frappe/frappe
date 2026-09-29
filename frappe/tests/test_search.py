@@ -725,8 +725,24 @@ class TestSearch(IntegrationTestCase):
 			self.assertNotEqual(search_link(doctype, "")[0].get("label"), "Selectable Title")
 			self.assertEqual(self.get_report_titles(doctype, name), {})
 
+	def test_select_permission_hides_restricted_link_titles_in_search_fields(self):
+		doctype, name, user = self.make_select_only_titled_doc(permlevel=1, search_fields="title")
+
+		with self.set_user(user):
+			self.assertEqual(get_link_title(doctype, name), name)
+			self.assertNotEqual(search_link(doctype, "")[0].get("label"), "Selectable Title")
+			self.assertEqual(self.get_report_titles(doctype, name), {})
+
 	def test_select_permission_skips_virtual_link_titles_in_reports(self):
 		doctype, name, user = self.make_select_only_titled_doc(is_virtual=1, options="'Virtual Title'")
+
+		with self.set_user(user):
+			self.assertEqual(self.get_report_titles(doctype, name), {})
+
+	def test_select_permission_skips_virtual_search_link_titles_in_reports(self):
+		doctype, name, user = self.make_select_only_titled_doc(
+			is_virtual=1, options="'Virtual Title'", search_fields="title"
+		)
 
 		with self.set_user(user):
 			self.assertEqual(self.get_report_titles(doctype, name), {})
@@ -736,7 +752,7 @@ class TestSearch(IntegrationTestCase):
 			[{"fieldname": "link", "fieldtype": "Link", "options": doctype}], [{"link": name}]
 		)
 
-	def make_select_only_titled_doc(self, **title_properties):
+	def make_select_only_titled_doc(self, *, search_fields=None, **title_properties):
 		with self.set_user("Administrator"):
 			role = frappe.new_doc("Role", role_name=frappe.generate_hash()).insert().name
 			doctype = new_doctype(
@@ -745,6 +761,7 @@ class TestSearch(IntegrationTestCase):
 					{"fieldname": "title", "fieldtype": "Data", "label": "Title", **title_properties},
 				],
 				title_field="title",
+				search_fields=search_fields,
 				show_title_field_in_link=1,
 				permissions=[{"role": role, "select": 1, "read": 0}],
 			).insert()
