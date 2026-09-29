@@ -9,6 +9,30 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "sparkles",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Automation Flow",
+   "link_to": "Automation Flow",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "list-end",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Automation Trigger Queue",
+   "link_to": "Automation Trigger Queue",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
    "icon": "user-cog",
    "indent": 0,
    "keep_closed": 0,
@@ -67,7 +91,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-08 14:16:38.557529",
+ "modified": "2026-09-29 21:21:37.099001",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Automation",
