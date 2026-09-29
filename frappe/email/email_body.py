@@ -425,8 +425,12 @@ def get_email_html(
 	header: str | list | None = None,
 	with_container: str | int | bool = False,
 ):
+<<<<<<< HEAD
 	import json
 
+=======
+	frappe.only_for("System Manager")
+>>>>>>> 25d418c (fix(email): restrict get_email_html preview to System Manager)
 	with_container = cint(with_container)
 	args = json.loads(args)
 	if header and header.startswith("["):
