@@ -6,7 +6,8 @@ page** those contributions customize.
 
 [`PHILOSOPHY.md`](./PHILOSOPHY.md) is the *rules*; this is the *vocabulary* those rules
 use. [`CLAUDE.md`](./CLAUDE.md) is the operational half.
-[`ARCHITECTURE.md`](./ARCHITECTURE.md) says which layer each thing sits in.
+[`ARCHITECTURE.md`](./ARCHITECTURE.md) says which layer each thing sits in. Its concept
+tables link to the entries here by their `<a id>`, so keep an id when you rename a term.
 
 **One glossary.** A term means the same thing everywhere in this package. Where a word is
 defined here, this file is canonical — a comment that disagrees is a bug in the comment.
@@ -24,7 +25,7 @@ only *inside* a routed view. There is no shell-level hook of any kind.
 _Avoid_: "the frontend" (ambiguous with the package), "shell story" (`ui/CONTEXT.md`'s
 unrelated Storybook term).
 
-**Prefix**:
+**Prefix**: <a id="prefix"></a>
 The one bare path segment an app claims beneath `/apps` — `/apps/crm`, `/apps/desk`. An
 app declares it with the `app_prefix` hook, or declares nothing and gets its own name **with
 a leading `frappe_` stripped**: `frappe_whatsapp` serves `/apps/whatsapp`. Underscores are
@@ -40,12 +41,12 @@ claimed prefix.
 The router's base as boot carries it — the **composed** path (`/apps/crm`), never the bare
 segment. Composed on the server so the literal `/apps` never appears in JS.
 
-**Slug**:
+**Slug**: <a id="slug"></a>
 A doctype's address in a URL: `CRM Deal` → `crm-deal`. **The address, not the identity** —
 canonicalisation always moves *to* the slug, never away from it.
 _Avoid_: scrubbed name (`crm_deal`, the on-disk spelling used by contribution paths).
 
-**Boot**:
+**Boot**: <a id="boot"></a>
 A new, small per-prefix payload — deliberately *not* `frappe.sessions.get()`. Core boot
 (the keys every prefix gets) plus app boot (the declaring app's contribution, merged
 under core). `location.pathname` is its only input; the document carries nothing.
@@ -76,7 +77,7 @@ A route synthesised from a `PageContribution`, named `page:<app>:<slug>`, and li
 for the declaring app. Contributed matches beat generated ones — `/deals` must beat
 `/:doctype` — and they share one flat namespace.
 
-**Rail**:
+**Rail**: <a id="rail"></a>
 The shell-owned navigation strip that never disappears, and the `Rail` doctype behind it:
 one record per app per layer. Its contents are **declared rows**, not derived doctypes, and
 they are not limited to doctypes — a rail item may be a doctype, a module, a page, a record,
@@ -87,12 +88,12 @@ filtered — which is every app until one converts, and it goes through the same
 as a declared one, so a person can arrange a derived rail too.
 _Avoid_: dock (that is desk v1's, and a live doctype of its own).
 
-**Sidebar**:
-The panel a linked rail item opens. Named for where it is, like the rail — which is what lets
+**Sidebar**: <a id="sidebar"></a>
+The panel a linked rail item opens, and the `Sidebar` doctype behind it. Named for where it is, like the rail — which is what lets
 one row type serve both honestly.
 _Avoid_: using it bare; see **Words that collide**.
 
-**Navigation Item**:
+**Navigation Item**: <a id="navigation-item"></a>
 One row of navigation, in a rail or a sidebar. Named for what it does, because a name from
 one surface would name only half of it. A row points at exactly one destination and carries
 **no query of its own**. Its address is an authored, frozen `key`, which every site and user
@@ -100,32 +101,32 @@ edit is filed against.
 _Avoid_: sidebar item, dock item, rail item (the last is fine in prose about the rail, never
 as a type name).
 
-**Navigation Item Type**:
+**Navigation Item Type**: <a id="navigation-item-type"></a>
 The kind a `Navigation Item` is, as a code-owned record an app ships. Adding a kind is a
 record plus a renderer beside it, and no framework change. The item axis is **type**, never
 *kind* — see below.
 
-**Manifest**:
+**Manifest**: <a id="manifest"></a>
 The build's description of the one bench-wide bundle: `[{app, app_prefix, source_dir,
 deps}]`, plus a separate wider `source_dirs` list covering *every* app on the bench.
 An app is in the **bundle** only if it actually contributes source; every installed app
 still gets a prefix and is still served.
 
-**Singleton**:
+**Singleton**: <a id="singleton"></a>
 A library that must exist exactly once in the bundle — `vue`, `vue-router`, `frappe-ui`,
 `@framework/ui`, `reka-ui`, `dompurify`. Two apps disagreeing on one **fails the build**,
 deliberately rather than letting a bundler silently pick a winner.
 
 ### Contribution
 
-**Contribution**:
+**Contribution**: <a id="contribution"></a>
 Something an app adds to the desk. The list is **closed**: if it is not in
 `contributions/types.ts`, an app cannot do it. Not contributable, on purpose: a route
 table, a doctype opt-out, shell chrome, a vite config, a boot key from JS.
 _Avoid_: customization (that is the *effect*; a contribution is the delivery), plugin,
 extension (see below).
 
-**Kind**:
+**Kind**: <a id="kind"></a>
 Which of the five contributions a file is — and a kind **is a path**, not a declaration.
 Only ever this. A navigation item's axis is its **type**, and `Record` appears in both lists:
 
@@ -149,11 +150,11 @@ file under `doctype/<x>/frontend/` is colocated in the owner's own tree so it **
 owner's; a file under `custom/<x>/` is by construction somebody else's. Customizing a
 foreign doctype does not move it into your prefix.
 
-**Run order**:
+**Run order**: <a id="run-order"></a>
 Per doctype: the owning app first, then every other app in `app_order`. The rule is
 *baseline first, more-specific intent last* — derived, not declared.
 
-**Source**:
+**Source**: <a id="source"></a>
 Who is speaking, for attribution and for removal. `host` is the app's own bundled code;
 otherwise an app name, or `client-script:<name>`, or `builtin` for what the host seeded. A
 source is the unit `unregisterSource` drops.
@@ -162,7 +163,7 @@ host feeds field overrides to — also unrelated). See **Words that collide**.
 
 ### The record page
 
-**Record** (the page) vs **document** (the payload):
+**Record** (the page) vs **document** (the payload): <a id="record"></a>
 The page kind is a **Record** page; what it shows is a **document**, reached as `page.doc`
 (the draft you edit) and `page.saved` (the document as the server last showed it). Two
 deliberately separate words, neither may take the other's job — settled against renaming
@@ -174,7 +175,7 @@ The curated object every handler receives and imperatively mutates — a script'
 capability surface. Nothing reaches a script except through it.
 _Avoid_: form, frm, context.
 
-**Surface**:
+**Surface**: <a id="surface"></a>
 One customizable **region** of a Record page, whose verbs *record ops*; the rendered list
 is those ops replayed over the host's built-ins. Seven are true surfaces —
 `quickActions`, `header`, `tabs`, `panelSections`, `frame`, `body`, `form` — sharing the
@@ -188,11 +189,11 @@ rows, read the server's through `items`, and speak `add`, `remove` and `has` onl
 _Avoid_: sections (`panelSections` and `Section` both already claim the word), a
 top-level name for the form's strip.
 
-**Built-in**:
+**Built-in**: <a id="built-in"></a>
 An item the host seeded rather than a script adding it, attributed to the source
 `builtin` and folded in first. A script addresses one by name like any other item.
 
-**Panel**:
+**Panel**: <a id="panel"></a>
 The record's right-hand column, drawn from `page.panelSections` as **one list**: the
 built-ins (`identity`, `quick_actions`, `people`) and the Side Panel layout's
 sections are items on it alike. A `label` gives an item a header; a built-in has none. The
@@ -209,7 +210,7 @@ stays a list of fieldnames, so a part has no record form.
 _Avoid_: custom field (a part holds no value and `page.fields` never sees it), widget,
 custom tab (a whole view belongs on the record strip, `page.tabs`).
 
-**Disclosure**:
+**Disclosure**: <a id="disclosure"></a>
 The reader's view state of a section: open or shut. It lives in the browser through the
 shell's section memory, keyed by user and per doctype, never on the server. A script's
 `open()`/`close()` is an **act** on the same terms as `activate`, held until the open replay
@@ -246,32 +247,32 @@ inside a hold, and so does each host call into script code (`controller.hold`). 
 from what is drawn, where a replay starts from built-ins; its acts wait for its commit.
 _Avoid_: batch, transaction.
 
-**Handler**:
+**Handler**: <a id="handler"></a>
 One named function in the object a script exports — an event (`onRefresh`, `beforeSave`,
 `afterSave`, `onTabChange`, `onFormTabChange`) or a **fieldname**. The event vocabulary is
 closed; every other key is a fieldname, in one flat keyspace. A handler's arguments are
 determined by its key: a top-level key gets `(page)`, one nested under a child table gets
 `(page, row)`.
 
-**Table handlers block**:
+**Table handlers block**: <a id="table-handlers-block"></a>
 `products: { onAdd, onRemove, qty }` — the table is named once, and every key under it is
 a child fieldname or one of the two lifecycle events. Flattened at registration to a
 **dotted key** (`products.qty`), unambiguous because a fieldname cannot contain a dot.
 
-**Client Script**:
+**Client Script**: <a id="client-script"></a>
 A browser-authored customization stored as a `Client Script` row with `view = Record`,
 evaluated as a real ES module through a blob URL — so `export default {…}` is the same
 text as in a file script, and bare imports resolve through the page's import map. Desk v1
 reads only the `Form` and `List` rows of the same table, so neither side sees the other's.
 _Avoid_: Page Script (the tier's old name), Form Script (CRM v1's).
 
-**Tier**:
+**Tier**: <a id="tier"></a>
 The Client Script tier is the **last** in run order, after the file scripts every app
 contributes, because it runs at page mount. A script that fails to load is skipped whole
 and the rest of the tier still runs; a tier that could not be fetched is distinct from an
 empty one.
 
-**Field overlay**:
+**Field overlay**: <a id="field-overlay"></a>
 A script's per-field property override, applied at **render time** and never written into
 the layout as authored, the `Form Layout` row, or doctype meta. Spelled in DocField
 snake_case (`read_only`), not `FieldMeta` camelCase. Cleared by an ordinary replay.
@@ -279,21 +280,21 @@ Precedence: **permlevel is a hard floor a script cannot raise**; between the ove
 `depends_on`, the overlay wins.
 _Avoid_: field property (that is also what meta carries), `setFieldProperty` (v1's).
 
-**Row handle**:
+**Row handle**: <a id="row-handle"></a>
 How a script addresses one child-table row: an object holding `(parentfield, key)` that
 **re-finds its row on every access**, so a reorder is survived for free. An *address*, not
 a write channel — fields are read and written bare, identically to writing through
 `page.doc`.
 _Avoid_: row proxy, `getRow` (both v1's, both position-capturing).
 
-**Commit**:
+**Commit**: <a id="commit"></a>
 The moment a field's control settles on a value — the firing point of a `<fieldname>`
 handler. Per fieldtype at the widget, but one uniform rule at the engine, which never
 branches on fieldtype. Not a keystroke and not a debounce, and **a programmatic write is
 not a commit**: a cascade is authored, never ambient.
 _Avoid_: change (the widget's spelling), input (per-keystroke, deliberately not offered).
 
-**Read-only view**:
+**Read-only view**: <a id="read-only-view"></a>
 Every object `page` hands back is read-only, enforced by a lazy recursive proxy that
 throws naming the path *and* the supported verb. `page.doc` and the row handle are the
 only writable things it hands out.

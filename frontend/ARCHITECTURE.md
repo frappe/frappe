@@ -96,6 +96,9 @@ API, a store, a cache, a registration point, a hook, a lifecycle event, a DocTyp
 route only desk v2 uses. A helper used by one file is not a concept. A family of names
 learned together is one row.
 
+A concept that is also a word in [`CONTEXT.md`](./CONTEXT.md) links to its entry there.
+The row says only what the code adds to that word.
+
 Rows marked *new* do not exist in code yet. Rows marked *changed* exist, but an accepted
 cut or a `ui/` change reshapes them.
 
@@ -103,13 +106,13 @@ cut or a `ui/` change reshapes them.
 
 | Concept | What it is |
 | --- | --- |
-| `Rail` | The app icons down the left edge, per app, with site and per-user copies |
-| `Sidebar` (`navigation_items` table) | A sidebar per module or doctype. Desk v2 reads `navigation_items`; desk v1 reads `items` |
-| `Navigation Item` | One row in a rail or sidebar: key, parent, type, target, label, icon, anchors |
-| `Navigation Item Type` | A kind of navigation row, and the rule for who can see it |
+| [`Rail`](./CONTEXT.md#rail) | The DocType behind the rail: one record per app, with site and per-user copies |
+| [`Sidebar`](./CONTEXT.md#sidebar) (`navigation_items` table) | A sidebar per module or doctype. Desk v2 reads `navigation_items`; desk v1 reads `items` |
+| [`Navigation Item`](./CONTEXT.md#navigation-item) | A row's fields: key, parent, type, target, label, icon, anchors |
+| [`Navigation Item Type`](./CONTEXT.md#navigation-item-type) | Holds the rule for who can see a row of that type |
 | `Doctype View` | Saved list settings (columns, sort, quick filters), per person or per site |
 | `Form Layout` | A stored layout for a doctype's Details, Side Panel or Quick Entry, with an optional condition |
-| `Client Script` with `view = Record` | A stored script that the desk v2 record page runs |
+| [`Client Script`](./CONTEXT.md#client-script) with `view = Record` | The table that holds the record page's stored scripts |
 | Client Script class check | On save, warns about CSS classes the build does not define. Reads the build's `classes.json` |
 | `code_only_modules` hook | Modules that hold only code. Their navigation goes to named heir modules |
 | Layer resolution (`frappe.desk.layers`) | Merges base, site and user copies of a list and places items by anchors |
@@ -134,19 +137,19 @@ cut or a `ui/` change reshapes them.
 | `SHELL_ROOT` (`/apps`) | The address root that every desk v2 page lives under |
 | Shell page | Serves the one built `index.html` for `/apps` and each claimed prefix, after a permission check. The website router finds it through the `page_renderer` hook |
 | Built document cache | Keeps the built `index.html` in memory until its file changes |
-| `app_prefix` hook | The address prefix an app claims, for example `desk` |
+| [`app_prefix`](./CONTEXT.md#prefix) hook | Where an app declares its prefix, for example `desk` |
 | `app_modular` hook | Whether an app's record addresses include the module |
 | Prefix registry | Map of prefix to app, cached per site, cleared on app install |
 | Shell path helpers | Split an `/apps/...` path into prefix and rest, and find its app |
 | `app_permission` hook | Who may enter an app's prefix. Missing means "is a System User" |
 | `guard_prefix` | Sends a guest to login, or refuses a user without app permission |
-| Boot payload | The keys every page gets at start, plus the app's own keys |
+| [Boot](./CONTEXT.md#boot) payload | Built by the server for each prefix |
 | `app_boot` hook | An app adds its own boot keys. A failing one is dropped and logged |
 | `add_to_apps_screen` hook | Title and logo of an app tile on `/apps` |
 | Boot key limit | Logs any boot key over 100 KB |
 | `metadata_version` | Boot key that changes when doctypes change |
 | Address table | Each doctype and module mapped to its slug and owning app. One server cache key |
-| `slug` | `Sales Order` to `sales-order` |
+| [`slug`](./CONTEXT.md#slug) | The function that makes a doctype's slug |
 | Address clash guard | Refuses a DocType or Module name whose slug clashes with a page |
 | Reserved route guard | Refuses any website route that starts with `apps` |
 | Prefix check on install | Refuses an app whose prefix is taken or malformed |
@@ -220,7 +223,7 @@ component group, with its main names.
 
 | Concept | What it is |
 | --- | --- |
-| Boot (`Boot`, `fetchBoot`, `BootUnauthorized`) | The small start-up payload for a prefix. Nothing draws before it |
+| [Boot](./CONTEXT.md#boot) (`Boot`, `fetchBoot`, `BootUnauthorized`) | Nothing draws before it |
 | Navigation shapes (`NavigationItem`, `Navigation`) | One rail or sidebar row, and the rail plus every sidebar |
 | Address table (`fetchAddresses`) | Each doctype's slug and module, keyed by `metadata_version` |
 | Route builders (`routeFor`, `routeForModule`, `urlFor`, `isModular`) | Build a link to a list, a record or a module. Honour page replacements |
@@ -232,7 +235,7 @@ component group, with its main names.
 | Latest reply wins | *New.* One helper for the desk's "only the newest answer counts" guards. `ui/` keeps its own, because it may not use this layer |
 | Per-user browser memory | *New.* One helper for every value kept in browser storage for one user |
 | `virtual:frappe/contributions` | The build's index of every app's contributed files |
-| Contributions (`Contributions`, `DoctypeContribution`, `RecordHandlers`) | Everything an app may add: doctype handlers, pages, item kinds, replacements |
+| [Contributions](./CONTEXT.md#contribution) (`Contributions`, `DoctypeContribution`, `RecordHandlers`) | Everything an app may add: doctype handlers, pages, item kinds, replacements |
 | List handlers (`listHandlersFor`) | Per-doctype list changes, such as extra columns |
 | Page registrations (`pages`, `replacementFor`) | The page for each address. Standard pages are the default registration; an app's page replaces one. The last app wins |
 | Item kinds and the item contract (`itemRenderers`, `ItemRenderer`, `Rendering`, `ItemContext`) | What an app's `item.js` implements to draw a navigation item. The last app wins |
@@ -286,23 +289,23 @@ component group, with its main names.
 | `createRecordPage` | Builds `page` and every surface for one record, fires events, runs the replay |
 | `RecordPageHost` | The contract a page fills: document, save, tabs, feeds, composer. The engine draws nothing |
 | Script registry | The registered handlers per doctype and source |
-| Source context | Which source is registering or running now |
-| `Surface` | A list surface records a script's acts and replays them over the built-ins |
+| [Source](./CONTEXT.md#source) context | Which source is registering or running now |
+| [`Surface`](./CONTEXT.md#surface) | The class behind each list surface |
 | Staging | Acts wait during a replay and appear at one commit |
 | Paint gate | When the page first paints, how a late `onRefresh` lands, and the one repaint for background reads on a return visit |
 | Held acts | *Changed.* One queue for the acts a script asks for during a replay (open, close, tab, focus, scroll). They run after the commit |
-| Commit channel | Turns a field change into a handler key (`qty`, `items.qty`, `items.onAdd`) and runs it |
-| Field and form tab overlays | Changes keyed by fieldname or tab identity |
+| [Commit](./CONTEXT.md#commit) channel | Turns a field change into a handler key (`qty`, `items.qty`, `items.onAdd`) and runs it |
+| [Field](./CONTEXT.md#field-overlay) and form tab overlays | Changes keyed by fieldname or tab identity |
 | Header projection | Turns the header list into two zones, nesting and overflow |
 | Frame and body projection | Orders frame bands and works out body column widths |
 | Form join | Joins the Details layout with the parts a script adds |
 | Form layout source (`useFormLayout`) | One fetch per doctype and layout type; picks the matching row. Clears itself on `doctype_update` |
 | Script loader | One loader per doctype for file scripts and stored scripts. Reloads when a stored script changes |
 | Page permissions | Rights, roles and field access, ready before handlers run |
-| Read-only guard | Objects handed to scripts refuse writes and name the verb to use |
+| Read-only guard | The proxy behind the [read-only view](./CONTEXT.md#read-only-view) |
 | Error reports | One Error Log row per script failure, by tier |
 | Page dialogs | The engine behind `page.dialog` |
-| Row handles | Child row handles that find their row again, and refuse once it is gone |
+| [Row handles](./CONTEXT.md#row-handle) | Refuse once their row is gone |
 | Feed surfaces | The engine behind `page.activity` and `page.files` |
 | Composer surface (`ComposerHost`) | `page.composer`, over a host that owns the composer state |
 | Icon and prop hooks (`setIconSource`, `setDrawnProps`) | The record page hands the engine an icon lookup and frappe-ui's `Button` prop names when it registers. Both halves are one concept |
@@ -336,9 +339,9 @@ component group, with its main names.
 | Record feeds (`RecordFeeds`) | The data behind `page.activity` and `page.files`, with the feed's first-paint functions |
 | Record tabs (`RecordTabsHost`, `useRecordTabs`) | The four built-in tabs, and the tab named in the address |
 | Panel context (`PanelContextKey`, `DocInfo`) | What the built-in panel sections read |
-| Panel entries | Joins panel items with the Side Panel layout |
-| Panel disclosure | Which panel sections are open |
-| Built-in actions | Framework quick actions and menu rows, offered by right |
+| [Panel](./CONTEXT.md#panel) entries | Joins panel items with the Side Panel layout |
+| Panel [disclosure](./CONTEXT.md#disclosure) | Which panel sections are open |
+| [Built-in](./CONTEXT.md#built-in) actions | Framework quick actions and menu rows, offered by right |
 | Composer host (`composerHost`, `openWriterContext`) | Joins `page.composer` to the shell's composer, and gives a writer its record |
 | Writers | *Changed.* One pipeline for the comment and email writers and their drafts |
 | Body columns | Column widths and collapse, per user |
@@ -355,20 +358,20 @@ the reference for each `page` member.
 | Concept | What it is |
 | --- | --- |
 | File script (`record.js`) | An app's `export default { ... }` handlers for a doctype |
-| Stored script | A `Client Script` row with `view = Record`. The same module shape, run from the database |
-| Tiers and run order | The owner app's handlers, then other apps' file scripts, then stored scripts. Later tiers win |
+| Stored script | A [`Client Script`](./CONTEXT.md#client-script) row: the same module shape as a file script, run from the database |
+| Tiers and [run order](./CONTEXT.md#run-order) | The owner app's handlers, then other apps' file scripts, then stored scripts. Later tiers win |
 | `*` doctype key | Handlers that run on every record, before the doctype's own |
-| Handlers and `Handler` | Keys are event names or fieldnames; each value is `(page, row?)` |
+| [Handlers](./CONTEXT.md#handler) and `Handler` | `Handler` is the type of one handler |
 | Lifecycle events | `onRefresh`, `beforeSave`, `afterSave`, `onTabChange`, `onFormTabChange`, `onPost` |
 | Field change handler | A fieldname key runs when that field's value changes |
-| Child table block | Handlers under a table fieldname: field keys, `onAdd`, `onRemove` |
+| Child [table handlers block](./CONTEXT.md#table-handlers-block) | Handlers under a table fieldname: field keys, `onAdd`, `onRemove` |
 | `SAVE_VETO` | Throwing in `beforeSave` cancels the save and keeps the draft |
-| Document (`page.doc`, `page.saved`, `page.isDirty`, `page.doctype`, `page.docname`) | The draft, the last saved copy, and whether they differ |
+| [Document](./CONTEXT.md#record) (`page.doc`, `page.saved`, `page.isDirty`, `page.doctype`, `page.docname`) | `page.isDirty` says whether the draft differs from the saved copy |
 | `page.meta` | The doctype meta, read-only |
 | Rights (`page.perms`, `page.roles`, `page.fieldAccess()`) | The user's rights, roles, and field access |
 | Page acts (`page.save()`, `page.reload()`, `page.refresh()`, `page.call()`, `page.router`, `page.toast`) | Save, re-read, re-run `onRefresh`, call a method, navigate, show a toast |
-| Surface verbs (`add`, `hide`, `show`, `update`, `move`, `has`, `order`, `clear`, `Position`) | The same verbs on every list surface |
-| Built-in item names | The names a script hides or moves: frame, body, tabs, panel sections, actions, writers |
+| [Surface](./CONTEXT.md#surface) verbs (`add`, `hide`, `show`, `update`, `move`, `has`, `order`, `clear`, `Position`) | The same verbs on every list surface |
+| [Built-in](./CONTEXT.md#built-in) item names | The names a script hides or moves: frame, body, tabs, panel sections, actions, writers |
 | `page.quickActions`, `page.header`, `page.frame`, `page.body`, `page.tabs`, `page.panelSections` | The regions of the page around the form |
 | `page.form`, `page.form.tabs`, `page.fields`, `page.rows()` | The Details form, its tabs, field properties, and child rows |
 | `page.activity`, `page.files`, `page.composer`, `page.dialog` | The feed, the attachments, the writers, and dialogs |
@@ -404,10 +407,10 @@ A script reaches the rest of the desk only through the `page` object it is hande
 | `build_shell` | `bench build` writes the manifest, installs packages if needed, builds once, and swaps the output in |
 | One vite config | One build for all apps, served at `/assets/frappe/frontend/` |
 | Aliases (`@/`, `@shell`) | `@/` is private to the framework; `@shell` gives app files the desk names |
-| Manifest | The apps that add to the desk, their folders and packages. The part the bundler needs moves here from `frappe/shell/` |
-| Shared packages (singletons) | Packages every app must share one copy of. A conflict stops the build |
+| [Manifest](./CONTEXT.md#manifest) | The part the bundler needs moves here from `frappe/shell/` |
+| Shared packages ([singletons](./CONTEXT.md#singleton)) | `enforce_singletons` checks them at build time |
 | `desk.package.json` | An app's declared frontend packages, merged into one `package.json` and lockfile |
-| Contribution layout and discovery | The file paths that count as contributions, and the walk that finds them |
+| [Contribution layout](./CONTEXT.md#kind) and discovery | The file paths that count as contributions, and the walk that finds them |
 | Replacement pages (`pages.json`) | A doctype's `pages.json` replaces its standard list or record page |
 | Page clash warnings | Warns when a page slug equals a doctype or module slug |
 | Shared `node_modules` | An app's bare imports resolve from the framework's `node_modules`, only if the app declares them |
@@ -545,6 +548,79 @@ that copy in the same tab, and the page shows "no permission" once the server re
 | 7 | A saved, reordered or deleted script sends `client_script_changed` to the site room. The loader drops its entry, and an open record page with no unsaved edits re-runs its scripts | 1, 7, 8 | The site room admits System Users only | The doctype's entry is dropped |
 
 **Budget:** the first paint waits at most 500 ms for stored scripts.
+
+## Guardrails
+
+These rules keep the code to what this file describes. A rule that a tool can check has a CI check.
+A rule that no tool checks well is a fixed question in every review. Each map close runs
+a review of the whole desk. The [guardrails ruling](https://github.com/frappe/frappe/issues/43433)
+made each choice here.
+
+**A check compares against a baseline.** The baseline is today's count, kept in a file. A
+PR may lower a count. A PR that raises a count fails, unless the same PR edits the
+baseline, so the reviewer sees the raise in the diff. A PR that lands a cut lowers the
+baseline in the same PR.
+
+**The CI checks**
+
+| Rule | The check fails when | Where it runs | Baseline |
+| --- | --- | --- | --- |
+| A layer uses only the layers it may use, and `ui/` uses no desk code | An import goes to a layer that the layer file does not allow | Frontend workflow. *Being built* in [the structure checks](https://github.com/frappe/frappe/issues/43499) | The known breaks in `frontend/architecture/layers.json`, each with the ticket that removes it |
+| No new group of folders imports each other | A new group appears, or one of today's 7 groups grows | Frontend workflow. *Being built* | Today's 7 groups |
+| A new concept needs a ruling | A name exported across a folder boundary is not in its layer's concept table above | Frontend workflow. *Being built* | Today's exports that no row names |
+| Framework code outside `frappe/shell/` does not use the desk server | Code in `frappe/` outside `frappe/shell/` imports `frappe.shell` | Python tests. *Being built* | `frappe/utils/data.py` and `frappe/bundler.py` |
+| Every test file runs | A test file under `frontend/` or `ui/` matches no vitest pattern | Frontend workflow, `yarn test:files` | None |
+| A page's JS does not grow past its baseline | A page's JS is more than 5 KB gzip above its baseline | UI workflow, `yarn test:page-js` | `frontend/speed-budgets.json` |
+| A page does not send more API calls than its baseline | A cold load of home, list or record, or a save, sends more API calls than its baseline. There is no tolerance | UI workflow, the Cypress spec `desk_v2_api_calls.js` | `frontend/speed-budgets.json` |
+
+CI will also print the files that each flow's entry file reaches, but will not fail on the
+count. *Being built* with the structure checks. A fail on file count pushes code into fewer, larger files. CI does not check
+timings, because they change from one CI run to the next. There is no CI limit on the
+count of concepts in a layer, because the concept tables are closed lists.
+
+**The budgets.** The baselines move down to these targets. All times are at a 4x slower
+CPU.
+
+| Page or flow | Target |
+| --- | --- |
+| Every page | First paint 300 ms or less. Boot 15 KB or less. Layout shift 0.1 or less. No call sent twice |
+| Home, cold | 400 ms, 4 calls, 300 KB JS |
+| List, cold | 600 ms, 7 calls, 320 KB JS |
+| Record, cold | 700 ms, 9 calls, 460 KB JS |
+| Return visit to any page | No skeleton frame, 50 ms or less |
+| Save | The call count measured when the check was added. No time target until the save shows a confirmation |
+
+When a page meets its budget, the simpler code wins over more speed.
+
+**The review questions.** No tool checks these rules well. Every review brief asks:
+
+1. Does this PR add a second way to do a job that one mechanism already does?
+2. Does it add a timing guard: a counter, a debounce, a gate or a fetch-once flag?
+3. Does it add a DocType, a route, a store or a lifecycle event that is not in the concept tables?
+4. Can this be done with fewer concepts or less code?
+
+**The cost line.** Every build PR's description states six fields. A field that does not
+apply says "none". The ticket's resolution links to it. The review subagent checks the
+fields. CI does not.
+
+1. Concepts added and removed, by name from the concept tables.
+2. Pairs of mechanisms that do the same job, added or removed.
+3. The change in files per flow: boot, open a list, open a record, save, load a script.
+4. The change in API calls and JS bytes for each page the PR touches.
+5. The permission check for each new way in to the server or the data.
+6. The cache key and the clear rule for each new cache.
+
+**The whole-desk review at each map close.** The session that closes a map starts a fresh
+subagent and gives it none of the session's reasoning. The subagent reads this file, the
+layer file, the output of the checks against the baselines, and the git diff for the life
+of the map. It runs the [return-visit walk](./walks/README.md) at a 4x slower CPU for
+timings, return visits, layout shift and save time. Today the walk counts skeletons and
+redraws on return visits only. The CPU setting, timings, layout shift and save time are
+not built yet. It counts files per flow and concepts
+per layer. It posts one comment on the root map, [Desk v2](https://github.com/frappe/frappe/issues/42061):
+the counts before and after, new concepts, new pairs that do one job, and each place where
+the code left this file. The user rules on each finding. Each accepted finding becomes a
+ticket on the map that owns its area. A map does not close until the comment is posted.
 
 ## Where the code is not there yet
 

@@ -86,8 +86,8 @@ field's design belongs in its ticket.
 ### Shape
 
 - Clean over clever. Object-oriented where the domain has objects.
-- Functions small, around 10 lines. Main function first, helpers below it in call order.
-- Files between 100 and 300 lines. Directories under 15 files.
+- One job per function and per file. Split a file when it holds two concepts, not when it is long.
+- Main function first, helpers below it in call order.
 - No abbreviations. Prefer a standard API to a hand-rolled one.
 - Logic two pages share belongs in a module under `composables/` or `data/`, not in both.
 - Build the minimum that works, then iterate. Add a dependency only when it is required.
@@ -97,6 +97,16 @@ field's design belongs in its ticket.
 Run `/quality-code-review` **in a fresh subagent**, never in the session that wrote the
 diff. Give it only the diff range, the checklist, this file, the layer's `CLAUDE.md`, and
 the ticket's question with the rulings it must not re-open; not the session's reasoning.
+The brief also asks four fixed questions, from the
+[Guardrails](./frontend/ARCHITECTURE.md#guardrails) of `frontend/ARCHITECTURE.md`:
+
+1. Does this PR add a second way to do a job that one mechanism already does?
+2. Does it add a timing guard: a counter, a debounce, a gate or a fetch-once flag?
+3. Does it add a DocType, a route, a store or a lifecycle event that is not in the concept tables?
+4. Can this be done with fewer concepts or less code?
+
+For a build PR, the reviewer also checks the six-field
+[cost line](./frontend/ARCHITECTURE.md#guardrails) in the PR description.
 Answer every finding, and close one that contradicts a ruling with the ruling. Then read
 your diff against the comment rule above. For a change that is comments only, `.github/helper/comment_equivalence.py` proves it: it strips
 comments from both revisions and asserts the remaining code is identical.
