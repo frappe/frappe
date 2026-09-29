@@ -1,6 +1,7 @@
 import datetime
 import re
 from contextlib import contextmanager
+from decimal import Decimal
 
 import psycopg2
 import psycopg2.extensions
@@ -882,6 +883,12 @@ def _copy_encode(value):
 		return "1"
 	if value is False:
 		return "0"
+	if isinstance(value, float) and value.is_integer():
+		# INSERT sends 1.0 as a numeric literal that an Int or Check column casts; COPY rejects "1.0".
+		return str(int(value))
+	if isinstance(value, bytes | bytearray | memoryview):
+		# bytea hex input, as INSERT sends it, with the backslash escaped for COPY
+		return "\\\\x" + value.hex()
 	if isinstance(value, datetime.timedelta):
 		# Frappe Time fields are timedelta; str() on a >=1 day delta is "1 day, H:MM:SS", which
 		# postgres cannot parse as time. Emit HH:MM:SS[.ffffff] so the COPY text is always valid.
@@ -897,6 +904,8 @@ def _copy_encode(value):
 		minutes, seconds = divmod(remainder, 60)
 		encoded = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 		return f"{encoded}.{microseconds:06d}" if microseconds else encoded
+	if not isinstance(value, str | int | float | Decimal | datetime.date | datetime.time):
+		raise TypeError(f"bulk_insert cannot COPY a {type(value).__name__} value")
 	return str(value).replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n").replace("\r", "\\r")
 
 
