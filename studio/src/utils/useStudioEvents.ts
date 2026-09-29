@@ -4,7 +4,7 @@ import { useEventListener } from "@vueuse/core"
 import blockController from "@/utils/blockController"
 import { isTargetEditable, numberToPx, isHTML } from "@/utils/helpers"
 import { getComponentBlock } from "@/utils/serializer"
-import { copyBlocks, copyBlockStyles, copySelectedBlocks, pasteBlocks, pasteDataSource } from "@/utils/blockCopyPaste"
+import { copyBlocks, copySelectedBlocks, pasteBlocks, pasteDataSource } from "@/utils/blockCopyPaste"
 import Block from "@/utils/block"
 import type { BlockOptions } from "@/types"
 import { toast, useKeyboardShortcut } from "frappe-ui"
@@ -73,8 +73,8 @@ export function useStudioEvents(saveFragmentMode: () => void) {
 		}
 	})
 
-	// Palette commands register their own shortcuts. The shortcuts below are only
-	// for the keyboard, so they are not commands.
+	// Commands register their own shortcuts. The shortcuts below are not commands:
+	// they need the key event or this page, or they are tools, as in Builder.
 	const shortcuts = [
 		...commandShortcuts(),
 		{
@@ -112,39 +112,6 @@ export function useStudioEvents(saveFragmentMode: () => void) {
 			handler: deleteSelection,
 		})),
 		{
-			combo: "Mod+D",
-			description: "Duplicate Block",
-			group: "Edit",
-			handler: () => singleSelectedBlock()?.duplicateBlock(),
-		},
-		{
-			combo: "Mod+Shift+C",
-			description: "Copy Block Styles",
-			group: "Edit",
-			handler: () => {
-				const block = singleSelectedBlock()
-				if (block) copyBlockStyles(block)
-			},
-		},
-		{
-			combo: "Mod+Z",
-			description: "Undo",
-			group: "Edit",
-			handler: () => {
-				const history = canvasStore.activeCanvas?.history
-				if (history?.canUndo()) history.undo()
-			},
-		},
-		{
-			combo: "Mod+Shift+Z",
-			description: "Redo",
-			group: "Edit",
-			handler: () => {
-				const history = canvasStore.activeCanvas?.history
-				if (history?.canRedo()) history.redo()
-			},
-		},
-		{
 			combo: "C",
 			description: "Container Mode",
 			group: "Tools",
@@ -160,10 +127,6 @@ export function useStudioEvents(saveFragmentMode: () => void) {
 	// combos are plain strings here: Studio's frappe-ui import is untyped (src/lib.d.ts)
 	useKeyboardShortcut(shortcuts as Parameters<typeof useKeyboardShortcut>[0])
 }
-
-// duplicate and copy styles act on one block only
-const singleSelectedBlock = () =>
-	blockController.multipleBlocksSelected() ? null : blockController.getFirstSelectedBlock()
 
 const deleteSelection = (e: KeyboardEvent) => {
 	// a selected slot takes precedence over its (also-selected) parent block
