@@ -2913,7 +2913,7 @@ class TestAdvisoryLockMariaDB(IntegrationTestCase):
 		# Exercises the MariaDB GET_LOCK / RELEASE_LOCK path (the Postgres test uses pg_locks).
 		import hashlib
 
-		name = hashlib.sha256(b"frappe-test-lock").hexdigest()
+		name = hashlib.sha256(f"{frappe.db.cur_db_name}:frappe-test-lock".encode()).hexdigest()
 
 		def held():
 			# IS_USED_LOCK returns the connection id holding the lock, or NULL when free.
@@ -2944,6 +2944,17 @@ class TestAdvisoryLockMariaDB(IntegrationTestCase):
 				pass
 
 		self.assertGreaterEqual(len(get_lock_calls), 3)
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_advisory_lock_is_scoped_to_the_database(self):
+		# GET_LOCK names are server-wide: the same key must block this site but not another one.
+		with frappe.db.advisory_lock("frappe-test-lock"), self.secondary_connection():
+			with patch.object(frappe.db, "cur_db_name", "another_site"):
+				with frappe.db.advisory_lock("frappe-test-lock", timeout=0):
+					pass
+			with self.assertRaises(frappe.QueryTimeoutError):
+				with frappe.db.advisory_lock("frappe-test-lock", timeout=0):
+					pass
 
 
 class TestBulkInsertCopy(IntegrationTestCase):
