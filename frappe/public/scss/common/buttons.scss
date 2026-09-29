@@ -81,13 +81,34 @@
 	&:focus {
 		box-shadow: var(--focus-default);
 	}
+
+	// the mixin's hover can't be wrapped: on touch, a tapped button goes back to rest
+	@media (hover: none) {
+		&:hover:not(:active) {
+			background-color: $gray-300;
+			border-color: $gray-800;
+		}
+	}
+}
+
+// hover only with a real pointer: touch keeps :hover on the last button tapped
+@mixin hover-only-with-pointer {
+	@media (hover: hover) {
+		&:hover {
+			@content;
+		}
+	}
 }
 
 .btn.btn-secondary {
 	background-color: var(--control-bg);
 	color: var(--text-color);
 
-	&:hover,
+	@include hover-only-with-pointer {
+		background-color: var(--btn-default-hover-bg);
+		color: var(--text-color);
+	}
+
 	&:active {
 		background-color: var(--btn-default-hover-bg);
 		color: var(--text-color);
@@ -102,7 +123,11 @@
 	background-color: transparent;
 	color: var(--text-color);
 
-	&:hover,
+	@include hover-only-with-pointer {
+		background-color: var(--btn-ghost-hover-bg);
+		color: var(--text-color);
+	}
+
 	&:active {
 		background-color: var(--btn-ghost-hover-bg);
 		color: var(--text-color);
@@ -117,7 +142,12 @@
 	background-color: var(--control-bg);
 	color: var(--text-color);
 
-	&:hover,
+	@include hover-only-with-pointer {
+		background: var(--btn-default-hover-bg);
+		color: var(--text-color);
+		z-index: unset;
+	}
+
 	&:active {
 		background: var(--btn-default-hover-bg);
 		color: var(--text-color);

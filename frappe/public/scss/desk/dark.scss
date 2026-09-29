@@ -61,8 +61,10 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 		.btn-default {
 			background-color: var(--control-bg);
 
-			&:hover {
-				background-color: var(--fg-hover-color);
+			@media (hover: hover) {
+				&:hover {
+					background-color: var(--fg-hover-color);
+				}
 			}
 		}
 	}
