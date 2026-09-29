@@ -67,14 +67,14 @@ def get_unique_index_name(table_name: str, fieldname: str) -> str:
 
 
 # Postgres won't implicitly cast text to these column types, so a type change casts through text.
-# Int goes through numeric so that decimal text converts.
+# Integer types go through numeric so that decimal text converts.
 USING_CASTS = {
 	"date": "date",
 	"timestamp": "timestamp",
 	"time": "time",
 	"json": "json",
 	"decimal": "numeric",
-	"smallint": "smallint",
+	"smallint": "numeric::smallint",
 	"int": "numeric::int",
 	"bigint": "numeric::bigint",
 }
