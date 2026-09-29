@@ -1,3 +1,6 @@
+// the page title is the last breadcrumb
+const TITLE = ".navbar-breadcrumbs:visible li:last-child";
+
 context("Awesome Bar", () => {
 	before(() => {
 		cy.visit("/login");
@@ -39,7 +42,7 @@ context("Awesome Bar", () => {
 		cy.get("@awesome_bar").type("todo");
 		cy.get(".awesomplete").findByRole("listbox").should("be.visible");
 		cy.get("@awesome_bar").type("{enter}");
-		cy.get(".title-text").should("contain", "To Do");
+		cy.get(TITLE).should("contain", "To Do");
 		// Matched on the end rather than the whole path: a desk URL carries the shell it opened
 		// in, and which shell owns ToDo is not what this test is about.
 		cy.location("pathname").should("match", /\/todo$/);
@@ -49,13 +52,13 @@ context("Awesome Bar", () => {
 	// 	cy.get("@awesome_bar").type("test in todo");
 	// 	cy.wait(150); // Wait a bit before hitting enter.
 	// 	cy.get("@awesome_bar").type("{enter}");
-	// 	cy.get(".title-text").should("contain", "To Do");
+	// 	cy.get(TITLE).should("contain", "To Do");
 	// 	cy.wait(400); // Wait a bit longer before checking the filter.
 	// 	cy.get('[data-original-title="ID"]:visible > input').should("have.value", "%test%");
 
 	// 	// filter preserved, now finds something else
 	// 	cy.visit("/desk/todo");
-	// 	cy.get(".title-text").should("contain", "To Do");
+	// 	cy.get(TITLE).should("contain", "To Do");
 	// 	cy.wait(200); // Wait a bit longer before checking the filter.
 	// 	cy.get('[data-original-title="ID"]:visible > input').as("filter");
 	// 	cy.get("@filter").should("have.value", "%test%");
@@ -72,7 +75,7 @@ context("Awesome Bar", () => {
 		cy.get("@awesome_bar").type("web page");
 		cy.wait(150); // Wait a bit before hitting enter.
 		cy.get("@awesome_bar").type("{enter}");
-		cy.get(".title-text").should("contain", "Web Page");
+		cy.get(TITLE).should("contain", "Web Page");
 		cy.location("search").should("be.empty");
 	});
 
@@ -80,7 +83,7 @@ context("Awesome Bar", () => {
 		cy.get("@awesome_bar").type("new web page");
 		cy.wait(150); // Wait a bit before hitting enter
 		cy.get("@awesome_bar").type("{enter}");
-		cy.get(".title-text-form:visible").should("have.text", "New Web Page");
+		cy.get(TITLE).should("have.text", "New Web Page");
 	});
 
 	it("calculates math expressions", () => {
