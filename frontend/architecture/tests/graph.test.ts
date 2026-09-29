@@ -86,4 +86,17 @@ describe("buildGraph", () => {
 	it("finds folders that import each other", () => {
 		expect(graph.folderCycles).toEqual([["frontend/src/list", "frontend/src/pages"]]);
 	});
+
+	it("reads a repo where nothing names frappe.shell", () => {
+		const bare = fs.mkdtempSync(path.join(os.tmpdir(), "desk-graph-bare-"));
+		try {
+			fs.mkdirSync(path.join(bare, "ui"));
+			fs.writeFileSync(path.join(bare, "ui/package.json"), "{}");
+			execFileSync("git", ["init", "-q"], { cwd: bare });
+			execFileSync("git", ["add", "."], { cwd: bare });
+			expect(buildGraph(bare).edges).toEqual([]);
+		} finally {
+			fs.rmSync(bare, { recursive: true, force: true });
+		}
+	});
 });

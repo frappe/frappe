@@ -68,12 +68,8 @@ function main() {
 }
 
 function git(root, args) {
-  try {
-    return execFileSync("git", args.split(" "), {
-      cwd: root,
-      encoding: "utf8",
-    }).trim();
-  } catch {
-    return "";
-  }
+  return execFileSync("git", args.split(" "), {
+    cwd: root,
+    encoding: "utf8",
+  }).trim();
 }

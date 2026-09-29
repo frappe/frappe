@@ -227,9 +227,10 @@ export class Sources {
         encoding: "utf8",
       });
       return out.split("\n").filter(Boolean);
-    } catch {
-      // git grep exits non-zero when nothing matches.
-      return [];
+    } catch (error) {
+      // git grep exits 1 when nothing matches; any other failure is real.
+      if (error.status === 1) return [];
+      throw error;
     }
   }
 
