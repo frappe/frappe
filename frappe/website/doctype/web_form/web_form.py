@@ -1234,7 +1234,7 @@ def get_link_options(
 	allow_read_on_all_link_options=False,
 	web_form_request_key=None,
 	docname=None,
-	link_filters: str | None = None,
+	link_filters=None,
 ):
 	web_form: WebForm = frappe.get_cached_doc("Web Form", web_form_name)
 
