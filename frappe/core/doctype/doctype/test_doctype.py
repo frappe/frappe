@@ -24,8 +24,10 @@ from frappe.core.doctype.doctype.doctype import (
 )
 from frappe.core.doctype.rq_job.test_rq_job import wait_for_completion
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+from frappe.database.schema import DBTable
 from frappe.desk.form.load import getdoc
 from frappe.model.delete_doc import delete_controllers
+from frappe.model.meta import Meta
 from frappe.model.sync import remove_orphan_doctypes
 from frappe.modules.import_file import import_doc
 from frappe.tests import IntegrationTestCase
@@ -61,6 +63,11 @@ class TestDocType(IntegrationTestCase):
 		doctype = new_doctype("Test " + "x" * 56).as_dict()
 		with patch.dict(frappe.local.flags):
 			self.assertRaises(frappe.NameError, import_doc, doctype)
+
+	@skipIf(frappe.conf and frappe.conf.db_type != "postgres", "Only for Postgres")
+	def test_table_name_check_skips_virtual_doctypes(self):
+		doctype = new_doctype("Test " + "x" * 56, is_virtual=1)
+		DBTable(doctype.name, Meta(doctype)).validate()
 
 	@skipIf(
 		frappe.conf and frappe.conf.db_type == "sqlite",
