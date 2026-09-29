@@ -457,6 +457,22 @@ class TestDBUpdate(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_column_type(referring_doctype.name, link), "uuid")
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_uuid_link_field_on_alter(self):
+		uuid_doctype = new_doctype().update({"autoname": "UUID"}).insert()
+		target = frappe.new_doc(uuid_doctype.name).insert()
+		doctype = new_doctype(fields=[{"fieldname": "link_field", "fieldtype": "Data"}]).insert()
+		linked = frappe.get_doc(doctype=doctype.name, link_field=target.name).insert()
+		blank = frappe.get_doc(doctype=doctype.name, link_field="").insert()
+
+		doctype.fields[0].fieldtype = "Link"
+		doctype.fields[0].options = uuid_doctype.name
+		doctype.save()
+
+		self.assertEqual(frappe.db.get_column_type(doctype.name, "link_field"), "uuid")
+		self.assertEqual(frappe.db.get_value(doctype.name, linked.name, "link_field"), target.name)
+		self.assertIsNone(frappe.db.get_value(doctype.name, blank.name, "link_field"))
+
 	def test_varchar_length(self):
 		from frappe.database.schema import add_column
 
