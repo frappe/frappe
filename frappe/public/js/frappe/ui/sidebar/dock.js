@@ -120,14 +120,15 @@ frappe.ui.Dock = class Dock {
 		this.apply_pinned();
 	}
 
-	// A page that hides the sidebar, such as POS or Shop Floor, is asking for the full width, so
-	// a pointer gets the floating dock there whatever the preference. A touch screen cannot summon
-	// a floating dock, and on such a page it has no sidebar switcher either, so there the dock is
-	// pinned: it is the only way left to another app.
+	// The preference holds on every page that shows the dock, including one that hides the
+	// sidebar: the user expects their dock there. A page that wants the full width passes
+	// `hide_dock` as well. The one exception is a touch screen on a page without the sidebar,
+	// which cannot summon a floating dock and has no sidebar switcher either, so the dock is
+	// pinned there: it is the only way left to another app.
 	should_pin() {
 		if (!this.enabled) return false;
-		if (this.sidebar.current_page()?.hide_sidebar) return !frappe.ui.Dock.pointer_can_reveal();
-		return this.pinned;
+		if (this.pinned) return true;
+		return !!this.sidebar.current_page()?.hide_sidebar && !frappe.ui.Dock.pointer_can_reveal();
 	}
 
 	apply_pinned() {
