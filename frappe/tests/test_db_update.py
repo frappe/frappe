@@ -374,6 +374,24 @@ class TestDBUpdate(IntegrationTestCase):
 			f"show index from `tab{doctype}` where column_name = binary %s and Non_unique = 0", column
 		)
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_drop_unique_with_truncated_constraint_name(self):
+		"""Unique indexes are found by column, as postgres truncates long constraint names"""
+		doctype = new_doctype(
+			"Test Unique Drop " + frappe.generate_hash(length=25),
+			fields=[
+				{"fieldname": "membership_card_number", "fieldtype": "Data", "unique": 1},
+				{"fieldname": "membership_card_serial", "fieldtype": "Data", "unique": 1},
+			],
+		).insert()
+
+		doctype.fields[0].unique = 0
+		doctype.fields = [f for f in doctype.fields if f.fieldname != "membership_card_serial"]
+		doctype.save()
+
+		for fieldname in ("membership_card_number", "membership_card_serial"):
+			self.assertFalse(get_table_column(doctype.name, fieldname).unique, msg=fieldname)
+
 	def test_uuid_varchar_migration(self):
 		doctype = new_doctype().insert()
 		doctype.autoname = "UUID"
