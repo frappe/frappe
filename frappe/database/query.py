@@ -284,7 +284,6 @@ class Engine:
 		self.reference_doctype = reference_doctype
 		self.apply_permissions = not ignore_permissions
 		self.ignore_user_permissions = ignore_user_permissions
-		self.function_aliases = set()
 		self.field_aliases = set()
 		self.db_query_compat = db_query_compat
 		self.permitted_fields_cache = {}  # Cache for get_permitted_fields results
@@ -399,13 +398,13 @@ class Engine:
 	def apply_fields(self, fields, cast_json_columns: bool = False):
 		self.fields = self.parse_fields(fields)
 
+		if self.apply_permissions:
+			self.fields = self.apply_field_permissions()
+
 		# Track field aliases for use in group_by/order_by
 		for field in self.fields:
 			if alias := getattr(field, "alias", None):
 				self.field_aliases.add(alias)
-
-		if self.apply_permissions:
-			self.fields = self.apply_field_permissions()
 
 		if not self.fields:
 			self.fields = [self.table.name]
@@ -1472,8 +1471,15 @@ class Engine:
 		if field_name.isdigit():
 			return int(field_name)
 
-		# Allow function aliases and field aliases - return as Field (no table prefix)
-		if field_name in self.function_aliases or field_name in self.field_aliases:
+		# Allow select-list aliases - return as Field (no table prefix)
+		if field_name in self.field_aliases:
+			# GROUP BY binds a name to the table column before the select-list alias; ORDER BY does not
+			if (
+				clause_name == "Group By"
+				and self.apply_permissions
+				and field_name in frappe.get_meta(self.doctype).get_valid_columns()
+			):
+				self.check_filter_field_permission(self.doctype, field_name)
 			return Field(field_name)
 
 		# Parse backtick table.field notation: `tabDocType`.`fieldname`
@@ -2593,7 +2599,6 @@ class SQLFunctionParser:
 			)
 
 		if alias:
-			self.engine.function_aliases.add(alias)
 			return function_call.as_(alias)
 		else:
 			return function_call
@@ -2634,7 +2639,6 @@ class SQLFunctionParser:
 		expression = ArithmeticExpression(operator=operator, left=left, right=right)
 
 		if alias:
-			self.engine.function_aliases.add(alias)
 			return expression.as_(alias)
 		else:
 			return expression

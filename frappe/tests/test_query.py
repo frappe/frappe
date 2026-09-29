@@ -2640,6 +2640,46 @@ class TestQuery(IntegrationTestCase):
 		# If we get here without PermissionError, the test passes
 		self.assertIn(self.normalize_sql("GROUP BY `created_date`"), self.normalize_sql(sql))
 
+	def test_restricted_field_alias_in_clauses(self):
+		with setup_patched_blog_post(), setup_test_user(set_user=True):
+			for clause in ("order_by", "group_by"):
+				with self.subTest(clause=clause), self.assertRaises(frappe.PermissionError):
+					frappe.qb.get_query(
+						"Test Blog Post",
+						fields=["name", "published as published"],
+						ignore_permissions=False,
+						**{clause: "published"},
+					)
+
+	def test_nested_function_alias_in_clauses(self):
+		with setup_patched_blog_post(), setup_test_user(set_user=True):
+			with self.assertRaises(frappe.PermissionError):
+				frappe.qb.get_query(
+					"Test Blog Post",
+					fields=["name", {"COUNT": [{"ABS": "idx", "as": "published"}]}],
+					group_by="name",
+					order_by="published",
+					ignore_permissions=False,
+				)
+
+	def test_alias_named_after_restricted_column_in_group_by(self):
+		with setup_patched_blog_post(), setup_test_user(set_user=True):
+			with self.assertRaises(frappe.PermissionError):
+				frappe.qb.get_query(
+					"Test Blog Post",
+					fields=[{"COUNT": "*", "as": "published"}],
+					group_by="published",
+					ignore_permissions=False,
+				)
+
+			# ORDER BY resolves the name to the select-list alias, so it stays allowed
+			frappe.qb.get_query(
+				"Test Blog Post",
+				fields=["name", "title as published"],
+				order_by="published desc",
+				ignore_permissions=False,
+			).run()
+
 	def test_between_datetime_expansion(self):
 		"""Test that date strings are expanded to datetime ranges for Datetime fields with 'between' operator"""
 		# Test with creation field (standard datetime field)
