@@ -584,7 +584,7 @@ from {tables}
 
 		args.fields = ", ".join(fields)
 		self.quote_order_by_and_group_by()
-		
+
 		self.set_order_by(args)
 
 		self.validate_order_by_and_group_by(args.order_by)

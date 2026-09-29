@@ -87,8 +87,6 @@ class TestDBQuery(FrappeTestCase):
 			with self.subTest(order_by=order_by):
 				frappe.get_all("ToDo", fields=["name"], order_by=order_by, limit=1)
 
-
-
 	def test_extract_tables(self):
 		db_query = DatabaseQuery("DocType")
 		add_custom_field("DocType", "test_tab_field", "Data")
