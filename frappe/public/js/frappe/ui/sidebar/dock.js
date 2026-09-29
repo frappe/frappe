@@ -54,7 +54,10 @@ frappe.ui.Dock = class Dock {
 		this.sidebar = sidebar;
 		this.is_open = false;
 		this.enabled = false;
+		// The user's preference. Whether the dock is pinned on the page on screen is `is_pinned`,
+		// which apply_pinned works out from this and the page.
 		this.pinned = frappe.boot.desk_settings?.dock_mode === "Pinned";
+		this.is_pinned = false;
 		// Whatever held focus when the keyboard opened the dock, so closing it can hand focus back
 		// the way a menu does. Null when the pointer opened it, since the pointer never takes
 		// focus away from anything.
@@ -109,12 +112,29 @@ frappe.ui.Dock = class Dock {
 		this.setup_reveal();
 		this.setup_shortcut();
 		this.apply_open_state();
-		$("body").toggleClass("dock-pinned", this.pinned);
 	}
 
 	// Called by the settings dialog, so the switch moves the dock without a reload.
 	set_pinned(pinned) {
 		this.pinned = pinned;
+		this.apply_pinned();
+	}
+
+	// A page that hides the sidebar, such as POS or Shop Floor, is asking for the full width, so
+	// a pointer gets the floating dock there whatever the preference. A touch screen cannot summon
+	// a floating dock, and on such a page it has no sidebar switcher either, so there the dock is
+	// pinned: it is the only way left to another app.
+	should_pin() {
+		if (!this.enabled) return false;
+		if (this.sidebar.current_page()?.hide_sidebar) return !frappe.ui.Dock.pointer_can_reveal();
+		return this.pinned;
+	}
+
+	apply_pinned() {
+		const pinned = this.should_pin();
+		if (pinned === this.is_pinned) return;
+		// Set before opening or closing, since `close` refuses while the dock is pinned.
+		this.is_pinned = pinned;
 		$("body").toggleClass("dock-pinned", pinned);
 		pinned ? this.open() : this.close();
 	}
@@ -164,7 +184,7 @@ frappe.ui.Dock = class Dock {
 		$(document)
 			.off(".dock-edge")
 			.on("mousemove.dock-edge", (e) => {
-				if (!this.enabled || this.pinned) return;
+				if (!this.enabled || this.is_pinned) return;
 				// Almost every move the desk sees happens with the dock shut and the pointer away
 				// from the edge, and for those `should_show` can only answer "stay shut": a shut
 				// dock is off screen and inert, so it can be neither under the pointer nor holding
@@ -224,7 +244,7 @@ frappe.ui.Dock = class Dock {
 	}
 
 	toggle_from_keyboard() {
-		if (this.is_open && !this.pinned) {
+		if (this.is_open && !this.is_pinned) {
 			this.close();
 			return;
 		}
@@ -280,7 +300,7 @@ frappe.ui.Dock = class Dock {
 
 	// A pinned dock has nowhere to go, so every way of dismissing it lands here and stops.
 	close() {
-		if (!this.is_open || this.pinned) return;
+		if (!this.is_open || this.is_pinned) return;
 		// Focus inside a dock about to turn inert would fall to <body>, so it goes back to
 		// whatever the keyboard opened the dock from, when that is still on the page.
 		const had_focus = this.holds_focus();
@@ -322,6 +342,7 @@ frappe.ui.Dock = class Dock {
 		// any more -- the dock arrives on top rather than beside -- but the class is what the edge
 		// test reads to know whether there is anything to summon, and what other code asks.
 		$("body").toggleClass("dock-active", this.enabled);
+		this.apply_pinned();
 
 		if (!this.enabled) {
 			this.$dock.addClass("hidden");
@@ -330,7 +351,6 @@ frappe.ui.Dock = class Dock {
 			return;
 		}
 		this.$dock.removeClass("hidden");
-		if (this.pinned) this.open();
 
 		// One navigation calls this up to three times: once from the router and twice from
 		// Sidebar.refresh(), its own call plus the one inside apply_page_visibility. Each call

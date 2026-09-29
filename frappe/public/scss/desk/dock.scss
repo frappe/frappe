@@ -275,6 +275,19 @@ body.dock-pinned .dock {
 	border-radius: 0;
 	box-shadow: none;
 	border-right: 1px solid var(--outline-gray-1);
+	// The tiles scroll, not the column, so the app mark and the avatar under them stay in view on
+	// a short window: the avatar is the only way to Settings and Logout while the dock is pinned.
+	overflow: hidden;
+
+	.dock-items {
+		min-height: 0;
+		overflow-y: auto;
+		scrollbar-width: none;
+
+		&::-webkit-scrollbar {
+			display: none;
+		}
+	}
 
 	// Beside the sidebar, the glyphs come down a step toward its rows' icons.
 	.dock-item svg,
