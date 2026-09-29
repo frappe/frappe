@@ -69,6 +69,7 @@ function main() {
 }
 
 // Links go to the commit the page was built from, on the remote the branch tracks, else origin.
+// Only GitHub's link format is known; any other forge gets plain paths.
 export function sourceBase(root) {
   const branch = git(root, "rev-parse --abbrev-ref HEAD");
   const tracked = git(
@@ -79,12 +80,16 @@ export function sourceBase(root) {
     tracked ||
     (git(root, "remote").split("\n").includes("origin") ? "origin" : "");
   if (!remote) return null;
-  const web = git(root, `remote get-url ${remote}`)
-    .replace(/^git@([^:]+):/, "https://$1/")
-    .replace(/\.git$/, "");
-  return web.startsWith("https://")
-    ? `${web}/blob/${git(root, "rev-parse HEAD")}/`
-    : null;
+  const address = git(root, `remote get-url ${remote}`).replace(
+    /^git@([^:]+):/,
+    "https://$1/"
+  );
+  if (!address.startsWith("https://")) return null;
+  const url = new URL(address);
+  if (url.hostname !== "github.com") return null;
+  const repo = url.pathname.replace(/\.git$/, "").replace(/\/$/, "");
+  // Built from the host and path only, so a token in the remote address never reaches the page.
+  return `https://${url.hostname}${repo}/blob/${git(root, "rev-parse HEAD")}/`;
 }
 
 function git(root, args) {

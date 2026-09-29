@@ -21,14 +21,22 @@ function repo(remote?: string) {
 afterEach(() => repos.splice(0).forEach((root) => fs.rmSync(root, { recursive: true, force: true })));
 
 describe("sourceBase", () => {
-	it("links to the commit on the remote, from an SSH address", () => {
-		const { root, head } = repo("git@example.com:team/app.git");
-		expect(sourceBase(root)).toBe(`https://example.com/team/app/blob/${head}/`);
+	it("links to the commit on GitHub, from an SSH address", () => {
+		const { root, head } = repo("git@github.com:team/app.git");
+		expect(sourceBase(root)).toBe(`https://github.com/team/app/blob/${head}/`);
 	});
 
-	it("links to the commit on the remote, from an HTTPS address", () => {
-		const { root, head } = repo("https://example.com/team/app.git");
-		expect(sourceBase(root)).toBe(`https://example.com/team/app/blob/${head}/`);
+	it("never puts a token from the remote address in the link", () => {
+		const { root, head } = repo("https://user:secret-token@github.com/team/app.git");
+		expect(sourceBase(root)).toBe(`https://github.com/team/app/blob/${head}/`);
+	});
+
+	it("gives no base for a forge whose link format it does not know", () => {
+		expect(sourceBase(repo("https://gitlab.example.com/team/app.git").root)).toBeNull();
+	});
+
+	it("gives no base for a remote that is a local path", () => {
+		expect(sourceBase(repo("/srv/git/app.git").root)).toBeNull();
 	});
 
 	it("gives no base when the checkout has no remote", () => {
