@@ -1,5 +1,5 @@
 // Views C and D, the switcher between the four views, and the page's listeners.
-/* global DATA, INK, VIEWS, ORDER, COLOR, GH, state, esc, md, layerName, idleDetail, select, drawLayers, stats */
+/* global DATA, VIEWS, ORDER, GH, state, esc, md, layerName, layerClass, idleDetail, select, drawLayers, stats */
 function drawFlow() {
 	const flow = DATA.flows[state.flow];
 	const step = flow.steps[state.step];
@@ -10,9 +10,7 @@ function drawFlow() {
 			const on = lit.has(id);
 			const name =
 				id === "index.html" ? __("{0} (inline script)", ["index.html"]) : layerName(id);
-			return `<div class="${on ? "lit" : ""}" style="${
-				on ? `background:${COLOR[id] || COLOR.main}` : ""
-			}">${esc(name)}</div>`;
+			return `<div class="${on ? `lit ${layerClass(id)}` : ""}">${esc(name)}</div>`;
 		})
 		.join("");
 	document.getElementById("view").innerHTML = `
@@ -26,7 +24,7 @@ function drawFlow() {
 					)}</button>`
 			)
 			.join("")}</div>
-		<h2 style="font-size:15px;margin:0 0 4px">${md(flow.title)}</h2>
+		<h2 class="title">${md(flow.title)}</h2>
 		<p class="muted">${__("Budget: {0} Up and down arrows move between steps.", [md(flow.budget)])}</p>
 		<div class="flow"><div>${flow.steps
 			.map(
@@ -36,7 +34,7 @@ function drawFlow() {
 			<span class="n">${esc(s.n)}</span>${md(s.step)}
 			${
 				i === state.step
-					? `<div style="margin-top:6px">
+					? `<div class="more">
 				<div><span class="es-badge">${__("layers {0}", [esc(s.layerText)])}</span>${
 							server
 								? `<span class="es-badge" data-theme="amber">${__(
@@ -44,7 +42,7 @@ function drawFlow() {
 								  )}</span>`
 								: ""
 					  }</div>
-				<div style="margin-top:4px"><b>${__("Permission check:")}</b> ${md(s.check)}</div>
+				<div class="check"><b>${__("Permission check:")}</b> ${md(s.check)}</div>
 				<div><b>${__("Cache and key:")}</b> ${md(s.cache)}</div></div>`
 					: ""
 			}</div>`
@@ -57,9 +55,9 @@ function drawFlow() {
 		<h3>${__("Layers")}</h3><div>${[...lit]
 		.map(
 			(l) =>
-				`<span class="es-badge" style="background:${COLOR[l] || COLOR.main};color:${
-					INK.on
-				}">${esc(l === "index.html" ? l : layerName(l))}</span>`
+				`<span class="es-badge chip ${layerClass(l)}">${esc(
+					l === "index.html" ? l : layerName(l)
+				)}</span>`
 		)
 		.join("")}</div>
 		<h3>${__("Permission check")}</h3><p>${md(step.check)}</p>
@@ -92,11 +90,11 @@ function drawExtensions() {
 						.map((x, i) =>
 							x.tier !== t
 								? ""
-								: `<div class="card" data-name="${esc(x.name)}" data-pair="${esc(
+								: `<div class="card ${layerClass(x.layer)}" data-name="${esc(
+										x.name
+								  )}" data-pair="${esc(
 										x.pair || ""
-								  )}" style="border-left-color:${
-										COLOR[x.layer]
-								  }" data-select="ext" data-id="${i}" onmouseenter="pairHit(this,true)" onmouseleave="pairHit(this,false)">
+								  )}" data-select="ext" data-id="${i}" onmouseenter="pairHit(this,true)" onmouseleave="pairHit(this,false)">
 				<b>${esc(x.name)}</b><div class="muted">${esc(x.changes)}</div>
 				<div><span class="es-badge">${esc(layerName(x.layer))}</span>${
 										x.pair

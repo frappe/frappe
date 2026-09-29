@@ -1,5 +1,5 @@
 // The details panel: what one click on a layer, a folder, a line or a card shows.
-/* global DATA, INK, VIEWS, ORDER, state, current, drawLayers, esc, md, short, layer, box, isBreak, layerName, archLink, statusPill, fileLink */
+/* global DATA, VIEWS, ORDER, state, current, drawLayers, esc, md, short, layer, box, isBreak, layerName, archLink, statusPill, fileLink */
 function select(kind, id) {
 	state.selected = { kind, id };
 	const panel = document.getElementById("panel");
@@ -21,7 +21,7 @@ function idleDetail() {
 		<h3>${__("Read the colours")}</h3>
 		<p>${__(
 			"A {0} line or cell is an import that the layer file does not allow. Dashed red is a known break: the layer file lists it with the ticket that removes it. Solid red is new: CI fails on it.",
-			[`<b style="color:${INK.red}">${__("red")}</b>`]
+			[`<b class="red">${__("red")}</b>`]
 		)}</p>
 		<p>${__(
 			"An orange dashed outline marks a folder inside a loop, where folders import each other."
@@ -208,7 +208,7 @@ function cellDetail(key) {
 				? __("Same layer.")
 				: may
 				? __("The layer file allows this.")
-				: `<b style="color:${INK.red}">${__("The layer file does not allow this.")}</b>`
+				: `<b class="red">${__("The layer file does not allow this.")}</b>`
 		}</p>
 		<table>${edges
 			.sort((x, y) => y.count - x.count)

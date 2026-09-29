@@ -7,34 +7,6 @@ const VIEWS = [
 	{ key: "D", name: __("Ways to change the desk"), draw: drawExtensions },
 ];
 const ORDER = ["main", "9", "8", "7", "6", "5", "4", "3", "2", "1", "build"];
-// Espresso palette steps: gray-700, gray-600, purple-700, purple-500, violet-600, blue-600,
-// teal-600, green-700, amber-700, yellow-800, orange-600 (hex from espresso/colors.css).
-// Espresso tokens, with fallbacks for a copy opened from disk.
-const COLOR = {
-	main: "var(--gray-700, #525252)",
-	9: "var(--gray-600, #7c7c7c)",
-	8: "var(--purple-700, #6e399d)",
-	7: "var(--purple-500, #9c45e3)",
-	6: "var(--violet-600, #6e57d1)",
-	5: "var(--blue-600, #077ddf)",
-	4: "var(--teal-600, #0a857b)",
-	3: "var(--green-700, #14804d)",
-	2: "var(--amber-700, #bb6f0c)",
-	1: "var(--yellow-800, #8c5600)",
-	build: "var(--orange-600, #d35a09)",
-};
-const INK = {
-	red: "var(--ink-red-7, #c62828)",
-	blue: "var(--ink-blue-7, #0b5cad)",
-	green: "var(--ink-green-8, #1a7f37)",
-	line: "var(--ink-gray-4, #8c959f)",
-	strong: "var(--ink-gray-7, #3b4a5a)",
-	muted: "var(--ink-gray-5, #57606a)",
-	on: "var(--white, #fff)",
-	surface: "var(--surface-base, #fff)",
-	outline: "var(--outline-gray-2, #dde1e6)",
-	dashed: "var(--outline-gray-3, #c9ced4)",
-};
 const GH = "https://github.com/frappe/frappe/blob/desk-v2/";
 const layer = (id) => DATA.layers.find((l) => l.id === id);
 const box = (id) => DATA.boxes.find((b) => b.id === id);
@@ -96,6 +68,10 @@ function statusPill(s) {
 function layerName(id) {
 	const l = layer(id);
 	return `${/^\d$/.test(id) ? id + ". " : ""}${l.name}`;
+}
+// The .layer-<id> class that colours an item; anything not a layer id gets main's colour.
+function layerClass(id) {
+	return `layer-${ORDER.includes(id) ? id : "main"}`;
 }
 function archLink(l) {
 	return `<a href="${GH}${DATA.architecture}#${
