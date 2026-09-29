@@ -30,7 +30,7 @@ async function main() {
     const problems = jsSizeProblems(sizes, budgets);
     if (problems.length) {
       for (const problem of problems) console.error(problem);
-      process.exit(1);
+      process.exitCode = 1;
     }
   } finally {
     rmSync(outDir, { recursive: true });

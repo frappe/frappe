@@ -35,6 +35,9 @@ context("Desk v2 API calls", () => {
 		countCalls(() => cy.findByRole("button", { name: "Save" }).click()).then((calls) =>
 			expectBaseline("save", calls)
 		);
+		cy.request(`/api/v2/document/ToDo/${todo}`)
+			.its("body.data.description")
+			.should("contain", " again");
 	});
 
 	function expectBaseline(name, calls) {
