@@ -122,6 +122,7 @@ def get_permitted_cards(dashboard_name: str):
 			if frappe.has_permission("Number Card", doc=card.card):
 				permitted_cards.append(card)
 		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
 			frappe.log_error(f"Number Card '{card.card}' not found or its source DocType is missing")
 
 	return permitted_cards

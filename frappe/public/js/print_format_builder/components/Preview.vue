@@ -1,5 +1,6 @@
 <template>
 	<Teleport to="body">
+		<div class="pfb-overlay-backdrop"></div>
 		<div class="pfb-overlay" @click.self="$emit('close')">
 			<div class="pfb-preview-modal">
 				<div v-if="!docname" class="pfb-preview-empty">
@@ -105,7 +106,7 @@ async function render() {
 		// keep the browser's own PDF toolbar — page nav, zoom and download come free
 		set_pdf_url(URL.createObjectURL(blob) + "#view=FitH");
 	} catch (e) {
-		if (seq !== render_seq) return;
+		if (seq !== render_seq || e.name === "AbortError") return;
 		set_pdf_url(null);
 		frappe.show_alert({
 			message: e.message || __("Could not render the preview"),

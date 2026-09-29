@@ -508,7 +508,7 @@ def save_settings(board_name: str, settings: str | dict) -> Document:
 	doc = frappe.get_doc("Kanban Board", board_name)
 	doc.check_permission("write")
 
-	fields = settings["fields"]
+	fields = settings.get("fields", [])
 	if not isinstance(fields, str):
 		fields = json.dumps(fields)
 

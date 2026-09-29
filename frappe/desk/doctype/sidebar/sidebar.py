@@ -954,6 +954,21 @@ def is_linked(item) -> bool:
 	return bool(item.get("link_to") or item.get("url"))
 
 
+def linked_entities(item) -> list[str]:
+	"""Return the entities this row links, as the desk names them when picking a shell.
+
+	A Page row with a `route` links the page and the page route it opens, `<page>/<route>`.
+	Several apps link one container page at routes of their own, so the page alone cannot say
+	which shell a route belongs to. Mirrors `linked_entities` in the desk's sidebar.js.
+	"""
+	link_to = item.get("link_to")
+	if not link_to:
+		return []
+	if item.get("link_type") == "Page" and item.get("route"):
+		return [link_to, f"{link_to}/{item['route']}"]
+	return [link_to]
+
+
 def validate_item_route(item) -> None:
 	"""Refuse a `route` that is not a relative path inside a Page. A query belongs in
 	`route_options`."""
@@ -2344,7 +2359,10 @@ def build_canonical_shells(
 	canonical = {kind: {} for kind in ROUTABLE_ENTITY_KINDS}
 	homeless = []
 
-	for kind, entities in routable_entities(perm_ctx).items():
+	entities_by_kind = routable_entities(perm_ctx)
+	entities_by_kind["Page"] |= shells.page_routes(entities_by_kind["Page"])
+
+	for kind, entities in entities_by_kind.items():
 		for name, module in entities.items():
 			# `entity_module` is the flat `is_default_module` map the desk already reads, so the
 			# owned step answers exactly what the client's does. It is flat rather than keyed by
@@ -2427,8 +2445,8 @@ class ShellIndex:
 
 		for shell, sidebar in module_sidebars.items():
 			for item in sidebar["items"]:
-				kind, entity = item.get("link_type"), item.get("link_to")
-				if kind and entity:
+				kind = item.get("link_type")
+				for entity in linked_entities(item) if kind else ():
 					self.listing.setdefault((kind, entity), []).append(shell)
 			# A shell keyed by its module answers for that module; the naming rule makes that the
 			# usual case. A renamed shell is found through the column it stores its module in,
@@ -2468,6 +2486,17 @@ class ShellIndex:
 
 	def listed_in(self, kind: str, entity: str) -> list[str]:
 		return self.listing.get((kind, entity), [])
+
+	def page_routes(self, pages: dict[str, str]) -> dict[str, str]:
+		"""Every page route a shell lists, of a page in `pages`, mapped to that page's module."""
+		routes = {}
+		for kind, entity in self.listing:
+			if kind != "Page":
+				continue
+			page, _, route = entity.partition("/")
+			if route and page in pages:
+				routes[entity] = pages[page]
+		return routes
 
 	def resolve(self, kind: str, entity: str, module: str | None) -> str | None:
 		"""The ladder itself, from `module+listed` down. The `owned` step is above this."""

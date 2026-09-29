@@ -352,6 +352,26 @@ def _condition(holder, label, key):
 		yield label, condition
 
 
+COPIED_PRINT_OPTIONS = (
+	"show_section_headings",
+	"line_breaks",
+	"align_labels_right",
+	"show_label_colon",
+	"margin_top",
+	"margin_bottom",
+	"margin_left",
+	"margin_right",
+	"font",
+	"font_size",
+	"label_color",
+	"value_color",
+	"page_number",
+	"absolute_value",
+	"css",
+	"default_print_language",
+)
+
+
 @frappe.whitelist()
 def create_custom_format(doctype: str, name: str | int, based_on: str = "Standard"):
 	doc = frappe.new_doc("Print Format")
@@ -379,6 +399,8 @@ def create_custom_format(doctype: str, name: str | int, based_on: str = "Standar
 			source = None
 	if source:
 		doc.format_data = source.format_data
+		for fieldname in COPIED_PRINT_OPTIONS:
+			doc.set(fieldname, source.get(fieldname))
 	else:
 		# seed the layout so the format prints something before its first Save & Apply
 		doc.format_data = frappe.as_json(create_default_layout(frappe.get_meta(doctype)))

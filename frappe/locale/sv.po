@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-09-20 09:34+0000\n"
-"PO-Revision-Date: 2026-09-21 04:20\n"
+"PO-Revision-Date: 2026-09-28 04:21\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -557,7 +557,7 @@ msgid "<h3>Print Format Help</h3>\n"
 msgstr "<h3>Utskrift Format Hjälp</h3>\n"
 "<hr>\n"
 "<h4>Introduktion</h4>\n"
-"<p>Utskrift Format renderas på serversida med Jinja Templating Language. Alla formulär har tillgång till<code>doc</code> objekt som innehåller information om dokumentet som formateras. Du kan också komma åt vanliga verktyg via<code>frappe</code> modul.</p>\n"
+"<p>Utskrift Format renderas på serversida med Jinja Templating Language. Alla formulär har tillgång till<code>doc</code> objekt som innehåller information om dokument som formateras. Du kan också komma åt vanliga verktyg via<code>frappe</code> modul.</p>\n"
 "<p>För still tillhandahålls Bootstrap CSS och du kan använda hela utbudet av klasser..</p>\n"
 "<hr>\n"
 "<h4>Referenser</h4>\n"
@@ -664,7 +664,7 @@ msgid "<h4>Email Reply Example</h4>\n\n"
 "<p>Templates are compiled using the Jinja Templating Language. To learn more about Jinja, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">read this documentation.</a></p>\n"
 msgstr "<h4>E-post Svar Exempel</h4>\n\n"
 "<pre>Order Försenad\n\n"
-"Transaktion {{ name }} har överskridit förfallodatum. Vänligen vidta nödvändiga åtgärder.\n\n"
+"Transaktion {{ name }} förfallodatum överskriden. Vidta nödvändiga åtgärder.\n\n"
 "Detaljer\n\n"
 "- Kund: {{ customer }}\n"
 "- Belopp: {{ grand_total }}\n"
@@ -951,7 +951,7 @@ msgstr "Förhandsvisning av länk (håll muspekare över den)"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:553
 msgid "A value from a linked document"
-msgstr ""
+msgstr "Värde från länkad dokument"
 
 #. Description of the 'Software Version' (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json
@@ -1155,7 +1155,7 @@ msgstr "Acceptera Inbjudan"
 #. 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Accept emit() calls for events no app registered through the automation_events hook."
-msgstr ""
+msgstr "Acceptera emit() samtal för händelser ingen app registrerad via automation_events hook."
 
 #. Option for the 'Status' (Select) field in DocType 'User Invitation'
 #: frappe/core/doctype/user_invitation/user_invitation.json
@@ -1295,11 +1295,11 @@ msgstr "Åtgärd Typ"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:163
 msgid "Action Type is required for action steps"
-msgstr ""
+msgstr "Åtgärd Typ erfordras för åtgärd steg"
 
 #: frappe/automation_engine/runner.py:495
 msgid "Action completed"
-msgstr ""
+msgstr "Åtgärd slutförd"
 
 #: frappe/public/js/frappe/ui/embedded_list.js:373
 msgid "Action failed."
@@ -1734,7 +1734,7 @@ msgstr "Lägg till fält"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.js:23
 msgid "Add field rules below, every rule must match before the flow can run"
-msgstr ""
+msgstr "Lägg till fältregler nedan, varje regel måste överensstämma innan flöde kan köra"
 
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:201
 msgid "Add field..."
@@ -2015,7 +2015,7 @@ msgstr "Avancerad"
 #. 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Advanced Condition"
-msgstr ""
+msgstr "Avancerad Villkor"
 
 #. Label of the advanced_control_section (Section Break) field in DocType 'User
 #. Permission'
@@ -2026,7 +2026,7 @@ msgstr "Avancerad Kontroll"
 #. Label of the condition (Code) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Advanced Expression using Python"
-msgstr ""
+msgstr "Avancerad Uttryck med Python"
 
 #: frappe/public/js/frappe/form/controls/link.js:530
 #: frappe/public/js/frappe/form/controls/link.js:532
@@ -2385,7 +2385,7 @@ msgstr "Skicka Användning Data för att förbättra Applikationer"
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Allow Unregistered Events"
-msgstr ""
+msgstr "Tillåt Oregistrerade Händelser"
 
 #. Label of the allow_user_cancellation (Check) field in DocType 'Background
 #. Task'
@@ -2682,7 +2682,7 @@ msgstr "Tillåter användare att exportera dokument data från system."
 
 #: frappe/public/js/frappe/ui/permission_dialog.js:70
 msgid "Allows the user to print or download the document as a PDF."
-msgstr "Tillåter användare att skriva ut eller ladda ner dokumentet som PDF."
+msgstr "Tillåter användare att skriva ut eller ladda ner dokument som PDF."
 
 #: frappe/core/page/permission_manager/permission_manager_help.html:27
 msgid "Allows the user to search and see records."
@@ -3450,7 +3450,7 @@ msgstr "Tilldelad Till/Ansvarig"
 
 #: frappe/automation_engine/actions/core.py:331
 msgid "Assigned to {0}"
-msgstr ""
+msgstr "Tilldelad till {0}"
 
 #. Label of the assignee (Table MultiSelect) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -3488,12 +3488,12 @@ msgstr "Tilldelning Regel"
 #. Name of a DocType
 #: frappe/automation/doctype/assignment_rule_day/assignment_rule_day.json
 msgid "Assignment Rule Day"
-msgstr "Automation Regel Dag"
+msgstr "Automatisering Regel Dag"
 
 #. Name of a DocType
 #: frappe/automation/doctype/assignment_rule_user/assignment_rule_user.json
 msgid "Assignment Rule User"
-msgstr "Automation Regel Användare"
+msgstr "Automatisering Regel Användare"
 
 #: frappe/automation/doctype/assignment_rule/assignment_rule.py:57
 msgid "Assignment Rule is not allowed on document type {0}"
@@ -3536,7 +3536,7 @@ msgstr "Asynkron"
 
 #: frappe/automation_engine/actions/core.py:316
 msgid "At least one assignee is required"
-msgstr ""
+msgstr "Minst en tilldelad person erfordras"
 
 #: frappe/public/js/frappe/form/grid_row.js:690
 msgid "At least one column is required to show in the grid."
@@ -3552,7 +3552,7 @@ msgstr "Minst ett fält av Överordnad Dokument Typ erfordras"
 
 #: frappe/automation_engine/actions/core.py:247
 msgid "At least one recipient is required"
-msgstr ""
+msgstr "Minst en mottagare erfordras"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -3957,7 +3957,7 @@ msgstr "Återkommande hoppades över. Ägare har inte åtkomst till referens dok
 
 #: frappe/automation_engine/runner.py:618
 msgid "Auto-disabled after {0} consecutive failures"
-msgstr ""
+msgstr "Inaktiveras automatiskt efter {0} på varandra följande misslyckanden"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -4028,12 +4028,12 @@ msgstr "Automatisering"
 #. Name of a DocType
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Automation Action"
-msgstr ""
+msgstr "Automatisering Åtgärd"
 
 #. Name of a DocType
 #: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
 msgid "Automation Event Subscription"
-msgstr ""
+msgstr "Automatisering Händels Prenumeration"
 
 #. Name of a DocType
 #. Label of the automation (Link) field in DocType 'Automation Trigger Queue'
@@ -4042,45 +4042,45 @@ msgstr ""
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/automation/sidebar/automation/automation.json
 msgid "Automation Flow"
-msgstr ""
+msgstr "Automatisering Flöde"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:185
 msgid "Automation Flow cannot target a child table: {0}"
-msgstr ""
+msgstr "Automatisering Flöde kan inte riktas mot underordnad tabell: {0}"
 
 #: frappe/automation_engine/runner.py:644
 msgid "Automation Flow {0} was auto-disabled"
-msgstr ""
+msgstr "Automatisering Flöde {0} inaktiverades automatiskt"
 
 #. Name of a DocType
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Automation Settings"
-msgstr ""
+msgstr "Automatisering Inställningar"
 
 #. Name of a DocType
 #. Label of a Sidebar Item
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 #: frappe/automation/sidebar/automation/automation.json
 msgid "Automation Trigger Queue"
-msgstr ""
+msgstr "Automatisering Utlösare Kö"
 
 #. Option for the 'Run As' (Select) field in DocType 'Automation Flow'
 #. Label of the automation_user (Link) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Automation User"
-msgstr ""
+msgstr "Automatisering Användare"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:134
 msgid "Automation User {0} is disabled or missing"
-msgstr ""
+msgstr "Automatisering Användare {0} är inaktiverad eller saknas"
 
 #: frappe/automation_engine/events.py:251
 msgid "Automation event payload is too large"
-msgstr ""
+msgstr "Automatisering händelsens datamängd är för stor"
 
 #: frappe/automation_engine/runner.py:388
 msgid "Automation paused"
-msgstr ""
+msgstr "Automatisering pausad"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:328
 msgid "Autoname: {0}"
@@ -4307,7 +4307,7 @@ msgstr "Bakgrund Uppgifter"
 #: frappe/core/doctype/system_settings/system_settings.json
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Background Workers"
-msgstr "Bakgrund Tjänster"
+msgstr "Bakgrund Process"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:331
 msgid "Background color"
@@ -4401,11 +4401,11 @@ msgstr "Streckkod eller QR kod från ett fält eller ett fast värde"
 #: frappe/public/js/print_format_builder/utils.js:133
 #: frappe/utils/typst_emitter.py:186 frappe/utils/typst_emitter.py:195
 msgid "Barcode that is not a QR code"
-msgstr ""
+msgstr "Streckkod som inte är QR kod"
 
 #: frappe/utils/print_format_generator.py:103
 msgid "Barcode value must be text under 2000 characters"
-msgstr ""
+msgstr "Streckkod värde måste vara text under 2000 tecken"
 
 #. Label of the base_dn (Data) field in DocType 'LDAP Settings'
 #: frappe/integrations/doctype/ldap_settings/ldap_settings.json
@@ -4605,7 +4605,7 @@ msgstr "Spärra Moduler"
 #. Description of the 'Document Type' (Link) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Blocked for child tables (istable). Required for document and date-based triggers."
-msgstr ""
+msgstr "Blockerad för underordnade tabeller (istable). Erfordras för dokument och datum baserade utlösare."
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:315
 msgid "Blockquote"
@@ -4645,7 +4645,7 @@ msgstr "Kant"
 
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:93
 msgid "Border color"
-msgstr ""
+msgstr "Kantfärg"
 
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:71
 msgid "Borders"
@@ -4706,7 +4706,7 @@ msgstr "Bransch"
 
 #: frappe/automation_engine/api.py:275
 msgid "Branch for step {0} must be If or Else"
-msgstr ""
+msgstr "Förgrening för steg {0} måste vara Om eller Annars"
 
 #. Label of the brand (Section Break) field in DocType 'Website Settings'
 #: frappe/website/doctype/website_settings/website_settings.json
@@ -4933,13 +4933,13 @@ msgstr "Ignorera begränsad IP Adress kontroll om Två Faktor Autentisering är 
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Bytes an emitted event payload may carry."
-msgstr ""
+msgstr "Byte som emitterad händelse datamängd kan bära."
 
 #. Description of the 'Step Output Limit' (Int) field in DocType 'Automation
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Bytes of output a step may publish to later steps. Larger output is dropped, not failed."
-msgstr ""
+msgstr "Bytes av utdata som steg kan publicera till senare steg. Större utdata tas bort, det misslyckas inte."
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -5123,7 +5123,7 @@ msgstr "Kan bara ta bort länk till Adress eller Kontakt"
 
 #: frappe/public/js/print_format_builder/components/inspector/VisibilitySection.vue:19
 msgid "Can't check this condition"
-msgstr ""
+msgstr "Kan inte kontrollera detta villkor"
 
 #: frappe/desk/form/document_follow.py:61
 msgid "Can't follow since changes are not tracked."
@@ -5618,7 +5618,7 @@ msgstr "Ändrad av"
 
 #: frappe/automation_engine/actions/core.py:173
 msgid "Changed {0} by {1}"
-msgstr ""
+msgstr "Ändrad {0} av {1}"
 
 #. Label of the changed_values (HTML) field in DocType 'Permission Log'
 #: frappe/core/doctype/permission_log/permission_log.json
@@ -5820,7 +5820,7 @@ msgstr "Underordnade tabell fält behöver 'namn' i 'fält' när distinkta eller
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:531
 msgid "Child table rows laid out with your own template"
-msgstr ""
+msgstr "Underordnade tabell rader utformade med din egen mall"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:744
 msgid "Choose Existing Card or create New Card"
@@ -5837,7 +5837,7 @@ msgstr "Välj Färg"
 
 #: frappe/automation_engine/actions/core.py:159
 msgid "Choose a numeric field"
-msgstr ""
+msgstr "Välj numeriskt fält"
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSetup.vue:6
 msgid "Choose a starting point for your print format."
@@ -6146,7 +6146,7 @@ msgstr "Klientskript"
 
 #: frappe/automation_engine/api.py:180
 msgid "Client-supplied resolver methods are not allowed"
-msgstr ""
+msgstr "Klient tillhandahållna lösning metoder är inte tillåtna"
 
 #: frappe/core/doctype/communication/communication.js:39
 #: frappe/desk/doctype/todo/todo.js:23 frappe/public/js/frappe/dom.js:360
@@ -6283,7 +6283,7 @@ msgstr "Infällbar beror på (JS)"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:68
 msgid "Colon after labels"
-msgstr ""
+msgstr "Kolon efter etiketter"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of the color (Data) field in DocType 'DocType'
@@ -6328,7 +6328,7 @@ msgstr "Färg"
 #: frappe/public/js/print_format_builder/utils.js:142
 #: frappe/utils/typst_emitter.py:170
 msgid "Colours that are not hex codes: {0}"
-msgstr ""
+msgstr "Färger som inte är hexkoder: {0}"
 
 #. Label of the column_label (Data) field in DocType 'Data Import Value
 #. Mapping'
@@ -6389,7 +6389,7 @@ msgstr "Kolumn namn erfordras"
 
 #: frappe/public/js/print_format_builder/components/inspector/RepeaterFieldInspector.vue:45
 msgid "Column settings"
-msgstr ""
+msgstr "Kolumninställningar"
 
 #: frappe/core/doctype/data_import/data_import.js:870
 #: frappe/core/doctype/data_import/value_mapping.py:291
@@ -6499,7 +6499,7 @@ msgstr "Commit"
 #. Label of the commit_every (Int) field in DocType 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Commit Every"
-msgstr ""
+msgstr "Utför Varje"
 
 #. Label of the committed (Check) field in DocType 'Console Log'
 #: frappe/desk/doctype/console_log/console_log.json
@@ -6710,7 +6710,7 @@ msgstr "Villkor Beskrivning"
 
 #: frappe/automation_engine/runner.py:278
 msgid "Condition took the {0} branch"
-msgstr ""
+msgstr "Villkor tog {0} förgrening"
 
 #. Label of the conditions_section (Section Break) field in DocType 'Automation
 #. Flow'
@@ -6916,7 +6916,7 @@ msgstr "Anslutningar"
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Consecutive failures after which a flow is auto-disabled and its owner notified."
-msgstr ""
+msgstr "Flera misslyckanden i följd, varefter flöde automatiskt inaktiveras och dess ägare underrättas."
 
 #: frappe/core/report/postgres_index_suggestions/postgres_index_suggestions.py:76
 msgid "Consider indexing: {0}"
@@ -7202,7 +7202,7 @@ msgstr "Rätt version : "
 #. Subscription'
 #: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
 msgid "Correlation Key"
-msgstr ""
+msgstr "Korrelation Nyckel"
 
 #: frappe/desk/form/linked_with.py:647
 msgid "Could not cancel {0} linked documents: {1}"
@@ -7234,7 +7234,7 @@ msgstr "Kunde inte ladda dock. Försök igen."
 
 #: frappe/automation/doctype/automation_flow/automation_flow.js:52
 msgid "Could not load the saved field rules"
-msgstr ""
+msgstr "Kunde inte läsa in sparade fält regler"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar_manager.js:249
 msgid "Could not load the sidebar. Please try again."
@@ -7283,7 +7283,7 @@ msgstr "Kunde inte skapa förhandsvisning"
 
 #: frappe/automation_engine/actions/core.py:519
 msgid "Could not resolve host: {0}"
-msgstr ""
+msgstr "Kunde inte matcha värdnamn: {0}"
 
 #: frappe/utils/chromium/process.py:196
 msgid "Could not start Chromium. Check logs for details."
@@ -7603,7 +7603,7 @@ msgstr "Skapad"
 
 #: frappe/automation_engine/actions/core.py:131
 msgid "Created {0} {1}"
-msgstr ""
+msgstr "Skapade {0} {1}"
 
 #: frappe/public/js/frappe/desk.js:603
 #: frappe/public/js/frappe/views/treeview.js:745
@@ -7629,7 +7629,7 @@ msgstr "Cron"
 #. Label of the cron_expression (Data) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Cron Expression"
-msgstr ""
+msgstr "Cron Uttryck"
 
 #. Label of the cron_format (Data) field in DocType 'Scheduled Job Type'
 #. Label of the cron_format (Data) field in DocType 'Server Script'
@@ -7811,12 +7811,12 @@ msgstr "Anpassad CSS"
 #: frappe/public/js/print_format_builder/utils.js:92
 #: frappe/utils/typst_emitter.py:135
 msgid "Custom CSS in the Style box"
-msgstr ""
+msgstr "Anpassad CSS i Stil box"
 
 #: frappe/public/js/print_format_builder/utils.js:143
 #: frappe/utils/typst_emitter.py:172
 msgid "Custom CSS on fields: {0}"
-msgstr ""
+msgstr "Anpassad CSS på fält: {0}"
 
 #. Label of the custom_configuration_section (Section Break) field in DocType
 #. 'Number Card'
@@ -7847,11 +7847,11 @@ msgstr "Anpassade Dokument"
 #. Label of the custom_event (Data) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Custom Event"
-msgstr ""
+msgstr "Anpassad Händelse"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:196
 msgid "Custom Event trigger requires an event name"
-msgstr ""
+msgstr "Anpassad händelse utlösare erfordrar händelse namn"
 
 #. Label of a Sidebar Item
 #. Label of a Link in the Build Workspace
@@ -7983,7 +7983,7 @@ msgstr "Anpassad Sidfält Meny"
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:158
 #: frappe/public/js/print_format_builder/components/inspector/RepeaterFieldInspector.vue:3
 msgid "Custom Table"
-msgstr ""
+msgstr "Anpassad Tabell"
 
 #. Label of a Sidebar Item
 #. Label of a Link in the Build Workspace
@@ -8455,21 +8455,21 @@ msgstr "Datum"
 #. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Date Based"
-msgstr ""
+msgstr "Datumbaserad"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:194
 msgid "Date Based trigger requires a Date Field and a Date Direction"
-msgstr ""
+msgstr "Datum Baserad utlösare erfordrar datum fält och datum riktning"
 
 #. Label of the date_direction (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Date Direction"
-msgstr ""
+msgstr "Datum Riktning"
 
 #. Label of the date_field (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Date Field"
-msgstr ""
+msgstr "Datum Fält"
 
 #. Label of the date_format (Select) field in DocType 'Language'
 #. Label of the date_format (Select) field in DocType 'System Settings'
@@ -8483,7 +8483,7 @@ msgstr "Datum Format"
 #. Label of the date_offset (Int) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Date Offset (Days)"
-msgstr ""
+msgstr "Datum Förskjutning (Dagar)"
 
 #. Label of the section_break_dfrx (Section Break) field in DocType 'Audit
 #. Trail'
@@ -8572,7 +8572,7 @@ msgstr "Återstående dagar"
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Days a Failed or Skipped queue row is kept before the nightly sweep removes it."
-msgstr ""
+msgstr "Antal dagar misslyckad eller hoppad över kö rad behålls innan den nattlig rensning."
 
 #: frappe/public/js/frappe/request.js:261
 msgid "Deadlock Occurred"
@@ -8602,7 +8602,7 @@ msgstr "Decimalavgränsare måste vara singel tecken"
 
 #: frappe/public/js/print_format_builder/components/inspector/Stepper.vue:9
 msgid "Decrease"
-msgstr ""
+msgstr "Minska"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:324
 msgid "Decrease indent"
@@ -9057,7 +9057,7 @@ msgstr "Ta bort denna post för att tillåta utskick till denna E-post"
 
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:91
 msgid "Delete this version"
-msgstr ""
+msgstr "Ta bort denna version"
 
 #: frappe/public/js/frappe/form/template_manager.js:400
 msgid "Delete {0}"
@@ -9496,7 +9496,7 @@ msgstr "Inaktivera Automatiska Senaste Filter"
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Disable Automations"
-msgstr ""
+msgstr "Inaktivera Automatiseringar"
 
 #. Label of the disable_change_log_notification (Check) field in DocType
 #. 'System Settings'
@@ -9633,7 +9633,7 @@ msgstr "Inaktiverad Autosvar"
 #. Label of the disabled_reason (Small Text) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Disabled Reason"
-msgstr ""
+msgstr "Inaktiverad Anledning"
 
 #: frappe/core/page/component_explorer/component_explorer.js:699
 msgid "Disabled options (a page-size picker)"
@@ -9660,7 +9660,7 @@ msgstr "Ångra"
 
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:51
 msgid "Discard the draft and go back to this"
-msgstr ""
+msgstr "Ignorera utkast och gå tillbaka till detta"
 
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:137
 msgid "Discard your unapplied changes and go back to what this format prints?"
@@ -9796,17 +9796,17 @@ msgstr "Vill du ta bort {0} tillsammans med alla länkade dokument?"
 #. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Doc Cancelled"
-msgstr ""
+msgstr "Dokument Annullerad"
 
 #. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Doc Created"
-msgstr ""
+msgstr "Dokument Skapad"
 
 #. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Doc Deleted"
-msgstr ""
+msgstr "Dokument Borttagen"
 
 #. Label of the webhook_docevent (Select) field in DocType 'Webhook'
 #: frappe/integrations/doctype/webhook/webhook.json
@@ -9831,12 +9831,12 @@ msgstr "Återställ Dokument Status"
 #. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Doc Submitted"
-msgstr ""
+msgstr "Dokument Godkänd"
 
 #. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Doc Updated"
-msgstr ""
+msgstr "Dokument Uppdaterad"
 
 #. Label of the doc_values (Code) field in DocType 'Web Form Request'
 #: frappe/website/doctype/web_form_request/web_form_request.json
@@ -10249,7 +10249,7 @@ msgstr "Dokument Namngivning Inställningar"
 #. Option for the 'Run As' (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Document Owner"
-msgstr ""
+msgstr "Dokuments Ägare"
 
 #. Label of the document_permissions_html (HTML) field in DocType 'Role'
 #: frappe/core/doctype/role/role.json
@@ -10444,7 +10444,7 @@ msgstr "Följ Dokument är inte aktiverad för denna användare."
 
 #: frappe/public/js/frappe/list/list_view.js:1876
 msgid "Document has been cancelled"
-msgstr "Dokumentet är annullerad"
+msgstr "Dokument är annullerad"
 
 #: frappe/public/js/frappe/list/list_view.js:1875
 msgid "Document has been submitted"
@@ -10452,7 +10452,7 @@ msgstr "Dokument är godkänd"
 
 #: frappe/public/js/frappe/list/list_view.js:1874
 msgid "Document is in draft state"
-msgstr "Dokumentet är i utkast tillstånd"
+msgstr "Dokument är i utkast tillstånd"
 
 #: frappe/public/js/frappe/form/workflow.js:47
 msgid "Document is only editable by users with role"
@@ -10460,11 +10460,11 @@ msgstr "Dokument kan endast redigeras av användare med roll"
 
 #: frappe/core/doctype/communication/communication.js:185
 msgid "Document not Relinked"
-msgstr "Dokumentet är inte länkad om"
+msgstr "Dokument är inte länkad om"
 
 #: frappe/automation_engine/actions/core.py:191
 msgid "Document owner"
-msgstr ""
+msgstr "Dokument Ägare"
 
 #: frappe/model/rename_doc.py:219 frappe/public/js/frappe/form/toolbar.js:177
 msgid "Document renamed from {0} to {1}"
@@ -10488,7 +10488,7 @@ msgstr "Dokument {0} är i tillstånd {1} efter {2}"
 
 #: frappe/automation_engine/api.py:99 frappe/automation_engine/api.py:288
 msgid "Document-less automations do not accept a document name"
-msgstr ""
+msgstr "Dokumentlösa automatiseringar accepterar inte dokument namn"
 
 #: frappe/public/js/frappe/list/list_view.js:729
 #: frappe/public/js/frappe/views/reports/query_report.js:2030
@@ -10754,7 +10754,7 @@ msgstr "Dra för att ändra ordning. Öga tar bort post från dock."
 #. Label of the drain_seconds (Float) field in DocType 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Drain Seconds"
-msgstr ""
+msgstr "Drain Sekunder"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar_manager.js:592
 msgid "Draw it as a row with its entries nested under it, rather than as a heading over them."
@@ -10836,11 +10836,11 @@ msgstr "Duplicera Namn"
 
 #: frappe/automation_engine/actions/base.py:130
 msgid "Duplicate automation action_type: {0}"
-msgstr ""
+msgstr "Duplicera automatisering action_type: {0}"
 
 #: frappe/automation_engine/relationships.py:119
 msgid "Duplicate automation relationship name on {0}"
-msgstr ""
+msgstr "Duplicera automatisering relation namn {0}"
 
 #: frappe/public/js/frappe/form/form.js:219
 msgid "Duplicate current row"
@@ -10852,7 +10852,7 @@ msgstr "Duplicera fält"
 
 #: frappe/automation_engine/relationships.py:206
 msgid "Duplicate record alias: {0}"
-msgstr ""
+msgstr "Duplicera post alias: {0}"
 
 #: frappe/public/js/frappe/form/grid.js:311
 msgid "Duplicate row"
@@ -10973,7 +10973,7 @@ msgstr "Varje del av data element kommer att vidarebefordras till denna funktion
 
 #: frappe/automation_engine/relationships.py:204
 msgid "Each relationship needs an alias and relationship name"
-msgstr ""
+msgstr "Varje relation behöver ett alias och ett relationsnamn"
 
 #. Description of the 'Mappings' (Table) field in DocType 'DocType Settings
 #. Map'
@@ -11227,7 +11227,7 @@ msgstr "Element Väljare"
 #. Option for the 'Branch' (Select) field in DocType 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Else"
-msgstr ""
+msgstr "Annars"
 
 #. Option for the 'Type' (Select) field in DocType 'Communication'
 #. Label of the email (Check) field in DocType 'Custom DocPerm'
@@ -11571,7 +11571,7 @@ msgstr "E-post ånger tid är över. Kan inte ångra e-post sändning."
 
 #: frappe/automation_engine/actions/core.py:265
 msgid "Emailed {0}"
-msgstr ""
+msgstr "Skickat via e-post {0}"
 
 #. Label of the section_break_udjs (Section Break) field in DocType 'System
 #. Health Report'
@@ -11604,7 +11604,7 @@ msgstr "Bädda in kopierad kod"
 #. Description of the 'To Value' (Data) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Empty = any value."
-msgstr ""
+msgstr "Tomt = valfritt värde."
 
 #: frappe/email/doctype/notification/notification.js:178
 msgid "Empty Email Template"
@@ -11632,7 +11632,7 @@ msgstr "Tomma strängargument är inte tillåtna"
 
 #: frappe/public/js/print_format_builder/components/editor/FieldPreview.vue:56
 msgid "Empty text"
-msgstr ""
+msgstr "Tom text"
 
 #. Label of the enable (Check) field in DocType 'Google Calendar'
 #. Label of the enable (Check) field in DocType 'Google Contacts'
@@ -11813,7 +11813,7 @@ msgstr "Aktivera Två Faktor Autentisering"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:77
 msgid "Enable an Automation Flow only after adding at least one action"
-msgstr ""
+msgstr "Aktivera Automatisering Flöde endast efter att minst en åtgärd lagts till"
 
 #. Description of the 'Allow Bulk Edit' (Check) field in DocType 'Customize
 #. Form'
@@ -11936,7 +11936,7 @@ msgstr "Aktiverar e-post för {0} för alla användare i bakgrunden."
 #. Description of the 'Enabled' (Check) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Enabling requires at least one action and a valid trigger."
-msgstr ""
+msgstr "Aktivering erfordrar minst en åtgärd och giltig utlösare."
 
 #. Description of a DocType
 #. Description of the 'Relay Settings' (Section Break) field in DocType 'Push
@@ -12318,13 +12318,13 @@ msgstr "Händelse Deltagare"
 #: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Event Payload"
-msgstr ""
+msgstr "Händelse Datamängd"
 
 #. Label of the event_payload_limit (Int) field in DocType 'Automation
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Event Payload Limit"
-msgstr ""
+msgstr "Händelse Datamängd Gräns"
 
 #. Label of the enable_email_event_reminders (Check) field in DocType
 #. 'Notification Settings'
@@ -12562,7 +12562,7 @@ msgstr "Upphör"
 #. Subscription'
 #: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
 msgid "Expires At"
-msgstr ""
+msgstr "Upphör"
 
 #. Label of the expires_in (Int) field in DocType 'OAuth Bearer Token'
 #. Label of the expires_in (Int) field in DocType 'Token Cache'
@@ -12643,7 +12643,7 @@ msgstr "Export Typ"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1703
 msgid "Export all matching rows?"
-msgstr "Exportera alla samstämda rader?"
+msgstr "Exportera alla överensstämmande rader?"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1713
 msgid "Export all {0} rows?"
@@ -12979,7 +12979,7 @@ msgstr "Felprocent"
 #. Label of the failure_threshold (Int) field in DocType 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Failure Threshold"
-msgstr ""
+msgstr "Misslyckad Tröskelvärde"
 
 #: frappe/core/page/component_explorer/component_explorer.js:1205
 msgid "Fallback themes"
@@ -13129,7 +13129,7 @@ msgstr "Fält Mall"
 
 #: frappe/public/js/print_format_builder/utils.js:126
 msgid "Field Template block"
-msgstr ""
+msgstr "Fält Mall block"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:189
 msgid "Field Templates"
@@ -13144,11 +13144,11 @@ msgstr "Fält Typ "
 #. Option for the 'Trigger Type' (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Field Value Changed"
-msgstr ""
+msgstr "Fältvärde ändrat"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:192
 msgid "Field Value Changed trigger requires a Trigger Field"
-msgstr ""
+msgstr "Fält Värde Ändrat utlösare erfordrar Utlösare Fält"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:384
 msgid "Field \\u201c{0}\\u201d no longer exists on {1}"
@@ -13156,11 +13156,11 @@ msgstr "Fält \\u201c{0}\\u201d finns inte längre på {1}"
 
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:73
 msgid "Field borders"
-msgstr ""
+msgstr "Fält gränser"
 
 #: frappe/automation_engine/actions/core.py:154
 msgid "Field is required"
-msgstr ""
+msgstr "Fält erfordras"
 
 #: frappe/public/js/print_format_builder/components/inspector/field_properties.js:127
 msgid "Field label"
@@ -13532,7 +13532,7 @@ msgstr "Filtrerad efter: {0}."
 
 #: frappe/automation_engine/relationships.py:238
 msgid "Filtered relationship queries require one target DocType"
-msgstr ""
+msgstr "Filtrerade relation frågor erfordrar mål DocType"
 
 #. Label of the filters (Code) field in DocType 'Automation Flow'
 #. Label of the filters (Code) field in DocType 'Access Log'
@@ -13721,7 +13721,7 @@ msgstr "Anpassa"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:544
 msgid "Fixed text like a title or a note"
-msgstr ""
+msgstr "Fast text som titel eller anteckning"
 
 #. Label of the flag (Data) field in DocType 'Language'
 #: frappe/core/doctype/language/language.json
@@ -13855,7 +13855,7 @@ msgstr "Typsnitt Storlek"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:48
 msgid "Font Size (px)"
-msgstr ""
+msgstr "Teckenstorlek (px)"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:329
 #: frappe/public/js/print_format_builder/components/inspector/field_properties.js:49
@@ -14099,7 +14099,7 @@ msgstr "Tvinga fram ny sida"
 
 #: frappe/automation_engine/runner.py:277
 msgid "Forced the {0} branch"
-msgstr ""
+msgstr "Tvingade {0} förgrening"
 
 #: frappe/www/login.html:155
 msgid "Forgot Password?"
@@ -14623,7 +14623,7 @@ msgstr "Github influerad markdown syntax"
 
 #: frappe/printing/doctype/print_format/print_format.py:457
 msgid "Give the version a name"
-msgstr ""
+msgstr "Ange namn för version"
 
 #: frappe/public/js/frappe/list/list_filter/manage_layouts_dialog.js:48
 msgid "Global"
@@ -14968,7 +14968,7 @@ msgstr "Rutnät Genvägar"
 
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:79
 msgid "Grid lines"
-msgstr ""
+msgstr "Rutnät linjer"
 
 #. Label of the group (Data) field in DocType 'DocType Action'
 #. Label of the group (Data) field in DocType 'DocType Link'
@@ -15112,7 +15112,7 @@ msgstr "HTML Sida"
 
 #: frappe/public/js/print_format_builder/utils.js:125
 msgid "HTML block"
-msgstr ""
+msgstr "HTML block"
 
 #. Description of the 'Header' (HTML Editor) field in DocType 'Web Page'
 #: frappe/website/doctype/web_page/web_page.json
@@ -15519,7 +15519,7 @@ msgstr "Dölj Helger"
 
 #: frappe/public/js/print_format_builder/components/inspector/field_properties.js:219
 msgid "Hide colon"
-msgstr ""
+msgstr "Dölj kolon"
 
 #. Description of the 'Hide Descendants' (Check) field in DocType 'User
 #. Permission'
@@ -15686,19 +15686,19 @@ msgstr "Så här ser det ut på skenan."
 #. 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "How long a claimed row may stay Running before it is assumed crashed and requeued."
-msgstr ""
+msgstr "Hur länge begärd rad kan köras innan den antas kraschad och placeras i kö igen."
 
 #. Description of the 'Maximum Attempts' (Int) field in DocType 'Automation
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "How many times a claimed row is retried when its run fails outside the flow's own steps, before the row is marked Failed."
-msgstr ""
+msgstr "Hur många gånger begärd rad försöks igen när körning misslyckas utanför flödets egna steg, innan rad markeras som Misslyckad."
 
 #. Description of the 'Maximum Recursion Depth' (Int) field in DocType
 #. 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "How many times an automation may trigger another before the chain is refused."
-msgstr ""
+msgstr "Hur många gånger automatisering kan utlösa en annan innan kedjan avvisas."
 
 #. Description of the 'Number Format' (Select) field in DocType 'Currency'
 #: frappe/geo/doctype/currency/currency.json
@@ -15892,7 +15892,7 @@ msgstr "Idx"
 #. Option for the 'Branch' (Select) field in DocType 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "If"
-msgstr ""
+msgstr "Om"
 
 #. Description of the 'Apply Strict User Permissions' (Check) field in DocType
 #. 'System Settings'
@@ -16298,7 +16298,7 @@ msgstr "Bild Länk \"{0}\" är inte giltig"
 #: frappe/public/js/print_format_builder/utils.js:137
 #: frappe/utils/typst_emitter.py:223
 msgid "Image loaded from a web address"
-msgstr ""
+msgstr "Bild laddad från webbadress"
 
 #: frappe/core/doctype/file/file.js:129
 msgid "Image optimized"
@@ -16706,7 +16706,7 @@ msgstr "Felaktigt värde:"
 
 #: frappe/public/js/print_format_builder/components/inspector/Stepper.vue:33
 msgid "Increase"
-msgstr ""
+msgstr "Öka"
 
 #: frappe/public/js/frappe/form/controls/text_editor.js:323
 msgid "Increase indent"
@@ -17299,11 +17299,11 @@ msgstr "Ogiltig argument typ: {0}. Endast strängar, siffror, dikter och None ä
 
 #: frappe/utils/print_format_generator.py:286
 msgid "Invalid arguments"
-msgstr ""
+msgstr "Ogiltiga argument"
 
 #: frappe/automation_engine/relationships.py:134
 msgid "Invalid automation relationship definition"
-msgstr ""
+msgstr "Ogiltig automatisering relation definition"
 
 #: frappe/utils/response.py:291
 msgid "Invalid backup path"
@@ -17328,7 +17328,7 @@ msgstr "Ogiltiga inloggning uppgifter, försök igen."
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:215
 msgid "Invalid cron expression: {0}"
-msgstr ""
+msgstr "Ogiltigt cron uttryck: {0}"
 
 #: frappe/database/query.py:1582
 msgid "Invalid direction in Order By: {0}. Must be 'ASC' or 'DESC'."
@@ -18928,7 +18928,7 @@ msgstr "Brevhuvud sidfot med HTML innehåll"
 
 #: frappe/utils/typst_emitter.py:213
 msgid "Letterhead image loaded from a web address"
-msgstr ""
+msgstr "Brevhuvud bild laddad från webbadress"
 
 #: frappe/public/js/print_format_builder/utils.js:102
 #: frappe/utils/typst_emitter.py:207
@@ -19219,7 +19219,7 @@ msgstr "Länkad"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:548
 msgid "Linked Field"
-msgstr ""
+msgstr "Länkat Fält"
 
 #: frappe/public/js/frappe/views/inbox/inbox_view.js:112
 msgid "Linked with {0}"
@@ -19976,7 +19976,7 @@ msgstr "Marginal Överst"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:77
 msgid "Margins (mm)"
-msgstr ""
+msgstr "Marginaler (mm)"
 
 #. Label of the mariadb_variables_section (Section Break) field in DocType
 #. 'System Health Report'
@@ -20068,7 +20068,7 @@ msgstr "Ledare"
 #: frappe/automation/doctype/automation_flow/automation_flow.js:26
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Match Fields"
-msgstr ""
+msgstr "Matcha Fält"
 
 #. Option for the 'Status' (Select) field in DocType 'Automation Event
 #. Subscription'
@@ -20079,7 +20079,7 @@ msgstr "Avstämd"
 #. Description of the 'Custom Event' (Data) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Matches the event name passed to emit()."
-msgstr ""
+msgstr "Matchar händelse namn som skickas till emit()."
 
 #. Description of the 'Limit' (Int) field in DocType 'Bulk Update'
 #: frappe/desk/doctype/bulk_update/bulk_update.json
@@ -20178,7 +20178,7 @@ msgstr "Maximalt Antal Försök"
 #. Label of the max_depth (Int) field in DocType 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Maximum Recursion Depth"
-msgstr ""
+msgstr "Maximalt Rekursion Djup"
 
 #: frappe/public/js/frappe/form/sidebar/attachments.js:42
 msgid "Maximum attachment limit of {0} has been reached."
@@ -20507,7 +20507,7 @@ msgstr "Lägsta värde"
 
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:49
 msgid "Min height"
-msgstr ""
+msgstr "Minsta höjd"
 
 #: frappe/public/js/frappe/dom.js:354
 msgid "Minimize"
@@ -20598,7 +20598,7 @@ msgstr "Saknade Värden Erfordras"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldPropertiesPanel.vue:89
 msgid "Mixed"
-msgstr ""
+msgstr "Blandat"
 
 #: frappe/www/login.py:104
 msgid "Mobile"
@@ -21144,7 +21144,7 @@ msgstr "Namn på {0} kan inte vara {1}"
 #. Description of the 'Target' (Data) field in DocType 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Named record alias this action operates on."
-msgstr ""
+msgstr "Namngiven post alias som denna åtgärd utförs på."
 
 #: frappe/utils/password_strength.py:174
 msgid "Names and surnames by themselves are easy to guess."
@@ -21643,7 +21643,7 @@ msgstr "Nästa Försök"
 #. Label of the next_run (Datetime) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Next Run"
-msgstr ""
+msgstr "Nästa Körning"
 
 #. Label of the next_schedule_date (Date) field in DocType 'Auto Repeat'
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json
@@ -21867,7 +21867,7 @@ msgstr "Ingen Skrivare är Tillgänglig."
 
 #: frappe/core/doctype/rq_worker/rq_worker_list.js:5
 msgid "No RQ Workers connected. Try restarting the bench."
-msgstr "Inga RQ Workers kopplade.Prova starta om bench."
+msgstr "Inga RQ Process kopplade. Prova starta om bench."
 
 #: frappe/public/js/frappe/form/link_selector.js:142
 msgid "No Results"
@@ -22101,7 +22101,7 @@ msgstr "Inget brevhuvud"
 
 #: frappe/public/js/print_format_builder/components/editor/FieldPreviewLinked.vue:24
 msgid "No linked field set"
-msgstr ""
+msgstr "Inga länkade fält angivna"
 
 #: frappe/public/js/frappe/views/reports/report_view.js:303
 msgid "No matching entries in the current results"
@@ -22109,19 +22109,19 @@ msgstr "Inga poster som stämmer med aktuell resultat"
 
 #: frappe/public/js/print_format_builder/components/inspector/TemplateInput.vue:40
 msgid "No matching field"
-msgstr ""
+msgstr "Inget överensstämmande fält"
 
 #: frappe/public/js/frappe/views/treeview.js:467
 msgid "No matching records"
-msgstr "Inga träffar"
+msgstr "Inga överensstämande poster"
 
 #: frappe/public/js/frappe/ui/embedded_list.js:15
 msgid "No matching records."
-msgstr "Inga träffar."
+msgstr "Inga överensstämmande poster."
 
 #: frappe/templates/includes/search_template.html:49
 msgid "No matching records. Search something new"
-msgstr "Inga poster. Sök på nytt"
+msgstr "Inga överensstämmande poster. Sök på nytt"
 
 #: frappe/public/js/frappe/views/workspace/workspace.js:591
 msgid "No module"
@@ -22197,7 +22197,7 @@ msgstr "Inga fästa dokumenttyper."
 
 #: frappe/automation_engine/actions/core.py:255
 msgid "No recipients to notify"
-msgstr ""
+msgstr "Inga mottagare att notifiera"
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:175
 msgid "No records deleted"
@@ -22217,7 +22217,7 @@ msgstr "Inga taggade poster"
 
 #: frappe/public/js/print_format_builder/PrintFormatBuilder.vue:23
 msgid "No records to preview yet"
-msgstr ""
+msgstr "Inga poster att förhandsvisa ännu"
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:246
 msgid "No records will be exported"
@@ -22787,7 +22787,7 @@ msgstr "Aviseringar och Mass E-post kommer att skickas från utgående server."
 
 #: frappe/automation_engine/actions/core.py:295
 msgid "Notified {0}"
-msgstr ""
+msgstr "Notifierad {0}"
 
 #. Label of the notify_on_every_login (Check) field in DocType 'Note'
 #: frappe/desk/doctype/note/note.json
@@ -22828,7 +22828,7 @@ msgstr "Nu"
 #. Trigger Queue'
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Null = run as soon as possible. Used by waits and date/cron triggers."
-msgstr ""
+msgstr "Null = kör så snart som möjligt. Används av väntetillstånd och datum /cron utlösare."
 
 #. Label of the phone (Data) field in DocType 'Contact Phone'
 #: frappe/contacts/doctype/contact_phone/contact_phone.json
@@ -23300,7 +23300,7 @@ msgstr "Endast Workspace Manager kan redigera offentliga arbetsytor"
 
 #: frappe/automation_engine/actions/core.py:467
 msgid "Only a System Manager can write a script step"
-msgstr ""
+msgstr "Endast System Administratör kan skriva skript steg"
 
 #. Label of the only_allow_system_managers_to_upload_public_files (Check) field
 #. in DocType 'System Settings'
@@ -23314,7 +23314,7 @@ msgstr "Endast tillåtet att exportera anpassningar i utvecklarläge"
 
 #: frappe/automation_engine/actions/core.py:452
 msgid "Only an {0} Server Script can be run from a flow"
-msgstr ""
+msgstr "Endast ett {0} Server Script kan köras från flöde"
 
 #: frappe/model/document.py:1816
 msgid "Only draft documents can be discarded"
@@ -23633,7 +23633,7 @@ msgstr "Alternativ {0} för fält {1} är inte underordnad tabell"
 #. Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Optional alias for the destination reference returned by this action."
-msgstr ""
+msgstr "Valfritt alias för destination referens som returneras av denna åtgärd."
 
 #: frappe/public/js/print_format_builder/components/inspector/RepeaterFieldInspector.vue:15
 msgid "Optional heading"
@@ -23643,19 +23643,19 @@ msgstr "Valfri rubrik"
 #. 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Optional. Checked against a related record."
-msgstr ""
+msgstr "Valfritt. Kontrollerat mot relaterad post."
 
 #. Description of the 'Advanced Expression using Python' (Code) field in
 #. DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Optional. For logic the match fields cannot express, such as OR groups. The document is available as <code>doc</code>; the match fields and this expression must all be true."
-msgstr ""
+msgstr "Valfritt. För logik kan överensstämmande fält inte uttryckas, såsom ELLER grupper. Dokument är tillgängligt som <code>doc</code>; överensstämmande fält och detta uttryck måste alla vara sanna."
 
 #. Description of the 'Step Condition' (Code) field in DocType 'Automation
 #. Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Optional. The step runs only if this expression is true."
-msgstr ""
+msgstr "Valfritt. Steg körs endast om detta uttryck är sant."
 
 #. Description of the 'CC' (Code) field in DocType 'Notification Recipient'
 #: frappe/email/doctype/notification_recipient/notification_recipient.json
@@ -23774,7 +23774,7 @@ msgstr "Original"
 #: frappe/core/doctype/version/version_view.html:74
 #: frappe/core/doctype/version/version_view.html:139
 msgid "Original Value"
-msgstr "Ursprung Värde"
+msgstr "Gamla Värde"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #. Option for the 'Type' (Select) field in DocType 'Communication'
@@ -23840,7 +23840,7 @@ msgstr "Utdata"
 #. Label of the output_alias (Data) field in DocType 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Output Alias"
-msgstr ""
+msgstr "Utdata Alias"
 
 #. Label of the override_sequence (Check) field in DocType 'Custom Workspace'
 #: frappe/desk/doctype/custom_workspace/custom_workspace.json
@@ -24250,7 +24250,7 @@ msgstr "Överordnad Sida"
 #. Label of the parent_step (Int) field in DocType 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Parent Step"
-msgstr ""
+msgstr "Överordnad Steg"
 
 #: frappe/core/doctype/data_export/exporter.py:25
 msgid "Parent Table"
@@ -24479,13 +24479,13 @@ msgstr "Pausad"
 #. Label of the payload_count (Int) field in DocType 'Data Import'
 #: frappe/core/doctype/data_import/data_import.json
 msgid "Payload Count"
-msgstr "Antal Nyttolaster"
+msgstr "Datamängd Antal"
 
 #. Description of the 'Event Payload' (JSON) field in DocType 'Automation
 #. Trigger Queue'
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Payload for custom emit() events."
-msgstr ""
+msgstr "Datamängd för anpassade emit() händelser."
 
 #. Label of the peak_memory_usage (Int) field in DocType 'Prepared Report'
 #: frappe/core/doctype/prepared_report/prepared_report.json
@@ -24795,11 +24795,11 @@ msgstr "Välj Kolumner"
 
 #: frappe/automation_engine/actions/core.py:429
 msgid "Pick a Server Script or write one here, not both"
-msgstr ""
+msgstr "Välj Server Skript eller skriv ett här, inte båda"
 
 #: frappe/automation_engine/actions/core.py:461
 msgid "Pick a Server Script, or write one here"
-msgstr ""
+msgstr "Välj Server Skript, eller skriv ett här"
 
 #: frappe/public/js/print_format_builder/components/Preview.vue:6
 msgid "Pick a record in the toolbar above to preview it."
@@ -25896,7 +25896,7 @@ msgstr "Dokument Utskrift"
 
 #: frappe/public/js/print_format_builder/components/inspector/field_properties.js:244
 msgid "Print if empty"
-msgstr ""
+msgstr "Skriv ut om tomt"
 
 #. Label of the with_letterhead (Check) field in DocType 'Print Settings'
 #: frappe/printing/doctype/print_settings/print_settings.json
@@ -26380,7 +26380,7 @@ msgstr "Kö Överbelastad"
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Queue Retention Days"
-msgstr ""
+msgstr "Kö Retention Dagar"
 
 #. Label of the queue_status (Table) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -26506,7 +26506,7 @@ msgstr "RQ Jobb"
 #: frappe/core/doctype/rq_worker/rq_worker.json
 #: frappe/system/sidebar/system/system.json
 msgid "RQ Worker"
-msgstr "RQ Tjänst"
+msgstr "RQ Process"
 
 #: frappe/public/js/print_format_builder/components/inspector/SectionPropertiesPanel.vue:52
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:41
@@ -26515,7 +26515,7 @@ msgstr "Radie"
 
 #: frappe/automation_engine/actions/core.py:487
 msgid "Ran script"
-msgstr ""
+msgstr "Körde skript"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -26608,7 +26608,7 @@ msgstr "Kör igen i Konsol"
 #. Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Re-check filters and condition in the worker before executing."
-msgstr ""
+msgstr "Kontrollera filter och villkor i process innan körning."
 
 #: frappe/email/doctype/email_account/email_account.py:829
 msgid "Re:"
@@ -26806,7 +26806,7 @@ msgstr "Mottagare"
 
 #: frappe/automation_engine/relationships.py:83
 msgid "Record alias could not be resolved"
-msgstr ""
+msgstr "Post alias kunde inte lösas"
 
 #. Name of a DocType
 #: frappe/core/doctype/recorder/recorder.json
@@ -26839,7 +26839,7 @@ msgstr "Poster du lägger till kommer att visas här."
 #. Label of the depth (Int) field in DocType 'Automation Trigger Queue'
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Recursion Depth"
-msgstr ""
+msgstr "Rekursion Djup"
 
 #: frappe/core/doctype/doctype/doctype.py:1736
 msgid "Recursive Fetch From"
@@ -27237,7 +27237,7 @@ msgstr "Avvisad felaktigt utformad kodad adress rubrik med syntetiserad '@': {0}
 #. Label of the related_condition (JSON) field in DocType 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Related Record Condition"
-msgstr ""
+msgstr "Relaterad Post Villkor"
 
 #: frappe/public/js/frappe/list/list_view_select.js:310
 #: frappe/public/js/frappe/views/reports/query_report.js:245
@@ -27246,48 +27246,48 @@ msgstr "Relaterade Rapporter"
 
 #: frappe/automation_engine/conditions.py:112
 msgid "Related record condition must be a JSON object"
-msgstr ""
+msgstr "Relaterad post villkor måste vara JSON objekt"
 
 #: frappe/automation_engine/conditions.py:117
 msgid "Related record condition needs a relationship"
-msgstr ""
+msgstr "Relaterad post villkor behöver relation"
 
 #: frappe/automation_engine/relationships.py:227
 msgid "Related record does not exist: {0} {1}"
-msgstr ""
+msgstr "Relaterad post finns inte: {0} {1}"
 
 #: frappe/automation_engine/relationships.py:225
 msgid "Relationship provider returned an invalid record reference"
-msgstr ""
+msgstr "Relation leverantör returnerade ogiltig post referens"
 
 #: frappe/automation_engine/relationships.py:136
 msgid "Relationship source DocType does not match"
-msgstr ""
+msgstr "Relation källa DocType matchar inte"
 
 #: frappe/automation_engine/relationships.py:189
 msgid "Relationship target DocType is not allowed"
-msgstr ""
+msgstr "Relation mål DocType är inte tillåten"
 
 #: frappe/automation_engine/relationships.py:47
 msgid "Relationship {0} cannot be used as a single record alias"
-msgstr ""
+msgstr "Relation {0} kan inte användas som en enda post alias"
 
 #: frappe/automation_engine/relationships.py:69
 msgid "Relationship {0} did not resolve to one record"
-msgstr ""
+msgstr "Relation {0} löste inte till en post"
 
 #: frappe/automation_engine/relationships.py:65
 msgid "Relationship {0} returns multiple records"
-msgstr ""
+msgstr "Relation {0} returnerar flera poster"
 
 #. Label of the relationships (JSON) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Relationships"
-msgstr ""
+msgstr "Relationer"
 
 #: frappe/automation_engine/relationships.py:198
 msgid "Relationships must be a JSON list"
-msgstr ""
+msgstr "Relationer måste vara JSON lista"
 
 #: frappe/integrations/doctype/push_notification_settings/push_notification_settings.py:32
 msgid "Relay Server URL missing"
@@ -27314,7 +27314,7 @@ msgstr "Version Anvisningar"
 #. 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Reliability"
-msgstr ""
+msgstr "Tillförlitlighet"
 
 #: frappe/core/doctype/communication/communication.js:48
 #: frappe/core/doctype/communication/communication.js:159
@@ -27586,7 +27586,7 @@ msgstr "Ersätt med aktuella formulär värden"
 
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:118
 msgid "Replace your current draft with {0}? Nothing prints differently until you Save & Apply."
-msgstr ""
+msgstr "Ersätt nuvarande utkast med {0}? Ingenting skrivs ut förrän du sparar och tillämpar."
 
 #: frappe/core/doctype/role/role.js:806
 msgid "Replicate"
@@ -27965,7 +27965,7 @@ msgstr "Begärda Nummer"
 
 #: frappe/automation_engine/actions/core.py:528
 msgid "Requests to internal network addresses are not permitted"
-msgstr ""
+msgstr "Begäran till interna nätverksadresser är inte tillåtna"
 
 #. Label of the require_trusted_certificate (Select) field in DocType 'LDAP
 #. Settings'
@@ -28180,7 +28180,7 @@ msgstr "Återställ Standard Behörigheter"
 
 #: frappe/public/js/print_format_builder/PrintFormatBuilder.vue:96
 msgid "Restore this version"
-msgstr ""
+msgstr "Återställ denna version"
 
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:81
 msgid "Restore this version as your draft"
@@ -28205,7 +28205,7 @@ msgstr "Återställer Raderad Dokument"
 
 #: frappe/public/js/print_format_builder/stores/useVersions.js:61
 msgid "Restoring…"
-msgstr ""
+msgstr "Återställer…"
 
 #. Label of the restrict_ip (Small Text) field in DocType 'User'
 #: frappe/core/doctype/user/user.json
@@ -28273,18 +28273,18 @@ msgstr "Resultat"
 #. Queue'
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Resume From Step"
-msgstr ""
+msgstr "Återuppta Från Steg"
 
 #. Label of the resume_queue (Link) field in DocType 'Automation Event
 #. Subscription'
 #: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
 msgid "Resume Queue"
-msgstr ""
+msgstr "Återuppta Kö"
 
 #. Label of the resume_run (Data) field in DocType 'Automation Trigger Queue'
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Resume Run"
-msgstr ""
+msgstr "Återuppta Körning"
 
 #: frappe/email/doctype/email_queue/email_queue_list.js:27
 msgid "Resume Sending"
@@ -28294,7 +28294,7 @@ msgstr "Återuppta Utskick"
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Retention"
-msgstr ""
+msgstr "Retention"
 
 #. Label of the retry (Int) field in DocType 'Email Queue'
 #: frappe/core/doctype/data_import/data_import.js:292
@@ -28330,7 +28330,7 @@ msgstr "Återanvänd e-post mallar när e-post skickas till {0}."
 #. Label of the revalidate_on_run (Check) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Revalidate on Run"
-msgstr ""
+msgstr "Återvalidera vid Körning"
 
 #: frappe/database/schema.py:165
 msgid "Reverting length to {0} for '{1}' in '{2}'. Setting the length as {3} will cause truncation of data."
@@ -28735,7 +28735,7 @@ msgstr "Rad # {0} "
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:140
 msgid "Row {0}: Branch is only meaningful inside an If step"
-msgstr ""
+msgstr "Rad {0}: Förgrening är bara meningsfull inuti ett Om steg"
 
 #: frappe/custom/doctype/customize_form/customize_form.py:363
 msgid "Row {0}: Not allowed to disable Mandatory for standard fields"
@@ -28747,39 +28747,39 @@ msgstr "Rad {0}: Ej Tillåtet att aktivera Tillåt vid Godkännande för standar
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:143
 msgid "Row {0}: Parent Step must be an earlier row"
-msgstr ""
+msgstr "Rad {0}: Överordnad steg måste vara tidigare rad"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:145
 msgid "Row {0}: Parent Step {1} is not an If step"
-msgstr ""
+msgstr "Rad {0}: Överordnad steg {1} är inte ett If steg"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:125
 msgid "Row {0}: Step Key must be unique"
-msgstr ""
+msgstr "Rad {0}: Steg Nyckel måste vara unik"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:176
 msgid "Row {0}: Wait unit must be one of {1}"
-msgstr ""
+msgstr "Rad {0}: Vänt enhet måste vara en av följande {1}"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:165
 msgid "Row {0}: an If step needs a Step Condition"
-msgstr ""
+msgstr "Rad {0}: ett If steg behöver Steg Villkor"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:147
 msgid "Row {0}: choose the If or Else branch"
-msgstr ""
+msgstr "Rad {0}: välj Om eller Annars förgrening"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:120
 msgid "Row {0}: duplicate output alias {1}"
-msgstr ""
+msgstr "Rad {0}: duplicera utdata alias {1}"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:117
 msgid "Row {0}: unknown target alias {1}"
-msgstr ""
+msgstr "Rad {0}: okänt mål alias {1}"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:161
 msgid "Row {0}: unsupported Step Type {1}"
-msgstr ""
+msgstr "Rad {0}: ej stödd Steg Typ {1}"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:104
 msgid "Row {0}: {1}"
@@ -28822,7 +28822,7 @@ msgstr "Rad Tröskelvärde för Rutnät Sökning"
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Rows a drain runs between commits."
-msgstr ""
+msgstr "Rader som drain kör mellan åtaganden."
 
 #. Label of the rule (Select) field in DocType 'Assignment Rule'
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json
@@ -28880,12 +28880,12 @@ msgstr "Kör 3-steg framsteg"
 #. Queue'
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Run After"
-msgstr ""
+msgstr "Kör Efter"
 
 #. Label of the run_as (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Run As"
-msgstr ""
+msgstr "Kör Som"
 
 #. Label of the dormant_days (Int) field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json
@@ -28894,7 +28894,7 @@ msgstr "Kör Jobb en gång om dagen om de har varit inaktiva i (Antal Dagar)"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.js:98
 msgid "Run against"
-msgstr ""
+msgstr "Kör mot"
 
 #. Description of the 'Enable Scheduled Jobs' (Check) field in DocType 'System
 #. Settings'
@@ -28917,7 +28917,7 @@ msgstr "Exekvering av uppgifter som återplacerats i kö för bearbetning"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.js:121
 msgid "Running…"
-msgstr ""
+msgstr "Kör…"
 
 #: frappe/core/report/prepared_report_analytics/prepared_report_analytics.py:57
 msgid "Runtime in Minutes"
@@ -29077,7 +29077,7 @@ msgstr "Samma Fält angavs mer än en gång"
 
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:16
 msgid "Same as what prints"
-msgstr ""
+msgstr "Samma som vad skrivs ut"
 
 #: frappe/core/page/component_explorer/component_explorer.js:966
 msgid "Same id updates in place"
@@ -29187,7 +29187,7 @@ msgstr "Spara Avsnitt som Kodsnutt"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:14
 msgid "Save a named version"
-msgstr ""
+msgstr "Spara namngiven version"
 
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:147
 msgid "Save a section or field as a snippet to reuse it here."
@@ -29230,7 +29230,7 @@ msgstr "Spara roll först för att visa denna information."
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:118
 msgid "Save version"
-msgstr ""
+msgstr "Spara version"
 
 #: frappe/model/rename_doc.py:95 frappe/public/js/frappe/form/toolbar.js:327
 #: frappe/public/js/frappe/ui/user_settings_dialog.js:91
@@ -29252,7 +29252,7 @@ msgstr "Sparade Kodsnuttar"
 
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:57
 msgid "Saved versions"
-msgstr ""
+msgstr "Sparade versioner"
 
 #: frappe/public/js/frappe/list/list_settings.js:55
 #: frappe/public/js/frappe/views/kanban/kanban_settings.js:47
@@ -29365,7 +29365,7 @@ msgstr "Schemalagd körning av Skript {0} är uppdaterad"
 
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue_list.js:14
 msgid "Scheduled for {0}"
-msgstr ""
+msgstr "Schemalagd för {0}"
 
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:26
 msgid "Scheduled to send"
@@ -29373,7 +29373,7 @@ msgstr "Schemalagd att Skicka"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:213
 msgid "Scheduled trigger requires a Cron Expression"
-msgstr ""
+msgstr "Schemalagd utlösare erfordrar Cron Uttryck"
 
 #. Label of the scheduler_section (Section Break) field in DocType 'System
 #. Health Report'
@@ -29623,7 +29623,7 @@ msgstr "Sekunder"
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Seconds a drain may keep claiming batches. 0 derives it from the queue's own timeout."
-msgstr ""
+msgstr "Sekunder som drain kan fortsätta att göra anspråk på grupper. 0 härleder det från köns egen timeout."
 
 #. Option for the 'Snippet Type' (Select) field in DocType 'Print Format
 #. Snippet'
@@ -29987,11 +29987,11 @@ msgstr "Välj Märke Bild."
 
 #: frappe/automation/doctype/automation_flow/automation_flow.js:24
 msgid "Select a Document Type to add field rules."
-msgstr ""
+msgstr "Välj Dokument Typ för att lägga till fält regler."
 
 #: frappe/public/js/print_format_builder/components/inspector/LinkedFieldRows.vue:14
 msgid "Select a field"
-msgstr ""
+msgstr "Välj fält"
 
 #: frappe/public/js/form_builder/components/Sidebar.vue:58
 msgid "Select a field to edit its properties."
@@ -30003,7 +30003,7 @@ msgstr "Välj grupp {0}."
 
 #: frappe/public/js/print_format_builder/components/inspector/LinkedFieldRows.vue:6
 msgid "Select a link field"
-msgstr ""
+msgstr "Välj länk fält"
 
 #: frappe/core/doctype/doctype/doctype.py:2196
 msgid "Select a valid Sender Field for creating documents from Email"
@@ -30491,7 +30491,7 @@ msgstr "Server Skript"
 
 #: frappe/automation_engine/actions/core.py:433
 msgid "Server Scripts are disabled. Enable them from the bench configuration."
-msgstr ""
+msgstr "Server Skript är inaktiverade. Aktivera dem från bench konfiguration."
 
 #: frappe/utils/safe_exec.py:104
 msgid "Server Scripts are disabled. Please enable server scripts from bench configuration."
@@ -30701,7 +30701,7 @@ msgstr "Ange som standard"
 
 #: frappe/automation_engine/actions/core.py:63
 msgid "Set at least one field"
-msgstr ""
+msgstr "Ange minst ett fält"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
@@ -30832,7 +30832,7 @@ msgstr "Ange medan överordnad app är inaktiverad."
 
 #: frappe/automation_engine/actions/core.py:79
 msgid "Set {0}"
-msgstr ""
+msgstr "Ange {0}"
 
 #: frappe/public/js/frappe/views/workspace/blocks/block.js:201
 msgid "Setting"
@@ -31699,7 +31699,7 @@ msgstr "Enskild DocTypes kan inte anpassas."
 
 #: frappe/model/rename_doc.py:348
 msgid "Single DocTypes cannot be renamed"
-msgstr ""
+msgstr "Singel DocTypes kan inte döpas om"
 
 #. Description of the 'Is Single' (Check) field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json
@@ -32183,7 +32183,7 @@ msgstr "Steg"
 #. Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Stale Running Minutes"
-msgstr ""
+msgstr "Hängd Löptid Minuter"
 
 #. Label of the standard (Select) field in DocType 'Page'
 #. Label of the standard (Check) field in DocType 'Desktop Icon'
@@ -32218,7 +32218,7 @@ msgstr "Standard"
 #. Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Standard 5-field cron, for example <code>0 9 * * 1</code>."
-msgstr ""
+msgstr "Standard 5 fält cron, till exempel <code>0 9 * * 1</code>."
 
 #: frappe/core/doctype/doctype_layout/doctype_layout.py:77
 msgid "Standard DocType Layouts can only be modified in developer mode."
@@ -32559,7 +32559,7 @@ msgstr "Steg"
 #. Label of the step_condition (Code) field in DocType 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Step Condition"
-msgstr ""
+msgstr "Steg Villkor"
 
 #. Label of the step_key (Data) field in DocType 'Automation Action'
 #. Label of the step_key (Data) field in DocType 'Automation Event
@@ -32567,25 +32567,25 @@ msgstr ""
 #: frappe/automation/doctype/automation_action/automation_action.json
 #: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
 msgid "Step Key"
-msgstr ""
+msgstr "Steg Nyckel"
 
 #. Label of the step_output_limit (Int) field in DocType 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Step Output Limit"
-msgstr ""
+msgstr "Steg Utdata Gräns"
 
 #. Label of the step_type (Data) field in DocType 'Automation Action'
 #: frappe/automation/doctype/automation_action/automation_action.json
 msgid "Step Type"
-msgstr ""
+msgstr "Steg Typ"
 
 #: frappe/automation_engine/runner.py:403
 msgid "Step condition did not match"
-msgstr ""
+msgstr "Steg villkor stämde inte"
 
 #: frappe/automation_engine/api.py:277
 msgid "Step {0} is not an If step"
-msgstr ""
+msgstr "Steg {0} är inte ett If steg"
 
 #. Label of the steps (Table) field in DocType 'Form Tour'
 #. Label of the steps (Table) field in DocType 'Module Onboarding'
@@ -32613,12 +32613,12 @@ msgstr "Stopp"
 #. 'Automation Settings'
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Stop dispatching automations site-wide. Queued rows are left untouched."
-msgstr ""
+msgstr "Sluta köra automatiseringar på webbplatsen. Raderna i kön lämnas oförändrade."
 
 #. Label of the stop_on_error (Check) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Stop on Error"
-msgstr ""
+msgstr "Avbryt vid Fel"
 
 #: frappe/public/js/frappe/ui/sidebar/sidebar_manager.js:222
 msgid "Stop shipping this sidebar with {0}? Its document and its exported file are both removed, and the module goes back to the sidebar generated from its contents."
@@ -33273,7 +33273,7 @@ msgstr "System Status Rapport Tabeller"
 #. Name of a DocType
 #: frappe/desk/doctype/system_health_report_workers/system_health_report_workers.json
 msgid "System Health Report Workers"
-msgstr "System Status Rapport Tjänster"
+msgstr "System Status Rapport Processer"
 
 #. Label of a Card Break in the Build Workspace
 #: frappe/build/workspace/build/build.json
@@ -33629,7 +33629,7 @@ msgstr "Mål"
 
 #: frappe/automation_engine/actions/core.py:115
 msgid "Target Document Type is required"
-msgstr ""
+msgstr "Mål Dokument Typ erfordras"
 
 #. Label of the task (Select) field in DocType 'Workflow Transition Task'
 #: frappe/desk/doctype/todo/todo_calendar.js:18
@@ -33798,11 +33798,11 @@ msgstr "Test Jobb ID"
 #: frappe/automation/doctype/automation_flow/automation_flow.js:86
 #: frappe/automation/doctype/automation_flow/automation_flow.js:94
 msgid "Test Run"
-msgstr ""
+msgstr "Test Kör"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.js:129
 msgid "Test Run: {0}"
-msgstr ""
+msgstr "Test Kör: {0}"
 
 #: frappe/core/doctype/translation/test_translation.py:74
 #: frappe/core/doctype/translation/test_translation.py:82
@@ -33889,7 +33889,7 @@ msgstr "Tack för ditt meddelande"
 
 #: frappe/automation_engine/actions/core.py:456
 msgid "That Server Script is disabled"
-msgstr ""
+msgstr "Detta Server Skript är inaktiverad"
 
 #: frappe/workflow/doctype/workflow/workflow.js:142
 msgid "The <strong>Doc Status</strong> for all states has been reset to <strong>0</strong> because <strong>{0}</strong> is not submittable"
@@ -34077,7 +34077,7 @@ msgstr "Fältnamn angiven i Bifogad Till Fält är ogiltig"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.js:102
 msgid "The flow runs for real against this document, then everything it did is rolled back."
-msgstr ""
+msgstr "Flöde körs på riktigt mot detta dokument, sedan återställs allt det gjorde."
 
 #: frappe/automation/doctype/assignment_rule/assignment_rule.py:64
 msgid "The following Assignment Days have been repeated: {0}"
@@ -34115,7 +34115,7 @@ msgstr "Länkade dokument kommer att raderas i bakgrunden tillsammans med {0}. D
 
 #: frappe/website/doctype/web_page/web_page.js:125
 msgid "The meta description is an HTML attribute that provides a brief summary of a web page. Search engines such as Google often display the meta description in search results, which can influence click-through rates."
-msgstr "Meta beskrivning är HTML egenskap som ger kort översikt av webbplats. Sök motorer som Google visar ofta meta beskrivning i sök resultat, vilket kan påverka klick värdena."
+msgstr "Meta beskrivning är HTML egenskap som ger kort översikt av webbplats. Söksystem som Google visar ofta meta beskrivning i sök resultat, vilket kan påverka klick värdena."
 
 #: frappe/website/doctype/web_page/web_page.js:132
 msgid "The meta image is unique image representing the content of the page. Images for this Card should be at least 280px in width, and at least 150px in height."
@@ -34494,7 +34494,7 @@ msgstr "I År"
 
 #: frappe/automation_engine/api.py:174
 msgid "This action does not support the selected trigger"
-msgstr ""
+msgstr "Denna åtgärd stöder inte vald utlösare"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:234
 msgid "This action is irreversible. Do you wish to continue?"
@@ -34506,7 +34506,7 @@ msgstr "Åtgärd är endast tillåten för {}"
 
 #: frappe/automation_engine/api.py:172
 msgid "This action requires a Document Type"
-msgstr ""
+msgstr "Denna åtgärd erfordrar Dokument Typ"
 
 #: frappe/public/js/frappe/ui/sidebar/dock_manager.js:91
 msgid "This app has nothing to arrange"
@@ -34643,7 +34643,7 @@ msgstr "Denna fil är publik. Den kan nås utan autentisering."
 
 #: frappe/automation/doctype/automation_flow/automation_flow.js:131
 msgid "This flow has no steps to run."
-msgstr ""
+msgstr "Detta flöde har inga steg att köra."
 
 #: frappe/public/js/frappe/form/form.js:1545
 msgid "This form has been modified after you have loaded it"
@@ -34862,7 +34862,7 @@ msgstr "Detta värde anger maximal antal rader som kan återges i rapport vyn."
 
 #: frappe/printing/doctype/print_format/print_format.py:519
 msgid "This version does not belong to {0}"
-msgstr ""
+msgstr "Denna version tillhör inte {0}"
 
 #: frappe/templates/includes/oauth_confirmation.html:140
 msgid "This will allow {0} to:"
@@ -35098,7 +35098,7 @@ msgstr "Timeout (i Sekunder)"
 
 #: frappe/automation_engine/actions/core.py:365
 msgid "Timeout must be between 1 and {0} seconds"
-msgstr ""
+msgstr "Timeout måste vara mellan 1 och {0} sekunder"
 
 #. Label of the timeseries (Check) field in DocType 'Dashboard Chart Source'
 #: frappe/desk/doctype/dashboard_chart_source/dashboard_chart_source.json
@@ -35438,7 +35438,7 @@ msgstr "För många bakgrundsjobb i kö ({0}). Försök igen efter en tid."
 
 #: frappe/automation_engine/actions/core.py:550
 msgid "Too many redirects"
-msgstr ""
+msgstr "För många omdirigeringar"
 
 #: frappe/core/doctype/file/utils.py:152
 msgid "Too many redirects while fetching {0}"
@@ -35522,7 +35522,7 @@ msgstr "Totalt (ms)"
 #. Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
 msgid "Total Background Workers"
-msgstr "Totalt Antal Bakgrund Tjänster"
+msgstr "Totalt Antal Bakgrund Processer"
 
 #. Label of the total_errors (Int) field in DocType 'System Health Report'
 #: frappe/desk/doctype/system_health_report/system_health_report.json
@@ -35756,12 +35756,12 @@ msgstr "Träd Vy är inte tillgänglig för {0}"
 #. Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Trigger"
-msgstr ""
+msgstr "Utlösare"
 
 #. Label of the trigger_field (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Trigger Field"
-msgstr ""
+msgstr "Utlösare Fält"
 
 #. Label of the method (Data) field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json
@@ -35771,7 +35771,7 @@ msgstr "Utlösande Sätt"
 #. Label of the trigger_type (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Trigger Type"
-msgstr ""
+msgstr "Utlösare Typ"
 
 #: frappe/tests/test_translate.py:72
 msgid "Trigger caching"
@@ -35790,17 +35790,17 @@ msgstr "Utlös primär åtgärd"
 #. Queue'
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Triggered At"
-msgstr ""
+msgstr "Utlöst Vid"
 
 #. Label of the triggered_by (Link) field in DocType 'Automation Trigger Queue'
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Triggered By"
-msgstr ""
+msgstr "Utlöst Av"
 
 #. Option for the 'Run As' (Select) field in DocType 'Automation Flow'
 #: frappe/automation/doctype/automation_flow/automation_flow.json
 msgid "Triggering User"
-msgstr ""
+msgstr "Utlösande Användare"
 
 #: frappe/custom/doctype/customize_form/customize_form.js:154
 msgid "Trim Table"
@@ -35866,7 +35866,7 @@ msgstr "Tisdag"
 #. Description of a DocType
 #: frappe/automation/doctype/automation_settings/automation_settings.json
 msgid "Tuning for the automation engine: dispatch limits, drain behaviour, retention and payload limits."
-msgstr ""
+msgstr "Justering för automatisering system: sändning gränser, dränering beteende, retention och datamängd gränser."
 
 #. Label of the two_factor_auth (Check) field in DocType 'Role'
 #. Label of the two_factor_authentication (Section Break) field in DocType
@@ -35941,7 +35941,7 @@ msgstr "Skriv något..."
 
 #: frappe/public/js/print_format_builder/components/inspector/TemplateInput.vue:20
 msgid "Type text, / for a field"
-msgstr ""
+msgstr "Skriv text, / för fält"
 
 #: frappe/templates/discussions/comment_box.html:8
 #: frappe/templates/discussions/reply_section.html:53
@@ -35993,7 +35993,7 @@ msgstr "Typst-block — innehåll visas i PDF fil"
 
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:179
 msgid "Typst needs these fixed:"
-msgstr ""
+msgstr "Typst behöver dessa fixade:"
 
 #: frappe/printing/doctype/print_format/print_format.py:181
 #: frappe/utils/print_format_generator.py:521 frappe/utils/typst_emitter.py:953
@@ -36081,15 +36081,15 @@ msgstr "URL för dokumentation eller hjälp"
 
 #: frappe/automation_engine/actions/core.py:505
 msgid "URL has no host"
-msgstr ""
+msgstr "URL har ingen värd"
 
 #: frappe/automation_engine/actions/core.py:357
 msgid "URL is required"
-msgstr ""
+msgstr "URL erfordras"
 
 #: frappe/automation_engine/actions/core.py:503
 msgid "URL must be http or https"
-msgstr ""
+msgstr "URL måste vara http eller https"
 
 #: frappe/core/doctype/file/file.py:315
 msgid "URL must start with http:// or https://"
@@ -36277,11 +36277,11 @@ msgstr "Okänd Kolumn: {0}"
 
 #: frappe/automation_engine/actions/core.py:117
 msgid "Unknown DocType"
-msgstr ""
+msgstr "Okänd DocType"
 
 #: frappe/automation_engine/actions/core.py:249
 msgid "Unknown Email Template"
-msgstr ""
+msgstr "Okänd e-post mall"
 
 #: frappe/utils/data.py:1269
 msgid "Unknown Rounding Method: {}"
@@ -36289,7 +36289,7 @@ msgstr "Okänd Avrundning Sätt: {}"
 
 #: frappe/automation_engine/actions/core.py:445
 msgid "Unknown Server Script"
-msgstr ""
+msgstr "Okänd Server Skript"
 
 #: frappe/auth.py:337
 msgid "Unknown User"
@@ -36297,19 +36297,19 @@ msgstr "Okänd Användare"
 
 #: frappe/automation_engine/actions/base.py:140
 msgid "Unknown automation action: {0}"
-msgstr ""
+msgstr "Okänd automatisering åtgärd: {0}"
 
 #: frappe/automation_engine/relationships.py:128
 msgid "Unknown automation relationship: {0}"
-msgstr ""
+msgstr "Okänt automatisering relation: {0}"
 
 #: frappe/automation_engine/schema_relationships.py:258
 msgid "Unknown derived relationship: {0}"
-msgstr ""
+msgstr "Okänt härledd relation: {0}"
 
 #: frappe/automation_engine/relationships.py:162
 msgid "Unknown derived relationship: {0} on {1}"
-msgstr ""
+msgstr "Okänt härledd relation: {0} på {1}"
 
 #: frappe/utils/csvutils.py:83
 msgid "Unknown file encoding. Tried to use: {0}"
@@ -36317,15 +36317,15 @@ msgstr "Okänd fil kodning. Försökte använda: {0}"
 
 #: frappe/automation_engine/api.py:84
 msgid "Unknown parameter: {0}"
-msgstr ""
+msgstr "Okänd parameter: {0}"
 
 #: frappe/automation_engine/conditions.py:91
 msgid "Unknown related-condition source alias: {0}"
-msgstr ""
+msgstr "Okänt relaterat villkor källa alias: {0}"
 
 #: frappe/automation_engine/relationships.py:208
 msgid "Unknown relationship source alias: {0}"
-msgstr ""
+msgstr "Okänd relation källa alias: {0}"
 
 #: frappe/public/js/frappe/utils/address_and_contact.js:190
 msgid "Unlink {0}"
@@ -36366,7 +36366,7 @@ msgstr "Oläst Avisering Skickad"
 
 #: frappe/automation_engine/events.py:135
 msgid "Unregistered automation event: {0}"
-msgstr ""
+msgstr "Oregistrerad automatisering händelse: {0}"
 
 #: frappe/utils/safe_exec.py:870 frappe/utils/safe_exec.py:881
 msgid "Unsafe SQL query"
@@ -36417,11 +36417,11 @@ msgstr "Avregistrerad"
 
 #: frappe/automation_engine/actions/core.py:362
 msgid "Unsupported HTTP method"
-msgstr ""
+msgstr "HTTP metod stöds inte"
 
 #: frappe/automation_engine/conditions.py:135
 msgid "Unsupported count comparison: {0}"
-msgstr ""
+msgstr "Räkenskap jämförelse stöds inte: {0}"
 
 #: frappe/desk/query_report.py:538
 msgid "Unsupported file format: {0}"
@@ -36433,7 +36433,7 @@ msgstr "Funktion eller operatorn stöds ej: {0}"
 
 #: frappe/automation_engine/conditions.py:115
 msgid "Unsupported related condition: {0}"
-msgstr ""
+msgstr "Relaterat villkor stöds ej: {0}"
 
 #: frappe/database/query.py:2522
 msgid "Unsupported {0}: {1}"
@@ -37524,15 +37524,15 @@ msgstr "Uppdatering"
 
 #: frappe/public/js/print_format_builder/stores/useVersions.js:56
 msgid "Version deleted"
-msgstr ""
+msgstr "Version borttagen"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:6
 msgid "Version history"
-msgstr ""
+msgstr "Version historik"
 
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:116
 msgid "Version name"
-msgstr ""
+msgstr "Version namn"
 
 #: frappe/public/js/print_format_builder/stores/useVersions.js:64
 msgid "Version restored"
@@ -37764,23 +37764,23 @@ msgstr "Besökare"
 #. 'Automation Trigger Queue'
 #: frappe/automation/doctype/automation_trigger_queue/automation_trigger_queue.json
 msgid "Wait Resume"
-msgstr ""
+msgstr "Vänta Återuppta"
 
 #: frappe/automation_engine/events.py:37
 msgid "Wait for Event correlation key rendered empty"
-msgstr ""
+msgstr "Vänta på Händelse korrelation nyckel renderas tom"
 
 #: frappe/automation_engine/events.py:141
 msgid "Wait for Event requires a correlation key"
-msgstr ""
+msgstr "Vänta på Händelse erfordrar korrelation nyckel"
 
 #: frappe/automation_engine/events.py:143
 msgid "Wait for Event requires a timeout"
-msgstr ""
+msgstr "Vänta på Händelse erfordrar timeout"
 
 #: frappe/automation_engine/events.py:145
 msgid "Wait for Event timeout unit must be one of {0}"
-msgstr ""
+msgstr "Vänta på Händelse timeout enhet måste vara en av {0}"
 
 #: frappe/utils/synchronization.py:48
 msgid "Wait for it to finish. Deleting the lock file {} will not release the lock."
@@ -37788,33 +37788,33 @@ msgstr "Vänta tills det är klart. Att ta bort låsfil {} kommer inte att släp
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:174
 msgid "Wait steps require a duration value and unit"
-msgstr ""
+msgstr "Väntesteg erfordrar varaktighet värde och enhet"
 
 #: frappe/automation_engine/runner.py:320
 msgid "Waited for {0} (simulated)"
-msgstr ""
+msgstr "Väntade på {0} (simulerad)"
 
 #: frappe/automation_engine/runner.py:305
 msgid "Waited {0} {1} (simulated)"
-msgstr ""
+msgstr "Väntade {0} {1} (simulerad)"
 
 #. Option for the 'Status' (Select) field in DocType 'Automation Event
 #. Subscription'
 #: frappe/automation/doctype/automation_event_subscription/automation_event_subscription.json
 msgid "Waiting"
-msgstr ""
+msgstr "Väntar"
 
 #: frappe/core/doctype/background_task/background_task.js:33
 msgid "Waiting for a worker to pick up this task..."
-msgstr "Väntar på att bakgrund tjänst ska plocka upp denna uppgift..."
+msgstr "Väntar på att bakgrund process ska plocka upp denna uppgift..."
 
 #: frappe/automation_engine/runner.py:316
 msgid "Waiting for {0}"
-msgstr ""
+msgstr "Väntar på {0}"
 
 #: frappe/automation_engine/runner.py:301
 msgid "Waiting {0} seconds"
-msgstr ""
+msgstr "Väntar {0} sekunder"
 
 #: frappe/templates/discussions/reply_section.html:39
 msgid "Want to discuss?"
@@ -38296,7 +38296,7 @@ msgstr "Välkommen till Frappe!"
 
 #: frappe/www/portal.html:15
 msgid "Welcome to the Portal"
-msgstr ""
+msgstr "Välkommen till Portal"
 
 #: frappe/desk/doctype/workspace/workspace.py:471
 #: frappe/public/js/frappe/views/workspace/workspace.js:1158
@@ -38324,7 +38324,7 @@ msgstr "Vad för slags sak denna post öppnar. Det stavas på samma sätt som i 
 
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:41
 msgid "What prints now"
-msgstr ""
+msgstr "Vad skrivs ut nu"
 
 #. Description of the 'Icon' (Icon) field in DocType 'Dock Item'
 #: frappe/desk/doctype/dock_item/dock_item.json
@@ -38649,7 +38649,7 @@ msgstr "Arbetsflöde är uppdaterad"
 
 #: frappe/public/js/print_format_builder/components/VersionHistory.vue:15
 msgid "Working draft · not applied yet"
-msgstr ""
+msgstr "Arbetsutkast · inte tillämpat ännu"
 
 #: frappe/public/js/frappe/ui/components/toast.js:153
 msgid "Working..."
@@ -38784,7 +38784,7 @@ msgstr "Vill du inaktivera denna kommentar? Detta innebär att den inte längre 
 
 #: frappe/automation_engine/actions/core.py:381
 msgid "Would {0} {1} (not sent)"
-msgstr ""
+msgstr "Skulle {0} {1} (inte skickad)"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.py:68
 msgid "Wrapping up"
@@ -38814,7 +38814,7 @@ msgstr "Skriv format för hand i HTML och Jinja."
 
 #: frappe/public/js/print_format_builder/components/inspector/StaticTextRow.vue:4
 msgid "Write the text to print"
-msgstr ""
+msgstr "Skriv text att skriva ut"
 
 #: frappe/desk/doctype/sidebar/sidebar.js:37
 msgid "Write {0} into {1} so the app ships it?"
@@ -39793,7 +39793,7 @@ msgstr "app levererar detta inaktiverat"
 
 #: frappe/printing/doctype/print_format/print_format.py:433
 msgid "applied the builder draft"
-msgstr ""
+msgstr "tillämpade Webb Redigerare utkast"
 
 #: frappe/public/js/frappe/ui/sort_selector.html:5
 #: frappe/public/js/frappe/ui/sort_selector.js:56
@@ -40442,7 +40442,7 @@ msgstr "s256"
 
 #: frappe/printing/doctype/print_format/print_format.py:433
 msgid "saved version {0}"
-msgstr ""
+msgstr "sparade version {0}"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: frappe/core/doctype/rq_job/rq_job.json
@@ -40748,7 +40748,7 @@ msgstr "{0} ${type}"
 
 #: frappe/automation_engine/schema_relationships.py:219
 msgid "{0} (by {1})"
-msgstr ""
+msgstr "{0} (av {1})"
 
 #: frappe/automation_engine/schema_relationships.py:185
 #: frappe/public/js/frappe/data_import/data_exporter.js:96
@@ -40895,7 +40895,7 @@ msgstr "{0} och {1}"
 #: frappe/public/js/print_format_builder/utils.js:84
 #: frappe/utils/typst_emitter.py:178
 msgid "{0} and {1} more"
-msgstr ""
+msgstr "{0} och {1} mer"
 
 #: frappe/public/js/frappe/form/sidebar/form_sidebar_users.js:72
 msgid "{0} are currently {1}"
@@ -41032,7 +41032,7 @@ msgstr "{0} finns inte på rad {1}"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:156
 msgid "{0} does not support {1} triggers"
-msgstr ""
+msgstr "{0} stöder inte {1} utlösare"
 
 #: frappe/public/js/frappe/form/controls/link.js:675
 msgid "{0} equals {1}"
@@ -41480,7 +41480,7 @@ msgstr "{0} flyttad under {1}"
 
 #: frappe/automation_engine/actions/core.py:561
 msgid "{0} must be a JSON object"
-msgstr ""
+msgstr "{0} måste vara JSON objekt"
 
 #: frappe/custom/__init__.py:60
 msgid "{0} must be a doctype name in a {1} filter."
@@ -41516,7 +41516,7 @@ msgstr "{0} måste anges först"
 
 #: frappe/printing/doctype/print_format/print_format.py:464
 msgid "{0} must be text"
-msgstr ""
+msgstr "{0} måste vara text"
 
 #: frappe/model/base_document.py:935
 msgid "{0} must be unique"
@@ -41619,11 +41619,11 @@ msgstr "{0} tog bort {1} rader från {2}"
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:154
 msgid "{0} requires a Document Type"
-msgstr ""
+msgstr "{0} erfordrar Dokument Typ"
 
 #: frappe/automation_engine/actions/core.py:32
 msgid "{0} requires a target document"
-msgstr ""
+msgstr "{0} erfordrar mål dokument"
 
 #: frappe/public/js/frappe/form/linked_with.js:94
 msgid "{0} restricted document"
@@ -41725,7 +41725,7 @@ msgstr "{0} träd struktur varningar hittade."
 
 #: frappe/automation/doctype/automation_flow/automation_flow.py:190
 msgid "{0} trigger requires a Document Type"
-msgstr ""
+msgstr "{0} utlösare erfordrar Dokument Typ"
 
 #: frappe/core/doctype/docshare/docshare.py:91
 msgid "{0} un-shared this document with {1}"
@@ -41848,11 +41848,11 @@ msgstr "{0} {1} hittades inte"
 
 #: frappe/automation_engine/actions/core.py:389
 msgid "{0} {1} returned {2}"
-msgstr ""
+msgstr "{0} {1} returnerade {2}"
 
 #: frappe/automation_engine/actions/core.py:386
 msgid "{0} {1} returned {2}: {3}"
-msgstr ""
+msgstr "{0} {1} returnerade {2}: {3}"
 
 #: frappe/model/delete_doc.py:317
 msgid "{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first."

@@ -668,7 +668,17 @@ class TypstEmitter:
 			body = f"#stack(spacing: 8pt,\n[{label}],\n[{body}])"
 
 		block_args = self._section_block_args(section)
-		out = f"#block({', '.join(block_args)})[\n{body}\n]"
+		if section.get("keep_together"):
+			args = ", ".join(block_args)
+			out = (
+				"#layout(size => {\n"
+				f"let body = [{body}]\n"
+				f"let h = measure(block({args}, breakable: false, body), width: size.width).height\n"
+				f"block({args}, breakable: h > size.height, body)\n"
+				"})"
+			)
+		else:
+			out = f"#block({', '.join(block_args)})[\n{body}\n]"
 		out = self._apply_style_effects(out, section.get("custom_style"))
 		margin = section.get("margin") or {}
 		top = pt(margin.get("top"))
@@ -701,8 +711,6 @@ class TypstEmitter:
 			)
 		if section.get("radius") is not None and not section.get("field_borders"):
 			args.append(f"radius: {pt(section['radius'])}pt")
-		if section.get("keep_together"):
-			args.append("breakable: false")
 		return args
 
 	def _columns_grid(self, section, columns, rendered_columns) -> str:
@@ -883,7 +891,7 @@ class TypstEmitter:
 			)
 
 	def _formatted_value(self, df):
-		if df.get("fieldtype") == "Linked Field":
+		if df.get("fieldtype") == "Linked Field" or df.get("_value") is not None:
 			return _text_value(df.get("_value") or "")
 		fieldname = df.get("fieldname")
 		if not fieldname:
@@ -974,7 +982,15 @@ class TypstEmitter:
 		elif src.startswith("/files/"):
 			root, rel = frappe.get_site_path("public", "files"), src[len("/files/") :]
 		elif src.startswith("/assets/"):
-			root, rel = frappe.get_site_path("..", "assets"), src[len("/assets/") :]
+			# each app's assets are a symlink into the app, so contain within the app
+			app, _, rel = src[len("/assets/") :].partition("/")
+			if (
+				not rel
+				or app in ("", ".", "..")
+				or app not in os.listdir(frappe.get_site_path("..", "assets"))
+			):
+				return None
+			root = frappe.get_site_path("..", "assets", app)
 		else:
 			return None
 		# the src is document data — never let it walk out of its root
@@ -1165,10 +1181,19 @@ class TypstEmitter:
 		return muted_text(_(df["label"]), self._label_color()) + "\n#v(3pt)\n"
 
 	def _table_cell(self, row, col) -> str:
+		from frappe.utils.print_format_generator import format_field_value
+
 		merged = col.get("merged_fields")
 		if merged:
 			# the column's own field is the implicit primary line (Table.html:39)
-			merged = [{"fieldname": col.get("fieldname"), "fieldtype": col.get("fieldtype")}, *merged]
+			merged = [
+				{
+					"fieldname": col.get("fieldname"),
+					"fieldtype": col.get("fieldtype"),
+					"date_format": col.get("date_format"),
+				},
+				*merged,
+			]
 			img_fn = next(
 				(
 					mf.get("fieldname")
@@ -1183,7 +1208,7 @@ class TypstEmitter:
 				fieldname = mf.get("fieldname")
 				if not fieldname or mf.get("fieldtype") in MERGE_IMAGE_FIELDTYPES:
 					continue
-				value = _text_value(row.get_formatted(fieldname))
+				value = _text_value(format_field_value(row, mf))
 				if not value:
 					continue
 				if first_text:
@@ -1217,7 +1242,7 @@ class TypstEmitter:
 			if not name:
 				return ""
 			return f'#box(width: 100%, height: 75pt)[#image("{name}", width: 100%, height: 100%, fit: "contain")]'
-		return f"#text({q(_text_value(row.get_formatted(fieldname)))})"
+		return f"#text({q(_text_value(format_field_value(row, col)))})"
 
 	def _table_thumb(self, row, col, img_fn, merged) -> str:
 		size = pt(frappe.utils.cint(col.get("image_size")), 40)

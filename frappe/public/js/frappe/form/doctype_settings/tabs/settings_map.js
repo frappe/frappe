@@ -125,7 +125,8 @@ function render_input($control, group, field) {
 			read_only: field.can_write ? 0 : 1,
 			onchange() {
 				const value = control.get_value();
-				if (value === field.value) return;
+				// the initial set_value fires this too; an unset field is null in the doc but "" here
+				if (same_value(value, field.value)) return;
 				on_change(group, field, value, () => control.set_value(field.value));
 			},
 		},
@@ -137,6 +138,11 @@ function render_input($control, group, field) {
 	control.tooltip && control.tooltip.remove();
 	control.set_value(field.value);
 	control.refresh();
+}
+
+function same_value(a, b) {
+	const norm = (v) => (v === null || v === undefined ? "" : String(v));
+	return norm(a) === norm(b);
 }
 
 // Apply a change optimistically (so dependents react instantly), then persist; on failure

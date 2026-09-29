@@ -2169,6 +2169,13 @@ class TestDDLCommandsPost(IntegrationTestCase):
 			get_qualified_index_name(table, ["id"]),
 		)
 
+	def test_long_non_ascii_index_names_fit_the_identifier_limit(self) -> None:
+		from frappe.database.postgres.schema import get_qualified_index_name
+
+		names = {get_qualified_index_name("tabToDo", ["custom_" + "é" * 24 + key]) for key in "ab"}
+		self.assertEqual(len(names), 2)
+		self.assertTrue(all(len(name.encode()) <= 63 for name in names), msg=names)
+
 	def test_add_index_rejects_unknown_method(self) -> None:
 		# `using` reaches the DDL string verbatim, so an unknown method must be refused, not run.
 		with self.assertRaises(frappe.ValidationError):

@@ -57,12 +57,11 @@ class BackgroundTask(Document):
 				frappe.throw(_("Reference can only be made to MapReduce Job"))
 
 	def after_insert(self):
-		frappe.publish_realtime(
-			event="task_update",
-			message={"task_id": self.task_id, "task_name": self.task_name, "status": "Queued"},
-			user=self.user,
-			after_commit=True,
-		)
+		message = {"task_id": self.task_id, "task_name": self.task_name, "status": "Queued"}
+		# A silent task still reaches the Background Tasks list, just without a toast for its status.
+		if self.flags.silent:
+			message["silent"] = 1
+		frappe.publish_realtime(event="task_update", message=message, user=self.user, after_commit=True)
 
 	def update_stage(self, stage: str) -> None:
 		"""Publish a stage description without numeric progress"""

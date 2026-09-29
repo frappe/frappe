@@ -30,6 +30,7 @@
 
 /* Keep field label and value on the same page */
 .print-format-doc .field {
+	color: var(--gray-900);
 	break-inside: avoid;
 	page-break-inside: avoid;
 }
@@ -49,7 +50,7 @@
 }
 
 .print-format-doc .field .value {
-	color: var(--gray-900);
+	color: inherit;
 }
 
 /* Left-right (section-level): label shrinks to content width, value takes the rest */

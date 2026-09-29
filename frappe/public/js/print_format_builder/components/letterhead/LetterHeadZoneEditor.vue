@@ -92,6 +92,7 @@ watch(
 		if (!letterhead.value) return null;
 		const f = F.value;
 		return [
+			letterhead.value[f.source],
 			letterhead.value[f.image],
 			letterhead.value[f.align],
 			letterhead.value[f.width],

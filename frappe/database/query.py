@@ -11,7 +11,7 @@ from pypika.terms import AggregateFunction, ArithmeticExpression, Star, Term, Va
 import frappe
 from frappe import _
 from frappe.boot import get_additional_filters_from_hooks
-from frappe.database.operator_map import NESTED_SET_OPERATORS, OPERATOR_MAP
+from frappe.database.operator_map import NESTED_SET_OPERATORS, OPERATOR_MAP, func_is
 from frappe.database.utils import (
 	DefaultOrderBy,
 	FilterValue,
@@ -23,7 +23,7 @@ from frappe.database.utils import (
 	is_order_by_in_select,
 )
 from frappe.model import CORE_DOCTYPES as PERMITTED_CORE_DOCTYPES
-from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
+from frappe.model import OPTIONAL_FIELDS, get_permitted_fields, numeric_fieldtypes
 from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
 from frappe.model.document import Document
 from frappe.query_builder import Criterion, Field, Order, functions
@@ -44,6 +44,15 @@ CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 
 
 TABLES_WITHOUT_DOCTYPE = frozenset(("Singles", "Sessions", "Series"))
+
+# What MariaDB coerces `''` to in `is set`; postgres rejects `''` for these columns.
+# No real date equals MariaDB's zero date, so only NULL is empty for dates.
+IS_SET_EMPTY_VALUES: dict[str, int | str | None] = {
+	**dict.fromkeys((*numeric_fieldtypes, "Rating", "Duration"), 0),
+	"Time": "00:00:00",
+	"Date": None,
+	"Datetime": None,
+}
 
 
 class JSONColumnCast(functions.Cast):
@@ -392,8 +401,8 @@ class Engine:
 
 		# Track field aliases for use in group_by/order_by
 		for field in self.fields:
-			if isinstance(field, Field | DynamicTableField | AggregateFunction) and field.alias:
-				self.field_aliases.add(field.alias)
+			if alias := getattr(field, "alias", None):
+				self.field_aliases.add(alias)
 
 		if self.apply_permissions:
 			self.fields = self.apply_field_permissions()
@@ -734,29 +743,10 @@ class Engine:
 			)
 			return operator_fn(_field, nodes or ("",))
 
-		# The `is` ("set"/"not set") operator compares against an empty string (`= ''`).
-		# MariaDB silently coerces `''` to the column's type (e.g. `0` for an int), but
-		# postgres rejects `date/numeric = ''` outright. Compare against the
-		# type-appropriate fallback instead so the same filter behaves identically on both
-		# backends (for a column that coerces `''` to its zero-value on MariaDB, the typed
-		# fallback yields the exact same match set). MariaDB keeps its existing path.
-		if self.is_postgres and _operator.casefold() == "is" and isinstance(_field, Field):
-			value_token = str(_value).strip().lower()
-			if value_token in ("set", "not set"):
-				fallback_sql = self._get_ifnull_fallback(filter_doctype, filter_field_name)
-				if fallback_sql == "''":
-					fallback_value = ""
-				elif fallback_sql.startswith("'") and fallback_sql.endswith("'"):
-					fallback_value = fallback_sql[1:-1]
-				else:
-					try:
-						fallback_value = int(fallback_sql)
-					except (ValueError, TypeError):
-						fallback_value = fallback_sql
-
-				if value_token == "set":
-					return comparison_field != fallback_value
-				return _field.isnull() | (comparison_field == fallback_value)
+		if _operator.casefold() == "is" and isinstance(_field, Field):
+			return func_is(
+				comparison_field, _value, self._get_is_set_empty_value(filter_doctype, filter_field_name)
+			)
 
 		if (
 			self.is_postgres and _operator.casefold() == "like"
@@ -1936,7 +1926,7 @@ class Engine:
 			condition = self.get_permission_conditions(self.doctype, self.table)
 			if condition:
 				quote_char = "`" if self.is_mariadb else '"'
-				return condition.get_sql(with_namespace=True, quote_char=quote_char)
+				return condition.get_sql(with_namespace=True, quote_char=quote_char, subquery=True)
 			return ""
 
 		if not self.ignore_user_permissions:
@@ -2031,14 +2021,26 @@ class Engine:
 		return cast if cast is field else cast.as_(field.alias or field.name)
 
 	def _is_json_field(self, doctype: str, fieldname: str) -> bool:
-		"""Core doctypes read the stored DocType: loading their meta queries Custom Field and
-		Property Setter through this engine, so `get_meta` would recurse."""
-		from frappe.model.meta import Meta, get_default_df
+		from frappe.model.meta import get_default_df
 
 		if get_default_df(fieldname) or fieldname in OPTIONAL_FIELDS:
 			return False
+		docfield = self._get_docfield(doctype, fieldname)
+		return bool(docfield) and docfield.fieldtype == "JSON"
+
+	def _get_is_set_empty_value(self, doctype: str, fieldname: str) -> int | str | None:
+		from frappe.model.meta import get_default_df
+
+		docfield = get_default_df(fieldname) or self._get_docfield(doctype, fieldname)
+		return IS_SET_EMPTY_VALUES.get(docfield.fieldtype, "") if docfield else ""
+
+	def _get_docfield(self, doctype: str, fieldname: str):
+		"""Core doctypes read the stored DocType: loading their meta queries Custom Field and
+		Property Setter through this engine, so `get_meta` would recurse."""
+		from frappe.model.meta import Meta
+
 		if doctype.startswith("__") or doctype in TABLES_WITHOUT_DOCTYPE:
-			return False
+			return None
 
 		meta = frappe.client_cache.get_value(f"doctype_meta::{doctype}")
 		if meta is None:
@@ -2048,13 +2050,11 @@ class Engine:
 				else:
 					meta = frappe.get_meta(doctype)
 			except frappe.DoesNotExistError:
-				return False
+				return None
 
 		if isinstance(meta, Meta):
-			docfield = meta.get_field(fieldname)
-		else:
-			docfield = next((df for df in meta.fields if df.fieldname == fieldname), None)
-		return bool(docfield) and docfield.fieldtype == "JSON"
+			return meta.get_field(fieldname)
+		return next((df for df in meta.fields if df.fieldname == fieldname), None)
 
 	def _is_field_nullable(self, doctype: str, fieldname: str) -> bool:
 		"""Check if a field can contain NULL values."""
