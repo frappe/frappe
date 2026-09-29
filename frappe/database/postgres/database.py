@@ -332,7 +332,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def has_writes_or_locks(self) -> bool:
 		"""Whether the current transaction holds writes, row locks or advisory locks that ending it would release."""
 		return self.sql(
-			"""select txid_current_if_assigned() is not null
+			"""select pg_current_xact_id_if_assigned() is not null
 			or exists (select 1 from pg_locks where pid = pg_backend_pid() and locktype = 'advisory')"""
 		)[0][0]
 
