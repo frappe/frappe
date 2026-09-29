@@ -21,6 +21,7 @@ SECRET = "callback-secret"
 OWNER = "callback-owner@example.com"
 MODULE = "flow.tests.test_daemon_callback"
 BOOM = "def main(reason: str) -> str:\n\traise ValueError(reason)\n"
+WHOAMI = "def main() -> str:\n\treturn frappe.session.user\n"
 
 
 def ended(run):
@@ -30,12 +31,6 @@ def ended(run):
 @tool
 def whoami(*, ctx: ToolContext) -> str:
 	"""The user this tool runs as."""
-	return frappe.session.user
-
-
-@tool(background=True)
-def whoami_later(*, ctx: ToolContext) -> str:
-	"""The user this background tool runs as."""
 	return frappe.session.user
 
 
@@ -65,9 +60,10 @@ class TestToolCallback(IntegrationTestCase):
 			frappe.get_doc(
 				{"doctype": "User", "email": OWNER, "first_name": "Callback", "send_welcome_email": 0}
 			).insert(ignore_permissions=True)
-		for slug in ("whoami", "whoami_later", "insert_then_fail", "callback_context"):
+		for slug in ("whoami", "insert_then_fail", "callback_context"):
 			self.flow_tool(slug, type="Imported", import_path=f"{MODULE}.{slug}")
 		self.flow_tool("boom", type="Script", code=BOOM)
+		self.flow_tool("whoami_later", type="Script", code=WHOAMI, background=1)
 		model = frappe.get_doc(
 			{
 				"doctype": "Flow Model",
