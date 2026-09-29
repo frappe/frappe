@@ -115,15 +115,6 @@ class Notification(Document):
 	def preview_message(self, preview_document: str | int):
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
-<<<<<<< HEAD
-			context = get_context(doc)
-			context.update({"alert": self, "comments": None})
-			if doc.get("_comments"):
-				context["comments"] = json.loads(doc.get("_comments"))
-			if self.is_standard:
-				self.load_standard_properties(context)
-			msg = frappe.render_template(self.message, context)
-=======
 			template_content = self.get_email_template_content(doc)
 			if template_content:
 				msg = template_content["message"]
@@ -134,8 +125,7 @@ class Notification(Document):
 					context["comments"] = json.loads(doc.get("_comments"))
 				if self.is_standard:
 					self.load_standard_properties(context)
-				msg = frappe.render_template(self.message, context, restrict_globals=True)
->>>>>>> fa90579 (feat(notification): support sending content from an Email Template)
+				msg = frappe.render_template(self.message, context)
 			if self.channel == "SMS":
 				return frappe.utils.strip_html_tags(msg)
 			return msg
@@ -503,16 +493,6 @@ def get_context(context):
 				template, context
 			)
 
-<<<<<<< HEAD
-		# Title falls back to the email Subject so existing rules keep their headline.
-		# Description, however, comes ONLY from the dedicated Notification Message — we do not
-		# fall back to the email Message, whose default placeholder ("Add your message here")
-		# would otherwise leak into the panel. This matches the older behaviour where the bell
-		# showed just the headline when there was no body.
-		subject = _render(self.subject)
-		title = _render(self.notification_title) or subject
-		description = _render(self.notification_message)
-=======
 		if template_content is None:
 			template_content = self.get_email_template_content(doc)
 		if template_content:
@@ -521,7 +501,14 @@ def get_context(context):
 		else:
 			subject = _render(self.subject)
 			email_content = _render(self.message)
->>>>>>> fa90579 (feat(notification): support sending content from an Email Template)
+
+		# Title falls back to the email Subject so existing rules keep their headline.
+		# Description, however, comes ONLY from the dedicated Notification Message — we do not
+		# fall back to the email Message, whose default placeholder ("Add your message here")
+		# would otherwise leak into the panel. This matches the older behaviour where the bell
+		# showed just the headline when there was no body.
+		title = _render(self.notification_title) or subject
+		description = _render(self.notification_message)
 
 		attachments = self.get_attachment(doc)
 
@@ -542,16 +529,12 @@ def get_context(context):
 			"app": frappe.db.get_value("Module Def", self.module, "app_name") if self.module else None,
 			"title": title,
 			"subject": subject,
-<<<<<<< HEAD
 			"description": description,
-			# Email body comes from the rule's Message field (its dedicated purpose), not the
+			# Email body comes from the rule's Message field (or its Email Template), not the
 			# in-app Description: a non-skip notification_type can make the log email itself
 			# (NotificationLog.after_insert), and a blank Notification Message must not produce a
 			# body-less email. This restores the pre-split behaviour (email_content <- self.message).
-			"email_content": _render(self.message),
-=======
 			"email_content": email_content,
->>>>>>> fa90579 (feat(notification): support sending content from an Email Template)
 			"from_user": doc.modified_by or doc.owner,
 			"attached_file": json.dumps(attachments) if attachments else None,
 		}
@@ -562,11 +545,6 @@ def get_context(context):
 
 		from frappe.core.doctype.communication.email import _make as make_communication
 
-<<<<<<< HEAD
-		subject = self.subject
-		if "{" in subject:
-			subject = frappe.render_template(self.subject, context)
-=======
 		if template_content is None:
 			template_content = self.get_email_template_content(doc)
 		if template_content:
@@ -574,9 +552,8 @@ def get_context(context):
 		else:
 			subject = self.subject
 			if "{" in subject:
-				subject = frappe.render_template(self.subject, context, restrict_globals=True)
-			message = frappe.render_template(self.message, context, restrict_globals=True)
->>>>>>> fa90579 (feat(notification): support sending content from an Email Template)
+				subject = frappe.render_template(self.subject, context)
+			message = frappe.render_template(self.message, context)
 
 		attachments = self.get_attachment(doc)
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
@@ -584,10 +561,6 @@ def get_context(context):
 			return
 
 		sender = None
-<<<<<<< HEAD
-		message = frappe.render_template(self.message, context)
-=======
->>>>>>> fa90579 (feat(notification): support sending content from an Email Template)
 		if self.sender and self.sender_email:
 			sender = formataddr((self.sender, self.sender_email))
 

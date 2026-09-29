@@ -14,6 +14,7 @@
   "channel",
   "slack_webhook_url",
   "filters_section",
+  "subject",
   "event",
   "document_type",
   "col_break_1",
@@ -27,6 +28,8 @@
   "sender",
   "send_system_notification",
   "notification_type",
+  "notification_title",
+  "notification_message",
   "sender_email",
   "section_break_9",
   "condition_type",
@@ -43,7 +46,6 @@
   "recipients",
   "message_sb",
   "email_template",
-  "subject",
   "message_type",
   "message",
   "message_examples",
@@ -78,7 +80,7 @@
   },
   {
    "depends_on": "eval:doc.channel=='Slack'",
-   "description": "To use Slack Channel, add a <a href=\"#List/Slack%20Webhook%20URL/List\" rel=\"noopener noreferrer\">Slack Webhook URL</a>.",
+   "description": "To use Slack Channel, add a <a href=\"#List/Slack%20Webhook%20URL/List\">Slack Webhook URL</a>.",
    "fieldname": "slack_webhook_url",
    "fieldtype": "Link",
    "label": "Slack Channel",
@@ -92,6 +94,16 @@
    "label": "Filters",
    "options": "JSON",
    "read_only": 1
+  },
+  {
+   "depends_on": "eval: in_list(['Email', 'Slack'], doc.channel) && !doc.email_template",
+   "description": "For a dynamic subject, use Jinja tags like this: <code>{{ doc.name }} Delivered</code>",
+   "fieldname": "subject",
+   "fieldtype": "Data",
+   "ignore_xss_filter": 1,
+   "in_list_view": 1,
+   "label": "Subject",
+   "mandatory_depends_on": "eval: in_list(['Email', 'Slack'], doc.channel) && !doc.email_template"
   },
   {
    "fieldname": "document_type",
@@ -127,7 +139,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Send Alert On",
-   "options": "\nNew\nSave\nSubmit\nCancel\nDays After\nDays Before\nMinutes After\nMinutes Before\nValue Change\nMethod",
+   "options": "\nNew\nSave\nSubmit\nCancel\nDays After\nDays Before\nMinutes After\nMinutes Before\nValue Change\nMethod\nCustom",
    "reqd": 1,
    "search_index": 1
   },
@@ -227,9 +239,10 @@
    "options": "Notification Recipient"
   },
   {
+   "depends_on": "eval: doc.channel != 'System Notification'",
    "fieldname": "message_sb",
    "fieldtype": "Section Break",
-   "label": "Content"
+   "label": "Message"
   },
   {
    "depends_on": "eval: doc.channel == 'Email'",
@@ -238,16 +251,6 @@
    "fieldtype": "Link",
    "label": "Email Template",
    "options": "Email Template"
-  },
-  {
-   "depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel) && !doc.email_template",
-   "description": "For a dynamic subject, use Jinja tags like this: <code>{{ doc.name }} Delivered</code>",
-   "fieldname": "subject",
-   "fieldtype": "Data",
-   "ignore_xss_filter": 1,
-   "in_list_view": 1,
-   "label": "Subject",
-   "mandatory_depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel) && !doc.email_template"
   },
   {
    "default": "Add your message here",
@@ -305,6 +308,23 @@
    "fieldtype": "Link",
    "label": "Notification Type",
    "options": "Notification Type"
+  },
+  {
+   "depends_on": "eval: doc.channel === 'System Notification' || doc.send_system_notification",
+   "description": "Headline of the in-app notification. Falls back to Subject if left blank. Supports Jinja.",
+   "fieldname": "notification_title",
+   "fieldtype": "Data",
+   "ignore_xss_filter": 1,
+   "label": "Notification Title",
+   "mandatory_depends_on": "eval: doc.channel === 'System Notification'"
+  },
+  {
+   "depends_on": "eval: doc.channel === 'System Notification' || doc.send_system_notification",
+   "description": "Optional body of the in-app notification. Supports Jinja.",
+   "fieldname": "notification_message",
+   "fieldtype": "Small Text",
+   "ignore_xss_filter": 1,
+   "label": "Notification Message"
   },
   {
    "default": "0",
