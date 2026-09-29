@@ -4,7 +4,7 @@ frappe.provide("frappe.ui");
  * @typedef {Object} DonutSegment
  * @property {string} label Legend and tooltip text. Rendered as text.
  * @property {number} value Segment size. Zero and negative segments are dropped.
- * @property {string} [color] Any CSS colour, including tokens like var(--ink-red-5). Defaults to the categorical palette.
+ * @property {string} [color] Any CSS colour, including tokens like var(--chart-categorical-3). Defaults to the next stop of the categorical ramp.
  */
 
 /**
@@ -16,7 +16,7 @@ frappe.provide("frappe.ui");
  * @property {string} [css_class] Extra classes on the root.
  */
 
-const PALETTE = ["#2590d6", "#84c5f9", "#289e60", "#84d4a1", "#753cbb", "#e5a13a", "#e2657a"];
+const PALETTE = Array.from({ length: 10 }, (_, i) => `var(--chart-categorical-${i + 1})`);
 
 /**
  * A donut chart (frappe-ui's look): gently rounded, gapped segments, a value
