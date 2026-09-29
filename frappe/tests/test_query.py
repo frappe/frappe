@@ -3478,6 +3478,17 @@ class TestJSONFieldQueries(IntegrationTestCase):
 			self.assertNotIn("CAST(", distinct)
 			self.assertNotIn("CAST(", ordered)
 
+	def test_json_star_and_joined_fields_with_distinct(self):
+		own_docs = {"name": ["in", list(self.names.values())]}
+		rows = frappe.qb.get_query(self.doctype, fields=["*"], filters=own_docs, distinct=True).run(
+			as_dict=True
+		)
+		self.assertEqual({row.payload for row in rows}, {None, "[]", '["x"]'})
+
+		for doctype, field in (("Automation Flow", "actions.params"), ("MapReduce Task", "master.data")):
+			with self.subTest(field=field):
+				frappe.qb.get_query(doctype, fields=["name", field], distinct=True).run()
+
 	def test_permlevel_json_field_with_distinct(self):
 		"""The select cast runs after the permission pass, which only checks Field terms."""
 		role = "JSON Query Test Role"
