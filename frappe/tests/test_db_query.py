@@ -54,6 +54,26 @@ class TestDBQuery(FrappeTestCase):
 	def test_basic(self):
 		self.assertTrue({"name": "DocType"} in DatabaseQuery("DocType").execute(limit_page_length=None))
 
+	def test_sql_keyword_as_fieldname_in_order_by_and_group_by(self):
+		"""A fieldname that is also a SQL keyword must not be read as a keyword. Issue #42771."""
+		clear_custom_fields("ToDo")
+		add_custom_field("ToDo", "start", "Data")
+		self.addCleanup(clear_custom_fields, "ToDo")
+
+		frappe.get_doc({"doctype": "ToDo", "description": "keyword sort", "start": "1"}).insert()
+
+		# failed with "Illegal SQL Query" before the fix
+		frappe.get_all("ToDo", fields=["*"], order_by="start desc", group_by="start asc")
+		frappe.get_all("ToDo", fields=["start"], order_by="start desc")
+		frappe.get_all("ToDo", fields=["start"], group_by="start")
+
+		query = frappe.get_all("ToDo", fields=["start"], order_by="start desc", run=False)
+		self.assertIn("order by `start` desc", query)
+
+		# every bare name is quoted, not just keywords, so permlevel checks can still read it
+		query = frappe.get_all("ToDo", fields=["name"], order_by="modified desc", run=False)
+		self.assertIn("order by `modified` desc", query)
+
 	def test_extract_tables(self):
 		db_query = DatabaseQuery("DocType")
 		add_custom_field("DocType", "test_tab_field", "Data")
