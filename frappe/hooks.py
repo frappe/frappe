@@ -224,6 +224,8 @@ scheduler_events = {
 		# 5 minutes
 		"0/5 * * * *": [
 			"frappe.email.doctype.notification.notification.trigger_offset_alerts",
+			"frappe.automation_engine.scheduler.process_cron",
+			"frappe.automation_engine.drainer.drain_due",
 		],
 		# 15 minutes
 		"0/15 * * * *": [
@@ -256,7 +258,9 @@ scheduler_events = {
 		"frappe.monitor.flush",
 		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
 	],
-	"hourly": [],
+	"hourly": [
+		"frappe.automation_engine.scheduler.process_date_based",
+	],
 	# Maintenance queue happen roughly once an hour but don't align with wall-clock time of *:00
 	# Use these for when you don't care about when the job runs but just need some guarantee for
 	# frequency.
@@ -284,6 +288,7 @@ scheduler_events = {
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.core.doctype.log_settings.log_settings.run_log_clean_up",
+		"frappe.automation_engine.drainer.purge_queue",
 		"frappe.core.doctype.user_invitation.user_invitation.mark_expired_invitations",
 	],
 	"weekly_long": [
@@ -317,6 +322,7 @@ after_migrate = [
 	"frappe.website.doctype.website_theme.website_theme.after_migrate",
 	"frappe.search.sqlite_search.build_index_in_background",
 	"frappe.desk.doctype.notification_type.notification_type.install_notification_types",
+	"frappe.automation.doctype.automation_trigger_queue.automation_trigger_queue.ensure_dedup_indexes",
 ]
 
 otp_methods = ["OTP App", "Email", "SMS"]
@@ -524,6 +530,7 @@ default_log_clearing_doctypes = {
 	"Email Queue": 30,
 	"Scheduled Job Log": 7,
 	"Submission Queue": 7,
+	"Automation Run": 30,
 	"Prepared Report": 14,
 	"Webhook Request Log": 30,
 	"Unhandled Email": 30,

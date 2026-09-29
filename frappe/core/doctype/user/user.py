@@ -23,6 +23,7 @@ from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.rate_limiter import rate_limit
 from frappe.sessions import clear_sessions
+from frappe.twofactor import should_run_2fa
 from frappe.utils import (
 	cint,
 	escape_html,
@@ -281,11 +282,7 @@ class User(Document):
 		"""This handles old role_profile_name field if programatically set.
 
 		This behaviour will be removed in future versions."""
-		if not self.role_profiles:
-			self.role_profile_name = None
-			return
-
-		if not self.role_profile_name:
+		if not self.role_profile_name or not self.has_value_changed("role_profile_name"):
 			return
 
 		current_role_profiles = {r.role_profile for r in self.role_profiles}
@@ -961,6 +958,12 @@ def update_password(
 
 	user_doc.validate_reset_password()
 
+	frappe.db.set_value("User", user, "last_password_reset_date", today())
+	frappe.db.set_value("User", user, "reset_password_key", "")
+
+	if key and should_run_2fa(user):
+		return "/login"
+
 	# get redirect url from cache
 	redirect_to = frappe.cache.hget("redirect_after_login", user)
 	if redirect_to:
@@ -968,9 +971,6 @@ def update_password(
 		frappe.cache.hdel("redirect_after_login", user)
 
 	frappe.local.login_manager.login_as(user)
-
-	frappe.db.set_value("User", user, "last_password_reset_date", today())
-	frappe.db.set_value("User", user, "reset_password_key", "")
 
 	if user_doc.user_type == "System User":
 		return get_default_path() or "/desk"

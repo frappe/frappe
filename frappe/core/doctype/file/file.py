@@ -932,10 +932,21 @@ class File(Document):
 		if self.file_url:
 			self.is_private = cint(self.file_url.startswith("/private"))
 
+	def validate_file_url_matches_record(self):
+		"""Ensure file_url actually resolves back to an existing File record with this name."""
+		if not self.file_url:
+			return
+
+		actual_file_url = frappe.db.get_value("File", self.name, "file_url") if self.name else None
+		if actual_file_url != self.file_url:
+			frappe.throw(_("The File URL does not belong to this File record"), frappe.PermissionError)
+
 	@frappe.whitelist()
 	def optimize_file(self):
 		if self.is_folder:
 			raise TypeError("Folders cannot be optimized")
+
+		self.validate_file_url_matches_record()
 
 		content_type = mimetypes.guess_type(self.file_name)[0]
 		is_local_image = content_type.startswith("image/") and self.file_size > 0
@@ -1041,8 +1052,16 @@ def get_permission_query_conditions(user: str | None = None) -> str:
 	if SYSTEM_USER_ROLE not in frappe.get_roles(user):
 		return f""" `tabFile`.`owner` = {frappe.db.escape(user)} """
 
+	# Custom DocPerm rows can outlive their DocType, drop those
+	# before frappe.get_meta() below assumes the doctype still exists.
+	candidate_doctypes = get_doctypes_with_read(user)
+	existing_doctypes = set(
+		frappe.get_all("DocType", filters={"name": ["in", candidate_doctypes]}, pluck="name")
+	)
+	readable_doctypes = [dt for dt in candidate_doctypes if dt in existing_doctypes]
+
 	openly_readable_doctypes, owner_restricted_doctypes = _split_doctypes_by_owner_constraint(
-		get_doctypes_with_read(user), user
+		readable_doctypes, user
 	)
 	# a doctype that requires an owner constraint is never additionally scoped by User
 	# Permissions here - same "if_owner takes priority, else check user permissions" rule

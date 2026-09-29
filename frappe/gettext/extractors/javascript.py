@@ -72,6 +72,7 @@ def extract_javascript(code, keywords=None, options=None, lineno=1):
 	closing_operators = {"]", "}"}
 	all_container_operators = opening_operators.union(closing_operators)
 	dotted = any("." in kw for kw in keywords)
+	outer_calls = []
 
 	for token in tokenize(
 		code,
@@ -96,7 +97,26 @@ def extract_javascript(code, keywords=None, options=None, lineno=1):
 			yield from parse_template_string(token.value, keywords, options, token.lineno)
 
 		if token.type == "operator" and token.value == "(":
-			if funcname:
+			if call_stack >= 0 and last_token.type == "name" and last_token.value in keywords:
+				outer_calls.append(
+					(
+						funcname,
+						message_lineno,
+						messages,
+						last_argument,
+						concatenate_next,
+						call_stack,
+						tree_level,
+					)
+				)
+				funcname = last_token.value
+				message_lineno = token.lineno
+				messages = []
+				last_argument = None
+				concatenate_next = False
+				call_stack = 0
+				tree_level = 0
+			elif funcname:
 				message_lineno = token.lineno
 				call_stack += 1
 
@@ -123,11 +143,22 @@ def extract_javascript(code, keywords=None, options=None, lineno=1):
 				if messages is not None:
 					yield (message_lineno, funcname, messages)
 
-				funcname = message_lineno = last_argument = None
-				concatenate_next = False
-				messages = []
-				call_stack = -1
-				tree_level = 0
+				if outer_calls:
+					(
+						funcname,
+						message_lineno,
+						messages,
+						last_argument,
+						concatenate_next,
+						call_stack,
+						tree_level,
+					) = outer_calls.pop()
+				else:
+					funcname = message_lineno = last_argument = None
+					concatenate_next = False
+					messages = []
+					call_stack = -1
+					tree_level = 0
 
 			elif token.type in ("string", "template_string"):
 				new_value = unquote_string(token.value)
