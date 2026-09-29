@@ -1117,12 +1117,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					return;
 				}
 
-				const width = Math.round($el.outerWidth());
+				// exact, not rounded: pinning 94.5px as 95px shifts every column after it
+				const width = $el[0].getBoundingClientRect().width;
 				if (!width) {
 					return;
 				}
 
-				const existing = cint(this.column_max_widths[fieldname]) || 0;
+				const existing = flt(this.column_max_widths[fieldname]) || 0;
 				this.column_max_widths[fieldname] = Math.max(existing, width);
 			});
 	}
@@ -1576,7 +1577,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		if (!frappe.is_mobile() && cint(col.df?.width)) {
 			const width = cint(col.df.width);
-			const existing = cint(this.column_max_widths[fieldname]) || 0;
+			const existing = flt(this.column_max_widths[fieldname]) || 0;
 			this.column_max_widths[fieldname] = Math.max(existing, width);
 		}
 
@@ -1637,6 +1638,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// if listview is not scrollable then hide border
 		if (left_width < frappe_list_width - right_width) {
 			this.$result.find(".list-row-container .list-row .level-right").addClass("border-0");
+		}
+
+		// the header's right side holds the count, the rows' the timestamp and comment
+		// count; give both the wider of the two so the columns to their left line up
+		const result = this.$result[0];
+		result.style.removeProperty("--list-right-width");
+		const head_right = result.querySelector(".list-row-head .level-right");
+		const row_right = list_row.find(".level-right")[0];
+		if (!frappe.is_mobile() && head_right && row_right) {
+			const width = Math.max(
+				head_right.getBoundingClientRect().width,
+				row_right.getBoundingClientRect().width
+			);
+			result.style.setProperty("--list-right-width", `${width}px`);
 		}
 	}
 
