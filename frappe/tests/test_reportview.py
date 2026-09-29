@@ -268,16 +268,32 @@ class TestReportview(IntegrationTestCase):
 		self.assertEqual(frappe.local.response["_link_titles"]["Role::System Manager"], "System Manager")
 
 	def test_get_sends_link_titles_for_aliased_child_table_columns(self):
-		self.enable_link_titles("Role", title_field="role_name")
+		self.enable_link_titles("User")
+		group = frappe.get_doc(
+			{
+				"doctype": "User Group",
+				"name": "Report Link Titles",
+				"user_group_members": [{"user": "test@example.com"}],
+			}
+		).insert()
+		frappe.get_doc("User", "test@example.com").add_roles("System Manager")
+		full_name = frappe.db.get_value("User", "test@example.com", "full_name")
+		self.assertNotEqual(full_name, "test@example.com")
 
-		self.get_rows(
-			doctype="User",
-			fields=["`tabUser`.`name`", "`tabHas Role`.`role` as 'Has Role:role'"],
-			filters={"name": "Administrator"},
-			with_link_titles=1,
-		)
+		with self.set_user("test@example.com"):
+			result = self.get_rows(
+				doctype="User Group",
+				fields=[
+					"`tabUser Group`.`name`",
+					"`tabUser Group Member`.`user` as 'User Group Member:user'",
+				],
+				filters={"name": group.name},
+				with_link_titles=1,
+			)
 
-		self.assertEqual(frappe.local.response["_link_titles"]["Role::System Manager"], "System Manager")
+			self.assertEqual(result["keys"], ["name", "User Group Member:user"])
+			self.assertEqual(result["values"][0][1], "test@example.com")
+			self.assertEqual(frappe.local.response["_link_titles"]["User::test@example.com"], full_name)
 
 	def get_todo_rows(self, name, **extra_params):
 		return self.get_rows(
