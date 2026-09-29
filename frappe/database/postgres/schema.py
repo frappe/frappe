@@ -384,7 +384,7 @@ class PostgresTable(DBTable):
 						"{0} field cannot be set as unique in {1}, as there are non-unique existing values"
 					).format(fieldname, self.table_name)
 				)
-			elif frappe.db.is_data_truncated(e):
+			elif frappe.db.is_data_truncated(e) or frappe.db.is_data_too_long(e):
 				frappe.throw(
 					_(
 						"Cannot change field type in {0}: some existing values cannot be converted to the new type"

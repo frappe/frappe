@@ -188,6 +188,7 @@ class MariaDBTable(DBTable):
 					self.run_alter(query_parts, coerce_blanks=False)
 					return
 
+			if frappe.db.is_data_truncated(e) or frappe.db.is_data_too_long(e):
 				frappe.throw(
 					_(
 						"Cannot change field type in {0}: some existing values cannot be converted to the new type"
