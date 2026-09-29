@@ -1,7 +1,6 @@
 {
  "actions": [],
  "allow_bulk_edit": 1,
- "allow_rename": 1,
  "autoname": "hash",
  "creation": "2026-09-29 14:15:19.900864",
  "doctype": "DocType",
@@ -160,7 +159,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-29 14:15:19.900864",
+ "modified": "2026-09-29 15:08:27.766045",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Automation Run",
