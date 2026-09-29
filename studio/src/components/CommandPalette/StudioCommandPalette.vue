@@ -22,6 +22,7 @@ import type { CommandPaletteItem as CPItem } from "@/components/CommandPalette/C
 import { commandGroups, commands, resolveText } from "@/components/Commands"
 import useStudioStore from "@/stores/studioStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
+import useCanvasStore from "@/stores/canvasStore"
 import { studioComponents } from "@/data/studioComponents"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
@@ -30,6 +31,7 @@ type PaletteItem = CPItem & { action?: () => void; group?: string; shortcutName?
 type Step = { id: string; label: string; placeholder: string; hint: string }
 
 const store = useStudioStore()
+const canvasStore = useCanvasStore()
 const router = useRouter()
 
 const show = ref(false)
@@ -148,14 +150,18 @@ const pageItems = computed<PaletteItem[]>(() =>
 		})),
 )
 
-const componentItems = computed<PaletteItem[]>(() =>
-	(studioComponents.data || []).map((component: StudioComponent) => ({
-		name: `component-${component.component_id}`,
-		title: component.component_name,
-		icon: "lucide-box",
-		action: () => useComponentEditorStore().editComponent(component.component_id),
-	})),
-)
+const componentItems = computed<PaletteItem[]>(() => {
+	// Do not list a component that is open. A second editor can overwrite its edits.
+	const openIds = new Set(canvasStore.fragmentStack.map((fragment) => fragment.fragmentId))
+	return (studioComponents.data || [])
+		.filter((component: StudioComponent) => !openIds.has(component.component_id))
+		.map((component: StudioComponent) => ({
+			name: `component-${component.component_id}`,
+			title: component.component_name,
+			icon: "lucide-box",
+			action: () => useComponentEditorStore().editComponent(component.component_id),
+		}))
+})
 
 const stepItems: Record<string, ComputedRef<PaletteItem[]>> = {
 	"go-to-page": pageItems,
