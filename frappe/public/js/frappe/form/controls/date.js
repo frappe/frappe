@@ -40,7 +40,11 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		}
 
 		if (should_refresh) {
-			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
+			const date = frappe.datetime.str_to_obj(value);
+			this._suppress_change = true;
+			this.datepicker.selectDate(date);
+			this._suppress_change = false;
+			this.datepicker.date = date;
 		}
 	}
 	set_date_options() {
