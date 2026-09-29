@@ -415,8 +415,7 @@ def contact_query(
 		fields=[Contact.name, Contact.full_name, Contact.company_name],
 		filters=[
 			[Contact[searchfield], "like", f"%{txt}%"],
-			["Dynamic Link", "link_doctype", "=", link_doctype],
-			["Dynamic Link", "link_name", "=", link_name],
+			Contact.name.isin(get_linked_contacts_query(link_doctype, link_name)),
 		],
 		limit=page_len,
 		offset=start,
@@ -437,6 +436,18 @@ def contact_query(
 		query = query.orderby(relevance)
 
 	return query.orderby(Contact.idx, order=frappe.qb.desc).orderby(Contact.full_name).run()
+
+
+def get_linked_contacts_query(link_doctype: str, link_name: str):
+	"""Return a subquery of Contact names linked to the given document."""
+	DynamicLink = frappe.qb.DocType("Dynamic Link")
+	return (
+		frappe.qb.from_(DynamicLink)
+		.select(DynamicLink.parent)
+		.where(DynamicLink.parenttype == "Contact")
+		.where(DynamicLink.link_doctype == link_doctype)
+		.where(DynamicLink.link_name == link_name)
+	)
 
 
 @frappe.whitelist()
