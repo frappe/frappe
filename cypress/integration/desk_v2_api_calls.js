@@ -53,8 +53,12 @@ context("Desk v2 API calls", () => {
 function coldVisit(path) {
 	cy.clearAllLocalStorage();
 	cy.clearAllSessionStorage();
+	// With the cache on, a GET repeated in one load reaches the network or not depending on timing.
 	cy.wrap(
-		Cypress.automation("remote:debugger:protocol", { command: "Network.clearBrowserCache" })
+		Cypress.automation("remote:debugger:protocol", {
+			command: "Network.setCacheDisabled",
+			params: { cacheDisabled: true },
+		})
 	);
 	return countCalls(() => cy.visit(path));
 }
