@@ -11,7 +11,7 @@ from pypika.terms import AggregateFunction, ArithmeticExpression, Star, Term, Va
 import frappe
 from frappe import _
 from frappe.boot import get_additional_filters_from_hooks
-from frappe.database.operator_map import NESTED_SET_OPERATORS, OPERATOR_MAP
+from frappe.database.operator_map import NESTED_SET_OPERATORS, OPERATOR_MAP, func_is
 from frappe.database.utils import (
 	DefaultOrderBy,
 	FilterValue,
@@ -20,7 +20,7 @@ from frappe.database.utils import (
 	get_doctype_sort_info,
 )
 from frappe.model import CORE_DOCTYPES as PERMITTED_CORE_DOCTYPES
-from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
+from frappe.model import OPTIONAL_FIELDS, get_permitted_fields, numeric_fieldtypes
 from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
 from frappe.model.document import Document
 from frappe.query_builder import Criterion, Field, Order, functions
@@ -38,6 +38,16 @@ CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 		"Series",
 	)
 )
+
+
+# What MariaDB coerces `''` to in `is set`; postgres rejects `''` for these columns.
+# No real date equals MariaDB's zero date, so only NULL is empty for dates.
+IS_SET_EMPTY_VALUES: dict[str, int | str | None] = {
+	**dict.fromkeys((*numeric_fieldtypes, "Rating", "Duration"), 0),
+	"Time": "00:00:00",
+	"Date": None,
+	"Datetime": None,
+}
 
 
 def _apply_date_field_filter_conversion(value, operator: str, doctype: str, field):
@@ -647,6 +657,11 @@ class Engine:
 				else OPERATOR_MAP["in"]
 			)
 			return operator_fn(_field, nodes or ("",))
+
+		if _operator.casefold() == "is" and isinstance(_field, Field):
+			filter_field_name = (field if isinstance(field, str) else _field.name).split(".")[-1]
+			filter_doctype = self._get_field_doctype(_field, doctype or self.doctype)
+			return func_is(_field, _value, self._get_is_set_empty_value(filter_doctype, filter_field_name))
 
 		if (
 			self.is_postgres and _operator.casefold() == "like"
@@ -1773,6 +1788,25 @@ class Engine:
 				conditions.append(c.get_sql(with_namespace=True, quote_char=quote_char))
 		finally:
 			self.apply_permissions = original_apply_permissions
+
+	def _get_field_doctype(self, field: Term, default: str) -> str:
+		"""The doctype a parsed field's table belongs to; a joined table is not the query's own."""
+		table = getattr(field, "table", None)
+		if table is None:
+			return default
+		try:
+			return get_doctype_name(getattr(table, "_table_name", None) or table.get_sql())
+		except Exception:
+			return default
+
+	def _get_is_set_empty_value(self, doctype: str, fieldname: str) -> int | str | None:
+		from frappe.model.meta import get_default_df
+
+		try:
+			docfield = get_default_df(fieldname) or frappe.get_meta(doctype).get_field(fieldname)
+		except frappe.DoesNotExistError:
+			return ""
+		return IS_SET_EMPTY_VALUES.get(docfield.fieldtype, "") if docfield else ""
 
 	def _is_field_nullable(self, doctype: str, fieldname: str) -> bool:
 		"""Check if a field can contain NULL values."""
