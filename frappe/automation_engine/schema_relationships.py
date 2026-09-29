@@ -25,6 +25,7 @@ from frappe.utils.caching import request_cache
 IGNORED_DOCTYPES = {
 	"Access Log",
 	"Activity Log",
+	"Automation Run",
 	"Background Task",
 	"Comment",
 	"Communication Link",

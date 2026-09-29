@@ -8,12 +8,11 @@ from frappe.automation_engine import settings
 from frappe.automation_engine.conditions import condition_fieldnames
 from frappe.automation_engine.dispatch import kick_drainer, matches_rule, queue_trigger
 from frappe.automation_engine.queue import QUEUE, WAITING_STATES
-from frappe.automation_engine.runner import TASK_METHOD, automation_task_name
+from frappe.automation_engine.runner import RUN
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import parse_cron
 from frappe.utils import add_days, cint, get_datetime, getdate, now_datetime
 
 SCHEDULED_PAYLOAD_KEY = "scheduled_fire_at"
-RUN_LOOKUP_INDEX = "automation_run_lookup"
 
 
 def process_cron(now: datetime | None = None):
@@ -85,24 +84,11 @@ def _handled_names(automation: str, fire_at: datetime) -> set[str | None]:
 	return {*active, *completed}
 
 
-def ensure_run_lookup_index():
-	"""Index the lookup `_completed_names` runs on every scheduled tick.
-
-	Background Task carries no index of its own and grows with every run, so without this the
-	check degrades into a full scan as history accumulates.
-	"""
-	frappe.db.add_index("Background Task", ["task_name", "method", "creation"], RUN_LOOKUP_INDEX)
-
-
 def _completed_names(automation: str, fire_at: datetime) -> list[str | None]:
-	task = frappe.qb.DocType("Background Task")
-	return (
-		frappe.qb.from_(task)
-		.select(task.ref_docname)
-		.where(task.task_name == automation_task_name(automation))
-		.where(task.method == TASK_METHOD)
-		.where(task.creation >= fire_at)
-		.run(pluck=True)
+	return frappe.get_all(
+		RUN,
+		filters={"automation": automation, "creation": (">=", fire_at)},
+		pluck="reference_name",
 	)
 
 
