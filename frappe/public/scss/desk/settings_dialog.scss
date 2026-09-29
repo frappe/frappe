@@ -276,52 +276,9 @@ table + .settings-dialog-section-heading {
 	}
 }
 
-// Any other control laid out as a switch row is: label and description on the left, the input on
-// the right. Opt in by adding `settings-inline-control` to the control's wrapper.
-.settings-dialog-panel-body .frappe-control.settings-inline-control {
-	.form-group {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto;
-		column-gap: 2rem;
-		align-items: center;
-		margin-bottom: 0;
-		padding: 0.25rem 0;
-	}
-
-	.clearfix {
-		grid-column: 1;
-		grid-row: 1;
-	}
-
-	.control-label {
-		margin-bottom: 0;
-		color: var(--ink-gray-7);
-	}
-
-	// Lets the input and the description take grid cells of their own.
-	.control-input-wrapper {
-		display: contents;
-	}
-
-	.control-input {
-		grid-column: 2;
-		grid-row: 1 / span 2;
-		width: 140px;
-	}
-
-	.help-box {
-		grid-column: 1;
-		grid-row: 2;
-		margin: 2px 0 0;
-		font-size: var(--text-sm);
-		line-height: 1.4;
-		color: var(--ink-gray-5);
-	}
-}
-
 .settings-dialog-panel-body
-	.frappe-control:is(:has(> .switch-control), .settings-inline-control)
-	+ .frappe-control:is(:has(> .switch-control), .settings-inline-control) {
+	.frappe-control:has(> .switch-control)
+	+ .frappe-control:has(> .switch-control) {
 	border-top: 1px solid var(--outline-gray-2);
 	padding-top: var(--padding-sm);
 	margin-top: var(--padding-sm);
