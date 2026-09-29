@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2026-09-20 09:34+0000\n"
-"PO-Revision-Date: 2026-09-21 04:20\n"
+"PO-Revision-Date: 2026-09-28 04:21\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -2544,7 +2544,7 @@ msgstr "App-Name (Client-Name)"
 
 #: frappe/integrations/frappe_providers/cloud_marketplace.py:108
 msgid "App name is required."
-msgstr ""
+msgstr "App-Name ist erforderlich."
 
 #: frappe/modules/utils.py:343
 msgid "App not found for module: {0}"
@@ -2703,7 +2703,7 @@ msgstr "Apps"
 #. Label of the apps_involved (Data) field in DocType 'Recorder'
 #: frappe/core/doctype/recorder/recorder.json
 msgid "Apps Involved"
-msgstr ""
+msgstr "Beteiligte Apps"
 
 #: frappe/public/js/frappe/utils/number_systems.js:41
 msgctxt "Number system"
@@ -5221,7 +5221,7 @@ msgstr "Geschlossen"
 #: frappe/desk/page/desktop/desktop.html:29
 #: frappe/desk/page/desktop/desktop.html:30
 msgid "Cloud settings"
-msgstr ""
+msgstr "Cloud-Einstellungen"
 
 #: frappe/templates/discussions/comment_box.html:25
 #: frappe/templates/discussions/reply_section.html:53
@@ -5594,7 +5594,7 @@ msgstr "Einrichtung abschließen"
 
 #: frappe/templates/emails/new_user.html:1
 msgid "Complete your registration"
-msgstr ""
+msgstr "Schließen Sie Ihre Registrierung ab"
 
 #. Option for the 'Status' (Select) field in DocType 'Auto Repeat'
 #. Option for the 'Status' (Select) field in DocType 'Prepared Report'

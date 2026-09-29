@@ -1215,6 +1215,113 @@ class TestFileOptimization(IntegrationTestCase):
 			self.assertLess(optimized_size, original_size)
 			self.assertNotEqual(original_content_hash, updated_content_hash)
 
+	def test_optimize_file_rejects_mismatched_file_url(self):
+		"""optimize_file must not read/write through a file_url belonging to another File record."""
+		with make_test_image_file(private=True) as first_file:
+			original_content = first_file.get_content()
+
+			# distinct content from the first file's, so this doesn't collide with it via
+			# the File doctype's identical-content deduplication
+			second_image_path = frappe.get_app_path("frappe", "tests/data/exif_sample_image.jpg")
+			with open(second_image_path, "rb") as f:
+				second_content = f.read()
+			self.assertNotEqual(second_content, original_content)
+
+			second_file = frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": "second_file.jpg",
+					"content": second_content,
+					"is_private": 1,
+				}
+			).insert()
+			self.addCleanup(second_file.delete)
+
+			# same identity (name/owner) as second_file, but file_url/file_name swapped
+			# to point at first_file's path
+			crafted = frappe.get_doc(
+				{
+					"doctype": "File",
+					"name": second_file.name,
+					"owner": second_file.owner,
+					"file_name": first_file.file_name,
+					"file_url": first_file.file_url,
+					"is_private": 1,
+					"file_size": first_file.file_size,
+					"modified": second_file.modified,
+					"creation": second_file.creation,
+				}
+			)
+
+			self.assertRaises(frappe.PermissionError, crafted.optimize_file)
+
+			# neither the read nor the write side of optimize_file executed
+			self.assertEqual(first_file.get_content(), original_content)
+			self.assertEqual(frappe.get_doc("File", second_file.name).file_url, second_file.file_url)
+
+	def test_validate_file_url_matches_record_allows_own_url(self):
+		with make_test_image_file() as test_file:
+			test_file.validate_file_url_matches_record()
+
+	def test_validate_file_url_matches_record_rejects_missing_name(self):
+		"""A doc with no name at all must not bypass the check by short-circuiting on it -
+		optimize_file never legitimately runs against a document with no backing record."""
+		doc = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "not_yet_saved.jpg",
+				"file_url": "/private/files/not_yet_saved.jpg",
+				"is_private": 1,
+			}
+		)
+		self.assertIsNone(doc.name)
+		self.assertRaises(frappe.PermissionError, doc.validate_file_url_matches_record)
+
+	def test_optimize_file_rejects_doc_with_no_name(self):
+		"""A crafted doc with owner set to the caller but name omitted must not bypass the
+		guard: permission checks upstream may still pass (falling back to create-level
+		permission), so this method must fail closed rather than skip validation."""
+		with make_test_image_file(private=True) as target:
+			original_content = target.get_content()
+
+			crafted = frappe.get_doc(
+				{
+					"doctype": "File",
+					"owner": frappe.session.user,
+					"file_name": target.file_name,
+					"file_url": target.file_url,
+					"is_private": 1,
+					"file_size": target.file_size,
+				}
+			)
+			self.assertIsNone(crafted.name)
+
+			self.assertRaises(frappe.PermissionError, crafted.optimize_file)
+			self.assertEqual(target.get_content(), original_content)
+
+	def test_validate_file_url_matches_record_allows_url_shared_by_multiple_files(self):
+		"""Two File records may legitimately share one file_url (see create_attachment_copy);
+		each one must still be able to operate on its own record using that shared url."""
+		doctype, docname = make_test_doc()
+		source = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"shared-{frappe.generate_hash(length=8)}.jpg",
+				"content": open(
+					frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg"), "rb"
+				).read(),
+				"is_private": 1,
+			}
+		).insert()
+		self.addCleanup(source.delete)
+
+		copy = source.create_attachment_copy(doctype, docname)
+		self.assertEqual(copy.file_url, source.file_url)
+
+		# both the original and the copy must pass, regardless of DB row ordering
+		frappe.get_doc("File", source.name).validate_file_url_matches_record()
+		frappe.get_doc("File", copy.name).validate_file_url_matches_record()
+
 	def test_optimize_svg(self):
 		file_path = frappe.get_app_path("frappe", "tests/data/sample_svg.svg")
 		with open(file_path, "rb") as f:
