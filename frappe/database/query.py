@@ -2065,7 +2065,7 @@ class Engine:
 			docfield = next((df for df in meta.fields if df.fieldname == fieldname), None)
 		return bool(docfield) and docfield.fieldtype == "JSON"
 
-	def _build_typed_is_criterion(
+def _build_typed_is_criterion(
 		self, _field: Field, field: str | Field, value: Any, doctype: str
 	) -> "Criterion | None":
 		"""Build `is set` / `is not set` for numeric and date/time fields.
@@ -2084,19 +2084,23 @@ class Engine:
 			return None
 
 		is_numeric = fieldtype in numeric_fieldtypes
-		match cstr(value).lower():
-			case "set":
-				if is_numeric:
-					return _field != 0
-				if frappe.db.db_type == "sqlite":
-					return _field.isnotnull() & (_field != "")
+		is_sqlite = frappe.db.db_type == "sqlite"
+
+		match (cstr(value).lower(), is_numeric, is_sqlite):
+			case ("set", True, _):
+				return _field != 0
+			case ("set", False, True):  # Date/Time on SQLite (can be stored as empty string "")
+				return _field.isnotnull() & (_field != "")
+			case ("set", False, False):  # Date/Time on PostgreSQL & MariaDB (strictly NULL when unset)
 				return _field.isnotnull()
-			case "not set":
-				if is_numeric:
-					return _field.isnull() | (_field == 0)
-				if frappe.db.db_type == "sqlite":
-					return _field.isnull() | (_field == "")
+
+			case ("not set", True, _):
+				return _field.isnull() | (_field == 0)
+			case ("not set", False, True):
+				return _field.isnull() | (_field == "")
+			case ("not set", False, False):
 				return _field.isnull()
+
 			case _:
 				raise ValueError("`is` operator only supports `set` and `not set` as value")
 
