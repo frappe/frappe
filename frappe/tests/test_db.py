@@ -2056,6 +2056,18 @@ class TestDDLCommandsPost(IntegrationTestCase):
 		frappe.db.rollback()
 		self.assertEqual(advisory_count(), before)
 
+	def test_advisory_lock_query_error_keeps_the_callers_savepoint(self) -> None:
+		from psycopg2.errors import UndefinedTable
+
+		frappe.db.sql(f'INSERT INTO "tab{self.test_table_name}" VALUES (1, %s)', ("before the lock",))
+		with savepoint(catch=UndefinedTable):
+			with frappe.db.advisory_lock("frappe-test-lock-savepoint"):
+				frappe.db.sql("SELECT * FROM tab_does_not_exist")
+
+		self.assertEqual(
+			frappe.db.sql(f'SELECT content FROM "tab{self.test_table_name}"'), (("before the lock",),)
+		)
+
 	def _indexdef(self, field: str, using: str) -> str:
 		from frappe.database.postgres.schema import get_qualified_index_name
 
