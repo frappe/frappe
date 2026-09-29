@@ -655,6 +655,21 @@ class TestDB(IntegrationTestCase):
 
 		frappe.db.delete("ToDo", {"description": test_body})
 
+	def test_bulk_insert_counts_a_write_per_chunk(self):
+		# postgres streams this through COPY instead of INSERT; both must count a chunk as one write
+		test_body = f"test_bulk_insert_writes - {random_string(10)}"
+		writes = frappe.db.transaction_writes
+
+		frappe.db.bulk_insert(
+			"ToDo",
+			["name", "description"],
+			[[f"{test_body} {i}", test_body] for i in range(27)],
+			chunk_size=10,
+		)
+
+		self.assertEqual(frappe.db.transaction_writes - writes, 3)
+		self.assertEqual(frappe.db.count("ToDo", {"description": test_body}), 27)
+
 	def test_bulk_update(self):
 		test_body = f"test_bulk_update - {random_string(10)}"
 
