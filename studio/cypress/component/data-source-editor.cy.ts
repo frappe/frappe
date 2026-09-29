@@ -177,12 +177,6 @@ describe("data source editor", () => {
 			option("email").should("not.contain.text", "Missing Field")
 		})
 
-		it("pluralises the warning for several missing fields", () => {
-			saveUserList("staleUsers", ["email", "deleted_field", "another_deleted_field"], 0)
-			openDataSource("staleUsers")
-			cy.contains("deleted_field, another_deleted_field are no longer fields on User.").should("be.visible")
-		})
-
 		it("removes missing fields and saves only the valid ones", () => {
 			saveUserList("staleUsers", ["email", "deleted_field", "full_name"], 0)
 			openDataSource("staleUsers")

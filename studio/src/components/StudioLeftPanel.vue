@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch, computed, nextTick } from "vue"
+import { watch, computed, nextTick, toRef } from "vue"
 import { Tooltip, Button } from "frappe-ui"
 
 import PagesPanel from "@/components/PagesPanel.vue"
@@ -115,6 +115,7 @@ const sidebarMenu = [
 ]
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
+const pageLayers = toRef(store, "activeLayers")
 
 const activeTab = computed(() => store.studioLayout.leftPanelActiveTab)
 

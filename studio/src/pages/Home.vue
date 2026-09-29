@@ -73,7 +73,7 @@
 											},
 											icon: 'lucide-edit',
 										},
-										{ label: 'View in Desk', onClick: () => openInDesk(app), icon: 'lucide-arrow-up-right' },
+										{ label: 'View in Desk', onClick: () => openAppInDesk(app), icon: 'lucide-arrow-up-right' },
 										{
 											label: 'Delete',
 											onClick: () => store.deleteApp(app.name, app.app_title),
@@ -114,7 +114,7 @@ import StudioLogo from "@/components/Icons/StudioLogo.vue"
 import session from "@/utils/session"
 import { watchDebounced } from "@vueuse/core"
 import useStudioStore from "@/stores/studioStore"
-import { openInDesk } from "@/utils/helpers"
+import { openAppInDesk } from "@/utils/helpers"
 
 const store = useStudioStore()
 

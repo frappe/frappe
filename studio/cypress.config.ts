@@ -11,6 +11,11 @@ export default defineConfig({
 		devServer: {
 			framework: "vue",
 			bundler: "vite",
+			viteConfig: {
+				configFile: "vite.config.js",
+				// a separate dep cache, so running specs never re-optimizes the one a live `yarn dev` is serving
+				cacheDir: "node_modules/.vite-cypress",
+			},
 		},
 		specPattern: "cypress/component/**/*.cy.ts",
 		supportFile: "cypress/support/component.ts",

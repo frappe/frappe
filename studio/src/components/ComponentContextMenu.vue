@@ -15,6 +15,7 @@ import useComponentEditorStore from "@/stores/componentEditorStore"
 import type { ContextMenuOption, ContextMenuGroup, FrappeUIComponent } from "@/types"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
 import { getBlockCopy, getBlockInstance, getComponentBlock } from "@/utils/serializer"
+import { canPasteStylesTo, copyBlockStyles, pasteBlockStyles } from "@/utils/styleCopyPaste"
 import getBlockTemplate from "@/utils/blockTemplate"
 import FormDialog from "@/components/FormDialog.vue"
 import components from "@/data/components"
@@ -189,6 +190,12 @@ const contextMenuOptions: ContextMenuOption[] = [
 		condition: () => Boolean(block.value.getParentBlock()) && !block.value.isRepeater(),
 	},
 	{ label: "Copy", action: () => document.execCommand("copy") },
+	{ label: "Copy Style", action: () => copyBlockStyles(block.value) },
+	{
+		label: "Paste Style",
+		action: () => pasteBlockStyles(block.value),
+		condition: () => canPasteStylesTo(block.value),
+	},
 	{
 		label: "Duplicate",
 		action: () => block.value.duplicateBlock(),
@@ -274,7 +281,10 @@ function promoteToRoot(newRoot: Block, target: Block) {
 	newRoot.selectBlock()
 }
 
+const hideContextMenu = () => contextMenuRef.value?.hide()
+
 defineExpose({
 	showContextMenu,
+	hideContextMenu,
 })
 </script>

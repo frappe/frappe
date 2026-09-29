@@ -1,4 +1,4 @@
-import type { BlockOptions, BlockStyleMap, CompletionSource, Slot, SlotScope } from "@/types"
+import type { BlockOptions, BlockStyleMap, BlockStyles, CompletionSource, Slot, SlotScope } from "@/types"
 import { clamp } from "@vueuse/core"
 import { reactive, CSSProperties, nextTick } from 'vue'
 
@@ -421,6 +421,20 @@ class Block implements BlockOptions {
 			return Object.keys(this.tabletStyles).length > 0
 		}
 		return false
+	}
+
+	getStylesCopy(): BlockStyles {
+		return {
+			baseStyles: { ...this.baseStyles },
+			tabletStyles: { ...this.tabletStyles },
+			mobileStyles: { ...this.mobileStyles },
+		}
+	}
+
+	updateStyles(styles: BlockStyles) {
+		this.baseStyles = { ...this.baseStyles, ...styles.baseStyles }
+		this.tabletStyles = { ...this.tabletStyles, ...styles.tabletStyles }
+		this.mobileStyles = { ...this.mobileStyles, ...styles.mobileStyles }
 	}
 
 	resetOverrides(breakpoint: string) {

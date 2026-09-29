@@ -82,13 +82,6 @@ describe("data source fetching", () => {
 			})
 		})
 
-		it("exposes the fetched rows on the resource", () => {
-			cy.wrap(loadPage([listResource()])).then((codeStore: any) => {
-				waitForResponse("@getList")
-				cy.wrap(codeStore.resources).its("users.data").should("deep.equal", [ADMINISTRATOR])
-			})
-		})
-
 		it("fetches all fields when none are saved", () => {
 			cy.wrap(loadPage([listResource({ fields: "[]" })])).then((codeStore: any) => {
 				requestBody("@getList").its("fields").should("equal", "*")

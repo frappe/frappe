@@ -111,7 +111,7 @@
 						<ComponentLayers
 							:blocks="element.children"
 							:is-parent-hidden="isParentHidden || !element.isVisible()"
-							:ref="childLayer"
+							:ref="(el: unknown) => trackLayer(childLayers, element.componentId, el)"
 							:indent="childIndent"
 						/>
 					</div>
@@ -146,7 +146,11 @@
 							</div>
 
 							<div v-if="isSlotExpanded(slot)">
-								<ComponentLayers :blocks="slot.slotContent" ref="slotLayer" :indent="slotIndent" />
+								<ComponentLayers
+									:blocks="slot.slotContent"
+									:ref="(el: unknown) => trackLayer(slotLayers, slot.slotId, el)"
+									:indent="slotIndent"
+								/>
 							</div>
 						</div>
 					</div>
@@ -167,7 +171,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from "vue"
+import { ref, watch, computed, nextTick } from "vue"
 import Draggable from "vuedraggable"
 
 import ComponentLayers from "@/components/ComponentLayers.vue"
@@ -197,10 +201,13 @@ const props = withDefaults(
 
 const canvasStore = useCanvasStore()
 const rootContainer = ref<HTMLElement | null>(null)
-const childLayers = ref<LayerInstance[]>([])
-const childLayer = (el: LayerInstance) => {
+const childLayers = new Map<string, LayerInstance>()
+const slotLayers = new Map<string, LayerInstance>()
+const trackLayer = (layers: Map<string, LayerInstance>, id: string, el: unknown) => {
 	if (el) {
-		childLayers.value.push(el)
+		layers.set(id, el as LayerInstance)
+	} else {
+		layers.delete(id)
 	}
 }
 
@@ -227,7 +234,7 @@ const toggleExpanded = (block: Block) => {
 		return
 	}
 	if (!blockExists(block)) {
-		const child = childLayers.value.find((layer) => layer.blockExistsInTree(block)) as LayerInstance
+		const child = [...childLayers.values()].find((layer) => layer.blockExistsInTree(block))
 		if (child) {
 			child.toggleExpanded(block)
 		}
@@ -247,7 +254,7 @@ const blockExistsInTree = (block: Block): boolean => {
 	if (blockExists(block)) {
 		return true
 	}
-	for (const layer of childLayers.value) {
+	for (const layer of childLayers.values()) {
 		if (layer.blockExistsInTree(block)) {
 			return true
 		}
@@ -535,8 +542,28 @@ watch(
 
 const slotIndent = computed(() => childIndent + 16)
 
+const expandAll = async () => {
+	for (const block of props.blocks) {
+		if (isExpandable(block)) expandedLayers.value.add(block.componentId)
+		for (const slot of Object.values(block.componentSlots || {})) {
+			if (isSlotExpandable(slot)) expandedSlots.value.add(slot.slotId)
+		}
+	}
+	// slot layers render only once their slot is expanded
+	await nextTick()
+	await Promise.all([...childLayers.values(), ...slotLayers.values()].map((layer) => layer.expandAll()))
+}
+
+const collapseAll = () => {
+	;[...childLayers.values(), ...slotLayers.values()].forEach((layer) => layer.collapseAll())
+	expandedLayers.value = new Set(["root"])
+	expandedSlots.value = new Set()
+}
+
 defineExpose({
 	toggleExpanded,
 	blockExistsInTree,
+	expandAll,
+	collapseAll,
 })
 </script>

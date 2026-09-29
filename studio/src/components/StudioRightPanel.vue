@@ -77,6 +77,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
+import { useKeyboardShortcut } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 
@@ -113,11 +114,11 @@ const showSearchInput = computed(
 		blockController.isAnyBlockSelected(),
 )
 const searchInput = ref<InstanceType<typeof Input> | null>(null)
-// command + f should focus on search input
-window.addEventListener("keydown", (e) => {
-	if (e.key === "f" && (e.metaKey || e.ctrlKey)) {
-		e.preventDefault()
-		searchInput.value?.$el?.querySelector("input")?.focus()
-	}
+useKeyboardShortcut({
+	combo: "Mod+F",
+	description: "Focus Property Search",
+	group: "General",
+	allowInInput: true,
+	handler: () => searchInput.value?.$el?.querySelector("input")?.focus(),
 })
 </script>

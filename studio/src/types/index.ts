@@ -10,6 +10,12 @@ export interface BlockStyleMap {
 	[key: string]: StyleValue
 }
 
+export interface BlockStyles {
+	baseStyles: BlockStyleMap
+	tabletStyles: BlockStyleMap
+	mobileStyles: BlockStyleMap
+}
+
 export interface BlockOptions {
 	componentId?: string
 	componentName: string
