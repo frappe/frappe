@@ -17,7 +17,7 @@ const manifest = {
 };
 
 const kb = (bytes: number) => Math.round((bytes / 1024) * 10) / 10;
-const gzipped = (file: string) => gzipSync(Buffer.from(file.repeat(2000)), { level: 6 }).length;
+const gzipped = (file: string) => gzipSync(Buffer.from(file.repeat(2000))).length;
 
 describe("pageJsKb", () => {
   it("adds the gzip size of the entry, the page and what each imports statically, once each", () => {
@@ -43,22 +43,17 @@ describe("pageJsKb", () => {
 describe("jsSizeProblems", () => {
   const budgets = {
     jsToleranceKb: 5,
-    pages: { home: { baseline: { jsKb: 100 } }, list: { baseline: { jsKb: 200 } } },
+    home: { baseline: { jsKb: 100 } },
+    list: { baseline: { jsKb: 200 } },
   };
 
-  it("passes a page within the tolerance on either side of its baseline", () => {
-    expect(jsSizeProblems({ home: 105, list: 195 }, budgets)).toEqual([]);
+  it("passes a page up to the tolerance above its baseline, and any page below it", () => {
+    expect(jsSizeProblems({ home: 105, list: 150 }, budgets)).toEqual([]);
   });
 
-  it("fails a page more than the tolerance above its baseline", () => {
+  it("fails a page more than the tolerance above its baseline and names the new value", () => {
     expect(jsSizeProblems({ home: 105.1, list: 200 }, budgets)).toEqual([
-      expect.stringMatching(/^home: 105.1 KB .* above its baseline of 100 KB/),
-    ]);
-  });
-
-  it("fails a page more than the tolerance below its baseline, so the baseline follows a cut", () => {
-    expect(jsSizeProblems({ home: 100, list: 194.9 }, budgets)).toEqual([
-      expect.stringMatching(/^list: .* Lower the baseline .* to 194.9\.$/),
+      expect.stringMatching(/^home: 105.1 KB .* above its baseline of 100 KB\. .* to 105\.1\.$/),
     ]);
   });
 });

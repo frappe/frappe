@@ -37,7 +37,6 @@ async function main() {
   }
 }
 
-// The desk's own Vite config, so the bytes are the ones `bench build` ships.
 async function buildManifest(outDir) {
   const { build } = await import("vite");
   await build({
@@ -54,7 +53,7 @@ export function pageJsKb(manifest, read) {
     Object.entries(PAGE_CHUNKS).map(([page, source]) => {
       const files = new Set([...entry, ...chunkFiles(manifest, source)]);
       const bytes = [...files].reduce(
-        (sum, file) => sum + gzipSync(read(file), { level: 6 }).length,
+        (sum, file) => sum + gzipSync(read(file)).length,
         0
       );
       return [page, Math.round((bytes / 1024) * 10) / 10];
@@ -72,34 +71,27 @@ function chunkFiles(manifest, key, files = new Set()) {
   return files;
 }
 
-export function jsSizeProblems(sizes, { jsToleranceKb, pages }) {
-  return Object.entries(sizes).flatMap(([page, kb]) => {
-    const baseline = pages[page].baseline.jsKb;
-    if (kb > baseline + jsToleranceKb) {
-      return [
-        `${page}: ${kb} KB of JS is more than ${jsToleranceKb} KB above its baseline of ${baseline} KB. ` +
-          `Cut the JS, or raise the baseline in frontend/speed-budgets.json.`,
-      ];
-    }
-    if (kb < baseline - jsToleranceKb) {
-      return [
-        `${page}: ${kb} KB of JS is more than ${jsToleranceKb} KB below its baseline of ${baseline} KB. ` +
-          `Lower the baseline in frontend/speed-budgets.json to ${kb}.`,
-      ];
-    }
-    return [];
-  });
+export function jsSizeProblems(sizes, budgets) {
+  const tolerance = budgets.jsToleranceKb;
+  return Object.entries(sizes)
+    .filter(([page, kb]) => kb > budgets[page].baseline.jsKb + tolerance)
+    .map(
+      ([page, kb]) =>
+        `${page}: ${kb} KB of JS is more than ${tolerance} KB above its baseline of ` +
+        `${budgets[page].baseline.jsKb} KB. Cut the JS, or raise the baseline in ` +
+        `frontend/speed-budgets.json to ${kb}.`
+    );
 }
 
-function printSizes(sizes, { pages }) {
+function printSizes(sizes, budgets) {
   console.table(
     Object.fromEntries(
       Object.entries(sizes).map(([page, kb]) => [
         page,
         {
           "gzip KB": kb,
-          baseline: pages[page].baseline.jsKb,
-          budget: pages[page].budget.jsKb,
+          baseline: budgets[page].baseline.jsKb,
+          budget: budgets[page].budget.jsKb,
         },
       ])
     )

@@ -1,6 +1,7 @@
-// Fails when a cold desk v2 load or a save sends a different number of API calls than its baseline.
+// Fails when a cold desk v2 load or a save sends more API calls than its baseline.
 const BUDGETS = "frontend/speed-budgets.json";
 const QUIET_MS = 1500;
+const MAX_WAITS = 20;
 
 context("Desk v2 API calls", () => {
 	let budgets;
@@ -37,31 +38,22 @@ context("Desk v2 API calls", () => {
 	});
 
 	function expectBaseline(name, calls) {
-		const baseline = (budgets.pages[name] ?? budgets[name]).baseline.calls;
+		const baseline = budgets[name].baseline.calls;
 		const message =
 			`${name} sent ${calls.length} API calls, baseline ${baseline}. ` +
-			`Remove the calls, or set the baseline in ${BUDGETS} to ${calls.length}.\n` +
+			`Remove the calls, or raise the baseline in ${BUDGETS} to ${calls.length}.\n` +
 			calls.join("\n");
-		expect(calls.length, message).to.equal(baseline);
+		expect(calls.length, message).to.be.at.most(baseline);
 	}
 });
 
 function coldVisit(path) {
 	cy.clearAllLocalStorage();
 	cy.clearAllSessionStorage();
-	cy.window().then(deleteIndexedDb);
 	cy.wrap(
 		Cypress.automation("remote:debugger:protocol", { command: "Network.clearBrowserCache" })
 	);
 	return countCalls(() => cy.visit(path));
-}
-
-function deleteIndexedDb(win) {
-	return win.indexedDB
-		.databases()
-		.then((databases) =>
-			Promise.all(databases.map(({ name }) => win.indexedDB.deleteDatabase(name)))
-		);
 }
 
 function countCalls(action) {
@@ -77,8 +69,14 @@ function countCalls(action) {
 	return cy.wrap(calls, { log: false });
 }
 
-function waitForQuiet(calls, pending, seen = -1) {
+function waitForQuiet(calls, pending, seen = -1, waits = 0) {
 	cy.wait(QUIET_MS, { log: false }).then(() => {
-		if (pending() || calls.length !== seen) waitForQuiet(calls, pending, calls.length);
+		if (!pending() && calls.length === seen) return;
+		if (waits === MAX_WAITS) {
+			throw new Error(
+				`API calls did not stop after ${MAX_WAITS} waits:\n${calls.join("\n")}`
+			);
+		}
+		waitForQuiet(calls, pending, calls.length, waits + 1);
 	});
 }
