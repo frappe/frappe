@@ -17,6 +17,9 @@
  *     </div>
  *   </div>
  *
+ * Custom properties:
+ *   --es-bl-label-w               label gutter width (label_width option), 96px by default
+ *
  * Modifiers:
  *   .es-bar-list__row--clickable  the row acts as a button
  *   .es-bar-list--hover-values    end labels appear only on row hover */
@@ -24,7 +27,7 @@
 .es-bar-list__plot {
     position: relative;
     /* left gutter holds the labels; right gutter lets the end value overflow the last bar */
-    margin: 4px 48px 0 110px;
+    margin: 4px 48px 0 calc(var(--es-bl-label-w, 96px) + 14px);
     --es-bl-axis-h: 22px;
 }
 
@@ -53,7 +56,7 @@
     position: absolute;
     right: calc(100% + 10px);
     top: 0;
-    width: 96px;
+    width: var(--es-bl-label-w, 96px);
     line-height: 30px;
     text-align: right;
     font-size: var(--text-sm);
