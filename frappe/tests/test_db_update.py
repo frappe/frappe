@@ -392,6 +392,34 @@ class TestDBUpdate(IntegrationTestCase):
 		for fieldname in ("membership_card_number", "membership_card_serial"):
 			self.assertFalse(get_table_column(doctype.name, fieldname).unique, msg=fieldname)
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_rename_doctype_renames_its_indexes(self):
+		"""Both the renamed doctype and a new one under its old name keep syncing their own indexes"""
+		old_name = "Test Index Rename " + frappe.generate_hash(length=10)
+		fields = [
+			{"fieldname": "membership_card_number", "fieldtype": "Data", "search_index": 1},
+			{"fieldname": "membership_card_serial", "fieldtype": "Data"},
+		]
+		doctype = new_doctype(old_name, fields=fields).insert()
+		# the alter path names the unique index itself, unlike an inline UNIQUE at create
+		doctype.fields[1].unique = 1
+		doctype.save()
+
+		renamed = frappe.get_doc(
+			"DocType", frappe.rename_doc("DocType", old_name, f"{old_name} Moved", force=True)
+		)
+		renamed.fields[0].search_index = 0
+		renamed.fields[1].unique = 0
+		renamed.save()
+		self.assertFalse(get_table_column(renamed.name, "membership_card_number").index)
+		self.assertFalse(get_table_column(renamed.name, "membership_card_serial").unique)
+
+		recreated = new_doctype(old_name, fields=fields).insert()
+		recreated.fields[1].unique = 1
+		recreated.save()
+		self.assertTrue(get_table_column(old_name, "membership_card_number").index)
+		self.assertTrue(get_table_column(old_name, "membership_card_serial").unique)
+
 	def test_uuid_varchar_migration(self):
 		doctype = new_doctype().insert()
 		doctype.autoname = "UUID"
