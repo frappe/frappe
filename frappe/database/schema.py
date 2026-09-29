@@ -111,6 +111,7 @@ class DBTable:
 
 	def validate(self):
 		"""Check if change in varchar length isn't truncating the columns"""
+		validate_table_name_length(self.doctype)
 		if self.is_new():
 			return
 
@@ -410,6 +411,15 @@ def validate_column_name(n):
 			frappe.db.InvalidColumnName,
 		)
 	return n
+
+
+def validate_table_name_length(doctype):
+	max_length = frappe.db.MAX_COLUMN_LENGTH - 3
+	if len(doctype) > max_length:
+		frappe.throw(
+			_("Doctype name is limited to {0} characters ({1})").format(max_length, doctype),
+			frappe.NameError,
+		)
 
 
 def validate_column_length(fieldname):
