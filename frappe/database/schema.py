@@ -111,6 +111,9 @@ class DBTable:
 
 	def validate(self):
 		"""Check if change in varchar length isn't truncating the columns"""
+		if self.meta.get("is_virtual"):
+			return
+
 		validate_table_name_length(self.doctype)
 		if self.is_new():
 			return
