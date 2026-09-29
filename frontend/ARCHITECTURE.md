@@ -576,8 +576,8 @@ baseline in the same PR.
 CI also prints the files that each flow's entry file reaches, but does not fail on the
 count. A fail on file count pushes code into fewer, larger files. The entry files are
 `flowEntries` in `layers.json`. CI does not check timings, because they change from one
-CI run to the next. There is no CI limit on the
-count of concepts in a layer, because the concept tables are closed lists.
+CI run to the next. There is no CI limit on the count of concepts in a layer, because the
+concept tables are closed lists.
 
 **The budgets.** The baselines move down to these targets. All times are at a 4x slower
 CPU.
