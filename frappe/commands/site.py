@@ -775,7 +775,7 @@ def disable_user(context: CliCtxObj, email):
 )
 @click.option("--skip-fixtures", is_flag=True, help="Skip loading fixtures")
 @pass_context
-def migrate(context: CliCtxObj, skip_failing=False, skip_fixtures=False, skip_search_index=False):
+def migrate(context: CliCtxObj, skip_failing=False, skip_search_index=False, skip_fixtures=False):
 	"Run patches, sync schema and rebuild files/translations"
 	if skip_search_index:
 		click.secho(
