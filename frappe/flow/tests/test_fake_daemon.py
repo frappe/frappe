@@ -97,6 +97,7 @@ class FakeDaemon:
 		self.turns = 0
 		self.calls = []
 		self.configs = {}
+		self.waiting = True
 
 	def __enter__(self):
 		return self
@@ -177,6 +178,14 @@ class FakeDaemon:
 			return {"status": "idle"}
 		self.paused = False
 		return {"status": "cancelled"}
+
+	def tool_waiting(self, sid, token):
+		self.calls.append(("tool_waiting", sid, token))
+		return {"waiting": self.waiting}
+
+	def tool_result(self, sid, token, result):
+		self.calls.append(("tool_result", sid, token, result))
+		return {"delivered": True}
 
 	def set_model(self, sid, model, **credentials):
 		self.calls.append(("set_model", sid, model, credentials))

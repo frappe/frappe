@@ -248,6 +248,7 @@ async def test_a_named_agent_calls_its_own_client_tools_back_with_its_own_contex
 	assert "check_mail" in [t["function"]["name"] for t in parent.tools]
 	names = [t["function"]["name"] for t in child.tools]
 	assert "find_ticket" in names and "check_mail" not in names
+	assert posted[0].pop("result_token")
 	assert posted == [
 		{
 			"callback_type": "tool",

@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
+import time
 from unittest.mock import patch
 
 import frappe
@@ -9,8 +10,8 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 
 from flow.api import api
-from flow.daemon.callback import callback, confirm_title
-from flow.daemon.client import DaemonClient
+from flow.daemon.callback import JOB_TIMEOUT, START_WITHIN, callback, confirm_title, run_background_tool
+from flow.daemon.client import DaemonClient, DaemonError
 from flow.lib.tool import ToolContext, tool
 from flow.memory import store as memory_store
 from flow.tests.test_fake_daemon import FakeDaemon, turn
@@ -29,6 +30,12 @@ def ended(run):
 @tool
 def whoami(*, ctx: ToolContext) -> str:
 	"""The user this tool runs as."""
+	return frappe.session.user
+
+
+@tool(background=True)
+def whoami_later(*, ctx: ToolContext) -> str:
+	"""The user this background tool runs as."""
 	return frappe.session.user
 
 
@@ -58,7 +65,7 @@ class TestToolCallback(IntegrationTestCase):
 			frappe.get_doc(
 				{"doctype": "User", "email": OWNER, "first_name": "Callback", "send_welcome_email": 0}
 			).insert(ignore_permissions=True)
-		for slug in ("whoami", "insert_then_fail", "callback_context"):
+		for slug in ("whoami", "whoami_later", "insert_then_fail", "callback_context"):
 			self.flow_tool(slug, type="Imported", import_path=f"{MODULE}.{slug}")
 		self.flow_tool("boom", type="Script", code=BOOM)
 		model = frappe.get_doc(
@@ -76,6 +83,7 @@ class TestToolCallback(IntegrationTestCase):
 			"update_memory",
 			"search_attachments",
 			"whoami",
+			"whoami_later",
 			"insert_then_fail",
 			"callback_context",
 			"boom",
@@ -108,7 +116,15 @@ class TestToolCallback(IntegrationTestCase):
 		frappe.get_doc(doc).insert()
 
 	def call(
-		self, name: str, args: dict | None = None, *, mode="execute", token=SECRET, session=None, agent=None
+		self,
+		name: str,
+		args: dict | None = None,
+		*,
+		mode="execute",
+		token=SECRET,
+		session=None,
+		agent=None,
+		result_token=None,
 	) -> dict:
 		"""What the daemon posts. Identity comes from the session, not user_context; `agent` is
 		what a sub-agent's context names."""
@@ -124,6 +140,8 @@ class TestToolCallback(IntegrationTestCase):
 			"user_context": context,
 			"mode": mode,
 		}
+		if result_token:
+			payload["result_token"] = result_token
 		headers = {"X-Harness-Token": token} if token is not None else {}
 		set_request(method="POST", json=payload, headers=headers)
 		try:
@@ -296,6 +314,78 @@ class TestToolCallback(IntegrationTestCase):
 	def test_a_failed_tools_writes_are_rolled_back(self):
 		self.assertEqual(self.call("insert_then_fail"), {"content": "after insert", "is_error": True})
 		self.assertFalse(frappe.db.exists("ToDo", {"description": "callback-rollback"}))
+
+	def test_a_background_tool_is_queued_and_its_job_posts_the_result(self):
+		with patch("frappe.enqueue") as enqueue:
+			reply = self.call("whoami_later", result_token="t1")
+		self.assertTrue(reply.pop("pending"))
+		self.assertGreater(reply["timeout"], START_WITHIN + JOB_TIMEOUT)
+		self.assertEqual(enqueue.call_args.args, ("flow.daemon.callback.run_background_tool",))
+		job = enqueue.call_args.kwargs
+		self.assertEqual((job.pop("queue"), job.pop("timeout")), ("long", JOB_TIMEOUT))
+
+		daemon = FakeDaemon()
+		with patch.object(DaemonClient, "for_site", return_value=daemon), patch("frappe.db.commit") as commit:
+			run_background_tool(**job)
+		commit.assert_called_once()
+		self.assertEqual(
+			daemon.calls,
+			[
+				("tool_waiting", self.session.name, "t1"),
+				("tool_result", self.session.name, "t1", {"content": OWNER, "is_error": False}),
+			],
+		)
+
+	def test_site_config_sets_the_background_tool_timeout(self):
+		with (
+			patch.dict(frappe.local.conf, {"flow_background_tool_timeout": 3600}),
+			patch("frappe.enqueue") as enqueue,
+		):
+			reply = self.call("whoami_later", result_token="t1")
+		self.assertEqual(enqueue.call_args.kwargs["timeout"], 3600)
+		self.assertGreater(reply["timeout"], START_WITHIN + 3600)
+
+	def test_a_job_whose_run_stopped_waiting_skips_the_tool(self):
+		daemon = FakeDaemon()
+		daemon.waiting = False
+		with (
+			patch.object(DaemonClient, "for_site", return_value=daemon),
+			patch("flow.daemon.callback.tool_callback") as tool_callback,
+			patch("frappe.db.commit"),
+		):
+			run_background_tool(self.session.name, "whoami_later", {}, {}, "t1", start_by=time.time() + 60)
+		tool_callback.assert_not_called()
+		self.assertEqual(daemon.calls, [("tool_waiting", self.session.name, "t1")])
+
+	def test_a_failed_result_delivery_is_retried_then_raised(self):
+		daemon = FakeDaemon()
+		args = (self.session.name, "whoami_later", {}, {}, "t1")
+		with (
+			patch.object(DaemonClient, "for_site", return_value=daemon),
+			patch("frappe.db.commit"),
+			patch("time.sleep") as sleep,
+		):
+			down = DaemonError(None, "down")
+			with patch.object(daemon, "tool_result", side_effect=[down, {"delivered": True}]) as post:
+				run_background_tool(*args, start_by=time.time() + 60)
+			self.assertEqual(post.call_count, 2)
+			with patch.object(daemon, "tool_result", side_effect=down), self.assertRaises(DaemonError):
+				run_background_tool(*args, start_by=time.time() + 60)
+		self.assertEqual([call.args[0] for call in sleep.call_args_list], [0, 1, 0, 1, 5])
+
+	def test_a_job_that_waited_past_its_start_window_skips_the_tool(self):
+		daemon = FakeDaemon()
+		with (
+			patch.object(DaemonClient, "for_site", return_value=daemon),
+			patch("flow.daemon.callback.tool_callback") as tool_callback,
+			patch("frappe.db.commit"),
+		):
+			run_background_tool(self.session.name, "whoami_later", {}, {}, "t1", start_by=time.time() - 1)
+		tool_callback.assert_not_called()
+		[(verb, session, token, result)] = daemon.calls
+		self.assertEqual((verb, session, token), ("tool_result", self.session.name, "t1"))
+		self.assertTrue(result["is_error"])
+		self.assertIn("waited too long", result["content"])
 
 	def test_confirm_mode_names_the_action_then_the_tools_own_summary(self):
 		prompt = self.call("delete", {"doctype": "ToDo", "names": ["a", "b"]}, mode="confirm")["prompt"]

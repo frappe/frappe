@@ -96,6 +96,13 @@ class DaemonClient:
 	def cancel_pending(self, sid: str) -> dict:
 		return self._call("POST", f"/sessions/{sid}/cancel_pending")
 
+	def tool_waiting(self, sid: str, token: str) -> dict:
+		return self._call("POST", f"/sessions/{sid}/tool_waiting", json={"token": token})
+
+	def tool_result(self, sid: str, token: str, result: dict) -> dict:
+		"""Hand a background tool's result to the call waiting on `token`."""
+		return self._call("POST", f"/sessions/{sid}/tool_result", json={"token": token, **result})
+
 	def set_model(
 		self,
 		sid: str,

@@ -50,6 +50,16 @@ def get_open_todos(allocated_to: str, *, ctx: ToolContext) -> list[dict]:
 	)
 ```
 
+### Run a slow tool in the background
+
+```python
+# Runs on the long queue instead of holding a web worker.
+@tool(background=True)
+def yearly_report(year: int, *, ctx: ToolContext) -> dict:
+	"""Build the yearly sales report."""
+	...
+```
+
 ### Run an agent
 
 ```python

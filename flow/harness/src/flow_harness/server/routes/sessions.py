@@ -22,6 +22,7 @@ from fastapi import APIRouter, File, HTTPException, Request, Response, UploadFil
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 
+from flow_harness.agent.client_tools import deliver_result, is_waiting
 from flow_harness.events import AssistantMessage, ReasoningEffort, parse_event
 from flow_harness.model.catalog import model_supports_images
 from flow_harness.model.discovery import context_window_for
@@ -62,6 +63,20 @@ class ResumeRequest(BaseModel):
 
 	approval_seq: int
 	answers: dict[str, str]  # pending tool_call_id -> "Approve" | "Deny" | free text
+
+
+class ToolResultRequest(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
+	token: str
+	content: str = ""
+	is_error: bool = False
+
+
+class ToolWaitingRequest(BaseModel):
+	model_config = ConfigDict(extra="forbid")
+
+	token: str
 
 
 class RewindRequest(BaseModel):
@@ -401,6 +416,19 @@ def create_sessions_router(
 		if await session.cancel_pending():
 			return {"status": "cancelled"}
 		return {"status": session.state}
+
+	@router.post("/sessions/{sid}/tool_result")
+	async def tool_result(request: Request, sid: str, req: ToolResultRequest):
+		if not resolve_store(request).exists(sid):
+			raise HTTPException(status_code=404, detail="session not found")
+		result = {"content": req.content, "is_error": req.is_error}
+		return {"delivered": deliver_result(sid, req.token, result)}
+
+	@router.post("/sessions/{sid}/tool_waiting")
+	async def tool_waiting(request: Request, sid: str, req: ToolWaitingRequest):
+		if not resolve_store(request).exists(sid):
+			raise HTTPException(status_code=404, detail="session not found")
+		return {"waiting": is_waiting(sid, req.token)}
 
 	@router.get("/sessions/{sid}/entries")
 	async def entries(request: Request, sid: str, since: int = 0, path: Literal["active", "all"] = "active"):

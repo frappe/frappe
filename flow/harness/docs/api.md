@@ -102,6 +102,8 @@ Add `?wait=true` to `run`, `resume`, or `compact` to wait for completion. The re
 | `POST /sessions/{sid}/resume` | Continues a pause with `{"approval_seq": N, "answers": {"call-id": "Approve"}}`. Answers must cover exactly the pending calls. Use `Deny` or other text to reject or redirect. A batch a running sub-agent waits on is answered the same way and returns `{"status": "resumed"}`. |
 | `POST /sessions/{sid}/abort` | Stops an active run and drops uncommitted steering. |
 | `POST /sessions/{sid}/cancel_pending` | Cancels every unanswered approval call and returns the session to idle. While a run is active, it cancels the batches its sub-agents wait on instead. |
+| `POST /sessions/{sid}/tool_result` | Delivers a background client tool's result: `{"token": "...", "content": "...", "is_error": false}`. Returns `{"delivered": false}` when no call waits on the token. |
+| `POST /sessions/{sid}/tool_waiting` | Whether a call still waits on `{"token": "..."}`: `{"waiting": true}`. False once it got a result, was aborted or timed out. |
 | `POST /sessions/{sid}/attachments` | Multipart upload with one or more `files` fields. Only supported images are accepted and normalized. |
 | `POST /sessions/{sid}/attachments/files` | Attaches project files by path: `{"paths": ["src/a.py"]}`, resolved from `cwd`. Images are stored as images, anything else as text named by its cwd-relative path. |
 | `GET /sessions/{sid}/attachments/{id}` | Returns an uploaded image's bytes, for previews. |

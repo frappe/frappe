@@ -40,6 +40,7 @@ class Tool:
 	func: Callable[..., Any]
 	requires_confirmation: bool = False
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None
+	background: bool = False
 
 	def __post_init__(self) -> None:
 		if "ctx" not in inspect.signature(self.func).parameters:
@@ -67,6 +68,7 @@ def tool(
 	description: str | None = None,
 	requires_confirmation: bool = False,
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
+	background: bool = False,
 ) -> Tool | Callable[[Callable[..., Any]], Tool]:
 	def wrap(f: Callable[..., Any]) -> Tool:
 		if not callable(f):
@@ -78,6 +80,7 @@ def tool(
 			func=f,
 			requires_confirmation=requires_confirmation,
 			confirm_prompt=confirm_prompt,
+			background=background,
 		)
 
 	return wrap(func) if func is not None else wrap
