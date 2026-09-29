@@ -6,12 +6,14 @@
 from __future__ import annotations
 
 import json
+import time
 from hmac import compare_digest
 from typing import TYPE_CHECKING, Any
 
 import frappe
 from frappe import _
 
+from flow.daemon.client import DaemonClient, DaemonError
 from flow.lib.session import call_on_complete, sync_with_retry
 from flow.lib.tool import ToolContext
 
@@ -20,6 +22,9 @@ if TYPE_CHECKING:
 
 ERROR_LIMIT = 500
 SAVEPOINT = "flow_tool"
+START_WITHIN = 600  # seconds a queued call may wait to start
+JOB_TIMEOUT = 1500  # seconds a background tool may run, unless flow_background_tool_timeout is set
+DELIVERY_RETRY_DELAYS = (0, 1, 5)  # seconds before each try to post a result
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
@@ -40,6 +45,7 @@ def tool_callback(
 	args: dict | None = None,
 	mode: str = "execute",
 	user_context: dict | None = None,
+	result_token: str | None = None,
 ) -> dict:
 	"""Execute a client tool, or build its confirmation prompt, as the session owner."""
 	if mode not in ("execute", "confirm"):
@@ -59,7 +65,7 @@ def tool_callback(
 	frappe.set_user(session.owner)
 	frappe.db.savepoint(SAVEPOINT)
 	try:
-		return _dispatch(session_id, agent, tool, args or {}, mode)
+		return _dispatch(session_id, agent, tool, args or {}, mode, result_token)
 	except Exception as exc:
 		frappe.db.rollback(save_point=SAVEPOINT)
 		return _error(str(exc).strip() or type(exc).__name__)
@@ -101,7 +107,9 @@ def _authenticate() -> None:
 		raise frappe.AuthenticationError
 
 
-def _dispatch(session_id: str, agent: str, name: str, args: dict, mode: str) -> dict:
+def _dispatch(
+	session_id: str, agent: str, name: str, args: dict, mode: str, result_token: str | None
+) -> dict:
 	agent_doc = frappe.get_doc("Flow Agent", agent)
 	if not agent_doc.enabled:
 		return _error(_("The session's agent is disabled."))
@@ -111,8 +119,54 @@ def _dispatch(session_id: str, agent: str, name: str, args: dict, mode: str) -> 
 		return _error(_("Unknown tool {0}.").format(name))
 	if mode == "confirm":
 		return {"prompt": confirm_prompt(tool, args)}
+	if tool.background and result_token:  # the job itself passes no token
+		return _enqueue(session_id, agent, name, args, result_token)
 	ctx = ToolContext(session_id=session_id, agent=agent, user=frappe.session.user)
 	return {"content": _text(tool(**args, ctx=ctx)), "is_error": False}
+
+
+def _enqueue(session_id: str, agent: str, tool: str, args: dict, result_token: str) -> dict:
+	timeout = frappe.conf.flow_background_tool_timeout or JOB_TIMEOUT
+	frappe.enqueue(
+		"flow.daemon.callback.run_background_tool",
+		queue="long",
+		timeout=timeout,
+		session_id=session_id,
+		tool=tool,
+		args=args,
+		user_context={"agent": agent},
+		result_token=result_token,
+		start_by=time.time() + START_WITHIN,
+	)
+	# the wait to start, the run, then a minute to post
+	return {"pending": True, "timeout": START_WITHIN + timeout + 60}
+
+
+def run_background_tool(
+	session_id: str, tool: str, args: dict, user_context: dict, result_token: str, start_by: float
+) -> None:
+	"""Run a queued tool call, commit, then post its result to the flow server."""
+	with DaemonClient.for_site() as daemon:
+		if time.time() > start_by:
+			result = _error(_("The tool did not run: it waited too long for a background worker."))
+		elif not daemon.tool_waiting(session_id, result_token)["waiting"]:
+			return  # the run was stopped or gave up
+		else:
+			result = tool_callback(session_id, tool, args, user_context=user_context)
+			frappe.db.commit()
+		_deliver(daemon, session_id, result_token, result)
+
+
+def _deliver(daemon: DaemonClient, session_id: str, result_token: str, result: dict) -> None:
+	"""Post a job's result, retrying brief failures."""
+	for attempt, delay in enumerate(DELIVERY_RETRY_DELAYS, start=1):
+		time.sleep(delay)
+		try:
+			daemon.tool_result(session_id, result_token, result)
+			return
+		except DaemonError:
+			if attempt == len(DELIVERY_RETRY_DELAYS):
+				raise
 
 
 def _error(message: str) -> dict:
