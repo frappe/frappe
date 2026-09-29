@@ -87,6 +87,31 @@ class TestFmtDatetime(IntegrationTestCase):
 		finally:
 			frappe.local.lang = lang
 
+	def test_formatdate_fallback_month_names_ignore_server_locale(self):
+		class DateWithFrenchMonthNames(datetime.date):
+			def strftime(self, format_string):
+				formatted = super().strftime(format_string)
+				if "%B" in format_string:
+					return formatted.replace("January", "janvier")
+				if "%b" in format_string:
+					return formatted.replace("Jan", "janv.")
+				return formatted
+
+		lang = frappe.local.lang
+		try:
+			frappe.local.lang = "FAKE"
+			date = DateWithFrenchMonthNames(2026, 1, 5)
+			for format_string, expected in {
+				"MMMM": "January",
+				"MMM YYYY": "Jan 2026",
+				"MMM YY": "Jan 26",
+				"dd MMM": "05 Jan",
+			}.items():
+				with self.subTest(format_string=format_string):
+					self.assertEqual(formatdate(date, format_string), expected)
+		finally:
+			frappe.local.lang = lang
+
 	def test_format_date(self):
 		# Test formatdate with various default date formats set
 		for fmt, valid_fmt in test_date_formats.items():
