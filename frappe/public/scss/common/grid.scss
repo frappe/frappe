@@ -1070,12 +1070,6 @@ body.grid-col-resizing {
 .grid-import-footer-message {
 	align-self: center;
 	max-width: 60ch;
-
-	span {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
 }
 
 .grid-import-preview-hint {
@@ -1106,12 +1100,6 @@ body.grid-col-resizing {
 	white-space: nowrap;
 	color: var(--ink-gray-6);
 	text-align: right;
-}
-
-.grid-import-preview-row.has-note {
-	color: var(--ink-orange-7);
-	cursor: pointer;
-	text-decoration: underline dotted;
 }
 
 .grid-import-skip-cell {

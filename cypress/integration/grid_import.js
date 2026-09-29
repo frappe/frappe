@@ -230,7 +230,7 @@ context("Child Table Data Import", () => {
 			upload([`${id},1`, ",1"], "ID,Is Primary Phone (is_primary_phone)");
 
 			dialog()
-				.find(".grid-import-preview-row.has-note")
+				.find(".grid-import-preview-row .indicator")
 				.should("have.length", 1)
 				.and("have.attr", "title")
 				.and("contain", "In Contact Numbers, Number is required in row");
@@ -266,7 +266,7 @@ context("Child Table Data Import", () => {
 		upload(["9876500070,0", "9876500071,0,extra"]);
 
 		hint().should("contain", "1 row has a note");
-		dialog().find(".grid-import-preview-row.has-note").should("have.length", 1);
+		dialog().find(".grid-import-preview-row .indicator").should("have.length", 1);
 	});
 
 	it("counts only the notes on rows the step shows", () => {
@@ -279,7 +279,7 @@ context("Child Table Data Import", () => {
 
 		primary("Next");
 		hint().should("contain", "1 row has a note");
-		dialog().find(".grid-import-preview-row.has-note").should("have.length", 1);
+		dialog().find(".grid-import-preview-row .indicator").should("have.length", 1);
 	});
 
 	it("does not let two columns fill the same field", () => {
@@ -287,7 +287,6 @@ context("Child Table Data Import", () => {
 		upload(["9876500050,9876500051"], "Number (phone),Number");
 
 		hint().should("contain", "Two columns map to the same field");
-		dialog().find(".grid-import-mapping-row td.has-error").should("have.length", 2);
 		dialog().find(".btn-modal-primary").should("be.disabled");
 	});
 
@@ -359,28 +358,6 @@ context("Child Table Data Import", () => {
 		dialog().find(".grid-import-skip-cell").should("not.exist");
 	});
 
-	it("shows only the rows with errors after a column is remapped", () => {
-		const map_second_column = (search) => {
-			dialog()
-				.find('.grid-import-mapping-row td[data-col="1"] input')
-				.clear({ force: true })
-				.type(search, { force: true });
-			cy.get(".awesomplete ul:visible li").first().click({ force: true });
-		};
-
-		open_import();
-		upload(["call-me,yes", "9876501300,maybe", "9876501301,1"], "Number (phone),Flag");
-		dialog().find("tr[data-row]").should("have.length", 1);
-
-		map_second_column("is_primary_phone");
-		dialog().find('tr[data-row="3"] td[data-col="1"].has-error').should("exist");
-		dialog().find("tr[data-row]").should("have.length", 2);
-
-		map_second_column("Don't Import");
-		dialog().find('tr[data-row="3"]').should("not.exist");
-		dialog().find("tr[data-row]").should("have.length", 1);
-	});
-
 	const restrict_is_primary_phone = () =>
 		cy.window().then((win) => {
 			win.frappe.meta.get_docfield("Contact Phone", "is_primary_phone").permlevel = 1;
@@ -392,45 +369,15 @@ context("Child Table Data Import", () => {
 		open_import();
 		upload(["9876500070,1"]);
 
-		dialog().find(".grid-import-mapping-row").should("exist");
 		dialog()
 			.find('th[data-col="1"]')
 			.should("not.have.class", "has-error")
 			.and("have.attr", "data-mapped", "0");
-		dialog()
-			.find('.grid-import-mapping-row td[data-col="1"] input')
-			.should("have.value", "Don't Import")
-			.click();
-		dialog().find(".grid-import-footer-message").should("contain", "does not match a field");
 
 		go_to_step("Preview");
 		primary("Apply");
 		phone_rows().then((rows) => {
 			const added = rows.find((d) => d.phone === "9876500070");
-			expect(added, "row was still imported").to.exist;
-			expect(added.is_primary_phone, "restricted value must not apply").to.not.equal(1);
-		});
-	});
-
-	it("ignores a restricted field typed into the mapping box", () => {
-		restrict_is_primary_phone();
-		open_import();
-		upload(["9876500071,1"]);
-
-		dialog()
-			.find('.grid-import-mapping-row td[data-col="1"] input')
-			.clear()
-			.type("is_primary_phone", { delay: 0 })
-			.blur();
-		dialog()
-			.find('th[data-col="1"]')
-			.should("not.have.class", "has-error")
-			.and("have.attr", "data-mapped", "0");
-
-		go_to_step("Preview");
-		primary("Apply");
-		phone_rows().then((rows) => {
-			const added = rows.find((d) => d.phone === "9876500071");
 			expect(added, "row was still imported").to.exist;
 			expect(added.is_primary_phone, "restricted value must not apply").to.not.equal(1);
 		});

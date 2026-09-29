@@ -9,7 +9,6 @@ const INSERT = "Insert New Records";
 const UPDATE = "Update Existing Records";
 const UPSERT = "Insert or Update Records";
 const IMPORT_TYPES = [INSERT, UPDATE, UPSERT];
-const DONT_IMPORT = "Don't Import";
 const BLANK_TEMPLATE = "blank_template";
 const ALL_RECORDS = "all";
 const FIVE_RECORDS = "5_records";
@@ -114,7 +113,6 @@ export default class GridImport {
 			rows: [],
 			row_numbers: [],
 			column_map: {},
-			column_overrides: {},
 			warnings: [],
 			skipped_rows: new Set(),
 			google_sheets_url: "",
@@ -127,8 +125,6 @@ export default class GridImport {
 			fix: $('<div class="grid-import-panel grid-import-step-panel"></div>'),
 			preview: $('<div class="grid-import-panel grid-import-step-panel"></div>'),
 		};
-		this.mapping_controls = [];
-		this.building_preview = false;
 		this.preview_request_id = 0;
 		this.server_warnings = [];
 		this.stale_rows = new Set();
@@ -415,17 +411,6 @@ export default class GridImport {
 		this.set_step_disabled(TAB_PREVIEW, true);
 	}
 
-	mapping_options() {
-		return [
-			{ label: __("Don't Import"), value: DONT_IMPORT },
-			...this.get_docfields().map((df) => ({
-				label: this.get_field_label(df.fieldname),
-				value: df.fieldname,
-				description: df.fieldname,
-			})),
-		];
-	}
-
 	step_panel() {
 		return this.tabs.get_active() === TAB_FIX ? this.panels.fix : this.panels.preview;
 	}
@@ -476,55 +461,13 @@ export default class GridImport {
 			this.state.skipped_rows[e.target.checked ? "add" : "delete"](row);
 			this.refresh_preview({ revalidate: [] });
 		});
-		$table.on("click", ".grid-import-preview-row.has-note", (e) =>
+		$table.on("click", ".grid-import-preview-row .indicator", (e) =>
 			this.show_message(e.currentTarget.title)
 		);
 		$table.parentsUntil($panel).addBack().addClass("grid-import-fill");
-		const options = this.mapping_options();
-		this.building_preview = true;
-		const seeded = [];
-		this.mapping_controls = [];
-		view.mapping &&
-			view.columns.forEach((i) => {
-				const header = this.state.headers[i];
-				const control = frappe.ui.form.make_control({
-					df: {
-						fieldtype: "Autocomplete",
-						fieldname: `map_${i}`,
-						placeholder: header || __("Column {0}", [i + 1]),
-						max_items: Infinity,
-						options,
-						change: () => {
-							if (this.building_preview) return;
-							this.state.column_overrides[i] = control.get_value();
-							this.refresh_preview().then(() => this.sync_issue_rows());
-						},
-					},
-					parent: $table.find(`.grid-import-mapping-row td[data-col="${i}"]`).get(0),
-					render_input: true,
-					only_input: true,
-				});
-				control.$input?.on("focus", () => this.show_warning(undefined, i));
-				seeded.push(control.set_value(this.state.column_map[i] || DONT_IMPORT));
-				this.mapping_controls[i] = control;
-			});
 
 		this._built_step = this.tabs.get_active() === TAB_FIX ? TAB_FIX : TAB_PREVIEW;
-		return Promise.all(seeded).then(() => {
-			this.building_preview = false;
-			return this.refresh_preview({ revalidate: [] });
-		});
-	}
-
-	sync_issue_rows() {
-		const shown = this.preview_form
-			.get_field("table")
-			.$wrapper.find("tr[data-row]")
-			.map((_, tr) => cint(tr.dataset.row))
-			.get();
-		if (this.step_view().row_numbers.join() !== shown.join()) {
-			this.build_preview(true);
-		}
+		return this.refresh_preview({ revalidate: [] });
 	}
 
 	show_warning(row, col) {
@@ -539,7 +482,7 @@ export default class GridImport {
 	}
 
 	show_message(message = "") {
-		this.$message.toggleClass("hide", !message).attr("title", message);
+		this.$message.toggleClass("hide", !message);
 		this.$message.children("span").text(message);
 	}
 
@@ -580,22 +523,9 @@ export default class GridImport {
 			$(tr).toggleClass("grid-import-skipped-row", skipped);
 			$(tr).find(".grid-import-skip-cell input").prop("checked", skipped);
 			$(tr)
-				.find(".grid-import-preview-row")
-				.toggleClass("has-note", Boolean(notes))
+				.find(".grid-import-preview-row span")
+				.toggleClass("indicator orange", Boolean(notes))
 				.attr("title", notes ? notes.join("\n") : null);
-		});
-	}
-
-	sync_column_errors($table, warnings) {
-		const columns = new Set(
-			warnings
-				.filter((w) => w.blocking && w.row === undefined && w.col !== undefined)
-				.map((w) => w.col)
-		);
-		this.mapping_controls.forEach((_, i) => {
-			$table
-				.find(`th[data-col="${i}"], .grid-import-mapping-row td[data-col="${i}"]`)
-				.toggleClass("has-error", columns.has(i));
 		});
 	}
 
@@ -607,7 +537,6 @@ export default class GridImport {
 
 		const $table = this.preview_form.get_field("table").$wrapper;
 		this.sync_skipped_rows($table, warnings);
-		this.sync_column_errors($table, warnings);
 		const index_of_row = new Map(this.state.row_numbers.map((number, r) => [number, r]));
 
 		$table.find("tr[data-row] td[data-col]").each((_, cell) => {
@@ -648,18 +577,7 @@ export default class GridImport {
 	}
 
 	async refresh_preview({ revalidate = [...this.state.rows.keys()] } = {}) {
-		if (this.building_preview) return;
 		const request_id = ++this.preview_request_id;
-
-		if (this.mapping_controls.length) {
-			const picked = {};
-			const mappable = this.mappable_fieldnames();
-			this.mapping_controls.forEach((control, i) => {
-				const value = control.get_value();
-				if (value && value !== DONT_IMPORT && mappable.has(value)) picked[i] = value;
-			});
-			this.state.column_map = picked;
-		}
 		const map = this.state.column_map;
 
 		this.preview_form
@@ -815,7 +733,7 @@ export default class GridImport {
 			: __("{0} rows found. Nothing to fix.", [total]);
 	}
 
-	async on_file(data, google_sheets_url = "", is_refresh = false) {
+	async on_file(data, google_sheets_url = "") {
 		if (cint(data.length) - 1 > MAX_ROWS) {
 			frappe.msgprint({
 				message: __("Cannot import table with more than {0} rows.", [MAX_ROWS]),
@@ -845,10 +763,7 @@ export default class GridImport {
 			return;
 		}
 
-		if (!is_refresh) this.state.column_overrides = {};
-		this.state.column_map = this.apply_column_overrides(
-			await this.get_column_map(this.state.headers)
-		);
+		this.state.column_map = await this.get_column_map(this.state.headers);
 		this.state.skipped_rows = new Set();
 		await this.open_checked_step();
 	}
@@ -1041,40 +956,29 @@ export default class GridImport {
 
 	refresh_google_sheet() {
 		if (!this.state.google_sheets_url) return;
-		this.read_google_sheet(this.state.google_sheets_url, true);
+		this.read_google_sheet(this.state.google_sheets_url);
 	}
 
-	read_google_sheet(url, is_refresh = false) {
+	read_google_sheet(url) {
 		frappe.call({
 			method: "frappe.desk.form.grid_import.parse_google_sheet",
 			args: { doctype: this.grid.frm.doctype, url },
 			freeze: true,
 			freeze_message: __("Reading Google Sheet"),
 			callback: (r) => {
-				if (r.message) this.on_file(r.message, url, is_refresh);
+				if (r.message) this.on_file(r.message, url);
 			},
 		});
 	}
 
 	get_preview_html({ headers, rows, row_numbers, columns, mapping }) {
 		const escape = frappe.utils.escape_html;
+		const hint_html = `<div class="grid-import-preview-hint text-muted small"></div>`;
 
 		const head = columns.map((i) => {
-			const { label, fieldname } = this.column_title(headers[i], i, mapping);
-			const hint = fieldname
-				? ` <span class="text-sm text-ink-gray-5">${escape(fieldname)}</span>`
-				: "";
-			return `<th data-col="${i}" data-mapped="0">${escape(label)}${hint}</th>`;
+			const label = this.column_title(headers[i], i, mapping);
+			return `<th data-col="${i}" data-mapped="0">${escape(label)}</th>`;
 		});
-		const mapping_row = mapping
-			? `
-			<tr class="grid-import-mapping-row">
-				<td class="grid-import-preview-row"></td>
-				${columns.map((i) => `<td data-col="${i}"></td>`).join("")}
-				<td class="grid-import-skip-cell"></td>
-			</tr>
-		`
-			: "";
 		const skip_cell = (row_number) =>
 			mapping
 				? `<td class="grid-import-skip-cell">
@@ -1084,7 +988,7 @@ export default class GridImport {
 		const body = rows.map(
 			(row, r) => `
 				<tr data-row="${cint(row_numbers[r])}">
-					<td class="grid-import-preview-row">${cint(row_numbers[r])}</td>
+					<td class="grid-import-preview-row"><span>${cint(row_numbers[r])}</span></td>
 					${columns.map((i) => `<td data-col="${i}" data-mapped="0">${escape(cstr(row[i]))}</td>`).join("")}
 					${skip_cell(cint(row_numbers[r]))}
 				</tr>
@@ -1093,13 +997,11 @@ export default class GridImport {
 
 		return `
 			<div class="grid-import-preview-head">
-				<span class="text-muted small">${
+				${
 					mapping
-						? __(
-								"Map each column of the file to a field. Anything left unmapped is ignored."
-						  )
-						: this.preview_description()
-				}</span>
+						? hint_html
+						: `<span class="text-muted small">${this.preview_description()}</span>`
+				}
 				<div class="grid-import-preview-head-actions">
 					${
 						this.state.google_sheets_url
@@ -1122,7 +1024,7 @@ export default class GridImport {
 				</div>
 			</div>
 			<div class="grid-import-preview-alert"></div>
-			<div class="grid-import-preview-hint text-muted small"></div>
+			${mapping ? "" : hint_html}
 			<div class="grid-import-preview-table">
 				<table class="table table-bordered">
 					<thead>
@@ -1132,7 +1034,7 @@ export default class GridImport {
 							${mapping ? `<th class="grid-import-skip-cell">${__("Skip")}</th>` : ""}
 						</tr>
 					</thead>
-					<tbody>${mapping_row}${body.join("")}</tbody>
+					<tbody>${body.join("")}</tbody>
 				</table>
 			</div>
 		`;
@@ -1140,9 +1042,9 @@ export default class GridImport {
 
 	column_title(header, i, mapping) {
 		const fieldname = this.state.column_map[i];
-		if (!mapping && fieldname) return { label: this.get_field_label(fieldname) };
-		const [, label, suffix] = cstr(header).match(TEMPLATE_HEADER) || [null, cstr(header)];
-		return { label, fieldname: mapping && suffix };
+		if (!mapping && fieldname) return this.get_field_label(fieldname);
+		const [, label] = cstr(header).match(TEMPLATE_HEADER) || [null, cstr(header)];
+		return label;
 	}
 
 	get_mapped_fields(column_map) {
@@ -1361,15 +1263,6 @@ export default class GridImport {
 		return Object.fromEntries(
 			Object.entries(map).filter(([, fieldname]) => mappable.has(fieldname))
 		);
-	}
-
-	apply_column_overrides(auto_mapped) {
-		const map = { ...auto_mapped };
-		Object.entries(this.state.column_overrides).forEach(([index, fieldname]) => {
-			if (fieldname === DONT_IMPORT) delete map[index];
-			else map[index] = fieldname;
-		});
-		return map;
 	}
 
 	apply_rows(rows) {
