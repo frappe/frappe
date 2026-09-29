@@ -12,10 +12,11 @@ from frappe.tests import UnitTestCase
 REPO = Path(frappe.__file__).parent.parent
 LAYER_FILE = REPO / "frontend/architecture/layers.json"
 SHELL = "frappe/shell/"
-# hooks.py names functions that the framework calls back; the desk server owns that contract.
+# The dotted paths in hooks.py name functions that the framework calls back; the desk server
+# owns that contract. An import in hooks.py still counts.
 CALLBACKS = {"frappe/hooks.py"}
 TESTS = re.compile(r"(^|/)tests?/|(^|/)test_[^/]*\.py$")
-FILE = "frappe/utils/data.py"
+IMPORTER = "frappe/utils/data.py"
 
 
 class TestDeskServerLayer(UnitTestCase):
@@ -35,12 +36,18 @@ class TestDeskServerLayer(UnitTestCase):
 			'frappe.get_attr("frappe.shell.links.canonical_path")',
 			"from frappe.shell import links",
 		):
-			self.assertEqual(shell_targets(ast.parse(source), FILE), {"frappe/shell/links.py"}, source)
+			self.assertEqual(shell_targets(ast.parse(source), IMPORTER), {"frappe/shell/links.py"}, source)
 		self.assertEqual(
-			shell_targets(ast.parse("from frappe.shell import SHELL_ROOT"), FILE),
+			shell_targets(ast.parse("from frappe.shell import SHELL_ROOT"), IMPORTER),
 			{"frappe/shell/__init__.py"},
 		)
-		self.assertEqual(shell_targets(ast.parse("from frappe.utils import cint"), FILE), set())
+		self.assertEqual(shell_targets(ast.parse("from frappe.utils import cint"), IMPORTER), set())
+
+	def test_a_hooks_callback_is_not_a_use_but_an_import_in_hooks_is(self):
+		hooks = ast.parse(
+			'before_app_install = "frappe.shell.install.before_app_install"\nimport frappe.shell.links'
+		)
+		self.assertEqual(shell_targets(hooks, "frappe/hooks.py", strings=False), {"frappe/shell/links.py"})
 
 
 def known_breaks():
@@ -53,16 +60,16 @@ def known_breaks():
 def shell_uses():
 	for path in (REPO / "frappe").rglob("*.py"):
 		file = path.relative_to(REPO).as_posix()
-		if file.startswith(SHELL) or file in CALLBACKS or TESTS.search(file):
+		if file.startswith(SHELL) or TESTS.search(file):
 			continue
 		text = path.read_text()
 		if "shell" in text:
-			for target in shell_targets(ast.parse(text), file):
+			for target in shell_targets(ast.parse(text), file, strings=file not in CALLBACKS):
 				yield (file, target)
 
 
 # The desk server files a module reaches through imports and dotted-path strings.
-def shell_targets(tree, file):
+def shell_targets(tree, file, strings=True):
 	targets = set()
 	for node in ast.walk(tree):
 		if isinstance(node, ast.Import):
@@ -70,7 +77,7 @@ def shell_targets(tree, file):
 		elif isinstance(node, ast.ImportFrom):
 			base = absolute_module(node, file)
 			dotted = [f"{base}.{alias.name}" for alias in node.names]
-		elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+		elif strings and isinstance(node, ast.Constant) and isinstance(node.value, str):
 			dotted = [node.value]
 		else:
 			continue

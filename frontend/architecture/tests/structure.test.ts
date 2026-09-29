@@ -85,6 +85,26 @@ beforeAll(() => {
 
 afterAll(() => fs.rmSync(root, { recursive: true, force: true }));
 
+function withFiles(extra: Record<string, string>, run: () => void) {
+	for (const [file, text] of Object.entries(extra)) {
+		fs.mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+		fs.writeFileSync(path.join(root, file), text);
+	}
+	try {
+		run();
+	} finally {
+		for (const file of Object.keys(extra)) fs.rmSync(path.join(root, file));
+	}
+}
+
+describe("LayerCheck on the whole of ui/", () => {
+	it("fails on a ui/ file that imports desk code, though the desk never imports it", () => {
+		withFiles({ "ui/src/stray.ts": 'import { startApp } from "../../frontend/src/app/start";\n' }, () => {
+			expect(check(unlisted).report()).toEqual(["NEW BREAK  ui/src/stray.ts:1 -> frontend/src/app/start.ts"]);
+		});
+	});
+});
+
 describe("ConceptCheck", () => {
 	it("fails on each name that crosses a folder and is in no concept table", () => {
 		expect(check({}).report()).toEqual([
@@ -98,6 +118,18 @@ describe("ConceptCheck", () => {
 		const structure = check(unlisted);
 		expect(structure.report()).toEqual([]);
 		expect(structure.passes).toBe(true);
+	});
+
+	it("counts every name a namespace import takes", () => {
+		const extra = {
+			"ui/src/utils/more.ts": "export const more = 1;\n",
+			"frontend/src/extra/ns.ts": 'import * as more from "@framework/ui/utils/more";\n',
+		};
+		withFiles(extra, () => {
+			expect(check(unlisted).report()).toEqual([
+				"NO CONCEPT more (ui/src/utils/more.ts): add it to layer 1's concept table",
+			]);
+		});
 	});
 
 	it("fails on a baseline name that no longer needs to be there", () => {

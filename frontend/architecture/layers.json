@@ -308,13 +308,6 @@
       "ui/src/components/ConditionBuilder/internal"
     ],
     [
-      "frappe",
-      "frappe/shell/doctypes.py",
-      "frappe/shell/links.py",
-      "frappe/shell/manifest.py",
-      "frappe/utils"
-    ],
-    [
       "frappe/shell/navigation.py",
       "frappe/shell/navigation_filter.py"
     ]

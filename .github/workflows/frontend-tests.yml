@@ -5,8 +5,8 @@ on:
     paths:
       - "frontend/**"
       - "ui/**"
-      # The structure check reads the desk server too; frappe/tests/test_desk_server_layer.py
-      # covers the rest of frappe/ in the server tests.
+      # The structure check also checks frappe/shell/. A use of it from the rest of frappe/ is
+      # checked by frappe/tests/test_desk_server_layer.py in the server tests, not here.
       - "frappe/shell/**"
       - ".github/workflows/frontend-tests.yml"
   workflow_dispatch:

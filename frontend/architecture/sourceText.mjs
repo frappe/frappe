@@ -34,7 +34,7 @@ export function parseApiCalls(code) {
 }
 
 // The names an `import ... from` or `export ... from` statement takes from its module, each
-// as { from, as }. A default import is named "default"; `* from` sets star; `* as x` names nothing.
+// as { from, as }. A default import is named "default"; `* from` sets star; `* as x` namespace.
 export function importedNames(statement) {
   const clause = statement
     .replace(/^(import|export)\s+(type\s+)?/, "")
@@ -46,7 +46,11 @@ export function importedNames(statement) {
   for (const part of outside.map((p) => p.trim()).filter(Boolean)) {
     if (!part.startsWith("*")) names.push({ from: "default", as: "default" });
   }
-  return { names, star: clause === "*" };
+  return {
+    names,
+    star: clause === "*",
+    namespace: /(^|,)\s*\*\s+as\s/.test(clause),
+  };
 }
 
 // The names a file defines and exports itself, without `from`.

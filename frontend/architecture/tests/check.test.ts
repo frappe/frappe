@@ -179,3 +179,31 @@ describe("ARCHITECTURE.md reader", () => {
 		expect(save.budget).toBe("time until the saved state shows; request count.");
 	});
 });
+
+describe("LayerCheck and the server layer test", () => {
+	const serverLayers = {
+		notUse: {},
+		layers: [
+			{ id: "2", paths: ["frappe/shell/"], mayUse: ["1"] },
+			{ id: "1", paths: ["frappe/"], mayUse: [] },
+		],
+		knownBreaks: [{ from: "frappe/utils/gone.py", to: "frappe/shell/", ticket: 1, title: "Gone" }],
+	};
+	const serverNodes = [
+		{ id: "frappe/utils", fileList: [{ path: "frappe/utils/data.py", lines: 1 }], externals: {} },
+		{ id: "frappe/shell/links.py", fileList: [{ path: "frappe/shell/links.py", lines: 1 }], externals: {} },
+	];
+
+	it("draws a use of frappe/shell/ from the rest of frappe/, and leaves new and gone ones to the Python test", () => {
+		const pair = ["frappe/utils/data.py", "frappe/shell/links.py", 1];
+		const graph = {
+			nodes: serverNodes,
+			edges: [edge("frappe/utils", "frappe/shell/links.py", "import", pair)],
+			folderCycles: [],
+		};
+		const c = new LayerCheck(graph, serverLayers);
+		expect(c.edges[0].status).toBe("break");
+		expect(c.report()).toEqual([]);
+		expect(c.passes).toBe(true);
+	});
+});

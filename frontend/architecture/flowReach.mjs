@@ -1,5 +1,5 @@
 // The files each flow's entry file reaches through its imports. CI prints them and never fails
-// on them: a limit on files would push code into fewer, larger files.
+// on them.
 
 export class FlowReach {
   constructor(jsFiles, flowEntries) {

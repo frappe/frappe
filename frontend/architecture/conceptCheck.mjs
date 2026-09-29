@@ -53,9 +53,11 @@ export class ConceptCheck {
       for (const imp of info.imports) {
         if (!imp.target || path.dirname(imp.target) === path.dirname(file))
           continue;
-        const names = imp.star
-          ? [...this.exportsOf(imp.target)]
-          : imp.names.map((n) => n.from);
+        // `* from` and `* as x` hand over every name the target exports.
+        const names =
+          imp.star || imp.namespace
+            ? [...this.exportsOf(imp.target)]
+            : imp.names.map((n) => n.from);
         for (const name of names) {
           const [home, homeName] = this.homeOf(imp.target, name);
           const concept = homeName === "default" ? baseName(home) : homeName;
