@@ -83,7 +83,7 @@ def get_query_stats(limit: int) -> list[dict]:
 
 
 def _throw_missing_setup_step(exception: Exception) -> None:
-	"""Name the exact pg_stat_statements setup step the administrator is missing."""
+	"""Name the pg_stat_statements setup steps the administrator is missing."""
 	if isinstance(exception, ObjectNotInPrerequisiteState):
 		frappe.throw(
 			_(
@@ -99,22 +99,12 @@ def _throw_missing_setup_step(exception: Exception) -> None:
 	if not frappe.db.is_table_missing(exception):
 		raise exception
 
-	# CREATE EXTENSION is per-database, so a cluster can have the library preloaded yet the
-	# view missing on this site's DB. Point the admin at the exact missing step.
-	if "pg_stat_statements" in (frappe.db.sql("SHOW shared_preload_libraries")[0][0] or ""):
-		frappe.throw(
-			_(
-				"pg_stat_statements is loaded on the server but not enabled in this site's "
-				"database. A PostgreSQL superuser must run, connected to THIS database:"
-			)
-			+ "\n\n    CREATE EXTENSION pg_stat_statements;"
-		)
-
+	# the site role cannot read shared_preload_libraries, so name both steps
 	frappe.throw(
 		_(
-			"pg_stat_statements is not enabled. A PostgreSQL superuser must add "
-			"'pg_stat_statements' to shared_preload_libraries, restart PostgreSQL, then run "
-			"CREATE EXTENSION pg_stat_statements; in this site's database."
+			"pg_stat_statements is not enabled in this site's database. A PostgreSQL superuser must "
+			"run CREATE EXTENSION pg_stat_statements; in this database. If 'pg_stat_statements' is "
+			"not in shared_preload_libraries yet, also add it there and restart PostgreSQL."
 		)
 	)
 
