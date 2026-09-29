@@ -260,9 +260,15 @@ def test_openrouter_rate_limit_waits_until_its_reset(monkeypatch):
 		model="openai/gpt-6-luna-pro",
 		llm_provider="openrouter",
 	)
-	monkeypatch.setattr(time, "time", lambda: 1790586895.5)  # 4.5 s before the reset
+	cases = [
+		(4.5, 5.5),  # a second more, should our clock run ahead
+		(59.5, 60.0),  # but no more than the retry waits
+		(3600.0, 3600.0),  # too long to retry anyway
+	]
+	for to_reset, wait in cases:
+		monkeypatch.setattr(time, "time", lambda: 1790586900 - to_reset)
 
-	error = normalize_litellm_error(native, provider="openrouter")
+		error = normalize_litellm_error(native, provider="openrouter")
 
-	assert (error.kind, error.retryable) == ("rate_limit", True)
-	assert error.retry_after_seconds == 5.5  # and a second more
+		assert (error.kind, error.retryable) == ("rate_limit", True)
+		assert error.retry_after_seconds == wait

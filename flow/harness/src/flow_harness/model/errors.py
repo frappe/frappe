@@ -354,8 +354,9 @@ def _rate_limit_reset_seconds(detail: str) -> float | None:
 	match = _RATE_LIMIT_RESET.search(detail)
 	if match is None:
 		return None
+	wait = max(0.0, int(match[1]) / 1000 - time.time())
 	# a second late, should our clock run ahead
-	return max(0.0, int(match[1]) / 1000 - time.time()) + 1.0
+	return wait if wait > 60 else min(wait + 1.0, 60.0)  # retry.py waits 60 s at most
 
 
 def _truncate(value: str) -> str:
