@@ -312,6 +312,11 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 		# .separator() chaining must work on postgres too (STRING_AGG has no native SEPARATOR keyword)
 		self.assertEqual("STRING_AGG('Notes',' | ')", GroupConcat("Notes").separator(" | ").get_sql())
 
+	def test_concat_separator_leaves_original_unchanged(self):
+		comma_separated = GroupConcat("Notes")
+		comma_separated.separator(" | ")
+		self.assertEqual("STRING_AGG('Notes',',')", comma_separated.get_sql())
+
 	def test_concat_with_explicit_empty_separator(self):
 		# must mean the same thing as the MariaDB rendering: no delimiter at all
 		self.assertEqual("STRING_AGG('Notes','')", GroupConcat("Notes", "").get_sql())
