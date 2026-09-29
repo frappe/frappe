@@ -3043,6 +3043,24 @@ class TestBulkInsertCopy(IntegrationTestCase):
 		self.assertEqual(got["a"], 1)
 		self.assertEqual(got["b"], 0)
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_bulk_insert_copy_matches_insert(self):
+		# COPY parses text strictly: a float in a Check column and bytes must store what INSERT does
+		title = f"test_bulk_insert_copy - {random_string(10)}"
+		fields = ["name", "title", "public", "content"]
+		row = (title, 1.0, b"abc")
+		frappe.db.bulk_insert("Note", fields, [(f"{title} copy", *row)])
+		frappe.db.sql(
+			"INSERT INTO `tabNote` (`name`, `title`, `public`, `content`) VALUES (%s, %s, %s, %s)",
+			(f"{title} insert", *row),
+		)
+
+		copied, inserted = frappe.get_all(
+			"Note", filters={"title": title}, fields=["public", "content"], order_by="name", as_list=True
+		)
+		self.assertEqual(copied, inserted)
+		self.assertRaises(TypeError, frappe.db.bulk_insert, "Note", fields, [(title, title, 0, ["a"])])
+
 
 class TestBacktickIdentifierConversion(UnitTestCase):
 	"""The postgres and sqlite drivers translate MySQL-style raw SQL into ANSI quoting.
