@@ -131,7 +131,6 @@ class DocType(Document):
 		icon: DF.Icon | None
 		image_field: DF.Data | None
 		in_create: DF.Check
-		index_web_pages_for_search: DF.Check
 		is_calendar_and_gantt: DF.Check
 		is_published_field: DF.Data | None
 		is_submittable: DF.Check
@@ -182,7 +181,6 @@ class DocType(Document):
 		track_seen: DF.Check
 		track_views: DF.Check
 		translated_doctype: DF.Check
-		website_search_field: DF.Data | None
 	# end: auto-generated types
 
 	def validate(self):
@@ -1646,18 +1644,6 @@ def validate_fields(meta: Meta):
 		if meta.is_published_field not in fieldname_list:
 			frappe.throw(_("Is Published Field must be a valid fieldname"), InvalidFieldNameError)
 
-	def check_website_search_field(meta):
-		if not meta.get("website_search_field"):
-			return
-
-		if meta.website_search_field not in fieldname_list:
-			frappe.throw(_("Website Search Field must be a valid fieldname"), InvalidFieldNameError)
-
-		if "title" not in fieldname_list:
-			frappe.throw(
-				_('Field "title" is mandatory if "Website Search Field" is set.'), title=_("Missing Field")
-			)
-
 	def check_timeline_field(meta):
 		if not meta.timeline_field:
 			return
@@ -1883,7 +1869,6 @@ def validate_fields(meta: Meta):
 		check_title_field(meta)
 		check_timeline_field(meta)
 		check_is_published_field(meta)
-		check_website_search_field(meta)
 		check_sort_field(meta)
 		check_image_field(meta)
 

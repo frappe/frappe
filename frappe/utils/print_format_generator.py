@@ -728,7 +728,11 @@ class PrintFormatGenerator:
 		if is_header and page_no_html:
 			body_parts = [self._reserve_top_margin("\n".join(body_parts))]
 		parts.extend(body_parts)
-		return "\n".join(parts) or None
+
+		from bs4 import BeautifulSoup
+
+		# Jinja branches can leave a tag open; unbalanced, the PDF parser folds the body into the overlay.
+		return str(BeautifulSoup("\n".join(parts), "html.parser")) or None
 
 	_ZONE_SECTION_TEMPLATE = (
 		'{%- import "templates/print_format/macros.html" as macros -%}'

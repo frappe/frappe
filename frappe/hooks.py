@@ -353,7 +353,6 @@ after_migrate = [
 	"frappe.search.sqlite_search.build_index_in_background",
 	"frappe.desk.doctype.notification_type.notification_type.install_notification_types",
 	"frappe.automation.doctype.automation_trigger_queue.automation_trigger_queue.ensure_dedup_indexes",
-	"frappe.automation_engine.scheduler.ensure_run_lookup_index",
 ]
 
 otp_methods = ["OTP App", "Email", "SMS"]
@@ -564,6 +563,7 @@ default_log_clearing_doctypes = {
 	"Scheduled Job Log": 7,
 	"Submission Queue": 7,
 	"Background Task": 7,
+	"Automation Run": 30,
 	"MapReduce Job": 30,
 	"Prepared Report": 14,
 	"Webhook Request Log": 30,
