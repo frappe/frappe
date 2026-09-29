@@ -1060,14 +1060,37 @@ frappe.ui.Sidebar = class Sidebar {
 		this.sidebar_expanded = false;
 		this.remember_collapsed(true);
 
+		if (this.dock?.is_pinned && !frappe.is_mobile()) {
+			this.slide_shut();
+			return;
+		}
 		this.expand_sidebar();
 		if (frappe.is_mobile()) frappe.app.sidebar.prevent_scroll();
 	}
 	open() {
 		this.sidebar_expanded = true;
 		this.remember_collapsed(false);
+		this.wrapper.removeClass("sliding-shut");
 		this.expand_sidebar();
 		this.set_active_workspace_item();
+	}
+
+	// Beside a pinned dock the sidebar closes all the way. It slides shut in its full layout and
+	// only switches to the collapsed one at the end, or the rows would jump to icons first.
+	slide_shut() {
+		const $panel = this.wrapper.find(".body-sidebar");
+		const finish = () => {
+			$panel.off("transitionend.slide-shut");
+			clearTimeout(this.slide_shut_timer);
+			this.wrapper.removeClass("sliding-shut");
+			if (!this.sidebar_expanded) this.expand_sidebar();
+		};
+		this.wrapper.addClass("sliding-shut");
+		$panel.off("transitionend.slide-shut").on("transitionend.slide-shut", (e) => {
+			if (e.target === $panel[0] && e.originalEvent.propertyName === "width") finish();
+		});
+		// No transitionend comes when nothing animates, as with reduced motion.
+		this.slide_shut_timer = setTimeout(finish, 700);
 	}
 
 	set_height() {

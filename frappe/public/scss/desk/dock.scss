@@ -342,6 +342,52 @@ body.dock-pinned .dock .dock-user-button {
 			display: none;
 		}
 	}
+
+	// Collapsed beside a pinned dock, the sidebar goes away instead of folding to an icon rail,
+	// which would repeat the dock. The edge and arrow move onto the dock's border to bring it back.
+	body.dock-pinned.dock-active .body-sidebar-container:is(:not(.expanded), .sliding-shut) {
+		.body-sidebar {
+			width: 0;
+			border-right-width: 0;
+
+			// Fades out at once, and back in only once the width has made room (below).
+			> * {
+				opacity: 0;
+				transition-delay: 0s;
+			}
+		}
+
+		.sidebar-edge {
+			left: -4px;
+		}
+
+		.sidebar-collapse-arrow {
+			left: -12px;
+		}
+	}
+
+	// Going all the way to 0 is a longer trip than folding to a rail, so it is eased in and out slower.
+	body.dock-pinned.dock-active .body-sidebar-container {
+		--dock-sidebar-ease: 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+
+		.body-sidebar {
+			transition: background 0.2s ease, border-color 0.2s ease,
+				width var(--dock-sidebar-ease);
+
+			> * {
+				transition: transform var(--dock-sidebar-ease), opacity 0.3s ease 0.2s;
+			}
+		}
+
+		.sidebar-edge {
+			transition: left var(--dock-sidebar-ease);
+		}
+
+		.sidebar-collapse-arrow {
+			transition: opacity 0.15s ease, left var(--dock-sidebar-ease),
+				background-color 0.15s ease;
+		}
+	}
 }
 
 // The slide is the whole of the dock's arrival, so with motion turned down it simply is or is not
