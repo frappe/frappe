@@ -73,7 +73,7 @@ frappe.ui.donut = function ({ segments = [], center, format, size = 240 } = {}) 
 	});
 
 	const $center = $('<div class="es-donut__center">')
-		.css("padding", `0 ${cx - ri * 0.85}px`)
+		.css({ paddingLeft: cx - ri * 0.85, paddingRight: cx - ri * 0.85 })
 		.appendTo($chart);
 	const $cval = $('<div class="es-donut__value">').appendTo($center);
 	const $clabel = $('<div class="es-donut__label">').appendTo($center);

@@ -85,6 +85,10 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: calc(var(--spacing) * 1.5);
+    /* Push the block down by the label's height so the value, not the
+     * value+label pair, sits on the ring's centre — it carries the weight. */
+    padding-top: calc(var(--text-sm) + var(--spacing) * 1.5);
     pointer-events: none;
     text-align: center;
 }
@@ -93,12 +97,13 @@
     font-size: var(--text-xl);
     font-weight: var(--font-weight-semibold);
     color: var(--ink-gray-8);
-    line-height: 1.2;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
 }
 
 .es-donut__label {
-    margin-top: 2px;
     font-size: var(--text-sm);
+    line-height: 1;
     color: var(--ink-gray-5);
 }
 
