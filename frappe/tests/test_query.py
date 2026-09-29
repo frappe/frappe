@@ -1302,6 +1302,29 @@ class TestQuery(IntegrationTestCase):
 		self.assertFalse(frappe.qb.get_query(doctype.name, filters={"docstatus": ["is", "set"]}).run())
 		self.assertFalse(frappe.qb.get_query(doctype.name, filters={"modified": ["is", "not set"]}).run())
 
+	def test_ifnull_filters_on_numeric_fields(self):
+		fieldtypes = ("Rating", "Duration")
+		fieldnames = {fieldtype: f"{frappe.scrub(fieldtype)}_field" for fieldtype in fieldtypes}
+		doctype = new_doctype(
+			fields=[
+				{"fieldname": fieldname, "fieldtype": fieldtype}
+				for fieldtype, fieldname in fieldnames.items()
+			]
+		).insert()
+		filled = frappe.get_doc({"doctype": doctype.name, **dict.fromkeys(fieldnames.values(), 1)}).insert()
+		empty = frappe.get_doc({"doctype": doctype.name}).insert()
+
+		for fieldname in fieldnames.values():
+			for operator, value, expected in (
+				("<", 1, empty.name),
+				("=", 0, empty.name),
+				("!=", 0, filled.name),
+				("!=", None, filled.name),
+			):
+				with self.subTest(fieldname=fieldname, operator=operator, value=value):
+					filters = {fieldname: [operator, value]}
+					self.assertEqual(frappe.get_all(doctype.name, filters=filters, pluck="name"), [expected])
+
 	def test_permission_query_condition(self):
 		"""Test permission query condition being applied from hooks and server script"""
 		from frappe.desk.doctype.dashboard_settings.dashboard_settings import create_dashboard_settings
