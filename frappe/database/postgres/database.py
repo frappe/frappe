@@ -422,7 +422,41 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def rename_table(self, old_name: str, new_name: str) -> list | tuple:
 		old_name = get_table_name(old_name)
 		new_name = get_table_name(new_name)
-		return self.sql(f"ALTER TABLE `{old_name}` RENAME TO `{new_name}`")
+		result = self.sql(f"ALTER TABLE `{old_name}` RENAME TO `{new_name}`")
+		self.rename_table_indexes(old_name, new_name)
+		return result
+
+	def rename_table_indexes(self, old_table: str, new_table: str):
+		"""Give indexes named after `old_table` the names they would get on `new_table`."""
+		from frappe.database.postgres.schema import get_qualified_index_name
+
+		for index_name, columns in self.get_index_columns(new_table).items():
+			for suffix in (None, "unique", *INDEX_METHODS):
+				if index_name == get_qualified_index_name(old_table, columns, suffix):
+					new_index_name = get_qualified_index_name(new_table, columns, suffix)
+					self.sql(f'ALTER INDEX "{self.db_schema}"."{index_name}" RENAME TO "{new_index_name}"')
+					break
+
+	def get_index_columns(self, table_name: str) -> dict[str, list[str]]:
+		"""Map each index on the table to its key columns, in order."""
+		return dict(
+			self.sql(
+				"""
+				SELECT ic.relname, ARRAY(
+					SELECT a.attname
+					FROM unnest(i.indkey[:i.indnkeyatts - 1]) WITH ORDINALITY AS k(attnum, position)
+					JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = k.attnum
+					ORDER BY k.position
+				)
+				FROM pg_index i
+				JOIN pg_class tc ON tc.oid = i.indrelid
+				JOIN pg_class ic ON ic.oid = i.indexrelid
+				JOIN pg_namespace n ON n.oid = tc.relnamespace
+				WHERE tc.relname = %s AND n.nspname = %s
+				""",
+				(table_name, self.db_schema),
+			)
+		)
 
 	def describe(self, doctype: str) -> list | tuple:
 		return self.sql(
