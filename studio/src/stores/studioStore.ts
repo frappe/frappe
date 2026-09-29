@@ -207,6 +207,7 @@ const useStudioStore = defineStore("store", () => {
 	const selectedPage = ref<string | null>(null)
 	const savingPage = ref(false)
 	const publishingPage = ref(false)
+	const publishingApp = ref(false)
 	const settingPage = ref(false)
 	// set when a save is rejected because the page moved on in the DB (a disk sync or an AI edit)
 	// after the editor loaded it. Autosave pauses until the user refreshes to the latest version.
@@ -453,7 +454,9 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	async function publishApp() {
-		if (!activeApp.value) return
+		// the publish button and the command palette both publish; one at a time
+		if (!activeApp.value || publishingApp.value) return
+		publishingApp.value = true
 		return studioApps.runDocMethod.submit(
 			{
 				name: activeApp.value.name,
@@ -481,6 +484,7 @@ const useStudioStore = defineStore("store", () => {
 				},
 			},
 		)
+		.finally(() => (publishingApp.value = false))
 	}
 
 	async function unpublishApp() {
@@ -758,6 +762,7 @@ const useStudioStore = defineStore("store", () => {
 		settingPage,
 		savingPage,
 		publishingPage,
+		publishingApp,
 		pageConflict,
 		activePage,
 		setPage,

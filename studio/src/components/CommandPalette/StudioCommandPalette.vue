@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue"
+import { computed, ref, watch, type ComputedRef } from "vue"
 import { useRouter } from "vue-router"
 import { useKeyboardShortcut } from "frappe-ui"
 
@@ -21,7 +21,10 @@ import CommandPaletteItem from "@/components/CommandPalette/CommandPaletteItem.v
 import type { CommandPaletteItem as CPItem } from "@/components/CommandPalette/CommandPalette.vue"
 import { commandGroups, commands, resolveText } from "@/components/Commands"
 import useStudioStore from "@/stores/studioStore"
+import useComponentEditorStore from "@/stores/componentEditorStore"
+import { studioComponents } from "@/data/studioComponents"
 import type { StudioPage } from "@/types/Studio/StudioPage"
+import type { StudioComponent } from "@/types/Studio/StudioComponent"
 
 type PaletteItem = CPItem & { action?: () => void; group?: string; shortcutName?: string }
 type Step = { id: string; label: string; placeholder: string; hint: string }
@@ -49,7 +52,7 @@ const openStep = (step: Step) => {
 	searchQuery.value = ""
 }
 
-// the step command stays here: it drives activeStep, which is local
+// the step commands stay here: they drive activeStep, which is local
 commands.register({
 	name: "go-to-page",
 	title: "Go to Page",
@@ -63,6 +66,22 @@ commands.register({
 			label: "Go to Page",
 			placeholder: "Search by title or route...",
 			hint: "This app has no other pages",
+		}),
+})
+
+commands.register({
+	name: "go-to-component",
+	title: "Go to Component",
+	icon: "lucide-box",
+	group: "Navigate",
+	after: "go-to-page",
+	keepOpen: true,
+	action: () =>
+		openStep({
+			id: "go-to-component",
+			label: "Go to Component",
+			placeholder: "Search components...",
+			hint: "There are no Studio components yet",
 		}),
 })
 
@@ -129,16 +148,31 @@ const pageItems = computed<PaletteItem[]>(() =>
 		})),
 )
 
+const componentItems = computed<PaletteItem[]>(() =>
+	(studioComponents.data || []).map((component: StudioComponent) => ({
+		name: `component-${component.component_id}`,
+		title: component.component_name,
+		icon: "lucide-box",
+		action: () => useComponentEditorStore().editComponent(component.component_id),
+	})),
+)
+
+const stepItems: Record<string, ComputedRef<PaletteItem[]>> = {
+	"go-to-page": pageItems,
+	"go-to-component": componentItems,
+}
+
 const matches = (item: PaletteItem, query: string) =>
 	[item.title, item.description, item.shortcutName].some((text) => text?.toLowerCase().includes(query))
 
 const paletteGroups = computed(() => {
 	const query = searchQuery.value.toLowerCase().trim()
 
-	if (activeStep.value?.id === "go-to-page") {
-		const items = query ? pageItems.value.filter((item) => matches(item, query)) : pageItems.value
+	if (activeStep.value) {
+		const all = stepItems[activeStep.value.id].value
+		const items = query ? all.filter((item) => matches(item, query)) : all
 		return items.length
-			? [{ title: "Pages", hideTitle: true, showDescription: true, component: CommandPaletteItem, items }]
+			? [{ title: activeStep.value.label, hideTitle: true, showDescription: true, component: CommandPaletteItem, items }]
 			: []
 	}
 
@@ -165,7 +199,8 @@ const paletteGroups = computed(() => {
 })
 
 function executeCommand(item: CPItem) {
-	if (!item.name.startsWith("page-")) {
+	// pages and components picked inside a step are not commands
+	if (!activeStep.value) {
 		trackRecentCommand(item.name)
 	}
 	;(item as PaletteItem).action?.()

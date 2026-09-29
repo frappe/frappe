@@ -8,7 +8,7 @@
 			<button
 				v-if="stepLabel"
 				type="button"
-				class="text-base-semibold ml-3 flex shrink-0 items-center gap-2 py-1 text-ink-gray-7 transition-colors hover:bg-surface-gray-3"
+				class="text-base-semibold ml-1.5 flex shrink-0 items-center gap-1.5 rounded-4 px-1.5 py-1 text-ink-gray-7 transition-colors hover:bg-surface-gray-2"
 				@click="goBack">
 				{{ stepLabel }}
 				<span class="lucide-chevron-right size-3 text-ink-gray-4" aria-hidden="true" />
@@ -16,9 +16,9 @@
 			<TextInput
 				ref="inputRef"
 				v-model="localQuery"
-				class="w-full"
+				class="w-full py-2"
 				variant="ghost"
-				size="lg"
+				size="md"
 				:placeholder="placeholder || (stepLabel ? 'Search...' : 'Search commands...')"
 				aria-label="Search commands"
 				spellcheck="false"

@@ -111,7 +111,7 @@
 						<ComponentLayers
 							:blocks="element.children"
 							:is-parent-hidden="isParentHidden || !element.isVisible()"
-							:ref="(el) => trackLayer(childLayers, element.componentId, el)"
+							:ref="(el: unknown) => trackLayer(childLayers, element.componentId, el)"
 							:indent="childIndent"
 						/>
 					</div>
@@ -148,7 +148,7 @@
 							<div v-if="isSlotExpanded(slot)">
 								<ComponentLayers
 									:blocks="slot.slotContent"
-									:ref="(el) => trackLayer(slotLayers, slot.slotId, el)"
+									:ref="(el: unknown) => trackLayer(slotLayers, slot.slotId, el)"
 									:indent="slotIndent"
 								/>
 							</div>

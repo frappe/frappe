@@ -28,7 +28,7 @@ export type Command = RegistryItem & {
 	inPalette?: boolean
 }
 
-export const commandGroups = ["Navigate", "Page", "Layers", "View", "General", "Edit"] as const
+export const commandGroups = ["Navigate", "App", "Layers", "View", "General", "Edit"] as const
 export type CommandGroup = (typeof commandGroups)[number]
 
 export const resolveText = (value: string | (() => string)) => (typeof value === "function" ? value() : value)
@@ -85,13 +85,13 @@ commands.register({
 	action: () => openPageInDesk(store.activePage!),
 })
 
-// Page
+// App
 
 commands.register({
 	name: "preview-page",
-	title: "Preview Page",
+	title: "Preview",
 	icon: "lucide-play",
-	group: "Page",
+	group: "App",
 	condition: () => Boolean(store.activeApp && store.activePage),
 	action: () => store.openPageInBrowser(store.activeApp!, store.activePage!, true),
 })
@@ -100,19 +100,20 @@ commands.register({
 	name: "publish-page",
 	title: "Publish Page",
 	icon: "lucide-globe",
-	group: "Page",
+	group: "App",
 	// like the publish button: a fragment has to be saved or closed first
 	condition: () => Boolean(store.activePage) && !canvasStore.showFragmentCanvas,
 	action: () => store.publishPage(),
 })
 
 commands.register({
-	name: "page-options",
-	title: "Page Options",
-	icon: "lucide-file-cog",
-	group: "Page",
-	condition: () => Boolean(store.activePage),
-	action: () => (store.showPageOptions = true),
+	name: "publish-app",
+	title: "Publish App",
+	icon: "lucide-globe",
+	group: "App",
+	// like the publish button: a fragment has to be saved or closed first
+	condition: () => Boolean(store.activeApp) && !canvasStore.showFragmentCanvas,
+	action: () => store.publishApp(),
 })
 
 // Layers
