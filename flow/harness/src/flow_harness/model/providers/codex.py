@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import sys
 import time
 from collections.abc import AsyncIterator, Callable, Mapping
@@ -65,7 +66,8 @@ SCOPE = "openid profile email offline_access"
 ORIGINATOR = "flow"
 API_BASE = "https://chatgpt.com/backend-api"
 DEFAULT_EXPIRES_S = 3600
-DEFAULT_CODEX_CLIENT_VERSION = "0.153.4"
+# The Codex catalog hides models newer than the version we report, so claim a far-future one.
+DEFAULT_CODEX_CLIENT_VERSION = "999.0.0"
 MODEL_CATALOG_TIMEOUT_SECONDS = 5.0
 DEFAULT_CODEX_MAX_OUTPUT_TOKENS = 128_000
 DEFAULT_AUTO_COMPACT_PERCENT = 90
@@ -74,6 +76,8 @@ DEFAULT_AUTO_COMPACT_PERCENT = 90
 # They deliberately describe the ChatGPT Codex serving surface, not the public API.
 _CODEX_FALLBACK_CONTEXT_WINDOWS = {
 	"gpt-6-astra": 272_000,
+	"gpt-6-sol": 272_000,
+	"gpt-6-luna": 272_000,
 	"gpt-5.6-sol": 272_000,
 	"gpt-5.6-terra": 272_000,
 	"gpt-5.6-luna": 272_000,
@@ -256,7 +260,7 @@ class CodexModel(Model):
 			response = await await_with_cancellation(
 				client.get(
 					f"{self._api_base.rstrip('/')}/codex/models",
-					params={"client_version": DEFAULT_CODEX_CLIENT_VERSION},
+					params={"client_version": codex_client_version()},
 					headers=self._model_catalog_headers(),
 					timeout=MODEL_CATALOG_TIMEOUT_SECONDS,
 				),
@@ -387,6 +391,11 @@ class CodexModel(Model):
 		headers["accept"] = "application/json"
 		headers.pop("content-type", None)
 		return headers
+
+
+def codex_client_version() -> str:
+	"""Version the Codex catalog filters models by: the env override, else the far-future default."""
+	return os.environ.get("FLOW_CODEX_CLIENT_VERSION") or DEFAULT_CODEX_CLIENT_VERSION
 
 
 def static_context_window(model: str) -> int | None:
