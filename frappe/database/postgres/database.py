@@ -29,7 +29,7 @@ from psycopg2.errors import (
 from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ, TRANSACTION_STATUS_INERROR
 
 import frappe
-from frappe.database.database import CREATE_OR_DROP, Database
+from frappe.database.database import CREATE_OR_DROP, DDL_QUERY_TYPES, Database
 from frappe.database.postgres.schema import PostgresTable
 from frappe.database.utils import EmptyQueryValues, LazyDecode, convert_backtick_identifiers
 from frappe.utils import cstr, get_table_name
@@ -215,6 +215,7 @@ class PostgresExceptionUtil:
 class PostgresDatabase(PostgresExceptionUtil, Database):
 	REGEX_CHARACTER = "~"
 	default_port = "5432"
+	_transaction_has_schema_changes = False
 
 	def setup_type_map(self):
 		self.db_type = "postgres"
@@ -376,10 +377,18 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 		return tables
 
-	@staticmethod
-	def clear_db_table_cache(query_type: str):
+	def clear_db_table_cache(self, query_type: str):
+		"""Postgres DDL is transactional, so drop the schema caches on a rollback that follows DDL."""
 		if query_type in CREATE_OR_DROP:
 			frappe.client_cache.delete_keys("db_tables::*")
+		if query_type in DDL_QUERY_TYPES:
+			self._transaction_has_schema_changes = True
+		elif query_type == "commit":
+			self._transaction_has_schema_changes = False
+		elif query_type == "rollback" and self._transaction_has_schema_changes:
+			# stays set: a rollback to a savepoint keeps the DDL that ran before it
+			frappe.client_cache.delete_keys("db_tables::*")
+			frappe.client_cache.delete_keys("table_columns::*")
 
 	def get_db_table_columns(self, table) -> list[str]:
 		"""Returns list of column names from given table."""
