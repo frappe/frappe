@@ -36,9 +36,9 @@ def execute(filters=None):
 
 	app_map = get_doctype_app_map()
 	for row in data:
-		# pg_stat_statements returns "<insufficient privilege>" for queries run by other roles
-		# (grant pg_read_all_stats to see them), or NULL if the text was evicted. The datatable
-		# eats the angle brackets as an HTML tag, so relabel those so the cell is never blank.
+		# pg_stat_statements returns "<insufficient privilege>" for queries run by other roles,
+		# or NULL if the text was evicted. The datatable eats the angle brackets as an HTML tag,
+		# so relabel those so the cell is never blank.
 		text = row.get("query") or ""
 		row["app"] = _apps_in_query(text, app_map)
 		if not text or (text.startswith("<") and text.endswith(">")):
