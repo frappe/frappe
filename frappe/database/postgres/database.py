@@ -312,22 +312,20 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def read_only_snapshot(self):
 		"""Run the block in its own REPEATABLE READ READ ONLY transaction.
 
-		A transaction with writes or queued commit callbacks keeps running as is, so nothing is committed early."""
-		if (
-			self.transaction_writes
-			or len(self.before_commit)
-			or len(self.after_commit)
-			or self._disable_transaction_control
-		):
+		Commit callbacks stay queued for the caller's own commit. A transaction with writes keeps running as is,
+		so nothing is committed early."""
+		if self.transaction_writes or self._disable_transaction_control:
 			yield
 			return
 
-		self.commit()
-		self.sql("set transaction isolation level repeatable read read only")
+		self.sql("commit")
+		self.sql("start transaction isolation level repeatable read read only")
+		self.value_cache.clear()
 		try:
 			yield
 		finally:
-			self.rollback()
+			self.sql("rollback")
+			self.begin()
 
 	def set_session_time_zone(self, timezone: str):
 		self.sql("set time zone %s", timezone)
