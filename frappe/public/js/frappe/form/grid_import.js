@@ -692,7 +692,8 @@ export default class GridImport {
 		const note_rows = this.rows_matching(
 			(w) => !w.blocking && w.col === undefined && shown.includes(cint(w.row))
 		);
-		return this.add_note_count(this.row_hint(), note_rows.size);
+		const hint = this.add_note_count(this.row_hint(), note_rows.size);
+		return this.add_ignored_columns(hint);
 	}
 
 	add_note_count(hint, count) {
@@ -702,6 +703,24 @@ export default class GridImport {
 				? __("1 row has a note. Click its number to see it.")
 				: __("{0} rows have notes. Click a row number to see them.", [count]);
 		return `${hint} ${notes}`;
+	}
+
+	add_ignored_columns(hint) {
+		const ignored = this.get_ignored_columns();
+		if (!ignored.length) return hint;
+		const columns = ignored.join(", ");
+		const note =
+			ignored.length === 1
+				? __("Ignored column: {0}.", [columns])
+				: __("Ignored columns: {0}.", [columns]);
+		return `${hint} ${note}`;
+	}
+
+	get_ignored_columns() {
+		const { headers, column_map } = this.state;
+		return [...headers.keys()]
+			.filter((i) => cstr(headers[i]).trim() && !column_map[i])
+			.map((i) => this.column_title(headers[i], i, true));
 	}
 
 	row_hint() {
@@ -985,11 +1004,7 @@ export default class GridImport {
 
 		return `
 			<div class="grid-import-preview-head">
-				${
-					mapping
-						? hint_html
-						: `<span class="text-muted small">${this.preview_description()}</span>`
-				}
+				${mapping ? hint_html : `<span class="text-muted small">${this.preview_description()}</span>`}
 				<div class="grid-import-preview-head-actions">
 					${
 						this.state.google_sheets_url

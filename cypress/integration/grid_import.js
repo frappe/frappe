@@ -288,6 +288,7 @@ context("Child Table Data Import", () => {
 
 		active_step().should("contain", "Preview");
 		dialog().find('th[data-col="1"]').should("not.exist");
+		hint().should("contain", "Ignored column: Number.");
 		primary("Apply");
 
 		phone_rows().then((rows) => {
@@ -295,6 +296,14 @@ context("Child Table Data Import", () => {
 			expect(numbers).to.include("9876500050");
 			expect(numbers).to.not.include("9876500051");
 		});
+	});
+
+	it("names the columns that match no field", () => {
+		open_import();
+		upload(["9876500052,a,b"], "Number (phone),Notes,Extra");
+
+		active_step().should("contain", "Preview");
+		hint().should("contain", "Ignored columns: Notes, Extra.");
 	});
 
 	it("reads the Google Sheet when that tab is active, even with a file attached", () => {
@@ -378,6 +387,7 @@ context("Child Table Data Import", () => {
 
 		active_step().should("contain", "Preview");
 		dialog().find('th[data-col="1"]').should("not.exist");
+		hint().should("contain", "Ignored column: Is Primary Phone.");
 		primary("Apply");
 		phone_rows().then((rows) => {
 			const added = rows.find((d) => d.phone === "9876500070");
