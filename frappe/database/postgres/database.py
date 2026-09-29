@@ -165,7 +165,9 @@ class PostgresExceptionUtil:
 
 	@staticmethod
 	def is_primary_key_violation(e):
-		return getattr(e, "pgcode", None) == UNIQUE_VIOLATION and "_pkey" in cstr(e.args[0])
+		if not PostgresExceptionUtil.is_duplicate_entry(e):
+			return False
+		return cstr(e.diag.constraint_name).endswith("_pkey")
 
 	@staticmethod
 	def is_unique_key_violation(e):
