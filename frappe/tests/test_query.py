@@ -2672,6 +2672,14 @@ class TestQuery(IntegrationTestCase):
 					ignore_permissions=False,
 				)
 
+			# ORDER BY resolves the name to the select-list alias, so it stays allowed
+			frappe.qb.get_query(
+				"Test Blog Post",
+				fields=["name", "title as published"],
+				order_by="published desc",
+				ignore_permissions=False,
+			).run()
+
 	def test_between_datetime_expansion(self):
 		"""Test that date strings are expanded to datetime ranges for Datetime fields with 'between' operator"""
 		# Test with creation field (standard datetime field)
