@@ -1309,6 +1309,26 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertEqual(gen.context.chrome_layout_header, "")
 		self.assertEqual(gen.context.chrome_layout_footer, "")
 
+	def test_letterhead_left_open_by_jinja_keeps_the_body(self):
+		from bs4 import BeautifulSoup
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		lh = self._make_letterhead()
+		lh.content = (
+			'<div class="pfg-lh">{% if doc.priority == "High" %}<img src="/files/logo.png"></div>{% endif %}'
+		)
+		lh.save(ignore_permissions=True)
+		pf = self._make_print_format()
+		todo = self._make_todo()
+
+		with self.change_settings("Print Settings", repeat_header_footer=1):
+			html = PrintFormatGenerator(pf.name, todo, lh.name)._build_html_for_chrome()
+
+		soup = BeautifulSoup(html, "html5lib")
+		soup.find(id="header-html").extract()
+		self.assertIn("Generator test task", str(soup))
+
 	def test_repeat_header_footer_off_renders_letterhead_once(self):
 		"""With repeat_header_footer disabled, the letterhead header renders inline once
 		(top of body → first page) and the footer inline once (end of body → last page);
