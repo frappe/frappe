@@ -102,6 +102,27 @@ class TestReport(IntegrationTestCase):
 		self.assertEqual(columns[1].get("label"), "Module")
 		self.assertTrue("User" in [d.get("name") for d in data])
 
+	def test_failed_query_report_leaves_connection_writable(self):
+		"""A failing query must not strand the connection in the read only transaction."""
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": frappe.generate_hash(),
+				"ref_doctype": "ToDo",
+				"report_type": "Query Report",
+				"is_standard": "No",
+				"query": "select * from `tabNoSuchTable`",
+			}
+		).insert()
+		self.addCleanup(report.delete)
+
+		with self.assertRaises(Exception):
+			report.execute_query_report({})
+
+		# the assertion: this insert raises InReadOnlyMode if the transaction is still open
+		todo = frappe.get_doc({"doctype": "ToDo", "description": frappe.generate_hash()}).insert()
+		self.addCleanup(todo.delete)
+
 	def test_save_or_delete_report(self):
 		"""Test for validations when editing / deleting report of type Report Builder"""
 
